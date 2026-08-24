@@ -16,9 +16,10 @@ R0 — Prior Art, Event & Geometry Research Baseline.
 
 ## 3. Phase
 
-Research / architecture baseline. The R0 implementation and documentation are
-complete. The interactive application gesture matrix is partial and retains
-explicit `NOT TESTED` rows; no R1 work was started.
+Research / architecture baseline followed by human-validation analysis. The R0
+implementation is complete and unchanged by the validation round. The baseline
+is not sealed because UAT 07 did not capture its requested Explorer operation;
+no R1 work was started.
 
 ## 4. Branch
 
@@ -231,6 +232,11 @@ the census and unhooked on their owner thread. There is no injection.
 
 ## 23. Actual event sequences observed
 
+This section records the original execution evidence at `2e48b967...`, before
+the deliberate ten-file UAT matrix. Its pre-UAT `NOT TESTED` labels are retained
+as historical state and superseded by section 41 and
+[`R0_HUMAN_VALIDATION_REPORT.md`](R0_HUMAN_VALIDATION_REPORT.md).
+
 - **MANUALLY OBSERVED:** final Release one-second timed run: PMv2 verified,
   hooks complete, census complete, zero event records, hook shutdown complete,
   observer shutdown complete, exit `0`, `689/689` JSON lines parsed, no overflow,
@@ -266,6 +272,10 @@ sensitive.
 | VS Code | Running; 3 accepted windows | **MANUALLY OBSERVED** | **NOT TESTED** |
 | Excel | Running; 2 accepted minimized windows | **MANUALLY OBSERVED** | **NOT TESTED** |
 | Power BI Desktop | Not found in inspected process/AppX/App Paths/uninstall/common-path sources; all-users AppX query denied | **NOT TESTED — environment unavailable** | **NOT TESTED** |
+
+The later UAT matrix manually observed native move/resize lifecycles for
+Explorer, VS Code, and Excel. This table remains the original census matrix;
+current interaction results are in the human-validation report.
 
 Notepad was launched for the matrix and restored an existing unsaved tab. It
 was intentionally left open; no close/termination action was attempted, so no
@@ -381,8 +391,10 @@ or global input hook. The observer queries and logs only.
 
 ## 36. Known limitations
 
-- Interactive movement/resizing was not performed, so start/end delivery and
-  accepted top-level geometry sequences remain unverified.
+- At the original execution snapshot, interactive movement/resizing had not
+  been performed. The later UAT matrix supersedes that historical limitation
+  for mouse move/resize; see section 41. Keyboard and other unrun paths remain
+  unverified.
 - Current-desktop hooks and `EnumWindows` do not prove coverage of every app
   model, virtual desktop, elevated target, or protected process.
 - Object/child rejection records share the finite event queue with accepted
@@ -397,8 +409,10 @@ or global input hook. The observer queries and logs only.
 
 ## 37. Untested scenarios
 
-- Mouse, keyboard, shell-snap, maximize/restore/minimize, app-originated, close,
-  crash, and hung-target move/resize sequences.
+- Keyboard move/resize, shell snap, minimize, app-originated geometry, close,
+  crash, and hung-target missing-pair sequences. Mouse move/resize and VS Code
+  maximize/restore are now manually observed; Explorer maximize/restore test 07
+  requires retest.
 - 32-bit targets, elevation/integrity boundaries, packaged-host coverage, remote
   desktop, lock/sleep, and virtual desktops.
 - Multiple displays, negative native origins, mixed scale, cross-monitor moves,
@@ -420,11 +434,13 @@ At evaluated implementation HEAD `2e48b967...`:
 The worktree was clean. Build/output directories are ignored. The report-only
 seal is committed afterward and rechecked before handoff.
 
-## 39. Local/remote divergence
+## 39. Local/remote divergence at the original execution snapshot
 
-No Git remote is configured, so remote divergence is **N/A**, not zero. At the
-evaluated implementation snapshot, local `main` pointed to `fc785cac...` and the
-R0 branch was five commits ahead of it.
+No Git remote was configured at the original evaluated implementation snapshot,
+so divergence at that point was **N/A**, not zero. Local `main` pointed to
+`fc785cac...` and the R0 branch was five commits ahead of it. A later repository
+identity round created `origin`; current divergence is reported in the final
+handoff rather than rewriting the historical result here.
 
 ## 40. Suggested R1 research questions
 
@@ -443,6 +459,32 @@ R1 is not started. Suggested research-only questions are:
 6. What error/result/feedback-suppression contract must a future operations
    adapter satisfy before any third-party window manipulation is authorized?
 
+## 41. Human validation update
+
+The 2026-08-24 validation round evaluated the clean source tree at
+`b50a1c9b2d94996f10b4d700e0c9d71f057e140f`. Ten ignored local JSONL files were
+parsed without exposing titles, user paths, or raw records. All ten had complete
+startup/shutdown diagnostics, continuous observer sequences, and no queue loss
+or notification-failure diagnostic.
+
+Results:
+
+- native Explorer, VS Code, and Excel move/resize: **MANUALLY OBSERVED**;
+- Explorer AltSnap move/resize: **MANUALLY OBSERVED**, lifecycle-equivalent to
+  the corresponding native Explorer sessions;
+- VS Code maximize/restore: **MANUALLY OBSERVED** as location/state changes
+  without START/END;
+- intended Explorer maximize/restore test 07: **RETEST_REQUIRED** because the
+  file captured Excel maximize/restore instead of an identifiable Explorer
+  target;
+- Debug build: **PASS**;
+- Release build: **PASS**; and
+- automated tests: **PASS (3/3)**.
+
+No implementation code changed. Exact per-test counts, geometry, filtering,
+queue/hook review, privacy handling, limitations, and the seal decision are in
+[`R0_HUMAN_VALIDATION_REPORT.md`](R0_HUMAN_VALIDATION_REPORT.md).
+
 ## R0 acceptance summary
 
 ```text
@@ -450,6 +492,10 @@ PRIOR_ART_GATE = PASS
 R0_IMPLEMENTATION = COMPLETE
 R0_AUTOMATED_TESTS = PASS (3/3)
 R0_RUNTIME_CENSUS = MANUALLY OBSERVED
-R0_INTERACTIVE_MOVE_RESIZE_MATRIX = PARTIAL / NOT TESTED
+R0_INTERACTIVE_MOVE_RESIZE_MATRIX = MANUALLY OBSERVED
+R0_MAXIMIZE_RESTORE_MATRIX = PARTIAL / RETEST_REQUIRED (07)
+R0_BASELINE = NOT SEALED
+RETEST_REQUIRED = 07
+REVALIDATION_REQUIRED = 07
 R1_STARTED = NO
 ```

@@ -1,8 +1,8 @@
 # R0 Windows Event and Geometry Model
 
-Status: **RESEARCH BASELINE — OFFICIAL DOCUMENTATION REVIEWED; EMPIRICAL
-BEHAVIOR NOT YET TESTED**  
-Round: R0  
+Status: **RESEARCH BASELINE — OFFICIAL DOCUMENTATION AND HUMAN VALIDATION
+RECORDED; BASELINE NOT SEALED**
+Round: R0
 Review date: 2026-08-24
 
 ## Purpose and evidence labels
@@ -17,8 +17,10 @@ Claims below use these labels:
 - **DOCUMENTED** — stated by Microsoft in the linked Windows documentation.
 - **R0 RECOMMENDATION** — a PaneBind design choice derived from documented
   contracts. It is not presented as Windows behavior.
+- **MANUALLY OBSERVED** — behavior present in the local, privacy-controlled R0
+  JSONL matrix and analyzed without treating upstream reports as local evidence.
 - **NOT TESTED** — an empirical question that still requires a focused observer
-  run. No manual observations are claimed in this document.
+  run.
 
 All technical sources used here are official Microsoft documentation. No code
 was copied or adapted from an external implementation.
@@ -26,8 +28,9 @@ was copied or adapted from an external implementation.
 | Evidence item | Status |
 | --- | --- |
 | Official Windows API/documentation review | `IMPLEMENTED` |
-| Claims validated by automated observer tests | `NOT TESTED` |
-| Windows behavior manually observed | `NOT TESTED` |
+| Automated core/model/UTF regression tests | `AUTOMATED TESTED (3/3)` |
+| Native move/resize behavior manually observed | `MANUALLY OBSERVED` for Explorer, VS Code, and Excel |
+| Maximize/restore behavior manually observed | `MANUALLY OBSERVED` for VS Code; Explorer test 07 is `RETEST_REQUIRED` |
 | Third-party window control | Not in scope; intentionally absent |
 
 ## Baseline decisions
@@ -519,7 +522,9 @@ congruence with both window rectangles in the mixed-DPI experiment matrix.
 
 ## Focused empirical questions for the R0 observer
 
-Every item below is currently **NOT TESTED**.
+This is the pre-UAT empirical checklist. The 2026-08-24 results are recorded in
+[`R0_HUMAN_VALIDATION_REPORT.md`](../reports/R0_HUMAN_VALIDATION_REPORT.md).
+Items not explicitly covered there remain **NOT TESTED**.
 
 ### Event sequence and callback behavior
 
@@ -581,20 +586,34 @@ Every item below is currently **NOT TESTED**.
 
 The official API contracts are sufficient to implement a non-invasive R0
 observer with a platform-neutral event model and deterministic geometry core.
-They are not sufficient to claim real event sequences, pairing, filtering
-quality, rectangle congruence, cross-DPI behavior, or application coverage.
-Those remain explicitly `NOT TESTED` until the observer matrix is run.
+They are not sufficient by themselves to claim real event sequences, pairing,
+filtering quality, rectangle congruence, cross-DPI behavior, or application
+coverage. The local human-validation matrix now supplies limited empirical
+evidence for native and AltSnap move/resize, VS Code maximize/restore,
+filtering, queue stability, and same-display geometry. Unrun scenarios remain
+explicitly `NOT TESTED`.
 
 The design remains inside R0: event-driven observation only, out of context,
 no DLL injection, no high-frequency polling, and no third-party window control.
 
 ## Post-implementation evidence pointer
 
-The `NOT TESTED` labels above describe the state at the official-documentation
-gate. Subsequent R0 execution verified PMv2 startup, both hook registrations,
-census, JSON serialization, and same-thread teardown; it also observed noisy
-raw location-change receipts during an application launch. No manual
-move/resize gesture was performed, so interactive start/location/end sequences,
-pairing, mixed DPI, and multi-monitor behavior remain `NOT TESTED`. Exact counts
-and application/status labels are recorded in
+The `NOT TESTED` labels in the original checklist describe the state at the
+official-documentation gate. Initial R0 execution verified PMv2 startup, both
+hook registrations, census, JSON serialization, and same-thread teardown; it
+also observed noisy raw location-change receipts during an application launch.
+
+The later 2026-08-24 human-validation matrix manually observed balanced native
+move/resize lifecycles for Explorer, VS Code, and Excel; equivalent AltSnap
+move/resize lifecycles for Explorer; and location/state-only maximize/restore
+behavior for VS Code. It recorded no queue loss or notification failure and
+kept positioning and visible-frame bounds distinct. Explorer maximize/restore
+test 07 did not capture the requested Explorer interaction and is
+`RETEST_REQUIRED`, so the R0 baseline is **NOT SEALED**. Mixed DPI,
+multi-monitor behavior, and controlled reentrancy/overflow stress remain
+`NOT TESTED`.
+
+Exact counts and the seal decision are recorded in
+[`R0_HUMAN_VALIDATION_REPORT.md`](../reports/R0_HUMAN_VALIDATION_REPORT.md);
+the original execution evidence remains in
 [`R0_EXECUTION_REPORT.md`](../reports/R0_EXECUTION_REPORT.md).
