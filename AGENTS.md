@@ -4,6 +4,29 @@ These rules apply to every contributor and every development round in this
 repository. A round-specific brief may narrow the allowed scope but may not
 silently broaden it.
 
+## Communication language
+
+- Unless the user explicitly requests another language, use Simplified Chinese
+  for all direct user-facing communication, including Codex final responses,
+  round handoffs, execution results, blocker reports, review summaries, and
+  decision summaries.
+- Source code, identifiers, APIs, shell commands, logs, upstream project names,
+  Git branch names, commit subjects, and technical terms that must remain
+  verbatim may stay in English where appropriate.
+- Do not bulk-translate existing technical documentation solely for language
+  consistency.
+- If a round brief explicitly specifies a language, that requirement overrides
+  this default.
+
+This is a standing governance rule for all rounds, not an R0-only requirement.
+
+The standing intent is:
+
+```text
+User-facing communication -> Simplified Chinese by default
+Engineering identifiers    -> English where appropriate
+```
+
 ## Scope discipline
 
 - Implement only work explicitly authorized by the current round.
