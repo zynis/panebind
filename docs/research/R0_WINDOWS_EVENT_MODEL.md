@@ -587,3 +587,14 @@ Those remain explicitly `NOT TESTED` until the observer matrix is run.
 
 The design remains inside R0: event-driven observation only, out of context,
 no DLL injection, no high-frequency polling, and no third-party window control.
+
+## Post-implementation evidence pointer
+
+The `NOT TESTED` labels above describe the state at the official-documentation
+gate. Subsequent R0 execution verified PMv2 startup, both hook registrations,
+census, JSON serialization, and same-thread teardown; it also observed noisy
+raw location-change receipts during an application launch. No manual
+move/resize gesture was performed, so interactive start/location/end sequences,
+pairing, mixed DPI, and multi-monitor behavior remain `NOT TESTED`. Exact counts
+and application/status labels are recorded in
+[`R0_EXECUTION_REPORT.md`](../reports/R0_EXECUTION_REPORT.md).
