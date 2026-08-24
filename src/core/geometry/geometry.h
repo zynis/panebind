@@ -3,11 +3,16 @@
 #include <algorithm>
 #include <cstdint>
 #include <optional>
+#include <stdexcept>
 
 namespace snapweave::core::geometry {
 
 using Coordinate = std::int64_t;
 using Distance = std::int64_t;
+
+// R0 adapters widen 32-bit native coordinates before calculation. Callers
+// supplying a wider domain must ensure every coordinate span is representable
+// as Distance; the full INT64_MIN..INT64_MAX span is intentionally unsupported.
 
 struct Point {
     Coordinate x{};
@@ -84,10 +89,20 @@ enum class Edge {
     return 0;
 }
 
+[[nodiscard]] constexpr bool edges_share_axis(Edge first, Edge second) noexcept {
+    const auto first_is_x = first == Edge::Left || first == Edge::Right;
+    const auto second_is_x = second == Edge::Left || second == Edge::Right;
+    return first_is_x == second_is_x;
+}
+
 [[nodiscard]] constexpr Distance edge_distance(const Rect& first,
                                                 Edge first_edge,
                                                 const Rect& second,
-                                                Edge second_edge) noexcept {
+                                                Edge second_edge) {
+    if (!edges_share_axis(first_edge, second_edge)) {
+        throw std::invalid_argument{"edge distance requires edges on the same axis"};
+    }
+
     return absolute_distance(edge_coordinate(first, first_edge),
                              edge_coordinate(second, second_edge));
 }
@@ -137,4 +152,3 @@ enum class Edge {
 }
 
 } // namespace snapweave::core::geometry
-

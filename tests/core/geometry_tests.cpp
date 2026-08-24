@@ -25,6 +25,13 @@ void test_size_and_normalization() {
     expect(rect.size() == geometry::Size{20, 30}, "width and height use normalized edges");
     expect(!rect.empty(), "positive-area rectangle is not empty");
     expect(geometry::Rect{1, 1, 1, 9}.empty(), "zero-width rectangle is empty");
+    expect(geometry::Rect{1, 9, 8, 9}.empty(), "zero-height rectangle is empty");
+
+    const geometry::Rect negative_origin{-10, -40, -50, -5};
+    expect(negative_origin == geometry::Rect{-50, -40, -10, -5},
+           "negative-origin coordinates normalize without clamping");
+    expect(negative_origin.size() == geometry::Size{40, 35},
+           "negative-origin rectangle retains its span");
 }
 
 void test_intersection_and_overlap() {
@@ -45,6 +52,12 @@ void test_intersection_and_overlap() {
            "edge contact has no positive-area intersection");
     expect(!geometry::overlaps(first, edge_touching),
            "edge contact is not rectangle overlap");
+
+    const geometry::Rect negative_first{-100, -80, -20, -10};
+    const geometry::Rect negative_second{-50, -50, 10, 5};
+    expect(geometry::intersection(negative_first, negative_second) ==
+               std::optional{geometry::Rect{-50, -50, -20, -10}},
+           "intersection supports negative virtual-screen coordinates");
 }
 
 void test_edge_distance() {
@@ -61,6 +74,22 @@ void test_edge_distance() {
                                    second,
                                    geometry::Edge::Bottom) == 55,
            "distance between horizontal edges");
+    expect(geometry::edge_distance(geometry::Rect{-80, -20, -10, 30},
+                                   geometry::Edge::Right,
+                                   geometry::Rect{-4, -50, 10, 70},
+                                   geometry::Edge::Left) == 6,
+           "edge distance supports negative virtual-screen coordinates");
+
+    try {
+        [[maybe_unused]] const auto invalid =
+            geometry::edge_distance(first,
+                                    geometry::Edge::Left,
+                                    second,
+                                    geometry::Edge::Top);
+        expect(false, "cross-axis edge comparison is rejected");
+    } catch (const std::invalid_argument&) {
+        expect(true, "cross-axis edge comparison is rejected");
+    }
 }
 
 void test_tolerance() {
@@ -87,4 +116,3 @@ int main() {
     std::cout << "All geometry tests passed\n";
     return EXIT_SUCCESS;
 }
-
