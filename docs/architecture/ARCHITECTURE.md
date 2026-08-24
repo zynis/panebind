@@ -40,6 +40,9 @@ The core must not include `HWND`, `HMONITOR`, `RECT`, `POINT`, `DWORD`, Windows
 headers, native WinEvent constants, or native display identifiers whose meaning
 the core must interpret. `WindowId` and `display_id` are opaque strings; only a
 platform adapter constructs or interprets their platform-specific spelling.
+An R0 `WindowId` is observer-session-scoped and ephemeral, not persistent
+identity; native handle reuse is correlated with the required process ID and
+receipt sequence in the Windows log envelope.
 
 Core coordinates are signed 64-bit integral units. An adapter is responsible
 for supplying a single, internally consistent coordinate space. `Rect`
@@ -64,6 +67,9 @@ The native snapshot retains facts that are Windows-specific, such as `HWND`,
 `HMONITOR`, class name, raw DPI, and DWM cloaking. A conversion step produces
 the smaller `NormalizedWindowSnapshot`. That distinction prevents an accidental
 expansion of the cross-platform domain whenever Windows exposes another flag.
+Normalized text and log strings use UTF-8; the Windows adapter explicitly
+transcodes UTF-16 and JSON-escapes it. `process_name` means the executable
+basename when available, not a stronger semantic application identity.
 
 ### Future sync/behavior engine — not implemented in R0
 
@@ -131,16 +137,19 @@ distinguish them.
 
 The R0 Windows observer installs out-of-context hooks on the thread that runs a
 Win32 message loop. It owns every hook handle for the full observation lifetime
-and unhooks on orderly shutdown. The callback validates and snapshots at event
-time; it does not mutate third-party window state. The design contains no
-background sampling loop.
+and unhooks on orderly shutdown. The callback records the native receipt and
+queues bounded work; snapshot time is recorded separately because delivery is
+asynchronous. It does not mutate third-party window state. The design contains
+no background sampling loop.
 
 ## DPI and display baseline
 
 The Windows executable declares Per-Monitor DPI Awareness V2. Native coordinate
 semantics are recorded in the event research document and verified through
-observation; the core does not assume 96 DPI. The normalized display scale is
-derived at the adapter boundary, while the native snapshot retains raw DPI.
+observation; the core does not assume 96 DPI. `GetDpiForWindow` is retained as
+raw target-window DPI in the native snapshot. If normalized, it becomes an
+optional effective-window scale, not a physical monitor-scale claim: Windows
+can report 96 for a DPI-unaware target or system DPI for a system-aware target.
 
 Monitor identity and work area are snapshot facts, not permanent properties of
 a window. Moving a window can change both. R0 records these changes but does not
@@ -149,9 +158,11 @@ attempt cross-DPI synchronization or correction.
 ## Filtering boundary
 
 The observer's filter is a named, testable platform policy, not behavior logic.
-It must reject invalid/non-root/child-object event targets, invisible windows,
+It excludes invalid/non-root/child-object event targets, invisible windows,
 DWM-cloaked windows, and tool windows that are not explicitly presented as app
-windows. It also skips the observer's own process. Exact evidence and caveats
+windows from the `default_candidate`/normalized event stream. Structurally
+observable policy rejections remain diagnostic records with a named reason and
+raw facts. The observer also skips its own process. Exact evidence and caveats
 are recorded in `docs/research/R0_WINDOWS_EVENT_MODEL.md`.
 
 Filtering for future Snap/Glue eligibility is a separate problem. R0's
@@ -166,4 +177,3 @@ observation filter must not be mistaken for a permanent product blacklist.
 - No call that moves/resizes a third-party window.
 - No Snap, Glue, zone, tiling, or persistent group engine.
 - Unobserved behavior is marked untested rather than inferred.
-
