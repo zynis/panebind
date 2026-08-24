@@ -12,10 +12,10 @@ namespace {
 
 void print_usage(std::ostream& output) {
     output << "Usage:\n"
-              "  snapweave-observer --enumerate-only\n"
-              "  snapweave-observer --observe-seconds N\n"
-              "  snapweave-observer\n"
-              "  snapweave-observer --help\n";
+              "  panebind-observer --enumerate-only\n"
+              "  panebind-observer --observe-seconds N\n"
+              "  panebind-observer\n"
+              "  panebind-observer --help\n";
 }
 
 [[nodiscard]] std::optional<std::chrono::seconds> parse_duration(
@@ -61,7 +61,7 @@ int main(const int argc, char* argv[]) {
         return 2;
     }
 
-    snapweave::platform::windows::WindowsObserver observer{std::cout};
+    panebind::platform::windows::WindowsObserver observer{std::cout};
     return enumerate_only ? observer.enumerate_only()
                           : observer.observe(observation_duration);
 }

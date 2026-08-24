@@ -1,14 +1,14 @@
-# SnapWeave R0 Execution Report
+# PaneBind R0 Execution Report
 
 Report date: 2026-08-24 (Asia/Shanghai).
 
 Evidence labels in this report are literal: **IMPLEMENTED**, **AUTOMATED
 TESTED**, **MANUALLY OBSERVED**, **NOT TESTED**, and **BLOCKED**. An upstream
-issue or test never counts as a local SnapWeave observation.
+issue or test never counts as a local PaneBind observation.
 
 ## 1. Project
 
-SnapWeave.
+PaneBind.
 
 ## 2. Round
 

@@ -21,8 +21,8 @@ void expect_equal(const std::string_view actual,
 } // namespace
 
 int main() {
-    using snapweave::platform::windows::json_quote;
-    using snapweave::platform::windows::utf16_to_utf8;
+    using panebind::platform::windows::json_quote;
+    using panebind::platform::windows::utf16_to_utf8;
 
     const auto unicode = utf16_to_utf8(L"\u7a97\u53e3 \U0001F642");
     if (!unicode.value.has_value()) {

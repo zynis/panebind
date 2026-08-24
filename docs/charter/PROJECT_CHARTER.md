@@ -1,17 +1,16 @@
-# SnapWeave Project Charter
+# PaneBind Project Charter
 
 ## Mission
 
-SnapWeave exists to make arranging and manipulating desktop windows feel
+PaneBind exists to make arranging and manipulating desktop windows feel
 coherent, predictable, and lightweight. It will explore interactions such as
 snapping, attached-window movement, coordinated resizing, stretching, docking,
 and convenient pointer/keyboard operations without tying the product's core
 model to one operating system.
 
-**Windows is the first implementation platform, not the identity of the
-product.**
+**Windows is the first implementation platform, not the identity of PaneBind.**
 
-SnapWeave may use established tools, including AquaSnap, as behavior and UX
+PaneBind may use established tools, including AquaSnap, as behavior and UX
 references. It is not an AquaSnap clone: private implementation details will
 not be reverse engineered, decompiled, or copied.
 
@@ -88,11 +87,11 @@ requirements and evidence.
 
 ## Open-source strategy
 
-- SnapWeave's own code is MIT-licensed.
+- PaneBind's own code is MIT-licensed.
 - Every inspected external source is recorded with an immutable revision and
   use status.
 - GPL sources such as AltSnap are reference-only: architectural lessons and
-  independently designed behavior may inform SnapWeave, but GPL code is not
+  independently designed behavior may inform PaneBind, but GPL code is not
   copied, adapted, translated, or mechanically rewritten into this codebase.
 - Code reuse from permissive sources requires an explicit compatibility check,
   provenance entry, and any required attribution before the code is introduced.
@@ -113,4 +112,3 @@ Potential later work includes an architecture review, deeper behavior
 experiments, a window-operations adapter, snapping, and attached-window
 behavior. These are roadmap directions, not approved R0 scope. R0 may recommend
 research questions but must not automatically begin the next round.
-

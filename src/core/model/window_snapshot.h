@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-namespace snapweave::core::model {
+namespace panebind::core::model {
 
 class ProcessId final {
 public:
@@ -57,4 +57,4 @@ struct NormalizedWindowSnapshot {
     std::optional<double> effective_window_scale;
 };
 
-} // namespace snapweave::core::model
+} // namespace panebind::core::model

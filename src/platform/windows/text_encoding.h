@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace snapweave::platform::windows {
+namespace panebind::platform::windows {
 
 struct Utf8ConversionResult {
     std::optional<std::string> value;
@@ -19,4 +19,4 @@ struct Utf8ConversionResult {
 // The input is expected to be valid UTF-8; non-ASCII bytes are retained.
 [[nodiscard]] std::string json_quote(std::string_view value);
 
-} // namespace snapweave::platform::windows
+} // namespace panebind::platform::windows

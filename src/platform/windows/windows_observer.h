@@ -21,7 +21,7 @@
 #include <string_view>
 #include <vector>
 
-namespace snapweave::platform::windows {
+namespace panebind::platform::windows {
 
 struct FieldError {
     std::string api;
@@ -162,4 +162,4 @@ private:
     bool output_failed_{};
 };
 
-} // namespace snapweave::platform::windows
+} // namespace panebind::platform::windows

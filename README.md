@@ -1,6 +1,6 @@
-# SnapWeave
+# PaneBind
 
-SnapWeave is an early-stage, open-source desktop window-enhancement project.
+PaneBind is an early-stage, open-source desktop window-enhancement project.
 Windows is the first implementation platform, while the geometry and event
 model are designed to remain platform-neutral.
 
@@ -23,7 +23,7 @@ cmake --build build --config Debug
 ctest --test-dir build -C Debug --output-on-failure
 ```
 
-On Windows, the resulting `snapweave-observer` executable emits JSON Lines.
+On Windows, the resulting `panebind-observer.exe` emits JSON Lines.
 Run it with `--enumerate-only` for a one-time snapshot or without arguments to
 observe the three R0 WinEvent types until interrupted.
 
@@ -33,7 +33,6 @@ See [the project charter](docs/charter/PROJECT_CHARTER.md),
 
 ## License
 
-SnapWeave is licensed under the MIT License. External research sources and
+PaneBind is licensed under the MIT License. External research sources and
 their code-use status are tracked separately in
 `docs/research/SOURCE_PROVENANCE.md`.
-

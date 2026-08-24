@@ -5,7 +5,7 @@
 #include <optional>
 #include <stdexcept>
 
-namespace snapweave::core::geometry {
+namespace panebind::core::geometry {
 
 using Coordinate = std::int64_t;
 using Distance = std::int64_t;
@@ -151,4 +151,4 @@ enum class Edge {
     return distance >= 0 && tolerance >= 0 && distance <= tolerance;
 }
 
-} // namespace snapweave::core::geometry
+} // namespace panebind::core::geometry

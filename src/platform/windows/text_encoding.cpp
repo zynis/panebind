@@ -12,7 +12,7 @@
 #include <limits>
 #include <utility>
 
-namespace snapweave::platform::windows {
+namespace panebind::platform::windows {
 
 Utf8ConversionResult utf16_to_utf8(const std::wstring_view value) {
     if (value.empty()) {
@@ -98,4 +98,4 @@ std::string json_quote(const std::string_view value) {
     return output;
 }
 
-} // namespace snapweave::platform::windows
+} // namespace panebind::platform::windows

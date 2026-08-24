@@ -6,11 +6,11 @@
 - Project: [RamonUnch/AltSnap](https://github.com/RamonUnch/AltSnap).
 - Immutable revision reviewed: [`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`](https://github.com/RamonUnch/AltSnap/commit/5c86416ad21e4b72844a998a746bd3bb0bee5f5d), committed 2026-07-27 06:58:41 +02:00 on `main`.
 - Nearest release: [`1.68`](https://github.com/RamonUnch/AltSnap/releases/tag/1.68), whose tag points to `20307468b832b40998e1e65e96ab6eb28293ee62`; the reviewed head is 48 commits later (`1.68-48-g5c86416`).
-- License: the repository carries the [GNU GPL version 3 text](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/License.txt), while the C source headers say GPL version 3 **or later**. GitHub reports `GPL-3.0`. SnapWeave therefore treats AltSnap as **GPL reference-only**.
+- License: the repository carries the [GNU GPL version 3 text](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/License.txt), while the C source headers say GPL version 3 **or later**. GitHub reports `GPL-3.0`. PaneBind therefore treats AltSnap as **GPL reference-only**.
 - Review document: **IMPLEMENTED**.
 - Code copied: **NO**.
 - Code adapted: **NO**.
-- External build or runtime behavior: **NOT TESTED**. This is a static source/history/issue review; issue reports are not relabeled as SnapWeave manual observations.
+- External build or runtime behavior: **NOT TESTED**. This is a static source/history/issue review; issue reports are not relabeled as PaneBind manual observations.
 - Manual behavior observation: **NOT TESTED**.
 - AltSnap research track: **PASS**. The overall `PRIOR_ART_GATE` still depends on the other mandatory review and the consolidated provenance record.
 
@@ -18,28 +18,28 @@ This document uses three evidence labels:
 
 - **Fact** means directly supported by immutable source, repository history, an issue/PR, or official Microsoft documentation.
 - **Inference** means a conclusion drawn from those facts but not demonstrated by a runtime experiment in this round.
-- **Recommendation** is an independent SnapWeave design direction. It is not adapted AltSnap code.
+- **Recommendation** is an independent PaneBind design direction. It is not adapted AltSnap code.
 
 ## Classification and fitness as prior art
 
 **Fact.** AltSnap is an active, mature behavioral reference rather than a proof of concept: its public history begins in 2020, it has repeated releases, current development after release 1.68, and a long issue/PR record covering real applications, input devices, monitor configurations, and Windows releases. Popularity was not used as the maturity test. The stronger evidence is the depth of its corrective history, including per-monitor DPI work, hidden-edge snapping, hook/input failure reports, and application-specific resize behavior.
 
-**Fact.** The repository has no automated test directory or test target at the reviewed revision. Most geometry and behavior live in one large Win32 state machine. It is therefore mature operational prior art, but not a validation oracle or a suitable architectural template for SnapWeave.
+**Fact.** The repository has no automated test directory or test target at the reviewed revision. Most geometry and behavior live in one large Win32 state machine. It is therefore mature operational prior art, but not a validation oracle or a suitable architectural template for PaneBind.
 
-**Recommendation.** Use AltSnap to discover failure modes, policy choices, and required test cases. Do not derive implementation structure or code from it, both because of the GPL boundary and because SnapWeave requires a platform-neutral core.
+**Recommendation.** Use AltSnap to discover failure modes, policy choices, and required test cases. Do not derive implementation structure or code from it, both because of the GPL boundary and because PaneBind requires a platform-neutral core.
 
 ## Architecture
 
 ### Source and runtime boundaries
 
-| Unit | Directly observed responsibility | SnapWeave interpretation |
+| Unit | Directly observed responsibility | PaneBind interpretation |
 | --- | --- | --- |
 | `AltSnap.exe` | `altsnap.c` owns process startup, tray/config integration, loading `hooks.dll`, enabling/disabling the keyboard hook, and command routing. `tray.c`, `config.c`, and localization sources are textually included by the executable source. See [loader and hook setup](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/altsnap.c#L41-L103). | Keep lifecycle/UI outside the normalized core, but do not copy the textual-inclusion structure. |
 | `hooks.dll` | `hooks.c` owns input state, window selection, filtering, monitor/window enumeration, move/resize, snapping, restore state, z-order actions, timers, and a worker thread. It textually includes [`snap.c` and `zones.c`](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/hooks.c#L464-L466). | Valuable as an end-to-end behavior map; too coupled and Windows-specific to become a core boundary. |
 | `snap.c` | Stores AltSnap restore flags and dimensions as window properties, with a fixed 16-entry in-process fallback, and rescales stored restore dimensions when the window DPI changes. See [restore state handling](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/snap.c#L43-L202). | Restore provenance and lifetime must be explicit in a future operations layer; do not make the core write HWND properties. |
 | `zones.c` | Reads absolute zone rectangles or generates grids over monitor work areas, selects containing or nearest-center zones, and manages a preview. See [zone loading and selection](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/zones.c#L11-L274). | Out of R0 scope. Record the monitor/topology questions, but do not pull zones forward. |
 | `unfuck.h` / `nanolibc.h` | Compatibility shims for old Windows/SDK versions, geometry helpers, DWM/DPI calls, window visibility, and a small runtime. | Confirms that Windows compatibility details are numerous and belong in the Windows adapter, not `src/core/`. |
-| Build | The default Make target builds exactly `AltSnap.exe` and `hooks.dll`; there is no separate geometry library. See [Makefile targets](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/Makefile#L139-L145). | SnapWeave should create explicit seams between native collection, normalized models, and deterministic geometry. |
+| Build | The default Make target builds exactly `AltSnap.exe` and `hooks.dll`; there is no separate geometry library. See [Makefile targets](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/Makefile#L139-L145). | PaneBind should create explicit seams between native collection, normalized models, and deterministic geometry. |
 
 **Fact.** The shared header includes `windows.h`, and the behavioral state is expressed directly in `HWND`, `HMONITOR`, `RECT`, window styles, messages, and process-global mutable structures. There is no platform-neutral domain layer.
 
@@ -73,7 +73,7 @@ The final operations step remains research-only in R0.
 
 **Conclusion.** Current AltSnap does **not** inject its DLL into third-party processes.
 
-**Fact.** AltSnap has a compile-time `NO_HOOK_LL` fallback that polls cursor/button state on a 32 ms timer, but the macro is not defined in the reviewed source or default Makefiles. The shipped/default source path therefore uses low-level hooks, not polling. SnapWeave must not adopt that fallback because R0 explicitly forbids high-frequency polling.
+**Fact.** AltSnap has a compile-time `NO_HOOK_LL` fallback that polls cursor/button state on a 32 ms timer, but the macro is not defined in the reviewed source or default Makefiles. The shipped/default source path therefore uses low-level hooks, not polling. PaneBind must not adopt that fallback because R0 explicitly forbids high-frequency polling.
 
 **Fact.** The source contains a WinEvent-hook experiment behind an undefined `EVENT_HOOK` preprocessor guard. It is not part of the reviewed build. Active movement handling does not observe OS move/size WinEvents; AltSnap optionally calls `NotifyWinEvent` to announce moves that **AltSnap itself controls**. See [disabled event-hook block](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/hooks.c#L4088-L4119) and [synthetic start/end notification](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/hooks.c#L576-L587).
 
@@ -139,7 +139,7 @@ The initialization path is visible in [`init_movement_and_actions`](https://gith
 
 **Fact.** Merged [PR #723](https://github.com/RamonUnch/AltSnap/pull/723) added a bounded `WM_SIZING` round trip before placement so terminal-like applications can quantize the proposed rectangle to a character grid. The same PR also fixed an out-of-bounds write in snapped-window enumeration.
 
-**Inference.** A resize engine cannot assume the requested rectangle is the rectangle an application will accept. That is supported by AltSnap's corrective history, but SnapWeave still needs its own experiment and operation-result model.
+**Inference.** A resize engine cannot assume the requested rectangle is the rectangle an application will accept. That is supported by AltSnap's corrective history, but PaneBind still needs its own experiment and operation-result model.
 
 **Recommendation.** A future operation result should capture requested bounds, accepted/observed bounds, timeout/failure, and the relevant frame/DPI snapshot. Pure geometry tests must not pretend to model application-owned `WM_SIZING` behavior.
 
@@ -225,7 +225,7 @@ See [`ShouldSnapTo`](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b728
 
 **Fact.** `SnapGap` is incorporated by inflating visible target rectangles and adjusting the moving window's frame deltas. This puts policy (desired gap) and native frame conversion in the same helpers.
 
-**Recommendation.** SnapWeave should keep separate normalized fields for positioning bounds and visible frame bounds, with source/error metadata. Gap/tolerance is pure behavior policy; frame conversion belongs in the Windows adapter.
+**Recommendation.** PaneBind should keep separate normalized fields for positioning bounds and visible frame bounds, with source/error metadata. Gap/tolerance is pure behavior policy; frame conversion belongs in the Windows adapter.
 
 ## Exclusions, elevation, and special cases
 
@@ -258,7 +258,7 @@ See [`ShouldSnapTo`](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b728
 
 **Fact.** A commit message at [`76114d2`](https://github.com/RamonUnch/AltSnap/commit/76114d263585fa32d55bfa315177d034fc78792a) references `#618`, but GitHub's issue endpoint returned 404 during review. No issue content or conclusion was inferred from that unavailable record.
 
-## SnapWeave decisions from this review
+## PaneBind decisions from this review
 
 ### Designs worth adopting as independent concepts
 
@@ -284,9 +284,9 @@ See [`ShouldSnapTo`](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b728
 - A monolithic module where input, filter policy, geometry, native operations, restore state, and UI share mutable globals.
 - Synchronous unbounded cross-process calls from a low-level hook callback.
 - Treating merged fixes, issue anecdotes, or a Per-Monitor-V2 manifest as proof that mixed-DPI behavior is solved.
-- Copying, translating, or mechanically restructuring GPL implementation code into SnapWeave.
+- Copying, translating, or mechanically restructuring GPL implementation code into PaneBind.
 
-### Problems SnapWeave must test
+### Problems PaneBind must test
 
 - Positioning bounds versus visible frame bounds, including asymmetric invisible borders and maximized overhang.
 - Negative virtual-screen coordinates and monitors above/left of the primary monitor.
@@ -303,7 +303,7 @@ See [`ShouldSnapTo`](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b728
 
 The AltSnap track satisfies the R0 prior-art requirement: source, license, exact revision, upstream architectural difference, official platform semantics, issue history, and independent design lessons were all inspected and recorded.
 
-This review authorizes **no AltSnap-derived implementation**. In R0, SnapWeave may only observe, log, normalize, and calculate. In particular, it must not implement AltSnap's low-level input behavior, `SetWindowPos`/`DeferWindowPos` control, snapping, zones, sticky resize, restore properties, or synthetic move/size notifications.
+This review authorizes **no AltSnap-derived implementation**. In R0, PaneBind may only observe, log, normalize, and calculate. In particular, it must not implement AltSnap's low-level input behavior, `SetWindowPos`/`DeferWindowPos` control, snapping, zones, sticky resize, restore properties, or synthetic move/size notifications.
 
 ```text
 ALTSNAP_RESEARCH_GATE = PASS
@@ -329,10 +329,10 @@ Files/modules inspected: README.md; License.txt; Makefile; AltSnap.exe.manifest;
 Issues inspected: #7, #63, #160, #388, #413, #414, #452, #532, #538, #545, #644, #681; attempted #618 returned 404
 PRs inspected: #415, #682, #723, #748
 What was learned: current non-injected low-level hook design; removal of AltDrag HookWindows; move/resize pipeline; unified monitor/window edge candidates; occlusion-aware edge filtering; min/max and app-adjusted resize behavior; frame-bounds distinction; blacklist policy; worker/coalescing history; unresolved mixed-DPI and input reliability risks
-Applicable SnapWeave subsystem: Windows input research (future); Windows window/monitor/frame adapter; normalized snapshots/events; pure geometry candidate model; filtering policy; reliability test matrix
+Applicable PaneBind subsystem: Windows input research (future); Windows window/monitor/frame adapter; normalized snapshots/events; pure geometry candidate model; filtering policy; reliability test matrix
 Code copied: NO
 Code adapted: NO
-Attribution required: NO for code because no code entered SnapWeave; research citations retained. Any future reuse requires a separate GPL compatibility decision and is not authorized by R0.
+Attribution required: NO for code because no code entered PaneBind; research citations retained. Any future reuse requires a separate GPL compatibility decision and is not authorized by R0.
 ```
 
 ### AltDrag (comparison source)
@@ -347,10 +347,10 @@ Date reviewed: 2026-08-24
 Files/modules inspected: LICENSE; altdrag.c; hooks.c; hookwindows_x64.c; build.bat; AltDrag.ini; repository tree/metadata
 Issues/PRs inspected: none directly; AltSnap #63 and current AltSnap README were used for fork history
 What was learned: optional HookWindows used global WH_CALLWNDPROC injection, per-process DLL initialization/subclassing, and a second-bitness helper; this is the design AltSnap removed
-Applicable SnapWeave subsystem: hook/input architecture and no-injection threat boundary
+Applicable PaneBind subsystem: hook/input architecture and no-injection threat boundary
 Code copied: NO
 Code adapted: NO
-Attribution required: NO for code because no code entered SnapWeave; research citations retained. Any future reuse requires a separate GPL compatibility decision and is not authorized by R0.
+Attribution required: NO for code because no code entered PaneBind; research citations retained. Any future reuse requires a separate GPL compatibility decision and is not authorized by R0.
 ```
 
 ## Inspection commands and limitations
@@ -414,4 +414,4 @@ Limitations and blocked sub-evidence:
 - AltSnap's checkout produced working-tree encoding warnings for localization/INI files because of `working-tree-encoding=utf-16le-bom`; C source inspection was unaffected, and repository-form content was read with `git show` where needed.
 - Issue attachments and test binaries were not downloaded or executed.
 - The exact pre-public-history HookWindows removal commit is unavailable, as explained above.
-- No AltSnap binary was built or run, and no issue report is presented as a manually observed SnapWeave result.
+- No AltSnap binary was built or run, and no issue report is presented as a manually observed PaneBind result.

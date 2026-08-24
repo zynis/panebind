@@ -7,8 +7,8 @@
 #include <string>
 #include <string_view>
 
-namespace events = snapweave::core::events;
-namespace model = snapweave::core::model;
+namespace events = panebind::core::events;
+namespace model = panebind::core::model;
 
 namespace {
 

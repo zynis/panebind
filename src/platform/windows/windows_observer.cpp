@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-namespace snapweave::platform::windows {
+namespace panebind::platform::windows {
 namespace {
 
 constexpr UINT kDrainEventsMessage = WM_APP + 1U;
@@ -1401,4 +1401,4 @@ int WindowsObserver::observe(const std::optional<std::chrono::seconds> duration)
     return succeeded && !output_failed_ ? 0 : 1;
 }
 
-} // namespace snapweave::platform::windows
+} // namespace panebind::platform::windows

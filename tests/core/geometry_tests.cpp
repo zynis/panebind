@@ -5,7 +5,7 @@
 #include <optional>
 #include <string_view>
 
-namespace geometry = snapweave::core::geometry;
+namespace geometry = panebind::core::geometry;
 
 namespace {
 

@@ -38,8 +38,8 @@ Throughout this review:
 - **FACT** means verified in the pinned source, repository history, an official
   Microsoft document, or the linked issue/PR state.
 - **INFERENCE** means an architectural interpretation of those facts.
-- **RECOMMENDATION** is a SnapWeave decision proposed from that evidence.
-- An issue reporter's runtime observation is not presented as a SnapWeave
+- **RECOMMENDATION** is a PaneBind decision proposed from that evidence.
+- An issue reporter's runtime observation is not presented as a PaneBind
   observation.
 
 ## Literal source tree at the reviewed revision
@@ -134,7 +134,7 @@ independent of the comparatively heavy editor UI and makes editor replacement
 possible. Shared files and update events also create multiple cached views,
 which require explicit refresh and canonical-source rules.
 
-**RECOMMENDATION.** SnapWeave should adopt the thin native ingress and explicit
+**RECOMMENDATION.** PaneBind should adopt the thin native ingress and explicit
 UI/backend boundary, but not call a Windows-heavy library its core. R0's
 platform-neutral geometry and normalized events must remain in `src/core/`;
 native handles, hooks, monitor discovery, DPI contexts, and future window
@@ -195,7 +195,7 @@ envelope is a Win32 registered message rather than a platform-neutral type.
 It minimizes work in the hook callback and establishes one owning thread for
 mutable gesture state.
 
-**RECOMMENDATION.** SnapWeave R0 should preserve the pattern with a smaller,
+**RECOMMENDATION.** PaneBind R0 should preserve the pattern with a smaller,
 explicit adapter translation:
 
 1. WinEvent callback validates the event and records native metadata.
@@ -260,7 +260,7 @@ saved-layout selection after dock/sleep and connects it to those exact
 constructs plus stale persisted entries. The constructs are source-confirmed;
 the reported runtime symptom was **NOT TESTED** by this review.
 
-**RECOMMENDATION.** SnapWeave should model these as distinct concepts:
+**RECOMMENDATION.** PaneBind should model these as distinct concepts:
 
 - ephemeral native monitor token, valid only for the current enumeration;
 - persistent monitor identity with explicit confidence/fallback provenance;
@@ -301,7 +301,7 @@ coordinates, DPI-virtualized coordinates, WPF device-independent units,
 monitor rectangles, work-area rectangles, and a target window's placement
 coordinates can all differ.
 
-**RECOMMENDATION.** Every Windows-adapter rectangle crossing into SnapWeave
+**RECOMMENDATION.** Every Windows-adapter rectangle crossing into PaneBind
 must state its semantic space and source: positioning versus visible bounds,
 physical versus virtualized coordinates, monitor versus work area, and the DPI
 used for interpretation. Normalize once at the adapter boundary. Never infer
@@ -340,26 +340,26 @@ is broad and titles can change during a window's lifetime.
 **RECOMMENDATION.** R0 observation should capture raw facts separately from a
 policy result and log a stable exclusion reason. Keep native style/class/path
 inspection in the Windows adapter. Do not promote FancyZones' exact blacklist
-or title-substring behavior into core without SnapWeave-specific product
+or title-substring behavior into core without PaneBind-specific product
 evidence and tests. Permission/path lookup failures should be explicit rather
 than treated as a fabricated identity.
 
 ## Production hardening and history inspected
 
-| Evidence | Verified state at review | Lesson for SnapWeave |
+| Evidence | Verified state at review | Lesson for PaneBind |
 |---|---|---|
 | [PR #48569](https://github.com/microsoft/PowerToys/pull/48569), merge commit [`dd26d865`](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac) | Merged 2026-06-23. Added the missing destroy subscription/dispatch, aborts a destroyed window's in-flight drag, always clears drag state, and narrows swallowed keys. The PR states that this hook path had no unit-test harness and was manually verified. | Event completeness is defined by state-machine invariants, not by the happy-path start/end pair. Cancellation and cleanup must be idempotent and tested separately from commit/end. |
 | [PR #48473](https://github.com/microsoft/PowerToys/pull/48473), merge commit [`ae9f241e`](https://github.com/microsoft/PowerToys/commit/ae9f241ef13737dab6f861767bbfdfca72b78475) | Merged 2026-07-01. Fixed overlay-thread teardown ordering, joining an unstarted thread, a condition-variable shutdown race, and a dangling `WorkArea*` when topology/configuration was cleared during a drag. | Stop workers before recycling their resources; cancel gestures before topology replacement; avoid raw borrowed pointers that can outlive a topology generation. |
 | [PR #44440](https://github.com/microsoft/PowerToys/pull/44440) / [issue #43363](https://github.com/microsoft/PowerToys/issues/43363) | Merged 2026-01-09. Mixed-DPI editor overlays were shifted/clipped because two sides interpreted coordinates in different DPI contexts. | Coordinate-space metadata belongs in contracts and tests, not comments or caller assumptions. |
 | [PR #49433](https://github.com/microsoft/PowerToys/pull/49433) / [issue #44058](https://github.com/microsoft/PowerToys/issues/44058) | Merged 2026-08-03 with a regression test. Active work areas refreshed shape but retained stale spacing/sensitivity/count from a persisted snapshot; the fix reloads canonical custom-layout data. | Name the canonical source of each field and test live refresh. Multiple caches require versioning/invalidation, not partial reloads. |
-| [Issue #1685](https://github.com/microsoft/PowerToys/issues/1685) and current [`WindowUtils.cpp`](https://github.com/microsoft/PowerToys/blob/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowUtils.cpp#L213-L259) | Closed as fix committed. Current code still performs a bounded 5 x 100 ms placement-state retry to avoid breaking minimize-to-tray applications. | Window state can be transitional after events. This bounded actuator compatibility workaround is not evidence for using polling as SnapWeave R0's event source. |
+| [Issue #1685](https://github.com/microsoft/PowerToys/issues/1685) and current [`WindowUtils.cpp`](https://github.com/microsoft/PowerToys/blob/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowUtils.cpp#L213-L259) | Closed as fix committed. Current code still performs a bounded 5 x 100 ms placement-state retry to avoid breaking minimize-to-tray applications. | Window state can be transitional after events. This bounded actuator compatibility workaround is not evidence for using polling as PaneBind R0's event source. |
 | [Issue #49016](https://github.com/microsoft/PowerToys/issues/49016) | Open. Source-confirmed identity/hash constructs; reported dock/sleep symptom NOT TESTED here. | Persistent monitor identity needs explicit stability rules, pruning, and equality/hash tests. |
 | [Issue #49019](https://github.com/microsoft/PowerToys/issues/49019) | Open. The source does use desktop-name change as a signal and then reads the current ID from registry, falling back to the first desktop ([source](https://github.com/microsoft/PowerToys/blob/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/VirtualDesktop.cpp#L99-L132)); the reporter's timing symptom was NOT TESTED here. | A signal that identity may have changed is not necessarily a settled identity value. Represent unknown/transitional states and do not persist a guessed fallback. |
 
 Microsoft's application-compatibility section also records applications for
 which `EVENT_SYSTEM_MOVESIZESTART` is not raised and cases that require
 elevation. That is official evidence that WinEvent coverage is application- and
-integrity-dependent, not proof that SnapWeave observed those applications.
+integrity-dependent, not proof that PaneBind observed those applications.
 
 ## Test architecture and limits
 
@@ -407,7 +407,7 @@ full hook ordering, topology changes during a gesture, mixed-DPI physical
 hardware matrix, elevated targets, or virtual-desktop registry timing a
 deterministic unit-tested surface.
 
-**RECOMMENDATION.** SnapWeave should keep pure geometry and normalized event
+**RECOMMENDATION.** PaneBind should keep pure geometry and normalized event
 tests independent of an interactive desktop, then add adapter tests and a
 clearly labeled manual matrix for native semantics. Required future edge
 cases include destroy/cancel without end, duplicate/child location events,
@@ -416,14 +416,14 @@ change, mixed DPI, non-DPI-aware targets, missing start/end events, elevated
 targets, and monitor reconnect identity. R0 must report unrun cases as
 `NOT TESTED`, never inherit upstream claims as local results.
 
-## Decisions for SnapWeave R0
+## Decisions for PaneBind R0
 
 ### Worth adopting
 
 - Out-of-context WinEvent hooks with no third-party DLL injection.
 - Event-driven observation and a message loop; no continuous geometry polling.
 - Dynamic subscription to noisy location changes only during a move/resize
-  gesture, subject to SnapWeave's own event experiments.
+  gesture, subject to PaneBind's own event experiments.
 - Immediate callback-to-owner-thread handoff to avoid reentrant state mutation.
 - Reason-bearing window eligibility results and logging.
 - Separate current topology, work-area geometry, layout data, and persistent
@@ -451,7 +451,7 @@ targets, and monitor reconnect identity. R0 must report unrun cases as
 - `SetWindowPlacement`, `SetWindowPos`, or any other third-party window
   operation.
 - Windows types or constants in `src/core/`.
-- FancyZones' telemetry stack; SnapWeave's charter requires no telemetry.
+- FancyZones' telemetry stack; PaneBind's charter requires no telemetry.
 - Bounded placement/topology retries as a general event source, and especially
   no high-frequency resident polling.
 - Raw references into replaceable topology-owned objects.
@@ -462,7 +462,7 @@ targets, and monitor reconnect identity. R0 must report unrun cases as
 
 These are follow-ups, not authorization to start R1:
 
-- Which applications in SnapWeave's manual matrix omit or reorder
+- Which applications in PaneBind's manual matrix omit or reorder
   move/size/location events?
 - Does dynamic location-hook installation ever miss the first meaningful
   geometry change, and what duplicate/child events occur?
@@ -488,9 +488,8 @@ Files/modules inspected: src/modules/fancyzones/FancyZones/FancyZonesApp.{h,cpp}
 Issues/PRs inspected: https://github.com/microsoft/PowerToys/issues/1685; https://github.com/microsoft/PowerToys/issues/43363; https://github.com/microsoft/PowerToys/issues/44058; https://github.com/microsoft/PowerToys/issues/49016; https://github.com/microsoft/PowerToys/issues/49019; https://github.com/microsoft/PowerToys/pull/44440; https://github.com/microsoft/PowerToys/pull/48473; https://github.com/microsoft/PowerToys/pull/48569; https://github.com/microsoft/PowerToys/pull/49433; path-scoped git history through the reviewed SHA.
 Official documentation inspected: https://learn.microsoft.com/en-us/windows/powertoys/fancyzones; https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook
 What was learned: use out-of-context event ingress and serialized owner-thread dispatch; scope noisy location events to active gestures; cancel state before topology replacement; model monitor/work-area/virtual-desktop identity explicitly; label DPI coordinate spaces; use reason-bearing filters; separate canonical layout data from caches; test teardown, missing events, and topology/DPI transitions. FancyZonesLib is Windows-specific and is not a platform-neutral core template.
-Applicable SnapWeave subsystem: Windows event adapter; window snapshot/filtering; monitor/work-area/DPI adapter; normalized event model; core geometry boundary; lifecycle and test strategy.
+Applicable PaneBind subsystem: Windows event adapter; window snapshot/filtering; monitor/work-area/DPI adapter; normalized event model; core geometry boundary; lifecycle and test strategy.
 Code copied: NO
 Code adapted: NO
-Attribution required: NO for this reference-only review. Any future copied or substantially reused MIT material must preserve the PowerToys MIT notice and be approved/recorded separately before entering SnapWeave.
+Attribution required: NO for this reference-only review. Any future copied or substantially reused MIT material must preserve the PowerToys MIT notice and be approved/recorded separately before entering PaneBind.
 ```
-

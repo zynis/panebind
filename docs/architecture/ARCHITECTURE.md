@@ -1,4 +1,4 @@
-# SnapWeave Architecture Baseline
+# PaneBind Architecture Baseline
 
 Status: R0 architecture baseline. This document records boundaries and current
 decisions; it is not a promise that unimplemented future components exist.

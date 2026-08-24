@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-namespace snapweave::core::events {
+namespace panebind::core::events {
 
 class WindowId final {
 public:
@@ -38,4 +38,4 @@ struct WindowEvent {
     WindowId window_id;
 };
 
-} // namespace snapweave::core::events
+} // namespace panebind::core::events

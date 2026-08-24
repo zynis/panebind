@@ -35,7 +35,7 @@ issue or an invented removal commit.
 | --- | --- | --- | --- |
 | AltSnap | Mature, active behavioral prior art | Deep real-world move/resize/snap/filter/DPI/input history and corrective issue record. | GPL boundary; Win32/global-state coupling; no automated test target; it controls windows and input outside R0. |
 | PowerToys / FancyZones | Mature production reference | Event/lifetime separation, work-area/topology abstractions, reason-bearing filters, extensive tests, and production hardening history. | `FancyZonesLib` is intentionally Windows-specific and combines native behavior, UI, storage, telemetry, and operations. |
-| AltDrag | Mature historical comparison | Verifies the former injected `WH_CALLWNDPROC`/subclassing architecture that AltSnap removed. | GPL reference-only; injection and dual-bitness helper violate SnapWeave principles. |
+| AltDrag | Mature historical comparison | Verifies the former injected `WH_CALLWNDPROC`/subclassing architecture that AltSnap removed. | GPL reference-only; injection and dual-bitness helper violate PaneBind principles. |
 | Microsoft Learn Win32 documentation | Authoritative platform contract | Defines the APIs, delivery semantics, race limits, coordinate/DPI meanings, and manifest behavior. | Documentation cannot establish actual application event sequences or solve product policy. |
 
 Repository popularity was not used as maturity proof. Activity, releases,
@@ -67,7 +67,7 @@ were examined.
 
 ### Adapt rather than copy
 
-- FancyZones' registered-message handoff becomes an explicit SnapWeave native
+- FancyZones' registered-message handoff becomes an explicit PaneBind native
   receipt queue and normalized event; no Win32 message or handle enters core.
 - AltSnap's mutable per-axis scan informs later candidate research, but any
   future geometry policy should use explicit distances, overlap, provenance,
@@ -88,7 +88,7 @@ were examined.
 - Long or reentrant cross-process work in a hook callback.
 - Undocumented native-snap heuristics promoted to normalized truth.
 - Treating a PMv2 manifest, merged PR, issue report, or upstream test as proof
-  of behavior in SnapWeave's environment.
+  of behavior in PaneBind's environment.
 - Copying, translating, or mechanically restructuring GPL implementation code.
 
 ## R0 observer decisions unlocked by the gate
@@ -134,7 +134,7 @@ must still test or explicitly mark untested:
 - queue reentrancy/backpressure behavior.
 
 Upstream issue reports and tests remain cited prior art. They are never
-relabeled as SnapWeave `MANUALLY OBSERVED` or `AUTOMATED TESTED` results.
+relabeled as PaneBind `MANUALLY OBSERVED` or `AUTOMATED TESTED` results.
 
 ## License and source-use conclusion
 
@@ -153,4 +153,3 @@ ATTRIBUTION_REQUIRED_FOR_R0_CODE = NO
 The PowerToys MIT license could permit reuse with notice preservation, but no
 reuse occurred. That known compatibility does not weaken the provenance rule:
 future reuse must be explicitly approved and recorded before code enters.
-

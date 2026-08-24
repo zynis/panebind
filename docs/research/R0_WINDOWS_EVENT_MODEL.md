@@ -15,7 +15,7 @@ Glue, zones, or grouping.
 Claims below use these labels:
 
 - **DOCUMENTED** — stated by Microsoft in the linked Windows documentation.
-- **R0 RECOMMENDATION** — a SnapWeave design choice derived from documented
+- **R0 RECOMMENDATION** — a PaneBind design choice derived from documented
   contracts. It is not presented as Windows behavior.
 - **NOT TESTED** — an empirical question that still requires a focused observer
   run. No manual observations are claimed in this document.
@@ -282,7 +282,7 @@ stale/identity-mismatch rather than attaching metadata from a recycled handle.
 
 ## Window relevance policy
 
-Windows exposes facts; “user-relevant window” is a SnapWeave policy. R0 should
+Windows exposes facts; “user-relevant window” is a PaneBind policy. R0 should
 keep those separate.
 
 | Fact | Documented semantics | R0 observation policy |
