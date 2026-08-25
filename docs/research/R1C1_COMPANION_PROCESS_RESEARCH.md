@@ -353,6 +353,53 @@ graceful child cleanup
 The desktop-dependent runtime remains an explicit `--self-test`, not an
 unconditional universal CTest.
 
+## R1-C1 runtime experiment
+
+**WINDOWS RUNTIME INTEGRATION.** The final Debug evidence run launched the R0
+observer and `panebind-companion-harness`; the harness in turn launched two
+independent `panebind-companion-target` sessions. Raw files remain only under
+ignored `uat/r1c1/`, prefix `20260825T174201132Z`.
+
+- Controller PID/TID and both target PID/UI-TID pairs were distinct. Both
+  targets matched the controller's medium-integrity RID 8192, UIAccess false,
+  AppContainer false, PMv2 baseline.
+- Session 1 cross-process startup Defer verified 4/4. Five initial-relative
+  leader/follower steps verified `(+30,+20)`, `(+80,+50)`, repeated
+  `(+80,+50)`, backtrack `(+40,+10)`, and `(+120,+60)` with no drift.
+- The D-only uncooperative batch completed natively, B/C matched requested,
+  and D changed proposed positioning X `1600 -> 1605`. The result was
+  `PostVerificationFailed`, `verified_count=2/3`, with actual snapshots for all
+  three members. A later independent operation restored the fixture; it was
+  not called rollback.
+- Destroy C ran on the target UI thread. `B + stale C + D` failed in preflight,
+  `native_apply_attempted=false`, and B/D were unchanged.
+- Graceful process exit retired all session-1 tokens. Session 2 reissued A-D
+  under a different authority and rejected the old A token before native use.
+- Target-side evidence contained 101 valid records with no overflow/drop:
+  CHANGING/CHANGED/MOVE/SIZE/NCDESTROY = `35/31/30/4/1`.
+
+**EXTERNAL OBSERVER EVIDENCE.** Observer JSONL contained 700 valid records,
+continuous sequence `1..700`, complete hook/census/shutdown diagnostics, no
+queue/drop failure, and empty stderr. Filtering both controller-launched target
+PIDs yielded exactly 26 accepted `EVENT_OBJECT_LOCATIONCHANGE` events and no
+START/END:
+
+```text
+START / LOCATION / END = 0 / 26 / 0
+```
+
+The 26 events exactly corresponded to startup A-D (4), four geometry-changing
+whole-topology positions (16), D-uncooperative B/C/D (3), and recovery B/C/D
+(3). The repeated same target, destroy, and session-2 old-token rejection
+produced no location acknowledgement. In this run the target events occupied a
+contiguous observer sequence, but contiguity and per-request cardinality remain
+observed facts, not contracts.
+
+**PANEBIND DECISION.** A feedback candidate can be attributed offline using
+session/token/generation, expected target, and acknowledged actual geometry in
+this controlled run. Absence of START/END or a no-op WinEvent does not imply
+operation failure. R1-C1 still implements no product suppression state machine.
+
 ## Adopted and rejected designs
 
 Adopted:

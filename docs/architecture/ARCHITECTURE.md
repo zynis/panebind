@@ -1,10 +1,9 @@
 # PaneBind Architecture Baseline
 
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
-owned-window operations boundary, and the R1-C1 companion-process operations
-design boundary. This document records implemented boundaries and current
-decisions; R1-C1 runtime acceptance evidence is recorded separately and is not
-predeclared by this design.
+owned-window operations boundary, and the implemented R1-C1 companion-process
+operations boundary. This document records implemented boundaries and current
+decisions; R1-C1 runtime acceptance evidence is recorded separately.
 
 ## System flow
 
@@ -172,7 +171,7 @@ researches companion-process receipts and feedback inputs, but it must not
 infer suppression solely from time or event contiguity. R1-B remains unchanged
 and defines no Glue event loop or product behavior.
 
-### R1-C1 Windows companion-process operations design
+### R1-C1 Windows companion-process operations boundary
 
 R1-C1 adds a second, independent authority for a PaneBind test fixture launched
 by a PaneBind controller. It does not widen `OwnedWindowToken`,
