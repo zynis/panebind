@@ -17,9 +17,9 @@ R0 — Prior Art, Event & Geometry Research Baseline.
 ## 3. Phase
 
 Research / architecture baseline followed by human-validation analysis. The R0
-implementation is complete and unchanged by the validation round. The baseline
-is not sealed because UAT 07 did not capture its requested Explorer operation;
-no R1 work was started.
+implementation is complete and unchanged by the validation rounds. UAT 07
+revalidation resolved the final test-identity blocker, so the R0 baseline is
+sealed; no R1 work was started.
 
 ## 4. Branch
 
@@ -410,9 +410,8 @@ or global input hook. The observer queries and logs only.
 ## 37. Untested scenarios
 
 - Keyboard move/resize, shell snap, minimize, app-originated geometry, close,
-  crash, and hung-target missing-pair sequences. Mouse move/resize and VS Code
-  maximize/restore are now manually observed; Explorer maximize/restore test 07
-  requires retest.
+  crash, and hung-target missing-pair sequences. Mouse move/resize and Explorer/
+  VS Code maximize/restore are now manually observed.
 - 32-bit targets, elevation/integrity boundaries, packaged-host coverage, remote
   desktop, lock/sleep, and virtual desktops.
 - Multiple displays, negative native origins, mixed scale, cross-monitor moves,
@@ -462,8 +461,11 @@ R1 is not started. Suggested research-only questions are:
 ## 41. Human validation update
 
 The 2026-08-24 validation round evaluated the clean source tree at
-`b50a1c9b2d94996f10b4d700e0c9d71f057e140f`. Ten ignored local JSONL files were
-parsed without exposing titles, user paths, or raw records. All ten had complete
+`b50a1c9b2d94996f10b4d700e0c9d71f057e140f`. The 2026-08-25 UAT 07
+revalidation evaluated source HEAD
+`06ac97248d5849970d01e235037a1aab6778ff15`; Observer implementation files did
+not change between those revisions. Ten ignored local JSONL files were parsed
+without exposing titles, user paths, or raw records. All ten had complete
 startup/shutdown diagnostics, continuous observer sequences, and no queue loss
 or notification-failure diagnostic.
 
@@ -472,14 +474,12 @@ Results:
 - native Explorer, VS Code, and Excel move/resize: **MANUALLY OBSERVED**;
 - Explorer AltSnap move/resize: **MANUALLY OBSERVED**, lifecycle-equivalent to
   the corresponding native Explorer sessions;
-- VS Code maximize/restore: **MANUALLY OBSERVED** as location/state changes
-  without START/END;
-- intended Explorer maximize/restore test 07: **RETEST_REQUIRED** because the
-  file captured Excel maximize/restore instead of an identifiable Explorer
-  target;
+- Explorer and VS Code maximize/restore: **MANUALLY OBSERVED** as
+  location/state changes without START/END;
 - Debug build: **PASS**;
 - Release build: **PASS**; and
-- automated tests: **PASS (3/3)**.
+- automated tests: **PASS (3/3)**, including the final UAT 07 revalidation
+  `ctest` run.
 
 No implementation code changed. Exact per-test counts, geometry, filtering,
 queue/hook review, privacy handling, limitations, and the seal decision are in
@@ -493,9 +493,9 @@ R0_IMPLEMENTATION = COMPLETE
 R0_AUTOMATED_TESTS = PASS (3/3)
 R0_RUNTIME_CENSUS = MANUALLY OBSERVED
 R0_INTERACTIVE_MOVE_RESIZE_MATRIX = MANUALLY OBSERVED
-R0_MAXIMIZE_RESTORE_MATRIX = PARTIAL / RETEST_REQUIRED (07)
-R0_BASELINE = NOT SEALED
-RETEST_REQUIRED = 07
-REVALIDATION_REQUIRED = 07
+R0_MAXIMIZE_RESTORE_MATRIX = MANUALLY OBSERVED
+R0_BASELINE = SEALED
+RETEST_REQUIRED = NONE
+REVALIDATION_REQUIRED = NONE
 R1_STARTED = NO
 ```

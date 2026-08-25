@@ -1,10 +1,12 @@
 # PaneBind R0 Human Validation Report
 
-Validation date: 2026-08-24 (Asia/Shanghai).
-Evaluated source HEAD: `b50a1c9b2d94996f10b4d700e0c9d71f057e140f`.
+Initial validation date: 2026-08-24 (Asia/Shanghai).
+UAT 07 revalidation and seal date: 2026-08-25 (Asia/Shanghai).
+Initial evaluated source HEAD: `b50a1c9b2d94996f10b4d700e0c9d71f057e140f`.
+Final revalidation source HEAD: `06ac97248d5849970d01e235037a1aab6778ff15`.
 Branch: `codex/r0-prior-art-event-geometry`.
-Decision: **R0_BASELINE = NOT SEALED**.
-Minimum rerun: **07 only**.
+Decision: **R0_BASELINE = SEALED**.
+Minimum rerun: **NONE**.
 
 ## 1. Scope and evidence handling
 
@@ -19,12 +21,13 @@ or user file path is reproduced here. Window titles are treated as
 counts, geometry, monitor identity, and DPI are retained only where needed to
 support the findings.
 
-The logs do not embed a Git SHA. The evaluated SHA above identifies the clean
-source tree reviewed in this round. The available `panebind-observer.exe`
-predates the logs, and no Observer behavior changed between that build and the
-evaluated source tree, but that is source/timestamp correlation rather than a
-cryptographic build-identity assertion. A future diagnostic build identifier is
-a research question, not a reason to relabel the observed records.
+The logs do not embed a Git SHA. The evaluated SHAs above identify the clean
+source trees reviewed across the initial and final validation passes; Observer
+implementation files did not change between them. The available
+`panebind-observer.exe` predates the logs, but that is source/timestamp
+correlation rather than a cryptographic build-identity assertion. A future
+diagnostic build identifier is a research question, not a reason to relabel the
+observed records.
 
 ## 2. Method
 
@@ -55,7 +58,7 @@ In the tables:
 | 04 | 1,229,792 | 1,043 | `1..1043`, continuous | complete | complete | none | PASS |
 | 05 | 1,297,075 | 1,130 | `1..1130`, continuous | complete | complete | none | PASS |
 | 06 | 1,142,509 | 1,054 | `1..1054`, continuous | complete | complete | none | PASS |
-| 07 | 1,342,673 | 1,395 | `1..1395`, continuous | complete | complete | none | PASS |
+| 07 | 1,306,247 | 1,314 | `1..1314`, continuous | complete | complete | none | PASS |
 | 08 | 1,069,835 | 943 | `1..943`, continuous | complete | complete | none | PASS |
 | 09 | 1,465,281 | 1,307 | `1..1307`, continuous | complete | complete | none | PASS |
 | 10 | 1,685,369 | 1,766 | `1..1766`, continuous | complete | complete | none | PASS |
@@ -68,9 +71,11 @@ newline, and has no duplicate, decreasing, or missing observer sequence.
 
 No file contains `event_queue_overflow`, `events_dropped`,
 `queue_notification_failure`, an incomplete observer diagnostic, or an obvious
-truncation. Each file contains five nonfatal initial-census `OpenProcess`
-access-denied errors for non-target windows. File 02 additionally contains four
-explicitly rejected identity-race errors for transient non-target HWNDs. Target
+truncation. Files other than 02 and the revalidated 07 contain five nonfatal
+initial-census `OpenProcess` access-denied errors for non-target windows. File
+02 additionally contains four explicitly rejected identity-race errors for
+transient non-target HWNDs. Revalidated file 07 contains six non-target
+`OpenProcess/process_path` errors and one background identity-race error. Target
 interaction snapshots have no field errors.
 
 ## 4. Test matrix: identity, counts, ordering, and result
@@ -83,7 +88,7 @@ interaction snapshots have no field errors.
 | 04 | VS Code native resize | `Code.exe`; `0x00000000007616c4`; `3020` | `1 / 74 / 1` | `76 / 5` | `76 / 291` | `12:21:38.361934Z` to `12:21:40.272512Z` | START → LOCATION ×74 → END | `MANUALLY OBSERVED` |
 | 05 | Excel native move | `EXCEL.EXE`; `0x0000000000101392`; `10496` | `1 / 50 / 1` | `52 / 0` | `52 / 402` | `12:22:52.363776Z` to `12:22:53.139810Z` | START → LOCATION ×50 → END | `MANUALLY OBSERVED` |
 | 06 | Excel native resize | `EXCEL.EXE`; `0x0000000000101392`; `10496` | `1 / 5 / 1` | `7 / 0` | `7 / 369` | `12:23:34.232740Z` to `12:23:34.995561Z` | START → LOCATION ×5 → END | `MANUALLY OBSERVED` |
-| 07 | Explorer maximize/restore expected; Excel observed | Expected Explorer target unresolved; actual `EXCEL.EXE`; `0x0000000000101392`; `10496` | expected `0 / 0 / 0`; actual `0 / 2 / 0` | actual `2 / 0` | `2 / 717` | actual `12:25:48.815092Z` to `12:25:52.741558Z` | actual LOCATION(max) → LOCATION(restore) | `RETEST_REQUIRED` |
+| 07 | Explorer maximize/restore | `explorer.exe`; `0x00000000002210d0`; `29120` | `0 / 2 / 0` | `2 / 0` | `5 / 629` | `23:55:24.127466Z` to `23:55:27.546446Z` | LOCATION(max) → LOCATION(restore) | `MANUALLY OBSERVED` |
 | 08 | VS Code maximize/restore | `Code.exe`; `0x00000000007616c4`; `3020` | `0 / 3 / 0` | `3 / 4` | `6 / 261` | `12:28:51.284095Z` to `12:28:54.701003Z` | LOCATION(max) → LOCATION(restore) ×2 | `MANUALLY OBSERVED` |
 | 09 | Explorer AltSnap move | `explorer.exe`; `0x00000000002210d0`; `29120` | `1 / 24 / 1` | `26 / 0` | `26 / 603` | `12:31:04.412521Z` to `12:31:05.316762Z` | START → LOCATION ×24 → END | `MANUALLY OBSERVED` |
 | 10 | Explorer AltSnap resize | `explorer.exe`; `0x00000000002210d0`; `29120` | `1 / 22 / 1` | `24 / 0` | `24 / 1,064` | `12:31:40.384725Z` to `12:31:42.481496Z` | START → LOCATION ×22 → END | `MANUALLY OBSERVED` |
@@ -103,7 +108,7 @@ the same HWND, PID, monitor, and DPI from first through last accepted record.
 | 04 | `[24,14,2928,1826)` → `[24,14,1939,1285)` | `[35,14,2917,1815)` → `[35,14,1928,1274)` | `DISPLAY1 / 192` | YES | YES |
 | 05 | `[512,246,2816,1577)` → `[212,288,2516,1619)` | `[523,246,2805,1566)` → `[223,288,2505,1608)` | `DISPLAY1 / 192` | YES | YES |
 | 06 | `[212,288,2516,1619)` → `[212,288,2777,1798)` | `[223,288,2505,1608)` → `[223,288,2766,1787)` | `DISPLAY1 / 192` | YES | YES |
-| 07 | Actual Excel `[212,288,2777,1798)` → same after restore | Actual Excel `[223,288,2766,1787)` → same after restore | `DISPLAY1 / 192` | actual YES; expected N/A | actual YES; expected N/A |
+| 07 | `[955,660,2816,1745)` → same after restore | `[966,660,2805,1734)` → same after restore | `DISPLAY1 / 192` | YES | YES |
 | 08 | `[24,14,1939,1285)` → same after restore | `[35,14,1928,1274)` → same after restore | `DISPLAY1 / 192` | YES | YES |
 | 09 | `[664,559,1812,1232)` → `[1668,660,2816,1333)` | `[675,559,1801,1221)` → `[1679,660,2805,1322)` | `DISPLAY1 / 192` | YES | YES |
 | 10 | `[1668,660,2816,1333)` → `[955,660,2816,1745)` | `[1679,660,2805,1322)` → `[966,660,2805,1734)` | `DISPLAY1 / 192` | YES | YES |
@@ -149,18 +154,21 @@ consecutive duplicates; duplication does not break the lifecycle.
 Left/top remain fixed while right/bottom expand by `(+261,+179)`. All five
 accepted location rectangles are unique.
 
-### 07 — Explorer maximize/restore expected
+### 07 — Explorer maximize/restore
 
-No accepted Explorer event identifies the requested operation. The only two
-Explorer callbacks belong to another non-candidate shell/tool HWND and are
-reasonably rejected as invisible/tool-window records. Multiple Explorer windows
-exist, so a sensitive title cannot be used to invent a target.
+The revalidated target is an `explorer.exe` `CabinetWClass` root window with
+stable HWND `0x00000000002210d0` and PID `29120`. The initial census records
+`maximized=false`, positioning bounds `[955,660,2816,1745)`, and visible-frame
+bounds `[966,660,2805,1734)`.
 
-The file instead clearly captures an Excel root window changing normal →
-maximized → restored through two accepted `GeometryChanged` records and no
-START/END. The Excel window returns exactly to its initial bounds. This is valid
-evidence about the actual Excel event behavior, but it is not evidence for the
-requested Explorer test. Test 07 must be rerun.
+Maximize produces one accepted `GeometryChanged` record with
+`maximized=true`, positioning bounds `[-13,-13,3085,1837)`, and visible bounds
+`[0,0,3072,1824)`. Restore produces one accepted `GeometryChanged` record with
+`maximized=false` and returns exactly to the initial positioning and visible
+bounds. The two target records contain no field errors; target HWND, PID,
+monitor, and DPI remain stable. No START or END occurs. The file also contains
+three accepted background-window geometry records and 629 reasoned rejections,
+none of which changes the target lifecycle.
 
 ### 08 — VS Code maximize/restore
 
@@ -228,35 +236,33 @@ NOT DISTINGUISHABLE BY EVENT TYPE
 
 ### Maximize and restore
 
-The verified VS Code sequence, and the actual Excel sequence in file 07, use
-location/state changes without START or END. Maximize/restore is therefore not
-modeled as an interactive move/resize session. Explorer-specific confirmation
-is pending test 07.
+The verified Explorer and VS Code sequences use location/state changes without
+START or END. Maximize/restore is therefore not modeled as an interactive
+move/resize session.
 
 ## 8. Filtering and noise
 
-Across all ten files, the observer received 6,089 raw WinEvents:
+Across all ten files, the observer received 6,004 raw WinEvents:
 
-- 6,071 raw `EVENT_OBJECT_LOCATIONCHANGE` receipts;
-- 545 accepted root-window `GeometryChanged` records;
+- 5,986 raw `EVENT_OBJECT_LOCATIONCHANGE` receipts;
+- 548 accepted root-window `GeometryChanged` records;
 - 9 accepted `MoveResizeStarted` and 9 accepted `MoveResizeEnded` records;
-- 4,117 rejected object/child-ID mismatches;
-- 1,052 rejected child/non-root or destroyed-at-receipt HWNDs;
-- 293 rejected invisible windows;
+- 4,039 rejected object/child-ID mismatches;
+- 1,034 rejected child/non-root or destroyed-at-receipt HWNDs;
+- 299 rejected invisible windows;
 - 58 rejected tool windows without `WS_EX_APPWINDOW`;
-- 2 rejected cloaked windows; and
-- 4 explicitly diagnosed transient identity races.
+- 3 rejected cloaked windows; and
+- 5 explicitly diagnosed transient identity races.
 
-Overall, 563 of 6,089 raw WinEvents (`9.25%`) were accepted and 5,526
-(`90.75%`) were rejected with an explicit reason. For location changes alone,
-545 of 6,071 (`8.98%`) were accepted as normalized root-window geometry.
+Overall, 566 of 6,004 raw WinEvents (`9.43%`) were accepted and 5,438
+(`90.57%`) were rejected with an explicit reason. For location changes alone,
+548 of 5,986 (`9.15%`) were accepted as normalized root-window geometry.
 
 `WINEVENT_SKIPOWNPROCESS` prevents own-process callbacks at registration; no
-`own_process` event record was emitted. Target root windows for tests 01–06,
-08–10 were accepted with reasoned noise rejection. File 07 is an execution
-identity mismatch, not evidence that a normal Explorer target was over-filtered.
-No known manageable top-level target was rejected, so the R0 filter is assessed
-as **reasonable for this matrix**, not as a permanent product eligibility rule.
+`own_process` event record was emitted. Target root windows for all ten tests
+were accepted with reasoned noise rejection. No known manageable top-level
+target was rejected, so the R0 filter is assessed as **reasonable for this
+matrix**, not as a permanent product eligibility rule.
 
 ## 9. Queue and backpressure
 
@@ -335,12 +341,12 @@ RELEASE_BUILD = PASS
 AUTOMATED_TESTS = PASS (3/3)
 ```
 
-No implementation code changed in this validation round, so tests 01–06 and
-08–10 remain evidence for the evaluated implementation.
+No implementation code changed in either validation pass, so all ten tests
+remain evidence for the evaluated implementation. The final UAT 07 revalidation
+also reran the existing Debug `ctest` suite successfully (`3/3`).
 
 ## 14. Remaining limitations and deferred risks
 
-- Test 07 does not validate Explorer maximize/restore and must be rerun.
 - Multi-monitor, negative native origins, monitor crossing, straddling, dock/
   reconnect, and topology changes remain **NOT TESTED — environment
   unavailable**. This is a deferred R1+ risk, not the current seal blocker.
@@ -381,16 +387,16 @@ observability, filtering review, JSONL integrity, geometry-source separation,
 platform-neutral core, prohibited-behavior audit, Debug build, Release build,
 and automated tests all pass.
 
-The baseline is not sealed because test 07 does not contain the requested
-Explorer maximize/restore interaction. The file is structurally trustworthy,
-but substituting its Excel interaction would violate the test identity and
-evidence rules. No code change is required. Rerun only 07 with one identifiable
-Explorer root window; the other nine logs remain valid.
+The revalidated test 07 contains an identifiable Explorer root window and
+confirms normal → maximized → restored geometry/state changes without a
+move/resize START or END. The prior test-identity blocker is resolved. No code
+change was required, the other nine logs remain valid, and the final `ctest`
+rerun passed 3/3.
 
 ```text
-R0_BASELINE = NOT SEALED
-BLOCKERS = UAT 07 expected Explorer maximize/restore was not observed
-RETEST_REQUIRED = 07
-REVALIDATION_REQUIRED = 07
+R0_BASELINE = SEALED
+BLOCKERS = NONE
+RETEST_REQUIRED = NONE
+REVALIDATION_REQUIRED = NONE
 R1 = NOT STARTED
 ```

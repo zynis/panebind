@@ -1,9 +1,10 @@
 # R0 Windows Event and Geometry Model
 
-Status: **RESEARCH BASELINE — OFFICIAL DOCUMENTATION AND HUMAN VALIDATION
-RECORDED; BASELINE NOT SEALED**
+Status: **R0 BASELINE SEALED — OFFICIAL DOCUMENTATION AND HUMAN VALIDATION
+RECORDED**
 Round: R0
-Review date: 2026-08-24
+Research review date: 2026-08-24
+Seal date: 2026-08-25
 
 ## Purpose and evidence labels
 
@@ -30,7 +31,7 @@ was copied or adapted from an external implementation.
 | Official Windows API/documentation review | `IMPLEMENTED` |
 | Automated core/model/UTF regression tests | `AUTOMATED TESTED (3/3)` |
 | Native move/resize behavior manually observed | `MANUALLY OBSERVED` for Explorer, VS Code, and Excel |
-| Maximize/restore behavior manually observed | `MANUALLY OBSERVED` for VS Code; Explorer test 07 is `RETEST_REQUIRED` |
+| Maximize/restore behavior manually observed | `MANUALLY OBSERVED` for Explorer and VS Code |
 | Third-party window control | Not in scope; intentionally absent |
 
 ## Baseline decisions
@@ -603,15 +604,15 @@ official-documentation gate. Initial R0 execution verified PMv2 startup, both
 hook registrations, census, JSON serialization, and same-thread teardown; it
 also observed noisy raw location-change receipts during an application launch.
 
-The later 2026-08-24 human-validation matrix manually observed balanced native
+The 2026-08-24 human-validation matrix manually observed balanced native
 move/resize lifecycles for Explorer, VS Code, and Excel; equivalent AltSnap
 move/resize lifecycles for Explorer; and location/state-only maximize/restore
-behavior for VS Code. It recorded no queue loss or notification failure and
-kept positioning and visible-frame bounds distinct. Explorer maximize/restore
-test 07 did not capture the requested Explorer interaction and is
-`RETEST_REQUIRED`, so the R0 baseline is **NOT SEALED**. Mixed DPI,
-multi-monitor behavior, and controlled reentrancy/overflow stress remain
-`NOT TESTED`.
+behavior for VS Code. The 2026-08-25 test 07 revalidation observed the same
+location/state-only maximize/restore lifecycle for Explorer. The complete
+matrix recorded no queue loss or notification failure and kept positioning and
+visible-frame bounds distinct. The prior test-identity blocker is resolved and
+the R0 baseline is **SEALED**. Mixed DPI, multi-monitor behavior, and controlled
+reentrancy/overflow stress remain `NOT TESTED`.
 
 Exact counts and the seal decision are recorded in
 [`R0_HUMAN_VALIDATION_REPORT.md`](../reports/R0_HUMAN_VALIDATION_REPORT.md);
