@@ -48,6 +48,55 @@ target_compile_definitions(
 )
 panebind_enable_warnings(panebind-observer)
 
+add_library(
+    panebind_windows_owned_operations
+    STATIC
+    operations/owned_window_operations.cpp
+)
+target_link_libraries(
+    panebind_windows_owned_operations
+    PUBLIC panebind_core
+    PRIVATE dwmapi user32
+)
+target_compile_definitions(
+    panebind_windows_owned_operations
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind_windows_owned_operations)
+
+add_executable(
+    panebind-owned-window-harness
+    ../../app/owned_window_harness_main.cpp
+    observer.rc
+    observer.manifest
+)
+target_link_libraries(
+    panebind-owned-window-harness
+    PRIVATE panebind_windows_owned_operations dwmapi user32
+)
+if(MSVC)
+    # Reuse the single audited PerMonitorV2 manifest resource already used by
+    # the observer rather than maintaining a second drifting DPI manifest.
+    target_link_options(panebind-owned-window-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(
+    panebind-owned-window-harness
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind-owned-window-harness)
+
 if(BUILD_TESTING)
     add_executable(
         panebind-windows-text-encoding-tests
@@ -70,4 +119,26 @@ if(BUILD_TESTING)
     )
     panebind_enable_warnings(panebind-windows-text-encoding-tests)
     add_test(NAME windows-text-encoding COMMAND panebind-windows-text-encoding-tests)
+
+    add_executable(
+        panebind-windows-owned-operations-tests
+        operations/owned_window_operations_tests.cpp
+    )
+    target_link_libraries(
+        panebind-windows-owned-operations-tests
+        PRIVATE panebind_windows_owned_operations
+    )
+    target_compile_definitions(
+        panebind-windows-owned-operations-tests
+        PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+    )
+    panebind_enable_warnings(panebind-windows-owned-operations-tests)
+    add_test(NAME windows-owned-operations-unit
+             COMMAND panebind-windows-owned-operations-tests)
 endif()

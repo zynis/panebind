@@ -151,3 +151,69 @@ Attribution required: NO for code reuse; inline citations retained
 
 Detailed R1-A findings and decisions are in
 [R1_ADJACENCY_TOPOLOGY_RESEARCH.md](R1_ADJACENCY_TOPOLOGY_RESEARCH.md).
+
+## R1-B targeted Windows operations review
+
+Review date: 2026-08-25.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d (1.68-48-g5c86416); AltDrag e2740d605b0336a3b391fec26794718864b19521 (v1.1-8-ge2740d6)
+License: GNU GPL v3-or-later; REFERENCE ONLY
+Files/modules inspected for R1-B: AltSnap hooks.c, unfuck.h, License.txt; AltDrag hooks.c, altdrag.c, LICENSE; pinned source history
+Issues/PR/history inspected for R1-B: AltSnap issues #76, #160, #374, #572, #719; PRs #77, #573, #723; commits 1b64b08fb1db262b6f0a180b022243956c8a016e, a84f6b1084aa7346a9c847837843f5b221565864, c69135e1efbb9f97bccb8f86c713d319e6e0e835; historical AltDrag HookWindows path
+What was learned: move-only SetWindowPos flags; sticky-resize Defer chain without structured error/post-verification; visible/positioning frame corrections; application-adjusted resize; weak IsWindow-only lifetime checks; synthetic interactive messages/WinEvents; async and NOSENDCHANGING application risks; requested geometry can be resisted
+Applicable PaneBind subsystem: R1-B Windows owned-window operations, translation bridge, lifetime capability, batch failure model, and feedback evidence
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code because no GPL code entered PaneBind; research citations retained
+```
+
+License decision: **GPL REFERENCE-ONLY**. R1-B independently specifies and
+implements its capability, bridge, result, and batch contracts. No source was
+copied, translated, mechanically rewritten, or structurally adapted.
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License: MIT; reference-only in R1-B
+Files/modules inspected for R1-B: FancyZonesLib WorkArea, WindowUtils, FancyZones, MonitorUtils, WorkAreaConfiguration, LayoutAssignedWindows, WindowDrag, WindowMouseSnap; FancyZones/FancyZonesApp; editor/FancyZonesEditor/Utils/NativeMethods.cs; FancyZones.UITests.Next/Utils/FancyZonesTestHelper.cs; common/Display/dpi_aware.cpp; root LICENSE
+Issues/PR/history inspected for R1-B: issues #1685, #19440, #49016; PRs #17553, #21565, #28688, #44440, #48473, #48569, #49985; commits 75e966ce1981de26bb7c34f151b7939b88988233, 6d9d4a7112e3db72258989139907619b6bb65729, 3299ecfece9128cfd6791bacee1351b1c9a32c73, 6c2a99dfd6a12ad98feeda0acbc663aa84865676, ae9f241ef13737dab6f861767bbfdfca72b78475, dd26d86580168d2e368701f7b0c4d629dc9cd9ac, d68980a81bb8de144bdec998a114e948bf68c563
+What was learned: target placement uses SetWindowPlacement rather than a Defer batch; visible targets require frame adjustment; event callbacks dispatch to an owner thread; destroy/topology changes abort stale consumers; raw HWND state remains weaker than PaneBind's owned token; mixed-DPI failures require explicit coordinate context; placement failures are log-only and not a PaneBind result model
+Applicable PaneBind subsystem: R1-B Windows owned-window operations, geometry bridge, lifetime/topology invalidation, DPI/monitor transitions, and feedback evidence
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for reference-only review; future copied or substantially reused MIT material requires separate approval and preservation of the Microsoft MIT notice
+```
+
+An exact search of the pinned FancyZones tree found no
+`BeginDeferWindowPos`, `DeferWindowPos`, or `EndDeferWindowPos` use. It is not a
+batch atomicity or rollback precedent.
+
+### Microsoft Learn Windows operations documentation
+
+```text
+Source: Microsoft Learn - Windows desktop/Win32 API documentation
+Publisher/repository: Microsoft; https://learn.microsoft.com/en-us/windows/win32/
+Version / SHA: N/A - live platform documentation
+Terms: Microsoft Learn Terms of Use; facts were cited and paraphrased only
+Date reviewed: 2026-08-25
+Pages inspected for R1-B: SetWindowPos; BeginDeferWindowPos; DeferWindowPos; EndDeferWindowPos; GetWindowRect; DwmGetWindowAttribute; DWMWINDOWATTRIBUTE; IsWindow; GetWindowThreadProcessId; GetClassNameW; SetPropW/GetPropW/RemovePropW; CreateWindowExW; DestroyWindow; WM_NCCREATE; WM_CREATE; WM_DESTROY; WM_NCDESTROY; WM_WINDOWPOSCHANGING; WM_WINDOWPOSCHANGED; WM_MOVE; WM_SIZE; GetWindowDpiAwarenessContext; AreDpiAwarenessContextsEqual; GetDpiForWindow; PMv2/default DPI-awareness guidance; GetLastError
+Issues/PRs inspected: N/A
+What was learned: newest HDWP must be carried forward; a failed Defer chain must be abandoned without End; End has no documented rollback/transaction guarantee; visible DWM frame and positioning Window Rect differ; HWND checks are point-in-time and values recycle; creation/destruction message lifetime; PMv2 manifest and context comparison; WINDOWPOS message/application-adjustment behavior
+Applicable PaneBind subsystem: owned capability validation, translation bridge, batch application, failure receipts, post-verification, DPI/monitor facts, and harness instrumentation
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code reuse; claim-level official-document citations retained
+```
+
+Detailed findings and independently selected R1-B contracts are in
+[R1B_WINDOWS_OPERATIONS_RESEARCH.md](R1B_WINDOWS_OPERATIONS_RESEARCH.md).
