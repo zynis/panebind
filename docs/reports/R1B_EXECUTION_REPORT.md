@@ -24,6 +24,12 @@ Implemented behavior is pure translation only. Glue runtime, Glue Resize,
 Snap, input hooks, zones, persistent groups, tray/settings, and R1-C feedback
 suppression remain unimplemented.
 
+The owned capability is intentionally non-extensible by default:
+`OwnedWindowToken`, `OwnedWindowRegistry`, and the adapter must not be renamed
+or widened into arbitrary-window APIs. A future external/third-party target
+requires an independent research, eligibility, process-identity, lifetime, and
+capability contract rather than an R1-B token generalization.
+
 ## 2. Prior-art gate and provenance
 
 Detailed findings are recorded in
@@ -391,9 +397,10 @@ nonzero follower batch, B/C/D location events were contiguous and shared one
 native event timestamp in this run; no unrelated event interleaved in observer
 sequences 674 through 693. This is not promoted to a contract.
 
-Programmatic placement therefore produced geometry feedback without an
-interactive START/END session. This differs from R0 human move/resize evidence.
-It also refines AltSnap attribution: AltSnap can explicitly synthesize
+In this harness run and observed environment, programmatic placement produced
+geometry feedback without an interactive START/END session. This is not a
+universal Win32 guarantee. It differs from the R0 human move/resize evidence
+and also refines AltSnap attribution: AltSnap can explicitly synthesize
 START/END, so its valid R0 lifecycle evidence must not be attributed solely to
 `SetWindowPos`.
 
@@ -468,6 +475,17 @@ Final Debug and Release results:
 TOTAL                                6/6 PASS
 ```
 
+The deterministic `windows-owned-operations-unit` directly covers opaque
+token construction, monotonic authority/exhaustion, cross-registry rejection,
+generation/stale semantics, duplicate/unknown token-set preflight,
+independent-top-level shape, visible-to-positioning translation, resize/empty
+rejection, checked overflow, and native coordinate range. It does not create a
+foreign process or second UI-thread window solely to force wrong
+process/thread/class registration branches. The production checks were
+reviewed, while mixed valid/stale/valid `native_apply_attempted=false` and B/D
+no-op are verified by the owned-window runtime harness, not claimed as
+deterministic-unit coverage.
+
 Both Debug and Release builds completed without compiler warnings. Both Debug
 and Release harness self-tests returned `0` with `self_test_summary=PASS`.
 The desktop-dependent harness is intentionally not registered as universal
@@ -507,13 +525,20 @@ RAW_RUNTIME_LOGS_TRACKED = NO
   mismatch: **NOT TESTED** in this cooperative owned WndProc.
 - Monitor/work-area/DPI topology change during one batch: **NOT TESTED**.
 - Cross-thread owned HWND operation: deliberately rejected, not a supported
-  success scenario.
+  success scenario; its rejection branch is not separately runtime-forced.
 - Elevation/UIPI and third-party application constraints: deliberately outside
   this owned-only round and not tested.
 - One-run follower event continuity/order is not guaranteed by Win32 and must
   not become R1-C suppression truth.
 
 ## 19. R1-C architecture questions only
+
+The recommended next boundary is **R1-C1 - External Companion-Process
+Operations & Feedback Baseline**: control only target windows in a separate
+companion process launched by the test workflow, before any user application
+is considered. This is a proposal only; R1-C1 has no branch or implementation.
+It requires a new cross-process/thread identity, eligibility, lifetime,
+operation-receipt, and feedback contract rather than widening the R1-B token.
 
 1. What exact in-flight receipt identity should match feedback: operation ID,
    authority/token/generation, expected target, and which observer boundary?

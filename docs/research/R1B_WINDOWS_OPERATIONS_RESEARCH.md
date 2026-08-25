@@ -415,9 +415,18 @@ tracked by Git.
   facts only.
 
 **PANEBIND DECISION.** Natural programmatic placement is a geometry-feedback
-source but not an interactive move/resize session. Future feedback suppression
-must match a receipt's authority/token/generation and acknowledged geometry;
-it must not require START/END or depend only on timing/contiguity.
+source without an observed interactive START/END lifecycle in this specific
+harness run and environment. This is not a universal Win32 guarantee. Future
+feedback suppression must match a receipt's authority/token/generation and
+acknowledged geometry; it must not require START/END or depend only on
+timing/contiguity.
+
+`OwnedWindowToken` and `OwnedWindowRegistry` are owned-harness-only contracts;
+they must not be renamed or generalized into arbitrary-HWND capabilities. Any
+future companion-process or third-party authority requires a separate
+prior-art/research gate and an independent eligibility, identity, lifetime,
+and capability contract. An R1-B token cannot be upgraded or reissued for that
+purpose.
 
 ## Adopted and rejected designs
 

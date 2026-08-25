@@ -112,6 +112,12 @@ It is not a general third-party window operations API, and no Explorer, Office,
 editor, browser, terminal, system, or other user window can be supplied through
 this interface.
 
+`OwnedWindowToken`, `OwnedWindowRegistry`, and the owned adapter must not be
+renamed or generalized into arbitrary-window capabilities. Any future support
+for an external or third-party HWND requires a separate research gate and a new
+eligibility, process-identity, lifetime, and capability contract; it cannot be
+obtained by widening this R1-B issuance boundary.
+
 Public capture and operation entry points accept an opaque `OwnedWindowToken`,
 not an `HWND`, integer handle, or caller-provided native-handle collection. The
 token has no public conversion to a native handle. The one native issuance
