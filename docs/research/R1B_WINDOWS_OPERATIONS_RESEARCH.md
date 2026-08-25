@@ -317,9 +317,12 @@ draws ordering conclusions only from runtime evidence.
 The public apply and capture APIs accept `OwnedWindowToken`, never raw `HWND`.
 Only the registry boundary accepts an HWND immediately after the harness has
 created it. Registration itself validates the current process, creator thread,
-fixed private class, and installs a private per-registration property marker.
-The token contains an opaque logical identity and generation, has no native
-conversion, and cannot be caller-forged into a live capability.
+fixed private class, independent unowned top-level shape, and installs a
+private per-registration property marker. The token contains a private
+process-monotonic registry authority plus an opaque logical identity and
+generation. It has no native conversion and cannot be caller-forged into a
+live capability. Authority is part of equality and resolution, so equal local
+ID/generation values from two registries cannot alias each other.
 
 The four harness windows are independent, unowned top-level windows. Destroying
 one cannot cascade through an owner relationship. Old tokens never regain
@@ -380,6 +383,41 @@ The R1-B operation receipt can provide future R1-C with:
 Time alone, assumed follower contiguity, raw HWND alone, or the absence of
 interactive START/END is insufficient. R1-B does not implement a Glue event
 loop or suppression state machine.
+
+## Owned-window runtime experiment
+
+**WINDOWS RUNTIME INTEGRATION.** The final Debug experiment ran the R0
+observer and the R1-B harness as separate processes. Raw evidence remains only
+under ignored `uat/r1b/`, prefix `20260825T094555450Z`; no raw record is
+tracked by Git.
+
+- The observer JSONL contained 695 valid records with a continuous sequence
+  from 1 through 695. Hook registration, initial census, hook shutdown, and
+  observer shutdown were complete. There was no queue-overflow,
+  notification-failure, dropped-event, target field-error, or identity/DPI
+  failure diagnostic.
+- Restricting evidence to class `PaneBind.R1B.OwnedWindow` yielded exactly 20
+  events: five `EVENT_OBJECT_LOCATIONCHANGE` events each for A, B, C, and D;
+  `EVENT_SYSTEM_MOVESIZESTART` and `EVENT_SYSTEM_MOVESIZEEND` were absent.
+- The 20 events correspond to the initial 2x2 placement and four geometry-
+  changing scripted positions. The repeated `(+80,+50)` target produced no
+  location WinEvent because actual geometry did not change.
+- A nonzero leader `SetWindowPos` produced harness messages
+  `WM_WINDOWPOSCHANGING -> WM_WINDOWPOSCHANGED -> WM_MOVE`, with no `WM_SIZE`.
+- In each nonzero follower batch in this run, B/C/D first received their
+  `WM_WINDOWPOSCHANGING` entries, then each received
+  `WM_WINDOWPOSCHANGED -> WM_MOVE`. Their observer location events were
+  contiguous and shared one native timestamp in each follower batch.
+- A repeated no-op leader request and repeated no-op follower batch produced
+  `WM_WINDOWPOSCHANGING` but no `WM_WINDOWPOSCHANGED`, `WM_MOVE`, or WinEvent.
+- No cross-window ordering, contiguity, timestamp equality, or message
+  cardinality is promoted to an API contract; these are one-machine observed
+  facts only.
+
+**PANEBIND DECISION.** Natural programmatic placement is a geometry-feedback
+source but not an interactive move/resize session. Future feedback suppression
+must match a receipt's authority/token/generation and acknowledged geometry;
+it must not require START/END or depend only on timing/contiguity.
 
 ## Adopted and rejected designs
 
