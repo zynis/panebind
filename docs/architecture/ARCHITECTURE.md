@@ -1,9 +1,10 @@
 # PaneBind Architecture Baseline
 
-Status: R1-A platform-neutral algorithm baseline plus the R1-B owned-window
-operations boundary. This document records implemented boundaries and current
-decisions; runtime acceptance evidence is recorded separately, and this is not
-a promise that unimplemented product behavior exists.
+Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
+owned-window operations boundary, and the R1-C1 companion-process operations
+design boundary. This document records implemented boundaries and current
+decisions; R1-C1 runtime acceptance evidence is recorded separately and is not
+predeclared by this design.
 
 ## System flow
 
@@ -14,7 +15,10 @@ Native OS event
     -> R1-A Core: visible geometry, adjacency graph, TranslationSession,
        and MovePlan(target_visible_rect)
     -> Behavior engine boundary (future; not implemented)
-    -> R1-B Windows owned-window operations adapter
+    -> Capability-neutral translation preparation
+    -> One of two separate Windows capability resolvers:
+         R1-B same-process OwnedWindowToken
+         R1-C1 controller-launched CompanionWindowToken
     -> Native placement and post-operation snapshot receipt
 ```
 
@@ -163,11 +167,108 @@ are operation-time snapshot facts, not permanent token properties. R1-B records
 them before and after placement; this boundary does not by itself claim that
 mixed-DPI or cross-monitor behavior has been validated.
 
-An operation receipt is diagnostic evidence, not feedback suppression. A
-future R1-C behavior layer may consume receipts, token generations, expected
-targets, and acknowledged actual geometry when designing suppression, but it
-must not infer suppression solely from time or event contiguity. R1-C is not
-started, and R1-B defines no Glue event loop or product behavior.
+An operation receipt is diagnostic evidence, not feedback suppression. R1-C1
+researches companion-process receipts and feedback inputs, but it must not
+infer suppression solely from time or event contiguity. R1-B remains unchanged
+and defines no Glue event loop or product behavior.
+
+### R1-C1 Windows companion-process operations design
+
+R1-C1 adds a second, independent authority for a PaneBind test fixture launched
+by a PaneBind controller. It does not widen `OwnedWindowToken`,
+`OwnedWindowRegistry`, or `OwnedWindowOperations`: those names and their
+same-process owned-only issuance rules remain unchanged. A companion process is
+external to the controller process but is still PaneBind-created test
+infrastructure, not evidence that an arbitrary third-party application is safe
+or eligible to control.
+
+The controller creates a `CompanionSession` by launching the exact companion
+target executable with `CreateProcessW`. A restricted inherited anonymous-pipe
+handshake is the only source of candidate registrations. The controller does
+not use `EnumWindows`, `FindWindow`, `FindWindowEx`, `GetForegroundWindow`,
+`WindowFromPoint`, shell enumeration, a title, or another global discovery path
+to issue authority. A raw `HWND` transmitted in the handshake is a native fact
+to validate, not a public or durable capability.
+
+The controller keeps the process handle returned by `CreateProcessW` for the
+entire session. `CompanionWindowToken` is opaque and contains the controller
+registry authority, the per-launch companion session authority, a logical
+window ID, and a registration generation. It cannot be constructed from or
+converted to `HWND`, and a token from one session cannot alias a later session
+even when both sessions use logical IDs A/B/C/D or Windows eventually reuses a
+numeric PID or handle.
+
+Handshake acceptance and every later token resolution validate all of the
+following before exposing a native handle internally:
+
+- the held process handle is still live and still identifies the launch PID;
+- token registry and session authorities, logical ID, and generation match the
+  active registration;
+- `GetWindowThreadProcessId` matches the companion PID and registered target UI
+  thread;
+- the window still has the fixed private companion class;
+- it is a root, non-child, unowned top-level window; and
+- its target-created per-session and per-generation marker still matches.
+
+These repeated predicates reduce accidental stale identity but do not turn
+`IsWindow`, PID, class, property, or raw handle values into independent
+capabilities. The companion protocol serializes fixture lifetime commands with
+operations. A target-side window destroy retires that registration and makes
+its token stale; a signaled child process handle retires the entire session and
+makes every token issued by it stale. A new child launch always receives a new
+session authority.
+
+The visible-to-positioning pure-translation calculation is capability-neutral
+and may be shared internally between R1-B and R1-C1. It accepts captured
+geometry and a requested `target_visible_rect`, verifies equal size and one
+checked delta, and translates the current positioning rectangle by that delta.
+The authority layers remain separate: the shared preparation code accepts no
+arbitrary `HWND`, performs no discovery, and cannot resolve either token type.
+Owned and companion registries independently perform issuance, lifetime
+validation, and native-handle resolution.
+
+After all companion members pass preflight, single-window placement may call
+`SetWindowPos`, while a follower batch uses the complete
+`BeginDeferWindowPos`/`DeferWindowPos`/`EndDeferWindowPos` chain. Results must retain
+operation or batch ID, companion token/session/generation, PID/TID, requested
+target, before geometry, actual visible and positioning geometry, monitor/DPI,
+and the native stage and outcome. Every native attempt must be followed by
+recapturing all still-valid members. A successful native return with actual
+geometry different from requested is a post-verification failure, not success.
+Preflight is PaneBind all-or-nothing; Win32 placement is not described as a
+transaction and R1-C1 provides no rollback guarantee.
+
+The companion target must record `WM_WINDOWPOSCHANGING`,
+`WM_WINDOWPOSCHANGED`, `WM_MOVE`, `WM_SIZE`, and `WM_NCDESTROY` with logical
+window and operation context. Its test-only uncooperative mode may modify a
+requested `WINDOWPOS` deterministically so the controller must detect an
+actual-versus-requested mismatch. This is a required evidence design, not a
+claim that a particular message count, ordering, or runtime result has already
+been observed.
+
+Controller and companion executables must declare Per-Monitor DPI Awareness V2.
+The R1-C1 baseline is limited to the same interactive session and same
+integrity level; elevated, UIAccess, AppContainer, cross-session, mixed-DPI,
+and multi-monitor targets require separate evidence. The controller does not
+elevate itself, alter UIPI message filters, or attach input queues.
+
+Operation receipts, target-side messages, and out-of-context WinEvents are
+three feedback inputs. R1-C1 records them for attribution research but does not
+implement a Glue feedback-suppression state machine. Attribution may compare
+session/token/generation, expected target, and verified actual geometry; it
+must not require `MOVESIZESTART`/`MOVESIZEEND`, one WinEvent per request,
+time-only matching, or event adjacency and contiguity.
+
+Companion shutdown must be requested through the session IPC and awaited for a
+bounded interval. A fixture cleanup fallback may terminate only the exact
+process object held by that `CompanionSession`, never an arbitrary PID, process
+name, wildcard, or user application. Closing the session invalidates all its
+tokens regardless of whether shutdown was graceful.
+
+R1-C2 is not started. Explorer, Office, editors, browsers, terminals, system
+windows, and every other user-opened third-party window remain prohibited
+targets, and R1-C1 creates no third-party eligibility or product-interaction
+policy.
 
 ## Normalized event model
 
@@ -219,8 +320,11 @@ distinguish them.
   standard library.
 - The R1-B harness may depend on R1-A core and the Windows owned-window
   operations adapter; the adapter must not become a dependency of `core`.
-- No current layer depends on the future behavior engine or R1-C feedback
-  suppression.
+- The R1-C1 controller harness may depend on R1-A core, capability-neutral
+  translation preparation, and a separate Windows companion resolver; process
+  handles, IPC, and native tokens must not enter `core`.
+- No current layer depends on the future behavior engine or implements R1-C
+  feedback suppression.
 
 ## Threading and lifetime baseline
 
@@ -299,3 +403,26 @@ application, monitor, DPI, or virtual-desktop policy.
 - PMv2 is explicit, while monitor and DPI remain before/after snapshot facts.
 - Receipts expose inputs for later feedback research but implement no R1-C
   suppression, Glue loop, Snap behavior, or third-party window control.
+
+## R1-C1 architecture invariants
+
+- The R1-B owned-window token, registry, adapter, and issuance boundary remain
+  owned-only and are not generalized.
+- Companion authority originates only from a controller-created process and
+  its restricted inherited-pipe handshake; no global window discovery issues a
+  token.
+- The held process handle and per-launch session authority anchor process
+  lifetime; PID, TID, class, root/owner/style, marker, and generation are
+  revalidated predicates, not standalone capabilities.
+- A destroyed window invalidates its registration, child exit invalidates the
+  whole session, and a later session cannot accept an older token.
+- Geometry preparation may be shared, but owned and companion capability
+  issuance and resolution remain separate.
+- Native cross-process placement always produces structured post-verification
+  evidence and makes no transaction or rollback claim.
+- PMv2 and same integrity are explicit R1-C1 constraints; broader integrity,
+  desktop, monitor, and DPI behavior is not inferred.
+- WndProc and WinEvent records are feedback inputs, not a completed
+  suppression algorithm or a guaranteed acknowledgement stream.
+- R1-C2, real third-party control, global input, injection, Glue runtime, Snap,
+  and product interaction remain outside this round.

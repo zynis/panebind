@@ -49,6 +49,17 @@ target_compile_definitions(
 panebind_enable_warnings(panebind-observer)
 
 add_library(
+    panebind_windows_operation_geometry
+    STATIC
+    operations/window_translation.cpp
+)
+target_link_libraries(
+    panebind_windows_operation_geometry
+    PUBLIC panebind_core
+)
+panebind_enable_warnings(panebind_windows_operation_geometry)
+
+add_library(
     panebind_windows_owned_operations
     STATIC
     operations/owned_window_operations.cpp
@@ -56,7 +67,7 @@ add_library(
 target_link_libraries(
     panebind_windows_owned_operations
     PUBLIC panebind_core
-    PRIVATE dwmapi user32
+    PRIVATE panebind_windows_operation_geometry dwmapi user32
 )
 target_compile_definitions(
     panebind_windows_owned_operations
@@ -96,6 +107,80 @@ target_compile_definitions(
     _WIN32_WINNT=0x0A00
 )
 panebind_enable_warnings(panebind-owned-window-harness)
+
+add_library(
+    panebind_windows_companion
+    STATIC
+    companion/companion_session.cpp
+)
+target_link_libraries(
+    panebind_windows_companion
+    PUBLIC panebind_core
+    PRIVATE
+    panebind_windows_operation_geometry
+    advapi32
+    bcrypt
+    dwmapi
+    user32
+)
+target_compile_definitions(
+    panebind_windows_companion
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind_windows_companion)
+
+add_executable(
+    panebind-companion-target
+    ../../app/companion_target_main.cpp
+    observer.rc
+    observer.manifest
+)
+target_link_libraries(panebind-companion-target PRIVATE panebind_core user32)
+if(MSVC)
+    target_link_options(panebind-companion-target PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(
+    panebind-companion-target
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind-companion-target)
+
+add_executable(
+    panebind-companion-harness
+    ../../app/companion_harness_main.cpp
+    observer.rc
+    observer.manifest
+)
+target_link_libraries(
+    panebind-companion-harness
+    PRIVATE panebind_windows_companion
+)
+if(MSVC)
+    target_link_options(panebind-companion-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(
+    panebind-companion-harness
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind-companion-harness)
 
 if(BUILD_TESTING)
     add_executable(
@@ -141,4 +226,26 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-windows-owned-operations-tests)
     add_test(NAME windows-owned-operations-unit
              COMMAND panebind-windows-owned-operations-tests)
+
+    add_executable(
+        panebind-windows-companion-tests
+        companion/companion_session_tests.cpp
+    )
+    target_link_libraries(
+        panebind-windows-companion-tests
+        PRIVATE panebind_windows_companion
+    )
+    target_compile_definitions(
+        panebind-windows-companion-tests
+        PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+    )
+    panebind_enable_warnings(panebind-windows-companion-tests)
+    add_test(NAME windows-companion-unit
+             COMMAND panebind-windows-companion-tests)
 endif()
