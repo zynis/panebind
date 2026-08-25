@@ -450,9 +450,16 @@ void emit_evidence(const protocol::EvidencePayload& evidence,
                 "target evidence queue has no overflow or drop");
     std::array<std::uint64_t, 5U> message_counts{};
     bool identities_valid = true;
+    bool sequence_contiguous = true;
+    bool registration_facts_valid = true;
     bool operation_step_observed = false;
     for (std::size_t index = 0; index < evidence.record_count; ++index) {
         const auto& record = evidence.records[index];
+        if (index != 0U) {
+            sequence_contiguous = sequence_contiguous &&
+                                  record.sequence ==
+                                      evidence.records[index - 1U].sequence + 1U;
+        }
         const auto message_index = static_cast<std::size_t>(record.message) - 1U;
         if (message_index < message_counts.size()) {
             ++message_counts[message_index];
@@ -462,6 +469,10 @@ void emit_evidence(const protocol::EvidencePayload& evidence,
                            record.target_ui_thread_id == evidence.target_ui_thread_id &&
                            protocol::is_valid_logical_window_id(
                                static_cast<std::uint32_t>(record.logical_id));
+        registration_facts_valid = registration_facts_valid &&
+                                   record.generation ==
+                                       protocol::kInitialWindowGeneration &&
+                                   record.native_window != 0U;
         operation_step_observed = operation_step_observed || record.step_id != 0U;
         std::cout << "{\"schema_version\":1,\"record_kind\":\"target_message\""
                   << ",\"sequence\":" << record.sequence
@@ -478,6 +489,10 @@ void emit_evidence(const protocol::EvidencePayload& evidence,
                   << "}\n";
     }
     tests.check(identities_valid, "target evidence PID/TID/logical identities match");
+    tests.check(sequence_contiguous,
+                "target evidence sequence has no duplicate or missing record");
+    tests.check(registration_facts_valid,
+                "target evidence generation and native registration facts are valid");
     tests.check(operation_step_observed,
                 "target evidence contains operation-correlated step IDs");
     tests.check(message_counts[0] > 0U && message_counts[1] > 0U &&

@@ -358,7 +358,7 @@ unconditional universal CTest.
 **WINDOWS RUNTIME INTEGRATION.** The final Debug evidence run launched the R0
 observer and `panebind-companion-harness`; the harness in turn launched two
 independent `panebind-companion-target` sessions. Raw files remain only under
-ignored `uat/r1c1/`, prefix `20260825T174201132Z`.
+ignored `uat/r1c1/`, prefix `20260825T175448096Z`.
 
 - Controller PID/TID and both target PID/UI-TID pairs were distinct. Both
   targets matched the controller's medium-integrity RID 8192, UIAccess false,

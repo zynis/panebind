@@ -335,7 +335,7 @@ The final evidence command used the ignored runner with Debug binaries,
 12-second observation, and 2-second hold. Raw prefix:
 
 ```text
-uat/r1c1/20260825T174201132Z
+uat/r1c1/20260825T175448096Z
 ```
 
 Evidence quality:
@@ -345,7 +345,7 @@ observer JSONL records = 700 valid
 observer sequence = continuous 1..700
 hook/census/shutdown = complete
 queue/drop/notification failures = none
-harness JSONL records = 311 valid
+harness JSONL records = 313 valid
 harness summary = PASS / failures 0
 observer/harness stderr = empty
 ```
