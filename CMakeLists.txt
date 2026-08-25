@@ -37,6 +37,22 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-core-model-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-core-model-tests)
     add_test(NAME core-model COMMAND panebind-core-model-tests)
+
+    add_executable(
+        panebind-topology-tests
+        tests/core/topology_tests.cpp
+    )
+    target_link_libraries(panebind-topology-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-topology-tests)
+    add_test(NAME topology COMMAND panebind-topology-tests)
+
+    add_executable(
+        panebind-translation-tests
+        tests/core/translation_tests.cpp
+    )
+    target_link_libraries(panebind-translation-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-translation-tests)
+    add_test(NAME translation COMMAND panebind-translation-tests)
 endif()
 
 if(WIN32)

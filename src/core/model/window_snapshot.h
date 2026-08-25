@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/events/window_event.h"
 #include "core/geometry/geometry.h"
+#include "core/model/window_id.h"
 
 #include <cstdint>
 #include <optional>
@@ -36,10 +36,10 @@ enum class WindowState {
 };
 
 struct NormalizedWindowSnapshot {
-    NormalizedWindowSnapshot(events::WindowId window_id, ProcessId owner_process_id)
+    NormalizedWindowSnapshot(WindowId window_id, ProcessId owner_process_id)
         : id(std::move(window_id)), process_id(owner_process_id) {}
 
-    const events::WindowId id;
+    const WindowId id;
     const ProcessId process_id;
     // Normalized text is UTF-8. Adapters must transcode native encodings.
     std::optional<std::string> process_name;

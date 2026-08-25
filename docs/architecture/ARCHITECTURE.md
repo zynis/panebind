@@ -1,7 +1,8 @@
 # PaneBind Architecture Baseline
 
-Status: R0 architecture baseline. This document records boundaries and current
-decisions; it is not a promise that unimplemented future components exist.
+Status: R1-A platform-neutral algorithm baseline. This document records
+implemented boundaries and current decisions; it is not a promise that
+unimplemented behavior or platform-operation components exist.
 
 ## System flow
 
@@ -9,9 +10,9 @@ decisions; it is not a promise that unimplemented future components exist.
 Native OS event
     -> Platform observation adapter
     -> Normalized event and geometry
-    -> Core state/topology (future beyond the R0 geometry baseline)
+    -> Core adjacency/topology and pure translation planning (R1-A)
     -> Behavior engine (future)
-    -> Platform operations adapter (boundary only in R0)
+    -> Platform operations adapter (future)
 ```
 
 The observation and operations directions are deliberately different
@@ -27,14 +28,20 @@ window-management policy.
 
 ### Core — `src/core/`
 
-Owns platform-neutral domain concepts. R0 includes:
+Owns platform-neutral domain concepts. The implemented R0 and R1-A baseline
+includes:
 
 - normalized `Point`, `Size`, and `Rect` geometry;
 - pure intersection, overlap, edge-distance, normalization, and tolerance
   helpers;
 - opaque `WindowId` values;
 - the three normalized event kinds justified for the observer; and
-- a minimal normalized window snapshot.
+- a minimal normalized window snapshot;
+- visible-geometry `WindowGeometry` inputs and explicit adjacency tolerance;
+- signed edge relations, a deterministic undirected adjacency graph, and
+  connected-component solving;
+- geometry-change classification with checked translation deltas; and
+- an immutable, initial-relative pure follower move plan.
 
 The core must not include `HWND`, `HMONITOR`, `RECT`, `POINT`, `DWORD`, Windows
 headers, native WinEvent constants, or native display identifiers whose meaning
@@ -50,6 +57,20 @@ normalizes its two corners at construction. Intersection means shared positive
 area; touching edges are represented by zero overlap and can be evaluated with
 the separate edge/tolerance helpers. Those definitions are geometry semantics,
 not Snap behavior.
+
+R1-A adjacency consumes visible rectangles only. Positioning/operation
+rectangles remain a separate future adapter concern. Only opposing edges can be
+adjacent; the edge tolerance is an explicit caller value on the edge-normal
+axis, the perpendicular overlap must have positive length, and corner-only
+contact is rejected. A positive signed gap means visible space, zero means exact
+touch, and a negative gap means shallow intrusion. Multiple qualifying contacts
+for one pair are rejected as ambiguous in this baseline.
+
+The full `INT64_MIN..INT64_MAX` rectangle span remains unsupported, but R1-A
+uses checked subtraction and addition for edge gaps, classification deltas, and
+planned targets. Unrepresentable distant gaps are outside tolerance;
+unrepresentable translation fails the whole calculation rather than producing
+a partial plan.
 
 ### Windows platform adapter — `src/platform/windows/`
 
@@ -71,11 +92,13 @@ Normalized text and log strings use UTF-8; the Windows adapter explicitly
 transcodes UTF-16 and JSON-escapes it. `process_name` means the executable
 basename when available, not a stronger semantic application identity.
 
-### Future sync/behavior engine — not implemented in R0
+### Future sync/behavior engine — not implemented
 
-A future engine may own topology, adjacency, grouping, and behavior policy only
-after those models are researched and approved. R0 provides geometry
-primitives, not a Glue graph or Snap algorithm.
+R1-A implements the pure adjacency graph, connected-component query, geometry
+classification, and initial-relative translation plan. It does not subscribe to
+events, retain native windows, choose product eligibility, or execute a plan.
+A future behavior engine may consume these reviewed values only after its own
+research gate. No Glue or Snap behavior engine exists.
 
 ### Future platform operations adapter — boundary only
 
@@ -131,6 +154,8 @@ distinguish them.
 - `platform/windows` may depend on `core` and the Windows SDK.
 - `core` depends only on the C++ standard library.
 - `core` never depends on `platform` or `app`.
+- R1-A core movement/topology depends only on other core value types and the C++
+  standard library.
 - No current layer depends on a future behavior or operations implementation.
 
 ## Threading and lifetime baseline
@@ -167,6 +192,9 @@ are recorded in `docs/research/R0_WINDOWS_EVENT_MODEL.md`.
 
 Filtering for future Snap/Glue eligibility is a separate problem. R0's
 observation filter must not be mistaken for a permanent product blacklist.
+The R1-A graph accepts a caller-prefiltered `WindowGeometry` collection and
+encodes no visibility, cloaking, minimization, maximization, elevation,
+application, monitor, DPI, or virtual-desktop policy.
 
 ## R0 invariants
 
@@ -177,3 +205,16 @@ observation filter must not be mistaken for a permanent product blacklist.
 - No call that moves/resizes a third-party window.
 - No Snap, Glue, zone, tiling, or persistent group engine.
 - Unobserved behavior is marked untested rather than inferred.
+
+## R1-A invariants
+
+- Adjacency and move planning use visible, platform-neutral geometry only.
+- Tolerance is explicit; no product pixel or DPI default is embedded in core.
+- Graph nodes/relations/components and plan outputs are deterministic under
+  input permutation.
+- Duplicate `WindowId` values and invalid tolerance are rejected explicitly.
+- Move plans contain follower target visible rectangles only and are recomputed
+  from immutable session-initial geometry plus the leader's total delta.
+- Resize-or-mixed leader geometry produces no translation plan.
+- No platform operation, event hook, input state, feedback suppression, Snap,
+  Glue Resize, or third-party window control is part of R1-A.

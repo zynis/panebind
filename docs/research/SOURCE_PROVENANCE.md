@@ -92,3 +92,62 @@ Attribution required: NO for code reuse; inline official-document citations reta
 
 Exact page URLs and claim-level citations are retained in
 [R0_WINDOWS_EVENT_MODEL.md](R0_WINDOWS_EVENT_MODEL.md).
+
+## R1-A targeted adjacency/topology review
+
+Review date: 2026-08-25.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d (1.68-48-g5c86416); AltDrag e2740d605b0336a3b391fec26794718864b19521 (v1.1-8-ge2740d6)
+License: GNU GPL v3-or-later; REFERENCE ONLY
+Files/modules inspected for R1-A: AltSnap hooks.c (ShouldSnapTo, EnumWindowsProc, EnumTouchingWindows, MoveSnap, ResizeSnap, ResizeTouchingWindows); unfuck.h (visible-frame helpers, IsEqualT, IsInRangeT, SegT, AreRectsTouchingT); relevant AltDrag hooks.c snap scan
+Issues/PR/history inspected for R1-A: AltSnap issues #59, #95, #347, #413, #445, #507, #566, #620, #681; PRs #415, #682, #723; commits 1dd26c9, 5fdb078, 5fb8307, fa5c70a, 3555048, 8b774a1, 90d0a06; AltDrag issues #1, #7, #32, #38; PRs #99, #134, #136, #187; commit 0055ed1
+What was learned: visible-frame snapping; explicit pixel tolerance; mutable signed per-axis threshold risks; tolerance-expanded perpendicular candidate checks; sticky resize's historical move from edge-only matching to inclusive segment contact; immediate-neighbor-only behavior; no connected-component graph; unresolved frame-gap and mixed-DPI behavior
+Applicable PaneBind subsystem: visible-geometry adjacency relation; deterministic graph/component solver; translation-session reliability tests; Windows eligibility remains outside core
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code because no GPL code entered PaneBind; research citations retained
+```
+
+License decision: **GPL REFERENCE-ONLY**. R1-A uses independently specified
+mathematics and tests. It does not copy, translate, mechanically rewrite, or
+adapt AltSnap/AltDrag implementation code.
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License: MIT; reference-only in R1-A
+Files/modules/tests inspected for R1-A: FancyZonesLib Layout, Zone, WorkArea, WorkAreaConfiguration, FancyZones, MonitorUtils, FancyZonesDataTypes, FancyZonesWindowProcessing, WindowUtils, EditorParameters; AppliedLayouts and CustomLayouts stores; Layout/WorkArea/Zone/WindowProcessing/WorkAreaId unit tests
+Issues/PR/history inspected for R1-A: issues #1167, #4962, #28626, #43363, #43386, #44058, #49016; PRs #13703, #19077, #19312, #27005, #28556, #44440, #48473, #49433, #49985; relevant merge commits recorded in R1_ADJACENCY_TOPOLOGY_RESEARCH.md
+What was learned: WorkArea/native identity and operations must not become platform-neutral core; cursor sensitivity is not edge tolerance; topology replacement must abort stale consumers; canonical layout refresh prevents mixed-generation state; visual zone targets and positioning operation rectangles are separate contracts; DPI coordinate contexts must be unified before core; reason-bearing Windows eligibility remains caller policy; PaneBind mixed-DPI/multi-monitor runtime behavior remains NOT TESTED
+Applicable PaneBind subsystem: immutable geometry snapshot boundary; future topology generation/lifetime contract; visible versus operation geometry separation; graph caller eligibility
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for this reference-only review; any future reuse requires separate approval and PowerToys MIT notice preservation
+```
+
+### Microsoft Learn geometry documentation
+
+```text
+Sources: GetWindowRect; DwmGetWindowAttribute / DWMWA_EXTENDED_FRAME_BOUNDS; RECT; MONITORINFO; FancyZones product documentation
+Publisher: Microsoft Learn
+Version / SHA: N/A; live documentation reviewed 2026-08-25
+Terms: Microsoft Learn Terms of Use; facts paraphrased and cited only
+What was learned: exclusive right/bottom rectangle convention; GetWindowRect DPI virtualization and invisible borders; visible DWM frame distinction; signed virtual-screen monitor/work-area coordinates; documented FancyZones mixed-DPI limitations
+Applicable PaneBind subsystem: adapter-to-core visible geometry contract and signed coordinate test domain
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code reuse; inline citations retained
+```
+
+Detailed R1-A findings and decisions are in
+[R1_ADJACENCY_TOPOLOGY_RESEARCH.md](R1_ADJACENCY_TOPOLOGY_RESEARCH.md).
