@@ -1,5 +1,6 @@
 #include "platform/windows/windows_observer.h"
 
+#include "core/events/window_event.h"
 #include "platform/windows/text_encoding.h"
 
 #include <dwmapi.h>
