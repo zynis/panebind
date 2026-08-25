@@ -1,8 +1,9 @@
 # PaneBind Architecture Baseline
 
-Status: R1-A platform-neutral algorithm baseline. This document records
-implemented boundaries and current decisions; it is not a promise that
-unimplemented behavior or platform-operation components exist.
+Status: R1-A platform-neutral algorithm baseline plus the R1-B owned-window
+operations boundary. This document records implemented boundaries and current
+decisions; runtime acceptance evidence is recorded separately, and this is not
+a promise that unimplemented product behavior exists.
 
 ## System flow
 
@@ -10,9 +11,11 @@ unimplemented behavior or platform-operation components exist.
 Native OS event
     -> Platform observation adapter
     -> Normalized event and geometry
-    -> Core adjacency/topology and pure translation planning (R1-A)
-    -> Behavior engine (future)
-    -> Platform operations adapter (future)
+    -> R1-A Core: visible geometry, adjacency graph, TranslationSession,
+       and MovePlan(target_visible_rect)
+    -> Behavior engine boundary (future; not implemented)
+    -> R1-B Windows owned-window operations adapter
+    -> Native placement and post-operation snapshot receipt
 ```
 
 The observation and operations directions are deliberately different
@@ -100,13 +103,65 @@ events, retain native windows, choose product eligibility, or execute a plan.
 A future behavior engine may consume these reviewed values only after its own
 research gate. No Glue or Snap behavior engine exists.
 
-### Future platform operations adapter — boundary only
+### R1-B Windows owned-window operations adapter
 
-A later adapter could accept reviewed, explicit commands from a behavior layer
-and translate them into native operations. It must define error handling,
-privilege boundaries, DPI semantics, feedback-loop suppression, and atomic
-multi-window behavior before implementation. R0 contains no operations
-interface and makes no native call that moves or resizes a third-party window.
+R1-B introduces a Windows-only operation boundary between the R1-A pure
+`MovePlan` and native placement. Its authority is deliberately limited to
+independent top-level windows created and registered by the PaneBind harness.
+It is not a general third-party window operations API, and no Explorer, Office,
+editor, browser, terminal, system, or other user window can be supplied through
+this interface.
+
+Public capture and operation entry points accept an opaque `OwnedWindowToken`,
+not an `HWND`, integer handle, or caller-provided native-handle collection. The
+token has no public conversion to a native handle. The one native issuance
+boundary is private to the owned-window registry: it may receive the `HWND`
+returned by the harness's `CreateWindowEx` call and issue a token only after
+checking that the handle belongs to the current process and expected harness UI
+thread, uses the fixed private harness window class and marker property, and is
+an independent unowned top-level window associated with the current
+registration generation. A private process-monotonic registry authority is
+part of token equality, so a token issued by another registry cannot alias a
+local logical ID/generation. Before every capture or operation, the registry
+repeats the live registration, native-handle, PID/thread, root/owner/style,
+class, marker, authority, and generation checks. `WM_NCDESTROY` removes the
+registration and invalidates its token before a later window can reuse the
+numeric handle value.
+
+The R1-B bridge supports translation only. For each member it captures the
+current visible-frame and positioning rectangles and requires the requested
+`target_visible_rect` to have the same size and the same checked delta on all
+four edges. It then translates the current positioning rectangle by that delta;
+it never treats a visible-frame rectangle as a positioning rectangle. A
+different target size is rejected rather than invoking an unresearched visible
+resize conversion.
+
+A multi-window request preflights every member before beginning any native
+operation. Token authority, ownership, current geometry, pure-translation
+shape, checked arithmetic, representable native coordinates, and the complete
+target set must all validate before `BeginDeferWindowPos`. Only then may the
+adapter build the `DeferWindowPos` chain and call `EndDeferWindowPos`. This is a
+PaneBind prevalidation all-or-nothing rule; the native sequence is not described
+as transactional and provides no PaneBind rollback guarantee.
+
+After any attempted native sequence, including a reported native failure, the
+adapter captures actual visible and positioning geometry for every still-owned
+member. The operation receipt distinguishes preflight, begin, defer-chain, end,
+and post-verification stages and records requested versus actual geometry rather
+than converting an application- or Windows-adjusted result into success. The
+receipt also retains the owned token generation and the before/after monitor
+and DPI facts needed to diagnose a topology or coordinate-context change.
+
+The harness declares Per-Monitor DPI Awareness V2 explicitly. Monitor and DPI
+are operation-time snapshot facts, not permanent token properties. R1-B records
+them before and after placement; this boundary does not by itself claim that
+mixed-DPI or cross-monitor behavior has been validated.
+
+An operation receipt is diagnostic evidence, not feedback suppression. A
+future R1-C behavior layer may consume receipts, token generations, expected
+targets, and acknowledged actual geometry when designing suppression, but it
+must not infer suppression solely from time or event contiguity. R1-C is not
+started, and R1-B defines no Glue event loop or product behavior.
 
 ## Normalized event model
 
@@ -156,7 +211,10 @@ distinguish them.
 - `core` never depends on `platform` or `app`.
 - R1-A core movement/topology depends only on other core value types and the C++
   standard library.
-- No current layer depends on a future behavior or operations implementation.
+- The R1-B harness may depend on R1-A core and the Windows owned-window
+  operations adapter; the adapter must not become a dependency of `core`.
+- No current layer depends on the future behavior engine or R1-C feedback
+  suppression.
 
 ## Threading and lifetime baseline
 
@@ -218,3 +276,20 @@ application, monitor, DPI, or virtual-desktop policy.
 - Resize-or-mixed leader geometry produces no translation plan.
 - No platform operation, event hook, input state, feedback suppression, Snap,
   Glue Resize, or third-party window control is part of R1-A.
+
+## R1-B architecture invariants
+
+- Native operation authority originates only from the owned-window registry;
+  public capture and operation APIs never accept a raw `HWND`.
+- A token is registry-authority plus registration-and-generation identity, not
+  a cast native handle, and `WM_NCDESTROY` invalidates it.
+- Only PaneBind harness-owned, independent top-level windows are in scope.
+- A visible target is converted to an equal-delta positioning translation;
+  visible resize conversion is outside R1-B.
+- All members pass ownership, geometry, and arithmetic preflight before a
+  deferred native sequence begins.
+- Native deferred positioning is not described as transactional, atomic, or
+  rollback-capable; actual state is captured after an attempt.
+- PMv2 is explicit, while monitor and DPI remain before/after snapshot facts.
+- Receipts expose inputs for later feedback research but implement no R1-C
+  suppression, Glue loop, Snap behavior, or third-party window control.

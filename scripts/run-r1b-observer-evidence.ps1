@@ -1,0 +1,148 @@
+[CmdletBinding()]
+param(
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $BuildDirectory = 'out/r1b-debug',
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $Configuration = 'Debug',
+
+    [Parameter(Mandatory = $true)]
+    [ValidateRange(1, 86400)]
+    [int] $ObserveSeconds,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateRange(1, 86400)]
+    [int] $HarnessHoldSeconds
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$repositoryRoot = [System.IO.Path]::GetFullPath(
+    (Join-Path -Path $PSScriptRoot -ChildPath '..'))
+
+if ([System.IO.Path]::IsPathRooted($BuildDirectory)) {
+    $buildRoot = [System.IO.Path]::GetFullPath($BuildDirectory)
+} else {
+    $buildRoot = [System.IO.Path]::GetFullPath(
+        (Join-Path -Path $repositoryRoot -ChildPath $BuildDirectory))
+}
+
+if (-not (Test-Path -LiteralPath $buildRoot -PathType Container)) {
+    throw "Build directory does not exist: $buildRoot"
+}
+
+function Resolve-R1BExecutable {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $FileName
+    )
+
+    $platformOutput = Join-Path -Path $buildRoot -ChildPath 'src/platform/windows'
+    $candidates = @(
+        (Join-Path -Path $platformOutput -ChildPath "$Configuration/$FileName"),
+        (Join-Path -Path $platformOutput -ChildPath $FileName),
+        (Join-Path -Path $buildRoot -ChildPath "$Configuration/$FileName"),
+        (Join-Path -Path $buildRoot -ChildPath $FileName)
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+    }
+
+    $expectedPaths = $candidates -join [Environment]::NewLine
+    throw "Required executable was not found. Checked:$([Environment]::NewLine)$expectedPaths"
+}
+
+$observerPath = Resolve-R1BExecutable -FileName 'panebind-observer.exe'
+$harnessPath = Resolve-R1BExecutable -FileName 'panebind-owned-window-harness.exe'
+
+$evidenceDirectory = Join-Path -Path $repositoryRoot -ChildPath 'uat/r1b'
+[void] (New-Item -ItemType Directory -Path $evidenceDirectory -Force)
+
+$timestamp = [DateTime]::UtcNow.ToString(
+    'yyyyMMddTHHmmssfffZ',
+    [Globalization.CultureInfo]::InvariantCulture)
+$observerStdout = Join-Path $evidenceDirectory "$timestamp-observer.stdout.jsonl"
+$observerStderr = Join-Path $evidenceDirectory "$timestamp-observer.stderr.log"
+$harnessStdout = Join-Path $evidenceDirectory "$timestamp-harness.stdout.jsonl"
+$harnessStderr = Join-Path $evidenceDirectory "$timestamp-harness.stderr.log"
+
+Write-Output "Evidence directory: $evidenceDirectory"
+Write-Output "Observer stdout: $observerStdout"
+Write-Output "Observer stderr: $observerStderr"
+Write-Output "Harness stdout: $harnessStdout"
+Write-Output "Harness stderr: $harnessStderr"
+
+$observerProcess = $null
+$harnessProcess = $null
+$launchFailure = $null
+
+try {
+    $observerProcess = Start-Process `
+        -FilePath $observerPath `
+        -ArgumentList @('--observe-seconds', $ObserveSeconds.ToString(
+            [Globalization.CultureInfo]::InvariantCulture)) `
+        -WorkingDirectory $repositoryRoot `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $observerStdout `
+        -RedirectStandardError $observerStderr `
+        -PassThru
+
+    # Windows PowerShell can lose ExitCode for a quickly exiting process with
+    # redirected streams unless the native process handle is materialized
+    # while the process is still running.
+    [void] $observerProcess.Handle
+
+    # Give the observer process a short opportunity to install its hooks before
+    # the owned-window harness starts creating and translating its own windows.
+    Start-Sleep -Milliseconds 750
+
+    $harnessProcess = Start-Process `
+        -FilePath $harnessPath `
+        -ArgumentList @(
+            '--self-test',
+            '--hold-seconds',
+            $HarnessHoldSeconds.ToString(
+                [Globalization.CultureInfo]::InvariantCulture)
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $harnessStdout `
+        -RedirectStandardError $harnessStderr `
+        -PassThru
+    [void] $harnessProcess.Handle
+} catch {
+    $launchFailure = $_
+} finally {
+    if ($null -ne $harnessProcess) {
+        $harnessProcess.WaitForExit()
+        $harnessProcess.Refresh()
+    }
+    if ($null -ne $observerProcess) {
+        $observerProcess.WaitForExit()
+        $observerProcess.Refresh()
+    }
+}
+
+if ($null -ne $launchFailure) {
+    throw $launchFailure
+}
+
+$observerExitCode = $observerProcess.ExitCode
+$harnessExitCode = $harnessProcess.ExitCode
+
+if ($null -eq $observerExitCode -or $null -eq $harnessExitCode) {
+    throw "An evidence process exit code was unavailable after WaitForExit/Refresh. observer=$observerExitCode, harness=$harnessExitCode"
+}
+
+Write-Output "Observer exit code: $observerExitCode"
+Write-Output "Harness exit code: $harnessExitCode"
+
+if ($observerExitCode -ne 0 -or $harnessExitCode -ne 0) {
+    throw "R1-B evidence processes failed: observer=$observerExitCode, harness=$harnessExitCode"
+}
