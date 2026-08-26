@@ -147,6 +147,8 @@ void append_rect(std::ostream& output, const geometry::Rect& rect) {
         return "stale_token";
     case CompanionOperationStatus::SessionExited:
         return "session_exited";
+    case CompanionOperationStatus::SessionPoisoned:
+        return "session_poisoned";
     case CompanionOperationStatus::InvalidWindow:
         return "invalid_window";
     case CompanionOperationStatus::WrongProcess:

@@ -184,6 +184,12 @@ The inherited raw handle values and raw HWND values are transport facts, never
 public capabilities. IPC is cooperative process-local test plumbing, not a
 cryptographic sandbox.
 
+Any response timeout, partial/truncated or oversized frame, read/write failure
+while the target remains alive, request/envelope mismatch, or malformed
+evidence poisons the protocol session. The controller closes both endpoints,
+retires all tokens, and forbids future operation reuse of the byte stream. This
+policy is code-reviewed; forced timeout/cancellation races remain NOT TESTED.
+
 ### Handshake contract
 
 The first child frame must establish exactly:
@@ -358,7 +364,7 @@ unconditional universal CTest.
 **WINDOWS RUNTIME INTEGRATION.** The final Debug evidence run launched the R0
 observer and `panebind-companion-harness`; the harness in turn launched two
 independent `panebind-companion-target` sessions. Raw files remain only under
-ignored `uat/r1c1/`, prefix `20260825T175448096Z`.
+ignored `uat/r1c1/`, prefix `20260826T005227232Z`.
 
 - Controller PID/TID and both target PID/UI-TID pairs were distinct. Both
   targets matched the controller's medium-integrity RID 8192, UIAccess false,
@@ -378,8 +384,8 @@ ignored `uat/r1c1/`, prefix `20260825T175448096Z`.
 - Target-side evidence contained 101 valid records with no overflow/drop:
   CHANGING/CHANGED/MOVE/SIZE/NCDESTROY = `35/31/30/4/1`.
 
-**EXTERNAL OBSERVER EVIDENCE.** Observer JSONL contained 700 valid records,
-continuous sequence `1..700`, complete hook/census/shutdown diagnostics, no
+**EXTERNAL OBSERVER EVIDENCE.** Observer JSONL contained 715 valid records,
+continuous sequence `1..715`, complete hook/census/shutdown diagnostics, no
 queue/drop failure, and empty stderr. Filtering both controller-launched target
 PIDs yielded exactly 26 accepted `EVENT_OBJECT_LOCATIONCHANGE` events and no
 START/END:

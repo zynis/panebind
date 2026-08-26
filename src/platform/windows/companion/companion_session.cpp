@@ -815,6 +815,22 @@ struct CompanionSession::Impl final {
         return true;
     }
 
+    void poison_protocol_locked() noexcept {
+        if (!protocol_usable) {
+            return;
+        }
+        protocol_usable = false;
+        ledger.retire_all();
+        if (command_write != nullptr) {
+            CloseHandle(command_write);
+            command_write = nullptr;
+        }
+        if (response_read != nullptr) {
+            CloseHandle(response_read);
+            response_read = nullptr;
+        }
+    }
+
     [[nodiscard]] bool write_frame_locked(protocol::FrameKind kind,
                                           std::uint64_t request_id,
                                           const void* payload,
@@ -859,6 +875,14 @@ struct CompanionSession::Impl final {
                 5U, "CompanionSession", "request identifier space exhausted");
             return result;
         }
+        if (!protocol_usable) {
+            result.status = CompanionCommandStatus::SessionPoisoned;
+            result.diagnostic = protocol_diagnostic(
+                64U,
+                "CompanionSession",
+                "IPC session was retired after an earlier framing or timeout failure");
+            return result;
+        }
         if (!refresh_process_state_locked()) {
             result.status = CompanionCommandStatus::SessionExited;
             result.diagnostic = adapter_diagnostic(
@@ -871,8 +895,12 @@ struct CompanionSession::Impl final {
                                 payload,
                                 payload_size,
                                 write_diagnostic)) {
-            result.status = refresh_process_state_locked()
-                                ? CompanionCommandStatus::ProtocolFailure
+            const bool process_still_alive = refresh_process_state_locked();
+            if (process_still_alive) {
+                poison_protocol_locked();
+            }
+            result.status = process_still_alive
+                                ? CompanionCommandStatus::SessionPoisoned
                                 : CompanionCommandStatus::SessionExited;
             result.diagnostic = std::move(write_diagnostic);
             return result;
@@ -881,9 +909,12 @@ struct CompanionSession::Impl final {
         auto frame = read_frame_with_timeout(response_read, process, timeout);
         switch (frame.status) {
         case FrameReadStatus::Timeout:
-            result.status = CompanionCommandStatus::Timeout;
-            result.diagnostic = adapter_diagnostic(
-                7U, "ReadFile", "companion response timed out");
+            poison_protocol_locked();
+            result.status = CompanionCommandStatus::SessionPoisoned;
+            result.diagnostic = protocol_diagnostic(
+                7U,
+                "ReadFile",
+                "companion response timed out; the byte stream and session were retired");
             return result;
         case FrameReadStatus::ProcessExited:
             static_cast<void>(refresh_process_state_locked());
@@ -894,16 +925,22 @@ struct CompanionSession::Impl final {
         case FrameReadStatus::ReadFailed:
         case FrameReadStatus::ThreadFailure:
             static_cast<void>(refresh_process_state_locked());
+            if (process_alive) {
+                poison_protocol_locked();
+            }
             result.status = process_alive
-                                ? CompanionCommandStatus::ProtocolFailure
+                                ? CompanionCommandStatus::SessionPoisoned
                                 : CompanionCommandStatus::SessionExited;
             result.diagnostic = win32_diagnostic(
                 "ReadFile", frame.error, "companion response read failed");
             return result;
         case FrameReadStatus::PayloadTooLarge:
-            result.status = CompanionCommandStatus::ProtocolFailure;
+            poison_protocol_locked();
+            result.status = CompanionCommandStatus::SessionPoisoned;
             result.diagnostic = protocol_diagnostic(
-                9U, "FrameHeader", "companion response payload exceeds bound");
+                9U,
+                "FrameHeader",
+                "companion response exceeded the payload bound; session retired");
             return result;
         case FrameReadStatus::Succeeded:
             break;
@@ -912,9 +949,12 @@ struct CompanionSession::Impl final {
                                     facts.session_authority,
                                     expected_response,
                                     result.request_id)) {
-            result.status = CompanionCommandStatus::ProtocolFailure;
+            poison_protocol_locked();
+            result.status = CompanionCommandStatus::SessionPoisoned;
             result.diagnostic = protocol_diagnostic(
-                10U, "FrameHeader", "companion response envelope mismatch");
+                10U,
+                "FrameHeader",
+                "companion response envelope mismatch; session retired");
             return result;
         }
         result.status = CompanionCommandStatus::Succeeded;
@@ -952,9 +992,12 @@ struct CompanionSession::Impl final {
              response->logical_id != *expected_logical_id) ||
             (expected_step_id.has_value() &&
              response->step_id != *expected_step_id)) {
-            result.status = CompanionCommandStatus::ProtocolFailure;
+            poison_protocol_locked();
+            result.status = CompanionCommandStatus::SessionPoisoned;
             result.diagnostic = protocol_diagnostic(
-                11U, "CommandResult", "companion command response mismatch");
+                11U,
+                "CommandResult",
+                "companion command response mismatch; session retired");
             return result;
         }
         result.target_status = response->status;
@@ -972,6 +1015,14 @@ struct CompanionSession::Impl final {
 
     [[nodiscard]] ResolveResult resolve_locked(
         const CompanionWindowToken& token) {
+        if (!protocol_usable) {
+            return {CompanionOperationStatus::SessionPoisoned,
+                    std::nullopt,
+                    protocol_diagnostic(
+                        65U,
+                        "CompanionSession",
+                        "IPC session was retired after a protocol failure")};
+        }
         if (!refresh_process_state_locked()) {
             return {CompanionOperationStatus::SessionExited,
                     std::nullopt,
@@ -1085,6 +1136,7 @@ struct CompanionSession::Impl final {
     HANDLE command_write{};
     HANDLE response_read{};
     bool process_alive{true};
+    bool protocol_usable{true};
     bool shutdown_started{};
     CompanionLaunchFacts facts;
     detail::CompanionTokenLedger ledger;
@@ -1594,7 +1646,7 @@ const CompanionLaunchFacts& CompanionSession::launch_facts() const noexcept {
 
 bool CompanionSession::is_alive() noexcept {
     std::lock_guard lock{impl_->mutex};
-    return impl_->refresh_process_state_locked();
+    return impl_->protocol_usable && impl_->refresh_process_state_locked();
 }
 
 std::vector<CompanionWindowToken> CompanionSession::tokens() const {
@@ -1661,7 +1713,9 @@ CompanionCommandResult CompanionSession::destroy_window(
         const auto command_status =
             resolved.status == CompanionOperationStatus::SessionExited
                 ? CompanionCommandStatus::SessionExited
-                : CompanionCommandStatus::StaleToken;
+                : (resolved.status == CompanionOperationStatus::SessionPoisoned
+                       ? CompanionCommandStatus::SessionPoisoned
+                       : CompanionCommandStatus::StaleToken);
         return {command_status,
                 protocol::CommandStatus::InvalidWindow,
                 0U,
@@ -1698,9 +1752,12 @@ CompanionEvidenceResult CompanionSession::query_evidence() {
         evidence->record_count > protocol::kMaximumEvidenceRecords ||
         evidence->target_process_id != impl_->facts.target_process_id ||
         evidence->target_ui_thread_id != impl_->facts.target_ui_thread_id) {
-        result.status = CompanionCommandStatus::ProtocolFailure;
+        impl_->poison_protocol_locked();
+        result.status = CompanionCommandStatus::SessionPoisoned;
         result.diagnostic = protocol_diagnostic(
-            44U, "EvidencePayload", "companion evidence payload mismatch");
+            44U,
+            "EvidencePayload",
+            "companion evidence payload mismatch; session retired");
         return result;
     }
     for (std::size_t index = 0U; index < evidence->record_count; ++index) {
@@ -1709,9 +1766,12 @@ CompanionEvidenceResult CompanionSession::query_evidence() {
                 static_cast<std::uint32_t>(record.logical_id)) ||
             record.target_process_id != impl_->facts.target_process_id ||
             record.target_ui_thread_id != impl_->facts.target_ui_thread_id) {
-            result.status = CompanionCommandStatus::ProtocolFailure;
+            impl_->poison_protocol_locked();
+            result.status = CompanionCommandStatus::SessionPoisoned;
             result.diagnostic = protocol_diagnostic(
-                45U, "EvidenceRecord", "companion evidence identity mismatch");
+                45U,
+                "EvidenceRecord",
+                "companion evidence identity mismatch; session retired");
             return result;
         }
     }
@@ -1730,13 +1790,21 @@ CompanionShutdownResult CompanionSession::shutdown(
         result.process_signaled = true;
     } else {
         impl_->shutdown_started = true;
-        const auto command = impl_->command_locked(protocol::FrameKind::Shutdown,
-                                                   nullptr,
-                                                   0U,
-                                                   graceful_timeout);
-        result.graceful_request_acknowledged = command.succeeded();
-        if (!command.succeeded()) {
-            result.diagnostic = command.diagnostic;
+        if (impl_->protocol_usable) {
+            const auto command = impl_->command_locked(
+                protocol::FrameKind::Shutdown,
+                nullptr,
+                0U,
+                graceful_timeout);
+            result.graceful_request_acknowledged = command.succeeded();
+            if (!command.succeeded()) {
+                result.diagnostic = command.diagnostic;
+            }
+        } else {
+            result.diagnostic = protocol_diagnostic(
+                66U,
+                "CompanionSession::shutdown",
+                "poisoned IPC cannot acknowledge graceful shutdown; waiting for EOF exit");
         }
 
         DWORD wait = WaitForSingleObject(
@@ -1899,6 +1967,14 @@ CompanionOperationResult CompanionWindowOperations::apply_one(
         return result;
     }
     std::lock_guard lock{session_->impl_->mutex};
+    if (!session_->impl_->protocol_usable) {
+        result.status = CompanionOperationStatus::SessionPoisoned;
+        result.diagnostic = protocol_diagnostic(
+            67U,
+            "CompanionWindowOperations",
+            "IPC session was retired after a protocol failure");
+        return result;
+    }
     const std::array tokens{request.token};
     const auto token_validation = detail::validate_companion_batch_tokens(
         tokens, session_->impl_->ledger);
@@ -2061,6 +2137,14 @@ CompanionOperationResult CompanionWindowOperations::apply(
     }
 
     std::lock_guard lock{session_->impl_->mutex};
+    if (!session_->impl_->protocol_usable) {
+        result.status = CompanionOperationStatus::SessionPoisoned;
+        result.diagnostic = protocol_diagnostic(
+            68U,
+            "CompanionWindowOperations",
+            "IPC session was retired after a protocol failure");
+        return result;
+    }
     const auto token_validation = detail::validate_companion_batch_tokens(
         tokens, session_->impl_->ledger);
     switch (token_validation) {

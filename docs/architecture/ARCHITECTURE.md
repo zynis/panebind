@@ -217,6 +217,14 @@ its token stale; a signaled child process handle retires the entire session and
 makes every token issued by it stale. A new child launch always receives a new
 session authority.
 
+The IPC byte stream is single-request and framed. A response timeout, truncated
+or oversized frame, read/write failure while the child remains alive, envelope
+or request mismatch, or malformed evidence permanently marks the session
+`SessionPoisoned`: both pipe endpoints close, all tokens retire, and no later
+capture or native operation may reuse that stream. Teardown may then wait for
+EOF-driven child exit and, if necessary, use only the exact retained fixture
+process handle for bounded fallback cleanup.
+
 The visible-to-positioning pure-translation calculation is capability-neutral
 and may be shared internally between R1-B and R1-C1. It accepts captured
 geometry and a requested `target_visible_rect`, verifies equal size and one

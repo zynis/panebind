@@ -109,6 +109,17 @@ results, and evidence payloads have fixed layouts. Target WndProc never writes
 to a pipe; it records into a bounded in-process evidence buffer drained only by
 an IPC query.
 
+```text
+IPC_AFTER_TIMEOUT_POLICY = SessionPoisoned / RetireSession
+```
+
+A timeout, truncated/oversized frame, live-child read/write failure, response
+envelope/request mismatch, or malformed evidence closes both protocol
+endpoints, retires every token, and prevents subsequent capture/apply reuse.
+Shutdown can then only await EOF-driven exit or clean up the exact retained
+fixture process handle. The poison policy is code-reviewed; forced timeout and
+`CancelSynchronousIo` races are not runtime-forced.
+
 ## 6. Launch handshake and issuance
 
 Handshake is the only window-capability source. It must echo the launch marker
@@ -335,14 +346,14 @@ The final evidence command used the ignored runner with Debug binaries,
 12-second observation, and 2-second hold. Raw prefix:
 
 ```text
-uat/r1c1/20260825T175448096Z
+uat/r1c1/20260826T005227232Z
 ```
 
 Evidence quality:
 
 ```text
-observer JSONL records = 700 valid
-observer sequence = continuous 1..700
+observer JSONL records = 715 valid
+observer sequence = continuous 1..715
 hook/census/shutdown = complete
 queue/drop/notification failures = none
 harness JSONL records = 313 valid
@@ -488,8 +499,7 @@ CORE_WIN32_ISOLATION = PASS
 - exact destroy/exit during `EndDeferWindowPos`;
 - hung target WndProc during synchronous SetWindowPos/End;
 - formal wall-clock boundedness if `CancelSynchronousIo` itself races/fails;
-- response timeout/partial frame followed by protocol reuse (a timed-out
-  session should be treated as poisoned in future hardening);
+- forced response-timeout/partial-frame poison path runtime behavior;
 - forced `TerminateProcess` fallback runtime path;
 - elevated/UIAccess/AppContainer and cross-Windows-session targets;
 - mixed-DPI, multi-monitor, cross-monitor, topology change during apply; and
