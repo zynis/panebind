@@ -278,3 +278,61 @@ Attribution required: NO for code reuse; claim-level official-document citations
 
 Detailed findings and R1-C1 decisions are in
 [R1C1_COMPANION_PROCESS_RESEARCH.md](R1C1_COMPANION_PROCESS_RESEARCH.md).
+
+## R1-C2A targeted Explorer eligibility review
+
+Review date: 2026-08-26.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; AltDrag e2740d605b0336a3b391fec26794718864b19521
+License: GNU GPL v3-or-later; REFERENCE ONLY
+Files/modules inspected for R1-C2A: AltSnap window discovery/filtering/blacklist/process/frame/move paths and history; AltDrag historical discovery/injection paths
+Issues/PR/history inspected for R1-C2A: existing reviewed Explorer/filter/visible-frame/DPI/application-adjustment issues and commits; R1-C1 movement/injection history
+What was learned: mature generic Explorer movement uses raw discovery and reason filters but provides no new-window provenance, Shell location authority, canonical image/session identity, or safe exact-window cleanup; injection remains rejected
+Applicable PaneBind subsystem: Explorer-specific eligibility reasons, geometry/post-verification risks, and no-injection/no-global-authority boundary
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code; citations retained
+```
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production and UI-test reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License: MIT; reference-only in R1-C2A
+Files/modules inspected for R1-C2A: FancyZonesTestHelper Explorer launch/baseline/cleanup; FancyZonesWindowProcessing; WindowUtils; event/lifetime/DPI paths; root LICENSE
+Issues/PR/history inspected for R1-C2A: existing reviewed destroy, DPI, elevation, filtering, placement, and topology hardening history
+What was learned: HWND baseline set-delta is a useful candidate signal but upstream helper does not prove exact Shell location/image/integrity or reject multiple candidates, and its close-all cleanup is unsafe for PaneBind; production eligibility remains raw-HWND policy rather than capability
+Applicable PaneBind subsystem: new-versus-preexisting candidate model, Explorer allowlist reasons, runtime test safety, and prohibited cleanup behavior
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for reference-only review; future MIT reuse requires separate approval/notice
+```
+
+### Microsoft Learn Shell, Win32, file, and security documentation
+
+```text
+Source: Microsoft Learn Windows Shell/Win32 documentation
+Publisher/repository: Microsoft; https://learn.microsoft.com/en-us/windows/win32/
+Version / SHA: N/A - live documentation
+Terms: Microsoft Learn Terms of Use; facts paraphrased/cited only
+Date reviewed: 2026-08-26
+Pages inspected for R1-C2A: Developing with Windows Explorer; IShellWindows; IWebBrowser2 and HWND/location/Quit automation members; ShellExecute/ShellExecuteEx; SHCreateItemFromParsingName; SHGetIDListFromObject; PathCreateFromUrlW; QueryFullProcessImageNameW; GetWindowsDirectoryW; CreateFileW; GetFileInformationByHandleEx/FILE_ID_INFO; IsWindow; GetWindowThreadProcessId; GetClassNameW; GetAncestor; GetWindowLongPtrW; GetWindow; IsWindowVisible; DwmGetWindowAttribute/DWMWA_CLOAKED/EXTENDED_FRAME_BOUNDS; IsIconic; IsZoomed; IVirtualDesktopManager; OpenProcess/OpenProcessToken/GetTokenInformation; SetWindowPos; GetWindowRect; MonitorFromWindow/GetMonitorInfoW/GetDpiForWindow
+Issues/PRs inspected: N/A
+What was learned: official ShellBrowserWindow creation and ShellWindows inventory; ShellExecute reuse risk; tab/frame ambiguity; filesystem URL/file identity; process image and kernel-handle lifetime; fail-closed state/security/desktop allowlist; pure single translation and exact post-verification; safe exact-object Quit constraints
+Applicable PaneBind subsystem: Explorer target isolation, read-only inventory, capability issuance, live eligibility, process/location identity, safe operation/restore/close, and feedback evidence
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code reuse; claim-level citations retained
+```
+
+Detailed findings and R1-C2A decisions are in
+[R1C2A_EXPLORER_ELIGIBILITY_RESEARCH.md](R1C2A_EXPLORER_ELIGIBILITY_RESEARCH.md).
