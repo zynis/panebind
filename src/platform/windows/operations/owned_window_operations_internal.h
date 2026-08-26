@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/windows/operations/owned_window_operations.h"
+#include "platform/windows/operations/window_translation.h"
 
 #include <atomic>
 #include <cstdint>
@@ -85,24 +86,17 @@ enum class BatchTokenValidation {
     bool has_child_style,
     bool has_owner) noexcept;
 
-enum class TranslationBridgeStatus {
-    Succeeded,
-    EmptyGeometry,
-    ResizeRejected,
-    ArithmeticOverflow,
-    NativeCoordinateOutOfRange,
-};
+using TranslationBridgeStatus =
+    window_translation::TranslationPreparationStatus;
+using TranslationBridgeResult =
+    window_translation::TranslationPreparationResult;
 
-struct TranslationBridgeResult {
-    TranslationBridgeStatus status{TranslationBridgeStatus::ArithmeticOverflow};
-    core::geometry::Distance dx{};
-    core::geometry::Distance dy{};
-    std::optional<core::geometry::Rect> target_positioning_rect;
-};
-
-[[nodiscard]] TranslationBridgeResult bridge_visible_translation(
+[[nodiscard]] inline TranslationBridgeResult bridge_visible_translation(
     const core::geometry::Rect& current_positioning_rect,
     const core::geometry::Rect& current_visible_rect,
-    const core::geometry::Rect& target_visible_rect) noexcept;
+    const core::geometry::Rect& target_visible_rect) noexcept {
+    return window_translation::prepare_visible_translation(
+        current_positioning_rect, current_visible_rect, target_visible_rect);
+}
 
 } // namespace panebind::platform::windows::operations::detail

@@ -217,3 +217,64 @@ Attribution required: NO for code reuse; claim-level official-document citations
 
 Detailed findings and independently selected R1-B contracts are in
 [R1B_WINDOWS_OPERATIONS_RESEARCH.md](R1B_WINDOWS_OPERATIONS_RESEARCH.md).
+
+## R1-C1 targeted companion-process review
+
+Review date: 2026-08-26.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; AltDrag e2740d605b0336a3b391fec26794718864b19521
+License: GNU GPL v3-or-later; REFERENCE ONLY
+Files/modules inspected for R1-C1: AltSnap hooks.c, unfuck.h, README.md, altsnap.c; AltDrag hooks.c, altdrag.c, HookWindows implementation; pinned history
+Issues/PR/history inspected for R1-C1: AltSnap issues #374, #572, #719; PR #573, #723; initial source/history removing AltDrag HookWindows; prior reviewed move/resize and lifetime history
+What was learned: mature cross-process/cross-thread SetWindowPos and Defer behavior exists, but uses global discovery/raw HWND and point-in-time IsWindow rather than launch authority; transient process opens do not prevent PID reuse; requested geometry can be application-adjusted; explicit synthetic START/END prevents natural feedback attribution; injected subclassing is a rejected historical architecture
+Applicable PaneBind subsystem: R1-C1 companion capability, process/window lifetime, cross-process placement, post-verification, feedback evidence, and no-injection boundary
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code because no GPL code entered PaneBind; research citations retained
+```
+
+License decision: **GPL REFERENCE-ONLY**. No implementation structure,
+control flow, or code was translated or adapted.
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License: MIT; reference-only in R1-C1
+Files/modules inspected for R1-C1: FancyZonesLib FancyZones, WorkArea, WindowUtils, MonitorUtils, LayoutAssignedWindows; FancyZones/FancyZonesApp; runner/editor launch and process-wait paths; common process/DPI utilities; UI test helpers; root LICENSE
+Issues/PR/history inspected for R1-C1: issues #5947, #21849; PRs #44440, #48473, #48569, #49985; commits dd26d86580168d2e368701f7b0c4d629dc9cd9ac, ae9f241ef13737dab6f861767bbfdfca72b78475, d68980a81bb8de144bdec998a114e948bf68c563
+What was learned: production cross-process placement/event processing exists but global raw HWND state is not a launch capability; target placement is per-window SetWindowPlacement and provides no Defer precedent; selected component launch paths retain process handles but do not form a window-registration handshake; destroy/topology changes abort stale consumers; elevation and mixed-DPI remain explicit risks
+Applicable PaneBind subsystem: R1-C1 process launch/lifetime, external window identity, destroy cancellation, integrity/DPI risk, post-verification, and feedback evidence
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for reference-only review; future copied or substantially reused MIT material requires separate approval and preservation of the Microsoft MIT notice
+```
+
+### Microsoft Learn process, IPC, window, and security documentation
+
+```text
+Source: Microsoft Learn - Windows desktop/Win32 API documentation
+Publisher/repository: Microsoft; https://learn.microsoft.com/en-us/windows/win32/
+Version / SHA: N/A - live platform documentation
+Terms: Microsoft Learn Terms of Use; facts were cited and paraphrased only
+Date reviewed: 2026-08-26
+Pages inspected for R1-C1: CreateProcessW; PROCESS_INFORMATION; process creation flags; WaitForInputIdle; WaitForSingleObject/WaitForMultipleObjects; GetExitCodeProcess; TerminateProcess; process termination; CreatePipe; anonymous pipe operations/security/inheritance; SetHandleInformation; Initialize/Update/DeleteProcThreadAttributeList; PROC_THREAD_ATTRIBUTE_HANDLE_LIST; ReadFile/WriteFile/CancelSynchronousIo; OpenProcessToken; GetTokenInformation; mandatory integrity control/UIPI; SetWindowPos; Begin/Defer/EndDeferWindowPos; IsWindow; GetWindowThreadProcessId; GetClassNameW; GetAncestor; GetWindowLongPtrW; GetWindow; SetPropW/GetPropW/RemovePropW; DestroyWindow; WM_WINDOWPOSCHANGING/CHANGED; SetWinEventHook; event constants
+Issues/PRs inspected: N/A
+What was learned: retained process HANDLE versus reusable PID; CreateProcess readiness limitations; WaitForInputIdle is not a handshake; two stream-framed anonymous pipes and restricted handle inheritance; bounded synchronous I/O/cleanup; per-use PID/TID/class/root/owner/marker validation; same-integrity baseline; cross-thread synchronous placement; application-adjusted WINDOWPOS; no native rollback guarantee; target-thread destruction; out-of-context feedback limitations
+Applicable PaneBind subsystem: companion launch/IPC/session authority, process/window lifetime, token resolution, native translation operations, structured receipts, integrity/DPI facts, cleanup, and feedback evidence
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code reuse; claim-level official-document citations retained
+```
+
+Detailed findings and R1-C1 decisions are in
+[R1C1_COMPANION_PROCESS_RESEARCH.md](R1C1_COMPANION_PROCESS_RESEARCH.md).

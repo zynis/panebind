@@ -167,6 +167,22 @@ deterministic and platform-independent.
   tree status, and local/remote divergence.
 - Preserve unrelated user changes in a dirty working tree.
 
+## Remote Git integrity
+
+- Use standard Git transport for `fetch`, `pull`, `push`, and remote-tracking
+  ref synchronization.
+- GitHub APIs may independently confirm PR, commit, and ref state or validate a
+  remote SHA, but they are not a normal Git transport fallback.
+- If ordinary `git fetch`, `git pull`, or `git push` continues to fail, stop
+  the affected work and report the transport blocker unless the current round
+  explicitly authorizes another recovery mechanism.
+- Without explicit current-round authorization, do not reconstruct Git
+  commits, trees, blobs, or the local object graph from API payloads; do not
+  write `.git/objects` manually; and do not move remote-tracking refs to
+  simulate a fetch.
+- This rule governs future behavior only. It does not rewrite or invalidate
+  already completed history whose SHAs were independently verified.
+
 ## Stop conditions
 
 Stop the affected work, preserve evidence, and report when:
