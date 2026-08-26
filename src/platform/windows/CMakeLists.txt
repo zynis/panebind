@@ -182,6 +182,67 @@ target_compile_definitions(
 )
 panebind_enable_warnings(panebind-companion-harness)
 
+add_library(
+    panebind_windows_explorer
+    STATIC
+    explorer/explorer_shell_inventory.cpp
+    explorer/explorer_session.cpp
+)
+target_link_libraries(
+    panebind_windows_explorer
+    PUBLIC panebind_core
+    PRIVATE
+    panebind_windows_operation_geometry
+    advapi32
+    bcrypt
+    dwmapi
+    ole32
+    oleaut32
+    propsys
+    shell32
+    shlwapi
+    user32
+)
+target_compile_definitions(
+    panebind_windows_explorer
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind_windows_explorer)
+
+add_executable(
+    panebind-explorer-harness
+    ../../app/explorer_harness_main.cpp
+    observer.rc
+    observer.manifest
+)
+set_source_files_properties(observer.rc PROPERTIES OBJECT_DEPENDS observer.manifest)
+target_link_libraries(
+    panebind-explorer-harness
+    PRIVATE panebind_windows_explorer ole32
+)
+if(MSVC)
+    # Reuse the audited PerMonitorV2 manifest and suppress the linker's second
+    # RT_MANIFEST resource.
+    target_link_options(panebind-explorer-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(
+    panebind-explorer-harness
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind-explorer-harness)
+
 if(BUILD_TESTING)
     add_executable(
         panebind-windows-text-encoding-tests
@@ -248,4 +309,26 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-windows-companion-tests)
     add_test(NAME windows-companion-unit
              COMMAND panebind-windows-companion-tests)
+
+    add_executable(
+        panebind-windows-explorer-tests
+        explorer/explorer_session_tests.cpp
+    )
+    target_link_libraries(
+        panebind-windows-explorer-tests
+        PRIVATE panebind_windows_explorer
+    )
+    target_compile_definitions(
+        panebind-windows-explorer-tests
+        PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+    )
+    panebind_enable_warnings(panebind-windows-explorer-tests)
+    add_test(NAME windows-explorer-unit
+             COMMAND panebind-windows-explorer-tests)
 endif()
