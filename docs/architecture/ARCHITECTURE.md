@@ -283,122 +283,89 @@ test windows.
 ### R1-C2A Windows Explorer test-window boundary
 
 R1-C2A defines a third, separate Windows capability for one explicitly
-provisioned File Explorer test window. It does not widen either the R1-B owned
-capability or the R1-C1 companion capability, and it is not a generic
+user-consented File Explorer test window. It does not widen either the R1-B
+owned capability or the R1-C1 companion capability, and it is not a generic
 third-party-window registry. No user-preexisting Explorer window, other
-application, second target, leader/follower group, Glue session, or Snap
-behavior enters this boundary.
+application, second target, leader/follower group, Glue session, Snap behavior,
+global input, or production selector enters this boundary.
 
-`IShellWindows` supplies read-only inventory facts through the documented
-Shell-windows interface; the retained `ShellBrowserWindow` object is a
-provisioning witness, never inventory authority. Before creation, the Explorer
-test session requires a reliable `HWND` from every Shell entry and permanently
-adds every such value to the session's forbidden preexisting set. Available
-location status, source, exact URL digest, and optional `FILE_ID_INFO` remain
-associated path-free diagnostics. An empty or inaccessible location is an
-`OPAQUE_PREEXISTING` entry, not a reason to omit its HWND or grant it authority;
-only a missing reliable HWND makes baseline exclusion incomplete.
+The two automatic provisioning attempts remain immutable blocked history.
+Attempt 1 used Shell-inventory delta and exposed opaque-location and ambiguous
+frame problems. Attempt 2 added `DShellWindowsEvents`, registration-cookie
+resolution, canonical COM identity, and a retained provisioning lease, but its
+single documented `CoCreateInstance(CLSID_ShellBrowserWindow)` call returned
+`E_FAIL` before a lease, registration, target, or native operation existed.
+`AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED`. The retained design and
+tests remain diagnostic history; the CLSID path is not active/default and is
+never fallback for the current UAT.
 
-The session creates a unique empty test directory under ignored `uat/r1c2a/`,
-retains one `IShellWindows` object, and subscribes to its
-`DShellWindowsEvents` connection point before creation. A small COM sink records
-sequenced registration and revocation receipts; the owning STA performs
-correlation while pumping messages within one absolute provisioning deadline.
-The session makes exactly one
-`CoCreateInstance(CLSID_ShellBrowserWindow)` request, retains the returned
-object as a non-operational provisioning lease, and correlates a registration
-through `FindWindowSW` plus canonical `IUnknown` identity. The lease, cookie,
-and live-eligibility HWND values must agree and the HWND must be absent from the
-complete baseline. Creation is never retried, and provisioning has no geometry
-setter or existing-window fallback. Inventory and the temporary lease never
-grant operation authority and do not form a general window-discovery engine.
-`NavigateComplete2` is only a same-object wake hint: more than one matching
-completion before issuance blocks, the accepted count is frozen, and any
-post-issuance increase permanently poisons the token and exact-cleanup Gate.
+Attempt 3 is a controlled interactive UAT. The harness creates only a unique,
+empty, non-reparse local directory under ignored
+`uat/r1c2a/consent-target-<nonce>` and records its exact `FILE_ID_INFO`. It
+captures every baseline Shell entry's reliable `HWND` in a permanent forbidden
+set. Empty and inaccessible locations remain `OPAQUE_PREEXISTING`; a missing
+reliable HWND blocks before the user prompt. Baseline membership is immutable
+for the session, so navigating a preexisting window to the nonce directory can
+never upgrade it.
 
-Capability issuance requires exactly one post-navigation browser `HWND` that
-was absent from the pre-create set, equals the retained object's frame, has
-exactly one Shell entry, and whose live filesystem `FILE_ID_INFO` equals the
-unique test directory. The exact one-entry-plus-file-identity rule remains the
-authority for issuance, live use, restore, and conditional close; an opaque
-baseline digest can never substitute for it. Zero new handles, multiple new
-handles, an existing handle navigated or reused for the location, an
-unavailable target location, or a target-location mismatch blocks the session.
-An opaque baseline entry remains permanently forbidden but does not block
-creation when its HWND was reliable. A preexisting Explorer handle can never be
-promoted as a fallback, even when every other native fact appears valid.
+The harness prints the absolute nonce path and asks the human to create one new
+Explorer top-level window and navigate that window to the path. `Ctrl+N` is a
+suggested human action only. PaneBind does not call ShellExecute, start
+Explorer, navigate a window, synthesize input, force foreground, or infer
+authority from the gesture. ENTER records explicit user confirmation, not a
+password, credential, integrity boundary, or native identity fact.
 
-`ExplorerWindowToken` is Explorer- and test-session-specific. It contains
-private controller and test-session authorities, a logical target identity,
-and a generation; it cannot be constructed from or converted to a raw `HWND`.
-Public Explorer capture and operation entry points accept only this token.
-`OwnedWindowToken`, `CompanionWindowToken`, and `ExplorerWindowToken` have
-independent issuance and resolution paths, and no generic third-party token or
-arbitrary-`HWND` executor is introduced.
+After confirmation, a fresh read-only `IShellWindows` inventory selects HWND
+values absent from the permanent baseline, filters them by exactly one live
+Shell entry whose filesystem identity equals the nonce directory, and requires
+exactly one remaining candidate. Zero candidates, multiple candidates, a tab
+in a baseline frame, or any reused/preexisting HWND blocks without native
+apply. The candidate must additionally pass the complete Explorer allowlist:
+root/top-level/style/owner, visible/uncloaked/normal state, current desktop,
+class, PID/TID and retained process instance, canonical system
+`explorer.exe` identity, compatible session/integrity/UIAccess/AppContainer,
+monitor, DPI, and exact live location.
 
-Issuance and every live resolution revalidate the exact registration and
-allowlist facts. The target must still be a valid, visible, uncloaked,
-non-minimized, non-maximized, independent root top-level `CabinetWClass` or
-`ExploreWClass` window; its PID/TID and held process-instance facts must match; its canonical
-image identity must be the installed Windows `explorer.exe`; and its integrity,
-UIAccess, AppContainer, Shell location, monitor, and DPI facts must remain in
-the supported test boundary. The Shell location is re-read at issuance,
-preflight, immediately before native placement, post-verification, and cleanup.
-Navigation, destruction, process exit, state change, or monitor/DPI change
-retires or invalidates the capability before another native apply.
+`ExplorerWindowToken` remains Explorer- and test-session-specific, opaque, and
+unconstructable from a raw `HWND`. Its authority combines explicit consent,
+the immutable baseline exclusion, unique exact candidate identity, live
+eligibility, and matching session/capability/consent generations. The session
+records baseline, prompt, target-confirmation, eligibility, token, and
+move-consent generations. Consent alone cannot issue or refresh a token.
 
-The R1-C2A operation is one explicit pure translation of that one Explorer
-window. It reuses the capability-neutral visible-to-positioning translation
-preparation already exercised by R1-B/R1-C1 and calls `SetWindowPos` with
-`SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE`. The safe test delta is fixture
-configuration selected so the complete target remains inside the same monitor
-work area; it is not product policy. No resize, z-order, activation, async
-placement, input attachment, or global input is permitted.
+Target confirmation only permits token issuance. The harness then presents a
+sanitized target summary and requires a second explicit affirmative consent
+before movement. Candidate change, navigation, destruction, process exit,
+minimize/maximize, monitor/DPI change, or any generation mismatch before apply
+blocks. Without the second consent, `SetWindowPos` is never called.
 
-Native success is not PaneBind success. The receipt records requested and
-actual visible/positioning rectangles plus identity, location, monitor, and DPI
-facts, and exact post-verification is required. Restoring the original position
-is a separate, live-revalidated cleanup translation through the same bridge;
-it is not rollback. The harness may request graceful close only for the exact
-still-valid, post-baseline test window while it still shows the unique test
-directory. If those facts cannot be proven, it leaves the window open and
-reports that safe cleanup was not performed. It never closes another Explorer
-window or terminates `explorer.exe`.
+The sole authorized test behavior is one same-monitor pure translation through
+the shared visible-to-positioning bridge, using
+`SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE`. Native success is not PaneBind
+success: the same HWND/process/PID/TID/class/location/monitor/DPI and exact
+visible/positioning rectangles must pass post-verification with size preserved.
+Restore is a separate immediate live-revalidated translation to the initial
+position and is required for the runtime Gate; it is not rollback.
 
-Observer events and the Explorer operation receipt are evidence inputs for
-later feedback research. R1-C2A makes no guarantee about START/LOCATION/END
-counts and implements no feedback-suppression or Glue state machine. The
-desktop-dependent harness may still block when Windows reuses an existing
-Explorer window or cannot produce one unambiguous new target; this architecture
-description does not claim a runtime PASS.
+Because the human creates the Explorer target, Attempt 3 never calls
+`IWebBrowser2::Quit`, sends `WM_CLOSE`, invokes a Shell close command, or
+terminates/restarts Explorer. After restore the human may close the test window.
+An optional manual stale-token check may verify no native apply after closure;
+skipping it leaves `WINDOW_DESTROY_LIFETIME = NOT TESTED` without blocking the
+single-translation baseline.
 
-The three 2026-08-26 local desktop attempts remain recorded as blocked
-evidence: an inaccessible preexisting location blocked the first model; an
-older build reported an unlocalized `E_FAIL` while independent observation
-found two unqualified hidden `CabinetWClass` frames and six
-`LOCATION_CHANGE` events but no retained target correlation; and an empty
-baseline `LocationURL` blocked the third model. None made a native placement or
-controlled a user-preexisting Explorer window.
+Observer startup and the interactive harness may be composed only by an
+evidence script that saves ignored logs; the script cannot create Explorer,
+send keys, close windows, or control a baseline window. Creation/navigation
+events precede operation attribution and cannot masquerade as translation or
+restore feedback. The interactive mode is not a CTest and cannot be completed
+by Codex impersonating user consent.
 
-The implemented 2026-08-27 recovery separates reliable-HWND baseline exclusion
-from positive target attribution and uses event-driven Shell registration plus
-canonical COM identity. Its first fixed provision-only attempt inventoried 14
-of 14 reliable baseline HWND values (10 valid locations, two empty, two
-inaccessible), so baseline exclusion passed with four opaque forbidden entries.
-`DShellWindowsEvents::Advise` succeeded and retired cleanly, but the single
-official CoCreate returned `E_FAIL` at `create_browser_window` before a lease,
-registration cookie, target, or native operation existed. A later read-only
-inventory contained 15 entries. Aggregate categories changed by `+1`
-accessible, `+1` empty, and `-1` inaccessible, but no per-HWND mapping proves
-the new entry's category. The unqualified `+1` was time-correlated with the
-attempt but, without a lease or registration cookie, cannot be attributed to
-the test or closed by it; its category and attributable-orphan result are
-therefore unknown. No fallback ran.
-All four retained nonce directories were read-only verified empty and
-non-reparse. Attempts 2 and 3 were not run after the first fixed-Gate failure.
-Thus the canonical, event-driven design is implemented and automated-tested
-but still lacks positive runtime provisioning/attribution evidence. Stability,
-provisioning, eligibility, and runtime remain blocked; R1-C2B is not started.
+Attempt 3 eligibility and runtime are `PENDING_UAT` until a human completes the
+two confirmations and the target-correlated evidence proves issuance, exactly
+one translation, exact post-verification, and restore. Implementation, builds,
+and deterministic tests are reported separately and cannot make those runtime
+Gates pass. R1-C2B is not started.
 
 ## Normalized event model
 
@@ -567,26 +534,27 @@ application, monitor, DPI, or virtual-desktop policy.
 - Every preexisting Shell entry must supply a reliable HWND for permanent
   exclusion; empty or inaccessible locations remain opaque diagnostics and
   never grant target authority.
-- Provisioning subscribes to `DShellWindowsEvents` before one CoCreate attempt,
-  resolves registration cookies on the owning STA, and requires canonical COM
-  identity plus three-way HWND equality within one bounded deadline; no
-  provisioning geometry setter or fallback exists.
-- Only exactly one new post-baseline Explorer browser `HWND` at the unique test
+- Attempts 1 and 2 automatic provisioning remain blocked history; the
+  `CLSID_ShellBrowserWindow` path is not active/default and is never a fallback.
+- Attempt 3 creates only the ignored nonce directory; the human creates and
+  navigates the Explorer frame without synthesized/global input or foreground
+  forcing.
+- Only exactly one new post-baseline candidate `HWND` at the unique test
   location, represented by exactly one Shell entry with exact filesystem file
-  identity, can receive an Explorer-specific token; an existing-window fallback
-  is prohibited.
+  identity, can receive an Explorer-specific token. A baseline HWND is forever
+  forbidden even if it later reaches that location.
+- Target confirmation and move consent are distinct generation-bound facts;
+  ENTER is not a credential and consent never substitutes for live eligibility.
 - Explorer issuance and resolution remain distinct from owned and companion
   capabilities, and no generic third-party or public raw-`HWND` API exists.
 - Process image, class/root/style/owner, visibility/cloak/state, Shell location,
   integrity, lifetime, monitor, and DPI facts are live-revalidated before use.
 - The only authorized operation is one explicit, same-monitor pure translation
   followed by exact post-verification and a separately verified restore.
-- Graceful close is conditional on the exact test window remaining eligible;
-  user-preexisting Explorer windows and the Explorer process are never closed
-  or terminated by fallback.
-- Baseline exclusion is empirically passing, but the current recovery run is
-  blocked by `E_FAIL` at `create_browser_window` before lease/registration;
-  no target correlation, native apply, or successful runtime outcome is
-  asserted by this design document.
+- Attempt 3 never automatically closes the user-created Explorer window;
+  optional closure and stale-token evidence are human-controlled.
+- Baseline exclusion is empirically passing. Attempt 2 remains blocked by
+  `E_FAIL`; Attempt 3 eligibility/runtime remain `PENDING_UAT`, with no runtime
+  PASS inferred from implementation or automated tests.
 - Generic third-party management, other applications, global input, injection,
   polling, Glue, Snap, R1-C2B, and later product behavior remain outside R1-C2A.

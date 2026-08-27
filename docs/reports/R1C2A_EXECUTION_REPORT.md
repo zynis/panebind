@@ -1,6 +1,6 @@
 # PaneBind R1-C2A Explorer Eligibility Execution Report
 
-Report date: 2026-08-27 (Asia/Shanghai; updated for provisioning recovery).
+Report date: 2026-08-28 (Asia/Shanghai; updated for user-consented recovery).
 
 ## 1. Round, branch, and evaluated state
 
@@ -24,6 +24,10 @@ ff84e1f docs: research explorer third-party eligibility
 eef1f92 feat: add isolated explorer translation harness
 71b9ea8 docs: record blocked r1c2a explorer runtime gate
 769873d docs: research shell registration attribution recovery
+080cca5 feat: recover explorer provisioning attribution
+b110f50 docs: record blocked explorer provisioning recovery
+560945a docs: research user-consented explorer authority
+d606ee1 feat: add user-consented explorer authority
 ```
 
 Recovery started from `71b9ea88a085e64438f6bc8a704f11279aa2c950`.
@@ -33,6 +37,10 @@ is `769873daf9620cc04594591994945385bf93927e`. Final recovery implementation
 and report SHAs remain a handoff item after the authorized worktree is
 committed.
 
+The third recovery continuation started from
+`b110f5068c1c252e1f5b0d90315d6d998235adf0`. Its prior-art checkpoint is
+`560945a` and its verified implementation checkpoint is `d606ee1`.
+
 The round implemented and automated-tested an Explorer-specific, fail-closed
 eligibility/capability model. It did **not** establish a real Explorer
 capability in the active desktop. Consequently it performed no third-party
@@ -40,7 +48,8 @@ window translation. This distinction is central to the result:
 
 ```text
 Eligibility/capability model = IMPLEMENTED / AUTOMATED TESTED
-Real Explorer capability issuance = BLOCKED
+Attempts 1/2 real Explorer capability issuance = BLOCKED
+Attempt 3 real Explorer capability issuance = PENDING_UAT
 Real Explorer translation = NOT TESTED
 ```
 
@@ -48,6 +57,15 @@ The recovery proved that baseline exclusion can remain complete when existing
 entries have opaque location diagnostics. It still did not obtain a creation
 object or positive target attribution. Detailed recovery evidence is recorded
 in [`R1C2A_PROVISIONING_RECOVERY_REPORT.md`](R1C2A_PROVISIONING_RECOVERY_REPORT.md).
+
+Those statements are the immutable results of automatic Attempts 1 and 2.
+Attempt 3 changes only the active UAT authority path: a human creates and
+navigates a new Explorer frame and gives two explicit confirmations, while
+PaneBind independently proves baseline exclusion, unique exact-location
+candidate identity, full live eligibility, and generation freshness. The
+interactive implementation/build/test result is **PASS**. Real eligibility and
+runtime remain **PENDING_UAT** and must not be inferred from deterministic
+tests.
 
 No Glue, global input, resize, Snap, multi-window operation, generic
 third-party registry, or R1-C2B implementation was added.
@@ -66,10 +84,13 @@ and the updated
 | PowerToys/FancyZones | `19c4d805321db86f3634e6968e14dbf25cbba14a` | MIT, reference-only in this round | baseline/new-HWND delta is useful but insufficient by itself |
 | Microsoft Win32/Shell documentation | live pages reviewed 2026-08-26 | documented contracts | Shell inventory, Shell browser creation, filesystem identity, security, geometry, and lifetime source |
 
-The research adopted documented `IShellWindows` read-only inventory and
-`CLSID_ShellBrowserWindow` creation, while rejecting ordinary `ShellExecute`,
-titles, class names, basenames, raw HWNDs, and Shell collection membership as
-standalone authority. No external code was copied or adapted.
+The research adopted documented `IShellWindows` read-only inventory. Attempt 2
+also researched `CLSID_ShellBrowserWindow`, but its `CoCreateInstance` path is
+now blocked history rather than active/default UAT. `ShellExecute`,
+`ShellExecuteEx`, direct `explorer.exe` invocation including `/n` or
+`/separate`, `start <path>`, titles, class names, basenames, raw HWNDs, and
+Shell collection membership are rejected as standalone new-window authority.
+No external code was copied or adapted.
 
 ```text
 R1C2A_PRIOR_ART_GATE = PASS
@@ -77,7 +98,7 @@ EXTERNAL_CODE_COPIED = NO
 EXTERNAL_CODE_ADAPTED = NO
 ```
 
-## 3. Explorer test-target isolation design
+## 3. Historical automatic isolation design (Attempts 1 and 2)
 
 The recovery provisioning path is deliberately narrower than general Explorer
 discovery and separates exclusion from positive attribution:
@@ -112,6 +133,40 @@ Location authority uses a live filesystem directory handle and `FILE_ID_INFO`
 volume/file identity. A title, localized display name, URL string, pathname
 string, or opaque digest is not sufficient. Committed evidence contains none
 of those sensitive values.
+
+### 3.1 Active user-consented isolation design (Attempt 3)
+
+The active/default path never invokes `CLSID_ShellBrowserWindow` and has no
+automatic-launch fallback:
+
+```text
+capture immutable baseline forbidden HWND set
+-> create empty non-reparse local uat/r1c2a/consent-target-<nonce>
+-> print its absolute path
+-> human creates one new Explorer top-level window and navigates it
+-> human confirms completion
+-> fresh read-only inventory
+-> require exactly one non-baseline candidate with one exact FILE_ID_INFO entry
+-> require full live Explorer allowlist
+-> issue consent/session/generation-bound ExplorerWindowToken
+-> show sanitized target summary
+-> require separate explicit move consent
+-> live-revalidate target, eligibility, and generations
+-> one SetWindowPos translation and exact post-verification
+-> separate live-revalidated restore
+-> leave the user-created Explorer open for the human to close
+```
+
+Baseline location diagnostics may be valid, empty, or inaccessible, but every
+entry must provide a reliable HWND and every value remains forbidden for the
+whole run. A baseline frame at the exact nonce location is rejected rather than
+promoted. Zero or multiple exact-location candidates block without native
+apply.
+
+`Ctrl+N` is a suggested human action, not target evidence. ENTER records an
+explicit consent fact, not a credential or security boundary. The harness and
+evidence script do not use `SendInput`, keyboard/mouse hooks, `PostMessage`
+simulation, UI Automation, foreground forcing, or a selector/picker UI.
 
 ## 4. Explorer allowlist and live validation
 
@@ -305,7 +360,8 @@ attempt summary's legacy zero-valued orphan
 field is preserved as raw evidence but is not accepted as proof; subsequent
 code represents this state as `known = false` and a null count.
 
-Attempt 1 was `BLOCKED`; attempts 2 and 3 were `NOT RUN`. Therefore
+Provision-only run 1 was `BLOCKED`; provision-only runs 2 and 3 were `NOT RUN`.
+Therefore
 `PROVISIONING_STABILITY_GATE = BLOCKED`, and neither Debug full Explorer
 runtime nor Release Explorer runtime was run. Directory removal also remained
 fail-closed. A later read-only audit found four ignored target directories, all
@@ -447,7 +503,7 @@ CORE_WIN32_ISOLATION = PASS
 RAW_RUNTIME_LOGS_TRACKED = NO
 ```
 
-## 12. Required final handoff matrix
+## 12. Attempt 2 handoff matrix (preserved blocked history)
 
 | # | Required item | Result |
 | ---: | --- | --- |
@@ -496,7 +552,7 @@ RAW_RUNTIME_LOGS_TRACKED = NO
 | 43 | Git status | authorized implementation/report changes pending commit at report drafting; final status recorded in handoff |
 | 44 | Local/remote divergence | blocked checkpoint `71b9ea8` pushed by standard Git transport; recovery final divergence recorded after its commit/push |
 
-## 13. Remaining NOT TESTED risks
+## 13. Attempt 2 remaining NOT TESTED risks
 
 - successful issuance of a real isolated, visible Explorer target;
 - canonical image/class/topology/location/security facts on an issued target;
@@ -519,7 +575,7 @@ RAW_RUNTIME_LOGS_TRACKED = NO
 - hung Explorer during synchronous placement; and
 - Release Explorer desktop runtime.
 
-## 14. R1-C2B architecture questions only
+## 14. Historical R1-C2B architecture questions only
 
 1. Which documented Shell mechanism, if any, can reliably yield exactly one
    retained, visible new frame under current tabbed Explorer behavior without
@@ -537,10 +593,10 @@ RAW_RUNTIME_LOGS_TRACKED = NO
    without injection, `TerminateThread`, Explorer termination, or false async
    completion?
 
-These are questions only. The blocked R1-C2A runtime Gate must be resolved
-before R1-C2B can begin.
+These are questions only. The current user-consented R1-C2A runtime Gate must
+complete interactive UAT before R1-C2B can begin.
 
-## 15. Gate result
+## 15. Attempt 2 gate result (preserved blocked history)
 
 ```text
 R1C2A_PRIOR_ART_GATE = PASS
@@ -550,6 +606,87 @@ R1C2A_ELIGIBILITY_GATE = BLOCKED
 R1C2A_RUNTIME_GATE = BLOCKED
 PROVISIONING_STABILITY_GATE = BLOCKED
 PRECISE_BLOCKER = the sole CLSID_ShellBrowserWindow CoCreate returned E_FAIL before positive attribution authority existed
+USER_EXISTING_WINDOWS_TOUCHED = NO
+OTHER_THIRD_PARTY_CONTROL = NO
+R1C2B = NOT STARTED
+```
+
+## 16. Attempt 3 implementation and evidence handoff
+
+Attempt 3 is intentionally interactive and is not registered in CTest. The
+active CLI contract is:
+
+```text
+panebind-explorer-harness.exe --interactive-consent-test
+```
+
+The intended evidence wrapper is:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\scripts\run-r1c2a-explorer-consent-evidence.ps1 `
+  -BuildDirectory out/r1c2a-debug `
+  -Configuration Debug `
+  -ObserveSeconds 180
+```
+
+The human must open a **new** Explorer top-level window, navigate that new
+window to the printed absolute nonce path, return and press ENTER, review the
+sanitized target summary, then enter `Y` and press ENTER for the one
+translation plus immediate restore. The final stale-token close step is
+optional. The harness never closes the user-created window.
+
+The wrapper may start only `panebind-observer` and the interactive harness and
+save ignored output below `uat/r1c2a/`. It must not create or navigate Explorer,
+send keys, close Explorer, or select/control any baseline HWND. Creation and
+navigation events are not operation feedback; only the issued target's
+translation and restore intervals may contribute START/LOCATION/END evidence.
+
+The implementation must preserve these safety boundaries:
+
+- active/default interactive mode performs no CoCreate/ShellExecute/Explorer
+  launch and has no legacy automatic fallback;
+- baseline HWND membership is immutable, including opaque preexisting entries;
+- one and only one new exact-location candidate may receive a token;
+- target confirmation and move authorization are distinct consent generations;
+- all identity, state, security, location, monitor, DPI, and generation facts
+  are live-revalidated before the single native apply and restore;
+- primary apply is exactly one `SetWindowPos` using
+  `SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE`, followed by exact verification;
+- restore is separate, immediate, verified cleanup; and
+- no automatic close, process termination, global/synthetic input, selector UI,
+  Glue, Snap, resize, or R1-C2B behavior is introduced.
+
+The user-consent capability implementation and interactive harness build are
+complete. Debug and Release builds pass; all 8 CTest entries pass in both
+configurations; the expanded `windows-explorer-unit` deterministic consent
+matrix passes; and Owned-window plus Companion-process harness regressions pass
+in both configurations. Redirected interactive input and both deprecated
+automatic CLI modes were also verified to reject before directory, COM, or
+Explorer side effects. The before/after `consent-target-*` directory count was
+unchanged in that safety check.
+
+No human consent has yet been supplied. Real target issuance, translation,
+post-verification, restore, target-correlated observer counts, and optional
+manual stale-token evidence therefore remain `PENDING_UAT`/`NOT TESTED`; no
+automated result is relabeled as a desktop-runtime observation.
+
+## 17. Current R1-C2A gate state
+
+This state supersedes section 15 only for the active Attempt 3 path; it does not
+rewrite the automatic-provisioning failures:
+
+```text
+R1C2A_PRIOR_ART_GATE = PASS
+R1C2A_BASELINE_EXCLUSION_GATE = PASS
+ATTEMPT_1_AUTO_INVENTORY_PROVISIONING = BLOCKED
+ATTEMPT_2_SHELL_REGISTRATION_PROVISIONING = BLOCKED
+AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED
+ATTEMPT_2_PRECISE_BLOCKER = CLSID_ShellBrowserWindow CoCreate returned E_FAIL before positive attribution authority existed
+ATTEMPT_3_USER_CONSENTED_AUTHORITY = CURRENT APPROACH
+R1C2A_CONSENT_CAPABILITY_IMPLEMENTATION = PASS
+R1C2A_ELIGIBILITY_GATE = PENDING_UAT
+R1C2A_RUNTIME_GATE = PENDING_UAT
 USER_EXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C2B = NOT STARTED

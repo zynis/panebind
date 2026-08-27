@@ -1,11 +1,11 @@
 # PaneBind R1-C2A Explorer Provisioning Recovery Report
 
-Report date: 2026-08-27 (Asia/Shanghai).
+Report date: 2026-08-28 (Asia/Shanghai).
 
 ## 1. Scope and relationship to the initial attempt
 
-This report records a recovery continuation of the same R1-C2A round. It does
-not replace or reinterpret the initial blocked evidence in
+This report records automatic provisioning Attempt 2 of the same R1-C2A round.
+It does not replace or reinterpret Attempt 1 blocked evidence in
 [`R1C2A_EXECUTION_REPORT.md`](R1C2A_EXECUTION_REPORT.md).
 
 The initial attempt remains material evidence:
@@ -82,13 +82,14 @@ The ignored evidence prefix was:
 Only sanitized counts, states, API/stage identifiers, and HRESULT values are
 reported. No Explorer title or filesystem path is reproduced here.
 
-The fixed stress Gate was three Debug provision-only attempts. It stopped
-fail-closed after attempt 1 blocked; attempts 2 and 3 were deliberately not
-used as retry-until-pass opportunities.
+The fixed stress Gate was three Debug provision-only runs within Attempt 2. It
+stopped fail-closed after run 1 blocked; provision-only runs 2 and 3 were
+deliberately not used as retry-until-pass opportunities.
 
 ## 5. Baseline exclusion result
 
-Attempt 1 captured this baseline before the sole creation request:
+Provision-only run 1 within Attempt 2 captured this baseline before the sole
+creation request:
 
 | Fact | Value |
 | --- | ---: |
@@ -263,7 +264,7 @@ NATIVE_TRANSLATION_COUNT = 0
 The recovery used no existing-window fallback, secondary Explorer launch
 mechanism, arbitrary-HWND close, or retry-until-pass loop.
 
-## 11. Remaining risks and blocked evidence
+## 11. Attempt 2 remaining risks and blocked evidence
 
 The following remain `NOT TESTED` or unresolved:
 
@@ -289,7 +290,7 @@ The first recovery attempt failed at the official creation API before positive
 attribution could begin. Relaxing target evidence, falling back to an existing
 Explorer, or repeating until success would not resolve that blocker safely.
 
-## 12. Final recovery Gate result
+## 12. Attempt 2 final recovery Gate result
 
 ```text
 R1C2A_PRIOR_ART_GATE = PASS
@@ -299,6 +300,87 @@ R1C2A_ELIGIBILITY_GATE = BLOCKED
 R1C2A_RUNTIME_GATE = BLOCKED
 PROVISIONING_STABILITY_GATE = BLOCKED
 EXPLORER_TEST_TARGET_ISOLATION = BLOCKED
+USER_EXISTING_WINDOWS_TOUCHED = NO
+OTHER_THIRD_PARTY_CONTROL = NO
+R1C2B = NOT STARTED
+```
+
+## 13. Attempt 3 successor: user-consented target authority
+
+Attempt 3 started from
+`b110f5068c1c252e1f5b0d90315d6d998235adf0`; research is checkpointed at
+`560945a`, and the verified implementation is checkpointed at `d606ee1`.
+
+Attempt 2 remains permanently blocked by the recorded
+`CoCreateInstance(CLSID_ShellBrowserWindow) -> E_FAIL` result. Attempt 3 does
+not repair, retry, weaken, or fall back from that path. The CLSID path and its
+exact-object `Quit` cleanup model remain diagnostic history and are not
+active/default UAT behavior.
+
+The current path replaces automatic creation with an explicit human authority
+fact while preserving stronger native proof:
+
+```text
+immutable forbidden set containing every reliable baseline HWND
++ human creates and navigates a new Explorer top-level frame
++ explicit target-creation confirmation
++ exactly one non-baseline candidate at the nonce directory FILE_ID_INFO
++ full live Explorer process/window/security/state/monitor/DPI eligibility
++ matching session/capability/consent generations
+= one test-only ExplorerWindowToken
+```
+
+The harness creates only the empty, local, non-reparse ignored
+`uat/r1c2a/consent-target-<nonce>` directory and prints its absolute path. It
+does not launch or navigate Explorer. `Ctrl+N` is merely a suggested human
+action, and ENTER is a consent record rather than a password, credential, or
+security boundary. A baseline HWND remains forbidden even if the user
+accidentally navigates it to the exact nonce directory.
+
+After unique target issuance, the harness displays sanitized facts and requires
+a second explicit move consent. It then live-revalidates identity, exact
+location, eligibility, monitor/DPI, and all generations before exactly one
+same-monitor `SetWindowPos` translation with
+`SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE`. Exact post-verification and a
+separate immediate live-revalidated restore are required. Native success alone
+cannot pass the Gate.
+
+The user-created target is never automatically closed: no
+`IWebBrowser2::Quit`, `WM_CLOSE`, Shell close command, Explorer process
+termination, or restart is authorized. Optional manual closure may support a
+stale-token check; if skipped, `WINDOW_DESTROY_LIFETIME = NOT TESTED` is
+acceptable. No global/synthetic input, UI Automation, foreground forcing,
+selector UI, polling event source, Glue, Snap, resize, or R1-C2B behavior is
+introduced.
+
+The active CLI/evidence contracts are:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\scripts\run-r1c2a-explorer-consent-evidence.ps1 `
+  -BuildDirectory out/r1c2a-debug `
+  -Configuration Debug `
+  -ObserveSeconds 180
+```
+
+The wrapper invokes `panebind-explorer-harness.exe
+--interactive-consent-test`; raw observer and harness JSONL remain ignored
+under `uat/r1c2a/`.
+
+The interactive path is not CTest. The capability implementation and harness
+build pass Debug/Release verification; all 8 CTest entries, the expanded
+Explorer deterministic consent matrix, and Owned/Companion Debug/Release
+regressions pass. Redirected input and deprecated automatic modes reject before
+side effects. No human UAT has run, so the current Gate state is:
+
+```text
+ATTEMPT_1_AUTO_INVENTORY_PROVISIONING = BLOCKED
+ATTEMPT_2_SHELL_REGISTRATION_PROVISIONING = BLOCKED
+AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED
+ATTEMPT_3_USER_CONSENTED_AUTHORITY = CURRENT APPROACH
+R1C2A_CONSENT_CAPABILITY_IMPLEMENTATION = PASS
+R1C2A_ELIGIBILITY_GATE = PENDING_UAT
+R1C2A_RUNTIME_GATE = PENDING_UAT
 USER_EXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C2B = NOT STARTED
