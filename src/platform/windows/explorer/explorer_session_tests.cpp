@@ -70,7 +70,19 @@ void expect(const bool condition, const char* message) {
 [[nodiscard]] explorer::ExplorerWindowToken issued_token(
     detail::ExplorerTokenLedger& ledger,
     const detail::NativeWindowKey key) {
-    auto result = ledger.issue(key, 100U, 200U, 42, 7U);
+    auto result = ledger.issue_legacy_auto(key, 100U, 200U, 42, 7U);
+    if (!result.token.has_value()) {
+        std::abort();
+    }
+    return *result.token;
+}
+
+[[nodiscard]] explorer::ExplorerWindowToken issued_consent_token(
+    detail::ExplorerTokenLedger& ledger,
+    const detail::NativeWindowKey key,
+    const std::uint64_t consent_generation) {
+    auto result = ledger.issue_user_consent(
+        key, 100U, 200U, consent_generation);
     if (!result.token.has_value()) {
         std::abort();
     }
@@ -223,22 +235,70 @@ void test_token_authority_generation_stale_and_cross_session() {
            "native-key reuse cannot revive an old token");
 
     detail::ExplorerTokenLedger invalid_authority{0U, 1U, 1U, 1U};
-    expect(invalid_authority.issue(0x300U, 1U, 1U, 42, 7U).status ==
+    expect(invalid_authority
+                   .issue_legacy_auto(0x300U, 1U, 1U, 42, 7U)
+                   .status ==
                detail::ExplorerLedgerIssueStatus::AuthorityExhausted,
            "zero controller authority blocks issuance");
     detail::ExplorerTokenLedger exhausted{
         1U, 2U, std::numeric_limits<std::uint64_t>::max(), 1U};
-    expect(exhausted.issue(0x300U, 1U, 1U, 42, 7U).status ==
+    expect(exhausted.issue_legacy_auto(0x300U, 1U, 1U, 42, 7U)
+                   .status ==
                detail::ExplorerLedgerIssueStatus::GenerationExhausted,
            "identifier exhaustion blocks issuance without wrapping");
     detail::ExplorerTokenLedger invalid_registration{1U, 2U, 1U, 1U};
-    expect(invalid_registration.issue(0x300U, 1U, 1U, 0, 7U).status ==
+    expect(invalid_registration
+                   .issue_legacy_auto(0x300U, 1U, 1U, 0, 7U)
+                   .status ==
                    detail::ExplorerLedgerIssueStatus::
                        InvalidRegistrationAuthority &&
-               invalid_registration.issue(0x300U, 1U, 1U, 42, 0U).status ==
+               invalid_registration
+                       .issue_legacy_auto(0x300U, 1U, 1U, 42, 0U)
+                       .status ==
                    detail::ExplorerLedgerIssueStatus::
                        InvalidRegistrationAuthority,
            "cookie and subscription generation are mandatory token authority");
+}
+
+void test_token_authority_kind_and_consent_generation_are_bound() {
+    detail::ExplorerTokenLedger legacy{30U, 40U, 1U, 1U};
+    detail::ExplorerTokenLedger consent{30U, 40U, 1U, 1U};
+    const auto legacy_token = issued_token(legacy, 0x100U);
+    const auto consent_token = issued_consent_token(consent, 0x100U, 17U);
+
+    expect(legacy_token.logical_id() == consent_token.logical_id() &&
+               legacy_token.generation() == consent_token.generation(),
+           "test reproduces equal ledger-local identifiers across authority kinds");
+    expect(legacy_token.authority_kind() ==
+                   explorer::ExplorerAuthorityKind::
+                       LegacyAutoProvisionDiagnostic &&
+               legacy_token.consent_generation() == 0U &&
+               consent_token.authority_kind() ==
+                   explorer::ExplorerAuthorityKind::UserConsent &&
+               consent_token.consent_generation() == 17U,
+           "tokens preserve mutually exclusive authority provenance");
+    expect(legacy.contains(legacy_token) && consent.contains(consent_token) &&
+               !legacy.contains(consent_token) &&
+               !consent.contains(legacy_token),
+           "equal local identifiers cannot cross legacy and consent authority");
+
+    detail::ExplorerTokenLedger other_consent{30U, 40U, 1U, 1U};
+    const auto other_token =
+        issued_consent_token(other_consent, 0x100U, 18U);
+    expect(!consent.contains(other_token) &&
+               !other_consent.contains(consent_token),
+           "consent generation is part of token resolution authority");
+
+    expect(legacy.issue_user_consent(0x200U, 1U, 2U, 19U).status ==
+                   detail::ExplorerLedgerIssueStatus::AuthorityKindConflict &&
+               consent.issue_legacy_auto(0x200U, 1U, 2U, 42, 7U).status ==
+                   detail::ExplorerLedgerIssueStatus::AuthorityKindConflict,
+           "one session ledger cannot mix automatic and user-consent issuance");
+
+    detail::ExplorerTokenLedger invalid_consent{1U, 2U, 1U, 1U};
+    expect(invalid_consent.issue_user_consent(0x300U, 1U, 2U, 0U).status ==
+               detail::ExplorerLedgerIssueStatus::InvalidConsentAuthority,
+           "zero consent generation cannot issue a user-consent capability");
 }
 
 void test_single_primary_apply_guard() {
@@ -1004,6 +1064,244 @@ void test_candidate_set_delta_and_exact_location() {
            "status and opaque fingerprint remain associated per Shell entry");
 }
 
+void test_consent_candidate_selection_is_new_unique_exact_and_frozen() {
+    const auto existing_location = location_id(1U, std::byte{0x11});
+    const auto target_location = location_id(2U, std::byte{0x22});
+    const std::array<detail::NativeWindowKey, 2> forbidden{
+        0x100U, 0x200U};
+    const detail::InventoryModel confirmed{
+        true,
+        {fingerprint(0x100U, existing_location),
+         opaque_fingerprint(0x200U,
+                            explorer::ShellLocationStatus::OpenFailed,
+                            opaque_location(std::byte{0x33})),
+         fingerprint(0x300U, target_location)}};
+
+    const auto selected = detail::evaluate_consent_candidate_inventory(
+        confirmed, forbidden, target_location);
+    expect(selected.eligible() &&
+               selected.non_forbidden_window_count == 1U &&
+               selected.exact_target_window_count == 1U &&
+               !selected.forbidden_window_at_target &&
+               selected.frozen_candidate_matched &&
+               selected.candidate_fingerprint->native_key == 0x300U,
+           "one non-baseline HWND with one exact FILE_ID_INFO entry is selected");
+
+    const detail::InventoryModel no_new_window{
+        true,
+        {fingerprint(0x100U, existing_location),
+         opaque_fingerprint(0x200U,
+                            explorer::ShellLocationStatus::OpenFailed,
+                            opaque_location(std::byte{0x33}))}};
+    expect(detail::evaluate_consent_candidate_inventory(
+               no_new_window, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::TargetNotFound,
+           "zero non-baseline HWNDs is an explicit consent target miss");
+
+    auto multiple_new = confirmed;
+    multiple_new.windows.push_back(fingerprint(0x400U, target_location));
+    expect(detail::evaluate_consent_candidate_inventory(
+               multiple_new, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::AmbiguousCandidate,
+           "multiple new HWNDs are rejected without choosing one");
+
+    auto opaque_competitor = confirmed;
+    opaque_competitor.windows.push_back(opaque_fingerprint(
+        0x400U,
+        explorer::ShellLocationStatus::OpenFailed,
+        opaque_location(std::byte{0x44})));
+    expect(detail::evaluate_consent_candidate_inventory(
+               opaque_competitor, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::AmbiguousCandidate,
+           "a new opaque HWND still participates in candidate uniqueness");
+
+    auto preexisting_at_target = no_new_window;
+    preexisting_at_target.windows.front() =
+        fingerprint(0x100U, target_location);
+    const auto preexisting = detail::evaluate_consent_candidate_inventory(
+        preexisting_at_target, forbidden, target_location);
+    expect(preexisting.reason ==
+                   explorer::ExplorerEligibilityReason::PreexistingWindow &&
+               preexisting.forbidden_window_at_target,
+           "a forbidden baseline HWND can never upgrade at the exact target");
+
+    auto preexisting_and_new_at_target = confirmed;
+    preexisting_and_new_at_target.windows.front() =
+        fingerprint(0x100U, target_location);
+    expect(detail::evaluate_consent_candidate_inventory(
+               preexisting_and_new_at_target, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::PreexistingWindow,
+           "a correct new target cannot excuse a forbidden HWND also at the nonce path");
+
+    auto opaque_preexisting_upgraded = no_new_window;
+    opaque_preexisting_upgraded.windows.back() =
+        fingerprint(0x200U, target_location);
+    expect(detail::evaluate_consent_candidate_inventory(
+               opaque_preexisting_upgraded, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::PreexistingWindow,
+           "an opaque baseline window remains permanently forbidden after navigation");
+
+    auto tabbed_candidate = confirmed;
+    tabbed_candidate.windows.back().shell_entry_count = 2U;
+    tabbed_candidate.windows.back().locations.push_back(
+        tabbed_candidate.windows.back().locations.front());
+    expect(detail::evaluate_consent_candidate_inventory(
+               tabbed_candidate, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::AmbiguousCandidate,
+           "one HWND backed by multiple Shell entries is not a unique target");
+
+    auto duplicate_hwnd = confirmed;
+    duplicate_hwnd.windows.push_back(fingerprint(0x300U, target_location));
+    expect(detail::evaluate_consent_candidate_inventory(
+               duplicate_hwnd, forbidden, target_location)
+               .reason == explorer::ExplorerEligibilityReason::InventoryUnstable,
+           "duplicate Shell HWND identity blocks consent selection");
+
+    auto replacement = confirmed;
+    replacement.windows.back() = fingerprint(0x400U, target_location);
+    expect(detail::evaluate_consent_candidate_inventory(
+               replacement,
+               forbidden,
+               target_location,
+               &*selected.candidate_fingerprint)
+               .reason == explorer::ExplorerEligibilityReason::TargetInvalidated,
+           "a different exact candidate cannot replace the first-consent binding");
+
+    auto navigated_away = confirmed;
+    navigated_away.windows.back() = fingerprint(0x300U, existing_location);
+    expect(detail::evaluate_consent_candidate_inventory(
+               navigated_away,
+               forbidden,
+               target_location,
+               &*selected.candidate_fingerprint)
+               .reason == explorer::ExplorerEligibilityReason::LocationMismatch,
+           "the frozen candidate navigating away fails exact FILE_ID revalidation");
+}
+
+void test_consent_generation_and_one_shot_move_authority() {
+    const detail::ConsentGenerationChain valid{1U, 2U, 3U, 4U,
+                                                5U, 6U, 7U};
+    expect(detail::evaluate_consent_generation_chain(valid) ==
+               detail::ConsentGenerationStatus::Valid,
+           "complete consent generations are strictly ordered");
+
+    auto missing_target_confirmation = valid;
+    missing_target_confirmation.target_confirmation_generation = 0U;
+    expect(detail::evaluate_consent_generation_chain(
+               missing_target_confirmation) ==
+               detail::ConsentGenerationStatus::MissingTargetConfirmation,
+           "target confirmation cannot be inferred from later generations");
+    auto missing_move_confirmation = valid;
+    missing_move_confirmation.move_confirmation_generation = 0U;
+    expect(detail::evaluate_consent_generation_chain(
+               missing_move_confirmation) ==
+               detail::ConsentGenerationStatus::MissingMoveConfirmation,
+           "move confirmation is a separate mandatory authority fact");
+    auto generation_mismatch = valid;
+    generation_mismatch.move_prompt_generation =
+        generation_mismatch.token_generation;
+    expect(detail::evaluate_consent_generation_chain(generation_mismatch) ==
+               detail::ConsentGenerationStatus::NotStrictlyIncreasing,
+           "equal or reordered generations cannot authorize a move");
+
+    detail::ConsentMoveAuthority authority;
+    expect(authority.authorize(false, true, valid) ==
+                   explorer::ExplorerEligibilityReason::TargetConsentRequired &&
+               authority.authorize(true, false, valid) ==
+                   explorer::ExplorerEligibilityReason::MoveConsentRequired &&
+               !authority.authorized(),
+           "neither target nor move confirmation is synthesized");
+    expect(authority.authorize(true, true, generation_mismatch) ==
+                   explorer::ExplorerEligibilityReason::
+                       ConsentGenerationMismatch &&
+               !authority.authorized(),
+           "generation mismatch blocks one-shot authority creation");
+    expect(authority.authorize(true, true, valid) ==
+                   explorer::ExplorerEligibilityReason::Eligible &&
+               authority.available(),
+           "two explicit confirmations authorize exactly one move attempt");
+    expect(authority.try_consume(valid.token_generation + 1U) ==
+                   explorer::ExplorerEligibilityReason::
+                       ConsentGenerationMismatch &&
+               authority.available(),
+           "a token from another consent generation cannot consume authority");
+    expect(authority.try_consume(valid.token_generation) ==
+                   explorer::ExplorerEligibilityReason::Eligible &&
+               authority.consumed() && !authority.available(),
+           "matching token generation consumes the authority once");
+    expect(authority.try_consume(valid.token_generation) ==
+                   explorer::ExplorerEligibilityReason::OperationLimitReached &&
+               authority.authorize(true, true, valid) ==
+                   explorer::ExplorerEligibilityReason::OperationLimitReached,
+           "consumed move authority cannot be replayed or re-authorized");
+}
+
+void test_consent_live_and_restore_eligibility_fail_closed() {
+    detail::ConsentLiveEligibilityFacts live{
+        true, true, true, eligible_facts()};
+    expect(detail::evaluate_consent_live_eligibility(live) ==
+               explorer::ExplorerEligibilityReason::Eligible,
+           "stable consent binding plus the full allowlist is live eligible");
+
+    auto changed_candidate = live;
+    changed_candidate.candidate_fingerprint_stable = false;
+    expect(detail::evaluate_consent_live_eligibility(changed_candidate) ==
+               explorer::ExplorerEligibilityReason::TargetInvalidated,
+           "candidate changes between consents invalidate the target");
+    auto changed_navigation_epoch = live;
+    changed_navigation_epoch.navigation_epoch_stable = false;
+    expect(detail::evaluate_consent_live_eligibility(
+               changed_navigation_epoch) ==
+               explorer::ExplorerEligibilityReason::TargetInvalidated,
+           "navigate-away-and-back cannot hide a changed navigation epoch");
+    auto navigated_away = live;
+    navigated_away.eligibility.location_exact = false;
+    expect(detail::evaluate_consent_live_eligibility(navigated_away) ==
+               explorer::ExplorerEligibilityReason::LocationMismatch,
+           "target navigation away before apply blocks native control");
+    auto minimized = live;
+    minimized.eligibility.minimized = true;
+    expect(detail::evaluate_consent_live_eligibility(minimized) ==
+               explorer::ExplorerEligibilityReason::Minimized,
+           "minimize before apply blocks the operation");
+    auto maximized = live;
+    maximized.eligibility.maximized = true;
+    expect(detail::evaluate_consent_live_eligibility(maximized) ==
+               explorer::ExplorerEligibilityReason::Maximized,
+           "maximize before apply blocks the operation");
+    auto changed_monitor = live;
+    changed_monitor.eligibility.monitor_stable = false;
+    expect(detail::evaluate_consent_live_eligibility(changed_monitor) ==
+               explorer::ExplorerEligibilityReason::MonitorChanged,
+           "monitor changes after consent block the operation");
+    auto changed_dpi = live;
+    changed_dpi.eligibility.dpi_stable = false;
+    expect(detail::evaluate_consent_live_eligibility(changed_dpi) ==
+               explorer::ExplorerEligibilityReason::DpiChanged,
+           "DPI changes after consent block the operation");
+
+    detail::ConsentRestoreEligibilityFacts restore{
+        live, true, true, true, false};
+    expect(detail::evaluate_consent_restore_eligibility(restore) ==
+               explorer::ExplorerEligibilityReason::Eligible,
+           "restore requires primary evidence plus current live eligibility");
+    restore.live.navigation_epoch_stable = false;
+    expect(detail::evaluate_consent_restore_eligibility(restore) ==
+               explorer::ExplorerEligibilityReason::TargetInvalidated,
+           "lost live identity blocks restore instead of using a stale HWND");
+    restore.live = live;
+    restore.live.eligibility.monitor_stable = false;
+    expect(detail::evaluate_consent_restore_eligibility(restore) ==
+               explorer::ExplorerEligibilityReason::MonitorChanged,
+           "lost monitor eligibility blocks restore");
+    restore.live = live;
+    restore.primary_actual_available = false;
+    expect(detail::evaluate_consent_restore_eligibility(restore) ==
+               explorer::ExplorerEligibilityReason::
+                   OperationSequenceViolation,
+           "restore cannot guess from an unavailable primary result");
+}
+
 void test_allowlist_reason_model() {
     auto facts = eligible_facts();
     expect(detail::evaluate_eligibility_model(facts) ==
@@ -1217,6 +1515,7 @@ int main() {
     test_token_is_explorer_specific_and_opaque();
     test_monotonic_source_does_not_wrap();
     test_token_authority_generation_stale_and_cross_session();
+    test_token_authority_kind_and_consent_generation_are_bound();
     test_single_primary_apply_guard();
     test_shell_creation_and_handle_readiness_are_distinct();
     test_baseline_exclusion_uses_only_reliable_hwnd_identity();
@@ -1227,6 +1526,9 @@ int main() {
     test_browser_navigation_history_fails_closed_without_urls();
     test_fixed_three_attempt_provisioning_stability_gate();
     test_candidate_set_delta_and_exact_location();
+    test_consent_candidate_selection_is_new_unique_exact_and_frozen();
+    test_consent_generation_and_one_shot_move_authority();
+    test_consent_live_and_restore_eligibility_fail_closed();
     test_allowlist_reason_model();
     test_safe_delta_selection_and_work_area_containment();
     test_shared_bridge_and_translation_failures();

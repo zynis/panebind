@@ -17,6 +17,8 @@ param(
     [int] $HarnessHoldSeconds
 )
 
+throw 'DEPRECATED_DISABLED: automatic Explorer provisioning evidence is disabled. Use scripts/run-r1c2a-explorer-consent-evidence.ps1 for the foreground human-consent UAT.'
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 

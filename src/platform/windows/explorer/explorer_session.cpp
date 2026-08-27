@@ -35,6 +35,9 @@ namespace {
 detail::MonotonicIdSource token_authority_ids;
 detail::MonotonicIdSource operation_ids;
 
+[[nodiscard]] detail::InventoryModel make_inventory_model(
+    const ShellWindowInventory& inventory);
+
 [[nodiscard]] const detail::InventoryFingerprint* find_inventory_window(
     const detail::InventoryModel& inventory,
     const detail::NativeWindowKey native_key) noexcept {
@@ -124,20 +127,60 @@ ExplorerTokenLedger::ExplorerTokenLedger(
       next_logical_id_(next_logical_id),
       next_generation_(next_generation) {}
 
-ExplorerLedgerIssueResult ExplorerTokenLedger::issue(
+ExplorerLedgerIssueResult ExplorerTokenLedger::issue_legacy_auto(
     const NativeWindowKey native_key,
     const std::uint32_t process_id,
     const std::uint32_t thread_id,
     const std::int32_t registration_cookie,
     const std::uint64_t subscription_generation) {
+    if (registration_cookie == 0 || subscription_generation == 0U) {
+        return {ExplorerLedgerIssueStatus::InvalidRegistrationAuthority,
+                std::nullopt};
+    }
+    return issue_with_authority(
+        native_key,
+        process_id,
+        thread_id,
+        ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic,
+        registration_cookie,
+        subscription_generation,
+        0U);
+}
+
+ExplorerLedgerIssueResult ExplorerTokenLedger::issue_user_consent(
+    const NativeWindowKey native_key,
+    const std::uint32_t process_id,
+    const std::uint32_t thread_id,
+    const std::uint64_t consent_generation) {
+    if (consent_generation == 0U) {
+        return {ExplorerLedgerIssueStatus::InvalidConsentAuthority,
+                std::nullopt};
+    }
+    return issue_with_authority(native_key,
+                                process_id,
+                                thread_id,
+                                ExplorerAuthorityKind::UserConsent,
+                                0,
+                                0U,
+                                consent_generation);
+}
+
+ExplorerLedgerIssueResult ExplorerTokenLedger::issue_with_authority(
+    const NativeWindowKey native_key,
+    const std::uint32_t process_id,
+    const std::uint32_t thread_id,
+    const ExplorerAuthorityKind authority_kind,
+    const std::int32_t registration_cookie,
+    const std::uint64_t subscription_generation,
+    const std::uint64_t consent_generation) {
     if (native_key == 0U) {
         return {ExplorerLedgerIssueStatus::InvalidNativeKey, std::nullopt};
     }
     if (logical_id_by_native_key_.contains(native_key)) {
         return {ExplorerLedgerIssueStatus::DuplicateNativeKey, std::nullopt};
     }
-    if (registration_cookie == 0 || subscription_generation == 0U) {
-        return {ExplorerLedgerIssueStatus::InvalidRegistrationAuthority,
+    if (authority_kind_.has_value() && *authority_kind_ != authority_kind) {
+        return {ExplorerLedgerIssueStatus::AuthorityKindConflict,
                 std::nullopt};
     }
     if (controller_authority_ == 0U || session_authority_ == 0U) {
@@ -152,11 +195,14 @@ ExplorerLedgerIssueResult ExplorerTokenLedger::issue(
 
     const ExplorerLedgerEntry entry{next_logical_id_,
                                     next_generation_,
-                                     native_key,
-                                     process_id,
-                                     thread_id,
-                                     registration_cookie,
-                                     subscription_generation};
+                                    authority_kind,
+                                    consent_generation,
+                                    native_key,
+                                    process_id,
+                                    thread_id,
+                                    registration_cookie,
+                                    subscription_generation};
+    authority_kind_ = authority_kind;
     active_by_logical_id_.emplace(entry.logical_id, entry);
     logical_id_by_native_key_.emplace(entry.native_key, entry.logical_id);
     ++next_logical_id_;
@@ -165,7 +211,9 @@ ExplorerLedgerIssueResult ExplorerTokenLedger::issue(
             ExplorerWindowToken{controller_authority_,
                                 session_authority_,
                                 entry.logical_id,
-                                entry.generation}};
+                                entry.generation,
+                                entry.authority_kind,
+                                entry.consent_generation}};
 }
 
 bool ExplorerTokenLedger::retire_native(
@@ -187,7 +235,9 @@ std::optional<ExplorerLedgerEntry> ExplorerTokenLedger::resolve(
     }
     const auto found = active_by_logical_id_.find(token.logical_id_);
     if (found == active_by_logical_id_.end() ||
-        found->second.generation != token.generation_) {
+        found->second.generation != token.generation_ ||
+        found->second.authority_kind != token.authority_kind_ ||
+        found->second.consent_generation != token.consent_generation_) {
         return std::nullopt;
     }
     return found->second;
@@ -373,6 +423,176 @@ CandidateEvaluation evaluate_candidate_inventory(
                         ? ExplorerEligibilityReason::Eligible
                         : ExplorerEligibilityReason::LocationMismatch;
     return result;
+}
+
+ConsentCandidateEvaluation evaluate_consent_candidate_inventory(
+    const InventoryModel& post_confirmation,
+    const std::span<const NativeWindowKey> forbidden_preexisting_hwnds,
+    const FilesystemLocationIdentity& target_location,
+    const InventoryFingerprint* const frozen_candidate) {
+    ConsentCandidateEvaluation result;
+    if (!post_confirmation.complete) {
+        result.reason = ExplorerEligibilityReason::InventoryUnavailable;
+        return result;
+    }
+    if (!inventory_has_unique_nonzero_keys(post_confirmation)) {
+        result.reason = ExplorerEligibilityReason::InventoryUnstable;
+        return result;
+    }
+
+    std::set<NativeWindowKey> forbidden;
+    for (const auto native_key : forbidden_preexisting_hwnds) {
+        if (native_key != 0U) {
+            forbidden.insert(native_key);
+        }
+    }
+
+    const auto location_is_exact = [&target_location](
+                                       const InventoryLocationFingerprint&
+                                           location) noexcept {
+        return location.status == ShellLocationStatus::Filesystem &&
+               location.filesystem_location.has_value() &&
+               *location.filesystem_location == target_location;
+    };
+    const auto window_has_exact_location = [&location_is_exact](
+                                               const InventoryFingerprint&
+                                                   window) noexcept {
+        return std::any_of(window.locations.begin(),
+                           window.locations.end(),
+                           location_is_exact);
+    };
+
+    std::vector<const InventoryFingerprint*> candidates;
+    for (const auto& window : post_confirmation.windows) {
+        const bool exact = window_has_exact_location(window);
+        if (exact) {
+            ++result.exact_target_window_count;
+        }
+        if (forbidden.contains(window.native_key)) {
+            result.forbidden_window_at_target |= exact;
+            continue;
+        }
+        candidates.push_back(&window);
+    }
+
+    result.non_forbidden_window_count = candidates.size();
+    if (result.forbidden_window_at_target) {
+        result.reason = ExplorerEligibilityReason::PreexistingWindow;
+        return result;
+    }
+    if (candidates.empty()) {
+        result.reason = ExplorerEligibilityReason::TargetNotFound;
+        return result;
+    }
+    if (candidates.size() != 1U) {
+        result.reason = ExplorerEligibilityReason::AmbiguousCandidate;
+        return result;
+    }
+
+    const auto& candidate = *candidates.front();
+    result.candidate_fingerprint = candidate;
+    if (candidate.shell_entry_count != 1U ||
+        candidate.locations.size() != 1U) {
+        result.reason = ExplorerEligibilityReason::AmbiguousCandidate;
+        return result;
+    }
+    const auto& location = candidate.locations.front();
+    if (location.status == ShellLocationStatus::NavigationPending) {
+        result.reason = ExplorerEligibilityReason::LocationNotReady;
+        return result;
+    }
+    result.exact_unique_location = location_is_exact(location);
+    if (!result.exact_unique_location) {
+        result.reason = ExplorerEligibilityReason::LocationMismatch;
+        return result;
+    }
+
+    result.frozen_candidate_matched =
+        frozen_candidate == nullptr || candidate == *frozen_candidate;
+    if (!result.frozen_candidate_matched) {
+        result.reason = ExplorerEligibilityReason::TargetInvalidated;
+        return result;
+    }
+    result.reason = ExplorerEligibilityReason::Eligible;
+    return result;
+}
+
+ConsentGenerationStatus evaluate_consent_generation_chain(
+    const ConsentGenerationChain& chain) noexcept {
+    if (chain.baseline_generation == 0U) {
+        return ConsentGenerationStatus::MissingBaseline;
+    }
+    if (chain.target_prompt_generation == 0U) {
+        return ConsentGenerationStatus::MissingTargetPrompt;
+    }
+    if (chain.target_confirmation_generation == 0U) {
+        return ConsentGenerationStatus::MissingTargetConfirmation;
+    }
+    if (chain.eligibility_generation == 0U) {
+        return ConsentGenerationStatus::MissingEligibility;
+    }
+    if (chain.token_generation == 0U) {
+        return ConsentGenerationStatus::MissingToken;
+    }
+    if (chain.move_prompt_generation == 0U) {
+        return ConsentGenerationStatus::MissingMovePrompt;
+    }
+    if (chain.move_confirmation_generation == 0U) {
+        return ConsentGenerationStatus::MissingMoveConfirmation;
+    }
+    if (!(chain.baseline_generation < chain.target_prompt_generation &&
+          chain.target_prompt_generation <
+              chain.target_confirmation_generation &&
+          chain.target_confirmation_generation <
+              chain.eligibility_generation &&
+          chain.eligibility_generation < chain.token_generation &&
+          chain.token_generation < chain.move_prompt_generation &&
+          chain.move_prompt_generation <
+              chain.move_confirmation_generation)) {
+        return ConsentGenerationStatus::NotStrictlyIncreasing;
+    }
+    return ConsentGenerationStatus::Valid;
+}
+
+ExplorerEligibilityReason ConsentMoveAuthority::authorize(
+    const bool target_confirmation_present,
+    const bool move_confirmation_present,
+    const ConsentGenerationChain& chain) noexcept {
+    if (consumed_) {
+        return ExplorerEligibilityReason::OperationLimitReached;
+    }
+    if (authorized_) {
+        return ExplorerEligibilityReason::OperationSequenceViolation;
+    }
+    if (!target_confirmation_present) {
+        return ExplorerEligibilityReason::TargetConsentRequired;
+    }
+    if (!move_confirmation_present) {
+        return ExplorerEligibilityReason::MoveConsentRequired;
+    }
+    if (evaluate_consent_generation_chain(chain) !=
+        ConsentGenerationStatus::Valid) {
+        return ExplorerEligibilityReason::ConsentGenerationMismatch;
+    }
+    token_consent_generation_ = chain.token_generation;
+    authorized_ = true;
+    return ExplorerEligibilityReason::Eligible;
+}
+
+ExplorerEligibilityReason ConsentMoveAuthority::try_consume(
+    const std::uint64_t token_consent_generation) noexcept {
+    if (consumed_) {
+        return ExplorerEligibilityReason::OperationLimitReached;
+    }
+    if (!authorized_) {
+        return ExplorerEligibilityReason::MoveConsentRequired;
+    }
+    if (token_consent_generation == 0U ||
+        token_consent_generation != token_consent_generation_) {
+        return ExplorerEligibilityReason::ConsentGenerationMismatch;
+    }
+    consumed_ = true;
+    return ExplorerEligibilityReason::Eligible;
 }
 
 ShellReceiptSequence::ShellReceiptSequence(
@@ -703,6 +923,32 @@ ExplorerEligibilityReason evaluate_eligibility_model(
         return ExplorerEligibilityReason::DpiChanged;
     }
     return ExplorerEligibilityReason::Eligible;
+}
+
+ExplorerEligibilityReason evaluate_consent_live_eligibility(
+    const ConsentLiveEligibilityFacts& facts) noexcept {
+    if (!facts.token_active) {
+        return ExplorerEligibilityReason::StaleToken;
+    }
+    if (!facts.candidate_fingerprint_stable ||
+        !facts.navigation_epoch_stable) {
+        return ExplorerEligibilityReason::TargetInvalidated;
+    }
+    return evaluate_eligibility_model(facts.eligibility);
+}
+
+ExplorerEligibilityReason evaluate_consent_restore_eligibility(
+    const ConsentRestoreEligibilityFacts& facts) noexcept {
+    const auto sequence = evaluate_restore_gate(
+        facts.live.token_active,
+        facts.primary_attempted,
+        facts.primary_before_available,
+        facts.primary_actual_available,
+        facts.restore_allowance_consumed);
+    if (sequence != ExplorerEligibilityReason::Eligible) {
+        return sequence;
+    }
+    return evaluate_consent_live_eligibility(facts.live);
 }
 
 bool rect_is_contained(const core::geometry::Rect& inner,
@@ -1272,11 +1518,18 @@ struct NativeSecurityFacts {
 struct ExplorerTestSession::Impl final {
     bool com_initialized{};
     DWORD controller_thread_id{};
+    ExplorerAuthorityKind authority_kind{
+        ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic};
     std::filesystem::path target_directory;
     FilesystemLocationIdentity target_location;
     std::vector<detail::NativeWindowKey> forbidden_preexisting_hwnds;
     std::unique_ptr<ShellWindowsSubscription> shell_subscription;
     std::unique_ptr<ExplorerProvisioningLease> provisioning_lease;
+    std::unique_ptr<ExplorerConsentTargetObservation> consent_observation;
+    std::optional<detail::InventoryFingerprint>
+        consent_candidate_fingerprint;
+    detail::ConsentMoveAuthority consent_move_authority;
+    ExplorerConsentFacts consent;
     std::set<long> registered_cookies;
     std::set<long> revoked_cookies;
     std::set<long> unresolved_cookies;
@@ -1319,6 +1572,19 @@ struct ExplorerTestSession::Impl final {
             GetCurrentThreadId() == controller_thread_id;
         if (on_owner_sta) {
             bool lifecycle_safe = true;
+            if (consent_observation != nullptr) {
+                const HRESULT retired = consent_observation->retire();
+                if (SUCCEEDED(retired)) {
+                    consent_observation.reset();
+                } else {
+                    // A still-advised STA sink and its browser proxy must
+                    // outlive the wrapper and apartment. Preserve them rather
+                    // than releasing or uninitializing COM unsafely.
+                    static_cast<void>(consent_observation.release());
+                    lifecycle_safe = false;
+                    com_initialized = false;
+                }
+            }
             if (provisioning_lease != nullptr) {
                 const auto before =
                     provisioning_lease->browser_readiness_facts();
@@ -1371,6 +1637,34 @@ struct ExplorerTestSession::Impl final {
             com_initialized = false;
         }
         process.reset();
+        if (com_initialized && on_owner_sta) {
+            CoUninitialize();
+        }
+    }
+};
+
+struct ExplorerConsentProvisioning::Impl final {
+    bool com_initialized{};
+    DWORD controller_thread_id{};
+    std::filesystem::path target_directory;
+    FilesystemLocationIdentity target_location;
+    std::vector<detail::NativeWindowKey> forbidden_preexisting_hwnds;
+    ExplorerConsentFacts facts;
+    std::uint64_t next_protocol_generation{1U};
+    bool terminal{};
+
+    [[nodiscard]] std::uint64_t issue_protocol_generation() noexcept {
+        if (next_protocol_generation == 0U ||
+            next_protocol_generation ==
+                std::numeric_limits<std::uint64_t>::max()) {
+            return 0U;
+        }
+        return next_protocol_generation++;
+    }
+
+    ~Impl() {
+        const bool on_owner_sta =
+            GetCurrentThreadId() == controller_thread_id;
         if (com_initialized && on_owner_sta) {
             CoUninitialize();
         }
@@ -1796,6 +2090,10 @@ template <typename ImplType>
                         "token is not active in this Explorer session")};
         }
     }
+    bool shell_entry_unique = false;
+    bool current_exact_target_location = false;
+    if (impl.authority_kind ==
+        ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic) {
     if (impl.closing || impl.window == nullptr ||
         impl.provisioning_lease == nullptr ||
         impl.shell_subscription == nullptr ||
@@ -1935,7 +2233,7 @@ template <typename ImplType>
     }
 
     const auto live_location = impl.provisioning_lease->current_location();
-    const bool current_exact_target_location =
+    current_exact_target_location =
         live_location.filesystem() &&
         live_location.identity == impl.target_location;
     impl.provisioning.exact_target_location =
@@ -1944,6 +2242,135 @@ template <typename ImplType>
     impl.navigation = advance_navigation_state(impl.navigation,
                                                live_location,
                                                impl.target_location);
+    shell_entry_unique = impl.matching_cookies.size() == 1U;
+    } else {
+        if (impl.closing || impl.window == nullptr ||
+            impl.consent_observation == nullptr ||
+            !impl.consent_candidate_fingerprint.has_value()) {
+            return {ExplorerEligibilityReason::StaleToken,
+                    std::nullopt,
+                    adapter_diagnostic(
+                        1120U,
+                        "Explorer user-consent session",
+                        "consent observation is unavailable or retired")};
+        }
+        if (ledger_entry.has_value() &&
+            (ledger_entry->authority_kind !=
+                 ExplorerAuthorityKind::UserConsent ||
+             ledger_entry->consent_generation !=
+                 impl.consent.generations.token_generation)) {
+            return {ExplorerEligibilityReason::ConsentGenerationMismatch,
+                    std::nullopt,
+                    adapter_diagnostic(
+                        1121U,
+                        "ExplorerTokenLedger",
+                        "token does not match this consent generation")};
+        }
+
+        auto observation_facts = impl.consent_observation->facts();
+        const auto pump_deadline =
+            std::chrono::steady_clock::now() + std::chrono::milliseconds{20};
+        constexpr std::size_t consent_message_budget = 64U;
+        for (std::size_t dispatched = 0U;
+             dispatched < consent_message_budget &&
+             std::chrono::steady_clock::now() < pump_deadline;
+             ++dispatched) {
+            const auto pump = impl.consent_observation->pump_until_activity(
+                observation_facts.browser.latest_sequence, pump_deadline);
+            if (pump.status == BrowserReadinessWaitStatus::TimedOut) {
+                break;
+            }
+            if (pump.status != BrowserReadinessWaitStatus::ActivityObserved) {
+                return {ExplorerEligibilityReason::ShellEventStreamInvalid,
+                        std::nullopt,
+                        hresult_diagnostic(
+                            "DWebBrowserEvents2 consent observation",
+                            pump.diagnostic,
+                            "consent target event stream could not be drained safely")};
+            }
+            observation_facts = impl.consent_observation->facts();
+        }
+        observation_facts = impl.consent_observation->facts();
+        const auto& browser = observation_facts.browser;
+        const bool observation_healthy =
+            observation_facts.canonical_identity_matches &&
+            browser.subscribed && browser.accepting && !browser.unadvised &&
+            browser.malformed_count == 0U && browser.overflow_count == 0U &&
+            browser.wrong_thread_count == 0U &&
+            browser.post_retirement_count == 0U &&
+            browser.identity_query_failure_count == 0U &&
+            browser.unrelated_navigate_complete_count == 0U &&
+            browser.quit_count == 0U && !browser.latest_activity_was_quit &&
+            !observation_facts.navigation_changed_since_binding();
+        if (!observation_healthy) {
+            return {observation_facts.navigation_changed_since_binding()
+                        ? ExplorerEligibilityReason::TargetInvalidated
+                        : ExplorerEligibilityReason::ShellEventStreamInvalid,
+                    std::nullopt,
+                    adapter_diagnostic(
+                        1122U,
+                        "DWebBrowserEvents2 consent observation",
+                        "target navigation history or event lifecycle changed after binding")};
+        }
+
+        const auto observed_window =
+            impl.consent_observation->current_window_key();
+        if (!observed_window.succeeded() ||
+            observed_window.window_key !=
+                reinterpret_cast<detail::NativeWindowKey>(impl.window)) {
+            return {ExplorerEligibilityReason::WindowDestroyed,
+                    std::nullopt,
+                    observed_window.diagnostic.has_value()
+                        ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                              *observed_window.diagnostic,
+                              "consent-bound Explorer HWND is no longer stable")}
+                        : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                              1123U,
+                              "Explorer consent HWND",
+                              "consent-bound Shell object changed HWND")}};
+        }
+
+        const auto inventory = capture_shell_window_inventory();
+        const auto selection = detail::evaluate_consent_candidate_inventory(
+            make_inventory_model(inventory),
+            impl.forbidden_preexisting_hwnds,
+            impl.target_location,
+            &*impl.consent_candidate_fingerprint);
+        impl.consent.preexisting_exact_location_detected =
+            impl.consent.preexisting_exact_location_detected ||
+            selection.forbidden_window_at_target;
+        impl.consent.exact_new_candidate_count =
+            selection.exact_target_window_count;
+        if (!selection.eligible()) {
+            return {selection.reason,
+                    std::nullopt,
+                    adapter_diagnostic(
+                        1124U,
+                        "Explorer consent inventory",
+                        "unique non-baseline exact-location candidate did not remain stable")};
+        }
+
+        const auto live_location =
+            impl.consent_observation->current_location();
+        current_exact_target_location =
+            live_location.filesystem() &&
+            live_location.identity == impl.target_location;
+        if (!current_exact_target_location) {
+            return {ExplorerEligibilityReason::LocationMismatch,
+                    std::nullopt,
+                    live_location.diagnostic != S_OK
+                        ? std::optional<ExplorerDiagnostic>{
+                              hresult_diagnostic(
+                                  "IWebBrowser2::get_LocationURL",
+                                  live_location.diagnostic,
+                                  "consent target no longer resolves to the nonce directory")}
+                        : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                              1125U,
+                              "Explorer consent location",
+                              "consent target navigated away from the nonce directory")}};
+        }
+        shell_entry_unique = true;
+    }
 
     detail::EligibilityModelFacts facts{};
     facts.window_exists = IsWindow(impl.window) != FALSE;
@@ -2051,11 +2478,12 @@ template <typename ImplType>
         }
     }
 
-    facts.shell_entry_unique = impl.matching_cookies.size() == 1U;
+    facts.shell_entry_unique = shell_entry_unique;
     facts.location_exact =
         current_exact_target_location &&
-        impl.navigation ==
-            detail::LeaseNavigationDisposition::ExactExpectedTarget;
+        (impl.authority_kind == ExplorerAuthorityKind::UserConsent ||
+         impl.navigation ==
+             detail::LeaseNavigationDisposition::ExactExpectedTarget);
 
     RECT positioning_native{};
     RECT visible_native{};
@@ -2114,7 +2542,13 @@ template <typename ImplType>
     facts.dpi_stable = initialize_anchor || dpi == impl.initial_dpi;
 
     const ExplorerEligibilityReason reason =
-        detail::evaluate_eligibility_model(facts);
+        impl.authority_kind == ExplorerAuthorityKind::UserConsent
+            ? detail::evaluate_consent_live_eligibility(
+                  {token == nullptr || ledger_entry.has_value(),
+                   true,
+                   true,
+                   facts})
+            : detail::evaluate_eligibility_model(facts);
     if (reason != ExplorerEligibilityReason::Eligible) {
         std::optional<ExplorerDiagnostic> diagnostic;
         if (reason == ExplorerEligibilityReason::WrongImage &&
@@ -2188,6 +2622,9 @@ template <typename ImplType>
     case detail::ExplorerLedgerIssueStatus::DuplicateNativeKey:
     case detail::ExplorerLedgerIssueStatus::InvalidRegistrationAuthority:
         return ExplorerEligibilityReason::TargetInvalidated;
+    case detail::ExplorerLedgerIssueStatus::InvalidConsentAuthority:
+    case detail::ExplorerLedgerIssueStatus::AuthorityKindConflict:
+        return ExplorerEligibilityReason::ConsentGenerationMismatch;
     }
     return ExplorerEligibilityReason::TargetInvalidated;
 }
@@ -2250,6 +2687,55 @@ expand_baseline_entries(const ShellWindowInventory& inventory) {
              detail::BaselineLocationDisposition::Inaccessible});
     }
     return entries;
+}
+
+[[nodiscard]] detail::InventoryModel make_inventory_model(
+    const ShellWindowInventory& inventory) {
+    detail::InventoryModel result;
+    result.complete = inventory.complete && inventory.reported_entry_count >= 0;
+    result.windows.reserve(inventory.windows.size());
+    for (const auto& window : inventory.windows) {
+        detail::InventoryFingerprint fingerprint;
+        fingerprint.native_key =
+            reinterpret_cast<detail::NativeWindowKey>(window.window);
+        fingerprint.shell_entry_count = window.shell_entry_count;
+        fingerprint.locations.reserve(window.locations.size());
+        for (const auto& location : window.locations) {
+            fingerprint.locations.push_back(
+                {location.status,
+                 location.source,
+                 location.identity,
+                 location.opaque_fingerprint});
+        }
+        result.windows.push_back(std::move(fingerprint));
+    }
+    return result;
+}
+
+[[nodiscard]] ExplorerEligibilityReason map_consent_bind_reason(
+    const ExplorerConsentTargetBindReason reason) noexcept {
+    switch (reason) {
+    case ExplorerConsentTargetBindReason::Succeeded:
+        return ExplorerEligibilityReason::Eligible;
+    case ExplorerConsentTargetBindReason::InvalidArgument:
+        return ExplorerEligibilityReason::TargetInvalidated;
+    case ExplorerConsentTargetBindReason::ApartmentUnavailable:
+        return ExplorerEligibilityReason::ComApartmentUnavailable;
+    case ExplorerConsentTargetBindReason::InventoryUnavailable:
+        return ExplorerEligibilityReason::InventoryUnavailable;
+    case ExplorerConsentTargetBindReason::TargetNotFound:
+        return ExplorerEligibilityReason::TargetNotFound;
+    case ExplorerConsentTargetBindReason::AmbiguousCandidate:
+    case ExplorerConsentTargetBindReason::SharedWindow:
+        return ExplorerEligibilityReason::AmbiguousCandidate;
+    case ExplorerConsentTargetBindReason::CanonicalIdentityUnavailable:
+        return ExplorerEligibilityReason::CanonicalIdentityMismatch;
+    case ExplorerConsentTargetBindReason::BrowserEventSubscriptionUnavailable:
+        return ExplorerEligibilityReason::BrowserEventSubscriptionUnavailable;
+    case ExplorerConsentTargetBindReason::CandidateChangedDuringBinding:
+        return ExplorerEligibilityReason::TargetInvalidated;
+    }
+    return ExplorerEligibilityReason::TargetInvalidated;
 }
 
 template <typename ImplType>
@@ -2495,6 +2981,382 @@ ExplorerTestSession::ExplorerTestSession(std::unique_ptr<Impl> impl) noexcept
     : impl_(std::move(impl)) {}
 
 ExplorerTestSession::~ExplorerTestSession() = default;
+
+ExplorerConsentProvisioning::ExplorerConsentProvisioning(
+    std::unique_ptr<Impl> impl) noexcept
+    : impl_(std::move(impl)) {}
+
+ExplorerConsentProvisioning::~ExplorerConsentProvisioning() = default;
+
+ExplorerConsentBeginResult ExplorerConsentProvisioning::begin(
+    const std::filesystem::path& unique_empty_test_directory) {
+    ExplorerConsentBeginResult result;
+    if (!unique_empty_test_directory.is_absolute()) {
+        result.diagnostic = adapter_diagnostic(
+            1400U,
+            "ExplorerConsentProvisioning::begin",
+            "target directory must be absolute");
+        return result;
+    }
+
+    std::error_code filesystem_error;
+    const DWORD attributes =
+        GetFileAttributesW(unique_empty_test_directory.c_str());
+    const auto root = unique_empty_test_directory.root_path();
+    const UINT drive_type =
+        root.empty() ? DRIVE_UNKNOWN : GetDriveTypeW(root.c_str());
+    if (attributes == INVALID_FILE_ATTRIBUTES ||
+        (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0U ||
+        (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0U ||
+        drive_type != DRIVE_FIXED ||
+        !std::filesystem::is_directory(unique_empty_test_directory,
+                                       filesystem_error) ||
+        filesystem_error) {
+        result.diagnostic = adapter_diagnostic(
+            1401U,
+            "Explorer consent target directory",
+            "target must be a plain directory on a local fixed filesystem");
+        return result;
+    }
+    if (!std::filesystem::is_empty(unique_empty_test_directory,
+                                   filesystem_error) ||
+        filesystem_error) {
+        result.reason = filesystem_error
+                            ? ExplorerEligibilityReason::InvalidTargetDirectory
+                            : ExplorerEligibilityReason::TargetDirectoryNotEmpty;
+        result.diagnostic = adapter_diagnostic(
+            1402U,
+            "Explorer consent target directory",
+            "target directory must be readable and empty");
+        return result;
+    }
+
+    const HRESULT apartment = CoInitializeEx(
+        nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (apartment != S_OK && apartment != S_FALSE) {
+        result.reason = ExplorerEligibilityReason::ComApartmentUnavailable;
+        result.diagnostic = hresult_diagnostic(
+            "CoInitializeEx", apartment,
+            "user-consent Explorer observation requires an STA");
+        return result;
+    }
+
+    auto impl = std::make_unique<Impl>();
+    impl->com_initialized = true;
+    impl->controller_thread_id = GetCurrentThreadId();
+    impl->target_directory = unique_empty_test_directory;
+
+    const auto target_location =
+        filesystem_location_identity(unique_empty_test_directory);
+    if (!target_location.filesystem()) {
+        result.reason = ExplorerEligibilityReason::InvalidTargetDirectory;
+        result.diagnostic = hresult_diagnostic(
+            "filesystem_location_identity",
+            target_location.diagnostic,
+            "consent target FILE_ID_INFO is unavailable");
+        return result;
+    }
+    impl->target_location = *target_location.identity;
+
+    const auto baseline = capture_shell_window_inventory();
+    const auto baseline_entries = expand_baseline_entries(baseline);
+    const auto exclusion =
+        detail::evaluate_baseline_exclusion(baseline_entries);
+    impl->facts.baseline_total_shell_entries =
+        baseline.reported_entry_count < 0
+            ? 0U
+            : static_cast<std::size_t>(baseline.reported_entry_count);
+    impl->facts.baseline_reliable_shell_entries =
+        exclusion.reliable_entry_count;
+    impl->facts.forbidden_preexisting_hwnd_count =
+        exclusion.forbidden_preexisting_hwnds.size();
+    impl->facts.baseline_exclusion_complete =
+        baseline.complete && exclusion.complete() &&
+        baseline_entries.size() ==
+            impl->facts.baseline_total_shell_entries;
+    impl->forbidden_preexisting_hwnds =
+        exclusion.forbidden_preexisting_hwnds;
+    if (!impl->facts.baseline_exclusion_complete) {
+        result.reason =
+            ExplorerEligibilityReason::BaselineWindowIdentityUnavailable;
+        result.diagnostic =
+            !baseline.issues.empty()
+                ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                      baseline.issues.front(),
+                      "every baseline Shell entry must expose a reliable HWND")}
+                : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                      1403U,
+                      "Explorer consent baseline exclusion",
+                      "baseline inventory is incomplete")};
+        result.facts = impl->facts;
+        return result;
+    }
+
+    impl->facts.generations.baseline_generation =
+        impl->issue_protocol_generation();
+    if (impl->facts.generations.baseline_generation == 0U) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        result.diagnostic = adapter_diagnostic(
+            1404U,
+            "Explorer consent generation",
+            "baseline generation could not be issued");
+        result.facts = impl->facts;
+        return result;
+    }
+
+    result.reason = ExplorerEligibilityReason::Eligible;
+    result.facts = impl->facts;
+    result.provisioning = std::unique_ptr<ExplorerConsentProvisioning>(
+        new ExplorerConsentProvisioning(std::move(impl)));
+    return result;
+}
+
+ExplorerConsentStepResult
+ExplorerConsentProvisioning::record_target_prompt() {
+    ExplorerConsentStepResult result;
+    if (impl_ == nullptr || impl_->terminal ||
+        GetCurrentThreadId() != impl_->controller_thread_id ||
+        !impl_->facts.baseline_exclusion_complete ||
+        impl_->facts.generations.target_prompt_generation != 0U) {
+        result.reason = ExplorerEligibilityReason::TargetConsentRequired;
+        result.diagnostic = adapter_diagnostic(
+            1405U,
+            "Explorer target consent prompt",
+            "target prompt is out of order or the consent run is terminal");
+        return result;
+    }
+    result.generation = impl_->issue_protocol_generation();
+    if (result.generation == 0U) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        return result;
+    }
+    impl_->facts.generations.target_prompt_generation = result.generation;
+    result.reason = ExplorerEligibilityReason::Eligible;
+    return result;
+}
+
+ExplorerConsentProvisionResult
+ExplorerConsentProvisioning::confirm_user_target() {
+    ExplorerConsentProvisionResult result;
+    if (impl_ == nullptr || impl_->terminal ||
+        GetCurrentThreadId() != impl_->controller_thread_id ||
+        impl_->facts.generations.target_prompt_generation == 0U ||
+        impl_->facts.generations.target_confirmation_generation != 0U) {
+        result.reason = ExplorerEligibilityReason::TargetConsentRequired;
+        result.diagnostic = adapter_diagnostic(
+            1406U,
+            "Explorer target consent confirmation",
+            "real-console target confirmation was not recorded in order");
+        return result;
+    }
+    impl_->terminal = true;
+    impl_->facts.generations.target_confirmation_generation =
+        impl_->issue_protocol_generation();
+    if (impl_->facts.generations.target_confirmation_generation == 0U) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    const auto post_confirmation = capture_shell_window_inventory();
+    impl_->facts.post_confirmation_shell_entries =
+        post_confirmation.reported_entry_count < 0
+            ? 0U
+            : static_cast<std::size_t>(
+                  post_confirmation.reported_entry_count);
+    auto selection = detail::evaluate_consent_candidate_inventory(
+        make_inventory_model(post_confirmation),
+        impl_->forbidden_preexisting_hwnds,
+        impl_->target_location);
+    impl_->facts.exact_new_candidate_count =
+        selection.exact_target_window_count;
+    impl_->facts.preexisting_exact_location_detected =
+        selection.forbidden_window_at_target;
+    impl_->facts.unique_new_target = selection.eligible();
+    impl_->facts.exact_target_location = selection.exact_unique_location;
+    if (!selection.eligible()) {
+        result.reason = selection.reason;
+        result.diagnostic = adapter_diagnostic(
+            1407U,
+            "Explorer consent candidate selection",
+            "post-confirmation inventory did not contain one safe new exact target");
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    const auto candidate_key = selection.candidate_fingerprint->native_key;
+    auto bound = bind_explorer_consent_target(candidate_key,
+                                               impl_->target_location);
+    if (!bound.succeeded()) {
+        result.reason = map_consent_bind_reason(bound.reason);
+        result.diagnostic =
+            bound.diagnostic.has_value()
+                ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                      *bound.diagnostic,
+                      "read-only consent target binding failed")}
+                : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                      1408U,
+                      "Explorer consent target binding",
+                      "candidate could not be bound uniquely to one Shell object")};
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    const auto rebound_inventory = capture_shell_window_inventory();
+    const auto rebound = detail::evaluate_consent_candidate_inventory(
+        make_inventory_model(rebound_inventory),
+        impl_->forbidden_preexisting_hwnds,
+        impl_->target_location,
+        &*selection.candidate_fingerprint);
+    if (!rebound.eligible()) {
+        result.reason = rebound.reason;
+        result.diagnostic = adapter_diagnostic(
+            1409U,
+            "Explorer consent target binding",
+            "candidate changed after browser observation was established");
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    auto session_impl = std::make_unique<ExplorerTestSession::Impl>();
+    session_impl->controller_thread_id = impl_->controller_thread_id;
+    session_impl->authority_kind = ExplorerAuthorityKind::UserConsent;
+    session_impl->target_directory = impl_->target_directory;
+    session_impl->target_location = impl_->target_location;
+    session_impl->forbidden_preexisting_hwnds =
+        impl_->forbidden_preexisting_hwnds;
+    session_impl->consent_candidate_fingerprint =
+        *selection.candidate_fingerprint;
+    session_impl->consent_observation = std::move(bound.observation);
+    session_impl->window = reinterpret_cast<HWND>(candidate_key);
+    session_impl->consent = impl_->facts;
+    session_impl->consent.browser_observation_active = true;
+    session_impl->provisioning.baseline_total_shell_entries =
+        impl_->facts.baseline_total_shell_entries;
+    session_impl->provisioning.baseline_reliable_shell_entries =
+        impl_->facts.baseline_reliable_shell_entries;
+    session_impl->provisioning.forbidden_preexisting_hwnd_count =
+        impl_->facts.forbidden_preexisting_hwnd_count;
+    session_impl->provisioning.baseline_exclusion_complete = true;
+    session_impl->provisioning.preexisting_window_count =
+        impl_->facts.forbidden_preexisting_hwnd_count;
+    session_impl->provisioning.new_candidate_count = 1U;
+    session_impl->provisioning.retained_window_was_new_before_navigation =
+        true;
+    session_impl->provisioning.exact_target_location = true;
+    session_impl->provisioning.exact_unique_test_location = true;
+
+    DWORD process_id = 0U;
+    const DWORD thread_id = GetWindowThreadProcessId(session_impl->window,
+                                                      &process_id);
+    if (thread_id == 0U || process_id == 0U) {
+        result.reason = ExplorerEligibilityReason::WindowDestroyed;
+        result.diagnostic = win32_diagnostic(
+            "GetWindowThreadProcessId", GetLastError(),
+            "consent target lost native identity before issuance");
+        result.facts = impl_->facts;
+        return result;
+    }
+    session_impl->process_id = process_id;
+    session_impl->thread_id = thread_id;
+    session_impl->process.reset(OpenProcess(
+        PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE,
+        FALSE,
+        process_id));
+    if (!session_impl->process.valid()) {
+        result.reason = ExplorerEligibilityReason::ProcessOpenFailed;
+        result.diagnostic = win32_diagnostic(
+            "OpenProcess", GetLastError(),
+            "consent target process identity handle could not be opened");
+        result.facts = impl_->facts;
+        return result;
+    }
+    DWORD rechecked_process_id = 0U;
+    const DWORD rechecked_thread_id = GetWindowThreadProcessId(
+        session_impl->window, &rechecked_process_id);
+    if (rechecked_thread_id != thread_id ||
+        rechecked_process_id != process_id ||
+        GetProcessId(session_impl->process.get()) != process_id ||
+        WaitForSingleObject(session_impl->process.get(), 0U) != WAIT_TIMEOUT) {
+        result.reason = ExplorerEligibilityReason::TargetInvalidated;
+        result.diagnostic = adapter_diagnostic(
+            1410U,
+            "Explorer consent process identity",
+            "PID, TID, or process instance changed during issuance");
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    auto initial = validate_native_target(*session_impl, nullptr, true);
+    if (initial.reason != ExplorerEligibilityReason::Eligible ||
+        !initial.snapshot.has_value()) {
+        result.reason = initial.reason;
+        result.diagnostic = std::move(initial.diagnostic);
+        result.facts = impl_->facts;
+        return result;
+    }
+    if (!detail::rect_is_contained(initial.snapshot->visible_rect,
+                                   initial.snapshot->monitor_work_area) ||
+        !select_safe_test_delta(*initial.snapshot).succeeded()) {
+        result.reason = ExplorerEligibilityReason::UnsafeDelta;
+        result.diagnostic = adapter_diagnostic(
+            1411U,
+            "Explorer consent initial geometry",
+            "target has no safe same-monitor test translation");
+        result.facts = impl_->facts;
+        return result;
+    }
+
+    session_impl->consent.generations.eligibility_generation =
+        impl_->issue_protocol_generation();
+    session_impl->consent.generations.token_generation =
+        impl_->issue_protocol_generation();
+    if (session_impl->consent.generations.eligibility_generation == 0U ||
+        session_impl->consent.generations.token_generation == 0U) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        result.facts = session_impl->consent;
+        return result;
+    }
+    auto issue = session_impl->ledger.issue_user_consent(
+        candidate_key,
+        process_id,
+        thread_id,
+        session_impl->consent.generations.token_generation);
+    if (!issue.token.has_value()) {
+        result.reason = ledger_failure_reason(issue.status);
+        result.diagnostic = adapter_diagnostic(
+            1412U,
+            "ExplorerTokenLedger::issue_user_consent",
+            "user-consent Explorer capability issuance failed");
+        result.facts = session_impl->consent;
+        return result;
+    }
+    session_impl->issued_token = *issue.token;
+    session_impl->original_snapshot = *initial.snapshot;
+    session_impl->provisioning.initial_snapshot = *initial.snapshot;
+    session_impl->provisioning.token_issued = true;
+    session_impl->consent.token_issued = true;
+    session_impl->consent.exact_target_location = true;
+
+    result.reason = ExplorerEligibilityReason::Eligible;
+    result.facts = session_impl->consent;
+    impl_->facts = session_impl->consent;
+    session_impl->com_initialized = true;
+    impl_->com_initialized = false;
+    result.session = std::unique_ptr<ExplorerTestSession>(
+        new ExplorerTestSession(std::move(session_impl)));
+    return result;
+}
+
+const ExplorerConsentFacts& ExplorerConsentProvisioning::facts()
+    const noexcept {
+    return impl_->facts;
+}
+
+const std::filesystem::path&
+ExplorerConsentProvisioning::target_directory() const noexcept {
+    return impl_->target_directory;
+}
 
 ExplorerProvisionResult ExplorerTestSession::provision(
     const std::filesystem::path& unique_empty_test_directory,
@@ -3007,7 +3869,7 @@ ExplorerProvisionResult ExplorerTestSession::provision(
                 "initial frame or every test delta falls outside one monitor work area"));
     }
 
-    auto issue = impl->ledger.issue(
+    auto issue = impl->ledger.issue_legacy_auto(
         reinterpret_cast<detail::NativeWindowKey>(impl->window),
         process_id,
         thread_id,
@@ -3041,6 +3903,103 @@ ExplorerProvisionResult ExplorerTestSession::provision(
 const ExplorerProvisioningFacts& ExplorerTestSession::provisioning_facts()
     const noexcept {
     return impl_->provisioning;
+}
+
+ExplorerAuthorityKind ExplorerTestSession::authority_kind() const noexcept {
+    return impl_ == nullptr
+               ? ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic
+               : impl_->authority_kind;
+}
+
+const ExplorerConsentFacts& ExplorerTestSession::consent_facts()
+    const noexcept {
+    return impl_->consent;
+}
+
+ExplorerConsentStepResult ExplorerTestSession::record_move_prompt(
+    const ExplorerWindowToken& token_value) {
+    ExplorerConsentStepResult result;
+    result.reason = ExplorerEligibilityReason::MoveConsentRequired;
+    if (impl_ == nullptr ||
+        impl_->authority_kind != ExplorerAuthorityKind::UserConsent ||
+        !impl_->ledger.contains(token_value) ||
+        token_value.authority_kind() != ExplorerAuthorityKind::UserConsent ||
+        token_value.consent_generation() !=
+            impl_->consent.generations.token_generation ||
+        impl_->consent.generations.move_prompt_generation != 0U ||
+        impl_->consent_move_authority.authorized()) {
+        result.diagnostic = adapter_diagnostic(
+            1413U,
+            "Explorer move consent prompt",
+            "move prompt is out of order or token authority does not match");
+        return result;
+    }
+    const auto token_generation =
+        impl_->consent.generations.token_generation;
+    if (token_generation == 0U ||
+        token_generation >= std::numeric_limits<std::uint64_t>::max() - 1U) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        return result;
+    }
+    result.generation = token_generation + 1U;
+    impl_->consent.generations.move_prompt_generation = result.generation;
+    result.reason = ExplorerEligibilityReason::Eligible;
+    return result;
+}
+
+ExplorerConsentStepResult
+ExplorerTestSession::authorize_single_translation(
+    const ExplorerWindowToken& token_value) {
+    ExplorerConsentStepResult result;
+    result.reason = ExplorerEligibilityReason::MoveConsentRequired;
+    if (impl_ == nullptr ||
+        impl_->authority_kind != ExplorerAuthorityKind::UserConsent ||
+        !impl_->ledger.contains(token_value) ||
+        token_value.authority_kind() != ExplorerAuthorityKind::UserConsent ||
+        token_value.consent_generation() !=
+            impl_->consent.generations.token_generation ||
+        impl_->consent.generations.move_prompt_generation == 0U ||
+        impl_->consent.generations.move_confirmation_generation != 0U) {
+        result.diagnostic = adapter_diagnostic(
+            1414U,
+            "Explorer move consent confirmation",
+            "real-console move confirmation was not recorded in order");
+        return result;
+    }
+    if (impl_->consent.generations.move_prompt_generation ==
+        std::numeric_limits<std::uint64_t>::max()) {
+        result.reason = ExplorerEligibilityReason::GenerationExhausted;
+        return result;
+    }
+    result.generation =
+        impl_->consent.generations.move_prompt_generation + 1U;
+    impl_->consent.generations.move_confirmation_generation =
+        result.generation;
+
+    auto validation = validate_or_retire(*impl_, token_value);
+    if (validation.reason != ExplorerEligibilityReason::Eligible ||
+        !validation.snapshot.has_value()) {
+        result.reason = validation.reason;
+        result.diagnostic = std::move(validation.diagnostic);
+        return result;
+    }
+    const auto authority = impl_->consent_move_authority.authorize(
+        true, true, impl_->consent.generations);
+    if (authority != ExplorerEligibilityReason::Eligible) {
+        result.reason = authority;
+        result.diagnostic = adapter_diagnostic(
+            1415U,
+            "Explorer consent generation chain",
+            "two consent facts did not form one valid move authority");
+        retire_target(*impl_);
+        return result;
+    }
+    impl_->original_snapshot = *validation.snapshot;
+    impl_->provisioning.initial_snapshot = *validation.snapshot;
+    impl_->consent.move_authorized = true;
+    result.reason = ExplorerEligibilityReason::Eligible;
+    result.snapshot = std::move(validation.snapshot);
+    return result;
 }
 
 const ExplorerWindowToken& ExplorerTestSession::token() const noexcept {
@@ -3105,6 +4064,16 @@ template <typename ImplType>
             cleanup_operation
                 ? "restore requires exactly one primary attempt and can run only once"
                 : "R1-C2A permits at most one primary native translation per session");
+        return result;
+    }
+    if (!cleanup_operation &&
+        impl.authority_kind == ExplorerAuthorityKind::UserConsent &&
+        !impl.consent_move_authority.available()) {
+        result.reason = ExplorerEligibilityReason::MoveConsentRequired;
+        result.diagnostic = adapter_diagnostic(
+            1416U,
+            "Explorer move consent authority",
+            "primary translation requires a fresh second user consent");
         return result;
     }
 
@@ -3179,6 +4148,21 @@ template <typename ImplType>
 
     result.stage = cleanup_operation ? ExplorerOperationStage::Restore
                                      : ExplorerOperationStage::NativeApply;
+    if (!cleanup_operation &&
+        impl.authority_kind == ExplorerAuthorityKind::UserConsent) {
+        const auto consent_gate = impl.consent_move_authority.try_consume(
+            token.consent_generation());
+        if (consent_gate != ExplorerEligibilityReason::Eligible) {
+            result.stage = ExplorerOperationStage::Preflight;
+            result.reason = consent_gate;
+            result.diagnostic = adapter_diagnostic(
+                1417U,
+                "Explorer move consent authority",
+                "consent authority was stale, mismatched, or already consumed");
+            return result;
+        }
+        impl.consent.primary_authority_consumed = true;
+    }
     if (!cleanup_operation && !impl.primary_apply_guard.try_consume()) {
         result.stage = ExplorerOperationStage::Preflight;
         result.reason = ExplorerEligibilityReason::OperationLimitReached;
@@ -3379,6 +4363,17 @@ ExplorerCleanupResult ExplorerTestSession::close_test_window(
     const ExplorerWindowToken& token_value,
     const std::chrono::milliseconds disappearance_timeout) {
     ExplorerCleanupResult result;
+    if (impl_ != nullptr &&
+        impl_->authority_kind == ExplorerAuthorityKind::UserConsent) {
+        result.reason = ExplorerEligibilityReason::SafeCleanupNotPerformed;
+        result.native_close_attempted = false;
+        result.token_retired = !impl_->ledger.contains(token_value);
+        result.diagnostic = adapter_diagnostic(
+            1418U,
+            "Explorer user-consent close boundary",
+            "a user-created Explorer window may only be closed by the user");
+        return result;
+    }
     if (impl_ == nullptr ||
         disappearance_timeout <= std::chrono::milliseconds::zero() ||
         !impl_->issued_token.has_value() ||

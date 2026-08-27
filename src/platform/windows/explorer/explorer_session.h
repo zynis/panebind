@@ -19,7 +19,15 @@ class ExplorerSessionDiagnostics;
 
 class ExplorerTestSession;
 class ExplorerWindowOperations;
+class ExplorerConsentProvisioning;
 struct ExplorerProvisionResult;
+struct ExplorerConsentBeginResult;
+struct ExplorerConsentProvisionResult;
+
+enum class ExplorerAuthorityKind : std::uint8_t {
+    LegacyAutoProvisionDiagnostic,
+    UserConsent,
+};
 
 // This token is deliberately application- and fixture-specific. It represents
 // only the single Explorer window isolated by an ExplorerTestSession; it is not
@@ -36,23 +44,38 @@ public:
         return generation_;
     }
 
+    [[nodiscard]] ExplorerAuthorityKind authority_kind() const noexcept {
+        return authority_kind_;
+    }
+
+    [[nodiscard]] std::uint64_t consent_generation() const noexcept {
+        return consent_generation_;
+    }
+
     friend bool operator==(const ExplorerWindowToken&,
                            const ExplorerWindowToken&) = default;
 
 private:
     ExplorerWindowToken(std::uint64_t controller_authority,
-                        std::uint64_t session_authority,
-                        std::uint64_t logical_id,
-                        std::uint64_t generation) noexcept
+                         std::uint64_t session_authority,
+                         std::uint64_t logical_id,
+                         std::uint64_t generation,
+                         ExplorerAuthorityKind authority_kind,
+                         std::uint64_t consent_generation) noexcept
         : controller_authority_(controller_authority),
           session_authority_(session_authority),
           logical_id_(logical_id),
-          generation_(generation) {}
+          generation_(generation),
+          authority_kind_(authority_kind),
+          consent_generation_(consent_generation) {}
 
     std::uint64_t controller_authority_{};
     std::uint64_t session_authority_{};
     std::uint64_t logical_id_{};
     std::uint64_t generation_{};
+    ExplorerAuthorityKind authority_kind_{
+        ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic};
+    std::uint64_t consent_generation_{};
 
     friend class detail::ExplorerTokenLedger;
     friend class ExplorerTestSession;
@@ -125,6 +148,11 @@ enum class ExplorerEligibilityReason {
     PostVerificationFailed,
     TargetInvalidated,
     SafeCleanupNotPerformed,
+    TargetConsentRequired,
+    MoveConsentRequired,
+    ConsentGenerationMismatch,
+    ConsentDeclined,
+    TargetNotFound,
 };
 
 enum class ExplorerOperationStage {
@@ -138,6 +166,7 @@ enum class ExplorerOperationStage {
     PostVerification,
     Restore,
     Cleanup,
+    Consent,
 };
 
 enum class ExplorerDiagnosticDomain {
@@ -192,6 +221,53 @@ struct ExplorerWindowSnapshot {
 
     friend bool operator==(const ExplorerWindowSnapshot&,
                            const ExplorerWindowSnapshot&) = default;
+};
+
+// These are local, monotonic capability-freshness witnesses. They record the
+// ordered human-consent protocol; they are not authentication credentials.
+struct ExplorerConsentGenerationFacts {
+    std::uint64_t baseline_generation{};
+    std::uint64_t target_prompt_generation{};
+    std::uint64_t target_confirmation_generation{};
+    std::uint64_t eligibility_generation{};
+    std::uint64_t token_generation{};
+    std::uint64_t move_prompt_generation{};
+    std::uint64_t move_confirmation_generation{};
+
+    friend bool operator==(const ExplorerConsentGenerationFacts&,
+                           const ExplorerConsentGenerationFacts&) = default;
+};
+
+struct ExplorerConsentFacts {
+    ExplorerConsentGenerationFacts generations;
+    std::size_t baseline_total_shell_entries{};
+    std::size_t baseline_reliable_shell_entries{};
+    std::size_t forbidden_preexisting_hwnd_count{};
+    std::size_t post_confirmation_shell_entries{};
+    std::size_t exact_new_candidate_count{};
+    bool baseline_exclusion_complete{};
+    bool preexisting_exact_location_detected{};
+    bool unique_new_target{};
+    bool exact_target_location{};
+    bool browser_observation_active{};
+    bool token_issued{};
+    bool move_authorized{};
+    bool primary_authority_consumed{};
+    bool user_window_close_attempted{};
+};
+
+struct ExplorerConsentStepResult {
+    ExplorerEligibilityReason reason{
+        ExplorerEligibilityReason::TargetConsentRequired};
+    ExplorerOperationStage stage{ExplorerOperationStage::Consent};
+    std::uint64_t generation{};
+    std::optional<ExplorerWindowSnapshot> snapshot;
+    std::optional<ExplorerDiagnostic> diagnostic;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return reason == ExplorerEligibilityReason::Eligible &&
+               generation != 0U;
+    }
 };
 
 struct ExplorerProvisioningCleanupFacts {
@@ -368,6 +444,69 @@ struct ExplorerCleanupResult {
     }
 };
 
+// Pre-capability state for the controlled R1-C2A interactive UAT. It only
+// captures a permanent baseline exclusion set and later observes the target
+// that the human created and navigated. It cannot move, navigate, show, or
+// close Explorer and exposes no native handle selector.
+class ExplorerConsentProvisioning final {
+public:
+    ~ExplorerConsentProvisioning();
+
+    ExplorerConsentProvisioning(const ExplorerConsentProvisioning&) = delete;
+    ExplorerConsentProvisioning& operator=(
+        const ExplorerConsentProvisioning&) = delete;
+    ExplorerConsentProvisioning(ExplorerConsentProvisioning&&) = delete;
+    ExplorerConsentProvisioning& operator=(ExplorerConsentProvisioning&&) =
+        delete;
+
+    [[nodiscard]] static ExplorerConsentBeginResult begin(
+        const std::filesystem::path& unique_empty_test_directory);
+
+    // The harness calls this immediately before it displays the first prompt.
+    // It records protocol order only; no Shell or native mutation occurs.
+    [[nodiscard]] ExplorerConsentStepResult record_target_prompt();
+
+    // Called only after the real console ENTER confirmation. Re-inventories
+    // Shell windows, rejects every baseline HWND permanently, binds exactly
+    // one new exact-location target, and issues the first capability token.
+    [[nodiscard]] ExplorerConsentProvisionResult confirm_user_target();
+
+    [[nodiscard]] const ExplorerConsentFacts& facts() const noexcept;
+    [[nodiscard]] const std::filesystem::path& target_directory()
+        const noexcept;
+
+private:
+    struct Impl;
+    explicit ExplorerConsentProvisioning(std::unique_ptr<Impl> impl) noexcept;
+    std::unique_ptr<Impl> impl_;
+};
+
+struct ExplorerConsentBeginResult {
+    ExplorerEligibilityReason reason{
+        ExplorerEligibilityReason::InvalidTargetDirectory};
+    std::unique_ptr<ExplorerConsentProvisioning> provisioning;
+    std::optional<ExplorerDiagnostic> diagnostic;
+    ExplorerConsentFacts facts;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return reason == ExplorerEligibilityReason::Eligible &&
+               provisioning != nullptr;
+    }
+};
+
+struct ExplorerConsentProvisionResult {
+    ExplorerEligibilityReason reason{
+        ExplorerEligibilityReason::TargetConsentRequired};
+    std::unique_ptr<ExplorerTestSession> session;
+    std::optional<ExplorerDiagnostic> diagnostic;
+    ExplorerConsentFacts facts;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return reason == ExplorerEligibilityReason::Eligible &&
+               session != nullptr;
+    }
+};
+
 // The session owns an STA Shell automation object. Provisioning, every method,
 // and normal destruction must occur on the provisioning thread. A misplaced
 // destruction is fail-safe (no cross-apartment COM call), but intentionally
@@ -390,6 +529,17 @@ public:
         const noexcept;
     [[nodiscard]] const ExplorerWindowToken& token() const noexcept;
     [[nodiscard]] bool contains(const ExplorerWindowToken& token) noexcept;
+    [[nodiscard]] ExplorerAuthorityKind authority_kind() const noexcept;
+    [[nodiscard]] const ExplorerConsentFacts& consent_facts() const noexcept;
+
+    // The first method records that the harness displayed the separate move
+    // prompt. The second is called only after real-console Y+ENTER and performs
+    // an immediate complete live revalidation. apply_single remains hard-gated
+    // until both succeed in this exact session/generation.
+    [[nodiscard]] ExplorerConsentStepResult record_move_prompt(
+        const ExplorerWindowToken& token);
+    [[nodiscard]] ExplorerConsentStepResult authorize_single_translation(
+        const ExplorerWindowToken& token);
 
     // Closing is optional and fail-closed. It acts only through the exact
     // retained Shell automation object after another complete live eligibility
@@ -405,6 +555,7 @@ private:
     std::unique_ptr<Impl> impl_;
 
     friend class ExplorerWindowOperations;
+    friend class ExplorerConsentProvisioning;
     friend class detail::ExplorerSessionDiagnostics;
 };
 

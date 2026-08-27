@@ -556,6 +556,102 @@ opaque_location_fingerprint(const std::wstring_view location) noexcept {
     return {ShellAutomationStage::ThreadAffinity, RPC_E_WRONG_THREAD};
 }
 
+struct ConsentCandidateScanResult {
+    bool complete{};
+    std::size_t exact_location_match_count{};
+    std::size_t bound_window_entry_count{};
+    std::uintptr_t exact_location_window_key{};
+    ComPtr<IWebBrowser2> matched_browser;
+    std::optional<ShellAutomationDiagnostic> diagnostic;
+};
+
+[[nodiscard]] ConsentCandidateScanResult scan_consent_candidate(
+    IShellWindows* shell_windows,
+    const std::uintptr_t expected_window_key,
+    const FilesystemLocationIdentity& expected_location) {
+    ConsentCandidateScanResult result;
+    if (shell_windows == nullptr || expected_window_key == 0U) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadInventoryItem, E_INVALIDARG, -1};
+        return result;
+    }
+
+    long count = 0;
+    const HRESULT count_result = shell_windows->get_Count(&count);
+    if (count_result != S_OK || count < 0) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadInventoryCount,
+            count_result == S_OK ? E_UNEXPECTED : count_result,
+            -1};
+        return result;
+    }
+
+    for (long index = 0; index < count; ++index) {
+        ScopedVariant item_index;
+        V_VT(item_index.get()) = VT_I4;
+        V_I4(item_index.get()) = index;
+
+        ComPtr<IDispatch> dispatch;
+        const HRESULT item_result =
+            shell_windows->Item(item_index.value(), dispatch.put());
+        if (item_result != S_OK || !dispatch) {
+            result.diagnostic = ShellAutomationDiagnostic{
+                ShellAutomationStage::ReadInventoryItem,
+                item_result == S_OK ? E_POINTER : item_result,
+                index};
+            return result;
+        }
+
+        ComPtr<IWebBrowser2> browser;
+        const HRESULT query_result = dispatch->QueryInterface(
+            IID_PPV_ARGS(browser.put()));
+        if (query_result != S_OK || !browser) {
+            result.diagnostic = ShellAutomationDiagnostic{
+                ShellAutomationStage::QueryWebBrowser,
+                query_result == S_OK ? E_NOINTERFACE : query_result,
+                index};
+            return result;
+        }
+
+        auto handle = read_window_handle(
+            browser.get(), ShellAutomationStage::ReadWindowHandle);
+        if (!handle.succeeded()) {
+            result.diagnostic = handle.diagnostic.value_or(
+                ShellAutomationDiagnostic{
+                    ShellAutomationStage::ReadWindowHandle,
+                    kInvalidWindowHandle,
+                    index});
+            result.diagnostic->item_index = index;
+            return result;
+        }
+
+        const auto window_key =
+            reinterpret_cast<std::uintptr_t>(handle.window);
+        if (window_key == expected_window_key) {
+            ++result.bound_window_entry_count;
+        }
+
+        const auto location = read_location(browser.get());
+        const bool exact_location =
+            location.filesystem() &&
+            location.identity == expected_location;
+        if (!exact_location) {
+            continue;
+        }
+
+        ++result.exact_location_match_count;
+        if (result.exact_location_match_count == 1U) {
+            result.exact_location_window_key = window_key;
+            if (window_key == expected_window_key) {
+                result.matched_browser = std::move(browser);
+            }
+        }
+    }
+
+    result.complete = true;
+    return result;
+}
+
 } // namespace
 
 enum class BrowserReadinessReceiptKind {
@@ -1124,6 +1220,540 @@ ShellLocationFact filesystem_location_identity(
     const std::wstring& native_path = absolute_path.native();
     return identify_absolute_path(native_path,
                                   ShellLocationSource::AbsolutePath);
+}
+
+ExplorerConsentTargetObservation::ExplorerConsentTargetObservation(
+    IWebBrowser2* browser,
+    IUnknown* canonical_identity,
+    IConnectionPoint* browser_connection_point,
+    BrowserReadinessEventSink* browser_event_sink,
+    BrowserSubscriptionLifecycleState* browser_lifecycle_state,
+    const DWORD browser_advise_cookie,
+    const std::uintptr_t bound_window_key,
+    const FilesystemLocationIdentity expected_location,
+    const std::size_t exact_location_match_count,
+    const std::size_t bound_window_entry_count,
+    const std::uint64_t navigation_epoch_at_binding,
+    const DWORD owner_thread_id) noexcept
+    : browser_(browser),
+      canonical_identity_(canonical_identity),
+      browser_connection_point_(browser_connection_point),
+      browser_event_sink_(browser_event_sink),
+      browser_lifecycle_state_(browser_lifecycle_state),
+      browser_advise_cookie_(browser_advise_cookie),
+      bound_window_key_(bound_window_key),
+      expected_location_(expected_location),
+      exact_location_match_count_(exact_location_match_count),
+      bound_window_entry_count_(bound_window_entry_count),
+      navigation_epoch_at_binding_(navigation_epoch_at_binding),
+      owner_thread_id_(owner_thread_id),
+      browser_events_advised_(browser_connection_point != nullptr &&
+                              browser_event_sink != nullptr &&
+                              browser_advise_cookie != 0U) {}
+
+ExplorerConsentTargetObservation::~ExplorerConsentTargetObservation() {
+    if (!on_thread(owner_thread_id_) || require_sta() != S_OK) {
+        // The retained automation object and connection point are STA-bound.
+        // Leaking them is safer than cross-apartment Unadvise/Release.
+        return;
+    }
+    const HRESULT close_result = retire();
+    if (FAILED(close_result)) {
+        // Keep the retired sink and all COM references alive if the server did
+        // not acknowledge Unadvise. No pointer in this object can then be
+        // safely released.
+        return;
+    }
+    if (canonical_identity_ != nullptr) {
+        static_cast<void>(canonical_identity_->Release());
+        canonical_identity_ = nullptr;
+    }
+    if (browser_ != nullptr) {
+        static_cast<void>(browser_->Release());
+        browser_ = nullptr;
+    }
+    if (browser_lifecycle_state_ != nullptr) {
+        browser_lifecycle_state_->unpin();
+        browser_lifecycle_state_ = nullptr;
+    }
+}
+
+DWORD ExplorerConsentTargetObservation::owner_thread_id() const noexcept {
+    return owner_thread_id_;
+}
+
+std::uintptr_t
+ExplorerConsentTargetObservation::bound_window_key() const noexcept {
+    return bound_window_key_;
+}
+
+const FilesystemLocationIdentity&
+ExplorerConsentTargetObservation::expected_location() const noexcept {
+    return expected_location_;
+}
+
+ShellWindowKeyResult
+ExplorerConsentTargetObservation::current_window_key() const {
+    ShellWindowKeyResult result;
+    if (!on_thread(owner_thread_id_)) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ThreadAffinity,
+            RPC_E_WRONG_THREAD,
+            -1};
+        return result;
+    }
+    const auto native =
+        read_window_handle(browser_, ShellAutomationStage::ReadWindowHandle);
+    if (!native.succeeded()) {
+        result.diagnostic = native.diagnostic;
+        return result;
+    }
+    result.window_key = reinterpret_cast<std::uintptr_t>(native.window);
+    return result;
+}
+
+ShellLocationFact ExplorerConsentTargetObservation::current_location() const {
+    if (!on_thread(owner_thread_id_)) {
+        return location_failure(ShellLocationStatus::Unavailable,
+                                ShellLocationSource::None,
+                                RPC_E_WRONG_THREAD);
+    }
+    return read_location(browser_);
+}
+
+ExplorerConsentTargetObservationFacts
+ExplorerConsentTargetObservation::facts() noexcept {
+    ExplorerConsentTargetObservationFacts result;
+    result.bound_window_key = bound_window_key_;
+    result.exact_location_match_count = exact_location_match_count_;
+    result.bound_window_entry_count = bound_window_entry_count_;
+    result.navigation_epoch_at_binding = navigation_epoch_at_binding_;
+
+    const bool live_sink = browser_event_sink_ != nullptr;
+    if (live_sink && on_thread(owner_thread_id_)) {
+        browser_event_sink_->process_receipts();
+    } else if (live_sink) {
+        browser_event_sink_->note_wrong_thread();
+    }
+    result.browser =
+        live_sink
+            ? browser_event_sink_->facts()
+            : (browser_lifecycle_state_ == nullptr
+                   ? BrowserReadinessFacts{}
+                   : browser_lifecycle_state_->facts());
+    if (live_sink) {
+        result.browser.subscribed = browser_events_advised_;
+        result.browser.unadvised = false;
+    }
+
+    if (!on_thread(owner_thread_id_) || browser_ == nullptr ||
+        canonical_identity_ == nullptr) {
+        return result;
+    }
+    ComPtr<IUnknown> current_identity;
+    const HRESULT identity_result = browser_->QueryInterface(
+        IID_IUnknown,
+        reinterpret_cast<void**>(current_identity.put()));
+    result.canonical_identity_matches =
+        identity_result == S_OK && current_identity &&
+        current_identity.get() == canonical_identity_;
+    return result;
+}
+
+BrowserReadinessWaitResult
+ExplorerConsentTargetObservation::pump_until_activity(
+    const std::uint64_t after_sequence,
+    const std::chrono::steady_clock::time_point deadline) const {
+    BrowserReadinessWaitResult result;
+    if (!on_thread(owner_thread_id_)) {
+        if (browser_event_sink_ != nullptr) {
+            browser_event_sink_->note_wrong_thread();
+        }
+        result.status = BrowserReadinessWaitStatus::WrongThread;
+        result.diagnostic = RPC_E_WRONG_THREAD;
+        return result;
+    }
+    BrowserReadinessEventSink* const borrowed_sink = browser_event_sink_;
+    if (!browser_events_advised_ || borrowed_sink == nullptr) {
+        result.status = BrowserReadinessWaitStatus::SubscriptionUnavailable;
+        result.diagnostic = CONNECT_E_NOCONNECTION;
+        return result;
+    }
+    BrowserReadinessEventSinkPin sink_pin{borrowed_sink};
+    BrowserReadinessEventSink* const sink = sink_pin.get();
+
+    while (result.dispatched_message_count < kBrowserMessageDispatchBudget) {
+        const HRESULT apartment_result = require_sta();
+        if (apartment_result != S_OK) {
+            result.status = BrowserReadinessWaitStatus::Failed;
+            result.diagnostic = apartment_result;
+            return result;
+        }
+        sink->process_receipts();
+        const BrowserReadinessFacts current = sink->facts();
+        result.latest_sequence = current.latest_sequence;
+        if (result.latest_sequence > after_sequence) {
+            result.status = current.latest_activity_was_quit
+                                ? BrowserReadinessWaitStatus::QuitObserved
+                                : BrowserReadinessWaitStatus::ActivityObserved;
+            return result;
+        }
+
+        const DWORD wait_milliseconds = bounded_wait_milliseconds(deadline);
+        if (wait_milliseconds == 0U) {
+            result.status = BrowserReadinessWaitStatus::TimedOut;
+            result.diagnostic = HRESULT_FROM_WIN32(ERROR_TIMEOUT);
+            return result;
+        }
+        const DWORD wait_result = MsgWaitForMultipleObjectsEx(
+            0U,
+            nullptr,
+            wait_milliseconds,
+            QS_ALLINPUT,
+            MWMO_INPUTAVAILABLE | MWMO_ALERTABLE);
+        if (wait_result == WAIT_TIMEOUT) {
+            result.status = BrowserReadinessWaitStatus::TimedOut;
+            result.diagnostic = HRESULT_FROM_WIN32(ERROR_TIMEOUT);
+            return result;
+        }
+        if (wait_result == WAIT_FAILED) {
+            result.status = BrowserReadinessWaitStatus::Failed;
+            result.diagnostic = HRESULT_FROM_WIN32(GetLastError());
+            return result;
+        }
+        if (wait_result == WAIT_IO_COMPLETION) {
+            continue;
+        }
+
+        MSG message{};
+        while (result.dispatched_message_count <
+                   kBrowserMessageDispatchBudget &&
+               PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) != FALSE) {
+            ++result.dispatched_message_count;
+            if (message.message == WM_QUIT) {
+                PostQuitMessage(static_cast<int>(message.wParam));
+                result.status = BrowserReadinessWaitStatus::QuitObserved;
+                result.diagnostic = HRESULT_FROM_WIN32(ERROR_CANCELLED);
+                return result;
+            }
+            static_cast<void>(TranslateMessage(&message));
+            static_cast<void>(DispatchMessageW(&message));
+        }
+    }
+
+    sink->process_receipts();
+    const BrowserReadinessFacts final_facts = sink->facts();
+    result.latest_sequence = final_facts.latest_sequence;
+    result.status = result.latest_sequence <= after_sequence
+                        ? BrowserReadinessWaitStatus::MessageBudgetExhausted
+                        : (final_facts.latest_activity_was_quit
+                               ? BrowserReadinessWaitStatus::QuitObserved
+                               : BrowserReadinessWaitStatus::ActivityObserved);
+    result.diagnostic =
+        result.status == BrowserReadinessWaitStatus::ActivityObserved
+            ? S_OK
+            : HRESULT_FROM_WIN32(ERROR_RETRY);
+    return result;
+}
+
+HRESULT ExplorerConsentTargetObservation::retire() noexcept {
+    if (browser_events_unadvised_) {
+        return S_FALSE;
+    }
+    if (!browser_events_advised_) {
+        return S_FALSE;
+    }
+    if (!on_thread(owner_thread_id_)) {
+        if (browser_event_sink_ != nullptr) {
+            browser_event_sink_->note_wrong_thread();
+        }
+        return RPC_E_WRONG_THREAD;
+    }
+    const HRESULT apartment_result = require_sta();
+    if (apartment_result != S_OK) {
+        return apartment_result;
+    }
+    if (browser_connection_point_ == nullptr ||
+        browser_event_sink_ == nullptr || browser_advise_cookie_ == 0U) {
+        return E_UNEXPECTED;
+    }
+
+    BrowserLifecyclePin lifecycle_pin{browser_lifecycle_state_};
+    BrowserSubscriptionLifecycleState* const lifecycle = lifecycle_pin.get();
+    IConnectionPoint* const connection_point = browser_connection_point_;
+    BrowserReadinessEventSink* const sink = browser_event_sink_;
+    const DWORD advise_cookie = browser_advise_cookie_;
+
+    // Detach before the reentrant COM call. The observation has no mutating
+    // browser method, and Unadvise is its only native retirement action.
+    browser_connection_point_ = nullptr;
+    browser_event_sink_ = nullptr;
+    browser_advise_cookie_ = 0U;
+    browser_events_advised_ = false;
+    browser_events_unadvised_ = true;
+
+    sink->process_receipts();
+    sink->retire();
+    const BrowserReadinessFacts starting_facts = sink->facts();
+    if (lifecycle != nullptr) {
+        lifecycle->begin_close(starting_facts);
+    }
+    const HRESULT result = connection_point->Unadvise(advise_cookie);
+    const BrowserReadinessFacts final_facts = sink->facts();
+    if (lifecycle != nullptr) {
+        lifecycle->complete_close(result, final_facts);
+    }
+    if (result != S_OK) {
+        return result;
+    }
+    if (require_sta() != S_OK) {
+        return CO_E_NOTINITIALIZED;
+    }
+
+    static_cast<void>(connection_point->Release());
+    static_cast<void>(sink->Release());
+    return S_OK;
+}
+
+ExplorerConsentTargetBindResult bind_explorer_consent_target(
+    const std::uintptr_t expected_window_key,
+    const FilesystemLocationIdentity& expected_location) {
+    ExplorerConsentTargetBindResult result;
+    if (expected_window_key == 0U) {
+        result.reason = ExplorerConsentTargetBindReason::InvalidArgument;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadWindowHandle, E_INVALIDARG, -1};
+        return result;
+    }
+
+    const HRESULT apartment = require_sta();
+    if (apartment != S_OK) {
+        result.reason =
+            ExplorerConsentTargetBindReason::ApartmentUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ApartmentValidation, apartment, -1};
+        return result;
+    }
+
+    ComPtr<IShellWindows> shell_windows;
+    const HRESULT create_result = CoCreateInstance(
+        CLSID_ShellWindows,
+        nullptr,
+        CLSCTX_LOCAL_SERVER,
+        IID_PPV_ARGS(shell_windows.put()));
+    if (create_result != S_OK || !shell_windows) {
+        result.reason = ExplorerConsentTargetBindReason::InventoryUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::CreateInventory,
+            create_result == S_OK ? E_POINTER : create_result,
+            -1};
+        return result;
+    }
+
+    auto scan = scan_consent_candidate(
+        shell_windows.get(), expected_window_key, expected_location);
+    result.exact_location_match_count = scan.exact_location_match_count;
+    result.bound_window_entry_count = scan.bound_window_entry_count;
+    if (!scan.complete) {
+        result.reason = ExplorerConsentTargetBindReason::InventoryUnavailable;
+        result.diagnostic = scan.diagnostic;
+        return result;
+    }
+    if (scan.bound_window_entry_count > 1U) {
+        result.reason = ExplorerConsentTargetBindReason::SharedWindow;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadInventoryItem,
+            HRESULT_FROM_WIN32(ERROR_INVALID_STATE),
+            -1};
+        return result;
+    }
+    if (scan.exact_location_match_count > 1U) {
+        result.reason =
+            ExplorerConsentTargetBindReason::AmbiguousCandidate;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadInventoryItem,
+            HRESULT_FROM_WIN32(ERROR_MORE_DATA),
+            -1};
+        return result;
+    }
+    if (scan.exact_location_match_count == 0U ||
+        scan.bound_window_entry_count == 0U ||
+        scan.exact_location_window_key != expected_window_key ||
+        !scan.matched_browser) {
+        result.reason = ExplorerConsentTargetBindReason::TargetNotFound;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::ReadInventoryItem,
+            HRESULT_FROM_WIN32(ERROR_NOT_FOUND),
+            -1};
+        return result;
+    }
+
+    ComPtr<IUnknown> canonical_identity;
+    const HRESULT identity_result = scan.matched_browser->QueryInterface(
+        IID_IUnknown,
+        reinterpret_cast<void**>(canonical_identity.put()));
+    if (identity_result != S_OK || !canonical_identity) {
+        result.reason =
+            ExplorerConsentTargetBindReason::CanonicalIdentityUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::QueryCanonicalIdentity,
+            identity_result == S_OK ? E_NOINTERFACE : identity_result,
+            -1};
+        return result;
+    }
+
+    auto* browser_lifecycle_state =
+        new (std::nothrow) BrowserSubscriptionLifecycleState();
+    if (browser_lifecycle_state == nullptr) {
+        result.reason = ExplorerConsentTargetBindReason::
+            BrowserEventSubscriptionUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::SubscribeBrowserEvents,
+            E_OUTOFMEMORY,
+            -1};
+        return result;
+    }
+    void* const observation_storage = ::operator new(
+        sizeof(ExplorerConsentTargetObservation), std::nothrow);
+    if (observation_storage == nullptr) {
+        browser_lifecycle_state->unpin();
+        result.reason = ExplorerConsentTargetBindReason::
+            BrowserEventSubscriptionUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::SubscribeBrowserEvents,
+            E_OUTOFMEMORY,
+            -1};
+        return result;
+    }
+
+    ComPtr<IUnknown> readiness_identity;
+    ComPtr<IConnectionPointContainer> container;
+    ComPtr<IConnectionPoint> connection_point;
+    HRESULT subscribe_result = scan.matched_browser->QueryInterface(
+        IID_IUnknown,
+        reinterpret_cast<void**>(readiness_identity.put()));
+    if (subscribe_result == S_OK && readiness_identity) {
+        subscribe_result = scan.matched_browser->QueryInterface(
+            IID_PPV_ARGS(container.put()));
+    } else if (subscribe_result == S_OK) {
+        subscribe_result = E_NOINTERFACE;
+    }
+    if (subscribe_result == S_OK && container) {
+        subscribe_result = container->FindConnectionPoint(
+            DIID_DWebBrowserEvents2, connection_point.put());
+    } else if (subscribe_result == S_OK) {
+        subscribe_result = CONNECT_E_NOCONNECTION;
+    }
+
+    BrowserReadinessEventSink* sink = nullptr;
+    DWORD advise_cookie = 0U;
+    if (subscribe_result == S_OK && connection_point) {
+        sink = new (std::nothrow) BrowserReadinessEventSink(
+            readiness_identity.detach(), GetCurrentThreadId());
+        if (sink == nullptr) {
+            subscribe_result = E_OUTOFMEMORY;
+        } else {
+            subscribe_result = connection_point->Advise(
+                static_cast<IDispatch*>(sink), &advise_cookie);
+            if (subscribe_result == S_OK && advise_cookie == 0U) {
+                sink->retire();
+                subscribe_result = E_UNEXPECTED;
+            }
+        }
+    } else if (subscribe_result == S_OK) {
+        subscribe_result = CONNECT_E_NOCONNECTION;
+    }
+
+    if (subscribe_result != S_OK) {
+        if (sink != nullptr) {
+            static_cast<void>(sink->Release());
+        }
+        ::operator delete(observation_storage);
+        browser_lifecycle_state->unpin();
+        result.reason = ExplorerConsentTargetBindReason::
+            BrowserEventSubscriptionUnavailable;
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::SubscribeBrowserEvents,
+            subscribe_result,
+            -1};
+        return result;
+    }
+
+    auto* const observation =
+        new (observation_storage) ExplorerConsentTargetObservation(
+            scan.matched_browser.detach(),
+            canonical_identity.detach(),
+            connection_point.detach(),
+            sink,
+            browser_lifecycle_state,
+            advise_cookie,
+            expected_window_key,
+            expected_location,
+            scan.exact_location_match_count,
+            scan.bound_window_entry_count,
+            0U,
+            GetCurrentThreadId());
+    result.observation.reset(observation);
+
+    // Re-scan after Advise so the returned observation is anchored to a
+    // currently unique entry. Any later matching NavigateComplete2 is counted
+    // above the frozen epoch and invalidates caller authority even if the
+    // browser subsequently returns to the expected directory.
+    auto post_scan = scan_consent_candidate(
+        shell_windows.get(), expected_window_key, expected_location);
+    const auto current_window = observation->current_window_key();
+    const auto current_location = observation->current_location();
+    auto observation_facts = observation->facts();
+    const bool browser_evidence_clean =
+        observation_facts.browser.subscribed &&
+        observation_facts.browser.malformed_count == 0U &&
+        observation_facts.browser.overflow_count == 0U &&
+        observation_facts.browser.wrong_thread_count == 0U &&
+        observation_facts.browser.post_retirement_count == 0U &&
+        observation_facts.browser.identity_query_failure_count == 0U &&
+        observation_facts.browser.quit_count == 0U &&
+        observation_facts.browser.unrelated_navigate_complete_count == 0U;
+    const bool candidate_stable =
+        post_scan.complete && !post_scan.diagnostic.has_value() &&
+        post_scan.exact_location_match_count == 1U &&
+        post_scan.bound_window_entry_count == 1U &&
+        post_scan.exact_location_window_key == expected_window_key &&
+        current_window.succeeded() &&
+        current_window.window_key == expected_window_key &&
+        current_location.filesystem() &&
+        current_location.identity == expected_location &&
+        observation_facts.canonical_identity_matches &&
+        browser_evidence_clean;
+    if (!candidate_stable) {
+        result.exact_location_match_count =
+            post_scan.exact_location_match_count;
+        result.bound_window_entry_count = post_scan.bound_window_entry_count;
+        result.reason = ExplorerConsentTargetBindReason::
+            CandidateChangedDuringBinding;
+        result.diagnostic =
+            post_scan.diagnostic.has_value()
+                ? post_scan.diagnostic
+                : std::optional<ShellAutomationDiagnostic>{
+                      ShellAutomationDiagnostic{
+                          ShellAutomationStage::AwaitBrowserReadiness,
+                          HRESULT_FROM_WIN32(ERROR_RETRY),
+                          -1}};
+        result.observation.reset();
+        return result;
+    }
+
+    observation->exact_location_match_count_ =
+        post_scan.exact_location_match_count;
+    observation->bound_window_entry_count_ =
+        post_scan.bound_window_entry_count;
+    observation->navigation_epoch_at_binding_ =
+        observation_facts.browser.matching_navigate_complete_count;
+    result.exact_location_match_count =
+        post_scan.exact_location_match_count;
+    result.bound_window_entry_count = post_scan.bound_window_entry_count;
+    result.reason = ExplorerConsentTargetBindReason::Succeeded;
+    result.diagnostic.reset();
+    return result;
 }
 
 ExplorerProvisioningLease::ExplorerProvisioningLease(

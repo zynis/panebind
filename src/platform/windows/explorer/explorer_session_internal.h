@@ -33,6 +33,9 @@ private:
 struct ExplorerLedgerEntry {
     std::uint64_t logical_id{};
     std::uint64_t generation{};
+    ExplorerAuthorityKind authority_kind{
+        ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic};
+    std::uint64_t consent_generation{};
     NativeWindowKey native_key{};
     std::uint32_t process_id{};
     std::uint32_t thread_id{};
@@ -45,6 +48,8 @@ enum class ExplorerLedgerIssueStatus {
     InvalidNativeKey,
     DuplicateNativeKey,
     InvalidRegistrationAuthority,
+    InvalidConsentAuthority,
+    AuthorityKindConflict,
     AuthorityExhausted,
     GenerationExhausted,
 };
@@ -63,12 +68,17 @@ public:
                         std::uint64_t next_logical_id,
                         std::uint64_t next_generation) noexcept;
 
-    [[nodiscard]] ExplorerLedgerIssueResult issue(
+    [[nodiscard]] ExplorerLedgerIssueResult issue_legacy_auto(
         NativeWindowKey native_key,
         std::uint32_t process_id,
         std::uint32_t thread_id,
         std::int32_t registration_cookie,
         std::uint64_t subscription_generation);
+    [[nodiscard]] ExplorerLedgerIssueResult issue_user_consent(
+        NativeWindowKey native_key,
+        std::uint32_t process_id,
+        std::uint32_t thread_id,
+        std::uint64_t consent_generation);
     [[nodiscard]] bool retire_native(NativeWindowKey native_key) noexcept;
     [[nodiscard]] std::optional<ExplorerLedgerEntry> resolve(
         const ExplorerWindowToken& token) const noexcept;
@@ -79,10 +89,20 @@ public:
     }
 
 private:
+    [[nodiscard]] ExplorerLedgerIssueResult issue_with_authority(
+        NativeWindowKey native_key,
+        std::uint32_t process_id,
+        std::uint32_t thread_id,
+        ExplorerAuthorityKind authority_kind,
+        std::int32_t registration_cookie,
+        std::uint64_t subscription_generation,
+        std::uint64_t consent_generation);
+
     std::uint64_t controller_authority_{};
     std::uint64_t session_authority_{};
     std::uint64_t next_logical_id_{1U};
     std::uint64_t next_generation_{1U};
+    std::optional<ExplorerAuthorityKind> authority_kind_;
     std::map<std::uint64_t, ExplorerLedgerEntry> active_by_logical_id_;
     std::map<NativeWindowKey, std::uint64_t> logical_id_by_native_key_;
 };
@@ -220,6 +240,74 @@ struct CandidateEvaluation {
     const InventoryModel& post_navigation,
     NativeWindowKey retained_window,
     const FilesystemLocationIdentity& target_location) noexcept;
+
+struct ConsentCandidateEvaluation {
+    ExplorerEligibilityReason reason{
+        ExplorerEligibilityReason::InventoryUnavailable};
+    std::size_t non_forbidden_window_count{};
+    std::size_t exact_target_window_count{};
+    bool forbidden_window_at_target{};
+    bool exact_unique_location{};
+    bool frozen_candidate_matched{};
+    std::optional<InventoryFingerprint> candidate_fingerprint;
+
+    [[nodiscard]] bool eligible() const noexcept {
+        return reason == ExplorerEligibilityReason::Eligible &&
+               exact_unique_location && candidate_fingerprint.has_value();
+    }
+};
+
+// Consent selection never removes a baseline HWND from the forbidden set.
+// Every currently visible non-baseline Shell HWND participates in the
+// uniqueness gate, including opaque or still-navigating windows. A later
+// capture may additionally be bound to the exact fingerprint frozen at first
+// consent; no replacement candidate is silently accepted.
+[[nodiscard]] ConsentCandidateEvaluation
+evaluate_consent_candidate_inventory(
+    const InventoryModel& post_confirmation,
+    std::span<const NativeWindowKey> forbidden_preexisting_hwnds,
+    const FilesystemLocationIdentity& target_location,
+    const InventoryFingerprint* frozen_candidate = nullptr);
+
+using ConsentGenerationChain = ExplorerConsentGenerationFacts;
+
+enum class ConsentGenerationStatus {
+    Valid,
+    MissingBaseline,
+    MissingTargetPrompt,
+    MissingTargetConfirmation,
+    MissingEligibility,
+    MissingToken,
+    MissingMovePrompt,
+    MissingMoveConfirmation,
+    NotStrictlyIncreasing,
+};
+
+[[nodiscard]] ConsentGenerationStatus evaluate_consent_generation_chain(
+    const ConsentGenerationChain& chain) noexcept;
+
+// The two real-console confirmations and their ordered generations authorize
+// one primary native attempt only. Re-authorization and replay fail closed.
+class ConsentMoveAuthority final {
+public:
+    [[nodiscard]] ExplorerEligibilityReason authorize(
+        bool target_confirmation_present,
+        bool move_confirmation_present,
+        const ConsentGenerationChain& chain) noexcept;
+    [[nodiscard]] ExplorerEligibilityReason try_consume(
+        std::uint64_t token_consent_generation) noexcept;
+
+    [[nodiscard]] bool authorized() const noexcept { return authorized_; }
+    [[nodiscard]] bool consumed() const noexcept { return consumed_; }
+    [[nodiscard]] bool available() const noexcept {
+        return authorized_ && !consumed_;
+    }
+
+private:
+    std::uint64_t token_consent_generation_{};
+    bool authorized_{};
+    bool consumed_{};
+};
 
 enum class ShellRegistrationEventKind {
     WindowRegistered,
@@ -444,6 +532,30 @@ struct EligibilityModelFacts {
 
 [[nodiscard]] ExplorerEligibilityReason evaluate_eligibility_model(
     const EligibilityModelFacts& facts) noexcept;
+
+struct ConsentLiveEligibilityFacts {
+    bool token_active{};
+    bool candidate_fingerprint_stable{};
+    bool navigation_epoch_stable{};
+    EligibilityModelFacts eligibility;
+};
+
+// Full native allowlisting remains authoritative. The consent-specific frozen
+// candidate and navigation epoch are additional fail-closed identity facts.
+[[nodiscard]] ExplorerEligibilityReason evaluate_consent_live_eligibility(
+    const ConsentLiveEligibilityFacts& facts) noexcept;
+
+struct ConsentRestoreEligibilityFacts {
+    ConsentLiveEligibilityFacts live;
+    bool primary_attempted{};
+    bool primary_before_available{};
+    bool primary_actual_available{};
+    bool restore_allowance_consumed{};
+};
+
+[[nodiscard]] ExplorerEligibilityReason
+evaluate_consent_restore_eligibility(
+    const ConsentRestoreEligibilityFacts& facts) noexcept;
 
 [[nodiscard]] bool rect_is_contained(
     const core::geometry::Rect& inner,

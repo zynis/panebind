@@ -21,8 +21,10 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -38,15 +40,182 @@ constexpr std::uint32_t kMaximumHoldSeconds = 86'400U;
 constexpr std::size_t kNonceAttempts = 8U;
 
 enum class HarnessMode {
-    SelfTest,
-    ProvisionOnly,
+    InteractiveConsent,
+    DeprecatedAutomaticMode,
 };
 
 struct Options {
-    HarnessMode mode{HarnessMode::SelfTest};
+    HarnessMode mode{HarnessMode::InteractiveConsent};
+    std::optional<std::filesystem::path> evidence_log;
+    // Retained only so the compiled, unreachable legacy diagnostic bodies can
+    // remain available as historical code. Active CLI parsing never sets them.
     std::uint32_t hold_seconds{2U};
     std::size_t attempt_index{};
     bool help{};
+};
+
+enum class ConsoleLineStatus {
+    Read,
+    EndOfInput,
+    NotInteractiveConsole,
+    Failed,
+    TooLong,
+};
+
+struct ConsoleLineResult {
+    ConsoleLineStatus status{ConsoleLineStatus::Failed};
+    std::wstring line;
+};
+
+[[nodiscard]] bool is_interactive_console_handle(const HANDLE handle) noexcept {
+    if (handle == nullptr || handle == INVALID_HANDLE_VALUE ||
+        GetFileType(handle) != FILE_TYPE_CHAR) {
+        return false;
+    }
+    DWORD mode = 0U;
+    return GetConsoleMode(handle, &mode) != FALSE;
+}
+
+[[nodiscard]] bool write_console_text(const std::wstring_view text) noexcept {
+    const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!is_interactive_console_handle(output) ||
+        text.size() > std::numeric_limits<DWORD>::max()) {
+        return false;
+    }
+    DWORD written = 0U;
+    return WriteConsoleW(output,
+                         text.data(),
+                         static_cast<DWORD>(text.size()),
+                         &written,
+                         nullptr) != FALSE &&
+           static_cast<std::size_t>(written) == text.size();
+}
+
+// Consent input must come from the inherited interactive console. Redirected
+// stdin, a pipe, or a file is deliberately not accepted as a human authority
+// fact. The consent-session implementation will call this helper at each of
+// its two prompts once that API is connected.
+[[maybe_unused]] [[nodiscard]] ConsoleLineResult read_console_line() {
+    const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+    if (!is_interactive_console_handle(input)) {
+        return {ConsoleLineStatus::NotInteractiveConsole, {}};
+    }
+
+    std::array<wchar_t, 64U> buffer{};
+    DWORD read = 0U;
+    if (ReadConsoleW(input,
+                     buffer.data(),
+                     static_cast<DWORD>(buffer.size()),
+                     &read,
+                     nullptr) == FALSE) {
+        return {ConsoleLineStatus::Failed, {}};
+    }
+    if (read == 0U) {
+        return {ConsoleLineStatus::EndOfInput, {}};
+    }
+    if (read == static_cast<DWORD>(buffer.size()) &&
+        buffer[read - 1U] != L'\n') {
+        return {ConsoleLineStatus::TooLong, {}};
+    }
+
+    std::wstring line{buffer.data(), read};
+    while (!line.empty() &&
+           (line.back() == L'\r' || line.back() == L'\n')) {
+        line.pop_back();
+    }
+    return {ConsoleLineStatus::Read, std::move(line)};
+}
+
+[[maybe_unused]] [[nodiscard]] bool emit_target_consent_prompt(
+    const std::filesystem::path& absolute_nonce_path) {
+    std::wstring prompt =
+        L"\n第 1 步：请创建新的文件资源管理器窗口\n\n"
+        L"PaneBind 已准备以下空测试目录：\n\n";
+    prompt += absolute_nonce_path.native();
+    prompt +=
+        L"\n\n请你亲自完成：\n"
+        L"1. 新建一个文件资源管理器顶层窗口；\n"
+        L"2. 在这个新窗口中打开上述目录；\n"
+        L"3. 不要改用任何已经存在的窗口；\n"
+        L"4. 完成后回到此控制台，直接按 ENTER。\n\n";
+    return write_console_text(prompt);
+}
+
+[[maybe_unused]] [[nodiscard]] bool emit_move_consent_prompt() noexcept {
+    return write_console_text(
+        L"\n第 2 步：授权一次平移与立即恢复\n\n"
+        L"PaneBind 只会平移刚才确认的新窗口一次，不改变大小、层级或焦点，"
+        L"随后立即恢复原位置。\n"
+        L"请输入 Y 后按 ENTER 继续；输入其他内容将退出且不会移动窗口。\n\n");
+}
+
+[[nodiscard]] bool emit_target_consent_prompt_zh(
+    const std::filesystem::path& absolute_nonce_path) {
+    std::wstring prompt =
+        L"\n第 1 步：请创建新的文件资源管理器窗口\n\n"
+        L"PaneBind 已准备以下空测试目录：\n\n";
+    prompt += absolute_nonce_path.native();
+    prompt +=
+        L"\n\n请你亲自完成：\n"
+        L"1. 新建一个文件资源管理器顶层窗口；\n"
+        L"2. 在这个新窗口中打开上述目录；\n"
+        L"3. 不要改用任何已经存在的窗口；\n"
+        L"4. 完成后回到此控制台，直接按 ENTER。\n\n";
+    return write_console_text(prompt);
+}
+
+[[nodiscard]] bool emit_move_consent_prompt_zh() noexcept {
+    return write_console_text(
+        L"\n第 2 步：授权一次平移并立即恢复\n\n"
+        L"PaneBind 只会平移刚才确认的新窗口一次，不改变大小、层级或焦点；\n"
+        L"随后立即恢复原位置。\n"
+        L"请输入 Y 后按 ENTER 继续；输入其他内容将退出且不会移动窗口。\n\n");
+}
+
+class EvidenceLog final {
+public:
+    EvidenceLog() noexcept = default;
+    ~EvidenceLog() {
+        if (handle_ != INVALID_HANDLE_VALUE) {
+            static_cast<void>(CloseHandle(handle_));
+        }
+    }
+
+    EvidenceLog(const EvidenceLog&) = delete;
+    EvidenceLog& operator=(const EvidenceLog&) = delete;
+
+    [[nodiscard]] bool open_new(const std::filesystem::path& path) noexcept {
+        if (handle_ != INVALID_HANDLE_VALUE) {
+            return false;
+        }
+        handle_ = CreateFileW(path.c_str(),
+                              GENERIC_WRITE,
+                              FILE_SHARE_READ,
+                              nullptr,
+                              CREATE_NEW,
+                              FILE_ATTRIBUTE_NORMAL,
+                              nullptr);
+        return handle_ != INVALID_HANDLE_VALUE;
+    }
+
+    [[nodiscard]] bool write_record(const std::string_view record) {
+        if (handle_ == INVALID_HANDLE_VALUE ||
+            record.size() + 1U > std::numeric_limits<DWORD>::max()) {
+            return false;
+        }
+        std::string line{record};
+        line.push_back('\n');
+        DWORD written = 0U;
+        return WriteFile(handle_,
+                         line.data(),
+                         static_cast<DWORD>(line.size()),
+                         &written,
+                         nullptr) != FALSE &&
+               static_cast<std::size_t>(written) == line.size();
+    }
+
+private:
+    HANDLE handle_{INVALID_HANDLE_VALUE};
 };
 
 struct TargetDirectory {
@@ -223,6 +392,16 @@ private:
         return "target_invalidated";
     case SafeCleanupNotPerformed:
         return "safe_cleanup_not_performed";
+    case TargetConsentRequired:
+        return "target_consent_required";
+    case MoveConsentRequired:
+        return "move_consent_required";
+    case ConsentGenerationMismatch:
+        return "consent_generation_mismatch";
+    case ConsentDeclined:
+        return "consent_declined";
+    case TargetNotFound:
+        return "target_not_found";
     }
     return "unknown";
 }
@@ -251,6 +430,8 @@ private:
         return "restore";
     case Cleanup:
         return "cleanup";
+    case Consent:
+        return "consent";
     }
     return "unknown";
 }
@@ -464,65 +645,31 @@ void emit_operation(const std::string_view phase,
         options.help = true;
         return options;
     }
-    bool self_test = false;
-    bool provision_only = false;
-    bool hold_seen = false;
-    bool attempt_seen = false;
+    bool interactive = false;
+    bool evidence_seen = false;
     for (int index = 1; index < argc; ++index) {
         const std::string_view argument{argv[index]};
-        if (argument == "--self-test" && !self_test) {
-            self_test = true;
+        if (argument == "--self-test" || argument == "--provision-only") {
+            options.mode = HarnessMode::DeprecatedAutomaticMode;
+            return options;
+        }
+        if (argument == "--interactive-consent-test" && !interactive) {
+            interactive = true;
             continue;
         }
-        if (argument == "--hold-seconds" && !hold_seen && index + 1 < argc) {
-            const std::string_view value{argv[++index]};
-            std::uint32_t parsed{};
-            const auto result = std::from_chars(
-                value.data(), value.data() + value.size(), parsed);
-            if (result.ec != std::errc{} ||
-                result.ptr != value.data() + value.size() ||
-                parsed > kMaximumHoldSeconds) {
-                return std::nullopt;
-            }
-            options.hold_seconds = parsed;
-            hold_seen = true;
-            continue;
-        }
-        if (argument == "--provision-only" && !provision_only) {
-            provision_only = true;
-            continue;
-        }
-        if (argument == "--attempt-index" && !attempt_seen &&
+        if (argument == "--evidence-log" && !evidence_seen &&
             index + 1 < argc) {
-            const std::string_view value{argv[++index]};
-            std::size_t parsed{};
-            const auto result = std::from_chars(
-                value.data(), value.data() + value.size(), parsed);
-            if (result.ec != std::errc{} ||
-                result.ptr != value.data() + value.size() || parsed < 1U ||
-                parsed > 3U) {
-                return std::nullopt;
-            }
-            options.attempt_index = parsed;
-            attempt_seen = true;
+            options.evidence_log =
+                std::filesystem::path{std::string{argv[++index]}};
+            evidence_seen = true;
             continue;
         }
         return std::nullopt;
     }
-    if (self_test == provision_only) {
+    if (!interactive) {
         return std::nullopt;
     }
-    if (self_test) {
-        if (attempt_seen) {
-            return std::nullopt;
-        }
-        options.mode = HarnessMode::SelfTest;
-        return options;
-    }
-    if (hold_seen || !attempt_seen) {
-        return std::nullopt;
-    }
-    options.mode = HarnessMode::ProvisionOnly;
+    options.mode = HarnessMode::InteractiveConsent;
     return options;
 }
 
@@ -597,7 +744,7 @@ validated_repository_root() noexcept {
         if (nonce.empty()) {
             return std::nullopt;
         }
-        const auto candidate = evidence_root / (L"target-" + nonce);
+        const auto candidate = evidence_root / (L"consent-target-" + nonce);
         if (candidate.parent_path() != evidence_root) {
             return std::nullopt;
         }
@@ -610,6 +757,11 @@ validated_repository_root() noexcept {
         }
         if (!is_plain_directory(candidate) ||
             !std::filesystem::is_empty(candidate, error) || error) {
+            return std::nullopt;
+        }
+        const auto candidate_root = candidate.root_path();
+        if (candidate_root.empty() ||
+            GetDriveTypeW(candidate_root.c_str()) != DRIVE_FIXED) {
             return std::nullopt;
         }
         const auto location = explorer::filesystem_location_identity(candidate);
@@ -659,8 +811,8 @@ validated_repository_root() noexcept {
         std::filesystem::canonical(target.path.parent_path(), error);
     const auto leaf = target.path.filename().native();
     const bool leaf_valid =
-        leaf.size() == 39U && leaf.starts_with(L"target-") &&
-        std::all_of(leaf.begin() + 7, leaf.end(), [](const wchar_t character) {
+        leaf.size() == 47U && leaf.starts_with(L"consent-target-") &&
+        std::all_of(leaf.begin() + 15, leaf.end(), [](const wchar_t character) {
             return (character >= L'0' && character <= L'9') ||
                    (character >= L'a' && character <= L'f');
         });
@@ -981,7 +1133,7 @@ void emit_provision_summary(
            operation.receipt->monitor_and_dpi_stable;
 }
 
-int run_provision_only(const Options& options) {
+[[maybe_unused]] int run_provision_only(const Options& options) {
     std::cout << std::unitbuf;
     std::cout << "{\"schema_version\":2,\"record_kind\":\"harness_start\""
               << ",\"recorded_at\":\"" << utc_timestamp() << '"'
@@ -1169,7 +1321,7 @@ int run_provision_only(const Options& options) {
     return passed ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int run_self_test(const Options& options) {
+[[maybe_unused]] int run_self_test(const Options& options) {
     std::cout << std::unitbuf;
     std::cout << "{\"schema_version\":1,\"record_kind\":\"harness_start\""
               << ",\"recorded_at\":\"" << utc_timestamp() << '"'
@@ -1370,15 +1522,575 @@ int run_self_test(const Options& options) {
     return runtime_passed ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+[[maybe_unused]] [[nodiscard]] int run_interactive_consent_test_unwired(
+    const Options& options) {
+    if (!is_interactive_console_handle(GetStdHandle(STD_INPUT_HANDLE)) ||
+        !is_interactive_console_handle(GetStdHandle(STD_OUTPUT_HANDLE))) {
+        std::cerr << "交互式授权测试必须在真实控制台中前台运行；重定向或管道输入不被接受。\n";
+        return EXIT_FAILURE;
+    }
+
+    EvidenceLog evidence;
+    if (options.evidence_log.has_value() &&
+        !evidence.open_new(*options.evidence_log)) {
+        static_cast<void>(write_console_text(
+            L"无法安全创建新的 evidence 日志文件；本次测试不会继续。\n"));
+        return EXIT_FAILURE;
+    }
+
+    const std::string started =
+        "{\"schema_version\":3,\"record_kind\":\"interactive_start\","
+        "\"recorded_at\":" +
+        json_quote(utc_timestamp()) +
+        ",\"mode\":\"interactive_consent_test\","
+        "\"input_source\":\"interactive_console\"}";
+    if (options.evidence_log.has_value() && !evidence.write_record(started)) {
+        return EXIT_FAILURE;
+    }
+
+    // Historical disabled scaffold retained only as evidence of the pre-wiring
+    // fail-closed state. Active CLI dispatch never calls this function.
+    static_cast<void>(write_console_text(
+        L"R1-C2A 用户授权交互入口已启用，但 consent session 尚未接线。\n"
+        L"本次运行不会创建、导航、移动、恢复或关闭任何 Explorer 窗口。\n"));
+
+    const std::string summary =
+        "{\"schema_version\":3,\"record_kind\":\"summary\","
+        "\"recorded_at\":" +
+        json_quote(utc_timestamp()) +
+        ",\"mode\":\"interactive_consent_test\","
+        "\"implementation_ready\":false,\"interactive_uat\":\"BLOCKED\","
+        "\"native_translation_count\":0,\"restore_native_apply_count\":0,"
+        "\"auto_close_attempted\":false,"
+        "\"user_existing_windows_touched\":false,"
+        "\"other_third_party_control\":false}";
+    if (options.evidence_log.has_value() && !evidence.write_record(summary)) {
+        return EXIT_FAILURE;
+    }
+    return EXIT_FAILURE;
+}
+
+[[nodiscard]] int run_interactive_consent_test(const Options& options) {
+    if (!is_interactive_console_handle(GetStdHandle(STD_INPUT_HANDLE)) ||
+        !is_interactive_console_handle(GetStdHandle(STD_OUTPUT_HANDLE))) {
+        std::cerr << "交互式授权必须在真实前台控制台运行；"
+                     "重定向或管道输入不被接受。\n";
+        return EXIT_FAILURE;
+    }
+
+    EvidenceLog evidence;
+    const bool evidence_enabled = options.evidence_log.has_value();
+    if (evidence_enabled && !evidence.open_new(*options.evidence_log)) {
+        static_cast<void>(write_console_text(
+            L"无法安全创建新的 evidence 日志文件；本次测试不会继续。\n"));
+        return EXIT_FAILURE;
+    }
+    bool evidence_ok = true;
+    const auto record = [&](std::string value) {
+        if (evidence_enabled && evidence_ok) {
+            evidence_ok = evidence.write_record(value);
+        }
+        return evidence_ok;
+    };
+    const auto timestamp_field = [] {
+        return std::string{"\"recorded_at\":"} +
+               json_quote(utc_timestamp());
+    };
+    record("{\"schema_version\":3,\"record_kind\":\"interactive_start\"," +
+           timestamp_field() +
+           ",\"mode\":\"interactive_consent_test\","
+           "\"input_source\":\"interactive_console\","
+           "\"active_auto_provisioning\":false}");
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+
+    const auto repository_root = validated_repository_root();
+    if (!repository_root.has_value()) {
+        record("{\"schema_version\":3,\"record_kind\":\"summary\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\","
+               "\"reason\":\"repository_root_unavailable\","
+               "\"native_translation_count\":0,"
+               "\"auto_close_attempted\":false}");
+        return EXIT_FAILURE;
+    }
+    const auto target = create_target_directory(*repository_root);
+    if (!target.has_value()) {
+        record("{\"schema_version\":3,\"record_kind\":\"summary\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\","
+               "\"reason\":\"nonce_directory_unavailable\","
+               "\"native_translation_count\":0,"
+               "\"auto_close_attempted\":false}");
+        return EXIT_FAILURE;
+    }
+    record("{\"schema_version\":3,\"record_kind\":\"nonce_target\"," +
+           timestamp_field() +
+           ",\"target_id\":" +
+           json_quote(narrow_ascii(target->path.filename().native())) +
+           ",\"empty\":true,\"non_reparse\":true,"
+           "\"local_filesystem\":true,\"exact_file_identity\":true}");
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+
+    auto begin = explorer::ExplorerConsentProvisioning::begin(target->path);
+    if (!begin.succeeded()) {
+        record("{\"schema_version\":3,\"record_kind\":\"baseline\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\",\"reason\":" +
+               json_quote(reason_name(begin.reason)) +
+               ",\"native_apply_attempted\":false}");
+        static_cast<void>(write_console_text(
+            L"基线排除或测试目录验证未通过；本次运行已停止。\n"));
+        const auto directory_cleanup = cleanup_target_directory(*target);
+        static_cast<void>(directory_cleanup);
+        return EXIT_FAILURE;
+    }
+    std::unique_ptr<explorer::ExplorerConsentProvisioning> provisioning =
+        std::move(begin.provisioning);
+    const auto& baseline = provisioning->facts();
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,\"record_kind\":\"baseline\","
+               << timestamp_field() << ",\"result\":\"PASS\""
+               << ",\"generation\":"
+               << baseline.generations.baseline_generation
+               << ",\"total_shell_entries\":"
+               << baseline.baseline_total_shell_entries
+               << ",\"reliable_shell_entries\":"
+               << baseline.baseline_reliable_shell_entries
+               << ",\"forbidden_preexisting_hwnd_count\":"
+               << baseline.forbidden_preexisting_hwnd_count
+               << ",\"baseline_exclusion_complete\":true}"
+               ;
+        record(output.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+
+    const auto target_prompt = provisioning->record_target_prompt();
+    if (!target_prompt.succeeded() ||
+        !emit_target_consent_prompt_zh(target->path)) {
+        record("{\"schema_version\":3,\"record_kind\":\"target_consent\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\","
+               "\"reason\":\"target_prompt_failed\","
+               "\"native_apply_attempted\":false}");
+        return EXIT_FAILURE;
+    }
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"target_consent_prompt\","
+               << timestamp_field() << ",\"generation\":"
+               << target_prompt.generation
+               << ",\"input_source\":\"interactive_console\"}"
+               ;
+        record(output.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+
+    const auto target_line = read_console_line();
+    if (target_line.status != ConsoleLineStatus::Read ||
+        !target_line.line.empty()) {
+        record("{\"schema_version\":3,\"record_kind\":\"target_consent\"," +
+               timestamp_field() +
+               ",\"result\":\"DECLINED\","
+               "\"native_apply_attempted\":false}");
+        static_cast<void>(write_console_text(
+            L"未收到直接 ENTER 确认；本次运行不会控制任何窗口。\n"));
+        return EXIT_FAILURE;
+    }
+    record("{\"schema_version\":3,"
+           "\"record_kind\":\"target_consent_confirmation\"," +
+           timestamp_field() +
+           ",\"result\":\"CONFIRMED\","
+           "\"input_source\":\"interactive_console\"}");
+
+    auto confirmed = provisioning->confirm_user_target();
+    if (!confirmed.succeeded()) {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"candidate_selection\","
+               << timestamp_field() << ",\"result\":\"BLOCKED\""
+               << ",\"reason\":"
+               << json_quote(reason_name(confirmed.reason))
+               << ",\"exact_new_candidate_count\":"
+               << confirmed.facts.exact_new_candidate_count
+               << ",\"preexisting_exact_location_detected\":"
+               << json_bool(
+                      confirmed.facts.preexisting_exact_location_detected)
+               << ",\"native_apply_attempted\":false}"
+               ;
+        record(output.str());
+        static_cast<void>(write_console_text(
+            confirmed.reason == explorer::ExplorerEligibilityReason::
+                                    PreexistingWindow
+                ? L"检测到的是既有窗口，本轮不会控制它；当前运行已停止。\n"
+                : L"未能唯一识别新的测试窗口；当前运行已停止。\n"));
+        return EXIT_FAILURE;
+    }
+
+    std::unique_ptr<explorer::ExplorerTestSession> session =
+        std::move(confirmed.session);
+    const auto token = session->token();
+    const auto native_identity =
+        detail::ExplorerSessionDiagnostics::read(*session);
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"candidate_selection\","
+               << timestamp_field() << ",\"result\":\"PASS\""
+               << ",\"authority_kind\":\"user_consent\""
+               << ",\"new_hwnd\":true"
+               << ",\"native_hwnd\":" << native_identity.native_key
+               << ",\"pid\":" << native_identity.process_id
+               << ",\"tid\":" << native_identity.thread_id
+               << ",\"process\":\"explorer.exe\""
+               << ",\"exact_test_folder\":true"
+               << ",\"normal_state\":true"
+               << ",\"token_generation\":" << token.generation()
+               << ",\"consent_generation\":"
+               << token.consent_generation()
+               << ",\"baseline_generation\":"
+               << confirmed.facts.generations.baseline_generation
+               << ",\"target_prompt_generation\":"
+               << confirmed.facts.generations.target_prompt_generation
+               << ",\"target_confirmation_generation\":"
+               << confirmed.facts.generations.target_confirmation_generation
+               << ",\"eligibility_generation\":"
+               << confirmed.facts.generations.eligibility_generation
+               << ",\"consent_token_generation\":"
+               << confirmed.facts.generations.token_generation << "}"
+               ;
+        record(output.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+    static_cast<void>(write_console_text(
+        L"\n已安全识别本次新建的测试窗口：\n"
+        L"- 进程：explorer.exe\n"
+        L"- 新顶层窗口：是\n"
+        L"- 精确测试目录：是\n"
+        L"- 普通窗口状态：是\n"
+        L"- Monitor / DPI：已记录且将在操作前复核\n"));
+
+    const auto move_prompt = session->record_move_prompt(token);
+    if (!move_prompt.succeeded() || !emit_move_consent_prompt_zh()) {
+        record("{\"schema_version\":3,\"record_kind\":\"move_consent\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\","
+               "\"native_apply_attempted\":false}");
+        return EXIT_FAILURE;
+    }
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"move_consent_prompt\","
+               << timestamp_field() << ",\"generation\":"
+               << move_prompt.generation << "}"
+               ;
+        record(output.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+    const auto move_line = read_console_line();
+    const bool move_confirmed =
+        move_line.status == ConsoleLineStatus::Read &&
+        (move_line.line == L"Y" || move_line.line == L"y");
+    if (!move_confirmed) {
+        record("{\"schema_version\":3,\"record_kind\":\"move_consent\"," +
+               timestamp_field() +
+               ",\"result\":\"DECLINED\","
+               "\"native_apply_attempted\":false}");
+        static_cast<void>(write_console_text(
+            L"未收到 Y/ENTER 授权；窗口不会被移动。请自行关闭测试窗口。\n"));
+        return EXIT_FAILURE;
+    }
+    auto authorized = session->authorize_single_translation(token);
+    if (!authorized.succeeded() || !authorized.snapshot.has_value()) {
+        record("{\"schema_version\":3,\"record_kind\":\"move_consent\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\",\"reason\":" +
+               json_quote(reason_name(authorized.reason)) +
+               ",\"native_apply_attempted\":false}");
+        static_cast<void>(write_console_text(
+            L"第二次授权后的实时复核未通过；窗口不会被移动。\n"));
+        return EXIT_FAILURE;
+    }
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"move_consent_confirmation\","
+               << timestamp_field() << ",\"result\":\"CONFIRMED\""
+               << ",\"generation\":" << authorized.generation
+               << ",\"move_prompt_generation\":"
+               << session->consent_facts().generations.move_prompt_generation
+               << ",\"move_confirmation_generation\":"
+               << session->consent_facts()
+                      .generations.move_confirmation_generation
+               << ",\"input_source\":\"interactive_console\"}"
+               ;
+        record(output.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+
+    const auto safe_delta =
+        explorer::select_safe_test_delta(*authorized.snapshot);
+    if (!safe_delta.succeeded()) {
+        record("{\"schema_version\":3,\"record_kind\":\"safe_delta\"," +
+               timestamp_field() +
+               ",\"result\":\"BLOCKED\","
+               "\"native_apply_attempted\":false}");
+        return EXIT_FAILURE;
+    }
+
+    const auto operation_record = [&](const std::string_view phase,
+                                      const explorer::ExplorerOperationResult&
+                                          operation) {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"operation\","
+               << timestamp_field() << ",\"phase\":"
+               << json_quote(phase) << ",\"operation_id\":"
+               << operation.operation_id << ",\"reason\":"
+               << json_quote(reason_name(operation.reason))
+               << ",\"stage\":" << json_quote(stage_name(operation.stage))
+               << ",\"native_apply_attempted\":"
+               << json_bool(operation.native_apply_attempted)
+               << ",\"native_outcome_known\":"
+               << json_bool(operation.native_outcome_known)
+               << ",\"exact_receipt\":"
+               << json_bool(exact_operation_receipt(operation));
+        if (operation.receipt.has_value()) {
+            const auto& receipt = *operation.receipt;
+            output << ",\"before_visible\":";
+            if (receipt.before.has_value()) {
+                append_rect(output, receipt.before->visible_rect);
+            } else {
+                output << "null";
+            }
+            output << ",\"before_positioning\":";
+            if (receipt.before.has_value()) {
+                append_rect(output, receipt.before->positioning_rect);
+            } else {
+                output << "null";
+            }
+            output << ",\"requested_visible\":";
+            append_rect(output, receipt.requested_visible_rect);
+            output << ",\"requested_positioning\":";
+            if (receipt.requested_positioning_rect.has_value()) {
+                append_rect(output, *receipt.requested_positioning_rect);
+            } else {
+                output << "null";
+            }
+            output << ",\"actual_visible\":";
+            if (receipt.actual.has_value()) {
+                append_rect(output, receipt.actual->visible_rect);
+            } else {
+                output << "null";
+            }
+            output << ",\"actual_positioning\":";
+            if (receipt.actual.has_value()) {
+                append_rect(output, receipt.actual->positioning_rect);
+            } else {
+                output << "null";
+            }
+            output << ",\"before_dpi\":";
+            if (receipt.before.has_value()) {
+                output << receipt.before->dpi;
+            } else {
+                output << "null";
+            }
+            output << ",\"actual_dpi\":";
+            if (receipt.actual.has_value()) {
+                output << receipt.actual->dpi;
+            } else {
+                output << "null";
+            }
+            output << ",\"before_monitor\":";
+            if (receipt.before.has_value()) {
+                output << json_quote(
+                    narrow_ascii(receipt.before->monitor_device_name));
+            } else {
+                output << "null";
+            }
+            output << ",\"actual_monitor\":";
+            if (receipt.actual.has_value()) {
+                output << json_quote(
+                    narrow_ascii(receipt.actual->monitor_device_name));
+            } else {
+                output << "null";
+            }
+            output << ",\"size_preserved\":"
+                   << json_bool(receipt.size_preserved)
+                   << ",\"identity_stable\":"
+                   << json_bool(receipt.identity_stable)
+                   << ",\"location_stable\":"
+                   << json_bool(receipt.location_stable)
+                   << ",\"monitor_and_dpi_stable\":"
+                   << json_bool(receipt.monitor_and_dpi_stable);
+        }
+        output << "}";
+        record(output.str());
+    };
+
+    explorer::ExplorerWindowOperations operations{*session};
+    {
+        std::ostringstream marker;
+        marker << "{\"schema_version\":3,"
+                  "\"record_kind\":\"operation_marker\","
+               << timestamp_field()
+               << ",\"phase\":\"single_translation_start\""
+               << ",\"tick_ms\":" << GetTickCount64()
+               << ",\"native_hwnd\":" << native_identity.native_key
+               << ",\"pid\":" << native_identity.process_id << "}"
+               ;
+        record(marker.str());
+    }
+    if (!evidence_ok) {
+        return EXIT_FAILURE;
+    }
+    const auto apply = operations.apply_single(
+        token, *safe_delta.target_visible_rect);
+
+    std::optional<explorer::ExplorerOperationResult> restore;
+    ULONGLONG restore_start_tick{};
+    if (apply.native_apply_attempted) {
+        // Nothing that allocates, serializes, logs, or writes to a console may
+        // stand between the primary result and the mandatory restore attempt.
+        // Preserve only a no-throw monotonic witness, then restore immediately.
+        restore_start_tick = GetTickCount64();
+        restore = operations.restore(token);
+    }
+
+    // Evidence serialization occurs only after the restore attempt. Failure
+    // to serialize can fail the UAT but can never skip or delay cleanup.
+    operation_record("single_translation", apply);
+    if (restore.has_value()) {
+        std::ostringstream marker;
+        marker << "{\"schema_version\":3,"
+                  "\"record_kind\":\"operation_marker\","
+               << timestamp_field() << ",\"phase\":\"restore_start\""
+               << ",\"tick_ms\":" << restore_start_tick
+               << ",\"native_hwnd\":" << native_identity.native_key
+               << ",\"pid\":" << native_identity.process_id << "}"
+               ;
+        record(marker.str());
+        operation_record("restore", *restore);
+    }
+    const bool runtime_passed =
+        exact_operation_receipt(apply) && restore.has_value() &&
+        exact_operation_receipt(*restore);
+
+    static_cast<void>(write_console_text(
+        runtime_passed
+            ? L"\n测试窗口已完成一次平移并精确恢复原位置。\n"
+              L"PaneBind 不会自动关闭它；你现在可以自行关闭该测试窗口。\n"
+            : L"\n平移或恢复未满足精确验证要求。请不要继续使用本次授权；"
+              L"如窗口仍在，请自行处理。\n"));
+
+    bool stale_tested = false;
+    bool stale_passed = false;
+    bool stale_native_apply_attempted = false;
+    if (runtime_passed && write_console_text(
+            L"\n可选：验证关闭后的旧令牌失效。输入 Y 后按 ENTER 继续；"
+            L"输入其他内容跳过。\n")) {
+        const auto stale_choice = read_console_line();
+        if (stale_choice.status == ConsoleLineStatus::Read &&
+            (stale_choice.line == L"Y" || stale_choice.line == L"y")) {
+            stale_tested = true;
+            static_cast<void>(write_console_text(
+                L"请手动关闭刚才的测试 Explorer 窗口，然后回到这里直接按 ENTER。\n"));
+            const auto closed_line = read_console_line();
+            if (closed_line.status == ConsoleLineStatus::Read &&
+                closed_line.line.empty()) {
+                const auto disappearance = operations.capture(token);
+                const bool exact_hwnd_invalidated =
+                    IsWindow(reinterpret_cast<HWND>(
+                        native_identity.native_key)) == FALSE;
+                if (!disappearance.succeeded() && exact_hwnd_invalidated) {
+                    const auto stale = operations.apply_single(
+                        token, authorized.snapshot->visible_rect);
+                    stale_native_apply_attempted =
+                        stale.native_apply_attempted;
+                    stale_passed =
+                        stale.reason ==
+                            explorer::ExplorerEligibilityReason::StaleToken &&
+                        stale.stage ==
+                            explorer::ExplorerOperationStage::Preflight &&
+                        !stale.native_apply_attempted;
+                }
+            }
+        }
+    }
+    record("{\"schema_version\":3,"
+           "\"record_kind\":\"window_destroy_lifetime\"," +
+           timestamp_field() + ",\"result\":\"" +
+           (stale_tested ? (stale_passed ? "PASS" : "FAIL")
+                         : "NOT_TESTED") +
+           "\",\"native_apply_attempted\":" +
+           std::string{json_bool(stale_native_apply_attempted)} + "}");
+
+    const auto directory_cleanup = cleanup_target_directory(*target);
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,"
+                  "\"record_kind\":\"directory_cleanup\","
+               << timestamp_field() << ",\"result\":\""
+               << (directory_cleanup.removed ? "REMOVED" : "DEFERRED")
+               << "\",\"directory_removed\":"
+               << json_bool(directory_cleanup.removed) << "}"
+               ;
+        record(output.str());
+    }
+
+    {
+        std::ostringstream output;
+        output << "{\"schema_version\":3,\"record_kind\":\"summary\","
+               << timestamp_field() << ",\"result\":\""
+               << (runtime_passed && evidence_ok ? "PASS" : "FAIL") << "\""
+               << ",\"implementation_ready\":true"
+               << ",\"eligibility_gate\":\""
+               << (runtime_passed ? "PASS" : "BLOCKED") << "\""
+               << ",\"runtime_gate\":\""
+               << (runtime_passed ? "PASS" : "BLOCKED") << "\""
+               << ",\"native_translation_count\":"
+               << (apply.native_apply_attempted ? 1 : 0)
+               << ",\"restore_native_apply_count\":"
+               << (restore.has_value() && restore->native_apply_attempted ? 1
+                                                                           : 0)
+               << ",\"auto_close_attempted\":false"
+               << ",\"window_destroy_lifetime\":\""
+               << (stale_tested ? (stale_passed ? "PASS" : "FAIL")
+                                : "NOT_TESTED")
+               << "\",\"user_existing_windows_touched\":false"
+               << ",\"other_third_party_control\":false}"
+               ;
+        record(output.str());
+    }
+    return runtime_passed && evidence_ok ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
 } // namespace
 
 int main(const int argc, char* argv[]) {
     constexpr std::string_view usage =
         "Usage:\n"
-        "  panebind-explorer-harness --self-test "
-        "[--hold-seconds <0..86400>]\n"
-        "  panebind-explorer-harness --provision-only "
-        "--attempt-index <1|2|3>\n";
+        "  panebind-explorer-harness --interactive-consent-test "
+        "[--evidence-log <new-jsonl-path>]\n\n"
+        "Deprecated and disabled before side effects:\n"
+        "  --self-test\n"
+        "  --provision-only\n";
     const auto options = parse_options(argc, argv);
     if (!options.has_value()) {
         std::cerr << usage;
@@ -1388,48 +2100,16 @@ int main(const int argc, char* argv[]) {
         std::cout << usage;
         return EXIT_SUCCESS;
     }
+    if (options->mode == HarnessMode::DeprecatedAutomaticMode) {
+        std::cerr << "旧的自动 Explorer provisioning 模式已停用；不会执行任何 Explorer 或文件系统副作用。\n";
+        return EXIT_FAILURE;
+    }
     try {
-        return options->mode == HarnessMode::ProvisionOnly
-                   ? run_provision_only(*options)
-                   : run_self_test(*options);
+        return run_interactive_consent_test(*options);
     } catch (...) {
         // Do not serialize exception text: filesystem and Shell exceptions can
         // contain user paths or localized window data.
-        if (options->mode == HarnessMode::ProvisionOnly) {
-            std::cout << "{\"schema_version\":2,\"record_kind\":\"summary\""
-                      << ",\"recorded_at\":\"" << utc_timestamp() << '"'
-                      << ",\"mode\":\"provision_only\""
-                      << ",\"attempt_index\":" << options->attempt_index
-                      << ",\"reason\":\"unexpected_exception\""
-                      << ",\"baseline_exclusion_complete\":false"
-                      << ",\"registration_subscription\":\"BLOCKED\""
-                      << ",\"browser_subscription\":\"BLOCKED\""
-                      << ",\"matching_registration_count\":0"
-                      << ",\"unresolved_registration_count\":null"
-                      << ",\"shared_window_identity_conflict_count\":null"
-                      << ",\"browser_identity_query_failure_count\":null"
-                      << ",\"canonical_iunknown_identity_matches\":false"
-                      << ",\"hwnd_three_way_match\":false"
-                      << ",\"target_hwnd_preexisting\":null"
-                      << ",\"exact_target_location\":false"
-                      << ",\"token_issued\":false"
-                      << ",\"capture_read_only\":\"BLOCKED\""
-                      << ",\"safe_cleanup\":\"SAFE_CLEANUP_NOT_PERFORMED\""
-                      << ",\"matching_registration_revoked\":null"
-                      << ",\"exact_hwnd_invalidated\":null"
-                      << ",\"attributable_orphan_count\":null"
-                      << ",\"stale_token_preflight\":\"NOT_TESTED\""
-                      << ",\"directory_removed\":null"
-                      << ",\"native_translation_count\":null"
-                      << ",\"user_existing_windows_touched\":false"
-                      << ",\"other_third_party_control\":false"
-                      << ",\"result\":\"FAIL\"}\n";
-        } else {
-            std::cout << "{\"schema_version\":1,\"record_kind\":\"summary\""
-                      << ",\"recorded_at\":\"" << utc_timestamp() << '"'
-                      << ",\"result\":\"FAIL\",\"reason\":\"unexpected_"
-                         "exception\"}\n";
-        }
+        std::cerr << "交互式授权入口发生未预期错误；未将异常文本写入 evidence。\n";
         return EXIT_FAILURE;
     }
 }

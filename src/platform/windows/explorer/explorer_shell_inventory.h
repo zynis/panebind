@@ -202,6 +202,133 @@ struct BrowserReadinessWaitResult {
     std::size_t dispatched_message_count{};
 };
 
+enum class ExplorerConsentTargetBindReason {
+    Succeeded,
+    InvalidArgument,
+    ApartmentUnavailable,
+    InventoryUnavailable,
+    TargetNotFound,
+    AmbiguousCandidate,
+    SharedWindow,
+    CanonicalIdentityUnavailable,
+    BrowserEventSubscriptionUnavailable,
+    CandidateChangedDuringBinding,
+};
+
+struct ShellWindowKeyResult {
+    std::uintptr_t window_key{};
+    std::optional<ShellAutomationDiagnostic> diagnostic;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return window_key != 0U && !diagnostic.has_value();
+    }
+};
+
+struct ExplorerConsentTargetObservationFacts {
+    std::uintptr_t bound_window_key{};
+    std::size_t exact_location_match_count{};
+    std::size_t bound_window_entry_count{};
+    std::uint64_t navigation_epoch_at_binding{};
+    BrowserReadinessFacts browser;
+    bool canonical_identity_matches{};
+
+    [[nodiscard]] bool navigation_changed_since_binding() const noexcept {
+        return browser.matching_navigate_complete_count >
+               navigation_epoch_at_binding;
+    }
+};
+
+class ExplorerConsentTargetObservation;
+
+struct ExplorerConsentTargetBindResult {
+    ExplorerConsentTargetBindReason reason{
+        ExplorerConsentTargetBindReason::InvalidArgument};
+    std::unique_ptr<ExplorerConsentTargetObservation> observation;
+    std::optional<ShellAutomationDiagnostic> diagnostic;
+    std::size_t exact_location_match_count{};
+    std::size_t bound_window_entry_count{};
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return reason == ExplorerConsentTargetBindReason::Succeeded &&
+               observation != nullptr && !diagnostic.has_value();
+    }
+};
+
+// A read-only, owner-STA observation of one user-created Explorer Shell entry.
+// It retains the exact IWebBrowser2/canonical-IUnknown pair selected from
+// CLSID_ShellWindows and observes DWebBrowserEvents2 navigation epochs. It has
+// deliberately no Navigate, visibility, positioning, or Quit operation.
+class ExplorerConsentTargetObservation final {
+public:
+    ~ExplorerConsentTargetObservation();
+
+    ExplorerConsentTargetObservation(
+        const ExplorerConsentTargetObservation&) = delete;
+    ExplorerConsentTargetObservation& operator=(
+        const ExplorerConsentTargetObservation&) = delete;
+    ExplorerConsentTargetObservation(
+        ExplorerConsentTargetObservation&&) = delete;
+    ExplorerConsentTargetObservation& operator=(
+        ExplorerConsentTargetObservation&&) = delete;
+
+    [[nodiscard]] DWORD owner_thread_id() const noexcept;
+    [[nodiscard]] std::uintptr_t bound_window_key() const noexcept;
+    [[nodiscard]] const FilesystemLocationIdentity& expected_location()
+        const noexcept;
+    [[nodiscard]] ShellWindowKeyResult current_window_key() const;
+    [[nodiscard]] ShellLocationFact current_location() const;
+    [[nodiscard]] ExplorerConsentTargetObservationFacts facts() noexcept;
+    [[nodiscard]] BrowserReadinessWaitResult pump_until_activity(
+        std::uint64_t after_sequence,
+        std::chrono::steady_clock::time_point deadline) const;
+
+    // Retires and Unadvises only. It never navigates, hides, positions, or
+    // closes the observed Explorer window.
+    [[nodiscard]] HRESULT retire() noexcept;
+
+private:
+    ExplorerConsentTargetObservation(
+        IWebBrowser2* browser,
+        IUnknown* canonical_identity,
+        IConnectionPoint* browser_connection_point,
+        BrowserReadinessEventSink* browser_event_sink,
+        BrowserSubscriptionLifecycleState* browser_lifecycle_state,
+        DWORD browser_advise_cookie,
+        std::uintptr_t bound_window_key,
+        FilesystemLocationIdentity expected_location,
+        std::size_t exact_location_match_count,
+        std::size_t bound_window_entry_count,
+        std::uint64_t navigation_epoch_at_binding,
+        DWORD owner_thread_id) noexcept;
+
+    IWebBrowser2* browser_{};
+    IUnknown* canonical_identity_{};
+    IConnectionPoint* browser_connection_point_{};
+    BrowserReadinessEventSink* browser_event_sink_{};
+    BrowserSubscriptionLifecycleState* browser_lifecycle_state_{};
+    DWORD browser_advise_cookie_{};
+    std::uintptr_t bound_window_key_{};
+    FilesystemLocationIdentity expected_location_{};
+    std::size_t exact_location_match_count_{};
+    std::size_t bound_window_entry_count_{};
+    std::uint64_t navigation_epoch_at_binding_{};
+    DWORD owner_thread_id_{};
+    bool browser_events_advised_{};
+    bool browser_events_unadvised_{};
+
+    friend ExplorerConsentTargetBindResult bind_explorer_consent_target(
+        std::uintptr_t,
+        const FilesystemLocationIdentity&);
+};
+
+// Enumerates CLSID_ShellWindows read-only and binds only when exactly one
+// Shell entry has both expected_window_key and expected_location. A shared
+// frame/tab, zero match, multiple exact-location matches, incomplete
+// inventory, or event-subscription failure returns no observation.
+[[nodiscard]] ExplorerConsentTargetBindResult bind_explorer_consent_target(
+    std::uintptr_t expected_window_key,
+    const FilesystemLocationIdentity& expected_location);
+
 struct ExplorerProvisioningLeaseFacts {
     bool created_by_single_co_create{};
     bool navigation_requested{};

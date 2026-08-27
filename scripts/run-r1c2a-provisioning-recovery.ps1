@@ -5,6 +5,8 @@ param(
     [string] $BuildDirectory = 'out/r1c2a-debug'
 )
 
+throw 'DEPRECATED_DISABLED: CLSID_ShellBrowserWindow automatic provisioning is no longer an active R1-C2A Gate. Use scripts/run-r1c2a-explorer-consent-evidence.ps1.'
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
