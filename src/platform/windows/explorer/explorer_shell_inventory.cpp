@@ -1,7 +1,11 @@
 #include "platform/windows/explorer/explorer_shell_inventory.h"
 
+#include "platform/windows/explorer/explorer_shell_events.h"
+
 #include <bcrypt.h>
 #include <objbase.h>
+#include <ocidl.h>
+#include <olectl.h>
 #include <oleauto.h>
 #include <exdisp.h>
 #include <propvarutil.h>
@@ -9,9 +13,12 @@
 #include <shlwapi.h>
 
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <limits>
+#include <new>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -21,8 +28,10 @@ namespace {
 
 constexpr HRESULT kInvalidWindowHandle =
     HRESULT_FROM_WIN32(ERROR_INVALID_WINDOW_HANDLE);
-constexpr auto kWindowHandleReadinessSlice = std::chrono::milliseconds{40};
-constexpr std::size_t kMaximumMessagesPerReadinessSlice = 64U;
+constexpr DISPID kNavigateComplete2Dispid = 252;
+constexpr DISPID kOnQuitDispid = 253;
+constexpr std::size_t kBrowserReceiptCapacity = 32U;
+constexpr std::size_t kBrowserMessageDispatchBudget = 512U;
 
 template <typename Interface>
 class ComPtr final {
@@ -437,9 +446,9 @@ opaque_location_fingerprint(const std::wstring_view location) noexcept {
 [[nodiscard]] ShellLocationFact parse_location(
     const std::wstring_view location) {
     if (location.empty()) {
-        return location_failure(ShellLocationStatus::NavigationPending,
+        return location_failure(ShellLocationStatus::Empty,
                                 ShellLocationSource::None,
-                                S_FALSE);
+                                S_OK);
     }
     if (contains_embedded_null(location)) {
         return location_failure(ShellLocationStatus::InvalidPath,
@@ -489,9 +498,9 @@ opaque_location_fingerprint(const std::wstring_view location) noexcept {
                                 result);
     }
     if (location.get() == nullptr || location.size() == 0U) {
-        return location_failure(ShellLocationStatus::NavigationPending,
+        return location_failure(ShellLocationStatus::Empty,
                                 ShellLocationSource::None,
-                                S_FALSE);
+                                S_OK);
     }
 
     const std::wstring_view location_url{location.get(), location.size()};
@@ -526,57 +535,21 @@ opaque_location_fingerprint(const std::wstring_view location) noexcept {
     return result;
 }
 
-[[nodiscard]] std::optional<ShellAutomationDiagnostic>
-pump_sta_for_window_handle_readiness(
-    const std::chrono::steady_clock::time_point deadline) {
+[[nodiscard]] DWORD bounded_wait_milliseconds(
+    const std::chrono::steady_clock::time_point deadline) noexcept {
     const auto now = std::chrono::steady_clock::now();
     if (now >= deadline) {
-        return std::nullopt;
+        return 0U;
     }
-
-    const auto remaining = deadline - now;
-    const auto slice = std::min(remaining,
-                                std::chrono::duration_cast<
-                                    std::chrono::steady_clock::duration>(
-                                    kWindowHandleReadinessSlice));
-    auto wait_milliseconds =
-        std::chrono::duration_cast<std::chrono::milliseconds>(slice).count();
+    auto wait_milliseconds = std::chrono::duration_cast<
+                                 std::chrono::milliseconds>(deadline - now)
+                                 .count();
     if (wait_milliseconds <= 0) {
         wait_milliseconds = 1;
     }
-
-    const DWORD wait_result = MsgWaitForMultipleObjectsEx(
-        0U,
-        nullptr,
-        static_cast<DWORD>(wait_milliseconds),
-        QS_ALLINPUT,
-        MWMO_INPUTAVAILABLE);
-    if (wait_result == WAIT_FAILED) {
-        return ShellAutomationDiagnostic{
-            ShellAutomationStage::AwaitWindowHandle,
-            HRESULT_FROM_WIN32(GetLastError()),
-            -1};
-    }
-    if (wait_result != WAIT_OBJECT_0) {
-        return std::nullopt;
-    }
-
-    MSG message{};
-    for (std::size_t count = 0U;
-         count < kMaximumMessagesPerReadinessSlice &&
-         PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) != FALSE;
-         ++count) {
-        if (message.message == WM_QUIT) {
-            PostQuitMessage(static_cast<int>(message.wParam));
-            return ShellAutomationDiagnostic{
-                ShellAutomationStage::AwaitWindowHandle,
-                HRESULT_FROM_WIN32(ERROR_CANCELLED),
-                -1};
-        }
-        static_cast<void>(TranslateMessage(&message));
-        static_cast<void>(DispatchMessageW(&message));
-    }
-    return std::nullopt;
+    constexpr auto maximum =
+        static_cast<long long>(std::numeric_limits<DWORD>::max() - 1U);
+    return static_cast<DWORD>(std::min(wait_milliseconds, maximum));
 }
 
 [[nodiscard]] ShellCallResult thread_failure() noexcept {
@@ -584,6 +557,426 @@ pump_sta_for_window_handle_readiness(
 }
 
 } // namespace
+
+enum class BrowserReadinessReceiptKind {
+    NavigateComplete,
+    Quit,
+};
+
+struct BrowserReadinessReceipt {
+    BrowserReadinessReceiptKind kind{
+        BrowserReadinessReceiptKind::NavigateComplete};
+    IDispatch* dispatch{};
+    std::uint64_t callback_sequence{};
+};
+
+struct BrowserReadinessReceiptBatch {
+    std::array<BrowserReadinessReceipt, kBrowserReceiptCapacity> receipts{};
+    std::size_t count{};
+};
+
+class BrowserReadinessEventSink final : public IDispatch {
+public:
+    BrowserReadinessEventSink(IUnknown* expected_identity,
+                              const DWORD owner_thread_id) noexcept
+        : expected_identity_(expected_identity),
+          owner_thread_id_(owner_thread_id) {
+        InitializeSRWLock(&lock_);
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID interface_id,
+                                             void** object) noexcept override {
+        if (object == nullptr) {
+            return E_POINTER;
+        }
+        *object = nullptr;
+        if (InlineIsEqualGUID(interface_id, IID_IUnknown) ||
+            InlineIsEqualGUID(interface_id, IID_IDispatch) ||
+            InlineIsEqualGUID(interface_id, DIID_DWebBrowserEvents2)) {
+            *object = static_cast<IDispatch*>(this);
+            static_cast<void>(AddRef());
+            return S_OK;
+        }
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() noexcept override {
+        return reference_count_.fetch_add(1U, std::memory_order_relaxed) + 1U;
+    }
+
+    ULONG STDMETHODCALLTYPE Release() noexcept override {
+        const ULONG remaining =
+            reference_count_.fetch_sub(1U, std::memory_order_acq_rel) - 1U;
+        if (remaining == 0U) {
+            delete this;
+        }
+        return remaining;
+    }
+
+    void pin() noexcept {
+        reference_count_.fetch_add(1U, std::memory_order_relaxed);
+    }
+
+    void unpin() noexcept {
+        static_cast<void>(Release());
+    }
+
+    HRESULT STDMETHODCALLTYPE GetTypeInfoCount(UINT* count) noexcept override {
+        if (count == nullptr) {
+            return E_POINTER;
+        }
+        *count = 0U;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetTypeInfo(UINT,
+                                          LCID,
+                                          ITypeInfo**) noexcept override {
+        return E_NOTIMPL;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIDsOfNames(REFIID,
+                                            LPOLESTR*,
+                                            UINT,
+                                            LCID,
+                                            DISPID*) noexcept override {
+        return DISP_E_UNKNOWNNAME;
+    }
+
+    HRESULT STDMETHODCALLTYPE Invoke(DISPID member,
+                                     REFIID interface_id,
+                                     LCID,
+                                     WORD flags,
+                                     DISPPARAMS* parameters,
+                                     VARIANT*,
+                                     EXCEPINFO*,
+                                     UINT* argument_error) noexcept override {
+        const bool navigate_complete = member == kNavigateComplete2Dispid;
+        const bool on_quit = member == kOnQuitDispid;
+        const bool valid_interface =
+            InlineIsEqualGUID(interface_id, IID_NULL) != FALSE;
+        const bool valid_flags = (flags & DISPATCH_METHOD) != 0U;
+        const bool navigate_shape =
+            navigate_complete && parameters != nullptr &&
+            parameters->cArgs == 2U && parameters->cNamedArgs == 0U &&
+            parameters->rgvarg != nullptr &&
+            V_VT(&parameters->rgvarg[1]) == VT_DISPATCH &&
+            V_DISPATCH(&parameters->rgvarg[1]) != nullptr &&
+            V_VT(&parameters->rgvarg[0]) == (VT_VARIANT | VT_BYREF) &&
+            V_VARIANTREF(&parameters->rgvarg[0]) != nullptr;
+        const bool quit_shape =
+            on_quit && parameters != nullptr && parameters->cArgs == 0U &&
+            parameters->cNamedArgs == 0U;
+        IDispatch* retained_dispatch = nullptr;
+        if (valid_interface && valid_flags && navigate_shape) {
+            retained_dispatch = V_DISPATCH(&parameters->rgvarg[1]);
+            // Take the receipt reference before entering the non-recursive
+            // lock. The callback performs no QI or identity comparison.
+            static_cast<void>(retained_dispatch->AddRef());
+        }
+
+        AcquireSRWLockExclusive(&lock_);
+        if (!accepting_) {
+            ++post_retirement_count_;
+            ReleaseSRWLockExclusive(&lock_);
+            if (retained_dispatch != nullptr) {
+                static_cast<void>(retained_dispatch->Release());
+            }
+            return S_OK;
+        }
+        if (GetCurrentThreadId() != owner_thread_id_) {
+            ++wrong_thread_count_;
+            ReleaseSRWLockExclusive(&lock_);
+            if (retained_dispatch != nullptr) {
+                static_cast<void>(retained_dispatch->Release());
+            }
+            return S_OK;
+        }
+        if ((!navigate_complete && !on_quit) || !valid_interface ||
+            !valid_flags || (!navigate_shape && !quit_shape)) {
+            ++malformed_count_;
+            ReleaseSRWLockExclusive(&lock_);
+            if (retained_dispatch != nullptr) {
+                static_cast<void>(retained_dispatch->Release());
+            }
+            if (argument_error != nullptr) {
+                *argument_error = 0U;
+            }
+            return (!navigate_complete && !on_quit)
+                       ? DISP_E_MEMBERNOTFOUND
+                       : DISP_E_TYPEMISMATCH;
+        }
+        if (callback_sequence_ == std::numeric_limits<std::uint64_t>::max()) {
+            ++malformed_count_;
+            ReleaseSRWLockExclusive(&lock_);
+            if (retained_dispatch != nullptr) {
+                static_cast<void>(retained_dispatch->Release());
+            }
+            return DISP_E_OVERFLOW;
+        }
+        ++callback_sequence_;
+        if (navigate_complete) {
+            ++navigate_complete_count_;
+        }
+        if (queued_count_ < receipts_.size()) {
+            BrowserReadinessReceipt receipt;
+            receipt.kind = navigate_complete
+                               ? BrowserReadinessReceiptKind::NavigateComplete
+                               : BrowserReadinessReceiptKind::Quit;
+            receipt.callback_sequence = callback_sequence_;
+            if (navigate_complete) {
+                receipt.dispatch = retained_dispatch;
+                retained_dispatch = nullptr;
+            }
+            receipts_[queued_count_] = receipt;
+            ++queued_count_;
+        } else {
+            ++overflow_count_;
+        }
+        ReleaseSRWLockExclusive(&lock_);
+        if (retained_dispatch != nullptr) {
+            static_cast<void>(retained_dispatch->Release());
+        }
+        return S_OK;
+    }
+
+    [[nodiscard]] BrowserReadinessFacts facts() const noexcept {
+        AcquireSRWLockShared(&lock_);
+        BrowserReadinessFacts result;
+        result.callback_sequence = callback_sequence_;
+        result.latest_sequence = latest_sequence_;
+        result.navigate_complete_count = navigate_complete_count_;
+        result.matching_navigate_complete_count =
+            matching_navigate_complete_count_;
+        result.unrelated_navigate_complete_count =
+            unrelated_navigate_complete_count_;
+        result.identity_query_failure_count = identity_query_failure_count_;
+        result.quit_count = quit_count_;
+        result.malformed_count = malformed_count_;
+        result.overflow_count = overflow_count_;
+        result.wrong_thread_count = wrong_thread_count_;
+        result.post_retirement_count = post_retirement_count_;
+        result.latest_activity_was_quit = latest_activity_was_quit_;
+        result.accepting = accepting_;
+        ReleaseSRWLockShared(&lock_);
+        return result;
+    }
+
+    [[nodiscard]] BrowserReadinessReceiptBatch take_receipts() noexcept {
+        BrowserReadinessReceiptBatch result;
+        AcquireSRWLockExclusive(&lock_);
+        result.count = queued_count_;
+        std::copy_n(receipts_.begin(), result.count, result.receipts.begin());
+        std::fill_n(receipts_.begin(), result.count,
+                    BrowserReadinessReceipt{});
+        queued_count_ = 0U;
+        ReleaseSRWLockExclusive(&lock_);
+        return result;
+    }
+
+    void process_receipts() noexcept {
+        const BrowserReadinessReceiptBatch batch = take_receipts();
+        for (std::size_t index = 0U; index < batch.count; ++index) {
+            const BrowserReadinessReceipt& receipt = batch.receipts[index];
+            if (receipt.kind == BrowserReadinessReceiptKind::Quit) {
+                classify_quit(receipt.callback_sequence);
+                continue;
+            }
+
+            IUnknown* event_identity = nullptr;
+            const HRESULT identity_result =
+                receipt.dispatch == nullptr
+                    ? E_POINTER
+                    : receipt.dispatch->QueryInterface(
+                          IID_IUnknown,
+                          reinterpret_cast<void**>(&event_identity));
+            const bool identity_succeeded =
+                identity_result == S_OK && event_identity != nullptr;
+            const bool matching = identity_succeeded &&
+                                  event_identity == expected_identity_;
+            classify_navigate(receipt.callback_sequence,
+                              identity_succeeded,
+                              matching);
+            if (event_identity != nullptr) {
+                static_cast<void>(event_identity->Release());
+            }
+            if (receipt.dispatch != nullptr) {
+                static_cast<void>(receipt.dispatch->Release());
+            }
+        }
+    }
+
+    void classify_navigate(const std::uint64_t callback_sequence,
+                           const bool identity_query_succeeded,
+                           const bool matching) noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        if (!identity_query_succeeded) {
+            ++identity_query_failure_count_;
+        } else if (matching) {
+            ++matching_navigate_complete_count_;
+            if (callback_sequence >= latest_sequence_) {
+                latest_sequence_ = callback_sequence;
+                latest_activity_was_quit_ = false;
+            }
+        } else {
+            ++unrelated_navigate_complete_count_;
+        }
+        ReleaseSRWLockExclusive(&lock_);
+    }
+
+    void classify_quit(const std::uint64_t callback_sequence) noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        ++quit_count_;
+        if (callback_sequence >= latest_sequence_) {
+            latest_sequence_ = callback_sequence;
+            latest_activity_was_quit_ = true;
+        }
+        ReleaseSRWLockExclusive(&lock_);
+    }
+
+    void note_wrong_thread() noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        ++wrong_thread_count_;
+        ReleaseSRWLockExclusive(&lock_);
+    }
+
+    void retire() noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        accepting_ = false;
+        ReleaseSRWLockExclusive(&lock_);
+    }
+
+private:
+    ~BrowserReadinessEventSink() {
+        if (!on_thread(owner_thread_id_) || require_sta() != S_OK) {
+            return;
+        }
+        for (std::size_t index = 0U; index < queued_count_; ++index) {
+            if (receipts_[index].dispatch != nullptr) {
+                static_cast<void>(receipts_[index].dispatch->Release());
+            }
+        }
+        if (expected_identity_ != nullptr) {
+            static_cast<void>(expected_identity_->Release());
+            expected_identity_ = nullptr;
+        }
+    }
+
+    std::atomic<ULONG> reference_count_{1U};
+    IUnknown* expected_identity_{};
+    mutable SRWLOCK lock_{};
+    std::array<BrowserReadinessReceipt, kBrowserReceiptCapacity> receipts_{};
+    std::size_t queued_count_{};
+    std::uint64_t callback_sequence_{};
+    std::uint64_t latest_sequence_{};
+    std::uint64_t navigate_complete_count_{};
+    std::uint64_t matching_navigate_complete_count_{};
+    std::uint64_t unrelated_navigate_complete_count_{};
+    std::uint64_t identity_query_failure_count_{};
+    std::uint64_t quit_count_{};
+    std::uint64_t malformed_count_{};
+    std::uint64_t overflow_count_{};
+    std::uint64_t wrong_thread_count_{};
+    std::uint64_t post_retirement_count_{};
+    bool latest_activity_was_quit_{};
+    DWORD owner_thread_id_{};
+    bool accepting_{true};
+};
+
+class BrowserSubscriptionLifecycleState final {
+public:
+    BrowserSubscriptionLifecycleState() noexcept {
+        InitializeSRWLock(&lock_);
+    }
+
+    void pin() noexcept {
+        reference_count_.fetch_add(1U, std::memory_order_relaxed);
+    }
+    void unpin() noexcept {
+        if (reference_count_.fetch_sub(1U, std::memory_order_acq_rel) == 1U) {
+            delete this;
+        }
+    }
+    void begin_close(const BrowserReadinessFacts& facts) noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        final_facts_ = facts;
+        final_facts_.subscribed = true;
+        final_facts_.unadvised = false;
+        ReleaseSRWLockExclusive(&lock_);
+    }
+    void complete_close(const HRESULT result,
+                        const BrowserReadinessFacts& facts) noexcept {
+        AcquireSRWLockExclusive(&lock_);
+        final_facts_ = facts;
+        final_facts_.subscribed = true;
+        final_facts_.unadvised = result == S_OK;
+        close_result_ = result;
+        ReleaseSRWLockExclusive(&lock_);
+    }
+    [[nodiscard]] BrowserReadinessFacts facts() const noexcept {
+        AcquireSRWLockShared(&lock_);
+        const BrowserReadinessFacts result = final_facts_;
+        ReleaseSRWLockShared(&lock_);
+        return result;
+    }
+
+private:
+    ~BrowserSubscriptionLifecycleState() = default;
+
+    std::atomic<ULONG> reference_count_{1U};
+    mutable SRWLOCK lock_{};
+    BrowserReadinessFacts final_facts_{};
+    HRESULT close_result_{S_OK};
+};
+
+class BrowserReadinessEventSinkPin final {
+public:
+    explicit BrowserReadinessEventSinkPin(
+        BrowserReadinessEventSink* sink) noexcept
+        : sink_(sink) {
+        if (sink_ != nullptr) {
+            sink_->pin();
+        }
+    }
+    ~BrowserReadinessEventSinkPin() {
+        if (sink_ != nullptr) {
+            sink_->unpin();
+        }
+    }
+    BrowserReadinessEventSinkPin(const BrowserReadinessEventSinkPin&) = delete;
+    BrowserReadinessEventSinkPin& operator=(
+        const BrowserReadinessEventSinkPin&) = delete;
+    [[nodiscard]] BrowserReadinessEventSink* get() const noexcept {
+        return sink_;
+    }
+
+private:
+    BrowserReadinessEventSink* sink_{};
+};
+
+class BrowserLifecyclePin final {
+public:
+    explicit BrowserLifecyclePin(
+        BrowserSubscriptionLifecycleState* state) noexcept
+        : state_(state) {
+        if (state_ != nullptr) {
+            state_->pin();
+        }
+    }
+    ~BrowserLifecyclePin() {
+        if (state_ != nullptr) {
+            state_->unpin();
+        }
+    }
+    BrowserLifecyclePin(const BrowserLifecyclePin&) = delete;
+    BrowserLifecyclePin& operator=(const BrowserLifecyclePin&) = delete;
+    [[nodiscard]] BrowserSubscriptionLifecycleState* get() const noexcept {
+        return state_;
+    }
+
+private:
+    BrowserSubscriptionLifecycleState* state_{};
+};
 
 bool same_filesystem_location(const ShellLocationFact& left,
                               const ShellLocationFact& right) noexcept {
@@ -624,6 +1017,27 @@ ShellWindowInventory capture_shell_window_inventory() {
             {ShellAutomationStage::CreateInventory,
              create_result == S_OK ? E_POINTER : create_result,
              -1});
+        return inventory;
+    }
+
+    return capture_shell_window_inventory(shell_windows.get());
+}
+
+ShellWindowInventory capture_shell_window_inventory(
+    IShellWindows* shell_windows) {
+    ShellWindowInventory inventory;
+
+    const HRESULT apartment = require_sta();
+    if (apartment != S_OK) {
+        inventory.issues.push_back({ShellAutomationStage::ApartmentValidation,
+                                    apartment,
+                                    -1});
+        return inventory;
+    }
+    if (shell_windows == nullptr) {
+        inventory.issues.push_back({ShellAutomationStage::CreateInventory,
+                                    E_POINTER,
+                                    -1});
         return inventory;
     }
 
@@ -712,30 +1126,105 @@ ShellLocationFact filesystem_location_identity(
                                   ShellLocationSource::AbsolutePath);
 }
 
-RetainedExplorerShellWindow::RetainedExplorerShellWindow(
+ExplorerProvisioningLease::ExplorerProvisioningLease(
     IWebBrowser2* browser,
-    const HWND initial_window,
+    IUnknown* canonical_identity,
+    IConnectionPoint* browser_connection_point,
+    BrowserReadinessEventSink* browser_event_sink,
+    BrowserSubscriptionLifecycleState* browser_lifecycle_state,
+    const DWORD browser_advise_cookie,
+    const HRESULT browser_subscription_diagnostic,
+    const std::uint64_t session_authority,
+    const std::uint64_t subscription_generation,
+    std::filesystem::path target_directory,
+    const FilesystemLocationIdentity target_identity,
     const DWORD owner_thread_id) noexcept
     : browser_(browser),
-      initial_window_(initial_window),
-      owner_thread_id_(owner_thread_id) {}
+      canonical_identity_(canonical_identity),
+      browser_connection_point_(browser_connection_point),
+      browser_event_sink_(browser_event_sink),
+      browser_lifecycle_state_(browser_lifecycle_state),
+      browser_advise_cookie_(browser_advise_cookie),
+      browser_subscription_diagnostic_(browser_subscription_diagnostic),
+      session_authority_(session_authority),
+      subscription_generation_(subscription_generation),
+      target_directory_(std::move(target_directory)),
+      target_identity_(target_identity),
+      owner_thread_id_(owner_thread_id),
+      browser_events_advised_(browser_connection_point != nullptr &&
+                              browser_event_sink != nullptr &&
+                              browser_advise_cookie != 0U) {
+    facts_.created_by_single_co_create =
+        browser_ != nullptr && canonical_identity_ != nullptr;
+}
 
-RetainedExplorerShellWindow::~RetainedExplorerShellWindow() {
+ExplorerProvisioningLease::~ExplorerProvisioningLease() {
+    if (!on_thread(owner_thread_id_) || require_sta() != S_OK) {
+        // All stored COM pointers are apartment-bound. Deliberately retain
+        // them rather than performing illegal cross-apartment or post-
+        // CoUninitialize Unadvise/Release calls.
+        return;
+    }
+    const HRESULT close_result = close_browser_events();
+    if (FAILED(close_result)) {
+        // An actively connected sink owns no pointer back to this lease. Keep
+        // all local references alive when Unadvise fails.
+        return;
+    }
+    if (canonical_identity_ != nullptr) {
+        static_cast<void>(canonical_identity_->Release());
+        canonical_identity_ = nullptr;
+    }
     if (browser_ != nullptr) {
         static_cast<void>(browser_->Release());
         browser_ = nullptr;
     }
+    if (browser_lifecycle_state_ != nullptr) {
+        browser_lifecycle_state_->unpin();
+        browser_lifecycle_state_ = nullptr;
+    }
 }
 
-HWND RetainedExplorerShellWindow::initial_hwnd() const noexcept {
-    return initial_window_;
+std::uint64_t ExplorerProvisioningLease::session_authority() const noexcept {
+    return session_authority_;
 }
 
-DWORD RetainedExplorerShellWindow::owner_thread_id() const noexcept {
+std::uint64_t
+ExplorerProvisioningLease::subscription_generation() const noexcept {
+    return subscription_generation_;
+}
+
+DWORD ExplorerProvisioningLease::owner_thread_id() const noexcept {
     return owner_thread_id_;
 }
 
-ShellWindowHandleResult RetainedExplorerShellWindow::current_hwnd() const {
+const FilesystemLocationIdentity&
+ExplorerProvisioningLease::target_identity() const noexcept {
+    return target_identity_;
+}
+
+bool ExplorerProvisioningLease::same_object(
+    const ResolvedShellWindow& resolved) const noexcept {
+    return canonical_identity_ != nullptr &&
+           canonical_identity_ == resolved.canonical_identity_;
+}
+
+ExplorerProvisioningLeaseFacts
+ExplorerProvisioningLease::facts() const noexcept {
+    return facts_;
+}
+
+void ExplorerProvisioningLease::mark_identity_ambiguous() noexcept {
+    if (!on_thread(owner_thread_id_)) {
+        if (browser_event_sink_ != nullptr) {
+            browser_event_sink_->note_wrong_thread();
+        }
+        return;
+    }
+    facts_.identity_ambiguous = true;
+}
+
+ShellWindowHandleResult ExplorerProvisioningLease::current_hwnd() const {
     if (!on_thread(owner_thread_id_)) {
         ShellWindowHandleResult result;
         result.diagnostic = ShellAutomationDiagnostic{
@@ -747,7 +1236,7 @@ ShellWindowHandleResult RetainedExplorerShellWindow::current_hwnd() const {
     return read_window_handle(browser_, ShellAutomationStage::ReadWindowHandle);
 }
 
-ShellLocationFact RetainedExplorerShellWindow::current_location() const {
+ShellLocationFact ExplorerProvisioningLease::current_location() const {
     if (!on_thread(owner_thread_id_)) {
         return location_failure(ShellLocationStatus::Unavailable,
                                 ShellLocationSource::None,
@@ -756,27 +1245,44 @@ ShellLocationFact RetainedExplorerShellWindow::current_location() const {
     return read_location(browser_);
 }
 
-ShellCallResult RetainedExplorerShellWindow::navigate_to_and_show(
-    const std::filesystem::path& absolute_directory) {
+ShellCallResult ExplorerProvisioningLease::navigate_to_target_and_show() {
     if (!on_thread(owner_thread_id_)) {
         return thread_failure();
     }
     if (browser_ == nullptr) {
         return {ShellAutomationStage::Navigate, E_POINTER};
     }
+    if (facts_.identity_ambiguous) {
+        return {ShellAutomationStage::QueryCanonicalIdentity,
+                HRESULT_FROM_WIN32(ERROR_INVALID_STATE)};
+    }
+    if (facts_.navigation_requested) {
+        return {ShellAutomationStage::Navigate,
+                HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)};
+    }
+    if (!browser_events_advised_) {
+        return {ShellAutomationStage::SubscribeBrowserEvents,
+                browser_subscription_diagnostic_ == S_OK
+                    ? CONNECT_E_NOCONNECTION
+                    : browser_subscription_diagnostic_};
+    }
 
-    const ShellLocationFact target_identity =
-        filesystem_location_identity(absolute_directory);
-    if (!target_identity.filesystem()) {
+    const ShellLocationFact live_target_identity =
+        filesystem_location_identity(target_directory_);
+    if (!live_target_identity.filesystem()) {
         return {ShellAutomationStage::OpenLocation,
-                target_identity.diagnostic == S_OK
+                live_target_identity.diagnostic == S_OK
                     ? E_INVALIDARG
-                    : target_identity.diagnostic};
+                    : live_target_identity.diagnostic};
+    }
+    if (*live_target_identity.identity != target_identity_) {
+        return {ShellAutomationStage::QueryLocationIdentity,
+                HRESULT_FROM_WIN32(ERROR_FILE_INVALID)};
     }
 
     ComPtr<IShellItem> item;
     const HRESULT item_result = SHCreateItemFromParsingName(
-        absolute_directory.c_str(),
+        target_directory_.c_str(),
         nullptr,
         IID_PPV_ARGS(item.put()));
     if (item_result != S_OK || !item) {
@@ -804,6 +1310,7 @@ ShellCallResult RetainedExplorerShellWindow::navigate_to_and_show(
     }
 
     ScopedVariant empty;
+    facts_.navigation_requested = true;
     const HRESULT navigation_result = browser_->Navigate2(target.get(),
                                                           empty.get(),
                                                           empty.get(),
@@ -812,34 +1319,229 @@ ShellCallResult RetainedExplorerShellWindow::navigate_to_and_show(
     if (navigation_result != S_OK) {
         return {ShellAutomationStage::Navigate, navigation_result};
     }
+    facts_.navigation_succeeded = true;
 
+    facts_.visibility_requested = true;
     const HRESULT visibility_result = browser_->put_Visible(VARIANT_TRUE);
     if (visibility_result != S_OK) {
         return {ShellAutomationStage::Show, visibility_result};
     }
+    facts_.visibility_succeeded = true;
     return {ShellAutomationStage::Show, S_OK};
 }
 
-ShellCallResult RetainedExplorerShellWindow::quit() {
+BrowserReadinessFacts
+ExplorerProvisioningLease::browser_readiness_facts() const noexcept {
+    const bool live_sink = browser_event_sink_ != nullptr;
+    BrowserReadinessFacts facts =
+        live_sink
+            ? browser_event_sink_->facts()
+            : (browser_lifecycle_state_ == nullptr
+                   ? BrowserReadinessFacts{}
+                   : browser_lifecycle_state_->facts());
+    if (live_sink) {
+        facts.subscribed = browser_events_advised_;
+        facts.unadvised = false;
+    }
+    facts.subscription_diagnostic = browser_subscription_diagnostic_;
+    return facts;
+}
+
+BrowserReadinessWaitResult
+ExplorerProvisioningLease::wait_for_browser_activity(
+    const std::uint64_t after_sequence,
+    const std::chrono::steady_clock::time_point deadline) const {
+    BrowserReadinessWaitResult result;
+    if (!on_thread(owner_thread_id_)) {
+        if (browser_event_sink_ != nullptr) {
+            browser_event_sink_->note_wrong_thread();
+        }
+        result.status = BrowserReadinessWaitStatus::WrongThread;
+        result.diagnostic = RPC_E_WRONG_THREAD;
+        return result;
+    }
+    BrowserReadinessEventSink* const borrowed_sink = browser_event_sink_;
+    if (!browser_events_advised_ || borrowed_sink == nullptr) {
+        result.status = BrowserReadinessWaitStatus::SubscriptionUnavailable;
+        result.diagnostic = browser_subscription_diagnostic_ == S_OK
+                                ? CONNECT_E_NOCONNECTION
+                                : browser_subscription_diagnostic_;
+        return result;
+    }
+    BrowserReadinessEventSinkPin sink_pin{borrowed_sink};
+    BrowserReadinessEventSink* const sink = sink_pin.get();
+
+    while (result.dispatched_message_count < kBrowserMessageDispatchBudget) {
+        const HRESULT apartment_result = require_sta();
+        if (apartment_result != S_OK) {
+            result.status = BrowserReadinessWaitStatus::Failed;
+            result.diagnostic = apartment_result;
+            return result;
+        }
+        sink->process_receipts();
+        const BrowserReadinessFacts facts = sink->facts();
+        result.latest_sequence = facts.latest_sequence;
+        if (result.latest_sequence > after_sequence) {
+            result.status = facts.latest_activity_was_quit
+                                ? BrowserReadinessWaitStatus::QuitObserved
+                                : BrowserReadinessWaitStatus::ActivityObserved;
+            return result;
+        }
+
+        const DWORD wait_milliseconds = bounded_wait_milliseconds(deadline);
+        if (wait_milliseconds == 0U) {
+            result.status = BrowserReadinessWaitStatus::TimedOut;
+            result.diagnostic = HRESULT_FROM_WIN32(ERROR_TIMEOUT);
+            return result;
+        }
+        const DWORD wait_result = MsgWaitForMultipleObjectsEx(
+            0U,
+            nullptr,
+            wait_milliseconds,
+            QS_ALLINPUT,
+            MWMO_INPUTAVAILABLE | MWMO_ALERTABLE);
+        if (wait_result == WAIT_TIMEOUT) {
+            result.status = BrowserReadinessWaitStatus::TimedOut;
+            result.diagnostic = HRESULT_FROM_WIN32(ERROR_TIMEOUT);
+            return result;
+        }
+        if (wait_result == WAIT_FAILED) {
+            result.status = BrowserReadinessWaitStatus::Failed;
+            result.diagnostic = HRESULT_FROM_WIN32(GetLastError());
+            return result;
+        }
+        if (wait_result == WAIT_IO_COMPLETION) {
+            continue;
+        }
+
+        MSG message{};
+        while (result.dispatched_message_count <
+                   kBrowserMessageDispatchBudget &&
+               PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) != FALSE) {
+            ++result.dispatched_message_count;
+            if (message.message == WM_QUIT) {
+                PostQuitMessage(static_cast<int>(message.wParam));
+                result.status = BrowserReadinessWaitStatus::QuitObserved;
+                result.diagnostic = HRESULT_FROM_WIN32(ERROR_CANCELLED);
+                return result;
+            }
+            static_cast<void>(TranslateMessage(&message));
+            static_cast<void>(DispatchMessageW(&message));
+        }
+    }
+
+    sink->process_receipts();
+    const BrowserReadinessFacts final_facts = sink->facts();
+    result.latest_sequence = final_facts.latest_sequence;
+    result.status = result.latest_sequence <= after_sequence
+                        ? BrowserReadinessWaitStatus::MessageBudgetExhausted
+                        : (final_facts.latest_activity_was_quit
+                               ? BrowserReadinessWaitStatus::QuitObserved
+                               : BrowserReadinessWaitStatus::ActivityObserved);
+    result.diagnostic =
+        result.status == BrowserReadinessWaitStatus::ActivityObserved
+            ? S_OK
+            : HRESULT_FROM_WIN32(ERROR_RETRY);
+    return result;
+}
+
+ShellCallResult ExplorerProvisioningLease::quit() {
     if (!on_thread(owner_thread_id_)) {
         return thread_failure();
     }
     if (browser_ == nullptr) {
         return {ShellAutomationStage::Quit, E_POINTER};
     }
+    if (facts_.identity_ambiguous ||
+        !facts_.created_by_single_co_create) {
+        return {ShellAutomationStage::Quit, E_ACCESSDENIED};
+    }
+    if (facts_.quit_attempted) {
+        return {ShellAutomationStage::Quit,
+                HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)};
+    }
+    facts_.quit_attempted = true;
     return {ShellAutomationStage::Quit, browser_->Quit()};
 }
 
-ExplorerShellWindowCreateResult create_explorer_shell_window(
-    const std::chrono::steady_clock::time_point readiness_deadline) {
-    ExplorerShellWindowCreateResult result;
+HRESULT ExplorerProvisioningLease::close_browser_events() noexcept {
+    if (browser_events_unadvised_) {
+        return S_FALSE;
+    }
+    if (!browser_events_advised_) {
+        return S_FALSE;
+    }
+    if (!on_thread(owner_thread_id_)) {
+        if (browser_event_sink_ != nullptr) {
+            browser_event_sink_->note_wrong_thread();
+        }
+        return RPC_E_WRONG_THREAD;
+    }
+    const HRESULT apartment_result = require_sta();
+    if (apartment_result != S_OK) {
+        return apartment_result;
+    }
+    if (browser_connection_point_ == nullptr ||
+        browser_event_sink_ == nullptr || browser_advise_cookie_ == 0U) {
+        return E_UNEXPECTED;
+    }
 
-    // Reject an already exhausted budget before any COM creation side effect.
-    if (std::chrono::steady_clock::now() >= readiness_deadline) {
+    BrowserLifecyclePin lifecycle_pin{browser_lifecycle_state_};
+    BrowserSubscriptionLifecycleState* const lifecycle = lifecycle_pin.get();
+    IConnectionPoint* const connection_point = browser_connection_point_;
+    BrowserReadinessEventSink* const sink = browser_event_sink_;
+    const DWORD advise_cookie = browser_advise_cookie_;
+    const HRESULT subscription_diagnostic =
+        browser_subscription_diagnostic_;
+
+    // Detach before Unadvise: that COM call may dispatch arbitrary STA work,
+    // including a nested close or destruction of this lease.
+    browser_connection_point_ = nullptr;
+    browser_event_sink_ = nullptr;
+    browser_advise_cookie_ = 0U;
+    browser_events_advised_ = false;
+    browser_events_unadvised_ = true;
+
+    sink->process_receipts();
+    sink->retire();
+    BrowserReadinessFacts starting_facts = sink->facts();
+    starting_facts.subscription_diagnostic = subscription_diagnostic;
+    if (lifecycle != nullptr) {
+        lifecycle->begin_close(starting_facts);
+    }
+    const HRESULT result = connection_point->Unadvise(advise_cookie);
+    BrowserReadinessFacts final_facts = sink->facts();
+    final_facts.subscription_diagnostic = subscription_diagnostic;
+    if (lifecycle != nullptr) {
+        lifecycle->complete_close(result, final_facts);
+    }
+    if (result != S_OK) {
+        // Retired sink and COM references intentionally remain alive when the
+        // server does not acknowledge Unadvise.
+        return result;
+    }
+
+    if (require_sta() != S_OK) {
+        return CO_E_NOTINITIALIZED;
+    }
+
+    // Do not touch this after the reentrant call. Detached locals and the
+    // lifecycle pin remain valid even if the wrapper was destroyed.
+    static_cast<void>(connection_point->Release());
+    static_cast<void>(sink->Release());
+    return S_OK;
+}
+
+ExplorerProvisioningLeaseCreateResult
+create_explorer_provisioning_lease(
+    const std::uint64_t session_authority,
+    const std::uint64_t subscription_generation,
+    const std::filesystem::path& target_directory) {
+    ExplorerProvisioningLeaseCreateResult result;
+
+    if (session_authority == 0U || subscription_generation == 0U) {
         result.diagnostic = ShellAutomationDiagnostic{
-            ShellAutomationStage::AwaitWindowHandle,
-            HRESULT_FROM_WIN32(ERROR_TIMEOUT),
-            -1};
+            ShellAutomationStage::CreateBrowserWindow, E_INVALIDARG, -1};
         return result;
     }
 
@@ -852,12 +1554,45 @@ ExplorerShellWindowCreateResult create_explorer_shell_window(
         return result;
     }
 
+    const ShellLocationFact target_fact =
+        filesystem_location_identity(target_directory);
+    if (!target_fact.filesystem()) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::OpenLocation,
+            target_fact.diagnostic == S_OK ? E_INVALIDARG
+                                           : target_fact.diagnostic,
+            -1};
+        return result;
+    }
+
+    // Complete every potentially throwing allocation before CoCreate. Once
+    // the automation object exists, PaneBind must not lose exact cleanup
+    // authority because a C++ wrapper allocation failed.
+    std::filesystem::path retained_target_directory{target_directory};
+    auto* browser_lifecycle_state =
+        new (std::nothrow) BrowserSubscriptionLifecycleState();
+    if (browser_lifecycle_state == nullptr) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::CreateBrowserWindow, E_OUTOFMEMORY, -1};
+        return result;
+    }
+    void* const lease_storage =
+        ::operator new(sizeof(ExplorerProvisioningLease), std::nothrow);
+    if (lease_storage == nullptr) {
+        browser_lifecycle_state->unpin();
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::CreateBrowserWindow, E_OUTOFMEMORY, -1};
+        return result;
+    }
+
     ComPtr<IWebBrowser2> browser;
     const HRESULT create_result = CoCreateInstance(CLSID_ShellBrowserWindow,
                                                    nullptr,
                                                    CLSCTX_LOCAL_SERVER,
                                                    IID_PPV_ARGS(browser.put()));
     if (create_result != S_OK || !browser) {
+        ::operator delete(lease_storage);
+        browser_lifecycle_state->unpin();
         result.diagnostic = ShellAutomationDiagnostic{
             ShellAutomationStage::CreateBrowserWindow,
             create_result == S_OK ? E_POINTER : create_result,
@@ -865,52 +1600,107 @@ ExplorerShellWindowCreateResult create_explorer_shell_window(
         return result;
     }
 
-    // CoCreateInstance above is deliberately the only creation attempt. A
-    // newly returned local-server proxy can exist before its frame HWND is
-    // readable, so readiness retries get_HWND only on this exact proxy. No
-    // navigation, visibility, activation, or geometry method is called here.
-    ShellWindowHandleResult handle_result;
-    do {
-        if (std::chrono::steady_clock::now() >= readiness_deadline) {
-            result.diagnostic = ShellAutomationDiagnostic{
-                ShellAutomationStage::AwaitWindowHandle,
-                HRESULT_FROM_WIN32(ERROR_TIMEOUT),
-                -1};
-            return result;
-        }
-        handle_result = read_window_handle(
-            browser.get(), ShellAutomationStage::ReadWindowHandle);
-        if (handle_result.succeeded()) {
-            break;
-        }
-        if (std::chrono::steady_clock::now() >= readiness_deadline) {
-            result.diagnostic = handle_result.diagnostic.value_or(
-                ShellAutomationDiagnostic{
-                    ShellAutomationStage::ReadWindowHandle,
-                    kInvalidWindowHandle,
-                    -1});
-            return result;
-        }
-        if (auto pump_failure =
-                pump_sta_for_window_handle_readiness(readiness_deadline);
-            pump_failure.has_value()) {
-            result.diagnostic = *pump_failure;
-            return result;
-        }
-    } while (true);
-
-    if (!handle_result.succeeded()) {
-        result.diagnostic = handle_result.diagnostic.value_or(
-            ShellAutomationDiagnostic{ShellAutomationStage::ReadWindowHandle,
-                                      kInvalidWindowHandle,
-                                      -1});
+    IUnknown* canonical_identity = nullptr;
+    const HRESULT identity_result = browser->QueryInterface(
+        IID_IUnknown,
+        reinterpret_cast<void**>(&canonical_identity));
+    if (identity_result != S_OK || canonical_identity == nullptr) {
+        ::operator delete(lease_storage);
+        browser_lifecycle_state->unpin();
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::QueryCanonicalIdentity,
+            identity_result == S_OK ? E_NOINTERFACE : identity_result,
+            -1};
         return result;
     }
 
-    result.window = std::unique_ptr<RetainedExplorerShellWindow>(
-        new RetainedExplorerShellWindow(browser.detach(),
-                                        handle_result.window,
-                                        GetCurrentThreadId()));
+    IConnectionPoint* browser_connection_point = nullptr;
+    BrowserReadinessEventSink* browser_event_sink = nullptr;
+    DWORD browser_advise_cookie = 0U;
+    HRESULT browser_subscription_diagnostic = S_OK;
+    IUnknown* readiness_identity = nullptr;
+
+    IConnectionPointContainer* container = nullptr;
+    HRESULT subscribe_result = browser->QueryInterface(
+        IID_IUnknown,
+        reinterpret_cast<void**>(&readiness_identity));
+    if (subscribe_result == S_OK && readiness_identity != nullptr) {
+        subscribe_result = browser->QueryInterface(IID_PPV_ARGS(&container));
+    } else if (subscribe_result == S_OK) {
+        subscribe_result = E_NOINTERFACE;
+    }
+    if (subscribe_result == S_OK && container != nullptr) {
+        subscribe_result = container->FindConnectionPoint(
+            DIID_DWebBrowserEvents2,
+            &browser_connection_point);
+        static_cast<void>(container->Release());
+        container = nullptr;
+    } else if (container != nullptr) {
+        static_cast<void>(container->Release());
+        container = nullptr;
+    }
+
+    if (subscribe_result == S_OK && browser_connection_point != nullptr) {
+        browser_event_sink = new (std::nothrow)
+            BrowserReadinessEventSink(readiness_identity,
+                                      GetCurrentThreadId());
+        if (browser_event_sink == nullptr) {
+            subscribe_result = E_OUTOFMEMORY;
+        } else {
+            readiness_identity = nullptr;
+            subscribe_result = browser_connection_point->Advise(
+                static_cast<IDispatch*>(browser_event_sink),
+                &browser_advise_cookie);
+            if (subscribe_result == S_OK && browser_advise_cookie == 0U) {
+                // The server reported success but supplied no usable
+                // Unadvise cookie. Retire the self-contained sink before its
+                // local reference is released; the server-held reference may
+                // otherwise continue to receive callbacks.
+                browser_event_sink->retire();
+                subscribe_result = E_UNEXPECTED;
+            }
+        }
+    } else if (subscribe_result == S_OK) {
+        subscribe_result = CONNECT_E_NOCONNECTION;
+    }
+
+    if (subscribe_result != S_OK) {
+        browser_subscription_diagnostic = subscribe_result;
+        if (browser_event_sink != nullptr) {
+            static_cast<void>(browser_event_sink->Release());
+            browser_event_sink = nullptr;
+        }
+        if (browser_connection_point != nullptr) {
+            static_cast<void>(browser_connection_point->Release());
+            browser_connection_point = nullptr;
+        }
+        browser_advise_cookie = 0U;
+    }
+    if (readiness_identity != nullptr) {
+        static_cast<void>(readiness_identity->Release());
+        readiness_identity = nullptr;
+    }
+
+    auto* const lease = new (lease_storage) ExplorerProvisioningLease(
+        browser.detach(),
+        canonical_identity,
+        browser_connection_point,
+        browser_event_sink,
+        browser_lifecycle_state,
+        browser_advise_cookie,
+        browser_subscription_diagnostic,
+        session_authority,
+        subscription_generation,
+        std::move(retained_target_directory),
+        *target_fact.identity,
+        GetCurrentThreadId());
+    result.lease.reset(lease);
+    if (browser_subscription_diagnostic != S_OK) {
+        result.diagnostic = ShellAutomationDiagnostic{
+            ShellAutomationStage::SubscribeBrowserEvents,
+            browser_subscription_diagnostic,
+            -1};
+    }
     return result;
 }
 

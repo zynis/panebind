@@ -2,6 +2,7 @@
 
 #include "core/geometry/checked_arithmetic.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
+#include "platform/windows/explorer/explorer_shell_events.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -25,7 +26,6 @@
 #include <set>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -127,12 +127,18 @@ ExplorerTokenLedger::ExplorerTokenLedger(
 ExplorerLedgerIssueResult ExplorerTokenLedger::issue(
     const NativeWindowKey native_key,
     const std::uint32_t process_id,
-    const std::uint32_t thread_id) {
+    const std::uint32_t thread_id,
+    const std::int32_t registration_cookie,
+    const std::uint64_t subscription_generation) {
     if (native_key == 0U) {
         return {ExplorerLedgerIssueStatus::InvalidNativeKey, std::nullopt};
     }
     if (logical_id_by_native_key_.contains(native_key)) {
         return {ExplorerLedgerIssueStatus::DuplicateNativeKey, std::nullopt};
+    }
+    if (registration_cookie == 0 || subscription_generation == 0U) {
+        return {ExplorerLedgerIssueStatus::InvalidRegistrationAuthority,
+                std::nullopt};
     }
     if (controller_authority_ == 0U || session_authority_ == 0U) {
         return {ExplorerLedgerIssueStatus::AuthorityExhausted, std::nullopt};
@@ -146,9 +152,11 @@ ExplorerLedgerIssueResult ExplorerTokenLedger::issue(
 
     const ExplorerLedgerEntry entry{next_logical_id_,
                                     next_generation_,
-                                    native_key,
-                                    process_id,
-                                    thread_id};
+                                     native_key,
+                                     process_id,
+                                     thread_id,
+                                     registration_cookie,
+                                     subscription_generation};
     active_by_logical_id_.emplace(entry.logical_id, entry);
     logical_id_by_native_key_.emplace(entry.native_key, entry.logical_id);
     ++next_logical_id_;
@@ -225,6 +233,49 @@ bool operation_snapshot_matches_expected(
     const ExplorerWindowSnapshot& expected,
     const ExplorerWindowSnapshot& current) noexcept {
     return expected == current;
+}
+
+BaselineExclusionEvaluation evaluate_baseline_exclusion(
+    const std::span<const BaselineEntryModel> entries,
+    const std::span<const NativeWindowKey> previously_forbidden) {
+    BaselineExclusionEvaluation result;
+    result.status = BaselineExclusionStatus::Complete;
+    result.total_entry_count = entries.size();
+
+    std::set<NativeWindowKey> forbidden;
+    std::set<NativeWindowKey> reliable_baseline_hwnds;
+    for (const auto native_key : previously_forbidden) {
+        if (native_key != 0U) {
+            forbidden.insert(native_key);
+        }
+    }
+
+    for (const auto& entry : entries) {
+        switch (entry.location) {
+        case BaselineLocationDisposition::Valid:
+            ++result.valid_location_count;
+            break;
+        case BaselineLocationDisposition::Empty:
+            ++result.empty_location_count;
+            break;
+        case BaselineLocationDisposition::Inaccessible:
+            ++result.inaccessible_location_count;
+            break;
+        }
+
+        if (!entry.native_key_reliable || entry.native_key == 0U) {
+            result.status = BaselineExclusionStatus::Blocked;
+            continue;
+        }
+        ++result.reliable_entry_count;
+        reliable_baseline_hwnds.insert(entry.native_key);
+        forbidden.insert(entry.native_key);
+    }
+
+    result.reliable_hwnd_count = reliable_baseline_hwnds.size();
+    result.forbidden_preexisting_hwnds.assign(forbidden.begin(),
+                                               forbidden.end());
+    return result;
 }
 
 CandidateEvaluation evaluate_candidate_inventory(
@@ -321,6 +372,247 @@ CandidateEvaluation evaluate_candidate_inventory(
     result.reason = result.exact_unique_location
                         ? ExplorerEligibilityReason::Eligible
                         : ExplorerEligibilityReason::LocationMismatch;
+    return result;
+}
+
+ShellReceiptSequence::ShellReceiptSequence(
+    const std::uint64_t first_sequence) noexcept
+    : sequence_(first_sequence) {}
+
+ShellReceiptIssueResult ShellReceiptSequence::issue(
+    const ShellRegistrationEventKind kind,
+    const std::uint64_t subscription_generation,
+    const std::int32_t cookie) noexcept {
+    const auto sequence = sequence_.issue();
+    if (sequence == 0U) {
+        return {ShellReceiptIssueStatus::SequenceExhausted, std::nullopt};
+    }
+    return {ShellReceiptIssueStatus::Issued,
+            ShellRegistrationReceipt{
+                sequence, subscription_generation, cookie, kind}};
+}
+
+RegistrationCorrelationEvaluation evaluate_registration_correlation(
+    const RegistrationCorrelationContext& context,
+    const std::span<const RegistrationWitness> witnesses) {
+    RegistrationCorrelationEvaluation result;
+    result.observed_registration_count = witnesses.size();
+    if (witnesses.empty()) {
+        return result;
+    }
+
+    bool generation_mismatch = context.subscription_generation == 0U;
+    bool matching_registration_revoked = false;
+    bool preexisting_window = false;
+    bool three_way_window_mismatch = false;
+    bool target_location_mismatch = false;
+    std::vector<std::int32_t> matching_cookies;
+
+    for (const auto& witness : witnesses) {
+        if (witness.subscription_generation !=
+            context.subscription_generation) {
+            generation_mismatch = true;
+            continue;
+        }
+        if (witness.receipt_sequence == 0U || !witness.cookie_resolved) {
+            ++result.unresolved_registration_count;
+            continue;
+        }
+        if (!witness.canonical_com_identity_matches) {
+            const bool shares_target_window =
+                context.automation_window != 0U &&
+                context.automation_window ==
+                    context.live_eligibility_window &&
+                witness.cookie_resolved_window ==
+                    context.automation_window;
+            if (shares_target_window) {
+                ++result.shared_window_identity_conflict_count;
+            } else {
+                ++result.unrelated_registration_count;
+            }
+            continue;
+        }
+        if (witness.revoked_before_issuance) {
+            matching_registration_revoked = true;
+            continue;
+        }
+
+        const bool three_way_matches =
+            context.automation_window != 0U &&
+            context.automation_window == witness.cookie_resolved_window &&
+            context.automation_window == context.live_eligibility_window;
+        if (!three_way_matches) {
+            three_way_window_mismatch = true;
+            continue;
+        }
+        if (std::find(context.forbidden_preexisting_hwnds.begin(),
+                      context.forbidden_preexisting_hwnds.end(),
+                      context.automation_window) !=
+            context.forbidden_preexisting_hwnds.end()) {
+            preexisting_window = true;
+            continue;
+        }
+        if (!witness.live_filesystem_location.has_value() ||
+            *witness.live_filesystem_location !=
+                context.expected_target_location) {
+            target_location_mismatch = true;
+            continue;
+        }
+
+        if (std::find(matching_cookies.begin(),
+                      matching_cookies.end(),
+                      witness.cookie) == matching_cookies.end()) {
+            matching_cookies.push_back(witness.cookie);
+        }
+    }
+
+    result.matching_cookie_count = matching_cookies.size();
+    if (matching_cookies.size() == 1U) {
+        result.matching_cookie = matching_cookies.front();
+    }
+
+    if (generation_mismatch) {
+        result.status =
+            RegistrationCorrelationStatus::SubscriptionGenerationMismatch;
+        return result;
+    }
+    if (result.unresolved_registration_count != 0U) {
+        result.status =
+            RegistrationCorrelationStatus::UnresolvedRegistration;
+        return result;
+    }
+    if (result.shared_window_identity_conflict_count != 0U) {
+        result.status =
+            RegistrationCorrelationStatus::SharedWindowIdentityConflict;
+        return result;
+    }
+    if (matching_registration_revoked) {
+        result.status =
+            RegistrationCorrelationStatus::MatchingRegistrationRevoked;
+        return result;
+    }
+    if (preexisting_window) {
+        result.status = RegistrationCorrelationStatus::PreexistingWindow;
+        return result;
+    }
+    if (three_way_window_mismatch) {
+        result.status =
+            RegistrationCorrelationStatus::ThreeWayWindowMismatch;
+        return result;
+    }
+    if (target_location_mismatch) {
+        result.status =
+            RegistrationCorrelationStatus::TargetLocationMismatch;
+        return result;
+    }
+    if (matching_cookies.size() > 1U) {
+        result.status =
+            RegistrationCorrelationStatus::AmbiguousMatchingRegistrations;
+        return result;
+    }
+    if (matching_cookies.size() == 1U) {
+        result.status = RegistrationCorrelationStatus::Eligible;
+        return result;
+    }
+
+    result.status = RegistrationCorrelationStatus::UnrelatedRegistrationsOnly;
+    return result;
+}
+
+LeaseCleanupAuthorization evaluate_lease_cleanup_authorization(
+    const LeaseCleanupFacts& facts) noexcept {
+    if (!facts.retained_automation_object_available) {
+        return LeaseCleanupAuthorization::RetainedObjectUnavailable;
+    }
+    if (!facts.lease_belongs_to_current_session) {
+        return LeaseCleanupAuthorization::WrongSession;
+    }
+    if (!facts.created_by_current_cocreate) {
+        return LeaseCleanupAuthorization::WrongCreationAuthority;
+    }
+    if (!facts.subscription_generation_matches) {
+        return LeaseCleanupAuthorization::SubscriptionGenerationMismatch;
+    }
+    if (!facts.canonical_identity_available) {
+        return LeaseCleanupAuthorization::CanonicalIdentityUnavailable;
+    }
+    if (facts.canonical_identity_ambiguous) {
+        return LeaseCleanupAuthorization::CanonicalIdentityAmbiguous;
+    }
+    if (!facts.window_not_preexisting) {
+        return LeaseCleanupAuthorization::PreexistingWindow;
+    }
+    if (!facts.window_identity_matches) {
+        return LeaseCleanupAuthorization::WindowIdentityMismatch;
+    }
+    if (!facts.canonical_identity_matches) {
+        return LeaseCleanupAuthorization::CanonicalIdentityMismatch;
+    }
+    switch (facts.navigation) {
+    case LeaseNavigationDisposition::NotStarted:
+    case LeaseNavigationDisposition::PendingExpectedTarget:
+    case LeaseNavigationDisposition::ExactExpectedTarget:
+        return LeaseCleanupAuthorization::Authorized;
+    case LeaseNavigationDisposition::LeftExpectedTarget:
+    case LeaseNavigationDisposition::Unknown:
+        return LeaseCleanupAuthorization::NavigationUnsafe;
+    }
+    return LeaseCleanupAuthorization::NavigationUnsafe;
+}
+
+bool browser_navigation_history_ambiguous(
+    const std::uint64_t current_matching_navigate_complete_count,
+    const std::optional<std::uint64_t> issued_baseline_count) noexcept {
+    if (!issued_baseline_count.has_value()) {
+        return current_matching_navigate_complete_count > 1U;
+    }
+    return current_matching_navigate_complete_count >
+           *issued_baseline_count;
+}
+
+bool provisioning_attempt_passed(
+    const ProvisioningAttemptSummary& attempt) noexcept {
+    return attempt.baseline_exclusion_complete &&
+           attempt.registration_subscription_active &&
+           attempt.exactly_one_target &&
+           attempt.target_not_preexisting &&
+           attempt.matching_cookie_unique &&
+           attempt.canonical_identity_matches &&
+           attempt.three_way_window_matches &&
+           attempt.exact_target_location &&
+           attempt.full_eligibility_passed &&
+           attempt.safe_cleanup_succeeded &&
+           attempt.no_attributable_orphan &&
+           attempt.existing_windows_untouched &&
+           attempt.translation_not_attempted;
+}
+
+ProvisioningStabilityEvaluation evaluate_provisioning_stability(
+    const std::span<const ProvisioningAttemptSummary> attempts) noexcept {
+    constexpr std::size_t required_attempt_count = 3U;
+    ProvisioningStabilityEvaluation result;
+    result.attempt_count = attempts.size();
+    result.fixed_attempt_count_violated =
+        attempts.size() > required_attempt_count;
+
+    for (std::size_t index = 0; index < attempts.size(); ++index) {
+        if (attempts[index].attempt_index != index + 1U) {
+            result.attempt_sequence_valid = false;
+        }
+        if (provisioning_attempt_passed(attempts[index])) {
+            ++result.passing_attempt_count;
+        } else if (!result.first_failing_attempt.has_value()) {
+            result.first_failing_attempt = attempts[index].attempt_index;
+        }
+    }
+
+    if (result.first_failing_attempt.has_value() ||
+        result.fixed_attempt_count_violated ||
+        !result.attempt_sequence_valid) {
+        result.status = ProvisioningStabilityGateStatus::Blocked;
+    } else if (attempts.size() == required_attempt_count) {
+        result.status = ProvisioningStabilityGateStatus::Pass;
+    }
     return result;
 }
 
@@ -609,8 +901,20 @@ private:
         return "open_location";
     case QueryLocationIdentity:
         return "query_location_identity";
+    case SubscribeShellEvents:
+        return "subscribe_shell_events";
+    case ResolveRegistrationCookie:
+        return "resolve_registration_cookie";
+    case QueryCanonicalIdentity:
+        return "query_canonical_identity";
     case CreateBrowserWindow:
         return "create_browser_window";
+    case SubscribeBrowserEvents:
+        return "subscribe_browser_events";
+    case AwaitBrowserReadiness:
+        return "await_browser_readiness";
+    case UnsubscribeBrowserEvents:
+        return "unsubscribe_browser_events";
     case CreateTargetItem:
         return "create_target_item";
     case ReadTargetPidl:
@@ -657,8 +961,20 @@ private:
         return "CreateFileW";
     case QueryLocationIdentity:
         return "GetFileInformationByHandleEx(FileIdInfo)";
+    case SubscribeShellEvents:
+        return "IConnectionPoint::Advise(DShellWindowsEvents)";
+    case ResolveRegistrationCookie:
+        return "IShellWindows::FindWindowSW";
+    case QueryCanonicalIdentity:
+        return "IUnknown::QueryInterface(IID_IUnknown)";
     case CreateBrowserWindow:
         return "CoCreateInstance(CLSID_ShellBrowserWindow)";
+    case SubscribeBrowserEvents:
+        return "IConnectionPoint::Advise(DWebBrowserEvents2)";
+    case AwaitBrowserReadiness:
+        return "MsgWaitForMultipleObjectsEx";
+    case UnsubscribeBrowserEvents:
+        return "IConnectionPoint::Unadvise";
     case CreateTargetItem:
         return "SHCreateItemFromParsingName";
     case ReadTargetPidl:
@@ -688,163 +1004,6 @@ private:
             std::string{shell_stage_name(diagnostic.stage)}};
 }
 
-[[nodiscard]] bool location_identity_less(
-    const FilesystemLocationIdentity& left,
-    const FilesystemLocationIdentity& right) noexcept {
-    if (left.volume_serial_number != right.volume_serial_number) {
-        return left.volume_serial_number < right.volume_serial_number;
-    }
-    return std::lexicographical_compare(left.file_id.begin(),
-                                        left.file_id.end(),
-                                        right.file_id.begin(),
-                                        right.file_id.end());
-}
-
-[[nodiscard]] bool opaque_location_less(
-    const OpaqueLocationFingerprint& left,
-    const OpaqueLocationFingerprint& right) noexcept {
-    return std::lexicographical_compare(left.begin(),
-                                        left.end(),
-                                        right.begin(),
-                                        right.end());
-}
-
-[[nodiscard]] bool inventory_location_less(
-    const detail::InventoryLocationFingerprint& left,
-    const detail::InventoryLocationFingerprint& right) noexcept {
-    if (left.status != right.status) {
-        return static_cast<int>(left.status) < static_cast<int>(right.status);
-    }
-    if (left.source != right.source) {
-        return static_cast<int>(left.source) < static_cast<int>(right.source);
-    }
-    if (left.filesystem_location.has_value() !=
-        right.filesystem_location.has_value()) {
-        return !left.filesystem_location.has_value();
-    }
-    if (left.filesystem_location.has_value() &&
-        *left.filesystem_location != *right.filesystem_location) {
-        return location_identity_less(*left.filesystem_location,
-                                      *right.filesystem_location);
-    }
-    if (left.opaque_location.has_value() !=
-        right.opaque_location.has_value()) {
-        return !left.opaque_location.has_value();
-    }
-    return left.opaque_location.has_value() &&
-           *left.opaque_location != *right.opaque_location &&
-           opaque_location_less(*left.opaque_location,
-                                *right.opaque_location);
-}
-
-[[nodiscard]] detail::InventoryModel inventory_model(
-    const ShellWindowInventory& inventory) {
-    detail::InventoryModel model;
-    model.complete = inventory.complete;
-    model.windows.reserve(inventory.windows.size());
-    for (const auto& native_window : inventory.windows) {
-        detail::InventoryFingerprint fingerprint;
-        fingerprint.native_key = reinterpret_cast<detail::NativeWindowKey>(
-            native_window.window);
-        fingerprint.shell_entry_count = native_window.shell_entry_count;
-        fingerprint.locations.reserve(native_window.locations.size());
-        for (const auto& location : native_window.locations) {
-            detail::InventoryLocationFingerprint location_fingerprint;
-            location_fingerprint.status = location.status;
-            location_fingerprint.source = location.source;
-            location_fingerprint.filesystem_location = location.identity;
-            location_fingerprint.opaque_location =
-                location.opaque_fingerprint;
-            fingerprint.locations.push_back(std::move(location_fingerprint));
-        }
-        std::sort(fingerprint.locations.begin(),
-                  fingerprint.locations.end(),
-                  inventory_location_less);
-        model.windows.push_back(std::move(fingerprint));
-    }
-    std::sort(model.windows.begin(),
-              model.windows.end(),
-              [](const detail::InventoryFingerprint& left,
-                 const detail::InventoryFingerprint& right) {
-                  return left.native_key < right.native_key;
-              });
-    return model;
-}
-
-[[nodiscard]] bool inventory_navigation_pending(
-    const detail::InventoryModel& inventory) noexcept {
-    return std::any_of(
-        inventory.windows.begin(),
-        inventory.windows.end(),
-        [](const detail::InventoryFingerprint& window) {
-            return std::any_of(
-                window.locations.begin(),
-                window.locations.end(),
-                [](const detail::InventoryLocationFingerprint& location) {
-                    return location.status ==
-                           ShellLocationStatus::NavigationPending;
-                });
-        });
-}
-
-[[nodiscard]] bool inventory_locations_fully_fingerprinted(
-    const detail::InventoryModel& inventory) noexcept {
-    return std::all_of(
-        inventory.windows.begin(),
-        inventory.windows.end(),
-        [](const detail::InventoryFingerprint& window) {
-            return window.shell_entry_count != 0U &&
-                   window.locations.size() == window.shell_entry_count &&
-                   std::all_of(
-                       window.locations.begin(),
-                       window.locations.end(),
-                       [](const detail::InventoryLocationFingerprint& location) {
-                           return inventory_location_has_witness(location);
-                       });
-        });
-}
-
-struct StableInventoryResult {
-    ExplorerEligibilityReason reason{
-        ExplorerEligibilityReason::InventoryUnavailable};
-    std::optional<detail::InventoryModel> model;
-    std::optional<ExplorerDiagnostic> diagnostic;
-};
-
-[[nodiscard]] StableInventoryResult capture_stable_inventory(
-    const std::chrono::milliseconds timeout) {
-    const auto deadline = std::chrono::steady_clock::now() + timeout;
-    std::optional<detail::InventoryModel> prior;
-    do {
-        const auto native = capture_shell_window_inventory();
-        const auto current = inventory_model(native);
-        if (current.complete && !inventory_navigation_pending(current) &&
-            inventory_locations_fully_fingerprinted(current)) {
-            if (prior.has_value() && *prior == current) {
-                return {ExplorerEligibilityReason::Eligible,
-                        current,
-                        std::nullopt};
-            }
-            prior = current;
-        } else {
-            prior.reset();
-        }
-        if (std::chrono::steady_clock::now() >= deadline) {
-            std::optional<ExplorerDiagnostic> diagnostic;
-            if (!native.issues.empty()) {
-                diagnostic = shell_diagnostic(
-                    native.issues.front(),
-                    "Shell inventory never became complete and stable");
-            }
-            return {prior.has_value()
-                        ? ExplorerEligibilityReason::InventoryUnstable
-                        : ExplorerEligibilityReason::InventoryUnavailable,
-                    std::nullopt,
-                    std::move(diagnostic)};
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds{40});
-    } while (true);
-}
 
 [[nodiscard]] bool ordinal_path_equal(const std::wstring& left,
                                       const std::wstring& right) noexcept {
@@ -1115,8 +1274,26 @@ struct ExplorerTestSession::Impl final {
     DWORD controller_thread_id{};
     std::filesystem::path target_directory;
     FilesystemLocationIdentity target_location;
-    detail::InventoryModel baseline_inventory;
-    std::unique_ptr<RetainedExplorerShellWindow> retained_window;
+    std::vector<detail::NativeWindowKey> forbidden_preexisting_hwnds;
+    std::unique_ptr<ShellWindowsSubscription> shell_subscription;
+    std::unique_ptr<ExplorerProvisioningLease> provisioning_lease;
+    std::set<long> registered_cookies;
+    std::set<long> revoked_cookies;
+    std::set<long> unresolved_cookies;
+    std::set<long> unrelated_cookies;
+    std::map<long, detail::NativeWindowKey> unrelated_cookie_hwnds;
+    std::set<long> shared_window_identity_conflict_cookies;
+    std::set<long> matching_cookies;
+    std::map<long, detail::NativeWindowKey> matching_cookie_hwnds;
+    std::optional<long> matching_cookie;
+    std::uint64_t shell_subscription_generation{};
+    detail::LeaseNavigationDisposition navigation{
+        detail::LeaseNavigationDisposition::NotStarted};
+    bool matching_registration_revoked{};
+    bool receipt_generation_mismatch{};
+    bool cookie_lifecycle_ambiguous{};
+    std::uint64_t issued_matching_navigate_complete_count{};
+    bool browser_navigation_history_ambiguous{};
     HWND window{};
     UniqueHandle process;
     DWORD process_id{};
@@ -1141,13 +1318,57 @@ struct ExplorerTestSession::Impl final {
         const bool on_owner_sta =
             GetCurrentThreadId() == controller_thread_id;
         if (on_owner_sta) {
-            retained_window.reset();
+            bool lifecycle_safe = true;
+            if (provisioning_lease != nullptr) {
+                const auto before =
+                    provisioning_lease->browser_readiness_facts();
+                static_cast<void>(
+                    provisioning_lease->close_browser_events());
+                const auto after =
+                    provisioning_lease->browser_readiness_facts();
+                const bool browser_lifecycle_clean =
+                    after.unadvised && after.malformed_count == 0U &&
+                    after.overflow_count == 0U &&
+                    after.wrong_thread_count == 0U &&
+                    after.post_retirement_count == 0U &&
+                    after.identity_query_failure_count == 0U;
+                const bool browser_safe =
+                    !before.subscribed || browser_lifecycle_clean;
+                provisioning.cleanup.browser_events_unadvised =
+                    after.unadvised;
+                provisioning.cleanup.browser_event_lifecycle_clean =
+                    browser_lifecycle_clean;
+                lifecycle_safe = lifecycle_safe && browser_safe;
+            }
+            if (shell_subscription != nullptr) {
+                static_cast<void>(shell_subscription->close());
+                const auto after = shell_subscription->facts();
+                const bool shell_lifecycle_clean =
+                    after.unadvised && after.malformed_count == 0U &&
+                    after.overflow_count == 0U &&
+                    after.wrong_thread_count == 0U &&
+                    after.post_retirement_count == 0U;
+                provisioning.cleanup.shell_events_unadvised =
+                    after.unadvised;
+                provisioning.cleanup.shell_event_lifecycle_clean =
+                    shell_lifecycle_clean;
+                lifecycle_safe = lifecycle_safe && shell_lifecycle_clean;
+            }
+            if (lifecycle_safe) {
+                provisioning_lease.reset();
+                shell_subscription.reset();
+            } else {
+                // A still-advised STA sink must outlive its wrapper and COM
+                // apartment. Leaking the exact fixture objects is the
+                // fail-safe path; it never authorizes a fallback close.
+                static_cast<void>(provisioning_lease.release());
+                static_cast<void>(shell_subscription.release());
+                com_initialized = false;
+            }
         } else {
-            // IWebBrowser2 is an STA proxy. Calling Release (or Quit) from an
-            // arbitrary destructor thread is less safe than leaking this one
-            // test-fixture proxy. The public contract requires owner-STA
-            // destruction; this branch is the fail-safe violation path.
-            static_cast<void>(retained_window.release());
+            static_cast<void>(provisioning_lease.release());
+            static_cast<void>(shell_subscription.release());
+            com_initialized = false;
         }
         process.reset();
         if (com_initialized && on_owner_sta) {
@@ -1164,6 +1385,349 @@ struct NativeValidationResult {
     std::optional<ExplorerWindowSnapshot> snapshot;
     std::optional<ExplorerDiagnostic> diagnostic;
 };
+
+enum class OwnerStaPumpStatus {
+    ActivityDispatched,
+    NoPendingMessage,
+    TimedOut,
+    QuitObserved,
+    Failed,
+};
+
+struct OwnerStaPumpResult {
+    OwnerStaPumpStatus status{OwnerStaPumpStatus::Failed};
+    HRESULT diagnostic{E_FAIL};
+};
+
+[[nodiscard]] OwnerStaPumpResult pump_owner_sta_once(
+    const std::chrono::steady_clock::time_point deadline) noexcept {
+    const auto now = std::chrono::steady_clock::now();
+    if (now >= deadline) {
+        return {OwnerStaPumpStatus::TimedOut,
+                HRESULT_FROM_WIN32(ERROR_TIMEOUT)};
+    }
+    const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(
+        deadline - now);
+    const auto bounded = std::clamp<std::int64_t>(
+        remaining.count() + 1, 1, std::numeric_limits<DWORD>::max() - 1);
+    const DWORD wait_result = MsgWaitForMultipleObjectsEx(
+        0U,
+        nullptr,
+        static_cast<DWORD>(bounded),
+        QS_ALLINPUT,
+        MWMO_INPUTAVAILABLE | MWMO_ALERTABLE);
+    if (wait_result == WAIT_TIMEOUT) {
+        return {OwnerStaPumpStatus::TimedOut,
+                HRESULT_FROM_WIN32(ERROR_TIMEOUT)};
+    }
+    if (wait_result == WAIT_FAILED) {
+        return {OwnerStaPumpStatus::Failed,
+                HRESULT_FROM_WIN32(GetLastError())};
+    }
+    if (wait_result == WAIT_IO_COMPLETION) {
+        return {OwnerStaPumpStatus::ActivityDispatched, S_OK};
+    }
+
+    MSG message{};
+    if (PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) == FALSE) {
+        return {OwnerStaPumpStatus::ActivityDispatched, S_OK};
+    }
+    if (message.message == WM_QUIT) {
+        PostQuitMessage(static_cast<int>(message.wParam));
+        return {OwnerStaPumpStatus::QuitObserved,
+                HRESULT_FROM_WIN32(ERROR_CANCELLED)};
+    }
+    static_cast<void>(TranslateMessage(&message));
+    static_cast<void>(DispatchMessageW(&message));
+    return {OwnerStaPumpStatus::ActivityDispatched, S_OK};
+}
+
+[[nodiscard]] OwnerStaPumpResult dispatch_one_pending_owner_message()
+    noexcept {
+    MSG message{};
+    if (PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) == FALSE) {
+        return {OwnerStaPumpStatus::NoPendingMessage, S_FALSE};
+    }
+    if (message.message == WM_QUIT) {
+        PostQuitMessage(static_cast<int>(message.wParam));
+        return {OwnerStaPumpStatus::QuitObserved,
+                HRESULT_FROM_WIN32(ERROR_CANCELLED)};
+    }
+    static_cast<void>(TranslateMessage(&message));
+    static_cast<void>(DispatchMessageW(&message));
+    return {OwnerStaPumpStatus::ActivityDispatched, S_OK};
+}
+
+[[nodiscard]] detail::LeaseNavigationDisposition advance_navigation_state(
+    const detail::LeaseNavigationDisposition current,
+    const ShellLocationFact& location,
+    const FilesystemLocationIdentity& expected) noexcept {
+    if (current == detail::LeaseNavigationDisposition::LeftExpectedTarget ||
+        current == detail::LeaseNavigationDisposition::Unknown) {
+        return current;
+    }
+    if (location.filesystem()) {
+        return location.identity == expected
+                   ? detail::LeaseNavigationDisposition::ExactExpectedTarget
+                   : detail::LeaseNavigationDisposition::LeftExpectedTarget;
+    }
+    if (location.status == ShellLocationStatus::NavigationPending ||
+        location.status == ShellLocationStatus::Empty) {
+        return current ==
+                       detail::LeaseNavigationDisposition::ExactExpectedTarget
+                   ? detail::LeaseNavigationDisposition::Unknown
+                   : detail::LeaseNavigationDisposition::
+                         PendingExpectedTarget;
+    }
+    return detail::LeaseNavigationDisposition::Unknown;
+}
+
+template <typename ImplType>
+[[nodiscard]] bool forbidden_preexisting(
+    const ImplType& impl,
+    const detail::NativeWindowKey native_key) noexcept {
+    return std::find(impl.forbidden_preexisting_hwnds.begin(),
+                     impl.forbidden_preexisting_hwnds.end(),
+                     native_key) != impl.forbidden_preexisting_hwnds.end();
+}
+
+template <typename ImplType>
+void copy_event_facts(ImplType& impl) noexcept {
+    if (impl.shell_subscription != nullptr) {
+        const auto facts = impl.shell_subscription->facts();
+        impl.provisioning.shell_subscription_advised = facts.subscribed;
+        impl.provisioning.shell_subscription_generation =
+            facts.subscription_generation;
+        impl.provisioning.shell_callback_count = facts.callback_count;
+        impl.provisioning.shell_malformed_event_count = facts.malformed_count;
+        impl.provisioning.shell_overflow_event_count = facts.overflow_count;
+        impl.provisioning.shell_wrong_thread_event_count =
+            facts.wrong_thread_count;
+        impl.provisioning.shell_post_retirement_event_count =
+            facts.post_retirement_count;
+    }
+    if (impl.provisioning_lease != nullptr) {
+        const auto facts =
+            impl.provisioning_lease->browser_readiness_facts();
+        impl.provisioning.browser_subscription_advised = facts.subscribed;
+        impl.provisioning.browser_navigate_complete_count =
+            facts.navigate_complete_count;
+        impl.provisioning.browser_matching_navigate_complete_count =
+            facts.matching_navigate_complete_count;
+        impl.provisioning.browser_unrelated_navigate_complete_count =
+            facts.unrelated_navigate_complete_count;
+        impl.provisioning.browser_identity_query_failure_count =
+            facts.identity_query_failure_count;
+        impl.provisioning.browser_quit_event_count = facts.quit_count;
+        impl.provisioning.browser_malformed_event_count = facts.malformed_count;
+        impl.provisioning.browser_overflow_event_count = facts.overflow_count;
+        impl.provisioning.browser_wrong_thread_event_count =
+            facts.wrong_thread_count;
+        impl.provisioning.browser_post_retirement_event_count =
+            facts.post_retirement_count;
+    }
+}
+
+template <typename ImplType>
+[[nodiscard]] bool event_streams_healthy(
+    const ImplType& impl) noexcept {
+    if (impl.shell_subscription == nullptr ||
+        impl.provisioning_lease == nullptr) {
+        return false;
+    }
+    const auto shell = impl.shell_subscription->facts();
+    const auto browser = impl.provisioning_lease->browser_readiness_facts();
+    return shell.subscribed && shell.accepting &&
+           shell.subscription_generation ==
+               impl.shell_subscription_generation &&
+           !impl.receipt_generation_mismatch &&
+           !impl.cookie_lifecycle_ambiguous &&
+           shell.malformed_count == 0U && shell.overflow_count == 0U &&
+           shell.wrong_thread_count == 0U &&
+           shell.post_retirement_count == 0U && browser.subscribed &&
+           browser.accepting && browser.subscription_diagnostic == S_OK &&
+           browser.malformed_count == 0U && browser.overflow_count == 0U &&
+           browser.wrong_thread_count == 0U &&
+           browser.post_retirement_count == 0U &&
+           browser.identity_query_failure_count == 0U &&
+           browser.quit_count == 0U;
+}
+
+template <typename ImplType>
+void resolve_registration_cookie(ImplType& impl,
+                                 const long cookie) {
+    if (impl.shell_subscription == nullptr ||
+        impl.provisioning_lease == nullptr || cookie == 0L) {
+        impl.unresolved_cookies.insert(cookie);
+        return;
+    }
+    auto resolution = impl.shell_subscription->resolve_cookie(cookie);
+    if (!resolution.succeeded()) {
+        impl.unresolved_cookies.insert(cookie);
+        return;
+    }
+    impl.unresolved_cookies.erase(cookie);
+    const auto native_key = reinterpret_cast<detail::NativeWindowKey>(
+        resolution.resolved.window());
+    if (resolution.resolved.same_object(*impl.provisioning_lease)) {
+        const auto prior_matching =
+            impl.matching_cookie_hwnds.find(cookie);
+        if (impl.unrelated_cookies.contains(cookie) ||
+            (prior_matching != impl.matching_cookie_hwnds.end() &&
+             prior_matching->second != native_key)) {
+            impl.cookie_lifecycle_ambiguous = true;
+            impl.provisioning_lease->mark_identity_ambiguous();
+            return;
+        }
+        impl.matching_cookies.insert(cookie);
+        impl.matching_cookie_hwnds[cookie] = native_key;
+        if (impl.revoked_cookies.contains(cookie)) {
+            impl.matching_registration_revoked = true;
+        }
+        if (impl.matching_cookies.size() > 1U) {
+            impl.provisioning_lease->mark_identity_ambiguous();
+        }
+        return;
+    }
+    const auto prior_unrelated = impl.unrelated_cookie_hwnds.find(cookie);
+    if (impl.matching_cookies.contains(cookie) ||
+        (prior_unrelated != impl.unrelated_cookie_hwnds.end() &&
+         prior_unrelated->second != native_key)) {
+        impl.cookie_lifecycle_ambiguous = true;
+        impl.provisioning_lease->mark_identity_ambiguous();
+        return;
+    }
+    impl.unrelated_cookies.insert(cookie);
+    impl.unrelated_cookie_hwnds[cookie] = native_key;
+}
+
+template <typename ImplType>
+void refresh_registration_state(ImplType& impl) {
+    if (impl.provisioning_lease != nullptr) {
+        const auto before =
+            impl.provisioning_lease->browser_readiness_facts();
+        static_cast<void>(impl.provisioning_lease->wait_for_browser_activity(
+            before.latest_sequence, std::chrono::steady_clock::now()));
+    }
+
+    if (impl.shell_subscription != nullptr) {
+        const auto receipts = impl.shell_subscription->take_receipts();
+        for (const auto& receipt : receipts) {
+            if (receipt.subscription_generation !=
+                impl.shell_subscription_generation) {
+                impl.receipt_generation_mismatch = true;
+                continue;
+            }
+            if (receipt.kind == ShellWindowReceiptKind::Registered) {
+                ++impl.provisioning.shell_registered_event_count;
+                if (impl.registered_cookies.contains(receipt.cookie)) {
+                    if (impl.revoked_cookies.contains(receipt.cookie)) {
+                        // Re-registration after revoke is cookie lifecycle
+                        // reuse, not a duplicate live receipt. Never refresh
+                        // authority across that boundary.
+                        impl.cookie_lifecycle_ambiguous = true;
+                        impl.provisioning_lease->mark_identity_ambiguous();
+                    } else {
+                        resolve_registration_cookie(impl, receipt.cookie);
+                    }
+                    continue;
+                }
+                impl.registered_cookies.insert(receipt.cookie);
+                resolve_registration_cookie(impl, receipt.cookie);
+            } else {
+                ++impl.provisioning.shell_revoked_event_count;
+                impl.revoked_cookies.insert(receipt.cookie);
+                if (impl.matching_cookies.contains(receipt.cookie)) {
+                    impl.matching_registration_revoked = true;
+                }
+            }
+        }
+        const std::vector<long> retry(impl.unresolved_cookies.begin(),
+                                      impl.unresolved_cookies.end());
+        for (const long cookie : retry) {
+            if (!impl.revoked_cookies.contains(cookie)) {
+                resolve_registration_cookie(impl, cookie);
+            }
+        }
+    }
+
+    const auto lease_handle = impl.provisioning_lease == nullptr
+                                  ? ShellWindowHandleResult{}
+                                  : impl.provisioning_lease->current_hwnd();
+    const auto lease_key = lease_handle.succeeded()
+                               ? reinterpret_cast<detail::NativeWindowKey>(
+                                     lease_handle.window)
+                               : 0U;
+    impl.provisioning.lease_hwnd_resolved =
+        impl.provisioning.lease_hwnd_resolved || lease_key != 0U;
+    if (lease_key != 0U) {
+        for (const auto& [cookie, unrelated_key] :
+             impl.unrelated_cookie_hwnds) {
+            if (unrelated_key == lease_key) {
+                impl.shared_window_identity_conflict_cookies.insert(cookie);
+                impl.provisioning_lease->mark_identity_ambiguous();
+            }
+        }
+    }
+
+    impl.matching_cookie = impl.matching_cookies.size() == 1U
+                               ? std::optional<long>{
+                                     *impl.matching_cookies.begin()}
+                               : std::nullopt;
+    impl.provisioning.registered_cookie_count =
+        impl.registered_cookies.size();
+    impl.provisioning.revoked_cookie_count = impl.revoked_cookies.size();
+    impl.provisioning.unrelated_registration_count =
+        impl.unrelated_cookies.size();
+    impl.provisioning.unresolved_registration_count =
+        impl.unresolved_cookies.size();
+    impl.provisioning.shared_window_identity_conflict_count =
+        impl.shared_window_identity_conflict_cookies.size();
+    impl.provisioning.matching_registration_count =
+        impl.matching_cookies.size();
+    impl.provisioning.shell_subscription_generation_mismatch =
+        impl.receipt_generation_mismatch;
+    impl.provisioning.shell_cookie_lifecycle_ambiguous =
+        impl.cookie_lifecycle_ambiguous;
+    impl.provisioning.matching_cookie = impl.matching_cookie.has_value()
+                                            ? std::optional<std::int32_t>{
+                                                  *impl.matching_cookie}
+                                            : std::nullopt;
+    copy_event_facts(impl);
+    const auto issued_navigation_baseline =
+        impl.provisioning.token_issued
+            ? std::optional<std::uint64_t>{
+                  impl.issued_matching_navigate_complete_count}
+            : std::nullopt;
+    if (detail::browser_navigation_history_ambiguous(
+            impl.provisioning.browser_matching_navigate_complete_count,
+            issued_navigation_baseline)) {
+        impl.browser_navigation_history_ambiguous = true;
+        impl.provisioning.browser_navigation_history_ambiguous = true;
+        impl.navigation = detail::LeaseNavigationDisposition::Unknown;
+    }
+}
+
+template <typename ImplType>
+[[nodiscard]] bool drain_pending_event_messages(ImplType& impl) {
+    constexpr std::size_t message_budget = 256U;
+    refresh_registration_state(impl);
+    for (std::size_t dispatched = 0U; dispatched < message_budget;
+         ++dispatched) {
+        const auto pump = dispatch_one_pending_owner_message();
+        if (pump.status == OwnerStaPumpStatus::NoPendingMessage) {
+            return true;
+        }
+        if (pump.status != OwnerStaPumpStatus::ActivityDispatched) {
+            return false;
+        }
+        // Re-evaluate both event streams after each dispatched message. This
+        // avoids letting one connection-point stream consume the wait budget
+        // while evidence from the other stream is already available.
+        refresh_registration_state(impl);
+    }
+    return false;
+}
 
 [[nodiscard]] std::optional<core::geometry::Rect> checked_native_rect(
     const RECT& rect) noexcept {
@@ -1191,19 +1755,6 @@ struct NativeValidationResult {
     return class_name == L"CabinetWClass" || class_name == L"ExploreWClass";
 }
 
-[[nodiscard]] bool exact_shell_location(
-    const ShellWindowInventory& inventory,
-    const HWND window,
-    const FilesystemLocationIdentity& target) noexcept {
-    if (!inventory.complete) {
-        return false;
-    }
-    const auto* entry = inventory.find(window);
-    return entry != nullptr && entry->shell_entry_count == 1U &&
-           entry->locations.size() == 1U &&
-           entry->locations.front().filesystem() &&
-           *entry->locations.front().identity == target;
-}
 
 [[nodiscard]] bool same_snapshot_size(
     const core::geometry::Rect& first,
@@ -1233,15 +1784,22 @@ template <typename ImplType>
                                    "ExplorerTestSession",
                                    "session used outside its provisioning STA")};
     }
-    if (token != nullptr && !impl.ledger.contains(*token)) {
-        return {ExplorerEligibilityReason::StaleToken,
-                std::nullopt,
-                adapter_diagnostic(1101U,
-                                   "ExplorerTokenLedger",
-                                   "token is not active in this Explorer session")};
+    std::optional<detail::ExplorerLedgerEntry> ledger_entry;
+    if (token != nullptr) {
+        ledger_entry = impl.ledger.resolve(*token);
+        if (!ledger_entry.has_value()) {
+            return {ExplorerEligibilityReason::StaleToken,
+                    std::nullopt,
+                    adapter_diagnostic(
+                        1101U,
+                        "ExplorerTokenLedger",
+                        "token is not active in this Explorer session")};
+        }
     }
     if (impl.closing || impl.window == nullptr ||
-        impl.retained_window == nullptr) {
+        impl.provisioning_lease == nullptr ||
+        impl.shell_subscription == nullptr ||
+        !impl.matching_cookie.has_value()) {
         return {ExplorerEligibilityReason::StaleToken,
                 std::nullopt,
                 adapter_diagnostic(1102U,
@@ -1249,19 +1807,143 @@ template <typename ImplType>
                                    "Explorer session is retired or closing")};
     }
 
-    const auto retained_handle = impl.retained_window->current_hwnd();
-    if (!retained_handle.succeeded() || retained_handle.window != impl.window) {
+    if (!drain_pending_event_messages(impl)) {
+        return {ExplorerEligibilityReason::ShellEventStreamInvalid,
+                std::nullopt,
+                adapter_diagnostic(1103U,
+                                   "Explorer owner STA message queue",
+                                   "queued event messages could not be drained within the bounded preflight budget")};
+    }
+    if (!event_streams_healthy(impl)) {
+        return {ExplorerEligibilityReason::ShellEventStreamInvalid,
+                std::nullopt,
+                adapter_diagnostic(1103U,
+                                   "Explorer event subscriptions",
+                                   "Shell or browser event evidence is malformed, overflowed, retired, or unavailable")};
+    }
+    if (impl.browser_navigation_history_ambiguous) {
+        return {ExplorerEligibilityReason::TargetInvalidated,
+                std::nullopt,
+                adapter_diagnostic(1112U,
+                                   "DWebBrowserEvents2::NavigateComplete2",
+                                   "same-object navigation history changed beyond the frozen issuance evidence")};
+    }
+    if (!impl.unresolved_cookies.empty()) {
+        return {ExplorerEligibilityReason::RegistrationResolutionFailed,
+                std::nullopt,
+                adapter_diagnostic(1104U,
+                                   "IShellWindows::FindWindowSW",
+                                   "an additional registration remains unresolved, so target uniqueness is unproven")};
+    }
+    if (impl.shared_window_identity_conflict_cookies.size() != 0U ||
+        impl.matching_cookies.size() > 1U ||
+        impl.provisioning_lease->facts().identity_ambiguous) {
+        return {ExplorerEligibilityReason::AmbiguousCandidate,
+                std::nullopt,
+                adapter_diagnostic(1105U,
+                                   "Explorer registration correlation",
+                                   "multiple matching cookies or a shared-HWND COM identity conflict invalidated authority")};
+    }
+    if (impl.matching_registration_revoked ||
+        impl.revoked_cookies.contains(*impl.matching_cookie)) {
+        return {ExplorerEligibilityReason::RegistrationRevoked,
+                std::nullopt,
+                adapter_diagnostic(1106U,
+                                   "DShellWindowsEvents::WindowRevoked",
+                                   "matching Explorer registration was revoked")};
+    }
+    if (ledger_entry.has_value() &&
+        (ledger_entry->registration_cookie != *impl.matching_cookie ||
+         ledger_entry->subscription_generation !=
+             impl.shell_subscription_generation)) {
+        return {ExplorerEligibilityReason::SubscriptionGenerationMismatch,
+                std::nullopt,
+                adapter_diagnostic(1107U,
+                                   "ExplorerTokenLedger",
+                                   "token cookie or subscription generation is stale")};
+    }
+
+    auto resolved =
+        impl.shell_subscription->resolve_cookie(*impl.matching_cookie);
+    if (!resolved.succeeded()) {
+        return {ExplorerEligibilityReason::RegistrationResolutionFailed,
+                std::nullopt,
+                resolved.diagnostic.has_value()
+                    ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                          *resolved.diagnostic,
+                          "matching registration cookie no longer resolves")}
+                    : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                          1108U,
+                          "IShellWindows::FindWindowSW",
+                          "matching registration cookie returned no window")}};
+    }
+    impl.provisioning.matching_cookie_find_window_resolved = true;
+    impl.provisioning.cookie_hwnd_resolved =
+        impl.provisioning.cookie_hwnd_resolved ||
+        resolved.resolved.window() != nullptr;
+    if (!resolved.resolved.same_object(*impl.provisioning_lease)) {
+        if (resolved.resolved.window() == impl.window) {
+            impl.provisioning_lease->mark_identity_ambiguous();
+        }
+        return {ExplorerEligibilityReason::CanonicalIdentityMismatch,
+                std::nullopt,
+                adapter_diagnostic(1109U,
+                                   "IUnknown identity",
+                                   "cookie-resolved dispatch is not the provisioning lease object")};
+    }
+    impl.provisioning.canonical_iunknown_identity_matches = true;
+
+    const auto lease_handle = impl.provisioning_lease->current_hwnd();
+    impl.provisioning.lease_hwnd_resolved =
+        impl.provisioning.lease_hwnd_resolved || lease_handle.succeeded();
+    const bool live_eligibility_hwnd_resolved =
+        impl.window != nullptr && IsWindow(impl.window) != FALSE;
+    impl.provisioning.live_eligibility_hwnd_resolved =
+        impl.provisioning.live_eligibility_hwnd_resolved ||
+        live_eligibility_hwnd_resolved;
+    const bool three_way_hwnd_matches =
+        lease_handle.succeeded() && lease_handle.window == impl.window &&
+        resolved.resolved.window() == impl.window;
+    impl.provisioning.lease_cookie_live_hwnd_match =
+        impl.provisioning.lease_cookie_live_hwnd_match ||
+        three_way_hwnd_matches;
+    if (!three_way_hwnd_matches) {
         return {ExplorerEligibilityReason::WindowDestroyed,
                 std::nullopt,
-                retained_handle.diagnostic.has_value()
+                lease_handle.diagnostic.has_value()
                     ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
-                          *retained_handle.diagnostic,
-                          "retained Shell object no longer identifies the target")}
+                          *lease_handle.diagnostic,
+                          "lease, cookie, and live eligibility HWND no longer agree")}
                     : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
-                          1103U,
-                          "IWebBrowser2::HWND",
-                          "retained Shell HWND changed")}};
+                          1110U,
+                          "Explorer HWND correlation",
+                          "lease, cookie, and live eligibility HWND do not agree")}};
     }
+    const auto native_key = reinterpret_cast<detail::NativeWindowKey>(
+        impl.window);
+    const bool current_target_preexisting =
+        forbidden_preexisting(impl, native_key);
+    impl.provisioning.target_hwnd_preexisting =
+        impl.provisioning.target_hwnd_preexisting ||
+        current_target_preexisting;
+    if (current_target_preexisting) {
+        return {ExplorerEligibilityReason::PreexistingWindow,
+                std::nullopt,
+                adapter_diagnostic(1111U,
+                                   "Explorer baseline exclusion",
+                                   "matching object uses a permanently forbidden baseline HWND")};
+    }
+
+    const auto live_location = impl.provisioning_lease->current_location();
+    const bool current_exact_target_location =
+        live_location.filesystem() &&
+        live_location.identity == impl.target_location;
+    impl.provisioning.exact_target_location =
+        impl.provisioning.exact_target_location ||
+        current_exact_target_location;
+    impl.navigation = advance_navigation_state(impl.navigation,
+                                               live_location,
+                                               impl.target_location);
 
     detail::EligibilityModelFacts facts{};
     facts.window_exists = IsWindow(impl.window) != FALSE;
@@ -1369,19 +2051,11 @@ template <typename ImplType>
         }
     }
 
-    const auto shell_inventory = capture_shell_window_inventory();
-    const auto* shell_entry = shell_inventory.find(impl.window);
-    facts.shell_entry_unique =
-        shell_inventory.complete && shell_entry != nullptr &&
-        shell_entry->shell_entry_count == 1U &&
-        shell_entry->locations.size() == 1U;
-    const auto retained_location = impl.retained_window->current_location();
+    facts.shell_entry_unique = impl.matching_cookies.size() == 1U;
     facts.location_exact =
-        exact_shell_location(shell_inventory,
-                             impl.window,
-                             impl.target_location) &&
-        retained_location.filesystem() &&
-        retained_location.identity == impl.target_location;
+        current_exact_target_location &&
+        impl.navigation ==
+            detail::LeaseNavigationDisposition::ExactExpectedTarget;
 
     RECT positioning_native{};
     RECT visible_native{};
@@ -1512,6 +2186,7 @@ template <typename ImplType>
         return ExplorerEligibilityReason::GenerationExhausted;
     case detail::ExplorerLedgerIssueStatus::InvalidNativeKey:
     case detail::ExplorerLedgerIssueStatus::DuplicateNativeKey:
+    case detail::ExplorerLedgerIssueStatus::InvalidRegistrationAuthority:
         return ExplorerEligibilityReason::TargetInvalidated;
     }
     return ExplorerEligibilityReason::TargetInvalidated;
@@ -1534,6 +2209,284 @@ template <typename ImplType>
         retire_target(impl);
     }
     return validation;
+}
+
+[[nodiscard]] std::vector<detail::BaselineEntryModel>
+expand_baseline_entries(const ShellWindowInventory& inventory) {
+    std::vector<detail::BaselineEntryModel> entries;
+    if (inventory.reported_entry_count > 0) {
+        entries.reserve(
+            static_cast<std::size_t>(inventory.reported_entry_count));
+    }
+    for (const auto& window : inventory.windows) {
+        const auto native_key = reinterpret_cast<detail::NativeWindowKey>(
+            window.window);
+        for (std::size_t index = 0U; index < window.shell_entry_count;
+             ++index) {
+            detail::BaselineLocationDisposition disposition =
+                detail::BaselineLocationDisposition::Inaccessible;
+            if (index < window.locations.size()) {
+                disposition = window.locations[index].status ==
+                                      ShellLocationStatus::Empty
+                                  ? detail::BaselineLocationDisposition::Empty
+                                  : (window.locations[index].filesystem()
+                                         ? detail::BaselineLocationDisposition::
+                                               Valid
+                                         : detail::BaselineLocationDisposition::
+                                               Inaccessible);
+            }
+            entries.push_back(
+                {native_key, native_key != 0U, disposition});
+        }
+    }
+    const auto reported = inventory.reported_entry_count < 0
+                              ? 0U
+                              : static_cast<std::size_t>(
+                                    inventory.reported_entry_count);
+    while (entries.size() < reported) {
+        entries.push_back(
+            {0U,
+             false,
+             detail::BaselineLocationDisposition::Inaccessible});
+    }
+    return entries;
+}
+
+template <typename ImplType>
+[[nodiscard]] bool retire_event_sources(ImplType& impl) noexcept {
+    bool safe = true;
+    if (impl.provisioning_lease != nullptr) {
+        const auto before =
+            impl.provisioning_lease->browser_readiness_facts();
+        static_cast<void>(
+            impl.provisioning_lease->close_browser_events());
+        const auto after =
+            impl.provisioning_lease->browser_readiness_facts();
+        impl.provisioning.cleanup.browser_events_unadvised = after.unadvised;
+        impl.provisioning.cleanup.browser_event_lifecycle_clean =
+            after.unadvised && after.malformed_count == 0U &&
+            after.overflow_count == 0U && after.wrong_thread_count == 0U &&
+            after.post_retirement_count == 0U &&
+            after.identity_query_failure_count == 0U;
+        safe = safe &&
+               (!before.subscribed ||
+                impl.provisioning.cleanup.browser_event_lifecycle_clean);
+    }
+    if (impl.shell_subscription != nullptr) {
+        static_cast<void>(impl.shell_subscription->close());
+        const auto after = impl.shell_subscription->facts();
+        impl.provisioning.cleanup.shell_events_unadvised = after.unadvised;
+        impl.provisioning.cleanup.shell_event_lifecycle_clean =
+            after.unadvised && after.malformed_count == 0U &&
+            after.overflow_count == 0U && after.wrong_thread_count == 0U &&
+            after.post_retirement_count == 0U &&
+            after.subscription_generation ==
+                impl.shell_subscription_generation &&
+            !impl.receipt_generation_mismatch &&
+            !impl.cookie_lifecycle_ambiguous;
+        safe = safe &&
+               impl.provisioning.cleanup.shell_event_lifecycle_clean;
+    }
+    // Capture final sink counters after both Unadvise transactions so any
+    // reentrant/post-retirement callback remains visible in public evidence.
+    copy_event_facts(impl);
+    return safe;
+}
+
+template <typename ImplType>
+[[nodiscard]] ExplorerProvisioningCleanupFacts cleanup_provisioning_lease(
+    ImplType& impl,
+    const std::chrono::steady_clock::time_point deadline,
+    const bool retire_token_before_quit) {
+    ExplorerProvisioningCleanupFacts cleanup;
+    cleanup.orphan_attribution_known = true;
+    const bool pending_messages_drained =
+        drain_pending_event_messages(impl);
+
+    const auto lease_facts = impl.provisioning_lease->facts();
+    auto lease_handle = impl.provisioning_lease->current_hwnd();
+    HWND exact_window = lease_handle.succeeded() ? lease_handle.window
+                                                  : nullptr;
+    bool canonical_matches = true;
+    bool window_identity_matches = true;
+    if (impl.matching_cookie.has_value()) {
+        auto resolved = impl.shell_subscription->resolve_cookie(
+            *impl.matching_cookie);
+        canonical_matches = resolved.succeeded() &&
+                            resolved.resolved.same_object(
+                                *impl.provisioning_lease);
+        window_identity_matches =
+            canonical_matches && exact_window != nullptr &&
+            resolved.resolved.window() == exact_window;
+    }
+
+    if (impl.navigation ==
+            detail::LeaseNavigationDisposition::PendingExpectedTarget ||
+        impl.navigation ==
+            detail::LeaseNavigationDisposition::ExactExpectedTarget) {
+        const auto location = impl.provisioning_lease->current_location();
+        impl.navigation = advance_navigation_state(impl.navigation,
+                                                   location,
+                                                   impl.target_location);
+    }
+
+    const auto shell_stream = impl.shell_subscription->facts();
+    const auto browser_stream =
+        impl.provisioning_lease->browser_readiness_facts();
+    const bool shell_cleanup_evidence_healthy =
+        shell_stream.subscribed && shell_stream.accepting &&
+        shell_stream.subscription_generation ==
+            impl.shell_subscription_generation &&
+        shell_stream.malformed_count == 0U &&
+        shell_stream.overflow_count == 0U &&
+        shell_stream.wrong_thread_count == 0U &&
+        shell_stream.post_retirement_count == 0U &&
+        !impl.receipt_generation_mismatch &&
+        !impl.cookie_lifecycle_ambiguous;
+    const bool browser_cleanup_evidence_healthy =
+        impl.navigation == detail::LeaseNavigationDisposition::NotStarted
+            ? (!browser_stream.subscribed ||
+               (browser_stream.accepting &&
+                browser_stream.malformed_count == 0U &&
+                browser_stream.overflow_count == 0U &&
+                browser_stream.wrong_thread_count == 0U &&
+                browser_stream.post_retirement_count == 0U &&
+                browser_stream.identity_query_failure_count == 0U &&
+                browser_stream.quit_count == 0U))
+            : (browser_stream.subscribed && browser_stream.accepting &&
+               browser_stream.subscription_diagnostic == S_OK &&
+               browser_stream.malformed_count == 0U &&
+               browser_stream.overflow_count == 0U &&
+               browser_stream.wrong_thread_count == 0U &&
+               browser_stream.post_retirement_count == 0U &&
+               browser_stream.identity_query_failure_count == 0U &&
+               browser_stream.quit_count == 0U);
+
+    const auto exact_key = reinterpret_cast<detail::NativeWindowKey>(
+        exact_window);
+    const bool registration_classification_incomplete = std::any_of(
+        impl.registered_cookies.begin(),
+        impl.registered_cookies.end(),
+        [&impl](const long cookie) {
+            return !impl.matching_cookies.contains(cookie) &&
+                   !impl.unrelated_cookies.contains(cookie);
+        });
+    const detail::LeaseCleanupFacts authorization_facts{
+        true,
+        impl.provisioning_lease->session_authority() ==
+            impl.ledger.session_authority(),
+        lease_facts.created_by_single_co_create,
+        impl.provisioning_lease->subscription_generation() ==
+            impl.shell_subscription_generation,
+        lease_facts.created_by_single_co_create,
+        canonical_matches,
+        lease_facts.identity_ambiguous ||
+            !impl.shared_window_identity_conflict_cookies.empty() ||
+            impl.matching_cookies.size() > 1U ||
+            !impl.unresolved_cookies.empty() ||
+            registration_classification_incomplete ||
+            impl.browser_navigation_history_ambiguous ||
+            !pending_messages_drained ||
+            !shell_cleanup_evidence_healthy ||
+            !browser_cleanup_evidence_healthy,
+        exact_window == nullptr || !forbidden_preexisting(impl, exact_key),
+        window_identity_matches,
+        impl.navigation,
+    };
+    cleanup.cleanup_authorized =
+        detail::evaluate_lease_cleanup_authorization(authorization_facts) ==
+        detail::LeaseCleanupAuthorization::Authorized;
+
+    if (cleanup.cleanup_authorized) {
+        if (retire_token_before_quit && impl.window != nullptr) {
+            static_cast<void>(impl.ledger.retire_native(
+                reinterpret_cast<detail::NativeWindowKey>(impl.window)));
+        }
+        const auto quit = impl.provisioning_lease->quit();
+        cleanup.native_quit_attempted = true;
+        cleanup.native_quit_succeeded = quit.succeeded();
+        constexpr std::size_t message_budget = 4096U;
+        for (std::size_t dispatched = 0U;
+             quit.succeeded() && dispatched < message_budget;
+             ++dispatched) {
+            refresh_registration_state(impl);
+            if (exact_window == nullptr) {
+                const auto late_handle =
+                    impl.provisioning_lease->current_hwnd();
+                if (late_handle.succeeded()) {
+                    exact_window = late_handle.window;
+                }
+            }
+            cleanup.matching_registration_revoked =
+                impl.matching_registration_revoked ||
+                (impl.matching_cookie.has_value() &&
+                 impl.revoked_cookies.contains(*impl.matching_cookie));
+            cleanup.exact_hwnd_invalidated =
+                exact_window != nullptr && IsWindow(exact_window) == FALSE;
+            if (cleanup.matching_registration_revoked ||
+                cleanup.exact_hwnd_invalidated) {
+                break;
+            }
+            const auto pump = pump_owner_sta_once(deadline);
+            if (pump.status != OwnerStaPumpStatus::ActivityDispatched) {
+                break;
+            }
+        }
+    }
+
+    cleanup.matching_registration_revoked =
+        cleanup.matching_registration_revoked ||
+        impl.matching_registration_revoked ||
+        (impl.matching_cookie.has_value() &&
+         impl.revoked_cookies.contains(*impl.matching_cookie));
+    if (exact_window == nullptr) {
+        const auto final_handle = impl.provisioning_lease->current_hwnd();
+        if (final_handle.succeeded()) {
+            exact_window = final_handle.window;
+        }
+    }
+    cleanup.exact_hwnd_invalidated =
+        cleanup.exact_hwnd_invalidated ||
+        (exact_window != nullptr && IsWindow(exact_window) == FALSE);
+    const bool exact_hwnd_still_valid =
+        exact_window != nullptr && IsWindow(exact_window) != FALSE;
+    cleanup.attributable_orphan =
+        exact_hwnd_still_valid ||
+        !(cleanup.matching_registration_revoked ||
+          cleanup.exact_hwnd_invalidated);
+    impl.provisioning.cleanup = cleanup;
+    static_cast<void>(retire_event_sources(impl));
+    cleanup.browser_events_unadvised =
+        impl.provisioning.cleanup.browser_events_unadvised;
+    cleanup.shell_events_unadvised =
+        impl.provisioning.cleanup.shell_events_unadvised;
+    cleanup.browser_event_lifecycle_clean =
+        impl.provisioning.cleanup.browser_event_lifecycle_clean;
+    cleanup.shell_event_lifecycle_clean =
+        impl.provisioning.cleanup.shell_event_lifecycle_clean;
+    impl.provisioning.cleanup = cleanup;
+    return cleanup;
+}
+
+template <typename ImplType>
+[[nodiscard]] ExplorerProvisionResult failed_provision_result(
+    std::unique_ptr<ImplType> impl,
+    const ExplorerEligibilityReason reason,
+    std::optional<ExplorerDiagnostic> diagnostic,
+    const std::chrono::steady_clock::time_point deadline) {
+    if (impl->provisioning_lease != nullptr) {
+        impl->provisioning.cleanup = cleanup_provisioning_lease(
+            *impl, deadline, false);
+    } else {
+        static_cast<void>(retire_event_sources(*impl));
+    }
+    ExplorerProvisionResult result;
+    result.reason = reason;
+    result.diagnostic = std::move(diagnostic);
+    result.facts = impl->provisioning;
+    result.cleanup = result.facts.cleanup;
+    impl.reset();
+    return result;
 }
 
 } // namespace
@@ -1596,202 +2549,420 @@ ExplorerProvisionResult ExplorerTestSession::provision(
     impl->com_initialized = true;
     impl->controller_thread_id = GetCurrentThreadId();
     impl->target_directory = unique_empty_test_directory;
+    const auto cleanup_deadline = [] {
+        return std::chrono::steady_clock::now() + std::chrono::seconds{3};
+    };
+    const auto fail = [&](const ExplorerEligibilityReason reason,
+                          std::optional<ExplorerDiagnostic> diagnostic) {
+        return failed_provision_result(std::move(impl),
+                                       reason,
+                                       std::move(diagnostic),
+                                       cleanup_deadline());
+    };
 
     const auto target_location =
         filesystem_location_identity(unique_empty_test_directory);
     if (!target_location.filesystem()) {
-        return {ExplorerEligibilityReason::InvalidTargetDirectory,
-                nullptr,
-                hresult_diagnostic("filesystem_location_identity",
-                                   target_location.diagnostic,
-                                   "target directory file identity is unavailable")};
+        return fail(
+            ExplorerEligibilityReason::InvalidTargetDirectory,
+            hresult_diagnostic("filesystem_location_identity",
+                               target_location.diagnostic,
+                               "target directory file identity is unavailable"));
     }
     impl->target_location = *target_location.identity;
 
-    auto baseline = capture_stable_inventory(readiness_timeout);
-    if (baseline.reason != ExplorerEligibilityReason::Eligible ||
-        !baseline.model.has_value()) {
-        return {baseline.reason, nullptr, std::move(baseline.diagnostic)};
+    auto subscription =
+        subscribe_shell_windows(impl->ledger.session_authority());
+    if (!subscription.succeeded()) {
+        return fail(
+            ExplorerEligibilityReason::ShellEventSubscriptionUnavailable,
+            subscription.diagnostic.has_value()
+                ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                      *subscription.diagnostic,
+                      "DShellWindowsEvents subscription failed before CoCreate")}
+                : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                      1204U,
+                      "subscribe_shell_windows",
+                      "Shell registration subscription returned no authority")});
     }
-    impl->baseline_inventory = *baseline.model;
-    impl->provisioning.preexisting_window_count =
-        impl->baseline_inventory.windows.size();
+    impl->shell_subscription = std::move(subscription.subscription);
+    impl->shell_subscription_generation =
+        impl->shell_subscription->generation();
+    copy_event_facts(*impl);
+    const auto subscribed_facts = impl->shell_subscription->facts();
+    if (!subscribed_facts.subscribed || !subscribed_facts.accepting ||
+        subscribed_facts.malformed_count != 0U ||
+        subscribed_facts.overflow_count != 0U ||
+        subscribed_facts.wrong_thread_count != 0U ||
+        subscribed_facts.post_retirement_count != 0U) {
+        return fail(
+            ExplorerEligibilityReason::ShellEventSubscriptionUnavailable,
+            adapter_diagnostic(1205U,
+                               "DShellWindowsEvents subscription",
+                               "subscription was not active and clean before baseline capture"));
+    }
 
-    // HWND readiness and post-navigation isolation share one bounded budget.
-    // The Shell boundary makes exactly one CoCreateInstance attempt; retries
-    // below are confined to get_HWND on that same retained automation object.
+    const auto baseline = impl->shell_subscription->capture_baseline();
+    const auto baseline_entries = expand_baseline_entries(baseline);
+    const auto exclusion = detail::evaluate_baseline_exclusion(
+        baseline_entries);
+    impl->provisioning.baseline_total_shell_entries =
+        baseline.reported_entry_count < 0
+            ? 0U
+            : static_cast<std::size_t>(baseline.reported_entry_count);
+    impl->provisioning.baseline_reliable_shell_entries =
+        exclusion.reliable_entry_count;
+    impl->provisioning.baseline_reliable_unique_hwnd_count =
+        exclusion.reliable_hwnd_count;
+    impl->provisioning.forbidden_preexisting_hwnd_count =
+        exclusion.forbidden_preexisting_hwnds.size();
+    impl->provisioning.baseline_valid_location_count =
+        exclusion.valid_location_count;
+    impl->provisioning.baseline_empty_location_count =
+        exclusion.empty_location_count;
+    impl->provisioning.baseline_inaccessible_location_count =
+        exclusion.inaccessible_location_count;
+    impl->provisioning.baseline_exclusion_complete =
+        baseline.complete && exclusion.complete() &&
+        baseline_entries.size() ==
+            impl->provisioning.baseline_total_shell_entries;
+    impl->provisioning.preexisting_window_count =
+        exclusion.reliable_hwnd_count;
+    impl->provisioning.baseline_facts_unchanged =
+        impl->provisioning.baseline_exclusion_complete;
+    impl->forbidden_preexisting_hwnds =
+        exclusion.forbidden_preexisting_hwnds;
+    if (!impl->provisioning.baseline_exclusion_complete) {
+        return fail(
+            ExplorerEligibilityReason::BaselineWindowIdentityUnavailable,
+            !baseline.issues.empty()
+                ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                      baseline.issues.front(),
+                      "at least one baseline Shell entry lacked a reliable HWND")}
+                : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                      1206U,
+                      "Explorer baseline exclusion",
+                      "reported Shell entries could not all be assigned reliable HWND identities")});
+    }
+
+    auto created = create_explorer_provisioning_lease(
+        impl->ledger.session_authority(),
+        impl->shell_subscription_generation,
+        unique_empty_test_directory);
+    impl->provisioning_lease = std::move(created.lease);
+    copy_event_facts(*impl);
+    if (!created.succeeded()) {
+        const auto reason =
+            created.diagnostic.has_value() &&
+                    created.diagnostic->stage ==
+                        ShellAutomationStage::SubscribeBrowserEvents
+                ? ExplorerEligibilityReason::
+                      BrowserEventSubscriptionUnavailable
+                : ExplorerEligibilityReason::ShellWindowCreationFailed;
+        return fail(
+            reason,
+            created.diagnostic.has_value()
+                ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
+                      *created.diagnostic,
+                      reason == ExplorerEligibilityReason::
+                                    BrowserEventSubscriptionUnavailable
+                          ? "DWebBrowserEvents2 subscription failed; no navigation is authorized"
+                          : "single CLSID_ShellBrowserWindow CoCreate failed")}
+                : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
+                      1207U,
+                      "create_explorer_provisioning_lease",
+                      "CoCreate returned no retained provisioning lease")});
+    }
+
+    const auto navigate =
+        impl->provisioning_lease->navigate_to_target_and_show();
+    const auto lease_after_navigation = impl->provisioning_lease->facts();
+    impl->navigation =
+        navigate.succeeded()
+            ? detail::LeaseNavigationDisposition::PendingExpectedTarget
+            : (lease_after_navigation.navigation_requested
+                   ? detail::LeaseNavigationDisposition::Unknown
+                   : detail::LeaseNavigationDisposition::NotStarted);
+    if (!navigate.succeeded()) {
+        return fail(
+            ExplorerEligibilityReason::LocationMismatch,
+            shell_diagnostic(
+                ShellAutomationDiagnostic{navigate.stage,
+                                          navigate.hresult,
+                                          -1},
+                "the single provisioning lease could not navigate and show the nonce directory"));
+    }
+
     const auto readiness_deadline =
         std::chrono::steady_clock::now() + readiness_timeout;
-    auto created = create_explorer_shell_window(readiness_deadline);
-    if (!created.succeeded()) {
-        const auto failure_reason = created.diagnostic.has_value()
-                                        ? detail::map_shell_creation_stage(
-                                              created.diagnostic->stage)
-                                        : ExplorerEligibilityReason::
-                                              ShellWindowCreationFailed;
-        return {failure_reason,
-                nullptr,
-                created.diagnostic.has_value()
-                    ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
-                          *created.diagnostic,
-                          failure_reason == ExplorerEligibilityReason::
-                                                    ShellWindowHandleMissing
-                              ? "new Shell browser frame HWND was not ready before timeout"
-                              : "CLSID_ShellBrowserWindow creation failed")}
-                    : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
-                          1204U,
-                          "create_explorer_shell_window",
-                          "Shell returned no retained browser object")}};
-    }
-    impl->retained_window = std::move(created.window);
-    impl->window = impl->retained_window->initial_hwnd();
-    const auto native_key =
-        reinterpret_cast<detail::NativeWindowKey>(impl->window);
-    if (native_key == 0U) {
-        return {ExplorerEligibilityReason::ShellWindowHandleMissing,
-                nullptr,
-                adapter_diagnostic(1205U,
-                                   "IWebBrowser2::HWND",
-                                   "new Shell browser returned a null frame HWND")};
-    }
-    if (find_inventory_window(impl->baseline_inventory, native_key) != nullptr) {
-        return {ExplorerEligibilityReason::PreexistingWindow,
-                nullptr,
-                adapter_diagnostic(1206U,
-                                   "Explorer baseline",
-                                   "retained Shell browser HWND existed before creation")};
-    }
-    impl->provisioning.retained_window_was_new_before_navigation = true;
-
-    // Do not let a just-in-time HWND extend the bounded provisioning window.
-    // Expiry here is fail-closed: the retained object is released without any
-    // navigation, visibility, activation, or geometry call.
-    if (!detail::readiness_deadline_active(
-            readiness_deadline, std::chrono::steady_clock::now())) {
-        return {ExplorerEligibilityReason::ShellWindowHandleMissing,
-                nullptr,
-                shell_diagnostic(
-                    ShellAutomationDiagnostic{
-                        ShellAutomationStage::AwaitWindowHandle,
-                        HRESULT_FROM_WIN32(ERROR_TIMEOUT),
-                        -1},
-                    "readiness budget expired before Explorer navigation")};
-    }
-
-    const auto navigate = impl->retained_window->navigate_to_and_show(
-        unique_empty_test_directory);
-    if (!navigate.succeeded()) {
-        return {ExplorerEligibilityReason::LocationMismatch,
-                nullptr,
-                hresult_diagnostic("IWebBrowser2::Navigate2/put_Visible",
-                                   navigate.hresult,
-                                   "new Shell browser could not navigate to the test directory")};
-    }
-
-    const auto deadline = readiness_deadline;
-    const auto readiness_timeout_blocker = [] {
-        return ExplorerProvisionResult{
-            ExplorerEligibilityReason::InventoryUnstable,
-            nullptr,
-            adapter_diagnostic(
+    // A canonical-matching NavigateComplete2 is recorded as a readiness hint,
+    // never as authority. WindowRegistered cookie correlation plus the live
+    // exact FILE_ID_INFO check below remain the issuance hard gates.
+    constexpr std::size_t readiness_message_budget = 4096U;
+    ExplorerEligibilityReason readiness_reason =
+        ExplorerEligibilityReason::RegistrationNotObserved;
+    std::optional<ExplorerDiagnostic> readiness_diagnostic;
+    bool target_correlated = false;
+    bool positive_queue_drained = false;
+    for (std::size_t dispatched = 0U;
+         dispatched < readiness_message_budget;
+         ++dispatched) {
+        refresh_registration_state(*impl);
+        if (!event_streams_healthy(*impl)) {
+            readiness_reason =
+                ExplorerEligibilityReason::ShellEventStreamInvalid;
+            readiness_diagnostic = adapter_diagnostic(
+                1208U,
+                "Explorer event streams",
+                "registration or browser readiness evidence was malformed, overflowed, quit, or retired");
+            break;
+        }
+        if (impl->browser_navigation_history_ambiguous) {
+            readiness_reason = ExplorerEligibilityReason::TargetInvalidated;
+            readiness_diagnostic = adapter_diagnostic(
+                1219U,
+                "DWebBrowserEvents2::NavigateComplete2",
+                "more than one same-object navigation completion made pre-issuance history ambiguous");
+            break;
+        }
+        if (!impl->shared_window_identity_conflict_cookies.empty() ||
+            impl->matching_cookies.size() > 1U ||
+            impl->provisioning_lease->facts().identity_ambiguous) {
+            readiness_reason = ExplorerEligibilityReason::AmbiguousCandidate;
+            readiness_diagnostic = adapter_diagnostic(
                 1209U,
-                "Explorer candidate readiness",
-                "bounded readiness expired before capability issuance")};
-    };
-    std::optional<detail::InventoryModel> prior_eligible_inventory;
-    detail::CandidateEvaluation last_candidate;
-    std::optional<detail::InventoryModel> accepted_inventory;
-    do {
-        if (!detail::readiness_deadline_active(
-                deadline, std::chrono::steady_clock::now())) {
-            return readiness_timeout_blocker();
+                "Explorer registration correlation",
+                "multiple same-object cookies or a shared-HWND COM identity conflict was observed");
+            break;
         }
-        const auto current_handle = impl->retained_window->current_hwnd();
-        if (!current_handle.succeeded() || current_handle.window != impl->window) {
-            return {ExplorerEligibilityReason::ShellWindowHandleMissing,
-                    nullptr,
-                    current_handle.diagnostic.has_value()
-                        ? std::optional<ExplorerDiagnostic>{shell_diagnostic(
-                              *current_handle.diagnostic,
-                              "retained Shell browser frame changed during navigation")}
-                        : std::optional<ExplorerDiagnostic>{adapter_diagnostic(
-                              1207U,
-                              "IWebBrowser2::HWND",
-                              "retained Shell browser frame changed during navigation")}};
+        if (impl->matching_registration_revoked) {
+            readiness_reason = ExplorerEligibilityReason::RegistrationRevoked;
+            readiness_diagnostic = adapter_diagnostic(
+                1210U,
+                "DShellWindowsEvents::WindowRevoked",
+                "the matching registration was revoked before token issuance");
+            break;
         }
-
-        const auto native_inventory = capture_shell_window_inventory();
-        const auto current_inventory = inventory_model(native_inventory);
-        last_candidate = detail::evaluate_candidate_inventory(
-            impl->baseline_inventory,
-            current_inventory,
-            native_key,
-            impl->target_location);
-        if (last_candidate.reason == ExplorerEligibilityReason::Eligible) {
-            const bool stable_inventory =
-                prior_eligible_inventory.has_value() &&
-                *prior_eligible_inventory == current_inventory;
-            if (stable_inventory) {
-                if (!detail::readiness_acceptance_allowed(
-                        stable_inventory,
-                        deadline,
-                        std::chrono::steady_clock::now())) {
-                    return readiness_timeout_blocker();
-                }
-                accepted_inventory = current_inventory;
+        if (!impl->unresolved_cookies.empty()) {
+            readiness_reason =
+                ExplorerEligibilityReason::RegistrationResolutionFailed;
+        } else if (impl->matching_cookie.has_value()) {
+            auto resolved = impl->shell_subscription->resolve_cookie(
+                *impl->matching_cookie);
+            impl->provisioning.matching_cookie_find_window_resolved =
+                impl->provisioning.matching_cookie_find_window_resolved ||
+                resolved.succeeded();
+            if (!resolved.succeeded()) {
+                impl->unresolved_cookies.insert(*impl->matching_cookie);
+                readiness_reason =
+                    ExplorerEligibilityReason::RegistrationResolutionFailed;
+            } else if (!resolved.resolved.same_object(
+                           *impl->provisioning_lease)) {
+                readiness_reason =
+                    ExplorerEligibilityReason::CanonicalIdentityMismatch;
+                readiness_diagnostic = adapter_diagnostic(
+                    1211U,
+                    "IUnknown identity",
+                    "matching cookie changed to a different canonical COM object");
                 break;
+            } else {
+                impl->provisioning.canonical_iunknown_identity_matches = true;
+                const auto lease_handle =
+                    impl->provisioning_lease->current_hwnd();
+                impl->provisioning.lease_hwnd_resolved =
+                    impl->provisioning.lease_hwnd_resolved ||
+                    lease_handle.succeeded();
+                impl->provisioning.cookie_hwnd_resolved =
+                    impl->provisioning.cookie_hwnd_resolved ||
+                    resolved.resolved.window() != nullptr;
+                const HWND candidate = resolved.resolved.window();
+                const bool current_live_hwnd =
+                    candidate != nullptr && IsWindow(candidate) != FALSE;
+                impl->provisioning.live_eligibility_hwnd_resolved =
+                    impl->provisioning.live_eligibility_hwnd_resolved ||
+                    current_live_hwnd;
+                const bool current_three_way_hwnd_match =
+                    lease_handle.succeeded() &&
+                    lease_handle.window == candidate && current_live_hwnd;
+                impl->provisioning.lease_cookie_live_hwnd_match =
+                    impl->provisioning.lease_cookie_live_hwnd_match ||
+                    current_three_way_hwnd_match;
+                const auto candidate_key =
+                    reinterpret_cast<detail::NativeWindowKey>(candidate);
+                const bool current_target_preexisting =
+                    forbidden_preexisting(*impl, candidate_key);
+                impl->provisioning.target_hwnd_preexisting =
+                    impl->provisioning.target_hwnd_preexisting ||
+                    current_target_preexisting;
+                if (current_target_preexisting) {
+                    readiness_reason =
+                        ExplorerEligibilityReason::PreexistingWindow;
+                    readiness_diagnostic = adapter_diagnostic(
+                        1212U,
+                        "Explorer baseline exclusion",
+                        "same-object registration resolved to a forbidden baseline HWND");
+                    break;
+                }
+                if (current_three_way_hwnd_match) {
+                    const auto location =
+                        impl->provisioning_lease->current_location();
+                    const bool current_exact_target_location =
+                        location.filesystem() &&
+                        location.identity == impl->target_location;
+                    impl->provisioning.exact_target_location =
+                        impl->provisioning.exact_target_location ||
+                        current_exact_target_location;
+                    impl->navigation = advance_navigation_state(
+                        impl->navigation, location, impl->target_location);
+                    if (location.filesystem() &&
+                        !current_exact_target_location) {
+                        readiness_reason =
+                            ExplorerEligibilityReason::LocationMismatch;
+                        readiness_diagnostic = adapter_diagnostic(
+                            1213U,
+                            "Explorer target location",
+                            "same-object target navigated away from the nonce directory");
+                        break;
+                    }
+                    if (current_exact_target_location) {
+                        if (std::chrono::steady_clock::now() >=
+                            readiness_deadline) {
+                            readiness_reason =
+                                ExplorerEligibilityReason::LocationNotReady;
+                            break;
+                        }
+                        if (!positive_queue_drained) {
+                            if (!drain_pending_event_messages(*impl)) {
+                                readiness_reason =
+                                    ExplorerEligibilityReason::
+                                        ShellEventStreamInvalid;
+                                readiness_diagnostic = adapter_diagnostic(
+                                    1218U,
+                                    "Explorer owner STA message queue",
+                                    "positive correlation could not drain queued receipts safely");
+                                break;
+                            }
+                            positive_queue_drained = true;
+                            continue;
+                        }
+                        impl->window = candidate;
+                        target_correlated = true;
+                        break;
+                    }
+                    readiness_reason =
+                        ExplorerEligibilityReason::LocationNotReady;
+                }
             }
-            prior_eligible_inventory = current_inventory;
-        } else {
-            prior_eligible_inventory.reset();
-            if (last_candidate.reason ==
-                    ExplorerEligibilityReason::AmbiguousCandidate ||
-                last_candidate.reason ==
-                    ExplorerEligibilityReason::BaselineChanged ||
-                last_candidate.reason ==
-                    ExplorerEligibilityReason::PreexistingWindow) {
-                return {last_candidate.reason,
-                        nullptr,
-                        adapter_diagnostic(1208U,
-                                           "Explorer candidate isolation",
-                                           "post-navigation inventory violated isolation")};
-            }
+        } else if (!impl->unrelated_cookies.empty()) {
+            readiness_reason =
+                ExplorerEligibilityReason::CanonicalIdentityMismatch;
         }
-        if (std::chrono::steady_clock::now() >= deadline) {
-            return {last_candidate.reason == ExplorerEligibilityReason::Eligible
-                        ? ExplorerEligibilityReason::InventoryUnstable
-                        : last_candidate.reason,
-                    nullptr,
-                    adapter_diagnostic(1209U,
-                                       "Explorer candidate readiness",
-                                       "no stable unique new Explorer target was observed before timeout")};
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds{40});
-    } while (true);
 
-    if (!detail::readiness_deadline_active(
-            deadline, std::chrono::steady_clock::now())) {
-        return readiness_timeout_blocker();
+        const auto pump = pump_owner_sta_once(readiness_deadline);
+        if (pump.status == OwnerStaPumpStatus::TimedOut) {
+            break;
+        }
+        if (pump.status != OwnerStaPumpStatus::ActivityDispatched) {
+            readiness_reason = ExplorerEligibilityReason::ShellEventStreamInvalid;
+            readiness_diagnostic = hresult_diagnostic(
+                "MsgWaitForMultipleObjectsEx",
+                pump.diagnostic,
+                "owner STA message pump failed during bounded provisioning");
+            break;
+        }
+    }
+    if (!target_correlated) {
+        // One final exact state evaluation after the bounded wait records a
+        // registration that became resolvable at the edge without turning
+        // timeout handling into polling or extending the issuance deadline.
+        refresh_registration_state(*impl);
+        if (impl->browser_navigation_history_ambiguous) {
+            readiness_reason = ExplorerEligibilityReason::TargetInvalidated;
+        } else if (!impl->shared_window_identity_conflict_cookies.empty() ||
+            impl->matching_cookies.size() > 1U) {
+            readiness_reason = ExplorerEligibilityReason::AmbiguousCandidate;
+        } else if (impl->matching_registration_revoked) {
+            readiness_reason = ExplorerEligibilityReason::RegistrationRevoked;
+        } else if (!impl->unresolved_cookies.empty()) {
+            readiness_reason =
+                ExplorerEligibilityReason::RegistrationResolutionFailed;
+        } else if (impl->matching_cookie.has_value()) {
+            auto final_resolved = impl->shell_subscription->resolve_cookie(
+                *impl->matching_cookie);
+            impl->provisioning.matching_cookie_find_window_resolved =
+                impl->provisioning.matching_cookie_find_window_resolved ||
+                final_resolved.succeeded();
+            if (!final_resolved.succeeded()) {
+                readiness_reason = ExplorerEligibilityReason::
+                    RegistrationResolutionFailed;
+            } else if (!final_resolved.resolved.same_object(
+                           *impl->provisioning_lease)) {
+                readiness_reason =
+                    ExplorerEligibilityReason::CanonicalIdentityMismatch;
+            } else {
+                impl->provisioning.canonical_iunknown_identity_matches = true;
+                const auto final_lease_hwnd =
+                    impl->provisioning_lease->current_hwnd();
+                impl->provisioning.lease_hwnd_resolved =
+                    impl->provisioning.lease_hwnd_resolved ||
+                    final_lease_hwnd.succeeded();
+                impl->provisioning.cookie_hwnd_resolved =
+                    impl->provisioning.cookie_hwnd_resolved ||
+                    final_resolved.resolved.window() != nullptr;
+                const bool final_three_way_hwnd_match =
+                    final_lease_hwnd.succeeded() &&
+                    final_lease_hwnd.window ==
+                        final_resolved.resolved.window() &&
+                    IsWindow(final_resolved.resolved.window()) != FALSE;
+                impl->provisioning.lease_cookie_live_hwnd_match =
+                    impl->provisioning.lease_cookie_live_hwnd_match ||
+                    final_three_way_hwnd_match;
+                if (final_three_way_hwnd_match) {
+                    const auto final_location =
+                        impl->provisioning_lease->current_location();
+                    const bool final_exact_target_location =
+                        final_location.filesystem() &&
+                        final_location.identity == impl->target_location;
+                    impl->provisioning.exact_target_location =
+                        impl->provisioning.exact_target_location ||
+                        final_exact_target_location;
+                    impl->navigation = advance_navigation_state(
+                        impl->navigation,
+                        final_location,
+                        impl->target_location);
+                    readiness_reason =
+                        final_exact_target_location
+                            ? ExplorerEligibilityReason::LocationNotReady
+                            : ExplorerEligibilityReason::LocationMismatch;
+                }
+            }
+        }
+        if (!readiness_diagnostic.has_value()) {
+            readiness_diagnostic = adapter_diagnostic(
+                1214U,
+                "Explorer registration readiness",
+                "bounded event-driven readiness ended without positive target attribution");
+        }
+        return fail(readiness_reason, std::move(readiness_diagnostic));
     }
 
-    impl->provisioning.post_navigation_window_count =
-        accepted_inventory->windows.size();
     impl->provisioning.new_candidate_count =
-        last_candidate.new_candidate_count;
-    impl->provisioning.baseline_facts_unchanged =
-        last_candidate.baseline_unchanged;
+        impl->matching_cookies.size();
+    impl->provisioning.retained_window_was_new_before_navigation =
+        !impl->provisioning.target_hwnd_preexisting;
     impl->provisioning.exact_unique_test_location =
-        last_candidate.exact_unique_location;
+        impl->provisioning.exact_target_location &&
+        impl->matching_cookies.size() == 1U;
 
     DWORD process_id = 0U;
     const DWORD thread_id =
         GetWindowThreadProcessId(impl->window, &process_id);
     if (thread_id == 0U || process_id == 0U) {
-        return {ExplorerEligibilityReason::WindowDestroyed,
-                nullptr,
-                win32_diagnostic("GetWindowThreadProcessId",
-                                 GetLastError(),
-                                 "new Explorer target lost native identity")};
+        return fail(
+            ExplorerEligibilityReason::WindowDestroyed,
+            win32_diagnostic("GetWindowThreadProcessId",
+                             GetLastError(),
+                             "correlated Explorer target lost native identity"));
     }
     impl->process_id = process_id;
     impl->thread_id = thread_id;
@@ -1800,11 +2971,11 @@ ExplorerProvisionResult ExplorerTestSession::provision(
                                     FALSE,
                                     process_id));
     if (!impl->process.valid()) {
-        return {ExplorerEligibilityReason::ProcessOpenFailed,
-                nullptr,
-                win32_diagnostic("OpenProcess",
-                                 GetLastError(),
-                                 "Explorer process identity handle could not be opened")};
+        return fail(
+            ExplorerEligibilityReason::ProcessOpenFailed,
+            win32_diagnostic("OpenProcess",
+                             GetLastError(),
+                             "Explorer process identity handle could not be opened"));
     }
     DWORD rechecked_process_id = 0U;
     const DWORD rechecked_thread_id =
@@ -1813,69 +2984,58 @@ ExplorerProvisionResult ExplorerTestSession::provision(
         rechecked_process_id != process_id ||
         GetProcessId(impl->process.get()) != process_id ||
         WaitForSingleObject(impl->process.get(), 0U) != WAIT_TIMEOUT) {
-        return {ExplorerEligibilityReason::TargetInvalidated,
-                nullptr,
-                adapter_diagnostic(1210U,
-                                   "Explorer process identity",
-                                   "PID/TID/process instance changed during issuance")};
+        return fail(
+            ExplorerEligibilityReason::TargetInvalidated,
+            adapter_diagnostic(1215U,
+                               "Explorer process identity",
+                               "PID/TID/process instance changed during issuance"));
     }
 
     auto initial = validate_native_target(*impl, nullptr, true);
     if (initial.reason != ExplorerEligibilityReason::Eligible ||
         !initial.snapshot.has_value()) {
-        return {initial.reason, nullptr, std::move(initial.diagnostic)};
+        return fail(initial.reason, std::move(initial.diagnostic));
     }
     if (!detail::rect_is_contained(initial.snapshot->visible_rect,
                                    initial.snapshot->monitor_work_area) ||
         !select_safe_test_delta(*initial.snapshot).succeeded()) {
-        return {ExplorerEligibilityReason::UnsafeDelta,
-                nullptr,
-                adapter_diagnostic(
-                    1212U,
-                    "Explorer initial geometry",
-                    "initial frame or every test delta falls outside one monitor work area")};
+        return fail(
+            ExplorerEligibilityReason::UnsafeDelta,
+            adapter_diagnostic(
+                1216U,
+                "Explorer initial geometry",
+                "initial frame or every test delta falls outside one monitor work area"));
     }
-    impl->provisioning.initial_snapshot = *initial.snapshot;
-    std::this_thread::sleep_for(std::chrono::milliseconds{40});
-    if (!detail::readiness_deadline_active(
-            deadline, std::chrono::steady_clock::now())) {
-        return readiness_timeout_blocker();
-    }
-    auto stable_initial = validate_native_target(*impl, nullptr, false);
-    if (stable_initial.reason != ExplorerEligibilityReason::Eligible ||
-        !stable_initial.snapshot.has_value()) {
-        return {stable_initial.reason,
-                nullptr,
-                std::move(stable_initial.diagnostic)};
-    }
-    if (*stable_initial.snapshot != *initial.snapshot) {
-        return {ExplorerEligibilityReason::TargetInvalidated,
-                nullptr,
-                adapter_diagnostic(
-                    1213U,
-                    "Explorer initial geometry",
-                    "target geometry did not remain stable before capability issuance")};
-    }
-    if (!detail::readiness_deadline_active(
-            deadline, std::chrono::steady_clock::now())) {
-        return readiness_timeout_blocker();
-    }
-    auto issue = impl->ledger.issue(native_key, process_id, thread_id);
+
+    auto issue = impl->ledger.issue(
+        reinterpret_cast<detail::NativeWindowKey>(impl->window),
+        process_id,
+        thread_id,
+        static_cast<std::int32_t>(*impl->matching_cookie),
+        impl->shell_subscription_generation);
     if (!issue.token.has_value()) {
-        return {ledger_failure_reason(issue.status),
-                nullptr,
-                adapter_diagnostic(1211U,
-                                   "ExplorerTokenLedger::issue",
-                                   "Explorer capability issuance failed")};
+        return fail(
+            ledger_failure_reason(issue.status),
+            adapter_diagnostic(1217U,
+                               "ExplorerTokenLedger::issue",
+                               "Explorer capability issuance failed"));
     }
     impl->issued_token = *issue.token;
-    impl->original_snapshot = *stable_initial.snapshot;
-    impl->provisioning.initial_snapshot = *stable_initial.snapshot;
+    impl->original_snapshot = *initial.snapshot;
+    impl->provisioning.initial_snapshot = *initial.snapshot;
+    impl->issued_matching_navigate_complete_count =
+        impl->provisioning.browser_matching_navigate_complete_count;
+    impl->provisioning.issued_matching_navigate_complete_count =
+        impl->issued_matching_navigate_complete_count;
+    impl->provisioning.token_issued = true;
 
-    return {ExplorerEligibilityReason::Eligible,
-            std::unique_ptr<ExplorerTestSession>(
-                new ExplorerTestSession(std::move(impl))),
-            std::nullopt};
+    ExplorerProvisionResult result;
+    result.reason = ExplorerEligibilityReason::Eligible;
+    result.facts = impl->provisioning;
+    result.session = std::unique_ptr<ExplorerTestSession>(
+        new ExplorerTestSession(std::move(impl)));
+    return result;
+
 }
 
 const ExplorerProvisioningFacts& ExplorerTestSession::provisioning_facts()
@@ -2221,50 +3381,53 @@ ExplorerCleanupResult ExplorerTestSession::close_test_window(
     ExplorerCleanupResult result;
     if (impl_ == nullptr ||
         disappearance_timeout <= std::chrono::milliseconds::zero() ||
-        !impl_->ledger.contains(token_value)) {
+        !impl_->issued_token.has_value() ||
+        *impl_->issued_token != token_value || impl_->closing) {
         result.reason = ExplorerEligibilityReason::StaleToken;
         return result;
     }
 
-    auto validation = validate_or_retire(*impl_, token_value);
-    if (validation.reason != ExplorerEligibilityReason::Eligible) {
-        result.reason = ExplorerEligibilityReason::SafeCleanupNotPerformed;
-        result.token_retired = !impl_->ledger.contains(token_value);
-        result.diagnostic = std::move(validation.diagnostic);
-        return result;
+    std::optional<ExplorerDiagnostic> validation_diagnostic;
+    if (impl_->ledger.contains(token_value)) {
+        auto validation = validate_or_retire(*impl_, token_value);
+        if (validation.reason != ExplorerEligibilityReason::Eligible) {
+            validation_diagnostic = std::move(validation.diagnostic);
+        }
     }
 
     impl_->closing = true;
-    result.token_retired = impl_->ledger.retire_native(
-        reinterpret_cast<detail::NativeWindowKey>(impl_->window));
-    const auto quit = impl_->retained_window->quit();
-    result.native_close_attempted = true;
     const auto deadline =
         std::chrono::steady_clock::now() + disappearance_timeout;
-    do {
-        const auto inventory = capture_shell_window_inventory();
-        const bool native_gone = IsWindow(impl_->window) == FALSE;
-        const bool inventory_gone =
-            inventory.complete && inventory.find(impl_->window) == nullptr;
-        if (native_gone && inventory_gone) {
-            result.reason = ExplorerEligibilityReason::Eligible;
-            result.window_disappeared = true;
-            impl_->retained_window.reset();
-            return result;
-        }
-        if (std::chrono::steady_clock::now() >= deadline) {
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds{40});
-    } while (true);
-
-    result.reason = ExplorerEligibilityReason::SafeCleanupNotPerformed;
-    result.diagnostic = hresult_diagnostic(
-        "IWebBrowser2::Quit",
-        quit.hresult,
-        quit.succeeded()
-            ? "exact test window did not disappear before the bounded deadline"
-            : "exact retained Shell object rejected the graceful close request");
+    const auto cleanup =
+        cleanup_provisioning_lease(*impl_, deadline, true);
+    result.native_close_attempted = cleanup.native_quit_attempted;
+    result.native_close_succeeded = cleanup.native_quit_succeeded;
+    result.matching_registration_revoked =
+        cleanup.matching_registration_revoked;
+    result.exact_hwnd_invalidated = cleanup.exact_hwnd_invalidated;
+    result.orphan_attribution_known = cleanup.orphan_attribution_known;
+    result.window_disappeared = cleanup.matching_registration_revoked ||
+                                cleanup.exact_hwnd_invalidated;
+    result.token_retired = !impl_->ledger.contains(token_value);
+    result.attributable_orphan = cleanup.attributable_orphan;
+    result.browser_events_unadvised = cleanup.browser_events_unadvised;
+    result.shell_events_unadvised = cleanup.shell_events_unadvised;
+    result.browser_event_lifecycle_clean =
+        cleanup.browser_event_lifecycle_clean;
+    result.shell_event_lifecycle_clean =
+        cleanup.shell_event_lifecycle_clean;
+    result.reason = cleanup.completed() && result.token_retired
+                        ? ExplorerEligibilityReason::Eligible
+                        : ExplorerEligibilityReason::SafeCleanupNotPerformed;
+    if (result.reason != ExplorerEligibilityReason::Eligible) {
+        result.diagnostic = validation_diagnostic.has_value()
+                                ? std::move(validation_diagnostic)
+                                : std::optional<ExplorerDiagnostic>{
+                                      adapter_diagnostic(
+                                          1310U,
+                                          "Explorer provisioning lease cleanup",
+                                          "exact-object Quit, revoke/invalidation proof, or event Unadvise did not complete safely")};
+    }
     return result;
 }
 

@@ -186,6 +186,7 @@ add_library(
     panebind_windows_explorer
     STATIC
     explorer/explorer_shell_inventory.cpp
+    explorer/explorer_shell_events.cpp
     explorer/explorer_session.cpp
 )
 target_link_libraries(

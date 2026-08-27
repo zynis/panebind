@@ -2,6 +2,7 @@
 
 #include "platform/windows/operations/window_translation.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdlib>
@@ -69,7 +70,7 @@ void expect(const bool condition, const char* message) {
 [[nodiscard]] explorer::ExplorerWindowToken issued_token(
     detail::ExplorerTokenLedger& ledger,
     const detail::NativeWindowKey key) {
-    auto result = ledger.issue(key, 100U, 200U);
+    auto result = ledger.issue(key, 100U, 200U, 42, 7U);
     if (!result.token.has_value()) {
         std::abort();
     }
@@ -107,6 +108,68 @@ void expect(const bool condition, const char* message) {
         true,  // monitor_available
         true,  // monitor_stable
         true,  // dpi_stable
+    };
+}
+
+[[nodiscard]] detail::RegistrationCorrelationContext correlation_context(
+    const explorer::FilesystemLocationIdentity& target_location) {
+    return {
+        7U,      // subscription_generation
+        0x300U,  // automation_window
+        0x300U,  // live_eligibility_window
+        target_location,
+        {0x100U, 0x200U},
+    };
+}
+
+[[nodiscard]] detail::RegistrationWitness matching_registration(
+    const explorer::FilesystemLocationIdentity& target_location,
+    const std::int32_t cookie = 42,
+    const std::uint64_t sequence = 1U) {
+    return {
+        sequence,
+        7U,
+        cookie,
+        true,
+        true,
+        0x300U,
+        target_location,
+        false,
+    };
+}
+
+[[nodiscard]] detail::LeaseCleanupFacts authorized_cleanup_facts() {
+    return {
+        true, // retained_automation_object_available
+        true, // lease_belongs_to_current_session
+        true, // created_by_current_cocreate
+        true, // subscription_generation_matches
+        true, // canonical_identity_available
+        true, // canonical_identity_matches
+        false, // canonical_identity_ambiguous
+        true, // window_not_preexisting
+        true, // window_identity_matches
+        detail::LeaseNavigationDisposition::ExactExpectedTarget,
+    };
+}
+
+[[nodiscard]] detail::ProvisioningAttemptSummary passing_attempt(
+    const std::size_t attempt_index) {
+    return {
+        attempt_index,
+        true, // baseline_exclusion_complete
+        true, // registration_subscription_active
+        true, // exactly_one_target
+        true, // target_not_preexisting
+        true, // matching_cookie_unique
+        true, // canonical_identity_matches
+        true, // three_way_window_matches
+        true, // exact_target_location
+        true, // full_eligibility_passed
+        true, // safe_cleanup_succeeded
+        true, // no_attributable_orphan
+        true, // existing_windows_untouched
+        true, // translation_not_attempted
     };
 }
 
@@ -160,14 +223,22 @@ void test_token_authority_generation_stale_and_cross_session() {
            "native-key reuse cannot revive an old token");
 
     detail::ExplorerTokenLedger invalid_authority{0U, 1U, 1U, 1U};
-    expect(invalid_authority.issue(0x300U, 1U, 1U).status ==
+    expect(invalid_authority.issue(0x300U, 1U, 1U, 42, 7U).status ==
                detail::ExplorerLedgerIssueStatus::AuthorityExhausted,
            "zero controller authority blocks issuance");
     detail::ExplorerTokenLedger exhausted{
         1U, 2U, std::numeric_limits<std::uint64_t>::max(), 1U};
-    expect(exhausted.issue(0x300U, 1U, 1U).status ==
+    expect(exhausted.issue(0x300U, 1U, 1U, 42, 7U).status ==
                detail::ExplorerLedgerIssueStatus::GenerationExhausted,
            "identifier exhaustion blocks issuance without wrapping");
+    detail::ExplorerTokenLedger invalid_registration{1U, 2U, 1U, 1U};
+    expect(invalid_registration.issue(0x300U, 1U, 1U, 0, 7U).status ==
+                   detail::ExplorerLedgerIssueStatus::
+                       InvalidRegistrationAuthority &&
+               invalid_registration.issue(0x300U, 1U, 1U, 42, 0U).status ==
+                   detail::ExplorerLedgerIssueStatus::
+                       InvalidRegistrationAuthority,
+           "cookie and subscription generation are mandatory token authority");
 }
 
 void test_single_primary_apply_guard() {
@@ -239,6 +310,514 @@ void test_shell_creation_and_handle_readiness_are_distinct() {
                !detail::readiness_acceptance_allowed(
                    true, epoch, epoch + std::chrono::milliseconds{1}),
            "unstable, equal-deadline, and post-deadline samples cannot be accepted");
+}
+
+void test_baseline_exclusion_uses_only_reliable_hwnd_identity() {
+    const std::array entries{
+        detail::BaselineEntryModel{
+            0x100U, true, detail::BaselineLocationDisposition::Valid},
+        detail::BaselineEntryModel{
+            0x200U, true, detail::BaselineLocationDisposition::Empty},
+        detail::BaselineEntryModel{
+            0x300U, true, detail::BaselineLocationDisposition::Inaccessible},
+        detail::BaselineEntryModel{
+            0x200U, true, detail::BaselineLocationDisposition::Empty},
+    };
+    const std::array<detail::NativeWindowKey, 3U> prior{
+        0x900U, 0x900U, 0U};
+    const auto complete =
+        detail::evaluate_baseline_exclusion(entries, prior);
+    expect(complete.complete() &&
+               complete.total_entry_count == 4U &&
+               complete.reliable_entry_count == 4U &&
+               complete.reliable_hwnd_count == 3U,
+           "valid, empty, and inaccessible baseline entries remain complete when every HWND is reliable");
+    expect(complete.valid_location_count == 1U &&
+               complete.empty_location_count == 2U &&
+               complete.inaccessible_location_count == 1U,
+           "baseline location dispositions remain explicit diagnostic counts");
+    expect(complete.forbidden_preexisting_hwnds ==
+               std::vector<detail::NativeWindowKey>{
+                   0x100U, 0x200U, 0x300U, 0x900U},
+           "forbidden baseline HWNDs are non-zero, deduplicated, and include prior exclusions");
+
+    const auto target_location = location_id(4U, std::byte{0x44});
+    auto positive_context = correlation_context(target_location);
+    positive_context.automation_window = 0x400U;
+    positive_context.live_eligibility_window = 0x400U;
+    positive_context.forbidden_preexisting_hwnds =
+        complete.forbidden_preexisting_hwnds;
+    auto positive_witness = matching_registration(target_location);
+    positive_witness.cookie_resolved_window = 0x400U;
+    const std::array positive_witnesses{positive_witness};
+    expect(detail::evaluate_registration_correlation(
+               positive_context, positive_witnesses)
+               .eligible(),
+           "opaque baseline locations do not weaken or block an independently proven new target");
+
+    const std::array next_entries{
+        detail::BaselineEntryModel{
+            0x400U, true, detail::BaselineLocationDisposition::Valid}};
+    const auto accumulated = detail::evaluate_baseline_exclusion(
+        next_entries, complete.forbidden_preexisting_hwnds);
+    expect(accumulated.complete() &&
+               accumulated.forbidden_preexisting_hwnds ==
+                   std::vector<detail::NativeWindowKey>{
+                       0x100U, 0x200U, 0x300U, 0x400U, 0x900U},
+           "a later capture can only add to the session's permanent forbidden HWND set");
+
+    const std::array unreliable_entries{
+        detail::BaselineEntryModel{
+            0x500U, false, detail::BaselineLocationDisposition::Empty},
+        detail::BaselineEntryModel{
+            0U, true, detail::BaselineLocationDisposition::Inaccessible},
+        detail::BaselineEntryModel{
+            0x600U, true, detail::BaselineLocationDisposition::Valid},
+    };
+    const auto blocked = detail::evaluate_baseline_exclusion(
+        unreliable_entries, accumulated.forbidden_preexisting_hwnds);
+    expect(!blocked.complete() && blocked.reliable_entry_count == 1U &&
+               blocked.reliable_hwnd_count == 1U,
+           "a non-zero but unreliable HWND and a reliable zero HWND each block baseline completeness");
+    expect(std::find(blocked.forbidden_preexisting_hwnds.begin(),
+                     blocked.forbidden_preexisting_hwnds.end(),
+                     0x600U) != blocked.forbidden_preexisting_hwnds.end() &&
+               std::find(blocked.forbidden_preexisting_hwnds.begin(),
+                         blocked.forbidden_preexisting_hwnds.end(),
+                         0x500U) == blocked.forbidden_preexisting_hwnds.end(),
+           "a blocked capture still conservatively retains every independently reliable HWND without guessing unreliable ones");
+}
+
+void test_shell_receipts_are_monotonic_and_fail_closed_on_exhaustion() {
+    detail::ShellReceiptSequence sequence;
+    const auto registered = sequence.issue(
+        detail::ShellRegistrationEventKind::WindowRegistered, 9U, -17);
+    const auto revoked = sequence.issue(
+        detail::ShellRegistrationEventKind::WindowRevoked, 9U, -17);
+    expect(registered.status == detail::ShellReceiptIssueStatus::Issued &&
+               registered.receipt.has_value() &&
+               registered.receipt->sequence == 1U &&
+               registered.receipt->subscription_generation == 9U &&
+               registered.receipt->cookie == -17 &&
+               registered.receipt->kind ==
+                   detail::ShellRegistrationEventKind::WindowRegistered,
+           "registration receipt preserves signed LONG cookie semantics and subscription generation");
+    expect(revoked.status == detail::ShellReceiptIssueStatus::Issued &&
+               revoked.receipt.has_value() &&
+               revoked.receipt->sequence == 2U &&
+               revoked.receipt->kind ==
+                   detail::ShellRegistrationEventKind::WindowRevoked,
+           "registered and revoked callbacks receive one local monotonic sequence");
+
+    constexpr auto maximum = std::numeric_limits<std::uint64_t>::max();
+    detail::ShellReceiptSequence exhausted{maximum - 1U};
+    const auto last_safe = exhausted.issue(
+        detail::ShellRegistrationEventKind::WindowRegistered, 1U, 1);
+    const auto first_failure = exhausted.issue(
+        detail::ShellRegistrationEventKind::WindowRevoked, 1U, 1);
+    const auto persistent_failure = exhausted.issue(
+        detail::ShellRegistrationEventKind::WindowRegistered, 1U, 2);
+    expect(last_safe.status == detail::ShellReceiptIssueStatus::Issued &&
+               last_safe.receipt.has_value() &&
+               last_safe.receipt->sequence == maximum - 1U,
+           "receipt sequence issues its last safe value without wrapping");
+    expect(first_failure.status ==
+                   detail::ShellReceiptIssueStatus::SequenceExhausted &&
+               !first_failure.receipt.has_value() &&
+               persistent_failure.status ==
+                   detail::ShellReceiptIssueStatus::SequenceExhausted &&
+               !persistent_failure.receipt.has_value(),
+           "receipt sequence exhaustion is permanent and cannot fabricate a zero or wrapped receipt");
+}
+
+void test_registration_correlation_requires_positive_authority() {
+    const auto target = location_id(7U, std::byte{0x77});
+    const auto context = correlation_context(target);
+
+    const auto none = detail::evaluate_registration_correlation(
+        context, std::span<const detail::RegistrationWitness>{});
+    expect(none.status ==
+                   detail::RegistrationCorrelationStatus::NoRegistration &&
+               !none.eligible(),
+           "no WindowRegistered receipt cannot establish provisioning authority");
+
+    auto unrelated = matching_registration(target);
+    unrelated.canonical_com_identity_matches = false;
+    unrelated.cookie_resolved_window = 0x310U;
+    const std::array unrelated_only{unrelated};
+    const auto wrong_com = detail::evaluate_registration_correlation(
+        context, unrelated_only);
+    expect(wrong_com.status == detail::RegistrationCorrelationStatus::
+                                   UnrelatedRegistrationsOnly &&
+               wrong_com.unrelated_registration_count == 1U &&
+               !wrong_com.eligible(),
+           "a new HWND from the wrong canonical COM object is unrelated and cannot mint authority");
+
+    auto shared_window_wrong_com = matching_registration(target);
+    shared_window_wrong_com.canonical_com_identity_matches = false;
+    shared_window_wrong_com.receipt_sequence = 2U;
+    const std::array shared_window_wrong_com_only{shared_window_wrong_com};
+    const auto shared_window_conflict =
+        detail::evaluate_registration_correlation(
+            context, shared_window_wrong_com_only);
+    expect(shared_window_conflict.status ==
+                   detail::RegistrationCorrelationStatus::
+                       SharedWindowIdentityConflict &&
+               shared_window_conflict.shared_window_identity_conflict_count ==
+                   1U &&
+               shared_window_conflict.unrelated_registration_count == 0U &&
+               !shared_window_conflict.eligible(),
+           "wrong canonical COM identity sharing the target HWND is an explicit multi-tab/frame conflict, not unrelated noise");
+    const std::array match_plus_shared_window_conflict{
+        matching_registration(target, 42, 1U), shared_window_wrong_com};
+    expect(detail::evaluate_registration_correlation(
+               context, match_plus_shared_window_conflict)
+               .status == detail::RegistrationCorrelationStatus::
+                              SharedWindowIdentityConflict,
+           "one valid cookie cannot override another COM object registered on the same target frame");
+
+    const std::array one_match{matching_registration(target, 42)};
+    const auto eligible = detail::evaluate_registration_correlation(
+        context, one_match);
+    expect(eligible.eligible() && eligible.matching_cookie_count == 1U &&
+               eligible.matching_cookie == 42,
+           "one resolved same-object cookie with exact HWND and FILE_ID_INFO is eligible");
+
+    auto unrelated_second = unrelated;
+    unrelated_second.cookie = 11;
+    unrelated_second.receipt_sequence = 2U;
+    auto unrelated_third = unrelated;
+    unrelated_third.cookie = 12;
+    unrelated_third.receipt_sequence = 3U;
+    const std::array mixed{
+        unrelated_second, matching_registration(target, 42, 4U),
+        unrelated_third};
+    const auto mixed_result = detail::evaluate_registration_correlation(
+        context, mixed);
+    expect(mixed_result.eligible() &&
+               mixed_result.unrelated_registration_count == 2U &&
+               mixed_result.matching_cookie_count == 1U,
+           "multiple resolved unrelated registrations are ignored when exactly one cookie matches the lease object");
+
+    const std::array two_matches{
+        matching_registration(target, 42, 1U),
+        matching_registration(target, 43, 2U)};
+    const auto ambiguous = detail::evaluate_registration_correlation(
+        context, two_matches);
+    expect(ambiguous.status == detail::RegistrationCorrelationStatus::
+                                   AmbiguousMatchingRegistrations &&
+               ambiguous.matching_cookie_count == 2U &&
+               !ambiguous.eligible(),
+           "two distinct cookies matching the same created object are ambiguous");
+    const std::array three_matches{
+        matching_registration(target, 42, 1U),
+        matching_registration(target, 43, 2U),
+        matching_registration(target, 44, 3U)};
+    expect(detail::evaluate_registration_correlation(context, three_matches)
+                   .matching_cookie_count == 3U,
+           "ambiguous evidence reports the exact distinct matching-cookie count");
+    const std::array duplicate_receipt{
+        matching_registration(target, 42, 1U),
+        matching_registration(target, 42, 2U)};
+    expect(detail::evaluate_registration_correlation(
+               context, duplicate_receipt)
+               .eligible(),
+           "duplicate receipts for one cookie do not invent a second registered window");
+
+    auto preexisting_context = context;
+    preexisting_context.forbidden_preexisting_hwnds.push_back(0x300U);
+    const auto preexisting = detail::evaluate_registration_correlation(
+        preexisting_context, one_match);
+    expect(preexisting.status ==
+               detail::RegistrationCorrelationStatus::PreexistingWindow,
+           "same COM identity can never override permanent baseline HWND exclusion");
+
+    auto wrong_cookie_hwnd = matching_registration(target);
+    wrong_cookie_hwnd.cookie_resolved_window = 0x301U;
+    const std::array wrong_cookie_hwnd_only{wrong_cookie_hwnd};
+    expect(detail::evaluate_registration_correlation(
+               context, wrong_cookie_hwnd_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              ThreeWayWindowMismatch,
+           "automation and cookie-resolved HWND mismatch blocks three-way authority");
+
+    auto wrong_live_context = context;
+    wrong_live_context.live_eligibility_window = 0x302U;
+    expect(detail::evaluate_registration_correlation(
+               wrong_live_context, one_match)
+               .status == detail::RegistrationCorrelationStatus::
+                              ThreeWayWindowMismatch,
+           "automation and live-eligibility HWND mismatch blocks three-way authority");
+
+    auto wrong_location = matching_registration(
+        location_id(7U, std::byte{0x78}));
+    const std::array wrong_location_only{wrong_location};
+    expect(detail::evaluate_registration_correlation(
+               context, wrong_location_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              TargetLocationMismatch,
+           "same object at a different FILE_ID_INFO is rejected");
+    auto unavailable_location = matching_registration(target);
+    unavailable_location.live_filesystem_location.reset();
+    const std::array unavailable_location_only{unavailable_location};
+    expect(detail::evaluate_registration_correlation(
+               context, unavailable_location_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              TargetLocationMismatch,
+           "empty or inaccessible target location cannot satisfy positive attribution");
+
+    auto revoked = matching_registration(target);
+    revoked.revoked_before_issuance = true;
+    const std::array revoked_only{revoked};
+    expect(detail::evaluate_registration_correlation(context, revoked_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              MatchingRegistrationRevoked,
+           "WindowRevoked before token issuance makes the matching witness stale");
+
+    auto stale_generation = matching_registration(target);
+    stale_generation.subscription_generation = 6U;
+    const std::array stale_generation_only{stale_generation};
+    expect(detail::evaluate_registration_correlation(
+               context, stale_generation_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              SubscriptionGenerationMismatch,
+           "receipt from another subscription generation is rejected");
+
+    auto unresolved = matching_registration(target);
+    unresolved.cookie_resolved = false;
+    unresolved.cookie_resolved_window = 0U;
+    const std::array unresolved_only{unresolved};
+    expect(detail::evaluate_registration_correlation(context, unresolved_only)
+               .status == detail::RegistrationCorrelationStatus::
+                              UnresolvedRegistration,
+           "FindWindowSW resolution failure cannot be guessed unrelated");
+    const std::array matching_plus_unresolved{
+        matching_registration(target, 42, 1U), unresolved};
+    expect(detail::evaluate_registration_correlation(
+               context, matching_plus_unresolved)
+               .status == detail::RegistrationCorrelationStatus::
+                              UnresolvedRegistration,
+           "an unresolved concurrent registration blocks uniqueness even beside one apparent match");
+}
+
+void test_cleanup_authority_stays_on_the_exact_provisioning_lease() {
+    auto facts = authorized_cleanup_facts();
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::Authorized,
+           "exact session-owned CoCreate lease at the nonce target may call Quit");
+
+    facts.navigation =
+        detail::LeaseNavigationDisposition::PendingExpectedTarget;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::Authorized,
+           "a known pending navigation to the expected target retains lease cleanup authority");
+    facts.navigation = detail::LeaseNavigationDisposition::NotStarted;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::Authorized,
+           "a retained object created by this CoCreate may be cleaned before navigation starts");
+
+    facts = authorized_cleanup_facts();
+    facts.retained_automation_object_available = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::RetainedObjectUnavailable,
+           "cleanup cannot fall back from a missing lease object to a raw HWND");
+    facts = authorized_cleanup_facts();
+    facts.lease_belongs_to_current_session = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::WrongSession,
+           "foreign session lease is rejected");
+    facts = authorized_cleanup_facts();
+    facts.created_by_current_cocreate = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::WrongCreationAuthority,
+           "an object not created by this CoCreate has no cleanup authority");
+    facts = authorized_cleanup_facts();
+    facts.subscription_generation_matches = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::
+                   SubscriptionGenerationMismatch,
+           "stale subscription generation cannot authorize cleanup");
+    facts = authorized_cleanup_facts();
+    facts.canonical_identity_available = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::CanonicalIdentityUnavailable,
+           "missing canonical IUnknown identity blocks cleanup");
+    facts = authorized_cleanup_facts();
+    facts.canonical_identity_matches = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::CanonicalIdentityMismatch,
+           "cleanup lease identity mismatch never permits unsafe Quit");
+    facts = authorized_cleanup_facts();
+    facts.canonical_identity_ambiguous = true;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::CanonicalIdentityAmbiguous,
+           "ambiguous canonical identity blocks cleanup");
+    facts = authorized_cleanup_facts();
+    facts.window_not_preexisting = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::PreexistingWindow,
+           "a permanent baseline HWND exclusion also blocks exact-object Quit");
+    facts = authorized_cleanup_facts();
+    facts.window_identity_matches = false;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::WindowIdentityMismatch,
+           "cookie and lease HWND mismatch cannot authorize cleanup");
+    facts = authorized_cleanup_facts();
+    facts.navigation = detail::LeaseNavigationDisposition::LeftExpectedTarget;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::NavigationUnsafe,
+           "a lease observed away from the nonce target cannot close that object");
+    facts.navigation = detail::LeaseNavigationDisposition::Unknown;
+    expect(detail::evaluate_lease_cleanup_authorization(facts) ==
+               detail::LeaseCleanupAuthorization::NavigationUnsafe,
+           "unknown navigation history fails closed");
+}
+
+void test_public_cleanup_completion_requires_quit_lifecycle_and_no_orphan() {
+    explorer::ExplorerProvisioningCleanupFacts facts;
+    facts.cleanup_authorized = true;
+    facts.native_quit_attempted = true;
+    facts.native_quit_succeeded = true;
+    facts.exact_hwnd_invalidated = true;
+    facts.orphan_attribution_known = true;
+    facts.browser_events_unadvised = true;
+    facts.shell_events_unadvised = true;
+    facts.browser_event_lifecycle_clean = true;
+    facts.shell_event_lifecycle_clean = true;
+    expect(facts.completed(),
+           "exact Quit plus invalidation and both Unadvises completes cleanup");
+
+    facts.orphan_attribution_known = false;
+    expect(!facts.completed(),
+           "unknown orphan attribution cannot become cleanup PASS");
+    facts.orphan_attribution_known = true;
+
+    facts.native_quit_succeeded = false;
+    expect(!facts.completed(), "a failed Quit cannot become cleanup PASS");
+    facts.native_quit_succeeded = true;
+    facts.attributable_orphan = true;
+    expect(!facts.completed(), "an attributable live frame blocks cleanup PASS");
+    facts.attributable_orphan = false;
+    facts.browser_events_unadvised = false;
+    expect(!facts.completed(), "browser sink retirement is mandatory");
+    facts.browser_events_unadvised = true;
+    facts.shell_events_unadvised = false;
+    expect(!facts.completed(), "Shell sink retirement is mandatory");
+    facts.shell_events_unadvised = true;
+    facts.browser_event_lifecycle_clean = false;
+    expect(!facts.completed(), "browser sink lifecycle evidence must be clean");
+    facts.browser_event_lifecycle_clean = true;
+    facts.shell_event_lifecycle_clean = false;
+    expect(!facts.completed(), "Shell sink lifecycle evidence must be clean");
+}
+
+void test_browser_navigation_history_fails_closed_without_urls() {
+    expect(!detail::browser_navigation_history_ambiguous(0U, std::nullopt) &&
+               !detail::browser_navigation_history_ambiguous(1U,
+                                                               std::nullopt),
+           "zero or one pre-issuance same-object completion is an optional readiness hint");
+    expect(detail::browser_navigation_history_ambiguous(2U, std::nullopt),
+           "multiple pre-issuance same-object completions make URL-free history ambiguous");
+    expect(!detail::browser_navigation_history_ambiguous(1U, 1U),
+           "the frozen issuance completion count remains valid while unchanged");
+    expect(detail::browser_navigation_history_ambiguous(2U, 1U) &&
+               detail::browser_navigation_history_ambiguous(1U, 0U),
+           "any post-issuance matching completion increment fails closed");
+}
+
+void test_fixed_three_attempt_provisioning_stability_gate() {
+    constexpr std::array requirements{
+        &detail::ProvisioningAttemptSummary::baseline_exclusion_complete,
+        &detail::ProvisioningAttemptSummary::registration_subscription_active,
+        &detail::ProvisioningAttemptSummary::exactly_one_target,
+        &detail::ProvisioningAttemptSummary::target_not_preexisting,
+        &detail::ProvisioningAttemptSummary::matching_cookie_unique,
+        &detail::ProvisioningAttemptSummary::canonical_identity_matches,
+        &detail::ProvisioningAttemptSummary::three_way_window_matches,
+        &detail::ProvisioningAttemptSummary::exact_target_location,
+        &detail::ProvisioningAttemptSummary::full_eligibility_passed,
+        &detail::ProvisioningAttemptSummary::safe_cleanup_succeeded,
+        &detail::ProvisioningAttemptSummary::no_attributable_orphan,
+        &detail::ProvisioningAttemptSummary::existing_windows_untouched,
+        &detail::ProvisioningAttemptSummary::translation_not_attempted,
+    };
+    for (const auto requirement : requirements) {
+        auto failed = passing_attempt(1U);
+        failed.*requirement = false;
+        expect(!detail::provisioning_attempt_passed(failed),
+               "every provision-only safety fact is mandatory");
+    }
+
+    const std::array three_passes{
+        passing_attempt(1U), passing_attempt(2U), passing_attempt(3U)};
+    const auto passed =
+        detail::evaluate_provisioning_stability(three_passes);
+    expect(passed.status ==
+                   detail::ProvisioningStabilityGateStatus::Pass &&
+               passed.passing_attempt_count == 3U &&
+               passed.attempt_sequence_valid &&
+               !passed.fixed_attempt_count_violated,
+           "exactly three ordered provision-only passes open the stability gate");
+
+    const auto not_started = detail::evaluate_provisioning_stability(
+        std::span<const detail::ProvisioningAttemptSummary>{});
+    expect(not_started.status ==
+               detail::ProvisioningStabilityGateStatus::NotRun,
+           "zero provisioning attempts leave the gate not run");
+    const std::array pass_prefix{
+        passing_attempt(1U), passing_attempt(2U)};
+    const auto incomplete =
+        detail::evaluate_provisioning_stability(pass_prefix);
+    expect(incomplete.status ==
+                   detail::ProvisioningStabilityGateStatus::NotRun &&
+               incomplete.attempt_sequence_valid,
+           "an ordered all-pass prefix shorter than three is incomplete, not pass");
+
+    auto second_failure = passing_attempt(2U);
+    second_failure.safe_cleanup_succeeded = false;
+    const std::array failed_attempts{
+        passing_attempt(1U), second_failure, passing_attempt(3U)};
+    const auto blocked =
+        detail::evaluate_provisioning_stability(failed_attempts);
+    expect(blocked.status ==
+                   detail::ProvisioningStabilityGateStatus::Blocked &&
+               blocked.passing_attempt_count == 2U &&
+               blocked.first_failing_attempt == 2U,
+           "any one of the fixed three failures blocks without retry-until-pass semantics");
+
+    auto first_failure = passing_attempt(1U);
+    first_failure.exact_target_location = false;
+    const std::array stopped_after_failure{first_failure};
+    expect(detail::evaluate_provisioning_stability(stopped_after_failure)
+               .status == detail::ProvisioningStabilityGateStatus::Blocked,
+           "an observed failure blocks immediately even when later attempts are not run");
+
+    const std::array too_many{
+        passing_attempt(1U), passing_attempt(2U), passing_attempt(3U),
+        passing_attempt(4U)};
+    const auto retried = detail::evaluate_provisioning_stability(too_many);
+    expect(retried.status ==
+                   detail::ProvisioningStabilityGateStatus::Blocked &&
+               retried.fixed_attempt_count_violated,
+           "a fourth attempt violates the fixed gate instead of refreshing evidence");
+
+    const std::array duplicate_index{
+        passing_attempt(1U), passing_attempt(1U), passing_attempt(3U)};
+    const auto duplicate =
+        detail::evaluate_provisioning_stability(duplicate_index);
+    expect(duplicate.status ==
+                   detail::ProvisioningStabilityGateStatus::Blocked &&
+               !duplicate.attempt_sequence_valid,
+           "duplicate attempt indices cannot masquerade as three independent runs");
+
+    const std::array out_of_order{
+        passing_attempt(2U), passing_attempt(1U), passing_attempt(3U)};
+    const auto reordered =
+        detail::evaluate_provisioning_stability(out_of_order);
+    expect(reordered.status ==
+                   detail::ProvisioningStabilityGateStatus::Blocked &&
+               !reordered.attempt_sequence_valid,
+           "out-of-order attempt indices are rejected; the required sequence is exactly 1, 2, 3");
 }
 
 void test_candidate_set_delta_and_exact_location() {
@@ -640,6 +1219,13 @@ int main() {
     test_token_authority_generation_stale_and_cross_session();
     test_single_primary_apply_guard();
     test_shell_creation_and_handle_readiness_are_distinct();
+    test_baseline_exclusion_uses_only_reliable_hwnd_identity();
+    test_shell_receipts_are_monotonic_and_fail_closed_on_exhaustion();
+    test_registration_correlation_requires_positive_authority();
+    test_cleanup_authority_stays_on_the_exact_provisioning_lease();
+    test_public_cleanup_completion_requires_quit_lifecycle_and_no_orphan();
+    test_browser_navigation_history_fails_closed_without_urls();
+    test_fixed_three_attempt_provisioning_stability_gate();
     test_candidate_set_delta_and_exact_location();
     test_allowlist_reason_model();
     test_safe_delta_selection_and_work_area_containment();

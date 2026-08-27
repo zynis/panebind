@@ -36,12 +36,15 @@ struct ExplorerLedgerEntry {
     NativeWindowKey native_key{};
     std::uint32_t process_id{};
     std::uint32_t thread_id{};
+    std::int32_t registration_cookie{};
+    std::uint64_t subscription_generation{};
 };
 
 enum class ExplorerLedgerIssueStatus {
     Succeeded,
     InvalidNativeKey,
     DuplicateNativeKey,
+    InvalidRegistrationAuthority,
     AuthorityExhausted,
     GenerationExhausted,
 };
@@ -63,12 +66,17 @@ public:
     [[nodiscard]] ExplorerLedgerIssueResult issue(
         NativeWindowKey native_key,
         std::uint32_t process_id,
-        std::uint32_t thread_id);
+        std::uint32_t thread_id,
+        std::int32_t registration_cookie,
+        std::uint64_t subscription_generation);
     [[nodiscard]] bool retire_native(NativeWindowKey native_key) noexcept;
     [[nodiscard]] std::optional<ExplorerLedgerEntry> resolve(
         const ExplorerWindowToken& token) const noexcept;
     [[nodiscard]] bool contains(
         const ExplorerWindowToken& token) const noexcept;
+    [[nodiscard]] std::uint64_t session_authority() const noexcept {
+        return session_authority_;
+    }
 
 private:
     std::uint64_t controller_authority_{};
@@ -128,6 +136,47 @@ private:
     const ExplorerWindowSnapshot& expected,
     const ExplorerWindowSnapshot& current) noexcept;
 
+enum class BaselineLocationDisposition {
+    Valid,
+    Empty,
+    Inaccessible,
+};
+
+struct BaselineEntryModel {
+    NativeWindowKey native_key{};
+    bool native_key_reliable{};
+    BaselineLocationDisposition location{
+        BaselineLocationDisposition::Inaccessible};
+};
+
+enum class BaselineExclusionStatus {
+    Complete,
+    Blocked,
+};
+
+struct BaselineExclusionEvaluation {
+    BaselineExclusionStatus status{BaselineExclusionStatus::Blocked};
+    std::size_t total_entry_count{};
+    std::size_t reliable_entry_count{};
+    std::size_t reliable_hwnd_count{};
+    std::size_t valid_location_count{};
+    std::size_t empty_location_count{};
+    std::size_t inaccessible_location_count{};
+    std::vector<NativeWindowKey> forbidden_preexisting_hwnds;
+
+    [[nodiscard]] bool complete() const noexcept {
+        return status == BaselineExclusionStatus::Complete;
+    }
+};
+
+// A location is only a diagnostic fact for a preexisting entry. Completeness
+// depends solely on every entry providing a reliable, non-zero HWND. Passing a
+// prior forbidden set models the session invariant that an excluded numeric
+// HWND is never removed, even if Windows later reuses that value.
+[[nodiscard]] BaselineExclusionEvaluation evaluate_baseline_exclusion(
+    std::span<const BaselineEntryModel> entries,
+    std::span<const NativeWindowKey> previously_forbidden = {});
+
 struct InventoryLocationFingerprint {
     ShellLocationStatus status{ShellLocationStatus::Unavailable};
     ShellLocationSource source{ShellLocationSource::None};
@@ -171,6 +220,195 @@ struct CandidateEvaluation {
     const InventoryModel& post_navigation,
     NativeWindowKey retained_window,
     const FilesystemLocationIdentity& target_location) noexcept;
+
+enum class ShellRegistrationEventKind {
+    WindowRegistered,
+    WindowRevoked,
+};
+
+struct ShellRegistrationReceipt {
+    std::uint64_t sequence{};
+    std::uint64_t subscription_generation{};
+    std::int32_t cookie{};
+    ShellRegistrationEventKind kind{
+        ShellRegistrationEventKind::WindowRegistered};
+};
+
+enum class ShellReceiptIssueStatus {
+    Issued,
+    SequenceExhausted,
+};
+
+struct ShellReceiptIssueResult {
+    ShellReceiptIssueStatus status{ShellReceiptIssueStatus::SequenceExhausted};
+    std::optional<ShellRegistrationReceipt> receipt;
+};
+
+// Provides the small monotonic receipt capture needed by a COM event sink.
+// It has no native side effects and permanently fails closed on exhaustion.
+class ShellReceiptSequence final {
+public:
+    explicit ShellReceiptSequence(std::uint64_t first_sequence = 1U) noexcept;
+
+    ShellReceiptSequence(const ShellReceiptSequence&) = delete;
+    ShellReceiptSequence& operator=(const ShellReceiptSequence&) = delete;
+
+    [[nodiscard]] ShellReceiptIssueResult issue(
+        ShellRegistrationEventKind kind,
+        std::uint64_t subscription_generation,
+        std::int32_t cookie) noexcept;
+
+private:
+    MonotonicIdSource sequence_;
+};
+
+struct RegistrationWitness {
+    std::uint64_t receipt_sequence{};
+    std::uint64_t subscription_generation{};
+    std::int32_t cookie{};
+    bool cookie_resolved{};
+    bool canonical_com_identity_matches{};
+    NativeWindowKey cookie_resolved_window{};
+    std::optional<FilesystemLocationIdentity> live_filesystem_location;
+    bool revoked_before_issuance{};
+};
+
+struct RegistrationCorrelationContext {
+    std::uint64_t subscription_generation{};
+    NativeWindowKey automation_window{};
+    NativeWindowKey live_eligibility_window{};
+    FilesystemLocationIdentity expected_target_location;
+    std::vector<NativeWindowKey> forbidden_preexisting_hwnds;
+};
+
+enum class RegistrationCorrelationStatus {
+    NoRegistration,
+    UnrelatedRegistrationsOnly,
+    UnresolvedRegistration,
+    SubscriptionGenerationMismatch,
+    SharedWindowIdentityConflict,
+    MatchingRegistrationRevoked,
+    PreexistingWindow,
+    ThreeWayWindowMismatch,
+    TargetLocationMismatch,
+    AmbiguousMatchingRegistrations,
+    Eligible,
+};
+
+struct RegistrationCorrelationEvaluation {
+    RegistrationCorrelationStatus status{
+        RegistrationCorrelationStatus::NoRegistration};
+    std::size_t observed_registration_count{};
+    std::size_t unrelated_registration_count{};
+    std::size_t unresolved_registration_count{};
+    std::size_t shared_window_identity_conflict_count{};
+    std::size_t matching_cookie_count{};
+    std::optional<std::int32_t> matching_cookie;
+
+    [[nodiscard]] bool eligible() const noexcept {
+        return status == RegistrationCorrelationStatus::Eligible &&
+               matching_cookie_count == 1U && matching_cookie.has_value();
+    }
+};
+
+// Only a resolved registration for the same canonical COM object may become
+// authority. The target's exact FILE_ID_INFO remains a hard gate, independent
+// of baseline entries whose locations may be opaque.
+[[nodiscard]] RegistrationCorrelationEvaluation
+evaluate_registration_correlation(
+    const RegistrationCorrelationContext& context,
+    std::span<const RegistrationWitness> witnesses);
+
+enum class LeaseNavigationDisposition {
+    NotStarted,
+    PendingExpectedTarget,
+    ExactExpectedTarget,
+    LeftExpectedTarget,
+    Unknown,
+};
+
+struct LeaseCleanupFacts {
+    bool retained_automation_object_available{};
+    bool lease_belongs_to_current_session{};
+    bool created_by_current_cocreate{};
+    bool subscription_generation_matches{};
+    bool canonical_identity_available{};
+    bool canonical_identity_matches{};
+    bool canonical_identity_ambiguous{};
+    bool window_not_preexisting{};
+    bool window_identity_matches{};
+    LeaseNavigationDisposition navigation{
+        LeaseNavigationDisposition::Unknown};
+};
+
+enum class LeaseCleanupAuthorization {
+    Authorized,
+    RetainedObjectUnavailable,
+    WrongSession,
+    WrongCreationAuthority,
+    SubscriptionGenerationMismatch,
+    CanonicalIdentityUnavailable,
+    CanonicalIdentityMismatch,
+    CanonicalIdentityAmbiguous,
+    PreexistingWindow,
+    WindowIdentityMismatch,
+    NavigationUnsafe,
+};
+
+[[nodiscard]] LeaseCleanupAuthorization
+evaluate_lease_cleanup_authorization(
+    const LeaseCleanupFacts& facts) noexcept;
+
+// The browser sink intentionally does not retain or trust URLs. Before token
+// issuance, at most one same-object NavigateComplete2 is an admissible
+// readiness hint. After issuance, any increase from the frozen counter makes
+// navigation history unknowable and permanently fails closed.
+[[nodiscard]] bool browser_navigation_history_ambiguous(
+    std::uint64_t current_matching_navigate_complete_count,
+    std::optional<std::uint64_t> issued_baseline_count) noexcept;
+
+struct ProvisioningAttemptSummary {
+    std::size_t attempt_index{};
+    bool baseline_exclusion_complete{};
+    bool registration_subscription_active{};
+    bool exactly_one_target{};
+    bool target_not_preexisting{};
+    bool matching_cookie_unique{};
+    bool canonical_identity_matches{};
+    bool three_way_window_matches{};
+    bool exact_target_location{};
+    bool full_eligibility_passed{};
+    bool safe_cleanup_succeeded{};
+    bool no_attributable_orphan{};
+    bool existing_windows_untouched{};
+    bool translation_not_attempted{};
+};
+
+enum class ProvisioningStabilityGateStatus {
+    NotRun,
+    Pass,
+    Blocked,
+};
+
+struct ProvisioningStabilityEvaluation {
+    ProvisioningStabilityGateStatus status{
+        ProvisioningStabilityGateStatus::NotRun};
+    std::size_t attempt_count{};
+    std::size_t passing_attempt_count{};
+    std::optional<std::size_t> first_failing_attempt;
+    bool fixed_attempt_count_violated{};
+    bool attempt_sequence_valid{true};
+};
+
+[[nodiscard]] bool provisioning_attempt_passed(
+    const ProvisioningAttemptSummary& attempt) noexcept;
+
+// Three is a fixed gate, not a retry budget. A recorded failure blocks
+// immediately; all-pass prefixes shorter than three remain NOT RUN, while any
+// attempt beyond the fixed three is a protocol violation and blocks.
+[[nodiscard]] ProvisioningStabilityEvaluation
+evaluate_provisioning_stability(
+    std::span<const ProvisioningAttemptSummary> attempts) noexcept;
 
 struct EligibilityModelFacts {
     bool window_exists{};

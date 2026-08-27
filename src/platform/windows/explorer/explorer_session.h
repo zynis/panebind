@@ -67,6 +67,15 @@ enum class ExplorerEligibilityReason {
     ComApartmentUnavailable,
     InventoryUnavailable,
     InventoryUnstable,
+    BaselineWindowIdentityUnavailable,
+    ShellEventSubscriptionUnavailable,
+    BrowserEventSubscriptionUnavailable,
+    ShellEventStreamInvalid,
+    RegistrationNotObserved,
+    RegistrationResolutionFailed,
+    RegistrationRevoked,
+    CanonicalIdentityMismatch,
+    SubscriptionGenerationMismatch,
     ShellWindowCreationFailed,
     ShellWindowHandleMissing,
     PreexistingWindow,
@@ -185,7 +194,86 @@ struct ExplorerWindowSnapshot {
                            const ExplorerWindowSnapshot&) = default;
 };
 
+struct ExplorerProvisioningCleanupFacts {
+    bool cleanup_authorized{};
+    bool native_quit_attempted{};
+    bool native_quit_succeeded{};
+    bool matching_registration_revoked{};
+    bool exact_hwnd_invalidated{};
+    bool orphan_attribution_known{};
+    bool attributable_orphan{};
+    bool browser_events_unadvised{};
+    bool shell_events_unadvised{};
+    bool browser_event_lifecycle_clean{};
+    bool shell_event_lifecycle_clean{};
+
+    [[nodiscard]] bool completed() const noexcept {
+        return cleanup_authorized && native_quit_attempted &&
+               native_quit_succeeded && browser_events_unadvised &&
+               shell_events_unadvised && browser_event_lifecycle_clean &&
+               shell_event_lifecycle_clean &&
+               orphan_attribution_known &&
+               (matching_registration_revoked || exact_hwnd_invalidated) &&
+               !attributable_orphan;
+    }
+};
+
 struct ExplorerProvisioningFacts {
+    std::size_t baseline_total_shell_entries{};
+    std::size_t baseline_reliable_shell_entries{};
+    std::size_t baseline_reliable_unique_hwnd_count{};
+    std::size_t forbidden_preexisting_hwnd_count{};
+    std::size_t baseline_valid_location_count{};
+    std::size_t baseline_empty_location_count{};
+    std::size_t baseline_inaccessible_location_count{};
+    bool baseline_exclusion_complete{};
+
+    bool shell_subscription_advised{};
+    std::uint64_t shell_subscription_generation{};
+    std::uint64_t shell_callback_count{};
+    std::uint64_t shell_registered_event_count{};
+    std::uint64_t shell_revoked_event_count{};
+    std::uint64_t shell_malformed_event_count{};
+    std::uint64_t shell_overflow_event_count{};
+    std::uint64_t shell_wrong_thread_event_count{};
+    std::uint64_t shell_post_retirement_event_count{};
+    bool shell_subscription_generation_mismatch{};
+    bool shell_cookie_lifecycle_ambiguous{};
+
+    bool browser_subscription_advised{};
+    std::uint64_t browser_navigate_complete_count{};
+    std::uint64_t browser_matching_navigate_complete_count{};
+    std::uint64_t issued_matching_navigate_complete_count{};
+    std::uint64_t browser_unrelated_navigate_complete_count{};
+    std::uint64_t browser_identity_query_failure_count{};
+    std::uint64_t browser_quit_event_count{};
+    std::uint64_t browser_malformed_event_count{};
+    std::uint64_t browser_overflow_event_count{};
+    std::uint64_t browser_wrong_thread_event_count{};
+    std::uint64_t browser_post_retirement_event_count{};
+    bool browser_navigation_history_ambiguous{};
+
+    std::size_t registered_cookie_count{};
+    std::size_t revoked_cookie_count{};
+    std::size_t unrelated_registration_count{};
+    std::size_t unresolved_registration_count{};
+    std::size_t shared_window_identity_conflict_count{};
+    std::size_t matching_registration_count{};
+    std::optional<std::int32_t> matching_cookie;
+    bool matching_cookie_find_window_resolved{};
+    bool canonical_iunknown_identity_matches{};
+    bool lease_hwnd_resolved{};
+    bool cookie_hwnd_resolved{};
+    bool live_eligibility_hwnd_resolved{};
+    bool lease_cookie_live_hwnd_match{};
+    bool target_hwnd_preexisting{};
+    bool exact_target_location{};
+    bool token_issued{};
+    ExplorerProvisioningCleanupFacts cleanup;
+
+    // Compatibility fields retained for the existing evidence harness. New
+    // recovery evidence must use the structured fields above; no post-launch
+    // global inventory delta is used as authority.
     std::size_t preexisting_window_count{};
     std::size_t post_navigation_window_count{};
     std::size_t new_candidate_count{};
@@ -261,9 +349,18 @@ struct ExplorerCleanupResult {
     ExplorerEligibilityReason reason{
         ExplorerEligibilityReason::SafeCleanupNotPerformed};
     bool native_close_attempted{};
+    bool native_close_succeeded{};
     bool window_disappeared{};
     bool token_retired{};
     std::optional<ExplorerDiagnostic> diagnostic;
+    bool matching_registration_revoked{};
+    bool exact_hwnd_invalidated{};
+    bool orphan_attribution_known{};
+    bool attributable_orphan{};
+    bool browser_events_unadvised{};
+    bool shell_events_unadvised{};
+    bool browser_event_lifecycle_clean{};
+    bool shell_event_lifecycle_clean{};
 
     [[nodiscard]] bool succeeded() const noexcept {
         return reason == ExplorerEligibilityReason::Eligible &&
@@ -316,6 +413,9 @@ struct ExplorerProvisionResult {
         ExplorerEligibilityReason::InvalidTargetDirectory};
     std::unique_ptr<ExplorerTestSession> session;
     std::optional<ExplorerDiagnostic> diagnostic;
+    // Always populated as far as the attempt progressed, including failures.
+    ExplorerProvisioningFacts facts;
+    ExplorerProvisioningCleanupFacts cleanup;
 
     [[nodiscard]] bool succeeded() const noexcept {
         return reason == ExplorerEligibilityReason::Eligible &&

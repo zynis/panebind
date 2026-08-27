@@ -18,6 +18,9 @@
 #include <vector>
 
 struct IWebBrowser2;
+struct IShellWindows;
+struct IConnectionPoint;
+struct IUnknown;
 
 namespace panebind::platform::windows::explorer {
 
@@ -37,7 +40,13 @@ enum class ShellAutomationStage {
     ParseLocation,
     OpenLocation,
     QueryLocationIdentity,
+    SubscribeShellEvents,
+    ResolveRegistrationCookie,
+    QueryCanonicalIdentity,
     CreateBrowserWindow,
+    SubscribeBrowserEvents,
+    AwaitBrowserReadiness,
+    UnsubscribeBrowserEvents,
     CreateTargetItem,
     ReadTargetPidl,
     EncodeTargetPidl,
@@ -61,6 +70,7 @@ enum class ShellLocationSource {
 
 enum class ShellLocationStatus {
     Filesystem,
+    Empty,
     NavigationPending,
     Unavailable,
     Unsupported,
@@ -121,6 +131,12 @@ struct ShellWindowInventory {
 // behalf.
 [[nodiscard]] ShellWindowInventory capture_shell_window_inventory();
 
+// Internal overload used by ShellWindowsSubscription so baseline capture and
+// cookie resolution share the exact same IShellWindows automation object. The
+// function borrows shell_windows and never releases it.
+[[nodiscard]] ShellWindowInventory capture_shell_window_inventory(
+    IShellWindows* shell_windows);
+
 // Produces the same path-free file identity used for Shell LocationURL facts.
 // Only absolute DOS/UNC filesystem paths are accepted.
 [[nodiscard]] ShellLocationFact filesystem_location_identity(
@@ -144,70 +160,163 @@ struct ShellWindowHandleResult {
     }
 };
 
-class RetainedExplorerShellWindow;
-struct ExplorerShellWindowCreateResult;
-[[nodiscard]] ExplorerShellWindowCreateResult
-create_explorer_shell_window(
-    std::chrono::steady_clock::time_point readiness_deadline);
+class ResolvedShellWindow;
+class BrowserReadinessEventSink;
+class BrowserSubscriptionLifecycleState;
+struct ExplorerProvisioningLeaseCreateResult;
 
-class RetainedExplorerShellWindow final {
+struct BrowserReadinessFacts {
+    std::uint64_t callback_sequence{};
+    std::uint64_t latest_sequence{};
+    std::uint64_t navigate_complete_count{};
+    std::uint64_t matching_navigate_complete_count{};
+    std::uint64_t unrelated_navigate_complete_count{};
+    std::uint64_t identity_query_failure_count{};
+    std::uint64_t quit_count{};
+    std::uint64_t malformed_count{};
+    std::uint64_t overflow_count{};
+    std::uint64_t wrong_thread_count{};
+    std::uint64_t post_retirement_count{};
+    bool latest_activity_was_quit{};
+    bool accepting{};
+    bool subscribed{};
+    bool unadvised{};
+    HRESULT subscription_diagnostic{S_OK};
+};
+
+enum class BrowserReadinessWaitStatus {
+    ActivityObserved,
+    TimedOut,
+    QuitObserved,
+    MessageBudgetExhausted,
+    Failed,
+    WrongThread,
+    SubscriptionUnavailable,
+};
+
+struct BrowserReadinessWaitResult {
+    BrowserReadinessWaitStatus status{
+        BrowserReadinessWaitStatus::SubscriptionUnavailable};
+    std::uint64_t latest_sequence{};
+    HRESULT diagnostic{S_OK};
+    std::size_t dispatched_message_count{};
+};
+
+struct ExplorerProvisioningLeaseFacts {
+    bool created_by_single_co_create{};
+    bool navigation_requested{};
+    bool navigation_succeeded{};
+    bool visibility_requested{};
+    bool visibility_succeeded{};
+    bool identity_ambiguous{};
+    bool quit_attempted{};
+};
+
+class ExplorerProvisioningLease final {
 public:
-    ~RetainedExplorerShellWindow();
+    ~ExplorerProvisioningLease();
 
-    RetainedExplorerShellWindow(const RetainedExplorerShellWindow&) = delete;
-    RetainedExplorerShellWindow& operator=(
-        const RetainedExplorerShellWindow&) = delete;
-    RetainedExplorerShellWindow(RetainedExplorerShellWindow&&) = delete;
-    RetainedExplorerShellWindow& operator=(
-        RetainedExplorerShellWindow&&) = delete;
+    ExplorerProvisioningLease(const ExplorerProvisioningLease&) = delete;
+    ExplorerProvisioningLease& operator=(const ExplorerProvisioningLease&) =
+        delete;
+    ExplorerProvisioningLease(ExplorerProvisioningLease&&) = delete;
+    ExplorerProvisioningLease& operator=(ExplorerProvisioningLease&&) =
+        delete;
 
-    [[nodiscard]] HWND initial_hwnd() const noexcept;
+    [[nodiscard]] std::uint64_t session_authority() const noexcept;
+    [[nodiscard]] std::uint64_t subscription_generation() const noexcept;
     [[nodiscard]] DWORD owner_thread_id() const noexcept;
+    [[nodiscard]] const FilesystemLocationIdentity& target_identity()
+        const noexcept;
+    [[nodiscard]] bool same_object(
+        const ResolvedShellWindow& resolved) const noexcept;
+    [[nodiscard]] ExplorerProvisioningLeaseFacts facts() const noexcept;
+    // Correlation code must permanently mark the lease ambiguous if more than
+    // one registration claims the canonical identity. Ambiguous leases cannot
+    // navigate further or invoke cleanup Quit.
+    void mark_identity_ambiguous() noexcept;
     [[nodiscard]] ShellWindowHandleResult current_hwnd() const;
     [[nodiscard]] ShellLocationFact current_location() const;
 
-    // The caller must prove initial_hwnd() is not in its pre-launch baseline
-    // before invoking this method. Navigation is to a PIDL variant; visibility
-    // is requested only after Navigate2 succeeds.
-    [[nodiscard]] ShellCallResult navigate_to_and_show(
-        const std::filesystem::path& absolute_directory);
+    // Uses only this lease's prevalidated nonce directory. Navigate2 receives
+    // a PIDL variant; visibility is requested only after Navigate2 succeeds.
+    [[nodiscard]] ShellCallResult navigate_to_target_and_show();
 
-    // Conditional cleanup only. This calls Quit on this exact retained object;
-    // it never enumerates or closes another Shell window. Destruction of this
-    // C++ wrapper merely releases the COM pointer and does not call Quit.
+    [[nodiscard]] BrowserReadinessFacts browser_readiness_facts()
+        const noexcept;
+    [[nodiscard]] BrowserReadinessWaitResult wait_for_browser_activity(
+        std::uint64_t after_sequence,
+        std::chrono::steady_clock::time_point deadline) const;
+
+    // Conditional cleanup only. This calls Quit on the exact CoCreate-returned
+    // automation object. Destruction merely unadvises/releases; it never Quits.
     [[nodiscard]] ShellCallResult quit();
 
+    // Explicit owner-STA retirement for the optional DWebBrowserEvents2 sink.
+    // The lease must be closed/destroyed before the matching CoUninitialize;
+    // otherwise it detects the missing STA and deliberately leaks COM refs.
+    [[nodiscard]] HRESULT close_browser_events() noexcept;
+
 private:
-    RetainedExplorerShellWindow(IWebBrowser2* browser,
-                                HWND initial_window,
-                                DWORD owner_thread_id) noexcept;
+    ExplorerProvisioningLease(
+        IWebBrowser2* browser,
+        IUnknown* canonical_identity,
+        IConnectionPoint* browser_connection_point,
+        BrowserReadinessEventSink* browser_event_sink,
+        BrowserSubscriptionLifecycleState* browser_lifecycle_state,
+        DWORD browser_advise_cookie,
+        HRESULT browser_subscription_diagnostic,
+        std::uint64_t session_authority,
+        std::uint64_t subscription_generation,
+        std::filesystem::path target_directory,
+        FilesystemLocationIdentity target_identity,
+        DWORD owner_thread_id) noexcept;
 
     IWebBrowser2* browser_{};
-    HWND initial_window_{};
+    IUnknown* canonical_identity_{};
+    IConnectionPoint* browser_connection_point_{};
+    BrowserReadinessEventSink* browser_event_sink_{};
+    BrowserSubscriptionLifecycleState* browser_lifecycle_state_{};
+    DWORD browser_advise_cookie_{};
+    HRESULT browser_subscription_diagnostic_{S_OK};
+    std::uint64_t session_authority_{};
+    std::uint64_t subscription_generation_{};
+    std::filesystem::path target_directory_;
+    FilesystemLocationIdentity target_identity_{};
     DWORD owner_thread_id_{};
+    bool browser_events_advised_{};
+    bool browser_events_unadvised_{};
+    ExplorerProvisioningLeaseFacts facts_{};
 
-    friend struct ExplorerShellWindowCreateResult;
-    friend ExplorerShellWindowCreateResult create_explorer_shell_window(
-        std::chrono::steady_clock::time_point readiness_deadline);
+    friend class ResolvedShellWindow;
+    friend struct ExplorerProvisioningLeaseCreateResult;
+    friend ExplorerProvisioningLeaseCreateResult
+    create_explorer_provisioning_lease(
+        std::uint64_t,
+        std::uint64_t,
+        const std::filesystem::path&);
 };
 
-struct ExplorerShellWindowCreateResult {
-    std::unique_ptr<RetainedExplorerShellWindow> window;
+struct ExplorerProvisioningLeaseCreateResult {
+    // A failed browser-event subscription deliberately returns both a
+    // diagnostic and the exact CoCreate lease. succeeded() is false; the
+    // caller may use only that retained lease for safe exact-object cleanup.
+    std::unique_ptr<ExplorerProvisioningLease> lease;
     std::optional<ShellAutomationDiagnostic> diagnostic;
 
     [[nodiscard]] bool succeeded() const noexcept {
-        return window != nullptr && !diagnostic.has_value();
+        return lease != nullptr && !diagnostic.has_value();
     }
 };
 
-// Makes exactly one CLSID_ShellBrowserWindow creation attempt, retains that
-// exact automation object, and waits boundedly for its frame HWND on the
-// caller's STA. The wait may pump the caller's STA message queue, but it never
-// creates a second object and never navigates, shows, activates, or positions
-// the object. The caller must compare the returned HWND with its baseline
-// before any navigation.
-[[nodiscard]] ExplorerShellWindowCreateResult
-create_explorer_shell_window(
-    std::chrono::steady_clock::time_point readiness_deadline);
+// Validates target identity before side effects, makes exactly one
+// CLSID_ShellBrowserWindow CoCreate attempt, and immediately retains that
+// object plus canonical IUnknown identity. It does not wait/poll for HWND,
+// navigate, show, activate, position, or close a window.
+[[nodiscard]] ExplorerProvisioningLeaseCreateResult
+create_explorer_provisioning_lease(
+    std::uint64_t session_authority,
+    std::uint64_t subscription_generation,
+    const std::filesystem::path& target_directory);
 
 } // namespace panebind::platform::windows::explorer
