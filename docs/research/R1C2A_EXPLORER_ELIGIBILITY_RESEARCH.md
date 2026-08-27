@@ -1,6 +1,7 @@
 # PaneBind R1-C2A Explorer Eligibility Research
 
-Status: **R1-C2A PRIOR-ART GATE PASS; RUNTIME GATE BLOCKED**
+Status: **R1-C2A PRIOR-ART AND BASELINE-EXCLUSION GATES PASS;
+PROVISIONING, ELIGIBILITY, AND RUNTIME GATES BLOCKED**
 
 Review date: 2026-08-26; provisioning-recovery supplement reviewed
 2026-08-27.
@@ -237,6 +238,13 @@ redirected, or represented as a PIDL. Therefore it is only a readiness hint:
 its `pDisp` must first canonical-`IUnknown` match the provisioning lease, and
 the target still must pass the independent live Shell `FILE_ID_INFO` location
 check. The event URL cannot be location authority.
+
+Because the sink deliberately does not retain or trust event URLs, navigation
+history is also fail-closed: more than one same-object `NavigateComplete2`
+before issuance is ambiguous; an accepted 0-or-1 count is frozen at issuance,
+and any later same-object completion permanently invalidates the token and
+cleanup authority. This permits false negatives rather than accepting an
+unobservable away-then-back sequence.
 
 [`IWebBrowser2::get_HWND`](https://learn.microsoft.com/en-us/previous-versions/mt725310%28v%3Dvs.85%29)
 returns `SHANDLE_PTR` and, under the documented tabbed-browser ambiguity,
@@ -520,6 +528,12 @@ Deterministic recovery tests cover:
 - the existing location/image/class/topology/state/cloak, authority/generation,
   safe-delta/work-area, translation/overflow, and post-verification checks.
 
+The recovery model, Shell-event connection-point boundary, provisioning lease,
+cookie correlation, and deterministic cases above were **IMPLEMENTED** and
+**AUTOMATED TESTED** on 2026-08-27. That result validates the fail-closed model
+and its test seams; it is not positive evidence that this workstation can
+create and attribute the required Explorer object at runtime.
+
 Before any translation, the desktop harness runs `--provision-only` exactly
 three consecutive Debug times. Every fixed run must prove exactly one matching
 registration/object/HWND/location, exclude every baseline HWND, perform no
@@ -572,9 +586,48 @@ It corrects the over-strong coupling exposed by run 3: a baseline entry with a
 reliable HWND but unavailable location can be excluded as
 `OPAQUE_PREEXISTING`, while positive authority is established independently by
 post-subscription registration, canonical COM identity, three-way HWND
-equality, and exact target location. This revised provisioning path remains
-`NOT TESTED` until its deterministic tests and fixed three-run provision-only
-Gate execute.
+equality, and exact target location.
+
+### 2026-08-27 provisioning-recovery observation
+
+The revised design and its deterministic tests were built and automated-tested
+before the fixed desktop Gate. Provision-only attempt 1 then produced the
+following **EMPIRICAL OBSERVATION**:
+
+- read-only baseline inventory contained 14 Shell entries and all 14 supplied
+  reliable HWND values; 10 locations were valid, two were empty, and two were
+  inaccessible;
+- the two empty and two inaccessible entries remained
+  `OPAQUE_PREEXISTING`, all 14 HWND values entered the permanent forbidden set,
+  and baseline exclusion therefore passed without promoting any opaque entry;
+- `DShellWindowsEvents` connection-point `Advise` succeeded before creation,
+  and the subscription retired cleanly;
+- the one authorized official
+  `CoCreateInstance(CLSID_ShellBrowserWindow)` call returned `E_FAIL` at the
+  `create_browser_window` stage, before an `IWebBrowser2` provisioning lease or
+  Shell registration could be established;
+- zero `WindowRegistered` cookies, zero matching cookies, zero target tokens,
+  and zero native placement attempts were observed;
+- a post-attempt read-only inventory contained 15 entries. Relative aggregate
+  counts changed by `+1` total, `+1` accessible, `+1` empty, and `-1`
+  inaccessible, but no per-HWND category mapping proves which category belongs
+  to the new entry. The unqualified `+1` is time-correlated with the attempt,
+  but without a lease or registration cookie it cannot be attributed to the
+  run or safely closed. Its category and attributable-orphan count are
+  therefore unknown, not zero;
+- an earlier raw summary field over-stated this fact as zero attributable
+  orphans. The immutable raw evidence remains unchanged, while the
+  implementation now emits unknown/null when creation produces no lease;
+- a read-only safety audit found all four retained nonce directories empty and
+  non-reparse; and
+- no fallback creation or preexisting-window path was attempted.
+
+Because attempt 1 failed, fixed provision-only attempts 2 and 3 were **NOT
+RUN**. This is the prescribed stop-on-first-failure behavior, not a
+retry-until-pass strategy. `PROVISIONING_STABILITY_GATE`, provisioning,
+eligibility, and runtime remain blocked. The event-driven subscription and
+canonical-identity design now have implementation and automated-test evidence,
+but still have no positive real-Explorer provisioning or attribution evidence.
 
 Consequently, the desktop isolation and single-translation acceptance path has
 not passed. Observer output from the second run is not target-correlated
@@ -626,9 +679,13 @@ Rejected:
 
 ```text
 R1C2A_PRIOR_ART_GATE = PASS
+R1C2A_BASELINE_EXCLUSION_GATE = PASS
+R1C2A_PROVISIONING_GATE = BLOCKED
+R1C2A_ELIGIBILITY_GATE = BLOCKED
 R1C2A_RUNTIME_GATE = BLOCKED
-R1C2A_RUNTIME_RESULT = NO TARGET CORRELATION; NO NATIVE APPLY
-PROVISIONING_RECOVERY = NOT TESTED
+PROVISIONING_STABILITY_GATE = BLOCKED
+R1C2A_RUNTIME_RESULT = CREATE_BROWSER_WINDOW E_FAIL; NO LEASE; NO REGISTRATION; NO TARGET; NO NATIVE APPLY
+PROVISIONING_RECOVERY = BLOCKED
 THIRD_PARTY_AUTHORITY = EXPLORER TEST FIXTURE ONLY
 EXTERNAL_CODE_COPIED = NO
 EXTERNAL_CODE_ADAPTED = NO

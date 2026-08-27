@@ -1,6 +1,6 @@
 # PaneBind R1-C2A Explorer Eligibility Execution Report
 
-Report date: 2026-08-26 (Asia/Shanghai).
+Report date: 2026-08-27 (Asia/Shanghai; updated for provisioning recovery).
 
 ## 1. Round, branch, and evaluated state
 
@@ -15,14 +15,23 @@ R1B_OPERATIONS_BASELINE = MERGED_TO_MAIN
 R1C1_COMPANION_BASELINE = MERGED_TO_MAIN
 ```
 
-The implementation and this report were evaluated in the authorized round
-worktree after the research commit. Their final commit SHA and the final pushed
-HEAD are recorded in the round handoff after those changes are committed. The
-known committed round history at report-writing time is:
+The initial implementation and blocked report were committed and pushed before
+the recovery continuation began. The known committed round history at the
+recovery report-writing point is:
 
 ```text
 ff84e1f docs: research explorer third-party eligibility
+eef1f92 feat: add isolated explorer translation harness
+71b9ea8 docs: record blocked r1c2a explorer runtime gate
+769873d docs: research shell registration attribution recovery
 ```
+
+Recovery started from `71b9ea88a085e64438f6bc8a704f11279aa2c950`.
+That blocked checkpoint is present at
+`origin/codex/r1c2a-explorer-single-translation`; the recovery research commit
+is `769873daf9620cc04594591994945385bf93927e`. Final recovery implementation
+and report SHAs remain a handoff item after the authorized worktree is
+committed.
 
 The round implemented and automated-tested an Explorer-specific, fail-closed
 eligibility/capability model. It did **not** establish a real Explorer
@@ -34,6 +43,11 @@ Eligibility/capability model = IMPLEMENTED / AUTOMATED TESTED
 Real Explorer capability issuance = BLOCKED
 Real Explorer translation = NOT TESTED
 ```
+
+The recovery proved that baseline exclusion can remain complete when existing
+entries have opaque location diagnostics. It still did not obtain a creation
+object or positive target attribution. Detailed recovery evidence is recorded
+in [`R1C2A_PROVISIONING_RECOVERY_REPORT.md`](R1C2A_PROVISIONING_RECOVERY_REPORT.md).
 
 No Glue, global input, resize, Snap, multi-window operation, generic
 third-party registry, or R1-C2B implementation was added.
@@ -65,28 +79,33 @@ EXTERNAL_CODE_ADAPTED = NO
 
 ## 3. Explorer test-target isolation design
 
-The implemented provisioning path is deliberately narrower than general
-Explorer discovery:
+The recovery provisioning path is deliberately narrower than general Explorer
+discovery and separates exclusion from positive attribution:
 
 ```text
 STA COM initialization
--> complete read-only IShellWindows baseline and baseline HWND set
+-> read-only IShellWindows baseline
+-> require a reliable HWND for every entry
+-> freeze every baseline HWND, including opaque-location entries, as forbidden
 -> one unique empty ignored uat/r1c2a/target-<nonce> directory
+-> advise DShellWindowsEvents and establish a subscription generation
 -> one CLSID_ShellBrowserWindow creation request
--> bounded retained-object HWND readiness
+-> retain one provisioning lease only if CoCreate returns IWebBrowser2
+-> correlate WindowRegistered(cookie) through FindWindowSW
+-> require canonical IUnknown identity with the retained creation object
+-> require retained, cookie-resolved, and live HWND equality
+-> require that HWND to be absent from the frozen baseline set
 -> Navigate2 to the exact directory and put_Visible(TRUE)
--> complete post-navigation inventory
--> require exactly one new HWND
--> require retained-object HWND == sole new HWND
--> require every baseline HWND/location fingerprint unchanged
 -> require one exact live directory file identity
 -> run the complete Explorer allowlist
 -> issue one ExplorerWindowToken
 ```
 
-Inventory is never capability. A zero-HWND delta, a baseline/reused HWND,
-multiple new HWNDs, an unavailable or ambiguous location, a changed baseline,
-or a retained-object mismatch blocks issuance. There is no existing-window
+Inventory is never capability. Empty or inaccessible location evidence on an
+existing entry makes it `OPAQUE_PREEXISTING`; it does not remove its reliable
+HWND from the immutable forbidden set. A baseline/reused HWND, missing or
+ambiguous registration identity, unavailable target location, or retained /
+cookie / live-HWND mismatch blocks issuance. There is no existing-window
 fallback and no path that upgrades a preexisting Explorer frame.
 
 Location authority uses a live filesystem directory handle and `FILE_ID_INFO`
@@ -124,6 +143,12 @@ passed issuance.
 `CompanionWindowToken`. It contains private controller authority, private test
 session authority, logical identity, and generation. It has no default, HWND,
 or integer constructor and no native-handle conversion.
+
+The recovery adds a separate temporary `ExplorerProvisioningLease`. The lease
+retains only this session's successfully created `IWebBrowser2`, canonical COM
+identity, nonce-directory identity, subscription generation, and conditional
+cleanup authority. It cannot authorize `SetWindowPos`; only complete positive
+attribution and the full live allowlist may mint an `ExplorerWindowToken`.
 
 The public Explorer operation surface accepts only the opaque token:
 
@@ -233,28 +258,74 @@ aggregate cannot bind either new hidden frame to a retained object or the nonce
 directory and cannot prove an unchanged per-run baseline. It therefore cannot
 be used to manufacture a capability.
 
-Two hidden unqualified frames and three empty ignored nonce directories remain
-after the experiments. The harness did not force-close a frame or force-remove
-a directory after its safe authority/containment proof failed. No Explorer
-process was killed or restarted. This residual state is explicitly reported
-rather than hidden by unsafe cleanup:
+At the end of the initial experiments, two hidden unqualified frames and three
+empty ignored nonce directories remained. The harness did not force-close a
+frame or force-remove a directory after its safe authority/containment proof
+failed. No Explorer process was killed or restarted. That initial residual
+state is explicitly reported rather than hidden by unsafe cleanup:
 
 ```text
 SAFE_CLEANUP_NOT_PERFORMED
 WINDOW_DESTROY_LIFETIME = NOT TESTED
 ```
 
+### 7.1 Provisioning recovery evidence
+
+The initial evidence above remains unchanged. Recovery used the ignored prefix
+`20260827T114619528Z` and a fixed three-attempt Debug provision-only Gate.
+
+Attempt 1 established a complete exclusion baseline:
+
+```text
+total / reliable entries / unique HWND / forbidden HWND = 14 / 14 / 14 / 14
+valid / empty opaque / inaccessible opaque location = 10 / 2 / 2
+R1C2A_BASELINE_EXCLUSION_GATE = PASS
+```
+
+`DShellWindowsEvents` was advised before creation at generation 1. It recorded
+no malformed receipt, overflow, wrong-thread callback, post-retirement
+callback, generation mismatch, or cookie-lifecycle ambiguity. The sole
+`CoCreateInstance(CLSID_ShellBrowserWindow)` then returned `E_FAIL`
+(`0x80004005`) at `create_browser_window`. Browser-event subscription was not
+reached; registered, revoked, and matching cookie counts were all zero.
+
+No provisioning lease, retained object HWND, cookie-resolved HWND, canonical
+COM match, exact target location, or `ExplorerWindowToken` existed. The Shell
+connection point was unadvised cleanly. No `Quit` was authorized, and no native
+translation was attempted.
+
+A post-attempt read-only inventory contained 15 entries: 11 with accessible
+location evidence, three empty-location entries, and one inaccessible entry.
+Compared with the pre-attempt aggregate, this is `+1` total, `+1` accessible,
+`+1` empty, and `-1` inaccessible; no per-HWND before/after category mapping
+was retained. The time-correlated `+1` entry is therefore unqualified, and its
+location category is unknown. With no lease or cookie it cannot be canonically
+attributed or safely closed, so formal orphan attribution is `UNKNOWN`. The raw
+attempt summary's legacy zero-valued orphan
+field is preserved as raw evidence but is not accepted as proof; subsequent
+code represents this state as `known = false` and a null count.
+
+Attempt 1 was `BLOCKED`; attempts 2 and 3 were `NOT RUN`. Therefore
+`PROVISIONING_STABILITY_GATE = BLOCKED`, and neither Debug full Explorer
+runtime nor Release Explorer runtime was run. Directory removal also remained
+fail-closed. A later read-only audit found four ignored target directories, all
+empty and non-reparse, without retroactively granting per-attempt cleanup
+authority.
+
 ## 8. Precise runtime blocker
 
-The active Explorer/Shell environment did not provide the complete evidence
-needed to bind exactly one retained, visible, post-baseline Explorer HWND to
-the exact nonce directory while proving all baseline fingerprints unchanged.
-The latest executed Debug attempt stopped at `inventory_unavailable`. Later
-final-worktree changes only hardened post-baseline absolute-deadline checks;
-they were built and automated-tested but were not used to repeat the decisive
-desktop blocker. The older
-middle attempt returned `E_FAIL` and produced two hidden, unqualified frames,
-which demonstrates ambiguity rather than authority.
+The initial attempts did not bind a retained, visible, post-baseline Explorer
+HWND to the exact nonce directory. The recovery improved the model and proved
+that all 14 pre-attempt Shell HWND values could be excluded even though four
+entries had opaque location diagnostics. It then blocked earlier in positive
+provisioning: the sole documented CoCreate request returned `E_FAIL` before an
+`IWebBrowser2` lease, registration cookie, canonical object identity, or target
+HWND existed.
+
+The post-attempt inventory's time-correlated unqualified `+1` entry cannot
+repair that missing authority. Its orphan attribution is `UNKNOWN`, not zero
+and not owned. Attempting to close it or using it as a target would require the
+raw-HWND inference that the Gate explicitly prohibits.
 
 The blocker is therefore not a failed geometry operation. It is the absence of
 a proven real capability issuance. The required fail-closed outcome was
@@ -263,13 +334,14 @@ attempted.
 
 ```text
 EXPLORER_TEST_TARGET_ISOLATION = BLOCKED
-PRECISE_BLOCKER = complete unique real Explorer capability issuance was not proven
+PRECISE_BLOCKER = the sole CLSID_ShellBrowserWindow CoCreate returned E_FAIL before positive attribution authority existed
 ```
 
 ## 9. Automated builds, tests, and regressions
 
 Both Debug and Release configured and built successfully. Both complete CTest
-runs passed:
+runs passed for the initial implementation and again after the recovery
+correlation fixes:
 
 Environment:
 
@@ -303,7 +375,12 @@ TOTAL                                8/8 PASS (Debug)
 TOTAL                                8/8 PASS (Release)
 ```
 
-`windows-explorer-unit` covers opaque token construction, independent
+`windows-explorer-unit` additionally covers complete exclusion with valid,
+empty-location, and inaccessible-location baseline entries; missing reliable
+baseline HWND rejection; no/unrelated/one/multiple matching registrations;
+preexisting-HWND and wrong-COM-identity rejection; exact location; revocation;
+lease cleanup authority; and unknown orphan-attribution encoding. It continues
+to cover opaque token construction, independent
 controller/session authority, generation and stale semantics, single-primary
 and restore gates, shell-stage mapping, new-versus-baseline inventory delta,
 preexisting/reused/ambiguous candidates, compound baseline location
@@ -317,7 +394,7 @@ Existing runtime regressions remained intact:
 | --- | --- | --- |
 | Owned-window | PASS | PASS |
 | Companion-process | PASS | PASS |
-| Explorer | BLOCKED before capability/native apply | NOT RUN after the Debug isolation blocker |
+| Explorer | provision-only BLOCKED before capability/native apply; full runtime NOT RUN | NOT RUN after the Debug provisioning blocker |
 
 Release Explorer runtime was intentionally not run to repeat creation side
 effects after the decisive Debug isolation blocker. This does not affect the
@@ -348,6 +425,9 @@ the real Explorer process to manufacture evidence.
   was controlled.
 - The two hidden frames were creation-side Shell effects and never received a
   PaneBind window operation.
+- The recovery's time-correlated unqualified `+1` Shell entry remained
+  unqualified with orphan attribution `UNKNOWN`; it was neither selected nor
+  closed.
 - No global keyboard/mouse hook, `SendInput`, input attachment, DLL injection,
   process kill, shell restart, or resident/high-frequency polling was added.
 - No Glue, leader/follower, adjacency runtime, feedback suppression, Snap, or
@@ -373,19 +453,19 @@ RAW_RUNTIME_LOGS_TRACKED = NO
 | ---: | --- | --- |
 | 1 | Starting main SHA | `b5d753e976aa389bb36476d6b2acdc946cddd22f` |
 | 2 | Branch | `codex/r1c2a-explorer-single-translation` |
-| 3 | Final HEAD | recorded in the final handoff after implementation/report commits |
-| 4 | Commits | research `ff84e1f`; implementation/report commits recorded in final handoff |
+| 3 | Recovery committed checkpoint | `769873daf9620cc04594591994945385bf93927e`; final implementation/report HEAD remains a handoff item |
+| 4 | Commits | `ff84e1f` research; `eef1f92` implementation; `71b9ea8` initial blocked report; `769873d` recovery research |
 | 5 | Prior-art sources/SHAs | AltSnap `5c86416...`, AltDrag `e2740d6...`, PowerToys `19c4d80...`, Microsoft documentation |
-| 6 | Explorer test-target isolation design | implemented and deterministic-model tested; real isolation blocked |
-| 7 | Preexisting inventory count | 11 unique in preliminary read-only inventory |
-| 8 | Launch mechanism | documented `CLSID_ShellBrowserWindow`; runtime did not reach a valid retained frame |
-| 9 | New candidate detection | exact one-new-HWND + retained HWND + exact location model tested; runtime not proven |
+| 6 | Explorer test-target isolation design | baseline exclusion and positive attribution separated, implemented, and deterministic-model tested; real isolation blocked |
+| 7 | Preexisting inventory count | recovery attempt: 14 total/reliable/unique/forbidden; location diagnostics 10 valid, 2 empty, 2 inaccessible |
+| 8 | Launch mechanism | one documented `CLSID_ShellBrowserWindow` CoCreate; `E_FAIL` at `create_browser_window` |
+| 9 | New candidate detection | post-read inventory was 15 with a time-correlated unqualified `+1` entry; its category and orphan attribution are `UNKNOWN` |
 | 10 | Existing-window fallback audit | no fallback exists; no preexisting window selected |
 | 11 | Process image identity | canonical file-identity validation implemented/model tested; target runtime not tested |
 | 12 | Class/root/style eligibility | implemented/model tested; target runtime not tested |
-| 13 | Shell location validation | file identity and live inventory implemented/model tested; runtime blocker was unavailable/ambiguous authority |
+| 13 | Shell location validation | opaque baseline entries remained forbidden; exact target identity still required and was NOT TESTED |
 | 14 | Integrity/UIAccess/AppContainer facts | model implemented/tested; no target facts captured |
-| 15 | ExplorerWindowToken design | opaque controller + session + logical ID + generation |
+| 15 | Authority design | non-operational provisioning lease separated from opaque Explorer token; no lease or token issued at runtime |
 | 16 | Public HWND audit | PASS; no public raw-HWND operation API |
 | 17 | Live revalidation | implemented at issuance/use/verification/restore/cleanup boundaries; real target not reached |
 | 18 | Selected safe test delta | NOT TESTED at runtime |
@@ -394,7 +474,7 @@ RAW_RUNTIME_LOGS_TRACKED = NO
 | 21 | Actual geometry | NOT TESTED; no native request |
 | 22 | Post-verification result | NOT TESTED |
 | 23 | Restore result | NOT TESTED |
-| 24 | Safe close result | `SAFE_CLEANUP_NOT_PERFORMED` |
+| 24 | Safe close result | no lease, so no `Quit`; `SAFE_CLEANUP_NOT_PERFORMED`; Shell subscription unadvised cleanly |
 | 25 | Stale-token result | `WINDOW_DESTROY_LIFETIME = NOT TESTED` |
 | 26 | WinEvent START/LOCATION/END | target counts NOT TESTED; six LOCATION events belonged to two unqualified creation-side frames |
 | 27 | Feedback attribution conclusion | model inputs defined; runtime target attribution NOT TESTED |
@@ -404,17 +484,17 @@ RAW_RUNTIME_LOGS_TRACKED = NO
 | 31 | Debug/Release CTest | 8/8 PASS in both configurations |
 | 32 | Owned harness regression | Debug PASS / Release PASS |
 | 33 | Companion harness regression | Debug PASS / Release PASS |
-| 34 | Explorer harness Debug | BLOCKED before capability/native apply |
-| 35 | Explorer harness Release | NOT RUN |
+| 34 | Explorer harness Debug | provision-only attempt 1 BLOCKED; attempts 2/3 and full runtime NOT RUN; native translation count 0 |
+| 35 | Explorer harness Release | NOT RUN because provisioning stability blocked |
 | 36 | Core isolation | PASS |
 | 37 | User-existing Explorer untouched audit | PASS / touched = NO |
 | 38 | Other third-party apps untouched audit | PASS / controlled = NO |
 | 39 | Global input/injection/polling audit | none present |
-| 40 | Raw evidence tracking audit | ignored and untracked |
+| 40 | Raw evidence tracking audit | ignored prefix `20260827T114619528Z`; untracked; legacy orphan zero preserved but formally interpreted as UNKNOWN |
 | 41 | Remaining NOT TESTED risks | listed below |
 | 42 | R1-C2B questions only | listed below; no implementation started |
 | 43 | Git status | authorized implementation/report changes pending commit at report drafting; final status recorded in handoff |
-| 44 | Local/remote divergence | starting main matched `origin/main`; final branch divergence recorded after standard-transport push |
+| 44 | Local/remote divergence | blocked checkpoint `71b9ea8` pushed by standard Git transport; recovery final divergence recorded after its commit/push |
 
 ## 13. Remaining NOT TESTED risks
 
@@ -430,6 +510,12 @@ RAW_RUNTIME_LOGS_TRACKED = NO
   active capability;
 - elevated, UIAccess, AppContainer, cross-user, or cross-session Explorer;
 - Explorer tab/frame reuse variations and numeric HWND/PID reuse;
+- attribution and location category of the recovery attempt's time-correlated
+  `+1` Shell entry, which remain `UNKNOWN` without a lease/cookie;
+- allocation-failure/OOM behavior in Shell/browser event receipt capture and
+  recovery diagnostics;
+- the global-inventory decision boundary when a baseline entry cannot provide
+  even a reliable HWND for exclusion;
 - hung Explorer during synchronous placement; and
 - Release Explorer desktop runtime.
 
@@ -458,9 +544,12 @@ before R1-C2B can begin.
 
 ```text
 R1C2A_PRIOR_ART_GATE = PASS
+R1C2A_BASELINE_EXCLUSION_GATE = PASS
+R1C2A_PROVISIONING_GATE = BLOCKED
 R1C2A_ELIGIBILITY_GATE = BLOCKED
 R1C2A_RUNTIME_GATE = BLOCKED
-PRECISE_BLOCKER = real Explorer capability issuance was not proven
+PROVISIONING_STABILITY_GATE = BLOCKED
+PRECISE_BLOCKER = the sole CLSID_ShellBrowserWindow CoCreate returned E_FAIL before positive attribution authority existed
 USER_EXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C2B = NOT STARTED

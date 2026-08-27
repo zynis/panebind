@@ -291,22 +291,30 @@ behavior enters this boundary.
 
 `IShellWindows` supplies read-only inventory facts through the documented
 Shell-windows interface; the retained `ShellBrowserWindow` object is a
-provisioning witness, never inventory authority. Before creation, the Explorer test session records
-every currently inventoried Explorer browser `HWND` and each Shell entry's
-compound navigation-change witness: exact SHA-256 of its non-empty UTF-16
-`LocationURL`, status, source, and optional `FILE_ID_INFO`, with those fields
-kept associated per entry. This witness is only a path-free comparison for
-detecting change in preexisting windows. It is not location authority.
+provisioning witness, never inventory authority. Before creation, the Explorer
+test session requires a reliable `HWND` from every Shell entry and permanently
+adds every such value to the session's forbidden preexisting set. Available
+location status, source, exact URL digest, and optional `FILE_ID_INFO` remain
+associated path-free diagnostics. An empty or inaccessible location is an
+`OPAQUE_PREEXISTING` entry, not a reason to omit its HWND or grant it authority;
+only a missing reliable HWND makes baseline exclusion incomplete.
 
-The session creates a unique empty test directory under ignored `uat/r1c2a/`
-and establishes one absolute provisioning deadline. It makes exactly one
-`CoCreateInstance(CLSID_ShellBrowserWindow)` request, then boundedly retries
-`get_HWND` on that same retained object while pumping the STA message queue.
-The nonzero retained `HWND` must be absent from the complete baseline before
-PaneBind invokes `Navigate2` and `put_Visible`. The same deadline governs
-post-navigation isolation; creation is never retried, and provisioning has no
-geometry setter or existing-window fallback. Inventory never grants operation
-authority and is not a general window-discovery engine.
+The session creates a unique empty test directory under ignored `uat/r1c2a/`,
+retains one `IShellWindows` object, and subscribes to its
+`DShellWindowsEvents` connection point before creation. A small COM sink records
+sequenced registration and revocation receipts; the owning STA performs
+correlation while pumping messages within one absolute provisioning deadline.
+The session makes exactly one
+`CoCreateInstance(CLSID_ShellBrowserWindow)` request, retains the returned
+object as a non-operational provisioning lease, and correlates a registration
+through `FindWindowSW` plus canonical `IUnknown` identity. The lease, cookie,
+and live-eligibility HWND values must agree and the HWND must be absent from the
+complete baseline. Creation is never retried, and provisioning has no geometry
+setter or existing-window fallback. Inventory and the temporary lease never
+grant operation authority and do not form a general window-discovery engine.
+`NavigateComplete2` is only a same-object wake hint: more than one matching
+completion before issuance blocks, the accepted count is frozen, and any
+post-issuance increase permanently poisons the token and exact-cleanup Gate.
 
 Capability issuance requires exactly one post-navigation browser `HWND` that
 was absent from the pre-create set, equals the retained object's frame, has
@@ -315,11 +323,10 @@ unique test directory. The exact one-entry-plus-file-identity rule remains the
 authority for issuance, live use, restore, and conditional close; an opaque
 baseline digest can never substitute for it. Zero new handles, multiple new
 handles, an existing handle navigated or reused for the location, an
-unavailable location, or a location mismatch blocks the session. A baseline
-entry without an exact non-empty `LocationURL` digest also blocks before
-creation because unchanged user state cannot be proven. A preexisting Explorer
-handle can never be promoted as a fallback, even when every other native fact
-appears valid.
+unavailable target location, or a target-location mismatch blocks the session.
+An opaque baseline entry remains permanently forbidden but does not block
+creation when its HWND was reliable. A preexisting Explorer handle can never be
+promoted as a fallback, even when every other native fact appears valid.
 
 `ExplorerWindowToken` is Explorer- and test-session-specific. It contains
 private controller and test-session authorities, a logical target identity,
@@ -365,20 +372,33 @@ desktop-dependent harness may still block when Windows reuses an existing
 Explorer window or cannot produce one unambiguous new target; this architecture
 description does not claim a runtime PASS.
 
-Local desktop runs refined and then exercised this fail-closed model. An
-initial pre-create block exposed a preexisting location whose file identity
-could not be opened. PaneBind inferred that baseline navigation detection could
-instead use the compound opaque witness without weakening target authority. A
-later old-build run reported an unlocalized `E_FAIL`; independent observation
-concurrently found two new hidden `CabinetWClass` identifiers, six
-`LOCATION_CHANGE` events, and Shell inventory growth from 11 to 13 with empty
-locations, but no retained target correlation or native placement. The latest
-executed build blocked before creation when an empty `LocationURL` supplied no
-exact baseline digest. Later final-worktree changes only hardened unreachable
-post-baseline deadline checks and were not desktop-rerun. These are
-workstation-specific observations, not a universal
-Explorer creation model. They support `R1C2A_RUNTIME_GATE = BLOCKED`, not a
-runtime pass. R1-C2B is not started.
+The three 2026-08-26 local desktop attempts remain recorded as blocked
+evidence: an inaccessible preexisting location blocked the first model; an
+older build reported an unlocalized `E_FAIL` while independent observation
+found two unqualified hidden `CabinetWClass` frames and six
+`LOCATION_CHANGE` events but no retained target correlation; and an empty
+baseline `LocationURL` blocked the third model. None made a native placement or
+controlled a user-preexisting Explorer window.
+
+The implemented 2026-08-27 recovery separates reliable-HWND baseline exclusion
+from positive target attribution and uses event-driven Shell registration plus
+canonical COM identity. Its first fixed provision-only attempt inventoried 14
+of 14 reliable baseline HWND values (10 valid locations, two empty, two
+inaccessible), so baseline exclusion passed with four opaque forbidden entries.
+`DShellWindowsEvents::Advise` succeeded and retired cleanly, but the single
+official CoCreate returned `E_FAIL` at `create_browser_window` before a lease,
+registration cookie, target, or native operation existed. A later read-only
+inventory contained 15 entries. Aggregate categories changed by `+1`
+accessible, `+1` empty, and `-1` inaccessible, but no per-HWND mapping proves
+the new entry's category. The unqualified `+1` was time-correlated with the
+attempt but, without a lease or registration cookie, cannot be attributed to
+the test or closed by it; its category and attributable-orphan result are
+therefore unknown. No fallback ran.
+All four retained nonce directories were read-only verified empty and
+non-reparse. Attempts 2 and 3 were not run after the first fixed-Gate failure.
+Thus the canonical, event-driven design is implemented and automated-tested
+but still lacks positive runtime provisioning/attribution evidence. Stability,
+provisioning, eligibility, and runtime remain blocked; R1-C2B is not started.
 
 ## Normalized event model
 
@@ -544,12 +564,13 @@ application, monitor, DPI, or virtual-desktop policy.
 ## R1-C2A architecture invariants
 
 - Read-only Shell inventory is a candidate source, never operation authority.
-- Existing entries use compound exact-URL-digest/status/source/optional-file-ID
-  witnesses only to detect baseline navigation; these witnesses never grant
-  target authority.
-- Provisioning uses one CoCreate attempt, bounded same-object HWND readiness
-  with an STA message pump, and one absolute deadline; baseline exclusion
-  precedes navigation and no provisioning geometry setter or fallback exists.
+- Every preexisting Shell entry must supply a reliable HWND for permanent
+  exclusion; empty or inaccessible locations remain opaque diagnostics and
+  never grant target authority.
+- Provisioning subscribes to `DShellWindowsEvents` before one CoCreate attempt,
+  resolves registration cookies on the owning STA, and requires canonical COM
+  identity plus three-way HWND equality within one bounded deadline; no
+  provisioning geometry setter or fallback exists.
 - Only exactly one new post-baseline Explorer browser `HWND` at the unique test
   location, represented by exactly one Shell entry with exact filesystem file
   identity, can receive an Explorer-specific token; an existing-window fallback
@@ -563,8 +584,9 @@ application, monitor, DPI, or virtual-desktop policy.
 - Graceful close is conditional on the exact test window remaining eligible;
   user-preexisting Explorer windows and the Explorer process are never closed
   or terminated by fallback.
-- Runtime isolation is currently blocked by insufficient exact baseline
-  location evidence; no target correlation, native apply, or successful runtime
-  outcome is asserted by this design document.
+- Baseline exclusion is empirically passing, but the current recovery run is
+  blocked by `E_FAIL` at `create_browser_window` before lease/registration;
+  no target correlation, native apply, or successful runtime outcome is
+  asserted by this design document.
 - Generic third-party management, other applications, global input, injection,
   polling, Glue, Snap, R1-C2B, and later product behavior remain outside R1-C2A.
