@@ -2,7 +2,8 @@
 
 Status: **R1-C2A PRIOR-ART GATE PASS; RUNTIME GATE BLOCKED**
 
-Review date: 2026-08-26.
+Review date: 2026-08-26; provisioning-recovery supplement reviewed
+2026-08-27.
 
 ## Scope and evidence labels
 
@@ -27,6 +28,7 @@ No external code was copied, adapted, translated, or mechanically rewritten.
 | [AltDrag](https://github.com/stefansundin/altdrag) | [`e2740d605b0336a3b391fec26794718864b19521`](https://github.com/stefansundin/altdrag/commit/e2740d605b0336a3b391fec26794718864b19521) | GPL-3.0-or-later; **REFERENCE ONLY** |
 | [PowerToys / FancyZones](https://github.com/microsoft/PowerToys) | [`19c4d805321db86f3634e6968e14dbf25cbba14a`](https://github.com/microsoft/PowerToys/commit/19c4d805321db86f3634e6968e14dbf25cbba14a) | MIT; reference-only in R1-C2A |
 | Microsoft Win32 and Shell documentation | live pages reviewed 2026-08-26 | facts paraphrased and cited |
+| Microsoft Windows SDK headers | 10.0.26100.0 `ExDisp.idl`, `ExDisp.h`, `ExDispid.h`, and `ocidl.h`, reviewed 2026-08-27 | interface/type/DISPID contracts inspected locally; no code copied or adapted |
 
 ## Prior-art findings
 
@@ -97,7 +99,174 @@ guarantee.
 [`IShellWindows`](https://learn.microsoft.com/en-us/windows/win32/api/exdisp/nn-exdisp-ishellwindows)
 is a collection of registered Shell windows, not a File-Explorer-only security
 boundary. Each item must be queried for `IWebBrowser2`, HWND, current location,
-and then pass the Explorer-specific allowlist.
+and then pass the Explorer-specific allowlist. Microsoft describes a Shell
+registration cookie as unique *within the collection*; it is not documented as
+a global, permanent, or security identity.
+
+### Shell registration connection point
+
+The recovery design uses the official Shell registration model rather than a
+sleep followed only by collection enumeration:
+
+- [`DShellWindowsEvents`](https://learn.microsoft.com/en-us/windows/win32/shell/dshellwindowsevents)
+  receives `IShellWindows` registration and revocation notifications.
+- [`WindowRegistered`](https://learn.microsoft.com/en-us/windows/win32/shell/dshellwindowsevents-windowregistered)
+  supplies the `long` cookie granted to a registered Shell window.
+- [`WindowRevoked`](https://learn.microsoft.com/en-us/windows/win32/shell/dshellwindowsevents-windowrevoked)
+  supplies the cookie whose registration was revoked.
+- The Windows SDK declares `DShellWindowsEvents` as an `IDispatch`
+  dispinterface with outgoing interface identifier
+  `DIID_DShellWindowsEvents = FE4106E0-399A-11D0-A48C-00A0C90A8F39`,
+  `DISPID_WINDOWREGISTERED = 200`, and `DISPID_WINDOWREVOKED = 201`.
+
+The `DShellWindowsEvents` Learn requirements table names
+`IID_IShellWindows`; that is not the outgoing-interface identifier passed to
+`IConnectionPointContainer::FindConnectionPoint`. The installed SDK's
+`DIID_DShellWindowsEvents` declaration and `ShellWindows` coclass source
+interface define the connection-point contract.
+
+**FACT.** A client queries the retained `IShellWindows` object for
+`IConnectionPointContainer`, calls
+[`FindConnectionPoint`](https://learn.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-iconnectionpointcontainer-findconnectionpoint)
+with `DIID_DShellWindowsEvents`, and calls
+[`Advise`](https://learn.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-iconnectionpoint-advise)
+with a sink whose `QueryInterface` supports that outgoing DIID as well as its
+`IUnknown`/`IDispatch` bases. `Advise` returns a `DWORD` connection token. The
+client later supplies that same token to
+[`Unadvise`](https://learn.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-iconnectionpoint-unadvise),
+which releases the connection point's retained sink interface.
+
+The two cookies are distinct namespaces and must never be conflated:
+
+```text
+Advise DWORD cookie             -> owns one sink subscription
+WindowRegistered long lCookie   -> identifies one Shell registration
+WindowRevoked long lCookie      -> revokes that Shell registration
+```
+
+The reviewed contract does not promise that a registration cookie value is
+never reused after revocation or across collection instances. PaneBind retains
+the same `IShellWindows` object and qualifies each registration receipt by test
+session, subscription generation, local sequence, and revoked/live state.
+
+The sink receives the two Shell methods through `IDispatch::Invoke`; they are
+not C++ vtable methods on `DShellWindowsEvents`. It validates the expected
+DISPID, one Automation `long` argument, and event generation, then appends a
+local monotonic receipt sequence. It does not perform provisioning state
+transitions reentrantly inside `Invoke`. The official
+[`DISPPARAMS`](https://learn.microsoft.com/en-us/windows/win32/api/oaidl/ns-oaidl-dispparams)
+contract stores positional arguments in reverse order. Thus each one-argument
+Shell event uses `rgvarg[0]`, while `NavigateComplete2(pDisp, URL)` presents
+the URL argument before the `pDisp` argument in `rgvarg`; the sink validates
+the actual VARIANT shape rather than relying on unchecked casts.
+
+**PANEBIND DECISION.** Subscribe successfully before the single Explorer
+creation attempt. Keep the connection point, sink, and `IShellWindows` alive
+until bounded provisioning/cleanup ends; call `Unadvise` before destroying the
+sink and before COM apartment shutdown. A failed `Advise`, an invalid event
+shape, callback-after-retirement detection, or inability to `Unadvise` cleanly
+blocks positive attribution. The STA pumps messages, as required by
+[`Single-Threaded Apartments`](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments);
+fixed high-frequency polling is not introduced.
+
+### Cookie resolution and canonical COM identity
+
+[`IShellWindows::FindWindowSW`](https://learn.microsoft.com/en-us/windows/win32/api/exdisp/nf-exdisp-ishellwindows-findwindowsw)
+has this relevant ABI shape: `pvarLoc` and `pvarLocRoot` are `VARIANT*`,
+`swClass` and options are `int`, the returned window value is `long`, and the
+returned automation interface is `IDispatch**`. With
+[`SWFO_COOKIEPASSED`](https://learn.microsoft.com/en-us/windows/win32/api/exdisp/ne-exdisp-shellwindowfindwindowoptions)
+(`0x4`), `pvarLoc` is interpreted as a registration cookie rather than a
+PIDL. `SWFO_NEEDDISPATCH` (`0x1`) requires an `IDispatch` result. The event and
+SDK IDL define the cookie as Automation `long`, so the cookie input is a
+`VT_I4` `VARIANT`; `pvarLocRoot` remains null or `VT_EMPTY`.
+
+The documented outcomes are `S_OK` for a match, `S_FALSE` for no match,
+`E_NOINTERFACE` when `SWFO_NEEDDISPATCH` finds a window but cannot obtain its
+dispatch interface, and `E_PENDING` only when `SWFO_INCLUDEPENDING` is used.
+PaneBind does not use `SWFO_INCLUDEPENDING` to weaken readiness.
+
+Every post-subscription `WindowRegistered` cookie is evaluated. An unrelated
+registration is recorded and ignored after it fails object identity; its
+existence alone is not a blocker. A candidate registration must resolve with
+`SWFO_COOKIEPASSED | SWFO_NEEDDISPATCH` and then match the retained creation
+object by COM identity.
+
+Microsoft's
+[`IUnknown` identity rule](https://learn.microsoft.com/en-us/windows/win32/com/rules-for-implementing-queryinterface)
+states that querying any interface of one object for `IID_IUnknown` returns
+the same physical pointer. Pointers to interfaces other than `IUnknown` are
+not required to be equal. PaneBind therefore queries both the retained
+`IWebBrowser2` and cookie-resolved `IDispatch` for `IID_IUnknown` and compares
+only those canonical pointers within the owning STA. A raw
+`IWebBrowser2*`/`IDispatch*` address comparison is invalid evidence, and
+interface pointers are not moved across apartments without COM marshaling.
+
+Canonical identity is necessary but not sufficient. Exactly one non-revoked
+registration must match, and all three window facts must agree:
+
+```text
+retained IWebBrowser2::get_HWND
+== FindWindowSW(cookie) returned window
+== live eligible Explorer top-level HWND
+```
+
+The common HWND must not occur in the session's permanent preexisting-HWND
+forbidden set. No match, two matching cookies, a matching object with a
+preexisting HWND, a revoked matching cookie, or any three-way mismatch blocks
+token issuance.
+
+### Navigation and cleanup event limits
+
+The SDK signature for `IWebBrowser2::Navigate2` takes one required URL/file/
+PIDL `VARIANT*` and four optional `VARIANT*` arguments. Microsoft's
+[`Navigate2` documentation](https://learn.microsoft.com/en-us/previous-versions/aa752134%28v%3Dvs.85%29)
+explicitly supports a PIDL representing a Shell namespace folder. PaneBind
+retains the single object returned by the official
+`CoCreateInstance(CLSID_ShellBrowserWindow, ..., CLSCTX_LOCAL_SERVER)` path,
+subscribes that object's `DIID_DWebBrowserEvents2` connection point, then calls
+`Navigate2` with the nonce directory PIDL and makes the object visible. It
+does not use a second creation fallback.
+
+The SDK defines `DWebBrowserEvents2::NavigateComplete2` as
+`(IDispatch* pDisp, VARIANT* URL)` with DISPID 252. Microsoft's
+[`NavigateComplete2` documentation](https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/aa768285%28v%3Dvs.85%29)
+says it is asynchronous, can represent a top-level window or frame, and may
+occur while content is still downloading. Its URL may be canonicalized,
+redirected, or represented as a PIDL. Therefore it is only a readiness hint:
+its `pDisp` must first canonical-`IUnknown` match the provisioning lease, and
+the target still must pass the independent live Shell `FILE_ID_INFO` location
+check. The event URL cannot be location authority.
+
+[`IWebBrowser2::get_HWND`](https://learn.microsoft.com/en-us/previous-versions/mt725310%28v%3Dvs.85%29)
+returns `SHANDLE_PTR` and, under the documented tabbed-browser ambiguity,
+identifies the top-level frame rather than a tab. `FindWindowSW`'s separate
+Automation `long` output does not remove that ambiguity; the three-way check
+first normalizes that `long` with the SDK handle-conversion contract and then
+compares it with the `SHANDLE_PTR` result. Baseline exclusion remains required.
+
+[`IWebBrowser2::Quit`](https://learn.microsoft.com/en-us/previous-versions/aa752140%28v%3Dvs.85%29)
+closes the automation object and returns `S_OK` for method success. The
+documentation does not state that HWND destruction or `WindowRevoked` has
+completed when `Quit` returns.
+
+**OFFICIAL LIMITATION.** The reviewed Microsoft pages and SDK declarations do
+not specify a total ordering among `WindowRegistered`, `get_HWND` readiness,
+`Navigate2` return, `NavigateComplete2`, visibility, `Quit` return,
+`WindowRevoked`, and HWND invalidation. Receipt sequence is therefore local
+evidence only, never a platform-wide ordering claim. PaneBind uses one bounded
+event/message-driven deadline, permits deferred cookie resolution within that
+deadline, and treats `WindowRevoked` before issuance as stale. Cleanup waits
+boundedly for the matching revocation and/or exact-object HWND invalidation;
+it never escalates to arbitrary `WM_CLOSE` or process termination.
+
+The registration event APIs are documented for Shdocvw.dll
+5.00.2014.0216/Internet Explorer 5-era Shell integration; `IWebBrowser2` is
+documented for Windows XP desktop and later, while the official Explorer
+creation sample targets `_WIN32_WINNT 0x0600`. Microsoft does not publish a
+separate modern-Explorer event-ordering or one-tab/one-registration support
+guarantee. R1-C2A therefore records current-workstation behavior as empirical
+evidence and keeps every undocumented invariant fail-closed.
 
 ### Modern tab ambiguity
 
@@ -120,30 +289,39 @@ The required provisioning sequence is:
 ```text
 initialize STA COM
 create unique empty uat/r1c2a/target-<nonce> directory
-capture stable read-only IShellWindows baseline
-record each baseline entry's compound navigation-change witness
+create and retain one IShellWindows collection object
+subscribe DShellWindowsEvents and establish a subscription generation
+capture every baseline entry's reliable HWND into a permanent forbidden set
+record available PID/TID/class/location only as diagnostic baseline facts
 establish one absolute provisioning deadline
 CoCreateInstance(CLSID_ShellBrowserWindow) exactly once
-bounded same-object get_HWND with an STA message pump
-require the retained HWND to be nonzero and absent from the baseline
+retain IWebBrowser2 plus its canonical IUnknown as a provisioning lease
+subscribe the retained object's DWebBrowserEvents2 connection point
 Navigate2(test-directory PIDL)
 put_Visible(TRUE)
-bounded read-only inventory refresh
-set difference = post HWNDs - baseline HWNDs
-require exactly one new HWND
-require exactly one matching Shell entry for that HWND and test directory
-require every compound baseline entry witness unchanged
+receive Shell registration/navigation events through a bounded STA message pump
+resolve each registration cookie with FindWindowSW
+require exactly one non-revoked canonical-IUnknown match to the lease
+require lease HWND == cookie HWND == live eligibility HWND
+require that HWND to be nonzero and absent from the permanent forbidden set
+require exact nonce-directory FILE_ID_INFO and the full Explorer allowlist
 ```
 
-For each existing baseline Shell entry, the navigation-change witness keeps the
-entry association among the exact SHA-256 digest of its non-empty UTF-16
-`LocationURL`, location status, location source, and optional `FILE_ID_INFO`.
-The digest prevents a path from entering evidence, and the entire compound
-record is compared before and after provisioning. It is only evidence that a
-preexisting entry did or did not change. It is not filesystem-location
-authority and cannot issue, retain, or close a capability. An entry without an
-exact non-empty `LocationURL` digest makes the baseline insufficient and blocks
-before creation.
+Baseline exclusion and positive target attribution are separate contracts.
+For each preexisting Shell entry, a reliable HWND is sufficient to put that
+numeric value permanently into `forbidden_preexisting_hwnds` for this session.
+An empty, inaccessible, or temporarily unavailable location makes that entry
+`OPAQUE_PREEXISTING`; it does not make the exclusion set incomplete and can
+never become the target even if it later displays the nonce directory. If any
+baseline Shell entry cannot provide a reliable HWND, exclusion completeness is
+unknown and provisioning blocks before creation. Reuse of a forbidden numeric
+HWND during the session is conservatively rejected as a safe false negative.
+
+Available baseline location status, location source, URL digest, and optional
+`FILE_ID_INFO` remain path-free diagnostic facts. They can detect or explain a
+preexisting navigation but cannot issue, retain, move, or close a capability.
+Only the post-subscription registration plus same-object identity and strict
+live target facts provide positive provisioning authority.
 
 Candidate issuance, live revalidation, restore, and optional close use the
 stricter rule: the new retained frame must have exactly one Shell entry, and
@@ -151,10 +329,11 @@ that entry's live filesystem `FILE_ID_INFO` must equal the test directory's
 file identity. A URL digest, status, source, title, or path string cannot
 substitute for that identity.
 
-If no new HWND appears, the Shell reused a baseline frame/tab and isolation is
-blocked. If more than one appears, selection is ambiguous. If a baseline frame
-navigated, user-existing-window safety is blocked. No existing-window fallback
-exists.
+If no matching registration appears, a matching registration resolves to a
+baseline HWND, or more than one registration matches the retained object,
+isolation is blocked. A baseline frame remains permanently forbidden regardless
+of later navigation, closure, or conservative numeric HWND reuse. No
+existing-window fallback exists.
 
 Window titles are diagnostic only and are never an authority input or included
 unsanitized in committed evidence.
@@ -284,15 +463,28 @@ identity, monitor, and DPI must all match exactly.
 Restore is a separate live-validated translation from current actual geometry
 to the original visible position. It is cleanup, not rollback.
 
-The session may call `IWebBrowser2::Quit` only when the target is still the
-unique new HWND, has exactly one unambiguous Shell entry at the exact test
-directory, and all process/class/security facts remain valid. Otherwise it
-leaves the window open and reports `SAFE_CLEANUP_NOT_PERFORMED`.
+An issued target may call `IWebBrowser2::Quit` only through its retained
+provisioning lease after target identity and the exact test-directory location
+remain live and unambiguous. A provisioning attempt that fails before token
+issuance may also use `Quit` on the same retained `IWebBrowser2` created by this
+session when the lease's canonical identity remains unambiguous and observed
+navigation has never left the empty nonce directory; navigation-not-yet-
+complete is recorded explicitly rather than invented as a success. This is
+exact-object cleanup authority from CoCreate retention, not HWND discovery
+authority.
+
+A hidden `CabinetWClass` frame, new-HWND set delta, PID, class, or registration
+event alone never grants cleanup authority. If the lease cannot prove the
+object is the one created by this session, identity is ambiguous, or `Quit`
+fails, the harness leaves the window untouched and reports
+`SAFE_CLEANUP_NOT_PERFORMED`.
 
 No Explorer process is terminated, restarted, or killed. No broadcast close is
-sent. If safe close is performed, the old token must fail preflight with no
-native call. If close safety cannot be proven,
-`WINDOW_DESTROY_LIFETIME = NOT TESTED` is acceptable.
+sent, and there is no `WM_CLOSE` fallback. After `Quit`, the bounded STA pump
+waits for the matching `WindowRevoked` receipt and/or exact-object HWND
+invalidation and records which fact actually completed cleanup. If safe close
+is performed, the old token must fail preflight with no native call. If close
+safety cannot be proven, `WINDOW_DESTROY_LIFETIME = NOT TESTED` is acceptable.
 
 The empty directory is removed only after no live Shell entry still references
 it. No user file is created or modified.
@@ -310,12 +502,33 @@ No suppression or Glue state machine is implemented.
 
 ## Required tests
 
-Deterministic tests cover reason classification, baseline/new-set delta,
-preexisting and ambiguous rejection, location/image/class/topology/state/cloak
-rejection, authority/generation/stale/cross-session isolation, safe-delta/work
-area, shared translation/resize/overflow, and post-verification identity change.
+Deterministic recovery tests cover:
 
-The explicit desktop harness must either:
+- baseline entries with valid, empty, and inaccessible locations but reliable
+  HWND values remain complete, opaque entries remain forbidden, and one entry
+  without a reliable HWND blocks exclusion completeness;
+- no registration, unrelated registrations only, one matching cookie, several
+  unrelated plus one match, and two matching cookies;
+- matching COM identity with a preexisting HWND, a new HWND with wrong COM
+  identity, same object with location mismatch, and the sole eligible
+  same-object/new-HWND/exact-location case;
+- `WindowRevoked` before issuance, wrong subscription generation, malformed or
+  post-retirement callback, Advise/Unadvise ordering, and callback reentrancy
+  isolation;
+- cleanup lease/session/identity mismatch causes no unsafe close, while exact
+  lease cleanup invalidates the token and a stale apply makes no native call;
+- the existing location/image/class/topology/state/cloak, authority/generation,
+  safe-delta/work-area, translation/overflow, and post-verification checks.
+
+Before any translation, the desktop harness runs `--provision-only` exactly
+three consecutive Debug times. Every fixed run must prove exactly one matching
+registration/object/HWND/location, exclude every baseline HWND, perform no
+`SetWindowPos`, close only the exact lease object, verify cleanup, and leave no
+attributable orphan frame. Any one failure blocks the stability Gate; this is
+not retry-until-pass.
+
+Only after a 3/3 provision-only pass may the explicit full-runtime harness
+either:
 
 - prove isolation, translate once, verify, restore, optionally close safely,
   and pass; or
@@ -333,9 +546,8 @@ Explorer behavior.
    preexisting Shell location could not be opened. No target was issued and no
    native placement occurred. **INFERENCE:** requiring `FILE_ID_INFO` for every
    preexisting entry was stricter than needed to detect navigation of user
-   windows. The baseline model was refined to retain the compound opaque
-   per-entry witness described above; candidate and live authority were not
-   weakened.
+   windows. The then-current baseline model was refined to retain a compound
+   opaque per-entry witness; candidate and live authority were not weakened.
 2. A second run of an older build took its single-CoCreate path and reported
    `E_FAIL`, but that build lost the diagnostic stage, so the evidence cannot
    attribute the HRESULT to a particular COM call. During the run, the
@@ -350,10 +562,19 @@ Explorer behavior.
 3. The latest executed build blocked during pre-create inventory because an empty
    `LocationURL` could not supply the mandatory exact baseline digest. It made
    no target correlation and no native placement call. This is the intended
-   fail-closed result for evidence that cannot prove every baseline entry
-   unchanged. Later final-worktree changes only hardened deadline checks after
-   that unreachable baseline Gate; they were built and automated-tested but
-   were not used to repeat the already decisive desktop experiment.
+   fail-closed result under the contract implemented for that run. Later
+   final-worktree changes only hardened deadline checks after that unreachable
+   baseline Gate; they were built and automated-tested but were not used to
+   repeat the already decisive desktop experiment.
+
+The 2026-08-27 recovery design does not relabel or erase any of those results.
+It corrects the over-strong coupling exposed by run 3: a baseline entry with a
+reliable HWND but unavailable location can be excluded as
+`OPAQUE_PREEXISTING`, while positive authority is established independently by
+post-subscription registration, canonical COM identity, three-way HWND
+equality, and exact target location. This revised provisioning path remains
+`NOT TESTED` until its deterministic tests and fixed three-run provision-only
+Gate execute.
 
 Consequently, the desktop isolation and single-translation acceptance path has
 not passed. Observer output from the second run is not target-correlated
@@ -365,14 +586,17 @@ operation.
 Adopted:
 
 - official `CLSID_ShellBrowserWindow` creation request;
-- exactly one creation attempt plus bounded same-object `get_HWND` readiness
-  with an STA message pump and one absolute deadline;
-- baseline exclusion of the retained frame before navigation;
-- read-only `IShellWindows` before/after inventory;
-- compound path-free per-entry baseline change witnesses, without treating
-  them as location authority;
-- exactly-one new HWND set-delta, exactly-one Shell entry, and exact filesystem
-  identity for issuance and every live use;
+- exactly one creation attempt and one retained `IWebBrowser2` provisioning
+  lease with a canonical `IUnknown` identity;
+- a complete pre-create forbidden HWND set in which unavailable locations are
+  retained as opaque preexisting entries rather than promoted or discarded;
+- `DShellWindowsEvents` subscription before creation, local sequenced
+  registration/revocation evidence, and bounded deferred cookie resolution;
+- `FindWindowSW(SWFO_COOKIEPASSED | SWFO_NEEDDISPATCH)` correlation followed
+  by canonical-object and three-way HWND equality;
+- `DWebBrowserEvents2::NavigateComplete2` only as a same-object readiness hint,
+  never as location authority;
+- exact target filesystem identity for issuance and every live use;
 - retained process handle, file identity, security/state/desktop allowlist;
 - Explorer-specific opaque capability and reason-bearing eligibility;
 - live revalidation, one shared-bridge translation, post-verification, restore;
@@ -383,8 +607,14 @@ Rejected:
 
 - ordinary ShellExecute reuse as an isolation mechanism;
 - `/n` as a modern HWND guarantee;
-- repeated CoCreate attempts, a deadline reset after HWND readiness, navigation
-  before baseline exclusion, or Explorer geometry setters during provisioning;
+- repeated CoCreate attempts, a deadline reset after any readiness signal,
+  creation before the Shell event subscription, or Explorer geometry setters
+  during provisioning;
+- sleep plus full enumeration as the sole attribution mechanism;
+- requiring every baseline window to expose a location, upgrading an opaque
+  baseline entry, or accepting a reused baseline HWND;
+- a registration cookie, event order, `NavigateComplete2` URL, raw interface
+  pointer, or raw HWND as standalone authority;
 - titles, basename, class, PID, HWND, location string, or IShellWindows
   membership alone as authority;
 - any preexisting-window fallback or baseline HWND upgrade;
@@ -398,6 +628,7 @@ Rejected:
 R1C2A_PRIOR_ART_GATE = PASS
 R1C2A_RUNTIME_GATE = BLOCKED
 R1C2A_RUNTIME_RESULT = NO TARGET CORRELATION; NO NATIVE APPLY
+PROVISIONING_RECOVERY = NOT TESTED
 THIRD_PARTY_AUTHORITY = EXPLORER TEST FIXTURE ONLY
 EXTERNAL_CODE_COPIED = NO
 EXTERNAL_CODE_ADAPTED = NO
