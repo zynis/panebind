@@ -282,7 +282,7 @@ Detailed findings and R1-C1 decisions are in
 ## R1-C2A targeted Explorer eligibility review
 
 Review date: 2026-08-26; provisioning-recovery supplement reviewed
-2026-08-27.
+2026-08-27; user-consented recovery supplement reviewed 2026-08-27.
 
 ### AltSnap / AltDrag
 
@@ -327,10 +327,11 @@ Version / SHA: N/A - live documentation
 Terms: Microsoft Learn Terms of Use; facts paraphrased/cited only
 Date reviewed: 2026-08-26
 Recovery supplement date reviewed: 2026-08-27
-Pages inspected for R1-C2A: Developing with Windows Explorer; IShellWindows; DShellWindowsEvents; DShellWindowsEvents.WindowRegistered; DShellWindowsEvents.WindowRevoked; IShellWindows::FindWindowSW; ShellWindowFindWindowOptions; IConnectionPointContainer::FindConnectionPoint; IConnectionPoint::Advise/Unadvise; Architecture of Connectable Objects; IDispatch::Invoke/DISPPARAMS; IUnknown::QueryInterface and Rules for Implementing QueryInterface; IWebBrowser2 Navigate2/HWND/Quit; DWebBrowserEvents2 and NavigateComplete2; ShellExecute/ShellExecuteEx; SHCreateItemFromParsingName; SHGetIDListFromObject; PathCreateFromUrlW; QueryFullProcessImageNameW; GetWindowsDirectoryW; CreateFileW; GetFileInformationByHandleEx/FILE_ID_INFO; IsWindow; GetWindowThreadProcessId; GetClassNameW; GetAncestor; GetWindowLongPtrW; GetWindow; IsWindowVisible; DwmGetWindowAttribute/DWMWA_CLOAKED/EXTENDED_FRAME_BOUNDS; IsIconic; IsZoomed; IVirtualDesktopManager; OpenProcess/OpenProcessToken/GetTokenInformation; SetWindowPos; GetWindowRect; MonitorFromWindow/GetMonitorInfoW/GetDpiForWindow; Single-Threaded Apartments; CoInitializeEx; MsgWaitForMultipleObjectsEx; BCryptHash and SHA-256 CNG guidance
+User-consented recovery supplement date reviewed: 2026-08-27
+Pages inspected for R1-C2A: Developing with Windows Explorer; IShellWindows; DShellWindowsEvents; DShellWindowsEvents.WindowRegistered; DShellWindowsEvents.WindowRevoked; IShellWindows::FindWindowSW; ShellWindowFindWindowOptions; IConnectionPointContainer::FindConnectionPoint; IConnectionPoint::Advise/Unadvise; Architecture of Connectable Objects; IDispatch::Invoke/DISPPARAMS; IUnknown::QueryInterface and Rules for Implementing QueryInterface; IWebBrowser2 Navigate2/HWND/Quit; DWebBrowserEvents2 and NavigateComplete2; ShellExecute/ShellExecuteEx; SHELLEXECUTEINFO; cmd start; SHCreateItemFromParsingName; SHGetIDListFromObject; PathCreateFromUrlW; QueryFullProcessImageNameW; GetWindowsDirectoryW; CreateFileW; GetFileInformationByHandleEx/FILE_ID_INFO; IsWindow; GetWindowThreadProcessId; GetClassNameW; GetAncestor; GetWindowLongPtrW; GetWindow; IsWindowVisible; DwmGetWindowAttribute/DWMWA_CLOAKED/EXTENDED_FRAME_BOUNDS; IsIconic; IsZoomed; IVirtualDesktopManager; OpenProcess/OpenProcessToken/GetTokenInformation; SetWindowPos; GetWindowRect; MonitorFromWindow/GetMonitorInfoW/GetDpiForWindow; Single-Threaded Apartments; CoInitializeEx; MsgWaitForMultipleObjectsEx; BCryptHash and SHA-256 CNG guidance
 Issues/PRs inspected: N/A
-What was learned: official ShellBrowserWindow creation and ShellWindows inventory; Shell registration/revocation cookies through the DShellWindowsEvents connection point; separation of the Advise connection token from a Shell registration cookie; FindWindowSW cookie resolution with NEEDDISPATCH; canonical IUnknown object identity; no documented total ordering among registration, navigation, visibility, Quit, revocation, and HWND lifetime; NavigateComplete2 frame/asynchrony limitations; ShellExecute reuse risk; tab/frame ambiguity; baseline HWND exclusion independent of positive target location authority; filesystem URL/file identity; STA message-pump and connection-point lifetime requirements; process image and kernel-handle lifetime; fail-closed state/security/desktop allowlist; pure single translation and exact post-verification; safe exact-object Quit constraints
-Applicable PaneBind subsystem: Explorer target isolation, read-only inventory, capability issuance, live eligibility, process/location identity, safe operation/restore/close, and feedback evidence
+What was learned: official ShellBrowserWindow creation and ShellWindows inventory; Shell registration/revocation cookies through the DShellWindowsEvents connection point; separation of the Advise connection token from a Shell registration cookie; FindWindowSW cookie resolution with NEEDDISPATCH; canonical IUnknown object identity; no documented total ordering among registration, navigation, visibility, Quit, revocation, and HWND lifetime; NavigateComplete2 frame/asynchrony limitations; documented ShellExecute folder reuse when separate-process folder launch is disabled; ShellExecuteEx hProcess is neither guaranteed nor proof of a unique new HWND; cmd start `/separate` is a 16-bit memory-space option unsupported on 64-bit platforms, not an Explorer-frame contract; no reviewed current Microsoft contract makes explorer.exe `/n` or `/separate` a Windows 11 new-HWND guarantee; tab/frame ambiguity; baseline HWND exclusion independent of positive target location authority; filesystem URL/file identity; process image and kernel-handle lifetime; fail-closed state/security/desktop allowlist; pure single translation and exact post-verification
+Applicable PaneBind subsystem: Explorer target isolation, read-only inventory, user-consented capability issuance, live eligibility, process/location identity, safe operation/restore, user-owned close, and feedback evidence
 Code copied: NO
 Code adapted: NO
 Attribution required: NO for code reuse; claim-level citations retained
@@ -358,6 +359,10 @@ Recovery-specific official URLs:
 - <https://learn.microsoft.com/en-us/previous-versions/aa752140%28v%3Dvs.85%29>
 - <https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/aa768285%28v%3Dvs.85%29>
 - <https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments>
+- <https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew>
+- <https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexw>
+- <https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfow>
+- <https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/start>
 
 ### Microsoft Windows SDK Shell automation declarations
 
