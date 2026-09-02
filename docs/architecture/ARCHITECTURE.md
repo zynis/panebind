@@ -1,9 +1,12 @@
 # PaneBind Architecture Baseline
 
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
-owned-window operations boundary, and the implemented R1-C1 companion-process
-operations boundary. This document records implemented boundaries and current
-decisions; R1-C1 runtime acceptance evidence is recorded separately.
+owned-window operations boundary, the implemented R1-C1 companion-process
+operations boundary, and the narrow R1-C2A Explorer test-window design
+boundary. This document records implemented boundaries and current decisions;
+runtime acceptance evidence and gate results are recorded separately. The
+R1-C2A user-consented Debug and Release runtime Gate is sealed; the earlier
+automatic-provisioning paths remain blocked historical research.
 
 ## System flow
 
@@ -15,9 +18,10 @@ Native OS event
        and MovePlan(target_visible_rect)
     -> Behavior engine boundary (future; not implemented)
     -> Capability-neutral translation preparation
-    -> One of two separate Windows capability resolvers:
+    -> One of three separate Windows capability resolvers:
          R1-B same-process OwnedWindowToken
          R1-C1 controller-launched CompanionWindowToken
+         R1-C2A allowlisted and isolated ExplorerWindowToken
     -> Native placement and post-operation snapshot receipt
 ```
 
@@ -272,10 +276,105 @@ process object held by that `CompanionSession`, never an arbitrary PID, process
 name, wildcard, or user application. Closing the session invalidates all its
 tokens regardless of whether shutdown was graceful.
 
-R1-C2 is not started. Explorer, Office, editors, browsers, terminals, system
-windows, and every other user-opened third-party window remain prohibited
-targets, and R1-C1 creates no third-party eligibility or product-interaction
-policy.
+R1-C1 itself creates no third-party eligibility or product-interaction policy.
+Its companion authority cannot be reused or generalized for R1-C2A Explorer
+test windows.
+
+### R1-C2A Windows Explorer test-window boundary
+
+R1-C2A defines a third, separate Windows capability for one explicitly
+user-consented File Explorer test window. It does not widen either the R1-B
+owned capability or the R1-C1 companion capability, and it is not a generic
+third-party-window registry. No user-preexisting Explorer window, other
+application, second target, leader/follower group, Glue session, Snap behavior,
+global input, or production selector enters this boundary.
+
+The two automatic provisioning attempts remain immutable blocked history.
+Attempt 1 used Shell-inventory delta and exposed opaque-location and ambiguous
+frame problems. Attempt 2 added `DShellWindowsEvents`, registration-cookie
+resolution, canonical COM identity, and a retained provisioning lease, but its
+single documented `CoCreateInstance(CLSID_ShellBrowserWindow)` call returned
+`E_FAIL` before a lease, registration, target, or native operation existed.
+`AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED`. The retained design and
+tests remain diagnostic history; the CLSID path is not active/default and is
+never fallback for the current UAT.
+
+Attempt 3 is a controlled interactive UAT. The harness creates only a unique,
+empty, non-reparse local directory under ignored
+`uat/r1c2a/consent-target-<nonce>` and records its exact `FILE_ID_INFO`. It
+captures every baseline Shell entry's reliable `HWND` in a permanent forbidden
+set. Empty and inaccessible locations remain `OPAQUE_PREEXISTING`; a missing
+reliable HWND blocks before the user prompt. Baseline membership is immutable
+for the session, so navigating a preexisting window to the nonce directory can
+never upgrade it.
+
+The harness prints the absolute nonce path and asks the human to create one new
+Explorer top-level window and navigate that window to the path. `Ctrl+N` is a
+suggested human action only. PaneBind does not call ShellExecute, start
+Explorer, navigate a window, synthesize input, force foreground, or infer
+authority from the gesture. ENTER records explicit user confirmation, not a
+password, credential, integrity boundary, or native identity fact.
+
+After confirmation, a fresh read-only `IShellWindows` inventory selects HWND
+values absent from the permanent baseline, filters them by exactly one live
+Shell entry whose filesystem identity equals the nonce directory, and requires
+exactly one remaining candidate. Zero candidates, multiple candidates, a tab
+in a baseline frame, or any reused/preexisting HWND blocks without native
+apply. The candidate must additionally pass the complete Explorer allowlist:
+root/top-level/style/owner, visible/uncloaked/normal state, current desktop,
+class, PID/TID and retained process instance, canonical system
+`explorer.exe` identity, compatible session/integrity/UIAccess/AppContainer,
+monitor, DPI, and exact live location.
+
+`ExplorerWindowToken` remains Explorer- and test-session-specific, opaque, and
+unconstructable from a raw `HWND`. Its authority combines explicit consent,
+the immutable baseline exclusion, unique exact candidate identity, live
+eligibility, and matching session/capability/consent generations. The session
+records baseline, prompt, target-confirmation, eligibility, token, and
+move-consent generations. Consent alone cannot issue or refresh a token.
+
+Target confirmation only permits token issuance. The harness then presents a
+sanitized target summary and requires a second explicit affirmative consent
+before movement. Candidate change, navigation, destruction, process exit,
+minimize/maximize, monitor/DPI change, or any generation mismatch before apply
+blocks. Without the second consent, `SetWindowPos` is never called.
+
+The sole authorized test behavior is one same-monitor pure translation through
+the shared visible-to-positioning bridge, using
+`SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE`. Native success is not PaneBind
+success: the same HWND/process/PID/TID/class/location/monitor/DPI and exact
+visible/positioning rectangles must pass post-verification with size preserved.
+Restore is a separate immediate live-revalidated translation to the initial
+position and is required for the runtime Gate; it is not rollback.
+
+Because the human creates the Explorer target, Attempt 3 never calls
+`IWebBrowser2::Quit`, sends `WM_CLOSE`, invokes a Shell close command, or
+terminates/restarts Explorer. After restore the human may close the test window.
+An optional manual stale-token check may verify no native apply after closure;
+skipping it leaves `WINDOW_DESTROY_LIFETIME = NOT TESTED` without blocking the
+single-translation baseline.
+
+Observer startup and the interactive harness may be composed only by an
+evidence script that saves ignored logs; the script cannot create Explorer,
+send keys, close windows, or control a baseline window. Creation/navigation
+events precede operation attribution and cannot masquerade as translation or
+restore feedback. The interactive mode is not a CTest and cannot be completed
+by Codex impersonating user consent.
+
+Attempt 3 eligibility and runtime passed after a human completed both
+confirmations in Debug and Release and target-correlated evidence proved
+issuance, exactly one translation, exact post-verification, and exact restore.
+Implementation/build/tests remain distinct from that manual evidence. The
+optional stale-token lifetime step failed closed and is not part of the Runtime
+Gate. R1-C2B is not started.
+
+The final Explorer observations match the R1-B/R1-C1 model: programmatic
+primary and restore operations emitted LOCATION feedback without natural
+START/END. Each tested phase happened to emit one target LOCATION, while
+unrelated events interleaved in the global stream. This is an observation, not
+a fixed cardinality contract. A future suppression design must use operation
+receipt, capability generation, target identity, and geometry, and handle
+missing/repeated/interleaved feedback.
 
 ## Normalized event model
 
@@ -330,6 +429,10 @@ distinguish them.
 - The R1-C1 controller harness may depend on R1-A core, capability-neutral
   translation preparation, and a separate Windows companion resolver; process
   handles, IPC, and native tokens must not enter `core`.
+- The R1-C2A Explorer harness may depend on Shell inventory, a separate
+  Explorer eligibility/capability resolver, and capability-neutral translation
+  preparation; Shell COM, process handles, and Explorer policy must not enter
+  `core`.
 - No current layer depends on the future behavior engine or implements R1-C
   feedback suppression.
 
@@ -433,3 +536,34 @@ application, monitor, DPI, or virtual-desktop policy.
   suppression algorithm or a guaranteed acknowledgement stream.
 - R1-C2, real third-party control, global input, injection, Glue runtime, Snap,
   and product interaction remain outside this round.
+
+## R1-C2A architecture invariants
+
+- Read-only Shell inventory is a candidate source, never operation authority.
+- Every preexisting Shell entry must supply a reliable HWND for permanent
+  exclusion; empty or inaccessible locations remain opaque diagnostics and
+  never grant target authority.
+- Attempts 1 and 2 automatic provisioning remain blocked history; the
+  `CLSID_ShellBrowserWindow` path is not active/default and is never a fallback.
+- Attempt 3 creates only the ignored nonce directory; the human creates and
+  navigates the Explorer frame without synthesized/global input or foreground
+  forcing.
+- Only exactly one new post-baseline candidate `HWND` at the unique test
+  location, represented by exactly one Shell entry with exact filesystem file
+  identity, can receive an Explorer-specific token. A baseline HWND is forever
+  forbidden even if it later reaches that location.
+- Target confirmation and move consent are distinct generation-bound facts;
+  ENTER is not a credential and consent never substitutes for live eligibility.
+- Explorer issuance and resolution remain distinct from owned and companion
+  capabilities, and no generic third-party or public raw-`HWND` API exists.
+- Process image, class/root/style/owner, visibility/cloak/state, Shell location,
+  integrity, lifetime, monitor, and DPI facts are live-revalidated before use.
+- The only authorized operation is one explicit, same-monitor pure translation
+  followed by exact post-verification and a separately verified restore.
+- Attempt 3 never automatically closes the user-created Explorer window;
+  optional closure and stale-token evidence are human-controlled.
+- Baseline exclusion and user-consented Debug/Release eligibility/runtime are
+  empirically passing. Attempt 2 remains blocked by `E_FAIL`; the runtime PASS
+  comes from human evidence, not implementation or automated tests alone.
+- Generic third-party management, other applications, global input, injection,
+  polling, Glue, Snap, R1-C2B, and later product behavior remain outside R1-C2A.
