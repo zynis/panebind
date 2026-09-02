@@ -1,6 +1,6 @@
 # PaneBind R1-C2A Explorer Eligibility Execution Report
 
-Report date: 2026-08-28 (Asia/Shanghai; updated for user-consented recovery).
+Report date: 2026-09-03 (Asia/Shanghai; final human-validation seal).
 
 ## 1. Round, branch, and evaluated state
 
@@ -33,24 +33,25 @@ d606ee1 feat: add user-consented explorer authority
 Recovery started from `71b9ea88a085e64438f6bc8a704f11279aa2c950`.
 That blocked checkpoint is present at
 `origin/codex/r1c2a-explorer-single-translation`; the recovery research commit
-is `769873daf9620cc04594591994945385bf93927e`. Final recovery implementation
-and report SHAs remain a handoff item after the authorized worktree is
-committed.
+is `769873daf9620cc04594591994945385bf93927e`. At that historical checkpoint,
+the recovery implementation/report SHAs were still a handoff item; the later
+Attempt 3 checkpoints listed below supersede that Git-status note.
 
 The third recovery continuation started from
 `b110f5068c1c252e1f5b0d90315d6d998235adf0`. Its prior-art checkpoint is
 `560945a` and its verified implementation checkpoint is `d606ee1`.
 
 The round implemented and automated-tested an Explorer-specific, fail-closed
-eligibility/capability model. It did **not** establish a real Explorer
-capability in the active desktop. Consequently it performed no third-party
-window translation. This distinction is central to the result:
+eligibility/capability model. Attempts 1 and 2 did not establish a real
+Explorer capability, but the later user-consented Attempt 3 completed real
+Debug and Release desktop validation against implementation
+`2c9b5480312dbf201112c2821fdb4cbc9659ea45`:
 
 ```text
 Eligibility/capability model = IMPLEMENTED / AUTOMATED TESTED
 Attempts 1/2 real Explorer capability issuance = BLOCKED
-Attempt 3 real Explorer capability issuance = PENDING_UAT
-Real Explorer translation = NOT TESTED
+Attempt 3 real Explorer capability issuance = MANUALLY OBSERVED / PASS
+Debug and Release Explorer translation + exact restore = MANUALLY OBSERVED / PASS
 ```
 
 The recovery proved that baseline exclusion can remain complete when existing
@@ -63,9 +64,11 @@ Attempt 3 changes only the active UAT authority path: a human creates and
 navigates a new Explorer frame and gives two explicit confirmations, while
 PaneBind independently proves baseline exclusion, unique exact-location
 candidate identity, full live eligibility, and generation freshness. The
-interactive implementation/build/test result is **PASS**. Real eligibility and
-runtime remain **PENDING_UAT** and must not be inferred from deterministic
-tests.
+interactive implementation/build/test result is **PASS**. The final human
+validation is recorded in
+[`R1C2A_HUMAN_VALIDATION_REPORT.md`](R1C2A_HUMAN_VALIDATION_REPORT.md): both
+Debug and Release eligibility/runtime Gates now pass without changing the
+Explorer runtime evaluated by the UAT.
 
 No Glue, global input, resize, Snap, multi-window operation, generic
 third-party registry, or R1-C2B implementation was added.
@@ -593,8 +596,9 @@ RAW_RUNTIME_LOGS_TRACKED = NO
    without injection, `TerminateThread`, Explorer termination, or false async
    completion?
 
-These are questions only. The current user-consented R1-C2A runtime Gate must
-complete interactive UAT before R1-C2B can begin.
+These were the pre-UAT questions only. Interactive UAT is now complete; the
+refined post-baseline R1-C2B questions are recorded below. R1-C2B remains not
+started.
 
 ## 15. Attempt 2 gate result (preserved blocked history)
 
@@ -666,10 +670,12 @@ automatic CLI modes were also verified to reject before directory, COM, or
 Explorer side effects. The before/after `consent-target-*` directory count was
 unchanged in that safety check.
 
-No human consent has yet been supplied. Real target issuance, translation,
-post-verification, restore, target-correlated observer counts, and optional
-manual stale-token evidence therefore remain `PENDING_UAT`/`NOT TESTED`; no
-automated result is relabeled as a desktop-runtime observation.
+Human consent was subsequently supplied in one final Debug run and one final
+Release run. Both established a unique eligible target, one exact primary
+translation, one exact independent restore, clean Observer lifecycle, and no
+existing-window or other-third-party control. The optional stale-token branch
+was attempted but failed closed in both runs with no native apply; it is not a
+Runtime Gate requirement and remains unvalidated.
 
 ## 17. Current R1-C2A gate state
 
@@ -683,11 +689,70 @@ ATTEMPT_1_AUTO_INVENTORY_PROVISIONING = BLOCKED
 ATTEMPT_2_SHELL_REGISTRATION_PROVISIONING = BLOCKED
 AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED
 ATTEMPT_2_PRECISE_BLOCKER = CLSID_ShellBrowserWindow CoCreate returned E_FAIL before positive attribution authority existed
-ATTEMPT_3_USER_CONSENTED_AUTHORITY = CURRENT APPROACH
+ATTEMPT_3_USER_CONSENTED_AUTHORITY = PASS
 R1C2A_CONSENT_CAPABILITY_IMPLEMENTATION = PASS
-R1C2A_ELIGIBILITY_GATE = PENDING_UAT
-R1C2A_RUNTIME_GATE = PENDING_UAT
+R1C2A_DEBUG_INTERACTIVE_UAT = PASS
+R1C2A_RELEASE_INTERACTIVE_UAT = PASS
+R1C2A_ELIGIBILITY_GATE = PASS
+R1C2A_RUNTIME_GATE = PASS
+USER_CONSENTED_TARGET_AUTHORITY = PASS
 USER_EXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C2B = NOT STARTED
 ```
+
+## 18. Final human-validation summary
+
+The selected ignored evidence prefixes are:
+
+```text
+Debug = 20260902T161116173Z
+Release = 20260902T161740730Z
+```
+
+Both harness streams contain exactly one passing baseline/candidate/two-consent
+chain, one exact primary apply, one exact independent restore, and one passing
+summary. Both consent chains are strictly `1 < 2 < 3 < 4 < 5 < 6 < 7`.
+Observer JSONL is valid and continuous with complete hook/shutdown lifecycle,
+no overflow, no queue-notification failure, no incomplete diagnostic, and
+empty stderr.
+
+Both runs used `explorer.exe` / `CabinetWClass`, primary `DISPLAY1`, DPI 192,
+and Per-Monitor V2. Each selected `dx=-80, dy=-50`; requested and actual
+visible/positioning geometry matched exactly, and restore returned exactly to
+the initial geometry. Target operation feedback was reliably separated as:
+
+| Run | Primary START / LOCATION / END | Restore START / LOCATION / END |
+| --- | --- | --- |
+| Debug | `0 / 1 / 0` | `0 / 1 / 0` |
+| Release | `0 / 1 / 0` | `0 / 1 / 0` |
+
+Creation/navigation target LOCATION events occurred before operation markers
+and were excluded. Unrelated events interleaved between primary and restore,
+so time-only, raw-handle-only, contiguity, mandatory START/END, and fixed-count
+suppression contracts remain rejected.
+
+## 19. R1-C2B architecture questions only
+
+1. How should an interactive START/END pair establish and terminate a leader
+   session when programmatic follower operations emit neither event?
+2. Which topology/component snapshot is frozen at leader-session start, and
+   which generation changes invalidate it?
+3. How is the R1-A `MovePlan` connected to Explorer follower operations without
+   widening the Explorer-specific capability boundary?
+4. Which operation-receipt fields register expected follower visible and
+   positioning geometry before native apply?
+5. How do follower LOCATION events acknowledge or suppress a pending receipt
+   using token/session/generation, process/window identity, and geometry?
+6. How are missing, repeated, and unrelated/interleaved events handled without
+   time-only, contiguity, or one-request-one-event assumptions?
+7. How do navigation, destruction, minimize/maximize, monitor, and DPI changes
+   invalidate the complete Glue session?
+8. Which native failure or post-verification mismatch terminates the session,
+   and how are remaining followers prevented from continuing?
+9. Why must leader `ResizeOrMixed` cancel Glue Move rather than reuse the pure
+   translation plan?
+10. How can a controlled harness/UAT exercise this model while global Ctrl/input
+    hooks remain explicitly unimplemented?
+
+These are research questions only. No R1-C2B branch or implementation exists.

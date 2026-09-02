@@ -5,8 +5,8 @@ owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, and the narrow R1-C2A Explorer test-window design
 boundary. This document records implemented boundaries and current decisions;
 runtime acceptance evidence and gate results are recorded separately. The
-R1-C2A runtime gate is currently blocked; no runtime acceptance pass is
-claimed.
+R1-C2A user-consented Debug and Release runtime Gate is sealed; the earlier
+automatic-provisioning paths remain blocked historical research.
 
 ## System flow
 
@@ -361,11 +361,20 @@ events precede operation attribution and cannot masquerade as translation or
 restore feedback. The interactive mode is not a CTest and cannot be completed
 by Codex impersonating user consent.
 
-Attempt 3 eligibility and runtime are `PENDING_UAT` until a human completes the
-two confirmations and the target-correlated evidence proves issuance, exactly
-one translation, exact post-verification, and restore. Implementation, builds,
-and deterministic tests are reported separately and cannot make those runtime
-Gates pass. R1-C2B is not started.
+Attempt 3 eligibility and runtime passed after a human completed both
+confirmations in Debug and Release and target-correlated evidence proved
+issuance, exactly one translation, exact post-verification, and exact restore.
+Implementation/build/tests remain distinct from that manual evidence. The
+optional stale-token lifetime step failed closed and is not part of the Runtime
+Gate. R1-C2B is not started.
+
+The final Explorer observations match the R1-B/R1-C1 model: programmatic
+primary and restore operations emitted LOCATION feedback without natural
+START/END. Each tested phase happened to emit one target LOCATION, while
+unrelated events interleaved in the global stream. This is an observation, not
+a fixed cardinality contract. A future suppression design must use operation
+receipt, capability generation, target identity, and geometry, and handle
+missing/repeated/interleaved feedback.
 
 ## Normalized event model
 
@@ -553,8 +562,8 @@ application, monitor, DPI, or virtual-desktop policy.
   followed by exact post-verification and a separately verified restore.
 - Attempt 3 never automatically closes the user-created Explorer window;
   optional closure and stale-token evidence are human-controlled.
-- Baseline exclusion is empirically passing. Attempt 2 remains blocked by
-  `E_FAIL`; Attempt 3 eligibility/runtime remain `PENDING_UAT`, with no runtime
-  PASS inferred from implementation or automated tests.
+- Baseline exclusion and user-consented Debug/Release eligibility/runtime are
+  empirically passing. Attempt 2 remains blocked by `E_FAIL`; the runtime PASS
+  comes from human evidence, not implementation or automated tests alone.
 - Generic third-party management, other applications, global input, injection,
   polling, Glue, Snap, R1-C2B, and later product behavior remain outside R1-C2A.

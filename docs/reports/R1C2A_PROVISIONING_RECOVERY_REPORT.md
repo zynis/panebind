@@ -1,6 +1,6 @@
 # PaneBind R1-C2A Explorer Provisioning Recovery Report
 
-Report date: 2026-08-28 (Asia/Shanghai).
+Report date: 2026-09-03 (Asia/Shanghai; final Attempt 3 disposition added).
 
 ## 1. Scope and relationship to the initial attempt
 
@@ -371,16 +371,27 @@ The interactive path is not CTest. The capability implementation and harness
 build pass Debug/Release verification; all 8 CTest entries, the expanded
 Explorer deterministic consent matrix, and Owned/Companion Debug/Release
 regressions pass. Redirected input and deprecated automatic modes reject before
-side effects. No human UAT has run, so the current Gate state is:
+side effects. Human Debug and Release UAT subsequently passed against the
+unchanged Explorer implementation. Full sanitized evidence is in
+[`R1C2A_HUMAN_VALIDATION_REPORT.md`](R1C2A_HUMAN_VALIDATION_REPORT.md).
+
+The optional stale-token branch was attempted but did not validate destruction
+or stale rejection in either final run. Both attempts remained fail-closed with
+no native apply; this non-gating result remains a recorded risk.
+
+The final Attempt 3 state is:
 
 ```text
 ATTEMPT_1_AUTO_INVENTORY_PROVISIONING = BLOCKED
 ATTEMPT_2_SHELL_REGISTRATION_PROVISIONING = BLOCKED
 AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED
-ATTEMPT_3_USER_CONSENTED_AUTHORITY = CURRENT APPROACH
+ATTEMPT_3_USER_CONSENTED_AUTHORITY = PASS
 R1C2A_CONSENT_CAPABILITY_IMPLEMENTATION = PASS
-R1C2A_ELIGIBILITY_GATE = PENDING_UAT
-R1C2A_RUNTIME_GATE = PENDING_UAT
+R1C2A_DEBUG_INTERACTIVE_UAT = PASS
+R1C2A_RELEASE_INTERACTIVE_UAT = PASS
+R1C2A_ELIGIBILITY_GATE = PASS
+R1C2A_RUNTIME_GATE = PASS
+USER_CONSENTED_TARGET_AUTHORITY = PASS
 USER_EXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C2B = NOT STARTED

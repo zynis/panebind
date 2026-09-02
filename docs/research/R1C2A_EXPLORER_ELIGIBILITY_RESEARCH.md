@@ -1,11 +1,12 @@
 # PaneBind R1-C2A Explorer Eligibility Research
 
-Status: **R1-C2A PRIOR-ART AND BASELINE-EXCLUSION GATES PASS;
-AUTOMATIC PROVISIONING BLOCKED; USER-CONSENTED ELIGIBILITY AND RUNTIME
-PENDING INTERACTIVE UAT**
+Status: **R1-C2A PRIOR-ART, BASELINE EXCLUSION, USER-CONSENTED ELIGIBILITY,
+AND USER-CONSENTED RUNTIME GATES PASS; AUTOMATIC PROVISIONING REMAINS
+BLOCKED**
 
 Review date: 2026-08-26; provisioning-recovery supplement reviewed
-2026-08-27; user-consented recovery supplement reviewed 2026-08-27.
+2026-08-27; user-consented recovery supplement reviewed 2026-08-27; final
+Debug/Release human evidence reviewed 2026-09-03.
 
 ## Scope and evidence labels
 
@@ -680,10 +681,11 @@ PROVISIONING_STABILITY_GATE = BLOCKED
 ```
 
 Attempt 3 instead requires the deliberately interactive
-`--interactive-consent-test` UAT. It is not registered in CTest. Until a human
-completes both consent steps and the target passes issuance, one translation,
-exact post-verification, and restore, eligibility and runtime remain
-`PENDING_UAT`, not PASS.
+`--interactive-consent-test` UAT. It is not registered in CTest. Before the
+human completed both consent steps and the target passed issuance, one
+translation, exact post-verification, and restore, eligibility and runtime
+correctly remained `PENDING_UAT`. The final Debug and Release runs now satisfy
+that condition without changing this design contract.
 
 No path may substitute a baseline Explorer window.
 
@@ -782,16 +784,43 @@ The recovery history is additive and must not be rewritten as success:
    BLOCKED.** Baseline exclusion passed, but the one authorized
    `CoCreateInstance` returned `E_FAIL` before a provisioning lease or matching
    registration existed. `AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED`.
-3. **Attempt 3 — user-consented target authority: CURRENT APPROACH,
-   PENDING INTERACTIVE UAT.** It neither repairs nor falls back from Attempt 2;
+3. **Attempt 3 — user-consented target authority: PASS.** It neither repairs
+   nor falls back from Attempt 2;
    the user creates the frame and grants two explicit consents, while PaneBind
    independently proves new-HWND exclusion, exact file identity, full live
    eligibility, and generation freshness.
 
-Passing deterministic consent-model tests or building the interactive harness
-will establish implementation readiness only. `R1C2A_ELIGIBILITY_GATE` and
-`R1C2A_RUNTIME_GATE` cannot pass until a human completes the UAT and the raw
-target-correlated evidence validates translation and restore.
+Deterministic consent-model tests and the interactive harness established only
+implementation readiness. The later human Debug and Release UAT independently
+established unique eligible targets, one exact translation, one exact restore,
+and target-correlated Observer evidence. The sanitized result is recorded in
+[`R1C2A_HUMAN_VALIDATION_REPORT.md`](../reports/R1C2A_HUMAN_VALIDATION_REPORT.md).
+
+## Final user-consented empirical observation
+
+The final Debug and Release runs used evidence prefixes
+`20260902T161116173Z` and `20260902T161740730Z` against implementation
+`2c9b5480312dbf201112c2821fdb4cbc9659ea45`. Both evidence triplets had valid
+JSONL, continuous Observer sequence, complete hook/shutdown lifecycle, no
+overflow or notification failure, and empty Observer stderr.
+
+Both consent chains were strictly `1 < 2 < 3 < 4 < 5 < 6 < 7`; both selected
+one new `explorer.exe` / `CabinetWClass` target at exact nonce file identity.
+Each primary translated by `dx=-80, dy=-50`, matched requested visible and
+positioning geometry exactly, and preserved identity, size, location, monitor,
+and DPI. Each independent restore returned exactly to the initial geometry.
+
+For each run, target operation feedback was reliably separated as primary
+`START/LOCATION/END = 0/1/0` and restore `0/1/0`. Two earlier target LOCATION
+events belonged to creation/navigation and were excluded. Non-target LOCATION
+events interleaved between primary and restore. These observations strengthen,
+rather than relax, the decision that programmatic placement cannot rely on
+START/END, time alone, raw handle alone, event contiguity, or fixed cardinality.
+
+The optional stale-token branch failed closed in both runs and made no native
+apply. It is not a Runtime Gate requirement, so lifetime-after-manual-close
+remains unvalidated without weakening the successful translation/restore
+claim.
 
 ## Adopted and rejected designs
 
@@ -851,11 +880,14 @@ ATTEMPT_2_SHELL_REGISTRATION_PROVISIONING = BLOCKED
 AUTO_PROVISIONING_ON_CURRENT_WINDOWS11 = BLOCKED
 ATTEMPT_2_RUNTIME_RESULT = CREATE_BROWSER_WINDOW E_FAIL; NO LEASE; NO REGISTRATION; NO TARGET; NO NATIVE APPLY
 PROVISIONING_STABILITY_GATE = BLOCKED
-ATTEMPT_3_USER_CONSENTED_AUTHORITY = CURRENT_APPROACH
+ATTEMPT_3_USER_CONSENTED_AUTHORITY = PASS
 R1C2A_CONSENT_AUTHORITY_DESIGN = PASS
-R1C2A_INTERACTIVE_UAT = PENDING
-R1C2A_ELIGIBILITY_GATE = PENDING_UAT
-R1C2A_RUNTIME_GATE = PENDING_UAT
+R1C2A_DEBUG_INTERACTIVE_UAT = PASS
+R1C2A_RELEASE_INTERACTIVE_UAT = PASS
+R1C2A_INTERACTIVE_UAT = PASS
+R1C2A_ELIGIBILITY_GATE = PASS
+R1C2A_RUNTIME_GATE = PASS
+USER_CONSENTED_TARGET_AUTHORITY = PASS
 THIRD_PARTY_AUTHORITY = EXPLORER TEST FIXTURE ONLY
 EXTERNAL_CODE_COPIED = NO
 EXTERNAL_CODE_ADAPTED = NO

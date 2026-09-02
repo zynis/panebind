@@ -111,8 +111,15 @@ try {
     # Observer has a bounded duration and exits naturally. This runner never
     # stops or kills it, the harness, Explorer, or any other application.
     if ($null -ne $observerProcess) {
+        if ($null -ne $harnessExitCode -and -not $observerProcess.HasExited) {
+            Write-Output 'Explorer 交互测试已完成。'
+            Write-Output '正在等待 Observer 完成剩余证据采集并执行最终校验，请勿关闭当前窗口……'
+        }
         $observerProcess.WaitForExit()
         $observerProcess.Refresh()
+        if ($null -ne $harnessExitCode) {
+            Write-Output 'Observer 已结束，正在校验证据……'
+        }
     }
 }
 
