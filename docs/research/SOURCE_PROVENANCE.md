@@ -383,3 +383,82 @@ Attribution required: NO; no SDK implementation or declaration was copied into P
 
 Detailed findings and R1-C2A decisions are in
 [R1C2A_EXPLORER_ELIGIBILITY_RESEARCH.md](R1C2A_EXPLORER_ELIGIBILITY_RESEARCH.md).
+
+## R1-C2B targeted Explorer Glue feedback review
+
+Review date: 2026-09-03.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; AltDrag e2740d605b0336a3b391fec26794718864b19521
+License: GNU GPL v3-or-later; REFERENCE ONLY
+Files/modules inspected for R1-C2B: AltSnap hooks.c movement lifecycle, worker queue, sticky resize, disabled WinEvent experiment; AltDrag hooks.c lifecycle messages and historical HookWindows injection
+Issues/PR/history inspected for R1-C2B: AltSnap PRs #564, #573, #580, #609; issues #507, #572, #575, #620, #725; commits 2ed9fe3dff49b260c25ce9abbd71f541dbfc1ca0, 1b64b08fb1db262b6f0a180b022243956c8a016e, 45ec7b4343ea4b8c6342cb1974933756367b022b, 7f4afe59076b70980f71af202f63609ca3ac5745, fa5c70a5029f418cac56007053fe67024cbeef86; AltDrag commits 4d90661a757976fdaa0ac31d028f5d9313ea3114, c46747bb184a72f08876a265b9024ddb59b4c073, f877c42afb8cf05eb98ec533834e775112aeea3f, 3d1fa0b22582c32631c5f3ef455b3cc76eb8338c; AltDrag lifecycle compatibility and HookWindows history; AltSnap's later removal of the inherited HookWindows injection design
+What was learned: AltSnap explicitly synthesizes START/END and caused FancyZones cross-tool feedback; START timing and END edge cases can create false lifecycle; one worker/coalescing is useful architecture evidence but no generation-bound feedback ledger exists; sticky resize is not Glue Move; AltDrag injection/subclassing and synthetic lifecycle compatibility are rejected
+Applicable PaneBind subsystem: event provenance limits, explicit state transitions, callback/owner separation, exact follower feedback attribution, bounded ledger, no-recursion stress, and no-injection boundary
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code because no GPL code entered PaneBind; research citations retained
+```
+
+License decision: **GPL REFERENCE-ONLY**. No implementation structure,
+algorithm, control flow, or code was translated or adapted.
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License: MIT; reference-only in R1-C2B
+Files/modules inspected for R1-C2B: FancyZones/FancyZonesApp hook lifecycle; FancyZonesLib FancyZones owner dispatch; WindowMouseSnap/work-area lifetime; WindowUtils placement; UI test helper; root LICENSE
+Issues/PR/history inspected for R1-C2B: PRs #44440, #48473, #48569, #49433, #49985; issue #49016; commits 6c2a99dfd6a12ad98feeda0acbc663aa84865676, ae9f241ef13737dab6f861767bbfdfca72b78475, dd26d86580168d2e368701f7b0c4d629dc9cd9ac, 37d8729ac3eec734f4d000079145d6fcb40db3a5, d68980a81bb8de144bdec998a114e948bf68c563
+What was learned: callback-to-owner dispatch and lifecycle-scoped hooks are mature patterns; process skipping is not feedback suppression; pinned code has no bounded receipt queue or expected-operation ledger; destroy/topology replacement must abort and terminate consumers before state replacement; stale generation and mixed-DPI history require whole-session invalidation
+Applicable PaneBind subsystem: additive Glue WinEvent source, owner-thread state machine, bounded backpressure, frozen topology, invalidation, setup/cleanup isolation, and DPI/monitor safety
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for reference-only review; any future reuse requires separate approval and preservation of Microsoft MIT notice
+```
+
+### Microsoft Learn WinEvent, identity, geometry, and placement documentation
+
+```text
+Source: Microsoft Learn Windows desktop/Win32 API documentation
+Publisher/repository: Microsoft; https://learn.microsoft.com/en-us/windows/win32/
+Version / SHA: N/A - live documentation
+Terms: Microsoft Learn Terms of Use; facts paraphrased/cited only
+Date reviewed: 2026-09-03
+Pages inspected for R1-C2B: SetWinEventHook; UnhookWinEvent; Out-of-Context Hook Functions; Guarding Against Reentrancy; WinEventProc; NotifyWinEvent; Event Constants; SetWindowPos; WM_WINDOWPOSCHANGING; GetWindowThreadProcessId; IsWindow; PROCESS_INFORMATION; GetWindowRect; DwmGetWindowAttribute; DWMWINDOWATTRIBUTE / DWMWA_EXTENDED_FRAME_BOUNDS
+Issues/PRs inspected: N/A
+What was learned: out-of-context delivery is queued, asynchronous, sequential to the installing message-loop thread, and reentrancy-sensitive; process/thread filters are noise reduction, not authority; unhook is same-thread; native timestamps have no sufficient correlation contract; START/END can be synthetically notified; LOCATION conflates position/shape/size; SetWindowPos success is not exact geometry; ASYNC placement is unsuitable for immediate verification; HWND/PID/TID are point-in-time facts; visible and positioning rectangles remain distinct non-atomic reads
+Applicable PaneBind subsystem: hook lifecycle, minimal callback receipt, owner-thread drain, exact identity/generation filter, pending operation registration, feedback reconciliation, synchronous placement, post-verification, and restore
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code; claim-level official-document citations retained
+```
+
+Official URLs reviewed:
+
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-unhookwinevent>
+- <https://learn.microsoft.com/en-us/windows/win32/winauto/out-of-context-hook-functions>
+- <https://learn.microsoft.com/en-us/windows/win32/winauto/guarding-against-reentrancy-in-hook-functions>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wineventproc>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-notifywinevent>
+- <https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos>
+- <https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-windowposchanging>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindow>
+- <https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/ns-processthreadsapi-process_information>
+- <https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect>
+- <https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmgetwindowattribute>
+- <https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute>
+
+Detailed findings and independently selected R1-C2B contracts are in
+[R1C2B_EXPLORER_GLUE_RESEARCH.md](R1C2B_EXPLORER_GLUE_RESEARCH.md).
