@@ -2,21 +2,23 @@
 
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
 owned-window operations boundary, the implemented R1-C1 companion-process
-operations boundary, and the narrow R1-C2A Explorer test-window design
-boundary. This document records implemented boundaries and current decisions;
-runtime acceptance evidence and gate results are recorded separately. The
-R1-C2A user-consented Debug and Release runtime Gate is sealed; the earlier
-automatic-provisioning paths remain blocked historical research.
+operations boundary, the sealed R1-C2A Explorer single-translation boundary,
+and the implemented R1-C2B Explorer Glue Move test-session boundary. This
+document records implemented boundaries and current decisions; runtime
+acceptance evidence and gate results are recorded separately. R1-C2B real
+Explorer validation is still `PENDING_UAT`; implementation and automated tests
+do not substitute for that human evidence.
 
 ## System flow
 
 ```text
 Native OS event
-    -> Platform observation adapter
-    -> Normalized event and geometry
+    -> R0 observation adapter (evidence only), or
+       narrow R1-C2B Explorer Glue WinEvent source
+    -> Validated role-bound receipt and normalized event/geometry
     -> R1-A Core: visible geometry, adjacency graph, TranslationSession,
        and MovePlan(target_visible_rect)
-    -> Behavior engine boundary (future; not implemented)
+    -> R1-C2B Core: GlueMoveCoordinator state/generation/receipt ledger
     -> Capability-neutral translation preparation
     -> One of three separate Windows capability resolvers:
          R1-B same-process OwnedWindowToken
@@ -51,7 +53,10 @@ includes:
 - signed edge relations, a deterministic undirected adjacency graph, and
   connected-component solving;
 - geometry-change classification with checked translation deltas; and
-- an immutable, initial-relative pure follower move plan.
+- an immutable, initial-relative pure follower move plan; and
+- the R1-C2B `GlueMoveCoordinator`, including normalized Leader/Follower
+  receipts, session and operation generations, a bounded expected-operation
+  ledger, deterministic completion/reconciliation, and explicit abort reasons.
 
 The core must not include `HWND`, `HMONITOR`, `RECT`, `POINT`, `DWORD`, Windows
 headers, native WinEvent constants, or native display identifiers whose meaning
@@ -102,13 +107,37 @@ Normalized text and log strings use UTF-8; the Windows adapter explicitly
 transcodes UTF-16 and JSON-escapes it. `process_name` means the executable
 basename when available, not a stronger semantic application identity.
 
-### Future sync/behavior engine — not implemented
+### R1-C2B Glue Move coordinator
 
-R1-A implements the pure adjacency graph, connected-component query, geometry
-classification, and initial-relative translation plan. It does not subscribe to
-events, retain native windows, choose product eligibility, or execute a plan.
-A future behavior engine may consume these reviewed values only after its own
-research gate. No Glue or Snap behavior engine exists.
+R1-C2B adds the first narrow platform-neutral behavior coordinator under
+`src/core/behavior/`. It consumes only opaque `WindowId` values, normalized
+roles and event kinds, visible rectangles, local event sequence, session and
+operation generations, and exact operation outcomes. It has no Explorer,
+WinEvent, COM, HWND, timing, monitor, DPI, or native-operation concept.
+
+Its state machine is `Idle -> Armed -> Active -> Completing -> Completed`, with
+`Aborted` as the fail-closed terminal state. `arm` requires an actual R1-A
+`WindowAdjacencyGraph` whose component is exactly Leader plus Follower and has
+exactly one relation, then constructs an R1-A `TranslationSession` from that
+verified pre-hook baseline. Exact Leader START revalidates and activates it;
+the graph, membership, roles, and initial rectangles remain frozen. Each Leader
+LOCATION is classified against the session-initial Leader rectangle.
+`Unchanged` is a no-op, `Translation` consumes the R1-A total-delta plan, and
+`ResizeOrMixed` aborts. No incremental Follower delta is accumulated.
+
+Every Follower command is assigned a new operation generation and entered in a
+bounded pending ledger. Exact expected feedback is acknowledged and suppressed;
+an exact repeat of the current acknowledged geometry is duplicate feedback and
+is also suppressed. Unexpected Follower geometry, Follower START, stale or
+non-monotonic sequence/generation, native or post-verification failure,
+invalidation, timeout, or capacity failure aborts. Missing LOCATION is not
+fabricated: Leader END may reconcile a completed exact native receipt against
+the exact final pair snapshot and records it as missing/reconciled rather than
+event-acknowledged.
+
+This is a single-session Explorer test baseline, not a general product Glue
+engine. It adds no Glue Resize, Snap, dynamic group membership, persistent
+binding, Ctrl activation, global input, or R1-C3 behavior.
 
 ### R1-B Windows owned-window operations adapter
 
@@ -366,7 +395,8 @@ confirmations in Debug and Release and target-correlated evidence proved
 issuance, exactly one translation, exact post-verification, and exact restore.
 Implementation/build/tests remain distinct from that manual evidence. The
 optional stale-token lifetime step failed closed and is not part of the Runtime
-Gate. R1-C2B is not started.
+Gate. R1-C2B builds on the target-consent prefix through a separate private Glue
+authority; it does not relax this one-shot move contract.
 
 The final Explorer observations match the R1-B/R1-C1 model: programmatic
 primary and restore operations emitted LOCATION feedback without natural
@@ -375,6 +405,86 @@ unrelated events interleaved in the global stream. This is an observation, not
 a fixed cardinality contract. A future suppression design must use operation
 receipt, capability generation, target identity, and geometry, and handle
 missing/repeated/interleaved feedback.
+
+### R1-C2B Explorer Glue session boundary
+
+R1-C2B authorizes exactly two role-bound Explorer test windows for one temporary
+Glue Move session. Leader and Follower are separately provisioned through the
+R1-C2A user-consent eligibility path. Follower provisioning begins only after
+Leader issuance, so its immutable baseline permanently excludes Leader. Pair
+authorization requires two distinct live targets, complete target-consent
+prefixes, exact locations, stable process/window identities, the same monitor
+and DPI, and a new `Y + ENTER` Glue-consent generation. A private full-
+fingerprint peer binding lets each target tolerate only the other authorized
+member during live inventory checks; it neither exposes HWND nor changes an
+ordinary R1-C2A token's one-primary-translation limit.
+
+The fixture records both original visible and positioning rectangles, then
+centers a size-preserving pair inside their common work area. Horizontal
+Leader/Follower adjacency is preferred; vertical adjacency is the deterministic
+fallback. Both use an exact zero gap, `SWP_NOSIZE | SWP_NOZORDER |
+SWP_NOACTIVATE`, and exact post-verification. If the existing window sizes fit
+neither orientation, setup blocks instead of resizing. This planner is
+`TEST FIXTURE LAYOUT ONLY`, not Snap.
+
+Only after setup, exact verification, and construction of the two-node/one-edge
+R1-A graph does `ExplorerGlueSession` arm its additive WinEvent source. The R0
+`WindowsObserver` and its JSONL remain independent evidence and never become a
+runtime IPC/control bus. The Glue source has no public arbitrary-HWND factory;
+only the role-bound session creates it from private live bindings.
+
+For each unique target PID, the source installs three out-of-context hook slots:
+the START-to-END lifecycle range, exact LOCATION, and exact DESTROY. Flags are
+fixed to `WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS`. PID filtering is
+only noise reduction. During owner drain every receipt is still checked against
+the exact role-bound HWND, PID/TID, root status, capability generation, hook
+slot, `OBJID_WINDOW`, and `CHILDID_SELF`. Other windows and object/child events
+do not enter behavior.
+
+Before assigning a sequence or touching the ring, the callback applies fixed,
+allocation-free envelope checks: supported event, exact Leader/Follower HWND,
+`OBJID_WINDOW`, and `CHILDID_SELF`. Unrelated same-process windows and
+accessibility-child bursts are counted without consuming a receipt sequence or
+queue slot. For a target receipt it assigns a monotonic local sequence, copies a
+fixed record into a preallocated 512-entry ring, and uses `PostThreadMessageW`
+to notify the owner. Owner drain performs the remaining hook-slot/PID and live
+PID/TID/root/capability checks. The callback performs no COM inventory, native
+query, geometry capture, topology work, logging, blocking wait, allocation,
+behavior, or window operation. Overflow never overwrites an old receipt; overflow,
+notification failure, reentrancy, wrong-thread use, hook lifecycle failure,
+sequence exhaustion, or identity/root mismatch poisons the source and aborts
+the session.
+
+The creating STA and its message loop own target eligibility, event drain,
+behavior, translation preparation, native apply, verification, termination, and
+cleanup. Waiting uses a waitable timeout plus `MsgWaitForMultipleObjectsEx`, not
+resident polling. Each drained receipt batch captures one frozen live Leader/
+Follower geometry pair before any event in that batch can cause a native move.
+This prevents a later Follower apply from retroactively changing the geometry
+assigned to an older receipt. It also permits a queued START+LOCATION pair only
+when the live Leader remains an exact or same-baseline pure translation from the
+armed layout; state drift or resize aborts.
+
+Before each active Follower `SetWindowPos`, the Windows ledger records the
+behavior operation ID, source Leader sequence, expected visible/positioning
+targets, and the event source's latest receipt sequence as a registration
+watermark. A Follower LOCATION is attributable only if its receipt sequence is
+strictly after that watermark and its geometry matches the pending expected
+target. If a Follower receipt already follows a Leader LOCATION in the same
+drained batch, it must match a previously completed exact operation or the last
+acknowledged geometry before a new apply may occur; otherwise the session
+aborts. Geometry written by the new operation can therefore never launder an
+older or user-produced Follower receipt into self-feedback.
+
+Leader END stops new planning and captures an exact final pair. Successful
+native results with missing feedback may be reconciled against that snapshot;
+no WinEvent acknowledgement is invented. Completion, abort, timeout, destroy,
+native failure, post-verification failure, and all public exception paths enter
+the same terminal ordering: stop and unhook first, discard now-inactive queued
+receipts, restore Follower and Leader independently to their original exact
+rectangles, release the private pair authority, and leave both user-created
+Explorer windows open. The aggregate is strictly owner-thread-affine; it is not
+transferable between threads.
 
 ## Normalized event model
 
@@ -394,9 +504,10 @@ needs.
 
 Native event timestamps are retained as source metadata. Wall-clock timestamps
 used in logs are diagnostic metadata and are not treated as a causal ordering
-model. Later work must research coalescing, re-entrancy, late delivery, destroyed
-handles, and feedback suppression before relying on event sequences for window
-control.
+model. The R0 stream by itself still cannot support window control. R1-C2B uses
+its separate exact-target source, local receipt sequence, operation watermark,
+generation, and geometry ledger for its narrow session; it does not reinterpret
+R0 timestamps as causal authority.
 
 ## Snapshot boundary
 
@@ -433,8 +544,13 @@ distinguish them.
   Explorer eligibility/capability resolver, and capability-neutral translation
   preparation; Shell COM, process handles, and Explorer policy must not enter
   `core`.
-- No current layer depends on the future behavior engine or implements R1-C
-  feedback suppression.
+- The R1-C2B Explorer Glue harness may compose the Explorer capability resolver,
+  the narrow Glue WinEvent source, and the platform-neutral
+  `GlueMoveCoordinator`; native target bindings and operation permits remain
+  private to the Windows session.
+- `platform/windows` translates exact native receipts and operation results into
+  core values. Core does not call back into the platform and cannot resolve a
+  token or execute `SetWindowPos`.
 
 ## Threading and lifetime baseline
 
@@ -444,6 +560,13 @@ and unhooks on orderly shutdown. The callback records the native receipt and
 queues bounded work; snapshot time is recorded separately because delivery is
 asynchronous. It does not mutate third-party window state. The design contains
 no background sampling loop.
+
+The separate R1-C2B session is created, armed, run, stopped, and restored on one
+owner STA/message-loop thread. Its WinEvent callback performs fixed receipt
+ingress only; all capability checks, geometry snapshots, behavior decisions,
+native operations, and cleanup are serialized on the owner. The session does
+not support ownership transfer. Event waiting is message-driven with a bounded
+waitable timeout; no high-frequency polling or R0 observer IPC is involved.
 
 ## DPI and display baseline
 
@@ -468,11 +591,12 @@ observable policy rejections remain diagnostic records with a named reason and
 raw facts. The observer also skips its own process. Exact evidence and caveats
 are recorded in `docs/research/R0_WINDOWS_EVENT_MODEL.md`.
 
-Filtering for future Snap/Glue eligibility is a separate problem. R0's
-observation filter must not be mistaken for a permanent product blacklist.
-The R1-A graph accepts a caller-prefiltered `WindowGeometry` collection and
-encodes no visibility, cloaking, minimization, maximization, elevation,
-application, monitor, DPI, or virtual-desktop policy.
+Product Snap/general-Glue eligibility is separate from R0 observation policy.
+R0's filter must not be mistaken for a permanent product blacklist. R1-C2B has
+its own exact Explorer pair authority, while the R1-A graph still accepts a
+caller-prefiltered `WindowGeometry` collection and encodes no visibility,
+cloaking, minimization, maximization, elevation, application, monitor, DPI, or
+virtual-desktop policy.
 
 ## R0 invariants
 
@@ -567,3 +691,46 @@ application, monitor, DPI, or virtual-desktop policy.
   comes from human evidence, not implementation or automated tests alone.
 - Generic third-party management, other applications, global input, injection,
   polling, Glue, Snap, R1-C2B, and later product behavior remain outside R1-C2A.
+
+## R1-C2B architecture invariants
+
+- Exactly two separately user-consented, post-baseline Explorer test windows
+  may be bound: one Leader and one Follower. Follower's immutable baseline must
+  exclude the already-issued Leader; no third window may enter the pair.
+- The private Glue authority is role-, pair-, consent-, capability-, and
+  session-generation bound. It exposes no arbitrary-HWND operation surface and
+  does not loosen R1-C2A's ordinary one-shot authority.
+- The temporary horizontal-or-vertical zero-gap layout is a size-preserving UAT
+  fixture, not Snap. Setup happens before hooks arm; unhook happens before
+  restore.
+- The live graph is built with R1-A adjacency and must contain exactly the two
+  targets and one relation. Arming freezes this verified pre-hook topology,
+  membership, roles, and initial geometry; START revalidates and activates it.
+- The core coordinator is platform-neutral and uses R1-A initial-relative
+  `TranslationSession` plans. Leader resize/mixed geometry is terminal rather
+  than reinterpreted as movement.
+- The Glue WinEvent source is additive and role-bound. Its callback performs no
+  COM, geometry, topology, logging, blocking work, or native operation; owner
+  drain performs full validation and behavior.
+- Hook flags are fixed to `WINEVENT_OUTOFCONTEXT |
+  WINEVENT_SKIPOWNPROCESS`; process filtering never grants authority. Exact
+  HWND/PID/TID/root/capability/object-child validation remains mandatory.
+- Receipt and pending-operation queues are bounded. Overflow, notification or
+  hook failure, reentrancy, wrong-thread use, sequence exhaustion, identity
+  drift, and trace/native-operation capacity exhaustion fail closed.
+- Pending Follower identity and a receipt-sequence watermark are registered
+  before native apply. Exact geometry plus later sequence is required for
+  acknowledgement; time proximity and fixed event cardinality are not used.
+- Duplicate exact feedback is suppressed, missing feedback is reconciled only
+  through exact native result plus final snapshot, and unexpected feedback
+  aborts. Follower START is never a second Glue session.
+- Event-batch geometry is frozen before any operation in that batch. A queued
+  START+LOCATION pair may represent an already-translated Leader, but resize,
+  state drift, or an unattributable later Follower receipt aborts.
+- Every terminal path attempts owner-thread stop/unhook, inactive-receipt
+  discard, exact independent Follower/Leader restore, and authority release.
+  PaneBind never closes the user-created Explorer windows.
+- R0 observer semantics and R1-C2A user-visible semantics remain unchanged.
+  R1-C2B uses no R0 JSONL control bus, global input, injection, high-frequency
+  polling, other application, Glue Resize, persistent group, Snap, or R1-C3
+  behavior.
