@@ -15,6 +15,7 @@ namespace panebind::platform::windows::explorer {
 namespace detail {
 class ExplorerTokenLedger;
 class ExplorerSessionDiagnostics;
+class ExplorerGlueSessionBridge;
 }
 
 class ExplorerTestSession;
@@ -81,6 +82,7 @@ private:
     friend class ExplorerTestSession;
     friend class ExplorerWindowOperations;
     friend class detail::ExplorerSessionDiagnostics;
+    friend class detail::ExplorerGlueSessionBridge;
 };
 
 enum class ExplorerEligibilityReason {
@@ -557,6 +559,7 @@ private:
     friend class ExplorerWindowOperations;
     friend class ExplorerConsentProvisioning;
     friend class detail::ExplorerSessionDiagnostics;
+    friend class detail::ExplorerGlueSessionBridge;
 };
 
 struct ExplorerProvisionResult {
