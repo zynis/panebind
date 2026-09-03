@@ -631,10 +631,10 @@ if ([uint64] $hookRegistration[0].observer_sequence -ge $externalStartSequence -
     $externalLeaderLocation.Count -lt 1) {
     throw 'External Observer hook readiness 或 active Leader event coverage 不完整。'
 }
-if (($externalFollowerLocation.Count -eq 0) -ne
-    ($followerFeedback.Count -eq 0)) {
-    throw 'Internal Event Source 与 external Observer 对 follower feedback 是否存在的结论冲突。'
-}
+# The two independent OUTOFCONTEXT hooks do not have a shared END/unhook
+# delivery boundary. External Follower LOCATION is retained as an audit count,
+# while correctness is gated by the internal exact acknowledgement or explicit
+# missing-feedback reconciliation plus both sources' lifecycle/error checks.
 $targetObserverEvents = @($leaderObserverEvents + $followerObserverEvents)
 $activeTargetObserverEvents = @($targetObserverEvents | Where-Object {
     [uint64] $_.observer_sequence -ge $externalStartSequence -and

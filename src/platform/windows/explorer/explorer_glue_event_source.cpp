@@ -393,6 +393,23 @@ void ExplorerGlueEventSource::receive_raw_event(
         return;
     }
 
+    // Fixed envelope filtering is callback-safe: it performs no native query,
+    // allocation, logging, or behavior work. Noise from another window in the
+    // same Explorer process (or from an accessibility child) must not consume
+    // the two-target bounded queue or poison the Glue session.
+    if (!is_supported_event(event)) {
+        ++ignored_event_count_;
+        return;
+    }
+    if (object_id != OBJID_WINDOW || child_id != CHILDID_SELF) {
+        ++ignored_object_child_count_;
+        return;
+    }
+    if (window != leader_.window && window != follower_.window) {
+        ++ignored_other_window_count_;
+        return;
+    }
+
     callback_in_progress_ = true;
     if (next_receipt_sequence_ == 0U) {
         mark_poison(ExplorerGlueEventSourcePoison::SequenceExhausted);

@@ -223,6 +223,46 @@ void test_filter_and_lifecycle(const TestWindows& windows) {
            "the live hook flags are fixed and auditable");
 }
 
+void test_noise_burst_never_consumes_target_queue(const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(),
+                explorer::ExplorerGlueWindowRole::Leader,
+                25U,
+                205U),
+        binding(windows.follower(),
+                explorer::ExplorerGlueWindowRole::Follower,
+                26U,
+                206U),
+        2U);
+
+    for (std::size_t index = 0U; index < 1024U; ++index) {
+        TestAccess::enqueue(
+            *source,
+            event(EVENT_OBJECT_LOCATIONCHANGE, windows.unrelated()));
+        auto child_receipt =
+            event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader());
+        child_receipt.object_id = OBJID_CLIENT;
+        TestAccess::enqueue(*source, child_receipt);
+    }
+    const auto noise = TestAccess::facts(*source);
+    expect(noise.poison == explorer::ExplorerGlueEventSourcePoison::None &&
+               noise.queue_depth == 0U && noise.max_queue_depth == 0U &&
+               noise.latest_receipt_sequence == 0U &&
+               noise.ignored_other_window_count == 1024U &&
+               noise.ignored_object_child_count == 1024U,
+           "unrelated HWND and accessibility-child bursts are ignored before the target queue");
+
+    TestAccess::enqueue(
+        *source,
+        event(EVENT_OBJECT_LOCATIONCHANGE, windows.follower()));
+    const auto target = TestAccess::drain(*source);
+    expect(target.events.size() == 1U &&
+               target.events.front().receipt_sequence == 1U &&
+               target.facts.poison ==
+                   explorer::ExplorerGlueEventSourcePoison::None,
+           "target receipt remains available after a noise burst");
+}
+
 void test_queue_overflow_is_poison(const TestWindows& windows) {
     auto source = TestAccess::create(
         binding(windows.leader(),
@@ -548,6 +588,7 @@ void test_invalid_binding_and_post_stop_event(const TestWindows& windows) {
 int main() {
     const TestWindows windows;
     test_filter_and_lifecycle(windows);
+    test_noise_burst_never_consumes_target_queue(windows);
     test_queue_overflow_is_poison(windows);
     test_notification_failure_is_poison(windows);
     test_process_slots_and_hook_receipt_validation(windows);
