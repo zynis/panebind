@@ -41,6 +41,7 @@ constexpr std::uint32_t kDefaultTimeoutSeconds = 120U;
 constexpr std::uint32_t kMinimumTimeoutSeconds = 30U;
 constexpr std::uint32_t kMaximumTimeoutSeconds = 300U;
 constexpr std::size_t kNonceAttempts = 8U;
+constexpr std::size_t kLayoutReadinessAttemptLimit = 3U;
 
 struct Options final {
     bool interactive_consent_test{};
@@ -404,6 +405,25 @@ validated_repository_root() {
                                                              : "follower";
 }
 
+[[nodiscard]] constexpr std::string_view layout_orientation_name(
+    const explorer::ExplorerGlueLayoutOrientation orientation) noexcept {
+    return orientation == explorer::ExplorerGlueLayoutOrientation::Horizontal
+               ? "horizontal"
+               : "vertical";
+}
+
+[[nodiscard]] constexpr std::string_view layout_preview_result_name(
+    const explorer::ExplorerGlueLayoutReadinessResult& preview) noexcept {
+    if (preview.succeeded()) {
+        return "FIT";
+    }
+    if (preview.reason == explorer::ExplorerGlueReason::UnsafeLayout &&
+        preview.readiness.has_value()) {
+        return "NEEDS_MANUAL_RESIZE";
+    }
+    return "INVALIDATED";
+}
+
 [[nodiscard]] constexpr std::string_view glue_reason_name(
     const explorer::ExplorerGlueReason reason) noexcept {
     using enum explorer::ExplorerGlueReason;
@@ -618,6 +638,33 @@ void append_rect(std::ostringstream& output, const geometry::Rect& rect) {
            << rect.bottom() << '}';
 }
 
+void append_size(std::ostringstream& output, const geometry::Size& size) {
+    output << "{\"width\":" << size.width << ",\"height\":"
+           << size.height << '}';
+}
+
+void append_optional_size(
+    std::ostringstream& output,
+    const std::optional<geometry::Size>& size) {
+    if (size.has_value()) {
+        append_size(output, *size);
+    } else {
+        output << "null";
+    }
+}
+
+[[nodiscard]] std::optional<geometry::Size> layout_excess(
+    const explorer::ExplorerGlueLayoutFit& fit) noexcept {
+    if (!fit.required.has_value()) {
+        return std::nullopt;
+    }
+    return geometry::Size{
+        std::max<geometry::Distance>(
+            0, fit.required->width - fit.available.width),
+        std::max<geometry::Distance>(
+            0, fit.required->height - fit.available.height)};
+}
+
 void append_snapshot(std::ostringstream& output,
                      const explorer::ExplorerWindowSnapshot& snapshot) {
     output << "{\"visible\":";
@@ -688,6 +735,169 @@ void record_diagnostic(EvidenceLog& evidence,
     static_cast<void>(evidence.record("diagnostic", fields.str()));
 }
 
+[[nodiscard]] bool record_layout_preview(
+    EvidenceLog& evidence,
+    const std::size_t attempt,
+    const explorer::ExplorerGlueLayoutReadinessResult& preview) {
+    std::ostringstream fields;
+    fields << ",\"attempt\":" << attempt << ",\"attempt_limit\":"
+           << kLayoutReadinessAttemptLimit << ",\"result\":"
+           << json_quote(layout_preview_result_name(preview))
+           << ",\"reason\":" << json_quote(glue_reason_name(preview.reason))
+           << ",\"same_monitor\":" << json_bool(preview.same_monitor)
+           << ",\"same_dpi\":" << json_bool(preview.same_dpi)
+           << ",\"leader_target_consent_prefix_valid\":"
+           << json_bool(preview.leader_target_consent_prefix_valid)
+           << ",\"follower_target_consent_prefix_valid\":"
+           << json_bool(preview.follower_target_consent_prefix_valid)
+           << ",\"follower_baseline_excluded_leader\":"
+           << json_bool(preview.follower_baseline_excluded_leader)
+           << ",\"pair_distinct\":" << json_bool(preview.pair_distinct)
+           << ",\"glue_authority_bound\":"
+           << json_bool(preview.glue_authority_bound)
+           << ",\"glue_authority_consumed\":"
+           << json_bool(preview.glue_authority_consumed)
+           << ",\"native_apply_attempted\":"
+           << json_bool(preview.native_apply_attempted)
+           << ",\"event_source_armed\":"
+           << json_bool(preview.event_source_armed)
+           << ",\"temporary_peer_exception_retained\":"
+           << json_bool(preview.temporary_peer_exception_retained)
+           << ",\"leader_size\":";
+    if (preview.readiness.has_value()) {
+        const auto& readiness = *preview.readiness;
+        append_size(fields, readiness.leader_visible_size);
+        fields << ",\"follower_size\":";
+        append_size(fields, readiness.follower_visible_size);
+        fields << ",\"work_area_size\":";
+        append_size(fields, readiness.work_area_size);
+        fields << ",\"horizontal_required\":";
+        append_optional_size(fields, readiness.horizontal.required);
+        fields << ",\"horizontal_available\":";
+        append_size(fields, readiness.horizontal.available);
+        fields << ",\"horizontal_excess\":";
+        append_optional_size(fields, layout_excess(readiness.horizontal));
+        fields << ",\"horizontal_fits\":"
+               << json_bool(readiness.horizontal.fits)
+               << ",\"vertical_required\":";
+        append_optional_size(fields, readiness.vertical.required);
+        fields << ",\"vertical_available\":";
+        append_size(fields, readiness.vertical.available);
+        fields << ",\"vertical_excess\":";
+        append_optional_size(fields, layout_excess(readiness.vertical));
+        fields << ",\"vertical_fits\":"
+               << json_bool(readiness.vertical.fits)
+               << ",\"orientation\":";
+        if (readiness.orientation.has_value()) {
+            fields << json_quote(
+                layout_orientation_name(*readiness.orientation));
+        } else {
+            fields << "null";
+        }
+    } else {
+        fields << "null,\"follower_size\":null,\"work_area_size\":null"
+                  ",\"horizontal_required\":null"
+                  ",\"horizontal_available\":null"
+                  ",\"horizontal_excess\":null"
+                  ",\"horizontal_fits\":false"
+                  ",\"vertical_required\":null"
+                  ",\"vertical_available\":null"
+                  ",\"vertical_excess\":null"
+                  ",\"vertical_fits\":false,\"orientation\":null";
+    }
+    const bool recorded = evidence.record("pair_layout_preview", fields.str());
+    record_diagnostic(evidence, "pair_layout_preview", preview.diagnostic);
+    return recorded && evidence.healthy();
+}
+
+[[nodiscard]] bool record_blocked_pair_validation(
+    EvidenceLog& evidence,
+    const explorer::ExplorerGlueLayoutReadinessResult& preview) {
+    std::ostringstream fields;
+    fields << ",\"result\":\"BLOCKED\",\"reason\":"
+           << json_quote(glue_reason_name(preview.reason))
+           << ",\"leader_target_consent_prefix_valid\":"
+           << json_bool(preview.leader_target_consent_prefix_valid)
+           << ",\"follower_target_consent_prefix_valid\":"
+           << json_bool(preview.follower_target_consent_prefix_valid)
+           << ",\"follower_baseline_excluded_leader\":"
+           << json_bool(preview.follower_baseline_excluded_leader)
+           << ",\"pair_distinct\":" << json_bool(preview.pair_distinct)
+           << ",\"same_monitor_and_dpi\":"
+           << json_bool(preview.same_monitor && preview.same_dpi)
+           << ",\"test_layout_planned\":false,\"leader_original\":";
+    if (preview.leader_snapshot.has_value()) {
+        append_snapshot(fields, *preview.leader_snapshot);
+    } else {
+        fields << "null";
+    }
+    fields << ",\"follower_original\":";
+    if (preview.follower_snapshot.has_value()) {
+        append_snapshot(fields, *preview.follower_snapshot);
+    } else {
+        fields << "null";
+    }
+    const bool recorded = evidence.record("pair_validation", fields.str());
+    record_diagnostic(evidence, "pair_validation", preview.diagnostic);
+    return recorded && evidence.healthy();
+}
+
+[[nodiscard]] bool emit_layout_readiness(
+    const std::size_t attempt,
+    const explorer::ExplorerGlueLayoutReadinessResult& preview) {
+    if (!preview.readiness.has_value()) {
+        return write_console_text(
+            L"\n布局准备检查无法继续：目标身份、位置、状态、显示器或 DPI 已变化。\n"
+            L"本次将在 Glue 授权和任何窗口移动之前安全停止。\n\n");
+    }
+
+    const auto& readiness = *preview.readiness;
+    std::wostringstream output;
+    output << L"\n第 3 步：Layout Readiness Preview（" << attempt << L"/"
+           << kLayoutReadinessAttemptLimit << L"）\n\n"
+           << L"工作区：" << readiness.work_area_size.width << L" × "
+           << readiness.work_area_size.height << L"\n"
+           << L"Leader：" << readiness.leader_visible_size.width << L" × "
+           << readiness.leader_visible_size.height << L"\n"
+           << L"Follower：" << readiness.follower_visible_size.width << L" × "
+           << readiness.follower_visible_size.height << L"\n\n";
+
+    const auto describe = [&](const wchar_t* const label,
+                              const explorer::ExplorerGlueLayoutFit& fit) {
+        output << label << L"：\n";
+        if (!fit.required.has_value()) {
+            output << L"需要尺寸无法安全表示；本方向不可用。\n";
+            return;
+        }
+        const auto excess = *layout_excess(fit);
+        output << L"需要：" << fit.required->width << L" × "
+               << fit.required->height << L"\n"
+               << L"可用：" << fit.available.width << L" × "
+               << fit.available.height << L"\n"
+               << L"超出：宽 " << excess.width << L"，高 "
+               << excess.height << L"\n"
+               << L"结果：" << (fit.fits ? L"FIT" : L"不适合") << L"\n\n";
+    };
+    describe(L"横向", readiness.horizontal);
+    describe(L"纵向", readiness.vertical);
+
+    if (preview.succeeded()) {
+        output << L"当前布局可行；方向："
+               << (*readiness.orientation ==
+                           explorer::ExplorerGlueLayoutOrientation::Horizontal
+                       ? L"横向"
+                       : L"纵向")
+               << L"。\nPaneBind 尚未签发 Glue authority，也没有移动窗口。\n\n";
+    } else if (attempt < kLayoutReadinessAttemptLimit) {
+        output << L"当前两个窗口还无法组成安全测试布局。\n"
+               << L"请手动缩小 Leader 和/或 Follower；PaneBind 不会改变窗口大小。\n"
+               << L"调整完成后回到 Console，直接按 ENTER 重新检查。\n\n";
+    } else {
+        output << L"三次检查后仍无法安全布局。本次将在 Glue 授权和任何窗口移动之前阻断。\n\n";
+    }
+    return write_console_text(output.str());
+}
+
 [[nodiscard]] bool emit_target_prompt(
     const explorer::ExplorerGlueWindowRole role,
     const std::filesystem::path& path) {
@@ -698,14 +908,14 @@ void record_diagnostic(EvidenceLog& evidence,
     prompt += path.native();
     prompt +=
         L"\n\n请勿改用任何既有 Explorer 窗口。\n"
-        L"请先把这个测试窗口保持为普通状态（不要最大化或最小化），并手动缩小到工作区能够同时容纳两个当前尺寸窗口；PaneBind 不会 resize。\n"
+        L"请把这个测试窗口保持为普通状态（不要最大化或最小化），并放在准备测试的显示器上。两个目标确认后，PaneBind 会显示实时尺寸和还需缩小的精确差值。\n"
         L"完成后回到此控制台，直接按 ENTER。\n\n";
     return write_console_text(prompt);
 }
 
 [[nodiscard]] bool emit_glue_prompt() noexcept {
     return write_console_text(
-        L"\n第 3 步：授权一次临时 Glue Move session\n\n"
+        L"\n第 4 步：授权一次临时 Glue Move session\n\n"
         L"Leader Explorer = 已确认\n"
         L"Follower Explorer = 已确认\n"
         L"两个窗口均为本轮 baseline 后新建的测试窗口。\n"
@@ -721,7 +931,7 @@ void record_diagnostic(EvidenceLog& evidence,
 
 [[nodiscard]] bool emit_drag_prompt(const std::uint32_t timeout_seconds) {
     std::wostringstream prompt;
-    prompt << L"\n第 4 步：现在只拖动 Leader 窗口一次\n\n"
+    prompt << L"\n第 5 步：现在只拖动 Leader 窗口一次\n\n"
            << L"请只用普通资源管理器标题栏拖动 Leader 一段明显距离，然后松开鼠标。\n"
            << L"不要按 Alt、Ctrl 或 Shift；不要 Resize、移动 Follower、最大化、最小化、切换目录，或拖到屏幕边缘触发 Windows Snap。\n"
            << L"无需再按键确认。Harness 将通过 WinEvent 自动观察 START / LOCATION / END。\n"
@@ -1121,6 +1331,9 @@ struct RunOutcome final {
     std::size_t duplicate_feedback_trace_count{};
     bool feedback_operation_correlation_valid{};
     bool trace_generation_valid{};
+    std::size_t layout_preview_attempt_count{};
+    bool layout_preview_fit{};
+    bool layout_preview_side_effect_free{true};
 };
 
 struct FeedbackCorrelationSummary final {
@@ -1305,6 +1518,100 @@ struct FeedbackCorrelationSummary final {
 
     const auto leader_native = leader.native_identity;
     const auto follower_native = follower.native_identity;
+
+    const auto retain_preview_facts = [&](const auto& preview) {
+        outcome.facts_available = true;
+        outcome.glue_reason = preview.reason;
+        outcome.glue_stage = explorer::ExplorerGlueStage::PairValidation;
+        outcome.facts.leader_target_consent_prefix_valid =
+            preview.leader_target_consent_prefix_valid;
+        outcome.facts.follower_target_consent_prefix_valid =
+            preview.follower_target_consent_prefix_valid;
+        outcome.facts.follower_baseline_excluded_leader =
+            preview.follower_baseline_excluded_leader;
+        outcome.facts.pair_distinct = preview.pair_distinct;
+        outcome.facts.same_monitor_and_dpi =
+            preview.same_monitor && preview.same_dpi;
+        outcome.facts.test_layout_planned = preview.layout.has_value();
+        outcome.facts.leader_original = preview.leader_snapshot;
+        outcome.facts.follower_original = preview.follower_snapshot;
+    };
+
+    bool preview_fit = false;
+    for (std::size_t attempt = 1U;
+         attempt <= kLayoutReadinessAttemptLimit;
+         ++attempt) {
+        const auto preview =
+            explorer::ExplorerGlueConsent::preview_layout_readiness(
+                *leader.session, *follower.session);
+        ++outcome.layout_preview_attempt_count;
+        outcome.layout_preview_side_effect_free =
+            outcome.layout_preview_side_effect_free &&
+            !preview.glue_authority_bound &&
+            !preview.glue_authority_consumed &&
+            !preview.native_apply_attempted && !preview.event_source_armed &&
+            !preview.temporary_peer_exception_retained;
+        retain_preview_facts(preview);
+        if (!record_layout_preview(evidence, attempt, preview) ||
+            !emit_layout_readiness(attempt, preview)) {
+            outcome.reason = "layout_readiness_evidence_or_output_failed";
+            return outcome;
+        }
+        if (!outcome.layout_preview_side_effect_free) {
+            outcome.reason = "layout_readiness_side_effect_violation";
+            static_cast<void>(record_blocked_pair_validation(evidence, preview));
+            return outcome;
+        }
+        if (preview.succeeded()) {
+            preview_fit = true;
+            outcome.layout_preview_fit = true;
+            break;
+        }
+
+        if (preview.reason != explorer::ExplorerGlueReason::UnsafeLayout ||
+            attempt == kLayoutReadinessAttemptLimit) {
+            outcome.reason = "pair_validation_blocked";
+            if (!record_blocked_pair_validation(evidence, preview)) {
+                outcome.reason = "evidence_write_failed";
+            }
+            static_cast<void>(write_console_text(
+                L"没有进入 Glue 授权，也没有执行窗口移动。请自行关闭两个测试 Explorer。\n"));
+            return outcome;
+        }
+
+        const auto recheck_line = read_console_line();
+        const bool recheck_confirmed =
+            recheck_line.status == ConsoleLineStatus::Read &&
+            recheck_line.line.empty();
+        std::ostringstream fields;
+        fields << ",\"attempt\":" << attempt
+               << ",\"result\":"
+               << json_quote(recheck_confirmed ? "CONFIRMED" : "DECLINED")
+               << ",\"input_source\":\"interactive_console\""
+                  ",\"native_apply_attempted\":false";
+        if (!evidence.record("pair_layout_recheck_confirmation",
+                             fields.str())) {
+            outcome.reason = "evidence_write_failed";
+            return outcome;
+        }
+        if (!recheck_confirmed) {
+            outcome.reason = "pair_validation_blocked";
+            if (!record_blocked_pair_validation(evidence, preview)) {
+                outcome.reason = "evidence_write_failed";
+            }
+            static_cast<void>(write_console_text(
+                L"未收到用于重新检查的 ENTER；没有进入 Glue 授权，也没有执行窗口移动。\n"
+                L"请自行关闭两个测试 Explorer。\n"));
+            return outcome;
+        }
+    }
+    if (!preview_fit) {
+        outcome.reason = "layout_readiness_internal_failure";
+        return outcome;
+    }
+
+    // Preview is a readiness aid only. Formal begin takes ownership and repeats
+    // the entire live pair inspection and layout plan to close the TOCTOU gap.
     auto glue_begin = explorer::ExplorerGlueConsent::begin(
         std::move(leader.session), std::move(follower.session));
     outcome.facts = glue_begin.facts;
@@ -1347,8 +1654,8 @@ struct FeedbackCorrelationSummary final {
     if (!glue_begin.succeeded()) {
         outcome.reason = "pair_validation_blocked";
         static_cast<void>(write_console_text(
-            L"两个目标无法形成安全的同 monitor/DPI 零间隙测试布局。\n"
-            L"请自行关闭测试 Explorer；本次没有移动窗口。\n"));
+            L"Preview 后的正式 pair begin 重检未通过；目标状态、身份、monitor/DPI 或布局可能已变化。\n"
+            L"没有进入 Glue 授权，也没有执行窗口移动。请自行关闭测试 Explorer。\n"));
         return outcome;
     }
 
@@ -1574,6 +1881,11 @@ struct FeedbackCorrelationSummary final {
     const auto& facts = outcome.facts;
     outcome.runtime_pass =
         terminal.succeeded() &&
+        outcome.layout_preview_attempt_count >= 1U &&
+        outcome.layout_preview_attempt_count <=
+            kLayoutReadinessAttemptLimit &&
+        outcome.layout_preview_fit &&
+        outcome.layout_preview_side_effect_free &&
         facts.behavior_state == behavior::GlueMoveState::Completed &&
         !facts.behavior_abort_reason.has_value() &&
         facts.leader_target_consent_prefix_valid &&
@@ -1625,6 +1937,13 @@ struct FeedbackCorrelationSummary final {
            << ",\"implementation_ready\":true"
            << ",\"runtime_gate\":"
            << json_quote(outcome.runtime_pass ? "PASS" : "BLOCKED")
+           << ",\"layout_readiness_preview_supported\":true"
+           << ",\"layout_preview_attempt_count\":"
+           << outcome.layout_preview_attempt_count
+           << ",\"layout_preview_fit\":"
+           << json_bool(outcome.layout_preview_fit)
+           << ",\"layout_preview_side_effect_free\":"
+           << json_bool(outcome.layout_preview_side_effect_free)
            << ",\"behavior_state\":"
            << json_quote(behavior_state_name(outcome.facts.behavior_state))
            << ",\"leader_start_count\":" << outcome.leader_start_count
@@ -1656,9 +1975,12 @@ struct FeedbackCorrelationSummary final {
            << ",\"trace_generation_valid\":"
            << json_bool(outcome.trace_generation_valid)
            << ",\"feedback_suppression_evidence\":"
-           << json_quote(outcome.follower_feedback_count != 0U
+           << json_quote(
+                  outcome.active_follower_operation_count == 0U
+                      ? "not_reached"
+                      : (outcome.follower_feedback_count != 0U
                              ? "observed_and_suppressed"
-                             : "no_feedback_event_reconciled")
+                             : "no_feedback_event_reconciled"))
            << ",\"unexpected_feedback_count\":"
            << outcome.facts.unexpected_feedback_count
            << ",\"recursive_follower_operation_count\":"
@@ -1723,6 +2045,9 @@ int wmain(const int argc, wchar_t* argv[]) {
                << ",\"input_source\":\"interactive_console\""
                << ",\"timeout_seconds\":" << options->timeout_seconds
                << ",\"target_window_count\":2"
+               << ",\"layout_readiness_preview_supported\":true"
+               << ",\"layout_readiness_attempt_limit\":"
+               << kLayoutReadinessAttemptLimit
                << ",\"r0_observer_runtime_dependency\":false"
                << ",\"synthetic_input\":false";
         if (!evidence.record("startup", fields.str())) {

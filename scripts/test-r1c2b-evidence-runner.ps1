@@ -1,0 +1,619 @@
+﻿[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$runner = Join-Path $PSScriptRoot 'run-r1c2b-explorer-glue-evidence.ps1'
+$tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$fixtureRoot = Join-Path $tempBase (
+    'panebind-r1c2b-runner-' + [Guid]::NewGuid().ToString('N'))
+[void] (New-Item -ItemType Directory -Path $fixtureRoot)
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+function Write-JsonLines {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Path,
+        [Parameter(Mandatory = $true)] [object[]] $Records
+    )
+    $lines = @($Records | ForEach-Object {
+        $_ | ConvertTo-Json -Compress -Depth 12
+    })
+    [IO.File]::WriteAllLines($Path, $lines, $utf8NoBom)
+}
+
+function New-ObserverRecords {
+    param(
+        [ValidateRange(0, 2)] [int] $ActivePairCount = 0,
+        [switch] $IncludePreAuthorityMove
+    )
+
+    $base = [DateTimeOffset]::Parse('2026-01-01T00:00:00Z')
+    $records = [Collections.Generic.List[object]]::new()
+    function Add-ObserverRecord {
+        param([int] $OffsetSeconds, [hashtable] $Fields)
+        $record = [ordered]@{
+            schema_version = 1
+            observer_sequence = [uint64] ($records.Count + 1)
+            received_at = $base.AddSeconds($OffsetSeconds).ToString(
+                "yyyy-MM-ddTHH:mm:ss.fff'Z'")
+        }
+        foreach ($key in $Fields.Keys) {
+            $record[$key] = $Fields[$key]
+        }
+        [void] $records.Add([pscustomobject] $record)
+    }
+    function Add-Event {
+        param([int] $OffsetSeconds, [string] $WindowId, [string] $Name)
+        Add-ObserverRecord $OffsetSeconds ([ordered]@{
+            record_kind = 'event'; callback_root_matches = $true
+            native_object_id = 0; native_child_id = 0; field_errors = @()
+            native_window_id = $WindowId
+            native_event = [ordered]@{ name = $Name }
+        })
+    }
+
+    Add-ObserverRecord 0 ([ordered]@{
+        record_kind = 'diagnostic'; diagnostic = 'hook_registration'
+        disposition = 'complete'; field_errors = @()
+    })
+    if ($IncludePreAuthorityMove) {
+        Add-Event 100 '0x0000000000000010' 'EVENT_SYSTEM_MOVESIZESTART'
+        Add-Event 110 '0x0000000000000010' 'EVENT_OBJECT_LOCATIONCHANGE'
+        Add-Event 120 '0x0000000000000010' 'EVENT_SYSTEM_MOVESIZEEND'
+    }
+    for ($pairIndex = 0; $pairIndex -lt $ActivePairCount; ++$pairIndex) {
+        $offset = 231 + ($pairIndex * 4)
+        Add-Event $offset '0x0000000000000010' 'EVENT_SYSTEM_MOVESIZESTART'
+        Add-Event ($offset + 1) '0x0000000000000010' 'EVENT_OBJECT_LOCATIONCHANGE'
+        Add-Event ($offset + 2) '0x0000000000000020' 'EVENT_OBJECT_LOCATIONCHANGE'
+        Add-Event ($offset + 3) '0x0000000000000010' 'EVENT_SYSTEM_MOVESIZEEND'
+    }
+    Add-ObserverRecord 400 ([ordered]@{
+        record_kind = 'diagnostic'; diagnostic = 'hook_shutdown'
+        disposition = 'complete'; field_errors = @()
+    })
+    Add-ObserverRecord 410 ([ordered]@{
+        record_kind = 'diagnostic'; diagnostic = 'observer_shutdown'
+        disposition = 'complete'; field_errors = @()
+    })
+    return $records.ToArray()
+}
+
+function New-Rect {
+    param([int] $Left, [int] $Top, [int] $Width = 400, [int] $Height = 400)
+    return [pscustomobject]@{
+        left = $Left; top = $Top
+        right = $Left + $Width; bottom = $Top + $Height
+    }
+}
+
+function New-Snapshot {
+    param([int] $Left = 0, [int] $Top = 0, [int] $Tid = 101)
+    return [pscustomobject] [ordered]@{
+        visible = New-Rect $Left $Top
+        positioning = New-Rect $Left $Top
+        pid = 100; tid = $Tid; class = 'CabinetWClass'; dpi = 96
+        monitor = '\\.\DISPLAY1'
+        monitor_rect = New-Rect 0 0 1200 900
+        work_area = New-Rect 0 0 1200 800
+        root_top_level = $true; visible_state = $true; cloaked = $false
+        minimized = $false; maximized = $false
+        current_virtual_desktop = $true; exact_test_location = $true
+        target_integrity_rid = 8192; target_session_id = 1
+        target_elevated = $false; target_ui_access = $false
+        target_app_container = $false
+    }
+}
+
+function New-LayoutPreviewFields {
+    param([int] $Attempt = 1, [switch] $Fits)
+    if ($Fits) {
+        $leader = [pscustomobject]@{ width = 400; height = 400 }
+        $follower = [pscustomobject]@{ width = 400; height = 400 }
+        $work = [pscustomobject]@{ width = 1200; height = 800 }
+        $horizontalRequired = [pscustomobject]@{ width = 800; height = 400 }
+        $verticalRequired = [pscustomobject]@{ width = 400; height = 800 }
+        $horizontalExcess = [pscustomobject]@{ width = 0; height = 0 }
+        $verticalExcess = [pscustomobject]@{ width = 0; height = 0 }
+        $result = 'FIT'
+        $reason = 'eligible'
+        $orientation = 'horizontal'
+        $horizontalFits = $true
+        $verticalFits = $true
+    } else {
+        $leader = [pscustomobject]@{ width = 800; height = 600 }
+        $follower = [pscustomobject]@{ width = 800; height = 600 }
+        $work = [pscustomobject]@{ width = 1200; height = 900 }
+        $horizontalRequired = [pscustomobject]@{ width = 1600; height = 600 }
+        $verticalRequired = [pscustomobject]@{ width = 800; height = 1200 }
+        $horizontalExcess = [pscustomobject]@{ width = 400; height = 0 }
+        $verticalExcess = [pscustomobject]@{ width = 0; height = 300 }
+        $result = 'NEEDS_MANUAL_RESIZE'
+        $reason = 'unsafe_layout'
+        $orientation = $null
+        $horizontalFits = $false
+        $verticalFits = $false
+    }
+    return [ordered]@{
+        attempt = $Attempt; attempt_limit = 3; result = $result; reason = $reason
+        same_monitor = $true; same_dpi = $true
+        leader_target_consent_prefix_valid = $true
+        follower_target_consent_prefix_valid = $true
+        follower_baseline_excluded_leader = $true; pair_distinct = $true
+        glue_authority_bound = $false; glue_authority_consumed = $false
+        temporary_peer_exception_retained = $false
+        native_apply_attempted = $false; event_source_armed = $false
+        leader_size = $leader; follower_size = $follower
+        work_area_size = $work
+        horizontal_required = $horizontalRequired; horizontal_available = $work
+        horizontal_excess = $horizontalExcess; horizontal_fits = $horizontalFits
+        vertical_required = $verticalRequired; vertical_available = $work
+        vertical_excess = $verticalExcess; vertical_fits = $verticalFits
+        orientation = $orientation
+    }
+}
+
+function New-BaseHarnessBuilder {
+    $records = [Collections.Generic.List[object]]::new()
+    $base = [DateTimeOffset]::Parse('2026-01-01T00:00:00Z')
+    $add = {
+        param([string] $Kind, [hashtable] $Fields)
+        $record = [ordered]@{
+            schema_version = 1
+            schema_name = 'panebind.r1c2b.explorer_glue'
+            harness_sequence = [uint64] ($records.Count + 1)
+            record_kind = $Kind
+            recorded_at = $base.AddSeconds(
+                ($records.Count + 1) * 10).ToString(
+                    "yyyy-MM-ddTHH:mm:ss.fff'Z'")
+        }
+        foreach ($key in $Fields.Keys) {
+            $record[$key] = $Fields[$key]
+        }
+        [void] $records.Add([pscustomobject] $record)
+    }.GetNewClosure()
+
+    & $add 'startup' ([ordered]@{
+        input_source = 'interactive_console'; synthetic_input = $false
+        r0_observer_runtime_dependency = $false; target_window_count = 2
+        layout_readiness_preview_supported = $true
+        layout_readiness_attempt_limit = 3
+    })
+    & $add 'nonce_target' ([ordered]@{
+        role = 'leader'; target_id = 'leader-fixture'
+        created_empty = $true; full_path_redacted = $true
+    })
+    & $add 'nonce_target' ([ordered]@{
+        role = 'follower'; target_id = 'follower-fixture'
+        created_empty = $true; full_path_redacted = $true
+    })
+
+    foreach ($role in @('leader', 'follower')) {
+        & $add 'baseline' ([ordered]@{
+            role = $role; result = 'PASS'; baseline_generation = 1
+            baseline_exclusion_complete = $true
+            target_directory_contract_verified = $true
+        })
+        & $add 'target_consent_prompt' ([ordered]@{
+            role = $role; result = 'READY'; generation = 2
+            input_source = 'interactive_console'
+        })
+        & $add 'target_consent_confirmation' ([ordered]@{
+            role = $role; result = 'CONFIRMED'
+            input_source = 'interactive_console'; native_apply_attempted = $false
+        })
+        & $add 'candidate_selection' ([ordered]@{
+            role = $role; result = 'PASS'; authority_kind = 'user_consent'
+            unique_new_target = $true; exact_target_location = $true
+            preexisting_exact_location_detected = $false
+            baseline_generation = 1; target_prompt_generation = 2
+            target_confirmation_generation = 3; eligibility_generation = 4
+            token_generation = 5
+        })
+        & $add 'native_target_identity' ([ordered]@{
+            role = $role; process = 'explorer.exe'
+            native_key = [uint64] $(if ($role -eq 'leader') { 16 } else { 32 })
+            pid = 100; tid = $(if ($role -eq 'leader') { 101 } else { 102 })
+            capability_generation = 1; consent_generation = 5
+        })
+    }
+
+    return [pscustomobject]@{ Records = $records; Add = $add }
+}
+
+function Add-SafeSummary {
+    param([scriptblock] $Add, [switch] $Contradictory)
+    if ($Contradictory) {
+        & $Add 'operation' ([ordered]@{
+            phase = 'active_follower'; role = 'follower'
+            native_apply_attempted = $true; exact_receipt = $true
+        })
+    }
+    & $Add 'summary' ([ordered]@{
+        result = 'BLOCKED'; reason = 'pair_validation_blocked'
+        glue_reason = 'unsafe_layout'; glue_stage = 'pair_validation'
+        implementation_ready = $true; runtime_gate = 'BLOCKED'
+        layout_readiness_preview_supported = $true
+        layout_preview_attempt_count = 3; layout_preview_fit = $false
+        layout_preview_side_effect_free = $true
+        behavior_state = 'idle'; leader_start_count = 0
+        leader_location_count = 0; leader_end_count = 0
+        follower_feedback_count = 0; follower_native_apply_count = 0
+        active_follower_operation_count = 0; follower_noop_count = 0
+        suppressed_feedback_count = 0; duplicate_feedback_count = 0
+        missing_feedback_count = 0; reconciled_feedback_count = 0
+        acknowledged_operation_count = 0; reconciled_operation_count = 0
+        feedback_operation_correlation_valid = $false
+        trace_generation_valid = $false
+        feedback_suppression_evidence = 'not_reached'
+        unexpected_feedback_count = 0; recursive_follower_operation_count = 0
+        all_active_follower_operations_exact = $false; queue_overflow = $false
+        max_event_queue_depth = 0; max_pending_depth = 0
+        event_source_armed = $false; event_source_stopped = $false
+        event_source_lifecycle_clean = $false
+        topology_frozen_exact_pair = $false
+        leader_restored_exact = $false; follower_restored_exact = $false
+        user_preexisting_windows_touched = $false
+        other_third_party_control = $false; global_input_control = $false
+        user_windows_close_attempted = $false
+        r0_observer_runtime_dependency = $false
+        r0_observer_semantics_changed = $false
+    })
+    & $Add 'shutdown' ([ordered]@{ disposition = 'complete' })
+}
+
+function New-SafeHarnessRecords {
+    param([switch] $Contradictory)
+    $builder = New-BaseHarnessBuilder
+    foreach ($attempt in 1..3) {
+        & $builder.Add 'pair_layout_preview' `
+            (New-LayoutPreviewFields -Attempt $attempt)
+        if ($attempt -lt 3) {
+            & $builder.Add 'pair_layout_recheck_confirmation' ([ordered]@{
+                attempt = $attempt; result = 'CONFIRMED'
+                input_source = 'interactive_console'; native_apply_attempted = $false
+            })
+        }
+    }
+    & $builder.Add 'pair_validation' ([ordered]@{
+        result = 'BLOCKED'; reason = 'unsafe_layout'
+        leader_target_consent_prefix_valid = $true
+        follower_target_consent_prefix_valid = $true
+        follower_baseline_excluded_leader = $true; pair_distinct = $true
+        same_monitor_and_dpi = $true; test_layout_planned = $false
+        leader_original = $null; follower_original = $null
+    })
+    Add-SafeSummary -Add $builder.Add -Contradictory:$Contradictory
+    return $builder.Records.ToArray()
+}
+
+function New-PassHarnessRecords {
+    param([switch] $NoSetup, [switch] $NoRestore)
+    if ($NoSetup -and $NoRestore) {
+        throw 'Successful fixture requires a non-zero final total delta.'
+    }
+    $builder = New-BaseHarnessBuilder
+    $add = $builder.Add
+    $leaderLayout = New-Snapshot 200 200 101
+    $followerLayout = New-Snapshot 600 200 102
+    $leaderOriginal = if ($NoSetup) {
+        $leaderLayout
+    } else {
+        New-Snapshot 100 100 101
+    }
+    $followerOriginal = if ($NoSetup) {
+        $followerLayout
+    } else {
+        New-Snapshot 500 100 102
+    }
+    $leaderFinal = if ($NoRestore) {
+        $leaderOriginal
+    } else {
+        New-Snapshot 250 230 101
+    }
+    $followerFinal = if ($NoRestore) {
+        $followerOriginal
+    } else {
+        New-Snapshot 650 230 102
+    }
+    $commandRect = $followerFinal.visible
+    $operationState = [pscustomobject]@{ Id = 0 }
+    $addOperation = {
+        param(
+            [string] $Phase, [string] $Role, [object] $Before,
+            [object] $Requested, [object] $Actual,
+            [uint64] $Generation = 0, [uint64] $SourceSequence = 0
+        )
+        ++$operationState.Id
+        & $add 'operation' ([ordered]@{
+            phase = $Phase; role = $Role
+            behavior_operation_generation = $Generation
+            source_leader_sequence = $SourceSequence
+            operation_id = $operationState.Id; reason_code = 0; stage_code = 0
+            native_apply_attempted = $true; native_outcome_known = $true
+            cleanup_operation = ($Phase -eq 'restore'); exact_receipt = $true
+            before = $Before; requested_visible = $Requested.visible
+            requested_positioning = $Requested.positioning; actual = $Actual
+            size_preserved = $true; identity_stable = $true
+            location_stable = $true; monitor_and_dpi_stable = $true
+        })
+    }.GetNewClosure()
+
+    & $add 'pair_layout_preview' (New-LayoutPreviewFields -Fits)
+    & $add 'pair_validation' ([ordered]@{
+        result = 'PASS'; reason = 'eligible'
+        leader_target_consent_prefix_valid = $true
+        follower_target_consent_prefix_valid = $true
+        follower_baseline_excluded_leader = $true; pair_distinct = $true
+        same_monitor_and_dpi = $true; test_layout_planned = $true
+        leader_original = $leaderOriginal; follower_original = $followerOriginal
+    })
+    & $add 'glue_step' ([ordered]@{
+        step = 'glue_consent_prompt'; result = 'PASS'
+        reason = 'eligible'; stage = 'consent'
+    })
+    & $add 'glue_consent_prompt' ([ordered]@{
+        result = 'READY'; generation = 7; input_source = 'interactive_console'
+    })
+    & $add 'glue_consent_confirmation' ([ordered]@{
+        result = 'CONFIRMED'; input_source = 'interactive_console'
+        native_apply_attempted = $false
+    })
+    & $add 'glue_authority' ([ordered]@{
+        result = 'PASS'; pair_preview_generation = 6; prompt_generation = 7
+        confirmation_generation = 8; authority_generation = 9
+    })
+    & $add 'glue_native_bindings' ([ordered]@{
+        session_bindings_present = $true; leader_native_key = [uint64] 16
+        follower_native_key = [uint64] 32; leader_pid = 100; follower_pid = 100
+    })
+    & $add 'glue_step' ([ordered]@{
+        step = 'setup_test_layout'; result = 'PASS'
+        reason = 'eligible'; stage = 'layout'
+    })
+    & $add 'glue_step' ([ordered]@{
+        step = 'arm_event_source'; result = 'PASS'
+        reason = 'eligible'; stage = 'event_source'
+    })
+    & $add 'drag_prompt' ([ordered]@{
+        role = 'leader'; timeout_seconds = 120
+        console_input_after_arm = $false
+    })
+    & $add 'glue_step' ([ordered]@{
+        step = 'run_until_terminal'; result = 'PASS'
+        reason = 'eligible'; stage = 'cleanup'
+    })
+    & $add 'internal_trace' ([ordered]@{
+        trace_sequence = 1; glue_session_generation = 10; event_sequence = 1
+        role = 'leader'; event_kind = 'move_resize_started'; decision = 'activated'
+        abort_reason = $null; visible = $leaderLayout.visible
+        behavior_operation_generation = 0
+    })
+    & $add 'internal_trace' ([ordered]@{
+        trace_sequence = 2; glue_session_generation = 10; event_sequence = 2
+        role = 'leader'; event_kind = 'geometry_changed'
+        decision = 'follower_move_requested'; abort_reason = $null
+        visible = $commandRect
+        behavior_operation_generation = 1
+    })
+    & $add 'internal_trace' ([ordered]@{
+        trace_sequence = 3; glue_session_generation = 10; event_sequence = 3
+        role = 'follower'; event_kind = 'geometry_changed'
+        decision = 'feedback_acknowledged'; abort_reason = $null
+        visible = $commandRect
+        behavior_operation_generation = 1
+    })
+    & $add 'internal_trace' ([ordered]@{
+        trace_sequence = 4; glue_session_generation = 10; event_sequence = 4
+        role = 'leader'; event_kind = 'move_resize_ended'; decision = 'completing'
+        abort_reason = $null; visible = $leaderFinal.visible
+        behavior_operation_generation = 0
+    })
+    & $add 'internal_trace' ([ordered]@{
+        trace_sequence = 5; glue_session_generation = 10; event_sequence = 0
+        role = 'leader'; event_kind = $null; decision = 'completed'
+        abort_reason = $null; visible = $null; behavior_operation_generation = 0
+    })
+    if (-not $NoSetup) {
+        & $addOperation 'setup' 'leader' $leaderOriginal $leaderLayout $leaderLayout
+        & $addOperation 'setup' 'follower' $followerOriginal $followerLayout `
+            $followerLayout
+    }
+    & $addOperation 'active_follower' 'follower' $followerLayout $followerFinal `
+        $followerFinal 1 2
+    if (-not $NoRestore) {
+        & $addOperation 'restore' 'follower' $followerFinal $followerOriginal `
+            $followerOriginal
+        & $addOperation 'restore' 'leader' $leaderFinal $leaderOriginal `
+            $leaderOriginal
+    }
+    & $add 'feedback_reconciliation' ([ordered]@{
+        operation_generation = 1; source_leader_sequence = 2
+        command_trace_match_count = 1; exact_operation_receipt = $true
+        expected_visible = $commandRect; actual_visible = $commandRect
+        disposition = 'acknowledged_self_feedback'; feedback_event_sequence = 3
+    })
+    & $add 'facts' ([ordered]@{
+        glue_session_generation = 10; behavior_state = 'completed'
+        behavior_abort_reason = $null; glue_consent_confirmed = $true
+        follower_baseline_excluded_leader = $true; test_layout_exact = $true
+        topology_exact_two_window_component = $true
+        event_source_armed = $true; event_source_stopped = $true
+        event_source_lifecycle_clean = $true
+        leader_restore_attempted = (-not $NoRestore)
+        follower_restore_attempted = (-not $NoRestore)
+        leader_restored_exact = $true; follower_restored_exact = $true
+        user_windows_close_attempted = $false; follower_native_apply_count = 1
+        follower_noop_count = 0
+        suppressed_feedback_count = 1; duplicate_feedback_count = 0
+        missing_feedback_count = 0; reconciled_feedback_count = 0
+        unexpected_feedback_count = 0; max_pending_depth = 1
+        pending_capacity = 16; max_event_queue_depth = 2; event_queue_capacity = 512
+        leader_original = $leaderOriginal; follower_original = $followerOriginal
+        leader_layout = $leaderLayout; follower_layout = $followerLayout
+        leader_final = $leaderFinal; follower_final = $followerFinal
+        leader_restored = $leaderOriginal; follower_restored = $followerOriginal
+    })
+    & $add 'summary' ([ordered]@{
+        result = 'PASS'; reason = 'pass'; glue_reason = 'eligible'
+        glue_stage = 'cleanup'; runtime_gate = 'PASS'; implementation_ready = $true
+        layout_readiness_preview_supported = $true
+        layout_preview_attempt_count = 1; layout_preview_fit = $true
+        layout_preview_side_effect_free = $true
+        behavior_state = 'completed'; leader_start_count = 1
+        leader_location_count = 1; leader_end_count = 1
+        follower_feedback_count = 1; follower_native_apply_count = 1
+        follower_noop_count = 0
+        active_follower_operation_count = 1; all_active_follower_operations_exact = $true
+        suppressed_feedback_count = 1; duplicate_feedback_count = 0
+        missing_feedback_count = 0; reconciled_feedback_count = 0
+        acknowledged_operation_count = 1; reconciled_operation_count = 0
+        feedback_operation_correlation_valid = $true; trace_generation_valid = $true
+        feedback_suppression_evidence = 'observed_and_suppressed'
+        unexpected_feedback_count = 0; recursive_follower_operation_count = 0
+        queue_overflow = $false; max_event_queue_depth = 2; max_pending_depth = 1
+        event_source_armed = $true; event_source_stopped = $true
+        event_source_lifecycle_clean = $true; topology_frozen_exact_pair = $true
+        leader_restored_exact = $true; follower_restored_exact = $true
+        user_preexisting_windows_touched = $false
+        other_third_party_control = $false; global_input_control = $false
+        user_windows_close_attempted = $false
+        r0_observer_runtime_dependency = $false; r0_observer_semantics_changed = $false
+    })
+    & $add 'shutdown' ([ordered]@{ disposition = 'complete' })
+    return $builder.Records.ToArray()
+}
+
+function New-LegacyDowngradeHarnessRecords {
+    $records = @(New-SafeHarnessRecords | Where-Object {
+        $_.record_kind -ne 'pair_layout_preview' -and
+        $_.record_kind -ne 'pair_layout_recheck_confirmation'
+    })
+    $startup = @($records | Where-Object { $_.record_kind -eq 'startup' })[0]
+    $summary = @($records | Where-Object { $_.record_kind -eq 'summary' })[0]
+    $startup.PSObject.Properties.Remove('layout_readiness_preview_supported')
+    $startup.PSObject.Properties.Remove('layout_readiness_attempt_limit')
+    $summary.PSObject.Properties.Remove('layout_readiness_preview_supported')
+    $summary.PSObject.Properties.Remove('layout_preview_attempt_count')
+    $summary.PSObject.Properties.Remove('layout_preview_fit')
+    $summary.PSObject.Properties.Remove('layout_preview_side_effect_free')
+    $summary.feedback_suppression_evidence = 'no_feedback_event_reconciled'
+    $base = [DateTimeOffset]::Parse('2026-01-01T00:00:00Z')
+    for ($index = 0; $index -lt $records.Count; ++$index) {
+        $records[$index].harness_sequence = $index + 1
+        $records[$index].recorded_at = $base.AddSeconds(
+            ($index + 1) * 10).ToString("yyyy-MM-ddTHH:mm:ss.fff'Z'")
+    }
+    return $records
+}
+
+function New-ContradictoryLayoutHarnessRecords {
+    $records = New-PassHarnessRecords
+    $facts = @($records | Where-Object { $_.record_kind -eq 'facts' })[0]
+    $facts.leader_layout.visible.left =
+        [int] $facts.leader_layout.visible.left + 1
+    return $records
+}
+
+function New-ContradictoryFeedbackHarnessRecords {
+    $records = New-PassHarnessRecords
+    $feedback = @($records | Where-Object {
+        $_.record_kind -eq 'internal_trace' -and $_.role -eq 'follower'
+    })[0]
+    $feedback.decision = 'duplicate_feedback_suppressed'
+    return $records
+}
+
+function Write-Fixture {
+    param(
+        [string] $Name, [object[]] $HarnessRecords,
+        [object[]] $ObserverRecords
+    )
+    $prefix = Join-Path $fixtureRoot $Name
+    Write-JsonLines "$prefix-glue-harness.jsonl" $HarnessRecords
+    Write-JsonLines "$prefix-glue-observer.stdout.jsonl" $ObserverRecords
+    [IO.File]::WriteAllText(
+        "$prefix-glue-observer.stderr.log", '', $utf8NoBom)
+    return $prefix
+}
+
+function Assert-RunnerOutcome {
+    param(
+        [string] $Name, [string] $Prefix, [int] $HarnessExit,
+        [int] $ExpectedExit, [string] $ExpectedMarker
+    )
+    $savedErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass `
+            -File $runner `
+            -ValidateEvidencePrefix $Prefix `
+            -ValidationHarnessExitCode $HarnessExit 2>&1 | Out-String
+        $actualExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedErrorActionPreference
+    }
+    if ($actualExit -ne $ExpectedExit -or
+        $output.IndexOf($ExpectedMarker, [StringComparison]::Ordinal) -lt 0) {
+        throw "$Name fixture 失败：exit=$actualExit，output=$output"
+    }
+    Write-Output "$Name fixture: PASS (runner exit $actualExit)"
+}
+
+try {
+    $passPrefix = Write-Fixture 'pass' (New-PassHarnessRecords) `
+        (New-ObserverRecords -ActivePairCount 1 -IncludePreAuthorityMove)
+    $blockedPrefix = Write-Fixture 'safe-blocked' (New-SafeHarnessRecords) `
+        (New-ObserverRecords)
+    $invalidPrefix = Write-Fixture 'contradictory-invalid' `
+        (New-SafeHarnessRecords -Contradictory) (New-ObserverRecords)
+    $missingActivePrefix = Write-Fixture 'missing-active-pair' `
+        (New-PassHarnessRecords) (New-ObserverRecords -IncludePreAuthorityMove)
+    $multipleActivePrefix = Write-Fixture 'multiple-active-pairs' `
+        (New-PassHarnessRecords) `
+        (New-ObserverRecords -ActivePairCount 2 -IncludePreAuthorityMove)
+    $noSetupPrefix = Write-Fixture 'pass-noop-setup' `
+        (New-PassHarnessRecords -NoSetup) `
+        (New-ObserverRecords -ActivePairCount 1 -IncludePreAuthorityMove)
+    $noRestorePrefix = Write-Fixture 'pass-noop-restore' `
+        (New-PassHarnessRecords -NoRestore) `
+        (New-ObserverRecords -ActivePairCount 1 -IncludePreAuthorityMove)
+    $downgradePrefix = Write-Fixture 'legacy-downgrade' `
+        (New-LegacyDowngradeHarnessRecords) (New-ObserverRecords)
+    $badLayoutPrefix = Write-Fixture 'contradictory-layout' `
+        (New-ContradictoryLayoutHarnessRecords) `
+        (New-ObserverRecords -ActivePairCount 1 -IncludePreAuthorityMove)
+    $badFeedbackPrefix = Write-Fixture 'contradictory-feedback' `
+        (New-ContradictoryFeedbackHarnessRecords) `
+        (New-ObserverRecords -ActivePairCount 1 -IncludePreAuthorityMove)
+
+    Assert-RunnerOutcome 'PASS' $passPrefix 0 0 'evidence gate: PASS'
+    Assert-RunnerOutcome 'SAFE_BLOCKED' $blockedPrefix 1 2 'KNOWN_BLOCKED'
+    Assert-RunnerOutcome 'INVALID_EVIDENCE' $invalidPrefix 1 1 'INVALID_EVIDENCE'
+    Assert-RunnerOutcome 'MISSING_ACTIVE_PAIR' $missingActivePrefix 0 1 `
+        'INVALID_EVIDENCE'
+    Assert-RunnerOutcome 'MULTIPLE_ACTIVE_PAIRS' $multipleActivePrefix 0 1 `
+        'INVALID_EVIDENCE'
+    Assert-RunnerOutcome 'PASS_NOOP_SETUP' $noSetupPrefix 0 0 `
+        'evidence gate: PASS'
+    Assert-RunnerOutcome 'PASS_NOOP_RESTORE' $noRestorePrefix 0 0 `
+        'evidence gate: PASS'
+    Assert-RunnerOutcome 'LEGACY_DOWNGRADE' $downgradePrefix 1 1 `
+        'INVALID_EVIDENCE'
+    Assert-RunnerOutcome 'CONTRADICTORY_LAYOUT' $badLayoutPrefix 0 1 `
+        'INVALID_EVIDENCE'
+    Assert-RunnerOutcome 'CONTRADICTORY_FEEDBACK' $badFeedbackPrefix 0 1 `
+        'INVALID_EVIDENCE'
+    Write-Output 'R1-C2B evidence runner fixtures: PASS'
+} finally {
+    $resolvedFixtureRoot = [System.IO.Path]::GetFullPath($fixtureRoot)
+    if (-not $resolvedFixtureRoot.StartsWith(
+            $tempBase, [StringComparison]::OrdinalIgnoreCase) -or
+        $resolvedFixtureRoot -eq $tempBase) {
+        throw "拒绝清理非临时 fixture 路径：$resolvedFixtureRoot"
+    }
+    if (Test-Path -LiteralPath $resolvedFixtureRoot) {
+        Remove-Item -LiteralPath $resolvedFixtureRoot -Recurse -Force
+    }
+}

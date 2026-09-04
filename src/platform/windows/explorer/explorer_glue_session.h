@@ -90,6 +90,61 @@ struct ExplorerGlueLayoutPlan {
                            const ExplorerGlueLayoutPlan&) = default;
 };
 
+struct ExplorerGlueLayoutFit final {
+    // An unrepresentable required span remains explicit rather than wrapping;
+    // that orientation cannot fit. Native Explorer rectangles are narrower,
+    // but deterministic model tests retain the checked-arithmetic contract.
+    std::optional<core::geometry::Size> required;
+    core::geometry::Size available;
+    bool fits{};
+
+    friend bool operator==(const ExplorerGlueLayoutFit&,
+                           const ExplorerGlueLayoutFit&) = default;
+};
+
+struct ExplorerGlueLayoutReadiness final {
+    core::geometry::Size leader_visible_size;
+    core::geometry::Size follower_visible_size;
+    core::geometry::Size work_area_size;
+    ExplorerGlueLayoutFit horizontal;
+    ExplorerGlueLayoutFit vertical;
+    std::optional<ExplorerGlueLayoutOrientation> orientation;
+
+    friend bool operator==(const ExplorerGlueLayoutReadiness&,
+                           const ExplorerGlueLayoutReadiness&) = default;
+};
+
+struct ExplorerGlueLayoutReadinessResult final {
+    ExplorerGlueReason reason{ExplorerGlueReason::InvalidArgument};
+    ExplorerGlueStage stage{ExplorerGlueStage::PairValidation};
+    std::optional<ExplorerDiagnostic> diagnostic;
+    bool leader_target_consent_prefix_valid{};
+    bool follower_target_consent_prefix_valid{};
+    bool follower_baseline_excluded_leader{};
+    bool pair_distinct{};
+    bool same_monitor{};
+    bool same_dpi{};
+    std::optional<ExplorerWindowSnapshot> leader_snapshot;
+    std::optional<ExplorerWindowSnapshot> follower_snapshot;
+    std::optional<ExplorerGlueLayoutReadiness> readiness;
+    std::optional<ExplorerGlueLayoutPlan> layout;
+
+    // These explicit audit fields remain false for every preview result. The
+    // preview may retire an already-invalid target during live validation, but
+    // it never binds/consumes Glue authority, performs a native apply, or arms
+    // an event source.
+    bool glue_authority_bound{};
+    bool glue_authority_consumed{};
+    bool native_apply_attempted{};
+    bool event_source_armed{};
+    bool temporary_peer_exception_retained{};
+
+    [[nodiscard]] constexpr bool succeeded() const noexcept {
+        return reason == ExplorerGlueReason::Eligible &&
+               readiness.has_value() && layout.has_value();
+    }
+};
+
 struct ExplorerGlueOperationRecord {
     ExplorerGlueOperationPhase phase{ExplorerGlueOperationPhase::Setup};
     ExplorerGlueWindowRole role{ExplorerGlueWindowRole::Leader};
@@ -186,6 +241,13 @@ public:
     [[nodiscard]] static ExplorerGlueBeginResult begin(
         std::unique_ptr<ExplorerTestSession> leader,
         std::unique_ptr<ExplorerTestSession> follower);
+
+    // Repeatable live readiness preview. References remain owned by the caller;
+    // formal begin independently re-inspects and replans to close the preview-
+    // to-authority TOCTOU boundary.
+    [[nodiscard]] static ExplorerGlueLayoutReadinessResult
+    preview_layout_readiness(ExplorerTestSession& leader,
+                             ExplorerTestSession& follower);
     [[nodiscard]] ExplorerGlueStepResult record_glue_prompt();
     [[nodiscard]] ExplorerGlueAuthorizeResult confirm_user_glue();
     [[nodiscard]] const ExplorerGlueFacts& facts() const noexcept;

@@ -4517,15 +4517,6 @@ template <typename ImplType>
          impl.glue_bound});
 }
 
-[[nodiscard]] bool same_monitor_and_dpi(
-    const ExplorerWindowSnapshot& leader,
-    const ExplorerWindowSnapshot& follower) noexcept {
-    return leader.monitor_device_name == follower.monitor_device_name &&
-           leader.monitor_rect == follower.monitor_rect &&
-           leader.monitor_work_area == follower.monitor_work_area &&
-           leader.dpi == follower.dpi;
-}
-
 template <typename ImplType>
 [[nodiscard]] bool glue_binding_matches(
     const ImplType& impl,
@@ -4575,7 +4566,8 @@ template <typename ImplType>
 detail::ExplorerGluePairInspection
 detail::ExplorerGlueSessionBridge::inspect_pair(
     ExplorerTestSession& leader,
-    ExplorerTestSession& follower) {
+    ExplorerTestSession& follower,
+    const bool retain_peer_exception) {
     ExplorerGluePairInspection result;
     if (leader.impl_ == nullptr || follower.impl_ == nullptr) {
         result.diagnostic = adapter_diagnostic(
@@ -4594,6 +4586,36 @@ detail::ExplorerGlueSessionBridge::inspect_pair(
             "both targets must belong to the current owner STA");
         return result;
     }
+    const auto clear_leader_peer = [&leader_impl]() noexcept {
+        leader_impl.glue_peer_native_key = 0U;
+        leader_impl.glue_peer_target_location = {};
+        leader_impl.glue_peer_process_id = 0U;
+        leader_impl.glue_peer_thread_id = 0U;
+        leader_impl.glue_peer_capability_generation = 0U;
+        leader_impl.glue_peer_consent_generation = 0U;
+    };
+    const auto refresh_preview_side_effects = [&]() noexcept {
+        result.glue_authority_bound =
+            leader_impl.glue_bound || follower_impl.glue_bound;
+        result.glue_authority_consumed =
+            leader_impl.glue_authority_id != 0U ||
+            leader_impl.glue_authority_generation != 0U ||
+            follower_impl.glue_authority_id != 0U ||
+            follower_impl.glue_authority_generation != 0U;
+        result.native_apply_attempted =
+            leader_impl.glue_native_operation_count != 0U ||
+            follower_impl.glue_native_operation_count != 0U;
+        result.temporary_peer_exception_retained =
+            leader_impl.glue_peer_native_key != 0U ||
+            leader_impl.glue_peer_target_location !=
+                FilesystemLocationIdentity{} ||
+            leader_impl.glue_peer_process_id != 0U ||
+            leader_impl.glue_peer_thread_id != 0U ||
+            leader_impl.glue_peer_capability_generation != 0U ||
+            leader_impl.glue_peer_consent_generation != 0U;
+    };
+    clear_leader_peer();
+    refresh_preview_side_effects();
 
     result.leader_target_consent_prefix_valid =
         target_consent_prefix_valid(leader_impl);
@@ -4658,28 +4680,40 @@ detail::ExplorerGlueSessionBridge::inspect_pair(
         follower_impl.issued_token->generation();
     leader_impl.glue_peer_consent_generation =
         follower_impl.issued_token->consent_generation();
-    auto leader_live =
-        validate_or_retire(leader_impl, *leader_impl.issued_token);
+    auto leader_live = [&]() {
+        try {
+            return validate_or_retire(leader_impl,
+                                      *leader_impl.issued_token);
+        } catch (...) {
+            clear_leader_peer();
+            throw;
+        }
+    }();
     if (leader_live.reason != ExplorerEligibilityReason::Eligible ||
         !leader_live.snapshot.has_value()) {
-        leader_impl.glue_peer_native_key = 0U;
-        leader_impl.glue_peer_process_id = 0U;
-        leader_impl.glue_peer_thread_id = 0U;
-        leader_impl.glue_peer_capability_generation = 0U;
-        leader_impl.glue_peer_consent_generation = 0U;
+        clear_leader_peer();
+        refresh_preview_side_effects();
         result.reason = glue_reason_from_eligibility(leader_live.reason);
         result.diagnostic = std::move(leader_live.diagnostic);
         return result;
     }
 
-    result.same_monitor_and_dpi =
-        same_monitor_and_dpi(*leader_live.snapshot, *follower_live.snapshot);
+    result.same_monitor =
+        leader_live.snapshot->monitor_device_name ==
+            follower_live.snapshot->monitor_device_name &&
+        leader_live.snapshot->monitor_rect ==
+            follower_live.snapshot->monitor_rect &&
+        leader_live.snapshot->monitor_work_area ==
+            follower_live.snapshot->monitor_work_area;
+    result.same_dpi = leader_live.snapshot->dpi == follower_live.snapshot->dpi;
+    result.same_monitor_and_dpi = result.same_monitor && result.same_dpi;
+    // Preserve both independently live-validated snapshots for a read-only
+    // readiness explanation even when only monitor or DPI compatibility fails.
+    result.leader_snapshot = std::move(leader_live.snapshot);
+    result.follower_snapshot = std::move(follower_live.snapshot);
     if (!result.same_monitor_and_dpi) {
-        leader_impl.glue_peer_native_key = 0U;
-        leader_impl.glue_peer_process_id = 0U;
-        leader_impl.glue_peer_thread_id = 0U;
-        leader_impl.glue_peer_capability_generation = 0U;
-        leader_impl.glue_peer_consent_generation = 0U;
+        clear_leader_peer();
+        refresh_preview_side_effects();
         result.reason = ExplorerGlueReason::MonitorOrDpiMismatch;
         result.diagnostic = adapter_diagnostic(
             1505U,
@@ -4699,18 +4733,17 @@ detail::ExplorerGlueSessionBridge::inspect_pair(
          result.follower_baseline_excluded_leader,
          result.same_monitor_and_dpi});
     if (pair_reason != ExplorerGlueReason::Eligible) {
-        leader_impl.glue_peer_native_key = 0U;
-        leader_impl.glue_peer_process_id = 0U;
-        leader_impl.glue_peer_thread_id = 0U;
-        leader_impl.glue_peer_capability_generation = 0U;
-        leader_impl.glue_peer_consent_generation = 0U;
+        clear_leader_peer();
+        refresh_preview_side_effects();
         result.reason = pair_reason;
         return result;
     }
 
     result.reason = ExplorerGlueReason::Eligible;
-    result.leader_snapshot = std::move(leader_live.snapshot);
-    result.follower_snapshot = std::move(follower_live.snapshot);
+    if (!retain_peer_exception) {
+        clear_leader_peer();
+    }
+    refresh_preview_side_effects();
     return result;
 }
 
@@ -4726,7 +4759,7 @@ detail::ExplorerGlueSessionBridge::bind_pair(
         result.reason = ExplorerGlueReason::ConsentGenerationMismatch;
         return result;
     }
-    auto inspection = inspect_pair(leader, follower);
+    auto inspection = inspect_pair(leader, follower, true);
     if (!inspection.succeeded()) {
         result.reason = inspection.reason;
         result.diagnostic = std::move(inspection.diagnostic);
@@ -4735,6 +4768,7 @@ detail::ExplorerGlueSessionBridge::bind_pair(
     if (*inspection.leader_snapshot != expected_leader ||
         *inspection.follower_snapshot != expected_follower) {
         leader.impl_->glue_peer_native_key = 0U;
+        leader.impl_->glue_peer_target_location = {};
         leader.impl_->glue_peer_process_id = 0U;
         leader.impl_->glue_peer_thread_id = 0U;
         leader.impl_->glue_peer_capability_generation = 0U;
@@ -5057,6 +5091,7 @@ void detail::ExplorerGlueSessionBridge::release_pair(
             session.impl_->glue_authority_id = 0U;
             session.impl_->glue_authority_generation = 0U;
             session.impl_->glue_peer_native_key = 0U;
+            session.impl_->glue_peer_target_location = {};
             session.impl_->glue_peer_process_id = 0U;
             session.impl_->glue_peer_thread_id = 0U;
             session.impl_->glue_peer_capability_generation = 0U;

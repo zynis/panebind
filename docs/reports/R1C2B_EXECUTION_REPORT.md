@@ -1,7 +1,7 @@
 # PaneBind R1-C2B Explorer Glue Implementation Report
 
-Report date: 2026-09-03 (Asia/Shanghai; implementation handoff before human
-Explorer validation).
+Report date: 2026-09-04 (Asia/Shanghai; UAT Fix 1 handoff after the first safe
+pre-native block).
 
 ## 1. Round and evidence state
 
@@ -9,24 +9,29 @@ Explorer validation).
 Round = R1-C2B - Explorer Feedback Suppression & Glue Session Baseline
 Starting main = 8ac18ab07344632e8f0ed87cafe1b85b2b715d06
 Branch = codex/r1c2b-explorer-glue-session
+Fix 1 starting HEAD = 650196507466498f41a6df44b5031733b560098f
 Research checkpoint = ea46ab297d149f8416a0cff67d30b32fa71fc015
 R0_BASELINE = SEALED
 R1C2A_DEBUG_INTERACTIVE_UAT = PASS
 R1C2A_RELEASE_INTERACTIVE_UAT = PASS
+R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
 R1C2B real Explorer runtime = PENDING_UAT
+R1C2B_UAT_FIX1 automated rerun = PASS
 R1C3 = NOT STARTED
 ```
 
-R1-C2B now has an implemented and automated-tested baseline for one temporary
-Glue Move session between exactly two newly created, separately user-consented
-Explorer test windows. The human has not yet performed the R1-C2B Debug
-Explorer run. Consequently, every real-runtime claim remains
-`PENDING_UAT`/`NOT TESTED`; automated and synthetic results are not relabeled as
-manual evidence.
+R1-C2B has a pre-Fix-1 implemented and automated-tested baseline for one
+temporary Glue Move session between exactly two newly created, separately
+user-consented Explorer test windows. A human performed Debug Attempt 1 through
+target provisioning and pair validation, but the current window sizes safely
+blocked before Glue consent. No Glue runtime was reached. Consequently, every
+real Glue-runtime claim remains `PENDING_UAT`/`NOT TESTED`; the safe block and
+the independent Observer record are not relabeled as movement or feedback
+evidence.
 
-The report is committed as part of the implementation handoff. Its own final
-commit SHA, push result, clean status, and local/remote divergence are recorded
-by the final Git handoff rather than self-referenced inside the commit.
+Fix 1 automated results are recorded below. Its final commit SHA, push result,
+clean status, and local/remote divergence are reported by the final Git handoff
+rather than self-referenced inside that commit.
 
 ## 2. Prior-art and platform-documentation gate
 
@@ -229,7 +234,10 @@ issue Leader from its new nonce location
 -> begin Follower baseline
 -> permanently exclude Leader in that baseline
 -> issue one distinct Follower from its own nonce location
--> validate exact pair and same monitor/DPI
+-> preview exact pair and same monitor/DPI without consuming either session
+-> if needed, allow at most three human resize + ENTER readiness checks
+-> require a side-effect-free FIT preview
+-> formal begin re-inspects and replans the pair
 -> present separate Glue summary
 -> require Y + ENTER
 -> issue one Glue consent/authority generation
@@ -241,6 +249,14 @@ while the pair is bound. A third Explorer remains a blocker. Ordinary R1-C2A
 single-translation authorization, `OperationLimitReached`, and public API
 semantics remain unchanged; target-confirmation consent is not silently
 converted into R1-C2A move consent.
+
+`ExplorerGlueConsent::preview_layout_readiness` is a repeatable,
+non-consuming readiness operation over the two already-provisioned sessions.
+It performs live target/pair validation and geometry calculation only. It does
+not bind or consume Glue authority, consume the target sessions, call a native
+window operation, or arm an event source. An invalid target may still be
+retired by the existing fail-closed live validation; that is not successful
+preview authority.
 
 ## 8. Temporary layout and native operation path
 
@@ -254,8 +270,33 @@ tolerance: 0
 ```
 
 The planner preserves each current size, centers the pair, and never changes
-z-order or activation. If neither orientation fits, it returns `UnsafeLayout`
-instead of resizing. This is a UAT fixture only and is not Snap.
+z-order or activation. Its safety mathematics are unchanged:
+
+```text
+horizontal required = (leader width + follower width) x max(height)
+vertical required   = max(width) x (leader height + follower height)
+```
+
+If neither orientation fits, it returns `UnsafeLayout` instead of resizing.
+This is a UAT fixture only and is not Snap.
+
+Before formal begin, the harness records one to three
+`pair_layout_preview` records. Each carries the attempt number and limit,
+Leader/Follower visible sizes, work-area size, horizontal and vertical
+required/available/excess sizes and fit booleans, same-monitor/DPI facts,
+chosen orientation when feasible, and explicit false values for authority
+binding/consumption, temporary peer-state retention, native apply, and
+event-source arm. Results are `FIT`,
+`NEEDS_MANUAL_RESIZE`, or `INVALIDATED`.
+
+For `NEEDS_MANUAL_RESIZE`, the Console prints the live dimensions and exact
+horizontal/vertical excess. The human may resize Leader and/or Follower and
+press ENTER to request another live check, for at most three total previews.
+This is `TEST FIXTURE PREPARATION ONLY`; PaneBind never resizes either window.
+Identity, nonce location, state, monitor, and DPI are revalidated on each
+attempt. Only a `FIT` preview proceeds. Formal
+`ExplorerGlueConsent::begin` then independently inspects and plans again, so a
+preview never bypasses the preview-to-authority TOCTOU boundary.
 
 After exact setup verification, the adapter builds the real R1-A graph, then
 arms hooks. For an active plan the Follower path is:
@@ -317,8 +358,10 @@ owner-thread-affine and must not be transferred across threads.
 
 ## 10. Automated verification
 
-The final implementation review found no high- or medium-severity blocker. Both
-Debug and Release builds completed, and both complete CTest suites passed:
+At the pre-Fix-1 implementation HEAD
+`650196507466498f41a6df44b5031733b560098f`, review found no high- or
+medium-severity blocker. Both Debug and Release builds completed, and both
+complete CTest suites passed:
 
 ```powershell
 cmake -S . -B out/r1c2b-debug -G "Visual Studio 18 2026" -A x64 -DBUILD_TESTING=ON
@@ -343,10 +386,12 @@ ctest --test-dir out/r1c2b-release -C Release --output-on-failure
 | `windows-explorer-unit` | PASS | PASS |
 | `windows-explorer-glue-event-source-unit` | PASS | PASS |
 | `windows-explorer-glue-session-unit` | PASS | PASS |
-| **Total** | **11/11 PASS** | **11/11 PASS** |
+| **Pre-Fix-1 total** | **11/11 PASS** | **11/11 PASS** |
+| **Fix-1 final rerun** | **11/11 PASS** | **11/11 PASS** |
 
-The three focused R1-C2B executables contain 24 named deterministic scenarios:
-Core 9, event source 9, and session/layout 6. They cover state/generation and
+At that pre-Fix-1 handoff, the three focused R1-C2B executables contained 24
+named deterministic scenarios: Core 9, event source 9, and session/layout 6.
+They cover state/generation and
 illegal transitions, exact/duplicate/missing/unexpected feedback, bounded
 pending behavior, final reconciliation, failure/invalidation/overflow,
 process/hook/object filtering, identity/root/thread/reentrancy failures,
@@ -376,6 +421,28 @@ The preexisting controlled regression harnesses were also run explicitly:
 These self-tests control only their own fixtures/companion process. They are not
 real Explorer UAT.
 
+Fix 1 adds five named deterministic preview/side-effect scenarios, increasing
+the focused total from 24 to 29 (Core 9, event source 9, session/layout 11).
+Coverage includes horizontal fit, vertical
+fallback, neither orientation fitting, monitor mismatch, DPI mismatch, target
+invalidation, side-effect-free/non-consuming preview, and a too-large first
+attempt followed by a fitting recheck. Ten runner fixtures cover complete
+`PASS`, legal setup/restore no-op variants, `SAFE_BLOCKED`, missing/multiple
+active lifecycle, legacy downgrade, and contradictory layout/feedback
+`INVALID_EVIDENCE`. Attempt 1 offline replay returns the expected exit 2 while
+all three source evidence hashes remain unchanged.
+
+```text
+R1C2B_UAT_FIX1_DEBUG_BUILD_CTEST = 11/11 PASS
+R1C2B_UAT_FIX1_RELEASE_BUILD_CTEST = 11/11 PASS
+R1C2B_UAT_FIX1_RUNNER_FIXTURES = 10/10 PASS
+R1C2B_UAT_FIX1_ATTEMPT1_OFFLINE_REPLAY = SAFE_BLOCKED / EXIT 2
+R1C2B_UAT_FIX1_OWNED_REGRESSION = DEBUG/RELEASE PASS
+R1C2B_UAT_FIX1_COMPANION_REGRESSION = DEBUG/RELEASE PASS
+R1C2B_UAT_FIX1_R1C2A_REGRESSION = DEBUG/RELEASE PASS
+R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
+```
+
 ## 11. R0, R1-C2A, and scope audit
 
 - R0 observer implementation and semantics are unchanged. It remains optional,
@@ -383,8 +450,16 @@ real Explorer UAT.
 - R1-C2A user-visible candidate selection, baseline exclusion, one-shot move
   consent, single translation, and restore semantics remain valid. The private
   Glue bridge is additive and only active for a fully authorized pair.
-- Existing Explorer unit regressions pass in Debug and Release. No new real
-  R1-C2A UAT is required.
+- Existing Explorer unit regressions passed in Debug and Release at the
+  pre-Fix-1 handoff and again in the Fix 1 final rerun. No new real R1-C2A UAT
+  is required.
+- Fix 1 changes neither the platform-neutral `GlueMoveCoordinator` nor its
+  feedback-suppression/pending-ledger rules.
+- Fix 1 changes neither the narrow Glue WinEvent source nor hook/callback/
+  bounded-queue behavior.
+- The horizontal-first, vertical-fallback, zero-gap, pure-translation,
+  no-resize layout planner safety rules are unchanged; the preview exposes
+  their live inputs and result without weakening them.
 - Core remains free of Win32 and Explorer dependencies.
 - No preexisting user Explorer was issued a capability, included in topology,
   moved, navigated, or closed during implementation/automated validation.
@@ -402,6 +477,9 @@ R1C2A_REVALIDATION_REQUIRED = NO
 USER_PREEXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 GLOBAL_INPUT_CONTROL = NO
+R1C2B_GLUE_COORDINATOR_CHANGED_BY_FIX1 = NO
+R1C2B_EVENT_SOURCE_CHANGED_BY_FIX1 = NO
+R1C2B_LAYOUT_PLANNER_SEMANTICS_CHANGED_BY_FIX1 = NO
 ```
 
 ## 12. Evidence harness and privacy
@@ -430,13 +508,90 @@ The exact Debug command and human actions are in
 [`R1C2B_UAT_HANDOFF.md`](R1C2B_UAT_HANDOFF.md). Release UAT must not be requested
 until the user returns a passing Debug evidence set.
 
-## 13. Remaining NOT TESTED risks
+The runner now treats evidence outcomes as three disjoint results:
 
-Until the human Debug run is reviewed, these are `NOT TESTED` on real Explorer:
+| Outcome | Runner exit | Meaning |
+| --- | ---: | --- |
+| `PASS` | `0` | Complete Glue runtime evidence passed every existing strict gate |
+| `SAFE_BLOCKED` / `KNOWN_BLOCKED` | `2` | A supported pre-native blocker was internally consistent and proved zero authority/operation side effects |
+| `INVALID_EVIDENCE` | `1` | JSONL/schema/sequence/lifecycle failed or records contradict the claimed outcome |
 
-- issuance and pairing of two real newly created Explorer top-level windows;
-- Follower-baseline exclusion of the live Leader and rejection of a third live
-  candidate in the user's current Shell inventory;
+A safe-blocking harness itself exits `1`; after validating that contract, the
+runner maps it to its distinct exit `2`. A Fix 1 pre-native summary reports
+`feedback_suppression_evidence = not_reached`, not a fabricated missing-event
+reconciliation. The historical Attempt 1 value
+`no_feedback_event_reconciled` is accepted only under its legacy startup
+contract and is never interpreted as runtime evidence.
+
+For PASS, the runner scopes external Leader lifecycle to records received after
+the drag prompt, so pre-authority human resize START/END does not create a false
+failure. It independently reconstructs the centered, zero-gap planner result
+from the final FIT preview and original work area, checks the common nonzero
+Leader/Follower final delta, closes setup/active/restore operation geometry,
+and requires one-to-one command/operation/reconciliation and unique feedback
+attribution. The sole markerless compatibility path is offline replay of the
+exact Attempt 1 prefix and three fixed SHA-256 hashes; live evidence cannot
+downgrade out of the preview contract.
+
+## 13. Debug UAT Attempt 1 evidence review
+
+The first real Debug attempt is preserved locally under ignored evidence prefix
+`20260903T044532644Z`. Nothing in this review deletes, rewrites, or publishes
+those raw files.
+
+| Evidence fact | Verified result |
+| --- | --- |
+| Harness JSONL | 17 valid records; schema/name valid; physical sequence `1..17`; shutdown complete |
+| Observer JSONL | 3,681 valid records; sequence `1..3681`; one complete hook registration, hook shutdown, and observer shutdown; no overflow/drop/post/incomplete diagnostic |
+| Observer stderr | Present and empty |
+| Leader provisioning | PASS; new `explorer.exe`; target consent and exact unique candidate PASS |
+| Follower provisioning | PASS; distinct new `explorer.exe`; immutable baseline excluded Leader; target consent and exact unique candidate PASS |
+| Pair validation | `BLOCKED / UnsafeLayout`; consent prefixes, pair distinction, and same monitor/DPI were true; layout was not planned |
+| Glue consent/authority/binding | Not reached / not issued / not present |
+| Glue event source | Not armed |
+| Operation/native apply | Zero operation records; zero active Follower operations; zero Glue native apply |
+| Safety | preexisting windows untouched; other third-party control false; global input false; user-window close attempted false |
+
+Both visible frames measured `1839 x 1074` inside a `3072 x 1824` work area.
+Horizontal placement required `3678` pixels of width, exceeding the work area
+by `606`; vertical placement required `2148` pixels of height, exceeding it by
+`324`. The independent Observer saw the human move both target windows during
+readiness preparation, before Follower confirmation and pair validation, but
+their sizes stayed `1839 x 1074`. Those pre-authority events are not Glue
+runtime, feedback suppression, or Follower-operation evidence.
+
+The Observer stream contained 12 structured inspection errors on unrelated
+windows (five access-denied process-path lookups, five stale receipt-identity
+checks, and two identity changes during snapshot). Neither target had a field
+error, root/object mismatch, or destroy receipt. These were not queue, hook,
+post, or Observer-lifecycle failures and do not contradict the pre-native
+target evidence.
+
+The primary blocker was therefore `UnsafeLayout before Glue consent`. The
+secondary runner defect was an unconditional request for PASS-only records such
+as `glue_consent_prompt` before branching on `pair_validation=BLOCKED`. Their
+absence was expected on this path, but the old runner mislabeled it as malformed
+evidence. Fix 1 validates the common provisioning and Observer contracts first,
+then validates either the complete PASS suffix or the exact zero-authority,
+zero-hook, zero-operation safe-block suffix. Any contradictory suffix remains
+`INVALID_EVIDENCE`.
+
+```text
+R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
+ATTEMPT_1_PRIMARY_BLOCKER = UnsafeLayout before Glue consent
+ATTEMPT_1_NATIVE_GLUE_OPERATION_ATTEMPTED = NO
+ATTEMPT_1_GLUE_RUNTIME_EVIDENCE = NOT_REACHED
+```
+
+## 14. Remaining NOT TESTED risks
+
+Attempt 1 validated target provisioning and a safe pre-native block only. Until
+a post-Fix-1 human Debug run is reviewed, these remain `NOT TESTED` on real
+Explorer:
+
+- post-preview formal Glue pair begin, consent, authority, and native binding;
+- rejection of a third live candidate in the user's current Shell inventory
+  (Follower-baseline exclusion of the live Leader itself passed Attempt 1);
 - real same-monitor/DPI layout setup, exact adjacency, and two-window restore;
 - native Explorer title-bar START/LOCATION/END lifecycle for the Leader;
 - live Follower smoothness, event count, event latency, duplicate/missing/
@@ -460,7 +615,7 @@ Until the human Debug run is reviewed, these are `NOT TESTED` on real Explorer:
 R1-C3 product activation, Ctrl/global input, Snap, Glue Resize, and persistent
 groups are outside this round, not missing R1-C2B acceptance evidence.
 
-## 14. Implementation gate
+## 15. Implementation gate
 
 ```text
 R1C2B_PRIOR_ART_GATE = PASS
@@ -468,13 +623,20 @@ R1C2B_BEHAVIOR_ENGINE_GATE = PASS
 R1C2B_FEEDBACK_SUPPRESSION_GATE = PASS
 R1C2B_EXPLORER_IMPLEMENTATION_GATE = PASS
 
+R1C2B_UAT_FIX1 = PASS
 R1C2B_IMPLEMENTATION_READY = YES
 R1C2B_INTERACTIVE_UAT = REQUIRED
 R1C2B_RUNTIME_GATE = PENDING_UAT
 
+R1C2B_UAT_FIX1_AUTOMATED_TESTS = PASS
+R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
+
 R0_OBSERVER_SEMANTICS_CHANGED = NO
 R0_REVALIDATION_REQUIRED = NO
 R1C2A_REVALIDATION_REQUIRED = NO
+R1C2B_GLUE_COORDINATOR_CHANGED_BY_FIX1 = NO
+R1C2B_EVENT_SOURCE_CHANGED_BY_FIX1 = NO
+R1C2B_LAYOUT_PLANNER_SEMANTICS_CHANGED_BY_FIX1 = NO
 
 USER_PREEXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO

@@ -205,13 +205,26 @@ struct ExplorerGluePairInspection final {
     bool follower_target_consent_prefix_valid{};
     bool follower_baseline_excluded_leader{};
     bool pair_distinct{};
+    bool same_monitor{};
+    bool same_dpi{};
     bool same_monitor_and_dpi{};
+    bool glue_authority_bound{};
+    bool glue_authority_consumed{};
+    bool native_apply_attempted{};
+    bool temporary_peer_exception_retained{};
 
     [[nodiscard]] bool succeeded() const noexcept {
         return reason == ExplorerGlueReason::Eligible &&
                leader_snapshot.has_value() && follower_snapshot.has_value();
     }
 };
+
+// Pure readiness projection over one live pair inspection. It computes
+// capacity only and cannot bind authority, perform a native operation, or arm
+// the event source. Keeping this separate also makes too-large -> resized-by-
+// the-user -> fits transitions deterministic and repeatable.
+[[nodiscard]] ExplorerGlueLayoutReadinessResult
+evaluate_layout_readiness_preview(ExplorerGluePairInspection inspection);
 
 struct ExplorerGlueBindResult final {
     ExplorerGlueReason reason{ExplorerGlueReason::InvalidArgument};
@@ -291,7 +304,8 @@ private:
 
     [[nodiscard]] static ExplorerGluePairInspection inspect_pair(
         ExplorerTestSession& leader,
-        ExplorerTestSession& follower);
+        ExplorerTestSession& follower,
+        bool retain_peer_exception);
     [[nodiscard]] static ExplorerGlueBindResult bind_pair(
         const ExplorerGlueAuthoritySeal& seal,
         ExplorerTestSession& leader,

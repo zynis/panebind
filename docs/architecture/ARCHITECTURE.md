@@ -7,7 +7,9 @@ and the implemented R1-C2B Explorer Glue Move test-session boundary. This
 document records implemented boundaries and current decisions; runtime
 acceptance evidence and gate results are recorded separately. R1-C2B real
 Explorer validation is still `PENDING_UAT`; implementation and automated tests
-do not substitute for that human evidence.
+do not substitute for that human evidence. Debug Attempt 1 safely stopped at
+pre-authority `UnsafeLayout`; Fix 1 adds a non-consuming readiness preview and
+does not reinterpret that attempt as Glue runtime.
 
 ## System flow
 
@@ -419,6 +421,25 @@ fingerprint peer binding lets each target tolerate only the other authorized
 member during live inventory checks; it neither exposes HWND nor changes an
 ordinary R1-C2A token's one-primary-translation limit.
 
+After both target-consent prefixes pass but before formal pair begin, the UAT
+harness may call a repeatable layout-readiness preview at most three times. The
+preview borrows the two still caller-owned sessions, live-revalidates exact
+identity/location/state/security plus same monitor/DPI, and computes layout
+capacity. It does not bind or consume Glue authority, consume either session,
+perform a native operation, or arm a hook. An invalid target may be retired
+by the existing fail-closed live validation, but no successful preview grants
+operation authority.
+
+Preview evidence records Leader/Follower visible sizes, common work-area size,
+horizontal and vertical required/available/excess sizes and fit booleans,
+same-monitor/DPI, the selected orientation, and explicit proof that no temporary
+peer exception remains. `NEEDS_MANUAL_RESIZE` tells the
+human exactly how much each orientation exceeds the work area. Only the human
+may resize and press ENTER for the next check; this is
+`TEST FIXTURE PREPARATION ONLY`, before Glue consent and hook arm. A final
+`FIT` permits the harness to call formal begin, which independently reinspects
+and replans to close the preview-to-authority TOCTOU boundary.
+
 The fixture records both original visible and positioning rectangles, then
 centers a size-preserving pair inside their common work area. Horizontal
 Leader/Follower adjacency is preferred; vertical adjacency is the deterministic
@@ -485,6 +506,24 @@ receipts, restore Follower and Leader independently to their original exact
 rectangles, release the private pair authority, and leave both user-created
 Explorer windows open. The aggregate is strictly owner-thread-affine; it is not
 transferable between threads.
+
+The evidence runner treats complete runtime success, an explicitly supported
+pre-native safe block, and malformed/contradictory evidence as distinct
+outcomes: `PASS` exits 0, `SAFE_BLOCKED / KNOWN_BLOCKED` exits 2, and
+`INVALID_EVIDENCE` exits 1. On a safe block, Glue consent/authority/binding,
+layout operations, hook arm, drag trace, and active Follower operations must be
+absent, and all safety flags must remain false. A pre-native summary uses
+`feedback_suppression_evidence = not_reached`; it never claims a missing event
+was reconciled. This evidence classification changes neither the Glue behavior
+coordinator nor the event source.
+
+PASS validation excludes pre-authority human-resize lifecycle by using the
+drag prompt as the external Observer phase lower bound. It reconstructs the
+centered zero-gap layout, checks the shared nonzero final translation, closes
+the setup/active/restore operation chain, and requires one-to-one command and
+feedback reconciliation. Legacy markerless handling is limited to offline
+replay of the exact first-attempt prefix and hashes; it is unavailable to a new
+live run.
 
 ## Normalized event model
 
@@ -700,9 +739,16 @@ virtual-desktop policy.
 - The private Glue authority is role-, pair-, consent-, capability-, and
   session-generation bound. It exposes no arbitrary-HWND operation surface and
   does not loosen R1-C2A's ordinary one-shot authority.
+- Before formal begin, a repeatable non-consuming preview may live-revalidate
+  and measure the pair at most three times. It never binds/consumes Glue
+  authority, consumes either target session, performs native apply, or arms the
+  event source. Only a `FIT` result proceeds, and formal begin must independently
+  reinspect/replan rather than trusting the preview snapshot.
 - The temporary horizontal-or-vertical zero-gap layout is a size-preserving UAT
   fixture, not Snap. Setup happens before hooks arm; unhook happens before
-  restore.
+  restore. If neither orientation fits, only the human may resize during
+  pre-authority fixture preparation; PaneBind reports live required/available/
+  excess dimensions and never resizes the targets.
 - The live graph is built with R1-A adjacency and must contain exactly the two
   targets and one relation. Arming freezes this verified pre-hook topology,
   membership, roles, and initial geometry; START revalidates and activates it.
@@ -730,6 +776,10 @@ virtual-desktop policy.
 - Every terminal path attempts owner-thread stop/unhook, inactive-receipt
   discard, exact independent Follower/Leader restore, and authority release.
   PaneBind never closes the user-created Explorer windows.
+- Evidence runner outcomes remain disjoint: complete runtime `PASS`, strictly
+  zero-authority/zero-operation `SAFE_BLOCKED`, and malformed or contradictory
+  `INVALID_EVIDENCE`. Pre-native feedback state is `not_reached`, not a runtime
+  reconciliation claim.
 - R0 observer semantics and R1-C2A user-visible semantics remain unchanged.
   R1-C2B uses no R0 JSONL control bus, global input, injection, high-frequency
   polling, other application, Glue Resize, persistent group, Snap, or R1-C3

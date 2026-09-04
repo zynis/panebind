@@ -91,13 +91,88 @@ std::atomic<std::uint64_t> next_glue_authority_id{1U};
             {}};
 }
 
-[[nodiscard]] bool same_pair_monitor_and_dpi(
+[[nodiscard]] bool same_pair_monitor(
     const ExplorerWindowSnapshot& leader,
     const ExplorerWindowSnapshot& follower) noexcept {
     return leader.monitor_device_name == follower.monitor_device_name &&
            leader.monitor_rect == follower.monitor_rect &&
-           leader.monitor_work_area == follower.monitor_work_area &&
-           leader.dpi == follower.dpi;
+           leader.monitor_work_area == follower.monitor_work_area;
+}
+
+[[nodiscard]] bool same_pair_dpi(
+    const ExplorerWindowSnapshot& leader,
+    const ExplorerWindowSnapshot& follower) noexcept {
+    return leader.dpi == follower.dpi;
+}
+
+[[nodiscard]] bool same_pair_monitor_and_dpi(
+    const ExplorerWindowSnapshot& leader,
+    const ExplorerWindowSnapshot& follower) noexcept {
+    return same_pair_monitor(leader, follower) &&
+           same_pair_dpi(leader, follower);
+}
+
+// Single checked source of truth for preview explanation and fixture planning.
+// A missing required Size means that orientation overflowed checked arithmetic;
+// it is reported as not fitting without preventing the other orientation.
+[[nodiscard]] std::optional<ExplorerGlueLayoutReadiness>
+measure_layout_readiness(const ExplorerWindowSnapshot& leader,
+                         const ExplorerWindowSnapshot& follower) noexcept {
+    if (!same_pair_monitor_and_dpi(leader, follower)) {
+        return std::nullopt;
+    }
+
+    const auto available_width = extent(leader.monitor_work_area.right(),
+                                        leader.monitor_work_area.left());
+    const auto available_height = extent(leader.monitor_work_area.bottom(),
+                                         leader.monitor_work_area.top());
+    const auto leader_width =
+        extent(leader.visible_rect.right(), leader.visible_rect.left());
+    const auto leader_height =
+        extent(leader.visible_rect.bottom(), leader.visible_rect.top());
+    const auto follower_width =
+        extent(follower.visible_rect.right(), follower.visible_rect.left());
+    const auto follower_height =
+        extent(follower.visible_rect.bottom(), follower.visible_rect.top());
+    if (!available_width || !available_height || !leader_width ||
+        !leader_height || !follower_width || !follower_height) {
+        return std::nullopt;
+    }
+
+    const core::geometry::Size available{*available_width, *available_height};
+    ExplorerGlueLayoutReadiness readiness;
+    readiness.leader_visible_size = {*leader_width, *leader_height};
+    readiness.follower_visible_size = {*follower_width, *follower_height};
+    readiness.work_area_size = available;
+    readiness.horizontal.available = available;
+    readiness.vertical.available = available;
+
+    const auto horizontal_width =
+        core::geometry::checked_add(*leader_width, *follower_width);
+    if (horizontal_width.has_value()) {
+        readiness.horizontal.required = core::geometry::Size{
+            *horizontal_width, std::max(*leader_height, *follower_height)};
+        readiness.horizontal.fits =
+            readiness.horizontal.required->width <= available.width &&
+            readiness.horizontal.required->height <= available.height;
+    }
+
+    const auto vertical_height =
+        core::geometry::checked_add(*leader_height, *follower_height);
+    if (vertical_height.has_value()) {
+        readiness.vertical.required = core::geometry::Size{
+            std::max(*leader_width, *follower_width), *vertical_height};
+        readiness.vertical.fits =
+            readiness.vertical.required->width <= available.width &&
+            readiness.vertical.required->height <= available.height;
+    }
+
+    if (readiness.horizontal.fits) {
+        readiness.orientation = ExplorerGlueLayoutOrientation::Horizontal;
+    } else if (readiness.vertical.fits) {
+        readiness.orientation = ExplorerGlueLayoutOrientation::Vertical;
+    }
+    return readiness;
 }
 
 [[nodiscard]] bool same_non_geometry_snapshot(
@@ -227,6 +302,91 @@ ExplorerGlueReason detail::evaluate_pair_authority(
     return ExplorerGlueReason::Eligible;
 }
 
+ExplorerGlueLayoutReadinessResult detail::evaluate_layout_readiness_preview(
+    ExplorerGluePairInspection inspection) {
+    ExplorerGlueLayoutReadinessResult result;
+    result.reason = inspection.reason;
+    result.stage = ExplorerGlueStage::PairValidation;
+    result.diagnostic = std::move(inspection.diagnostic);
+    result.leader_target_consent_prefix_valid =
+        inspection.leader_target_consent_prefix_valid;
+    result.follower_target_consent_prefix_valid =
+        inspection.follower_target_consent_prefix_valid;
+    result.follower_baseline_excluded_leader =
+        inspection.follower_baseline_excluded_leader;
+    result.pair_distinct = inspection.pair_distinct;
+    result.same_monitor = inspection.same_monitor;
+    result.same_dpi = inspection.same_dpi;
+    result.glue_authority_bound = inspection.glue_authority_bound;
+    result.glue_authority_consumed = inspection.glue_authority_consumed;
+    result.native_apply_attempted = inspection.native_apply_attempted;
+    result.temporary_peer_exception_retained =
+        inspection.temporary_peer_exception_retained;
+    result.leader_snapshot = std::move(inspection.leader_snapshot);
+    result.follower_snapshot = std::move(inspection.follower_snapshot);
+    if (result.leader_snapshot.has_value() &&
+        result.follower_snapshot.has_value()) {
+        result.same_monitor = same_pair_monitor(*result.leader_snapshot,
+                                                *result.follower_snapshot);
+        result.same_dpi = same_pair_dpi(*result.leader_snapshot,
+                                        *result.follower_snapshot);
+    }
+
+    if (result.glue_authority_bound || result.glue_authority_consumed ||
+        result.native_apply_attempted ||
+        result.temporary_peer_exception_retained) {
+        result.reason = ExplorerGlueReason::AuthorityConsumed;
+        result.diagnostic = glue_diagnostic(
+            1611U,
+            "Explorer Glue layout readiness side effects",
+            "preview inspection retained authority, native-operation, or peer state");
+        return result;
+    }
+
+    if (result.reason != ExplorerGlueReason::Eligible) {
+        return result;
+    }
+    if (!result.leader_snapshot.has_value() ||
+        !result.follower_snapshot.has_value()) {
+        result.reason = ExplorerGlueReason::TargetChanged;
+        result.diagnostic = glue_diagnostic(
+            1608U,
+            "Explorer Glue layout readiness",
+            "live pair inspection did not retain both snapshots");
+        return result;
+    }
+    if (!result.same_monitor || !result.same_dpi) {
+        result.reason = ExplorerGlueReason::MonitorOrDpiMismatch;
+        return result;
+    }
+
+    result.stage = ExplorerGlueStage::Layout;
+    result.readiness = measure_layout_readiness(*result.leader_snapshot,
+                                                *result.follower_snapshot);
+    if (!result.readiness.has_value()) {
+        result.reason = ExplorerGlueReason::UnsafeLayout;
+        result.diagnostic = glue_diagnostic(
+            1609U,
+            "Explorer Glue layout readiness",
+            "live geometry cannot produce representable layout dimensions");
+        return result;
+    }
+
+    result.layout = plan_explorer_glue_test_layout(*result.leader_snapshot,
+                                                   *result.follower_snapshot);
+    if (!result.layout.has_value()) {
+        result.reason = ExplorerGlueReason::UnsafeLayout;
+        result.diagnostic = glue_diagnostic(
+            1610U,
+            "Explorer Glue layout readiness",
+            "current sizes fit neither horizontal nor vertical adjacency");
+        return result;
+    }
+
+    result.reason = ExplorerGlueReason::Eligible;
+    return result;
+}
+
 detail::ExplorerGlueLeaderStartGeometry
 detail::evaluate_leader_start_geometry(
     const ExplorerWindowSnapshot& armed_layout,
@@ -262,43 +422,33 @@ detail::evaluate_leader_start_geometry(
 std::optional<ExplorerGlueLayoutPlan> plan_explorer_glue_test_layout(
     const ExplorerWindowSnapshot& leader,
     const ExplorerWindowSnapshot& follower) noexcept {
-    if (!same_pair_monitor_and_dpi(leader, follower)) {
-        return std::nullopt;
-    }
-    const auto work_width = extent(leader.monitor_work_area.right(),
-                                   leader.monitor_work_area.left());
-    const auto work_height = extent(leader.monitor_work_area.bottom(),
-                                    leader.monitor_work_area.top());
-    const auto leader_width = extent(leader.visible_rect.right(),
-                                     leader.visible_rect.left());
-    const auto leader_height = extent(leader.visible_rect.bottom(),
-                                      leader.visible_rect.top());
-    const auto follower_width = extent(follower.visible_rect.right(),
-                                       follower.visible_rect.left());
-    const auto follower_height = extent(follower.visible_rect.bottom(),
-                                        follower.visible_rect.top());
-    if (!work_width || !work_height || !leader_width || !leader_height ||
-        !follower_width || !follower_height) {
+    const auto readiness = measure_layout_readiness(leader, follower);
+    if (!readiness.has_value() || !readiness->orientation.has_value()) {
         return std::nullopt;
     }
 
-    const auto horizontal_width = core::geometry::checked_add(
-        *leader_width, *follower_width);
-    const auto horizontal_height = std::max(*leader_height, *follower_height);
-    if (horizontal_width.has_value() && *horizontal_width <= *work_width &&
-        horizontal_height <= *work_height) {
-        const auto x_offset = (*work_width - *horizontal_width) / 2;
-        const auto y_offset = (*work_height - horizontal_height) / 2;
+    const auto& leader_size = readiness->leader_visible_size;
+    const auto& follower_size = readiness->follower_visible_size;
+    if (*readiness->orientation ==
+        ExplorerGlueLayoutOrientation::Horizontal) {
+        const auto& fit = readiness->horizontal;
+        if (!fit.required.has_value()) {
+            return std::nullopt;
+        }
+        const auto x_offset =
+            (fit.available.width - fit.required->width) / 2;
+        const auto y_offset =
+            (fit.available.height - fit.required->height) / 2;
         const auto x = add(leader.monitor_work_area.left(), x_offset);
         const auto y = add(leader.monitor_work_area.top(), y_offset);
         if (!x || !y) {
             return std::nullopt;
         }
-        const auto leader_right = add(*x, *leader_width);
+        const auto leader_right = add(*x, leader_size.width);
         const auto follower_right =
-            leader_right ? add(*leader_right, *follower_width) : std::nullopt;
-        const auto leader_bottom = add(*y, *leader_height);
-        const auto follower_bottom = add(*y, *follower_height);
+            leader_right ? add(*leader_right, follower_size.width) : std::nullopt;
+        const auto leader_bottom = add(*y, leader_size.height);
+        const auto follower_bottom = add(*y, follower_size.height);
         if (leader_right && follower_right && leader_bottom && follower_bottom) {
             return ExplorerGlueLayoutPlan{
                 ExplorerGlueLayoutOrientation::Horizontal,
@@ -307,25 +457,22 @@ std::optional<ExplorerGlueLayoutPlan> plan_explorer_glue_test_layout(
         }
     }
 
-    const auto vertical_height = core::geometry::checked_add(
-        *leader_height, *follower_height);
-    const auto vertical_width = std::max(*leader_width, *follower_width);
-    if (!vertical_height.has_value() || *vertical_height > *work_height ||
-        vertical_width > *work_width) {
+    const auto& fit = readiness->vertical;
+    if (!fit.fits || !fit.required.has_value()) {
         return std::nullopt;
     }
-    const auto x_offset = (*work_width - vertical_width) / 2;
-    const auto y_offset = (*work_height - *vertical_height) / 2;
+    const auto x_offset = (fit.available.width - fit.required->width) / 2;
+    const auto y_offset = (fit.available.height - fit.required->height) / 2;
     const auto x = add(leader.monitor_work_area.left(), x_offset);
     const auto y = add(leader.monitor_work_area.top(), y_offset);
     if (!x || !y) {
         return std::nullopt;
     }
-    const auto leader_right = add(*x, *leader_width);
-    const auto follower_right = add(*x, *follower_width);
-    const auto leader_bottom = add(*y, *leader_height);
+    const auto leader_right = add(*x, leader_size.width);
+    const auto follower_right = add(*x, follower_size.width);
+    const auto leader_bottom = add(*y, leader_size.height);
     const auto follower_bottom =
-        leader_bottom ? add(*leader_bottom, *follower_height) : std::nullopt;
+        leader_bottom ? add(*leader_bottom, follower_size.height) : std::nullopt;
     if (!leader_right || !follower_right || !leader_bottom ||
         !follower_bottom) {
         return std::nullopt;
@@ -420,6 +567,14 @@ ExplorerGlueConsent::~ExplorerGlueConsent() noexcept {
     }
 }
 
+ExplorerGlueLayoutReadinessResult
+ExplorerGlueConsent::preview_layout_readiness(ExplorerTestSession& leader,
+                                              ExplorerTestSession& follower) {
+    return detail::evaluate_layout_readiness_preview(
+        detail::ExplorerGlueSessionBridge::inspect_pair(
+            leader, follower, false));
+}
+
 ExplorerGlueBeginResult ExplorerGlueConsent::begin(
     std::unique_ptr<ExplorerTestSession> leader,
     std::unique_ptr<ExplorerTestSession> follower) {
@@ -431,7 +586,7 @@ ExplorerGlueBeginResult ExplorerGlueConsent::begin(
     }
 
     auto inspection = detail::ExplorerGlueSessionBridge::inspect_pair(
-        *leader, *follower);
+        *leader, *follower, false);
     result.facts.leader_target_consent_prefix_valid =
         inspection.leader_target_consent_prefix_valid;
     result.facts.follower_target_consent_prefix_valid =
