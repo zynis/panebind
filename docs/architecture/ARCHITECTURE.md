@@ -5,11 +5,15 @@ owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, the sealed R1-C2A Explorer single-translation boundary,
 and the implemented R1-C2B Explorer Glue Move test-session boundary. This
 document records implemented boundaries and current decisions; runtime
-acceptance evidence and gate results are recorded separately. R1-C2B real
-Explorer validation is still `PENDING_UAT`; implementation and automated tests
-do not substitute for that human evidence. Debug Attempt 1 safely stopped at
-pre-authority `UnsafeLayout`; Fix 1 adds a non-consuming readiness preview and
-does not reinterpret that attempt as Glue runtime.
+acceptance evidence and gate results are recorded separately. Debug Attempt 1
+safely stopped at pre-authority `UnsafeLayout`; Fix 1 added readiness preview.
+Debug Attempt 2 passed its legacy gate, safety, final geometry, lifecycle, and
+evidence integrity, but 31 Leader LOCATION receipts led to only one active
+Follower apply. Progressive real-time follow remains unaccepted. Fix 2 adds
+processing quanta and a stronger evidence gate; a new human Debug run is still
+required, and no Release Explorer UAT is run in this fix. The
+[Attempt 2 forensic record](../reports/R1C2B_ATTEMPT2_FORENSICS.md) preserves the
+old PASS and the missing drain-cycle evidence without manufacturing history.
 
 ## System flow
 
@@ -17,7 +21,8 @@ does not reinterpret that attempt as Glue runtime.
 Native OS event
     -> R0 observation adapter (evidence only), or
        narrow R1-C2B Explorer Glue WinEvent source
-    -> Validated role-bound receipt and normalized event/geometry
+    -> Validated role-bound receipt metadata
+    -> Owner processing quantum: latest Leader trigger + current live geometry
     -> R1-A Core: visible geometry, adjacency graph, TranslationSession,
        and MovePlan(target_visible_rect)
     -> R1-C2B Core: GlueMoveCoordinator state/generation/receipt ledger
@@ -478,13 +483,39 @@ the session.
 
 The creating STA and its message loop own target eligibility, event drain,
 behavior, translation preparation, native apply, verification, termination, and
-cleanup. Waiting uses a waitable timeout plus `MsgWaitForMultipleObjectsEx`, not
-resident polling. Each drained receipt batch captures one frozen live Leader/
-Follower geometry pair before any event in that batch can cause a native move.
-This prevents a later Follower apply from retroactively changing the geometry
-assigned to an older receipt. It also permits a queued START+LOCATION pair only
-when the live Leader remains an exact or same-baseline pure translation from the
-armed layout; state drift or resize aborts.
+cleanup. Waiting uses a waitable timeout plus `MsgWaitForMultipleObjectsEx`.
+Each nonempty drain forms one processing quantum. Raw receipts retain their
+sequence, native timestamp, role, quantum ID, and coalesced disposition without
+historical geometry. One live Leader/Follower pair is captured at processing
+time and explicitly labeled `live_geometry_at_processing_quantum`. Multiple
+Leader LOCATION receipts within that quantum may select only the latest
+meaningful trigger, preserving lifecycle barriers. Coalesced receipts do not
+enter Core as repeated copies of the current geometry. A later quantum samples
+again. The pre-apply Follower sample remains available for exact feedback
+attribution, and a queued START+LOCATION pair permits only an exact or
+same-baseline pure Leader translation; state drift or resize aborts.
+
+The owner message pump processes at most eight messages before returning to
+drain, and yields as soon as target queue readiness is detected before or after
+a pump call. `PeekMessageW` may deliver internal callbacks even when it returns
+false, so readiness is checked in that case too. Receipts delivered during
+COM/native checks enter the next quantum directly without waiting for another
+notification. Drain clears notification-pending state and permits a later
+empty-to-nonempty notification. No resident sampling or high-frequency timer
+drives behavior.
+
+Private Glue native validation processes already-delivered Shell receipts via
+a zero-deadline readiness check, avoiding the inherited readiness wait/nested
+message drain. All live inventory, exact location, identity, security, state,
+monitor, DPI, pre-native and post-native checks remain mandatory. Ordinary
+R1-C2A validation retains its original readiness behavior. The WinEvent
+callback workload is unchanged.
+
+An END suffix or callbacks delivered during final post-verification remain
+explicit receipt evidence. The latter are captured after unhook in an
+`inactive_discard` terminal quantum with no sample/Core input. Watermarks are
+never truncated to hide that tail, and discarded receipts do not count toward
+feedback acknowledgement or multi-step follow acceptance.
 
 Before each active Follower `SetWindowPos`, the Windows ledger records the
 behavior operation ID, source Leader sequence, expected visible/positioning
@@ -497,7 +528,11 @@ acknowledged geometry before a new apply may occur; otherwise the session
 aborts. Geometry written by the new operation can therefore never launder an
 older or user-produced Follower receipt into self-feedback.
 
-Leader END stops new planning and captures an exact final pair. Successful
+If a quantum contains both Leader LOCATION and END, its final coalesced
+LOCATION is processed before END, preserving the last meaningful translation
+and ResizeOrMixed abort. That operation cannot count as an apply before END
+receipt delivery. Leader END then stops new planning and captures an exact
+final pair. Successful
 native results with missing feedback may be reconciled against that snapshot;
 no WinEvent acknowledgement is invented. Completion, abort, timeout, destroy,
 native failure, post-verification failure, and all public exception paths enter
@@ -507,12 +542,14 @@ rectangles, release the private pair authority, and leave both user-created
 Explorer windows open. The aggregate is strictly owner-thread-affine; it is not
 transferable between threads.
 
-The evidence runner treats complete runtime success, an explicitly supported
-pre-native safe block, and malformed/contradictory evidence as distinct
-outcomes: `PASS` exits 0, `SAFE_BLOCKED / KNOWN_BLOCKED` exits 2, and
-`INVALID_EVIDENCE` exits 1. On a safe block, Glue consent/authority/binding,
-layout operations, hook arm, drag trace, and active Follower operations must be
-absent, and all safety flags must remain false. A pre-native summary uses
+The evidence runner treats complete runtime success, supported safe blocks,
+and malformed/contradictory evidence as distinct outcomes: `PASS` exits 0,
+`SAFE_BLOCKED / KNOWN_BLOCKED` exits 2, and `INVALID_EVIDENCE` exits 1. On a
+pre-native safe block, Glue consent/authority/binding, layout operations, hook
+arm, drag trace, and active Follower operations must be absent, and all safety
+flags must remain false. A separate runtime safe-block path requires a safe
+completed session with exact restore but insufficient drag or multi-step
+follow evidence. A pre-native summary uses
 `feedback_suppression_evidence = not_reached`; it never claims a missing event
 was reconciled. This evidence classification changes neither the Glue behavior
 coordinator nor the event source.
@@ -524,6 +561,26 @@ the setup/active/restore operation chain, and requires one-to-one command and
 feedback reconciliation. Legacy markerless handling is limited to offline
 replay of the exact first-attempt prefix and hashes; it is unavailable to a new
 live run.
+
+The separate `REALTIME_FOLLOW_EVIDENCE_GATE` is a UAT fixture criterion:
+raw Leader START=1, END=1, LOCATION>=3, distinct sampled Leader geometries>=2,
+exact active Follower native applies>=2, distinct active Follower targets>=2,
+and at least one apply before END callback receipt delivery. All active native
+post-verifications and the final target must be exact; recursive operations
+and unexpected feedback must be zero. There is no arbitrary apply/receipt
+ratio or product FPS/latency SLA. The human is prompted to drag continuously
+at normal speed for approximately one second over a visible distance.
+
+Each operation records its quantum, sample generation, and pre/post-native
+receipt watermarks. Before-END evidence requires a source sequence below END,
+no END in the operation quantum, and a post-native watermark still below END.
+This proves ordering against callback receipt delivery, not an unrecorded
+native END generation or human mouse-release time. An apply in a LOCATION+END
+quantum can complete the final translation but cannot satisfy this count.
+Fewer than three raw LOCATIONs yield `INSUFFICIENT_DRAG_EVIDENCE`; a valid
+safe 31-to-1 session yields `INSUFFICIENT_REALTIME_FOLLOW`. Both restore and
+exit as safe blocks. Missing Follower LOCATION remains compatible with exact
+native receipts plus final-snapshot reconciliation.
 
 ## Normalized event model
 
@@ -770,16 +827,31 @@ virtual-desktop policy.
 - Duplicate exact feedback is suppressed, missing feedback is reconciled only
   through exact native result plus final snapshot, and unexpected feedback
   aborts. Follower START is never a second Glue session.
-- Event-batch geometry is frozen before any operation in that batch. A queued
+- Raw receipts carry no historical geometry. Each processing quantum owns one
+  explicitly current live pair sample; coalesced Leader receipts select the
+  latest meaningful trigger, and later quanta must sample again. A queued
   START+LOCATION pair may represent an already-translated Leader, but resize,
   state drift, or an unattributable later Follower receipt aborts.
+- Owner pumping is bounded to eight messages and yields to target queue
+  readiness; private Glue Shell validation does not enter the legacy readiness
+  wait. Callback workload, full eligibility checks, and R1-C2A defaults remain
+  unchanged. No polling event source is introduced.
+- LOCATION preceding END in the same quantum may produce a final exact apply
+  before reconciliation, but cannot count as an apply before END receipt
+  delivery. Source/trace sequence and operation watermarks are causal evidence;
+  log-write wall-clock timestamps are not.
 - Every terminal path attempts owner-thread stop/unhook, inactive-receipt
   discard, exact independent Follower/Leader restore, and authority release.
   PaneBind never closes the user-created Explorer windows.
-- Evidence runner outcomes remain disjoint: complete runtime `PASS`, strictly
-  zero-authority/zero-operation `SAFE_BLOCKED`, and malformed or contradictory
-  `INVALID_EVIDENCE`. Pre-native feedback state is `not_reached`, not a runtime
-  reconciliation claim.
+- Evidence runner outcomes remain disjoint: full multi-step runtime `PASS`,
+  supported `SAFE_BLOCKED`, and malformed or contradictory `INVALID_EVIDENCE`.
+  Pre-native blocks require zero authority/operation; runtime insufficiency
+  requires safe completion and exact restore. Pre-native feedback state is
+  `not_reached`, not a runtime reconciliation claim.
+- Multi-step acceptance requires raw LOCATION>=3, distinct Leader samples>=2,
+  exact active applies>=2, distinct Follower targets>=2, and at least one apply
+  before END callback delivery, while preserving final exactness and zero
+  recursion/unexpected feedback. It establishes no ratio or smoothness SLA.
 - R0 observer semantics and R1-C2A user-visible semantics remain unchanged.
   R1-C2B uses no R0 JSONL control bus, global input, injection, high-frequency
   polling, other application, Glue Resize, persistent group, Snap, or R1-C3

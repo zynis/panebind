@@ -1,14 +1,23 @@
 #include "platform/windows/explorer/explorer_glue_session.h"
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
+#include "platform/windows/explorer/explorer_glue_quantum.h"
+#include "core/behavior/glue_move_coordinator.h"
 
+#include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <iostream>
+#include <span>
+#include <vector>
 
 namespace {
 
 namespace explorer = panebind::platform::windows::explorer;
 namespace detail = panebind::platform::windows::explorer::detail;
 namespace geometry = panebind::core::geometry;
+namespace behavior = panebind::core::behavior;
+namespace model = panebind::core::model;
+namespace topology = panebind::core::topology;
 
 int failures = 0;
 
@@ -422,6 +431,303 @@ void test_layout_readiness_rejects_retained_side_effect_state() {
            "preview rejects a retained temporary peer exception");
 }
 
+// Synthetic normalized receipts exercise the production selection policy and
+// real R1-A/Glue coordinator. Exact operation results below are fixture inputs,
+// never native Explorer observations or event-time geometry claims.
+class QuantumFixture final {
+public:
+    QuantumFixture() {
+        const std::array windows{
+            topology::WindowGeometry{model::WindowId{"leader"}, initial_leader},
+            topology::WindowGeometry{model::WindowId{"follower"}, initial_follower}};
+        const auto graph = topology::WindowAdjacencyGraph::build(windows, {});
+        expect(coordinator.arm(graph, model::WindowId{"leader"},
+                               model::WindowId{"follower"}).kind ==
+                   behavior::GlueDecisionKind::Armed,
+               "quantum fixture arms the actual frozen two-window coordinator");
+    }
+
+    [[nodiscard]] explorer::ExplorerGlueEvent receipt(
+        const explorer::ExplorerGlueEventKind kind,
+        const explorer::ExplorerGlueWindowRole role =
+            explorer::ExplorerGlueWindowRole::Leader) {
+        return {kind, role,
+                role == explorer::ExplorerGlueWindowRole::Leader ? 11U : 22U,
+                1U, next_sequence++, 0U, 0U};
+    }
+
+    void start() {
+        const std::array events{
+            receipt(explorer::ExplorerGlueEventKind::MoveResizeStarted)};
+        process(events, initial_leader);
+    }
+
+    void locations(const geometry::Rect live_leader,
+                   const std::size_t count = 3U) {
+        std::vector<explorer::ExplorerGlueEvent> events;
+        for (std::size_t index = 0U; index < count; ++index) {
+            events.push_back(
+                receipt(explorer::ExplorerGlueEventKind::GeometryChanged));
+        }
+        process(events, live_leader);
+    }
+
+    void feedback() {
+        const std::array events{receipt(
+            explorer::ExplorerGlueEventKind::GeometryChanged,
+            explorer::ExplorerGlueWindowRole::Follower)};
+        const auto previous_requests = commands.size();
+        process(events, last_leader);
+        expect(commands.size() == previous_requests,
+               "synthetic exact follower feedback never requests another move");
+    }
+
+    void finish() {
+        const std::array events{
+            receipt(explorer::ExplorerGlueEventKind::MoveResizeEnded)};
+        process(events, last_leader);
+    }
+
+    void process(const std::span<const explorer::ExplorerGlueEvent> events,
+                 const geometry::Rect live_leader) {
+        ++quantum_count;
+        const auto selected = detail::select_glue_quantum_events(events);
+        const auto leader_locations = std::count_if(
+            events.begin(), events.end(), [](const auto& event) {
+                return event.kind == explorer::ExplorerGlueEventKind::GeometryChanged &&
+                       event.role == explorer::ExplorerGlueWindowRole::Leader;
+            });
+        raw_leader_locations += static_cast<std::size_t>(leader_locations);
+        if (leader_locations != 0) {
+            samples.push_back(live_leader);
+        }
+        last_leader = live_leader;
+        for (std::size_t index = 0U; index < events.size(); ++index) {
+            if (!selected[index]) {
+                ++coalesced_receipts;
+                continue;
+            }
+            const auto& event = events[index];
+            if (event.kind == explorer::ExplorerGlueEventKind::TargetDestroyed) {
+                static_cast<void>(coordinator.report_target_invalidated(
+                    coordinator.session_generation()));
+                break;
+            }
+            const auto role = event.role == explorer::ExplorerGlueWindowRole::Leader
+                                  ? behavior::GlueWindowRole::Leader
+                                  : behavior::GlueWindowRole::Follower;
+            const auto kind = event.kind == explorer::ExplorerGlueEventKind::MoveResizeStarted
+                                  ? behavior::GlueEventKind::MoveResizeStarted
+                              : event.kind == explorer::ExplorerGlueEventKind::MoveResizeEnded
+                                  ? behavior::GlueEventKind::MoveResizeEnded
+                                  : behavior::GlueEventKind::GeometryChanged;
+            const auto decision = coordinator.on_event(
+                {coordinator.session_generation(), event.receipt_sequence,
+                 role, kind,
+                 kind == behavior::GlueEventKind::MoveResizeStarted
+                     ? std::nullopt
+                     : std::optional<geometry::Rect>{
+                           role == behavior::GlueWindowRole::Leader
+                               ? live_leader : follower}});
+            decisions.push_back(decision.kind);
+            if (decision.command.has_value()) {
+                expect(role == behavior::GlueWindowRole::Leader &&
+                           kind == behavior::GlueEventKind::GeometryChanged,
+                       "only selected Leader LOCATION requests follower motion");
+                commands.push_back(*decision.command);
+                operation_quanta.push_back(quantum_count);
+                follower = decision.command->target_visible_rect;
+                const auto& command = *decision.command;
+                expect(coordinator.on_operation_result(
+                           {command.session_generation,
+                            command.operation_generation, command.follower_id,
+                            behavior::FollowerOperationOutcome::Exact,
+                            follower}).kind ==
+                           behavior::GlueDecisionKind::OperationRecorded,
+                       "every fixture operation has an exact postverify result");
+            }
+            if (coordinator.state() == behavior::GlueMoveState::Aborted) {
+                break;
+            }
+            if (decision.kind == behavior::GlueDecisionKind::Completing) {
+                expect(coordinator.complete(
+                           {coordinator.session_generation(), live_leader,
+                            follower}).kind == behavior::GlueDecisionKind::Completed,
+                       "END reconciles the exact final total-delta target");
+            }
+        }
+    }
+
+    static constexpr geometry::Rect initial_leader{0, 0, 100, 100};
+    static constexpr geometry::Rect initial_follower{100, 0, 200, 100};
+    behavior::GlueMoveCoordinator coordinator;
+    geometry::Rect follower{initial_follower};
+    geometry::Rect last_leader{initial_leader};
+    std::uint64_t next_sequence{1U};
+    std::size_t quantum_count{};
+    std::size_t raw_leader_locations{};
+    std::size_t coalesced_receipts{};
+    std::vector<geometry::Rect> samples;
+    std::vector<behavior::FollowerMoveCommand> commands;
+    std::vector<std::size_t> operation_quanta;
+    std::vector<behavior::GlueDecisionKind> decisions;
+};
+
+void test_one_quantum_coalesces_without_claiming_historical_samples() {
+    QuantumFixture fixture;
+    using Kind = explorer::ExplorerGlueEventKind;
+    const std::array events{
+        fixture.receipt(Kind::MoveResizeStarted),
+        fixture.receipt(Kind::GeometryChanged),
+        fixture.receipt(Kind::GeometryChanged),
+        fixture.receipt(Kind::GeometryChanged),
+        fixture.receipt(Kind::MoveResizeEnded)};
+    expect(detail::select_glue_quantum_events(events) ==
+               std::vector<bool>{true, false, false, true, true},
+           "START and END survive while only the latest LOCATION is selected");
+    fixture.process(events, {40, 25, 140, 125});
+    expect(fixture.raw_leader_locations == 3U &&
+               fixture.samples.size() == 1U &&
+               fixture.coalesced_receipts == 2U &&
+               fixture.commands.size() == 1U &&
+               fixture.commands.front().source_leader_sequence == 4U &&
+               fixture.follower == geometry::Rect{140, 25, 240, 125} &&
+               fixture.coordinator.state() == behavior::GlueMoveState::Completed,
+           "one quantum yields one current sample and one final catch-up, not three historical observations");
+}
+
+void test_multiple_wakes_preserve_progressive_total_delta() {
+    QuantumFixture fixture;
+    fixture.start();
+    const std::array samples{
+        geometry::Rect{10, 5, 110, 105},
+        geometry::Rect{25, -7, 125, 93},
+        geometry::Rect{55, 18, 155, 118}};
+    for (const auto& sample : samples) {
+        fixture.locations(sample);
+    }
+    expect(fixture.raw_leader_locations == 9U && fixture.samples.size() == 3U &&
+               fixture.commands.size() == 3U &&
+               fixture.operation_quanta == std::vector<std::size_t>{2U, 3U, 4U},
+           "separate wakes produce distinct samples and multiple active requests");
+    if (fixture.commands.size() == 3U) {
+        for (std::size_t index = 0U; index < samples.size(); ++index) {
+            const auto& command = fixture.commands[index];
+            expect(command.target_visible_rect == geometry::Rect{
+                       samples[index].left() + 100, samples[index].top(),
+                       samples[index].right() + 100, samples[index].bottom()} &&
+                       command.operation_generation == index + 1U,
+                   "every requested target uses initial follower plus total Leader delta");
+        }
+    }
+    fixture.finish();
+    expect(fixture.coordinator.state() == behavior::GlueMoveState::Completed &&
+               fixture.coordinator.stats().missing_feedback_count == 3U,
+           "multiple exact operations may all reconcile without follower events");
+}
+
+void test_same_sample_next_quantum_is_noop() {
+    QuantumFixture fixture;
+    fixture.start();
+    fixture.locations({30, 12, 130, 112});
+    fixture.locations({30, 12, 130, 112});
+    expect(fixture.samples.size() == 2U && fixture.commands.size() == 1U &&
+               fixture.coordinator.stats().follower_noop_count == 1U,
+           "a repeated processing sample does not cause a second operation");
+    fixture.locations({60, 24, 160, 124});
+    expect(fixture.commands.size() == 2U,
+           "the next meaningful sample after a no-op still requests motion");
+    fixture.finish();
+}
+
+void test_end_quantum_keeps_final_translation_and_lifecycle_barriers() {
+    QuantumFixture fixture;
+    fixture.start();
+    fixture.locations({10, 2, 110, 102});
+    using Kind = explorer::ExplorerGlueEventKind;
+    const std::array final_events{
+        fixture.receipt(Kind::GeometryChanged),
+        fixture.receipt(Kind::GeometryChanged),
+        fixture.receipt(Kind::MoveResizeEnded)};
+    fixture.process(final_events, {80, 35, 180, 135});
+    expect(fixture.commands.size() == 2U &&
+               fixture.commands.back().source_leader_sequence ==
+                   final_events[1].receipt_sequence &&
+               fixture.decisions.back() == behavior::GlueDecisionKind::Completing &&
+               fixture.follower == geometry::Rect{180, 35, 280, 135},
+           "last meaningful LOCATION is applied before same-quantum END reconciliation");
+
+    const std::array barrier_events{
+        explorer::ExplorerGlueEvent{Kind::GeometryChanged},
+        explorer::ExplorerGlueEvent{Kind::MoveResizeEnded},
+        explorer::ExplorerGlueEvent{Kind::GeometryChanged},
+        explorer::ExplorerGlueEvent{Kind::TargetDestroyed},
+        explorer::ExplorerGlueEvent{Kind::GeometryChanged}};
+    expect(detail::select_glue_quantum_events(barrier_events) ==
+               std::vector<bool>{true, true, true, true, true},
+           "coalescing never removes lifecycle or destroy barriers");
+}
+
+void test_quantum_resize_or_mixed_still_aborts() {
+    QuantumFixture fixture;
+    fixture.start();
+    fixture.locations({10, 5, 110, 105});
+    fixture.locations({25, 10, 140, 110});
+    expect(fixture.coordinator.state() == behavior::GlueMoveState::Aborted &&
+               fixture.coordinator.abort_reason() ==
+                   behavior::GlueAbortReason::ResizeOrMixed &&
+               fixture.commands.size() == 1U,
+           "a later quantum with mixed move/resize aborts without another request");
+}
+
+void test_multiple_quantum_feedback_and_missing_reconcile() {
+    QuantumFixture fixture;
+    fixture.start();
+    fixture.locations({10, 0, 110, 100});
+    fixture.feedback();
+    fixture.locations({20, 5, 120, 105});
+    fixture.locations({30, 10, 130, 110});
+    expect(fixture.coordinator.pending_operation_count() == 2U,
+           "operation one is acknowledged while operations two and three await feedback");
+    fixture.finish();
+    const auto& stats = fixture.coordinator.stats();
+    expect(fixture.commands.size() == 3U &&
+               stats.suppressed_feedback_count == 1U &&
+               stats.missing_feedback_count == 2U &&
+               stats.reconciled_feedback_count == 2U &&
+               stats.unexpected_feedback_count == 0U &&
+               fixture.coordinator.pending_operation_count() == 0U &&
+               fixture.coordinator.state() == behavior::GlueMoveState::Completed,
+           "mixed observed/missing exact feedback reconciles without recursive motion");
+}
+
+void test_120_receipts_across_quanta_without_drift_or_recursion() {
+    QuantumFixture fixture;
+    fixture.start();
+    for (std::size_t index = 1U; index <= 24U; ++index) {
+        const auto delta = static_cast<geometry::Coordinate>(index * 3U);
+        fixture.locations({delta, -delta, delta + 100, 100 - delta}, 5U);
+        if (index % 4U == 0U) {
+            fixture.feedback();
+            fixture.feedback();
+        }
+    }
+    fixture.finish();
+    const auto& stats = fixture.coordinator.stats();
+    expect(fixture.raw_leader_locations == 120U &&
+               fixture.samples.size() == 24U &&
+               fixture.coalesced_receipts == 96U &&
+               fixture.commands.size() == 24U &&
+               fixture.follower == geometry::Rect{172, -72, 272, 28} &&
+               stats.duplicate_feedback_count == 6U &&
+               stats.missing_feedback_count == 18U &&
+               stats.reconciled_feedback_count == 18U &&
+               stats.max_pending_depth <= 32U &&
+               stats.unexpected_feedback_count == 0U &&
+               fixture.coordinator.state() == behavior::GlueMoveState::Completed,
+           "120 raw receipts preserve 24 processing samples with bounded ledger, no drift, no recursion, and exact final geometry");
+}
+
 } // namespace
 
 int main() {
@@ -436,6 +742,13 @@ int main() {
     test_layout_readiness_monitor_dpi_and_invalidation();
     test_layout_readiness_is_repeatable_and_too_large_can_become_ready();
     test_layout_readiness_rejects_retained_side_effect_state();
+    test_one_quantum_coalesces_without_claiming_historical_samples();
+    test_multiple_wakes_preserve_progressive_total_delta();
+    test_same_sample_next_quantum_is_noop();
+    test_end_quantum_keeps_final_translation_and_lifecycle_barriers();
+    test_quantum_resize_or_mixed_still_aborts();
+    test_multiple_quantum_feedback_and_missing_reconcile();
+    test_120_receipts_across_quanta_without_drift_or_recursion();
 
     if (failures != 0) {
         std::cerr << failures << " Explorer Glue session test(s) failed\n";

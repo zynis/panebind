@@ -4,6 +4,7 @@
 #include "core/model/window_id.h"
 #include "core/topology/window_adjacency.h"
 #include "platform/windows/explorer/explorer_glue_event_source.h"
+#include "platform/windows/explorer/explorer_glue_quantum.h"
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -530,6 +531,8 @@ struct ExplorerGlueSession::Impl final {
         pending_native.reserve(kPendingCapacity);
         operations.reserve(kNativeOperationCapacity);
         trace.reserve(kTraceCapacity);
+        receipts.reserve(kTraceCapacity);
+        quanta.reserve(kTraceCapacity);
     }
 
     DWORD owner_thread_id{};
@@ -545,6 +548,10 @@ struct ExplorerGlueSession::Impl final {
     std::optional<core::geometry::Rect> last_acknowledged_follower_visible;
     std::vector<ExplorerGlueOperationRecord> operations;
     std::vector<ExplorerGlueTraceRecord> trace;
+    std::vector<ExplorerGlueReceiptRecord> receipts;
+    std::vector<ExplorerGlueQuantumRecord> quanta;
+    std::uint64_t current_quantum_id{};
+    std::uint64_t current_sample_generation{};
     std::uint64_t next_permit_generation{1U};
     std::uint64_t next_trace_sequence{1U};
     bool setup_complete{};
@@ -772,6 +779,10 @@ bool ExplorerGlueSession::register_pending_before_native(
         owner.pending_native.size() >= kPendingCapacity) {
         return false;
     }
+    if (owner.event_source->facts().poison !=
+        ExplorerGlueEventSourcePoison::None) {
+        return false;
+    }
     try {
         registration->pending.feedback_after_sequence =
             owner.event_source->facts().latest_receipt_sequence;
@@ -893,7 +904,17 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
          role,
          behavior_operation_generation,
          source_leader_sequence,
-         operation});
+         operation,
+         phase == ExplorerGlueOperationPhase::ActiveFollower
+             ? impl_->current_quantum_id : 0U,
+         phase == ExplorerGlueOperationPhase::ActiveFollower
+             ? impl_->current_sample_generation : 0U,
+         pending_registration.registered_index.has_value()
+             ? impl_->pending_native[*pending_registration.registered_index]
+                   .feedback_after_sequence : 0U,
+         phase == ExplorerGlueOperationPhase::ActiveFollower &&
+                 impl_->event_source != nullptr
+             ? impl_->event_source->facts().latest_receipt_sequence : 0U});
     return operation;
 }
 
@@ -1079,9 +1100,15 @@ void ExplorerGlueSession::record_trace(
     record.trace_sequence = impl_->next_trace_sequence++;
     record.glue_session_generation = impl_->coordinator.session_generation();
     record.visible_rect = visible_rect;
+    // Event inputs reference the quantum sample. Operation-result trace rows
+    // retain actual receipt geometry in visible_rect, not a second sample.
+    record.sampled_visible_rect = event != nullptr ? visible_rect : std::nullopt;
+    record.processing_quantum_id = impl_->current_quantum_id;
+    record.sampled_geometry_generation = impl_->current_sample_generation;
     record.behavior_operation_generation = behavior_operation_generation;
     if (event != nullptr) {
         record.event_sequence = event->receipt_sequence;
+        record.native_event_timestamp_ms = event->native_event_time;
         record.role = event->role;
         if (event->kind != ExplorerGlueEventKind::TargetDestroyed) {
             record.event_kind = core_event_kind(event->kind);
@@ -1101,7 +1128,8 @@ void ExplorerGlueSession::record_trace(
 
 ExplorerGlueStepResult ExplorerGlueSession::process_event(
     const ExplorerGlueEvent& event,
-    const std::optional<core::geometry::Rect>& observed_geometry) {
+    const ExplorerWindowSnapshot& sampled_leader,
+    const ExplorerWindowSnapshot& sampled_follower) {
     ExplorerGlueStepResult result;
     result.reason = ExplorerGlueReason::Eligible;
     result.stage = ExplorerGlueStage::ActiveSession;
@@ -1132,10 +1160,14 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         return result;
     }
 
-    auto leader_live = detail::ExplorerGlueSessionBridge::capture(
-        impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
-    auto follower_live = detail::ExplorerGlueSessionBridge::capture(
-        impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower);
+    // The quantum already fully revalidated both targets. These are explicitly
+    // processing-time samples; do not recapture once per historical receipt.
+    ExplorerCaptureResult leader_live{
+        ExplorerEligibilityReason::Eligible, ExplorerOperationStage::Preflight,
+        sampled_leader, std::nullopt};
+    ExplorerCaptureResult follower_live{
+        ExplorerEligibilityReason::Eligible, ExplorerOperationStage::Preflight,
+        sampled_follower, std::nullopt};
     if (!leader_live.succeeded() || !follower_live.succeeded() ||
         !same_pair_monitor_and_dpi(*leader_live.snapshot,
                                    *follower_live.snapshot)) {
@@ -1184,12 +1216,9 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
     std::optional<core::geometry::Rect> event_geometry;
     if (event.kind == ExplorerGlueEventKind::GeometryChanged ||
         event.kind == ExplorerGlueEventKind::MoveResizeEnded) {
-        event_geometry = observed_geometry.has_value()
-                             ? observed_geometry
-                             : std::optional<core::geometry::Rect>{
-                                   event.role == ExplorerGlueWindowRole::Leader
-                                       ? leader_live.snapshot->visible_rect
-                                       : follower_live.snapshot->visible_rect};
+        event_geometry = event.role == ExplorerGlueWindowRole::Leader
+                             ? sampled_leader.visible_rect
+                             : sampled_follower.visible_rect;
     }
     if (event.role == ExplorerGlueWindowRole::Follower &&
         event.kind == ExplorerGlueEventKind::GeometryChanged) {
@@ -1344,8 +1373,9 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         return result;
     }
 
-    constexpr std::size_t batch_limit = 4096U;
-    for (std::size_t batch = 0U; batch < batch_limit; ++batch) {
+    // One current queue batch per processing quantum. Newly delivered receipts
+    // belong to the next quantum, giving the owner loop an explicit boundary.
+    {
         auto drained = impl_->event_source->drain_owner_queue();
         impl_->facts.max_event_queue_depth =
             std::max(impl_->facts.max_event_queue_depth,
@@ -1382,11 +1412,58 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         }
 
         if (drained.events.empty()) {
-            if (impl_->event_source->facts().queue_depth == 0U) {
-                return result;
-            }
-            continue;
+            return result;
         }
+
+        if (impl_->receipts.size() + drained.events.size() > kTraceCapacity ||
+            impl_->quanta.size() >= kTraceCapacity) {
+            static_cast<void>(impl_->coordinator.report_queue_overflow(
+                impl_->coordinator.session_generation()));
+            result.reason = ExplorerGlueReason::EventQueueOverflow;
+            return result;
+        }
+        const auto end = std::find_if(drained.events.begin(), drained.events.end(),
+            [](const ExplorerGlueEvent& event) {
+                return event.role == ExplorerGlueWindowRole::Leader &&
+                       event.kind == ExplorerGlueEventKind::MoveResizeEnded;
+            });
+        const auto active_count = end == drained.events.end()
+            ? drained.events.size()
+            : static_cast<std::size_t>(end - drained.events.begin()) + 1U;
+        const auto selected = detail::select_glue_quantum_events(
+            std::span{drained.events}.first(active_count));
+        ExplorerGlueQuantumRecord quantum;
+        quantum.processing_quantum_id = ++impl_->current_quantum_id;
+        quantum.first_receipt_sequence = drained.events.front().receipt_sequence;
+        quantum.last_receipt_sequence = drained.events.back().receipt_sequence;
+        quantum.receipt_count = drained.events.size();
+        for (std::size_t index = 0; index < drained.events.size(); ++index) {
+            const auto& event = drained.events[index];
+            const bool discarded = index >= active_count;
+            const bool location = event.kind == ExplorerGlueEventKind::GeometryChanged;
+            if (event.role == ExplorerGlueWindowRole::Leader) {
+                quantum.leader_location_count += location && !discarded ? 1U : 0U;
+                quantum.contains_leader_end = quantum.contains_leader_end ||
+                    event.kind == ExplorerGlueEventKind::MoveResizeEnded;
+                if (location && !discarded && selected[index]) {
+                    quantum.selected_leader_sequence = event.receipt_sequence;
+                }
+            } else {
+                quantum.follower_location_count += location && !discarded ? 1U : 0U;
+            }
+            impl_->receipts.push_back({event.receipt_sequence,
+                quantum.processing_quantum_id, event.role,
+                event.kind == ExplorerGlueEventKind::TargetDestroyed
+                    ? std::nullopt
+                    : std::optional{core_event_kind(event.kind)},
+                event.native_event_time,
+                !discarded && !selected[index], discarded});
+        }
+        if (quantum.leader_location_count != 0U) {
+            quantum.sampled_geometry_generation = quantum.processing_quantum_id;
+        }
+        impl_->current_sample_generation = quantum.sampled_geometry_generation;
+        impl_->quanta.push_back(quantum);
 
         // Do not query a destroyed HWND. A destroy receipt is already bound to
         // the exact target by the event source and terminates the batch before
@@ -1406,9 +1483,10 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
             return result;
         }
 
-        // Freeze one owner-thread snapshot for this already-received batch.
-        // Later processing may move Follower; using that post-apply geometry to
-        // interpret an older receipt would manufacture false self-feedback.
+        // Exactly one live pair sample at this processing quantum. Coalesced
+        // Leader receipts keep source metadata only; they never enter Core as
+        // multiple copies of this geometry. Follower attribution still uses the
+        // pre-apply sample and the existing pending watermark protections.
         const auto batch_leader = detail::ExplorerGlueSessionBridge::capture(
             impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
         const auto batch_follower = detail::ExplorerGlueSessionBridge::capture(
@@ -1423,22 +1501,20 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
             result.stage = ExplorerGlueStage::ActiveSession;
             return result;
         }
+        impl_->quanta.back().leader_visible_rect = batch_leader.snapshot->visible_rect;
+        impl_->quanta.back().follower_visible_rect = batch_follower.snapshot->visible_rect;
 
-        for (std::size_t index = 0U; index < drained.events.size(); ++index) {
+        for (std::size_t index = 0U; index < active_count; ++index) {
             const auto& event = drained.events[index];
-            const std::optional<core::geometry::Rect> observed_geometry =
-                event.kind == ExplorerGlueEventKind::GeometryChanged ||
-                        event.kind == ExplorerGlueEventKind::MoveResizeEnded
-                    ? std::optional<core::geometry::Rect>{
-                          event.role == ExplorerGlueWindowRole::Leader
-                              ? batch_leader.snapshot->visible_rect
-                              : batch_follower.snapshot->visible_rect}
-                    : std::nullopt;
+            if (!selected[index]) {
+                continue;
+            }
             if (event.role == ExplorerGlueWindowRole::Leader &&
                 event.kind == ExplorerGlueEventKind::GeometryChanged) {
                 for (auto later = drained.events.begin() +
                                   static_cast<std::ptrdiff_t>(index + 1U);
-                     later != drained.events.end(); ++later) {
+                     later != drained.events.begin() +
+                                  static_cast<std::ptrdiff_t>(active_count); ++later) {
                     if (later->role != ExplorerGlueWindowRole::Follower) {
                         continue;
                     }
@@ -1493,7 +1569,8 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                     }
                 }
             }
-            const auto handled = process_event(event, observed_geometry);
+            const auto handled = process_event(event, *batch_leader.snapshot,
+                                               *batch_follower.snapshot);
             if (!handled.succeeded()) {
                 return handled;
             }
@@ -1504,14 +1581,7 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                 return result;
             }
         }
-        if (impl_->event_source->facts().queue_depth == 0U) {
-            return result;
-        }
     }
-
-    static_cast<void>(impl_->coordinator.report_queue_overflow(
-        impl_->coordinator.session_generation()));
-    result.reason = ExplorerGlueReason::EventQueueOverflow;
     return result;
 }
 
@@ -1538,6 +1608,34 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
         event_lifecycle_clean = impl_->event_source->stop_live();
         try {
             const auto discarded = impl_->event_source->drain_owner_queue();
+            // Postverify may have delivered additional callbacks after the
+            // final active quantum drained. Preserve that tail in its own
+            // inactive quantum rather than losing receipt/watermark evidence.
+            if (!discarded.events.empty()) {
+                if (impl_->quanta.size() >= kTraceCapacity ||
+                    impl_->receipts.size() + discarded.events.size() >
+                        kTraceCapacity) {
+                    event_lifecycle_clean = false;
+                } else {
+                    ExplorerGlueQuantumRecord tail;
+                    tail.processing_quantum_id = ++impl_->current_quantum_id;
+                    tail.first_receipt_sequence =
+                        discarded.events.front().receipt_sequence;
+                    tail.last_receipt_sequence =
+                        discarded.events.back().receipt_sequence;
+                    tail.receipt_count = discarded.events.size();
+                    tail.inactive_discard = true;
+                    for (const auto& event : discarded.events) {
+                        impl_->receipts.push_back({event.receipt_sequence,
+                            tail.processing_quantum_id, event.role,
+                            event.kind == ExplorerGlueEventKind::TargetDestroyed
+                                ? std::nullopt
+                                : std::optional{core_event_kind(event.kind)},
+                            event.native_event_time, false, true});
+                    }
+                    impl_->quanta.push_back(tail);
+                }
+            }
             impl_->facts.max_event_queue_depth =
                 std::max(impl_->facts.max_event_queue_depth,
                          discarded.facts.max_queue_depth);
@@ -1674,6 +1772,13 @@ ExplorerGlueStepResult ExplorerGlueSession::run_until_terminal_impl(
     ExplorerGlueStage terminal_stage = ExplorerGlueStage::Completion;
     const HANDLE wait_handle = timer.get();
     for (;;) {
+        if (WaitForSingleObject(wait_handle, 0U) == WAIT_OBJECT_0) {
+            static_cast<void>(impl_->coordinator.report_timeout(
+                impl_->coordinator.session_generation()));
+            terminal_reason = ExplorerGlueReason::TimedOut;
+            terminal_stage = ExplorerGlueStage::ActiveSession;
+            break;
+        }
         const auto drained = drain_event_source();
         if (!drained.succeeded()) {
             terminal_reason = drained.reason;
@@ -1690,6 +1795,13 @@ ExplorerGlueStepResult ExplorerGlueSession::run_until_terminal_impl(
             terminal_reason = ExplorerGlueReason::BehaviorAborted;
             terminal_stage = ExplorerGlueStage::ActiveSession;
             break;
+        }
+
+        // COM/native validation may reenter and deliver receipts after the
+        // quantum's initial drain. Consume those at a new sample boundary
+        // without waiting for another edge-triggered notification.
+        if (impl_->event_source->facts().queue_depth != 0U) {
+            continue;
         }
 
         const DWORD wait = MsgWaitForMultipleObjectsEx(
@@ -1714,19 +1826,30 @@ ExplorerGlueStepResult ExplorerGlueSession::run_until_terminal_impl(
         }
 
         bool quit_seen = false;
-        MSG message{};
-        while (PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE)) {
-            if (message.message == WM_QUIT) {
-                quit_seen = true;
-                break;
-            }
-            if (impl_->event_source->owns_notification(message.message,
-                                                       message.wParam)) {
-                continue;
-            }
-            static_cast<void>(TranslateMessage(&message));
-            static_cast<void>(DispatchMessageW(&message));
-        }
+        detail::pump_glue_message_quantum(
+            [&]() {
+                MSG message{};
+                const bool retrieved =
+                    PeekMessageW(&message, nullptr, 0U, 0U, PM_REMOVE) != FALSE;
+                if (!retrieved) {
+                    return false; // PeekMessage may still have delivered callbacks.
+                }
+                if (message.message == WM_QUIT) {
+                    quit_seen = true;
+                    return false;
+                }
+                if (!impl_->event_source->owns_notification(message.message,
+                                                            message.wParam)) {
+                    static_cast<void>(TranslateMessage(&message));
+                    static_cast<void>(DispatchMessageW(&message));
+                }
+                return true;
+            },
+            [&]() {
+                const auto source = impl_->event_source->facts();
+                return source.queue_depth != 0U ||
+                       source.poison != ExplorerGlueEventSourcePoison::None;
+            });
         if (quit_seen) {
             static_cast<void>(impl_->coordinator.report_event_source_failure(
                 impl_->coordinator.session_generation()));
@@ -1816,6 +1939,18 @@ const std::vector<ExplorerGlueTraceRecord>&
 ExplorerGlueSession::trace() const noexcept {
     static const std::vector<ExplorerGlueTraceRecord> unavailable;
     return impl_ != nullptr ? impl_->trace : unavailable;
+}
+
+const std::vector<ExplorerGlueReceiptRecord>&
+ExplorerGlueSession::receipts() const noexcept {
+    static const std::vector<ExplorerGlueReceiptRecord> unavailable;
+    return impl_ != nullptr ? impl_->receipts : unavailable;
+}
+
+const std::vector<ExplorerGlueQuantumRecord>&
+ExplorerGlueSession::quanta() const noexcept {
+    static const std::vector<ExplorerGlueQuantumRecord> unavailable;
+    return impl_ != nullptr ? impl_->quanta : unavailable;
 }
 
 detail::ExplorerGlueDiagnostics detail::ExplorerGlueSessionDiagnostics::read(

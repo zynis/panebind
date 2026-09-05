@@ -2082,7 +2082,8 @@ template <typename ImplType>
 [[nodiscard]] NativeValidationResult validate_native_target(
     ImplType& impl,
     const ExplorerWindowToken* token,
-    const bool initialize_anchor) {
+    const bool initialize_anchor,
+    const bool wait_for_shell_activity = true) {
     if (GetCurrentThreadId() != impl.controller_thread_id) {
         return {ExplorerEligibilityReason::WrongThread,
                 std::nullopt,
@@ -2280,27 +2281,45 @@ template <typename ImplType>
         }
 
         auto observation_facts = impl.consent_observation->facts();
-        const auto pump_deadline =
-            std::chrono::steady_clock::now() + std::chrono::milliseconds{20};
-        constexpr std::size_t consent_message_budget = 64U;
-        for (std::size_t dispatched = 0U;
-             dispatched < consent_message_budget &&
-             std::chrono::steady_clock::now() < pump_deadline;
-             ++dispatched) {
+        // Glue already has an event-driven owner loop. Process delivered Shell
+        // receipts without entering the legacy readiness wait/message drain.
+        // All inventory, location, identity, security and snapshot checks below
+        // remain mandatory. Ordinary R1-C2A calls keep their original behavior.
+        if (!wait_for_shell_activity) {
             const auto pump = impl.consent_observation->pump_until_activity(
-                observation_facts.browser.latest_sequence, pump_deadline);
-            if (pump.status == BrowserReadinessWaitStatus::TimedOut) {
-                break;
-            }
-            if (pump.status != BrowserReadinessWaitStatus::ActivityObserved) {
+                observation_facts.browser.latest_sequence,
+                std::chrono::steady_clock::now());
+            if (pump.status != BrowserReadinessWaitStatus::TimedOut &&
+                pump.status != BrowserReadinessWaitStatus::ActivityObserved) {
                 return {ExplorerEligibilityReason::ShellEventStreamInvalid,
                         std::nullopt,
-                        hresult_diagnostic(
-                            "DWebBrowserEvents2 consent observation",
+                        hresult_diagnostic("DWebBrowserEvents2 Glue observation",
                             pump.diagnostic,
-                            "consent target event stream could not be drained safely")};
+                            "Glue Shell receipt processing failed")};
             }
-            observation_facts = impl.consent_observation->facts();
+        } else {
+            const auto pump_deadline =
+                std::chrono::steady_clock::now() + std::chrono::milliseconds{20};
+            constexpr std::size_t consent_message_budget = 64U;
+            for (std::size_t dispatched = 0U;
+                 dispatched < consent_message_budget &&
+                 std::chrono::steady_clock::now() < pump_deadline;
+                 ++dispatched) {
+                const auto pump = impl.consent_observation->pump_until_activity(
+                    observation_facts.browser.latest_sequence, pump_deadline);
+                if (pump.status == BrowserReadinessWaitStatus::TimedOut) {
+                    break;
+                }
+                if (pump.status != BrowserReadinessWaitStatus::ActivityObserved) {
+                    return {ExplorerEligibilityReason::ShellEventStreamInvalid,
+                            std::nullopt,
+                            hresult_diagnostic(
+                                "DWebBrowserEvents2 consent observation",
+                                pump.diagnostic,
+                                "consent target event stream could not be drained safely")};
+                }
+                observation_facts = impl.consent_observation->facts();
+            }
         }
         observation_facts = impl.consent_observation->facts();
         const auto& browser = observation_facts.browser;
@@ -2696,8 +2715,10 @@ void retire_target(ImplType& impl) noexcept {
 template <typename ImplType>
 [[nodiscard]] NativeValidationResult validate_or_retire(
     ImplType& impl,
-    const ExplorerWindowToken& token) {
-    auto validation = validate_native_target(impl, &token, false);
+    const ExplorerWindowToken& token,
+    const bool wait_for_shell_activity = true) {
+    auto validation = validate_native_target(impl, &token, false,
+                                              wait_for_shell_activity);
     if (validation.reason != ExplorerEligibilityReason::Eligible) {
         retire_target(impl);
     }
@@ -4828,7 +4849,7 @@ ExplorerCaptureResult detail::ExplorerGlueSessionBridge::capture(
                                    "role binding is stale or mismatched")};
     }
     auto validation =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
     return {validation.reason,
             ExplorerOperationStage::Preflight,
             std::move(validation.snapshot),
@@ -4864,7 +4885,7 @@ detail::ExplorerGlueSessionBridge::prepare_translation(
     }
 
     auto before =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
     if (before.reason != ExplorerEligibilityReason::Eligible ||
         !before.snapshot.has_value()) {
         result.reason = glue_reason_from_eligibility(before.reason);
@@ -4954,7 +4975,7 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
         prepared.requested_positioning_;
 
     auto immediate =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
     if (immediate.reason != ExplorerEligibilityReason::Eligible ||
         !immediate.snapshot.has_value()) {
         result.reason = immediate.reason;
@@ -5001,7 +5022,7 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
     const DWORD native_error = GetLastError();
 
     auto actual = validate_native_target(
-        *session.impl_, session.impl_->issued_token.operator->(), false);
+        *session.impl_, session.impl_->issued_token.operator->(), false, false);
     if (actual.snapshot.has_value()) {
         result.receipt->actual = *actual.snapshot;
     }

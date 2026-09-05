@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <objbase.h>
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <chrono>
@@ -29,6 +30,7 @@
 #include <string_view>
 #include <system_error>
 #include <utility>
+#include <vector>
 
 namespace {
 
@@ -932,7 +934,8 @@ void record_diagnostic(EvidenceLog& evidence,
 [[nodiscard]] bool emit_drag_prompt(const std::uint32_t timeout_seconds) {
     std::wostringstream prompt;
     prompt << L"\n第 5 步：现在只拖动 Leader 窗口一次\n\n"
-           << L"请只用普通资源管理器标题栏拖动 Leader 一段明显距离，然后松开鼠标。\n"
+           << L"请只用普通资源管理器标题栏，以正常速度连续拖动 Leader 约 1 秒，移动明显距离后松开鼠标。\n"
+           << L"无需精确计时；不要瞬间甩动后立即松手。\n"
            << L"不要按 Alt、Ctrl 或 Shift；不要 Resize、移动 Follower、最大化、最小化、切换目录，或拖到屏幕边缘触发 Windows Snap。\n"
            << L"无需再按键确认。Harness 将通过 WinEvent 自动观察 START / LOCATION / END。\n"
            << L"等待上限：" << timeout_seconds << L" 秒。\n\n";
@@ -1124,6 +1127,11 @@ void append_optional_snapshot(
                << ",\"glue_session_generation\":"
                << item.glue_session_generation
                << ",\"event_sequence\":" << item.event_sequence
+               << ",\"processing_quantum_id\":" << item.processing_quantum_id
+               << ",\"sampled_geometry_generation\":"
+               << item.sampled_geometry_generation
+               << ",\"native_event_timestamp_ms\":"
+               << item.native_event_timestamp_ms
                << ",\"role\":" << json_quote(role_name(item.role))
                << ",\"event_kind\":";
         if (item.event_kind.has_value()) {
@@ -1151,7 +1159,69 @@ void append_optional_snapshot(
         } else {
             fields << "null";
         }
+        fields << ",\"sampled_visible_rect\":";
+        if (item.sampled_visible_rect.has_value()) {
+            append_rect(fields, *item.sampled_visible_rect);
+        } else {
+            fields << "null";
+        }
         if (!evidence.record("internal_trace", fields.str())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] bool record_receipts_and_quanta(
+    EvidenceLog& evidence,
+    const std::vector<explorer::ExplorerGlueReceiptRecord>& receipts,
+    const std::vector<explorer::ExplorerGlueQuantumRecord>& quanta) {
+    for (const auto& item : receipts) {
+        std::ostringstream fields;
+        fields << ",\"receipt_sequence\":" << item.receipt_sequence
+               << ",\"processing_quantum_id\":" << item.processing_quantum_id
+               << ",\"role\":" << json_quote(role_name(item.role))
+               << ",\"event_kind\":";
+        if (item.event_kind.has_value()) {
+            fields << json_quote(behavior_event_name(*item.event_kind));
+        } else {
+            fields << "null";
+        }
+        fields << ",\"native_event_timestamp_ms\":"
+               << item.native_event_timestamp_ms
+               << ",\"coalesced\":" << json_bool(item.coalesced)
+               << ",\"discarded_after_end\":" << json_bool(item.discarded_after_end);
+        if (!evidence.record("event_receipt", fields.str())) {
+            return false;
+        }
+    }
+    for (const auto& item : quanta) {
+        std::ostringstream fields;
+        fields << ",\"processing_quantum_id\":" << item.processing_quantum_id
+               << ",\"first_receipt_sequence\":" << item.first_receipt_sequence
+               << ",\"last_receipt_sequence\":" << item.last_receipt_sequence
+               << ",\"receipt_count\":" << item.receipt_count
+               << ",\"leader_location_count\":" << item.leader_location_count
+               << ",\"follower_location_count\":" << item.follower_location_count
+               << ",\"selected_leader_sequence\":" << item.selected_leader_sequence
+               << ",\"sampled_geometry_generation\":"
+               << item.sampled_geometry_generation
+               << ",\"contains_leader_end\":" << json_bool(item.contains_leader_end)
+               << ",\"inactive_discard\":" << json_bool(item.inactive_discard)
+               << ",\"geometry_semantics\":\"live_geometry_at_processing_quantum\""
+               << ",\"leader_visible_rect\":";
+        if (item.leader_visible_rect.has_value()) {
+            append_rect(fields, *item.leader_visible_rect);
+        } else {
+            fields << "null";
+        }
+        fields << ",\"follower_visible_rect\":";
+        if (item.follower_visible_rect.has_value()) {
+            append_rect(fields, *item.follower_visible_rect);
+        } else {
+            fields << "null";
+        }
+        if (!evidence.record("processing_quantum", fields.str())) {
             return false;
         }
     }
@@ -1170,6 +1240,13 @@ void append_optional_snapshot(
                << item.behavior_operation_generation
                << ",\"source_leader_sequence\":"
                << item.source_leader_sequence
+               << ",\"processing_quantum_id\":" << item.processing_quantum_id
+               << ",\"sampled_geometry_generation\":"
+               << item.sampled_geometry_generation
+               << ",\"pre_native_receipt_watermark\":"
+               << item.pre_native_receipt_watermark
+               << ",\"post_native_receipt_watermark\":"
+               << item.post_native_receipt_watermark
                << ",\"operation_id\":" << operation.operation_id
                << ",\"reason_code\":"
                << static_cast<unsigned>(operation.reason)
@@ -1312,6 +1389,15 @@ void append_optional_snapshot(
 
 struct RunOutcome final {
     bool runtime_pass{};
+    bool safety_runtime_pass{};
+    std::string realtime_follow_evidence_gate{"NOT_REACHED"};
+    std::size_t leader_raw_start_count{};
+    std::size_t leader_raw_location_count{};
+    std::size_t leader_raw_end_count{};
+    std::size_t leader_processing_quantum_count{};
+    std::size_t distinct_leader_geometry_sample_count{};
+    std::size_t distinct_follower_target_count{};
+    std::size_t follower_applies_before_end_count{};
     std::string reason{"not_started"};
     explorer::ExplorerGlueReason glue_reason{
         explorer::ExplorerGlueReason::InvalidArgument};
@@ -1813,6 +1899,7 @@ struct FeedbackCorrelationSummary final {
     outcome.glue_stage = terminal.stage;
     outcome.facts = session->facts();
     if (!record_step(evidence, "run_until_terminal", terminal) ||
+        !record_receipts_and_quanta(evidence, session->receipts(), session->quanta()) ||
         !record_trace(evidence, session->trace()) ||
         !record_operations(evidence, session->operations())) {
         outcome.reason = "evidence_write_failed";
@@ -1879,7 +1966,7 @@ struct FeedbackCorrelationSummary final {
     }
 
     const auto& facts = outcome.facts;
-    outcome.runtime_pass =
+    outcome.safety_runtime_pass =
         terminal.succeeded() &&
         outcome.layout_preview_attempt_count >= 1U &&
         outcome.layout_preview_attempt_count <=
@@ -1916,7 +2003,76 @@ struct FeedbackCorrelationSummary final {
             outcome.reconciled_operation_count &&
         outcome.recursive_follower_operation_count == 0U &&
         facts.unexpected_feedback_count == 0U;
-    outcome.reason = outcome.runtime_pass ? "pass" : "runtime_gate_failed";
+    std::uint64_t leader_end_sequence{};
+    for (const auto& receipt : session->receipts()) {
+        if (receipt.role != explorer::ExplorerGlueWindowRole::Leader ||
+            receipt.discarded_after_end) {
+            continue;
+        }
+        if (receipt.event_kind == behavior::GlueEventKind::MoveResizeStarted) {
+            ++outcome.leader_raw_start_count;
+        } else if (receipt.event_kind == behavior::GlueEventKind::GeometryChanged) {
+            ++outcome.leader_raw_location_count;
+        } else if (receipt.event_kind == behavior::GlueEventKind::MoveResizeEnded) {
+            ++outcome.leader_raw_end_count;
+            leader_end_sequence = receipt.receipt_sequence;
+        }
+    }
+    std::vector<geometry::Rect> distinct_leader_samples;
+    for (const auto& quantum : session->quanta()) {
+        if (quantum.leader_location_count == 0U) {
+            continue;
+        }
+        ++outcome.leader_processing_quantum_count;
+        if (quantum.leader_visible_rect.has_value() &&
+            std::find(distinct_leader_samples.begin(), distinct_leader_samples.end(),
+                      *quantum.leader_visible_rect) == distinct_leader_samples.end()) {
+            distinct_leader_samples.push_back(*quantum.leader_visible_rect);
+        }
+    }
+    outcome.distinct_leader_geometry_sample_count = distinct_leader_samples.size();
+    std::vector<geometry::Rect> distinct_follower_targets;
+    for (const auto& operation : session->operations()) {
+        if (operation.phase != explorer::ExplorerGlueOperationPhase::ActiveFollower ||
+            !operation.result.receipt.has_value()) {
+            continue;
+        }
+        const auto& target = operation.result.receipt->requested_visible_rect;
+        if (std::find(distinct_follower_targets.begin(), distinct_follower_targets.end(),
+                      target) == distinct_follower_targets.end()) {
+            distinct_follower_targets.push_back(target);
+        }
+        const auto quantum = std::find_if(session->quanta().begin(), session->quanta().end(),
+            [&](const auto& item) {
+                return item.processing_quantum_id == operation.processing_quantum_id;
+            });
+        if (leader_end_sequence != 0U && operation.source_leader_sequence != 0U &&
+            operation.source_leader_sequence < leader_end_sequence &&
+            operation.pre_native_receipt_watermark >= operation.source_leader_sequence &&
+            operation.post_native_receipt_watermark >= operation.pre_native_receipt_watermark &&
+            operation.post_native_receipt_watermark < leader_end_sequence &&
+            quantum != session->quanta().end() && !quantum->contains_leader_end) {
+            ++outcome.follower_applies_before_end_count;
+        }
+    }
+    outcome.distinct_follower_target_count = distinct_follower_targets.size();
+    if (outcome.safety_runtime_pass) {
+        outcome.realtime_follow_evidence_gate =
+            outcome.leader_raw_location_count < 3U
+                ? "INSUFFICIENT_DRAG_EVIDENCE"
+                : (outcome.leader_raw_start_count == 1U &&
+                   outcome.leader_raw_end_count == 1U &&
+                   outcome.distinct_leader_geometry_sample_count >= 2U &&
+                   outcome.active_follower_operation_count >= 2U &&
+                   outcome.distinct_follower_target_count >= 2U &&
+                   outcome.follower_applies_before_end_count >= 1U
+                       ? "PASS" : "INSUFFICIENT_REALTIME_FOLLOW");
+    }
+    outcome.runtime_pass = outcome.safety_runtime_pass &&
+                           outcome.realtime_follow_evidence_gate == "PASS";
+    outcome.reason = outcome.runtime_pass ? "pass"
+        : (outcome.safety_runtime_pass ? outcome.realtime_follow_evidence_gate
+                                       : "runtime_gate_failed");
     return outcome;
 }
 
@@ -1929,6 +2085,23 @@ struct FeedbackCorrelationSummary final {
     std::ostringstream fields;
     fields << ",\"result\":"
            << json_quote(outcome.runtime_pass ? "PASS" : "BLOCKED")
+           << ",\"safety_gate\":"
+           << json_quote(outcome.safety_runtime_pass ? "PASS" : "NOT_ACCEPTED")
+           << ",\"final_geometry_gate\":"
+           << json_quote(outcome.safety_runtime_pass ? "PASS" : "NOT_ACCEPTED")
+           << ",\"realtime_follow_evidence_gate\":"
+           << json_quote(outcome.realtime_follow_evidence_gate)
+           << ",\"leader_raw_start_count\":" << outcome.leader_raw_start_count
+           << ",\"leader_raw_location_count\":" << outcome.leader_raw_location_count
+           << ",\"leader_raw_end_count\":" << outcome.leader_raw_end_count
+           << ",\"leader_processing_quantum_count\":"
+           << outcome.leader_processing_quantum_count
+           << ",\"distinct_leader_geometry_sample_count\":"
+           << outcome.distinct_leader_geometry_sample_count
+           << ",\"distinct_follower_target_count\":"
+           << outcome.distinct_follower_target_count
+           << ",\"follower_applies_before_end_count\":"
+           << outcome.follower_applies_before_end_count
            << ",\"reason\":" << json_quote(outcome.reason)
            << ",\"glue_reason\":"
            << json_quote(glue_reason_name(outcome.glue_reason))
@@ -2078,6 +2251,13 @@ int wmain(const int argc, wchar_t* argv[]) {
             L"\nGlue Move session 已完成，两个测试 Explorer 已精确恢复原位置。\n"
             L"PaneBind 没有关闭窗口。若本程序由 evidence runner 启动，请先等待 runner 完成外部 Observer 校验，再自行关闭 Leader 和 Follower。\n"));
         return EXIT_SUCCESS;
+    }
+
+    if (outcome.safety_runtime_pass) {
+        static_cast<void>(write_console_text(
+            L"\nGlue session 安全完成，两个测试 Explorer 已精确恢复原位置；本次实时跟随证据不足。\n"
+            L"请等待 evidence runner 完成审计。下次请以正常速度连续拖动 Leader 约 1 秒。\n"));
+        return 2;
     }
 
     if (outcome.facts_available && outcome.facts.leader_restored_exact &&

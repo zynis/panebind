@@ -251,6 +251,14 @@ public:
     static void stop(ExplorerGlueEventSource& source,
                      bool inject_unhook_failure = false) noexcept;
     static void simulate_reentrant_drain(ExplorerGlueEventSource& source);
+    [[nodiscard]] static bool notification_pending(
+        const ExplorerGlueEventSource& source) noexcept {
+        return source.notification_pending_;
+    }
+    static void set_notification_succeeds(ExplorerGlueEventSource& source,
+                                         const bool succeeds) noexcept {
+        source.synthetic_notification_succeeds_ = succeeds;
+    }
 };
 
 } // namespace detail

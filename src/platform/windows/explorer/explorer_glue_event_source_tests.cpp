@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_glue_event_source.h"
+#include "platform/windows/explorer/explorer_glue_quantum.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -583,6 +584,164 @@ void test_invalid_binding_and_post_stop_event(const TestWindows& windows) {
            "events after an orderly stop are discarded without rearming");
 }
 
+void test_notification_rearms_after_each_drain(const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                81U, 801U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                82U, 802U),
+        4U);
+    expect(!TestAccess::notification_pending(*source),
+           "an empty new queue has no pending owner notification");
+    TestAccess::enqueue(*source,
+                        event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+    expect(TestAccess::notification_pending(*source),
+           "first receipt arms an empty-to-nonempty notification");
+
+    // If a second post were attempted while pending, this injection would
+    // poison the source. It changes only the existing synthetic test seam.
+    TestAccess::set_notification_succeeds(*source, false);
+    TestAccess::enqueue(*source,
+                        event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+    expect(TestAccess::facts(*source).poison ==
+               explorer::ExplorerGlueEventSourcePoison::None,
+           "another queued receipt does not issue a redundant owner post");
+    const auto first = TestAccess::drain(*source);
+    expect(first.events.size() == 2U && first.facts.queue_depth == 0U &&
+               !TestAccess::notification_pending(*source),
+           "drain consumes the batch and clears notification pending");
+
+    TestAccess::set_notification_succeeds(*source, true);
+    TestAccess::enqueue(*source,
+                        event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+    expect(TestAccess::notification_pending(*source),
+           "next wake's receipt rearms the notification after drain");
+    const auto second = TestAccess::drain(*source);
+    expect(second.events.size() == 1U &&
+               second.events.front().receipt_sequence == 3U &&
+               !TestAccess::notification_pending(*source),
+           "the rearmed wake preserves the next monotonic receipt");
+
+    TestAccess::set_notification_succeeds(*source, false);
+    TestAccess::enqueue(*source,
+                        event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+    expect(TestAccess::facts(*source).poison ==
+               explorer::ExplorerGlueEventSourcePoison::NotificationFailure &&
+               TestAccess::facts(*source).notification_failure_count == 1U,
+           "post failure on a later empty-to-nonempty edge proves a new notification is actually attempted");
+}
+
+void test_message_quantum_yields_for_receipts_and_false_peek(
+    const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                83U, 803U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                84U, 804U),
+        8U);
+    const auto ready = [&source]() {
+        return TestAccess::facts(*source).queue_depth != 0U;
+    };
+
+    std::size_t pump_calls = 0U;
+    explorer::detail::pump_glue_message_quantum(
+        [&]() {
+            ++pump_calls;
+            return true;
+        }, ready);
+    expect(pump_calls == 8U,
+           "a stream of unrelated posted messages yields after eight MSGs");
+
+    pump_calls = 0U;
+    explorer::detail::pump_glue_message_quantum(
+        [&]() {
+            ++pump_calls;
+            if (pump_calls == 3U) {
+                TestAccess::enqueue(*source, event(
+                    EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+            }
+            return true;
+        }, ready);
+    expect(pump_calls == 3U && ready(),
+           "target receipt ingress yields before the rest of the message budget");
+
+    pump_calls = 0U;
+    explorer::detail::pump_glue_message_quantum(
+        [&]() {
+            ++pump_calls;
+            return true;
+        }, ready);
+    expect(pump_calls == 0U,
+           "pending target receipts are drained before pumping another MSG");
+    static_cast<void>(TestAccess::drain(*source));
+
+    pump_calls = 0U;
+    explorer::detail::pump_glue_message_quantum(
+        [&]() {
+            ++pump_calls;
+            // A PeekMessage call may dispatch internal WinEvents and still
+            // return FALSE because there is no visible posted MSG.
+            TestAccess::enqueue(*source, event(
+                EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+            return false;
+        }, ready);
+    const auto internal = TestAccess::drain(*source);
+    expect(pump_calls == 1U && internal.events.size() == 1U &&
+               internal.events.front().receipt_sequence == 2U,
+           "false PeekMessage return retains internal-event ingress for owner drain");
+
+    pump_calls = 0U;
+    explorer::detail::pump_glue_message_quantum(
+        [&]() {
+            ++pump_calls;
+            return false;
+        }, ready);
+    expect(pump_calls == 1U && !ready(),
+           "an empty message queue returns to event waiting without a polling loop");
+}
+
+void test_120_raw_receipts_keep_ring_bounded_across_wakes(
+    const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                85U, 805U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                86U, 806U),
+        8U);
+    std::size_t raw_count = 0U;
+    std::size_t selected_count = 0U;
+    std::uint64_t previous_sequence = 0U;
+    for (std::size_t quantum = 0U; quantum < 24U; ++quantum) {
+        explorer::detail::pump_glue_message_quantum(
+            [&]() {
+                for (std::size_t index = 0U; index < 5U; ++index) {
+                    TestAccess::enqueue(*source, event(
+                        EVENT_OBJECT_LOCATIONCHANGE, windows.leader()));
+                }
+                return true;
+            },
+            [&]() { return TestAccess::facts(*source).queue_depth != 0U; });
+        const auto drained = TestAccess::drain(*source);
+        const auto selected =
+            explorer::detail::select_glue_quantum_events(drained.events);
+        raw_count += drained.events.size();
+        for (std::size_t index = 0U; index < drained.events.size(); ++index) {
+            expect(drained.events[index].receipt_sequence == ++previous_sequence,
+                   "every raw stress receipt remains monotonic across rearmed drains");
+            selected_count += selected[index] ? 1U : 0U;
+        }
+        expect(!TestAccess::notification_pending(*source),
+               "each stress drain rearms the next wake notification");
+    }
+    const auto facts = TestAccess::facts(*source);
+    expect(raw_count == 120U && selected_count == 24U &&
+               facts.accepted_count == 120U && facts.queue_depth == 0U &&
+               facts.max_queue_depth == 5U && facts.queue_capacity == 8U &&
+               facts.overflow_count == 0U && facts.reentrant_count == 0U &&
+               facts.poison == explorer::ExplorerGlueEventSourcePoison::None,
+           "120 raw receipts span 24 samples with bounded queues and no recursion or overflow");
+}
+
 } // namespace
 
 int main() {
@@ -596,6 +755,9 @@ int main() {
     test_target_destroy_and_unrelated_destroy();
     test_thread_reentrancy_and_unhook_poison(windows);
     test_invalid_binding_and_post_stop_event(windows);
+    test_notification_rearms_after_each_drain(windows);
+    test_message_quantum_yields_for_receipts_and_false_peek(windows);
+    test_120_raw_receipts_keep_ring_bounded_across_wakes(windows);
 
     if (failures != 0) {
         std::cerr << failures << " explorer glue event-source test(s) failed\n";

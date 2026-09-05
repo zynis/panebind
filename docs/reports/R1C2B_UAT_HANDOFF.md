@@ -1,16 +1,20 @@
 # PaneBind R1-C2B Debug 人工验证交接
 
-状态：Debug Attempt 1 在 Glue 授权前因 `UnsafeLayout` 安全阻断；Fix 1
-增加显式 layout readiness preview 和正确的 blocked-evidence 分流。新的真实
-Explorer Glue Move 尚未运行。
+更新日期：2026-09-05。Debug Attempt 2 按旧 Gate 已 PASS，安全、最终几何、
+生命周期与证据完整性均通过，但 31 条 Leader LOCATION 仅形成 1 次 Follower
+apply，实时跟随尚未接受。Fix 2 增加 progressive processing quanta 和独立
+实时跟随证据 Gate。Fix 2 自动验证已通过；新的真人 Debug UAT 仍待执行。
 
 ```text
 R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
 R1C2B_UAT_FIX1 = PASS
+R1C2B_DEBUG_UAT_ATTEMPT_2_LEGACY_GATE = PASS
+R1C2B_DEBUG_UAT_ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE
+R1C2B_UAT_FIX2 = PASS
 R1C2B_IMPLEMENTATION_READY = YES
 R1C2B_INTERACTIVE_UAT = REQUIRED
-R1C2B_UAT_FIX1_AUTOMATED_TESTS = PASS
-R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = SEE_FINAL_GIT_HANDOFF
+R1C2B_UAT_FIX2_AUTOMATED_TESTS = PASS
+R1C2B_UAT_FIX2_FINAL_SHA_AND_PUSH = SEE_FINAL_GIT_HANDOFF
 R1C2B_RUNTIME_GATE = PENDING_UAT
 ```
 
@@ -42,6 +46,38 @@ GLOBAL_INPUT_CONTROL = NO
 移动发生在 Follower confirmation/pair validation 之前，属于真人准备动作，
 不能视为 Glue runtime。旧 runner 因无条件要求 PASS-only
 `glue_consent_prompt` 等记录而误报 malformed；这就是 Fix 1 的 runner 根因。
+
+## Attempt 2 已保留事实
+
+Prefix `20260905T065805930Z` 的三份原始 evidence 必须原样保留。完整逐条
+取证、指纹与字段限制见
+[Attempt 2 取证报告](R1C2B_ATTEMPT2_FORENSICS.md)。
+
+```text
+ATTEMPT_2_LEGACY_R1C2B_EVIDENCE_GATE = PASS
+ATTEMPT_2_SAFETY = PASS
+ATTEMPT_2_FINAL_GEOMETRY = PASS
+ATTEMPT_2_SESSION_LIFECYCLE = PASS
+ATTEMPT_2_EVIDENCE_INTEGRITY = PASS
+ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE / NOT YET ACCEPTED
+```
+
+Harness 69 条、Observer 2,714 条均完整连续，stderr 为空。Leader
+START/LOCATION/END 为 `1/31/1`；内部只解释了一个 Leader 几何，产生一个
+move request 和 30 个 noop。Follower native apply=1，内部 active
+LOCATION=0，suppressed/duplicate/missing/reconciled=`0/0/1/1`，最终精确
+恢复。旧日志没有 drain 边界，精确 drain-cycle 数及每次事件数
+`NOT_RECORDED / NOT_RECOVERABLE`，不能从 queue 高水位 31 补造。
+
+旧 operation 在处理 END 前已有 trace，但无法证明其发生在原生 END 产生
+之前；外部 Observer 确实在 END 后看到了 Follower target LOCATION。
+这些事实保留旧 PASS，同时说明需要新增多步跟随 Gate。
+
+Fix 2 将 raw receipt 元数据与每个 processing quantum 的 live geometry
+sample 分开记录；同 quantum 可以 coalesce 到最新 Leader LOCATION，下一
+quantum 则重新采样。owner 最多 pump 8 条消息并在目标 receipt 到达后让出
+处理机会，私有 Glue 校验不再进入旧 Shell readiness wait。回调工作量不变，
+也没有新增 polling。
 
 ## 运行前
 
@@ -88,8 +124,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
    正式 begin 会再次 live inspect 和 plan；若 preview 后目标、位置、状态、
    monitor 或 DPI 变化，必须安全阻断。
 5. 程序完成零间隙测试布局并明确显示“现在只拖动 Leader”后，只用普通
-   Explorer 标题栏拖动 **Leader** 一段明显距离，然后松开鼠标。只拖一次，
-   不需要再按键确认。
+   Explorer 标题栏，以正常速度连续拖动 **Leader** 约 1 秒，移动明显距离后
+   松开鼠标。无需精确计时；不要瞬间甩动后立即松手。只拖一次，不需要再
+   按键确认。
 6. 等待 Harness 完成、两个窗口恢复原位置，并继续等待外部 Observer 自然
    结束和 runner 严格校验。看到最终 `evidence gate: PASS` 后，再由你亲自关闭
    Leader 和 Follower 测试窗口。
@@ -123,8 +160,12 @@ Runner 只有同时满足以下内部和外部证据才会打印 PASS：
   monitor/DPI Gate；
 - 独立 Glue `Y + ENTER` generation 完整；
 - setup、arm、run 三个步骤各唯一 PASS；
-- Leader 恰好一个 START、至少一个 active LOCATION、恰好一个 END；
-- 至少一个 Follower native apply，全部具有 exact operation receipt；
+- raw Leader 恰好一个 START、至少三个 active LOCATION、恰好一个 END；
+- 至少两个 distinct sampled Leader geometries；
+- 至少两次 active Follower native apply、至少两个 distinct active Follower
+  target geometries，全部具有 exact operation receipt 与 exact postverify；
+- 至少一次 active Follower apply 在 END callback receipt 交付之前有明确
+  序列证据，最终 Follower target exact；
 - 每个 Follower operation 要么有精确、后登记的 self-feedback，要么通过
   exact native receipt + final snapshot 明确记为 missing/reconciled；
 - 无 recursive Follower operation、unexpected feedback、queue overflow、
@@ -140,6 +181,31 @@ Runner 只有同时满足以下内部和外部证据才会打印 PASS：
 程序不要求“一次 native request 恰好一个 LOCATION”，也不要求 Follower
 出现 START/END。缺失 feedback 只有在 exact operation receipt 和 final snapshot
 同时成立时才允许 reconcile，且不会伪造成 event ACK。
+
+新增 `REALTIME_FOLLOW_EVIDENCE_GATE` 只证明本次 UAT 的多步跟随，不是
+FPS/latency 或最终产品流畅度 SLA，也没有 Follower apply / Leader receipt
+比例要求。Runner 将分别打印：
+
+```text
+Leader raw LOCATION:
+Leader processing quanta:
+Distinct Leader geometry samples:
+Follower native applies:
+Distinct Follower targets:
+Follower applies before END:
+Follower LOCATION:
+Suppressed:
+Duplicate:
+Missing:
+Reconciled:
+```
+
+“before END”使用同一 source 的 receipt 序列、operation 的 pre/post-native
+watermark 和 processing quantum 证明：source Leader sequence 早于 END，
+post-native watermark 尚未包含 END，且该 operation quantum 不含 END。
+这表示 END callback delivery 前的 owner 顺序，不推断未记录的原生 END
+产生时间或真人松手时间。若 LOCATION 与 END 同 quantum，仍先处理最后
+meaningful translation 再 reconcile，但该 apply 不计入 before-END 数。
 
 每条 `pair_layout_preview` 至少记录：
 
@@ -189,8 +255,8 @@ Runner 将结果明确分为三类：
 
 | 输出 | Runner exit | 含义 |
 | --- | ---: | --- |
-| `PASS` | `0` | 完整 runtime evidence 严格通过 |
-| `SAFE_BLOCKED / KNOWN_BLOCKED` | `2` | 支持的 pre-native blocker 严格自洽，且 authority/hook/operation 均未到达 |
+| `PASS` | `0` | 安全、最终几何、生命周期与新实时跟随 Gate 全部通过 |
+| `SAFE_BLOCKED / KNOWN_BLOCKED` | `2` | 支持的 pre-native blocker；或安全完成并精确恢复，但 drag/realtime evidence 不足 |
 | `INVALID_EVIDENCE` | `1` | JSONL/schema/sequence/lifecycle 错误或 evidence 自相矛盾 |
 
 `SAFE_BLOCKED` 不是 malformed，也不是 PASS。若三次 preview 后仍不 fit，
@@ -206,6 +272,12 @@ feedback_suppression_evidence = not_reached
 Follower operation，或 summary 与 operation/sequence/schema/Observer lifecycle
 冲突时，才是 `INVALID_EVIDENCE`。
 
+安全完成但 raw Leader LOCATION 少于三条时，返回
+`SAFE_BLOCKED: INSUFFICIENT_DRAG_EVIDENCE`；raw 数量足够但 distinct
+sample、active apply、target 或 before-END 证据不足时，返回
+`SAFE_BLOCKED: INSUFFICIENT_REALTIME_FOLLOW`。例如再次出现 `31 -> 1`，
+必须安全恢复后以 `2` 退出，不能 PASS，也不把它误称为 malformed。
+
 安全阻断或无效证据返回后状态均不是 Runtime PASS：
 
 ```text
@@ -216,13 +288,12 @@ R1C2B_RUNTIME_GATE = BLOCKED
 
 ## 当前未验证范围
 
-Attempt 1 已验证两个真实 Explorer 的签发/配对前缀和 `UnsafeLayout` 安全
-阻断，但未进入 Glue runtime。Fix 1 命令尚未由真人执行，因此新 preview、
-临时布局、Leader lifecycle、Follower 跟随与 suppression、最终 reconcile、
-恢复、事件数量和流畅度仍为 `NOT TESTED`。Release UAT、多显示器/混合 DPI/
-跨显示器、目标销毁、hung Explorer、真实 overflow/native failure/
-invalidation，以及 Ctrl/global input、Snap、Glue Resize、persistent group 也未
-由本次 Debug handoff 验证。
+Attempt 2 已验证真实 preview、临时布局、Leader lifecycle、一次 exact
+Follower apply、missing reconciliation 与精确恢复。Fix 2 的多 quantum
+实时跟随、新 Gate 及实际流畅度仍须新的真人 Debug evidence，不能用自动
+tests 代替。Release UAT 在本轮不执行；多显示器/混合 DPI/跨显示器、目标
+销毁、hung Explorer、真实 overflow/native failure/invalidation，以及
+Ctrl/global input、Snap、Glue Resize、persistent group 均未由本交接验证。
 
 ```text
 R0_OBSERVER_SEMANTICS_CHANGED = NO

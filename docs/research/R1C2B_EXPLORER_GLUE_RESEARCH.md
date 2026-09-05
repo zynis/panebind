@@ -334,3 +334,135 @@ R1C2A_SEMANTICS_CHANGED = NO
 R1C2B_IMPLEMENTATION = NOT STARTED AT THIS CHECKPOINT
 R1C3 = NOT STARTED
 ```
+
+## R1-C2B UAT Fix 2：处理节奏与实时证据补充
+
+复核日期：2026-09-05。此节为 Fix 2 的定向研究 checkpoint；上文初始
+checkpoint 与 Attempt 2 的旧 gate PASS 均保留。新的真实 Explorer UAT
+尚未执行，调度策略的实际多步跟随效果仍须真人 UAT 验收。
+
+### 实际检查的源码、历史与许可
+
+**FACT.** 本轮重新读取现有本地 Git checkout 的 immutable HEAD 与许可：
+
+| 来源 | 本轮实际检查 | 适用结论与边界 |
+| --- | --- | --- |
+| AltSnap `5c86416ad21e4b72844a998a746bd3bb0bee5f5d` | `hooks.c` 文件许可头、`WorkerThread`（约 693–735 行）、`License.txt`；本地 `git show 7f4afe59076b70980f71af202f63609ca3ac5745` 与 [PR #609](https://github.com/RamonUnch/AltSnap/pull/609) | 工作线程合并连续 movement 消息、随后执行最后一个位置；历史明确将鼠标移动工作移出 hook 路径。这是小 callback 与合并工作的参考，不能证明 PaneBind 的实时性。GPL-3.0-or-later，REFERENCE ONLY。 |
+| AltDrag `e2740d605b0336a3b391fec26794718864b19521` | `hooks.c` 许可头、`WM_ENTERSIZEMOVE`/`WM_EXITSIZEMOVE` 兼容路径和 `LICENSE` | 继承历史仍涉及 lifecycle window messages；不提供 WinEvent 历史几何或 PaneBind feedback ledger。GPL-3.0-or-later，REFERENCE ONLY。 |
+| FancyZones `19c4d805321db86f3634e6968e14dbf25cbba14a` | `FancyZones/FancyZonesApp.cpp` 96–181 行、`FancyZonesLib/FancyZones.cpp` owner handler 961–997 行、根 `LICENSE`；[PR #48569](https://github.com/microsoft/PowerToys/pull/48569) 与 [commit dd26d865](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac) 的网页 diff | 回调转交 owner，destroy 必须 abort；调度合并不能跨越或丢弃生命周期/失效边界。MIT，本轮仅参考，不复制代码。 |
+
+AltSnap 的 worker 历史为
+[`7f4afe59076b70980f71af202f63609ca3ac5745`](https://github.com/RamonUnch/AltSnap/commit/7f4afe59076b70980f71af202f63609ca3ac5745)。
+其现有合并循环不是 PaneBind 的 bounded WinEvent scheduling 模板；本轮
+独立从 PaneBind 队列、authority 和测试要求设计 quantum，不翻译或改写 GPL
+控制流。FancyZones 的 late placement/unhook 也不能替代 active follower
+操作的精确反馈匹配。
+
+检查方法限制：FancyZones 既有 partial clone 的旧 commit `git show` 触发
+promisor fetch 后遇到 GitHub 连接失败，该同步工作已停止。其 pinned HEAD
+源码与许可可本地读取；上述 PR 和 immutable commit 的网页 diff 已实际
+检查。未用 API 重建 Git objects、移动 refs 或模拟 fetch。
+
+### 官方平台契约
+
+**FACT.** [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
+和 [Out-of-Context Hook Functions](https://learn.microsoft.com/en-us/windows/win32/winauto/out-of-context-hook-functions)
+说明 out-of-context notifications 异步排队、在安装 hook 的消息循环线程交付；
+慢 callback 会增加 USER 资源压力。[WinEventProc](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wineventproc)
+的参数只有事件、对象身份、线程和生成时间，没有窗口 rectangle。
+[GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
+读取指定窗口的 rectangle，没有按 WinEvent 时间取历史状态的接口。
+
+**INFERENCE.** 晚处理 receipt 后读取的 live geometry 不能被逐条贴回历史
+LOCATION 并称为 event-time observation。多个 receipt 在同一处理 quantum
+共用一次采样时，证据必须明确只有一个 processing-time sample；只有后续
+quantum 再读取几何，才是新的采样机会。即使后续几何相同，也不应制造第二个
+native apply。
+
+**FACT.** [PeekMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagew)
+自身会分派 pending nonqueued messages，并可能处理 system internal events，
+而后才返回一个可见 MSG 或 false。因此“一次 PeekMessage/DispatchMessage”
+不等于“只交付一个 WinEvent callback”。仅在可见 MSG 的循环体内检查 ring
+会遗漏 `PeekMessage == FALSE` 前已发生的 callback ingress。
+[MsgWaitForMultipleObjectsEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex)
+的 `MWMO_INPUTAVAILABLE` 能唤醒已经看过但尚未移除的 queued input；bounded
+pump 之后仍有消息时，不应仅等待一条全新的消息。
+
+**FACT.** [Guarding Against Reentrancy](https://learn.microsoft.com/en-us/windows/win32/winauto/guarding-against-reentrancy-in-hook-functions)
+列出消息检索、SendMessage 与跨进程 COM 调用造成重入的风险；
+[Single-Threaded Apartments](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments)
+说明 STA 通过消息分派 COM 调用，而且发起 ORPC 或泵消息时可以被重入。
+
+**INFERENCE.** 将复杂 capture 搬到 callback 会扩大重入窗口；把它保留在
+owner 也不意味着整个 capture 是不可重入的原子区间。同步 COM inspection
+期间到达的 WinEvent 只能进入有限 ring，不能递归执行 Glue behavior。bounded
+外层 MSG quantum 不构成 COM 调用时长、callback 数量或最终 smoothness SLA。
+
+### PaneBind 现有代码审计与独立决策
+
+**FACT.** Starting HEAD `e0bccc0e8ab8870150fa79b9f1a70cdf1c902db5`
+的 `ExplorerGlueSession::run_until_terminal_impl` 在一次 wake 后用无界
+`while (PeekMessageW(...))` 排空消息，然后才回到 event-source drain。
+`drain_event_source` 则为一次 drained batch 仅 capture 一次 Leader/Follower，
+把同一 rectangle 交给每个 LOCATION receipt。此组合支持
+`BATCH_SNAPSHOT_COLLAPSE` 的代码因果链；Attempt 2 的具体 receipt、drain、
+geometry 和 operation 对应关系以
+[执行报告](../reports/R1C2B_EXECUTION_REPORT.md) 的原始证据解析为准。
+
+**FACT.** `explorer_session.cpp::validate_native_target` 的 user-consent
+分支还会显式等待 Shell activity：20 ms deadline、外层 64 次预算。
+`ExplorerConsentTargetObservation::pump_until_activity` 内部按自身 message
+budget 读取可用消息。它不是每次绝对无限的 pump，但对一次 Glue
+capture/preflight/postverify 引入了不必要的 nested wait/drain 机会。
+`ExplorerGlueEventSource::drain_owner_queue` 已在 drain 开始时清除
+`notification_pending_`，现有 empty→non-empty 通知机制本身没有证据表明
+丢失 rearm；应补回归证明，不应未经证据重写 callback。
+
+**PANEBIND DECISION.** Fix 2 采用以下有限调整：
+
+1. 主 owner 每次 wake 最多处理小固定数量的可见 MSG（实现选择 8）；每次
+   PeekMessage/Dispatch 后，若 target ring 有数据，立即让出给 drain。
+   `PeekMessage == FALSE` 时仍允许下一轮 drain 处理刚刚进入的 receipts。
+   等待继续使用事件与现有 session deadline，不新增 resident timer 或 polling。
+2. 仅 Glue 已绑定 authority 的私有路径跳过上述主动 Shell activity waiting，
+   保留 canonical identity、当前 HWND/location/inventory、订阅健康、导航失效、
+   security、monitor/DPI 与 native postverify 检查。R1-C2A 默认路径保持原义。
+   COM 本身仍可能重入，不以禁用检查换取频率。
+3. 一次有 Leader LOCATION 的 processing quantum 至多产生一个明确标注为
+   `live_geometry_at_processing_quantum` 的 Leader 样本。记录 raw receipt
+   sequence/native timestamp 与 quantum/sample generation 的映射；选择本
+   quantum 最新有效 Leader LOCATION 驱动 R1-A total-delta。先前 receipt
+   仍保留为 coalesced 输入，不伪造各自的历史 geometry。
+4. START/END、Follower lifecycle 和 destroy 是必须保留的边界。LOCATION 与
+   END 同批时先处理最后一次可观察 translation，再做 END reconciliation；
+   ResizeOrMixed 和 identity/navigation invalidation 仍 abort。END 同批的
+   final apply 不应单凭其较小的 source LOCATION sequence 宣称“已在原生 END
+   发生前执行”。
+5. raw receipt 顺序、sample 顺序、behavior/native operation 顺序分别记录。
+   新 gate 用多 quantum、两个 distinct samples/targets、两个 exact active
+   applies 及至少一个可明确排在 END 之前的 apply 共同验收；同批 final catch-up
+   本身不能证明 realtime progression。native timestamp 仅诊断，不当作统一
+   monotonic clock，也不建立 apply/LOCATION 比率。
+6. 不改 pending identity、exact feedback matching 或 missing reconciliation
+   语义。多个 exact native receipts 中部分没有 LOCATION 仍可在 final exact
+   时 reconcile；不制造 feedback，不重试 native apply 来提高计数。
+
+### 研究 gate 与待验证项
+
+针对上述独立设计的研究 gate 为 PASS；其验收测试必须覆盖 multiple wake
+cycles、一个 quantum 内的合并、next-quantum 新几何、END 同批、same-sample
+no-op、notification rearm、mixed missing feedback，以及 100+ raw receipts
+跨多个 quantum 的有界队列/no recursion/no drift/final exact。具体测试结果
+由本轮执行报告记录，不由源码研究替代。
+
+```text
+R1C2B_FIX2_PRIOR_ART_GATE = PASS
+EXTERNAL_CODE_COPIED = NO
+EXTERNAL_CODE_ADAPTED = NO
+CALLBACK_COMPLEX_CAPTURE = REJECTED
+EVENT_TIME_GEOMETRY_FROM_LATE_SNAPSHOT = REJECTED
+FIXED_RATE_POLLING = REJECTED
+REALTIME_FOLLOW_RUNTIME_EVIDENCE = PENDING_UAT
+R0_OBSERVER_SEMANTICS_CHANGED = NO
+R1C3 = NOT STARTED
+```

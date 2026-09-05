@@ -1,7 +1,7 @@
 # PaneBind R1-C2B Explorer Glue Implementation Report
 
-Report date: 2026-09-04 (Asia/Shanghai; UAT Fix 1 handoff after the first safe
-pre-native block).
+Report date: 2026-09-05 (Asia/Shanghai; UAT Fix 2 after the legacy-passing
+Debug Attempt 2 exposed insufficient progressive Follower-motion evidence).
 
 ## 1. Round and evidence state
 
@@ -10,28 +10,34 @@ Round = R1-C2B - Explorer Feedback Suppression & Glue Session Baseline
 Starting main = 8ac18ab07344632e8f0ed87cafe1b85b2b715d06
 Branch = codex/r1c2b-explorer-glue-session
 Fix 1 starting HEAD = 650196507466498f41a6df44b5031733b560098f
+Fix 2 starting HEAD = e0bccc0e8ab8870150fa79b9f1a70cdf1c902db5
 Research checkpoint = ea46ab297d149f8416a0cff67d30b32fa71fc015
 R0_BASELINE = SEALED
 R1C2A_DEBUG_INTERACTIVE_UAT = PASS
 R1C2A_RELEASE_INTERACTIVE_UAT = PASS
 R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
-R1C2B real Explorer runtime = PENDING_UAT
+R1C2B_DEBUG_UAT_ATTEMPT_2_LEGACY_GATE = PASS
+R1C2B_DEBUG_UAT_ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE
+R1C2B strengthened real Explorer runtime = PENDING_UAT
 R1C2B_UAT_FIX1 automated rerun = PASS
+R1C2B_UAT_FIX2 automated rerun = PASS
 R1C3 = NOT STARTED
 ```
 
-R1-C2B has a pre-Fix-1 implemented and automated-tested baseline for one
-temporary Glue Move session between exactly two newly created, separately
-user-consented Explorer test windows. A human performed Debug Attempt 1 through
-target provisioning and pair validation, but the current window sizes safely
-blocked before Glue consent. No Glue runtime was reached. Consequently, every
-real Glue-runtime claim remains `PENDING_UAT`/`NOT TESTED`; the safe block and
-the independent Observer record are not relabeled as movement or feedback
-evidence.
+Debug Attempt 1 stopped safely at pre-consent `UnsafeLayout`; Fix 1 added
+readiness preview and correct blocked-evidence handling. A human then completed
+Debug Attempt 2 (`20260905T065805930Z`) on the Fix 1 implementation. Its legacy
+runner PASS, safety, exact final geometry, lifecycle, and evidence integrity
+remain valid. Its 31 raw Leader LOCATION receipts produced only one active
+Follower apply, so real-time follow remains insufficient and is not accepted.
+The full immutable-evidence review is in
+[`R1C2B_ATTEMPT2_FORENSICS.md`](R1C2B_ATTEMPT2_FORENSICS.md).
 
-Fix 1 automated results are recorded below. Its final commit SHA, push result,
-clean status, and local/remote divergence are reported by the final Git handoff
-rather than self-referenced inside that commit.
+Fix 2 preserves the distinction between receipt metadata and processing-time
+geometry, introduces fair owner processing quanta, and strengthens the UAT
+evidence criterion. No post-Fix-2 human Explorer UAT or Release Explorer UAT has
+been run by this work. Historical automated results below are labeled by round;
+Fix 2 final verification and Git handoff are recorded separately.
 
 ## 2. Prior-art and platform-documentation gate
 
@@ -79,7 +85,7 @@ Follower, then constructs the R1-A `TranslationSession` from that verified
 pre-hook baseline. Exact Leader START revalidates and activates it; topology,
 membership, roles, and initial rectangles stay frozen until terminal state.
 
-For every Leader LOCATION:
+For every selected Leader LOCATION sample delivered to Core:
 
 - `Unchanged` is a no-op;
 - `Translation` consumes the existing R1-A initial-relative total-delta plan;
@@ -174,7 +180,7 @@ reentrant callback/drain, wrong-thread use, hook install/unhook failure,
 hook-receipt mismatch, root or identity drift, sequence exhaustion, and
 post-poison receipts fail closed.
 
-## 6. Owner STA, receipt batches, and pre-native watermark
+## 6. Owner STA, processing quanta, and pre-native watermark
 
 The thread that creates the consent/session aggregate is the sole owner STA and
 message-loop thread. It owns Explorer eligibility, event drain, behavior,
@@ -183,10 +189,29 @@ teardown, and restore. The WinEvent source is installed/uninstalled on that
 thread. `MsgWaitForMultipleObjectsEx` plus a waitable timer provides bounded
 liveness without a polling event source.
 
-Each drained receipt batch captures one Leader/Follower live snapshot pair
-before processing any event that could move Follower. Every geometry receipt in
-that batch is interpreted against this frozen pair. This prevents a later
-`SetWindowPos` from changing the geometry attributed to an older receipt.
+Each nonempty drain forms one processing quantum. Raw receipts retain sequence,
+native timestamp, role, quantum ID, and coalescing disposition without geometry.
+The owner captures one fully validated live Leader/Follower pair for that
+quantum and labels it `live_geometry_at_processing_quantum`. Within a quantum,
+multiple Leader LOCATION receipts select the latest meaningful trigger while
+preserving lifecycle barriers; coalesced receipts do not enter Core as copies
+of that current geometry. A later quantum gets a fresh sample. The pre-apply
+Follower sample and existing feedback watermark protections remain in force.
+
+The owner message pump retrieves at most eight messages per quantum and checks
+target queue readiness before and after each pump operation, including a
+`PeekMessageW` call that returns false after delivering internal callbacks.
+Delivered target receipts yield immediately to drain. Receipts delivered during
+COM/native validation are handled in a new quantum without waiting for another
+empty-to-nonempty notification. Drain clears notification-pending state so a
+later empty-to-nonempty transition can notify again. This remains event-driven;
+no periodic sampling timer or sleep loop was introduced.
+
+Private Glue validation processes already-delivered Shell receipts using a
+zero-deadline readiness check, avoiding the inherited 20 ms readiness wait and
+its nested message drain. Full inventory, exact location, identity, security,
+state, monitor, DPI, pre-native validation, and exact post-verification remain
+mandatory. Ordinary R1-C2A validation retains its existing wait behavior.
 
 Out-of-context START and LOCATION may already be queued when the owner regains
 control. A Leader START therefore permits only:
@@ -194,9 +219,12 @@ control. A Leader START therefore permits only:
 - the exact armed layout; or
 - a size-preserving, same-delta visible/positioning translation from it.
 
-The following LOCATION then uses the same frozen batch geometry and can emit the
-initial-relative plan. State/identity drift, inconsistent frame translation, or
-resize/mixed geometry aborts.
+The selected LOCATION consumes the current quantum sample and can emit the
+initial-relative plan. State/identity drift, inconsistent frame translation,
+or resize/mixed geometry aborts. A quantum containing LOCATION and END handles
+the coalesced final LOCATION first, allowing its last meaningful translation
+before END reconciliation. That final apply does not count as evidence of an
+apply before END receipt delivery.
 
 Before each active Follower native apply, the Windows ledger registers:
 
@@ -219,6 +247,21 @@ drained batch, it must be attributable to a previously completed exact pending
 operation or the last acknowledged exact geometry before a new native apply may
 run. Otherwise the session aborts before that apply. This closes the
 Leader-event-backlog laundering case.
+
+Evidence additionally records processing quantum/sample generation and pre-
+and post-native receipt watermarks for each active operation. The before-END
+criterion requires an earlier source sequence, no END in the operation's
+quantum, and a post-native watermark below the eventual END receipt sequence.
+It proves owner-side ordering before END callback delivery, not an unrecorded
+native END generation time or the exact time the human released the mouse.
+Native event timestamps remain source metadata; wall-clock log-write times do
+not establish causality.
+
+Callbacks delivered during final post-verification can remain queued after the
+active END quantum. After unhook, the owner records this tail as a separate
+`inactive_discard` quantum with real receipt metadata, zero sample generation,
+no geometry and no Core inputs. It preserves operation watermarks without
+counting discarded callbacks as feedback or real-time progress.
 
 ## 7. Explorer authority and two-window isolation
 
@@ -321,7 +364,8 @@ evidence.
 
 ## 9. Completion, abort, and cleanup
 
-Only exact Leader END enters `Completing`. The owner captures final Leader and
+Only exact Leader END enters `Completing`. If its quantum also includes Leader
+LOCATION, the final selected LOCATION is processed first. The owner captures final Leader and
 Follower snapshots, verifies final Leader translation and R1-A Follower target,
 and reconciles exact completed pending operations. New plans are rejected after
 END.
@@ -443,6 +487,34 @@ R1C2B_UAT_FIX1_R1C2A_REGRESSION = DEBUG/RELEASE PASS
 R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
 ```
 
+Fix 2 verification must cover multiple wakes and live samples; many LOCATIONs
+coalesced within one quantum; a new target in the next quantum; LOCATION+END;
+duplicate/no-op samples; multiple exact native operations with mixed observed
+and missing feedback; notification re-arm; and at least 100 raw LOCATION
+receipts over multiple quanta without recursion, queue overflow, or final drift.
+Final Fix 2 verification on 2026-09-05: Debug and Release builds PASS; each
+complete CTest suite is 11/11 PASS. The focused named scenarios total 39 (Core
+9, session 18, event source 12). Added tests use the production quantum helpers
+with the actual Core coordinator, and synthetic event ingress with controlled
+owned test windows. The 120-raw-receipt stress crosses 24 wakes/quanta and
+produces 24 initial-relative operations, max ring depth 5 within capacity 8,
+zero recursion/overflow/drift, and exact final geometry. The mixed-feedback
+case reconciles two missing receipts after one acknowledged operation.
+
+All 26 Windows PowerShell runner fixtures PASS, including 31-to-1 insufficiency,
+too-short drag, repeated samples, missing feedback, false watermark/sample/ACK
+rejection, and post-END native callbacks retained as an inactive terminal
+quantum. Owned and Companion Debug/Release self-tests each return exit 0 and
+summary PASS; the R1-C2A Explorer unit test passes in both configurations.
+These are automated results, not post-Fix-2 human Explorer acceptance.
+
+Commands use the same CMake/CTest executables and build directories listed
+above. Runner fixtures are executed with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-r1c2b-evidence-runner.ps1
+```
+
 ## 11. R0, R1-C2A, and scope audit
 
 - R0 observer implementation and semantics are unchanged. It remains optional,
@@ -457,6 +529,10 @@ R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
   feedback-suppression/pending-ledger rules.
 - Fix 1 changes neither the narrow Glue WinEvent source nor hook/callback/
   bounded-queue behavior.
+- Fix 2 changes owner scheduling, quantum sampling, private Glue Shell readiness
+  cadence, and evidence acceptance. The callback workload and R1-A total-delta /
+  feedback-ledger semantic core remain unchanged. R1-C2A calls retain the
+  original default validation behavior; Fix 2 automated regression is required.
 - The horizontal-first, vertical-fallback, zero-gap, pure-translation,
   no-resize layout planner safety rules are unchanged; the preview exposes
   their live inputs and result without weakening them.
@@ -505,19 +581,21 @@ titles/metadata, or raw HWND values. Native keys exist only in ignored evidence
 for strict target correlation.
 
 The exact Debug command and human actions are in
-[`R1C2B_UAT_HANDOFF.md`](R1C2B_UAT_HANDOFF.md). Release UAT must not be requested
-until the user returns a passing Debug evidence set.
+[`R1C2B_UAT_HANDOFF.md`](R1C2B_UAT_HANDOFF.md). Release Explorer UAT is outside
+this Fix 2 implementation round.
 
 The runner now treats evidence outcomes as three disjoint results:
 
 | Outcome | Runner exit | Meaning |
 | --- | ---: | --- |
-| `PASS` | `0` | Complete Glue runtime evidence passed every existing strict gate |
-| `SAFE_BLOCKED` / `KNOWN_BLOCKED` | `2` | A supported pre-native blocker was internally consistent and proved zero authority/operation side effects |
+| `PASS` | `0` | Complete safety/final/lifecycle evidence plus the strengthened multi-step follow gate passed |
+| `SAFE_BLOCKED` / `KNOWN_BLOCKED` | `2` | A supported pre-native zero-side-effect blocker, or an exact-restored safe session with insufficient drag/realtime evidence |
 | `INVALID_EVIDENCE` | `1` | JSONL/schema/sequence/lifecycle failed or records contradict the claimed outcome |
 
-A safe-blocking harness itself exits `1`; after validating that contract, the
-runner maps it to its distinct exit `2`. A Fix 1 pre-native summary reports
+A pre-native safe-blocking harness itself exits `1`; after validating that
+contract, the runner maps it to its distinct exit `2`. A completed safe session
+with insufficient real-time evidence exits `2` directly after exact restore.
+A Fix 1 pre-native summary reports
 `feedback_suppression_evidence = not_reached`, not a fabricated missing-event
 reconciliation. The historical Attempt 1 value
 `no_feedback_event_reconciled` is accepted only under its legacy startup
@@ -532,6 +610,24 @@ and requires one-to-one command/operation/reconciliation and unique feedback
 attribution. The sole markerless compatibility path is offline replay of the
 exact Attempt 1 prefix and three fixed SHA-256 hashes; live evidence cannot
 downgrade out of the preview contract.
+
+Fix 2 adds `REALTIME_FOLLOW_EVIDENCE_GATE` to the strict safety/final/lifecycle
+checks. PASS requires raw Leader START=1, END=1, LOCATION>=3, at least two
+distinct sampled Leader geometries, at least two exact active Follower native
+applies, at least two distinct active Follower targets, and at least one apply
+before END receipt delivery under the quantum/watermark rule in section 6.
+All active applies must pass exact post-verification; final Follower geometry
+must be exact; recursive operations and unexpected feedback must both be zero.
+There is no receipt/apply ratio, FPS target, or final product latency SLA.
+
+Fewer than three raw LOCATION receipts yield `INSUFFICIENT_DRAG_EVIDENCE` after
+safe completion. A valid safe session with adequate raw receipts but insufficient
+multi-step motion yields `INSUFFICIENT_REALTIME_FOLLOW`; a repeat of 31-to-1
+cannot PASS. Both remain `SAFE_BLOCKED`, not malformed evidence. Missing
+Follower LOCATION remains legal when exact native receipts and the final
+snapshot reconcile it. The runner reports raw Leader count, processing quanta,
+distinct Leader samples, Follower applies/targets/before-END count, and
+Follower LOCATION/suppressed/duplicate/missing/reconciled counts separately.
 
 ## 13. Debug UAT Attempt 1 evidence review
 
@@ -583,21 +679,43 @@ ATTEMPT_1_NATIVE_GLUE_OPERATION_ATTEMPTED = NO
 ATTEMPT_1_GLUE_RUNTIME_EVIDENCE = NOT_REACHED
 ```
 
-## 14. Remaining NOT TESTED risks
+## 14. Attempt 2 acceptance and remaining NOT TESTED risks
 
-Attempt 1 validated target provisioning and a safe pre-native block only. Until
-a post-Fix-1 human Debug run is reviewed, these remain `NOT TESTED` on real
-Explorer:
+Attempt 2 verified post-preview formal Glue consent/binding, same-monitor
+layout, Leader START/LOCATION/END, one exact active Follower operation, exact
+END reconciliation, and two-window restore under the legacy rule. It did not
+prove progressive real-time Follower motion. Raw Leader 31 LOCATION receipts
+had 31 distinct Observer processing-time snapshots, while Glue interpreted
+one unique Leader geometry and emitted one move request plus 30 no-ops.
+This is `BATCH_SNAPSHOT_COLLAPSE`, as proven by evidence and the old code.
 
-- post-preview formal Glue pair begin, consent, authority, and native binding;
+Exact drain-cycle count and per-drain Leader/Follower counts are
+`NOT_RECORDED / NOT_RECOVERABLE`; queue high-water depth 31 cannot replace
+those missing records. The old operation precedes processed END in trace
+order (operation trace 4, END trace 35), but native-END-before/after cannot be
+established from its absent apply timestamps. Observer recorded a Follower
+target LOCATION after Leader END; internal feedback count zero does not mean
+Windows never emitted one. Details and hashes remain in the
+[forensic report](R1C2B_ATTEMPT2_FORENSICS.md).
+
+```text
+ATTEMPT_2_LEGACY_R1C2B_EVIDENCE_GATE = PASS
+ATTEMPT_2_SAFETY = PASS
+ATTEMPT_2_FINAL_GEOMETRY = PASS
+ATTEMPT_2_SESSION_LIFECYCLE = PASS
+ATTEMPT_2_EVIDENCE_INTEGRITY = PASS
+ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE / NOT YET ACCEPTED
+```
+
+These remain `NOT TESTED` on real Explorer after Fix 2:
+
+- progressive multi-quantum Follower motion under the strengthened gate;
 - rejection of a third live candidate in the user's current Shell inventory
   (Follower-baseline exclusion of the live Leader itself passed Attempt 1);
-- real same-monitor/DPI layout setup, exact adjacency, and two-window restore;
-- native Explorer title-bar START/LOCATION/END lifecycle for the Leader;
 - live Follower smoothness, event count, event latency, duplicate/missing/
   interleaved feedback mix, and suppression outcome;
-- real START+LOCATION already queued in one owner drain;
-- real Explorer native apply/post-verification under drag load;
+- exact observed distribution of receipts across processing quanta;
+- repeated real Explorer native apply/post-verification during a continuous drag;
 - real timeout, user-moved Follower, Leader resize, navigation, minimize/
   maximize, target destruction, monitor/DPI change, queue overflow, hook failure,
   native failure, and post-verification failure paths (automated only);
@@ -609,8 +727,8 @@ Explorer:
   cross-user, cross-session, and virtual-desktop transitions;
 - allocation failure/OOM and long-session sequence/capacity exhaustion;
 - measured smoothness, CPU, and memory; and
-- all Release real Explorer runtime evidence, which is intentionally deferred
-  until Debug PASS.
+- all Release real Explorer runtime evidence; no Release UAT is authorized in
+  this Fix 2 implementation round.
 
 R1-C3 product activation, Ctrl/global input, Snap, Glue Resize, and persistent
 groups are outside this round, not missing R1-C2B acceptance evidence.
@@ -624,12 +742,18 @@ R1C2B_FEEDBACK_SUPPRESSION_GATE = PASS
 R1C2B_EXPLORER_IMPLEMENTATION_GATE = PASS
 
 R1C2B_UAT_FIX1 = PASS
+R1C2B_UAT_FIX2 = PASS
+R1C2B_SAFETY_GATE = PASS
+R1C2B_FINAL_GEOMETRY_GATE = PASS
+R1C2B_REALTIME_FOLLOW_IMPLEMENTATION_GATE = PASS
 R1C2B_IMPLEMENTATION_READY = YES
 R1C2B_INTERACTIVE_UAT = REQUIRED
 R1C2B_RUNTIME_GATE = PENDING_UAT
 
 R1C2B_UAT_FIX1_AUTOMATED_TESTS = PASS
 R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
+R1C2B_UAT_FIX2_AUTOMATED_TESTS = PASS
+R1C2B_UAT_FIX2_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF
 
 R0_OBSERVER_SEMANTICS_CHANGED = NO
 R0_REVALIDATION_REQUIRED = NO

@@ -462,3 +462,88 @@ Official URLs reviewed:
 
 Detailed findings and independently selected R1-C2B contracts are in
 [R1C2B_EXPLORER_GLUE_RESEARCH.md](R1C2B_EXPLORER_GLUE_RESEARCH.md).
+
+## R1-C2B UAT Fix 2 targeted processing-cadence review
+
+Review date: 2026-09-05. This is an additive reference-only inspection; no
+upstream behavior was run or relabeled as a PaneBind empirical result.
+
+### AltSnap / AltDrag
+
+```text
+Projects: AltSnap; AltDrag
+Classification: Mature active behavioral prior art; mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; AltDrag e2740d605b0336a3b391fec26794718864b19521
+License verified: AltSnap hooks.c header and License.txt; AltDrag hooks.c header and LICENSE; GPL-3.0-or-later, REFERENCE ONLY
+Files/modules actually reinspected: AltSnap hooks.c WorkerThread and movement work coalescing; AltDrag hooks.c lifecycle message compatibility paths
+Issues/PR/history actually reinspected: AltSnap PR #609 and local commit diff 7f4afe59076b70980f71af202f63609ca3ac5745; path-scoped hooks.c history; existing AltDrag historical comparison retained
+What was learned: one serialized behavior owner and coalescing consecutive movement work are mature patterns; their code does not supply PaneBind historical WinEvent geometry, bounded processing fairness or operation receipts
+Applicable PaneBind subsystem: private Glue owner scheduling, explicit processing-time sample semantics and small callback boundary
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for implementation; research citations retained, GPL implementation structure/control flow must not be translated or adapted
+```
+
+Pinned source and history links:
+
+- [AltSnap WorkerThread](https://github.com/RamonUnch/AltSnap/blob/5c86416ad21e4b72844a998a746bd3bb0bee5f5d/hooks.c#L693-L735)
+- [AltSnap worker PR #609](https://github.com/RamonUnch/AltSnap/pull/609)
+- [AltSnap worker commit](https://github.com/RamonUnch/AltSnap/commit/7f4afe59076b70980f71af202f63609ca3ac5745)
+- [AltDrag pinned hooks.c](https://github.com/stefansundin/altdrag/blob/e2740d605b0336a3b391fec26794718864b19521/hooks.c)
+
+### Microsoft PowerToys / FancyZones
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License verified: pinned root LICENSE, MIT; reference-only in Fix 2
+Files/modules actually reinspected: FancyZones/FancyZonesApp.cpp hook subscription and forwarding; FancyZonesLib/FancyZones.cpp owner lifecycle/location/destroy dispatch
+Issues/PR/history actually reinspected: PR #48569 and immutable commit dd26d86580168d2e368701f7b0c4d629dc9cd9ac through GitHub rendered discussion/diff
+What was learned: callbacks forward to an owner, and destroy invalidation must abort rather than finalize movement; lifecycle/invalidation boundaries must survive scheduling/coalescing
+Applicable PaneBind subsystem: bounded Glue owner turn and explicit lifecycle barriers; not a native follower feedback matching algorithm
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for this reference-only review; any later code reuse requires separate authorization/provenance and Microsoft MIT notice preservation
+```
+
+Inspection limitation: historical `git show` in the existing partial clone
+triggered promisor fetch, which failed with GitHub connection resets/timeouts;
+that synchronization was stopped. Pinned HEAD source/license were already
+available locally. The PR and commit diff were independently inspected as web
+sources; no objects were reconstructed, refs moved, or fetch simulated.
+
+- [FancyZones pinned hook wrapper](https://github.com/microsoft/PowerToys/blob/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZones/FancyZonesApp.cpp#L96-L181)
+- [FancyZones pinned owner](https://github.com/microsoft/PowerToys/blob/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/FancyZones.cpp#L961-L997)
+- [Destroy-abort PR #48569](https://github.com/microsoft/PowerToys/pull/48569)
+- [Destroy-abort immutable diff](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac)
+
+### Microsoft Learn message delivery, live geometry and COM documentation
+
+```text
+Source: Microsoft Learn Windows desktop/Win32 documentation
+Publisher: Microsoft
+Revision: live pages reviewed 2026-09-05; no immutable SHA asserted
+Terms: Microsoft Learn Terms of Use; facts paraphrased/cited only
+Pages actually inspected: SetWinEventHook; Out-of-Context Hook Functions; WinEventProc; GetWindowRect; PeekMessageW; MsgWaitForMultipleObjectsEx; Guarding Against Reentrancy in Hook Functions; Single-Threaded Apartments
+Issues/PRs inspected: N/A
+What was learned: WinEvent envelope has no geometry; late window query is not event-time history; PeekMessage dispatches nonqueued/internal events before visible MSG retrieval; one MSG is not one callback; MWMO_INPUTAVAILABLE preserves wake opportunity for seen queued input; STA cross-process COM and message pumping permit reentrancy
+Applicable PaneBind subsystem: event-driven owner fairness; raw receipts versus processing-time samples; bounded notification rearm; removal of explicit nested Shell waiting only in private Glue path; no callback capture and no polling
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code; official links retained beside claims
+```
+
+- [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
+- [Out-of-Context Hook Functions](https://learn.microsoft.com/en-us/windows/win32/winauto/out-of-context-hook-functions)
+- [WinEventProc](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wineventproc)
+- [GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
+- [PeekMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagew)
+- [MsgWaitForMultipleObjectsEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex)
+- [Guarding Against Reentrancy](https://learn.microsoft.com/en-us/windows/win32/winauto/guarding-against-reentrancy-in-hook-functions)
+- [Single-Threaded Apartments](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments)
+
+Fix 2 independent decisions, limits and research gate are recorded in
+[R1C2B_EXPLORER_GLUE_RESEARCH.md](R1C2B_EXPLORER_GLUE_RESEARCH.md).

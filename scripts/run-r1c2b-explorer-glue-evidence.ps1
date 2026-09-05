@@ -276,6 +276,251 @@ function ConvertTo-UtcEvidenceTime {
     }
 }
 
+function Assert-RealtimeFollowEvidence {
+    param(
+        [object[]] $Records, [object[]] $Trace,
+        [object[]] $ActiveOperations, [object] $Facts, [object] $Summary
+    )
+    $receipts = @($Records | Where-Object { $_.record_kind -eq 'event_receipt' })
+    $quanta = @($Records | Where-Object { $_.record_kind -eq 'processing_quantum' })
+    if ($receipts.Count -eq 0 -or $quanta.Count -eq 0) {
+        throw '缺少独立 raw receipt / processing quantum evidence。'
+    }
+    Assert-RecordProperties -Record $Facts -Context 'receipt census' `
+        -Names @('accepted_event_count')
+    if ([uint64] $Facts.accepted_event_count -ne [uint64] $receipts.Count) {
+        throw 'Raw receipts（含 inactive discard）与 source accepted count 不一致。'
+    }
+    $receiptBySequence = @{}
+    $quantumById = @{}
+    for ($index = 0; $index -lt $receipts.Count; ++$index) {
+        $receipt = $receipts[$index]
+        Assert-RecordProperties -Record $receipt -Context 'event_receipt' -Names @(
+            'receipt_sequence', 'processing_quantum_id', 'role',
+            'event_kind', 'native_event_timestamp_ms', 'coalesced', 'discarded_after_end')
+        if ([uint64] $receipt.receipt_sequence -ne [uint64] ($index + 1) -or
+            [uint64] $receipt.processing_quantum_id -eq 0 -or
+            @('leader', 'follower') -notcontains $receipt.role -or
+            @('move_resize_started', 'geometry_changed', 'move_resize_ended') -notcontains
+                $receipt.event_kind -or
+            $receipt.coalesced -isnot [bool] -or
+            $receipt.discarded_after_end -isnot [bool] -or
+            ($receipt.coalesced -and $receipt.discarded_after_end) -or
+            ($receipt.coalesced -and
+             ($receipt.role -ne 'leader' -or $receipt.event_kind -ne 'geometry_changed')) -or
+            $null -ne $receipt.PSObject.Properties['visible'] -or
+            $null -ne $receipt.PSObject.Properties['sampled_visible_rect']) {
+            throw 'Raw receipt sequence/role/coalescing 非法，或把几何冒充 receipt-time observation。'
+        }
+        $receiptBySequence[[uint64] $receipt.receipt_sequence] = $receipt
+    }
+    $firstEnd = @($receipts | Where-Object {
+        $_.role -eq 'leader' -and $_.event_kind -eq 'move_resize_ended' -and
+        -not $_.discarded_after_end
+    } | Select-Object -First 1)
+    foreach ($receipt in $receipts) {
+        if ($receipt.discarded_after_end -and
+            ($firstEnd.Count -ne 1 -or
+             [uint64] $receipt.receipt_sequence -le [uint64] $firstEnd[0].receipt_sequence -or
+             [uint64] $receipt.processing_quantum_id -lt [uint64] $firstEnd[0].processing_quantum_id)) {
+            throw 'Discarded receipt 必须位于 END receipt 之后。'
+        }
+    }
+    $lastReceiptSequence = [uint64] 0
+    $lastSampleGeneration = [uint64] 0
+    foreach ($quantum in $quanta) {
+        Assert-RecordProperties -Record $quantum -Context 'processing_quantum' -Names @(
+            'processing_quantum_id', 'first_receipt_sequence', 'last_receipt_sequence',
+            'receipt_count', 'leader_location_count', 'follower_location_count',
+            'selected_leader_sequence', 'sampled_geometry_generation',
+            'contains_leader_end', 'inactive_discard', 'geometry_semantics')
+        Assert-RecordProperties -Record $quantum -Context 'processing_quantum geometry' -Names @(
+            'leader_visible_rect', 'follower_visible_rect') -AllowNull
+        $quantumId = [uint64] $quantum.processing_quantum_id
+        if ($quantumId -ne [uint64] ($quantumById.Count + 1) -or
+            $quantum.geometry_semantics -ne 'live_geometry_at_processing_quantum' -or
+            $quantum.contains_leader_end -isnot [bool] -or
+            $quantum.inactive_discard -isnot [bool]) {
+            throw 'Processing quantum identity/geometry semantics 非法。'
+        }
+        $members = @($receipts | Where-Object {
+            [uint64] $_.processing_quantum_id -eq $quantumId
+        })
+        if ($quantum.inactive_discard) {
+            if ($firstEnd.Count -ne 1 -or
+                $quantumId -le [uint64] $firstEnd[0].processing_quantum_id -or
+                @($members | Where-Object { -not $_.discarded_after_end }).Count -ne 0 -or
+                [int] $quantum.leader_location_count -ne 0 -or
+                [int] $quantum.follower_location_count -ne 0 -or
+                [uint64] $quantum.selected_leader_sequence -ne 0 -or
+                [uint64] $quantum.sampled_geometry_generation -ne 0 -or
+                $null -ne $quantum.leader_visible_rect -or
+                $null -ne $quantum.follower_visible_rect -or
+                $quantum.contains_leader_end) {
+                throw 'Inactive discard quantum 必须位于 END 后，全部 receipts 已丢弃且无 Core input / sample。'
+            }
+        } elseif ($firstEnd.Count -eq 1 -and
+                  $quantumId -gt [uint64] $firstEnd[0].processing_quantum_id) {
+            throw 'END quantum 后的 receipts 只能记录为 inactive discard。'
+        }
+        $locations = @($members | Where-Object {
+            $_.role -eq 'leader' -and $_.event_kind -eq 'geometry_changed' -and
+            -not $_.discarded_after_end
+        })
+        $ends = @($members | Where-Object {
+            $_.role -eq 'leader' -and $_.event_kind -eq 'move_resize_ended' -and
+            -not $_.discarded_after_end
+        })
+        if ($members.Count -eq 0 -or
+            [uint64] $quantum.first_receipt_sequence -ne ($lastReceiptSequence + 1) -or
+            [uint64] $quantum.first_receipt_sequence -ne [uint64] $members[0].receipt_sequence -or
+            [uint64] $quantum.last_receipt_sequence -ne [uint64] $members[-1].receipt_sequence -or
+            [int] $quantum.receipt_count -ne $members.Count -or
+            [int] $quantum.leader_location_count -ne $locations.Count -or
+            [int] $quantum.follower_location_count -ne @($members | Where-Object {
+                $_.role -eq 'follower' -and $_.event_kind -eq 'geometry_changed' -and
+                -not $_.discarded_after_end
+            }).Count -or
+            $quantum.contains_leader_end -ne ($ends.Count -ne 0)) {
+            throw 'Processing quantum raw receipt count/range/END flag 不闭合。'
+        }
+        $lastReceiptSequence = [uint64] $quantum.last_receipt_sequence
+        if ($locations.Count -gt 0) {
+            if ([uint64] $quantum.selected_leader_sequence -ne
+                    [uint64] $locations[-1].receipt_sequence -or
+                [uint64] $quantum.sampled_geometry_generation -le $lastSampleGeneration -or
+                $null -eq $quantum.leader_visible_rect -or
+                $locations[-1].coalesced -ne $false -or
+                @($locations | Where-Object { $_.coalesced -eq $false }).Count -ne 1) {
+                throw 'Leader quantum 必须使用最新 LOCATION receipt 和唯一 live sample。'
+            }
+            [void] (Get-RectKey $quantum.leader_visible_rect)
+            $lastSampleGeneration = [uint64] $quantum.sampled_geometry_generation
+        } elseif ([uint64] $quantum.selected_leader_sequence -ne 0) {
+            throw '没有 Leader LOCATION 的 quantum 不得声称 selected Leader receipt。'
+        }
+        $quantumById[$quantumId] = $quantum
+    }
+    if ($lastReceiptSequence -ne [uint64] $receipts.Count) {
+        throw 'Processing quanta 未消费全部 raw receipts。'
+    }
+    foreach ($item in $Trace) {
+        Assert-RecordProperties -Record $item -Context 'trace quantum linkage' -Names @(
+            'processing_quantum_id', 'sampled_geometry_generation',
+            'native_event_timestamp_ms')
+        Assert-RecordProperties -Record $item -Context 'trace sampled geometry' -Names @('sampled_visible_rect') -AllowNull
+        if ([uint64] $item.event_sequence -eq 0) { continue }
+        $receipt = $receiptBySequence[[uint64] $item.event_sequence]
+        $quantum = $quantumById[[uint64] $item.processing_quantum_id]
+        if ($null -eq $receipt -or $null -eq $quantum -or $receipt.coalesced -or
+            $receipt.discarded_after_end -or
+            [uint64] $receipt.processing_quantum_id -ne [uint64] $item.processing_quantum_id -or
+            $receipt.role -ne $item.role -or $receipt.event_kind -ne $item.event_kind -or
+            [uint64] $receipt.native_event_timestamp_ms -ne [uint64] $item.native_event_timestamp_ms) {
+            throw 'Trace 无法关联唯一 non-coalesced raw receipt。'
+        }
+        if ($item.role -eq 'leader' -and $item.event_kind -eq 'geometry_changed') {
+            if ([uint64] $item.event_sequence -ne [uint64] $quantum.selected_leader_sequence -or
+                [uint64] $item.sampled_geometry_generation -ne
+                    [uint64] $quantum.sampled_geometry_generation -or
+                (Get-RectKey $item.sampled_visible_rect) -ne
+                    (Get-RectKey $quantum.leader_visible_rect)) {
+                throw 'Leader trace 与 quantum live geometry sample 不一致。'
+            }
+        }
+    }
+    foreach ($receipt in $receipts) {
+        $matchingTrace = @($Trace | Where-Object {
+            [uint64] $_.event_sequence -eq [uint64] $receipt.receipt_sequence
+        })
+        $expectedCount = if ($receipt.coalesced -or $receipt.discarded_after_end) { 0 } else { 1 }
+        if ($matchingTrace.Count -ne $expectedCount) {
+            throw 'Raw receipt 与 coalesced/processed trace 集合不闭合。'
+        }
+    }
+    $rawStarts = @($receipts | Where-Object {
+        $_.role -eq 'leader' -and $_.event_kind -eq 'move_resize_started' -and
+        -not $_.discarded_after_end
+    })
+    $rawLocations = @($receipts | Where-Object {
+        $_.role -eq 'leader' -and $_.event_kind -eq 'geometry_changed' -and
+        -not $_.discarded_after_end
+    })
+    $rawEnds = @($receipts | Where-Object {
+        $_.role -eq 'leader' -and $_.event_kind -eq 'move_resize_ended' -and
+        -not $_.discarded_after_end
+    })
+    if ($rawStarts.Count -ne 1 -or $rawEnds.Count -ne 1 -or
+        [uint64] $rawStarts[0].receipt_sequence -ge [uint64] $rawEnds[0].receipt_sequence -or
+        @($rawLocations | Where-Object {
+            [uint64] $_.receipt_sequence -le [uint64] $rawStarts[0].receipt_sequence -or
+            [uint64] $_.receipt_sequence -ge [uint64] $rawEnds[0].receipt_sequence
+        }).Count -ne 0) {
+        throw 'Raw Leader START/LOCATION/END lifecycle 非法。'
+    }
+    $leaderQuanta = @($quanta | Where-Object { [int] $_.leader_location_count -gt 0 })
+    $distinctSamples = @($leaderQuanta | ForEach-Object {
+        Get-RectKey $_.leader_visible_rect
+    } | Sort-Object -Unique).Count
+    $distinctTargets = @($ActiveOperations | ForEach-Object {
+        Get-RectKey $_.requested_visible
+    } | Sort-Object -Unique).Count
+    $beforeEndCount = 0
+    foreach ($operation in $ActiveOperations) {
+        Assert-RecordProperties -Record $operation -Context 'operation quantum linkage' -Names @(
+            'processing_quantum_id', 'sampled_geometry_generation',
+            'pre_native_receipt_watermark', 'post_native_receipt_watermark')
+        $quantum = $quantumById[[uint64] $operation.processing_quantum_id]
+        if ($null -eq $quantum -or
+            [uint64] $operation.source_leader_sequence -ne [uint64] $quantum.selected_leader_sequence -or
+            [uint64] $operation.sampled_geometry_generation -ne [uint64] $quantum.sampled_geometry_generation -or
+            [uint64] $operation.pre_native_receipt_watermark -lt [uint64] $quantum.last_receipt_sequence -or
+            [uint64] $operation.post_native_receipt_watermark -lt [uint64] $operation.pre_native_receipt_watermark -or
+            [uint64] $operation.post_native_receipt_watermark -gt [uint64] $receipts.Count) {
+            throw 'Follower operation quantum/source/native watermark 关联非法。'
+        }
+        $delta = Get-RectTranslation $Facts.leader_layout.visible $quantum.leader_visible_rect 'Leader sampled total delta'
+        if ((Get-TranslatedRectKey $Facts.follower_layout.visible $delta.dx $delta.dy) -ne
+                (Get-RectKey $operation.requested_visible)) {
+            throw 'Follower target 不等于 initial follower + sampled Leader total delta。'
+        }
+        if (-not $quantum.contains_leader_end -and
+            [uint64] $operation.source_leader_sequence -lt [uint64] $rawEnds[0].receipt_sequence -and
+            [uint64] $operation.post_native_receipt_watermark -lt [uint64] $rawEnds[0].receipt_sequence) {
+            ++$beforeEndCount
+        }
+    }
+    $gate = if ($rawLocations.Count -lt 3) {
+        'INSUFFICIENT_DRAG_EVIDENCE'
+    } elseif ($distinctSamples -lt 2 -or $ActiveOperations.Count -lt 2 -or
+              $distinctTargets -lt 2 -or $beforeEndCount -lt 1) {
+        'INSUFFICIENT_REALTIME_FOLLOW'
+    } else { 'PASS' }
+    $counts = [ordered]@{
+        leader_raw_start_count = $rawStarts.Count
+        leader_raw_location_count = $rawLocations.Count
+        leader_raw_end_count = $rawEnds.Count
+        leader_processing_quantum_count = $leaderQuanta.Count
+        distinct_leader_geometry_sample_count = $distinctSamples
+        distinct_follower_target_count = $distinctTargets
+        follower_applies_before_end_count = $beforeEndCount
+    }
+    foreach ($name in $counts.Keys) {
+        Assert-RecordProperties -Record $Summary -Context 'realtime summary' -Names @($name)
+        if ([int] $Summary.$name -ne [int] $counts[$name]) {
+            throw "Realtime summary $name 与 raw/quantum/operation evidence 不一致。"
+        }
+    }
+    Assert-RecordProperties -Record $Summary -Context 'realtime summary' -Names @(
+        'safety_gate', 'final_geometry_gate', 'realtime_follow_evidence_gate')
+    if ($Summary.safety_gate -ne 'PASS' -or $Summary.final_geometry_gate -ne 'PASS' -or
+        $Summary.realtime_follow_evidence_gate -ne $gate) {
+        throw 'Realtime/Safety/final geometry summary 与独立验证结果矛盾。'
+    }
+    $counts['Gate'] = $gate
+    return [pscustomobject] $counts
+}
+
 function Assert-LayoutPreviewEvidence {
     param(
         [Parameter(Mandatory = $true)]
@@ -694,6 +939,7 @@ $knownHarnessRecordKinds = @(
     'pair_layout_recheck_confirmation', 'pair_validation', 'diagnostic',
     'glue_step', 'glue_consent_prompt', 'glue_consent_confirmation',
     'glue_authority', 'glue_native_bindings', 'drag_prompt',
+    'event_receipt', 'processing_quantum',
     'internal_trace', 'operation', 'feedback_reconciliation', 'facts',
     'summary', 'shutdown'
 )
@@ -990,6 +1236,7 @@ if ($pair.result -eq 'BLOCKED') {
         'glue_step',
         'drag_prompt',
         'operation',
+        'event_receipt', 'processing_quantum',
         'feedback_reconciliation',
         'internal_trace',
         'facts'
@@ -1715,8 +1962,7 @@ $expectedFeedbackEvidence = if ($followerFeedback.Count -gt 0) {
 } else {
     'no_feedback_event_reconciled'
 }
-if ($summary.result -ne 'PASS' -or $summary.runtime_gate -ne 'PASS' -or
-    $summary.implementation_ready -ne $true -or
+if ($summary.implementation_ready -ne $true -or
     $summary.behavior_state -ne 'completed' -or
     [int] $summary.leader_start_count -ne $leaderStart.Count -or
     [int] $summary.leader_location_count -ne $leaderLocation.Count -or
@@ -1842,8 +2088,33 @@ if (@($activeTargetObserverEvents | Where-Object {
 if ($observerExitCode -ne 0) {
     throw "Observer 失败：exit=$observerExitCode"
 }
-if ($harnessExitCode -ne 0) {
+$realtime = Assert-RealtimeFollowEvidence -Records $harnessRecords -Trace $trace `
+    -ActiveOperations $activeFollower -Facts $facts -Summary $summary
+$expectedResult = if ($realtime.Gate -eq 'PASS') { 'PASS' } else { 'BLOCKED' }
+$expectedHarnessExit = if ($realtime.Gate -eq 'PASS') { 0 } else { 2 }
+$expectedReason = if ($realtime.Gate -eq 'PASS') { 'pass' } else { $realtime.Gate }
+if ($summary.result -ne $expectedResult -or $summary.runtime_gate -ne $expectedResult -or
+    $summary.reason -ne $expectedReason -or $harnessExitCode -ne $expectedHarnessExit) {
     throw "Glue Harness 未通过：exit=$harnessExitCode, reason=$($summary.reason)"
+}
+
+Write-Output "Leader raw LOCATION: $($realtime.leader_raw_location_count)"
+Write-Output "Leader processing quanta: $($realtime.leader_processing_quantum_count)"
+Write-Output "Distinct Leader geometry samples: $($realtime.distinct_leader_geometry_sample_count)"
+Write-Output "Follower native applies: $($activeFollower.Count)"
+Write-Output "Distinct Follower targets: $($realtime.distinct_follower_target_count)"
+Write-Output "Follower applies before END: $($realtime.follower_applies_before_end_count)"
+Write-Output "Follower LOCATION: internal=$($followerFeedback.Count), Observer=$($externalFollowerLocation.Count)"
+Write-Output "Suppressed: $($summary.suppressed_feedback_count)"
+Write-Output "Duplicate: $($summary.duplicate_feedback_count)"
+Write-Output "Missing: $($summary.missing_feedback_count)"
+Write-Output "Reconciled: $($summary.reconciled_feedback_count)"
+Write-Output "REALTIME_FOLLOW_EVIDENCE_GATE: $($realtime.Gate)"
+if ($realtime.Gate -ne 'PASS') {
+    Write-Output "R1-C2B evidence outcome: SAFE_BLOCKED / $($realtime.Gate)"
+    Write-Output 'Safety/final geometry/lifecycle/evidence integrity: PASS'
+    Write-Output '两个测试 Explorer 已精确恢复；下次请以正常速度连续拖动 Leader 约 1 秒。'
+    exit 2
 }
 
 Write-Output 'R1-C2B evidence outcome: PASS'

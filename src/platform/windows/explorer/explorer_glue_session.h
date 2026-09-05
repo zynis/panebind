@@ -151,6 +151,37 @@ struct ExplorerGlueOperationRecord {
     std::uint64_t behavior_operation_generation{};
     std::uint64_t source_leader_sequence{};
     ExplorerOperationResult result;
+    std::uint64_t processing_quantum_id{};
+    std::uint64_t sampled_geometry_generation{};
+    std::uint64_t pre_native_receipt_watermark{};
+    std::uint64_t post_native_receipt_watermark{};
+};
+
+// Receipts have source metadata, never historical geometry. One quantum owns
+// one current live sample; coalesced receipts do not manufacture observations.
+struct ExplorerGlueReceiptRecord {
+    std::uint64_t receipt_sequence{};
+    std::uint64_t processing_quantum_id{};
+    ExplorerGlueWindowRole role{ExplorerGlueWindowRole::Leader};
+    std::optional<core::behavior::GlueEventKind> event_kind;
+    std::uint32_t native_event_timestamp_ms{};
+    bool coalesced{};
+    bool discarded_after_end{};
+};
+
+struct ExplorerGlueQuantumRecord {
+    std::uint64_t processing_quantum_id{};
+    std::uint64_t first_receipt_sequence{};
+    std::uint64_t last_receipt_sequence{};
+    std::size_t receipt_count{};
+    std::size_t leader_location_count{};
+    std::size_t follower_location_count{};
+    std::uint64_t selected_leader_sequence{};
+    std::uint64_t sampled_geometry_generation{};
+    std::optional<core::geometry::Rect> leader_visible_rect;
+    std::optional<core::geometry::Rect> follower_visible_rect;
+    bool contains_leader_end{};
+    bool inactive_discard{};
 };
 
 struct ExplorerGlueTraceRecord {
@@ -163,6 +194,10 @@ struct ExplorerGlueTraceRecord {
     std::optional<core::behavior::GlueAbortReason> abort_reason;
     std::optional<core::geometry::Rect> visible_rect;
     std::uint64_t behavior_operation_generation{};
+    std::uint64_t processing_quantum_id{};
+    std::uint64_t sampled_geometry_generation{};
+    std::uint32_t native_event_timestamp_ms{};
+    std::optional<core::geometry::Rect> sampled_visible_rect;
 };
 
 struct ExplorerGlueFacts {
@@ -307,6 +342,10 @@ public:
         const noexcept;
     [[nodiscard]] const std::vector<ExplorerGlueTraceRecord>& trace()
         const noexcept;
+    [[nodiscard]] const std::vector<ExplorerGlueReceiptRecord>& receipts()
+        const noexcept;
+    [[nodiscard]] const std::vector<ExplorerGlueQuantumRecord>& quanta()
+        const noexcept;
 
 private:
     struct Impl;
@@ -322,8 +361,8 @@ private:
         void* context) noexcept;
     [[nodiscard]] ExplorerGlueStepResult process_event(
         const ExplorerGlueEvent& event,
-        const std::optional<core::geometry::Rect>& observed_geometry =
-            std::nullopt);
+        const ExplorerWindowSnapshot& sampled_leader,
+        const ExplorerWindowSnapshot& sampled_follower);
     [[nodiscard]] ExplorerGlueStepResult drain_event_source();
     [[nodiscard]] ExplorerGlueStepResult finish_and_restore(
         ExplorerGlueReason terminal_reason,
