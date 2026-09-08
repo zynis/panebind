@@ -53,6 +53,14 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-translation-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-translation-tests)
     add_test(NAME translation COMMAND panebind-translation-tests)
+
+    add_executable(
+        panebind-glue-move-coordinator-tests
+        tests/core/glue_move_coordinator_tests.cpp
+    )
+    target_link_libraries(panebind-glue-move-coordinator-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-glue-move-coordinator-tests)
+    add_test(NAME glue-move-coordinator COMMAND panebind-glue-move-coordinator-tests)
 endif()
 
 if(WIN32)

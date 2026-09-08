@@ -185,6 +185,8 @@ panebind_enable_warnings(panebind-companion-harness)
 add_library(
     panebind_windows_explorer
     STATIC
+    explorer/explorer_glue_event_source.cpp
+    explorer/explorer_glue_session.cpp
     explorer/explorer_shell_inventory.cpp
     explorer/explorer_shell_events.cpp
     explorer/explorer_session.cpp
@@ -243,6 +245,32 @@ target_compile_definitions(
     _WIN32_WINNT=0x0A00
 )
 panebind_enable_warnings(panebind-explorer-harness)
+
+add_executable(
+    panebind-explorer-glue-harness
+    ../../app/explorer_glue_harness_main.cpp
+    observer.rc
+    observer.manifest
+)
+set_source_files_properties(observer.rc PROPERTIES OBJECT_DEPENDS observer.manifest)
+target_link_libraries(
+    panebind-explorer-glue-harness
+    PRIVATE panebind_windows_explorer ole32
+)
+if(MSVC)
+    target_link_options(panebind-explorer-glue-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(
+    panebind-explorer-glue-harness
+    PRIVATE
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+    UNICODE
+    _UNICODE
+    WINVER=0x0A00
+    _WIN32_WINNT=0x0A00
+)
+panebind_enable_warnings(panebind-explorer-glue-harness)
 
 if(BUILD_TESTING)
     add_executable(
@@ -332,4 +360,52 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-windows-explorer-tests)
     add_test(NAME windows-explorer-unit
              COMMAND panebind-windows-explorer-tests)
+
+    add_executable(
+        panebind-windows-explorer-glue-event-source-tests
+        explorer/explorer_glue_event_source.cpp
+        explorer/explorer_glue_event_source_tests.cpp
+    )
+    target_link_libraries(
+        panebind-windows-explorer-glue-event-source-tests
+        PRIVATE panebind_core user32
+    )
+    target_compile_definitions(
+        panebind-windows-explorer-glue-event-source-tests
+        PRIVATE
+        PANEBIND_EXPLORER_GLUE_EVENT_SOURCE_TESTING
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+    )
+    panebind_enable_warnings(
+        panebind-windows-explorer-glue-event-source-tests)
+    add_test(NAME windows-explorer-glue-event-source-unit
+             COMMAND panebind-windows-explorer-glue-event-source-tests)
+
+    add_executable(
+        panebind-windows-explorer-glue-session-tests
+        explorer/explorer_glue_session_tests.cpp
+    )
+    target_link_libraries(
+        panebind-windows-explorer-glue-session-tests
+        PRIVATE panebind_windows_explorer
+    )
+    target_compile_definitions(
+        panebind-windows-explorer-glue-session-tests
+        PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+    )
+    panebind_enable_warnings(
+        panebind-windows-explorer-glue-session-tests)
+    add_test(NAME windows-explorer-glue-session-unit
+             COMMAND panebind-windows-explorer-glue-session-tests)
 endif()
