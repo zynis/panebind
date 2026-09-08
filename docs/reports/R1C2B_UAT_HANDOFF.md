@@ -1,9 +1,15 @@
-# PaneBind R1-C2B Debug 人工验证交接
+# PaneBind R1-C2B 人工验证完成记录与历史交接
 
-更新日期：2026-09-05。Debug Attempt 2 按旧 Gate 已 PASS，安全、最终几何、
-生命周期与证据完整性均通过，但 31 条 Leader LOCATION 仅形成 1 次 Follower
-apply，实时跟随尚未接受。Fix 2 增加 progressive processing quanta 和独立
-实时跟随证据 Gate。Fix 2 自动验证已通过；新的真人 Debug UAT 仍待执行。
+更新日期：2026-09-08。最终 Debug 与 Release 真人验证均已完成并通过；
+已完成的 Human Evidence Review 按原结论封存，详见
+[最终人工验证报告](R1C2B_HUMAN_VALIDATION_REPORT.md)。被验证的 runtime HEAD 为
+`84fd1ecee5b72e27ba46b08bd851d96a99757515`，之后仅作封存文档修改。
+本次集成续接不重新执行真人 Explorer UAT。
+
+Debug Attempt 2 按旧 Gate 的 PASS、安全、最终几何、生命周期与证据完整性
+均保留；它的 `31 raw LOCATION -> 1 sample -> 1 Follower apply` 实时证据
+不足结论也保持原样。Fix 2 的 progressive processing quanta 与加强 Gate
+由后续最终 Debug/Release 人证通过，不能据此改写旧 Attempt 的结论。
 
 ```text
 R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
@@ -12,14 +18,43 @@ R1C2B_DEBUG_UAT_ATTEMPT_2_LEGACY_GATE = PASS
 R1C2B_DEBUG_UAT_ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE
 R1C2B_UAT_FIX2 = PASS
 R1C2B_IMPLEMENTATION_READY = YES
-R1C2B_INTERACTIVE_UAT = REQUIRED
+R1C2B_INTERACTIVE_UAT = COMPLETED
 R1C2B_UAT_FIX2_AUTOMATED_TESTS = PASS
 R1C2B_UAT_FIX2_FINAL_SHA_AND_PUSH = SEE_FINAL_GIT_HANDOFF
-R1C2B_RUNTIME_GATE = PENDING_UAT
+R1C2B_HUMAN_EVIDENCE_REVIEW = PASS
+R1C2B_HUMAN_VALIDATION = PASS
+R1C2B_DEBUG_INTERACTIVE_UAT = PASS
+R1C2B_RELEASE_INTERACTIVE_UAT = PASS
+R1C2B_REALTIME_FOLLOW_RUNTIME_GATE = PASS
+R1C2B_FEEDBACK_SUPPRESSION_RUNTIME_GATE = PASS
+R1C2B_RUNTIME_GATE = PASS
+GLUE_RUNTIME_CODE_CHANGES_AFTER_UAT = NO
+DEBUG_RELEASE_REVALIDATION_REQUIRED = NO
 ```
 
-本交接只执行 **Debug** 人工验证。不要先执行 Release。Codex 不得代替用户
+以下运行命令、人工步骤、限制与失败处理均为历史交接和证据契约，保留以便
+审计，不是本轮待办，也不授权自动重跑。历史 Debug-first 指示只适用于
+Fix 2 当时的交接；最终 Release 已由后续真人验证通过。Codex 不得代替用户
 确认授权、创建 Explorer、调整尺寸或拖动窗口。
+
+## 最终已接受人证
+
+| 项目 | Debug | Release |
+| --- | ---: | ---: |
+| Evidence prefix | `20260905T084423487Z` | `20260905T122247314Z` |
+| Leader START / LOCATION / END | 1 / 270 / 1 | 1 / 200 / 1 |
+| Leader processing quanta | 41 | 8 |
+| 全部 processing quanta（包含其他阶段） | 47 | 12 |
+| Distinct Leader samples | 40 | 8 |
+| Follower native applies / distinct targets | 40 / 40 | 8 / 8 |
+| Applies before END receipt delivery | 40 | 8 |
+| Internal / external Follower LOCATION | 40 / 40 | 8 / 8 |
+| Suppressed / duplicate / missing / reconciled | 40 / 0 / 0 / 0 | 8 / 0 / 0 / 0 |
+| Recursive / unexpected | 0 / 0 | 0 / 0 |
+| Safety / final geometry / exact restore | PASS / PASS / PASS | PASS / PASS / PASS |
+
+这里的 before END 仅指同一 WinEvent source 中 END receipt delivery 之前，
+不证明物理 native END-generation time。原始 evidence 保持 ignored 且不改写。
 
 ## Attempt 1 已保留事实
 
@@ -79,7 +114,7 @@ quantum 则重新采样。owner 最多 pump 8 条消息并在目标 receipt 到�
 处理机会，私有 Glue 校验不再进入旧 Shell readiness wait。回调工作量不变，
 也没有新增 polling。
 
-## 运行前
+## 历史步骤：运行前
 
 - 从仓库根目录 `D:\repository\panebind` 运行命令。
 - 当前分支应为 `codex/r1c2b-explorer-glue-session`。
@@ -92,7 +127,7 @@ quantum 则重新采样。owner 最多 pump 8 条消息并在目标 receipt 到�
 - 外部 Observer 总时限为 300 秒；请在这段时间内完成创建、导航、授权和
   拖动。Glue armed 后的拖动等待上限为 120 秒。
 
-## 唯一 Debug 命令
+## 历史步骤：Fix 2 Debug 命令（本轮不执行）
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
@@ -106,7 +141,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 请不要给命令重定向 stdin/stdout，也不要从会替你发送按键的包装器启动；
 授权输入必须来自当前前台 Console。
 
-## 最少人工动作
+## 历史步骤：人工动作
 
 1. Console 打印 **Leader** 路径后，亲自新建一个 Explorer 顶层窗口，进入
    该 Leader 空目录；不要复用任何既有窗口。保持普通状态并放在准备使用的
@@ -134,7 +169,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 Manual resize 只允许发生在 Glue prompt、authority issuance 和 hook arm 之前，
 属于 `TEST FIXTURE PREPARATION ONLY`，不是 Glue Resize 或产品行为。
 
-## Drag 期间不要做的事
+## 历史步骤：Drag 期间限制
 
 - 不按 `Alt`、`Ctrl` 或 `Shift`；
 - 不 resize、最大化或最小化 Leader；
@@ -148,7 +183,7 @@ Manual resize 只允许发生在 Glue prompt、authority issuance 和 hook arm �
 
 这些限制只定义本轮可验证的 Glue Move baseline；它们不是未来产品交互设计。
 
-## PASS 应看到什么
+## 历史与最终证据共用的 PASS 契约
 
 Runner 只有同时满足以下内部和外部证据才会打印 PASS：
 
@@ -242,7 +277,7 @@ uat/r1c2b/follower-<nonce>/
 `uat/` 不进入 Git。公开报告不要粘贴完整 nonce 用户路径、无关窗口标题、无关
 Explorer 元数据或 raw HWND。
 
-## 如果失败或阻断
+## 历史步骤：失败或阻断处理
 
 - 不自动重试；
 - 不改用既有 Explorer；
@@ -278,7 +313,7 @@ sample、active apply、target 或 before-END 证据不足时，返回
 `SAFE_BLOCKED: INSUFFICIENT_REALTIME_FOLLOW`。例如再次出现 `31 -> 1`，
 必须安全恢复后以 `2` 退出，不能 PASS，也不把它误称为 malformed。
 
-安全阻断或无效证据返回后状态均不是 Runtime PASS：
+该历史失败分支的单次尝试状态不是 Runtime PASS；以下不是当前最终状态：
 
 ```text
 R1C2B_RUNTIME_GATE = BLOCKED
@@ -288,12 +323,29 @@ R1C2B_RUNTIME_GATE = BLOCKED
 
 ## 当前未验证范围
 
-Attempt 2 已验证真实 preview、临时布局、Leader lifecycle、一次 exact
-Follower apply、missing reconciliation 与精确恢复。Fix 2 的多 quantum
-实时跟随、新 Gate 及实际流畅度仍须新的真人 Debug evidence，不能用自动
-tests 代替。Release UAT 在本轮不执行；多显示器/混合 DPI/跨显示器、目标
-销毁、hung Explorer、真实 overflow/native failure/invalidation，以及
-Ctrl/global input、Snap、Glue Resize、persistent group 均未由本交接验证。
+最终 Debug/Release 已验证 narrow two-window baseline 的多 quantum 跟随、
+重复 exact native apply、内部/外部 feedback、suppression、最终几何与精确
+恢复。Attempt 2 的 missing reconciliation 仍属于其历史证据。
+
+以下仍为 `NOT TESTED`，不从最终 PASS 推导：
+
+- mixed-DPI Glue、multi-monitor Glue、cross-monitor Glue；
+- elevated Explorer、UIAccess、AppContainer、cross-user/session、virtual desktop；
+- hung Explorer、恰在 Follower apply 期间销毁、application-adjusted `WINDOWPOS`；
+- 真实 timeout、用户移动 Follower、Leader resize、navigation、minimize/maximize、
+  target destruction、monitor/DPI change、overflow、hook/native/postverify failure；
+- HWND/PID reuse、真实销毁后的 late callback、OOM、长 session 序列/容量耗尽；
+- 第三个 live candidate 拒绝、真实竖排 fallback、异常 work-area/window-size 组合；
+- 更广泛的真实 duplicate/missing/interleaved feedback 组合；
+- 3+ real windows、dynamic component membership、persistent groups；
+- Glue Resize、Snap、Excel、VS Code、browser、其他 application eligibility；
+- global Ctrl activation、production selector UX；
+- 最终 latency / smoothness / CPU / memory / resource SLA。
+
+R0 Observer 只作为外部 evidence recorder，不是 Glue runtime dependency。
+R1-C2A one-shot 语义保持不变；Owned、Companion、Explorer one-shot 与私有
+Explorer Glue 的四个 authority 边界仍独立。集成提交、PR、merge 和最终 main
+回归结果由本轮最终集成记录报告，不由以上人证 PASS 代替。
 
 ```text
 R0_OBSERVER_SEMANTICS_CHANGED = NO

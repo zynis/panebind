@@ -1,7 +1,8 @@
 # PaneBind R1-C2B Explorer Glue Implementation Report
 
-Report date: 2026-09-05 (Asia/Shanghai; UAT Fix 2 after the legacy-passing
-Debug Attempt 2 exposed insufficient progressive Follower-motion evidence).
+Report updated: 2026-09-08 (Asia/Shanghai; final human-validation seal and
+integration continuation). Historical implementation and Fix 1/Fix 2 results
+below retain their original scope.
 
 ## 1. Round and evidence state
 
@@ -11,6 +12,7 @@ Starting main = 8ac18ab07344632e8f0ed87cafe1b85b2b715d06
 Branch = codex/r1c2b-explorer-glue-session
 Fix 1 starting HEAD = 650196507466498f41a6df44b5031733b560098f
 Fix 2 starting HEAD = e0bccc0e8ab8870150fa79b9f1a70cdf1c902db5
+Evaluated/runtime HEAD = 84fd1ecee5b72e27ba46b08bd851d96a99757515
 Research checkpoint = ea46ab297d149f8416a0cff67d30b32fa71fc015
 R0_BASELINE = SEALED
 R1C2A_DEBUG_INTERACTIVE_UAT = PASS
@@ -18,7 +20,13 @@ R1C2A_RELEASE_INTERACTIVE_UAT = PASS
 R1C2B_DEBUG_UAT_ATTEMPT_1 = BLOCKED
 R1C2B_DEBUG_UAT_ATTEMPT_2_LEGACY_GATE = PASS
 R1C2B_DEBUG_UAT_ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE
-R1C2B strengthened real Explorer runtime = PENDING_UAT
+R1C2B_HUMAN_EVIDENCE_REVIEW = PASS
+R1C2B_HUMAN_VALIDATION = PASS
+R1C2B_DEBUG_INTERACTIVE_UAT = PASS
+R1C2B_RELEASE_INTERACTIVE_UAT = PASS
+R1C2B strengthened real Explorer runtime = PASS
+GLUE_RUNTIME_CODE_CHANGES_AFTER_UAT = NO
+DEBUG_RELEASE_REVALIDATION_REQUIRED = NO
 R1C2B_UAT_FIX1 automated rerun = PASS
 R1C2B_UAT_FIX2 automated rerun = PASS
 R1C3 = NOT STARTED
@@ -29,15 +37,22 @@ readiness preview and correct blocked-evidence handling. A human then completed
 Debug Attempt 2 (`20260905T065805930Z`) on the Fix 1 implementation. Its legacy
 runner PASS, safety, exact final geometry, lifecycle, and evidence integrity
 remain valid. Its 31 raw Leader LOCATION receipts produced only one active
-Follower apply, so real-time follow remains insufficient and is not accepted.
+Follower apply, so that attempt's real-time evidence remains insufficient and
+is not accepted.
 The full immutable-evidence review is in
 [`R1C2B_ATTEMPT2_FORENSICS.md`](R1C2B_ATTEMPT2_FORENSICS.md).
 
 Fix 2 preserves the distinction between receipt metadata and processing-time
 geometry, introduces fair owner processing quanta, and strengthens the UAT
-evidence criterion. No post-Fix-2 human Explorer UAT or Release Explorer UAT has
-been run by this work. Historical automated results below are labeled by round;
-Fix 2 final verification and Git handoff are recorded separately.
+evidence criterion. Final human Debug and Release validation then passed on
+the frozen evaluated/runtime HEAD above. The previously completed read-only
+Human Evidence Review is preserved without reinterpretation or rerun; the
+current continuation seals documentation and integrates the same runtime tree.
+The authoritative final evidence and stage history are in
+[`R1C2B_HUMAN_VALIDATION_REPORT.md`](R1C2B_HUMAN_VALIDATION_REPORT.md).
+Historical automated results below are labeled by round. Integration
+regression, final SHA, push, and merge outcomes are recorded separately and
+are not inferred from the human-validation PASS.
 
 ## 2. Prior-art and platform-documentation gate
 
@@ -532,7 +547,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-r1c2b-evi
 - Fix 2 changes owner scheduling, quantum sampling, private Glue Shell readiness
   cadence, and evidence acceptance. The callback workload and R1-A total-delta /
   feedback-ledger semantic core remain unchanged. R1-C2A calls retain the
-  original default validation behavior; Fix 2 automated regression is required.
+  original default validation behavior; the required Fix 2 automated regression
+  passed as recorded in section 10.
 - The horizontal-first, vertical-fallback, zero-gap, pure-translation,
   no-resize layout planner safety rules are unchanged; the preview exposes
   their live inputs and result without weakening them.
@@ -580,9 +596,10 @@ The committed report does not publish full nonce paths, unrelated window
 titles/metadata, or raw HWND values. Native keys exist only in ignored evidence
 for strict target correlation.
 
-The exact Debug command and human actions are in
-[`R1C2B_UAT_HANDOFF.md`](R1C2B_UAT_HANDOFF.md). Release Explorer UAT is outside
-this Fix 2 implementation round.
+The historical Debug command and human actions are retained in the completed
+[`R1C2B_UAT_HANDOFF.md`](R1C2B_UAT_HANDOFF.md). Final Debug and Release evidence
+are sealed in the [human-validation report](R1C2B_HUMAN_VALIDATION_REPORT.md).
+This docs-only continuation does not rerun real Explorer UAT.
 
 The runner now treats evidence outcomes as three disjoint results:
 
@@ -679,7 +696,7 @@ ATTEMPT_1_NATIVE_GLUE_OPERATION_ATTEMPTED = NO
 ATTEMPT_1_GLUE_RUNTIME_EVIDENCE = NOT_REACHED
 ```
 
-## 14. Attempt 2 acceptance and remaining NOT TESTED risks
+## 14. Attempt 2 history, final human acceptance, and remaining NOT TESTED risks
 
 Attempt 2 verified post-preview formal Glue consent/binding, same-monitor
 layout, Leader START/LOCATION/END, one exact active Follower operation, exact
@@ -707,33 +724,60 @@ ATTEMPT_2_EVIDENCE_INTEGRITY = PASS
 ATTEMPT_2_REALTIME_FOLLOW = INSUFFICIENT_EVIDENCE / NOT YET ACCEPTED
 ```
 
-These remain `NOT TESTED` on real Explorer after Fix 2:
+Final Debug and Release human validation passed on runtime
+`84fd1ecee5b72e27ba46b08bd851d96a99757515`. These are the accepted review
+results, not newly generated observations in this integration continuation:
 
-- progressive multi-quantum Follower motion under the strengthened gate;
+| Accepted human evidence | Debug | Release |
+| --- | ---: | ---: |
+| Evidence prefix | `20260905T084423487Z` | `20260905T122247314Z` |
+| Leader START / LOCATION / END | 1 / 270 / 1 | 1 / 200 / 1 |
+| Leader processing quanta | 41 | 8 |
+| All processing quanta, including other phases | 47 | 12 |
+| Distinct Leader samples | 40 | 8 |
+| Active Follower native applies / distinct targets | 40 / 40 | 8 / 8 |
+| Applies before END receipt delivery | 40 | 8 |
+| Internal / external Follower LOCATION | 40 / 40 | 8 / 8 |
+| Suppressed / duplicate / missing / reconciled | 40 / 0 / 0 / 0 | 8 / 0 / 0 / 0 |
+| Recursive / unexpected feedback | 0 / 0 | 0 / 0 |
+| Safety / final geometry / exact restore | PASS / PASS / PASS | PASS / PASS / PASS |
+
+Both sessions establish progressive multi-quantum motion and repeated exact
+Follower placement under the strengthened gate. Before-END counts prove only
+ordering before END receipt delivery in the same WinEvent source, using the
+quantum and pre/post-native watermark contract in section 6. They do not prove
+physical native END-generation time or human mouse-release time. The measured
+counts are observations for these sessions, not a fixed event-cardinality,
+receipt/apply-ratio, latency, smoothness, or resource guarantee. Raw evidence
+remains ignored and unchanged.
+
+These remain `NOT TESTED` on real Explorer beyond the accepted narrow baseline:
+
 - rejection of a third live candidate in the user's current Shell inventory
   (Follower-baseline exclusion of the live Leader itself passed Attempt 1);
-- live Follower smoothness, event count, event latency, duplicate/missing/
-  interleaved feedback mix, and suppression outcome;
-- exact observed distribution of receipts across processing quanta;
-- repeated real Explorer native apply/post-verification during a continuous drag;
+- broader live duplicate/missing/interleaved feedback mixtures beyond the
+  recorded sessions; deterministic regression does not establish every real
+  Explorer feedback path;
 - real timeout, user-moved Follower, Leader resize, navigation, minimize/
   maximize, target destruction, monitor/DPI change, queue overflow, hook failure,
   native failure, and post-verification failure paths (automated only);
-- Explorer hang behavior during synchronous placement;
+- hung Explorer during synchronous placement, destruction exactly during a
+  Follower apply, and application-adjusted `WINDOWPOS`;
 - HWND/PID reuse and late callback behavior after real target destruction;
 - vertical fixture fallback on a real desktop and unusual work-area/window-size
   combinations;
 - mixed-DPI, multi-monitor, cross-monitor, elevated, UIAccess, AppContainer,
   cross-user, cross-session, and virtual-desktop transitions;
 - allocation failure/OOM and long-session sequence/capacity exhaustion;
-- measured smoothness, CPU, and memory; and
-- all Release real Explorer runtime evidence; no Release UAT is authorized in
-  this Fix 2 implementation round.
+- 3+ real windows, dynamic component membership, and persistent groups;
+- Glue Resize, Snap, Excel, VS Code, browser, and other application eligibility;
+- global Ctrl activation and production selector UX; and
+- final latency, smoothness, CPU, memory, and resource SLA.
 
 R1-C3 product activation, Ctrl/global input, Snap, Glue Resize, and persistent
 groups are outside this round, not missing R1-C2B acceptance evidence.
 
-## 15. Implementation gate
+## 15. Implementation and final human runtime gates
 
 ```text
 R1C2B_PRIOR_ART_GATE = PASS
@@ -747,8 +791,16 @@ R1C2B_SAFETY_GATE = PASS
 R1C2B_FINAL_GEOMETRY_GATE = PASS
 R1C2B_REALTIME_FOLLOW_IMPLEMENTATION_GATE = PASS
 R1C2B_IMPLEMENTATION_READY = YES
-R1C2B_INTERACTIVE_UAT = REQUIRED
-R1C2B_RUNTIME_GATE = PENDING_UAT
+R1C2B_INTERACTIVE_UAT = COMPLETED
+R1C2B_HUMAN_EVIDENCE_REVIEW = PASS
+R1C2B_HUMAN_VALIDATION = PASS
+R1C2B_DEBUG_INTERACTIVE_UAT = PASS
+R1C2B_RELEASE_INTERACTIVE_UAT = PASS
+R1C2B_REALTIME_FOLLOW_RUNTIME_GATE = PASS
+R1C2B_FEEDBACK_SUPPRESSION_RUNTIME_GATE = PASS
+R1C2B_RUNTIME_GATE = PASS
+GLUE_RUNTIME_CODE_CHANGES_AFTER_UAT = NO
+DEBUG_RELEASE_REVALIDATION_REQUIRED = NO
 
 R1C2B_UAT_FIX1_AUTOMATED_TESTS = PASS
 R1C2B_UAT_FIX1_FINAL_SHA_AND_PUSH = RECORDED_IN_FINAL_GIT_HANDOFF

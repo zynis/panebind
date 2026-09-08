@@ -3,17 +3,44 @@
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
 owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, the sealed R1-C2A Explorer single-translation boundary,
-and the implemented R1-C2B Explorer Glue Move test-session boundary. This
+and the human-validated R1-C2B Explorer Glue Move test-session boundary. This
 document records implemented boundaries and current decisions; runtime
 acceptance evidence and gate results are recorded separately. Debug Attempt 1
 safely stopped at pre-authority `UnsafeLayout`; Fix 1 added readiness preview.
 Debug Attempt 2 passed its legacy gate, safety, final geometry, lifecycle, and
 evidence integrity, but 31 Leader LOCATION receipts led to only one active
-Follower apply. Progressive real-time follow remains unaccepted. Fix 2 adds
-processing quanta and a stronger evidence gate; a new human Debug run is still
-required, and no Release Explorer UAT is run in this fix. The
+Follower apply; that attempt's progressive real-time evidence remains
+insufficient. Fix 2 added processing quanta and a stronger evidence gate.
+Final human Debug and Release validation passed on frozen runtime HEAD
+`84fd1ecee5b72e27ba46b08bd851d96a99757515`. The accepted Human Evidence Review
+is sealed in the [final human-validation report](../reports/R1C2B_HUMAN_VALIDATION_REPORT.md);
+the integration continuation changes documentation only and does not rerun
+real Explorer UAT. The
 [Attempt 2 forensic record](../reports/R1C2B_ATTEMPT2_FORENSICS.md) preserves the
 old PASS and the missing drain-cycle evidence without manufacturing history.
+
+Final Debug recorded `270 raw LOCATION -> 41 Leader quanta -> 40 distinct
+samples -> 40 active applies`; final Release recorded `200 -> 8 -> 8 -> 8`.
+All-session quantum counts were 47 and 12 respectively. The corresponding
+40 and 8 applies had distinct targets, exact post-verification, and evidence
+before END receipt delivery in the same WinEvent source ordering. Internal
+and external Follower LOCATION counts were 40/40 and 8/8; all were suppressed,
+with zero duplicate, missing, reconciled, recursive, or unexpected counts in
+these final sessions. Safety, final geometry, and exact restore passed in both.
+These observed session counts establish the narrow runtime baseline, not
+physical native END-generation time, fixed event cardinality, or a final
+latency/smoothness/resource SLA.
+
+```text
+R1C2B_HUMAN_VALIDATION = PASS
+R1C2B_DEBUG_INTERACTIVE_UAT = PASS
+R1C2B_RELEASE_INTERACTIVE_UAT = PASS
+R1C2B_REALTIME_FOLLOW_RUNTIME_GATE = PASS
+R1C2B_FEEDBACK_SUPPRESSION_RUNTIME_GATE = PASS
+R1C2B_RUNTIME_GATE = PASS
+GLUE_RUNTIME_CODE_CHANGES_AFTER_UAT = NO
+DEBUG_RELEASE_REVALIDATION_REQUIRED = NO
+```
 
 ## System flow
 
@@ -36,6 +63,11 @@ Native OS event
 
 The observation and operations directions are deliberately different
 interfaces. Observing a window does not grant authority to manipulate it.
+The three token resolvers above and the private R1-C2B Explorer Glue session
+form four separate authority boundaries. Glue uses its role-bound pair permit
+without broadening Owned, Companion, or ordinary Explorer one-shot authority.
+R0 Observer remains an external evidence recorder only and is not a Glue
+runtime dependency.
 
 ## Layers
 
@@ -856,3 +888,31 @@ virtual-desktop policy.
   R1-C2B uses no R0 JSONL control bus, global input, injection, high-frequency
   polling, other application, Glue Resize, persistent group, Snap, or R1-C3
   behavior.
+
+## R1-C2B remaining empirical boundaries
+
+The final Debug/Release human PASS does not validate mixed-DPI, multi-monitor,
+or cross-monitor Glue; elevated Explorer, UIAccess, AppContainer, cross-user/
+session, or virtual-desktop transitions; hung Explorer; destruction exactly
+during Follower apply; or application-adjusted `WINDOWPOS`. Real timeout,
+invalidation, overflow, hook/native/post-verification failure, late callbacks
+after target destruction, HWND/PID reuse, unusual work areas and vertical
+fixture fallback, allocation failure, and long-session capacity/sequence
+exhaustion remain outside the accepted observations. Broader real feedback
+mixtures and third-live-candidate rejection are not inferred from the passing
+two-target sessions or their deterministic tests.
+
+3+ real windows, dynamic component membership, persistent groups, Glue Resize,
+Snap, Excel, VS Code, browser and other application eligibility, global Ctrl
+activation, production selector UX, and final latency/smoothness/resource SLA
+remain `NOT TESTED` or outside this round. R1-C3 is not started.
+
+```text
+R0_OBSERVER_SEMANTICS_CHANGED = NO
+R0_REVALIDATION_REQUIRED = NO
+R1C2A_REVALIDATION_REQUIRED = NO
+USER_PREEXISTING_WINDOWS_TOUCHED = NO
+OTHER_THIRD_PARTY_CONTROL = NO
+GLOBAL_INPUT_CONTROL = NO
+R1C3 = NOT STARTED
+```
