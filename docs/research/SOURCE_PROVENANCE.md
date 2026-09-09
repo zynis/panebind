@@ -547,3 +547,83 @@ Attribution required: NO for code; official links retained beside claims
 
 Fix 2 independent decisions, limits and research gate are recorded in
 [R1C2B_EXPLORER_GLUE_RESEARCH.md](R1C2B_EXPLORER_GLUE_RESEARCH.md).
+
+## R1-C3A Ctrl + Move activation source review — 2026-09-09
+
+### AltSnap / AltDrag modifier, lifecycle and cadence review
+
+```text
+Projects: AltSnap; AltDrag
+Classification: AltSnap mature maintained movement reference; AltDrag mature historical comparison
+Repositories: https://github.com/RamonUnch/AltSnap ; https://github.com/stefansundin/altdrag
+Commits reviewed: AltSnap 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; AltDrag e2740d605b0336a3b391fec26794718864b19521
+License verified: hooks.c headers and AltSnap License.txt / AltDrag LICENSE; GPL-3.0-or-later, REFERENCE ONLY
+Date reviewed: 2026-09-09
+Files/modules actually inspected: AltSnap altsnap.c hook loading; hooks.c IsHotkeyDown, IsCtrlDown, LowLevelKeyboardProc, LowLevelMouseProc, WorkerThread, NotifySizeMoveStaEnd, FinishMovementNow, touching-window/StickyResize paths and performance defaults/configuration; AltDrag hooks.c modifier checks, movement update counter, enter/exit messages, movement timer and CallWndProc/subclassing path; local path history
+Issues/PRs actually inspected: AltSnap issue #572; PRs #537, #609, #689, #695; AltDrag v1.1 release history
+Commit diffs actually inspected: AltSnap 6890cabfe93f5526491d146626f4874727ace8fc, 7f4afe59076b70980f71af202f63609ca3ac5745, ce72d731563eda654ee2efbd336aa2c2e48525d3, 84249cc38d6aa159ee95a945819969cc98100a57, f4c7ab3c1a1d02451f1cde577a2f92e617ae5f55; AltDrag f614a2b6a1c89f804c79be19b86185dd5cfb158b
+What was learned: tracked modifier state differs from async current state; Ctrl repeat/release/AltGr history matters; a later async sample cannot blindly replace an earlier state fact; movement work may be count/timestamp throttled and consecutive worker work coalesced; explicit lifecycle compatibility can interact with other managers; synthetic input, injected hooks and timers are not PaneBind implementation templates
+Applicable PaneBind subsystem: Explorer START activation boundary, callback-versus-owner evidence, one-session latch and invalidation tests, bounded timing measurements without cadence tuning
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for code; research citations retained; GPL code copying, translation and derivative implementation remain prohibited
+```
+
+Exact source anchors, history links and the distinction between source facts
+and PaneBind inferences are in
+[R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md](R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md).
+
+### PowerToys / FancyZones modifier and drag lifetime review
+
+```text
+Project: Microsoft PowerToys / FancyZones
+Classification: Mature production reference
+Repository: https://github.com/microsoft/PowerToys
+Commit reviewed: 19c4d805321db86f3634e6968e14dbf25cbba14a
+License verified: root LICENSE, MIT; REFERENCE ONLY for R1-C3A
+Date reviewed: 2026-09-09
+Files/modules actually inspected: FancyZones/FancyZonesApp.cpp; FancyZonesLib/FancyZones.cpp; WindowMouseSnap.cpp; DraggingState.{cpp,h}; KeyState.h; GenericKeyHook.h; KeyboardInput.cpp; root LICENSE
+Issues/PRs actually inspected: PR #49985 and immutable commit d68980a81bb8de144bdec998a114e948bf68c563; PR #48569 and immutable commit dd26d86580168d2e368701f7b0c4d629dc9cd9ac; issue #49016 (topology context, not modifier evidence)
+What was learned: WinEvent ingress and owner dispatch are separate; dynamic Shift state uses Raw Input while Ctrl state uses async initialization plus a low-level hook; swallowing Shift can suppress the module's own input update; mode-switch ordering can erase first highlight; destroyed windows must abort without zoning and clear drag state; this broader input design does not demonstrate a hook requirement for START-latched Ctrl sampling
+Applicable PaneBind subsystem: input/activation separation, authoritative receipt facts versus processing-time diagnostics, invalidation cleanup, first-event and negative-path tests
+Code copied: NO
+Code adapted: NO
+Attribution required: NO for reference-only review; any future reuse requires a separate explicit decision and MIT notice preservation
+```
+
+The fixed source/license files were available locally. A historical local diff
+triggered a promisor fetch that failed to connect to GitHub HTTPS/443; that Git
+synchronization was stopped. Historical conclusions use independently read
+GitHub PR/immutable commit pages, not reconstructed Git objects. No remote ref
+was changed and no API transport fallback was used.
+
+Reference gate scope: source/license/history inspection PASS. This is not a
+human Ctrl+Move run, a smoothness result, a keyboard-origin authenticity claim,
+or authorization to change R1-C2B processing cadence.
+
+### R1-C3A public behavior and official input/timing contracts
+
+```text
+Review date: 2026-09-09
+Project: AquaSnap / AquaGlue, Nurgo Software
+Classification: Mature commercial behavior reference, closed-source
+Revision: live official product/help pages; v1.10.0 announcement dated 2014-12-02; no source SHA asserted
+License/terms: proprietary product, copyrighted public documentation; behavior reference only
+Inspected: AquaGlue configuration, AquaSnap product, official v1.10.0 announcement
+History: official announcement introducing Ctrl movement/resizing groups
+Lesson/subsystem: documented adjacent-group Ctrl+Move/Resize UX; no internal API or latch claim
+Copied/adapted code: NO / NO
+Attribution: source links retained; no code attribution obligation from reference-only facts
+
+Source: Microsoft Learn / Win32, official platform contracts
+Revision: live pages read 2026-09-09; no immutable revision asserted
+Terms: Microsoft Learn Terms of Use; cited/paraphrased, no sample code copied
+Inspected: GetAsyncKeyState, GetKeyState, GetKeyboardState, SetWinEventHook, event constants, LowLevelKeyboardProc/WH_KEYBOARD_LL, Raw Input, RegisterRawInputDevices, RegisterHotKey, QueryPerformanceCounter, QueryPerformanceFrequency, acquiring high-resolution time stamps
+Issues/PRs: N/A (API contracts)
+Lesson/subsystem: callback-delivery high-bit sampling, async/queue/UIPI limits, bounded same-owner monotonic timing
+Copied/adapted code: NO / NO
+Attribution: official links retained, no code reuse
+```
+
+Exact official URLs, API comparison, independently written owned probe and
+implementation gate are in [R1C3A research](R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md).
