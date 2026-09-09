@@ -272,7 +272,36 @@ target_compile_definitions(
 )
 panebind_enable_warnings(panebind-explorer-glue-harness)
 
+# A fixed build profile reuses target provisioning and evidence serialization;
+# the existing executable keeps its Console-confirmed R1-C2B behavior.
+add_executable(
+    panebind-explorer-ctrl-glue-harness
+    ../../app/explorer_glue_harness_main.cpp
+    observer.rc
+    observer.manifest
+)
+target_link_libraries(panebind-explorer-ctrl-glue-harness
+    PRIVATE panebind_windows_explorer ole32)
+if(MSVC)
+    target_link_options(panebind-explorer-ctrl-glue-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(panebind-explorer-ctrl-glue-harness PRIVATE
+    PANEBIND_EXPLORER_CTRL_GLUE_HARNESS
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+    WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind-explorer-ctrl-glue-harness)
+
 if(BUILD_TESTING)
+    add_executable(panebind-windows-explorer-glue-activation-tests
+        explorer/explorer_glue_activation_tests.cpp)
+    target_link_libraries(panebind-windows-explorer-glue-activation-tests
+        PRIVATE panebind_core user32)
+    target_compile_definitions(panebind-windows-explorer-glue-activation-tests PRIVATE
+        NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+        WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    panebind_enable_warnings(panebind-windows-explorer-glue-activation-tests)
+    add_test(NAME windows-explorer-glue-activation-unit
+        COMMAND panebind-windows-explorer-glue-activation-tests)
     add_executable(
         panebind-windows-text-encoding-tests
         text_encoding.cpp

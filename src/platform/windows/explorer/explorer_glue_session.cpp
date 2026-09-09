@@ -550,8 +550,10 @@ struct ExplorerGlueSession::Impl final {
     std::vector<ExplorerGlueTraceRecord> trace;
     std::vector<ExplorerGlueReceiptRecord> receipts;
     std::vector<ExplorerGlueQuantumRecord> quanta;
+    std::optional<ExplorerGlueActivationController> activation;
     std::uint64_t current_quantum_id{};
     std::uint64_t current_sample_generation{};
+    std::int64_t current_behavior_decision_qpc{};
     std::uint64_t next_permit_generation{1U};
     std::uint64_t next_trace_sequence{1U};
     bool setup_complete{};
@@ -736,6 +738,65 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::confirm_user_glue() {
     return result;
 }
 
+ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture() {
+    ExplorerGlueAuthorizeResult result;
+    if (impl_ == nullptr || impl_->terminal ||
+        GetCurrentThreadId() != impl_->owner_thread_id ||
+        impl_->facts.consent_generations.pair_preview_generation == 0U ||
+        impl_->facts.consent_generations.prompt_generation != 0U) {
+        result.reason = ExplorerGlueReason::AuthorityConsumed;
+        return result;
+    }
+    impl_->terminal = true;
+    const auto frequency = glue_qpc_frequency();
+    if (frequency <= 0 || glue_qpc_now() <= 0) {
+        result.reason = ExplorerGlueReason::InteractionEvidenceFailed;
+        return result;
+    }
+    impl_->facts.consent_generations.authority_generation =
+        impl_->issue_generation();
+    const auto authority_id = allocate_glue_authority_id();
+    if (authority_id == 0U ||
+        impl_->facts.consent_generations.authority_generation == 0U) {
+        result.reason = ExplorerGlueReason::ConsentGenerationMismatch;
+        return result;
+    }
+    const detail::ExplorerGlueAuthoritySeal seal{
+        authority_id, impl_->facts.consent_generations.authority_generation};
+    auto bound = detail::ExplorerGlueSessionBridge::bind_pair(
+        seal, *impl_->leader, *impl_->follower,
+        impl_->leader_preview, impl_->follower_preview);
+    if (!bound.succeeded()) {
+        result.reason = bound.reason;
+        result.diagnostic = std::move(bound.diagnostic);
+        result.facts = impl_->facts;
+        return result;
+    }
+    auto session_impl = std::make_unique<ExplorerGlueSession::Impl>(
+        seal, *bound.leader, *bound.follower);
+    session_impl->owner_thread_id = impl_->owner_thread_id;
+    session_impl->leader = std::move(impl_->leader);
+    session_impl->follower = std::move(impl_->follower);
+    session_impl->facts = impl_->facts;
+    auto& facts = session_impl->facts;
+    facts.glue_authority_id = authority_id;
+    facts.ctrl_move_activation_required = true;
+    facts.fixture_pair_authorized = true;
+    facts.qpc_frequency_hz = frequency;
+    facts.leader_original = *bound.leader_snapshot;
+    facts.follower_original = *bound.follower_snapshot;
+    facts.activation_pair = {
+        authority_id, seal.authority_generation(), 1U,
+        bound.leader->capability_generation_, 2U,
+        bound.follower->capability_generation_,
+        bound.leader->consent_generation_, bound.follower->consent_generation_, 0U};
+    result.reason = ExplorerGlueReason::Eligible;
+    result.facts = facts;
+    result.session = std::unique_ptr<ExplorerGlueSession>(
+        new ExplorerGlueSession(std::move(session_impl)));
+    return result;
+}
+
 const ExplorerGlueFacts& ExplorerGlueConsent::facts() const noexcept {
     return impl_->facts;
 }
@@ -775,6 +836,12 @@ bool ExplorerGlueSession::register_pending_before_native(
         return false;
     }
     auto& owner = *registration->owner;
+    if (owner.facts.ctrl_move_activation_required &&
+        (!owner.activation.has_value() ||
+         !owner.activation->matches_activation(owner.facts.activation_generation,
+                                               owner.facts.activation_pair))) {
+        return false;
+    }
     if (owner.event_source == nullptr ||
         owner.pending_native.size() >= kPendingCapacity) {
         return false;
@@ -807,6 +874,14 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
                         ? ExplorerOperationStage::Restore
                         : ExplorerOperationStage::Preflight;
     failure.cleanup_operation = phase == ExplorerGlueOperationPhase::Restore;
+    if (impl_ != nullptr && impl_->facts.ctrl_move_activation_required &&
+        phase == ExplorerGlueOperationPhase::ActiveFollower &&
+        (!impl_->activation.has_value() ||
+         !impl_->activation->matches_activation(impl_->facts.activation_generation,
+                                                impl_->facts.activation_pair))) {
+        failure.reason = ExplorerEligibilityReason::ConsentGenerationMismatch;
+        return failure;
+    }
     if (impl_ == nullptr || GetCurrentThreadId() != impl_->owner_thread_id ||
         impl_->operations.size() >= kNativeOperationCapacity ||
         impl_->next_permit_generation == 0U ||
@@ -875,13 +950,21 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
         before_native_apply_context = &pending_registration;
     }
 
+    ExplorerGlueNativeTiming timing;
     auto operation = detail::ExplorerGlueSessionBridge::apply_prepared(
         impl_->seal,
         permit,
         target,
         *prepared.prepared,
         before_native_apply,
-        before_native_apply_context);
+        before_native_apply_context,
+        impl_->facts.ctrl_move_activation_required ? &timing : nullptr);
+    if (impl_->facts.ctrl_move_activation_required && operation.native_apply_attempted) {
+        impl_->facts.timing_valid = impl_->facts.timing_valid &&
+            timing.native_apply_start_qpc > 0 &&
+            timing.native_api_return_qpc >= timing.native_apply_start_qpc &&
+            timing.postverify_complete_qpc >= timing.native_api_return_qpc;
+    }
     if (pending_registration.registered_index.has_value()) {
         auto& pending =
             impl_->pending_native[*pending_registration.registered_index];
@@ -914,7 +997,12 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
                    .feedback_after_sequence : 0U,
          phase == ExplorerGlueOperationPhase::ActiveFollower &&
                  impl_->event_source != nullptr
-             ? impl_->event_source->facts().latest_receipt_sequence : 0U});
+             ? impl_->event_source->facts().latest_receipt_sequence : 0U,
+         phase == ExplorerGlueOperationPhase::ActiveFollower
+             ? impl_->facts.activation_generation : 0U,
+         phase == ExplorerGlueOperationPhase::ActiveFollower
+             ? impl_->current_behavior_decision_qpc : 0,
+         timing});
     return operation;
 }
 
@@ -923,7 +1011,10 @@ ExplorerGlueStepResult ExplorerGlueSession::setup_test_layout_impl() {
     result.stage = ExplorerGlueStage::Layout;
     if (impl_ == nullptr || impl_->terminal || impl_->setup_complete ||
         GetCurrentThreadId() != impl_->owner_thread_id ||
-        !impl_->facts.glue_consent_confirmed || !impl_->facts.layout.has_value() ||
+        !(impl_->facts.ctrl_move_activation_required
+              ? impl_->facts.fixture_pair_authorized
+              : impl_->facts.glue_consent_confirmed) ||
+        !impl_->facts.layout.has_value() ||
         !impl_->facts.leader_original.has_value() ||
         !impl_->facts.follower_original.has_value()) {
         result.reason = ExplorerGlueReason::AuthorityConsumed;
@@ -1048,6 +1139,11 @@ ExplorerGlueStepResult ExplorerGlueSession::arm_impl() {
     }
     impl_->facts.glue_session_generation =
         impl_->coordinator.session_generation();
+    if (impl_->facts.ctrl_move_activation_required) {
+        impl_->facts.activation_pair.glue_session_generation =
+            impl_->facts.glue_session_generation;
+        impl_->activation.emplace(impl_->facts.activation_pair);
+    }
     record_trace(nullptr, &armed);
 
     const ExplorerGlueEventSource::NativeTargetBinding leader_binding{
@@ -1069,7 +1165,8 @@ ExplorerGlueStepResult ExplorerGlueSession::arm_impl() {
                                     follower_binding,
                                     kEventQueueCapacity,
                                     ExplorerGlueEventSource::DeliveryMode::Live,
-                                    true));
+                                    true,
+                                    impl_->facts.ctrl_move_activation_required));
     if (!impl_->event_source->start_live()) {
         return finish_and_restore(ExplorerGlueReason::EventSourceFailed,
                                   result.stage);
@@ -1090,6 +1187,7 @@ void ExplorerGlueSession::record_trace(
         impl_->next_trace_sequence ==
             std::numeric_limits<std::uint64_t>::max()) {
         if (impl_ != nullptr && impl_->coordinator.session_generation() != 0U) {
+            impl_->facts.timing_overflow = impl_->facts.ctrl_move_activation_required;
             static_cast<void>(impl_->coordinator.report_queue_overflow(
                 impl_->coordinator.session_generation()));
             impl_->terminal = true;
@@ -1106,6 +1204,12 @@ void ExplorerGlueSession::record_trace(
     record.processing_quantum_id = impl_->current_quantum_id;
     record.sampled_geometry_generation = impl_->current_sample_generation;
     record.behavior_operation_generation = behavior_operation_generation;
+    if (impl_->facts.ctrl_move_activation_required && decision != nullptr &&
+        (decision->kind == core::behavior::GlueDecisionKind::FeedbackAcknowledged ||
+         decision->kind == core::behavior::GlueDecisionKind::DuplicateFeedbackSuppressed)) {
+        record.ack_qpc = glue_qpc_now();
+        impl_->facts.timing_valid = impl_->facts.timing_valid && record.ack_qpc > 0;
+    }
     if (event != nullptr) {
         record.event_sequence = event->receipt_sequence;
         record.native_event_timestamp_ms = event->native_event_time;
@@ -1178,6 +1282,75 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         return result;
     }
 
+    const auto record_decision_time = [&]() {
+        if (impl_->facts.ctrl_move_activation_required && !impl_->quanta.empty() &&
+            impl_->quanta.back().behavior_decision_qpc == 0) {
+            auto& quantum = impl_->quanta.back();
+            quantum.behavior_decision_qpc = glue_qpc_now();
+            impl_->facts.timing_valid = impl_->facts.timing_valid &&
+                quantum.behavior_decision_qpc >= quantum.sample_complete_qpc &&
+                quantum.behavior_decision_qpc > 0;
+        }
+    };
+    if (impl_->facts.ctrl_move_activation_required) {
+        if (!impl_->activation.has_value()) {
+            result.reason = ExplorerGlueReason::ActivationRejected;
+            return result;
+        }
+        auto& activation = *impl_->activation;
+        if (event.kind == ExplorerGlueEventKind::MoveResizeStarted) {
+            const auto owner_qpc = glue_qpc_now();
+            const auto owner_ctrl = event.role == ExplorerGlueWindowRole::Leader
+                                        ? sample_ctrl() : CtrlSample{};
+            const auto attempt = activation.evaluate_start(
+                event, owner_ctrl, impl_->facts.activation_pair, true,
+                owner_qpc, glue_qpc_now());
+            if (!activation.stamp_last_decision_complete(glue_qpc_now())) {
+                impl_->facts.timing_valid = false;
+                result.reason = ExplorerGlueReason::InteractionEvidenceFailed;
+                return result;
+            }
+            impl_->facts.activation_overflow = activation.overflowed();
+            impl_->facts.activation_generation = activation.activation_generation();
+            record_decision_time();
+            if (!attempt.activated &&
+                attempt.reason != ExplorerGlueActivationReason::CtrlNotDownAtStart) {
+                result.reason = ExplorerGlueReason::ActivationRejected;
+                return result;
+            }
+        }
+        if (!activation.is_active()) {
+            // Plain drag never reaches Core. In particular later Ctrl samples
+            // and LOCATION receipts cannot attach this already-started drag.
+            record_decision_time();
+            if (!impl_->facts.follower_layout.has_value() ||
+                sampled_follower.visible_rect != impl_->facts.follower_layout->visible_rect ||
+                sampled_follower.positioning_rect != impl_->facts.follower_layout->positioning_rect) {
+                result.reason = ExplorerGlueReason::ActivationRejected;
+                return result;
+            }
+            if (event.kind == ExplorerGlueEventKind::MoveResizeEnded &&
+                event.role == ExplorerGlueWindowRole::Leader) {
+                if (!activation.rejected_at_start() ||
+                    !impl_->facts.follower_layout.has_value() ||
+                    sampled_follower.visible_rect !=
+                        impl_->facts.follower_layout->visible_rect ||
+                    sampled_follower.positioning_rect !=
+                        impl_->facts.follower_layout->positioning_rect) {
+                    result.reason = ExplorerGlueReason::ActivationRejected;
+                    return result;
+                }
+                impl_->facts.leader_final = sampled_leader;
+                impl_->facts.follower_final = sampled_follower;
+                impl_->facts.plain_drag_completed = true;
+                activation.finish();
+                result.reason = ExplorerGlueReason::CtrlNotDownAtStart;
+                result.stage = ExplorerGlueStage::Completion;
+            }
+            return result;
+        }
+    }
+
     if (event.kind == ExplorerGlueEventKind::MoveResizeStarted &&
         event.role == ExplorerGlueWindowRole::Leader) {
         if (!impl_->facts.leader_layout.has_value() ||
@@ -1247,6 +1420,13 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         core_event_kind(event.kind),
         event_geometry};
     auto decision = impl_->coordinator.on_event(receipt);
+    if (impl_->facts.ctrl_move_activation_required) {
+        impl_->current_behavior_decision_qpc = glue_qpc_now();
+        impl_->facts.timing_valid = impl_->facts.timing_valid &&
+            impl_->current_behavior_decision_qpc > 0 && !impl_->quanta.empty() &&
+            impl_->current_behavior_decision_qpc >= impl_->quanta.back().sample_complete_qpc;
+    }
+    record_decision_time();
     record_trace(&event, &decision, event_geometry);
     if (impl_->terminal) {
         result.reason = ExplorerGlueReason::EventQueueOverflow;
@@ -1361,6 +1541,9 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
     if (impl_->coordinator.state() == core::behavior::GlueMoveState::Aborted) {
         result.reason = ExplorerGlueReason::BehaviorAborted;
     }
+    if (impl_->facts.ctrl_move_activation_required && !impl_->facts.timing_valid) {
+        result.reason = ExplorerGlueReason::InteractionEvidenceFailed;
+    }
     return result;
 }
 
@@ -1376,6 +1559,8 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
     // One current queue batch per processing quantum. Newly delivered receipts
     // belong to the next quantum, giving the owner loop an explicit boundary.
     {
+        const auto drain_qpc = impl_->facts.ctrl_move_activation_required
+                                   ? glue_qpc_now() : 0;
         auto drained = impl_->event_source->drain_owner_queue();
         impl_->facts.max_event_queue_depth =
             std::max(impl_->facts.max_event_queue_depth,
@@ -1417,6 +1602,7 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
 
         if (impl_->receipts.size() + drained.events.size() > kTraceCapacity ||
             impl_->quanta.size() >= kTraceCapacity) {
+            impl_->facts.timing_overflow = impl_->facts.ctrl_move_activation_required;
             static_cast<void>(impl_->coordinator.report_queue_overflow(
                 impl_->coordinator.session_generation()));
             result.reason = ExplorerGlueReason::EventQueueOverflow;
@@ -1433,6 +1619,7 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         const auto selected = detail::select_glue_quantum_events(
             std::span{drained.events}.first(active_count));
         ExplorerGlueQuantumRecord quantum;
+        quantum.owner_drain_start_qpc = drain_qpc;
         quantum.processing_quantum_id = ++impl_->current_quantum_id;
         quantum.first_receipt_sequence = drained.events.front().receipt_sequence;
         quantum.last_receipt_sequence = drained.events.back().receipt_sequence;
@@ -1457,7 +1644,12 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                     ? std::nullopt
                     : std::optional{core_event_kind(event.kind)},
                 event.native_event_time,
-                !discarded && !selected[index], discarded});
+                !discarded && !selected[index], discarded,
+                event.callback_qpc, event.ctrl_callback});
+            if (impl_->facts.ctrl_move_activation_required) {
+                impl_->facts.timing_valid = impl_->facts.timing_valid &&
+                    event.callback_qpc > 0 && drain_qpc >= event.callback_qpc;
+            }
         }
         if (quantum.leader_location_count != 0U) {
             quantum.sampled_geometry_generation = quantum.processing_quantum_id;
@@ -1487,10 +1679,21 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         // Leader receipts keep source metadata only; they never enter Core as
         // multiple copies of this geometry. Follower attribution still uses the
         // pre-apply sample and the existing pending watermark protections.
+        if (impl_->facts.ctrl_move_activation_required) {
+            impl_->quanta.back().sample_start_qpc = glue_qpc_now();
+        }
         const auto batch_leader = detail::ExplorerGlueSessionBridge::capture(
             impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
         const auto batch_follower = detail::ExplorerGlueSessionBridge::capture(
             impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower);
+        if (impl_->facts.ctrl_move_activation_required) {
+            auto& timing = impl_->quanta.back();
+            timing.sample_complete_qpc = glue_qpc_now();
+            impl_->facts.timing_valid = impl_->facts.timing_valid &&
+                timing.owner_drain_start_qpc > 0 &&
+                timing.sample_start_qpc >= timing.owner_drain_start_qpc &&
+                timing.sample_complete_qpc >= timing.sample_start_qpc;
+        }
         if (!batch_leader.succeeded() || !batch_follower.succeeded() ||
             !same_pair_monitor_and_dpi(*batch_leader.snapshot,
                                        *batch_follower.snapshot)) {
@@ -1510,7 +1713,9 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                 continue;
             }
             if (event.role == ExplorerGlueWindowRole::Leader &&
-                event.kind == ExplorerGlueEventKind::GeometryChanged) {
+                event.kind == ExplorerGlueEventKind::GeometryChanged &&
+                (!impl_->facts.ctrl_move_activation_required ||
+                 (impl_->activation.has_value() && impl_->activation->is_active()))) {
                 for (auto later = drained.events.begin() +
                                   static_cast<std::ptrdiff_t>(index + 1U);
                      later != drained.events.begin() +
@@ -1602,11 +1807,16 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
         return result;
     }
     impl_->terminal = true;
+    if (impl_->activation.has_value()) {
+        impl_->activation->finish();
+    }
 
     bool event_lifecycle_clean = true;
     if (impl_->event_source != nullptr) {
         event_lifecycle_clean = impl_->event_source->stop_live();
         try {
+            const auto tail_drain_qpc = impl_->facts.ctrl_move_activation_required
+                                            ? glue_qpc_now() : 0;
             const auto discarded = impl_->event_source->drain_owner_queue();
             // Postverify may have delivered additional callbacks after the
             // final active quantum drained. Preserve that tail in its own
@@ -1616,8 +1826,10 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
                     impl_->receipts.size() + discarded.events.size() >
                         kTraceCapacity) {
                     event_lifecycle_clean = false;
+                    impl_->facts.timing_overflow = impl_->facts.ctrl_move_activation_required;
                 } else {
                     ExplorerGlueQuantumRecord tail;
+                    tail.owner_drain_start_qpc = tail_drain_qpc;
                     tail.processing_quantum_id = ++impl_->current_quantum_id;
                     tail.first_receipt_sequence =
                         discarded.events.front().receipt_sequence;
@@ -1631,7 +1843,8 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
                             event.kind == ExplorerGlueEventKind::TargetDestroyed
                                 ? std::nullopt
                                 : std::optional{core_event_kind(event.kind)},
-                            event.native_event_time, false, true});
+                            event.native_event_time, false, true,
+                            event.callback_qpc, event.ctrl_callback});
                     }
                     impl_->quanta.push_back(tail);
                 }
@@ -1951,6 +2164,13 @@ const std::vector<ExplorerGlueQuantumRecord>&
 ExplorerGlueSession::quanta() const noexcept {
     static const std::vector<ExplorerGlueQuantumRecord> unavailable;
     return impl_ != nullptr ? impl_->quanta : unavailable;
+}
+
+std::span<const ExplorerGlueActivationAttempt>
+ExplorerGlueSession::activation_attempts() const noexcept {
+    return impl_ != nullptr && impl_->activation.has_value()
+               ? impl_->activation->attempts()
+               : std::span<const ExplorerGlueActivationAttempt>{};
 }
 
 detail::ExplorerGlueDiagnostics detail::ExplorerGlueSessionDiagnostics::read(

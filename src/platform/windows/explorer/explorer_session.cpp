@@ -4945,7 +4945,17 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
     ExplorerTestSession& session,
     const ExplorerGluePreparedTranslation& prepared,
     const BeforeNativeApply before_native_apply,
-    void* const before_native_apply_context) {
+    void* const before_native_apply_context,
+    ExplorerGlueNativeTiming* const timing) {
+    // Opt-in diagnostics only. The old Console Glue path supplies nullptr.
+    struct PostverifyTiming final {
+        ExplorerGlueNativeTiming* value;
+        ~PostverifyTiming() noexcept {
+            if (value != nullptr && value->native_apply_start_qpc > 0) {
+                value->postverify_complete_qpc = glue_qpc_now();
+            }
+        }
+    } timing_completion{timing};
     ExplorerOperationResult result;
     result.operation_id = operation_ids.issue();
     result.stage = permit.phase_ == ExplorerGlueOperationPhase::Restore
@@ -5010,6 +5020,9 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
                        ? ExplorerOperationStage::Restore
                        : ExplorerOperationStage::NativeApply;
     result.native_apply_attempted = true;
+    if (timing != nullptr) {
+        timing->native_apply_start_qpc = glue_qpc_now();
+    }
     SetLastError(ERROR_SUCCESS);
     const BOOL native_result = SetWindowPos(
         session.impl_->window,
@@ -5020,6 +5033,10 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
         0,
         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
     const DWORD native_error = GetLastError();
+
+    if (timing != nullptr) {
+        timing->native_api_return_qpc = glue_qpc_now();
+    }
 
     auto actual = validate_native_target(
         *session.impl_, session.impl_->issued_token.operator->(), false, false);

@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param()
+param([switch] $DefinitionsOnly)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -8,7 +8,9 @@ $runner = Join-Path $PSScriptRoot 'run-r1c2b-explorer-glue-evidence.ps1'
 $tempBase = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
 $fixtureRoot = Join-Path $tempBase (
     'panebind-r1c2b-runner-' + [Guid]::NewGuid().ToString('N'))
-[void] (New-Item -ItemType Directory -Path $fixtureRoot)
+if (-not $DefinitionsOnly) {
+    [void] (New-Item -ItemType Directory -Path $fixtureRoot)
+}
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Write-JsonLines {
@@ -781,6 +783,8 @@ function Assert-RunnerOutcome {
     }
     Write-Output "$Name fixture: PASS (runner exit $actualExit)"
 }
+
+if ($DefinitionsOnly) { return }
 
 try {
     $passPrefix = Write-Fixture 'pass' (New-PassHarnessRecords) `
