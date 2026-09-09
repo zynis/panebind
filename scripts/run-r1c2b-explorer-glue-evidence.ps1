@@ -28,14 +28,25 @@ param(
 
     [Parameter(ParameterSetName = 'ValidateEvidence')]
     [ValidateRange(0, 255)]
-    [int] $ValidationObserverExitCode = 0
+    [int] $ValidationObserverExitCode = 0,
+
+    # Fixed profiles only. The default preserves the sealed R1-C2B contract.
+    [ValidateSet('R1C2B', 'R1C3A')]
+    [string] $EvidenceProfile = 'R1C2B'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ctrlProfile = $EvidenceProfile -eq 'R1C3A'
+$roundName = if ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
+$evidenceSubdirectory = if ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
+$expectedSchema = if ($ctrlProfile) {
+    'panebind.r1c3a.explorer_ctrl_glue'
+} else { 'panebind.r1c2b.explorer_glue' }
+$ctrlNotActivated = $false
 
 trap {
-    Write-Output 'R1-C2B evidence outcome: INVALID_EVIDENCE'
+    Write-Output "$roundName evidence outcome: INVALID_EVIDENCE"
     [Console]::Error.WriteLine(
         ("Evidence 校验失败：{0}" -f $_.Exception.Message))
     exit 1
@@ -279,7 +290,8 @@ function ConvertTo-UtcEvidenceTime {
 function Assert-RealtimeFollowEvidence {
     param(
         [object[]] $Records, [object[]] $Trace,
-        [object[]] $ActiveOperations, [object] $Facts, [object] $Summary
+        [object[]] $ActiveOperations, [object] $Facts, [object] $Summary,
+        [switch] $NoActivation
     )
     $receipts = @($Records | Where-Object { $_.record_kind -eq 'event_receipt' })
     $quanta = @($Records | Where-Object { $_.record_kind -eq 'processing_quantum' })
@@ -433,7 +445,7 @@ function Assert-RealtimeFollowEvidence {
         $matchingTrace = @($Trace | Where-Object {
             [uint64] $_.event_sequence -eq [uint64] $receipt.receipt_sequence
         })
-        $expectedCount = if ($receipt.coalesced -or $receipt.discarded_after_end) { 0 } else { 1 }
+        $expectedCount = if ($NoActivation -or $receipt.coalesced -or $receipt.discarded_after_end) { 0 } else { 1 }
         if ($matchingTrace.Count -ne $expectedCount) {
             throw 'Raw receipt 与 coalesced/processed trace 集合不闭合。'
         }
@@ -490,7 +502,9 @@ function Assert-RealtimeFollowEvidence {
             ++$beforeEndCount
         }
     }
-    $gate = if ($rawLocations.Count -lt 3) {
+    $gate = if ($NoActivation) {
+        'NOT_REACHED'
+    } elseif ($rawLocations.Count -lt 3) {
         'INSUFFICIENT_DRAG_EVIDENCE'
     } elseif ($distinctSamples -lt 2 -or $ActiveOperations.Count -lt 2 -or
               $distinctTargets -lt 2 -or $beforeEndCount -lt 1) {
@@ -748,6 +762,10 @@ function Assert-LayoutPreviewEvidence {
     return $previews[-1]
 }
 
+if ($ctrlProfile) {
+    . (Join-Path $PSScriptRoot 'r1c3a-evidence-validation.ps1')
+}
+
 $observerProcess = $null
 $observerExitCode = $null
 $harnessExitCode = $null
@@ -757,8 +775,11 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
     }
 
     $observerPath = Resolve-R1C2BExecutable -FileName 'panebind-observer.exe'
-    $harnessPath = Resolve-R1C2BExecutable -FileName 'panebind-explorer-glue-harness.exe'
-    $evidenceDirectory = Join-Path -Path $repositoryRoot -ChildPath 'uat/r1c2b'
+    $harnessFile = if ($ctrlProfile) {
+        'panebind-explorer-ctrl-glue-harness.exe'
+    } else { 'panebind-explorer-glue-harness.exe' }
+    $harnessPath = Resolve-R1C2BExecutable -FileName $harnessFile
+    $evidenceDirectory = Join-Path -Path $repositoryRoot -ChildPath $evidenceSubdirectory
     [void] (New-Item -ItemType Directory -Path $evidenceDirectory -Force)
     $timestamp = [DateTime]::UtcNow.ToString(
         'yyyyMMddTHHmmssfffZ',
@@ -917,9 +938,9 @@ if ([uint64] $hookRegistration[0].observer_sequence -ge
 $harnessRecords = @(Read-StrictJsonLines -Path $harnessEvidence)
 if (@($harnessRecords | Where-Object {
         [int] $_.schema_version -ne 1 -or
-        $_.schema_name -ne 'panebind.r1c2b.explorer_glue'
+        $_.schema_name -ne $expectedSchema
     }).Count -ne 0) {
-    throw 'Harness schema 不符合 R1-C2B evidence contract。'
+    throw "Harness schema 不符合 $EvidenceProfile evidence contract。"
 }
 for ($index = 0; $index -lt $harnessRecords.Count; ++$index) {
     Assert-RecordProperties -Record $harnessRecords[$index] `
@@ -943,6 +964,14 @@ $knownHarnessRecordKinds = @(
     'internal_trace', 'operation', 'feedback_reconciliation', 'facts',
     'summary', 'shutdown'
 )
+if ($ctrlProfile) {
+    $knownHarnessRecordKinds += @('pair_authority', 'activation_attempt')
+    if (@($harnessRecords | Where-Object {
+        $_.record_kind -in @('glue_consent_prompt', 'glue_consent_confirmation', 'glue_authority')
+    }).Count -ne 0) {
+        throw 'Ctrl activation evidence 不得含 Console Glue consent 或旧 Glue authority。'
+    }
+}
 $unknownKinds = @($harnessRecords | Where-Object {
     $knownHarnessRecordKinds -notcontains $_.record_kind
 })
@@ -1241,6 +1270,7 @@ if ($pair.result -eq 'BLOCKED') {
         'internal_trace',
         'facts'
     )
+    if ($ctrlProfile) { $forbiddenAfterPairKinds += @('pair_authority', 'activation_attempt') }
     $nativeApplyRecords = @($harnessRecords | Where-Object {
         $property = $_.PSObject.Properties['native_apply_attempted']
         $null -ne $property -and $property.Value -eq $true
@@ -1318,13 +1348,13 @@ if ($pair.result -eq 'BLOCKED') {
         throw "Harness exit=$harnessExitCode 与 SAFE_BLOCKED contract（exit=1）矛盾。"
     }
 
-    Write-Output 'R1-C2B evidence outcome: SAFE_BLOCKED / KNOWN_BLOCKED'
+    Write-Output "$roundName evidence outcome: SAFE_BLOCKED / KNOWN_BLOCKED"
     $humanBlocker = switch ($pair.reason) {
         'unsafe_layout' { 'UnsafeLayout' }
         'target_changed' { 'TargetChanged' }
         'monitor_or_dpi_mismatch' { 'MonitorOrDpiMismatch' }
     }
-    Write-Output ("R1-C2B UAT 安全阻断：pair_validation / {0}" -f
+    Write-Output ("$roundName UAT 安全阻断：pair_validation / {0}" -f
         $humanBlocker)
     Write-Output '没有进入 Glue 授权；没有建立 native binding 或 arm event source。'
     Write-Output '没有执行 Glue native apply；没有触碰既有窗口、其他应用或全局输入。'
@@ -1360,10 +1390,16 @@ if (-not $previewContractSupported -or
     throw 'PASS summary 与 mandatory side-effect-free preview 证据矛盾。'
 }
 
+$glueNativeBindings = Assert-UniqueRecord -Records $harnessRecords -Kind 'glue_native_bindings'
+if ($ctrlProfile) {
+    $ctrlEvidence = Assert-CtrlActivationEvidence -Records $harnessRecords `
+        -Startup $startup -Summary $summary -Leader $leaderNative -Follower $followerNative
+    $ctrlNotActivated = $ctrlEvidence.NotActivated
+    $glueAuthority = $ctrlEvidence.PairAuthority
+} else {
 $gluePrompt = Assert-UniqueRecord -Records $harnessRecords -Kind 'glue_consent_prompt'
 $glueConfirmation = Assert-UniqueRecord -Records $harnessRecords -Kind 'glue_consent_confirmation'
 $glueAuthority = Assert-UniqueRecord -Records $harnessRecords -Kind 'glue_authority'
-$glueNativeBindings = Assert-UniqueRecord -Records $harnessRecords -Kind 'glue_native_bindings'
 Assert-RecordProperties -Record $gluePrompt -Context 'glue_consent_prompt' `
     -Names @('result', 'generation', 'input_source')
 Assert-RecordProperties -Record $glueConfirmation `
@@ -1372,6 +1408,7 @@ Assert-RecordProperties -Record $glueConfirmation `
 Assert-RecordProperties -Record $glueAuthority -Context 'glue_authority' `
     -Names @('result', 'pair_preview_generation', 'prompt_generation',
              'confirmation_generation', 'authority_generation')
+}
 Assert-RecordProperties -Record $glueNativeBindings `
     -Context 'glue_native_bindings' `
     -Names @('session_bindings_present', 'leader_native_key',
@@ -1399,6 +1436,7 @@ if ($pair.result -ne 'PASS' -or
     $pair.follower_original.target_ui_access -ne $false -or
     $pair.leader_original.target_app_container -ne $false -or
     $pair.follower_original.target_app_container -ne $false -or
+    (-not $ctrlProfile -and (
     $gluePrompt.result -ne 'READY' -or
     $gluePrompt.input_source -ne 'interactive_console' -or
     $glueConfirmation.result -ne 'CONFIRMED' -or
@@ -1408,7 +1446,7 @@ if ($pair.result -ne 'PASS' -or
     [uint64] $gluePrompt.generation -ne [uint64] $glueAuthority.prompt_generation -or
     [uint64] $glueAuthority.pair_preview_generation -ge [uint64] $glueAuthority.prompt_generation -or
     [uint64] $glueAuthority.prompt_generation -ge [uint64] $glueAuthority.confirmation_generation -or
-    [uint64] $glueAuthority.confirmation_generation -ge [uint64] $glueAuthority.authority_generation) {
+    [uint64] $glueAuthority.confirmation_generation -ge [uint64] $glueAuthority.authority_generation))) {
     throw 'Pair/Glue consent authority gate 未通过。'
 }
 if ($glueNativeBindings.session_bindings_present -ne $true -or
@@ -1422,21 +1460,28 @@ if ($glueNativeBindings.session_bindings_present -ne $true -or
 }
 
 $steps = @($harnessRecords | Where-Object { $_.record_kind -eq 'glue_step' })
-foreach ($stepName in @('glue_consent_prompt', 'setup_test_layout',
-                        'arm_event_source', 'run_until_terminal')) {
+$expectedSteps = if ($ctrlProfile) {
+    @('setup_test_layout', 'arm_event_source', 'run_until_terminal')
+} else { @('glue_consent_prompt', 'setup_test_layout', 'arm_event_source', 'run_until_terminal') }
+foreach ($stepName in $expectedSteps) {
     $step = @($steps | Where-Object { $_.step -eq $stepName })
     foreach ($item in $step) {
         Assert-RecordProperties -Record $item -Context "glue_step $stepName" `
             -Names @('step', 'result')
     }
-    if ($step.Count -ne 1 -or $step[0].result -ne 'PASS') {
+    $expectedStepResult = if ($ctrlNotActivated -and $stepName -eq 'run_until_terminal') {
+        'BLOCKED'
+    } else { 'PASS' }
+    if ($step.Count -ne 1 -or $step[0].result -ne $expectedStepResult) {
         throw "Glue step '$stepName' 未唯一 PASS。"
     }
 }
-if ($steps.Count -ne 4) {
+if ($steps.Count -ne $expectedSteps.Count) {
     throw "PASS glue_step 集合不闭合，实际 $($steps.Count) 条。"
 }
-$promptStep = @($steps | Where-Object { $_.step -eq 'glue_consent_prompt' })[0]
+if (-not $ctrlProfile) {
+    $promptStep = @($steps | Where-Object { $_.step -eq 'glue_consent_prompt' })[0]
+}
 $setupStep = @($steps | Where-Object { $_.step -eq 'setup_test_layout' })[0]
 $armStep = @($steps | Where-Object { $_.step -eq 'arm_event_source' })[0]
 $runStep = @($steps | Where-Object { $_.step -eq 'run_until_terminal' })[0]
@@ -1449,6 +1494,7 @@ if ($dragPrompt.role -ne 'leader' -or
     [int] $dragPrompt.timeout_seconds -gt 300 -or
     [uint64] $finalPassPreview.harness_sequence -ge
         [uint64] $pair.harness_sequence -or
+    (-not $ctrlProfile -and (
     [uint64] $pair.harness_sequence -ge
         [uint64] $promptStep.harness_sequence -or
     [uint64] $promptStep.harness_sequence -ge
@@ -1456,7 +1502,9 @@ if ($dragPrompt.role -ne 'leader' -or
     [uint64] $gluePrompt.harness_sequence -ge
         [uint64] $glueConfirmation.harness_sequence -or
     [uint64] $glueConfirmation.harness_sequence -ge
-        [uint64] $glueAuthority.harness_sequence -or
+        [uint64] $glueAuthority.harness_sequence)) -or
+    ($ctrlProfile -and [uint64] $pair.harness_sequence -ge
+        [uint64] $glueAuthority.harness_sequence) -or
     [uint64] $glueAuthority.harness_sequence -ge
         [uint64] $glueNativeBindings.harness_sequence -or
     [uint64] $glueNativeBindings.harness_sequence -ge
@@ -1468,6 +1516,13 @@ if ($dragPrompt.role -ne 'leader' -or
     [uint64] $dragPrompt.harness_sequence -ge
         [uint64] $runStep.harness_sequence) {
     throw 'PASS preview/pair/consent/authority/setup/arm/drag/run evidence 顺序非法。'
+}
+if ($ctrlProfile) {
+    Assert-RecordProperties $dragPrompt @('activation_input_source') 'Ctrl drag prompt'
+    if ($dragPrompt.activation_input_source -ne 'ctrl_move_start' -or
+        ($ctrlNotActivated -and $runStep.reason -ne 'ctrl_not_down_at_start')) {
+        throw 'Ctrl drag prompt or rejected activation terminal reason is invalid.'
+    }
 }
 
 $facts = Assert-UniqueRecord -Records $harnessRecords -Kind 'facts'
@@ -1579,7 +1634,8 @@ $followerVisibleDelta = Get-RectTranslation `
 $followerPositioningDelta = Get-RectTranslation `
     $facts.follower_layout.positioning $facts.follower_final.positioning `
     'Follower final positioning'
-if (($leaderVisibleDelta.dx -eq 0 -and $leaderVisibleDelta.dy -eq 0) -or
+if (-not $ctrlNotActivated -and (
+    ($leaderVisibleDelta.dx -eq 0 -and $leaderVisibleDelta.dy -eq 0) -or
     $leaderVisibleDelta.dx -ne $leaderPositioningDelta.dx -or
     $leaderVisibleDelta.dy -ne $leaderPositioningDelta.dy -or
     $leaderVisibleDelta.dx -ne $followerVisibleDelta.dx -or
@@ -1589,8 +1645,15 @@ if (($leaderVisibleDelta.dx -eq 0 -and $leaderVisibleDelta.dy -eq 0) -or
     (Get-SnapshotNonGeometryKey $facts.leader_layout 'leader layout') -ne
         (Get-SnapshotNonGeometryKey $facts.leader_final 'leader final') -or
     (Get-SnapshotNonGeometryKey $facts.follower_layout 'follower layout') -ne
-        (Get-SnapshotNonGeometryKey $facts.follower_final 'follower final')) {
+        (Get-SnapshotNonGeometryKey $facts.follower_final 'follower final'))) {
     throw 'Leader/Follower final geometry 不是同尺寸、同一非零 total delta。'
+}
+if ($ctrlNotActivated -and (
+    (Get-SnapshotKey $facts.follower_layout 'no-Ctrl follower layout') -ne
+        (Get-SnapshotKey $facts.follower_final 'no-Ctrl follower final') -or
+    (Get-SnapshotNonGeometryKey $facts.leader_layout 'no-Ctrl leader layout') -ne
+        (Get-SnapshotNonGeometryKey $facts.leader_final 'no-Ctrl leader final'))) {
+    throw 'Ctrl-not-down path changed the Follower or target identity.'
 }
 $trace = @($harnessRecords | Where-Object { $_.record_kind -eq 'internal_trace' })
 if ($trace.Count -eq 0) {
@@ -1638,7 +1701,8 @@ $allowedFollowerGeometryDecisions = @(
     'feedback_observed_pending_result',
     'duplicate_feedback_suppressed'
 )
-if ($leaderStart.Count -ne 1 -or $leaderLocation.Count -lt 1 -or
+if (-not $ctrlNotActivated -and (
+    $leaderStart.Count -ne 1 -or $leaderLocation.Count -lt 1 -or
     $leaderEnd.Count -ne 1 -or
     @($trace | Where-Object { $_.decision -eq 'activated' }).Count -ne 1 -or
     @($trace | Where-Object { $_.decision -eq 'completing' }).Count -ne 1 -or
@@ -1648,8 +1712,13 @@ if ($leaderStart.Count -ne 1 -or $leaderLocation.Count -lt 1 -or
     }).Count -ne 0 -or
     @($followerFeedback | Where-Object {
         $allowedFollowerGeometryDecisions -notcontains $_.decision
-    }).Count -ne 0) {
+    }).Count -ne 0)) {
     throw 'Internal START/LOCATION/END、completion 或 no-recursion trace gate 未通过。'
+}
+if ($ctrlNotActivated -and ($trace.Count -ne 1 -or
+    $trace[0].decision -ne 'armed' -or [uint64] $trace[0].event_sequence -ne 0 -or
+    $null -ne $trace[0].event_kind -or $followerMoveCommands.Count -ne 0)) {
+    throw 'Rejected Ctrl START must never enter the Core event/operation lifecycle.'
 }
 
 $operations = @($harnessRecords | Where-Object { $_.record_kind -eq 'operation' })
@@ -1761,7 +1830,8 @@ foreach ($role in @('leader', 'follower')) {
 $activeFollower = @($operations | Where-Object {
     $_.phase -eq 'active_follower' -and $_.role -eq 'follower'
 })
-if ($activeFollower.Count -lt 1 -or
+if ((-not $ctrlNotActivated -and $activeFollower.Count -lt 1) -or
+    ($ctrlNotActivated -and $activeFollower.Count -ne 0) -or
     @($activeFollower | Where-Object {
         $_.native_apply_attempted -ne $true -or $_.exact_receipt -ne $true
     }).Count -ne 0 -or
@@ -1824,7 +1894,8 @@ foreach ($reconciliation in $reconciliations) {
 if ($reconciliations.Count -ne $activeFollower.Count) {
     throw '每个 active follower operation 必须有唯一 reconciliation record。'
 }
-if ([uint64] $runStep.harness_sequence -ge
+if (-not $ctrlNotActivated -and (
+    [uint64] $runStep.harness_sequence -ge
         [uint64] $trace[0].harness_sequence -or
     [uint64] $trace[-1].harness_sequence -ge
         [uint64] $operations[0].harness_sequence -or
@@ -1833,8 +1904,18 @@ if ([uint64] $runStep.harness_sequence -ge
     [uint64] $reconciliations[-1].harness_sequence -ge
         [uint64] $facts.harness_sequence -or
     [uint64] $facts.harness_sequence -ge
-        [uint64] $summary.harness_sequence) {
+        [uint64] $summary.harness_sequence)) {
     throw 'PASS run < trace < operations < reconciliation < facts < summary 顺序非法。'
+}
+if ($ctrlNotActivated) {
+    $lastGroupSequence = [uint64] $runStep.harness_sequence
+    foreach ($group in @($trace, $operations, @($facts), @($summary))) {
+        if ($group.Count -eq 0) { continue }
+        if ([uint64]$group[0].harness_sequence -le $lastGroupSequence) {
+            throw 'Rejected activation run/trace/operations/facts/summary ordering is invalid.'
+        }
+        $lastGroupSequence = [uint64]$group[-1].harness_sequence
+    }
 }
 $acknowledgedReconciliations = 0
 $snapshotReconciliations = 0
@@ -1929,9 +2010,16 @@ foreach ($feedback in @($followerFeedback | Sort-Object {
     }
 }
 
-if ($facts.behavior_state -ne 'completed' -or
+$expectedBehaviorState = if ($ctrlNotActivated) { 'armed' } else { 'completed' }
+if ($ctrlProfile) {
+    Assert-EvidenceBoolean $facts @('fixture_pair_authorized', 'glue_consent_confirmed')
+    if ($facts.fixture_pair_authorized -ne $true -or $facts.glue_consent_confirmed -ne $false) {
+        throw 'Ctrl fixture pair authority must remain separate from Console Glue consent.'
+    }
+}
+if ($facts.behavior_state -ne $expectedBehaviorState -or
     $null -ne $facts.behavior_abort_reason -or
-    $facts.glue_consent_confirmed -ne $true -or
+    (-not $ctrlProfile -and $facts.glue_consent_confirmed -ne $true) -or
     $facts.follower_baseline_excluded_leader -ne $true -or
     $facts.test_layout_exact -ne $true -or
     $facts.topology_exact_two_window_component -ne $true -or
@@ -1957,20 +2045,22 @@ if ($facts.behavior_state -ne 'completed' -or
     throw 'Final facts behavior/suppression/cleanup gate 未通过。'
 }
 
-$expectedFeedbackEvidence = if ($followerFeedback.Count -gt 0) {
+$expectedFeedbackEvidence = if ($ctrlNotActivated) {
+    'not_reached'
+} elseif ($followerFeedback.Count -gt 0) {
     'observed_and_suppressed'
 } else {
     'no_feedback_event_reconciled'
 }
 if ($summary.implementation_ready -ne $true -or
-    $summary.behavior_state -ne 'completed' -or
+    $summary.behavior_state -ne $expectedBehaviorState -or
     [int] $summary.leader_start_count -ne $leaderStart.Count -or
     [int] $summary.leader_location_count -ne $leaderLocation.Count -or
     [int] $summary.leader_end_count -ne $leaderEnd.Count -or
     [int] $summary.follower_feedback_count -ne $followerFeedback.Count -or
     [int] $summary.follower_native_apply_count -ne $activeFollower.Count -or
     [int] $summary.active_follower_operation_count -ne $activeFollower.Count -or
-    $summary.all_active_follower_operations_exact -ne $true -or
+    $summary.all_active_follower_operations_exact -ne (-not $ctrlNotActivated) -or
     [int] $summary.suppressed_feedback_count -ne $followerFeedback.Count -or
     [int] $summary.duplicate_feedback_count -ne
         [int] $facts.duplicate_feedback_count -or
@@ -1979,7 +2069,7 @@ if ($summary.implementation_ready -ne $true -or
     [int] $summary.acknowledged_operation_count -ne
         $acknowledgedReconciliations -or
     [int] $summary.reconciled_operation_count -ne $snapshotReconciliations -or
-    $summary.feedback_operation_correlation_valid -ne $true -or
+    $summary.feedback_operation_correlation_valid -ne (-not $ctrlNotActivated) -or
     $summary.trace_generation_valid -ne $true -or
     $summary.feedback_suppression_evidence -ne $expectedFeedbackEvidence -or
     [int] $summary.unexpected_feedback_count -ne 0 -or
@@ -2089,10 +2179,19 @@ if ($observerExitCode -ne 0) {
     throw "Observer 失败：exit=$observerExitCode"
 }
 $realtime = Assert-RealtimeFollowEvidence -Records $harnessRecords -Trace $trace `
-    -ActiveOperations $activeFollower -Facts $facts -Summary $summary
+    -ActiveOperations $activeFollower -Facts $facts -Summary $summary -NoActivation:$ctrlNotActivated
+if ($ctrlProfile) {
+    Assert-CtrlTimingEvidence -Records $harnessRecords -Startup $startup -Summary $summary `
+        -Facts $facts -Activation $ctrlEvidence.Attempt
+    Write-Output "Ctrl activation decision: $($ctrlEvidence.Attempt.decision)"
+    Write-Output "Ctrl callback: $($ctrlEvidence.Attempt.ctrl_down_at_callback_delivery)"
+    Write-Output "Ctrl owner: $($ctrlEvidence.Attempt.ctrl_down_at_owner_processing)"
+    Write-Output "CTRL_ACTIVATION_EVIDENCE_GATE: $($summary.ctrl_activation_evidence_gate)"
+}
 $expectedResult = if ($realtime.Gate -eq 'PASS') { 'PASS' } else { 'BLOCKED' }
 $expectedHarnessExit = if ($realtime.Gate -eq 'PASS') { 0 } else { 2 }
-$expectedReason = if ($realtime.Gate -eq 'PASS') { 'pass' } else { $realtime.Gate }
+$expectedReason = if ($ctrlNotActivated) { 'CTRL_NOT_DOWN_AT_START' }
+    elseif ($realtime.Gate -eq 'PASS') { 'pass' } else { $realtime.Gate }
 if ($summary.result -ne $expectedResult -or $summary.runtime_gate -ne $expectedResult -or
     $summary.reason -ne $expectedReason -or $harnessExitCode -ne $expectedHarnessExit) {
     throw "Glue Harness 未通过：exit=$harnessExitCode, reason=$($summary.reason)"
@@ -2111,18 +2210,18 @@ Write-Output "Missing: $($summary.missing_feedback_count)"
 Write-Output "Reconciled: $($summary.reconciled_feedback_count)"
 Write-Output "REALTIME_FOLLOW_EVIDENCE_GATE: $($realtime.Gate)"
 if ($realtime.Gate -ne 'PASS') {
-    Write-Output "R1-C2B evidence outcome: SAFE_BLOCKED / $($realtime.Gate)"
+    Write-Output "$roundName evidence outcome: SAFE_BLOCKED / $expectedReason"
     Write-Output 'Safety/final geometry/lifecycle/evidence integrity: PASS'
     Write-Output '两个测试 Explorer 已精确恢复；下次请以正常速度连续拖动 Leader 约 1 秒。'
     exit 2
 }
 
-Write-Output 'R1-C2B evidence outcome: PASS'
-Write-Output "R1-C2B $Configuration Explorer Glue evidence gate: PASS"
+Write-Output "$roundName evidence outcome: PASS"
+Write-Output "$roundName $Configuration Explorer Glue evidence gate: PASS"
 Write-Output "Leader START/LOCATION/END: 1/$($externalLeaderLocation.Count)/1"
 Write-Output "Follower active LOCATION: $($externalFollowerLocation.Count)"
 Write-Output "Follower native applies: $($summary.follower_native_apply_count)"
 Write-Output "Suppressed/duplicate/missing: $($summary.suppressed_feedback_count)/$($summary.duplicate_feedback_count)/$($summary.missing_feedback_count)"
 Write-Output '两个 Explorer 均未自动关闭；请确认已自行关闭测试窗口。'
-Write-Output '原始 evidence 已保存到 uat/r1c2b/。'
+Write-Output "原始 evidence 已保存到 $evidenceSubdirectory/。"
 exit 0
