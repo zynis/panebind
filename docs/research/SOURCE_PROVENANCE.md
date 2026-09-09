@@ -1,5 +1,27 @@
 # Source Provenance Register
 
+## R1-C3B Phase 1 targeted hot-path review (2026-09-09)
+
+All sources below are reference only; code copied/adapted: NO/NO. No upstream
+program was run. Existing local fixed-HEAD checkouts and official GitHub
+issue/PR metadata/diffs were read; no API-derived Git objects or refs were made.
+
+| Project / classification | Revision and verified license | Actual inspection / lesson / applicable subsystem |
+| --- | --- | --- |
+| AltSnap / mature active | `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`; hooks.c header + License.txt, GPL-3.0-or-later | hooks.c worker 695–735, placement wrapper 872–878, cadence 5442–5481, configuration 6677–6697; issue #160/comments, PR #609, commits `7f4afe59076b70980f71af202f63609ca3ac5745` and `7d4c7deb17437a7d5d350fd8074f6285444f4c51`; measure cadence/queue/work boundaries, do not copy timers/hooks/rate algorithms |
+| AltDrag / mature historical | `e2740d605b0336a3b391fec26794718864b19521`; hooks.c GPL-3.0-or-later header and existing LICENSE provenance | hooks.c 1113–1128, path-scoped history, issue #38; raw-input cadence differs from placement, visible versus positioning bounds cannot be swapped |
+| PowerToys/FancyZones / mature production | `19c4d805321db86f3634e6968e14dbf25cbba14a`; root LICENSE, MIT | FancyZonesApp.cpp lifecycle forwarding, FancyZones.cpp owner/start/update/end/destroy, WindowMouseSnap.cpp update/end, WindowUtils.cpp DWM frame adjustment; #12135, #18568, #18057; PR #18106 / `22786a6bdcbbc6eaeb417a6c6f1f15bb6fb0a550` default-layout repeat-loop fix; PR #48569 / `dd26d86580168d2e368701f7b0c4d629dc9cd9ac` destroy abort; no analogous PaneBind root cause inferred |
+| AquaSnap/AquaGlue / mature proprietary UX reference | Live official help read 2026-09-09; proprietary/public-documentation facts only, no source SHA | Official AquaGlue configuration behavior; no internal implementation or smoothness-equivalence claim |
+| Microsoft Learn / official platform contract | Live pages read 2026-09-09; Microsoft Learn terms, no sample code reuse | SetWinEventHook, PostThreadMessageW, MsgWaitForMultipleObjectsEx, PeekMessageW, DispatchMessageW, SetWindowPos, GetWindowRect, DwmGetWindowAttribute/DWMWINDOWATTRIBUTE, GetWindowThreadProcessId, GetAncestor, GetDpiForWindow, MonitorFromWindow, GetMonitorInfoW, QPC/QPF/high-resolution timing guidance, Begin/Defer/EndDeferWindowPos; preserve asynchronous delivery, geometry/identity checks and timing units |
+
+Repositories: <https://github.com/RamonUnch/AltSnap>,
+<https://github.com/stefansundin/altdrag>, <https://github.com/microsoft/PowerToys>.
+No implementation attribution obligation is introduced by reference-only
+inspection; research citations are retained. Any future external code reuse
+requires separate authorization/license/provenance; GPL remains non-derivable.
+Exact source/history/official URLs, conclusions, test obligations and research
+gate: [R1C3B_SMOOTHNESS_RESEARCH.md](R1C3B_SMOOTHNESS_RESEARCH.md).
+
 Review date for R0 entries: 2026-08-24.
 
 This register covers external projects and documentation actually inspected for
