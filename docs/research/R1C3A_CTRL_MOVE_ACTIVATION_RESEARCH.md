@@ -311,7 +311,12 @@ avoid cross-thread +/-1 tick ordering ambiguity. These are CPU/API/observation
 intervals, not compositor-present/hardware-input latency or FPS.
 
 Opt-in C3A records accepted receipt QPC; owner drain; live sample start/end;
-behavior decision; native start/return; postverify; feedback acknowledgement.
+first policy decision per quantum; actual Core decision per active operation;
+native start/return; postverify; feedback acknowledgement. A quantum's
+`behavior_decision_qpc` means its first policy decision (possibly activation or
+feedback). An operation's same-named field is sampled after the corresponding
+Core decision returns, before that command's native call. They are not
+interchangeable. Activation `decision_qpc` is stamped after policy evaluation.
 Native error must be captured before timing calls. Preserve receipt sequence,
 native timestamp and sample generation. Callback adds one QPC per accepted
 receipt and three high-bit reads on Leader START only; never COM, DWM, JSON,
@@ -323,7 +328,8 @@ Runner must correlate active operations to activation/source/quantum and
 validate finite nonnegative monotonic durations. Report min/median/p95/max
 apply intervals and median/p95/max receipt-to-drain, drain-to-native,
 native duration, native-to-postverify and receipt-to-postverify. Insufficient
-samples are labeled. There is no timing SLA or ratio gate.
+samples are labeled. Median uses the average of the middle pair for even N;
+p95 uses nearest rank. There is no timing SLA or ratio gate.
 
 Tests: callback/owner DOWN/UP cross-product; left/right/both/neither; low-bit
 rejection; wrong window/generation/stale authority/duplicate START; plain and
