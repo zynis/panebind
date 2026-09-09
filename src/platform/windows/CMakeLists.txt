@@ -291,6 +291,18 @@ target_compile_definitions(panebind-explorer-ctrl-glue-harness PRIVATE
     WINVER=0x0A00 _WIN32_WINNT=0x0A00)
 panebind_enable_warnings(panebind-explorer-ctrl-glue-harness)
 
+add_executable(panebind-explorer-profile-glue-harness
+    ../../app/explorer_glue_harness_main.cpp observer.rc observer.manifest)
+target_link_libraries(panebind-explorer-profile-glue-harness
+    PRIVATE panebind_windows_explorer ole32)
+if(MSVC)
+    target_link_options(panebind-explorer-profile-glue-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(panebind-explorer-profile-glue-harness PRIVATE
+    PANEBIND_EXPLORER_CTRL_GLUE_HARNESS PANEBIND_EXPLORER_PROFILE_GLUE_HARNESS
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind-explorer-profile-glue-harness)
+
 if(BUILD_TESTING)
     add_executable(panebind-windows-explorer-glue-activation-tests
         explorer/explorer_glue_activation_tests.cpp)
@@ -302,6 +314,16 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-windows-explorer-glue-activation-tests)
     add_test(NAME windows-explorer-glue-activation-unit
         COMMAND panebind-windows-explorer-glue-activation-tests)
+    add_executable(panebind-windows-explorer-glue-profile-tests
+        explorer/explorer_glue_profile_tests.cpp)
+    target_link_libraries(panebind-windows-explorer-glue-profile-tests
+        PRIVATE panebind_core user32)
+    target_compile_definitions(panebind-windows-explorer-glue-profile-tests PRIVATE
+        NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+        WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    panebind_enable_warnings(panebind-windows-explorer-glue-profile-tests)
+    add_test(NAME windows-explorer-glue-profile-unit
+        COMMAND panebind-windows-explorer-glue-profile-tests)
     add_executable(
         panebind-windows-text-encoding-tests
         text_encoding.cpp

@@ -31,16 +31,19 @@ param(
     [int] $ValidationObserverExitCode = 0,
 
     # Fixed profiles only. The default preserves the sealed R1-C2B contract.
-    [ValidateSet('R1C2B', 'R1C3A')]
+    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B')]
     [string] $EvidenceProfile = 'R1C2B'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$ctrlProfile = $EvidenceProfile -eq 'R1C3A'
-$roundName = if ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
-$evidenceSubdirectory = if ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
-$expectedSchema = if ($ctrlProfile) {
+$stageProfile = $EvidenceProfile -eq 'R1C3B'
+$ctrlProfile = $EvidenceProfile -ne 'R1C2B'
+$roundName = if ($stageProfile) { 'R1-C3B' } elseif ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
+$evidenceSubdirectory = if ($stageProfile) { 'uat/r1c3b' } elseif ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
+$expectedSchema = if ($stageProfile) {
+    'panebind.r1c3b.explorer_glue_profile'
+} elseif ($ctrlProfile) {
     'panebind.r1c3a.explorer_ctrl_glue'
 } else { 'panebind.r1c2b.explorer_glue' }
 $ctrlNotActivated = $false
@@ -765,6 +768,9 @@ function Assert-LayoutPreviewEvidence {
 if ($ctrlProfile) {
     . (Join-Path $PSScriptRoot 'r1c3a-evidence-validation.ps1')
 }
+if ($stageProfile) {
+    . (Join-Path $PSScriptRoot 'r1c3b-profile-validation.ps1')
+}
 
 $observerProcess = $null
 $observerExitCode = $null
@@ -775,7 +781,9 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
     }
 
     $observerPath = Resolve-R1C2BExecutable -FileName 'panebind-observer.exe'
-    $harnessFile = if ($ctrlProfile) {
+    $harnessFile = if ($stageProfile) {
+        'panebind-explorer-profile-glue-harness.exe'
+    } elseif ($ctrlProfile) {
         'panebind-explorer-ctrl-glue-harness.exe'
     } else { 'panebind-explorer-glue-harness.exe' }
     $harnessPath = Resolve-R1C2BExecutable -FileName $harnessFile
@@ -823,12 +831,10 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
         try {
             # Deliberately run in the inherited foreground console. Do not pipe
             # or redirect stdin/stdout: consent must originate in ReadConsoleW.
-            & $harnessPath `
-                '--interactive-consent-test' `
-                '--evidence-log' `
-                $harnessEvidence `
-                '--timeout-seconds' `
-                $GlueTimeoutSeconds
+            $harnessArguments = @('--interactive-consent-test', '--evidence-log',
+                $harnessEvidence, '--timeout-seconds', [string]$GlueTimeoutSeconds)
+            if ($stageProfile) { $harnessArguments += '--external-observer-enabled' }
+            & $harnessPath @harnessArguments
             $harnessExitCode = $LASTEXITCODE
             $observerProcess.Refresh()
             $observerAliveAtHarnessExit = -not $observerProcess.HasExited
@@ -971,6 +977,9 @@ if ($ctrlProfile) {
     }).Count -ne 0) {
         throw 'Ctrl activation evidence 不得含 Console Glue consent 或旧 Glue authority。'
     }
+}
+if ($stageProfile) {
+    $knownHarnessRecordKinds += @('profile_span', 'profile_quantum', 'profile_notification', 'profile_status')
 }
 $unknownKinds = @($harnessRecords | Where-Object {
     $knownHarnessRecordKinds -notcontains $_.record_kind
@@ -1271,6 +1280,7 @@ if ($pair.result -eq 'BLOCKED') {
         'facts'
     )
     if ($ctrlProfile) { $forbiddenAfterPairKinds += @('pair_authority', 'activation_attempt') }
+    if ($stageProfile) { $forbiddenAfterPairKinds += @('profile_span','profile_quantum','profile_notification','profile_status') }
     $nativeApplyRecords = @($harnessRecords | Where-Object {
         $property = $_.PSObject.Properties['native_apply_attempted']
         $null -ne $property -and $property.Value -eq $true
@@ -2187,6 +2197,14 @@ if ($ctrlProfile) {
     Write-Output "Ctrl callback: $($ctrlEvidence.Attempt.ctrl_down_at_callback_delivery)"
     Write-Output "Ctrl owner: $($ctrlEvidence.Attempt.ctrl_down_at_owner_processing)"
     Write-Output "CTRL_ACTIVATION_EVIDENCE_GATE: $($summary.ctrl_activation_evidence_gate)"
+}
+if ($stageProfile) {
+    try {
+        Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts
+    } catch {
+        Write-Output 'TIMING_PROFILE_GATE: FAIL'
+        throw
+    }
 }
 $expectedResult = if ($realtime.Gate -eq 'PASS') { 'PASS' } else { 'BLOCKED' }
 $expectedHarnessExit = if ($realtime.Gate -eq 'PASS') { 0 } else { 2 }

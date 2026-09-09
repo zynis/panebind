@@ -103,7 +103,8 @@ void test_rejections_and_generations() {
 // Deterministic interaction -> UNMODIFIED Core -> owned native operation sink.
 // The negative path starts with a ready owned pair; no setup/restore writes are
 // needed. It is not an Explorer eligibility/UAT simulation.
-void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize) {
+void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize, bool profiling = false) {
+    auto profile = profiling ? std::make_unique<e::ExplorerGlueProfiler>() : nullptr;
     const HWND follower = CreateWindowExW(0, L"STATIC", L"PaneBind owned activation test",
         WS_POPUP, 100, 0, 100, 100, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
     check(follower != nullptr, "owned fixture window created, never shown");
@@ -128,6 +129,7 @@ void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize) {
             "one callback activation enters existing Core");
     }
     for (int i = 1; i <= 12; ++i) {
+        e::GlueProfileScope measured(profile.get(), e::GlueProfileStage::EventPolicy);
         leader = {i, i, 100 + i + (resize ? 1 : 0), 100 + i};
         ++sequence;
         // Later modifier changes do not evaluate START or create activation.
@@ -173,6 +175,7 @@ void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize) {
             "Ctrl START latched: progressive moves and exact suppression");
     }
     DestroyWindow(follower); // Only this fixture's own never-shown HWND.
+    check(!profile || profile->valid(), "profiling ON leaves all existing activation/native/feedback outcomes unchanged");
 }
 }
 
@@ -183,6 +186,10 @@ int main() {
     test_owned_fixture(false, true, false);
     test_owned_fixture(true, false, false);
     test_owned_fixture(true, false, true);
+    test_owned_fixture(false, false, false, true);
+    test_owned_fixture(false, true, false, true);
+    test_owned_fixture(true, false, false, true);
+    test_owned_fixture(true, false, true, true);
     std::cout << "Ctrl activation tests " << (failures ? "FAIL" : "PASS") << '\n';
     return failures ? EXIT_FAILURE : EXIT_SUCCESS;
 }

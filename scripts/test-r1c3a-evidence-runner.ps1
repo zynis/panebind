@@ -1,14 +1,15 @@
 [CmdletBinding()]
-param()
+param([switch] $DefinitionsOnly)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$c3aDefinitionsOnly = $DefinitionsOnly
 # Reuse deterministic data builders, never historical human evidence files.
 . (Join-Path $PSScriptRoot 'test-r1c2b-evidence-runner.ps1') -DefinitionsOnly
 . (Join-Path $PSScriptRoot 'r1c3a-evidence-validation.ps1')
 $runner = Join-Path $PSScriptRoot 'run-r1c3a-explorer-ctrl-glue-evidence.ps1'
 $fixtureRoot = Join-Path $tempBase ('panebind-r1c3a-runner-' + [Guid]::NewGuid().ToString('N'))
-[void] (New-Item -ItemType Directory -Path $fixtureRoot)
+if (-not $c3aDefinitionsOnly) { [void] (New-Item -ItemType Directory -Path $fixtureRoot) }
 
 function Add-Fields {
     param([object] $Record, [hashtable] $Fields)
@@ -215,6 +216,7 @@ function New-DeferredAckHarnessRecords {
     return @(Set-FixtureSequence $result.ToArray())
 }
 
+if ($c3aDefinitionsOnly) { return }
 try {
     Test-CtrlFixture 'CTRL_DOWN' (New-CtrlHarnessRecords)
     Test-CtrlFixture 'CALLBACK_DOWN_OWNER_UP' (New-CtrlHarnessRecords -OwnerDown $false)

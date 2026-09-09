@@ -316,13 +316,15 @@ private:
     [[nodiscard]] static ExplorerCaptureResult capture(
         const ExplorerGlueAuthoritySeal& seal,
         ExplorerGlueWindowRole role,
-        ExplorerTestSession& session);
+        ExplorerTestSession& session,
+        ExplorerGlueProfiler* profiler = nullptr);
     [[nodiscard]] static ExplorerGluePrepareResult prepare_translation(
         const ExplorerGlueAuthoritySeal& seal,
         const ExplorerGlueOperationPermit& permit,
         ExplorerTestSession& session,
         const ExplorerWindowSnapshot& expected_before,
-        const core::geometry::Rect& target_visible);
+        const core::geometry::Rect& target_visible,
+        ExplorerGlueProfiler* profiler = nullptr);
     [[nodiscard]] static ExplorerOperationResult apply_prepared(
         const ExplorerGlueAuthoritySeal& seal,
         const ExplorerGlueOperationPermit& permit,
@@ -330,7 +332,8 @@ private:
         const ExplorerGluePreparedTranslation& prepared,
         BeforeNativeApply before_native_apply,
         void* before_native_apply_context,
-        ExplorerGlueNativeTiming* timing = nullptr);
+        ExplorerGlueNativeTiming* timing = nullptr,
+        ExplorerGlueProfiler* profiler = nullptr);
     static void release_pair(const ExplorerGlueAuthoritySeal& seal,
                              ExplorerTestSession& leader,
                              ExplorerTestSession& follower) noexcept;

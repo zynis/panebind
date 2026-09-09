@@ -10,6 +10,7 @@
 
 #include "platform/windows/explorer/explorer_glue_types.h"
 #include "platform/windows/explorer/explorer_glue_input.h"
+#include "platform/windows/explorer/explorer_glue_profile.h"
 
 #include <atomic>
 #include <cstddef>
@@ -60,6 +61,8 @@ struct ExplorerGlueEvent final {
     DWORD native_event_time{};
     std::int64_t callback_qpc{};
     CtrlSample ctrl_callback;
+    std::uint64_t notification_id{};
+    bool notification_inherited{};
 };
 
 struct ExplorerGlueEventSourceFacts final {
@@ -129,7 +132,8 @@ private:
                             std::size_t queue_capacity,
                             DeliveryMode mode,
                             bool synthetic_notification_succeeds,
-                            bool capture_interaction_evidence = false);
+                            bool capture_interaction_evidence = false,
+                            ExplorerGlueProfiler* profiler = nullptr);
 
     [[nodiscard]] bool start_live();
     [[nodiscard]] bool stop_live() noexcept;
@@ -149,7 +153,7 @@ private:
                            DWORD event_thread,
                            DWORD event_time) noexcept;
     void mark_poison(ExplorerGlueEventSourcePoison poison) noexcept;
-    [[nodiscard]] bool post_owner_notification() noexcept;
+    [[nodiscard]] bool post_owner_notification(std::uint64_t notification_id = 0) noexcept;
     [[nodiscard]] bool validate_binding(const NativeTargetBinding& binding)
         noexcept;
     [[nodiscard]] const NativeTargetBinding* find_binding(HWND window) const
@@ -176,6 +180,8 @@ private:
     DeliveryMode delivery_mode_{DeliveryMode::Live};
     bool synthetic_notification_succeeds_{true};
     bool capture_interaction_evidence_{};
+    ExplorerGlueProfiler* profiler_{};
+    std::uint64_t active_notification_id_{};
 #if defined(PANEBIND_EXPLORER_GLUE_EVENT_SOURCE_TESTING)
     CtrlSample synthetic_ctrl_;
     std::int64_t synthetic_qpc_{};
@@ -253,7 +259,8 @@ public:
         ExplorerGlueEventSourceTestBinding follower,
         std::size_t queue_capacity,
         bool notification_succeeds = true,
-        bool capture_interaction_evidence = false);
+        bool capture_interaction_evidence = false,
+        ExplorerGlueProfiler* profiler = nullptr);
     static void enqueue(ExplorerGlueEventSource& source,
                         const ExplorerGlueSyntheticWinEvent& event) noexcept;
     [[nodiscard]] static ExplorerGlueEventDrainResult drain(

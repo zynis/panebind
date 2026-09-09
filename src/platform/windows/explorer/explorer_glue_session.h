@@ -183,6 +183,8 @@ struct ExplorerGlueReceiptRecord {
     bool discarded_after_end{};
     std::int64_t callback_qpc{};
     CtrlSample ctrl_callback;
+    std::uint64_t notification_id{};
+    bool notification_inherited{};
 };
 
 struct ExplorerGlueQuantumRecord {
@@ -232,6 +234,7 @@ struct ExplorerGlueFacts {
     bool same_monitor_and_dpi{};
     bool glue_consent_confirmed{};
     bool ctrl_move_activation_required{};
+    bool profiling_enabled{};
     bool fixture_pair_authorized{};
     bool plain_drag_completed{};
     bool activation_overflow{};
@@ -318,7 +321,7 @@ public:
     // R1-C3A only: consumes the already-confirmed test pair for fixture setup
     // and observation. It does not fabricate Console consent or activation.
     // Active Follower placement remains gated on the exact Leader START.
-    [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture();
+    [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture(bool enable_profiling = false);
     [[nodiscard]] const ExplorerGlueFacts& facts() const noexcept;
 
 private:
@@ -382,6 +385,7 @@ public:
         const noexcept;
     [[nodiscard]] std::span<const ExplorerGlueActivationAttempt> activation_attempts()
         const noexcept;
+    [[nodiscard]] const ExplorerGlueProfiler* profiler() const noexcept;
 
 private:
     struct Impl;

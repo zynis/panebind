@@ -543,6 +543,7 @@ struct ExplorerGlueSession::Impl final {
     detail::ExplorerGlueNativeBinding follower_binding;
     ExplorerGlueFacts facts;
     core::behavior::GlueMoveCoordinator coordinator;
+    std::unique_ptr<ExplorerGlueProfiler> profiler;
     std::unique_ptr<ExplorerGlueEventSource> event_source;
     std::vector<PendingNativeOperation> pending_native;
     std::optional<core::geometry::Rect> last_acknowledged_follower_visible;
@@ -738,7 +739,7 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::confirm_user_glue() {
     return result;
 }
 
-ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture() {
+ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const bool enable_profiling) {
     ExplorerGlueAuthorizeResult result;
     if (impl_ == nullptr || impl_->terminal ||
         GetCurrentThreadId() != impl_->owner_thread_id ||
@@ -781,6 +782,8 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture() {
     auto& facts = session_impl->facts;
     facts.glue_authority_id = authority_id;
     facts.ctrl_move_activation_required = true;
+    facts.profiling_enabled = enable_profiling;
+    if (enable_profiling) session_impl->profiler = std::make_unique<ExplorerGlueProfiler>();
     facts.fixture_pair_authorized = true;
     facts.qpc_frequency_hz = frequency;
     facts.leader_original = *bound.leader_snapshot;
@@ -868,6 +871,12 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
     const std::uint64_t source_leader_sequence,
     const ExplorerWindowSnapshot& expected_before,
     const core::geometry::Rect& target_visible) {
+    auto* const profile = impl_ && phase == ExplorerGlueOperationPhase::ActiveFollower
+        ? impl_->profiler.get() : nullptr;
+    GlueProfileContextScope profile_context(profile,
+        {impl_ ? impl_->current_quantum_id : 0, behavior_operation_generation, source_leader_sequence, role});
+    GlueProfileScope profile_operation(profile, GlueProfileStage::Operation);
+    GlueProfileScope profile_prepare(profile, GlueProfileStage::OperationPrepare);
     ExplorerOperationResult failure;
     failure.reason = ExplorerEligibilityReason::TargetInvalidated;
     failure.stage = phase == ExplorerGlueOperationPhase::Restore
@@ -911,7 +920,7 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
         phase,
         role};
     auto prepared = detail::ExplorerGlueSessionBridge::prepare_translation(
-        impl_->seal, permit, target, expected_before, target_visible);
+        impl_->seal, permit, target, expected_before, target_visible, profile);
     if (!prepared.succeeded()) {
         failure.reason =
             prepared.reason == ExplorerGlueReason::UnsafeLayout
@@ -950,6 +959,7 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
         before_native_apply_context = &pending_registration;
     }
 
+    profile_prepare.end();
     ExplorerGlueNativeTiming timing;
     auto operation = detail::ExplorerGlueSessionBridge::apply_prepared(
         impl_->seal,
@@ -958,7 +968,9 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
         *prepared.prepared,
         before_native_apply,
         before_native_apply_context,
-        impl_->facts.ctrl_move_activation_required ? &timing : nullptr);
+        impl_->facts.ctrl_move_activation_required ? &timing : nullptr,
+        profile);
+    GlueProfileScope profile_finalize(profile, GlueProfileStage::ReceiptFinalize);
     if (impl_->facts.ctrl_move_activation_required && operation.native_apply_attempted) {
         impl_->facts.timing_valid = impl_->facts.timing_valid &&
             timing.native_apply_start_qpc > 0 &&
@@ -1166,7 +1178,15 @@ ExplorerGlueStepResult ExplorerGlueSession::arm_impl() {
                                     kEventQueueCapacity,
                                     ExplorerGlueEventSource::DeliveryMode::Live,
                                     true,
-                                    impl_->facts.ctrl_move_activation_required));
+                                    impl_->facts.ctrl_move_activation_required,
+                                    impl_->profiler.get()));
+    if (impl_->profiler) {
+        impl_->profiler->bind_queue([](void* context) noexcept {
+            const auto source_facts = static_cast<ExplorerGlueEventSource*>(context)->facts();
+            return GlueProfileQueue{source_facts.queue_depth, source_facts.max_queue_depth,
+                                    source_facts.latest_receipt_sequence};
+        }, impl_->event_source.get());
+    }
     if (!impl_->event_source->start_live()) {
         return finish_and_restore(ExplorerGlueReason::EventSourceFailed,
                                   result.stage);
@@ -1245,6 +1265,10 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
     const auto& expected_binding =
         event.role == ExplorerGlueWindowRole::Leader ? impl_->leader_binding
                                                       : impl_->follower_binding;
+    auto* const profile = impl_->profiler.get();
+    GlueProfileContextScope profile_context(profile,
+        {impl_->current_quantum_id, 0, event.receipt_sequence, event.role});
+    GlueProfileScope profile_policy(profile, GlueProfileStage::EventPolicy);
     const std::uint64_t expected_window_id =
         event.role == ExplorerGlueWindowRole::Leader ? 1U : 2U;
     if (event.window_id != expected_window_id ||
@@ -1299,6 +1323,7 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         }
         auto& activation = *impl_->activation;
         if (event.kind == ExplorerGlueEventKind::MoveResizeStarted) {
+            GlueProfileScope activation_profile(profile, GlueProfileStage::ActivationPolicy);
             const auto owner_qpc = glue_qpc_now();
             const auto owner_ctrl = event.role == ExplorerGlueWindowRole::Leader
                                         ? sample_ctrl() : CtrlSample{};
@@ -1353,6 +1378,7 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
 
     if (event.kind == ExplorerGlueEventKind::MoveResizeStarted &&
         event.role == ExplorerGlueWindowRole::Leader) {
+        GlueProfileScope geometry_profile(profile, GlueProfileStage::StartGeometry);
         if (!impl_->facts.leader_layout.has_value() ||
             !impl_->facts.follower_layout.has_value() ||
             *follower_live.snapshot != *impl_->facts.follower_layout ||
@@ -1393,6 +1419,9 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
                              ? sampled_leader.visible_rect
                              : sampled_follower.visible_rect;
     }
+    GlueProfileScope feedback_profile(
+        event.role == ExplorerGlueWindowRole::Follower && event.kind == ExplorerGlueEventKind::GeometryChanged
+            ? profile : nullptr, GlueProfileStage::FeedbackPolicy);
     if (event.role == ExplorerGlueWindowRole::Follower &&
         event.kind == ExplorerGlueEventKind::GeometryChanged) {
         const auto pending = std::find_if(
@@ -1419,7 +1448,9 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         core_role(event.role),
         core_event_kind(event.kind),
         event_geometry};
+    GlueProfileScope core_profile(profile, GlueProfileStage::CoreDecision);
     auto decision = impl_->coordinator.on_event(receipt);
+    core_profile.end();
     if (impl_->facts.ctrl_move_activation_required) {
         impl_->current_behavior_decision_qpc = glue_qpc_now();
         impl_->facts.timing_valid = impl_->facts.timing_valid &&
@@ -1453,6 +1484,7 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
         }
     }
 
+    feedback_profile.end();
     if (decision.command.has_value()) {
         if (impl_->operations.size() >= kNativeOperationCapacity - 2U) {
             const auto aborted = impl_->coordinator.report_queue_overflow(
@@ -1474,6 +1506,10 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
                 ? std::optional<core::geometry::Rect>{
                       operation.receipt->actual->visible_rect}
                 : std::nullopt;
+        GlueProfileContextScope result_context(profile,
+            {impl_->current_quantum_id, decision.command->operation_generation,
+             decision.command->source_leader_sequence, ExplorerGlueWindowRole::Follower});
+        GlueProfileScope result_profile(profile, GlueProfileStage::OperationResultPolicy);
         auto operation_decision = impl_->coordinator.on_operation_result(
             {decision.command->session_generation,
              decision.command->operation_generation,
@@ -1501,10 +1537,19 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
     }
 
     if (decision.kind == core::behavior::GlueDecisionKind::Completing) {
-        leader_live = detail::ExplorerGlueSessionBridge::capture(
-            impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
-        follower_live = detail::ExplorerGlueSessionBridge::capture(
-            impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower);
+        leader_live = [&]() {
+            GlueProfileScope span(profile, GlueProfileStage::EndLeaderCapture);
+            return detail::ExplorerGlueSessionBridge::capture(
+                impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader, profile);
+        }();
+        follower_live = [&]() {
+            GlueProfileContextScope ctx(profile, {impl_->current_quantum_id, 0,
+                event.receipt_sequence, ExplorerGlueWindowRole::Follower});
+            GlueProfileScope span(profile, GlueProfileStage::EndFollowerCapture);
+            return detail::ExplorerGlueSessionBridge::capture(
+                impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower, profile);
+        }();
+        GlueProfileScope end_profile(profile, GlueProfileStage::EndReconciliation);
         if (!leader_live.succeeded() || !follower_live.succeeded()) {
             decision = impl_->coordinator.report_target_invalidated(
                 impl_->coordinator.session_generation());
@@ -1559,9 +1604,18 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
     // One current queue batch per processing quantum. Newly delivered receipts
     // belong to the next quantum, giving the owner loop an explicit boundary.
     {
+        auto* const profile = impl_->profiler && impl_->event_source->facts().queue_depth != 0
+            ? impl_->profiler.get() : nullptr;
+        GlueProfileQuantumScope profile_quantum(profile, impl_->current_quantum_id + 1);
+        GlueProfileScope profile_drain(profile, GlueProfileStage::Drain);
         const auto drain_qpc = impl_->facts.ctrl_move_activation_required
                                    ? glue_qpc_now() : 0;
         auto drained = impl_->event_source->drain_owner_queue();
+        profile_drain.end();
+        if (auto* q = profile_quantum.record()) {
+            q->drain_complete = profile->point();
+            q->queue_after_drain = profile->queue();
+        }
         impl_->facts.max_event_queue_depth =
             std::max(impl_->facts.max_event_queue_depth,
                      drained.facts.max_queue_depth);
@@ -1645,7 +1699,8 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                     : std::optional{core_event_kind(event.kind)},
                 event.native_event_time,
                 !discarded && !selected[index], discarded,
-                event.callback_qpc, event.ctrl_callback});
+                event.callback_qpc, event.ctrl_callback,
+                event.notification_id, event.notification_inherited});
             if (impl_->facts.ctrl_move_activation_required) {
                 impl_->facts.timing_valid = impl_->facts.timing_valid &&
                     event.callback_qpc > 0 && drain_qpc >= event.callback_qpc;
@@ -1656,6 +1711,19 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         }
         impl_->current_sample_generation = quantum.sampled_geometry_generation;
         impl_->quanta.push_back(quantum);
+        if (auto* q = profile_quantum.record()) {
+            q->first_receipt = quantum.first_receipt_sequence;
+            q->last_receipt = quantum.last_receipt_sequence;
+            q->receipt_count = quantum.receipt_count;
+            q->leader_locations = quantum.leader_location_count;
+            q->follower_locations = quantum.follower_location_count;
+            q->first_callback_qpc = drained.events.front().callback_qpc;
+            for (std::size_t i = 0; i < active_count; ++i) {
+                q->coalesced_leader_locations +=
+                    drained.events[i].role == ExplorerGlueWindowRole::Leader &&
+                    drained.events[i].kind == ExplorerGlueEventKind::GeometryChanged && !selected[i] ? 1U : 0U;
+            }
+        }
 
         // Do not query a destroyed HWND. A destroy receipt is already bound to
         // the exact target by the event source and terminates the batch before
@@ -1682,10 +1750,22 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         if (impl_->facts.ctrl_move_activation_required) {
             impl_->quanta.back().sample_start_qpc = glue_qpc_now();
         }
-        const auto batch_leader = detail::ExplorerGlueSessionBridge::capture(
-            impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
-        const auto batch_follower = detail::ExplorerGlueSessionBridge::capture(
-            impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower);
+        const auto source_receipt = quantum.selected_leader_sequence != 0
+            ? quantum.selected_leader_sequence : quantum.first_receipt_sequence;
+        const auto batch_leader = [&]() {
+            GlueProfileContextScope ctx(profile, {quantum.processing_quantum_id, 0,
+                source_receipt, ExplorerGlueWindowRole::Leader});
+            GlueProfileScope span(profile, GlueProfileStage::LeaderCapture);
+            return detail::ExplorerGlueSessionBridge::capture(
+                impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader, profile);
+        }();
+        const auto batch_follower = [&]() {
+            GlueProfileContextScope ctx(profile, {quantum.processing_quantum_id, 0,
+                source_receipt, ExplorerGlueWindowRole::Follower});
+            GlueProfileScope span(profile, GlueProfileStage::FollowerCapture);
+            return detail::ExplorerGlueSessionBridge::capture(
+                impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower, profile);
+        }();
         if (impl_->facts.ctrl_move_activation_required) {
             auto& timing = impl_->quanta.back();
             timing.sample_complete_qpc = glue_qpc_now();
@@ -1844,7 +1924,8 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
                                 ? std::nullopt
                                 : std::optional{core_event_kind(event.kind)},
                             event.native_event_time, false, true,
-                            event.callback_qpc, event.ctrl_callback});
+                            event.callback_qpc, event.ctrl_callback,
+                            event.notification_id, event.notification_inherited});
                     }
                     impl_->quanta.push_back(tail);
                 }
@@ -2051,8 +2132,10 @@ ExplorerGlueStepResult ExplorerGlueSession::run_until_terminal_impl(
                     quit_seen = true;
                     return false;
                 }
-                if (!impl_->event_source->owns_notification(message.message,
-                                                            message.wParam)) {
+                if (impl_->event_source->owns_notification(message.message,
+                                                           message.wParam)) {
+                    if (impl_->profiler) impl_->profiler->dispatched(static_cast<std::uint64_t>(message.lParam));
+                } else {
                     static_cast<void>(TranslateMessage(&message));
                     static_cast<void>(DispatchMessageW(&message));
                 }
@@ -2171,6 +2254,10 @@ ExplorerGlueSession::activation_attempts() const noexcept {
     return impl_ != nullptr && impl_->activation.has_value()
                ? impl_->activation->attempts()
                : std::span<const ExplorerGlueActivationAttempt>{};
+}
+
+const ExplorerGlueProfiler* ExplorerGlueSession::profiler() const noexcept {
+    return impl_ ? impl_->profiler.get() : nullptr;
 }
 
 detail::ExplorerGlueDiagnostics detail::ExplorerGlueSessionDiagnostics::read(
