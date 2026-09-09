@@ -681,9 +681,36 @@ Implementation, human acceptance and main integration are separate gates; see
 [research](../research/R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md) and
 [Debug handoff](../reports/R1C3A_UAT_HANDOFF.md).
 
+### R1-C3B Phase 1 — opt-in hot-path profiling
+
+The dedicated profile harness adds bounded numeric QPC spans, quantum/backlog
+envelopes and real notification identities to the unchanged interaction path.
+Default C2B/C3A paths leave full profiling OFF. Capture subphases preserve every
+existing predicate and their order; Core/activation/coalescing/native flags/
+feedback/END/restore remain unchanged. No live-state cache or dedup is applied.
+
+Nested inclusive spans are not additive costs. The runner validates the span
+forest, exact receipt/operation/quantum joins, full capture stages, queue math,
+notification inheritance and missing dispatch. It calculates exclusive stage
+totals and operation-local breakdowns without adding shared quantum captures
+again. Source watermarks measure delivered callbacks, not OS generation.
+Serialization is after unhook/restore. Overflow or invalid profile evidence
+cannot claim timing PASS or grant native authority.
+
+Profiling ON adds a QPC at actual notification post and small fixed metadata;
+no heavy callback work is added. OFF/ON seeded behavior equivalence and a
+CPU-only perturbation fixture are tested; real Explorer perturbation/hotspots
+remain pending one Debug profile UAT with independent Observer ON.
+No performance improvement or root cause is claimed before that evidence.
+
+See [hot-path map/risk matrix](../reports/R1C3B_HOT_PATH_MAP.md),
+[research](../research/R1C3B_SMOOTHNESS_RESEARCH.md),
+[execution](../reports/R1C3B_EXECUTION_REPORT.md), and
+[profile handoff](../reports/R1C3B_PROFILE_UAT_HANDOFF.md).
+
 ### Future interaction roadmap — NOT IMPLEMENTED
 
-R1-C3B — Interaction Timing & Smoothness Baseline is required next, but has
+R1-C3B Phase 1 profiling is implemented, awaiting human evidence. Phase 2 has
 not started. Study timing/cadence and the subjective C/C observations before
 choosing changes. Do not infer a safety-validation shortcut from aggregate
 latency data. Input remains intent/wake; actual Leader geometry remains truth.
@@ -1017,5 +1044,8 @@ R1C3A_RUNTIME_GATE = PASS
 HUMAN_SMOOTHNESS_DEBUG = C
 HUMAN_SMOOTHNESS_RELEASE = C
 SMOOTHNESS_OPTIMIZATION_REQUIRED = YES
-R1C3B = NOT STARTED
+R1C3B_PHASE1_PROFILE_READY = YES
+R1C3B_DEBUG_PROFILE_UAT = REQUIRED
+R1C3B_ROOT_CAUSE = PENDING_HUMAN_PROFILE
+R1C3B_PHASE2 = NOT STARTED
 ```
