@@ -44,6 +44,13 @@ constexpr std::uint32_t kMinimumTimeoutSeconds = 30U;
 constexpr std::uint32_t kMaximumTimeoutSeconds = 300U;
 constexpr std::size_t kNonceAttempts = 8U;
 constexpr std::size_t kLayoutReadinessAttemptLimit = 3U;
+#if defined(PANEBIND_EXPLORER_CTRL_GLUE_HARNESS)
+constexpr bool kCtrlMoveProfile = true;
+#else
+constexpr bool kCtrlMoveProfile = false;
+#endif
+constexpr std::size_t kTimingEvidenceCapacity = 4096U;
+constexpr std::size_t kOperationEvidenceCapacity = 512U;
 
 struct Options final {
     bool interactive_consent_test{};
@@ -244,7 +251,8 @@ public:
         }
         std::ostringstream output;
         output << "{\"schema_version\":1,\"schema_name\":"
-               << json_quote("panebind.r1c2b.explorer_glue")
+               << json_quote(kCtrlMoveProfile ? "panebind.r1c3a.explorer_ctrl_glue"
+                                             : "panebind.r1c2b.explorer_glue")
                << ",\"harness_sequence\":" << next_sequence_++
                << ",\"record_kind\":" << json_quote(kind)
                << ",\"recorded_at\":" << json_quote(utc_timestamp())
@@ -334,7 +342,9 @@ private:
 void print_usage() {
     std::cout
         << "Usage:\n"
-        << "  panebind-explorer-glue-harness.exe --interactive-consent-test "
+        << (kCtrlMoveProfile ? "  panebind-explorer-ctrl-glue-harness.exe "
+                            : "  panebind-explorer-glue-harness.exe ")
+        << "--interactive-consent-test "
            "--evidence-log PATH [--timeout-seconds 30..300]\n";
 }
 
@@ -374,7 +384,8 @@ validated_repository_root() {
     const std::filesystem::path& repository_root,
     const std::string_view role) {
     std::error_code error;
-    const auto evidence_root = repository_root / "uat" / "r1c2b";
+    const auto evidence_root = repository_root / "uat" /
+                               (kCtrlMoveProfile ? "r1c3a" : "r1c2b");
     std::filesystem::create_directories(evidence_root, error);
     if (error) {
         return std::nullopt;
@@ -470,6 +481,12 @@ validated_repository_root() {
         return "restore_failed";
     case CleanupLifecycleFailed:
         return "cleanup_lifecycle_failed";
+    case CtrlNotDownAtStart:
+        return "ctrl_not_down_at_start";
+    case ActivationRejected:
+        return "activation_rejected";
+    case InteractionEvidenceFailed:
+        return "interaction_evidence_failed";
     }
     return "unknown";
 }
@@ -908,6 +925,10 @@ void record_diagnostic(EvidenceLog& evidence,
                               : L"\n第 2 步：创建 Follower Explorer\n\n";
     prompt += L"请亲自新建一个文件资源管理器顶层窗口，并进入这个空测试目录：\n\n";
     prompt += path.native();
+    if constexpr (kCtrlMoveProfile) {
+        prompt += L"\n\n本次 ENTER 确认仅签发这个测试目标，并允许 readiness FIT 后以纯平移准备相邻测试布局及结束时恢复。\n"
+                  L"正式拖动无需 Y + ENTER；只有先按 Ctrl 再开始拖动已授权 Leader 才会激活跟随。\n";
+    }
     prompt +=
         L"\n\n请勿改用任何既有 Explorer 窗口。\n"
         L"请把这个测试窗口保持为普通状态（不要最大化或最小化），并放在准备测试的显示器上。两个目标确认后，PaneBind 会显示实时尺寸和还需缩小的精确差值。\n"
@@ -933,12 +954,21 @@ void record_diagnostic(EvidenceLog& evidence,
 
 [[nodiscard]] bool emit_drag_prompt(const std::uint32_t timeout_seconds) {
     std::wostringstream prompt;
-    prompt << L"\n第 5 步：现在只拖动 Leader 窗口一次\n\n"
+    if constexpr (kCtrlMoveProfile) {
+        prompt << L"\n现在请先按住 Ctrl，然后拖动 Leader 标题栏约 1 秒，移动明显距离。\n"
+               << L"请在按下鼠标前保持 Ctrl 按下，松开鼠标后再松 Ctrl。\n"
+               << L"不需要 Y + ENTER；普通拖动不会激活 Follower 跟随。\n"
+               << L"请避免屏幕边缘、Snap Layout、FancyZones、resize 或切换 monitor/DPI。\n"
+               << L"本次等待上限 " << timeout_seconds << L" 秒；完成后自动恢复只是测试 fixture 行为。\n"
+               << L"请同时观察 Follower 是否明显滞后、顿挫、抖动或最终才跳；这些观察可在测试后反馈。\n";
+    } else {
+        prompt << L"\n第 5 步：现在只拖动 Leader 窗口一次\n\n"
            << L"请只用普通资源管理器标题栏，以正常速度连续拖动 Leader 约 1 秒，移动明显距离后松开鼠标。\n"
            << L"无需精确计时；不要瞬间甩动后立即松手。\n"
            << L"不要按 Alt、Ctrl 或 Shift；不要 Resize、移动 Follower、最大化、最小化、切换目录，或拖到屏幕边缘触发 Windows Snap。\n"
            << L"无需再按键确认。Harness 将通过 WinEvent 自动观察 START / LOCATION / END。\n"
            << L"等待上限：" << timeout_seconds << L" 秒。\n\n";
+    }
     return write_console_text(prompt.str());
 }
 
@@ -1165,6 +1195,9 @@ void append_optional_snapshot(
         } else {
             fields << "null";
         }
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"ack_qpc\":" << item.ack_qpc;
+        }
         if (!evidence.record("internal_trace", fields.str())) {
             return false;
         }
@@ -1191,6 +1224,13 @@ void append_optional_snapshot(
                << item.native_event_timestamp_ms
                << ",\"coalesced\":" << json_bool(item.coalesced)
                << ",\"discarded_after_end\":" << json_bool(item.discarded_after_end);
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"callback_qpc\":" << item.callback_qpc
+                   << ",\"ctrl_sample_available\":" << json_bool(item.ctrl_callback.available)
+                   << ",\"ctrl_down_at_callback_delivery\":" << json_bool(item.ctrl_callback.ctrl)
+                   << ",\"left_ctrl_down\":" << json_bool(item.ctrl_callback.left)
+                   << ",\"right_ctrl_down\":" << json_bool(item.ctrl_callback.right);
+        }
         if (!evidence.record("event_receipt", fields.str())) {
             return false;
         }
@@ -1220,6 +1260,12 @@ void append_optional_snapshot(
             append_rect(fields, *item.follower_visible_rect);
         } else {
             fields << "null";
+        }
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"owner_drain_start_qpc\":" << item.owner_drain_start_qpc
+                   << ",\"sample_start_qpc\":" << item.sample_start_qpc
+                   << ",\"sample_complete_qpc\":" << item.sample_complete_qpc
+                   << ",\"behavior_decision_qpc\":" << item.behavior_decision_qpc;
         }
         if (!evidence.record("processing_quantum", fields.str())) {
             return false;
@@ -1282,11 +1328,58 @@ void append_optional_snapshot(
                    << ",\"monitor_and_dpi_stable\":"
                    << json_bool(receipt.monitor_and_dpi_stable);
         }
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"activation_generation\":" << item.activation_generation
+                   << ",\"behavior_decision_qpc\":" << item.behavior_decision_qpc
+                   << ",\"native_apply_start_qpc\":" << item.timing.native_apply_start_qpc
+                   << ",\"native_api_return_qpc\":" << item.timing.native_api_return_qpc
+                   << ",\"postverify_complete_qpc\":" << item.timing.postverify_complete_qpc;
+        }
         if (!evidence.record("operation", fields.str())) {
             return false;
         }
         record_diagnostic(evidence, "operation", operation.diagnostic);
         if (!evidence.healthy()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] bool record_activation_attempts(
+    EvidenceLog& evidence,
+    const std::span<const explorer::ExplorerGlueActivationAttempt> attempts) {
+    for (const auto& item : attempts) {
+        std::ostringstream fields;
+        fields << ",\"attempt_generation\":" << item.attempt_generation
+               << ",\"activation_generation\":" << item.activation_generation
+               << ",\"pair_authority_generation\":" << item.pair.authority_generation
+               << ",\"glue_authority_id\":" << item.pair.authority_id
+               << ",\"glue_session_generation\":" << item.pair.glue_session_generation
+               << ",\"leader_start_receipt_sequence\":" << item.event.receipt_sequence
+               << ",\"role\":" << json_quote(role_name(item.event.role))
+               << ",\"leader_window_id\":" << item.pair.leader_window_id
+               << ",\"follower_window_id\":" << item.pair.follower_window_id
+               << ",\"leader_capability_generation\":" << item.pair.leader_capability_generation
+               << ",\"follower_capability_generation\":" << item.pair.follower_capability_generation
+               << ",\"leader_consent_generation\":" << item.pair.leader_consent_generation
+               << ",\"follower_consent_generation\":" << item.pair.follower_consent_generation
+               << ",\"callback_qpc\":" << item.callback_qpc
+               << ",\"owner_processing_qpc\":" << item.owner_processing_qpc
+               << ",\"decision_qpc\":" << item.decision_qpc
+               << ",\"ctrl_sample_available\":" << json_bool(item.callback_ctrl.available)
+               << ",\"ctrl_down_at_callback_delivery\":" << json_bool(item.callback_ctrl.ctrl)
+               << ",\"left_ctrl_down\":" << json_bool(item.callback_ctrl.left)
+               << ",\"right_ctrl_down\":" << json_bool(item.callback_ctrl.right)
+               << ",\"owner_ctrl_sample_available\":" << json_bool(item.owner_ctrl.available)
+               << ",\"ctrl_down_at_owner_processing\":" << json_bool(item.owner_ctrl.ctrl)
+               << ",\"owner_left_ctrl_down\":" << json_bool(item.owner_ctrl.left)
+               << ",\"owner_right_ctrl_down\":" << json_bool(item.owner_ctrl.right)
+               << ",\"decision\":" << json_quote(item.activated ? "ACTIVATED" : "NOT_ACTIVATED")
+               << ",\"reason\":" << json_quote(explorer::activation_reason_name(item.reason))
+               << ",\"activation_source\":\"ctrl_at_leader_start\""
+               << ",\"input_source\":\"ctrl_move_start\"";
+        if (!evidence.record("activation_attempt", fields.str())) {
             return false;
         }
     }
@@ -1384,12 +1477,27 @@ void append_optional_snapshot(
     append_optional_snapshot(fields, facts.leader_restored);
     fields << ",\"follower_restored\":";
     append_optional_snapshot(fields, facts.follower_restored);
+    if constexpr (kCtrlMoveProfile) {
+        fields << ",\"fixture_pair_authorized\":" << json_bool(facts.fixture_pair_authorized)
+               << ",\"ctrl_move_activation_required\":" << json_bool(facts.ctrl_move_activation_required)
+               << ",\"plain_drag_completed\":" << json_bool(facts.plain_drag_completed)
+               << ",\"activation_generation\":" << facts.activation_generation
+               << ",\"pair_authority_generation\":" << facts.activation_pair.authority_generation
+               << ",\"qpc_frequency_hz\":" << facts.qpc_frequency_hz
+               << ",\"timing_valid\":" << json_bool(facts.timing_valid)
+               << ",\"timing_evidence_overflow\":" << json_bool(facts.timing_overflow)
+               << ",\"activation_evidence_overflow\":" << json_bool(facts.activation_overflow);
+    }
     return evidence.record("facts", fields.str());
 }
 
 struct RunOutcome final {
     bool runtime_pass{};
     bool safety_runtime_pass{};
+    bool ctrl_negative_safe{};
+    bool ctrl_activation_pass{};
+    std::size_t activation_attempt_count{};
+    std::size_t activation_count{};
     std::string realtime_follow_evidence_gate{"NOT_REACHED"};
     std::size_t leader_raw_start_count{};
     std::size_t leader_raw_location_count{};
@@ -1746,52 +1854,57 @@ struct FeedbackCorrelationSummary final {
     }
 
     auto consent = std::move(glue_begin.consent);
-    const auto glue_prompt = consent->record_glue_prompt();
-    if (!record_step(evidence, "glue_consent_prompt", glue_prompt)) {
-        outcome.reason = "evidence_write_failed";
-        return outcome;
-    }
-    if (!glue_prompt.succeeded()) {
-        outcome.reason = "glue_prompt_blocked";
-        return outcome;
-    }
-    {
-        std::ostringstream fields;
-        fields << ",\"result\":\"READY\",\"generation\":"
-               << consent->facts().consent_generations.prompt_generation
-               << ",\"input_source\":\"interactive_console\"";
-        if (!evidence.record("glue_consent_prompt", fields.str())) {
+    explorer::ExplorerGlueAuthorizeResult authorized;
+    if constexpr (kCtrlMoveProfile) {
+        authorized = consent->prepare_ctrl_move_fixture();
+    } else {
+        const auto glue_prompt = consent->record_glue_prompt();
+        if (!record_step(evidence, "glue_consent_prompt", glue_prompt)) {
             outcome.reason = "evidence_write_failed";
             return outcome;
         }
-    }
-    if (!emit_glue_prompt()) {
-        outcome.reason = "console_output_failed";
-        return outcome;
-    }
-    const auto glue_line = read_console_line();
-    const bool glue_confirmed =
-        glue_line.status == ConsoleLineStatus::Read &&
-        (glue_line.line == L"Y" || glue_line.line == L"y");
-    {
-        std::ostringstream fields;
-        fields << ",\"result\":"
-               << json_quote(glue_confirmed ? "CONFIRMED" : "DECLINED")
-               << ",\"input_source\":\"interactive_console\""
-               << ",\"native_apply_attempted\":false";
-        if (!evidence.record("glue_consent_confirmation", fields.str())) {
-            outcome.reason = "evidence_write_failed";
+        if (!glue_prompt.succeeded()) {
+            outcome.reason = "glue_prompt_blocked";
             return outcome;
         }
-    }
-    if (!glue_confirmed) {
-        outcome.reason = "glue_consent_declined";
-        static_cast<void>(write_console_text(
-            L"未收到 Y + ENTER 授权；窗口没有被移动。请自行关闭测试 Explorer。\n"));
-        return outcome;
-    }
+        {
+            std::ostringstream fields;
+            fields << ",\"result\":\"READY\",\"generation\":"
+                   << consent->facts().consent_generations.prompt_generation
+                   << ",\"input_source\":\"interactive_console\"";
+            if (!evidence.record("glue_consent_prompt", fields.str())) {
+                outcome.reason = "evidence_write_failed";
+                return outcome;
+            }
+        }
+        if (!emit_glue_prompt()) {
+            outcome.reason = "console_output_failed";
+            return outcome;
+        }
+        const auto glue_line = read_console_line();
+        const bool glue_confirmed =
+            glue_line.status == ConsoleLineStatus::Read &&
+            (glue_line.line == L"Y" || glue_line.line == L"y");
+        {
+            std::ostringstream fields;
+            fields << ",\"result\":"
+                   << json_quote(glue_confirmed ? "CONFIRMED" : "DECLINED")
+                   << ",\"input_source\":\"interactive_console\""
+                   << ",\"native_apply_attempted\":false";
+            if (!evidence.record("glue_consent_confirmation", fields.str())) {
+                outcome.reason = "evidence_write_failed";
+                return outcome;
+            }
+        }
+        if (!glue_confirmed) {
+            outcome.reason = "glue_consent_declined";
+            static_cast<void>(write_console_text(
+                L"未收到 Y + ENTER 授权；窗口没有被移动。请自行关闭测试 Explorer。\n"));
+            return outcome;
+        }
 
-    auto authorized = consent->confirm_user_glue();
+        authorized = consent->confirm_user_glue();
+    }
     outcome.facts = authorized.facts;
     outcome.glue_reason = authorized.reason;
     {
@@ -1810,7 +1923,20 @@ struct FeedbackCorrelationSummary final {
                << authorized.facts.consent_generations.authority_generation
                << ",\"glue_authority_id\":"
                << authorized.facts.glue_authority_id;
-        if (!evidence.record("glue_authority", fields.str())) {
+        if constexpr (kCtrlMoveProfile) {
+            const auto& pair = authorized.facts.activation_pair;
+            fields << ",\"input_source\":\"target_consent_fixture\""
+                   << ",\"activation_input_source\":\"ctrl_move_start\""
+                   << ",\"glue_console_confirmation_required\":false"
+                   << ",\"pair_authority_generation\":" << pair.authority_generation
+                   << ",\"leader_window_id\":" << pair.leader_window_id
+                   << ",\"follower_window_id\":" << pair.follower_window_id
+                   << ",\"leader_capability_generation\":" << pair.leader_capability_generation
+                   << ",\"follower_capability_generation\":" << pair.follower_capability_generation
+                   << ",\"leader_consent_generation\":" << pair.leader_consent_generation
+                   << ",\"follower_consent_generation\":" << pair.follower_consent_generation;
+        }
+        if (!evidence.record(kCtrlMoveProfile ? "pair_authority" : "glue_authority", fields.str())) {
             outcome.reason = "evidence_write_failed";
             return outcome;
         }
@@ -1884,6 +2010,9 @@ struct FeedbackCorrelationSummary final {
         fields << ",\"role\":\"leader\",\"timeout_seconds\":"
                << options.timeout_seconds
                << ",\"console_input_after_arm\":false";
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"activation_input_source\":\"ctrl_move_start\"";
+        }
         if (!evidence.record("drag_prompt", fields.str()) ||
             !emit_drag_prompt(options.timeout_seconds)) {
             static_cast<void>(session->cancel_and_restore());
@@ -1898,8 +2027,19 @@ struct FeedbackCorrelationSummary final {
     outcome.glue_reason = terminal.reason;
     outcome.glue_stage = terminal.stage;
     outcome.facts = session->facts();
+    if constexpr (kCtrlMoveProfile) {
+        outcome.activation_attempt_count = session->activation_attempts().size();
+        for (const auto& attempt : session->activation_attempts()) {
+            outcome.activation_count += attempt.activated ? 1U : 0U;
+        }
+        outcome.ctrl_activation_pass = outcome.activation_attempt_count == 1U &&
+            outcome.activation_count == 1U && outcome.facts.activation_generation != 0U &&
+            outcome.facts.timing_valid && !outcome.facts.activation_overflow &&
+            !outcome.facts.timing_overflow;
+    }
     if (!record_step(evidence, "run_until_terminal", terminal) ||
         !record_receipts_and_quanta(evidence, session->receipts(), session->quanta()) ||
+        (kCtrlMoveProfile && !record_activation_attempts(evidence, session->activation_attempts())) ||
         !record_trace(evidence, session->trace()) ||
         !record_operations(evidence, session->operations())) {
         outcome.reason = "evidence_write_failed";
@@ -1978,7 +2118,10 @@ struct FeedbackCorrelationSummary final {
         facts.leader_target_consent_prefix_valid &&
         facts.follower_target_consent_prefix_valid &&
         facts.follower_baseline_excluded_leader && facts.pair_distinct &&
-        facts.same_monitor_and_dpi && facts.glue_consent_confirmed &&
+        facts.same_monitor_and_dpi &&
+        (kCtrlMoveProfile ? (facts.fixture_pair_authorized && !facts.glue_consent_confirmed &&
+                            outcome.ctrl_activation_pass)
+                         : facts.glue_consent_confirmed) &&
         facts.test_layout_exact &&
         facts.topology_exact_two_window_component &&
         facts.event_source_armed && facts.event_source_stopped &&
@@ -2056,6 +2199,44 @@ struct FeedbackCorrelationSummary final {
         }
     }
     outcome.distinct_follower_target_count = distinct_follower_targets.size();
+    if constexpr (kCtrlMoveProfile) {
+        for (const auto& operation : session->operations()) {
+            if (operation.phase == explorer::ExplorerGlueOperationPhase::ActiveFollower &&
+                operation.activation_generation != facts.activation_generation) {
+                outcome.ctrl_activation_pass = false;
+                outcome.safety_runtime_pass = false;
+            }
+        }
+        outcome.ctrl_negative_safe =
+            terminal.reason == explorer::ExplorerGlueReason::CtrlNotDownAtStart &&
+            facts.plain_drag_completed && facts.fixture_pair_authorized &&
+            !facts.glue_consent_confirmed && facts.activation_generation == 0U &&
+            outcome.activation_attempt_count == 1U && outcome.activation_count == 0U &&
+            session->activation_attempts().front().reason ==
+                explorer::ExplorerGlueActivationReason::CtrlNotDownAtStart &&
+            outcome.leader_raw_start_count == 1U && outcome.leader_raw_end_count == 1U &&
+            outcome.leader_raw_location_count >= 1U &&
+            outcome.active_follower_operation_count == 0U &&
+            facts.follower_native_apply_count == 0U &&
+            facts.behavior_state == behavior::GlueMoveState::Armed &&
+            !facts.behavior_abort_reason.has_value() &&
+            facts.follower_final.has_value() && facts.follower_layout.has_value() &&
+            facts.follower_final->visible_rect == facts.follower_layout->visible_rect &&
+            facts.follower_final->positioning_rect == facts.follower_layout->positioning_rect &&
+            facts.leader_restored_exact && facts.follower_restored_exact &&
+            facts.event_source_lifecycle_clean && facts.event_source_stopped &&
+            facts.timing_valid && !facts.timing_overflow && !facts.activation_overflow &&
+            outcome.trace_generation_valid && outcome.leader_start_count == 0U &&
+            outcome.leader_location_count == 0U && outcome.leader_end_count == 0U &&
+            facts.suppressed_feedback_count == 0U && facts.unexpected_feedback_count == 0U;
+        if (outcome.ctrl_negative_safe) {
+            outcome.safety_runtime_pass = true;
+            outcome.all_active_follower_operations_exact = false;
+            outcome.feedback_operation_correlation_valid = false;
+            outcome.reason = "CTRL_NOT_DOWN_AT_START";
+            return outcome;
+        }
+    }
     if (outcome.safety_runtime_pass) {
         outcome.realtime_follow_evidence_gate =
             outcome.leader_raw_location_count < 3U
@@ -2184,6 +2365,20 @@ struct FeedbackCorrelationSummary final {
            << json_bool(outcome.facts.user_windows_close_attempted)
            << ",\"r0_observer_runtime_dependency\":false"
            << ",\"r0_observer_semantics_changed\":false";
+    if constexpr (kCtrlMoveProfile) {
+        fields << ",\"ctrl_activation_evidence_gate\":"
+               << json_quote(outcome.ctrl_activation_pass ? "PASS"
+                    : (outcome.ctrl_negative_safe ? "CTRL_NOT_DOWN_AT_START" : "NOT_ACCEPTED"))
+               << ",\"activation_attempt_count\":" << outcome.activation_attempt_count
+               << ",\"activation_count\":" << outcome.activation_count
+               << ",\"activation_generation\":" << outcome.facts.activation_generation
+               << ",\"timing_evidence_overflow\":" << json_bool(outcome.facts.timing_overflow)
+               << ",\"activation_evidence_overflow\":" << json_bool(outcome.facts.activation_overflow)
+               << ",\"timing_valid\":" << json_bool(outcome.facts.timing_valid)
+               << ",\"glue_console_confirmation_required\":false"
+               << ",\"activation_input_source\":\"ctrl_move_start\""
+               << ",\"keyboard_content_collection\":false";
+    }
     return evidence.record("summary", fields.str());
 }
 
@@ -2223,6 +2418,18 @@ int wmain(const int argc, wchar_t* argv[]) {
                << kLayoutReadinessAttemptLimit
                << ",\"r0_observer_runtime_dependency\":false"
                << ",\"synthetic_input\":false";
+        if constexpr (kCtrlMoveProfile) {
+            fields << ",\"activation_input_source\":\"ctrl_move_start\""
+                   << ",\"glue_console_confirmation_required\":false"
+                   << ",\"timing_clock\":\"query_performance_counter\""
+                   << ",\"qpc_frequency_hz\":" << explorer::glue_qpc_frequency()
+                   << ",\"timing_capacity\":" << kTimingEvidenceCapacity
+                   << ",\"operation_capacity\":" << kOperationEvidenceCapacity
+                   << ",\"activation_capacity\":" << explorer::ExplorerGlueActivationController::capacity
+                   << ",\"timing_evidence_overflow\":false"
+                   << ",\"activation_evidence_overflow\":false"
+                   << ",\"keyboard_content_collection\":false";
+        }
         if (!evidence.record("startup", fields.str())) {
             return EXIT_FAILURE;
         }
@@ -2254,6 +2461,14 @@ int wmain(const int argc, wchar_t* argv[]) {
     }
 
     if (outcome.safety_runtime_pass) {
+        if constexpr (kCtrlMoveProfile) {
+            if (outcome.ctrl_negative_safe) {
+                static_cast<void>(write_console_text(
+                    L"\nSTART 交付时未观察到 Ctrl 按下；本次普通拖动未激活跟随，active Follower operations=0。\n"
+                    L"测试布局准备及结束恢复单独记录；两个测试窗口已精确恢复。请等待 runner 完成审计。\n"));
+                return 2;
+            }
+        }
         static_cast<void>(write_console_text(
             L"\nGlue session 安全完成，两个测试 Explorer 已精确恢复原位置；本次实时跟随证据不足。\n"
             L"请等待 evidence runner 完成审计。下次请以正常速度连续拖动 Leader 约 1 秒。\n"));

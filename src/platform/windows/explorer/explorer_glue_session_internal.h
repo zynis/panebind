@@ -194,6 +194,7 @@ private:
     friend class ::panebind::platform::windows::explorer::ExplorerGlueSession;
     friend class ExplorerGlueSessionBridge;
     friend class ExplorerGlueSessionDiagnostics;
+    friend class ::panebind::platform::windows::explorer::ExplorerGlueConsent;
 };
 
 struct ExplorerGluePairInspection final {
@@ -328,7 +329,8 @@ private:
         ExplorerTestSession& session,
         const ExplorerGluePreparedTranslation& prepared,
         BeforeNativeApply before_native_apply,
-        void* before_native_apply_context);
+        void* before_native_apply_context,
+        ExplorerGlueNativeTiming* timing = nullptr);
     static void release_pair(const ExplorerGlueAuthoritySeal& seal,
                              ExplorerTestSession& leader,
                              ExplorerTestSession& follower) noexcept;

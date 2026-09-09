@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/behavior/glue_move_coordinator.h"
+#include "platform/windows/explorer/explorer_glue_activation.h"
 #include "platform/windows/explorer/explorer_glue_types.h"
 #include "platform/windows/explorer/explorer_session.h"
 
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace panebind::platform::windows::explorer {
@@ -46,6 +48,9 @@ enum class ExplorerGlueReason : std::uint8_t {
     TimedOut,
     RestoreFailed,
     CleanupLifecycleFailed,
+    CtrlNotDownAtStart,
+    ActivationRejected,
+    InteractionEvidenceFailed,
 };
 
 enum class ExplorerGlueStage : std::uint8_t {
@@ -145,6 +150,12 @@ struct ExplorerGlueLayoutReadinessResult final {
     }
 };
 
+struct ExplorerGlueNativeTiming {
+    std::int64_t native_apply_start_qpc{};
+    std::int64_t native_api_return_qpc{};
+    std::int64_t postverify_complete_qpc{};
+};
+
 struct ExplorerGlueOperationRecord {
     ExplorerGlueOperationPhase phase{ExplorerGlueOperationPhase::Setup};
     ExplorerGlueWindowRole role{ExplorerGlueWindowRole::Leader};
@@ -155,6 +166,9 @@ struct ExplorerGlueOperationRecord {
     std::uint64_t sampled_geometry_generation{};
     std::uint64_t pre_native_receipt_watermark{};
     std::uint64_t post_native_receipt_watermark{};
+    std::uint64_t activation_generation{};
+    std::int64_t behavior_decision_qpc{};
+    ExplorerGlueNativeTiming timing;
 };
 
 // Receipts have source metadata, never historical geometry. One quantum owns
@@ -167,6 +181,8 @@ struct ExplorerGlueReceiptRecord {
     std::uint32_t native_event_timestamp_ms{};
     bool coalesced{};
     bool discarded_after_end{};
+    std::int64_t callback_qpc{};
+    CtrlSample ctrl_callback;
 };
 
 struct ExplorerGlueQuantumRecord {
@@ -182,6 +198,10 @@ struct ExplorerGlueQuantumRecord {
     std::optional<core::geometry::Rect> follower_visible_rect;
     bool contains_leader_end{};
     bool inactive_discard{};
+    std::int64_t owner_drain_start_qpc{};
+    std::int64_t sample_start_qpc{};
+    std::int64_t sample_complete_qpc{};
+    std::int64_t behavior_decision_qpc{};
 };
 
 struct ExplorerGlueTraceRecord {
@@ -198,6 +218,7 @@ struct ExplorerGlueTraceRecord {
     std::uint64_t sampled_geometry_generation{};
     std::uint32_t native_event_timestamp_ms{};
     std::optional<core::geometry::Rect> sampled_visible_rect;
+    std::int64_t ack_qpc{};
 };
 
 struct ExplorerGlueFacts {
@@ -210,6 +231,15 @@ struct ExplorerGlueFacts {
     bool pair_distinct{};
     bool same_monitor_and_dpi{};
     bool glue_consent_confirmed{};
+    bool ctrl_move_activation_required{};
+    bool fixture_pair_authorized{};
+    bool plain_drag_completed{};
+    bool activation_overflow{};
+    bool timing_overflow{};
+    bool timing_valid{true};
+    std::uint64_t activation_generation{};
+    std::int64_t qpc_frequency_hz{};
+    ExplorerGlueActivationPair activation_pair;
     bool test_layout_planned{};
     bool test_layout_exact{};
     bool topology_exact_two_window_component{};
@@ -285,6 +315,10 @@ public:
                              ExplorerTestSession& follower);
     [[nodiscard]] ExplorerGlueStepResult record_glue_prompt();
     [[nodiscard]] ExplorerGlueAuthorizeResult confirm_user_glue();
+    // R1-C3A only: consumes the already-confirmed test pair for fixture setup
+    // and observation. It does not fabricate Console consent or activation.
+    // Active Follower placement remains gated on the exact Leader START.
+    [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture();
     [[nodiscard]] const ExplorerGlueFacts& facts() const noexcept;
 
 private:
@@ -345,6 +379,8 @@ public:
     [[nodiscard]] const std::vector<ExplorerGlueReceiptRecord>& receipts()
         const noexcept;
     [[nodiscard]] const std::vector<ExplorerGlueQuantumRecord>& quanta()
+        const noexcept;
+    [[nodiscard]] std::span<const ExplorerGlueActivationAttempt> activation_attempts()
         const noexcept;
 
 private:

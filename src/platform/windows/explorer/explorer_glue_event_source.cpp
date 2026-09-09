@@ -59,6 +59,8 @@ struct ExplorerGlueEventSource::RawReceipt final {
     DWORD event_thread{};
     DWORD event_time{};
     std::uint64_t sequence{};
+    std::int64_t callback_qpc{};
+    CtrlSample ctrl_callback;
 };
 
 struct ExplorerGlueEventSource::HookSlot final {
@@ -79,13 +81,15 @@ ExplorerGlueEventSource::ExplorerGlueEventSource(
     NativeTargetBinding follower,
     const std::size_t queue_capacity,
     const DeliveryMode mode,
-    const bool synthetic_notification_succeeds)
+    const bool synthetic_notification_succeeds,
+    const bool capture_interaction_evidence)
     : leader_(leader),
       follower_(follower),
       owner_thread_id_(GetCurrentThreadId()),
       notification_cookie_(allocate_notification_cookie()),
       delivery_mode_(mode),
       synthetic_notification_succeeds_(synthetic_notification_succeeds),
+      capture_interaction_evidence_(capture_interaction_evidence),
       queue_(queue_capacity == 0U
                  ? nullptr
                  : std::make_unique<RawReceipt[]>(queue_capacity)),
@@ -425,6 +429,24 @@ void ExplorerGlueEventSource::receive_raw_event(
         return;
     }
 
+    std::int64_t callback_qpc = 0;
+    CtrlSample ctrl;
+    if (capture_interaction_evidence_) {
+#if defined(PANEBIND_EXPLORER_GLUE_EVENT_SOURCE_TESTING)
+        if (delivery_mode_ == DeliveryMode::Synthetic) {
+            callback_qpc = synthetic_qpc_;
+            if (event == EVENT_SYSTEM_MOVESIZESTART && window == leader_.window) {
+                ctrl = synthetic_ctrl_;
+            }
+        } else
+#endif
+        {
+            callback_qpc = glue_qpc_now();
+            if (event == EVENT_SYSTEM_MOVESIZESTART && window == leader_.window) {
+                ctrl = sample_ctrl();
+            }
+        }
+    }
     const std::size_t tail = (queue_head_ + queue_size_) % queue_capacity_;
     queue_[tail] = {hook,
                     event,
@@ -433,7 +455,9 @@ void ExplorerGlueEventSource::receive_raw_event(
                     child_id,
                     event_thread,
                     event_time,
-                    sequence};
+                    sequence,
+                    callback_qpc,
+                    ctrl};
     ++queue_size_;
     max_queue_depth_ = std::max(max_queue_depth_, queue_size_);
 
@@ -536,7 +560,9 @@ ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
                  binding->capability_generation,
                  receipt.sequence,
                  receipt.event_thread,
-                 receipt.event_time});
+                 receipt.event_time,
+                 receipt.callback_qpc,
+                 receipt.ctrl_callback});
             ++accepted_count_;
             continue;
         }
@@ -562,7 +588,9 @@ ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
              binding->capability_generation,
              receipt.sequence,
              receipt.event_thread,
-             receipt.event_time});
+             receipt.event_time,
+             receipt.callback_qpc,
+             receipt.ctrl_callback});
         ++accepted_count_;
     }
 
@@ -612,7 +640,8 @@ detail::ExplorerGlueEventSourceTestAccess::create(
     const ExplorerGlueEventSourceTestBinding leader,
     const ExplorerGlueEventSourceTestBinding follower,
     const std::size_t queue_capacity,
-    const bool notification_succeeds) {
+    const bool notification_succeeds,
+    const bool capture_interaction_evidence) {
     const ExplorerGlueEventSource::NativeTargetBinding native_leader{
         leader.window,
         leader.process_id,
@@ -634,7 +663,8 @@ detail::ExplorerGlueEventSourceTestAccess::create(
                                     native_follower,
                                     queue_capacity,
                                     ExplorerGlueEventSource::DeliveryMode::Synthetic,
-                                    notification_succeeds));
+                                    notification_succeeds,
+                                    capture_interaction_evidence));
 }
 
 void detail::ExplorerGlueEventSourceTestAccess::enqueue(
@@ -665,6 +695,8 @@ void detail::ExplorerGlueEventSourceTestAccess::enqueue(
             std::numeric_limits<std::uintptr_t>::max());
     }
 
+    source.synthetic_ctrl_ = event.ctrl_callback;
+    source.synthetic_qpc_ = event.callback_qpc;
     source.receive_raw_event(hook,
                              event.event,
                              event.window,

@@ -742,6 +742,164 @@ void test_120_raw_receipts_keep_ring_bounded_across_wakes(
            "120 raw receipts span 24 samples with bounded queues and no recursion or overflow");
 }
 
+void test_interaction_sampling_is_opt_in(const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                87U, 807U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                88U, 808U),
+        4U);
+    auto start = event(EVENT_SYSTEM_MOVESIZESTART, windows.leader(), 701U);
+    start.ctrl_callback = {true, true, true, true};
+    start.callback_qpc = 1001;
+    TestAccess::enqueue(*source, start);
+    auto location = event(EVENT_OBJECT_LOCATIONCHANGE, windows.follower(), 702U);
+    location.ctrl_callback = start.ctrl_callback;
+    location.callback_qpc = 1002;
+    TestAccess::enqueue(*source, location);
+
+    const auto result = TestAccess::drain(*source);
+    expect(result.events.size() == 2U && !result.facts.live_hooks_installed,
+           "default synthetic source delivers receipts without installing hooks");
+    for (const auto& receipt : result.events) {
+        expect(receipt.callback_qpc == 0 && !receipt.ctrl_callback.available &&
+                   !receipt.ctrl_callback.ctrl && !receipt.ctrl_callback.left &&
+                   !receipt.ctrl_callback.right,
+               "legacy default does not capture injected Ctrl or QPC evidence");
+    }
+    if (result.events.size() == 2U) {
+        expect(result.events[0].native_event_time == 701U &&
+                   result.events[1].native_event_time == 702U &&
+                   result.events[0].receipt_sequence == 1U &&
+                   result.events[1].receipt_sequence == 2U,
+               "disabled interaction evidence preserves original native time and order");
+    }
+}
+
+void test_opt_in_receipts_keep_ctrl_only_on_leader_start(
+    const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                89U, 809U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                90U, 810U),
+        8U, true, true);
+    const std::vector<explorer::detail::ExplorerGlueSyntheticWinEvent> receipts{
+        event(EVENT_SYSTEM_MOVESIZESTART, windows.leader(), 801U),
+        event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader(), 802U),
+        event(EVENT_SYSTEM_MOVESIZESTART, windows.follower(), 803U),
+        event(EVENT_OBJECT_LOCATIONCHANGE, windows.follower(), 804U),
+        event(EVENT_SYSTEM_MOVESIZEEND, windows.leader(), 805U),
+        event(EVENT_OBJECT_DESTROY, windows.follower(), 806U),
+    };
+    std::int64_t injected_qpc = 2001;
+    for (auto receipt : receipts) {
+        // Every synthetic ingress advertises Ctrl DOWN. Only exact Leader
+        // START may retain that field; QPC is retained for each target receipt.
+        receipt.ctrl_callback = {true, true, false, true};
+        receipt.callback_qpc = injected_qpc++;
+        TestAccess::enqueue(*source, receipt);
+    }
+
+    const auto result = TestAccess::drain(*source);
+    expect(result.events.size() == receipts.size() &&
+               !result.facts.live_hooks_installed &&
+               result.facts.poison == explorer::ExplorerGlueEventSourcePoison::None,
+           "opt-in synthetic ingress remains hook-free and accepts the target lifecycle");
+    for (std::size_t index = 0U; index < result.events.size(); ++index) {
+        const auto& receipt = result.events[index];
+        expect(receipt.callback_qpc == 2001 + static_cast<std::int64_t>(index),
+               "callback QPC is retained per receipt instead of replaced at drain");
+        if (index == 0U) {
+            expect(receipt.ctrl_callback.available && receipt.ctrl_callback.ctrl &&
+                       !receipt.ctrl_callback.left && receipt.ctrl_callback.right &&
+                       receipt.role == explorer::ExplorerGlueWindowRole::Leader &&
+                       receipt.window_id == 89U &&
+                       receipt.capability_generation == 809U,
+                   "Leader START preserves its callback Ctrl sample and capability binding");
+        } else {
+            expect(!receipt.ctrl_callback.available && !receipt.ctrl_callback.ctrl &&
+                       !receipt.ctrl_callback.left && !receipt.ctrl_callback.right,
+                   "LOCATION, Follower START, END and destroy never capture Ctrl");
+        }
+    }
+}
+
+void test_opt_in_does_not_repair_callback_facts(const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                91U, 811U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                92U, 812U),
+        4U, true, true);
+    auto unavailable = event(EVENT_SYSTEM_MOVESIZESTART, windows.leader());
+    unavailable.ctrl_callback = {false, false, false, false};
+    unavailable.callback_qpc = 0;
+    TestAccess::enqueue(*source, unavailable);
+    auto non_atomic = event(EVENT_SYSTEM_MOVESIZESTART, windows.leader());
+    non_atomic.ctrl_callback = {true, false, true, true};
+    non_atomic.callback_qpc = 3001;
+    TestAccess::enqueue(*source, non_atomic);
+    auto later = event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader());
+    later.ctrl_callback = {true, true, false, false};
+    later.callback_qpc = 3002;
+    TestAccess::enqueue(*source, later);
+
+    const auto result = TestAccess::drain(*source);
+    expect(result.events.size() == 3U,
+           "raw source preserves invalid activation evidence for the policy boundary");
+    if (result.events.size() == 3U) {
+        expect(!result.events[0].ctrl_callback.available &&
+                   result.events[0].callback_qpc == 0,
+               "missing Ctrl and failed QPC are not fabricated into successful samples");
+        expect(result.events[1].ctrl_callback.available &&
+                   !result.events[1].ctrl_callback.ctrl &&
+                   result.events[1].ctrl_callback.left &&
+                   result.events[1].ctrl_callback.right &&
+                   result.events[1].callback_qpc == 3001,
+               "non-atomic side observations never rewrite the aggregate Ctrl fact");
+        expect(!result.events[2].ctrl_callback.available &&
+                   result.events[2].callback_qpc == 3002,
+               "later ingress cannot overwrite an earlier START sample");
+    }
+}
+
+void test_opt_in_overflow_keeps_original_bounded_evidence(
+    const TestWindows& windows) {
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader,
+                93U, 813U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower,
+                94U, 814U),
+        1U, true, true);
+    auto first = event(EVENT_SYSTEM_MOVESIZESTART, windows.leader());
+    first.ctrl_callback = {true, true, true, false};
+    first.callback_qpc = 4001;
+    TestAccess::enqueue(*source, first);
+    auto overflow = first;
+    overflow.ctrl_callback = {true, false, false, false};
+    overflow.callback_qpc = 4002;
+    TestAccess::enqueue(*source, overflow);
+    TestAccess::enqueue(*source, overflow);
+
+    const auto result = TestAccess::drain(*source);
+    expect(result.events.size() == 1U && result.facts.queue_capacity == 1U &&
+               result.facts.max_queue_depth == 1U &&
+               result.facts.overflow_count == 1U &&
+               result.facts.post_poison_count == 1U &&
+               result.facts.poison == explorer::ExplorerGlueEventSourcePoison::QueueOverflow,
+           "opt-in evidence retains the existing bounded overflow and poison contract");
+    if (result.events.size() == 1U) {
+        expect(result.events[0].receipt_sequence == 1U &&
+                   result.events[0].callback_qpc == 4001 &&
+                   result.events[0].ctrl_callback.available &&
+                   result.events[0].ctrl_callback.ctrl &&
+                   result.events[0].ctrl_callback.left &&
+                   !result.events[0].ctrl_callback.right,
+               "overflow and later receipts do not mutate stored callback evidence");
+    }
+}
+
 } // namespace
 
 int main() {
@@ -758,6 +916,10 @@ int main() {
     test_notification_rearms_after_each_drain(windows);
     test_message_quantum_yields_for_receipts_and_false_peek(windows);
     test_120_raw_receipts_keep_ring_bounded_across_wakes(windows);
+    test_interaction_sampling_is_opt_in(windows);
+    test_opt_in_receipts_keep_ctrl_only_on_leader_start(windows);
+    test_opt_in_does_not_repair_callback_facts(windows);
+    test_opt_in_overflow_keeps_original_bounded_evidence(windows);
 
     if (failures != 0) {
         std::cerr << failures << " explorer glue event-source test(s) failed\n";

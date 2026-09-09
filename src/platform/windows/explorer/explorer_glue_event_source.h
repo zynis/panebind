@@ -9,6 +9,7 @@
 #include <windows.h>
 
 #include "platform/windows/explorer/explorer_glue_types.h"
+#include "platform/windows/explorer/explorer_glue_input.h"
 
 #include <atomic>
 #include <cstddef>
@@ -57,6 +58,8 @@ struct ExplorerGlueEvent final {
     std::uint64_t receipt_sequence{};
     DWORD native_event_thread{};
     DWORD native_event_time{};
+    std::int64_t callback_qpc{};
+    CtrlSample ctrl_callback;
 };
 
 struct ExplorerGlueEventSourceFacts final {
@@ -125,7 +128,8 @@ private:
                             NativeTargetBinding follower,
                             std::size_t queue_capacity,
                             DeliveryMode mode,
-                            bool synthetic_notification_succeeds);
+                            bool synthetic_notification_succeeds,
+                            bool capture_interaction_evidence = false);
 
     [[nodiscard]] bool start_live();
     [[nodiscard]] bool stop_live() noexcept;
@@ -171,6 +175,11 @@ private:
     std::uintptr_t notification_cookie_{};
     DeliveryMode delivery_mode_{DeliveryMode::Live};
     bool synthetic_notification_succeeds_{true};
+    bool capture_interaction_evidence_{};
+#if defined(PANEBIND_EXPLORER_GLUE_EVENT_SOURCE_TESTING)
+    CtrlSample synthetic_ctrl_;
+    std::int64_t synthetic_qpc_{};
+#endif
     bool running_{};
     bool live_hooks_installed_{};
     bool notification_pending_{};
@@ -230,6 +239,8 @@ struct ExplorerGlueSyntheticWinEvent final {
     DWORD event_thread{};
     DWORD event_time{};
     bool matching_hook_slot{true};
+    CtrlSample ctrl_callback;
+    std::int64_t callback_qpc{};
 };
 
 // This seam does not exist in production builds. Tests compile the source in a
@@ -241,7 +252,8 @@ public:
         ExplorerGlueEventSourceTestBinding leader,
         ExplorerGlueEventSourceTestBinding follower,
         std::size_t queue_capacity,
-        bool notification_succeeds = true);
+        bool notification_succeeds = true,
+        bool capture_interaction_evidence = false);
     static void enqueue(ExplorerGlueEventSource& source,
                         const ExplorerGlueSyntheticWinEvent& event) noexcept;
     [[nodiscard]] static ExplorerGlueEventDrainResult drain(
