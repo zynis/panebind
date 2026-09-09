@@ -1,10 +1,17 @@
-# R1-C3A — First Debug Ctrl + Move Human UAT
+# R1-C3A — Human Ctrl + Move UAT Completion Record
 
-This handoff is for one positive Debug run only. It is not a Release UAT,
-merge approval or performance acceptance test. The implementation SHA and
-automated result are recorded in [execution](R1C3A_EXECUTION_REPORT.md).
+The first Debug and subsequent Release positive human runs are complete and
+accepted on `e56202d03f49721370c704c63e41976907779c2d`. Both have Ctrl activation,
+multi-step follow, exact feedback/final geometry/restore PASS. See the
+[human report](R1C3A_HUMAN_VALIDATION_REPORT.md) and [execution](R1C3A_EXECUTION_REPORT.md).
+No new human UAT is requested by this seal. The instructions below are retained
+as the historical Debug handoff, not an instruction to rerun it.
 
-## Command
+Both subjective smoothness observations are C (visibly stepped/laggy).
+Functionality is accepted; product smoothness is not. Optimization is required
+in a future R1-C3B, which has not started. Automatic restore remains fixture-only.
+
+## Historical first Debug command
 
 From `D:\repository\panebind`, after the implementation-ready gate passes:
 

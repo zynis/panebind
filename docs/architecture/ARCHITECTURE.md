@@ -4,7 +4,7 @@ Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
 owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, the sealed R1-C2A Explorer single-translation boundary,
 the human-validated R1-C2B Explorer Glue Move test-session boundary, and the
-R1-C3A opt-in Ctrl activation implementation awaiting first human Debug UAT. This
+human-validated R1-C3A opt-in Ctrl activation boundary. This
 document records implemented boundaries and current decisions; runtime
 acceptance evidence and gate results are recorded separately. Debug Attempt 1
 safely stopped at pre-authority `UnsafeLayout`; Fix 1 added readiness preview.
@@ -32,7 +32,8 @@ These observed session counts establish the narrow runtime baseline, not
 physical native END-generation time, fixed event cardinality, or a final
 latency/smoothness/resource SLA. The next block records that completed R1-C2B
 seal; R1-C3A subsequently adds an opt-in interaction adapter without changing
-the default C2B behavior. Its current runtime gate is PENDING_UAT.
+the default C2B behavior. Its Debug/Release functionality gates now pass;
+subjective smoothness is C/C and is not accepted as product-quality.
 
 ```text
 R1C2B_HUMAN_VALIDATION = PASS
@@ -663,10 +664,48 @@ stream, synthetic input or polling is introduced. The separate evidence runner
 uses the existing strict validator with a fixed C3A profile; default C2B
 validation remains active and regression-tested.
 
-Implementation and human acceptance are separate gates; see
+The positive human Debug and Release runs on `e56202d...` are accepted. Debug
+recorded 307 raw Leader LOCATION, 15 Leader quanta/samples/applies and 15 exact
+suppressed feedback events. Release recorded 548 raw LOCATION, 40 Leader
+quanta, 39 distinct samples/applies and 39 suppressed feedback events (one
+Leader no-op). Both have one callback-down/owner-down activation, no Y+ENTER,
+zero recursion/unexpected feedback, exact final geometry and exact restore.
+These are functionality results; both human smoothness ratings are C:
+visibly stepped/laggy. No smoothness SLA was defined for R1-C3A; optimization
+is required before any product-quality claim. SetWindowPos itself was not the
+dominant observed cost, but no runtime or cadence change is made in this seal.
+
+Implementation, human acceptance and main integration are separate gates; see
+[R1C3A human validation](../reports/R1C3A_HUMAN_VALIDATION_REPORT.md),
 [R1C3A execution](../reports/R1C3A_EXECUTION_REPORT.md),
 [research](../research/R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md) and
 [Debug handoff](../reports/R1C3A_UAT_HANDOFF.md).
+
+### Future interaction roadmap — NOT IMPLEMENTED
+
+R1-C3B — Interaction Timing & Smoothness Baseline is required next, but has
+not started. Study timing/cadence and the subjective C/C observations before
+choosing changes. Do not infer a safety-validation shortcut from aggregate
+latency data. Input remains intent/wake; actual Leader geometry remains truth.
+
+Future Z-order product goal, **within the normal Z-order band**: the Leader
+is the highest member of the active Glue component; Followers immediately
+below it/component peers; unrelated normal windows below the component when
+an explicit policy promotes it. This is a future goal, not current behavior.
+Separate prior-art/platform/empirical research must address topmost versus
+non-topmost bands, Always-on-top windows, owner/owned-window constraints,
+activation/focus, stable internal Follower ordering and DeferWindowPos /
+hWndInsertAfter strategy. Current `SWP_NOZORDER` remains unchanged.
+
+The architecture principle is that Glue component size **must be bounded**.
+The actual default product limit is **NOT DECIDED**. Future 2/4/8-member
+fixture measurements must inform it; today's exact-two-window UAT boundary
+is not a guessed product-wide limit. No additional members are implemented.
+
+Mixed-DPI / multi-monitor remains **NOT TESTED**. Future research must cover
+PMv2, WM_DPICHANGED, monitor transitions, DWM visible versus positioning
+bounds, work areas, scale-factor differences and cross-monitor geometry
+semantics. Current monitor/DPI transitions still fail closed / abort.
 
 ## Normalized event model
 
@@ -960,7 +999,7 @@ two-target sessions or their deterministic tests.
 Snap, Excel, VS Code, browser and other application eligibility, global Ctrl
 activation, production selector UX, and final latency/smoothness/resource SLA
 remain `NOT TESTED` or outside R1-C2B. R1-C3 had not started at that seal;
-the subsequent R1-C3A implementation and its pending human gate are described
+the subsequent R1-C3A implementation and accepted human functionality gate are described
 in the interaction section above.
 
 ```text
@@ -972,7 +1011,11 @@ OTHER_THIRD_PARTY_CONTROL = NO
 GLOBAL_INPUT_CONTROL = NO
 R1C3_STATUS_AT_R1C2B_SEAL = NOT STARTED
 R1C3A_IMPLEMENTATION_READY = YES
-R1C3A_DEBUG_INTERACTIVE_UAT = REQUIRED
-R1C3A_RUNTIME_GATE = PENDING_UAT
+R1C3A_DEBUG_INTERACTIVE_UAT = PASS
+R1C3A_RELEASE_INTERACTIVE_UAT = PASS
+R1C3A_RUNTIME_GATE = PASS
+HUMAN_SMOOTHNESS_DEBUG = C
+HUMAN_SMOOTHNESS_RELEASE = C
+SMOOTHNESS_OPTIMIZATION_REQUIRED = YES
 R1C3B = NOT STARTED
 ```

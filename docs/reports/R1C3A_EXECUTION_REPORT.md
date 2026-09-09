@@ -1,9 +1,56 @@
 # R1-C3A — Ctrl + Move Activation Implementation Report
 
-Report date: 2026-09-09, Asia/Shanghai. This is an automatic implementation
-handoff, **not** a human validation seal or product release.
+Report updated: 2026-09-09, Asia/Shanghai, for final human validation and
+integration. Historical implementation results below retain their original
+scope. This is functionality acceptance, not product smoothness acceptance.
 
-## 1. Baseline, Git and acceptance state
+## Current human validation seal
+
+Starting integration HEAD: `e56202d03f49721370c704c63e41976907779c2d`.
+The existing Debug `20260909T101910373Z` and Release `20260909T103941915Z`
+positive Ctrl+Move logs both passed frozen-runner offline validation. No
+runtime/source/test/script changes or new human run were made. Full evidence,
+hashes, geometry, timing populations and limitations are in
+[R1C3A_HUMAN_VALIDATION_REPORT.md](R1C3A_HUMAN_VALIDATION_REPORT.md).
+
+```text
+R1C3A_HUMAN_VALIDATION = PASS
+R1C3A_DEBUG_INTERACTIVE_UAT = PASS
+R1C3A_RELEASE_INTERACTIVE_UAT = PASS
+R1C3A_CTRL_ACTIVATION_RUNTIME_GATE = PASS
+R1C3A_REALTIME_FOLLOW_RUNTIME_GATE = PASS
+R1C3A_FEEDBACK_SUPPRESSION_RUNTIME_GATE = PASS
+R1C3A_RUNTIME_GATE = PASS
+HUMAN_SMOOTHNESS_DEBUG = C
+HUMAN_SMOOTHNESS_RELEASE = C
+SMOOTHNESS_OPTIMIZATION_REQUIRED = YES
+RUNTIME_TREE_CHANGED_AFTER_UAT = NO
+DEBUG_RELEASE_REVALIDATION_REQUIRED = NO
+R1C3B = NOT STARTED
+```
+
+KNOWN PRODUCT QUALITY LIMITATION: Follower motion is visibly stepped / laggy.
+No smoothness SLA was defined for R1-C3A; C/C does not block its functionality
+seal, but the result must not be called smooth, AquaGlue-equivalent or
+production-ready. Release native-call p50 is 7.6767 ms versus owner-to-native
+149.5724 ms and source-receipt-to-postverify 209.8503 ms. Native call is not the
+dominant observed cost; different-grain percentiles are not additive. No
+optimization or weakened eligibility checks follow from this observation.
+
+Seal-document regression checkpoint: PASS. Debug/Release builds and CTest each
+passed 12/12; Owned and Companion self-tests each passed in Debug and Release
+(four PASS summaries, failures=0); existing 26 and C3A 61 runner fixtures all
+passed. Commands and environment are the same as section 5 below, rerun in
+this seal round after documentation edits. No real UAT was launched.
+
+The initial ordinary fetch succeeded; main remained `8f9921b...`, divergence
+0 behind / 4 ahead, local/upstream 0/0, clean at entry. This seal commit is
+documentation-only. Commit/push/PR/ordinary merge and final main regression
+will be recorded in the final user-facing integration result after completion,
+not predicted in the pre-merge documentation commit. Its frozen runtime trees
+are recorded in the human report and must remain identical after merging.
+
+## 1. Historical automatic implementation handoff
 
 ```text
 Starting main: 8f9921b9550cad1ecee835dbb2193cc6728300f1
@@ -43,7 +90,7 @@ commit/push, not predicted here. The final documentation-only descendant has
 the same runtime and runner implementation as the pinned SHAs above. No PR,
 main merge, tag or release is authorized in this handoff.
 
-## 2. Research and independent decisions
+## 2. Historical implementation research and independent decisions
 
 Full sources/API comparison/probe are in
 [research](../research/R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md) and
@@ -78,7 +125,7 @@ receipts, three Ctrl high-bit reads only at START, QPC frequency 10000000,
 monotonic timestamps and clean unhook. Observed Ctrl was false. It establishes
 callback feasibility, **not** physical Ctrl-down or real Explorer acceptance.
 
-## 3. Interaction, authority and safety matrix
+## 3. Implemented interaction, authority and safety matrix
 
 | Requirement | Implemented behavior / evidence |
 | --- | --- |
@@ -126,17 +173,19 @@ fake live sample/decision. The timing clock is QPC, not wall clock.
 Bounds: 512 ingress slots, 64 pending, 4096 receipts/quanta/trace, 512 operation
 records and 8 activation attempts. Overflow explicitly prevents acceptance;
 there is no silent drop. Independent synthetic fixtures check overflow and
-malformed evidence. Real Explorer queue/latency outcomes are still NOT TESTED
-for C3A.
+malformed evidence. Real Explorer queue/latency outcomes were NOT TESTED at the
+implementation handoff; the current positive Debug/Release observations are
+now recorded in the human report, without extending the fault-path claims.
 
 Runner prints min/median/p95/max for apply intervals and all requested latency
 stages. Median is ordinary median; p95 is nearest-rank. Fewer than two samples
 are labeled insufficient (one activation time is still reported numerically).
 There is no P95<16ms, FPS, apply/raw ratio or subjective smoothness gate.
 Metrics describe instrumented CPU-side processing, not actual display-present
-latency. Actual human smoothness/latency numbers await UAT.
+latency. Actual human smoothness/latency numbers were then awaiting UAT; the
+current seal records them and the C/C quality limitation.
 
-## 5. Automated verification
+## 5. Historical implementation automated verification
 
 Windows 10.0.26200, x64; Visual Studio 18 2026 Community; MSVC
 19.50.35729.0 (toolset directory 14.50.35717); Windows SDK 10.0.26100.0;
@@ -182,16 +231,18 @@ the latter was added and tested, rather than relabeling the first timestamp.
 No R1-C2B regression failure was observed. All raw UAT remains ignored; no
 tracked `uat/` files were added. No real Explorer UAT was run by Codex.
 
-## 6. Human handoff and remaining boundaries
+## 6. Historical human handoff and remaining boundaries
 
-Use the exact one-command Debug run and simple human actions in
+The implementation handoff supplied the one-command Debug run and actions in
 [R1C3A_UAT_HANDOFF.md](R1C3A_UAT_HANDOFF.md): new Leader, new Follower,
 readiness FIT, wait for Ctrl prompt, hold Ctrl, drag Leader about one second,
 release mouse, release Ctrl, await restore/evidence. No Y Glue confirmation.
 Report `HUMAN_SMOOTHNESS_OBSERVATION` separately; severe stutter becomes a
 priority research input for a later R1-C3B, not an unmeasured PASS here.
 
-NOT TESTED: real Debug Ctrl+Move, Release Ctrl+Move, real no-Ctrl/late-Ctrl,
+At that handoff, real Debug/Release Ctrl+Move and their timing/smoothness were
+NOT TESTED; those two positive runs are now accepted above. The following
+remain outside accepted human coverage: real no-Ctrl/late-Ctrl,
 mid-drag Ctrl release, AltGr/remappers/physical input attribution, UIAccess,
 elevation/UIPI failure behavior, alternate desktops, RDP, mixed-DPI/cross-monitor
 movement, Snap/other-manager coexistence, display latency and subjective
