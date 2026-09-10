@@ -1,5 +1,10 @@
 # R1-C3B Phase 2 validation contract
 
+Historical blocked proof below is preserved. The later Human Root
+[frame-authority decision](../architecture/R1C3B_FRAME_AUTHORITY_DECISION.md)
+and [implementation report](../reports/R1C3B_FRAME_AUTHORITY_EXECUTION_REPORT.md)
+define the new contract and current gates; they do not rewrite this old result.
+
 Review started 2026-09-09, stopped 2026-09-10 (Asia/Shanghai).
 Starting implementation 14e0c6818894c6912d3b3cb4d5a922f427b4e6ce.
 

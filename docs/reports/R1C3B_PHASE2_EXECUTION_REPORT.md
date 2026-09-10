@@ -1,5 +1,9 @@
 # R1-C3B Phase 2 — blocked proof review
 
+Historical stop record, preserved in checkpoint 2cc4641. Human Root subsequently
+refined the authority contract; current results are in the
+[frame-authority execution report](R1C3B_FRAME_AUTHORITY_EXECUTION_REPORT.md).
+
 Review 2026-09-09/10 (Asia/Shanghai). Outcome: NOT READY; no optimized UAT
 handoff. Implementation experiment withdrawn after a countermodel exposed an
 unproved safety invariant. This is not a Git transport failure or a rejection

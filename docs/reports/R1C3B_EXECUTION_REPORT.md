@@ -269,3 +269,13 @@ there is no optimized implementation SHA or human UAT request. See the
 
 Current continuation status: PHASE2_FAST_PATH=BLOCKED,
 PHASE2_IMPLEMENTATION_READY=NO, PHASE2_DEBUG_UAT=NOT_READY.
+
+## Human Root amendment implementation — 2026-09-10
+
+The stop above remains historical evidence. Human Root explicitly refined
+post-issuance movement authority to the selected top-level native frame, with
+the original Shell object retained as an invalidating anchor. Current
+[implementation/test results](R1C3B_FRAME_AUTHORITY_EXECUTION_REPORT.md) pass the
+amended automatic gates on d8bdc0ba3ec7ef625081eacf49113c8293e51268.
+Only [one optimized Debug UAT](R1C3B_PHASE2_DEBUG_UAT_HANDOFF.md) is handed off;
+real smoothness remains PENDING_UAT, not an old-rule equivalence claim.

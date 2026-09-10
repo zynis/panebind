@@ -80,3 +80,11 @@ ledger, time cache, callback expansion, or native flag/scheduling change.
 REMAINING RISK: ordinary non-atomic OS observations and asynchronous delivery;
 real Windows 11 Explorer tab implementation and smoothness remain NOT TESTED.
 The first same-frame acceptance is explicitly deterministic/model evidence.
+
+IMPLEMENTED / AUTOMATED TESTED: d8bdc0ba3ec7ef625081eacf49113c8293e51268.
+Both-target browser receipt checks plus an owner-only non-consuming pending
+destroy scan guard native registration. Observed destroy/identity-stream
+failure retires frame tokens before cleanup, preventing numeric HWND reuse
+from reviving authority. No callback body expansion; no ordinary C2A/default
+mode contract change. Complete results and remaining empirical risks are in
+[the amendment report](R1C3B_FRAME_AUTHORITY_EXECUTION_REPORT.md).
