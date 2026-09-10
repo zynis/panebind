@@ -668,3 +668,27 @@ countermodel and rejected fallback are in
 [R1C3B_PHASE2_VALIDATION_CONTRACT.md](R1C3B_PHASE2_VALIDATION_CONTRACT.md).
 Required attribution: research links retained; no code attribution obligation
 from these reference-only inspections. Existing license boundaries unchanged.
+
+## Human Root frame-authority amendment — 2026-09-10
+
+Same verified local pins/licenses: AltSnap
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d (GPL-3.0-or-later, reference only),
+hooks.c placement 860-890; FancyZones
+19c4d805321db86f3634e6968e14dbf25cbba14a (MIT, reference only),
+FancyZones.cpp 961-1002 owner HWND dispatch/destroy-abort. Prior PR 609,
+48569 and 18106 history remains the scoped historical evidence, not a source
+of copied algorithms. Classifications and attribution boundaries above remain.
+
+Additional official pages actually read: Microsoft Learn IWebBrowser2 HWND,
+IShellWindows::Register, DShellWindowsEvents::WindowRegistered/WindowRevoked.
+Live pages, no immutable version claimed, Microsoft Learn terms. Exact links
+are in [the decision](../architecture/R1C3B_FRAME_AUTHORITY_DECISION.md).
+Lesson: a frame, a Shell collection cookie and a PaneBind capability are
+different authority levels; membership notifications are not a global validity
+epoch. Tabbed-IE wording is a frame design input, not empirical Windows 11
+Explorer tab implementation evidence. No code samples copied or adapted;
+research links retained, no new code attribution obligation.
+
+Human Root, not upstream source, authorizes removing post-issuance entry
+cardinality from frame authority. All implementation is independently written
+against PaneBind's private ledger/permit and the explicit amended contract.

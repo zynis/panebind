@@ -31,17 +31,18 @@ param(
     [int] $ValidationObserverExitCode = 0,
 
     # Fixed profiles only. The default preserves the sealed R1-C2B contract.
-    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B')]
+    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B', 'R1C3B2')]
     [string] $EvidenceProfile = 'R1C2B'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$stageProfile = $EvidenceProfile -eq 'R1C3B'
+$phase2Profile = $EvidenceProfile -eq 'R1C3B2'
+$stageProfile = $EvidenceProfile -in @('R1C3B','R1C3B2')
 $ctrlProfile = $EvidenceProfile -ne 'R1C2B'
 $roundName = if ($stageProfile) { 'R1-C3B' } elseif ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
 $evidenceSubdirectory = if ($stageProfile) { 'uat/r1c3b' } elseif ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
-$expectedSchema = if ($stageProfile) {
+$expectedSchema = if ($phase2Profile) { 'panebind.r1c3b2.explorer_glue_profile' } elseif ($stageProfile) {
     'panebind.r1c3b.explorer_glue_profile'
 } elseif ($ctrlProfile) {
     'panebind.r1c3a.explorer_ctrl_glue'
@@ -782,7 +783,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
 
     $observerPath = Resolve-R1C2BExecutable -FileName 'panebind-observer.exe'
     $harnessFile = if ($stageProfile) {
-        'panebind-explorer-profile-glue-harness.exe'
+        if ($phase2Profile) { 'panebind-explorer-optimized-glue-harness.exe' } else { 'panebind-explorer-profile-glue-harness.exe' }
     } elseif ($ctrlProfile) {
         'panebind-explorer-ctrl-glue-harness.exe'
     } else { 'panebind-explorer-glue-harness.exe' }
@@ -981,6 +982,7 @@ if ($ctrlProfile) {
 if ($stageProfile) {
     $knownHarnessRecordKinds += @('profile_span', 'profile_quantum', 'profile_notification', 'profile_status')
 }
+if ($phase2Profile) { $knownHarnessRecordKinds += @('validation','validation_status') }
 $unknownKinds = @($harnessRecords | Where-Object {
     $knownHarnessRecordKinds -notcontains $_.record_kind
 })
@@ -2200,7 +2202,12 @@ if ($ctrlProfile) {
 }
 if ($stageProfile) {
     try {
-        Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts
+        Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts -Phase2:$phase2Profile
+        if ($phase2Profile) {
+            . (Join-Path $PSScriptRoot 'r1c3b-phase2-validation.ps1')
+            Assert-ConsentBoundProfileEvidence -Records $harnessRecords
+            Write-Phase2BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot
+        }
     } catch {
         Write-Output 'TIMING_PROFILE_GATE: FAIL'
         throw

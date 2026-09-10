@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_shell_inventory.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
 
 #include "platform/windows/explorer/explorer_shell_events.h"
 
@@ -1092,6 +1093,7 @@ const ShellWindowInventoryEntry* ShellWindowInventory::find(
 }
 
 ShellWindowInventory capture_shell_window_inventory() {
+    ConsentInventoryRequestScope inventory_request;
     ShellWindowInventory inventory;
 
     const HRESULT apartment = require_sta();
@@ -1121,6 +1123,7 @@ ShellWindowInventory capture_shell_window_inventory() {
 
 ShellWindowInventory capture_shell_window_inventory(
     IShellWindows* shell_windows) {
+    ConsentInventoryRequestScope inventory_request;
     ShellWindowInventory inventory;
 
     const HRESULT apartment = require_sta();
@@ -1357,6 +1360,17 @@ ExplorerConsentTargetObservation::facts() noexcept {
     result.canonical_identity_matches =
         identity_result == S_OK && current_identity &&
         current_identity.get() == canonical_identity_;
+    return result;
+}
+
+BrowserReadinessFacts ExplorerConsentTargetObservation::receipt_facts() const noexcept {
+    auto result = browser_event_sink_ != nullptr ? browser_event_sink_->facts()
+        : (browser_lifecycle_state_ ? browser_lifecycle_state_->facts() : BrowserReadinessFacts{});
+    if (browser_event_sink_) {
+        result.subscribed = browser_events_advised_;
+        result.unadvised = false;
+    }
+    if (!on_thread(owner_thread_id_)) ++result.wrong_thread_count;
     return result;
 }
 

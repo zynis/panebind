@@ -302,11 +302,20 @@ struct ExplorerGluePrepareResult final {
 class ExplorerGlueSessionBridge final {
 private:
     using BeforeNativeApply = bool (*)(void*) noexcept;
+    static bool activate_consent_bound(const ExplorerGlueAuthoritySeal& seal,
+        ExplorerTestSession& leader, ExplorerTestSession& follower) noexcept;
+    static void set_active_validation(const ExplorerGlueAuthoritySeal& seal,
+        ExplorerTestSession& leader, ExplorerTestSession& follower, bool active) noexcept;
+    static bool pair_receipts_healthy(const ExplorerGlueAuthoritySeal& seal,
+        ExplorerTestSession& leader, ExplorerTestSession& follower) noexcept;
+    static void invalidate_frame(const ExplorerGlueAuthoritySeal& seal,
+        ExplorerGlueWindowRole role, ExplorerTestSession& session) noexcept;
 
     [[nodiscard]] static ExplorerGluePairInspection inspect_pair(
         ExplorerTestSession& leader,
         ExplorerTestSession& follower,
-        bool retain_peer_exception);
+        bool retain_peer_exception,
+        bool frame_authority = false);
     [[nodiscard]] static ExplorerGlueBindResult bind_pair(
         const ExplorerGlueAuthoritySeal& seal,
         ExplorerTestSession& leader,
@@ -333,7 +342,8 @@ private:
         BeforeNativeApply before_native_apply,
         void* before_native_apply_context,
         ExplorerGlueNativeTiming* timing = nullptr,
-        ExplorerGlueProfiler* profiler = nullptr);
+        ExplorerGlueProfiler* profiler = nullptr,
+        ExplorerTestSession* active_leader = nullptr);
     static void release_pair(const ExplorerGlueAuthoritySeal& seal,
                              ExplorerTestSession& leader,
                              ExplorerTestSession& follower) noexcept;

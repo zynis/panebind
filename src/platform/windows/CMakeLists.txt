@@ -303,6 +303,18 @@ target_compile_definitions(panebind-explorer-profile-glue-harness PRIVATE
     NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
 panebind_enable_warnings(panebind-explorer-profile-glue-harness)
 
+add_executable(panebind-explorer-optimized-glue-harness
+    ../../app/explorer_glue_harness_main.cpp observer.rc observer.manifest)
+target_link_libraries(panebind-explorer-optimized-glue-harness PRIVATE panebind_windows_explorer ole32)
+if(MSVC)
+    target_link_options(panebind-explorer-optimized-glue-harness PRIVATE /MANIFEST:NO)
+endif()
+target_compile_definitions(panebind-explorer-optimized-glue-harness PRIVATE
+    PANEBIND_EXPLORER_CTRL_GLUE_HARNESS PANEBIND_EXPLORER_PROFILE_GLUE_HARNESS
+    PANEBIND_EXPLORER_CONSENT_BOUND_GLUE_HARNESS
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind-explorer-optimized-glue-harness)
+
 if(BUILD_TESTING)
     add_executable(panebind-windows-explorer-glue-activation-tests
         explorer/explorer_glue_activation_tests.cpp)

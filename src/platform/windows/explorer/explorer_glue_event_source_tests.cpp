@@ -453,6 +453,11 @@ void test_target_destroy_and_unrelated_destroy() {
             event(EVENT_OBJECT_DESTROY, windows.leader(), 77U));
         expect(windows.destroy_leader(),
                "test leader is destroyed before owner drain");
+        const auto pending_before = TestAccess::facts(*source);
+        expect(TestAccess::pending_destroyed_roles(*source) == 1U &&
+            TestAccess::facts(*source).queue_depth == pending_before.queue_depth &&
+            TestAccess::facts(*source).latest_receipt_sequence == pending_before.latest_receipt_sequence,
+            "Phase2 owner pre-native guard sees queued Leader destroy without consuming/reordering it");
         const auto target_result = TestAccess::drain(*source);
         expect(target_result.events.size() == 1U &&
                    target_result.events.front().kind ==
@@ -481,12 +486,17 @@ void test_target_destroy_and_unrelated_destroy() {
             event(EVENT_OBJECT_DESTROY, windows.unrelated(), 78U));
         expect(windows.destroy_unrelated(),
                "test unrelated window is destroyed before owner drain");
+        expect(TestAccess::pending_destroyed_roles(*unrelated_source) == 0U,
+            "unrelated frame destroy never invalidates an authorized frame");
         const auto unrelated_result = TestAccess::drain(*unrelated_source);
         expect(unrelated_result.events.empty() &&
                    unrelated_result.facts.ignored_other_window_count == 1U &&
                    unrelated_result.facts.poison ==
                        explorer::ExplorerGlueEventSourcePoison::None,
                "unrelated destroy is ignored without changing source state");
+        TestAccess::enqueue(*unrelated_source, event(EVENT_OBJECT_DESTROY, windows.follower(), 79U));
+        expect(TestAccess::pending_destroyed_roles(*unrelated_source) == 2U,
+            "queued Follower destroy is independently visible before native registration");
     }
 }
 

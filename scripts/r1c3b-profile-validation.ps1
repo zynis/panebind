@@ -9,7 +9,7 @@ function Write-ProfileStatistic {
 }
 
 function Assert-StageProfileEvidence {
-    param([object[]] $Records, [object] $Startup, [object] $Summary, [object] $Facts)
+    param([object[]] $Records, [object] $Startup, [object] $Summary, [object] $Facts, [switch] $Phase2)
     $frequency = Get-EvidenceInteger $Startup 'qpc_frequency_hz'
     $status = Assert-UniqueRecord $Records 'profile_status'
     foreach ($r in @($Startup,$status)) {
@@ -107,6 +107,7 @@ function Assert-StageProfileEvidence {
         'pending_registration','native_placement','postverify','postverify_validation',
         'exact_comparison','receipt_finalize','operation_result_policy','end_leader_capture',
         'end_follower_capture','end_reconciliation')
+    if ($Phase2) { $stages += @('consent_bound_validation','global_inventory_fallback','validation_invalidation','pair_witness') }
     $spanMap = @{}; $children = @{}; $exclusive = @{}
     $nextId = [uint64]1
     foreach ($s in $spans) {
@@ -191,17 +192,18 @@ function Assert-StageProfileEvidence {
     $captureParts = @('token_ledger','shell_observation','shell_inventory','shell_location',
         'native_identity','process_image','window_structure','window_state','virtual_desktop',
         'process_security','positioning_bounds','visible_frame','monitor_dpi','eligibility_finalize')
-    foreach ($capture in @($spans | Where-Object stage -eq 'full_validation')) {
+    foreach ($capture in @($spans | Where-Object { $_.stage -eq 'full_validation' -or ($Phase2 -and $_.stage -eq 'consent_bound_validation') })) {
         $parts = @($children[[uint64]$capture.span_id])
-        if (($parts.stage -join '|') -ne ($captureParts -join '|')) { throw 'Full-validation stage order or coverage changed.' }
-        foreach ($kind in $captureParts) {
+        $requiredParts = if ($capture.stage -eq 'consent_bound_validation') { @($captureParts | Where-Object { $_ -ne 'shell_inventory' }) } else { $captureParts }
+        if (($parts.stage -join '|') -ne ($requiredParts -join '|')) { throw 'Full-validation stage order or coverage changed.' }
+        foreach ($kind in $requiredParts) {
             if (@($parts | Where-Object stage -eq $kind).Count -ne 1) { throw "Full capture lacks measured $kind." }
         }
     }
     foreach ($capture in @($spans | Where-Object { $_.stage -in @(
         'leader_capture','follower_capture','prepare_validation','immediate_validation',
         'postverify_validation','end_leader_capture','end_follower_capture') })) {
-        $full = @($children[[uint64]$capture.span_id] | Where-Object stage -eq 'full_validation')
+        $full = @($children[[uint64]$capture.span_id] | Where-Object { $_.stage -eq 'full_validation' -or ($Phase2 -and $_.stage -eq 'consent_bound_validation') })
         if ($full.Count -ne 1 -or $full[0].role -ne $capture.role) { throw 'Capture lacks its exact role-bound full validation.' }
     }
     if (@($spans | Where-Object stage -eq 'activation_policy').Count -ne 1) { throw 'Missing/duplicate START activation profiling.' }

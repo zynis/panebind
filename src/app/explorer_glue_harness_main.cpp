@@ -2,6 +2,7 @@
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
 #include "platform/windows/explorer/explorer_session.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -51,6 +52,11 @@ constexpr bool kCtrlMoveProfile = false;
 #endif
 constexpr std::size_t kTimingEvidenceCapacity = 4096U;
 constexpr std::size_t kOperationEvidenceCapacity = 512U;
+#if defined(PANEBIND_EXPLORER_CONSENT_BOUND_GLUE_HARNESS)
+constexpr bool kConsentBoundProfile = true;
+#else
+constexpr bool kConsentBoundProfile = false;
+#endif
 #if defined(PANEBIND_EXPLORER_PROFILE_GLUE_HARNESS)
 constexpr bool kStageProfile = true;
 #else
@@ -257,7 +263,7 @@ public:
         }
         std::ostringstream output;
         output << "{\"schema_version\":1,\"schema_name\":"
-               << json_quote(kStageProfile ? "panebind.r1c3b.explorer_glue_profile" :
+               << json_quote(kConsentBoundProfile ? "panebind.r1c3b2.explorer_glue_profile" : kStageProfile ? "panebind.r1c3b.explorer_glue_profile" :
                              kCtrlMoveProfile ? "panebind.r1c3a.explorer_ctrl_glue"
                                              : "panebind.r1c2b.explorer_glue")
                << ",\"harness_sequence\":" << next_sequence_++
@@ -352,7 +358,7 @@ private:
 void print_usage() {
     std::cout
         << "Usage:\n"
-        << (kStageProfile ? "  panebind-explorer-profile-glue-harness.exe " :
+        << (kConsentBoundProfile ? "  panebind-explorer-optimized-glue-harness.exe " : kStageProfile ? "  panebind-explorer-profile-glue-harness.exe " :
             kCtrlMoveProfile ? "  panebind-explorer-ctrl-glue-harness.exe "
                             : "  panebind-explorer-glue-harness.exe ")
         << "--interactive-consent-test "
@@ -1829,7 +1835,7 @@ struct FeedbackCorrelationSummary final {
          ++attempt) {
         const auto preview =
             explorer::ExplorerGlueConsent::preview_layout_readiness(
-                *leader.session, *follower.session);
+                *leader.session, *follower.session, kConsentBoundProfile);
         ++outcome.layout_preview_attempt_count;
         outcome.layout_preview_side_effect_free =
             outcome.layout_preview_side_effect_free &&
@@ -1899,7 +1905,7 @@ struct FeedbackCorrelationSummary final {
     // Preview is a readiness aid only. Formal begin takes ownership and repeats
     // the entire live pair inspection and layout plan to close the TOCTOU gap.
     auto glue_begin = explorer::ExplorerGlueConsent::begin(
-        std::move(leader.session), std::move(follower.session));
+        std::move(leader.session), std::move(follower.session), kConsentBoundProfile);
     outcome.facts = glue_begin.facts;
     outcome.facts_available = true;
     outcome.glue_reason = glue_begin.reason;
@@ -1948,7 +1954,7 @@ struct FeedbackCorrelationSummary final {
     auto consent = std::move(glue_begin.consent);
     explorer::ExplorerGlueAuthorizeResult authorized;
     if constexpr (kCtrlMoveProfile) {
-        authorized = consent->prepare_ctrl_move_fixture(kStageProfile);
+        authorized = consent->prepare_ctrl_move_fixture(kStageProfile, kConsentBoundProfile);
     } else {
         const auto glue_prompt = consent->record_glue_prompt();
         if (!record_step(evidence, "glue_consent_prompt", glue_prompt)) {
@@ -2535,11 +2541,22 @@ int wmain(const int argc, wchar_t* argv[]) {
             fields << ",\"profiling_enabled\":true,\"external_observer_enabled\":"
                    << json_bool(options->external_observer_enabled);
         }
+        if constexpr (kConsentBoundProfile) {
+#if defined(NDEBUG)
+            fields << ",\"build_configuration\":\"Release\"";
+#else
+            fields << ",\"build_configuration\":\"Debug\"";
+#endif
+            fields << ",\"consent_bound_contract\":\"r1c3b_frame_authority_v1\"";
+        }
         if (!evidence.record("startup", fields.str())) {
             return EXIT_FAILURE;
         }
     }
 
+    std::unique_ptr<explorer::ConsentValidationAudit> validation_audit;
+    if constexpr (kConsentBoundProfile) validation_audit = std::make_unique<explorer::ConsentValidationAudit>();
+    explorer::ConsentValidationAuditScope validation_audit_scope(validation_audit.get());
     RunOutcome outcome;
     try {
         outcome = run_interactive(*options, evidence);
@@ -2551,6 +2568,33 @@ int wmain(const int argc, wchar_t* argv[]) {
         outcome.reason = "unknown_exception";
     }
 
+    if constexpr (kConsentBoundProfile) {
+        for (const auto& r : validation_audit->records()) {
+            std::ostringstream f;
+            f << ",\"span_id\":" << r.span_id << ",\"quantum_id\":" << r.quantum_id
+              << ",\"operation_generation\":" << r.operation_generation << ",\"source_receipt\":" << r.source_receipt
+              << ",\"target_native_key\":" << r.native_key << ",\"target_role\":" << json_quote(!r.role_bound ? "unbound" : r.follower ? "follower" : "leader")
+              << ",\"capability_generation\":" << r.capability_generation << ",\"consent_generation\":" << r.consent_generation
+              << ",\"validation_phase\":" << json_quote(explorer::consent_phase_name(r.phase))
+              << ",\"validation_mode\":" << json_quote(r.fast ? "CONSENT_BOUND_FRAME_FAST" : "FULL_GLOBAL_INVENTORY")
+              << ",\"legal_reason\":" << json_quote(r.fast ? "accepted_ctrl_start_private_frame_pair_canonical_anchor" : "full_boundary_validation")
+              << ",\"global_inventory_calls\":" << r.inventory_calls
+              << ",\"succeeded\":" << json_bool(r.succeeded) << ",\"invalidation_reason\":" << json_quote(r.reason);
+            if (!evidence.record("validation", f.str())) return EXIT_FAILURE;
+        }
+        std::ostringstream f;
+        for (std::size_t i = 0; i < validation_audit->inventory_calls.size(); ++i)
+            f << ",\"global_inventory_calls_" << explorer::consent_phase_name(static_cast<explorer::ConsentValidationPhase>(i))
+              << "\":" << validation_audit->inventory_calls[i];
+        f << ",\"validation_record_count\":" << validation_audit->records().size()
+          << ",\"validation_record_capacity\":" << explorer::ConsentValidationAudit::capacity
+          << ",\"validation_overflow\":" << json_bool(validation_audit->overflow)
+          << ",\"active_native_after_invalidation\":" << validation_audit->active_native_after_invalidation;
+        if (!evidence.record("validation_status", f.str())) return EXIT_FAILURE;
+        if (validation_audit->overflow || validation_audit->active_native_after_invalidation ||
+            validation_audit->inventory_calls[static_cast<std::size_t>(explorer::ConsentValidationPhase::Active)] != 0)
+            outcome.runtime_pass = false;
+    }
     if (!evidence.healthy() || !record_summary(evidence, outcome) ||
         !evidence.record("shutdown", ",\"disposition\":\"complete\"")) {
         static_cast<void>(write_console_text(

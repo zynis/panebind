@@ -139,6 +139,9 @@ private:
     [[nodiscard]] bool stop_live() noexcept;
     [[nodiscard]] ExplorerGlueEventDrainResult drain_owner_queue();
     [[nodiscard]] ExplorerGlueEventSourceFacts facts() const noexcept;
+    // Owner-only non-consuming scan of existing bounded receipts. No callback
+    // work or queue scheduling changes; Phase 2 pre-native invalidation guard.
+    [[nodiscard]] std::uint8_t pending_destroyed_roles() const noexcept;
     [[nodiscard]] bool owns_notification(UINT message, WPARAM cookie) const
         noexcept;
     [[nodiscard]] static constexpr UINT notification_message() noexcept {
@@ -267,6 +270,9 @@ public:
         ExplorerGlueEventSource& source);
     [[nodiscard]] static ExplorerGlueEventSourceFacts facts(
         const ExplorerGlueEventSource& source) noexcept;
+    [[nodiscard]] static std::uint8_t pending_destroyed_roles(const ExplorerGlueEventSource& source) noexcept {
+        return source.pending_destroyed_roles();
+    }
     static void stop(ExplorerGlueEventSource& source,
                      bool inject_unhook_failure = false) noexcept;
     static void simulate_reentrant_drain(ExplorerGlueEventSource& source);

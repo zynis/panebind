@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_glue_activation.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
 #include "core/behavior/glue_move_coordinator.h"
 
 #include <array>
@@ -103,13 +104,24 @@ void test_rejections_and_generations() {
 // Deterministic interaction -> UNMODIFIED Core -> owned native operation sink.
 // The negative path starts with a ready owned pair; no setup/restore writes are
 // needed. It is not an Explorer eligibility/UAT simulation.
-void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize, bool profiling = false) {
+void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize, bool profiling = false, bool frame_contract = false) {
     auto profile = profiling ? std::make_unique<e::ExplorerGlueProfiler>() : nullptr;
     const HWND follower = CreateWindowExW(0, L"STATIC", L"PaneBind owned activation test",
         WS_POPUP, 100, 0, 100, 100, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
     check(follower != nullptr, "owned fixture window created, never shown");
     if (!follower) return;
     RECT before{}; GetWindowRect(follower, &before);
+    // Independent, never-shown owned frame G stands in for an unrelated frame.
+    // It is never a placement target, even though the authority fixture uses
+    // one process and can model equal nonce locations.
+    const HWND unrelated = frame_contract ? CreateWindowExW(0, L"STATIC", L"PaneBind unrelated owned frame",
+        WS_POPUP, 400, 0, 100, 100, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr) : nullptr;
+    RECT unrelated_before{};
+    if (frame_contract) { check(unrelated != nullptr, "owned G created"); GetWindowRect(unrelated, &unrelated_before); }
+    e::ConsentFrameAnchorProof anchor;
+    anchor.token_generation_matches = anchor.canonical_identity_matches = anchor.location_exact = true;
+    anchor.current_window = anchor.authorized_window = reinterpret_cast<std::uintptr_t>(follower);
+    anchor.browser.subscribed = anchor.browser.accepting = true;
     const std::array windows{t::WindowGeometry{m::WindowId{"leader"}, {0, 0, 100, 100}},
         t::WindowGeometry{m::WindowId{"follower"}, {100, 0, 200, 100}}};
     b::GlueMoveCoordinator core;
@@ -143,6 +155,11 @@ void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize, bool 
         }
         if (decision.command) {
             ++requested;
+            if (frame_contract) {
+                check(e::consent_frame_anchor_invalidation(anchor) == "none", "production frame anchor predicate accepts retained F");
+                auto other_frame = anchor; other_frame.current_window = reinterpret_cast<std::uintptr_t>(unrelated);
+                check(e::consent_frame_anchor_invalidation(other_frame) == "hwnd_changed", "equal process/location cannot transfer permit to G");
+            }
             check(controller.matches_activation(activation.activation_generation, pair()),
                 "activation checked immediately before owned native call");
             ++native_calls;
@@ -173,6 +190,17 @@ void test_owned_fixture(bool ctrl_at_start, bool press_later, bool resize, bool 
     } else {
         check(requested == 12 && native_calls == 12 && core.stats().suppressed_feedback_count == 12,
             "Ctrl START latched: progressive moves and exact suppression");
+        check(after.left == 112 && after.top == 12 && after.right-after.left == 100 && after.bottom-after.top == 100,
+            "same Core requested geometry and same native final size/position ON/OFF");
+    }
+    if (frame_contract) {
+        check(SetWindowPos(follower, nullptr, before.left, before.top, 0, 0,
+            SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE) != FALSE, "same synchronous native flags for restore");
+        RECT restored{}, unrelated_after{};
+        GetWindowRect(follower, &restored); GetWindowRect(unrelated, &unrelated_after);
+        check(EqualRect(&before, &restored) && EqualRect(&unrelated_before, &unrelated_after),
+            "exact restore and zero native writes to unrelated G");
+        if (unrelated) DestroyWindow(unrelated); // fixture-owned only
     }
     DestroyWindow(follower); // Only this fixture's own never-shown HWND.
     check(!profile || profile->valid(), "profiling ON leaves all existing activation/native/feedback outcomes unchanged");
@@ -190,6 +218,12 @@ int main() {
     test_owned_fixture(false, true, false, true);
     test_owned_fixture(true, false, false, true);
     test_owned_fixture(true, false, true, true);
+    for (bool profiling : {false, true}) {
+        test_owned_fixture(true, false, false, profiling, true);
+        test_owned_fixture(false, false, false, profiling, true);
+        test_owned_fixture(false, true, false, profiling, true);
+        test_owned_fixture(true, false, true, profiling, true);
+    }
     std::cout << "Ctrl activation tests " << (failures ? "FAIL" : "PASS") << '\n';
     return failures ? EXIT_FAILURE : EXIT_SUCCESS;
 }

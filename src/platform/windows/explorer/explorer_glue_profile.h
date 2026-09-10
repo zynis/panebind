@@ -21,7 +21,8 @@ enum class GlueProfileStage : std::uint8_t {
     Operation, OperationPrepare, PrepareValidation, PositioningPlan,
     ImmediateValidation, PendingRegistration, NativePlacement, Postverify,
     PostverifyValidation, ExactComparison, ReceiptFinalize, OperationResultPolicy,
-    EndLeaderCapture, EndFollowerCapture, EndReconciliation, Count
+    EndLeaderCapture, EndFollowerCapture, EndReconciliation,
+    ConsentBoundValidation, GlobalInventoryFallback, ValidationInvalidation, PairWitness, Count
 };
 
 [[nodiscard]] constexpr std::string_view profile_stage_name(GlueProfileStage stage) noexcept {
@@ -34,7 +35,8 @@ enum class GlueProfileStage : std::uint8_t {
         "operation", "operation_prepare", "prepare_validation", "positioning_plan",
         "immediate_validation", "pending_registration", "native_placement", "postverify",
         "postverify_validation", "exact_comparison", "receipt_finalize", "operation_result_policy",
-        "end_leader_capture", "end_follower_capture", "end_reconciliation"};
+        "end_leader_capture", "end_follower_capture", "end_reconciliation",
+        "consent_bound_validation", "global_inventory_fallback", "validation_invalidation", "pair_witness"};
     const auto index = static_cast<std::size_t>(stage);
     return index < names.size() ? names[index] : "invalid";
 }

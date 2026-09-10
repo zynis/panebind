@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_glue_session.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
 
 #include "core/geometry/checked_arithmetic.h"
 #include "core/model/window_id.h"
@@ -563,6 +564,7 @@ struct ExplorerGlueSession::Impl final {
     bool cleanup_complete{};
     bool leader_native_attempted{};
     bool follower_native_attempted{};
+    bool consent_bound_enabled{};
 };
 
 ExplorerGlueConsent::ExplorerGlueConsent(std::unique_ptr<Impl> impl) noexcept
@@ -580,14 +582,28 @@ ExplorerGlueConsent::~ExplorerGlueConsent() noexcept {
 ExplorerGlueLayoutReadinessResult
 ExplorerGlueConsent::preview_layout_readiness(ExplorerTestSession& leader,
                                               ExplorerTestSession& follower) {
+    return preview_layout_readiness(leader, follower, false);
+}
+
+ExplorerGlueLayoutReadinessResult
+ExplorerGlueConsent::preview_layout_readiness(ExplorerTestSession& leader,
+                                              ExplorerTestSession& follower,
+                                              const bool frame_authority) {
     return detail::evaluate_layout_readiness_preview(
         detail::ExplorerGlueSessionBridge::inspect_pair(
-            leader, follower, false));
+            leader, follower, false, frame_authority));
 }
 
 ExplorerGlueBeginResult ExplorerGlueConsent::begin(
     std::unique_ptr<ExplorerTestSession> leader,
     std::unique_ptr<ExplorerTestSession> follower) {
+    return begin(std::move(leader), std::move(follower), false);
+}
+
+ExplorerGlueBeginResult ExplorerGlueConsent::begin(
+    std::unique_ptr<ExplorerTestSession> leader,
+    std::unique_ptr<ExplorerTestSession> follower,
+    const bool frame_authority) {
     ExplorerGlueBeginResult result;
     if (leader == nullptr || follower == nullptr) {
         result.diagnostic = glue_diagnostic(
@@ -596,7 +612,7 @@ ExplorerGlueBeginResult ExplorerGlueConsent::begin(
     }
 
     auto inspection = detail::ExplorerGlueSessionBridge::inspect_pair(
-        *leader, *follower, false);
+        *leader, *follower, false, frame_authority);
     result.facts.leader_target_consent_prefix_valid =
         inspection.leader_target_consent_prefix_valid;
     result.facts.follower_target_consent_prefix_valid =
@@ -740,6 +756,10 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::confirm_user_glue() {
 }
 
 ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const bool enable_profiling) {
+    return prepare_ctrl_move_fixture(enable_profiling, false);
+}
+
+ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const bool enable_profiling, const bool enable_consent_bound) {
     ExplorerGlueAuthorizeResult result;
     if (impl_ == nullptr || impl_->terminal ||
         GetCurrentThreadId() != impl_->owner_thread_id ||
@@ -784,6 +804,7 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const
     facts.ctrl_move_activation_required = true;
     facts.profiling_enabled = enable_profiling;
     if (enable_profiling) session_impl->profiler = std::make_unique<ExplorerGlueProfiler>();
+    session_impl->consent_bound_enabled = enable_consent_bound;
     facts.fixture_pair_authorized = true;
     facts.qpc_frequency_hz = frequency;
     facts.leader_original = *bound.leader_snapshot;
@@ -839,6 +860,8 @@ bool ExplorerGlueSession::register_pending_before_native(
         return false;
     }
     auto& owner = *registration->owner;
+    if (owner.consent_bound_enabled && !detail::ExplorerGlueSessionBridge::pair_receipts_healthy(
+        owner.seal, *owner.leader, *owner.follower)) return false;
     if (owner.facts.ctrl_move_activation_required &&
         (!owner.activation.has_value() ||
          !owner.activation->matches_activation(owner.facts.activation_generation,
@@ -851,7 +874,17 @@ bool ExplorerGlueSession::register_pending_before_native(
     }
     if (owner.event_source->facts().poison !=
         ExplorerGlueEventSourcePoison::None) {
+        if (owner.consent_bound_enabled) {
+            detail::ExplorerGlueSessionBridge::invalidate_frame(owner.seal, ExplorerGlueWindowRole::Leader, *owner.leader);
+            detail::ExplorerGlueSessionBridge::invalidate_frame(owner.seal, ExplorerGlueWindowRole::Follower, *owner.follower);
+        }
         return false;
+    }
+    if (owner.consent_bound_enabled) {
+        const auto destroyed = owner.event_source->pending_destroyed_roles();
+        if (destroyed & 1U) detail::ExplorerGlueSessionBridge::invalidate_frame(owner.seal, ExplorerGlueWindowRole::Leader, *owner.leader);
+        if (destroyed & 2U) detail::ExplorerGlueSessionBridge::invalidate_frame(owner.seal, ExplorerGlueWindowRole::Follower, *owner.follower);
+        if (destroyed != 0U) return false;
     }
     try {
         registration->pending.feedback_after_sequence =
@@ -969,7 +1002,9 @@ ExplorerOperationResult ExplorerGlueSession::execute_translation(
         before_native_apply,
         before_native_apply_context,
         impl_->facts.ctrl_move_activation_required ? &timing : nullptr,
-        profile);
+        profile,
+        impl_->consent_bound_enabled && phase == ExplorerGlueOperationPhase::ActiveFollower
+            ? impl_->leader.get() : nullptr);
     GlueProfileScope profile_finalize(profile, GlueProfileStage::ReceiptFinalize);
     if (impl_->facts.ctrl_move_activation_required && operation.native_apply_attempted) {
         impl_->facts.timing_valid = impl_->facts.timing_valid &&
@@ -1451,6 +1486,12 @@ ExplorerGlueStepResult ExplorerGlueSession::process_event(
     GlueProfileScope core_profile(profile, GlueProfileStage::CoreDecision);
     auto decision = impl_->coordinator.on_event(receipt);
     core_profile.end();
+    if (impl_->consent_bound_enabled && decision.kind == core::behavior::GlueDecisionKind::Activated &&
+        !detail::ExplorerGlueSessionBridge::activate_consent_bound(impl_->seal, *impl_->leader, *impl_->follower)) {
+        static_cast<void>(impl_->coordinator.report_target_invalidated(impl_->coordinator.session_generation()));
+        result.reason = ExplorerGlueReason::BehaviorAborted;
+        return result;
+    }
     if (impl_->facts.ctrl_move_activation_required) {
         impl_->current_behavior_decision_qpc = glue_qpc_now();
         impl_->facts.timing_valid = impl_->facts.timing_valid &&
@@ -1625,6 +1666,10 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
             drained.facts.ignored_object_child_count +
             drained.facts.ignored_other_window_count;
         if (drained.facts.poison != ExplorerGlueEventSourcePoison::None) {
+            if (impl_->consent_bound_enabled) {
+                detail::ExplorerGlueSessionBridge::invalidate_frame(impl_->seal, ExplorerGlueWindowRole::Leader, *impl_->leader);
+                detail::ExplorerGlueSessionBridge::invalidate_frame(impl_->seal, ExplorerGlueWindowRole::Follower, *impl_->follower);
+            }
             if (drained.facts.poison ==
                 ExplorerGlueEventSourcePoison::QueueOverflow) {
                 static_cast<void>(impl_->coordinator.report_queue_overflow(
@@ -1670,6 +1715,16 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
         const auto active_count = end == drained.events.end()
             ? drained.events.size()
             : static_cast<std::size_t>(end - drained.events.begin()) + 1U;
+        const bool has_start = std::any_of(drained.events.begin(), drained.events.end(), [](const auto& e) {
+            return e.kind == ExplorerGlueEventKind::MoveResizeStarted;
+        });
+        const auto validation_phase = end != drained.events.end() ? ConsentValidationPhase::End
+            : has_start ? ConsentValidationPhase::Start
+            : impl_->activation && impl_->activation->is_active() ? ConsentValidationPhase::Active
+            : ConsentValidationPhase::Setup;
+        ConsentValidationPhaseScope validation_phase_scope(validation_phase);
+        if (impl_->consent_bound_enabled) detail::ExplorerGlueSessionBridge::set_active_validation(
+            impl_->seal, *impl_->leader, *impl_->follower, validation_phase == ConsentValidationPhase::Active);
         const auto selected = detail::select_glue_quantum_events(
             std::span{drained.events}.first(active_count));
         ExplorerGlueQuantumRecord quantum;
@@ -1735,6 +1790,10 @@ ExplorerGlueStepResult ExplorerGlueSession::drain_event_source() {
                 return event.kind == ExplorerGlueEventKind::TargetDestroyed;
             });
         if (destroyed != drained.events.end()) {
+            if (impl_->consent_bound_enabled) {
+                auto& target = destroyed->role == ExplorerGlueWindowRole::Leader ? *impl_->leader : *impl_->follower;
+                detail::ExplorerGlueSessionBridge::invalidate_frame(impl_->seal, destroyed->role, target);
+            }
             const auto aborted = impl_->coordinator.report_target_invalidated(
                 impl_->coordinator.session_generation());
             record_trace(&*destroyed, &aborted);
@@ -1886,6 +1945,9 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
         result.reason = ExplorerGlueReason::WrongOwnerThread;
         return result;
     }
+    ConsentValidationPhaseScope restore_validation_phase(ConsentValidationPhase::Restore);
+    if (impl_->consent_bound_enabled) detail::ExplorerGlueSessionBridge::set_active_validation(
+        impl_->seal, *impl_->leader, *impl_->follower, false);
     impl_->terminal = true;
     if (impl_->activation.has_value()) {
         impl_->activation->finish();

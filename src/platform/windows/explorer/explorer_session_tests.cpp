@@ -1,4 +1,6 @@
 #include "platform/windows/explorer/explorer_session_internal.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
+#include "platform/windows/explorer/explorer_glue_activation.h"
 
 #include "platform/windows/operations/window_translation.h"
 
@@ -1509,9 +1511,141 @@ void test_postverification_identity_and_geometry_model() {
            "issuance-to-apply and primary-to-restore geometry competition is detected");
 }
 
+void test_phase2_consent_bound_validation() {
+    using namespace explorer;
+    ConsentFrameAnchorProof good;
+    good.token_generation_matches = good.canonical_identity_matches = good.location_exact = true;
+    good.current_window = good.authorized_window = 0x300;
+    good.browser.subscribed = good.browser.accepting = true;
+    good.browser.callback_sequence = good.browser.latest_sequence = 1;
+    good.browser.matching_navigate_complete_count = good.navigation_epoch = 1;
+    expect(consent_frame_anchor_invalidation(good) == "none", "healthy retained exact object eligible");
+    const auto shared_location = location_id(1, std::byte{1});
+    const auto shared_original = fingerprint(0x300, shared_location);
+    auto shared_frame = shared_original;
+    shared_frame.shell_entry_count = 2;
+    shared_frame.locations.push_back(fingerprint(0x300, location_id(2, std::byte{2})).locations.front());
+    expect(!detail::evaluate_consent_candidate_inventory({true, {shared_frame}}, {}, shared_location, &shared_original).eligible() &&
+        consent_frame_anchor_invalidation(good) == "none",
+        "COUNTEREXAMPLE: full proof rejects new shared-frame entry but exact-object-only facts cannot distinguish it");
+    expect(detail::consent_bound_inventory_matches({true, {shared_frame}}, shared_original) &&
+        consent_frame_anchor_invalidation(good) == "none",
+        "Human Root: post-issuance same-frame multi-entry keeps frame authority; initial old selection still rejects");
+    std::cout << "OLD_FAST_PATH_PROOF = FAILED; NEW_SAME_FRAME_AUTHORITY_MODEL = PASS (not live tab UAT)\n";
+    const auto reject = [&](ConsentFrameAnchorProof bad, std::string_view expected) {
+        for (bool bad_leader : {false, true}) {
+            auto l = bad_leader ? bad : good;
+            auto f = bad_leader ? good : bad;
+            bool retired = false;
+            unsigned writes = 0;
+            for (int attempt = 0; attempt < 3; ++attempt) {
+                retired = retired || consent_frame_anchor_invalidation(l) != "none" || consent_frame_anchor_invalidation(f) != "none";
+                if (!retired) ++writes;
+                l = f = good; // healthy later facts must not revive authority
+            }
+            expect(retired && writes == 0 && consent_frame_anchor_invalidation(bad) == expected,
+                "either role invalidates before next modeled write; no revival");
+        }
+    };
+    auto bad = good; bad.browser.matching_navigate_complete_count++; reject(bad, "browser_navigation_changed");
+    bad = good; bad.location_exact = false; reject(bad, "location_changed"); // delayed/missing event
+    bad = good; bad.current_window++; reject(bad, "hwnd_changed");
+    bad = good; bad.canonical_identity_matches = false; reject(bad, "canonical_identity_changed");
+    bad = good; bad.token_generation_matches = false; reject(bad, "token_generation_changed");
+    bad = good; bad.browser.quit_count = 1; reject(bad, "browser_quit");
+    for (auto member : {&BrowserReadinessFacts::malformed_count, &BrowserReadinessFacts::overflow_count,
+        &BrowserReadinessFacts::wrong_thread_count, &BrowserReadinessFacts::post_retirement_count,
+        &BrowserReadinessFacts::identity_query_failure_count, &BrowserReadinessFacts::unrelated_navigate_complete_count}) {
+        bad = good; bad.browser.*member = 1; reject(bad, "browser_stream_invalid");
+    }
+    bad = good; ++bad.browser.callback_sequence; reject(bad, "browser_stream_invalid"); // reentrancy after facts
+    bad = good; bad.browser.subscribed = false; reject(bad, "browser_stream_invalid");
+    bad = good; bad.browser.accepting = false; reject(bad, "browser_stream_invalid");
+    bad = good; bad.browser.unadvised = true; reject(bad, "browser_stream_invalid");
+    // A quits while sibling B and frame F survive: B never replaces the anchor.
+    bad = good; bad.browser.quit_count = 1; reject(bad, "browser_quit");
+    // F -> H rehost never migrates native authority; numeric F remains forbidden
+    // for later active writes after the original token has been retired.
+    bad = good; bad.current_window = 0x900; reject(bad, "hwnd_changed");
+    detail::ExplorerTokenLedger lifetime;
+    const auto before_destroy = issued_consent_token(lifetime, 0x300, 5);
+    expect(lifetime.retire_native(0x300), "observed destroy retires original frame token");
+    const auto after_reuse = issued_consent_token(lifetime, 0x300, 6);
+    expect(!lifetime.contains(before_destroy) && lifetime.contains(after_reuse) &&
+        before_destroy != after_reuse, "numeric HWND reuse cannot resurrect old token/generation");
+
+    const auto location = location_id(1, std::byte{1});
+    const auto original = fingerprint(0x300, location);
+    for (const bool preexisting : {false, true}) {
+        const detail::InventoryModel inventory{true, {original, fingerprint(0x400, location)}};
+        const std::vector<detail::NativeWindowKey> forbidden = preexisting
+            ? std::vector<detail::NativeWindowKey>{0x400} : std::vector<detail::NativeWindowKey>{};
+        expect(!detail::evaluate_consent_candidate_inventory(inventory, forbidden, location, &original).eligible(),
+            "selection still rejects ambiguous nonce before capability activation");
+        expect(detail::consent_bound_inventory_matches(inventory, original),
+            "bound audit retains original even with unrelated duplicate nonce");
+        detail::ExplorerTokenLedger a, b;
+        const auto token = issued_consent_token(a, 0x300, 5);
+        const auto btoken = issued_consent_token(b, 0x400, 5);
+        expect(a.contains(token) && !b.contains(token) && !a.contains(btoken) &&
+            a.resolve(token)->native_key == 0x300, "B cannot use A token or transfer its generation");
+        auto impostor = good; impostor.current_window = 0x400;
+        expect(consent_frame_anchor_invalidation(impostor) == "hwnd_changed", "same location/PID does not substitute B");
+        const ExplorerGlueActivationPair pair{11, 12, 1, 101, 2, 102, 201, 202, 1};
+        ExplorerGlueActivationController activation(pair);
+        ExplorerGlueEvent start{ExplorerGlueEventKind::MoveResizeStarted, ExplorerGlueWindowRole::Leader,
+            1, 101, 1, 0, 0, 100, {true, true, true, false}};
+        const auto accepted = activation.evaluate_start(start, {true, true, true, false}, pair, true, 110, 120);
+        auto other = pair; other.leader_window_id = 3;
+        expect(accepted.activated && !activation.matches_activation(accepted.activation_generation, other),
+            "duplicate B cannot inherit activation/private pair");
+    }
+    expect(!detail::consent_bound_inventory_matches({true, {fingerprint(0x400, location)}}, original) &&
+        !detail::consent_bound_inventory_matches({true, {original, original}}, original) &&
+        !detail::consent_bound_inventory_matches({false, {original}}, original), "missing/duplicate original/incomplete inventory rejected");
+
+    auto fast = eligible_facts(); fast.shell_entry_unique = false; fast.consent_frame_bound = true;
+    auto full = eligible_facts();
+    expect(detail::evaluate_eligibility_model(fast) == detail::evaluate_eligibility_model(full), "normal native eligibility equivalence");
+    for (auto member : {&detail::EligibilityModelFacts::window_exists, &detail::EligibilityModelFacts::process_alive,
+        &detail::EligibilityModelFacts::process_id_stable, &detail::EligibilityModelFacts::thread_id_stable,
+        &detail::EligibilityModelFacts::image_matches, &detail::EligibilityModelFacts::class_allowed,
+        &detail::EligibilityModelFacts::root_is_self, &detail::EligibilityModelFacts::visible,
+        &detail::EligibilityModelFacts::current_virtual_desktop, &detail::EligibilityModelFacts::security_query_succeeded,
+        &detail::EligibilityModelFacts::same_user, &detail::EligibilityModelFacts::same_session,
+        &detail::EligibilityModelFacts::same_integrity, &detail::EligibilityModelFacts::medium_integrity,
+        &detail::EligibilityModelFacts::location_exact, &detail::EligibilityModelFacts::geometry_available,
+        &detail::EligibilityModelFacts::dpi_context_supported, &detail::EligibilityModelFacts::monitor_available,
+        &detail::EligibilityModelFacts::monitor_stable, &detail::EligibilityModelFacts::dpi_stable}) {
+        auto x = fast, y = full; x.*member = y.*member = false;
+        expect(detail::evaluate_eligibility_model(x) == detail::evaluate_eligibility_model(y) &&
+            detail::evaluate_eligibility_model(x) != ExplorerEligibilityReason::Eligible, "all positive native predicates preserved");
+    }
+    for (auto member : {&detail::EligibilityModelFacts::child_style, &detail::EligibilityModelFacts::has_owner,
+        &detail::EligibilityModelFacts::cloaked, &detail::EligibilityModelFacts::minimized,
+        &detail::EligibilityModelFacts::maximized, &detail::EligibilityModelFacts::elevated,
+        &detail::EligibilityModelFacts::ui_access, &detail::EligibilityModelFacts::app_container}) {
+        auto x = fast, y = full; x.*member = y.*member = true;
+        expect(detail::evaluate_eligibility_model(x) == detail::evaluate_eligibility_model(y) &&
+            detail::evaluate_eligibility_model(x) != ExplorerEligibilityReason::Eligible, "all negative native predicates preserved");
+    }
+    for (bool use_fast : {false, true}) {
+        ConsentValidationAudit audit; ConsentValidationAuditScope scope(&audit);
+        ConsentValidationPhaseScope phase(ConsentValidationPhase::Active);
+        for (int op = 0; op < 16; ++op) for (int check = 0; check < 5; ++check)
+            if (!consent_fast_mode(use_fast, true)) { ConsentInventoryRequestScope request; }
+        expect(audit.total_inventory_calls == (use_fast ? 0U : 80U), "count fixture: same 80 validation points old80/fast0 requests");
+        expect(!consent_fast_mode(use_fast, false), "full boundary never chooses fast");
+        for (std::size_t i = 0; i <= ConsentValidationAudit::capacity; ++i) audit.record({});
+        expect(audit.overflow && audit.records().size() == ConsentValidationAudit::capacity, "bounded audit never overwrites evidence");
+    }
+    std::cout << "Phase2 consent-bound model: threats/both roles/duplicate authority/native predicates/count old80 fast0 PASS\n";
+}
+
 } // namespace
 
 int main() {
+    test_phase2_consent_bound_validation();
     test_token_is_explorer_specific_and_opaque();
     test_monotonic_source_does_not_wrap();
     test_token_authority_generation_stale_and_cross_session();

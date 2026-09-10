@@ -227,6 +227,9 @@ struct InventoryModel {
                            const InventoryModel&) = default;
 };
 
+[[nodiscard]] bool consent_bound_inventory_matches(const InventoryModel& inventory,
+    const InventoryFingerprint& original) noexcept;
+
 struct CandidateEvaluation {
     ExplorerEligibilityReason reason{
         ExplorerEligibilityReason::InventoryUnavailable};
@@ -528,6 +531,9 @@ struct EligibilityModelFacts {
     bool monitor_available{};
     bool monitor_stable{};
     bool dpi_stable{};
+    // Explicit alternative proof, private Glue opt-in only. Never represents
+    // or asserts current global candidate/location uniqueness.
+    bool consent_frame_bound{};
 };
 
 [[nodiscard]] ExplorerEligibilityReason evaluate_eligibility_model(

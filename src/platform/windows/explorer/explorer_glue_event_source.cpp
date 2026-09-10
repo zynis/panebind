@@ -507,6 +507,19 @@ ExplorerGlueEventSource::find_hook_slot(
     return nullptr;
 }
 
+std::uint8_t ExplorerGlueEventSource::pending_destroyed_roles() const noexcept {
+    if (GetCurrentThreadId() != owner_thread_id_) return 3U;
+    std::uint8_t roles = 0;
+    for (std::size_t i = 0; i < queue_size_; ++i) {
+        const auto& receipt = queue_[(queue_head_ + i) % queue_capacity_];
+        if (receipt.event != EVENT_OBJECT_DESTROY || receipt.object_id != OBJID_WINDOW ||
+            receipt.child_id != CHILDID_SELF) continue;
+        const auto* binding = find_binding(receipt.window);
+        if (binding) roles |= binding->role == ExplorerGlueWindowRole::Leader ? 1U : 2U;
+    }
+    return roles;
+}
+
 ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
     ExplorerGlueEventDrainResult result;
     if (GetCurrentThreadId() != owner_thread_id_) {

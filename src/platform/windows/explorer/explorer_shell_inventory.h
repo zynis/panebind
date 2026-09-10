@@ -278,6 +278,9 @@ public:
     [[nodiscard]] ShellWindowKeyResult current_window_key() const;
     [[nodiscard]] ShellLocationFact current_location() const;
     [[nodiscard]] ExplorerConsentTargetObservationFacts facts() noexcept;
+    // Snapshot existing bounded receipt state only; no COM or message pump.
+    [[nodiscard]] BrowserReadinessFacts receipt_facts() const noexcept;
+    [[nodiscard]] std::uint64_t navigation_epoch_at_binding() const noexcept { return navigation_epoch_at_binding_; }
     [[nodiscard]] BrowserReadinessWaitResult pump_until_activity(
         std::uint64_t after_sequence,
         std::chrono::steady_clock::time_point deadline) const;
