@@ -649,3 +649,22 @@ Attribution: official links retained, no code reuse
 
 Exact official URLs, API comparison, independently written owned probe and
 implementation gate are in [R1C3A research](R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md).
+
+## R1-C3B Phase 2 consent-bound proof review — 2026-09-09/10
+
+Result: BLOCKED by an unproved same-frame Shell-entry invariant. No external
+code copied, adapted, translated or mechanically derived; no attribution-bearing
+code enters PaneBind. Draft implementation was withdrawn, not shipped.
+
+| Inspected reference | Exact revision / license / maturity | Scope and history | Lesson / subsystem |
+| --- | --- | --- | --- |
+| [AltSnap](https://github.com/RamonUnch/AltSnap) | 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; License.txt GPL-3.0-or-later; mature maintained movement reference, reference-only | hooks.c 695-735 and license; PR 609 and listed commits 7f4afe59076b70980f71af202f63609ca3ac5745, 7d4c7deb17437a7d5d350fd8074f6285444f4c51 | Worker/coalescing history is not permission to move Shell COM across apartments or remove safety checks. |
+| [PowerToys/FancyZones](https://github.com/microsoft/PowerToys) | 19c4d805321db86f3634e6968e14dbf25cbba14a; root LICENSE MIT; mature production reference, reference-only | FancyZones.cpp abort/destroy paths, root license; PR 48569 / dd26d86580168d2e368701f7b0c4d629dc9cd9ac and PR 18106 / 22786a6bdcbbc6eaeb417a6c6f1f15bb6fb0a550 | Retain lifecycle invalidation; repeated-work optimization requires a proved validity interval. |
+| Microsoft Learn (official API contracts) | Live pages read 2026-09-09/10; no immutable revision asserted; Microsoft Learn terms, paraphrase/link only | QueryInterface identity rules, single-threaded apartments, NavigateComplete2, IConnectionPoint::Unadvise, HWND property | Canonical object is not exclusive frame identity; outgoing COM may reenter; target navigation stream is not a global inventory epoch. No samples reused. |
+
+Historical AltDrag review remains the Phase 1 record; no additional AltDrag
+source was inspected for Phase 2. Official and immutable research links,
+countermodel and rejected fallback are in
+[R1C3B_PHASE2_VALIDATION_CONTRACT.md](R1C3B_PHASE2_VALIDATION_CONTRACT.md).
+Required attribution: research links retained; no code attribution obligation
+from these reference-only inspections. Existing license boundaries unchanged.

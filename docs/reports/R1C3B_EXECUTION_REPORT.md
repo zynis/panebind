@@ -252,3 +252,20 @@ USER_PREEXISTING_WINDOWS_TOUCHED = NO
 OTHER_THIRD_PARTY_CONTROL = NO
 R1C3B_PHASE2 = NOT STARTED
 ~~~
+
+## Phase 2 continuation — 2026-09-10
+
+The preceding status is the historical Phase 1 handoff. The user's Phase 1
+Debug profile 20260909T143539511Z has since completed (subjective C; correctness
+and profile validation PASS). Global Shell inventory is the measured primary
+hotspot, with long-quanta backlog as its downstream effect.
+
+Phase 2 was attempted, then stopped on an unproved same-HWND Shell-object
+multiplicity invariant. Experimental source/runner changes were withdrawn;
+there is no optimized implementation SHA or human UAT request. See the
+[Phase 2 execution report](R1C3B_PHASE2_EXECUTION_REPORT.md),
+[validation contract](../research/R1C3B_PHASE2_VALIDATION_CONTRACT.md) and
+[safety change register](R1C3B_PHASE2_SAFETY_CHANGE_REGISTER.md).
+
+Current continuation status: PHASE2_FAST_PATH=BLOCKED,
+PHASE2_IMPLEMENTATION_READY=NO, PHASE2_DEBUG_UAT=NOT_READY.
