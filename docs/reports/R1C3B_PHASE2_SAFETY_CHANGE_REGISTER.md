@@ -56,3 +56,27 @@ only under ignored out/r1c3b-phase2-rejected-draft/. All source/test/runner/CMak
 edits removed from the working diff. No UAT, PR, merge or new branch. Safety gate
 BLOCKED means the proposed optimization is not approved, not that sealed R0,
 C2A, C2B or C3A evidence failed.
+
+## Human Root approved refinement — 2026-09-10
+
+Authority: [formal decision](../architecture/R1C3B_FRAME_AUTHORITY_DECISION.md).
+Prior sections describe the old contract and are permanently retained.
+
+OLD: ongoing global inventory re-proves single entry and candidate uniqueness.
+NEW: strict initial selection freezes a frame; post-issuance movement authority
+is frame-scoped and anchored to original canonical A. Same-frame B does not
+create a second native frame. Different-frame B can never receive A's permit.
+WHY: SetWindowPos operates F, not a Shell tab; Human Root intentionally changed
+this contract. No old-rule semantic-equivalence claim is made.
+
+REMOVED FROM ACTIVE HOT PATH: global entry cardinality / candidate uniqueness.
+NOT REMOVED: initial uniqueness, original canonical anchor/location, frame HWND,
+token/session/consent/capability generations, process/thread/image/class/root,
+security/state/desktop, geometry/monitor/DPI, event health and exact postverify.
+Anchor navigation, quit (even with B/F surviving), rehost, retirement and reuse
+still abort. No replacement anchor, raw-HWND capability, global membership
+ledger, time cache, callback expansion, or native flag/scheduling change.
+
+REMAINING RISK: ordinary non-atomic OS observations and asynchronous delivery;
+real Windows 11 Explorer tab implementation and smoothness remain NOT TESTED.
+The first same-frame acceptance is explicitly deterministic/model evidence.

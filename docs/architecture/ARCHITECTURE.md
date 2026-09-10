@@ -1,5 +1,24 @@
 # PaneBind Architecture Baseline
 
+## R1-C3B Human Root amendment — 2026-09-10
+
+The [frame-authority decision](R1C3B_FRAME_AUTHORITY_DECISION.md) intentionally
+refines the opt-in Phase 2 Explorer Glue authority. The prior blocked proof is
+preserved and is not retroactively called equivalent to the old rule.
+
+Shell automation anchor, top-level native frame and PaneBind capability are
+distinct objects. Initial provisioning still requires unique, baseline-excluded,
+unambiguous selection. After issuance, extra same-frame entries are not new
+native authority. The original canonical anchor must stay live, at its nonce,
+and mapped to the exact authorized frame; no anchor replacement or rehost
+transfer. Different HWNDs never inherit authority through a matching location.
+
+USER_PREEXISTING_WINDOWS_TOUCHED=NO means no native operation on an unauthorized
+independent top-level frame HWND, not that authorized frames contain no other
+Shell tab/object. Old C2A/legacy/default harness behavior is not broadened by
+this opt-in implementation. Historical round descriptions below retain their
+original context; the decision specifies the amended lifecycle and scope.
+
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
 owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, the sealed R1-C2A Explorer single-translation boundary,

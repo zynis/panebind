@@ -193,3 +193,13 @@ PENDING_UAT; C fails the subjective objective and returns to review.
 The initial design gate was withdrawn after the shared-frame countermodel.
 Validation-contract/threat-model/fast-path/epoch/safety/equivalence gates are
 BLOCKED. Active inventory zero is NOT ACHIEVED. No new runtime claim is made.
+
+## Subsequent Human Root amendment — 2026-09-10
+
+The history above remains unchanged: OLD_FAST_PATH_PROOF=FAILED and
+SEMANTIC_EQUIVALENCE_TO_OLD_RULE=NOT_PROVEN. Human Root now explicitly defines
+native authority as the exact selected top-level frame, not entry cardinality
+or selected tab. The [new decision](../architecture/R1C3B_FRAME_AUTHORITY_DECISION.md)
+supersedes the proposed steady-state predicate, not the historical result.
+Its new-contract tests intentionally accept healthy post-issuance same-frame
+multiplicity while preserving initial rejection and anchor invalidation.
