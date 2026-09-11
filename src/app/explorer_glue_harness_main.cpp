@@ -52,6 +52,11 @@ constexpr bool kCtrlMoveProfile = false;
 #endif
 constexpr std::size_t kTimingEvidenceCapacity = 4096U;
 constexpr std::size_t kOperationEvidenceCapacity = 512U;
+#if defined(PANEBIND_EXPLORER_VDM_GLUE_HARNESS)
+constexpr bool kVdmProfile = true;
+#else
+constexpr bool kVdmProfile = false;
+#endif
 #if defined(PANEBIND_EXPLORER_CONSENT_BOUND_GLUE_HARNESS)
 constexpr bool kConsentBoundProfile = true;
 #else
@@ -263,7 +268,7 @@ public:
         }
         std::ostringstream output;
         output << "{\"schema_version\":1,\"schema_name\":"
-               << json_quote(kConsentBoundProfile ? "panebind.r1c3b2.explorer_glue_profile" : kStageProfile ? "panebind.r1c3b.explorer_glue_profile" :
+               << json_quote(kVdmProfile ? "panebind.r1c3b3.explorer_glue_profile" : kConsentBoundProfile ? "panebind.r1c3b2.explorer_glue_profile" : kStageProfile ? "panebind.r1c3b.explorer_glue_profile" :
                              kCtrlMoveProfile ? "panebind.r1c3a.explorer_ctrl_glue"
                                              : "panebind.r1c2b.explorer_glue")
                << ",\"harness_sequence\":" << next_sequence_++
@@ -358,7 +363,7 @@ private:
 void print_usage() {
     std::cout
         << "Usage:\n"
-        << (kConsentBoundProfile ? "  panebind-explorer-optimized-glue-harness.exe " : kStageProfile ? "  panebind-explorer-profile-glue-harness.exe " :
+        << (kVdmProfile ? "  panebind-explorer-vdm-glue-harness.exe " : kConsentBoundProfile ? "  panebind-explorer-optimized-glue-harness.exe " : kStageProfile ? "  panebind-explorer-profile-glue-harness.exe " :
             kCtrlMoveProfile ? "  panebind-explorer-ctrl-glue-harness.exe "
                             : "  panebind-explorer-glue-harness.exe ")
         << "--interactive-consent-test "
@@ -1954,7 +1959,7 @@ struct FeedbackCorrelationSummary final {
     auto consent = std::move(glue_begin.consent);
     explorer::ExplorerGlueAuthorizeResult authorized;
     if constexpr (kCtrlMoveProfile) {
-        authorized = consent->prepare_ctrl_move_fixture(kStageProfile, kConsentBoundProfile);
+        authorized = consent->prepare_ctrl_move_fixture(kStageProfile, kConsentBoundProfile, kVdmProfile);
     } else {
         const auto glue_prompt = consent->record_glue_prompt();
         if (!record_step(evidence, "glue_consent_prompt", glue_prompt)) {
@@ -2549,6 +2554,7 @@ int wmain(const int argc, wchar_t* argv[]) {
 #endif
             fields << ",\"consent_bound_contract\":\"r1c3b_frame_authority_v1\"";
         }
+        if constexpr (kVdmProfile) fields << ",\"vdm_reuse_enabled\":true,\"virtual_desktop_result_cache\":false";
         if (!evidence.record("startup", fields.str())) {
             return EXIT_FAILURE;
         }
@@ -2556,6 +2562,7 @@ int wmain(const int argc, wchar_t* argv[]) {
 
     std::unique_ptr<explorer::ConsentValidationAudit> validation_audit;
     if constexpr (kConsentBoundProfile) validation_audit = std::make_unique<explorer::ConsentValidationAudit>();
+    if constexpr (kVdmProfile) validation_audit->vdm_enabled = true;
     explorer::ConsentValidationAuditScope validation_audit_scope(validation_audit.get());
     RunOutcome outcome;
     try {
@@ -2580,6 +2587,9 @@ int wmain(const int argc, wchar_t* argv[]) {
               << ",\"legal_reason\":" << json_quote(r.fast ? "accepted_ctrl_start_private_frame_pair_canonical_anchor" : "full_boundary_validation")
               << ",\"global_inventory_calls\":" << r.inventory_calls
               << ",\"succeeded\":" << json_bool(r.succeeded) << ",\"invalidation_reason\":" << json_quote(r.reason);
+            if constexpr (kVdmProfile) f << ",\"manager_create_calls\":" << r.manager_create_calls
+                << ",\"virtual_desktop_query_calls\":" << r.virtual_desktop_query_calls
+                << ",\"retained_vdm\":" << json_bool(r.retained_vdm);
             if (!evidence.record("validation", f.str())) return EXIT_FAILURE;
         }
         std::ostringstream f;
@@ -2590,6 +2600,16 @@ int wmain(const int argc, wchar_t* argv[]) {
           << ",\"validation_record_capacity\":" << explorer::ConsentValidationAudit::capacity
           << ",\"validation_overflow\":" << json_bool(validation_audit->overflow)
           << ",\"active_native_after_invalidation\":" << validation_audit->active_native_after_invalidation;
+        if constexpr (kVdmProfile) {
+            for (std::size_t i = 0; i < validation_audit->manager_creates.size(); ++i) {
+                const auto phase = explorer::consent_phase_name(static_cast<explorer::ConsentValidationPhase>(i));
+                f << ",\"manager_create_calls_" << phase << "\":" << validation_audit->manager_creates[i]
+                  << ",\"virtual_desktop_query_calls_" << phase << "\":" << validation_audit->desktop_queries[i]
+                  << ",\"manager_release_calls_" << phase << "\":" << validation_audit->manager_releases[i];
+            }
+            f << ",\"retained_manager_create_calls\":" << validation_audit->retained_creates
+              << ",\"retained_manager_release_calls\":" << validation_audit->retained_releases;
+        }
         if (!evidence.record("validation_status", f.str())) return EXIT_FAILURE;
         if (validation_audit->overflow || validation_audit->active_native_after_invalidation ||
             validation_audit->inventory_calls[static_cast<std::size_t>(explorer::ConsentValidationPhase::Active)] != 0)

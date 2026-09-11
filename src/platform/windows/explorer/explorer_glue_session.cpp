@@ -546,6 +546,9 @@ struct ExplorerGlueSession::Impl final {
     core::behavior::GlueMoveCoordinator coordinator;
     std::unique_ptr<ExplorerGlueProfiler> profiler;
     std::unique_ptr<ExplorerGlueEventSource> event_source;
+    // Destroyed before follower/leader (and their CoUninitialize), including
+    // exception unwinding. Normal finish explicitly closes after restore.
+    std::unique_ptr<ExplorerVirtualDesktopManager> virtual_desktop_manager;
     std::vector<PendingNativeOperation> pending_native;
     std::optional<core::geometry::Rect> last_acknowledged_follower_visible;
     std::vector<ExplorerGlueOperationRecord> operations;
@@ -760,6 +763,11 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const
 }
 
 ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const bool enable_profiling, const bool enable_consent_bound) {
+    return prepare_ctrl_move_fixture(enable_profiling, enable_consent_bound, false);
+}
+
+ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const bool enable_profiling, const bool enable_consent_bound,
+    const bool reuse_virtual_desktop_manager) {
     ExplorerGlueAuthorizeResult result;
     if (impl_ == nullptr || impl_->terminal ||
         GetCurrentThreadId() != impl_->owner_thread_id ||
@@ -805,6 +813,15 @@ ExplorerGlueAuthorizeResult ExplorerGlueConsent::prepare_ctrl_move_fixture(const
     facts.profiling_enabled = enable_profiling;
     if (enable_profiling) session_impl->profiler = std::make_unique<ExplorerGlueProfiler>();
     session_impl->consent_bound_enabled = enable_consent_bound;
+    if (reuse_virtual_desktop_manager) {
+        if (!enable_consent_bound) { result.reason = ExplorerGlueReason::TargetChanged; return result; }
+        session_impl->virtual_desktop_manager = std::make_unique<ExplorerVirtualDesktopManager>();
+        if (!detail::ExplorerGlueSessionBridge::attach_virtual_desktop_manager(seal,
+            *session_impl->leader, *session_impl->follower, *session_impl->virtual_desktop_manager)) {
+            result.reason = ExplorerGlueReason::TargetChanged;
+            return result;
+        }
+    }
     facts.fixture_pair_authorized = true;
     facts.qpc_frequency_hz = frequency;
     facts.leader_original = *bound.leader_snapshot;
@@ -2073,6 +2090,9 @@ ExplorerGlueStepResult ExplorerGlueSession::finish_and_restore(
     impl_->pending_native.clear();
     detail::ExplorerGlueSessionBridge::release_pair(
         impl_->seal, *impl_->leader, *impl_->follower);
+    if (impl_->virtual_desktop_manager && !impl_->virtual_desktop_manager->close()) {
+        event_lifecycle_clean = false;
+    }
     impl_->cleanup_complete = true;
     const auto& stats = impl_->coordinator.stats();
     impl_->facts.behavior_state = impl_->coordinator.state();

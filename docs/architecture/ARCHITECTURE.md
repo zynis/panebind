@@ -1,5 +1,23 @@
 # PaneBind Architecture Baseline
 
+## R1-C3B Phase 3 — private VDM service lifetime
+
+[VDM lifetime design](../research/R1C3B_PHASE3_VDM_LIFETIME.md) changes only the
+opt-in Phase 3 Glue service acquisition lifetime. One owner-STA manager wrapper
+belongs to ExplorerGlueSession and is borrowed by its independently authorized
+Leader/Follower validations. It holds a balanced COM reference, releases the
+manager before CoUninitialize, closes after restore, and is destroyed before
+the target sessions on exception paths. No process-global COM singleton or
+cross-thread interface sharing is introduced.
+
+Cached: IVirtualDesktopManager interface instance. NOT cached:
+IsWindowOnCurrentVirtualDesktop result. Every required validation still queries
+the current authorized HWND with a fresh local BOOL and checks S_OK/true.
+False/create/query failure rejects eligibility; no active recreate/retry.
+C2A/legacy and default C2B/C3A/Phase1/Phase2 executables retain their original
+ephemeral manager path. Frame authority, anchor, location, security, geometry,
+monitor/DPI, feedback, Ctrl latch and owner scheduling remain unchanged.
+
 ## R1-C3B Human Root amendment — 2026-09-10
 
 The [frame-authority decision](R1C3B_FRAME_AUTHORITY_DECISION.md) intentionally

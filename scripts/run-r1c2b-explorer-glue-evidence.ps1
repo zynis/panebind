@@ -31,18 +31,20 @@ param(
     [int] $ValidationObserverExitCode = 0,
 
     # Fixed profiles only. The default preserves the sealed R1-C2B contract.
-    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B', 'R1C3B2')]
-    [string] $EvidenceProfile = 'R1C2B'
+    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B', 'R1C3B2', 'R1C3B3')]
+    [string] $EvidenceProfile = 'R1C2B',
+    [switch] $VerboseOperations
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$phase2Profile = $EvidenceProfile -eq 'R1C3B2'
-$stageProfile = $EvidenceProfile -in @('R1C3B','R1C3B2')
+$phase3Profile = $EvidenceProfile -eq 'R1C3B3'
+$phase2Profile = $EvidenceProfile -in @('R1C3B2','R1C3B3')
+$stageProfile = $EvidenceProfile -in @('R1C3B','R1C3B2','R1C3B3')
 $ctrlProfile = $EvidenceProfile -ne 'R1C2B'
 $roundName = if ($stageProfile) { 'R1-C3B' } elseif ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
 $evidenceSubdirectory = if ($stageProfile) { 'uat/r1c3b' } elseif ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
-$expectedSchema = if ($phase2Profile) { 'panebind.r1c3b2.explorer_glue_profile' } elseif ($stageProfile) {
+$expectedSchema = if ($phase3Profile) { 'panebind.r1c3b3.explorer_glue_profile' } elseif ($phase2Profile) { 'panebind.r1c3b2.explorer_glue_profile' } elseif ($stageProfile) {
     'panebind.r1c3b.explorer_glue_profile'
 } elseif ($ctrlProfile) {
     'panebind.r1c3a.explorer_ctrl_glue'
@@ -783,7 +785,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
 
     $observerPath = Resolve-R1C2BExecutable -FileName 'panebind-observer.exe'
     $harnessFile = if ($stageProfile) {
-        if ($phase2Profile) { 'panebind-explorer-optimized-glue-harness.exe' } else { 'panebind-explorer-profile-glue-harness.exe' }
+        if ($phase3Profile) { 'panebind-explorer-vdm-glue-harness.exe' } elseif ($phase2Profile) { 'panebind-explorer-optimized-glue-harness.exe' } else { 'panebind-explorer-profile-glue-harness.exe' }
     } elseif ($ctrlProfile) {
         'panebind-explorer-ctrl-glue-harness.exe'
     } else { 'panebind-explorer-glue-harness.exe' }
@@ -2202,11 +2204,19 @@ if ($ctrlProfile) {
 }
 if ($stageProfile) {
     try {
-        Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts -Phase2:$phase2Profile
+        $profileLines=@(Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts -Phase2:$phase2Profile -Phase3:$phase3Profile)
+        if ($VerboseOperations) { $profileLines } else {
+            $profileLines | Where-Object { $_ -notmatch '^(OP_PROFILE |QUEUE quantum=|PROFILE |MATCHED )' }
+        }
         if ($phase2Profile) {
             . (Join-Path $PSScriptRoot 'r1c3b-phase2-validation.ps1')
-            Assert-ConsentBoundProfileEvidence -Records $harnessRecords
-            Write-Phase2BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot
+            $frameLines=@(Assert-ConsentBoundProfileEvidence -Records $harnessRecords)
+            if ($VerboseOperations) { $frameLines } else { $frameLines | Where-Object { $_ -notmatch '^OP_VALIDATION ' } }
+            if ($phase3Profile) {
+                . (Join-Path $PSScriptRoot 'r1c3b-phase3-validation.ps1')
+                Assert-VdmProfileEvidence -Records $harnessRecords
+                Write-Phase3BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot
+            } else { Write-Phase2BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot }
         }
     } catch {
         Write-Output 'TIMING_PROFILE_GATE: FAIL'
@@ -2246,6 +2256,7 @@ Write-Output "$roundName $Configuration Explorer Glue evidence gate: PASS"
 Write-Output "Leader START/LOCATION/END: 1/$($externalLeaderLocation.Count)/1"
 Write-Output "Follower active LOCATION: $($externalFollowerLocation.Count)"
 Write-Output "Follower native applies: $($summary.follower_native_apply_count)"
+Write-Output 'Final geometry / restore: EXACT / EXACT'
 Write-Output "Suppressed/duplicate/missing: $($summary.suppressed_feedback_count)/$($summary.duplicate_feedback_count)/$($summary.missing_feedback_count)"
 Write-Output '两个 Explorer 均未自动关闭；请确认已自行关闭测试窗口。'
 Write-Output "原始 evidence 已保存到 $evidenceSubdirectory/。"

@@ -1,4 +1,5 @@
 #pragma once
+#include "platform/windows/explorer/explorer_virtual_desktop_manager.h"
 
 #include "platform/windows/explorer/explorer_glue_session.h"
 #include "platform/windows/explorer/explorer_glue_types.h"
@@ -301,6 +302,8 @@ struct ExplorerGluePrepareResult final {
 
 class ExplorerGlueSessionBridge final {
 private:
+    static bool attach_virtual_desktop_manager(const ExplorerGlueAuthoritySeal& seal,
+        ExplorerTestSession& leader, ExplorerTestSession& follower, ExplorerVirtualDesktopManager& manager) noexcept;
     using BeforeNativeApply = bool (*)(void*) noexcept;
     static bool activate_consent_bound(const ExplorerGlueAuthoritySeal& seal,
         ExplorerTestSession& leader, ExplorerTestSession& follower) noexcept;

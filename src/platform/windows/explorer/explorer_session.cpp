@@ -1597,6 +1597,7 @@ struct ExplorerTestSession::Impl final {
     bool glue_bound{};
     bool glue_consent_bound_contract{};
     bool glue_consent_fast_active{};
+    ExplorerVirtualDesktopManager* glue_virtual_desktop_manager{}; // borrowed from private Glue owner
     std::string_view glue_validation_invalidation{"none"};
     bool closing{};
 
@@ -2561,21 +2562,38 @@ template <typename ImplType>
     facts.maximized = IsZoomed(impl.window) != FALSE;
 
     stage_profile.next(GlueProfileStage::VirtualDesktop);
+    HRESULT desktop_query = E_FAIL;
+    auto* retained_desktop = !wait_for_shell_activity && impl.glue_bound
+        ? impl.glue_virtual_desktop_manager : nullptr;
+    if (retained_desktop) {
+        const auto answer = retained_desktop->query(impl.window, profile);
+        desktop_query = answer.result;
+        facts.current_virtual_desktop = answer.eligible();
+    } else {
+    const bool vdm_profile = consent_validation_audit && consent_validation_audit->vdm_enabled;
+    GlueProfileScope acquire_profile(vdm_profile ? profile : nullptr, GlueProfileStage::VirtualDesktopManagerAcquire);
     IVirtualDesktopManager* virtual_desktop = nullptr;
     BOOL on_current_desktop = FALSE;
+    audit_vdm_create(false);
     const HRESULT desktop_create = CoCreateInstance(
         CLSID_VirtualDesktopManager,
         nullptr,
         CLSCTX_INPROC_SERVER,
         IID_PPV_ARGS(&virtual_desktop));
-    HRESULT desktop_query = desktop_create;
+    acquire_profile.end();
+    desktop_query = desktop_create;
     if (desktop_create == S_OK && virtual_desktop != nullptr) {
+        GlueProfileScope query_profile(vdm_profile ? profile : nullptr, GlueProfileStage::VirtualDesktopQuery);
+        audit_vdm_query();
         desktop_query = virtual_desktop->IsWindowOnCurrentVirtualDesktop(
             impl.window, &on_current_desktop);
+        query_profile.end();
+        audit_vdm_release(false);
         virtual_desktop->Release();
     }
     facts.current_virtual_desktop =
         desktop_query == S_OK && on_current_desktop != FALSE;
+    }
 
     stage_profile.next(GlueProfileStage::ProcessSecurity);
     const auto current_controller_security =
@@ -2779,6 +2797,9 @@ template <typename ImplType>
         record.capability_generation = token ? token->generation() : 0;
         record.consent_generation = token ? token->consent_generation() : 0;
         record.inventory_calls = audit->total_inventory_calls;
+        record.manager_create_calls = audit->total_manager_creates;
+        record.virtual_desktop_query_calls = audit->total_desktop_queries;
+        record.retained_vdm = !wait_for_shell_activity && impl.glue_bound && impl.glue_virtual_desktop_manager;
         if (profile) {
             record.span_id = profile->spans().size() + 1;
             const auto c = profile->context();
@@ -2811,6 +2832,8 @@ template <typename ImplType>
     if (!success && impl.glue_consent_bound_contract) impl.glue_validation_invalidation = failure;
     if (audit) {
         record.inventory_calls = audit->total_inventory_calls - record.inventory_calls;
+        record.manager_create_calls = audit->total_manager_creates - record.manager_create_calls;
+        record.virtual_desktop_query_calls = audit->total_desktop_queries - record.virtual_desktop_query_calls;
         record.succeeded = success;
         record.reason = success ? "none" : failure;
         audit->record(record);
@@ -4982,6 +5005,18 @@ detail::ExplorerGlueSessionBridge::bind_pair(
     return result;
 }
 
+bool detail::ExplorerGlueSessionBridge::attach_virtual_desktop_manager(
+    const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
+    ExplorerTestSession& follower, ExplorerVirtualDesktopManager& manager) noexcept {
+    if (!leader.impl_ || !follower.impl_ || manager.owner_thread() != GetCurrentThreadId() ||
+        !glue_binding_matches(*leader.impl_, seal, ExplorerGlueWindowRole::Leader) ||
+        !glue_binding_matches(*follower.impl_, seal, ExplorerGlueWindowRole::Follower) ||
+        !leader.impl_->glue_consent_bound_contract || !follower.impl_->glue_consent_bound_contract) return false;
+    leader.impl_->glue_virtual_desktop_manager = &manager;
+    follower.impl_->glue_virtual_desktop_manager = &manager;
+    return true;
+}
+
 bool detail::ExplorerGlueSessionBridge::activate_consent_bound(
     const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
     ExplorerTestSession& follower) noexcept {
@@ -5387,6 +5422,7 @@ void detail::ExplorerGlueSessionBridge::release_pair(
                 seal.authority_generation_) {
             session.impl_->glue_bound = false;
             session.impl_->glue_consent_fast_active = false;
+            session.impl_->glue_virtual_desktop_manager = nullptr;
             session.impl_->glue_consent_bound_contract = false;
             session.impl_->glue_authority_id = 0U;
             session.impl_->glue_authority_generation = 0U;

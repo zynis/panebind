@@ -329,6 +329,7 @@ public:
     // Active Follower placement remains gated on the exact Leader START.
     [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture(bool enable_profiling = false);
     [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture(bool enable_profiling, bool enable_consent_bound);
+    [[nodiscard]] ExplorerGlueAuthorizeResult prepare_ctrl_move_fixture(bool enable_profiling, bool enable_consent_bound, bool reuse_virtual_desktop_manager);
     [[nodiscard]] const ExplorerGlueFacts& facts() const noexcept;
 
 private:

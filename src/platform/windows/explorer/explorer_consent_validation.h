@@ -37,8 +37,10 @@ struct ConsentValidationRecord {
     std::uintptr_t native_key{};
     std::uint64_t capability_generation{}, consent_generation{};
     std::uint64_t inventory_calls{};
+    std::uint64_t manager_create_calls{}, virtual_desktop_query_calls{};
     ConsentValidationPhase phase{};
     bool fast{}, follower{}, succeeded{}, role_bound{};
+    bool retained_vdm{};
     std::string_view reason{"not_completed"};
 };
 
@@ -79,6 +81,9 @@ public:
     std::array<std::uint64_t, static_cast<std::size_t>(ConsentValidationPhase::Count)> inventory_calls{};
     std::uint64_t total_inventory_calls{};
     std::uint64_t active_native_after_invalidation{};
+    bool vdm_enabled{};
+    std::array<std::uint64_t, static_cast<std::size_t>(ConsentValidationPhase::Count)> manager_creates{}, desktop_queries{}, manager_releases{};
+    std::uint64_t total_manager_creates{}, total_desktop_queries{}, retained_creates{}, retained_releases{};
     bool overflow{};
     bool invalidation_observed{};
 private:
@@ -86,6 +91,23 @@ private:
     std::size_t size_{};
 };
 inline thread_local ConsentValidationAudit* consent_validation_audit = nullptr;
+inline void audit_vdm_create(bool retained) noexcept {
+    if (auto* a = consent_validation_audit; a && a->vdm_enabled) {
+        ++a->manager_creates[static_cast<std::size_t>(a->phase)]; ++a->total_manager_creates;
+        if (retained) ++a->retained_creates;
+    }
+}
+inline void audit_vdm_query() noexcept {
+    if (auto* a = consent_validation_audit; a && a->vdm_enabled) {
+        ++a->desktop_queries[static_cast<std::size_t>(a->phase)]; ++a->total_desktop_queries;
+    }
+}
+inline void audit_vdm_release(bool retained) noexcept {
+    if (auto* a = consent_validation_audit; a && a->vdm_enabled) {
+        ++a->manager_releases[static_cast<std::size_t>(a->phase)];
+        if (retained) ++a->retained_releases;
+    }
+}
 class ConsentValidationAuditScope final {
 public:
     explicit ConsentValidationAuditScope(ConsentValidationAudit* value) noexcept

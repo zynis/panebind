@@ -9,13 +9,11 @@ param(
     [Parameter(ParameterSetName='ValidateEvidence')][ValidateRange(0,255)][int] $ValidationObserverExitCode = 0,
     [switch] $VerboseOperations
 )
-$arguments = @{ EvidenceProfile = 'R1C3B2' }
+$arguments = @{ EvidenceProfile = 'R1C3B3' }
 foreach ($key in $PSBoundParameters.Keys) { $arguments[$key] = $PSBoundParameters[$key] }
 if ($PSCmdlet.ParameterSetName -eq 'Run') {
-    $arguments.BuildDirectory = $BuildDirectory
-    $arguments.Configuration = $Configuration
-    $arguments.GlueTimeoutSeconds = $GlueTimeoutSeconds
-    $arguments.ObserveSeconds = $ObserveSeconds
+    $arguments.BuildDirectory = $BuildDirectory; $arguments.Configuration = $Configuration
+    $arguments.GlueTimeoutSeconds = $GlueTimeoutSeconds; $arguments.ObserveSeconds = $ObserveSeconds
 }
 & (Join-Path $PSScriptRoot 'run-r1c2b-explorer-glue-evidence.ps1') @arguments
 exit $LASTEXITCODE

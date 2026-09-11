@@ -20,7 +20,8 @@ param(
     [int] $ValidationHarnessExitCode,
     [Parameter(ParameterSetName='ValidateEvidence')]
     [ValidateRange(0,255)]
-    [int] $ValidationObserverExitCode = 0
+    [int] $ValidationObserverExitCode = 0,
+    [switch] $VerboseOperations
 )
 # Reserved future comparison switch; first Phase 1 human profile must retain
 # independent Observer evidence. No internal-only acceptance path is enabled.
@@ -28,6 +29,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Run' -and -not $ExternalObserverEnabled) {
     throw 'ExternalObserverEnabled=false is reserved for a future controlled comparison; Phase 1 UAT requires ON.'
 }
 $arguments = @{ EvidenceProfile = 'R1C3B' }
+$arguments.VerboseOperations = $VerboseOperations
 if ($PSCmdlet.ParameterSetName -eq 'Run') {
     $arguments.BuildDirectory = $BuildDirectory
     $arguments.Configuration = $Configuration

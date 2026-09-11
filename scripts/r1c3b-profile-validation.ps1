@@ -9,7 +9,7 @@ function Write-ProfileStatistic {
 }
 
 function Assert-StageProfileEvidence {
-    param([object[]] $Records, [object] $Startup, [object] $Summary, [object] $Facts, [switch] $Phase2)
+    param([object[]] $Records, [object] $Startup, [object] $Summary, [object] $Facts, [switch] $Phase2, [switch] $Phase3)
     $frequency = Get-EvidenceInteger $Startup 'qpc_frequency_hz'
     $status = Assert-UniqueRecord $Records 'profile_status'
     foreach ($r in @($Startup,$status)) {
@@ -108,6 +108,7 @@ function Assert-StageProfileEvidence {
         'exact_comparison','receipt_finalize','operation_result_policy','end_leader_capture',
         'end_follower_capture','end_reconciliation')
     if ($Phase2) { $stages += @('consent_bound_validation','global_inventory_fallback','validation_invalidation','pair_witness') }
+    if ($Phase3) { $stages += @('virtual_desktop_manager_acquire','virtual_desktop_query') }
     $spanMap = @{}; $children = @{}; $exclusive = @{}
     $nextId = [uint64]1
     foreach ($s in $spans) {

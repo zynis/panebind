@@ -692,3 +692,32 @@ research links retained, no new code attribution obligation.
 Human Root, not upstream source, authorizes removing post-issuance entry
 cardinality from frame authority. All implementation is independently written
 against PaneBind's private ledger/permit and the explicit amended contract.
+
+## R1-C3B Phase 3 VDM lifetime review — 2026-09-12
+
+AltSnap: mature reference, GPL-3.0-or-later, REFERENCE ONLY. Verified local
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d and License.txt; hooks.c 3040-3087
+enumeration/filtering and path history 62adaf14503417a4fdbff61e023950208436c77d,
+96ea072af389362f79b66c8286289f9837c689ef. No VDM lifetime mechanism inferred
+from those filters. No copying, translation or adaptation; no code attribution.
+
+PowerToys/FancyZones: mature production reference, MIT, REFERENCE ONLY. Read
+VirtualDesktop.cpp/.h and LICENSE at 19c4d805321db86f3634e6968e14dbf25cbba14a
+through pinned source URLs (old temporary checkout no longer present). Source
+retains a manager across calls; its singleton/registry/failure policies were
+not adopted. Read path history for PR 29059 / 78a94aecb965a7c10ded273a1227da3e2259b341,
+PR 28556 / 890b7f4286a95ced04d7da140b474f90fd4351ed, PR 18805 /
+f5f8861eac976384273523be335572315a54566c; inspected 29059's VirtualDesktop.cpp
+diff. Issue 49019 is an upstream stale-registry-state report, not PaneBind UAT.
+No code copied/adapted; research links retained; no code attribution obligation.
+
+Microsoft Learn / Old New Thing: official live API documents read 2026-09-12,
+no immutable revision asserted, Microsoft site terms. IsWindowOnCurrentVirtualDesktop,
+CoGetApartmentType, STA, CoUninitialize and the 2017-10-02 current-desktop
+example distinguish repeated fresh queries from interface lifetime. Samples,
+global pointers and permissive fallbacks were not reused. Exact links and the
+independent owner-STA design/test plan are in
+[R1C3B_PHASE3_VDM_LIFETIME.md](R1C3B_PHASE3_VDM_LIFETIME.md).
+
+Scope: read-only VDM service lifetime and evidence. No Git API payload was used
+to reconstruct local Git objects/refs, and no third-party window was controlled.
