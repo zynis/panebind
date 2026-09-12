@@ -1,5 +1,17 @@
 # PaneBind Architecture Baseline
 
+## R1-C3B human interaction baseline — 2026-09-13
+
+The [human validation report](../reports/R1C3B_HUMAN_VALIDATION_REPORT.md)
+records C -> C+ -> between A/B in the validated two-Explorer Debug scenario.
+Runtime is frozen at 201f3c25cee49f7b2ea7af67063cfaf7df2d5725. Active inventory
+and active VDM creation are zero; every required desktop query remains fresh.
+The 177 applies / 175 distinct targets are two nonconsecutive historical
+geometry revisits with independent operation/ACK generations, not recursion
+or duplicate feedback. Further performance optimization is STOPPED.
+One Debug human UAT is the formal Phase 3 contract; Release is automated
+regression only. No generalized product, FPS or AquaGlue-equivalence claim.
+
 ## R1-C3B Phase 3 — private VDM service lifetime
 
 [VDM lifetime design](../research/R1C3B_PHASE3_VDM_LIFETIME.md) changes only the
@@ -747,10 +759,10 @@ See [hot-path map/risk matrix](../reports/R1C3B_HOT_PATH_MAP.md),
 
 ### Future interaction roadmap — NOT IMPLEMENTED
 
-R1-C3B Phase 1 profiling is implemented, awaiting human evidence. Phase 2 has
-not started. Study timing/cadence and the subjective C/C observations before
-choosing changes. Do not infer a safety-validation shortcut from aggregate
-latency data. Input remains intent/wake; actual Leader geometry remains truth.
+R1-C3B's three human phases are complete; the Phase 3 Debug outcome is between
+A and B. Further performance work is stopped. Remaining Shell/placement/loop
+ideas are future polish only, not authorization for another phase. Input
+remains intent/wake; actual Leader geometry remains truth.
 
 Future Z-order product goal, **within the normal Z-order band**: the Leader
 is the highest member of the active Glue component; Followers immediately
@@ -765,6 +777,10 @@ The architecture principle is that Glue component size **must be bounded**.
 The actual default product limit is **NOT DECIDED**. Future 2/4/8-member
 fixture measurements must inform it; today's exact-two-window UAT boundary
 is not a guessed product-wide limit. No additional members are implemented.
+
+Future N-window movement should first research one quantum producing the
+complete Follower target set, followed by BeginDeferWindowPos,
+DeferWindowPos per member and EndDeferWindowPos. This batching is not implemented.
 
 Mixed-DPI / multi-monitor remains **NOT TESTED**. Future research must cover
 PMv2, WM_DPICHANGED, monitor transitions, DWM visible versus positioning
@@ -1080,9 +1096,13 @@ R1C3A_RELEASE_INTERACTIVE_UAT = PASS
 R1C3A_RUNTIME_GATE = PASS
 HUMAN_SMOOTHNESS_DEBUG = C
 HUMAN_SMOOTHNESS_RELEASE = C
-SMOOTHNESS_OPTIMIZATION_REQUIRED = YES
+SMOOTHNESS_OPTIMIZATION_REQUIRED_AT_R1C3A_SEAL = YES
 R1C3B_PHASE1_PROFILE_READY = YES
-R1C3B_DEBUG_PROFILE_UAT = REQUIRED
-R1C3B_ROOT_CAUSE = PENDING_HUMAN_PROFILE
-R1C3B_PHASE2 = NOT STARTED
+R1C3B_HUMAN_VALIDATION = PASS
+R1C3B_PHASE1_HUMAN_SMOOTHNESS = C
+R1C3B_PHASE2_HUMAN_SMOOTHNESS = C_PLUS
+R1C3B_PHASE3_HUMAN_SMOOTHNESS = A_B
+R1C3B_ROOT_CAUSE = GLOBAL_SHELL_INVENTORY_REVALIDATION
+R1C3B_FURTHER_PERFORMANCE_OPTIMIZATION = STOPPED
+R1C4 = NOT STARTED
 ```

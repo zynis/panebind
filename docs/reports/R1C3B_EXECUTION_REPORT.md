@@ -289,3 +289,17 @@ result and records VDM service-lifetime reuse only. Runtime SHA
 201f3c25cee49f7b2ea7af67063cfaf7df2d5725 passes automatic gates; no desktop
 result cache or third-hotspot optimization. The current stop point is
 [one Phase 3 Debug UAT](R1C3B_PHASE3_DEBUG_UAT_HANDOFF.md).
+
+## Final human seal review — 2026-09-13
+
+The Debug UAT above has completed with explicit human acceptance between A
+and B. [The human validation report](R1C3B_HUMAN_VALIDATION_REPORT.md) records
+the three-stage progression, 177 exact applies/175 historical distinct targets,
+177 suppressions, zero active inventory/VDM creation, and 1102 fresh active
+desktop queries. Two nonconsecutive target revisits are NON_BLOCKING; they
+are not duplicate feedback or reconciliation writes. Further performance
+development is STOPPED. Release human UAT is intentionally not required.
+
+Runtime/tests/scripts/CMake remain frozen at
+201f3c25cee49f7b2ea7af67063cfaf7df2d5725. This round permits documentation,
+automatic regressions, PR and ordinary merge only; no Phase 4 or R1C4 work.
