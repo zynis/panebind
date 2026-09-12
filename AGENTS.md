@@ -167,20 +167,38 @@ deterministic and platform-independent.
   tree status, and local/remote divergence.
 - Preserve unrelated user changes in a dirty working tree.
 
-## Remote Git integrity
+## Remote Git Transport Resilience
 
-- Use standard Git transport for `fetch`, `pull`, `push`, and remote-tracking
-  ref synchronization.
-- GitHub APIs may independently confirm PR, commit, and ref state or validate a
-  remote SHA, but they are not a normal Git transport fallback.
-- If ordinary `git fetch`, `git pull`, or `git push` continues to fail, stop
-  the affected work and report the transport blocker unless the current round
-  explicitly authorizes another recovery mechanism.
-- Without explicit current-round authorization, do not reconstruct Git
-  commits, trees, blobs, or the local object graph from API payloads; do not
-  write `.git/objects` manually; and do not move remote-tracking refs to
-  simulate a fetch.
-- This rule governs future behavior only. It does not rewrite or invalidate
+- Git object, commit, tree and ref transfer/synchronization must always use
+  standard Git transport: SSH, SSH-over-443 or HTTPS.
+- The configured primary is `origin`, using SSH-over-443 to
+  `ssh://git@ssh.github.com:443/zynis/panebind.git`. The secondary is
+  `github-https`, using `https://github.com/zynis/panebind.git`.
+  Verify repository identity and actual remote URLs before switching transport.
+- For connection reset, timeout, transient TLS errors, cannot-connect or
+  temporary network-unavailable errors, allow up to three attempts per
+  transport/operation with short bounded backoff (for example 2 then 5 seconds).
+  Never retry indefinitely; do not treat authentication, host-key or repository
+  identity failures as transient network errors.
+- After repeated primary transport failure, attempt the secondary standard
+  transport before stopping. A successful standard fetch of the target branch
+  permits work to continue. State explicitly which remote supplied every SHA
+  and divergence claim; `github-https/main` is not `origin/main` and must never
+  be relabeled or used to forge an origin remote-tracking ref.
+- Prefer push to `origin`. If its transport fails and the verified secondary
+  is available for the same repository, standard push to `github-https` is
+  allowed. After a successful push, use that successful transport's standard
+  fetch/ls-remote to verify `refs/heads/<branch>` equals local HEAD.
+- Stop if all configured standard transports repeatedly fail, authentication
+  cannot be established, repository or host identity cannot be safely
+  established, transports resolve conflicting remote refs, or Git object/ref
+  integrity is uncertain. Do not silently choose one side of conflicting refs.
+- GitHub APIs may supply independent verification and PR/repository metadata,
+  but never Git object/ref transport fallback. Do not reconstruct commits,
+  trees, blobs or the local graph from API payloads; write `.git/objects`
+  manually; fake remote-tracking refs; replace fetch with a ZIP; or force-push
+  as a network workaround. Do not disable TLS or SSH host identity verification.
+- These rules govern future behavior. They do not rewrite or invalidate
   already completed history whose SHAs were independently verified.
 
 ## Stop conditions

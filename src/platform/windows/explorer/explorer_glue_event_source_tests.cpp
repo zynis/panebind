@@ -453,6 +453,11 @@ void test_target_destroy_and_unrelated_destroy() {
             event(EVENT_OBJECT_DESTROY, windows.leader(), 77U));
         expect(windows.destroy_leader(),
                "test leader is destroyed before owner drain");
+        const auto pending_before = TestAccess::facts(*source);
+        expect(TestAccess::pending_destroyed_roles(*source) == 1U &&
+            TestAccess::facts(*source).queue_depth == pending_before.queue_depth &&
+            TestAccess::facts(*source).latest_receipt_sequence == pending_before.latest_receipt_sequence,
+            "Phase2 owner pre-native guard sees queued Leader destroy without consuming/reordering it");
         const auto target_result = TestAccess::drain(*source);
         expect(target_result.events.size() == 1U &&
                    target_result.events.front().kind ==
@@ -481,12 +486,17 @@ void test_target_destroy_and_unrelated_destroy() {
             event(EVENT_OBJECT_DESTROY, windows.unrelated(), 78U));
         expect(windows.destroy_unrelated(),
                "test unrelated window is destroyed before owner drain");
+        expect(TestAccess::pending_destroyed_roles(*unrelated_source) == 0U,
+            "unrelated frame destroy never invalidates an authorized frame");
         const auto unrelated_result = TestAccess::drain(*unrelated_source);
         expect(unrelated_result.events.empty() &&
                    unrelated_result.facts.ignored_other_window_count == 1U &&
                    unrelated_result.facts.poison ==
                        explorer::ExplorerGlueEventSourcePoison::None,
                "unrelated destroy is ignored without changing source state");
+        TestAccess::enqueue(*unrelated_source, event(EVENT_OBJECT_DESTROY, windows.follower(), 79U));
+        expect(TestAccess::pending_destroyed_roles(*unrelated_source) == 2U,
+            "queued Follower destroy is independently visible before native registration");
     }
 }
 
@@ -902,8 +912,44 @@ void test_opt_in_overflow_keeps_original_bounded_evidence(
 
 } // namespace
 
+namespace {
+void test_profile_notification_edges(const TestWindows& windows) {
+    std::int64_t tick = 100;
+    explorer::ExplorerGlueProfiler profiler([](void* p) noexcept {
+        return ++*static_cast<std::int64_t*>(p);
+    }, &tick);
+    auto source = TestAccess::create(
+        binding(windows.leader(), explorer::ExplorerGlueWindowRole::Leader, 1U, 101U),
+        binding(windows.follower(), explorer::ExplorerGlueWindowRole::Follower, 2U, 102U),
+        8U, true, true, &profiler);
+    auto first = event(EVENT_SYSTEM_MOVESIZESTART, windows.leader());
+    first.callback_qpc = 90;
+    first.ctrl_callback = {true, true, true, false};
+    TestAccess::enqueue(*source, first);
+    auto next = event(EVENT_OBJECT_LOCATIONCHANGE, windows.leader());
+    next.callback_qpc = 95;
+    TestAccess::enqueue(*source, next);
+    const auto drained = TestAccess::drain(*source);
+    expect(drained.events.size() == 2 && drained.events[0].notification_id == 1 &&
+        !drained.events[0].notification_inherited && drained.events[1].notification_id == 1 &&
+        drained.events[1].notification_inherited, "one real post edge, later receipt inherits pending notification");
+    expect(profiler.notifications().size() == 1 && profiler.clock_reads() == 1 &&
+        profiler.notifications()[0].trigger_receipt == 1 &&
+        profiler.notifications()[0].dispatch_qpc == 0, "no per-receipt fake notification or dispatch timestamp");
+    TestAccess::enqueue(*source, next);
+    const auto again = TestAccess::drain(*source);
+    expect(again.events.size() == 1 && again.events[0].notification_id == 2 &&
+        !again.events[0].notification_inherited && profiler.notifications().size() == 2,
+        "cleared pending edge gets a new bounded notification identity");
+    profiler.dispatched(1);
+    expect(profiler.valid() && TestAccess::facts(*source).overflow_count == 0,
+        "delayed observed dispatch does not rewrite the earlier drain or change delivery semantics");
+}
+}
+
 int main() {
     const TestWindows windows;
+    test_profile_notification_edges(windows);
     test_filter_and_lifecycle(windows);
     test_noise_burst_never_consumes_target_queue(windows);
     test_queue_overflow_is_poison(windows);

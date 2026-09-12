@@ -61,6 +61,8 @@ struct ExplorerGlueEventSource::RawReceipt final {
     std::uint64_t sequence{};
     std::int64_t callback_qpc{};
     CtrlSample ctrl_callback;
+    std::uint64_t notification_id{};
+    bool notification_inherited{};
 };
 
 struct ExplorerGlueEventSource::HookSlot final {
@@ -82,7 +84,8 @@ ExplorerGlueEventSource::ExplorerGlueEventSource(
     const std::size_t queue_capacity,
     const DeliveryMode mode,
     const bool synthetic_notification_succeeds,
-    const bool capture_interaction_evidence)
+    const bool capture_interaction_evidence,
+    ExplorerGlueProfiler* const profiler)
     : leader_(leader),
       follower_(follower),
       owner_thread_id_(GetCurrentThreadId()),
@@ -90,6 +93,7 @@ ExplorerGlueEventSource::ExplorerGlueEventSource(
       delivery_mode_(mode),
       synthetic_notification_succeeds_(synthetic_notification_succeeds),
       capture_interaction_evidence_(capture_interaction_evidence),
+      profiler_(profiler),
       queue_(queue_capacity == 0U
                  ? nullptr
                  : std::make_unique<RawReceipt[]>(queue_capacity)),
@@ -343,14 +347,14 @@ void ExplorerGlueEventSource::stop_synthetic(
     }
 }
 
-bool ExplorerGlueEventSource::post_owner_notification() noexcept {
+bool ExplorerGlueEventSource::post_owner_notification(const std::uint64_t notification_id) noexcept {
     if (delivery_mode_ == DeliveryMode::Synthetic) {
         return synthetic_notification_succeeds_;
     }
     return PostThreadMessageW(owner_thread_id_,
                               notification_message(),
                               static_cast<WPARAM>(notification_cookie_),
-                              0) != FALSE;
+                              static_cast<LPARAM>(notification_id)) != FALSE;
 }
 
 void CALLBACK ExplorerGlueEventSource::win_event_callback(
@@ -463,11 +467,20 @@ void ExplorerGlueEventSource::receive_raw_event(
 
     if (!notification_pending_) {
         notification_pending_ = true;
-        if (!post_owner_notification()) {
+        if (profiler_) {
+            active_notification_id_ = profiler_->notification(sequence, callback_qpc);
+        }
+        queue_[tail].notification_id = active_notification_id_;
+        const bool posted = post_owner_notification(active_notification_id_);
+        if (profiler_) profiler_->posted(active_notification_id_, posted);
+        if (!posted) {
             notification_pending_ = false;
             ++notification_failure_count_;
             mark_poison(ExplorerGlueEventSourcePoison::NotificationFailure);
         }
+    } else if (profiler_) {
+        queue_[tail].notification_id = active_notification_id_;
+        queue_[tail].notification_inherited = true;
     }
     callback_in_progress_ = false;
 }
@@ -494,6 +507,19 @@ ExplorerGlueEventSource::find_hook_slot(
     return nullptr;
 }
 
+std::uint8_t ExplorerGlueEventSource::pending_destroyed_roles() const noexcept {
+    if (GetCurrentThreadId() != owner_thread_id_) return 3U;
+    std::uint8_t roles = 0;
+    for (std::size_t i = 0; i < queue_size_; ++i) {
+        const auto& receipt = queue_[(queue_head_ + i) % queue_capacity_];
+        if (receipt.event != EVENT_OBJECT_DESTROY || receipt.object_id != OBJID_WINDOW ||
+            receipt.child_id != CHILDID_SELF) continue;
+        const auto* binding = find_binding(receipt.window);
+        if (binding) roles |= binding->role == ExplorerGlueWindowRole::Leader ? 1U : 2U;
+    }
+    return roles;
+}
+
 ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
     ExplorerGlueEventDrainResult result;
     if (GetCurrentThreadId() != owner_thread_id_) {
@@ -511,6 +537,7 @@ ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
 
     drain_in_progress_ = true;
     notification_pending_ = false;
+    active_notification_id_ = 0;
     result.events.reserve(queue_size_);
 
     while (queue_size_ != 0U) {
@@ -562,7 +589,9 @@ ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
                  receipt.event_thread,
                  receipt.event_time,
                  receipt.callback_qpc,
-                 receipt.ctrl_callback});
+                 receipt.ctrl_callback,
+                 receipt.notification_id,
+                 receipt.notification_inherited});
             ++accepted_count_;
             continue;
         }
@@ -590,7 +619,9 @@ ExplorerGlueEventDrainResult ExplorerGlueEventSource::drain_owner_queue() {
              receipt.event_thread,
              receipt.event_time,
              receipt.callback_qpc,
-             receipt.ctrl_callback});
+             receipt.ctrl_callback,
+             receipt.notification_id,
+             receipt.notification_inherited});
         ++accepted_count_;
     }
 
@@ -641,7 +672,8 @@ detail::ExplorerGlueEventSourceTestAccess::create(
     const ExplorerGlueEventSourceTestBinding follower,
     const std::size_t queue_capacity,
     const bool notification_succeeds,
-    const bool capture_interaction_evidence) {
+    const bool capture_interaction_evidence,
+    ExplorerGlueProfiler* const profiler) {
     const ExplorerGlueEventSource::NativeTargetBinding native_leader{
         leader.window,
         leader.process_id,
@@ -664,7 +696,8 @@ detail::ExplorerGlueEventSourceTestAccess::create(
                                     queue_capacity,
                                     ExplorerGlueEventSource::DeliveryMode::Synthetic,
                                     notification_succeeds,
-                                    capture_interaction_evidence));
+                                    capture_interaction_evidence,
+                                    profiler));
 }
 
 void detail::ExplorerGlueEventSourceTestAccess::enqueue(

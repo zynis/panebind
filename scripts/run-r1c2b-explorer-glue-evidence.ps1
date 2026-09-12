@@ -31,16 +31,22 @@ param(
     [int] $ValidationObserverExitCode = 0,
 
     # Fixed profiles only. The default preserves the sealed R1-C2B contract.
-    [ValidateSet('R1C2B', 'R1C3A')]
-    [string] $EvidenceProfile = 'R1C2B'
+    [ValidateSet('R1C2B', 'R1C3A', 'R1C3B', 'R1C3B2', 'R1C3B3')]
+    [string] $EvidenceProfile = 'R1C2B',
+    [switch] $VerboseOperations
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$ctrlProfile = $EvidenceProfile -eq 'R1C3A'
-$roundName = if ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
-$evidenceSubdirectory = if ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
-$expectedSchema = if ($ctrlProfile) {
+$phase3Profile = $EvidenceProfile -eq 'R1C3B3'
+$phase2Profile = $EvidenceProfile -in @('R1C3B2','R1C3B3')
+$stageProfile = $EvidenceProfile -in @('R1C3B','R1C3B2','R1C3B3')
+$ctrlProfile = $EvidenceProfile -ne 'R1C2B'
+$roundName = if ($stageProfile) { 'R1-C3B' } elseif ($ctrlProfile) { 'R1-C3A' } else { 'R1-C2B' }
+$evidenceSubdirectory = if ($stageProfile) { 'uat/r1c3b' } elseif ($ctrlProfile) { 'uat/r1c3a' } else { 'uat/r1c2b' }
+$expectedSchema = if ($phase3Profile) { 'panebind.r1c3b3.explorer_glue_profile' } elseif ($phase2Profile) { 'panebind.r1c3b2.explorer_glue_profile' } elseif ($stageProfile) {
+    'panebind.r1c3b.explorer_glue_profile'
+} elseif ($ctrlProfile) {
     'panebind.r1c3a.explorer_ctrl_glue'
 } else { 'panebind.r1c2b.explorer_glue' }
 $ctrlNotActivated = $false
@@ -765,6 +771,9 @@ function Assert-LayoutPreviewEvidence {
 if ($ctrlProfile) {
     . (Join-Path $PSScriptRoot 'r1c3a-evidence-validation.ps1')
 }
+if ($stageProfile) {
+    . (Join-Path $PSScriptRoot 'r1c3b-profile-validation.ps1')
+}
 
 $observerProcess = $null
 $observerExitCode = $null
@@ -775,7 +784,9 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
     }
 
     $observerPath = Resolve-R1C2BExecutable -FileName 'panebind-observer.exe'
-    $harnessFile = if ($ctrlProfile) {
+    $harnessFile = if ($stageProfile) {
+        if ($phase3Profile) { 'panebind-explorer-vdm-glue-harness.exe' } elseif ($phase2Profile) { 'panebind-explorer-optimized-glue-harness.exe' } else { 'panebind-explorer-profile-glue-harness.exe' }
+    } elseif ($ctrlProfile) {
         'panebind-explorer-ctrl-glue-harness.exe'
     } else { 'panebind-explorer-glue-harness.exe' }
     $harnessPath = Resolve-R1C2BExecutable -FileName $harnessFile
@@ -823,12 +834,10 @@ if ($PSCmdlet.ParameterSetName -eq 'Run') {
         try {
             # Deliberately run in the inherited foreground console. Do not pipe
             # or redirect stdin/stdout: consent must originate in ReadConsoleW.
-            & $harnessPath `
-                '--interactive-consent-test' `
-                '--evidence-log' `
-                $harnessEvidence `
-                '--timeout-seconds' `
-                $GlueTimeoutSeconds
+            $harnessArguments = @('--interactive-consent-test', '--evidence-log',
+                $harnessEvidence, '--timeout-seconds', [string]$GlueTimeoutSeconds)
+            if ($stageProfile) { $harnessArguments += '--external-observer-enabled' }
+            & $harnessPath @harnessArguments
             $harnessExitCode = $LASTEXITCODE
             $observerProcess.Refresh()
             $observerAliveAtHarnessExit = -not $observerProcess.HasExited
@@ -972,6 +981,10 @@ if ($ctrlProfile) {
         throw 'Ctrl activation evidence 不得含 Console Glue consent 或旧 Glue authority。'
     }
 }
+if ($stageProfile) {
+    $knownHarnessRecordKinds += @('profile_span', 'profile_quantum', 'profile_notification', 'profile_status')
+}
+if ($phase2Profile) { $knownHarnessRecordKinds += @('validation','validation_status') }
 $unknownKinds = @($harnessRecords | Where-Object {
     $knownHarnessRecordKinds -notcontains $_.record_kind
 })
@@ -1271,6 +1284,7 @@ if ($pair.result -eq 'BLOCKED') {
         'facts'
     )
     if ($ctrlProfile) { $forbiddenAfterPairKinds += @('pair_authority', 'activation_attempt') }
+    if ($stageProfile) { $forbiddenAfterPairKinds += @('profile_span','profile_quantum','profile_notification','profile_status') }
     $nativeApplyRecords = @($harnessRecords | Where-Object {
         $property = $_.PSObject.Properties['native_apply_attempted']
         $null -ne $property -and $property.Value -eq $true
@@ -2188,6 +2202,27 @@ if ($ctrlProfile) {
     Write-Output "Ctrl owner: $($ctrlEvidence.Attempt.ctrl_down_at_owner_processing)"
     Write-Output "CTRL_ACTIVATION_EVIDENCE_GATE: $($summary.ctrl_activation_evidence_gate)"
 }
+if ($stageProfile) {
+    try {
+        $profileLines=@(Assert-StageProfileEvidence -Records $harnessRecords -Startup $startup -Summary $summary -Facts $facts -Phase2:$phase2Profile -Phase3:$phase3Profile)
+        if ($VerboseOperations) { $profileLines } else {
+            $profileLines | Where-Object { $_ -notmatch '^(OP_PROFILE |QUEUE quantum=|PROFILE |MATCHED )' }
+        }
+        if ($phase2Profile) {
+            . (Join-Path $PSScriptRoot 'r1c3b-phase2-validation.ps1')
+            $frameLines=@(Assert-ConsentBoundProfileEvidence -Records $harnessRecords)
+            if ($VerboseOperations) { $frameLines } else { $frameLines | Where-Object { $_ -notmatch '^OP_VALIDATION ' } }
+            if ($phase3Profile) {
+                . (Join-Path $PSScriptRoot 'r1c3b-phase3-validation.ps1')
+                Assert-VdmProfileEvidence -Records $harnessRecords
+                Write-Phase3BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot
+            } else { Write-Phase2BaselineComparison -Records $harnessRecords -RepositoryRoot $repositoryRoot }
+        }
+    } catch {
+        Write-Output 'TIMING_PROFILE_GATE: FAIL'
+        throw
+    }
+}
 $expectedResult = if ($realtime.Gate -eq 'PASS') { 'PASS' } else { 'BLOCKED' }
 $expectedHarnessExit = if ($realtime.Gate -eq 'PASS') { 0 } else { 2 }
 $expectedReason = if ($ctrlNotActivated) { 'CTRL_NOT_DOWN_AT_START' }
@@ -2221,6 +2256,7 @@ Write-Output "$roundName $Configuration Explorer Glue evidence gate: PASS"
 Write-Output "Leader START/LOCATION/END: 1/$($externalLeaderLocation.Count)/1"
 Write-Output "Follower active LOCATION: $($externalFollowerLocation.Count)"
 Write-Output "Follower native applies: $($summary.follower_native_apply_count)"
+Write-Output 'Final geometry / restore: EXACT / EXACT'
 Write-Output "Suppressed/duplicate/missing: $($summary.suppressed_feedback_count)/$($summary.duplicate_feedback_count)/$($summary.missing_feedback_count)"
 Write-Output '两个 Explorer 均未自动关闭；请确认已自行关闭测试窗口。'
 Write-Output "原始 evidence 已保存到 $evidenceSubdirectory/。"

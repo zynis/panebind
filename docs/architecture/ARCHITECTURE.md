@@ -1,5 +1,54 @@
 # PaneBind Architecture Baseline
 
+## R1-C3B human interaction baseline — 2026-09-13
+
+The [human validation report](../reports/R1C3B_HUMAN_VALIDATION_REPORT.md)
+records C -> C+ -> between A/B in the validated two-Explorer Debug scenario.
+Runtime is frozen at 201f3c25cee49f7b2ea7af67063cfaf7df2d5725. Active inventory
+and active VDM creation are zero; every required desktop query remains fresh.
+The 177 applies / 175 distinct targets are two nonconsecutive historical
+geometry revisits with independent operation/ACK generations, not recursion
+or duplicate feedback. Further performance optimization is STOPPED.
+One Debug human UAT is the formal Phase 3 contract; Release is automated
+regression only. No generalized product, FPS or AquaGlue-equivalence claim.
+
+## R1-C3B Phase 3 — private VDM service lifetime
+
+[VDM lifetime design](../research/R1C3B_PHASE3_VDM_LIFETIME.md) changes only the
+opt-in Phase 3 Glue service acquisition lifetime. One owner-STA manager wrapper
+belongs to ExplorerGlueSession and is borrowed by its independently authorized
+Leader/Follower validations. It holds a balanced COM reference, releases the
+manager before CoUninitialize, closes after restore, and is destroyed before
+the target sessions on exception paths. No process-global COM singleton or
+cross-thread interface sharing is introduced.
+
+Cached: IVirtualDesktopManager interface instance. NOT cached:
+IsWindowOnCurrentVirtualDesktop result. Every required validation still queries
+the current authorized HWND with a fresh local BOOL and checks S_OK/true.
+False/create/query failure rejects eligibility; no active recreate/retry.
+C2A/legacy and default C2B/C3A/Phase1/Phase2 executables retain their original
+ephemeral manager path. Frame authority, anchor, location, security, geometry,
+monitor/DPI, feedback, Ctrl latch and owner scheduling remain unchanged.
+
+## R1-C3B Human Root amendment — 2026-09-10
+
+The [frame-authority decision](R1C3B_FRAME_AUTHORITY_DECISION.md) intentionally
+refines the opt-in Phase 2 Explorer Glue authority. The prior blocked proof is
+preserved and is not retroactively called equivalent to the old rule.
+
+Shell automation anchor, top-level native frame and PaneBind capability are
+distinct objects. Initial provisioning still requires unique, baseline-excluded,
+unambiguous selection. After issuance, extra same-frame entries are not new
+native authority. The original canonical anchor must stay live, at its nonce,
+and mapped to the exact authorized frame; no anchor replacement or rehost
+transfer. Different HWNDs never inherit authority through a matching location.
+
+USER_PREEXISTING_WINDOWS_TOUCHED=NO means no native operation on an unauthorized
+independent top-level frame HWND, not that authorized frames contain no other
+Shell tab/object. Old C2A/legacy/default harness behavior is not broadened by
+this opt-in implementation. Historical round descriptions below retain their
+original context; the decision specifies the amended lifecycle and scope.
+
 Status: R1-A platform-neutral algorithm baseline, the unchanged R1-B
 owned-window operations boundary, the implemented R1-C1 companion-process
 operations boundary, the sealed R1-C2A Explorer single-translation boundary,
@@ -681,12 +730,39 @@ Implementation, human acceptance and main integration are separate gates; see
 [research](../research/R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md) and
 [Debug handoff](../reports/R1C3A_UAT_HANDOFF.md).
 
+### R1-C3B Phase 1 — opt-in hot-path profiling
+
+The dedicated profile harness adds bounded numeric QPC spans, quantum/backlog
+envelopes and real notification identities to the unchanged interaction path.
+Default C2B/C3A paths leave full profiling OFF. Capture subphases preserve every
+existing predicate and their order; Core/activation/coalescing/native flags/
+feedback/END/restore remain unchanged. No live-state cache or dedup is applied.
+
+Nested inclusive spans are not additive costs. The runner validates the span
+forest, exact receipt/operation/quantum joins, full capture stages, queue math,
+notification inheritance and missing dispatch. It calculates exclusive stage
+totals and operation-local breakdowns without adding shared quantum captures
+again. Source watermarks measure delivered callbacks, not OS generation.
+Serialization is after unhook/restore. Overflow or invalid profile evidence
+cannot claim timing PASS or grant native authority.
+
+Profiling ON adds a QPC at actual notification post and small fixed metadata;
+no heavy callback work is added. OFF/ON seeded behavior equivalence and a
+CPU-only perturbation fixture are tested; real Explorer perturbation/hotspots
+remain pending one Debug profile UAT with independent Observer ON.
+No performance improvement or root cause is claimed before that evidence.
+
+See [hot-path map/risk matrix](../reports/R1C3B_HOT_PATH_MAP.md),
+[research](../research/R1C3B_SMOOTHNESS_RESEARCH.md),
+[execution](../reports/R1C3B_EXECUTION_REPORT.md), and
+[profile handoff](../reports/R1C3B_PROFILE_UAT_HANDOFF.md).
+
 ### Future interaction roadmap — NOT IMPLEMENTED
 
-R1-C3B — Interaction Timing & Smoothness Baseline is required next, but has
-not started. Study timing/cadence and the subjective C/C observations before
-choosing changes. Do not infer a safety-validation shortcut from aggregate
-latency data. Input remains intent/wake; actual Leader geometry remains truth.
+R1-C3B's three human phases are complete; the Phase 3 Debug outcome is between
+A and B. Further performance work is stopped. Remaining Shell/placement/loop
+ideas are future polish only, not authorization for another phase. Input
+remains intent/wake; actual Leader geometry remains truth.
 
 Future Z-order product goal, **within the normal Z-order band**: the Leader
 is the highest member of the active Glue component; Followers immediately
@@ -701,6 +777,10 @@ The architecture principle is that Glue component size **must be bounded**.
 The actual default product limit is **NOT DECIDED**. Future 2/4/8-member
 fixture measurements must inform it; today's exact-two-window UAT boundary
 is not a guessed product-wide limit. No additional members are implemented.
+
+Future N-window movement should first research one quantum producing the
+complete Follower target set, followed by BeginDeferWindowPos,
+DeferWindowPos per member and EndDeferWindowPos. This batching is not implemented.
 
 Mixed-DPI / multi-monitor remains **NOT TESTED**. Future research must cover
 PMv2, WM_DPICHANGED, monitor transitions, DWM visible versus positioning
@@ -1016,6 +1096,13 @@ R1C3A_RELEASE_INTERACTIVE_UAT = PASS
 R1C3A_RUNTIME_GATE = PASS
 HUMAN_SMOOTHNESS_DEBUG = C
 HUMAN_SMOOTHNESS_RELEASE = C
-SMOOTHNESS_OPTIMIZATION_REQUIRED = YES
-R1C3B = NOT STARTED
+SMOOTHNESS_OPTIMIZATION_REQUIRED_AT_R1C3A_SEAL = YES
+R1C3B_PHASE1_PROFILE_READY = YES
+R1C3B_HUMAN_VALIDATION = PASS
+R1C3B_PHASE1_HUMAN_SMOOTHNESS = C
+R1C3B_PHASE2_HUMAN_SMOOTHNESS = C_PLUS
+R1C3B_PHASE3_HUMAN_SMOOTHNESS = A_B
+R1C3B_ROOT_CAUSE = GLOBAL_SHELL_INVENTORY_REVALIDATION
+R1C3B_FURTHER_PERFORMANCE_OPTIMIZATION = STOPPED
+R1C4 = NOT STARTED
 ```

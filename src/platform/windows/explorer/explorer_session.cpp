@@ -4,6 +4,7 @@
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
 #include "platform/windows/explorer/explorer_shell_events.h"
+#include "platform/windows/explorer/explorer_consent_validation.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -424,6 +425,23 @@ CandidateEvaluation evaluate_candidate_inventory(
                         ? ExplorerEligibilityReason::Eligible
                         : ExplorerEligibilityReason::LocationMismatch;
     return result;
+}
+
+bool consent_bound_inventory_matches(const InventoryModel& inventory,
+    const InventoryFingerprint& original) noexcept {
+    if (!inventory.complete || original.native_key == 0 || original.shell_entry_count != 1) return false;
+    std::size_t matched = 0;
+    for (const auto& entry : inventory.windows) {
+        if (entry.native_key == original.native_key) {
+            // Human Root amendment: initial selection stays single-entry,
+            // current boundary audit only proves the original frame remains.
+            // The independently retained canonical anchor proves location;
+            // sibling entry cardinality/locations are not frame authority.
+            if (entry.shell_entry_count == 0) return false;
+            ++matched;
+        }
+    }
+    return matched == 1;
 }
 
 ConsentCandidateEvaluation evaluate_consent_candidate_inventory(
@@ -902,7 +920,7 @@ ExplorerEligibilityReason evaluate_eligibility_model(
     if (facts.app_container) {
         return ExplorerEligibilityReason::AppContainer;
     }
-    if (!facts.shell_entry_unique) {
+    if (!facts.shell_entry_unique && !facts.consent_frame_bound) {
         return ExplorerEligibilityReason::AmbiguousCandidate;
     }
     if (!facts.location_exact) {
@@ -1577,6 +1595,10 @@ struct ExplorerTestSession::Impl final {
     std::uint8_t glue_role{};
     std::size_t glue_native_operation_count{};
     bool glue_bound{};
+    bool glue_consent_bound_contract{};
+    bool glue_consent_fast_active{};
+    ExplorerVirtualDesktopManager* glue_virtual_desktop_manager{}; // borrowed from private Glue owner
+    std::string_view glue_validation_invalidation{"none"};
     bool closing{};
 
     ~Impl() {
@@ -2079,11 +2101,23 @@ template <typename ImplType>
 }
 
 template <typename ImplType>
-[[nodiscard]] NativeValidationResult validate_native_target(
+[[nodiscard]] NativeValidationResult validate_native_target_inner(
     ImplType& impl,
     const ExplorerWindowToken* token,
     const bool initialize_anchor,
-    const bool wait_for_shell_activity = true) {
+    const bool wait_for_shell_activity = true,
+    ExplorerGlueProfiler* const profile = nullptr) {
+    // Only private Glue callers opt out of the public one-shot waiting path.
+    // Public C2A/legacy calls retain their complete original selection contract.
+    const bool bound = impl.glue_consent_bound_contract && !wait_for_shell_activity;
+    const bool fast = consent_fast_mode(bound, impl.glue_consent_fast_active);
+    GlueProfileScope full_profile(profile, fast ? GlueProfileStage::ConsentBoundValidation : GlueProfileStage::FullValidation);
+    GlueProfileScope stage_profile(profile, GlueProfileStage::TokenLedger);
+    if (bound && (initialize_anchor || (fast && !impl.glue_bound) ||
+        impl.authority_kind != ExplorerAuthorityKind::UserConsent || token == nullptr ||
+        impl.glue_validation_invalidation != "none")) {
+        return {ExplorerEligibilityReason::TargetInvalidated, std::nullopt, std::nullopt};
+    }
     if (GetCurrentThreadId() != impl.controller_thread_id) {
         return {ExplorerEligibilityReason::WrongThread,
                 std::nullopt,
@@ -2105,6 +2139,7 @@ template <typename ImplType>
     }
     bool shell_entry_unique = false;
     bool current_exact_target_location = false;
+    stage_profile.next(GlueProfileStage::ShellObservation);
     if (impl.authority_kind ==
         ExplorerAuthorityKind::LegacyAutoProvisionDiagnostic) {
     if (impl.closing || impl.window == nullptr ||
@@ -2334,6 +2369,8 @@ template <typename ImplType>
             browser.quit_count == 0U && !browser.latest_activity_was_quit &&
             !observation_facts.navigation_changed_since_binding();
         if (!observation_healthy) {
+            if (bound) impl.glue_validation_invalidation = !observation_facts.canonical_identity_matches
+                ? "canonical_identity_changed" : consent_browser_invalidation(browser, observation_facts.navigation_epoch_at_binding);
             return {observation_facts.navigation_changed_since_binding()
                         ? ExplorerEligibilityReason::TargetInvalidated
                         : ExplorerEligibilityReason::ShellEventStreamInvalid,
@@ -2349,6 +2386,7 @@ template <typename ImplType>
         if (!observed_window.succeeded() ||
             observed_window.window_key !=
                 reinterpret_cast<detail::NativeWindowKey>(impl.window)) {
+            if (bound) impl.glue_validation_invalidation = "hwnd_changed";
             return {ExplorerEligibilityReason::WindowDestroyed,
                     std::nullopt,
                     observed_window.diagnostic.has_value()
@@ -2361,8 +2399,19 @@ template <typename ImplType>
                               "consent-bound Shell object changed HWND")}};
         }
 
+        if (!fast) {
+        stage_profile.next(GlueProfileStage::ShellInventory);
+        GlueProfileScope fallback_profile(bound ? profile : nullptr, GlueProfileStage::GlobalInventoryFallback);
+        fallback_profile.end(); // mode marker; inventory exclusive time retains the actual enumeration cost
         const auto inventory = capture_shell_window_inventory();
         auto inventory_model = make_inventory_model(inventory);
+        stage_profile.next(GlueProfileStage::ShellLocation);
+        if (bound) {
+            if (!detail::consent_bound_inventory_matches(inventory_model, *impl.consent_candidate_fingerprint)) {
+                impl.glue_validation_invalidation = "shell_stream_invalid";
+                return {ExplorerEligibilityReason::TargetInvalidated, std::nullopt, std::nullopt};
+            }
+        } else {
         if (impl.glue_peer_native_key != 0U) {
             const auto peer = std::find_if(
                 inventory_model.windows.begin(),
@@ -2424,6 +2473,10 @@ template <typename ImplType>
                         "Explorer consent inventory",
                         "unique non-baseline exact-location candidate did not remain stable")};
         }
+        }
+        } else {
+            stage_profile.next(GlueProfileStage::ShellLocation);
+        }
 
         const auto live_location =
             impl.consent_observation->current_location();
@@ -2444,9 +2497,19 @@ template <typename ImplType>
                               "Explorer consent location",
                               "consent target navigated away from the nonce directory")}};
         }
-        shell_entry_unique = true;
+        shell_entry_unique = !bound;
+        if (bound) {
+            impl.glue_validation_invalidation = consent_frame_anchor_invalidation({
+                ledger_entry.has_value(), observation_facts.canonical_identity_matches,
+                observed_window.window_key, reinterpret_cast<std::uintptr_t>(impl.window),
+                current_exact_target_location, impl.consent_observation->receipt_facts(),
+                observation_facts.navigation_epoch_at_binding});
+            if (impl.glue_validation_invalidation != "none")
+                return {ExplorerEligibilityReason::ShellEventStreamInvalid, std::nullopt, std::nullopt};
+        }
     }
 
+    stage_profile.next(GlueProfileStage::NativeIdentity);
     detail::EligibilityModelFacts facts{};
     facts.window_exists = IsWindow(impl.window) != FALSE;
     facts.process_alive =
@@ -2464,12 +2527,14 @@ template <typename ImplType>
     facts.thread_id_stable =
         current_thread_id != 0U && current_thread_id == impl.thread_id;
 
+    stage_profile.next(GlueProfileStage::ProcessImage);
     const auto image = validate_explorer_image(impl.process.get());
     facts.image_matches =
         image.matched &&
         (initialize_anchor ||
          ordinal_path_equal(image.actual_path, impl.process_image_path));
 
+    stage_profile.next(GlueProfileStage::WindowStructure);
     const auto class_name = query_window_class(impl.window);
     facts.class_allowed = class_name.has_value() &&
                           allowed_explorer_class(*class_name) &&
@@ -2486,6 +2551,7 @@ template <typename ImplType>
     facts.has_owner = GetWindow(impl.window, GW_OWNER) != nullptr;
     facts.visible = style_available && IsWindowVisible(impl.window) != FALSE;
 
+    stage_profile.next(GlueProfileStage::WindowState);
     DWORD cloak = 0U;
     const HRESULT cloak_result = DwmGetWindowAttribute(impl.window,
                                                         DWMWA_CLOAKED,
@@ -2495,22 +2561,41 @@ template <typename ImplType>
     facts.minimized = IsIconic(impl.window) != FALSE;
     facts.maximized = IsZoomed(impl.window) != FALSE;
 
+    stage_profile.next(GlueProfileStage::VirtualDesktop);
+    HRESULT desktop_query = E_FAIL;
+    auto* retained_desktop = !wait_for_shell_activity && impl.glue_bound
+        ? impl.glue_virtual_desktop_manager : nullptr;
+    if (retained_desktop) {
+        const auto answer = retained_desktop->query(impl.window, profile);
+        desktop_query = answer.result;
+        facts.current_virtual_desktop = answer.eligible();
+    } else {
+    const bool vdm_profile = consent_validation_audit && consent_validation_audit->vdm_enabled;
+    GlueProfileScope acquire_profile(vdm_profile ? profile : nullptr, GlueProfileStage::VirtualDesktopManagerAcquire);
     IVirtualDesktopManager* virtual_desktop = nullptr;
     BOOL on_current_desktop = FALSE;
+    audit_vdm_create(false);
     const HRESULT desktop_create = CoCreateInstance(
         CLSID_VirtualDesktopManager,
         nullptr,
         CLSCTX_INPROC_SERVER,
         IID_PPV_ARGS(&virtual_desktop));
-    HRESULT desktop_query = desktop_create;
+    acquire_profile.end();
+    desktop_query = desktop_create;
     if (desktop_create == S_OK && virtual_desktop != nullptr) {
+        GlueProfileScope query_profile(vdm_profile ? profile : nullptr, GlueProfileStage::VirtualDesktopQuery);
+        audit_vdm_query();
         desktop_query = virtual_desktop->IsWindowOnCurrentVirtualDesktop(
             impl.window, &on_current_desktop);
+        query_profile.end();
+        audit_vdm_release(false);
         virtual_desktop->Release();
     }
     facts.current_virtual_desktop =
         desktop_query == S_OK && on_current_desktop != FALSE;
+    }
 
+    stage_profile.next(GlueProfileStage::ProcessSecurity);
     const auto current_controller_security =
         query_process_security(GetCurrentProcess());
     const auto current_target_security =
@@ -2554,16 +2639,19 @@ template <typename ImplType>
     }
 
     facts.shell_entry_unique = shell_entry_unique;
+    facts.consent_frame_bound = bound;
     facts.location_exact =
         current_exact_target_location &&
         (impl.authority_kind == ExplorerAuthorityKind::UserConsent ||
          impl.navigation ==
              detail::LeaseNavigationDisposition::ExactExpectedTarget);
 
+    stage_profile.next(GlueProfileStage::PositioningBounds);
     RECT positioning_native{};
     RECT visible_native{};
     const bool positioning_ok =
         GetWindowRect(impl.window, &positioning_native) != FALSE;
+    stage_profile.next(GlueProfileStage::VisibleFrame);
     const HRESULT visible_result = DwmGetWindowAttribute(
         impl.window,
         DWMWA_EXTENDED_FRAME_BOUNDS,
@@ -2577,6 +2665,7 @@ template <typename ImplType>
                              : std::nullopt;
     facts.geometry_available = positioning.has_value() && visible.has_value();
 
+    stage_profile.next(GlueProfileStage::MonitorDpi);
     const DPI_AWARENESS_CONTEXT window_dpi_context =
         GetWindowDpiAwarenessContext(impl.window);
     const DPI_AWARENESS_CONTEXT caller_dpi_context =
@@ -2616,6 +2705,15 @@ template <typename ImplType>
                                              .monitor_work_area);
     facts.dpi_stable = initialize_anchor || dpi == impl.initial_dpi;
 
+    stage_profile.next(GlueProfileStage::EligibilityFinalize);
+    if (bound) {
+        // A later COM desktop/security query may have admitted browser receipts.
+        const auto epoch = impl.consent_observation->navigation_epoch_at_binding();
+        impl.glue_validation_invalidation = consent_browser_invalidation(
+            impl.consent_observation->receipt_facts(), epoch);
+        if (impl.glue_validation_invalidation != "none")
+            return {ExplorerEligibilityReason::ShellEventStreamInvalid, std::nullopt, std::nullopt};
+    }
     const ExplorerEligibilityReason reason =
         impl.authority_kind == ExplorerAuthorityKind::UserConsent
             ? detail::evaluate_consent_live_eligibility(
@@ -2684,6 +2782,66 @@ template <typename ImplType>
             std::nullopt};
 }
 
+template <typename ImplType>
+[[nodiscard]] NativeValidationResult validate_native_target(
+    ImplType& impl, const ExplorerWindowToken* token, bool initialize_anchor,
+    bool wait_for_shell_activity = true, ExplorerGlueProfiler* profile = nullptr) {
+    auto* audit = consent_validation_audit;
+    ConsentValidationRecord record;
+    if (audit) {
+        record.phase = audit->phase;
+        record.fast = consent_fast_mode(impl.glue_consent_bound_contract && !wait_for_shell_activity, impl.glue_consent_fast_active);
+        record.native_key = reinterpret_cast<std::uintptr_t>(impl.window);
+        record.follower = impl.glue_role == 2U;
+        record.role_bound = impl.glue_role == 1U || impl.glue_role == 2U;
+        record.capability_generation = token ? token->generation() : 0;
+        record.consent_generation = token ? token->consent_generation() : 0;
+        record.inventory_calls = audit->total_inventory_calls;
+        record.manager_create_calls = audit->total_manager_creates;
+        record.virtual_desktop_query_calls = audit->total_desktop_queries;
+        record.retained_vdm = !wait_for_shell_activity && impl.glue_bound && impl.glue_virtual_desktop_manager;
+        if (profile) {
+            record.span_id = profile->spans().size() + 1;
+            const auto c = profile->context();
+            record.quantum_id = c.quantum_id;
+            record.operation_generation = c.operation_generation;
+            record.source_receipt = c.source_receipt;
+        }
+    }
+    auto result = validate_native_target_inner(impl, token, initialize_anchor, wait_for_shell_activity, profile);
+    const bool success = result.reason == ExplorerEligibilityReason::Eligible;
+    std::string_view failure = impl.glue_validation_invalidation;
+    if (!success && failure == "none") {
+        switch (result.reason) {
+        case ExplorerEligibilityReason::StaleToken:
+        case ExplorerEligibilityReason::ConsentGenerationMismatch: failure = "token_generation_changed"; break;
+        case ExplorerEligibilityReason::LocationMismatch: failure = "location_changed"; break;
+        case ExplorerEligibilityReason::ShellEventStreamInvalid: failure = "browser_stream_invalid"; break;
+        case ExplorerEligibilityReason::MonitorChanged:
+        case ExplorerEligibilityReason::MonitorUnavailable: failure = "monitor_changed"; break;
+        case ExplorerEligibilityReason::DpiChanged:
+        case ExplorerEligibilityReason::DpiContextMismatch: failure = "dpi_changed"; break;
+        case ExplorerEligibilityReason::Invisible:
+        case ExplorerEligibilityReason::Cloaked:
+        case ExplorerEligibilityReason::Minimized:
+        case ExplorerEligibilityReason::Maximized:
+        case ExplorerEligibilityReason::WrongVirtualDesktop: failure = "window_state_invalid"; break;
+        default: failure = "native_identity_changed"; break;
+        }
+    }
+    if (!success && impl.glue_consent_bound_contract) impl.glue_validation_invalidation = failure;
+    if (audit) {
+        record.inventory_calls = audit->total_inventory_calls - record.inventory_calls;
+        record.manager_create_calls = audit->total_manager_creates - record.manager_create_calls;
+        record.virtual_desktop_query_calls = audit->total_desktop_queries - record.virtual_desktop_query_calls;
+        record.succeeded = success;
+        record.reason = success ? "none" : failure;
+        audit->record(record);
+        if (!success) { GlueProfileScope invalidation(profile, GlueProfileStage::ValidationInvalidation); }
+    }
+    return result;
+}
+
 [[nodiscard]] ExplorerEligibilityReason ledger_failure_reason(
     const detail::ExplorerLedgerIssueStatus status) noexcept {
     switch (status) {
@@ -2716,9 +2874,10 @@ template <typename ImplType>
 [[nodiscard]] NativeValidationResult validate_or_retire(
     ImplType& impl,
     const ExplorerWindowToken& token,
-    const bool wait_for_shell_activity = true) {
+    const bool wait_for_shell_activity = true,
+    ExplorerGlueProfiler* const profile = nullptr) {
     auto validation = validate_native_target(impl, &token, false,
-                                              wait_for_shell_activity);
+                                              wait_for_shell_activity, profile);
     if (validation.reason != ExplorerEligibilityReason::Eligible) {
         retire_target(impl);
     }
@@ -4588,7 +4747,8 @@ detail::ExplorerGluePairInspection
 detail::ExplorerGlueSessionBridge::inspect_pair(
     ExplorerTestSession& leader,
     ExplorerTestSession& follower,
-    const bool retain_peer_exception) {
+    const bool retain_peer_exception,
+    const bool frame_authority) {
     ExplorerGluePairInspection result;
     if (leader.impl_ == nullptr || follower.impl_ == nullptr) {
         result.diagnostic = adapter_diagnostic(
@@ -4686,7 +4846,16 @@ detail::ExplorerGlueSessionBridge::inspect_pair(
     }
 
     auto follower_live =
-        validate_or_retire(follower_impl, *follower_impl.issued_token);
+        [&]() {
+            // Both strict issuance prefixes, frame distinction and baseline
+            // exclusion were verified above. This never issues/rebinds tokens.
+            if (frame_authority) {
+                leader_impl.glue_consent_bound_contract = true;
+                follower_impl.glue_consent_bound_contract = true;
+            }
+            return validate_or_retire(follower_impl, *follower_impl.issued_token,
+                !follower_impl.glue_consent_bound_contract);
+        }();
     if (follower_live.reason != ExplorerEligibilityReason::Eligible ||
         !follower_live.snapshot.has_value()) {
         result.reason = glue_reason_from_eligibility(follower_live.reason);
@@ -4704,7 +4873,8 @@ detail::ExplorerGlueSessionBridge::inspect_pair(
     auto leader_live = [&]() {
         try {
             return validate_or_retire(leader_impl,
-                                      *leader_impl.issued_token);
+                                      *leader_impl.issued_token,
+                                      !leader_impl.glue_consent_bound_contract);
         } catch (...) {
             clear_leader_peer();
             throw;
@@ -4835,10 +5005,95 @@ detail::ExplorerGlueSessionBridge::bind_pair(
     return result;
 }
 
+bool detail::ExplorerGlueSessionBridge::attach_virtual_desktop_manager(
+    const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
+    ExplorerTestSession& follower, ExplorerVirtualDesktopManager& manager) noexcept {
+    if (!leader.impl_ || !follower.impl_ || manager.owner_thread() != GetCurrentThreadId() ||
+        !glue_binding_matches(*leader.impl_, seal, ExplorerGlueWindowRole::Leader) ||
+        !glue_binding_matches(*follower.impl_, seal, ExplorerGlueWindowRole::Follower) ||
+        !leader.impl_->glue_consent_bound_contract || !follower.impl_->glue_consent_bound_contract) return false;
+    leader.impl_->glue_virtual_desktop_manager = &manager;
+    follower.impl_->glue_virtual_desktop_manager = &manager;
+    return true;
+}
+
+bool detail::ExplorerGlueSessionBridge::activate_consent_bound(
+    const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
+    ExplorerTestSession& follower) noexcept {
+    if (!leader.impl_ || !follower.impl_ ||
+        !glue_binding_matches(*leader.impl_, seal, ExplorerGlueWindowRole::Leader) ||
+        !glue_binding_matches(*follower.impl_, seal, ExplorerGlueWindowRole::Follower) ||
+        !leader.impl_->glue_consent_bound_contract || !follower.impl_->glue_consent_bound_contract) return false;
+    return pair_receipts_healthy(seal, leader, follower);
+}
+
+void detail::ExplorerGlueSessionBridge::set_active_validation(
+    const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
+    ExplorerTestSession& follower, const bool active) noexcept {
+    const auto set = [&](ExplorerTestSession& target, ExplorerGlueWindowRole role) {
+        if (target.impl_ && glue_binding_matches(*target.impl_, seal, role))
+            target.impl_->glue_consent_fast_active = active && target.impl_->glue_consent_bound_contract;
+    };
+    set(leader, ExplorerGlueWindowRole::Leader);
+    set(follower, ExplorerGlueWindowRole::Follower);
+}
+
+bool detail::ExplorerGlueSessionBridge::pair_receipts_healthy(
+    const ExplorerGlueAuthoritySeal& seal, ExplorerTestSession& leader,
+    ExplorerTestSession& follower) noexcept {
+    const auto check = [&](ExplorerTestSession& target, ExplorerGlueWindowRole role) {
+        if (!target.impl_) return false;
+        auto& impl = *target.impl_;
+        std::string_view reason = impl.glue_validation_invalidation;
+        if (!glue_binding_matches(impl, seal, role)) reason = "token_generation_changed";
+        else if (!impl.consent_observation) reason = "browser_stream_invalid";
+        else if (reason == "none") reason = consent_browser_invalidation(
+            impl.consent_observation->receipt_facts(), impl.consent_observation->navigation_epoch_at_binding());
+        if (reason == "none") return true;
+        impl.glue_validation_invalidation = reason;
+        retire_target(impl);
+        if (consent_validation_audit) {
+            ConsentValidationRecord r;
+            r.phase = ConsentValidationPhase::Invalidation;
+            r.native_key = reinterpret_cast<std::uintptr_t>(impl.window);
+            r.follower = role == ExplorerGlueWindowRole::Follower;
+            r.role_bound = true;
+            r.reason = reason;
+            consent_validation_audit->record(r);
+        }
+        return false;
+    };
+    const bool l = check(leader, ExplorerGlueWindowRole::Leader);
+    const bool f = check(follower, ExplorerGlueWindowRole::Follower);
+    return l && f;
+}
+
+void detail::ExplorerGlueSessionBridge::invalidate_frame(
+    const ExplorerGlueAuthoritySeal& seal, const ExplorerGlueWindowRole role,
+    ExplorerTestSession& session) noexcept {
+    if (!session.impl_ || !session.impl_->glue_consent_bound_contract ||
+        !glue_binding_matches(*session.impl_, seal, role)) return;
+    auto& impl = *session.impl_;
+    impl.glue_validation_invalidation = "native_identity_changed";
+    // Observed destruction/identity-stream failure is permanent even if the
+    // same numeric HWND is reused before cleanup gets another live snapshot.
+    retire_target(impl);
+    if (consent_validation_audit) {
+        ConsentValidationRecord record;
+        record.phase = ConsentValidationPhase::Invalidation;
+        record.native_key = reinterpret_cast<std::uintptr_t>(impl.window);
+        record.follower = role == ExplorerGlueWindowRole::Follower;
+        record.role_bound = true;
+        record.reason = impl.glue_validation_invalidation;
+        consent_validation_audit->record(record);
+    }
+}
+
 ExplorerCaptureResult detail::ExplorerGlueSessionBridge::capture(
     const ExplorerGlueAuthoritySeal& seal,
     const ExplorerGlueWindowRole role,
-    ExplorerTestSession& session) {
+    ExplorerTestSession& session,
+    ExplorerGlueProfiler* const profile) {
     if (session.impl_ == nullptr ||
         !glue_binding_matches(*session.impl_, seal, role)) {
         return {ExplorerEligibilityReason::StaleToken,
@@ -4849,7 +5104,7 @@ ExplorerCaptureResult detail::ExplorerGlueSessionBridge::capture(
                                    "role binding is stale or mismatched")};
     }
     auto validation =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false, profile);
     return {validation.reason,
             ExplorerOperationStage::Preflight,
             std::move(validation.snapshot),
@@ -4862,7 +5117,9 @@ detail::ExplorerGlueSessionBridge::prepare_translation(
     const ExplorerGlueOperationPermit& permit,
     ExplorerTestSession& session,
     const ExplorerWindowSnapshot& expected_before,
-    const core::geometry::Rect& target_visible) {
+    const core::geometry::Rect& target_visible,
+    ExplorerGlueProfiler* const profile) {
+    GlueProfileScope prepare_profile(profile, GlueProfileStage::OperationPrepare);
     ExplorerGluePrepareResult result;
     const ExplorerGlueWindowRole role = permit.role_;
     if (session.impl_ == nullptr ||
@@ -4884,8 +5141,10 @@ detail::ExplorerGlueSessionBridge::prepare_translation(
         return result;
     }
 
+    prepare_profile.next(GlueProfileStage::PrepareValidation);
     auto before =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false, profile);
+    prepare_profile.next(GlueProfileStage::PositioningPlan);
     if (before.reason != ExplorerEligibilityReason::Eligible ||
         !before.snapshot.has_value()) {
         result.reason = glue_reason_from_eligibility(before.reason);
@@ -4946,7 +5205,10 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
     const ExplorerGluePreparedTranslation& prepared,
     const BeforeNativeApply before_native_apply,
     void* const before_native_apply_context,
-    ExplorerGlueNativeTiming* const timing) {
+    ExplorerGlueNativeTiming* const timing,
+    ExplorerGlueProfiler* const profile,
+    ExplorerTestSession* const active_leader) {
+    GlueProfileScope prepare_profile(profile, GlueProfileStage::OperationPrepare);
     // Opt-in diagnostics only. The old Console Glue path supplies nullptr.
     struct PostverifyTiming final {
         ExplorerGlueNativeTiming* value;
@@ -4984,8 +5246,27 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
     result.receipt->requested_positioning_rect =
         prepared.requested_positioning_;
 
+    if (session.impl_->glue_consent_bound_contract && permit.phase_ == ExplorerGlueOperationPhase::ActiveFollower) {
+        prepare_profile.next(GlueProfileStage::PairWitness);
+        if (active_leader == nullptr || !active_leader->impl_ ||
+            !glue_binding_matches(*active_leader->impl_, seal, ExplorerGlueWindowRole::Leader)) {
+            result.reason = ExplorerEligibilityReason::ConsentGenerationMismatch;
+            return result;
+        }
+        // Owner-side COM/native witness refresh BEFORE the Follower's final
+        // immediate geometry capture. No pump/COM is added to registration.
+        auto leader_now = validate_or_retire(*active_leader->impl_,
+            *active_leader->impl_->issued_token, false, profile);
+        if (leader_now.reason != ExplorerEligibilityReason::Eligible) {
+            result.reason = leader_now.reason;
+            result.diagnostic = std::move(leader_now.diagnostic);
+            return result;
+        }
+    }
+    prepare_profile.next(GlueProfileStage::ImmediateValidation);
     auto immediate =
-        validate_or_retire(*session.impl_, *session.impl_->issued_token, false);
+        validate_or_retire(*session.impl_, *session.impl_->issued_token, false, profile);
+    prepare_profile.next(GlueProfileStage::OperationPrepare);
     if (immediate.reason != ExplorerEligibilityReason::Eligible ||
         !immediate.snapshot.has_value()) {
         result.reason = immediate.reason;
@@ -5005,6 +5286,7 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
         result.reason = ExplorerEligibilityReason::OperationLimitReached;
         return result;
     }
+    prepare_profile.next(GlueProfileStage::PendingRegistration);
     if (before_native_apply != nullptr &&
         !before_native_apply(before_native_apply_context)) {
         result.reason = ExplorerEligibilityReason::OperationLimitReached;
@@ -5015,6 +5297,9 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
         return result;
     }
 
+    prepare_profile.end();
+    if (permit.phase_ == ExplorerGlueOperationPhase::ActiveFollower && consent_validation_audit &&
+        consent_validation_audit->invalidation_observed) ++consent_validation_audit->active_native_after_invalidation;
     ++session.impl_->glue_native_operation_count;
     result.stage = permit.phase_ == ExplorerGlueOperationPhase::Restore
                        ? ExplorerOperationStage::Restore
@@ -5023,6 +5308,7 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
     if (timing != nullptr) {
         timing->native_apply_start_qpc = glue_qpc_now();
     }
+    GlueProfileScope native_profile(profile, GlueProfileStage::NativePlacement);
     SetLastError(ERROR_SUCCESS);
     const BOOL native_result = SetWindowPos(
         session.impl_->window,
@@ -5033,13 +5319,21 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
         0,
         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
     const DWORD native_error = GetLastError();
+    native_profile.end();
 
     if (timing != nullptr) {
         timing->native_api_return_qpc = glue_qpc_now();
     }
 
+    GlueProfileScope post_profile(profile, GlueProfileStage::Postverify);
+    GlueProfileScope post_part(profile, GlueProfileStage::PostverifyValidation);
     auto actual = validate_native_target(
-        *session.impl_, session.impl_->issued_token.operator->(), false, false);
+        *session.impl_, session.impl_->issued_token.operator->(), false, false, profile);
+    if (active_leader && !pair_receipts_healthy(seal, *active_leader, session)) {
+        actual.reason = ExplorerEligibilityReason::TargetInvalidated;
+        actual.snapshot.reset();
+    }
+    post_part.next(GlueProfileStage::ExactComparison);
     if (actual.snapshot.has_value()) {
         result.receipt->actual = *actual.snapshot;
     }
@@ -5113,6 +5407,7 @@ ExplorerOperationResult detail::ExplorerGlueSessionBridge::apply_prepared(
             retire_target(*session.impl_);
         }
     }
+    post_part.next(GlueProfileStage::ReceiptFinalize);
     return result;
 }
 
@@ -5126,6 +5421,9 @@ void detail::ExplorerGlueSessionBridge::release_pair(
             session.impl_->glue_authority_generation ==
                 seal.authority_generation_) {
             session.impl_->glue_bound = false;
+            session.impl_->glue_consent_fast_active = false;
+            session.impl_->glue_virtual_desktop_manager = nullptr;
+            session.impl_->glue_consent_bound_contract = false;
             session.impl_->glue_authority_id = 0U;
             session.impl_->glue_authority_generation = 0U;
             session.impl_->glue_peer_native_key = 0U;

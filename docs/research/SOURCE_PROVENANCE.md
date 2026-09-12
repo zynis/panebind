@@ -1,5 +1,27 @@
 # Source Provenance Register
 
+## R1-C3B Phase 1 targeted hot-path review (2026-09-09)
+
+All sources below are reference only; code copied/adapted: NO/NO. No upstream
+program was run. Existing local fixed-HEAD checkouts and official GitHub
+issue/PR metadata/diffs were read; no API-derived Git objects or refs were made.
+
+| Project / classification | Revision and verified license | Actual inspection / lesson / applicable subsystem |
+| --- | --- | --- |
+| AltSnap / mature active | `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`; hooks.c header + License.txt, GPL-3.0-or-later | hooks.c worker 695–735, placement wrapper 872–878, cadence 5442–5481, configuration 6677–6697; issue #160/comments, PR #609, commits `7f4afe59076b70980f71af202f63609ca3ac5745` and `7d4c7deb17437a7d5d350fd8074f6285444f4c51`; measure cadence/queue/work boundaries, do not copy timers/hooks/rate algorithms |
+| AltDrag / mature historical | `e2740d605b0336a3b391fec26794718864b19521`; hooks.c GPL-3.0-or-later header and existing LICENSE provenance | hooks.c 1113–1128, path-scoped history, issue #38; raw-input cadence differs from placement, visible versus positioning bounds cannot be swapped |
+| PowerToys/FancyZones / mature production | `19c4d805321db86f3634e6968e14dbf25cbba14a`; root LICENSE, MIT | FancyZonesApp.cpp lifecycle forwarding, FancyZones.cpp owner/start/update/end/destroy, WindowMouseSnap.cpp update/end, WindowUtils.cpp DWM frame adjustment; #12135, #18568, #18057; PR #18106 / `22786a6bdcbbc6eaeb417a6c6f1f15bb6fb0a550` default-layout repeat-loop fix; PR #48569 / `dd26d86580168d2e368701f7b0c4d629dc9cd9ac` destroy abort; no analogous PaneBind root cause inferred |
+| AquaSnap/AquaGlue / mature proprietary UX reference | Live official help read 2026-09-09; proprietary/public-documentation facts only, no source SHA | Official AquaGlue configuration behavior; no internal implementation or smoothness-equivalence claim |
+| Microsoft Learn / official platform contract | Live pages read 2026-09-09; Microsoft Learn terms, no sample code reuse | SetWinEventHook, PostThreadMessageW, MsgWaitForMultipleObjectsEx, PeekMessageW, DispatchMessageW, SetWindowPos, GetWindowRect, DwmGetWindowAttribute/DWMWINDOWATTRIBUTE, GetWindowThreadProcessId, GetAncestor, GetDpiForWindow, MonitorFromWindow, GetMonitorInfoW, QPC/QPF/high-resolution timing guidance, Begin/Defer/EndDeferWindowPos; preserve asynchronous delivery, geometry/identity checks and timing units |
+
+Repositories: <https://github.com/RamonUnch/AltSnap>,
+<https://github.com/stefansundin/altdrag>, <https://github.com/microsoft/PowerToys>.
+No implementation attribution obligation is introduced by reference-only
+inspection; research citations are retained. Any future external code reuse
+requires separate authorization/license/provenance; GPL remains non-derivable.
+Exact source/history/official URLs, conclusions, test obligations and research
+gate: [R1C3B_SMOOTHNESS_RESEARCH.md](R1C3B_SMOOTHNESS_RESEARCH.md).
+
 Review date for R0 entries: 2026-08-24.
 
 This register covers external projects and documentation actually inspected for
@@ -627,3 +649,75 @@ Attribution: official links retained, no code reuse
 
 Exact official URLs, API comparison, independently written owned probe and
 implementation gate are in [R1C3A research](R1C3A_CTRL_MOVE_ACTIVATION_RESEARCH.md).
+
+## R1-C3B Phase 2 consent-bound proof review — 2026-09-09/10
+
+Result: BLOCKED by an unproved same-frame Shell-entry invariant. No external
+code copied, adapted, translated or mechanically derived; no attribution-bearing
+code enters PaneBind. Draft implementation was withdrawn, not shipped.
+
+| Inspected reference | Exact revision / license / maturity | Scope and history | Lesson / subsystem |
+| --- | --- | --- | --- |
+| [AltSnap](https://github.com/RamonUnch/AltSnap) | 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; License.txt GPL-3.0-or-later; mature maintained movement reference, reference-only | hooks.c 695-735 and license; PR 609 and listed commits 7f4afe59076b70980f71af202f63609ca3ac5745, 7d4c7deb17437a7d5d350fd8074f6285444f4c51 | Worker/coalescing history is not permission to move Shell COM across apartments or remove safety checks. |
+| [PowerToys/FancyZones](https://github.com/microsoft/PowerToys) | 19c4d805321db86f3634e6968e14dbf25cbba14a; root LICENSE MIT; mature production reference, reference-only | FancyZones.cpp abort/destroy paths, root license; PR 48569 / dd26d86580168d2e368701f7b0c4d629dc9cd9ac and PR 18106 / 22786a6bdcbbc6eaeb417a6c6f1f15bb6fb0a550 | Retain lifecycle invalidation; repeated-work optimization requires a proved validity interval. |
+| Microsoft Learn (official API contracts) | Live pages read 2026-09-09/10; no immutable revision asserted; Microsoft Learn terms, paraphrase/link only | QueryInterface identity rules, single-threaded apartments, NavigateComplete2, IConnectionPoint::Unadvise, HWND property | Canonical object is not exclusive frame identity; outgoing COM may reenter; target navigation stream is not a global inventory epoch. No samples reused. |
+
+Historical AltDrag review remains the Phase 1 record; no additional AltDrag
+source was inspected for Phase 2. Official and immutable research links,
+countermodel and rejected fallback are in
+[R1C3B_PHASE2_VALIDATION_CONTRACT.md](R1C3B_PHASE2_VALIDATION_CONTRACT.md).
+Required attribution: research links retained; no code attribution obligation
+from these reference-only inspections. Existing license boundaries unchanged.
+
+## Human Root frame-authority amendment — 2026-09-10
+
+Same verified local pins/licenses: AltSnap
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d (GPL-3.0-or-later, reference only),
+hooks.c placement 860-890; FancyZones
+19c4d805321db86f3634e6968e14dbf25cbba14a (MIT, reference only),
+FancyZones.cpp 961-1002 owner HWND dispatch/destroy-abort. Prior PR 609,
+48569 and 18106 history remains the scoped historical evidence, not a source
+of copied algorithms. Classifications and attribution boundaries above remain.
+
+Additional official pages actually read: Microsoft Learn IWebBrowser2 HWND,
+IShellWindows::Register, DShellWindowsEvents::WindowRegistered/WindowRevoked.
+Live pages, no immutable version claimed, Microsoft Learn terms. Exact links
+are in [the decision](../architecture/R1C3B_FRAME_AUTHORITY_DECISION.md).
+Lesson: a frame, a Shell collection cookie and a PaneBind capability are
+different authority levels; membership notifications are not a global validity
+epoch. Tabbed-IE wording is a frame design input, not empirical Windows 11
+Explorer tab implementation evidence. No code samples copied or adapted;
+research links retained, no new code attribution obligation.
+
+Human Root, not upstream source, authorizes removing post-issuance entry
+cardinality from frame authority. All implementation is independently written
+against PaneBind's private ledger/permit and the explicit amended contract.
+
+## R1-C3B Phase 3 VDM lifetime review — 2026-09-12
+
+AltSnap: mature reference, GPL-3.0-or-later, REFERENCE ONLY. Verified local
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d and License.txt; hooks.c 3040-3087
+enumeration/filtering and path history 62adaf14503417a4fdbff61e023950208436c77d,
+96ea072af389362f79b66c8286289f9837c689ef. No VDM lifetime mechanism inferred
+from those filters. No copying, translation or adaptation; no code attribution.
+
+PowerToys/FancyZones: mature production reference, MIT, REFERENCE ONLY. Read
+VirtualDesktop.cpp/.h and LICENSE at 19c4d805321db86f3634e6968e14dbf25cbba14a
+through pinned source URLs (old temporary checkout no longer present). Source
+retains a manager across calls; its singleton/registry/failure policies were
+not adopted. Read path history for PR 29059 / 78a94aecb965a7c10ded273a1227da3e2259b341,
+PR 28556 / 890b7f4286a95ced04d7da140b474f90fd4351ed, PR 18805 /
+f5f8861eac976384273523be335572315a54566c; inspected 29059's VirtualDesktop.cpp
+diff. Issue 49019 is an upstream stale-registry-state report, not PaneBind UAT.
+No code copied/adapted; research links retained; no code attribution obligation.
+
+Microsoft Learn / Old New Thing: official live API documents read 2026-09-12,
+no immutable revision asserted, Microsoft site terms. IsWindowOnCurrentVirtualDesktop,
+CoGetApartmentType, STA, CoUninitialize and the 2017-10-02 current-desktop
+example distinguish repeated fresh queries from interface lifetime. Samples,
+global pointers and permissive fallbacks were not reused. Exact links and the
+independent owner-STA design/test plan are in
+[R1C3B_PHASE3_VDM_LIFETIME.md](R1C3B_PHASE3_VDM_LIFETIME.md).
+
+Scope: read-only VDM service lifetime and evidence. No Git API payload was used
+to reconstruct local Git objects/refs, and no third-party window was controlled.

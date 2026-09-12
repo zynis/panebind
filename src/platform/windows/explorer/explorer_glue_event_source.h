@@ -10,6 +10,7 @@
 
 #include "platform/windows/explorer/explorer_glue_types.h"
 #include "platform/windows/explorer/explorer_glue_input.h"
+#include "platform/windows/explorer/explorer_glue_profile.h"
 
 #include <atomic>
 #include <cstddef>
@@ -60,6 +61,8 @@ struct ExplorerGlueEvent final {
     DWORD native_event_time{};
     std::int64_t callback_qpc{};
     CtrlSample ctrl_callback;
+    std::uint64_t notification_id{};
+    bool notification_inherited{};
 };
 
 struct ExplorerGlueEventSourceFacts final {
@@ -129,12 +132,16 @@ private:
                             std::size_t queue_capacity,
                             DeliveryMode mode,
                             bool synthetic_notification_succeeds,
-                            bool capture_interaction_evidence = false);
+                            bool capture_interaction_evidence = false,
+                            ExplorerGlueProfiler* profiler = nullptr);
 
     [[nodiscard]] bool start_live();
     [[nodiscard]] bool stop_live() noexcept;
     [[nodiscard]] ExplorerGlueEventDrainResult drain_owner_queue();
     [[nodiscard]] ExplorerGlueEventSourceFacts facts() const noexcept;
+    // Owner-only non-consuming scan of existing bounded receipts. No callback
+    // work or queue scheduling changes; Phase 2 pre-native invalidation guard.
+    [[nodiscard]] std::uint8_t pending_destroyed_roles() const noexcept;
     [[nodiscard]] bool owns_notification(UINT message, WPARAM cookie) const
         noexcept;
     [[nodiscard]] static constexpr UINT notification_message() noexcept {
@@ -149,7 +156,7 @@ private:
                            DWORD event_thread,
                            DWORD event_time) noexcept;
     void mark_poison(ExplorerGlueEventSourcePoison poison) noexcept;
-    [[nodiscard]] bool post_owner_notification() noexcept;
+    [[nodiscard]] bool post_owner_notification(std::uint64_t notification_id = 0) noexcept;
     [[nodiscard]] bool validate_binding(const NativeTargetBinding& binding)
         noexcept;
     [[nodiscard]] const NativeTargetBinding* find_binding(HWND window) const
@@ -176,6 +183,8 @@ private:
     DeliveryMode delivery_mode_{DeliveryMode::Live};
     bool synthetic_notification_succeeds_{true};
     bool capture_interaction_evidence_{};
+    ExplorerGlueProfiler* profiler_{};
+    std::uint64_t active_notification_id_{};
 #if defined(PANEBIND_EXPLORER_GLUE_EVENT_SOURCE_TESTING)
     CtrlSample synthetic_ctrl_;
     std::int64_t synthetic_qpc_{};
@@ -253,13 +262,17 @@ public:
         ExplorerGlueEventSourceTestBinding follower,
         std::size_t queue_capacity,
         bool notification_succeeds = true,
-        bool capture_interaction_evidence = false);
+        bool capture_interaction_evidence = false,
+        ExplorerGlueProfiler* profiler = nullptr);
     static void enqueue(ExplorerGlueEventSource& source,
                         const ExplorerGlueSyntheticWinEvent& event) noexcept;
     [[nodiscard]] static ExplorerGlueEventDrainResult drain(
         ExplorerGlueEventSource& source);
     [[nodiscard]] static ExplorerGlueEventSourceFacts facts(
         const ExplorerGlueEventSource& source) noexcept;
+    [[nodiscard]] static std::uint8_t pending_destroyed_roles(const ExplorerGlueEventSource& source) noexcept {
+        return source.pending_destroyed_roles();
+    }
     static void stop(ExplorerGlueEventSource& source,
                      bool inject_unhook_failure = false) noexcept;
     static void simulate_reentrant_drain(ExplorerGlueEventSource& source);

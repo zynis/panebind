@@ -4,10 +4,12 @@ PaneBind is an early-stage, open-source desktop window-enhancement project.
 Windows is the first implementation platform, while the geometry and event
 model are designed to remain platform-neutral.
 
-The repository is currently in **R0: research and architecture baseline**. R0
-contains a read-only Windows observer and pure geometry tests; it deliberately
-does not implement snapping, glued movement/resizing, or control of third-party
-windows.
+The current R1-C3B baseline includes a narrowly authorized two-Explorer
+Ctrl+Move test session, with human Debug smoothness accepted between A and B.
+The [human validation report](docs/reports/R1C3B_HUMAN_VALIDATION_REPORT.md)
+records its evidence, authority boundaries and limitations. This is not a
+general-purpose or production-ready window manager. R0 remains a separate
+read-only observer; Glue Resize and Snap integration are not implemented.
 
 ## Build
 
