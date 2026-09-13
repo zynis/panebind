@@ -186,6 +186,8 @@ add_library(
     panebind_windows_explorer
     STATIC
     explorer/explorer_glue_event_source.cpp
+    explorer/explorer_group_event_source.cpp
+    explorer/explorer_group_session.cpp
     explorer/explorer_glue_session.cpp
     explorer/explorer_shell_inventory.cpp
     explorer/explorer_shell_events.cpp
@@ -271,6 +273,14 @@ target_compile_definitions(
     _WIN32_WINNT=0x0A00
 )
 panebind_enable_warnings(panebind-explorer-glue-harness)
+
+add_executable(panebind-explorer-group-harness ../../app/explorer_group_harness_main.cpp text_encoding.cpp observer.rc observer.manifest)
+target_link_libraries(panebind-explorer-group-harness PRIVATE panebind_windows_explorer ole32)
+target_compile_definitions(panebind-explorer-group-harness PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+if(MSVC)
+    target_link_options(panebind-explorer-group-harness PRIVATE /MANIFEST:NO)
+endif()
+panebind_enable_warnings(panebind-explorer-group-harness)
 
 # A fixed build profile reuses target provisioning and evidence serialization;
 # the existing executable keeps its Console-confirmed R1-C2B behavior.
@@ -489,4 +499,20 @@ if(BUILD_TESTING)
         panebind-windows-explorer-glue-session-tests)
     add_test(NAME windows-explorer-glue-session-unit
              COMMAND panebind-windows-explorer-glue-session-tests)
+endif()
+if(BUILD_TESTING)
+    add_executable(panebind-explorer-group-batch-tests explorer/explorer_group_batch_tests.cpp)
+    target_link_libraries(panebind-explorer-group-batch-tests PRIVATE panebind_core user32)
+    target_compile_definitions(panebind-explorer-group-batch-tests PRIVATE PANEBIND_EXPLORER_GROUP_TESTING)
+    panebind_enable_warnings(panebind-explorer-group-batch-tests)
+    add_test(NAME explorer-group-batch COMMAND panebind-explorer-group-batch-tests)
+    add_executable(panebind-explorer-group-event-tests explorer/explorer_group_event_tests.cpp explorer/explorer_group_event_source.cpp)
+    target_link_libraries(panebind-explorer-group-event-tests PRIVATE panebind_core user32)
+    target_compile_definitions(panebind-explorer-group-event-tests PRIVATE PANEBIND_EXPLORER_GROUP_TESTING)
+    panebind_enable_warnings(panebind-explorer-group-event-tests)
+    add_test(NAME explorer-group-event COMMAND panebind-explorer-group-event-tests)
+    add_executable(panebind-explorer-group-layout-tests explorer/explorer_group_layout_tests.cpp)
+    target_link_libraries(panebind-explorer-group-layout-tests PRIVATE panebind_windows_explorer)
+    panebind_enable_warnings(panebind-explorer-group-layout-tests)
+    add_test(NAME explorer-group-layout COMMAND panebind-explorer-group-layout-tests)
 endif()

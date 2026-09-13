@@ -22,6 +22,11 @@ target_include_directories(panebind_core INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_compile_features(panebind_core INTERFACE cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(panebind-glue-group-move-tests tests/core/glue_group_move_tests.cpp)
+    target_link_libraries(panebind-glue-group-move-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-glue-group-move-tests)
+    add_test(NAME glue-group-move COMMAND panebind-glue-group-move-tests)
+
     add_executable(
         panebind-geometry-tests
         tests/core/geometry_tests.cpp

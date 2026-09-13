@@ -2,6 +2,7 @@
 
 #include "core/geometry/checked_arithmetic.h"
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
+#include "platform/windows/explorer/explorer_group_internal.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
 #include "platform/windows/explorer/explorer_shell_events.h"
 #include "platform/windows/explorer/explorer_consent_validation.h"
@@ -1585,6 +1586,9 @@ struct ExplorerTestSession::Impl final {
     std::optional<ExplorerWindowSnapshot> primary_before_snapshot;
     std::optional<ExplorerWindowSnapshot> primary_actual_snapshot;
     std::uint64_t glue_authority_id{};
+    // C4A identity is role-neutral; the old pair authority fields stay zero.
+    std::uint64_t group_authority_generation{};
+    std::uint64_t group_last_operation{};
     std::uint64_t glue_authority_generation{};
     detail::NativeWindowKey glue_peer_native_key{};
     FilesystemLocationIdentity glue_peer_target_location{};
@@ -5437,6 +5441,205 @@ void detail::ExplorerGlueSessionBridge::release_pair(
     };
     release(leader);
     release(follower);
+}
+
+namespace {
+template<class ImplType>
+bool group_binding_matches(const ImplType& impl, const detail::ExplorerGroupSeal& seal,
+                          const detail::GroupMemberBinding& member) noexcept {
+    DWORD live_pid{};
+    const DWORD live_tid=GetWindowThreadProcessId(member.window,&live_pid);
+    return GetCurrentThreadId()==impl.controller_thread_id && impl.glue_bound &&
+        impl.glue_role==0 && impl.glue_authority_id==0 &&
+        impl.group_authority_generation==seal.generation() && seal.generation()!=0 &&
+        impl.issued_token && impl.ledger.contains(*impl.issued_token) &&
+        impl.ledger.session_authority()==member.window_id &&
+        impl.issued_token->generation()==member.capability_generation &&
+        impl.issued_token->consent_generation()==member.consent_generation &&
+        impl.window==member.window && impl.process_id==member.process_id &&
+        impl.thread_id==member.thread_id && impl.glue_consent_bound_contract &&
+        IsWindow(member.window) && live_pid==member.process_id && live_tid==member.thread_id &&
+        GetAncestor(member.window,GA_ROOT)==member.window && GetWindow(member.window,GW_OWNER)==nullptr;
+}
+bool group_same_context(ExplorerWindowSnapshot a, ExplorerWindowSnapshot b) {
+    a.visible_rect=b.visible_rect={}; a.positioning_rect=b.positioning_rect={};
+    return a==b;
+}
+}
+
+std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
+    GroupSessions sessions, ExplorerVirtualDesktopManager& manager, GroupSnapshots& original) {
+    if (manager.creation_result()!=S_OK || manager.closed() || manager.owner_thread()!=GetCurrentThreadId())
+        return std::nullopt;
+    for(std::size_t i=0;i<3;++i) {
+        if (!sessions[i] || !sessions[i]->impl_) return std::nullopt;
+        auto& impl=*sessions[i]->impl_;
+        if(impl.controller_thread_id!=GetCurrentThreadId() || !target_consent_prefix_valid(impl) ||
+           impl.group_authority_generation || impl.glue_authority_id || impl.glue_role)
+            return std::nullopt;
+        for(std::size_t j=0;j<i;++j) {
+            const auto& earlier=*sessions[j]->impl_;
+            if (sessions[i]==sessions[j] || impl.window==earlier.window ||
+                impl.target_location==earlier.target_location ||
+                impl.ledger.session_authority()==earlier.ledger.session_authority() ||
+                std::find(impl.forbidden_preexisting_hwnds.begin(),impl.forbidden_preexisting_hwnds.end(),
+                    reinterpret_cast<NativeWindowKey>(earlier.window))==impl.forbidden_preexisting_hwnds.end())
+                return std::nullopt;
+        }
+    }
+    // The strict issuance prefixes and pairwise distinct frame/location proof
+    // precede opting into the Human Root frame-authority validation contract.
+    std::array<GroupMemberBinding,3> bindings{};
+    static MonotonicIdSource group_generations;
+    const auto generation=group_generations.issue();
+    if (!generation) return std::nullopt;
+    for(std::size_t i=0;i<3;++i) {
+        auto& impl=*sessions[i]->impl_;
+        const auto& token=*impl.issued_token;
+        bindings[i]={impl.ledger.session_authority(),token.generation(),token.consent_generation(),
+            impl.window,impl.process_id,impl.thread_id};
+        impl.group_authority_generation=generation;
+        impl.glue_bound=true;
+        impl.glue_consent_bound_contract=true;
+        impl.glue_consent_fast_active=false;
+        impl.glue_virtual_desktop_manager=&manager;
+    }
+    ExplorerGroupSeal seal{generation,bindings};
+    auto captured=capture(seal,sessions);
+    if(!captured) { retire(seal,sessions); return std::nullopt; }
+    original=*captured;
+    for(std::size_t i=1;i<3;++i) {
+        if(original[i].monitor_device_name!=original[0].monitor_device_name ||
+           original[i].monitor_work_area!=original[0].monitor_work_area ||
+           original[i].dpi!=original[0].dpi) { retire(seal,sessions); return std::nullopt; }
+    }
+    return seal;
+}
+
+std::optional<detail::GroupSnapshots> detail::ExplorerGroupBridge::capture(
+    const ExplorerGroupSeal& seal, GroupSessions sessions) {
+    GroupSnapshots result;
+    for(std::size_t i=0;i<3;++i) {
+        if(!sessions[i] || !sessions[i]->impl_ ||
+           !group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i])) return std::nullopt;
+        auto& impl=*sessions[i]->impl_;
+        auto live=validate_or_retire(impl,*impl.issued_token,false);
+        if(live.reason!=ExplorerEligibilityReason::Eligible || !live.snapshot) return std::nullopt;
+        result[i]=std::move(*live.snapshot);
+    }
+    if(!receipts_healthy(seal,sessions)) return std::nullopt;
+    return result;
+}
+
+bool detail::ExplorerGroupBridge::receipts_healthy(const ExplorerGroupSeal& seal,
+                                                GroupSessions sessions) noexcept {
+    bool healthy=true;
+    for(std::size_t i=0;i<3;++i) {
+        if(!sessions[i] || !sessions[i]->impl_) { healthy=false; continue; }
+        auto& impl=*sessions[i]->impl_;
+        const bool valid=group_binding_matches(impl,seal,seal.members()[i]) &&
+            impl.glue_validation_invalidation=="none" && impl.consent_observation &&
+            consent_browser_invalidation(impl.consent_observation->receipt_facts(),
+                impl.consent_observation->navigation_epoch_at_binding())=="none";
+        if(!valid) { retire_target(impl); healthy=false; }
+    }
+    return healthy;
+}
+void detail::ExplorerGroupBridge::active(const ExplorerGroupSeal& seal,
+                                        GroupSessions sessions,bool enabled) noexcept {
+    for(std::size_t i=0;i<3;++i) if(sessions[i] && sessions[i]->impl_ &&
+        group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i]))
+        sessions[i]->impl_->glue_consent_fast_active=enabled;
+}
+void detail::ExplorerGroupBridge::retire(const ExplorerGroupSeal& seal,GroupSessions sessions) noexcept {
+    for(auto* session:sessions) if(session && session->impl_) {
+        auto& impl=*session->impl_;
+        if(impl.controller_thread_id==GetCurrentThreadId() && impl.group_authority_generation==seal.generation()) {
+            retire_target(impl);
+            impl.glue_bound=false;
+            impl.glue_consent_fast_active=false;
+            impl.glue_virtual_desktop_manager=nullptr;
+            impl.glue_consent_bound_contract=false;
+            impl.group_authority_generation=0;
+        }
+    }
+}
+
+detail::GroupBatchReceipt detail::ExplorerGroupBridge::apply(const ExplorerGroupSeal& seal,
+    GroupSessions sessions,const GroupSnapshots& expected,
+    const std::array<std::optional<core::geometry::Rect>,3>& targets,
+    std::uint64_t operation_generation,bool (*register_pending)(void*) noexcept,void* context) {
+    GroupBatchReceipt result;
+    result.targets=targets;
+    if(!operation_generation || !register_pending) return result;
+    // Capture ALL members, then prepare ALL target bridges before entering HDWP.
+    const auto live=capture(seal,sessions);
+    if(!live) return result;
+    result.before=*live;
+    std::array<GroupNativeTarget,3> native{};
+    std::size_t count{};
+    HWND parent{};
+    for(const auto i:seal.logical_order()) {
+        auto& impl=*sessions[i]->impl_;
+        if(!group_same_context((*live)[i],expected[i]) ||
+           !same_snapshot_size((*live)[i].visible_rect,expected[i].visible_rect) ||
+           !same_snapshot_size((*live)[i].positioning_rect,expected[i].positioning_rect)) {
+            result.reason="member_context_changed"; return result;
+        }
+        if(!targets[i]) continue;
+        if((*live)[i]!=expected[i] || impl.group_last_operation>=operation_generation ||
+           impl.glue_native_operation_count>=1536 ||
+           !rect_is_contained(*targets[i],(*live)[i].monitor_work_area)) {
+            result.reason="target_preflight_failed"; return result;
+        }
+        const auto preparation=operations::window_translation::prepare_visible_translation(
+            (*live)[i].positioning_rect,(*live)[i].visible_rect,*targets[i]);
+        if(preparation.status!=operations::window_translation::TranslationPreparationStatus::Succeeded ||
+           !preparation.target_positioning_rect) { result.reason="target_bridge_failed"; return result; }
+        const HWND current_parent=GetAncestor(impl.window,GA_PARENT);
+        if(!count)parent=current_parent;
+        else if(parent!=current_parent) { result.reason="different_native_parent"; return result; }
+        result.positioning_targets[i]=*preparation.target_positioning_rect;
+        native[count++]={impl.window,*preparation.target_positioning_rect};
+    }
+    if(count==0 || !receipts_healthy(seal,sessions)) return result;
+    result.all_preflight=true;
+    // The owner performs its raw-queue lifecycle guard and registers every
+    // member expectation here. This callback must not pump or call COM.
+    if(!register_pending(context) || !receipts_healthy(seal,sessions)) {
+        result.reason="pending_or_lifecycle_guard_failed"; return result;
+    }
+    result.all_pending_registered=true;
+    for(std::size_t i=0;i<3;++i) if(targets[i]) {
+        sessions[i]->impl_->group_last_operation=operation_generation;
+        ++sessions[i]->impl_->glue_native_operation_count;
+    }
+    GroupNativeApi api;
+    const std::array<bool,3> preflight{true,true,true};
+    result.native=GroupBatchExecutor::run(std::span{native}.first(count),std::span{preflight}.first(count),true,api);
+    bool all_exact=result.native.succeeded;
+    // Capture each actual independently even if Begin/Defer/End failed. A
+    // retired member has no safe snapshot; record absence rather than guess.
+    for(std::size_t i=0;i<3;++i) {
+        auto& impl=*sessions[i]->impl_;
+        if(!group_binding_matches(impl,seal,seal.members()[i])) { all_exact=false; continue; }
+        auto actual=validate_native_target(impl,&*impl.issued_token,false,false);
+        result.actual[i]=actual.snapshot;
+        if(actual.reason!=ExplorerEligibilityReason::Eligible || !actual.snapshot) {
+            all_exact=false; continue;
+        }
+        if(targets[i]) {
+            result.exact[i]=actual.snapshot->visible_rect==*targets[i] &&
+                actual.snapshot->positioning_rect==*result.positioning_targets[i] &&
+                group_same_context(*actual.snapshot,(*live)[i]);
+            all_exact &= result.exact[i];
+        } else all_exact &= group_same_context(*actual.snapshot,(*live)[i]) &&
+            same_snapshot_size(actual.snapshot->visible_rect,(*live)[i].visible_rect);
+    }
+    result.all_postverify=all_exact && receipts_healthy(seal,sessions);
+    result.postverify_qpc=glue_qpc_now();
+    result.reason=result.all_postverify?"exact":"native_or_postverify_failed";
+    return result;
 }
 
 } // namespace panebind::platform::windows::explorer

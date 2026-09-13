@@ -16,6 +16,7 @@ namespace detail {
 class ExplorerTokenLedger;
 class ExplorerSessionDiagnostics;
 class ExplorerGlueSessionBridge;
+class ExplorerGroupBridge;
 }
 
 class ExplorerTestSession;
@@ -83,6 +84,7 @@ private:
     friend class ExplorerWindowOperations;
     friend class detail::ExplorerSessionDiagnostics;
     friend class detail::ExplorerGlueSessionBridge;
+    friend class detail::ExplorerGroupBridge;
 };
 
 enum class ExplorerEligibilityReason {
@@ -560,6 +562,7 @@ private:
     friend class ExplorerConsentProvisioning;
     friend class detail::ExplorerSessionDiagnostics;
     friend class detail::ExplorerGlueSessionBridge;
+    friend class detail::ExplorerGroupBridge;
 };
 
 struct ExplorerProvisionResult {
