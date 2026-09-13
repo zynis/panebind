@@ -60,6 +60,33 @@ never close Explorer. Native failure stops writes, without rollback claims.
 
 ## Fixture, tests and boundary
 
+Fix 1 separates the immutable binding snapshot from the accepted restore
+baseline. `preview_readiness()` makes a fresh, owner-only complete capture of
+all three existing capabilities on every request. It has no native movement,
+HDWP, hook activation, roles or gesture-generation side effects. A human may
+resize the same consented frames and press Enter to preview again, or Q to
+cancel. Nongeometry identity/anchor/security/monitor/DPI changes fail closed.
+
+`setup()` independently captures and recomputes readiness again. A fresh NOT
+FIT returns to the same readiness loop with zero native writes. Only a fresh
+FIT freezes the accepted baseline and assigns `original_` / `current_` before
+the existing pure-translation setup. The unchanged restore path now consumes
+that accepted baseline, never the pre-resize binding geometry. Authority and
+member capability generations are not reissued. The original final native
+preflight remains fail-closed if a window changes after baseline acceptance.
+
+Each capture is logged as `readiness_preview`, including the setup recheck;
+the successful setup capture is also identified once as `readiness_accepted`.
+The activity counters and QPC belong to the capture/acceptance boundary, not
+JSON serialization time (the setup result is serialized after `setup()`
+returns). The runner requires setup-before == accepted snapshots, native
+start after that capture, and final visible/positioning restore == accepted
+snapshots. A historical layout-only block remains valid blocked evidence,
+not a runtime regression; old PASS evidence without this contract cannot
+be promoted to Fix 1 PASS.
+
+See [Fix 1 report](../reports/R1C4A_FIX1_READINESS_REPORT.md).
+
 L-shape A-B/A-C, no B-C corner edge. Translation-only setup, checked work-area
 fit, extents, arithmetic, monitor/DPI, overlap and edges; print fit deficits.
 Tests cover consecutive A/B/C leadership and generations, unauthorized and

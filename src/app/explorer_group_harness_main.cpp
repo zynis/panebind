@@ -93,8 +93,50 @@ void runtime_records(Log& log,const e::ExplorerGroupSession& group){
          <<",\"group_ready\":"<<flag(g.group_ready);log.record("gesture",f.str());
     }
 }
+bool record_readiness(Log& log,std::string_view type,const e::GroupReadinessPreview& preview) {
+    const auto& a=preview.activity;
+    std::ostringstream f;
+    f<<",\"attempt\":"<<preview.attempt<<",\"valid\":"<<flag(preview.valid)
+     <<",\"setup_check\":"<<flag(preview.setup_check)<<",\"ready\":"<<flag(preview.readiness.ready)
+     <<",\"reason\":"<<quote(preview.reason)<<",\"snapshots\":"<<(preview.snapshots?snapshots(*preview.snapshots):"null")
+     <<",\"member_sizes\":[";
+    for(std::size_t i=0;i<3;++i){if(i)f<<',';f<<'['<<preview.member_sizes[i][0]<<','<<preview.member_sizes[i][1]<<']';}
+    f<<"],\"work_area\":"<<rect(preview.work_area)<<",\"required_width\":"<<preview.required_width
+     <<",\"required_height\":"<<preview.required_height<<",\"width_deficit\":"<<preview.readiness.width_deficit
+     <<",\"height_deficit\":"<<preview.readiness.height_deficit<<",\"group_generation\":"<<a.group_generation
+     <<",\"gesture_generation\":"<<a.gesture_generation<<",\"native_apply_count\":"<<a.native_apply_count
+     <<",\"hdwp_begin_count\":"<<a.hdwp_begin_count<<",\"event_source_running\":"<<flag(a.event_source_running)
+     <<",\"pending_count\":"<<a.pending_count<<",\"leader_present\":"<<flag(a.leader_present)
+     <<",\"owner_thread\":"<<flag(a.owner_thread)<<",\"capture_qpc\":"<<preview.capture_qpc;
+    return log.record(type,f.str());
+}
+bool print_readiness(const e::GroupReadinessPreview& p) {
+    const auto& area=p.work_area;
+    std::wstring text=L"\r\nReadiness #"+std::to_wstring(p.attempt)+(p.setup_check?L"（setup fresh check）":L"（live preview）")+
+        L"\r\n工作区："+std::to_wstring(area.right()-area.left())+L" × "+std::to_wstring(area.bottom()-area.top())+L" px\r\n";
+    for(std::size_t i=0;i<3;++i)text+=L"Member "+std::wstring(1,static_cast<wchar_t>(L'A'+i))+L": "+
+        std::to_wstring(p.member_sizes[i][0])+L" × "+std::to_wstring(p.member_sizes[i][1])+L" px\r\n";
+    text+=L"L-shape required："+std::to_wstring(p.required_width)+L" × "+std::to_wstring(p.required_height)+
+        L" px\r\n宽度 = max(A宽+B宽, C宽)；高度 = max(A高+C高, B高)。\r\n"+
+        L"宽度至少还需减少 "+std::to_wstring(p.readiness.width_deficit)+L" px；高度至少还需减少 "+
+        std::to_wstring(p.readiness.height_deficit)+L" px。\r\n";
+    text+=p.readiness.ready?L"结果：FIT。\r\n":L"结果：NOT FIT（"+std::wstring(p.reason.begin(),p.reason.end())+L"）。\r\n";
+    if(!p.readiness.ready)text+=L"以上是最小缺口；建议额外留出移动余量，避免三窗恰好填满工作区。\r\n";
+    if(!p.readiness.ready) {
+        const auto area_width=area.right()-area.left(),area_height=area.bottom()-area.top();
+        const auto ab_width=p.member_sizes[0][0]+p.member_sizes[1][0];
+        const auto ac_height=p.member_sizes[0][1]+p.member_sizes[2][1];
+        if(ab_width>area_width)text+=L"请将 A/B 的合计宽度至少缩小 "+std::to_wstring(ab_width-area_width)+L" px。\r\n";
+        if(p.member_sizes[2][0]>area_width)text+=L"请将 C 的宽度至少缩小 "+std::to_wstring(p.member_sizes[2][0]-area_width)+L" px。\r\n";
+        if(ac_height>area_height)text+=L"请将 A/C 的合计高度至少缩小 "+std::to_wstring(ac_height-area_height)+L" px。\r\n";
+        if(p.member_sizes[1][1]>area_height)text+=L"请将 B 的高度至少缩小 "+std::to_wstring(p.member_sizes[1][1]-area_height)+L" px。\r\n";
+        if(p.reason=="B_C_overlap_for_l_shape" || p.reason=="required_edges_mismatch")
+            text+=L"为避免 B/C 额外接触或重叠，可手工缩小至 B 的高度不超过 A、C 的宽度不超过 A。\r\n";
+    }
+    return print(text);
+}
 int run(Log& log){
-    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true");
+    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\"");
     const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason));return 2;};
     e::ExplorerGroupSession::OwnedMembers members;
     for(std::size_t i=0;i<3;++i){
@@ -121,7 +163,7 @@ int run(Log& log){
          <<",\"token_issued\":"<<flag(target.facts.token_issued)<<",\"input_source\":\"interactive_console\"";
         log.record("target_confirmed",f.str());members[i]=std::move(target.session);
     }
-    if(!print(L"\r\n三个成员均已单独确认。是否授权三窗口纯平移 L 形布局、连续 Ctrl+Move 和最后精确恢复？\r\n不会 resize、关闭窗口或改变 Z-order。输入 Y 后 Enter 同意：\r\n"))return stop("console_failed");
+    if(!print(L"\r\n三个成员均已单独确认。是否授权三窗口纯平移 L 形布局、连续 Ctrl+Move 和最后精确恢复？\r\n如尺寸不适合，须由您手工缩小；最终恢复到调整完成后、setup 前接受的位置，保留调整后的尺寸。\r\nPaneBind 不会 resize、关闭窗口或改变 Z-order。输入 Y 后 Enter 同意：\r\n"))return stop("console_failed");
     const auto consent=read_line();if(!consent||(*consent!=L"Y"&&*consent!=L"y"))return stop("group_declined");
     if(!log.record("group_consent",",\"confirmed\":true,\"input_source\":\"interactive_console\""))return stop("evidence_write_failed");
     auto group=e::ExplorerGroupSession::create(std::move(members));if(!group)return stop("group_binding_failed");
@@ -129,10 +171,33 @@ int run(Log& log){
         std::ostringstream f;f<<",\"member\":"<<i<<",\"window_id\":"<<binding.window_id<<",\"capability_generation\":"<<binding.capability_generation
          <<",\"consent_generation\":"<<binding.consent_generation<<",\"hwnd\":"<<reinterpret_cast<std::uintptr_t>(binding.window)
          <<",\"pid\":"<<binding.process_id<<",\"tid\":"<<binding.thread_id<<",\"group\":"<<group->generation();log.record("binding",f.str());}
-    const auto ready=group->readiness();
-    log.record("readiness",",\"ready\":"+std::string(flag(ready.ready))+",\"reason\":"+quote(ready.reason)+",\"width_deficit\":"+std::to_string(ready.width_deficit)+",\"height_deficit\":"+std::to_string(ready.height_deficit)+",\"original\":"+snapshots(group->original()));
-    if(!ready.ready){print(L"布局尚不可用；宽度缺口 "+std::to_wstring(ready.width_deficit)+L"，高度缺口 "+std::to_wstring(ready.height_deficit)+L" 像素。未执行任何布局平移；请查看日志原因。\r\n");return stop(ready.reason);}
-    bool success=log.healthy()&&group->setup();
+    if(!log.record("binding_snapshot",",\"snapshots\":"+snapshots(group->binding_snapshots())))return stop("evidence_write_failed");
+    bool success=false;
+    for(;;) {
+        auto preview=group->preview_readiness();
+        if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
+        if(!preview.valid)return stop(preview.reason);
+        if(!print_readiness(preview))return stop("console_failed");
+        if(preview.readiness.ready) {
+            success=group->setup(); // fresh capture/recompute, not preview reuse
+            preview=*group->last_readiness_preview();
+            if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
+            if(group->accepted_readiness()) {
+                if(!record_readiness(log,"readiness_accepted",*group->accepted_readiness()))return stop("evidence_write_failed");
+                break; // runtime errors retain the usual batch/summary evidence
+            }
+            if(!preview.valid || !group->healthy())return stop(preview.reason);
+            if(!print_readiness(preview))return stop("console_failed");
+        }
+        if(!print(L"请按以上提示手工缩小一个或多个 Explorer；不要导航、关闭窗口或换 monitor/DPI。\r\nPaneBind 未执行任何 native movement。调整后回到控制台按 Enter 重新检查；输入 Q 取消。\r\n"))return stop("console_failed");
+        for(;;) {
+            const auto line=read_line();
+            if(!line)return stop("readiness_input_failed");
+            if(line->empty())break;
+            if(*line==L"Q" || *line==L"q")return stop("readiness_cancelled");
+            if(!print(L"仅支持 Enter 重新检查，或 Q 取消。\r\n"))return stop("console_failed");
+        }
+    }
     for(std::size_t i=0;success&&i<3;++i){
         print(L"\r\nGesture "+std::to_wstring(i+1)+L"：先按住 Ctrl，再拖动成员 "+std::wstring(1,static_cast<wchar_t>(L'A'+i))+L" 的标题栏约 1 秒，再松鼠标。保持整组在工作区内。\r\n");
         success=group->run_gesture(i,std::chrono::seconds{120});
@@ -145,7 +210,7 @@ int run(Log& log){
      <<",\"running\":"<<flag(facts.running)<<",\"vdm_queries\":"<<group->vdm_queries()<<",\"reconciled_missing\":"<<group->reconciled_missing()
      <<",\"restore_exact\":"<<flag(success)<<",\"reason\":"<<quote(group->reason());log.record("summary",f.str());
     if(!success)return stop(group->reason());
-    print(L"\r\n三个手势及原始位置恢复已完成。请评价顺滑度 A/B/C/D/E：\r\n");const auto grade=read_line();
+    print(L"\r\n三个手势已完成，已恢复到接受的 setup 前位置，并保留您手工调整后的尺寸。请评价顺滑度 A/B/C/D/E：\r\n");const auto grade=read_line();
     print(L"从 A/B/C 任意成员抓住并拖动时，是否感觉像同一个刚体？输入 YES / MOSTLY / NO：\r\n");const auto feel=read_line();
     if(!grade||grade->size()!=1||grade->front()<L'A'||grade->front()>L'E'||!feel||(*feel!=L"YES"&&*feel!=L"MOSTLY"&&*feel!=L"NO"))return stop("subjective_response_invalid");
     log.record("subjective",",\"grade\":"+quote(*grade)+",\"rigid_body_feel\":"+quote(*feel)+",\"input_source\":\"interactive_console\"");

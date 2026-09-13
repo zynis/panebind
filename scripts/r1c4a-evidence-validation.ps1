@@ -1,5 +1,6 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'r1c4a-readiness-validation.ps1')
 
 function Assert-C4A {
     param([bool] $Condition, [string] $Message)
@@ -32,8 +33,7 @@ function Test-C4ARecords {
     }
     Assert-C4A ($Records[0].type -ceq 'startup' -and $Records[-1].type -ceq 'shutdown') 'lifecycle boundaries'
     Assert-C4A (@($Records | Where-Object type -eq startup).Count -eq 1) 'duplicate startup'
-    Assert-C4A (@($Records | Where-Object type -eq shutdown).Count -eq 1 -and $Records[-1].result -ceq 'PASS') 'failed shutdown'
-    Assert-C4A ($Records[-1].user_windows_closed -eq $false) 'user window close'
+    Assert-C4A (@($Records | Where-Object type -eq shutdown).Count -eq 1) 'duplicate shutdown'
     Assert-C4A ($Records[0].member_count -eq 3 -and $Records[0].interactive_console -eq $true -and $Records[0].qpc_frequency -gt 0) 'fixture/input/QPC contract'
     $frequency=[double]$Records[0].qpc_frequency
     $bindings=@($Records | Where-Object type -eq binding | Sort-Object member)
@@ -53,8 +53,10 @@ function Test-C4ARecords {
         Assert-C4A ($c.baseline_exclusion_complete -eq $true -and $c.unique_new_target -eq $true -and $c.exact_location -eq $true -and $c.token_issued -eq $true -and $c.input_source -ceq 'interactive_console') 'target consent proof'
         Assert-C4A ($p.sequence -lt $c.sequence -and $c.sequence -lt $consent[0].sequence -and $consent[0].sequence -lt $b.sequence) 'consent chronology'
     }
-    $readiness=@($Records|Where-Object type -eq readiness)
-    Assert-C4A ($readiness.Count -eq 1 -and $readiness[0].ready -eq $true) 'layout readiness'
+    $readiness=Test-C4AReadinessRecords $Records $bindings
+    if($readiness.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS'){return $readiness}
+    Assert-C4A ($Records[-1].result -ceq 'PASS') 'failed shutdown'
+    Assert-C4A ($Records[-1].user_windows_closed -eq $false) 'user window close'
     $receipts=@($Records|Where-Object type -eq receipt|Sort-Object receipt_sequence)
     $receiptMap=@{}
     for($i=0;$i -lt $receipts.Count;++$i) {
@@ -116,7 +118,7 @@ function Test-C4ARecords {
     }
     $restore=@($batches|Where-Object phase -eq restore)[0]
     Assert-C4A (@($restore.members).Count -eq 3) 'restore all members'
-    foreach($m in $restore.members){Assert-C4A ((Get-C4ARectKey $m.actual) -ceq (Get-C4ARectKey $readiness[0].original[$m.member].visible)) 'original restore'}
+    foreach($m in $restore.members){Assert-C4A ((Get-C4ARectKey $m.actual) -ceq (Get-C4ARectKey $readiness.AcceptedSnapshots[$m.member].visible) -and (Get-C4ARectKey $m.actual_positioning) -ceq (Get-C4ARectKey $readiness.AcceptedSnapshots[$m.member].positioning)) 'restore differs from accepted baseline'}
     $acked=@{}
     foreach($f in @($Records|Where-Object type -eq feedback)) {
         if($f.result -ceq 'acknowledged') {
@@ -144,7 +146,7 @@ function Test-C4ARecords {
     foreach($item in @(@('batch_interval',$intervals),@('quantum',$quantumTimes),@('receipt_owner',$receiptOwner),@('owner_native',$ownerNative),@('HDWP',$native),@('postverify_all',$post),@('receipt_postverify',$total))) {
         $metrics[$item[0]]=@{p50_ms=(Get-C4APercentile @($item[1]) 0.5);p95_ms=(Get-C4APercentile @($item[1]) 0.95)}
     }
-    return [pscustomobject]@{Result='PASS';GroupGeneration=$group;Gestures=3;ActiveBatches=$active.Count;Acknowledged=$acked.Count;ReconciledMissing=$summary[0].reconciled_missing;MaxQueue=$summary[0].max_depth;Grade=$subjective[0].grade;RigidBodyFeel=$subjective[0].rigid_body_feel;Metrics=$metrics}
+    return [pscustomobject]@{Result='PASS';GroupGeneration=$group;ReadinessPreviewAttempts=$readiness.PreviewAttempts;AcceptedBaseline='fresh_setup_capture';Gestures=3;ActiveBatches=$active.Count;Acknowledged=$acked.Count;ReconciledMissing=$summary[0].reconciled_missing;MaxQueue=$summary[0].max_depth;Grade=$subjective[0].grade;RigidBodyFeel=$subjective[0].rigid_body_feel;Metrics=$metrics}
 }
 function Test-C4AEvidence {
     param([string] $Path)

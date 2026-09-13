@@ -71,9 +71,10 @@ detail::GroupSessions ExplorerGroupSession::sessions() const noexcept {return {m
 std::unique_ptr<ExplorerGroupSession> ExplorerGroupSession::create(OwnedMembers members) {
     auto result=std::unique_ptr<ExplorerGroupSession>(new ExplorerGroupSession(std::move(members)));
     result->desktop_=std::make_unique<ExplorerVirtualDesktopManager>();
-    result->seal_=detail::ExplorerGroupBridge::bind(result->sessions(),*result->desktop_,result->original_);
+    result->seal_=detail::ExplorerGroupBridge::bind(result->sessions(),*result->desktop_,result->binding_snapshots_);
     if(!result->seal_)return nullptr;
-    result->current_=result->original_;
+    result->current_=result->binding_snapshots_;
+    result->readiness_fixture_.emplace(result->generation(),result->binding_snapshots_);
     for(const auto& m:result->seal_->members())
         result->logical_members_.push_back({core::model::WindowId{std::to_string(m.window_id)},m.capability_generation});
     result->model_=std::make_unique<b::GlueGroupMoveCoordinator>(result->logical_members_,result->seal_->generation(),3072);
@@ -107,7 +108,29 @@ std::vector<t::WindowGeometry> ExplorerGroupSession::geometry(const detail::Grou
     for(std::size_t i=0;i<3;++i)result.push_back({logical_members_[i].id,snapshots[i].visible_rect});
     return result;
 }
-GroupLayoutReadiness ExplorerGroupSession::readiness() const {return group_layout_readiness(original_);}
+GroupReadinessActivity ExplorerGroupSession::readiness_activity() const noexcept {
+    GroupReadinessActivity activity;
+    activity.owner_thread=GetCurrentThreadId()==owner_;
+    if(!activity.owner_thread) return activity;
+    activity.group_generation=generation();
+    activity.gesture_generation=model_->gesture_generation();
+    activity.pending_count=model_->pending().size();
+    activity.leader_present=model_->gesture_leader()!=nullptr;
+    activity.event_source_running=source_->facts().running;
+    for(const auto& operation:operations_) {
+        activity.native_apply_count+=operation.receipt.native.native_commit_attempted?1:0;
+        activity.hdwp_begin_count+=operation.receipt.native.native_start_qpc>0?1:0;
+    }
+    return activity;
+}
+GroupReadinessPreview ExplorerGroupSession::preview_readiness() {
+    if(!healthy() || setup_done_ || readiness_fixture_->accepted())return {};
+    auto preview=readiness_fixture_->preview(readiness_activity(),[&]{
+        return detail::ExplorerGroupBridge::capture(*seal_,sessions());
+    });
+    if(!preview.valid)poison(preview.reason);
+    return preview;
+}
 bool ExplorerGroupSession::register_pending(void* raw) noexcept {
     auto& context=*static_cast<Registration*>(raw);
     auto& s=*context.session;
@@ -131,9 +154,18 @@ bool ExplorerGroupSession::apply_targets(const std::array<std::optional<Rect>,3>
     return true;
 }
 bool ExplorerGroupSession::setup() {
-    if(!healthy()||setup_done_)return false;
-    const auto ready=readiness();
-    if(!ready.ready){reason_=ready.reason;return false;}
+    if(!healthy()||setup_done_||readiness_fixture_->accepted())return false;
+    // A FIT preview is not placement authority. Capture/revalidate again and
+    // recompute; a fresh NOT FIT leaves the group ready for another preview.
+    const auto fresh=readiness_fixture_->prepare_setup(readiness_activity(),[&]{
+        return detail::ExplorerGroupBridge::capture(*seal_,sessions());
+    });
+    if(!fresh.valid){poison(fresh.reason);return false;}
+    if(!fresh.readiness.ready){reason_=fresh.reason;return false;}
+    original_=*fresh.snapshots; // accepted restore baseline, NOT binding geometry
+    current_=original_;
+    reason_="none";
+    const auto& ready=fresh.readiness;
     std::array<std::optional<Rect>,3> targets;
     for(std::size_t i=0;i<3;++i)targets[i]=ready.targets[i];
     GroupOperationRecord record;record.group=generation();

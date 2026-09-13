@@ -8,7 +8,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-evidence-validation.ps1')
 if($PSCmdlet.ParameterSetName -eq 'Validate') {
-    Test-C4AEvidence $ValidateEvidencePath | ConvertTo-Json -Depth 8
+    $validation=Test-C4AEvidence $ValidateEvidencePath
+    $validation|ConvertTo-Json -Depth 8
+    if($validation.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS'){exit 2}
     exit 0
 }
 if(-not $IndependentReviewPassed){throw 'STOP: C4A independent review must PASS before human UAT. No harness launched.'}
@@ -39,6 +41,12 @@ try {
     [ordered]@{ImplementationSHA=$sha;AfterSHA=$after;HarnessSHA256=$binaryHash;AfterHarnessSHA256=$afterHash;AfterDirty=(@($afterDirty).Count -gt 0);HarnessExitCode=$harnessExit;BuildDirectory=$build;Configuration='Debug';IndependentReviewPassed=$true} | ConvertTo-Json | Set-Content -LiteralPath ($prefix+'.metadata.json') -Encoding UTF8
     if($sha -cne $after){throw 'Implementation changed during UAT'}
     if($afterDirty -or $binaryHash -cne $afterHash){throw 'Worktree or harness binary changed during UAT'}
+    $validation=Test-C4AEvidence $log
+    if($validation.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS') {
+        if($harnessExit -ne 2){throw 'Readiness block contradicts harness exit'}
+        $validation|ConvertTo-Json -Depth 8
+        exit 2
+    }
     if($harnessExit -ne 0){throw "Harness BLOCKED (exit $harnessExit); evidence retained. Do not seal."}
-    Test-C4AEvidence $log | ConvertTo-Json -Depth 8
+    $validation|ConvertTo-Json -Depth 8
 } finally {Pop-Location}

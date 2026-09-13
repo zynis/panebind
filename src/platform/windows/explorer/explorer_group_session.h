@@ -1,17 +1,10 @@
 #pragma once
 #include "platform/windows/explorer/explorer_group_event_source.h"
+#include "platform/windows/explorer/explorer_group_readiness.h"
 #include "core/behavior/glue_group_move.h"
 #include <chrono>
 
 namespace panebind::platform::windows::explorer {
-struct GroupLayoutReadiness final {
-    bool ready{};
-    std::int64_t width_deficit{},height_deficit{};
-    std::array<core::geometry::Rect,3> targets{};
-    std::string_view reason{"invalid_geometry"};
-};
-[[nodiscard]] GroupLayoutReadiness group_layout_readiness(const detail::GroupSnapshots& snapshots) noexcept;
-
 struct GroupQuantumRecord final {
     std::uint64_t id{},gesture{},first_sequence{},last_sequence{};
     std::size_t receipts{},coalesced{};
@@ -48,14 +41,16 @@ public:
     ~ExplorerGroupSession();
     ExplorerGroupSession(const ExplorerGroupSession&)=delete;
     ExplorerGroupSession& operator=(const ExplorerGroupSession&)=delete;
-    [[nodiscard]] GroupLayoutReadiness readiness() const;
+    [[nodiscard]] GroupReadinessPreview preview_readiness();
+    [[nodiscard]] const auto& last_readiness_preview() const noexcept {return readiness_fixture_->last();}
+    [[nodiscard]] const auto& accepted_readiness() const noexcept {return readiness_fixture_->accepted();}
     bool setup();
     bool run_gesture(std::size_t expected_member,std::chrono::seconds timeout);
     bool restore();
     [[nodiscard]] bool healthy() const noexcept;
     [[nodiscard]] std::string_view reason() const noexcept {return reason_;}
     [[nodiscard]] const auto& bindings() const noexcept {return seal_->members();}
-    [[nodiscard]] const auto& original() const noexcept {return original_;}
+    [[nodiscard]] const auto& binding_snapshots() const noexcept {return binding_snapshots_;}
     [[nodiscard]] const auto& gestures() const noexcept {return gestures_;}
     [[nodiscard]] const auto& operations() const noexcept {return operations_;}
     [[nodiscard]] const auto& quanta() const noexcept {return quanta_;}
@@ -68,6 +63,7 @@ public:
 private:
     explicit ExplorerGroupSession(OwnedMembers members);
     detail::GroupSessions sessions() const noexcept;
+    GroupReadinessActivity readiness_activity() const noexcept;
     std::vector<core::topology::WindowGeometry> geometry(const detail::GroupSnapshots&) const;
     void poison(std::string_view) noexcept;
     bool quantum(std::span<const GroupEventReceipt>);
@@ -84,7 +80,8 @@ private:
     std::unique_ptr<ExplorerGroupEventSource> source_;
     std::unique_ptr<core::behavior::GlueGroupMoveCoordinator> model_;
     std::vector<core::behavior::GlueGroupMember> logical_members_;
-    detail::GroupSnapshots original_,current_;
+    detail::GroupSnapshots binding_snapshots_,original_,current_;
+    std::optional<GroupReadinessFixture> readiness_fixture_;
     std::vector<GroupGestureRecord> gestures_;
     std::vector<GroupOperationRecord> operations_;
     std::vector<GroupQuantumRecord> quanta_;

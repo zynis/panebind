@@ -1,5 +1,10 @@
 # R1-C4A 自动实现与独立 Review 交接
 
+后续 Fix 1 修正可重复 live readiness 和 accepted restore baseline；
+当前交接见 [Fix 1 报告](R1C4A_FIX1_READINESS_REPORT.md)。下文保留初版的
+18/18、41 fixtures 等历史结果，不代表 Fix 1 的测试数量。已发生的初版
+真人尝试仅在 readiness 阶段阻断，未形成三窗口 runtime 验收。
+
 日期：2026-09-13。范围：Dynamic-Leader Bounded Glue Group Move。
 实现及自动验证完成后停止；**本报告不是三窗口人工验收 Seal**。
 
