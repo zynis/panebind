@@ -1,5 +1,18 @@
 # PaneBind Architecture Baseline
 
+## Long-term Glue member and gesture semantics — R1-C4A
+
+Leader/Follower are gesture-scoped roles, not persistent member identities.
+A Glue Group has members. A gesture has one transient Leader and zero or more
+transient Followers. Authorized Member Set, live Glue Component and Gesture
+Roles are distinct. Adjacency does not grant authority. Successful END returns
+to GroupReady with roles cleared; any member can lead the next gesture.
+
+[R1-C4A design](R1C4A_DYNAMIC_GLUE_GROUP.md) adds a separate bounded group path;
+the sealed C3B pair runtime remains a compatibility baseline. Three is the
+current fixture size, not a product maximum. Implementation/UAT gates are
+reported separately; no multi-window human result is yet claimed.
+
 ## R1-C3B human interaction baseline — 2026-09-13
 
 The [human validation report](../reports/R1C3B_HUMAN_VALIDATION_REPORT.md)

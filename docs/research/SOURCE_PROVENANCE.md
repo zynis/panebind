@@ -1,5 +1,21 @@
 # Source Provenance Register
 
+## R1-C4A batch and transient-role review — 2026-09-13
+
+All reference-only; code copied/adapted NO/NO; no new code attribution required.
+Source links retained in [R1C4A research](R1C4A_BATCH_PLACEMENT.md).
+
+| Project / maturity | Verified revision / license | Actual inspection, history, lesson and subsystem |
+| --- | --- | --- |
+| AltSnap / mature maintained | 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; hooks.c and License.txt GPL-3.0-or-later | hooks.c 827-977, local path history, PR 609 and 7f4afe59076b70980f71af202f63609ca3ac5745 diff; deferred placement versus selection and owner coalescing; no global selection, GPL math, hooks or sleeping copied into C4A |
+| Microsoft PowerToys/FancyZones / mature production | 19c4d805321db86f3634e6968e14dbf25cbba14a; root LICENSE MIT | DraggingState.cpp; PR 48569 and dd26d86580168d2e368701f7b0c4d629dc9cd9ac FancyZones.cpp/WindowMouseSnap.cpp diff; transient-state cleanup and abort-not-end on destroy; role/lifecycle design only |
+| Microsoft Learn / official API contracts | Live pages read 2026-09-13; Microsoft Learn terms, no immutable SHA asserted | BeginDeferWindowPos, DeferWindowPos, EndDeferWindowPos, WinEventProc, out-of-context hooks, GetAsyncKeyState; replacement HDWP, common parent, abandon on Defer failure, no rollback guarantee, asynchronous receipt limitations and unchanged Ctrl latch; no sample code reused |
+
+GitHub API was used only to read historical diffs, never to reconstruct Git
+objects or refs. No upstream runtime was executed; upstream reports are not
+PaneBind observations. AltDrag historical evidence remains the prior record;
+no additional AltDrag source inspected this round.
+
 ## R1-C3B Phase 1 targeted hot-path review (2026-09-09)
 
 All sources below are reference only; code copied/adapted: NO/NO. No upstream
