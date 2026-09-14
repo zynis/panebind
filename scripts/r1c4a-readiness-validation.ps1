@@ -80,7 +80,7 @@ function Test-C4AReadinessRecords {
     }
     if($blocked) {
         Assert-C4A ($accepted.Count -eq 0 -and $previews[-1].ready -eq $false -and $Records[-1].reason -ceq 'readiness_cancelled') 'not a layout-only cancellation'
-        Assert-C4A (@($Records|Where-Object {$_.type -notin @('startup','target_prompt','target_confirmed','group_consent','binding','binding_snapshot','readiness_preview','shutdown')}).Count -eq 0) 'native/runtime activity before readiness acceptance'
+        Assert-C4A (@($Records|Where-Object {$_.type -notin @('startup','target_prompt','target_confirmed','group_consent','binding','binding_snapshot','readiness_preview','console_wait','shutdown')}).Count -eq 0) 'native/runtime activity before readiness acceptance'
         return [pscustomobject]@{Result='BLOCKED_BY_LAYOUT_READINESS';Runtime='NOT_STARTED';WidthDeficit=$previews[-1].width_deficit;HeightDeficit=$previews[-1].height_deficit;LegacyEvidence=$false}
     }
     Assert-C4A ($accepted.Count -eq 1 -and $Records[-1].result -ceq 'PASS') 'exactly one accepted readiness required'

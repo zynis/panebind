@@ -12,11 +12,16 @@ function New-C4AFixture {
         foreach($key in $fields.Keys){$record[$key]=$fields[$key]}
         $r.Add([pscustomobject]$record)
     }
-    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='live_preview_accepted_baseline_v1'}
+    function Add-Wait([string]$Kind){
+        Add-Record console_wait @{input_wait_kind=$Kind;wait_result='complete';owner_thread=80;wait_call_count=2;pump_call_count=2;message_dispatch_count=1;console_input_event_count=2;console_mode_restored=$true;error=0}
+    }
+    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='live_preview_accepted_baseline_v1';console_wait_contract='sta_message_pump_v1';console_input_contract='readconsoleinputex_nowait_v1';owner_sta_thread=80}
     for($i=0;$i -lt 3;++$i){
         Add-Record target_prompt @{member=$i;nonce_directory="C:\nonce-$i";baseline_generation=1;prompt_generation=2}
+        Add-Wait @('member_a_confirmation','member_b_confirmation','member_c_confirmation')[$i]
         Add-Record target_confirmed @{member=$i;target_confirmation_generation=3;eligibility_generation=4;token_generation=5;baseline_exclusion_complete=$true;unique_new_target=$true;exact_location=$true;token_issued=$true;input_source='interactive_console'}
     }
+    Add-Wait group_consent
     Add-Record group_consent @{confirmed=$true;input_source='interactive_console'}
     for($i=0;$i -lt 3;++$i){Add-Record binding @{member=$i;window_id=$i+1;capability_generation=$i+11;consent_generation=$i+21;hwnd=$i+100;pid=90;tid=$i+200;group=55}}
     $original=@()
@@ -33,12 +38,13 @@ function New-C4AFixture {
         Add-Record readiness_preview $fields
         return $fields
     }
-    if($InitiallyOversized){$null=Add-Preview $binding $false $false}
+    if($InitiallyOversized){$null=Add-Preview $binding $false $false;Add-Wait readiness_recheck}
     $null=Add-Preview $original $true $false
     if($SetupBecomesOversized){
         $oversized=Copy-C4AFixture $original
         foreach($s in $oversized){$s.visible=@(0,0,800,600);$s.positioning=@(0,0,800,600)}
         $null=Add-Preview $oversized $false $true
+        Add-Wait readiness_recheck
         $null=Add-Preview $original $true $false
     }
     $accepted=Add-Preview $original $true $true
@@ -63,6 +69,8 @@ function New-C4AFixture {
     foreach($batch in $batches){Add-Record batch $batch}
     foreach($g in $gestures){Add-Record gesture $g}
     Add-Record summary @{accepted=9;ignored=0;overflow=0;post_failure=0;max_depth=3;poisoned=$false;running=$false;vdm_queries=50;reconciled_missing=6;restore_exact=$true;reason='none'}
+    Add-Wait subjective_grade
+    Add-Wait rigid_body_feel
     Add-Record subjective @{grade='B';rigid_body_feel='MOSTLY';input_source='interactive_console'}
     Add-Record shutdown @{result='PASS';user_windows_closed=$false}
     return $r.ToArray()
@@ -220,6 +228,9 @@ foreach($mode in @('legacy-block','cancel-not-fit','cancel-setup-recheck')) {
     if($mode -eq 'legacy-block') {
         $records=@($fixture|Where-Object {$_.type -in @('startup','target_prompt','target_confirmed','group_consent','binding')})
         $records[0].PSObject.Properties.Remove('readiness_contract')
+        $records[0].PSObject.Properties.Remove('console_wait_contract')
+        $records[0].PSObject.Properties.Remove('console_input_contract')
+        $records[0].PSObject.Properties.Remove('owner_sta_thread')
         $old=($fixture|Where-Object type -eq binding_snapshot).snapshots
         $d=Get-C4AReadinessDimensions $old
         $records+= [pscustomobject]@{schema='r1c4a/v1';sequence=0;type='readiness';ready=$false;reason='work_area_deficit';width_deficit=$d.WidthDeficit;height_deficit=$d.HeightDeficit;original=$old}
@@ -227,6 +238,7 @@ foreach($mode in @('legacy-block','cancel-not-fit','cancel-setup-recheck')) {
     } else {
         $last=@($fixture|Where-Object {$_.type -eq 'readiness_preview' -and $_.ready -eq $false})[0]
         $records=@($fixture|Where-Object {$_.sequence -le $last.sequence})
+        $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=0;type='console_wait';input_wait_kind='readiness_recheck';wait_result='complete';owner_thread=80;wait_call_count=1;pump_call_count=1;message_dispatch_count=0;console_input_event_count=2;console_mode_restored=$true;error=0}
         $reason='readiness_cancelled'
     }
     $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=0;type='shutdown';result='BLOCKED';reason=$reason}
@@ -240,4 +252,30 @@ foreach($mode in @('legacy-block','cancel-not-fit','cancel-setup-recheck')) {
     if($pass){throw 'native activity hidden by layout block'}
     ++$tests;Write-Host "PASS $mode rejects hidden native activity"
 }
+foreach($fault in @('missing-contract','blocking-read','missing-wait','wrong-owner','no-pump','restore-failure','wait-failure','invalid-counters','input-content','missing-readiness-wait','missing-subjective-wait')) {
+    $records=New-C4AFixture -InitiallyOversized
+    $waits=@($records|Where-Object type -eq console_wait)
+    switch($fault) {
+        'missing-contract' {$records[0].PSObject.Properties.Remove('console_wait_contract')}
+        'blocking-read' {$records[0].console_input_contract='ReadConsoleW'}
+        'missing-wait' {$records=@($records|Where-Object {$_.type -ne 'console_wait' -or $_.input_wait_kind -ne 'member_b_confirmation'})}
+        'wrong-owner' {$waits[0].owner_thread=99}
+        'no-pump' {$waits[0].pump_call_count=0}
+        'restore-failure' {$waits[0].console_mode_restored=$false}
+        'wait-failure' {$waits[0].wait_result='wait_failed'}
+        'invalid-counters' {$waits[0].message_dispatch_count=9999}
+        'input-content' {$waits[0]|Add-Member line 'secret'}
+        'missing-readiness-wait' {$records=@($records|Where-Object {$_.type -ne 'console_wait' -or $_.input_wait_kind -ne 'readiness_recheck'})}
+        'missing-subjective-wait' {$records=@($records|Where-Object {$_.type -ne 'console_wait' -or $_.input_wait_kind -ne 'rigid_body_feel'})}
+    }
+    for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
+    $pass=$true;try{$null=Test-C4ARecords $records}catch{$pass=$false}
+    if($pass){throw "unsafe console evidence accepted: $fault"}
+    ++$tests;Write-Host "PASS $fault"
+}
+$records=New-C4AFixture
+foreach($wait in @($records|Where-Object type -eq console_wait)){$wait.message_dispatch_count=0}
+$null=Test-C4ARecords $records
+++ $tests
+Write-Host 'PASS immediate console input need not have queued MSG'
 Write-Host "R1C4A_RUNNER_FIXTURES = PASS ($tests)"

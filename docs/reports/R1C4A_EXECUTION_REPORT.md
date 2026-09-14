@@ -1,5 +1,8 @@
 # R1-C4A 自动实现与独立 Review 交接
 
+当前 P1 UAT infrastructure 修复见 [Fix 2 STA console 报告](R1C4A_FIX2_STA_CONSOLE_REPORT.md)。
+它不改变 movement / readiness baseline；修复后仍需独立 re-review 和真人 UAT。
+
 后续 Fix 1 修正可重复 live readiness 和 accepted restore baseline；
 当前交接见 [Fix 1 报告](R1C4A_FIX1_READINESS_REPORT.md)。下文保留初版的
 18/18、41 fixtures 等历史结果，不代表 Fix 1 的测试数量。已发生的初版

@@ -1,5 +1,20 @@
 # Source Provenance Register
 
+## R1-C4A Fix 2 STA console wait review — 2026-09-14
+
+Reference-only; copied/adapted code NO/NO. Exact sources and decisions:
+[STA console research](R1C4A_STA_CONSOLE_WAIT.md).
+
+| Source / maturity | Revision and verified license | Actual inspection / history / lesson |
+| --- | --- | --- |
+| AltSnap / mature maintained | 5c86416ad21e4b72844a998a746bd3bb0bee5f5d; License.txt GPL-3.0-or-later | hooks.c 694-737; PR 609 history, 7f4afe59076b70980f71af202f63609ca3ac5745 diff; a worker's filtered dispatch is not an owner Shell STA pump; no worker/hook code reused |
+| PowerToys/FancyZones / mature production | 19c4d805321db86f3634e6968e14dbf25cbba14a; root LICENSE MIT | main.cpp apartment-init call, FancyZonesApp.cpp routing; PR 48569 / dd26d86580168d2e368701f7b0c4d629dc9cd9ac diff; preserve destroy/invalidation delivery; no apartment equivalence claimed |
+| Microsoft Learn / official platform contracts | Live pages read 2026-09-14; Microsoft Learn terms, no immutable SHA | Processes/Threads/Apartments, STA, MsgWaitForMultipleObjects/Ex, CoWaitForMultipleHandles, PeekMessageW, ReadConsoleInput/Ex, PeekConsoleInput, low-level console input, KEY_EVENT_RECORD, SetConsoleMode; non-pumping STA hazard, all-message dispatch and NOWAIT input; no sample code reused |
+
+Applicable subsystem: C4A human-input waits only. Attribution: research links
+retained; no new code attribution obligation from reference-only inspection.
+GitHub APIs read source/history metadata only; no Git objects or refs rebuilt.
+
 ## R1-C4A batch and transient-role review — 2026-09-13
 
 All reference-only; code copied/adapted NO/NO; no new code attribution required.

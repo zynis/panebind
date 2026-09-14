@@ -1,6 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-readiness-validation.ps1')
+. (Join-Path $PSScriptRoot 'r1c4a-console-wait-validation.ps1')
 
 function Assert-C4A {
     param([bool] $Condition, [string] $Message)
@@ -54,7 +55,11 @@ function Test-C4ARecords {
         Assert-C4A ($p.sequence -lt $c.sequence -and $c.sequence -lt $consent[0].sequence -and $consent[0].sequence -lt $b.sequence) 'consent chronology'
     }
     $readiness=Test-C4AReadinessRecords $Records $bindings
-    if($readiness.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS'){return $readiness}
+    if($readiness.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS') {
+        Assert-C4AConsoleWaitEvidence $Records -AllowHistoricalBlock
+        return $readiness
+    }
+    Assert-C4AConsoleWaitEvidence $Records
     Assert-C4A ($Records[-1].result -ceq 'PASS') 'failed shutdown'
     Assert-C4A ($Records[-1].user_windows_closed -eq $false) 'user window close'
     $receipts=@($Records|Where-Object type -eq receipt|Sort-Object receipt_sequence)

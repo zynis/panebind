@@ -60,6 +60,17 @@ never close Explorer. Native failure stops writes, without rollback claims.
 
 ## Fixture, tests and boundary
 
+Fix 2 standing harness invariant: once the owner has apartment-affine
+COM/Shell objects, it must never wait for human console input without pumping
+Windows/COM messages. All C4A confirmations, group consent, readiness Enter/Q
+and subjective inputs use `StaConsoleLineReader`: MsgWaitForMultipleObjectsEx,
+unfiltered owner dispatch, and documented ReadConsoleInputExW NOWAIT records.
+There is no console worker or movement processing in this helper. Per-wait
+aggregate evidence contains counters/status only, never input/message contents.
+The active `run_gesture` pump, frame guards and accepted baseline stay unchanged.
+See [STA wait research](../research/R1C4A_STA_CONSOLE_WAIT.md) and
+[Fix 2 handoff](../reports/R1C4A_FIX2_STA_CONSOLE_REPORT.md).
+
 Fix 1 separates the immutable binding snapshot from the accepted restore
 baseline. `preview_readiness()` makes a fresh, owner-only complete capture of
 all three existing capabilities on every request. It has no native movement,

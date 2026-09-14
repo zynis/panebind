@@ -1,5 +1,6 @@
 #include "platform/windows/explorer/explorer_group_session.h"
 #include "platform/windows/text_encoding.h"
+#include "platform/windows/console/sta_console_line_reader.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -25,12 +26,6 @@ std::string snapshots(const e::detail::GroupSnapshots& values) {
 }
 bool console(HANDLE handle){DWORD mode{};return handle && handle!=INVALID_HANDLE_VALUE && GetFileType(handle)==FILE_TYPE_CHAR && GetConsoleMode(handle,&mode);}
 bool print(std::wstring_view text){DWORD written{};return WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE),text.data(),static_cast<DWORD>(text.size()),&written,nullptr)&&written==text.size();}
-std::optional<std::wstring> read_line(){
-    if(!console(GetStdHandle(STD_INPUT_HANDLE)))return std::nullopt;
-    wchar_t buffer[256]{};DWORD count{};
-    if(!ReadConsoleW(GetStdHandle(STD_INPUT_HANDLE),buffer,255,&count,nullptr)||count==255)return std::nullopt;
-    std::wstring line(buffer,count);while(!line.empty()&&(line.back()==L'\r'||line.back()==L'\n'))line.pop_back();return line;
-}
 class Log {
 public:
     explicit Log(const std::filesystem::path& path){file_=CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);}
@@ -43,6 +38,19 @@ public:
     bool healthy()const{return healthy_;}
 private:HANDLE file_{INVALID_HANDLE_VALUE};std::uint64_t sequence_{};bool healthy_{true};
 };
+std::optional<std::wstring> read_line(Log& log,w::console_input::StaConsoleLineReader& reader,
+                                    std::string_view kind) {
+    auto result=reader.read();
+    std::ostringstream fields;
+    fields<<",\"input_wait_kind\":"<<quote(kind)<<",\"wait_result\":"<<quote(w::console_input::line_status_name(result.status))
+          <<",\"owner_thread\":"<<result.owner_thread<<",\"wait_call_count\":"<<result.wait_count
+          <<",\"pump_call_count\":"<<result.pump_count<<",\"message_dispatch_count\":"<<result.message_dispatch_count
+          <<",\"console_input_event_count\":"<<result.console_input_event_count
+          <<",\"console_mode_restored\":"<<flag(result.mode_restored)<<",\"error\":"<<result.error;
+    // One bounded summary per wait, no characters or per-message logs.
+    if(!log.record("console_wait",fields.str()))return std::nullopt;
+    return std::move(result.line);
+}
 void runtime_records(Log& log,const e::ExplorerGroupSession& group){
     std::array<std::size_t,3> logical_order{0,1,2};
     std::sort(logical_order.begin(),logical_order.end(),[&](auto a,auto b){
@@ -136,7 +144,8 @@ bool print_readiness(const e::GroupReadinessPreview& p) {
     return print(text);
 }
 int run(Log& log){
-    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\"");
+    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\",\"console_wait_contract\":\"sta_message_pump_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
+    w::console_input::StaConsoleLineReader input{GetStdHandle(STD_INPUT_HANDLE),GetStdHandle(STD_OUTPUT_HANDLE)};
     const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason));return 2;};
     e::ExplorerGroupSession::OwnedMembers members;
     for(std::size_t i=0;i<3;++i){
@@ -152,7 +161,8 @@ int run(Log& log){
         if(!log.healthy())return stop("evidence_write_failed");
         const std::wstring label(1,static_cast<wchar_t>(L'A'+i));
         if(!print(L"\r\n成员 "+label+L"：请亲自新建一个 Explorer 窗口（不要使用已有窗口），进入以下目录：\r\n"+path.native()+L"\r\n完成后按 Enter；其他输入取消。\r\n"))return stop("console_failed");
-        const auto line=read_line();if(!line||!line->empty())return stop("target_declined");
+        const auto kind=i==0?"member_a_confirmation":i==1?"member_b_confirmation":"member_c_confirmation";
+        const auto line=read_line(log,input,kind);if(!line||!line->empty())return stop("target_declined");
         auto target=begin.provisioning->confirm_user_target();
         if(!target.succeeded())return stop("target_confirmation_failed");
         const auto& g=target.facts.generations;
@@ -164,7 +174,7 @@ int run(Log& log){
         log.record("target_confirmed",f.str());members[i]=std::move(target.session);
     }
     if(!print(L"\r\n三个成员均已单独确认。是否授权三窗口纯平移 L 形布局、连续 Ctrl+Move 和最后精确恢复？\r\n如尺寸不适合，须由您手工缩小；最终恢复到调整完成后、setup 前接受的位置，保留调整后的尺寸。\r\nPaneBind 不会 resize、关闭窗口或改变 Z-order。输入 Y 后 Enter 同意：\r\n"))return stop("console_failed");
-    const auto consent=read_line();if(!consent||(*consent!=L"Y"&&*consent!=L"y"))return stop("group_declined");
+    const auto consent=read_line(log,input,"group_consent");if(!consent||(*consent!=L"Y"&&*consent!=L"y"))return stop("group_declined");
     if(!log.record("group_consent",",\"confirmed\":true,\"input_source\":\"interactive_console\""))return stop("evidence_write_failed");
     auto group=e::ExplorerGroupSession::create(std::move(members));if(!group)return stop("group_binding_failed");
     for(std::size_t i=0;i<3;++i){const auto& binding=group->bindings()[i];
@@ -191,7 +201,7 @@ int run(Log& log){
         }
         if(!print(L"请按以上提示手工缩小一个或多个 Explorer；不要导航、关闭窗口或换 monitor/DPI。\r\nPaneBind 未执行任何 native movement。调整后回到控制台按 Enter 重新检查；输入 Q 取消。\r\n"))return stop("console_failed");
         for(;;) {
-            const auto line=read_line();
+            const auto line=read_line(log,input,"readiness_recheck");
             if(!line)return stop("readiness_input_failed");
             if(line->empty())break;
             if(*line==L"Q" || *line==L"q")return stop("readiness_cancelled");
@@ -210,8 +220,8 @@ int run(Log& log){
      <<",\"running\":"<<flag(facts.running)<<",\"vdm_queries\":"<<group->vdm_queries()<<",\"reconciled_missing\":"<<group->reconciled_missing()
      <<",\"restore_exact\":"<<flag(success)<<",\"reason\":"<<quote(group->reason());log.record("summary",f.str());
     if(!success)return stop(group->reason());
-    print(L"\r\n三个手势已完成，已恢复到接受的 setup 前位置，并保留您手工调整后的尺寸。请评价顺滑度 A/B/C/D/E：\r\n");const auto grade=read_line();
-    print(L"从 A/B/C 任意成员抓住并拖动时，是否感觉像同一个刚体？输入 YES / MOSTLY / NO：\r\n");const auto feel=read_line();
+    print(L"\r\n三个手势已完成，已恢复到接受的 setup 前位置，并保留您手工调整后的尺寸。请评价顺滑度 A/B/C/D/E：\r\n");const auto grade=read_line(log,input,"subjective_grade");
+    print(L"从 A/B/C 任意成员抓住并拖动时，是否感觉像同一个刚体？输入 YES / MOSTLY / NO：\r\n");const auto feel=read_line(log,input,"rigid_body_feel");
     if(!grade||grade->size()!=1||grade->front()<L'A'||grade->front()>L'E'||!feel||(*feel!=L"YES"&&*feel!=L"MOSTLY"&&*feel!=L"NO"))return stop("subjective_response_invalid");
     log.record("subjective",",\"grade\":"+quote(*grade)+",\"rigid_body_feel\":"+quote(*feel)+",\"input_source\":\"interactive_console\"");
     log.record("shutdown",",\"result\":\"PASS\",\"user_windows_closed\":false");
