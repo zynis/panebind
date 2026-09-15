@@ -9,9 +9,6 @@ namespace t=core::topology;
 namespace v=core::movement;
 using core::geometry::Rect;
 namespace {
-bool contained(const Rect& r,const Rect& area) noexcept {
-    return r.left()>=area.left() && r.right()<=area.right() && r.top()>=area.top() && r.bottom()<=area.bottom();
-}
 bool tick_after(DWORD later,DWORD earlier) noexcept {
     const auto delta=static_cast<std::uint32_t>(later-earlier);
     return delta!=0 && delta<0x80000000U;
@@ -25,44 +22,51 @@ struct Registration {
 GroupLayoutReadiness group_layout_readiness(const detail::GroupSnapshots& s) noexcept {
     GroupLayoutReadiness result;
     try {
-        for(const auto& m:s) if(m.dpi!=s[0].dpi || m.monitor_device_name!=s[0].monitor_device_name ||
-            m.monitor_work_area!=s[0].monitor_work_area || !m.dpi) {
-            result.reason="monitor_or_dpi_mismatch";return result;
-        }
-        const auto area=s[0].monitor_work_area;
-        std::array<std::int64_t,3> widths{},heights{};
+        std::vector<t::WindowGeometry> nodes;
         for(std::size_t i=0;i<3;++i) {
-            widths[i]=v::detail::checked_extent(s[i].visible_rect.right(),s[i].visible_rect.left());
-            heights[i]=v::detail::checked_extent(s[i].visible_rect.bottom(),s[i].visible_rect.top());
-            if(widths[i]<=0 || heights[i]<=0)return result;
+            const auto& m=s[i];
+            if(m.dpi!=s[0].dpi || m.monitor_device_name!=s[0].monitor_device_name ||
+               m.monitor_work_area!=s[0].monitor_work_area || !m.dpi) {
+                result.reason="monitor_or_dpi_mismatch";return result;
+            }
+            if(v::detail::checked_extent(m.visible_rect.right(),m.visible_rect.left())<=0 ||
+               v::detail::checked_extent(m.visible_rect.bottom(),m.visible_rect.top())<=0)return result;
+            nodes.push_back({core::model::WindowId{std::to_string(i)},m.visible_rect});
         }
-        // B and C must meet only at a corner. Unequal dimensions may extend
-        // away from that corner, but B cannot extend below A into C.
-        if(heights[1]>heights[0] && widths[2]>widths[0]) {
-            result.reason="B_C_overlap_for_l_shape";return result;
-        }
-        const auto a=v::translate_rect(s[0].visible_rect,
-            {v::detail::checked_extent(area.left(),s[0].visible_rect.left()),
-             v::detail::checked_extent(area.top(),s[0].visible_rect.top())});
-        const auto br=v::translate_rect(s[1].visible_rect,
-            {v::detail::checked_extent(a.right(),s[1].visible_rect.left()),
-             v::detail::checked_extent(a.top(),s[1].visible_rect.top())});
-        const auto cr=v::translate_rect(s[2].visible_rect,
-            {v::detail::checked_extent(a.left(),s[2].visible_rect.left()),
-             v::detail::checked_extent(a.bottom(),s[2].visible_rect.top())});
-        result.targets={a,br,cr};
-        const auto right=std::max({a.right(),br.right(),cr.right()});
-        const auto bottom=std::max({a.bottom(),br.bottom(),cr.bottom()});
-        result.width_deficit=std::max<std::int64_t>(0,v::detail::checked_extent(right,area.right()));
-        result.height_deficit=std::max<std::int64_t>(0,v::detail::checked_extent(bottom,area.bottom()));
-        if(!contained(a,area)||!contained(br,area)||!contained(cr,area)) {result.reason="work_area_deficit";return result;}
-        const std::array<t::WindowGeometry,3> nodes{{{core::model::WindowId{"A"},a},
-            {core::model::WindowId{"B"},br},{core::model::WindowId{"C"},cr}}};
         const auto graph=t::WindowAdjacencyGraph::build(nodes,{});
-        if(graph.relations().size()!=2 || t::find_adjacency(nodes[1],nodes[2],{})) {
-            result.reason="required_edges_mismatch";return result;
+        result.relation_count=graph.relations().size();
+        std::size_t pair_index{};
+        using E=core::geometry::Edge;
+        for(std::size_t i=0;i<3;++i) {
+            for(const auto& id:graph.connected_component(nodes[i].id))
+                for(std::size_t j=0;j<3;++j)if(id==nodes[j].id)result.components[i].push_back(j);
+            for(std::size_t j=i+1;j<3;++j) {
+                auto& pair=result.pairs[pair_index++];
+                pair.first=i;pair.second=j;
+                const auto relation=t::find_adjacency(nodes[i],nodes[j],{});
+                if(relation) {
+                    pair.relation=true;pair.first_edge=relation->first_edge;pair.second_edge=relation->second_edge;
+                    pair.signed_gap=relation->signed_gap;pair.orthogonal_overlap=relation->orthogonal_overlap;
+                } else {
+                    // Diagnostic nearest opposing edge, never relation authority.
+                    const auto& a=nodes[i].visible_rect;const auto& b=nodes[j].visible_rect;
+                    const auto xo=t::detail::positive_interval_overlap(a.left(),a.right(),b.left(),b.right());
+                    const auto yo=t::detail::positive_interval_overlap(a.top(),a.bottom(),b.top(),b.bottom());
+                    const std::array<GroupLayoutReadiness::Pair,4> choices{{
+                        {i,j,false,E::Right,E::Left,v::detail::checked_extent(b.left(),a.right()),yo},
+                        {i,j,false,E::Left,E::Right,v::detail::checked_extent(a.left(),b.right()),yo},
+                        {i,j,false,E::Bottom,E::Top,v::detail::checked_extent(b.top(),a.bottom()),xo},
+                        {i,j,false,E::Top,E::Bottom,v::detail::checked_extent(a.top(),b.bottom()),xo}}};
+                    const auto magnitude=[](std::int64_t n){return n<0?std::uint64_t(-(n+1))+1:std::uint64_t(n);};
+                    pair=*std::min_element(choices.begin(),choices.end(),[&](const auto& a,const auto& b){
+                        if(magnitude(a.signed_gap)!=magnitude(b.signed_gap))return magnitude(a.signed_gap)<magnitude(b.signed_gap);
+                        return a.orthogonal_overlap>b.orthogonal_overlap;
+                    });
+                }
+            }
         }
-        result.ready=true;result.reason="ready";
+        result.ready=result.components[0].size()==3;
+        result.reason=result.ready?"ready":"disconnected_topology";
     }catch(const std::exception&){result.reason="arithmetic_overflow";}
     return result;
 }
@@ -155,8 +159,8 @@ bool ExplorerGroupSession::apply_targets(const std::array<std::optional<Rect>,3>
 }
 bool ExplorerGroupSession::setup() {
     if(!healthy()||setup_done_||readiness_fixture_->accepted())return false;
-    // A FIT preview is not placement authority. Capture/revalidate again and
-    // recompute; a fresh NOT FIT leaves the group ready for another preview.
+    // Human acceptance triggers another read-only capture. No synthetic layout.
+    // A newly disconnected topology returns to the preview loop without writes.
     const auto fresh=readiness_fixture_->prepare_setup(readiness_activity(),[&]{
         return detail::ExplorerGroupBridge::capture(*seal_,sessions());
     });
@@ -165,11 +169,6 @@ bool ExplorerGroupSession::setup() {
     original_=*fresh.snapshots; // accepted restore baseline, NOT binding geometry
     current_=original_;
     reason_="none";
-    const auto& ready=fresh.readiness;
-    std::array<std::optional<Rect>,3> targets;
-    for(std::size_t i=0;i<3;++i)targets[i]=ready.targets[i];
-    GroupOperationRecord record;record.group=generation();
-    if(!apply_targets(targets,original_,record,nullptr))return false;
     if(!source_->start()){poison("hook_install_failed");return false;}
     setup_done_=true;return true;
 }

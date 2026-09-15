@@ -2,13 +2,21 @@
 
 #include "platform/windows/explorer/explorer_group_internal.h"
 #include "core/movement/translation.h"
+#include "core/topology/window_adjacency.h"
 #include <limits>
 
 namespace panebind::platform::windows::explorer {
 struct GroupLayoutReadiness final {
     bool ready{};
-    std::int64_t width_deficit{},height_deficit{};
-    std::array<core::geometry::Rect,3> targets{};
+    struct Pair {
+        std::size_t first{},second{};
+        bool relation{};
+        core::geometry::Edge first_edge{},second_edge{};
+        std::int64_t signed_gap{},orthogonal_overlap{};
+    };
+    std::array<Pair,3> pairs{};
+    std::size_t relation_count{};
+    std::array<std::vector<std::size_t>,3> components;
     std::string_view reason{"invalid_geometry"};
 };
 [[nodiscard]] GroupLayoutReadiness group_layout_readiness(const detail::GroupSnapshots&) noexcept;
@@ -27,7 +35,7 @@ struct GroupReadinessPreview final {
     GroupReadinessActivity activity;
     std::array<std::array<std::int64_t,2>,3> member_sizes{};
     core::geometry::Rect work_area;
-    std::int64_t required_width{},required_height{},capture_qpc{};
+    std::int64_t capture_qpc{};
     std::string_view reason{"fixture_state_invalid"};
 };
 
@@ -75,15 +83,13 @@ public:
                 if(result.member_sizes[i][0]<=0 || result.member_sizes[i][1]<=0)
                     throw std::invalid_argument("nonpositive readiness extent");
             }
-            const auto width=core::geometry::checked_add(result.member_sizes[0][0],result.member_sizes[1][0]);
-            const auto height=core::geometry::checked_add(result.member_sizes[0][1],result.member_sizes[2][1]);
-            if(!width || !height) throw std::overflow_error("readiness extent overflow");
-            result.required_width=std::max(*width,result.member_sizes[2][0]);
-            result.required_height=std::max(*height,result.member_sizes[1][1]);
             result.work_area=(*result.snapshots)[0].monitor_work_area;
             result.readiness=group_layout_readiness(*result.snapshots);
             result.reason=result.readiness.reason;
             result.valid=true;
+            if(!result.readiness.ready && result.reason!="disconnected_topology") {
+                result.valid=false;failed_=true;
+            }
         } catch(const std::exception&) {
             result.reason="invalid_readiness_geometry";failed_=true;
         }

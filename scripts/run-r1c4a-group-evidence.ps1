@@ -1,6 +1,6 @@
 [CmdletBinding(DefaultParameterSetName='Run')]
 param(
-    [Parameter(ParameterSetName='Run')][string] $BuildDirectory='out/r1c4a-fix3-debug',
+    [Parameter(ParameterSetName='Run')][string] $BuildDirectory='out/r1c4-topology-debug',
     [Parameter(ParameterSetName='Run')][switch] $IndependentReviewPassed,
     [Parameter(Mandatory=$true,ParameterSetName='Validate')][string] $ValidateEvidencePath
 )
@@ -10,7 +10,7 @@ $ErrorActionPreference='Stop'
 if($PSCmdlet.ParameterSetName -eq 'Validate') {
     $validation=Test-C4AEvidence $ValidateEvidencePath
     $validation|ConvertTo-Json -Depth 8
-    if($validation.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS'){exit 2}
+    if($validation.Result -clike 'BLOCKED_*'){exit 2}
     exit 0
 }
 if(-not $IndependentReviewPassed){throw 'STOP: C4A independent review must PASS before human UAT. No harness launched.'}
@@ -42,8 +42,8 @@ try {
     if($sha -cne $after){throw 'Implementation changed during UAT'}
     if($afterDirty -or $binaryHash -cne $afterHash){throw 'Worktree or harness binary changed during UAT'}
     $validation=Test-C4AEvidence $log
-    if($validation.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS') {
-        if($harnessExit -ne 2){throw 'Readiness block contradicts harness exit'}
+    if($validation.Result -clike 'BLOCKED_*') {
+        if($harnessExit -ne 2){throw 'Blocked evidence contradicts harness exit'}
         $validation|ConvertTo-Json -Depth 8
         exit 2
     }

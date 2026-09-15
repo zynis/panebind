@@ -73,7 +73,7 @@ void runtime_records(Log& log,const e::ExplorerGroupSession& group){
     }
     for(std::size_t n=0;n<group.operations().size();++n){const auto& op=group.operations()[n];const auto& r=op.receipt;
         std::ostringstream f;f<<",\"group\":"<<op.group<<",\"gesture\":"<<op.gesture<<",\"batch\":"<<op.batch
-         <<",\"phase\":"<<quote(op.gesture?"active":n==0?"setup":"restore")<<",\"source_member\":"<<op.source_member
+         <<",\"phase\":"<<quote(op.gesture?"active":"restore")<<",\"source_member\":"<<op.source_member
          <<",\"source_receipt\":"<<op.source_sequence<<",\"watermark\":"<<op.watermark<<",\"pre_native_tick\":"<<op.pre_native_tick
          <<",\"receipt_qpc\":"<<op.receipt_qpc<<",\"owner_qpc\":"<<op.owner_qpc
          <<",\"source_visible\":"<<rect(op.source_visible)
@@ -111,9 +111,16 @@ bool record_readiness(Log& log,std::string_view type,const e::GroupReadinessPrev
      <<",\"reason\":"<<quote(preview.reason)<<",\"snapshots\":"<<(preview.snapshots?snapshots(*preview.snapshots):"null")
      <<",\"member_sizes\":[";
     for(std::size_t i=0;i<3;++i){if(i)f<<',';f<<'['<<preview.member_sizes[i][0]<<','<<preview.member_sizes[i][1]<<']';}
-    f<<"],\"work_area\":"<<rect(preview.work_area)<<",\"required_width\":"<<preview.required_width
-     <<",\"required_height\":"<<preview.required_height<<",\"width_deficit\":"<<preview.readiness.width_deficit
-     <<",\"height_deficit\":"<<preview.readiness.height_deficit<<",\"group_generation\":"<<a.group_generation
+    f<<"],\"work_area\":"<<rect(preview.work_area)<<",\"relation_count\":"<<preview.readiness.relation_count
+     <<",\"pairs\":[";
+    for(std::size_t i=0;i<3;++i){if(i)f<<',';const auto& p=preview.readiness.pairs[i];
+        f<<"{\"first\":"<<p.first<<",\"second\":"<<p.second<<",\"relation\":"<<flag(p.relation)
+         <<",\"first_edge\":"<<static_cast<int>(p.first_edge)<<",\"second_edge\":"<<static_cast<int>(p.second_edge)
+         <<",\"signed_gap\":"<<p.signed_gap<<",\"orthogonal_overlap\":"<<p.orthogonal_overlap<<'}';}
+    f<<"],\"components\":[";
+    for(std::size_t i=0;i<3;++i){if(i)f<<',';f<<'[';bool first=true;
+        for(const auto member:preview.readiness.components[i]){if(!first)f<<',';first=false;f<<member;}f<<']';}
+    f<<"],\"group_generation\":"<<a.group_generation
      <<",\"gesture_generation\":"<<a.gesture_generation<<",\"native_apply_count\":"<<a.native_apply_count
      <<",\"hdwp_begin_count\":"<<a.hdwp_begin_count<<",\"event_source_running\":"<<flag(a.event_source_running)
      <<",\"pending_count\":"<<a.pending_count<<",\"leader_present\":"<<flag(a.leader_present)
@@ -121,36 +128,40 @@ bool record_readiness(Log& log,std::string_view type,const e::GroupReadinessPrev
     return log.record(type,f.str());
 }
 bool print_readiness(const e::GroupReadinessPreview& p) {
-    const auto& area=p.work_area;
-    std::wstring text=L"\r\nReadiness #"+std::to_wstring(p.attempt)+(p.setup_check?L"（setup fresh check）":L"（live preview）")+
-        L"\r\n工作区："+std::to_wstring(area.right()-area.left())+L" × "+std::to_wstring(area.bottom()-area.top())+L" px\r\n";
-    for(std::size_t i=0;i<3;++i)text+=L"Member "+std::wstring(1,static_cast<wchar_t>(L'A'+i))+L": "+
+    const auto edge=[](panebind::core::geometry::Edge e)->std::wstring_view {
+        using E=panebind::core::geometry::Edge;
+        switch(e){case E::Left:return L"Left";case E::Right:return L"Right";
+            case E::Top:return L"Top";case E::Bottom:return L"Bottom";}return L"?";
+    };
+    std::wstring text=L"\r\nTopology preview #"+std::to_wstring(p.attempt)+
+        (p.setup_check?L"（接受前 fresh check）":L"（只读）")+L"\r\n";
+    for(std::size_t i=0;i<3;++i)text+=std::wstring(1,static_cast<wchar_t>(L'A'+i))+L": "+
         std::to_wstring(p.member_sizes[i][0])+L" × "+std::to_wstring(p.member_sizes[i][1])+L" px\r\n";
-    text+=L"L-shape required："+std::to_wstring(p.required_width)+L" × "+std::to_wstring(p.required_height)+
-        L" px\r\n宽度 = max(A宽+B宽, C宽)；高度 = max(A高+C高, B高)。\r\n"+
-        L"宽度至少还需减少 "+std::to_wstring(p.readiness.width_deficit)+L" px；高度至少还需减少 "+
-        std::to_wstring(p.readiness.height_deficit)+L" px。\r\n";
-    text+=p.readiness.ready?L"结果：FIT。\r\n":L"结果：NOT FIT（"+std::wstring(p.reason.begin(),p.reason.end())+L"）。\r\n";
-    if(!p.readiness.ready)text+=L"以上是最小缺口；建议额外留出移动余量，避免三窗恰好填满工作区。\r\n";
-    if(!p.readiness.ready) {
-        const auto area_width=area.right()-area.left(),area_height=area.bottom()-area.top();
-        const auto ab_width=p.member_sizes[0][0]+p.member_sizes[1][0];
-        const auto ac_height=p.member_sizes[0][1]+p.member_sizes[2][1];
-        if(ab_width>area_width)text+=L"请将 A/B 的合计宽度至少缩小 "+std::to_wstring(ab_width-area_width)+L" px。\r\n";
-        if(p.member_sizes[2][0]>area_width)text+=L"请将 C 的宽度至少缩小 "+std::to_wstring(p.member_sizes[2][0]-area_width)+L" px。\r\n";
-        if(ac_height>area_height)text+=L"请将 A/C 的合计高度至少缩小 "+std::to_wstring(ac_height-area_height)+L" px。\r\n";
-        if(p.member_sizes[1][1]>area_height)text+=L"请将 B 的高度至少缩小 "+std::to_wstring(p.member_sizes[1][1]-area_height)+L" px。\r\n";
-        if(p.reason=="B_C_overlap_for_l_shape" || p.reason=="required_edges_mismatch")
-            text+=L"为避免 B/C 额外接触或重叠，可手工缩小至 B 的高度不超过 A、C 的宽度不超过 A。\r\n";
+    for(const auto& pair:p.readiness.pairs) {
+        text+=std::wstring(1,static_cast<wchar_t>(L'A'+pair.first))+L"-"+
+            std::wstring(1,static_cast<wchar_t>(L'A'+pair.second))+
+            (pair.relation?L": relation YES, ":L": relation NO, nearest opposing edges: ")+
+            std::wstring(edge(pair.first_edge))+L"/"+std::wstring(edge(pair.second_edge))+
+            L", gap="+std::to_wstring(pair.signed_gap)+L", overlap="+std::to_wstring(pair.orthogonal_overlap)+L"\r\n";
     }
+    text+=L"relation_count="+std::to_wstring(p.readiness.relation_count)+L"\r\n";
+    for(std::size_t i=0;i<3;++i) {
+        text+=L"connected_component("+std::wstring(1,static_cast<wchar_t>(L'A'+i))+L") = ";
+        for(const auto member:p.readiness.components[i])text+=std::wstring(1,static_cast<wchar_t>(L'A'+member))+L" ";
+        text+=L"\r\n";
+    }
+    text+=p.readiness.ready?L"READY：三个成员连通；2 或 3 条 relation 均可。\r\n":
+        L"NOT READY：请手工 Move + Resize，使三窗通过有正重叠的对边接触连通。\r\n";
     return print(text);
 }
 int run(Log& log){
-    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\",\"console_wait_contract\":\"sta_message_pump_v2\",\"console_mode_contract\":\"preserve_host_mode_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
+    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"topology_neutral_accepted_baseline_v2\",\"console_wait_contract\":\"sta_message_pump_v2\",\"console_mode_contract\":\"preserve_host_mode_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
     w::console_input::StaConsoleLineReader input{GetStdHandle(STD_INPUT_HANDLE),GetStdHandle(STD_OUTPUT_HANDLE)};
-    const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason));return 2;};
+    std::string stage="MEMBER_A_PROVISIONING";
+    const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason)+",\"stage\":"+quote(stage));return 2;};
     e::ExplorerGroupSession::OwnedMembers members;
     for(std::size_t i=0;i<3;++i){
+        stage=i==0?"MEMBER_A_PROVISIONING":i==1?"MEMBER_B_PROVISIONING":"MEMBER_C_PROVISIONING";
         GUID guid{};wchar_t nonce[64]{};
         if(CoCreateGuid(&guid)!=S_OK || !StringFromGUID2(guid,nonce,64))return stop("nonce_failed");
         const auto path=std::filesystem::temp_directory_path()/(std::wstring{L"PaneBind-R1C4A-"}+nonce);
@@ -175,46 +186,51 @@ int run(Log& log){
          <<",\"token_issued\":"<<flag(target.facts.token_issued)<<",\"input_source\":\"interactive_console\"";
         log.record("target_confirmed",f.str());members[i]=std::move(target.session);
     }
-    if(!print(L"\r\n三个成员均已单独确认。是否授权三窗口纯平移 L 形布局、连续 Ctrl+Move 和最后精确恢复？\r\n如尺寸不适合，须由您手工缩小；最终恢复到调整完成后、setup 前接受的位置，保留调整后的尺寸。\r\nPaneBind 不会 resize、关闭窗口或改变 Z-order。输入 Y 后 Enter 同意：\r\n"))return stop("console_failed");
+    stage="GROUP_CONSENT";
+    if(!print(L"\r\n三个成员已单独确认。是否授权这三个新建窗口的 Ctrl+Move 和最后精确恢复？\r\n"
+        L"绑定后 PaneBind 不会摆放窗口。请您手工 Move + Resize 为任意三窗连通拓扑；尺寸不必相同。\r\n"
+        L"稍后单独接受当前拓扑作为恢复基线。PaneBind 不 resize、不关闭窗口、不改变 Z-order。\r\n"
+        L"输入 Y 后 Enter 同意：\r\n"))return stop("console_failed");
     const auto consent=read_line(log,input,"group_consent");if(!consent||(*consent!=L"Y"&&*consent!=L"y"))return stop("group_declined");
     if(!log.record("group_consent",",\"confirmed\":true,\"input_source\":\"interactive_console\""))return stop("evidence_write_failed");
+    stage="GROUP_BIND";
     auto group=e::ExplorerGroupSession::create(std::move(members));if(!group)return stop("group_binding_failed");
     for(std::size_t i=0;i<3;++i){const auto& binding=group->bindings()[i];
         std::ostringstream f;f<<",\"member\":"<<i<<",\"window_id\":"<<binding.window_id<<",\"capability_generation\":"<<binding.capability_generation
          <<",\"consent_generation\":"<<binding.consent_generation<<",\"hwnd\":"<<reinterpret_cast<std::uintptr_t>(binding.window)
          <<",\"pid\":"<<binding.process_id<<",\"tid\":"<<binding.thread_id<<",\"group\":"<<group->generation();log.record("binding",f.str());}
     if(!log.record("binding_snapshot",",\"snapshots\":"+snapshots(group->binding_snapshots())))return stop("evidence_write_failed");
+    stage="TOPOLOGY_PREVIEW";
     bool success=false;
     for(;;) {
         auto preview=group->preview_readiness();
         if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
         if(!preview.valid)return stop(preview.reason);
         if(!print_readiness(preview))return stop("console_failed");
-        if(preview.readiness.ready) {
-            success=group->setup(); // fresh capture/recompute, not preview reuse
-            preview=*group->last_readiness_preview();
-            if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
-            if(group->accepted_readiness()) {
-                if(!record_readiness(log,"readiness_accepted",*group->accepted_readiness()))return stop("evidence_write_failed");
-                break; // runtime errors retain the usual batch/summary evidence
-            }
-            if(!preview.valid || !group->healthy())return stop(preview.reason);
-            if(!print_readiness(preview))return stop("console_failed");
+        if(!print(L"请手工 Move + Resize；勿导航、更换窗口或 monitor/DPI。\r\n"
+            L"PaneBind native writes = 0。Enter 重新采集；READY 时输入 Y 接受当前拓扑；Q 取消。\r\n"))return stop("console_failed");
+        const auto line=read_line(log,input,"readiness_recheck");
+        if(!line)return stop("readiness_input_failed");
+        if(*line==L"Q"||*line==L"q")return stop("readiness_cancelled");
+        if(*line!=L"Y"&&*line!=L"y")continue;
+        if(!preview.readiness.ready)continue;
+        if(!log.record("topology_consent",",\"confirmed\":true,\"input_source\":\"interactive_console\",\"preview_attempt\":"+std::to_string(preview.attempt)))return stop("evidence_write_failed");
+        success=group->setup(); // another capture; still no native placement
+        preview=*group->last_readiness_preview();
+        if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
+        if(group->accepted_readiness()) {
+            if(!record_readiness(log,"readiness_accepted",*group->accepted_readiness()))return stop("evidence_write_failed");
+            break;
         }
-        if(!print(L"请按以上提示手工缩小一个或多个 Explorer；不要导航、关闭窗口或换 monitor/DPI。\r\nPaneBind 未执行任何 native movement。调整后回到控制台按 Enter 重新检查；输入 Q 取消。\r\n"))return stop("console_failed");
-        for(;;) {
-            const auto line=read_line(log,input,"readiness_recheck");
-            if(!line)return stop("readiness_input_failed");
-            if(line->empty())break;
-            if(*line==L"Q" || *line==L"q")return stop("readiness_cancelled");
-            if(!print(L"仅支持 Enter 重新检查，或 Q 取消。\r\n"))return stop("console_failed");
-        }
+        if(!preview.valid||!group->healthy())return stop(preview.reason);
+        if(!print_readiness(preview))return stop("console_failed");
     }
+    stage="GESTURE";
     for(std::size_t i=0;success&&i<3;++i){
         print(L"\r\nGesture "+std::to_wstring(i+1)+L"：先按住 Ctrl，再拖动成员 "+std::wstring(1,static_cast<wchar_t>(L'A'+i))+L" 的标题栏约 1 秒，再松鼠标。保持整组在工作区内。\r\n");
         success=group->run_gesture(i,std::chrono::seconds{120});
     }
-    if(success)success=group->restore();
+    if(success){stage="RESTORE";success=group->restore();}
     runtime_records(log,*group);
     const auto facts=group->event_facts();
     std::ostringstream f;f<<",\"accepted\":"<<facts.accepted<<",\"ignored\":"<<facts.ignored<<",\"overflow\":"<<facts.overflow
@@ -222,6 +238,7 @@ int run(Log& log){
      <<",\"running\":"<<flag(facts.running)<<",\"vdm_queries\":"<<group->vdm_queries()<<",\"reconciled_missing\":"<<group->reconciled_missing()
      <<",\"restore_exact\":"<<flag(success)<<",\"reason\":"<<quote(group->reason());log.record("summary",f.str());
     if(!success)return stop(group->reason());
+    stage="SUBJECTIVE";
     print(L"\r\n三个手势已完成，已恢复到接受的 setup 前位置，并保留您手工调整后的尺寸。请评价顺滑度 A/B/C/D/E：\r\n");const auto grade=read_line(log,input,"subjective_grade");
     print(L"从 A/B/C 任意成员抓住并拖动时，是否感觉像同一个刚体？输入 YES / MOSTLY / NO：\r\n");const auto feel=read_line(log,input,"rigid_body_feel");
     if(!grade||grade->size()!=1||grade->front()<L'A'||grade->front()>L'E'||!feel||(*feel!=L"YES"&&*feel!=L"MOSTLY"&&*feel!=L"NO"))return stop("subjective_response_invalid");

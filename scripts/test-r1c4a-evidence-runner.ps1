@@ -5,7 +5,7 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-evidence-validation.ps1')
 function Copy-C4AFixture($Value){return ($Value|ConvertTo-Json -Depth 20 -Compress|ConvertFrom-Json)}
 function New-C4AFixture {
-    param([switch]$InitiallyOversized,[switch]$SetupBecomesOversized)
+    param([switch]$InitiallyOversized,[switch]$SetupBecomesOversized,[switch]$ThreeRelations)
     $r=[Collections.Generic.List[object]]::new()
     function Add-Record([string]$type,[hashtable]$fields) {
         $record=[ordered]@{schema='r1c4a/v1';sequence=$r.Count+1;type=$type}
@@ -15,7 +15,7 @@ function New-C4AFixture {
     function Add-Wait([string]$Kind){
         Add-Record console_wait @{input_wait_kind=$Kind;wait_result='complete';owner_thread=80;wait_call_count=2;pump_call_count=2;message_dispatch_count=1;console_input_event_count=2;modes_observed=$true;input_mode_before=711;input_mode_after=711;mode_changed=$false;error=0}
     }
-    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='live_preview_accepted_baseline_v1';console_wait_contract='sta_message_pump_v2';console_mode_contract='preserve_host_mode_v1';console_input_contract='readconsoleinputex_nowait_v1';owner_sta_thread=80}
+    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='topology_neutral_accepted_baseline_v2';console_wait_contract='sta_message_pump_v2';console_mode_contract='preserve_host_mode_v1';console_input_contract='readconsoleinputex_nowait_v1';owner_sta_thread=80}
     for($i=0;$i -lt 3;++$i){
         Add-Record target_prompt @{member=$i;nonce_directory="C:\nonce-$i";baseline_generation=1;prompt_generation=2}
         Add-Wait @('member_a_confirmation','member_b_confirmation','member_c_confirmation')[$i]
@@ -25,7 +25,8 @@ function New-C4AFixture {
     Add-Record group_consent @{confirmed=$true;input_source='interactive_console'}
     for($i=0;$i -lt 3;++$i){Add-Record binding @{member=$i;window_id=$i+1;capability_generation=$i+11;consent_generation=$i+21;hwnd=$i+100;pid=90;tid=$i+200;group=55}}
     $original=@()
-    $rects=@(@(0,0,100,100),@(100,0,200,100),@(0,100,100,200))
+    $rects=@(@(0,0,120,180),@(120,40,220,180),@(20,180,120,270))
+    if($ThreeRelations){$rects[2]=@(20,180,260,270)}
     for($i=0;$i -lt 3;++$i){$original+= [pscustomobject]@{member=$i;visible=$rects[$i];positioning=$rects[$i];pid=90;tid=$i+200;dpi=96;monitor='DISPLAY1';work_area=@(0,0,1000,1000);image='C:\Windows\explorer.exe';class='CabinetWClass';current_desktop=$true;exact_location=$true;minimized=$false;maximized=$false}}
     $binding=Copy-C4AFixture $original
     if($InitiallyOversized){foreach($s in $binding){$s.visible=@(0,0,800,600);$s.positioning=@(0,0,800,600)}}
@@ -34,19 +35,23 @@ function New-C4AFixture {
     function Add-Preview($snapshots,[bool]$fit,[bool]$setupCheck) {
         ++$script:readinessAttempt
         $d=Get-C4AReadinessDimensions $snapshots
-        $fields=@{attempt=$script:readinessAttempt;valid=$true;setup_check=$setupCheck;ready=$fit;reason=$(if($fit){'ready'}else{'work_area_deficit'});snapshots=(Copy-C4AFixture $snapshots);member_sizes=$d.Sizes;work_area=$snapshots[0].work_area;required_width=$d.Width;required_height=$d.Height;width_deficit=$d.WidthDeficit;height_deficit=$d.HeightDeficit;group_generation=55;gesture_generation=0;native_apply_count=0;hdwp_begin_count=0;event_source_running=$false;pending_count=0;leader_present=$false;owner_thread=$true;capture_qpc=100+$script:readinessAttempt}
+        $fields=@{attempt=$script:readinessAttempt;valid=$true;setup_check=$setupCheck;ready=$fit;reason=$(if($fit){'ready'}else{'disconnected_topology'});snapshots=(Copy-C4AFixture $snapshots);member_sizes=$d.Sizes;work_area=$snapshots[0].work_area;relation_count=(Get-C4ATopology $snapshots).RelationCount;pairs=(Get-C4ATopology $snapshots).Pairs;components=(Get-C4ATopology $snapshots).Components;group_generation=55;gesture_generation=0;native_apply_count=0;hdwp_begin_count=0;event_source_running=$false;pending_count=0;leader_present=$false;owner_thread=$true;capture_qpc=100+$script:readinessAttempt}
         Add-Record readiness_preview $fields
         return $fields
     }
     if($InitiallyOversized){$null=Add-Preview $binding $false $false;Add-Wait readiness_recheck}
     $null=Add-Preview $original $true $false
     if($SetupBecomesOversized){
+        Add-Wait readiness_recheck
+        Add-Record topology_consent @{confirmed=$true;input_source='interactive_console';preview_attempt=$script:readinessAttempt}
         $oversized=Copy-C4AFixture $original
         foreach($s in $oversized){$s.visible=@(0,0,800,600);$s.positioning=@(0,0,800,600)}
         $null=Add-Preview $oversized $false $true
         Add-Wait readiness_recheck
         $null=Add-Preview $original $true $false
     }
+    Add-Wait readiness_recheck
+    Add-Record topology_consent @{confirmed=$true;input_source='interactive_console';preview_attempt=$script:readinessAttempt}
     $accepted=Add-Preview $original $true $true
     Add-Record readiness_accepted $accepted
     $gestures=@();$batches=@();$current=Copy-C4AFixture $original
@@ -62,9 +67,9 @@ function New-C4AFixture {
         $batches+=@{group=55;gesture=$i+1;batch=1;phase='active';source_member=$i;source_receipt=$start+1;watermark=$start+1;pre_native_tick=$base+25;receipt_qpc=$base+20;owner_qpc=$base+21;native_start_qpc=$base+30;native_return_qpc=$base+35;postverify_qpc=$base+40;native_path='HDWP';native_flags=21;all_preflight=$true;all_pending_registered=$true;native_attempted=$true;native_succeeded=$true;deferred_count=2;stage=4;error=0;all_postverify=$true;reason='exact';source_visible=$current[$i].visible;before=$before;members=$targets}
         $gestures+=@{group=55;gesture=$i+1;source_member=$i;start_receipt=$start;end_receipt=$start+2;starts=1;locations=1;ends=1;batches=1;callback_ctrl=$true;owner_ctrl=$true;callback_qpc=$base;decision_qpc=$base+1;initial=$before;final=(Copy-C4AFixture $current);exact=$true;roles_cleared=$true;pending_empty=$true;group_ready=$true}
     }
-    foreach($phase in @('setup','restore')){
+    foreach($phase in @('restore')){
         $targets=@();for($m=0;$m -lt 3;++$m){$targets+=[pscustomobject]@{member=$m;target=$original[$m].visible;actual=$original[$m].visible;positioning_target=$original[$m].positioning;actual_positioning=$original[$m].positioning;exact=$true}}
-        Add-Record batch @{group=55;gesture=0;batch=0;phase=$phase;native_path='HDWP';native_flags=21;all_preflight=$true;all_pending_registered=$true;native_attempted=$true;native_succeeded=$true;deferred_count=3;error=0;all_postverify=$true;members=$targets;before=(Copy-C4AFixture $original);native_start_qpc=500}
+        Add-Record batch @{group=55;gesture=0;batch=0;phase=$phase;native_path='HDWP';native_flags=21;all_preflight=$true;all_pending_registered=$true;native_attempted=$true;native_succeeded=$true;deferred_count=3;error=0;all_postverify=$true;members=$targets;before=(Copy-C4AFixture $original);native_start_qpc=4000}
     }
     foreach($batch in $batches){Add-Record batch $batch}
     foreach($g in $gestures){Add-Record gesture $g}
@@ -190,11 +195,11 @@ foreach($mode in @('resized-baseline','setup-TOCTOU-retry')) {
     if($result.Result -cne 'PASS' -or $result.ReadinessPreviewAttempts -lt 3){throw "readiness fixture failed: $mode"}
     ++$tests;Write-Host "PASS $mode"
 }
-foreach($fault in @('no-previews','duplicate-accepted','preview-write','preview-HDWP','preview-gesture','preview-Leader','preview-pending','preview-hook','preview-authority','preview-invalid','preview-DPI','bad-dimensions','bad-deficit','setup-stale-baseline','accepted-stale-snapshot','restore-binding-baseline','setup-before-accept')) {
+foreach($fault in @('no-previews','duplicate-accepted','preview-write','preview-HDWP','preview-gesture','preview-Leader','preview-pending','preview-hook','preview-authority','preview-invalid','preview-DPI','bad-dimensions','bad-relation-count','setup-stale-baseline','accepted-stale-snapshot','restore-binding-baseline','setup-before-accept')) {
     $records=New-C4AFixture -InitiallyOversized
     $previews=@($records|Where-Object type -eq readiness_preview)
     $accepted=($records|Where-Object type -eq readiness_accepted)
-    $setup=($records|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'setup'})
+    $setup=($records|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'})
     switch($fault) {
         'no-previews' {$records=@($records|Where-Object type -ne readiness_preview)}
         'duplicate-accepted' {$records=@($records[0..($records.Count-2)])+@(Copy-C4AFixture $accepted)+@($records[-1])}
@@ -208,8 +213,8 @@ foreach($fault in @('no-previews','duplicate-accepted','preview-write','preview-
         'preview-invalid' {$previews[0].valid=$false}
         'preview-DPI' {$previews[1].snapshots[1].dpi=192}
         'bad-dimensions' {$previews[0].member_sizes[0][0]=1}
-        'bad-deficit' {$previews[0].width_deficit=0}
-        'setup-stale-baseline' {$setup.before=(Copy-C4AFixture ($records|Where-Object type -eq binding_snapshot).snapshots)}
+        'bad-relation-count' {$previews[0].relation_count=3}
+        'setup-stale-baseline' {($records|Where-Object type -eq gesture|Select-Object -First 1).initial=(Copy-C4AFixture ($records|Where-Object type -eq binding_snapshot).snapshots)}
         'accepted-stale-snapshot' {$accepted.snapshots[0].visible[0]+=1}
         'restore-binding-baseline' {
             $restore=($records|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'})
@@ -244,7 +249,7 @@ foreach($mode in @('legacy-block','cancel-not-fit','cancel-setup-recheck')) {
     $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=0;type='shutdown';result='BLOCKED';reason=$reason}
     for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
     $result=Test-C4ARecords $records
-    if($result.Result -cne 'BLOCKED_BY_LAYOUT_READINESS' -or $result.Runtime -cne 'NOT_STARTED'){throw 'layout block misclassified'}
+    if($result.Result -cne 'BLOCKED_DURING_TOPOLOGY_PREVIEW' -or $result.Runtime -cne 'NOT_STARTED'){throw 'layout block misclassified'}
     ++$tests;Write-Host "PASS $mode"
     $records=@($records[0..($records.Count-2)])+@([pscustomobject]@{schema='r1c4a/v1';sequence=0;type='batch';native_attempted=$true})+@($records[-1])
     for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
@@ -299,4 +304,62 @@ foreach($fault in @('v1-not-fix3-pass','mode-contract','missing-mode-observation
     if($pass){throw "invalid host-mode evidence accepted: $fault"}
     ++$tests;Write-Host "PASS $fault"
 }
+$null=Test-C4ARecords (New-C4AFixture -ThreeRelations)
+++ $tests;Write-Host 'PASS unequal three-relation topology full runtime evidence'
+foreach($stage in @('MEMBER_A_PROVISIONING','MEMBER_B_PROVISIONING','MEMBER_C_PROVISIONING','GROUP_CONSENT','GROUP_BIND','TOPOLOGY_PREVIEW','GESTURE','RESTORE','SUBJECTIVE')) {
+    $fixture=New-C4AFixture
+    $end=switch($stage){
+        'MEMBER_A_PROVISIONING' {($fixture|Where-Object {$_.type -eq 'target_prompt' -and $_.member -eq 0}).sequence}
+        'MEMBER_B_PROVISIONING' {($fixture|Where-Object {$_.type -eq 'target_prompt' -and $_.member -eq 1}).sequence}
+        'MEMBER_C_PROVISIONING' {($fixture|Where-Object {$_.type -eq 'target_prompt' -and $_.member -eq 2}).sequence}
+        'GROUP_CONSENT' {($fixture|Where-Object {$_.type -eq 'console_wait' -and $_.input_wait_kind -eq 'group_consent'}).sequence}
+        'GROUP_BIND' {($fixture|Where-Object type -eq group_consent).sequence}
+        'TOPOLOGY_PREVIEW' {($fixture|Where-Object type -eq readiness_preview|Select-Object -First 1).sequence}
+        'GESTURE' {($fixture|Where-Object type -eq receipt|Select-Object -First 1).sequence}
+        'RESTORE' {($fixture|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'}).sequence}
+        'SUBJECTIVE' {($fixture|Where-Object type -eq subjective).sequence}
+    }
+    $records=@($fixture|Where-Object sequence -le $end)
+    $reason=if($stage -eq 'GROUP_CONSENT'){'group_declined'}else{'retained_original_failure'}
+    $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=$records.Count+1;type='shutdown';result='BLOCKED';reason=$reason;stage=$stage}
+    $result=Test-C4ARecords $records
+    if($result.Result -cne "BLOCKED_DURING_$stage" -or $result.Reason -cne $reason){throw "stage/reason masked: $stage"}
+    ++$tests;Write-Host "PASS BLOCKED $stage actual reason retained"
+    # The same incomplete record prefix cannot become PASS by changing shutdown.
+    if($stage -ne 'SUBJECTIVE'){
+        $records[-1].result='PASS';$records[-1]|Add-Member user_windows_closed $false
+        $pass=$true;try{$null=Test-C4ARecords $records}catch{$pass=$false}
+        if($pass){throw "incomplete $stage was promoted to PASS"};++$tests
+    }
+}
+# Captures that fail validation must report their own failure, not a fabricated
+# three-binding or geometry-success prerequisite.
+$fixture=New-C4AFixture;$preview=$fixture|Where-Object type -eq readiness_preview|Select-Object -First 1
+$records=@($fixture|Where-Object sequence -le $preview.sequence)
+$preview.valid=$false;$preview.reason='member_validation_failed'
+$records+=[pscustomobject]@{schema='r1c4a/v1';sequence=$records.Count+1;type='shutdown';result='BLOCKED';reason='member_validation_failed';stage='TOPOLOGY_PREVIEW'}
+$result=Test-C4ARecords $records
+if($result.Reason -cne 'member_validation_failed'){throw 'capture failure masked'};++$tests
+$preview.native_apply_count=1
+$pass=$true;try{$null=Test-C4ARecords $records}catch{$pass=$false}
+if($pass){throw 'pre-accept native activity accepted as harmless BLOCKED'};++$tests
+Check-Fixture forged-three-relations {param($r)($r|Where-Object type -eq readiness_preview|Select-Object -First 1).relation_count=3}
+Check-Fixture false-component {param($r)($r|Where-Object type -eq readiness_preview|Select-Object -First 1).components[0]=@(0,1)}
+Check-Fixture synthetic-setup {param($r)($r|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'}).phase='setup'}
+Check-Fixture no-topology-consent {param($r)($r|Where-Object type -eq topology_consent).confirmed=$false}
+Check-Fixture duplicate-restore-member {param($r)$op=$r|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'};$op.members[2]=Copy-C4AFixture $op.members[0]}
+Check-Fixture fractional-coordinate {param($r)($r|Where-Object type -eq readiness_preview|Select-Object -First 1).snapshots[0].visible[0]=[decimal]0.1}
+Check-Fixture unrepresentable-extent {param($r)$rect=($r|Where-Object type -eq readiness_preview|Select-Object -First 1).snapshots[0].visible;$rect[0]=[long]::MinValue;$rect[2]=[long]::MaxValue}
+$fixture=New-C4AFixture
+$records=@($fixture|Where-Object {$_.type -notin @('shutdown','subjective') -and -not ($_.type -eq 'console_wait' -and $_.input_wait_kind -in @('subjective_grade','rigid_body_feel'))})
+foreach($op in @($records|Where-Object {$_.type -eq 'batch' -and $_.phase -eq 'restore'})){$op.native_start_qpc=0;$op.native_attempted=$false;$op.native_succeeded=$false;$op.all_postverify=$false}
+$records+=[pscustomobject]@{schema='r1c4a/v1';sequence=0;type='shutdown';result='BLOCKED';reason='restore_preflight_failed';stage='RESTORE'}
+for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
+$result=Test-C4ARecords $records
+if($result.Result -cne 'BLOCKED_DURING_RESTORE' -or $result.Reason -cne 'restore_preflight_failed'){throw 'runtime preflight failure masked by success timing gate'};++$tests
+$records=@($records|Where-Object {-not ($_.type -eq 'batch' -and $_.phase -eq 'restore')})
+$records[-1].reason='restore_validation_failed'
+for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
+$result=Test-C4ARecords $records
+if($result.Result -cne 'BLOCKED_DURING_RESTORE' -or $result.Reason -cne 'restore_validation_failed'){throw 'restore capture failure misclassified as gesture'};++$tests
 Write-Host "R1C4A_RUNNER_FIXTURES = PASS ($tests)"

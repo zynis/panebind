@@ -29,9 +29,14 @@ auto batch_for(b::GlueGroupMoveCoordinator& group) {
 }
 int main() {
     const auto authorized = members();
-    {
+    for(bool three_relations:{false,true}) {
         b::GlueGroupMoveCoordinator group{authorized, 77};
         auto live = layout();
+        if(three_relations) {
+            live[0].visible_rect={0,0,120,180};live[1].visible_rect={120,40,220,180};
+            live[2].visible_rect={20,180,260,270};
+            expect(t::WindowAdjacencyGraph::build(live,{}).relations().size()==3,"unequal three-relation START topology");
+        }
         for (std::size_t i=0; i<3; ++i) {
             const auto sequence = 100 * (i+1);
             expect(group.start(authorized[i], true, sequence, live, {}, 3), "dynamic START");

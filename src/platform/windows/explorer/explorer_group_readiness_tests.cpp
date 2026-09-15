@@ -16,9 +16,9 @@ e::detail::GroupSnapshots snapshots(bool large) {
     for(std::size_t i=0;i<3;++i) {
         auto& s=result[i];
         const auto offset=static_cast<std::int64_t>(i)*49;
-        const auto width=large?1839:1300;const auto height=large?1026:700;
-        s.visible_rect={11+offset,offset,11+offset+width,offset+height};
-        s.positioning_rect={offset,offset,22+offset+width,11+offset+height};
+        const std::array<Rect,3> connected{{{0,0,120,180},{120,40,220,180},{20,180,260,270}}};
+        s.visible_rect=large?Rect{11+offset,offset,1850+offset,1026+offset}:connected[i];
+        s.positioning_rect=panebind::core::movement::translate_rect(s.visible_rect,{-11,-7});
         s.dpi=192;s.monitor_device_name=L"DISPLAY1";s.monitor_work_area={0,0,3072,1824};
         s.process_id=90;s.thread_id=200+static_cast<std::uint32_t>(i);
         s.process_image_path=L"C:\\Windows\\explorer.exe";s.window_class=L"CabinetWClass";
@@ -44,8 +44,8 @@ int main() {
         auto binding=snapshots(true),live=binding;e::GroupReadinessFixture fixture{64,binding};int captures{};
         auto capture=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return live;};
         const auto p=fixture.preview(idle,capture);
-        check(p.valid&&!p.readiness.ready&&p.readiness.width_deficit==606&&p.readiness.height_deficit==228,"B actual failed-fixture deficits");
-        check(p.member_sizes[0][0]==1839&&p.required_width==3678&&p.required_height==2052,"B dimensions and requirement");
+        check(p.valid&&!p.readiness.ready&&p.readiness.reason=="disconnected_topology","B disconnected geometry");
+        check(p.member_sizes[0][0]==1839&&p.readiness.relation_count==0,"B actual sizes and topology, not packing");
         check(!fixture.accepted()&&!p.activity.native_apply_count&&!p.activity.hdwp_begin_count,"B zero writes before acceptance");
         live=snapshots(false);
         check(fixture.preview(idle,capture).readiness.ready,"B live re-preview sees human resize");
@@ -53,11 +53,12 @@ int main() {
         check(captures==3&&accepted.snapshots==live&&accepted.snapshots!=binding,"B accepts resized fresh geometry");
         for(std::size_t i=0;i<3;++i) {
             const auto& baseline=(*accepted.snapshots)[i];
-            const auto setup=w::prepare_visible_translation(baseline.positioning_rect,baseline.visible_rect,accepted.readiness.targets[i]);
+            const auto moved=panebind::core::movement::translate_rect(baseline.visible_rect,{10,20});
+            const auto setup=w::prepare_visible_translation(baseline.positioning_rect,baseline.visible_rect,moved);
             check(setup.status==w::TranslationPreparationStatus::Succeeded,"B setup remains pure translation");
-            const auto restore=w::prepare_visible_translation(*setup.target_positioning_rect,accepted.readiness.targets[i],baseline.visible_rect);
+            const auto restore=w::prepare_visible_translation(*setup.target_positioning_rect,moved,baseline.visible_rect);
             check(restore.status==w::TranslationPreparationStatus::Succeeded&&restore.target_positioning_rect==baseline.positioning_rect,"B restore accepted positioning and size");
-            check(baseline.visible_rect.right()-baseline.visible_rect.left()==1300,"B never restores old 1839 width");
+            check(baseline.visible_rect.right()-baseline.visible_rect.left()!=1839,"B never restores binding-time size");
         }
     }
     { // C: FIT preview cannot authorize stale setup geometry.

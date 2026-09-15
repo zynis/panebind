@@ -36,10 +36,10 @@ function Assert-C4AConsoleWaitEvidence {
     $accepted=@($Records|Where-Object type -eq readiness_accepted)
     foreach($wait in $rechecks) {
         $previous=@($previews|Where-Object sequence -lt $wait.sequence|Select-Object -Last 1)
-        Assert-C4A ($previous.Count -eq 1 -and $previous[0].ready -eq $false -and ($accepted.Count -eq 0 -or $wait.sequence -lt $accepted[0].sequence)) 'readiness wait outside pre-setup adjustment'
+        Assert-C4A ($previous.Count -eq 1 -and ($accepted.Count -eq 0 -or $wait.sequence -lt $accepted[0].sequence)) 'readiness wait outside pre-accept adjustment'
     }
     for($i=1;$i -lt $previews.Count;++$i) {
-        if(-not $previews[$i].setup_check) {
+        if(-not $previews[$i-1].setup_check) {
             $between=@($rechecks|Where-Object {$_.sequence -gt $previews[$i-1].sequence -and $_.sequence -lt $previews[$i].sequence})
             Assert-C4A ($between.Count -gt 0) 're-preview lacks pumped human wait'
         }

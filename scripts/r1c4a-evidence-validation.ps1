@@ -2,6 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-readiness-validation.ps1')
 . (Join-Path $PSScriptRoot 'r1c4a-console-wait-validation.ps1')
+. (Join-Path $PSScriptRoot 'r1c4a-blocked-validation.ps1')
 
 function Assert-C4A {
     param([bool] $Condition, [string] $Message)
@@ -10,8 +11,11 @@ function Assert-C4A {
 function Get-C4ARectKey {
     param($Rect)
     Assert-C4A ($null -ne $Rect -and @($Rect).Count -eq 4) 'invalid rectangle'
-    foreach ($n in $Rect) { Assert-C4A ($n -is [int] -or $n -is [long] -or $n -is [decimal]) 'non-integer rectangle' }
+    foreach ($n in $Rect) {
+        Assert-C4A (($n -is [int] -or $n -is [long] -or $n -is [decimal]) -and [decimal]$n -eq [decimal]::Truncate([decimal]$n) -and [decimal]$n -ge [long]::MinValue -and [decimal]$n -le [long]::MaxValue) 'non-integer/out-of-range rectangle'
+    }
     Assert-C4A ($Rect[2] -gt $Rect[0] -and $Rect[3] -gt $Rect[1]) 'nonpositive extent'
+    Assert-C4A (([decimal]$Rect[2]-[decimal]$Rect[0]) -le [long]::MaxValue -and ([decimal]$Rect[3]-[decimal]$Rect[1]) -le [long]::MaxValue) 'unrepresentable extent'
     return ($Rect -join ',')
 }
 function Get-C4ATranslated {
@@ -28,7 +32,7 @@ function Get-C4APercentile {
 }
 function Test-C4ARecords {
     param([object[]] $Records)
-    Assert-C4A ($Records.Count -gt 5) 'empty/incomplete log'
+    Assert-C4A ($Records.Count -ge 2) 'empty/incomplete log'
     for ($i=0;$i -lt $Records.Count;++$i) {
         Assert-C4A ($Records[$i].schema -ceq 'r1c4a/v1' -and $Records[$i].sequence -eq $i+1) 'schema/sequence gap'
     }
@@ -41,6 +45,12 @@ function Test-C4ARecords {
     $prompts=@($Records | Where-Object type -eq target_prompt | Sort-Object member)
     $confirmed=@($Records | Where-Object type -eq target_confirmed | Sort-Object member)
     $consent=@($Records | Where-Object type -eq group_consent)
+    Assert-C4A ($Records[-1].result -cin @('PASS','BLOCKED')) 'invalid shutdown result'
+    $blocked=$null
+    if($Records[-1].result -ceq 'BLOCKED') {
+        $blocked=Get-C4ABlockedClassification $Records
+        if($blocked.Result -cin @('BLOCKED_DURING_MEMBER_A_PROVISIONING','BLOCKED_DURING_MEMBER_B_PROVISIONING','BLOCKED_DURING_MEMBER_C_PROVISIONING','BLOCKED_DURING_GROUP_CONSENT','BLOCKED_DURING_GROUP_BIND')) {return $blocked}
+    }
     Assert-C4A ($bindings.Count -eq 3 -and $prompts.Count -eq 3 -and $confirmed.Count -eq 3) 'exact authorized set'
     Assert-C4A ($consent.Count -eq 1 -and $consent[0].confirmed -eq $true -and $consent[0].input_source -ceq 'interactive_console') 'group consent'
     Assert-C4A (@($bindings.window_id | Sort-Object -Unique).Count -eq 3 -and @($bindings.hwnd | Sort-Object -Unique).Count -eq 3) 'distinct member identity'
@@ -54,7 +64,24 @@ function Test-C4ARecords {
         Assert-C4A ($c.baseline_exclusion_complete -eq $true -and $c.unique_new_target -eq $true -and $c.exact_location -eq $true -and $c.token_issued -eq $true -and $c.input_source -ceq 'interactive_console') 'target consent proof'
         Assert-C4A ($p.sequence -lt $c.sequence -and $c.sequence -lt $consent[0].sequence -and $consent[0].sequence -lt $b.sequence) 'consent chronology'
     }
+    if($blocked -and $blocked.Runtime -ceq 'ENTERED_NOT_PASSED') {
+        # Full authorization was checked above. Failed preflight/HDWP may have
+        # zero native timestamps; successful-runtime timing gates must not mask
+        # that original failure. This return is categorically NOT a PASS.
+        return $blocked
+    }
+    if($blocked -and $blocked.Runtime -ceq 'NOT_STARTED' -and
+       'readiness_contract' -in $Records[0].PSObject.Properties.Name -and
+       $Records[0].readiness_contract -ceq 'topology_neutral_accepted_baseline_v2') {
+        # A failed capture is not a valid preview, but its actual reason must
+        # remain visible. This path diagnoses BLOCKED only, never readiness PASS.
+        foreach($p in @($Records|Where-Object {$_.type -in @('readiness_preview','readiness_accepted')})) {
+            Assert-C4A ($p.native_apply_count -eq 0 -and $p.hdwp_begin_count -eq 0 -and $p.pending_count -eq 0 -and $p.gesture_generation -eq 0 -and $p.leader_present -eq $false -and $p.event_source_running -eq $false) 'activity hidden by pre-accept block'
+        }
+        return $blocked
+    }
     $readiness=Test-C4AReadinessRecords $Records $bindings
+    if($blocked){return $blocked}
     if($readiness.Result -ceq 'BLOCKED_BY_LAYOUT_READINESS') {
         Assert-C4AConsoleWaitEvidence $Records -AllowHistoricalBlock
         return $readiness
@@ -75,7 +102,7 @@ function Test-C4ARecords {
     $gestures=@($Records|Where-Object type -eq gesture|Sort-Object gesture)
     Assert-C4A ($gestures.Count -eq 3) 'three completed gestures required'
     $batches=@($Records|Where-Object type -eq batch)
-    Assert-C4A (@($batches|Where-Object phase -eq setup).Count -eq 1 -and @($batches|Where-Object phase -eq restore).Count -eq 1) 'setup/restore count'
+    Assert-C4A (@($batches|Where-Object phase -eq setup).Count -eq 0 -and @($batches|Where-Object phase -eq restore).Count -eq 1) 'no synthetic setup / exact restore count'
     $intervals=[Collections.Generic.List[double]]::new();$native=[Collections.Generic.List[double]]::new()
     $post=[Collections.Generic.List[double]]::new();$receiptOwner=[Collections.Generic.List[double]]::new();$ownerNative=[Collections.Generic.List[double]]::new();$total=[Collections.Generic.List[double]]::new()
     for($i=0;$i -lt 3;++$i) {
@@ -118,11 +145,12 @@ function Test-C4ARecords {
         Assert-C4A ($realtime -gt 0) 'no actual pre-END realtime batch'
     }
     foreach($op in $batches) {
+        Assert-C4A ($op.phase -cin @('active','restore')) 'unknown native batch phase'
         Assert-C4A ($op.native_path -ceq 'HDWP' -and $op.native_flags -eq 21 -and $op.all_preflight -eq $true -and $op.all_pending_registered -eq $true -and $op.native_attempted -eq $true -and $op.native_succeeded -eq $true -and $op.all_postverify -eq $true -and $op.error -eq 0 -and $op.deferred_count -eq @($op.members).Count) 'native batch gate'
         foreach($m in $op.members){Assert-C4A ($m.exact -eq $true -and (Get-C4ARectKey $m.target) -ceq (Get-C4ARectKey $m.actual) -and (Get-C4ARectKey $m.positioning_target) -ceq (Get-C4ARectKey $m.actual_positioning)) 'individual postverify'}
     }
     $restore=@($batches|Where-Object phase -eq restore)[0]
-    Assert-C4A (@($restore.members).Count -eq 3) 'restore all members'
+    Assert-C4A (@($restore.members).Count -eq 3 -and (@($restore.members.member|Sort-Object) -join ',') -ceq '0,1,2') 'restore exact authorized member set'
     foreach($m in $restore.members){Assert-C4A ((Get-C4ARectKey $m.actual) -ceq (Get-C4ARectKey $readiness.AcceptedSnapshots[$m.member].visible) -and (Get-C4ARectKey $m.actual_positioning) -ceq (Get-C4ARectKey $readiness.AcceptedSnapshots[$m.member].positioning)) 'restore differs from accepted baseline'}
     $acked=@{}
     foreach($f in @($Records|Where-Object type -eq feedback)) {
