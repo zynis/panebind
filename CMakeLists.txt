@@ -22,6 +22,10 @@ target_include_directories(panebind_core INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_compile_features(panebind_core INTERFACE cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(panebind-magnet-gesture-tests tests/core/magnet_gesture_tests.cpp)
+    target_link_libraries(panebind-magnet-gesture-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-magnet-gesture-tests)
+    add_test(NAME magnet-gesture COMMAND panebind-magnet-gesture-tests)
     add_executable(panebind-magnet-tests tests/core/magnet_tests.cpp)
     target_link_libraries(panebind-magnet-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-magnet-tests)

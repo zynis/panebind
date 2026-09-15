@@ -227,15 +227,19 @@ bool ExplorerGroupSession::move_batch(const GroupEventReceipt& r,const detail::G
     ++gestures_.back().batches;
     return true;
 }
-bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events) {
+bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events,const detail::GroupSnapshots* validated_sample) {
     if(events.empty())return true;
     if(quanta_.size()>=4096 || receipts_.size()+events.size()>16384){poison("evidence_capacity");return false;}
     const auto owner_qpc=glue_qpc_now();
     GroupQuantumRecord q{quanta_.size()+1,model_->gesture_generation(),events.front().sequence,events.back().sequence,events.size(),0,owner_qpc,0};
     receipts_.insert(receipts_.end(),events.begin(),events.end());
-    const auto capture=detail::ExplorerGroupBridge::capture(*seal_,sessions());
-    if(!capture){poison("member_validation_failed");return false;}
-    const auto& live=*capture;
+    std::optional<detail::GroupCaptureResult> captured;
+    if(!validated_sample) {
+        captured=detail::ExplorerGroupBridge::capture(*seal_,sessions());
+        if(!*captured){poison("member_validation_failed");return false;}
+        validated_sample=&**captured;
+    }
+    const auto& live=*validated_sample;
     std::optional<GroupEventReceipt> sample,end;
     for(const auto& r:events) {
         if(r.kind==GroupEventKind::Destroy){poison("member_destroyed");return false;}

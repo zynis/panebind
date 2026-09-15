@@ -36,6 +36,7 @@ private:
     std::vector<GroupEventReceipt> drain();
     bool healthy() const noexcept { return !poisoned_.load(); }
     bool lifecycle_pending(std::optional<std::size_t> active_member = std::nullopt) const noexcept;
+    bool magnet_conflict_pending(std::size_t source) const noexcept;
     GroupEventFacts facts() const noexcept;
     std::uint64_t watermark() const noexcept { return sequence_; }
     void receive(HWINEVENTHOOK,DWORD,HWND,LONG,LONG,DWORD,DWORD) noexcept;
@@ -51,6 +52,7 @@ private:
     std::atomic<bool> poisoned_{};
     bool running_{},notified_{},in_callback_{};
     friend class ExplorerGroupSession;
+    friend class ExplorerLiveMagnetSession;
 #if defined(PANEBIND_EXPLORER_GROUP_TESTING)
     friend class GroupEventSourceTestAccess;
     bool synthetic_{};

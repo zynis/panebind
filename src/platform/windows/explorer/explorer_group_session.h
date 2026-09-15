@@ -66,7 +66,7 @@ private:
     GroupReadinessActivity readiness_activity() const noexcept;
     std::vector<core::topology::WindowGeometry> geometry(const detail::GroupSnapshots&) const;
     void poison(std::string_view) noexcept;
-    bool quantum(std::span<const GroupEventReceipt>);
+    bool quantum(std::span<const GroupEventReceipt>,const detail::GroupSnapshots* validated_sample=nullptr);
     bool move_batch(const GroupEventReceipt&,const detail::GroupSnapshots&,std::int64_t owner_qpc);
     bool attribute(const GroupEventReceipt&,const detail::GroupSnapshots&);
     bool apply_targets(const std::array<std::optional<core::geometry::Rect>,3>&,
@@ -92,5 +92,6 @@ private:
     std::uint64_t native_generation_{};
     bool setup_done_{},restored_{},poisoned_{};
     std::string_view reason_{"none"};
+    friend class ExplorerLiveMagnetSession;
 };
 } // namespace panebind::platform::windows::explorer

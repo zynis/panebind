@@ -244,6 +244,24 @@ int wmain(int argc,wchar_t** argv){
         Input input;input.fail_echo=true;input.push(key(L'Y'));
         check(c::detail::read_with_sta_pump(input.endpoint(),2000).status==c::LineStatus::EchoFailed,"echo failure abort");
     }
+    { // C4B optional work consumes the SAME owner queue in bounded quanta.
+        Input input;Window window(input);
+        struct Work {Input* input;unsigned previous{},calls{};DWORD owner;bool bounded{true};} work{&input,0,0,GetCurrentThreadId(),true};
+        PostMessageW(window.value,WM_APP+17,25,0);
+        const auto dispatch=[](void* raw)noexcept {
+            auto& w=*static_cast<Work*>(raw);++w.calls;
+            w.bounded=w.bounded&&GetCurrentThreadId()==w.owner&&w.input->messages-w.previous<=8;
+            w.previous=w.input->messages;return true;
+        };
+        const auto result=c::detail::read_with_sta_pump(input.endpoint(),2000,{&work,dispatch});
+        check(result.status==c::LineStatus::Complete&&input.messages==25&&work.calls>=4&&work.bounded,"optional live work is owner-affine and eight-message bounded");
+    }
+    {
+        Input input;input.push(key(L'Y'));
+        const auto failed=[](void*)noexcept{return false;};
+        const auto result=c::detail::read_with_sta_pump(input.endpoint(),2000,{nullptr,failed});
+        check(result.status==c::LineStatus::OwnerWorkFailed&&!result.line&&input.reads==0,"failed live work cannot accept console consent");
+    }
     UnregisterClassW(cls.lpszClassName,cls.hInstance);
     if(SUCCEEDED(com))CoUninitialize();
     std::cout<<"STA console pump failures="<<failures<<'\n';return failures?1:0;

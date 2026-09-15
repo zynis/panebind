@@ -74,11 +74,12 @@ const char* line_status_name(LineStatus status) noexcept {
     case LineStatus::WrongThread:return "wrong_thread";
     case LineStatus::Reentrant:return "reentrant_read";
     case LineStatus::ModeQueryFailed:return "console_mode_query_failed";
+    case LineStatus::OwnerWorkFailed:return "owner_work_failed";
     }
     return "unknown";
 }
 bool detail::nowait_api_available() noexcept{return resolve_nowait()!=nullptr;}
-LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeout_ms) {
+LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeout_ms,StaOwnerWork work) {
     LineResult result;result.owner_thread=GetCurrentThreadId();
     if(!endpoint.ready || endpoint.ready==INVALID_HANDLE_VALUE || !endpoint.read_nowait || !endpoint.echo)return result;
     Editor editor;
@@ -99,7 +100,7 @@ LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeou
         // Pump even when the console won the wait. No HWND/message filtering:
         // OleMainThreadWndClass and nonqueued calls must also make progress.
         ++result.pump_count;
-        for(std::size_t i=0;i<64;++i) {
+        for(std::size_t i=0;i<(work.run?8U:64U);++i) {
             MSG message{};
             if(!PeekMessageW(&message,nullptr,0,0,PM_REMOVE))break;
             if(message.message==WM_QUIT) {
@@ -109,6 +110,7 @@ LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeou
             TranslateMessage(&message);DispatchMessageW(&message);
             ++result.message_dispatch_count;
         }
+        if(work.run&&!work.run(work.context))return finish(LineStatus::OwnerWorkFailed);
         INPUT_RECORD record{};
         const auto read=endpoint.read_nowait(endpoint.context,record);
         if(read==RecordRead::Failed)return finish(LineStatus::ReadFailed,GetLastError());
@@ -156,7 +158,7 @@ LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeou
         }
     }
 }
-LineResult StaConsoleLineReader::read() {
+LineResult StaConsoleLineReader::read(StaOwnerWork work) {
     LineResult result;result.owner_thread=GetCurrentThreadId();
     if(result.owner_thread!=owner_){result.status=LineStatus::WrongThread;return result;}
     if(console_read_active){result.status=LineStatus::Reentrant;return result;}
@@ -169,7 +171,7 @@ LineResult StaConsoleLineReader::read() {
     const auto read=resolve_nowait();
     if(!read){result.status=LineStatus::ApiUnavailable;result.error=ERROR_PROC_NOT_FOUND;return result;}
     NativeConsole native{input_,output_,read};
-    result=detail::read_with_sta_pump({input_,&native,&NativeConsole::read_record,&NativeConsole::echo});
+    result=detail::read_with_sta_pump({input_,&native,&NativeConsole::read_record,&NativeConsole::echo},INFINITE,work);
     result.input_mode_before=input_mode;
     result.modes_observed=GetConsoleMode(input_,&result.input_mode_after)!=FALSE;
     if(!result.modes_observed){result.status=LineStatus::ModeQueryFailed;result.error=GetLastError();result.line.reset();}

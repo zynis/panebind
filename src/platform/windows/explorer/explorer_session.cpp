@@ -3,6 +3,7 @@
 #include "core/geometry/checked_arithmetic.h"
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
 #include "platform/windows/explorer/explorer_group_internal.h"
+#include "platform/windows/operations/window_rect_adjustment.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
 #include "platform/windows/explorer/explorer_shell_events.h"
 #include "platform/windows/explorer/explorer_consent_validation.h"
@@ -1588,6 +1589,7 @@ struct ExplorerTestSession::Impl final {
     std::uint64_t glue_authority_id{};
     // C4A identity is role-neutral; the old pair authority fields stay zero.
     std::uint64_t group_authority_generation{};
+    std::uint64_t live_magnet_authority_generation{};
     std::uint64_t group_last_operation{};
     std::uint64_t glue_authority_generation{};
     detail::NativeWindowKey glue_peer_native_key{};
@@ -5604,8 +5606,86 @@ void detail::ExplorerGroupBridge::retire(const ExplorerGroupSeal& seal,GroupSess
             impl.glue_virtual_desktop_manager=nullptr;
             impl.glue_consent_bound_contract=false;
             impl.group_authority_generation=0;
+            impl.live_magnet_authority_generation=0;
         }
     }
+}
+
+bool detail::ExplorerGroupBridge::enable_live_magnet(const ExplorerGroupSeal& seal,GroupSessions sessions) {
+    for(std::size_t i=0;i<3;++i)if(!sessions[i]||!sessions[i]->impl_||
+        !group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i])||
+        sessions[i]->impl_->live_magnet_authority_generation)return false;
+    if(!capture(seal,sessions))return false;
+    for(auto* session:sessions)session->impl_->live_magnet_authority_generation=seal.generation();
+    return true; // private C4B caller only, after its distinct real consent
+}
+
+detail::MagnetNativeReceipt detail::ExplorerGroupBridge::apply_magnet(const ExplorerGroupSeal& seal,
+    GroupSessions sessions,const GroupSnapshots& expected,const core::behavior::MagnetCorrection& command,
+    bool (*register_pending)(void*) noexcept,void* context) {
+    MagnetNativeReceipt result;
+    if(command.source>=3||!command.gesture||!command.operation||!command.source_receipt||command.group!=seal.generation()||!register_pending) {
+        result.reason="invalid_magnet_permit";return result;
+    }
+    const auto& binding=seal.members()[command.source];
+    if(command.source_id!=core::model::WindowId{std::to_string(binding.window_id)}||
+       command.capability!=binding.capability_generation||command.consent!=binding.consent_generation) {
+        result.reason="magnet_source_identity_mismatch";return result;
+    }
+    for(std::size_t i=0;i<3;++i)if(!sessions[i]||!sessions[i]->impl_||
+        !group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i])||
+        sessions[i]->impl_->live_magnet_authority_generation!=seal.generation()||
+        !sessions[i]->impl_->glue_consent_fast_active) {
+        result.reason="magnet_consent_or_active_authority_missing";return result;
+    }
+    const auto captured=capture(seal,sessions);
+    if(!captured){result.capture_failure=captured;result.reason="magnet_preflight_validation_failed";return result;}
+    result.before=*captured;
+    for(std::size_t i=0;i<3;++i) {
+        if(!group_same_context(result.before[i],expected[i])){result.reason="magnet_context_changed";return result;}
+        if(i!=command.source&&(result.before[i].visible_rect!=expected[i].visible_rect||result.before[i].positioning_rect!=expected[i].positioning_rect)) {
+            result.reason="unexpected_target_geometry";return result;
+        }
+    }
+    const auto& before=result.before[command.source];
+    if(before.visible_rect!=command.raw||before.positioning_rect!=expected[command.source].positioning_rect) {
+        result.reason="raw_sample_superseded";return result; // no registration/write; await a fresh event
+    }
+    const auto& target=command.proposal.corrected;
+    const auto& area=before.monitor_work_area;
+    if(target.left()<area.left()||target.top()<area.top()||target.right()>area.right()||target.bottom()>area.bottom()) {
+        result.reason="outside_supported_work_area";return result;
+    }
+    const bool move=command.proposal.edges==core::magnet::ParticipatingEdges{};
+    if((move&&core::movement::classify_geometry_change(before.visible_rect,target).kind==core::movement::GeometryChangeKind::ResizeOrMixed)||
+       (!move&&!core::magnet::matches_latched_resize(before.visible_rect,target,command.proposal.edges))||target==before.visible_rect) {
+        result.reason="invalid_magnet_geometry";return result;
+    }
+    const auto prepared=operations::prepare_visible_rect_adjustment(before.positioning_rect,before.visible_rect,target);
+    if(!prepared.positioning){result.reason="magnet_positioning_bridge_failed";return result;}
+    result.target_positioning=prepared.positioning;
+    result.flags=SWP_NOZORDER|SWP_NOACTIVATE|(move?SWP_NOSIZE:0);
+    if(!receipts_healthy(seal,sessions)){result.reason="magnet_receipts_invalid";return result;}
+    result.all_preflight=true;
+    if(!register_pending(context)){result.reason="magnet_pending_or_lifecycle_failed";return result;}
+    result.pending_registered=true;
+    // No COM/pump between the pending fence and this one source-only call.
+    const auto& p=*result.target_positioning;
+    result.native_start_qpc=glue_qpc_now();result.native_attempted=true;SetLastError(ERROR_SUCCESS);
+    result.native_success=SetWindowPos(binding.window,nullptr,static_cast<int>(p.left()),static_cast<int>(p.top()),
+        static_cast<int>(p.width()),static_cast<int>(p.height()),result.flags)!=FALSE;
+    result.error=result.native_success?0:GetLastError();result.native_return_qpc=glue_qpc_now();
+    const auto actual=capture(seal,sessions);result.postverify_qpc=glue_qpc_now();
+    if(actual)result.actual=*actual;else result.capture_failure=actual;
+    bool exact=result.native_success&&actual;
+    if(actual)for(std::size_t i=0;i<3;++i) {
+        exact=exact&&group_same_context((*actual)[i],result.before[i]);
+        exact=exact&&(*actual)[i].visible_rect==(i==command.source?target:result.before[i].visible_rect)&&
+            (*actual)[i].positioning_rect==(i==command.source?p:result.before[i].positioning_rect);
+    }
+    result.exact=exact&&receipts_healthy(seal,sessions);
+    result.reason=result.exact?"exact":"magnet_postverify_failed";
+    return result;
 }
 
 detail::GroupBatchReceipt detail::ExplorerGroupBridge::apply(const ExplorerGroupSeal& seal,

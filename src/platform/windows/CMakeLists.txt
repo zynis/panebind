@@ -188,6 +188,7 @@ add_library(
     explorer/explorer_glue_event_source.cpp
     explorer/explorer_group_event_source.cpp
     explorer/explorer_group_session.cpp
+    explorer/explorer_live_magnet_session.cpp
     explorer/explorer_glue_session.cpp
     explorer/explorer_shell_inventory.cpp
     explorer/explorer_shell_events.cpp
@@ -220,7 +221,44 @@ target_compile_definitions(
 )
 panebind_enable_warnings(panebind_windows_explorer)
 
+execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE panebind_build_sha OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+if(NOT panebind_build_sha)
+    set(panebind_build_sha "unknown")
+endif()
+execute_process(COMMAND git rev-parse --git-path HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE panebind_git_head OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+execute_process(COMMAND git symbolic-ref -q HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE panebind_git_ref OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+execute_process(COMMAND git rev-parse --git-path "${panebind_git_ref}" WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE panebind_git_ref_path OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+foreach(ref_path IN ITEMS "${panebind_git_head}" "${panebind_git_ref_path}")
+    if(ref_path)
+        get_filename_component(ref_absolute "${ref_path}" ABSOLUTE BASE_DIR "${PROJECT_SOURCE_DIR}")
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${ref_absolute}")
+    endif()
+endforeach()
+add_executable(panebind-explorer-live-magnet-harness ../../app/explorer_live_magnet_harness_main.cpp text_encoding.cpp observer.rc observer.manifest)
+target_link_libraries(panebind-explorer-live-magnet-harness PRIVATE panebind_windows_explorer panebind_windows_sta_console)
+target_compile_definitions(panebind-explorer-live-magnet-harness PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE PANEBIND_BUILD_SHA="${panebind_build_sha}")
+if(MSVC)
+    target_link_options(panebind-explorer-live-magnet-harness PRIVATE /MANIFEST:NO)
+endif()
+panebind_enable_warnings(panebind-explorer-live-magnet-harness)
+
 if(BUILD_TESTING)
+    add_executable(panebind-rect-adjustment-tests operations/window_rect_adjustment_tests.cpp)
+    target_link_libraries(panebind-rect-adjustment-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-rect-adjustment-tests)
+    add_test(NAME windows-rect-adjustment COMMAND panebind-rect-adjustment-tests)
+    add_executable(panebind-magnet-native-probe operations/magnet_native_probe.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-magnet-native-probe PRIVATE panebind_core dwmapi user32)
+    target_compile_definitions(panebind-magnet-native-probe PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
+    if(MSVC)
+        target_link_options(panebind-magnet-native-probe PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-magnet-native-probe)
+    add_test(NAME windows-magnet-owned-probe COMMAND panebind-magnet-native-probe)
     add_executable(panebind-browser-sink-tests
         explorer/explorer_browser_sink_tests.cpp explorer/explorer_shell_inventory.cpp)
     target_link_libraries(panebind-browser-sink-tests PRIVATE panebind_windows_explorer)

@@ -36,6 +36,12 @@ struct MotionSample {
     std::uint64_t previous_tick{},current_tick{},tick_frequency{};
     Distance speed_limit{}; // geometry units / second; caller policy, no magic speed
 };
+struct MagnetAxisPreference {
+    model::WindowId target;
+    ConstraintKind kind;
+    Edge moving_edge,target_edge;
+    Distance release_distance{16}; // INITIAL UAT BASELINE, gesture-local only
+};
 struct MagnetInput {
     Rect initial,raw;
     Interaction interaction{Interaction::Move};
@@ -43,6 +49,8 @@ struct MagnetInput {
     std::span<const MagnetTarget> targets;
     MagnetOptions options;
     std::optional<MotionSample> motion;
+    std::optional<MagnetAxisPreference> preferred_x,preferred_y;
+    bool latched_resize{}; // coordinator already classified; nonparticipating edges remain frozen
 };
 struct SatisfiedConstraint {
     model::WindowId target;
@@ -56,6 +64,7 @@ struct MagnetProposal {
     geometry::Point move_delta; // Resize always zero; never whole-window translate
     ParticipatingEdges edges;
     std::vector<SatisfiedConstraint> satisfied;
+    std::optional<SatisfiedConstraint> selected_x,selected_y;
 };
 struct MagnetResult {
     MotionState motion{MotionState::BelowThreshold};
@@ -121,6 +130,15 @@ inline bool eligible(const Candidate& c,const Rect& result,const MagnetTarget& t
         geometry::edge_coordinate(raw,edge),geometry::edge_coordinate(initial,edge)))return std::nullopt;
     return e;
 }
+[[nodiscard]] inline bool matches_latched_resize(const Rect& initial,const Rect& raw,ParticipatingEdges e) noexcept {
+    if(!detail::valid_rect(initial)||!detail::valid_rect(raw)||(e.left&&e.right)||(e.top&&e.bottom)||
+       (!e.left&&!e.right&&!e.top&&!e.bottom))return false;
+    for(const auto edge:detail::edges) {
+        const auto delta=geometry::checked_difference(geometry::edge_coordinate(raw,edge),geometry::edge_coordinate(initial,edge));
+        if(!delta||(!e.contains(edge)&&*delta!=0))return false;
+    }
+    return true;
+}
 [[nodiscard]] inline MotionState classify_motion(const Rect& raw,const MotionSample& sample) noexcept {
     if(!detail::valid_rect(raw)||!detail::valid_rect(sample.previous)||!sample.tick_frequency||
        sample.current_tick<=sample.previous_tick||sample.speed_limit<=0)return MotionState::InvalidSample;
@@ -150,24 +168,41 @@ public:
             }
             if(in.interaction==Interaction::Resize) {
                 const auto inferred=infer_resize_edges(in.initial,in.raw);
-                if(!inferred||*inferred!=in.edges){result.reason="ambiguous_resize";return result;}
+                if(in.latched_resize?!matches_latched_resize(in.initial,in.raw,in.edges):(!inferred||*inferred!=in.edges)) {
+                    result.reason="ambiguous_resize";return result;
+                }
             } else if(in.interaction!=Interaction::Move || in.edges!=ParticipatingEdges{} ||
                       movement::classify_geometry_change(in.initial,in.raw).kind==movement::GeometryChangeKind::ResizeOrMixed) {
                 result.reason="invalid_move";return result;
+            }
+            const auto valid_preference=[&](const auto& pref,bool x) {
+                return !pref||(detail::x_axis(pref->moving_edge)==x&&geometry::edges_share_axis(pref->moving_edge,pref->target_edge)&&
+                    pref->release_distance>in.options.attraction_distance);
+            };
+            if(!valid_preference(in.preferred_x,true)||!valid_preference(in.preferred_y,false)) {
+                result.reason="invalid_axis_preference";return result;
             }
             if(in.motion){result.motion=classify_motion(in.raw,*in.motion);
                 if(result.motion!=MotionState::BelowThreshold){result.reason="motion_suppressed_or_invalid";return result;}}
             std::unordered_set<std::string> ids;
             std::vector<detail::Candidate> candidates;
             candidates.reserve(in.targets.size()*20);
+            const auto preferred=[&](const detail::Candidate& c) {
+                const auto& p=detail::x_axis(c.moving)?in.preferred_x:in.preferred_y;
+                return p&&p->target==in.targets[c.target].id&&p->kind==c.kind&&p->moving_edge==c.moving&&
+                    p->target_edge==c.target_edge&&detail::magnitude(c.delta)<=static_cast<std::uint64_t>(p->release_distance);
+            };
             for(std::size_t i=0;i<in.targets.size();++i) {
                 const auto& t=in.targets[i];
                 if(!detail::valid_rect(t.rect)||!ids.insert(t.id.value()).second){result.reason="invalid_target_set";return result;}
                 for(const auto moving:detail::edges)for(const auto target:detail::edges) {
                     if(!geometry::edges_share_axis(moving,target)||(in.interaction==Interaction::Resize&&!in.edges.contains(moving)))continue;
                     const auto d=geometry::checked_difference(geometry::edge_coordinate(t.rect,target),geometry::edge_coordinate(in.raw,moving));
-                    if(!d||detail::magnitude(*d)>static_cast<std::uint64_t>(in.options.attraction_distance))continue;
-                    const auto add=[&](ConstraintKind kind){candidates.push_back({i,kind,moving,target,*d});};
+                    if(!d)continue;
+                    const auto add=[&](ConstraintKind kind){
+                        detail::Candidate c{i,kind,moving,target,*d};
+                        if(detail::magnitude(*d)<=static_cast<std::uint64_t>(in.options.attraction_distance)||preferred(c))candidates.push_back(c);
+                    };
                     if(t.screen){if(in.options.screen_edges&&moving==target)add(ConstraintKind::ScreenOuterEdge);continue;}
                     if(moving!=target&&in.options.outer_edges)add(ConstraintKind::WindowOuterEdge);
                     if(moving==target&&in.options.inner_edges)add(ConstraintKind::WindowInnerEdge);
@@ -183,10 +218,12 @@ public:
                 for(const auto& c:candidates) {
                     if(detail::x_axis(c.moving)!=x)continue;
                     const auto rect=detail::corrected(in,x?c.delta:other,x?other:c.delta);
-                    if(!rect||!detail::eligible(c,*rect,in.targets[c.target],provisional,in.options.attraction_distance))continue;
+                    const auto& pref=x?in.preferred_x:in.preferred_y;
+                    const auto field=preferred(c)?pref->release_distance:in.options.attraction_distance;
+                    if(!rect||!detail::eligible(c,*rect,in.targets[c.target],provisional,field))continue;
                     const auto overlap=detail::overlap(*rect,in.targets[c.target].rect,x);
-                    const auto key=std::tuple{detail::magnitude(c.delta),-overlap,c.kind,std::string_view{in.targets[c.target].id.value()},c.moving,c.target_edge};
-                    if(!best||key<std::tuple{detail::magnitude(best->delta),-best_overlap,best->kind,std::string_view{in.targets[best->target].id.value()},best->moving,best->target_edge}){best=c;best_overlap=overlap;}
+                    const auto key=std::tuple{!preferred(c),detail::magnitude(c.delta),-overlap,c.kind,std::string_view{in.targets[c.target].id.value()},c.moving,c.target_edge};
+                    if(!best||key<std::tuple{!preferred(*best),detail::magnitude(best->delta),-best_overlap,best->kind,std::string_view{in.targets[best->target].id.value()},best->moving,best->target_edge}){best=c;best_overlap=overlap;}
                 }
                 return best;
             };
@@ -208,6 +245,12 @@ public:
                 result.reason="incompatible_combined_geometry";return result;
             }
             MagnetProposal proposal{*corrected,in.interaction==Interaction::Move?geometry::Point{dx,dy}:geometry::Point{},in.edges,{}};
+            const auto selection=[&](const auto& c)->std::optional<SatisfiedConstraint> {
+                if(!c)return std::nullopt;
+                const auto& t=in.targets[c->target];
+                return SatisfiedConstraint{t.id,c->kind,c->moving,c->target_edge,c->delta,detail::overlap(*corrected,t.rect,detail::x_axis(c->moving))};
+            };
+            proposal.selected_x=selection(x);proposal.selected_y=selection(y);
             for(const auto& c:candidates) {
                 const auto& t=in.targets[c.target];
                 if(geometry::edge_coordinate(*corrected,c.moving)==geometry::edge_coordinate(t.rect,c.target_edge)&&

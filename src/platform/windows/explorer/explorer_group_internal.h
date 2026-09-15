@@ -1,6 +1,7 @@
 #pragma once
 #include "platform/windows/explorer/explorer_session.h"
 #include "platform/windows/explorer/explorer_group_capture.h"
+#include "core/behavior/magnet_gesture.h"
 #include "platform/windows/explorer/explorer_group_batch.h"
 #include "platform/windows/explorer/explorer_virtual_desktop_manager.h"
 #include <array>
@@ -8,6 +9,7 @@
 
 namespace panebind::platform::windows::explorer {
 class ExplorerGroupSession;
+class ExplorerLiveMagnetSession;
 namespace detail {
 class ExplorerGroupBridge;
 struct GroupMemberBinding final {
@@ -49,6 +51,16 @@ struct GroupBatchReceipt final {
     std::int64_t postverify_qpc{};
     std::string_view reason{"preflight_failed"};
 };
+struct MagnetNativeReceipt final {
+    GroupSnapshots before;
+    std::optional<GroupSnapshots> actual;
+    std::optional<core::geometry::Rect> target_positioning;
+    GroupCaptureResult capture_failure;
+    bool all_preflight{},pending_registered{},native_attempted{},native_success{},exact{};
+    DWORD flags{},error{};
+    std::int64_t native_start_qpc{},native_return_qpc{},postverify_qpc{};
+    std::string_view reason{"preflight_failed"};
+};
 // Private capability bridge. No public HWND-admission or placement entry point.
 class ExplorerGroupBridge final {
 private:
@@ -63,7 +75,12 @@ private:
         const GroupSnapshots& expected,
         const std::array<std::optional<core::geometry::Rect>,3>& targets,
         std::uint64_t operation_generation, bool (*register_pending)(void*) noexcept, void* context);
+    static bool enable_live_magnet(const ExplorerGroupSeal&,GroupSessions);
+    static MagnetNativeReceipt apply_magnet(const ExplorerGroupSeal&,GroupSessions,
+        const GroupSnapshots&,const core::behavior::MagnetCorrection&,
+        bool (*register_pending)(void*) noexcept,void* context);
     friend class ::panebind::platform::windows::explorer::ExplorerGroupSession;
+    friend class ::panebind::platform::windows::explorer::ExplorerLiveMagnetSession;
 };
 } // namespace detail
 } // namespace panebind::platform::windows::explorer

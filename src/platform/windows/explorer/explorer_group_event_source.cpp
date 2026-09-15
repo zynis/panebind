@@ -135,4 +135,11 @@ bool ExplorerGroupEventSource::lifecycle_pending(std::optional<std::size_t> acti
 GroupEventFacts ExplorerGroupEventSource::facts() const noexcept {
     return {sequence_,ignored_,overflow_,post_failure_,max_depth_,poisoned_.load(),running_};
 }
+bool ExplorerGroupEventSource::magnet_conflict_pending(std::size_t source) const noexcept {
+    if(GetCurrentThreadId()!=owner_||poisoned_||source>=3)return true;
+    for(std::size_t i=0;i<size_;++i){const auto& r=queue_[(head_+i)%queue_.size()];
+        if(r.kind!=GroupEventKind::Location||r.member_index!=source)return true;
+    }
+    return false;
+}
 } // namespace panebind::platform::windows::explorer
