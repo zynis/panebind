@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-readiness-validation.ps1')
 . (Join-Path $PSScriptRoot 'r1c4a-console-wait-validation.ps1')
 . (Join-Path $PSScriptRoot 'r1c4a-blocked-validation.ps1')
+. (Join-Path $PSScriptRoot 'r1c4a-capture-validation.ps1')
 
 function Assert-C4A {
     param([bool] $Condition, [string] $Message)
@@ -45,10 +46,12 @@ function Test-C4ARecords {
     $prompts=@($Records | Where-Object type -eq target_prompt | Sort-Object member)
     $confirmed=@($Records | Where-Object type -eq target_confirmed | Sort-Object member)
     $consent=@($Records | Where-Object type -eq group_consent)
+    $captureDiagnostics=Test-C4ACaptureRecords $Records
     Assert-C4A ($Records[-1].result -cin @('PASS','BLOCKED')) 'invalid shutdown result'
     $blocked=$null
     if($Records[-1].result -ceq 'BLOCKED') {
         $blocked=Get-C4ABlockedClassification $Records
+        $blocked | Add-Member CaptureDiagnostics $captureDiagnostics
         if($blocked.Result -cin @('BLOCKED_DURING_MEMBER_A_PROVISIONING','BLOCKED_DURING_MEMBER_B_PROVISIONING','BLOCKED_DURING_MEMBER_C_PROVISIONING','BLOCKED_DURING_GROUP_CONSENT','BLOCKED_DURING_GROUP_BIND')) {return $blocked}
     }
     Assert-C4A ($bindings.Count -eq 3 -and $prompts.Count -eq 3 -and $confirmed.Count -eq 3) 'exact authorized set'

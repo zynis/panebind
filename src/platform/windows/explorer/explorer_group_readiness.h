@@ -30,6 +30,7 @@ struct GroupReadinessActivity final {
 struct GroupReadinessPreview final {
     std::uint64_t attempt{};
     bool valid{},setup_check{};
+    detail::GroupCaptureResult capture_result;
     std::optional<detail::GroupSnapshots> snapshots;
     GroupLayoutReadiness readiness;
     GroupReadinessActivity activity;
@@ -51,6 +52,8 @@ public:
     GroupReadinessPreview preview(const GroupReadinessActivity& activity,
                                   Capture&& capture,bool setup_check=false) {
         GroupReadinessPreview result;
+        result.capture_result.failure_stage=detail::GroupCaptureStage::Context;
+        result.capture_result.reason="fixture_state_invalid";
         result.activity=activity;
         result.setup_check=setup_check;
         if(!activity.owner_thread || failed_ || accepted_ || !generation_ ||
@@ -59,11 +62,12 @@ public:
            activity.event_source_running || activity.leader_present ||
            attempts_==std::numeric_limits<std::uint64_t>::max()) return result;
         result.attempt=++attempts_;
-        result.snapshots=capture(); // ALWAYS fresh, never binding_ or last_.
+        result.capture_result=capture(); // ALWAYS fresh, never binding_ or last_.
+        result.snapshots=result.capture_result.snapshots;
         result.capture_qpc=glue_qpc_now();
-        if(!result.snapshots) {
+        if(!result.capture_result) {
             result.reason="member_validation_failed";
-            failed_=true;last_=result;return result;
+            failed_=!result.capture_result.recoverable();last_=result;return result;
         }
         for(std::size_t i=0;i<3;++i) {
             auto context=(*result.snapshots)[i];
@@ -72,11 +76,18 @@ public:
             context.positioning_rect=bound.positioning_rect={};
             if(context!=bound) {
                 result.reason="readiness_member_context_changed";
+                detail::GroupMemberCaptureResult failure;
+                failure.reason=ExplorerEligibilityReason::TargetInvalidated;
+                failure.invalidation="immutable_context_changed";
+                detail::group_capture_failure(result.capture_result,i,detail::GroupCaptureStage::Context,
+                    failure,"immutable_context_changed");
                 failed_=true;last_=result;return result;
             }
         }
+        std::size_t geometry_member{};
         try {
             for(std::size_t i=0;i<3;++i) {
+                geometry_member=i;
                 const auto& r=(*result.snapshots)[i].visible_rect;
                 result.member_sizes[i]={core::movement::detail::checked_extent(r.right(),r.left()),
                     core::movement::detail::checked_extent(r.bottom(),r.top())};
@@ -89,9 +100,16 @@ public:
             result.valid=true;
             if(!result.readiness.ready && result.reason!="disconnected_topology") {
                 result.valid=false;failed_=true;
+                detail::GroupMemberCaptureResult failure;failure.reason=ExplorerEligibilityReason::GeometryCaptureFailed;
+                detail::group_capture_failure(result.capture_result,0,detail::GroupCaptureStage::Context,
+                    failure,result.reason);
+                result.capture_result.failed_member_index.reset(); // group-level computation, no invented member
             }
         } catch(const std::exception&) {
             result.reason="invalid_readiness_geometry";failed_=true;
+            detail::GroupMemberCaptureResult failure;failure.reason=ExplorerEligibilityReason::ArithmeticOverflow;
+            detail::group_capture_failure(result.capture_result,geometry_member,detail::GroupCaptureStage::Context,
+                failure,result.reason);
         }
         last_=result;
         return result;

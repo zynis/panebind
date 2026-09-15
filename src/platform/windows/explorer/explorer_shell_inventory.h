@@ -177,6 +177,9 @@ struct BrowserReadinessFacts {
     std::uint64_t overflow_count{};
     std::uint64_t wrong_thread_count{};
     std::uint64_t post_retirement_count{};
+    std::uint64_t geometry_event_count{};
+    std::int32_t last_geometry_dispid{};
+    std::int32_t last_malformed_dispid{};
     bool latest_activity_was_quit{};
     bool accepting{};
     bool subscribed{};

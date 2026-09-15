@@ -2110,7 +2110,8 @@ template <typename ImplType>
     const ExplorerWindowToken* token,
     const bool initialize_anchor,
     const bool wait_for_shell_activity = true,
-    ExplorerGlueProfiler* const profile = nullptr) {
+    ExplorerGlueProfiler* const profile = nullptr,
+    detail::GroupCaptureObservation* group_observation = nullptr) {
     // Only private Glue callers opt out of the public one-shot waiting path.
     // Public C2A/legacy calls retain their complete original selection contract.
     const bool bound = impl.glue_consent_bound_contract && !wait_for_shell_activity;
@@ -2320,6 +2321,7 @@ template <typename ImplType>
         }
 
         auto observation_facts = impl.consent_observation->facts();
+        if(group_observation)group_observation->canonical_identity_matches=observation_facts.canonical_identity_matches;
         // Glue already has an event-driven owner loop. Process delivered Shell
         // receipts without entering the legacy readiness wait/message drain.
         // All inventory, location, identity, security and snapshot checks below
@@ -2362,6 +2364,7 @@ template <typename ImplType>
         }
         observation_facts = impl.consent_observation->facts();
         const auto& browser = observation_facts.browser;
+        if(group_observation)group_observation->canonical_identity_matches=observation_facts.canonical_identity_matches;
         const bool observation_healthy =
             observation_facts.canonical_identity_matches &&
             browser.subscribed && browser.accepting && !browser.unadvised &&
@@ -2387,6 +2390,8 @@ template <typename ImplType>
 
         const auto observed_window =
             impl.consent_observation->current_window_key();
+        if(group_observation)group_observation->anchor_hwnd_matches=observed_window.succeeded()&&
+            observed_window.window_key==reinterpret_cast<detail::NativeWindowKey>(impl.window);
         if (!observed_window.succeeded() ||
             observed_window.window_key !=
                 reinterpret_cast<detail::NativeWindowKey>(impl.window)) {
@@ -2487,6 +2492,7 @@ template <typename ImplType>
         current_exact_target_location =
             live_location.filesystem() &&
             live_location.identity == impl.target_location;
+        if(group_observation)group_observation->location_exact=current_exact_target_location;
         if (!current_exact_target_location) {
             return {ExplorerEligibilityReason::LocationMismatch,
                     std::nullopt,
@@ -5516,19 +5522,56 @@ std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
     return seal;
 }
 
-std::optional<detail::GroupSnapshots> detail::ExplorerGroupBridge::capture(
-    const ExplorerGroupSeal& seal, GroupSessions sessions) {
-    GroupSnapshots result;
-    for(std::size_t i=0;i<3;++i) {
-        if(!sessions[i] || !sessions[i]->impl_ ||
-           !group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i])) return std::nullopt;
+detail::GroupCaptureResult detail::ExplorerGroupBridge::capture(
+    const ExplorerGroupSeal& seal, GroupSessions sessions,GroupCaptureMode mode) {
+    const auto binding=[&](std::size_t i)->std::string_view {
+        if(!sessions[i]||!sessions[i]->impl_)return "member_session_missing";
+        return group_binding_matches(*sessions[i]->impl_,seal,seal.members()[i])?"none":"binding_mismatch";
+    };
+    const auto validate=[&](std::size_t i) {
         auto& impl=*sessions[i]->impl_;
-        auto live=validate_or_retire(impl,*impl.issued_token,false);
-        if(live.reason!=ExplorerEligibilityReason::Eligible || !live.snapshot) return std::nullopt;
-        result[i]=std::move(*live.snapshot);
-    }
-    if(!receipts_healthy(seal,sessions)) return std::nullopt;
-    return result;
+        GroupMemberCaptureResult result;
+        // Pre-accept deliberately does NOT call either sticky wrapper.
+        // The complete inner validator still checks all native/COM authority.
+        auto live=mode==GroupCaptureMode::PreAcceptMutableGeometry
+            ? validate_native_target_inner(impl,&*impl.issued_token,false,false,nullptr,&result.observation)
+            : validate_or_retire(impl,*impl.issued_token,false);
+        result.reason=live.reason;result.snapshot=std::move(live.snapshot);
+        if(live.diagnostic)result.diagnostic=GroupCaptureDiagnostic{live.diagnostic->domain,live.diagnostic->code};
+        result.invalidation=impl.glue_validation_invalidation;
+        if(mode==GroupCaptureMode::PreAcceptMutableGeometry&&impl.consent_observation) {
+            result.observation.browser_observed=true;
+            result.observation.browser=impl.consent_observation->receipt_facts();
+            result.observation.navigation_epoch=impl.consent_observation->navigation_epoch_at_binding();
+            result.observation.browser_stream_reason=consent_browser_invalidation(
+                result.observation.browser,impl.consent_observation->navigation_epoch_at_binding());
+            result.authority_proven=result.observation.canonical_identity_matches==true&&
+                result.observation.anchor_hwnd_matches==true&&result.observation.location_exact==true&&
+                result.observation.browser_stream_reason=="none"&&result.invalidation=="none"&&
+                (live.reason==ExplorerEligibilityReason::Eligible||
+                 live.reason==ExplorerEligibilityReason::MonitorChanged||live.reason==ExplorerEligibilityReason::DpiChanged);
+        }
+        return result;
+    };
+    const auto health=[&](std::size_t i) {
+        auto& impl=*sessions[i]->impl_;GroupMemberCaptureResult result;
+        result.invalidation=impl.glue_validation_invalidation;
+        if(!impl.consent_observation)result.invalidation="browser_observation_missing";
+        else {
+            const auto browser=impl.consent_observation->receipt_facts();
+            const auto reason=consent_browser_invalidation(browser,impl.consent_observation->navigation_epoch_at_binding());
+            result.observation.browser_observed=true;result.observation.browser=browser;
+            result.observation.navigation_epoch=impl.consent_observation->navigation_epoch_at_binding();
+            result.observation.browser_stream_reason=reason;
+            if(result.invalidation=="none")result.invalidation=reason;
+        }
+        if(result.invalidation!="none")result.reason=ExplorerEligibilityReason::ShellEventStreamInvalid;
+        return result;
+    };
+    return capture_group_members(mode,binding,validate,health,[&](std::size_t i){
+        if(sessions[i]&&sessions[i]->impl_&&sessions[i]->impl_->controller_thread_id==GetCurrentThreadId())
+            retire_target(*sessions[i]->impl_);
+    });
 }
 
 bool detail::ExplorerGroupBridge::receipts_healthy(const ExplorerGroupSeal& seal,

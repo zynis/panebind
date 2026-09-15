@@ -128,9 +128,10 @@ function Get-C4ATopology {
 }
 function Assert-C4ATopologyPreview {
     param($Preview,[object[]]$Bindings,[object[]]$BindingSnapshots)
-    Assert-C4A ($Preview.valid -eq $true -and $Preview.owner_thread -eq $true -and $Preview.group_generation -eq $Bindings[0].group -and $Preview.gesture_generation -eq 0) 'preview validation/authority'
+    Assert-C4A (($Preview.valid -eq $true -or $Preview.capture.recoverable -eq $true) -and $Preview.owner_thread -eq $true -and $Preview.group_generation -eq $Bindings[0].group -and $Preview.gesture_generation -eq 0) 'preview validation/authority'
     Assert-C4A ($Preview.native_apply_count -eq 0 -and $Preview.hdwp_begin_count -eq 0 -and $Preview.pending_count -eq 0 -and $Preview.leader_present -eq $false -and $Preview.event_source_running -eq $false) 'preview has native/gesture/hook side effects'
     Assert-C4A ($Preview.capture_qpc -gt 0) 'fresh capture timestamp missing'
+    if($Preview.capture.recoverable){Assert-C4A ($Preview.ready -eq $false -and $null -eq $Preview.snapshots) 'recoverable capture cannot be accepted';return}
     Assert-C4AReadinessIdentity $Preview.snapshots $Bindings
     Assert-C4A ((Get-C4AReadinessSnapshotKey $Preview.snapshots -ContextOnly) -ceq (Get-C4AReadinessSnapshotKey $BindingSnapshots -ContextOnly)) 'preview changed nongeometry context'
     Assert-C4A (@($Preview.member_sizes).Count -eq 3 -and (Get-C4ARectKey $Preview.work_area) -ceq (Get-C4ARectKey $Preview.snapshots[0].work_area)) 'displayed topology dimensions'

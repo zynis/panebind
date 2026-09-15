@@ -130,9 +130,9 @@ GroupReadinessActivity ExplorerGroupSession::readiness_activity() const noexcept
 GroupReadinessPreview ExplorerGroupSession::preview_readiness() {
     if(!healthy() || setup_done_ || readiness_fixture_->accepted())return {};
     auto preview=readiness_fixture_->preview(readiness_activity(),[&]{
-        return detail::ExplorerGroupBridge::capture(*seal_,sessions());
+        return detail::ExplorerGroupBridge::capture(*seal_,sessions(),detail::GroupCaptureMode::PreAcceptMutableGeometry);
     });
-    if(!preview.valid)poison(preview.reason);
+    if(!preview.valid&&!preview.capture_result.recoverable())poison(preview.reason);
     return preview;
 }
 bool ExplorerGroupSession::register_pending(void* raw) noexcept {
@@ -162,9 +162,9 @@ bool ExplorerGroupSession::setup() {
     // Human acceptance triggers another read-only capture. No synthetic layout.
     // A newly disconnected topology returns to the preview loop without writes.
     const auto fresh=readiness_fixture_->prepare_setup(readiness_activity(),[&]{
-        return detail::ExplorerGroupBridge::capture(*seal_,sessions());
+        return detail::ExplorerGroupBridge::capture(*seal_,sessions(),detail::GroupCaptureMode::PreAcceptMutableGeometry);
     });
-    if(!fresh.valid){poison(fresh.reason);return false;}
+    if(!fresh.valid){if(!fresh.capture_result.recoverable())poison(fresh.reason);return false;}
     if(!fresh.readiness.ready){reason_=fresh.reason;return false;}
     original_=*fresh.snapshots; // accepted restore baseline, NOT binding geometry
     current_=original_;

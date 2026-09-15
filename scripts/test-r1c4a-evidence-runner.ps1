@@ -4,6 +4,18 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-evidence-validation.ps1')
 function Copy-C4AFixture($Value){return ($Value|ConvertTo-Json -Depth 20 -Compress|ConvertFrom-Json)}
+function New-C4ACaptureFixture {
+    param([string]$Stage='None',[string]$Reason='none',[bool]$Recoverable=$false,[int]$Member=1)
+    $members=@()
+    for($i=0;$i -lt 3;++$i){
+        $browser=@{callback_sequence=0;latest_sequence=0;navigate_complete_count=0;matching_navigate_complete_count=0;unrelated_navigate_complete_count=0;identity_query_failure_count=0;quit_count=0;malformed_count=0;overflow_count=0;wrong_thread_count=0;post_retirement_count=0;geometry_event_count=0;last_geometry_dispid=0;last_malformed_dispid=0;latest_activity_was_quit=$false;accepting=$true;subscribed=$true;unadvised=$false;subscription_diagnostic=0}
+        $members+=@{member=$i;browser_observed=$true;canonical_identity_matches=$true;anchor_hwnd_matches=$true;location_exact=$true;navigation_epoch=0;browser_stream_reason='none';browser=$browser}
+    }
+    $succeeded=$Stage -ceq 'None'
+    $code=if($succeeded){$null}elseif($Reason -ceq 'MonitorChanged'){48}elseif($Reason -ceq 'DpiChanged'){49}elseif($Reason -ceq 'GeometryCaptureFailed'){45}elseif($Reason -ceq 'TargetInvalidated'){62}else{9}
+    $c=@{succeeded=$succeeded;recoverable=$Recoverable;fatal=(-not $succeeded -and -not $Recoverable);failed_member_index=$(if($succeeded){$null}else{$Member});failure_stage=$Stage;eligibility_reason=$(if($succeeded){$null}else{$Reason});eligibility_code=$code;diagnostic=$null;glue_validation_invalidation='none';reason=$Reason;members=$members}
+    return Copy-C4AFixture $c
+}
 function New-C4AFixture {
     param([switch]$InitiallyOversized,[switch]$SetupBecomesOversized,[switch]$ThreeRelations)
     $r=[Collections.Generic.List[object]]::new()
@@ -15,7 +27,7 @@ function New-C4AFixture {
     function Add-Wait([string]$Kind){
         Add-Record console_wait @{input_wait_kind=$Kind;wait_result='complete';owner_thread=80;wait_call_count=2;pump_call_count=2;message_dispatch_count=1;console_input_event_count=2;modes_observed=$true;input_mode_before=711;input_mode_after=711;mode_changed=$false;error=0}
     }
-    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='topology_neutral_accepted_baseline_v2';console_wait_contract='sta_message_pump_v2';console_mode_contract='preserve_host_mode_v1';console_input_contract='readconsoleinputex_nowait_v1';owner_sta_thread=80}
+    Add-Record startup @{pid=1;qpc_frequency=1000;member_count=3;interactive_console=$true;readiness_contract='topology_neutral_accepted_baseline_v2';capture_contract='structured_preaccept_v1';console_wait_contract='sta_message_pump_v2';console_mode_contract='preserve_host_mode_v1';console_input_contract='readconsoleinputex_nowait_v1';owner_sta_thread=80}
     for($i=0;$i -lt 3;++$i){
         Add-Record target_prompt @{member=$i;nonce_directory="C:\nonce-$i";baseline_generation=1;prompt_generation=2}
         Add-Wait @('member_a_confirmation','member_b_confirmation','member_c_confirmation')[$i]
@@ -36,6 +48,7 @@ function New-C4AFixture {
         ++$script:readinessAttempt
         $d=Get-C4AReadinessDimensions $snapshots
         $fields=@{attempt=$script:readinessAttempt;valid=$true;setup_check=$setupCheck;ready=$fit;reason=$(if($fit){'ready'}else{'disconnected_topology'});snapshots=(Copy-C4AFixture $snapshots);member_sizes=$d.Sizes;work_area=$snapshots[0].work_area;relation_count=(Get-C4ATopology $snapshots).RelationCount;pairs=(Get-C4ATopology $snapshots).Pairs;components=(Get-C4ATopology $snapshots).Components;group_generation=55;gesture_generation=0;native_apply_count=0;hdwp_begin_count=0;event_source_running=$false;pending_count=0;leader_present=$false;owner_thread=$true;capture_qpc=100+$script:readinessAttempt}
+        $fields.capture=New-C4ACaptureFixture
         Add-Record readiness_preview $fields
         return $fields
     }
@@ -233,6 +246,7 @@ foreach($mode in @('legacy-block','cancel-not-fit','cancel-setup-recheck')) {
     if($mode -eq 'legacy-block') {
         $records=@($fixture|Where-Object {$_.type -in @('startup','target_prompt','target_confirmed','group_consent','binding')})
         $records[0].PSObject.Properties.Remove('readiness_contract')
+        $records[0].PSObject.Properties.Remove('capture_contract')
         $records[0].PSObject.Properties.Remove('console_wait_contract')
         $records[0].PSObject.Properties.Remove('console_input_contract')
         $records[0].PSObject.Properties.Remove('owner_sta_thread')
@@ -336,7 +350,8 @@ foreach($stage in @('MEMBER_A_PROVISIONING','MEMBER_B_PROVISIONING','MEMBER_C_PR
 # three-binding or geometry-success prerequisite.
 $fixture=New-C4AFixture;$preview=$fixture|Where-Object type -eq readiness_preview|Select-Object -First 1
 $records=@($fixture|Where-Object sequence -le $preview.sequence)
-$preview.valid=$false;$preview.reason='member_validation_failed'
+$preview.valid=$false;$preview.ready=$false;$preview.reason='member_validation_failed';$preview.snapshots=$null
+$preview.capture=New-C4ACaptureFixture NativeValidation GeometryCaptureFailed
 $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=$records.Count+1;type='shutdown';result='BLOCKED';reason='member_validation_failed';stage='TOPOLOGY_PREVIEW'}
 $result=Test-C4ARecords $records
 if($result.Reason -cne 'member_validation_failed'){throw 'capture failure masked'};++$tests
@@ -362,4 +377,51 @@ $records[-1].reason='restore_validation_failed'
 for($i=0;$i -lt $records.Count;++$i){$records[$i].sequence=$i+1}
 $result=Test-C4ARecords $records
 if($result.Result -cne 'BLOCKED_DURING_RESTORE' -or $result.Reason -cne 'restore_validation_failed'){throw 'restore capture failure misclassified as gesture'};++$tests
+foreach($fault in @('missing-capture-contract','missing-capture','missing-member','unknown-stage','diagnostic-path','anchor-mismatch','navigation-drift','malformed-stream','invalid-geometry-id')){
+    $records=New-C4AFixture;$preview=$records|Where-Object type -eq readiness_preview|Select-Object -First 1
+    switch($fault){
+        'missing-capture-contract' {$records[0].PSObject.Properties.Remove('capture_contract')}
+        'missing-capture' {$preview.PSObject.Properties.Remove('capture')}
+        'missing-member' {$preview.capture.members=@($preview.capture.members[0],$preview.capture.members[1])}
+        'unknown-stage' {$preview.capture.failure_stage='Guessed'}
+        'diagnostic-path' {$preview.capture|Add-Member path 'C:\private\secret'}
+        'anchor-mismatch' {$preview.capture.members[1].anchor_hwnd_matches=$false}
+        'navigation-drift' {$preview.capture.members[1].browser.matching_navigate_complete_count=1}
+        'malformed-stream' {$preview.capture.members[1].browser.malformed_count=1}
+        'invalid-geometry-id' {$preview.capture.members[1].browser.geometry_event_count=1;$preview.capture.members[1].browser.last_geometry_dispid=9999}
+    }
+    $pass=$true;try{$null=Test-C4ARecords $records}catch{$pass=$false}
+    if($pass){throw "bad structured capture accepted: $fault"};++$tests
+}
+foreach($reason in @('MonitorChanged','DpiChanged')){
+    $records=New-C4AFixture -InitiallyOversized
+    $preview=$records|Where-Object type -eq readiness_preview|Select-Object -First 1
+    $preview.valid=$false;$preview.ready=$false;$preview.snapshots=$null;$preview.reason='member_validation_failed'
+    $preview.capture=New-C4ACaptureFixture NativeValidation $reason $true
+    $null=Test-C4ARecords $records # temporary mismatch then return to original monitor/DPI
+    ++$tests
+    $preview.capture.members[2].location_exact=$false
+    $pass=$true;try{$null=Test-C4ARecords $records}catch{$pass=$false}
+    if($pass){throw 'recoverable monitor suppressed another authority failure'};++$tests
+}
+foreach($stage in @('Binding','NativeValidation','ReceiptHealth','Context')){
+    $records=New-C4AFixture
+    $preview=$records|Where-Object type -eq readiness_preview|Select-Object -First 1
+    $records=@($records|Where-Object sequence -le $preview.sequence)
+    $preview.valid=$false;$preview.ready=$false;$preview.snapshots=$null;$preview.reason='member_validation_failed'
+    $eligibility=if($stage -eq 'Binding' -or $stage -eq 'Context'){'TargetInvalidated'}elseif($stage -eq 'ReceiptHealth'){'ShellEventStreamInvalid'}else{'GeometryCaptureFailed'}
+    $preview.capture=New-C4ACaptureFixture $stage $eligibility $false 2
+    if($stage -eq 'ReceiptHealth'){$preview.capture.reason=$preview.capture.glue_validation_invalidation='browser_stream_invalid';$preview.capture.members[2].browser.malformed_count=1;$preview.capture.members[2].browser.last_malformed_dispid=9999;$preview.capture.members[2].browser_stream_reason='browser_stream_invalid'}
+    $records+=[pscustomobject]@{schema='r1c4a/v1';sequence=$records.Count+1;type='shutdown';result='BLOCKED';reason='member_validation_failed';stage='TOPOLOGY_PREVIEW'}
+    $result=Test-C4ARecords $records
+    if($result.CaptureDiagnostics.Resolution -cne 'COMPLETE' -or $result.CaptureDiagnostics.FailedMemberIndex -ne 2 -or $result.CaptureDiagnostics.FailureStage -cne $stage -or $result.CaptureDiagnostics.EligibilityReason -cne $eligibility){throw "capture cause masked at $stage"};++$tests
+    $records[0].PSObject.Properties.Remove('capture_contract');$preview.PSObject.Properties.Remove('capture')
+    $legacy=Test-C4ARecords $records
+    if($legacy.CaptureDiagnostics.Resolution -cne 'INSUFFICIENT' -or $null -ne $legacy.CaptureDiagnostics.FailedMemberIndex){throw 'historical diagnostic guessed'};++$tests
+}
+$records=New-C4AFixture
+foreach($p in @($records|Where-Object {$_.type -in @('readiness_preview','readiness_accepted')})){
+    $p.capture.members[1].browser.geometry_event_count=123;$p.capture.members[1].browser.last_geometry_dispid=266
+}
+$null=Test-C4ARecords $records;++$tests
 Write-Host "R1C4A_RUNNER_FIXTURES = PASS ($tests)"

@@ -1,5 +1,19 @@
 # Source Provenance Register
 
+## R1-C4A Fix 5 — 2026-09-15
+
+[Scoped research](R1C4A_FIX5_PREACCEPT_VALIDATION.md) records inspected modules,
+history and official links. AltSnap mature GPL-3.0-or-later reference-only at
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d: hooks.c filtering, License.txt and
+397b84b2db114de979d428c3cec0cddec2a339ae history. PowerToys/FancyZones mature
+MIT reference-only at 19c4d805321db86f3634e6968e14dbf25cbba14a:
+WindowMouseSnap.cpp, LICENSE and PR 48569. Lessons: eligibility versus identity,
+bounded observations, fatal lifecycle abort. Microsoft Learn DWebBrowserEvents2
+and four geometry event pages (live, no immutable revision claimed), installed
+Windows SDK 10.0.26100.0 ExDisp.Idl/ExDispid.h establish signatures only.
+No external code copied/adapted/translated; no new code attribution obligation.
+Subsystems: browser receipt classification, pre-accept validation diagnostics.
+
 ## R1-C4 architecture correction — 2026-09-15
 
 See [behavior research](R1C4_AQUASNAP_BEHAVIOR_REFERENCE.md) for exact sources,

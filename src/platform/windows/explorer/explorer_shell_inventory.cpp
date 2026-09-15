@@ -9,6 +9,7 @@
 #include <olectl.h>
 #include <oleauto.h>
 #include <exdisp.h>
+#include <exdispid.h>
 #include <propvarutil.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -750,6 +751,8 @@ public:
                                      UINT* argument_error) noexcept override {
         const bool navigate_complete = member == kNavigateComplete2Dispid;
         const bool on_quit = member == kOnQuitDispid;
+        const bool geometry = member==DISPID_WINDOWSETLEFT || member==DISPID_WINDOWSETTOP ||
+                              member==DISPID_WINDOWSETWIDTH || member==DISPID_WINDOWSETHEIGHT;
         const bool valid_interface =
             InlineIsEqualGUID(interface_id, IID_NULL) != FALSE;
         const bool valid_flags = (flags & DISPATCH_METHOD) != 0U;
@@ -764,6 +767,9 @@ public:
         const bool quit_shape =
             on_quit && parameters != nullptr && parameters->cArgs == 0U &&
             parameters->cNamedArgs == 0U;
+        const bool geometry_shape = geometry && flags==DISPATCH_METHOD && parameters &&
+            parameters->cArgs==1U && parameters->cNamedArgs==0U && parameters->rgvarg &&
+            V_VT(&parameters->rgvarg[0])==VT_I4;
         IDispatch* retained_dispatch = nullptr;
         if (valid_interface && valid_flags && navigate_shape) {
             retained_dispatch = V_DISPATCH(&parameters->rgvarg[1]);
@@ -789,9 +795,10 @@ public:
             }
             return S_OK;
         }
-        if ((!navigate_complete && !on_quit) || !valid_interface ||
-            !valid_flags || (!navigate_shape && !quit_shape)) {
+        if ((!navigate_complete && !on_quit && !geometry) || !valid_interface ||
+            !valid_flags || (!navigate_shape && !quit_shape && !geometry_shape)) {
             ++malformed_count_;
+            last_malformed_dispid_=member;
             ReleaseSRWLockExclusive(&lock_);
             if (retained_dispatch != nullptr) {
                 static_cast<void>(retained_dispatch->Release());
@@ -799,9 +806,20 @@ public:
             if (argument_error != nullptr) {
                 *argument_error = 0U;
             }
-            return (!navigate_complete && !on_quit)
+            return (!navigate_complete && !on_quit && !geometry)
                        ? DISP_E_MEMBERNOTFOUND
                        : DISP_E_TYPEMISMATCH;
+        }
+        if(geometry) {
+            // Fixed known notifications, not navigation/identity authority.
+            // Do not retain the value, enqueue receipts or desynchronize the
+            // navigation callback/latest sequence. Owner/retirement/shape were
+            // checked above; canonical frame identity is revalidated at capture.
+            if(geometry_event_count_==std::numeric_limits<std::uint64_t>::max()) {
+                ++overflow_count_;ReleaseSRWLockExclusive(&lock_);return DISP_E_OVERFLOW;
+            }
+            ++geometry_event_count_;last_geometry_dispid_=member;
+            ReleaseSRWLockExclusive(&lock_);return S_OK;
         }
         if (callback_sequence_ == std::numeric_limits<std::uint64_t>::max()) {
             ++malformed_count_;
@@ -853,6 +871,9 @@ public:
         result.overflow_count = overflow_count_;
         result.wrong_thread_count = wrong_thread_count_;
         result.post_retirement_count = post_retirement_count_;
+        result.geometry_event_count=geometry_event_count_;
+        result.last_geometry_dispid=last_geometry_dispid_;
+        result.last_malformed_dispid=last_malformed_dispid_;
         result.latest_activity_was_quit = latest_activity_was_quit_;
         result.accepting = accepting_;
         ReleaseSRWLockShared(&lock_);
@@ -975,10 +996,26 @@ private:
     std::uint64_t overflow_count_{};
     std::uint64_t wrong_thread_count_{};
     std::uint64_t post_retirement_count_{};
+    std::uint64_t geometry_event_count_{};
+    std::int32_t last_geometry_dispid_{},last_malformed_dispid_{};
     bool latest_activity_was_quit_{};
     DWORD owner_thread_id_{};
     bool accepting_{true};
 };
+
+#ifdef PANEBIND_BROWSER_SINK_TESTS
+namespace testing {
+IDispatch* create_browser_sink(IUnknown* expected) {
+    expected->AddRef();
+    return new BrowserReadinessEventSink(expected,GetCurrentThreadId());
+}
+BrowserReadinessFacts browser_sink_facts(IDispatch* sink) {
+    return static_cast<BrowserReadinessEventSink*>(sink)->facts();
+}
+void drain_browser_sink(IDispatch* sink) {static_cast<BrowserReadinessEventSink*>(sink)->process_receipts();}
+void retire_browser_sink(IDispatch* sink) {static_cast<BrowserReadinessEventSink*>(sink)->retire();}
+}
+#endif
 
 class BrowserSubscriptionLifecycleState final {
 public:

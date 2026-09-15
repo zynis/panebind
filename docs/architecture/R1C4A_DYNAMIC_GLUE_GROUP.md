@@ -1,5 +1,14 @@
 # R1-C4A dynamic bounded Glue group
 
+## Fix 5 pre-accept observation
+
+[Fix 5](../research/R1C4A_FIX5_PREACCEPT_VALIDATION.md) adds complete but non-sticky
+pre-accept validation and structured capture diagnostics. Manual Move/Resize
+does not alter authority. Only proven temporary MonitorChanged/DpiChanged is
+recoverable until returning to original context; identity/security/browser
+failures remain fatal. Y freezes the accepted baseline before starting the
+unchanged strict active runtime. Manual arrangement is not Glue Resize.
+
 ## 2026-09-15 architecture correction (current)
 
 The [Magnet/Relation/Glue model](R1C4_MAGNET_RELATION_GLUE.md) supersedes the

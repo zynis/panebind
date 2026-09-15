@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_group_session.h"
+#include "platform/windows/explorer/explorer_group_capture_json.h"
 #include "platform/windows/text_encoding.h"
 #include "platform/windows/console/sta_console_line_reader.h"
 #include <fstream>
@@ -124,10 +125,21 @@ bool record_readiness(Log& log,std::string_view type,const e::GroupReadinessPrev
      <<",\"gesture_generation\":"<<a.gesture_generation<<",\"native_apply_count\":"<<a.native_apply_count
      <<",\"hdwp_begin_count\":"<<a.hdwp_begin_count<<",\"event_source_running\":"<<flag(a.event_source_running)
      <<",\"pending_count\":"<<a.pending_count<<",\"leader_present\":"<<flag(a.leader_present)
-     <<",\"owner_thread\":"<<flag(a.owner_thread)<<",\"capture_qpc\":"<<preview.capture_qpc;
+     <<",\"owner_thread\":"<<flag(a.owner_thread)<<",\"capture_qpc\":"<<preview.capture_qpc
+     <<",\"capture\":"<<e::detail::group_capture_json(preview.capture_result);
     return log.record(type,f.str());
 }
 bool print_readiness(const e::GroupReadinessPreview& p) {
+    if(!p.capture_result) {
+        const auto& c=p.capture_result;
+        const auto label=e::detail::group_capture_stage_name(c.failure_stage);
+        const auto reason=e::detail::capture_safe_label(c.reason);
+        std::wstring text=L"\r\nCapture NOT READY, member="+
+            (c.failed_member_index?std::wstring(1,static_cast<wchar_t>(L'A'+*c.failed_member_index)):L"UNKNOWN")+
+            L", stage="+std::wstring(label.begin(),label.end())+L", reason="+std::wstring(reason.begin(),reason.end())+L"\r\n";
+        if(c.recoverable())text+=L"身份仍有效，未 retire、未移动窗口。请移回原 monitor/DPI 后按 Enter 重试；不能接受当前布局。\r\n";
+        return print(text);
+    }
     const auto edge=[](panebind::core::geometry::Edge e)->std::wstring_view {
         using E=panebind::core::geometry::Edge;
         switch(e){case E::Left:return L"Left";case E::Right:return L"Right";
@@ -155,7 +167,7 @@ bool print_readiness(const e::GroupReadinessPreview& p) {
     return print(text);
 }
 int run(Log& log){
-    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"topology_neutral_accepted_baseline_v2\",\"console_wait_contract\":\"sta_message_pump_v2\",\"console_mode_contract\":\"preserve_host_mode_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
+    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"topology_neutral_accepted_baseline_v2\",\"capture_contract\":\"structured_preaccept_v1\",\"console_wait_contract\":\"sta_message_pump_v2\",\"console_mode_contract\":\"preserve_host_mode_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
     w::console_input::StaConsoleLineReader input{GetStdHandle(STD_INPUT_HANDLE),GetStdHandle(STD_OUTPUT_HANDLE)};
     std::string stage="MEMBER_A_PROVISIONING";
     const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason)+",\"stage\":"+quote(stage));return 2;};
@@ -205,7 +217,7 @@ int run(Log& log){
     for(;;) {
         auto preview=group->preview_readiness();
         if(!record_readiness(log,"readiness_preview",preview))return stop("evidence_write_failed");
-        if(!preview.valid)return stop(preview.reason);
+        if(!preview.valid&&!preview.capture_result.recoverable())return stop(preview.reason);
         if(!print_readiness(preview))return stop("console_failed");
         if(!print(L"请手工 Move + Resize；勿导航、更换窗口或 monitor/DPI。\r\n"
             L"PaneBind native writes = 0。Enter 重新采集；READY 时输入 Y 接受当前拓扑；Q 取消。\r\n"))return stop("console_failed");
@@ -222,7 +234,7 @@ int run(Log& log){
             if(!record_readiness(log,"readiness_accepted",*group->accepted_readiness()))return stop("evidence_write_failed");
             break;
         }
-        if(!preview.valid||!group->healthy())return stop(preview.reason);
+        if((!preview.valid&&!preview.capture_result.recoverable())||!group->healthy())return stop(preview.reason);
         if(!print_readiness(preview))return stop("console_failed");
     }
     stage="GESTURE";

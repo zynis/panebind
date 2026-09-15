@@ -1,5 +1,6 @@
 #pragma once
 #include "platform/windows/explorer/explorer_session.h"
+#include "platform/windows/explorer/explorer_group_capture.h"
 #include "platform/windows/explorer/explorer_group_batch.h"
 #include "platform/windows/explorer/explorer_virtual_desktop_manager.h"
 #include <array>
@@ -35,7 +36,6 @@ private:
     friend class ExplorerGroupBridge;
 };
 using GroupSessions=std::array<ExplorerTestSession*,3>;
-using GroupSnapshots=std::array<ExplorerWindowSnapshot,3>;
 struct GroupBatchReceipt final {
     GroupNativeBatchResult native;
     GroupSnapshots before;
@@ -54,7 +54,8 @@ class ExplorerGroupBridge final {
 private:
     static std::optional<ExplorerGroupSeal> bind(GroupSessions sessions,
         ExplorerVirtualDesktopManager& manager, GroupSnapshots& original);
-    static std::optional<GroupSnapshots> capture(const ExplorerGroupSeal&, GroupSessions);
+    static GroupCaptureResult capture(const ExplorerGroupSeal&, GroupSessions,
+        GroupCaptureMode mode=GroupCaptureMode::Strict);
     static bool receipts_healthy(const ExplorerGroupSeal&, GroupSessions) noexcept;
     static void active(const ExplorerGroupSeal&,GroupSessions,bool) noexcept;
     static void retire(const ExplorerGroupSeal&,GroupSessions) noexcept;

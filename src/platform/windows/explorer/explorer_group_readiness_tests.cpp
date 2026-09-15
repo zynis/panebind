@@ -26,12 +26,23 @@ e::detail::GroupSnapshots snapshots(bool large) {
     }
     return result;
 }
+e::detail::GroupCaptureResult captured(std::optional<e::detail::GroupSnapshots> snapshots) {
+    e::detail::GroupCaptureResult result;
+    if(snapshots) {
+        result.snapshots=std::move(snapshots);result.disposition=e::detail::GroupCaptureDisposition::Succeeded;
+        result.failure_stage=e::detail::GroupCaptureStage::None;result.reason="none";
+    } else {
+        result.failed_member_index=0;result.failure_stage=e::detail::GroupCaptureStage::NativeValidation;
+        result.eligibility_reason=e::ExplorerEligibilityReason::GeometryCaptureFailed;result.reason="GeometryCaptureFailed";
+    }
+    return result;
+}
 const e::GroupReadinessActivity idle{true,64,0,0,0,0,false,false};
 }
 int main() {
     { // A: immediate fit, independent setup capture, no baseline change.
         auto live=snapshots(false);e::GroupReadinessFixture fixture{64,live};int captures{};
-        auto capture=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return live;};
+        auto capture=[&]()->e::detail::GroupCaptureResult{++captures;return captured(live);};
         const auto p=fixture.preview(idle,capture);
         check(p.valid&&p.readiness.ready&&!p.setup_check&&p.attempt==1,"A preview fits");
         check(!fixture.accepted(),"preview alone never freezes baseline");
@@ -42,7 +53,7 @@ int main() {
     }
     { // B: binding geometry is oversized; HUMAN resize is represented by input.
         auto binding=snapshots(true),live=binding;e::GroupReadinessFixture fixture{64,binding};int captures{};
-        auto capture=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return live;};
+        auto capture=[&]()->e::detail::GroupCaptureResult{++captures;return captured(live);};
         const auto p=fixture.preview(idle,capture);
         check(p.valid&&!p.readiness.ready&&p.readiness.reason=="disconnected_topology","B disconnected geometry");
         check(p.member_sizes[0][0]==1839&&p.readiness.relation_count==0,"B actual sizes and topology, not packing");
@@ -63,7 +74,7 @@ int main() {
     }
     { // C: FIT preview cannot authorize stale setup geometry.
         auto live=snapshots(false);e::GroupReadinessFixture fixture{64,live};int captures{};
-        auto capture=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return live;};
+        auto capture=[&]()->e::detail::GroupCaptureResult{++captures;return captured(live);};
         check(fixture.preview(idle,capture).readiness.ready,"C initial fit");
         live=snapshots(true);
         const auto setup=fixture.prepare_setup(idle,capture);
@@ -74,9 +85,9 @@ int main() {
     }
     { // D: a failed complete member validator is terminal for this fixture.
         e::GroupReadinessFixture fixture{64,snapshots(false)};int captures{};
-        auto invalid=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return std::nullopt;};
+        auto invalid=[&]()->e::detail::GroupCaptureResult{++captures;return captured(std::nullopt);};
         check(!fixture.preview(idle,invalid).valid,"D invalid member fails closed");
-        auto later=[&]()->std::optional<e::detail::GroupSnapshots>{++captures;return snapshots(false);};
+        auto later=[&]()->e::detail::GroupCaptureResult{++captures;return captured(snapshots(false));};
         check(!fixture.prepare_setup(idle,later).valid&&captures==1&&!fixture.accepted(),"D no retry/reissue after invalidation");
     }
     for(int failure=0;failure<5;++failure) {
@@ -86,21 +97,21 @@ int main() {
         if(failure==2)live[0].exact_test_location=false;
         if(failure==3)++live[2].process_id;
         if(failure==4)live[1].on_current_virtual_desktop=false;
-        check(!fixture.preview(idle,[&]{return std::optional{live};}).valid,"D nongeometry context cannot be rebased");
+        check(!fixture.preview(idle,[&]{return captured(live);}).valid,"D nongeometry context cannot be rebased");
     }
     { // E: repeated previews cannot change group/gesture/roles/pending/source.
         namespace b=panebind::core::behavior;namespace m=panebind::core::model;
         b::GlueGroupMoveCoordinator model{{{m::WindowId{"A"},1},{m::WindowId{"B"},2},{m::WindowId{"C"},3}},64};
         e::GroupReadinessFixture fixture{64,snapshots(false)};int captures{};
         for(std::uint64_t i=1;i<=5;++i) {
-            const auto p=fixture.preview(idle,[&]{++captures;return std::optional{snapshots(i%2==0)};});
+            const auto p=fixture.preview(idle,[&]{++captures;return captured(snapshots(i%2==0));});
             check(p.valid&&p.attempt==i&&p.activity.group_generation==64&&!p.activity.gesture_generation,"E monotonic preview, stable authority");
             check(!p.activity.native_apply_count&&!p.activity.hdwp_begin_count&&!p.activity.event_source_running,"E zero native/hook side effects");
             check(model.state()==b::GlueGroupState::GroupReady&&model.gesture_generation()==0&&!model.gesture_leader()&&model.pending().empty(),"E no gesture or role assigned");
         }
         check(captures==5&&!fixture.accepted(),"E each preview is fresh and not accepted");
         auto wrong_thread=idle;wrong_thread.owner_thread=false;
-        check(!fixture.preview(wrong_thread,[&]{++captures;return std::optional{snapshots(false)};}).valid&&captures==5,"owner-thread-only preview");
+        check(!fixture.preview(wrong_thread,[&]{++captures;return captured(snapshots(false));}).valid&&captures==5,"owner-thread-only preview");
     }
     std::cout<<"group-readiness failures="<<failures<<'\n';return failures?1:0;
 }

@@ -1,5 +1,9 @@
 # R1-C4A 自动实现与独立 Review 交接
 
+当前 Fix 5 见 [Mutable Capture 报告](R1C4A_FIX5_MUTABLE_CAPTURE_REPORT.md)：预接受
+完整验证与 sticky runtime wrapper 分离，新增结构化失败原因，修正四个合法 browser
+geometry 事件的分类。旧真人 capture 失败的精确根因不可由旧日志证明；仍待真人 UAT。
+
 当前架构修正见 [C4 架构收口报告](R1C4_ARCHITECTURE_CORRECTION_REPORT.md)：固定 L
 摆放/恰好两条关系限制已废止；只读拓扑预览接受用户摆放的两边或三边连通分量。
 新增 C4B 纯 Magnet Core，不接 live Explorer；下文是初版历史记录，不是当前 Gate。

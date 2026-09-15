@@ -220,6 +220,22 @@ target_compile_definitions(
 )
 panebind_enable_warnings(panebind_windows_explorer)
 
+if(BUILD_TESTING)
+    add_executable(panebind-browser-sink-tests
+        explorer/explorer_browser_sink_tests.cpp explorer/explorer_shell_inventory.cpp)
+    target_link_libraries(panebind-browser-sink-tests PRIVATE panebind_windows_explorer)
+    target_compile_definitions(panebind-browser-sink-tests PRIVATE
+        PANEBIND_BROWSER_SINK_TESTS NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+        WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    panebind_enable_warnings(panebind-browser-sink-tests)
+    add_test(NAME explorer-browser-sink COMMAND panebind-browser-sink-tests)
+    add_executable(panebind-group-capture-tests explorer/explorer_group_capture_tests.cpp)
+    target_link_libraries(panebind-group-capture-tests PRIVATE panebind_windows_explorer)
+    target_compile_definitions(panebind-group-capture-tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    panebind_enable_warnings(panebind-group-capture-tests)
+    add_test(NAME explorer-group-mutable-capture COMMAND panebind-group-capture-tests)
+endif()
+
 add_executable(
     panebind-explorer-harness
     ../../app/explorer_harness_main.cpp
