@@ -1,5 +1,9 @@
 # R1-C4A 自动实现与独立 Review 交接
 
+当前架构修正见 [C4 架构收口报告](R1C4_ARCHITECTURE_CORRECTION_REPORT.md)：固定 L
+摆放/恰好两条关系限制已废止；只读拓扑预览接受用户摆放的两边或三边连通分量。
+新增 C4B 纯 Magnet Core，不接 live Explorer；下文是初版历史记录，不是当前 Gate。
+
 当前终端兼容性修复见 [Fix 3 报告](R1C4A_FIX3_TERMINAL_REPORT.md)：保留 STA-safe
 pump，但不再修改 host input mode 或将 Ctrl+C 作为 harness abort。
 

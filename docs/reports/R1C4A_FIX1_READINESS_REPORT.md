@@ -1,5 +1,9 @@
 # R1-C4A Fix 1：可重复 Live Readiness 与 Accepted Restore Baseline
 
+历史报告：固定 L 形尺寸/摆放要求已由
+[2026-09-15 架构修正](R1C4_ARCHITECTURE_CORRECTION_REPORT.md)取代。
+fresh capture、原授权上下文验证和 accepted restore baseline 原则继续有效。
+
 完成日期：2026-09-14（Asia/Shanghai，跨日完成）。实现与自动验证完成；待 ChatGPT 独立 re-review，未运行
 修复后的真人 UAT。该结果不是三窗口 runtime Seal。
 
