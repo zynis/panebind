@@ -1,5 +1,15 @@
 # PaneBind Architecture Baseline
 
+## R1-C4 architecture correction — 2026-09-15
+
+[Magnet / Geometry / Relation / Glue](R1C4_MAGNET_RELATION_GLUE.md) are separate.
+PERSISTENT_LEADER = NONE; PERSISTENT_GROUP_MEMBERSHIP = NONE. The authorized
+member set is capability scope; a group is the current geometry-derived
+connected component. The following older wording does not authorize persistent
+membership. C4A now accepts human-arranged unequal-size two/three-relation
+topologies with no synthetic placement. C4B is pure proposal-only Magnet;
+live native integration, C4C Glue Resize and C4D lock UI are not implemented.
+
 ## Long-term Glue member and gesture semantics — R1-C4A
 
 Leader/Follower are gesture-scoped roles, not persistent member identities.

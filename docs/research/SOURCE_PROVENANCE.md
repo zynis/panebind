@@ -1,5 +1,21 @@
 # Source Provenance Register
 
+## R1-C4 architecture correction — 2026-09-15
+
+See [behavior research](R1C4_AQUASNAP_BEHAVIOR_REFERENCE.md) for exact sources,
+versions, inspected modules/history and lessons. AquaSnap/Nurgo is a mature
+proprietary commercial behavior reference: official product, configuration,
+v1.16.0 release and EULA pages only, no repository/commit or internals claimed.
+AltSnap GPL-3.0-or-later at 5c86416ad21e4b72844a998a746bd3bb0bee5f5d,
+hooks.c MoveSnap/ResizeSnap, issue 681, PR 682 and allocation-fix commit 397b84b:
+REFERENCE ONLY. PowerToys/FancyZones MIT at
+19c4d805321db86f3634e6968e14dbf25cbba14a, WindowMouseSnap.cpp, LICENSE and
+PR 48569: REFERENCE ONLY. Microsoft Learn event constants/GetWindowRect are
+live official platform references, no immutable version claimed. Applicable
+subsystems: constraint geometry, candidate eligibility, interaction lifetime.
+No external code copied/adapted/translated; no new code attribution obligation.
+Research links retained. Lock affordance is PANE_BIND_ORIGINAL_UX, not upstream.
+
 ## R1-C4A Fix 3 terminal ownership review — 2026-09-15
 
 Microsoft Learn live SetConsoleMode, ReadConsoleInputEx, Process Creation Flags

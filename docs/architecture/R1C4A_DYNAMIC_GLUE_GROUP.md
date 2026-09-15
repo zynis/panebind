@@ -1,5 +1,15 @@
 # R1-C4A dynamic bounded Glue group
 
+## 2026-09-15 architecture correction (current)
+
+The [Magnet/Relation/Glue model](R1C4_MAGNET_RELATION_GLUE.md) supersedes the
+fixed-L setup/readiness text below. No persistent geometric membership or
+Leader. The authorized three-frame set is capability scope only. No synthetic
+placement: human Move + Resize, repeatable fresh topology preview, explicit Y
+acceptance with another fresh capture, then the unchanged A/B/C gestures and
+accepted-baseline restore. Two OR three relations and unequal sizes are valid.
+Historic packing/deficit evidence remains historic, not current acceptance.
+
 Status: IMPLEMENTED / AUTOMATED TESTED. Human UAT REQUIRED **after independent
 review PASS**; no three-Explorer runtime acceptance is claimed.
 
