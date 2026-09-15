@@ -56,11 +56,6 @@ struct NativeConsole final {
             erased==static_cast<DWORD>(cells)&&SetConsoleCursorPosition(self.output,start);
     }
 };
-struct NativeMode final {
-    HANDLE input;
-    bool get(DWORD& value)noexcept{return GetConsoleMode(input,&value)!=FALSE;}
-    bool set(DWORD value)noexcept{return SetConsoleMode(input,value)!=FALSE;}
-};
 thread_local bool console_read_active{};
 }
 const char* line_status_name(LineStatus status) noexcept {
@@ -78,8 +73,7 @@ const char* line_status_name(LineStatus status) noexcept {
     case LineStatus::InvalidUnicode:return "invalid_unicode";
     case LineStatus::WrongThread:return "wrong_thread";
     case LineStatus::Reentrant:return "reentrant_read";
-    case LineStatus::ModeFailed:return "console_mode_failed";
-    case LineStatus::ModeRestoreFailed:return "console_mode_restore_failed";
+    case LineStatus::ModeQueryFailed:return "console_mode_query_failed";
     }
     return "unknown";
 }
@@ -123,7 +117,11 @@ LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeou
         if(record.EventType!=KEY_EVENT || !record.Event.KeyEvent.bKeyDown)continue;
         const auto& key=record.Event.KeyEvent;
         const wchar_t c=key.uChar.UnicodeChar;
-        if(key.wVirtualKeyCode==VK_ESCAPE || c==3)return finish(LineStatus::Aborted);
+        if(key.wVirtualKeyCode==VK_ESCAPE || c==0x1B)return finish(LineStatus::Aborted);
+        // Ctrl+C belongs to the host (copy or its normal processed-input
+        // behavior). An in-band copy-related record is not a command/abort.
+        if(c==3 || (key.wVirtualKeyCode==L'C' &&
+            (key.dwControlKeyState&(LEFT_CTRL_PRESSED|RIGHT_CTRL_PRESSED))))continue;
         if(!key.wRepeatCount)continue;
         if(key.wVirtualKeyCode==VK_RETURN || c==L'\r') {
             if(editor.pending_high)return finish(LineStatus::InvalidUnicode);
@@ -132,7 +130,9 @@ LineResult detail::read_with_sta_pump(const InputEndpoint& endpoint,DWORD timeou
         }
         for(WORD repeat=0;repeat<key.wRepeatCount;++repeat) {
             const auto before=editor.view();
-            if(key.wVirtualKeyCode==VK_BACK || c==L'\b') {
+            // VT input represents Backspace as DEL; accept its documented
+            // control encoding without turning off the host's VT input mode.
+            if(key.wVirtualKeyCode==VK_BACK || c==L'\b' || c==0x7F) {
                 if(editor.pending_high){editor.pending_high=0;continue;}
                 if(!editor.size)break;
                 --editor.size;
@@ -168,12 +168,14 @@ LineResult StaConsoleLineReader::read() {
        !(output_mode&ENABLE_PROCESSED_OUTPUT)) {result.error=GetLastError();return result;}
     const auto read=resolve_nowait();
     if(!read){result.status=LineStatus::ApiUnavailable;result.error=ERROR_PROC_NOT_FOUND;return result;}
-    NativeMode api{input_};detail::InputModeScope mode{api};
-    if(!mode.valid()){result.status=LineStatus::ModeFailed;result.error=GetLastError();return result;}
     NativeConsole native{input_,output_,read};
     result=detail::read_with_sta_pump({input_,&native,&NativeConsole::read_record,&NativeConsole::echo});
-    result.mode_restored=mode.close();
-    if(!result.mode_restored){result.status=LineStatus::ModeRestoreFailed;result.error=GetLastError();result.line.reset();}
+    result.input_mode_before=input_mode;
+    result.modes_observed=GetConsoleMode(input_,&result.input_mode_after)!=FALSE;
+    if(!result.modes_observed){result.status=LineStatus::ModeQueryFailed;result.error=GetLastError();result.line.reset();}
+    // Observation only. A host-driven change is reported, never undone and
+    // never treated as an instruction to reserve a shortcut or abort the line.
+    result.mode_changed=result.modes_observed&&result.input_mode_before!=result.input_mode_after;
     return result;
 }
 } // namespace panebind::platform::windows::console_input

@@ -58,14 +58,109 @@ struct Window final {
     }
     ~Window(){if(value)DestroyWindow(value);}
 };
-struct ModeApi final {
-    DWORD value=ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_PROCESSED_INPUT|ENABLE_VIRTUAL_TERMINAL_INPUT;
-    unsigned sets{};bool fail_get{},fail_restore{};
-    bool get(DWORD& result)noexcept{result=value;return !fail_get;}
-    bool set(DWORD next)noexcept{++sets;if(fail_restore&&sets==2)return false;value=next;return true;}
+struct ModeProbe final {
+    HANDLE input{};DWORD during{};bool observed{},input_written{},escape{};
 };
+LRESULT CALLBACK mode_window_proc(HWND window,UINT message,WPARAM wp,LPARAM lp) {
+    if(message==WM_NCCREATE){const auto* cs=reinterpret_cast<CREATESTRUCTW*>(lp);SetWindowLongPtrW(window,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(cs->lpCreateParams));}
+    auto* probe=reinterpret_cast<ModeProbe*>(GetWindowLongPtrW(window,GWLP_USERDATA));
+    if(message==WM_APP+19 && probe) {
+        probe->observed=GetConsoleMode(probe->input,&probe->during)!=FALSE;
+        const std::array input{key(L'Y'),key(L'\b',VK_BACK),key(L'Q'),key(L'\r',VK_RETURN)};
+        DWORD written{};
+        if(probe->escape) {
+            const auto esc=key(0x1B,VK_ESCAPE);
+            probe->input_written=WriteConsoleInputW(probe->input,&esc,1,&written)&&written==1;
+        } else probe->input_written=WriteConsoleInputW(probe->input,input.data(),static_cast<DWORD>(input.size()),&written)&&written==input.size();
+        return 0;
+    }
+    return DefWindowProcW(window,message,wp,lp);
 }
-int main(){
+int private_console_probe() {
+    // Automated fixture only: never attach to the user's console, never open
+    // Explorer/clipboard, and never change the harness's process group.
+    DWORD clients[4]{};
+    if(GetConsoleProcessList(clients,4)!=1 || clients[0]!=GetCurrentProcessId())return 20;
+    if(FAILED(CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED)))return 21;
+    const auto input=GetStdHandle(STD_INPUT_HANDLE),output=GetStdHandle(STD_OUTPUT_HANDLE);
+    WNDCLASSW cls{};cls.lpfnWndProc=&mode_window_proc;cls.hInstance=GetModuleHandleW(nullptr);
+    cls.lpszClassName=L"PaneBind.STA.PrivateConsoleModeProbe";
+    if(!RegisterClassW(&cls))return 22;
+    ModeProbe probe{input};
+    const auto window=CreateWindowExW(0,cls.lpszClassName,L"owned mode probe",0,0,0,0,0,
+        HWND_MESSAGE,nullptr,cls.hInstance,&probe);
+    if(!window)return 23;
+    const std::array<DWORD,3> modes{
+        ENABLE_EXTENDED_FLAGS|ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_QUICK_EDIT_MODE|ENABLE_PROCESSED_INPUT|ENABLE_VIRTUAL_TERMINAL_INPUT,
+        ENABLE_EXTENDED_FLAGS|ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_PROCESSED_INPUT,
+        ENABLE_EXTENDED_FLAGS|ENABLE_VIRTUAL_TERMINAL_INPUT};
+    int failure{};
+    for(std::size_t i=0;i<modes.size()&&!failure;++i) {
+        // This SET is test-fixture preparation in a verified PRIVATE console,
+        // before invoking the production reader, not runtime mode mutation.
+        if(!SetConsoleMode(input,modes[i])){failure=30+static_cast<int>(i);break;}
+        DWORD before{};
+        if(!GetConsoleMode(input,&before)||before!=modes[i]){failure=40+static_cast<int>(i);break;}
+        probe.observed=false;probe.input_written=false;probe.escape=false;
+        if(!PostMessageW(window,WM_APP+19,0,0)){failure=50;break;}
+        c::StaConsoleLineReader reader{input,output};
+        const auto result=reader.read();
+        DWORD after{};
+        if(!GetConsoleMode(input,&after))failure=61;
+        else if(!probe.observed)failure=62;
+        else if(!probe.input_written)failure=63;
+        else if(probe.during!=before)failure=64;
+        else if(after!=before)failure=65;
+        else if(result.input_mode_before!=before)failure=66;
+        else if(result.input_mode_after!=before)failure=67;
+        else if(!result.modes_observed)failure=68;
+        else if(result.mode_changed)failure=69;
+        else if(result.status!=c::LineStatus::Complete)failure=100+static_cast<int>(result.status);
+        else if(result.line!=L"Q")failure=71;
+        else if(result.message_dispatch_count==0)failure=70;
+        if(!failure) {
+            probe.escape=true;probe.observed=false;probe.input_written=false;
+            if(!PostMessageW(window,WM_APP+19,0,0)){failure=72;break;}
+            const auto cancelled=reader.read();
+            if(cancelled.status!=c::LineStatus::Aborted||cancelled.line||!probe.observed||
+               !probe.input_written||probe.during!=before||!cancelled.modes_observed||
+               cancelled.input_mode_before!=before||cancelled.input_mode_after!=before||cancelled.mode_changed)
+                failure=73;
+        }
+    }
+    DestroyWindow(window);UnregisterClassW(cls.lpszClassName,cls.hInstance);CoUninitialize();
+    return failure;
+}
+bool run_private_console_probe() {
+    std::wstring executable(32768,L'\0');
+    const auto count=GetModuleFileNameW(nullptr,executable.data(),static_cast<DWORD>(executable.size()));
+    if(!count||count>=executable.size())return false;
+    executable.resize(count);
+    auto command=L"\""+executable+L"\" --private-console-mode-probe";
+    STARTUPINFOW startup{};startup.cb=sizeof(startup);
+    startup.dwFlags=STARTF_USESHOWWINDOW;startup.wShowWindow=SW_HIDE;
+    PROCESS_INFORMATION process{};
+    if(!CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,CREATE_NEW_CONSOLE,
+        nullptr,nullptr,&startup,&process))return false;
+    CloseHandle(process.hThread);
+    // Parent has not initialized COM or created windows yet. A finite wait is
+    // safe here; the CHILD's owner STA uses the actual message-pumping reader.
+    const auto wait=WaitForSingleObject(process.hProcess,10000);
+    DWORD code=99;
+    if(wait==WAIT_OBJECT_0)GetExitCodeProcess(process.hProcess,&code);
+    else {
+        // Only this newly created, synthetic test child can be terminated.
+        // It cannot contain user work or any Explorer/capability object.
+        TerminateProcess(process.hProcess,99);WaitForSingleObject(process.hProcess,1000);
+    }
+    CloseHandle(process.hProcess);
+    std::cout<<"private console modes A/B/C probe exit="<<code<<'\n';
+    return code==0;
+}
+}
+int wmain(int argc,wchar_t** argv){
+    if(argc==2&&std::wstring_view(argv[1])==L"--private-console-mode-probe")return private_console_probe();
+    check(run_private_console_probe(),"native modes before/during/after preserved in private console");
     const auto com=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
     check(SUCCEEDED(com),"probe owner STA initialized");
     WNDCLASSW cls{};cls.lpfnWndProc=&window_proc;cls.hInstance=GetModuleHandleW(nullptr);
@@ -96,9 +191,20 @@ int main(){
         check(result.status==c::LineStatus::Quit&&!result.line&&input.reads==0,"quit abort before reading input");
         MSG msg{};check(PeekMessageW(&msg,nullptr,WM_QUIT,WM_QUIT,PM_REMOVE)&&msg.wParam==73,"quit propagated");
     }
-    for(auto abort:std::array{key(L'\x03'),key(0,VK_ESCAPE)}) {
+    for(auto abort:std::array{key(0,VK_ESCAPE),key(0x1B)}) {
         Input input;input.push(abort);auto result=c::detail::read_with_sta_pump(input.endpoint(),2000);
-        check(result.status==c::LineStatus::Aborted&&!result.line,"Ctrl+C/Escape clean abort");
+        check(result.status==c::LineStatus::Aborted&&!result.line,"Escape clean abort");
+    }
+    {
+        Input input;input.push(key(L'Y'));input.push(key(L'\x03'));
+        auto copy=key(L'C',L'C');copy.Event.KeyEvent.dwControlKeyState=LEFT_CTRL_PRESSED;
+        input.push(copy);input.push(key(L'\r',VK_RETURN));
+        const auto result=c::detail::read_with_sta_pump(input.endpoint(),2000);
+        check(result.line==L"Y"&&input.rendered==L"Y"&&input.echoes==2,"copy-related Ctrl+C neither aborts nor enters/echoes command");
+    }
+    {
+        Input input;input.push(key(L'Y'));input.push(key(0x7F));input.push(key(L'Q'));input.push(key(L'\r',VK_RETURN));
+        check(c::detail::read_with_sta_pump(input.endpoint(),2000).line==L"Q","VT DEL Backspace without mode mutation");
     }
     { // E: an empty signaled read returns to a nonzero event/message wait.
         Input input;input.empty_once=true;SetEvent(input.ready);
@@ -138,10 +244,6 @@ int main(){
         Input input;input.fail_echo=true;input.push(key(L'Y'));
         check(c::detail::read_with_sta_pump(input.endpoint(),2000).status==c::LineStatus::EchoFailed,"echo failure abort");
     }
-    {ModeApi api;const auto original=api.value;{c::detail::InputModeScope mode{api};check(mode.valid()&&!(api.value&ENABLE_PROCESSED_INPUT)&&!(api.value&ENABLE_QUICK_EDIT_MODE),"scoped raw input mode");}check(api.value==original&&api.sets==2,"normal mode restoration");}
-    {ModeApi api;const auto original=api.value;try{c::detail::InputModeScope mode{api};throw std::runtime_error("test");}catch(...){}check(api.value==original,"exception mode restoration");}
-    {ModeApi api;api.fail_restore=true;c::detail::InputModeScope mode{api};check(!mode.close(),"restore failure reported");}
-    {ModeApi api;api.fail_get=true;c::detail::InputModeScope mode{api};check(!mode.valid()&&api.sets==0,"invalid console mode not changed");}
     UnregisterClassW(cls.lpszClassName,cls.hInstance);
     if(SUCCEEDED(com))CoUninitialize();
     std::cout<<"STA console pump failures="<<failures<<'\n';return failures?1:0;

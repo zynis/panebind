@@ -1,5 +1,20 @@
 # Source Provenance Register
 
+## R1-C4A Fix 3 terminal ownership review — 2026-09-15
+
+Microsoft Learn live SetConsoleMode, ReadConsoleInputEx, Process Creation Flags
+and STARTUPINFOW pages, Console Virtual Terminal Sequences input table (DEL
+Backspace / ESC Escape); Microsoft site terms, no immutable revision claimed.
+VS Code official Terminal Basics copy/paste and mouse-selection sections:
+live documentation (page dated 2026-09-09), mature product behavior reference,
+Microsoft documentation terms; no VS Code implementation code inspected.
+Lesson: NOWAIT record reading does not require taking over cooked-input or
+frontend selection/shortcut policy. Applicable subsystem: C4A human console
+input and isolated automated mode fixtures. Code copied/adapted NO/NO; no new
+code attribution required, source links retained in
+[the Fix 3 decision](R1C4A_TERMINAL_MODE_PRESERVATION.md).
+Fix 2's mandatory AltSnap/FancyZones review remains unchanged, reference-only.
+
 ## R1-C4A Fix 2 STA console wait review — 2026-09-14
 
 Reference-only; copied/adapted code NO/NO. Exact sources and decisions:

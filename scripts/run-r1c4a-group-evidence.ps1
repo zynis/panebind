@@ -1,6 +1,6 @@
 [CmdletBinding(DefaultParameterSetName='Run')]
 param(
-    [Parameter(ParameterSetName='Run')][string] $BuildDirectory='out/r1c4a-debug',
+    [Parameter(ParameterSetName='Run')][string] $BuildDirectory='out/r1c4a-fix3-debug',
     [Parameter(ParameterSetName='Run')][switch] $IndependentReviewPassed,
     [Parameter(Mandatory=$true,ParameterSetName='Validate')][string] $ValidateEvidencePath
 )

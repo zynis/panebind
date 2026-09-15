@@ -60,6 +60,16 @@ never close Explorer. Native failure stops writes, without rollback claims.
 
 ## Fixture, tests and boundary
 
+Fix 3 invariant: STA-safe input waiting must not take ownership of unrelated
+terminal interaction semantics. The reader never calls SetConsoleMode: Quick
+Edit, processed input and VT input stay under the host's control. Modes are
+observed before/after, not restored. Escape and prompt-defined Q cancel;
+in-band Ctrl+C is ignored, and host copy/interrupt shortcuts are not intercepted.
+The existing pump/NOWAIT path stays; VT DEL/ESC are recognized for the bounded
+editor without disabling VT input. Full terminal editing is not a product goal.
+The contract is `sta_message_pump_v2` + `preserve_host_mode_v1`; actual frontend
+copy/paste is PENDING_HUMAN. See [Fix 3 report](../reports/R1C4A_FIX3_TERMINAL_REPORT.md).
+
 Fix 2 standing harness invariant: once the owner has apartment-affine
 COM/Shell objects, it must never wait for human console input without pumping
 Windows/COM messages. All C4A confirmations, group consent, readiness Enter/Q

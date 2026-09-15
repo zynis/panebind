@@ -1,5 +1,9 @@
 # R1-C4A Fix 2 — STA console wait research
 
+Historical record: Fix 3 supersedes the mode-mutation/Ctrl+C-abort decisions
+below, while preserving the proven STA pump and NOWAIT mechanism. Current
+policy: [preserve host terminal modes](R1C4A_TERMINAL_MODE_PRESERVATION.md).
+
 Reviewed 2026-09-14. Base: `88c2e5b9aedb85b92aa7d81b23b1e0f0ecaf29de`.
 
 ## Diagnosis and scope

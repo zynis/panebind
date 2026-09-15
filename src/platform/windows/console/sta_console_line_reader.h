@@ -15,14 +15,15 @@
 namespace panebind::platform::windows::console_input {
 enum class LineStatus { Complete, Aborted, Quit, TimedOut, InvalidConsole,
     ApiUnavailable, WaitFailed, ReadFailed, EchoFailed, TooLong, InvalidUnicode,
-    WrongThread, Reentrant, ModeFailed, ModeRestoreFailed };
+    WrongThread, Reentrant, ModeQueryFailed };
 [[nodiscard]] const char* line_status_name(LineStatus) noexcept;
 struct LineResult final {
     LineStatus status{LineStatus::InvalidConsole};
     std::optional<std::wstring> line;
     std::uint64_t wait_count{},pump_count{},message_dispatch_count{},console_input_event_count{};
     DWORD owner_thread{},error{};
-    bool mode_restored{true};
+    DWORD input_mode_before{},input_mode_after{};
+    bool modes_observed{},mode_changed{};
 };
 
 namespace detail {
@@ -38,34 +39,10 @@ struct InputEndpoint final {
 [[nodiscard]] LineResult read_with_sta_pump(const InputEndpoint&,DWORD timeout_ms=INFINITE);
 [[nodiscard]] bool nowait_api_available() noexcept;
 
-// Original shared console mode is restored on every return/exception. The
-// native implementation and deterministic mode tests use this same scope.
-template<class Api> class InputModeScope final {
-public:
-    explicit InputModeScope(Api& api):api_(api) {
-        if(!api_.get(saved_))return;
-        const DWORD temporary=(saved_|ENABLE_EXTENDED_FLAGS)&
-            ~(ENABLE_QUICK_EDIT_MODE|ENABLE_PROCESSED_INPUT|ENABLE_VIRTUAL_TERMINAL_INPUT);
-        active_=api_.set(temporary);valid_=active_;
-    }
-    ~InputModeScope(){static_cast<void>(close());}
-    InputModeScope(const InputModeScope&)=delete;
-    InputModeScope& operator=(const InputModeScope&)=delete;
-    bool valid()const noexcept{return valid_;}
-    bool close()noexcept {
-        if(active_){
-            active_=false;
-            DWORD actual{};
-            restored_=api_.set(saved_)&&api_.get(actual)&&actual==saved_;
-        }
-        return restored_;
-    }
-private:
-    Api& api_;DWORD saved_{};bool active_{},valid_{},restored_{true};
-};
 } // namespace detail
 
 // No COM initialization, worker, hook, timer, code-page change or group access.
+// Host input modes/selection/shortcuts are never set or restored by this reader.
 // Input/output handles are borrowed and must live through read().
 class StaConsoleLineReader final {
 public:

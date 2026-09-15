@@ -46,7 +46,9 @@ std::optional<std::wstring> read_line(Log& log,w::console_input::StaConsoleLineR
           <<",\"owner_thread\":"<<result.owner_thread<<",\"wait_call_count\":"<<result.wait_count
           <<",\"pump_call_count\":"<<result.pump_count<<",\"message_dispatch_count\":"<<result.message_dispatch_count
           <<",\"console_input_event_count\":"<<result.console_input_event_count
-          <<",\"console_mode_restored\":"<<flag(result.mode_restored)<<",\"error\":"<<result.error;
+          <<",\"input_mode_before\":"<<result.input_mode_before<<",\"input_mode_after\":"<<result.input_mode_after
+          <<",\"modes_observed\":"<<flag(result.modes_observed)<<",\"mode_changed\":"<<flag(result.mode_changed)
+          <<",\"error\":"<<result.error;
     // One bounded summary per wait, no characters or per-message logs.
     if(!log.record("console_wait",fields.str()))return std::nullopt;
     return std::move(result.line);
@@ -144,7 +146,7 @@ bool print_readiness(const e::GroupReadinessPreview& p) {
     return print(text);
 }
 int run(Log& log){
-    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\",\"console_wait_contract\":\"sta_message_pump_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
+    log.record("startup",",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+",\"member_count\":3,\"interactive_console\":true,\"readiness_contract\":\"live_preview_accepted_baseline_v1\",\"console_wait_contract\":\"sta_message_pump_v2\",\"console_mode_contract\":\"preserve_host_mode_v1\",\"console_input_contract\":\"readconsoleinputex_nowait_v1\",\"owner_sta_thread\":"+std::to_string(GetCurrentThreadId()));
     w::console_input::StaConsoleLineReader input{GetStdHandle(STD_INPUT_HANDLE),GetStdHandle(STD_OUTPUT_HANDLE)};
     const auto stop=[&](std::string_view reason){log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason));return 2;};
     e::ExplorerGroupSession::OwnedMembers members;

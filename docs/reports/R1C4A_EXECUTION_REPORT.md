@@ -1,5 +1,8 @@
 # R1-C4A 自动实现与独立 Review 交接
 
+当前终端兼容性修复见 [Fix 3 报告](R1C4A_FIX3_TERMINAL_REPORT.md)：保留 STA-safe
+pump，但不再修改 host input mode 或将 Ctrl+C 作为 harness abort。
+
 当前 P1 UAT infrastructure 修复见 [Fix 2 STA console 报告](R1C4A_FIX2_STA_CONSOLE_REPORT.md)。
 它不改变 movement / readiness baseline；修复后仍需独立 re-review 和真人 UAT。
 
