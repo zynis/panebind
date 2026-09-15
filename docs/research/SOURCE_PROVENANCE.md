@@ -1,5 +1,22 @@
 # Source Provenance Register
 
+## R1-C4B live integration — 2026-09-15
+
+See [focused integration research](R1C4B_LIVE_MAGNET_INTEGRATION_RESEARCH.md).
+AltSnap mature GPL-3.0-or-later, REFERENCE ONLY, pin
+5c86416ad21e4b72844a998a746bd3bb0bee5f5d: License.txt, hooks.c MoveSnap and
+LetWindowKickBack, PR 723, commits 524332458d1b01244f0fe211bb09d5a32174f911
+and df25d36c6369bb13aa02ec83974e625fc7922c35 / PR 739 history. Lesson: app
+constraints may alter resize; no message synthesis or source reuse adopted.
+PowerToys/FancyZones mature MIT reference-only, pin
+19c4d805321db86f3634e6968e14dbf25cbba14a: WindowMouseSnap.cpp, LICENSE,
+PR 48569 / dd26d86580168d2e368701f7b0c4d629dc9cd9ac. Lesson: lifecycle abort
+is distinct from completion. Microsoft Learn SetWindowPos, WM_WINDOWPOSCHANGING,
+WM_SIZING are live official references, no immutable version claimed. Existing
+AquaSnap proprietary behavior research is reused without binary inspection.
+Applicable subsystems: source correction, resize bridge, feedback/lifecycle.
+No external code copied, adapted or translated; no new code attribution duty.
+
 ## R1-C4A Fix 5 — 2026-09-15
 
 [Scoped research](R1C4A_FIX5_PREACCEPT_VALIDATION.md) records inspected modules,
