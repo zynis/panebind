@@ -2,6 +2,45 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'r1c4a-evidence-validation.ps1')
 function Assert-C4B([bool]$Condition,[string]$Message){if(-not $Condition){throw "R1C4B evidence: $Message"}}
+function Get-C4BCorrectionChronology($Op,$Records) {
+    $following=@($Records|Where-Object {$_.type -eq 'receipt' -and $_.member -eq $Op.source -and $_.receipt -gt $Op.watermark -and $_.callback_qpc -gt $Op.native_return_qpc}|Sort-Object receipt)
+    $observed=@();foreach($r in $following){if($r.event -ceq 'START'){break};$observed+=$r;if($r.event -ceq 'END'){break}}
+    $next=$observed|Select-Object -First 1
+    $location=$observed|Where-Object event -eq LOCATION|Select-Object -First 1
+    $end=$observed|Where-Object event -eq END|Select-Object -First 1
+    $sample=$Records|Where-Object {$_.type -eq 'sample' -and $_.gesture -eq $Op.gesture -and $_.source -eq $Op.source -and $_.receipt -gt $Op.watermark -and $_.callback_qpc -gt $Op.native_return_qpc}|Sort-Object receipt|Select-Object -First 1
+    $persistence='UNKNOWN_NO_POST_CORRECTION_SAMPLE'
+    if($null -ne $sample){$persistence=if((Get-C4ARectKey $sample.raw) -ceq (Get-C4ARectKey $Op.corrected)){'CORRECTED_GEOMETRY_OBSERVED'}elseif((Get-C4ARectKey $sample.raw) -ceq (Get-C4ARectKey $Op.raw)){'PRIOR_RAW_OBSERVED_NOT_CAUSAL_PROOF'}else{'OTHER_GEOMETRY_OBSERVED'}}
+    return [pscustomobject]@{NextReceipt=$(if($null -ne $next){$next.receipt}else{$null});NextLocation=$(if($null -ne $location){$location.receipt}else{$null});EndReceipt=$(if($null -ne $end){$end.receipt}else{$null});NextSampleReceipt=$(if($null -ne $sample){$sample.receipt}else{$null});GeometryObservation=$persistence}
+}
+function Test-C4BPostverify($Op,$Records) {
+    if(-not $Op.native_attempted){return}
+    Assert-C4B ($null -ne $Op.postverify) 'native postverify diagnostic absent'
+    $d=$Op.postverify;$captured=$null -ne $Op.actual
+    Assert-C4B ($d.capture_succeeded -eq $captured -and $d.native_success -eq $Op.native_success -and $d.win32_error -eq $Op.error -and $d.source_member -eq $Op.source) 'postverify identity/result'
+    Assert-C4B ((Get-C4ARectKey $d.requested_visible) -ceq (Get-C4ARectKey $Op.corrected) -and (Get-C4ARectKey $d.requested_positioning) -ceq (Get-C4ARectKey $Op.target_positioning)) 'postverify requested geometry'
+    $vx=$false;$px=$false
+    if($captured){
+        Assert-C4B ($null -eq $Op.capture_failure) 'successful capture reported as capture failure'
+        foreach($kind in @('visible','positioning')){
+            $a=$Op.actual[$Op.source].$kind;$t=if($kind -eq 'visible'){$Op.corrected}else{$Op.target_positioning}
+            Assert-C4B ((Get-C4ARectKey $d.('actual_'+$kind)) -ceq (Get-C4ARectKey $a)) 'postverify actual geometry'
+            $delta=@(0..3|ForEach-Object {[decimal]$a[$_]-[decimal]$t[$_]})
+            Assert-C4B (($d.($kind+'_edge_delta') -join ',') -ceq ($delta -join ',')) 'postverify edge delta'
+        }
+        $vx=(Get-C4ARectKey $Op.actual[$Op.source].visible) -ceq (Get-C4ARectKey $Op.corrected)
+        $px=(Get-C4ARectKey $Op.actual[$Op.source].positioning) -ceq (Get-C4ARectKey $Op.target_positioning)
+        $otherExact=$true
+        for($i=0;$i -lt 3;++$i){if($i -ne $Op.source){$otherExact=$otherExact -and (($Op.actual[$i]|ConvertTo-Json -Depth 8 -Compress) -ceq ($Op.before[$i]|ConvertTo-Json -Depth 8 -Compress))}}
+        Assert-C4B ($d.other_members_exact -eq $otherExact) 'postverify other member geometry/context'
+    } else {Assert-C4B ($null -ne $Op.capture_failure -and $null -eq $d.actual_visible -and $null -eq $d.actual_positioning -and $null -eq $d.visible_edge_delta -and $null -eq $d.positioning_edge_delta) 'missing capture evidence'}
+    Assert-C4B ($d.visible_exact -eq $vx -and $d.positioning_exact -eq $px) 'postverify exact flags'
+    $failure=if(-not $Op.native_success){'NativeCallFailed'}elseif(-not $captured){'CaptureFailed'}elseif(-not $vx -and -not $px){'BothGeometryMismatch'}elseif(-not $px){'PositioningMismatch'}elseif(-not $vx){'VisibleMismatch'}elseif(-not $d.source_context_exact){'SourceContextChanged'}elseif(-not $d.other_members_exact){'OtherMemberChanged'}elseif(-not $d.receipt_health){'ReceiptHealthFailed'}else{'None'}
+    Assert-C4B ($d.failure_class -ceq $failure -and $Op.exact -eq ($failure -ceq 'None')) 'postverify failure classification'
+    Assert-C4B (($Op.exact -and $null -eq $Op.postverify_failure) -or (-not $Op.exact -and ($Op.postverify_failure|ConvertTo-Json -Depth 8 -Compress) -ceq ($d|ConvertTo-Json -Depth 8 -Compress))) 'postverify failure object'
+    $link=Get-C4BCorrectionChronology $Op $Records
+    Assert-C4B ($Op.next_receipt_after_correction -eq $link.NextReceipt -and $Op.next_location_after_correction -eq $link.NextLocation -and $Op.end_receipt_after_correction -eq $link.EndReceipt) 'correction receipt chronology'
+}
 function Test-C4BMembers($Snapshots,$Bindings){
     Assert-C4B (@($Snapshots).Count -eq 3) 'three actual members required'
     for($i=0;$i -lt 3;++$i){$s=$Snapshots[$i];$null=Get-C4ARectKey $s.visible;$null=Get-C4ARectKey $s.positioning;$null=Get-C4ARectKey $s.work_area
@@ -42,6 +81,7 @@ function Test-C4BRecords {
     for($i=0;$i -lt $Records.Count;++$i){Assert-C4B ($Records[$i].schema -ceq 'r1c4b/v1' -and $Records[$i].sequence -eq $i+1) 'schema/sequence'}
     Assert-C4B ($Records[0].type -ceq 'startup' -and $Records[-1].type -ceq 'shutdown' -and @($Records|Where-Object type -eq startup).Count -eq 1 -and @($Records|Where-Object type -eq shutdown).Count -eq 1) 'startup/shutdown lifecycle'
     $startup=$Records[0];$shutdown=$Records[-1]
+    if('postverify_contract' -in $startup.PSObject.Properties.Name){Assert-C4B ($startup.postverify_contract -ceq 'placement_v1') 'unknown postverify contract'}
     Assert-C4B ($startup.evidence_kind -ceq 'human_interactive' -or ($AllowSynthetic -and $startup.evidence_kind -ceq 'synthetic_fixture')) 'synthetic/unknown data cannot be human evidence'
     Assert-C4B ($startup.implementation_sha -cmatch '^[0-9a-f]{40}$' -and $startup.owner_sta -gt 0 -and $startup.qpc_frequency -gt 0 -and $startup.member_count -eq 3) 'build/owner/QPC contract'
     Assert-C4B ($startup.attraction -eq 10 -and $startup.release -eq 16 -and $startup.speed_limit -eq 2000 -and -not $startup.screen_magnet -and $startup.window_magnet -and $startup.live_magnet -and $startup.glue_move -and -not $startup.glue_resize -and $startup.magnet_contract -ceq 'source_only_exact_v1' -and $startup.console_contract -ceq 'preserved_mode_live_owner_v1') 'live feature scope contract'
@@ -50,9 +90,10 @@ function Test-C4BRecords {
     $bindings=@($Records|Where-Object type -eq binding|Sort-Object member)
     $corrections=@($Records|Where-Object type -eq correction)
     foreach($op in $corrections){if($op.native_attempted){Assert-C4B ($op.pending_registered -and $op.preflight -and $op.native_calls -eq 1 -and $op.flags -in 20,21 -and $bindings.Count -eq 3) 'native authority/pending/single-call violation'}}
+    foreach($op in $corrections){if(('postverify_contract' -in $startup.PSObject.Properties.Name) -or ('postverify' -in $op.PSObject.Properties.Name)){Test-C4BPostverify $op $Records}}
     if($shutdown.result -ceq 'BLOCKED') {
         Assert-C4B ('reason' -in $shutdown.PSObject.Properties.Name -and -not [string]::IsNullOrWhiteSpace($shutdown.reason)) 'blocked reason missing'
-        return [pscustomobject]@{Result='BLOCKED';Reason=$shutdown.reason;Bindings=$bindings.Count;NativeCorrections=@($corrections|Where-Object native_attempted -eq $true).Count;CaptureDiagnostics=@($Records|Where-Object type -eq capture_diagnostic)}
+        return [pscustomobject]@{Result='BLOCKED';Reason=$shutdown.reason;Bindings=$bindings.Count;NativeCorrections=@($corrections|Where-Object native_attempted -eq $true).Count;CaptureDiagnostics=@($Records|Where-Object type -eq capture_diagnostic);PostverifyDiagnostics=@($corrections|Where-Object {'postverify' -in $_.PSObject.Properties.Name -and $null -ne $_.postverify}|ForEach-Object {$_.postverify});CorrectionChronology=@($corrections|Where-Object native_attempted -eq $true|ForEach-Object {Get-C4BCorrectionChronology $_ $Records})}
     }
     Assert-C4B ($shutdown.result -ceq 'PASS' -and $shutdown.user_windows_closed -eq $false) 'shutdown result/closure'
     $prompts=@($Records|Where-Object type -eq target_prompt|Sort-Object member);$confirmed=@($Records|Where-Object type -eq target_confirmed|Sort-Object member);$consent=@($Records|Where-Object type -eq live_consent)

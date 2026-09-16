@@ -89,8 +89,28 @@ void runtime(Log& log,const e::ExplorerLiveMagnetSession& live){
             <<",\"native_attempted\":"<<flag(n.native_attempted)<<",\"native_success\":"<<flag(n.native_success)<<",\"native_calls\":"<<(n.native_attempted?1:0)<<",\"flags\":"<<n.flags<<",\"error\":"<<n.error
             <<",\"exact\":"<<flag(n.exact)<<",\"actual\":"<<(n.actual?snapshots(*n.actual):"null")<<",\"before\":"<<snapshots(n.before)
             <<",\"receipt_qpc\":"<<op.trigger.callback_qpc<<",\"owner_qpc\":"<<op.owner_qpc<<",\"native_start_qpc\":"<<n.native_start_qpc<<",\"native_return_qpc\":"<<n.native_return_qpc<<",\"postverify_qpc\":"<<n.postverify_qpc
-            <<",\"reason\":"<<quote(n.reason);log.record("correction",s.str());
-        if(!n.exact&&n.reason!="raw_sample_superseded"&&n.reason!="outside_supported_work_area")log.record("capture_diagnostic",",\"capture\":"+e::detail::group_capture_json(n.capture_failure));
+            <<",\"reason\":"<<quote(n.reason)
+            <<",\"capture_failure\":"<<(n.capture_failure?e::detail::group_capture_json(*n.capture_failure):"null")
+            <<",\"postverify\":"<<(n.postverify?w::operations::magnet_postverify_json(*n.postverify):"null")
+            <<",\"postverify_failure\":"<<(n.postverify&&!n.exact?w::operations::magnet_postverify_json(*n.postverify):"null")
+            <<",\"immediate_actual_visible\":"<<(n.immediate_visible?rect(*n.immediate_visible):"null")
+            <<",\"immediate_actual_positioning\":"<<(n.immediate_positioning?rect(*n.immediate_positioning):"null")
+            <<",\"immediate_positioning_error\":"<<n.immediate_positioning_error<<",\"immediate_visible_hresult\":"<<n.immediate_visible_error
+            <<",\"immediate_capture_qpc\":"<<n.immediate_capture_qpc;
+        // Link only observed, same-source receipts in this gesture; do not
+        // reinterpret callback-time events as captured geometry or invent END.
+        const e::GroupEventReceipt *next=nullptr,*location=nullptr,*end=nullptr;
+        if(n.native_attempted)for(const auto& r:live.receipts()) {
+            if(r.member_index!=c.source||r.sequence<=op.watermark||r.callback_qpc<=n.native_return_qpc)continue;
+            if(r.kind==e::GroupEventKind::Start)break;
+            if(!next)next=&r;
+            if(!location&&r.kind==e::GroupEventKind::Location)location=&r;
+            if(r.kind==e::GroupEventKind::End){end=&r;break;}
+        }
+        const auto receipt=[](const auto* r){return r?std::to_string(r->sequence):"null";};
+        s<<",\"next_receipt_after_correction\":"<<receipt(next)<<",\"next_location_after_correction\":"<<receipt(location)
+         <<",\"end_receipt_after_correction\":"<<receipt(end);log.record("correction",s.str());
+        if(n.capture_failure)log.record("capture_diagnostic",",\"capture\":"+e::detail::group_capture_json(*n.capture_failure));
     }
     for(const auto& g:live.gestures()){
         const auto& c=g.counters;std::ostringstream s;
@@ -151,7 +171,7 @@ bool goal(Action action,const e::ExplorerLiveMagnetSession& live,std::size_t fir
 }
 int run(Log& log,std::string_view sha){
     log.record("startup",",\"evidence_kind\":\"human_interactive\",\"implementation_sha\":"+quote(sha)+",\"owner_sta\":"+std::to_string(GetCurrentThreadId())+",\"qpc_frequency\":"+std::to_string(e::glue_qpc_frequency())+
-        ",\"member_count\":3,\"attraction\":10,\"release\":16,\"speed_limit\":2000,\"screen_magnet\":false,\"window_magnet\":true,\"live_magnet\":true,\"glue_move\":true,\"glue_resize\":false,\"magnet_contract\":\"source_only_exact_v1\",\"console_contract\":\"preserved_mode_live_owner_v1\"");
+        ",\"member_count\":3,\"attraction\":10,\"release\":16,\"speed_limit\":2000,\"screen_magnet\":false,\"window_magnet\":true,\"live_magnet\":true,\"glue_move\":true,\"glue_resize\":false,\"magnet_contract\":\"source_only_exact_v1\",\"console_contract\":\"preserved_mode_live_owner_v1\",\"postverify_contract\":\"placement_v1\"");
     if(!log.healthy())return 2;
     std::unique_ptr<e::ExplorerLiveMagnetSession> live;bool flushed=false;
     const auto stop=[&](std::string_view reason){if(live&&!flushed){runtime(log,*live);flushed=true;log.record("capture_diagnostic",",\"capture\":"+e::detail::group_capture_json(live->last_capture()));}log.record("shutdown",",\"result\":\"BLOCKED\",\"reason\":"+quote(reason));return 2;};

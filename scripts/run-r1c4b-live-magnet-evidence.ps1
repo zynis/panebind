@@ -12,6 +12,11 @@ if($PSCmdlet.ParameterSetName -eq 'Validate'){
     if($result.Result -ceq 'BLOCKED'){exit 2};exit 0
 }
 if(-not $IndependentReviewPassed){throw 'STOP: independent C4B review must PASS. No harness launched.'}
+# Amendment 001 hard gate. Architecture is unresolved and no validated real
+# Explorer aggregate artifact exists. No flag or claimed PASS may bypass this.
+# Replace this fail-closed guard only with the independently recomputing,
+# SHA-bound artifact verifier after the architecture gate authorizes it.
+throw 'STOP: automated Explorer gate has not passed (architecture unresolved). No harness launched.'
 $repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 Push-Location $repo
 try {

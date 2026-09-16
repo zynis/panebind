@@ -15,8 +15,11 @@ This stacked development branch adds the bounded three-Explorer
 [C4B live Magnet harness](docs/architecture/R1C4B_LIVE_MAGNET.md): ordinary
 Move/Resize magnetic correction and existing Ctrl Glue Move, with separate
 explicit consent. C4A implementation/review is complete; its human final seal
-is deferred to C4B integrated UAT. C4B pure Core and live implementation are
-automatically tested, but human experience remains NOT RUN. C4C Glue Resize
+is deferred to C4B integrated UAT. C4B pure Core and ordinary owned integration
+are automatically tested, but the first human run failed exact placement.
+The [Fix 1 authority gate](docs/research/R1C4B_FIX1_MODAL_AUTHORITY.md) is
+UNRESOLVED; implementation is NOT READY. A real Explorer automated interaction
+gate plus independent review is required before any further human UAT. C4C Glue Resize
 and C4D relation affordance remain pending. Screen-edge live Magnet, other apps,
 mixed-DPI/monitor operation and product UI are outside this branch's scope.
 

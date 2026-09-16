@@ -1,5 +1,12 @@
 # R1-C4B live Magnet architecture
 
+2026-09-16 Fix 1 override: **UNRESOLVED / IMPLEMENTATION_READY=NO**.
+Human evidence showed native success with nonexact positioning and visible
+geometry; ordinary owned placement was not modal authority proof. See
+[authority gate](../research/R1C4B_FIX1_MODAL_AUTHORITY.md). Amendment 001 now
+requires a SHA-bound real Explorer automated gate before independent review
+and human subjective UAT. The former human handoff is suspended.
+
 Stacked branch from `0aa13cbcc61a272fdc3ab0089b39d69a66381fe7`.
 C4A implementation/review complete; human final seal DEFERRED to integrated
 C4B UAT, not FAIL. Old C4A harness/schema remains reproducible.

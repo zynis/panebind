@@ -141,16 +141,14 @@ NOT TESTED：真实 Explorer modal-loop 反馈时序、START capture 延迟、pr
 三窗口 integrated Glue 顺滑度、CPU/常驻内存目标与尾延迟。应用 clamp 或身份变化仍会
 abort，不会反复 native 补写。真实场景若出现 storm/jitter/queue runaway 必须 STOP。
 
-## Human handoff（本轮不执行）
+## Human handoff（2026-09-16 Fix 1 / Amendment 001 暂停）
 
-独立 review PASS 且 worktree clean、Debug build identity 匹配最终 HEAD 后，由用户运行：
+上文是 `f53de795` 之前的历史交接，不代表当前 readiness。
+首次真人日志已失败；见 [Fix 1 取证报告](R1C4B_FIX1_FORENSICS.md)。
+当前 `CURRENT_LIVE_MAGNET_NATIVE_ARCHITECTURE=UNRESOLVED`，不得再次请求真人重测。
+今后必须先通过同 SHA 的真实 Explorer 自动交互门禁，再通过独立 review。
+runner 当前硬阻止启动；自动门禁实现尚未获 architecture gate 放行。
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\scripts\run-r1c4b-live-magnet-evidence.ps1 `
-  -IndependentReviewPassed
-```
-
-R1C4B_HUMAN_UAT=REQUIRED / NOT_RUN。
+R1C4B_HUMAN_UAT=NOT_READY。
 R1C4A_HUMAN_FINAL_SEAL=PENDING_INTEGRATED_UAT。
 C4C / C4D NOT_STARTED；PR / merge / tag / release NO。全部原 UAT 文件保留本地，不提交。

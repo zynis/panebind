@@ -5675,6 +5675,15 @@ detail::MagnetNativeReceipt detail::ExplorerGroupBridge::apply_magnet(const Expl
     result.native_success=SetWindowPos(binding.window,nullptr,static_cast<int>(p.left()),static_cast<int>(p.top()),
         static_cast<int>(p.width()),static_cast<int>(p.height()),result.flags)!=FALSE;
     result.error=result.native_success?0:GetLastError();result.native_return_qpc=glue_qpc_now();
+    // Diagnostic-only T1, before the full capability/COM capture. Sequential,
+    // not an atomic geometry snapshot and not an acceptance relaxation.
+    RECT immediate_p{},immediate_v{};
+    SetLastError(ERROR_SUCCESS);
+    if(GetWindowRect(binding.window,&immediate_p))result.immediate_positioning=core::geometry::Rect{immediate_p.left,immediate_p.top,immediate_p.right,immediate_p.bottom};
+    else result.immediate_positioning_error=GetLastError();
+    result.immediate_visible_error=DwmGetWindowAttribute(binding.window,DWMWA_EXTENDED_FRAME_BOUNDS,&immediate_v,sizeof(immediate_v));
+    if(SUCCEEDED(result.immediate_visible_error))result.immediate_visible=core::geometry::Rect{immediate_v.left,immediate_v.top,immediate_v.right,immediate_v.bottom};
+    result.immediate_capture_qpc=glue_qpc_now();
     const auto actual=capture(seal,sessions);result.postverify_qpc=glue_qpc_now();
     if(actual)result.actual=*actual;else result.capture_failure=actual;
     bool exact=result.native_success&&actual;
@@ -5683,7 +5692,23 @@ detail::MagnetNativeReceipt detail::ExplorerGroupBridge::apply_magnet(const Expl
         exact=exact&&(*actual)[i].visible_rect==(i==command.source?target:result.before[i].visible_rect)&&
             (*actual)[i].positioning_rect==(i==command.source?p:result.before[i].positioning_rect);
     }
-    result.exact=exact&&receipts_healthy(seal,sessions);
+    const bool receipt_health=receipts_healthy(seal,sessions);
+    result.exact=exact&&receipt_health;
+    operations::MagnetPostverifyDiagnostic diagnostic;
+    diagnostic.capture_succeeded=static_cast<bool>(actual);diagnostic.native_success=result.native_success;
+    diagnostic.win32_error=result.error;diagnostic.source_member=command.source;
+    diagnostic.requested_visible=target;diagnostic.requested_positioning=p;
+    diagnostic.receipt_health=receipt_health;
+    if(actual) {
+        diagnostic.actual_visible=(*actual)[command.source].visible_rect;
+        diagnostic.actual_positioning=(*actual)[command.source].positioning_rect;
+        diagnostic.source_context_exact=group_same_context((*actual)[command.source],before);
+        diagnostic.other_members_exact=true;
+        for(std::size_t i=0;i<3;++i)if(i!=command.source)diagnostic.other_members_exact=
+            diagnostic.other_members_exact&&group_same_context((*actual)[i],result.before[i])&&
+            (*actual)[i].visible_rect==result.before[i].visible_rect&&(*actual)[i].positioning_rect==result.before[i].positioning_rect;
+    }
+    diagnostic.classify();result.postverify=diagnostic;
     result.reason=result.exact?"exact":"magnet_postverify_failed";
     return result;
 }

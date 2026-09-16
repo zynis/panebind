@@ -4,6 +4,7 @@
 #include "core/behavior/magnet_gesture.h"
 #include "platform/windows/explorer/explorer_group_batch.h"
 #include "platform/windows/explorer/explorer_virtual_desktop_manager.h"
+#include "platform/windows/operations/magnet_postverify_diagnostic.h"
 #include <array>
 #include <algorithm>
 
@@ -55,7 +56,12 @@ struct MagnetNativeReceipt final {
     GroupSnapshots before;
     std::optional<GroupSnapshots> actual;
     std::optional<core::geometry::Rect> target_positioning;
-    GroupCaptureResult capture_failure;
+    std::optional<GroupCaptureResult> capture_failure;
+    std::optional<operations::MagnetPostverifyDiagnostic> postverify;
+    std::optional<core::geometry::Rect> immediate_visible,immediate_positioning;
+    DWORD immediate_positioning_error{};
+    HRESULT immediate_visible_error{E_PENDING};
+    std::int64_t immediate_capture_qpc{};
     bool all_preflight{},pending_registered{},native_attempted{},native_success{},exact{};
     DWORD flags{},error{};
     std::int64_t native_start_qpc{},native_return_qpc{},postverify_qpc{};
