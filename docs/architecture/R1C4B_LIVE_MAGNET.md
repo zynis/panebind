@@ -130,3 +130,27 @@ queues, authority bypass or Ctrl Resize writes. No fabricated performance SLA.
 C4B live experience and both human seals remain PENDING/NOT_RUN at handoff.
 Screen live Magnet OFF; other apps, mixed monitor/DPI, elevated, C4C, C4D,
 Smart Docking, AquaStretch, z-order grouping and product UI remain out of scope.
+
+## Implemented safety details
+
+An END exact snapshot is reconciliation, **not** a self-LOCATION ACK. The Core
+feedback entry requires LOCATION explicitly. Equal/unordered provider ticks
+cannot ACK; known corrected geometry is never recycled as raw solver input.
+An identical raw rectangle reasserted after a correction aborts rather than
+producing a recursive operation storm. Real Explorer modal-loop behavior and
+the practical frequency of that conservative abort still need human UAT.
+
+A proposal superseded by a newer source snapshot before native entry is
+discarded without pending registration or a write. Only a new native receipt
+can retry it, with a new operation generation; there is no internal retry loop.
+Requested visible bounds outside the original supported work area are also
+not applied. The harness tells users to manually reduce window sizes and leave
+movement room, without prescribing equal dimensions or a fixed layout.
+
+Console confirmation performs one final drain of already-delivered receipts;
+it does not synthesize gestures. Q/Escape cancellation does not trigger that
+extra drain. The C4B test stream is explicitly synthetic_fixture and cannot be
+accepted by the ordinary human evidence path. The real harness uses
+human_interactive, an embedded Git SHA and a Debug identity query; the runner
+checks HEAD, clean worktree and binary hashes before/after. Neither successful
+technical evidence nor fixed-choice subjective data automatically seals UAT.

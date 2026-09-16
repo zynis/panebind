@@ -56,3 +56,14 @@ probe implementation. Before admitting the live Explorer write path, the probe
 must pass X/Y/XY Move, four edges/four corners, exact visible/positioning,
 clamp rejection and native flags without controlling any third-party window.
 Real Explorer behavior remains NOT TESTED until independent review and human UAT.
+
+## Controlled observation result
+
+The owned native probe passed all eleven ordinary Move/Resize variants with
+exact visible and positioning rectangles. A deliberately clamped request
+returned native success but failed exact geometry as intended; no retry was
+made. Two additional cases compose the pure solver and actual owned-source
+SetWindowPos with synthetic frozen target geometry: +7 gap and -4 shallow
+overlap both reach exact alignment in one call. They are not observations of
+Explorer or a second real target window. Debug and Release validation is
+recorded in the execution report. Native-integration prerequisite: PASS.

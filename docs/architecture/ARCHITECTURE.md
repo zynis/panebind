@@ -1,5 +1,13 @@
 # PaneBind Architecture Baseline
 
+## R1-C4B stacked live Magnet development
+
+[Live Magnet](R1C4B_LIVE_MAGNET.md) extends only the newly consented three-frame
+C4B harness with source-only bounded Move/Resize corrections, gesture-local
+hysteresis and existing Ctrl Glue Move. It does not change old C4A's consent or
+pre-accept no-write contract. C4A human seal is deferred to integrated C4B UAT,
+not failed. C4B human UAT remains REQUIRED / NOT RUN; C4C and C4D are not started.
+
 ## R1-C4 architecture correction — 2026-09-15
 
 [Magnet / Geometry / Relation / Glue](R1C4_MAGNET_RELATION_GLUE.md) are separate.
