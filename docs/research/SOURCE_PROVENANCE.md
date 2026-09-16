@@ -1,5 +1,24 @@
 # Source Provenance Register
 
+## R1-C4B Fix 2 self-driving test — 2026-09-16
+
+AltSnap, https://github.com/RamonUnch/AltSnap, mature GPL-3.0-or-later,
+REFERENCE ONLY, pin 5c86416ad21e4b72844a998a746bd3bb0bee5f5d: License.txt,
+hooks.c LetWindowKickBack / MoveResizeWindowNow_, history
+df25d36c6369bb13aa02ec83974e625fc7922c35 / PR 739. Lesson: synthesized
+notifications and actual modal interaction are not interchangeable.
+PowerToys/FancyZones, https://github.com/microsoft/PowerToys, mature MIT,
+REFERENCE ONLY, pin 19c4d805321db86f3634e6968e14dbf25cbba14a: LICENSE,
+WindowMouseSnap.cpp, PR 48569 / dd26d86580168d2e368701f7b0c4d629dc9cd9ac.
+Lesson: lifecycle/abort must be explicit; prior art is not owned/Explorer proof.
+No code copied, translated or adapted; no new code attribution obligation.
+Microsoft Learn live documents read this date (site terms, no pinned revision):
+SendInput, MOUSEINPUT, OpenInputDesktop, WTSINFOEX_LEVEL1_W, WM_NCHITTEST,
+SetForegroundWindow, ShowWindow, SetWaitableTimer. Applicable subsystem:
+test-only input, desktop/foreground safety and evidence; no product reuse.
+Exact links and independent test contract:
+[Fix 2 research](R1C4B_FIX2_SELF_DRIVING_PROBE.md).
+
 ## R1-C4B Fix 1 modal authority — 2026-09-16
 
 See [modal authority research](R1C4B_FIX1_MODAL_AUTHORITY.md). AltSnap,

@@ -7,6 +7,12 @@ geometry; ordinary owned placement was not modal authority proof. See
 requires a SHA-bound real Explorer automated gate before independent review
 and human subjective UAT. The former human handoff is suspended.
 
+Fix 2 adds a self-driving owned test EXE, independent of computer-use. Its
+Debug/Release runs were blocked **before input** by actual foreground denial;
+authority remains UNKNOWN, not REJECTED or VALID. See
+[Fix 2 report](../reports/R1C4B_FIX2_SELF_DRIVING_REPORT.md). Product code and the
+hard human-UAT block remain unchanged; Explorer bootstrap is not authorized yet.
+
 Stacked branch from `0aa13cbcc61a272fdc3ab0089b39d69a66381fe7`.
 C4A implementation/review complete; human final seal DEFERRED to integrated
 C4B UAT, not FAIL. Old C4A harness/schema remains reproducible.
