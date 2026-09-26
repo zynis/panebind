@@ -1094,3 +1094,63 @@ independent owner-STA design/test plan are in
 
 Scope: read-only VDM service lifetime and evidence. No Git API payload was used
 to reconstruct local Git objects/refs, and no third-party window was controlled.
+
+## R1-C4B Architecture Pivot 1 Fix C — 2026-09-27
+
+Starting HEAD: `10d429706b8afb3be11f308370af89964a5a054a`.
+Applicable subsystem: test-only structured handoff diagnostics, matched
+out-of-context MOVESIZE START/END witness, hook lifetime, owned input cleanup.
+See [Fix C END diagnostics research](R1C4B_PIVOT1_FIXC_END_DIAGNOSTICS.md).
+Old Fix A/B records and evidence are unchanged; the accepted Fix B observed
+Move PASS is not downgraded by Resize's pre-write compound blocker.
+
+AltSnap, mature upstream; existing pinned local checkout HEAD
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`, clean at read time; GPL-3.0-or-later,
+REFERENCE ONLY. This round actually re-read `hooks.c` license header and
+`License.txt` opening, `NotifySizeMoveStaEnd`, the conditional `EVENT_HOOK`
+`HandleWinEvent` / `PinWindowProc`, pin teardown and movement-end notifications.
+The pin hook is an experimental conditional path, not a claim of production
+reliability. Actually read [issue 572](https://github.com/RamonUnch/AltSnap/issues/572)
+and local `altsnap.c` history diff at
+[8a5c422928d37d34e63cb8b99d4a74e14cb955f0](https://github.com/RamonUnch/AltSnap/commit/8a5c422928d37d34e63cb8b99d4a74e14cb955f0)
+(do not free hooks DLL when disabling). Source:
+[pinned repository](https://github.com/RamonUnch/AltSnap/tree/5c86416ad21e4b72844a998a746bd3bb0bee5f5d).
+Lessons: callback code/resource ownership and synthetic lifecycle compatibility
+require care; upstream synthetic WM/NotifyWinEvent is not true PaneBind OS END.
+No GPL code, timer/thunk architecture or control flow copied/adapted/translated.
+
+PowerToys/FancyZones, mature production reference; existing pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a`, MIT, REFERENCE ONLY. This round
+actually read pinned
+[LICENSE](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/LICENSE)
+and [WindowMouseSnap.cpp](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowMouseSnap.cpp)
+in full, [PR 48569](https://github.com/microsoft/PowerToys/pull/48569) body and
+[dd26d86580168d2e368701f7b0c4d629dc9cd9ac](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac)
+rendered merge diff for destroy-event routing, drag Abort/reset and cleanup.
+No claim of re-reading all FancyZonesApp/FancyZones implementation files in
+this round. Lessons: normal END versus abort/resource cleanup must remain
+distinct; upstream manual reports/tests are not PaneBind evidence. No source
+copied/adapted/translated. Required attribution for both upstream projects:
+retain research citations; no new code attribution obligation.
+
+Microsoft Learn primary live pages actually read in Fix C; no immutable
+document revision asserted, Microsoft site terms, links/paraphrases only:
+
+- [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
+- [Event Constants](https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants)
+- [WinEventProc](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wineventproc)
+- [UnhookWinEvent](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-unhookwinevent)
+- [Out-of-Context Hook Functions](https://learn.microsoft.com/en-us/windows/win32/winauto/out-of-context-hook-functions)
+- [Guarding Against Reentrancy](https://learn.microsoft.com/en-us/windows/win32/winauto/guarding-against-reentrancy-in-hook-functions)
+- [GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)
+- [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+
+Lessons: asynchronous END receipt is not internal OS END time or a DWM
+synchronous guarantee; callback only envelopes and must avoid reentrancy;
+installer thread pumps and unhooks; both real native END and exact matched
+WinEvent END precede a fresh preflight/first write. High-bit key state alone
+does not confer desktop/input authority, SendInput is not HWND-addressed or a
+WM_INPUT delivery guarantee, and safe cleanup UP never substitutes acceptance.
+Research PASS is limited to the instrumented owned-test design/synthetic gate;
+new empirical END/Resize/repetition/product/Explorer behavior remains NOT TESTED.
+No new project, external code reuse, GUI execution or old-evidence rewriting.
