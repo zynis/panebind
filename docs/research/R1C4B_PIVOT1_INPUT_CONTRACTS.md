@@ -11,6 +11,75 @@
 收到 raw packet、owned 自动测试或 upstream 行为各自不能独立证明整个
 候选架构有效。不得改变 Fix 3 probe 的基准行为。
 
+## Fix A 当前覆盖合约：撤销 false local-activation gate
+
+2026-09-26；Fix A starting HEAD：
+`94242959568b28d782d1a89a6f78c95c2dd8b098`。用户 Fix A brief 明确覆盖
+旧 probe 的 local-clear 和 fresh activation/focus callback 前提。
+删除或停止调用 `prepare_local_activation()` 已授权；不再调用
+`SetActiveWindow(NULL)`，不把 `SetFocus(NULL)`、local active/focus 为 NULL、
+本 epoch 新的 `WM_ACTIVATE/WM_SETFOCUS` 作为任何接管实验的前置 gate。
+以下三次旧日志及旧设计记录只保留历史；不能据本节改判或追认旧 run。
+
+Fix A 重新实际阅读的 primary contracts：
+
+| 官方资料 | 当前准确结论 |
+| --- | --- |
+| [GetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getactivewindow) | Calling-thread message queue 的 local active fact，不是 foreground authority。 |
+| [GetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getforegroundwindow) | 返回用户当前工作的 foreground HWND；activation 变化时可能为 NULL。Probe 以 fresh exact source HWND、PID/TID 检查建立 global fact，NULL 不通过。 |
+| [SetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setactivewindow) | 用于激活 calling queue 中的指定 top-level HWND；`SetActiveWindow(NULL) = NOT A DOCUMENTED CLEAR-ACTIVE CONTRACT`。不应从参数不属于 calling thread 的一般文字推导 NULL 是可靠 clear 操作。 |
+| [SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus) | NULL 合法，清 keyboard focus、使 keystrokes ignored；这种操作与 `RIDEV_INPUTSINK` background eligibility 无关，Fix A 不用它作 prerequisite。 |
+| [GetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getfocus) | Calling-queue keyboard focus fact；另一个队列可能仍有 focus。仅记录 bounded diagnostic，不能 gate Raw Input background。 |
+| [RegisterRawInputDevices](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerrawinputdevices) | 需先成功注册，process/device class 的最后一个 exact target 生效；不要求另一个 source thread 清 local active/focus。 |
+| [RAWINPUTDEVICE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputdevice) | `RIDEV_INPUTSINK` 允许 caller 不在 foreground 时接收，要求非空 exact `hwndTarget`。本轮独立 receiver mouse TLC `0x01/0x02`、flags `256`，无 NOLEGACY/CAPTUREMOUSE。 |
+| [Raw Input Overview](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input) | 注册后实际 `WM_INPUT` 是事件来源；foreground/background delivery 与另一个 source queue 的 local focus 值没有上述 NULL 先决条件。 |
+
+Source thread 的字段名为 `source_thread_local_active` 和
+`source_thread_local_focus`；在真正 owner UI thread 或 exact source TID
+查询后保存，valid HWND/NULL 均只是 diagnostic。其非 NULL 不阻止
+bootstrap、raw preflight 或改变 verdict；不让 driver 的空 queue 查询
+冒充 source-thread fact。
+
+当前 probe bootstrap 验收只要求普通 SetForegroundWindow 之后的 fresh
+exact source global foreground、identity、desktop/session、visible、无
+foreign capture/menu/MoveSize 和正确键钮状态。若普通调用失败，允许已
+授权的 strict verified click：move/down/up 成功、exact source 实际收到
+intended click DOWN/UP、最终 global foreground 为 source、temporary
+topmost 恢复、fresh identity/input fences 通过。Activation/focus callbacks
+保留诊断，出现或缺失都不代替这些实际 checks，也不额外否决它们。
+不引入 AttachThreadInput、Alt trick、foreground-lock 修改或新 local-clear
+API 手段；Fix 3 的旧实现/fixtures 保持其原有证据意义。
+
+Raw background proof 来自 exact registered receiver 和实际 packet：
+`GetForegroundWindow() == exact source HWND`、foreground PID 为 source PID、
+receiver PID 与两者均不同，mouse-only message HWND 注册正确，实际 input
+code 为 `RIM_INPUTSINK`。完整 preflight PASS 还需真实 movement 和 raw
+LEFT_BUTTON_UP、receiver sequence/order、actual submitted normalized INPUT/
+tag/QPC/watermark 关联、最后 fresh cursor/button fence。不能仅凭注册、
+一条 packet 或 local diagnostic 通过；不得恢复 same-callback cursor
+必须等于 submitted point 的错误假设。
+
+`OFFICIAL_CONTRACT_REVIEW = PASS` 和沿用的
+`PRIOR_ART_SOURCE_LICENSE_HISTORY = PASS` 只授权独立 test-owned probe
+取得事实。沿用 [Pivot 1 prior art](R1C4B_PIVOT1_PRIOR_ART.md) 中 AltSnap
+GPL reference-only pin、FancyZones MIT reference-only pin 及已读 history，
+没有新增上游源码 inspection 声称，没有复制、翻译、改写或适配 GPL/MIT
+实现。该 gate 不预填 native cancel、free takeover 或产品 PASS。
+
+Fix A 顺序仍是 raw preflight → 真实 owned Move/Bottom Resize → 各一次
+WM_CANCELMODE → 完整 cancellation 证据。一个可靠完整 counterexample
+可以在 cancel stage 拒绝并 STOP；孤立 timeout 或 missing witness 不能
+冒充完整反例。只有两个 cancel 都通过并完成 Debug/Release 各 20/20，
+才进入 owned free takeover，随后各配置 Move/Resize 20/20。Writer 始终
+晚于真实 EXIT，由实际 WM_INPUT 唤醒 bounded owner quantum、event-triggered
+GetCursorPos、冻结 anchor、最多一次 SetWindowPos 和 exact postverify。
+Background PASS 不证明 cursor-derived writer，Magnet/Explorer 仍受后续
+阶段边界约束。
+
+`WH_MOUSE_LL_FALLBACK = TECHNICALLY_POSSIBLE` 沿用已有官方研究，仅候选、
+本轮不实现。`PRODUCT_RAW_INPUT = NOT_IMPLEMENTED`、product SendInput/hook/
+DLL injection/polling 均不由本研究引入；Human UAT 继续 NOT_READY。
+
 ## 已实际阅读的强制 Raw Input 官方资料
 
 | 官方资料 | 合约及本轮约束 |
@@ -249,36 +318,24 @@ readback，不能将“local 状态未变所以没有新 callback”写成已经
 | 官方资料 | 与本次 bootstrap 相关的边界 |
 | --- | --- |
 | [ShowWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow) | `SW_SHOW` 会显示并激活；`SW_SHOWNOACTIVATE` 显示但不激活。首次调用可能受 STARTUPINFO 影响，需观察 startup facts、actual visibility/local 状态；BOOL 表示此前是否 visible，不是操作成功判据。 |
-| [SetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setactivewindow) | 目标应属于 calling queue；后台调用不把应用带到 global foreground。Return 是 prior active HWND，不能替代 actual 状态读取。页面未单独承诺 NULL 参数成功清空的细节，因此拟议 NULL 调用必须逐项 readback，失败不能继续。 |
+| [SetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setactivewindow) | 目标应属于 calling queue；后台调用不把应用带到 global foreground。NULL 不是 documented clear-active contract；Fix A 已撤销该 clear 前提及调用，旧 readback 仅说明第三次历史 run 的结果。 |
 | [GetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getactivewindow) | 返回 calling thread queue 的 active window，不能当作 global foreground；查询别的线程用 GetGUIThreadInfo。 |
 | [SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus) | 作用于 calling queue；NULL 明确允许，意味着 keystrokes 被忽略。API 会发送正常 KILLFOCUS/SETFOCUS，设置非空 focus 还可激活 receiving window；本次只考虑清除 owned local focus，不设置 source focus。 |
 | [GetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getfocus) | 返回 calling queue 的 focus；NULL 不代表其他队列无 focus。跨线程查 GetGUIThreadInfo，不能在 driver 新 queue 的空值上构造 source proof。 |
 
 [SetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow)
 仍是普通第一选择；调用可能被拒绝，即使部分允许条件满足。清 owned
-local 状态不能创建 foreground entitlement，真实 test-only 点击也必须
-继续通过既有安全 fence 和新的真实 callback 证据。
+local 状态不能创建 foreground entitlement。Fix A 的真实 test-only
+点击继续通过既有安全 fence、intended DOWN/UP 和 final exact global
+foreground；fresh activation/focus callbacks 已降为 optional diagnostic。
 
-第二次执行后审查并供第三次执行采用的有限 probe 设计：source setup 采用
-`SW_SHOWNOACTIVATE` 并记录 visibility、global foreground、owner queue
-active/focus；先调用普通 SetForegroundWindow。只有它失败且 global
-foreground 仍属于外部时，才考虑一次 owned local-state 清理。在 exact
-owner UI thread 中读取 local active/focus，两者各自必须为 NULL 或本次
-明确 source/guard HWND；对非空值验证 exact PID/TID。未知 local handle
-立即停止。清理前无 mouse capture/menu/native gesture，desktop/session
-和键钮 fence 完整；`SetFocus(NULL)`、`SetActiveWindow(NULL)` 之间及之后
-都验证同一外部 global foreground 未改变、owned identity 未变，最后
-local active/focus 均为 NULL。记录 API return/error、readback、QPC 与
-caller TID，不依据 ambiguous NULL return 直接通过。
-
-随后只执行一次原有真实 activation click：重新 arm epoch 1，保留
-exact point/HTCLIENT/temporary-topmost、foreign-GUI、cursor 与键钮检查，
-并等待真实 epoch 1 activation/focus callbacks 与 final global source
-foreground。清 local 状态生成的自然 deactivate/KILLFOCUS 不是点击
-通过证据。不得发送伪造 activation/focus 消息、SetFocus(source)、
-SetActiveWindow(source) 强行制造 proof、AttachThreadInput、清任何外部
-queue 状态，或修改现有 Fix 3 bootstrap。任一步不成立就停止并保留
-BLOCKED；成功 bootstrap 也不会提前通过 cancel/takeover gate。
+第二次之后、第三次之前曾设计并执行一次 owned local-clear，以及
+fresh epoch 1 callback gate。**该设计已被 Fix A 撤销**：它既不是
+RIDEV_INPUTSINK 官方资格，也不是 global foreground 的必要证据。
+当时的 HWND/PID/TID、desktop、键钮、无 capture/menu/MoveSize、global
+snapshot 和 readback 记录仍说明第三次 run 的安全边界；这些 checks
+不能使错误 prerequisite 获得依据。不要将历史 local-clear 设计保留成
+未来实现要求，不再寻找 API 来清 active。
 
 ## 第三次本地自动观察：NULL active 清理未通过 readback
 
@@ -310,13 +367,14 @@ native ENTER/MOVING/SIZING、WM_CANCELMODE 或 takeover write。Saved
 cursor 没有被移动，不需要还原；`cursor_restored=false` 保持原记录。
 不得把本次 blocked 解释为 CancelNativeLoopAndTakeOverInput 已被否决。
 
-本轮停止进一步 bootstrap 改造与 GUI 试验；不引入新 focus/activation
-手段或移除真实证据要求。未来若恢复该架构研究，须先重新决定 owned
-bootstrap 的实际证据合约，并依据已观察的 local/global 区分建立可验证
-前提；这属于后续决定，不在本文件设计新代码或提前授权。
-首次日志只有一个真实 background mouse packet；完整 movement/UP
+原 Pivot 1 在该处停止；Fix A 现在明确授权删除无依据的 local-clear /
+fresh-callback 前提并按本文件开头的 global foreground 合约继续 probe。
+原三个日志仍保持 BLOCKED，不能重新验收为 Fix A PASS。原 Pivot 1
+首次日志只有一个真实 background mouse packet；其完整 movement/UP
 continuity、sample 3 cancel observation wakeup、真正 cancel stability、
 free takeover、Magnet 及 Explorer 全部 `NOT TESTED / NOT_RUN`。
+
+以下为原 Pivot 1 结束时的历史状态，不预填新的 Fix A 运行结果：
 
 ```text
 OWNED_NATIVE_CANCEL_MOVE = UNKNOWN

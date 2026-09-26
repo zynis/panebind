@@ -31,6 +31,12 @@ by an unexecuted cancellation test. Human UAT remains NOT READY. C4C Glue Resize
 and C4D relation affordance remain pending. Screen-edge live Magnet, other apps,
 mixed-DPI/monitor operation and product UI are outside this branch's scope.
 
+[Pivot 1 Fix A](docs/reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md) removes the
+unsupported local-active/focus and fresh-callback prerequisites. Its 142
+synthetic checks pass; the first new owned observation stopped at a locked
+session's desktop safety gate, before window creation or input. Cancellation
+and takeover remain untested, not rejected by that environment blocker.
+
 ## Build
 
 Requirements:

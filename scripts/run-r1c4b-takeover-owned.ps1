@@ -31,17 +31,19 @@ try{
     catch{$result=[pscustomobject]@{Result='INVALID_EVIDENCE';Reasons=@($_.Exception.Message)}}
     $after=git rev-parse HEAD
     $afterHash=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+    $contractVerified=(Get-AutoField $result 'ForegroundContract') -ceq 'verified_global_foreground_v2'
     $metadata=[ordered]@{
         Schema='r1c4b-takeover-owned-run/v1';Stage='cancel_only';Configuration=$Configuration
         ExecutedHEAD=$sha;WorktreeDirty=$dirty;AfterHEAD=$after
         BinarySHA256=$hash;AfterBinarySHA256=$afterHash
         LogSHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
         ProbeExitCode=$code;Result=$result
+        CurrentForegroundContractVerified=$contractVerified
         ImplementationUnchanged=($sha -ceq $after -and $hash -ceq $afterHash)
     }
     $metadata|ConvertTo-Json -Depth 12|Set-Content -LiteralPath ($prefix+'.metadata.json') -Encoding UTF8
     $metadata|ConvertTo-Json -Depth 12|Write-Host
-    if(-not $metadata.ImplementationUnchanged -or $result.Result -ceq 'INVALID_EVIDENCE'){exit 1}
+    if(-not $metadata.ImplementationUnchanged -or -not $contractVerified -or $result.Result -ceq 'INVALID_EVIDENCE'){exit 1}
     # One observation is never relabeled as the 20/20 free takeover gate.
     if($code -ne 0 -or $result.Result -cne 'CAPTURED'){exit 2}
 }finally{Pop-Location}

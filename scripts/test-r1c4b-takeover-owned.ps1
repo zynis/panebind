@@ -403,4 +403,115 @@ $changed.positioning=@(($baseline.positioning[0]+1),$baseline.positioning[1],($b
 $result=Test-TakeoverOwnedRecords $bad -AllowSynthetic
 Check-Takeover ($result.CancelMove -ceq 'FAIL' -and $result.Architecture -ceq 'REJECTED_AT_CANCEL_STAGE') 'actual new-stimulus positioning change before confirmation rejects cancellation'
 
+function Convert-TakeoverFixtureToGlobalV2($Rows){
+    $rows=Copy-TakeoverFacts $Rows
+    $rows[0].foreground_contract='verified_global_foreground_v2'
+    $rows[0].PSObject.Properties.Remove('local_activation_policy')
+    $rows=@($rows|Where-Object {$_.type -cne 'local_activation_preparation' -and $_.type -cne 'activation_event'})
+    $attempt=$rows|Where-Object type -eq foreground_attempt
+    # Non-null local queue state is deliberately not an authority condition.
+    $attempt|Add-Member -NotePropertyName source_thread_local_active -NotePropertyValue 300 -Force
+    $attempt|Add-Member -NotePropertyName source_thread_local_focus -NotePropertyValue 301 -Force
+    $boot=$rows|Where-Object type -eq foreground_bootstrap
+    $boot.wm_activate_seen=$false;$boot.wm_setfocus_seen=$false;$boot.activation_event_seen=$false
+    $ready=[pscustomobject]@{schema='r1c4b-takeover-owned/v1';sequence=0;gesture=0;qpc=$boot.qpc-1;type='foreground_ready';target=300;source_pid=100;source_tid=101;own_identity=$true;desktop_ready=$true;visible=$true;foreground=300;foreground_pid=100;foreground_tid=101;foreground_snapshot_stable=$true;gui_query_succeeded=$true;gui_flags=0;capture_hwnd=0;menu_owner_hwnd=0;move_size_hwnd=0;buttons_modifiers_clear=$true;topmost_now=$false;source_thread_local_active=300;source_thread_local_focus=301;success=$true}
+    $complete=@($rows|Where-Object type -eq raw_preflight_complete);$preOutcome=$null
+    if($complete.Count){
+        $preUp=$rows|Where-Object {$_.type -eq 'input' -and $_.gesture -eq 0 -and $_.flags -eq 4}
+        $preOutcome=[pscustomobject]@{schema='r1c4b-takeover-owned/v1';sequence=0;gesture=0;qpc=$complete[0].qpc-1;type='raw_preflight_outcome';attempted=$true;actual_move_verified=$true;actual_held_move_verified=$true;actual_up_verified=$true;input_delivery_verified=$true;observation_completed=$true;receiver_healthy=$true;up_wait_result=0;up_wait_started_qpc=$preUp.injection_return_qpc;up_wait_finished_qpc=$preUp.injection_return_qpc+1;up_timeout_ms=2000;raw_up_observed=$true}
+    }
+    foreach($wait in @($rows|Where-Object type -eq cancel_exit_wait)){
+        $path=$rows|Where-Object {$_.type -eq 'path' -and $_.gesture -eq $wait.gesture}
+        $third=@(($path.start[0]+($path.end[0]-$path.start[0])*3/20),($path.start[1]+($path.end[1]-$path.start[1])*3/20))
+        foreach($name in @('desktop_ready','visible','buttons_modifiers_clear','cursor_success','cursor_matches_expected','receiver_healthy')){$wait|Add-Member -NotePropertyName $name -NotePropertyValue $true -Force}
+        $wait|Add-Member -NotePropertyName menu_owner_hwnd -NotePropertyValue 0 -Force
+        $wait|Add-Member -NotePropertyName cursor -NotePropertyValue $third -Force
+        $wait|Add-Member -NotePropertyName expected_cursor -NotePropertyValue $third -Force
+    }
+    $combined=[Collections.Generic.List[object]]::new()
+    foreach($row in $rows){if($row.type -eq 'foreground_bootstrap'){$combined.Add($ready)};if($row.type -eq 'raw_preflight_complete'){$combined.Add($preOutcome)};$combined.Add($row)}
+    return ,(Renumber-TakeoverFixture @($combined.ToArray()))
+}
+$v2Direct=Convert-TakeoverFixtureToGlobalV2 (New-TakeoverFixture -Absolute -LaggedSnapshot -Pending)
+$result=Test-TakeoverOwnedRecords $v2Direct -AllowSynthetic
+Check-Takeover ($result.RawBackground -ceq 'PASS' -and $result.CancelMove -ceq 'PASS' -and $result.CancelResize -ceq 'PASS' -and $result.Architecture -ceq 'UNRESOLVED') 'v2 local active/focus non-null plus background INPUTSINK is PASS, not takeover acceptance'
+$v2Incomplete=Convert-TakeoverFixtureToGlobalV2 (New-TakeoverFixture -RawBlocked -Absolute)
+$result=Test-TakeoverOwnedRecords $v2Incomplete -AllowSynthetic
+Check-Takeover ($result.Result -ceq 'BLOCKED' -and $result.RawBackground -ceq 'BLOCKED' -and $result.CancelMove -ceq 'UNKNOWN' -and $result.Architecture -ceq 'UNRESOLVED') 'v2 early raw observation block before a complete four-stimulus preflight is not Raw FAIL or cancel evidence'
+$v2Click=Convert-TakeoverFixtureToGlobalV2 (New-TakeoverLocalResetFixture)
+$result=Test-TakeoverOwnedRecords $v2Click -AllowSynthetic
+Check-Takeover ($result.RawBackground -ceq 'PASS' -and $result.CancelMove -ceq 'PASS' -and $result.Result -ceq 'CAPTURED') 'v2 exact intended down/up receipt and fresh global proof succeed without activation callbacks or local reset'
+foreach($kind in @('wrong-global','wrong-foreground-pid','wrong-foreground-tid','stale-global','foreign-capture','foreign-menu','foreign-movesize','desktop','visible','dirty-input','topmost','diagnostic-type','diagnostic-negative','missing-ready','removed-local-policy','missing-down-receipt','missing-up-receipt','failed-restore')){
+    $bad=Copy-TakeoverFacts $v2Click;$ready=$bad|Where-Object type -eq foreground_ready
+    switch($kind){
+        'wrong-global' {$ready.foreground=999}
+        'wrong-foreground-pid' {$ready.foreground_pid=200}
+        'wrong-foreground-tid' {$ready.foreground_tid=999}
+        'stale-global' {$ready.foreground_snapshot_stable=$false}
+        'foreign-capture' {$ready.capture_hwnd=999}
+        'foreign-menu' {$ready.menu_owner_hwnd=999}
+        'foreign-movesize' {$ready.move_size_hwnd=999}
+        'desktop' {$ready.desktop_ready=$false}
+        'visible' {$ready.visible=$false}
+        'dirty-input' {$ready.buttons_modifiers_clear=$false}
+        'topmost' {$ready.topmost_now=$true}
+        'diagnostic-type' {$ready.source_thread_local_focus='300'}
+        'diagnostic-negative' {$ready.source_thread_local_active=-1}
+        'missing-ready' {$bad=@($bad|Where-Object type -ne foreground_ready);$bad=Renumber-TakeoverFixture $bad}
+        'removed-local-policy' {$bad[0]|Add-Member -NotePropertyName local_activation_policy -NotePropertyValue 'own_background_reset_v1'}
+        'missing-down-receipt' {($bad|Where-Object {$_.type -eq 'activation_button' -and $_.message -eq 'WM_LBUTTONDOWN'}).message='WM_LBUTTONUP'}
+        'missing-up-receipt' {($bad|Where-Object {$_.type -eq 'activation_button' -and $_.message -eq 'WM_LBUTTONUP'}).message='WM_LBUTTONDOWN'}
+        'failed-restore' {($bad|Where-Object {$_.type -eq 'activation_visibility' -and -not $_.enabled}).success=$false}
+    }
+    $caught=$false;try{$null=Test-TakeoverOwnedRecords $bad -AllowSynthetic}catch{$caught=$true}
+    Check-Takeover $caught "v2 strict global/click guard rejects $kind"
+}
+$bad=Copy-TakeoverFacts $v2Direct
+($bad|Where-Object type -eq foreground_ready).source_thread_local_active=999
+($bad|Where-Object type -eq foreground_ready).source_thread_local_focus=0
+$result=Test-TakeoverOwnedRecords $bad -AllowSynthetic
+Check-Takeover ($result.RawBackground -ceq 'PASS') 'bounded arbitrary local diagnostic HWND/null does not confer or deny global authority'
+foreach($kind in @('receiver-equals-foreground','foreground-RIM-INPUT')){
+    $bad=Copy-TakeoverFacts $v2Direct
+    if($kind -eq 'receiver-equals-foreground'){($bad|Where-Object type -eq raw_input|Select-Object -First 1).foreground_pid=200}
+    else{($bad|Where-Object type -eq raw_input|Select-Object -First 1).input_code=0}
+    $caught=$false;try{$null=Test-TakeoverOwnedRecords $bad -AllowSynthetic}catch{$caught=$true}
+    Check-Takeover $caught "v2 no background proof $kind"
+}
+function New-TakeoverV2RawNegativeFixture([switch]$NoMovement){
+    $rows=Copy-TakeoverFacts $v2Direct;$out=$rows|Where-Object type -eq raw_preflight_outcome
+    $rows=@($rows|Where-Object {$_.sequence -le $out.sequence -or $_.type -cin @('receiver_shutdown','shutdown')})
+    if($NoMovement){$rows=@($rows|Where-Object {$_.type -cnotin @('raw_wait_begin','raw_wait_result','raw_motion_correlation') -and -not ($_.type -eq 'raw_input' -and $_.cursor_sampled)})}
+    else{
+        $rows=@($rows|Where-Object {-not ($_.type -eq 'raw_input' -and ($_.button_flags -band 2))})
+        $out.raw_up_observed=$false;$out.up_wait_result=258;$out.up_wait_finished_qpc=$out.up_wait_started_qpc+20000000
+        foreach($row in $rows){if($row.sequence -gt ($rows|Where-Object {$_.type -eq 'input' -and $_.flags -eq 4}).sequence){$row.qpc+=20000000;if($row.type -eq 'receiver_shutdown'){$row.receiver_qpc+=20000000}}}
+    }
+    $end=$rows[-1];$end.result='BLOCKED';$end.cursor_restored=$false
+    $why=[pscustomobject]@{schema='r1c4b-takeover-owned/v1';sequence=0;gesture=0;qpc=$out.qpc+1;type='blocked';reason=$(if($NoMovement){'RAW_PREFLIGHT_MISSING_MOVEMENT'}else{'RAW_PREFLIGHT_MISSING_UP'})}
+    $combined=[Collections.Generic.List[object]]::new()
+    foreach($row in $rows){$combined.Add($row);if($row.type -eq 'raw_preflight_outcome'){$combined.Add($why)}}
+    $rows=Renumber-TakeoverFixture @($combined.ToArray())
+    $serial=0
+    foreach($row in $rows){if($row.type -cin @('receiver','raw_input')){$serial=$row.receiver_sequence};if($row.type -eq 'input'){$row.receiver_watermark=$serial}}
+    return ,$rows
+}
+foreach($noMovement in @($false,$true)){
+    $negative=New-TakeoverV2RawNegativeFixture -NoMovement:$noMovement
+    $result=Test-TakeoverOwnedRecords $negative -AllowSynthetic
+    Check-Takeover ($result.Result -ceq 'FAIL' -and $result.RawBackground -ceq 'FAIL' -and $result.CancelMove -ceq 'UNKNOWN' -and $result.CancelResize -ceq 'UNKNOWN' -and $result.Architecture -ceq 'UNRESOLVED' -and $result.GeometryWrites -eq 0) 'complete observed raw stimulus missing movement/up is Raw FAIL, not empirical cancel failure'
+}
+$v2Timeout=Convert-TakeoverFixtureToGlobalV2 (New-TakeoverFixture -Absolute -LaggedSnapshot -Pending -ExitTimeout)
+$result=Test-TakeoverOwnedRecords $v2Timeout -AllowSynthetic
+Check-Takeover ($result.Result -ceq 'FAIL' -and $result.RawBackground -ceq 'PASS' -and $result.CancelMove -ceq 'FAIL' -and $result.CancelResize -ceq 'UNKNOWN' -and $result.Architecture -ceq 'REJECTED_AT_CANCEL_STAGE' -and $result.Facts[0].VerifiedCancellationDeadlineFailure) 'Fix A complete deadline with actual third MOVE/raw receipt and exact still-native source is one reliable negative'
+foreach($field in @('desktop_ready','visible','buttons_modifiers_clear','receiver_healthy','source_identity','left_down','gui_query_succeeded')){
+    $bad=Copy-TakeoverFacts $v2Timeout;($bad|Where-Object type -eq cancel_exit_wait).$field=$false
+    $result=Test-TakeoverOwnedRecords $bad -AllowSynthetic
+    Check-Takeover ($result.CancelMove -ceq 'UNKNOWN' -and $result.Architecture -ceq 'UNRESOLVED') "deadline missing context $field is not an architecture counterexample"
+}
+$bad=Copy-TakeoverFacts $v2Timeout
+$wait=$bad|Where-Object type -eq cancel_exit_wait;$wait.gui_flags=0;$wait.move_size_hwnd=0
+$result=Test-TakeoverOwnedRecords $bad -AllowSynthetic
+Check-Takeover ($result.CancelMove -ceq 'UNKNOWN' -and $result.Architecture -ceq 'UNRESOLVED') 'bare timeout without positive retained native mode remains unknown'
+
 Write-Host "takeover-owned synthetic_only=true checks=$checks PASS"

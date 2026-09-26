@@ -3,6 +3,15 @@
 2026-09-26；base 070b05a8f44c8b08503b3643f838a83703495987。
 这只是独立 research/test driver，不是 PaneBind 产品架构的实现或 READY 声明。
 
+## Fix A 当前覆盖：global foreground proof，local 状态仅诊断
+
+Fix A base `94242959568b28d782d1a89a6f78c95c2dd8b098`；新 probe 使用
+`verified_global_foreground_v2`。已删除 local-clear 函数及调用，不使用
+SetActiveWindow(NULL)/SetFocus(NULL)，不要求 local active/focus 为空或本 epoch
+新 activation/focus callbacks。旧 v1 仅作历史证据解码，不用于新实验验收。
+下面的 Raw/native/cancel 分阶段模型不变；当前结果见
+[Fix A 执行报告](../reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md)。
+
 [实际 prior art/history/license](../research/R1C4B_PIVOT1_PRIOR_ART.md) 与
 [官方合约](../research/R1C4B_PIVOT1_INPUT_CONTRACTS.md) 的有限 probe gate 已通过。
 官方缺少 SendInput→WM_INPUT 送达保证与 WM_CANCELMODE→modal EXIT 保证；
@@ -19,15 +28,13 @@ Parent 新建空白 top-level source，另建同进程 NOACTIVATE 空白 guard
 source identity/desktop/foreground/按钮/cursor/捕获每次重新验证，未知即停止。
 
 新 probe 使用 SW_SHOWNOACTIVATE 显示 source，先尝试普通 SetForegroundWindow。
-第二次开发观察已保留为 BLOCKED：global foreground 经真实点击转为 source，
-但点击 epoch 内缺少 activation/focus callback，不能用早先显示时的 callback
-补证。当前仅允许 owner UI 线程的一次 owned local-state 初始化：setter denied、
-global foreground 仍为同一外部窗口、local active/focus 只属于 exact source/guard
-且无输入/菜单/capture/MoveSize 时，清 local focus/active 到 NULL。逐项记录调用线程、
-API 诊断值、前后 local/global handles；不从 ambiguous API return 推导成功。
-global 不变及 local readback 为空才可继续原 verified activation click。
-未知 local HWND 或 partial clear 即 BLOCKED，零 click；不赋 source focus/active、
-不 AttachThreadInput、不伪造消息、不修改旧 Fix 3 helper 或 foreground policy。
+直接成功后要求 fresh exact HWND/PID/TID、global foreground、desktop/session、
+visible、空 capture/menu/MoveSize、键钮清及非 topmost。调用被拒时，只用既有
+strict verified activation click：fresh point/root/HTCLIENT/foreign-GUI/input
+fences、实际 source DOWN/UP receipts、move/down/up 成功、NOTOPMOST 恢复及
+同样 fresh global foreground proof。所有 callbacks 只作 diagnostic。
+`source_thread_local_active/focus` 从真正 owner queue 查询，非 NULL 也不阻断。
+不 AttachThreadInput、不伪造消息、不改变旧 Fix 3 helper/benchmark。
 
 同一 EXE 创建独立 hidden receiver 子进程；它没有 target HWND 或 geometry-writing
 authority，只创建 message-only window、mouse-only TLC 0x01/0x02 INPUTSINK，
@@ -67,7 +74,10 @@ wakeup，不是额外输入或重试：捕获已释放、exact foreground/identi
 无菜单或 foreign capture、命中空 source/guard 时，暂时只允许 exact source
 自己的 MoveSize 遗留状态。该 sample 后一次 bounded EXIT wait；真实 EXIT
 及 fresh GUI clear 后，第4–20个 sample 恢复严格 capture/menu/move-size 全空。
-不凭 timeout 否决模型；API return 后的真实 native DRAG 或原轨迹实际写入
+不凭孤立 timeout 否决模型；Fix A 允许在真实 START/DRAG、单 cancel、实际
+第三 MOVE/Raw 送达、完整等待 deadline 后，fresh source 仍在 MoveSize 且
+foreground/desktop/cursor/buttons/receiver/GUI 全部可信时，认定无法退出的
+协议反例。缺少可靠上下文仍 UNKNOWN。API return 后的真实 native DRAG 或原轨迹实际写入
 都是反例，不能从确认时刻开始才计数而排除第3个 sample。
 该阶段 takeover geometry writes=0；
 setup/visibility placement 不是 takeover writer。native drag RECT 完全不修改。
@@ -95,8 +105,8 @@ SetActiveWindow(NULL) 返回 NULL/diagnostic error0，但 active 仍是 source�
 因此初始化失败，零 activation click/Raw/native cancel。没有继续试验其他激活
 绕过方式；不能将这类 bootstrap blocker 写成 cancellation FAIL。
 原 Raw/cursor 同步假设已有反例，最后的 NULL active 清理候选也未获证明。
-尚需另行审查 owned bootstrap 的真实 activation evidence contract，不能放宽为
-仅 API success 或使用历史 callback。当前 probe 保留上述 fail-closed 前置门。
+上述旧前置门由 Fix A 明确撤销；不是 Raw Input eligibility 或 foreground
+authority 合约。旧日志保持原判，但当前 probe 不再执行它们，也不寻找替代清理 hack。
 
 取消和 input prerequisite 都 PASS 后才实现 free Move/Bottom Resize takeover：
 冻结原始 cursor/rect anchor，只由 WM_INPUT movement wakeup，在有界 owner

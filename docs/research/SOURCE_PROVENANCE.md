@@ -1,5 +1,59 @@
 # Source Provenance Register
 
+Fix A additional read-only environment diagnosis, 2026-09-26: Microsoft Learn
+[WTSINFOEX_LEVEL1_W](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoex_level1_w)
+and [WTSINFOEXW](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoexw)
+were actually read. Live official pages, Microsoft site terms; no samples copied
+or adapted. SessionState Active does not imply unlocked; on this Windows
+10.0.26200 host SessionFlags 0 denotes LOCK, 1 UNLOCK. The documented reversed
+Windows 7/Server 2008 R2 behavior is not applied to this host. Applicable scope:
+test-only desktop safety prerequisite, not input/cancel architecture evidence.
+
+## R1-C4B Architecture Pivot 1 Fix A — 2026-09-26
+
+Starting HEAD: `94242959568b28d782d1a89a6f78c95c2dd8b098`.
+Scope: remove an unsupported owned-test local-activation prerequisite; preserve
+original logs and strict global source / receiver background evidence. Source,
+interpretation and superseded design are recorded in
+[Pivot 1 input contracts](R1C4B_PIVOT1_INPUT_CONTRACTS.md).
+
+Microsoft Learn official primary live pages actually re-read in Fix A; no
+immutable document revision asserted; Microsoft Learn terms, paraphrase and
+links only, no samples copied/adapted:
+
+- [GetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getactivewindow)
+- [GetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getforegroundwindow)
+- [SetActiveWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setactivewindow)
+- [SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus)
+- [GetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getfocus)
+- [RegisterRawInputDevices](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerrawinputdevices)
+- [RAWINPUTDEVICE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputdevice)
+- [Raw Input Overview](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input)
+
+Lessons / applicable subsystem: GetActiveWindow/GetFocus are calling-queue
+diagnostics, GetForegroundWindow is the global foreground fact;
+SetActiveWindow(NULL) has no documented clear-active contract; documented
+SetFocus(NULL) is irrelevant to INPUTSINK eligibility. Exact registered separate
+receiver PID, foreground source identity, actual RIM_INPUTSINK movement and UP,
+input correlation and final fences establish owned-test background evidence.
+Fresh activation/focus callbacks are diagnostic rather than a second mandatory
+foreground proof. No local-state reset or foreground-policy bypass is retained.
+
+The prior-art source/license/history gate is reused from the original Pivot 1
+record below and [its focused research](R1C4B_PIVOT1_PRIOR_ART.md); that local
+record was read in Fix A. This is **not a new upstream source/history inspection**
+claim. AltSnap remains GPL-3.0-or-later reference-only at
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`; FancyZones remains MIT reference-only
+at `19c4d805321db86f3634e6968e14dbf25cbba14a`, with exact inspected modules/history
+and retrieval limitations in the original records. No new external project,
+GPL-derived code, translated control flow or MIT sample code enters PaneBind.
+WH_MOUSE_LL stays the existing technically possible research-only candidate,
+not a new implementation. Code copied/adapted/translated: NO/NO/NO.
+Attribution required: research citations retained, no new code obligation.
+Contract-research PASS permits only a test-owned probe; cancellation/takeover
+and product PASS require independent new original evidence. The three original
+BLOCKED logs are immutable and are not accepted retroactively.
+
 ## R1-C4B Architecture Pivot 1 — 2026-09-26
 
 Base: `070b05a8f44c8b08503b3643f838a83703495987`. Scope, exact links and
@@ -68,8 +122,9 @@ Pivot 1 owned-bootstrap review (2026-09-26): ShowWindow, GetActiveWindow,
 GetFocus, SetActiveWindow, SetFocus and SetForegroundWindow official live pages
 were actually read. Exact URLs and second attempt's unchanged BLOCKED evidence
 are in the input-contract record. Lesson: calling-queue activation/focus and
-global foreground are distinct; a one-time reset of only empty owned local
-state is not a foreground entitlement or a replacement for real click callbacks.
+global foreground are distinct. The historical one-time local reset and fresh
+click-callback gate were withdrawn by Fix A: neither is an INPUTSINK prerequisite
+or a second foreground-authority requirement.
 No examples copied/adapted; no new attribution obligation. Old Fix 3 behavior
 and evidence remain unchanged.
 

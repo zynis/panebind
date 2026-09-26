@@ -400,13 +400,29 @@ void release_activation_button(){
         record("activation_release",",\"attempted\":false,\"sent\":0,\"reason\":\"BLOCKED_BY_ACTIVATION_CLEANUP_PROOF_FAILURE\",\"button_release_pending\":true");
     }
 }
+void foreground_ready(){
+    const bool own=identity(),desktop=desktop_available(),visible=own&&IsWindowVisible(owned);
+    const HWND foreground=GetForegroundWindow();DWORD pid{};const DWORD tid=GetWindowThreadProcessId(foreground,&pid);
+    GUITHREADINFO gui{sizeof(gui)};const bool query=GetGUIThreadInfo(ui_thread,&gui)!=FALSE;
+    const bool clean=!pressed(VK_LBUTTON)&&!other_input();
+    const bool stable=GetForegroundWindow()==foreground&&identity();
+    const bool topmost=own&&(GetWindowLongPtrW(owned,GWL_EXSTYLE)&WS_EX_TOPMOST)!=0;
+    const bool success=own&&desktop&&visible&&foreground==owned&&pid==GetCurrentProcessId()&&tid==ui_thread&&stable
+        &&query&&!gui.hwndCapture&&!gui.hwndMenuOwner&&!gui.hwndMoveSize&&!(gui.flags&30)&&clean&&!topmost;
+    record("foreground_ready",",\"target\":"+std::to_string(number(owned))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)
+        +",\"own_identity\":"+flag(own)+",\"desktop_ready\":"+flag(desktop)+",\"visible\":"+flag(visible)+",\"foreground\":"+std::to_string(number(foreground))+",\"foreground_pid\":"+std::to_string(pid)+",\"foreground_tid\":"+std::to_string(tid)+",\"foreground_snapshot_stable\":"+flag(stable)
+        +",\"gui_query_succeeded\":"+flag(query)+",\"gui_flags\":"+std::to_string(gui.flags)+",\"capture_hwnd\":"+std::to_string(number(gui.hwndCapture))+",\"menu_owner_hwnd\":"+std::to_string(number(gui.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(gui.hwndMoveSize))
+        +",\"buttons_modifiers_clear\":"+flag(clean)+",\"topmost_now\":"+flag(topmost)+",\"source_thread_local_active\":"+std::to_string(number(gui.hwndActive))+",\"source_thread_local_focus\":"+std::to_string(number(gui.hwndFocus))+",\"success\":"+flag(success));
+    require(success,"BLOCKED_BY_FOREGROUND_READY_PROOF");
+}
 void acquire_foreground(POINT& expected){
-    fg::ActivationProof direct;direct.own_identity=identity();direct.same_integrity=direct.own_identity;direct.desktop_ready=desktop_available();direct.visible=identity()&&IsWindowVisible(owned);
-    if(fg::direct_ready(set_foreground_success,GetForegroundWindow()==owned,direct)){emit_bootstrap(true,"none");return;}
-    if(set_foreground_success){emit_bootstrap(false,"BLOCKED_BY_ACTIVATION_FAILURE");throw std::runtime_error("BLOCKED_BY_ACTIVATION_FAILURE");}
+    if(set_foreground_success){
+        try{foreground_ready();emit_bootstrap(true,"none");return;}
+        catch(const std::exception& e){emit_bootstrap(false,e.what());throw;}
+    }
     bootstrap.click_required=true;bootstrap.topmost_restored=false;
     try {
-        require(identity()&&direct.desktop_ready,"BLOCKED_BY_ACTIVATION_IDENTITY");
+        require(identity()&&desktop_available(),"BLOCKED_BY_ACTIVATION_IDENTITY");
         require(!(GetWindowLongPtrW(owned,GWL_EXSTYLE)&WS_EX_TOPMOST),"BLOCKED_BY_ACTIVATION_VISIBILITY");
         const bool top=SetWindowPos(owned,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE|SWP_SHOWWINDOW)!=FALSE;
         topmost_active=top;bootstrap.temporary_topmost=top&&(GetWindowLongPtrW(owned,GWL_EXSTYLE)&WS_EX_TOPMOST)!=0;
@@ -422,47 +438,14 @@ void acquire_foreground(POINT& expected){
         require(WaitForSingleObject(activation_down_received,2000)==WAIT_OBJECT_0,"BLOCKED_BY_ACTIVATION_FAILURE");
         activation_input("up",MOUSEEVENTF_LEFTUP);
         require(WaitForSingleObject(activation_up_received,2000)==WAIT_OBJECT_0,"BLOCKED_BY_ACTIVATION_FAILURE");
-        bootstrap.event_seen=WaitForSingleObject(activation_event,2000)==WAIT_OBJECT_0;
+        // Queue-local activation callbacks are diagnostics, not authority.
+        bootstrap.event_seen=WaitForSingleObject(activation_event,0)==WAIT_OBJECT_0;
         activation_armed=false;restore_topmost();
-        const fg::ActivationCompletion completion{bootstrap.move_success,bootstrap.down_success,bootstrap.up_success,bootstrap.event_seen,identity()&&IsWindowVisible(owned)&&GetForegroundWindow()==owned,bootstrap.topmost_restored};
-        const char* reason=fg::completion_guard(completion);require(std::string_view(reason)=="none",reason);
-        require(GetCursorPos(&expected)!=FALSE,"BLOCKED_BY_INPUT_INTERFERENCE");emit_bootstrap(true,"none");
+        require(bootstrap.move_success&&bootstrap.down_success&&bootstrap.up_success,"BLOCKED_BY_SENDINPUT");
+        require(bootstrap.topmost_restored,"BLOCKED_BY_ACTIVATION_VISIBILITY");
+        foreground_ready();
+        require(GetCursorPos(&expected)!=FALSE&&std::abs(expected.x-activation_point.x)<=1&&std::abs(expected.y-activation_point.y)<=1,"BLOCKED_BY_INPUT_INTERFERENCE");emit_bootstrap(true,"none");
     }catch(const std::exception& e){release_activation_button();activation_armed=false;restore_topmost();emit_bootstrap(false,e.what());throw;}
-}
-void prepare_local_activation(){
-    // Owner UI thread only. Clear only this empty test application's local
-    // background state; never assign focus/activation or alter foreground policy.
-    if(set_foreground_success)return;
-    const HWND foreground=GetForegroundWindow(),before_active=GetActiveWindow(),before_focus=GetFocus();
-    GUITHREADINFO gui{sizeof(gui)};
-    const bool query=GetGUIThreadInfo(ui_thread,&gui)!=FALSE;
-    const bool own_before=identity(),desktop_ready=desktop_available();
-    const bool clear_input=!pressed(VK_LBUTTON)&&!other_input();
-    const bool authorized=GetCurrentThreadId()==ui_thread&&own_before&&desktop_ready&&foreground&&foreground!=owned&&foreground!=guard
-        &&(!before_active||input_root_owned(before_active))&&(!before_focus||input_root_owned(before_focus))
-        &&query&&!gui.hwndCapture&&!gui.hwndMenuOwner&&!gui.hwndMoveSize&&!(gui.flags&30)&&clear_input
-        &&identity()&&GetForegroundWindow()==foreground&&!pressed(VK_LBUTTON)&&!other_input();
-    const bool attempted=authorized&&(before_active||before_focus);
-    HWND focus_return{},active_return{};DWORD focus_error{},active_error{};bool active_called{};
-    if(attempted){
-        SetLastError(0);focus_return=SetFocus(nullptr);focus_error=GetLastError();
-        GUITHREADINFO middle{sizeof(middle)};
-        if(identity()&&GetGUIThreadInfo(ui_thread,&middle)&&!middle.hwndCapture&&!middle.hwndMenuOwner&&!middle.hwndMoveSize&&!(middle.flags&30)
-            &&GetForegroundWindow()==foreground&&!pressed(VK_LBUTTON)&&!other_input()){
-            active_called=true;SetLastError(0);active_return=SetActiveWindow(nullptr);active_error=GetLastError();
-        }
-    }
-    const HWND after_active=GetActiveWindow(),after_focus=GetFocus(),after_foreground=GetForegroundWindow();
-    const bool own_after=identity();
-    const bool unchanged=foreground==after_foreground,cleared=!after_active&&!after_focus;
-    const bool success=authorized&&own_after&&unchanged&&cleared&&(!attempted||active_called);
-    record("local_activation_preparation",",\"target\":"+std::to_string(number(owned))+",\"guard\":"+std::to_string(number(guard))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(GetCurrentThreadId())
-        +",\"attempted\":"+flag(attempted)+",\"authorized\":"+flag(authorized)+",\"before_active\":"+std::to_string(number(before_active))+",\"before_focus\":"+std::to_string(number(before_focus))+",\"after_active\":"+std::to_string(number(after_active))+",\"after_focus\":"+std::to_string(number(after_focus))
-        +",\"own_identity_before\":"+flag(own_before)+",\"desktop_ready\":"+flag(desktop_ready)+",\"own_identity_after\":"+flag(own_after)
-        +",\"focus_return\":"+std::to_string(number(focus_return))+",\"focus_error\":"+std::to_string(focus_error)+",\"active_called\":"+flag(active_called)+",\"active_return\":"+std::to_string(number(active_return))+",\"active_error\":"+std::to_string(active_error)
-        +",\"foreground_before\":"+std::to_string(number(foreground))+",\"foreground_after\":"+std::to_string(number(after_foreground))+",\"gui_query_succeeded\":"+flag(query)+",\"gui_flags\":"+std::to_string(gui.flags)+",\"capture_hwnd\":"+std::to_string(number(gui.hwndCapture))+",\"menu_owner_hwnd\":"+std::to_string(number(gui.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(gui.hwndMoveSize))
-        +",\"buttons_modifiers_clear\":"+flag(clear_input)+",\"global_unchanged\":"+flag(unchanged)+",\"local_cleared\":"+flag(cleared)+",\"success\":"+flag(success));
-    require(success,"BLOCKED_BY_LOCAL_ACTIVATION_PREPARATION");
 }
 POINT find_point(const RECT& r,int wanted){
     // Bounded 3 columns x 160 rows; hit-test decides, not an assumed title size.
@@ -490,8 +473,15 @@ void drive(){
         ResetEvent(raw_motion);const auto held_request=inject(MOUSEEVENTF_MOVE,next);expected=next;
         wait_raw_motion(expected,held_request);pace(interval_ms);fence(expected,true);
         const auto preflight_up=inject(MOUSEEVENTF_LEFTUP,expected);down=false;
-        wait_raw_up(preflight_up);
-        pace(interval_ms);fence(expected,false);record("raw_preflight_complete",",\"movement_count\":"+std::to_string(raw_movements.load())+",\"up_count\":"+std::to_string(raw_ups.load()));
+        const auto up_started=qpc();const auto up_wait=WaitForSingleObject(raw_up,2000);const auto up_finished=qpc();
+        if(up_wait==WAIT_OBJECT_0)wait_raw_up(preflight_up);
+        // A completed actual UP stimulus needs an independent final fence even
+        // when the raw witness is absent. Do not invent a packet or raw END.
+        pace(interval_ms);fence(expected,false);
+        record("raw_preflight_outcome",",\"attempted\":true,\"actual_move_verified\":true,\"actual_held_move_verified\":true,\"actual_up_verified\":true,\"input_delivery_verified\":true,\"observation_completed\":true,\"receiver_healthy\":"+flag(receiver_ok)
+            +",\"up_wait_result\":"+std::to_string(up_wait)+",\"up_wait_started_qpc\":"+std::to_string(up_started)+",\"up_wait_finished_qpc\":"+std::to_string(up_finished)+",\"up_timeout_ms\":2000,\"raw_up_observed\":"+flag(up_wait==WAIT_OBJECT_0));
+        require(receiver_ok,"BLOCKED_BY_RAW_RECEIVER_ERROR");require(up_wait==WAIT_OBJECT_0,"RAW_PREFLIGHT_MISSING_UP");
+        record("raw_preflight_complete",",\"movement_count\":"+std::to_string(raw_movements.load())+",\"up_count\":"+std::to_string(raw_ups.load()));
         for(int kind=1;kind<=2;++kind){
             gesture=kind;cancelled=false;cancel_pending=false;cancel_return_boundary=0;native_drag_after_return=0;callbacks=0;ResetEvent(entered);ResetEvent(exited);ResetEvent(stepped);ResetEvent(nonclient_down);ResetEvent(raw_up);
             const auto initial=capture();require(initial.p_ok&&initial.v_ok&&contained(initial.p),"setup_geometry_unavailable");
@@ -518,7 +508,9 @@ void drive(){
                     // cancel/write/retry, avoids starving queued input at exit.
                     const auto wait_started=qpc();const auto exit_wait=WaitForSingleObject(exited,2000);const auto wait_finished=qpc();
                     GUITHREADINFO after_wait{sizeof(after_wait)};const bool after_query=GetGUIThreadInfo(ui_thread,&after_wait)!=FALSE;
-                    record("cancel_exit_wait",",\"started_qpc\":"+std::to_string(wait_started)+",\"finished_qpc\":"+std::to_string(wait_finished)+",\"timeout_ms\":2000,\"observation_wakeup_sample\":3,\"wait_result\":"+std::to_string(exit_wait)+",\"gui_query_succeeded\":"+flag(after_query)+",\"target\":"+std::to_string(number(owned))+",\"source_tid\":"+std::to_string(ui_thread)+",\"source_identity\":"+flag(identity())+",\"foreground\":"+std::to_string(number(GetForegroundWindow()))+",\"capture_hwnd\":"+std::to_string(number(after_wait.hwndCapture))+",\"move_size_hwnd\":"+std::to_string(number(after_wait.hwndMoveSize))+",\"gui_flags\":"+std::to_string(after_wait.flags)+",\"left_down\":"+flag(pressed(VK_LBUTTON)));
+                    POINT wait_cursor{};const bool cursor_ok=GetCursorPos(&wait_cursor)!=FALSE;
+                    record("cancel_exit_wait",",\"started_qpc\":"+std::to_string(wait_started)+",\"finished_qpc\":"+std::to_string(wait_finished)+",\"timeout_ms\":2000,\"observation_wakeup_sample\":3,\"wait_result\":"+std::to_string(exit_wait)+",\"gui_query_succeeded\":"+flag(after_query)+",\"target\":"+std::to_string(number(owned))+",\"source_tid\":"+std::to_string(ui_thread)+",\"source_identity\":"+flag(identity())+",\"foreground\":"+std::to_string(number(GetForegroundWindow()))+",\"capture_hwnd\":"+std::to_string(number(after_wait.hwndCapture))+",\"menu_owner_hwnd\":"+std::to_string(number(after_wait.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(after_wait.hwndMoveSize))+",\"gui_flags\":"+std::to_string(after_wait.flags)+",\"left_down\":"+flag(pressed(VK_LBUTTON))
+                        +",\"desktop_ready\":"+flag(desktop_available())+",\"visible\":"+flag(identity()&&IsWindowVisible(owned))+",\"buttons_modifiers_clear\":"+flag(!other_input())+",\"cursor_success\":"+flag(cursor_ok)+",\"cursor\":"+point(wait_cursor)+",\"expected_cursor\":"+point(expected)+",\"cursor_matches_expected\":"+flag(cursor_ok&&std::abs(wait_cursor.x-expected.x)<=1&&std::abs(wait_cursor.y-expected.y)<=1)+",\"receiver_healthy\":"+flag(receiver_ok));
                     require(native_drag_after_return==0,"native_drag_after_cancel");
                     require(exit_wait==WAIT_OBJECT_0,"cancel_missing_EXIT");
                     require(after_query&&!after_wait.hwndCapture,"cancel_capture_not_released");
@@ -586,7 +578,7 @@ int wmain(int argc,wchar_t** argv){
     if(log_file==INVALID_HANDLE_VALUE)return 2;
     timer=CreateWaitableTimerW(nullptr,FALSE,nullptr);ui_thread=GetCurrentThreadId();
     LARGE_INTEGER frequency{};QueryPerformanceFrequency(&frequency);
-    record("startup",",\"evidence_kind\":\"automated_owned_cancel\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\"cancel_only\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"local_activation_policy\":\"own_background_reset_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_activation_v1\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart));
+    record("startup",",\"evidence_kind\":\"automated_owned_cancel\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\"cancel_only\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_global_foreground_v2\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart));
     int result=2;
     try {
         require(timer&&desktop_available(),"BLOCKED_BY_INTERACTIVE_DESKTOP");
@@ -628,9 +620,8 @@ int wmain(int argc,wchar_t** argv){
         // the ordinary foreground attempt / verified activation click.
         if(!IsWindowVisible(owned))ShowWindow(owned,SW_SHOWNOACTIVATE);
         bootstrap.attempted=true;const BOOL activated=SetForegroundWindow(owned);set_foreground_success=activated!=FALSE;UpdateWindow(owned);
-        record("foreground_attempt",",\"target\":"+std::to_string(number(owned))+",\"foreground\":"+std::to_string(number(GetForegroundWindow()))+",\"local_active\":"+std::to_string(number(GetActiveWindow()))+",\"local_focus\":"+std::to_string(number(GetFocus()))+",\"set_foreground_success\":"+flag(activated!=FALSE)+",\"visible\":"+flag(IsWindowVisible(owned)!=FALSE));
+        record("foreground_attempt",",\"target\":"+std::to_string(number(owned))+",\"foreground\":"+std::to_string(number(GetForegroundWindow()))+",\"source_thread_local_active\":"+std::to_string(number(GetActiveWindow()))+",\"source_thread_local_focus\":"+std::to_string(number(GetFocus()))+",\"set_foreground_success\":"+flag(activated!=FALSE)+",\"visible\":"+flag(IsWindowVisible(owned)!=FALSE));
         record("owned",",\"hwnd\":"+std::to_string(number(owned))+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(ui_thread)+",\"saved_cursor\":"+point(saved_cursor)+",\"work_area\":"+rect(work_area)+",\"dpi\":"+std::to_string(GetDpiForWindow(owned))+geometry(capture())+",\"virtual_screen\":"+rect(virtual_area));
-        prepare_local_activation();
         std::thread driver{drive};MSG message{};bool owner_ok=true;
         bool quit=false;while(!quit){
             const DWORD wait=MsgWaitForMultipleObjects(1,&driver_finished,FALSE,15000,QS_ALLINPUT);
