@@ -72,4 +72,9 @@ binary 的独立完整 PASS metadata，每 pair Move 与 BottomResize 都通过�
 完整 owned gate 后亦 STOP，Explorer 最多 READY_FOR_NEXT_STAGE。本轮没有
 Magnet integration、Explorer 操作、Human UAT、product Raw Input/SendInput、
 global mouse hook、DLL injection、resident polling、PR/merge/tag/release。
-真实 verdict、具体初始 failure class 与时序统计由 Fix C 执行报告记录，不预填。
+实际结果见 [Fix C 执行报告](../reports/R1C4B_PIVOT1_FIXC_EXECUTION_REPORT.md)：
+两次 Debug BottomResize 均在 matching END 后因唯一 cursor root authority
+阻断、零写入；一次获准 guard geometry 修正后覆盖 +50px 已通过，但 actual root
+仍非 source/guard。Structured diagnostic PASS，复合 WinEvent handoff gate FAIL，
+architecture UNRESOLVED。旧 B Move PASS 保持；C Move/repetitions/Explorer NOT_RUN，
+cleanup SKIPPED_NO_AUTHORITY，停止后续交互与权限修改。

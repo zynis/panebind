@@ -48,6 +48,16 @@ fresh authority/stability check; its missing proof details do not establish
 native reassertion. Overall architecture remains UNRESOLVED, repetitions and
 Explorer NOT RUN, Human UAT NOT READY. Old Fix A evidence/verdict is unchanged.
 
+[Pivot 1 Fix C](docs/reports/R1C4B_PIVOT1_FIXC_EXECUTION_REPORT.md) adds structured
+test-only preflight and exact-source out-of-context WinEvent END matching.
+Both Debug Bottom Resize attempts stop before any write: the cursor's actual
+hit-test root is not the owned source/guard, despite the one authorized guard
+geometry repair covering both planned trajectories with a 50px margin.
+Matching END, fresh GUI clearance and exact terminal P/V are observed; this is
+an input-authority blocker, not a geometry counterexample. Architecture remains
+UNRESOLVED. Old Fix B Move PASS is preserved; Fix C Move, repetitions, Explorer
+and Human UAT are not run. No further interaction or authority changes proceed.
+
 ## Build
 
 Requirements:
