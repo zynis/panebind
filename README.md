@@ -40,6 +40,14 @@ but the rect restored to its initial state after API return and before EXIT.
 The fixed return-rect-retention gate fails; further interaction stops. This is
 not post-EXIT reassertion or proof that every wait-EXIT/takeover variant fails.
 
+[Pivot 1 Fix B](docs/reports/R1C4B_PIVOT1_FIXB_EXECUTION_REPORT.md) formally
+supersedes return-rect retention with a real END-barrier handoff. One Debug
+owned Move passes full-original-anchor reconciliation and 18 Raw-driven
+continuations. The next Bottom Resize stops before any write at an unresolved
+fresh authority/stability check; its missing proof details do not establish
+native reassertion. Overall architecture remains UNRESOLVED, repetitions and
+Explorer NOT RUN, Human UAT NOT READY. Old Fix A evidence/verdict is unchanged.
+
 ## Build
 
 Requirements:

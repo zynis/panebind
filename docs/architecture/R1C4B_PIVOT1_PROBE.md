@@ -30,7 +30,11 @@ change 均 FAIL。先 Debug Move×1，只有完整 PASS 才 Bottom Resize×1；
 
 显式 runner `scripts/run-r1c4b-end-handoff.ps1` 每次仅运行一个 fresh owned
 gesture，原始证据仍 ignored local；不自动进入下一项、Explorer、Pure Magnet
-或 Human UAT。验收及停止结果由新的 Fix B 执行报告记录。
+或 Human UAT。[Fix B 执行报告](../reports/R1C4B_PIVOT1_FIXB_EXECUTION_REPORT.md)
+记录一次 Debug Move 完整 PASS；后续 Bottom Resize 在首次 handoff 前因
+未拆分的 fresh proof/stability 检查失败而 BLOCKED，零写。没有证据判为
+OS reassertion 或 writer failure；整体 UNRESOLVED，20/20 和 Explorer
+NOT_RUN，Human NOT_READY，按边界停止、不改合同重试。
 
 ## Fix A 当前覆盖：global foreground proof，local 状态仅诊断
 
