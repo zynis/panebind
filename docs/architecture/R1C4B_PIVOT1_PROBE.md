@@ -3,6 +3,35 @@
 2026-09-26；base 070b05a8f44c8b08503b3643f838a83703495987。
 这只是独立 research/test driver，不是 PaneBind 产品架构的实现或 READY 声明。
 
+## Fix B 当前合同：CancelWaitEndThenTakeover
+
+Fix B base `e381b998d9e3eded051fbc859893633e8633ebee` 正式替换旧
+cancel-return rect retention 验收；下文 Fix A 及第一阶段描述保留为历史合同，
+旧报告/原始 JSONL/metadata/validator/verdict 不改、不追认。
+`OLD_CANCEL_RETURN_RECT_CONTRACT = FAILED_AND_SUPERSEDED`。
+最新研究见 [END-barrier 合约](../research/R1C4B_PIVOT1_FIXB_END_BARRIER.md)。
+
+新独立 owned CLI `--run-owned-takeover-test --gesture move|bottom-resize`
+使用 `r1c4b-takeover-owned/v2`、`end_barrier_v1`。真实 ENTER/DRAG 后只发一次
+bounded cancel，允许 return→EXIT 期间 native terminal settlement；真实
+WM_EXITSIZEMOVE 仅冻结 actual terminal baseline，下一 owner work fresh 检查
+capture/menu/move-size 清空和 geometry 稳定后才允许 handoff。
+intent 永远来自真实 DOWN pointer + native ENTER P/V，绝不来自 EXIT rect。
+
+handoff 最多一次 SetWindowPos；随后实际 background WM_INPUT movement
+唤醒 coalesced owner quantum，当前 cursor 只读一次、原始 anchor 全量计算、
+每 quantum 最多一写。Raw UP terminal，清空 pending movement，无末端补写。
+UI 是唯一 geometry writer；driver timer 只负责测试轨迹 pacing，不能唤醒
+writer。以 receiver 实际 UP QPC 对照最后 native return，不以 parent 日志
+顺序替代。沿用 checked frame bridge 和立即/full P/V strict exact，不新增
+DWM 宽限、timer 重试或操作风暴。END 后 native DRAG 或无归属 geometry
+change 均 FAIL。先 Debug Move×1，只有完整 PASS 才 Bottom Resize×1；
+两者都 PASS 才开始独立 Debug/Release 20/20 repetition gate。
+
+显式 runner `scripts/run-r1c4b-end-handoff.ps1` 每次仅运行一个 fresh owned
+gesture，原始证据仍 ignored local；不自动进入下一项、Explorer、Pure Magnet
+或 Human UAT。验收及停止结果由新的 Fix B 执行报告记录。
+
 ## Fix A 当前覆盖：global foreground proof，local 状态仅诊断
 
 Fix A base `94242959568b28d782d1a89a6f78c95c2dd8b098`；新 probe 使用

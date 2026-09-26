@@ -1,5 +1,7 @@
 // Test executable only: never linked into the product / Explorer runtime.
 #include "platform/windows/operations/test_foreground_bootstrap_model.h"
+#include "platform/windows/operations/window_rect_adjustment.h"
+#include "platform/windows/operations/magnet_postverify_diagnostic.h"
 #include <windows.h>
 #include <wtsapi32.h>
 #include <dwmapi.h>
@@ -15,6 +17,7 @@
 
 namespace {
 constexpr UINT finish_message=WM_APP+52;
+constexpr UINT handoff_message=WM_APP+53,raw_notice_message=WM_APP+54;
 constexpr int samples=20, interval_ms=30;
 constexpr ULONG_PTR input_tag=0x50424D41;
 HWND owned{};
@@ -53,6 +56,13 @@ RECT work_area{},virtual_area{};
 POINT saved_cursor{};
 bool driver_pass{},restored{}; // read by main only after join
 std::string failure;
+bool end_mode{};int selected_gesture=1;
+std::atomic<std::int64_t> native_end_qpc{},native_enter_qpc{};
+std::atomic<std::uint64_t> native_end_sequence{},native_enter_sequence{},native_down_sequence{};
+std::atomic<int> native_drag_after_end{},unowned_geometry_changes{};
+std::atomic<bool> takeover_scope{},handoff_ready{},takeover_healthy{true};
+HANDLE handoff_finished{},quantum_finished{},takeover_finished{};
+HMONITOR frozen_monitor{};UINT frozen_dpi{};
 
 std::int64_t qpc(){LARGE_INTEGER value{};QueryPerformanceCounter(&value);return value.QuadPart;}
 std::string flag(bool b){return b?"true":"false";}
@@ -60,12 +70,14 @@ std::string rect(const RECT& r){return "["+std::to_string(r.left)+","+std::to_st
 std::string point(POINT p){return "["+std::to_string(p.x)+","+std::to_string(p.y)+"]";}
 std::uintptr_t number(HWND h){return reinterpret_cast<std::uintptr_t>(h);}
 bool equal(const RECT& a,const RECT& b){return EqualRect(&a,&b)!=FALSE;}
-void record(std::string_view type,const std::string& fields={}){
+std::uint64_t record(std::string_view type,const std::string& fields={}){
     std::lock_guard lock{log_mutex};
-    if(!log_ok)return;
-    if(sequence>=4096){log_ok=false;return;}
-    const auto line="{\"schema\":\"r1c4b-takeover-owned/v1\",\"sequence\":"+std::to_string(++sequence)+",\"type\":\""+std::string(type)+"\",\"gesture\":"+std::to_string(gesture.load())+",\"qpc\":"+std::to_string(qpc())+fields+"}\n";
+    if(!log_ok)return 0;
+    if(sequence>=4096){log_ok=false;return 0;}
+    const auto assigned=++sequence;
+    const auto line="{\"schema\":\""+std::string(end_mode?"r1c4b-takeover-owned/v2":"r1c4b-takeover-owned/v1")+"\",\"sequence\":"+std::to_string(assigned)+",\"type\":\""+std::string(type)+"\",\"gesture\":"+std::to_string(gesture.load())+",\"qpc\":"+std::to_string(qpc())+fields+(end_mode&&type=="EXIT"?",\"end_sequence\":"+std::to_string(assigned):"")+"}\n";
     DWORD written{};log_ok=WriteFile(log_file,line.data(),static_cast<DWORD>(line.size()),&written,nullptr)&&written==line.size();
+    return sequence;
 }
 void require(bool ok,const char* reason){if(!ok)throw std::runtime_error(reason);}
 bool identity(){DWORD pid{};return owned&&GetWindowThreadProcessId(owned,&pid)==ui_thread&&pid==GetCurrentProcessId();}
@@ -102,6 +114,14 @@ void pace(int milliseconds){
     require(SetWaitableTimer(timer,&due,0,nullptr,nullptr,FALSE)&&WaitForSingleObject(timer,2000)==WAIT_OBJECT_0,"test_pacing_failed");
 }
 struct Geometry{RECT p{},v{};bool p_ok{},v_ok{};DWORD error{};HRESULT hr{E_PENDING};};
+std::mutex continuation_mutex;
+Geometry intent_start,terminal_geometry;
+POINT intent_pointer{}; // frozen from actual native button DOWN
+Geometry expected_live,inflight_target; // owner UI only
+std::uint64_t active_operation{},operation_counter{},quantum_counter{};
+std::uint32_t consumed_motion{};
+bool audit_live{}; // owner UI only, retired before test cleanup
+void process_handoff();void process_raw_notice();
 Geometry capture(){
     Geometry g;if(!identity())return g;SetLastError(0);g.p_ok=GetWindowRect(owned,&g.p)!=FALSE;g.error=g.p_ok?0:GetLastError();
     g.hr=DwmGetWindowAttribute(owned,DWMWA_EXTENDED_FRAME_BOUNDS,&g.v,sizeof(g.v));g.v_ok=SUCCEEDED(g.hr);return g;
@@ -120,6 +140,11 @@ struct RawPacket {
     bool cursor_sampled{},cursor_ok{},left_down{},device_present{},tag_matches{},registration_ok{},removed{},destroyed{};
 };
 RawPacket last_motion,last_up;std::mutex raw_mutex;
+RawPacket pending_motion,published_up;
+std::uint32_t pending_first{},pending_count{};
+bool motion_pending{},raw_up_seen{},notice_posted{}; // continuation_mutex
+std::atomic<std::uint32_t> owner_processed_sequence{};
+std::atomic<int> takeover_native_calls{};
 struct InputReceipt {INPUT input;std::int64_t start{};std::uint32_t watermark{};};
 HANDLE child_pipe{},child_stop{},child_armed{};std::uint32_t child_sequence{};
 bool send_packet(RawPacket packet){
@@ -166,10 +191,24 @@ void read_receiver(){
             if(!valid)receiver_ok=false;SetEvent(receiver_ready);
         }else if(p.kind==2){
             if(p.hwnd!=number(receiver_hwnd)||p.tid!=receiver_tid){receiver_ok=false;break;}
+            if(p.input_code!=RIM_INPUTSINK||p.foreground_pid==p.pid||p.foreground_pid!=GetCurrentProcessId())receiver_ok=false;
+            bool notify=false;
+            if(end_mode&&takeover_scope){
+                // Publish terminal lifecycle before any potentially delayed
+                // logging. A pending motion can never override a received UP.
+                std::lock_guard lock(continuation_mutex);
+                if(p.buttons&RI_MOUSE_LEFT_BUTTON_UP){published_up=p;raw_up_seen=true;motion_pending=false;pending_count=0;}
+                else if(p.cursor_sampled&&!raw_up_seen){
+                    if(!motion_pending){pending_first=p.serial;pending_count=0;}
+                    pending_motion=p;motion_pending=true;
+                    if(++pending_count>128)receiver_ok=false;
+                }
+                if(handoff_ready&&!notice_posted){notice_posted=true;notify=true;}
+            }
             ++raw_packets;
             record("raw_input",common+",\"input_code\":"+std::to_string(p.input_code)+",\"raw_flags\":"+std::to_string(p.flags)+",\"dx\":"+std::to_string(p.dx)+",\"dy\":"+std::to_string(p.dy)+",\"button_flags\":"+std::to_string(p.buttons)+",\"cursor_sampled\":"+flag(p.cursor_sampled)+",\"cursor_success\":"+flag(p.cursor_ok)+",\"cursor\":"+(p.cursor_sampled&&p.cursor_ok?point(p.cursor):"null")+",\"left_down\":"+flag(p.left_down)+",\"foreground_hwnd\":"+std::to_string(p.foreground)+",\"foreground_pid\":"+std::to_string(p.foreground_pid)+",\"device_handle_present\":"+flag(p.device_present)+",\"test_tag_matches\":"+flag(p.tag_matches));
             record("raw_cursor_status",common+",\"cursor_error\":"+std::to_string(p.cursor_error));
-            if(p.input_code!=RIM_INPUTSINK||p.foreground_pid==p.pid||p.foreground_pid!=GetCurrentProcessId())receiver_ok=false;
+            if(notify&&!PostMessageW(owned,raw_notice_message,0,0)){receiver_ok=false;takeover_healthy=false;record("receiver_error",",\"reason\":\"owner_notice_post_failed\"");}
             if(p.cursor_sampled){std::lock_guard lock(raw_mutex);last_motion=p;++raw_movements;SetEvent(raw_motion);}
             if(p.buttons&RI_MOUSE_LEFT_BUTTON_UP){std::lock_guard lock(raw_mutex);last_up=p;++raw_ups;SetEvent(raw_up);}
         }else if(p.kind==4){receiver_removed=p.removed;receiver_destroyed=p.destroyed;record("receiver_shutdown",common+",\"registration_removed\":"+flag(p.removed)+",\"window_destroyed\":"+flag(p.destroyed));}
@@ -223,6 +262,16 @@ void wait_raw_up(const InputReceipt& receipt){
     require(receiver_ok&&last_up.input_code==RIM_INPUTSINK&&last_up.serial>receipt.watermark&&last_up.observed_qpc>=receipt.start&&last_up.tag_matches&&(last_up.buttons&RI_MOUSE_LEFT_BUTTON_UP),"BLOCKED_BY_RAW_BUTTON_UP");
 }
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
+    if(end_mode&&(message==handoff_message||message==raw_notice_message)){
+        try{if(message==handoff_message)process_handoff();else process_raw_notice();}
+        catch(const std::exception& e){
+            takeover_healthy=false;audit_live=false;
+            probe_failure=message==handoff_message?"handoff_owner_failure":"raw_owner_failure";
+            record("takeover_failure",",\"reason\":\""+std::string(e.what())+"\",\"phase\":\""+(message==handoff_message?"handoff":"raw_quantum")+"\"");
+            SetEvent(handoff_finished);SetEvent(quantum_finished);SetEvent(takeover_finished);
+        }
+        return 0;
+    }
     if(h==owned&&message==WM_ACTIVATE&&LOWORD(w)!=WA_INACTIVE){
         const bool armed=activation_armed;
         if(armed){activate_seen=true;if(activation_event)SetEvent(activation_event);}else direct_activate_seen=true;
@@ -242,11 +291,23 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
         SetEvent(message==WM_LBUTTONDOWN?activation_down_received:activation_up_received);
     }
     if(h==owned&&message==WM_NCLBUTTONDOWN&&(w==HTCAPTION||w==HTBOTTOM)){
-        record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w));SetEvent(nonclient_down);
+        POINT down_cursor{};const bool observed=GetCursorPos(&down_cursor)!=FALSE;
+        if(end_mode){std::lock_guard lock(continuation_mutex);intent_pointer=down_cursor;if(!observed)takeover_healthy=false;}
+        native_down_sequence=record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+(end_mode?",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed):""));SetEvent(nonclient_down);
     }
-    if(message==WM_ENTERSIZEMOVE){active=true;record("ENTER",",\"owner_capture\":"+std::to_string(number(GetCapture()))+geometry(capture()));SetEvent(entered);return 0;}
+    if(message==WM_ENTERSIZEMOVE){
+        active=true;const auto receipt=qpc();const auto g=capture();
+        native_enter_qpc=receipt;
+        native_enter_sequence=record("ENTER",",\"owner_capture\":"+std::to_string(number(GetCapture()))+geometry(g)+(end_mode?",\"receipt_qpc\":"+std::to_string(receipt):""));
+        if(end_mode){
+            POINT down_cursor{};{std::lock_guard lock(continuation_mutex);intent_start=g;down_cursor=intent_pointer;}
+            record("intent_anchor",",\"native_enter_sequence\":"+std::to_string(native_enter_sequence.load())+",\"native_enter_qpc\":"+std::to_string(receipt)+",\"native_down_sequence\":"+std::to_string(native_down_sequence.load())+",\"pointer_down\":"+point(down_cursor)+",\"start_positioning\":"+rect(g.p)+",\"start_visible\":"+rect(g.v)+",\"operation\":\""+(selected_gesture==1?"Move":"BottomResize")+"\"");
+        }
+        SetEvent(entered);return 0;
+    }
     if(message==WM_MOVING||message==WM_SIZING){
         if(cancel_return_boundary&&qpc()>cancel_return_boundary)++native_drag_after_return;
+        if(end_mode&&native_end_qpc){++native_drag_after_end;takeover_healthy=false;}
         POINT cursor{};GetCursorPos(&cursor);
         record("DRAG",",\"event\":\""+std::string(message==WM_MOVING?"WM_MOVING":"WM_SIZING")+"\",\"edge\":"+std::to_string(w)+",\"cursor\":"+point(cursor)+",\"proposed\":"+rect(*reinterpret_cast<RECT*>(l))+",\"after_cancel\":"+flag(cancelled)+geometry(capture()));
         ++callbacks;SetEvent(stepped);return DefWindowProcW(h,message,w,l);
@@ -256,9 +317,22 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
         const auto next=reinterpret_cast<HWND>(l);if(next&&!input_root_owned(next))foreign_capture_transferred=true;
         record("CAPTURE_CHANGED",",\"new_capture\":"+std::to_string(number(next))+",\"owner_capture\":"+std::to_string(number(GetCapture()))+geometry(capture()));
     }
-    if(message==WM_WINDOWPOSCHANGED&&gesture>0)record("POSITION_CHANGED",",\"after_cancel\":"+flag(cancelled)+geometry(capture()));
-    if(message==WM_EXITSIZEMOVE){record("EXIT",",\"owner_capture\":"+std::to_string(number(GetCapture()))+",\"left_down\":"+flag(pressed(VK_LBUTTON))+geometry(capture()));active=false;SetEvent(exited);return 0;}
-    if(message==finish_message){DestroyWindow(h);return 0;}
+    if(message==WM_WINDOWPOSCHANGED&&gesture>0){
+        const auto g=capture();bool unexpected=false;
+        if(end_mode&&audit_live){
+            unexpected=!g.p_ok||!g.v_ok||(active_operation?!equal(g.p,inflight_target.p):(!equal(g.p,expected_live.p)||!equal(g.v,expected_live.v)));
+            if(unexpected){++unowned_geometry_changes;takeover_healthy=false;}
+        }
+        record("POSITION_CHANGED",",\"after_cancel\":"+flag(cancelled)+geometry(g)+(end_mode?",\"operation_id\":"+std::to_string(active_operation)+",\"after_end\":"+flag(native_end_qpc!=0)+",\"unexpected_change\":"+flag(unexpected):""));
+    }
+    if(message==WM_EXITSIZEMOVE){
+        const auto receipt=qpc();const auto g=capture();
+        native_end_qpc=receipt;
+        if(end_mode){std::lock_guard lock(continuation_mutex);terminal_geometry=g;expected_live=g;audit_live=true;}
+        native_end_sequence=record("EXIT",",\"owner_capture\":"+std::to_string(number(GetCapture()))+",\"left_down\":"+flag(pressed(VK_LBUTTON))+geometry(g)+(end_mode?",\"receipt_qpc\":"+std::to_string(receipt):""));
+        active=false;SetEvent(exited);return 0;
+    }
+    if(message==finish_message){if(end_mode){audit_live=false;takeover_scope=false;}DestroyWindow(h);return 0;}
     if(message==WM_DESTROY){PostQuitMessage(0);return 0;}
     return DefWindowProcW(h,message,w,l);
 }
@@ -415,6 +489,126 @@ void foreground_ready(){
         +",\"buttons_modifiers_clear\":"+flag(clean)+",\"topmost_now\":"+flag(topmost)+",\"source_thread_local_active\":"+std::to_string(number(gui.hwndActive))+",\"source_thread_local_focus\":"+std::to_string(number(gui.hwndFocus))+",\"success\":"+flag(success));
     require(success,"BLOCKED_BY_FOREGROUND_READY_PROOF");
 }
+namespace ops=panebind::platform::windows::operations;
+panebind::core::geometry::Rect core_rect(const RECT& r){return {r.left,r.top,r.right,r.bottom};}
+Geometry intended_at(POINT cursor){
+    Geometry start;POINT anchor{};
+    {std::lock_guard lock(continuation_mutex);start=intent_start;anchor=intent_pointer;}
+    require(start.p_ok&&start.v_ok,"intent_start_capture_failed");
+    const auto dx=panebind::core::geometry::checked_difference(static_cast<std::int64_t>(cursor.x),static_cast<std::int64_t>(anchor.x));
+    const auto dy=panebind::core::geometry::checked_difference(static_cast<std::int64_t>(cursor.y),static_cast<std::int64_t>(anchor.y));
+    require(dx&&dy,"intent_delta_overflow");
+    const auto adjust=[&](RECT r){
+        const auto edge=[](LONG original,std::int64_t delta){
+            const auto value=panebind::core::geometry::checked_add(static_cast<std::int64_t>(original),delta);
+            require(value&&*value>=LONG_MIN&&*value<=LONG_MAX,"intent_native_range");return static_cast<LONG>(*value);
+        };
+        if(selected_gesture==1){r.left=edge(r.left,*dx);r.right=edge(r.right,*dx);r.top=edge(r.top,*dy);}
+        r.bottom=edge(r.bottom,*dy);return r;
+    };
+    Geometry target=start;target.p=adjust(start.p);target.v=adjust(start.v);
+    const auto bridge=ops::prepare_visible_rect_adjustment(core_rect(start.p),core_rect(start.v),core_rect(target.v));
+    require(bridge.status==ops::RectAdjustmentStatus::Succeeded&&bridge.positioning&&*bridge.positioning==core_rect(target.p),"intent_checked_frame_bridge_failed");
+    require(contained(target.p),"intent_outside_safe_workarea");return target;
+}
+std::string named_geometry(const Geometry& g,std::string_view prefix){
+    return ",\""+std::string(prefix)+"positioning\":"+(g.p_ok?rect(g.p):"null")+",\""+std::string(prefix)+"visible\":"+(g.v_ok?rect(g.v):"null");
+}
+std::string delta_fields(POINT cursor){
+    POINT anchor{};{std::lock_guard lock(continuation_mutex);anchor=intent_pointer;}
+    return ",\"cursor_delta\":["+std::to_string(static_cast<std::int64_t>(cursor.x)-anchor.x)+","+std::to_string(static_cast<std::int64_t>(cursor.y)-anchor.y)+"]";
+}
+struct OwnerProof {POINT cursor{};std::string fields;bool healthy{};};
+OwnerProof owner_proof(bool require_held){
+    OwnerProof proof;
+    const bool own=identity(),desktop=desktop_available(),visible=own&&IsWindowVisible(owned);
+    const HWND foreground=GetForegroundWindow();DWORD pid{};const DWORD tid=GetWindowThreadProcessId(foreground,&pid);
+    GUITHREADINFO gui{sizeof(gui)};const bool query=GetGUIThreadInfo(ui_thread,&gui)!=FALSE;
+    const bool cursor_ok=GetCursorPos(&proof.cursor)!=FALSE;
+    const HWND root=cursor_ok?GetAncestor(WindowFromPoint(proof.cursor),GA_ROOT):nullptr;
+    const bool held=pressed(VK_LBUTTON),clean=!other_input();bool up{};
+    {std::lock_guard lock(continuation_mutex);up=raw_up_seen;}
+    const UINT dpi=own?GetDpiForWindow(owned):0;const auto monitor=MonitorFromWindow(owned,MONITOR_DEFAULTTONULL);
+    proof.healthy=own&&desktop&&visible&&foreground==owned&&pid==GetCurrentProcessId()&&tid==ui_thread&&GetForegroundWindow()==foreground
+        &&query&&!gui.hwndCapture&&!gui.hwndMenuOwner&&!gui.hwndMoveSize&&!(gui.flags&30)&&cursor_ok&&input_root_owned(root)&&clean
+        &&(!require_held||(held&&!up))&&receiver_ok&&takeover_healthy&&!foreign_capture_transferred&&dpi==frozen_dpi&&monitor==frozen_monitor;
+    proof.fields=",\"target\":"+std::to_string(number(owned))+",\"guard\":"+std::to_string(number(guard))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)
+        +",\"own_identity\":"+flag(own)+",\"desktop_ready\":"+flag(desktop)+",\"source_visible\":"+flag(visible)+",\"foreground\":"+std::to_string(number(foreground))+",\"foreground_pid\":"+std::to_string(pid)+",\"foreground_tid\":"+std::to_string(tid)
+        +",\"gui_query_succeeded\":"+flag(query)+",\"capture_hwnd\":"+std::to_string(number(gui.hwndCapture))+",\"menu_owner_hwnd\":"+std::to_string(number(gui.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(gui.hwndMoveSize))+",\"gui_flags\":"+std::to_string(gui.flags)
+        +",\"buttons_modifiers_clear\":"+flag(clean)+",\"left_down\":"+flag(held)+",\"receiver_healthy\":"+flag(receiver_ok)+",\"raw_up_seen\":"+flag(up)+",\"cursor_root\":"+std::to_string(number(root))+",\"dpi\":"+std::to_string(dpi)+",\"monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(monitor));
+    return proof;
+}
+struct WriteReceipt {std::uint64_t id{};int native_calls{};};
+WriteReceipt write_intended(const char* kind,std::uint64_t quantum,const RawPacket& raw,std::uint32_t first,const OwnerProof& proof){
+    require(proof.healthy&&native_end_qpc&&native_drag_after_return==0&&native_drag_after_end==0&&unowned_geometry_changes==0,"takeover_authority_failed");
+    const auto before=capture(),target=intended_at(proof.cursor);
+    require(before.p_ok&&before.v_ok&&equal(before.p,expected_live.p)&&equal(before.v,expected_live.v),"post_end_unattributed_geometry_change");
+    const bool mismatch=!equal(before.p,target.p)||!equal(before.v,target.v);
+    const auto id=++operation_counter;
+    record("writer_begin",",\"operation_id\":"+std::to_string(id)+",\"quantum_id\":"+std::to_string(quantum)+",\"kind\":\""+kind+"\",\"raw_first_sequence\":"+std::to_string(first)+",\"raw_last_sequence\":"+std::to_string(raw.serial)+",\"raw_trigger_qpc\":"+std::to_string(raw.observed_qpc)
+        +",\"cursor\":"+point(proof.cursor)+delta_fields(proof.cursor)+named_geometry(target,"intended_")+named_geometry(before,"before_")+named_geometry(expected_live,"expected_before_")+",\"native_calls\":"+std::to_string(mismatch?1:0)+",\"end_qpc\":"+std::to_string(native_end_qpc.load())+proof.fields);
+    std::int64_t started{},returned{};BOOL succeeded=TRUE;DWORD error{};
+    if(mismatch){
+        // Serialize the owner commit against publication of terminal UP. The
+        // independent receiver QPC remains authoritative: a physically earlier
+        // UP cannot be made acceptable by a later parent publication/log row.
+        std::lock_guard lock(continuation_mutex);require(!raw_up_seen,"raw_up_before_write");
+        require(identity()&&GetForegroundWindow()==owned&&pressed(VK_LBUTTON)&&!other_input()&&takeover_healthy,"write_boundary_context_lost");
+        inflight_target=target;active_operation=id;started=qpc();
+        require(started>native_end_qpc,"write_before_native_end");SetLastError(0);++takeover_native_calls;
+        succeeded=SetWindowPos(owned,nullptr,target.p.left,target.p.top,target.p.right-target.p.left,target.p.bottom-target.p.top,SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOOWNERZORDER);
+        error=succeeded?0:GetLastError();returned=qpc();expected_live=target;active_operation=0;
+    }
+    const auto immediate=capture(),full=capture();
+    ops::MagnetPostverifyDiagnostic diagnostic;
+    diagnostic.native_success=succeeded!=FALSE;diagnostic.win32_error=error;diagnostic.capture_succeeded=immediate.p_ok&&immediate.v_ok;
+    diagnostic.requested_positioning=core_rect(target.p);diagnostic.requested_visible=core_rect(target.v);
+    if(immediate.p_ok)diagnostic.actual_positioning=core_rect(immediate.p);if(immediate.v_ok)diagnostic.actual_visible=core_rect(immediate.v);
+    diagnostic.other_members_exact=true;diagnostic.receipt_health=receiver_ok&&takeover_healthy&&native_drag_after_end==0&&unowned_geometry_changes==0;
+    GUITHREADINFO post_gui{sizeof(post_gui)};
+    diagnostic.source_context_exact=identity()&&desktop_available()&&IsWindowVisible(owned)&&GetForegroundWindow()==owned&&GetDpiForWindow(owned)==frozen_dpi&&MonitorFromWindow(owned,MONITOR_DEFAULTTONULL)==frozen_monitor
+        &&GetGUIThreadInfo(ui_thread,&post_gui)&&!post_gui.hwndCapture&&!post_gui.hwndMenuOwner&&!post_gui.hwndMoveSize&&!(post_gui.flags&30)&&!other_input()&&!foreign_capture_transferred;
+    diagnostic.classify();
+    const bool exact=diagnostic.failure_class==ops::MagnetPostverifyFailure::None&&full.p_ok&&full.v_ok&&equal(full.p,target.p)&&equal(full.v,target.v);
+    record("writer_result",",\"operation_id\":"+std::to_string(id)+",\"quantum_id\":"+std::to_string(quantum)+",\"kind\":\""+kind+"\",\"native_calls\":"+std::to_string(mismatch?1:0)+",\"native_success\":"+flag(succeeded!=FALSE)+",\"error\":"+std::to_string(error)
+        +",\"native_start_qpc\":"+std::to_string(started)+",\"native_return_qpc\":"+std::to_string(returned)+geometry(immediate)+",\"positioning_exact\":"+flag(diagnostic.positioning_exact)+",\"visible_exact\":"+flag(diagnostic.visible_exact)+",\"postverify_exact\":"+flag(exact)+",\"diagnostic\":"+ops::magnet_postverify_json(diagnostic)+named_geometry(full,"full_"));
+    require(exact,"takeover_exact_postverify_failed");expected_live=target;return {id,mismatch?1:0};
+}
+void process_handoff(){
+    require(!handoff_ready&&takeover_scope&&native_end_qpc,"handoff_without_end_or_duplicate");
+    const auto proof=owner_proof(true);const auto actual=capture();Geometry terminal;
+    {std::lock_guard lock(continuation_mutex);terminal=terminal_geometry;}
+    require(proof.healthy&&actual.p_ok&&actual.v_ok&&equal(actual.p,terminal.p)&&equal(actual.v,terminal.v),"handoff_terminal_stability_failed");
+    const auto target=intended_at(proof.cursor);
+    record("handoff_begin",",\"end_sequence\":"+std::to_string(native_end_sequence.load())+",\"end_qpc\":"+std::to_string(native_end_qpc.load())+",\"current_cursor\":"+point(proof.cursor)+delta_fields(proof.cursor)+named_geometry(actual,"actual_handoff_")+named_geometry(target,"intended_")+",\"raw_watermark\":"+std::to_string(receiver_watermark.load())+proof.fields);
+    const RawPacket no_raw;
+    const auto receipt=write_intended("handoff",0,no_raw,0,proof);
+    bool notify=false;
+    {std::lock_guard lock(continuation_mutex);motion_pending=false;pending_count=0;consumed_motion=pending_motion.serial;
+        handoff_ready=true;if(raw_up_seen&&!notice_posted){notice_posted=true;notify=true;}}
+    record("handoff_complete",",\"operation_id\":"+std::to_string(receipt.id)+",\"native_calls\":"+std::to_string(receipt.native_calls)+",\"exact\":true,\"end_qpc\":"+std::to_string(native_end_qpc.load()));
+    if(notify)require(PostMessageW(owned,raw_notice_message,0,0)!=FALSE,"handoff_terminal_notice_failed");
+    SetEvent(handoff_finished);
+}
+void process_raw_notice(){
+    RawPacket motion,up;std::uint32_t first{},count{};bool ending=false,has_motion=false;
+    {std::lock_guard lock(continuation_mutex);notice_posted=false;if(!takeover_scope)return;
+        ending=raw_up_seen;up=published_up;
+        if(!ending&&motion_pending){motion=pending_motion;first=pending_first;count=pending_count;has_motion=true;}
+        motion_pending=false;pending_count=0;
+    }
+    if(ending){
+        const auto proof=owner_proof(false);const auto target=intended_at(proof.cursor);const auto actual=capture();
+        const bool exact=proof.healthy&&actual.p_ok&&actual.v_ok&&equal(actual.p,target.p)&&equal(actual.v,target.v)&&native_drag_after_end==0&&unowned_geometry_changes==0;
+        record("takeover_end",",\"raw_up_receiver_sequence\":"+std::to_string(up.serial)+",\"raw_up_receiver_qpc\":"+std::to_string(up.observed_qpc)+",\"final_cursor\":"+point(proof.cursor)+named_geometry(target,"intended_")+geometry(actual)+",\"exact\":"+flag(exact)+",\"pending_write\":false,\"pending_motion\":false,\"native_drag_after_end\":"+std::to_string(native_drag_after_end.load())+",\"unowned_geometry_changes\":"+std::to_string(unowned_geometry_changes.load())+proof.fields);
+        takeover_scope=false;audit_live=false;require(exact,"takeover_final_geometry_failed");SetEvent(takeover_finished);return;
+    }
+    if(!has_motion||!handoff_ready||motion.serial<=consumed_motion||motion.observed_qpc<=native_end_qpc)return;
+    const auto quantum=++quantum_counter;const auto proof=owner_proof(true);
+    const auto receipt=write_intended("raw_movement",quantum,motion,first,proof);consumed_motion=motion.serial;
+    record("raw_quantum",",\"quantum_id\":"+std::to_string(quantum)+",\"raw_first_sequence\":"+std::to_string(first)+",\"raw_last_sequence\":"+std::to_string(motion.serial)+",\"raw_trigger_qpc\":"+std::to_string(motion.observed_qpc)+",\"coalesced_count\":"+std::to_string(count)+",\"cursor\":"+point(proof.cursor)+",\"operation_id\":"+std::to_string(receipt.id)+",\"native_calls\":"+std::to_string(receipt.native_calls));
+    owner_processed_sequence=motion.serial;SetEvent(quantum_finished);
+}
 void acquire_foreground(POINT& expected){
     if(set_foreground_success){
         try{foreground_ready();emit_bootstrap(true,"none");return;}
@@ -455,6 +649,60 @@ POINT find_point(const RECT& r,int wanted){
     }
     throw std::runtime_error("BLOCKED_BY_HIT_TEST");
 }
+void drive_end_gesture(POINT& expected,bool& down){
+    gesture=selected_gesture;cancelled=false;cancel_pending=false;cancel_return_boundary=0;native_drag_after_return=0;
+    ResetEvent(entered);ResetEvent(exited);ResetEvent(stepped);ResetEvent(nonclient_down);ResetEvent(raw_up);
+    const auto initial=capture();require(initial.p_ok&&initial.v_ok&&contained(initial.p),"setup_geometry_unavailable");
+    const int wanted=selected_gesture==1?HTCAPTION:HTBOTTOM;const POINT start=find_point(initial.p,wanted);
+    fence(expected,false);inject(MOUSEEVENTF_MOVE,start);expected=start;pace(interval_ms);
+    fence(expected,false);require(hit_test(start)==wanted&&GetAncestor(WindowFromPoint(start),GA_ROOT)==owned,"BLOCKED_BY_HIT_TEST");
+    const POINT end{start.x+(selected_gesture==1?180:0),start.y+(selected_gesture==2?120:0)};
+    record("path",",\"hit_test\":"+std::to_string(wanted)+",\"start\":"+point(start)+",\"end\":"+point(end)+",\"samples\":20,\"cancel_after_sample\":2,\"interval_ms\":30,\"foreground\":"+std::to_string(number(GetForegroundWindow()))+geometry(initial));
+    {std::lock_guard lock(continuation_mutex);pending_motion={};published_up={};motion_pending=false;raw_up_seen=false;notice_posted=false;pending_count=0;}
+    takeover_scope=true;
+    inject(MOUSEEVENTF_LEFTDOWN,expected);down=true;
+    require(WaitForSingleObject(nonclient_down,2000)==WAIT_OBJECT_0,"missing_native_mouse_down");
+    for(int sample=1;sample<=2;++sample){
+        pace(interval_ms);fence(expected,true,sample==1&&WaitForSingleObject(entered,0)!=WAIT_OBJECT_0,false);
+        ResetEvent(stepped);const int before=callbacks;
+        expected={start.x+(end.x-start.x)*sample/samples,start.y+(end.y-start.y)*sample/samples};
+        ResetEvent(raw_motion);const auto receipt=inject(MOUSEEVENTF_MOVE,expected);wait_raw_motion(expected,receipt);
+        if(sample==1)require(WaitForSingleObject(entered,2000)==WAIT_OBJECT_0,"missing_ENTER");
+        require(WaitForSingleObject(stepped,2000)==WAIT_OBJECT_0&&callbacks>before,"missing_DRAG");
+        pace(interval_ms);fence(expected,true);
+        record("sample",",\"index\":"+std::to_string(sample)+",\"cursor\":"+point(expected)+",\"left_down\":true,\"post_cancel\":false"+geometry(capture()));
+    }
+    Geometry anchored;POINT pointer{};{std::lock_guard lock(continuation_mutex);anchored=intent_start;pointer=intent_pointer;}
+    require(anchored.p_ok&&anchored.v_ok&&equal(anchored.p,initial.p)&&equal(anchored.v,initial.v)&&pointer.x==start.x&&pointer.y==start.y,"native_start_anchor_mismatch");
+    GUITHREADINFO gui{sizeof(gui)};require(GetGUIThreadInfo(ui_thread,&gui)&&gui.hwndCapture==owned,"cancel_capture_before_failed");fence(expected,true);
+    cancelled=true;const auto issued=qpc();
+    record("cancel_begin",",\"target\":"+std::to_string(number(owned))+",\"source_tid\":"+std::to_string(ui_thread)+",\"capture_before\":"+std::to_string(number(gui.hwndCapture))+",\"left_down\":true");
+    DWORD_PTR recipient{};SetLastError(0);
+    const auto sent=SendMessageTimeoutW(owned,WM_CANCELMODE,0,0,SMTO_ABORTIFHUNG|SMTO_ERRORONEXIT,1000,&recipient);const auto error=sent?0:GetLastError();const auto returned=qpc();cancel_return_boundary=returned;
+    const bool query=GetGUIThreadInfo(ui_thread,&gui)!=FALSE;
+    record("cancel_return",",\"transport_success\":"+flag(sent!=0)+",\"error\":"+std::to_string(error)+",\"recipient_result\":"+std::to_string(recipient)+",\"issued_qpc\":"+std::to_string(issued)+",\"returned_qpc\":"+std::to_string(returned)+",\"gui_query_succeeded\":"+flag(query)+",\"capture_after\":"+std::to_string(number(gui.hwndCapture))+",\"left_down\":"+flag(pressed(VK_LBUTTON))+geometry(capture()));
+    require(sent!=0,"cancel_transport_failed");require(query&&!gui.hwndCapture,"cancel_capture_not_released");
+    const auto wait_start=qpc();const auto wait=WaitForSingleObject(exited,2000);const auto wait_end=qpc();
+    record("end_wait",",\"started_qpc\":"+std::to_string(wait_start)+",\"finished_qpc\":"+std::to_string(wait_end)+",\"timeout_ms\":2000,\"wait_result\":"+std::to_string(wait));
+    require(wait==WAIT_OBJECT_0,"missing_native_END");require(native_drag_after_return==0&&native_drag_after_end==0,"native_drag_after_cancel_or_end");
+    require(PostMessageW(owned,handoff_message,0,0),"handoff_post_failed");
+    require(WaitForSingleObject(handoff_finished,2000)==WAIT_OBJECT_0&&handoff_ready&&takeover_healthy,"handoff_completion_failed");
+    for(int sample=3;sample<=samples;++sample){
+        pace(interval_ms);fence(expected,true,false,true);require(takeover_healthy,"takeover_observer_failure");
+        expected={start.x+(end.x-start.x)*sample/samples,start.y+(end.y-start.y)*sample/samples};
+        ResetEvent(raw_motion);ResetEvent(quantum_finished);const auto receipt=inject(MOUSEEVENTF_MOVE,expected);
+        wait_raw_motion(expected,receipt);
+        require(WaitForSingleObject(quantum_finished,2000)==WAIT_OBJECT_0&&takeover_healthy,"raw_quantum_completion_failed");
+        require(owner_processed_sequence>receipt.watermark,"raw_quantum_receipt_mismatch");
+        pace(interval_ms);fence(expected,true,false,true);POINT current{};require(GetCursorPos(&current),"sample_cursor_failed");
+        const auto intended=intended_at(current),actual=capture();const bool exact=actual.p_ok&&actual.v_ok&&equal(actual.p,intended.p)&&equal(actual.v,intended.v);
+        record("sample",",\"index\":"+std::to_string(sample)+",\"cursor\":"+point(current)+",\"left_down\":true,\"post_cancel\":true,\"intended_positioning\":"+rect(intended.p)+",\"intended_visible\":"+rect(intended.v)+",\"exact\":"+flag(exact)+geometry(actual));
+        require(exact,"takeover_cursor_authority_lag_or_geometry_mismatch");
+    }
+    fence(expected,true,false,true);const auto up=inject(MOUSEEVENTF_LEFTUP,expected);down=false;wait_raw_up(up);
+    require(WaitForSingleObject(takeover_finished,2000)==WAIT_OBJECT_0&&takeover_healthy,"takeover_end_failed");
+    pace(interval_ms);fence(expected,false,false,true);record("path_complete",geometry(capture()));
+}
 void drive(){
     bool down=false;POINT expected=saved_cursor;
     try {
@@ -482,7 +730,8 @@ void drive(){
             +",\"up_wait_result\":"+std::to_string(up_wait)+",\"up_wait_started_qpc\":"+std::to_string(up_started)+",\"up_wait_finished_qpc\":"+std::to_string(up_finished)+",\"up_timeout_ms\":2000,\"raw_up_observed\":"+flag(up_wait==WAIT_OBJECT_0));
         require(receiver_ok,"BLOCKED_BY_RAW_RECEIVER_ERROR");require(up_wait==WAIT_OBJECT_0,"RAW_PREFLIGHT_MISSING_UP");
         record("raw_preflight_complete",",\"movement_count\":"+std::to_string(raw_movements.load())+",\"up_count\":"+std::to_string(raw_ups.load()));
-        for(int kind=1;kind<=2;++kind){
+        if(end_mode)drive_end_gesture(expected,down);
+        else for(int kind=1;kind<=2;++kind){
             gesture=kind;cancelled=false;cancel_pending=false;cancel_return_boundary=0;native_drag_after_return=0;callbacks=0;ResetEvent(entered);ResetEvent(exited);ResetEvent(stepped);ResetEvent(nonclient_down);ResetEvent(raw_up);
             const auto initial=capture();require(initial.p_ok&&initial.v_ok&&contained(initial.p),"setup_geometry_unavailable");
             Geometry cancel_geometry;
@@ -550,6 +799,7 @@ void drive(){
         restored=true;driver_pass=true;
     }catch(const std::exception& e){
         failure=e.what();record("blocked",",\"reason\":\""+failure+"\"");
+        takeover_scope=false;
         ResetEvent(receiver_armed); // cleanup packets cannot extend acceptance
         GUITHREADINFO gui{sizeof(gui)};POINT current{};
         if(down&&!foreign_capture_transferred&&identity()&&desktop_available()&&GetForegroundWindow()==owned&&GetGUIThreadInfo(ui_thread,&gui)&&GetCursorPos(&current)){
@@ -571,14 +821,20 @@ void drive(){
 int receiver_main(int argc,wchar_t** argv);
 int wmain(int argc,wchar_t** argv){
     if(argc==5&&std::wstring_view(argv[1])==L"--raw-receiver")return receiver_main(argc,argv);
-    if(argc!=4||std::wstring_view(argv[1])!=L"--run-owned-cancel-test"||std::wstring_view(argv[2])!=L"--evidence-log"){
-        std::cout<<"Explicit test only: --run-owned-cancel-test --evidence-log NEW_FILE\n";return 2;
+    end_mode=argc==6&&std::wstring_view(argv[1])==L"--run-owned-takeover-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log";
+    if(end_mode){
+        if(std::wstring_view(argv[3])==L"move")selected_gesture=1;
+        else if(std::wstring_view(argv[3])==L"bottom-resize")selected_gesture=2;
+        else return 2;
+    }else if(argc!=4||std::wstring_view(argv[1])!=L"--run-owned-cancel-test"||std::wstring_view(argv[2])!=L"--evidence-log"){
+        std::cout<<"Explicit test only: --run-owned-cancel-test --evidence-log NEW_FILE\n"
+                 <<"Or --run-owned-takeover-test --gesture move|bottom-resize --evidence-log NEW_FILE\n";return 2;
     }
-    log_file=CreateFileW(argv[3],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    log_file=CreateFileW(argv[end_mode?5:3],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(log_file==INVALID_HANDLE_VALUE)return 2;
     timer=CreateWaitableTimerW(nullptr,FALSE,nullptr);ui_thread=GetCurrentThreadId();
     LARGE_INTEGER frequency{};QueryPerformanceFrequency(&frequency);
-    record("startup",",\"evidence_kind\":\"automated_owned_cancel\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\"cancel_only\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_global_foreground_v2\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart));
+    record("startup",",\"evidence_kind\":\""+std::string(end_mode?"automated_owned_end_handoff":"automated_owned_cancel")+"\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\""+(end_mode?"free_takeover":"cancel_only")+"\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_global_foreground_v2\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)+(end_mode?",\"handoff_contract\":\"end_barrier_v1\",\"operation\":\""+std::string(selected_gesture==1?"Move":"BottomResize")+"\"":""));
     int result=2;
     try {
         require(timer&&desktop_available(),"BLOCKED_BY_INTERACTIVE_DESKTOP");
@@ -610,7 +866,9 @@ int wmain(int argc,wchar_t** argv){
         entered=CreateEventW(nullptr,TRUE,FALSE,nullptr);exited=CreateEventW(nullptr,TRUE,FALSE,nullptr);stepped=CreateEventW(nullptr,TRUE,FALSE,nullptr);
         activation_event=CreateEventW(nullptr,TRUE,FALSE,nullptr);pointer_arrived=CreateEventW(nullptr,TRUE,FALSE,nullptr);nonclient_down=CreateEventW(nullptr,TRUE,FALSE,nullptr);correction_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);driver_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);
         activation_down_received=CreateEventW(nullptr,TRUE,FALSE,nullptr);activation_up_received=CreateEventW(nullptr,TRUE,FALSE,nullptr);
+        handoff_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);quantum_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);takeover_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);
         require(entered&&exited&&stepped&&activation_event&&pointer_arrived&&nonclient_down&&correction_finished&&driver_finished&&activation_down_received&&activation_up_received,"event_creation_failed");
+        require(handoff_finished&&quantum_finished&&takeover_finished,"continuation_event_creation_failed");
         start_receiver();
         STARTUPINFOW startup{sizeof(startup)};GetStartupInfoW(&startup);
         ShowWindow(owned,SW_SHOWNOACTIVATE);
@@ -621,7 +879,8 @@ int wmain(int argc,wchar_t** argv){
         if(!IsWindowVisible(owned))ShowWindow(owned,SW_SHOWNOACTIVATE);
         bootstrap.attempted=true;const BOOL activated=SetForegroundWindow(owned);set_foreground_success=activated!=FALSE;UpdateWindow(owned);
         record("foreground_attempt",",\"target\":"+std::to_string(number(owned))+",\"foreground\":"+std::to_string(number(GetForegroundWindow()))+",\"source_thread_local_active\":"+std::to_string(number(GetActiveWindow()))+",\"source_thread_local_focus\":"+std::to_string(number(GetFocus()))+",\"set_foreground_success\":"+flag(activated!=FALSE)+",\"visible\":"+flag(IsWindowVisible(owned)!=FALSE));
-        record("owned",",\"hwnd\":"+std::to_string(number(owned))+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(ui_thread)+",\"saved_cursor\":"+point(saved_cursor)+",\"work_area\":"+rect(work_area)+",\"dpi\":"+std::to_string(GetDpiForWindow(owned))+geometry(capture())+",\"virtual_screen\":"+rect(virtual_area));
+        frozen_dpi=GetDpiForWindow(owned);frozen_monitor=MonitorFromWindow(owned,MONITOR_DEFAULTTONULL);
+        record("owned",",\"hwnd\":"+std::to_string(number(owned))+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(ui_thread)+",\"saved_cursor\":"+point(saved_cursor)+",\"work_area\":"+rect(work_area)+",\"dpi\":"+std::to_string(frozen_dpi)+geometry(capture())+",\"virtual_screen\":"+rect(virtual_area)+(end_mode?",\"monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(frozen_monitor)):""));
         std::thread driver{drive};MSG message{};bool owner_ok=true;
         bool quit=false;while(!quit){
             const DWORD wait=MsgWaitForMultipleObjects(1,&driver_finished,FALSE,15000,QS_ALLINPUT);
@@ -633,8 +892,8 @@ int wmain(int argc,wchar_t** argv){
     }catch(const std::exception& e){failure=e.what();emit_bootstrap(false,e.what());record("blocked",",\"reason\":\""+failure+"\"");if(identity())DestroyWindow(owned);}
     stop_receiver();if(guard)DestroyWindow(guard);
     if(!receiver_ok||!receiver_removed||!receiver_destroyed)result=2;
-    record("shutdown",",\"result\":\""+std::string(result==0?"CAPTURED_NOT_ACCEPTED":"BLOCKED")+"\",\"cursor_restored\":"+flag(restored)+",\"owned_window_destroyed\":"+flag(!IsWindow(owned))+",\"guard_window_destroyed\":"+flag(!IsWindow(guard))+",\"receiver_stopped\":"+flag(receiver_ok&&receiver_removed&&receiver_destroyed)+",\"external_windows_touched\":false");
-    for(HANDLE handle:{entered,exited,stepped,timer,activation_event,pointer_arrived,nonclient_down,correction_finished,driver_finished,activation_down_received,activation_up_received})if(handle)CloseHandle(handle);
+    record("shutdown",",\"result\":\""+std::string(result==0?"CAPTURED_NOT_ACCEPTED":"BLOCKED")+"\",\"cursor_restored\":"+flag(restored)+",\"owned_window_destroyed\":"+flag(!IsWindow(owned))+",\"guard_window_destroyed\":"+flag(!IsWindow(guard))+",\"receiver_stopped\":"+flag(receiver_ok&&receiver_removed&&receiver_destroyed)+",\"external_windows_touched\":false"+(end_mode?",\"takeover_geometry_writes\":"+std::to_string(takeover_native_calls.load()):""));
+    for(HANDLE handle:{entered,exited,stepped,timer,activation_event,pointer_arrived,nonclient_down,correction_finished,driver_finished,activation_down_received,activation_up_received,handoff_finished,quantum_finished,takeover_finished})if(handle)CloseHandle(handle);
     const bool evidence_ok=log_ok;CloseHandle(log_file);return evidence_ok?result:2;
 }
 int receiver_main(int,wchar_t** argv){

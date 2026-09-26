@@ -1,5 +1,49 @@
 # Source Provenance Register
 
+## R1-C4B Architecture Pivot 1 Fix B — 2026-09-26
+
+Starting HEAD: `e381b998d9e3eded051fbc859893633e8633ebee`.
+Applicable subsystem: true native END barrier, original-intent anchors,
+source-only owned handoff, checked frame bridge and exact readback. See
+[Fix B END-barrier research](R1C4B_PIVOT1_FIXB_END_BARRIER.md).
+Old Fix A records/logs/verdicts are preserved under their old return-baseline
+contract; Fix B does not accept them retroactively as a takeover result.
+
+Official Microsoft Learn primary live pages actually read in Fix B; no
+immutable document revision asserted; Microsoft site terms; links/paraphrases
+only, no platform examples copied/adapted:
+
+- [WM_EXITSIZEMOVE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-exitsizemove)
+- [WM_CANCELMODE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-cancelmode)
+- [SendMessageTimeoutW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw)
+- [Event Constants](https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants)
+- [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
+- [GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
+- [DwmGetWindowAttribute](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmgetwindowattribute)
+- [DWMWINDOWATTRIBUTE](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)
+- [GetCursorPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcursorpos)
+- [RAWMOUSE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawmouse)
+
+Lessons: send-handler completion is not modal-loop END; actual owned
+WM_EXITSIZEMOVE and future foreign EVENT_SYSTEM_MOVESIZEEND are distinct witness
+paths. User-authorized pre-END terminal settlement does not reset the intent
+anchor. Current Raw-triggered cursor is not packet-time trajectory. P/V are
+different coordinate domains; the official DWM query contract does not publish
+a synchronous SetWindowPos visibility guarantee or a PaneBind retry policy.
+
+Existing local prior-art/provenance/history records were read and reused,
+not new upstream inspections: AltSnap mature/GPL-3.0-or-later reference-only
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`; FancyZones mature/MIT reference-only
+`19c4d805321db86f3634e6968e14dbf25cbba14a`, exact modules/history and retrieval
+limits remain the Pivot 1 record. PaneBind's own checked frame arithmetic,
+postverify diagnostic/classifier/tests and Explorer bridge were inspected;
+no magnet_postverify_policy.* existed at this starting baseline, so no false
+async-policy inspection/reuse claim is made. No external project added.
+Code copied/adapted/translated: NO/NO/NO. Attribution required: retain research
+citations; no new code obligation. Research PASS applies only to the independent
+strict-exact owned probe, not product readiness, native behavior, full repetition,
+Explorer authority or subjective flicker. WH_MOUSE_LL remains research-only.
+
 Fix A additional read-only environment diagnosis, 2026-09-26: Microsoft Learn
 [WTSINFOEX_LEVEL1_W](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoex_level1_w)
 and [WTSINFOEXW](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoexw)
