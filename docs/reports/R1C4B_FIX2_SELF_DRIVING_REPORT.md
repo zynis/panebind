@@ -1,5 +1,9 @@
 # R1-C4B Fix 2 — Self-driving native modal probe
 
+历史记录。2026-09-26 的 [Fix 3](R1C4B_FIX3_EXECUTION_REPORT.md) 已取得真实 owned
+modal evidence 并判定架构 REJECTED，取代本报告的当前 UNRESOLVED / foreground blocker
+状态。下文的 Fix 2 执行事实、原始日志与 UNKNOWN 分类保持不变。
+
 2026-09-16。**自驱动 EXE 已实现并从 shell 执行；真实 OS foreground gate 阻断，架构未定。**
 本轮不依赖、不调用 computer-use；未要求 Human 拖动窗口。
 

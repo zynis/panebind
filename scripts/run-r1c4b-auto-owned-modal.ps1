@@ -28,15 +28,24 @@ try {
         & $exe --run-owned-input-test --evidence-log $path
         $code=$LASTEXITCODE
         try {$result=Test-AutoModalEvidence $path}catch{$result=[pscustomobject]@{Result='FAIL';Move='UNKNOWN';Resize='UNKNOWN';Reasons=@($_.Exception.Message)}}
-        $run=[pscustomobject]@{Repetition=$i;Path=$path;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash;ExitCode=$code;Result=$result.Result;Move=$result.Move;Resize=$result.Resize;Reasons=$result.Reasons}
+        $run=[pscustomobject]@{Repetition=$i;Path=$path;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash;ExitCode=$code;Result=$result.Result;Move=$result.Move;Resize=$result.Resize;Reasons=$result.Reasons;
+            ForegroundBootstrap=(Get-AutoField $result 'ForegroundBootstrap');DirectAttempted=[int](Get-AutoField $result 'DirectAttempted');DirectSucceeded=[int](Get-AutoField $result 'DirectSucceeded');ActivationRequired=[int](Get-AutoField $result 'ActivationRequired');ActivationSucceeded=[int](Get-AutoField $result 'ActivationSucceeded');
+            ArchitectureAccepted=($result.Result -ceq 'CAPTURED' -and $result.Move -ceq 'STABLE' -and $result.Resize -ceq 'STABLE')}
         $runs+=$run;$run|ConvertTo-Json -Depth 6 -Compress|Write-Host
         if($code -ne 0 -or $result.Result -ne 'CAPTURED'){break} # no retry / further input after failure
+        if($result.Move -cin @('REASSERTED','IMMEDIATE_REJECTED') -or $result.Resize -cin @('REASSERTED','IMMEDIATE_REJECTED')){break} # Fix 3 architecture STOP
     }
     $unchanged=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash -ceq $hash
     $captured=@($runs|Where-Object Result -eq CAPTURED).Count
     $consistent=@($runs.Move|Select-Object -Unique).Count -eq 1 -and @($runs.Resize|Select-Object -Unique).Count -eq 1
-    $report=[ordered]@{Schema='r1c4b-auto-owned-aggregate/v1';Configuration=$Configuration;DevelopmentRun=[bool]$DevelopmentRun;StartingHEAD=$sha;WorktreeDirty=$dirty;BinarySHA256=$hash;BinaryUnchanged=$unchanged;Requested=$Repetitions;Attempted=$runs.Count;Captured=$captured;Consistent=$consistent;DriverGate=$(if($unchanged -and $captured -eq $Repetitions -and $consistent){'PASS'}else{'FAIL_OR_BLOCKED'});Runs=$runs}
+    $rejected=@($runs|Where-Object {$_.Move -cin @('REASSERTED','IMMEDIATE_REJECTED') -or $_.Resize -cin @('REASSERTED','IMMEDIATE_REJECTED')}).Count -gt 0
+    $accepted=@($runs|Where-Object ArchitectureAccepted -eq $true).Count
+    $architecture=if($rejected){'REJECTED'}elseif($accepted -eq $Repetitions -and $consistent){'STABLE'}else{'UNRESOLVED'}
+    $report=[ordered]@{Schema='r1c4b-auto-owned-aggregate/v1';Configuration=$Configuration;DevelopmentRun=[bool]$DevelopmentRun;StartingHEAD=$sha;WorktreeDirty=$dirty;BinarySHA256=$hash;BinaryUnchanged=$unchanged;Requested=$Repetitions;Attempted=$runs.Count;Captured=$captured;Consistent=$consistent;
+        EvidenceCaptureGate=$(if($unchanged -and $captured -eq $runs.Count){'PASS'}else{'FAIL_OR_BLOCKED'});ArchitectureGate=$architecture;ArchitectureAccepted=$accepted;
+        DirectAttempted=[int](($runs|Measure-Object DirectAttempted -Sum).Sum);DirectSucceeded=[int](($runs|Measure-Object DirectSucceeded -Sum).Sum);ActivationRequired=[int](($runs|Measure-Object ActivationRequired -Sum).Sum);ActivationSucceeded=[int](($runs|Measure-Object ActivationSucceeded -Sum).Sum);
+        DriverGate=$(if($unchanged -and $captured -eq $Repetitions -and $consistent -and $architecture -ceq 'STABLE'){'PASS'}else{'FAIL_OR_BLOCKED'});Runs=$runs}
     $report|ConvertTo-Json -Depth 12|Set-Content -LiteralPath ($prefix+'.aggregate.json') -Encoding UTF8
     Write-Host "AGGREGATE: $prefix.aggregate.json"
-    if($report.DriverGate -ne 'PASS'){exit 2}
+    if($rejected){exit 3};if($report.DriverGate -ne 'PASS'){exit 2}
 } finally {Pop-Location}

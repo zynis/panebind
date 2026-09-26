@@ -1,5 +1,67 @@
 # Source Provenance Register
 
+## R1-C4B Fix 3 verified foreground test — 2026-09-26
+
+Base: `167be83db73f62bf6cc0e0691ab88697fc08871c`. See
+[Fix 3 focused research](R1C4B_FIX3_VERIFIED_FOREGROUND.md) for exact links,
+inspection limits, contract interpretation and the test-only research gate.
+
+AltSnap, https://github.com/RamonUnch/AltSnap, mature maintained,
+GPL-3.0-or-later **REFERENCE ONLY**, exact locally verified pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`: License.txt, hooks.c GPL header,
+ReallySetForegroundWindow / SetForegroundWindowL, ActionLower topmost handling,
+CreatePinWindow. Actual local history/diffs inspected:
+`3c69ef9e650c8cf66031550183038980e7109d81`,
+`865a51619975fe02fe9d13549d3e88abdcd6256f`,
+`400eebf04dc651f76b2c1148c63fee7a4b039d8c`; merge
+`bdb881019397195a09da9e00a844612253b67030` identifies PR 756. PR web discussion
+was not retrievable; no discussion-review claim. Lessons: its synthetic Ctrl
+foreground workaround is prohibited here; indicator visibility and activation
+must be separated. No GPL implementation copied, translated or adapted.
+
+PowerToys/FancyZones, https://github.com/microsoft/PowerToys, mature production,
+MIT **REFERENCE ONLY**, exact pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a`: actual pinned WindowMouseSnap.cpp
+and root LICENSE read; PR 48569 and merge diff
+`dd26d86580168d2e368701f7b0c4d629dc9cd9ac` read. Lessons: drag cleanup must not
+steal focused-app input; destroy/abort is not successful END; highlight/end-zone
+placement is not proof of live modal correction authority. Pinned WindowUtils,
+ZonesOverlay and WorkArea retrieval failed with cache-miss and these modules
+were **not re-inspected in Fix 3**. No code copied, translated or adapted; no new
+code attribution obligation. Any future MIT reuse needs a separate decision.
+
+Microsoft Learn live pages, no immutable revision, site terms, facts paraphrased:
+SetForegroundWindow, SetWindowPos, GetClientRect, ClientToScreen, WindowFromPoint,
+GetAncestor, WM_NCHITTEST, GetGUIThreadInfo, GUITHREADINFO, SendInput, MOUSEINPUT,
+WM_MOUSEACTIVATE, WM_ACTIVATE and WM_SETFOCUS. Exact links are in the focused
+research record. Applicable subsystem: isolated test activation input, fresh
+identity/input-state proof, event-driven bounded confirmation and original
+evidence. The research gate permits the explicitly authorized test-only click;
+it does not assert observed success or product foreground authority. Product
+SendInput dependency and foreground force remain NONE. Actual run outcomes are
+reserved for [Fix 3 execution report](../reports/R1C4B_FIX3_EXECUTION_REPORT.md).
+
+Fix 3 alternative-architecture follow-up (same review date/base), research only:
+[A/B/C alternatives](R1C4B_FIX3_ALTERNATIVES.md). Re-inspected local AltSnap at
+the same exact pin: hooks.c LetWindowKickBack, MoveResizeWindowNow_,
+LowLevelMouseProc and WH_MOUSE_LL setup; actual history diff
+`df25d36c6369bb13aa02ec83974e625fc7922c35`. The synthetic sizing/placement and
+custom hook input pipeline are not authority over an ongoing native Explorer
+drag; no GPL code copied or adapted. Reused this round's actually inspected
+FancyZones pin/WindowMouseSnap/LICENSE/PR 48569/merge diff: end placement and
+abort are separate; no claim of a new source inspection or empirical FZ run.
+Additional Microsoft Learn live contracts actually read: WM_MOVING, WM_SIZING,
+SetWindowSubclass, SetWindowLongPtrW, SetWindowsHookExW, Hooks Overview,
+SendMessageW, WM_CANCELMODE, SetCapture, ReleaseCapture, WM_CAPTURECHANGED,
+WM_EXITSIZEMOVE and Event Constants. SetWindowPos contract reused from this
+round's official review. Facts paraphrased under site terms; exact links in the
+alternatives record; no documentation sample copied/adapted. Applicable
+subsystem: architecture feasibility and product-interaction decision only.
+A requires recipient cooperation not established for Explorer under current
+constraints; cancellation does not establish B input ownership; C is a possible
+post-END model with different UX and requires an explicit product decision.
+All alternatives remain unimplemented/unobserved; no new code attribution duty.
+
 ## R1-C4B Fix 2 self-driving test — 2026-09-16
 
 AltSnap, https://github.com/RamonUnch/AltSnap, mature GPL-3.0-or-later,

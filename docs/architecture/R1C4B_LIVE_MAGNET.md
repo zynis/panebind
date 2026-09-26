@@ -1,5 +1,16 @@
 # R1-C4B live Magnet architecture
 
+2026-09-26 Fix 3 current override: **REJECTED / IMPLEMENTATION_READY=NO**.
+Verified direct foreground acquisition enabled one real owned Move and Bottom
+Resize. Both corrections were immediately exact in positioning and visible
+bounds, then the native modal loop reasserted its raw trajectory. This is actual
+authority evidence, unlike the earlier foreground-only blocks. See the
+[Fix 3 execution report](../reports/R1C4B_FIX3_EXECUTION_REPORT.md) and
+[alternatives research](../research/R1C4B_FIX3_ALTERNATIVES.md). Section 19's
+stop gate prevents further modal repetitions, Explorer bootstrap/full gate and
+human UAT. No alternative is implemented or silently substituted. The following
+implementation description is historical, not a validated live architecture.
+
 2026-09-16 Fix 1 override: **UNRESOLVED / IMPLEMENTATION_READY=NO**.
 Human evidence showed native success with nonexact positioning and visible
 geometry; ordinary owned placement was not modal authority proof. See
@@ -7,7 +18,7 @@ geometry; ordinary owned placement was not modal authority proof. See
 requires a SHA-bound real Explorer automated gate before independent review
 and human subjective UAT. The former human handoff is suspended.
 
-Fix 2 adds a self-driving owned test EXE, independent of computer-use. Its
+Historical Fix 2 adds a self-driving owned test EXE, independent of computer-use. Its
 Debug/Release runs were blocked **before input** by actual foreground denial;
 authority remains UNKNOWN, not REJECTED or VALID. See
 [Fix 2 report](../reports/R1C4B_FIX2_SELF_DRIVING_REPORT.md). Product code and the
@@ -140,7 +151,8 @@ synthetic positive/negative evidence. Full Debug/Release, all old runners and
 C4A capture/console regression. Stop on recursive writes, oscillation, runaway
 queues, authority bypass or Ctrl Resize writes. No fabricated performance SLA.
 
-C4B live experience and both human seals remain PENDING/NOT_RUN at handoff.
+C4B further live experience and both human seals are blocked by the Fix 3
+architecture rejection; no new human run is permitted at handoff.
 Screen live Magnet OFF; other apps, mixed monitor/DPI, elevated, C4C, C4D,
 Smart Docking, AquaStretch, z-order grouping and product UI remain out of scope.
 
@@ -151,7 +163,8 @@ feedback entry requires LOCATION explicitly. Equal/unordered provider ticks
 cannot ACK; known corrected geometry is never recycled as raw solver input.
 An identical raw rectangle reasserted after a correction aborts rather than
 producing a recursive operation storm. Real Explorer modal-loop behavior and
-the practical frequency of that conservative abort still need human UAT.
+the practical frequency of that conservative abort are NOT TESTED; Fix 3 blocks
+further human UAT rather than asking users to investigate the architecture.
 
 A proposal superseded by a newer source snapshot before native entry is
 discarded without pending registration or a write. Only a new native receipt

@@ -17,9 +17,12 @@ Move/Resize magnetic correction and existing Ctrl Glue Move, with separate
 explicit consent. C4A implementation/review is complete; its human final seal
 is deferred to C4B integrated UAT. C4B pure Core and ordinary owned integration
 are automatically tested, but the first human run failed exact placement.
-The [Fix 2 authority gate](docs/reports/R1C4B_FIX2_SELF_DRIVING_REPORT.md) is
-UNRESOLVED; implementation is NOT READY. A real Explorer automated interaction
-gate plus independent review is required before any further human UAT. C4C Glue Resize
+The [Fix 3 authority gate](docs/reports/R1C4B_FIX3_EXECUTION_REPORT.md) is
+REJECTED: the first real owned Move and Bottom Resize both reasserted the raw
+native trajectory after an immediately exact correction. Implementation is
+NOT READY; further automated interaction and human UAT are stopped. The
+[alternatives research](docs/research/R1C4B_FIX3_ALTERNATIVES.md) requires an
+explicit architecture/product decision before a new implementation gate. C4C Glue Resize
 and C4D relation affordance remain pending. Screen-edge live Magnet, other apps,
 mixed-DPI/monitor operation and product UI are outside this branch's scope.
 
