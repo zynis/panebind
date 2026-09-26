@@ -1,5 +1,14 @@
 # R1-C4B live Magnet architecture
 
+2026-09-26 Pivot 1 research override: ConcurrentNativeLoopCorrection remains
+**REJECTED**; the separate, explicitly authorized CancelNativeLoopAndTakeOverInput
+candidate is **UNRESOLVED**. Its independent owned cancel-only probe has three
+development observations, blocked before native ENTER/cancel. Raw background
+receipt was observed once, but complete input/activation prerequisites were not
+proved. No takeover writer or Explorer experiment was implemented/executed.
+See [Pivot 1 execution report](../reports/R1C4B_PIVOT1_EXECUTION_REPORT.md).
+Human UAT remains NOT_READY; this research does not restore product READY.
+
 2026-09-26 Fix 3 current override: **REJECTED / IMPLEMENTATION_READY=NO**.
 Verified direct foreground acquisition enabled one real owned Move and Bottom
 Resize. Both corrections were immediately exact in positioning and visible
@@ -8,7 +17,7 @@ authority evidence, unlike the earlier foreground-only blocks. See the
 [Fix 3 execution report](../reports/R1C4B_FIX3_EXECUTION_REPORT.md) and
 [alternatives research](../research/R1C4B_FIX3_ALTERNATIVES.md). Section 19's
 stop gate prevents further modal repetitions, Explorer bootstrap/full gate and
-human UAT. No alternative is implemented or silently substituted. The following
+human UAT. No product alternative is implemented or silently substituted. The following
 implementation description is historical, not a validated live architecture.
 
 2026-09-16 Fix 1 override: **UNRESOLVED / IMPLEMENTATION_READY=NO**.

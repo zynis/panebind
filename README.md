@@ -21,8 +21,13 @@ The [Fix 3 authority gate](docs/reports/R1C4B_FIX3_EXECUTION_REPORT.md) is
 REJECTED: the first real owned Move and Bottom Resize both reasserted the raw
 native trajectory after an immediately exact correction. Implementation is
 NOT READY; further automated interaction and human UAT are stopped. The
-[alternatives research](docs/research/R1C4B_FIX3_ALTERNATIVES.md) requires an
-explicit architecture/product decision before a new implementation gate. C4C Glue Resize
+[alternatives research](docs/research/R1C4B_FIX3_ALTERNATIVES.md) describes the
+decision boundary. The explicitly authorized
+[Pivot 1 cancel/Raw Input research](docs/reports/R1C4B_PIVOT1_EXECUTION_REPORT.md)
+adds an independent test-only probe; its three development observations stopped
+at input-correlation or owned activation prerequisites. Cancellation remains
+UNKNOWN, takeover/Explorer NOT RUN, and the new candidate UNRESOLVED—not rejected
+by an unexecuted cancellation test. Human UAT remains NOT READY. C4C Glue Resize
 and C4D relation affordance remain pending. Screen-edge live Magnet, other apps,
 mixed-DPI/monitor operation and product UI are outside this branch's scope.
 

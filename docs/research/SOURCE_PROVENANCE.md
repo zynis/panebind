@@ -1,5 +1,84 @@
 # Source Provenance Register
 
+## R1-C4B Architecture Pivot 1 — 2026-09-26
+
+Base: `070b05a8f44c8b08503b3643f838a83703495987`. Scope, exact links and
+inspection limits: [Pivot 1 prior art](R1C4B_PIVOT1_PRIOR_ART.md) and
+[Pivot 1 input contracts](R1C4B_PIVOT1_INPUT_CONTRACTS.md). All external sources are reference-only;
+code copied/adapted/translated NO/NO/NO. No new code attribution obligation;
+research citations retained. This is a source/history/contract review, not an
+upstream behavior run or a PaneBind cancellation/takeover acceptance result.
+
+AltSnap, https://github.com/RamonUnch/AltSnap, mature maintained,
+GPL-3.0-or-later **REFERENCE ONLY**, locally verified exact pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`: License.txt, hooks.c GPL header,
+WorkerThread, LetWindowKickBack, MoveResizeWindowNow_, LowLevelMouseProc,
+HookMouse and NO_HOOK_LL polling branch. Read issue 572 and PR 609; actual local
+commit diffs `7f4afe59076b70980f71af202f63609ca3ac5745`,
+`df25d36c6369bb13aa02ec83974e625fc7922c35`,
+`8a5c422928d37d34e63cb8b99d4a74e14cb955f0` (altsnap.c DLL lifetime).
+Lessons: custom input/movement and native-loop concurrent correction differ;
+coalesced worker movement can bound work; synthetic lifecycle can interact with
+other managers; own-process callback DLL is not proof of foreign injection.
+Its polling/Sleep paths and GPL implementation are not implementation templates.
+Applicable subsystem: bounded input owner and cancel/takeover probe research.
+No new AltDrag checkout/source inspection this round; historical comparisons
+remain their original records, not a new Pivot 1 inspection claim.
+
+PowerToys/FancyZones, https://github.com/microsoft/PowerToys, mature production,
+MIT **REFERENCE ONLY**, immutable pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a`: actual pinned WindowMouseSnap.cpp,
+DraggingState.cpp and root LICENSE read through source URLs. Read PR 48569 and
+actual rendered merge diff `dd26d86580168d2e368701f7b0c4d629dc9cd9ac`; PR 49985
+and actual rendered metadata/test-guidance hunks of merge
+`d68980a81bb8de144bdec998a114e948bf68c563` (not all product hunks).
+Pinned FancyZones.cpp, KeyState.h and KeyboardInput.cpp requests returned cache
+miss; these modules were **not re-inspected in Pivot 1**. Lessons: abort is not
+a completed drop; destroy/invalidation and input delivery proof must survive
+coalescing; drag-end zone Snap is not live cancel/takeover authority. Applicable
+subsystem: probe lifecycle and reliable original evidence. No code copied or
+adapted; future code reuse needs a separate license/provenance decision.
+
+Microsoft Learn live official documents, no immutable revision asserted,
+Microsoft site terms; facts paraphrased, no examples copied/adapted: Raw Input
+Overview, RegisterRawInputDevices, RAWINPUTDEVICE, WM_INPUT, RAWMOUSE,
+GetRawInputData, RAWINPUTHEADER, WM_CANCELMODE, WM_CAPTURECHANGED,
+WM_EXITSIZEMOVE, GetCapture, GetGUIThreadInfo, SendMessageTimeoutW, GetCursorPos,
+GetAsyncKeyState, SendInput, MOUSEINPUT, LowLevelMouseProc, Using Raw Input,
+Window Features (message-only windows), HID Architecture (mouse TLC). Exact links and
+bounded interpretation are in the two focused research records. Additional
+Microsoft Old New Thing primary explanation read:
+[2014-02-13 input queue](https://devblogs.microsoft.com/oldnewthing/20140213-00/?p=1773/).
+Lessons: INPUTSINK supports background event delivery; raw coordinates are not
+accelerated cursor coordinates; same-thread capture must not be confused with
+foreign capture; cancel return value does not prove EXIT; WH_MOUSE_LL itself is
+non-injected; SendInput and system Raw Input Thread do not establish a published
+guarantee of application WM_INPUT. Applicable subsystem: original owned input
+continuity/cancel observations and explicit fail-closed architecture gates.
+
+Pivot 1 additional primary message-contract review (2026-09-26):
+GetMessageW, SendMessageW and About Messages and Message Queues were actually
+read for the bounded existing sample3 cancel-observation stimulus; exact URLs
+and facts/inference boundary are recorded in R1C4B_PIVOT1_PROBE.md. No platform
+sample code copied/adapted. These contracts do not prove a native loop's internal
+implementation or cancellation success; the observation still needs real EXIT
+and post-return no-drag/no-geometry-change evidence.
+
+Pivot 1 owned-bootstrap review (2026-09-26): ShowWindow, GetActiveWindow,
+GetFocus, SetActiveWindow, SetFocus and SetForegroundWindow official live pages
+were actually read. Exact URLs and second attempt's unchanged BLOCKED evidence
+are in the input-contract record. Lesson: calling-queue activation/focus and
+global foreground are distinct; a one-time reset of only empty owned local
+state is not a foreground entitlement or a replacement for real click callbacks.
+No examples copied/adapted; no new attribution obligation. Old Fix 3 behavior
+and evidence remain unchanged.
+
+MsgWaitForMultipleObjects and MsgWaitForMultipleObjectsEx official live pages
+were actually read for bounded UI/receiver message waits; exact URLs and the
+old-message versus MWMO_INPUTAVAILABLE distinction are in the input-contract
+record. No examples copied/adapted. Waiting on actual messages/events is not
+evidence that the unexecuted cancellation or future writer already works.
+
 ## R1-C4B Fix 3 verified foreground test — 2026-09-26
 
 Base: `167be83db73f62bf6cc0e0691ab88697fc08871c`. See
