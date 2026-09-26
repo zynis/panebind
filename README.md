@@ -58,6 +58,16 @@ an input-authority blocker, not a geometry counterexample. Architecture remains
 UNRESOLVED. Old Fix B Move PASS is preserved; Fix C Move, repetitions, Explorer
 and Human UAT are not run. No further interaction or authority changes proceed.
 
+[Pivot 1 Fix D](docs/reports/R1C4B_PIVOT1_FIXD_EXECUTION_REPORT.md) separates
+product gesture authority from synthetic-input isolation and adds a test-only
+post-END, nonactivating owned shield. The first Debug Bottom Resize records a
+full original-anchor trajectory, 18 Raw continuations, actual UP and teardown,
+but the independent validator overflows an Int32 QPC accumulator. Its preserved
+verdict is INVALID_EVIDENCE, not an accepted Resize PASS or a geometry
+counterexample. Further Move, smoke/formal batches, Explorer and human UAT are
+stopped. Old Fix B Move PASS and old Fix C verdicts remain unchanged;
+architecture remains UNRESOLVED. No product shield or Raw Input is implemented.
+
 ## Build
 
 Requirements:

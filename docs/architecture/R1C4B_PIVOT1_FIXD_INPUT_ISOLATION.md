@@ -148,3 +148,11 @@ R0/Core/产品 runtime 不变；PRODUCT_RAW_INPUT=NOT_IMPLEMENTED，产品 SendI
 global mouse hook/DLL/polling 均 NONE。NO Pure Magnet / Explorer / Human UAT /
 PR / merge / tag / release；owned formal 全 PASS 后亦 STOP，Explorer 至多
 READY_FOR_NEXT_STAGE。实际结果由本轮 execution report 记录，不预填 PASS。
+
+## 本轮实际停止点
+
+[Execution report](../reports/R1C4B_PIVOT1_FIXD_EXECUTION_REPORT.md)：首个 Debug
+BottomResize probe0，但独立 validator 因实际64位 QPC / Int32 Math.Max 重载
+overflow 返回 INVALID_EVIDENCE。保留原日志/metadata；无补丁后追认、无重试，
+Fix D Move与所有重复门 NOT_RUN。Product/隔离子检查可独立通过，完整 Resize
+gate仍未验收；architecture UNRESOLVED，Explorer/Human UAT不启动。
