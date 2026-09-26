@@ -26,16 +26,19 @@ decision boundary. The explicitly authorized
 [Pivot 1 cancel/Raw Input research](docs/reports/R1C4B_PIVOT1_EXECUTION_REPORT.md)
 adds an independent test-only probe; its three development observations stopped
 at input-correlation or owned activation prerequisites. Cancellation remains
-UNKNOWN, takeover/Explorer NOT RUN, and the new candidate UNRESOLVED—not rejected
-by an unexecuted cancellation test. Human UAT remains NOT READY. C4C Glue Resize
+UNKNOWN at that checkpoint, takeover/Explorer NOT RUN, and the candidate
+UNRESOLVED—not rejected by an unexecuted cancellation test. Human UAT remains
+NOT READY. C4C Glue Resize
 and C4D relation affordance remain pending. Screen-edge live Magnet, other apps,
 mixed-DPI/monitor operation and product UI are outside this branch's scope.
 
 [Pivot 1 Fix A](docs/reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md) removes the
 unsupported local-active/focus and fresh-callback prerequisites. Its 142
-synthetic checks pass; the first new owned observation stopped at a locked
-session's desktop safety gate, before window creation or input. Cancellation
-and takeover remain untested, not rejected by that environment blocker.
+synthetic checks pass; after the session unlocked, real background Raw Input
+and native Move cancellation were observed. Capture released and EXIT occurred,
+but the rect restored to its initial state after API return and before EXIT.
+The fixed return-rect-retention gate fails; further interaction stops. This is
+not post-EXIT reassertion or proof that every wait-EXIT/takeover variant fails.
 
 ## Build
 

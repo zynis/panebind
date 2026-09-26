@@ -2,8 +2,12 @@
 
 2026-09-26。**FALSE_LOCAL_ACTIVATION_GATE_REMOVED=YES**。
 新 probe / validator 使用 `verified_global_foreground_v2`；142 项 synthetic
-checks PASS。首次 v2 实测在真正的 interactive-desktop 安全门停止，未创建
-测试窗口或发出任何输入。Raw/cancel/takeover 架构仍 UNRESOLVED，非技术否决。
+checks PASS。环境解锁后已真正观察 background Raw movement/UP、native Move、
+单 WM_CANCELMODE、capture release 与 held-button EXIT。当前预先固定的
+**cancel-return rect 必须保持冻结**门 FAIL，按本轮合同输出
+`REJECTED_AT_CANCEL_STAGE` 并停止。实际是 EXIT 前的 terminal restoration
+pattern，不是退出失败或 EXIT 后 reassertion；更广泛的 wait-EXIT-then-takeover
+变体仍未验证，不能由本轮狭义门失败推出所有 Raw takeover 不可能。
 
 ## 基线与变更边界
 
@@ -93,6 +97,90 @@ OpenInputDesktop 与 Unicode name queries 成功，foreground 非 NULL；WTS que
 才可继续同一 owned self-driving probe。没有因为此环境 blocker 改判 Raw/cancel
 架构，没有重试 locked 环境的输入、修改锁屏配置或控制其他窗口。
 
+## 环境恢复后：真正的 Raw / native Move 观察
+
+工具等待后一次只读 WTS 复核得到 Level1/Active0/**UNLOCK1**。没有修改
+安全门或锁屏配置；原任务授权下继续同一 binary。首个解锁后的尝试：
+`20260926T141635694Z-Debug-62da4696888e4ec8bea159e2d447d82f.jsonl`，14条，
+SHA256 `15085FF1A62E5A86CEFFBD608027D7D5776D92F450991757FD1A486AE39FABC9`。
+普通 foreground setter 成功，source local active/focus 非 NULL、fresh ready
+PASS；首次 input fence 报 INPUT_INTERFERENCE，仍为零输入/Raw/native/cancel。
+没有记录失败时各项 cursor/key 值，不能猜是用户移动还是其他瞬时状态。
+明确避免操作输入后，仅再有界尝试一次；不是 retry-until-stick。
+
+### Clean implementation-bound 最终观察
+
+```text
+JSONL = uat/r1c4b-takeover-owned/20260926T141825568Z-Debug-2b64762128cc4148b849947e6c05b2b1.jsonl
+Log SHA256 = F146A4235600F0FFFCD1E708238E5960FBEA2C7AD0597EECC3D569770D65B74E
+ExecutedHEAD / AfterHEAD = e2ea24d0ad2e51837e8f73f1a0513b6f306485a5
+WorktreeDirty = false
+Binary SHA256 before/after = 4E877BAA4256421DAC16581C0B87D3449CAD15700A8F84E2552EC2DF1D653FC4
+Source HWND / PID / TID = 15666532 / 1316 / 1764
+Receiver message HWND / PID / TID = 43191140 / 39976 / 32360
+Foreground HWND / PID = 15666532 / 1316
+Monitor work area = [0,0,3072,1824]; DPI = 192
+Probe / runner exit = 2 / 2
+Mapper = FAIL; RawBackground = PASS; CancelMove = FAIL; CancelResize = UNKNOWN
+```
+
+114条合法JSONL、完整startup/shutdown、sequence/QPC和receiver stream可信。
+Source HWND/PID/TID未变；exact背景receiver不同于foreground PID，TLC1/2、
+INPUTSINK256注册/读回。共9 Raw packets：6 movement、1UP、2DOWN；全部actual
+RIM_INPUTSINK、tag/normalized INPUT/QPC/watermark关联。正式 preflight 是
+2movement+1UP及最终cursor/button fence；另有native gesture阶段4movement+1DOWN。
+Raw snapshot lag仍保留，不用同callback cursor等于submitted point作为前提。
+原trigger与Raw UP transition独立于async high bit。
+
+这次普通setter denied，但strict activation move/down/up、actual source
+DOWN/UP、NOTOPMOST恢复及fresh foreground全部成功；local active/focus均为
+source，click epoch的新WM_ACTIVATE/WM_SETFOCUS/activation-event均未出现，
+bootstrap仍PASS。这是FalseLocalGate被移除后的**实测**，不是只靠synthetic。
+
+### Native cancel 时序：terminal restoration，不能虚报 continued drag
+
+| seq / QPC | 实际事实 |
+| --- | --- |
+| 75 / 920323517379 | 真实 ENTER；标题HTCAPTION，左键仍按下。 |
+| 76、87 | 两次真实 WM_MOVING；native rect由初始向右移动9、18px。 |
+| 92、93 | exactly one WM_CANCELMODE，exactsource；capturebefore=source、LBheld。 |
+| 94 / 920324876100 | 真实CAPTURE_CHANGED到NULL；ownercapture=0。 |
+| 95 / returned920324888216 | SendMessageTimeout成功、error0、recipientLRESULT0；captureafter=0、LBheld，P/V仍为移动后rect。 |
+| 96 / 920324898057 | 在任何新mouse MOVE之前，POSITION_CHANGED回到native START的原始P/V；比APIreturn晚0.9841ms。 |
+| 97 / 920324909397 | 真实EXIT、capture0、LB仍held；比APIreturn晚2.1181ms。 |
+| 102 / injectionstart920325319257 | 第3个既定MOVE才提交，已晚于EXIT40.986ms；actualtagged后台Raw送达。 |
+| 106–108 | FreshGUI已清、cursor到[1366,641]、LBheld；readback仍为恢复后的原始rect。 |
+| 109–114 | 因return-baseline mismatch立即停止；单次安全cleanup UP、receiver注册移除/销毁与空source/guard销毁。 |
+
+| 状态 | Positioning rect | Visible rect |
+| --- | --- | --- |
+| Native START initial | [1126,632,1766,1072] | [1137,632,1755,1061] |
+| API-return baseline | [1144,632,1784,1072] | [1155,632,1773,1061] |
+| Terminal restoration / EXIT / third-MOVE readback | [1126,632,1766,1072] | [1137,632,1755,1061] |
+
+实际 ENTER1、WM_MOVING2、cancel1、EXIT1，post-return WM_MOVING0。
+没有post-EXIT新geometry transition或reassertion证据。取消时的矩形回原点是
+**observed terminal restoration pattern**；不能凭相同形状证明未记录的Windows
+内部机制，也不能说WM_CANCELMODE未释放capture/未结束loop。
+
+当前已预先固定在probe/validator/architecture文档中的return-baseline retention
+合同不满足：#108的P/V不是#95的P/V。按Fix A第12/14项的本轮严格baseline
+门保持MoveFAIL、`REJECTED_AT_CANCEL_STAGE`，不在看到结果后移动验收边界来
+追认PASS。**该拒绝只针对API-return geometry冻结的当前测试合同**；若允许
+EXIT前terminal restoration并以EXIT-final rect为anchor，是新的合同/研究决定，
+不能在本轮悄悄改写，也不能据当前FAIL推广否决这种尚未测试的变体。
+
+Mapper `GeometryChanges=2` 计的是#108和#112相对return baseline不同的两次
+observation，不是两次新native写入或两次reassertion；#96真正restoration早于
+第3MOVE，未进入该filtered计数。Takeover writes始终0。
+没有queue/drop/Raw read/pipe error记录，source/receiver identity与cleanup可信。
+Failure scope在cleanup之前退休，cleanup UP不充当native gesture的Raw END。
+Cursor未恢复，原false字段保留；没有在失败后的未知authority下强行恢复指针。
+
+两个独立reviewers亲读114条、hash和最新mapper，一致确认上述时序及狭义门失败。
+未完成余下15+cursor samples/native gesture Raw UP，不能声称complete continuity。
+发现当前合同反例即STOP：不运行Resize、Release交互、20/20、free writer、Magnet或Explorer。
+
 ## 当前四级 verdict / NOT TESTED
 
 ```text
@@ -100,12 +188,12 @@ CURRENT_CONCURRENT_NATIVE_LOOP_ARCHITECTURE = REJECTED
 FALSE_LOCAL_ACTIVATION_GATE_REMOVED = YES
 SOURCE_THREAD_ACTIVE_USED_AS_AUTHORITY = NO
 SOURCE_THREAD_FOCUS_USED_AS_AUTHORITY = NO
-RAW_RECEIVER_PID = NOT_CREATED
-FOREGROUND_PID = NOT_ESTABLISHED_FOR_SOURCE
-OWNED_RAW_INPUT_BACKGROUND = BLOCKED
-OWNED_RAW_MOVEMENT_PACKETS = 0
-OWNED_RAW_UP_PACKETS = 0
-OWNED_NATIVE_CANCEL_MOVE = UNKNOWN
+RAW_RECEIVER_PID = 39976
+FOREGROUND_PID = 1316
+OWNED_RAW_INPUT_BACKGROUND = PASS
+OWNED_RAW_MOVEMENT_PACKETS = 6
+OWNED_RAW_UP_PACKETS = 1
+OWNED_NATIVE_CANCEL_MOVE = FAIL
 OWNED_NATIVE_CANCEL_RESIZE = UNKNOWN
 CANCEL_GATE_DEBUG = 0/20
 CANCEL_GATE_RELEASE = 0/20
@@ -113,7 +201,7 @@ OWNED_TAKEOVER_MOVE = NOT_RUN
 OWNED_TAKEOVER_RESIZE = NOT_RUN
 OWNED_TAKEOVER_MODAL_REASSERTIONS = 0
 OWNED_TAKEOVER_PRE_RELEASE_CONTROL = NOT_RUN
-RAW_INPUT_TAKEOVER_ARCHITECTURE = UNRESOLVED
+RAW_INPUT_TAKEOVER_ARCHITECTURE = REJECTED_AT_CANCEL_STAGE
 EXPLORER_STAGE = NOT_RUN
 WH_MOUSE_LL_FALLBACK = TECHNICALLY_POSSIBLE
 C_SNAP_ON_RELEASE = UNSELECTED_FALLBACK
@@ -129,9 +217,10 @@ TAG = NO
 RELEASE = NO
 ```
 
-0/20 是没有完成一次 cancellation pair，不是已测20次都 FAIL；Debug 仅有
-一次启动环境阻断，Release interactive 未运行。Reassertions0 是未执行的空计数。
-Raw/background 实际完整正例、native cancel、Debug/Release20/20、free takeover
+0/20 是没有完成一次 successful cancellation pair，不是已测20次都 FAIL；Debug
+两次安全前置阻断、一次实际Move合同反例，Resize/Release interactive未运行。
+Reassertions0 是未执行takeover的空计数，不是sole-writer PASS。
+完整cancel余下15+样本/gesture UP、Debug/Release20/20、free takeover
 Move/Bottom Resize、pre-release/sole writer、Magnet、Explorer、physical input/
 多显示器/mixed DPI、长时 throughput/idle resource 均 NOT TESTED。
 WH_MOUSE_LL 仅官方 non-injected/shared-desktop 研究候选，未实现。

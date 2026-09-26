@@ -385,6 +385,51 @@ RAW_INPUT_TAKEOVER_ARCHITECTURE = UNRESOLVED
 R1C4B_HUMAN_UAT = NOT_READY
 ```
 
+## Fix A 实测收口：background PASS，return-baseline retention FAIL
+
+环境恢复后本轮正式 clean 实现绑定的 Debug 观察已到达真实 native Move。
+已完整亲读 114 条原始日志
+[20260926T141825568Z-Debug-2b64762128cc4148b849947e6c05b2b1.jsonl](../../uat/r1c4b-takeover-owned/20260926T141825568Z-Debug-2b64762128cc4148b849947e6c05b2b1.jsonl)，
+SHA256 实际复核为
+`F146A4235600F0FFFCD1E708238E5960FBEA2C7AD0597EECC3D569770D65B74E`。
+Executed/After HEAD 为 `e2ea24d0ad2e51837e8f73f1a0513b6f306485a5`、
+worktree clean；细节及完整 verdict 见
+[Fix A 执行报告](../reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md)。
+这段新增观察不改原三份 BLOCKED 日志或其历史结论。
+
+Source HWND/PID/TID 为 `15666532 / 1316 / 1764`，独立 message receiver
+为 `43191140 / 39976 / 32360`。严格 verified click 的实际 move/down/up、
+source DOWN/UP、topmost 恢复和 fresh global foreground 均通过；source
+local active/focus 非 NULL，click epoch 未出现 fresh activation/focus
+callbacks，bootstrap 仍实际 PASS。共 9 个真实 RIM_INPUTSINK packets：
+6 movement、1 UP、2 DOWN；preflight 具有 2 movement、1 UP、关联和最后
+cursor/button fence，故 `OWNED_RAW_INPUT_BACKGROUND = PASS`。这只证明
+该有限自动输入路径的 background preflight，不证明 free writer 时序。
+
+| 真实时序 | 已观察事实 |
+| --- | --- |
+| seq 75–94 | ENTER 一次、WM_MOVING 两次、exact WM_CANCELMODE 一次；真实 CAPTURE_CHANGED 到 NULL，左键仍 down。 |
+| seq 95，API-return QPC `920324888216` | 发送成功、error 0、recipient result 0、capture 0；positioning `[1144,632,1784,1072]`，visible `[1155,632,1773,1061]`。 |
+| seq 96，QPC `920324898057` | 在任何新 injected MOVE 前回到 native START 的 positioning `[1126,632,1766,1072]`、visible `[1137,632,1755,1061]`；比 return 晚 0.9841 ms。 |
+| seq 97，QPC `920324909397` | 真实 EXIT，capture 0、左键仍 down；比 return 晚 2.1181 ms。 |
+| seq 102–108 | 既定 sample 3 的 MOVE 在 EXIT 后 40.986 ms 才提交；后台 Raw 送达，fresh GUI clear，实际 cursor 前进；geometry 仍为恢复后的 initial rect。 |
+
+因此实际 pattern 是 EXIT 前的 terminal restoration；不是 capture release /
+EXIT 失败，也没有 post-return WM_MOVING 或 post-EXIT 新 geometry transition
+的证据。本次 EXIT 早于 sample 3，不能说必须靠该 MOVE 才退出。
+预先固定的 **API-return rect 冻结**门不满足，维持
+`OWNED_NATIVE_CANCEL_MOVE = FAIL`、`REJECTED_AT_CANCEL_STAGE`，发现该
+反例即停止。此拒绝严格限于当前 return-baseline retention 合同，不能
+推广成所有 Raw Input takeover 都不可能。若允许 terminal restoration
+并以 EXIT-final rect 作 anchor，属于新的合约/研究决定，尚未证明，
+本轮不改门追认 PASS、不实施该变体。
+
+Mapper 的 `GeometryChanges=2` 是两条 observation 相对 return baseline
+不同，不是两次 native write/reassertion。没有 takeover geometry write；
+没有继续完整 15+ sample/手势 raw UP，cleanup UP 不作为 gesture END。
+Resize cancel 为 UNKNOWN/NOT_RUN，free takeover、Release 交互、20/20、
+Magnet、Explorer 全部 NOT_RUN；Human UAT 保持 NOT_READY。
+
 ## 来源与状态
 
 所有链接均为本次实际打开并阅读的 Microsoft 官方 primary sources。
@@ -395,6 +440,7 @@ R1C4B_HUMAN_UAT = NOT_READY
 [SOURCE_PROVENANCE.md](SOURCE_PROVENANCE.md) 统一记录。
 
 本文件状态：`OFFICIAL CONTRACTS REVIEWED / PROBE DESIGN REVIEWED`。
-三次局部观察分别标为 `AUTOMATED OBSERVED`；它们不授予任何原生 cancel、
-takeover 的 PASS 或 `MANUALLY OBSERVED`，也不使
+旧三次局部观察与 Fix A 最新事实分别标为 `AUTOMATED OBSERVED`；当前
+background preflight PASS 与狭义 cancel 门 FAIL 不授予 free takeover 或
+`MANUALLY OBSERVED`，也不使
 `R1C4B_HUMAN_UAT = NOT_READY` 改变。

@@ -2,9 +2,12 @@
 
 2026-09-26 Fix A current research override: false local activation gate removed;
 global foreground proof and strict click receipts, not local active/focus or
-fresh callbacks, gate the independent probe. First v2 observation stopped at
-the locked-session desktop safety prerequisite before window creation/input.
-Candidate remains UNRESOLVED; native cancel/takeover still NOT TESTED. See
+fresh callbacks, gate the independent probe. After environment recovery, Raw
+background preflight PASS; native Move releases capture and truly exits, but
+restores its initial rect between API return and EXIT. The current fixed
+cancel-return geometry retention contract FAILS / REJECTED_AT_CANCEL_STAGE.
+This does not prove post-EXIT reassertion or reject untested EXIT-final-rect
+anchored variants. All further interactive stages stopped; takeover NOT RUN. See
 [Fix A report](../reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md).
 
 2026-09-26 Pivot 1 research override: ConcurrentNativeLoopCorrection remains

@@ -12,6 +12,12 @@ SetActiveWindow(NULL)/SetFocus(NULL)，不要求 local active/focus 为空或本
 下面的 Raw/native/cancel 分阶段模型不变；当前结果见
 [Fix A 执行报告](../reports/R1C4B_PIVOT1_FIXA_EXECUTION_REPORT.md)。
 
+Fix A 实测：背景 Raw movement/UP PASS；单 cancel 后 capture 已释放，source
+在 APIreturn后、EXIT前回到初始rect，EXIT时LB仍held。当前预先固定的
+cancel-return rect retention门 FAIL，按本轮合同停止后续阶段；没有post-EXIT
+reassertion、没有Raw失败，也不是loop无法退出。允许terminal restoration、
+改用EXIT-final rect为anchor须新的明确合同决定，不在本轮改baseline追认PASS。
+
 [实际 prior art/history/license](../research/R1C4B_PIVOT1_PRIOR_ART.md) 与
 [官方合约](../research/R1C4B_PIVOT1_INPUT_CONTRACTS.md) 的有限 probe gate 已通过。
 官方缺少 SendInput→WM_INPUT 送达保证与 WM_CANCELMODE→modal EXIT 保证；
