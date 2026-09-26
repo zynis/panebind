@@ -1154,3 +1154,68 @@ WM_INPUT delivery guarantee, and safe cleanup UP never substitutes acceptance.
 Research PASS is limited to the instrumented owned-test design/synthetic gate;
 new empirical END/Resize/repetition/product/Explorer behavior remains NOT TESTED.
 No new project, external code reuse, GUI execution or old-evidence rewriting.
+
+## R1-C4B Architecture Pivot 1 Fix D — 2026-09-27
+
+Starting HEAD: `e4ecdeaf4311e4adc95fcd94ff967df4c0f1bc83`.
+Subsystem: separated product gesture authority / automated synthetic input
+isolation, test-only post-END nonactivating shield, hit-test/lifetime/cleanup.
+See [Fix D input-isolation research](R1C4B_PIVOT1_FIXD_INPUT_ISOLATION.md).
+Old A/B/C docs, raw logs and verdicts remain unchanged. Two existing C JSONL
+were read-only parsed (116 rows each), native/callback/fresh facts checked and
+SHA256 rechecked; no GUI observations or new takeover acceptance asserted.
+
+AltSnap, mature maintained GPL-3.0-or-later, REFERENCE ONLY. Existing local pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d` verified; this round actually read
+hooks.c GPL header and License.txt opening, scoped ScrollPointedWindow,
+PinWindowProc/CreatePinWindow and pin/transparent-window teardown. Read local
+path history and actual complete hooks.c diff at
+[400eebf04dc651f76b2c1148c63fee7a4b039d8c](https://github.com/RamonUnch/AltSnap/commit/400eebf04dc651f76b2c1148c63fee7a4b039d8c),
+plus [issue 572](https://github.com/RamonUnch/AltSnap/issues/572) body.
+Source: [pinned repository](https://github.com/RamonUnch/AltSnap/tree/5c86416ad21e4b72844a998a746bd3bb0bee5f5d).
+Lessons: indicator activation/hit-test/lifetime are distinct; NOACTIVATE-removal
+fallback, foreign point-window mutations, timer/thunk/owner-topmost policies
+are not suitable for this test shield. Upstream cross-tool reports are not
+PaneBind empirical evidence. No GPL code/control flow copied/adapted/translated.
+
+PowerToys/FancyZones, mature production MIT, REFERENCE ONLY, existing immutable
+pin `19c4d805321db86f3634e6968e14dbf25cbba14a`. Actually re-read full
+[LICENSE](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/LICENSE)
+and [WindowMouseSnap.cpp](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowMouseSnap.cpp),
+[PR 48569](https://github.com/microsoft/PowerToys/pull/48569) body and actual
+[dd26d86580168d2e368701f7b0c4d629dc9cd9ac](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac)
+rendered history diff (destroy routing, Abort/reset, cleanup). Candidate raw
+ZoneWindow.cpp/ZonesOverlay.cpp paths were not retrievable; no inspection or
+overlay implementation claim. Lessons: abort and success END teardown differ;
+overlay visibility is not input isolation; upstream manual tests do not prove
+PaneBind behavior. No source/examples/control flow copied/adapted/translated.
+Attribution for both projects: retain research links; no new code obligation.
+
+Microsoft Learn live official primary applicable content actually read this
+round; no immutable revision asserted, Microsoft site terms, paraphrases/links
+only, no examples reused:
+
+- [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos)
+- [CreateWindowExW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createwindowexw)
+- [WindowFromPoint](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-windowfrompoint)
+- [Extended Window Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles)
+- [Window Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/window-styles)
+- [GetAncestor](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getancestor)
+- [WM_MOUSEACTIVATE](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-mouseactivate)
+- [WM_NCHITTEST](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest)
+- [GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)
+- [PtInRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-ptinrect)
+- [DestroyWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-destroywindow)
+- [IsWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindow)
+- [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+- [GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)
+
+Lessons: SendInput has no HWND target/delivery guarantee; nonactivation style
+is not a substitute for real foreground/focus proof; rect coverage/topmost are
+not actual root ownership; hidden/disabled/static/transparent targets cannot
+be assumed isolating. Shield stays outside current source P with half-open
+boundaries and event-triggered maintenance; no timer/retry source writes.
+Same creating-thread exact-generation teardown is required. Research PASS is
+only the bounded test-owned design; real shield/gates and future legacy mouse
+delivery to underlying windows remain NOT TESTED. No product shield/input
+implementation or external code reuse authorized.
