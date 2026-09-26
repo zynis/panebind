@@ -1152,13 +1152,23 @@ int wmain(int argc,wchar_t** argv){
         require(RegisterClassW(&cls)!=0,"owned_window_creation_failed");
         WNDCLASSW guard_class{};guard_class.lpfnWndProc=DefWindowProcW;guard_class.hInstance=cls.hInstance;guard_class.lpszClassName=L"PaneBindTakeoverInputGuard";guard_class.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_WINDOW+1);
         require(RegisterClassW(&guard_class)!=0,"guard_window_creation_failed");
-        guard=CreateWindowExW(WS_EX_NOACTIVATE,guard_class.lpszClassName,L"PaneBind empty test input guard",WS_POPUP,setup_x-30,setup_y-30,880,650,nullptr,nullptr,cls.hInstance,nullptr);
+        // Fix C's sole CursorOutsideOwnedInputGuard branch authorizes only
+        // this test-owned geometry correction, not a stacking/authority change.
+        const int guard_margin=diagnostic_mode?50:30;
+        const int guard_width=diagnostic_mode?640+180+100:880;
+        const int guard_height=diagnostic_mode?440+120+100:650;
+        guard=CreateWindowExW(WS_EX_NOACTIVATE,guard_class.lpszClassName,L"PaneBind empty test input guard",WS_POPUP,setup_x-guard_margin,setup_y-guard_margin,guard_width,guard_height,nullptr,nullptr,cls.hInstance,nullptr);
         require(guard!=nullptr,"guard_window_creation_failed");ShowWindow(guard,SW_SHOWNOACTIVATE);
         if(!IsWindowVisible(guard))ShowWindow(guard,SW_SHOWNOACTIVATE);
         require(IsWindowVisible(guard),"guard_window_visibility_failed");
         RECT guard_rect{};SetLastError(0);const bool guard_rect_ok=diagnostic_mode&&GetWindowRect(guard,&guard_rect)!=FALSE;const auto guard_rect_error=guard_rect_ok?0:GetLastError();
+        const RECT move_plan{setup_x,setup_y,setup_x+640+180,setup_y+440};
+        const RECT resize_plan{setup_x,setup_y,setup_x+640,setup_y+440+120};
+        const RECT combined_plan{setup_x,setup_y,setup_x+640+180,setup_y+440+120};
+        const auto covered_with_margin=[&](const RECT& plan){return guard_rect_ok&&guard_rect.left<=plan.left-50&&guard_rect.top<=plan.top-50&&guard_rect.right>=plan.right+50&&guard_rect.bottom>=plan.bottom+50;};
         record("guard",",\"hwnd\":"+std::to_string(number(guard))+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(ui_thread)
-            +(diagnostic_mode?",\"positioning_available\":"+flag(guard_rect_ok)+",\"positioning\":"+(guard_rect_ok?rect(guard_rect):"null")+",\"positioning_error\":"+std::to_string(guard_rect_error)+",\"noactivate\":"+flag((GetWindowLongPtrW(guard,GWL_EXSTYLE)&WS_EX_NOACTIVATE)!=0):""));
+            +(diagnostic_mode?",\"positioning_available\":"+flag(guard_rect_ok)+",\"positioning\":"+(guard_rect_ok?rect(guard_rect):"null")+",\"positioning_error\":"+std::to_string(guard_rect_error)+",\"noactivate\":"+flag((GetWindowLongPtrW(guard,GWL_EXSTYLE)&WS_EX_NOACTIVATE)!=0)
+                +",\"margin_px\":50,\"planned_move_bounds\":"+rect(move_plan)+",\"planned_bottom_resize_bounds\":"+rect(resize_plan)+",\"planned_bounds\":"+rect(combined_plan)+",\"move_trajectory_with_margin_covered\":"+flag(covered_with_margin(move_plan))+",\"bottom_resize_trajectory_with_margin_covered\":"+flag(covered_with_margin(resize_plan)):""));
         owned=CreateWindowExW(0,cls.lpszClassName,L"PaneBind Pivot 1 owned research - do not touch input",WS_OVERLAPPEDWINDOW,
             setup_x,setup_y,640,440,nullptr,nullptr,cls.hInstance,nullptr);
         require(owned!=nullptr,"owned_window_creation_failed");

@@ -65,6 +65,30 @@ function Test-EndDiagnosticEnvelope($Rows){
     Assert-EndDiagnostic ($Rows[0].type -ceq 'startup' -and $Rows[-1].type -ceq 'shutdown' -and @(Get-EndDiagnosticRows $Rows 'startup').Count -eq 1 -and @(Get-EndDiagnosticRows $Rows 'shutdown').Count -eq 1) 'lifecycle envelope'
 }
 
+function Test-EndDiagnosticGuardPlan($Owned,$Guard,[bool]$Blocked){
+    $names=@('margin_px','planned_move_bounds','planned_bottom_resize_bounds','planned_bounds','move_trajectory_with_margin_covered','bottom_resize_trajectory_with_margin_covered')
+    foreach($g in $Guard){
+        $present=@($names|Where-Object {$null -ne $g.PSObject.Properties[$_]})
+        if(-not $present.Count){continue} # Historical v3 logs remain unchanged.
+        Assert-EndDiagnostic ($present.Count -eq $names.Count) 'partial optional guard plan'
+        Assert-AutoInteger $g.margin_px 'guard margin';Assert-EndDiagnostic ($g.margin_px -eq 50) 'guard margin must remain the authorized 50px'
+        foreach($name in @('planned_move_bounds','planned_bottom_resize_bounds','planned_bounds')){$null=Get-AutoRect (Get-AutoField $g $name);foreach($n in (Get-AutoField $g $name)){Assert-AutoInteger $n 'guard plan rectangle'}}
+        foreach($name in @('positioning_available','move_trajectory_with_margin_covered','bottom_resize_trajectory_with_margin_covered')){Assert-AutoBoolean (Get-AutoField $g $name) "guard coverage $name"}
+        Assert-EndDiagnostic ($g.positioning_available -eq ($null -ne $g.positioning)) 'guard actual rectangle availability'
+        if($g.positioning_available){$null=Get-AutoRect $g.positioning;foreach($n in $g.positioning){Assert-AutoInteger $n 'guard actual rectangle'}}
+        # The guard is created before the source. A blocked creation prefix
+        # cannot supply an owned initial frame for independent plan arithmetic.
+        if($Owned.Count -eq 0){Assert-EndDiagnostic $Blocked 'guard plan without owned initial geometry';continue}
+        Assert-EndDiagnostic ($Owned.Count -eq 1) 'ambiguous owned guard-plan anchor'
+        $p=$Owned[0].positioning;$null=Get-AutoRect $p
+        $move=@([long]$p[0],[long]$p[1],([long]$p[2]+180),[long]$p[3]);$resize=@([long]$p[0],[long]$p[1],[long]$p[2],([long]$p[3]+120));$combined=@([long]$p[0],[long]$p[1],([long]$p[2]+180),([long]$p[3]+120))
+        Assert-EndDiagnostic ((Test-AutoRect $g.planned_move_bounds $move) -and (Test-AutoRect $g.planned_bottom_resize_bounds $resize) -and (Test-AutoRect $g.planned_bounds $combined)) 'guard plan was not derived from the original owned frame and fixed trajectory'
+        $actual=$g.positioning;$coverage=@()
+        foreach($plan in @($move,$resize)){$coverage+=($g.positioning_available -and $actual[0] -le $plan[0]-50 -and $actual[1] -le $plan[1]-50 -and $actual[2] -ge $plan[2]+50 -and $actual[3] -ge $plan[3]+50)}
+        Assert-EndDiagnostic ($g.move_trajectory_with_margin_covered -eq $coverage[0] -and $g.bottom_resize_trajectory_with_margin_covered -eq $coverage[1]) 'guard coverage flags do not match the actual rectangle'
+    }
+}
+
 function Test-EndDiagnosticWinEvents($Rows,$Owned,$Startup,[bool]$Blocked){
     $installed=@(Get-EndDiagnosticRows $Rows 'winevent_hook_installed');$removed=@(Get-EndDiagnosticRows $Rows 'winevent_hook_removed');$callbacks=@(Get-EndDiagnosticRows $Rows 'winevent_callback');$matches=@(Get-EndDiagnosticRows $Rows 'winevent_match')
     Assert-EndDiagnostic ($installed.Count -le 1 -and $removed.Count -le 1) 'duplicate hook lifecycle'
@@ -311,6 +335,7 @@ function Test-EndDiagnosticsOwnedRecords([object[]]$Rows,[switch]$AllowSynthetic
     Assert-AutoInteger $s.gesture_id 'startup gesture id'
     if((Get-AutoField $s 'synthetic_fixture') -eq $true){Assert-EndDiagnostic ([bool]$AllowSynthetic) 'synthetic evidence is not empirical acceptance'}
     $owned=@(Get-EndDiagnosticRows $Rows 'owned');$guard=@(Get-EndDiagnosticRows $Rows 'guard')
+    Test-EndDiagnosticGuardPlan $owned $guard $blocked
     $win=Test-EndDiagnosticWinEvents $Rows $owned $s $blocked
     $diagnostics=Test-EndDiagnosticPreflights $Rows $owned $guard $s $win
     $cleanup=Test-EndDiagnosticCleanup $Rows $owned $guard $s

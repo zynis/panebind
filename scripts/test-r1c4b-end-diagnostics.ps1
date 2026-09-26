@@ -252,4 +252,19 @@ $b=Copy-EndDiagnostic ($resize|Where-Object type -eq foreground_bootstrap);$b.se
 $script:cGesture=0;$early=@($s,$b,(Add-CFixtureFields 'blocked' 12 ([pscustomobject]@{reason='BLOCKED_BY_INTERACTIVE_DESKTOP'})),(Add-CFixtureFields 'shutdown' 13 ([pscustomobject]@{result='BLOCKED';cursor_restored=$false;owned_window_destroyed=$true;guard_window_destroyed=$true;receiver_stopped=$false;external_windows_touched=$false;takeover_geometry_writes=0})));$early=Renumber-CFixture $early
 $r=Test-EndDiagnosticsOwnedRecords $early -AllowSynthetic
 Check-EndDiagnostic ($r.Result -ceq 'BLOCKED' -and $r.Architecture -ceq 'UNRESOLVED' -and $r.Cancel -ceq 'UNKNOWN' -and $r.Takeover -ceq 'NOT_RUN' -and $r.NativeWrites -eq 0 -and $r.RawPackets -eq 0) 'legal blocked prefix remains unknown without forged empirical evidence'
+
+# Optional post-observation guard plan: arithmetic only. Coverage is never a
+# substitute for actual WindowFromPoint root ownership in the handoff proof.
+$planned=New-CFixture;$g=$planned|Where-Object type -eq guard
+foreach($pair in @(@('margin_px',50),@('planned_move_bounds',@(100,100,920,540)),@('planned_bottom_resize_bounds',@(100,100,740,660)),@('planned_bounds',@(100,100,920,660)),@('positioning_available',$true),@('positioning',@(50,50,970,710)),@('move_trajectory_with_margin_covered',$true),@('bottom_resize_trajectory_with_margin_covered',$true))){$g|Add-Member -NotePropertyName $pair[0] -NotePropertyValue $pair[1] -Force}
+$r=Test-EndDiagnosticsOwnedRecords $planned -AllowSynthetic
+Check-EndDiagnostic ($r.Result -ceq 'PASS') 'optional guard bounds and 50px margin independently match the original owned frame'
+foreach($case in @('forged-plan','forged-coverage','wrong-margin','partial-plan')){
+    $bad=Copy-EndDiagnostic $planned;$g=$bad|Where-Object type -eq guard
+    switch($case){'forged-plan'{$g.planned_move_bounds[2]++};'forged-coverage'{$g.positioning[2]=969};'wrong-margin'{$g.margin_px=49};'partial-plan'{$g.PSObject.Properties.Remove('planned_bounds')}}
+    Reject-CFixture $bad "optional guard arithmetic rejects $case"
+}
+$bad=Copy-EndDiagnostic $planned;$g=$bad|Where-Object type -eq guard;$g.positioning=@(100,100,740,540);$g.move_trajectory_with_margin_covered=$false;$g.bottom_resize_trajectory_with_margin_covered=$false
+$null=Test-EndDiagnosticGuardPlan @(Get-EndDiagnosticRows $bad 'owned') @(Get-EndDiagnosticRows $bad 'guard') $false
+Check-EndDiagnostic $true 'honest insufficient coverage is a geometric diagnostic, not fabricated root authority'
 Write-Host "end-diagnostics synthetic_only=true checks=$checks PASS"
