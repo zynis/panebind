@@ -262,8 +262,96 @@ function Test-FixFControlledAbort($Rows,$s){
     Assert-FixF (@($raw.Packets|Where-Object {$_.gesture -gt 0 -and $_.cursor_sampled -and -not $_.test_tag_matches -and -not $_.cleanup_tag_matches}).Count -eq 0) 'unexpected real movement during deterministic fixture'
     return [pscustomobject]@{Result='PASS';FixtureResult='PASS_EXPECTED_ABORT';GestureResult='BLOCKED_BY_TEST_FAULT';CleanupResult='PASS';TakeoverAcceptance='NOT_RUN';ContractVerified=$true;Operation=$s.operation;TestMode=$s.test_mode;Reasons=@('BLOCKED_BY_TEST_FAULT');FinalLeftDown=$false;SyntheticFixture=((Get-AutoField $s 'synthetic_fixture') -eq $true)}
 }
+function Test-FixGBootstrapBlockedPrefix($Rows,$s){
+    # A complete pre-input stage has its own proof. Absence of a later fence
+    # diagnostic is never the dispatch predicate or sufficient evidence.
+    Assert-FixF ($s.gesture_id -eq 1) 'bootstrap fresh single gesture identity'
+    $allowed=@('startup','desktop_gate','guard','receiver','show_window','activation_event','foreground_attempt','owned','winevent_hook_installed','activation_visibility','activation_fence','foreground_bootstrap','blocked','abort_quiescence_request','abort_writer_quiescence','abort_quiescence_wait','cleanup_input_diagnostic','cleanup_final_isolation','cleanup_skipped_no_authority','cleanup_final','winevent_hook_removed','receiver_shutdown','shutdown')
+    foreach($r in $Rows){
+        Assert-FixF ($r.type -cin $allowed -and $r.gesture -eq 0 -and -not $r.event_acceptance_eligible) 'bootstrap prefix contains input, native, writer, fault, acceptance, shield or unhandled event'
+        $cleanup=$r.type -cin @('abort_quiescence_request','abort_writer_quiescence','abort_quiescence_wait','cleanup_input_diagnostic','cleanup_final_isolation','cleanup_skipped_no_authority','cleanup_final','winevent_hook_removed','receiver_shutdown','shutdown')
+        Assert-FixF ($r.event_scope -ceq $(if($cleanup){'cleanup'}else{'gesture'})) 'bootstrap stage scope is inconsistent'
+    }
+    $o=Get-FixFOne $Rows 'owned';$g=Get-FixFOne $Rows 'guard';$d=Get-FixFOne $Rows 'desktop_gate';$show=Get-FixFOne $Rows 'show_window'
+    foreach($name in @('hwnd','pid','tid','run_nonce','actual_source_nonce','dpi','monitor')){Assert-IsolationInt64 (Get-AutoField $o $name) "prefix source $name"}
+    Assert-FixF ($o.hwnd -gt 0 -and $o.pid -eq $s.pid -and $o.tid -eq $s.ui_tid -and $o.run_nonce -eq $s.run_nonce -and $o.actual_source_nonce -eq $s.run_nonce -and $o.dpi -gt 0 -and $o.monitor -gt 0) 'bootstrap exact source generation/context'
+    Assert-TakeoverGeometry $o;$null=Get-AutoRect $o.virtual_screen;Assert-AutoPoint $o.saved_cursor 'bootstrap saved cursor'
+    foreach($name in @('hwnd','pid','tid','positioning_error','margin_px')){Assert-IsolationInt64 (Get-AutoField $g $name) "prefix guard $name"}
+    foreach($name in @('positioning_available','noactivate','move_trajectory_with_margin_covered','bottom_resize_trajectory_with_margin_covered')){Assert-AutoBoolean (Get-AutoField $g $name) "prefix guard $name"}
+    Assert-FixF ($g.hwnd -gt 0 -and $g.hwnd -ne $o.hwnd -and $g.pid -eq $s.pid -and $g.tid -eq $s.ui_tid -and $g.positioning_available -and $g.positioning_error -eq 0 -and $g.noactivate -and $g.margin_px -gt 0 -and $g.move_trajectory_with_margin_covered -and $g.bottom_resize_trajectory_with_margin_covered) 'bootstrap actual guard identity/creation'
+    foreach($name in @('positioning','planned_move_bounds','planned_bottom_resize_bounds','planned_bounds')){$null=Get-AutoRect (Get-AutoField $g $name)}
+    Test-EndDiagnosticGuardPlan @($o) @($g) $true
+    foreach($name in @('active_unlocked','input_desktop_matches')){Assert-AutoBoolean (Get-AutoField $d $name) "prefix desktop $name"}
+    Assert-FixF ($d.active_unlocked -and $d.input_desktop_matches) 'bootstrap desktop gate'
+    foreach($name in @('startup_flags','startup_show','requested_show')){Assert-IsolationInt64 (Get-AutoField $show $name) "prefix show $name"};Assert-AutoBoolean $show.visible 'prefix source shown'
+    Assert-FixF ($show.visible -and $show.requested_show -eq 4) 'bootstrap shown source'
+    $attempt=Get-FixFOne $Rows 'foreground_attempt';$f=Get-FixFOne $Rows 'activation_fence';$b=Get-FixFOne $Rows 'foreground_bootstrap';$blocked=Get-FixFOne $Rows 'blocked'
+    $raise=@(Get-IsolationRows $Rows 'activation_visibility'|Where-Object enabled -eq $true);$restore=@(Get-IsolationRows $Rows 'activation_visibility'|Where-Object enabled -eq $false)
+    Assert-FixF ($raise.Count -eq 1 -and $restore.Count -eq 1 -and @(Get-IsolationRows $Rows 'activation_visibility').Count -eq 2) 'one actual topmost raise and restore'
+    $hook=Get-FixFOne $Rows 'winevent_hook_installed';$removed=Get-FixFOne $Rows 'winevent_hook_removed';$receiver=Get-FixFOne $Rows 'receiver';$stopped=Get-FixFOne $Rows 'receiver_shutdown';$last=$Rows[-1]
+    Assert-FixF ($d.sequence -lt $g.sequence -and $g.sequence -lt $receiver.sequence -and $receiver.sequence -lt $show.sequence -and $show.sequence -lt $attempt.sequence -and $attempt.sequence -lt $o.sequence -and $o.sequence -lt $hook.sequence -and $hook.sequence -lt $raise[0].sequence -and $raise[0].sequence -lt $f.sequence -and $f.sequence -lt $restore[0].sequence -and $restore[0].sequence -lt $b.sequence -and $b.sequence -lt $blocked.sequence) 'actual bootstrap lifecycle order'
+    foreach($name in @('visible','set_foreground_success')){Assert-AutoBoolean (Get-AutoField $attempt $name) "prefix foreground attempt $name"}
+    Assert-FixF ($attempt.target -eq $o.hwnd -and $attempt.visible -and -not $attempt.set_foreground_success -and $attempt.foreground -gt 0 -and $attempt.foreground -ne $o.hwnd) 'actual rejected foreground attempt'
+    foreach($event in @(Get-IsolationRows $Rows 'activation_event')){
+        foreach($name in @('target','activation_epoch')){Assert-IsolationInt64 (Get-AutoField $event $name) "prefix activation event $name"};Assert-AutoBoolean $event.foreground_matches 'activation event foreground'
+        Assert-FixF ($event.message -cin @('WM_ACTIVATE','WM_SETFOCUS') -and $event.target -eq $o.hwnd -and $event.activation_epoch -eq 0 -and -not $event.foreground_matches -and $event.sequence -gt $show.sequence -and $event.sequence -lt $attempt.sequence -and @($Rows|Where-Object {$_.type -ceq 'activation_event' -and $_.message -ceq $event.message}).Count -eq 1) 'local activation receipt does not prove global foreground'
+        if($event.message -ceq 'WM_ACTIVATE'){Assert-IsolationInt64 $event.activation_code 'prefix activate code';Assert-FixF ($event.activation_code -eq 1) 'prefix direct activation code'}
+    }
+    foreach($name in @('target','foreground','window_from_point_root','hit_test','gui_flags','capture_hwnd','menu_owner_hwnd','move_size_hwnd','input_tag')){Assert-IsolationInt64 (Get-AutoField $f $name) "prefix fence $name"}
+    foreach($name in @('own_identity','desktop_ready','same_integrity','visible','temporary_topmost','window_from_point_root_matches','gui_query_succeeded','foreground_snapshot_stable','foreign_capture_clear','modifiers_clear','button_state_matches','left_down')){Assert-AutoBoolean (Get-AutoField $f $name) "prefix fence $name"}
+    Assert-AutoPoint $f.cursor 'prefix observed cursor';Assert-AutoPoint $f.activation_point 'prefix activation point'
+    Assert-FixF ($f.phase -ceq 'move' -and $f.target -eq $o.hwnd -and $f.foreground -eq $attempt.foreground -and $f.own_identity -and $f.desktop_ready -and $f.same_integrity -and $f.visible -and $f.temporary_topmost -and $f.window_from_point_root -eq $o.hwnd -and $f.window_from_point_root_matches -and $f.hit_test -eq 1 -and $f.modifiers_clear -and $f.button_state_matches -and -not $f.left_down -and $f.input_tag -eq 0x50424D41) 'fresh pre-MOVE activation authority before the GUI rejection'
+    $clear=$f.gui_query_succeeded -and $f.foreground_snapshot_stable -and $f.capture_hwnd -eq 0 -and $f.menu_owner_hwnd -eq 0 -and $f.move_size_hwnd -eq 0 -and ($f.gui_flags -band 30) -eq 0
+    Assert-FixF ($f.foreign_capture_clear -eq $clear -and $f.gui_query_succeeded -and $f.foreground_snapshot_stable -and $f.capture_hwnd -gt 0 -and $f.capture_hwnd -ne $o.hwnd -and $f.menu_owner_hwnd -eq 0 -and $f.move_size_hwnd -eq 0 -and ($f.gui_flags -band 30) -eq 0) 'specific foreign capture requires a successful stable actual non-source capture query'
+    $additiveGuiFields=@('activation_diagnostic_contract','foreground_pid','foreground_tid','foreground_query_before_qpc','foreground_query_after_qpc','foreground_after','foreground_after_pid','foreground_after_tid','gui_query_tid','gui_query_attempted','gui_query_start_qpc','gui_query_finish_qpc','gui_query_error','foreground_tuple_stable','gui_failure_subreason')
+    $hasAdditiveGui=@($f.PSObject.Properties|Where-Object Name -cin $additiveGuiFields).Count -gt 0
+    if($hasAdditiveGui){
+        # A new proof cannot downgrade itself to the legacy record by removing
+        # or nulling its contract while leaving contradictory new facts.
+        Assert-FixF ($null -ne $f.PSObject.Properties['activation_diagnostic_contract']) 'additive activation fields require their explicit contract'
+        Assert-FixF ($f.activation_diagnostic_contract -ceq 'foreground_gui_activation_v1') 'known additive activation query contract'
+        foreach($name in @('foreground_pid','foreground_tid','foreground_query_before_qpc','foreground_query_after_qpc','foreground_after','foreground_after_pid','foreground_after_tid','gui_query_tid','gui_query_start_qpc','gui_query_finish_qpc','gui_query_error')){Assert-IsolationInt64 (Get-AutoField $f $name) "prefix additive GUI $name"}
+        foreach($name in @('gui_query_attempted','foreground_tuple_stable')){Assert-AutoBoolean (Get-AutoField $f $name) "prefix additive GUI $name"}
+        Assert-FixF ($f.foreground_pid -gt 0 -and $f.foreground_tid -gt 0 -and $f.foreground_after -eq $f.foreground -and $f.foreground_after_pid -eq $f.foreground_pid -and $f.foreground_after_tid -eq $f.foreground_tid -and $f.foreground_tuple_stable -and $f.gui_query_attempted -and $f.gui_query_tid -eq $f.foreground_tid -and $f.gui_query_error -eq 0 -and $f.foreground_query_before_qpc -gt $raise[0].qpc -and $f.gui_query_start_qpc -ge $f.foreground_query_before_qpc -and $f.gui_query_finish_qpc -ge $f.gui_query_start_qpc -and $f.foreground_query_after_qpc -ge $f.gui_query_finish_qpc -and $f.foreground_query_after_qpc -le $f.qpc -and $f.gui_failure_subreason -ceq 'CAPTURE_NONZERO') 'new activation query proves exact stable queried foreground tuple and capture cause'
+    }
+    $bootstrap=Test-TakeoverGlobalForegroundV2 $Rows @($o) $true
+    Assert-FixF ($bootstrap.result -ceq 'BLOCKED' -and $b.reason -ceq 'BLOCKED_BY_FOREIGN_INPUT_CAPTURE' -and $blocked.reason -ceq $b.reason -and $b.set_foreground_attempted -and -not $b.set_foreground_success -and $b.activation_click_required -and $b.temporary_topmost -and -not $b.foreign_capture_clear -and $b.window_from_point_root_matches -and $b.hit_test -eq $f.hit_test -and (Test-EndPointExact $b.activation_point $f.activation_point) -and $b.foreground -eq $f.foreground -and -not $b.final_foreground_matches -and -not $b.sendinput_move_success -and -not $b.sendinput_down_success -and -not $b.sendinput_up_success -and -not $b.wm_activate_seen -and -not $b.wm_setfocus_seen -and -not $b.activation_event_seen) 'native bootstrap/block reason and every activation input summary agree'
+    Assert-FixF ($raise[0].success -and $raise[0].topmost_style -and $raise[0].visible -and $restore[0].success -and -not $restore[0].topmost_style -and $restore[0].visible -and $b.topmost_restored -and -not $b.topmost_now) 'temporary topmost restoration has its actual receipt'
+    $raw=Test-EndHandoffRawEvidence $Rows $s @($o) $true
+    $win=Test-IsolationWinEvents $Rows @($o) $s $true
+    foreach($proof in @($receiver,$stopped)){foreach($name in @('receiver_sequence','receiver_qpc','receiver_hwnd','receiver_pid','receiver_tid')){Assert-IsolationInt64 (Get-AutoField $proof $name) "prefix receiver $name"}}
+    foreach($proof in @($hook,$removed)){foreach($name in @('hook','source_hwnd','source_pid','source_tid','error')){Assert-IsolationInt64 (Get-AutoField $proof $name) "prefix hook $name"}}
+    Assert-AutoBoolean $stopped.registration_removed 'prefix receiver registration removed';Assert-AutoBoolean $stopped.window_destroyed 'prefix receiver destroyed'
+    Assert-FixF ($receiver.registration_verified -and $raw.Healthy -and $raw.Packets.Count -eq 0 -and $win.Installed -and $win.Removed -and $null -eq $win.Start -and $null -eq $win.End -and $receiver.receiver_hwnd -notin @($o.hwnd,$g.hwnd)) 'actual separate receiver and hook lifecycles, no native witness'
+    $acks=Test-FixFQuiescence $Rows $s
+    $initialRequest=@(Get-IsolationRows $Rows 'abort_quiescence_request'|Where-Object phase -ceq 'initial')[0];$initialWait=@(Get-IsolationRows $Rows 'abort_quiescence_wait'|Where-Object phase -ceq 'initial')[0]
+    $finalRequest=@(Get-IsolationRows $Rows 'abort_quiescence_request'|Where-Object phase -ceq 'final')[0];$finalWait=@(Get-IsolationRows $Rows 'abort_quiescence_wait'|Where-Object phase -ceq 'final')[0]
+    $diag=Get-FixFOne $Rows 'cleanup_input_diagnostic';$point=Get-FixFOne $Rows 'cleanup_final_isolation';$skip=Get-FixFOne $Rows 'cleanup_skipped_no_authority';$final=Get-FixFOne $Rows 'cleanup_final'
+    Assert-FixF ($blocked.sequence -lt $initialRequest.sequence -and $initialRequest.request_qpc -ge $blocked.qpc -and $initialRequest.sequence -lt $acks.initial.sequence -and $initialWait.sequence -lt $diag.sequence -and $diag.sequence -lt $point.sequence -and $point.sequence -lt $skip.sequence -and $skip.sequence -lt $final.sequence -and $final.sequence -lt $finalRequest.sequence -and $finalRequest.request_qpc -ge $final.qpc -and $finalRequest.sequence -lt $acks.final.sequence -and $finalWait.sequence -lt $removed.sequence -and $removed.sequence -lt $stopped.sequence -and $stopped.sequence -lt $last.sequence) 'independent owner retirement ACKs precede ordered actual resource exits'
+    foreach($proof in @($diag,$final)){
+        Assert-FixF (-not $proof.test_down_owned -and -not $proof.left_down -and $proof.own_identity -and $proof.desktop_ready -and $proof.source_visible -and $proof.gui_query_succeeded -and $proof.buttons_modifiers_clear -and $proof.fixture_scope_active) 'no owned/pending DOWN in actual strict cleanup snapshots'
+    }
+    Assert-AutoBoolean $diag.eligible 'prefix strict cleanup eligibility'
+    foreach($name in @('cleanup_up_attempted','cleanup_up_sent','raw_up_observed','left_button_high_bit')){Assert-AutoBoolean (Get-AutoField $final $name) "prefix cleanup $name"}
+    $cleanup=Test-IsolationCleanup $Rows @($o) @($g) $s $win ([pscustomobject]@{Shield=$null})
+    Assert-FixF ($diag.phase -ceq 'initial' -and -not $diag.eligible -and $diag.outcome -ceq 'SKIPPED_NO_AUTHORITY' -and $cleanup.Status -ceq 'SKIPPED_NO_AUTHORITY' -and -not $cleanup.InputSent -and $cleanup.CurrentLeftDown -eq $false -and -not $final.cleanup_up_attempted -and -not $final.cleanup_up_sent -and -not $final.raw_up_observed -and -not $final.left_button_high_bit -and $final.final_capture_hwnd -eq $final.capture_hwnd -and (Test-EndPointExact $final.final_cursor $final.cursor)) 'strict cleanup performs no input and is not native-abort acceptance'
+    foreach($name in @('owned_window_destroyed','guard_window_destroyed','receiver_stopped','winevent_hook_removed','external_windows_touched','cursor_restored','input_shield_created','input_shield_destroyed','input_shield_activated')){Assert-AutoBoolean (Get-AutoField $last $name) "prefix shutdown $name"}
+    foreach($name in @('takeover_geometry_writes','native_drag_after_winevent_end','source_acceptance_sequence','run_nonce')){Assert-IsolationInt64 (Get-AutoField $last $name) "prefix shutdown $name"}
+    Assert-FixF ($last.result -ceq 'BLOCKED' -and $last.fixture_result -ceq 'BLOCKED' -and $last.gesture_result -ceq $blocked.reason -and $last.cleanup_result -ceq 'NOT_RUN' -and $last.run_nonce -eq $s.run_nonce -and $last.owned_window_destroyed -and $last.guard_window_destroyed -and $last.receiver_stopped -and $last.winevent_hook_removed -and -not $last.external_windows_touched -and -not $last.cursor_restored -and $last.takeover_geometry_writes -eq 0 -and $last.native_drag_after_winevent_end -eq 0 -and $last.source_acceptance_sequence -eq 0 -and -not $last.input_shield_created -and $last.input_shield_destroyed -and -not $last.input_shield_activated) 'shutdown agrees with recorded no-input/no-writer resource lifecycle'
+    return [pscustomobject]@{
+        Result='BLOCKED';EvidenceIntegrity='VALID';PrefixValidation='VERIFIED_BLOCKED_BEFORE_INPUT';ExecutionResult='BLOCKED';PrefixKind='BOOTSTRAP_BLOCKED_BEFORE_ANY_TEST_INPUT'
+        BlockPhase='FOREGROUND_BOOTSTRAP';FirstFailurePhase='FOREGROUND_BOOTSTRAP';NativeBlockReason=$blocked.reason;FixtureResult='BLOCKED';GestureResult='NOT_RUN';CleanupResult='NOT_RUN';TakeoverAcceptance='NOT_RUN'
+        InputAttempted=$false;TestDownPending=$false;ContractVerified=$false;FinalLeftDown=$null;NativeLeftFlag=$final.left_down;FinalButtonObservation='REQUIRES_INDEPENDENT_POST';Operation=$s.operation;TestMode=$s.test_mode;RunNonce=$s.run_nonce
+        Reasons=@('CAPTURE_NONZERO: successful stable foreground GUI query observed a non-source capture before any test input');FailureRecordSequence=$f.sequence;FirstFailureRecordSequences=@($f.sequence,$b.sequence,$blocked.sequence)
+        FailureDiagnosticSequence=$null;FailureDiagnosticVerified=$false;SyntheticFixture=((Get-AutoField $s 'synthetic_fixture') -eq $true)
+        EvidenceSequenceReferences=[pscustomobject]@{Source=$o.sequence;Guard=$g.sequence;Receiver=$receiver.sequence;Hook=$hook.sequence;ForegroundAttempt=$attempt.sequence;TopmostRaise=$raise[0].sequence;ActivationFence=$f.sequence;TopmostRestore=$restore[0].sequence;Bootstrap=$b.sequence;Blocked=$blocked.sequence;InitialOwnerAck=$acks.initial.sequence;StrictCleanupInitial=$diag.sequence;StrictCleanupFinal=$final.sequence;FinalOwnerAck=$acks.final.sequence;HookRemoved=$removed.sequence;ReceiverShutdown=$stopped.sequence;Shutdown=$last.sequence}
+        ResourceProof=[pscustomobject]@{ReceiverAndHook='ACTUAL_LIFECYCLE_RECEIPTS';Topmost='ACTUAL_RESTORE_RECEIPT';SourceAndGuard='CREATION_IDENTITIES_OWNER_RETIREMENT_ACKS_AND_SHUTDOWN_ABSENCE_CHECKS';IndependentSourceDestroyReceipt='NOT_AVAILABLE';IndependentGuardDestroyReceipt='NOT_AVAILABLE'}
+    }
+}
 function Test-FixFInputReliabilityRecords([object[]]$Rows,[switch]$AllowSynthetic){
     $s=Test-FixFEnvelope $Rows -AllowSynthetic:$AllowSynthetic
+    $bootstrap=@(Get-IsolationRows $Rows 'foreground_bootstrap')
+    if($bootstrap.Count -eq 1 -and $bootstrap[0].result -ceq 'BLOCKED'){return Test-FixGBootstrapBlockedPrefix $Rows $s}
     $diagnostics=@(Get-IsolationRows $Rows 'input_fence_diagnostic');Assert-FixF ($diagnostics.Count -gt 0) 'diagnostics required'
     foreach($d in $diagnostics){$null=Test-FixFFenceDiagnostic $d $Rows}
     Assert-FixF (@(Get-IsolationRows $Rows 'input_fence').Count -eq @($diagnostics|Where-Object passed -eq $true).Count) 'every success alias references new actual diagnostic'

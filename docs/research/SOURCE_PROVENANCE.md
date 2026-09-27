@@ -1299,3 +1299,39 @@ Fix F current-input checker补充实读（2026-09-27）：
 Exact source: Microsoft Learn上述API页；用途为只读caller/foreground IL上下文
 验证，TOKEN_QUERY及PROCESS_QUERY_LIMITED_INFORMATION，不读取用户内容，
 不调整token/权限或Windows设置。Copied/adapted code: NO；official links保留。
+
+## R1-C4B Architecture Pivot 1 Fix G — 2026-09-27
+
+BASE `7d026c2933acef865b23edd9587098d612098a31`。仅 test-only bootstrap
+prefix classification、runner finalization、readonly foreground GUI readiness；
+不重新设计 product handoff、geometry writer 或 owned-native abort cleanup。
+详见 [Fix G execution report](../reports/R1C4B_PIVOT1_FIXG_EXECUTION_REPORT.md)。
+
+复用上节已经核验的 pinned research，而非声称本轮重新检查整个上游：
+AltSnap `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`（mature maintained，
+GPL-3.0-or-later，reference-only；FinishMovementNow/Async、STATE_UP、
+GRAB_TIMER，history `034d58bf140552fa520e078d3c832735c2fe708a` /
+`8a5c422928d37d34e63cb8b99d4a74e14cb955f0`、issue572）；FancyZones
+`19c4d805321db86f3634e6968e14dbf25cbba14a`（mature production，MIT，
+reference-only；WindowMouseSnap.cpp、PR48569、history
+`dd26d86580168d2e368701f7b0c4d629dc9cd9ac`）。沿用 abort/成功 placement/
+资源终结分层，不将上游报告当成 PaneBind 现场观察。
+Code copied/adapted/translated/derived: NO。Required attribution: 保留上述
+研究链接；未引入外部代码或新的代码 notice 义务。
+
+本轮实际补读 Microsoft Learn 五份 official primary contract 的适用内容：
+
+- [GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo)
+- [GetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcapture)
+- [SetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow)
+- [GUITHREADINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-guithreadinfo)
+- [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+
+Review date 2026-09-27；live pages，无 immutable revision；Microsoft site
+terms，paraphrase/link only，issues/PRs N/A，sample/code copied/adapted NO。
+用途与结论：GetCapture 的 NULL 只属于调用线程，不能证明 foreign capture
+clear；显式 foreground TID 的 GetGUIThreadInfo 与前后 tuple 是有序而非
+全桌面原子观察，前台失活可能令句柄失效。按钮 UP、flags=0 不能代替 capture
+字段；查询失败保留 null/error。SetForegroundWindow 拒绝不唯一归因；SendInput
+没有目标 HWND，禁止为通过测试干预第三方 capture。无新枚举器/foreign title/
+path/content 读取，无 hook、输入或窗口操作扩权。

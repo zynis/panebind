@@ -807,11 +807,18 @@ fg::ActivationProof activation_proof(std::string_view phase,bool held){
     const HWND root=GetAncestor(WindowFromPoint(activation_point),GA_ROOT);bootstrap.root=root;
     proof.point_root_matches=root==owned&&proof.own_identity;
     bootstrap.hit=proof.own_identity?hit_test(activation_point):HTERROR;proof.client_hit=bootstrap.hit==HTCLIENT;
-    const HWND foreground=GetForegroundWindow();const DWORD tid=GetWindowThreadProcessId(foreground,nullptr);
-    GUITHREADINFO gui{sizeof(gui)};const bool query=tid&&GetGUIThreadInfo(tid,&gui)!=FALSE;
-    const bool stable=foreground&&GetForegroundWindow()==foreground;
+    const auto foreground_before_qpc=qpc();const HWND foreground=GetForegroundWindow();DWORD foreground_pid{};const DWORD tid=GetWindowThreadProcessId(foreground,&foreground_pid);
+    GUITHREADINFO gui{sizeof(gui)};bool query=false;std::int64_t gui_start{},gui_finish{};DWORD gui_error{};
+    if(tid){gui_start=qpc();SetLastError(0);query=GetGUIThreadInfo(tid,&gui)!=FALSE;gui_error=query?0:GetLastError();gui_finish=qpc();}
+    const HWND foreground_after=foreground?GetForegroundWindow():nullptr;
+    const bool stable=foreground&&foreground_after==foreground;
+    DWORD foreground_after_pid{};const DWORD foreground_after_tid=foreground_after?GetWindowThreadProcessId(foreground_after,&foreground_after_pid):0;const auto foreground_after_qpc=qpc();
+    const bool tuple_stable=stable&&tid!=0&&foreground_pid!=0&&foreground_after_pid==foreground_pid&&foreground_after_tid==tid;
     constexpr DWORD modal_flags=GUI_INMOVESIZE|GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE;
     proof.foreign_capture_clear=query&&stable&&!gui.hwndCapture&&!gui.hwndMenuOwner&&!gui.hwndMoveSize&&!(gui.flags&modal_flags);
+    // The existing authorization above is unchanged. Tuple/time/error fields
+    // describe this ordered query; they do not claim a desktop-wide snapshot.
+    const char* gui_subreason=!query?"GUI_QUERY_FAILED":(!tuple_stable?"FOREGROUND_CHANGED":(gui.hwndCapture?"CAPTURE_NONZERO":(gui.hwndMenuOwner?"MENU_ACTIVE":(gui.hwndMoveSize?"MOVE_SIZE_ACTIVE":((gui.flags&modal_flags)?"DISALLOWED_GUI_FLAGS":"none")))));
     proof.modifiers_clear=!pressed(VK_CONTROL)&&!pressed(VK_SHIFT)&&!pressed(VK_MENU)&&!pressed(VK_LWIN)&&!pressed(VK_RWIN)&&!pressed(VK_ESCAPE);
     proof.button_state_matches=pressed(VK_LBUTTON)==held&&!pressed(VK_RBUTTON)&&!pressed(VK_MBUTTON)&&!pressed(VK_XBUTTON1)&&!pressed(VK_XBUTTON2);
     POINT cursor{};const bool cursor_ok=GetCursorPos(&cursor)!=FALSE;
@@ -820,7 +827,10 @@ fg::ActivationProof activation_proof(std::string_view phase,bool held){
     record("activation_fence",",\"phase\":\""+std::string(phase)+"\",\"target\":"+std::to_string(number(owned))+",\"foreground\":"+std::to_string(number(foreground))+",\"cursor\":"+point(cursor)+",\"activation_point\":"+point(activation_point)
         +",\"own_identity\":"+flag(proof.own_identity)+",\"desktop_ready\":"+flag(proof.desktop_ready)+",\"same_integrity\":"+flag(proof.same_integrity)+",\"visible\":"+flag(proof.visible)+",\"temporary_topmost\":"+flag(proof.temporary_topmost)
         +",\"window_from_point_root\":"+std::to_string(number(root))+",\"window_from_point_root_matches\":"+flag(proof.point_root_matches)+",\"hit_test\":"+std::to_string(bootstrap.hit)
-        +",\"gui_query_succeeded\":"+flag(query)+",\"foreground_snapshot_stable\":"+flag(stable)+",\"gui_flags\":"+std::to_string(gui.flags)+",\"capture_hwnd\":"+std::to_string(number(gui.hwndCapture))+",\"menu_owner_hwnd\":"+std::to_string(number(gui.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(gui.hwndMoveSize))
+        +",\"gui_query_succeeded\":"+flag(query)+",\"foreground_snapshot_stable\":"+flag(stable)+",\"gui_flags\":"+(query?std::to_string(gui.flags):"null")+",\"capture_hwnd\":"+(query?std::to_string(number(gui.hwndCapture)):"null")+",\"menu_owner_hwnd\":"+(query?std::to_string(number(gui.hwndMenuOwner)):"null")+",\"move_size_hwnd\":"+(query?std::to_string(number(gui.hwndMoveSize)):"null")
+        +",\"activation_diagnostic_contract\":\"foreground_gui_activation_v1\",\"foreground_pid\":"+(tid&&foreground_pid?std::to_string(foreground_pid):"null")+",\"foreground_tid\":"+(tid?std::to_string(tid):"null")+",\"foreground_query_before_qpc\":"+std::to_string(foreground_before_qpc)+",\"foreground_query_after_qpc\":"+(foreground?std::to_string(foreground_after_qpc):"null")
+        +",\"foreground_after\":"+(foreground?std::to_string(number(foreground_after)):"null")+",\"foreground_after_pid\":"+(foreground_after_tid&&foreground_after_pid?std::to_string(foreground_after_pid):"null")+",\"foreground_after_tid\":"+(foreground_after_tid?std::to_string(foreground_after_tid):"null")+",\"foreground_tuple_stable\":"+flag(tuple_stable)
+        +",\"gui_query_tid\":"+(tid?std::to_string(tid):"null")+",\"gui_query_attempted\":"+flag(tid!=0)+",\"gui_query_start_qpc\":"+(tid?std::to_string(gui_start):"null")+",\"gui_query_finish_qpc\":"+(tid?std::to_string(gui_finish):"null")+",\"gui_query_error\":"+(tid?std::to_string(gui_error):"null")+",\"gui_failure_subreason\":\""+gui_subreason+"\""
         +",\"foreign_capture_clear\":"+flag(proof.foreign_capture_clear)+",\"modifiers_clear\":"+flag(proof.modifiers_clear)+",\"button_state_matches\":"+flag(proof.button_state_matches)+",\"left_down\":"+flag(pressed(VK_LBUTTON))+",\"input_tag\":"+std::to_string(input_tag));
     return proof;
 }
