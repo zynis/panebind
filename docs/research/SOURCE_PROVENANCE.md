@@ -1219,3 +1219,83 @@ Same creating-thread exact-generation teardown is required. Research PASS is
 only the bounded test-owned design; real shield/gates and future legacy mouse
 delivery to underlying windows remain NOT TESTED. No product shield/input
 implementation or external code reuse authorized.
+
+## R1-C4B Architecture Pivot 1 Fix F — 2026-09-27
+
+BASE `a20f32b667db601207f5675653bbc55520bf9314`；subsystem: test-only abort
+failure snapshot / DOWN ledger / owner quiescence / owned-native cleanup UP。
+See [Fix F abort cleanup research](R1C4B_PIVOT1_FIXF_ABORT_CLEANUP.md)。
+研究门仅 bounded independently instrumented design，非 cleanup empirical PASS。
+旧 D/E ignored evidence六文件实际重hash匹配，失败117行只读复核；未GUI/input/
+CTest/build/Git写，未改历史verdict或原artifact。
+
+AltSnap：mature maintained reference，GPL-3.0-or-later，REFERENCE ONLY。
+本轮核验本地 clean HEAD `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`，
+实际读取 `License.txt` opening、`hooks.c` GPL header，以及 scoped
+FinishMovementNow/Async、STATE_UP forwarding/block bookkeeping、GRAB_TIMER
+synthetic button-UP。完整读取本地 history diff
+[034d58bf140552fa520e078d3c832735c2fe708a](https://github.com/RamonUnch/AltSnap/commit/034d58bf140552fa520e078d3c832735c2fe708a)
+（long-click button-UP ordering），
+[8a5c422928d37d34e63cb8b99d4a74e14cb955f0](https://github.com/RamonUnch/AltSnap/commit/8a5c422928d37d34e63cb8b99d4a74e14cb955f0)
+（disable不free hooks DLL），以及
+[issue572 body](https://github.com/RamonUnch/AltSnap/issues/572)。
+Repository/pin: [RamonUnch/AltSnap](https://github.com/RamonUnch/AltSnap/tree/5c86416ad21e4b72844a998a746bd3bb0bee5f5d)。
+Lessons: pending input/work/lifetime必须分别终结；synthetic/global-hook方案不是
+本轮安全权限证明，跨工具报告不识别本机干扰actor。GPL实现/结构/控制流未复制、
+翻译、适配或机械派生；Code copied=NO，Code adapted=NO。Required attribution:
+保留研究链接，无新增代码义务；任何未来复用须先独立许可决定。
+
+PowerToys/FancyZones：mature production reference，MIT，REFERENCE ONLY。
+实际读取 pin `19c4d805321db86f3634e6968e14dbf25cbba14a` 的完整
+[LICENSE](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/LICENSE)
+与完整
+[WindowMouseSnap.cpp](https://raw.githubusercontent.com/microsoft/PowerToys/19c4d805321db86f3634e6968e14dbf25cbba14a/src/modules/fancyzones/FancyZonesLib/WindowMouseSnap.cpp)，
+[PR48569 body/commit discussion](https://github.com/microsoft/PowerToys/pull/48569)
+和 [dd26d86580168d2e368701f7b0c4d629dc9cd9ac](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac)
+rendered destroy-dispatch/Abort/reset/tagging diff。
+Repository: [microsoft/PowerToys](https://github.com/microsoft/PowerToys)。
+Lessons: abort不应snap失效HWND；资源cleanup、输入终结和成功placement不同；
+upstreammanual测试不是PaneBind输入证明。Code copied=NO，Code adapted=NO，
+未复制示例/控制流；Required attribution:研究链接保留，无新增代码义务，未来
+显式MIT复用须保留license/notice。未声称本轮重读全部FancyZonesApp或其它模块。
+
+Microsoft Learn / Win32：official platform contracts，live pages实际读取适用
+段落，review date2026-09-27；无immutable revision；Microsoft网站terms，
+paraphrase/link only，Code/sample copied=NO，adapted=NO。Issues/PRs=N/A。
+实际URLs：
+
+- [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+- [SetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture)
+- [GetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcapture)
+- [GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo)
+- [GUITHREADINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-guithreadinfo)
+- [GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)
+- [RAWMOUSE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawmouse)
+- [RAWINPUTHEADER](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputheader)
+- [WM_INPUT](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-input)
+- [GetWindowThreadProcessId](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowthreadprocessid)
+- [GetWindowLongPtrW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowlongptrw)
+- [OpenInputDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-openinputdesktop)
+- [GetThreadDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop)
+- [GetUserObjectInformationW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getuserobjectinformationw)
+- [GetCursorPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcursorpos)
+- [WindowFromPoint](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-windowfrompoint)
+- [GetAncestor](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getancestor)
+- [WM_EXITSIZEMOVE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-exitsizemove)
+- [Event constants](https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants)
+- [Out-of-context hooks](https://learn.microsoft.com/en-us/windows/win32/winauto/out-of-context-hook-functions)
+
+Lessons/subsystem: capture与actualsource root只是fresh接收前提，非原子SendInput
+target transaction；GetCapture为thread-local，GUI2允许仅独立cleanup候选，不
+放宽Product；Rawtransition与DOWN command账本必须关联，tag/device非actor认证；
+async0可能context失效；native/WinEvent END与cleanup Raw必须scope隔离并实际观察。
+Required attribution: official研究链接保留，无示例或代码复用。误拼RAWMOUSE URL
+不可访问，未作为实际inspected来源或证据；使用上列有效primary页。
+
+Fix F current-input checker补充实读（2026-09-27）：
+[OpenProcessToken](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocesstoken)、
+[GetTokenInformation](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-gettokeninformation)、
+[TOKEN_MANDATORY_LABEL](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_mandatory_label)。
+Exact source: Microsoft Learn上述API页；用途为只读caller/foreground IL上下文
+验证，TOKEN_QUERY及PROCESS_QUERY_LIMITED_INFORMATION，不读取用户内容，
+不调整token/权限或Windows设置。Copied/adapted code: NO；official links保留。

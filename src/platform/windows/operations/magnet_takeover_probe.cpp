@@ -4,6 +4,7 @@
 #include "platform/windows/operations/magnet_postverify_diagnostic.h"
 #include "platform/windows/operations/magnet_handoff_preflight_diagnostic.h"
 #include "platform/windows/operations/magnet_input_isolation_diagnostic.h"
+#include "platform/windows/operations/magnet_owned_abort_diagnostic.h"
 #include <windows.h>
 #include <wtsapi32.h>
 #include <dwmapi.h>
@@ -23,8 +24,10 @@ constexpr UINT finish_message=WM_APP+52;
 constexpr UINT handoff_message=WM_APP+53,raw_notice_message=WM_APP+54;
 constexpr UINT winevent_notice_message=WM_APP+55,native_preflight_message=WM_APP+56;
 constexpr UINT final_acceptance_message=WM_APP+57;
+constexpr UINT abort_quiescence_message=WM_APP+58;
 constexpr int samples=20, interval_ms=30;
 constexpr ULONG_PTR input_tag=0x50424D41;
+constexpr ULONG_PTR abort_cleanup_tag=0x50424655;
 HWND owned{};
 DWORD ui_thread{};
 HANDLE log_file=INVALID_HANDLE_VALUE,entered{},exited{},stepped{},timer{};
@@ -62,6 +65,30 @@ POINT saved_cursor{};
 bool driver_pass{},restored{}; // read by main only after join
 std::string failure;
 bool end_mode{},diagnostic_mode{},isolation_mode{};int selected_gesture=1;
+bool reliability_mode{},controlled_abort{};
+namespace ab=panebind::test::abort;
+std::atomic<bool> abort_retiring{},abort_quiescent{};
+HANDLE abort_quiescence_finished{};
+std::atomic<std::uint64_t> abort_quiescence_sequence{};
+std::atomic<int> native_down_count{},native_enter_count{};
+std::atomic<std::int64_t> native_down_qpc{};
+const char* driver_phase="startup";int driver_sample{}; // driver thread only
+std::string abort_cleanup_result="NOT_RUN";
+bool abort_cleanup_attempted{}; // driver thread: actual API entry, never receipt inference
+struct DownLedger {
+    ab::PendingDownLedger facts;
+    bool tracking{},request_consumed{},request_sent{},raw_down_recorded{};
+    DWORD request_flags{};ULONG_PTR request_tag{};
+    std::int64_t request_start{};
+    std::uint32_t request_watermark{};
+    std::uint64_t intent_sequence{},up_input_sequence{};
+    std::uint64_t non_test_movements{};
+    std::int64_t snapshot_qpc{};
+    std::uint32_t observed_receiver_sequence{};
+};
+DownLedger down_ledger;std::mutex down_ledger_mutex;
+std::mutex abort_request_mutex;std::uint64_t abort_request_sequence{};
+const char* abort_request_phase="initial";
 namespace ti=panebind::test::isolation;
 std::uintptr_t run_nonce{};
 HWND input_shield{};
@@ -117,7 +144,7 @@ std::uint64_t record(std::string_view type,const std::string& fields={}){
     if(!log_ok)return 0;
     if(sequence>=4096){log_ok=false;return 0;}
     const auto assigned=++sequence;
-    const auto line="{\"schema\":\""+std::string(isolation_mode?"r1c4b-takeover-owned/v4":(diagnostic_mode?"r1c4b-takeover-owned/v3":(end_mode?"r1c4b-takeover-owned/v2":"r1c4b-takeover-owned/v1")))+"\",\"sequence\":"+std::to_string(assigned)+",\"type\":\""+std::string(type)+"\",\"gesture\":"+std::to_string(gesture.load())+",\"qpc\":"+std::to_string(qpc())+fields+(end_mode&&type=="EXIT"?",\"end_sequence\":"+std::to_string(assigned):"")+"}\n";
+    const auto line="{\"schema\":\""+std::string(reliability_mode?"r1c4b-takeover-owned/v5":(isolation_mode?"r1c4b-takeover-owned/v4":(diagnostic_mode?"r1c4b-takeover-owned/v3":(end_mode?"r1c4b-takeover-owned/v2":"r1c4b-takeover-owned/v1"))))+"\",\"sequence\":"+std::to_string(assigned)+",\"type\":\""+std::string(type)+"\",\"gesture\":"+std::to_string(gesture.load())+",\"qpc\":"+std::to_string(qpc())+fields+(end_mode&&type=="EXIT"?",\"end_sequence\":"+std::to_string(assigned):"")+(reliability_mode?",\"event_scope\":\""+std::string(abort_retiring?"cleanup":"gesture")+"\",\"event_acceptance_eligible\":"+flag(!abort_retiring&&takeover_scope):"")+"}\n";
     DWORD written{};log_ok=WriteFile(log_file,line.data(),static_cast<DWORD>(line.size()),&written,nullptr)&&written==line.size();
     return sequence;
 }
@@ -194,6 +221,8 @@ void process_winevents();void process_native_preflight();void remove_movesize_ho
 void destroy_input_shield(const char* reason,std::uint64_t acceptance,std::int64_t observed_up);
 bool fresh_synthetic_input_isolation(POINT destination,DWORD flags,const char* scope);
 void process_final_acceptance();
+void process_abort_quiescence();
+void perform_reliability_cleanup(bool test_down_owned);
 struct PositionReceipt {std::int64_t qpc{};Geometry geometry;};
 std::array<PositionReceipt,128> position_receipts{};std::size_t position_receipt_count{};
 bool winevent_audit_started{}; // UI owner only
@@ -282,7 +311,7 @@ void process_winevents(){
         }else reason="InvalidEvent";
         record("winevent_match",",\"callback_sequence\":"+std::to_string(r.callback_sequence)+",\"callback_record_sequence\":"+std::to_string(r.record_sequence)+",\"gesture_id\":"+std::to_string(active_gesture_id.load())+",\"source_identity\":"+flag(source_identity)+",\"actual_source_pid\":"+std::to_string(actual_source_pid)+",\"actual_source_tid\":"+std::to_string(actual_source_tid)+",\"accepted\":"+flag(accepted)+",\"reason\":\""+reason+"\",\"matched_start_callback_sequence\":"+std::to_string(matched_winevent_start?matched_winevent_start->callback_sequence:0)
             +(isolation_mode?",\"run_nonce\":"+std::to_string(run_nonce)+",\"actual_source_nonce\":"+std::to_string(actual_source_nonce):""));
-        if(accepted&&r.event==EVENT_SYSTEM_MOVESIZEEND){enable_winevent_audit();SetEvent(winevent_finished);}
+        if(accepted&&r.event==EVENT_SYSTEM_MOVESIZEEND){if(!reliability_mode||!abort_retiring)enable_winevent_audit();SetEvent(winevent_finished);}
     }
     if(!winevent_healthy){takeover_healthy=false;record("winevent_error",",\"reason\":\"winevent_ingress_unhealthy\"");SetEvent(winevent_finished);}
 }
@@ -295,7 +324,8 @@ struct RawPacket {
     DWORD foreground_pid{};
     std::int64_t observed_qpc{};
     POINT cursor{};
-    bool cursor_sampled{},cursor_ok{},left_down{},device_present{},tag_matches{},registration_ok{},removed{},destroyed{};
+    ULONG extra_information{};
+    bool cursor_sampled{},cursor_ok{},left_down{},device_present{},tag_matches{},cleanup_tag_matches{},registration_ok{},removed{},destroyed{};
 };
 RawPacket last_motion,last_up;std::mutex raw_mutex;
 RawPacket pending_motion,published_up;
@@ -304,6 +334,67 @@ bool motion_pending{},raw_up_seen{},notice_posted{}; // continuation_mutex
 std::atomic<std::uint32_t> owner_processed_sequence{};
 std::atomic<int> takeover_native_calls{};
 struct InputReceipt {INPUT input;std::int64_t start{};std::uint32_t watermark{};};
+DownLedger ledger_snapshot(){
+    std::lock_guard lock(down_ledger_mutex);auto s=down_ledger;
+    s.facts.native_down_sequence=native_down_sequence;s.facts.native_down_qpc=native_down_qpc;
+    s.facts.native_down_matches=native_down_count==1&&native_down_sequence!=0;
+    s.facts.native_enter_sequence=native_enter_sequence;s.facts.native_enter_qpc=native_enter_qpc;
+    s.facts.native_enter_matches=native_enter_count==1&&native_enter_sequence!=0;
+    s.snapshot_qpc=qpc(); // actual clone boundary while the ledger mutex is held
+    return s;
+}
+std::string ledger_fields(const DownLedger& s){
+    const auto& d=s.facts;
+    return ",\"down_input_sequence\":"+std::to_string(d.down_input_sequence)+",\"down_start_qpc\":"+std::to_string(d.down_start_qpc)+",\"down_return_qpc\":"+std::to_string(d.down_return_qpc)+",\"down_sent\":"+flag(d.down_sent)
+        +",\"receiver_watermark\":"+std::to_string(d.receiver_watermark)+",\"raw_down_receiver_sequence\":"+std::to_string(d.raw_down_receiver_sequence)+",\"raw_down_receiver_qpc\":"+std::to_string(d.raw_down_receiver_qpc)+",\"raw_down_matches\":"+flag(d.raw_down_matches)
+        +",\"native_down_sequence\":"+std::to_string(d.native_down_sequence)+",\"native_down_qpc\":"+std::to_string(d.native_down_qpc)+",\"native_down_matches\":"+flag(d.native_down_matches)+",\"native_enter_sequence\":"+std::to_string(d.native_enter_sequence)+",\"native_enter_qpc\":"+std::to_string(d.native_enter_qpc)+",\"native_enter_matches\":"+flag(d.native_enter_matches)
+        +",\"matching_up_seen\":"+flag(d.matching_up_seen)+",\"up_command_sent\":"+flag(d.up_command_sent)+",\"non_test_button_transitions\":"+std::to_string(d.non_test_button_transitions)+",\"unmatched_button_transitions\":"+std::to_string(d.unmatched_button_transitions)+",\"non_test_movements\":"+std::to_string(s.non_test_movements)+",\"ledger_pending\":"+flag(d.pending_owned())+",\"ledger_snapshot_qpc\":"+std::to_string(s.snapshot_qpc)+",\"ledger_receiver_sequence\":"+std::to_string(s.observed_receiver_sequence);
+}
+std::int64_t observe_ledger_packet(const RawPacket& p){
+    if(!reliability_mode)return 0;
+    std::lock_guard lock(down_ledger_mutex);auto& s=down_ledger;
+    if(s.tracking){
+        s.observed_receiver_sequence=p.serial;
+        if(p.cursor_sampled&&!p.tag_matches&&!p.cleanup_tag_matches)++s.non_test_movements;
+        constexpr unsigned transitions=0x03ff;
+        if(p.buttons&transitions){
+            if(!p.tag_matches&&!p.cleanup_tag_matches)++s.facts.non_test_button_transitions;
+            const unsigned wanted=s.request_flags==MOUSEEVENTF_LEFTDOWN?RI_MOUSE_LEFT_BUTTON_DOWN:RI_MOUSE_LEFT_BUTTON_UP;
+            const bool matches=s.request_start>0&&!s.request_consumed&&!p.device_present&&p.buttons==wanted&&p.extra_information==s.request_tag&&p.serial>s.request_watermark&&p.observed_qpc>=s.request_start&&p.input_code==RIM_INPUTSINK&&p.foreground==number(owned)&&p.foreground_pid==GetCurrentProcessId();
+            if(!matches)++s.facts.unmatched_button_transitions;
+            else{
+                s.request_consumed=true;
+                if(s.request_flags==MOUSEEVENTF_LEFTDOWN){s.facts.raw_down_receiver_sequence=p.serial;s.facts.raw_down_receiver_qpc=p.observed_qpc;s.facts.raw_down_matches=true;}
+                else if(s.request_sent)s.facts.matching_up_seen=true;
+            }
+        }
+    }
+    // Includes pretracking packets. This is parent processing completion, not
+    // the child receipt time or the later log-serialization time.
+    return qpc();
+}
+std::uint64_t begin_ledger_intent(DWORD flags,ULONG_PTR tag,std::uint32_t watermark){
+    if(!reliability_mode||gesture==0||(flags!=MOUSEEVENTF_LEFTDOWN&&flags!=MOUSEEVENTF_LEFTUP))return 0;
+    {
+        std::lock_guard lock(down_ledger_mutex);
+        if(flags==MOUSEEVENTF_LEFTDOWN){down_ledger={};down_ledger.tracking=true;down_ledger.facts.receiver_watermark=watermark;down_ledger.observed_receiver_sequence=watermark;}
+        down_ledger.request_flags=flags;down_ledger.request_tag=tag;down_ledger.request_watermark=watermark;down_ledger.request_start=0;down_ledger.request_consumed=false;down_ledger.request_sent=false;
+    }
+    const auto ref=record("ledger_input_intent",",\"flags\":"+std::to_string(flags)+",\"input_tag\":"+std::to_string(tag)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"run_nonce\":"+std::to_string(run_nonce)+",\"intent_purpose\":\""+(flags==MOUSEEVENTF_LEFTDOWN?"native_down":(tag==abort_cleanup_tag?"abort_up":"gesture_up"))+"\"");
+    {std::lock_guard lock(down_ledger_mutex);down_ledger.intent_sequence=ref;}
+    require(ref&&log_ok,"evidence_capture_failed");return ref;
+}
+void ledger_api_started(std::uint64_t intent,std::int64_t start){if(intent){std::lock_guard lock(down_ledger_mutex);down_ledger.request_start=start;}}
+void ledger_api_committed(std::uint64_t intent,std::uint64_t input_sequence,UINT sent,std::int64_t start,std::int64_t returned){
+    if(!intent)return;
+    {std::lock_guard lock(down_ledger_mutex);auto& s=down_ledger;s.request_sent=sent==1;
+        if(s.request_flags==MOUSEEVENTF_LEFTDOWN){s.facts.down_input_sequence=input_sequence;s.facts.down_start_qpc=start;s.facts.down_return_qpc=returned;s.facts.down_sent=sent==1;}
+        else{s.up_input_sequence=input_sequence;if(sent==1){s.facts.up_command_sent=true;if(s.request_consumed)s.facts.matching_up_seen=true;}}
+        if(sent!=1&&s.request_consumed)++s.facts.unmatched_button_transitions;
+    }
+    const auto snapshot=ledger_snapshot();
+    if(snapshot.raw_down_recorded&&snapshot.facts.native_down_matches&&snapshot.facts.native_enter_matches&&snapshot.facts.raw_down_matches)record("test_down_ledger",",\"ledger_intent_sequence\":"+std::to_string(intent)+ledger_fields(snapshot));
+}
 HANDLE child_pipe{},child_stop{},child_armed{};std::uint32_t child_sequence{};
 bool send_packet(RawPacket packet){
     packet.serial=++child_sequence;packet.pid=GetCurrentProcessId();packet.tid=GetCurrentThreadId();packet.observed_qpc=qpc();
@@ -320,7 +411,7 @@ LRESULT CALLBACK raw_procedure(HWND h,UINT message,WPARAM w,LPARAM l){
                 const auto& mouse=input.data.mouse;packet.flags=mouse.usFlags;packet.buttons=mouse.usButtonFlags;packet.dx=mouse.lLastX;packet.dy=mouse.lLastY;
                 packet.cursor_sampled=(mouse.usFlags&MOUSE_MOVE_ABSOLUTE)||mouse.lLastX||mouse.lLastY;
                 if(packet.cursor_sampled){SetLastError(0);packet.cursor_ok=GetCursorPos(&packet.cursor)!=FALSE;packet.cursor_error=packet.cursor_ok?0:GetLastError();}
-                packet.left_down=pressed(VK_LBUTTON);packet.device_present=input.header.hDevice!=nullptr;packet.tag_matches=mouse.ulExtraInformation==input_tag;
+                packet.left_down=pressed(VK_LBUTTON);packet.device_present=input.header.hDevice!=nullptr;packet.extra_information=mouse.ulExtraInformation;packet.tag_matches=mouse.ulExtraInformation==input_tag;packet.cleanup_tag_matches=mouse.ulExtraInformation==abort_cleanup_tag;
                 const HWND foreground=GetForegroundWindow();packet.foreground=number(foreground);GetWindowThreadProcessId(foreground,&packet.foreground_pid);
             }
             if(child_sequence>=2048){
@@ -350,24 +441,28 @@ void read_receiver(){
         }else if(p.kind==2){
             if(p.hwnd!=number(receiver_hwnd)||p.tid!=receiver_tid){receiver_ok=false;break;}
             if(p.input_code!=RIM_INPUTSINK||p.foreground_pid==p.pid||p.foreground_pid!=GetCurrentProcessId())receiver_ok=false;
+            const auto ledger_observed_qpc=observe_ledger_packet(p);
             bool notify=false;
             if(end_mode&&takeover_scope){
                 // Publish terminal lifecycle before any potentially delayed
                 // logging. A pending motion can never override a received UP.
                 std::lock_guard lock(continuation_mutex);
-                if(p.buttons&RI_MOUSE_LEFT_BUTTON_UP){published_up=p;raw_up_seen=true;motion_pending=false;pending_count=0;}
-                else if(p.cursor_sampled&&!raw_up_seen){
-                    if(!motion_pending){pending_first=p.serial;pending_count=0;}
-                    pending_motion=p;motion_pending=true;
-                    if(++pending_count>128)receiver_ok=false;
+                if(!reliability_mode||!abort_retiring){
+                    if(p.buttons&RI_MOUSE_LEFT_BUTTON_UP){published_up=p;raw_up_seen=true;motion_pending=false;pending_count=0;}
+                    else if(p.cursor_sampled&&!raw_up_seen){
+                        if(!motion_pending){pending_first=p.serial;pending_count=0;}
+                        pending_motion=p;motion_pending=true;
+                        if(++pending_count>128)receiver_ok=false;
+                    }
+                    if(handoff_ready&&!notice_posted){notice_posted=true;notify=true;}
                 }
-                if(handoff_ready&&!notice_posted){notice_posted=true;notify=true;}
             }
-            const bool cleanup_flag=cleanup_observation.load();
+            const bool cleanup_flag=cleanup_observation.load()||(reliability_mode&&abort_retiring);
             const bool raw_acceptance_eligible=!cleanup_flag&&takeover_scope.load();
             ++raw_packets;
             record("raw_input",common+",\"input_code\":"+std::to_string(p.input_code)+",\"raw_flags\":"+std::to_string(p.flags)+",\"dx\":"+std::to_string(p.dx)+",\"dy\":"+std::to_string(p.dy)+",\"button_flags\":"+std::to_string(p.buttons)+",\"cursor_sampled\":"+flag(p.cursor_sampled)+",\"cursor_success\":"+flag(p.cursor_ok)+",\"cursor\":"+(p.cursor_sampled&&p.cursor_ok?point(p.cursor):"null")+",\"left_down\":"+flag(p.left_down)+",\"foreground_hwnd\":"+std::to_string(p.foreground)+",\"foreground_pid\":"+std::to_string(p.foreground_pid)+",\"device_handle_present\":"+flag(p.device_present)+",\"test_tag_matches\":"+flag(p.tag_matches)
-                +(diagnostic_mode?",\"cleanup_observation\":"+flag(cleanup_flag)+",\"raw_scope\":\""+std::string(cleanup_flag?"cleanup":"gesture")+"\",\"acceptance_eligible\":"+flag(raw_acceptance_eligible)+",\"gesture_id\":"+std::to_string(active_gesture_id.load()):""));
+                +(diagnostic_mode?",\"cleanup_observation\":"+flag(cleanup_flag)+",\"raw_scope\":\""+std::string(cleanup_flag?"cleanup":"gesture")+"\",\"acceptance_eligible\":"+flag(raw_acceptance_eligible)+",\"gesture_id\":"+std::to_string(active_gesture_id.load()):"")+(reliability_mode?",\"extra_information\":"+std::to_string(p.extra_information)+",\"cleanup_tag_matches\":"+flag(p.cleanup_tag_matches)+",\"ledger_observed_qpc\":"+std::to_string(ledger_observed_qpc):""));
+            if(reliability_mode){std::lock_guard lock(down_ledger_mutex);if(down_ledger.facts.raw_down_matches&&down_ledger.facts.raw_down_receiver_sequence==p.serial)down_ledger.raw_down_recorded=log_ok;}
             record("raw_cursor_status",common+",\"cursor_error\":"+std::to_string(p.cursor_error));
             if(notify&&!post_source_work(raw_notice_message)){receiver_ok=false;takeover_healthy=false;record("receiver_error",",\"reason\":\"owner_notice_post_failed\"");}
             if(p.cursor_sampled){std::lock_guard lock(raw_mutex);last_motion=p;++raw_movements;SetEvent(raw_motion);}
@@ -405,6 +500,40 @@ void stop_receiver(){
     if(receiver_reader.joinable())receiver_reader.join();
     for(HANDLE h:{raw_pipe,receiver_stop,receiver_armed,receiver_ready,raw_motion,raw_up,receiver_process.hThread,receiver_process.hProcess})if(h)CloseHandle(h);
 }
+void process_abort_quiescence(){
+    std::uint64_t request{};const char* phase{};
+    {std::lock_guard lock(abort_request_mutex);request=abort_request_sequence;phase=abort_request_phase;}
+    const auto ack_qpc=qpc();
+    DWORD actual_pid{};const auto actual_tid=GetWindowThreadProcessId(owned,&actual_pid);
+    const bool nonce_available=actual_pid==GetCurrentProcessId()&&actual_tid==ui_thread;
+    const auto actual_nonce=nonce_available?static_cast<std::uintptr_t>(GetWindowLongPtrW(owned,GWLP_USERDATA)):0;
+    const bool exact=owned&&nonce_available&&actual_nonce==run_nonce;
+    // Owner dispatch is serialized after any prior owner operation. A reentrant
+    // handler cannot acquire a mutex held by an in-flight SetWindowPos.
+    bool acknowledged=GetCurrentThreadId()==ui_thread&&exact&&!stop_requested&&!source_retired&&abort_retiring&&active_operation==0&&log_ok;
+    if(acknowledged){
+        std::lock_guard lock(continuation_mutex);takeover_scope=false;handoff_ready=false;
+        motion_pending=false;pending_count=0;pending_first=0;notice_posted=false;audit_live=false;
+    }
+    const auto row=record("abort_writer_quiescence",",\"phase\":\"owner_ack\",\"cleanup_phase\":\""+std::string(phase)+"\",\"request_sequence\":"+std::to_string(request)+",\"ack_tid\":"+std::to_string(GetCurrentThreadId())+",\"ack_qpc\":"+std::to_string(ack_qpc)
+        +",\"active_operation_id\":"+std::to_string(active_operation)+",\"pending_raw_count\":"+std::to_string(pending_count)+",\"motion_pending\":"+flag(motion_pending)+",\"notice_posted\":"+flag(notice_posted)+",\"acceptance_retired\":"+flag(abort_retiring&&!takeover_scope)+",\"takeover_scope\":"+flag(takeover_scope)+",\"native_calls\":"+std::to_string(takeover_native_calls.load())+",\"acknowledged\":"+flag(acknowledged)
+        +",\"source_hwnd\":"+std::to_string(number(owned))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)+",\"run_nonce\":"+std::to_string(run_nonce)+",\"actual_source_pid\":"+std::to_string(actual_pid)+",\"actual_source_tid\":"+std::to_string(actual_tid)+",\"actual_source_nonce\":"+(nonce_available?std::to_string(actual_nonce):"null")+",\"own_identity\":"+flag(exact));
+    abort_quiescent=acknowledged&&row&&log_ok;abort_quiescence_sequence=row;SetEvent(abort_quiescence_finished);
+}
+bool request_abort_quiescence(const char* phase){
+    abort_quiescent=false;abort_quiescence_sequence=0;ResetEvent(abort_quiescence_finished);std::uint64_t request{};bool posted{};
+    {
+        // No event wait while holding this short publication lock. It prevents
+        // an early owner ACK from inventing a future request reference.
+        std::lock_guard lock(abort_request_mutex);abort_request_phase=phase;const auto requested=qpc();
+        posted=post_source_work(abort_quiescence_message);
+        request=record("abort_quiescence_request",",\"phase\":\""+std::string(phase)+"\",\"message\":"+std::to_string(abort_quiescence_message)+",\"posted\":"+flag(posted)+",\"request_qpc\":"+std::to_string(requested)+",\"source_hwnd\":"+std::to_string(number(owned))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)+",\"run_nonce\":"+std::to_string(run_nonce));
+        abort_request_sequence=request;
+    }
+    const auto wait=posted&&request&&log_ok?WaitForSingleObject(abort_quiescence_finished,2000):WAIT_FAILED;
+    record("abort_quiescence_wait",",\"phase\":\""+std::string(phase)+"\",\"request_sequence\":"+std::to_string(request)+",\"ack_sequence\":"+std::to_string(abort_quiescence_sequence.load())+",\"timeout_ms\":2000,\"wait_result\":"+std::to_string(wait)+",\"quiescent\":"+flag(wait==WAIT_OBJECT_0&&abort_quiescent));
+    return wait==WAIT_OBJECT_0&&abort_quiescent&&log_ok;
+}
 void wait_raw_motion(POINT expected,const InputReceipt& receipt){
     record("raw_wait_begin",",\"expected_cursor\":"+point(expected)+",\"input_start_qpc\":"+std::to_string(receipt.start)+",\"timeout_ms\":2000");
     const auto wait=WaitForSingleObject(raw_motion,2000);
@@ -423,6 +552,15 @@ void wait_raw_up(const InputReceipt& receipt){
     require(receiver_ok&&last_up.input_code==RIM_INPUTSINK&&last_up.serial>receipt.watermark&&last_up.observed_qpc>=receipt.start&&last_up.tag_matches&&(last_up.buttons&RI_MOUSE_LEFT_BUTTON_UP),"BLOCKED_BY_RAW_BUTTON_UP");
 }
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
+    if(reliability_mode&&message==abort_quiescence_message){process_abort_quiescence();return 0;}
+    if(reliability_mode&&abort_retiring&&(message==handoff_message||message==raw_notice_message||message==native_preflight_message||message==final_acceptance_message)){
+        record("abort_owner_work_skipped",",\"message\":"+std::to_string(message)+",\"acceptance_retired\":true");
+        if(message==handoff_message)SetEvent(handoff_finished);
+        if(message==raw_notice_message){SetEvent(quantum_finished);SetEvent(takeover_finished);}
+        if(message==native_preflight_message)SetEvent(native_preflight_finished);
+        if(message==final_acceptance_message)SetEvent(final_acceptance_finished);
+        return 0;
+    }
     if(isolation_mode&&message==final_acceptance_message){
         try{process_final_acceptance();}catch(const std::exception& e){takeover_healthy=false;record("takeover_failure",",\"reason\":\""+std::string(e.what())+"\",\"phase\":\"final_acceptance\"");SetEvent(final_acceptance_finished);}return 0;
     }
@@ -463,12 +601,14 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
         SetEvent(message==WM_LBUTTONDOWN?activation_down_received:activation_up_received);
     }
     if(h==owned&&message==WM_NCLBUTTONDOWN&&(w==HTCAPTION||w==HTBOTTOM)){
+        const auto down_receipt=qpc();if(reliability_mode){++native_down_count;native_down_qpc=down_receipt;}
         POINT down_cursor{};const bool observed=GetCursorPos(&down_cursor)!=FALSE;
         if(diagnostic_mode&&native_down_sequence){takeover_healthy=false;record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed)+",\"duplicate\":true");return DefWindowProcW(h,message,w,l);}
         if(end_mode){std::lock_guard lock(continuation_mutex);intent_pointer=down_cursor;if(!observed)takeover_healthy=false;}
-        native_down_sequence=record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+(end_mode?",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed):""));SetEvent(nonclient_down);
+        native_down_sequence=record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+(end_mode?",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed):"")+(reliability_mode?",\"receipt_qpc\":"+std::to_string(down_receipt):""));SetEvent(nonclient_down);
     }
     if(message==WM_ENTERSIZEMOVE){
+        if(reliability_mode)++native_enter_count;
         active=true;const auto receipt=qpc();const auto g=capture();
         if(diagnostic_mode&&native_enter_qpc){takeover_healthy=false;record("ENTER",",\"owner_capture\":"+std::to_string(number(GetCapture()))+geometry(g)+",\"receipt_qpc\":"+std::to_string(receipt)+",\"duplicate\":true");SetEvent(entered);return 0;}
         native_enter_qpc=receipt;
@@ -524,6 +664,71 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
     return DefWindowProcW(h,message,w,l);
 }
 void fence(POINT expected,bool down,bool priming=false,bool post_cancel=false){
+    if(reliability_mode){
+        using P=ab::FencePredicate;using S=ab::PredicateState;
+        ab::FenceFailureSnapshot snapshot;
+        const auto state=[](bool v){return v?S::Pass:S::Fail;};
+        const auto started=qpc();const bool running=!stop_requested,healthy=log_ok;
+        snapshot.set(P::OwnerRunning,state(running));snapshot.set(P::LogHealthy,state(healthy));
+        struct Timing{bool evaluated{};std::int64_t start{},finish{};};
+        std::array<Timing,7> queries{};
+        const auto begin=[&](std::size_t i){queries[i].evaluated=true;queries[i].start=qpc();};
+        const auto finish=[&](std::size_t i){queries[i].finish=qpc();};
+        bool desktop=false,own=false,fg_matches=false,cursor_ok=false,queried=false,buttons_evaluated=false,nonce_evaluated=false;
+        DWORD actual_pid{},actual_tid{},fg_pid{},fg_tid{},cursor_error{},gui_error{};std::uintptr_t actual_nonce{};
+        HWND foreground{},root{};POINT actual{};GUITHREADINFO gui{sizeof(gui)};
+        bool left=false;std::array<bool,10> others{};
+        const bool foreign_clear=!foreign_capture_transferred;
+        snapshot.set(P::NoForeignCaptureTransfer,state(foreign_clear));
+        if(post_cancel||gesture==0){snapshot.set(P::CancelledGuiSafe,S::NotEvaluated);if(down)snapshot.set(P::InputRootOwned,S::NotEvaluated);}
+        else if(down)snapshot.set(P::Capture,S::NotEvaluated);
+        if(running&&healthy){
+            begin(0);desktop=desktop_available();finish(0);snapshot.set(P::DesktopReady,state(desktop));
+            if(desktop){
+                begin(1);actual_tid=GetWindowThreadProcessId(owned,&actual_pid);
+                if(actual_pid==GetCurrentProcessId()&&actual_tid==ui_thread){nonce_evaluated=true;actual_nonce=static_cast<std::uintptr_t>(GetWindowLongPtrW(owned,GWLP_USERDATA));}
+                own=owned&&actual_pid==GetCurrentProcessId()&&actual_tid==ui_thread&&actual_nonce==run_nonce;finish(1);snapshot.set(P::SourceIdentity,state(own));
+                begin(2);foreground=GetForegroundWindow();fg_tid=GetWindowThreadProcessId(foreground,&fg_pid);fg_matches=foreground==owned;finish(2);snapshot.set(P::Foreground,state(fg_matches));
+                // Only a reliable own foreground/desktop permits button-state
+                // interpretation. Later safe reads diagnose compound failures.
+                if(own&&fg_matches){
+                    begin(3);SetLastError(0);cursor_ok=GetCursorPos(&actual)!=FALSE;cursor_error=cursor_ok?0:GetLastError();finish(3);
+                    snapshot.set(P::CursorQuery,state(cursor_ok));snapshot.set(P::CursorPosition,cursor_ok?state(std::abs(actual.x-expected.x)<=1&&std::abs(actual.y-expected.y)<=1):S::Unknown);
+                    begin(4);left=pressed(VK_LBUTTON);constexpr int keys[]={VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_ESCAPE};
+                    for(std::size_t i=0;i<others.size();++i)others[i]=pressed(keys[i]);buttons_evaluated=true;finish(4);
+                    snapshot.set(P::LeftState,state(left==down));snapshot.set(P::OtherInputClear,state(std::none_of(others.begin(),others.end(),[](bool v){return v;})));
+                    begin(5);SetLastError(0);queried=GetGUIThreadInfo(ui_thread,&gui)!=FALSE;gui_error=queried?0:GetLastError();finish(5);snapshot.set(P::GuiQuery,state(queried));
+                    if(cursor_ok){begin(6);root=GetAncestor(WindowFromPoint(actual),GA_ROOT);finish(6);}
+                    if(post_cancel||gesture==0){
+                        snapshot.set(P::CancelledGuiSafe,queried?state(cancellation_gui_safe(gui)):S::Unknown);
+                        if(down)snapshot.set(P::InputRootOwned,cursor_ok?state(input_root_owned(root)):S::Unknown);
+                    }else if(down){snapshot.set(P::Capture,queried&&cursor_ok?state(gui.hwndCapture==owned||(priming&&!gui.hwndCapture&&root==owned)):S::Unknown);}
+                }
+            }
+        }
+        const auto result=ab::classify_fence(snapshot);
+        RawPacket motion,up;{std::lock_guard lock(raw_mutex);motion=last_motion;up=last_up;}
+        const auto finished=qpc();const auto nullable=[](bool known,bool value){return known?flag(value):"null";};
+        const auto handle=[](bool known,HWND h){return known?std::to_string(number(h)):"null";};
+        std::string times="{",predicates="{",required="[",failed="[",other="{";
+        constexpr const char* qnames[]={"desktop","identity","foreground","cursor","buttons","gui","root"};
+        constexpr const char* onames[]={"ctrl","shift","alt","lwin","rwin","rbutton","mbutton","xbutton1","xbutton2","escape"};
+        for(std::size_t i=0;i<queries.size();++i){if(i)times+=",";const auto& t=queries[i];times+="\""+std::string(qnames[i])+"\":{\"evaluated\":"+flag(t.evaluated)+",\"start_qpc\":"+(t.evaluated?std::to_string(t.start):"null")+",\"finish_qpc\":"+(t.evaluated?std::to_string(t.finish):"null")+"}";}times+="}";
+        bool first=true;for(std::size_t i=0;i<snapshot.count;++i){if(i)predicates+=",";const auto name=std::string(ab::predicate_name(static_cast<P>(i)));predicates+="\""+name+"\":\""+std::string(ab::state_name(snapshot.predicates[i]))+"\"";if(snapshot.required[i]){if(!first)required+=",";required+="\""+name+"\"";first=false;}}predicates+="}";required+="]";
+        for(std::size_t i=0;i<result.failed_count;++i){if(i)failed+=",";failed+="\""+std::string(ab::predicate_name(result.failed[i]))+"\"";}failed+="]";
+        for(std::size_t i=0;i<others.size();++i){if(i)other+=",";other+="\""+std::string(onames[i])+"\":"+nullable(buttons_evaluated,others[i]);}other+="}";
+        auto reason=ab::fence_reason(result.first);if(result.first==P::InputRootOwned&&winevent_end_qpc)reason="TestInputIsolationUnavailable";
+        const auto diagnostic=record("input_fence_diagnostic",",\"phase\":\""+std::string(driver_phase)+"\",\"sample\":"+std::to_string(driver_sample)+",\"operation\":\""+(selected_gesture==1?"Move":"BottomResize")+"\",\"expected_cursor\":"+point(expected)+",\"expected_left_down\":"+flag(down)
+            +",\"query_start_qpc\":"+std::to_string(started)+",\"query_finish_qpc\":"+std::to_string(finished)+",\"queries\":"+times+",\"owner_running\":"+flag(running)+",\"log_healthy\":"+flag(healthy)+",\"desktop_ready\":"+nullable(queries[0].evaluated,desktop)+",\"source_identity\":"+nullable(queries[1].evaluated,own)+",\"foreign_capture_clear\":"+flag(foreign_clear)
+            +",\"source_hwnd\":"+std::to_string(number(owned))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)+",\"run_nonce\":"+std::to_string(run_nonce)+",\"actual_source_pid\":"+(queries[1].evaluated?std::to_string(actual_pid):"null")+",\"actual_source_tid\":"+(queries[1].evaluated?std::to_string(actual_tid):"null")+",\"actual_source_nonce\":"+(nonce_evaluated?std::to_string(actual_nonce):"null")
+            +",\"foreground_hwnd\":"+handle(queries[2].evaluated,foreground)+",\"foreground_pid\":"+(queries[2].evaluated?std::to_string(fg_pid):"null")+",\"foreground_tid\":"+(queries[2].evaluated?std::to_string(fg_tid):"null")+",\"cursor_query_succeeded\":"+nullable(queries[3].evaluated,cursor_ok)+",\"cursor_error\":"+(queries[3].evaluated?std::to_string(cursor_error):"null")+",\"actual_cursor\":"+(cursor_ok?point(actual):"null")+",\"left_down\":"+nullable(buttons_evaluated,left)+",\"other_states\":"+other
+            +",\"gui_query_succeeded\":"+nullable(queries[5].evaluated,queried)+",\"gui_error\":"+(queries[5].evaluated?std::to_string(gui_error):"null")+",\"capture_hwnd\":"+handle(queried,gui.hwndCapture)+",\"menu_owner_hwnd\":"+handle(queried,gui.hwndMenuOwner)+",\"move_size_hwnd\":"+handle(queried,gui.hwndMoveSize)+",\"gui_flags\":"+(queried?std::to_string(gui.flags):"null")+",\"root\":"+handle(cursor_ok,root)
+            +",\"priming\":"+flag(priming)+",\"post_cancel\":"+flag(post_cancel)+",\"cancel_pending\":"+flag(cancel_pending)+",\"receiver_watermark\":"+std::to_string(receiver_watermark.load())+",\"raw_movement_receiver_sequence\":"+std::to_string(motion.serial)+",\"raw_movement_receiver_qpc\":"+std::to_string(motion.observed_qpc)+",\"raw_up_receiver_sequence\":"+std::to_string(up.serial)+",\"raw_up_receiver_qpc\":"+std::to_string(up.observed_qpc)
+            +",\"predicates\":"+predicates+",\"required_predicates\":"+required+",\"failed_predicates\":"+failed+",\"first_failed_predicate\":\""+std::string(ab::predicate_name(result.first))+"\",\"passed\":"+flag(result.passed)+",\"failure_reason\":\""+std::string(reason)+"\",\"failure_subreason\":\""+std::string(ab::fence_subreason(result.first))+"\"");
+        require(diagnostic&&log_ok,"evidence_capture_failed");require(result.passed,reason.data());
+        record("input_fence",",\"cursor\":"+point(actual)+",\"expected_cursor\":"+point(expected)+",\"foreground\":"+std::to_string(number(foreground))+",\"target\":"+std::to_string(number(owned))+",\"left_down\":"+flag(down)+",\"cancel_pending\":"+flag(cancel_pending)+",\"post_cancel\":"+flag(post_cancel)+",\"gui_flags\":"+std::to_string(gui.flags)+",\"menu_owner_hwnd\":"+std::to_string(number(gui.hwndMenuOwner))+",\"move_size_hwnd\":"+std::to_string(number(gui.hwndMoveSize))+",\"priming\":"+flag(priming)+",\"gui_query_succeeded\":"+flag(queried)+",\"capture_hwnd\":"+std::to_string(number(gui.hwndCapture))+",\"window_from_point_root\":"+std::to_string(number(root))+",\"diagnostic_sequence\":"+std::to_string(diagnostic));
+        return;
+    }
     require(!stop_requested,"owner_message_wait_failed");
     require(log_ok,"evidence_capture_failed");require(desktop_available(),"BLOCKED_BY_INTERACTIVE_DESKTOP");
     require(identity()&&GetForegroundWindow()==owned,"BLOCKED_BY_FOREGROUND");
@@ -582,8 +787,9 @@ InputReceipt inject(DWORD flags,POINT p={},bool restoring_cursor=false){
         require(isolation_ready_sequence&&isolation_ready_qpc&&!restoring_cursor,"TestInputIsolationUnavailable");
         require(fresh_synthetic_input_isolation(p,flags,"gesture"),"TestInputIsolationUnavailable");
     }
-    const auto watermark=receiver_watermark.load();const auto start=qpc();SetLastError(0);const UINT sent=SendInput(1,&input,sizeof(input));const DWORD error=sent==1?0:GetLastError();const auto returned=qpc();
-    record("input",",\"flags\":"+std::to_string(flags)+",\"point\":"+point(p)+",\"restoring_cursor\":"+flag(restoring_cursor)+",\"actual_mouse_flags\":"+std::to_string(input.mi.dwFlags)+",\"normalized_dx\":"+std::to_string(input.mi.dx)+",\"normalized_dy\":"+std::to_string(input.mi.dy)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"sent\":"+std::to_string(sent)+",\"error\":"+std::to_string(error)+",\"input_tag\":"+std::to_string(input_tag)+",\"injection_start_qpc\":"+std::to_string(start)+",\"injection_return_qpc\":"+std::to_string(returned)+",\"virtual_screen\":"+rect(virtual_area));
+    const auto watermark=receiver_watermark.load();const auto intent=begin_ledger_intent(flags,input_tag,watermark);const auto start=qpc();ledger_api_started(intent,start);SetLastError(0);const UINT sent=SendInput(1,&input,sizeof(input));const DWORD error=sent==1?0:GetLastError();const auto returned=qpc();
+    const auto input_sequence=record("input",",\"flags\":"+std::to_string(flags)+",\"point\":"+point(p)+",\"restoring_cursor\":"+flag(restoring_cursor)+",\"actual_mouse_flags\":"+std::to_string(input.mi.dwFlags)+",\"normalized_dx\":"+std::to_string(input.mi.dx)+",\"normalized_dy\":"+std::to_string(input.mi.dy)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"sent\":"+std::to_string(sent)+",\"error\":"+std::to_string(error)+",\"input_tag\":"+std::to_string(input_tag)+",\"injection_start_qpc\":"+std::to_string(start)+",\"injection_return_qpc\":"+std::to_string(returned)+",\"virtual_screen\":"+rect(virtual_area)+(reliability_mode?",\"ledger_intent_sequence\":"+std::to_string(intent):""));
+    ledger_api_committed(intent,input_sequence,sent,start,returned);
     require(sent==1,"BLOCKED_BY_SENDINPUT");
     return {input,start,watermark};
 }
@@ -1126,7 +1332,7 @@ void perform_cleanup_input(bool test_down_owned){
             // Bootstrap may have failed before acceptance armed the receiver.
             // This is a cleanup-only observation epoch, never an accepted UP.
             require(receiver_armed&&SetEvent(receiver_armed),"cleanup_receiver_arm_failed");
-            ResetEvent(raw_up);INPUT input=mouse_input(MOUSEEVENTF_LEFTUP,boundary.cursor);started=qpc();attempted=true;SetLastError(0);sent=SendInput(1,&input,sizeof(input));error=sent==1?0:GetLastError();returned=qpc();sent_ok=sent==1;
+            ResetEvent(raw_up);INPUT input=mouse_input(MOUSEEVENTF_LEFTUP,boundary.cursor);started=qpc();attempted=true;if(reliability_mode)abort_cleanup_attempted=true;SetLastError(0);sent=SendInput(1,&input,sizeof(input));error=sent==1?0:GetLastError();returned=qpc();sent_ok=sent==1;
             record("cleanup_release",",\"cleanup_up_attempted\":true,\"cleanup_up_sent\":"+flag(sent_ok)+",\"sent\":"+std::to_string(sent)+",\"error\":"+std::to_string(error)+",\"flags\":4,\"input_tag\":"+std::to_string(input_tag)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"injection_start_qpc\":"+std::to_string(started)+",\"injection_return_qpc\":"+std::to_string(returned)+cleanup_input_fields(boundary,test_down_owned));
             if(sent_ok&&raw_up){wait=WaitForSingleObject(raw_up,2000);if(wait==WAIT_OBJECT_0){std::lock_guard lock(raw_mutex);observed_up=last_up;
                 up_observed=receiver_ok&&observed_up.serial>watermark&&observed_up.observed_qpc>=started&&observed_up.tag_matches&&observed_up.input_code==RIM_INPUTSINK&&observed_up.foreground==number(owned)&&observed_up.foreground_pid==GetCurrentProcessId()&&(observed_up.buttons&RI_MOUSE_LEFT_BUTTON_UP);}}
@@ -1144,7 +1350,94 @@ void perform_cleanup_input(bool test_down_owned){
     record("cleanup_final",",\"cleanup_input_release\":\""+std::string(result)+"\",\"cleanup_up_attempted\":"+flag(attempted)+",\"cleanup_up_sent\":"+flag(sent_ok)+",\"raw_up_observed\":"+flag(up_observed)+",\"left_button_high_bit\":"+flag(final.facts.left_down)+",\"final_capture_hwnd\":"+(final.facts.gui_query_succeeded?std::to_string(number(final.gui.hwndCapture)):"null")+",\"final_cursor\":"+(final.facts.cursor_success?point(final.cursor):"null")+cleanup_input_fields(final,test_down_owned));
     cleanup_observation=false;ResetEvent(receiver_armed);
 }
+struct AbortSnapshot {
+    ab::AbortAuthority facts;DownLedger ledger;
+    std::int64_t start{},finish{};DWORD actual_pid{},actual_tid{},fg_pid{},fg_tid{},gui_error{},cursor_error{};
+    std::uintptr_t actual_nonce{};bool nonce_evaluated{},gui_evaluated{},buttons_evaluated{},cursor_evaluated{},swapped{};
+    HWND foreground{},root{};GUITHREADINFO gui{sizeof(gui)};POINT cursor{};std::array<bool,10> others{};
+};
+AbortSnapshot capture_abort_authority(const AbortSnapshot* initial=nullptr){
+    AbortSnapshot s;s.start=qpc();auto& d=s.facts;
+    d.fixture_scope_active=!stop_requested&&!source_retired;
+    s.actual_tid=GetWindowThreadProcessId(owned,&s.actual_pid);
+    if(s.actual_pid==GetCurrentProcessId()&&s.actual_tid==ui_thread){s.nonce_evaluated=true;s.actual_nonce=static_cast<std::uintptr_t>(GetWindowLongPtrW(owned,GWLP_USERDATA));}
+    d.own_identity=owned&&s.actual_pid==GetCurrentProcessId()&&s.actual_tid==ui_thread&&s.nonce_evaluated&&s.actual_nonce==run_nonce;
+    d.desktop_ready=desktop_available();d.source_visible=d.own_identity&&IsWindowVisible(owned);
+    s.foreground=GetForegroundWindow();s.fg_tid=GetWindowThreadProcessId(s.foreground,&s.fg_pid);
+    d.foreground_matches=s.foreground==owned&&s.fg_pid==GetCurrentProcessId()&&s.fg_tid==ui_thread&&GetForegroundWindow()==s.foreground;
+    if(d.desktop_ready&&d.own_identity&&d.foreground_matches){
+        s.gui_evaluated=true;SetLastError(0);d.gui_query_succeeded=GetGUIThreadInfo(ui_thread,&s.gui)!=FALSE;s.gui_error=d.gui_query_succeeded?0:GetLastError();
+        d.capture_is_source=d.gui_query_succeeded&&s.gui.hwndCapture==owned;d.move_size_is_source=d.gui_query_succeeded&&s.gui.hwndMoveSize==owned;
+        d.expected_native_mode=d.gui_query_succeeded&&(s.gui.flags&30)==GUI_INMOVESIZE;
+        d.menu_clear=d.gui_query_succeeded&&!s.gui.hwndMenuOwner&&!(s.gui.flags&28);
+        s.cursor_evaluated=true;SetLastError(0);d.cursor_available=GetCursorPos(&s.cursor)!=FALSE;s.cursor_error=d.cursor_available?0:GetLastError();
+        if(d.cursor_available)s.root=GetAncestor(WindowFromPoint(s.cursor),GA_ROOT);d.root_is_source=d.cursor_available&&s.root==owned;
+        if(d.gui_query_succeeded){
+            s.buttons_evaluated=true;d.left_down=pressed(VK_LBUTTON);constexpr int keys[]={VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_ESCAPE};
+            for(std::size_t i=0;i<s.others.size();++i)s.others[i]=pressed(keys[i]);d.other_input_clear=std::none_of(s.others.begin(),s.others.end(),[](bool v){return v;});
+        }
+    }
+    s.swapped=GetSystemMetrics(SM_SWAPBUTTON)!=0;d.input_mapping_supported=!s.swapped;
+    s.ledger=ledger_snapshot();d.ledger=s.ledger.facts;d.receiver_healthy=receiver_ok;d.log_healthy=log_ok;d.foreign_capture_transferred=foreign_capture_transferred;
+    d.writer_quiescent=abort_quiescent&&abort_quiescence_sequence!=0;d.acceptance_retired=abort_retiring&&!takeover_scope;
+    d.api_boundary_stable=!initial||(d.cursor_available&&initial->facts.cursor_available&&s.cursor.x==initial->cursor.x&&s.cursor.y==initial->cursor.y&&s.ledger.facts.down_input_sequence==initial->ledger.facts.down_input_sequence&&s.foreground==initial->foreground&&s.gui.hwndCapture==initial->gui.hwndCapture&&s.gui.hwndMoveSize==initial->gui.hwndMoveSize&&s.gui.flags==initial->gui.flags);
+    s.finish=qpc();return s;
+}
+std::uint64_t emit_abort_authority(const char* phase,const AbortSnapshot& s,std::uint64_t initial_authority,std::uint64_t initial_ack){
+    const auto& d=s.facts;const auto nullable=[](bool known,bool value){return known?flag(value):"null";};const auto handle=[](bool known,HWND h){return known?std::to_string(number(h)):"null";};
+    std::string other="{";constexpr const char* names[]={"ctrl","shift","alt","lwin","rwin","rbutton","mbutton","xbutton1","xbutton2","escape"};
+    for(std::size_t i=0;i<s.others.size();++i){if(i)other+=",";other+="\""+std::string(names[i])+"\":"+nullable(s.buttons_evaluated,s.others[i]);}other+="}";
+    return record("abort_cleanup_authority",",\"phase\":\""+std::string(phase)+"\",\"query_start_qpc\":"+std::to_string(s.start)+",\"query_finish_qpc\":"+std::to_string(s.finish)
+        +",\"source_hwnd\":"+std::to_string(number(owned))+",\"source_pid\":"+std::to_string(GetCurrentProcessId())+",\"source_tid\":"+std::to_string(ui_thread)+",\"run_nonce\":"+std::to_string(run_nonce)+",\"actual_source_pid\":"+std::to_string(s.actual_pid)+",\"actual_source_tid\":"+std::to_string(s.actual_tid)+",\"actual_source_nonce\":"+(s.nonce_evaluated?std::to_string(s.actual_nonce):"null")
+        +",\"fixture_scope_active\":"+flag(d.fixture_scope_active)+",\"own_identity\":"+flag(d.own_identity)+",\"desktop_ready\":"+flag(d.desktop_ready)+",\"source_visible\":"+(d.own_identity?flag(d.source_visible):"null")+",\"foreground_hwnd\":"+std::to_string(number(s.foreground))+",\"foreground_pid\":"+std::to_string(s.fg_pid)+",\"foreground_tid\":"+std::to_string(s.fg_tid)+",\"foreground_matches\":"+flag(d.foreground_matches)
+        +",\"gui_query_succeeded\":"+nullable(s.gui_evaluated,d.gui_query_succeeded)+",\"gui_error\":"+(s.gui_evaluated?std::to_string(s.gui_error):"null")+",\"capture_hwnd\":"+handle(d.gui_query_succeeded,s.gui.hwndCapture)+",\"menu_owner_hwnd\":"+handle(d.gui_query_succeeded,s.gui.hwndMenuOwner)+",\"move_size_hwnd\":"+handle(d.gui_query_succeeded,s.gui.hwndMoveSize)+",\"gui_flags\":"+(d.gui_query_succeeded?std::to_string(s.gui.flags):"null")
+        +",\"expected_native_mode\":"+nullable(d.gui_query_succeeded,d.expected_native_mode)+",\"menu_clear\":"+nullable(d.gui_query_succeeded,d.menu_clear)+",\"cursor_success\":"+nullable(s.cursor_evaluated,d.cursor_available)+",\"cursor_error\":"+(s.cursor_evaluated?std::to_string(s.cursor_error):"null")+",\"cursor\":"+(d.cursor_available?point(s.cursor):"null")+",\"cursor_root\":"+handle(d.cursor_available,s.root)+",\"root_is_source\":"+nullable(d.cursor_available,d.root_is_source)
+        +",\"left_down\":"+nullable(s.buttons_evaluated,d.left_down)+",\"other_states\":"+other+",\"other_input_clear\":"+nullable(s.buttons_evaluated,d.other_input_clear)+",\"receiver_healthy\":"+flag(d.receiver_healthy)+",\"log_healthy\":"+flag(d.log_healthy)+",\"foreign_capture_transferred\":"+flag(d.foreign_capture_transferred)+",\"mouse_buttons_swapped\":"+flag(s.swapped)+",\"input_mapping_supported\":"+flag(d.input_mapping_supported)
+        +",\"writer_quiescent\":"+flag(d.writer_quiescent)+",\"acceptance_retired\":"+flag(d.acceptance_retired)+",\"quiescence_ack_sequence\":"+std::to_string(abort_quiescence_sequence.load())+",\"initial_ack_sequence\":"+std::to_string(initial_ack)+",\"initial_authority_sequence\":"+std::to_string(initial_authority)+",\"api_boundary_stable\":"+flag(d.api_boundary_stable)+",\"eligible\":"+flag(d.eligible())+",\"acceptance_eligible\":false"+ledger_fields(s.ledger));
+}
+void perform_reliability_cleanup(bool test_down_owned){
+    abort_retiring=true;takeover_scope=false;cleanup_observation=true;driver_phase="abort_cleanup";
+    // Preserve the former strict source/shield cleanup path outside the new
+    // native-active extension. Do not fake clear Product fields for either.
+    const bool initial_quiescent=request_abort_quiescence("initial");const auto initial_ack=abort_quiescence_sequence.load();
+    if(!native_enter_sequence||native_end_sequence){
+        if(initial_quiescent)perform_cleanup_input(test_down_owned);
+        else{abort_cleanup_result="SKIPPED_NO_AUTHORITY";record("abort_cleanup_skipped",",\"reason\":\"legacy_cleanup_missing_owner_quiescence\",\"acceptance_eligible\":false");ResetEvent(receiver_armed);}
+        request_abort_quiescence("final");return;
+    }
+    const auto initial=capture_abort_authority();const auto initial_ref=emit_abort_authority("initial",initial,0,initial_ack);
+    bool attempted=false,sent_ok=false,up_observed=false;RawPacket observed;std::uint64_t boundary_ref{};std::int64_t injection_start{};std::uint32_t watermark{};
+    if(initial_quiescent&&initial.facts.eligible()&&initial_ref&&log_ok){
+        const auto boundary=capture_abort_authority(&initial);boundary_ref=emit_abort_authority("api_boundary",boundary,initial_ref,initial_ack);
+        if(boundary.facts.eligible()&&boundary_ref&&log_ok){
+            ResetEvent(raw_up);watermark=receiver_watermark;
+            const auto intent=begin_ledger_intent(MOUSEEVENTF_LEFTUP,abort_cleanup_tag,watermark);
+            INPUT up=mouse_input(MOUSEEVENTF_LEFTUP,boundary.cursor);up.mi.dwExtraInfo=abort_cleanup_tag;
+            require(ledger_snapshot().facts.pending_owned()&&receiver_ok&&log_ok&&!stop_requested&&!source_retired&&identity()&&GetForegroundWindow()==owned,"abort_api_boundary_ledger_or_health_changed");
+            injection_start=qpc();ledger_api_started(intent,injection_start);attempted=true;abort_cleanup_attempted=true;SetLastError(0);
+            const auto sent=SendInput(1,&up,sizeof(up));const auto error=sent==1?0:GetLastError();const auto returned=qpc();sent_ok=sent==1;
+            const auto release=record("abort_cleanup_release",",\"flags\":4,\"actual_mouse_flags\":4,\"normalized_dx\":0,\"normalized_dy\":0,\"input_tag\":"+std::to_string(abort_cleanup_tag)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"injection_start_qpc\":"+std::to_string(injection_start)+",\"injection_return_qpc\":"+std::to_string(returned)+",\"sent\":"+std::to_string(sent)+",\"error\":"+std::to_string(error)+",\"initial_authority_sequence\":"+std::to_string(initial_ref)+",\"boundary_authority_sequence\":"+std::to_string(boundary_ref)+",\"ledger_intent_sequence\":"+std::to_string(intent)+",\"acceptance_eligible\":false");
+            ledger_api_committed(intent,release,sent,injection_start,returned);
+            const auto wait=sent_ok?WaitForSingleObject(raw_up,2000):WAIT_FAILED;
+            if(wait==WAIT_OBJECT_0){std::lock_guard lock(raw_mutex);observed=last_up;up_observed=receiver_ok&&!observed.device_present&&observed.serial>watermark&&observed.observed_qpc>=injection_start&&observed.input_code==RIM_INPUTSINK&&observed.foreground==number(owned)&&observed.foreground_pid==GetCurrentProcessId()&&observed.cleanup_tag_matches&&observed.extra_information==abort_cleanup_tag&&observed.buttons==RI_MOUSE_LEFT_BUTTON_UP;}
+            record("abort_cleanup_raw_up",",\"receiver_sequence\":"+std::to_string(observed.serial)+",\"receiver_qpc\":"+std::to_string(observed.observed_qpc)+",\"receiver_watermark\":"+std::to_string(watermark)+",\"injection_start_qpc\":"+std::to_string(injection_start)+",\"input_tag\":"+std::to_string(abort_cleanup_tag)+",\"wait_result\":"+std::to_string(wait)+",\"timeout_ms\":2000,\"raw_up_observed\":"+flag(up_observed)+",\"acceptance_eligible\":false");
+        }else record("abort_cleanup_skipped",",\"reason\":\"fresh_api_boundary_authority_failed\",\"acceptance_eligible\":false");
+    }else record("abort_cleanup_skipped",",\"reason\":\"initial_authority_or_quiescence_failed\",\"acceptance_eligible\":false");
+    const auto native_wait=sent_ok?WaitForSingleObject(exited,2000):WAIT_FAILED;
+    const auto win_wait=sent_ok?WaitForSingleObject(winevent_finished,2000):WAIT_FAILED;
+    record("abort_cleanup_end_wait",",\"native_wait_result\":"+std::to_string(native_wait)+",\"winevent_wait_result\":"+std::to_string(win_wait)+",\"timeout_ms\":2000,\"native_exit_sequence\":"+std::to_string(native_end_sequence.load())+",\"native_exit_qpc\":"+std::to_string(native_end_qpc.load())+",\"winevent_end_sequence\":"+std::to_string(winevent_end_sequence.load())+",\"winevent_end_qpc\":"+std::to_string(winevent_end_qpc.load())+",\"acceptance_eligible\":false");
+    const bool final_quiescent=request_abort_quiescence("final");const auto final=capture_abort_authority();const auto final_ref=emit_abort_authority("final",final,initial_ref,initial_ack);
+    const bool context=final.facts.fixture_scope_active&&final.facts.own_identity&&final.facts.desktop_ready&&final.facts.source_visible&&final.facts.foreground_matches&&final.facts.gui_query_succeeded&&final.facts.cursor_available&&final.facts.root_is_source&&final.facts.other_input_clear&&final.facts.receiver_healthy&&final.facts.log_healthy&&!final.facts.foreign_capture_transferred&&final.facts.input_mapping_supported;
+    ab::AbortCompletion completion{attempted,sent_ok,up_observed,native_wait==WAIT_OBJECT_0&&native_end_sequence!=0,win_wait==WAIT_OBJECT_0&&winevent_end_sequence!=0,context,
+        final.facts.gui_query_succeeded&&!final.gui.hwndCapture,final.facts.gui_query_succeeded&&!final.gui.hwndMoveSize&&!final.gui.hwndMenuOwner&&!(final.gui.flags&30),final.buttons_evaluated&&!final.facts.left_down,
+        final.ledger.facts.up_command_sent&&final.ledger.facts.matching_up_seen&&!final.ledger.facts.non_test_button_transitions&&!final.ledger.facts.unmatched_button_transitions,final_quiescent&&final.facts.writer_quiescent,final.facts.acceptance_retired,final_quiescent,true};
+    abort_cleanup_result=std::string(completion.result());
+    record("abort_cleanup_final",",\"cleanup_result\":\""+abort_cleanup_result+"\",\"cleanup_up_attempted\":"+flag(attempted)+",\"cleanup_up_sent\":"+flag(sent_ok)+",\"raw_up_observed\":"+flag(up_observed)+",\"native_exit_observed\":"+flag(completion.native_exit_observed)+",\"winevent_end_observed\":"+flag(completion.winevent_end_matches)+",\"final_authority_sequence\":"+std::to_string(final_ref)+",\"initial_ack_sequence\":"+std::to_string(initial_ack)+",\"quiescence_ack_sequence\":"+std::to_string(abort_quiescence_sequence.load())
+        +",\"final_left_down\":"+(final.buttons_evaluated?flag(final.facts.left_down):"null")+",\"final_capture_clear\":"+flag(completion.final_capture_clear)+",\"final_mode_clear\":"+flag(completion.final_mode_clear)+",\"ledger_settled\":"+flag(completion.ledger_settled)+",\"writer_quiescent\":"+flag(completion.writer_quiescent)+",\"acceptance_retired\":"+flag(completion.acceptance_retired)+",\"pending_work\":"+flag(!final_quiescent)+",\"acceptance_eligible\":false");
+    cleanup_observation=false;ResetEvent(receiver_armed);
+}
 void drive_end_gesture(POINT& expected,bool& down){
+    if(reliability_mode){driver_phase="native_start";driver_sample=0;}
     gesture=selected_gesture;cancelled=false;cancel_pending=false;cancel_return_boundary=0;native_drag_after_return=0;
     ResetEvent(entered);ResetEvent(exited);ResetEvent(stepped);ResetEvent(nonclient_down);ResetEvent(raw_up);
     const auto initial=capture();require(initial.p_ok&&initial.v_ok&&contained(initial.p),"setup_geometry_unavailable");
@@ -1163,14 +1456,20 @@ void drive_end_gesture(POINT& expected,bool& down){
     inject(MOUSEEVENTF_LEFTDOWN,expected);down=true;
     require(WaitForSingleObject(nonclient_down,2000)==WAIT_OBJECT_0,"missing_native_mouse_down");
     for(int sample=1;sample<=2;++sample){
+        if(reliability_mode){driver_phase="native_sample_before";driver_sample=sample;}
         pace(interval_ms);fence(expected,true,sample==1&&WaitForSingleObject(entered,0)!=WAIT_OBJECT_0,false);
         ResetEvent(stepped);const int before=callbacks;
         expected={start.x+(end.x-start.x)*sample/samples,start.y+(end.y-start.y)*sample/samples};
         ResetEvent(raw_motion);const auto receipt=inject(MOUSEEVENTF_MOVE,expected);wait_raw_motion(expected,receipt);
-        if(sample==1)require(WaitForSingleObject(entered,2000)==WAIT_OBJECT_0,"missing_ENTER");
+        if(sample==1){require(WaitForSingleObject(entered,2000)==WAIT_OBJECT_0,"missing_ENTER");if(reliability_mode){const auto ledger=ledger_snapshot();if(ledger.raw_down_recorded&&ledger.facts.native_down_matches&&ledger.facts.native_enter_matches&&ledger.facts.raw_down_matches)record("test_down_ledger",ledger_fields(ledger));}}
         require(WaitForSingleObject(stepped,2000)==WAIT_OBJECT_0&&callbacks>before,"missing_DRAG");
-        pace(interval_ms);fence(expected,true);
-        record("sample",",\"index\":"+std::to_string(sample)+",\"cursor\":"+point(expected)+",\"left_down\":true,\"post_cancel\":false"+geometry(capture()));
+        pace(interval_ms);if(reliability_mode)driver_phase="native_sample_after";fence(expected,true);
+        const auto sample_sequence=record("sample",",\"index\":"+std::to_string(sample)+",\"cursor\":"+point(expected)+",\"left_down\":true,\"post_cancel\":false"+geometry(capture()));
+        if(reliability_mode&&controlled_abort&&sample==1){
+            const auto ledger=ledger_snapshot();const bool clean=ledger.facts.pending_owned()&&!ledger.non_test_movements&&receiver_ok&&log_ok;
+            record("controlled_abort_fault",",\"sample_sequence\":"+std::to_string(sample_sequence)+",\"native_enter_sequence\":"+std::to_string(native_enter_sequence.load())+",\"native_down_sequence\":"+std::to_string(native_down_sequence.load())+",\"non_test_movements\":"+std::to_string(ledger.non_test_movements)+",\"non_test_button_transitions\":"+std::to_string(ledger.facts.non_test_button_transitions)+",\"unmatched_button_transitions\":"+std::to_string(ledger.facts.unmatched_button_transitions)+",\"guard_passed\":"+flag(clean)+",\"fault\":\"after_sample1_before_cancel\",\"reason\":\""+(clean?"BLOCKED_BY_TEST_FAULT":"BLOCKED_BY_UNEXPECTED_INPUT_DURING_TEST_FAULT")+"\"");
+            require(clean,"BLOCKED_BY_UNEXPECTED_INPUT_DURING_TEST_FAULT");require(false,"BLOCKED_BY_TEST_FAULT");
+        }
     }
     Geometry anchored;POINT pointer{};{std::lock_guard lock(continuation_mutex);anchored=intent_start;pointer=intent_pointer;}
     require(anchored.p_ok&&anchored.v_ok&&equal(anchored.p,initial.p)&&equal(anchored.v,initial.v)&&pointer.x==start.x&&pointer.y==start.y,"native_start_anchor_mismatch");
@@ -1196,6 +1495,7 @@ void drive_end_gesture(POINT& expected,bool& down){
     require(post_source_work(handoff_message),"handoff_post_failed");
     require(WaitForSingleObject(handoff_finished,2000)==WAIT_OBJECT_0&&handoff_ready&&takeover_healthy,"handoff_completion_failed");
     for(int sample=3;sample<=samples;++sample){
+        if(reliability_mode){driver_phase="takeover_sample";driver_sample=sample;}
         pace(interval_ms);fence(expected,true,false,true);require(takeover_healthy,"takeover_observer_failure");
         expected={start.x+(end.x-start.x)*sample/samples,start.y+(end.y-start.y)*sample/samples};
         ResetEvent(raw_motion);ResetEvent(quantum_finished);const auto receipt=inject(MOUSEEVENTF_MOVE,expected);
@@ -1215,7 +1515,7 @@ void drive_end_gesture(POINT& expected,bool& down){
 void drive(){
     bool down=false;POINT expected=saved_cursor;
     try {
-        acquire_foreground(expected);fence(expected,false);
+        acquire_foreground(expected);if(reliability_mode)driver_phase="raw_preflight";fence(expected,false);
         SetEvent(receiver_armed);
         // Prove real background mouse movement and UP before native cancel.
         RECT client{};require(GetClientRect(owned,&client),"preflight_client_failed");
@@ -1309,7 +1609,13 @@ void drive(){
     }catch(const std::exception& e){
         failure=e.what();record("blocked",",\"reason\":\""+failure+"\"");
         takeover_scope=false;
-        if(diagnostic_mode){try{perform_cleanup_input(down||activation_down);}catch(...){record("cleanup_skipped_no_authority",",\"reason\":\"cleanup_diagnostic_exception\",\"acceptance_eligible\":false");ResetEvent(receiver_armed);}}
+        if(diagnostic_mode){
+            if(reliability_mode){
+                try{perform_reliability_cleanup(down||activation_down);}
+                catch(const std::exception& cleanup_error){abort_cleanup_result=abort_cleanup_attempted?"UNCONFIRMED":"SKIPPED_NO_AUTHORITY";record("abort_cleanup_skipped",",\"reason\":\""+std::string(cleanup_error.what())+"\",\"cleanup_up_attempted\":"+flag(abort_cleanup_attempted)+",\"cleanup_result\":\""+abort_cleanup_result+"\",\"acceptance_eligible\":false");cleanup_observation=false;ResetEvent(receiver_armed);}
+                catch(...){abort_cleanup_result=abort_cleanup_attempted?"UNCONFIRMED":"SKIPPED_NO_AUTHORITY";record("abort_cleanup_skipped",",\"reason\":\"unknown_abort_cleanup_exception\",\"cleanup_up_attempted\":"+flag(abort_cleanup_attempted)+",\"cleanup_result\":\""+abort_cleanup_result+"\",\"acceptance_eligible\":false");cleanup_observation=false;ResetEvent(receiver_armed);}
+            }else{try{perform_cleanup_input(down||activation_down);}catch(...){record("cleanup_skipped_no_authority",",\"reason\":\"cleanup_diagnostic_exception\",\"acceptance_eligible\":false");ResetEvent(receiver_armed);}}
+        }
         else {
         ResetEvent(receiver_armed); // cleanup packets cannot extend acceptance
         GUITHREADINFO gui{sizeof(gui)};POINT current{};
@@ -1333,7 +1639,12 @@ void drive(){
 int receiver_main(int argc,wchar_t** argv);
 int wmain(int argc,wchar_t** argv){
     if(argc==5&&std::wstring_view(argv[1])==L"--raw-receiver")return receiver_main(argc,argv);
-    isolation_mode=argc==6&&std::wstring_view(argv[1])==L"--run-owned-input-isolation-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log";
+    reliability_mode=argc==8&&std::wstring_view(argv[1])==L"--run-owned-input-reliability-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--mode"&&std::wstring_view(argv[6])==L"--evidence-log";
+    if(reliability_mode){
+        if(std::wstring_view(argv[5])==L"controlled-abort")controlled_abort=true;
+        else if(std::wstring_view(argv[5])!=L"normal")return 2;
+    }
+    isolation_mode=reliability_mode||(argc==6&&std::wstring_view(argv[1])==L"--run-owned-input-isolation-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log");
     diagnostic_mode=isolation_mode||(argc==6&&std::wstring_view(argv[1])==L"--run-owned-end-diagnostics-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log");
     end_mode=diagnostic_mode||(argc==6&&std::wstring_view(argv[1])==L"--run-owned-takeover-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log");
     if(end_mode){
@@ -1344,16 +1655,18 @@ int wmain(int argc,wchar_t** argv){
         std::cout<<"Explicit test only: --run-owned-cancel-test --evidence-log NEW_FILE\n"
                  <<"Or --run-owned-takeover-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
                  <<"Or --run-owned-end-diagnostics-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
-                 <<"Or --run-owned-input-isolation-test --gesture move|bottom-resize --evidence-log NEW_FILE\n";return 2;
+                 <<"Or --run-owned-input-isolation-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
+                 <<"Or --run-owned-input-reliability-test --gesture move|bottom-resize --mode controlled-abort|normal --evidence-log NEW_FILE\n";return 2;
     }
-    log_file=CreateFileW(argv[end_mode?5:3],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    log_file=CreateFileW(argv[reliability_mode?7:(end_mode?5:3)],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(log_file==INVALID_HANDLE_VALUE)return 2;
     timer=CreateWaitableTimerW(nullptr,FALSE,nullptr);ui_thread=GetCurrentThreadId();
     if(isolation_mode){run_nonce=static_cast<std::uintptr_t>(static_cast<std::uint64_t>(qpc())^(static_cast<std::uint64_t>(GetCurrentProcessId())<<32));if(!run_nonce)run_nonce=1;}
     LARGE_INTEGER frequency{};QueryPerformanceFrequency(&frequency);
     record("startup",",\"evidence_kind\":\""+std::string(end_mode?"automated_owned_end_handoff":"automated_owned_cancel")+"\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\""+(end_mode?"free_takeover":"cancel_only")+"\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_global_foreground_v2\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)
         +(end_mode?",\"handoff_contract\":\""+std::string(diagnostic_mode?"winevent_end_barrier_v1":"end_barrier_v1")+"\",\"operation\":\""+std::string(selected_gesture==1?"Move":"BottomResize")+"\"":"")+(diagnostic_mode?",\"diagnostic_contract\":\""+std::string(isolation_mode?"separated_authority_v1":"structured_handoff_v1")+"\",\"gesture_id\":1":"")
-        +(isolation_mode?",\"authority_contract\":\"product_gesture_v1\",\"input_isolation_contract\":\"post_end_shield_v1\",\"run_nonce\":"+std::to_string(run_nonce)+",\"cursor_root_required_for_product\":false,\"shield_test_only\":true":""));
+        +(isolation_mode?",\"authority_contract\":\"product_gesture_v1\",\"input_isolation_contract\":\"post_end_shield_v1\",\"run_nonce\":"+std::to_string(run_nonce)+",\"cursor_root_required_for_product\":false,\"shield_test_only\":true":"")
+        +(reliability_mode?",\"test_mode\":\""+std::string(controlled_abort?"controlled_abort":"normal")+"\",\"fence_contract\":\"ordered_failure_snapshot_v1\",\"cleanup_contract\":\"owned_native_abort_v1\",\"abort_cleanup_tag\":"+std::to_string(abort_cleanup_tag):""));
     int result=2;
     try {
         require(timer&&desktop_available(),"BLOCKED_BY_INTERACTIVE_DESKTOP");
@@ -1402,6 +1715,7 @@ int wmain(int argc,wchar_t** argv){
         handoff_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);quantum_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);takeover_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);
         if(diagnostic_mode){winevent_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);native_preflight_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);require(winevent_finished&&native_preflight_finished,"winevent_observation_event_creation_failed");}
         if(isolation_mode){final_acceptance_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);require(final_acceptance_finished!=nullptr,"final_acceptance_event_creation_failed");}
+        if(reliability_mode){abort_quiescence_finished=CreateEventW(nullptr,TRUE,FALSE,nullptr);require(abort_quiescence_finished!=nullptr,"abort_quiescence_event_creation_failed");}
         require(entered&&exited&&stepped&&activation_event&&pointer_arrived&&nonclient_down&&correction_finished&&driver_finished&&activation_down_received&&activation_up_received,"event_creation_failed");
         require(handoff_finished&&quantum_finished&&takeover_finished,"continuation_event_creation_failed");
         start_receiver();
@@ -1432,8 +1746,9 @@ int wmain(int argc,wchar_t** argv){
     if(diagnostic_mode&&(!winevent_healthy||movesize_hook))result=2;
     if(isolation_mode&&(!shield_healthy||(shield_created&&!shield_destroyed)))result=2;
     record("shutdown",",\"result\":\""+std::string(result==0?"CAPTURED_NOT_ACCEPTED":"BLOCKED")+"\",\"cursor_restored\":"+flag(restored)+",\"owned_window_destroyed\":"+flag(!IsWindow(owned))+",\"guard_window_destroyed\":"+flag(!IsWindow(guard))+",\"receiver_stopped\":"+flag(receiver_ok&&receiver_removed&&receiver_destroyed)+",\"external_windows_touched\":false"+(end_mode?",\"takeover_geometry_writes\":"+std::to_string(takeover_native_calls.load()):"")
-        +(diagnostic_mode?",\"winevent_hook_removed\":"+flag(movesize_hook_removal_attempted&&movesize_hook==nullptr&&winevent_healthy)+",\"native_drag_after_winevent_end\":"+std::to_string(native_drag_after_winevent_end.load()):"")+(isolation_mode?",\"input_shield_created\":"+flag(shield_created)+",\"input_shield_destroyed\":"+flag(!shield_created||shield_destroyed)+",\"input_shield_activated\":"+flag(shield_activated)+",\"source_acceptance_sequence\":"+std::to_string(source_acceptance_sequence)+",\"run_nonce\":"+std::to_string(run_nonce):""));
-    for(HANDLE handle:{entered,exited,stepped,timer,activation_event,pointer_arrived,nonclient_down,correction_finished,driver_finished,activation_down_received,activation_up_received,handoff_finished,quantum_finished,takeover_finished,winevent_finished,native_preflight_finished,final_acceptance_finished})if(handle)CloseHandle(handle);
+        +(diagnostic_mode?",\"winevent_hook_removed\":"+flag(movesize_hook_removal_attempted&&movesize_hook==nullptr&&winevent_healthy)+",\"native_drag_after_winevent_end\":"+std::to_string(native_drag_after_winevent_end.load()):"")+(isolation_mode?",\"input_shield_created\":"+flag(shield_created)+",\"input_shield_destroyed\":"+flag(!shield_created||shield_destroyed)+",\"input_shield_activated\":"+flag(shield_activated)+",\"source_acceptance_sequence\":"+std::to_string(source_acceptance_sequence)+",\"run_nonce\":"+std::to_string(run_nonce):"")
+        +(reliability_mode?",\"gesture_result\":\""+std::string(driver_pass?"CAPTURED_NOT_ACCEPTED":failure)+"\",\"cleanup_result\":\""+abort_cleanup_result+"\",\"fixture_result\":\""+std::string(controlled_abort&&failure=="BLOCKED_BY_TEST_FAULT"&&abort_cleanup_result=="PASS"?"PASS_EXPECTED_ABORT":(driver_pass?"CAPTURED_NOT_ACCEPTED":"BLOCKED"))+"\"":""));
+    for(HANDLE handle:{entered,exited,stepped,timer,activation_event,pointer_arrived,nonclient_down,correction_finished,driver_finished,activation_down_received,activation_up_received,handoff_finished,quantum_finished,takeover_finished,winevent_finished,native_preflight_finished,final_acceptance_finished,abort_quiescence_finished})if(handle)CloseHandle(handle);
     const bool evidence_ok=log_ok;CloseHandle(log_file);return evidence_ok?result:2;
 }
 int receiver_main(int,wchar_t** argv){

@@ -248,6 +248,14 @@ panebind_enable_warnings(panebind-explorer-live-magnet-harness)
 
 if(BUILD_TESTING)
     # Explicit Pivot 1 interaction research; never part of default CTest.
+    # Explicit read-only environment CLI, never automatic/default CTest.
+    add_executable(panebind-test-input-environment operations/test_input_environment_probe.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-test-input-environment PRIVATE panebind_core user32 wtsapi32 advapi32)
+    target_compile_definitions(panebind-test-input-environment PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    if(MSVC)
+        target_link_options(panebind-test-input-environment PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-test-input-environment)
     add_executable(panebind-magnet-takeover-probe operations/magnet_takeover_probe.cpp observer.rc observer.manifest)
     target_link_libraries(panebind-magnet-takeover-probe PRIVATE panebind_core dwmapi user32 wtsapi32)
     target_compile_definitions(panebind-magnet-takeover-probe PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
@@ -279,6 +287,11 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-input-isolation-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-input-isolation-tests)
     add_test(NAME test-product-input-isolation COMMAND panebind-input-isolation-tests)
+    add_executable(panebind-owned-abort-diagnostic-tests operations/magnet_owned_abort_diagnostic_tests.cpp)
+    target_link_libraries(panebind-owned-abort-diagnostic-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-owned-abort-diagnostic-tests)
+    add_test(NAME test-owned-native-abort-diagnostic COMMAND panebind-owned-abort-diagnostic-tests)
+    set_tests_properties(test-owned-native-abort-diagnostic PROPERTIES LABELS "offline")
     # Explicit interaction probe, deliberately NOT a CTest/default test.
     add_executable(panebind-magnet-modal-loop-probe operations/magnet_modal_loop_probe.cpp observer.rc observer.manifest)
     target_link_libraries(panebind-magnet-modal-loop-probe PRIVATE panebind_core dwmapi user32)
@@ -621,4 +634,22 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-sta-console-tests)
     add_test(NAME sta-console-pump COMMAND panebind-sta-console-tests)
     set_tests_properties(sta-console-pump PROPERTIES TIMEOUT 20)
+    # Fix F classification is based on the actual command/call path, not "unit"
+    # naming. Fake COM objects, ledgers, snapshots and CPU-only clocks are safe;
+    # even hidden/message-only HWNDs and private-console GUI children are not.
+    set_tests_properties(
+        test-foreground-bootstrap-model windows-magnet-postverify
+        test-handoff-preflight-diagnostic test-product-input-isolation
+        windows-rect-adjustment explorer-browser-sink
+        explorer-group-mutable-capture windows-explorer-glue-profile-unit
+        windows-text-encoding windows-owned-operations-unit
+        windows-companion-unit windows-explorer-unit
+        windows-explorer-glue-session-unit explorer-group-layout
+        explorer-group-readiness
+        PROPERTIES LABELS "offline")
+    set_tests_properties(
+        windows-magnet-owned-probe windows-explorer-glue-activation-unit
+        windows-explorer-vdm-unit windows-explorer-glue-event-source-unit
+        explorer-group-batch explorer-group-event sta-console-pump
+        PROPERTIES LABELS "interactive")
 endif()

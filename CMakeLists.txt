@@ -75,6 +75,11 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-glue-move-coordinator-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-glue-move-coordinator-tests)
     add_test(NAME glue-move-coordinator COMMAND panebind-glue-move-coordinator-tests)
+    # Fix F: audited deterministic core code, no native HWND/input side effects.
+    set_tests_properties(
+        magnet-gesture magnet-constraint-solver glue-group-move geometry
+        core-model topology translation glue-move-coordinator
+        PROPERTIES LABELS "offline")
 endif()
 
 if(WIN32)
