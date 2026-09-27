@@ -68,6 +68,16 @@ counterexample. Further Move, smoke/formal batches, Explorer and human UAT are
 stopped. Old Fix B Move PASS and old Fix C verdicts remain unchanged;
 architecture remains UNRESOLVED. No product shield or Raw Input is implemented.
 
+[Pivot 1 Fix E](docs/reports/R1C4B_PIVOT1_FIXE_EXECUTION_REPORT.md) repairs only
+64-bit evidence arithmetic and accepts the immutable Fix D Resize run through
+a new corrected replay artifact; the original INVALID_EVIDENCE metadata is
+unchanged. A current Debug Move and all four operation-specific 5/5 smoke
+groups pass. Debug Move formal stops at repetition 14 on input interference
+after 13 passes, before cancellation or any takeover write. Other formal groups
+are NOT RUN; no retries occur. Overall owned stability remains unaccepted and
+architecture UNRESOLVED, not rejected by a geometry counterexample. Explorer
+and human UAT remain NOT READY. No native/product runtime changes are made.
+
 ## Build
 
 Requirements:
