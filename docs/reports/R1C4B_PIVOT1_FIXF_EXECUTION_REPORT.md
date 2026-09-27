@@ -127,13 +127,129 @@ Fake层实际观察：probeStub2→child2→aggregate2；外层implicit PowerShe
 但旧历史外层wrapper唯一原因/未单独观测的aggregate终端exit仍UNKNOWN；未确认
 仓库映射bug，未为此重跑旧GUI或改旧runners。
 
-## 限定GUI计划与交付状态（待实施checkpoint后更新）
+## 限定GUI结果：第1项bootstrap阻断，立即停止
 
 冻结顺序：Debug Move abort、Debug BottomResize abort、Debug Move normal、
 Debug BottomResize normal、Release同顺序；每项一次fresh resources、无retry。
 本轮不跑smoke/formal或续接第14次，不进入Explorer/产品Raw/真人UAT。
-只有完整实现、双配置build、纯offline与clean commit通过后，才能运行该限定入口；
-任何额外干扰、状态UNKNOWN、cleanup不完整或证据异常立即停止整组。
+实现 checkpoint：`2f06924e88b5bef81b35e1d2414aab9b4c6d4f0f`，
+`test: isolate offline runs and verify owned native abort cleanup`。clean HEAD后在
+批准的主机Default桌面执行唯一一次：
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/run-r1c4b-input-reliability-gates.ps1; exit $LASTEXITCODE`。
 
-现场run commit/binary/validator/log hash、实际计数、门状态和Git交付将在完成
-该限定计划或首次阻断后追加；此checkpoint文档不宣称GUI/cleanup PASS。
+实际只有第1项Debug Move controlled-abort的**程序启动尝试**，没有开始目标手势。
+pre只读11项UP/READY/exit0后，普通SetForegroundWindow未取得global foreground；
+fallback activation fence的GetGUIThreadInfo显示foreign capture。它在任何SendInput
+之前拒绝。因此测试中断不是预注册的test fault，不得算PASS_EXPECTED_ABORT。
+未重试、未推进其余七项、未修后重跑、未运行formal/smoke/Explorer。
+
+唯一新run目录（均ignored/local）：
+`uat/r1c4b-fixf/20260927T132106696Z-Debug-Move-controlled-abort-c2473a89d3db4c1da41ceb0ba51b1cb6/`。
+inventory：`20260927T132105318Z-bounded-eight-c7d46eec9ec2462e95df6b3badc8fe18.json`。
+
+| 实际新sequence | 证据 |
+|---|---|
+| 8/9 | global foreground=`854960`，SetForegroundWindow=false；source HWND=`13571864`、PID=`56980`、TID=`46328`、nonce=`245205829207611`，DPI192、monitor65537。 |
+| 12 | activation_fence phase=move；cursor `[1310,31]`、planned activation `[1446,874]`；GUI flags0、capture HWND=`71435280`、menu/move_size0；foreign_capture_clear=false，buttons/modifiers匹配。fallback尚未注入。 |
+| 14/15 | bootstrap及gesture均 `BLOCKED_BY_FOREIGN_INPUT_CAPTURE`；sendinput move/down/up全部false，temporary topmost已恢复。 |
+| 16–25 | 真实initial/final owner ACK，owner TID46328、identity/nonce匹配、active operation/pending/motion/notice/nativecalls全清；无自有DOWN，使用原strict cleanup，`SKIPPED_NO_AUTHORITY`且InputSent=false、left=false。不是新native-abort PASS。 |
+| 26–28 | hook实际removed；receiver registration removed/window destroyed；source/guard已销毁，source writer/shield/acceptance均0。shutdown result=BLOCKED、cleanup_result=NOT_RUN。 |
+
+JSONL共28条全部合法、sequence连续、startup/shutdown完整。input/activation_input/
+cleanup_release/abort_cleanup_release **合计0**；Raw packets、ENTER、EXIT、test-fault、
+cancel、source writes全0。receiver序列仅注册1/退出2，error/overflow/drop无记录；
+hook安装/移除可确认，交互event delivery没有被测试。**不能因此称接管或清理通过。**
+输入产生者或foreign capture持有者原因 **UNKNOWN**；只记录获准的数值句柄/线程
+事实，未查foreign title/path/UI tree，未干预该capture、foreground或既有窗口。
+
+原metadata保留 `Result=null`/`AfterHEAD=null`：完整v5 acceptance validator因尚未
+出现input_fence_diagnostic返回 `Fix F v5: diagnostics required`。这是未进入该阶段、
+完整fixture proof未成立，不是JSON损坏；该工具层reason不能替代原始native blocker。
+随后只读、as-is调用新Envelope和冻结的bootstrap/Raw/WinEvent/原strict cleanup
+primitives，独立确认上述valid blocked prefix；不转换schema、不改metadata、不
+升级为normal或cleanup PASS。额外post-audit确认同一HEAD仍clean、19项source/
+binary/validator/runner hash全与BeforeIdentity一致。该复核在本报告编辑之前执行，
+不是补造metadata缺失的After字段。
+
+独立post只读Default/WinSta0、active/unlocked、stable FG/IL可靠，11输入全部UP；
+当前测试没有pending DOWN，无补UP或手动复位需要。FINAL_BUTTON_STATE在该观察点
+为OBSERVED_UP（LEFT及其它全部所需输入）；不是永久状态承诺。
+
+| Artifact/implementation | SHA256 |
+|---|---|
+| Native source | `F540E9DD2DCCCD7311DEB006FCA8FA0073708084B12A513A8A422AF082465134` |
+| Debug probe binary | `8D3E71CCCC53F9B64EE248863829C613B634350F71EA9B5692C57FB6FCAD34D7` |
+| v5 validator | `4A85B6D4B75515A44CC9F7DB7B1981C957A88F248A8A61758DF71556E0106C6D` |
+| Normal composition | `064B9C1EDAC92C7A7F011FDF7F8B01D15D339D0214CF21436F753E8876483D6E` |
+| New JSONL | `09ECEDC632F91B4FAEB7CFA00682B7227827FE57AA8EDB79BB6701D68576B09D` |
+| New metadata | `010322412D0E47E4BD4C52F230BD94325E530B3AA14E9E9F395E1076210F394F` |
+| Pre readonly | `089CB6A07FCF1B6465861BE33B2DA4C8A2F1A35D52E010BCAFF02BE9231C5562` |
+| Post readonly | `760621B0D8B4DBBF1940825DD9F35A4365C36F694C162C740BA9E83CE8D36458` |
+| Bounded inventory | `5CBAF79AB38296A8800A7190EDF37EDCBF9D024E74C7CEEE10EA1179668F2253` |
+
+native probe exit2、child runner exit2、aggregate process exit2、工具exit2已实际观察，
+JSON inventory STOPPED/Passed=false。本次没有implicit-shell映射混淆。
+
+| 预登记项 | 实际结果 |
+|---|---|
+| 1 Debug Move abort | 启动尝试BLOCKED；native ENTER/sample1/abort cleanup **NOT_RUN** |
+| 2 Debug BottomResize abort | NOT_RUN；first-failure stop |
+| 3 Debug Move normal | NOT_RUN |
+| 4 Debug BottomResize normal | NOT_RUN |
+| 5 Release Move abort | NOT_RUN |
+| 6 Release BottomResize abort | NOT_RUN |
+| 7 Release Move normal | NOT_RUN |
+| 8 Release BottomResize normal | NOT_RUN |
+
+## 最终门与剩余未测风险
+
+```text
+FIXF_FAILURE_DIAGNOSTICS = PASS
+FIXF_OFFLINE_TEST_SELECTION = PASS
+FIXF_OWNED_NATIVE_CLEANUP_CONTRACT = BLOCKED
+FIXF_HISTORICAL_EVIDENCE_UNCHANGED = PASS
+
+FIXF_DEBUG_MOVE_ABORT_CLEANUP = NOT_RUN
+FIXF_DEBUG_RESIZE_ABORT_CLEANUP = NOT_RUN
+FIXF_RELEASE_MOVE_ABORT_CLEANUP = NOT_RUN
+FIXF_RELEASE_RESIZE_ABORT_CLEANUP = NOT_RUN
+FIXF_DEBUG_MOVE_NORMAL_SINGLE = NOT_RUN
+FIXF_DEBUG_RESIZE_NORMAL_SINGLE = NOT_RUN
+FIXF_RELEASE_MOVE_NORMAL_SINGLE = NOT_RUN
+FIXF_RELEASE_RESIZE_NORMAL_SINGLE = NOT_RUN
+
+FIRST_UNEXPECTED_FAILURE = DEBUG_MOVE_BOOTSTRAP_BLOCKED_BY_FOREIGN_INPUT_CAPTURE
+FINAL_BUTTON_STATE = OBSERVED_UP
+OBSERVED_EXTERNAL_INPUT_SOURCE = UNKNOWN
+TOP_LEVEL_EXIT_CLASSIFICATION = VERIFIED
+
+FIXE_HISTORICAL_FORMAL = 13_PASS_THEN_BLOCKED_AT_14
+FIXF_FORMAL = NOT_RUN
+OWNED_FREE_TAKEOVER_GATE = NOT_PASSED
+RAW_INPUT_TAKEOVER_ARCHITECTURE = UNRESOLVED
+EXPLORER_STAGE = NOT_RUN
+POST_CANCEL_LEGACY_MOUSE_DELIVERY_RISK = NOT_PRODUCT_TESTED
+VISUAL_TERMINAL_RESTORE_FLICKER = NOT_HUMAN_TESTED
+R1C4B_HUMAN_UAT = NOT_READY
+
+PRODUCT_INPUT_SHIELD = NONE
+PRODUCT_RAW_INPUT = NOT_IMPLEMENTED
+PRODUCT_SENDINPUT_DEPENDENCY = NONE
+PRODUCT_GLOBAL_MOUSE_HOOK = NONE
+PRODUCT_DLL_INJECTION = NONE
+PRODUCT_POLLING = NONE
+PR = NO
+MERGE = NO
+TAG = NO
+RELEASE = NO
+```
+
+Failure diagnostics PASS依据实现/53-model/138-validator反例，不宣称新input fence
+失败已现场观察；本次实际bootstrap已有原activation fence完整记录。新cleanup
+contract为IMPLEMENTED/AUTOMATED TESTED，**empirical BLOCKED**，没有接收/结束反例
+证明其不成立，也没有现场通过证据。八项全未到目标场景，完整稳定门仍欠缺；
+不拼接旧13次，不修改Recovery Index INCUBATE、不追加产品阶段或长期路线图。
+
+本次GUI停止后只作只读审计与本报告更新；实现/validator/runner不修后重跑。
+交付本报告普通docs commit并标准push当前分支；精确final SHA/remote ref与最终
+worktree/divergence以该提交之后的Git核验及本轮最终交付为准。`uat/`不入Git。
