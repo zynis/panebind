@@ -27,6 +27,7 @@ try{
     if($LASTEXITCODE -ne 0){throw 'Working tree status unavailable'}
     if($statusRows.Count){throw 'Require a clean implementation checkpoint before any test input'}
     $hash=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+    $validatorHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'r1c4b-input-isolation-validation.ps1') -Algorithm SHA256).Hash
     $gesture=if($Operation -ceq 'Move'){'move'}else{'bottom-resize'}
     Write-Host "Fix D $Configuration $Operation owned-only separated-authority probe: $path"
     & $exe --run-owned-input-isolation-test --gesture $gesture --evidence-log $path
@@ -38,6 +39,7 @@ try{
     $afterRows=@(git status --porcelain)
     if($LASTEXITCODE -ne 0){throw 'After working tree status unavailable'}
     $afterHash=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+    $afterValidatorHash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'r1c4b-input-isolation-validation.ps1') -Algorithm SHA256).Hash
     $contracts=((Get-AutoField $result 'ForegroundContract') -ceq 'verified_global_foreground_v2' -and
         (Get-AutoField $result 'HandoffContract') -ceq 'winevent_end_barrier_v1' -and
         (Get-AutoField $result 'DiagnosticContract') -ceq 'separated_authority_v1' -and
@@ -48,9 +50,10 @@ try{
         Schema='r1c4b-input-isolation-run/v1';Stage='free_takeover';Configuration=$Configuration;Operation=$Operation;RunId=$RunId;EvidencePath=$path
         ExecutedHEAD=$sha;WorktreeDirty=$false;AfterHEAD=$after;AfterWorktreeDirty=($afterRows.Count -gt 0)
         BinarySHA256=$hash;AfterBinarySHA256=$afterHash
+        ValidatorScriptSHA256=$validatorHash;AfterValidatorScriptSHA256=$afterValidatorHash
         LogSHA256=$(if(Test-Path -LiteralPath $path){(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}else{$null})
         ProbeExitCode=$code;Result=$result;CurrentContractsVerified=$contracts
-        ImplementationUnchanged=($sha -ceq $after -and $afterRows.Count -eq 0 -and $hash -ceq $afterHash)
+        ImplementationUnchanged=($sha -ceq $after -and $afterRows.Count -eq 0 -and $hash -ceq $afterHash -and $validatorHash -ceq $afterValidatorHash)
     }
     $metadata|ConvertTo-Json -Depth 20|Set-Content -LiteralPath ($prefix+'.metadata.json') -Encoding UTF8
     $metadata|ConvertTo-Json -Depth 20|Write-Host

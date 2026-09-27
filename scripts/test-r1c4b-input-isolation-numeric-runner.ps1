@@ -1,96 +1,91 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-# Numeric-only synthetic tests. Extract actual helpers, never a runner's
-# top-level program. All metadata, hashes, validator output and log rows are
-# in-memory stubs; no original evidence, child CLI, Git, GUI or input is used.
+# Numeric-only synthetic tests. Actual AST helpers, no runner top-level,
+# original evidence, child CLI, Git, GUI, input or disk-writing seam.
 $checks=0
-function Check-NumericRunner([bool]$Value,[string]$Reason){
-    if(-not $Value){throw "numeric runner fixture: $Reason"}
-    $script:checks++
-}
+function Check-NumericRunner([bool]$Value,[string]$Reason){if(-not $Value){throw "numeric runner fixture: $Reason"};$script:checks++}
 function One-NumericNode($Ast,[scriptblock]$Predicate,[string]$Label){
-    $nodes=@($Ast.FindAll($Predicate,$true))
-    Check-NumericRunner ($nodes.Count -eq 1) "unique $Label"
-    return $nodes[0]
+    $nodes=@($Ast.FindAll($Predicate,$true));Check-NumericRunner ($nodes.Count -eq 1) "unique $Label";return $nodes[0]
+}
+function Get-AutoField($Value,[string]$Name){$p=$Value.PSObject.Properties[$Name];if($null -eq $p){return $null};return $p.Value}
+function Reject-NumericRunner([scriptblock]$Action,[string]$Reason){
+    $rejected=$false;try{$null=& $Action}catch{$rejected=$true};Check-NumericRunner $rejected $Reason
 }
 $tokens=$null;$errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'run-r1c4b-input-isolation-gates.ps1'),[ref]$tokens,[ref]$errors)
 Check-NumericRunner (@($errors).Count -eq 0) 'aggregate parses'
-foreach($name in @('Assert-IsolationGate','Read-IsolationGateMetadata','Get-IsolationQuantile')){
+$names=@('Assert-IsolationGate','Convert-IsolationGateInt64','Convert-IsolationGateMilliseconds','Get-IsolationQuantile','Get-IsolationGateClock','New-IsolationStatistics','Add-IsolationMeasurements','Update-IsolationStatistics','Assert-IsolationVerdict','Bind-IsolationClock','Read-IsolationGateMetadata')
+$allowed=@($names)+@('Get-AutoField','Get-Content','ConvertFrom-Json','Get-FileHash','Test-InputIsolationOwnedEvidence','Join-Path','Add-Member','ForEach-Object','Sort-Object')
+foreach($name in $names){
     $node=One-NumericNode $ast {param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -ceq $name} $name
-    $allowed=@('Assert-IsolationGate','Get-Content','ConvertFrom-Json','Get-FileHash','Test-InputIsolationOwnedEvidence','Join-Path','Add-Member','ForEach-Object')
-    Check-NumericRunner (@($node.Body.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst] -and $n.GetCommandName() -cnotin $allowed},$true)).Count -eq 0) "$name uses only pure/stubbed seams"
-    Check-NumericRunner ($node.Extent.Text -notmatch '\[Math\]::(?:Max|Min)\(') "$name has no overload-sensitive Max/Min"
+    Check-NumericRunner (@($node.Body.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst] -and $n.GetCommandName() -cnotin $allowed},$true)).Count -eq 0) "$name only pure/stubbed seams"
+    Check-NumericRunner ($node.Extent.Text -notmatch '\[Math\]::(?:Max|Min)\(') "$name no overload-sensitive Max/Min"
     $narrow=@($node.Body.FindAll({param($n) $n -is [Management.Automation.Language.ConvertExpressionAst] -and $n.Type.TypeName.FullName -in @('int','Int32','System.Int32')},$true))
     if($name -ceq 'Get-IsolationQuantile'){
-        Check-NumericRunner ($narrow.Count -eq 2 -and @($narrow|Where-Object {$_.Child.Extent.Text -notmatch '^\[Math\]::(?:Floor|Ceiling)\(\$index\)$'}).Count -eq 0) 'Int32 conversions are only bounded array indices'
+        Check-NumericRunner ($narrow.Count -eq 2 -and @($narrow|Where-Object {$_.Child.Extent.Text -notmatch '^\[Math\]::(?:Floor|Ceiling)\(\$index\)$'}).Count -eq 0) 'only bounded array indices use Int32'
     }else{Check-NumericRunner ($narrow.Count -eq 0) "$name never narrows QPC/ticks to Int32"}
     . ([scriptblock]::Create($node.Extent.Text))
 }
-$initialization=One-NumericNode $ast {param($n) $n -is [Management.Automation.Language.ForEachStatementAst] -and $n.Variable.Extent.Text -ceq '$metricName'} 'actual metric initialization'
-$repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$root=Join-Path $repo 'uat/r1c4b-input-isolation'
-$id='a'*32
-$metadataPath=Join-Path $root ("synthetic-Debug-BottomResize-$id.metadata.json")
-$logPath=Join-Path $root ("synthetic-Debug-BottomResize-$id.jsonl")
-$binaryHash='A'*64;$logHash='B'*64;$head='1'*40
-$fixtureMetadata=$null;$fixtureVerdict=$null;$fixtureRows=@()
-# Load the serialization module before installing command-name stubs: its
-# first-use auto-import must not replace Get-Content/Get-FileHash afterwards.
+$metricAssignment=One-NumericNode $ast {param($n) $n -is [Management.Automation.Language.AssignmentStatementAst] -and $n.Left.Extent.Text -ceq '$metricNames'} 'actual metric names'
+$metricNames=@(& ([scriptblock]::Create($metricAssignment.Right.Extent.Text)))
+$repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$root=Join-Path $repo 'uat/r1c4b-input-isolation'
+$id='a'*32;$metadataPath=Join-Path $root ("synthetic-Debug-BottomResize-$id.metadata.json");$logPath=Join-Path $root ("synthetic-Debug-BottomResize-$id.jsonl")
+$binaryHash='A'*64;$logHash='B'*64;$metadataHash='D'*64;$validatorHash='F'*64;$head='1'*40
+$validatorPath=Join-Path $PSScriptRoot 'r1c4b-input-isolation-validation.ps1'
+# Load serializer before stubs, so module auto-import cannot overwrite them.
 $null=[pscustomobject]@{synthetic_only=$true}|ConvertTo-Json -Compress
+function Join-Path([string]$Path,[string]$ChildPath){
+    if([string]::IsNullOrEmpty($Path) -and $ChildPath -ceq 'r1c4b-input-isolation-validation.ps1'){return $script:validatorPath}
+    return [IO.Path]::GetFullPath([IO.Path]::Combine($Path,$ChildPath))
+}
 function Get-Content([string]$LiteralPath,[string]$Encoding){
-    if($LiteralPath -ceq $script:metadataPath){return ($script:fixtureMetadata|ConvertTo-Json -Depth 12 -Compress)}
+    if($LiteralPath -ceq $script:metadataPath){return ($script:fixtureMetadata|ConvertTo-Json -Depth 16 -Compress)}
     if($LiteralPath -ceq $script:logPath){foreach($row in $script:fixtureRows){$row|ConvertTo-Json -Depth 8 -Compress};return}
-    throw 'numeric fixture attempted an unregistered read'
+    throw 'numeric fixture attempted unregistered read'
 }
 function Get-FileHash([string]$LiteralPath,[string]$Algorithm){
-    if($Algorithm -cne 'SHA256'){throw 'numeric fixture hash algorithm changed'}
-    if($LiteralPath.EndsWith('panebind-magnet-takeover-probe.exe',[StringComparison]::Ordinal)){return [pscustomobject]@{Hash=$script:binaryHash}}
-    if($LiteralPath -ceq $script:logPath){return [pscustomobject]@{Hash=$script:logHash}}
-    throw 'numeric fixture attempted an unregistered hash'
+    if($Algorithm -cne 'SHA256'){throw 'numeric hash algorithm changed'}
+    $hash=if($LiteralPath.EndsWith('panebind-magnet-takeover-probe.exe',[StringComparison]::Ordinal)){$script:binaryHash}elseif($LiteralPath -ceq $script:logPath){$script:logHash}elseif($LiteralPath -ceq $script:metadataPath){$script:metadataHash}elseif($LiteralPath -ceq $script:validatorPath){$script:validatorHash}else{throw 'numeric fixture attempted unregistered hash'}
+    return [pscustomobject]@{Hash=$hash}
 }
-function Test-InputIsolationOwnedEvidence([string]$Path){
-    if($Path -cne $script:logPath){throw 'numeric fixture validator path mismatch'}
-    return $script:fixtureVerdict
-}
-foreach($seam in @('Get-Content','Get-FileHash','Test-InputIsolationOwnedEvidence')){
-    Check-NumericRunner ((Get-Command $seam).CommandType -eq 'Function') "$seam remains an in-memory function seam"
-}
+function Test-InputIsolationOwnedEvidence([string]$Path){if($Path -cne $script:logPath){throw 'numeric validator path mismatch'};return $script:fixtureVerdict}
+foreach($seam in @('Get-Content','Get-FileHash','Test-InputIsolationOwnedEvidence','Join-Path')){Check-NumericRunner ((Get-Command $seam).CommandType -eq 'Function') "$seam remains an in-memory seam"}
 function Reset-NumericRunnerFixture([long]$Start,[long]$End){
-    $script:state=[ordered]@{ExecutedHEAD=$script:head;TimingMilliseconds=@{};TimingStatistics=@{}}
-    . ([scriptblock]::Create($script:initialization.Extent.Text))
+    $script:state=[ordered]@{ExecutedHEAD=$script:head;ValidatorScriptSHA256=$script:validatorHash;BinarySHA256=@{Debug=$script:binaryHash;Release=$script:binaryHash};Statistics=@{}}
+    foreach($configuration in @('Debug','Release')){foreach($operation in @('Move','BottomResize')){$script:state.Statistics[$configuration+$operation]=New-IsolationStatistics $configuration $operation}}
     $script:nonces=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    $script:fixtureMetadata=[pscustomobject]@{Schema='r1c4b-input-isolation-run/v1';Configuration='Debug';Operation='BottomResize';ExecutedHEAD=$script:head;AfterHEAD=$script:head;WorktreeDirty=$false;AfterWorktreeDirty=$false;ImplementationUnchanged=$true;BinarySHA256=$script:binaryHash;AfterBinarySHA256=$script:binaryHash;EvidencePath=$script:logPath;RunId=$script:id;LogSHA256=$script:logHash;ProbeExitCode=0;CurrentContractsVerified=$true}
-    $script:fixtureVerdict=[pscustomobject]@{Result='PASS';Operation='BottomResize';ProductHandoffAuthority='PASS';TestInputIsolation='PASS';RunNonce=[long]197157086769502;TimingTickSamples=[pscustomobject]@{}}
+    $script:fixtureMetadata=[pscustomobject]@{Schema='r1c4b-input-isolation-run/v1';Configuration='Debug';Operation='BottomResize';ExecutedHEAD=$script:head;AfterHEAD=$script:head;WorktreeDirty=$false;AfterWorktreeDirty=$false;ImplementationUnchanged=$true;BinarySHA256=$script:binaryHash;AfterBinarySHA256=$script:binaryHash;ValidatorScriptSHA256=$script:validatorHash;AfterValidatorScriptSHA256=$script:validatorHash;EvidencePath=$script:logPath;RunId=$script:id;LogSHA256=$script:logHash;ProbeExitCode=0;CurrentContractsVerified=$true;Result=[pscustomobject]@{Result='PASS';Reasons=@()}}
+    $script:fixtureVerdict=[pscustomobject]@{Result='PASS';Operation='BottomResize';ProductHandoffAuthority='PASS';TestInputIsolation='PASS';Cancel='PASS_WITH_TERMINAL_SETTLEMENT';Handoff='PASS';Takeover='PASS';RunNonce=[long]197157086769502;ForegroundContract='verified_global_foreground_v2';HandoffContract='winevent_end_barrier_v1';DiagnosticContract='separated_authority_v1';AuthorityContract='product_gesture_v1';IsolationContract='post_end_shield_v1';TimingTickSamples=[pscustomobject]@{};NativeWrites=[long]19;HandoffNativeCalls=[long]1;ShieldNativeCalls=[long]20;RawPackets=[long]27;NativeDragAfterWinEventEnd=[long]0;ContinuationQuanta=[long]18}
     $script:fixtureRows=@([pscustomobject]@{type='startup';sequence=[long]1;qpc=$Start;qpc_frequency=[long]10000000;run_nonce=[long]197157086769502},[pscustomobject]@{type='shutdown';sequence=[long]2;qpc=$End})
 }
 foreach($start in @([long]2147483647,[long]2147483648,[long]3000000000,[long]900000000000,[long]1134816073663,[long]1500000000000)){
-    [long]$end=$start+[long]10000
-    Reset-NumericRunnerFixture $start $end
+    Reset-NumericRunnerFixture $start ($start+[long]10000)
     $m=Read-IsolationGateMetadata $metadataPath Debug BottomResize
-    Check-NumericRunner ($m.ValidatedStartQpc -eq $start -and $m.ValidatedEndQpc -eq $end) "exact QPC boundary $start"
-    Check-NumericRunner ([long]$m.ValidatedEndQpc-[long]$m.ValidatedStartQpc -eq [long]10000) "Int64 duration at $start"
-    Check-NumericRunner ($m.ValidatedQpcFrequency -eq 10000000) "frequency survives at $start"
-    if($start -gt [int]::MaxValue){Check-NumericRunner ($m.ValidatedStartQpc -is [long] -and $m.ValidatedEndQpc -is [long]) "large clock values are Int64 at $start"}
+    Check-NumericRunner ($m.ValidatedStartQpc -eq $start -and $m.ValidatedEndQpc -eq $start+[long]10000) "exact QPC boundary $start"
+    Check-NumericRunner ($m.ValidatedStartQpc -is [long] -and $m.ValidatedEndQpc -is [long] -and $m.ValidatedQpcFrequency -is [long]) "typed clock values $start"
+    Check-NumericRunner ($m.ValidatedEndQpc-$m.ValidatedStartQpc -eq [long]10000) "Int64 duration $start"
 }
+foreach($bad in @($null,$true,'1134816073663',-1,1.5)){Reject-NumericRunner {Convert-IsolationGateInt64 $bad fixture -NonNegative} "invalid QPC rejected $bad"}
+Reset-NumericRunnerFixture 1134816073663 1134816083663
+$fixtureRows[-1].qpc=$fixtureRows[0].qpc-1;Reject-NumericRunner {Read-IsolationGateMetadata $metadataPath Debug BottomResize} 'clock reversal rejected'
 Reset-NumericRunnerFixture 1134816073663 1134816083663
 $fixtureVerdict.TimingTickSamples=[pscustomobject]@{NativeExitToWinEventEnd=@([long]2147483647,[long]2147483648,[long]3000000000,[long]900000000000,[long]1134816073663,[long]1500000000000);HandoffWriteDuration=[long]1134816073663;RawReceiptToNativeWrite=@();RawReceiptToOwnerQuantum=$null}
-Check-NumericRunner (@($fixtureVerdict.TimingTickSamples.NativeExitToWinEventEnd|Where-Object {$_ -isnot [long]}).Count -eq 0 -and $fixtureVerdict.TimingTickSamples.HandoffWriteDuration -is [long]) 'fixture tick arrays/scalar are genuinely Int64'
 $null=Read-IsolationGateMetadata $metadataPath Debug BottomResize
-Check-NumericRunner ($state.TimingMilliseconds.Count -eq 7) 'all seven metric arrays are present'
-Check-NumericRunner ($state.TimingMilliseconds.NativeExitToWinEventEnd.Count -eq 6) 'all boundary tick samples are consumed'
+$group=$state.Statistics.DebugBottomResize
+Check-NumericRunner ($group.TimingTicks.Count -eq 7 -and $group.TimingTicks.NativeExitToWinEventEnd.Count -eq 6) 'all seven metric arrays and six boundary samples are retained'
+Check-NumericRunner (@($group.TimingTicks.NativeExitToWinEventEnd|Where-Object {$_ -isnot [long]}).Count -eq 0 -and $group.TimingTicks.HandoffWriteDuration[0] -is [long]) 'arrays/scalar stay signed Int64 before ms'
+Update-IsolationStatistics
 foreach($index in 0..5){
     [decimal]$expected=[decimal]$fixtureVerdict.TimingTickSamples.NativeExitToWinEventEnd[$index]*[decimal]1000/[decimal]10000000
-    Check-NumericRunner ([Math]::Abs([double]$state.TimingMilliseconds.NativeExitToWinEventEnd[$index]-[double]$expected) -lt 0.0000001) "no overflow converting tick sample $index to ms"
+    Check-NumericRunner ($group.TimingMilliseconds.NativeExitToWinEventEnd[$index] -eq $expected) "exact decimal tick-to-ms $index"
 }
-Check-NumericRunner ($state.TimingMilliseconds.HandoffWriteDuration.Count -eq 1 -and [Math]::Abs($state.TimingMilliseconds.HandoffWriteDuration[0]-113481607.3663) -lt 0.0000001) 'large scalar becomes one ms sample'
-Check-NumericRunner ($state.TimingMilliseconds.RawReceiptToNativeWrite.Count -eq 0 -and $state.TimingMilliseconds.RawReceiptToOwnerQuantum.Count -eq 0) 'empty/null do not become zero samples'
-$sorted=@($state.TimingMilliseconds.NativeExitToWinEventEnd|Sort-Object)
-Check-NumericRunner ([Math]::Abs((Get-IsolationQuantile $sorted 0.50)-45150000.0) -lt 0.0000001) 'large pipeline p50 is exact within binary floating precision'
-Check-NumericRunner ([Math]::Abs((Get-IsolationQuantile $sorted 0.95)-140870401.841575) -lt 0.0000001) 'large pipeline p95 linear interpolation has no overflow'
-foreach($fraction in @(0.50,0.95)){
-    Check-NumericRunner ($null -eq (Get-IsolationQuantile @() $fraction)) "empty p$fraction is null"
-    Check-NumericRunner ((Get-IsolationQuantile @(113481607.3663) $fraction) -eq 113481607.3663) "scalar p$fraction is preserved"
+Check-NumericRunner ($group.TimingStatistics.NativeExitToWinEventEnd.P50Ticks -eq [decimal]451500000000 -and $group.TimingStatistics.NativeExitToWinEventEnd.P50Ms -eq [decimal]45150000) 'large p50 uses ticks first'
+Check-NumericRunner ($group.TimingStatistics.NativeExitToWinEventEnd.P95Ticks -eq [decimal]1408704018415.75 -and $group.TimingStatistics.NativeExitToWinEventEnd.P95Ms -eq [decimal]140870401.841575) 'large p95 uses decimal interpolation before ms'
+Check-NumericRunner ($group.TimingMilliseconds.HandoffWriteDuration.Count -eq 1 -and $group.TimingMilliseconds.HandoffWriteDuration[0] -eq [decimal]113481607.3663) 'scalar sample is not lost'
+foreach($key in @('DebugMove','DebugBottomResize','ReleaseMove','ReleaseBottomResize')){
+    Check-NumericRunner ($state.Statistics[$key].TimingStatistics.Count -eq 7) "all metrics present for $key"
+    Check-NumericRunner ($state.Statistics[$key].TimingStatistics.RawReceiptToNativeWrite.Count -eq 0 -and $null -eq $state.Statistics[$key].TimingStatistics.RawReceiptToNativeWrite.P50Ms -and $null -eq $state.Statistics[$key].TimingStatistics.RawReceiptToNativeWrite.P95Ms) "empty/null $key produce null percentiles"
 }
-Check-NumericRunner ((Get-IsolationQuantile @(-1.0,1.0,4.0) 0.50) -eq 1.0) 'signed latency samples are not silently clamped'
+foreach($fraction in @(0.50,0.95)){Check-NumericRunner ($null -eq (Get-IsolationQuantile @() $fraction)) "empty percentile $fraction";Check-NumericRunner ((Get-IsolationQuantile ([long]1134816073663) $fraction) -eq [decimal]1134816073663) "scalar percentile $fraction"}
+Check-NumericRunner ((Get-IsolationQuantile @([long]-1,[long]1,[long]4) 0.50) -eq 1) 'signed latency is not silently clamped'
 Write-Host "input-isolation numeric runner synthetic_only=true checks=$checks PASS; actual helper extraction; no child CLI/Git/GUI/input/original evidence"
