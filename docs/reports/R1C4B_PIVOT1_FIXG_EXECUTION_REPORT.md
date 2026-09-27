@@ -128,9 +128,13 @@ SHA-256 `40846A10A484B1A18D8FA7144FF1721500E354A8492DFD8164468B4FC31A5338`。
 fixture BLOCKED，gesture/cleanup/takeover NOT_RUN，InputAttempted与
 TestDownPending=false，ContractVerified=false，独立历史post buttonsUP。
 历史11文件前后hash匹配；原Result/AfterHEAD/AfterIdentity仍null。
-该artifact如实绑定 BASE+dirty classifier files hashes，未将BASE冒称新实现SHA；
-clean checkpoint后将再生成独立 readonly artifact，绑定真正 classifier SHA，
-不修改首次artifact或旧证据。
+该artifact如实绑定 BASE+dirty classifier files hashes，未将BASE冒称新实现SHA。
+Clean checkpoint后已生成第二份独立 readonly artifact：
+`uat/r1c4b-fixg/20260927T160524985Z-fixf-original-prefix-frozen-a39cc6d4035d4dc997d6bf12cb63a224.json`，
+SHA-256 `4444A4AEA058828DCFE8B42C31CF8F47AE20E4EF0BFBABED35A2A3BB5A3A47F6`，
+ClassifierHEAD=`5fc0ccb575b82940b78e4a8e4cbac916e12a2b4c`、classifier
+worktree=[]、ClassifierSHAContainsCurrentFiles=true；结果保持 VERIFIED prefix /
+BLOCKED。未修改首次artifact或旧证据；新现场批次结束后11历史文件再重hash亦全部匹配。
 
 审计 native 八项product/writer函数与BASE逐正文相等，abort/quiescence/ledger
 块同样相等。Frozen Fix E validator SHA-256 `9FFB838F9B530257774B1E53B61102E9C99166D0926D37300350DBF7B6A4719D`，
@@ -138,24 +142,99 @@ normal primitives `064B9C1EDAC92C7A7F011FDF7F8B01D15D339D0214CF21436F753E8876483
 
 ## 本轮现场计划与 stop point
 
-须先完成离线 gates、原 evidence readonly replay，再冻结 clean implementation
-commit。新 Fix G 批次最多8 native probe starts，first unexpected failure
-立即 STOP；preflight 阻断则 ProbeInvoked=false；bootstrap 阻断消耗该项
-唯一 start，target gesture NOT_RUN，不 retry，不拼接旧历史。
+离线 gates 与原 evidence readonly replay 完成后，冻结 clean implementation
+commit `5fc0ccb575b82940b78e4a8e4cbac916e12a2b4c`：
+`test: verify bootstrap blocks and independent input probe finalization`。
+只执行一次 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File
+scripts/run-r1c4b-input-reliability-gates.ps1`，正常交互环境中经授权运行；
+没有新 desktop/VM、配置修改、预先试跑、失败重试或额外 readonly CLI。
+8项全部按登记顺序执行，GUI_PROBE_INVOCATIONS=8/8，TARGET_GESTURES_ENTERED=8/8。
+本节为 AUTOMATED TESTED / 实际 Windows 观察，不是 synthetic 或真人 UAT。
 
-| # | 配置 | 操作 | 模式 | 本轮结果 |
-|---:|---|---|---|---|
-| 1 | Debug | Move | controlled abort | NOT_RUN |
-| 2 | Debug | BottomResize | controlled abort | NOT_RUN |
-| 3 | Debug | Move | normal | NOT_RUN |
-| 4 | Debug | BottomResize | normal | NOT_RUN |
-| 5 | Release | Move | controlled abort | NOT_RUN |
-| 6 | Release | BottomResize | controlled abort | NOT_RUN |
-| 7 | Release | Move | normal | NOT_RUN |
-| 8 | Release | BottomResize | normal | NOT_RUN |
+| # | 配置 | 操作 | 模式 | Fixture / Gesture | Cleanup | Takeover | Probe → runner → aggregate |
+|---:|---|---|---|---|---|---|---|
+| 1 | Debug | Move | controlled abort | PASS_EXPECTED_ABORT / BLOCKED_BY_TEST_FAULT | PASS | NOT_RUN | 2 → 0 → 0 |
+| 2 | Debug | BottomResize | controlled abort | PASS_EXPECTED_ABORT / BLOCKED_BY_TEST_FAULT | PASS | NOT_RUN | 2 → 0 → 0 |
+| 3 | Debug | Move | normal | PASS / PASS | NOT_NEEDED | PASS | 0 → 0 → 0 |
+| 4 | Debug | BottomResize | normal | PASS / PASS | NOT_NEEDED | PASS | 0 → 0 → 0 |
+| 5 | Release | Move | controlled abort | PASS_EXPECTED_ABORT / BLOCKED_BY_TEST_FAULT | PASS | NOT_RUN | 2 → 0 → 0 |
+| 6 | Release | BottomResize | controlled abort | PASS_EXPECTED_ABORT / BLOCKED_BY_TEST_FAULT | PASS | NOT_RUN | 2 → 0 → 0 |
+| 7 | Release | Move | normal | PASS / PASS | NOT_NEEDED | PASS | 0 → 0 → 0 |
+| 8 | Release | BottomResize | normal | PASS / PASS | NOT_NEEDED | PASS | 0 → 0 → 0 |
 
-当前 startup/input 状态 UNKNOWN；未执行新 readonly/GUI probe。
-即使本轮8项通过，formal 与完整 OWNED_FREE_TAKEOVER_GATE 仍未通过。
+新 immutable inventory：
+`uat/r1c4b-fixg/20260927T160611768Z-bounded-eight-8499fca50d464940a191f5f100ebcd5e.json`，
+SHA-256 `9FAA3A049D027079F9026C77B34213ECEBC8AC5C9D53C75708AC6C54A1F01A37`。
+Result PASS、AggregateExitCode0、ExpectedAbortPassed4、NormalPassed4、
+FirstUnexpectedFailure=null。各run四文件独立，inventory保留实际完整路径/hash、
+child output、raw verdict 和分层exit；uat未入Git。
+
+每项fresh source/guard/receiver/hook/nonce，八个nonce不同；需要shield的两个
+BottomResize normal也各自fresh。八项 pre/post v2 raw proof均READY/11 inputsUP；
+AfterHEAD均实施SHA，worktree均[]，Before/After各19项source/import/binary hash
+与冻结inventory以及批次后当前文件一致。metadata/log/pre/post hash再次独立核对
+全部一致；NativeError/ValidatorError/PostObservationError/AfterIdentityError均空。
+
+Abort实际记录引用（均各一条ENTER、fault、cleanupUP、nativeEXIT）：
+
+| 项 | HWND / PID / TID | ENTER → sample1 → fault | cleanupUP API / RawUP proof | nativeEXIT / WinEND wait / cleanup final |
+|---|---|---|---|---|
+| Debug Move | 9443040 / 37880 / 39116 | 77 → 86 → 87 | 97 / 99 | 101 / 104 / 109 |
+| Debug BottomResize | 9247512 / 55628 / 54452 | 68 → 85 → 86 | 96 / 98 | 100 / 103 / 108 |
+| Release Move | 2883648 / 49924 / 33240 | 77 → 86 → 87 | 97 / 99 | 101 / 104 / 109 |
+| Release BottomResize | 84349162 / 31904 / 50544 | 68 → 85 → 86 | 96 / 98 | 100 / 103 / 108 |
+
+真实自有DOWN/native loop后、sample1后、cancel前触发已有test-only fault；
+cancel_calls0，单次 flags4 cleanup tag `0x50424655` UP 与实际RawUP关联，
+native EXIT 与 matched WinEvent END属于cleanup scope且不授权acceptance；
+final capture/mode clear、ledger settled、writer quiescent、无pending work，
+hook/receiver/source/guard有序退出。Raw回执可先于API父日志，不依父行号伪造时序；
+既有ledger observed QPC/receiver watermark验证保持。
+Normal四项完整旧合同复算：original anchor、Bottom非参与边固定、WinEvent END
+barrier、product/test authority隔离、strict P/V、Raw continuation/UP、final
+acceptance及资源退出。Move两项各485行、BottomResize两项各506行，均一条真实
+ENTER/EXIT；未降低成功合同。
+
+最新观察仅引用第8项
+`uat/r1c4b-fixg/20260927T160918920Z-Release-BottomResize-normal-ce3d01ec6e53452c9cb609ca2128ac84/environment-post.json`。
+SHA-256 `3681CF602525FD2D052299A09C1F6F6957AFBE71E891977868B6B946749E756B`。
+只读helper PID13548/TID51484，QPC frequency10000000，
+完整范围1850902423375–1850902540449；11输入QPC
+1850902508234–1850902509306全部UP。FG HWND199402/PID34576/TID14200前后
+一致；显式query TID14200，query QPC1850902509420–1850902509721、success/
+error0，capture/menu/move-size/flags均0，12谓词全PASS、first_failed=NONE。
+文件LastWriteTimeUtc=2026-09-27 16:09:27（文件时间，非捏造观察wall timestamp）。
+因此 CURRENT_STARTUP_READINESS=READY（仅该观察点），FINAL_BUTTON_STATE=
+OBSERVED_UP，来源READ_ONLY_POST，不声称之后永远安全。
+没有证据识别旧 capture 成因或任何外部输入actor，继续UNKNOWN。
+
+这四种配置/操作组合取得native-abort cleanup现场正例，四项normal未发现回归；
+没有复现或解释Fix E第14项未知干扰，没有拼接其13次，没有跑5/5、20/20或formal。
+本轮8项不是完整稳定性证明，formal与完整OWNED_FREE_TAKEOVER_GATE仍未通过。
+
+## 最终状态与 Git 交付
+
+```text
+FIXG_BLOCKED_PREFIX_VALIDATION = PASS
+FIXG_RUNNER_FINALIZATION = PASS
+FIXG_READONLY_CAPTURE_READINESS = PASS
+FIXF_ORIGINAL_EVIDENCE_HASHES_UNCHANGED = YES
+FIXF_ORIGINAL_BOOTSTRAP_PREFIX = VERIFIED_BLOCKED_BEFORE_INPUT
+CURRENT_STARTUP_READINESS = READY
+GUI_PROBE_INVOCATIONS = 8/8
+TARGET_GESTURES_ENTERED = 8/8
+FIRST_UNEXPECTED_FAILURE = NONE
+FINAL_BUTTON_STATE = OBSERVED_UP
+FINAL_BUTTON_OBSERVATION_SOURCE = READ_ONLY_POST (item 8 v2 evidence)
+OBSERVED_EXTERNAL_INPUT_SOURCE = UNKNOWN
+```
+
+Starting SHA见上；implementation SHA为5fc0ccb完整值。最终提交只记录本报告
+的已观察结果，不再修改实现、fixtures或runner；final SHA为包含本报告最终状态
+的docs completion commit（自身SHA由最终交付给出，不虚构self-reference）。
+标准Git push/remote ref核验在该提交形成后执行；精确final SHA、push结果、
+worktree和local/upstream divergence以最终交付的实际Git输出为准。
+不PR/merge/tag/release；完成推送核验后STOP，不启动下一阶段。
 
 ```text
 FIXE_HISTORICAL_FORMAL = 13_PASS_THEN_BLOCKED_AT_14
