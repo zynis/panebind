@@ -237,4 +237,82 @@ foreach($case in @('missing-dynamic-position','stale-shield-snapshot','future-sh
     }
     Reject-DWire $bad "latest shield lifecycle rejects $case"
 }
+
+# Fix E: keep all original 87 checks above. Shift only synthetic clock values;
+# never load, normalize, rewrite or regenerate the immutable Fix D evidence.
+function Shift-DQpcFixture($Rows,[long]$FirstReturn){
+    $shifted=Copy-IsolationFixture $Rows
+    $first=@($shifted|Where-Object type -ceq writer_result)[0]
+    [long]$offset=$FirstReturn-[long]$first.native_return_qpc
+    foreach($row in $shifted){
+        foreach($field in $row.PSObject.Properties){
+            if($field.Name -match '(^qpc$|_qpc$)' -and $field.Value -ne 0){$field.Value=[long]([long]$field.Value+$offset)}
+        }
+    }
+    return ,$shifted
+}
+function Get-DVerdictSignature($Result){
+    return ($Result|Select-Object Result,Operation,ForegroundContract,HandoffContract,DiagnosticContract,AuthorityContract,IsolationContract,ContractVerified,ProductAuthoritySeparated,TestIsolationSeparated,ProductHandoffAuthority,TestInputIsolation,PostEndInputShield,WinEventWitness,PostEndGeometryStability,RawBackground,Cancel,Handoff,Takeover,PreReleaseControl,Architecture,NativeWrites,HandoffNativeCalls,ShieldNativeCalls,RawPackets,RawMovementPackets,RawUpPackets,ContinuationQuanta,NativeDragAfterWinEventEnd,UnownedGeometryAfterEnd,TerminalSettlements,FullGestureTargets,CleanupInputRelease,CleanupAcceptanceEligible,PendingButton,FinalLeftDown|ConvertTo-Json -Depth 8 -Compress)
+}
+$qpcBoundaries=@([long]2147483647,[long]2147483648,[long]3000000000,[long]900000000000,[long]1134816073663,[long]1500000000000,[long]9000000000000)
+foreach($operation in @('Move','BottomResize')){
+    $small=if($operation -ceq 'Move'){$moveWire}else{$resizeWire}
+    $baseline=Test-InputIsolationOwnedRecords $small -AllowSynthetic
+    foreach($value in $qpcBoundaries){
+        $large=Shift-DQpcFixture $small $value
+        $actual=Test-InputIsolationOwnedRecords $large -AllowSynthetic
+        Check-Isolation ((Get-DVerdictSignature $actual) -ceq (Get-DVerdictSignature $baseline)) "Fix E $operation QPC $value preserves every acceptance/authority/count verdict"
+        Check-Isolation (@($large|Where-Object type -ceq writer_result)[0].native_return_qpc -eq $value) "Fix E $operation first real native-return fixture uses exact QPC $value"
+        $allInt64=$true;$sameLatencies=$true
+        foreach($metric in $actual.TimingTickSamples.PSObject.Properties){
+            $old=@($baseline.TimingTickSamples.($metric.Name));$current=@($metric.Value)
+            if(($old -join ',') -cne ($current -join ',')){$sameLatencies=$false}
+            foreach($tick in $current){if($tick -isnot [long]){$allInt64=$false}}
+        }
+        Check-Isolation ($allInt64 -and $sameLatencies) "Fix E $operation QPC $value retains exact Int64 duration/handoff/Raw latency samples"
+    }
+}
+# Exercise the max-return accumulator itself, independently of formatted output.
+$large=Shift-DQpcFixture $resizeWire ([long]1134816073663)
+$s=$large[0];$o=@(Get-IsolationRows $large 'owned');$g=@(Get-IsolationRows $large 'guard')
+$bootState=Test-TakeoverGlobalForegroundV2 $large $o $false
+$rawState=Test-EndHandoffRawEvidence $large $s $o $false
+$winState=Test-IsolationWinEvents $large $o $s $false
+$productFacts=Test-IsolationProductPreflights $large $o $s $winState
+$productState=@($productFacts|Where-Object Phase -ceq winevent_end)
+$shieldState=Test-IsolationShieldLifecycle $large $o $s $winState $productState
+$writerState=Test-IsolationSourceWriters $large $o $s $winState $productState $shieldState $rawState.Packets
+$lastResult=@($large|Where-Object type -ceq writer_result)[-1]
+Check-Isolation ($writerState.LastNativeReturnQpc -is [long] -and $writerState.LastNativeReturnQpc -eq $lastResult.native_return_qpc -and $writerState.FirstWriteQpc -is [long] -and $writerState.HandoffStartQpc -is [long] -and $writerState.HandoffDuration -is [long]) 'Fix E maximum QPC accumulator, first write, handoff start and duration remain explicit Int64'
+$wideDelta=Get-IsolationQpcDelta ([long]1134816073663) ([long]3000000000) 'synthetic wide duration'
+Check-Isolation ($wideDelta -is [long] -and $wideDelta -eq [long]1131816073663) 'Fix E subtraction exceeding Int32 remains exact Int64'
+Check-Isolation ((Get-IsolationQpcDelta ([long]3000000000) ([long]3000000001) 'signed cross-stream latency') -eq [long]-1) 'Fix E signed cross-stream latency is not a new nonnegative acceptance gate'
+foreach($invalid in @(-1,1.5,[double]3000000000,[decimal]9223372036854775808,'1134816073663',$true,$null,@(1,2))){
+    $rejected=$false;try{Assert-IsolationInt64 $invalid 'synthetic numeric domain'}catch [IO.InvalidDataException]{$rejected=$true}
+    Check-Isolation $rejected 'Fix E rejects negative/noninteger/out-of-signed-Int64/coerced clock evidence before any cast'
+}
+foreach($invalid in @(1.5,@(40),@(40,41))){
+    $rejected=$false;try{$null=Test-IsolationWriteTiming $invalid 20 25 30}catch [IO.InvalidDataException]{$rejected=$true}
+    Check-Isolation $rejected 'Fix E public timing helper rejects fractional/array input before parameter conversion'
+}
+foreach($case in @('negative-row-qpc','fractional-native-qpc','fractional-receiver-qpc','floating-integer-callback-qpc','negative-raw-trigger-qpc','fractional-sequence','negative-watermark','fractional-event-tick','out-of-range-event-tick','row-clock-reversal','native-clock-reversal','input-clock-reversal','shield-clock-reversal','callback-after-record')){
+    $bad=Shift-DQpcFixture $resizeWire ([long]1134816073663)
+    switch($case){
+        'negative-row-qpc'{$bad[1].qpc=-1}
+        'fractional-native-qpc'{($bad|Where-Object type -ceq writer_result|Select-Object -First 1).native_return_qpc=[decimal]1134816073663.5}
+        'fractional-receiver-qpc'{($bad|Where-Object type -ceq raw_input|Select-Object -First 1).receiver_qpc=[decimal]1134816000000.5}
+        'floating-integer-callback-qpc'{($bad|Where-Object type -ceq winevent_callback|Select-Object -First 1).callback_qpc=[double]1134816000000}
+        'negative-raw-trigger-qpc'{($bad|Where-Object {$_.type -ceq 'writer_begin' -and $_.kind -ceq 'raw_movement'}|Select-Object -First 1).raw_trigger_qpc=-1}
+        'fractional-sequence'{$bad[1].sequence=2.5}
+        'negative-watermark'{($bad|Where-Object type -ceq input|Select-Object -First 1).receiver_watermark=-1}
+        'fractional-event-tick'{($bad|Where-Object type -ceq winevent_callback|Select-Object -First 1).event_time=5.5}
+        'out-of-range-event-tick'{($bad|Where-Object type -ceq winevent_callback|Select-Object -First 1).event_time=[long]4294967296}
+        'row-clock-reversal'{$bad[1].qpc=$bad[0].qpc-1}
+        'native-clock-reversal'{$r=$bad|Where-Object type -ceq writer_result|Select-Object -First 1;$r.native_return_qpc=$r.native_start_qpc-1}
+        'input-clock-reversal'{$r=$bad|Where-Object type -ceq input|Select-Object -First 1;$r.injection_return_qpc=$r.injection_start_qpc-1}
+        'shield-clock-reversal'{$r=$bad|Where-Object type -ceq input_shield_created;$r.create_return_qpc=$r.create_start_qpc-1}
+        'callback-after-record'{$r=$bad|Where-Object type -ceq winevent_callback|Select-Object -First 1;$r.callback_qpc=$r.qpc+1}
+    }
+    Reject-DWire $bad "Fix E numeric/clock-order negative $case"
+}
 Write-Host "input-isolation synthetic_only=true checks=$checks PASS"

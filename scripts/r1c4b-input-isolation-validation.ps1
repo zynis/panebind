@@ -4,8 +4,30 @@ $ErrorActionPreference='Stop'
 # The old aggregate validators and historical evidence are never changed.
 . (Join-Path $PSScriptRoot 'r1c4b-end-diagnostics-validation.ps1')
 
-function Assert-InputIsolation([bool]$Value,[string]$Reason){if(-not $Value){throw "owned input isolation: $Reason"}}
+function Assert-InputIsolation([bool]$Value,[string]$Reason){if(-not $Value){throw [InvalidOperationException]::new("owned input isolation: $Reason")}}
 function Get-IsolationRows($Rows,[string]$Type){return @($Rows|Where-Object type -ceq $Type)}
+function Assert-IsolationInt64($Value,[string]$Reason){
+    # ConvertFrom-Json returns Int32 for small JSON integers and Int64 for QPC.
+    # Validate before casting: floating-point, strings, bools and arrays must
+    # never be rounded/coerced into clock or sequence evidence.
+    if(-not (($Value -is [int] -or $Value -is [long]) -and $Value -ge 0)){throw [IO.InvalidDataException]::new("owned input isolation: $Reason must be a nonnegative signed Int64 integer")}
+}
+function Get-IsolationQpcDelta($Later,$Earlier,[string]$Reason){
+    Assert-IsolationInt64 $Later "$Reason later QPC";Assert-IsolationInt64 $Earlier "$Reason earlier QPC"
+    # A cross-stream latency can be signed. Ordering is enforced only by the
+    # existing row/native receipt predicates, not by a new latency gate.
+    return [long]([long]$Later-[long]$Earlier)
+}
+function Assert-IsolationNumericFields($Row){
+    foreach($field in $Row.PSObject.Properties){
+        if($field.Name -match '(^qpc$|_qpc$|^qpc_frequency$|^sequence$|_sequence$|^(receiver|raw)_watermark$)'){
+            Assert-IsolationInt64 $field.Value "v4 $($Row.type).$($field.Name)"
+        }elseif($field.Name -in @('arm_tick','event_time')){
+            Assert-IsolationInt64 $field.Value "v4 $($Row.type).$($field.Name)"
+            Assert-InputIsolation ($field.Value -le [long][UInt32]::MaxValue) 'DWORD event/arm tick'
+        }
+    }
+}
 function Get-ProductGestureAuthorityChecks($Proof){
     # Deliberately no cursor, root, guard or shield input in this classifier.
     $checks=[Collections.Generic.List[string]]::new()
@@ -59,8 +81,8 @@ function Test-IsolationIdentity($Actual,$Expected){
     foreach($n in @($Actual)+@($Expected)){Assert-AutoInteger $n 'identity HWND/PID/TID/nonce'}
     return @($Expected|Where-Object {$_ -le 0}).Count -eq 0 -and ($Actual -join ',') -ceq ($Expected -join ',')
 }
-function Test-IsolationWriteTiming([long]$Entry,[long]$NativeEnd,[long]$WinEventEnd,[long]$Ready){return $NativeEnd -gt 0 -and $WinEventEnd -gt 0 -and $Ready -gt $NativeEnd -and $Ready -gt $WinEventEnd -and $Entry -gt $Ready}
-function Test-IsolationDestroyTiming([long]$Destroyed,[long]$Accepted,[long]$RawUp){return $Accepted -gt 0 -and $RawUp -gt 0 -and $Destroyed -gt $Accepted -and $Destroyed -gt $RawUp}
+function Test-IsolationWriteTiming($Entry,$NativeEnd,$WinEventEnd,$Ready){Assert-IsolationInt64 $Entry 'write entry QPC';Assert-IsolationInt64 $NativeEnd 'native END QPC';Assert-IsolationInt64 $WinEventEnd 'WinEvent END QPC';Assert-IsolationInt64 $Ready 'ready QPC';return $NativeEnd -gt 0 -and $WinEventEnd -gt 0 -and $Ready -gt $NativeEnd -and $Ready -gt $WinEventEnd -and $Entry -gt $Ready}
+function Test-IsolationDestroyTiming($Destroyed,$Accepted,$RawUp){Assert-IsolationInt64 $Destroyed 'destroy QPC';Assert-IsolationInt64 $Accepted 'accepted QPC';Assert-IsolationInt64 $RawUp 'Raw UP QPC';return $Accepted -gt 0 -and $RawUp -gt 0 -and $Destroyed -gt $Accepted -and $Destroyed -gt $RawUp}
 function Get-IsolationWriteActor([string]$Actor,[long]$Target,[long]$Source,[long]$Shield){
     if($Actor -ceq 'source' -and $Target -eq $Source -and $Source -gt 0){return 'source'}
     if($Actor -ceq 'shield' -and $Target -eq $Shield -and $Shield -gt 0 -and $Target -ne $Source){return 'shield'}
@@ -83,7 +105,7 @@ function Test-FixCSeparatedAuthorityEvidence([string]$Path){
 
 function Test-IsolationEnvelope($Rows){
     Assert-InputIsolation ($Rows.Count -ge 2 -and $Rows[0].type -ceq 'startup' -and $Rows[-1].type -ceq 'shutdown') 'missing startup/shutdown'
-    for($i=0;$i -lt $Rows.Count;++$i){$r=$Rows[$i];foreach($field in @('sequence','gesture','qpc')){Assert-AutoInteger (Get-AutoField $r $field) "v4 $field"};Assert-InputIsolation ($r.schema -ceq 'r1c4b-takeover-owned/v4' -and $r.sequence -eq $i+1 -and $r.gesture -ge 0 -and $r.qpc -ge 0 -and ($i -eq 0 -or $r.qpc -ge $Rows[$i-1].qpc)) 'schema/sequence/QPC'}
+    for($i=0;$i -lt $Rows.Count;++$i){$r=$Rows[$i];foreach($field in @('sequence','gesture','qpc')){Assert-AutoInteger (Get-AutoField $r $field) "v4 $field"};Assert-IsolationNumericFields $r;Assert-InputIsolation ($r.schema -ceq 'r1c4b-takeover-owned/v4' -and $r.sequence -eq [long]$i+1 -and $r.gesture -ge 0 -and $r.qpc -ge 0 -and ($i -eq 0 -or $r.qpc -ge $Rows[$i-1].qpc)) 'schema/sequence/QPC'}
     Assert-InputIsolation (@(Get-IsolationRows $Rows 'startup').Count -eq 1 -and @(Get-IsolationRows $Rows 'shutdown').Count -eq 1) 'duplicate lifecycle'
 }
 
@@ -98,7 +120,7 @@ function Test-IsolationWinEvents($Rows,$Owned,$Startup,[bool]$Blocked){
     }
     foreach($h in $removed){Assert-AutoBoolean $h.remove_success 'hook removed';Assert-InputIsolation ($installed.Count -eq 1 -and $h.sequence -gt $installed[0].sequence -and $h.hook -eq $installed[0].hook -and $h.source_hwnd -eq $installed[0].source_hwnd -and $h.source_pid -eq $Startup.pid -and $h.source_tid -eq $Startup.ui_tid -and $h.remove_tid -eq $Startup.ui_tid -and $h.remove_success -and $h.error -eq 0) 'hook cleanup changed source/thread or failed'}
     foreach($a in $armed){foreach($n in @('gesture_id','arm_qpc','arm_tick','source_hwnd','source_pid','source_tid')){Assert-AutoInteger (Get-AutoField $a $n) "gesture arm $n"};Assert-InputIsolation ($Owned.Count -eq 1 -and $a.gesture_id -eq 1 -and $a.source_hwnd -eq $Owned[0].hwnd -and $a.source_pid -eq $Startup.pid -and $a.source_tid -eq $Startup.ui_tid -and $a.arm_qpc -gt 0 -and $a.arm_qpc -le $a.qpc) 'gesture arm identity/QPC'}
-    $start=$null;$finish=$null;$serial=0
+    $start=$null;$finish=$null;[long]$serial=0
     foreach($c in $callbacks){
         foreach($n in @('hook','event','hwnd','event_thread','event_time','object_id','child_id','callback_tid','callback_sequence','callback_qpc','gesture_id','arm_qpc','arm_tick')){Assert-AutoInteger (Get-AutoField $c $n) "callback $n"}
         Assert-InputIsolation ($installed.Count -eq 1 -and $installed[0].install_success -and $c.callback_sequence -eq ++$serial -and $c.callback_qpc -le $c.qpc -and $c.sequence -gt $installed[0].sequence -and $c.sequence -lt $removed[0].sequence) 'callback sequence/QPC/lifecycle'
@@ -143,7 +165,7 @@ function Test-IsolationProductPreflights($Rows,$Owned,$Startup,$WinEvent){
         $returned=@($Rows|Where-Object {$_.type -ceq 'cancel_return' -and $_.sequence -lt $d.sequence})
         $afterReturn=if($returned.Count){@($drags|Where-Object receipt_qpc -gt $returned[0].returned_qpc).Count}else{0};$afterNative=if($hasNative){@($drags|Where-Object receipt_qpc -gt $native[0].receipt_qpc).Count}else{0};$afterWin=if($hasWin){@($drags|Where-Object receipt_qpc -gt $WinEvent.End.callback_qpc).Count}else{0}
         Assert-InputIsolation ($d.native_drag_after_cancel_return -eq $afterReturn -and $d.native_drag_after_end -eq $afterNative -and $d.native_drag_after_winevent_end -eq $afterWin) 'product native counters lack receipts'
-        $changes=0
+        [long]$changes=0
         if($hasNative -and $hasWin){$anchor=@(Get-IsolationRows $Rows 'intent_anchor');$previousP=if($anchor.Count){$anchor[0].start_positioning}else{$Owned[0].positioning};$previousV=if($anchor.Count){$anchor[0].start_visible}else{$Owned[0].visible};foreach($p in @($Rows|Where-Object {$_.type -ceq 'POSITION_CHANGED' -and $_.sequence -lt $d.sequence -and $_.operation_id -eq 0})){Assert-AutoInteger $p.position_receipt_qpc 'product positioning receipt';if($null -eq $p.positioning -or $null -eq $p.visible){continue};if($p.position_receipt_qpc -gt $WinEvent.End.callback_qpc -and (-not (Test-AutoRect $p.positioning $previousP) -or -not (Test-AutoRect $p.visible $previousV))){++$changes};$previousP=$p.positioning;$previousV=$p.visible}}
         Assert-InputIsolation ($d.unowned_geometry_changes -eq $changes) 'product unowned changes not independently counted'
         $checks=@(Get-ProductGestureAuthorityChecks $d);$first=if($checks.Count){$checks[0]}else{'None'};$pass=$checks.Count -eq 0
@@ -169,8 +191,8 @@ function Test-IsolationSourceWriters($Rows,$Owned,$Startup,$Win,$Product,$Isolat
     if($anchor.Count){$a=$anchor[0];Assert-InputIsolation ($enter.Count -eq 1 -and $down.Count -eq 1 -and $path.Count -eq 1 -and $a.native_enter_sequence -eq $enter[0].sequence -and $a.native_enter_qpc -eq $enter[0].receipt_qpc -and $a.native_down_sequence -eq $down[0].sequence -and $a.operation -ceq $Startup.operation -and (Test-EndPointExact $a.pointer_down $down[0].cursor) -and (Test-AutoPoint $a.pointer_down $path[0].start) -and (Test-AutoRect $a.start_positioning $enter[0].positioning) -and (Test-AutoRect $a.start_visible $enter[0].visible)) 'original intent was not frozen at actual native DOWN/ENTER'}
     $begins=@(Get-IsolationRows $Rows 'writer_begin');$results=@(Get-IsolationRows $Rows 'writer_result');$quanta=@(Get-IsolationRows $Rows 'raw_quantum');$handoff=@(Get-IsolationRows $Rows 'handoff_begin');$handoffDone=@(Get-IsolationRows $Rows 'handoff_complete')
     Assert-InputIsolation ($results.Count -eq $begins.Count -and $handoff.Count -le 1 -and $handoffDone.Count -le 1) 'orphan or duplicate writer lifecycle'
-    $failure=$false;$beforeBarrier=0;$nativeCalls=0;$handoffCalls=0;$remaining=0;$fullTargets=$true;$lastId=0;$lastQuantum=0;$usedRaw=0;$expectedP=$null;$expectedV=$null;$operations=@{};$latencies=[Collections.Generic.List[long]]::new();$rawOwnerTicks=[Collections.Generic.List[long]]::new()
-    $handoffGate='NOT_RUN';$firstWrite=0;$lastReturn=0;$handoffStart=0;$handoffDuration=$null
+    $failure=$false;[long]$beforeBarrier=0;[long]$nativeCalls=0;[long]$handoffCalls=0;[long]$remaining=0;$fullTargets=$true;[long]$lastId=0;[long]$lastQuantum=0;[long]$usedRaw=0;$expectedP=$null;$expectedV=$null;$operations=@{};$latencies=[Collections.Generic.List[long]]::new();$rawOwnerTicks=[Collections.Generic.List[long]]::new()
+    $handoffGate='NOT_RUN';[long]$firstWrite=0;[long]$lastReturn=0;[long]$handoffStart=0;$handoffDuration=$null
     if($native.Count){$expectedP=$native[0].positioning;$expectedV=$native[0].visible}
     if($handoff.Count){
         $h=$handoff[0];Assert-InputIsolation ($anchor.Count -eq 1 -and $native.Count -eq 1 -and $h.end_sequence -eq $native[0].sequence -and $h.end_qpc -eq $native[0].receipt_qpc) 'handoff does not bind native EXIT/original START'
@@ -201,7 +223,9 @@ function Test-IsolationSourceWriters($Rows,$Owned,$Startup,$Win,$Product,$Isolat
         if(-not (Test-AutoRect $b.before_positioning $expectedP) -or -not (Test-AutoRect $b.before_visible $expectedV) -or -not (Test-AutoRect $b.expected_before_positioning $expectedP) -or -not (Test-AutoRect $b.expected_before_visible $expectedV)){$failure=$true}
         if($b.native_calls){
             ++$nativeCalls;Assert-InputIsolation ($r.native_start_qpc -ge $b.qpc -and $r.native_start_qpc -le $r.native_return_qpc -and $r.native_return_qpc -le $r.qpc) 'source native clock order'
-            if(-not $firstWrite){$firstWrite=$r.native_start_qpc};$lastReturn=[Math]::Max($lastReturn,$r.native_return_qpc)
+            if(-not $firstWrite){$firstWrite=[long]$r.native_start_qpc}
+            [long]$currentReturn=$r.native_return_qpc
+            if($currentReturn -gt $lastReturn){$lastReturn=$currentReturn}
             if(-not $gated -or $r.native_start_qpc -le $Win.End.callback_qpc -or $r.native_start_qpc -le $native[0].receipt_qpc -or $r.native_start_qpc -le $Isolation.Ready.isolation_ready_qpc){++$beforeBarrier;$failure=$true}
             if(-not $r.native_success -or $r.error -ne 0){$failure=$true}
         }else{Assert-InputIsolation ($r.native_start_qpc -eq 0 -and $r.native_return_qpc -eq 0 -and $r.native_success -and $r.error -eq 0) 'zero-call operation claims a native write'}
@@ -212,7 +236,7 @@ function Test-IsolationSourceWriters($Rows,$Owned,$Startup,$Win,$Product,$Isolat
             Assert-InputIsolation ($b.quantum_id -eq 0 -and $b.raw_first_sequence -eq 0 -and $b.raw_last_sequence -eq 0 -and $b.raw_trigger_qpc -eq 0 -and $handoff.Count -eq 1) 'handoff was mislabeled a raw quantum'
             $handoffCalls+=$b.native_calls;$mismatch=-not (Test-AutoRect $b.before_positioning $target.Positioning) -or -not (Test-AutoRect $b.before_visible $target.Visible)
             $handoffGate=if($full -and $exact -and $authorized -and $b.native_calls -eq [int]$mismatch -and $handoffCalls -le 1){'PASS'}else{'FAIL'}
-            if($b.native_calls){$handoffStart=$r.native_start_qpc;$handoffDuration=$r.native_return_qpc-$r.native_start_qpc}
+            if($b.native_calls){$handoffStart=[long]$r.native_start_qpc;$handoffDuration=Get-IsolationQpcDelta $r.native_return_qpc $r.native_start_qpc 'handoff native duration'}
         }else{
             Assert-InputIsolation ($handoffDone.Count -eq 1 -and $b.sequence -gt $handoffDone[0].sequence -and $b.quantum_id -eq $lastQuantum+1 -and $b.raw_first_sequence -gt $usedRaw -and $b.raw_last_sequence -ge $b.raw_first_sequence) 'raw quantum does not consume a fresh ordered batch'
             $packets=@($Raw|Where-Object {$_.receiver_sequence -ge $b.raw_first_sequence -and $_.receiver_sequence -le $b.raw_last_sequence -and $_.cursor_sampled});$q=@($quanta|Where-Object operation_id -eq $b.operation_id)
@@ -221,7 +245,7 @@ function Test-IsolationSourceWriters($Rows,$Owned,$Startup,$Win,$Product,$Isolat
                 $inputRows=@($Rows|Where-Object {$_.type -ceq 'input' -and $_.flags -eq 1 -and $_.sent -eq 1 -and -not $_.restoring_cursor -and (Test-TakeoverMotionReceipt $packet $_ $true $true)})
                 if($packet.raw_scope -cne 'gesture' -or -not $packet.acceptance_eligible -or ($packet.button_flags -band 2) -ne 0 -or -not $packet.test_tag_matches -or $inputRows.Count -eq 0){$failure=$true}
             }
-            $rawOwnerTicks.Add([long]($b.qpc-$b.raw_trigger_qpc));if($b.native_calls){$latencies.Add([long]($r.native_start_qpc-$b.raw_trigger_qpc))}
+            $rawOwnerTicks.Add((Get-IsolationQpcDelta $b.qpc $b.raw_trigger_qpc 'Raw receipt to owner quantum'));if($b.native_calls){$latencies.Add((Get-IsolationQpcDelta $r.native_start_qpc $b.raw_trigger_qpc 'Raw receipt to native writer'))}
             $usedRaw=$b.raw_last_sequence;$lastQuantum=$b.quantum_id;++$remaining
         }
         $operations[[string]$b.operation_id]=[pscustomobject]@{Begin=$b;Result=$r;Target=$target};$expectedP=$r.positioning;$expectedV=$r.visible;$lastId=$b.operation_id
@@ -246,7 +270,7 @@ function Assert-IsolationInputReceipt($Request,$Owned){
 function Test-IsolationNativeLifecycle($Rows,$Owned,$Startup,$Raw,$Bootstrap){
     $path=@(Get-IsolationRows $Rows 'path');$enter=@(Get-IsolationRows $Rows 'ENTER');$down=@(Get-IsolationRows $Rows 'native_button_down');$cancel=@(Get-IsolationRows $Rows 'cancel_begin');$returned=@(Get-IsolationRows $Rows 'cancel_return');$exit=@(Get-IsolationRows $Rows 'EXIT');$drag=@(Get-IsolationRows $Rows 'DRAG')
     foreach($a in @($path,$enter,$down,$cancel,$returned,$exit)){Assert-InputIsolation ($a.Count -le 1) 'duplicate one-gesture native lifecycle'}
-    $gesture=if($Startup.operation -ceq 'Move'){1}else{2};$settlement=0;$afterReturn=0;$afterEnd=0
+    $gesture=if($Startup.operation -ceq 'Move'){1}else{2};[long]$settlement=0;[long]$afterReturn=0;[long]$afterEnd=0
     if($path.Count){
         Assert-InputIsolation ($Owned.Count -eq 1 -and $Raw.Gate -ceq 'PASS' -and $path[0].sequence -gt $Raw.CompleteSequence -and $path[0].samples -eq 20 -and $path[0].cancel_after_sample -eq 2 -and $path[0].interval_ms -eq 30 -and $path[0].hit_test -eq $(if($gesture -eq 1){2}else{15}) -and $path[0].foreground -eq $Owned[0].hwnd) 'native phase before proven background preflight or wrong path'
     }
@@ -396,7 +420,7 @@ function Test-IsolationInputs($Rows,$Owned,$Guard,$Startup,$Bootstrap,$Win,$Isol
     $pre=@($Rows|Where-Object {$null -eq $Win.End -or $_.sequence -lt $Win.End.sequence})
     # This is an incomplete pre-END prefix, not a forged completed old verdict.
     $prefix=Test-TakeoverInputs $pre $Owned $Guard $Bootstrap $true
-    $down=$prefix.PendingButton;$expected=$(if($Owned.Count){@($Owned[0].saved_cursor)}else{$null});$previous=0
+    $down=$prefix.PendingButton;$expected=$(if($Owned.Count){@($Owned[0].saved_cursor)}else{$null});[long]$previous=0
     $all=@(Get-IsolationRows $Rows 'input');foreach($request in $all){Assert-IsolationInputReceipt $request $Owned;if($request.sent -eq 0){Assert-InputIsolation $Blocked 'failed INPUT did not stop'};if($null -eq $Win.End -or $request.sequence -lt $Win.End.sequence){if($request.sent -eq 1 -and $request.flags -eq 1){$expected=@($request.point)};$previous=$request.sequence}}
     $failure=$false;$post=@($all|Where-Object {$null -ne $Win.End -and $_.sequence -gt $Win.End.sequence})
     foreach($request in $post){
@@ -425,7 +449,7 @@ function Test-IsolationInputs($Rows,$Owned,$Guard,$Startup,$Bootstrap,$Win,$Isol
 }
 
 function Test-IsolationGeometryReceipts($Rows,$Win,$Writers){
-    $native=@(Get-IsolationRows $Rows 'EXIT');$unowned=0
+    $native=@(Get-IsolationRows $Rows 'EXIT');[long]$unowned=0
     if(-not $native.Count){return 0};$currentP=$native[0].positioning;$currentV=$native[0].visible
     foreach($p in @(Get-IsolationRows $Rows 'POSITION_CHANGED')){
         foreach($n in @('operation_id','position_receipt_qpc')){Assert-AutoInteger (Get-AutoField $p $n) "source position receipt $n"}
@@ -582,9 +606,9 @@ function Test-InputIsolationOwnedRecords([object[]]$Rows,[switch]$AllowSynthetic
     Assert-InputIsolation ($last.takeover_geometry_writes -eq $writers.NativeCalls -and $last.input_shield_created -eq ($null -ne $isolation.Shield) -and $last.input_shield_destroyed -eq ($null -eq $isolation.Shield -or ($null -ne $isolation.Destroy -and $isolation.Destroy.destroy_success -and $isolation.Destroy.window_absent)) -and $last.input_shield_activated -eq (@(Get-IsolationRows $Rows 'input_shield_activation').Count -gt 0) -and $last.source_acceptance_sequence -eq $(if($null -ne $acceptance.Accepted){$acceptance.Accepted.sequence}else{0})) 'shutdown source/shield counters or acceptance references differ from actual records'
     $cancel=Get-EndHandoffBarrierGate -CancelCalls $native.CancelCalls -NativeEnter $native.RealEnter -NativeDrag $native.RealDrag -AuthorityValid ($owned.Count -eq 1 -and $bootstrap.result -ceq 'PASS') -CancelReturned $native.Returned -RealExit ($null -ne $native.Exit) -CaptureReleased $native.CaptureClear -LeftHeldAtExit $native.HeldExit -GuiClearAfterExit $productPass -RawHealthy $raw.Healthy -RawContinuation ($acceptance.Gate -ceq 'PASS' -and $writers.Remaining -ge 18) -NativeDragAfterReturn $native.AfterReturn -UnattributedGeometryAfterEnd $unowned -WritesBeforeEnd $writers.BarrierViolations
     $timings=[pscustomobject]@{NativeExitToWinEventEnd=@();WinEventEndToIsolationReady=@();IsolationReadyToHandoffWrite=@();WinEventEndToHandoffWrite=@();HandoffWriteDuration=@();RawReceiptToOwnerQuantum=@($writers.RawOwnerTicks);RawReceiptToNativeWrite=@($writers.RawWriteTicks)}
-    if($null -ne $native.Exit -and $null -ne $win.End){$timings.NativeExitToWinEventEnd=@([long]($win.End.callback_qpc-$native.Exit.receipt_qpc))}
-    if($null -ne $isolation.Ready -and $null -ne $win.End){$timings.WinEventEndToIsolationReady=@([long]($isolation.Ready.isolation_ready_qpc-$win.End.callback_qpc))}
-    if($writers.HandoffStartQpc){$timings.IsolationReadyToHandoffWrite=@([long]($writers.HandoffStartQpc-$isolation.Ready.isolation_ready_qpc));$timings.WinEventEndToHandoffWrite=@([long]($writers.HandoffStartQpc-$win.End.callback_qpc));$timings.HandoffWriteDuration=@([long]$writers.HandoffDuration)}
+    if($null -ne $native.Exit -and $null -ne $win.End){$timings.NativeExitToWinEventEnd=@((Get-IsolationQpcDelta $win.End.callback_qpc $native.Exit.receipt_qpc 'native EXIT to WinEvent END'))}
+    if($null -ne $isolation.Ready -and $null -ne $win.End){$timings.WinEventEndToIsolationReady=@((Get-IsolationQpcDelta $isolation.Ready.isolation_ready_qpc $win.End.callback_qpc 'WinEvent END to isolation ready'))}
+    if($writers.HandoffStartQpc){$timings.IsolationReadyToHandoffWrite=@((Get-IsolationQpcDelta $writers.HandoffStartQpc $isolation.Ready.isolation_ready_qpc 'isolation ready to handoff write'));$timings.WinEventEndToHandoffWrite=@((Get-IsolationQpcDelta $writers.HandoffStartQpc $win.End.callback_qpc 'WinEvent END to handoff write'));$timings.HandoffWriteDuration=@([long]$writers.HandoffDuration)}
     $testGate=if($isolation.Failure -or $inputState.Failure){'FAIL'}elseif($isolation.Pass){'PASS'}else{'NOT_RUN'}
     $reasons=@(Get-IsolationRows $Rows 'blocked'|ForEach-Object reason);if($blocked){Assert-InputIsolation ($reasons.Count -gt 0) 'blocked result without reason'}
     return [pscustomobject]@{Result=$result;DiagnosedResult=$result;Operation=$s.operation;ForegroundContract=$s.foreground_contract;HandoffContract=$s.handoff_contract;DiagnosticContract=$s.diagnostic_contract;AuthorityContract=$s.authority_contract;IsolationContract=$s.input_isolation_contract;RunNonce=$s.run_nonce;ContractVerified=$true;ProductAuthoritySeparated='PASS';TestIsolationSeparated='PASS';ProductHandoffAuthority=$(if($productPass){'PASS'}elseif($product.Count){'FAIL'}else{'UNKNOWN'});TestInputIsolation=$testGate;PostEndInputShield=$(if($isolation.Failure){'FAIL'}elseif($isolation.Pass -and $isolation.Needed){'PASS'}elseif($isolation.Pass){'NOT_NEEDED'}else{'NOT_RUN'});WinEventWitness=$(if($null -ne $win.End){'PASS'}else{'UNKNOWN'});PostEndGeometryStability=$(if($barrierCounterexample){'FAIL'}elseif($productPass){'PASS'}else{'UNKNOWN'});RawBackground=$raw.Gate;Cancel=$cancel;Handoff=$writers.Handoff;Takeover=$acceptance.Gate;PreReleaseControl=$(if($acceptance.Gate -ceq 'PASS'){'PASS'}else{'NOT_RUN'});Architecture=$architecture;NativeWrites=$writers.NativeCalls;HandoffNativeCalls=$writers.HandoffCalls;ShieldNativeCalls=$isolation.ShieldNativeCalls;RawPackets=$raw.Packets.Count;RawMovementPackets=@($raw.Packets|Where-Object cursor_sampled).Count;RawUpPackets=@($raw.Packets|Where-Object {($_.button_flags -band 2) -ne 0}).Count;ContinuationQuanta=$writers.Remaining;NativeDragAfterWinEventEnd=$afterWin;UnownedGeometryAfterEnd=$unowned;TerminalSettlements=$native.Settlements;FullGestureTargets=$writers.FullTargets;CleanupInputRelease=$cleanup.Status;CleanupAcceptanceEligible=$false;PendingButton=($inputState.PendingButton -and -not $cleanup.InputSent);CleanupCurrentLeftDown=$cleanup.CurrentLeftDown;FinalLeftDown=$acceptance.FinalLeftDown;TimingTickSamples=$timings;QpcFrequency=$s.qpc_frequency;Reasons=$reasons;SyntheticFixture=((Get-AutoField $s 'synthetic_fixture') -eq $true)}
