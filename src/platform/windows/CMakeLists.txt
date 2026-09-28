@@ -247,6 +247,15 @@ endif()
 panebind_enable_warnings(panebind-explorer-live-magnet-harness)
 
 if(BUILD_TESTING)
+    # Explicit read-only MVP1 input-attribution diagnostic. It never cancels
+    # a native drag, creates an overlay, or places a third-party window.
+    add_executable(panebind-explorer-anchor-diagnostic ../../app/explorer_anchor_diagnostic_main.cpp text_encoding.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-explorer-anchor-diagnostic PRIVATE panebind_windows_explorer panebind_windows_sta_console ole32 dwmapi)
+    target_compile_definitions(panebind-explorer-anchor-diagnostic PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00 PANEBIND_BUILD_SHA="${panebind_build_sha}")
+    if(MSVC)
+        target_link_options(panebind-explorer-anchor-diagnostic PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-explorer-anchor-diagnostic)
     # Explicit Pivot 1 interaction research; never part of default CTest.
     # Explicit read-only environment CLI, never automatic/default CTest.
     add_executable(panebind-test-input-environment operations/test_input_environment_probe.cpp observer.rc observer.manifest)
@@ -263,6 +272,14 @@ if(BUILD_TESTING)
         target_link_options(panebind-magnet-takeover-probe PRIVATE /MANIFEST:NO)
     endif()
     panebind_enable_warnings(panebind-magnet-takeover-probe)
+    # Explicit owned-only MVP1 overlay experiment; never registered in CTest.
+    add_executable(panebind-owned-overlay-probe operations/owned_gesture_overlay_probe.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-owned-overlay-probe PRIVATE panebind_core user32 gdi32 wtsapi32)
+    target_compile_definitions(panebind-owned-overlay-probe PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+    if(MSVC)
+        target_link_options(panebind-owned-overlay-probe PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-owned-overlay-probe)
     add_executable(panebind-test-foreground-model-tests operations/test_foreground_bootstrap_model_tests.cpp)
     target_link_libraries(panebind-test-foreground-model-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-test-foreground-model-tests)

@@ -22,6 +22,10 @@ target_include_directories(panebind_core INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_compile_features(panebind_core INTERFACE cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(panebind-move-handoff-gate-tests tests/core/move_handoff_gate_tests.cpp)
+    target_link_libraries(panebind-move-handoff-gate-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-move-handoff-gate-tests)
+    add_test(NAME move-handoff-gate COMMAND panebind-move-handoff-gate-tests)
     add_executable(panebind-cursor-move-magnet-intent-tests tests/core/cursor_move_magnet_intent_tests.cpp)
     target_link_libraries(panebind-cursor-move-magnet-intent-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-cursor-move-magnet-intent-tests)
@@ -81,7 +85,7 @@ if(BUILD_TESTING)
     add_test(NAME glue-move-coordinator COMMAND panebind-glue-move-coordinator-tests)
     # Fix F: audited deterministic core code, no native HWND/input side effects.
     set_tests_properties(
-        cursor-move-magnet-intent magnet-gesture magnet-constraint-solver glue-group-move geometry
+        move-handoff-gate cursor-move-magnet-intent magnet-gesture magnet-constraint-solver glue-group-move geometry
         core-model topology translation glue-move-coordinator
         PROPERTIES LABELS "offline")
 endif()

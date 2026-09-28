@@ -65,15 +65,66 @@ a proven safe teardown.
 
 To cover an unrestricted real cursor path, a spatially bounded corridor is
 insufficient: it can be escaped between Raw delivery and repositioning, or
-across the cancel-to-END gap. The only identified overlay candidate covers the
-reachable virtual desktop for the short authorized gesture. That would
-temporarily intercept mouse input over *pre-existing other applications*.
-This is materially broader than exact three-Explorer-window control, so it is
-**not authorized by this research note**. The user has been asked explicitly
-whether to authorize that bounded-in-time but broad-in-space experiment. No
-product overlay or Explorer cancellation may be enabled before the choice and
-owned evidence. Neither `ClipCursor` nor `BlockInput` is substituted silently.
+across the cancel-to-END gap. A candidate overlay covers the reachable virtual
+desktop for the short gesture. That temporarily intercepts mouse input over
+*pre-existing other applications*; it does not control those HWNDs or block
+their background Raw Input. This is one research candidate, not a proof that
+no other product architecture is possible.
 
-Current live gates: product input isolation `UNPROVEN`; Explorer Move Magnet
-`NOT_RUN`; same-entry three-window UAT `NOT_RUN`. The pure core Move intent
-model and owned-only, non-invasive diagnostics may proceed independently.
+**2026-09-28 human-root amendment:** The user explicitly authorized this
+full-virtual-screen, PaneBind-owned, nearly transparent, nonactivating overlay
+for one already authenticated ordinary Move gesture, including setup before
+the bounded native cancel. The authorization is spatially broad for input hit
+routing but grants geometry writes only to the exact three consented temporary
+Explorer frames. It does not authorize `ClipCursor`, `BlockInput`, hooks,
+injection, permanent Explorer style/z-order changes, or a resident desktop
+shield. The prior scope-decision blocker is removed, **not** the empirical
+gate. Test-owned hit/foreground/UP/teardown evidence must precede Explorer.
+
+The product design must cap each isolation lifetime at 30 seconds, retire
+pending geometry writes as soon as a reliable Raw UP is observed, and have an
+escape path independent of a stalled geometry writer. Normal teardown requires
+actual evidence of where the legacy UP went; Raw UP alone is not a safe
+cross-queue teardown barrier. Premature UP, setup failure, explicit stop,
+foreground/desktop invalidation, parent exit and deadline must retire the
+gesture without a later cancel or source write. A deadline/failure escape may
+remove the overlay without a legacy-UP witness to restore desktop usability,
+but records the handoff safety as `UNKNOWN` or `FAIL`, never `PASS`.
+
+The minimal pure [MoveHandoffGate](../../src/core/behavior/move_handoff_gate.h)
+models only this ordering; Win32 identity, hit, end and authority proofs remain
+adapter duties. In particular, the owned test receiver currently performs a
+synchronous pipe write from its `WM_INPUT` procedure. It is not a safe sole
+owner of a full-desktop overlay: a stuck parent/pipe reader could also stall
+its UI message pump. A per-gesture, short-lived overlay helper must own the
+shield HWND on its own UI thread, with a separate event/deadline escape path
+and no blocking writer IPC in that UI thread. The Raw receiver must revoke the
+writer generation before any potentially blocking evidence transfer. A native
+placement already in flight at physical UP cannot be undone merely by setting
+a flag; this must be fault-tested and reported separately from the guarantee
+that **no new placement is issued after UP**. These are design requirements,
+not yet observed product results.
+
+Current live gates after authorization: product input isolation `UNPROVEN`;
+Explorer Move Magnet `NOT_RUN`; same-entry three-window UAT `NOT_RUN`.
+
+## Owned test execution boundary found in this continuation
+
+The new opt-in owned overlay experiment is intentionally **not runnable yet**:
+its synthetic-input CLI fails before creating a window or sending input. It
+would send a test LEFTDOWN before the candidate overlay is ready. If, in that
+gap, the owned source loses foreground/capture or the desktop changes, neither
+its exact-self cleanup route nor the accepted Fix H test fence proves that a
+synthetic LEFTUP can be safely delivered without reaching a pre-existing
+window. The Fix H 100/100 result is a controlled normal-path result, not a
+guarantee of recovery after arbitrary external interference. Destroying an
+overlay first and releasing afterward worsens the ambiguity. This is a
+test-execution safety blocker, not empirical evidence that the layered overlay
+itself fails. No owned overlay hit/UP/teardown, Explorer cancellation, or
+product geometry write has been observed under the amendment.
+
+The read-only Explorer anchor diagnostic is also gated behind the required
+owned stage. It retains the previous human-created nonce frame provisioning
+because the R1-C2A research rejected `ShellExecute` and `explorer.exe /n` or
+`/separate` as guaranteed-new-window authority; merely invoking them could
+navigate or reuse a pre-existing user window. No such fallback is enabled.
