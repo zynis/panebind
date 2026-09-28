@@ -94,16 +94,40 @@ function Invoke-OwnedStabilityProgression($Steps,$State,[scriptblock]$Execute,[s
     $State.LoopResult='ALL_PLANNED_PASS';$State.BatchResult='PENDING_INDEPENDENT_SUMMARY'
 }
 function Get-OwnedStabilityCounts($Steps,$Attempts){
+    # Validate actual wire types before aggregating any group. PowerShell's
+    # property comparison accepts string 'true' and numeric 1 as Boolean true.
+    foreach($attempt in @($Attempts)){
+        Assert-OwnedStability ($null -ne $attempt) 'null attempt cannot be counted'
+        $values=[ordered]@{}
+        foreach($name in @('ChildInvoked','PreflightAttempted','ProbeInvoked','TargetGestureEntered')){
+            $property=$attempt.PSObject.Properties[$name]
+            Assert-OwnedStability ($null -ne $property) ('missing count field '+$name)
+            $value=$property.Value
+            if($name -cin @('ChildInvoked','PreflightAttempted')){
+                Assert-OwnedStability ($value -is [bool]) ($name+' must be Boolean true or false')
+            }else{
+                Assert-OwnedStability ($value -is [bool] -or ($value -is [string] -and $value -ceq 'UNKNOWN')) ($name+' must be Boolean true/false or exact UNKNOWN')
+            }
+            $values[$name]=$value
+        }
+        Assert-OwnedStability ($values.ChildInvoked -or -not $values.PreflightAttempted) 'preflight cannot precede child invocation'
+        Assert-OwnedStability ($values.PreflightAttempted -or -not ($values.ProbeInvoked -is [bool] -and $values.ProbeInvoked)) 'probe cannot start without preflight'
+        Assert-OwnedStability ($values.ChildInvoked -or ($values.ProbeInvoked -is [bool] -and -not $values.ProbeInvoked)) 'no child cannot have unknown or started probe'
+        if($values.ProbeInvoked -is [bool] -and -not $values.ProbeInvoked){Assert-OwnedStability ($values.TargetGestureEntered -is [bool] -and -not $values.TargetGestureEntered) 'no probe cannot enter or have unknown target gesture'}
+        if($values.ProbeInvoked -is [string]){Assert-OwnedStability ($values.TargetGestureEntered -is [string] -and $values.TargetGestureEntered -ceq 'UNKNOWN') 'unknown probe cannot claim a known target gesture'}
+        if($values.TargetGestureEntered -is [bool] -and $values.TargetGestureEntered){Assert-OwnedStability ($values.ProbeInvoked -is [bool] -and $values.ProbeInvoked) 'target gesture requires an actual probe'}
+        if($attempt.Result -ceq 'PASS'){Assert-OwnedStability ($values.ChildInvoked -and $values.PreflightAttempted -and $values.ProbeInvoked -is [bool] -and $values.ProbeInvoked -and $values.TargetGestureEntered -is [bool] -and $values.TargetGestureEntered) 'PASS requires child, preflight, probe and target gesture'}
+    }
     $groups=@()
     foreach($group in 1..8){
         $planned=@($Steps|Where-Object GroupNumber -eq $group);$actual=@($Attempts|Where-Object GroupNumber -eq $group)
         $groups+=@([pscustomobject][ordered]@{
             GroupNumber=$group;Phase=$planned[0].Phase;Configuration=$planned[0].Configuration;Operation=$planned[0].Operation;Planned=$planned.Count
-            Attempts=$actual.Count;PreflightAttempts=@($actual|Where-Object PreflightAttempted -eq $true).Count
-            ProbeInvocations=@($actual|Where-Object ProbeInvoked -eq $true).Count;ProbeInvocationsUnknown=@($actual|Where-Object ProbeInvoked -ceq 'UNKNOWN').Count
-            TargetGesturesEntered=@($actual|Where-Object TargetGestureEntered -eq $true).Count;TargetGesturesUnknown=@($actual|Where-Object TargetGestureEntered -ceq 'UNKNOWN').Count
+            Attempts=$actual.Count;PreflightAttempts=@($actual|Where-Object {$_.PreflightAttempted -is [bool] -and $_.PreflightAttempted}).Count
+            ProbeInvocations=@($actual|Where-Object {$_.ProbeInvoked -is [bool] -and $_.ProbeInvoked}).Count;ProbeInvocationsUnknown=@($actual|Where-Object {$_.ProbeInvoked -is [string] -and $_.ProbeInvoked -ceq 'UNKNOWN'}).Count
+            TargetGesturesEntered=@($actual|Where-Object {$_.TargetGestureEntered -is [bool] -and $_.TargetGestureEntered}).Count;TargetGesturesUnknown=@($actual|Where-Object {$_.TargetGestureEntered -is [string] -and $_.TargetGestureEntered -ceq 'UNKNOWN'}).Count
             Passed=@($actual|Where-Object Result -ceq 'PASS').Count;Blocked=@($actual|Where-Object Result -ceq 'BLOCKED').Count;Failed=@($actual|Where-Object Result -ceq 'FAIL').Count;InvalidEvidence=@($actual|Where-Object Result -ceq 'INVALID_EVIDENCE').Count
-            NotRun=$planned.Count-@($actual|Where-Object ChildInvoked -eq $true).Count
+            NotRun=$planned.Count-@($actual|Where-Object {$_.ChildInvoked -is [bool] -and $_.ChildInvoked}).Count
         })
     }
     return $groups

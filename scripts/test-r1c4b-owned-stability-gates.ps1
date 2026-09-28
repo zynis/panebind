@@ -41,6 +41,69 @@ foreach($failureAt in @(0,1,20,21,54,100)){
 $state=[ordered]@{Attempts=@();FinalButtonState='UNKNOWN';FirstUnexpectedFailure=$null;BatchResult='NOT_RUN';LoopResult='NOT_RUN'};$called=0
 Invoke-OwnedStabilityProgression $plan $state {param($attempt) $script:called++;throw 'synthetic identity/validator/post exception'} {param($type,$attempt)}
 Check-OwnedGate ($called -eq 1 -and $state.Attempts.Count -eq 1 -and $state.Attempts[0].Result -ceq 'INVALID_EVIDENCE') 'callback exception preserves attempt and stops'
+# Handwritten expected counts for the three supported states. Exact UNKNOWN
+# stays distinct; the separate coercion regression below demonstrates the old
+# string-true/numeric-one counterexample rather than assuming UNKNOWN matched.
+$neverLaunched=New-OwnedStabilityAttempt $plan[0]
+$emptyFacts=@(Get-OwnedStabilityCounts $plan @($neverLaunched))[0]
+Check-OwnedGate ($emptyFacts.Attempts -eq 1 -and $emptyFacts.PreflightAttempts -eq 0 -and $emptyFacts.ProbeInvocations -eq 0 -and $emptyFacts.ProbeInvocationsUnknown -eq 0 -and $emptyFacts.TargetGesturesEntered -eq 0 -and $emptyFacts.TargetGesturesUnknown -eq 0 -and $emptyFacts.NotRun -eq 5) 'Boolean false child/preflight/probe/target facts do not count as started'
+$unknownAttempt=New-OwnedStabilityAttempt $plan[0]
+$unknownAttempt.ChildInvoked=$true;$unknownAttempt.PreflightAttempted=$true
+$unknownAttempt.ProbeInvoked='UNKNOWN';$unknownAttempt.TargetGestureEntered='UNKNOWN';$unknownAttempt.Result='INVALID_EVIDENCE'
+$counts=@(Get-OwnedStabilityCounts $plan @($unknownAttempt));$first=$counts[0]
+Check-OwnedGate ($first.Planned -eq 5 -and $first.Attempts -eq 1 -and $first.PreflightAttempts -eq 1 -and $first.ProbeInvocations -eq 0 -and $first.ProbeInvocationsUnknown -eq 1 -and $first.TargetGesturesEntered -eq 0 -and $first.TargetGesturesUnknown -eq 1 -and $first.InvalidEvidence -eq 1 -and $first.NotRun -eq 4) 'exact UNKNOWN is unknown, not Boolean true; handwritten 0/1 counters'
+$roundtrip=Copy-OwnedGate @($unknownAttempt)
+$counts=@(Get-OwnedStabilityCounts $plan $roundtrip);$first=$counts[0]
+Check-OwnedGate ($roundtrip[0].ProbeInvoked -is [string] -and $roundtrip[0].TargetGestureEntered -is [string] -and $first.ProbeInvocations -eq 0 -and $first.ProbeInvocationsUnknown -eq 1 -and $first.TargetGesturesEntered -eq 0 -and $first.TargetGesturesUnknown -eq 1) 'JSON roundtrip retains exact tri-state counts'
+$falseAttempt=New-OwnedStabilityAttempt $plan[1]
+$falseAttempt.ChildInvoked=$true;$falseAttempt.PreflightAttempted=$true;$falseAttempt.ProbeInvoked=$false;$falseAttempt.TargetGestureEntered=$false;$falseAttempt.Result='BLOCKED'
+$mixed=@(Get-OwnedStabilityCounts $plan @($unknownAttempt,$falseAttempt))[0]
+Check-OwnedGate ($mixed.Attempts -eq 2 -and $mixed.PreflightAttempts -eq 2 -and $mixed.ProbeInvocations -eq 0 -and $mixed.ProbeInvocationsUnknown -eq 1 -and $mixed.TargetGesturesEntered -eq 0 -and $mixed.TargetGesturesUnknown -eq 1 -and $mixed.Blocked -eq 1 -and $mixed.NotRun -eq 3) 'known false and unknown remain disjoint in same group'
+$trueAttempt=New-OwnedStabilityAttempt $plan[2]
+$trueAttempt.ChildInvoked=$true;$trueAttempt.PreflightAttempted=$true;$trueAttempt.ProbeInvoked=$true;$trueAttempt.TargetGestureEntered=$true;$trueAttempt.Result='PASS'
+$triple=@(Get-OwnedStabilityCounts $plan @($unknownAttempt,$falseAttempt,$trueAttempt))[0]
+Check-OwnedGate ($triple.ProbeInvocations -eq 1 -and $triple.ProbeInvocationsUnknown -eq 1 -and $triple.TargetGesturesEntered -eq 1 -and $triple.TargetGesturesUnknown -eq 1 -and $triple.Passed -eq 1 -and $triple.NotRun -eq 2) 'Boolean true/false and exact UNKNOWN count independently'
+$originalWrongProbeUnknown=@($trueAttempt|Where-Object ProbeInvoked -ceq 'UNKNOWN').Count
+$originalWrongTargetUnknown=@($trueAttempt|Where-Object TargetGestureEntered -ceq 'UNKNOWN').Count
+$correctTrue=@(Get-OwnedStabilityCounts $plan @($trueAttempt))[0]
+Check-OwnedGate ($originalWrongProbeUnknown -eq 1 -and $originalWrongTargetUnknown -eq 1 -and $correctTrue.ProbeInvocationsUnknown -eq 0 -and $correctTrue.TargetGesturesUnknown -eq 0) 'original Boolean true-to-UNKNOWN defect is reproduced and corrected'
+foreach($coerced in @('true',1)){
+    $v=Copy-OwnedGate @($trueAttempt);$v[0].ProbeInvoked=$coerced;$v[0].TargetGestureEntered=$coerced;$v[0].Result='INVALID_EVIDENCE'
+    $oldProbe=@($v|Where-Object ProbeInvoked -eq $true).Count;$oldTarget=@($v|Where-Object TargetGestureEntered -eq $true).Count
+    Check-OwnedGate ($oldProbe -eq 1 -and $oldTarget -eq 1) "pre-repair counterexample silently counted coerced $coerced as two known true facts"
+    Reject-OwnedGate {Get-OwnedStabilityCounts $plan $v} "coerced $coerced must be rejected, not counted"
+}
+foreach($field in @('ProbeInvoked','TargetGestureEntered')){
+    foreach($bad in @($null,0,1,'true','false','unknown','Unknown','UNKNOWN ',@())){
+        $v=Copy-OwnedGate @($unknownAttempt);$v[0].$field=$bad
+        Reject-OwnedGate {Get-OwnedStabilityCounts $plan $v} "invalid tri-state $field/$bad"
+    }
+    $v=Copy-OwnedGate @($unknownAttempt);$v[0].PSObject.Properties.Remove($field)
+    Reject-OwnedGate {Get-OwnedStabilityCounts $plan $v} "missing tri-state $field"
+}
+foreach($field in @('PreflightAttempted','ChildInvoked')){
+    foreach($bad in @($null,0,1,'true','false','UNKNOWN')){
+        $v=Copy-OwnedGate @($unknownAttempt);$v[0].$field=$bad
+        Reject-OwnedGate {Get-OwnedStabilityCounts $plan $v} "invalid required Boolean $field/$bad"
+    }
+    $v=Copy-OwnedGate @($unknownAttempt);$v[0].PSObject.Properties.Remove($field)
+    Reject-OwnedGate {Get-OwnedStabilityCounts $plan $v} "missing required Boolean $field"
+}
+foreach($fault in @('pre_without_child','probe_without_pre','probe_without_child','target_without_probe','target_unknown_without_probe','known_target_from_unknown_probe','false_target_from_unknown_probe','pass_without_probe','pass_without_target')){
+    $v=New-OwnedStabilityAttempt $plan[0];$v.ChildInvoked=$true;$v.PreflightAttempted=$true;$v.ProbeInvoked=$true;$v.TargetGestureEntered=$true;$v.Result='INVALID_EVIDENCE'
+    switch($fault){
+        pre_without_child {$v.ChildInvoked=$false;$v.PreflightAttempted=$true;$v.ProbeInvoked=$false;$v.TargetGestureEntered=$false}
+        probe_without_pre {$v.PreflightAttempted=$false}
+        probe_without_child {$v.ChildInvoked=$false;$v.PreflightAttempted=$false}
+        target_without_probe {$v.ProbeInvoked=$false}
+        target_unknown_without_probe {$v.ProbeInvoked=$false;$v.TargetGestureEntered='UNKNOWN'}
+        known_target_from_unknown_probe {$v.ProbeInvoked='UNKNOWN'}
+        false_target_from_unknown_probe {$v.ProbeInvoked='UNKNOWN';$v.TargetGestureEntered=$false}
+        pass_without_probe {$v.ProbeInvoked=$false;$v.TargetGestureEntered=$false;$v.Result='PASS'}
+        pass_without_target {$v.TargetGestureEntered=$false;$v.Result='PASS'}
+    }
+    Reject-OwnedGate {Get-OwnedStabilityCounts $plan @($v)} "mutually exclusive count facts $fault"
+}
 Reject-OwnedGate {Assert-OwnedStabilityNextStep $plan @() $plan[20]} 'formal cannot start without all smoke'
 $good=[pscustomobject]@{IndependentlyValidatedResult='PASS';RunnerExitCode=0;IndependentVerdict=[pscustomobject]@{Result='PASS';TestMode='normal';Operation='Move';FixtureResult='PASS';GestureResult='PASS';CleanupResult='NOT_NEEDED';TakeoverAcceptance='PASS';ContractVerified=$true;SyntheticFixture=$false;NormalProof=[pscustomobject]@{Result='PASS'}}}
 Assert-OwnedStabilityNormalVerdict $good Move;Check-OwnedGate $true 'full current normal proof accepted'
