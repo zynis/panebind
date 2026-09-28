@@ -22,6 +22,10 @@ constexpr int stop_hotkey_id = 0x5042;
 constexpr UINT stop_hotkey_key = VK_F11;
 constexpr UINT stop_hotkey_modifiers = MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT;
 constexpr DWORD max_overlay_ms = 30000;
+// This starts only after the overlay is gone. It outlives the driver's
+// bounded overlay wait (2 s), Raw UP wait (1.5 s), and scheduling margin;
+// expiration means failed observation, never a fabricated UP.
+constexpr DWORD raw_cleanup_observation_ms = 6000;
 constexpr BYTE overlay_alpha = 2; // Nonzero: alpha zero would pass mouse input through.
 constexpr ULONG_PTR test_input_tag = 0x50424F56; // Test-only PBOV marker; Raw packets have no such tag.
 constexpr wchar_t guest_probe_path[] = L"C:\\PaneBindMVP1\\Input\\panebind-owned-overlay-probe.exe";
@@ -38,7 +42,7 @@ struct State {
     HANDLE log = INVALID_HANDLE_VALUE;
     HANDLE stop = nullptr, ui_ready = nullptr, receiver_ready = nullptr;
     HANDLE native_start = nullptr, native_end = nullptr, overlay_ready = nullptr;
-    HANDLE overlay_gone = nullptr, raw_up = nullptr, legacy_up = nullptr;
+    HANDLE overlay_gone = nullptr, receiver_gone = nullptr, raw_up = nullptr, legacy_up = nullptr;
     HANDLE ui_gone = nullptr, overlay_arm = nullptr;
     HANDLE log_notice = nullptr, log_stop = nullptr, logger_gone = nullptr;
     std::array<LogSlot, log_capacity> log_slots{};
@@ -574,6 +578,7 @@ void overlay_owner() noexcept {
         log("receiver_setup_failed", ",\"class_registration\":false");
         SetEvent(state.receiver_ready);
         SetEvent(state.overlay_gone);
+        SetEvent(state.receiver_gone);
         return;
     }
     const HWND receiver = CreateWindowExW(0, receiver_class.lpszClassName, L"", 0,
@@ -590,6 +595,7 @@ void overlay_owner() noexcept {
         state.overlay_destroyed = true;
         state.hotkey_removed = true;
         SetEvent(state.overlay_gone);
+        SetEvent(state.receiver_gone);
         return;
     }
 
@@ -666,17 +672,57 @@ void overlay_owner() noexcept {
     bool destroyed = true;
     if (overlay) destroyed = DestroyWindow(overlay) && !IsWindow(overlay);
     state.overlay_destroyed = destroyed;
-    state.overlay = nullptr;
+    if (destroyed) state.overlay = nullptr;
     log("overlay_destroy", ",\"target\":" + std::to_string(number(overlay)) +
         ",\"destroyed\":" + boolean(destroyed) +
         ",\"hotkey_removed\":" + boolean(hotkey_removed) +
         ",\"raw_ups\":" + std::to_string(state.raw_ups.load()) +
         ",\"legacy_ups\":" + std::to_string(state.overlay_ups.load()));
+    // The screen-covering overlay must disappear promptly. Its message-only
+    // Raw receiver is a separate lifetime: a stop can still require the
+    // test driver's guarded LEFTUP after overlay_gone. Keep pumping WM_INPUT
+    // for one bounded observation window, never keep the overlay for this.
+    if (destroyed) SetEvent(state.overlay_gone);
+    else log("overlay_destroy_failed");
+    const ULONGLONG observation_end = GetTickCount64() + raw_cleanup_observation_ms;
+    bool raw_observed = WaitForSingleObject(state.raw_up, 0) == WAIT_OBJECT_0;
+    bool observation_error = false;
+    while (!raw_observed) {
+        const ULONGLONG now = GetTickCount64();
+        if (now >= observation_end) break;
+        const DWORD remaining = static_cast<DWORD>(observation_end - now);
+        const HANDLE observation[]{state.raw_up};
+        const DWORD wait = MsgWaitForMultipleObjectsEx(1, observation, remaining,
+            QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+        if (wait == WAIT_OBJECT_0) { raw_observed = true; break; }
+        if (wait == WAIT_TIMEOUT) break;
+        if (wait != WAIT_OBJECT_0 + 1) { observation_error = true; break; }
+        MSG message{};
+        while (GetTickCount64() < observation_end &&
+               PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
+            if (message.message == WM_QUIT) { observation_error = true; break; }
+            received_msg_point = message.pt;
+            received_msg_time = message.time;
+            TranslateMessage(&message);
+            DispatchMessageW(&message);
+            if (WaitForSingleObject(state.raw_up, 0) == WAIT_OBJECT_0) {
+                raw_observed = true;
+                break;
+            }
+        }
+        if (observation_error) break;
+    }
+    log("receiver_observation_end", ",\"overlay_gone\":" + boolean(destroyed) +
+        ",\"raw_up_event\":" +
+        boolean(raw_observed) + ",\"timed_out\":" +
+        boolean(!raw_observed && !observation_error) + ",\"wait_error\":" +
+        boolean(observation_error) + ",\"raw_ups\":" +
+        std::to_string(state.raw_ups.load()));
     state.registration_removed = remove_raw_registration();
     state.receiver_destroyed = !receiver || (DestroyWindow(receiver) && !IsWindow(receiver));
     log("receiver_destroy", ",\"target\":" + std::to_string(number(receiver)) +
         ",\"destroyed\":" + boolean(state.receiver_destroyed));
-    SetEvent(state.overlay_gone);
+    SetEvent(state.receiver_gone);
 }
 void overlay_watchdog() noexcept {
     const HANDLE triggers[]{state.overlay_arm, state.stop};
@@ -1029,6 +1075,7 @@ int wmain(int argc, wchar_t** argv) {
     state.native_end = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     state.overlay_ready = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     state.overlay_gone = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    state.receiver_gone = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     state.raw_up = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     state.legacy_up = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     state.ui_gone = CreateEventW(nullptr, TRUE, FALSE, nullptr);
@@ -1041,7 +1088,7 @@ int wmain(int argc, wchar_t** argv) {
                                      DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     if (!state.stop || !state.ui_ready || !state.receiver_ready || !state.native_start ||
         !state.native_end || !state.overlay_ready || !state.overlay_gone ||
-        !state.raw_up || !state.legacy_up || !state.ui_gone || !state.overlay_arm ||
+        !state.receiver_gone || !state.raw_up || !state.legacy_up || !state.ui_gone || !state.overlay_arm ||
         !state.log_notice || !state.log_stop || !state.logger_gone ||
         !dpi_ready) {
         log("initialization_failed");
@@ -1050,6 +1097,7 @@ int wmain(int argc, wchar_t** argv) {
     std::thread logger_thread(log_owner);
     log("startup", ",\"scenario\":\"" + state.scenario +
         "\",\"deadline_ms\":" + std::to_string(state.deadline_ms) +
+        ",\"raw_cleanup_observation_ms\":" + std::to_string(raw_cleanup_observation_ms) +
         ",\"alpha\":" + std::to_string(overlay_alpha) +
         ",\"test_only\":true");
     SetConsoleCtrlHandler(console_control, TRUE);
@@ -1064,6 +1112,18 @@ int wmain(int argc, wchar_t** argv) {
     const bool cleanup_released = release_test_owned_left("final_failure_cleanup");
     SetEvent(state.stop);
     const bool overlay_gone = wait_event(state.overlay_gone, 3000, "final_overlay_gone");
+    const bool receiver_gone = wait_event(state.receiver_gone, 7000, "final_receiver_gone");
+    if (!receiver_gone) {
+        // Never turn a bounded Raw observation into an unbounded join. This
+        // executable is restricted to the disposable guest; ending only this
+        // test process also releases any of its remaining owned windows.
+        log("receiver_teardown_timeout", ",\"overlay_gone\":" + boolean(overlay_gone));
+        SetEvent(state.log_stop);
+        SetEvent(state.log_notice);
+        WaitForSingleObject(state.logger_gone, 1000);
+        TerminateProcess(GetCurrentProcess(), 74);
+        ExitProcess(74);
+    }
     const HWND source = state.source.load();
     log("owned_cleanup_input", ",\"cleanup_released\":" + boolean(cleanup_released) +
         ",\"held_recorded\":" + boolean(state.held) +
@@ -1083,6 +1143,7 @@ int wmain(int argc, wchar_t** argv) {
     }
     log("shutdown", ",\"result\":" + std::to_string(result) +
         ",\"overlay_gone\":" + boolean(overlay_gone) +
+        ",\"receiver_gone\":" + boolean(receiver_gone) +
         ",\"overlay_created\":" + boolean(state.overlay_created) +
         ",\"overlay_destroyed\":" + boolean(state.overlay_destroyed) +
         ",\"receiver_created\":" + boolean(state.receiver_created) +
@@ -1112,7 +1173,7 @@ int wmain(int argc, wchar_t** argv) {
     if (logger_thread.joinable()) logger_thread.join();
     CloseHandle(state.log);
     for (const HANDLE event : {state.stop, state.ui_ready, state.receiver_ready, state.native_start,
-             state.native_end, state.overlay_ready, state.overlay_gone, state.raw_up,
+             state.native_end, state.overlay_ready, state.overlay_gone, state.receiver_gone, state.raw_up,
              state.legacy_up, state.ui_gone, state.overlay_arm, state.log_notice,
              state.log_stop, state.logger_gone}) CloseHandle(event);
     const bool input_counts = state.raw_downs == 1 && state.raw_ups == 1 &&
@@ -1121,7 +1182,7 @@ int wmain(int argc, wchar_t** argv) {
         state.candidate_raw_up > state.candidate_raw_down;
     const bool overlay_absent = !state.overlay_created ? state.overlay == nullptr :
         state.overlay_destroyed && state.overlay == nullptr;
-    const bool teardown = overlay_gone && overlay_absent &&
+    const bool teardown = overlay_gone && receiver_gone && overlay_absent &&
         state.receiver_created && state.receiver_destroyed &&
         state.registration_removed && state.hotkey_removed;
     return result == 0 && cleanup_released && teardown && ui_gone &&
