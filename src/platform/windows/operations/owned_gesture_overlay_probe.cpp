@@ -19,12 +19,14 @@
 namespace {
 constexpr UINT create_overlay_message = WM_APP + 1;
 constexpr int stop_hotkey_id = 0x5042;
+constexpr UINT stop_hotkey_key = VK_F11;
+constexpr UINT stop_hotkey_modifiers = MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT;
 constexpr DWORD max_overlay_ms = 30000;
 constexpr BYTE overlay_alpha = 2; // Nonzero: alpha zero would pass mouse input through.
 constexpr ULONG_PTR test_input_tag = 0x50424F56; // Test-only PBOV marker; Raw packets have no such tag.
-// No code path clears this guard. Review-only synthetic scenarios must not be
-// executable from the CLI while their pre-overlay cleanup is unproven.
-std::atomic<bool> synthetic_scenarios_disabled{true};
+constexpr wchar_t guest_probe_path[] = L"C:\\PaneBindMVP1\\Input\\panebind-owned-overlay-probe.exe";
+constexpr wchar_t guest_run_id_path[] = L"C:\\PaneBindMVP1\\Input\\run-id.txt";
+constexpr wchar_t guest_output_path[] = L"C:\\PaneBindMVP1\\Output\\";
 constexpr std::size_t log_capacity = 2048, log_line_capacity = 1536;
 struct LogSlot {
     std::atomic<bool> ready{false};
@@ -45,7 +47,8 @@ struct State {
     std::atomic<bool> overlay_destroyed{false}, receiver_destroyed{false};
     std::atomic<bool> overlay_created{false}, receiver_created{false};
     std::atomic<bool> registration_removed{false}, hotkey_removed{false};
-    std::atomic<bool> hotkey_registered{false};
+    std::atomic<bool> hotkey_registered{false}, hotkey_received{false};
+    std::atomic<bool> hotkey_during_held_native{false};
     std::atomic<bool> held{false}, retired{false};
     std::atomic<HWND> source{nullptr}, control{nullptr}, receiver{nullptr}, overlay{nullptr};
     std::atomic<DWORD> source_tid{0}, overlay_tid{0};
@@ -176,6 +179,47 @@ bool interactive_default_desktop() noexcept {
     }
     WTSFreeMemory(data);
     return active;
+}
+bool sandbox_run_authorized(std::wstring_view run_id, std::wstring_view scenario,
+                            const wchar_t* evidence_log) {
+    // This is an accidental-host-run guard, not a security boundary against a
+    // deliberately forged guest. The host launches this exact read-only input
+    // package into a fresh Windows Sandbox interactive WDAGUtilityAccount.
+    if (run_id.size() != 32 || !std::all_of(run_id.begin(), run_id.end(), [](wchar_t ch) {
+            return (ch >= L'0' && ch <= L'9') || (ch >= L'a' && ch <= L'f');
+        })) return false;
+    wchar_t user[256]{};
+    DWORD user_length = static_cast<DWORD>(std::size(user));
+    if (!GetUserNameW(user, &user_length) || std::wstring_view(user) != L"WDAGUtilityAccount")
+        return false;
+    DWORD session{};
+    if (!ProcessIdToSessionId(GetCurrentProcessId(), &session) || session == 0 ||
+        !interactive_default_desktop()) return false;
+    wchar_t executable[MAX_PATH]{};
+    const DWORD executable_length = GetModuleFileNameW(nullptr, executable,
+        static_cast<DWORD>(std::size(executable)));
+    if (executable_length == 0 || executable_length >= std::size(executable) ||
+        CompareStringOrdinal(executable, -1, guest_probe_path, -1, TRUE) != CSTR_EQUAL)
+        return false;
+    const std::wstring expected_log = std::wstring(guest_output_path) +
+        std::wstring(run_id) + L"-" + std::wstring(scenario) + L".jsonl";
+    if (CompareStringOrdinal(evidence_log, -1, expected_log.c_str(), -1, TRUE) != CSTR_EQUAL)
+        return false;
+    const HANDLE marker = CreateFileW(guest_run_id_path, GENERIC_READ, FILE_SHARE_READ,
+        nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (marker == INVALID_HANDLE_VALUE) return false;
+    LARGE_INTEGER size{};
+    std::array<char, 32> bytes{};
+    DWORD read{};
+    const bool valid = GetFileSizeEx(marker, &size) &&
+        size.QuadPart == static_cast<LONGLONG>(bytes.size()) &&
+        ReadFile(marker, bytes.data(), static_cast<DWORD>(bytes.size()), &read, nullptr) &&
+        read == static_cast<DWORD>(bytes.size()) &&
+        std::equal(bytes.begin(), bytes.end(), run_id.begin(), [](char lhs, wchar_t rhs) {
+            return static_cast<unsigned char>(lhs) == rhs;
+        });
+    CloseHandle(marker);
+    return valid;
 }
 bool virtual_desktop(RECT& result) noexcept {
     const int x = GetSystemMetrics(SM_XVIRTUALSCREEN), y = GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -567,18 +611,42 @@ void overlay_owner() noexcept {
                 created = true;
                 end_tick = GetTickCount64() + state.deadline_ms;
                 const bool hotkey = ready && RegisterHotKey(nullptr, stop_hotkey_id,
-                    MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT, VK_F12);
+                    stop_hotkey_modifiers, stop_hotkey_key);
                 state.hotkey_registered = hotkey;
                 if (!hotkey && ready) {
                     log("overlay_hotkey_failed", ",\"error\":" + std::to_string(GetLastError()));
                     state.overlay_ok = false;
                 }
-                log("overlay_hotkey", ",\"registered\":" + boolean(hotkey));
+                log("overlay_hotkey", ",\"chord\":\"Ctrl+Shift+F11\",\"registered\":" +
+                    boolean(hotkey));
                 SetEvent(state.overlay_ready);
             } else if (message.message == WM_HOTKEY && message.wParam == stop_hotkey_id) {
-                state.retired = true;
-                log("overlay_keyboard_stop", ",\"hotkey\":\"Ctrl+Shift+F12\"");
-                SetEvent(state.stop);
+                const bool matches = state.hotkey_registered &&
+                    HIWORD(message.lParam) == stop_hotkey_key &&
+                    (LOWORD(message.lParam) & (MOD_CONTROL | MOD_SHIFT | MOD_ALT | MOD_WIN)) ==
+                        (MOD_CONTROL | MOD_SHIFT);
+                log("overlay_hotkey_message", ",\"chord\":\"Ctrl+Shift+F11\",\"matches\":" +
+                    boolean(matches) + ",\"key\":" + std::to_string(HIWORD(message.lParam)) +
+                    ",\"modifiers\":" + std::to_string(LOWORD(message.lParam)));
+                if (matches) {
+                    GUITHREADINFO gui{sizeof(gui)};
+                    const HWND source = state.source.load();
+                    const bool gui_ok = GetGUIThreadInfo(state.source_tid, &gui) != FALSE;
+                    const bool held_native = left_down() && same_source(source) &&
+                        same_overlay(state.overlay.load()) && state.native_starts == 1 &&
+                        state.native_ends == 0 && gui_ok &&
+                        gui.hwndCapture == source && gui.hwndMoveSize == source;
+                    state.hotkey_received = true;
+                    state.hotkey_during_held_native = held_native;
+                    state.retired = true;
+                    log("overlay_keyboard_stop", ",\"hotkey\":\"Ctrl+Shift+F11\",\"via_wm_hotkey\":true" +
+                        std::string(",\"left_high\":") + boolean(left_down()) +
+                        ",\"native_ends\":" + std::to_string(state.native_ends.load()) +
+                        ",\"capture\":" + std::to_string(number(gui.hwndCapture)) +
+                        ",\"move_size\":" + std::to_string(number(gui.hwndMoveSize)) +
+                        ",\"during_held_native\":" + boolean(held_native));
+                    SetEvent(state.stop);
+                }
             } else {
                 received_msg_point = message.pt;
                 received_msg_time = message.time;
@@ -591,6 +659,9 @@ void overlay_owner() noexcept {
     const bool hotkey_removed = !state.hotkey_registered ||
         UnregisterHotKey(nullptr, stop_hotkey_id) != FALSE;
     state.hotkey_removed = hotkey_removed;
+    log("overlay_hotkey_unregistered", ",\"was_registered\":" +
+        boolean(state.hotkey_registered) + ",\"removed\":" + boolean(hotkey_removed) +
+        ",\"wm_hotkey_received\":" + boolean(state.hotkey_received));
     const HWND overlay = state.overlay.load();
     bool destroyed = true;
     if (overlay) destroyed = DestroyWindow(overlay) && !IsWindow(overlay);
@@ -656,6 +727,42 @@ bool move_cursor(POINT destination) noexcept {
     log("owned_test_cursor_readback", ",\"requested\":" + point(destination) +
         ",\"actual\":" + point(actual) + ",\"exact\":" + boolean(exact));
     return exact;
+}
+bool send_test_stop_hotkey() noexcept {
+    // Test driver only. SendInput is not part of the product input path. The
+    // scenario passes only after the overlay thread receives the real WM_HOTKEY.
+    // A partial batch could leave Ctrl/Shift/F11 down. Always issue a separate
+    // test-only key-up batch, including when the first batch fails or succeeds.
+    constexpr std::array<WORD, 6> keys{
+        VK_CONTROL, VK_SHIFT, VK_F11, VK_F11, VK_SHIFT, VK_CONTROL};
+    std::array<INPUT, keys.size()> inputs{};
+    for (std::size_t i = 0; i < inputs.size(); ++i) {
+        inputs[i].type = INPUT_KEYBOARD;
+        inputs[i].ki.wVk = keys[i];
+        inputs[i].ki.dwFlags = i >= 3 ? KEYEVENTF_KEYUP : 0;
+        inputs[i].ki.dwExtraInfo = test_input_tag;
+    }
+    const UINT sent = SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
+    constexpr std::array<WORD, 3> release_keys{VK_F11, VK_SHIFT, VK_CONTROL};
+    std::array<INPUT, release_keys.size()> releases{};
+    for (std::size_t i = 0; i < releases.size(); ++i) {
+        releases[i].type = INPUT_KEYBOARD;
+        releases[i].ki.wVk = release_keys[i];
+        releases[i].ki.dwFlags = KEYEVENTF_KEYUP;
+        releases[i].ki.dwExtraInfo = test_input_tag;
+    }
+    const UINT cleanup_sent = SendInput(static_cast<UINT>(releases.size()),
+        releases.data(), sizeof(INPUT));
+    Sleep(30); // One bounded test-driver dispatch allowance, not a polling loop.
+    const bool keys_up = (GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0 &&
+        (GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0 &&
+        (GetAsyncKeyState(VK_F11) & 0x8000) == 0;
+    log("owned_test_keyboard_hotkey", ",\"chord\":\"Ctrl+Shift+F11\",\"requested\":" +
+        std::to_string(inputs.size()) + ",\"sent\":" + std::to_string(sent) +
+        ",\"cleanup_requested\":" + std::to_string(releases.size()) +
+        ",\"cleanup_sent\":" + std::to_string(cleanup_sent) +
+        ",\"keys_up\":" + boolean(keys_up));
+    return sent == inputs.size() && cleanup_sent == releases.size() && keys_up;
 }
 bool wait_event(HANDLE event, DWORD ms, std::string_view name) noexcept {
     const bool passed = WaitForSingleObject(event, ms) == WAIT_OBJECT_0;
@@ -803,12 +910,26 @@ int drive() noexcept {
         return ended && state.cancel_attempts == 0 ? 0 : 2;
     }
     if (state.scenario == "stop") {
-        state.retired = true;
-        if (!release_test_owned_left("explicit_stop_before_cancel")) return 2;
-        SetEvent(state.stop);
-        const bool gone = wait_event(state.overlay_gone, 2000, "explicit_stop_gone");
-        const bool ended = wait_event(state.native_end, 1500, "explicit_stop_native_end");
-        return gone && ended && state.cancel_attempts == 0 ? 0 : 2;
+        // Exercise the escape while the original test-owned native Move and
+        // synthetic LEFT are still active. Do not manufacture a legacy UP on
+        // the overlay: its removal precedes the guarded test-only LEFTUP.
+        if (!state.hotkey_registered || !left_down() || state.native_ends != 0 ||
+            !send_test_stop_hotkey() ||
+            !wait_event(state.stop, 1500, "keyboard_hotkey_stop") ||
+            !state.hotkey_received || !state.hotkey_during_held_native) return 2;
+        const bool gone = wait_event(state.overlay_gone, 2000, "keyboard_stop_overlay_gone");
+        const bool released = gone && release_test_owned_left("keyboard_stop_after_overlay");
+        const bool ended = released && wait_event(state.native_end, 1500, "keyboard_stop_native_end");
+        log("keyboard_stop_verdict", ",\"wm_hotkey_received\":" +
+            boolean(state.hotkey_received) + ",\"unregistered\":" +
+            boolean(state.hotkey_removed) + ",\"overlay_gone\":" +
+            boolean(gone) + ",\"during_held_native\":" +
+            boolean(state.hotkey_during_held_native) + ",\"test_left_released\":" +
+            boolean(released) + ",\"native_end\":" + boolean(ended) +
+            ",\"overlay_legacy_ups\":" + std::to_string(state.overlay_ups.load()));
+        return gone && released && ended && state.hotkey_received &&
+            state.hotkey_during_held_native && state.hotkey_removed &&
+            state.cancel_attempts == 0 ? 0 : 2;
     }
     // The overlay must be ready before the only permitted native cancel.
     DWORD_PTR ignored{};
@@ -822,8 +943,9 @@ int drive() noexcept {
         boolean(state.overlay_ready_qpc != 0 && state.overlay_ready_qpc < state.cancel_qpc));
     if (!cancel || !wait_event(state.native_end, 1500, "native_end") || !left_down()) return 2;
     if (state.scenario == "writer-stall") {
-        // Test a blocked writer with no synthetic button still held. This
-        // proves independent teardown, not the physical-held timeout case.
+        // No geometry writer exists in this probe. This only models a stalled
+        // owner after releasing the test button; it does not validate teardown
+        // while physically held or while a real placement call is blocked.
         if (!release_test_owned_left("writer_stall_precondition") ||
             !wait_event(state.legacy_up, 1500, "writer_stall_legacy_up")) return 2;
         // A single bounded stall models a blocked geometry owner. The overlay
@@ -832,7 +954,7 @@ int drive() noexcept {
         const bool gone = WaitForSingleObject(state.overlay_gone, 0) == WAIT_OBJECT_0;
         log("writer_stall_deadline_verdict", ",\"overlay_gone\":" + boolean(gone) +
             ",\"writer_retired\":" + boolean(state.retired) +
-            ",\"source_writes\":0");
+            ",\"source_writes\":0,\"button_held_during_stall\":false,\"real_writer\":false");
         return gone && state.retired ? 0 : 2;
     }
     GUITHREADINFO after{sizeof(after)};
@@ -870,21 +992,23 @@ int drive() noexcept {
 } // namespace
 
 int wmain(int argc, wchar_t** argv) {
-    if (argc != 6 || std::wstring_view(argv[1]) != L"--run-owned-overlay-probe" ||
+    if (argc != 8 || std::wstring_view(argv[1]) != L"--run-owned-overlay-probe" ||
         std::wstring_view(argv[2]) != L"--scenario" ||
-        std::wstring_view(argv[4]) != L"--evidence-log") return 64;
+        std::wstring_view(argv[4]) != L"--evidence-log" ||
+        std::wstring_view(argv[6]) != L"--sandbox-run-id") return 64;
     const std::wstring_view scenario(argv[3]);
     if (scenario != L"normal" && scenario != L"early-up" && scenario != L"stop" &&
         scenario != L"setup-fail" && scenario != L"writer-stall") return 64;
-    // This owned SendInput driver has no universally safe cleanup route after
-    // an unexpected pre-overlay foreground/source failure. Keep the research
-    // code reviewable, but make every executable scenario fail closed before
-    // opening evidence, creating a GUI window, or sending any input.
-    constexpr char not_ready[] = "NOT_READY: owned synthetic overlay scenarios are disabled; no GUI or input was started.\n";
-    DWORD notice_written{};
-    WriteFile(GetStdHandle(STD_ERROR_HANDLE), not_ready,
-              static_cast<DWORD>(sizeof(not_ready) - 1), &notice_written, nullptr);
-    if (synthetic_scenarios_disabled.load(std::memory_order_acquire)) return 78;
+    // Any pre-overlay input-recovery failure is disposable only inside the
+    // explicitly provisioned guest. Fail closed before opening evidence or
+    // creating GUI/input on the ordinary host or an unrecognized guest run.
+    if (!sandbox_run_authorized(argv[7], scenario, argv[5])) {
+        constexpr char not_ready[] = "NOT_READY: owned input probe requires its exact interactive Windows Sandbox package; no GUI or input was started.\n";
+        DWORD notice_written{};
+        WriteFile(GetStdHandle(STD_ERROR_HANDLE), not_ready,
+                  static_cast<DWORD>(sizeof(not_ready) - 1), &notice_written, nullptr);
+        return 78;
+    }
     if (scenario == L"normal") state.scenario = "normal";
     else if (scenario == L"early-up") state.scenario = "early-up";
     else if (scenario == L"stop") state.scenario = "stop";
@@ -964,6 +1088,9 @@ int wmain(int argc, wchar_t** argv) {
         ",\"receiver_created\":" + boolean(state.receiver_created) +
         ",\"receiver_destroyed\":" + boolean(state.receiver_destroyed) +
         ",\"registration_removed\":" + boolean(state.registration_removed) +
+        ",\"hotkey_registered\":" + boolean(state.hotkey_registered) +
+        ",\"wm_hotkey_received\":" + boolean(state.hotkey_received) +
+        ",\"hotkey_during_held_native\":" + boolean(state.hotkey_during_held_native) +
         ",\"hotkey_removed\":" + boolean(state.hotkey_removed) +
         ",\"ui_gone\":" + boolean(ui_gone) +
         ",\"input_released\":" + boolean(input_released) +

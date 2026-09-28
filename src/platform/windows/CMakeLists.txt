@@ -274,7 +274,7 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-magnet-takeover-probe)
     # Explicit owned-only MVP1 overlay experiment; never registered in CTest.
     add_executable(panebind-owned-overlay-probe operations/owned_gesture_overlay_probe.cpp observer.rc observer.manifest)
-    target_link_libraries(panebind-owned-overlay-probe PRIVATE panebind_core user32 gdi32 wtsapi32)
+    target_link_libraries(panebind-owned-overlay-probe PRIVATE panebind_core user32 gdi32 wtsapi32 advapi32)
     target_compile_definitions(panebind-owned-overlay-probe PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
     if(MSVC)
         target_link_options(panebind-owned-overlay-probe PRIVATE /MANIFEST:NO)
