@@ -6,6 +6,7 @@
 #include "platform/windows/operations/magnet_input_isolation_diagnostic.h"
 #include "platform/windows/operations/magnet_owned_abort_diagnostic.h"
 #include <windows.h>
+#include <windowsx.h>
 #include <wtsapi32.h>
 #include <dwmapi.h>
 #include <algorithm>
@@ -65,7 +66,7 @@ POINT saved_cursor{};
 bool driver_pass{},restored{}; // read by main only after join
 std::string failure;
 bool end_mode{},diagnostic_mode{},isolation_mode{};int selected_gesture=1;
-bool reliability_mode{},controlled_abort{};
+bool reliability_mode{},controlled_abort{},down_anchor_diagnostic_mode{};
 namespace ab=panebind::test::abort;
 std::atomic<bool> abort_retiring{},abort_quiescent{};
 HANDLE abort_quiescence_finished{};
@@ -323,9 +324,10 @@ struct RawPacket {
     std::uintptr_t hwnd{},foreground{};
     DWORD foreground_pid{};
     std::int64_t observed_qpc{};
-    POINT cursor{};
+    POINT cursor{},message_pt{};
+    DWORD message_time{};
     ULONG extra_information{};
-    bool cursor_sampled{},cursor_ok{},left_down{},device_present{},tag_matches{},cleanup_tag_matches{},registration_ok{},removed{},destroyed{};
+    bool cursor_sampled{},cursor_ok{},left_down{},device_present{},tag_matches{},cleanup_tag_matches{},registration_ok{},removed{},destroyed{},message_pt_available{};
 };
 RawPacket last_motion,last_up;std::mutex raw_mutex;
 RawPacket pending_motion,published_up;
@@ -396,6 +398,7 @@ void ledger_api_committed(std::uint64_t intent,std::uint64_t input_sequence,UINT
     if(snapshot.raw_down_recorded&&snapshot.facts.native_down_matches&&snapshot.facts.native_enter_matches&&snapshot.facts.raw_down_matches)record("test_down_ledger",",\"ledger_intent_sequence\":"+std::to_string(intent)+ledger_fields(snapshot));
 }
 HANDLE child_pipe{},child_stop{},child_armed{};std::uint32_t child_sequence{};
+MSG child_dispatch_message{};bool child_dispatch_message_available{};
 bool send_packet(RawPacket packet){
     packet.serial=++child_sequence;packet.pid=GetCurrentProcessId();packet.tid=GetCurrentThreadId();packet.observed_qpc=qpc();
     DWORD written{};return WriteFile(child_pipe,&packet,sizeof(packet),&written,nullptr)&&written==sizeof(packet);
@@ -406,6 +409,9 @@ LRESULT CALLBACK raw_procedure(HWND h,UINT message,WPARAM w,LPARAM l){
             RAWINPUT input{};UINT bytes=sizeof(input);SetLastError(0);
             const auto copied=GetRawInputData(reinterpret_cast<HRAWINPUT>(l),RID_INPUT,&input,&bytes,sizeof(RAWINPUTHEADER));
             RawPacket packet;packet.kind=2;packet.hwnd=number(h);packet.input_code=GET_RAWINPUT_CODE_WPARAM(w);
+            if(down_anchor_diagnostic_mode&&child_dispatch_message_available&&child_dispatch_message.hwnd==h&&child_dispatch_message.message==message&&child_dispatch_message.wParam==w&&child_dispatch_message.lParam==l){
+                packet.message_pt_available=true;packet.message_pt=child_dispatch_message.pt;packet.message_time=child_dispatch_message.time;
+            }
             if(copied==static_cast<UINT>(-1)||copied<sizeof(RAWINPUTHEADER)+sizeof(RAWMOUSE)||copied!=input.header.dwSize||input.header.dwType!=RIM_TYPEMOUSE){packet.kind=3;packet.error=GetLastError();}
             else{
                 const auto& mouse=input.data.mouse;packet.flags=mouse.usFlags;packet.buttons=mouse.usButtonFlags;packet.dx=mouse.lLastX;packet.dy=mouse.lLastY;
@@ -461,6 +467,7 @@ void read_receiver(){
             const bool raw_acceptance_eligible=!cleanup_flag&&takeover_scope.load();
             ++raw_packets;
             record("raw_input",common+",\"input_code\":"+std::to_string(p.input_code)+",\"raw_flags\":"+std::to_string(p.flags)+",\"dx\":"+std::to_string(p.dx)+",\"dy\":"+std::to_string(p.dy)+",\"button_flags\":"+std::to_string(p.buttons)+",\"cursor_sampled\":"+flag(p.cursor_sampled)+",\"cursor_success\":"+flag(p.cursor_ok)+",\"cursor\":"+(p.cursor_sampled&&p.cursor_ok?point(p.cursor):"null")+",\"left_down\":"+flag(p.left_down)+",\"foreground_hwnd\":"+std::to_string(p.foreground)+",\"foreground_pid\":"+std::to_string(p.foreground_pid)+",\"device_handle_present\":"+flag(p.device_present)+",\"test_tag_matches\":"+flag(p.tag_matches)
+                +(down_anchor_diagnostic_mode&&(p.buttons&RI_MOUSE_LEFT_BUTTON_DOWN)?",\"down_message_pt_available\":"+flag(p.message_pt_available)+",\"down_message_pt\":"+(p.message_pt_available?point(p.message_pt):"null")+",\"down_message_time\":"+(p.message_pt_available?std::to_string(p.message_time):"null"):"")
                 +(diagnostic_mode?",\"cleanup_observation\":"+flag(cleanup_flag)+",\"raw_scope\":\""+std::string(cleanup_flag?"cleanup":"gesture")+"\",\"acceptance_eligible\":"+flag(raw_acceptance_eligible)+",\"gesture_id\":"+std::to_string(active_gesture_id.load()):"")+(reliability_mode?",\"extra_information\":"+std::to_string(p.extra_information)+",\"cleanup_tag_matches\":"+flag(p.cleanup_tag_matches)+",\"ledger_observed_qpc\":"+std::to_string(ledger_observed_qpc):""));
             if(reliability_mode){std::lock_guard lock(down_ledger_mutex);if(down_ledger.facts.raw_down_matches&&down_ledger.facts.raw_down_receiver_sequence==p.serial)down_ledger.raw_down_recorded=log_ok;}
             record("raw_cursor_status",common+",\"cursor_error\":"+std::to_string(p.cursor_error));
@@ -479,7 +486,7 @@ void start_receiver(){
     receiver_ready=CreateEventW(nullptr,TRUE,FALSE,nullptr);raw_motion=CreateEventW(nullptr,TRUE,FALSE,nullptr);raw_up=CreateEventW(nullptr,TRUE,FALSE,nullptr);
     require(receiver_stop&&receiver_armed&&receiver_ready&&raw_motion&&raw_up,"receiver_event_failed");
     wchar_t executable[32768]{};require(GetModuleFileNameW(nullptr,executable,32768)!=0,"receiver_path_failed");
-    std::wstring command=L"\""+std::wstring(executable)+L"\" --raw-receiver "+std::to_wstring(reinterpret_cast<std::uintptr_t>(writer))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(receiver_stop))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(receiver_armed));
+    std::wstring command=L"\""+std::wstring(executable)+L"\" --raw-receiver "+std::to_wstring(reinterpret_cast<std::uintptr_t>(writer))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(receiver_stop))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(receiver_armed))+(down_anchor_diagnostic_mode?L" --down-anchor-diagnostic":L"");
     STARTUPINFOW startup{sizeof(startup)};startup.dwFlags=STARTF_USESHOWWINDOW;startup.wShowWindow=SW_HIDE;
     const bool created=CreateProcessW(executable,command.data(),nullptr,nullptr,TRUE,CREATE_NO_WINDOW,nullptr,nullptr,&startup,&receiver_process)!=FALSE;CloseHandle(writer);
     require(created,"receiver_creation_failed");receiver_reader=std::thread(read_receiver);
@@ -603,9 +610,10 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM w,LPARAM l){
     if(h==owned&&message==WM_NCLBUTTONDOWN&&(w==HTCAPTION||w==HTBOTTOM)){
         const auto down_receipt=qpc();if(reliability_mode){++native_down_count;native_down_qpc=down_receipt;}
         POINT down_cursor{};const bool observed=GetCursorPos(&down_cursor)!=FALSE;
+        const POINT message_point{GET_X_LPARAM(l),GET_Y_LPARAM(l)};
         if(diagnostic_mode&&native_down_sequence){takeover_healthy=false;record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed)+",\"duplicate\":true");return DefWindowProcW(h,message,w,l);}
         if(end_mode){std::lock_guard lock(continuation_mutex);intent_pointer=down_cursor;if(!observed)takeover_healthy=false;}
-        native_down_sequence=record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+(end_mode?",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed):"")+(reliability_mode?",\"receipt_qpc\":"+std::to_string(down_receipt):""));SetEvent(nonclient_down);
+        native_down_sequence=record("native_button_down",",\"target\":"+std::to_string(number(h))+",\"hit_test\":"+std::to_string(w)+(end_mode?",\"cursor\":"+point(down_cursor)+",\"cursor_success\":"+flag(observed):"")+(reliability_mode?",\"receipt_qpc\":"+std::to_string(down_receipt):"")+(down_anchor_diagnostic_mode?",\"nc_lparam_screen\":"+point(message_point):""));SetEvent(nonclient_down);
     }
     if(message==WM_ENTERSIZEMOVE){
         if(reliability_mode)++native_enter_count;
@@ -1648,9 +1656,10 @@ void drive(){
 }
 int receiver_main(int argc,wchar_t** argv);
 int wmain(int argc,wchar_t** argv){
-    if(argc==5&&std::wstring_view(argv[1])==L"--raw-receiver")return receiver_main(argc,argv);
-    reliability_mode=argc==8&&std::wstring_view(argv[1])==L"--run-owned-input-reliability-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--mode"&&std::wstring_view(argv[6])==L"--evidence-log";
-    if(reliability_mode){
+    if((argc==5||argc==6)&&std::wstring_view(argv[1])==L"--raw-receiver")return receiver_main(argc,argv);
+    down_anchor_diagnostic_mode=argc==6&&std::wstring_view(argv[1])==L"--run-owned-down-anchor-diagnostics-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--evidence-log";
+    reliability_mode=down_anchor_diagnostic_mode||(argc==8&&std::wstring_view(argv[1])==L"--run-owned-input-reliability-test"&&std::wstring_view(argv[2])==L"--gesture"&&std::wstring_view(argv[4])==L"--mode"&&std::wstring_view(argv[6])==L"--evidence-log");
+    if(reliability_mode&&!down_anchor_diagnostic_mode){
         if(std::wstring_view(argv[5])==L"controlled-abort")controlled_abort=true;
         else if(std::wstring_view(argv[5])!=L"normal")return 2;
     }
@@ -1666,9 +1675,10 @@ int wmain(int argc,wchar_t** argv){
                  <<"Or --run-owned-takeover-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
                  <<"Or --run-owned-end-diagnostics-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
                  <<"Or --run-owned-input-isolation-test --gesture move|bottom-resize --evidence-log NEW_FILE\n"
-                 <<"Or --run-owned-input-reliability-test --gesture move|bottom-resize --mode controlled-abort|normal --evidence-log NEW_FILE\n";return 2;
+                 <<"Or --run-owned-input-reliability-test --gesture move|bottom-resize --mode controlled-abort|normal --evidence-log NEW_FILE\n"
+                 <<"Or --run-owned-down-anchor-diagnostics-test --gesture move|bottom-resize --evidence-log NEW_FILE\n";return 2;
     }
-    log_file=CreateFileW(argv[reliability_mode?7:(end_mode?5:3)],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    log_file=CreateFileW(argv[down_anchor_diagnostic_mode?5:(reliability_mode?7:(end_mode?5:3))],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(log_file==INVALID_HANDLE_VALUE)return 2;
     timer=CreateWaitableTimerW(nullptr,FALSE,nullptr);ui_thread=GetCurrentThreadId();
     if(isolation_mode){run_nonce=static_cast<std::uintptr_t>(static_cast<std::uint64_t>(qpc())^(static_cast<std::uint64_t>(GetCurrentProcessId())<<32));if(!run_nonce)run_nonce=1;}
@@ -1676,7 +1686,8 @@ int wmain(int argc,wchar_t** argv){
     record("startup",",\"evidence_kind\":\""+std::string(end_mode?"automated_owned_end_handoff":"automated_owned_cancel")+"\",\"human_input\":false,\"real_explorer\":false,\"sendinput_in_probe\":true,\"mode\":\""+(end_mode?"free_takeover":"cancel_only")+"\",\"input_correlation\":\"actual_absolute_receipt_v1\",\"takeover_geometry_writes\":0,\"foreground_contract\":\"verified_global_foreground_v2\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"ui_tid\":"+std::to_string(ui_thread)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)
         +(end_mode?",\"handoff_contract\":\""+std::string(diagnostic_mode?"winevent_end_barrier_v1":"end_barrier_v1")+"\",\"operation\":\""+std::string(selected_gesture==1?"Move":"BottomResize")+"\"":"")+(diagnostic_mode?",\"diagnostic_contract\":\""+std::string(isolation_mode?"separated_authority_v1":"structured_handoff_v1")+"\",\"gesture_id\":1":"")
         +(isolation_mode?",\"authority_contract\":\"product_gesture_v1\",\"input_isolation_contract\":\"post_end_shield_v1\",\"run_nonce\":"+std::to_string(run_nonce)+",\"cursor_root_required_for_product\":false,\"shield_test_only\":true":"")
-        +(reliability_mode?",\"test_mode\":\""+std::string(controlled_abort?"controlled_abort":"normal")+"\",\"fence_contract\":\"ordered_failure_snapshot_v1\",\"cleanup_contract\":\"owned_native_abort_v1\",\"abort_cleanup_tag\":"+std::to_string(abort_cleanup_tag):""));
+        +(reliability_mode?",\"test_mode\":\""+std::string(controlled_abort?"controlled_abort":"normal")+"\",\"fence_contract\":\"ordered_failure_snapshot_v1\",\"cleanup_contract\":\"owned_native_abort_v1\",\"abort_cleanup_tag\":"+std::to_string(abort_cleanup_tag):"")
+        +(down_anchor_diagnostic_mode?",\"down_anchor_diagnostic\":\"nc_lparam_and_raw_msg_pt_v1\"":""));
     int result=2;
     try {
         require(timer&&desktop_available(),"BLOCKED_BY_INTERACTIVE_DESKTOP");
@@ -1761,8 +1772,9 @@ int wmain(int argc,wchar_t** argv){
     for(HANDLE handle:{entered,exited,stepped,timer,activation_event,pointer_arrived,nonclient_down,correction_finished,driver_finished,activation_down_received,activation_up_received,handoff_finished,quantum_finished,takeover_finished,winevent_finished,native_preflight_finished,final_acceptance_finished,abort_quiescence_finished})if(handle)CloseHandle(handle);
     const bool evidence_ok=log_ok;CloseHandle(log_file);return evidence_ok?result:2;
 }
-int receiver_main(int,wchar_t** argv){
+int receiver_main(int argc,wchar_t** argv){
     try{
+        if(argc==6){if(std::wstring_view(argv[5])!=L"--down-anchor-diagnostic")return 2;down_anchor_diagnostic_mode=true;}
         child_pipe=reinterpret_cast<HANDLE>(std::stoull(argv[2]));child_stop=reinterpret_cast<HANDLE>(std::stoull(argv[3]));child_armed=reinterpret_cast<HANDLE>(std::stoull(argv[4]));
         if(GetFileType(child_pipe)!=FILE_TYPE_PIPE)return 2;
         WNDCLASSW cls{};cls.lpfnWndProc=raw_procedure;cls.hInstance=GetModuleHandleW(nullptr);cls.lpszClassName=L"PaneBindTakeoverRawReceiver";
@@ -1782,7 +1794,11 @@ int receiver_main(int,wchar_t** argv){
             if(wait==WAIT_OBJECT_0)break;
             if(wait==WAIT_FAILED){okay=false;break;}
             MSG message{};unsigned drained{};
-            while(drained++<64&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){TranslateMessage(&message);DispatchMessageW(&message);}
+            while(drained++<64&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
+                if(down_anchor_diagnostic_mode&&message.message==WM_INPUT){child_dispatch_message=message;child_dispatch_message_available=true;}
+                TranslateMessage(&message);DispatchMessageW(&message);
+                child_dispatch_message_available=false;
+            }
         }
         device.dwFlags=RIDEV_REMOVE;device.hwndTarget=nullptr;
         const bool removed=RegisterRawInputDevices(&device,1,sizeof(device))!=FALSE;

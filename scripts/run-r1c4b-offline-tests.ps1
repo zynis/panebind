@@ -12,6 +12,7 @@ function Get-OfflineTestAudit{
     # New/renamed tests stay blocked until this small positive audit is updated.
     $audit=[ordered]@{}
     foreach($entry in @(
+        @('cursor-move-magnet-intent','panebind-cursor-move-magnet-intent-tests','offline',$false),
         @('magnet-gesture','panebind-magnet-gesture-tests','offline',$false),
         @('magnet-constraint-solver','panebind-magnet-tests','offline',$false),
         @('glue-group-move','panebind-glue-group-move-tests','offline',$false),

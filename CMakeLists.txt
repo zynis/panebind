@@ -22,6 +22,10 @@ target_include_directories(panebind_core INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_compile_features(panebind_core INTERFACE cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(panebind-cursor-move-magnet-intent-tests tests/core/cursor_move_magnet_intent_tests.cpp)
+    target_link_libraries(panebind-cursor-move-magnet-intent-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-cursor-move-magnet-intent-tests)
+    add_test(NAME cursor-move-magnet-intent COMMAND panebind-cursor-move-magnet-intent-tests)
     add_executable(panebind-magnet-gesture-tests tests/core/magnet_gesture_tests.cpp)
     target_link_libraries(panebind-magnet-gesture-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-magnet-gesture-tests)
@@ -77,7 +81,7 @@ if(BUILD_TESTING)
     add_test(NAME glue-move-coordinator COMMAND panebind-glue-move-coordinator-tests)
     # Fix F: audited deterministic core code, no native HWND/input side effects.
     set_tests_properties(
-        magnet-gesture magnet-constraint-solver glue-group-move geometry
+        cursor-move-magnet-intent magnet-gesture magnet-constraint-solver glue-group-move geometry
         core-model topology translation glue-move-coordinator
         PROPERTIES LABELS "offline")
 endif()
