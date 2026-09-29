@@ -59,6 +59,12 @@ target_link_libraries(
 )
 panebind_enable_warnings(panebind_windows_operation_geometry)
 
+# Shared one-gesture source writer. The owned probe supplies an exact owned
+# capability today; a future Explorer adapter must supply its own authority.
+add_library(panebind_windows_live_move_writer STATIC operations/live_move_writer.cpp)
+target_link_libraries(panebind_windows_live_move_writer PUBLIC panebind_core)
+panebind_enable_warnings(panebind_windows_live_move_writer)
+
 add_library(
     panebind_windows_owned_operations
     STATIC
@@ -274,12 +280,16 @@ if(BUILD_TESTING)
     panebind_enable_warnings(panebind-magnet-takeover-probe)
     # Explicit owned-only MVP1 overlay experiment; never registered in CTest.
     add_executable(panebind-owned-overlay-probe operations/owned_gesture_overlay_probe.cpp observer.rc observer.manifest)
-    target_link_libraries(panebind-owned-overlay-probe PRIVATE panebind_core user32 gdi32 wtsapi32 advapi32)
+    target_link_libraries(panebind-owned-overlay-probe PRIVATE panebind_windows_live_move_writer user32 gdi32 dwmapi wtsapi32 advapi32)
     target_compile_definitions(panebind-owned-overlay-probe PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
     if(MSVC)
         target_link_options(panebind-owned-overlay-probe PRIVATE /MANIFEST:NO)
     endif()
     panebind_enable_warnings(panebind-owned-overlay-probe)
+    add_executable(panebind-live-move-writer-tests operations/live_move_writer_tests.cpp)
+    target_link_libraries(panebind-live-move-writer-tests PRIVATE panebind_windows_live_move_writer)
+    panebind_enable_warnings(panebind-live-move-writer-tests)
+    add_test(NAME windows-live-move-writer COMMAND panebind-live-move-writer-tests)
     add_executable(panebind-test-foreground-model-tests operations/test_foreground_bootstrap_model_tests.cpp)
     target_link_libraries(panebind-test-foreground-model-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-test-foreground-model-tests)
@@ -657,7 +667,7 @@ if(BUILD_TESTING)
     set_tests_properties(
         test-foreground-bootstrap-model windows-magnet-postverify
         test-handoff-preflight-diagnostic test-product-input-isolation
-        windows-rect-adjustment explorer-browser-sink
+        windows-rect-adjustment windows-live-move-writer explorer-browser-sink
         explorer-group-mutable-capture windows-explorer-glue-profile-unit
         windows-text-encoding windows-owned-operations-unit
         windows-companion-unit windows-explorer-unit

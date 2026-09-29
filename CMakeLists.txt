@@ -30,6 +30,10 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-cursor-move-magnet-intent-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-cursor-move-magnet-intent-tests)
     add_test(NAME cursor-move-magnet-intent COMMAND panebind-cursor-move-magnet-intent-tests)
+    add_executable(panebind-move-magnet-session-tests tests/core/move_magnet_session_tests.cpp)
+    target_link_libraries(panebind-move-magnet-session-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-move-magnet-session-tests)
+    add_test(NAME move-magnet-session COMMAND panebind-move-magnet-session-tests)
     add_executable(panebind-magnet-gesture-tests tests/core/magnet_gesture_tests.cpp)
     target_link_libraries(panebind-magnet-gesture-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-magnet-gesture-tests)
@@ -85,7 +89,7 @@ if(BUILD_TESTING)
     add_test(NAME glue-move-coordinator COMMAND panebind-glue-move-coordinator-tests)
     # Fix F: audited deterministic core code, no native HWND/input side effects.
     set_tests_properties(
-        move-handoff-gate cursor-move-magnet-intent magnet-gesture magnet-constraint-solver glue-group-move geometry
+        move-handoff-gate cursor-move-magnet-intent move-magnet-session magnet-gesture magnet-constraint-solver glue-group-move geometry
         core-model topology translation glue-move-coordinator
         PROPERTIES LABELS "offline")
 endif()
