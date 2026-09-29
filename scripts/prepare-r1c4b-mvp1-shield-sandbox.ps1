@@ -29,7 +29,7 @@ $build = Join-Path $repo 'out\r1c4b-mvp1-shield-guest-mt'
 if ($LASTEXITCODE -ne 0) { throw 'Guest /MT configure failed.' }
 & $cmake --build $build --config Release --target panebind-owned-shield-validation panebind-explorer-mvp1 panebind-test-input-environment --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Guest Release build failed.' }
-& $cmake --build $build --config Debug --target panebind-owned-shield-validation --parallel 4
+& $cmake --build $build --config Debug --target panebind-owned-shield-validation panebind-explorer-mvp1 --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Guest Debug owned build failed.' }
 
 $bin = Join-Path $build 'src\platform\windows\Release'
@@ -48,6 +48,10 @@ $debugOwned = Join-Path $build 'src\platform\windows\Debug\panebind-owned-shield
 if (-not (Test-Path -LiteralPath $debugOwned -PathType Leaf)) {
     throw "Missing Debug owned executable: $debugOwned"
 }
+$debugExplorer = Join-Path $build 'src\platform\windows\Debug\panebind-explorer-mvp1.exe'
+if (-not (Test-Path -LiteralPath $debugExplorer -PathType Leaf)) {
+    throw "Missing Debug Explorer executable: $debugExplorer"
+}
 foreach ($name in @('panebind-owned-shield-validation.exe', 'panebind-explorer-mvp1.exe')) {
     $identityText = (& $binaries[$name] --build-identity | Out-String)
     $identityExit = $LASTEXITCODE
@@ -65,6 +69,13 @@ try { $debugIdentity = $debugIdentityText | ConvertFrom-Json -ErrorAction Stop }
 catch { throw 'Debug owned build identity is not JSON.' }
 if ($debugIdentity.implementation_sha -cne $head) {
     throw 'Debug owned build identity differs from the committed source.'
+}
+$debugExplorerIdentityText = (& $debugExplorer --build-identity | Out-String)
+if ($LASTEXITCODE -ne 0) { throw 'Read-only Debug Explorer build identity failed.' }
+try { $debugExplorerIdentity = $debugExplorerIdentityText | ConvertFrom-Json -ErrorAction Stop }
+catch { throw 'Debug Explorer build identity is not JSON.' }
+if ($debugExplorerIdentity.implementation_sha -cne $head) {
+    throw 'Debug Explorer build identity differs from the committed source.'
 }
 
 $vsTools = 'D:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC'
@@ -95,6 +106,15 @@ $debugImports = @(
     [regex]::Matches($debugImportsText, '(?im)^\s*([A-Za-z0-9_-]+\.dll)\s*$') |
         ForEach-Object { $_.Groups[1].Value }
 )
+$debugExplorerImportsText = (& $dumpbin /dependents $debugExplorer | Out-String)
+if ($LASTEXITCODE -ne 0) { throw 'dumpbin failed for Debug Explorer executable.' }
+if ($debugExplorerImportsText -match '(?im)^\s*(?:MSVCP|VCRUNTIME|ucrtbase|ucrtbased)[^\r\n]*\.dll\s*$') {
+    throw 'Debug Explorer executable still imports a dynamic VC++ runtime.'
+}
+$debugExplorerImports = @(
+    [regex]::Matches($debugExplorerImportsText, '(?im)^\s*([A-Za-z0-9_-]+\.dll)\s*$') |
+        ForEach-Object { $_.Groups[1].Value }
+)
 
 $runId = [Guid]::NewGuid().ToString('N').ToLowerInvariant()
 $run = Join-Path $repo (Join-Path 'uat\r1c4b-mvp1-shield-sandbox' $runId)
@@ -113,6 +133,7 @@ foreach ($name in $names) {
     Copy-Item -LiteralPath $binaries[$name] -Destination (Join-Path $inputDir $name) -ErrorAction Stop
 }
 Copy-Item -LiteralPath $debugOwned -Destination (Join-Path $debugInputDir 'panebind-owned-shield-validation.exe') -ErrorAction Stop
+Copy-Item -LiteralPath $debugExplorer -Destination (Join-Path $debugInputDir 'panebind-explorer-mvp1.exe') -ErrorAction Stop
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'r1c4b-mvp1-shield-sandbox-guest.ps1') -Destination (Join-Path $inputDir 'guest-run.ps1') -ErrorAction Stop
 
 $binaryHashes = [ordered]@{}
@@ -126,11 +147,13 @@ $manifest = [ordered]@{
     configuration = 'Release-and-Debug-MT-x64'
     binaries_sha256 = $binaryHashes
     debug_owned_sha256 = (Get-FileHash -LiteralPath (Join-Path $debugInputDir 'panebind-owned-shield-validation.exe') -Algorithm SHA256).Hash
+    debug_explorer_sha256 = (Get-FileHash -LiteralPath (Join-Path $debugInputDir 'panebind-explorer-mvp1.exe') -Algorithm SHA256).Hash
     guest_script_sha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'guest-run.ps1') -Algorithm SHA256).Hash
     input_marker_sha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'run-id.txt') -Algorithm SHA256).Hash
     output_marker_sha256 = (Get-FileHash -LiteralPath (Join-Path $outputDir 'run-id.txt') -Algorithm SHA256).Hash
     imports = $imports
     debug_owned_imports = $debugImports
+    debug_explorer_imports = $debugExplorerImports
     owned_guest_run = 'NOT_RUN'
     explorer_guest_run = 'NOT_RUN'
 }
@@ -194,6 +217,7 @@ Compress-Archive -LiteralPath $inputDir, $outputDir, $desktopConfig -Destination
     ManifestSha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'manifest.json') -Algorithm SHA256).Hash
     BinarySha256 = $binaryHashes
     DebugOwnedSha256 = $manifest.debug_owned_sha256
+    DebugExplorerSha256 = $manifest.debug_explorer_sha256
     GuestOwnedRun = 'NOT_RUN'
     GuestExplorerRun = 'NOT_RUN'
 } | Format-List

@@ -16,6 +16,7 @@ $summary = [ordered]@{
     owned_scenarios = @()
     explorer_started = $false
     explorer_command = $null
+    explorer_debug_command = $null
     error = $null
 }
 $utf8 = New-Object Text.UTF8Encoding($false)
@@ -83,6 +84,7 @@ try {
     }
     $owned = Join-Path $inputDir 'panebind-owned-shield-validation.exe'
     $debugOwned = Join-Path (Join-Path $inputDir 'Debug') 'panebind-owned-shield-validation.exe'
+    $debugExplorer = Join-Path (Join-Path $inputDir 'Debug') 'panebind-explorer-mvp1.exe'
     $explorer = Join-Path $inputDir 'panebind-explorer-mvp1.exe'
     $preflight = Join-Path $inputDir 'panebind-test-input-environment.exe'
     foreach ($name in @('panebind-owned-shield-validation.exe',
@@ -98,7 +100,11 @@ try {
         $manifest.debug_owned_sha256) {
         throw 'Guest Debug owned SHA256 differs from the read-only manifest.'
     }
-    foreach ($path in @($owned, $debugOwned, $explorer)) {
+    if ((Get-FileHash -LiteralPath $debugExplorer -Algorithm SHA256).Hash -cne
+        $manifest.debug_explorer_sha256) {
+        throw 'Guest Debug Explorer SHA256 differs from the read-only manifest.'
+    }
+    foreach ($path in @($owned, $debugOwned, $explorer, $debugExplorer)) {
         $identityText = (& $path --build-identity | Out-String)
         $identityExit = $LASTEXITCODE
         if ($identityExit -ne 0) { throw "Build identity failed: $path" }
@@ -108,6 +114,7 @@ try {
         }
     }
     $summary.explorer_command = "$explorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1.jsonl"
+    $summary.explorer_debug_command = "$debugExplorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1-debug.jsonl"
     $summary.status = 'PREFLIGHT'
     Save-Summary
 
