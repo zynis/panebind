@@ -1,0 +1,173 @@
+[CmdletBinding()]
+param()
+
+$ErrorActionPreference = 'Stop'
+$inputDir = 'C:\PaneBindMVP1\Input'
+$outputDir = 'C:\PaneBindMVP1\Output'
+$summary = [ordered]@{
+    schema = 'r1c4b-mvp1-shield-sandbox-guest/v2'
+    status = 'NOT_READY'
+    run_id = $null
+    source_commit = $null
+    account_class = $null
+    session_id = $null
+    user_interactive = $null
+    preflight = @()
+    owned_scenarios = @()
+    explorer_started = $false
+    explorer_command = $null
+    error = $null
+}
+$utf8 = New-Object Text.UTF8Encoding($false)
+$summaryPath = $null
+
+function Save-Summary {
+    if ($script:summaryPath) {
+        [IO.File]::WriteAllText($script:summaryPath, ($script:summary | ConvertTo-Json -Depth 7), $script:utf8)
+    }
+}
+
+try {
+    # Host refusal precedes every filesystem write. This runner is not a
+    # general host-side automation entrypoint.
+    $identityName = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+    $isGuestAccount = $identityName -ieq 'WDAGUtilityAccount' -or
+        $identityName.EndsWith('\WDAGUtilityAccount', [StringComparison]::OrdinalIgnoreCase)
+    $summary.account_class = if ($isGuestAccount) { 'WDAGUtilityAccount' } else { 'OTHER' }
+    $summary.session_id = (Get-Process -Id $PID).SessionId
+    $summary.user_interactive = [Environment]::UserInteractive
+    if ($summary.account_class -ne 'WDAGUtilityAccount' -or $summary.session_id -le 0 -or
+        -not $summary.user_interactive) {
+        throw 'Guest must be the logged-in WDAGUtilityAccount in an interactive nonzero session.'
+    }
+    if (-not (Test-Path -LiteralPath $outputDir -PathType Container)) {
+        throw "Required output mapping missing: $outputDir"
+    }
+    $newSummaryPath = Join-Path $outputDir 'guest-owned-summary.json'
+    if (Test-Path -LiteralPath $newSummaryPath) {
+        throw 'Owned summary already exists; this RunId cannot overwrite historical evidence.'
+    }
+    $summaryPath = $newSummaryPath
+    Save-Summary
+    foreach ($path in @($inputDir, $outputDir)) {
+        if (-not (Test-Path -LiteralPath $path -PathType Container)) { throw "Required mapping missing: $path" }
+    }
+    $inputMarker = Join-Path $inputDir 'run-id.txt'
+    $outputMarker = Join-Path $outputDir 'run-id.txt'
+    $inputBytes = [IO.File]::ReadAllBytes($inputMarker)
+    $outputBytes = [IO.File]::ReadAllBytes($outputMarker)
+    if ($inputBytes.Length -ne 32 -or $outputBytes.Length -ne 32) { throw 'Run marker length is invalid.' }
+    $runId = [Text.Encoding]::ASCII.GetString($inputBytes)
+    if ($runId -cnotmatch '^[0-9a-f]{32}$' -or
+        [Text.Encoding]::ASCII.GetString($outputBytes) -cne $runId) {
+        throw 'Input and output mapping run markers do not agree.'
+    }
+    $summary.run_id = $runId
+    Save-Summary
+    $manifest = Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Raw | ConvertFrom-Json
+    if ($manifest.schema -cne 'r1c4b-mvp1-shield-sandbox-package/v2' -or
+        $manifest.run_id -cne $runId -or
+        $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
+        $manifest.configuration -cne 'Release-and-Debug-MT-x64') {
+        throw 'Guest manifest does not match the exact package.'
+    }
+    $summary.source_commit = $manifest.source_commit
+    foreach ($item in @(
+        @{ Path = $inputMarker; Hash = $manifest.input_marker_sha256 },
+        @{ Path = $outputMarker; Hash = $manifest.output_marker_sha256 },
+        @{ Path = $PSCommandPath; Hash = $manifest.guest_script_sha256 }
+    )) {
+        if ((Get-FileHash -LiteralPath $item.Path -Algorithm SHA256).Hash -cne $item.Hash) {
+            throw "Guest package hash differs: $($item.Path)"
+        }
+    }
+    $owned = Join-Path $inputDir 'panebind-owned-shield-validation.exe'
+    $debugOwned = Join-Path (Join-Path $inputDir 'Debug') 'panebind-owned-shield-validation.exe'
+    $explorer = Join-Path $inputDir 'panebind-explorer-mvp1.exe'
+    $preflight = Join-Path $inputDir 'panebind-test-input-environment.exe'
+    foreach ($name in @('panebind-owned-shield-validation.exe',
+                        'panebind-explorer-mvp1.exe',
+                        'panebind-test-input-environment.exe')) {
+        $path = Join-Path $inputDir $name
+        if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne
+            $manifest.binaries_sha256.$name) {
+            throw "Guest binary SHA256 differs: $name"
+        }
+    }
+    if ((Get-FileHash -LiteralPath $debugOwned -Algorithm SHA256).Hash -cne
+        $manifest.debug_owned_sha256) {
+        throw 'Guest Debug owned SHA256 differs from the read-only manifest.'
+    }
+    foreach ($path in @($owned, $debugOwned, $explorer)) {
+        $identityText = (& $path --build-identity | Out-String)
+        $identityExit = $LASTEXITCODE
+        if ($identityExit -ne 0) { throw "Build identity failed: $path" }
+        $identity = $identityText | ConvertFrom-Json -ErrorAction Stop
+        if ($identity.implementation_sha -cne $manifest.source_commit) {
+            throw "Build identity differs from manifest: $path"
+        }
+    }
+    $summary.explorer_command = "$explorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1.jsonl"
+    $summary.status = 'PREFLIGHT'
+    Save-Summary
+
+    # Only owned automation runs at Sandbox logon. Explorer and the three-frame
+    # candidate are a separate stage after the owned evidence is reviewed.
+    $cases = @(
+        @{ configuration = 'debug'; scenario = 'normal'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'early-up'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'setup-fail'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'stop'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'writer-stall'; executable = $debugOwned },
+        @{ configuration = 'release'; scenario = 'normal'; executable = $owned }
+    )
+    foreach ($testCase in $cases) {
+        $configuration = $testCase.configuration
+        $scenario = $testCase.scenario
+        $ownedExecutable = $testCase.executable
+        $preflightLog = Join-Path $outputDir "$runId-preflight-$configuration-$scenario.jsonl"
+        & $preflight --check-input-state --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-$configuration-$scenario.console.txt")
+        $preflightExit = $LASTEXITCODE
+        $preflightResult = $null
+        if (Test-Path -LiteralPath $preflightLog -PathType Leaf) {
+            $preflightResult = Get-Content -LiteralPath $preflightLog -Raw | ConvertFrom-Json
+        }
+        $summary.preflight += [ordered]@{
+            configuration = $configuration
+            scenario = $scenario
+            exit_code = $preflightExit
+            readiness = if ($preflightResult) { $preflightResult.result } else { 'NO_EVIDENCE' }
+            evidence = $preflightLog
+        }
+        Save-Summary
+        if ($preflightExit -ne 0 -or -not $preflightResult -or $preflightResult.result -ne 'READY') {
+            throw "Input environment was not READY before $configuration/$scenario; no further input was sent."
+        }
+
+        $evidence = Join-Path $outputDir "$runId-$configuration-$scenario.jsonl"
+        $consoleLog = Join-Path $outputDir "$runId-$configuration-$scenario.console.txt"
+        & $ownedExecutable --run-owned-shield-validation --scenario $scenario --evidence-log $evidence --sandbox-run-id $runId *> $consoleLog
+        $ownedExit = $LASTEXITCODE
+        $hasEvidence = (Test-Path -LiteralPath $evidence -PathType Leaf) -and
+            ((Get-Item -LiteralPath $evidence).Length -gt 0)
+        $summary.owned_scenarios += [ordered]@{
+            configuration = $configuration
+            scenario = $scenario
+            exit_code = $ownedExit
+            evidence = $evidence
+            nonempty_evidence = $hasEvidence
+        }
+        Save-Summary
+        if ($ownedExit -ne 0 -or -not $hasEvidence) {
+            throw "Owned scenario $configuration/$scenario failed or produced no evidence; remaining scenarios were not run."
+        }
+    }
+    $summary.status = 'OWNED_PROCESSES_EXITED_ZERO_REVIEW_REQUIRED'
+    Save-Summary
+    exit 0
+} catch {
+    $summary.status = 'STOPPED'
+    $summary.error = $_.Exception.Message
+    try { Save-Summary } catch { }
+    exit 2
+}

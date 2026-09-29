@@ -322,6 +322,21 @@ if(BUILD_TESTING)
         target_link_options(panebind-owned-overlay-probe PRIVATE /MANIFEST:NO)
     endif()
     panebind_enable_warnings(panebind-owned-overlay-probe)
+    # Disposable-guest owned validation of the SAME shield resource used by
+    # Explorer MVP1. Its SendInput driver is test-only and never a CTest case.
+    add_executable(panebind-owned-shield-validation
+        operations/owned_gesture_shield_validation.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-owned-shield-validation PRIVATE
+        panebind_windows_gesture_input_shield panebind_windows_live_move_writer
+        user32 gdi32 dwmapi wtsapi32 advapi32)
+    target_compile_definitions(panebind-owned-shield-validation PRIVATE
+        NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+        WINVER=0x0A00 _WIN32_WINNT=0x0A00
+        PANEBIND_BUILD_SHA="${panebind_build_sha}")
+    if(MSVC)
+        target_link_options(panebind-owned-shield-validation PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-owned-shield-validation)
     add_executable(panebind-live-move-writer-tests operations/live_move_writer_tests.cpp)
     target_link_libraries(panebind-live-move-writer-tests PRIVATE panebind_windows_live_move_writer)
     panebind_enable_warnings(panebind-live-move-writer-tests)
