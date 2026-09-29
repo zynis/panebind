@@ -172,6 +172,76 @@ bool ExplorerGroupSession::setup() {
     if(!source_->start()){poison("hook_install_failed");return false;}
     setup_done_=true;return true;
 }
+bool ExplorerGroupSession::start_product_monitoring() {
+    if(!healthy() || product_mode_ || setup_done_ || restored_ ||
+       readiness_fixture_->accepted() || source_->facts().running)return false;
+    // The binding is already limited to three separately consented, baseline-
+    // excluded root frames. Product monitoring needs fresh authority, not an
+    // accepted UAT restore layout or a connected relation graph.
+    const auto captured=detail::ExplorerGroupBridge::capture(*seal_,sessions());
+    if(!captured){poison("product_start_capture_failed");return false;}
+    current_=*captured;
+    if(!source_->start()){poison("product_event_source_failed");return false;}
+    product_mode_=true;return true;
+}
+std::optional<std::vector<GroupEventReceipt>> ExplorerGroupSession::pump_product_events(
+    std::optional<std::size_t> ctrl_glue_member,
+    const detail::GroupSnapshots* verified_down_baseline) {
+    auto events=drain_product_events();
+    if(!events || !process_product_events(*events,ctrl_glue_member,verified_down_baseline))return std::nullopt;
+    return events;
+}
+std::optional<std::vector<GroupEventReceipt>> ExplorerGroupSession::drain_product_events() {
+    if(!healthy() || !product_running() || product_batch_pending_)return std::nullopt;
+    auto events=source_->drain();
+    if(!source_->healthy()){poison("product_event_stream_failed");return std::nullopt;}
+    if(!events.empty()){
+        product_pending_events_=events;
+        product_batch_pending_=true;
+    }
+    return events;
+}
+bool ExplorerGroupSession::process_product_events(std::span<const GroupEventReceipt> events,
+    std::optional<std::size_t> ctrl_glue_member,
+    const detail::GroupSnapshots* verified_down_baseline) {
+    if(!healthy() || !product_running() || (ctrl_glue_member && *ctrl_glue_member>=3))return false;
+    if(events.empty())return !product_batch_pending_;
+    if(!product_batch_pending_ || !product_receipts_match(product_pending_events_,events)){
+        poison("product_batch_mismatch");return false;
+    }
+    product_pending_events_.clear();product_batch_pending_=false;
+    if(!source_->healthy()){poison("product_event_stream_failed");return false;}
+    return quantum(events,nullptr,ctrl_glue_member,verified_down_baseline);
+}
+std::optional<GroupProductStatus> ExplorerGroupSession::refresh_product_status() {
+    if(!healthy() || !product_running() || product_batch_pending_)return std::nullopt;
+    const auto captured=detail::ExplorerGroupBridge::capture(*seal_,sessions());
+    if(!captured){poison("product_status_capture_failed");return std::nullopt;}
+    GroupProductStatus status{*captured,group_layout_readiness(*captured),source_->facts(),
+                              active_member_.has_value() || plain_member_.has_value(),
+                              active_member_.has_value()};
+    // Refresh the idle baseline after native Resize or ordinary movement.
+    // An active Glue model and unprocessed lifecycle receipts retain their
+    // own expected geometry until the matching END/feedback is processed.
+    if(!status.gesture_active && !source_->lifecycle_pending() &&
+       model_->state()==b::GlueGroupState::GroupReady)current_=*captured;
+    return status;
+}
+bool ExplorerGroupSession::stop_product_monitoring() noexcept {
+    if(GetCurrentThreadId()!=owner_ || !product_mode_)return false;
+    const bool stopped=source_->stop();
+    model_->abort("product_stopped");
+    if(seal_){detail::ExplorerGroupBridge::active(*seal_,sessions(),false);
+              detail::ExplorerGroupBridge::retire(*seal_,sessions());}
+    active_member_.reset();plain_member_.reset();product_mode_=false;
+    product_pending_events_.clear();product_batch_pending_=false;
+    poisoned_=true;reason_=stopped?"product_stopped":"product_unhook_failed";
+    return stopped;
+}
+bool ExplorerGroupSession::product_move_conflict_pending(std::size_t source) const noexcept {
+    return !healthy() || !product_running() || product_batch_pending_ ||
+           source_->magnet_conflict_pending(source);
+}
 bool ExplorerGroupSession::attribute(const GroupEventReceipt& r,const detail::GroupSnapshots& live) {
     if(feedback_.size()>=16384){poison("feedback_capacity");return false;}
     GroupFeedbackRecord record{r.member_index,model_->gesture_generation(),0,r.sequence,"unattributed"};
@@ -227,7 +297,9 @@ bool ExplorerGroupSession::move_batch(const GroupEventReceipt& r,const detail::G
     ++gestures_.back().batches;
     return true;
 }
-bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events,const detail::GroupSnapshots* validated_sample) {
+bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events,
+    const detail::GroupSnapshots* validated_sample,std::optional<std::size_t> product_ctrl_glue_member,
+    const detail::GroupSnapshots* product_down_baseline) {
     if(events.empty())return true;
     if(quanta_.size()>=4096 || receipts_.size()+events.size()>16384){poison("evidence_capacity");return false;}
     const auto owner_qpc=glue_qpc_now();
@@ -245,24 +317,35 @@ bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events,con
         if(r.kind==GroupEventKind::Destroy){poison("member_destroyed");return false;}
         if(r.kind==GroupEventKind::Start) {
             if(active_member_ || plain_member_){poison("concurrent_member_start");return false;}
+            if(product_mode_) {
+                const bool baseline_matches=product_down_baseline &&
+                    product_ctrl_start_baseline_matches(*product_down_baseline,live,r.member_index);
+                if(!baseline_matches || !product_ctrl_glue_eligible(product_ctrl_glue_member,
+                    r.member_index,r.ctrl,group_layout_readiness(*product_down_baseline))) {
+                    plain_member_=r.member_index;continue; // native move/resize, zero follower writes
+                }
+                current_=*product_down_baseline; // DOWN-time translation origin, not drain-time live
+            }
             if(!r.ctrl.available || !r.ctrl.ctrl) {plain_member_=r.member_index;continue;}
             try {
                 if(v::classify_geometry_change(current_[r.member_index].visible_rect,
                     live[r.member_index].visible_rect).kind==v::GeometryChangeKind::ResizeOrMixed ||
                    v::classify_geometry_change(current_[r.member_index].positioning_rect,
                     live[r.member_index].positioning_rect).kind==v::GeometryChangeKind::ResizeOrMixed) {
+                    if(product_mode_) {plain_member_=r.member_index;continue;}
                     poison("resize_or_mixed_before_start_drain");return false;
                 }
             }catch(const std::exception&){poison("start_geometry_overflow");return false;}
-            if(!model_->start(logical_members_[r.member_index],true,r.sequence,geometry(live),{},3)) {
+            const auto& initial=product_mode_?*product_down_baseline:live;
+            if(!model_->start(logical_members_[r.member_index],true,r.sequence,geometry(initial),{},3)) {
                 poison(model_->reason());return false;
             }
             active_member_=r.member_index;start_native_time_=r.native_time;
-            current_=live;
+            current_=initial;
             GroupGestureRecord g;
             g.group=generation();g.gesture=model_->gesture_generation();g.source_member=r.member_index;
             g.start_sequence=r.sequence;g.starts=1;g.callback_ctrl=r.ctrl;g.owner_ctrl=sample_ctrl();
-            g.callback_qpc=r.callback_qpc;g.decision_qpc=glue_qpc_now();g.initial=live;
+            g.callback_qpc=r.callback_qpc;g.decision_qpc=glue_qpc_now();g.initial=initial;
             gestures_.push_back(g);
             detail::ExplorerGroupBridge::active(*seal_,sessions(),true);
         } else if(plain_member_) {

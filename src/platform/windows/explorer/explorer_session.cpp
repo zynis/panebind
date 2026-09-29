@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <climits>
 #include <cstring>
 #include <filesystem>
 #include <limits>
@@ -5710,6 +5711,80 @@ detail::MagnetNativeReceipt detail::ExplorerGroupBridge::apply_magnet(const Expl
     }
     diagnostic.classify();result.postverify=diagnostic;
     result.reason=result.exact?"exact":"magnet_postverify_failed";
+    return result;
+}
+
+detail::MvpNativePlacement detail::ExplorerGroupBridge::apply_mvp_move(
+    const ExplorerGroupSeal& seal, GroupSessions sessions, std::size_t source,
+    const GroupSnapshots& expected, const core::geometry::Rect& target_visible,
+    const core::geometry::Rect& target_positioning,
+    bool (*begin_native)(void*) noexcept, void* context) {
+    MvpNativePlacement result;
+    if (source >= 3 || !begin_native || !context) {
+        result.reason = "invalid_mvp_source_or_gate";
+        return result;
+    }
+    for (std::size_t i = 0; i < 3; ++i) {
+        if (!sessions[i] || !sessions[i]->impl_ ||
+            !group_binding_matches(*sessions[i]->impl_, seal, seal.members()[i]) ||
+            sessions[i]->impl_->live_magnet_authority_generation != seal.generation() ||
+            !sessions[i]->impl_->glue_consent_fast_active) {
+            result.reason = "mvp_consent_or_bound_authority_missing";
+            return result;
+        }
+    }
+    const auto fresh = capture(seal, sessions);
+    if (!fresh) {
+        result.reason = "mvp_fresh_capture_failed";
+        return result;
+    }
+    for (std::size_t i = 0; i < 3; ++i) {
+        if (!group_same_context((*fresh)[i], expected[i]) ||
+            (*fresh)[i].positioning_rect != expected[i].positioning_rect ||
+            (*fresh)[i].visible_rect != expected[i].visible_rect) {
+            result.reason = "mvp_member_context_or_geometry_changed";
+            return result;
+        }
+    }
+    const auto& before = (*fresh)[source];
+    if (target_visible.size() != before.visible_rect.size() ||
+        target_positioning.size() != before.positioning_rect.size() ||
+        !rect_is_contained(target_visible, before.monitor_work_area)) {
+        result.reason = "mvp_not_bounded_move_only";
+        return result;
+    }
+    const auto prepared = operations::prepare_visible_rect_adjustment(
+        before.positioning_rect, before.visible_rect, target_visible);
+    if (!prepared.positioning || *prepared.positioning != target_positioning ||
+        target_positioning.left() < INT_MIN || target_positioning.left() > INT_MAX ||
+        target_positioning.top() < INT_MIN || target_positioning.top() > INT_MAX) {
+        result.reason = "mvp_positioning_bridge_mismatch";
+        return result;
+    }
+    GUITHREADINFO gui{sizeof(gui)};
+    const auto& binding = seal.members()[source];
+    if (GetForegroundWindow() != binding.window ||
+        (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0 ||
+        !GetGUIThreadInfo(binding.thread_id, &gui) || gui.hwndCapture ||
+        gui.hwndMoveSize || gui.hwndMenuOwner ||
+        (gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
+                      GUI_POPUPMENUMODE | GUI_INMOVESIZE)) ||
+        !receipts_healthy(seal, sessions)) {
+        result.reason = "mvp_native_context_lost";
+        return result;
+    }
+    SetLastError(ERROR_SUCCESS);
+    if (!begin_native(context)) {
+        result.reason = "mvp_attempt_revoked";
+        return result;
+    }
+    result.attempted = true;
+    result.succeeded = SetWindowPos(binding.window, nullptr,
+        static_cast<int>(target_positioning.left()),
+        static_cast<int>(target_positioning.top()), 0, 0,
+        SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE) != FALSE;
+    result.error = result.succeeded ? 0 : GetLastError();
+    result.reason = result.succeeded ? "native_returned" : "mvp_native_apply_failed";
     return result;
 }
 

@@ -11,6 +11,7 @@
 namespace panebind::platform::windows::explorer {
 class ExplorerGroupSession;
 class ExplorerLiveMagnetSession;
+class ExplorerMvpSession;
 namespace detail {
 class ExplorerGroupBridge;
 struct GroupMemberBinding final {
@@ -67,6 +68,11 @@ struct MagnetNativeReceipt final {
     std::int64_t native_start_qpc{},native_return_qpc{},postverify_qpc{};
     std::string_view reason{"preflight_failed"};
 };
+struct MvpNativePlacement final {
+    bool attempted{}, succeeded{};
+    DWORD error{};
+    std::string_view reason{"preflight_failed"};
+};
 // Private capability bridge. No public HWND-admission or placement entry point.
 class ExplorerGroupBridge final {
 private:
@@ -85,8 +91,17 @@ private:
     static MagnetNativeReceipt apply_magnet(const ExplorerGroupSeal&,GroupSessions,
         const GroupSnapshots&,const core::behavior::MagnetCorrection&,
         bool (*register_pending)(void*) noexcept,void* context);
+    // Source-only post-END Move. The caller owns the event/Raw handoff gate;
+    // this private bridge revalidates the three sealed consented frames and
+    // performs at most one native placement after its final attempt callback.
+    static MvpNativePlacement apply_mvp_move(const ExplorerGroupSeal&,GroupSessions,
+        std::size_t source,const GroupSnapshots& expected,
+        const core::geometry::Rect& target_visible,
+        const core::geometry::Rect& target_positioning,
+        bool (*begin_native)(void*) noexcept,void* context);
     friend class ::panebind::platform::windows::explorer::ExplorerGroupSession;
     friend class ::panebind::platform::windows::explorer::ExplorerLiveMagnetSession;
+    friend class ::panebind::platform::windows::explorer::ExplorerMvpSession;
 };
 } // namespace detail
 } // namespace panebind::platform::windows::explorer

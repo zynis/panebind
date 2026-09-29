@@ -59,13 +59,23 @@ target_link_libraries(
 )
 panebind_enable_warnings(panebind_windows_operation_geometry)
 
-# Shared one-gesture source writer. The owned probe supplies an exact owned
-# capability today; a future Explorer adapter must supply its own authority.
+# Shared one-gesture source writer. Owned and consent-bound Explorer adapters
+# supply their separate exact capabilities; this library selects no HWND.
 add_library(panebind_windows_live_move_writer STATIC
     operations/live_move_writer.cpp
     operations/move_frame_continuity.cpp)
 target_link_libraries(panebind_windows_live_move_writer PUBLIC panebind_core)
 panebind_enable_warnings(panebind_windows_live_move_writer)
+
+# Gesture-scoped input resource only. It observes Raw mouse packets and owns
+# its reversible shield on an independent message thread; no window placement.
+add_library(panebind_windows_gesture_input_shield STATIC
+    operations/gesture_input_shield.cpp)
+target_link_libraries(panebind_windows_gesture_input_shield
+    PUBLIC panebind_core PRIVATE user32 dwmapi wtsapi32)
+target_compile_definitions(panebind_windows_gesture_input_shield PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind_windows_gesture_input_shield)
 
 add_library(
     panebind_windows_owned_operations
@@ -196,6 +206,8 @@ add_library(
     explorer/explorer_glue_event_source.cpp
     explorer/explorer_group_event_source.cpp
     explorer/explorer_group_session.cpp
+    explorer/explorer_mvp_attribution.cpp
+    explorer/explorer_mvp_session.cpp
     explorer/explorer_live_magnet_session.cpp
     explorer/explorer_glue_session.cpp
     explorer/explorer_shell_inventory.cpp
@@ -207,6 +219,8 @@ target_link_libraries(
     PUBLIC panebind_core
     PRIVATE
     panebind_windows_operation_geometry
+    panebind_windows_live_move_writer
+    panebind_windows_gesture_input_shield
     advapi32
     bcrypt
     dwmapi
@@ -216,6 +230,7 @@ target_link_libraries(
     shell32
     shlwapi
     user32
+    wtsapi32
 )
 target_compile_definitions(
     panebind_windows_explorer
@@ -253,6 +268,25 @@ if(MSVC)
     target_link_options(panebind-explorer-live-magnet-harness PRIVATE /MANIFEST:NO)
 endif()
 panebind_enable_warnings(panebind-explorer-live-magnet-harness)
+
+add_library(panebind_windows_sta_console STATIC console/sta_console_line_reader.cpp)
+target_link_libraries(panebind_windows_sta_console PUBLIC panebind_core PRIVATE user32)
+panebind_enable_warnings(panebind_windows_sta_console)
+
+# Guest-guarded MVP1 product candidate. The ordinary host exits before any
+# GUI/Raw resource; this target is not a default/interactive CTest.
+add_executable(panebind-explorer-mvp1
+    ../../app/explorer_mvp1_main.cpp text_encoding.cpp observer.rc observer.manifest)
+target_link_libraries(panebind-explorer-mvp1 PRIVATE
+    panebind_windows_explorer panebind_windows_sta_console
+    ole32 user32 wtsapi32 advapi32)
+target_compile_definitions(panebind-explorer-mvp1 PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
+    PANEBIND_BUILD_SHA="${panebind_build_sha}")
+if(MSVC)
+    target_link_options(panebind-explorer-mvp1 PRIVATE /MANIFEST:NO)
+endif()
+panebind_enable_warnings(panebind-explorer-mvp1)
 
 if(BUILD_TESTING)
     # Explicit read-only MVP1 input-attribution diagnostic. It never cancels
@@ -358,6 +392,15 @@ if(BUILD_TESTING)
     target_compile_definitions(panebind-group-capture-tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
     panebind_enable_warnings(panebind-group-capture-tests)
     add_test(NAME explorer-group-mutable-capture COMMAND panebind-group-capture-tests)
+    add_executable(panebind-explorer-mvp-attribution-tests explorer/explorer_mvp_attribution_tests.cpp)
+    target_link_libraries(panebind-explorer-mvp-attribution-tests PRIVATE panebind_windows_explorer)
+    panebind_enable_warnings(panebind-explorer-mvp-attribution-tests)
+    add_test(NAME explorer-mvp-attribution COMMAND panebind-explorer-mvp-attribution-tests)
+    add_executable(panebind-explorer-mvp-flow-tests explorer/explorer_mvp_flow_tests.cpp)
+    target_link_libraries(panebind-explorer-mvp-flow-tests PRIVATE
+        panebind_windows_explorer panebind_windows_live_move_writer)
+    panebind_enable_warnings(panebind-explorer-mvp-flow-tests)
+    add_test(NAME explorer-mvp-flow COMMAND panebind-explorer-mvp-flow-tests)
 endif()
 
 add_executable(
@@ -415,9 +458,6 @@ target_compile_definitions(
 panebind_enable_warnings(panebind-explorer-glue-harness)
 
 add_executable(panebind-explorer-group-harness ../../app/explorer_group_harness_main.cpp text_encoding.cpp observer.rc observer.manifest)
-add_library(panebind_windows_sta_console STATIC console/sta_console_line_reader.cpp)
-target_link_libraries(panebind_windows_sta_console PUBLIC panebind_core PRIVATE user32)
-panebind_enable_warnings(panebind_windows_sta_console)
 target_link_libraries(panebind-explorer-group-harness PRIVATE panebind_windows_explorer panebind_windows_sta_console ole32)
 target_compile_definitions(panebind-explorer-group-harness PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
 if(MSVC)
@@ -674,7 +714,7 @@ if(BUILD_TESTING)
         test-foreground-bootstrap-model windows-magnet-postverify
         test-handoff-preflight-diagnostic test-product-input-isolation
         windows-rect-adjustment windows-live-move-writer windows-move-frame-continuity explorer-browser-sink
-        explorer-group-mutable-capture windows-explorer-glue-profile-unit
+        explorer-group-mutable-capture explorer-mvp-attribution explorer-mvp-flow windows-explorer-glue-profile-unit
         windows-text-encoding windows-owned-operations-unit
         windows-companion-unit windows-explorer-unit
         windows-explorer-glue-session-unit explorer-group-layout
