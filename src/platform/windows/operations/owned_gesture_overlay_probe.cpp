@@ -7,6 +7,7 @@
 #include <wtsapi32.h>
 #include "core/behavior/move_magnet_session.h"
 #include "platform/windows/operations/live_move_writer.h"
+#include "platform/windows/operations/move_frame_continuity.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -75,6 +76,7 @@ struct State {
     std::uint32_t control_baseline{}; // Driver only, frozen before cancel.
     std::atomic<std::uint32_t> raw_downs{0}, raw_ups{0}, overlay_ups{0};
     std::atomic<bool> core_raw_up_accepted{false}, normal_removal_triggered{false};
+    std::atomic<bool> matching_raw_up_observed{false}, non_up_escape{false};
     std::atomic<std::uint32_t> writer_offers{0}, writer_receipts{0}, writer_native_attempts{0};
     std::atomic<std::uint32_t> writer_exact{0}, writer_failures{0}, writer_snapped_offers{0};
     std::atomic<bool> writer_snapped_exact{false};
@@ -105,6 +107,7 @@ struct State {
     std::uintptr_t run_nonce{};
 } state;
 behavior::MoveMagnetSession move_session;
+operations::MoveFrameContinuity frame_continuity;
 std::unique_ptr<operations::LiveMoveWriter> live_writer;
 thread_local POINT received_msg_point{};
 thread_local DWORD received_msg_time{};
@@ -243,54 +246,70 @@ struct OwnedWriteFacts {
     bool actual_stable{};
     bool isolation_hits{};
 };
-OwnedWriteFacts owned_write_facts(POINT cursor) noexcept {
+bool owned_stable_context() noexcept {
     const HWND source = state.source.load(), control = state.control.load();
-    const HWND overlay = state.overlay.load();
     const bool source_ok = same_source(source), control_ok = same_control(control);
     GUITHREADINFO gui{sizeof(gui)};
     const bool gui_ok = source_ok && GetGUIThreadInfo(state.source_tid, &gui);
     const bool clean_native = gui_ok && !gui.hwndCapture && !gui.hwndMoveSize &&
         !gui.hwndMenuOwner && !(gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
                                             GUI_POPUPMENUMODE | GUI_INMOVESIZE));
+    if (!source_ok || !control_ok || !clean_native ||
+        !interactive_default_desktop() || GetForegroundWindow() != source ||
+        !state.initial_source || !state.initial_control) return false;
+    const auto source_now = capture_frame(source);
+    const auto control_now = capture_frame(control);
+    MONITORINFO monitor_info{sizeof(monitor_info)};
+    const HMONITOR monitor = MonitorFromWindow(source, MONITOR_DEFAULTTONULL);
+    return source_now && control_now &&
+        source_now->visible.size() == state.initial_source->visible.size() &&
+        source_now->positioning.size() == state.initial_source->positioning.size() &&
+        control_now->positioning == state.initial_control->positioning &&
+        control_now->visible == state.initial_control->visible &&
+        monitor && monitor == state.initial_monitor &&
+        GetMonitorInfoW(monitor, &monitor_info) &&
+        EqualRect(&monitor_info.rcWork, &state.initial_work_area) &&
+        GetDpiForWindow(source) == state.initial_dpi &&
+        IsWindowVisible(source) && !IsIconic(source) && !IsZoomed(source) &&
+        IsWindowVisible(control) && !IsIconic(control) && !IsZoomed(control);
+}
+OwnedWriteFacts owned_write_facts(POINT cursor) noexcept {
+    const HWND overlay = state.overlay.load();
+    bool stable = owned_stable_context();
+    if (stable) {
+        const auto source_now = capture_frame(state.source.load());
+        const auto observed = source_now ? frame_continuity.observe(
+            static_cast<std::uint64_t>(state.run_nonce), *source_now) :
+            operations::MoveFrameObservation::NotArmed;
+        stable = observed == operations::MoveFrameObservation::Expected ||
+            observed == operations::MoveFrameObservation::OwnInFlight;
+        if (!stable)
+            log("owned_source_continuity_rejected", ",\"observation\":" +
+                std::to_string(static_cast<int>(observed)) +
+                ",\"source_frame_present\":" + json_bool(source_now.has_value()));
+    }
     const bool active = state.writer_armed.load(std::memory_order_acquire) &&
         !state.retired.load(std::memory_order_acquire) &&
         WaitForSingleObject(state.stop, 0) != WAIT_OBJECT_0;
-    const bool authority = active && source_ok && control_ok &&
-        interactive_default_desktop() && GetForegroundWindow() == source &&
+    const bool authority = active && stable &&
         left_down() && input_clean() && state.tagged_native_down &&
         state.candidate_raw_down != 0 && state.native_starts == 1 &&
         state.native_ends == 1 && state.cancel_attempts == 1 &&
         state.overlay_ready_qpc != 0 &&
-        state.overlay_ready_qpc < state.cancel_qpc && clean_native;
+        state.overlay_ready_qpc < state.cancel_qpc;
     const bool isolation = same_overlay(overlay) && IsWindowVisible(overlay) &&
         root_at(cursor) == overlay && root_at(state.control_point) == overlay;
-    bool stable = false;
-    if (source_ok && control_ok && state.initial_source && state.initial_control) {
-        const auto source_now = capture_frame(source);
-        const auto control_now = capture_frame(control);
-        MONITORINFO monitor_info{sizeof(monitor_info)};
-        const HMONITOR monitor = MonitorFromWindow(source, MONITOR_DEFAULTTONULL);
-        stable = source_now && control_now &&
-            source_now->visible.size() == state.initial_source->visible.size() &&
-            source_now->positioning.size() == state.initial_source->positioning.size() &&
-            control_now->positioning == state.initial_control->positioning &&
-            control_now->visible == state.initial_control->visible &&
-            monitor && monitor == state.initial_monitor &&
-            GetMonitorInfoW(monitor, &monitor_info) &&
-            EqualRect(&monitor_info.rcWork, &state.initial_work_area) &&
-             GetDpiForWindow(source) == state.initial_dpi &&
-             !IsIconic(source) && !IsZoomed(source) &&
-             IsWindowVisible(control) && !IsIconic(control) && !IsZoomed(control);
-    }
     return {authority, stable, isolation};
 }
 void retire_live_move(behavior::MoveHandoffEscapeReason reason,
-                      const char* source) noexcept {
+                       const char* source) noexcept {
+    state.non_up_escape.store(true, std::memory_order_release);
     state.writer_armed.store(false, std::memory_order_release);
     state.retired = true;
     operations::MoveRetireFacts facts{};
     if (live_writer)
         facts = live_writer->retire(static_cast<std::uint64_t>(state.run_nonce));
+    frame_continuity.retire(static_cast<std::uint64_t>(state.run_nonce));
     if (state.run_nonce)
         (void)move_session.escape(static_cast<std::uint64_t>(state.run_nonce), reason);
     log("owned_move_retire", ",\"source\":\"" + std::string(source) +
@@ -321,15 +340,21 @@ operations::MoveWriteCallbacks owned_move_callbacks() {
         [] { return capture_owned_source(); },
         [](const operations::MoveFrameGeometry& before) {
             POINT cursor{};
-            if (!GetCursorPos(&cursor)) return false;
+            if (!GetCursorPos(&cursor))
+                return operations::MovePreflightVerdict::ContextInvalid;
             const auto facts = owned_write_facts(cursor);
             const auto source_now = capture_owned_source();
-            return facts.fresh_authority && facts.actual_stable && facts.isolation_hits &&
-                source_now && same_frame(*source_now, before);
+            return operations::classify_move_preflight({
+                facts.actual_stable && source_now &&
+                    same_frame(*source_now, before) && !state.non_up_escape,
+                facts.fresh_authority && facts.isolation_hits &&
+                    !move_session.retired(static_cast<std::uint64_t>(state.run_nonce)),
+                state.matching_raw_up_observed});
         },
         [generation](const operations::MoveFrameGeometry& before,
                      const geometry::Rect& target,
-                     const geometry::Rect& expected_positioning) {
+                     const geometry::Rect& expected_positioning,
+                     std::uint64_t quantum) {
             POINT cursor{};
             if (!owned_target_in_work_area(target))
                 return operations::MoveNativePlacement{};
@@ -362,9 +387,14 @@ operations::MoveWriteCallbacks owned_move_callbacks() {
             // The shared writer has already bridged visible -> positioning
             // once. This owned capability callback issues exactly one native
             // Move-only placement; it never grants an arbitrary HWND route.
-            SetLastError(0);
-            if (!live_writer->begin_native_attempt(generation))
+            if (!frame_continuity.begin_attempt(generation, quantum, before,
+                    {expected_positioning, target}))
                 return operations::MoveNativePlacement{};
+            SetLastError(0);
+            if (!live_writer->begin_native_attempt(generation)) {
+                (void)frame_continuity.abort_unissued(generation, quantum);
+                return operations::MoveNativePlacement{};
+            }
             const bool applied = SetWindowPos(source, nullptr,
                 static_cast<int>(expected_positioning.left()),
                 static_cast<int>(expected_positioning.top()), 0, 0,
@@ -378,12 +408,21 @@ operations::MoveWriteCallbacks owned_move_callbacks() {
         },
         [](const operations::MoveFrameGeometry&,
            const operations::MoveFrameGeometry& after) {
-            POINT cursor{};
-            if (!GetCursorPos(&cursor)) return false;
-            const auto facts = owned_write_facts(cursor);
             const auto source_now = capture_owned_source();
-            return facts.fresh_authority && facts.actual_stable && facts.isolation_hits &&
-                source_now && same_frame(*source_now, after);
+            const bool static_context = owned_stable_context();
+            const auto observation = source_now && static_context ?
+                frame_continuity.observe(static_cast<std::uint64_t>(state.run_nonce),
+                                         *source_now) :
+                operations::MoveFrameObservation::NotArmed;
+            const bool continuous = observation == operations::MoveFrameObservation::Expected ||
+                observation == operations::MoveFrameObservation::OwnInFlight;
+            // Completion does not need LEFT/overlay/writer authority. An UP
+            // may have already retired future writes, while this already
+            // issued placement still needs exact identity/context proof.
+            return operations::move_post_context_valid({
+                same_source(state.source.load()), same_control(state.control.load()),
+                static_context && continuous,
+                source_now && same_frame(*source_now, after)});
         }
     };
 }
@@ -392,11 +431,19 @@ void writer_owner() noexcept {
         for (;;) {
             const auto receipt = live_writer->wait_and_execute();
             if (!receipt) break;
+            const auto generation = static_cast<std::uint64_t>(state.run_nonce);
+            const bool continuity_committed = receipt->native_attempted &&
+                frame_continuity.finish_attempt(generation, receipt->quantum,
+                    receipt->native_attempted, receipt->exact, receipt->after);
+            const bool continuity_aborted = !receipt->native_attempted &&
+                frame_continuity.abort_unissued(generation, receipt->quantum);
+            const bool verified_exact = receipt->exact &&
+                (!receipt->native_attempted || continuity_committed);
             ++state.writer_receipts;
             if (receipt->native_attempted) ++state.writer_native_attempts;
-            if (receipt->exact) ++state.writer_exact;
+            if (verified_exact) ++state.writer_exact;
             const bool snap_receipt = receipt->generation == state.run_nonce &&
-                receipt->snapped && receipt->exact && receipt->native_attempted &&
+                receipt->snapped && verified_exact && receipt->native_attempted &&
                 receipt->post_context_exact && receipt->after &&
                 receipt->after->visible == receipt->target_visible;
             if (snap_receipt) {
@@ -407,14 +454,14 @@ void writer_owner() noexcept {
                 state.writer_snapped_exact_quantum = receipt->quantum;
                 state.writer_snapped_exact = true;
             }
-            const bool benign_no_write = receipt->reason == "superseded_before_native" ||
-                receipt->reason == "retired_before_native";
+            const bool receipt_failed = operations::move_write_receipt_failed(
+                *receipt, continuity_committed);
             const behavior::MoveWritePlan plan{receipt->generation, receipt->quantum,
                 {}, receipt->target_visible, false, magnet::MotionState::BelowThreshold,
                 receipt->reason};
             behavior::MoveWriteCompletion completion{};
             if (receipt->exact || receipt->native_attempted)
-                completion = move_session.write_result(plan, receipt->exact,
+                completion = move_session.write_result(plan, verified_exact,
                     receipt->after ? receipt->after->visible : geometry::Rect{});
             log("owned_move_write_receipt", ",\"generation\":" +
                 std::to_string(receipt->generation) + ",\"quantum\":" +
@@ -432,10 +479,15 @@ void writer_owner() noexcept {
                 ",\"retired_during_dispatch\":" +
                 json_bool(receipt->retired_during_dispatch) + ",\"completion_recognized\":" +
                 json_bool(completion.recognized) + ",\"completion_after_retirement\":" +
-                json_bool(completion.after_retirement) + ",\"reason\":\"" +
+                json_bool(completion.after_retirement) +
+                ",\"continuity_committed\":" + json_bool(continuity_committed) +
+                ",\"continuity_aborted\":" + json_bool(continuity_aborted) +
+                ",\"verified_exact\":" + json_bool(verified_exact) +
+                ",\"receipt_failed\":" + json_bool(receipt_failed) +
+                ",\"reason\":\"" +
                 std::string(receipt->reason) + "\"");
             SetEvent(state.writer_receipt);
-            if (!receipt->exact && !benign_no_write) {
+            if (receipt_failed) {
                 ++state.writer_failures;
                 retire_live_move(behavior::MoveHandoffEscapeReason::NativeFailure,
                                  "writer_failure");
@@ -690,18 +742,22 @@ LRESULT CALLBACK receiver_procedure(HWND window, UINT message, WPARAM wparam, LP
                     if (flags & RI_MOUSE_LEFT_BUTTON_UP) {
                         std::lock_guard cancel_lock{state.cancel_mutex};
                         ++state.raw_ups;
+                        const bool associated = state.candidate_raw_down != 0 &&
+                            packet > state.candidate_raw_down && state.raw_ups == 1;
+                        if (associated) state.candidate_raw_up = packet;
+                        state.matching_raw_up_observed.store(associated,
+                            std::memory_order_release);
                         state.retired = true;
                         state.writer_armed.store(false, std::memory_order_release);
                         operations::MoveRetireFacts retired_writer{};
                         if (live_writer) retired_writer = live_writer->retire(
                             static_cast<std::uint64_t>(state.run_nonce));
-                        const bool associated = state.candidate_raw_down != 0 &&
-                            packet > state.candidate_raw_down &&
-                            state.raw_ups == 1;
-                        if (associated) state.candidate_raw_up = packet;
+                        frame_continuity.retire(
+                            static_cast<std::uint64_t>(state.run_nonce));
                         const bool core_up = move_session.raw_up_observed(
                             static_cast<std::uint64_t>(state.run_nonce), associated);
                         state.core_raw_up_accepted = core_up;
+                        if (!core_up) state.matching_raw_up_observed = false;
                         log("raw_left_up", ",\"button_flags\":" + std::to_string(flags) +
                             ",\"packet\":" + std::to_string(packet) +
                             ",\"associated_with_candidate_down\":" + json_bool(associated) +
@@ -1494,6 +1550,17 @@ int drive() noexcept {
                          "native_end_barrier_failed");
         return 2;
     }
+    const auto handoff_frame = capture_owned_source();
+    if (!handoff_frame || !owned_stable_context() ||
+        !frame_continuity.arm(generation, *handoff_frame)) {
+        retire_live_move(behavior::MoveHandoffEscapeReason::ContextLost,
+                         "handoff_geometry_unavailable");
+        SetEvent(state.stop);
+        return 2;
+    }
+    log("owned_move_handoff_geometry", ",\"positioning\":" +
+        rect(handoff_frame->positioning) + ",\"visible\":" +
+        rect(handoff_frame->visible));
     state.writer_armed.store(true, std::memory_order_release);
     log("owned_move_writer_armed", ",\"generation\":" +
         std::to_string(generation) + ",\"native_end_count\":" +

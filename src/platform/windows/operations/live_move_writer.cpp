@@ -22,6 +22,31 @@ bool same_positive_size(const core::geometry::Rect& a,
 
 } // namespace
 
+MovePreflightVerdict classify_move_preflight(
+    const MovePreflightFacts& facts) noexcept {
+    if (!facts.context_valid) return MovePreflightVerdict::ContextInvalid;
+    if (facts.matching_raw_up) return MovePreflightVerdict::NormalUpRevoked;
+    return facts.gesture_active ? MovePreflightVerdict::Allowed
+                                : MovePreflightVerdict::ContextInvalid;
+}
+
+bool move_post_context_valid(const MovePostContextFacts& facts) noexcept {
+    return facts.source_identity_valid && facts.participant_identity_valid &&
+        facts.geometry_context_valid && facts.captured_after_matches;
+}
+
+bool move_write_receipt_failed(const MoveWriteReceipt& receipt,
+                               bool continuity_committed) noexcept {
+    if (receipt.exact && (!receipt.native_attempted || continuity_committed))
+        return false;
+    if (!receipt.native_attempted &&
+        (receipt.reason == "superseded_before_native" ||
+         receipt.reason == "retired_before_native" ||
+         receipt.reason == "normal_up_before_native"))
+        return false;
+    return true;
+}
+
 LiveMoveWriter::LiveMoveWriter(std::uint64_t generation,
                                MoveWriteCallbacks callbacks)
     : generation_(generation), callbacks_(std::move(callbacks)),
@@ -152,7 +177,13 @@ MoveWriteReceipt LiveMoveWriter::execute(MoveWriteRequest request) {
             return receipt;
         }
         receipt.expected_positioning = *prepared.positioning;
-        if (!callbacks_.fresh_authority(*receipt.before)) {
+        const auto preflight = callbacks_.fresh_authority(*receipt.before);
+        if (preflight == MovePreflightVerdict::NormalUpRevoked) {
+            (void)retire(request.generation);
+            receipt.reason = "normal_up_before_native";
+            return receipt;
+        }
+        if (preflight != MovePreflightVerdict::Allowed) {
             fail_closed("fresh_authority_rejected");
             return receipt;
         }
@@ -195,7 +226,8 @@ MoveWriteReceipt LiveMoveWriter::execute(MoveWriteRequest request) {
         try {
             const auto native = callbacks_.place(*receipt.before,
                                                   request.target_visible,
-                                                  *receipt.expected_positioning);
+                                                  *receipt.expected_positioning,
+                                                  request.quantum);
             receipt.native_attempted = native.attempted;
             receipt.native_succeeded = native.succeeded;
             receipt.native_outcome_known = native.outcome_known;

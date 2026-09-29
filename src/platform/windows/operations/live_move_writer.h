@@ -37,15 +37,48 @@ enum class MoveAttemptStartOrder {
     RejectedAfterRevoke,
 };
 
+// The adapter evaluates these from the real bound source/participants. A
+// matching Raw UP revokes *new* calls, but it is benign only while the stable
+// identity/geometry context is still valid. ContextInvalid always wins.
+struct MovePreflightFacts final {
+    bool context_valid{};
+    bool gesture_active{};
+    bool matching_raw_up{};
+};
+
+enum class MovePreflightVerdict {
+    Allowed,
+    NormalUpRevoked,
+    ContextInvalid,
+};
+
+[[nodiscard]] MovePreflightVerdict classify_move_preflight(
+    const MovePreflightFacts& facts) noexcept;
+
+// Post-verification concerns the already-issued native call. None of these
+// facts is the current button state, overlay presence, or writer armed bit.
+struct MovePostContextFacts final {
+    bool source_identity_valid{};
+    bool participant_identity_valid{};
+    bool geometry_context_valid{};
+    bool captured_after_matches{};
+};
+
+[[nodiscard]] bool move_post_context_valid(
+    const MovePostContextFacts& facts) noexcept;
+
 struct MoveWriteCallbacks final {
     // Each callback runs only on the dedicated writer thread. The adapter must
     // own and revalidate its existing exact capability, never accept an
     // arbitrary HWND supplied through this writer.
     std::function<std::optional<MoveFrameGeometry>()> capture;
-    std::function<bool(const MoveFrameGeometry&)> fresh_authority;
+    // context_valid is independently checked even when a matching Raw UP
+    // already retired the gesture. A missing/foreign UP is not normal revoke.
+    std::function<MovePreflightVerdict(const MoveFrameGeometry&)> fresh_authority;
     std::function<MoveNativePlacement(const MoveFrameGeometry& before,
                                       const core::geometry::Rect& target_visible,
-                                      const core::geometry::Rect& expected_positioning)> place;
+                                      const core::geometry::Rect& expected_positioning,
+                                      std::uint64_t quantum)> place;
     // Read-only exact identity/context check after native return and capture.
     // The adapter checks all relevant capability, monitor/DPI, and other
     // participating-window facts; rectangle equality alone is not authority.
@@ -74,6 +107,12 @@ struct MoveWriteReceipt final {
     std::optional<core::geometry::Rect> expected_positioning;
     std::string_view reason{"none"};
 };
+
+// The owned adapter uses this exact decision for its failure counter. A
+// normally revoked, unissued request is not a placement failure; an issued
+// call or a real context failure cannot be hidden by a later Raw UP.
+[[nodiscard]] bool move_write_receipt_failed(
+    const MoveWriteReceipt& receipt, bool continuity_committed) noexcept;
 
 struct MoveRetireFacts final {
     bool retired_now{};

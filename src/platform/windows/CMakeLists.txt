@@ -61,7 +61,9 @@ panebind_enable_warnings(panebind_windows_operation_geometry)
 
 # Shared one-gesture source writer. The owned probe supplies an exact owned
 # capability today; a future Explorer adapter must supply its own authority.
-add_library(panebind_windows_live_move_writer STATIC operations/live_move_writer.cpp)
+add_library(panebind_windows_live_move_writer STATIC
+    operations/live_move_writer.cpp
+    operations/move_frame_continuity.cpp)
 target_link_libraries(panebind_windows_live_move_writer PUBLIC panebind_core)
 panebind_enable_warnings(panebind_windows_live_move_writer)
 
@@ -290,6 +292,10 @@ if(BUILD_TESTING)
     target_link_libraries(panebind-live-move-writer-tests PRIVATE panebind_windows_live_move_writer)
     panebind_enable_warnings(panebind-live-move-writer-tests)
     add_test(NAME windows-live-move-writer COMMAND panebind-live-move-writer-tests)
+    add_executable(panebind-move-frame-continuity-tests operations/move_frame_continuity_tests.cpp)
+    target_link_libraries(panebind-move-frame-continuity-tests PRIVATE panebind_windows_live_move_writer)
+    panebind_enable_warnings(panebind-move-frame-continuity-tests)
+    add_test(NAME windows-move-frame-continuity COMMAND panebind-move-frame-continuity-tests)
     add_executable(panebind-test-foreground-model-tests operations/test_foreground_bootstrap_model_tests.cpp)
     target_link_libraries(panebind-test-foreground-model-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-test-foreground-model-tests)
@@ -667,7 +673,7 @@ if(BUILD_TESTING)
     set_tests_properties(
         test-foreground-bootstrap-model windows-magnet-postverify
         test-handoff-preflight-diagnostic test-product-input-isolation
-        windows-rect-adjustment windows-live-move-writer explorer-browser-sink
+        windows-rect-adjustment windows-live-move-writer windows-move-frame-continuity explorer-browser-sink
         explorer-group-mutable-capture windows-explorer-glue-profile-unit
         windows-text-encoding windows-owned-operations-unit
         windows-companion-unit windows-explorer-unit
