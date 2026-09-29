@@ -39,20 +39,31 @@ bool MoveFrameContinuity::arm(std::uint64_t generation,
     if (generation == 0 || generation_ != 0 || !valid_frame(handoff_actual))
         return false;
     generation_ = generation;
+    version_ = 1;
     expected_ = handoff_actual;
     return true;
 }
 
+std::uint64_t MoveFrameContinuity::snapshot_version(
+    std::uint64_t generation) const {
+    std::lock_guard lock{mutex_};
+    return expected_ && generation == generation_ ? version_ : 0;
+}
+
 MoveFrameObservation MoveFrameContinuity::observe(
-    std::uint64_t generation, const MoveFrameGeometry& actual) {
+    std::uint64_t generation, const MoveFrameGeometry& actual,
+    std::uint64_t captured_version) {
     std::lock_guard lock{mutex_};
     if (!expected_ || generation != generation_)
         return MoveFrameObservation::NotArmed;
     if (invalid_) return MoveFrameObservation::ExternalChange;
+    if (captured_version == 0 || captured_version != version_)
+        return MoveFrameObservation::Stale;
     if (same_frame(actual, *expected_)) return MoveFrameObservation::Expected;
     if (in_flight_ && own_in_flight_frame(actual, *expected_, in_flight_->target))
         return MoveFrameObservation::OwnInFlight;
     invalid_ = true;
+    ++version_;
     return MoveFrameObservation::ExternalChange;
 }
 
@@ -65,14 +76,17 @@ bool MoveFrameContinuity::begin_attempt(
         return false;
     if (!same_frame(before, *expected_)) {
         invalid_ = true;
+        ++version_;
         return false;
     }
     if (!valid_frame(target) || !same_sizes(target, *expected_)) {
         invalid_ = true;
+        ++version_;
         return false;
     }
     in_flight_ = InFlight{quantum, target};
     last_quantum_ = quantum;
+    ++version_;
     return true;
 }
 
@@ -83,6 +97,7 @@ bool MoveFrameContinuity::abort_unissued(std::uint64_t generation,
         in_flight_->quantum != quantum)
         return false;
     in_flight_.reset();
+    ++version_;
     return true;
 }
 
@@ -95,6 +110,7 @@ bool MoveFrameContinuity::finish_attempt(
         return false;
     if (!native_attempted) {
         in_flight_.reset();
+        ++version_;
         return false;
     }
     const bool commit = !invalid_ && exact_verified && after &&
@@ -102,6 +118,7 @@ bool MoveFrameContinuity::finish_attempt(
     if (commit) expected_ = *after;
     else invalid_ = true;
     in_flight_.reset();
+    ++version_;
     return commit;
 }
 

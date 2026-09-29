@@ -1,10 +1,20 @@
 #include "platform/windows/operations/move_frame_continuity.h"
+#include "core/behavior/move_magnet_session.h"
 
 #include <iostream>
 #include <optional>
 
 namespace o = panebind::platform::windows::operations;
 using panebind::core::geometry::Rect;
+
+namespace {
+o::MoveFrameObservation observe_now(o::MoveFrameContinuity& continuity,
+                                    std::uint64_t generation,
+                                    const o::MoveFrameGeometry& actual) {
+    const auto version = continuity.snapshot_version(generation);
+    return continuity.observe(generation, actual, version);
+}
+}
 
 int main() {
     int checks = 0;
@@ -30,13 +40,13 @@ int main() {
         o::MoveFrameContinuity continuity;
         check(continuity.arm(7, initial));
         check(continuity.begin_attempt(7, 1, initial, first));
-        check(continuity.observe(7, {first.positioning, initial.visible}) ==
+        check(observe_now(continuity, 7, {first.positioning, initial.visible}) ==
               o::MoveFrameObservation::OwnInFlight);
-        check(continuity.observe(7, {initial.positioning, first.visible}) ==
+        check(observe_now(continuity, 7, {initial.positioning, first.visible}) ==
               o::MoveFrameObservation::OwnInFlight);
         check(continuity.finish_attempt(7, 1, true, true, first));
-        check(continuity.observe(7, first) == o::MoveFrameObservation::Expected);
-        check(continuity.observe(7, external) ==
+        check(observe_now(continuity, 7, first) == o::MoveFrameObservation::Expected);
+        check(observe_now(continuity, 7, external) ==
               o::MoveFrameObservation::ExternalChange);
         check(!continuity.begin_attempt(7, 2, external, second));
         check(!continuity.begin_attempt(7, 2, first, second));
@@ -57,16 +67,75 @@ int main() {
         // baseline, without changing any original DOWN intent anchor.
         o::MoveFrameContinuity continuity;
         continuity.retire(0); // no gesture exists yet
-        check(continuity.observe(9, initial) == o::MoveFrameObservation::NotArmed);
+        check(observe_now(continuity, 9, initial) == o::MoveFrameObservation::NotArmed);
         check(continuity.arm(9, initial));
         check(continuity.begin_attempt(9, 1, initial, first));
-        check(continuity.observe(9, first) == o::MoveFrameObservation::OwnInFlight);
+        check(observe_now(continuity, 9, first) == o::MoveFrameObservation::OwnInFlight);
         check(continuity.finish_attempt(9, 1, true, true, first));
-        check(continuity.observe(9, first) == o::MoveFrameObservation::Expected);
+        check(observe_now(continuity, 9, first) == o::MoveFrameObservation::Expected);
         check(continuity.begin_attempt(9, 2, first, second));
         check(continuity.finish_attempt(9, 2, true, true, second));
-        check(continuity.observe(9, second) == o::MoveFrameObservation::Expected);
+        check(observe_now(continuity, 9, second) == o::MoveFrameObservation::Expected);
         check(continuity.may_write(9));
+    }
+    {
+        // Red reproduction: receiver captures A, then our writer commits B
+        // before the receiver can classify its old snapshot. No external
+        // window movement occurred, so the old sample must not poison the
+        // next fresh B observation or the next ordinary write.
+        o::MoveFrameContinuity continuity;
+        check(continuity.arm(90, initial));
+        panebind::core::behavior::MoveMagnetSession session;
+        check(session.begin(90, {500, 500}, initial.visible, {}, 1000, 1000,
+                            true, true, true));
+        check(session.isolation_ready(90, true) && session.may_cancel(90) &&
+              session.cancel_issued(90) && session.native_end_observed(90, true));
+        const auto version_before_capture = continuity.snapshot_version(90);
+        const auto receiver_captured_before_write = initial;
+        check(continuity.begin_attempt(90, 1, initial, first));
+        check(continuity.finish_attempt(90, 1, true, true, first));
+        check(continuity.snapshot_version(90) != version_before_capture);
+        const auto stale = continuity.observe(90, receiver_captured_before_write,
+                                              version_before_capture);
+        check(stale == o::MoveFrameObservation::Stale);
+        const auto stale_decision = o::classify_move_sample(stale, true);
+        check(stale_decision == o::MoveSampleDecision::DropStale);
+        // This is the owned Raw receiver's result split: DropStale must not
+        // call sample_cursor(..., actual_stable=false), which would retire.
+        bool forwarded_old_sample = false;
+        if (stale_decision == o::MoveSampleDecision::Process)
+            forwarded_old_sample = session.sample_cursor(
+                90, {501, 500}, 2000, true, true, true);
+        check(!forwarded_old_sample && !session.retired(90));
+        const auto fresh = observe_now(continuity, 90, first);
+        check(fresh == o::MoveFrameObservation::Expected);
+        check(o::classify_move_sample(fresh, true) ==
+              o::MoveSampleDecision::Process);
+        check(session.sample_cursor(90, {502, 500}, 2000, true, true, true));
+        check(session.take_pending(90, true, true, true).has_value() &&
+              !session.retired(90));
+        check(continuity.begin_attempt(90, 2, first, second));
+    }
+    {
+        // A fresh observation of the old A after our confirmed A->B write
+        // is an external B->A translation, not a stale sample exemption.
+        o::MoveFrameContinuity continuity;
+        check(continuity.arm(91, initial));
+        check(continuity.begin_attempt(91, 1, initial, first));
+        check(continuity.finish_attempt(91, 1, true, true, first));
+        const auto version_before_fresh_capture = continuity.snapshot_version(91);
+        const auto external_return_to_a = initial;
+        check(continuity.observe(91, external_return_to_a,
+                                 version_before_fresh_capture) ==
+              o::MoveFrameObservation::ExternalChange);
+        check(o::classify_move_sample(o::MoveFrameObservation::ExternalChange, true) ==
+              o::MoveSampleDecision::Reject);
+        check(o::classify_move_sample(o::MoveFrameObservation::Stale, false) ==
+              o::MoveSampleDecision::Reject);
+        check(o::classify_move_sample(o::MoveFrameObservation::OwnInFlight, true) ==
+              o::MoveSampleDecision::Process);
+        check(!continuity.may_write(91));
+        check(!continuity.begin_attempt(91, 2, initial, second));
     }
     {
         // An unissued request cannot become a new baseline. Normal UP may
@@ -75,11 +144,13 @@ int main() {
         check(continuity.arm(10, initial));
         check(continuity.begin_attempt(10, 1, initial, first));
         check(continuity.abort_unissued(10, 1));
-        check(continuity.observe(10, initial) == o::MoveFrameObservation::Expected);
+        check(observe_now(continuity, 10, initial) == o::MoveFrameObservation::Expected);
         check(continuity.begin_attempt(10, 2, initial, first));
+        const auto version_before_up = continuity.snapshot_version(10);
         continuity.retire(10);
+        check(continuity.snapshot_version(10) == version_before_up);
         check(continuity.finish_attempt(10, 2, true, true, first));
-        check(continuity.observe(10, first) == o::MoveFrameObservation::Expected);
+        check(observe_now(continuity, 10, first) == o::MoveFrameObservation::Expected);
         check(!continuity.may_write(10));
         check(!continuity.begin_attempt(10, 3, first, second));
     }
@@ -89,10 +160,10 @@ int main() {
         o::MoveFrameContinuity continuity;
         check(continuity.arm(11, initial));
         check(continuity.begin_attempt(11, 1, initial, first));
-        check(continuity.observe(11, external) ==
+        check(observe_now(continuity, 11, external) ==
               o::MoveFrameObservation::ExternalChange);
         check(!continuity.finish_attempt(11, 1, true, true, first));
-        check(continuity.observe(11, initial) ==
+        check(observe_now(continuity, 11, initial) ==
               o::MoveFrameObservation::ExternalChange);
         check(!continuity.may_write(11));
     }
@@ -102,9 +173,9 @@ int main() {
         check(continuity.begin_attempt(12, 1, initial, first));
         check(!continuity.finish_attempt(12, 1, true, false, external));
         check(!continuity.may_write(12));
-        check(continuity.observe(12, initial) ==
+        check(observe_now(continuity, 12, initial) ==
               o::MoveFrameObservation::ExternalChange);
-        check(continuity.observe(13, initial) == o::MoveFrameObservation::NotArmed);
+        check(observe_now(continuity, 13, initial) == o::MoveFrameObservation::NotArmed);
     }
     {
         // Exercise the same shared writer + continuity decisions used by the
@@ -118,7 +189,7 @@ int main() {
         o::LiveMoveWriter writer{20, {
             [&] { return std::optional{actual}; },
             [&](const o::MoveFrameGeometry& before) {
-                const auto observed = continuity.observe(20, actual);
+                const auto observed = observe_now(continuity, 20, actual);
                 const bool exact_before = before.positioning == actual.positioning &&
                     before.visible == actual.visible;
                 return observed == o::MoveFrameObservation::Expected && exact_before ?
@@ -139,7 +210,7 @@ int main() {
                 return o::MoveNativePlacement{true, true};
             },
             [&](const auto&, const o::MoveFrameGeometry& after) {
-                return continuity.observe(20, actual) ==
+                return observe_now(continuity, 20, actual) ==
                            o::MoveFrameObservation::OwnInFlight &&
                     actual.positioning == after.positioning &&
                     actual.visible == after.visible;
@@ -181,7 +252,7 @@ int main() {
                 return std::optional{actual};
             },
             [&](const o::MoveFrameGeometry& before) {
-                const auto observed = continuity.observe(21, actual);
+                const auto observed = observe_now(continuity, 21, actual);
                 return o::classify_move_preflight({
                     observed == o::MoveFrameObservation::Expected &&
                         before.positioning == actual.positioning &&
@@ -211,7 +282,7 @@ int main() {
         o::LiveMoveWriter writer{22, {
             [&] { return std::optional{actual}; },
             [&](const o::MoveFrameGeometry& before) {
-                const auto observed = continuity.observe(22, actual);
+                const auto observed = observe_now(continuity, 22, actual);
                 return o::classify_move_preflight({
                     observed == o::MoveFrameObservation::Expected &&
                         before.positioning == actual.positioning &&
@@ -233,7 +304,7 @@ int main() {
             [&](const auto&, const o::MoveFrameGeometry& after) {
                 return o::move_post_context_valid({
                     true, true,
-                    continuity.observe(22, actual) ==
+                    observe_now(continuity, 22, actual) ==
                         o::MoveFrameObservation::OwnInFlight,
                     actual.positioning == after.positioning &&
                         actual.visible == after.visible});

@@ -245,6 +245,7 @@ struct OwnedWriteFacts {
     bool fresh_authority{};
     bool actual_stable{};
     bool isolation_hits{};
+    operations::MoveSampleDecision sample_decision{operations::MoveSampleDecision::Reject};
 };
 bool owned_stable_context() noexcept {
     const HWND source = state.source.load(), control = state.control.load();
@@ -275,19 +276,26 @@ bool owned_stable_context() noexcept {
 }
 OwnedWriteFacts owned_write_facts(POINT cursor) noexcept {
     const HWND overlay = state.overlay.load();
-    bool stable = owned_stable_context();
-    if (stable) {
-        const auto source_now = capture_frame(state.source.load());
-        const auto observed = source_now ? frame_continuity.observe(
-            static_cast<std::uint64_t>(state.run_nonce), *source_now) :
-            operations::MoveFrameObservation::NotArmed;
-        stable = observed == operations::MoveFrameObservation::Expected ||
-            observed == operations::MoveFrameObservation::OwnInFlight;
-        if (!stable)
-            log("owned_source_continuity_rejected", ",\"observation\":" +
-                std::to_string(static_cast<int>(observed)) +
-                ",\"source_frame_present\":" + json_bool(source_now.has_value()));
-    }
+    const auto generation = static_cast<std::uint64_t>(state.run_nonce);
+    // The version is read BEFORE either native geometry capture. An exact
+    // writer completion between capture and observe makes this snapshot
+    // stale, not evidence of an external translation.
+    const auto captured_version = frame_continuity.snapshot_version(generation);
+    const bool static_stable = owned_stable_context();
+    const auto source_now = static_stable ? capture_frame(state.source.load()) :
+        std::nullopt;
+    const auto observed = source_now ? frame_continuity.observe(
+        generation, *source_now, captured_version) :
+        operations::MoveFrameObservation::NotArmed;
+    const auto decision = operations::classify_move_sample(
+        observed, static_stable && source_now.has_value());
+    const bool stable = decision == operations::MoveSampleDecision::Process;
+    if (decision != operations::MoveSampleDecision::Process)
+        log(decision == operations::MoveSampleDecision::DropStale ?
+            "owned_source_snapshot_stale" : "owned_source_continuity_rejected",
+            ",\"observation\":" + std::to_string(static_cast<int>(observed)) +
+            ",\"captured_version\":" + std::to_string(captured_version) +
+            ",\"source_frame_present\":" + json_bool(source_now.has_value()));
     const bool active = state.writer_armed.load(std::memory_order_acquire) &&
         !state.retired.load(std::memory_order_acquire) &&
         WaitForSingleObject(state.stop, 0) != WAIT_OBJECT_0;
@@ -299,7 +307,7 @@ OwnedWriteFacts owned_write_facts(POINT cursor) noexcept {
         state.overlay_ready_qpc < state.cancel_qpc;
     const bool isolation = same_overlay(overlay) && IsWindowVisible(overlay) &&
         root_at(cursor) == overlay && root_at(state.control_point) == overlay;
-    return {authority, stable, isolation};
+    return {authority, stable, isolation, decision};
 }
 void retire_live_move(behavior::MoveHandoffEscapeReason reason,
                        const char* source) noexcept {
@@ -408,11 +416,12 @@ operations::MoveWriteCallbacks owned_move_callbacks() {
         },
         [](const operations::MoveFrameGeometry&,
            const operations::MoveFrameGeometry& after) {
+            const auto generation = static_cast<std::uint64_t>(state.run_nonce);
+            const auto captured_version = frame_continuity.snapshot_version(generation);
             const auto source_now = capture_owned_source();
             const bool static_context = owned_stable_context();
             const auto observation = source_now && static_context ?
-                frame_continuity.observe(static_cast<std::uint64_t>(state.run_nonce),
-                                         *source_now) :
+                frame_continuity.observe(generation, *source_now, captured_version) :
                 operations::MoveFrameObservation::NotArmed;
             const bool continuous = observation == operations::MoveFrameObservation::Expected ||
                 observation == operations::MoveFrameObservation::OwnInFlight;
@@ -795,38 +804,46 @@ LRESULT CALLBACK receiver_procedure(HWND window, UINT message, WPARAM wparam, LP
                         } else {
                             const auto facts = owned_write_facts(cursor);
                             const auto generation = static_cast<std::uint64_t>(state.run_nonce);
-                            const bool sampled = move_session.sample_cursor(generation,
-                                {cursor.x, cursor.y}, qpc(), facts.fresh_authority,
-                                facts.actual_stable, facts.isolation_hits);
-                            const auto plan = sampled ? move_session.take_pending(generation,
-                                facts.fresh_authority, facts.actual_stable,
-                                facts.isolation_hits) : std::nullopt;
-                            if (plan) {
-                                const bool offered = live_writer && live_writer->offer(
-                                    {plan->generation, plan->quantum, plan->target_visible,
-                                     plan->snapped});
-                                log("owned_move_offer", ",\"packet\":" +
-                                    std::to_string(packet) + ",\"quantum\":" +
-                                    std::to_string(plan->quantum) + ",\"msg_point\":" +
-                                    point(received_msg_point) + ",\"cursor\":" +
-                                    point(cursor) + ",\"free_visible\":" +
-                                    rect(plan->free_visible) + ",\"target_visible\":" +
-                                    rect(plan->target_visible) + ",\"snapped\":" +
-                                    json_bool(plan->snapped) + ",\"offered\":" +
-                                    json_bool(offered));
-                                if (offered) {
-                                    ++state.writer_offers;
-                                    if (plan->snapped) ++state.writer_snapped_offers;
-                                }
-                                else if (!move_session.retired(generation)) {
-                                    retire_live_move(behavior::MoveHandoffEscapeReason::NativeFailure,
-                                                     "writer_offer_rejected");
+                            if (facts.sample_decision ==
+                                operations::MoveSampleDecision::DropStale) {
+                                // Do not pass actual_stable=false to the core:
+                                // that would permanently retire a healthy
+                                // session on our own completed write.
+                                log("owned_raw_move_snapshot_dropped", ",\"packet\":" +
+                                    std::to_string(packet));
+                            } else {
+                                const bool sampled = move_session.sample_cursor(generation,
+                                    {cursor.x, cursor.y}, qpc(), facts.fresh_authority,
+                                    facts.actual_stable, facts.isolation_hits);
+                                const auto plan = sampled ? move_session.take_pending(generation,
+                                    facts.fresh_authority, facts.actual_stable,
+                                    facts.isolation_hits) : std::nullopt;
+                                if (plan) {
+                                    const bool offered = live_writer && live_writer->offer(
+                                        {plan->generation, plan->quantum, plan->target_visible,
+                                         plan->snapped});
+                                    log("owned_move_offer", ",\"packet\":" +
+                                        std::to_string(packet) + ",\"quantum\":" +
+                                        std::to_string(plan->quantum) + ",\"msg_point\":" +
+                                        point(received_msg_point) + ",\"cursor\":" +
+                                        point(cursor) + ",\"free_visible\":" +
+                                        rect(plan->free_visible) + ",\"target_visible\":" +
+                                        rect(plan->target_visible) + ",\"snapped\":" +
+                                        json_bool(plan->snapped) + ",\"offered\":" +
+                                        json_bool(offered));
+                                    if (offered) {
+                                        ++state.writer_offers;
+                                        if (plan->snapped) ++state.writer_snapped_offers;
+                                    } else if (!move_session.retired(generation)) {
+                                        retire_live_move(behavior::MoveHandoffEscapeReason::NativeFailure,
+                                                         "writer_offer_rejected");
+                                        SetEvent(state.stop);
+                                    }
+                                } else if (move_session.retired(generation)) {
+                                    retire_live_move(behavior::MoveHandoffEscapeReason::ContextLost,
+                                                     "cursor_plan_retired");
                                     SetEvent(state.stop);
                                 }
-                            } else if (move_session.retired(generation)) {
-                                retire_live_move(behavior::MoveHandoffEscapeReason::ContextLost,
-                                                 "cursor_plan_retired");
-                                SetEvent(state.stop);
                             }
                         }
                     }

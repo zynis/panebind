@@ -14,15 +14,46 @@ enum class MoveFrameObservation {
     NotArmed,
     Expected,
     OwnInFlight,
+    Stale,
     ExternalChange,
 };
+
+enum class MoveSampleDecision {
+    Process,
+    DropStale,
+    Reject,
+};
+
+// The owned Raw receiver uses this same classification before forwarding a
+// geometry sample to the Move session. A stale frame is neither authority nor
+// evidence of an external translation; unrelated context loss still rejects.
+[[nodiscard]] constexpr MoveSampleDecision classify_move_sample(
+    MoveFrameObservation observation, bool static_context_valid) noexcept {
+    if (!static_context_valid) return MoveSampleDecision::Reject;
+    switch (observation) {
+    case MoveFrameObservation::Expected:
+    case MoveFrameObservation::OwnInFlight:
+        return MoveSampleDecision::Process;
+    case MoveFrameObservation::Stale:
+        return MoveSampleDecision::DropStale;
+    case MoveFrameObservation::NotArmed:
+    case MoveFrameObservation::ExternalChange:
+        return MoveSampleDecision::Reject;
+    }
+    return MoveSampleDecision::Reject;
+}
 
 class MoveFrameContinuity final {
 public:
     [[nodiscard]] bool arm(std::uint64_t generation,
                            const MoveFrameGeometry& handoff_actual);
+    // Read immediately before a native geometry capture. A nonzero version
+    // only orders this capture against our own committed/in-flight changes;
+    // it does not grant permission to write.
+    [[nodiscard]] std::uint64_t snapshot_version(std::uint64_t generation) const;
     [[nodiscard]] MoveFrameObservation observe(std::uint64_t generation,
-                                               const MoveFrameGeometry& actual);
+                                               const MoveFrameGeometry& actual,
+                                               std::uint64_t captured_version);
     // The caller captures `before` immediately before the native-attempt
     // boundary. A successful registration is not evidence that an API ran.
     [[nodiscard]] bool begin_attempt(std::uint64_t generation,
@@ -51,6 +82,7 @@ private:
 
     mutable std::mutex mutex_;
     std::uint64_t generation_{};
+    std::uint64_t version_{};
     std::uint64_t last_quantum_{};
     std::optional<MoveFrameGeometry> expected_;
     std::optional<InFlight> in_flight_;
