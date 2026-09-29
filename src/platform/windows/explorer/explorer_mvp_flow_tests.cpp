@@ -1,5 +1,7 @@
 #include "core/behavior/move_magnet_session.h"
 #include "platform/windows/explorer/explorer_mvp_attribution.h"
+#include "platform/windows/explorer/explorer_group_event_source.h"
+#include "platform/windows/explorer/explorer_mvp_end_authority.h"
 #include "platform/windows/operations/live_move_writer.h"
 #include "platform/windows/operations/move_frame_continuity.h"
 
@@ -73,6 +75,74 @@ e::MvpNativeStartFacts start(std::uint64_t generation, std::size_t member) {
 e::MvpNativeEndFacts end(std::uint64_t generation, std::size_t member) {
     return {generation, 200 + generation, binding(member), binding(member).hwnd,
             true, true, true};
+}
+
+e::MvpEndAuthorityFacts fresh_end_facts() {
+    e::MvpEndAuthorityFacts result;
+    result.exact_handoff_context = result.gui_after_end = true;
+    result.source_foreground = result.physical_left_held = true;
+    result.cursor_available = result.overlay_valid = true;
+    result.input_desktop_active = true;
+    return result;
+}
+
+void end_authority_and_raw_watermark() {
+    // This receipt predicate is called by the real GroupEventSource queue
+    // inspection, and this END predicate is called by the product adapter.
+    check(!e::product_move_receipt_conflicts(0, e::GroupEventKind::Location, 0),
+          "source LOCATION is not a new lifecycle or peer conflict");
+    check(e::product_move_receipt_conflicts(0, e::GroupEventKind::Location, 1),
+          "another member LOCATION conflicts with source handoff");
+    check(e::product_move_receipt_conflicts(0, e::GroupEventKind::Start, 0) &&
+          e::product_move_receipt_conflicts(0, e::GroupEventKind::End, 0) &&
+          e::product_move_receipt_conflicts(0, e::GroupEventKind::Destroy, 0),
+          "any newly queued lifecycle conflicts with handoff");
+    std::array<e::GroupEventReceipt, 2> end_batch{};
+    end_batch[0].member_index = 0;
+    end_batch[0].kind = e::GroupEventKind::Location;
+    end_batch[0].sequence = 30;
+    end_batch[1].member_index = 0;
+    end_batch[1].kind = e::GroupEventKind::End;
+    end_batch[1].sequence = 31;
+    check(!e::product_move_handoff_batch_conflicts(0, 31, end_batch),
+          "already-drained matching END and source LOCATION permit handoff");
+    check(e::product_move_handoff_batch_conflicts(0, 99, end_batch),
+          "missing matching END cannot grant handoff");
+    end_batch[0].member_index = 1;
+    check(e::product_move_handoff_batch_conflicts(0, 31, end_batch),
+          "peer LOCATION in the drained END batch still conflicts");
+    end_batch[0].member_index = 0;
+    end_batch[0].kind = e::GroupEventKind::Start;
+    check(e::product_move_handoff_batch_conflicts(0, 31, end_batch),
+          "another lifecycle receipt in the drained batch conflicts");
+    end_batch[0].kind = e::GroupEventKind::End;
+    check(e::product_move_handoff_batch_conflicts(0, 31, end_batch),
+          "only the exact matching END is exempted");
+
+    auto facts = fresh_end_facts();
+    check(e::mvp_end_authority_ready(facts, false, false),
+          "processed matching END and no pending conflict admit handoff");
+    check(!e::mvp_end_authority_ready(facts, true, false),
+          "conflict in the processed END batch forbids handoff");
+    check(!e::mvp_end_authority_ready(facts, false, true),
+          "unprocessed group batch or pending receipt forbids handoff");
+    facts = fresh_end_facts();
+    facts.raw_up_seen = true;
+    check(!e::mvp_end_authority_ready(facts, false, false),
+          "physical UP still revokes after END");
+    facts = fresh_end_facts();
+    facts.exact_handoff_context = false;
+    check(!e::mvp_end_authority_ready(facts, false, false),
+          "changed identity or geometry forbids handoff");
+    facts = fresh_end_facts();
+    facts.overlay_valid = false;
+    check(!e::mvp_end_authority_ready(facts, false, false),
+          "lost input isolation forbids handoff");
+
+    check(!e::mvp_raw_continuation_after_handoff(19, 10, 20) &&
+          !e::mvp_raw_continuation_after_handoff(20, 10, 20) &&
+          e::mvp_raw_continuation_after_handoff(21, 10, 20),
+          "pre-END drained Raw packets stay below the handoff watermark");
 }
 
 void route_and_permission() {
@@ -223,6 +293,20 @@ struct OfflineGesture {
     }
 };
 
+void admitted_end_reaches_shared_writer() {
+    OfflineGesture accepted{20, 0};
+    accepted.begin_candidate();
+    check(e::mvp_end_authority_ready(fresh_end_facts(), false, false),
+          "the adapter's fresh END gate admits the normal handoff");
+    accepted.handoff();
+    check(e::mvp_raw_continuation_after_handoff(41, accepted.generation + 10, 40),
+          "later Raw cursor packet may continue the accepted handoff");
+    const auto plan = accepted.plan({502, 500}, 2000);
+    accepted.execute(plan);
+    check(accepted.placements == 1,
+          "admitted END and later Raw continuation reach the shared writer");
+}
+
 void complete_then_retire_and_switch() {
     OfflineGesture first{11, 0};
     first.begin_candidate();
@@ -295,6 +379,8 @@ void participant_context_loss_rejects_placement() {
 int main() {
     try {
         route_and_permission();
+        end_authority_and_raw_watermark();
+        admitted_end_reaches_shared_writer();
         complete_then_retire_and_switch();
         participant_context_loss_rejects_placement();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";

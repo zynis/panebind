@@ -166,13 +166,22 @@ struct PumpContext final {
     explorer::ExplorerMvpSession* session{};
 };
 
+bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& session);
+
 std::optional<std::wstring> read_line(
     Evidence& evidence, console_input::StaConsoleLineReader& reader,
     std::string_view kind, explorer::ExplorerMvpSession* session = nullptr) {
     PumpContext context{&evidence, session};
     const auto pump = [](void* value) noexcept {
-        const auto& context = *static_cast<PumpContext*>(value);
-        return context.evidence->healthy() && context.session->pump();
+        try {
+            const auto& context = *static_cast<PumpContext*>(value);
+            if (!context.evidence->healthy()) return false;
+            const bool pumped = context.session->pump();
+            const bool recorded = drain_gesture_events(*context.evidence, *context.session);
+            return pumped && recorded;
+        } catch (...) {
+            return false;
+        }
     };
     const auto result = reader.read(session ?
         console_input::StaOwnerWork{&context, pump} :
@@ -189,7 +198,11 @@ std::optional<std::wstring> read_line(
            << (result.mode_changed ? "true" : "false")
            << ",\"error\":" << result.error;
     if (!evidence.record("console_wait", fields.str())) return std::nullopt;
-    if (session && result.line && !session->pump()) return std::nullopt;
+    if (session && result.line) {
+        const bool pumped = session->pump();
+        const bool recorded = drain_gesture_events(evidence, *session);
+        if (!pumped || !recorded) return std::nullopt;
+    }
     return result.line;
 }
 
@@ -200,8 +213,106 @@ std::string rect_json(const panebind::core::geometry::Rect& rect) {
         std::to_string(rect.bottom()) + "]";
 }
 
+std::string point_json(const panebind::core::geometry::Point& point) {
+    return "[" + std::to_string(point.x) + "," +
+        std::to_string(point.y) + "]";
+}
+
+constexpr std::string_view gesture_event_name(explorer::MvpEvidenceKind kind) noexcept {
+    switch (kind) {
+    case explorer::MvpEvidenceKind::Down: return "down";
+    case explorer::MvpEvidenceKind::Start: return "start";
+    case explorer::MvpEvidenceKind::IsolationReady: return "isolation_ready";
+    case explorer::MvpEvidenceKind::Cancel: return "cancel";
+    case explorer::MvpEvidenceKind::NativeEnd: return "native_end";
+    case explorer::MvpEvidenceKind::Handoff: return "handoff";
+    case explorer::MvpEvidenceKind::Writer: return "writer";
+    case explorer::MvpEvidenceKind::RawUp: return "raw_up";
+    case explorer::MvpEvidenceKind::LegacyUp: return "legacy_up";
+    case explorer::MvpEvidenceKind::IsolationGone: return "isolation_gone";
+    case explorer::MvpEvidenceKind::Rejected: return "rejected";
+    case explorer::MvpEvidenceKind::Resource: return "resource";
+    }
+    return "unknown";
+}
+
+constexpr std::string_view gesture_route_name(explorer::MvpGestureRoute route) noexcept {
+    switch (route) {
+    case explorer::MvpGestureRoute::Reject: return "reject";
+    case explorer::MvpGestureRoute::PlainMoveCandidate: return "plain_move_candidate";
+    case explorer::MvpGestureRoute::CtrlMove: return "ctrl_move";
+    case explorer::MvpGestureRoute::NativeResize: return "native_resize";
+    }
+    return "unknown";
+}
+
+bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& session) {
+    // Only this owner STA formats or writes evidence. The Raw/shield receiver
+    // contributes bounded facts to the session, never synchronous disk I/O.
+    const auto events = session.drain_evidence_events();
+    for (const auto& event : events) {
+        std::ostringstream fields;
+        fields << ",\"event\":" << quote(gesture_event_name(event.kind));
+        if (event.generation) fields << ",\"generation\":" << event.generation;
+        if (event.source_member < 3)
+            fields << ",\"source_member\":" << event.source_member;
+        if (event.raw_sequence)
+            fields << ",\"raw_sequence\":" << event.raw_sequence;
+        if (event.native_sequence)
+            fields << ",\"native_sequence\":" << event.native_sequence;
+        if (event.quantum) fields << ",\"quantum\":" << event.quantum;
+        if (event.route)
+            fields << ",\"route\":" << quote(gesture_route_name(*event.route));
+        if (event.reason != "none")
+            fields << ",\"reason\":" << quote(event.reason);
+        if (event.cursor)
+            fields << ",\"cursor\":" << point_json(*event.cursor);
+        if (event.initial_visible)
+            fields << ",\"initial_visible\":" << rect_json(*event.initial_visible);
+        if (event.target_visible)
+            fields << ",\"target_visible\":" << rect_json(*event.target_visible);
+        if (event.actual_visible)
+            fields << ",\"actual_visible\":" << rect_json(*event.actual_visible);
+        if (event.actual_positioning)
+            fields << ",\"actual_positioning\":" << rect_json(*event.actual_positioning);
+        const auto optional_bool = [&](std::string_view name,
+                                       const std::optional<bool>& value) {
+            if (value)
+                fields << ",\"" << name << "\":" << (*value ? "true" : "false");
+        };
+        // A cancellation API call, a handoff verdict, and a source placement
+        // are different facts. Never label permission/ready as native apply.
+        const auto attempted_name = event.kind == explorer::MvpEvidenceKind::Writer ?
+            "native_attempted" : event.kind == explorer::MvpEvidenceKind::Cancel ?
+            "cancel_api_attempted" : "attempted";
+        const auto succeeded_name = event.kind == explorer::MvpEvidenceKind::Writer ?
+            "native_succeeded" : event.kind == explorer::MvpEvidenceKind::Cancel ?
+            "cancel_api_succeeded" : "succeeded";
+        optional_bool(attempted_name, event.attempted);
+        optional_bool(succeeded_name, event.succeeded);
+        optional_bool("outcome_known", event.outcome_known);
+        optional_bool("snapped", event.snapped);
+        optional_bool("geometry_exact", event.geometry_exact);
+        optional_bool("post_context_exact", event.post_context_exact);
+        optional_bool("overlay_destroyed", event.overlay_destroyed);
+        optional_bool("hotkey_unregistered", event.hotkey_unregistered);
+        optional_bool("receiver_destroyed", event.receiver_destroyed);
+        optional_bool("raw_registration_removed", event.raw_registration_removed);
+        optional_bool("winevent_unhooked", event.winevent_unhooked);
+        optional_bool("classes_unregistered", event.classes_unregistered);
+        if (event.win32_error)
+            fields << ",\"win32_error\":" << *event.win32_error;
+        if (event.overlay)
+            fields << ",\"overlay\":" << event.overlay;
+        if (!evidence.record("gesture_event", fields.str())) return false;
+    }
+    return true;
+}
+
 bool show_status(Evidence& evidence, explorer::ExplorerMvpSession& session) {
+    if (!drain_gesture_events(evidence, session)) return false;
     const auto status = session.status();
+    if (!drain_gesture_events(evidence, session)) return false;
     if (!status) {
         evidence.record("status_unavailable", ",\"reason\":" +
             quote(session.reason()));
@@ -260,24 +371,33 @@ int run(Evidence& evidence, const std::wstring& run_id,
     std::unique_ptr<explorer::ExplorerMvpSession> session;
     const auto stop = [&](std::string_view reason) {
         const std::string saved_reason(reason);
+        bool recorded_events = !session || drain_gesture_events(evidence, *session);
         bool stopped = true;
         if (session) stopped = session->stop();
+        if (session) recorded_events = drain_gesture_events(evidence, *session) && recorded_events;
         evidence.record("shutdown", ",\"result\":\"BLOCKED\",\"reason\":" +
             quote(saved_reason) + ",\"resources_stopped\":" +
-            (stopped ? "true" : "false"));
+            (stopped ? "true" : "false") +
+            ",\"gesture_events_recorded\":" +
+            (recorded_events ? "true" : "false"));
         return 2;
     };
     const auto requested_stop = [&](std::string_view source) {
+        bool recorded_events = session && drain_gesture_events(evidence, *session);
         const bool stopped = session && session->stop();
+        if (session) recorded_events = drain_gesture_events(evidence, *session) && recorded_events;
+        const bool complete = stopped && recorded_events;
         const bool recorded = evidence.record("shutdown", ",\"result\":" +
-            std::string(stopped ? "\"STOPPED\"" : "\"BLOCKED\"") +
+            std::string(complete ? "\"STOPPED\"" : "\"BLOCKED\"") +
             ",\"source\":" + quote(source) +
             ",\"resources_stopped\":" +
             (stopped ? "true" : "false") +
+            ",\"gesture_events_recorded\":" +
+            (recorded_events ? "true" : "false") +
             ",\"user_windows_closed\":false");
-        print(stopped ? L"PaneBind 已停止；未关闭 Explorer 窗口。\r\n" :
+        print(complete ? L"PaneBind 已停止；未关闭 Explorer 窗口。\r\n" :
                         L"停止未完整确认；请保留日志。\r\n");
-        return stopped && recorded ? 0 : 2;
+        return complete && recorded ? 0 : 2;
     };
     explorer::ExplorerGroupSession::OwnedMembers members;
     for (std::size_t i = 0; i < members.size(); ++i) {

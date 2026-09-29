@@ -3,6 +3,27 @@
 #include <limits>
 
 namespace panebind::platform::windows::explorer {
+bool product_move_receipt_conflicts(std::size_t source,
+    GroupEventKind kind, std::size_t member) noexcept {
+    return kind != GroupEventKind::Location || member != source;
+}
+bool product_move_handoff_batch_conflicts(std::size_t source,
+    std::uint64_t matching_end_sequence,
+    std::span<const GroupEventReceipt> drained_batch) noexcept {
+    if (source >= 3 || !matching_end_sequence) return true;
+    bool matching_end_seen = false;
+    for (const auto& receipt : drained_batch) {
+        if (receipt.kind == GroupEventKind::End && receipt.member_index == source &&
+            receipt.sequence == matching_end_sequence) {
+            if (matching_end_seen) return true;
+            matching_end_seen = true;
+            continue;
+        }
+        if (product_move_receipt_conflicts(source, receipt.kind, receipt.member_index))
+            return true;
+    }
+    return !matching_end_seen;
+}
 namespace {
 std::atomic<ExplorerGroupEventSource*> group_source{};
 std::atomic<bool> group_hook_poison{};
@@ -138,7 +159,7 @@ GroupEventFacts ExplorerGroupEventSource::facts() const noexcept {
 bool ExplorerGroupEventSource::magnet_conflict_pending(std::size_t source) const noexcept {
     if(GetCurrentThreadId()!=owner_||poisoned_||source>=3)return true;
     for(std::size_t i=0;i<size_;++i){const auto& r=queue_[(head_+i)%queue_.size()];
-        if(r.kind!=GroupEventKind::Location||r.member_index!=source)return true;
+        if(product_move_receipt_conflicts(source,r.kind,r.member_index))return true;
     }
     return false;
 }

@@ -1,13 +1,40 @@
 #pragma once
 
 #include "platform/windows/explorer/explorer_group_session.h"
+#include "platform/windows/explorer/explorer_mvp_attribution.h"
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <vector>
 
 namespace panebind::platform::windows::explorer {
+
+enum class MvpEvidenceKind {
+    Down, Start, IsolationReady, Cancel, NativeEnd, Handoff, Writer,
+    RawUp, LegacyUp, IsolationGone, Rejected, Resource,
+};
+
+// Fixed, owner-STA facts for the entry's existing JSONL sink. Absence means
+// UNKNOWN, not false. Resource callbacks never serialize or write to disk.
+struct MvpEvidenceEvent final {
+    MvpEvidenceKind kind{MvpEvidenceKind::Resource};
+    std::uint64_t generation{}, raw_sequence{}, native_sequence{}, quantum{};
+    std::size_t source_member{3};
+    std::optional<MvpGestureRoute> route;
+    std::string_view reason{"none"};
+    std::optional<core::geometry::Point> cursor;
+    std::optional<core::geometry::Rect> initial_visible, target_visible;
+    std::optional<core::geometry::Rect> actual_visible, actual_positioning;
+    std::optional<bool> attempted, succeeded, outcome_known, geometry_exact;
+    std::optional<bool> post_context_exact, snapped, overlay_destroyed, hotkey_unregistered;
+    std::optional<bool> receiver_destroyed, raw_registration_removed;
+    std::optional<bool> winevent_unhooked, classes_unregistered;
+    std::optional<std::uint32_t> win32_error;
+    std::uintptr_t overlay{};
+};
 
 // One consent-bound product entry: ordinary Move may be taken over only after
 // real Raw/WinEvent attribution, an observed shield, native END and a fresh
@@ -33,6 +60,9 @@ public:
     [[nodiscard]] bool healthy() const noexcept;
     [[nodiscard]] std::string_view reason() const noexcept;
     [[nodiscard]] const std::array<detail::GroupMemberBinding, 3>& bindings() const noexcept;
+    // Owner-STA drain; all returned events were produced on that STA from
+    // observed adapter facts or actual writer receipts, never synthetic input.
+    [[nodiscard]] std::vector<MvpEvidenceEvent> drain_evidence_events();
 
 private:
     struct Impl;

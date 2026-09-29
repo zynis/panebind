@@ -1,10 +1,16 @@
 #pragma once
 #include "platform/windows/explorer/explorer_group_internal.h"
 #include <atomic>
+#include <span>
 #include <vector>
 
 namespace panebind::platform::windows::explorer {
 enum class GroupEventKind { Start, Location, End, Destroy };
+// A source LOCATION can be native movement before END or the writer's own
+// feedback afterward; geometry/context checks decide whether it is valid.
+// Any other unprocessed receipt conflicts with a plain-Move handoff.
+[[nodiscard]] bool product_move_receipt_conflicts(std::size_t source,
+    GroupEventKind kind, std::size_t member) noexcept;
 struct GroupEventReceipt final {
     std::size_t member_index{};
     std::uint64_t window_id{};
@@ -17,6 +23,12 @@ struct GroupEventReceipt final {
     std::int64_t callback_qpc{};
     CtrlSample ctrl;
 };
+// The END being evaluated is expected; every other conflicting receipt in
+// that already-drained batch must still prevent a writer handoff. The live
+// queue check alone cannot see receipts removed by drain().
+[[nodiscard]] bool product_move_handoff_batch_conflicts(std::size_t source,
+    std::uint64_t matching_end_sequence,
+    std::span<const GroupEventReceipt> drained_batch) noexcept;
 struct GroupEventFacts final {
     std::uint64_t accepted{}, ignored{}, overflow{}, post_failure{};
     std::size_t max_depth{};
