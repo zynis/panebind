@@ -173,7 +173,9 @@ $localConfig = Join-Path $run 'owned-shield-local.wsb'
 $desktopConfig = Join-Path $run 'owned-shield-I.wsb'
 Write-GuestConfig $localConfig $inputDir $outputDir
 $desktopRun = 'I:\PaneBindMVP1Runs\' + $runId
-Write-GuestConfig $desktopConfig (Join-Path $desktopRun 'input') (Join-Path $desktopRun 'output')
+# The desktop drive exists on ZS-Workstation, not necessarily on the build host.
+# Construct its literal mapped paths without asking local path providers to resolve I:.
+Write-GuestConfig $desktopConfig ($desktopRun + '\input') ($desktopRun + '\output')
 
 # The archive is for a new, exact RunId directory on ZS-Workstation. It does
 # not contact the host or start the guest. Do not use the local .wsb there.
