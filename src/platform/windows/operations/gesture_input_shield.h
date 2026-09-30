@@ -80,6 +80,42 @@ enum class GestureShieldReadbackFailure {
     NativeLive,
 };
 
+// Bounded as-received WINDOWPOS facts for this self-owned overlay only. The
+// window procedure still forwards both messages to DefWindowProc unchanged.
+struct GestureShieldWindowPosSample {
+    HWND window{};
+    HWND insert_after{};
+    int x{};
+    int y{};
+    int width{};
+    int height{};
+    UINT flags{};
+};
+
+struct GestureShieldWindowPosFacts {
+    std::uint32_t count{};
+    GestureShieldWindowPosSample first{};
+    GestureShieldWindowPosSample last{};
+};
+
+struct GestureShieldPlacementFacts {
+    bool attempted{};
+    HWND window{};
+    HWND insert_after{};
+    int x{};
+    int y{};
+    int width{};
+    int height{};
+    UINT flags{};
+    bool succeeded{};
+    DWORD win32_error{};
+    std::uint32_t after_exstyle{};
+    std::uint32_t changing_count_before{};
+    std::uint32_t changing_count_after{};
+    std::uint32_t changed_count_before{};
+    std::uint32_t changed_count_after{};
+};
+
 struct GestureShieldEvent {
     GestureShieldEventKind kind{};
     std::uint64_t generation{};
@@ -116,6 +152,11 @@ struct GestureShieldEvent {
     GestureShieldReadbackFailure readback_failure{GestureShieldReadbackFailure::None};
     // The first placement can report success while WS_EX_TOPMOST is absent.
     // These facts record one bounded retry, not proof of final isolation.
+    std::uint32_t created_exstyle{};
+    GestureShieldPlacementFacts initial_placement{};
+    GestureShieldPlacementFacts retry_placement{};
+    GestureShieldWindowPosFacts windowpos_changing{};
+    GestureShieldWindowPosFacts windowpos_changed{};
     std::uint32_t initial_exstyle{};
     bool topmost_retry_attempted{};
     std::uint32_t observed_exstyle{};

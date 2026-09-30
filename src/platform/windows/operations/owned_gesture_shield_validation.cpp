@@ -107,6 +107,55 @@ struct State {
     return "[" + std::to_string(value.left()) + "," + std::to_string(value.top()) +
         "," + std::to_string(value.right()) + "," + std::to_string(value.bottom()) + "]";
 }
+[[nodiscard]] std::string shield_windowpos_sample_json(
+    const op::GestureShieldWindowPosSample& value) {
+    return "{\"window\":" + std::to_string(hwnd_number(value.window)) +
+        ",\"insert_after\":" +
+        std::to_string(reinterpret_cast<std::intptr_t>(value.insert_after)) +
+        ",\"x\":" + std::to_string(value.x) +
+        ",\"y\":" + std::to_string(value.y) +
+        ",\"width\":" + std::to_string(value.width) +
+        ",\"height\":" + std::to_string(value.height) +
+        ",\"flags\":" + std::to_string(value.flags) + "}";
+}
+[[nodiscard]] std::string shield_windowpos_json(
+    const op::GestureShieldWindowPosFacts& value) {
+    return "{\"count\":" + std::to_string(value.count) +
+        ",\"first\":" + shield_windowpos_sample_json(value.first) +
+        ",\"last\":" + shield_windowpos_sample_json(value.last) + "}";
+}
+[[nodiscard]] std::string shield_placement_json(
+    const op::GestureShieldPlacementFacts& value) {
+    return "{\"attempted\":" + boolean(value.attempted) +
+        ",\"window\":" + std::to_string(hwnd_number(value.window)) +
+        ",\"insert_after\":" +
+        std::to_string(reinterpret_cast<std::intptr_t>(value.insert_after)) +
+        ",\"x\":" + std::to_string(value.x) +
+        ",\"y\":" + std::to_string(value.y) +
+        ",\"width\":" + std::to_string(value.width) +
+        ",\"height\":" + std::to_string(value.height) +
+        ",\"flags\":" + std::to_string(value.flags) +
+        ",\"succeeded\":" + boolean(value.succeeded) +
+        ",\"win32_error\":" + std::to_string(value.win32_error) +
+        ",\"after_exstyle\":" + std::to_string(value.after_exstyle) +
+        ",\"changing_count_before\":" +
+        std::to_string(value.changing_count_before) +
+        ",\"changing_count_after\":" +
+        std::to_string(value.changing_count_after) +
+        ",\"changed_count_before\":" +
+        std::to_string(value.changed_count_before) +
+        ",\"changed_count_after\":" +
+        std::to_string(value.changed_count_after) + "}";
+}
+[[nodiscard]] std::string shield_setup_json(const op::GestureShieldEvent& event) {
+    return ",\"created_exstyle\":" + std::to_string(event.created_exstyle) +
+        ",\"initial_placement\":" + shield_placement_json(event.initial_placement) +
+        ",\"retry_placement\":" + shield_placement_json(event.retry_placement) +
+        ",\"windowpos_changing\":" +
+        shield_windowpos_json(event.windowpos_changing) +
+        ",\"windowpos_changed\":" +
+        shield_windowpos_json(event.windowpos_changed);
+}
 void record(std::string_view kind, const std::string& fields = {}) noexcept {
     try {
         std::lock_guard lock{s.log_mutex};
@@ -395,7 +444,8 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"initial_exstyle\":" + std::to_string(event.initial_exstyle) +
             ",\"topmost_retry_attempted\":" +
             boolean(event.topmost_retry_attempted) +
-            ",\"observed_exstyle\":" + std::to_string(event.observed_exstyle));
+            ",\"observed_exstyle\":" + std::to_string(event.observed_exstyle) +
+            shield_setup_json(event));
         SetEvent(s.isolation_ready);
         break;
     case op::GestureShieldEventKind::IsolationGone:
@@ -447,7 +497,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"topmost_retry_attempted\":" +
             boolean(event.topmost_retry_attempted) +
             ",\"observed_exstyle\":" +
-            std::to_string(event.observed_exstyle));
+            std::to_string(event.observed_exstyle) + shield_setup_json(event));
         break;
     }
 }

@@ -27,7 +27,7 @@ if (-not (Test-Path -LiteralPath $cmake -PathType Leaf)) { throw 'cmake.exe is u
 $build = Join-Path $repo 'out\r1c4b-mvp1-shield-guest-mt'
 & $cmake -S $repo -B $build -G 'Visual Studio 18 2026' -A x64 -DBUILD_TESTING=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 if ($LASTEXITCODE -ne 0) { throw 'Guest /MT configure failed.' }
-& $cmake --build $build --config Release --target panebind-owned-shield-validation panebind-explorer-mvp1 panebind-test-input-environment --parallel 4
+& $cmake --build $build --config Release --target panebind-owned-shield-validation panebind-explorer-mvp1 panebind-test-input-environment panebind-shield-topmost-contrast --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Guest Release build failed.' }
 & $cmake --build $build --config Debug --target panebind-owned-shield-validation panebind-explorer-mvp1 --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Guest Debug owned build failed.' }
@@ -36,7 +36,8 @@ $bin = Join-Path $build 'src\platform\windows\Release'
 $names = @(
     'panebind-owned-shield-validation.exe',
     'panebind-explorer-mvp1.exe',
-    'panebind-test-input-environment.exe'
+    'panebind-test-input-environment.exe',
+    'panebind-shield-topmost-contrast.exe'
 )
 $binaries = @{}
 foreach ($name in $names) {
@@ -61,6 +62,13 @@ foreach ($name in @('panebind-owned-shield-validation.exe', 'panebind-explorer-m
     if ($identity.implementation_sha -cne $head) {
         throw "Build identity differs from the committed source for $name"
     }
+}
+$contrastIdentityText = (& $binaries['panebind-shield-topmost-contrast.exe'] --build-identity | Out-String)
+if ($LASTEXITCODE -ne 0) { throw 'Read-only contrast build identity failed.' }
+try { $contrastIdentity = $contrastIdentityText | ConvertFrom-Json -ErrorAction Stop }
+catch { throw 'Contrast build identity is not JSON.' }
+if ($contrastIdentity.implementation_sha -cne $head) {
+    throw 'Contrast build identity differs from the committed source.'
 }
 $debugIdentityText = (& $debugOwned --build-identity | Out-String)
 $debugIdentityExit = $LASTEXITCODE
@@ -135,6 +143,7 @@ foreach ($name in $names) {
 Copy-Item -LiteralPath $debugOwned -Destination (Join-Path $debugInputDir 'panebind-owned-shield-validation.exe') -ErrorAction Stop
 Copy-Item -LiteralPath $debugExplorer -Destination (Join-Path $debugInputDir 'panebind-explorer-mvp1.exe') -ErrorAction Stop
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'r1c4b-mvp1-shield-sandbox-guest.ps1') -Destination (Join-Path $inputDir 'guest-run.ps1') -ErrorAction Stop
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'r1c4b-mvp1-explorer-guest-driver.ps1') -Destination (Join-Path $inputDir 'explorer-driver.ps1') -ErrorAction Stop
 
 $binaryHashes = [ordered]@{}
 foreach ($name in $names) {
@@ -149,6 +158,7 @@ $manifest = [ordered]@{
     debug_owned_sha256 = (Get-FileHash -LiteralPath (Join-Path $debugInputDir 'panebind-owned-shield-validation.exe') -Algorithm SHA256).Hash
     debug_explorer_sha256 = (Get-FileHash -LiteralPath (Join-Path $debugInputDir 'panebind-explorer-mvp1.exe') -Algorithm SHA256).Hash
     guest_script_sha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'guest-run.ps1') -Algorithm SHA256).Hash
+    explorer_driver_sha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'explorer-driver.ps1') -Algorithm SHA256).Hash
     input_marker_sha256 = (Get-FileHash -LiteralPath (Join-Path $inputDir 'run-id.txt') -Algorithm SHA256).Hash
     output_marker_sha256 = (Get-FileHash -LiteralPath (Join-Path $outputDir 'run-id.txt') -Algorithm SHA256).Hash
     imports = $imports

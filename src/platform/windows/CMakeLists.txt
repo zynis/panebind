@@ -337,6 +337,19 @@ if(BUILD_TESTING)
         target_link_options(panebind-owned-shield-validation PRIVATE /MANIFEST:NO)
     endif()
     panebind_enable_warnings(panebind-owned-shield-validation)
+    # Narrow guest-only self-owned Z-order contrast; no input and no default CTest.
+    add_executable(panebind-shield-topmost-contrast
+        operations/shield_topmost_contrast.cpp observer.rc observer.manifest)
+    target_link_libraries(panebind-shield-topmost-contrast PRIVATE
+        panebind_core user32 wtsapi32 advapi32)
+    target_compile_definitions(panebind-shield-topmost-contrast PRIVATE
+        NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE
+        WINVER=0x0A00 _WIN32_WINNT=0x0A00
+        PANEBIND_BUILD_SHA="${panebind_build_sha}")
+    if(MSVC)
+        target_link_options(panebind-shield-topmost-contrast PRIVATE /MANIFEST:NO)
+    endif()
+    panebind_enable_warnings(panebind-shield-topmost-contrast)
     add_executable(panebind-live-move-writer-tests operations/live_move_writer_tests.cpp)
     target_link_libraries(panebind-live-move-writer-tests PRIVATE panebind_windows_live_move_writer)
     panebind_enable_warnings(panebind-live-move-writer-tests)

@@ -2,6 +2,7 @@
 
 #include "platform/windows/explorer/explorer_group_session.h"
 #include "platform/windows/explorer/explorer_mvp_attribution.h"
+#include "platform/windows/operations/gesture_input_shield.h"
 
 #include <cstdint>
 #include <functional>
@@ -34,8 +35,13 @@ struct MvpEvidenceEvent final {
     std::optional<bool> winevent_unhooked, classes_unregistered;
     std::optional<std::uint32_t> win32_error;
     std::optional<std::uint32_t> shield_setup_stage, shield_native_failure,
-        shield_readback_failure, shield_initial_exstyle, shield_observed_exstyle;
+        shield_readback_failure, shield_created_exstyle,
+        shield_initial_exstyle, shield_observed_exstyle;
     std::optional<bool> shield_topmost_retry_attempted;
+    std::optional<operations::GestureShieldPlacementFacts> shield_initial_placement,
+        shield_retry_placement;
+    std::optional<operations::GestureShieldWindowPosFacts> shield_windowpos_changing,
+        shield_windowpos_changed;
     std::uintptr_t overlay{};
 };
 

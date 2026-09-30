@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $inputDir = 'C:\PaneBindMVP1\Input'
 $outputDir = 'C:\PaneBindMVP1\Output'
 $summary = [ordered]@{
-    schema = 'r1c4b-mvp1-shield-sandbox-guest/v2'
+    schema = 'r1c4b-mvp1-shield-sandbox-guest/v3'
     status = 'NOT_READY'
     run_id = $null
     source_commit = $null
@@ -14,6 +14,8 @@ $summary = [ordered]@{
     user_interactive = $null
     preflight = @()
     owned_scenarios = @()
+    contrast = $null
+    explorer_stages = @()
     explorer_started = $false
     explorer_command = $null
     explorer_debug_command = $null
@@ -76,7 +78,8 @@ try {
     foreach ($item in @(
         @{ Path = $inputMarker; Hash = $manifest.input_marker_sha256 },
         @{ Path = $outputMarker; Hash = $manifest.output_marker_sha256 },
-        @{ Path = $PSCommandPath; Hash = $manifest.guest_script_sha256 }
+        @{ Path = $PSCommandPath; Hash = $manifest.guest_script_sha256 },
+        @{ Path = (Join-Path $inputDir 'explorer-driver.ps1'); Hash = $manifest.explorer_driver_sha256 }
     )) {
         if ((Get-FileHash -LiteralPath $item.Path -Algorithm SHA256).Hash -cne $item.Hash) {
             throw "Guest package hash differs: $($item.Path)"
@@ -87,9 +90,11 @@ try {
     $debugExplorer = Join-Path (Join-Path $inputDir 'Debug') 'panebind-explorer-mvp1.exe'
     $explorer = Join-Path $inputDir 'panebind-explorer-mvp1.exe'
     $preflight = Join-Path $inputDir 'panebind-test-input-environment.exe'
+    $contrast = Join-Path $inputDir 'panebind-shield-topmost-contrast.exe'
     foreach ($name in @('panebind-owned-shield-validation.exe',
                         'panebind-explorer-mvp1.exe',
-                        'panebind-test-input-environment.exe')) {
+                        'panebind-test-input-environment.exe',
+                        'panebind-shield-topmost-contrast.exe')) {
         $path = Join-Path $inputDir $name
         if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne
             $manifest.binaries_sha256.$name) {
@@ -104,7 +109,7 @@ try {
         $manifest.debug_explorer_sha256) {
         throw 'Guest Debug Explorer SHA256 differs from the read-only manifest.'
     }
-    foreach ($path in @($owned, $debugOwned, $explorer, $debugExplorer)) {
+    foreach ($path in @($owned, $debugOwned, $explorer, $debugExplorer, $contrast)) {
         $identityText = (& $path --build-identity | Out-String)
         $identityExit = $LASTEXITCODE
         if ($identityExit -ne 0) { throw "Build identity failed: $path" }
@@ -172,11 +177,133 @@ try {
             nonempty_evidence = $hasEvidence
         }
         Save-Summary
-        if ($ownedExit -ne 0 -or -not $hasEvidence) {
+        $rows = @()
+        if ($hasEvidence) {
+            foreach ($line in [IO.File]::ReadAllLines($evidence)) {
+                try { $rows += ($line | ConvertFrom-Json -ErrorAction Stop) }
+                catch { throw "Malformed owned JSONL in $configuration/$scenario; remaining input stopped." }
+            }
+        }
+        $ownedSequence = 0
+        foreach ($row in $rows) {
+            $ownedSequence++
+            if ($row.schema -cne 'r1c4b-owned-product-shield/v1' -or
+                $row.sequence -ne $ownedSequence) {
+                throw "Owned JSONL identity/sequence invalid in $configuration/$scenario."
+            }
+        }
+        $ownedStartup = @($rows | Where-Object { $_.type -ceq 'startup' })
+        $shutdown = @($rows | Where-Object { $_.type -ceq 'shutdown' })
+        if ($ownedExit -ne 0 -or -not $hasEvidence -or
+            $ownedStartup.Count -ne 1 -or
+            $ownedStartup[0].implementation_sha -cne $manifest.source_commit -or
+            $ownedStartup[0].scenario -cne $scenario -or
+            $shutdown.Count -ne 1 -or $shutdown[0].accepted -ne $true) {
+            # Run the smallest self-owned comparison in this SAME guest only
+            # for the exact observed shield Style readback failure. Contrast
+            # is not a product PASS and cannot unblock Explorer input.
+            $style = @($rows | Where-Object {
+                $_.type -ceq 'resource_or_context' -and
+                $_.setup_stage -eq 8 -and $_.readback_failure -eq 3
+            })
+            if ($configuration -ceq 'debug' -and $scenario -ceq 'normal' -and
+                $style.Count -gt 0) {
+                $contrastEvidence = Join-Path $outputDir "$runId-topmost-contrast.jsonl"
+                & $contrast --run-topmost-contrast --sandbox-run-id $runId --evidence-log $contrastEvidence *> (Join-Path $outputDir "$runId-topmost-contrast.console.txt")
+                $contrastExit = $LASTEXITCODE
+                $summary.contrast = [ordered]@{
+                    purpose = 'self_owned_same_guest_style_comparison_not_product_pass'
+                    exit_code = $contrastExit
+                    evidence = $contrastEvidence
+                    nonempty_evidence = (Test-Path -LiteralPath $contrastEvidence -PathType Leaf) -and
+                        ((Get-Item -LiteralPath $contrastEvidence).Length -gt 0)
+                }
+                Save-Summary
+            }
             throw "Owned scenario $configuration/$scenario failed or produced no evidence; remaining scenarios were not run."
         }
     }
-    $summary.status = 'OWNED_PROCESSES_EXITED_ZERO_REVIEW_REQUIRED'
+    $driver = Join-Path $inputDir 'explorer-driver.ps1'
+    foreach ($configuration in @('debug', 'release')) {
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")
+        $driverExit = $LASTEXITCODE
+        $driverEvidence = Join-Path $outputDir "$runId-explorer-driver-$configuration.jsonl"
+        $productEvidence = Join-Path $outputDir $(if ($configuration -ceq 'debug') {
+            "$runId-explorer-mvp1-debug.jsonl"
+        } else { "$runId-explorer-mvp1.jsonl" })
+        $driverRows = @()
+        if (Test-Path -LiteralPath $driverEvidence -PathType Leaf) {
+            foreach ($line in [IO.File]::ReadAllLines($driverEvidence)) {
+                if ([string]::IsNullOrWhiteSpace($line)) {
+                    throw "Empty Explorer driver JSONL line in $configuration."
+                }
+                try { $driverRows += ($line | ConvertFrom-Json -ErrorAction Stop) }
+                catch { throw "Malformed Explorer driver JSONL in $configuration." }
+            }
+        }
+        $driverSequence = 0
+        foreach ($row in $driverRows) {
+            $driverSequence++
+            if ($row.schema -cne 'r1c4b-mvp1-explorer-guest-driver/v1' -or
+                $row.sequence -ne $driverSequence -or $row.run_id -cne $runId -or
+                $row.configuration -cne $configuration) {
+                throw "Explorer driver JSONL identity/sequence invalid in $configuration."
+            }
+        }
+        $driverStartup = @($driverRows | Where-Object { $_.type -ceq 'startup' })
+        $driverShutdown = @($driverRows | Where-Object { $_.type -ceq 'shutdown' })
+        $productRows = @()
+        if (Test-Path -LiteralPath $productEvidence -PathType Leaf) {
+            foreach ($line in [IO.File]::ReadAllLines($productEvidence)) {
+                if ([string]::IsNullOrWhiteSpace($line)) {
+                    throw "Empty Explorer product JSONL line in $configuration."
+                }
+                try { $productRows += ($line | ConvertFrom-Json -ErrorAction Stop) }
+                catch { throw "Malformed Explorer product JSONL in $configuration." }
+            }
+        }
+        $sequence = 0
+        foreach ($row in $productRows) {
+            $sequence++
+            if ($row.schema -cne 'mvp1/entry-v1' -or $row.sequence -ne $sequence) {
+                throw "Explorer product JSONL schema/sequence invalid in $configuration."
+            }
+        }
+        $startup = @($productRows | Where-Object { $_.type -ceq 'startup' })
+        $bindings = @($productRows | Where-Object { $_.type -ceq 'binding' })
+        $productConsent = @($productRows | Where-Object { $_.type -ceq 'product_consent' })
+        $productShutdown = @($productRows | Where-Object { $_.type -ceq 'shutdown' })
+        $productComplete = $startup.Count -eq 1 -and
+            $startup[0].implementation_sha -ceq $manifest.source_commit -and
+            $startup[0].run_id -ceq $runId -and
+            $startup[0].automated_guest_driver -eq $true -and
+            $bindings.Count -eq 3 -and
+            @($bindings | ForEach-Object { $_.member } | Sort-Object -Unique).Count -eq 3 -and
+            $productConsent.Count -eq 1 -and
+            $productConsent[0].input_source -ceq 'automated_guest_driver' -and
+            $productShutdown.Count -eq 1 -and
+            $productShutdown[0].result -ceq 'STOPPED' -and
+            $productShutdown[0].resources_stopped -eq $true -and
+            $productShutdown[0].gesture_events_recorded -eq $true
+        $summary.explorer_stages += [ordered]@{
+            configuration = $configuration
+            driver_exit = $driverExit
+            driver_evidence = $driverEvidence
+            product_evidence = $productEvidence
+            driver_completed = $driverShutdown.Count -eq 1 -and
+                $driverShutdown[0].result -ceq 'AUTOMATED_BASIC_FLOW_RECORDED'
+            product_complete = $productComplete
+        }
+        Save-Summary
+        if ($driverExit -ne 0 -or $driverShutdown.Count -ne 1 -or
+            $driverShutdown[0].result -cne 'AUTOMATED_BASIC_FLOW_RECORDED' -or
+            $driverStartup.Count -ne 1 -or
+            $driverStartup[0].implementation_sha -cne $manifest.source_commit -or
+            -not $productComplete) {
+            throw "Explorer $configuration automated flow did not complete; remaining input stopped."
+        }
+    }
+    $summary.status = 'AUTOMATED_PROCESSES_EXITED_ZERO_REVIEW_REQUIRED'
     Save-Summary
     exit 0
 } catch {

@@ -22,6 +22,7 @@
 
 namespace explorer = panebind::platform::windows::explorer;
 namespace windows = panebind::platform::windows;
+namespace operations = panebind::platform::windows::operations;
 namespace console_input = panebind::platform::windows::console_input;
 
 namespace {
@@ -211,6 +212,49 @@ std::string point_json(const panebind::core::geometry::Point& point) {
         std::to_string(point.y) + "]";
 }
 
+std::string shield_windowpos_sample_json(
+    const operations::GestureShieldWindowPosSample& value) {
+    return "{\"window\":" +
+        std::to_string(reinterpret_cast<std::uintptr_t>(value.window)) +
+        ",\"insert_after\":" +
+        std::to_string(reinterpret_cast<std::intptr_t>(value.insert_after)) +
+        ",\"x\":" + std::to_string(value.x) +
+        ",\"y\":" + std::to_string(value.y) +
+        ",\"width\":" + std::to_string(value.width) +
+        ",\"height\":" + std::to_string(value.height) +
+        ",\"flags\":" + std::to_string(value.flags) + "}";
+}
+std::string shield_windowpos_json(
+    const operations::GestureShieldWindowPosFacts& value) {
+    return "{\"count\":" + std::to_string(value.count) +
+        ",\"first\":" + shield_windowpos_sample_json(value.first) +
+        ",\"last\":" + shield_windowpos_sample_json(value.last) + "}";
+}
+std::string shield_placement_json(
+    const operations::GestureShieldPlacementFacts& value) {
+    return "{\"attempted\":" + std::string(value.attempted ? "true" : "false") +
+        ",\"window\":" +
+        std::to_string(reinterpret_cast<std::uintptr_t>(value.window)) +
+        ",\"insert_after\":" +
+        std::to_string(reinterpret_cast<std::intptr_t>(value.insert_after)) +
+        ",\"x\":" + std::to_string(value.x) +
+        ",\"y\":" + std::to_string(value.y) +
+        ",\"width\":" + std::to_string(value.width) +
+        ",\"height\":" + std::to_string(value.height) +
+        ",\"flags\":" + std::to_string(value.flags) +
+        ",\"succeeded\":" + (value.succeeded ? "true" : "false") +
+        ",\"win32_error\":" + std::to_string(value.win32_error) +
+        ",\"after_exstyle\":" + std::to_string(value.after_exstyle) +
+        ",\"changing_count_before\":" +
+        std::to_string(value.changing_count_before) +
+        ",\"changing_count_after\":" +
+        std::to_string(value.changing_count_after) +
+        ",\"changed_count_before\":" +
+        std::to_string(value.changed_count_before) +
+        ",\"changed_count_after\":" +
+        std::to_string(value.changed_count_after) + "}";
+}
+
 constexpr std::string_view gesture_event_name(explorer::MvpEvidenceKind kind) noexcept {
     switch (kind) {
     case explorer::MvpEvidenceKind::Down: return "down";
@@ -305,6 +349,20 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_observed_exstyle\":" << *event.shield_observed_exstyle;
         if (event.shield_initial_exstyle)
             fields << ",\"shield_initial_exstyle\":" << *event.shield_initial_exstyle;
+        if (event.shield_created_exstyle)
+            fields << ",\"shield_created_exstyle\":" << *event.shield_created_exstyle;
+        if (event.shield_initial_placement)
+            fields << ",\"shield_initial_placement\":" <<
+                shield_placement_json(*event.shield_initial_placement);
+        if (event.shield_retry_placement)
+            fields << ",\"shield_retry_placement\":" <<
+                shield_placement_json(*event.shield_retry_placement);
+        if (event.shield_windowpos_changing)
+            fields << ",\"shield_windowpos_changing\":" <<
+                shield_windowpos_json(*event.shield_windowpos_changing);
+        if (event.shield_windowpos_changed)
+            fields << ",\"shield_windowpos_changed\":" <<
+                shield_windowpos_json(*event.shield_windowpos_changed);
         optional_bool("shield_topmost_retry_attempted", event.shield_topmost_retry_attempted);
         if (event.overlay)
             fields << ",\"overlay\":" << event.overlay;
@@ -354,12 +412,14 @@ bool show_status(Evidence& evidence, explorer::ExplorerMvpSession& session) {
 }
 
 int run(Evidence& evidence, const std::wstring& run_id,
-        const std::wstring& evidence_path) {
+        const std::wstring& evidence_path, bool automated_guest_driver) {
     if (!evidence.record("startup", ",\"implementation_sha\":" +
             quote(PANEBIND_BUILD_SHA) +
             ",\"run_id\":" + quote(run_id) +
             ",\"owner_thread\":" + std::to_string(GetCurrentThreadId()) +
-            ",\"member_count\":3,\"live_validation\":false")) return 2;
+            ",\"member_count\":3,\"live_validation\":false" +
+            ",\"automated_guest_driver\":" +
+            (automated_guest_driver ? "true" : "false"))) return 2;
     const bool dpi_ready =
         SetProcessDpiAwarenessContext(
             DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ||
@@ -447,7 +507,9 @@ int run(Evidence& evidence, const std::wstring& run_id,
                 std::to_string(facts.generations.eligibility_generation) +
                 ",\"token_generation\":" +
                 std::to_string(facts.generations.token_generation) +
-                ",\"baseline_exclusion_complete\":true,\"unique_new_target\":true,\"exact_location\":true"))
+                ",\"baseline_exclusion_complete\":true,\"unique_new_target\":true,\"exact_location\":true" +
+                ",\"input_source\":" + quote(automated_guest_driver ?
+                    "automated_guest_driver" : "interactive_console")))
             return stop("evidence_write_failed");
         members[i] = std::move(confirmed.session);
     }
@@ -464,7 +526,9 @@ int run(Evidence& evidence, const std::wstring& run_id,
     if (!consent || (*consent != L"Y" && *consent != L"y"))
         return stop("product_consent_declined");
     if (!evidence.record("product_consent",
-                         ",\"confirmed\":true,\"input_source\":\"interactive_console\""))
+                         ",\"confirmed\":true,\"input_source\":" +
+                         quote(automated_guest_driver ? "automated_guest_driver" :
+                               "interactive_console")))
         return stop("evidence_write_failed");
 
     session = explorer::ExplorerMvpSession::create_after_explicit_consent(
@@ -527,7 +591,10 @@ int wmain(int argc, wchar_t** argv) {
                   << ",\"interactive_validation\":false}\n";
         return 0;
     }
-    if (argc != 5 || std::wstring_view(argv[1]) != L"--sandbox-run-id" ||
+    const bool automated_guest_driver = argc == 6 &&
+        std::wstring_view(argv[5]) == L"--guest-automated-driver";
+    if ((argc != 5 && !automated_guest_driver) ||
+        std::wstring_view(argv[1]) != L"--sandbox-run-id" ||
         std::wstring_view(argv[3]) != L"--evidence-log") return 64;
     const std::wstring run_id(argv[2]), evidence_path(argv[4]);
     if (!sandbox_run_authorized(run_id, evidence_path)) {
@@ -552,7 +619,7 @@ int wmain(int argc, wchar_t** argv) {
     try {
         Evidence evidence(evidence_path.c_str());
         if (!evidence.healthy()) return 65;
-        return run(evidence, run_id, evidence_path);
+        return run(evidence, run_id, evidence_path, automated_guest_driver);
     } catch (const std::exception& error) {
         print(L"Explorer MVP1 候选程序运行失败；请保留不完整证据。\r\n");
         std::cerr << error.what() << '\n';

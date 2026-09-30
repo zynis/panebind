@@ -159,6 +159,9 @@ struct GestureInputShield::Impl {
         GestureShieldNativeFailure native{GestureShieldNativeFailure::None};
         GestureShieldReadbackFailure readback{GestureShieldReadbackFailure::None};
         DWORD error{};
+        std::uint32_t created_exstyle{};
+        GestureShieldPlacementFacts initial_placement{};
+        GestureShieldPlacementFacts retry_placement{};
         std::uint32_t initial_exstyle{};
         bool topmost_retry_attempted{};
         std::uint32_t observed_exstyle{};
@@ -224,6 +227,35 @@ struct GestureInputShield::Impl {
     POINT message_point{};
     DWORD message_time{};
     ULONGLONG deadline_tick{};
+    GestureShieldWindowPosFacts windowpos_changing{};
+    GestureShieldWindowPosFacts windowpos_changed{};
+
+    static void record_windowpos(GestureShieldWindowPosFacts& facts,
+                                 HWND window, LPARAM lparam) noexcept {
+        if (!lparam) return;
+        const auto& position = *reinterpret_cast<const WINDOWPOS*>(lparam);
+        const GestureShieldWindowPosSample sample{
+            window, position.hwndInsertAfter, position.x, position.y,
+            position.cx, position.cy, position.flags};
+        if (facts.count == 0) facts.first = sample;
+        if (facts.count < 0xFFFFFFFFu) ++facts.count;
+        facts.last = sample;
+    }
+
+    void copy_setup_facts(GestureShieldEvent& event,
+                          const SetupDiagnostics& setup) const noexcept {
+        event.setup_stage = setup.stage;
+        event.native_failure = setup.native;
+        event.readback_failure = setup.readback;
+        event.created_exstyle = setup.created_exstyle;
+        event.initial_placement = setup.initial_placement;
+        event.retry_placement = setup.retry_placement;
+        event.windowpos_changing = windowpos_changing;
+        event.windowpos_changed = windowpos_changed;
+        event.initial_exstyle = setup.initial_exstyle;
+        event.topmost_retry_attempted = setup.topmost_retry_attempted;
+        event.observed_exstyle = setup.observed_exstyle;
+    }
 
     void emit(GestureShieldEvent event) noexcept {
         if (!callbacks.on_event) return;
@@ -244,14 +276,7 @@ struct GestureInputShield::Impl {
         event.overlay = overlay;
         event.win32_error = setup ? setup->error :
             (error ? error : ERROR_INVALID_STATE);
-        if (setup) {
-            event.setup_stage = setup->stage;
-            event.native_failure = setup->native;
-            event.readback_failure = setup->readback;
-            event.initial_exstyle = setup->initial_exstyle;
-            event.topmost_retry_attempted = setup->topmost_retry_attempted;
-            event.observed_exstyle = setup->observed_exstyle;
-        }
+        if (setup) copy_setup_facts(event, *setup);
         emit(event);
     }
 
@@ -345,6 +370,10 @@ struct GestureInputShield::Impl {
         }
         auto* self = reinterpret_cast<Impl*>(GetWindowLongPtrW(window, GWLP_USERDATA));
         if (!self) return DefWindowProcW(window, message, wparam, lparam);
+        if (message == WM_WINDOWPOSCHANGING)
+            record_windowpos(self->windowpos_changing, window, lparam);
+        if (message == WM_WINDOWPOSCHANGED)
+            record_windowpos(self->windowpos_changed, window, lparam);
         if (message == WM_NCHITTEST) return HTCLIENT;
         if (message == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
         if (message == WM_LBUTTONUP) {
@@ -496,8 +525,11 @@ struct GestureInputShield::Impl {
         if (diagnostic.native != GestureShieldNativeFailure::None) return false;
         const HWND foreground_before = GetForegroundWindow();
         diagnostic.stage = GestureShieldSetupStage::CreateWindow;
+        windowpos_changing = {};
+        windowpos_changed = {};
         SetLastError(0);
-        overlay = CreateWindowExW(WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
+        overlay = CreateWindowExW(WS_EX_LAYERED | WS_EX_NOACTIVATE |
+            WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
             overlay_class_name.c_str(), L"PaneBind gesture input shield", WS_POPUP,
             virtual_rect.left, virtual_rect.top,
             virtual_rect.right - virtual_rect.left,
@@ -505,6 +537,9 @@ struct GestureInputShield::Impl {
             GetModuleHandleW(nullptr), this);
         overlay_destroyed = overlay == nullptr;
         if (!overlay) { diagnostic.error = GetLastError(); return false; }
+        SetLastError(0);
+        diagnostic.created_exstyle = static_cast<std::uint32_t>(
+            GetWindowLongPtrW(overlay, GWL_EXSTYLE));
         diagnostic.stage = GestureShieldSetupStage::SetAlpha;
         SetLastError(0);
         if (!SetLayeredWindowAttributes(overlay, 0, isolation_alpha, LWA_ALPHA)) {
@@ -512,28 +547,55 @@ struct GestureInputShield::Impl {
             return false;
         }
         diagnostic.stage = GestureShieldSetupStage::PlaceWindow;
+        auto& first = diagnostic.initial_placement;
+        first.attempted = true;
+        first.window = overlay;
+        first.insert_after = HWND_TOPMOST;
+        first.x = virtual_rect.left;
+        first.y = virtual_rect.top;
+        first.width = virtual_rect.right - virtual_rect.left;
+        first.height = virtual_rect.bottom - virtual_rect.top;
+        first.flags = SWP_NOACTIVATE | SWP_SHOWWINDOW;
+        first.changing_count_before = windowpos_changing.count;
+        first.changed_count_before = windowpos_changed.count;
         SetLastError(0);
-        if (!SetWindowPos(overlay, HWND_TOPMOST,
-            virtual_rect.left, virtual_rect.top,
-            virtual_rect.right - virtual_rect.left,
-            virtual_rect.bottom - virtual_rect.top,
-            SWP_NOACTIVATE | SWP_SHOWWINDOW)) {
-            diagnostic.error = GetLastError();
+        first.succeeded = SetWindowPos(overlay, first.insert_after,
+            first.x, first.y, first.width, first.height, first.flags) != FALSE;
+        first.win32_error = first.succeeded ? 0 : GetLastError();
+        first.changing_count_after = windowpos_changing.count;
+        first.changed_count_after = windowpos_changed.count;
+        SetLastError(0);
+        first.after_exstyle = static_cast<std::uint32_t>(
+            GetWindowLongPtrW(overlay, GWL_EXSTYLE));
+        diagnostic.initial_exstyle = first.after_exstyle;
+        if (!first.succeeded) {
+            diagnostic.error = first.win32_error;
             return false;
         }
         // In an actual guest the first successful placement was read back as
         // 0x08080080: layered/no-activate/tool-window, but not topmost. Give
         // USER32 one explicit, bounded z-order placement before the same full
         // identity/geometry/input readback below. This never grants authority.
-        SetLastError(0);
-        const auto initial_style = GetWindowLongPtrW(overlay, GWL_EXSTYLE);
-        diagnostic.initial_exstyle = static_cast<std::uint32_t>(initial_style);
-        if ((initial_style & WS_EX_TOPMOST) == 0) {
+        if ((first.after_exstyle & WS_EX_TOPMOST) == 0) {
             diagnostic.topmost_retry_attempted = true;
+            auto& retry = diagnostic.retry_placement;
+            retry.attempted = true;
+            retry.window = overlay;
+            retry.insert_after = HWND_TOPMOST;
+            retry.flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+            retry.changing_count_before = windowpos_changing.count;
+            retry.changed_count_before = windowpos_changed.count;
             SetLastError(0);
-            if (!SetWindowPos(overlay, HWND_TOPMOST, 0, 0, 0, 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)) {
-                diagnostic.error = GetLastError();
+            retry.succeeded = SetWindowPos(overlay, retry.insert_after,
+                retry.x, retry.y, retry.width, retry.height, retry.flags) != FALSE;
+            retry.win32_error = retry.succeeded ? 0 : GetLastError();
+            retry.changing_count_after = windowpos_changing.count;
+            retry.changed_count_after = windowpos_changed.count;
+            SetLastError(0);
+            retry.after_exstyle = static_cast<std::uint32_t>(
+                GetWindowLongPtrW(overlay, GWL_EXSTYLE));
+            if (!retry.succeeded) {
+                diagnostic.error = retry.win32_error;
                 return false;
             }
         }
@@ -639,9 +701,7 @@ struct GestureInputShield::Impl {
             event.kind = GestureShieldEventKind::IsolationReady;
             event.generation = start->generation;
             event.overlay = overlay;
-            event.initial_exstyle = setup.initial_exstyle;
-            event.topmost_retry_attempted = setup.topmost_retry_attempted;
-            event.observed_exstyle = setup.observed_exstyle;
+            copy_setup_facts(event, setup);
             emit(event);
         } else {
             if (expired) {
