@@ -76,6 +76,8 @@ struct State {
     std::atomic<std::uint32_t> cancel_attempts{0}, native_attempts{0};
     std::atomic<std::uint32_t> writer_failures{0}, control_mouse{0};
     std::atomic<bool> snapped_exact{false}, resource_failure{false};
+    std::atomic<bool> trace_click_route{false};
+    std::atomic<std::uint32_t> traced_hit_tests{0};
     std::mutex down_mutex, raw_mutex, cancel_mutex;
     bool cancel_claimed{}; // Orders observed Raw UP versus one bounded claim.
     std::optional<POINT> observed_down;
@@ -146,6 +148,30 @@ void log_owner() noexcept {
 [[nodiscard]] HWND root_at(POINT point) noexcept {
     const HWND hit = WindowFromPoint(point);
     return hit ? GetAncestor(hit, GA_ROOT) : nullptr;
+}
+void record_start_route_snapshot(std::string_view phase) noexcept {
+    POINT cursor{};
+    const bool cursor_ok = GetCursorPos(&cursor) != FALSE;
+    GUITHREADINFO gui{sizeof(gui)};
+    SetLastError(0);
+    const bool gui_ok = GetGUIThreadInfo(s.source_thread, &gui) != FALSE;
+    const DWORD gui_error = gui_ok ? 0 : GetLastError();
+    const HWND hit = cursor_ok ? WindowFromPoint(cursor) : nullptr;
+    const HWND root = hit ? GetAncestor(hit, GA_ROOT) : nullptr;
+    record("native_start_route_snapshot", ",\"phase\":\"" + std::string(phase) +
+        "\",\"source_thread\":" + std::to_string(s.source_thread.load()) +
+        ",\"gui_ok\":" + boolean(gui_ok) +
+        ",\"gui_error\":" + std::to_string(gui_error) +
+        ",\"gui_flags\":" + std::to_string(gui.flags) +
+        ",\"capture\":" + std::to_string(hwnd_number(gui.hwndCapture)) +
+        ",\"move_size\":" + std::to_string(hwnd_number(gui.hwndMoveSize)) +
+        ",\"active\":" + std::to_string(hwnd_number(gui.hwndActive)) +
+        ",\"foreground\":" + std::to_string(hwnd_number(GetForegroundWindow())) +
+        ",\"cursor_ok\":" + boolean(cursor_ok) +
+        ",\"cursor\":[" + std::to_string(cursor.x) + "," +
+        std::to_string(cursor.y) + "],\"hit\":" + std::to_string(hwnd_number(hit)) +
+        ",\"root\":" + std::to_string(hwnd_number(root)) +
+        ",\"left_high\":" + boolean(left_high()));
 }
 [[nodiscard]] bool guest_desktop() noexcept {
     DWORD session{};
@@ -414,7 +440,40 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
 LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
                                LPARAM lparam) noexcept {
     switch (message) {
+    case WM_NCHITTEST:
+        if (hwnd == s.source && s.trace_click_route) {
+            const auto extra = GetMessageExtraInfo();
+            const LRESULT result = DefWindowProcW(hwnd, message, wparam, lparam);
+            if (s.traced_hit_tests.fetch_add(1) < 8)
+                record("native_route_nchittest", ",\"point\":[" +
+                    std::to_string(GET_X_LPARAM(lparam)) + "," +
+                    std::to_string(GET_Y_LPARAM(lparam)) +
+                    "],\"at_down_point\":" + boolean(
+                        GET_X_LPARAM(lparam) == s.down_point.x &&
+                        GET_Y_LPARAM(lparam) == s.down_point.y) +
+                    ",\"result\":" + std::to_string(result) +
+                    ",\"extra_info\":" +
+                    std::to_string(static_cast<std::uintptr_t>(extra)));
+            return result;
+        }
+        break;
+    case WM_MOUSEACTIVATE:
+        if (hwnd == s.source && s.trace_click_route) {
+            const auto extra = GetMessageExtraInfo();
+            const LRESULT result = DefWindowProcW(hwnd, message, wparam, lparam);
+            record("native_route_mouseactivate", ",\"hit_code\":" +
+                std::to_string(LOWORD(lparam)) + ",\"mouse_message\":" +
+                std::to_string(HIWORD(lparam)) + ",\"result\":" +
+                std::to_string(result) + ",\"extra_info\":" +
+                std::to_string(static_cast<std::uintptr_t>(extra)));
+            return result;
+        }
+        break;
     case WM_NCLBUTTONDOWN:
+        if (hwnd == s.source)
+            record("native_route_nclbuttondown", ",\"hit_code\":" +
+                std::to_string(wparam) + ",\"extra_info\":" +
+                std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
         if (hwnd == s.source && wparam == HTCAPTION) {
             ++s.native_downs;
             s.tagged_down = GetMessageExtraInfo() == test_tag;
@@ -447,8 +506,18 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         }
         break;
     case WM_LBUTTONDOWN:
+        if (hwnd == s.source)
+            record("native_route_lbuttondown", ",\"extra_info\":" +
+                std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
+        [[fallthrough]];
     case WM_LBUTTONUP:
         if (hwnd == s.control) ++s.control_mouse;
+        break;
+    case WM_SYSCOMMAND:
+        if (hwnd == s.source && (wparam & 0xFFF0) == SC_MOVE)
+            record("native_route_syscommand_move", ",\"command\":" +
+                std::to_string(wparam) + ",\"extra_info\":" +
+                std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
         break;
     case WM_DESTROY:
         if (hwnd == s.source) PostQuitMessage(0);
@@ -850,11 +919,23 @@ void writer_owner() noexcept {
 
 [[nodiscard]] bool begin_native_owned_move() noexcept {
     if (!prepare_owned()) return false;
+    record_start_route_snapshot("before_down");
+    s.traced_hit_tests = 0;
+    s.trace_click_route = true;
     s.held = true;
-    if (!send_mouse(MOUSEEVENTF_LEFTDOWN, s.down_point)) return false;
+    if (!send_mouse(MOUSEEVENTF_LEFTDOWN, s.down_point)) {
+        s.trace_click_route = false;
+        return false;
+    }
     s.start_cursor = POINT{s.down_point.x + 22, s.down_point.y + 18};
-    if (!move_cursor(s.start_cursor) ||
-        !wait_for(s.native_start, 2000, "actual_native_start") ||
+    const bool moved = move_cursor(s.start_cursor);
+    const bool started = moved && wait_for(s.native_start, 2000, "actual_native_start");
+    s.trace_click_route = false;
+    if (!started) {
+        if (moved) record_start_route_snapshot("start_timeout");
+        return false;
+    }
+    if (
         !wait_for(s.raw_down, 1500, "actual_raw_down") ||
         !left_high() || s.native_downs != 1 || s.native_starts != 1 ||
         !s.tagged_down || !s.associated_raw_down ||
