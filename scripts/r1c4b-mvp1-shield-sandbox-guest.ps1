@@ -133,7 +133,7 @@ try {
         $scenario = $testCase.scenario
         $ownedExecutable = $testCase.executable
         $preflightLog = Join-Path $outputDir "$runId-preflight-$configuration-$scenario.jsonl"
-        & $preflight --check-input-state --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-$configuration-$scenario.console.txt")
+        & $preflight --check-guest-input-state --sandbox-run-id $runId --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-$configuration-$scenario.console.txt")
         $preflightExit = $LASTEXITCODE
         $preflightResult = $null
         if (Test-Path -LiteralPath $preflightLog -PathType Leaf) {
@@ -143,11 +143,18 @@ try {
             configuration = $configuration
             scenario = $scenario
             exit_code = $preflightExit
+            mode = 'owned_foreground_bootstrap'
             readiness = if ($preflightResult) { $preflightResult.result } else { 'NO_EVIDENCE' }
+            foreground_owned = if ($preflightResult) { $preflightResult.owned_foreground_bootstrap.foreground_owned } else { $null }
             evidence = $preflightLog
         }
         Save-Summary
-        if ($preflightExit -ne 0 -or -not $preflightResult -or $preflightResult.result -ne 'READY') {
+        if ($preflightExit -ne 0 -or -not $preflightResult -or $preflightResult.result -ne 'READY' -or
+            $preflightResult.schema -cne 'r1c4b-owned-foreground-input-environment/v1' -or
+            $preflightResult.read_only -ne $false -or
+            -not $preflightResult.owned_foreground_bootstrap.foreground_owned -or
+            -not $preflightResult.owned_foreground_bootstrap.destroyed -or
+            -not $preflightResult.owned_foreground_bootstrap.unregistered) {
             throw "Input environment was not READY before $configuration/$scenario; no further input was sent."
         }
 

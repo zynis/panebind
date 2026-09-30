@@ -1,7 +1,8 @@
-// Explicit read-only host check. No HWND creation, hook, Raw Input, input
-// injection, cursor movement, desktop switching or window manipulation.
+// The host check remains read-only. The separate, exact Sandbox test mode
+// creates only its own temporary foreground window before the same capture.
 #include <windows.h>
 #include <wtsapi32.h>
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -10,6 +11,11 @@
 #include <vector>
 
 namespace {
+constexpr wchar_t guest_exe[] = L"C:\\PaneBindMVP1\\Input\\panebind-test-input-environment.exe";
+constexpr wchar_t guest_input_marker[] = L"C:\\PaneBindMVP1\\Input\\run-id.txt";
+constexpr wchar_t guest_output_marker[] = L"C:\\PaneBindMVP1\\Output\\run-id.txt";
+constexpr wchar_t guest_output[] = L"C:\\PaneBindMVP1\\Output\\";
+constexpr wchar_t bootstrap_class[] = L"PaneBindMVP1PreflightOwnedForeground";
 std::int64_t ticks() { LARGE_INTEGER n{};return QueryPerformanceCounter(&n)?n.QuadPart:0; }
 std::string boolean(bool value) { return value?"true":"false"; }
 std::string quote(std::wstring_view value) {
@@ -94,6 +100,83 @@ Context context() {
         s.hook_access&&s.caller_integrity_known&&s.foreground_integrity_known&&s.caller_integrity>=s.foreground_integrity;
     return s;
 }
+bool marker_matches(const wchar_t* path,std::wstring_view run_id) {
+    const HANDLE file=CreateFileW(path,GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+    if(file==INVALID_HANDLE_VALUE)return false;
+    LARGE_INTEGER size{};std::array<char,32> bytes{};DWORD read{};
+    const bool valid=GetFileSizeEx(file,&size)&&size.QuadPart==static_cast<LONGLONG>(bytes.size())&&
+        ReadFile(file,bytes.data(),static_cast<DWORD>(bytes.size()),&read,nullptr)&&read==bytes.size()&&
+        std::equal(bytes.begin(),bytes.end(),run_id.begin(),[](char a,wchar_t b){return static_cast<unsigned char>(a)==b;});
+    CloseHandle(file);return valid;
+}
+bool guest_guard(std::wstring_view run_id,std::wstring_view evidence_log) {
+    if(run_id.size()!=32||!std::all_of(run_id.begin(),run_id.end(),[](wchar_t c){
+        return (c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return false;
+    wchar_t user[256]{};DWORD user_size=static_cast<DWORD>(std::size(user));
+    if(!GetUserNameW(user,&user_size)||std::wstring_view(user)!=L"WDAGUtilityAccount")return false;
+    DWORD process_session{};
+    if(!ProcessIdToSessionId(GetCurrentProcessId(),&process_session)||!process_session)return false;
+    const auto desktop=context();
+    if(!desktop.input_read||!desktop.thread_read||!desktop.station_read||!desktop.session_read||
+        desktop.input_name!=L"Default"||desktop.thread_name!=L"Default"||desktop.station_name!=L"WinSta0"||
+        desktop.session_id!=process_session||desktop.session_state!=WTSActive||
+        desktop.session_flags!=WTS_SESSIONSTATE_UNLOCK||!desktop.hook_access)return false;
+    wchar_t exe[MAX_PATH]{};
+    const DWORD exe_size=GetModuleFileNameW(nullptr,exe,static_cast<DWORD>(std::size(exe)));
+    if(!exe_size||exe_size>=std::size(exe)||
+        CompareStringOrdinal(exe,exe_size,guest_exe,-1,TRUE)!=CSTR_EQUAL)return false;
+    constexpr std::array suffixes{L"-preflight-debug-normal.jsonl",L"-preflight-debug-early-up.jsonl",
+        L"-preflight-debug-setup-fail.jsonl",L"-preflight-debug-stop.jsonl",
+        L"-preflight-debug-writer-stall.jsonl",L"-preflight-release-normal.jsonl"};
+    bool exact_log=false;
+    for(const auto* suffix:suffixes){
+        const std::wstring expected=std::wstring(guest_output)+std::wstring(run_id)+suffix;
+        exact_log=exact_log||CompareStringOrdinal(evidence_log.data(),static_cast<int>(evidence_log.size()),
+            expected.c_str(),static_cast<int>(expected.size()),TRUE)==CSTR_EQUAL;
+    }
+    return exact_log&&marker_matches(guest_input_marker,run_id)&&marker_matches(guest_output_marker,run_id);
+}
+struct Bootstrap {
+    HWND window{};bool registered{},created{},visible{},set_foreground{},foreground_owned{},destroyed{},unregistered{};
+    std::uintptr_t observed_foreground{};DWORD owner_pid{},owner_tid{};
+};
+Bootstrap create_bootstrap() {
+    Bootstrap b;
+    const HINSTANCE instance=GetModuleHandleW(nullptr);
+    WNDCLASSW cls{};cls.lpfnWndProc=DefWindowProcW;cls.hInstance=instance;cls.lpszClassName=bootstrap_class;
+    b.registered=RegisterClassW(&cls)!=0;
+    if(!b.registered)return b;
+    b.window=CreateWindowExW(0,bootstrap_class,L"PaneBind input preflight",WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT,CW_USEDEFAULT,360,140,nullptr,nullptr,instance,nullptr);
+    b.created=b.window!=nullptr;
+    if(!b.created)return b;
+    ShowWindow(b.window,SW_SHOW);
+    b.visible=IsWindowVisible(b.window)!=FALSE;
+    b.owner_tid=GetWindowThreadProcessId(b.window,&b.owner_pid);
+    b.set_foreground=SetForegroundWindow(b.window)!=FALSE;
+    b.observed_foreground=reinterpret_cast<std::uintptr_t>(GetForegroundWindow());
+    b.foreground_owned=b.visible&&b.set_foreground&&
+        b.observed_foreground==reinterpret_cast<std::uintptr_t>(b.window)&&
+        b.owner_pid==GetCurrentProcessId()&&b.owner_tid==GetCurrentThreadId();
+    return b;
+}
+void close_bootstrap(Bootstrap& b) {
+    b.destroyed=b.window&&DestroyWindow(b.window)!=FALSE;
+    b.unregistered=b.registered&&UnregisterClassW(bootstrap_class,GetModuleHandleW(nullptr))!=FALSE;
+}
+std::string bootstrap_fields(const Bootstrap& b) {
+    return "{\"attempted\":true,\"registered\":"+boolean(b.registered)+",\"created\":"+boolean(b.created)+
+        ",\"visible\":"+boolean(b.visible)+",\"set_foreground_succeeded\":"+boolean(b.set_foreground)+
+        ",\"foreground_hwnd\":"+std::to_string(b.observed_foreground)+
+        ",\"owned_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(b.window))+
+        ",\"owner_pid\":"+std::to_string(b.owner_pid)+",\"owner_tid\":"+std::to_string(b.owner_tid)+
+        ",\"foreground_owned\":"+boolean(b.foreground_owned)+",\"destroyed\":"+boolean(b.destroyed)+
+        ",\"unregistered\":"+boolean(b.unregistered)+"}";
+}
+bool write_evidence(HANDLE file,const std::string& line) {
+    DWORD written{};
+    return WriteFile(file,line.data(),static_cast<DWORD>(line.size()),&written,nullptr)&&written==line.size();
+}
 std::string fields(const Context& s) {
     return "{\"start_qpc\":"+std::to_string(s.start)+",\"finish_qpc\":"+std::to_string(s.finish)+
         ",\"input_name\":"+(s.input_read?quote(s.input_name):"null")+",\"thread_name\":"+(s.thread_read?quote(s.thread_name):"null")+",\"station_name\":"+(s.station_read?quote(s.station_name):"null")+
@@ -139,9 +222,29 @@ std::string gui_fields(const ForegroundGui& g){
 const char* predicate(bool known,bool value){return known?(value?"PASS":"FAIL"):"UNKNOWN";}
 }
 int wmain(int argc,wchar_t** argv) {
-    if(argc!=4||std::wstring_view(argv[1])!=L"--check-input-state"||std::wstring_view(argv[2])!=L"--evidence-log")return 2;
-    const auto file=CreateFileW(argv[3],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    const bool read_only=argc==4&&std::wstring_view(argv[1])==L"--check-input-state"&&
+        std::wstring_view(argv[2])==L"--evidence-log";
+    const bool guest=argc==6&&std::wstring_view(argv[1])==L"--check-guest-input-state"&&
+        std::wstring_view(argv[2])==L"--sandbox-run-id"&&std::wstring_view(argv[4])==L"--evidence-log";
+    if(!read_only&&!guest)return 2;
+    if(guest&&!guest_guard(argv[3],argv[5]))return 78;
+    const auto file=CreateFileW(read_only?argv[3]:argv[5],GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(file==INVALID_HANDLE_VALUE)return 1;
+    Bootstrap bootstrap;
+    if(guest){
+        bootstrap=create_bootstrap();
+        if(!bootstrap.foreground_owned){
+            close_bootstrap(bootstrap);
+            const auto line="{\"schema\":\"r1c4b-owned-foreground-input-environment/v1\",\"startup_contract\":\"foreground_gui_readiness_v1\",\"run_id\":"+
+                quote(argv[3])+",\"pid\":"+std::to_string(GetCurrentProcessId())+
+                ",\"tid\":"+std::to_string(GetCurrentThreadId())+
+                ",\"read_only\":false,\"atomic_snapshot\":false,\"owned_foreground_bootstrap\":"+
+                bootstrap_fields(bootstrap)+",\"startup_ready\":false,\"startup_readiness\":\"UNKNOWN\",\"readiness_predicates\":{\"OWNED_FOREGROUND_BOOTSTRAP\":\"UNKNOWN\"},\"first_failed_predicate\":\"OWNED_FOREGROUND_BOOTSTRAP\",\"failed_predicates\":[],\"result\":\"UNKNOWN\"}\n";
+            const bool logged=write_evidence(file,line);CloseHandle(file);
+            std::cout<<(logged?line:"input environment evidence write failed\n");
+            return logged?2:1;
+        }
+    }
     LARGE_INTEGER frequency{};const bool frequency_ok=QueryPerformanceFrequency(&frequency)&&frequency.QuadPart>0;
     const auto before=context();
     const bool buttons_swapped=GetSystemMetrics(SM_SWAPBUTTON)!=0;
@@ -149,6 +252,14 @@ int wmain(int argc,wchar_t** argv) {
     if(before.valid&&frequency_ok){for(auto& key:keys){key.start=ticks();key.attempted=true;key.down=(GetAsyncKeyState(key.code)&0x8000)!=0;key.finish=ticks();}}
     const auto gui=foreground_gui();
     const auto after=context();
+    const auto owned_hwnd=reinterpret_cast<std::uintptr_t>(bootstrap.window);
+    const bool owned_capture=guest&&before.foreground==owned_hwnd&&after.foreground==owned_hwnd&&
+        gui.before.hwnd==owned_hwnd&&gui.after.hwnd==owned_hwnd&&
+        before.foreground_pid==GetCurrentProcessId()&&after.foreground_pid==GetCurrentProcessId()&&
+        gui.before.pid==GetCurrentProcessId()&&gui.after.pid==GetCurrentProcessId()&&
+        before.foreground_tid==GetCurrentThreadId()&&after.foreground_tid==GetCurrentThreadId()&&
+        gui.before.tid==GetCurrentThreadId()&&gui.after.tid==GetCurrentThreadId();
+    if(guest)close_bootstrap(bootstrap);
     // Ordered observations, not an atomic snapshot. Any observed context
     // change invalidates the intervening key samples rather than implying UP.
     const bool gui_bound=gui.stable&&gui.before.hwnd==before.foreground&&gui.before.pid==before.foreground_pid&&gui.before.tid==before.foreground_tid&&gui.after.hwnd==after.foreground&&gui.after.pid==after.foreground_pid&&gui.after.tid==after.foreground_tid;
@@ -168,22 +279,30 @@ int wmain(int argc,wchar_t** argv) {
     const bool tuple_known=before.foreground_known&&after.foreground_known&&gui.before.known&&gui.after.known;
     const bool gui_reliable=gui.succeeded&&gui_bound;
     struct Predicate{const char* name;const char* value;};
-    const std::array readiness{
+    std::vector<Predicate> readiness{
         Predicate{"QPC_VALID",predicate(clock_ok,true)},Predicate{"BEFORE_CONTEXT_VALID",predicate(before.complete,before.valid)},Predicate{"AFTER_CONTEXT_VALID",predicate(after.complete,after.valid)},
         Predicate{"OBSERVATION_CONTEXT_STABLE",predicate(clock_ok&&before.complete&&after.complete&&tuple_known,stable)},Predicate{"BUTTONS_OBSERVED_UP",predicate(keys_reliable,all_up)},Predicate{"INPUT_MAPPING_SUPPORTED",predicate(true,!buttons_swapped)},
         Predicate{"FOREGROUND_GUI_QUERY",gui.attempted?predicate(true,gui.succeeded):"NOT_EVALUATED"},Predicate{"FOREGROUND_GUI_TUPLE_STABLE",predicate(tuple_known,gui_bound)},
         Predicate{"CAPTURE_CLEAR",predicate(gui_reliable,!gui.gui.hwndCapture)},Predicate{"MENU_CLEAR",predicate(gui_reliable,!gui.gui.hwndMenuOwner)},Predicate{"MOVE_SIZE_CLEAR",predicate(gui_reliable,!gui.gui.hwndMoveSize)},Predicate{"DISALLOWED_GUI_FLAGS_CLEAR",predicate(gui_reliable,!(gui.gui.flags&30))}
     };
+    if(guest){
+        readiness.push_back(Predicate{"OWNED_FOREGROUND_STABLE",predicate(tuple_known,owned_capture)});
+        readiness.push_back(Predicate{"OWNED_BOOTSTRAP_CLEANUP",predicate(true,bootstrap.destroyed&&bootstrap.unregistered)});
+    }
     bool ready=true,known_failure=false;const char* first="NONE";std::string predicates="{",failed="[";bool failed_first=true;
     for(std::size_t i=0;i<readiness.size();++i){const auto& p=readiness[i];if(i)predicates+=',';predicates+='"'+std::string(p.name)+"\":\""+p.value+'"';
         if(std::string_view(p.value)!="PASS"){ready=false;if(std::string_view(first)=="NONE")first=p.name;}
         if(std::string_view(p.value)=="FAIL"){known_failure=true;if(!failed_first)failed+=',';failed+='"'+std::string(p.name)+'"';failed_first=false;}}
     predicates+='}';failed+=']';const char* result=ready?"READY":(known_failure?"BLOCKED":"UNKNOWN");
     const char* button_observation=keys_reliable?(any_down?"OBSERVED_DOWN":"OBSERVED_UP"):"UNKNOWN";
-    const auto line="{\"schema\":\"r1c4b-readonly-input-environment/v2\",\"startup_contract\":\"foreground_gui_readiness_v1\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(GetCurrentThreadId())+
-        ",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)+",\"read_only\":true,\"atomic_snapshot\":false,\"before\":"+fields(before)+",\"keys\":"+key_fields+",\"foreground_gui\":"+gui_fields(gui)+",\"after\":"+fields(after)+
+    const std::string guest_fields=guest?",\"run_id\":"+quote(argv[3])+
+        ",\"owned_foreground_bootstrap\":"+bootstrap_fields(bootstrap):"";
+    const auto line="{\"schema\":\""+std::string(guest?"r1c4b-owned-foreground-input-environment/v1":"r1c4b-readonly-input-environment/v2")+
+        "\",\"startup_contract\":\"foreground_gui_readiness_v1\",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(GetCurrentThreadId())+
+        ",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)+",\"read_only\":"+boolean(read_only)+guest_fields+
+        ",\"atomic_snapshot\":false,\"before\":"+fields(before)+",\"keys\":"+key_fields+",\"foreground_gui\":"+gui_fields(gui)+",\"after\":"+fields(after)+
         ",\"context_reliable\":"+boolean(stable)+",\"mouse_buttons_swapped\":"+boolean(buttons_swapped)+",\"all_required_inputs_up\":"+boolean(all_up)+",\"buttons_observed_up\":"+boolean(all_up)+",\"buttons_observation\":\""+button_observation+"\",\"startup_ready\":"+boolean(ready)+",\"startup_readiness\":\""+result+"\",\"readiness_predicates\":"+predicates+",\"first_failed_predicate\":\""+first+"\",\"failed_predicates\":"+failed+",\"result\":\""+result+"\"}\n";
-    DWORD written{};const bool logged=WriteFile(file,line.data(),static_cast<DWORD>(line.size()),&written,nullptr)&&written==line.size();CloseHandle(file);
+    const bool logged=write_evidence(file,line);CloseHandle(file);
     std::cout<<(logged?line:"input environment evidence write failed\n");
     return logged?(ready?0:2):1;
 }
