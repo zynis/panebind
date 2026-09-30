@@ -351,6 +351,12 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_initial_exstyle\":" << *event.shield_initial_exstyle;
         if (event.shield_created_exstyle)
             fields << ",\"shield_created_exstyle\":" << *event.shield_created_exstyle;
+        if (event.shield_route_message)
+            fields << ",\"shield_route_message\":" << *event.shield_route_message;
+        if (event.shield_route_wparam)
+            fields << ",\"shield_route_wparam\":" << *event.shield_route_wparam;
+        if (event.shield_route_capture)
+            fields << ",\"shield_route_capture\":" << *event.shield_route_capture;
         if (event.shield_initial_placement)
             fields << ",\"shield_initial_placement\":" <<
                 shield_placement_json(*event.shield_initial_placement);

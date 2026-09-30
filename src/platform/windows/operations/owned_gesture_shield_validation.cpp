@@ -78,6 +78,7 @@ struct State {
     std::atomic<bool> snapped_exact{false}, resource_failure{false};
     std::atomic<bool> trace_click_route{false};
     std::atomic<std::uint32_t> traced_hit_tests{0};
+    std::atomic<std::uint32_t> traced_legacy_moves{0};
     std::mutex down_mutex, raw_mutex, cancel_mutex;
     bool cancel_claimed{}; // Orders observed Raw UP versus one bounded claim.
     std::optional<POINT> observed_down;
@@ -219,6 +220,34 @@ void record_start_route_snapshot(std::string_view phase) noexcept {
         ",\"cursor_ok\":" + boolean(cursor_ok) +
         ",\"cursor\":[" + std::to_string(cursor.x) + "," +
         std::to_string(cursor.y) + "],\"hit\":" + std::to_string(hwnd_number(hit)) +
+        ",\"root\":" + std::to_string(hwnd_number(root)) +
+        ",\"left_high\":" + boolean(left_high()));
+}
+void record_release_route_snapshot(std::string_view reason,
+                                   std::string_view phase) noexcept {
+    POINT cursor{};
+    const bool cursor_ok = GetCursorPos(&cursor) != FALSE;
+    GUITHREADINFO gui{sizeof(gui)};
+    SetLastError(0);
+    const bool gui_ok = GetGUIThreadInfo(s.source_thread, &gui) != FALSE;
+    const DWORD gui_error = gui_ok ? 0 : GetLastError();
+    const HWND hit = cursor_ok ? WindowFromPoint(cursor) : nullptr;
+    const HWND root = hit ? GetAncestor(hit, GA_ROOT) : nullptr;
+    record("test_up_route_snapshot", ",\"reason\":\"" + std::string(reason) +
+        "\",\"phase\":\"" + std::string(phase) +
+        "\",\"source\":" + std::to_string(hwnd_number(s.source)) +
+        ",\"source_thread\":" + std::to_string(s.source_thread.load()) +
+        ",\"gui_ok\":" + boolean(gui_ok) +
+        ",\"gui_error\":" + std::to_string(gui_error) +
+        ",\"gui_flags\":" + std::to_string(gui.flags) +
+        ",\"capture\":" + std::to_string(hwnd_number(gui.hwndCapture)) +
+        ",\"move_size\":" + std::to_string(hwnd_number(gui.hwndMoveSize)) +
+        ",\"foreground\":" +
+            std::to_string(hwnd_number(GetForegroundWindow())) +
+        ",\"cursor_ok\":" + boolean(cursor_ok) +
+        ",\"cursor\":[" + std::to_string(cursor.x) + "," +
+            std::to_string(cursor.y) + "],\"hit\":" +
+            std::to_string(hwnd_number(hit)) +
         ",\"root\":" + std::to_string(hwnd_number(root)) +
         ",\"left_high\":" + boolean(left_high()));
 }
@@ -408,7 +437,29 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             record("raw_up", ",\"packet\":" + std::to_string(event.raw_sequence) +
                 ",\"generation_at_receiver\":" + std::to_string(event.generation) +
                 ",\"owned_down_matched\":" + boolean(matched) +
-                ",\"own_hit\":" + boolean(own_hit));
+                ",\"own_hit\":" + boolean(own_hit) +
+                ",\"message_time\":" + std::to_string(event.message_time) +
+                ",\"message_point\":[" + std::to_string(event.message_point.x) +
+                "," + std::to_string(event.message_point.y) + "]" +
+                ",\"message_point_root\":" +
+                    std::to_string(hwnd_number(event.message_point_root)) +
+                ",\"cursor_available\":" + boolean(event.cursor_available) +
+                ",\"cursor\":[" + std::to_string(event.cursor_now.x) + "," +
+                    std::to_string(event.cursor_now.y) + "]" +
+                ",\"cursor_root\":" + std::to_string(hwnd_number(
+                    event.cursor_available ? root_at(event.cursor_now) : nullptr)) +
+                ",\"observed_foreground\":" +
+                    std::to_string(hwnd_number(event.observed_foreground)) +
+                ",\"foreground_gui_available\":" +
+                    boolean(event.foreground_gui_available) +
+                ",\"foreground_capture\":" +
+                    std::to_string(hwnd_number(event.foreground_capture)) +
+                ",\"foreground_move_size\":" +
+                    std::to_string(hwnd_number(event.foreground_move_size)) +
+                ",\"foreground_gui_flags\":" +
+                    std::to_string(event.foreground_gui_flags) +
+                ",\"overlay\":" + std::to_string(hwnd_number(s.overlay)) +
+                ",\"left_high_at_receiver\":" + boolean(left_high()));
             SetEvent(s.raw_up);
         } else if (event.cursor_available && event.generation == generation &&
                    s.armed && !s.retired && s.associated_raw_down &&
@@ -435,6 +486,22 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
                 (void)s.shield->request_remove(generation,
                     op::GestureShieldRemovalReason::NormalUp);
         }
+        break;
+    case op::GestureShieldEventKind::OverlayMouseRoute:
+        record("overlay_mouse_route", ",\"generation\":" +
+            std::to_string(event.generation) + ",\"overlay\":" +
+            std::to_string(hwnd_number(event.overlay)) +
+            ",\"message\":" + std::to_string(event.route_message) +
+            ",\"wparam\":" + std::to_string(event.route_wparam) +
+            ",\"capture\":" +
+                std::to_string(hwnd_number(event.route_capture)) +
+            ",\"message_time\":" + std::to_string(event.message_time) +
+            ",\"message_point\":[" +
+                std::to_string(event.message_point.x) + "," +
+                std::to_string(event.message_point.y) + "]" +
+            ",\"cursor_available\":" + boolean(event.cursor_available) +
+            ",\"cursor\":[" + std::to_string(event.cursor_now.x) + "," +
+                std::to_string(event.cursor_now.y) + "]");
         break;
     case op::GestureShieldEventKind::IsolationReady:
         s.overlay = event.overlay;
@@ -500,6 +567,28 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             std::to_string(event.observed_exstyle) + shield_setup_json(event));
         break;
     }
+}
+
+void record_owned_mouse_route(HWND hwnd, UINT message, WPARAM wparam,
+                              LPARAM lparam) noexcept {
+    if (hwnd != s.source && hwnd != s.control) return;
+    if (message == WM_MOUSEMOVE &&
+        (!s.held || s.traced_legacy_moves.fetch_add(1) >= 4)) return;
+    record("owned_mouse_route", ",\"generation\":" +
+        std::to_string(s.generation) + ",\"hwnd\":" +
+        std::to_string(hwnd_number(hwnd)) + ",\"role\":\"" +
+        (hwnd == s.source ? "source" : "control") +
+        "\",\"message\":" + std::to_string(message) +
+        ",\"wparam\":" +
+            std::to_string(static_cast<std::uintptr_t>(wparam)) +
+        ",\"lparam\":" +
+            std::to_string(static_cast<std::uintptr_t>(lparam)) +
+        ",\"thread_capture\":" +
+            std::to_string(hwnd_number(GetCapture())) +
+        ",\"foreground\":" +
+            std::to_string(hwnd_number(GetForegroundWindow())) +
+        ",\"extra_info\":" + std::to_string(
+            static_cast<std::uintptr_t>(GetMessageExtraInfo())));
 }
 
 LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
@@ -580,7 +669,14 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         }
         [[fallthrough]];
     case WM_LBUTTONUP:
+        if (message == WM_LBUTTONUP)
+            record_owned_mouse_route(hwnd, message, wparam, lparam);
         if (hwnd == s.control) ++s.control_mouse;
+        break;
+    case WM_NCLBUTTONUP:
+    case WM_CAPTURECHANGED:
+    case WM_MOUSEMOVE:
+        record_owned_mouse_route(hwnd, message, wparam, lparam);
         break;
     case WM_SYSCOMMAND:
         if (hwnd == s.source && (wparam & 0xFFF0) == SC_MOVE)
@@ -934,8 +1030,10 @@ void writer_owner() noexcept {
         std::to_string(hwnd_number(GetForegroundWindow())) +
         ",\"exact_owned_route\":" + boolean(own_route));
     if (!own_route) return false; // Guest failure, never inject into a foreign root.
+    record_release_route_snapshot(reason, "before_sendinput");
     if (!send_mouse(MOUSEEVENTF_LEFTUP, cursor)) return false;
     const bool observed = wait_for(s.raw_up, 1500, "actual_raw_cleanup_up");
+    record_release_route_snapshot(reason, "after_raw_wait");
     Sleep(30); // Test-only async key readback, not an input event source.
     const bool released = !left_high();
     if (released) s.held = false; // AFTER the Raw callback associated this UP.

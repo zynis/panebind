@@ -176,6 +176,14 @@ void copy_shield_setup(MvpEvidenceEvent& evidence,
     evidence.shield_windowpos_changing = shield.windowpos_changing;
     evidence.shield_windowpos_changed = shield.windowpos_changed;
 }
+
+void copy_shield_route(MvpEvidenceEvent& evidence,
+                       const op::GestureShieldEvent& shield) noexcept {
+    evidence.shield_route_message = shield.route_message;
+    evidence.shield_route_wparam = shield.route_wparam;
+    evidence.shield_route_capture =
+        reinterpret_cast<std::uintptr_t>(shield.route_capture);
+}
 } // namespace
 
 struct ExplorerMvpSession::Impl final {
@@ -289,6 +297,10 @@ struct ExplorerMvpSession::Impl final {
             } else if (item.kind == op::GestureShieldEventKind::LegacyLeftUp) {
                 event = event_for(MvpEvidenceKind::LegacyUp, current,
                                   "overlay_message_observed");
+            } else if (item.kind == op::GestureShieldEventKind::OverlayMouseRoute) {
+                event = event_for(MvpEvidenceKind::Resource, current,
+                                  "overlay_mouse_route_observed");
+                copy_shield_route(event, item);
             } else if (item.kind == op::GestureShieldEventKind::IsolationReady) {
                 event = event_for(MvpEvidenceKind::IsolationReady, current,
                                   "readback_observed");
@@ -1093,6 +1105,11 @@ bool ExplorerMvpSession::Impl::pump() {
             case op::GestureShieldEventKind::LegacyLeftUp:
                 evidence = event_for(MvpEvidenceKind::LegacyUp, current,
                                      "overlay_message_observed");
+                break;
+            case op::GestureShieldEventKind::OverlayMouseRoute:
+                evidence = event_for(MvpEvidenceKind::Resource, current,
+                                     "overlay_mouse_route_observed");
+                copy_shield_route(evidence, event);
                 break;
             case op::GestureShieldEventKind::IsolationGone:
                 evidence = event_for(MvpEvidenceKind::IsolationGone, current,

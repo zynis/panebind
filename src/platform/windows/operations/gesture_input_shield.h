@@ -28,6 +28,7 @@ enum class GestureShieldEventKind {
     Deadline,
     ContextLost,
     ResourceFailure,
+    OverlayMouseRoute,
 };
 
 enum class GestureShieldRemovalReason {
@@ -146,6 +147,11 @@ struct GestureShieldEvent {
     LONG raw_delta_x{};
     LONG raw_delta_y{};
     HWND overlay{};
+    // Bounded route diagnostics from this self-owned overlay's WndProc only.
+    // GetCapture observes this resource thread, not arbitrary foreign capture.
+    UINT route_message{};
+    std::uintptr_t route_wparam{};
+    HWND route_capture{};
     DWORD win32_error{};
     GestureShieldSetupStage setup_stage{GestureShieldSetupStage::None};
     GestureShieldNativeFailure native_failure{GestureShieldNativeFailure::None};

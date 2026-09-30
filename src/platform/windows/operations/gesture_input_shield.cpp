@@ -224,6 +224,7 @@ struct GestureInputShield::Impl {
     bool raw_registered{};
     bool hotkey_registered{};
     std::uint64_t raw_sequence{};
+    std::uint32_t overlay_route_mouse_moves_emitted{};
     POINT message_point{};
     DWORD message_time{};
     ULONGLONG deadline_tick{};
@@ -376,6 +377,25 @@ struct GestureInputShield::Impl {
             record_windowpos(self->windowpos_changed, window, lparam);
         if (message == WM_NCHITTEST) return HTCLIENT;
         if (message == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
+        if (self->current && self->overlay == window &&
+            (message == WM_LBUTTONUP || message == WM_NCLBUTTONUP ||
+             message == WM_CAPTURECHANGED ||
+             (message == WM_MOUSEMOVE &&
+              self->overlay_route_mouse_moves_emitted < 4))) {
+            if (message == WM_MOUSEMOVE)
+                ++self->overlay_route_mouse_moves_emitted;
+            GestureShieldEvent route{};
+            route.kind = GestureShieldEventKind::OverlayMouseRoute;
+            route.generation = self->current->generation;
+            route.overlay = window;
+            route.route_message = message;
+            route.route_wparam = static_cast<std::uintptr_t>(wparam);
+            route.route_capture = GetCapture();
+            route.message_point = self->message_point;
+            route.message_time = self->message_time;
+            route.cursor_available = GetCursorPos(&route.cursor_now) != FALSE;
+            self->emit(route);
+        }
         if (message == WM_LBUTTONUP) {
             GestureShieldEvent event{};
             event.kind = GestureShieldEventKind::LegacyLeftUp;
@@ -527,6 +547,7 @@ struct GestureInputShield::Impl {
         diagnostic.stage = GestureShieldSetupStage::CreateWindow;
         windowpos_changing = {};
         windowpos_changed = {};
+        overlay_route_mouse_moves_emitted = 0;
         SetLastError(0);
         overlay = CreateWindowExW(WS_EX_LAYERED | WS_EX_NOACTIVATE |
             WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
