@@ -79,15 +79,21 @@ bool exact_source(const GestureShieldRequest& request) noexcept {
     return true;
 }
 
-bool native_plain_move_live(const GestureShieldRequest& request) noexcept {
-    if (!exact_source(request) || !interactive_default_desktop() ||
-        GetForegroundWindow() != request.source || !physical_move_buttons())
-        return false;
+GestureShieldNativeFailure native_plain_move_failure(
+    const GestureShieldRequest& request) noexcept {
+    if (!exact_source(request)) return GestureShieldNativeFailure::SourceIdentity;
+    if (!interactive_default_desktop()) return GestureShieldNativeFailure::InputDesktop;
+    if (GetForegroundWindow() != request.source)
+        return GestureShieldNativeFailure::Foreground;
+    if (!physical_move_buttons()) return GestureShieldNativeFailure::PhysicalButtons;
     GUITHREADINFO gui{sizeof(gui)};
-    return GetGUIThreadInfo(request.thread_id, &gui) &&
-        gui.hwndCapture == request.source && gui.hwndMoveSize == request.source &&
-        (gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE | GUI_POPUPMENUMODE)) == 0 &&
-        !gui.hwndMenuOwner;
+    if (!GetGUIThreadInfo(request.thread_id, &gui))
+        return GestureShieldNativeFailure::GuiQuery;
+    if (gui.hwndCapture != request.source) return GestureShieldNativeFailure::Capture;
+    if (gui.hwndMoveSize != request.source) return GestureShieldNativeFailure::MoveSize;
+    if ((gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE | GUI_POPUPMENUMODE)) != 0 ||
+        gui.hwndMenuOwner) return GestureShieldNativeFailure::MenuMode;
+    return GestureShieldNativeFailure::None;
 }
 
 bool virtual_desktop_rect(RECT& result) noexcept {
@@ -148,6 +154,13 @@ MouseRegistration mouse_registration(HWND receiver) noexcept {
 } // namespace
 
 struct GestureInputShield::Impl {
+    struct SetupDiagnostics {
+        GestureShieldSetupStage stage{GestureShieldSetupStage::None};
+        GestureShieldNativeFailure native{GestureShieldNativeFailure::None};
+        GestureShieldReadbackFailure readback{GestureShieldReadbackFailure::None};
+        DWORD error{};
+    };
+
     explicit Impl(GestureShieldCallbacks value) : callbacks(std::move(value)) {
         stop_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
         command_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
@@ -220,12 +233,19 @@ struct GestureInputShield::Impl {
         }
     }
 
-    void failure(std::uint64_t generation, DWORD error) noexcept {
+    void failure(std::uint64_t generation, DWORD error,
+                 const SetupDiagnostics* setup = nullptr) noexcept {
         GestureShieldEvent event{};
         event.kind = GestureShieldEventKind::ResourceFailure;
         event.generation = generation;
         event.overlay = overlay;
-        event.win32_error = error ? error : ERROR_INVALID_STATE;
+        event.win32_error = setup ? setup->error :
+            (error ? error : ERROR_INVALID_STATE);
+        if (setup) {
+            event.setup_stage = setup->stage;
+            event.native_failure = setup->native;
+            event.readback_failure = setup->readback;
+        }
         emit(event);
     }
 
@@ -392,47 +412,82 @@ struct GestureInputShield::Impl {
         return foreground_hook && desktop_hook;
     }
 
-    [[nodiscard]] bool overlay_readback(const GestureShieldRequest& request,
-                                         const RECT& requested,
-                                         HWND foreground_before) noexcept {
-        if (!overlay || !IsWindow(overlay)) return false;
+    [[nodiscard]] GestureShieldReadbackFailure overlay_readback(
+        const GestureShieldRequest& request, const RECT& requested,
+        HWND foreground_before, SetupDiagnostics& diagnostic) noexcept {
+        if (!overlay || !IsWindow(overlay))
+            return GestureShieldReadbackFailure::OverlayIdentity;
         DWORD pid{};
         const bool identity = GetWindowThreadProcessId(overlay, &pid) == thread_id &&
             pid == GetCurrentProcessId();
+        if (!identity) return GestureShieldReadbackFailure::OverlayIdentity;
         RECT actual{};
-        const bool rect_exact = GetWindowRect(overlay, &actual) &&
-            EqualRect(&actual, &requested);
+        SetLastError(0);
+        if (!GetWindowRect(overlay, &actual)) {
+            diagnostic.error = GetLastError();
+            return GestureShieldReadbackFailure::Rectangle;
+        }
+        if (!EqualRect(&actual, &requested))
+            return GestureShieldReadbackFailure::Rectangle;
         const auto style = GetWindowLongPtrW(overlay, GWL_EXSTYLE);
         const bool style_exact = (style & (WS_EX_LAYERED | WS_EX_NOACTIVATE |
             WS_EX_TOPMOST)) == (WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOPMOST) &&
             (style & WS_EX_TRANSPARENT) == 0;
+        if (!style_exact) return GestureShieldReadbackFailure::Style;
         BYTE actual_alpha{};
         DWORD alpha_flags{};
-        const bool alpha_exact = GetLayeredWindowAttributes(overlay, nullptr,
-            &actual_alpha, &alpha_flags) && actual_alpha == isolation_alpha &&
-            alpha_flags == LWA_ALPHA;
+        SetLastError(0);
+        if (!GetLayeredWindowAttributes(overlay, nullptr, &actual_alpha, &alpha_flags)) {
+            diagnostic.error = GetLastError();
+            return GestureShieldReadbackFailure::Alpha;
+        }
+        if (actual_alpha != isolation_alpha || alpha_flags != LWA_ALPHA)
+            return GestureShieldReadbackFailure::Alpha;
+        if (!IsWindowVisible(overlay)) return GestureShieldReadbackFailure::Visibility;
         POINT cursor{};
-        const bool cursor_hit = GetCursorPos(&cursor) && root_at(cursor) == overlay;
+        SetLastError(0);
+        if (!GetCursorPos(&cursor)) {
+            diagnostic.error = GetLastError();
+            return GestureShieldReadbackFailure::CursorHit;
+        }
+        if (root_at(cursor) != overlay)
+            return GestureShieldReadbackFailure::CursorHit;
         MonitorHitFacts hits{overlay};
-        const bool monitors = EnumDisplayMonitors(nullptr, nullptr,
-            count_monitor_hits, reinterpret_cast<LPARAM>(&hits)) &&
-            !hits.overflow && hits.count > 0 && hits.count == hits.hits;
-        return identity && rect_exact && style_exact && alpha_exact &&
-            IsWindowVisible(overlay) && cursor_hit && monitors &&
-            GetForegroundWindow() == foreground_before &&
-            foreground_before == request.source && native_plain_move_live(request);
+        SetLastError(0);
+        const bool enumerated = EnumDisplayMonitors(nullptr, nullptr,
+            count_monitor_hits, reinterpret_cast<LPARAM>(&hits)) != FALSE;
+        if (!enumerated) diagnostic.error = GetLastError();
+        if (!enumerated || hits.overflow || hits.count == 0 || hits.count != hits.hits)
+            return GestureShieldReadbackFailure::MonitorHit;
+        if (GetForegroundWindow() != foreground_before ||
+            foreground_before != request.source)
+            return GestureShieldReadbackFailure::Foreground;
+        diagnostic.native = native_plain_move_failure(request);
+        if (diagnostic.native != GestureShieldNativeFailure::None)
+            return GestureShieldReadbackFailure::NativeLive;
+        return GestureShieldReadbackFailure::None;
     }
 
-    [[nodiscard]] bool create_overlay(const GestureShieldRequest& request) noexcept {
+    [[nodiscard]] bool create_overlay(const GestureShieldRequest& request,
+                                      SetupDiagnostics& diagnostic) noexcept {
         deadline_tick = GetTickCount64() + isolation_deadline_ms;
         RECT virtual_rect{};
-        if (!virtual_desktop_rect(virtual_rect) || !native_plain_move_live(request))
-            return false;
+        diagnostic.stage = GestureShieldSetupStage::VirtualScreen;
+        if (!virtual_desktop_rect(virtual_rect)) return false;
+        diagnostic.stage = GestureShieldSetupStage::PreLive;
+        diagnostic.native = native_plain_move_failure(request);
+        if (diagnostic.native != GestureShieldNativeFailure::None) return false;
         bool authorized = false;
+        diagnostic.stage = GestureShieldSetupStage::Authorization;
         try { authorized = callbacks.gesture_authorized(request); }
         catch (...) { return false; }
-        if (!authorized || !native_plain_move_live(request)) return false;
+        if (!authorized) return false;
+        diagnostic.stage = GestureShieldSetupStage::PostLive;
+        diagnostic.native = native_plain_move_failure(request);
+        if (diagnostic.native != GestureShieldNativeFailure::None) return false;
         const HWND foreground_before = GetForegroundWindow();
+        diagnostic.stage = GestureShieldSetupStage::CreateWindow;
+        SetLastError(0);
         overlay = CreateWindowExW(WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
             overlay_class_name.c_str(), L"PaneBind gesture input shield", WS_POPUP,
             virtual_rect.left, virtual_rect.top,
@@ -440,20 +495,37 @@ struct GestureInputShield::Impl {
             virtual_rect.bottom - virtual_rect.top, nullptr, nullptr,
             GetModuleHandleW(nullptr), this);
         overlay_destroyed = overlay == nullptr;
-        if (!overlay) return false;
-        const bool alpha_set = SetLayeredWindowAttributes(overlay, 0,
-            isolation_alpha, LWA_ALPHA) != FALSE;
-        const bool placed = alpha_set && SetWindowPos(overlay, HWND_TOPMOST,
+        if (!overlay) { diagnostic.error = GetLastError(); return false; }
+        diagnostic.stage = GestureShieldSetupStage::SetAlpha;
+        SetLastError(0);
+        if (!SetLayeredWindowAttributes(overlay, 0, isolation_alpha, LWA_ALPHA)) {
+            diagnostic.error = GetLastError();
+            return false;
+        }
+        diagnostic.stage = GestureShieldSetupStage::PlaceWindow;
+        SetLastError(0);
+        if (!SetWindowPos(overlay, HWND_TOPMOST,
             virtual_rect.left, virtual_rect.top,
             virtual_rect.right - virtual_rect.left,
             virtual_rect.bottom - virtual_rect.top,
-            SWP_NOACTIVATE | SWP_SHOWWINDOW) != FALSE;
-        if (!placed || !overlay_readback(request, virtual_rect, foreground_before))
+            SWP_NOACTIVATE | SWP_SHOWWINDOW)) {
+            diagnostic.error = GetLastError();
             return false;
+        }
+        diagnostic.stage = GestureShieldSetupStage::Readback;
+        diagnostic.readback = overlay_readback(request, virtual_rect,
+                                               foreground_before, diagnostic);
+        if (diagnostic.readback != GestureShieldReadbackFailure::None) return false;
+        diagnostic.stage = GestureShieldSetupStage::RegisterHotkey;
+        SetLastError(0);
         hotkey_registered = RegisterHotKey(nullptr, stop_hotkey_id,
             stop_hotkey_modifiers, stop_hotkey_key) != FALSE;
         hotkey_unregistered = !hotkey_registered;
-        return hotkey_registered && GetTickCount64() < deadline_tick;
+        if (!hotkey_registered) { diagnostic.error = GetLastError(); return false; }
+        diagnostic.stage = GestureShieldSetupStage::Deadline;
+        if (GetTickCount64() >= deadline_tick) return false;
+        diagnostic.stage = GestureShieldSetupStage::None;
+        return true;
     }
 
     [[nodiscard]] bool remove_overlay(GestureShieldRemovalReason reason) noexcept {
@@ -525,8 +597,8 @@ struct GestureInputShield::Impl {
             std::lock_guard lock{command_mutex};
             current = *start;
         }
-        const bool created = create_overlay(*start);
-        const DWORD setup_error = created ? 0 : GetLastError();
+        SetupDiagnostics setup{};
+        const bool created = create_overlay(*start, setup);
         const bool expired = deadline_tick && GetTickCount64() >= deadline_tick;
         const bool lost = context_lost.exchange(false);
         bool revoked = expired || lost || stopping ||
@@ -558,7 +630,7 @@ struct GestureInputShield::Impl {
                 event.overlay = overlay;
                 emit(event);
             }
-            if (!created) failure(start->generation, setup_error);
+            if (!created) failure(start->generation, setup.error, &setup);
             (void)remove_overlay(expired ? GestureShieldRemovalReason::Deadline :
                 (lost ? GestureShieldRemovalReason::ContextLost :
                 (created ? GestureShieldRemovalReason::ExplicitStop :

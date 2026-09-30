@@ -290,8 +290,12 @@ struct ExplorerMvpSession::Impl final {
                     item.kind == op::GestureShieldEventKind::ContextLost ? "context_lost_observed" :
                     "resource_failure_observed";
                 event = event_for(MvpEvidenceKind::Resource, current, reason);
-                if (item.kind == op::GestureShieldEventKind::ResourceFailure)
+                if (item.kind == op::GestureShieldEventKind::ResourceFailure) {
                     event.win32_error = item.win32_error;
+                    event.shield_setup_stage = static_cast<std::uint32_t>(item.setup_stage);
+                    event.shield_native_failure = static_cast<std::uint32_t>(item.native_failure);
+                    event.shield_readback_failure = static_cast<std::uint32_t>(item.readback_failure);
+                }
             }
             if (item.generation) event.generation = item.generation;
             event.overlay = reinterpret_cast<std::uintptr_t>(item.overlay);
@@ -1097,6 +1101,9 @@ bool ExplorerMvpSession::Impl::pump() {
                 evidence = event_for(MvpEvidenceKind::Resource, current,
                                      "resource_failure_observed");
                 evidence.win32_error = event.win32_error;
+                evidence.shield_setup_stage = static_cast<std::uint32_t>(event.setup_stage);
+                evidence.shield_native_failure = static_cast<std::uint32_t>(event.native_failure);
+                evidence.shield_readback_failure = static_cast<std::uint32_t>(event.readback_failure);
                 break;
             case op::GestureShieldEventKind::RawMouse:
                 break;

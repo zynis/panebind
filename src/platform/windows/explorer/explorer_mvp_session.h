@@ -33,6 +33,8 @@ struct MvpEvidenceEvent final {
     std::optional<bool> receiver_destroyed, raw_registration_removed;
     std::optional<bool> winevent_unhooked, classes_unregistered;
     std::optional<std::uint32_t> win32_error;
+    std::optional<std::uint32_t> shield_setup_stage, shield_native_failure,
+        shield_readback_failure;
     std::uintptr_t overlay{};
 };
 

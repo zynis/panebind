@@ -432,7 +432,13 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         retire("resource_or_context", b::MoveHandoffEscapeReason::ContextLost);
         record("resource_or_context", ",\"kind\":" +
             std::to_string(static_cast<int>(event.kind)) +
-            ",\"error\":" + std::to_string(event.win32_error));
+            ",\"error\":" + std::to_string(event.win32_error) +
+            ",\"setup_stage\":" +
+            std::to_string(static_cast<int>(event.setup_stage)) +
+            ",\"native_failure\":" +
+            std::to_string(static_cast<int>(event.native_failure)) +
+            ",\"readback_failure\":" +
+            std::to_string(static_cast<int>(event.readback_failure)));
         break;
     }
 }

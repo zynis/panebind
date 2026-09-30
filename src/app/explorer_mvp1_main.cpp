@@ -295,6 +295,12 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
         optional_bool("classes_unregistered", event.classes_unregistered);
         if (event.win32_error)
             fields << ",\"win32_error\":" << *event.win32_error;
+        if (event.shield_setup_stage)
+            fields << ",\"shield_setup_stage\":" << *event.shield_setup_stage;
+        if (event.shield_native_failure)
+            fields << ",\"shield_native_failure\":" << *event.shield_native_failure;
+        if (event.shield_readback_failure)
+            fields << ",\"shield_readback_failure\":" << *event.shield_readback_failure;
         if (event.overlay)
             fields << ",\"overlay\":" << event.overlay;
         if (!evidence.record("gesture_event", fields.str())) return false;

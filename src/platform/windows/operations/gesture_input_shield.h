@@ -39,6 +39,47 @@ enum class GestureShieldRemovalReason {
     Shutdown,
 };
 
+// Setup diagnostics are observations, never authority to cancel or write.
+// None in a ResourceFailure means the failure was outside overlay setup.
+enum class GestureShieldSetupStage {
+    None,
+    VirtualScreen,
+    PreLive,
+    Authorization,
+    PostLive,
+    CreateWindow,
+    SetAlpha,
+    PlaceWindow,
+    Readback,
+    RegisterHotkey,
+    Deadline,
+};
+
+enum class GestureShieldNativeFailure {
+    None,
+    SourceIdentity,
+    InputDesktop,
+    Foreground,
+    PhysicalButtons,
+    GuiQuery,
+    Capture,
+    MoveSize,
+    MenuMode,
+};
+
+enum class GestureShieldReadbackFailure {
+    None,
+    OverlayIdentity,
+    Rectangle,
+    Style,
+    Alpha,
+    Visibility,
+    CursorHit,
+    MonitorHit,
+    Foreground,
+    NativeLive,
+};
+
 struct GestureShieldEvent {
     GestureShieldEventKind kind{};
     std::uint64_t generation{};
@@ -70,6 +111,9 @@ struct GestureShieldEvent {
     LONG raw_delta_y{};
     HWND overlay{};
     DWORD win32_error{};
+    GestureShieldSetupStage setup_stage{GestureShieldSetupStage::None};
+    GestureShieldNativeFailure native_failure{GestureShieldNativeFailure::None};
+    GestureShieldReadbackFailure readback_failure{GestureShieldReadbackFailure::None};
     GestureShieldRemovalReason removal_reason{GestureShieldRemovalReason::Shutdown};
     bool overlay_destroyed{};
     bool hotkey_unregistered{};
