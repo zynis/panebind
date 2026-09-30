@@ -58,7 +58,7 @@ struct State {
     bool log_stop{};
     std::atomic<bool> log_ok{true};
     std::uint64_t log_sequence{};
-    HANDLE ui_ready{}, ui_gone{}, native_start{}, native_end{}, modal_return{};
+    HANDLE ui_ready{}, ui_gone{}, legacy_down{}, native_start{}, native_end{}, modal_return{};
     HANDLE raw_down{}, raw_up{}, legacy_up{}, isolation_ready{}, isolation_gone{};
     HANDLE hotkey_stop{}, writer_receipt{}, writer_stall_started{}, writer_gone{}, raw_notice{};
     std::atomic<HWND> source{nullptr}, control{nullptr}, overlay{nullptr};
@@ -486,10 +486,12 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
             }
             record("owned_native_down", ",\"tagged\":" + boolean(s.tagged_down) +
                 ",\"frame_captured\":" + boolean(frame.has_value()));
+            SetEvent(s.legacy_down);
             const LRESULT result = DefWindowProcW(hwnd, message, wparam, lparam);
             SetEvent(s.modal_return);
             return result;
         }
+        if (hwnd == s.source) SetEvent(s.legacy_down);
         break;
     case WM_ENTERSIZEMOVE:
         if (hwnd == s.source) {
@@ -506,9 +508,11 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         }
         break;
     case WM_LBUTTONDOWN:
-        if (hwnd == s.source)
+        if (hwnd == s.source) {
             record("native_route_lbuttondown", ",\"extra_info\":" +
                 std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
+            SetEvent(s.legacy_down);
+        }
         [[fallthrough]];
     case WM_LBUTTONUP:
         if (hwnd == s.control) ++s.control_mouse;
@@ -927,6 +931,12 @@ void writer_owner() noexcept {
         s.trace_click_route = false;
         return false;
     }
+    if (!wait_for(s.legacy_down, 1500, "actual_legacy_down") ||
+        s.native_downs != 1 || !s.tagged_down) {
+        s.trace_click_route = false;
+        record_start_route_snapshot("down_route_invalid");
+        return false;
+    }
     s.start_cursor = POINT{s.down_point.x + 22, s.down_point.y + 18};
     const bool moved = move_cursor(s.start_cursor);
     const bool started = moved && wait_for(s.native_start, 2000, "actual_native_start");
@@ -1199,6 +1209,7 @@ void writer_owner() noexcept {
     auto make = [](bool manual = true) { return CreateEventW(nullptr, manual, FALSE, nullptr); };
     s.ui_ready = make();
     s.ui_gone = make();
+    s.legacy_down = make();
     s.native_start = make();
     s.native_end = make();
     s.modal_return = make();
@@ -1212,7 +1223,7 @@ void writer_owner() noexcept {
     s.writer_stall_started = make();
     s.writer_gone = make();
     s.raw_notice = make(false);
-    return s.ui_ready && s.ui_gone && s.native_start && s.native_end &&
+    return s.ui_ready && s.ui_gone && s.legacy_down && s.native_start && s.native_end &&
         s.modal_return && s.raw_down && s.raw_up && s.legacy_up &&
         s.isolation_ready && s.isolation_gone && s.hotkey_stop &&
         s.writer_receipt && s.writer_stall_started && s.writer_gone &&
@@ -1220,7 +1231,7 @@ void writer_owner() noexcept {
 }
 
 void close_signals() noexcept {
-    for (HANDLE handle : {s.ui_ready, s.ui_gone, s.native_start, s.native_end,
+    for (HANDLE handle : {s.ui_ready, s.ui_gone, s.legacy_down, s.native_start, s.native_end,
             s.modal_return, s.raw_down, s.raw_up, s.legacy_up,
             s.isolation_ready, s.isolation_gone, s.hotkey_stop,
             s.writer_receipt, s.writer_stall_started, s.writer_gone, s.raw_notice}) {
