@@ -114,6 +114,7 @@ struct GestureShieldEvent {
     GestureShieldSetupStage setup_stage{GestureShieldSetupStage::None};
     GestureShieldNativeFailure native_failure{GestureShieldNativeFailure::None};
     GestureShieldReadbackFailure readback_failure{GestureShieldReadbackFailure::None};
+    std::uint32_t observed_exstyle{};
     GestureShieldRemovalReason removal_reason{GestureShieldRemovalReason::Shutdown};
     bool overlay_destroyed{};
     bool hotkey_unregistered{};

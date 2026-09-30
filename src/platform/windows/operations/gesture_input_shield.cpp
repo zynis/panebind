@@ -159,6 +159,7 @@ struct GestureInputShield::Impl {
         GestureShieldNativeFailure native{GestureShieldNativeFailure::None};
         GestureShieldReadbackFailure readback{GestureShieldReadbackFailure::None};
         DWORD error{};
+        std::uint32_t observed_exstyle{};
     };
 
     explicit Impl(GestureShieldCallbacks value) : callbacks(std::move(value)) {
@@ -245,6 +246,7 @@ struct GestureInputShield::Impl {
             event.setup_stage = setup->stage;
             event.native_failure = setup->native;
             event.readback_failure = setup->readback;
+            event.observed_exstyle = setup->observed_exstyle;
         }
         emit(event);
     }
@@ -429,7 +431,10 @@ struct GestureInputShield::Impl {
         }
         if (!EqualRect(&actual, &requested))
             return GestureShieldReadbackFailure::Rectangle;
+        SetLastError(0);
         const auto style = GetWindowLongPtrW(overlay, GWL_EXSTYLE);
+        diagnostic.observed_exstyle = static_cast<std::uint32_t>(style);
+        if (!style) diagnostic.error = GetLastError();
         const bool style_exact = (style & (WS_EX_LAYERED | WS_EX_NOACTIVATE |
             WS_EX_TOPMOST)) == (WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOPMOST) &&
             (style & WS_EX_TRANSPARENT) == 0;

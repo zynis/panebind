@@ -438,7 +438,9 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"native_failure\":" +
             std::to_string(static_cast<int>(event.native_failure)) +
             ",\"readback_failure\":" +
-            std::to_string(static_cast<int>(event.readback_failure)));
+            std::to_string(static_cast<int>(event.readback_failure)) +
+            ",\"observed_exstyle\":" +
+            std::to_string(event.observed_exstyle));
         break;
     }
 }

@@ -295,6 +295,7 @@ struct ExplorerMvpSession::Impl final {
                     event.shield_setup_stage = static_cast<std::uint32_t>(item.setup_stage);
                     event.shield_native_failure = static_cast<std::uint32_t>(item.native_failure);
                     event.shield_readback_failure = static_cast<std::uint32_t>(item.readback_failure);
+                    event.shield_observed_exstyle = item.observed_exstyle;
                 }
             }
             if (item.generation) event.generation = item.generation;
@@ -1104,6 +1105,7 @@ bool ExplorerMvpSession::Impl::pump() {
                 evidence.shield_setup_stage = static_cast<std::uint32_t>(event.setup_stage);
                 evidence.shield_native_failure = static_cast<std::uint32_t>(event.native_failure);
                 evidence.shield_readback_failure = static_cast<std::uint32_t>(event.readback_failure);
+                evidence.shield_observed_exstyle = event.observed_exstyle;
                 break;
             case op::GestureShieldEventKind::RawMouse:
                 break;

@@ -301,6 +301,8 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_native_failure\":" << *event.shield_native_failure;
         if (event.shield_readback_failure)
             fields << ",\"shield_readback_failure\":" << *event.shield_readback_failure;
+        if (event.shield_observed_exstyle)
+            fields << ",\"shield_observed_exstyle\":" << *event.shield_observed_exstyle;
         if (event.overlay)
             fields << ",\"overlay\":" << event.overlay;
         if (!evidence.record("gesture_event", fields.str())) return false;
