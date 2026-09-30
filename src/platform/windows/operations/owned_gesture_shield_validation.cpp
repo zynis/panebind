@@ -552,7 +552,7 @@ void ui_owner() noexcept {
     }
     const int x = area.left + 55, y = area.top + 70;
     const HWND source = CreateWindowExW(0, class_name, L"PaneBind owned source",
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE, x, y, 310, 210,
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE, x, y, 420, 210,
         nullptr, nullptr, cls.hInstance, nullptr);
     const HWND control = CreateWindowExW(0, class_name, L"PaneBind owned control",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE, x + 480, y, 310, 210,
@@ -882,13 +882,26 @@ void writer_owner() noexcept {
 [[nodiscard]] bool find_caption_point(HWND source, POINT& result) noexcept {
     RECT rect{};
     if (!GetWindowRect(source, &rect)) return false;
-    const int x = rect.left + (rect.right - rect.left) / 3;
-    for (int delta : {10, 15, 20, 25, 30, 35, 40}) {
-        const POINT point{x, rect.top + delta};
-        if (root_at(point) != source) continue;
-        const LRESULT hit = SendMessageW(source, WM_NCHITTEST, 0,
-            MAKELPARAM(static_cast<SHORT>(point.x), static_cast<SHORT>(point.y)));
-        if (hit == HTCAPTION) { result = point; return true; }
+    for (int offset : {72, 90, 108}) {
+        for (int delta : {10, 15, 20, 25, 30, 35, 40}) {
+            const POINT point{rect.left + offset, rect.top + delta};
+            if (root_at(point) != source) continue;
+            const LPARAM location = MAKELPARAM(static_cast<SHORT>(point.x),
+                                               static_cast<SHORT>(point.y));
+            LRESULT dwm_hit{};
+            const bool dwm_handled = DwmDefWindowProc(source, WM_NCHITTEST,
+                0, location, &dwm_hit) != FALSE;
+            if (dwm_handled && dwm_hit != HTCAPTION) continue;
+            const LRESULT hit = SendMessageW(source, WM_NCHITTEST, 0, location);
+            if (hit == HTCAPTION) {
+                result = point;
+                record("owned_caption_point", ",\"point\":[" +
+                    std::to_string(point.x) + "," + std::to_string(point.y) +
+                    "],\"dwm_handled\":" + boolean(dwm_handled) +
+                    ",\"dwm_hit\":" + std::to_string(dwm_hit));
+                return true;
+            }
+        }
     }
     return false;
 }
