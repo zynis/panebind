@@ -1,4 +1,5 @@
 ﻿#include "platform/windows/explorer/explorer_mvp_session.h"
+#include "platform/windows/explorer/explorer_mvp_guest_contract.h"
 #include "platform/windows/console/sta_console_line_reader.h"
 #include "platform/windows/text_encoding.h"
 
@@ -24,10 +25,7 @@ namespace windows = panebind::platform::windows;
 namespace console_input = panebind::platform::windows::console_input;
 
 namespace {
-constexpr wchar_t guest_executable[] =
-    L"C:\\PaneBindMVP1\\Input\\panebind-explorer-mvp1.exe";
 constexpr wchar_t guest_marker[] = L"C:\\PaneBindMVP1\\Input\\run-id.txt";
-constexpr wchar_t guest_output[] = L"C:\\PaneBindMVP1\\Output\\";
 
 bool interactive_default_desktop() noexcept {
     HDESK input = OpenInputDesktop(0, FALSE, DESKTOP_READOBJECTS);
@@ -82,13 +80,8 @@ bool sandbox_run_authorized(std::wstring_view run_id,
     const DWORD executable_length = GetModuleFileNameW(
         nullptr, executable, static_cast<DWORD>(std::size(executable)));
     if (executable_length == 0 || executable_length >= std::size(executable) ||
-        CompareStringOrdinal(executable, -1, guest_executable, -1, TRUE) !=
-            CSTR_EQUAL) return false;
-    const auto expected_log = std::wstring(guest_output) +
-        std::wstring(run_id) + L"-explorer-mvp1.jsonl";
-    if (CompareStringOrdinal(evidence_log.data(),
-                             static_cast<int>(evidence_log.size()),
-                             expected_log.c_str(), -1, TRUE) != CSTR_EQUAL)
+        !explorer::exact_mvp1_guest_launch_artifacts(
+            std::wstring_view(executable, executable_length), run_id, evidence_log))
         return false;
 
     const HANDLE marker = CreateFileW(guest_marker, GENERIC_READ,

@@ -1,5 +1,6 @@
 #include "core/behavior/move_magnet_session.h"
 #include "platform/windows/explorer/explorer_mvp_attribution.h"
+#include "platform/windows/explorer/explorer_mvp_guest_contract.h"
 #include "platform/windows/explorer/explorer_group_event_source.h"
 #include "platform/windows/explorer/explorer_mvp_end_authority.h"
 #include "platform/windows/operations/live_move_writer.h"
@@ -374,6 +375,32 @@ void participant_context_loss_rejects_placement() {
     check(!lost.writer->offer({13, plan.quantum + 1, plan.target_visible, false}),
           "failed writer cannot be revived by later request");
 }
+
+void exact_guest_launch_contract() {
+    constexpr std::wstring_view run = L"6b96b05d11c8478f84c0e3f65f442712";
+    constexpr std::wstring_view release_exe =
+        L"C:\\PaneBindMVP1\\Input\\panebind-explorer-mvp1.exe";
+    constexpr std::wstring_view debug_exe =
+        L"C:\\PaneBindMVP1\\Input\\Debug\\panebind-explorer-mvp1.exe";
+    constexpr std::wstring_view release_log =
+        L"C:\\PaneBindMVP1\\Output\\6b96b05d11c8478f84c0e3f65f442712-explorer-mvp1.jsonl";
+    constexpr std::wstring_view debug_log =
+        L"C:\\PaneBindMVP1\\Output\\6b96b05d11c8478f84c0e3f65f442712-explorer-mvp1-debug.jsonl";
+    check(e::exact_mvp1_guest_launch_artifacts(release_exe, run, release_log),
+          "packaged Release Explorer path and evidence path are paired");
+    check(e::exact_mvp1_guest_launch_artifacts(debug_exe, run, debug_log),
+          "packaged Debug Explorer path and evidence path are paired");
+    check(!e::exact_mvp1_guest_launch_artifacts(release_exe, run, debug_log) &&
+          !e::exact_mvp1_guest_launch_artifacts(debug_exe, run, release_log),
+          "crossed Debug/Release evidence paths cannot launch");
+    check(!e::exact_mvp1_guest_launch_artifacts(
+              L"C:\\PaneBindMVP1\\Input\\Debug\\panebind-explorer-mvp1-copy.exe",
+              run, debug_log) &&
+          !e::exact_mvp1_guest_launch_artifacts(
+              debug_exe, run,
+              L"C:\\PaneBindMVP1\\Output\\other-explorer-mvp1-debug.jsonl"),
+          "nearby executable or foreign RunId cannot launch");
+}
 } // namespace
 
 int main() {
@@ -383,6 +410,7 @@ int main() {
         admitted_end_reaches_shared_writer();
         complete_then_retire_and_switch();
         participant_context_loss_rejects_placement();
+        exact_guest_launch_contract();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {
