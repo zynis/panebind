@@ -278,6 +278,9 @@ struct ExplorerMvpSession::Impl final {
                 event = event_for(MvpEvidenceKind::IsolationReady, current,
                                   "readback_observed");
                 event.succeeded = true;
+                event.shield_initial_exstyle = item.initial_exstyle;
+                event.shield_topmost_retry_attempted = item.topmost_retry_attempted;
+                event.shield_observed_exstyle = item.observed_exstyle;
             } else if (item.kind == op::GestureShieldEventKind::IsolationGone) {
                 event = event_for(MvpEvidenceKind::IsolationGone, current,
                                   shield_removal_name(item.removal_reason));
@@ -296,6 +299,8 @@ struct ExplorerMvpSession::Impl final {
                     event.shield_native_failure = static_cast<std::uint32_t>(item.native_failure);
                     event.shield_readback_failure = static_cast<std::uint32_t>(item.readback_failure);
                     event.shield_observed_exstyle = item.observed_exstyle;
+                    event.shield_initial_exstyle = item.initial_exstyle;
+                    event.shield_topmost_retry_attempted = item.topmost_retry_attempted;
                 }
             }
             if (item.generation) event.generation = item.generation;
@@ -1075,6 +1080,9 @@ bool ExplorerMvpSession::Impl::pump() {
                 evidence = event_for(MvpEvidenceKind::IsolationReady, current,
                                      "readback_observed");
                 evidence.succeeded = true;
+                evidence.shield_initial_exstyle = event.initial_exstyle;
+                evidence.shield_topmost_retry_attempted = event.topmost_retry_attempted;
+                evidence.shield_observed_exstyle = event.observed_exstyle;
                 break;
             case op::GestureShieldEventKind::LegacyLeftUp:
                 evidence = event_for(MvpEvidenceKind::LegacyUp, current,
@@ -1106,6 +1114,8 @@ bool ExplorerMvpSession::Impl::pump() {
                 evidence.shield_native_failure = static_cast<std::uint32_t>(event.native_failure);
                 evidence.shield_readback_failure = static_cast<std::uint32_t>(event.readback_failure);
                 evidence.shield_observed_exstyle = event.observed_exstyle;
+                evidence.shield_initial_exstyle = event.initial_exstyle;
+                evidence.shield_topmost_retry_attempted = event.topmost_retry_attempted;
                 break;
             case op::GestureShieldEventKind::RawMouse:
                 break;

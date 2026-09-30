@@ -159,6 +159,8 @@ struct GestureInputShield::Impl {
         GestureShieldNativeFailure native{GestureShieldNativeFailure::None};
         GestureShieldReadbackFailure readback{GestureShieldReadbackFailure::None};
         DWORD error{};
+        std::uint32_t initial_exstyle{};
+        bool topmost_retry_attempted{};
         std::uint32_t observed_exstyle{};
     };
 
@@ -246,6 +248,8 @@ struct GestureInputShield::Impl {
             event.setup_stage = setup->stage;
             event.native_failure = setup->native;
             event.readback_failure = setup->readback;
+            event.initial_exstyle = setup->initial_exstyle;
+            event.topmost_retry_attempted = setup->topmost_retry_attempted;
             event.observed_exstyle = setup->observed_exstyle;
         }
         emit(event);
@@ -517,6 +521,22 @@ struct GestureInputShield::Impl {
             diagnostic.error = GetLastError();
             return false;
         }
+        // In an actual guest the first successful placement was read back as
+        // 0x08080080: layered/no-activate/tool-window, but not topmost. Give
+        // USER32 one explicit, bounded z-order placement before the same full
+        // identity/geometry/input readback below. This never grants authority.
+        SetLastError(0);
+        const auto initial_style = GetWindowLongPtrW(overlay, GWL_EXSTYLE);
+        diagnostic.initial_exstyle = static_cast<std::uint32_t>(initial_style);
+        if ((initial_style & WS_EX_TOPMOST) == 0) {
+            diagnostic.topmost_retry_attempted = true;
+            SetLastError(0);
+            if (!SetWindowPos(overlay, HWND_TOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)) {
+                diagnostic.error = GetLastError();
+                return false;
+            }
+        }
         diagnostic.stage = GestureShieldSetupStage::Readback;
         diagnostic.readback = overlay_readback(request, virtual_rect,
                                                foreground_before, diagnostic);
@@ -619,6 +639,9 @@ struct GestureInputShield::Impl {
             event.kind = GestureShieldEventKind::IsolationReady;
             event.generation = start->generation;
             event.overlay = overlay;
+            event.initial_exstyle = setup.initial_exstyle;
+            event.topmost_retry_attempted = setup.topmost_retry_attempted;
+            event.observed_exstyle = setup.observed_exstyle;
             emit(event);
         } else {
             if (expired) {

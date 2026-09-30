@@ -391,7 +391,11 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         s.overlay = event.overlay;
         record("isolation_ready", ",\"overlay\":" +
             std::to_string(hwnd_number(event.overlay)) +
-            ",\"generation\":" + std::to_string(event.generation));
+            ",\"generation\":" + std::to_string(event.generation) +
+            ",\"initial_exstyle\":" + std::to_string(event.initial_exstyle) +
+            ",\"topmost_retry_attempted\":" +
+            boolean(event.topmost_retry_attempted) +
+            ",\"observed_exstyle\":" + std::to_string(event.observed_exstyle));
         SetEvent(s.isolation_ready);
         break;
     case op::GestureShieldEventKind::IsolationGone:
@@ -439,6 +443,9 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             std::to_string(static_cast<int>(event.native_failure)) +
             ",\"readback_failure\":" +
             std::to_string(static_cast<int>(event.readback_failure)) +
+            ",\"initial_exstyle\":" + std::to_string(event.initial_exstyle) +
+            ",\"topmost_retry_attempted\":" +
+            boolean(event.topmost_retry_attempted) +
             ",\"observed_exstyle\":" +
             std::to_string(event.observed_exstyle));
         break;

@@ -303,6 +303,9 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_readback_failure\":" << *event.shield_readback_failure;
         if (event.shield_observed_exstyle)
             fields << ",\"shield_observed_exstyle\":" << *event.shield_observed_exstyle;
+        if (event.shield_initial_exstyle)
+            fields << ",\"shield_initial_exstyle\":" << *event.shield_initial_exstyle;
+        optional_bool("shield_topmost_retry_attempted", event.shield_topmost_retry_attempted);
         if (event.overlay)
             fields << ",\"overlay\":" << event.overlay;
         if (!evidence.record("gesture_event", fields.str())) return false;

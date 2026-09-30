@@ -34,7 +34,8 @@ struct MvpEvidenceEvent final {
     std::optional<bool> winevent_unhooked, classes_unregistered;
     std::optional<std::uint32_t> win32_error;
     std::optional<std::uint32_t> shield_setup_stage, shield_native_failure,
-        shield_readback_failure, shield_observed_exstyle;
+        shield_readback_failure, shield_initial_exstyle, shield_observed_exstyle;
+    std::optional<bool> shield_topmost_retry_attempted;
     std::uintptr_t overlay{};
 };
 
