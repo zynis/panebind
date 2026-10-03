@@ -151,7 +151,36 @@ MouseRegistration mouse_registration(HWND receiver) noexcept {
     return MouseRegistration::Absent;
 }
 
+GestureShieldGuiFacts gui_facts(DWORD thread_id) noexcept {
+    GestureShieldGuiFacts facts{};
+    facts.thread_id = thread_id;
+    GUITHREADINFO gui{sizeof(gui)};
+    facts.available = thread_id && GetGUIThreadInfo(thread_id, &gui) != FALSE;
+    if (facts.available) {
+        facts.capture = gui.hwndCapture;
+        facts.move_size = gui.hwndMoveSize;
+        facts.menu_owner = gui.hwndMenuOwner;
+        facts.flags = gui.flags;
+    }
+    return facts;
+}
+
+bool gui_not_moving_or_menu(const GestureShieldGuiFacts& facts) noexcept {
+    return facts.available && !facts.move_size && !facts.menu_owner &&
+        (facts.flags & (GUI_INMOVESIZE | GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
+                        GUI_POPUPMENUMODE)) == 0;
+}
+
 } // namespace
+
+bool gesture_shield_exact_capture(HWND overlay, DWORD owner_thread_id) noexcept {
+    DWORD pid{};
+    if (!overlay || !owner_thread_id || !IsWindow(overlay) ||
+        GetWindowThreadProcessId(overlay, &pid) != owner_thread_id ||
+        pid != GetCurrentProcessId()) return false;
+    const auto facts = gui_facts(owner_thread_id);
+    return gui_not_moving_or_menu(facts) && facts.capture == overlay;
+}
 
 struct GestureInputShield::Impl {
     struct SetupDiagnostics {
@@ -184,7 +213,7 @@ struct GestureInputShield::Impl {
         }
     }
 
-    enum class Phase { Idle, Pending, Active, Failed };
+    enum class Phase { Idle, Pending, Active, Capturing, Captured, Failed };
     struct Removal {
         std::uint64_t generation{};
         GestureShieldRemovalReason reason{};
@@ -200,6 +229,7 @@ struct GestureInputShield::Impl {
     std::mutex command_mutex;
     Phase phase{Phase::Idle};
     std::optional<GestureShieldRequest> pending_start;
+    std::optional<GestureShieldRequest> pending_capture;
     std::optional<GestureShieldRequest> current;
     std::optional<Removal> pending_remove;
     std::atomic<bool> started{false};
@@ -208,12 +238,14 @@ struct GestureInputShield::Impl {
     std::atomic<bool> stopping{false};
     std::atomic<bool> callback_failed{false};
     std::atomic<bool> context_lost{false};
+    std::atomic<bool> capture_revoked{true};
     std::atomic<bool> overlay_destroyed{true};
     std::atomic<bool> receiver_destroyed{true};
     std::atomic<bool> raw_registration_removed{true};
     std::atomic<bool> hotkey_unregistered{true};
     std::atomic<bool> winevent_unhooked{true};
     std::atomic<bool> classes_unregistered{true};
+    std::atomic<bool> capture_release_clean{true};
     DWORD thread_id{};
     HWND receiver{};
     HWND overlay{};
@@ -230,6 +262,13 @@ struct GestureInputShield::Impl {
     ULONGLONG deadline_tick{};
     GestureShieldWindowPosFacts windowpos_changing{};
     GestureShieldWindowPosFacts windowpos_changed{};
+    // Resource-thread-only lifecycle facts; Raw UP latches before callbacks.
+    bool current_raw_up{};
+    bool current_legacy_up{};
+    bool capture_request_seen{};
+    bool capture_acquired{};
+    bool capture_release_in_progress{};
+    GestureShieldCaptureFacts capture_facts{};
 
     static void record_windowpos(GestureShieldWindowPosFacts& facts,
                                  HWND window, LPARAM lparam) noexcept {
@@ -288,6 +327,7 @@ struct GestureInputShield::Impl {
 
     void request_context_removal() noexcept {
         if (!current) return;
+        capture_revoked = true;
         context_lost = true;
         SetEvent(command_event);
     }
@@ -348,6 +388,11 @@ struct GestureInputShield::Impl {
                 event.raw_button_flags = raw->data.mouse.usButtonFlags;
                 event.raw_delta_x = raw->data.mouse.lLastX;
                 event.raw_delta_y = raw->data.mouse.lLastY;
+                if (self->current &&
+                    (event.raw_button_flags & RI_MOUSE_LEFT_BUTTON_UP) != 0) {
+                    self->current_raw_up = true;
+                    self->capture_revoked = true;
+                }
                 self->emit(event);
                 if (self->current && !self->active_identity())
                     self->request_context_removal();
@@ -396,7 +441,25 @@ struct GestureInputShield::Impl {
             route.cursor_available = GetCursorPos(&route.cursor_now) != FALSE;
             self->emit(route);
         }
+        if (message == WM_CAPTURECHANGED && self->current &&
+            self->overlay == window) {
+            self->capture_facts.capture_changed_to = reinterpret_cast<HWND>(lparam);
+            self->capture_facts.own_release_message = self->capture_release_in_progress;
+            if (self->capture_acquired && !self->capture_release_in_progress) {
+                self->capture_acquired = false;
+                self->capture_revoked = true;
+                GestureShieldEvent event{};
+                event.kind = GestureShieldEventKind::CaptureLost;
+                event.generation = self->current->generation;
+                event.overlay = window;
+                event.capture = self->capture_facts;
+                event.capture.actual_after = GetCapture();
+                self->emit(event); // Adapter revokes pending writer immediately.
+                self->request_context_removal(); // No reacquire, no foreign release.
+            }
+        }
         if (message == WM_LBUTTONUP) {
+            self->current_legacy_up = self->current.has_value();
             GestureShieldEvent event{};
             event.kind = GestureShieldEventKind::LegacyLeftUp;
             event.generation = self->current ? self->current->generation : 0;
@@ -469,7 +532,8 @@ struct GestureInputShield::Impl {
 
     [[nodiscard]] GestureShieldReadbackFailure overlay_readback(
         const GestureShieldRequest& request, const RECT& requested,
-        HWND foreground_before, SetupDiagnostics& diagnostic) noexcept {
+        HWND foreground_before, SetupDiagnostics& diagnostic,
+        bool require_native_move = true) noexcept {
         if (!overlay || !IsWindow(overlay))
             return GestureShieldReadbackFailure::OverlayIdentity;
         DWORD pid{};
@@ -520,9 +584,11 @@ struct GestureInputShield::Impl {
         if (GetForegroundWindow() != foreground_before ||
             foreground_before != request.source)
             return GestureShieldReadbackFailure::Foreground;
-        diagnostic.native = native_plain_move_failure(request);
-        if (diagnostic.native != GestureShieldNativeFailure::None)
-            return GestureShieldReadbackFailure::NativeLive;
+        if (require_native_move) {
+            diagnostic.native = native_plain_move_failure(request);
+            if (diagnostic.native != GestureShieldNativeFailure::None)
+                return GestureShieldReadbackFailure::NativeLive;
+        }
         return GestureShieldReadbackFailure::None;
     }
 
@@ -636,9 +702,189 @@ struct GestureInputShield::Impl {
         return true;
     }
 
+    [[nodiscard]] bool capture_command_revoked(
+        const GestureShieldRequest& request) noexcept {
+        if (capture_revoked || current_raw_up || stopping || context_lost ||
+            WaitForSingleObject(stop_event, 0) == WAIT_OBJECT_0 ||
+            !current || current->generation != request.generation ||
+            current->source != request.source ||
+            current->process_id != request.process_id ||
+            current->thread_id != request.thread_id ||
+            !deadline_tick || GetTickCount64() >= deadline_tick) return true;
+        std::lock_guard lock{command_mutex};
+        return pending_remove && pending_remove->generation == request.generation;
+    }
+
+    void capture_snapshot(GestureShieldCaptureFacts& facts,
+                           const GestureShieldRequest& request,
+                           bool after) noexcept {
+        const HWND foreground = GetForegroundWindow();
+        const DWORD foreground_thread = foreground ?
+            GetWindowThreadProcessId(foreground, nullptr) : 0;
+        if (after) {
+            facts.actual_after = GetCapture(); // This resource thread only.
+            facts.foreground_after = foreground;
+            facts.source_after = gui_facts(request.thread_id);
+            facts.foreground_after_gui = gui_facts(foreground_thread);
+            facts.owner_after = gui_facts(thread_id);
+        } else {
+            facts.foreground_before = foreground;
+            facts.source_before = gui_facts(request.thread_id);
+            facts.foreground_before_gui = gui_facts(foreground_thread);
+            facts.owner_before = gui_facts(thread_id);
+        }
+    }
+
+    [[nodiscard]] GestureShieldCaptureFailure capture_context_failure(
+        const GestureShieldRequest& request,
+        GestureShieldCaptureFacts& facts) noexcept {
+        if (capture_command_revoked(request))
+            return GestureShieldCaptureFailure::Revoked;
+        if (!exact_source(request)) return GestureShieldCaptureFailure::SourceIdentity;
+        if (!interactive_default_desktop()) return GestureShieldCaptureFailure::InputDesktop;
+        if (GetForegroundWindow() != request.source)
+            return GestureShieldCaptureFailure::Foreground;
+        if (!physical_move_buttons()) return GestureShieldCaptureFailure::PhysicalButtons;
+        RECT virtual_rect{};
+        SetupDiagnostics diagnostic{};
+        if (!virtual_desktop_rect(virtual_rect) ||
+            overlay_readback(request, virtual_rect, request.source, diagnostic, false) !=
+                GestureShieldReadbackFailure::None)
+            return GestureShieldCaptureFailure::OverlayIdentity;
+        capture_snapshot(facts, request, false);
+        for (const auto& gui : {facts.source_before, facts.foreground_before_gui,
+                                facts.owner_before}) {
+            if (!gui.available) return GestureShieldCaptureFailure::GuiQuery;
+            // Even a same-process source/control capture is not ours to release.
+            if (gui.capture) return GestureShieldCaptureFailure::ForeignCapture;
+            if (gui.move_size || (gui.flags & GUI_INMOVESIZE))
+                return GestureShieldCaptureFailure::MoveSize;
+            if (!gui_not_moving_or_menu(gui)) return GestureShieldCaptureFailure::MenuMode;
+        }
+        return GestureShieldCaptureFailure::None;
+    }
+
+    [[nodiscard]] bool release_own_capture() noexcept {
+        if (!current || !overlay) return true;
+        const HWND before = GetCapture();
+        DWORD overlay_pid{};
+        const bool ours = before == overlay && IsWindow(overlay) &&
+            GetWindowThreadProcessId(overlay, &overlay_pid) == thread_id &&
+            overlay_pid == GetCurrentProcessId();
+        capture_facts.release_before = before;
+        capture_facts.release_attempted = ours;
+        bool released = true;
+        if (ours) {
+            // WM_CAPTURECHANGED is synchronous for our own ReleaseCapture.
+            // Its receipt is retained, but is not an unexpected loss/reacquire.
+            capture_release_in_progress = true;
+            SetLastError(0);
+            capture_facts.release_succeeded = ReleaseCapture() != FALSE;
+            capture_facts.release_error = capture_facts.release_succeeded ? 0 : GetLastError();
+            capture_release_in_progress = false;
+            capture_facts.release_after = GetCapture();
+            released = capture_facts.release_succeeded &&
+                capture_facts.release_after != overlay;
+        } else {
+            capture_facts.release_after = before;
+            // Foreign capture is observed, never manipulated or restored.
+            released = before != overlay;
+        }
+        if (capture_request_seen || capture_acquired || ours) {
+            GestureShieldEvent event{};
+            event.kind = GestureShieldEventKind::CaptureReleased;
+            event.generation = current->generation;
+            event.overlay = overlay;
+            event.capture = capture_facts;
+            emit(event);
+        }
+        capture_acquired = false;
+        capture_release_clean = released;
+        return released;
+    }
+
+    void acquire_capture_after_end(const GestureShieldRequest& request) noexcept {
+        capture_request_seen = true;
+        capture_facts = {};
+        capture_facts.owner_thread_id = thread_id;
+        auto& facts = capture_facts;
+        bool authorized = false;
+        if (callbacks.capture_authorized) {
+            try { authorized = callbacks.capture_authorized(request); }
+            catch (...) { authorized = false; }
+        }
+        facts.failure = authorized ? capture_context_failure(request, facts) :
+            GestureShieldCaptureFailure::Authorization;
+        // Recheck published END/generation authority and revocation immediately
+        // before issuing the native call. No Win32 call holds command_mutex.
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            try { authorized = callbacks.capture_authorized(request); }
+            catch (...) { authorized = false; }
+            if (!authorized) facts.failure = GestureShieldCaptureFailure::Authorization;
+            else if (capture_command_revoked(request))
+                facts.failure = GestureShieldCaptureFailure::Revoked;
+            else if (!physical_move_buttons())
+                facts.failure = GestureShieldCaptureFailure::PhysicalButtons;
+        }
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            facts.attempted = true;
+            facts.previous = SetCapture(overlay);
+            capture_snapshot(facts, request, true);
+            capture_acquired = facts.actual_after == overlay &&
+                gesture_shield_exact_capture(overlay, thread_id);
+            if (facts.actual_after == overlay) capture_release_clean = false;
+            if (facts.previous || !capture_acquired ||
+                facts.foreground_after != request.source || !exact_source(request)) {
+                facts.failure = GestureShieldCaptureFailure::Readback;
+            } else if (!interactive_default_desktop()) {
+                facts.failure = GestureShieldCaptureFailure::InputDesktop;
+            } else if (capture_command_revoked(request) || !physical_move_buttons()) {
+                // A native call already issued cannot be retroactively canceled.
+                // This completion never publishes Ready or restores writer rights.
+                facts.failure = GestureShieldCaptureFailure::Revoked;
+            }
+            if (facts.failure == GestureShieldCaptureFailure::None) {
+                for (const auto& gui : {facts.source_after, facts.foreground_after_gui,
+                                        facts.owner_after}) {
+                    if (!gui.available) facts.failure = GestureShieldCaptureFailure::GuiQuery;
+                    else if (gui.capture && gui.capture != overlay)
+                        facts.failure = GestureShieldCaptureFailure::ForeignCapture;
+                    else if (gui.move_size || (gui.flags & GUI_INMOVESIZE))
+                        facts.failure = GestureShieldCaptureFailure::MoveSize;
+                    else if (!gui_not_moving_or_menu(gui))
+                        facts.failure = GestureShieldCaptureFailure::MenuMode;
+                    if (facts.failure != GestureShieldCaptureFailure::None) break;
+                }
+            }
+        }
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            std::lock_guard lock{command_mutex};
+            if (pending_remove || capture_revoked || stopping)
+                facts.failure = GestureShieldCaptureFailure::Revoked;
+            else phase = Phase::Captured;
+        }
+        GestureShieldEvent event{};
+        event.kind = facts.failure == GestureShieldCaptureFailure::None ?
+            GestureShieldEventKind::CaptureReady : GestureShieldEventKind::CaptureFailure;
+        event.generation = request.generation;
+        event.overlay = overlay;
+        event.capture = facts;
+        emit(event);
+        if (facts.failure != GestureShieldCaptureFailure::None) {
+            capture_revoked = true;
+            (void)remove_overlay(GestureShieldRemovalReason::ContextLost);
+        }
+    }
+
     [[nodiscard]] bool remove_overlay(GestureShieldRemovalReason reason) noexcept {
         const auto generation = current ? current->generation : 0;
         const HWND old_overlay = overlay;
+        capture_revoked = true;
+        // Aborts recover desktop usability without manufacturing missing UP.
+        if (reason == GestureShieldRemovalReason::NormalUp &&
+            (!current_raw_up || !current_legacy_up))
+            reason = GestureShieldRemovalReason::ContextLost;
+        const bool capture_released = release_own_capture();
         const bool unregistered = !hotkey_registered ||
             UnregisterHotKey(nullptr, stop_hotkey_id) != FALSE;
         hotkey_unregistered = unregistered;
@@ -655,15 +901,18 @@ struct GestureInputShield::Impl {
         event.removal_reason = reason;
         event.overlay_destroyed = destroyed;
         event.hotkey_unregistered = unregistered;
+        event.capture = capture_facts;
         {
             std::lock_guard lock{command_mutex};
-            phase = destroyed && unregistered ? Phase::Idle : Phase::Failed;
+            if (pending_capture && pending_capture->generation == generation)
+                pending_capture.reset();
+            phase = destroyed && unregistered && capture_released ? Phase::Idle : Phase::Failed;
             if (phase == Phase::Idle) current.reset();
         }
         emit(event);
-        if (!destroyed || !unregistered)
+        if (!destroyed || !unregistered || !capture_released)
             failure(generation, GetLastError());
-        return destroyed && unregistered;
+        return destroyed && unregistered && capture_released;
     }
 
     void process_commands() noexcept {
@@ -678,6 +927,7 @@ struct GestureInputShield::Impl {
         }
         std::optional<Removal> removal;
         std::optional<GestureShieldRequest> start;
+        std::optional<GestureShieldRequest> capture;
         {
             std::lock_guard lock{command_mutex};
             removal = std::exchange(pending_remove, std::nullopt);
@@ -686,7 +936,10 @@ struct GestureInputShield::Impl {
                 current = *pending_start;
                 pending_start.reset();
             }
-            if (!removal) start = std::exchange(pending_start, std::nullopt);
+            if (!removal) {
+                start = std::exchange(pending_start, std::nullopt);
+                if (!start) capture = std::exchange(pending_capture, std::nullopt);
+            }
         }
         if (removal) {
             if (current && current->generation == removal->generation)
@@ -699,12 +952,23 @@ struct GestureInputShield::Impl {
             }
             return;
         }
+        if (capture) {
+            acquire_capture_after_end(*capture);
+            return;
+        }
         if (!start || stopping || WaitForSingleObject(stop_event, 0) == WAIT_OBJECT_0)
             return;
         {
             std::lock_guard lock{command_mutex};
             current = *start;
         }
+        current_raw_up = false;
+        current_legacy_up = false;
+        capture_request_seen = false;
+        capture_acquired = false;
+        capture_release_in_progress = false;
+        capture_facts = {};
+        capture_revoked = false;
         SetupDiagnostics setup{};
         const bool created = create_overlay(*start, setup);
         const bool expired = deadline_tick && GetTickCount64() >= deadline_tick;
@@ -853,6 +1117,7 @@ struct GestureInputShield::Impl {
                         event.kind = GestureShieldEventKind::HotkeyStop;
                         event.generation = current ? current->generation : 0;
                         event.overlay = overlay;
+                        capture_revoked = true;
                         emit(event);
                         if (current)
                             (void)remove_overlay(GestureShieldRemovalReason::ExplicitStop);
@@ -925,6 +1190,29 @@ bool GestureInputShield::request_isolation(GestureShieldRequest request) noexcep
     return true;
 }
 
+bool GestureInputShield::request_capture_after_native_end(
+    GestureShieldRequest request) noexcept {
+    const auto self = impl_;
+    if (!self || !self->ready || self->stopping || !exact_source(request) ||
+        !self->callbacks.capture_authorized) return false;
+    std::lock_guard lock{self->command_mutex};
+    if (self->phase != Impl::Phase::Active || self->pending_capture ||
+        self->pending_remove || !self->current ||
+        self->current->generation != request.generation ||
+        self->current->source != request.source ||
+        self->current->process_id != request.process_id ||
+        self->current->thread_id != request.thread_id || self->capture_revoked)
+        return false;
+    self->phase = Impl::Phase::Capturing;
+    self->pending_capture = request;
+    if (!SetEvent(self->command_event)) {
+        self->pending_capture.reset();
+        self->phase = Impl::Phase::Active;
+        return false;
+    }
+    return true;
+}
+
 bool GestureInputShield::request_remove(std::uint64_t generation,
                                          GestureShieldRemovalReason reason) noexcept {
     const auto self = impl_;
@@ -935,6 +1223,7 @@ bool GestureInputShield::request_remove(std::uint64_t generation,
         (self->current && self->current->generation == generation);
     if (!matches || self->phase == Impl::Phase::Idle ||
         self->phase == Impl::Phase::Failed) return false;
+    self->capture_revoked = true;
     if (!self->pending_remove) self->pending_remove = Impl::Removal{generation, reason};
     return SetEvent(self->command_event) != FALSE;
 }
@@ -944,6 +1233,7 @@ GestureShieldStopFacts GestureInputShield::stop(DWORD timeout_ms) noexcept {
     const auto self = impl_;
     if (!self) return facts;
     self->stopping = true;
+    self->capture_revoked = true;
     if (self->stop_event) SetEvent(self->stop_event);
     if (!self->worker_launched) {
         facts.worker_exited = true;
@@ -954,6 +1244,7 @@ GestureShieldStopFacts GestureInputShield::stop(DWORD timeout_ms) noexcept {
         facts.winevent_unhooked = self->winevent_unhooked;
         facts.classes_unregistered = self->classes_unregistered;
         facts.callback_delivery_ok = !self->callback_failed;
+        facts.capture_released = self->capture_release_clean;
         return facts;
     }
     if (worker_.joinable() && std::this_thread::get_id() == worker_.get_id())
@@ -974,6 +1265,7 @@ GestureShieldStopFacts GestureInputShield::stop(DWORD timeout_ms) noexcept {
     facts.winevent_unhooked = self->winevent_unhooked;
     facts.classes_unregistered = self->classes_unregistered;
     facts.callback_delivery_ok = !self->callback_failed;
+    facts.capture_released = self->capture_release_clean;
     return facts;
 }
 

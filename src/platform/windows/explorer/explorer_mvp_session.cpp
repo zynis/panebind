@@ -141,10 +141,12 @@ constexpr std::size_t max_resource_events = 4096;
         !(gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE | GUI_POPUPMENUMODE));
 }
 
-[[nodiscard]] bool gui_after_end(DWORD thread) noexcept {
+[[nodiscard]] bool gui_after_end(DWORD thread, HWND own_overlay = nullptr,
+                                 DWORD overlay_thread = 0) noexcept {
     GUITHREADINFO gui{sizeof(gui)};
     return GetGUIThreadInfo(thread, &gui) && !gui.hwndMoveSize &&
-        !gui.hwndCapture && !gui.hwndMenuOwner &&
+        (!gui.hwndCapture || (gui.hwndCapture == own_overlay &&
+            op::gesture_shield_exact_capture(own_overlay, overlay_thread))) && !gui.hwndMenuOwner &&
         !(gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
                        GUI_POPUPMENUMODE | GUI_INMOVESIZE));
 }
@@ -184,10 +186,19 @@ void copy_shield_route(MvpEvidenceEvent& evidence,
     evidence.shield_route_capture =
         reinterpret_cast<std::uintptr_t>(shield.route_capture);
 }
+[[nodiscard]] std::string_view capture_event_name(op::GestureShieldEventKind kind) noexcept {
+    switch (kind) {
+    case op::GestureShieldEventKind::CaptureReady: return "capture_ready_observed";
+    case op::GestureShieldEventKind::CaptureReleased: return "capture_released_observed";
+    case op::GestureShieldEventKind::CaptureLost: return "capture_lost_observed";
+    case op::GestureShieldEventKind::CaptureFailure: return "capture_failure_observed";
+    default: return "none";
+    }
+}
 } // namespace
 
 struct ExplorerMvpSession::Impl final {
-    enum class Phase { Down, NativeOnly, IsolationPending, AwaitEnd, Writing, Retiring };
+    enum class Phase { Down, NativeOnly, IsolationPending, AwaitEnd, AwaitCapture, Writing, Retiring };
 
     struct Gesture final {
         Gesture(std::uint64_t number, std::uint64_t packet, std::size_t member,
@@ -207,6 +218,9 @@ struct ExplorerMvpSession::Impl final {
         detail::GroupSnapshots handoff{}, last_capture{};
         std::atomic<bool> raw_up{false}, legacy_up{false}, isolated{false};
         std::atomic<bool> abnormal_up{false}, end_observed{false};
+        std::atomic<bool> capture_ready{false};
+        std::atomic<DWORD> capture_thread{0};
+        std::atomic<std::uint64_t> raw_up_qpc{0}, native_attempt_qpc{0};
         std::atomic<bool> removed{false}, retired{false};
         std::atomic<HWND> overlay{nullptr};
         std::atomic<Phase> phase{Phase::Down};
@@ -311,6 +325,9 @@ struct ExplorerMvpSession::Impl final {
                                   shield_removal_name(item.removal_reason));
                 event.overlay_destroyed = item.overlay_destroyed;
                 event.hotkey_unregistered = item.hotkey_unregistered;
+            } else if (capture_event_name(item.kind) != "none") {
+                event = event_for(MvpEvidenceKind::Resource, current, capture_event_name(item.kind));
+                event.shield_capture = item.capture;
             } else {
                 const std::string_view reason =
                     item.kind == op::GestureShieldEventKind::Deadline ? "deadline_observed" :
@@ -393,6 +410,7 @@ struct ExplorerMvpSession::Impl final {
                 {
                     std::lock_guard lock{current->cancel_mutex};
                     current->raw_up = true;
+                    current->raw_up_qpc = qpc();
                     remove_early = !current->cancel_claimed || !current->end_observed;
                     current->abnormal_up = remove_early;
                 }
@@ -415,6 +433,14 @@ struct ExplorerMvpSession::Impl final {
                        event.generation == current->generation) {
                 current->overlay = event.overlay;
                 current->isolated = true;
+            } else if (event.kind == op::GestureShieldEventKind::CaptureReady &&
+                       event.generation == current->generation) {
+                current->capture_thread = event.capture.owner_thread_id;
+                current->capture_ready = true;
+            } else if (event.kind == op::GestureShieldEventKind::CaptureReleased ||
+                       event.kind == op::GestureShieldEventKind::CaptureLost ||
+                       event.kind == op::GestureShieldEventKind::CaptureFailure) {
+                current->capture_ready = false;
             } else if (event.kind == op::GestureShieldEventKind::IsolationGone &&
                        event.generation == current->generation) {
                 current->isolated = false;
@@ -427,6 +453,8 @@ struct ExplorerMvpSession::Impl final {
             if (event.kind == op::GestureShieldEventKind::Deadline ||
                 event.kind == op::GestureShieldEventKind::ContextLost ||
                 event.kind == op::GestureShieldEventKind::ResourceFailure ||
+                event.kind == op::GestureShieldEventKind::CaptureLost ||
+                event.kind == op::GestureShieldEventKind::CaptureFailure ||
                 event.kind == op::GestureShieldEventKind::HotkeyStop)
                 revoke(current, event.kind == op::GestureShieldEventKind::Deadline ?
                     b::MoveHandoffEscapeReason::Deadline :
@@ -462,6 +490,19 @@ struct ExplorerMvpSession::Impl final {
         if (!current || current->generation != request.generation ||
             current->phase != Phase::IsolationPending || current->retired ||
             current->raw_up || !current->plain_candidate)
+            return false;
+        const auto& member = group->bindings()[current->source];
+        return request.source == member.window && request.process_id == member.process_id &&
+            request.thread_id == member.thread_id;
+    }
+
+    [[nodiscard]] bool capture_authorized(const op::GestureShieldRequest& request) const noexcept {
+        const auto current = gesture();
+        if (!current || current->generation != request.generation ||
+            current->phase != Phase::AwaitCapture || !current->end_observed ||
+            !current->cancel_attempted || !current->isolated || current->retired ||
+            current->raw_up || !current->plain_candidate ||
+            latest_raw_up_sequence.load(std::memory_order_acquire) > current->down_packet)
             return false;
         const auto& member = group->bindings()[current->source];
         return request.source == member.window && request.process_id == member.process_id &&
@@ -522,10 +563,13 @@ struct ExplorerMvpSession::Impl final {
                                              POINT cursor) const noexcept {
         const auto& member = group->bindings()[current.source];
         return !current.retired && !current.raw_up && current.end_observed &&
+            current.capture_ready && op::gesture_shield_exact_capture(
+                current.overlay.load(), current.capture_thread.load()) &&
             latest_raw_up_sequence.load(std::memory_order_acquire) <= current.down_packet &&
             current.cancel_attempted && physical_left() &&
             GetForegroundWindow() == member.window &&
-            gui_after_end(member.thread_id) && live_overlay(current, cursor);
+            gui_after_end(member.thread_id, current.overlay.load(),
+                          current.capture_thread.load()) && live_overlay(current, cursor);
     }
 
     [[nodiscard]] op::MoveWriteCallbacks callbacks(const std::shared_ptr<Gesture>& current) {
@@ -568,15 +612,21 @@ struct ExplorerMvpSession::Impl final {
                 } gate{this, current.get(), writer.get()};
                 auto begin_native = [](void* opaque) noexcept -> bool {
                     auto& claim = *static_cast<NativeGate*>(opaque);
+                    if (!op::gesture_shield_exact_capture(claim.gesture->overlay.load(),
+                            claim.gesture->capture_thread.load())) return false;
                     std::lock_guard lock{claim.gesture->cancel_mutex};
                     if (claim.gesture->raw_up || claim.gesture->retired ||
+                        !claim.gesture->capture_ready ||
                         claim.owner->latest_raw_up_sequence.load(std::memory_order_acquire) >
                             claim.gesture->down_packet) return false;
-                    return claim.writer->begin_native_attempt(claim.gesture->generation);
+                    if (!claim.writer->begin_native_attempt(claim.gesture->generation)) return false;
+                    claim.gesture->native_attempt_qpc = qpc();
+                    return true;
                 };
                 const auto receipt = detail::ExplorerGroupBridge::apply_mvp_move(
                     *group->seal_, group->sessions(), current->source,
-                    current->last_capture, target, positioning, begin_native, &gate);
+                    current->last_capture, target, positioning, current->overlay.load(),
+                    current->capture_thread.load(), begin_native, &gate);
                 if (!receipt.attempted)
                     (void)current->continuity.abort_unissued(current->generation, quantum);
                 return op::MoveNativePlacement{receipt.attempted, receipt.succeeded, true};
@@ -585,7 +635,17 @@ struct ExplorerMvpSession::Impl final {
                             const op::MoveFrameGeometry& after) {
                 const auto version = current->continuity.snapshot_version(current->generation);
                 auto capture = detail::ExplorerGroupBridge::capture(*group->seal_, group->sessions());
-                const bool valid = capture && writer_context(*capture, *current);
+                // Normal UP may remove our own capture while a claimed call
+                // completes. Unexpected loss/stop is a different context loss;
+                // neither completion ever re-enables the writer.
+                const auto& member = group->bindings()[current->source];
+                const bool valid = capture && writer_context(*capture, *current) &&
+                    !current->retired && GetForegroundWindow() == member.window &&
+                    gui_after_end(member.thread_id, current->overlay.load(),
+                                  current->capture_thread.load()) &&
+                    (current->raw_up || (current->capture_ready &&
+                        op::gesture_shield_exact_capture(current->overlay.load(),
+                                                         current->capture_thread.load())));
                 const bool same = valid && same_frame(frame((*capture)[current->source]), after);
                 const auto observation = valid ? current->continuity.observe(
                     current->generation, frame((*capture)[current->source]), version) :
@@ -603,6 +663,7 @@ struct ExplorerMvpSession::Impl final {
                       std::optional<std::size_t>& approved_ctrl,
                       const detail::GroupSnapshots*& ctrl_baseline);
     void native_end(const GroupEventReceipt& receipt, bool processed_batch_conflict);
+    void capture_after_ready(const op::GestureShieldEvent& event);
     void cancel_after_ready(const std::shared_ptr<Gesture>& current);
     [[nodiscard]] bool pump();
     [[nodiscard]] bool stop() noexcept;
@@ -930,6 +991,36 @@ void ExplorerMvpSession::Impl::native_end(const GroupEventReceipt& receipt,
     // batch and accept only later continuation packets for this handoff.
     current->handoff_raw_watermark = last_raw_sequence;
     current->handoff = *handoff;
+    current->phase = Phase::AwaitCapture;
+    if (!shield->request_capture_after_native_end({current->generation, member.window,
+            member.process_id, member.thread_id}))
+        fail("capture_request_rejected", b::MoveHandoffEscapeReason::ContextLost);
+}
+
+void ExplorerMvpSession::Impl::capture_after_ready(const op::GestureShieldEvent& event) {
+    auto current = gesture();
+    if (!current || event.generation != current->generation ||
+        current->phase != Phase::AwaitCapture) return;
+    const auto& member = group->bindings()[current->source];
+    POINT cursor{};
+    const auto handoff = detail::ExplorerGroupBridge::capture(*group->seal_, group->sessions());
+    const bool fresh = handoff && context_matches(*handoff, *current, true) &&
+        same_frame(frame((*handoff)[current->source]), frame(current->handoff[current->source]));
+    const MvpEndAuthorityFacts authority{fresh,
+        gui_after_end(member.thread_id, current->overlay.load(), current->capture_thread.load()),
+        GetForegroundWindow() == member.window, physical_left(), GetCursorPos(&cursor) != FALSE,
+        live_overlay(*current, cursor), desktop_active(), current->raw_up || current->retired ||
+            latest_raw_up_sequence.load(std::memory_order_acquire) > current->down_packet};
+    if (!mvp_capture_writer_ready(authority,
+            group->product_move_conflict_pending(current->source), current->end_observed,
+            current->capture_ready && op::gesture_shield_exact_capture(
+                current->overlay.load(), current->capture_thread.load()))) {
+        fail("capture_ready_fresh_authority_failed", b::MoveHandoffEscapeReason::ContextLost);
+        return;
+    }
+    // Drop also the resource batch drained before CaptureReady. It must not
+    // replay pointer samples from the END-to-capture handoff interval.
+    current->handoff_raw_watermark = last_raw_sequence;
     if (!current->continuity.arm(current->generation, frame((*handoff)[current->source]))) {
         fail("handoff_continuity_failed", b::MoveHandoffEscapeReason::ContextLost);
         return;
@@ -946,14 +1037,15 @@ void ExplorerMvpSession::Impl::native_end(const GroupEventReceipt& receipt,
         std::lock_guard lock{current->writer_mutex};
         current->writer = std::move(writer);
     }
-    if (current->raw_up) {
+    if (current->raw_up || current->retired || !current->capture_ready ||
+        latest_raw_up_sequence.load(std::memory_order_acquire) > current->down_packet) {
         revoke(current, b::MoveHandoffEscapeReason::EarlyUp);
+        current->phase = Phase::Retiring;
         return;
     }
     current->phase = Phase::Writing;
     auto accepted = event_for(MvpEvidenceKind::Handoff, current,
-                               "writer_armed_after_real_end");
-    accepted.native_sequence = receipt.sequence;
+                               "writer_armed_after_real_end_and_capture");
     accepted.raw_sequence = current->handoff_raw_watermark;
     accepted.succeeded = true;
     accepted.initial_visible = current->decision.initial_visible;
@@ -1051,6 +1143,8 @@ void ExplorerMvpSession::Impl::raw_motion(const op::GestureShieldEvent& event) {
     }
     evidence.geometry_exact = receipt->geometry_exact;
     evidence.post_context_exact = receipt->post_context_exact;
+    if (receipt->native_attempted) evidence.native_attempt_qpc = current->native_attempt_qpc.load();
+    if (current->raw_up_qpc) evidence.raw_up_qpc = current->raw_up_qpc.load();
     if (!record(evidence)) return;
     if (op::move_write_receipt_failed(*receipt, committed))
         fail("writer_receipt_failed", b::MoveHandoffEscapeReason::NativeFailure);
@@ -1135,6 +1229,13 @@ bool ExplorerMvpSession::Impl::pump() {
                 evidence.win32_error = event.win32_error;
                 copy_shield_setup(evidence, event);
                 break;
+            case op::GestureShieldEventKind::CaptureReady:
+            case op::GestureShieldEventKind::CaptureReleased:
+            case op::GestureShieldEventKind::CaptureLost:
+            case op::GestureShieldEventKind::CaptureFailure:
+                evidence = event_for(MvpEvidenceKind::Resource, current, capture_event_name(event.kind));
+                evidence.shield_capture = event.capture;
+                break;
             case op::GestureShieldEventKind::RawMouse:
                 break;
             }
@@ -1144,6 +1245,8 @@ bool ExplorerMvpSession::Impl::pump() {
             if (event.kind == op::GestureShieldEventKind::IsolationReady) {
                 if (current && event.generation == current->generation)
                     cancel_after_ready(current);
+            } else if (event.kind == op::GestureShieldEventKind::CaptureReady) {
+                capture_after_ready(event);
             } else if (event.kind == op::GestureShieldEventKind::IsolationGone) {
                 if (current && event.generation == current->generation &&
                     (!event.overlay_destroyed || !event.hotkey_unregistered))
@@ -1162,6 +1265,7 @@ bool ExplorerMvpSession::Impl::pump() {
             auto evidence = event_for(MvpEvidenceKind::RawUp, current,
                                        "receiver_packet_observed");
             evidence.raw_sequence = event.raw_sequence;
+            if (current && current->raw_up_qpc) evidence.raw_up_qpc = current->raw_up_qpc.load();
             if (event.generation) evidence.generation = event.generation;
             if (!record(evidence)) break;
             if (current && event.raw_sequence > current->down_packet)
@@ -1328,6 +1432,12 @@ std::unique_ptr<ExplorerMvpSession> ExplorerMvpSession::create_after_explicit_co
             if (!bridge) return;
             std::lock_guard lock{bridge->mutex};
             if (bridge->owner) bridge->owner->on_resource_event(event);
+        },
+        [callback](const op::GestureShieldRequest& request) {
+            auto bridge = callback.lock();
+            if (!bridge) return false;
+            std::lock_guard lock{bridge->mutex};
+            return bridge->owner && bridge->owner->capture_authorized(request);
         }
     });
     if (!impl->shield->start()) {

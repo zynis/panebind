@@ -30,6 +30,14 @@ struct MvpEndAuthorityFacts final {
 }
 
 // Samples drained in the END owner's quantum have no cross-queue ordering
+[[nodiscard]] constexpr bool mvp_capture_writer_ready(
+    const MvpEndAuthorityFacts& facts, bool pending_group_conflict,
+    bool real_end_observed, bool exact_self_capture) noexcept {
+    return real_end_observed && exact_self_capture &&
+        mvp_end_authority_ready(facts, false, pending_group_conflict);
+}
+
+// Samples drained in the END owner's quantum have no cross-queue ordering
 // guarantee. Only a later Raw packet can drive the post-END writer.
 [[nodiscard]] constexpr bool mvp_raw_continuation_after_handoff(
     std::uint64_t sample_sequence, std::uint64_t down_packet_sequence,

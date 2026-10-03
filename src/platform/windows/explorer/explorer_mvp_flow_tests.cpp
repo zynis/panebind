@@ -144,6 +144,18 @@ void end_authority_and_raw_watermark() {
           !e::mvp_raw_continuation_after_handoff(20, 10, 20) &&
           e::mvp_raw_continuation_after_handoff(21, 10, 20),
           "pre-END drained Raw packets stay below the handoff watermark");
+    facts = fresh_end_facts();
+    check(!e::mvp_capture_writer_ready(facts, false, false, true) &&
+          !e::mvp_capture_writer_ready(facts, false, true, false),
+          "self capture cannot precede real END and END alone cannot arm writer");
+    check(e::mvp_capture_writer_ready(facts, false, true, true),
+          "real END and exact same-generation self capture permit fresh handoff");
+    facts.raw_up_seen = true;
+    check(!e::mvp_capture_writer_ready(facts, false, true, true),
+          "capture ready after physical UP cannot restore writer authority");
+    facts = fresh_end_facts();
+    check(!e::mvp_capture_writer_ready(facts, true, true, true),
+          "new lifecycle or member conflict after END still rejects capture handoff");
 }
 
 void route_and_permission() {

@@ -98,6 +98,7 @@ private:
         std::size_t source,const GroupSnapshots& expected,
         const core::geometry::Rect& target_visible,
         const core::geometry::Rect& target_positioning,
+        HWND own_overlay, DWORD overlay_thread,
         bool (*begin_native)(void*) noexcept,void* context);
     friend class ::panebind::platform::windows::explorer::ExplorerGroupSession;
     friend class ::panebind::platform::windows::explorer::ExplorerLiveMagnetSession;

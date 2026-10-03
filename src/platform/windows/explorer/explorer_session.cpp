@@ -4,6 +4,8 @@
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
 #include "platform/windows/explorer/explorer_group_internal.h"
 #include "platform/windows/operations/window_rect_adjustment.h"
+#include "platform/windows/operations/gesture_input_shield.h"
+#include "platform/windows/operations/gesture_input_shield.h"
 #include "platform/windows/explorer/explorer_session_internal.h"
 #include "platform/windows/explorer/explorer_shell_events.h"
 #include "platform/windows/explorer/explorer_consent_validation.h"
@@ -5718,6 +5720,7 @@ detail::MvpNativePlacement detail::ExplorerGroupBridge::apply_mvp_move(
     const ExplorerGroupSeal& seal, GroupSessions sessions, std::size_t source,
     const GroupSnapshots& expected, const core::geometry::Rect& target_visible,
     const core::geometry::Rect& target_positioning,
+    HWND own_overlay, DWORD overlay_thread,
     bool (*begin_native)(void*) noexcept, void* context) {
     MvpNativePlacement result;
     if (source >= 3 || !begin_native || !context) {
@@ -5765,7 +5768,9 @@ detail::MvpNativePlacement detail::ExplorerGroupBridge::apply_mvp_move(
     const auto& binding = seal.members()[source];
     if (GetForegroundWindow() != binding.window ||
         (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0 ||
-        !GetGUIThreadInfo(binding.thread_id, &gui) || gui.hwndCapture ||
+        !operations::gesture_shield_exact_capture(own_overlay, overlay_thread) ||
+        !GetGUIThreadInfo(binding.thread_id, &gui) ||
+        (gui.hwndCapture && gui.hwndCapture != own_overlay) ||
         gui.hwndMoveSize || gui.hwndMenuOwner ||
         (gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
                       GUI_POPUPMENUMODE | GUI_INMOVESIZE)) ||

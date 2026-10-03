@@ -36,6 +36,8 @@ struct MvpEvidenceEvent final {
     std::optional<std::uint32_t> win32_error;
     std::optional<std::uint32_t> shield_route_message;
     std::optional<std::uintptr_t> shield_route_wparam, shield_route_capture;
+    std::optional<operations::GestureShieldCaptureFacts> shield_capture;
+    std::optional<std::uint64_t> native_attempt_qpc, raw_up_qpc;
     std::optional<std::uint32_t> shield_setup_stage, shield_native_failure,
         shield_readback_failure, shield_created_exstyle,
         shield_initial_exstyle, shield_observed_exstyle;

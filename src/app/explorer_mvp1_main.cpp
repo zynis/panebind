@@ -357,6 +357,41 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_route_wparam\":" << *event.shield_route_wparam;
         if (event.shield_route_capture)
             fields << ",\"shield_route_capture\":" << *event.shield_route_capture;
+        if (event.native_attempt_qpc) fields << ",\"native_attempt_qpc\":" << *event.native_attempt_qpc;
+        if (event.raw_up_qpc) fields << ",\"raw_up_qpc\":" << *event.raw_up_qpc;
+        if (event.shield_capture) {
+            const auto& c = *event.shield_capture;
+            const auto handle = [](HWND h) { return reinterpret_cast<std::uintptr_t>(h); };
+            fields << ",\"shield_capture\":{\"owner_thread_id\":" << c.owner_thread_id
+                << ",\"attempted\":" << (c.attempted ? "true" : "false")
+                << ",\"previous\":" << handle(c.previous)
+                << ",\"actual_after\":" << handle(c.actual_after)
+                << ",\"foreground_before\":" << handle(c.foreground_before)
+                << ",\"foreground_after\":" << handle(c.foreground_after)
+                << ",\"failure\":" << static_cast<unsigned>(c.failure)
+                << ",\"release_attempted\":" << (c.release_attempted ? "true" : "false")
+                << ",\"release_succeeded\":" << (c.release_succeeded ? "true" : "false")
+                << ",\"release_before\":" << handle(c.release_before)
+                << ",\"release_after\":" << handle(c.release_after)
+                << ",\"release_error\":" << c.release_error
+                << ",\"capture_changed_to\":" << handle(c.capture_changed_to)
+                << ",\"own_release_message\":" << (c.own_release_message ? "true" : "false");
+            const auto gui = [&](const char* name, const auto& f) {
+                fields << ",\"" << name << "\":{\"thread_id\":" << f.thread_id
+                    << ",\"available\":" << (f.available ? "true" : "false")
+                    << ",\"capture\":" << handle(f.capture)
+                    << ",\"move_size\":" << handle(f.move_size)
+                    << ",\"menu_owner\":" << handle(f.menu_owner)
+                    << ",\"flags\":" << f.flags << '}';
+            };
+            gui("source_before", c.source_before);
+            gui("foreground_before_gui", c.foreground_before_gui);
+            gui("owner_before", c.owner_before);
+            gui("source_after", c.source_after);
+            gui("foreground_after_gui", c.foreground_after_gui);
+            gui("owner_after", c.owner_after);
+            fields << '}';
+        }
         if (event.shield_initial_placement)
             fields << ",\"shield_initial_placement\":" <<
                 shield_placement_json(*event.shield_initial_placement);

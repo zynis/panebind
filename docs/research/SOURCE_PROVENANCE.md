@@ -1,5 +1,25 @@
 # Source Provenance Register
 
+## MVP1 post-END self capture — 2026-10-03
+
+适用：guest-only GestureInputShield capture 生命周期及 legacy UP 收尾。
+复用既有 AltSnap `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`
+（GPL-3.0-or-later、成熟维护、reference-only）源模块与 history 研究，不声称
+本轮重新读取其全库。重新实读 FancyZones `WindowMouseSnap.cpp`，pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a`（MIT、成熟生产、reference-only）
+及 history `dd26d86580168d2e368701f7b0c4d629dc9cd9ac` 的 abort/资源退出边界；
+它不是 PaneBind capture 功能证明。AltSnap history 400eeb 网络页失败，不算新实读。
+没有复制、适配、翻译或派生 upstream code。
+
+实读 Microsoft Learn [SetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture)、
+[GetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcapture)、
+[ReleaseCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-releasecapture)、
+[WM_CAPTURECHANGED](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-capturechanged)。
+Live official pages，无 immutable revision、无示例复用。原始返回是前 capture
+HWND；GetCapture NULL 只代表本线程；背景 capture 的可见区域及键盘加速键限制
+需 guest 实测；自己 ReleaseCapture 也产生 capturechanged，禁止在该消息中抢回。
+保留链接，无新增代码 attribution 义务。授权不等于经验 PASS。
+
 ## R1-C4B Architecture Pivot 1 Fix B — 2026-09-26
 
 Starting HEAD: `e381b998d9e3eded051fbc859893633e8633ebee`.

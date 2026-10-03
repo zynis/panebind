@@ -44,6 +44,8 @@ constexpr wchar_t guest_output[] = L"C:\\PaneBindMVP1\\Output\\";
 constexpr ULONG_PTR test_tag = 0x50424D56; // Owned SendInput tag; Raw has no tag.
 constexpr DWORD shield_deadline_ms = 30000;
 constexpr UINT msg_writer_notice = WM_APP + 17;
+constexpr UINT msg_test_capture_takeover = WM_APP + 18;
+constexpr UINT msg_test_capture_release = WM_APP + 19;
 
 struct RawSample { POINT cursor{}; std::uint64_t packet{}, tick{}; };
 
@@ -60,12 +62,17 @@ struct State {
     std::uint64_t log_sequence{};
     HANDLE ui_ready{}, ui_gone{}, legacy_down{}, native_start{}, native_end{}, modal_return{};
     HANDLE raw_down{}, raw_up{}, legacy_up{}, isolation_ready{}, isolation_gone{};
+    HANDLE capture_ready{}, capture_failure{}, capture_lost{}, capture_released{};
     HANDLE hotkey_stop{}, writer_receipt{}, writer_stall_started{}, writer_gone{}, raw_notice{};
     std::atomic<HWND> source{nullptr}, control{nullptr}, overlay{nullptr};
     std::atomic<DWORD> source_thread{0};
     std::atomic<bool> held{false}, retired{false}, armed{false};
     std::atomic<bool> tagged_down{false}, associated_raw_down{false};
     std::atomic<bool> authorized_start{false};
+    std::atomic<bool> authorized_end{false}, capture_authority{false};
+    std::atomic<bool> capture_established{false}, own_capture_released{false};
+    std::atomic<DWORD> shield_thread{0};
+    std::atomic<std::uint32_t> capture_attempts{0};
     std::atomic<bool> matching_raw_up{false}, normal_removal_requested{false};
     std::atomic<bool> overlay_destroyed{false}, hotkey_unregistered{false};
     std::atomic<bool> stall_started_held{false}, stall_deadline_removed{false};
@@ -156,6 +163,36 @@ struct State {
         shield_windowpos_json(event.windowpos_changing) +
         ",\"windowpos_changed\":" +
         shield_windowpos_json(event.windowpos_changed);
+}
+[[nodiscard]] std::string shield_gui_json(const op::GestureShieldGuiFacts& facts) {
+    return "{\"thread_id\":" + std::to_string(facts.thread_id) +
+        ",\"available\":" + boolean(facts.available) +
+        ",\"capture\":" + std::to_string(hwnd_number(facts.capture)) +
+        ",\"move_size\":" + std::to_string(hwnd_number(facts.move_size)) +
+        ",\"menu_owner\":" + std::to_string(hwnd_number(facts.menu_owner)) +
+        ",\"flags\":" + std::to_string(facts.flags) + "}";
+}
+[[nodiscard]] std::string shield_capture_json(const op::GestureShieldCaptureFacts& facts) {
+    return ",\"owner_thread_id\":" + std::to_string(facts.owner_thread_id) +
+        ",\"attempted\":" + boolean(facts.attempted) +
+        ",\"previous_capture\":" + std::to_string(hwnd_number(facts.previous)) +
+        ",\"actual_after\":" + std::to_string(hwnd_number(facts.actual_after)) +
+        ",\"foreground_before\":" + std::to_string(hwnd_number(facts.foreground_before)) +
+        ",\"foreground_after\":" + std::to_string(hwnd_number(facts.foreground_after)) +
+        ",\"source_before\":" + shield_gui_json(facts.source_before) +
+        ",\"source_after\":" + shield_gui_json(facts.source_after) +
+        ",\"foreground_before_gui\":" + shield_gui_json(facts.foreground_before_gui) +
+        ",\"foreground_after_gui\":" + shield_gui_json(facts.foreground_after_gui) +
+        ",\"owner_before\":" + shield_gui_json(facts.owner_before) +
+        ",\"owner_after\":" + shield_gui_json(facts.owner_after) +
+        ",\"failure\":" + std::to_string(static_cast<int>(facts.failure)) +
+        ",\"release_attempted\":" + boolean(facts.release_attempted) +
+        ",\"release_succeeded\":" + boolean(facts.release_succeeded) +
+        ",\"release_before\":" + std::to_string(hwnd_number(facts.release_before)) +
+        ",\"release_after\":" + std::to_string(hwnd_number(facts.release_after)) +
+        ",\"release_error\":" + std::to_string(facts.release_error) +
+        ",\"capture_changed_to\":" + std::to_string(hwnd_number(facts.capture_changed_to)) +
+        ",\"own_release_message\":" + boolean(facts.own_release_message);
 }
 void record(std::string_view kind, const std::string& fields = {}) noexcept {
     try {
@@ -343,7 +380,13 @@ void record_release_route_snapshot(std::string_view reason,
         !IsWindowVisible(source) || IsIconic(source) || IsZoomed(source) ||
         !IsWindowVisible(control) || IsIconic(control) || IsZoomed(control)) return false;
     GUITHREADINFO gui{sizeof(gui)};
-    if (!GetGUIThreadInfo(s.source_thread, &gui) || gui.hwndCapture || gui.hwndMoveSize ||
+    if (!GetGUIThreadInfo(s.source_thread, &gui)) return false;
+    // Attached input queues can expose this gesture's exact self-owned shield
+    // capture in the source snapshot. Never accept a different capture HWND.
+    const HWND own_overlay = s.overlay;
+    const bool capture_is_own = gui.hwndCapture == own_overlay &&
+        op::gesture_shield_exact_capture(own_overlay, s.shield_thread);
+    if ((gui.hwndCapture && !capture_is_own) || gui.hwndMoveSize ||
         gui.hwndMenuOwner || (gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
                                      GUI_POPUPMENUMODE | GUI_INMOVESIZE))) return false;
     const auto a = capture(source), b = capture(control);
@@ -356,10 +399,15 @@ void record_release_route_snapshot(std::string_view reason,
         GetMonitorInfoW(monitor, &info) && EqualRect(&info.rcWork, &s.work_area) &&
         GetDpiForWindow(source) == s.dpi && GetDpiForWindow(control) == s.dpi;
 }
+[[nodiscard]] bool owned_capture_live() noexcept {
+    return s.capture_established &&
+        op::gesture_shield_exact_capture(s.overlay, s.shield_thread);
+}
 
 void retire(std::string_view reason, b::MoveHandoffEscapeReason escape) noexcept {
     s.armed = false;
     s.retired = true;
+    s.capture_authority = false;
     op::MoveRetireFacts facts{};
     if (s.writer) facts = s.writer->retire(s.generation);
     s.continuity.retire(s.generation);
@@ -423,6 +471,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
                 }
                 s.armed = false;
                 s.retired = true;
+                s.capture_authority = false;
                 if (s.writer) (void)s.writer->retire(generation);
                 s.continuity.retire(generation);
                 (void)s.motion.raw_up_observed(generation, true);
@@ -516,6 +565,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         SetEvent(s.isolation_ready);
         break;
     case op::GestureShieldEventKind::IsolationGone:
+        s.capture_established = false;
         s.overlay = nullptr;
         s.overlay_destroyed = event.overlay_destroyed;
         s.hotkey_unregistered = event.hotkey_unregistered;
@@ -532,6 +582,45 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"overlay_destroyed\":" + boolean(event.overlay_destroyed) +
             ",\"hotkey_unregistered\":" + boolean(event.hotkey_unregistered));
         SetEvent(s.isolation_gone);
+        break;
+    case op::GestureShieldEventKind::CaptureReady:
+        s.shield_thread = event.capture.owner_thread_id;
+        if (event.capture.attempted) ++s.capture_attempts;
+        s.capture_established = event.generation == generation &&
+            event.overlay == s.overlay && event.capture.actual_after == event.overlay &&
+            event.capture.failure == op::GestureShieldCaptureFailure::None;
+        record("capture_ready", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"overlay\":" + std::to_string(hwnd_number(event.overlay)) +
+            ",\"native_ends_observed\":" + std::to_string(s.native_ends.load()) +
+            ",\"left_high\":" + boolean(left_high()) +
+            ",\"retired\":" + boolean(s.retired) + shield_capture_json(event.capture));
+        SetEvent(s.capture_ready);
+        break;
+    case op::GestureShieldEventKind::CaptureFailure:
+        if (event.capture.attempted) ++s.capture_attempts;
+        retire("capture_establishment_failed", b::MoveHandoffEscapeReason::ContextLost);
+        record("capture_failure", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"overlay\":" + std::to_string(hwnd_number(event.overlay)) +
+            shield_capture_json(event.capture));
+        SetEvent(s.capture_failure);
+        break;
+    case op::GestureShieldEventKind::CaptureLost:
+        s.capture_established = false;
+        retire("unexpected_capture_lost", b::MoveHandoffEscapeReason::ContextLost);
+        record("capture_lost", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"overlay\":" + std::to_string(hwnd_number(event.overlay)) +
+            shield_capture_json(event.capture));
+        SetEvent(s.capture_lost);
+        break;
+    case op::GestureShieldEventKind::CaptureReleased:
+        s.capture_established = false;
+        s.own_capture_released = event.generation == generation &&
+            event.capture.release_attempted && event.capture.release_succeeded &&
+            event.capture.release_before == event.overlay && !event.capture.release_after;
+        record("capture_released", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"overlay\":" + std::to_string(hwnd_number(event.overlay)) +
+            shield_capture_json(event.capture));
+        SetEvent(s.capture_released);
         break;
     case op::GestureShieldEventKind::HotkeyStop:
         retire("actual_hotkey", b::MoveHandoffEscapeReason::ExplicitStop);
@@ -594,6 +683,33 @@ void record_owned_mouse_route(HWND hwnd, UINT message, WPARAM wparam,
 LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
                                LPARAM lparam) noexcept {
     switch (message) {
+    case msg_test_capture_takeover: {
+        // Guest-guarded fault actor, not product capture recovery. All HWNDs
+        // belong to this test nonce and this UI thread. The product must only
+        // observe its loss and abort; it must not release this control HWND.
+        if (s.scenario != "capture-lost" || hwnd != s.source ||
+            !same_owned(s.control) || !left_high() || !owned_capture_live()) return 0;
+        const HWND previous = SetCapture(s.control);
+        const HWND actual = GetCapture();
+        record("test_owned_capture_takeover", ",\"control\":" +
+            std::to_string(hwnd_number(s.control)) + ",\"previous_capture\":" +
+            std::to_string(hwnd_number(previous)) + ",\"actual_capture\":" +
+            std::to_string(hwnd_number(actual)) +
+            ",\"actor\":\"guest_test_owned_ui_thread\"");
+        return actual == s.control;
+    }
+    case msg_test_capture_release: {
+        if (s.scenario != "capture-lost" || hwnd != s.source ||
+            !same_owned(s.control) || GetCapture() != s.control) return 0;
+        const HWND before = GetCapture();
+        const bool released = ReleaseCapture() != FALSE;
+        const HWND after = GetCapture();
+        record("test_owned_capture_release", ",\"before\":" +
+            std::to_string(hwnd_number(before)) + ",\"after\":" +
+            std::to_string(hwnd_number(after)) + ",\"released\":" + boolean(released) +
+            ",\"actor\":\"guest_test_owned_ui_thread_not_product_cleanup\"");
+        return released && !after;
+    }
     case WM_NCHITTEST:
         if (hwnd == s.source && s.trace_click_route) {
             const auto extra = GetMessageExtraInfo();
@@ -760,7 +876,7 @@ struct WriteFacts {
         observed, context && source_now.has_value());
     const bool stable = decision == op::MoveSampleDecision::Process;
     const bool active = stable && s.armed && !s.retired && !s.matching_raw_up &&
-        left_high() && s.tagged_down && s.associated_raw_down &&
+        owned_capture_live() && left_high() && s.tagged_down && s.associated_raw_down &&
         s.native_starts == 1 && s.native_ends == 1 && s.cancel_attempts == 1 &&
         !s.motion.retired(s.generation);
     return {stable, active, shield_hit(cursor), decision};
@@ -1020,7 +1136,8 @@ void writer_owner() noexcept {
     const HWND hit = context ? root_at(cursor) : nullptr;
     const bool own_route = context && GetForegroundWindow() == source &&
         (hit == source || shield_hit(cursor)) &&
-        (!gui.hwndCapture || gui.hwndCapture == source) &&
+        (!gui.hwndCapture || gui.hwndCapture == source ||
+            (gui.hwndCapture == s.overlay && owned_capture_live())) &&
         (!gui.hwndMoveSize || gui.hwndMoveSize == source) &&
         !gui.hwndMenuOwner && !(gui.flags & (GUI_INMENUMODE |
             GUI_SYSTEMMENUMODE | GUI_POPUPMENUMODE)) && left_high();
@@ -1182,7 +1299,38 @@ void writer_owner() noexcept {
     return actual && s.motion.isolation_ready(s.generation, true);
 }
 
-[[nodiscard]] bool bounded_native_cancel_and_handoff() noexcept {
+[[nodiscard]] bool request_capture_and_arm_writer() noexcept {
+    const bool queued = s.shield && s.shield->request_capture_after_native_end({
+        s.generation, s.source, GetCurrentProcessId(), s.source_thread});
+    record("capture_request", ",\"queued\":" + boolean(queued) +
+        ",\"actual_end_published\":" + boolean(s.authorized_end) +
+        ",\"authority_published\":" + boolean(s.capture_authority) +
+        ",\"normal_up_observed\":" + boolean(s.matching_raw_up));
+    if (!queued || !wait_for(s.capture_ready, 2000, "actual_product_capture_ready") ||
+        s.retired || s.matching_raw_up || !left_high() || !owned_capture_live()) return false;
+    const auto handoff = capture(s.source);
+    const bool fresh = handoff && stable_context() &&
+        s.continuity.arm(s.generation, *handoff);
+    record("capture_handoff", ",\"fresh\":" + boolean(fresh) +
+        ",\"actual_capture\":" + boolean(owned_capture_live()) +
+        ",\"handoff_visible\":" + (handoff ? rect_json(handoff->visible) : "null"));
+    if (!fresh || s.retired || s.matching_raw_up) return false;
+    {
+        std::lock_guard lock{s.raw_mutex};
+        s.raw_moves.clear();
+        ResetEvent(s.raw_notice);
+        s.handoff_raw_watermark.store(s.raw_sequence.load(std::memory_order_acquire),
+                                      std::memory_order_release);
+    }
+    record("handoff_raw_watermark", ",\"last_pre_handoff_packet\":" +
+        std::to_string(s.handoff_raw_watermark.load()));
+    s.armed = true;
+    // A matched UP racing this publication keeps writer permissions revoked.
+    if (s.retired || s.matching_raw_up) { s.armed = false; return false; }
+    return true;
+}
+
+[[nodiscard]] bool bounded_native_cancel_and_handoff(bool acquire_capture = true) noexcept {
     // Request queueing and API return are not native END evidence. The owned
     // WndProc must observe WM_EXITSIZEMOVE and its modal call must return.
     POINT cursor{};
@@ -1219,23 +1367,92 @@ void writer_owner() noexcept {
         s.matching_raw_up || !left_high() ||
         !s.motion.native_end_observed(s.generation, true)) return false;
     const auto handoff = capture(s.source);
-    const bool fresh = handoff && stable_context() &&
-        s.continuity.arm(s.generation, *handoff);
+    const bool fresh = handoff && stable_context();
     record("handoff", ",\"actual_end\":true,\"fresh\":" +
         boolean(fresh) + ",\"handoff_visible\":" +
         (handoff ? rect_json(handoff->visible) : "null"));
     if (!fresh) return false;
-    {
-        std::lock_guard lock{s.raw_mutex};
-        s.raw_moves.clear(); // END-before-continuation watermark.
-        ResetEvent(s.raw_notice);
-        s.handoff_raw_watermark.store(s.raw_sequence.load(std::memory_order_acquire),
-                                      std::memory_order_release);
+    s.authorized_end = true;
+    if (s.retired || s.matching_raw_up) return false;
+    s.capture_authority = true;
+    if (s.retired || s.matching_raw_up) { s.capture_authority = false; return false; }
+    return !acquire_capture || request_capture_and_arm_writer();
+}
+
+[[nodiscard]] bool run_capture_abort() noexcept {
+    const bool before_capture = s.scenario == "capture-early-up" ||
+        s.scenario == "capture-fail";
+    if (!bounded_native_cancel_and_handoff(!before_capture)) return false;
+    if (s.scenario == "capture-early-up") {
+        if (!release_owned_left("actual_up_after_end_before_capture")) return false;
+        // No capture request after the actual UP. Missing legacy delivery is
+        // not repaired or relabelled NormalUp: this is a bounded abort case.
+        const bool already_gone = WaitForSingleObject(s.isolation_gone, 0) == WAIT_OBJECT_0;
+        if (!already_gone)
+            (void)s.shield->request_remove(s.generation,
+                op::GestureShieldRemovalReason::ExplicitStop);
+        const bool gone = wait_for(s.isolation_gone, 2000, "post_end_early_up_abort");
+        record("capture_early_up_verdict", ",\"actual_end\":" +
+            boolean(s.native_ends == 1) + ",\"actual_raw_up\":" + boolean(s.matching_raw_up) +
+            ",\"capture_attempts\":" + std::to_string(s.capture_attempts.load()) +
+            ",\"normal_removal\":" + boolean(s.normal_removal_requested));
+        return gone && s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
+            s.capture_attempts == 0 && s.native_attempts == 0;
     }
-    record("handoff_raw_watermark", ",\"last_pre_handoff_packet\":" +
-        std::to_string(s.handoff_raw_watermark.load()));
-    s.armed = true;
-    return true;
+    if (s.scenario == "capture-fail") {
+        // Test-owned authority is deliberately withdrawn after the real END.
+        // The PRODUCT resource must observe and report its authorization
+        // rejection. This is not evidence of SetCapture API failure.
+        s.capture_authority = false;
+        const bool queued = s.shield->request_capture_after_native_end({
+            s.generation, s.source, GetCurrentProcessId(), s.source_thread});
+        record("test_capture_authority_withdrawn", ",\"actual_end\":true,\"queued\":" +
+            boolean(queued) + ",\"fault_actor\":\"owned_test_adapter\"");
+        const bool failed = queued && wait_for(s.capture_failure, 2000,
+                                               "actual_capture_authorization_rejection");
+        const bool gone = failed && wait_for(s.isolation_gone, 2000, "capture_failure_abort");
+        const bool released = gone && release_owned_left("capture_failure_test_cleanup");
+        record("capture_failure_verdict", ",\"authorization_rejection\":" + boolean(failed) +
+            ",\"api_attempts\":" + std::to_string(s.capture_attempts.load()) +
+            ",\"normal_removal\":" + boolean(s.normal_removal_requested));
+        return released && s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
+            s.capture_attempts == 0 && s.native_attempts == 0 &&
+            !s.normal_removal_requested;
+    }
+    if (!owned_capture_live() || !left_high()) return false;
+    if (s.scenario == "capture-stop") {
+        if (!send_stop_chord() || !wait_for(s.hotkey_stop, 1500,
+                "actual_post_end_capture_hotkey") ||
+            !wait_for(s.isolation_gone, 2000, "post_end_hotkey_shield_removal")) return false;
+        const bool held_at_removal = left_high();
+        const bool released = held_at_removal &&
+            release_owned_left("post_end_stop_test_cleanup");
+        record("post_end_stop_verdict", ",\"actual_hotkey\":true,\"held_at_removal\":" +
+            boolean(held_at_removal) + ",\"capture_released\":" + boolean(s.own_capture_released) +
+            ",\"normal_removal\":" + boolean(s.normal_removal_requested));
+        return released && s.own_capture_released && s.retired &&
+            s.overlay_destroyed && s.hotkey_unregistered && s.native_attempts == 0 &&
+            !s.normal_removal_requested;
+    }
+    DWORD_PTR takeover_result{};
+    const bool takeover = SendMessageTimeoutW(s.source, msg_test_capture_takeover, 0, 0,
+        SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 1000, &takeover_result) && takeover_result;
+    const bool lost = takeover && wait_for(s.capture_lost, 1500, "actual_capture_lost");
+    const bool gone = lost && wait_for(s.isolation_gone, 2000, "capture_loss_abort");
+    GUITHREADINFO gui{sizeof(gui)};
+    const bool control_capture_preserved = gone && GetGUIThreadInfo(s.source_thread, &gui) &&
+        gui.hwndCapture == s.control;
+    DWORD_PTR release_result{};
+    const bool test_released = control_capture_preserved &&
+        SendMessageTimeoutW(s.source, msg_test_capture_release, 0, 0,
+            SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 1000, &release_result) && release_result;
+    const bool raw_cleanup = test_released && release_owned_left("capture_loss_test_cleanup");
+    record("capture_loss_verdict", ",\"actual_capture_lost\":" + boolean(lost) +
+        ",\"test_control_capture_preserved_by_product\":" + boolean(control_capture_preserved) +
+        ",\"test_only_capture_release\":" + boolean(test_released) +
+        ",\"normal_removal\":" + boolean(s.normal_removal_requested));
+    return raw_cleanup && s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
+        s.native_attempts == 0 && !s.normal_removal_requested && !s.own_capture_released;
 }
 
 [[nodiscard]] bool run_normal_or_stall() noexcept {
@@ -1262,7 +1479,7 @@ void writer_owner() noexcept {
             ",\"cleanup_raw_up\":" + boolean(released) +
             ",\"native_attempts\":" + std::to_string(s.native_attempts.load()));
         return gone && released && receipt && s.stall_deadline_removed &&
-            s.overlay_destroyed && s.hotkey_unregistered &&
+            s.overlay_destroyed && s.hotkey_unregistered && s.own_capture_released &&
             s.native_attempts == 0 && s.retired;
     }
     // Only this test driver uses a fixed trajectory. Product session uses the
@@ -1302,6 +1519,7 @@ void writer_owner() noexcept {
         ",\"normal_removal\":" + boolean(s.normal_removal_requested) +
         ",\"control_mouse_zero\":" + boolean(no_control_delivery));
     return legacy && gone && no_control_delivery && s.normal_removal_requested &&
+        s.capture_attempts == 1 && s.own_capture_released &&
         s.overlay_destroyed && s.hotkey_unregistered && s.retired;
 }
 
@@ -1378,6 +1596,9 @@ void writer_owner() noexcept {
         return released && end && held_at_removal && s.overlay_destroyed &&
             s.hotkey_unregistered && s.cancel_attempts == 0 && s.native_attempts == 0;
     }
+    if (s.scenario == "capture-stop" || s.scenario == "capture-early-up" ||
+        s.scenario == "capture-fail" || s.scenario == "capture-lost")
+        return run_capture_abort();
     return run_normal_or_stall();
 }
 
@@ -1394,6 +1615,10 @@ void writer_owner() noexcept {
     s.legacy_up = make();
     s.isolation_ready = make();
     s.isolation_gone = make();
+    s.capture_ready = make();
+    s.capture_failure = make();
+    s.capture_lost = make();
+    s.capture_released = make();
     s.hotkey_stop = make();
     s.writer_receipt = make(false);
     s.writer_stall_started = make();
@@ -1402,6 +1627,7 @@ void writer_owner() noexcept {
     return s.ui_ready && s.ui_gone && s.legacy_down && s.native_start && s.native_end &&
         s.modal_return && s.raw_down && s.raw_up && s.legacy_up &&
         s.isolation_ready && s.isolation_gone && s.hotkey_stop &&
+        s.capture_ready && s.capture_failure && s.capture_lost && s.capture_released &&
         s.writer_receipt && s.writer_stall_started && s.writer_gone &&
         s.raw_notice;
 }
@@ -1410,6 +1636,7 @@ void close_signals() noexcept {
     for (HANDLE handle : {s.ui_ready, s.ui_gone, s.legacy_down, s.native_start, s.native_end,
             s.modal_return, s.raw_down, s.raw_up, s.legacy_up,
             s.isolation_ready, s.isolation_gone, s.hotkey_stop,
+            s.capture_ready, s.capture_failure, s.capture_lost, s.capture_released,
             s.writer_receipt, s.writer_stall_started, s.writer_gone, s.raw_notice}) {
         if (handle) CloseHandle(handle);
     }
@@ -1434,6 +1661,8 @@ int wmain(int argc, wchar_t** argv) {
     const std::wstring_view scenario(argv[3]);
     if (scenario != L"normal" && scenario != L"early-up" &&
         scenario != L"setup-fail" && scenario != L"stop" &&
+        scenario != L"capture-stop" && scenario != L"capture-early-up" &&
+        scenario != L"capture-fail" && scenario != L"capture-lost" &&
         scenario != L"writer-stall") return 64;
     if (!guest_guard(argv[7], scenario, argv[5])) {
         constexpr char denied[] =
@@ -1448,6 +1677,10 @@ int wmain(int argc, wchar_t** argv) {
     else if (scenario == L"early-up") s.scenario = "early-up";
     else if (scenario == L"setup-fail") s.scenario = "setup-fail";
     else if (scenario == L"stop") s.scenario = "stop";
+    else if (scenario == L"capture-stop") s.scenario = "capture-stop";
+    else if (scenario == L"capture-early-up") s.scenario = "capture-early-up";
+    else if (scenario == L"capture-fail") s.scenario = "capture-fail";
+    else if (scenario == L"capture-lost") s.scenario = "capture-lost";
     else s.scenario = "writer-stall";
     s.generation = qpc() ^ (static_cast<std::uint64_t>(GetCurrentProcessId()) << 32);
     if (!s.generation) s.generation = 1;
@@ -1488,7 +1721,17 @@ int wmain(int argc, wchar_t** argv) {
                 s.raw_ups == 0 && !s.retired && left_high() &&
                 same_owned(s.source) && GetForegroundWindow() == s.source;
         },
-        on_shield_event
+        on_shield_event,
+        [](const op::GestureShieldRequest& request) {
+            // These are published REAL owned END facts. The resource itself
+            // additionally checks source/foreground/owner GUI state and UP.
+            return request.generation == s.generation && request.source == s.source &&
+                request.process_id == GetCurrentProcessId() &&
+                request.thread_id == s.source_thread && s.authorized_start &&
+                s.authorized_end && s.capture_authority && s.native_ends == 1 &&
+                s.cancel_attempts == 1 && s.tagged_down && s.associated_raw_down &&
+                !s.matching_raw_up && !s.retired && !s.armed && left_high();
+        }
     });
     const bool initialized = s.writer->ready() && s.shield->start();
     record("resource_start", ",\"initialized\":" + json_bool(initialized));
@@ -1529,6 +1772,7 @@ int wmain(int argc, wchar_t** argv) {
         ",\"shield_clean\":" + json_bool(shield_facts.clean()) +
         ",\"receiver_destroyed\":" + json_bool(shield_facts.receiver_destroyed) +
         ",\"raw_removed\":" + json_bool(shield_facts.raw_registration_removed) +
+        ",\"capture_cleanup_complete\":" + json_bool(shield_facts.capture_released) +
         ",\"hotkey_unregistered\":" + json_bool(shield_facts.hotkey_unregistered) +
         ",\"owned_ui_gone\":" + json_bool(ui_gone) +
         ",\"writer_gone\":" + json_bool(writer_gone) +
@@ -1537,6 +1781,8 @@ int wmain(int argc, wchar_t** argv) {
         ",\"resource_verdict\":" + json_bool(resource_verdict) +
         ",\"native_attempts\":" + std::to_string(s.native_attempts.load()) +
         ",\"writer_failures\":" + std::to_string(s.writer_failures.load()) +
+        ",\"capture_attempts\":" + std::to_string(s.capture_attempts.load()) +
+        ",\"own_capture_released\":" + json_bool(s.own_capture_released) +
         ",\"left_high\":" + json_bool(left_high()));
     {
         std::lock_guard lock{s.log_mutex};

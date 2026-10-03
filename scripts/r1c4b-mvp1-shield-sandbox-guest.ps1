@@ -130,6 +130,10 @@ try {
         @{ configuration = 'debug'; scenario = 'early-up'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'setup-fail'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'stop'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'capture-stop'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'capture-early-up'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'capture-fail'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'capture-lost'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'writer-stall'; executable = $debugOwned },
         @{ configuration = 'release'; scenario = 'normal'; executable = $owned }
     )

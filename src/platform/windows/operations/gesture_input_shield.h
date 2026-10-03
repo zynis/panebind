@@ -29,6 +29,10 @@ enum class GestureShieldEventKind {
     ContextLost,
     ResourceFailure,
     OverlayMouseRoute,
+    CaptureReady,
+    CaptureFailure,
+    CaptureLost,
+    CaptureReleased,
 };
 
 enum class GestureShieldRemovalReason {
@@ -117,6 +121,61 @@ struct GestureShieldPlacementFacts {
     std::uint32_t changed_count_after{};
 };
 
+// These are observations of named threads, not a whole-desktop capture query.
+struct GestureShieldGuiFacts {
+    DWORD thread_id{};
+    bool available{};
+    HWND capture{};
+    HWND move_size{};
+    HWND menu_owner{};
+    DWORD flags{};
+};
+
+enum class GestureShieldCaptureFailure {
+    None,
+    Revoked,
+    Authorization,
+    SourceIdentity,
+    OverlayIdentity,
+    InputDesktop,
+    Foreground,
+    PhysicalButtons,
+    GuiQuery,
+    ForeignCapture,
+    MoveSize,
+    MenuMode,
+    Readback,
+};
+
+struct GestureShieldCaptureFacts {
+    DWORD owner_thread_id{};
+    bool attempted{};
+    // SetCapture returns the previous capture HWND, not a success BOOL.
+    HWND previous{};
+    HWND actual_after{};
+    HWND foreground_before{};
+    HWND foreground_after{};
+    GestureShieldGuiFacts source_before{};
+    GestureShieldGuiFacts foreground_before_gui{};
+    GestureShieldGuiFacts owner_before{};
+    GestureShieldGuiFacts source_after{};
+    GestureShieldGuiFacts foreground_after_gui{};
+    GestureShieldGuiFacts owner_after{};
+    GestureShieldCaptureFailure failure{GestureShieldCaptureFailure::None};
+    bool release_attempted{};
+    bool release_succeeded{};
+    HWND release_before{};
+    HWND release_after{};
+    DWORD release_error{};
+    HWND capture_changed_to{};
+    bool own_release_message{};
+};
+
+// Read-only, precise same-process/same-thread capture check. Callers must also
+// bind overlay and owner_thread_id to their current generation's CaptureReady.
+[[nodiscard]] bool gesture_shield_exact_capture(HWND overlay,
+                                                DWORD owner_thread_id) noexcept;
+
 struct GestureShieldEvent {
     GestureShieldEventKind kind{};
     std::uint64_t generation{};
@@ -152,6 +211,7 @@ struct GestureShieldEvent {
     UINT route_message{};
     std::uintptr_t route_wparam{};
     HWND route_capture{};
+    GestureShieldCaptureFacts capture{};
     DWORD win32_error{};
     GestureShieldSetupStage setup_stage{GestureShieldSetupStage::None};
     GestureShieldNativeFailure native_failure{GestureShieldNativeFailure::None};
@@ -184,6 +244,10 @@ struct GestureShieldCallbacks {
     // Invoked only on the shield's resource/message thread. It must be quick:
     // enqueue state changes/revoke writer, never perform COM or placement here.
     std::function<void(const GestureShieldEvent&)> on_event;
+    // Published exact-generation real native END and fresh ordinary-Move
+    // authority only. This is separate from the pre-cancel START authority.
+    // Missing/false authorization can never be replaced by the queued request.
+    std::function<bool(const GestureShieldRequest&)> capture_authorized;
 };
 
 struct GestureShieldStopFacts {
@@ -195,11 +259,13 @@ struct GestureShieldStopFacts {
     bool winevent_unhooked{};
     bool classes_unregistered{};
     bool callback_delivery_ok{};
+    bool capture_released{};
 
     [[nodiscard]] bool clean() const noexcept {
         return worker_exited && overlay_destroyed && receiver_destroyed &&
                raw_registration_removed && hotkey_unregistered &&
-               winevent_unhooked && classes_unregistered && callback_delivery_ok;
+               winevent_unhooked && classes_unregistered && callback_delivery_ok &&
+               capture_released;
     }
 };
 
@@ -217,6 +283,10 @@ public:
     // These methods are cross-thread and nonblocking. The on_event facts, not
     // their return values, establish overlay readiness or actual removal.
     [[nodiscard]] bool request_isolation(GestureShieldRequest request) noexcept;
+    // Guest-only adapters queue this after their observed real native END.
+    // CaptureReady, not the queue result or SetCapture return, gates writing.
+    [[nodiscard]] bool request_capture_after_native_end(
+        GestureShieldRequest request) noexcept;
     [[nodiscard]] bool request_remove(std::uint64_t generation,
                                       GestureShieldRemovalReason reason) noexcept;
     // Stops resources independently of the geometry writer. A false clean()

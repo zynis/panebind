@@ -26,6 +26,7 @@ $script:productPid = 0
 $script:productStarted = $false
 $script:bound = @()
 $script:targets = @()
+$script:gestureGenerations = [Collections.Generic.HashSet[long]]::new()
 
 function Test-ExactGuest {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -363,7 +364,9 @@ function Console-Line([string]$Line) {
 function Find-Hit([long]$Hwnd, [int]$Wanted) {
     $rect = [PaneBindMvpGuestInput]::Rectangle($Hwnd,$false)
     $width = $rect[2]-$rect[0]; $height = $rect[3]-$rect[1]
-    $ys = if ($Wanted -eq 2) { @(10,17,24,31) } else { @($height-3,$height-5,$height-8) }
+    $ys = if ($Wanted -eq 2) { @(10,17,24,31,40,48,56) } else {
+        @(($height-3),($height-5),($height-8))
+    }
     foreach ($y in $ys) {
         foreach ($fraction in @(0.2,0.3,0.4,0.5,0.6,0.7)) {
             $pointX = $rect[0]+[int]($width*$fraction)
@@ -394,6 +397,70 @@ function Assert-Test-DownTarget([long]$Hwnd,[int]$X,[int]$Y,[string]$Phase) {
     if ($cursor[0] -ne $X -or $cursor[1] -ne $Y -or $root -ne $Hwnd) {
         throw "cursor_or_hit_not_exact:$Phase"
     }
+}
+function Test-RectEqual($Left,$Right) {
+    if ($null -eq $Left -or $null -eq $Right -or $Left.Count -ne 4 -or $Right.Count -ne 4) {
+        return $false
+    }
+    for ($coordinate=0; $coordinate -lt 4; $coordinate++) {
+        if ([long]$Left[$coordinate] -ne [long]$Right[$coordinate]) { return $false }
+    }
+    return $true
+}
+function Assert-ProductGeometry([string]$Phase,[bool]$RequireGlue = $false) {
+    $prior = @(Product-Rows | Select-Object -Last 1)
+    $watermark = if ($prior.Count) { [long]$prior[0].sequence } else { 0 }
+    Console-Line 'S'
+    $status = Wait-ProductRow 'status' { param($row) $row.sequence -gt $watermark } 10
+    if ($status.gesture_active -eq $true -or $status.glue_active -eq $true -or
+        @($status.windows).Count -ne 3) { throw "product_status_not_idle:$Phase" }
+    for ($member=0; $member -lt 3; $member++) {
+        $root = Exact-Root $member
+        $actual = [PaneBindMvpGuestInput]::Rectangle([long]$root.hwnd,$true)
+        $reported = @($status.windows | Where-Object { $_.member -eq $member })
+        if ($reported.Count -ne 1 -or -not (Test-RectEqual $actual $reported[0].visible)) {
+            throw "product_geometry_not_refreshed:$Phase/$member"
+        }
+        Record 'actual_relation_snapshot' @{ phase=$Phase; member=$member;
+            product_sequence=$status.sequence; visible=$actual;
+            reported_visible=$reported[0].visible; exact=$true }
+    }
+    Record 'product_status' @{ phase=$Phase; product_sequence=$status.sequence;
+        topology_ready=$status.topology_ready; relation_count=$status.relation_count;
+        windows=$status.windows; actual_geometry_exact=$true }
+    if ($RequireGlue -and ($status.topology_ready -ne $true -or
+        [int]$status.relation_count -lt 2)) { throw "refreshed_ctrl_layout_not_ready:$Phase" }
+    return $status
+}
+function Invoke-MagnetWaypoint([int]$Member,[long]$Generation,[string]$Phase,
+                               $Down,$Initial,$WantedFree,$Expected,[bool]$Snapped,
+                               [long]$AfterQuantum) {
+    # Coordinates come from the original DOWN/window anchor. Reading each
+    # native result verifies geometry; it never becomes a new intent anchor.
+    $cursor=@([int]($Down[0]+$WantedFree[0]-$Initial[0]),
+              [int]($Down[1]+$WantedFree[1]-$Initial[1]))
+    Start-Sleep -Milliseconds 65 # bounded driver pacing, below the existing speed limit
+    Send-MouseMove $cursor[0] $cursor[1] $Phase
+    $receipt = Wait-ProductRow 'gesture_event' {
+        param($row) $row.generation -eq $Generation -and $row.event -ceq 'writer' -and
+            $row.quantum -gt $AfterQuantum -and $row.native_attempted -eq $true
+    } 4
+    $root = Exact-Root $Member
+    $actual=[PaneBindMvpGuestInput]::Rectangle([long]$root.hwnd,$true)
+    $exact = $receipt.native_succeeded -eq $true -and
+        $receipt.geometry_exact -eq $true -and $receipt.post_context_exact -eq $true -and
+        $receipt.snapped -eq $Snapped -and
+        (Test-RectEqual $receipt.target_visible $Expected) -and
+        (Test-RectEqual $receipt.actual_visible $Expected) -and
+        (Test-RectEqual $actual $Expected)
+    Record 'magnet_waypoint' @{ phase=$Phase; member=$Member; generation=$Generation;
+        original_down=$Down; original_visible=$Initial; cursor=$cursor;
+        free_visible=$WantedFree; expected_visible=$Expected; actual_visible=$actual;
+        expected_snapped=$Snapped; observed_snapped=$receipt.snapped;
+        product_sequence=$receipt.sequence; quantum=$receipt.quantum;
+        raw_sequence=$receipt.raw_sequence; exact=$exact }
+    if (-not $exact) { throw "magnet_waypoint_not_exact:$Member/$Phase" }
+    return [long]$receipt.quantum
 }
 function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
                      [string]$ExpectedRoute) {
@@ -457,22 +524,74 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
                 $row.source_member -eq $Member
         } 4
         if ($start.route -cne $ExpectedRoute) { throw "route_mismatch:$($start.route)" }
+        if (-not $script:gestureGenerations.Add([long]$start.generation)) {
+            throw 'gesture_generation_reused'
+        }
         Record 'observed_start' @{ member=$Member; product_sequence=$start.sequence;
             generation=$start.generation; route=$start.route }
         if ($Kind -ceq 'plain') {
+            $captureReady=Wait-ProductRow 'gesture_event' {
+                param($row) $row.generation -eq $start.generation -and
+                    $row.event -ceq 'resource' -and $row.reason -ceq 'capture_ready_observed'
+            } 4
+            $capture=$captureReady.shield_capture
+            if (-not $capture -or $capture.attempted -ne $true -or
+                [long]$capture.previous -ne 0 -or [long]$capture.actual_after -ne
+                    [long]$captureReady.overlay -or [long]$captureReady.overlay -eq 0 -or
+                [long]$capture.owner_thread_id -le 0 -or [int]$capture.failure -ne 0 -or
+                [long]$capture.foreground_before -ne $hwnd -or
+                [long]$capture.foreground_after -ne $hwnd -or
+                $capture.source_before.available -ne $true -or
+                [long]$capture.source_before.capture -ne 0 -or
+                [long]$capture.source_before.move_size -ne 0 -or
+                $capture.owner_before.available -ne $true -or
+                [long]$capture.owner_before.capture -ne 0 -or
+                [long]$capture.owner_after.capture -ne [long]$captureReady.overlay) {
+                throw "post_end_own_capture_not_exact:$Member"
+            }
             $handoff = Wait-ProductRow 'gesture_event' {
                 param($row) $row.sequence -gt $start.sequence -and $row.event -ceq 'handoff' -and
                     $row.generation -eq $start.generation -and $row.succeeded -eq $true
             } 4
             Record 'observed_handoff' @{ generation=$handoff.generation;
-                product_sequence=$handoff.sequence; actual_visible=$handoff.actual_visible }
+                product_sequence=$handoff.sequence; actual_visible=$handoff.actual_visible;
+                capture_product_sequence=$captureReady.sequence;
+                shield_capture=$captureReady.shield_capture }
         }
-        $steps = if ($Kind -ceq 'plain') {
-            @(0.25,0.50,0.75,1.0,0.50,0.0,1.0)
-        } else { @(0.25,0.50,0.75,1.0) }
-        foreach ($step in $steps) {
-            Send-MouseMove ($point[0]+[int]($DeltaX*$step)) ($point[1]+[int]($DeltaY*$step)) 'continuation'
-            Start-Sleep -Milliseconds 45
+        if ($Kind -ceq 'plain') {
+            $targetMember = if ($Member -eq 0) { 1 } else { 0 }
+            $targetRoot=Exact-Root $targetMember
+            $target=[PaneBindMvpGuestInput]::Rectangle([long]$targetRoot.hwnd,$true)
+            $width=$before[2]-$before[0]; $height=$before[3]-$before[1]
+            $snapLeft = if ($Member -eq 0) { $target[0]-$width }
+                elseif ($Member -eq 1) { $target[2] } else { $target[0] }
+            $snapTop = if ($Member -eq 2) { $target[3] } else { $target[1] }
+            $snap=@($snapLeft,$snapTop,($snapLeft+$width),($snapTop+$height))
+            $outX=if($Member -eq 1){1}else{-1}
+            $outY=if($Member -eq 2){1}else{-1}
+            $quantum=0L
+            foreach ($waypoint in @(
+                @{phase='free';distance=48;snapped=$false},
+                @{phase='xy_snap';distance=4;snapped=$true},
+                @{phase='hold_outside_attraction';distance=12;snapped=$true},
+                @{phase='detach_beyond_release';distance=48;snapped=$false},
+                @{phase='xy_resnap';distance=4;snapped=$true})) {
+                $x=$snapLeft+$outX*$waypoint.distance
+                $y=$snapTop+$outY*$waypoint.distance
+                $free=@($x,$y,($x+$width),($y+$height))
+                $expected=if($waypoint.snapped){$snap}else{$free}
+                $quantum=Invoke-MagnetWaypoint $Member $start.generation $waypoint.phase `
+                    $point $before $free $expected $waypoint.snapped $quantum
+            }
+            Record 'xy_alignment' @{ member=$Member; target_member=$targetMember;
+                generation=$start.generation; source_visible=$snap; target_visible=$target;
+                horizontal_edge_exact=$true; vertical_edge_exact=$true;
+                verified_by='native_rect_and_exact_writer_receipts' }
+        } else {
+            foreach ($step in @(0.25,0.50,0.75,1.0)) {
+                Send-MouseMove ($point[0]+[int]($DeltaX*$step)) ($point[1]+[int]($DeltaY*$step)) 'continuation'
+                Start-Sleep -Milliseconds 65
+            }
         }
     } finally {
         # This is test-only physical cleanup, not a claim that product observed
@@ -522,6 +641,21 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
         if ($gone.overlay_destroyed -ne $true -or $gone.hotkey_unregistered -ne $true) {
             throw "plain_product_isolation_cleanup_incomplete:$Member"
         }
+        $captureReleased=Wait-ProductRow 'gesture_event' {
+            param($row) $row.event -ceq 'resource' -and
+                $row.reason -ceq 'capture_released_observed' -and
+                $row.generation -eq $start.generation
+        } 4
+        $released=$captureReleased.shield_capture
+        if (-not $released -or $released.release_attempted -ne $true -or
+            $released.release_succeeded -ne $true -or
+            [long]$released.release_before -ne [long]$captureReady.overlay -or
+            [long]$released.release_after -ne 0 -or $released.own_release_message -ne $true) {
+            throw "normal_up_capture_release_not_observed:$Member"
+        }
+        Record 'observed_normal_capture_release' @{ generation=$start.generation;
+            product_sequence=$captureReleased.sequence; shield_capture=$released;
+            normal_up=$true; overlay_destroyed=$gone.overlay_destroyed }
     }
     $after = [PaneBindMvpGuestInput]::Rectangle($hwnd,$true)
     $related = @(Product-Rows | Where-Object {
@@ -546,10 +680,56 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
     if ($Kind -cne 'plain' -and $writers.Count -ne 0) {
         throw "non_plain_route_used_source_writer:$Member"
     }
-    if ($before[0] -eq $after[0] -and $before[1] -eq $after[1] -and
+    $duplicateQuanta=@($writers | Group-Object quantum | Where-Object { $_.Count -gt 1 })
+    if ($duplicateQuanta.Count -ne 0) { throw "multiple_native_receipts_per_quantum:$Member" }
+    if ($Kind -ceq 'plain') {
+        $up=@($rawUp | Where-Object { [long]$_.raw_up_qpc -gt 0 })
+        if ($up.Count -ne 1) { throw "matching_raw_up_qpc_missing_or_ambiguous:$Member" }
+        $badClaims=@($writers | Where-Object {
+            [long]$_.native_attempt_qpc -le 0 -or
+                [long]$_.native_attempt_qpc -gt [long]$up[0].raw_up_qpc
+        })
+        Record 'native_claim_up_boundary' @{ member=$Member; generation=$start.generation;
+            raw_up_qpc=$up[0].raw_up_qpc;
+            native_attempt_qpc=@($writers | ForEach-Object { $_.native_attempt_qpc });
+            claims_after_reliable_up=$badClaims.Count;
+            definition='final_native_attempt_claim_not_cpu_instruction_or_jsonl_order' }
+        if ($badClaims.Count -ne 0) { throw "native_attempt_claim_after_raw_up:$Member" }
+        if (@($related | Where-Object {
+            $_.event -ceq 'resource' -and ($_.reason -ceq 'capture_lost_observed' -or
+                $_.reason -ceq 'capture_failure_observed')
+        }).Count -ne 0) { throw "normal_move_capture_failure:$Member" }
+    }
+    if ($Kind -cne 'plain' -and @($related | Where-Object {
+        $_.event -ceq 'isolation_ready' -or $_.event -ceq 'cancel' -or
+            ($_.event -ceq 'resource' -and $_.reason -ceq 'capture_ready_observed')
+    }).Count -ne 0) { throw "non_plain_route_used_isolation_or_cancel:$Member" }
+    if ($Kind -cne 'plain' -and $before[0] -eq $after[0] -and $before[1] -eq $after[1] -and
         $before[2] -eq $after[2] -and $before[3] -eq $after[3]) {
         throw "gesture_geometry_unchanged:$Kind/$Member"
     }
+    if ($Kind -ceq 'plain') {
+        # After BOTH real UP observations and NormalUp removal, an additional
+        # cursor event must not create another writer receipt or alter source.
+        $lastWriterQuantum=if($writers.Count){[long]($writers | Select-Object -Last 1).quantum}else{0L}
+        Send-MouseMove ($point[0]+7) ($point[1]+5) 'post_up_no_write_probe'
+        Start-Sleep -Milliseconds 180
+        $late=@(Product-Rows | Where-Object {
+            $_.type -ceq 'gesture_event' -and $_.generation -eq $start.generation -and
+            $_.event -ceq 'writer' -and $_.native_attempted -eq $true -and
+            $_.quantum -gt $lastWriterQuantum
+        })
+        $still=[PaneBindMvpGuestInput]::Rectangle($hwnd,$true)
+        $unchanged=(Test-RectEqual $after $still)
+        Record 'post_up_no_write' @{ member=$Member; generation=$start.generation;
+            after_normal_up_visible=$after; observed_visible=$still;
+            additional_native_receipts=$late.Count; geometry_unchanged=$unchanged;
+            scope='bounded_cursor_probe_after_normal_cleanup_not_cross_queue_line_order' }
+        if ($late.Count -ne 0 -or -not $unchanged) { throw "placement_after_normal_up:$Member" }
+    }
+    if ($Kind -ceq 'resize' -and ($after[0] -ne $before[0] -or
+        $after[1] -ne $before[1] -or $after[2] -ne $before[2] -or
+        $after[3] -le $before[3])) { throw 'native_bottom_resize_not_observed' }
     if ($Kind -ceq 'ctrl') {
         $dx = $after[0]-$before[0]; $dy = $after[1]-$before[1]
         if ($dx -eq 0 -and $dy -eq 0) { throw 'ctrl_leader_did_not_move' }
@@ -623,10 +803,10 @@ try {
         }
     }
     $area = [PaneBindMvpGuestInput]::WorkArea()
-    $width=[int]([Math]::Min(340,($area[2]-100)/2))
-    $height=[int]([Math]::Min(245,($area[3]-140)/2))
-    $left=$area[0]+40; $top=$area[1]+85
-    $places=@(@($left,$top),@($left+$width,$top),@($left,$top+$height))
+    $width=[int]([Math]::Min(420,($area[2]-300)/2))
+    $height=[int]([Math]::Min(280,($area[3]-300)/2))
+    $left=$area[0]+120; $top=$area[1]+140
+    $places=@(@($left,$top),@(($left+$width),$top),@($left,($top+$height)))
     for ($member=0; $member -lt 3; $member++) {
         $root = Exact-Root $member
         [PaneBindMvpGuestInput]::Place([long]$root.hwnd,$places[$member][0],
@@ -683,27 +863,30 @@ try {
         [int]$initialStatus.relation_count -lt 2) {
         throw 'ctrl_glue_layout_not_ready'
     }
-    # Debug targets permission/attribution first. Release repeats a bounded
-    # representative same-entry three-member flow only after Debug succeeds.
+    # Both configurations exercise the same small, representative product
+    # flow. Each plain gesture proves individual free/snap/hold/detach/resnap
+    # waypoints; neither a boolean proposal nor one snap stands in for these.
     Invoke-Drag 0 'ctrl' 34 0 'ctrl_move'
-    Invoke-Drag 0 'plain' 65 0 'plain_move_candidate'
-    Invoke-Drag 1 'plain' -65 0 'plain_move_candidate'
-    Invoke-Drag 2 'plain' 0 -65 'plain_move_candidate'
+    Invoke-Drag 0 'plain' -48 -48 'plain_move_candidate'
+    Invoke-Drag 1 'plain' 48 -48 'plain_move_candidate'
+    Invoke-Drag 2 'plain' -48 48 'plain_move_candidate'
     Invoke-Drag 1 'resize' 0 28 'native_resize'
-    $beforeStatus = @(Product-Rows | Select-Object -Last 1)
-    $statusWatermark = if ($beforeStatus.Count) { [long]$beforeStatus[0].sequence } else { 0 }
-    Console-Line 'S'
-    $status = Wait-ProductRow 'status' { param($row) $row.sequence -gt $statusWatermark } 10
-    Record 'product_status' @{ product_sequence=$status.sequence;
-        topology_ready=$status.topology_ready; relation_count=$status.relation_count;
-        windows=$status.windows }
+    $null=Assert-ProductGeometry 'after_native_resize' $true
+    # Return to A only after B's actual resized frame was refreshed. The
+    # second A gesture has its own generation, original anchor and target set.
+    Invoke-Drag 0 'plain' -48 -48 'plain_move_candidate'
+    $null=Assert-ProductGeometry 'after_a_b_c_a' $true
+    Invoke-Drag 2 'ctrl' 22 18 'ctrl_move'
+    $null=Assert-ProductGeometry 'after_dynamic_ctrl_leader' $true
     Console-Line 'Q'
     $shutdown = Wait-ProductRow 'shutdown' { param($row) $row.result -ceq 'STOPPED' } 10
     if ($shutdown.resources_stopped -ne $true -or
         $shutdown.gesture_events_recorded -ne $true) { throw 'product_cleanup_not_observed' }
     Record 'shutdown' @{ result='AUTOMATED_BASIC_FLOW_RECORDED'; product_shutdown=$shutdown.result;
-        product_resources_stopped=$true; coverage='ctrl_delta_abc_plain_one_each_resize_one';
-        xy_alignment='NOT_ASSERTED'; human_uat='NOT_RUN' }
+        product_resources_stopped=$true;
+        coverage='a_b_c_a_each_free_xy_snap_hold_detach_resnap_ctrl_a_c_resize_refresh';
+        xy_alignment='NATIVE_EXACT_ASSERTED'; gesture_generations=$script:gestureGenerations.Count;
+        human_uat='NOT_RUN' }
     exit 0
 } catch {
     $reason = $_.Exception.Message
