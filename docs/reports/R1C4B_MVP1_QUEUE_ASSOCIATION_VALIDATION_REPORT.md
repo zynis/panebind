@@ -121,3 +121,25 @@ owned Gate 通过后 runner 自行调用 Explorer driver，但启动前检查
 
 后续现场结果与终局 Git 状态待实际运行后补记。普通宿主试用及真人 UAT
 未授权/未执行，不能以构建成功或 owned 局部闭环宣布三窗候选可试用。
+
+## 第三批：owned 采样分流的新拒绝
+
+RUNTIME `10d89530457a8ffabd7487a53179174d44a2aecd`，RunId
+`a976d2a60b054d4bb1e092bc22bfc0bf`。仅 desktop driver 与报告变更后的包。
+normal-repeat 150 行，hash
+`B72188DC16E09E31F1162255319CC0457E92961EAF69AC0E33B5AD7F12015E62`。
+首代正常闭环；第二代真实 free placement exact 后，129
+`cursor_sample_invalid` 拒绝，未执行 resnap。最终实际两 UP、自有 release、
+detach/NormalUp 与 receiver shutdown clean；整体场景 FAIL，未放行 Explorer。
+旧日志没有具体采样 facts，不能猜测为 DWM、外部位移或关联 API 根因。
+精确 guest PID `18912` 与本轮任务已清理，包/输出保留且哈希一致。
+
+代码检查另发现 owned 确定性分流缺陷：共享 model 的 duplicate cursor 可返回
+false 且仍 active，入口反而将其 retire；同样，取走 Raw batch 后旧 notice 未
+消费。修正只在 owned actual adapter 区分真实 facts 拒绝、model 退休、无新计划
+和有效计划；正常 UP 竞态不被重新 escape 成异常。queue notice 在原 producer
+短锁内消费；测试 driver 单次移动后按真实 packet watermark/cursor 等新事件，
+有界 2 次通知／总 2 s，不重发 input、不轮询。必要拒绝 facts/actual geometry/
+version/model 分流记录用于解释新证据，不把只诊断的 last confirmed frame 当授权。
+生产共用 3-BOOL dispatch 谓词与实际 Move/writer 组合定向测试覆盖 duplicate 后
+仍可下一 changed placement、真实 facts/UP 仍拒绝；旧连续性门槛完全保留。

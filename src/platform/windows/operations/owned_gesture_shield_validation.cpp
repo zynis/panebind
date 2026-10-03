@@ -98,6 +98,8 @@ struct State {
     std::atomic<std::uint32_t> traced_hit_tests{0};
     std::atomic<std::uint32_t> traced_legacy_moves{0};
     std::mutex down_mutex, raw_mutex, cancel_mutex;
+    std::mutex diagnostic_frame_mutex;
+    std::optional<op::MoveFrameGeometry> last_confirmed_frame;
     bool cancel_claimed{}; // Orders observed Raw UP versus one bounded claim.
     std::optional<POINT> observed_down;
     std::optional<op::MoveFrameGeometry> down_frame;
@@ -127,6 +129,10 @@ struct State {
 [[nodiscard]] std::string rect_json(const g::Rect& value) {
     return "[" + std::to_string(value.left()) + "," + std::to_string(value.top()) +
         "," + std::to_string(value.right()) + "," + std::to_string(value.bottom()) + "]";
+}
+[[nodiscard]] std::string frame_json(const std::optional<op::MoveFrameGeometry>& frame) {
+    return frame ? "{\"positioning\":" + rect_json(frame->positioning) +
+        ",\"visible\":" + rect_json(frame->visible) + "}" : "null";
 }
 [[nodiscard]] std::string shield_windowpos_sample_json(
     const op::GestureShieldWindowPosSample& value) {
@@ -441,14 +447,21 @@ void record_release_route_snapshot(std::string_view reason,
                               const op::MoveFrameGeometry& b) noexcept {
     return a.positioning == b.positioning && a.visible == b.visible;
 }
-[[nodiscard]] bool stable_context() noexcept {
+[[nodiscard]] bool stable_context(std::string_view* rejection = nullptr) noexcept {
+    auto reject = [rejection](std::string_view why) {
+        if (rejection) *rejection = why;
+        return false;
+    };
     const HWND source = s.source, control = s.control;
-    if (!same_owned(source) || !same_owned(control) || !guest_desktop() ||
-        GetForegroundWindow() != source || !s.initial_source || !s.initial_control ||
+    if (!same_owned(source) || !same_owned(control)) return reject("owned_identity");
+    if (!guest_desktop()) return reject("interactive_desktop");
+    if (GetForegroundWindow() != source) return reject("foreground");
+    if (!s.initial_source || !s.initial_control ||
         !IsWindowVisible(source) || IsIconic(source) || IsZoomed(source) ||
-        !IsWindowVisible(control) || IsIconic(control) || IsZoomed(control)) return false;
+        !IsWindowVisible(control) || IsIconic(control) || IsZoomed(control))
+        return reject("window_state_or_baseline");
     GUITHREADINFO gui{sizeof(gui)};
-    if (!GetGUIThreadInfo(s.source_thread, &gui)) return false;
+    if (!GetGUIThreadInfo(s.source_thread, &gui)) return reject("source_gui_query");
     // Attached input queues can expose this gesture's exact self-owned shield
     // capture in the source snapshot. Never accept a different capture HWND.
     const HWND own_overlay = s.overlay;
@@ -456,16 +469,22 @@ void record_release_route_snapshot(std::string_view reason,
         op::gesture_shield_exact_capture(own_overlay, s.shield_thread);
     if ((gui.hwndCapture && !capture_is_own) || gui.hwndMoveSize ||
         gui.hwndMenuOwner || (gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
-                                     GUI_POPUPMENUMODE | GUI_INMOVESIZE))) return false;
+                                     GUI_POPUPMENUMODE | GUI_INMOVESIZE)))
+        return reject("capture_or_modal_state");
     const auto a = capture(source), b = capture(control);
     MONITORINFO info{sizeof(info)};
     const HMONITOR monitor = MonitorFromWindow(source, MONITOR_DEFAULTTONULL);
-    return a && b &&
-        a->visible.size() == s.initial_source->visible.size() &&
-        a->positioning.size() == s.initial_source->positioning.size() &&
-        same_frame(*b, *s.initial_control) && monitor == s.monitor &&
-        GetMonitorInfoW(monitor, &info) && EqualRect(&info.rcWork, &s.work_area) &&
-        GetDpiForWindow(source) == s.dpi && GetDpiForWindow(control) == s.dpi;
+    if (!a || !b) return reject("actual_geometry_query");
+    if (a->visible.size() != s.initial_source->visible.size() ||
+        a->positioning.size() != s.initial_source->positioning.size())
+        return reject("source_size");
+    if (!same_frame(*b, *s.initial_control)) return reject("peer_geometry");
+    if (monitor != s.monitor || !GetMonitorInfoW(monitor, &info) ||
+        !EqualRect(&info.rcWork, &s.work_area)) return reject("monitor_or_work_area");
+    if (GetDpiForWindow(source) != s.dpi || GetDpiForWindow(control) != s.dpi)
+        return reject("dpi");
+    if (rejection) *rejection = "none";
+    return true;
 }
 [[nodiscard]] bool owned_capture_live() noexcept {
     return s.capture_established &&
@@ -1000,24 +1019,49 @@ struct WriteFacts {
     bool active{};
     bool hit{};
     op::MoveSampleDecision decision{op::MoveSampleDecision::Reject};
+    bool context{}, armed{}, retired{}, raw_up{}, exact_capture{}, left_held{};
+    bool associated_down{}, native_counts{}, model_retired{};
+    std::string_view context_rejection{"none"};
+    std::uint64_t captured_version{}, version_after_observation{};
+    op::MoveFrameObservation observation{op::MoveFrameObservation::NotArmed};
+    std::optional<op::MoveFrameGeometry> actual, last_confirmed;
+    HWND cursor_hit{}, control_hit{};
 };
 
 [[nodiscard]] WriteFacts write_facts(POINT cursor) noexcept {
     // Version before native capture: a completed own write can make this
     // sample stale, never evidence of an external translation.
-    const auto version = s.continuity.load()->snapshot_version(s.generation);
-    const bool context = stable_context();
+    WriteFacts facts{};
+    const auto generation = s.generation.load();
+    const auto continuity = s.continuity.load();
+    const auto version = continuity->snapshot_version(generation);
+    const bool context = stable_context(&facts.context_rejection);
     const auto source_now = context ? capture(s.source) : std::nullopt;
-    const auto observed = source_now ? s.continuity.load()->observe(s.generation,
+    const auto observed = source_now ? continuity->observe(generation,
         *source_now, version) : op::MoveFrameObservation::NotArmed;
     const auto decision = op::classify_move_sample(
         observed, context && source_now.has_value());
     const bool stable = decision == op::MoveSampleDecision::Process;
-    const bool active = stable && s.armed && !s.retired && !s.matching_raw_up &&
-        owned_capture_live() && left_high() && s.tagged_down && s.associated_raw_down &&
-        s.native_starts == 1 && s.native_ends == 1 && s.cancel_attempts == 1 &&
-        !s.motion.load()->retired(s.generation);
-    return {stable, active, shield_hit(cursor), decision};
+    facts.context = context;
+    facts.armed = s.armed; facts.retired = s.retired; facts.raw_up = s.matching_raw_up;
+    facts.exact_capture = owned_capture_live(); facts.left_held = left_high();
+    facts.associated_down = s.tagged_down && s.associated_raw_down;
+    facts.native_counts = s.native_starts == 1 && s.native_ends == 1 && s.cancel_attempts == 1;
+    facts.model_retired = s.motion.load()->retired(generation);
+    facts.stable = stable;
+    facts.active = stable && facts.armed && !facts.retired && !facts.raw_up &&
+        facts.exact_capture && facts.left_held && facts.associated_down &&
+        facts.native_counts && !facts.model_retired;
+    facts.hit = shield_hit(cursor); facts.decision = decision;
+    facts.cursor_hit = root_at(cursor); facts.control_hit = root_at(s.control_point);
+    facts.captured_version = version;
+    facts.version_after_observation = continuity->snapshot_version(generation);
+    facts.observation = observed; facts.actual = source_now;
+    {
+        std::lock_guard lock{s.diagnostic_frame_mutex};
+        facts.last_confirmed = s.last_confirmed_frame;
+    }
+    return facts;
 }
 
 [[nodiscard]] bool work_area_contains(const g::Rect& rect) noexcept {
@@ -1113,6 +1157,10 @@ void writer_owner() noexcept {
                     receipt->native_attempted, receipt->exact, receipt->after);
             if (!receipt->native_attempted)
                 (void)s.continuity.load()->abort_unissued(s.generation, receipt->quantum);
+            if (committed && receipt->after) {
+                std::lock_guard lock{s.diagnostic_frame_mutex};
+                s.last_confirmed_frame = receipt->after;
+            }
             if (receipt->native_attempted) ++s.native_attempts;
             const bool exact = receipt->exact &&
                 (!receipt->native_attempted || committed);
@@ -1150,11 +1198,17 @@ void writer_owner() noexcept {
     SetEvent(s.writer_gone);
 }
 
-[[nodiscard]] bool process_raw_continuations() noexcept {
+[[nodiscard]] bool process_raw_continuations(
+    std::optional<POINT> expected_cursor = std::nullopt,
+    std::uint64_t after_packet = 0) noexcept {
     std::deque<RawSample> batch;
     {
         std::lock_guard lock{s.raw_mutex};
         batch.swap(s.raw_moves);
+        // Consume this batch's queue notice under the producer's same short
+        // lock. A later WM_INPUT enqueues its sample AND sets a fresh notice;
+        // an old duplicate/empty notice cannot acknowledge the next test move.
+        ResetEvent(s.raw_notice);
     }
     bool offered = false;
     for (const auto& sample : batch) {
@@ -1170,19 +1224,60 @@ void writer_owner() noexcept {
                 std::to_string(sample.packet));
             continue;
         }
-        if (!facts.active || !facts.hit ||
-            !s.motion.load()->sample_cursor(s.generation,
+        const bool facts_processable = facts.active && facts.hit;
+        const auto motion = s.motion.load();
+        const bool sample_created = facts_processable &&
+            motion->sample_cursor(s.generation,
                 {sample.cursor.x, sample.cursor.y}, sample.tick,
-                facts.active, facts.stable, facts.hit)) {
-            if (!s.motion.load()->retired(s.generation))
-                retire("cursor_sample_invalid", b::MoveHandoffEscapeReason::ContextLost);
+                facts.active, facts.stable, facts.hit);
+        const bool model_retired_after = motion->retired(s.generation);
+        const auto dispatch = op::classify_move_cursor_dispatch(
+            facts_processable, sample_created, model_retired_after);
+        record("cursor_dispatch", ",\"generation\":" +
+            std::to_string(s.generation.load()) + ",\"packet\":" +
+            std::to_string(sample.packet) + ",\"cursor\":[" +
+            std::to_string(sample.cursor.x) + "," + std::to_string(sample.cursor.y) +
+            "],\"stable\":" + boolean(facts.stable) +
+            ",\"active\":" + boolean(facts.active) + ",\"hit\":" + boolean(facts.hit) +
+            ",\"static_context\":" + boolean(facts.context) +
+            ",\"context_rejection\":\"" + std::string(facts.context_rejection) +
+            "\",\"captured_version\":" + std::to_string(facts.captured_version) +
+            ",\"version_after_observation\":" + std::to_string(facts.version_after_observation) +
+            ",\"observation\":" + std::to_string(static_cast<int>(facts.observation)) +
+            ",\"actual_frame\":" + frame_json(facts.actual) +
+            ",\"last_confirmed_frame_diagnostic_only\":" + frame_json(facts.last_confirmed) +
+            ",\"armed\":" + boolean(facts.armed) + ",\"retired\":" + boolean(facts.retired) +
+            ",\"raw_up_observed\":" + boolean(facts.raw_up) +
+            ",\"exact_capture\":" + boolean(facts.exact_capture) +
+            ",\"left_held\":" + boolean(facts.left_held) +
+            ",\"associated_down\":" + boolean(facts.associated_down) +
+            ",\"native_counts_valid\":" + boolean(facts.native_counts) +
+            ",\"cursor_hit\":" + std::to_string(hwnd_number(facts.cursor_hit)) +
+            ",\"control_hit\":" + std::to_string(hwnd_number(facts.control_hit)) +
+            ",\"model_sample_called\":" + boolean(facts_processable) +
+            ",\"model_sample_created\":" + boolean(sample_created) +
+            ",\"model_retired_before\":" + boolean(facts.model_retired) +
+            ",\"model_retired_after\":" + boolean(model_retired_after) +
+            ",\"dispatch\":" + std::to_string(static_cast<int>(dispatch)));
+        if (dispatch == op::MoveCursorDispatch::Retire) {
+            // A matched UP can race the sampled facts. Its already-observed
+            // retirement must not be changed into an abnormal context escape.
+            if (!s.matching_raw_up)
+                retire(facts_processable ? "cursor_model_retired" : "cursor_facts_rejected",
+                    facts_processable ? b::MoveHandoffEscapeReason::NativeFailure :
+                                        b::MoveHandoffEscapeReason::ContextLost);
             continue;
         }
+        if (dispatch == op::MoveCursorDispatch::NoNewPlan) continue;
         const auto plan = s.motion.load()->take_pending(s.generation,
             facts.active, facts.stable, facts.hit);
         if (!plan) continue;
-        offered |= s.writer && s.writer->offer({plan->generation, plan->quantum,
-                                                plan->target_visible, plan->snapped});
+        const bool accepted = s.writer && s.writer->offer({plan->generation, plan->quantum,
+                                                          plan->target_visible, plan->snapped});
+        const bool expected_sample = !expected_cursor ||
+            (sample.packet > after_packet && sample.cursor.x == expected_cursor->x &&
+             sample.cursor.y == expected_cursor->y);
+        offered |= accepted && expected_sample;
         record("cursor_quantum", ",\"packet\":" +
             std::to_string(sample.packet) + ",\"quantum\":" +
             std::to_string(plan->quantum) + ",\"target\":" +
@@ -1242,6 +1337,25 @@ void writer_owner() noexcept {
         "],\"actual\":[" + std::to_string(actual.x) + "," +
         std::to_string(actual.y) + "],\"exact\":" + boolean(exact));
     return exact;
+}
+
+[[nodiscard]] bool drive_cursor_continuation(POINT target,
+                                            std::string_view label) noexcept {
+    // One test input, then at most two event notifications within one 2 s
+    // budget. This is not cursor polling or repeated SendInput. A queued
+    // duplicate from an earlier move is legal but cannot stand in for the
+    // requested new cursor observation or a product writer receipt.
+    const auto before_packet = s.raw_sequence.load();
+    if (!move_cursor(target)) return false;
+    const auto deadline = GetTickCount64() + 2000;
+    for (unsigned notification = 0; notification != 2; ++notification) {
+        const auto now = GetTickCount64();
+        if (now >= deadline || !wait_for(s.raw_notice,
+                static_cast<DWORD>(deadline - now), label)) return false;
+        if (process_raw_continuations(target, before_packet)) return true;
+        if (s.retired || s.matching_raw_up) return false;
+    }
+    return false;
 }
 
 [[nodiscard]] bool send_stop_chord() noexcept {
@@ -1539,6 +1653,10 @@ void writer_owner() noexcept {
         ",\"handoff_visible\":" + (handoff ? rect_json(handoff->visible) : "null"));
     if (!fresh || s.retired || s.matching_raw_up) return false;
     {
+        std::lock_guard lock{s.diagnostic_frame_mutex};
+        s.last_confirmed_frame = handoff;
+    }
+    {
         std::lock_guard lock{s.raw_mutex};
         s.raw_moves.clear();
         ResetEvent(s.raw_notice);
@@ -1757,9 +1875,7 @@ void writer_owner() noexcept {
     }
     if (s.scenario == "writer-stall") {
         const POINT continuation{s.start_cursor.x + 8, s.start_cursor.y + 7};
-        if (!move_cursor(continuation) ||
-            !wait_for(s.raw_notice, 2000, "raw_continuation_for_stall") ||
-            !process_raw_continuations() ||
+        if (!drive_cursor_continuation(continuation, "raw_continuation_for_stall") ||
             !wait_for(s.writer_stall_started, 2000, "actual_writer_callback_stall") ||
             !s.stall_started_held || !left_high()) return false;
         const bool gone = wait_for(s.isolation_gone, short_deadline_ms + 2000,
@@ -1798,9 +1914,8 @@ void writer_owner() noexcept {
         if (!work_area_contains(free_target)) return false;
         Sleep(150); // Guest driver input spacing, not product cursor polling.
         const auto attempts_before = s.native_attempts.load();
-        const bool followed = move_cursor(free_cursor) &&
-            wait_for(s.raw_notice, 2000, "followup_raw_free_continuation") &&
-            process_raw_continuations() &&
+        const bool followed = drive_cursor_continuation(free_cursor,
+            "followup_raw_free_continuation") &&
             wait_for(s.writer_receipt, 2000, "followup_actual_free_writer_receipt");
         const auto actual_free = followed ? capture(s.source) : std::nullopt;
         const bool free_exact = actual_free && actual_free->visible == free_target &&
@@ -1822,16 +1937,12 @@ void writer_owner() noexcept {
     if (x < INT_MIN || x > INT_MAX || y < INT_MIN || y > INT_MAX) return false;
     const POINT snap{static_cast<LONG>(x), static_cast<LONG>(y)};
     Sleep(150); // Test input separation, not a resident cursor sampler.
-    if (!move_cursor(snap) ||
-        !wait_for(s.raw_notice, 2000, "raw_snap_continuation") ||
-        !process_raw_continuations() ||
+    if (!drive_cursor_continuation(snap, "raw_snap_continuation") ||
         !wait_for(s.writer_receipt, 2000, "shared_writer_receipt")) return false;
     if (!s.snapped_exact) {
         Sleep(150);
         const POINT reacquire{snap.x + 1, snap.y};
-        if (!move_cursor(reacquire) ||
-            !wait_for(s.raw_notice, 2000, "raw_reacquire_continuation") ||
-            !process_raw_continuations() ||
+        if (!drive_cursor_continuation(reacquire, "raw_reacquire_continuation") ||
             !wait_for(s.writer_receipt, 2000, "shared_writer_reacquire_receipt"))
             return false;
     }
@@ -2019,6 +2130,10 @@ void writer_owner() noexcept {
     s.retired = true;
     s.motion.store(std::make_shared<b::MoveMagnetSession>());
     s.continuity.store(std::make_shared<op::MoveFrameContinuity>());
+    {
+        std::lock_guard lock{s.diagnostic_frame_mutex};
+        s.last_confirmed_frame.reset();
+    }
     const auto new_generation = previous_generation + 1;
     if (!new_generation) return false;
     s.generation = new_generation;

@@ -24,6 +24,16 @@ enum class MoveSampleDecision {
     Reject,
 };
 
+// A false sample result with a still-live model can mean duplicate cursor,
+// not lost HWND authority. Adapters must still retire on rejected facts or
+// a model that actually revoked itself, and must never offer a missing plan.
+enum class MoveCursorDispatch { Retire, NoNewPlan, Plan };
+[[nodiscard]] constexpr MoveCursorDispatch classify_move_cursor_dispatch(
+    bool facts_processable, bool sample_created, bool model_retired) noexcept {
+    if (!facts_processable || model_retired) return MoveCursorDispatch::Retire;
+    return sample_created ? MoveCursorDispatch::Plan : MoveCursorDispatch::NoNewPlan;
+}
+
 // The owned Raw receiver uses this same classification before forwarding a
 // geometry sample to the Move session. A stale frame is neither authority nor
 // evidence of an external translation; unrelated context loss still rejects.

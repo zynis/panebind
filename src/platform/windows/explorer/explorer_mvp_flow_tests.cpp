@@ -465,6 +465,46 @@ void exact_association_cleanup_contract() {
     stopped.association_detached = true;
     check(stopped.clean(), "resources clean additionally requires confirmed detach");
 }
+
+void owned_cursor_result_dispatch() {
+    // The production owned adapter uses this predicate around the real
+    // shared Move session result. No native platform facts are synthesized.
+    OfflineGesture gesture{51, 0};
+    gesture.begin_candidate();
+    gesture.handoff();
+    const bool duplicate = gesture.motion.sample_cursor(51, anchor, 2000, true, true, true);
+    check(!duplicate && !gesture.motion.retired(51) &&
+          o::classify_move_cursor_dispatch(true, duplicate, gesture.motion.retired(51)) ==
+              o::MoveCursorDispatch::NoNewPlan,
+          "unchanged cursor creates no plan without retiring owned session");
+    check(!gesture.motion.take_pending(51, true, true, true) &&
+          !gesture.writer->try_execute() && gesture.placements == 0,
+          "duplicate cursor cannot be relabeled a native write");
+    const auto first = gesture.plan({502, 500}, 3000);
+    check(o::classify_move_cursor_dispatch(true, true, gesture.motion.retired(51)) ==
+              o::MoveCursorDispatch::Plan,
+          "changed cursor after duplicate still reaches shared writer");
+    (void)gesture.execute(first);
+    check(gesture.placements == 1, "one changed quantum performs one placement");
+    const bool repeated = gesture.motion.sample_cursor(51, {502, 500}, 3100, true, true, true);
+    check(o::classify_move_cursor_dispatch(true, repeated, gesture.motion.retired(51)) ==
+              o::MoveCursorDispatch::NoNewPlan && gesture.placements == 1,
+          "self-feedback duplicate keeps next cursor usable without placement");
+    (void)gesture.execute(gesture.plan({560, 500}, 4000));
+    check(gesture.placements == 2, "normal changed continuation remains writable");
+    check(o::classify_move_cursor_dispatch(false, false, false) ==
+              o::MoveCursorDispatch::Retire &&
+          o::classify_move_cursor_dispatch(false, true, false) ==
+              o::MoveCursorDispatch::Retire,
+          "real context rejection cannot be treated as a harmless duplicate");
+    gesture.retire_up(90);
+    check(o::classify_move_cursor_dispatch(true, false, gesture.motion.retired(51)) ==
+              o::MoveCursorDispatch::Retire && !gesture.writer->offer({51, 3, initial}),
+          "UP retirement cannot recreate a plan or new placement");
+    check(gesture.motion.legacy_up_delivery_observed(51, true) &&
+          gesture.motion.removal_allowed(51),
+          "duplicate dispatch fix preserves actual UP normal-removal semantics");
+}
 } // namespace
 
 int main() {
@@ -476,6 +516,7 @@ int main() {
         participant_context_loss_rejects_placement();
         exact_guest_launch_contract();
         exact_association_cleanup_contract();
+        owned_cursor_result_dispatch();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {
