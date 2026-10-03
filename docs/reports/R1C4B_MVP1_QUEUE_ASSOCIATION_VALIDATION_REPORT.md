@@ -266,9 +266,13 @@ ZIP `84707FB610CC32884CE78CA194E6EC81CA86BC07E53D1D6CEA31ED8738D837FB`。
 
 现有中等、非提升的 Explorer 安全合同不改。跨进程 capture/UP 假设仍未验证，
 不是被该权限拒绝证伪；owned 正常 UP 和有限独立退出假设已有实际支持。
-后续最小决策为仅在可丢弃 guest 准备非提升标准用户身份，并绑定其 RunId/SID
-运行保护；该身份准备/保护适配不自动获准，也不承诺可行性或改动宿主。
-没有批准该新增身份路线前，停止 Explorer live 行为，而非继续叠加 capture API。
+标准用户 guest 是保持原合同的替代路线，但需要新的交互身份/环境准备。
+更小的下一步范围决策建议：仅专用可丢弃 Sandbox 的 exact 新建三窗，允许
+controller/target 同用户 SID、同 session、同 High 的测试例外；原普通宿主和
+其他路径仍拒绝 elevated，不修改账户、token、UAC 或系统设置。它突破当前
+medium/elevated Gate，必须另获用户明确批准，不视为旧手势授权已包含。
+guest/RunId/路径保护仅为误运行保护，不称防伪安全边界。批准前停止 Explorer
+live 行为，而非叠加降权/capture API。该建议未实施、未承诺跨进程成功。
 两只读批次精确 guest PID `12020` / `9592` 和本轮任务已清理，所有包/证据保留，
 输出哈希未变。guest 销毁仅证明测试影响被隔离，不算产品清理通过。
 
@@ -292,3 +296,86 @@ runner 在 owned 完成后根据现有真实 preflight before/after caller RID �
 不满足 Medium 的启动条件，High/UNKNOWN 明确记录 Explorer NOT_RUN；不重复
 启动已知不合格窗口。Medium 只是必要条件，仍需产品实际完整 token/身份检查，
 不是 bool 许可替代 API 或权限。无通用 bypass/force/skip 开关。
+
+## 最终实际批次与交付状态
+
+RUNTIME / BUILD_SOURCE `3ef009f5e72c5eebdbb64b3c3e0cd6c52c1b2d52`，RunId
+`050736d561fe4b3c941e9f194b3f51aa`。Debug/Release MT 构建成功，当前两配置的
+上述两项受影响 offline CTest 各 2/2 PASS；生产日志读取回归 PASS；driver AST /
+embedded C# 编译 PASS，无 host native/input 调用。没有运行 interactive CTest、
+历史 Fix H 或稳定性矩阵。
+
+包：`uat/r1c4b-mvp1-shield-sandbox/050736d561fe4b3c941e9f194b3f51aa/desktop-deploy.zip`；
+远端同批次 `I:\PaneBindMVP1Runs\050736d561fe4b3c941e9f194b3f51aa`。
+
+- ZIP `2D3AA6B61B6999C5AB8A172D3A78FD3D6851FCD70A73B8AEBEB67A2953C076D1`
+- manifest `58F343494BC19D243FC3213D32C226B7F72EE249955190F4BF31A88DE805BF28`
+- .wsb `C79142A1FEF53E4DE66E4D1AA205C8D00C1E9BE92D7D7BA24ACAB8E54EC4B5BD`
+- Debug owned `4A60D933EC7CD274FBF8FE2EAD9E25D4723347E259AA410FC2F85014340D03CA`
+- Debug Explorer `766A5AC53037F68566F6E06EAD6CF657C63D4E6377E89A674219686ABE401F7E`
+- Release owned `2A247B11843E9942A055E6FE738AC073777AAFAB4E78BD4C85E5842DA030910D`
+- Release Explorer `4C288244C021CE0BE3A735465414EFB25BACB8F7BA896D98B45C637162ADBC1D`
+
+原始 9 项 JSONL 的身份、sequence、实际消息/原生回执和资源清理均复核通过。
+正常两代 END32/105 → attach38/111 → capture39/112 → actual native
+placement52/125/134（snap / free / resnap，exact）→ Raw UP59/141 → 实际
+LEFTUP62/144、legacy UP63/145 → own release66/148 → detach68/150 TRUE →
+NormalUp Gone69/151。代际 capture/key readback74 clear。第一代 Raw UP59 时
+瞬时 async high bit 仍 true；Raw transition 本身、随后真实 legacy UP、后续 left
+false 是不同事实，未改写前者或以键状态重置代替 UP。其后没有该代新 placement。
+每 quantum 最多一次 native placement，writer failure=0，对照鼠标消息零。
+
+| 场景 | 实际结果与关键限制 |
+| --- | --- |
+| Debug normal-repeat | PASS：同资源连续两代正常闭环及 free/resnap，非三窗完整流程 |
+| association-stop-before-call | PASS：END41、Prepared45、停止47、reject49、Gone53、真实清理 Raw UP59；attach/capture/placement 均零，非 NormalUp |
+| capture-stop | PASS：capture 后按住，真实 F11 WM_HOTKEY54；release58/detach60/Gone62 |
+| writer-stall | PASS：真实 callback59 按住阻塞，短 Deadline63、Gone70、writer 解阻72；receipt76 retired_before_native，native0 |
+| source-pause | PASS：source tick34500–39500；ready34484、Gone37500，实际 3016 ms 后撤罩，早于恢复2000 ms；release/detach 已完成 |
+| capture-early-up | PASS：真实早 UP，未进入 attach/capture/placement，abort |
+| capture-fail | PASS：adapter 撤权拒绝；不是 native Attach FALSE 失败实测 |
+| capture-lost | PASS：实际自有 capture loss 后退出、不争抢；非 NormalUp |
+| Release normal | PASS：实际 exact snapped placement 与完整正常 UP / release / detach / 撤罩 |
+
+关键原始 hash：normal-repeat
+`6A85F9ED355D0CBB599134AADEA84BC056293F8826D5A5F1E7A155B40F8B5650`；
+准备撤权 `4E9A623346C99A24684B070B902BA52172C1D56F8EA56AFD404B071755137476`；
+source-pause `FEC238A0ADFEA4564FD61ED653CF8F835318E751EC22B0A640BAE9850887C2F4`；
+Release normal `E21CA00DA769F578B07B342DE087A38FBEC437DEDB0705DBA6624D7B48C80948`。
+其余 hash 和保存/销毁前后完整一致性见该批 `cleanup-record.json`。
+最终实际 guest PID `20512` 和精确启动任务已清理，部署和证据全部保留。
+
+runner 实际记录 caller RID before/after=12288，Explorer Debug/Release NOT_RUN，
+原因 `Explorer_medium_non_elevated_identity_required`。因此 PMV2 driver 修复虽
+编译通过，本批未运行其现场几何/输入调用。第七批真实权限拒绝不是原生 END、
+关联或跨进程 UP 失败的证据；该跨进程机制仍待验证。三窗 A/B/C、保持/脱离/
+重吸附/XY、Ctrl Glue 和 native Resize 刷新均未取得现场通过证据。
+
+```text
+OWNED_AUTOMATED_GATE = PASS (tested guest scope only)
+EXPLORER_LIVE_GATE = BLOCKED_BY_MEDIUM_NON_ELEVATED_IDENTITY
+EXPLORER_CAPTURE_AND_UP = NOT_RUN
+THREE_WINDOW_FUNCTIONAL_VALIDATION = NOT_RUN
+HOST_TRIAL = NOT_RUN
+HUMAN_UAT = NOT_RUN
+OPERABLE_THREE_WINDOW_CANDIDATE_DELIVERED = NO
+```
+
+保留此包用于复核已测 owned 实现，而不是三窗试用包。此 RunId 已有不可覆盖的
+终局输出；不能把复用其 .wsb 当成有效重验/试用入口。本轮不再启动它。
+待新的精确权限决定后使用新 SHA/RunId 进入 Explorer，不原地重跑旧批或填 PASS。
+
+本轮新增的部署/证据目录仅 `I:\PaneBindMVP1Runs\` 下以下十个 RunId：
+`e9228871cd2042d78740d4e521c902b2`、`ca3ff0d5a20a4831b9e2debe9ff03b27`、
+`a976d2a60b054d4bb1e092bc22bfc0bf`、`ace0ca9967c94927a5e08ea1d33c36fc`、
+`4be49ed210d34af6bd7ac2654b0bed12`、`0410083a41594eff9d2bc9c8db04bc51`、
+`be57d4749fcf448ba8bf0806afa46734`、`6069ba5fe3704ff298ac0528546a5aad`、
+`8af40e8f49ad4cc2ae45a032af13e64d`、`050736d561fe4b3c941e9f194b3f51aa`。
+全部精确本轮 guest/启动任务已清理；文件、旧失败和证据保留。系统变更/重启=NO；
+CrossRec、其他用户文件/任务/配置改动=NO；宿主输入=NO。
+
+Git 起点为上述 BASE，分支不变。代码提交为 20a5e49、a990332、10d8953、
+eb84aac、ae5e3fa、e7db817、8ae164e、3ef009f；此后的报告提交仅收口现场结果，
+不改变包的 BUILD_SOURCE。最终响应记录报告提交的完整 FINAL SHA、标准 origin
+push/ls-remote 与工作树/0:0 同步结果；不把报告 HEAD 差异当成运行包实现不匹配。
+uat/ZIP/EXE 不进入 Git，无 Recovery Index 改动、PR、merge、tag 或 release。
