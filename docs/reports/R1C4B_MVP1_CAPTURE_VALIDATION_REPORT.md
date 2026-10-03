@@ -69,4 +69,21 @@ SHA `48e4f6562078be54337543a5785a86f5d4fb2f77`，RunId
 现场输入。为五个已授权新增场景加入精确 suffix，保留 WDAG/交互 session/
 RunId/目录/EXE/marker 所有保护，不提供 bypass。第二批专属 task、guest PID
 5508 已撤销，包和拒绝记录保留。此失败不算产品或 Sandbox 机制反例。
+
+## 第三批自有 client 对照
+
+SHA `add9dafb03241a04c2842ce8f3bb39270bffb167`、RunId
+`83cf87cafc4b4928bbe5c1413fcb3846`。legacy-control 33 行真实 JSONL，
+hash `8C5BDB29D0CD5D39744D5905662466005A2F2DDF841B8E7A36DD2549ABD5CD79`。
+Raw DOWN/UP 和自有 client DOWN/UP 各一次，所有 native Move/cancel/capture/writer
+计数为零、cleanup clean。仅 guest 输入投递对照 PASS，不是 NormalUp。
+因此不能把第一批缺失 UP 归为本 guest 完全无法产生 legacy UP。
+
+下一 capture-stop 在预检被正常 foreground policy 拒绝（旧 foreground 65806，
+新自有 bootstrap 66192，SetForegroundWindow=false），未发送场景输入。
+对测试专属 bootstrap 增加一次 exact new blank client 点击，在 strict guest
+guard、具名 GUI/capture clear、button clear、actual root 校验后执行；300ms 有界
+消息等待，继续以实际 foreground/桌面/输入事实验收，不调整 foreground policy。
+产品 shield 不抢前台，研究合同不变。第三批 task 与 guest PID 6280 已清理，
+部署及全部原始结果保留。capture 风险和 normal 组合 UP 仍未运行。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。

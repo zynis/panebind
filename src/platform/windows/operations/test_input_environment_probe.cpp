@@ -141,6 +141,7 @@ bool guest_guard(std::wstring_view run_id,std::wstring_view evidence_log) {
 }
 struct Bootstrap {
     HWND window{};bool registered{},created{},visible{},set_foreground{},foreground_owned{},destroyed{},unregistered{};
+    bool test_activation_attempted{};UINT test_activation_inserted{};
     std::uintptr_t observed_foreground{};DWORD owner_pid{},owner_tid{};
 };
 Bootstrap create_bootstrap() {
@@ -158,7 +159,52 @@ Bootstrap create_bootstrap() {
     b.owner_tid=GetWindowThreadProcessId(b.window,&b.owner_pid);
     b.set_foreground=SetForegroundWindow(b.window)!=FALSE;
     b.observed_foreground=reinterpret_cast<std::uintptr_t>(GetForegroundWindow());
-    b.foreground_owned=b.visible&&b.set_foreground&&
+    // Disposable-guest TEST driver only: normal foreground policy can deny a
+    // newly launched preflight after the previous input-owning process exits.
+    // Activate only this exact new blank client by one real mouse click, never
+    // change policy, attach queues, or force another window's capture.
+    if (b.visible && GetForegroundWindow()!=b.window &&
+        b.owner_pid==GetCurrentProcessId() && b.owner_tid==GetCurrentThreadId()) {
+        RECT client{}; POINT point{}; GUITHREADINFO foreground{sizeof(foreground)};
+        const int vx=GetSystemMetrics(SM_XVIRTUALSCREEN),vy=GetSystemMetrics(SM_YVIRTUALSCREEN);
+        const int vw=GetSystemMetrics(SM_CXVIRTUALSCREEN),vh=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+        bool buttons_clear=true;
+        for(int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2})
+            buttons_clear=buttons_clear&&(GetAsyncKeyState(key)&0x8000)==0;
+        if(buttons_clear && GetGUIThreadInfo(0,&foreground) && !foreground.hwndCapture &&
+            !foreground.hwndMoveSize && !foreground.hwndMenuOwner &&
+            !(foreground.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE)) &&
+            GetClientRect(b.window,&client) && client.right>0 && client.bottom>0 && vw>1 && vh>1) {
+            point={client.right/2,client.bottom/2};
+            if(ClientToScreen(b.window,&point) &&
+                GetAncestor(WindowFromPoint(point),GA_ROOT)==b.window) {
+                std::array<INPUT,3> input{};
+                for(auto& event:input)event.type=INPUT_MOUSE;
+                input[0].mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
+                input[0].mi.dx=static_cast<LONG>((static_cast<std::int64_t>(point.x-vx)*65535)/(vw-1));
+                input[0].mi.dy=static_cast<LONG>((static_cast<std::int64_t>(point.y-vy)*65535)/(vh-1));
+                input[1].mi.dwFlags=MOUSEEVENTF_LEFTDOWN;
+                input[2].mi.dwFlags=MOUSEEVENTF_LEFTUP;
+                b.test_activation_attempted=true;
+                b.test_activation_inserted=SendInput(static_cast<UINT>(input.size()),input.data(),sizeof(INPUT));
+                const auto deadline=GetTickCount64()+300;
+                MSG message{};
+                // Bounded event wait, not a resident input source or retry.
+                while(GetForegroundWindow()!=b.window) {
+                    const auto now=GetTickCount64();
+                    if(now>=deadline)break;
+                    const auto remaining=static_cast<DWORD>(deadline-now);
+                    if(MsgWaitForMultipleObjectsEx(0,nullptr,remaining,QS_ALLINPUT,MWMO_INPUTAVAILABLE)!=WAIT_OBJECT_0)break;
+                    for(unsigned count=0;count<64 && GetTickCount64()<deadline &&
+                        PeekMessageW(&message,nullptr,0,0,PM_REMOVE);++count) {
+                        TranslateMessage(&message);DispatchMessageW(&message);
+                    }
+                }
+            }
+        }
+    }
+    b.observed_foreground=reinterpret_cast<std::uintptr_t>(GetForegroundWindow());
+    b.foreground_owned=b.visible&&
         b.observed_foreground==reinterpret_cast<std::uintptr_t>(b.window)&&
         b.owner_pid==GetCurrentProcessId()&&b.owner_tid==GetCurrentThreadId();
     return b;
@@ -170,6 +216,8 @@ void close_bootstrap(Bootstrap& b) {
 std::string bootstrap_fields(const Bootstrap& b) {
     return "{\"attempted\":true,\"registered\":"+boolean(b.registered)+",\"created\":"+boolean(b.created)+
         ",\"visible\":"+boolean(b.visible)+",\"set_foreground_succeeded\":"+boolean(b.set_foreground)+
+        ",\"guest_test_activation_attempted\":"+boolean(b.test_activation_attempted)+
+        ",\"guest_test_activation_inserted\":"+std::to_string(b.test_activation_inserted)+
         ",\"foreground_hwnd\":"+std::to_string(b.observed_foreground)+
         ",\"owned_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(b.window))+
         ",\"owner_pid\":"+std::to_string(b.owner_pid)+",\"owner_tid\":"+std::to_string(b.owner_tid)+
