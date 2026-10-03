@@ -1,5 +1,48 @@
 # Source Provenance Register
 
+## MVP1 post-END input-queue association — 2026-10-04
+
+BASE `0e7a4a8240e2317381ef772674c7d31a47a9b81e`。本轮人类明确授权仅在
+可丢弃 guest，把本代 shield 资源线程关联至已核实 source HWND 的实际线程。
+上一轮未关联的失败证据和许可判断保持原样，不追溯改为 PASS。
+
+复用已核验 AltSnap pin `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`
+（mature maintained，GPL-3.0-or-later，reference-only）的既有 movement/
+STATE_UP/finish/history 研究；本轮 GitHub hooks.c 页面实际可读的前段包含 GPL
+header 和状态定义，issue572 body 可读，034d58/8a5c history 网络页失败，
+不声称重新读到这些 diff，也不外推其 hook 路径为本候选证明。
+随后研究复核通过只读 raw 请求实读同 pin `hooks.c` 的 FinishMovementNow
+5239–5310、`License.txt` GPLv3 opening，以及上述 034d58/8a5c 的完整 `.patch`。
+仅在 `hooks.c` / `unfuck.h` / `altsnap.c` 中搜索 AttachThreadInput、SetCapture、
+ReleaseCapture 未命中；不宣称全库无使用，也没有复制其实现。
+实读 PowerToys/FancyZones pin `19c4d805321db86f3634e6968e14dbf25cbba14a`
+（mature production，MIT，reference-only）LICENSE、完整 WindowMouseSnap.cpp
+和 history `dd26d86580168d2e368701f7b0c4d629dc9cd9ac` 的 rendered diff：
+Abort 只清资源，不当成成功 End placement；保留失效退出，不继承其现场结论。
+Repository links: [AltSnap](https://github.com/RamonUnch/AltSnap),
+[PowerToys](https://github.com/microsoft/PowerToys)。所有 upstream code copied /
+adapted / translated / derived: NO；没有新增代码 attribution，保留研究链接。
+
+实际读取 official primary live pages（无 immutable 文档版本，Microsoft site
+terms，链接/转述，无示例代码复用）：
+[AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)、
+[SetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture)、
+[ReleaseCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-releasecapture)、
+[GetThreadDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop)、
+[GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo)，
+以及 Microsoft Raymond Chen 的
+[input queue association hang warning](https://devblogs.microsoft.com/oldnewthing/20080801-00/?p=21393/)。
+关联要求有队列、同 desktop；共享 focus/key/input ordering，相关键状态会重置。
+键状态改变不是 Raw/legacy UP。资料不保证 source 停泵时 release/detach 独立
+完成，必须在 own source 有界停泵的 guest 场景检验。
+同时实读 [GetUserObjectInformationW UOI_IO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getuserobjectinformationw)：
+对具名 resource/source desktop 查询实际 input-desktop 属性，并核对同非零 session、
+真实 source foreground；不只依赖两个 desktop 恰巧同名 Default。
+
+设计只改这一主要变量：真实 END 后关联，保留到真实 UP 或 abort；自有 release
+→ exact-pair detach → 撤罩。只解除本代真正建立的关联，失败不进入下一代。
+本轮验证前状态为 IMPLEMENTED 候选 / runtime UNKNOWN，不宣称清理或功能 PASS。
+
 2026-10-03 NormalUp 两种唯一 UP 形式均失败后，只读补查
 [AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
 （live official page）。它共享 input/focus/key states，重置 GetKeyState/

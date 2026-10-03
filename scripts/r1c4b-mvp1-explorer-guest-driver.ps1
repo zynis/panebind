@@ -535,6 +535,7 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
                     $row.event -ceq 'resource' -and $row.reason -ceq 'capture_ready_observed'
             } 4
             $capture=$captureReady.shield_capture
+            $association=$capture.association
             if (-not $capture -or $capture.attempted -ne $true -or
                 [long]$capture.previous -ne 0 -or [long]$capture.actual_after -ne
                     [long]$captureReady.overlay -or [long]$captureReady.overlay -eq 0 -or
@@ -548,6 +549,16 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
                 [long]$capture.owner_before.capture -ne 0 -or
                 [long]$capture.owner_after.capture -ne [long]$captureReady.overlay) {
                 throw "post_end_own_capture_not_exact:$Member"
+            }
+            if (-not $association -or $association.attach_attempted -ne $true -or
+                $association.attach_completed -ne $true -or
+                $association.attach_succeeded -ne $true -or $association.desktop_verified -ne $true -or
+                [long]$association.generation -ne [long]$start.generation -or
+                [long]$association.source -ne $hwnd -or
+                [long]$association.source_thread_id -ne [long]$root.tid -or
+                [long]$association.owner_thread_id -ne [long]$capture.owner_thread_id -or
+                $association.detach_attempted -ne $false) {
+                throw "post_end_input_association_not_exact:$Member"
             }
             $handoff = Wait-ProductRow 'gesture_event' {
                 param($row) $row.sequence -gt $start.sequence -and $row.event -ceq 'handoff' -and
@@ -638,7 +649,8 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
             param($row) $row.event -ceq 'isolation_gone' -and $row.generation -eq $start.generation -and
                 $row.reason -ceq 'normal_up'
         } 4
-        if ($gone.overlay_destroyed -ne $true -or $gone.hotkey_unregistered -ne $true) {
+        if ($gone.overlay_destroyed -ne $true -or $gone.hotkey_unregistered -ne $true -or
+            $gone.association_detached -ne $true) {
             throw "plain_product_isolation_cleanup_incomplete:$Member"
         }
         $captureReleased=Wait-ProductRow 'gesture_event' {
@@ -648,10 +660,25 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
         } 4
         $released=$captureReleased.shield_capture
         if (-not $released -or $released.release_attempted -ne $true -or
+            $released.release_completed -ne $true -or
             $released.release_succeeded -ne $true -or
             [long]$released.release_before -ne [long]$captureReady.overlay -or
             [long]$released.release_after -ne 0 -or $released.own_release_message -ne $true) {
             throw "normal_up_capture_release_not_observed:$Member"
+        }
+        $detached=Wait-ProductRow 'gesture_event' {
+            param($row) $row.event -ceq 'resource' -and
+                $row.reason -ceq 'input_detached_observed' -and
+                $row.generation -eq $start.generation
+        } 4
+        $pair=$detached.shield_capture.association
+        if (-not $pair -or $pair.attach_succeeded -ne $true -or
+            $pair.detach_attempted -ne $true -or $pair.detach_completed -ne $true -or
+            $pair.detach_succeeded -ne $true -or
+            [long]$pair.source -ne $hwnd -or
+            [long]$pair.owner_thread_id -ne [long]$capture.owner_thread_id -or
+            [long]$pair.detach_before_qpc -lt [long]$pair.attach_after_qpc) {
+            throw "normal_up_input_detach_not_observed:$Member"
         }
         Record 'observed_normal_capture_release' @{ generation=$start.generation;
             product_sequence=$captureReleased.sequence; shield_capture=$released;

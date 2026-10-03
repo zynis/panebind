@@ -192,6 +192,11 @@ void copy_shield_route(MvpEvidenceEvent& evidence,
     case op::GestureShieldEventKind::CaptureReleased: return "capture_released_observed";
     case op::GestureShieldEventKind::CaptureLost: return "capture_lost_observed";
     case op::GestureShieldEventKind::CaptureFailure: return "capture_failure_observed";
+    case op::GestureShieldEventKind::ThreadAssociated: return "input_attached_observed";
+    case op::GestureShieldEventKind::ThreadDetached: return "input_detached_observed";
+    case op::GestureShieldEventKind::ThreadAssociationFailure: return "input_association_failed_observed";
+    case op::GestureShieldEventKind::ThreadAssociationAttempt: return "input_association_attempt_observed";
+    case op::GestureShieldEventKind::CaptureReleaseAttempt: return "capture_release_attempt_observed";
     default: return "none";
     }
 }
@@ -325,6 +330,9 @@ struct ExplorerMvpSession::Impl final {
                                   shield_removal_name(item.removal_reason));
                 event.overlay_destroyed = item.overlay_destroyed;
                 event.hotkey_unregistered = item.hotkey_unregistered;
+                event.shield_capture = item.capture;
+                event.association_detached = op::gesture_shield_association_cleanup_confirmed(
+                    item.capture.association, item.generation);
             } else if (capture_event_name(item.kind) != "none") {
                 event = event_for(MvpEvidenceKind::Resource, current, capture_event_name(item.kind));
                 event.shield_capture = item.capture;
@@ -447,7 +455,9 @@ struct ExplorerMvpSession::Impl final {
             } else if (event.kind == op::GestureShieldEventKind::IsolationGone &&
                        event.generation == current->generation) {
                 current->isolated = false;
-                current->removed = event.overlay_destroyed && event.hotkey_unregistered;
+                current->removed = event.overlay_destroyed && event.hotkey_unregistered &&
+                    op::gesture_shield_association_cleanup_confirmed(
+                        event.capture.association, event.generation);
                 if (current->removed)
                     (void)current->motion.isolation_removed(current->generation);
                 if (!current->raw_up && !current->retired)
@@ -458,6 +468,7 @@ struct ExplorerMvpSession::Impl final {
                 event.kind == op::GestureShieldEventKind::ResourceFailure ||
                 event.kind == op::GestureShieldEventKind::CaptureLost ||
                 event.kind == op::GestureShieldEventKind::CaptureFailure ||
+                event.kind == op::GestureShieldEventKind::ThreadAssociationFailure ||
                 event.kind == op::GestureShieldEventKind::HotkeyStop)
                 revoke(current, event.kind == op::GestureShieldEventKind::Deadline ?
                     b::MoveHandoffEscapeReason::Deadline :
@@ -1009,6 +1020,13 @@ void ExplorerMvpSession::Impl::capture_after_ready(const op::GestureShieldEvent&
     const auto handoff = detail::ExplorerGroupBridge::capture(*group->seal_, group->sessions());
     const bool fresh = handoff && context_matches(*handoff, *current, true) &&
         same_frame(frame((*handoff)[current->source]), frame(current->handoff[current->source]));
+    const auto& association = event.capture.association;
+    const bool exact_association = op::gesture_shield_association_owned_pair(
+        association, current->generation) && !association.detach_attempted &&
+        association.desktop_verified && association.generation == current->generation &&
+        association.source == member.window && association.source_process_id == member.process_id &&
+        association.source_thread_id == member.thread_id &&
+        association.owner_thread_id == current->capture_thread.load();
     const MvpEndAuthorityFacts authority{fresh,
         gui_after_end(member.thread_id, current->overlay.load(), current->capture_thread.load()),
         GetForegroundWindow() == member.window, physical_left(), GetCursorPos(&cursor) != FALSE,
@@ -1016,7 +1034,7 @@ void ExplorerMvpSession::Impl::capture_after_ready(const op::GestureShieldEvent&
             latest_raw_up_sequence.load(std::memory_order_acquire) > current->down_packet};
     if (!mvp_capture_writer_ready(authority,
             group->product_move_conflict_pending(current->source), current->end_observed,
-            current->capture_ready && op::gesture_shield_exact_capture(
+            current->capture_ready && exact_association && op::gesture_shield_exact_capture(
                 current->overlay.load(), current->capture_thread.load()))) {
         fail("capture_ready_fresh_authority_failed", b::MoveHandoffEscapeReason::ContextLost);
         return;
@@ -1213,6 +1231,9 @@ bool ExplorerMvpSession::Impl::pump() {
                                      shield_removal_name(event.removal_reason));
                 evidence.overlay_destroyed = event.overlay_destroyed;
                 evidence.hotkey_unregistered = event.hotkey_unregistered;
+                evidence.shield_capture = event.capture;
+                evidence.association_detached = op::gesture_shield_association_cleanup_confirmed(
+                    event.capture.association, event.generation);
                 break;
             case op::GestureShieldEventKind::HotkeyStop:
                 evidence = event_for(MvpEvidenceKind::Resource, current,
@@ -1237,6 +1258,11 @@ bool ExplorerMvpSession::Impl::pump() {
             case op::GestureShieldEventKind::CaptureReleased:
             case op::GestureShieldEventKind::CaptureLost:
             case op::GestureShieldEventKind::CaptureFailure:
+            case op::GestureShieldEventKind::ThreadAssociated:
+            case op::GestureShieldEventKind::ThreadDetached:
+            case op::GestureShieldEventKind::ThreadAssociationFailure:
+            case op::GestureShieldEventKind::ThreadAssociationAttempt:
+            case op::GestureShieldEventKind::CaptureReleaseAttempt:
                 evidence = event_for(MvpEvidenceKind::Resource, current, capture_event_name(event.kind));
                 evidence.shield_capture = event.capture;
                 break;
@@ -1254,7 +1280,9 @@ bool ExplorerMvpSession::Impl::pump() {
                 capture_after_ready(event);
             } else if (event.kind == op::GestureShieldEventKind::IsolationGone) {
                 if (current && event.generation == current->generation &&
-                    (!event.overlay_destroyed || !event.hotkey_unregistered))
+                    (!event.overlay_destroyed || !event.hotkey_unregistered ||
+                     !op::gesture_shield_association_cleanup_confirmed(
+                        event.capture.association, event.generation)))
                     fail("shield_removal_not_confirmed",
                          b::MoveHandoffEscapeReason::ContextLost, true);
             }
@@ -1396,6 +1424,7 @@ bool ExplorerMvpSession::Impl::stop() noexcept {
     teardown.raw_registration_removed = shield_facts.raw_registration_removed;
     teardown.winevent_unhooked = shield_facts.winevent_unhooked;
     teardown.classes_unregistered = shield_facts.classes_unregistered;
+    teardown.association_detached = shield_facts.association_detached;
     (void)record(teardown);
     set_gesture(nullptr);
     if (!shield_facts.clean() || !group_stopped) {

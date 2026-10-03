@@ -41,6 +41,11 @@ enum class GestureShieldEventKind {
     CaptureFailure,
     CaptureLost,
     CaptureReleased,
+    ThreadAssociated,
+    ThreadDetached,
+    ThreadAssociationFailure,
+    ThreadAssociationAttempt,
+    CaptureReleaseAttempt,
 };
 
 enum class GestureShieldRemovalReason {
@@ -137,7 +142,69 @@ struct GestureShieldGuiFacts {
     HWND move_size{};
     HWND menu_owner{};
     DWORD flags{};
+    HWND active{};
+    HWND focus{};
 };
+
+// A single guest-authorized resource/source input-queue pair. Native BOOL
+// results and named-thread snapshots are facts, not evidence of mouse UP.
+struct GestureShieldAssociationFacts {
+    std::uint64_t generation{};
+    DWORD owner_thread_id{};
+    DWORD source_thread_id{};
+    DWORD source_process_id{};
+    HWND source{};
+    bool desktop_verified{};
+    DWORD owner_session_id{};
+    DWORD source_session_id{};
+    bool owner_desktop_query{};
+    bool source_desktop_query{};
+    bool input_desktop_query{};
+    bool owner_desktop_input{};
+    bool source_desktop_input{};
+    bool input_desktop_active{};
+    bool attach_attempted{};
+    bool attach_completed{};
+    bool attach_succeeded{};
+    DWORD attach_error{};
+    std::uint64_t attach_before_qpc{};
+    std::uint64_t attach_after_qpc{};
+    HWND foreground_before{};
+    HWND foreground_after{};
+    GestureShieldGuiFacts owner_before{};
+    GestureShieldGuiFacts source_before{};
+    GestureShieldGuiFacts owner_after{};
+    GestureShieldGuiFacts source_after{};
+    bool detach_attempted{};
+    bool detach_completed{};
+    bool detach_succeeded{};
+    DWORD detach_error{};
+    std::uint64_t detach_before_qpc{};
+    std::uint64_t detach_after_qpc{};
+    HWND foreground_before_detach{};
+    HWND foreground_after_detach{};
+    GestureShieldGuiFacts owner_before_detach{};
+    GestureShieldGuiFacts source_before_detach{};
+    GestureShieldGuiFacts owner_after_detach{};
+    GestureShieldGuiFacts source_after_detach{};
+};
+
+[[nodiscard]] constexpr bool gesture_shield_association_owned_pair(
+    const GestureShieldAssociationFacts& facts, std::uint64_t generation) noexcept {
+    return generation && facts.generation == generation && facts.attach_attempted &&
+        facts.attach_completed && facts.attach_succeeded && facts.owner_thread_id && facts.source_thread_id &&
+        facts.owner_thread_id != facts.source_thread_id;
+}
+
+[[nodiscard]] constexpr bool gesture_shield_association_cleanup_confirmed(
+    const GestureShieldAssociationFacts& facts, std::uint64_t generation) noexcept {
+    // No successful attach gives this gesture no pair to detach. A successful
+    // pair is clean only with a native TRUE detach for that same generation.
+    if (!facts.attach_succeeded)
+        return (!facts.attach_attempted || facts.attach_completed) && !facts.detach_attempted;
+    return gesture_shield_association_owned_pair(facts, generation) &&
+        facts.detach_attempted && facts.detach_completed && facts.detach_succeeded;
+}
 
 enum class GestureShieldCaptureFailure {
     None,
@@ -153,6 +220,8 @@ enum class GestureShieldCaptureFailure {
     MoveSize,
     MenuMode,
     Readback,
+    AssociationAttach,
+    AssociationDetach,
 };
 
 struct GestureShieldCaptureFacts {
@@ -171,12 +240,16 @@ struct GestureShieldCaptureFacts {
     GestureShieldGuiFacts owner_after{};
     GestureShieldCaptureFailure failure{GestureShieldCaptureFailure::None};
     bool release_attempted{};
+    bool release_completed{};
     bool release_succeeded{};
     HWND release_before{};
     HWND release_after{};
     DWORD release_error{};
+    std::uint64_t release_before_qpc{};
+    std::uint64_t release_after_qpc{};
     HWND capture_changed_to{};
     bool own_release_message{};
+    GestureShieldAssociationFacts association{};
 };
 
 // Read-only, precise same-process/same-thread capture check. Callers must also
@@ -271,12 +344,13 @@ struct GestureShieldStopFacts {
     bool classes_unregistered{};
     bool callback_delivery_ok{};
     bool capture_released{};
+    bool association_detached{};
 
     [[nodiscard]] bool clean() const noexcept {
         return worker_exited && overlay_destroyed && receiver_destroyed &&
                raw_registration_removed && hotkey_unregistered &&
                winevent_unhooked && classes_unregistered && callback_delivery_ok &&
-               capture_released;
+               capture_released && association_detached;
     }
 };
 

@@ -44,12 +44,15 @@ constexpr wchar_t guest_output[] = L"C:\\PaneBindMVP1\\Output\\";
 constexpr ULONG_PTR test_tag = 0x50424D56; // Owned SendInput tag; Raw has no tag.
 constexpr DWORD shield_deadline_ms = 30000;
 constexpr UINT msg_writer_notice = WM_APP + 17;
+constexpr UINT msg_source_pause = WM_APP + 18;
+constexpr DWORD source_pause_ms = 5000;
+constexpr DWORD short_deadline_ms = 3000;
 
 struct RawSample { POINT cursor{}; std::uint64_t packet{}, tick{}; };
 
 struct State {
     std::string scenario;
-    std::uint64_t generation{};
+    std::atomic<std::uint64_t> generation{0};
     std::uintptr_t nonce{};
     HANDLE evidence{INVALID_HANDLE_VALUE};
     std::mutex log_mutex;
@@ -63,6 +66,7 @@ struct State {
     HANDLE raw_down{}, raw_up{}, legacy_up{}, isolation_ready{}, isolation_gone{};
     HANDLE capture_ready{}, capture_failure{}, capture_lost{}, capture_released{};
     HANDLE hotkey_stop{}, writer_receipt{}, writer_stall_started{}, writer_gone{}, raw_notice{};
+    HANDLE source_pause_entered{}, source_pause_resumed{}, source_pause_release{};
     std::atomic<HWND> source{nullptr}, control{nullptr}, overlay{nullptr};
     std::atomic<DWORD> source_thread{0};
     std::atomic<bool> held{false}, retired{false}, armed{false};
@@ -71,11 +75,17 @@ struct State {
     std::atomic<bool> authorized_start{false};
     std::atomic<bool> authorized_end{false}, capture_authority{false};
     std::atomic<bool> capture_established{false}, own_capture_released{false};
+    std::atomic<bool> association_established{false}, association_detached{false};
+    std::atomic<std::uint32_t> association_attempts{0}, detach_attempts{0};
     std::atomic<DWORD> shield_thread{0};
     std::atomic<std::uint32_t> capture_attempts{0};
     std::atomic<bool> matching_raw_up{false}, normal_removal_requested{false};
     std::atomic<bool> overlay_destroyed{false}, hotkey_unregistered{false};
     std::atomic<bool> stall_started_held{false}, stall_deadline_removed{false};
+    std::atomic<std::uint64_t> source_pause_begin_tick{0}, source_pause_resume_tick{0};
+    std::atomic<std::uint64_t> isolation_gone_tick{0};
+    std::atomic<std::uint64_t> isolation_ready_tick{0};
+    std::uint32_t completed_gestures{};
     std::atomic<std::uint64_t> raw_sequence{0}, down_watermark{0};
     std::atomic<std::uint64_t> handoff_raw_watermark{0};
     std::atomic<std::uint32_t> native_downs{0}, native_starts{0}, native_ends{0};
@@ -98,8 +108,10 @@ struct State {
     UINT dpi{};
     std::optional<op::MoveFrameGeometry> initial_source, initial_control;
     std::unique_ptr<op::GestureInputShield> shield;
-    b::MoveMagnetSession motion;
-    op::MoveFrameContinuity continuity;
+    std::atomic<std::shared_ptr<b::MoveMagnetSession>> motion{
+        std::make_shared<b::MoveMagnetSession>()};
+    std::atomic<std::shared_ptr<op::MoveFrameContinuity>> continuity{
+        std::make_shared<op::MoveFrameContinuity>()};
     std::unique_ptr<op::LiveMoveWriter> writer;
 } s;
 
@@ -171,7 +183,56 @@ struct State {
         ",\"capture\":" + std::to_string(hwnd_number(facts.capture)) +
         ",\"move_size\":" + std::to_string(hwnd_number(facts.move_size)) +
         ",\"menu_owner\":" + std::to_string(hwnd_number(facts.menu_owner)) +
-        ",\"flags\":" + std::to_string(facts.flags) + "}";
+        ",\"flags\":" + std::to_string(facts.flags) +
+        ",\"active\":" + std::to_string(hwnd_number(facts.active)) +
+        ",\"focus\":" + std::to_string(hwnd_number(facts.focus)) + "}";
+}
+[[nodiscard]] std::string shield_association_json(
+    const op::GestureShieldAssociationFacts& facts) {
+    return "{\"generation\":" + std::to_string(facts.generation) +
+        ",\"owner_thread_id\":" + std::to_string(facts.owner_thread_id) +
+        ",\"source_thread_id\":" + std::to_string(facts.source_thread_id) +
+        ",\"source_process_id\":" + std::to_string(facts.source_process_id) +
+        ",\"source\":" + std::to_string(hwnd_number(facts.source)) +
+        ",\"desktop_verified\":" + boolean(facts.desktop_verified) +
+        ",\"owner_session_id\":" + std::to_string(facts.owner_session_id) +
+        ",\"source_session_id\":" + std::to_string(facts.source_session_id) +
+        ",\"owner_desktop_query\":" + boolean(facts.owner_desktop_query) +
+        ",\"source_desktop_query\":" + boolean(facts.source_desktop_query) +
+        ",\"input_desktop_query\":" + boolean(facts.input_desktop_query) +
+        ",\"owner_desktop_input\":" + boolean(facts.owner_desktop_input) +
+        ",\"source_desktop_input\":" + boolean(facts.source_desktop_input) +
+        ",\"input_desktop_active\":" + boolean(facts.input_desktop_active) +
+        ",\"attach_attempted\":" + boolean(facts.attach_attempted) +
+        ",\"attach_completed\":" + boolean(facts.attach_completed) +
+        ",\"attach_succeeded\":" + (facts.attach_completed ?
+            boolean(facts.attach_succeeded) : std::string{"null"}) +
+        ",\"attach_error\":" + (facts.attach_completed ?
+            std::to_string(facts.attach_error) : std::string{"null"}) +
+        ",\"attach_before_qpc\":" + std::to_string(facts.attach_before_qpc) +
+        ",\"attach_after_qpc\":" + std::to_string(facts.attach_after_qpc) +
+        ",\"foreground_before\":" + std::to_string(hwnd_number(facts.foreground_before)) +
+        ",\"foreground_after\":" + std::to_string(hwnd_number(facts.foreground_after)) +
+        ",\"owner_before\":" + shield_gui_json(facts.owner_before) +
+        ",\"source_before\":" + shield_gui_json(facts.source_before) +
+        ",\"owner_after\":" + shield_gui_json(facts.owner_after) +
+        ",\"source_after\":" + shield_gui_json(facts.source_after) +
+        ",\"detach_attempted\":" + boolean(facts.detach_attempted) +
+        ",\"detach_completed\":" + boolean(facts.detach_completed) +
+        ",\"detach_succeeded\":" + (facts.detach_completed ?
+            boolean(facts.detach_succeeded) : std::string{"null"}) +
+        ",\"detach_error\":" + (facts.detach_completed ?
+            std::to_string(facts.detach_error) : std::string{"null"}) +
+        ",\"detach_before_qpc\":" + std::to_string(facts.detach_before_qpc) +
+        ",\"detach_after_qpc\":" + std::to_string(facts.detach_after_qpc) +
+        ",\"foreground_before_detach\":" +
+            std::to_string(hwnd_number(facts.foreground_before_detach)) +
+        ",\"foreground_after_detach\":" +
+            std::to_string(hwnd_number(facts.foreground_after_detach)) +
+        ",\"owner_before_detach\":" + shield_gui_json(facts.owner_before_detach) +
+        ",\"source_before_detach\":" + shield_gui_json(facts.source_before_detach) +
+        ",\"owner_after_detach\":" + shield_gui_json(facts.owner_after_detach) +
+        ",\"source_after_detach\":" + shield_gui_json(facts.source_after_detach) + "}";
 }
 [[nodiscard]] std::string shield_capture_json(const op::GestureShieldCaptureFacts& facts) {
     return ",\"owner_thread_id\":" + std::to_string(facts.owner_thread_id) +
@@ -188,12 +249,18 @@ struct State {
         ",\"owner_after\":" + shield_gui_json(facts.owner_after) +
         ",\"failure\":" + std::to_string(static_cast<int>(facts.failure)) +
         ",\"release_attempted\":" + boolean(facts.release_attempted) +
-        ",\"release_succeeded\":" + boolean(facts.release_succeeded) +
+        ",\"release_completed\":" + boolean(facts.release_completed) +
+        ",\"release_succeeded\":" + (facts.release_completed ?
+            boolean(facts.release_succeeded) : std::string{"null"}) +
         ",\"release_before\":" + std::to_string(hwnd_number(facts.release_before)) +
         ",\"release_after\":" + std::to_string(hwnd_number(facts.release_after)) +
-        ",\"release_error\":" + std::to_string(facts.release_error) +
+        ",\"release_error\":" + (facts.release_completed ?
+            std::to_string(facts.release_error) : std::string{"null"}) +
+        ",\"release_before_qpc\":" + std::to_string(facts.release_before_qpc) +
+        ",\"release_after_qpc\":" + std::to_string(facts.release_after_qpc) +
         ",\"capture_changed_to\":" + std::to_string(hwnd_number(facts.capture_changed_to)) +
-        ",\"own_release_message\":" + boolean(facts.own_release_message);
+        ",\"own_release_message\":" + boolean(facts.own_release_message) +
+        ",\"association\":" + shield_association_json(facts.association);
 }
 void record(std::string_view kind, const std::string& fields = {}) noexcept {
     try {
@@ -411,8 +478,8 @@ void retire(std::string_view reason, b::MoveHandoffEscapeReason escape) noexcept
     s.capture_authority = false;
     op::MoveRetireFacts facts{};
     if (s.writer) facts = s.writer->retire(s.generation);
-    s.continuity.retire(s.generation);
-    (void)s.motion.escape(s.generation, escape);
+    s.continuity.load()->retire(s.generation);
+    (void)s.motion.load()->escape(s.generation, escape);
     record("retire", ",\"reason\":\"" + std::string(reason) +
         "\",\"pending_discarded\":" + boolean(facts.pending_discarded) +
         ",\"attempt_started_before_revoke\":" +
@@ -438,7 +505,7 @@ void retire(std::string_view reason, b::MoveHandoffEscapeReason escape) noexcept
 }
 
 void on_shield_event(const op::GestureShieldEvent& event) noexcept {
-    const auto generation = s.generation;
+    const auto generation = s.generation.load();
     switch (event.kind) {
     case op::GestureShieldEventKind::RawMouse: {
         s.raw_sequence.store(event.raw_sequence, std::memory_order_release);
@@ -474,13 +541,13 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
                 s.retired = true;
                 s.capture_authority = false;
                 if (s.writer) (void)s.writer->retire(generation);
-                s.continuity.retire(generation);
+                s.continuity.load()->retire(generation);
                 if (s.scenario != "legacy-control")
-                    (void)s.motion.raw_up_observed(generation, true);
+                    (void)s.motion.load()->raw_up_observed(generation, true);
                 if (s.scenario != "legacy-control" &&
                     WaitForSingleObject(s.legacy_up, 0) == WAIT_OBJECT_0 && s.shield) {
-                    (void)s.motion.legacy_up_delivery_observed(generation, true);
-                    if (s.motion.removal_allowed(generation) &&
+                    (void)s.motion.load()->legacy_up_delivery_observed(generation, true);
+                    if (s.motion.load()->removal_allowed(generation) &&
                         !s.normal_removal_requested.exchange(true))
                         (void)s.shield->request_remove(generation,
                             op::GestureShieldRemovalReason::NormalUp);
@@ -532,8 +599,8 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             std::to_string(hwnd_number(event.overlay)));
         SetEvent(s.legacy_up);
         if (s.matching_raw_up && s.shield) {
-            (void)s.motion.legacy_up_delivery_observed(generation, true);
-            if (s.motion.removal_allowed(generation) &&
+            (void)s.motion.load()->legacy_up_delivery_observed(generation, true);
+            if (s.motion.load()->removal_allowed(generation) &&
                 !s.normal_removal_requested.exchange(true))
                 (void)s.shield->request_remove(generation,
                     op::GestureShieldRemovalReason::NormalUp);
@@ -556,6 +623,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
                 std::to_string(event.cursor_now.y) + "]");
         break;
     case op::GestureShieldEventKind::IsolationReady:
+        s.isolation_ready_tick = GetTickCount64();
         s.overlay = event.overlay;
         record("isolation_ready", ",\"overlay\":" +
             std::to_string(hwnd_number(event.overlay)) +
@@ -569,6 +637,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         SetEvent(s.isolation_ready);
         break;
     case op::GestureShieldEventKind::IsolationGone:
+        s.isolation_gone_tick = GetTickCount64();
         s.capture_established = false;
         s.overlay = nullptr;
         s.overlay_destroyed = event.overlay_destroyed;
@@ -576,7 +645,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         if (event.removal_reason == op::GestureShieldRemovalReason::Deadline)
             s.stall_deadline_removed = true;
         if (event.removal_reason == op::GestureShieldRemovalReason::NormalUp) {
-            (void)s.motion.isolation_removed(generation);
+            (void)s.motion.load()->isolation_removed(generation);
         } else {
             retire("shield_removed", b::MoveHandoffEscapeReason::ContextLost);
         }
@@ -600,6 +669,44 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"left_high\":" + boolean(left_high()) +
             ",\"retired\":" + boolean(s.retired) + shield_capture_json(event.capture));
         SetEvent(s.capture_ready);
+        break;
+    case op::GestureShieldEventKind::ThreadAssociated:
+        if (event.capture.association.attach_attempted) ++s.association_attempts;
+        s.association_established =
+            op::gesture_shield_association_owned_pair(event.capture.association, generation) &&
+            event.capture.association.source == s.source &&
+            event.capture.association.source_process_id == GetCurrentProcessId() &&
+            event.capture.association.source_thread_id == s.source_thread &&
+            event.capture.association.desktop_verified;
+        record("thread_associated", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"native_ends_observed\":" + std::to_string(s.native_ends.load()) +
+            ",\"normal_up_observed\":" + boolean(s.matching_raw_up) +
+            ",\"actual_pair_accepted\":" + boolean(s.association_established) +
+            shield_capture_json(event.capture));
+        break;
+    case op::GestureShieldEventKind::ThreadAssociationAttempt:
+        record("thread_association_attempt", ",\"generation\":" +
+            std::to_string(event.generation) + shield_capture_json(event.capture));
+        break;
+    case op::GestureShieldEventKind::CaptureReleaseAttempt:
+        record("capture_release_attempt", ",\"generation\":" +
+            std::to_string(event.generation) + shield_capture_json(event.capture));
+        break;
+    case op::GestureShieldEventKind::ThreadDetached:
+        if (event.capture.association.detach_attempted) ++s.detach_attempts;
+        s.association_detached = s.association_established &&
+            op::gesture_shield_association_cleanup_confirmed(
+                event.capture.association, generation);
+        record("thread_detached", ",\"generation\":" + std::to_string(event.generation) +
+            ",\"actual_pair_detached\":" + boolean(s.association_detached) +
+            shield_capture_json(event.capture));
+        break;
+    case op::GestureShieldEventKind::ThreadAssociationFailure:
+        if (event.capture.association.attach_attempted &&
+            !event.capture.association.attach_succeeded) ++s.association_attempts;
+        retire("thread_association_failure", b::MoveHandoffEscapeReason::ContextLost);
+        record("thread_association_failure", ",\"generation\":" +
+            std::to_string(event.generation) + shield_capture_json(event.capture));
         break;
     case op::GestureShieldEventKind::CaptureFailure:
         if (event.capture.attempted) ++s.capture_attempts;
@@ -702,6 +809,32 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         return DefWindowProcW(hwnd, message, wparam, lparam);
     }
     switch (message) {
+    case msg_source_pause:
+        if (hwnd == s.source && s.scenario == "source-pause" &&
+            s.capture_established && s.authorized_end && s.native_ends == 1 &&
+            !s.matching_raw_up && left_high()) {
+            // Test-owned UI thread only: no SuspendThread, Explorer thread
+            // manipulation or unrecoverable wait. The real resource thread
+            // remains associated with this deliberately non-pumping queue.
+            s.source_pause_begin_tick = GetTickCount64();
+            record("source_pause_begin", ",\"generation\":" +
+                std::to_string(s.generation) + ",\"source_thread\":" +
+                std::to_string(GetCurrentThreadId()) + ",\"tick_ms\":" +
+                std::to_string(s.source_pause_begin_tick.load()) +
+                ",\"pause_bound_ms\":" + std::to_string(source_pause_ms) +
+                ",\"left_high\":" + boolean(left_high()));
+            SetEvent(s.source_pause_entered);
+            const DWORD result = WaitForSingleObject(s.source_pause_release, source_pause_ms);
+            s.source_pause_resume_tick = GetTickCount64();
+            record("source_pause_resume", ",\"generation\":" +
+                std::to_string(s.generation) + ",\"tick_ms\":" +
+                std::to_string(s.source_pause_resume_tick.load()) +
+                ",\"wait_result\":" + std::to_string(result) +
+                ",\"actor\":\"bounded_owned_test_ui_wait\"");
+            SetEvent(s.source_pause_resumed);
+            return 0;
+        }
+        return 0;
     case WM_NCHITTEST:
         if (hwnd == s.source && s.trace_click_route) {
             const auto extra = GetMessageExtraInfo();
@@ -872,10 +1005,10 @@ struct WriteFacts {
 [[nodiscard]] WriteFacts write_facts(POINT cursor) noexcept {
     // Version before native capture: a completed own write can make this
     // sample stale, never evidence of an external translation.
-    const auto version = s.continuity.snapshot_version(s.generation);
+    const auto version = s.continuity.load()->snapshot_version(s.generation);
     const bool context = stable_context();
     const auto source_now = context ? capture(s.source) : std::nullopt;
-    const auto observed = source_now ? s.continuity.observe(s.generation,
+    const auto observed = source_now ? s.continuity.load()->observe(s.generation,
         *source_now, version) : op::MoveFrameObservation::NotArmed;
     const auto decision = op::classify_move_sample(
         observed, context && source_now.has_value());
@@ -883,7 +1016,7 @@ struct WriteFacts {
     const bool active = stable && s.armed && !s.retired && !s.matching_raw_up &&
         owned_capture_live() && left_high() && s.tagged_down && s.associated_raw_down &&
         s.native_starts == 1 && s.native_ends == 1 && s.cancel_attempts == 1 &&
-        !s.motion.retired(s.generation);
+        !s.motion.load()->retired(s.generation);
     return {stable, active, shield_hit(cursor), decision};
 }
 
@@ -935,12 +1068,12 @@ struct WriteFacts {
             const auto now = capture(s.source);
             if (!facts.stable || !facts.active || !facts.hit || !now ||
                 !same_frame(*now, before) || !s.writer ||
-                !s.continuity.begin_attempt(s.generation, quantum, before,
+                !s.continuity.load()->begin_attempt(s.generation, quantum, before,
                                              {expected, target}))
                 return op::MoveNativePlacement{};
             // No other potentially blocking validation after this claim.
             if (!s.writer->begin_native_attempt(s.generation)) {
-                (void)s.continuity.abort_unissued(s.generation, quantum);
+                (void)s.continuity.load()->abort_unissued(s.generation, quantum);
                 return op::MoveNativePlacement{};
             }
             SetLastError(0);
@@ -956,10 +1089,10 @@ struct WriteFacts {
         },
         [](const op::MoveFrameGeometry&,
            const op::MoveFrameGeometry& after) {
-            const auto version = s.continuity.snapshot_version(s.generation);
+            const auto version = s.continuity.load()->snapshot_version(s.generation);
             const auto now = capture(s.source);
             const bool context = stable_context();
-            const auto observed = now && context ? s.continuity.observe(
+            const auto observed = now && context ? s.continuity.load()->observe(
                 s.generation, *now, version) : op::MoveFrameObservation::NotArmed;
             const bool continuous = observed == op::MoveFrameObservation::Expected ||
                 observed == op::MoveFrameObservation::OwnInFlight;
@@ -976,10 +1109,10 @@ void writer_owner() noexcept {
             const auto receipt = s.writer->wait_and_execute();
             if (!receipt) break;
             const bool committed = receipt->native_attempted &&
-                s.continuity.finish_attempt(s.generation, receipt->quantum,
+                s.continuity.load()->finish_attempt(s.generation, receipt->quantum,
                     receipt->native_attempted, receipt->exact, receipt->after);
             if (!receipt->native_attempted)
-                (void)s.continuity.abort_unissued(s.generation, receipt->quantum);
+                (void)s.continuity.load()->abort_unissued(s.generation, receipt->quantum);
             if (receipt->native_attempted) ++s.native_attempts;
             const bool exact = receipt->exact &&
                 (!receipt->native_attempted || committed);
@@ -991,7 +1124,7 @@ void writer_owner() noexcept {
                 const b::MoveWritePlan plan{receipt->generation, receipt->quantum,
                     {}, receipt->target_visible, receipt->snapped,
                     m::MotionState::BelowThreshold, receipt->reason};
-                (void)s.motion.write_result(plan, exact,
+                (void)s.motion.load()->write_result(plan, exact,
                     receipt->after ? receipt->after->visible : g::Rect{});
             }
             const bool failed = op::move_write_receipt_failed(*receipt, committed);
@@ -1038,14 +1171,14 @@ void writer_owner() noexcept {
             continue;
         }
         if (!facts.active || !facts.hit ||
-            !s.motion.sample_cursor(s.generation,
+            !s.motion.load()->sample_cursor(s.generation,
                 {sample.cursor.x, sample.cursor.y}, sample.tick,
                 facts.active, facts.stable, facts.hit)) {
-            if (!s.motion.retired(s.generation))
+            if (!s.motion.load()->retired(s.generation))
                 retire("cursor_sample_invalid", b::MoveHandoffEscapeReason::ContextLost);
             continue;
         }
-        const auto plan = s.motion.take_pending(s.generation,
+        const auto plan = s.motion.load()->take_pending(s.generation,
             facts.active, facts.stable, facts.hit);
         if (!plan) continue;
         offered |= s.writer && s.writer->offer({plan->generation, plan->quantum,
@@ -1350,7 +1483,7 @@ void writer_owner() noexcept {
         panebind::core::model::WindowId{"owned-control"},
         s.initial_control->visible, false}};
     if (!QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0 ||
-        !s.motion.begin(s.generation, {down->x, down->y}, frame->visible,
+        !s.motion.load()->begin(s.generation, {down->x, down->y}, frame->visible,
             targets, qpc(), static_cast<std::uint64_t>(frequency.QuadPart),
             same_owned(s.source), true, true)) return false;
     record("owned_move_begin", ",\"generation\":" +
@@ -1364,7 +1497,8 @@ void writer_owner() noexcept {
     const HWND source = s.source;
     // A shorter finite TEST request exercises the SAME product timeout path.
     // Product/default requests remain 30 s; this is not a latency SLA.
-    const DWORD timeout_ms = s.scenario == "writer-stall" ? 3000 : shield_deadline_ms;
+    const DWORD timeout_ms = (s.scenario == "writer-stall" ||
+        s.scenario == "source-pause") ? short_deadline_ms : shield_deadline_ms;
     const bool queued = s.shield && s.shield->request_isolation({
         s.generation, source, GetCurrentProcessId(), s.source_thread, timeout_ms});
     record("isolation_request", ",\"queued\":" + boolean(queued) +
@@ -1384,7 +1518,7 @@ void writer_owner() noexcept {
         gui.hwndCapture == s.source && gui.hwndMoveSize == s.source;
     record("isolation_post_readback", ",\"actual_hit_and_context\":" +
         boolean(actual));
-    return actual && s.motion.isolation_ready(s.generation, true);
+    return actual && s.motion.load()->isolation_ready(s.generation, true);
 }
 
 [[nodiscard]] bool request_capture_and_arm_writer() noexcept {
@@ -1395,10 +1529,11 @@ void writer_owner() noexcept {
         ",\"authority_published\":" + boolean(s.capture_authority) +
         ",\"normal_up_observed\":" + boolean(s.matching_raw_up));
     if (!queued || !wait_for(s.capture_ready, 2000, "actual_product_capture_ready") ||
+        !s.association_established || s.association_detached ||
         s.retired || s.matching_raw_up || !left_high() || !owned_capture_live()) return false;
     const auto handoff = capture(s.source);
     const bool fresh = handoff && stable_context() &&
-        s.continuity.arm(s.generation, *handoff);
+        s.continuity.load()->arm(s.generation, *handoff);
     record("capture_handoff", ",\"fresh\":" + boolean(fresh) +
         ",\"actual_capture\":" + boolean(owned_capture_live()) +
         ",\"handoff_visible\":" + (handoff ? rect_json(handoff->visible) : "null"));
@@ -1430,14 +1565,14 @@ void writer_owner() noexcept {
         GetForegroundWindow() == s.source && GetCursorPos(&cursor) &&
         shield_hit(cursor) && GetGUIThreadInfo(s.source_thread, &gui) &&
         gui.hwndCapture == s.source && gui.hwndMoveSize == s.source &&
-        s.motion.may_cancel(s.generation);
+        s.motion.load()->may_cancel(s.generation);
     if (!preflight) return false;
     {
         // Only the claim is serialized with actual Raw UP observation. The
         // resource callback never waits for the bounded native API itself.
         std::lock_guard lock{s.cancel_mutex};
         if (s.matching_raw_up || s.retired ||
-            !s.motion.cancel_issued(s.generation)) return false;
+            !s.motion.load()->cancel_issued(s.generation)) return false;
         s.cancel_claimed = true;
     }
     record("cancel_permission_claim", ",\"claimed\":true,\"api_entered\":false");
@@ -1453,7 +1588,7 @@ void writer_owner() noexcept {
         !wait_for(s.modal_return, 1500, "native_modal_return") ||
         !same_owned(s.source) || s.native_ends != 1 ||
         s.matching_raw_up || !left_high() ||
-        !s.motion.native_end_observed(s.generation, true)) return false;
+        !s.motion.load()->native_end_observed(s.generation, true)) return false;
     const auto handoff = capture(s.source);
     const bool fresh = handoff && stable_context();
     record("handoff", ",\"actual_end\":true,\"fresh\":" +
@@ -1519,7 +1654,8 @@ void writer_owner() noexcept {
             boolean(held_at_removal) + ",\"capture_released\":" + boolean(s.own_capture_released) +
             ",\"normal_removal\":" + boolean(s.normal_removal_requested));
         return released && s.own_capture_released && s.retired &&
-            s.overlay_destroyed && s.hotkey_unregistered && s.native_attempts == 0 &&
+            s.association_detached && s.overlay_destroyed && s.hotkey_unregistered &&
+            s.native_attempts == 0 &&
             !s.normal_removal_requested;
     }
     // Bounded test-only fault, delivered to the current exact OWN overlay.
@@ -1574,11 +1710,51 @@ void writer_owner() noexcept {
         ",\"source_cancel_attempts\":" + std::to_string(s.cancel_attempts.load()) +
         ",\"normal_removal\":" + boolean(s.normal_removal_requested));
     return raw_cleanup && s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
+        s.association_detached &&
         s.native_attempts == 0 && !s.normal_removal_requested && !s.own_capture_released;
 }
 
 [[nodiscard]] bool run_normal_or_stall() noexcept {
     if (!bounded_native_cancel_and_handoff()) return false;
+    if (s.scenario == "source-pause") {
+        if (!s.association_established || s.association_detached ||
+            !owned_capture_live() || !left_high() ||
+            !PostMessageW(s.source, msg_source_pause, 0, 0) ||
+            !wait_for(s.source_pause_entered, 1000, "actual_owned_source_pause_entered"))
+            return false;
+        // Allow the source's own five-second finite wait to recover even when
+        // the attached resource queue cannot execute cleanup by its 3 s
+        // deadline. A later successful cleanup is not independent-exit PASS.
+        const bool gone = wait_for(s.isolation_gone, source_pause_ms + 2000,
+                                   "associated_source_pause_resource_exit");
+        const auto gone_tick = s.isolation_gone_tick.load();
+        const auto resumed_tick_at_gone = s.source_pause_resume_tick.load();
+        const auto began_tick = s.source_pause_begin_tick.load();
+        const bool independent_exit = gone && gone_tick > began_tick &&
+            (resumed_tick_at_gone == 0 || gone_tick < resumed_tick_at_gone);
+        const bool resumed = wait_for(s.source_pause_resumed, source_pause_ms + 1000,
+                                     "bounded_owned_source_resume");
+        const auto resumed_tick = s.source_pause_resume_tick.load();
+        const bool held_at_removal = left_high();
+        const bool released = gone && resumed && held_at_removal &&
+            release_owned_left("source_pause_test_cleanup");
+        record("source_pause_verdict", ",\"source_pause_begin_tick_ms\":" +
+            std::to_string(began_tick) + ",\"source_resume_tick_ms\":" +
+            std::to_string(resumed_tick) + ",\"isolation_gone_tick_ms\":" +
+            std::to_string(gone_tick) + ",\"isolation_ready_tick_ms\":" +
+            std::to_string(s.isolation_ready_tick.load()) +
+            ",\"requested_deadline_ms\":" + std::to_string(short_deadline_ms) +
+            ",\"source_pause_bound_ms\":" + std::to_string(source_pause_ms) +
+            ",\"independent_exit_before_source_resume\":" + boolean(independent_exit) +
+            ",\"actual_deadline_removal\":" + boolean(s.stall_deadline_removed) +
+            ",\"actual_association_detached\":" + boolean(s.association_detached) +
+            ",\"cleanup_raw_up\":" + boolean(released) +
+            ",\"normal_removal\":" + boolean(s.normal_removal_requested));
+        return independent_exit && resumed && released && s.stall_deadline_removed &&
+            s.association_detached && s.own_capture_released && s.overlay_destroyed &&
+            s.hotkey_unregistered && s.retired && s.native_attempts == 0 &&
+            !s.normal_removal_requested;
+    }
     if (s.scenario == "writer-stall") {
         const POINT continuation{s.start_cursor.x + 8, s.start_cursor.y + 7};
         if (!move_cursor(continuation) ||
@@ -1586,7 +1762,7 @@ void writer_owner() noexcept {
             !process_raw_continuations() ||
             !wait_for(s.writer_stall_started, 2000, "actual_writer_callback_stall") ||
             !s.stall_started_held || !left_high()) return false;
-        const bool gone = wait_for(s.isolation_gone, shield_deadline_ms + 2000,
+        const bool gone = wait_for(s.isolation_gone, short_deadline_ms + 2000,
                                    "product_shield_independent_deadline");
         const bool held_at_removal = left_high();
         const bool released = gone && held_at_removal &&
@@ -1598,10 +1774,13 @@ void writer_owner() noexcept {
             ",\"overlay_destroyed\":" + boolean(s.overlay_destroyed) +
             ",\"held_at_callback\":" + boolean(s.stall_started_held) +
             ",\"held_at_removal\":" + boolean(held_at_removal) +
+            ",\"actual_association_detached\":" + boolean(s.association_detached) +
+            ",\"requested_deadline_ms\":" + std::to_string(short_deadline_ms) +
             ",\"cleanup_raw_up\":" + boolean(released) +
             ",\"native_attempts\":" + std::to_string(s.native_attempts.load()));
         return gone && released && receipt && s.stall_deadline_removed &&
             s.overlay_destroyed && s.hotkey_unregistered && s.own_capture_released &&
+            s.association_detached &&
             s.native_attempts == 0 && s.retired;
     }
     // Only this test driver uses a fixed trajectory. Product session uses the
@@ -1634,18 +1813,26 @@ void writer_owner() noexcept {
     const bool gone = wait_for(s.isolation_gone, 2000, "normal_shield_removal");
     const bool no_control_delivery = s.control_mouse == 0;
     record("normal_verdict", ",\"snapped_exact\":" + boolean(s.snapped_exact) +
+        ",\"generation\":" + std::to_string(s.generation.load()) +
+        ",\"gesture_index\":" + std::to_string(s.completed_gestures + 1) +
         ",\"native_attempts\":" + std::to_string(s.native_attempts.load()) +
         ",\"raw_downs\":" + std::to_string(s.raw_downs.load()) +
         ",\"raw_ups\":" + std::to_string(s.raw_ups.load()) +
         ",\"legacy_up\":" + boolean(legacy) +
         ",\"normal_removal\":" + boolean(s.normal_removal_requested) +
+        ",\"association_established\":" + boolean(s.association_established) +
+        ",\"association_detached\":" + boolean(s.association_detached) +
         ",\"control_mouse_zero\":" + boolean(no_control_delivery));
     return legacy && gone && no_control_delivery && s.normal_removal_requested &&
-        s.capture_attempts == 1 && s.own_capture_released &&
+        s.capture_attempts == 1 && s.own_capture_released && s.association_detached &&
+        s.association_attempts == 1 && s.detach_attempts == 1 &&
+        s.raw_downs == 1 && s.raw_ups == 1 && s.legacy_ups == 1 &&
+        s.native_downs == 1 && s.native_starts == 1 && s.native_ends == 1 &&
+        s.cancel_attempts == 1 &&
         s.overlay_destroyed && s.hotkey_unregistered && s.retired;
 }
 
-[[nodiscard]] bool drive() noexcept {
+[[nodiscard]] bool drive_one() noexcept {
     if (s.scenario == "legacy-control") {
         if (!prepare_owned()) return false;
         RECT client{};
@@ -1757,6 +1944,116 @@ void writer_owner() noexcept {
     return run_normal_or_stall();
 }
 
+[[nodiscard]] bool next_owned_gesture(std::thread& writer_thread) noexcept {
+    // The same product shield, receiver, UI threads and exact HWNDs survive
+    // this boundary. Only one-gesture model/writer state is replaced, after
+    // genuine NormalUp removal, release AND detachment have been observed.
+    const auto previous_generation = s.generation.load();
+    GUITHREADINFO source_gui{sizeof(source_gui)}, resource_gui{sizeof(resource_gui)};
+    const bool queue_clean = s.shield_thread &&
+        GetGUIThreadInfo(s.source_thread, &source_gui) &&
+        GetGUIThreadInfo(s.shield_thread, &resource_gui) &&
+        !source_gui.hwndCapture && !source_gui.hwndMoveSize &&
+        !resource_gui.hwndCapture && !resource_gui.hwndMoveSize;
+    const bool modifiers_clear = (GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0 &&
+        (GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0 &&
+        (GetAsyncKeyState(VK_MENU) & 0x8000) == 0;
+    const bool duplicate_remove = s.shield->request_remove(previous_generation,
+        op::GestureShieldRemovalReason::NormalUp);
+    const bool ready = s.completed_gestures == 1 && s.normal_removal_requested &&
+        s.matching_raw_up && s.legacy_ups == 1 && s.own_capture_released &&
+        s.association_established && s.association_detached &&
+        s.association_attempts == 1 && s.detach_attempts == 1 &&
+        !s.overlay && s.overlay_destroyed && s.hotkey_unregistered &&
+        !left_high() && modifiers_clear && queue_clean && !duplicate_remove &&
+        same_owned(s.source) && same_owned(s.control);
+    record("between_gestures_actual_readback", ",\"previous_generation\":" +
+        std::to_string(previous_generation) + ",\"source_capture\":" +
+        std::to_string(hwnd_number(source_gui.hwndCapture)) +
+        ",\"resource_capture\":" + std::to_string(hwnd_number(resource_gui.hwndCapture)) +
+        ",\"modifiers_clear\":" + boolean(modifiers_clear) +
+        ",\"left_high\":" + boolean(left_high()) +
+        ",\"duplicate_remove_queued\":" + boolean(duplicate_remove) +
+        ",\"ready_for_same_resource_followup\":" + boolean(ready));
+    if (!ready || !wait_for(s.writer_gone, 2000, "first_gesture_writer_retired"))
+        return false;
+    if (writer_thread.joinable()) writer_thread.join();
+
+    // Raw may continue observing unpressed cursor movement. It has no active
+    // generation, no held DOWN and no armed writer during this reset. Atomic
+    // shared ownership keeps even a late diagnostic snapshot alive; no HWND
+    // operation occurs under a lock that could block UP or shield removal.
+    s.held = false;
+    s.armed = false;
+    s.authorized_start = false;
+    s.authorized_end = false;
+    s.capture_authority = false;
+    s.retired = true;
+    s.motion.store(std::make_shared<b::MoveMagnetSession>());
+    s.continuity.store(std::make_shared<op::MoveFrameContinuity>());
+    const auto new_generation = previous_generation + 1;
+    if (!new_generation) return false;
+    s.generation = new_generation;
+    s.tagged_down = false;
+    s.associated_raw_down = false;
+    s.capture_established = false;
+    s.own_capture_released = false;
+    s.association_established = false;
+    s.association_detached = false;
+    s.matching_raw_up = false;
+    s.normal_removal_requested = false;
+    s.overlay_destroyed = false;
+    s.hotkey_unregistered = false;
+    s.stall_started_held = false;
+    s.stall_deadline_removed = false;
+    s.native_downs = 0; s.native_starts = 0; s.native_ends = 0;
+    s.raw_downs = 0; s.raw_ups = 0; s.legacy_ups = 0;
+    s.cancel_attempts = 0; s.native_attempts = 0;
+    s.capture_attempts = 0; s.association_attempts = 0; s.detach_attempts = 0;
+    s.writer_failures = 0; s.control_mouse = 0;
+    s.snapped_exact = false; s.resource_failure = false;
+    s.isolation_ready_tick = 0; s.isolation_gone_tick = 0;
+    {
+        std::lock_guard lock{s.down_mutex};
+        s.observed_down.reset(); s.down_frame.reset();
+    }
+    {
+        std::lock_guard lock{s.raw_mutex};
+        s.raw_moves.clear();
+    }
+    {
+        std::lock_guard lock{s.cancel_mutex};
+        s.cancel_claimed = false;
+    }
+    for (HANDLE event : {s.legacy_down, s.native_start, s.native_end, s.modal_return,
+            s.raw_down, s.raw_up, s.legacy_up, s.isolation_ready, s.isolation_gone,
+            s.capture_ready, s.capture_failure, s.capture_lost, s.capture_released,
+            s.hotkey_stop, s.writer_receipt, s.writer_stall_started, s.writer_gone,
+            s.raw_notice}) ResetEvent(event);
+    s.writer = std::make_unique<op::LiveMoveWriter>(new_generation,
+                                                   owned_writer_callbacks());
+    s.retired = false;
+    if (!s.writer->ready()) return false;
+    writer_thread = std::thread(writer_owner);
+    record("next_gesture_created", ",\"generation\":" + std::to_string(new_generation) +
+        ",\"same_shield_and_ui_resources\":true,\"new_original_down_required\":true");
+    return true;
+}
+
+[[nodiscard]] bool drive(std::thread& writer_thread) noexcept {
+    const bool first = drive_one();
+    if (!first) return false;
+    ++s.completed_gestures;
+    if (s.scenario != "normal-repeat") return true;
+    if (!next_owned_gesture(writer_thread)) return false;
+    const bool second = drive_one();
+    if (second) ++s.completed_gestures;
+    record("continuous_followup_verdict", ",\"completed_gestures\":" +
+        std::to_string(s.completed_gestures) + ",\"same_process_and_resource_threads\":true" +
+        ",\"accepted\":" + boolean(second && s.completed_gestures == 2));
+    return second && s.completed_gestures == 2;
+}
+
 [[nodiscard]] bool create_signals() noexcept {
     auto make = [](bool manual = true) { return CreateEventW(nullptr, manual, FALSE, nullptr); };
     s.ui_ready = make();
@@ -1781,13 +2078,17 @@ void writer_owner() noexcept {
     s.writer_stall_started = make();
     s.writer_gone = make();
     s.raw_notice = make(false);
+    s.source_pause_entered = make();
+    s.source_pause_resumed = make();
+    s.source_pause_release = make();
     return s.ui_ready && s.ui_gone && s.bootstrap_down && s.bootstrap_up &&
         s.legacy_down && s.native_start && s.native_end &&
         s.modal_return && s.raw_down && s.raw_up && s.legacy_up &&
         s.isolation_ready && s.isolation_gone && s.hotkey_stop &&
         s.capture_ready && s.capture_failure && s.capture_lost && s.capture_released &&
         s.writer_receipt && s.writer_stall_started && s.writer_gone &&
-        s.raw_notice;
+        s.raw_notice && s.source_pause_entered && s.source_pause_resumed &&
+        s.source_pause_release;
 }
 
 void close_signals() noexcept {
@@ -1796,7 +2097,8 @@ void close_signals() noexcept {
             s.modal_return, s.raw_down, s.raw_up, s.legacy_up,
             s.isolation_ready, s.isolation_gone, s.hotkey_stop,
             s.capture_ready, s.capture_failure, s.capture_lost, s.capture_released,
-            s.writer_receipt, s.writer_stall_started, s.writer_gone, s.raw_notice}) {
+            s.writer_receipt, s.writer_stall_started, s.writer_gone, s.raw_notice,
+            s.source_pause_entered, s.source_pause_resumed, s.source_pause_release}) {
         if (handle) CloseHandle(handle);
     }
 }
@@ -1818,7 +2120,8 @@ int wmain(int argc, wchar_t** argv) {
         std::wstring_view(argv[4]) != L"--evidence-log" ||
         std::wstring_view(argv[6]) != L"--sandbox-run-id") return 64;
     const std::wstring_view scenario(argv[3]);
-    if (scenario != L"legacy-control" && scenario != L"normal" && scenario != L"early-up" &&
+    if (scenario != L"legacy-control" && scenario != L"normal" &&
+        scenario != L"normal-repeat" && scenario != L"source-pause" && scenario != L"early-up" &&
         scenario != L"setup-fail" && scenario != L"stop" &&
         scenario != L"capture-stop" && scenario != L"capture-early-up" &&
         scenario != L"capture-fail" && scenario != L"capture-lost" &&
@@ -1834,6 +2137,8 @@ int wmain(int argc, wchar_t** argv) {
     // These are the only allowed ASCII literals; no lossy wide conversion.
     if (scenario == L"legacy-control") s.scenario = "legacy-control";
     else if (scenario == L"normal") s.scenario = "normal";
+    else if (scenario == L"normal-repeat") s.scenario = "normal-repeat";
+    else if (scenario == L"source-pause") s.scenario = "source-pause";
     else if (scenario == L"early-up") s.scenario = "early-up";
     else if (scenario == L"setup-fail") s.scenario = "setup-fail";
     else if (scenario == L"stop") s.scenario = "stop";
@@ -1902,7 +2207,7 @@ int wmain(int argc, wchar_t** argv) {
     bool result = false;
     if (initialized) {
         writer_thread = std::thread(writer_owner);
-        result = drive();
+        result = drive(writer_thread);
     }
     // Test-only cleanup is attempted while the self-owned overlay still
     // exists; never manufacture UP toward a foreign root after shield removal.
@@ -1930,6 +2235,7 @@ int wmain(int argc, wchar_t** argv) {
     const bool resource_verdict = s.scenario == "setup-fail" ? s.resource_failure.load() :
         !s.resource_failure.load();
     const bool accepted = result && cleanup_released && actual_counts &&
+        (s.scenario != "normal-repeat" || s.completed_gestures == 2) &&
         shield_facts.clean() && writer_gone && ui_gone &&
         s.writer_failures == 0 && resource_verdict && s.log_ok && !left_high();
     record("shutdown", ",\"scenario_pass\":" + json_bool(result) +
@@ -1938,6 +2244,8 @@ int wmain(int argc, wchar_t** argv) {
         ",\"receiver_destroyed\":" + json_bool(shield_facts.receiver_destroyed) +
         ",\"raw_removed\":" + json_bool(shield_facts.raw_registration_removed) +
         ",\"capture_cleanup_complete\":" + json_bool(shield_facts.capture_released) +
+        ",\"association_cleanup_complete\":" + json_bool(shield_facts.association_detached) +
+        ",\"completed_gestures\":" + std::to_string(s.completed_gestures) +
         ",\"hotkey_unregistered\":" + json_bool(shield_facts.hotkey_unregistered) +
         ",\"owned_ui_gone\":" + json_bool(ui_gone) +
         ",\"writer_gone\":" + json_bool(writer_gone) +

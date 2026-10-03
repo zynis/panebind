@@ -130,6 +130,7 @@ bool guest_guard(std::wstring_view run_id,std::wstring_view evidence_log) {
         L"-preflight-debug-legacy-control.jsonl",L"-preflight-debug-capture-stop.jsonl",
         L"-preflight-debug-capture-early-up.jsonl",L"-preflight-debug-capture-fail.jsonl",
         L"-preflight-debug-capture-lost.jsonl",
+        L"-preflight-debug-normal-repeat.jsonl", L"-preflight-debug-source-pause.jsonl",
         L"-preflight-debug-writer-stall.jsonl",L"-preflight-release-normal.jsonl"};
     bool exact_log=false;
     for(const auto* suffix:suffixes){

@@ -337,6 +337,7 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
         optional_bool("raw_registration_removed", event.raw_registration_removed);
         optional_bool("winevent_unhooked", event.winevent_unhooked);
         optional_bool("classes_unregistered", event.classes_unregistered);
+        optional_bool("association_detached", event.association_detached);
         if (event.win32_error)
             fields << ",\"win32_error\":" << *event.win32_error;
         if (event.isolation_timeout_ms)
@@ -372,10 +373,14 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
                 << ",\"foreground_after\":" << handle(c.foreground_after)
                 << ",\"failure\":" << static_cast<unsigned>(c.failure)
                 << ",\"release_attempted\":" << (c.release_attempted ? "true" : "false")
-                << ",\"release_succeeded\":" << (c.release_succeeded ? "true" : "false")
+                << ",\"release_completed\":" << (c.release_completed ? "true" : "false")
+                << ",\"release_succeeded\":" << (c.release_completed ?
+                    (c.release_succeeded ? "true" : "false") : "null")
+                << ",\"release_before_qpc\":" << c.release_before_qpc
+                << ",\"release_after_qpc\":" << c.release_after_qpc
                 << ",\"release_before\":" << handle(c.release_before)
                 << ",\"release_after\":" << handle(c.release_after)
-                << ",\"release_error\":" << c.release_error
+                << ",\"release_error\":" << (c.release_completed ? std::to_string(c.release_error) : "null")
                 << ",\"capture_changed_to\":" << handle(c.capture_changed_to)
                 << ",\"own_release_message\":" << (c.own_release_message ? "true" : "false");
             const auto gui = [&](const char* name, const auto& f) {
@@ -384,7 +389,9 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
                     << ",\"capture\":" << handle(f.capture)
                     << ",\"move_size\":" << handle(f.move_size)
                     << ",\"menu_owner\":" << handle(f.menu_owner)
-                    << ",\"flags\":" << f.flags << '}';
+                    << ",\"flags\":" << f.flags
+                    << ",\"active\":" << handle(f.active)
+                    << ",\"focus\":" << handle(f.focus) << '}';
             };
             gui("source_before", c.source_before);
             gui("foreground_before_gui", c.foreground_before_gui);
@@ -392,6 +399,48 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             gui("source_after", c.source_after);
             gui("foreground_after_gui", c.foreground_after_gui);
             gui("owner_after", c.owner_after);
+            const auto& a = c.association;
+            fields << ",\"association\":{\"generation\":" << a.generation
+                << ",\"owner_thread_id\":" << a.owner_thread_id
+                << ",\"source_thread_id\":" << a.source_thread_id
+                << ",\"source_process_id\":" << a.source_process_id
+                << ",\"source\":" << handle(a.source)
+                << ",\"desktop_verified\":" << (a.desktop_verified ? "true" : "false")
+                << ",\"owner_session_id\":" << a.owner_session_id
+                << ",\"source_session_id\":" << a.source_session_id
+                << ",\"owner_desktop_query\":" << (a.owner_desktop_query ? "true" : "false")
+                << ",\"source_desktop_query\":" << (a.source_desktop_query ? "true" : "false")
+                << ",\"input_desktop_query\":" << (a.input_desktop_query ? "true" : "false")
+                << ",\"owner_desktop_input\":" << (a.owner_desktop_input ? "true" : "false")
+                << ",\"source_desktop_input\":" << (a.source_desktop_input ? "true" : "false")
+                << ",\"input_desktop_active\":" << (a.input_desktop_active ? "true" : "false")
+                << ",\"attach_attempted\":" << (a.attach_attempted ? "true" : "false")
+                << ",\"attach_completed\":" << (a.attach_completed ? "true" : "false")
+                << ",\"attach_succeeded\":" << (a.attach_completed ?
+                    (a.attach_succeeded ? "true" : "false") : "null")
+                << ",\"attach_error\":" << (a.attach_completed ? std::to_string(a.attach_error) : "null")
+                << ",\"attach_before_qpc\":" << a.attach_before_qpc
+                << ",\"attach_after_qpc\":" << a.attach_after_qpc
+                << ",\"foreground_before\":" << handle(a.foreground_before)
+                << ",\"foreground_after\":" << handle(a.foreground_after)
+                << ",\"detach_attempted\":" << (a.detach_attempted ? "true" : "false")
+                << ",\"detach_completed\":" << (a.detach_completed ? "true" : "false")
+                << ",\"detach_succeeded\":" << (a.detach_completed ?
+                    (a.detach_succeeded ? "true" : "false") : "null")
+                << ",\"detach_error\":" << (a.detach_completed ? std::to_string(a.detach_error) : "null")
+                << ",\"detach_before_qpc\":" << a.detach_before_qpc
+                << ",\"detach_after_qpc\":" << a.detach_after_qpc
+                << ",\"foreground_before_detach\":" << handle(a.foreground_before_detach)
+                << ",\"foreground_after_detach\":" << handle(a.foreground_after_detach);
+            gui("owner_before", a.owner_before);
+            gui("source_before", a.source_before);
+            gui("owner_after", a.owner_after);
+            gui("source_after", a.source_after);
+            gui("owner_before_detach", a.owner_before_detach);
+            gui("source_before_detach", a.source_before_detach);
+            gui("owner_after_detach", a.owner_after_detach);
+            gui("source_after_detach", a.source_after_detach);
+            fields << '}';
             fields << '}';
         }
         if (event.shield_initial_placement)

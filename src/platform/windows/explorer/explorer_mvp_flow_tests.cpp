@@ -418,6 +418,53 @@ void exact_guest_launch_contract() {
               L"C:\\PaneBindMVP1\\Output\\other-explorer-mvp1-debug.jsonl"),
           "nearby executable or foreign RunId cannot launch");
 }
+
+void exact_association_cleanup_contract() {
+    // These are the production shield/Explorer removal predicates, not a
+    // simulated successful AttachThreadInput or an empirical cleanup result.
+    o::GestureShieldAssociationFacts facts{};
+    check(!o::gesture_shield_association_owned_pair(facts, 41) &&
+          o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "no successful attach means no pair may be detached");
+    facts.generation = 41;
+    facts.owner_thread_id = 7;
+    facts.source_thread_id = 8;
+    facts.attach_attempted = true;
+    check(!o::gesture_shield_association_owned_pair(facts, 41) &&
+          !o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "pending native attach cannot claim pair ownership or cleanup");
+    facts.attach_completed = true;
+    check(!o::gesture_shield_association_owned_pair(facts, 41) &&
+          o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "completed failed attach never owns a pair to detach");
+    facts.attach_succeeded = true;
+    check(o::gesture_shield_association_owned_pair(facts, 41) &&
+          !o::gesture_shield_association_owned_pair(facts, 42) &&
+          !o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "only matching generation owns the live association");
+    facts.detach_attempted = true;
+    check(!o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "failed native detach blocks Idle and subsequent gesture admission");
+    facts.detach_succeeded = true;
+    check(!o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "no native completion must remain UNKNOWN even with an inconsistent success flag");
+    facts.detach_completed = true;
+    check(o::gesture_shield_association_cleanup_confirmed(facts, 41) &&
+          !o::gesture_shield_association_cleanup_confirmed(facts, 42),
+          "confirmed detach applies only to its established generation");
+    facts.source_thread_id = facts.owner_thread_id;
+    check(!o::gesture_shield_association_owned_pair(facts, 41) &&
+          !o::gesture_shield_association_cleanup_confirmed(facts, 41),
+          "self-thread or corrupt pair cannot claim association cleanup");
+    o::GestureShieldStopFacts stopped{};
+    stopped.worker_exited = stopped.overlay_destroyed = stopped.receiver_destroyed =
+        stopped.raw_registration_removed = stopped.hotkey_unregistered =
+        stopped.winevent_unhooked = stopped.classes_unregistered =
+        stopped.callback_delivery_ok = stopped.capture_released = true;
+    check(!stopped.clean(), "all other cleanup facts cannot hide unknown detach");
+    stopped.association_detached = true;
+    check(stopped.clean(), "resources clean additionally requires confirmed detach");
+}
 } // namespace
 
 int main() {
@@ -428,6 +475,7 @@ int main() {
         complete_then_retire_and_switch();
         participant_context_loss_rejects_placement();
         exact_guest_launch_contract();
+        exact_association_cleanup_contract();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {

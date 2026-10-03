@@ -161,8 +161,56 @@ GestureShieldGuiFacts gui_facts(DWORD thread_id) noexcept {
         facts.move_size = gui.hwndMoveSize;
         facts.menu_owner = gui.hwndMenuOwner;
         facts.flags = gui.flags;
+        facts.active = gui.hwndActive;
+        facts.focus = gui.hwndFocus;
     }
     return facts;
+}
+
+std::uint64_t native_qpc() noexcept {
+    LARGE_INTEGER value{};
+    return QueryPerformanceCounter(&value) ?
+        static_cast<std::uint64_t>(value.QuadPart) : 0;
+}
+
+bool same_interactive_desktop(DWORD source_thread, DWORD source_process,
+                              GestureShieldAssociationFacts& facts) noexcept {
+    if (!interactive_default_desktop()) return false;
+    DWORD owner_session{}, source_session{};
+    if (!ProcessIdToSessionId(GetCurrentProcessId(), &owner_session) || !owner_session ||
+        !ProcessIdToSessionId(source_process, &source_session) ||
+        source_session != owner_session) return false;
+    facts.owner_session_id = owner_session;
+    facts.source_session_id = source_session;
+    const HDESK owner = GetThreadDesktop(GetCurrentThreadId());
+    const HDESK source = GetThreadDesktop(source_thread);
+    if (!owner || !source) return false;
+    const HDESK input = OpenInputDesktop(0, FALSE, DESKTOP_READOBJECTS);
+    if (!input) return false;
+    BOOL owner_input{}, source_input{}, input_active{};
+    DWORD length{};
+    facts.owner_desktop_query = GetUserObjectInformationW(owner, UOI_IO,
+        &owner_input, sizeof(owner_input), &length) != FALSE;
+    facts.source_desktop_query = GetUserObjectInformationW(source, UOI_IO,
+        &source_input, sizeof(source_input), &length) != FALSE;
+    facts.input_desktop_query = GetUserObjectInformationW(input, UOI_IO,
+        &input_active, sizeof(input_active), &length) != FALSE;
+    facts.owner_desktop_input = owner_input != FALSE;
+    facts.source_desktop_input = source_input != FALSE;
+    facts.input_desktop_active = input_active != FALSE;
+    CloseDesktop(input);
+    if (!facts.owner_desktop_query || !facts.source_desktop_query ||
+        !facts.input_desktop_query || !facts.owner_desktop_input ||
+        !facts.source_desktop_input || !facts.input_desktop_active) return false;
+    wchar_t owner_name[256]{}, source_name[256]{};
+    // UOI_IO must report BOTH named thread desktops as the actual input
+    // desktop in the same live session, not merely matching Default names.
+    return GetUserObjectInformationW(owner, UOI_NAME, owner_name,
+        sizeof(owner_name), &length) &&
+        GetUserObjectInformationW(source, UOI_NAME, source_name,
+            sizeof(source_name), &length) &&
+        std::wstring_view(owner_name) == L"Default" &&
+        std::wstring_view(source_name) == std::wstring_view(owner_name);
 }
 
 bool gui_not_moving_or_menu(const GestureShieldGuiFacts& facts) noexcept {
@@ -208,6 +256,7 @@ struct GestureInputShield::Impl {
     }
 
     ~Impl() {
+        if (association_source_thread) CloseHandle(association_source_thread);
         for (const HANDLE handle : {stop_event, command_event, ready_event, done_event}) {
             if (handle) CloseHandle(handle);
         }
@@ -246,6 +295,7 @@ struct GestureInputShield::Impl {
     std::atomic<bool> winevent_unhooked{true};
     std::atomic<bool> classes_unregistered{true};
     std::atomic<bool> capture_release_clean{true};
+    std::atomic<bool> association_detach_clean{true};
     DWORD thread_id{};
     HWND receiver{};
     HWND overlay{};
@@ -268,6 +318,9 @@ struct GestureInputShield::Impl {
     bool capture_request_seen{};
     bool capture_acquired{};
     bool capture_release_in_progress{};
+    bool association_active{}; // Only a native TRUE attach establishes this.
+    bool association_detach_processed{};
+    HANDLE association_source_thread{}; // Keep and recheck the actual source thread.
     GestureShieldCaptureFacts capture_facts{};
     std::optional<GestureShieldCaptureFacts> context_capture_facts;
 
@@ -833,9 +886,18 @@ struct GestureInputShield::Impl {
             // WM_CAPTURECHANGED is synchronous for our own ReleaseCapture.
             // Its receipt is retained, but is not an unexpected loss/reacquire.
             capture_release_in_progress = true;
+            capture_facts.release_before_qpc = native_qpc();
+            GestureShieldEvent begin{};
+            begin.kind = GestureShieldEventKind::CaptureReleaseAttempt;
+            begin.generation = current->generation;
+            begin.overlay = overlay;
+            begin.capture = capture_facts;
+            emit(begin);
             SetLastError(0);
             capture_facts.release_succeeded = ReleaseCapture() != FALSE;
             capture_facts.release_error = capture_facts.release_succeeded ? 0 : GetLastError();
+            capture_facts.release_completed = true;
+            capture_facts.release_after_qpc = native_qpc();
             capture_release_in_progress = false;
             capture_facts.release_after = GetCapture();
             released = capture_facts.release_succeeded &&
@@ -856,6 +918,144 @@ struct GestureInputShield::Impl {
         capture_acquired = false;
         capture_release_clean = released;
         return released;
+    }
+
+    [[nodiscard]] GestureShieldCaptureFailure associate_input_threads(
+        const GestureShieldRequest& request) noexcept {
+        auto& association = capture_facts.association;
+        association.generation = request.generation;
+        association.owner_thread_id = thread_id;
+        association.source_thread_id = request.thread_id;
+        association.source_process_id = request.process_id;
+        association.source = request.source;
+        if (association_active || association_source_thread ||
+            request.thread_id == thread_id) return GestureShieldCaptureFailure::AssociationAttach;
+        association.desktop_verified = same_interactive_desktop(request.thread_id,
+            request.process_id, association);
+        if (!association.desktop_verified) return GestureShieldCaptureFailure::InputDesktop;
+        association_source_thread = OpenThread(THREAD_QUERY_LIMITED_INFORMATION | SYNCHRONIZE,
+            FALSE, request.thread_id);
+        if (!association_source_thread ||
+            GetThreadId(association_source_thread) != request.thread_id ||
+            GetProcessIdOfThread(association_source_thread) != request.process_id ||
+            WaitForSingleObject(association_source_thread, 0) != WAIT_TIMEOUT ||
+            !exact_source(request)) {
+            if (association_source_thread) CloseHandle(association_source_thread);
+            association_source_thread = nullptr;
+            return GestureShieldCaptureFailure::SourceIdentity;
+        }
+        association.foreground_before = GetForegroundWindow();
+        association.owner_before = gui_facts(thread_id);
+        association.source_before = gui_facts(request.thread_id);
+        if (capture_command_revoked(request) || !physical_move_buttons() ||
+            association.foreground_before != request.source)
+            return GestureShieldCaptureFailure::Revoked;
+        for (const auto& gui : {association.owner_before, association.source_before}) {
+            if (!gui_not_moving_or_menu(gui) || gui.capture)
+                return GestureShieldCaptureFailure::ForeignCapture;
+        }
+        // The API has no cancellable timeout contract. It runs on the resource
+        // thread without command_mutex; original DOWN/real END and actual UP
+        // facts are unchanged by the documented keyboard-state reset.
+        association.attach_attempted = true;
+        association_detach_clean = false; // Native result is still UNKNOWN.
+        association.attach_before_qpc = native_qpc();
+        GestureShieldEvent begin{};
+        begin.kind = GestureShieldEventKind::ThreadAssociationAttempt;
+        begin.generation = request.generation;
+        begin.overlay = overlay;
+        begin.capture = capture_facts;
+        emit(begin);
+        SetLastError(0);
+        association.attach_succeeded = AttachThreadInput(thread_id, request.thread_id, TRUE) != FALSE;
+        association.attach_error = association.attach_succeeded ? 0 : GetLastError();
+        association.attach_completed = true;
+        association.attach_after_qpc = native_qpc();
+        association.foreground_after = GetForegroundWindow();
+        association.owner_after = gui_facts(thread_id);
+        association.source_after = gui_facts(request.thread_id);
+        if (association.attach_succeeded) {
+            association_active = true;
+            association_detach_clean = false;
+        } else {
+            association_detach_clean = true; // Completed FALSE created no owned pair.
+        }
+        GestureShieldEvent event{};
+        event.kind = association.attach_succeeded ? GestureShieldEventKind::ThreadAssociated :
+            GestureShieldEventKind::ThreadAssociationFailure;
+        event.generation = request.generation;
+        event.overlay = overlay;
+        event.capture = capture_facts;
+        if (!association.attach_succeeded)
+            event.capture.failure = GestureShieldCaptureFailure::AssociationAttach;
+        emit(event);
+        return association.attach_succeeded ? GestureShieldCaptureFailure::None :
+            GestureShieldCaptureFailure::AssociationAttach;
+    }
+
+    [[nodiscard]] bool detach_input_threads() noexcept {
+        auto& association = capture_facts.association;
+        const auto generation = current ? current->generation : 0;
+        if (!association_active) {
+            const bool clean = gesture_shield_association_cleanup_confirmed(association, generation);
+            association_detach_clean = clean;
+            if (association_source_thread) CloseHandle(association_source_thread);
+            association_source_thread = nullptr;
+            return clean;
+        }
+        // Only this generation's native TRUE attach establishes authority to
+        // detach this exact pair. A failed/unknown detach is not retried by a
+        // later cleanup and can never transition the resource to Idle.
+        if (association_detach_processed || association.detach_attempted ||
+            !gesture_shield_association_owned_pair(association, generation)) {
+            association_detach_clean = false;
+            return false;
+        }
+        association_detach_processed = true;
+        association.foreground_before_detach = GetForegroundWindow();
+        association.owner_before_detach = gui_facts(thread_id);
+        association.source_before_detach = gui_facts(association.source_thread_id);
+        association.detach_before_qpc = native_qpc();
+        const bool same_live_thread = association_source_thread &&
+            GetThreadId(association_source_thread) == association.source_thread_id &&
+            GetProcessIdOfThread(association_source_thread) == association.source_process_id &&
+            WaitForSingleObject(association_source_thread, 0) == WAIT_TIMEOUT;
+        if (same_live_thread) {
+            association.detach_attempted = true;
+            GestureShieldEvent begin{};
+            begin.kind = GestureShieldEventKind::ThreadAssociationAttempt;
+            begin.generation = generation;
+            begin.overlay = overlay;
+            begin.capture = capture_facts;
+            emit(begin);
+            SetLastError(0);
+            association.detach_succeeded = AttachThreadInput(association.owner_thread_id,
+                association.source_thread_id, FALSE) != FALSE;
+            association.detach_error = association.detach_succeeded ? 0 : GetLastError();
+            association.detach_completed = true;
+        } else {
+            // Do not address a possibly recycled TID. OS teardown is not our
+            // verified native detach and is deliberately reported unconfirmed.
+            association.detach_error = ERROR_INVALID_THREAD_ID;
+        }
+        association.detach_after_qpc = native_qpc();
+        association.foreground_after_detach = GetForegroundWindow();
+        association.owner_after_detach = gui_facts(thread_id);
+        association.source_after_detach = gui_facts(association.source_thread_id);
+        const bool clean = gesture_shield_association_cleanup_confirmed(association, generation);
+        association_detach_clean = clean;
+        if (clean) association_active = false;
+        GestureShieldEvent event{};
+        event.kind = clean ? GestureShieldEventKind::ThreadDetached :
+            GestureShieldEventKind::ThreadAssociationFailure;
+        event.generation = generation;
+        event.overlay = overlay;
+        event.capture = capture_facts;
+        if (!clean) event.capture.failure = GestureShieldCaptureFailure::AssociationDetach;
+        emit(event);
+        if (association_source_thread) CloseHandle(association_source_thread);
+        association_source_thread = nullptr;
+        return clean;
     }
 
     void acquire_capture_after_end(const GestureShieldRequest& request) noexcept {
@@ -880,6 +1080,22 @@ struct GestureInputShield::Impl {
                 facts.failure = GestureShieldCaptureFailure::Revoked;
             else if (!physical_move_buttons())
                 facts.failure = GestureShieldCaptureFailure::PhysicalButtons;
+        }
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            facts.failure = associate_input_threads(request);
+        }
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            // Association can reset per-queue keyboard state, but it cannot
+            // manufacture a physical UP or replace real END/authority facts.
+            facts.failure = capture_context_failure(request, facts);
+            if (facts.failure == GestureShieldCaptureFailure::None &&
+                !gesture_shield_association_owned_pair(facts.association, request.generation))
+                facts.failure = GestureShieldCaptureFailure::AssociationAttach;
+            if (facts.failure == GestureShieldCaptureFailure::None) {
+                try { authorized = callbacks.capture_authorized(request); }
+                catch (...) { authorized = false; }
+                if (!authorized) facts.failure = GestureShieldCaptureFailure::Authorization;
+            }
         }
         if (facts.failure == GestureShieldCaptureFailure::None) {
             facts.attempted = true;
@@ -940,6 +1156,7 @@ struct GestureInputShield::Impl {
             (!current_raw_up || !current_legacy_up))
             reason = GestureShieldRemovalReason::ContextLost;
         const bool capture_released = release_own_capture();
+        const bool association_detached = detach_input_threads();
         const bool unregistered = !hotkey_registered ||
             UnregisterHotKey(nullptr, stop_hotkey_id) != FALSE;
         hotkey_unregistered = unregistered;
@@ -962,13 +1179,14 @@ struct GestureInputShield::Impl {
             std::lock_guard lock{command_mutex};
             if (pending_capture && pending_capture->generation == generation)
                 pending_capture.reset();
-            phase = destroyed && unregistered && capture_released ? Phase::Idle : Phase::Failed;
+            phase = destroyed && unregistered && capture_released && association_detached ?
+                Phase::Idle : Phase::Failed;
             if (phase == Phase::Idle) current.reset();
         }
         emit(event);
-        if (!destroyed || !unregistered || !capture_released)
+        if (!destroyed || !unregistered || !capture_released || !association_detached)
             failure(generation, GetLastError());
-        return destroyed && unregistered && capture_released;
+        return destroyed && unregistered && capture_released && association_detached;
     }
 
     void process_commands() noexcept {
@@ -1027,6 +1245,7 @@ struct GestureInputShield::Impl {
         capture_request_seen = false;
         capture_acquired = false;
         capture_release_in_progress = false;
+        association_detach_processed = false;
         capture_facts = {};
         context_capture_facts.reset();
         capture_revoked = false;
@@ -1324,6 +1543,7 @@ GestureShieldStopFacts GestureInputShield::stop(DWORD timeout_ms) noexcept {
         facts.classes_unregistered = self->classes_unregistered;
         facts.callback_delivery_ok = !self->callback_failed;
         facts.capture_released = self->capture_release_clean;
+        facts.association_detached = self->association_detach_clean;
         return facts;
     }
     if (worker_.joinable() && std::this_thread::get_id() == worker_.get_id())
@@ -1345,6 +1565,7 @@ GestureShieldStopFacts GestureInputShield::stop(DWORD timeout_ms) noexcept {
     facts.classes_unregistered = self->classes_unregistered;
     facts.callback_delivery_ok = !self->callback_failed;
     facts.capture_released = self->capture_release_clean;
+    facts.association_detached = self->association_detach_clean;
     return facts;
 }
 
