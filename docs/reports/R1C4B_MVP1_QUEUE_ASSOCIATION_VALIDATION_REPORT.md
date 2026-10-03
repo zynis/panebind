@@ -160,3 +160,25 @@ detach 仍真实闭环。精确 guest PID `11856` 与本轮任务清理，旧输
 处理时用现有 GetCursorPos 一次 fresh 当前 cursor/QPC 做意图与权限判断；
 receiver 历史坐标另记，不重发 input/轮询，也不把历史packet watermark当作
 某一次合成 MOVE 的因果证明。owned 与 Explorer 同样处理，原始 DOWN 不变。
+
+## 第五批：owned 通过，Explorer driver 并发日志读取缺陷
+
+RUNTIME `ae5e3fa819816ba0e56cd37d36628f550fb4e1e8`，RunId
+`4be49ed210d34af6bd7ac2654b0bed12`。必要 Debug owned 场景和 Release normal
+均完成；正常闭环与 source/writer 独立退出根据原始记录审查（不是仅退出码）。
+owned 通过后同 runner 自动继续 Explorer。
+
+新 driver 初始真实快照：session=1、WTSActive=0、Default/input UOI_IO 均真；
+physical console ID=`4294967295`。因此旧 console-equivalence 门槛的具体问题
+得到本轮事实支持；没有改权限/系统会话或强制激活以促成通过。
+
+driver 真正启动产品 PID `7224` 并精确 AttachConsole，但读 target_prompt 时
+ReadAllLines 与仍打开的 writer 共享模式冲突，提前发送 Q。产品实际记录 startup /
+第一个 target_prompt，随后 target_declined/resources_stopped；未绑定 Explorer、
+未发送其鼠标输入。summary.explorer_started=false 不是“没有产品进程”的证据。
+
+最小修 driver 实际 Product-Rows：只读 FileStream 的 FileShare.ReadWrite 允许
+并存的原 GENERIC_WRITE/FILE_SHARE_READ writer；只解析已换行记录，未完成 tail
+保持未知，完整 malformed 行不能静默吞掉。`tests/check-mvp1-product-log-reader.ps1`
+提取并执行实际生产函数，在仅 FILE_SHARE_READ 的真实打开 writer 下读已完成行、
+忽略 partial tail、完成 tail 后读到新行，PASS；不调用任何 Win32/GUI/input。

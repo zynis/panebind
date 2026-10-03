@@ -362,9 +362,19 @@ function Record([string]$Kind, [hashtable]$Facts = @{}) {
 function Product-Rows {
     if (-not (Test-Path -LiteralPath $productLog -PathType Leaf)) { return @() }
     $rows = @()
-    foreach ($line in [IO.File]::ReadAllLines($productLog)) {
-        if (-not $line.EndsWith('}')) { continue }
-        try { $rows += ($line | ConvertFrom-Json -ErrorAction Stop) } catch { }
+    # The product's CREATE_NEW writer shares READ only. Our reader must share
+    # its already-open WRITE access, without acquiring any write permission.
+    $file = [IO.FileStream]::new($productLog,[IO.FileMode]::Open,
+        [IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
+    $reader = [IO.StreamReader]::new($file,[Text.Encoding]::UTF8)
+    try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+    $lastNewline = $text.LastIndexOf("`n")
+    if ($lastNewline -lt 0) { return @() }
+    # An in-progress tail is UNKNOWN until a complete newline arrives. Never
+    # hide a malformed completed record or rewrite the product evidence.
+    foreach ($line in ($text.Substring(0,$lastNewline) -split "`n")) {
+        if ([string]::IsNullOrWhiteSpace($line)) { throw 'product_empty_completed_jsonl' }
+        $rows += ($line | ConvertFrom-Json -ErrorAction Stop)
     }
     return $rows
 }
