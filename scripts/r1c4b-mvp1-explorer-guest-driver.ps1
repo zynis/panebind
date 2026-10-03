@@ -126,15 +126,21 @@ public static class PaneBindMvpGuestInput {
     [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr window,uint flags);
     [DllImport("user32.dll")] static extern IntPtr WindowFromPoint(Point point);
     [DllImport("user32.dll")] static extern bool GetCursorPos(out Point point);
-    [DllImport("user32.dll")] static extern IntPtr OpenInputDesktop(uint flags,bool inherit,uint access);
-    [DllImport("user32.dll")] static extern IntPtr GetThreadDesktop(uint thread);
-    [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern bool GetUserObjectInformationW(
+    [DllImport("user32.dll",SetLastError=true)] static extern IntPtr OpenInputDesktop(uint flags,bool inherit,uint access);
+    [DllImport("user32.dll",SetLastError=true)] static extern IntPtr GetThreadDesktop(uint thread);
+    [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool GetUserObjectInformationW(
         IntPtr handle,int index,StringBuilder value,int length,out int needed);
+    [DllImport("user32.dll",EntryPoint="GetUserObjectInformationW",SetLastError=true)]
+    static extern bool GetUserObjectInput(IntPtr handle,int index,out int value,int length,out int needed);
     [DllImport("user32.dll")] static extern bool CloseDesktop(IntPtr desktop);
     [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
     [DllImport("kernel32.dll")] static extern uint WTSGetActiveConsoleSessionId();
     [DllImport("kernel32.dll")] static extern uint GetCurrentProcessId();
-    [DllImport("kernel32.dll")] static extern bool ProcessIdToSessionId(uint pid,out uint session);
+    [DllImport("kernel32.dll",SetLastError=true)] static extern bool ProcessIdToSessionId(uint pid,out uint session);
+    [DllImport("wtsapi32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    static extern bool WTSQuerySessionInformationW(IntPtr server,uint session,int infoClass,
+        out IntPtr buffer,out uint bytes);
+    [DllImport("wtsapi32.dll")] static extern void WTSFreeMemory(IntPtr buffer);
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int GetClassNameW(
         IntPtr window,StringBuilder name,int length);
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(
@@ -218,21 +224,71 @@ public static class PaneBindMvpGuestInput {
         SetForegroundWindow(new IntPtr(value));
         return GetForegroundWindow()==new IntPtr(value);
     }
-    public static bool InputDesktopReady() {
-        uint session;
-        if(!ProcessIdToSessionId(GetCurrentProcessId(),out session)||session==0||
-            session!=WTSGetActiveConsoleSessionId()) return false;
-        var input=OpenInputDesktop(0,false,0x0001);
-        if(input==IntPtr.Zero) return false;
-        try {
-            var inputName=new StringBuilder(256);var currentName=new StringBuilder(256);
-            int needed;
-            return GetUserObjectInformationW(input,2,inputName,512,out needed)&&
-                GetUserObjectInformationW(GetThreadDesktop(GetCurrentThreadId()),
-                    2,currentName,512,out needed)&&
-                inputName.ToString()=="Default"&&currentName.ToString()=="Default";
-        } finally { CloseDesktop(input); }
+    public sealed class DesktopSnapshot {
+        public bool ready;
+        public uint session_id, active_console_session_id, thread_id;
+        public bool session_query_ok, connection_query_ok, connection_buffer_valid;
+        public int session_error, connection_error, connection_state=-1;
+        public bool input_desktop_available, thread_desktop_available;
+        public int input_desktop_error, thread_desktop_error;
+        public bool input_name_query_ok, thread_name_query_ok;
+        public string input_desktop_name="", thread_desktop_name="";
+        public int input_name_error, thread_name_error;
+        public bool input_io_query_ok, thread_io_query_ok, input_receives_input, thread_receives_input;
+        public int input_io_error, thread_io_error;
     }
+    public static DesktopSnapshot InputDesktopSnapshot() {
+        var facts=new DesktopSnapshot();
+        facts.active_console_session_id=WTSGetActiveConsoleSessionId(); // Diagnostic, not guest readiness.
+        facts.thread_id=GetCurrentThreadId();
+        uint session;
+        facts.session_query_ok=ProcessIdToSessionId(GetCurrentProcessId(),out session);
+        facts.session_error=facts.session_query_ok?0:Marshal.GetLastWin32Error();
+        facts.session_id=session;
+        if(!facts.session_query_ok||session==0) return facts;
+        IntPtr buffer=IntPtr.Zero;uint bytes;
+        try {
+            // WTSConnectState is the documented enum (index 8); WTSActive is 0.
+            // Sandbox may use an active remote session rather than the physical console.
+            facts.connection_query_ok=WTSQuerySessionInformationW(IntPtr.Zero,session,8,out buffer,out bytes);
+            facts.connection_error=facts.connection_query_ok?0:Marshal.GetLastWin32Error();
+            facts.connection_buffer_valid=facts.connection_query_ok&&buffer!=IntPtr.Zero&&bytes==4;
+            if(facts.connection_buffer_valid) facts.connection_state=Marshal.ReadInt32(buffer);
+        } finally { if(buffer!=IntPtr.Zero) WTSFreeMemory(buffer); }
+        var input=OpenInputDesktop(0,false,0x0001);
+        facts.input_desktop_available=input!=IntPtr.Zero;
+        facts.input_desktop_error=facts.input_desktop_available?0:Marshal.GetLastWin32Error();
+        var current=GetThreadDesktop(facts.thread_id);
+        facts.thread_desktop_available=current!=IntPtr.Zero;
+        facts.thread_desktop_error=facts.thread_desktop_available?0:Marshal.GetLastWin32Error();
+        try {
+            int needed,receives;
+            if(facts.input_desktop_available) {
+                var name=new StringBuilder(256);
+                facts.input_name_query_ok=GetUserObjectInformationW(input,2,name,512,out needed);
+                facts.input_name_error=facts.input_name_query_ok?0:Marshal.GetLastWin32Error();
+                if(facts.input_name_query_ok) facts.input_desktop_name=name.ToString();
+                facts.input_io_query_ok=GetUserObjectInput(input,6,out receives,4,out needed);
+                facts.input_io_error=facts.input_io_query_ok?0:Marshal.GetLastWin32Error();
+                facts.input_receives_input=facts.input_io_query_ok&&needed==4&&receives!=0;
+            }
+            if(facts.thread_desktop_available) {
+                var name=new StringBuilder(256);
+                facts.thread_name_query_ok=GetUserObjectInformationW(current,2,name,512,out needed);
+                facts.thread_name_error=facts.thread_name_query_ok?0:Marshal.GetLastWin32Error();
+                if(facts.thread_name_query_ok) facts.thread_desktop_name=name.ToString();
+                facts.thread_io_query_ok=GetUserObjectInput(current,6,out receives,4,out needed);
+                facts.thread_io_error=facts.thread_io_query_ok?0:Marshal.GetLastWin32Error();
+                facts.thread_receives_input=facts.thread_io_query_ok&&needed==4&&receives!=0;
+            }
+            facts.ready=facts.connection_buffer_valid&&facts.connection_state==0&&
+                facts.input_name_query_ok&&facts.thread_name_query_ok&&
+                facts.input_desktop_name=="Default"&&facts.thread_desktop_name=="Default"&&
+                facts.input_receives_input&&facts.thread_receives_input;
+            return facts;
+        } finally { if(input!=IntPtr.Zero) CloseDesktop(input); }
+    }
+    public static bool InputDesktopReady() { return InputDesktopSnapshot().ready; }
     public static int[] Cursor() {
         Point point;
         if(!GetCursorPos(out point)) throw new Win32Exception(Marshal.GetLastWin32Error(),"GetCursorPos");
@@ -289,7 +345,9 @@ public static class PaneBindMvpGuestInput {
 }
 '@
 
-if (-not [PaneBindMvpGuestInput]::InputDesktopReady()) {
+$initialDesktopSnapshot = [PaneBindMvpGuestInput]::InputDesktopSnapshot()
+Write-Output ($initialDesktopSnapshot | ConvertTo-Json -Depth 3 -Compress)
+if (-not $initialDesktopSnapshot.ready) {
     throw 'guest_input_desktop_not_active_at_driver_start'
 }
 
@@ -781,6 +839,7 @@ $stream = [IO.FileStream]::new($driverLog,[IO.FileMode]::CreateNew,
 $script:writer = [IO.StreamWriter]::new($stream,[Text.UTF8Encoding]::new($false))
 try {
     Record 'startup' @{ implementation_sha=$manifest.source_commit;
+        initial_desktop_snapshot=$initialDesktopSnapshot;
         guest_test_only=$true; product=$product; product_log=$productLog;
         input_source='automated_guest_driver'; live_validation=$false }
     if ([PaneBindMvpGuestInput]::WorkArea()[2] -lt 800 -or

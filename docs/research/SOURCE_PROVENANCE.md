@@ -43,6 +43,14 @@ terms，链接/转述，无示例代码复用）：
 → exact-pair detach → 撤罩。只解除本代真正建立的关联，失败不进入下一代。
 本轮验证前状态为 IMPLEMENTED 候选 / runtime UNKNOWN，不宣称清理或功能 PASS。
 
+owned 现场 Gate 通过后的 Explorer driver 桌面修正，实际补读 Microsoft Learn
+[WTSQuerySessionInformationW](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsquerysessioninformationw)、
+[WTS_CONNECTSTATE_CLASS](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ne-wtsapi32-wts_connectstate_class)、
+[WTSGetActiveConsoleSessionId](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-wtsgetactiveconsolesessionid)。
+适用仅 guest test driver：当前会话 WTSActive 与实际 input desktop 检查，不能
+把物理 console session 等同所有可交互 guest 会话；未知仍拒绝。官方 live 页、
+同日 review、无代码示例复制/适配；没有修改系统会话/权限/远程配置。
+
 2026-10-03 NormalUp 两种唯一 UP 形式均失败后，只读补查
 [AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
 （live official page）。它共享 input/focus/key states，重置 GetKeyState/
