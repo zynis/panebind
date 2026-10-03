@@ -201,3 +201,94 @@ exact 新 root、path/PID/TID/baseline exclusion 重验后，在确认前执行�
 Place，记录真实前后状态/几何；产品资格/授权规则不改。产品失败时补已有
 eligibility reason/code、diagnostic domain/code 与实际 candidate/token 事实，
 使下一现场结果能解释具体拒绝，不能靠通用 reason 或 driver 的 candidate 代替绑定。
+
+## 第七批：owned 闭环通过，Explorer 安全合同实际拒绝
+
+RUNTIME `8ae164e1a952df6e9745eb63bdf98459230a6280`，RunId
+`be57d4749fcf448ba8bf0806afa46734`。ZIP SHA-256
+`DB9B0C9DFC5EFEB9C1FE001EA49BB87ED421B59DA8715855692CA59BD4D2D2EB`；
+manifest `7342647C9CC73F90B94F80046757934CBA0976495D01D0EA67F38545E9A76BEB`；
+.wsb `1E7066B89F2D8D7FB203AE8E8A27ED7541CBBB939E5509CEB42F3E963350F507`。
+Debug owned `752960617B7850F204556C9B92EA1DA2100B4B78D891F9897E78160453512BB0`；
+Debug Explorer `11EC25B31C6603C55E0446DB34B36EC50AEEE29090925BB3B86B29AAB3561173`；
+Release Explorer `3BC52F01A863D979062CBEA59C9A1F7FD1353DE0C0D65AB24273690CE7D0B355`。
+
+8 项 owned 原始记录复核通过：正常两代真实 END/attach/capture、3 次 exact native
+placement、两代实际 Raw/legacy UP、own release/detach/NormalUp；下一代前双线程
+capture=0、键 clear、重复 remove 拒绝。normal-repeat hash
+`445C3CEF1C26B7C59E8B5855FF0241BC0958D295466CCDE0B158BAEFE2827846`。
+F11 是 capture 已建立且左键按下时实际 WM_HOTKEY；writer-stall 在真实共用
+callback 中等待撤罩，3 s Deadline 独立结束且没有 native placement。source-pause
+实际 tick 34203–39203 ms；ready=34187、Gone=37187，即 ready 后 3000 ms 撤罩，
+早于 source 恢复 2016 ms。hash
+`E0D8F91176368B595E266944AD5C2926FE8991746B53F04897A95E6E5BEA33F6`。
+所有资源退出、Raw 注销、writer/UI 退出与按键释放均实际观察；abort 不记 NormalUp。
+仍不代表默认 30 s 或所有永久失响应状态，也未实测 native attach/detach FALSE。
+
+Explorer driver 创建唯一新 A：HWND `721534` / PID `4852` / TID `7644`。
+确认前布局后 actual normal/visible、capture/menu/move-size 均 clear；产品 seq4
+明确返回 `Elevated`（code42、adapter diagnostic1104），token_issued=false。
+同用户/session/integrity 检查在此项之前；此名称表示“不同时满足 medium 且
+non-elevated”，不能据名称单独认定 TokenElevation 的具体值。预检自有进程实际
+caller_integrity=12288（High）。未绑定三窗、未发送 Explorer 手势输入、未取消/
+关联/取得其 capture 或写入；跨进程正常 UP 和三窗功能仍 NOT_RUN。
+driver hash `1FBE49E2396B3CE0B220D3CD8E5DF7C39D5B3B6CA7D44EFE64DAAFD16D7FF119`；
+产品 hash `F12171B2EF505D6B1C6862213CFAB3E56FCC7F64CBFD191B6CA6524B550240A8`。
+本批精确 guest PID `12400` 与本轮启动任务已删除，包/证据保留且输出哈希不变。
+
+另发现 driver 的独立实际坐标问题：source DPI=192/PMV2，初始 outer rect
+`[213,46,1013,646]` 而 DWM visible `[436,91,2014,1280]`；driver 未设 PMV2，
+GetWindowRect 虚拟化坐标与 DWM 物理坐标混用。此问题不是 Elevated 根因；
+修复仅在 guest driver 的实际几何/输入线程建立并核验 PMV2，不改变显示设置或
+产品权限。安全合同保持不变，后续只读检查现有 guest token 的可用启动身份。
+
+## 一次只读启动身份对照
+
+RunId `6069ba5fe3704ff298ac0528546a5aad` 的初次只读 probe 在序列化数字字典键时
+失败，未保存 token 证据；终局 summary 原样保留，不推定其查询结果。只把字典键
+改为字符串，离线同形 serialization/readback PASS，以新 RunId 重验，不重发输入。
+
+RunId `8af40e8f49ad4cc2ae45a032af13e64d`，binary source 仍 `8ae164e...`；
+独立只读 guest script hash
+`8412536860D01085B6C66C12271FD784EEAEE4FA7A70FC8D888A6930BCFAAB84`，
+manifest `95B79D3467168339BC63E2C79DE6D2840E0A0518F2A14849DF22E9E2477EA082`，
+ZIP `84707FB610CC32884CE78CA194E6EC81CA86BC07E53D1D6CEA31ED8738D837FB`。
+该对照不启动产品、owned 或新 Explorer，不发输入、修改 token、账户或系统。
+
+实际 session1 当前 PowerShell PID `5764` 与唯一已验证系统 Explorer PID `4856`：
+两者 TokenIntegrityLevel=12288（High）、TokenElevation=1、TokenElevationType=1
+（Default），所有这些查询成功；TokenLinkedToken 查询均 FALSE/error1312、handle
+不可用。前后 process wait 为 WAIT_TIMEOUT，查询句柄真实关闭。JSON hash
+`F69CA4DAE413518B215AAFAEAAE153F0E206EC903029CEA99C76F21B6AB28661`。
+这不是该旧 shell 获得控制授权，也不是第七批 exact root 的同一原子 token 快照。
+它明确排除了当前启动身份或当前 shell 已有可用 limited linked token 的自然路线，
+不能靠代理现有 shell 启动就假设 Medium。未读取/改变 UAC 设置。
+
+现有中等、非提升的 Explorer 安全合同不改。跨进程 capture/UP 假设仍未验证，
+不是被该权限拒绝证伪；owned 正常 UP 和有限独立退出假设已有实际支持。
+后续最小决策为仅在可丢弃 guest 准备非提升标准用户身份，并绑定其 RunId/SID
+运行保护；该身份准备/保护适配不自动获准，也不承诺可行性或改动宿主。
+没有批准该新增身份路线前，停止 Explorer live 行为，而非继续叠加 capture API。
+两只读批次精确 guest PID `12020` / `9592` 和本轮任务已清理，所有包/证据保留，
+输出哈希未变。guest 销毁仅证明测试影响被隔离，不算产品清理通过。
+
+## 最终代码复核触发的最小撤权修复
+
+复核发现准备回调可同步 request_remove/stop；旧实现已在回调前标记 attach
+attempted，回调之后直接进入 API。该源码反例不冒充旧 guest 失败。
+追加 `ThreadAssociationPrepared`，旧 enum 数值不改：准备事实明确 native
+attempted=false/QPC=0；回调返回后实际重新核验 source、foreground、physical
+buttons，最后检查已发布撤权，然后无新回调地标记实际入口并调用 Attach。
+SetCapture 在最后 authorization callback 后也重验相同入口事实。没有大锁跨
+native 调用，也不承诺最终入口之后的在途 API 可撤销；真实完成仍独立记录。
+
+owned 增加仅一个 `association-stop-before-call` 场景，走真实产品准备回调
+同步停止，要求 actual END、准备记录、撤罩与实际清理 Raw UP，attach/capture/
+placement 均零；它不代替真实 F11 热键场景或补齐 NormalUp。已有 flow tests
+直接使用生产入口谓词覆盖该撤权、真实身份/按钮/foreground 拒绝和许可。
+新代码的 guest 结果待后续本报告实际批次补记。
+
+runner 在 owned 完成后根据现有真实 preflight before/after caller RID 判断已知
+不满足 Medium 的启动条件，High/UNKNOWN 明确记录 Explorer NOT_RUN；不重复
+启动已知不合格窗口。Medium 只是必要条件，仍需产品实际完整 token/身份检查，
+不是 bool 许可替代 API 或权限。无通用 bypass/force/skip 开关。

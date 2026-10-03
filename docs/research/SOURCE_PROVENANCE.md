@@ -59,6 +59,18 @@ owned 现场 Gate 通过后的 Explorer driver 桌面修正，实际补读 Micro
 单独保留，不声称它与具体合成输入存在因果一一对应。缺当前 cursor 或权限事实
 仍拒绝，不轮询、不更换 DOWN/窗口锚点、不增加输入来源或产品 SendInput。
 
+Explorer guest 的实际 `Elevated` 拒绝及 driver 192 DPI 坐标反例之后，同日补读
+Microsoft Learn [Sandbox LogonCommand/account contract](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-configure-using-wsb-file)、
+[TOKEN_INFORMATION_CLASS](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ne-winnt-token_information_class)、
+[GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect)、
+[SetThreadDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddpiawarenesscontext)。
+Official live primary pages，无 immutable revision；Microsoft site terms，链接/转述，
+sample/code copied/adapted NO。适用范围仅 guest 启动身份只读诊断与 test-driver
+实际线程 PMV2；未检查新的开源项目。Sandbox 默认 WDAGUtilityAccount 的管理员
+身份不能证明具体 token；只查询 token，不改变它或 UAC/账户。WindowRect 可被
+DPI 虚拟化，DWM bounds 不作同样调整；用 actual caller context 防止混用，而非
+修改显示比例或扩大跨屏/混合 DPI 功能。产品 medium/non-elevated Gate 不放宽。
+
 2026-10-03 NormalUp 两种唯一 UP 形式均失败后，只读补查
 [AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
 （live official page）。它共享 input/focus/key states，重置 GetKeyState/

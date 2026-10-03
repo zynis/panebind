@@ -17,6 +17,8 @@ $summary = [ordered]@{
     contrast = $null
     explorer_stages = @()
     explorer_started = $false
+    explorer_identity_precondition = $null
+    explorer_not_run_reason = $null
     explorer_command = $null
     explorer_debug_command = $null
     error = $null
@@ -128,6 +130,7 @@ try {
     # input is sent unless these and the targeted cleanup risks all pass.
     $cases = @(
         @{ configuration = 'debug'; scenario = 'normal-repeat'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'association-stop-before-call'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'capture-stop'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'writer-stall'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'source-pause'; executable = $debugOwned },
@@ -226,6 +229,49 @@ try {
             throw "Owned scenario $configuration/$scenario failed or produced no evidence; remaining scenarios were not run."
         }
     }
+    # This last actual preflight subprocess inherits the same guest launch
+    # identity. A known non-Medium RID already contradicts the product's
+    # existing controller gate. Do not start another known-ineligible Explorer
+    # run; UNKNOWN also cannot grant launch authority. A Medium observation is
+    # merely necessary: the product still checks actual non-elevated tokens,
+    # exact test-created HWNDs and every other existing eligibility condition.
+    $integrityBeforeKnown = $preflightResult.before.caller_integrity_known -eq $true -and
+        ($preflightResult.before.caller_integrity -is [int] -or
+         $preflightResult.before.caller_integrity -is [long])
+    $integrityAfterKnown = $preflightResult.after.caller_integrity_known -eq $true -and
+        ($preflightResult.after.caller_integrity -is [int] -or
+         $preflightResult.after.caller_integrity -is [long])
+    $integrityBefore = if ($integrityBeforeKnown) {
+        $preflightResult.before.caller_integrity
+    } else { $null }
+    $integrityAfter = if ($integrityAfterKnown) {
+        $preflightResult.after.caller_integrity
+    } else { $null }
+    $summary.explorer_identity_precondition = [ordered]@{
+        evidence = $preflightLog
+        caller_integrity_before_known = $integrityBeforeKnown
+        caller_integrity_after_known = $integrityAfterKnown
+        caller_integrity_before = $integrityBefore
+        caller_integrity_after = $integrityAfter
+        required_medium_rid = 8192
+        actual_explorer_controller_token_checked = $false
+        product_authority_granted = $false
+    }
+    if (-not $integrityBeforeKnown -or -not $integrityAfterKnown -or
+        $integrityBefore -ne 8192 -or $integrityAfter -ne 8192) {
+        $summary.explorer_not_run_reason = if (-not $integrityBeforeKnown -or
+                -not $integrityAfterKnown) {
+            'Explorer_controller_integrity_UNKNOWN'
+        } else { 'Explorer_medium_non_elevated_identity_required' }
+        $summary.explorer_stages += [ordered]@{
+            configurations = @('debug', 'release')
+            result = 'NOT_RUN'
+            reason = $summary.explorer_not_run_reason
+        }
+        Save-Summary
+        throw "Owned scenarios passed; Explorer NOT_RUN: $($summary.explorer_not_run_reason)."
+    }
+    Save-Summary
     $driver = Join-Path $inputDir 'explorer-driver.ps1'
     foreach ($configuration in @('debug', 'release')) {
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")

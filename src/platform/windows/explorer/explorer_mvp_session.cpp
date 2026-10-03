@@ -197,6 +197,7 @@ void copy_shield_route(MvpEvidenceEvent& evidence,
     case op::GestureShieldEventKind::ThreadAssociationFailure: return "input_association_failed_observed";
     case op::GestureShieldEventKind::ThreadAssociationAttempt: return "input_association_attempt_observed";
     case op::GestureShieldEventKind::CaptureReleaseAttempt: return "capture_release_attempt_observed";
+    case op::GestureShieldEventKind::ThreadAssociationPrepared: return "input_association_prepared_observed";
     default: return "none";
     }
 }
@@ -1272,6 +1273,7 @@ bool ExplorerMvpSession::Impl::pump() {
             case op::GestureShieldEventKind::ThreadAssociationFailure:
             case op::GestureShieldEventKind::ThreadAssociationAttempt:
             case op::GestureShieldEventKind::CaptureReleaseAttempt:
+            case op::GestureShieldEventKind::ThreadAssociationPrepared:
                 evidence = event_for(MvpEvidenceKind::Resource, current, capture_event_name(event.kind));
                 evidence.shield_capture = event.capture;
                 break;

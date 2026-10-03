@@ -872,6 +872,18 @@ struct GestureInputShield::Impl {
         return GestureShieldCaptureFailure::None;
     }
 
+    [[nodiscard]] GestureShieldCaptureFailure native_entry_failure(
+        const GestureShieldRequest& request) noexcept {
+        // These real queries run without command_mutex. Sample the atomic /
+        // queued revocation last, after the identity/button/foreground reads.
+        const bool source_matches = exact_source(request);
+        const bool foreground_matches = GetForegroundWindow() == request.source;
+        const bool held = physical_move_buttons();
+        const bool revoked = capture_command_revoked(request);
+        return gesture_shield_native_entry_failure(
+            revoked, source_matches, held, foreground_matches);
+    }
+
     [[nodiscard]] bool release_own_capture() noexcept {
         if (!current || !overlay) return true;
         const HWND before = GetCapture();
@@ -957,15 +969,19 @@ struct GestureInputShield::Impl {
         // The API has no cancellable timeout contract. It runs on the resource
         // thread without command_mutex; original DOWN/real END and actual UP
         // facts are unchanged by the documented keyboard-state reset.
-        association.attach_attempted = true;
-        association_detach_clean = false; // Native result is still UNKNOWN.
-        association.attach_before_qpc = native_qpc();
         GestureShieldEvent begin{};
-        begin.kind = GestureShieldEventKind::ThreadAssociationAttempt;
+        begin.kind = GestureShieldEventKind::ThreadAssociationPrepared;
         begin.generation = request.generation;
         begin.overlay = overlay;
         begin.capture = capture_facts;
         emit(begin);
+        // This callback can synchronously revoke or stop. Preparation is not
+        // a native attempt, and an unissued call must not survive that revoke.
+        const auto entry_failure = native_entry_failure(request);
+        if (entry_failure != GestureShieldCaptureFailure::None) return entry_failure;
+        association.attach_attempted = true;
+        association_detach_clean = false; // Actual native result is still UNKNOWN.
+        association.attach_before_qpc = native_qpc();
         SetLastError(0);
         association.attach_succeeded = AttachThreadInput(thread_id, request.thread_id, TRUE) != FALSE;
         association.attach_error = association.attach_succeeded ? 0 : GetLastError();
@@ -1097,6 +1113,8 @@ struct GestureInputShield::Impl {
                 if (!authorized) facts.failure = GestureShieldCaptureFailure::Authorization;
             }
         }
+        if (facts.failure == GestureShieldCaptureFailure::None)
+            facts.failure = native_entry_failure(request);
         if (facts.failure == GestureShieldCaptureFailure::None) {
             facts.attempted = true;
             facts.previous = SetCapture(overlay);

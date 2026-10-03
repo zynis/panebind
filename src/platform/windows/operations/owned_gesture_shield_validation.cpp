@@ -76,6 +76,7 @@ struct State {
     std::atomic<bool> authorized_end{false}, capture_authority{false};
     std::atomic<bool> capture_established{false}, own_capture_released{false};
     std::atomic<bool> association_established{false}, association_detached{false};
+    std::atomic<bool> association_prepare_observed{false}, preparation_stop_queued{false};
     std::atomic<std::uint32_t> association_attempts{0}, detach_attempts{0};
     std::atomic<DWORD> shield_thread{0};
     std::atomic<std::uint32_t> capture_attempts{0};
@@ -706,6 +707,27 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
     case op::GestureShieldEventKind::ThreadAssociationAttempt:
         record("thread_association_attempt", ",\"generation\":" +
             std::to_string(event.generation) + shield_capture_json(event.capture));
+        break;
+    case op::GestureShieldEventKind::ThreadAssociationPrepared:
+        s.association_prepare_observed = event.generation == generation &&
+            !event.capture.association.attach_attempted &&
+            !event.capture.association.attach_completed &&
+            event.capture.association.attach_before_qpc == 0;
+        record("thread_association_prepared", ",\"generation\":" +
+            std::to_string(event.generation) + ",\"actual_end_observed\":" +
+            boolean(s.native_ends == 1) + shield_capture_json(event.capture));
+        if (s.scenario == "association-stop-before-call" && s.association_prepare_observed) {
+            // The real product's preparation callback synchronously queues
+            // explicit stop. No API has entered; the final native-entry check
+            // must reject this unissued attach, not attach then undo it.
+            retire("test_explicit_stop_in_preparation_callback",
+                   b::MoveHandoffEscapeReason::ExplicitStop);
+            s.preparation_stop_queued = s.shield && s.shield->request_remove(
+                generation, op::GestureShieldRemovalReason::ExplicitStop);
+            record("test_preparation_callback_stop", ",\"generation\":" +
+                std::to_string(generation) + ",\"queued\":" +
+                boolean(s.preparation_stop_queued) + ",\"native_api_entered\":false");
+        }
         break;
     case op::GestureShieldEventKind::CaptureReleaseAttempt:
         record("capture_release_attempt", ",\"generation\":" +
@@ -1740,8 +1762,31 @@ void writer_owner() noexcept {
 
 [[nodiscard]] bool run_capture_abort() noexcept {
     const bool before_capture = s.scenario == "capture-early-up" ||
-        s.scenario == "capture-fail";
+        s.scenario == "capture-fail" || s.scenario == "association-stop-before-call";
     if (!bounded_native_cancel_and_handoff(!before_capture)) return false;
+    if (s.scenario == "association-stop-before-call") {
+        const bool queued = s.shield->request_capture_after_native_end({
+            s.generation, s.source, GetCurrentProcessId(), s.source_thread});
+        const bool failure = queued && wait_for(s.capture_failure, 2000,
+                                                "actual_preparation_stop_rejection");
+        const bool gone = failure && wait_for(s.isolation_gone, 2000,
+                                              "preparation_stop_resource_removal");
+        const bool released = gone && release_owned_left("preparation_stop_test_cleanup");
+        record("association_preparation_stop_verdict", ",\"actual_end\":" +
+            boolean(s.native_ends == 1) + ",\"preparation_observed\":" +
+            boolean(s.association_prepare_observed) + ",\"stop_queued_in_callback\":" +
+            boolean(s.preparation_stop_queued) + ",\"attach_attempts\":" +
+            std::to_string(s.association_attempts.load()) + ",\"capture_attempts\":" +
+            std::to_string(s.capture_attempts.load()) + ",\"placement_attempts\":" +
+            std::to_string(s.native_attempts.load()) + ",\"normal_removal\":" +
+            boolean(s.normal_removal_requested) + ",\"actual_cleanup_raw_up\":" +
+            boolean(s.matching_raw_up));
+        return released && s.association_prepare_observed && s.preparation_stop_queued &&
+            s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
+            !s.association_established && s.association_attempts == 0 &&
+            s.capture_attempts == 0 && s.native_attempts == 0 &&
+            !s.normal_removal_requested;
+    }
     if (s.scenario == "capture-early-up") {
         if (!release_owned_left("actual_up_after_end_before_capture")) return false;
         // No capture request after the actual UP. Missing legacy delivery is
@@ -2096,7 +2141,8 @@ void writer_owner() noexcept {
             s.hotkey_unregistered && s.cancel_attempts == 0 && s.native_attempts == 0;
     }
     if (s.scenario == "capture-stop" || s.scenario == "capture-early-up" ||
-        s.scenario == "capture-fail" || s.scenario == "capture-lost")
+        s.scenario == "capture-fail" || s.scenario == "capture-lost" ||
+        s.scenario == "association-stop-before-call")
         return run_capture_abort();
     return run_normal_or_stall();
 }
@@ -2286,6 +2332,7 @@ int wmain(int argc, wchar_t** argv) {
         scenario != L"setup-fail" && scenario != L"stop" &&
         scenario != L"capture-stop" && scenario != L"capture-early-up" &&
         scenario != L"capture-fail" && scenario != L"capture-lost" &&
+        scenario != L"association-stop-before-call" &&
         scenario != L"writer-stall") return 64;
     if (!guest_guard(argv[7], scenario, argv[5])) {
         constexpr char denied[] =
@@ -2307,6 +2354,7 @@ int wmain(int argc, wchar_t** argv) {
     else if (scenario == L"capture-early-up") s.scenario = "capture-early-up";
     else if (scenario == L"capture-fail") s.scenario = "capture-fail";
     else if (scenario == L"capture-lost") s.scenario = "capture-lost";
+    else if (scenario == L"association-stop-before-call") s.scenario = "association-stop-before-call";
     else s.scenario = "writer-stall";
     s.generation = qpc() ^ (static_cast<std::uint64_t>(GetCurrentProcessId()) << 32);
     if (!s.generation) s.generation = 1;

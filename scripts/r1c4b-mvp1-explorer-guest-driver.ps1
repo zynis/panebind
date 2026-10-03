@@ -157,6 +157,8 @@ public static class PaneBindMvpGuestInput {
     [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr window);
     [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr window);
     [DllImport("user32.dll")] static extern IntPtr GetWindowDpiAwarenessContext(IntPtr window);
+    [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
+    [DllImport("user32.dll")] static extern IntPtr GetThreadDpiAwarenessContext();
     [DllImport("user32.dll")] static extern bool AreDpiAwarenessContextsEqual(IntPtr first,IntPtr second);
     [DllImport("user32.dll",SetLastError=true)] static extern IntPtr GetWindowLongPtrW(IntPtr window,int index);
     [DllImport("user32.dll",SetLastError=true)] static extern bool GetGUIThreadInfo(uint thread,ref GuiThreadInfo info);
@@ -176,7 +178,41 @@ public static class PaneBindMvpGuestInput {
     [DllImport("user32.dll")] static extern int GetSystemMetrics(int metric);
     const uint MOUSE_MOVE=0x0001, LEFTDOWN=0x0002, LEFTUP=0x0004,
         ABSOLUTE=0x8000, VIRTUALDESK=0x4000, KEYUP=0x0002;
+    static bool callerDpiEstablished;
+    public sealed class CallerDpiSnapshot {
+        public uint thread_id;
+        public long previous_context, current_context;
+        public int win32_error;
+        public bool set_returned_previous, current_per_monitor_v2, established;
+    }
+    public static CallerDpiSnapshot EstablishCallerPhysicalCoordinates() {
+        // Runs on the ACTUAL PowerShell caller, not an Add-Type worker or a
+        // presumed persistent host thread. The exact guest guard precedes it.
+        var facts=new CallerDpiSnapshot();facts.thread_id=GetCurrentThreadId();
+        SetLastError(0);
+        var previous=SetThreadDpiAwarenessContext(new IntPtr(-4));
+        facts.win32_error=Marshal.GetLastWin32Error();
+        facts.previous_context=previous.ToInt64();
+        facts.set_returned_previous=previous!=IntPtr.Zero;
+        var current=GetThreadDpiAwarenessContext();
+        facts.current_context=current.ToInt64();
+        facts.current_per_monitor_v2=current!=IntPtr.Zero&&
+            AreDpiAwarenessContextsEqual(current,new IntPtr(-4));
+        facts.established=facts.set_returned_previous&&facts.current_per_monitor_v2;
+        callerDpiEstablished=facts.established;
+        return facts;
+    }
+    static void RequirePhysicalCaller() {
+        // Recheck on EACH actual geometry/input call. If PowerShell changes
+        // threads or the context changes, refuse rather than assume/add loops.
+        var current=GetThreadDpiAwarenessContext();
+        if(!callerDpiEstablished||current==IntPtr.Zero||
+            !AreDpiAwarenessContextsEqual(current,new IntPtr(-4)))
+            throw new InvalidOperationException("guest driver caller must be actual PMV2; thread="+
+                GetCurrentThreadId()+" context="+current.ToInt64());
+    }
     public static int StartProduct(string path,string arguments) {
+        RequirePhysicalCaller();
         var startup=new StartupInfo(); startup.cb=(uint)Marshal.SizeOf(typeof(StartupInfo));
         ProcessInfo process;
         var command=new StringBuilder("\""+path+"\" "+arguments);
@@ -187,6 +223,7 @@ public static class PaneBindMvpGuestInput {
         return checked((int)process.processId);
     }
     public static IntPtr AttachInput(int pid) {
+        RequirePhysicalCaller();
         FreeConsole();
         for(int i=0;i<30;i++) {
             if(AttachConsole((uint)pid)) {
@@ -199,6 +236,7 @@ public static class PaneBindMvpGuestInput {
         throw new Win32Exception(Marshal.GetLastWin32Error(),"AttachConsole");
     }
     public static void ConsoleLine(IntPtr input,string line) {
+        RequirePhysicalCaller();
         var records=new List<InputRecord>();
         foreach(var ch in line) records.Add(new InputRecord {
             eventType=1,keyDown=1,repeat=1,character=ch
@@ -211,6 +249,7 @@ public static class PaneBindMvpGuestInput {
             throw new Win32Exception(Marshal.GetLastWin32Error(),"WriteConsoleInputW");
     }
     public static bool ExplorerRoot(long value,out int pid,out int tid) {
+        RequirePhysicalCaller();
         var window=new IntPtr(value);uint nativePid;
         uint nativeTid=GetWindowThreadProcessId(window,out nativePid);
         pid=(int)nativePid;tid=(int)nativeTid;
@@ -235,6 +274,7 @@ public static class PaneBindMvpGuestInput {
         public long active, focus, capture, move_size, menu_owner;
     }
     public static RootSnapshot ObserveRoot(long value) {
+        RequirePhysicalCaller();
         var facts=new RootSnapshot();facts.hwnd=value;
         int pid,tid;
         facts.exact_explorer_root=ExplorerRoot(value,out pid,out tid);
@@ -269,6 +309,7 @@ public static class PaneBindMvpGuestInput {
         return facts;
     }
     public static int[] Rectangle(long value,bool visible) {
+        RequirePhysicalCaller();
         Rect rect;
         if(visible) {
             if(DwmGetWindowAttribute(new IntPtr(value),9,out rect,(uint)Marshal.SizeOf(typeof(Rect)))!=0)
@@ -278,11 +319,13 @@ public static class PaneBindMvpGuestInput {
         return new[]{rect.Left,rect.Top,rect.Right,rect.Bottom};
     }
     public static void Place(long value,int x,int y,int width,int height) {
+        RequirePhysicalCaller();
         ShowWindow(new IntPtr(value),9);
         if(!SetWindowPos(new IntPtr(value),IntPtr.Zero,x,y,width,height,0x0014))
             throw new Win32Exception(Marshal.GetLastWin32Error(),"SetWindowPos(test-created root)");
     }
     public static bool Foreground(long value) {
+        RequirePhysicalCaller();
         SetForegroundWindow(new IntPtr(value));
         return GetForegroundWindow()==new IntPtr(value);
     }
@@ -352,16 +395,19 @@ public static class PaneBindMvpGuestInput {
     }
     public static bool InputDesktopReady() { return InputDesktopSnapshot().ready; }
     public static int[] Cursor() {
+        RequirePhysicalCaller();
         Point point;
         if(!GetCursorPos(out point)) throw new Win32Exception(Marshal.GetLastWin32Error(),"GetCursorPos");
         return new[]{point.X,point.Y};
     }
     public static long CursorRoot() {
+        RequirePhysicalCaller();
         Point point;
         if(!GetCursorPos(out point)) throw new Win32Exception(Marshal.GetLastWin32Error(),"GetCursorPos");
         return GetAncestor(WindowFromPoint(point),2).ToInt64();
     }
     public static int Hit(long value,int x,int y) {
+        RequirePhysicalCaller();
         IntPtr result;
         var point=new IntPtr((y<<16)|(x&0xffff));
         if(SendMessageTimeoutW(new IntPtr(value),0x84,IntPtr.Zero,point,0x0002,500,out result)==IntPtr.Zero)
@@ -369,6 +415,7 @@ public static class PaneBindMvpGuestInput {
         return result.ToInt32();
     }
     public static void MouseMove(int x,int y) {
+        RequirePhysicalCaller();
         if(!InputDesktopReady()) throw new InvalidOperationException("guest input desktop inactive before mouse move");
         int vx=GetSystemMetrics(76),vy=GetSystemMetrics(77),
             vw=GetSystemMetrics(78),vh=GetSystemMetrics(79);
@@ -383,6 +430,7 @@ public static class PaneBindMvpGuestInput {
             throw new Win32Exception(Marshal.GetLastWin32Error(),"SendInput move");
     }
     public static void MouseButton(bool down) {
+        RequirePhysicalCaller();
         if(!InputDesktopReady()) throw new InvalidOperationException("guest input desktop inactive before mouse button");
         var input=new Input {type=0,mouse=new MouseInput {
             flags=down?LEFTDOWN:LEFTUP,extra=new UIntPtr(0x50424D58)
@@ -391,6 +439,7 @@ public static class PaneBindMvpGuestInput {
             throw new Win32Exception(Marshal.GetLastWin32Error(),"SendInput button");
     }
     public static void Control(bool down) {
+        RequirePhysicalCaller();
         if(!InputDesktopReady()) throw new InvalidOperationException("guest input desktop inactive before Ctrl key");
         var input=new Input {type=1,key=new KeyInput {
             key=0x11,flags=down?0:KEYUP,extra=new UIntPtr(0x50424D58)
@@ -398,8 +447,12 @@ public static class PaneBindMvpGuestInput {
         if(SendInput(1,new[]{input},Marshal.SizeOf(typeof(Input)))!=1)
             throw new Win32Exception(Marshal.GetLastWin32Error(),"SendInput Ctrl");
     }
-    public static bool LeftDown() { return (GetAsyncKeyState(1)&0x8000)!=0; }
+    public static bool LeftDown() {
+        RequirePhysicalCaller();
+        return (GetAsyncKeyState(1)&0x8000)!=0;
+    }
     public static int[] WorkArea() {
+        RequirePhysicalCaller();
         int x=GetSystemMetrics(76),y=GetSystemMetrics(77),
             width=GetSystemMetrics(78),height=GetSystemMetrics(79);
         return new[]{x,y,width,height};
@@ -914,6 +967,14 @@ try {
         initial_desktop_snapshot=$initialDesktopSnapshot;
         guest_test_only=$true; product=$product; product_log=$productLog;
         input_source='automated_guest_driver'; live_validation=$false }
+    $callerDpi = [PaneBindMvpGuestInput]::EstablishCallerPhysicalCoordinates()
+    Record 'test_driver_dpi_context' @{ thread_id=$callerDpi.thread_id;
+        previous_context=$callerDpi.previous_context;
+        current_context=$callerDpi.current_context; win32_error=$callerDpi.win32_error;
+        set_returned_previous=$callerDpi.set_returned_previous;
+        current_per_monitor_v2=$callerDpi.current_per_monitor_v2;
+        established=$callerDpi.established; coordinate_space='physical_pixels' }
+    if (-not $callerDpi.established) { throw 'guest_caller_pmv2_not_established_no_geometry_or_input' }
     if ([PaneBindMvpGuestInput]::WorkArea()[2] -lt 800 -or
         [PaneBindMvpGuestInput]::WorkArea()[3] -lt 600) { throw 'guest_desktop_too_small' }
     $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver"

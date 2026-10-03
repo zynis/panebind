@@ -46,6 +46,9 @@ enum class GestureShieldEventKind {
     ThreadAssociationFailure,
     ThreadAssociationAttempt,
     CaptureReleaseAttempt,
+    // Preparation only: no AttachThreadInput call has entered yet. The
+    // callback may revoke this generation before the final native-entry check.
+    ThreadAssociationPrepared,
 };
 
 enum class GestureShieldRemovalReason {
@@ -223,6 +226,16 @@ enum class GestureShieldCaptureFailure {
     AssociationAttach,
     AssociationDetach,
 };
+
+[[nodiscard]] constexpr GestureShieldCaptureFailure gesture_shield_native_entry_failure(
+    bool revoked, bool exact_source, bool physical_buttons,
+    bool foreground_matches) noexcept {
+    if (revoked) return GestureShieldCaptureFailure::Revoked;
+    if (!exact_source) return GestureShieldCaptureFailure::SourceIdentity;
+    if (!physical_buttons) return GestureShieldCaptureFailure::PhysicalButtons;
+    if (!foreground_matches) return GestureShieldCaptureFailure::Foreground;
+    return GestureShieldCaptureFailure::None;
+}
 
 struct GestureShieldCaptureFacts {
     DWORD owner_thread_id{};

@@ -505,6 +505,20 @@ void owned_cursor_result_dispatch() {
           gesture.motion.removal_allowed(51),
           "duplicate dispatch fix preserves actual UP normal-removal semantics");
 }
+
+void last_native_entry_rechecks() {
+    using Failure = o::GestureShieldCaptureFailure;
+    check(o::gesture_shield_native_entry_failure(true, true, true, true) == Failure::Revoked,
+          "preparation callback stop must reject an unissued attach/capture");
+    check(o::gesture_shield_native_entry_failure(false, false, true, true) == Failure::SourceIdentity,
+          "identity loss at native entry cannot inherit an earlier authorization");
+    check(o::gesture_shield_native_entry_failure(false, true, false, true) == Failure::PhysicalButtons,
+          "actual early release still prevents native entry without synthesizing Raw UP");
+    check(o::gesture_shield_native_entry_failure(false, true, true, false) == Failure::Foreground,
+          "foreground mismatch remains a rejection at native entry");
+    check(o::gesture_shield_native_entry_failure(false, true, true, true) == Failure::None,
+          "all observed native-entry facts permit only one imminent call, not durable authority");
+}
 } // namespace
 
 int main() {
@@ -517,6 +531,7 @@ int main() {
         exact_guest_launch_contract();
         exact_association_cleanup_contract();
         owned_cursor_result_dispatch();
+        last_native_entry_rechecks();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {
