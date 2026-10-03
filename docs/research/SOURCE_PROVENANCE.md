@@ -20,6 +20,13 @@ HWND；GetCapture NULL 只代表本线程；背景 capture 的可见区域及键
 需 guest 实测；自己 ReleaseCapture 也产生 capturechanged，禁止在该消息中抢回。
 保留链接，无新增代码 attribution 义务。授权不等于经验 PASS。
 
+第一批 capture 回读成功而 legacy UP 缺失后，补读
+[MOUSEINPUT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-mouseinput)
+及 [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+dwFlags 可组合移动与一次按钮状态转换；测试 driver 对当前同坐标只发一次组合
+MOVE/ABSOLUTE/VIRTUALDESK/LEFTUP，不补第二次 UP。API 插入成功不等于 legacy
+投递，必须继续观察真实 Raw/legacy 消息。产品仍完全不依赖 SendInput。
+
 ## R1-C4B Architecture Pivot 1 Fix B — 2026-09-26
 
 Starting HEAD: `e381b998d9e3eded051fbc859893633e8633ebee`.

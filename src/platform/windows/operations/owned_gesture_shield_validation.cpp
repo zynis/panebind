@@ -79,6 +79,7 @@ struct State {
     std::atomic<std::uint64_t> raw_sequence{0}, down_watermark{0};
     std::atomic<std::uint64_t> handoff_raw_watermark{0};
     std::atomic<std::uint32_t> native_downs{0}, native_starts{0}, native_ends{0};
+    std::atomic<std::uint32_t> client_downs{0}, client_ups{0};
     std::atomic<std::uint32_t> raw_downs{0}, raw_ups{0}, legacy_ups{0};
     std::atomic<std::uint32_t> cancel_attempts{0}, native_attempts{0};
     std::atomic<std::uint32_t> writer_failures{0}, control_mouse{0};
@@ -474,8 +475,10 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
                 s.capture_authority = false;
                 if (s.writer) (void)s.writer->retire(generation);
                 s.continuity.retire(generation);
-                (void)s.motion.raw_up_observed(generation, true);
-                if (WaitForSingleObject(s.legacy_up, 0) == WAIT_OBJECT_0 && s.shield) {
+                if (s.scenario != "legacy-control")
+                    (void)s.motion.raw_up_observed(generation, true);
+                if (s.scenario != "legacy-control" &&
+                    WaitForSingleObject(s.legacy_up, 0) == WAIT_OBJECT_0 && s.shield) {
                     (void)s.motion.legacy_up_delivery_observed(generation, true);
                     if (s.motion.removal_allowed(generation) &&
                         !s.normal_removal_requested.exchange(true))
@@ -781,12 +784,25 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         if (hwnd == s.source) {
             record("native_route_lbuttondown", ",\"extra_info\":" +
                 std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
+            if (s.scenario == "legacy-control") {
+                ++s.client_downs;
+                s.tagged_down = GetMessageExtraInfo() == test_tag;
+                record("legacy_control_client_down", ",\"tagged\":" + boolean(s.tagged_down) +
+                    ",\"source\":" + std::to_string(hwnd_number(hwnd)));
+            }
             SetEvent(s.legacy_down);
         }
         [[fallthrough]];
     case WM_LBUTTONUP:
         if (message == WM_LBUTTONUP)
             record_owned_mouse_route(hwnd, message, wparam, lparam);
+        if (message == WM_LBUTTONUP && hwnd == s.source && s.scenario == "legacy-control") {
+            ++s.client_ups;
+            record("legacy_control_client_up", ",\"source\":" +
+                std::to_string(hwnd_number(hwnd)) + ",\"extra_info\":" +
+                std::to_string(static_cast<std::uintptr_t>(GetMessageExtraInfo())));
+            SetEvent(s.legacy_up);
+        }
         if (hwnd == s.control) ++s.control_mouse;
         break;
     case WM_NCLBUTTONUP:
@@ -1148,7 +1164,15 @@ void writer_owner() noexcept {
         ",\"exact_owned_route\":" + boolean(own_route));
     if (!own_route) return false; // Guest failure, never inject into a foreign root.
     record_release_route_snapshot(reason, "before_sendinput");
-    if (!send_mouse(MOUSEEVENTF_LEFTUP, cursor)) return false;
+    // One genuine UP transition, never a manufactured legacy callback. This
+    // owned normal-driver contrast includes the CURRENT absolute cursor point
+    // in the same INPUT; control/abort cases retain the original UP-only form.
+    const bool same_point_move = reason == "normal_raw_up";
+    const DWORD up_flags = MOUSEEVENTF_LEFTUP | (same_point_move ?
+        (MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK) : 0);
+    record("test_up_form", ",\"form\":\"" + std::string(same_point_move ?
+        "same_point_move_plus_single_up" : "up_only") + "\",\"up_transition_count\":1");
+    if (!send_mouse(up_flags, cursor)) return false;
     const bool observed = wait_for(s.raw_up, 1500, "actual_raw_cleanup_up");
     record_release_route_snapshot(reason, "after_raw_wait");
     Sleep(30); // Test-only async key readback, not an input event source.
@@ -1524,6 +1548,39 @@ void writer_owner() noexcept {
 }
 
 [[nodiscard]] bool drive() noexcept {
+    if (s.scenario == "legacy-control") {
+        if (!prepare_owned()) return false;
+        RECT client{};
+        if (!GetClientRect(s.source, &client)) return false;
+        POINT point{client.left + (client.right - client.left) / 2,
+                    client.top + (client.bottom - client.top) / 2};
+        if (!ClientToScreen(s.source, &point) || !move_cursor(point) ||
+            root_at(point) != s.source || GetForegroundWindow() != s.source) return false;
+        DWORD_PTR hit{};
+        const bool client_hit = SendMessageTimeoutW(s.source, WM_NCHITTEST, 0,
+            MAKELPARAM(static_cast<SHORT>(point.x), static_cast<SHORT>(point.y)),
+            SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 500, &hit) && hit == HTCLIENT;
+        record("legacy_control_route", ",\"point\":[" + std::to_string(point.x) + "," +
+            std::to_string(point.y) + "],\"actual_client_hit\":" + boolean(client_hit) +
+            ",\"purpose\":\"guest_legacy_delivery_control_not_product_pass\"");
+        if (!client_hit) return false;
+        s.held = true;
+        if (!send_mouse(MOUSEEVENTF_LEFTDOWN, point) ||
+            !wait_for(s.legacy_down, 1500, "actual_control_client_down") ||
+            !wait_for(s.raw_down, 1500, "actual_control_raw_down") ||
+            !s.tagged_down || s.client_downs != 1 || !s.associated_raw_down) return false;
+        const bool released = release_owned_left("legacy_control_actual_up");
+        const bool legacy = wait_for(s.legacy_up, 1500, "actual_control_client_up");
+        record("legacy_control_verdict", ",\"actual_raw_up\":" + boolean(s.matching_raw_up) +
+            ",\"actual_client_up\":" + boolean(legacy) +
+            ",\"client_downs\":" + std::to_string(s.client_downs.load()) +
+            ",\"client_ups\":" + std::to_string(s.client_ups.load()) +
+            ",\"normal_removal\":" + boolean(s.normal_removal_requested) +
+            ",\"purpose\":\"guest_input_delivery_control_only\"");
+        return released && legacy && s.client_ups == 1 && s.capture_attempts == 0 &&
+            s.cancel_attempts == 0 && s.native_attempts == 0 && !s.overlay &&
+            !s.normal_removal_requested;
+    }
     if (!begin_native_owned_move()) return false;
     bool conflict_registered = false;
     if (s.scenario == "setup-fail") {
@@ -1659,7 +1716,7 @@ int wmain(int argc, wchar_t** argv) {
         std::wstring_view(argv[4]) != L"--evidence-log" ||
         std::wstring_view(argv[6]) != L"--sandbox-run-id") return 64;
     const std::wstring_view scenario(argv[3]);
-    if (scenario != L"normal" && scenario != L"early-up" &&
+    if (scenario != L"legacy-control" && scenario != L"normal" && scenario != L"early-up" &&
         scenario != L"setup-fail" && scenario != L"stop" &&
         scenario != L"capture-stop" && scenario != L"capture-early-up" &&
         scenario != L"capture-fail" && scenario != L"capture-lost" &&
@@ -1673,7 +1730,8 @@ int wmain(int argc, wchar_t** argv) {
         return 78;
     }
     // These are the only allowed ASCII literals; no lossy wide conversion.
-    if (scenario == L"normal") s.scenario = "normal";
+    if (scenario == L"legacy-control") s.scenario = "legacy-control";
+    else if (scenario == L"normal") s.scenario = "normal";
     else if (scenario == L"early-up") s.scenario = "early-up";
     else if (scenario == L"setup-fail") s.scenario = "setup-fail";
     else if (scenario == L"stop") s.scenario = "stop";
@@ -1758,10 +1816,13 @@ int wmain(int argc, wchar_t** argv) {
     const bool ui_gone = !ui_thread.joinable() ||
         wait_for(s.ui_gone, 3000, "owned_ui_gone");
     if (ui_thread.joinable() && ui_gone) ui_thread.join();
-    const bool actual_counts = initialized && s.native_downs == 1 &&
-        s.native_starts == 1 && s.native_ends == 1 &&
-        s.raw_downs == 1 && s.raw_ups == 1 && s.tagged_down &&
-        s.associated_raw_down && s.matching_raw_up;
+    const bool input_counts = initialized && s.raw_downs == 1 && s.raw_ups == 1 &&
+        s.tagged_down && s.associated_raw_down && s.matching_raw_up;
+    const bool actual_counts = input_counts && (s.scenario == "legacy-control" ?
+        (s.client_downs == 1 && s.client_ups == 1 && s.native_downs == 0 &&
+         s.native_starts == 0 && s.native_ends == 0 && s.cancel_attempts == 0 &&
+         s.native_attempts == 0 && s.capture_attempts == 0 && !s.overlay) :
+        (s.native_downs == 1 && s.native_starts == 1 && s.native_ends == 1));
     const bool resource_verdict = s.scenario == "setup-fail" ? s.resource_failure.load() :
         !s.resource_failure.load();
     const bool accepted = result && cleanup_released && actual_counts &&
@@ -1777,6 +1838,7 @@ int wmain(int argc, wchar_t** argv) {
         ",\"owned_ui_gone\":" + json_bool(ui_gone) +
         ",\"writer_gone\":" + json_bool(writer_gone) +
         ",\"actual_counts\":" + json_bool(actual_counts) +
+        ",\"control_only\":" + json_bool(s.scenario == "legacy-control") +
         ",\"resource_failure\":" + json_bool(s.resource_failure) +
         ",\"resource_verdict\":" + json_bool(resource_verdict) +
         ",\"native_attempts\":" + std::to_string(s.native_attempts.load()) +

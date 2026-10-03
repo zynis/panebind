@@ -126,15 +126,16 @@ try {
     # Only owned automation runs at Sandbox logon. Explorer and the three-frame
     # candidate are a separate stage after the owned evidence is reviewed.
     $cases = @(
-        @{ configuration = 'debug'; scenario = 'normal'; executable = $debugOwned },
-        @{ configuration = 'debug'; scenario = 'early-up'; executable = $debugOwned },
-        @{ configuration = 'debug'; scenario = 'setup-fail'; executable = $debugOwned },
-        @{ configuration = 'debug'; scenario = 'stop'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'legacy-control'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'capture-stop'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'capture-early-up'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'capture-fail'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'capture-lost'; executable = $debugOwned },
         @{ configuration = 'debug'; scenario = 'writer-stall'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'normal'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'early-up'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'setup-fail'; executable = $debugOwned },
+        @{ configuration = 'debug'; scenario = 'stop'; executable = $debugOwned },
         @{ configuration = 'release'; scenario = 'normal'; executable = $owned }
     )
     foreach ($testCase in $cases) {

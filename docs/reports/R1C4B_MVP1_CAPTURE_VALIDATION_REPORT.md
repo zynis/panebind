@@ -27,5 +27,37 @@ Debug 产品/owned 已构建；受影响离线 `explorer-mvp-flow` 和
 历史失败批次 `3068edd02e06461095a845d88b5f7977`、
 `0da578c4f88f409ab98da79aa404b0f0` 保持原样。
 
-当前 owned / Explorer / 三窗 / 真人现场结果：NOT_RUN。
+## 第一批 guest 实测（保留 FAIL）
+
+RUNTIME `c7f5159f3b0d4cd858cc19f1c29aba3108fa4610`；RunId
+`d76bc4790f894277867aee807db64c5c`。ZIP SHA-256
+`3A5EA146634FA0E92BD45CF4B075B713F70A526E159CEACF7BF72E0BBF7657C5`；
+WSB `82BECF19C51678044D64409349367F31F7C81A7EF62B0520C27EC4B3F35647A1`；
+manifest `DF27DFAA0AB9EEA0D4615192EBD8B26F2B1458B145397F23FE60B72F9EBE91E5`。
+Debug owned EXE `37143DF26814CF280FCE426AE34B9010A1134B4CAA9341774056A862BC71879D`。
+
+ZS-WORKSTATION Sandbox Enabled，无重启/功能变更。guest WDAGUtilityAccount、
+session 1、交互 desktop/input preflight READY。实际 normal 67 行 JSONL 连续合法，
+SHA-256 `6674D6D144042B14D02A132EDA8AA5DF122B7E008D6DE66A84B5563CECCF9B10`。
+
+source HWND `131702`，source TID `7328`；overlay `66184`、owner TID `7320`。
+sequence 30 为真实 END；35 SetCapture attempted、previous=0、actual_after=overlay，
+三个具名线程 GUI 可读，source foreground 前后不变。43/44 一次真实 exact 磁吸写入；
+49 匹配 Raw UP、physical left=false；52/54/55/56 遮罩仍收到 WM_MOUSEMOVE，
+capture 仍属于遮罩。没有实际 legacy LEFTUP，57/58 等待超时，NormalUp FAIL。
+62 退出时自有 ReleaseCapture 成功、actual after=0、own WM_CAPTURECHANGED；
+64 Shutdown（非 NormalUp）撤罩，67 shield_clean=true、writer_failures=0。
+这是 abort 清理通过，绝非正常抬键收尾通过。
+
+消息泵全范围取出/分派，注册 RIDEV_INPUTSINK 而非 NOLEGACY，UP 路径无 tag
+过滤；未找到确定性的消息丢弃代码缺陷。现有证据不能确定 Windows/Sandbox
+内部根因，也不证明必须抢前台才能解决。下一步仅用空白 owned client 真实
+DOWN/UP 对照及新增 capture 风险场景定位，不以未通过 normal 放行 Explorer。
+
+启动编排的账户回读从 NTAccount 规范化为 SID，首次 exact-task 检查因此拒绝；
+读取专属 task XML、核对实际 SID 后用新控制脚本恢复。旧脚本、失败状态及
+恢复记录保留，包/实现不覆盖。仅移除本批临时 task 与专属 guest PID 17360，
+部署和全部证据保留且 hash 前后不变；guest 销毁不参与产品 verdict。
+
+owned normal：FAIL；其他新增风险场景、Release、Explorer、三窗、真人：NOT_RUN。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。
