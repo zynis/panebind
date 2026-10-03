@@ -119,4 +119,29 @@ capture、不补 UP。source 原 cancel 仍只有一次。
 本代自有 overlay，则由资源线程基于实际 Raw 快照撤销并退出，不等 writer。
 这是事件驱动的上下文补齐，不新增 hook/轮询。writer-stall、normal 组合 UP、
 Release/Explorer/三窗仍未运行，先完成必要风险与 NormalUp 再放行。
+
+## 第六批：真实 capture-lost 与 writer 中断
+
+SHA `30ced13591f781dde3738a820055025d9d89de1e`，RunId
+`84bfcddcb591441c9afe71813c0f7e32`。capture-stop、早 UP、撤权、legacy-control
+继续通过。修正的 capture-lost 有实际 WM_CANCELMODE 投递、实际
+WM_CAPTURECHANGED/CaptureLost、owner capture=0、abort 撤罩及真实 cleanup UP，
+PASS；原始 hash `D88DBFF9B955246119CE392DC83C9B5F4534DF4AA5CE86F0036DF96F2BC01D03`。
+
+writer-stall 原始 hash `5AE2B72450AFAF4A38D53611746657C14E0FCCD303ACD4303250823AD9FF0A29`。
+actual writer callback 在 held 时阻塞，资源收到 ContextLost，实际 release 和撤罩
+先完成，随后 cleanup 采样 foreground 459142 而非 source 131378，禁止当时注入 UP。
+这不证明 deadline。旧固定 31 秒 Sleep 与 driver 从提前 Gone 起的 4 秒等待不一致，
+导致 writer 尚未醒来时 test process 退出 74；保留 FAIL，而不是产品清理通过。
+最终 source foreground 恢复后真实 cleanup Raw UP 已收到、left=false；专属 guest
+PID 20492 被销毁，结果不参与产品 verdict。
+
+修正测试受控阻塞为等待独立 isolation_gone（最多31秒），不等待 writer 驱动撤罩；
+ContextLost 仍不计 Deadline PASS。normal 放在长时 stall 之前，主 UP 证据不被
+环境中断隐藏。同时资源 loop 显式检查绝对截止时间，防止非空消息队列令
+MsgWait 永不返回 WAIT_TIMEOUT；不新增轮询或计时框架。
+
+为有界故障触发，内部请求可选择更短的单次截止时间，严格只允许 1..30000ms，
+默认与上限均为30秒。owned writer-stall 请求3000ms，仍运行同一真实资源到期路径；
+不会把3秒测试计为默认30秒实测，更不是性能SLA。Explorer/default 不改变。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。

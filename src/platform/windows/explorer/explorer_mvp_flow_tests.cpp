@@ -4,6 +4,7 @@
 #include "platform/windows/explorer/explorer_group_event_source.h"
 #include "platform/windows/explorer/explorer_mvp_end_authority.h"
 #include "platform/windows/operations/live_move_writer.h"
+#include "platform/windows/operations/gesture_input_shield.h"
 #include "platform/windows/operations/move_frame_continuity.h"
 
 #include <array>
@@ -156,6 +157,10 @@ void end_authority_and_raw_watermark() {
     facts = fresh_end_facts();
     check(!e::mvp_capture_writer_ready(facts, true, true, true),
           "new lifecycle or member conflict after END still rejects capture handoff");
+    check(o::gesture_shield_timeout_valid(1) && o::gesture_shield_timeout_valid(3000) &&
+          o::gesture_shield_timeout_valid(30000) && !o::gesture_shield_timeout_valid(0) &&
+          !o::gesture_shield_timeout_valid(30001),
+          "finite per-gesture timeout cannot be disabled or exceed the 30s bound");
 }
 
 void route_and_permission() {

@@ -17,7 +17,15 @@ struct GestureShieldRequest {
     HWND source{};
     DWORD process_id{};
     DWORD thread_id{};
+    // Internal per-gesture bounded escape deadline, not a user performance SLA.
+    // The default and maximum remain 30 s; no caller may disable or extend it.
+    std::uint32_t isolation_timeout_ms{30000};
 };
+
+[[nodiscard]] constexpr bool gesture_shield_timeout_valid(
+    std::uint32_t timeout_ms) noexcept {
+    return timeout_ms >= 1 && timeout_ms <= 30000;
+}
 
 enum class GestureShieldEventKind {
     RawMouse,
@@ -179,6 +187,8 @@ struct GestureShieldCaptureFacts {
 struct GestureShieldEvent {
     GestureShieldEventKind kind{};
     std::uint64_t generation{};
+    // Actual request value; zero means no matching isolation request observed.
+    std::uint32_t isolation_timeout_ms{};
     std::uint64_t raw_sequence{};
     // MSG.pt and MSG.time are observations from this receiver's queue, not
     // cross-process DOWN attribution or a claim about the target HWND.

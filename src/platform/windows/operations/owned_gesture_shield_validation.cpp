@@ -560,6 +560,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         record("isolation_ready", ",\"overlay\":" +
             std::to_string(hwnd_number(event.overlay)) +
             ",\"generation\":" + std::to_string(event.generation) +
+            ",\"isolation_timeout_ms\":" + std::to_string(event.isolation_timeout_ms) +
             ",\"initial_exstyle\":" + std::to_string(event.initial_exstyle) +
             ",\"topmost_retry_attempted\":" +
             boolean(event.topmost_retry_attempted) +
@@ -582,6 +583,7 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         record("isolation_gone", ",\"generation\":" +
             std::to_string(event.generation) + ",\"reason\":" +
             std::to_string(static_cast<int>(event.removal_reason)) +
+            ",\"isolation_timeout_ms\":" + std::to_string(event.isolation_timeout_ms) +
             ",\"overlay_destroyed\":" + boolean(event.overlay_destroyed) +
             ",\"hotkey_unregistered\":" + boolean(event.hotkey_unregistered));
         SetEvent(s.isolation_gone);
@@ -636,7 +638,8 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         retire("actual_deadline", b::MoveHandoffEscapeReason::Deadline);
         record("deadline", ",\"generation\":" +
             std::to_string(event.generation) + ",\"left_high\":" +
-            boolean(left_high()));
+            boolean(left_high()) + ",\"isolation_timeout_ms\":" +
+            std::to_string(event.isolation_timeout_ms));
         break;
     case op::GestureShieldEventKind::ContextLost:
     case op::GestureShieldEventKind::ResourceFailure:
@@ -914,9 +917,17 @@ struct WriteFacts {
                 record("writer_stall_begin", ",\"left_high\":" +
                     boolean(s.stall_started_held));
                 SetEvent(s.writer_stall_started);
-                Sleep(shield_deadline_ms + 1000);
+                // Remain inside the REAL shared placement callback until the
+                // independent resource owner has removed its shield, or one
+                // finite test timeout expires. Early ContextLost is evidence
+                // of interruption, not a reason to keep the writer asleep
+                // after cleanup or to relabel this Deadline-only case PASS.
+                const DWORD wait_result = WaitForSingleObject(s.isolation_gone,
+                    shield_deadline_ms + 1000);
                 record("writer_stall_end", ",\"isolation_gone\":" +
-                    boolean(WaitForSingleObject(s.isolation_gone, 0) == WAIT_OBJECT_0));
+                    boolean(wait_result == WAIT_OBJECT_0) +
+                    ",\"resource_wait_result\":" + std::to_string(wait_result) +
+                    ",\"wait_timeout_ms\":" + std::to_string(shield_deadline_ms + 1000));
             }
             POINT cursor{};
             if (!GetCursorPos(&cursor)) return op::MoveNativePlacement{};
@@ -1351,10 +1362,14 @@ void writer_owner() noexcept {
 
 [[nodiscard]] bool request_real_isolation() noexcept {
     const HWND source = s.source;
+    // A shorter finite TEST request exercises the SAME product timeout path.
+    // Product/default requests remain 30 s; this is not a latency SLA.
+    const DWORD timeout_ms = s.scenario == "writer-stall" ? 3000 : shield_deadline_ms;
     const bool queued = s.shield && s.shield->request_isolation({
-        s.generation, source, GetCurrentProcessId(), s.source_thread});
+        s.generation, source, GetCurrentProcessId(), s.source_thread, timeout_ms});
     record("isolation_request", ",\"queued\":" + boolean(queued) +
-        ",\"generation\":" + std::to_string(s.generation));
+        ",\"generation\":" + std::to_string(s.generation) +
+        ",\"isolation_timeout_ms\":" + std::to_string(timeout_ms));
     return queued;
 }
 

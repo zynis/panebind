@@ -339,6 +339,8 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
         optional_bool("classes_unregistered", event.classes_unregistered);
         if (event.win32_error)
             fields << ",\"win32_error\":" << *event.win32_error;
+        if (event.isolation_timeout_ms)
+            fields << ",\"isolation_timeout_ms\":" << *event.isolation_timeout_ms;
         if (event.shield_setup_stage)
             fields << ",\"shield_setup_stage\":" << *event.shield_setup_stage;
         if (event.shield_native_failure)

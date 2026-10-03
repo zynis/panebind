@@ -645,7 +645,11 @@ struct GestureInputShield::Impl {
 
     [[nodiscard]] bool create_overlay(const GestureShieldRequest& request,
                                       SetupDiagnostics& diagnostic) noexcept {
-        deadline_tick = GetTickCount64() + isolation_deadline_ms;
+        if (!gesture_shield_timeout_valid(request.isolation_timeout_ms)) {
+            diagnostic.error = ERROR_INVALID_PARAMETER;
+            return false;
+        }
+        deadline_tick = GetTickCount64() + request.isolation_timeout_ms;
         RECT virtual_rect{};
         diagnostic.stage = GestureShieldSetupStage::VirtualScreen;
         if (!virtual_desktop_rect(virtual_rect)) return false;
@@ -948,6 +952,7 @@ struct GestureInputShield::Impl {
         GestureShieldEvent event{};
         event.kind = GestureShieldEventKind::IsolationGone;
         event.generation = generation;
+        event.isolation_timeout_ms = current ? current->isolation_timeout_ms : 0;
         event.overlay = old_overlay;
         event.removal_reason = reason;
         event.overlay_destroyed = destroyed;
@@ -1041,6 +1046,7 @@ struct GestureInputShield::Impl {
             GestureShieldEvent event{};
             event.kind = GestureShieldEventKind::IsolationReady;
             event.generation = start->generation;
+            event.isolation_timeout_ms = start->isolation_timeout_ms;
             event.overlay = overlay;
             copy_setup_facts(event, setup);
             emit(event);
@@ -1049,6 +1055,7 @@ struct GestureInputShield::Impl {
                 GestureShieldEvent event{};
                 event.kind = GestureShieldEventKind::Deadline;
                 event.generation = start->generation;
+                event.isolation_timeout_ms = start->isolation_timeout_ms;
                 event.overlay = overlay;
                 emit(event);
             }
@@ -1134,6 +1141,19 @@ struct GestureInputShield::Impl {
             for (;;) {
                 if (WaitForSingleObject(stop_event, 0) == WAIT_OBJECT_0) break;
                 const ULONGLONG now = GetTickCount64();
+                // A perpetually nonempty input queue must not starve the
+                // absolute escape deadline: MsgWait's timeout result alone
+                // is insufficient when messages remain available.
+                if (deadline_tick && now >= deadline_tick) {
+                    GestureShieldEvent event{};
+                    event.kind = GestureShieldEventKind::Deadline;
+                    event.generation = current ? current->generation : 0;
+                    event.isolation_timeout_ms = current ? current->isolation_timeout_ms : 0;
+                    event.overlay = overlay;
+                    emit(event);
+                    if (current) (void)remove_overlay(GestureShieldRemovalReason::Deadline);
+                    continue;
+                }
                 const DWORD remaining = deadline_tick ?
                     static_cast<DWORD>(std::min<ULONGLONG>(isolation_deadline_ms,
                         deadline_tick > now ? deadline_tick - now : 0)) : INFINITE;
@@ -1148,6 +1168,7 @@ struct GestureInputShield::Impl {
                     GestureShieldEvent event{};
                     event.kind = GestureShieldEventKind::Deadline;
                     event.generation = current ? current->generation : 0;
+                    event.isolation_timeout_ms = current ? current->isolation_timeout_ms : 0;
                     event.overlay = overlay;
                     emit(event);
                     if (current) (void)remove_overlay(GestureShieldRemovalReason::Deadline);
@@ -1232,7 +1253,9 @@ bool GestureInputShield::start() noexcept {
 
 bool GestureInputShield::request_isolation(GestureShieldRequest request) noexcept {
     const auto self = impl_;
-    if (!self || !self->ready || self->stopping || !exact_source(request)) return false;
+    if (!self || !self->ready || self->stopping ||
+        !gesture_shield_timeout_valid(request.isolation_timeout_ms) ||
+        !exact_source(request)) return false;
     std::lock_guard lock{self->command_mutex};
     if (self->phase != Impl::Phase::Idle || self->pending_start || self->current)
         return false;

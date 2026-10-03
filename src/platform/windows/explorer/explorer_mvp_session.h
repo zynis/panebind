@@ -34,6 +34,7 @@ struct MvpEvidenceEvent final {
     std::optional<bool> receiver_destroyed, raw_registration_removed;
     std::optional<bool> winevent_unhooked, classes_unregistered;
     std::optional<std::uint32_t> win32_error;
+    std::optional<std::uint32_t> isolation_timeout_ms;
     std::optional<std::uint32_t> shield_route_message;
     std::optional<std::uintptr_t> shield_route_wparam, shield_route_capture;
     std::optional<operations::GestureShieldCaptureFacts> shield_capture;

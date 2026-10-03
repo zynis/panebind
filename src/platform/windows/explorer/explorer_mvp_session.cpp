@@ -343,6 +343,7 @@ struct ExplorerMvpSession::Impl final {
                 }
             }
             if (item.generation) event.generation = item.generation;
+            if (item.isolation_timeout_ms) event.isolation_timeout_ms = item.isolation_timeout_ms;
             event.overlay = reinterpret_cast<std::uintptr_t>(item.overlay);
             if (!record(event)) return;
         }
@@ -1243,6 +1244,7 @@ bool ExplorerMvpSession::Impl::pump() {
                 break;
             }
             if (event.generation) evidence.generation = event.generation;
+            if (event.isolation_timeout_ms) evidence.isolation_timeout_ms = event.isolation_timeout_ms;
             evidence.overlay = reinterpret_cast<std::uintptr_t>(event.overlay);
             if (!record(evidence)) break;
             if (event.kind == op::GestureShieldEventKind::IsolationReady) {
