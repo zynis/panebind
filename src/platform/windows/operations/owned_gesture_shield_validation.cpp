@@ -1787,6 +1787,34 @@ void writer_owner() noexcept {
     // observed original DOWN anchor and arbitrary event-driven cursor quanta.
     const auto& from = s.initial_source->visible;
     const auto& to = s.initial_control->visible;
+    if (s.completed_gestures != 0) {
+        // The first gesture leaves the source already snapped. Repeating
+        // only that same target correctly yields `already_exact`, not a new
+        // native attempt. Exercise a real free placement before returning to
+        // snap, still computed from THIS gesture's original DOWN/window anchor.
+        const g::Rect free_target{from.left() - 48, from.top() + 32,
+                                  from.right() - 48, from.bottom() + 32};
+        const POINT free_cursor{s.down_point.x - 48, s.down_point.y + 32};
+        if (!work_area_contains(free_target)) return false;
+        Sleep(150); // Guest driver input spacing, not product cursor polling.
+        const auto attempts_before = s.native_attempts.load();
+        const bool followed = move_cursor(free_cursor) &&
+            wait_for(s.raw_notice, 2000, "followup_raw_free_continuation") &&
+            process_raw_continuations() &&
+            wait_for(s.writer_receipt, 2000, "followup_actual_free_writer_receipt");
+        const auto actual_free = followed ? capture(s.source) : std::nullopt;
+        const bool free_exact = actual_free && actual_free->visible == free_target &&
+            s.native_attempts > attempts_before && s.writer_failures == 0 &&
+            !s.snapped_exact && !s.retired && owned_capture_live();
+        record("followup_free_placement_verdict", ",\"generation\":" +
+            std::to_string(s.generation.load()) + ",\"target\":" +
+            rect_json(free_target) + ",\"actual_visible\":" +
+            (actual_free ? rect_json(actual_free->visible) : "null") +
+            ",\"actual_native_attempt_added\":" +
+            boolean(s.native_attempts > attempts_before) +
+            ",\"exact_free_before_resnap\":" + boolean(free_exact));
+        if (!free_exact) return false;
+    }
     const auto dx = to.left() - from.right() - 5;
     const auto dy = to.top() - from.top() + 4;
     const auto x = static_cast<std::int64_t>(s.down_point.x) + dx;
