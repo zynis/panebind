@@ -44,8 +44,6 @@ constexpr wchar_t guest_output[] = L"C:\\PaneBindMVP1\\Output\\";
 constexpr ULONG_PTR test_tag = 0x50424D56; // Owned SendInput tag; Raw has no tag.
 constexpr DWORD shield_deadline_ms = 30000;
 constexpr UINT msg_writer_notice = WM_APP + 17;
-constexpr UINT msg_test_capture_takeover = WM_APP + 18;
-constexpr UINT msg_test_capture_release = WM_APP + 19;
 
 struct RawSample { POINT cursor{}; std::uint64_t packet{}, tick{}; };
 
@@ -658,7 +656,8 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
             ",\"topmost_retry_attempted\":" +
             boolean(event.topmost_retry_attempted) +
             ",\"observed_exstyle\":" +
-            std::to_string(event.observed_exstyle) + shield_setup_json(event));
+            std::to_string(event.observed_exstyle) + shield_setup_json(event) +
+            (event.capture.owner_thread_id ? shield_capture_json(event.capture) : std::string{}));
         break;
     }
 }
@@ -700,33 +699,6 @@ LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
         return DefWindowProcW(hwnd, message, wparam, lparam);
     }
     switch (message) {
-    case msg_test_capture_takeover: {
-        // Guest-guarded fault actor, not product capture recovery. All HWNDs
-        // belong to this test nonce and this UI thread. The product must only
-        // observe its loss and abort; it must not release this control HWND.
-        if (s.scenario != "capture-lost" || hwnd != s.source ||
-            !same_owned(s.control) || !left_high() || !owned_capture_live()) return 0;
-        const HWND previous = SetCapture(s.control);
-        const HWND actual = GetCapture();
-        record("test_owned_capture_takeover", ",\"control\":" +
-            std::to_string(hwnd_number(s.control)) + ",\"previous_capture\":" +
-            std::to_string(hwnd_number(previous)) + ",\"actual_capture\":" +
-            std::to_string(hwnd_number(actual)) +
-            ",\"actor\":\"guest_test_owned_ui_thread\"");
-        return actual == s.control;
-    }
-    case msg_test_capture_release: {
-        if (s.scenario != "capture-lost" || hwnd != s.source ||
-            !same_owned(s.control) || GetCapture() != s.control) return 0;
-        const HWND before = GetCapture();
-        const bool released = ReleaseCapture() != FALSE;
-        const HWND after = GetCapture();
-        record("test_owned_capture_release", ",\"before\":" +
-            std::to_string(hwnd_number(before)) + ",\"after\":" +
-            std::to_string(hwnd_number(after)) + ",\"released\":" + boolean(released) +
-            ",\"actor\":\"guest_test_owned_ui_thread_not_product_cleanup\"");
-        return released && !after;
-    }
     case WM_NCHITTEST:
         if (hwnd == s.source && s.trace_click_route) {
             const auto extra = GetMessageExtraInfo();
@@ -1535,22 +1507,56 @@ void writer_owner() noexcept {
             s.overlay_destroyed && s.hotkey_unregistered && s.native_attempts == 0 &&
             !s.normal_removal_requested;
     }
-    DWORD_PTR takeover_result{};
-    const bool takeover = SendMessageTimeoutW(s.source, msg_test_capture_takeover, 0, 0,
-        SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 1000, &takeover_result) && takeover_result;
-    const bool lost = takeover && wait_for(s.capture_lost, 1500, "actual_capture_lost");
+    // Bounded test-only fault, delivered to the current exact OWN overlay.
+    // Its unchanged DefWindowProc processes real WM_CANCELMODE/ReleaseCapture
+    // on its owning thread, producing actual WM_CAPTURECHANGED. Neither this
+    // driver nor the product takes/releases another thread's capture HWND.
+    const HWND overlay = s.overlay;
+    const DWORD owner_thread = s.shield_thread;
+    DWORD overlay_pid{};
+    GUITHREADINFO before{sizeof(before)};
+    const bool exact_overlay = overlay && IsWindow(overlay) &&
+        GetWindowThreadProcessId(overlay, &overlay_pid) == owner_thread &&
+        overlay_pid == GetCurrentProcessId() && s.authorized_end &&
+        s.native_ends == 1 && s.cancel_attempts == 1 && !s.retired &&
+        !s.matching_raw_up && left_high() && guest_desktop() &&
+        GetForegroundWindow() == s.source &&
+        GetGUIThreadInfo(owner_thread, &before) && before.hwndCapture == overlay &&
+        !before.hwndMoveSize && !before.hwndMenuOwner &&
+        !(before.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
+                          GUI_POPUPMENUMODE | GUI_INMOVESIZE));
+    record("test_owned_shield_cancel_capture_loss_permission", ",\"generation\":" +
+        std::to_string(s.generation) + ",\"overlay\":" + std::to_string(hwnd_number(overlay)) +
+        ",\"owner_thread\":" + std::to_string(owner_thread) +
+        ",\"actual_owner_capture_before\":" + std::to_string(hwnd_number(before.hwndCapture)) +
+        ",\"exact_overlay\":" + boolean(exact_overlay) + ",\"api_entered\":false");
+    if (!exact_overlay) return false;
+    DWORD_PTR cancel_result{};
+    SetLastError(0);
+    const bool returned = SendMessageTimeoutW(overlay, WM_CANCELMODE, 0, 0,
+        SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 1000, &cancel_result) != 0;
+    const DWORD error = returned ? 0 : GetLastError();
+    GUITHREADINFO after{sizeof(after)};
+    const bool after_available = GetGUIThreadInfo(owner_thread, &after) != FALSE;
+    record("test_owned_shield_cancel_capture_loss", ",\"generation\":" +
+        std::to_string(s.generation) + ",\"overlay\":" + std::to_string(hwnd_number(overlay)) +
+        ",\"message\":" + std::to_string(WM_CANCELMODE) +
+        ",\"api_entered\":true,\"returned\":" + boolean(returned) +
+        ",\"message_result\":" + std::to_string(cancel_result) +
+        ",\"error\":" + std::to_string(error) + ",\"owner_gui_after_available\":" +
+        boolean(after_available) + ",\"actual_owner_capture_after\":" +
+        (after_available ? std::to_string(hwnd_number(after.hwndCapture)) : "null") +
+        ",\"source_cancel_attempts\":" + std::to_string(s.cancel_attempts.load()) +
+        ",\"actor\":\"guest_test_driver_exact_owned_overlay\"");
+    const bool lost = returned && after_available && !after.hwndCapture &&
+        wait_for(s.capture_lost, 1500, "actual_capture_lost");
     const bool gone = lost && wait_for(s.isolation_gone, 2000, "capture_loss_abort");
-    GUITHREADINFO gui{sizeof(gui)};
-    const bool control_capture_preserved = gone && GetGUIThreadInfo(s.source_thread, &gui) &&
-        gui.hwndCapture == s.control;
-    DWORD_PTR release_result{};
-    const bool test_released = control_capture_preserved &&
-        SendMessageTimeoutW(s.source, msg_test_capture_release, 0, 0,
-            SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 1000, &release_result) && release_result;
-    const bool raw_cleanup = test_released && release_owned_left("capture_loss_test_cleanup");
+    const bool held_at_removal = left_high();
+    const bool raw_cleanup = gone && held_at_removal &&
+        release_owned_left("capture_loss_test_cleanup");
     record("capture_loss_verdict", ",\"actual_capture_lost\":" + boolean(lost) +
-        ",\"test_control_capture_preserved_by_product\":" + boolean(control_capture_preserved) +
-        ",\"test_only_capture_release\":" + boolean(test_released) +
+        ",\"held_at_removal\":" + boolean(held_at_removal) +
+        ",\"source_cancel_attempts\":" + std::to_string(s.cancel_attempts.load()) +
         ",\"normal_removal\":" + boolean(s.normal_removal_requested));
     return raw_cleanup && s.retired && s.overlay_destroyed && s.hotkey_unregistered &&
         s.native_attempts == 0 && !s.normal_removal_requested && !s.own_capture_released;

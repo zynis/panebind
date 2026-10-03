@@ -199,6 +199,7 @@ struct GestureShieldEvent {
     bool foreground_gui_available{};
     HWND foreground_capture{};
     HWND foreground_move_size{};
+    HWND foreground_menu_owner{};
     DWORD foreground_gui_flags{};
     POINT cursor_now{};
     bool cursor_available{};

@@ -335,6 +335,8 @@ struct ExplorerMvpSession::Impl final {
                     item.kind == op::GestureShieldEventKind::ContextLost ? "context_lost_observed" :
                     "resource_failure_observed";
                 event = event_for(MvpEvidenceKind::Resource, current, reason);
+                if (item.kind == op::GestureShieldEventKind::ContextLost &&
+                    item.capture.owner_thread_id) event.shield_capture = item.capture;
                 if (item.kind == op::GestureShieldEventKind::ResourceFailure) {
                     event.win32_error = item.win32_error;
                     copy_shield_setup(event, item);
@@ -1222,6 +1224,7 @@ bool ExplorerMvpSession::Impl::pump() {
             case op::GestureShieldEventKind::ContextLost:
                 evidence = event_for(MvpEvidenceKind::Resource, current,
                                      "context_lost_observed");
+                if (event.capture.owner_thread_id) evidence.shield_capture = event.capture;
                 break;
             case op::GestureShieldEventKind::ResourceFailure:
                 evidence = event_for(MvpEvidenceKind::Resource, current,

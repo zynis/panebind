@@ -94,4 +94,29 @@ guard、具名 GUI/capture clear、button clear、actual root 校验后执行；
 placement。不是 capture 机制反例。按同一 exact guest 范围修正 owned 启动
 激活：测试启动 click 明确独立于实际手势，Raw receiver 在激活之后启动，
 不重置或补造手势计数。失败批次原始日志保持，继续新身份定向验证。
+
+## 第五批新增风险观察
+
+SHA `a614a6a39474271c442797057b6246b6fbf0c2a5`，RunId
+`d1a7fbfe68d74ca2acb3deda5eee1f51`：
+
+| 场景 | 原始证据与结果 |
+| --- | --- |
+| END 后 capture-held F11 | 71 行，真实 hotkey、按住时 self release/撤罩、再真实 cleanup Raw UP，PASS；hash `96DF3A0C8D35D64871FB7AB377841766632B3D1A0AD513EAFA28A5E83BDC82C5` |
+| END 后早 UP | 62 行，真实 END/Raw UP、capture/API placement 0、abort cleanup，PASS；hash `EC13A20AEB2014A8B68B24214B655A00283C70391734D9B9004C140162B57833` |
+| capture authority 撤回 | 66 行，真实拒绝 attempted=false、没有 SetCapture/API placement，PASS；hash `27B9C86976C4EEE7EF1C5C3A29BCD22D35D7331938D26235EC18F5BC971D4896` |
+| capture-lost 原触发 | 64 行 FAIL；hash `EFDD88F286098BCD5A6A0FF4C9BF71305E3C3A04073B858D0FB9C4812F8FC46B` |
+
+最后一项 source UI 的 control SetCapture(actual=459474) 未让 resource overlay
+262894 收到 WM_CAPTURECHANGED；两个具名线程不能合成“全桌面唯一捕获”的证明。
+driver 期望没有实际成立，不能制造 CaptureLost 或改成 PASS。最后 left_high=true，
+只销毁专属 guest PID 1440 隔离该测试失败，不算输入 cleanup PASS；其他场景已
+通过的 actual cleanup 不受此重分类覆盖。后续改为精确自有 shield 的一次 bounded
+WM_CANCELMODE，让 DefWindowProc 真实释放并观察 capturechanged；不触碰 foreign
+capture、不补 UP。source 原 cancel 仍只有一次。
+
+同时复核本代已捕获期间的 Raw GUI 上下文：foreground/source capture 若非
+本代自有 overlay，则由资源线程基于实际 Raw 快照撤销并退出，不等 writer。
+这是事件驱动的上下文补齐，不新增 hook/轮询。writer-stall、normal 组合 UP、
+Release/Explorer/三窗仍未运行，先完成必要风险与 NormalUp 再放行。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。

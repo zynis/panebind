@@ -269,6 +269,7 @@ struct GestureInputShield::Impl {
     bool capture_acquired{};
     bool capture_release_in_progress{};
     GestureShieldCaptureFacts capture_facts{};
+    std::optional<GestureShieldCaptureFacts> context_capture_facts;
 
     static void record_windowpos(GestureShieldWindowPosFacts& facts,
                                  HWND window, LPARAM lparam) noexcept {
@@ -332,6 +333,51 @@ struct GestureInputShield::Impl {
         SetEvent(command_event);
     }
 
+    void observe_capture_context(const GestureShieldEvent& raw) noexcept {
+        if (!current || !capture_acquired) return;
+        auto facts = capture_facts;
+        facts.actual_after = GetCapture(); // Only this resource thread's capture.
+        facts.foreground_after = raw.observed_foreground;
+        facts.foreground_after_gui = {
+            raw.foreground_thread_id, raw.foreground_gui_available,
+            raw.foreground_capture, raw.foreground_move_size,
+            raw.foreground_menu_owner, raw.foreground_gui_flags};
+        // Normally the already-observed foreground is the exact source. Query
+        // the named source separately only when it is no longer foreground;
+        // never label a different foreground's GUI snapshot as the source.
+        facts.source_after = raw.observed_foreground == current->source ?
+            facts.foreground_after_gui : gui_facts(current->thread_id);
+        facts.owner_after = gui_facts(thread_id);
+        facts.failure = GestureShieldCaptureFailure::None;
+        if (!exact_source(*current)) facts.failure = GestureShieldCaptureFailure::SourceIdentity;
+        else if (raw.observed_foreground != current->source)
+            facts.failure = GestureShieldCaptureFailure::Foreground;
+        else if (raw.foreground_process_id != current->process_id ||
+                 raw.foreground_thread_id != current->thread_id)
+            facts.failure = GestureShieldCaptureFailure::SourceIdentity;
+        else if (facts.actual_after != overlay)
+            facts.failure = GestureShieldCaptureFailure::Readback;
+        if (facts.failure == GestureShieldCaptureFailure::None) {
+            for (const auto& gui : {facts.source_after, facts.foreground_after_gui,
+                                    facts.owner_after}) {
+                if (!gui.available) facts.failure = GestureShieldCaptureFailure::GuiQuery;
+                else if (gui.capture && gui.capture != overlay)
+                    facts.failure = GestureShieldCaptureFailure::ForeignCapture;
+                else if (gui.move_size || (gui.flags & GUI_INMOVESIZE))
+                    facts.failure = GestureShieldCaptureFailure::MoveSize;
+                else if (!gui_not_moving_or_menu(gui))
+                    facts.failure = GestureShieldCaptureFailure::MenuMode;
+                if (facts.failure != GestureShieldCaptureFailure::None) break;
+            }
+        }
+        if (facts.failure != GestureShieldCaptureFailure::None) {
+            // First contradictory actual receipt wins. Normal Raw UP with a
+            // clear source GUI is legal while waiting for the real legacy UP.
+            if (!context_capture_facts) context_capture_facts = facts;
+            request_context_removal(); // Independent of the geometry writer.
+        }
+    }
+
     static LRESULT CALLBACK receiver_procedure(HWND window, UINT message,
                                                 WPARAM wparam, LPARAM lparam) noexcept {
         if (message == WM_NCCREATE) {
@@ -381,6 +427,7 @@ struct GestureInputShield::Impl {
                     if (event.foreground_gui_available) {
                         event.foreground_capture = gui.hwndCapture;
                         event.foreground_move_size = gui.hwndMoveSize;
+                        event.foreground_menu_owner = gui.hwndMenuOwner;
                         event.foreground_gui_flags = gui.flags;
                     }
                 }
@@ -394,6 +441,10 @@ struct GestureInputShield::Impl {
                     self->capture_revoked = true;
                 }
                 self->emit(event);
+                // Raw UP is delivered first so pending movement is retired
+                // immediately. Conflicting GUI capture is a separate observed
+                // ContextLost fact, never a fabricated WM_CAPTURECHANGED.
+                self->observe_capture_context(event);
                 if (self->current && !self->active_identity())
                     self->request_context_removal();
             }
@@ -922,6 +973,10 @@ struct GestureInputShield::Impl {
             event.kind = GestureShieldEventKind::ContextLost;
             event.generation = current->generation;
             event.overlay = overlay;
+            if (context_capture_facts) {
+                event.capture = *context_capture_facts;
+                context_capture_facts.reset();
+            }
             emit(event);
             (void)remove_overlay(GestureShieldRemovalReason::ContextLost);
         }
@@ -968,6 +1023,7 @@ struct GestureInputShield::Impl {
         capture_acquired = false;
         capture_release_in_progress = false;
         capture_facts = {};
+        context_capture_facts.reset();
         capture_revoked = false;
         SetupDiagnostics setup{};
         const bool created = create_overlay(*start, setup);
