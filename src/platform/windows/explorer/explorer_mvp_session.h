@@ -27,6 +27,7 @@ struct MvpEvidenceEvent final {
     std::optional<MvpGestureRoute> route;
     std::string_view reason{"none"};
     std::optional<core::geometry::Point> cursor;
+    std::optional<core::geometry::Point> raw_observed_cursor;
     std::optional<core::geometry::Rect> initial_visible, target_visible;
     std::optional<core::geometry::Rect> actual_visible, actual_positioning;
     std::optional<bool> attempted, succeeded, outcome_known, geometry_exact;

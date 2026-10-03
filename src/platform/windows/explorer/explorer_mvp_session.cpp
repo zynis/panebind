@@ -1097,7 +1097,14 @@ void ExplorerMvpSession::Impl::raw_motion(const op::GestureShieldEvent& event) {
         fail("motion_continuity_or_context_lost", b::MoveHandoffEscapeReason::ContextLost);
         return;
     }
-    const POINT cursor = event.cursor_now;
+    // A queued receiver-dispatch snapshot is historical, not the owner's
+    // current cursor. This post-handoff Raw event triggers ONE fresh read;
+    // no polling, replay, new input authority or replacement DOWN anchor.
+    POINT cursor{};
+    if (!GetCursorPos(&cursor)) {
+        fail("motion_current_cursor_unavailable", b::MoveHandoffEscapeReason::ContextLost);
+        return;
+    }
     const bool authority = live_write_authority(*current, cursor);
     const g::Point point{cursor.x, cursor.y};
     if (!current->motion.sample_cursor(current->generation, point, qpc(),
@@ -1149,6 +1156,8 @@ void ExplorerMvpSession::Impl::raw_motion(const op::GestureShieldEvent& event) {
     const auto actual = receipt->after ? receipt->after->visible : g::Rect{};
     (void)current->motion.write_result(*plan, receipt->exact, actual);
     auto evidence = event_for(MvpEvidenceKind::Writer, current, receipt->reason);
+    evidence.cursor = point;
+    evidence.raw_observed_cursor = g::Point{event.cursor_now.x, event.cursor_now.y};
     evidence.raw_sequence = event.raw_sequence;
     evidence.quantum = receipt->quantum;
     evidence.target_visible = receipt->target_visible;

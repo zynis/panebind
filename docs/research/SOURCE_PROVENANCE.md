@@ -51,6 +51,14 @@ owned 现场 Gate 通过后的 Explorer driver 桌面修正，实际补读 Micro
 把物理 console session 等同所有可交互 guest 会话；未知仍拒绝。官方 live 页、
 同日 review、无代码示例复制/适配；没有修改系统会话/权限/远程配置。
 
+本轮 owned 连续手势的实际反例又触发对既有
+[GetCursorPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcursorpos)
+和 [WM_INPUT](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-input) 的 scoped
+官方补读（同日 live pages，无代码复用）：合法 post-handoff Raw event 作为
+驱动信号，owner 处理时只读一次当前 cursor/当前 QPC；receiver 历史 cursor
+单独保留，不声称它与具体合成输入存在因果一一对应。缺当前 cursor 或权限事实
+仍拒绝，不轮询、不更换 DOWN/窗口锚点、不增加输入来源或产品 SendInput。
+
 2026-10-03 NormalUp 两种唯一 UP 形式均失败后，只读补查
 [AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
 （live official page）。它共享 input/focus/key states，重置 GetKeyState/

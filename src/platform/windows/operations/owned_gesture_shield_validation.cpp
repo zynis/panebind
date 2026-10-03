@@ -1199,8 +1199,7 @@ void writer_owner() noexcept {
 }
 
 [[nodiscard]] bool process_raw_continuations(
-    std::optional<POINT> expected_cursor = std::nullopt,
-    std::uint64_t after_packet = 0) noexcept {
+    std::optional<POINT> expected_cursor = std::nullopt) noexcept {
     std::deque<RawSample> batch;
     {
         std::lock_guard lock{s.raw_mutex};
@@ -1218,7 +1217,23 @@ void writer_owner() noexcept {
                 std::to_string(sample.packet));
             continue;
         }
-        const auto facts = write_facts(sample.cursor);
+        // Raw dispatch wakes this owner; its captured cursor is historical
+        // receiver-queue evidence, not the cursor at product processing time.
+        // Observe the current position once on the consuming owner, with a
+        // corresponding fresh tick. No polling or synthetic-input attribution.
+        POINT cursor{};
+        const bool cursor_available = GetCursorPos(&cursor) != FALSE;
+        const auto processing_tick = qpc();
+        if (!cursor_available) {
+            record("fresh_processing_cursor_failure", ",\"packet\":" +
+                std::to_string(sample.packet) + ",\"generation\":" +
+                std::to_string(s.generation.load()));
+            if (!s.matching_raw_up)
+                retire("fresh_processing_cursor_unavailable",
+                       b::MoveHandoffEscapeReason::ContextLost);
+            continue;
+        }
+        const auto facts = write_facts(cursor);
         if (facts.decision == op::MoveSampleDecision::DropStale) {
             record("raw_snapshot_stale", ",\"packet\":" +
                 std::to_string(sample.packet));
@@ -1228,7 +1243,7 @@ void writer_owner() noexcept {
         const auto motion = s.motion.load();
         const bool sample_created = facts_processable &&
             motion->sample_cursor(s.generation,
-                {sample.cursor.x, sample.cursor.y}, sample.tick,
+                {cursor.x, cursor.y}, processing_tick,
                 facts.active, facts.stable, facts.hit);
         const bool model_retired_after = motion->retired(s.generation);
         const auto dispatch = op::classify_move_cursor_dispatch(
@@ -1236,8 +1251,12 @@ void writer_owner() noexcept {
         record("cursor_dispatch", ",\"generation\":" +
             std::to_string(s.generation.load()) + ",\"packet\":" +
             std::to_string(sample.packet) + ",\"cursor\":[" +
-            std::to_string(sample.cursor.x) + "," + std::to_string(sample.cursor.y) +
-            "],\"stable\":" + boolean(facts.stable) +
+            std::to_string(cursor.x) + "," + std::to_string(cursor.y) +
+            "],\"raw_observed_cursor\":[" + std::to_string(sample.cursor.x) + "," +
+            std::to_string(sample.cursor.y) + "],\"raw_observed_qpc\":" +
+            std::to_string(sample.tick) + ",\"processing_cursor_qpc\":" +
+            std::to_string(processing_tick) + ",\"processing_cursor_available\":true" +
+            ",\"stable\":" + boolean(facts.stable) +
             ",\"active\":" + boolean(facts.active) + ",\"hit\":" + boolean(facts.hit) +
             ",\"static_context\":" + boolean(facts.context) +
             ",\"context_rejection\":\"" + std::string(facts.context_rejection) +
@@ -1275,8 +1294,7 @@ void writer_owner() noexcept {
         const bool accepted = s.writer && s.writer->offer({plan->generation, plan->quantum,
                                                           plan->target_visible, plan->snapped});
         const bool expected_sample = !expected_cursor ||
-            (sample.packet > after_packet && sample.cursor.x == expected_cursor->x &&
-             sample.cursor.y == expected_cursor->y);
+            (cursor.x == expected_cursor->x && cursor.y == expected_cursor->y);
         offered |= accepted && expected_sample;
         record("cursor_quantum", ",\"packet\":" +
             std::to_string(sample.packet) + ",\"quantum\":" +
@@ -1343,16 +1361,16 @@ void writer_owner() noexcept {
                                             std::string_view label) noexcept {
     // One test input, then at most two event notifications within one 2 s
     // budget. This is not cursor polling or repeated SendInput. A queued
-    // duplicate from an earlier move is legal but cannot stand in for the
-    // requested new cursor observation or a product writer receipt.
-    const auto before_packet = s.raw_sequence.load();
+    // duplicate from an earlier move is legal. There is no proven one-to-one
+    // relation between Raw packet identity and this SendInput command; only
+    // the actual product-owner position and writer receipt prove the target.
     if (!move_cursor(target)) return false;
     const auto deadline = GetTickCount64() + 2000;
     for (unsigned notification = 0; notification != 2; ++notification) {
         const auto now = GetTickCount64();
         if (now >= deadline || !wait_for(s.raw_notice,
                 static_cast<DWORD>(deadline - now), label)) return false;
-        if (process_raw_continuations(target, before_packet)) return true;
+        if (process_raw_continuations(target)) return true;
         if (s.retired || s.matching_raw_up) return false;
     }
     return false;

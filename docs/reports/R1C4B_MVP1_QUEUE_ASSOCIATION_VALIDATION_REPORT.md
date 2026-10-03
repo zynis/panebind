@@ -143,3 +143,20 @@ false 且仍 active，入口反而将其 retire；同样，取走 Raw batch 后�
 version/model 分流记录用于解释新证据，不把只诊断的 last confirmed frame 当授权。
 生产共用 3-BOOL dispatch 谓词与实际 Move/writer 组合定向测试覆盖 duplicate 后
 仍可下一 changed placement、真实 facts/UP 仍拒绝；旧连续性门槛完全保留。
+
+## 第四批：历史 Raw cursor 与处理时当前 cursor
+
+RUNTIME `eb84aac0c1950add2a8a6f2fb6594cbd2f37fa1b`，RunId
+`ace0ca9967c94927a5e08ea1d33c36fc`，154 行，hash
+`C64215E17D59831D35CC4735254AF70A4067B02DA63D931520F7256C1F42A234`。
+seq132 明确显示所有权限/命中/实际 frame continuity 都有效，版本3/Expected，
+receiver 历史 cursor `[161,112]` 被正确当成 duplicate/NoNewPlan，不再退休。
+driver 当前 GetCursorPos 已真实回读 `[204,84]`，等待其历史 Raw 样本 2 s 未得到
+新计划，整体仍 FAIL。不能证明该 packet10 对应哪一次 SendInput，也不推定为
+操作系统或 AttachThreadInput 的根因。首代及最后 cleanup 两UP/own release/
+detach 仍真实闭环。精确 guest PID `11856` 与本轮任务清理，旧输出哈希不变。
+
+最小修正现有 owner 边界：post-handoff Raw motion 事件仍是唯一驱动信号，
+处理时用现有 GetCursorPos 一次 fresh 当前 cursor/QPC 做意图与权限判断；
+receiver 历史坐标另记，不重发 input/轮询，也不把历史packet watermark当作
+某一次合成 MOVE 的因果证明。owned 与 Explorer 同样处理，原始 DOWN 不变。

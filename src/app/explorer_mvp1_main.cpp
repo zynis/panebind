@@ -304,6 +304,8 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"reason\":" << quote(event.reason);
         if (event.cursor)
             fields << ",\"cursor\":" << point_json(*event.cursor);
+        if (event.raw_observed_cursor)
+            fields << ",\"raw_observed_cursor\":" << point_json(*event.raw_observed_cursor);
         if (event.initial_visible)
             fields << ",\"initial_visible\":" << rect_json(*event.initial_visible);
         if (event.target_visible)
