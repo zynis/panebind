@@ -86,4 +86,12 @@ guard、具名 GUI/capture clear、button clear、actual root 校验后执行；
 消息等待，继续以实际 foreground/桌面/输入事实验收，不调整 foreground policy。
 产品 shield 不抢前台，研究合同不变。第三批 task 与 guest PID 6280 已清理，
 部署及全部原始结果保留。capture 风险和 normal 组合 UP 仍未运行。
+
+第四批 `a6eb42fefd4242c990d2226d6d203e59`，SHA
+`8b4673b4d15fa9a1023348b09aaa574c98ed2e78`：legacy-control 再次真实通过，
+随后 capture-stop 的测试预检通过，但 owned source 本身未取得 foreground。
+该场景只生成 startup/resource/UI-ready/退出 7 行，无 DOWN、cancel、capture 或
+placement。不是 capture 机制反例。按同一 exact guest 范围修正 owned 启动
+激活：测试启动 click 明确独立于实际手势，Raw receiver 在激活之后启动，
+不重置或补造手势计数。失败批次原始日志保持，继续新身份定向验证。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。

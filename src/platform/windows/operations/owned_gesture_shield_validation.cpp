@@ -61,12 +61,14 @@ struct State {
     std::atomic<bool> log_ok{true};
     std::uint64_t log_sequence{};
     HANDLE ui_ready{}, ui_gone{}, legacy_down{}, native_start{}, native_end{}, modal_return{};
+    HANDLE bootstrap_down{}, bootstrap_up{};
     HANDLE raw_down{}, raw_up{}, legacy_up{}, isolation_ready{}, isolation_gone{};
     HANDLE capture_ready{}, capture_failure{}, capture_lost{}, capture_released{};
     HANDLE hotkey_stop{}, writer_receipt{}, writer_stall_started{}, writer_gone{}, raw_notice{};
     std::atomic<HWND> source{nullptr}, control{nullptr}, overlay{nullptr};
     std::atomic<DWORD> source_thread{0};
     std::atomic<bool> held{false}, retired{false}, armed{false};
+    std::atomic<bool> bootstrap_phase{true};
     std::atomic<bool> tagged_down{false}, associated_raw_down{false};
     std::atomic<bool> authorized_start{false};
     std::atomic<bool> authorized_end{false}, capture_authority{false};
@@ -685,6 +687,18 @@ void record_owned_mouse_route(HWND hwnd, UINT message, WPARAM wparam,
 
 LRESULT CALLBACK owned_wndproc(HWND hwnd, UINT message, WPARAM wparam,
                                LPARAM lparam) noexcept {
+    if (s.bootstrap_phase && hwnd == s.source &&
+        (message == WM_LBUTTONDOWN || message == WM_LBUTTONUP)) {
+        // A real guest-only activation click before Raw registration is not
+        // this test gesture's DOWN/UP and never grants product authority.
+        const bool tagged = GetMessageExtraInfo() == test_tag;
+        record("bootstrap_client_message", ",\"message\":" + std::to_string(message) +
+            ",\"source\":" + std::to_string(hwnd_number(hwnd)) +
+            ",\"tagged\":" + boolean(tagged) + ",\"foreground\":" +
+            std::to_string(hwnd_number(GetForegroundWindow())));
+        if (tagged) SetEvent(message == WM_LBUTTONDOWN ? s.bootstrap_down : s.bootstrap_up);
+        return DefWindowProcW(hwnd, message, wparam, lparam);
+    }
     switch (message) {
     case msg_test_capture_takeover: {
         // Guest-guarded fault actor, not product capture recovery. All HWNDs
@@ -1210,6 +1224,69 @@ void writer_owner() noexcept {
     return false;
 }
 
+[[nodiscard]] bool bootstrap_owned_foreground() noexcept {
+    if (!wait_for(s.ui_ready, 2000, "owned_ui_ready_before_raw_registration") ||
+        !same_owned(s.source) || !same_owned(s.control) || !guest_desktop() ||
+        !virtual_desktop_rect(s.virtual_rect) || left_high()) return false;
+    if (GetForegroundWindow() == s.source) {
+        s.bootstrap_phase = false;
+        record("owned_foreground_bootstrap", ",\"already_foreground\":true,\"test_click\":false");
+        return true;
+    }
+    RECT client{};
+    if (!GetClientRect(s.source, &client)) return false;
+    POINT point{client.left + (client.right - client.left) / 2,
+                client.top + (client.bottom - client.top) / 2};
+    if (!ClientToScreen(s.source, &point) || !move_cursor(point)) return false;
+    const auto clear_gui = [](DWORD thread) noexcept {
+        GUITHREADINFO gui{sizeof(gui)};
+        return thread && GetGUIThreadInfo(thread, &gui) && !gui.hwndCapture &&
+            !gui.hwndMoveSize && !gui.hwndMenuOwner &&
+            !(gui.flags & (GUI_INMENUMODE | GUI_SYSTEMMENUMODE |
+                          GUI_POPUPMENUMODE | GUI_INMOVESIZE));
+    };
+    const auto fresh_route = [&]() noexcept {
+        const HWND foreground = GetForegroundWindow();
+        const DWORD foreground_thread = foreground ?
+            GetWindowThreadProcessId(foreground, nullptr) : 0;
+        DWORD_PTR hit{};
+        POINT actual_cursor{};
+        return same_owned(s.source) && guest_desktop() &&
+            GetCursorPos(&actual_cursor) && actual_cursor.x == point.x &&
+            actual_cursor.y == point.y && root_at(actual_cursor) == s.source &&
+            IsWindowVisible(s.source) && !IsIconic(s.source) && !IsZoomed(s.source) &&
+            clear_gui(s.source_thread) && clear_gui(foreground_thread) &&
+            (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0 &&
+            (GetAsyncKeyState(VK_MBUTTON) & 0x8000) == 0 &&
+            (GetAsyncKeyState(VK_CONTROL) & 0x8000) == 0 &&
+            (GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0 &&
+            (GetAsyncKeyState(VK_MENU) & 0x8000) == 0 &&
+            SendMessageTimeoutW(s.source, WM_NCHITTEST, 0,
+                MAKELPARAM(static_cast<SHORT>(point.x), static_cast<SHORT>(point.y)),
+                SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT, 500, &hit) && hit == HTCLIENT;
+    };
+    if (!fresh_route() || left_high()) return false;
+    record("owned_foreground_bootstrap", ",\"already_foreground\":false,\"test_click\":true,"
+        "\"raw_receiver_started\":false,\"exact_owned_client\":true");
+    const bool sent_down = send_mouse(MOUSEEVENTF_LEFTDOWN, point);
+    const bool actual_down = sent_down && wait_for(s.bootstrap_down, 1500,
+                                                  "actual_bootstrap_client_down");
+    // Even failure cleanup is bound to the fresh owned client route. This
+    // test-only click never releases or takes another window's capture.
+    const bool sent_up = sent_down && fresh_route() &&
+        send_mouse(MOUSEEVENTF_LEFTUP, point);
+    const bool actual_up = sent_up && wait_for(s.bootstrap_up, 1500,
+                                              "actual_bootstrap_client_up");
+    Sleep(30); // Bounded guest driver key-state readback, not product polling.
+    const bool activated = actual_down && actual_up && !left_high() &&
+        same_owned(s.source) && GetForegroundWindow() == s.source && fresh_route();
+    record("owned_foreground_bootstrap_result", ",\"actual_down\":" + boolean(actual_down) +
+        ",\"actual_up\":" + boolean(actual_up) + ",\"foreground_owned\":" + boolean(activated) +
+        ",\"left_high\":" + boolean(left_high()) + ",\"raw_receiver_started\":false");
+    if (activated) s.bootstrap_phase = false;
+    return activated;
+}
+
 [[nodiscard]] bool prepare_owned() noexcept {
     if (!wait_for(s.ui_ready, 2000, "owned_ui_ready") ||
         !same_owned(s.source) || !same_owned(s.control) ||
@@ -1663,6 +1740,8 @@ void writer_owner() noexcept {
     auto make = [](bool manual = true) { return CreateEventW(nullptr, manual, FALSE, nullptr); };
     s.ui_ready = make();
     s.ui_gone = make();
+    s.bootstrap_down = make();
+    s.bootstrap_up = make();
     s.legacy_down = make();
     s.native_start = make();
     s.native_end = make();
@@ -1681,7 +1760,8 @@ void writer_owner() noexcept {
     s.writer_stall_started = make();
     s.writer_gone = make();
     s.raw_notice = make(false);
-    return s.ui_ready && s.ui_gone && s.legacy_down && s.native_start && s.native_end &&
+    return s.ui_ready && s.ui_gone && s.bootstrap_down && s.bootstrap_up &&
+        s.legacy_down && s.native_start && s.native_end &&
         s.modal_return && s.raw_down && s.raw_up && s.legacy_up &&
         s.isolation_ready && s.isolation_gone && s.hotkey_stop &&
         s.capture_ready && s.capture_failure && s.capture_lost && s.capture_released &&
@@ -1691,6 +1771,7 @@ void writer_owner() noexcept {
 
 void close_signals() noexcept {
     for (HANDLE handle : {s.ui_ready, s.ui_gone, s.legacy_down, s.native_start, s.native_end,
+            s.bootstrap_down, s.bootstrap_up,
             s.modal_return, s.raw_down, s.raw_up, s.legacy_up,
             s.isolation_ready, s.isolation_gone, s.hotkey_stop,
             s.capture_ready, s.capture_failure, s.capture_lost, s.capture_released,
@@ -1791,19 +1872,21 @@ int wmain(int argc, wchar_t** argv) {
                 !s.matching_raw_up && !s.retired && !s.armed && left_high();
         }
     });
-    const bool initialized = s.writer->ready() && s.shield->start();
-    record("resource_start", ",\"initialized\":" + json_bool(initialized));
     std::thread writer_thread;
-    std::thread ui_thread;
+    std::thread ui_thread{ui_owner};
+    const bool bootstrapped = bootstrap_owned_foreground();
+    const bool initialized = bootstrapped && s.writer->ready() && s.shield->start();
+    record("resource_start", ",\"initialized\":" + json_bool(initialized) +
+        ",\"foreground_bootstrap_completed\":" + json_bool(bootstrapped));
     bool result = false;
     if (initialized) {
         writer_thread = std::thread(writer_owner);
-        ui_thread = std::thread(ui_owner);
         result = drive();
     }
     // Test-only cleanup is attempted while the self-owned overlay still
     // exists; never manufacture UP toward a foreign root after shield removal.
-    const bool cleanup_released = release_owned_left("final_guarded_cleanup");
+    const bool cleanup_released = initialized ? release_owned_left("final_guarded_cleanup") :
+        !left_high();
     retire("final_shutdown", b::MoveHandoffEscapeReason::ExplicitStop);
     if (s.shield && s.overlay)
         (void)s.shield->request_remove(s.generation,
