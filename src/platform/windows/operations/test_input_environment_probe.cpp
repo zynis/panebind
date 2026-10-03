@@ -127,6 +127,9 @@ bool guest_guard(std::wstring_view run_id,std::wstring_view evidence_log) {
         CompareStringOrdinal(exe,exe_size,guest_exe,-1,TRUE)!=CSTR_EQUAL)return false;
     constexpr std::array suffixes{L"-preflight-debug-normal.jsonl",L"-preflight-debug-early-up.jsonl",
         L"-preflight-debug-setup-fail.jsonl",L"-preflight-debug-stop.jsonl",
+        L"-preflight-debug-legacy-control.jsonl",L"-preflight-debug-capture-stop.jsonl",
+        L"-preflight-debug-capture-early-up.jsonl",L"-preflight-debug-capture-fail.jsonl",
+        L"-preflight-debug-capture-lost.jsonl",
         L"-preflight-debug-writer-stall.jsonl",L"-preflight-release-normal.jsonl"};
     bool exact_log=false;
     for(const auto* suffix:suffixes){

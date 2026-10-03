@@ -60,4 +60,13 @@ DOWN/UP 对照及新增 capture 风险场景定位，不以未通过 normal 放�
 部署和全部证据保留且 hash 前后不变；guest 销毁不参与产品 verdict。
 
 owned normal：FAIL；其他新增风险场景、Release、Explorer、三窗、真人：NOT_RUN。
+
+## 第二批启动合同缺项（实现问题，已修）
+
+SHA `48e4f6562078be54337543a5785a86f5d4fb2f77`，RunId
+`dc7cb4e7e3294d328eaf1e2c1f142300`。测试输入预检的精确 suffix allowlist
+仍只有旧场景，新增 legacy-control 被返回 78；没有启动 owned，也没有发送
+现场输入。为五个已授权新增场景加入精确 suffix，保留 WDAG/交互 session/
+RunId/目录/EXE/marker 所有保护，不提供 bypass。第二批专属 task、guest PID
+5508 已撤销，包和拒绝记录保留。此失败不算产品或 Sandbox 机制反例。
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。
