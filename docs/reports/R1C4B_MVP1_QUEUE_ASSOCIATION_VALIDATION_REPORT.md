@@ -182,3 +182,22 @@ ReadAllLines 与仍打开的 writer 共享模式冲突，提前发送 Q。产品
 保持未知，完整 malformed 行不能静默吞掉。`tests/check-mvp1-product-log-reader.ps1`
 提取并执行实际生产函数，在仅 FILE_SHARE_READ 的真实打开 writer 下读已完成行、
 忽略 partial tail、完成 tail 后读到新行，PASS；不调用任何 Win32/GUI/input。
+
+## 第六批：临时 Explorer 的实际资格拒绝
+
+RUNTIME `e7db8179205ccbb34430c4326c2e4954d3183768`，RunId
+`0410083a41594eff9d2bc9c8db04bc51`。全部必要 owned 场景通过，自动继续 Explorer。
+driver 确认 exact 新建 A：HWND `787202` / PID `7664` / TID `7500`、唯一 nonce
+路径、baseline count=0。Enter 实际到产品，但 confirm_user_target 返回失败；
+未发行 A token、未绑定三窗、未发 Explorer 手势输入。driver 原始 6 行 hash
+`A346BD2E93690F31A845AC21E3332A3E86054CC1B28D173430DF70D675FB141F`，
+产品 4 行 hash `5B6AA6ECB8170C8ED9A90EBB72782318FEA3FAE39DA97E5266A1C050AC0689CB`。
+精确 guest PID `19732` / 本轮任务清理；输出和包保留。
+
+源码有明确测试准备顺序缺口：旧 driver 在三个 token 请求之后才安排已有的
+正常窗口安全布局，而 token 发行前就要求 native normal、contained 与 safe delta。
+这不证明旧现场一定是哪一项拒绝（旧原因仍 UNKNOWN）。最小改为对已确认
+exact 新 root、path/PID/TID/baseline exclusion 重验后，在确认前执行原有 test-only
+Place，记录真实前后状态/几何；产品资格/授权规则不改。产品失败时补已有
+eligibility reason/code、diagnostic domain/code 与实际 candidate/token 事实，
+使下一现场结果能解释具体拒绝，不能靠通用 reason 或 driver 的 candidate 代替绑定。

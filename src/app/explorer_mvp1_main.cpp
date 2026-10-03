@@ -1,5 +1,6 @@
 ﻿#include "platform/windows/explorer/explorer_mvp_session.h"
 #include "platform/windows/explorer/explorer_mvp_guest_contract.h"
+#include "platform/windows/explorer/explorer_group_capture.h"
 #include "platform/windows/console/sta_console_line_reader.h"
 #include "platform/windows/text_encoding.h"
 
@@ -589,7 +590,34 @@ int run(Evidence& evidence, const std::wstring& run_id,
         const auto answer = read_line(evidence, reader, "target_confirmation");
         if (!answer || !answer->empty()) return stop("target_declined");
         auto confirmed = begin.provisioning->confirm_user_target();
-        if (!confirmed.succeeded()) return stop("target_confirmation_failed");
+        if (!confirmed.succeeded()) {
+            const auto& facts = confirmed.facts;
+            std::ostringstream fields;
+            fields << std::boolalpha << ",\"member\":" << i
+                << ",\"eligibility_reason\":" << quote(
+                    explorer::detail::group_capture_eligibility_name(confirmed.reason))
+                << ",\"eligibility_code\":" << static_cast<int>(confirmed.reason)
+                << ",\"baseline_total_shell_entries\":" << facts.baseline_total_shell_entries
+                << ",\"baseline_reliable_shell_entries\":" << facts.baseline_reliable_shell_entries
+                << ",\"forbidden_preexisting_hwnd_count\":" << facts.forbidden_preexisting_hwnd_count
+                << ",\"post_confirmation_shell_entries\":" << facts.post_confirmation_shell_entries
+                << ",\"exact_new_candidate_count\":" << facts.exact_new_candidate_count
+                << ",\"baseline_exclusion_complete\":" << facts.baseline_exclusion_complete
+                << ",\"preexisting_exact_location_detected\":" << facts.preexisting_exact_location_detected
+                << ",\"unique_new_target\":" << facts.unique_new_target
+                << ",\"exact_target_location\":" << facts.exact_target_location
+                << ",\"browser_observation_active\":" << facts.browser_observation_active
+                << ",\"token_issued\":" << facts.token_issued
+                << ",\"diagnostic\":";
+            if (confirmed.diagnostic) {
+                // Keep the adapter's actual domain/code; free-form detail,
+                // API strings and paths are not new evidence payloads.
+                fields << "{\"domain\":" << static_cast<int>(confirmed.diagnostic->domain)
+                    << ",\"code\":" << confirmed.diagnostic->code << '}';
+            } else fields << "null";
+            evidence.record("target_confirmation_rejected", fields.str());
+            return stop("target_confirmation_failed");
+        }
         const auto& facts = confirmed.facts;
         if (!facts.baseline_exclusion_complete || !facts.unique_new_target ||
             !facts.exact_target_location || !facts.token_issued)

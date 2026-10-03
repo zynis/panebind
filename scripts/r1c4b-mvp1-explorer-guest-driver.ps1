@@ -82,6 +82,11 @@ public static class PaneBindMvpGuestInput {
     [StructLayout(LayoutKind.Sequential)] public struct Point {
         public int X, Y;
     }
+    [StructLayout(LayoutKind.Sequential)] public struct GuiThreadInfo {
+        public uint size, flags;
+        public IntPtr active, focus, capture, menuOwner, moveSize, caret;
+        public Rect caretRect;
+    }
     [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] public struct StartupInfo {
         public uint cb; public string reserved; public string desktop; public string title;
         public uint x,y,xSize,ySize,xCountChars,yCountChars,fillAttribute,flags;
@@ -121,6 +126,7 @@ public static class PaneBindMvpGuestInput {
     static extern IntPtr CreateFileW(string name,uint access,uint share,IntPtr security,
         uint creation,uint attributes,IntPtr template);
     [DllImport("kernel32.dll", SetLastError=true)] public static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll")] static extern void SetLastError(uint error);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool WriteConsoleInputW(
         IntPtr input,[In] InputRecord[] records,uint length,out uint written);
     [DllImport("user32.dll")] static extern IntPtr GetAncestor(IntPtr window,uint flags);
@@ -146,7 +152,15 @@ public static class PaneBindMvpGuestInput {
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(
         IntPtr window,out uint pid);
     [DllImport("user32.dll")] static extern bool IsWindow(IntPtr window);
-    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr window,out Rect rect);
+    [DllImport("user32.dll")] static extern bool IsIconic(IntPtr window);
+    [DllImport("user32.dll")] static extern bool IsZoomed(IntPtr window);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr window);
+    [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr window);
+    [DllImport("user32.dll")] static extern IntPtr GetWindowDpiAwarenessContext(IntPtr window);
+    [DllImport("user32.dll")] static extern bool AreDpiAwarenessContextsEqual(IntPtr first,IntPtr second);
+    [DllImport("user32.dll",SetLastError=true)] static extern IntPtr GetWindowLongPtrW(IntPtr window,int index);
+    [DllImport("user32.dll",SetLastError=true)] static extern bool GetGUIThreadInfo(uint thread,ref GuiThreadInfo info);
+    [DllImport("user32.dll",SetLastError=true)] static extern bool GetWindowRect(IntPtr window,out Rect rect);
     [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(
         IntPtr window,uint attribute,out Rect rect,uint size);
     [DllImport("user32.dll", SetLastError=true)] static extern bool SetWindowPos(
@@ -205,6 +219,54 @@ public static class PaneBindMvpGuestInput {
             GetClassNameW(window,name,name.Capacity)>0&&
             (name.ToString()=="CabinetWClass"||name.ToString()=="ExploreWClass")&&
             nativePid!=0&&nativeTid!=0;
+    }
+    public sealed class RootSnapshot {
+        public long hwnd, foreground, style, extended_style;
+        public int pid, tid;
+        public bool exact_explorer_root, minimized, maximized, visible;
+        public uint dpi;
+        public bool per_monitor_v2;
+        public bool style_available, extended_style_available, outer_rect_available, visible_rect_available;
+        public int style_error, extended_style_error, outer_rect_error, visible_rect_hresult;
+        public int[] outer_rect, visible_rect;
+        public bool gui_available;
+        public int gui_error;
+        public uint gui_flags;
+        public long active, focus, capture, move_size, menu_owner;
+    }
+    public static RootSnapshot ObserveRoot(long value) {
+        var facts=new RootSnapshot();facts.hwnd=value;
+        int pid,tid;
+        facts.exact_explorer_root=ExplorerRoot(value,out pid,out tid);
+        facts.pid=pid;facts.tid=tid;
+        if(!facts.exact_explorer_root) return facts;
+        var window=new IntPtr(value);
+        facts.minimized=IsIconic(window);facts.maximized=IsZoomed(window);
+        facts.visible=IsWindowVisible(window);facts.foreground=GetForegroundWindow().ToInt64();
+        facts.dpi=GetDpiForWindow(window);
+        facts.per_monitor_v2=AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(window),new IntPtr(-4));
+        SetLastError(0);facts.style=GetWindowLongPtrW(window,-16).ToInt64();
+        facts.style_error=Marshal.GetLastWin32Error();
+        facts.style_available=facts.style!=0||facts.style_error==0;
+        SetLastError(0);facts.extended_style=GetWindowLongPtrW(window,-20).ToInt64();
+        facts.extended_style_error=Marshal.GetLastWin32Error();
+        facts.extended_style_available=facts.extended_style!=0||facts.extended_style_error==0;
+        Rect rect;
+        facts.outer_rect_available=GetWindowRect(window,out rect);
+        facts.outer_rect_error=facts.outer_rect_available?0:Marshal.GetLastWin32Error();
+        if(facts.outer_rect_available) facts.outer_rect=new[]{rect.Left,rect.Top,rect.Right,rect.Bottom};
+        facts.visible_rect_hresult=DwmGetWindowAttribute(window,9,out rect,(uint)Marshal.SizeOf(typeof(Rect)));
+        facts.visible_rect_available=facts.visible_rect_hresult==0;
+        if(facts.visible_rect_available) facts.visible_rect=new[]{rect.Left,rect.Top,rect.Right,rect.Bottom};
+        var gui=new GuiThreadInfo();gui.size=(uint)Marshal.SizeOf(typeof(GuiThreadInfo));
+        facts.gui_available=GetGUIThreadInfo((uint)tid,ref gui);
+        facts.gui_error=facts.gui_available?0:Marshal.GetLastWin32Error();
+        if(facts.gui_available) {
+            facts.gui_flags=gui.flags;facts.active=gui.active.ToInt64();facts.focus=gui.focus.ToInt64();
+            facts.capture=gui.capture.ToInt64();facts.move_size=gui.moveSize.ToInt64();
+            facts.menu_owner=gui.menuOwner.ToInt64();
+        }
+        return facts;
     }
     public static int[] Rectangle(long value,bool visible) {
         Rect rect;
@@ -859,6 +921,11 @@ try {
     $script:productStarted = $true
     $script:consoleInput = [PaneBindMvpGuestInput]::AttachInput($script:productPid)
     Record 'product_started' @{ pid=$script:productPid; exact_console_attached=$true }
+    $area = [PaneBindMvpGuestInput]::WorkArea()
+    $width=[int]([Math]::Min(420,($area[2]-300)/2))
+    $height=[int]([Math]::Min(280,($area[3]-300)/2))
+    $left=$area[0]+120; $top=$area[1]+140
+    $places=@(@($left,$top),@(($left+$width),$top),@($left,($top+$height)))
     for ($member=0; $member -lt 3; $member++) {
         $prompt = Wait-ProductRow 'target_prompt' {
             param($row) $row.member -eq $member
@@ -888,6 +955,34 @@ try {
         Record 'target_created' @{ member=$member; directory=$directory;
             hwnd=$newRoot.hwnd; pid=$newRoot.pid; tid=$newRoot.tid;
             baseline_count=$baseline.Count; exact_new_root=$true }
+        $targetSnapshot = [PaneBindMvpGuestInput]::ObserveRoot([long]$newRoot.hwnd)
+        Record 'target_before_confirmation' @{ member=$member; snapshot=$targetSnapshot }
+        if ($targetSnapshot.exact_explorer_root -ne $true -or
+            $targetSnapshot.pid -ne $newRoot.pid -or $targetSnapshot.tid -ne $newRoot.tid) {
+            throw "exact_new_root_identity_changed_before_confirmation:$member"
+        }
+        # The target token is issued only for a normal window with room for a
+        # safe translation. Prepare the already-authorized test-created root
+        # BEFORE confirmation, not after all three tokens have been requested.
+        # This is guest driver setup, never product authority or a mutation of
+        # a baseline/user frame. Recheck exact Shell path and PID/TID first.
+        $root = Exact-Root $member
+        if ($baseline -contains $root.hwnd) {
+            throw "preexisting_root_before_test_layout:$member"
+        }
+        [PaneBindMvpGuestInput]::Place([long]$root.hwnd,$places[$member][0],
+            $places[$member][1],$width,$height)
+        $preparedSnapshot = [PaneBindMvpGuestInput]::ObserveRoot([long]$root.hwnd)
+        Record 'test_layout' @{ member=$member; hwnd=$root.hwnd;
+            visible=$preparedSnapshot.visible_rect; snapshot=$preparedSnapshot;
+            source='guest_test_preconfirmation' }
+        if ($preparedSnapshot.exact_explorer_root -ne $true -or
+            $preparedSnapshot.pid -ne $root.pid -or $preparedSnapshot.tid -ne $root.tid -or
+            $preparedSnapshot.minimized -ne $false -or $preparedSnapshot.maximized -ne $false -or
+            $preparedSnapshot.visible -ne $true -or $preparedSnapshot.outer_rect_available -ne $true -or
+            $preparedSnapshot.visible_rect_available -ne $true) {
+            throw "test_created_normal_layout_not_observed:$member"
+        }
         Console-Line ''
         $confirmed = Wait-ProductRow 'target_confirmed' {
             param($row) $row.member -eq $member
@@ -897,19 +992,6 @@ try {
             $confirmed.exact_location -ne $true) {
             throw "product_target_facts_incomplete:$member"
         }
-    }
-    $area = [PaneBindMvpGuestInput]::WorkArea()
-    $width=[int]([Math]::Min(420,($area[2]-300)/2))
-    $height=[int]([Math]::Min(280,($area[3]-300)/2))
-    $left=$area[0]+120; $top=$area[1]+140
-    $places=@(@($left,$top),@(($left+$width),$top),@($left,($top+$height)))
-    for ($member=0; $member -lt 3; $member++) {
-        $root = Exact-Root $member
-        [PaneBindMvpGuestInput]::Place([long]$root.hwnd,$places[$member][0],
-            $places[$member][1],$width,$height)
-        Record 'test_layout' @{ member=$member; hwnd=$root.hwnd;
-            visible=[PaneBindMvpGuestInput]::Rectangle([long]$root.hwnd,$true);
-            source='guest_test_preconsent' }
     }
     # Align actual DWM-visible edges, not requested outer-window coordinates.
     # This is test-created, pre-consent layout preparation only; the product
