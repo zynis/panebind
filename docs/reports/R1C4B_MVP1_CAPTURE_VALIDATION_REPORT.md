@@ -144,4 +144,58 @@ MsgWait 永不返回 WAIT_TIMEOUT；不新增轮询或计时框架。
 为有界故障触发，内部请求可选择更短的单次截止时间，严格只允许 1..30000ms，
 默认与上限均为30秒。owned writer-stall 请求3000ms，仍运行同一真实资源到期路径；
 不会把3秒测试计为默认30秒实测，更不是性能SLA。Explorer/default 不改变。
+
+## 最终现场检查点：NormalUp 仍失败
+
+RUNTIME `99f8fed4b98f9f2e18d421a85d14e99443572f94`，RunId
+`1deb70437dda4bde90335ecb77e54016`。ZIP
+`58F72C475AEB8D9D3ED47C9B43B84B85C5F263A6835AB7C846EC360EFA423FD6`，
+manifest `77603D504C1E43A78C5074BE61F5EE44168D1A97F63CE26C08C9554E29CAD82C`，
+Debug owned `E9212E077FDCE22573567714B3071B98B455468504E7DA08B7D1D00A6B0B9EC1`，
+Debug Explorer `72FCCF4B988F5CCDC5FE3870A4A544F1654B476455208D980CC72A5EA508F553`。
+
+| 实际 Debug guest 场景 | 结论 |
+| --- | --- |
+| 空白 client 真实 DOWN/UP | PASS，仅输入能力对照 |
+| END 后 capture-held F11 | PASS，真实 hotkey、own release/撤罩及 cleanup UP |
+| END 后早 UP | PASS，零 capture/placement |
+| capture authority 撤回 | PASS，实际拒绝，SetCapture attempted=false |
+| 真实自有 capture loss | PASS，实际 WM_CAPTURECHANGED、abort、不重抢 |
+| 普通 Move 磁吸＋正常 UP | FAIL：exact 写入有，Raw UP 有，legacy UP 无 |
+| 修复后3秒 writer-stall Deadline | NOT_RUN，normal gate 失败后未执行 |
+| 默认30秒 deadline | 未成功实测；第六批 ContextLost 不是 Deadline |
+| Release / Explorer / 三窗 / 真人 | NOT_RUN |
+
+最终 normal 76 行连续合法 JSONL，hash
+`21BB84397D145DA67F6A70EA929B9A2DA43C421EAFA916AD2A42546914A45161`。
+source HWND262356 / TID8092；overlay131436 / owner TID8140。
+真实 END 后建立 capture，foreground 前后为 source；source/foreground GUI
+capture=0、resource GUI capture=overlay。仅为具名线程事实，不是全桌面证明。
+54/55 一次 native placement / exact snapped receipt；59/60 唯一 INPUT
+`MOVE|ABSOLUTE|VIRTUALDESK|LEFTUP`（49157）；61 真实匹配 Raw UP、left=false；
+64 实际 WM_MOUSEMOVE、own capture 仍 overlay；66/67 legacy/正常撤罩等待失败。
+71/73 Shutdown own release / capturechanged / 撤罩，76 clean=true。
+这是 abort 清理，不是 NormalUp。UP 后零额外 placement、没有补发 UP。
+
+UP-only 第一批和组合单次 UP 最终批均失败，而 client UP-only 对照成功。
+现有证据证明非激活遮罩的本线程 capture 回读不足以满足本链路 legacy UP 合同，
+不确定系统内部根因，也不证明必须抢前台。具体缺失能力：保持 source foreground
+时，原手势真实 legacy UP 能被自有资源线程可靠观察。没有证据支持继续改 style、
+堆重试或造 UP；受阻 Explorer/三窗停止，不开放宿主试用。
+
+下一尚未执行候选：仅 guest 研究真实 END 后短暂 `AttachThreadInput` 队列关联，
+再用同一自有 SetCapture。它共享 focus/key states、重置某些键状态，超出当前
+仅 SetCapture 的许可；必须先确认新增影响，不能悄悄引入。是否解决仍 UNKNOWN。
+
+最终 Debug/Release 构建、受影响离线各2/2 PASS；无 interactive CTest/Fix H 重跑。
+标准 origin 已推送 RUNTIME，最终仅报告提交后再核验 HEAD。
+远端仅创建 I:\PaneBindMVP1Runs\ 下七个专属目录：d76bc479…、dc7cb4e7…、
+83cf87ca…、a6eb42fe…、d1a7fbfe…、84bfcddc…、1deb7043…。
+部署和全部证据保留，各批专属 task/guest 已清理，最终 PID6408。
+无新系统功能变更/重启，未修改或停止 CrossRec，未在宿主输入。guest 销毁不计
+产品 cleanup PASS。uat/EXE/ZIP 未入 Git，Recovery Index 未改，无 PR/merge/tag/release。
+
+MVP1_OPERABLE_THREE_WINDOW_CANDIDATE = NOT_DELIVERED
+MVP1_NORMAL_UP = FAIL
+EXPLORER / THREE_WINDOW / HUMAN_UAT = NOT_RUN
 无新系统功能变更或重启；宿主不发送输入；guest 销毁不计产品 cleanup PASS。

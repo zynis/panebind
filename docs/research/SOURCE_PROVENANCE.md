@@ -1,5 +1,12 @@
 # Source Provenance Register
 
+2026-10-03 NormalUp 两种唯一 UP 形式均失败后，只读补查
+[AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
+（live official page）。它共享 input/focus/key states，重置 GetKeyState/
+GetKeyboardState 相关状态，要求两线程都有消息队列且同 desktop。
+仅列为待人类新增范围决策的 guest 候选；未调用、实现、复用代码或实测，
+不将该共享影响推断为当前 SetCapture 许可，不声明它能解决 legacy UP。
+
 ## MVP1 post-END self capture — 2026-10-03
 
 适用：guest-only GestureInputShield capture 生命周期及 legacy UP 收尾。
