@@ -281,7 +281,7 @@ function Write-GuestConfig([string]$configPath, [string]$hostInput, [string]$hos
     </MappedFolder>
   </MappedFolders>
   <LogonCommand>
-    <Command>powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\PaneBindMVP1\Input\guest-run.ps1</Command>
+    <Command>powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File C:\PaneBindMVP1\Input\guest-run.ps1</Command>
   </LogonCommand>
 </Configuration>
 "@

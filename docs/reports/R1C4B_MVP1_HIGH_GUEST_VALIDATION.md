@@ -296,3 +296,16 @@ ConsoleWindowClass，和被隐藏句柄不同；对照不成立，不将其归�
 本批 ABORTED，Release 未运行；guest13468/任务清理，证据保持。
 driver hash `49A1A067B1D25FB82FD82B83043A0504A1D2426AC6BD064544834E8AAD80106F`，
 product hash `DEB2FBFB670281FB4F1483FD5D0E1B2285AFBDD48383470656449901F13F666E`。
+
+## 第十六批：产品隐藏启动已推进回环，仍有不同 console 前台打断
+
+RUNTIME `5d17045156044d264f9967e1dc2e20e7256bfd16`，RunId
+`c6ddd85e3f8c4eed8660b276ff038219`。本测试 product 通过 CreateProcess
+STARTF_USESHOWWINDOW/SW_HIDE 创建，关联查询 HWND197352/PID7772/visible=false。
+post-Resize A gen6 已实际 free exact、XY snap exact、hold already_exact；
+detach waypoint 时失去 capture，callback实际前台394466/PID1144/TID1304/
+ConsoleWindowClass，仍不同于产品查询句柄。原关联 console HWND0/clients5812/7460，
+该前台窗口归属仍未知。本批不证明完整回环；Release 未运行。
+后继只将自己 `.wsb` 启动的 guest runner 创建参数也明确 Hidden，不控制未知 HWND，
+不改变产品权限；若仍失败，不继续添加无依据窗口控制 API。
+专用 guest/任务清理及输出哈希保持记录见本批 cleanup-record.json。
