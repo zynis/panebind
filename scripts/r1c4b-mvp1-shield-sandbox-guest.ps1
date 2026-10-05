@@ -38,6 +38,30 @@ function Get-ExplorerConfigurations([string]$Mode) {
     if ($Mode -ceq 'BindOnlyIndependentReview') { return @('release') }
     throw 'Exact guest Explorer mode is unknown.'
 }
+function Test-BindOnlyProductCleanup($Rows) {
+    $shutdown = @($Rows | Where-Object { $_.type -ceq 'shutdown' })
+    $cleanup = @($Rows | Where-Object {
+        $_.type -ceq 'gesture_event' -and $_.event -ceq 'resource' -and
+        $_.reason -ceq 'stop_cleanup'
+    })
+    if ($shutdown.Count -ne 1 -or $cleanup.Count -ne 1 -or
+        $shutdown[0].result -cne 'STOPPED' -or
+        [long]$cleanup[0].sequence -le 0 -or
+        [long]$shutdown[0].sequence -le [long]$cleanup[0].sequence) { return $false }
+    foreach ($field in @('resources_stopped', 'gesture_events_recorded')) {
+        if ($shutdown[0].$field -isnot [bool] -or $shutdown[0].$field -ne $true) {
+            return $false
+        }
+    }
+    foreach ($field in @('succeeded', 'overlay_destroyed', 'hotkey_unregistered',
+        'receiver_destroyed', 'raw_registration_removed', 'winevent_unhooked',
+        'classes_unregistered', 'association_detached')) {
+        if ($cleanup[0].$field -isnot [bool] -or $cleanup[0].$field -ne $true) {
+            return $false
+        }
+    }
+    return $true
+}
 
 try {
     # Host refusal precedes every filesystem write. This runner is not a
@@ -439,11 +463,17 @@ try {
                 $_ | ConvertFrom-Json -ErrorAction Stop
             })
             $finishedShutdown = @($finishedRows | Where-Object { $_.type -ceq 'shutdown' })
+            $reviewCleanupConfirmed = Test-BindOnlyProductCleanup $finishedRows
             $summary.explorer_stages += [ordered]@{
                 configuration = 'release'; result = 'BIND_ONLY_PRODUCT_EXITED_REVIEW_REQUIRED';
                 actual_product_shutdown = if ($finishedShutdown.Count -eq 1) { $finishedShutdown[0].result } else { $null };
                 actual_resources_stopped = if ($finishedShutdown.Count -eq 1) { $finishedShutdown[0].resources_stopped } else { $null };
+                actual_cleanup_confirmed = $reviewCleanupConfirmed;
                 automatic_functional_validation = 'NOT_RUN'; human_uat = 'NOT_RUN'
+            }
+            Save-Summary
+            if (-not $reviewCleanupConfirmed) {
+                throw 'Bind-only product exited without complete actual shutdown/resource cleanup evidence.'
             }
             $summary.status = 'STOPPED'
             Save-Summary

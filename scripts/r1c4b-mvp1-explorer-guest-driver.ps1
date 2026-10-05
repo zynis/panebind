@@ -26,6 +26,8 @@ $script:pressed = $false
 $script:ctrlPressed = $false
 $script:productPid = 0
 $script:productStarted = $false
+$script:attachedConsole = $null
+$script:hiddenConsole = $null
 $script:bound = @()
 $script:confirmationRows = @()
 $script:targets = @()
@@ -137,6 +139,9 @@ public static class PaneBindMvpGuestInput {
         ref StartupInfo startup, out ProcessInfo process);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool FreeConsole();
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool AttachConsole(uint processId);
+    [DllImport("kernel32.dll")] static extern IntPtr GetConsoleWindow();
+    [DllImport("kernel32.dll", SetLastError=true)] static extern uint GetConsoleProcessList(
+        [Out] uint[] processes,uint capacity);
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
     static extern IntPtr CreateFileW(string name,uint access,uint share,IntPtr security,
         uint creation,uint attributes,IntPtr template);
@@ -249,6 +254,87 @@ public static class PaneBindMvpGuestInput {
             Thread.Sleep(100);
         }
         throw new Win32Exception(Marshal.GetLastWin32Error(),"AttachConsole");
+    }
+    public sealed class ConsoleSnapshot {
+        public long hwnd, root;
+        public uint owner_pid, owner_tid, caller_pid, expected_product_pid;
+        public uint caller_session, owner_session, product_session;
+        public bool caller_session_known, owner_session_known, product_session_known;
+        public bool visible, process_list_complete, strict_dedicated;
+        public string window_class="";
+        public uint process_count;
+        public int process_list_error;
+        public uint[] clients=new uint[0];
+    }
+    public static ConsoleSnapshot ObserveAttachedConsole(int productPid) {
+        RequirePhysicalCaller();
+        var facts=new ConsoleSnapshot();var window=GetConsoleWindow();
+        facts.hwnd=window.ToInt64();facts.root=GetAncestor(window,2).ToInt64();
+        facts.visible=window!=IntPtr.Zero&&IsWindowVisible(window);
+        facts.window_class=ClassOf(window);facts.caller_pid=GetCurrentProcessId();
+        facts.expected_product_pid=productPid>0?(uint)productPid:0;
+        uint ownerPid;facts.owner_tid=GetWindowThreadProcessId(window,out ownerPid);facts.owner_pid=ownerPid;
+        uint session;facts.caller_session_known=ProcessIdToSessionId(facts.caller_pid,out session);
+        facts.caller_session=session;facts.owner_session_known=ownerPid!=0&&ProcessIdToSessionId(ownerPid,out session);
+        facts.owner_session=facts.owner_session_known?session:0;
+        facts.product_session_known=productPid>0&&ProcessIdToSessionId((uint)productPid,out session);
+        facts.product_session=facts.product_session_known?session:0;
+        var clients=new uint[8];SetLastError(0);
+        facts.process_count=GetConsoleProcessList(clients,(uint)clients.Length);
+        facts.process_list_error=Marshal.GetLastWin32Error();
+        facts.process_list_complete=facts.process_count>0&&facts.process_count<=clients.Length;
+        if(facts.process_list_complete) {
+            facts.clients=new uint[facts.process_count];Array.Copy(clients,facts.clients,facts.clients.Length);
+        }
+        facts.strict_dedicated=DedicatedConsoleFacts(facts);
+        return facts;
+    }
+    public static bool DedicatedConsoleFacts(ConsoleSnapshot facts) {
+        if(facts==null||facts.hwnd==0||facts.root!=facts.hwnd||facts.owner_pid==0||facts.owner_tid==0||
+            facts.window_class!="ConsoleWindowClass"||facts.caller_pid==0||facts.expected_product_pid==0||
+            facts.caller_pid==facts.expected_product_pid||!facts.process_list_complete||
+            facts.process_count!=2||facts.clients==null||facts.clients.Length!=2||
+            !facts.caller_session_known||!facts.owner_session_known||!facts.product_session_known||
+            facts.caller_session==0||facts.owner_session!=facts.caller_session||
+            facts.product_session!=facts.caller_session) return false;
+        return (facts.clients[0]==facts.caller_pid&&facts.clients[1]==facts.expected_product_pid)||
+            (facts.clients[1]==facts.caller_pid&&facts.clients[0]==facts.expected_product_pid);
+    }
+    public sealed class ConsoleVisibilitySnapshot {
+        public ConsoleSnapshot before, after;
+        public bool attempted, show_returned_previous_visible, hidden_confirmed, restored_confirmed;
+    }
+    public static ConsoleVisibilitySnapshot HideDedicatedConsole(ConsoleSnapshot identity,int productPid) {
+        RequirePhysicalCaller();var facts=new ConsoleVisibilitySnapshot();
+        facts.before=ObserveAttachedConsole(productPid);
+        if(!DedicatedConsoleFacts(identity)||!facts.before.strict_dedicated||
+            facts.before.hwnd!=identity.hwnd||facts.before.owner_pid!=identity.owner_pid||
+            facts.before.owner_tid!=identity.owner_tid)
+            throw new InvalidOperationException("exact dedicated product console changed; no hide attempted");
+        if(facts.before.visible) {
+            facts.attempted=true;facts.show_returned_previous_visible=ShowWindow(new IntPtr(identity.hwnd),0);
+        }
+        facts.after=ObserveAttachedConsole(productPid);
+        facts.hidden_confirmed=facts.after.strict_dedicated&&facts.after.hwnd==identity.hwnd&&
+            facts.after.owner_pid==identity.owner_pid&&facts.after.owner_tid==identity.owner_tid&&!facts.after.visible;
+        return facts;
+    }
+    public static ConsoleVisibilitySnapshot RestoreDedicatedConsole(ConsoleSnapshot identity,int productPid) {
+        RequirePhysicalCaller();var facts=new ConsoleVisibilitySnapshot();
+        facts.before=ObserveAttachedConsole(productPid);
+        // Product may already have exited: restore only the SAME console still
+        // attached to this driver, with no unknown additional clients.
+        bool ownOnly=facts.before.process_list_complete&&facts.before.clients.Length==1&&
+            facts.before.clients[0]==facts.before.caller_pid;
+        if(!DedicatedConsoleFacts(identity)||facts.before.hwnd!=identity.hwnd||
+            facts.before.owner_pid!=identity.owner_pid||facts.before.owner_tid!=identity.owner_tid||
+            (!facts.before.strict_dedicated&&!ownOnly)) return facts;
+        facts.attempted=true;
+        facts.show_returned_previous_visible=ShowWindow(new IntPtr(identity.hwnd),4); // SW_SHOWNOACTIVATE
+        facts.after=ObserveAttachedConsole(productPid);
+        facts.restored_confirmed=facts.after.hwnd==identity.hwnd&&facts.after.owner_pid==identity.owner_pid&&
+            facts.after.owner_tid==identity.owner_tid&&facts.after.visible;
+        return facts;
     }
     public static void ConsoleLine(IntPtr input,string line) {
         RequirePhysicalCaller();
@@ -1195,7 +1281,13 @@ try {
     $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver --sandbox-high-integrity-test-exception"
     $script:productPid = [PaneBindMvpGuestInput]::StartProduct($product,$args)
     $script:productStarted = $true
+    $originalConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole(0)
+    Record 'console_attachment_identity' @{ phase='before_attach_product'; facts=$originalConsole;
+        ownership='observed_original_console_not_hide_authority' }
     $script:consoleInput = [PaneBindMvpGuestInput]::AttachInput($script:productPid)
+    $script:attachedConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole($script:productPid)
+    Record 'console_attachment_identity' @{ phase='after_attach_product'; facts=$script:attachedConsole;
+        ownership='actual_current_console_clients_not_old_failure_foreground_attribution' }
     Record 'product_started' @{ pid=$script:productPid; exact_console_attached=$true }
     $area = [PaneBindMvpGuestInput]::WorkArea()
     $width=[int]([Math]::Min(420,($area[2]-300)/2))
@@ -1355,6 +1447,11 @@ try {
     if ($Mode -ceq 'BindOnlyIndependentReview') {
         # Leave the SAME Release product/visible console running. Preparation
         # is automated and labelled; no gesture below is sent in this mode.
+        $reviewConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole($script:productPid)
+        Record 'console_attachment_identity' @{ phase='before_visible_independent_review'; facts=$reviewConsole }
+        if (-not $reviewConsole.strict_dedicated -or -not $reviewConsole.visible) {
+            throw 'actual_product_console_not_visible_for_independent_review'
+        }
         Record 'review_bound' @{ result='BOUND_FOR_INDEPENDENT_REVIEW';
             product_pid=$script:productPid; product=$product; product_log=$productLog;
             product_status_sequence=$initialStatus.sequence; binding_count=3;
@@ -1362,6 +1459,18 @@ try {
             status_command='S'; stop_command='Q'; gesture_stop_hotkey='Ctrl+Shift+F11';
             configuration='release'; human_uat='NOT_RUN' }
         exit 0
+    }
+    # A single controlled AUTOMATED test comparison. Hide only this newly
+    # created product console after current API/client-list identity proves it;
+    # never hide the original runner console or a guessed ConsoleWindowClass.
+    $script:hiddenConsole = [PaneBindMvpGuestInput]::HideDedicatedConsole(
+        $script:attachedConsole,$script:productPid)
+    Record 'automated_product_console_visibility' @{ facts=$script:hiddenConsole;
+        scope='exact_created_product_console_only';
+        foreground_failure_hypothesis='UNPROVEN_UNTIL_CURRENT_RUN_IDENTITY_MATCH';
+        review_mode_unchanged=$true }
+    if (-not $script:hiddenConsole.hidden_confirmed) {
+        throw 'actual_dedicated_product_console_not_hidden_no_gesture_sent'
     }
     # Both configurations exercise the same small, representative product
     # flow. Each plain gesture proves individual free/snap/hold/detach/resnap
@@ -1415,6 +1524,17 @@ try {
         product_stopped_observed=$false; human_uat='NOT_RUN' }
     exit 2
 } finally {
+    if ($script:hiddenConsole -and $script:hiddenConsole.before.visible -eq $true) {
+        try {
+            $restore = [PaneBindMvpGuestInput]::RestoreDedicatedConsole(
+                $script:attachedConsole,$script:productPid)
+            Record 'automated_product_console_restore' @{ facts=$restore;
+                scope='same_console_no_activate_no_unknown_window' }
+        } catch {
+            Record 'automated_product_console_restore' @{ attempted=$false;
+                error=$_.Exception.Message; restoration='UNKNOWN' }
+        }
+    }
     if ($script:consoleInput -ne [IntPtr]::Zero) {
         [PaneBindMvpGuestInput]::CloseHandle($script:consoleInput) | Out-Null
     }

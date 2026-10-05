@@ -265,3 +265,19 @@ product hash `95C3D73E9C2AD73EA861C6E04BE6AAB3E694B377FC646A65B415059E3C7F5EEC`�
 以及既有状态集合和实时 JSONL reader；均离线通过，尚未现场运行该复核模式。
 下一包的 CaptureLost/ContextLost callback 固定身份记录只在撤销 writer 后查询，
 owner 线程序列化；operations/core 实现没有变更，旧 owned 九项前置不重新解释。
+
+## 第十四批：失败时前台实际是 ConsoleWindowClass
+
+RUNTIME `781262291c9abd7f2d24844616fa2e5ea010bcb8`，RunId
+`b8b6c247aae640debdeb122c842b1798`。同样到 post-Resize A gen6 后失去 capture；
+同步 CaptureLost callback QPC505612531 实际 foreground/root131268、PID1644/TID1636、
+class ConsoleWindowClass，后续 ContextLost callback 同身份。不是三授权 root。
+尚未记录本 driver/product 控制台 HWND，不能直接断定该窗口属于本测试。
+下一必要对照只核验自有控制台归属，必要时在自动手势段隐藏确属本测试的控制台，
+复核模式仍可见；不改变产品前台/capture 门槛，不控制未知窗口。
+本批仍 ABORTED，Release 未运行；Debug 四项 offline 回归 4/4 通过，包 Debug/Release
+构建通过。一次 native DWORD 与 uint32_t 指针类型不匹配的编译错误已用局部 DWORD
+桥接修复，未强制指针转换、未修改权限行为。
+guest13128/任务已清理，证据前后哈希不变。driver hash
+`AFA7A1A8A6090E08BBCE9137587AA3B8071DF7BB34CA9831733812FB603EA8AC`，
+product hash `68C0EA97A4D3F47D3A53F46194D8D33117C8B7167D75C2ECE271D9D7F6CE4FD0`。

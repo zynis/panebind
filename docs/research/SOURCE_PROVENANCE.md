@@ -1,5 +1,18 @@
 # Source Provenance Register
 
+## MVP1 guest 自动驱动的自有 console 对照 — 2026-10-06
+
+实际查阅 Microsoft Learn [GetConsoleWindow](https://learn.microsoft.com/en-us/windows/console/getconsolewindow)、
+[GetConsoleProcessList](https://learn.microsoft.com/en-us/windows/console/getconsoleprocesslist)、
+[ShowWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow)。
+Official primary documentation，live pages 无 immutable commit；site terms、仅链接/释义，
+code copied/adapted NO，issues/PRs N/A。GetConsoleWindow 属于调用进程当前关联 console，
+pseudoconsole HWND 不等于可见终端；进程列表返回不足容量时不能把缓冲区当完整归属证明。
+ShowWindow 返回旧可见状态，不是成功布尔；隐藏/非激活恢复都须真实回读。
+用途仅 test-created guest driver/product 已确属的独立 console 对照，不是产品抢前台或
+放宽 source/capture 权限，也不控制未知 console 或宿主窗口。复用本轮既有 AltSnap /
+FancyZones reference-only 研究，不新增或派生第三方产品代码。
+
 ## MVP1 exact three-root High guest test exception — 2026-10-06
 
 BASE `2bc40fe33c12a9110e27ff9a1c930804ddcf3323`。本轮用户明确批准仅专用
