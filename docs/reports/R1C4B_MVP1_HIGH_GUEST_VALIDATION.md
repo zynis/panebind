@@ -4,6 +4,27 @@
 BASE `2bc40fe33c12a9110e27ff9a1c930804ddcf3323`；起点 clean，标准 origin
 fetch 后分支 0/0；origin/main `81e40facf52ffdb96f76e4d737740167d485f4a7`，不合并。
 
+## 本轮收口结论
+
+本轮新增精确三窗 High guest 资格接线，保留真实 medium=false/elevated=true；
+实际跨进程普通 Move、A/B/C 五阶段磁吸、正常 Raw/legacy UP 自主收尾、Ctrl A
+及 B 原生 Resize 后实际关系刷新通过 Debug 现场。尚未交付完整可试用候选：
+post-Resize A 回环受到不同 ConsoleWindowClass 前台/capture 丢失阻断，Ctrl C
+及 Release 完整流程未运行。未修改或控制未知 console，未放宽前台或 capture 门槛。
+普通 Medium、宿主试用、多屏/混合 DPI、真人 UAT 均 NOT_RUN；High guest 部分通过
+不是完整产品验收。BindOnly Release 入口 IMPLEMENTED/offline tested，但本轮未现场
+验证，不作为可试用交付入口。
+
+最后 RUNTIME `e2afc66b1d3edb38aa29d59a07f78260a0b3955d`；Debug/Release
+构建及受影响四项 offline CTest 各4/4通过。原 owned 九项按下文 hash 前置复用，
+本包 owned NOT_RUN。标准 Git 最终 SHA、push 与远端核验在最终交付记录中提供。
+不重跑 Fix H、不新增稳定性批次，不修改 Recovery Index。
+
+仅需下一项具体决策：是否批准**不依赖新控制台的 guest 专用命令/停止入口单手势对照**，
+仍复用原 Move/shield/writer 与所有权限事实，绝不抢前台或操作未知 capture。
+这涉及当前 console 绑定/状态/停止通路的改变，尚未实施；仅是待证假设，
+不宣称已经证明 console 根因或该替代方案唯一可行。
+
 ## 授权与实现
 
 用户本轮明确批准的例外仅适用于专用可丢弃 Sandbox、当前 RunId、三个分别
@@ -322,3 +343,33 @@ A 回环仍 free/XY/hold 后在 detach 阶段失去 capture；同步 callback实
 每查询2秒、最多3层，不读取命令行、用户内容或授权未知窗口；事后 PID 身份不冒充
 callback 原生时刻的原子事实。若不是可确认自有来源或合同仍矛盾，停止对应现场。
 本批专用 guest/任务已清理，原始证据及清理前后 hash 记录保持。
+
+## 第十八批：有限事后身份查询仍 UNKNOWN，停止对应现场
+
+RUNTIME `e2afc66b1d3edb38aa29d59a07f78260a0b3955d`，RunId
+`9f35f39866724462966f408af12b681f`。startup 当前 driver7412 与 parent5756
+均实际查询为 powershell.exe，CIM可用；它们不赋任何窗口操作权限。
+gen6失去 capture 时实际 foreground/root394470/PID3192/TID1640/ConsoleWindowClass；
+该最后批 gen6 仅 free quantum1 exact。随后 sampler seq132 第一实际短路为
+foreground_not_source、gesture_retired=false/raw_up=false/isolation_hit=true，
+不是正常 UP、Stale 或 source 外部平移误判，也不是先前批次的先退役采样。
+CaptureLost callback QPC507405157，ContextLost507411358。测试 UP 收尾后
+20:56:31.091Z–31.107Z exact PID3192查询没有结果，保留 UNKNOWN；不能把这个
+事后缺失解释成已证明的系统、driver、伪控制台或权限不足根因。
+无新权限事实可支持继续该代 placement/capture；终止对应现场，不再叠加控制 API。
+driver176行/product145行 JSONL 合法连续；Q实际 stop_cleanup 八项资源事实全true，
+shutdown STOPPED/resources_stopped=true；本失败手势不因此变 NormalUp/PASS。
+专用 guest15460/任务已清理，输出哈希保持；所有旧批包/失败证据原样保留。
+driver hash `7837E6CFBBB9CED105D94DA6673C5E99A30A80B968716F92D724E8A3B431FE0A`，
+product hash `BF9D12488527E60BF64135C51387ABF93AB10639F677786360276E4AE36761F5`。
+
+最后包本地 `uat/r1c4b-mvp1-shield-sandbox/9f35f39866724462966f408af12b681f/`，
+远端 `I:\PaneBindMVP1Runs\9f35f39866724462966f408af12b681f\`。
+ZIP `275126D4FD01905ABD7A2029C11E7D0667FB1FE32CF3F9E004D121CE47117A4D`；
+manifest `E1BC67D64E73020C6359B8CD0EBF067401AC5B4C15AF2E7968EB4D3CA33D18B5`；
+.wsb `01B159B79372B2B7AA8C496DFA347EEC343F566A8C940E4E030AC4ACC5B584D1`；
+Debug Explorer `83EC407B195088481B442CB9510511E453E69146B270156EDFC2E2079ACDD429`；
+Release Explorer `59CA4BD50284A3640F79A9349BEA065E8A0F4D204AB318D0C8CAF7A1BD036CD1`。
+两个input/output映射仍RO/RW；未重启/启用功能/修改宿主设置或 CrossRec。
+本轮只创建各所列 RunId 的 I 盘部署/证据目录和同名专用启动任务/guest；
+任务/guest均已按 exact身份清理，包/日志保留，无用户文件批量回滚或清理。
