@@ -221,6 +221,7 @@ struct ExplorerMvpSession::Impl final {
             : generation(number), down_packet(packet), source(member), down(std::move(at_down)) {}
         const std::uint64_t generation, down_packet;
         std::uint64_t handoff_raw_watermark{};
+        std::uint64_t last_sample_qpc{}; // Owner-only diagnostic, never authority.
         const std::size_t source;
         const detail::GroupSnapshots down;
         ExplorerMvpAttribution attribution;
@@ -586,23 +587,45 @@ struct ExplorerMvpSession::Impl final {
             !group->product_move_conflict_pending(current.source) && desktop_active();
     }
 
-    [[nodiscard]] bool live_overlay(const Gesture& current, POINT cursor) const noexcept {
+    [[nodiscard]] bool live_overlay(const Gesture& current, POINT cursor,
+        std::optional<std::uintptr_t>* observed_hit = nullptr) const noexcept {
         const HWND overlay = current.overlay.load();
-        return current.isolated && overlay && IsWindow(overlay) &&
-            IsWindowVisible(overlay) && root_at(cursor) == overlay;
+        if (!current.isolated || !overlay || !IsWindow(overlay) || !IsWindowVisible(overlay))
+            return false;
+        const HWND hit = root_at(cursor);
+        if (observed_hit) *observed_hit = reinterpret_cast<std::uintptr_t>(hit);
+        return hit == overlay;
     }
 
     [[nodiscard]] bool live_write_authority(const Gesture& current,
-                                             POINT cursor) const noexcept {
+                                             POINT cursor,
+                                             std::string_view* observed_reason = nullptr,
+                                             std::optional<std::uintptr_t>* observed_foreground = nullptr) const noexcept {
         const auto& member = group->bindings()[current.source];
-        return !current.retired && !current.raw_up && current.end_observed &&
-            current.capture_ready && op::gesture_shield_exact_capture(
-                current.overlay.load(), current.capture_thread.load()) &&
-            latest_raw_up_sequence.load(std::memory_order_acquire) <= current.down_packet &&
-            current.cancel_attempted && physical_left() &&
-            GetForegroundWindow() == member.window &&
-            gui_after_end(member.thread_id, current.overlay.load(),
-                          current.capture_thread.load()) && live_overlay(current, cursor);
+        const auto reject = [observed_reason](std::string_view reason) noexcept {
+            if (observed_reason) *observed_reason = reason;
+            return false;
+        };
+        // Preserve the original short-circuit order and actual platform reads.
+        // A missing later fact is not fabricated as false in the witness.
+        if (current.retired) return reject("gesture_retired");
+        if (current.raw_up) return reject("raw_up_seen");
+        if (!current.end_observed) return reject("native_end_not_seen");
+        if (!current.capture_ready) return reject("capture_not_ready");
+        if (!op::gesture_shield_exact_capture(current.overlay.load(),
+                current.capture_thread.load())) return reject("own_capture_not_exact");
+        if (latest_raw_up_sequence.load(std::memory_order_acquire) > current.down_packet)
+            return reject("raw_up_barrier");
+        if (!current.cancel_attempted) return reject("cancel_not_attempted");
+        if (!physical_left()) return reject("physical_input_not_plain_left");
+        const HWND foreground = GetForegroundWindow();
+        if (observed_foreground) *observed_foreground = reinterpret_cast<std::uintptr_t>(foreground);
+        if (foreground != member.window) return reject("foreground_not_source");
+        if (!gui_after_end(member.thread_id, current.overlay.load(),
+                current.capture_thread.load())) return reject("post_end_gui_not_clear");
+        if (!live_overlay(current, cursor)) return reject("isolation_does_not_hit");
+        if (observed_reason) *observed_reason = "none";
+        return true;
     }
 
     [[nodiscard]] op::MoveWriteCallbacks callbacks(const std::shared_ptr<Gesture>& current) {
@@ -894,6 +917,7 @@ void ExplorerMvpSession::Impl::native_start(
         return;
     }
     current->plain_candidate = true;
+    current->last_sample_qpc = start_qpc;
     current->phase = Phase::IsolationPending;
     current->isolation_requested = true;
     if (!shield->request_isolation({current->generation, member.window,
@@ -1139,14 +1163,36 @@ void ExplorerMvpSession::Impl::raw_motion(const op::GestureShieldEvent& event) {
         fail("motion_current_cursor_unavailable", b::MoveHandoffEscapeReason::ContextLost);
         return;
     }
-    const bool authority = live_write_authority(*current, cursor);
+    std::string_view authority_reason{"not_observed"};
+    std::optional<std::uintptr_t> observed_foreground, observed_hit;
+    const bool authority = live_write_authority(*current, cursor, &authority_reason,
+                                                &observed_foreground);
     const g::Point point{cursor.x, cursor.y};
-    if (!current->motion.sample_cursor(current->generation, point, qpc(),
-                                        authority, true, live_overlay(*current, cursor))) {
+    const auto sample_qpc = qpc();
+    const bool isolation_hit = live_overlay(*current, cursor, &observed_hit);
+    if (!current->motion.sample_cursor(current->generation, point, sample_qpc,
+                                        authority, true, isolation_hit)) {
         if (!current->motion.retired(current->generation)) return; // duplicate cursor
+        auto observed = event_for(MvpEvidenceKind::Rejected, current,
+                                  "motion_sample_retirement_observed");
+        observed.raw_sequence = event.raw_sequence;
+        observed.cursor = point;
+        observed.raw_observed_cursor = g::Point{event.message_point.x, event.message_point.y};
+        observed.sample_authority_reason = authority_reason;
+        observed.sample_authority = authority;
+        observed.sample_isolation_hit = isolation_hit;
+        observed.sample_gesture_retired = current->retired.load();
+        observed.sample_raw_up = current->raw_up.load();
+        observed.sample_qpc = sample_qpc;
+        observed.previous_sample_qpc = current->last_sample_qpc;
+        observed.sample_foreground = observed_foreground;
+        observed.sample_hit_root = observed_hit;
+        observed.overlay = reinterpret_cast<std::uintptr_t>(current->overlay.load());
+        (void)record(std::move(observed));
         fail("motion_sample_retired", b::MoveHandoffEscapeReason::ContextLost);
         return;
     }
+    current->last_sample_qpc = sample_qpc;
     auto plan = current->motion.take_pending(current->generation, authority, true,
                                               live_overlay(*current, cursor));
     if (!plan) return;

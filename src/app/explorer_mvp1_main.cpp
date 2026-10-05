@@ -262,6 +262,16 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"capture_failure\":" << *event.capture_failure_json;
         if (event.group_reason)
             fields << ",\"group_reason\":" << quote(*event.group_reason);
+        if (event.sample_authority_reason != "not_observed")
+            fields << ",\"sample_authority_reason\":" << quote(event.sample_authority_reason);
+        if (event.sample_qpc)
+            fields << ",\"sample_qpc\":" << *event.sample_qpc;
+        if (event.previous_sample_qpc)
+            fields << ",\"previous_sample_qpc\":" << *event.previous_sample_qpc;
+        if (event.sample_foreground)
+            fields << ",\"sample_foreground\":" << *event.sample_foreground;
+        if (event.sample_hit_root)
+            fields << ",\"sample_hit_root\":" << *event.sample_hit_root;
         if (event.initial_positioning)
             fields << ",\"initial_positioning\":" << rect_json(*event.initial_positioning);
         if (event.cursor)
@@ -302,6 +312,10 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
         optional_bool("winevent_unhooked", event.winevent_unhooked);
         optional_bool("classes_unregistered", event.classes_unregistered);
         optional_bool("association_detached", event.association_detached);
+        optional_bool("sample_authority", event.sample_authority);
+        optional_bool("sample_isolation_hit", event.sample_isolation_hit);
+        optional_bool("sample_gesture_retired", event.sample_gesture_retired);
+        optional_bool("sample_raw_up", event.sample_raw_up);
         if (event.win32_error)
             fields << ",\"win32_error\":" << *event.win32_error;
         if (event.isolation_timeout_ms)

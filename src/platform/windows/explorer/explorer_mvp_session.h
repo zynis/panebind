@@ -54,6 +54,11 @@ struct MvpEvidenceEvent final {
     // owner STA only when a real capture rejects. No resource-thread disk IO.
     std::optional<std::string> capture_failure_json;
     std::optional<std::string> group_reason;
+    std::string_view sample_authority_reason{"not_observed"};
+    std::optional<bool> sample_authority, sample_isolation_hit;
+    std::optional<bool> sample_gesture_retired, sample_raw_up;
+    std::optional<std::uint64_t> sample_qpc, previous_sample_qpc;
+    std::optional<std::uintptr_t> sample_foreground, sample_hit_root;
     std::uintptr_t overlay{};
 };
 

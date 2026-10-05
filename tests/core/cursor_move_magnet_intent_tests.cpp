@@ -26,6 +26,28 @@ magnet::MagnetTarget target(const char* id, Rect rect) {
 }
 
 int main() {
+    {
+        // Actual geometry from guest RunId 656c0db5f93a4cdaa92f819bc47bba9b,
+        // status #116 after B's native Resize. This is an offline replay of
+        // geometry/intent only, not a replay of unrecorded platform authority.
+        const Rect actual_a{165, 140, 1183, 689};
+        const std::array actual_targets{
+            target("4", {1183, 140, 2201, 717}),
+            target("6", {165, 689, 1183, 1238}),
+        };
+        behavior::CursorMoveMagnetIntent intent;
+        check(intent.start({778, 157}, actual_a, actual_targets, 1000, 1000),
+              "post-native-resize A uses actual B/C geometry");
+        const auto free = intent.sample({730, 109}, 2000);
+        check(free && free->free_visible == Rect{117, 92, 1135, 641} &&
+              free->target_visible == free->free_visible && !free->snapped(),
+              "post-resize A free target matches observed first exact placement");
+        const auto xy = intent.sample({774, 153}, 3000);
+        if (!xy) std::cerr << "post-resize intent status=" << intent.last_status() << '\n';
+        check(xy && xy->free_visible == Rect{161, 136, 1179, 685} &&
+              xy->target_visible == actual_a && xy->snapped() && intent.active(),
+              "post-resize A near-original cursor produces actual XY resnap without retirement");
+    }
     const std::array targets{
         target("A", {0, 0, 120, 180}),
         target("C", {20, 180, 300, 300}),

@@ -220,3 +220,20 @@ post-retirement均0。不是已证实的尺寸、High权限、VDM或系统 modal
 failures=0`、Debug单项CTest1/1通过。严格两个逆序参数 Long Command / VARIANT_BOOL
 Enable0/-1；通知不产生导航/身份凭据。独立diff复核通过，不支持未实测的其他DISPID。
 本批产品日志 hash `90E32AD4B8A505400246F300760AB23BB10F4A4EE7FDA120FCACE4027255E825`。
+
+## 第十二批：原生 Resize 刷新通过，A 回环采样退休待具体事实
+
+RUNTIME `2a82d8b7fac7fc5129c2fe5167dcf5553f561294`，RunId
+`656c0db5f93a4cdaa92f819bc47bba9b`。B native_resize gen5 actual DOWN/START/
+RawUP/END成立；visible `[1183,140,2201,689]` → `[1183,140,2201,717]`，
+下边缘+28，其余三边不变，无source writer/cancel/isolation。
+END后 status116 逐窗等于实际DWM，A `[165,140,1183,689]`、B上述新尺寸、
+C `[165,689,1183,1238]`；topology_ready=true、relation_count=3。
+A回环gen6重新获得真实END/capture权限，first free exact成功；下一XY snap
+失败为 motion_sample_retired，原记录未传实际权限/命中/采样时间原因。
+使用该实际几何的 CursorMoveMagnetIntent 两次采样定向回归通过（40 checks、0 failures），
+不能预称solver问题；没有修改core行为。新记录只传出实际短路检查原因与时间/命中
+事实，不放宽写入条件、不将前后读取称作原子快照。
+该批仍ABORTED，动态Ctrl C、A回环完整及Release未执行；专用guest/任务已清理，
+原日志保留：driver `72C67F6CD31DCD87B6CCD9A887EE47E6A1E66F649A4B6F19D0FF2BD939D971D3`，
+product `31EF0EEA5AFB7FC00701C8B4DE707F0974977D845F5A7E2AC1C73E1C3FD7EE9B`。
