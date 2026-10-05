@@ -27,82 +27,9 @@ namespace operations = panebind::platform::windows::operations;
 namespace console_input = panebind::platform::windows::console_input;
 
 namespace {
-constexpr wchar_t guest_marker[] = L"C:\\PaneBindMVP1\\Input\\run-id.txt";
-
-bool interactive_default_desktop() noexcept {
-    HDESK input = OpenInputDesktop(0, FALSE, DESKTOP_READOBJECTS);
-    if (!input) return false;
-    wchar_t input_name[256]{}, current_name[256]{};
-    DWORD bytes{};
-    const bool same =
-        GetUserObjectInformationW(input, UOI_NAME, input_name,
-                                  sizeof(input_name), &bytes) &&
-        GetUserObjectInformationW(GetThreadDesktop(GetCurrentThreadId()),
-                                  UOI_NAME, current_name,
-                                  sizeof(current_name), &bytes) &&
-        std::wstring_view(input_name) == current_name &&
-        std::wstring_view(input_name) == L"Default";
-    CloseDesktop(input);
-    if (!same) return false;
-
-    LPWSTR data{};
-    DWORD size{};
-    if (!WTSQuerySessionInformationW(WTS_CURRENT_SERVER_HANDLE,
-                                     WTS_CURRENT_SESSION, WTSSessionInfoEx,
-                                     &data, &size)) return false;
-    bool active = false;
-    if (data && size >= sizeof(WTSINFOEXW)) {
-        const auto& info = *reinterpret_cast<const WTSINFOEXW*>(data);
-        active = info.Level == 1 &&
-            info.Data.WTSInfoExLevel1.SessionState == WTSActive &&
-            info.Data.WTSInfoExLevel1.SessionFlags == WTS_SESSIONSTATE_UNLOCK;
-    }
-    WTSFreeMemory(data);
-    return active;
-}
-
-// An accidental-host-run guard, not a security boundary against a forged
-// guest. It runs before opening evidence or creating any GUI / Raw resource.
 bool sandbox_run_authorized(std::wstring_view run_id,
                             std::wstring_view evidence_log) noexcept {
-    if (run_id.size() != 32 ||
-        !std::all_of(run_id.begin(), run_id.end(), [](wchar_t ch) {
-            return (ch >= L'0' && ch <= L'9') ||
-                   (ch >= L'a' && ch <= L'f');
-        })) return false;
-    wchar_t user[256]{};
-    DWORD user_length = static_cast<DWORD>(std::size(user));
-    if (!GetUserNameW(user, &user_length) ||
-        std::wstring_view(user) != L"WDAGUtilityAccount") return false;
-    DWORD session{};
-    if (!ProcessIdToSessionId(GetCurrentProcessId(), &session) ||
-        session == 0 || !interactive_default_desktop()) return false;
-
-    wchar_t executable[MAX_PATH]{};
-    const DWORD executable_length = GetModuleFileNameW(
-        nullptr, executable, static_cast<DWORD>(std::size(executable)));
-    if (executable_length == 0 || executable_length >= std::size(executable) ||
-        !explorer::exact_mvp1_guest_launch_artifacts(
-            std::wstring_view(executable, executable_length), run_id, evidence_log))
-        return false;
-
-    const HANDLE marker = CreateFileW(guest_marker, GENERIC_READ,
-        FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-        nullptr);
-    if (marker == INVALID_HANDLE_VALUE) return false;
-    LARGE_INTEGER size{};
-    std::array<char, 32> bytes{};
-    DWORD read{};
-    const bool valid = GetFileSizeEx(marker, &size) &&
-        size.QuadPart == static_cast<LONGLONG>(bytes.size()) &&
-        ReadFile(marker, bytes.data(), static_cast<DWORD>(bytes.size()),
-                 &read, nullptr) && read == bytes.size() &&
-        std::equal(bytes.begin(), bytes.end(), run_id.begin(),
-            [](char lhs, wchar_t rhs) {
-                return static_cast<unsigned char>(lhs) == rhs;
-            });
-    CloseHandle(marker);
-    return valid;
+    return explorer::mvp1_guest_run_authorized(run_id, evidence_log);
 }
 
 bool console_handle(HANDLE handle) noexcept {
@@ -126,6 +53,34 @@ std::string quote(std::wstring_view value) {
     const auto converted = windows::utf16_to_utf8(value);
     if (!converted.value) return windows::json_quote("invalid_utf16");
     return quote(*converted.value);
+}
+
+std::string security_evidence_fields(const explorer::ExplorerWindowSnapshot& snapshot) {
+    const auto& caller = snapshot.controller_security;
+    const auto& target = snapshot.target_security;
+    const auto& scope = snapshot.sandbox_high_test;
+    std::ostringstream fields;
+    fields << std::boolalpha
+        << ",\"identity_policy\":" << quote(scope.applied ?
+            "sandbox_same_sid_session_high" : "medium_non_elevated")
+        << ",\"sandbox_high_exception_applied\":" << scope.applied
+        << ",\"caller_integrity\":" << caller.integrity_rid
+        << ",\"target_integrity\":" << target.integrity_rid
+        << ",\"caller_medium\":" << (caller.integrity_rid == SECURITY_MANDATORY_MEDIUM_RID)
+        << ",\"target_medium\":" << (target.integrity_rid == SECURITY_MANDATORY_MEDIUM_RID)
+        << ",\"caller_elevated\":" << caller.elevated
+        << ",\"target_elevated\":" << target.elevated
+        << ",\"caller_session\":" << caller.session_id
+        << ",\"target_session\":" << target.session_id
+        << ",\"same_session\":" << snapshot.security_same_session
+        << ",\"same_sid\":" << snapshot.security_same_user
+        << ",\"sandbox_exception_run_id\":" << quote(scope.run_id)
+        << ",\"sandbox_exception_member_slot\":" << scope.member_index
+        << ",\"sandbox_exception_target_confirmation_generation\":"
+        << scope.target_confirmation_generation
+        << ",\"sandbox_exception_token_consent_generation\":" << scope.token_consent_generation
+        << ",\"sandbox_exception_capability_generation\":" << scope.capability_generation;
+    return fields.str();
 }
 
 class Evidence final {
@@ -496,7 +451,8 @@ bool show_status(Evidence& evidence, explorer::ExplorerMvpSession& session) {
         if (i != 0) fields << ',';
         fields << "{\"member\":" << i << ",\"visible\":"
                << rect_json(rect) << ",\"positioning\":"
-               << rect_json(snapshot.positioning_rect) << "}";
+               << rect_json(snapshot.positioning_rect)
+               << security_evidence_fields(snapshot) << "}";
     }
     fields << "]";
     display += L"关系数=" + std::to_wstring(status->topology.relation_count) +
@@ -507,12 +463,15 @@ bool show_status(Evidence& evidence, explorer::ExplorerMvpSession& session) {
 }
 
 int run(Evidence& evidence, const std::wstring& run_id,
-        const std::wstring& evidence_path, bool automated_guest_driver) {
+        const std::wstring& evidence_path, bool automated_guest_driver,
+        bool sandbox_high_test_exception) {
     if (!evidence.record("startup", ",\"implementation_sha\":" +
             quote(PANEBIND_BUILD_SHA) +
             ",\"run_id\":" + quote(run_id) +
             ",\"owner_thread\":" + std::to_string(GetCurrentThreadId()) +
             ",\"member_count\":3,\"live_validation\":false" +
+            ",\"sandbox_high_test_exception_requested\":" +
+            (sandbox_high_test_exception ? "true" : "false") +
             ",\"automated_guest_driver\":" +
             (automated_guest_driver ? "true" : "false"))) return 2;
     const bool dpi_ready =
@@ -558,6 +517,16 @@ int run(Evidence& evidence, const std::wstring& run_id,
                         L"停止未完整确认；请保留日志。\r\n");
         return complete && recorded ? 0 : 2;
     };
+    std::shared_ptr<explorer::ExplorerSandboxHighTestScope> high_scope;
+    if (sandbox_high_test_exception) {
+        high_scope = explorer::ExplorerSandboxHighTestScope::create(run_id, evidence_path);
+        if (!high_scope) return stop("sandbox_high_scope_native_conditions_rejected");
+        if (!evidence.record("sandbox_high_test_scope",
+            ",\"run_id\":" + quote(run_id) +
+            ",\"maximum_exact_new_roots\":3,\"host_exception\":false,"
+            "\"scope_reason\":\"explicit_user_authorized_same_sid_session_high_guest_test\""))
+            return stop("evidence_write_failed");
+    }
     explorer::ExplorerGroupSession::OwnedMembers members;
     for (std::size_t i = 0; i < members.size(); ++i) {
         GUID guid{};
@@ -571,7 +540,7 @@ int run(Evidence& evidence, const std::wstring& run_id,
         // A pre-existing path is never adopted or overwritten.
         if (!std::filesystem::create_directory(path))
             return stop("nonce_directory_not_new");
-        auto begin = explorer::ExplorerConsentProvisioning::begin(path);
+        auto begin = explorer::ExplorerConsentProvisioning::begin(path, high_scope);
         if (!begin.succeeded()) return stop("baseline_failed");
         const auto prompt = begin.provisioning->record_target_prompt();
         if (!prompt.succeeded()) return stop("prompt_record_failed");
@@ -630,6 +599,7 @@ int run(Evidence& evidence, const std::wstring& run_id,
                 ",\"token_generation\":" +
                 std::to_string(facts.generations.token_generation) +
                 ",\"baseline_exclusion_complete\":true,\"unique_new_target\":true,\"exact_location\":true" +
+                security_evidence_fields(confirmed.session->provisioning_facts().initial_snapshot) +
                 ",\"input_source\":" + quote(automated_guest_driver ?
                     "automated_guest_driver" : "interactive_console")))
             return stop("evidence_write_failed");
@@ -642,7 +612,8 @@ int run(Evidence& evidence, const std::wstring& run_id,
                L"普通移动期间可能短暂启用覆盖全虚拟屏幕的输入隔离；"
                L"不会移动其他窗口。隔离最长 30 秒，可按 Ctrl+Shift+F11 "
                L"或回到控制台输入 Q 停止。\r\n"
-               L"该实现尚待隔离环境现场验证。输入 Y 并按 Enter 明确同意启动；"
+               L"仅为隔离 guest 候选，非宿主产品验收。High 测试例外只适用于本批三窗。"
+               L"输入 Y 并按 Enter 明确同意启动；"
                L"其他输入将取消。\r\n")) return stop("console_failed");
     const auto consent = read_line(evidence, reader, "product_consent");
     if (!consent || (*consent != L"Y" && *consent != L"y"))
@@ -658,6 +629,8 @@ int run(Evidence& evidence, const std::wstring& run_id,
             return sandbox_run_authorized(run_id, evidence_path);
         });
     if (!session) return stop("product_session_create_failed");
+    const auto bound_status = session->status();
+    if (!bound_status) return stop("binding_native_snapshot_unavailable");
     for (std::size_t i = 0; i < 3; ++i) {
         const auto& binding = session->bindings()[i];
         std::ostringstream fields;
@@ -669,7 +642,8 @@ int run(Evidence& evidence, const std::wstring& run_id,
                << ",\"hwnd\":"
                << reinterpret_cast<std::uintptr_t>(binding.window)
                << ",\"pid\":" << binding.process_id
-               << ",\"tid\":" << binding.thread_id;
+               << ",\"tid\":" << binding.thread_id
+               << security_evidence_fields(bound_status->snapshots[i]);
         if (!evidence.record("binding", fields.str()))
             return stop("evidence_write_failed");
     }
@@ -713,9 +687,18 @@ int wmain(int argc, wchar_t** argv) {
                   << ",\"interactive_validation\":false}\n";
         return 0;
     }
-    const bool automated_guest_driver = argc == 6 &&
-        std::wstring_view(argv[5]) == L"--guest-automated-driver";
-    if ((argc != 5 && !automated_guest_driver) ||
+    bool automated_guest_driver = false;
+    bool sandbox_high_test_exception = false;
+    if (argc < 5 || argc > 7) return 64;
+    for (int i = 5; i < argc; ++i) {
+        const std::wstring_view option(argv[i]);
+        if (option == L"--guest-automated-driver" && !automated_guest_driver)
+            automated_guest_driver = true;
+        else if (option == L"--sandbox-high-integrity-test-exception" && !sandbox_high_test_exception)
+            sandbox_high_test_exception = true;
+        else return 64;
+    }
+    if (
         std::wstring_view(argv[1]) != L"--sandbox-run-id" ||
         std::wstring_view(argv[3]) != L"--evidence-log") return 64;
     const std::wstring run_id(argv[2]), evidence_path(argv[4]);
@@ -741,7 +724,8 @@ int wmain(int argc, wchar_t** argv) {
     try {
         Evidence evidence(evidence_path.c_str());
         if (!evidence.healthy()) return 65;
-        return run(evidence, run_id, evidence_path, automated_guest_driver);
+        return run(evidence, run_id, evidence_path, automated_guest_driver,
+                   sandbox_high_test_exception);
     } catch (const std::exception& error) {
         print(L"Explorer MVP1 候选程序运行失败；请保留不完整证据。\r\n");
         std::cerr << error.what() << '\n';

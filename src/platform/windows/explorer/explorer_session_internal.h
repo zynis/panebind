@@ -534,7 +534,58 @@ struct EligibilityModelFacts {
     // Explicit alternative proof, private Glue opt-in only. Never represents
     // or asserts current global candidate/location uniqueness.
     bool consent_frame_bound{};
+    // Exact security facts remain separate from the guest-only scope proof.
+    bool high_integrity{};
+    bool sandbox_high_test_exception{};
 };
+
+struct SandboxHighRootBinding {
+    NativeWindowKey native_key{};
+    std::uint32_t process_id{}, thread_id{};
+    std::uint64_t target_confirmation_generation{};
+    std::uint64_t token_consent_generation{}, capability_generation{};
+};
+
+constexpr bool sandbox_high_claim_allowed(
+    std::size_t already_bound, bool duplicate_root, bool duplicate_location,
+    bool baseline_exclusion_complete, bool exact_new_shell_target,
+    bool browser_observation_active) noexcept {
+    return already_bound < 3 && !duplicate_root && !duplicate_location &&
+        baseline_exclusion_complete && exact_new_shell_target &&
+        browser_observation_active;
+}
+
+// Used by the actual live adapter before and after capability issuance. A
+// stale old-root/token generation cannot inherit a scope from its PID.
+constexpr bool sandbox_high_binding_matches(
+    const SandboxHighRootBinding& expected,
+    const SandboxHighRootBinding& actual, bool initializing) noexcept {
+    if (!expected.native_key || !expected.process_id || !expected.thread_id ||
+        !expected.target_confirmation_generation ||
+        expected.native_key != actual.native_key ||
+        expected.process_id != actual.process_id ||
+        expected.thread_id != actual.thread_id ||
+        expected.target_confirmation_generation != actual.target_confirmation_generation)
+        return false;
+    if (initializing)
+        return !expected.token_consent_generation && !expected.capability_generation &&
+            !actual.token_consent_generation && !actual.capability_generation;
+    return expected.token_consent_generation && expected.capability_generation &&
+        expected.token_consent_generation == actual.token_consent_generation &&
+        expected.capability_generation == actual.capability_generation;
+}
+
+constexpr bool sandbox_high_security_matches(
+    bool strict_guest_current, bool same_controller_sid, bool same_target_sid,
+    const ExplorerProcessSecurityFacts& pinned,
+    const ExplorerProcessSecurityFacts& controller,
+    const ExplorerProcessSecurityFacts& target) noexcept {
+    constexpr std::uint32_t high_rid = 0x3000U;
+    return strict_guest_current && same_controller_sid && same_target_sid &&
+        pinned.session_id != 0 && pinned.integrity_rid == high_rid &&
+        pinned.elevated && !pinned.ui_access && !pinned.app_container &&
+        pinned == controller && pinned == target;
+}
 
 [[nodiscard]] ExplorerEligibilityReason evaluate_eligibility_model(
     const EligibilityModelFacts& facts) noexcept;

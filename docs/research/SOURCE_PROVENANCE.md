@@ -1,5 +1,31 @@
 # Source Provenance Register
 
+## MVP1 exact three-root High guest test exception — 2026-10-06
+
+BASE `2bc40fe33c12a9110e27ff9a1c930804ddcf3323`。本轮用户明确批准仅专用
+可丢弃 Sandbox、同 SID / 非零交互 session / exact High 的三个分别确认新
+Explorer root；普通 Medium/non-elevated 合同不改。不改账户、token、UAC
+或宿主设置。既有 8af40e... 实际 High/elevated/no-linked 证据及九项 owned
+正常 UP / 独立清理证据保留，不外推为跨进程结论。
+
+本轮是上述权限范围传递，不更换 input/capture/window movement 机制。
+复用已核验 AltSnap `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`
+（成熟维护，GPL-3.0-or-later，仅参考）movement/finish/state/history，以及
+FancyZones `19c4d805321db86f3634e6968e14dbf25cbba14a`（成熟生产，MIT，仅
+参考）窗口 eligibility、Abort/End、PR48569/history dd26d865 研究；不声称
+本轮重新检查全部上游或继承其测试结果。项目链接和模块/history 见下节。
+未检查新的外部项目，code copied/adapted/translated/derived NO。
+
+实际补读 official live primary contracts（Microsoft site terms、链接/转述，
+无代码示例复用、无 immutable revision）：
+[Sandbox LogonCommand](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-configure-using-wsb-file)、
+[TOKEN_INFORMATION_CLASS](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ne-winnt-token_information_class)、
+[GetTokenInformation](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-gettokeninformation)。
+SID、session、integrity、elevation 是分开的真实 token 查询事实；账户名或
+管理员身份不能替代这些值。例外附着 exact consent session/RunId/根窗/确认
+及 token 代际，每次 native validation 重新读取原事实，不把 medium 改 true。
+只读查询不调整权限。guest 保护是防误运行而非防伪安全边界。
+
 ## MVP1 post-END input-queue association — 2026-10-04
 
 BASE `0e7a4a8240e2317381ef772674c7d31a47a9b81e`。本轮人类明确授权仅在

@@ -16,6 +16,86 @@ if ($LASTEXITCODE -ne 0 -or $head -cnotmatch '^[0-9a-f]{40}$') {
     throw 'Could not identify the implementation commit.'
 }
 
+# Reuse only the already-reviewed nine owned runs when the ACTUAL shared
+# implementation and build inputs are unchanged. This is a prior prerequisite,
+# never a claim that the new package executed owned tests. Raw files remain in
+# their original batch; the manifest binds their reviewed hashes without adding
+# another writable mapping or expanding the deployment archive whitelist.
+function Get-OwnedPrerequisite {
+    $priorRunId = '050736d561fe4b3c941e9f194b3f51aa'
+    $priorSource = '3ef009f5e72c5eebdbb64b3c3e0cd6c52c1b2d52'
+    $scope = @('src/core', 'src/platform/windows/operations', 'CMakeLists.txt',
+        'cmake', 'src/platform/windows/CMakeLists.txt',
+        'src/platform/windows/observer.rc', 'src/platform/windows/observer.manifest')
+    $changed = @(& git -C $repo diff --name-only $priorSource $head -- $scope)
+    if ($LASTEXITCODE -ne 0) { throw 'Could not compare the reviewed owned implementation.' }
+    if ($changed.Count -ne 0) {
+        return [ordered]@{ result = 'RUN_CURRENT_PACKAGE'; reason = 'shared_source_changed';
+            changed_paths = $changed }
+    }
+    $priorOutput = Join-Path $repo ('uat\r1c4b-mvp1-shield-sandbox\' + $priorRunId + '\output')
+    $expected = [ordered]@{
+        'debug-normal-repeat' = '6A85F9ED355D0CBB599134AADEA84BC056293F8826D5A5F1E7A155B40F8B5650'
+        'debug-association-stop-before-call' = '4E9A623346C99A24684B070B902BA52172C1D56F8EA56AFD404B071755137476'
+        'debug-capture-stop' = '3F41AF3D5962DC70AB7529D893F3DB250784F9BAB0BE98A412E8B1E8640152DC'
+        'debug-writer-stall' = '19C415AC099E60D0F59FFE5A129ADFB23D5BE3226538A02517CEE59561C1C0D4'
+        'debug-source-pause' = 'FEC238A0ADFEA4564FD61ED653CF8F835318E751EC22B0A640BAE9850887C2F4'
+        'debug-capture-early-up' = 'DDE2E54C1C57452CE68BE38DBDFA2130D1B3509279712E739385E0B3AF5D3307'
+        'debug-capture-fail' = '1BD287D36B452BC52DB845F6C9AD37A0A357451A9325B619435EF5EE0230A008'
+        'debug-capture-lost' = '07225797DDC160669596EB2A8B4E12EBC592F451E4D23DA91E72A7698BC48306'
+        'release-normal' = 'E21CA00DA769F578B07B342DE087A38FBEC437DEDB0705DBA6624D7B48C80948'
+    }
+    $summaryPath = Join-Path $priorOutput 'guest-owned-summary.json'
+    $summaryHash = '23201480D2A815C58EF7105EE34A366385F759C026B02C6721F013A8AD7C5287'
+    if ((Get-FileHash -LiteralPath $summaryPath -Algorithm SHA256).Hash -cne $summaryHash) {
+        throw 'Reviewed owned summary changed; refusing automatic prerequisite reuse.'
+    }
+    $priorSummary = Get-Content -LiteralPath $summaryPath -Raw | ConvertFrom-Json -ErrorAction Stop
+    if ($priorSummary.run_id -cne $priorRunId -or $priorSummary.source_commit -cne $priorSource -or
+        @($priorSummary.owned_scenarios).Count -ne 9 -or
+        @($priorSummary.owned_scenarios | Where-Object { $_.exit_code -ne 0 -or
+            $_.nonempty_evidence -ne $true }).Count -ne 0) {
+        throw 'Reviewed owned summary does not contain the exact nine successful runs.'
+    }
+    $records = @()
+    foreach ($case in $expected.Keys) {
+        $file = "$priorRunId-$case.jsonl"
+        $path = Join-Path $priorOutput $file
+        if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne $expected[$case]) {
+            throw "Reviewed owned evidence changed: $file"
+        }
+        $split = $case.Split('-', 2)
+        $rows = @([IO.File]::ReadAllLines($path) | ForEach-Object {
+            if ([string]::IsNullOrWhiteSpace($_)) { throw "Empty owned evidence line: $file" }
+            $_ | ConvertFrom-Json -ErrorAction Stop
+        })
+        $sequence = 0
+        foreach ($row in $rows) {
+            $sequence++
+            if ($row.schema -cne 'r1c4b-owned-product-shield/v1' -or $row.sequence -ne $sequence) {
+                throw "Reviewed owned JSONL identity/sequence differs: $file"
+            }
+        }
+        $startup = @($rows | Where-Object { $_.type -ceq 'startup' })
+        $shutdown = @($rows | Where-Object { $_.type -ceq 'shutdown' })
+        if ($startup.Count -ne 1 -or $startup[0].implementation_sha -cne $priorSource -or
+            $startup[0].scenario -cne $split[1] -or $shutdown.Count -ne 1 -or
+            $shutdown[0].accepted -ne $true -or $shutdown[0].shield_clean -ne $true -or
+            $shutdown[0].association_cleanup_complete -ne $true -or
+            $shutdown[0].capture_cleanup_complete -ne $true -or
+            $shutdown[0].receiver_destroyed -ne $true -or $shutdown[0].writer_gone -ne $true) {
+            throw "Reviewed owned prerequisite incomplete: $file"
+        }
+        $records += [ordered]@{ configuration = $split[0]; scenario = $split[1];
+            file = $file; sha256 = $expected[$case]; rows = $rows.Count }
+    }
+    return [ordered]@{ result = 'REUSED_PRIOR_EVIDENCE'; run_id = $priorRunId;
+        source_commit = $priorSource; summary_sha256 = $summaryHash;
+        shared_source_unchanged = $true; compared_source_paths = $scope;
+        current_package_owned_execution = 'NOT_RUN'; raw_evidence = $records }
+}
+$ownedPrerequisite = Get-OwnedPrerequisite
+
 # This is a new per-run package. The historical owned-overlay-probe package,
 # scripts and evidence remain untouched. Debug/Release /MT avoid a VC++ guest prerequisite.
 $cmake = Get-Command cmake.exe -ErrorAction SilentlyContinue |
@@ -164,11 +244,13 @@ $manifest = [ordered]@{
     imports = $imports
     debug_owned_imports = $debugImports
     debug_explorer_imports = $debugExplorerImports
+    explorer_test_exception = 'exact_sandbox_same_sid_session_high'
+    owned_prerequisite = $ownedPrerequisite
     owned_guest_run = 'NOT_RUN'
     explorer_guest_run = 'NOT_RUN'
 }
 $utf8 = New-Object Text.UTF8Encoding($false)
-[IO.File]::WriteAllText((Join-Path $inputDir 'manifest.json'), ($manifest | ConvertTo-Json -Depth 6), $utf8)
+[IO.File]::WriteAllText((Join-Path $inputDir 'manifest.json'), ($manifest | ConvertTo-Json -Depth 8), $utf8)
 
 function Write-GuestConfig([string]$configPath, [string]$hostInput, [string]$hostOutput) {
     $inputXml = [Security.SecurityElement]::Escape($hostInput)
@@ -229,5 +311,6 @@ Compress-Archive -LiteralPath $inputDir, $outputDir, $desktopConfig -Destination
     DebugOwnedSha256 = $manifest.debug_owned_sha256
     DebugExplorerSha256 = $manifest.debug_explorer_sha256
     GuestOwnedRun = 'NOT_RUN'
+    OwnedPrerequisite = $ownedPrerequisite.result
     GuestExplorerRun = 'NOT_RUN'
 } | Format-List

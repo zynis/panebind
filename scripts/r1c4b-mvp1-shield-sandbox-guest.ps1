@@ -14,6 +14,7 @@ $summary = [ordered]@{
     user_interactive = $null
     preflight = @()
     owned_scenarios = @()
+    owned_prerequisite = $null
     contrast = $null
     explorer_stages = @()
     explorer_started = $false
@@ -28,7 +29,7 @@ $summaryPath = $null
 
 function Save-Summary {
     if ($script:summaryPath) {
-        [IO.File]::WriteAllText($script:summaryPath, ($script:summary | ConvertTo-Json -Depth 7), $script:utf8)
+        [IO.File]::WriteAllText($script:summaryPath, ($script:summary | ConvertTo-Json -Depth 9), $script:utf8)
     }
 }
 
@@ -73,7 +74,8 @@ try {
     if ($manifest.schema -cne 'r1c4b-mvp1-shield-sandbox-package/v2' -or
         $manifest.run_id -cne $runId -or
         $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
-        $manifest.configuration -cne 'Release-and-Debug-MT-x64') {
+        $manifest.configuration -cne 'Release-and-Debug-MT-x64' -or
+        $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high') {
         throw 'Guest manifest does not match the exact package.'
     }
     $summary.source_commit = $manifest.source_commit
@@ -120,8 +122,8 @@ try {
             throw "Build identity differs from manifest: $path"
         }
     }
-    $summary.explorer_command = "$explorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1.jsonl"
-    $summary.explorer_debug_command = "$debugExplorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1-debug.jsonl"
+    $summary.explorer_command = "$explorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1.jsonl --sandbox-high-integrity-test-exception"
+    $summary.explorer_debug_command = "$debugExplorer --sandbox-run-id $runId --evidence-log $outputDir\$runId-explorer-mvp1-debug.jsonl --sandbox-high-integrity-test-exception"
     $summary.status = 'PREFLIGHT'
     Save-Summary
 
@@ -139,6 +141,38 @@ try {
         @{ configuration = 'debug'; scenario = 'capture-lost'; executable = $debugOwned },
         @{ configuration = 'release'; scenario = 'normal'; executable = $owned }
     )
+    if ($manifest.owned_prerequisite.result -ceq 'REUSED_PRIOR_EVIDENCE') {
+        $prior = $manifest.owned_prerequisite
+        if ($prior.run_id -cne '050736d561fe4b3c941e9f194b3f51aa' -or
+            $prior.source_commit -cne '3ef009f5e72c5eebdbb64b3c3e0cd6c52c1b2d52' -or
+            $prior.summary_sha256 -cne '23201480D2A815C58EF7105EE34A366385F759C026B02C6721F013A8AD7C5287' -or
+            $prior.shared_source_unchanged -ne $true -or
+            $prior.current_package_owned_execution -cne 'NOT_RUN' -or
+            @($prior.raw_evidence).Count -ne 9) {
+            throw 'Owned prior prerequisite record is incomplete; cannot skip current owned input.'
+        }
+        foreach ($case in $cases) {
+            $record = @($prior.raw_evidence | Where-Object {
+                $_.configuration -ceq $case.configuration -and $_.scenario -ceq $case.scenario
+            })
+            if ($record.Count -ne 1 -or $record[0].sha256 -cnotmatch '^[A-F0-9]{64}$' -or
+                $record[0].rows -le 1 -or $record[0].file -cne
+                    ($prior.run_id + '-' + $case.configuration + '-' + $case.scenario + '.jsonl')) {
+                throw 'Owned prior prerequisite does not bind every exact reviewed scenario.'
+            }
+        }
+        $summary.owned_prerequisite = $prior
+        $summary.owned_scenarios = @($prior.raw_evidence | ForEach-Object {
+            [ordered]@{ configuration = $_.configuration; scenario = $_.scenario;
+                result = 'REUSED_PRIOR_EVIDENCE'; prior_run_id = $prior.run_id;
+                prior_source_commit = $prior.source_commit; evidence_sha256 = $_.sha256;
+                current_package_execution = 'NOT_RUN' }
+        })
+        $cases = @()
+        Save-Summary
+    } elseif ($manifest.owned_prerequisite.result -ceq 'RUN_CURRENT_PACKAGE') {
+        $summary.owned_prerequisite = $manifest.owned_prerequisite
+    } else { throw 'Owned prerequisite mode is unknown.' }
     foreach ($testCase in $cases) {
         $configuration = $testCase.configuration
         $scenario = $testCase.scenario
@@ -229,12 +263,30 @@ try {
             throw "Owned scenario $configuration/$scenario failed or produced no evidence; remaining scenarios were not run."
         }
     }
-    # This last actual preflight subprocess inherits the same guest launch
-    # identity. A known non-Medium RID already contradicts the product's
-    # existing controller gate. Do not start another known-ineligible Explorer
-    # run; UNKNOWN also cannot grant launch authority. A Medium observation is
-    # merely necessary: the product still checks actual non-elevated tokens,
-    # exact test-created HWNDs and every other existing eligibility condition.
+    # Always collect a CURRENT guest input/identity observation, including when
+    # owned was reused. The historical High result is not launch authority.
+    # This bootstrap is guest test-only, not an Explorer/product operation.
+    $preflightLog = Join-Path $outputDir "$runId-preflight-explorer.jsonl"
+    & $preflight --check-guest-input-state --sandbox-run-id $runId --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-explorer.console.txt")
+    $preflightExit = $LASTEXITCODE
+    $preflightResult = if (Test-Path -LiteralPath $preflightLog -PathType Leaf) {
+        Get-Content -LiteralPath $preflightLog -Raw | ConvertFrom-Json -ErrorAction Stop
+    } else { $null }
+    $summary.preflight += [ordered]@{ configuration = 'explorer'; scenario = 'current_input_identity';
+        exit_code = $preflightExit; evidence = $preflightLog;
+        readiness = if ($preflightResult) { $preflightResult.result } else { 'NO_EVIDENCE' } }
+    Save-Summary
+    if ($preflightExit -ne 0 -or -not $preflightResult -or $preflightResult.result -cne 'READY' -or
+        $preflightResult.schema -cne 'r1c4b-owned-foreground-input-environment/v1' -or
+        $preflightResult.run_id -cne $runId -or $preflightResult.read_only -ne $false -or
+        $preflightResult.owned_foreground_bootstrap.foreground_owned -ne $true -or
+        $preflightResult.owned_foreground_bootstrap.destroyed -ne $true -or
+        $preflightResult.owned_foreground_bootstrap.unregistered -ne $true) {
+        throw 'Current guest input preflight was not READY; no Explorer input was sent.'
+    }
+    # This explicit test policy requires actual High, not Medium/UNKNOWN/System.
+    # The product independently verifies its exact guest RunId capability and
+    # each new frame's SID/session/native token at binding and every operation.
     $integrityBeforeKnown = $preflightResult.before.caller_integrity_known -eq $true -and
         ($preflightResult.before.caller_integrity -is [int] -or
          $preflightResult.before.caller_integrity -is [long])
@@ -253,23 +305,26 @@ try {
         caller_integrity_after_known = $integrityAfterKnown
         caller_integrity_before = $integrityBefore
         caller_integrity_after = $integrityAfter
-        required_medium_rid = 8192
+        required_high_rid = 12288
+        requested_test_exception = $manifest.explorer_test_exception
+        current_run_id = $runId
+        ordinary_product_medium_gate_changed = $false
         actual_explorer_controller_token_checked = $false
         product_authority_granted = $false
     }
     if (-not $integrityBeforeKnown -or -not $integrityAfterKnown -or
-        $integrityBefore -ne 8192 -or $integrityAfter -ne 8192) {
+        $integrityBefore -ne 12288 -or $integrityAfter -ne 12288) {
         $summary.explorer_not_run_reason = if (-not $integrityBeforeKnown -or
                 -not $integrityAfterKnown) {
             'Explorer_controller_integrity_UNKNOWN'
-        } else { 'Explorer_medium_non_elevated_identity_required' }
+        } else { 'Explorer_exact_high_guest_test_identity_required' }
         $summary.explorer_stages += [ordered]@{
             configurations = @('debug', 'release')
             result = 'NOT_RUN'
             reason = $summary.explorer_not_run_reason
         }
         Save-Summary
-        throw "Owned scenarios passed; Explorer NOT_RUN: $($summary.explorer_not_run_reason)."
+        throw "Owned prerequisite recorded; Explorer NOT_RUN: $($summary.explorer_not_run_reason)."
     }
     Save-Summary
     $driver = Join-Path $inputDir 'explorer-driver.ps1'

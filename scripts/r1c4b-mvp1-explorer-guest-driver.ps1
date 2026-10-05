@@ -25,6 +25,7 @@ $script:ctrlPressed = $false
 $script:productPid = 0
 $script:productStarted = $false
 $script:bound = @()
+$script:confirmed = @()
 $script:targets = @()
 $script:gestureGenerations = [Collections.Generic.HashSet[long]]::new()
 
@@ -49,6 +50,7 @@ function Test-ExactGuest {
         ConvertFrom-Json
     if ($manifest.run_id -cne $RunId -or
         $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
+        $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high' -or
         $manifest.explorer_driver_sha256 -cne
             (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash) {
         throw 'driver_manifest_mismatch'
@@ -537,6 +539,32 @@ function Exact-Root([int]$Member) {
         $matches[0].tid -ne $target.tid) { throw "exact_root_changed:$Member" }
     return $matches[0]
 }
+function Assert-GuestHighEvidence($Facts,[int]$Member,$TokenBinding = $null) {
+    # These are reported REAL native security facts, not launch permission or
+    # boolean substitutes for the product's per-operation scope checks.
+    $session = (Get-Process -Id $PID).SessionId
+    if ($Facts.identity_policy -cne 'sandbox_same_sid_session_high' -or
+        $Facts.sandbox_high_exception_applied -ne $true -or
+        $Facts.caller_integrity -ne 12288 -or $Facts.target_integrity -ne 12288 -or
+        $Facts.caller_medium -ne $false -or $Facts.target_medium -ne $false -or
+        $Facts.caller_elevated -ne $true -or $Facts.target_elevated -ne $true -or
+        $Facts.same_sid -ne $true -or $Facts.same_session -ne $true -or
+        $Facts.caller_session -ne $session -or $Facts.target_session -ne $session -or
+        $Facts.sandbox_exception_run_id -cne $RunId -or
+        $Facts.sandbox_exception_member_slot -ne ($Member+1) -or
+        $Facts.sandbox_exception_target_confirmation_generation -le 0 -or
+        $Facts.sandbox_exception_token_consent_generation -le 0 -or
+        $Facts.sandbox_exception_capability_generation -le 0) {
+        throw "actual_guest_high_security_scope_incomplete:$Member"
+    }
+    if ($null -ne $TokenBinding -and
+        ($Facts.sandbox_exception_token_consent_generation -ne $TokenBinding.consent_generation -or
+         $Facts.sandbox_exception_capability_generation -ne $TokenBinding.capability_generation -or
+         $Facts.sandbox_exception_target_confirmation_generation -ne
+            $script:confirmed[$Member].confirmation_generation)) {
+        throw "actual_guest_high_scope_generation_changed:$Member"
+    }
+}
 function Console-Line([string]$Line) {
     if (-not [PaneBindMvpGuestInput]::InputDesktopReady()) {
         throw 'guest_input_desktop_not_active_for_console'
@@ -604,6 +632,7 @@ function Assert-ProductGeometry([string]$Phase,[bool]$RequireGlue = $false) {
         if ($reported.Count -ne 1 -or -not (Test-RectEqual $actual $reported[0].visible)) {
             throw "product_geometry_not_refreshed:$Phase/$member"
         }
+        Assert-GuestHighEvidence $reported[0] $member $script:bound[$member]
         Record 'actual_relation_snapshot' @{ phase=$Phase; member=$member;
             product_sequence=$status.sequence; visible=$actual;
             reported_visible=$reported[0].visible; exact=$true }
@@ -617,7 +646,7 @@ function Assert-ProductGeometry([string]$Phase,[bool]$RequireGlue = $false) {
 }
 function Invoke-MagnetWaypoint([int]$Member,[long]$Generation,[string]$Phase,
                                $Down,$Initial,$WantedFree,$Expected,[bool]$Snapped,
-                               [long]$AfterQuantum) {
+                               [long]$AfterQuantum,[bool]$RequireNative = $true) {
     # Coordinates come from the original DOWN/window anchor. Reading each
     # native result verifies geometry; it never becomes a new intent anchor.
     $cursor=@([int]($Down[0]+$WantedFree[0]-$Initial[0]),
@@ -626,11 +655,16 @@ function Invoke-MagnetWaypoint([int]$Member,[long]$Generation,[string]$Phase,
     Send-MouseMove $cursor[0] $cursor[1] $Phase
     $receipt = Wait-ProductRow 'gesture_event' {
         param($row) $row.generation -eq $Generation -and $row.event -ceq 'writer' -and
-            $row.quantum -gt $AfterQuantum -and $row.native_attempted -eq $true
+            $row.quantum -gt $AfterQuantum -and ($row.native_attempted -eq $true -or
+                (-not $RequireNative -and $row.native_attempted -eq $false -and
+                    $row.reason -ceq 'already_exact'))
     } 4
     $root = Exact-Root $Member
     $actual=[PaneBindMvpGuestInput]::Rectangle([long]$root.hwnd,$true)
-    $exact = $receipt.native_succeeded -eq $true -and
+    $nativeOrConfirmedNoop = ($receipt.native_attempted -eq $true -and
+        $receipt.native_succeeded -eq $true) -or (-not $RequireNative -and
+        $receipt.native_attempted -eq $false -and $receipt.reason -ceq 'already_exact')
+    $exact = $nativeOrConfirmedNoop -and
         $receipt.geometry_exact -eq $true -and $receipt.post_context_exact -eq $true -and
         $receipt.snapped -eq $Snapped -and
         (Test-RectEqual $receipt.target_visible $Expected) -and
@@ -640,6 +674,8 @@ function Invoke-MagnetWaypoint([int]$Member,[long]$Generation,[string]$Phase,
         original_down=$Down; original_visible=$Initial; cursor=$cursor;
         free_visible=$WantedFree; expected_visible=$Expected; actual_visible=$actual;
         expected_snapped=$Snapped; observed_snapped=$receipt.snapped;
+        native_required=$RequireNative; native_attempted=$receipt.native_attempted;
+        native_succeeded=$receipt.native_succeeded; receipt_reason=$receipt.reason;
         product_sequence=$receipt.sequence; quantum=$receipt.quantum;
         raw_sequence=$receipt.raw_sequence; exact=$exact }
     if (-not $exact) { throw "magnet_waypoint_not_exact:$Member/$Phase" }
@@ -767,7 +803,7 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
             foreach ($waypoint in @(
                 @{phase='free';distance=48;snapped=$false},
                 @{phase='xy_snap';distance=4;snapped=$true},
-                @{phase='hold_outside_attraction';distance=12;snapped=$true},
+                @{phase='hold_outside_attraction';distance=12;snapped=$true;allow_exact_noop=$true},
                 @{phase='detach_beyond_release';distance=48;snapped=$false},
                 @{phase='xy_resnap';distance=4;snapped=$true})) {
                 $x=$snapLeft+$outX*$waypoint.distance
@@ -775,7 +811,8 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
                 $free=@($x,$y,($x+$width),($y+$height))
                 $expected=if($waypoint.snapped){$snap}else{$free}
                 $quantum=Invoke-MagnetWaypoint $Member $start.generation $waypoint.phase `
-                    $point $before $free $expected $waypoint.snapped $quantum
+                    $point $before $free $expected $waypoint.snapped $quantum `
+                    (-not $waypoint.allow_exact_noop)
             }
             Record 'xy_alignment' @{ member=$Member; target_member=$targetMember;
                 generation=$start.generation; source_visible=$snap; target_visible=$target;
@@ -966,7 +1003,9 @@ try {
     Record 'startup' @{ implementation_sha=$manifest.source_commit;
         initial_desktop_snapshot=$initialDesktopSnapshot;
         guest_test_only=$true; product=$product; product_log=$productLog;
-        input_source='automated_guest_driver'; live_validation=$false }
+        input_source='automated_guest_driver'; live_validation=$false;
+        requested_test_exception=$manifest.explorer_test_exception;
+        requested_exception_run_id=$RunId; product_authority_granted=$false }
     $callerDpi = [PaneBindMvpGuestInput]::EstablishCallerPhysicalCoordinates()
     Record 'test_driver_dpi_context' @{ thread_id=$callerDpi.thread_id;
         previous_context=$callerDpi.previous_context;
@@ -977,7 +1016,7 @@ try {
     if (-not $callerDpi.established) { throw 'guest_caller_pmv2_not_established_no_geometry_or_input' }
     if ([PaneBindMvpGuestInput]::WorkArea()[2] -lt 800 -or
         [PaneBindMvpGuestInput]::WorkArea()[3] -lt 600) { throw 'guest_desktop_too_small' }
-    $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver"
+    $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver --sandbox-high-integrity-test-exception"
     $script:productPid = [PaneBindMvpGuestInput]::StartProduct($product,$args)
     $script:productStarted = $true
     $script:consoleInput = [PaneBindMvpGuestInput]::AttachInput($script:productPid)
@@ -1053,6 +1092,13 @@ try {
             $confirmed.exact_location -ne $true) {
             throw "product_target_facts_incomplete:$member"
         }
+        Assert-GuestHighEvidence $confirmed $member
+        if ($confirmed.sandbox_exception_target_confirmation_generation -ne
+                $confirmed.confirmation_generation -or
+            $confirmed.sandbox_exception_token_consent_generation -ne $confirmed.token_generation) {
+            throw "target_confirmation_scope_generation_mismatch:$member"
+        }
+        $script:confirmed += $confirmed
     }
     # Align actual DWM-visible edges, not requested outer-window coordinates.
     # This is test-created, pre-consent layout preparation only; the product
@@ -1087,10 +1133,20 @@ try {
             [int]$binding.pid -ne $root.pid -or [int]$binding.tid -ne $root.tid) {
             throw "binding_differs_from_new_exact_root:$member"
         }
+        Assert-GuestHighEvidence $binding $member $binding
         $script:bound += $binding
         Record 'binding_verified' @{ member=$member; hwnd=$root.hwnd;
             pid=$root.pid; tid=$root.tid; product_window_id=$binding.window_id;
-            exact_new_root=$true }
+            exact_new_root=$true; identity_policy=$binding.identity_policy;
+            caller_integrity=$binding.caller_integrity; target_integrity=$binding.target_integrity;
+            caller_medium=$binding.caller_medium; target_medium=$binding.target_medium;
+            caller_elevated=$binding.caller_elevated; target_elevated=$binding.target_elevated;
+            same_sid=$binding.same_sid; same_session=$binding.same_session;
+            exception_run_id=$binding.sandbox_exception_run_id;
+            exception_member_slot=$binding.sandbox_exception_member_slot;
+            confirmation_generation=$binding.sandbox_exception_target_confirmation_generation;
+            token_consent_generation=$binding.sandbox_exception_token_consent_generation;
+            capability_generation=$binding.sandbox_exception_capability_generation }
     }
     $initialStatus = Wait-ProductRow 'status' {
         param($row) $row.sequence -gt $binding.sequence
@@ -1105,8 +1161,14 @@ try {
     # Both configurations exercise the same small, representative product
     # flow. Each plain gesture proves individual free/snap/hold/detach/resnap
     # waypoints; neither a boolean proposal nor one snap stands in for these.
-    Invoke-Drag 0 'ctrl' 34 0 'ctrl_move'
+    # First prove the cross-process ordinary Move handoff, actual writes and
+    # NormalUp cleanup before allowing Ctrl or the rest of the three-window flow.
     Invoke-Drag 0 'plain' -48 -48 'plain_move_candidate'
+    Record 'first_explorer_plain_closed' @{ member=0;
+        scope='same_exact_bound_frame_real_handoff_native_magnet_raw_legacy_up_and_detach';
+        human_uat='NOT_RUN' }
+    $null=Assert-ProductGeometry 'after_first_plain' $true
+    Invoke-Drag 0 'ctrl' 34 0 'ctrl_move'
     Invoke-Drag 1 'plain' 48 -48 'plain_move_candidate'
     Invoke-Drag 2 'plain' -48 48 'plain_move_candidate'
     Invoke-Drag 1 'resize' 0 28 'native_resize'

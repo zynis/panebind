@@ -1442,6 +1442,72 @@ void test_safe_delta_selection_and_work_area_containment() {
            "work-area containment is inclusive at the boundary and rejects spill");
 }
 
+void test_exact_guest_high_security_exception() {
+    using explorer::ExplorerEligibilityReason;
+    const explorer::ExplorerProcessSecurityFacts high{0x3000, 1, true, false, false};
+    auto facts = eligible_facts();
+    facts.medium_integrity = false;
+    facts.elevated = true;
+    facts.high_integrity = true;
+    expect(detail::evaluate_eligibility_model(facts) == ExplorerEligibilityReason::Elevated,
+        "ordinary High entry is rejected without the exact guest scope");
+    facts.sandbox_high_test_exception = detail::sandbox_high_security_matches(
+        true, true, true, high, high, high);
+    expect(detail::evaluate_eligibility_model(facts) == ExplorerEligibilityReason::Eligible &&
+        !facts.medium_integrity && facts.elevated,
+        "explicit guest High exception preserves actual Medium=false/elevated=true facts");
+
+    for (auto member : {&detail::EligibilityModelFacts::same_user,
+                        &detail::EligibilityModelFacts::same_session,
+                        &detail::EligibilityModelFacts::same_integrity,
+                        &detail::EligibilityModelFacts::security_query_succeeded,
+                        &detail::EligibilityModelFacts::high_integrity}) {
+        auto invalid = facts; invalid.*member = false;
+        expect(detail::evaluate_eligibility_model(invalid) != ExplorerEligibilityReason::Eligible,
+            "guest exception does not replace SID/session/exact integrity/security proof");
+    }
+    for (auto invalid : {explorer::ExplorerProcessSecurityFacts{},
+                         explorer::ExplorerProcessSecurityFacts{0x2000, 1, false, false, false},
+                         explorer::ExplorerProcessSecurityFacts{0x4000, 1, true, false, false},
+                         explorer::ExplorerProcessSecurityFacts{0x3000, 2, true, false, false},
+                         explorer::ExplorerProcessSecurityFacts{0x3000, 1, true, true, false},
+                         explorer::ExplorerProcessSecurityFacts{0x3000, 1, true, false, true}}) {
+        expect(!detail::sandbox_high_security_matches(true, true, true, high, high, invalid),
+            "unknown/mixed/System/session/UIAccess/AppContainer are not High test exceptions");
+    }
+    expect(!detail::sandbox_high_security_matches(false, true, true, high, high, high) &&
+        !detail::sandbox_high_security_matches(true, false, true, high, high, high) &&
+        !detail::sandbox_high_security_matches(true, true, false, high, high, high),
+        "revoked guest/RunId or changed controller/target SID loses the exception");
+
+    for (std::size_t existing = 0; existing < 3; ++existing)
+        expect(detail::sandbox_high_claim_allowed(existing, false, false, true, true, true),
+            "only three distinct exact new confirmed roots may claim the test scope");
+    expect(!detail::sandbox_high_claim_allowed(3, false, false, true, true, true) &&
+        !detail::sandbox_high_claim_allowed(1, true, false, true, true, true) &&
+        !detail::sandbox_high_claim_allowed(1, false, true, true, true, true) &&
+        !detail::sandbox_high_claim_allowed(1, false, false, false, true, true) &&
+        !detail::sandbox_high_claim_allowed(1, false, false, true, false, true) &&
+        !detail::sandbox_high_claim_allowed(1, false, false, true, true, false),
+        "fourth/duplicate/baseline or Shell-unproven root cannot bind to this RunId");
+    const detail::SandboxHighRootBinding initial{0x300, 100, 200, 3, 0, 0};
+    expect(detail::sandbox_high_binding_matches(initial, initial, true) &&
+        !detail::sandbox_high_binding_matches(initial, initial, false),
+        "pre-token exact root only permits initial qualification, never ongoing writes");
+    const detail::SandboxHighRootBinding sealed{0x300, 100, 200, 3, 5, 7};
+    expect(detail::sandbox_high_binding_matches(sealed, sealed, false) &&
+        !detail::sandbox_high_binding_matches(sealed, sealed, true),
+        "signed root token does not reopen initial qualification");
+    for (auto actual : {detail::SandboxHighRootBinding{0x400, 100, 200, 3, 5, 7},
+                        detail::SandboxHighRootBinding{0x300, 101, 200, 3, 5, 7},
+                        detail::SandboxHighRootBinding{0x300, 100, 201, 3, 5, 7},
+                        detail::SandboxHighRootBinding{0x300, 100, 200, 4, 5, 7},
+                        detail::SandboxHighRootBinding{0x300, 100, 200, 3, 6, 7},
+                        detail::SandboxHighRootBinding{0x300, 100, 200, 3, 5, 8}})
+        expect(!detail::sandbox_high_binding_matches(sealed, actual, false),
+            "same Explorer process cannot substitute HWND/PID/TID or consent/capability generation");
+}
+
 void test_shared_bridge_and_translation_failures() {
     const geometry::Rect positioning{90, 90, 510, 410};
     const geometry::Rect visible{100, 100, 500, 400};
@@ -1664,6 +1730,7 @@ int main() {
     test_consent_generation_and_one_shot_move_authority();
     test_consent_live_and_restore_eligibility_fail_closed();
     test_allowlist_reason_model();
+    test_exact_guest_high_security_exception();
     test_safe_delta_selection_and_work_area_containment();
     test_shared_bridge_and_translation_failures();
     test_postverification_identity_and_geometry_model();

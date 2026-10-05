@@ -17,11 +17,13 @@ class ExplorerTokenLedger;
 class ExplorerSessionDiagnostics;
 class ExplorerGlueSessionBridge;
 class ExplorerGroupBridge;
+class ExplorerSandboxHighScopeAccess;
 }
 
 class ExplorerTestSession;
 class ExplorerWindowOperations;
 class ExplorerConsentProvisioning;
+class ExplorerSandboxHighTestScope;
 struct ExplorerProvisionResult;
 struct ExplorerConsentBeginResult;
 struct ExplorerConsentProvisionResult;
@@ -202,6 +204,40 @@ struct ExplorerProcessSecurityFacts {
                            const ExplorerProcessSecurityFacts&) = default;
 };
 
+// Evidence for the explicit disposable-guest test exception. Actual token
+// facts above are never rewritten to Medium/non-elevated by this exception.
+struct ExplorerSandboxHighTestFacts {
+    bool applied{};
+    std::wstring run_id;
+    std::size_t member_index{}; // 1..3, never a process-wide allowlist
+    std::uint64_t target_confirmation_generation{};
+    std::uint64_t token_consent_generation{};
+    std::uint64_t capability_generation{};
+
+    friend bool operator==(const ExplorerSandboxHighTestFacts&,
+                           const ExplorerSandboxHighTestFacts&) = default;
+};
+
+// Created only after the real MVP1 guest/account/desktop/RunId/artifact guard.
+// It does not select or authorize any HWND. Only the existing exact new-root
+// consent protocol may bind at most three distinct targets to this scope.
+class ExplorerSandboxHighTestScope final {
+public:
+    ~ExplorerSandboxHighTestScope();
+    ExplorerSandboxHighTestScope(const ExplorerSandboxHighTestScope&) = delete;
+    ExplorerSandboxHighTestScope& operator=(const ExplorerSandboxHighTestScope&) = delete;
+
+    [[nodiscard]] static std::shared_ptr<ExplorerSandboxHighTestScope> create(
+        const std::wstring& run_id, const std::wstring& evidence_path);
+
+private:
+    struct Impl;
+    explicit ExplorerSandboxHighTestScope(std::unique_ptr<Impl> impl) noexcept;
+    std::unique_ptr<Impl> impl_;
+    friend class ExplorerConsentProvisioning;
+    friend class detail::ExplorerSandboxHighScopeAccess;
+};
+
 struct ExplorerWindowSnapshot {
     core::geometry::Rect positioning_rect;
     core::geometry::Rect visible_rect;
@@ -215,6 +251,9 @@ struct ExplorerWindowSnapshot {
     core::geometry::Rect monitor_work_area;
     ExplorerProcessSecurityFacts controller_security;
     ExplorerProcessSecurityFacts target_security;
+    bool security_same_user{};
+    bool security_same_session{};
+    ExplorerSandboxHighTestFacts sandbox_high_test;
     bool root_top_level{};
     bool visible{};
     bool cloaked{};
@@ -464,7 +503,8 @@ public:
         delete;
 
     [[nodiscard]] static ExplorerConsentBeginResult begin(
-        const std::filesystem::path& unique_empty_test_directory);
+        const std::filesystem::path& unique_empty_test_directory,
+        std::shared_ptr<ExplorerSandboxHighTestScope> sandbox_high_test = {});
 
     // The harness calls this immediately before it displays the first prompt.
     // It records protocol order only; no Shell or native mutation occurs.

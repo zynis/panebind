@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_session.h"
+#include "platform/windows/explorer/explorer_mvp_guest_contract.h"
 
 #include "core/geometry/checked_arithmetic.h"
 #include "platform/windows/explorer/explorer_glue_session_internal.h"
@@ -916,7 +917,9 @@ ExplorerEligibilityReason evaluate_eligibility_model(
     if (!facts.same_integrity) {
         return ExplorerEligibilityReason::IntegrityMismatch;
     }
-    if (!facts.medium_integrity || facts.elevated) {
+    if ((!facts.medium_integrity || facts.elevated) &&
+        !(facts.high_integrity && facts.elevated &&
+          facts.sandbox_high_test_exception)) {
         return ExplorerEligibilityReason::Elevated;
     }
     if (facts.ui_access) {
@@ -1539,6 +1542,134 @@ struct NativeSecurityFacts {
 
 } // namespace
 
+struct ExplorerSandboxHighTestScope::Impl final {
+    std::wstring run_id, evidence_path;
+    NativeSecurityFacts controller_security;
+    DWORD controller_process_id{}, controller_thread_id{};
+    std::array<detail::SandboxHighRootBinding, 3> roots{};
+    std::array<FilesystemLocationIdentity, 3> locations{};
+    std::size_t root_count{};
+    // Only the tiny in-memory binding table is protected; no native/COM/guest
+    // query occurs while holding this mutex.
+    std::mutex mutex;
+    bool revoked{};
+};
+
+ExplorerSandboxHighTestScope::ExplorerSandboxHighTestScope(
+    std::unique_ptr<Impl> impl) noexcept : impl_(std::move(impl)) {}
+
+ExplorerSandboxHighTestScope::~ExplorerSandboxHighTestScope() = default;
+
+std::shared_ptr<ExplorerSandboxHighTestScope>
+ExplorerSandboxHighTestScope::create(const std::wstring& run_id,
+                                    const std::wstring& evidence_path) {
+    if (!mvp1_guest_run_authorized(run_id, evidence_path)) return {};
+    auto security = query_process_security(GetCurrentProcess());
+    if (!security || !detail::sandbox_high_security_matches(
+            true, true, true, security->public_facts, security->public_facts,
+            security->public_facts)) return {};
+    auto impl = std::make_unique<Impl>();
+    impl->run_id = run_id;
+    impl->evidence_path = evidence_path;
+    impl->controller_security = std::move(*security);
+    impl->controller_process_id = GetCurrentProcessId();
+    impl->controller_thread_id = GetCurrentThreadId();
+    return std::shared_ptr<ExplorerSandboxHighTestScope>(
+        new ExplorerSandboxHighTestScope(std::move(impl)));
+}
+
+namespace detail {
+class ExplorerSandboxHighScopeAccess final {
+public:
+    static bool current(ExplorerSandboxHighTestScope& scope,
+                        const NativeSecurityFacts& controller,
+                        const NativeSecurityFacts& target) {
+        auto& impl = *scope.impl_;
+        {
+            const std::lock_guard lock(impl.mutex);
+            if (impl.revoked) return false;
+        }
+        const bool guarded = GetCurrentProcessId() == impl.controller_process_id &&
+            GetCurrentThreadId() == impl.controller_thread_id &&
+            mvp1_guest_run_authorized(impl.run_id, impl.evidence_path);
+        const bool matched = sandbox_high_security_matches(
+            guarded, same_user(controller, impl.controller_security),
+            same_user(target, impl.controller_security),
+            impl.controller_security.public_facts, controller.public_facts,
+            target.public_facts);
+        if (!guarded) {
+            const std::lock_guard lock(impl.mutex);
+            impl.revoked = true;
+        }
+        return matched;
+    }
+
+    static std::optional<std::size_t> reserve(
+        ExplorerSandboxHighTestScope& scope, SandboxHighRootBinding binding,
+        const FilesystemLocationIdentity& location,
+        const ExplorerConsentFacts& consent) {
+        auto controller = query_process_security(GetCurrentProcess());
+        UniqueHandle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION |
+            SYNCHRONIZE, FALSE, binding.process_id));
+        const auto target = process.valid()
+            ? query_process_security(process.get()) : std::nullopt;
+        if (!controller || !target || !current(scope, *controller, *target) ||
+            WaitForSingleObject(process.get(), 0) != WAIT_TIMEOUT) return {};
+        auto& impl = *scope.impl_;
+        const std::lock_guard lock(impl.mutex);
+        bool duplicate_root = false, duplicate_location = false;
+        for (std::size_t i = 0; i < impl.root_count; ++i) {
+            duplicate_root |= impl.roots[i].native_key == binding.native_key;
+            duplicate_location |= impl.locations[i] == location;
+        }
+        if (impl.revoked || !binding.native_key || !binding.process_id ||
+            !binding.thread_id || !binding.target_confirmation_generation ||
+            !sandbox_high_claim_allowed(impl.root_count, duplicate_root,
+                duplicate_location, consent.baseline_exclusion_complete,
+                consent.unique_new_target && consent.exact_target_location &&
+                    !consent.preexisting_exact_location_detected &&
+                    consent.exact_new_candidate_count == 1,
+                consent.browser_observation_active)) return {};
+        const auto index = impl.root_count++;
+        impl.roots[index] = binding;
+        impl.locations[index] = location;
+        return index + 1;
+    }
+
+    static bool seal(ExplorerSandboxHighTestScope& scope, std::size_t member,
+                     SandboxHighRootBinding binding,
+                     const ExplorerWindowToken& token) {
+        auto& impl = *scope.impl_;
+        const std::lock_guard lock(impl.mutex);
+        if (impl.revoked || !member || member > impl.root_count ||
+            !sandbox_high_binding_matches(impl.roots[member - 1], binding, true) ||
+            token.authority_kind() != ExplorerAuthorityKind::UserConsent ||
+            !token.consent_generation() || !token.generation()) return false;
+        binding.token_consent_generation = token.consent_generation();
+        binding.capability_generation = token.generation();
+        impl.roots[member - 1] = binding;
+        return true;
+    }
+
+    static bool accepts(ExplorerSandboxHighTestScope& scope, std::size_t member,
+                        const SandboxHighRootBinding& actual, bool initializing,
+                        const NativeSecurityFacts& controller,
+                        const NativeSecurityFacts& target,
+                        ExplorerSandboxHighTestFacts& evidence) {
+        if (!current(scope, controller, target)) return false;
+        auto& impl = *scope.impl_;
+        const std::lock_guard lock(impl.mutex);
+        if (impl.revoked || !member || member > impl.root_count ||
+            !sandbox_high_binding_matches(impl.roots[member - 1], actual,
+                                          initializing)) return false;
+        const auto& root = impl.roots[member - 1];
+        evidence = {true, impl.run_id, member, root.target_confirmation_generation,
+                    root.token_consent_generation, root.capability_generation};
+        return true;
+    }
+};
+} // namespace detail
+
 struct ExplorerTestSession::Impl final {
     bool com_initialized{};
     DWORD controller_thread_id{};
@@ -1554,6 +1685,8 @@ struct ExplorerTestSession::Impl final {
         consent_candidate_fingerprint;
     detail::ConsentMoveAuthority consent_move_authority;
     ExplorerConsentFacts consent;
+    std::shared_ptr<ExplorerSandboxHighTestScope> sandbox_high_test;
+    std::size_t sandbox_high_member{};
     std::set<long> registered_cookies;
     std::set<long> revoked_cookies;
     std::set<long> unresolved_cookies;
@@ -1693,6 +1826,7 @@ struct ExplorerConsentProvisioning::Impl final {
     FilesystemLocationIdentity target_location;
     std::vector<detail::NativeWindowKey> forbidden_preexisting_hwnds;
     ExplorerConsentFacts facts;
+    std::shared_ptr<ExplorerSandboxHighTestScope> sandbox_high_test;
     std::uint64_t next_protocol_generation{1U};
     bool terminal{};
 
@@ -2615,6 +2749,7 @@ template <typename ImplType>
         query_process_security(GetCurrentProcess());
     const auto current_target_security =
         query_process_security(impl.process.get());
+    ExplorerSandboxHighTestFacts sandbox_high_evidence;
     facts.security_query_succeeded =
         current_controller_security.has_value() &&
         current_target_security.has_value();
@@ -2632,6 +2767,11 @@ template <typename ImplType>
                 SECURITY_MANDATORY_MEDIUM_RID &&
             current_target_security->public_facts.integrity_rid ==
                 SECURITY_MANDATORY_MEDIUM_RID;
+        facts.high_integrity =
+            current_controller_security->public_facts.integrity_rid ==
+                SECURITY_MANDATORY_HIGH_RID &&
+            current_target_security->public_facts.integrity_rid ==
+                SECURITY_MANDATORY_HIGH_RID;
         facts.elevated =
             current_controller_security->public_facts.elevated ||
             current_target_security->public_facts.elevated;
@@ -2650,6 +2790,22 @@ template <typename ImplType>
                 same_user(*current_controller_security,
                           impl.controller_security) &&
                 same_user(*current_target_security, impl.target_security);
+        }
+        if (impl.sandbox_high_test &&
+            impl.authority_kind == ExplorerAuthorityKind::UserConsent &&
+            facts.security_query_succeeded) {
+            detail::SandboxHighRootBinding actual{
+                reinterpret_cast<detail::NativeWindowKey>(impl.window),
+                current_process_id, current_thread_id,
+                impl.consent.generations.target_confirmation_generation,
+                initialize_anchor ? 0 : impl.consent.generations.token_generation,
+                initialize_anchor || !impl.issued_token
+                    ? 0 : impl.issued_token->generation()};
+            facts.sandbox_high_test_exception =
+                detail::ExplorerSandboxHighScopeAccess::accepts(
+                    *impl.sandbox_high_test, impl.sandbox_high_member, actual,
+                    initialize_anchor, *current_controller_security,
+                    *current_target_security, sandbox_high_evidence);
         }
     }
 
@@ -2775,6 +2931,9 @@ template <typename ImplType>
     snapshot.controller_security =
         current_controller_security->public_facts;
     snapshot.target_security = current_target_security->public_facts;
+    snapshot.security_same_user = facts.same_user;
+    snapshot.security_same_session = facts.same_session;
+    snapshot.sandbox_high_test = std::move(sandbox_high_evidence);
     snapshot.root_top_level = facts.root_is_self && !facts.child_style &&
                               !facts.has_owner;
     snapshot.visible = facts.visible;
@@ -3240,7 +3399,8 @@ ExplorerConsentProvisioning::ExplorerConsentProvisioning(
 ExplorerConsentProvisioning::~ExplorerConsentProvisioning() = default;
 
 ExplorerConsentBeginResult ExplorerConsentProvisioning::begin(
-    const std::filesystem::path& unique_empty_test_directory) {
+    const std::filesystem::path& unique_empty_test_directory,
+    std::shared_ptr<ExplorerSandboxHighTestScope> sandbox_high_test) {
     ExplorerConsentBeginResult result;
     if (!unique_empty_test_directory.is_absolute()) {
         result.diagnostic = adapter_diagnostic(
@@ -3296,6 +3456,7 @@ ExplorerConsentBeginResult ExplorerConsentProvisioning::begin(
     impl->com_initialized = true;
     impl->controller_thread_id = GetCurrentThreadId();
     impl->target_directory = unique_empty_test_directory;
+    impl->sandbox_high_test = std::move(sandbox_high_test);
 
     const auto target_location =
         filesystem_location_identity(unique_empty_test_directory);
@@ -3482,6 +3643,7 @@ ExplorerConsentProvisioning::confirm_user_target() {
     session_impl->window = reinterpret_cast<HWND>(candidate_key);
     session_impl->consent = impl_->facts;
     session_impl->consent.browser_observation_active = true;
+    session_impl->sandbox_high_test = impl_->sandbox_high_test;
     session_impl->provisioning.baseline_total_shell_entries =
         impl_->facts.baseline_total_shell_entries;
     session_impl->provisioning.baseline_reliable_shell_entries =
@@ -3538,6 +3700,23 @@ ExplorerConsentProvisioning::confirm_user_target() {
         return result;
     }
 
+    if (session_impl->sandbox_high_test) {
+        const auto member = detail::ExplorerSandboxHighScopeAccess::reserve(
+            *session_impl->sandbox_high_test,
+            {candidate_key, process_id, thread_id,
+             session_impl->consent.generations.target_confirmation_generation, 0, 0},
+            session_impl->target_location, session_impl->consent);
+        if (!member) {
+            result.reason = ExplorerEligibilityReason::Elevated;
+            result.diagnostic = adapter_diagnostic(1413U,
+                "Explorer Sandbox High test scope",
+                "exact new root could not bind to this guest/RunId scope");
+            result.facts = session_impl->consent;
+            return result;
+        }
+        session_impl->sandbox_high_member = *member;
+    }
+
     auto initial = validate_native_target(*session_impl, nullptr, true);
     if (initial.reason != ExplorerEligibilityReason::Eligible ||
         !initial.snapshot.has_value()) {
@@ -3583,6 +3762,25 @@ ExplorerConsentProvisioning::confirm_user_target() {
         return result;
     }
     session_impl->issued_token = *issue.token;
+    if (session_impl->sandbox_high_test) {
+        if (!detail::ExplorerSandboxHighScopeAccess::seal(
+                *session_impl->sandbox_high_test, session_impl->sandbox_high_member,
+                {candidate_key, process_id, thread_id,
+                 session_impl->consent.generations.target_confirmation_generation, 0, 0},
+                *session_impl->issued_token)) {
+            static_cast<void>(session_impl->ledger.retire_native(candidate_key));
+            result.reason = ExplorerEligibilityReason::TargetInvalidated;
+            result.diagnostic = adapter_diagnostic(1414U,
+                "Explorer Sandbox High test scope",
+                "exact root/token generation could not seal its test binding");
+            result.facts = session_impl->consent;
+            return result;
+        }
+        initial.snapshot->sandbox_high_test.token_consent_generation =
+            issue.token->consent_generation();
+        initial.snapshot->sandbox_high_test.capability_generation =
+            issue.token->generation();
+    }
     session_impl->original_snapshot = *initial.snapshot;
     session_impl->provisioning.initial_snapshot = *initial.snapshot;
     session_impl->provisioning.token_issued = true;
@@ -5485,11 +5683,21 @@ std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
     for(std::size_t i=0;i<3;++i) {
         if (!sessions[i] || !sessions[i]->impl_) return std::nullopt;
         auto& impl=*sessions[i]->impl_;
+        // A High test group is exactly one guest/RunId scope, never three
+        // independently qualified elevated sessions. All-null keeps the
+        // ordinary Medium path unchanged.
+        if (impl.sandbox_high_test != sessions[0]->impl_->sandbox_high_test ||
+            (impl.sandbox_high_test &&
+             (!impl.sandbox_high_member || impl.sandbox_high_member > 3)))
+            return std::nullopt;
         if(impl.controller_thread_id!=GetCurrentThreadId() || !target_consent_prefix_valid(impl) ||
            impl.group_authority_generation || impl.glue_authority_id || impl.glue_role)
             return std::nullopt;
         for(std::size_t j=0;j<i;++j) {
             const auto& earlier=*sessions[j]->impl_;
+            if (impl.sandbox_high_test &&
+                impl.sandbox_high_member == earlier.sandbox_high_member)
+                return std::nullopt;
             if (sessions[i]==sessions[j] || impl.window==earlier.window ||
                 impl.target_location==earlier.target_location ||
                 impl.ledger.session_authority()==earlier.ledger.session_authority() ||
