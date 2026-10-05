@@ -203,3 +203,20 @@ stop_cleanup回执实际succeeded=true；shutdown resources_stopped=false是原s
 不以销毁guest替代产品清理结果。
 driver hash `81BDB21D0AE5F79FAC283681685B85B2F6DD8D72B7CC75C4F9A94DB703692682`；
 product hash `5DD81817841AB8C281023AF46B6DCB5318BC09E9B27B0A60E449DC1EF93A6F47`。
+
+## 第十一批：Resize 失败确定为正常 CommandStateChange 未解析
+
+RUNTIME `2ac6422c5e715703ef9f2310b06a216f75a96e0b`，RunId
+`674b726caa6d4b9da0e50aefef9fbd29`。同流程再次到B Resize gen5；实际group reason
+member_validation_failed，capture member1 NativeValidation/domain3/code1122。
+该次实际 Browser malformed_count2 / last_malformed_dispid105（SDK
+DISPID_COMMANDSTATECHANGE=105），canonical identity=true、订阅/接受true，
+unadvised=false；epoch/callback/latest/navigation/identity/quit/overflow/wrong-thread/
+post-retirement均0。不是已证实的尺寸、High权限、VDM或系统 modal-loop blocker。
+下一最小修复仅补该105的官方严格Long/VARIANT_BOOL通知，不赋导航或写入权限。
+原失败日志及专用目录保留；guest/任务已清理，证据 hash 不变。
+
+生产sink105旧反例实际 `checks=471 failures=3`；最小修复后 `checks=471
+failures=0`、Debug单项CTest1/1通过。严格两个逆序参数 Long Command / VARIANT_BOOL
+Enable0/-1；通知不产生导航/身份凭据。独立diff复核通过，不支持未实测的其他DISPID。
+本批产品日志 hash `90E32AD4B8A505400246F300760AB23BB10F4A4EE7FDA120FCACE4027255E825`。

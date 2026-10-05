@@ -754,6 +754,7 @@ public:
         const bool geometry = member==DISPID_WINDOWSETLEFT || member==DISPID_WINDOWSETTOP ||
                               member==DISPID_WINDOWSETWIDTH || member==DISPID_WINDOWSETHEIGHT;
         const bool progress = member == DISPID_PROGRESSCHANGE;
+        const bool command_state = member == DISPID_COMMANDSTATECHANGE;
         const bool valid_interface =
             InlineIsEqualGUID(interface_id, IID_NULL) != FALSE;
         const bool valid_flags = (flags & DISPATCH_METHOD) != 0U;
@@ -777,6 +778,14 @@ public:
             parameters && parameters->cArgs == 2U && parameters->cNamedArgs == 0U &&
             parameters->rgvarg && V_VT(&parameters->rgvarg[0]) == VT_I4 &&
             V_VT(&parameters->rgvarg[1]) == VT_I4;
+        // Official CommandStateChange(long Command, VARIANT_BOOL Enable),
+        // likewise reversed by IDispatch; retain neither command nor value.
+        const bool command_state_shape = command_state && flags == DISPATCH_METHOD &&
+            parameters && parameters->cArgs == 2U && parameters->cNamedArgs == 0U &&
+            parameters->rgvarg && V_VT(&parameters->rgvarg[1]) == VT_I4 &&
+            V_VT(&parameters->rgvarg[0]) == VT_BOOL &&
+            (V_BOOL(&parameters->rgvarg[0]) == VARIANT_FALSE ||
+             V_BOOL(&parameters->rgvarg[0]) == VARIANT_TRUE);
         IDispatch* retained_dispatch = nullptr;
         if (valid_interface && valid_flags && navigate_shape) {
             retained_dispatch = V_DISPATCH(&parameters->rgvarg[1]);
@@ -802,8 +811,8 @@ public:
             }
             return S_OK;
         }
-        if ((!navigate_complete && !on_quit && !geometry && !progress) || !valid_interface ||
-            !valid_flags || (!navigate_shape && !quit_shape && !geometry_shape && !progress_shape)) {
+        if ((!navigate_complete && !on_quit && !geometry && !progress && !command_state) || !valid_interface ||
+            !valid_flags || (!navigate_shape && !quit_shape && !geometry_shape && !progress_shape && !command_state_shape)) {
             ++malformed_count_;
             last_malformed_dispid_=member;
             ReleaseSRWLockExclusive(&lock_);
@@ -813,12 +822,12 @@ public:
             if (argument_error != nullptr) {
                 *argument_error = 0U;
             }
-            return (!navigate_complete && !on_quit && !geometry && !progress)
+            return (!navigate_complete && !on_quit && !geometry && !progress && !command_state)
                        ? DISP_E_MEMBERNOTFOUND
                        : DISP_E_TYPEMISMATCH;
         }
-        if (progress) {
-            // This known informational notification grants no authority,
+        if (progress || command_state) {
+            // These known informational notifications grant no authority,
             // performs no COM call, and does not advance navigation receipts.
             // Owner, retirement and exact shape were checked above.
             ReleaseSRWLockExclusive(&lock_); return S_OK;

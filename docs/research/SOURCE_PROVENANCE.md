@@ -54,6 +54,13 @@ MIT reference-only，cursor-size heuristic 不是本候选 DOWN/root HTCAPTION �
 教训仅为区分实际 point HWND 与身份 root，不复制上游回退或策略代码。
 code copied/adapted/derived NO；保留已有 repository 链接，无新增代码 attribution。
 
+同轮实际 Resize Run `674b726caa6d4b9da0e50aefef9fbd29` 进一步观察到
+DISPID105/CommandStateChange 两次被旧sink拒绝，其他身份/导航/队列事实正常。
+采用已实读 [CommandStateChange](https://learn.microsoft.com/en-us/previous-versions/cc136546(v=vs.85))
+Long Command/VARIANT_BOOL Enable 合同，按实际SDK105核验后只接此通知。
+这是具体实测缺口修复；没有补未观察的其他DISPID或宽泛忽略未知事件。
+Microsoft live primary，review2026-10-06，无外部代码复用。
+
 ## MVP1 post-END input-queue association — 2026-10-04
 
 BASE `0e7a4a8240e2317381ef772674c7d31a47a9b81e`。本轮人类明确授权仅在

@@ -1,11 +1,13 @@
 #include "platform/windows/explorer/explorer_browser_sink_test_support.h"
 #include "platform/windows/explorer/explorer_consent_validation.h"
 #include <exdispid.h>
+#include <exdisp.h>
 #include <objbase.h>
 #include <iostream>
 #include <thread>
 namespace e=panebind::platform::windows::explorer;
 static_assert(DISPID_PROGRESSCHANGE == 108);
+static_assert(DISPID_COMMANDSTATECHANGE == 105);
 struct FakeBrowser final:IDispatch {
     ULONG refs{1};bool reject_identity{};
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID id,void** out) noexcept override {
@@ -25,6 +27,44 @@ int main(){
     if(CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED)!=S_OK)return 2;
     int failures{},checks{};const auto check=[&](bool ok){++checks;if(!ok)++failures;};
     FakeBrowser browser;
+    {
+        auto* sink = e::testing::create_browser_sink(&browser);
+        for (const VARIANT_BOOL enabled : {VARIANT_FALSE, VARIANT_TRUE}) {
+            VARIANT args[2]{};
+            // Reverse order for official (long Command, VARIANT_BOOL Enable).
+            args[0].vt = VT_BOOL; args[0].boolVal = enabled;
+            args[1].vt = VT_I4; args[1].lVal = CSC_NAVIGATEBACK;
+            DISPPARAMS params{args, nullptr, 2, 0};
+            check(sink->Invoke(DISPID_COMMANDSTATECHANGE, IID_NULL, 0,
+                DISPATCH_METHOD, &params, nullptr, nullptr, nullptr) == S_OK);
+        }
+        const auto facts = e::testing::browser_sink_facts(sink);
+        check(facts.malformed_count == 0 && facts.callback_sequence == 0 &&
+            facts.latest_sequence == 0 && facts.matching_navigate_complete_count == 0 &&
+            facts.quit_count == 0 && facts.identity_query_failure_count == 0);
+        sink->Release();
+    }
+    for (int fault = 0; fault < 8; ++fault) {
+        auto* sink = e::testing::create_browser_sink(&browser);
+        VARIANT args[2]{};
+        args[0].vt = VT_BOOL; args[0].boolVal = VARIANT_TRUE;
+        args[1].vt = VT_I4; args[1].lVal = CSC_NAVIGATEBACK;
+        DISPPARAMS params{args, nullptr, 2, 0};
+        if (fault == 0) args[0].vt = VT_I4;
+        if (fault == 1) args[1].vt = VT_BOOL;
+        if (fault == 2) params.cArgs = 1;
+        if (fault == 3) params.cNamedArgs = 1;
+        if (fault == 4) params.rgvarg = nullptr;
+        if (fault == 5) args[0].boolVal = 1; // not VARIANT_TRUE/FALSE
+        const WORD flags = fault == 6 ? DISPATCH_PROPERTYGET : DISPATCH_METHOD;
+        const auto iid = fault == 7 ? IID_IUnknown : IID_NULL;
+        check(FAILED(sink->Invoke(DISPID_COMMANDSTATECHANGE, iid, 0, flags,
+            &params, nullptr, nullptr, nullptr)));
+        const auto facts = e::testing::browser_sink_facts(sink);
+        check(facts.malformed_count == 1 && facts.last_malformed_dispid == 105 &&
+            facts.callback_sequence == 0 && facts.latest_sequence == 0);
+        sink->Release();
+    }
     {
         auto* sink = e::testing::create_browser_sink(&browser);
         for (const long progress : {0L, -1L}) {
