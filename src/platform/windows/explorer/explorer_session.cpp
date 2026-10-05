@@ -2503,7 +2503,14 @@ template <typename ImplType>
         }
         observation_facts = impl.consent_observation->facts();
         const auto& browser = observation_facts.browser;
-        if(group_observation)group_observation->canonical_identity_matches=observation_facts.canonical_identity_matches;
+        if(group_observation) {
+            group_observation->canonical_identity_matches = observation_facts.canonical_identity_matches;
+            group_observation->browser_observed = true;
+            group_observation->browser = browser;
+            group_observation->navigation_epoch = observation_facts.navigation_epoch_at_binding;
+            group_observation->browser_stream_reason = consent_browser_invalidation(
+                browser, observation_facts.navigation_epoch_at_binding);
+        }
         const bool observation_healthy =
             observation_facts.canonical_identity_matches &&
             browser.subscribed && browser.accepting && !browser.unadvised &&
@@ -2959,7 +2966,8 @@ template <typename ImplType>
 template <typename ImplType>
 [[nodiscard]] NativeValidationResult validate_native_target(
     ImplType& impl, const ExplorerWindowToken* token, bool initialize_anchor,
-    bool wait_for_shell_activity = true, ExplorerGlueProfiler* profile = nullptr) {
+    bool wait_for_shell_activity = true, ExplorerGlueProfiler* profile = nullptr,
+    detail::GroupCaptureObservation* group_observation = nullptr) {
     auto* audit = consent_validation_audit;
     ConsentValidationRecord record;
     if (audit) {
@@ -2982,7 +2990,8 @@ template <typename ImplType>
             record.source_receipt = c.source_receipt;
         }
     }
-    auto result = validate_native_target_inner(impl, token, initialize_anchor, wait_for_shell_activity, profile);
+    auto result = validate_native_target_inner(impl, token, initialize_anchor,
+        wait_for_shell_activity, profile, group_observation);
     const bool success = result.reason == ExplorerEligibilityReason::Eligible;
     std::string_view failure = impl.glue_validation_invalidation;
     if (!success && failure == "none") {
@@ -3049,9 +3058,11 @@ template <typename ImplType>
     ImplType& impl,
     const ExplorerWindowToken& token,
     const bool wait_for_shell_activity = true,
-    ExplorerGlueProfiler* const profile = nullptr) {
+    ExplorerGlueProfiler* const profile = nullptr,
+    detail::GroupCaptureObservation* group_observation = nullptr) {
     auto validation = validate_native_target(impl, &token, false,
-                                              wait_for_shell_activity, profile);
+                                              wait_for_shell_activity, profile,
+                                              group_observation);
     if (validation.reason != ExplorerEligibilityReason::Eligible) {
         retire_target(impl);
     }
@@ -5756,6 +5767,31 @@ std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
             observed += ";diagnostic_domain=" +
                 std::to_string(static_cast<int>(captured.diagnostic->domain)) +
                 ";diagnostic_code=" + std::to_string(captured.diagnostic->code);
+        if (captured.failed_member_index) {
+            const auto& observation = captured.observations[*captured.failed_member_index];
+            if (observation.browser_observed) {
+                const auto& b = observation.browser;
+                observed += ";browser_subscribed=" + std::to_string(b.subscribed) +
+                    ";browser_accepting=" + std::to_string(b.accepting) +
+                    ";browser_unadvised=" + std::to_string(b.unadvised) +
+                    ";browser_callback_sequence=" + std::to_string(b.callback_sequence) +
+                    ";browser_latest_sequence=" + std::to_string(b.latest_sequence) +
+                    ";browser_navigation_epoch=" + (observation.navigation_epoch ?
+                        std::to_string(*observation.navigation_epoch) : "unknown") +
+                    ";browser_matching_navigate=" + std::to_string(b.matching_navigate_complete_count) +
+                    ";browser_unrelated_navigate=" + std::to_string(b.unrelated_navigate_complete_count) +
+                    ";browser_identity_failures=" + std::to_string(b.identity_query_failure_count) +
+                    ";browser_quit=" + std::to_string(b.quit_count) +
+                    ";browser_latest_quit=" + std::to_string(b.latest_activity_was_quit) +
+                    ";browser_malformed=" + std::to_string(b.malformed_count) +
+                    ";browser_last_malformed_dispid=" + std::to_string(b.last_malformed_dispid) +
+                    ";browser_overflow=" + std::to_string(b.overflow_count) +
+                    ";browser_wrong_thread=" + std::to_string(b.wrong_thread_count) +
+                    ";browser_post_retirement=" + std::to_string(b.post_retirement_count) +
+                    ";browser_geometry_events=" + std::to_string(b.geometry_event_count) +
+                    ";browser_last_geometry_dispid=" + std::to_string(b.last_geometry_dispid);
+            }
+        }
         retire(seal,sessions);
         return reject(std::move(observed));
     }
@@ -5785,7 +5821,7 @@ detail::GroupCaptureResult detail::ExplorerGroupBridge::capture(
         // The complete inner validator still checks all native/COM authority.
         auto live=mode==GroupCaptureMode::PreAcceptMutableGeometry
             ? validate_native_target_inner(impl,&*impl.issued_token,false,false,nullptr,&result.observation)
-            : validate_or_retire(impl,*impl.issued_token,false);
+            : validate_or_retire(impl,*impl.issued_token,false,nullptr,&result.observation);
         result.reason=live.reason;result.snapshot=std::move(live.snapshot);
         if(live.diagnostic)result.diagnostic=GroupCaptureDiagnostic{live.diagnostic->domain,live.diagnostic->code};
         result.invalidation=impl.glue_validation_invalidation;

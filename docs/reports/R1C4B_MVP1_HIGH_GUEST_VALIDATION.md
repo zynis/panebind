@@ -91,3 +91,15 @@ shield 初始化，不能猜测为 High/VDM/几何原因。最小后继增量只
 路径的实际拒绝 stage/reason/capture facts；不删除检查，不制造资格。
 原始失败保留，下一 SHA/RunId 用该原因继续修复，而非以诊断提交结束功能轮。
 本地仅 f086 的未运行包保留；9abad 已修正其 WinPS5.1 scalar JSONL 回归夹具。
+
+## 第四批：实际 Shell 事件健康拒绝
+
+RUNTIME `bac84ceac8d6353231b369d32dd41d20f8e158b4`，RunId
+`f9cfec6c32474278959d130aee8c6119`。三窗实际 High 身份确认再次成立；
+组创建的实际 native capture 拒绝 member1（B）：`ShellEventStreamInvalid`，
+stage `NativeValidation`，invalidation `browser_stream_invalid`，domain3/code1122。
+VDM 与先前内存绑定检查已通过；尚无普通 Move 输入或 placement。
+仅凭该原因仍不能判断具体 Browser 计数或订阅状态；下一增量透传该次实际
+BrowserReadinessFacts，不重查或补真，不放宽原门槛。原始产品日志 SHA-256
+`0A4AB7AD688D5C108A3FE2D26E4DD5DB1365D4810BC9987EF552219B1A341B42`。
+本批 guest16184 与专用任务已清理，输出 hash 前后一致；此清理不算产品 cleanup PASS。
