@@ -27,7 +27,6 @@ $script:ctrlPressed = $false
 $script:productPid = 0
 $script:productStarted = $false
 $script:attachedConsole = $null
-$script:hiddenConsole = $null
 $script:bound = @()
 $script:confirmationRows = @()
 $script:targets = @()
@@ -231,16 +230,30 @@ public static class PaneBindMvpGuestInput {
             throw new InvalidOperationException("guest driver caller must be actual PMV2; thread="+
                 GetCurrentThreadId()+" context="+current.ToInt64());
     }
-    public static int StartProduct(string path,string arguments) {
+    public static StartupInfo ProductStartup(bool automated) {
+        var startup=new StartupInfo();startup.cb=(uint)Marshal.SizeOf(typeof(StartupInfo));
+        startup.flags=0x00000001; // STARTF_USESHOWWINDOW for this NEW process's console
+        startup.showWindow=(ushort)(automated?0:5); // SW_HIDE / SW_SHOW; no existing HWND control
+        return startup;
+    }
+    public sealed class ProductStartSnapshot {
+        public uint pid, tid, creation_flags, startup_flags;
+        public ushort show_window;
+        public bool started;
+    }
+    public static ProductStartSnapshot StartProduct(string path,string arguments,bool automated) {
         RequirePhysicalCaller();
-        var startup=new StartupInfo(); startup.cb=(uint)Marshal.SizeOf(typeof(StartupInfo));
+        var startup=ProductStartup(automated);
         ProcessInfo process;
+        var facts=new ProductStartSnapshot();facts.creation_flags=0x00000010;
+        facts.startup_flags=startup.flags;facts.show_window=startup.showWindow;
         var command=new StringBuilder("\""+path+"\" "+arguments);
-        if(!CreateProcessW(path,command,IntPtr.Zero,IntPtr.Zero,false,0x00000010,
+        if(!CreateProcessW(path,command,IntPtr.Zero,IntPtr.Zero,false,facts.creation_flags,
             IntPtr.Zero,null,ref startup,out process))
             throw new Win32Exception(Marshal.GetLastWin32Error(),"CreateProcessW");
+        facts.pid=process.processId;facts.tid=process.threadId;facts.started=true;
         CloseHandle(process.thread);CloseHandle(process.process);
-        return checked((int)process.processId);
+        return facts;
     }
     public static IntPtr AttachInput(int pid) {
         RequirePhysicalCaller();
@@ -299,42 +312,6 @@ public static class PaneBindMvpGuestInput {
             facts.product_session!=facts.caller_session) return false;
         return (facts.clients[0]==facts.caller_pid&&facts.clients[1]==facts.expected_product_pid)||
             (facts.clients[1]==facts.caller_pid&&facts.clients[0]==facts.expected_product_pid);
-    }
-    public sealed class ConsoleVisibilitySnapshot {
-        public ConsoleSnapshot before, after;
-        public bool attempted, show_returned_previous_visible, hidden_confirmed, restored_confirmed;
-    }
-    public static ConsoleVisibilitySnapshot HideDedicatedConsole(ConsoleSnapshot identity,int productPid) {
-        RequirePhysicalCaller();var facts=new ConsoleVisibilitySnapshot();
-        facts.before=ObserveAttachedConsole(productPid);
-        if(!DedicatedConsoleFacts(identity)||!facts.before.strict_dedicated||
-            facts.before.hwnd!=identity.hwnd||facts.before.owner_pid!=identity.owner_pid||
-            facts.before.owner_tid!=identity.owner_tid)
-            throw new InvalidOperationException("exact dedicated product console changed; no hide attempted");
-        if(facts.before.visible) {
-            facts.attempted=true;facts.show_returned_previous_visible=ShowWindow(new IntPtr(identity.hwnd),0);
-        }
-        facts.after=ObserveAttachedConsole(productPid);
-        facts.hidden_confirmed=facts.after.strict_dedicated&&facts.after.hwnd==identity.hwnd&&
-            facts.after.owner_pid==identity.owner_pid&&facts.after.owner_tid==identity.owner_tid&&!facts.after.visible;
-        return facts;
-    }
-    public static ConsoleVisibilitySnapshot RestoreDedicatedConsole(ConsoleSnapshot identity,int productPid) {
-        RequirePhysicalCaller();var facts=new ConsoleVisibilitySnapshot();
-        facts.before=ObserveAttachedConsole(productPid);
-        // Product may already have exited: restore only the SAME console still
-        // attached to this driver, with no unknown additional clients.
-        bool ownOnly=facts.before.process_list_complete&&facts.before.clients.Length==1&&
-            facts.before.clients[0]==facts.before.caller_pid;
-        if(!DedicatedConsoleFacts(identity)||facts.before.hwnd!=identity.hwnd||
-            facts.before.owner_pid!=identity.owner_pid||facts.before.owner_tid!=identity.owner_tid||
-            (!facts.before.strict_dedicated&&!ownOnly)) return facts;
-        facts.attempted=true;
-        facts.show_returned_previous_visible=ShowWindow(new IntPtr(identity.hwnd),4); // SW_SHOWNOACTIVATE
-        facts.after=ObserveAttachedConsole(productPid);
-        facts.restored_confirmed=facts.after.hwnd==identity.hwnd&&facts.after.owner_pid==identity.owner_pid&&
-            facts.after.owner_tid==identity.owner_tid&&facts.after.visible;
-        return facts;
     }
     public static void ConsoleLine(IntPtr input,string line) {
         RequirePhysicalCaller();
@@ -1279,8 +1256,13 @@ try {
     if ([PaneBindMvpGuestInput]::WorkArea()[2] -lt 800 -or
         [PaneBindMvpGuestInput]::WorkArea()[3] -lt 600) { throw 'guest_desktop_too_small' }
     $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver --sandbox-high-integrity-test-exception"
-    $script:productPid = [PaneBindMvpGuestInput]::StartProduct($product,$args)
-    $script:productStarted = $true
+    $creation = [PaneBindMvpGuestInput]::StartProduct($product,$args,
+        ($Mode -ceq 'AutomatedValidation'))
+    $script:productPid = [int]$creation.pid
+    $script:productStarted = $creation.started
+    Record 'product_creation_parameters' @{ mode=$Mode; application=$product; facts=$creation;
+        show_window_scope='own_new_process_console_only_not_foreign_hwnd';
+        actual_visible_server_identity='UNKNOWN_UNTIL_OBSERVED' }
     $originalConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole(0)
     Record 'console_attachment_identity' @{ phase='before_attach_product'; facts=$originalConsole;
         ownership='observed_original_console_not_hide_authority' }
@@ -1460,18 +1442,6 @@ try {
             configuration='release'; human_uat='NOT_RUN' }
         exit 0
     }
-    # A single controlled AUTOMATED test comparison. Hide only this newly
-    # created product console after current API/client-list identity proves it;
-    # never hide the original runner console or a guessed ConsoleWindowClass.
-    $script:hiddenConsole = [PaneBindMvpGuestInput]::HideDedicatedConsole(
-        $script:attachedConsole,$script:productPid)
-    Record 'automated_product_console_visibility' @{ facts=$script:hiddenConsole;
-        scope='exact_created_product_console_only';
-        foreground_failure_hypothesis='UNPROVEN_UNTIL_CURRENT_RUN_IDENTITY_MATCH';
-        review_mode_unchanged=$true }
-    if (-not $script:hiddenConsole.hidden_confirmed) {
-        throw 'actual_dedicated_product_console_not_hidden_no_gesture_sent'
-    }
     # Both configurations exercise the same small, representative product
     # flow. Each plain gesture proves individual free/snap/hold/detach/resnap
     # waypoints; neither a boolean proposal nor one snap stands in for these.
@@ -1524,17 +1494,6 @@ try {
         product_stopped_observed=$false; human_uat='NOT_RUN' }
     exit 2
 } finally {
-    if ($script:hiddenConsole -and $script:hiddenConsole.before.visible -eq $true) {
-        try {
-            $restore = [PaneBindMvpGuestInput]::RestoreDedicatedConsole(
-                $script:attachedConsole,$script:productPid)
-            Record 'automated_product_console_restore' @{ facts=$restore;
-                scope='same_console_no_activate_no_unknown_window' }
-        } catch {
-            Record 'automated_product_console_restore' @{ attempted=$false;
-                error=$_.Exception.Message; restoration='UNKNOWN' }
-        }
-    }
     if ($script:consoleInput -ne [IntPtr]::Zero) {
         [PaneBindMvpGuestInput]::CloseHandle($script:consoleInput) | Out-Null
     }

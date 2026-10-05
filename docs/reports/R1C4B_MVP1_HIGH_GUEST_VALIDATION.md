@@ -281,3 +281,18 @@ class ConsoleWindowClass，后续 ContextLost callback 同身份。不是三授�
 guest13128/任务已清理，证据前后哈希不变。driver hash
 `AFA7A1A8A6090E08BBCE9137587AA3B8071DF7BB34CA9831733812FB603EA8AC`，
 product hash `68C0EA97A4D3F47D3A53F46194D8D33117C8B7167D75C2ECE271D9D7F6CE4FD0`。
+
+## 第十五批：隐藏查询句柄不足，改为自身进程的明确启动显示状态
+
+RUNTIME `261d46ce20f8a14bbdbd8b61396ac5307152d6cf`，RunId
+`3e8e7509a8164d11a92890c35ff91cb6`。实际 GetConsoleWindow196980、owner
+PID7592/TID7596（product7592）、两实际 clients7252/7592，隐藏后 visible=false，
+finally 同身份非激活恢复 visible=true。原关联 console HWND0，clients5800/7252，
+不据此赋任何窗口控制权限。本代6失败实际 foreground196808/PID7580/TID1532 /
+ConsoleWindowClass，和被隐藏句柄不同；对照不成立，不将其归属猜成已证实的产品
+或 runner console，不控制该未知 HWND。其具体显示/代理机制仍未知。
+下一最小变化只通过 CreateProcess STARTUPINFO 明确自身新进程自动验证时 SW_HIDE、
+复核时可见，不再堆叠未知 HWND 的控制操作；所有产品前台/capture检查仍拒绝矛盾。
+本批 ABORTED，Release 未运行；guest13468/任务清理，证据保持。
+driver hash `49A1A067B1D25FB82FD82B83043A0504A1D2426AC6BD064544834E8AAD80106F`，
+product hash `DEB2FBFB670281FB4F1483FD5D0E1B2285AFBDD48383470656449901F13F666E`。

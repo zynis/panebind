@@ -13,6 +13,12 @@ ShowWindow 返回旧可见状态，不是成功布尔；隐藏/非激活恢复�
 放宽 source/capture 权限，也不控制未知 console 或宿主窗口。复用本轮既有 AltSnap /
 FancyZones reference-only 研究，不新增或派生第三方产品代码。
 
+追加读取 [STARTUPINFOW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/ns-processthreadsapi-startupinfow)：
+STARTF_USESHOWWINDOW 才使 wShowWindow 生效，console 新进程的外观由创建参数约束。
+同上述日期/官方来源/许可与 no-copy 分类；仅 test driver 传自己的新进程创建参数，
+不是发现或控制另一个 ConsoleWindowClass HWND 的依据。实际对照发现查询句柄与
+失败 foreground 不同，保留该未知，不宣称 pseudoconsole 根因已经证明。
+
 ## MVP1 exact three-root High guest test exception — 2026-10-06
 
 BASE `2bc40fe33c12a9110e27ff9a1c930804ddcf3323`。本轮用户明确批准仅专用
