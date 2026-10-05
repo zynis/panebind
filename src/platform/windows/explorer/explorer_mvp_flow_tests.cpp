@@ -213,8 +213,11 @@ struct OfflineGesture {
     bool isolated{true}, actual_end{};
     unsigned placements{};
 
-    void begin_candidate() {
-        check(attribution.observe_down(down(generation, member)), "fresh DOWN");
+    void begin_candidate(e::MvpDownHit hit = e::MvpDownHit::Caption) {
+        auto facts = down(generation, member);
+        facts.hit = hit;
+        facts.hit_test_succeeded = hit != e::MvpDownHit::Unknown;
+        check(attribution.observe_down(facts), "fresh DOWN");
         route = attribution.observe_start(start(generation, member));
         check(route.route == e::MvpGestureRoute::PlainMoveCandidate,
               "plain candidate, not native permit");
@@ -506,6 +509,70 @@ void owned_cursor_result_dispatch() {
           "duplicate dispatch fix preserves actual UP normal-removal semantics");
 }
 
+void actual_hit_endpoint_classification() {
+    static_assert(HTCAPTION == 2 && HTLEFT == 10 && HTBOTTOMRIGHT == 17);
+    const auto source = binding(0);
+    const e::MvpHitEndpointIdentity root{source.hwnd, source.hwnd,
+        source.process_id, source.thread_id};
+    const e::MvpHitEndpointIdentity child{0x9000, source.hwnd,
+        source.process_id, source.thread_id};
+    check(e::classify_mvp_hit_endpoint(source, root, root, true, HTCLIENT) ==
+              e::MvpDownHit::Other &&
+          e::classify_mvp_hit_endpoint(source, child, child, true, HTCAPTION) ==
+              e::MvpDownHit::Caption,
+          "root client and actual child caption are distinct observations");
+    check(e::classify_mvp_hit_endpoint(source, root, root, true, HTCAPTION) ==
+              e::MvpDownHit::Caption &&
+          e::classify_mvp_hit_endpoint(source, child, child, true, HTTOP) ==
+              e::MvpDownHit::Resize,
+          "ordinary root caption and exact child resize codes keep their routes");
+    auto foreign_root = child; ++foreign_root.root;
+    auto foreign_pid = child; ++foreign_pid.process_id;
+    auto foreign_tid = child; ++foreign_tid.thread_id;
+    auto changed = child; ++changed.endpoint;
+    check(!e::mvp_hit_endpoint_matches_source(source, foreign_root) &&
+          !e::mvp_hit_endpoint_matches_source(source, foreign_pid) &&
+          !e::mvp_hit_endpoint_matches_source(source, foreign_tid) &&
+          e::classify_mvp_hit_endpoint(source, child, changed, true, HTCAPTION) ==
+              e::MvpDownHit::Unknown &&
+          e::classify_mvp_hit_endpoint(source, child, child, false, HTCAPTION) ==
+              e::MvpDownHit::Unknown,
+          "foreign root/PID/TID, changed endpoint and failed native query grant no hit proof");
+    for (const auto code : {HTCLIENT, HTTRANSPARENT, HTNOWHERE, HTCLOSE}) {
+        const auto hit = e::classify_mvp_hit_endpoint(source, child, child, true, code);
+        auto facts = down(60, 0); facts.hit = hit;
+        e::ExplorerMvpAttribution rejected;
+        check(!rejected.observe_down(facts) &&
+              rejected.observe_start(start(60, 0)).route == e::MvpGestureRoute::Reject,
+              "actual non-caption child cannot become authority through START");
+    }
+    const auto caption = e::classify_mvp_hit_endpoint(source, child, child, true, HTCAPTION);
+    OfflineGesture gesture{61, 0};
+    gesture.begin_candidate(caption);
+    check(gesture.route.source == source && gesture.route.original_cursor == anchor,
+          "child classification preserves root control identity and original DOWN anchor");
+    gesture.handoff();
+    const auto receipt = gesture.execute(gesture.plan({502, 500}, 3000));
+    check(receipt.geometry_exact && gesture.placements == 1,
+          "same endpoint predicate reaches shared Move/writer only after independent END gate");
+
+    e::ExplorerMvpAttribution ctrl, resize, missing;
+    auto ctrl_down = down(62, 0); ctrl_down.hit = caption;
+    auto ctrl_start = start(62, 0); ctrl_start.ctrl = e::MvpCtrlState::Down;
+    check(ctrl.observe_down(ctrl_down) &&
+          ctrl.observe_start(ctrl_start).route == e::MvpGestureRoute::CtrlMove,
+          "actual child caption does not alter Ctrl-at-START locking");
+    auto resize_down = down(63, 0);
+    resize_down.hit = e::classify_mvp_hit_endpoint(source, child, child, true, HTTOP);
+    check(resize.observe_down(resize_down) &&
+          resize.observe_start(start(63, 0)).route == e::MvpGestureRoute::NativeResize,
+          "child sizing code does not enter plain magnet writer");
+    auto missing_down = down(64, 0); missing_down.hit = caption;
+    missing_down.exact_consent_capture = false;
+    check(!missing.observe_down(missing_down),
+          "child caption is not a substitute for exact root consent");
+}
+
 void last_native_entry_rechecks() {
     using Failure = o::GestureShieldCaptureFailure;
     check(o::gesture_shield_native_entry_failure(true, true, true, true) == Failure::Revoked,
@@ -531,6 +598,7 @@ int main() {
         exact_guest_launch_contract();
         exact_association_cleanup_contract();
         owned_cursor_result_dispatch();
+        actual_hit_endpoint_classification();
         last_native_entry_rechecks();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;

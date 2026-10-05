@@ -430,7 +430,7 @@ public static class PaneBindMvpGuestInput {
         public long hit_hwnd, hit_root;
         public uint hit_pid, hit_tid;
         public string hit_class="", hit_root_class="";
-        public bool exact_hit_root, child_queried, child_call_succeeded;
+        public bool exact_hit_root, identity_after_confirmed, child_queried, child_call_succeeded;
         public long child_api_return;
         public int child_result, child_error;
     }
@@ -453,16 +453,28 @@ public static class PaneBindMvpGuestInput {
         facts.hit_class=ClassOf(hit);facts.hit_root_class=ClassOf(hitRoot);
         facts.exact_hit_root=hitRoot==root;
         uint hitPid;facts.hit_tid=GetWindowThreadProcessId(hit,out hitPid);facts.hit_pid=hitPid;
-        uint expectedPid;GetWindowThreadProcessId(root,out expectedPid);
-        // A child hit test is diagnostic only and is never titlebar authority.
-        // Do not send it to an unrelated window obscuring the test root.
-        if(hit!=IntPtr.Zero&&hit!=root&&hitRoot==root&&expectedPid!=0&&hitPid==expectedPid) {
+        uint expectedPid;var expectedTid=GetWindowThreadProcessId(root,out expectedPid);
+        // Query the ACTUAL endpoint under this point, only inside the exact
+        // root and its same PID/TID. A class name or HTCLIENT is no permission.
+        if(hit!=IntPtr.Zero&&hit!=root&&hitRoot==root&&expectedPid!=0&&expectedTid!=0&&
+            hitPid==expectedPid&&facts.hit_tid==expectedTid) {
             facts.child_queried=true;SetLastError(0);
             returned=SendMessageTimeoutW(hit,0x84,IntPtr.Zero,parameter,0x0002,500,out result);
             facts.child_api_return=returned.ToInt64();facts.child_call_succeeded=returned!=IntPtr.Zero;
             facts.child_error=Marshal.GetLastWin32Error();facts.child_result=result.ToInt32();
         }
+        uint afterPid;var afterTid=GetWindowThreadProcessId(hit,out afterPid);
+        facts.identity_after_confirmed=hit!=IntPtr.Zero&&WindowFromPoint(point)==hit&&
+            GetAncestor(hit,2)==root&&afterPid==hitPid&&afterTid==facts.hit_tid;
         return facts;
+    }
+    public static int ExactEndpointHit(HitSnapshot facts,long root,int pid,int tid) {
+        if(facts==null||pid<=0||tid<=0||facts.expected_root!=root||
+            facts.hit_hwnd==0||facts.hit_root!=root||!facts.exact_hit_root||
+            !facts.identity_after_confirmed||facts.hit_pid!=(uint)pid||facts.hit_tid!=(uint)tid)
+            return int.MinValue;
+        if(facts.hit_hwnd==root) return facts.root_call_succeeded?facts.root_result:int.MinValue;
+        return facts.child_queried&&facts.child_call_succeeded?facts.child_result:int.MinValue;
     }
     public static void MouseMove(int x,int y) {
         RequirePhysicalCaller();
@@ -643,9 +655,9 @@ function Find-Hit([long]$Hwnd, [int]$Wanted) {
             $pointX = $rect[0]+[int]($width*$fraction)
             $pointY = $rect[1]+$y
             $hit = [PaneBindMvpGuestInput]::ObserveHit($Hwnd,$pointX,$pointY)
-            $actualHit = if ($hit.root_call_succeeded) { $hit.root_result } else { $null }
+            $actualHit = [PaneBindMvpGuestInput]::ExactEndpointHit($hit,$Hwnd,$snapshot.pid,$snapshot.tid)
             $probes += @{cursor=@($pointX,$pointY); actual_hit=$actualHit; facts=$hit}
-            if ($hit.root_call_succeeded -and $actualHit -eq $Wanted) {
+            if ($actualHit -eq $Wanted) {
                 Record 'actual_hit_probe' @{ hwnd=$Hwnd; wanted_hit=$Wanted;
                     dpi=$snapshot.dpi; positioning=$rect; foreground=$snapshot.foreground;
                     matched=$true; probes=$probes }
@@ -689,15 +701,25 @@ function Send-MouseMove([int]$X,[int]$Y,[string]$Phase) {
     Record 'test_input' @{ phase=$Phase; kind='mouse_move'; cursor=@($X,$Y); sent=$true;
         delivery_observed=$null }
 }
-function Assert-Test-DownTarget([long]$Hwnd,[int]$X,[int]$Y,[string]$Phase) {
+function Assert-Test-DownTarget([long]$Hwnd,[int]$X,[int]$Y,[string]$Phase,[int]$Wanted = 2) {
     if (-not [PaneBindMvpGuestInput]::InputDesktopReady()) {
         throw "guest_input_desktop_not_active:$Phase"
     }
     $cursor = [PaneBindMvpGuestInput]::Cursor()
     $root = [PaneBindMvpGuestInput]::CursorRoot()
+    $snapshot = [PaneBindMvpGuestInput]::ObserveRoot($Hwnd)
+    $target = @($script:targets | Where-Object { $_.hwnd -eq $Hwnd })
+    $hit = [PaneBindMvpGuestInput]::ObserveHit($Hwnd,$X,$Y)
+    $actualHit = [PaneBindMvpGuestInput]::ExactEndpointHit($hit,$Hwnd,$snapshot.pid,$snapshot.tid)
     Record 'input_precondition' @{ phase=$Phase; cursor=$cursor; expected=@($X,$Y);
-        hit_root=$root; exact_root=($root -eq $Hwnd); desktop_ready=$true }
-    if ($cursor[0] -ne $X -or $cursor[1] -ne $Y -or $root -ne $Hwnd) {
+        hit_root=$root; exact_root=($root -eq $Hwnd); desktop_ready=$true;
+        wanted_hit=$Wanted; actual_endpoint_hit=$actualHit; fresh_hit=$hit;
+        root_pid=$snapshot.pid; root_tid=$snapshot.tid; foreground=$snapshot.foreground }
+    if ($cursor[0] -ne $X -or $cursor[1] -ne $Y -or $root -ne $Hwnd -or
+        $target.Count -ne 1 -or $snapshot.exact_explorer_root -ne $true -or
+        $snapshot.pid -ne $target[0].pid -or $snapshot.tid -ne $target[0].tid -or
+        $actualHit -ne $Wanted -or
+        ($Phase -ceq 'gesture' -and $snapshot.foreground -ne $Hwnd)) {
         throw "cursor_or_hit_not_exact:$Phase"
     }
 }
@@ -796,7 +818,7 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
     }
     if ($afterProbe.foreground -ne $hwnd) {
         Send-MouseMove $point[0] $point[1] 'activate'
-        Assert-Test-DownTarget $hwnd $point[0] $point[1] 'activate'
+        Assert-Test-DownTarget $hwnd $point[0] $point[1] 'activate' $wantedHit
         $script:pressed=$true
         try {
             [PaneBindMvpGuestInput]::MouseButton($true)
@@ -846,7 +868,7 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
             [PaneBindMvpGuestInput]::Control($true)
         }
         Send-MouseMove $point[0] $point[1] 'anchor'
-        Assert-Test-DownTarget $hwnd $point[0] $point[1] 'gesture'
+        Assert-Test-DownTarget $hwnd $point[0] $point[1] 'gesture' $wantedHit
         $script:pressed=$true
         [PaneBindMvpGuestInput]::MouseButton($true)
         Start-Sleep -Milliseconds 90 # actual legacy DOWN must get a chance to dispatch

@@ -150,3 +150,19 @@ SetForegroundWindow 返回true，紧接 after=0，随后真实 snapshot 为A；�
 driver原日志 hash `CEB6AE34461C94948BEA884CD6C95D73FECEDE20E410E2CC73BE2EFDE9A6A2AE`，
 产品原日志 hash `CB3BDD75037B19C6C86CFABE7A75CE48CA2851C2290436CA9A4FE852DA6FDA23`。
 Q 实际停止 resources；本批 guest14748/任务清理、输出 hash 不变。Release 尚未执行。
+
+## 第八批：确认真实标题栏 child，原查询 endpoint 错误
+
+RUNTIME `39c095a007afda993d2d4d185427400c2d577175`，RunId
+`64b8908e57724bddbaf70b2fc6443f99`。实际 root197358/PID7752/TID7796。
+root 的84次查询均HTCLIENT1；实际 WindowFromPoint child131946 同 PID/TID、
+GA_ROOT197358，其18次真实 WM_NCHITTEST 为HTCAPTION2、2次为HTTOP12，
+剩余64次实际 child 返回HTCLIENT1。所有API调用真实成功/error0。
+截图只记录该 guest exact 新窗区域，hash
+`ECB80D84E9E299A5D8EB411C1C5608669713BC7B74CE6C99F2BF2BD8F25049FC`，
+不把视觉坐标或 `TITLE_BAR_SCAFFOLDING_WINDOW_CLASS` 名称当权限。
+原 adapter 归一化到 root 后再问 hit，而 Windows 实际命中为 child；最小修复
+改查实际 endpoint 并复核 root/PID/TID/前后稳定。取消、关联、writer 仍控制 root，
+不扩大窗口权限、不把1改2。此批没有DOWN；driver hash
+`32E4D58B527D1F0AECE32C2FF43C674BBF2AA9A217A09ABF3C8ED7C415D17E55`。
+guest/任务已清理，原证据 hash 保持；新 SHA 将进入真实 Explorer 普通 Move 验证。

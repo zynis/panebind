@@ -119,19 +119,27 @@ constexpr std::size_t max_resource_events = 4096;
     return true;
 }
 
-[[nodiscard]] MvpDownHit hit_test(HWND source, POINT point) noexcept {
+[[nodiscard]] MvpDownHit hit_test(const MvpSourceBinding& source, POINT point) noexcept {
     if (point.x < SHRT_MIN || point.x > SHRT_MAX ||
         point.y < SHRT_MIN || point.y > SHRT_MAX) return MvpDownHit::Unknown;
+    const auto endpoint_at = [point]() noexcept {
+        const HWND endpoint = WindowFromPoint(point);
+        DWORD process_id{};
+        const DWORD thread_id = endpoint ? GetWindowThreadProcessId(endpoint, &process_id) : 0;
+        return MvpHitEndpointIdentity{reinterpret_cast<std::uintptr_t>(endpoint),
+            reinterpret_cast<std::uintptr_t>(endpoint ? GetAncestor(endpoint, GA_ROOT) : nullptr),
+            process_id, thread_id};
+    };
+    const auto before = endpoint_at();
+    // Do not send even a read-only hit query to an unknown/foreign endpoint.
+    if (!mvp_hit_endpoint_matches_source(source, before)) return MvpDownHit::Unknown;
     DWORD_PTR answer{};
-    if (!SendMessageTimeoutW(source, WM_NCHITTEST, 0,
+    const bool completed = SendMessageTimeoutW(reinterpret_cast<HWND>(before.endpoint), WM_NCHITTEST, 0,
         MAKELPARAM(static_cast<SHORT>(point.x), static_cast<SHORT>(point.y)),
         SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT | SMTO_BLOCK,
-        hit_test_timeout_ms, &answer)) return MvpDownHit::Unknown;
-    if (answer == HTCAPTION) return MvpDownHit::Caption;
-    for (auto edge : {HTLEFT, HTRIGHT, HTTOP, HTBOTTOM,
-                      HTTOPLEFT, HTTOPRIGHT, HTBOTTOMLEFT, HTBOTTOMRIGHT})
-        if (answer == static_cast<DWORD_PTR>(edge)) return MvpDownHit::Resize;
-    return MvpDownHit::Other;
+        hit_test_timeout_ms, &answer) != 0;
+    return classify_mvp_hit_endpoint(source, before, endpoint_at(), completed,
+                                     static_cast<std::intptr_t>(answer));
 }
 
 [[nodiscard]] bool gui_native_move(HWND source, DWORD thread) noexcept {
@@ -729,7 +737,7 @@ void ExplorerMvpSession::Impl::raw_down(const op::GestureShieldEvent& event) {
         reject("down_anchor_not_fresh_or_consent_lost");
         return;
     }
-    const MvpDownHit hit = hit_test(member.window, event.message_point);
+    const MvpDownHit hit = hit_test(binding(source, member), event.message_point);
     if (hit == MvpDownHit::Unknown || hit == MvpDownHit::Other) {
         reject(hit == MvpDownHit::Unknown ? "down_hit_test_unavailable" :
                                              "down_not_caption_or_resize");
