@@ -137,3 +137,16 @@ gesture DOWN；不能将其当作产品归因/交接失败或 Move 通过。
 driver hash `618C4F6756AFC1B0B0A6C4FDD9A88A83AF332CFFEDB3DB58DAF713838FCCA755`。
 Q 停止后产品实际 resources_stopped=true；专用 guest13436/任务已清理，证据不变。
 Debug/Release 的三个受影响 offline CTest 均3/3 PASS，未外推为现场磁吸。
+
+## 第七批：实际 root 命中全为 HTCLIENT，需区分查询对象
+
+RUNTIME `ad029d491abc72342e80f53d24cf79bbe1d172f1`，RunId
+`f79dc58429fa4ffc98aa544f487c2acd`。三窗绑定/关系继续成立；A 实际 outer
+`[120,140,1160,700]`、DPI192，Find-Hit 时实际 foreground=A197362。
+有限84个候选的真实 root WM_NCHITTEST 均1（HTCLIENT），无2；没有发送 DOWN。
+SetForegroundWindow 返回true，紧接 after=0，随后真实 snapshot 为A；记录两者，
+不将异步前台回读未知改为成功布尔。既有 root 标题栏判断是否应查询实际 child，
+仍需最小原生观察，不能用该采样推断全部 Explorer 无标题栏或放宽归因。
+driver原日志 hash `CEB6AE34461C94948BEA884CD6C95D73FECEDE20E410E2CC73BE2EFDE9A6A2AE`，
+产品原日志 hash `CB3BDD75037B19C6C86CFABE7A75CE48CA2851C2290436CA9A4FE852DA6FDA23`。
+Q 实际停止 resources；本批 guest14748/任务清理、输出 hash 不变。Release 尚未执行。

@@ -36,6 +36,24 @@ DISPID_PROGRESSCHANGE，两个输入 Long Progress / ProgressMax，Progress 可�
 或窗口权限，不推进导航 epoch / callback 身份凭据。Microsoft site terms，
 review2026-10-06，live contract，无外部代码复制/改编。
 
+同轮标题栏 query 对照实读
+[WM_NCHITTEST](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest)、
+[WindowFromPoint](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-windowfrompoint)、
+[GetAncestor](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getancestor)。
+WM_NCHITTEST 使用屏幕坐标，对实际指定窗口查询；返回 HTCLIENT 不能直接
+当作 HTCAPTION。WindowFromPoint 及实际 root/PID/TID 回读只用于区分 child
+查询对象，不授予窗口写入权限；不能从空白截图推断未观察的 native Move。
+Microsoft live primary docs，review2026-10-06，无外部代码复用。
+
+本轮复核成员实际追加 inspected（不是 PaneBind 平台观察）：AltSnap 同 pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d` 的 hooks.c590–616/5190–5226、
+unfuck.h1538–1556，history `9fe1e8c44e8081b3a13650eeca2d51a25f56b4aa`
+caption-button 误归因防御；GPL-3.0-or-later reference-only。FancyZones 同 pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a` 完整 WindowMouseSnap.cpp/LICENSE，
+MIT reference-only，cursor-size heuristic 不是本候选 DOWN/root HTCAPTION 证明。
+教训仅为区分实际 point HWND 与身份 root，不复制上游回退或策略代码。
+code copied/adapted/derived NO；保留已有 repository 链接，无新增代码 attribution。
+
 ## MVP1 post-END input-queue association — 2026-10-04
 
 BASE `0e7a4a8240e2317381ef772674c7d31a47a9b81e`。本轮人类明确授权仅在

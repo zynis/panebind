@@ -423,6 +423,47 @@ public static class PaneBindMvpGuestInput {
             return int.MinValue;
         return result.ToInt32();
     }
+    public sealed class HitSnapshot {
+        public long expected_root, message_lparam, root_api_return;
+        public int root_result, root_error;
+        public bool root_call_succeeded;
+        public long hit_hwnd, hit_root;
+        public uint hit_pid, hit_tid;
+        public string hit_class="", hit_root_class="";
+        public bool exact_hit_root, child_queried, child_call_succeeded;
+        public long child_api_return;
+        public int child_result, child_error;
+    }
+    static string ClassOf(IntPtr window) {
+        if(window==IntPtr.Zero) return "";
+        var name=new StringBuilder(256);
+        return GetClassNameW(window,name,name.Capacity)>0?name.ToString():"";
+    }
+    public static HitSnapshot ObserveHit(long value,int x,int y) {
+        RequirePhysicalCaller();
+        var facts=new HitSnapshot();facts.expected_root=value;
+        var root=new IntPtr(value);var point=new Point{X=x,Y=y};
+        var parameter=new IntPtr((y<<16)|(x&0xffff));facts.message_lparam=parameter.ToInt64();
+        IntPtr result;SetLastError(0);
+        var returned=SendMessageTimeoutW(root,0x84,IntPtr.Zero,parameter,0x0002,500,out result);
+        facts.root_api_return=returned.ToInt64();facts.root_call_succeeded=returned!=IntPtr.Zero;
+        facts.root_error=Marshal.GetLastWin32Error();facts.root_result=result.ToInt32();
+        var hit=WindowFromPoint(point);var hitRoot=GetAncestor(hit,2);
+        facts.hit_hwnd=hit.ToInt64();facts.hit_root=hitRoot.ToInt64();
+        facts.hit_class=ClassOf(hit);facts.hit_root_class=ClassOf(hitRoot);
+        facts.exact_hit_root=hitRoot==root;
+        uint hitPid;facts.hit_tid=GetWindowThreadProcessId(hit,out hitPid);facts.hit_pid=hitPid;
+        uint expectedPid;GetWindowThreadProcessId(root,out expectedPid);
+        // A child hit test is diagnostic only and is never titlebar authority.
+        // Do not send it to an unrelated window obscuring the test root.
+        if(hit!=IntPtr.Zero&&hit!=root&&hitRoot==root&&expectedPid!=0&&hitPid==expectedPid) {
+            facts.child_queried=true;SetLastError(0);
+            returned=SendMessageTimeoutW(hit,0x84,IntPtr.Zero,parameter,0x0002,500,out result);
+            facts.child_api_return=returned.ToInt64();facts.child_call_succeeded=returned!=IntPtr.Zero;
+            facts.child_error=Marshal.GetLastWin32Error();facts.child_result=result.ToInt32();
+        }
+        return facts;
+    }
     public static void MouseMove(int x,int y) {
         RequirePhysicalCaller();
         if(!InputDesktopReady()) throw new InvalidOperationException("guest input desktop inactive before mouse move");
@@ -601,9 +642,10 @@ function Find-Hit([long]$Hwnd, [int]$Wanted) {
         foreach ($fraction in @(0.2,0.3,0.4,0.5,0.6,0.7)) {
             $pointX = $rect[0]+[int]($width*$fraction)
             $pointY = $rect[1]+$y
-            $actualHit = [PaneBindMvpGuestInput]::Hit($Hwnd,$pointX,$pointY)
-            $probes += @{cursor=@($pointX,$pointY); actual_hit=$actualHit}
-            if ($actualHit -eq $Wanted) {
+            $hit = [PaneBindMvpGuestInput]::ObserveHit($Hwnd,$pointX,$pointY)
+            $actualHit = if ($hit.root_call_succeeded) { $hit.root_result } else { $null }
+            $probes += @{cursor=@($pointX,$pointY); actual_hit=$actualHit; facts=$hit}
+            if ($hit.root_call_succeeded -and $actualHit -eq $Wanted) {
                 Record 'actual_hit_probe' @{ hwnd=$Hwnd; wanted_hit=$Wanted;
                     dpi=$snapshot.dpi; positioning=$rect; foreground=$snapshot.foreground;
                     matched=$true; probes=$probes }
@@ -614,6 +656,29 @@ function Find-Hit([long]$Hwnd, [int]$Wanted) {
     Record 'actual_hit_probe' @{ hwnd=$Hwnd; wanted_hit=$Wanted;
         dpi=$snapshot.dpi; positioning=$rect; foreground=$snapshot.foreground;
         matched=$false; probes=$probes }
+    # One crop of the exact test-created root's desktop region helps interpret
+    # client-rendered captions without injecting a guessed drag. New file only;
+    # this guest driver never captures the host or writes outside its output.
+    $screenshot = Join-Path $outputDir "$RunId-caption-$Hwnd-$Wanted.png"
+    try {
+        Add-Type -AssemblyName System.Drawing
+        $bitmap = [Drawing.Bitmap]::new($width,$height)
+        $graphics = [Drawing.Graphics]::FromImage($bitmap)
+        try {
+            $graphics.CopyFromScreen($rect[0],$rect[1],0,0,$bitmap.Size)
+            $imageStream = [IO.FileStream]::new($screenshot,[IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,[IO.FileShare]::Read)
+            try { $bitmap.Save($imageStream,[Drawing.Imaging.ImageFormat]::Png) }
+            finally { $imageStream.Dispose() }
+        } finally { $graphics.Dispose(); $bitmap.Dispose() }
+        Record 'caption_region_snapshot' @{ hwnd=$Hwnd; positioning=$rect;
+            saved=$true; image=$screenshot;
+            sha256=(Get-FileHash -LiteralPath $screenshot -Algorithm SHA256).Hash;
+            scope='guest_exact_test_root_desktop_crop_not_host'; input_sent=$false }
+    } catch {
+        Record 'caption_region_snapshot' @{ hwnd=$Hwnd; saved=$false;
+            error=$_.Exception.Message; input_sent=$false }
+    }
     throw "exact_root_hit_unavailable:$Wanted"
 }
 function Send-MouseMove([int]$X,[int]$Y,[string]$Phase) {
@@ -719,7 +784,17 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
     Record 'test_foreground' @{ member=$Member; hwnd=$hwnd; facts=$activation;
         phase='before_hit_probe'; source='guest_test_created_exact_root' }
     $point = Find-Hit $hwnd $wantedHit
-    if (-not $activation.exact_after) {
+    # A SetForegroundWindow transition may complete after its immediate
+    # readback. Use the actual post-probe state, not the stale API receipt,
+    # before considering a separate test-only activation click.
+    $afterProbe = [PaneBindMvpGuestInput]::ObserveRoot($hwnd)
+    Record 'test_foreground_readback' @{ member=$Member; hwnd=$hwnd;
+        phase='after_hit_probe'; foreground=$afterProbe.foreground;
+        exact_after=($afterProbe.foreground -eq $hwnd) }
+    if ($afterProbe.pid -ne $root.pid -or $afterProbe.tid -ne $root.tid) {
+        throw "foreground_identity_changed_after_hit_probe:$Member"
+    }
+    if ($afterProbe.foreground -ne $hwnd) {
         Send-MouseMove $point[0] $point[1] 'activate'
         Assert-Test-DownTarget $hwnd $point[0] $point[1] 'activate'
         $script:pressed=$true
