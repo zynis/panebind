@@ -612,6 +612,42 @@ function Record([string]$Kind, [hashtable]$Facts = @{}) {
     $script:writer.WriteLine(($entry | ConvertTo-Json -Compress -Depth 7))
     $script:writer.Flush()
 }
+function Read-GuestProcessIdentityChain([int]$ProcessId,[int]$MaximumNodes = 3) {
+    # Exact-PID, bounded post-fact observation only. Never enumerate processes,
+    # retrieve CommandLine, or infer historical ownership/control permission.
+    $records = @(); $seen = [Collections.Generic.HashSet[int]]::new()
+    $current = $ProcessId
+    for ($depth=0; $depth -lt [Math]::Min($MaximumNodes,3); $depth++) {
+        if ($current -le 0 -or -not $seen.Add($current)) { break }
+        $before = [DateTime]::UtcNow.ToString('O')
+        try {
+            $matches = @(Get-CimInstance -ClassName Win32_Process -Filter ("ProcessId="+$current) `
+                -Property ProcessId,Name,ParentProcessId,CreationDate -OperationTimeoutSec 2 -ErrorAction Stop)
+            if ($matches.Count -ne 1 -or $matches[0].ProcessId -ne $current) {
+                $records += @{ depth=$depth; query_pid=$current; result='UNKNOWN';
+                    observation_utc_before=$before; observation_utc_after=[DateTime]::UtcNow.ToString('O');
+                    reason='exact_pid_not_observed' }
+                break
+            }
+            $process = $matches[0]
+            $created = if ($process.CreationDate -is [DateTime]) {
+                $process.CreationDate.ToUniversalTime().ToString('O')
+            } else { $null }
+            $records += @{ depth=$depth; query_pid=$current; result='OBSERVED_CURRENT_PID';
+                pid=$process.ProcessId; name=$process.Name; parent_pid=$process.ParentProcessId;
+                creation_utc=$created; observation_utc_before=$before;
+                observation_utc_after=[DateTime]::UtcNow.ToString('O');
+                historic_callback_identity='NOT_PROVEN_BY_POST_FACT_QUERY' }
+            $current = [int]$process.ParentProcessId
+        } catch {
+            $records += @{ depth=$depth; query_pid=$current; result='UNKNOWN';
+                observation_utc_before=$before; observation_utc_after=[DateTime]::UtcNow.ToString('O');
+                error_category=[string]$_.CategoryInfo.Category; error_id=$_.FullyQualifiedErrorId }
+            break
+        }
+    }
+    return $records
+}
 function Product-Rows {
     if (-not (Test-Path -LiteralPath $productLog -PathType Leaf)) { return @() }
     $rows = @()
@@ -1245,6 +1281,9 @@ try {
         requested_exception_run_id=$RunId; product_authority_granted=$false }
     Record 'guest_entry_mode' @{ mode=$Mode; automatic_binding=$true;
         automatic_gestures_planned=($Mode -ceq 'AutomatedValidation'); human_uat='NOT_RUN' }
+    Record 'guest_driver_process_identity' @{ caller_pid=$PID;
+        observed_chain=@(Read-GuestProcessIdentityChain $PID 2);
+        scope='current_driver_and_parent_runner_read_only'; operation_authority_granted=$false }
     $callerDpi = [PaneBindMvpGuestInput]::EstablishCallerPhysicalCoordinates()
     Record 'test_driver_dpi_context' @{ thread_id=$callerDpi.thread_id;
         previous_context=$callerDpi.previous_context;
@@ -1485,6 +1524,37 @@ try {
     if ($script:ctrlPressed) {
         try { [PaneBindMvpGuestInput]::Control($false) } catch { }
         $script:ctrlPressed=$false
+    }
+    # Invoke-Drag finally has already attempted the actual test UP. This late
+    # query cannot explain native ordering or turn an unknown callback process
+    # into authorized control. Keep the callback QPC separate from UTC lookup.
+    try {
+        $rows = @(Product-Rows)
+        $startup = @($rows | Where-Object { $_.type -ceq 'startup' })
+        if ($startup.Count -eq 1 -and $startup[0].run_id -ceq $RunId) {
+            $loss = @($rows | Where-Object {
+                $_.type -ceq 'gesture_event' -and $_.event -ceq 'resource' -and
+                $_.reason -in @('capture_lost_observed','context_lost_observed') -and
+                $_.resource_loss_callback
+            } | Select-Object -Last 1)
+            if ($loss.Count -eq 1) {
+                $callback = $loss[0].resource_loss_callback
+                $queryPid = if ($callback.root_pid -gt 0) { [int]$callback.root_pid }
+                    elseif ($callback.foreground_pid -gt 0) { [int]$callback.foreground_pid }
+                    else { 0 }
+                Record 'post_failure_process_identity' @{ product_sequence=$loss[0].sequence;
+                    generation=$loss[0].generation; callback_qpc=$callback.qpc;
+                    actual_callback_foreground=$callback.foreground;
+                    actual_callback_root=$callback.foreground_root; query_pid=$queryPid;
+                    observed_chain=@(Read-GuestProcessIdentityChain $queryPid 3);
+                    timing='post_failure_after_test_up_cleanup_not_native_total_order';
+                    identity_or_control_authority_granted=$false }
+            }
+        }
+    } catch {
+        Record 'post_failure_process_identity' @{ result='UNKNOWN';
+            error_category=[string]$_.CategoryInfo.Category; error_id=$_.FullyQualifiedErrorId;
+            identity_or_control_authority_granted=$false }
     }
     if ($script:productStarted -and $script:consoleInput -ne [IntPtr]::Zero) {
         try { Console-Line 'Q' } catch { }

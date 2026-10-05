@@ -309,3 +309,16 @@ ConsoleWindowClass，仍不同于产品查询句柄。原关联 console HWND0/cl
 后继只将自己 `.wsb` 启动的 guest runner 创建参数也明确 Hidden，不控制未知 HWND，
 不改变产品权限；若仍失败，不继续添加无依据窗口控制 API。
 专用 guest/任务清理及输出哈希保持记录见本批 cleanup-record.json。
+
+## 第十七批：自有 runner 隐藏启动仍不能解释不同前台 console
+
+RUNTIME `3f15ef2e1aa5040a877fd6b7299bb2f4e4b9a688`，RunId
+`a0dfdafcd9f94002aee0190082d98664`。新 `.wsb` 精确命令已核验含 WindowStyle Hidden，
+控制台查询与启动参数不当作实际 foreground 归属。三窗前序与 Resize 刷新通过，
+A 回环仍 free/XY/hold 后在 detach 阶段失去 capture；同步 callback实际前台
+394462/PID572/TID7836/ConsoleWindowClass，非三授权 root。不能将此前未知现象
+归因为自己的 runner 已证实，也没有控制这个不同窗口。Release 未放行，完整三窗未通过。
+最后必要只读补充是在测试 UP 收尾后读取该 callback PID 的名称、父 PID、创建时间，
+每查询2秒、最多3层，不读取命令行、用户内容或授权未知窗口；事后 PID 身份不冒充
+callback 原生时刻的原子事实。若不是可确认自有来源或合同仍矛盾，停止对应现场。
+本批专用 guest/任务已清理，原始证据及清理前后 hash 记录保持。
