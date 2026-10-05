@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview')]
+    [string]$GuestMode = 'AutomatedValidation'
+)
 
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -245,6 +248,8 @@ $manifest = [ordered]@{
     debug_owned_imports = $debugImports
     debug_explorer_imports = $debugExplorerImports
     explorer_test_exception = 'exact_sandbox_same_sid_session_high'
+    explorer_guest_mode = $GuestMode
+    independent_review_configuration = 'release'
     owned_prerequisite = $ownedPrerequisite
     owned_guest_run = 'NOT_RUN'
     explorer_guest_run = 'NOT_RUN'
@@ -313,4 +318,6 @@ Compress-Archive -LiteralPath $inputDir, $outputDir, $desktopConfig -Destination
     GuestOwnedRun = 'NOT_RUN'
     OwnedPrerequisite = $ownedPrerequisite.result
     GuestExplorerRun = 'NOT_RUN'
+    GuestMode = $GuestMode
+    IndependentReview = 'NOT_RUN'
 } | Format-List

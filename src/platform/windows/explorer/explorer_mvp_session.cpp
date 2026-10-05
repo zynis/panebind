@@ -261,7 +261,11 @@ struct ExplorerMvpSession::Impl final {
     std::shared_ptr<CallbackBridge> callback_bridge;
     std::function<bool()> environment_allowed;
     mutable std::mutex event_mutex;
-    std::deque<op::GestureShieldEvent> event_queue;
+    struct ResourceReceipt {
+        op::GestureShieldEvent event;
+        std::shared_ptr<const MvpResourceLossWitness> loss_witness;
+    };
+    std::deque<ResourceReceipt> event_queue;
     std::shared_ptr<Gesture> active;
     std::atomic<bool> queue_overflow{false}, resource_failure{false}, stop_requested{false};
     std::atomic<bool> deadline_expired{false};
@@ -311,12 +315,13 @@ struct ExplorerMvpSession::Impl final {
     }
 
     void record_terminal_resource_events() noexcept {
-        std::deque<op::GestureShieldEvent> pending;
+        std::deque<ResourceReceipt> pending;
         {
             std::lock_guard lock{event_mutex};
             pending.swap(event_queue);
         }
-        for (const auto& item : pending) {
+        for (const auto& receipt : pending) {
+            const auto& item = receipt.event;
             auto current = gesture();
             MvpEvidenceEvent event;
             if (item.kind == op::GestureShieldEventKind::RawMouse) {
@@ -362,6 +367,7 @@ struct ExplorerMvpSession::Impl final {
                 }
             }
             if (item.generation) event.generation = item.generation;
+            event.resource_loss_witness = receipt.loss_witness;
             if (item.isolation_timeout_ms) event.isolation_timeout_ms = item.isolation_timeout_ms;
             event.overlay = reinterpret_cast<std::uintptr_t>(item.overlay);
             if (!record(event)) return;
@@ -414,6 +420,37 @@ struct ExplorerMvpSession::Impl final {
         if (event.kind == op::GestureShieldEventKind::RawMouse &&
             (event.raw_button_flags & RI_MOUSE_LEFT_BUTTON_UP))
             latest_raw_up_sequence.store(event.raw_sequence, std::memory_order_release);
+        std::shared_ptr<const MvpResourceLossWitness> loss_witness;
+        if (event.kind == op::GestureShieldEventKind::CaptureLost ||
+            event.kind == op::GestureShieldEventKind::ContextLost) {
+            // Retire before even the diagnostic property reads/allocation.
+            // The ordinary branch below remains idempotent and never restores
+            // permissions. No existing Raw UP barrier is moved or delayed.
+            const auto losing = gesture();
+            if (losing && (event.generation == 0 || event.generation == losing->generation))
+                revoke(losing, b::MoveHandoffEscapeReason::ContextLost);
+            // Fixed native property reads only, outside event_mutex. Do not
+            // serialize/write disk or call a foreign WndProc on this thread.
+            MvpResourceLossWitness facts{};
+            facts.callback_qpc = qpc();
+            const HWND foreground = GetForegroundWindow();
+            const HWND root = foreground ? GetAncestor(foreground, GA_ROOT) : nullptr;
+            facts.foreground = reinterpret_cast<std::uintptr_t>(foreground);
+            facts.foreground_root = reinterpret_cast<std::uintptr_t>(root);
+            if (foreground) facts.foreground_thread_id = GetWindowThreadProcessId(
+                foreground, &facts.foreground_process_id);
+            if (root) {
+                facts.root_thread_id = GetWindowThreadProcessId(root, &facts.root_process_id);
+                const int count = GetClassNameW(root, facts.root_class.data(),
+                    static_cast<int>(facts.root_class.size()));
+                facts.root_class_available = count > 0 &&
+                    count < static_cast<int>(facts.root_class.size() - 1);
+                if (facts.root_class_available)
+                    facts.root_class_length = static_cast<std::uint32_t>(count);
+            }
+            try { loss_witness = std::make_shared<const MvpResourceLossWitness>(facts); }
+            catch (...) { /* Diagnostic absence is UNKNOWN, never authority. */ }
+        }
         std::shared_ptr<Gesture> current;
         bool remove_normal{};
         bool remove_early{};
@@ -421,7 +458,7 @@ struct ExplorerMvpSession::Impl final {
             std::lock_guard lock{event_mutex};
             current = active;
             if (event_queue.size() < max_resource_events) {
-                try { event_queue.push_back(event); }
+                try { event_queue.push_back({event, std::move(loss_witness)}); }
                 catch (...) { queue_overflow = true; }
             } else queue_overflow = true;
         }
@@ -1288,14 +1325,15 @@ bool ExplorerMvpSession::Impl::pump() {
         (void)stop();
         return false;
     }
-    std::deque<op::GestureShieldEvent> events;
+    std::deque<Impl::ResourceReceipt> events;
     {
         std::lock_guard lock{event_mutex};
         events.swap(event_queue);
     }
     std::vector<op::GestureShieldEvent> motion_events;
     motion_events.reserve(events.size());
-    for (const auto& event : events) {
+    for (const auto& receipt : events) {
+        const auto& event = receipt.event;
         if (event.kind != op::GestureShieldEventKind::RawMouse) {
             auto current = gesture();
             MvpEvidenceEvent evidence;
@@ -1360,6 +1398,7 @@ bool ExplorerMvpSession::Impl::pump() {
                 break;
             }
             if (event.generation) evidence.generation = event.generation;
+            evidence.resource_loss_witness = receipt.loss_witness;
             if (event.isolation_timeout_ms) evidence.isolation_timeout_ms = event.isolation_timeout_ms;
             evidence.overlay = reinterpret_cast<std::uintptr_t>(event.overlay);
             if (!record(evidence)) break;

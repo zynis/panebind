@@ -9,6 +9,7 @@ $summary = [ordered]@{
     status = 'NOT_READY'
     run_id = $null
     source_commit = $null
+    explorer_guest_mode = $null
     account_class = $null
     session_id = $null
     user_interactive = $null
@@ -31,6 +32,11 @@ function Save-Summary {
     if ($script:summaryPath) {
         [IO.File]::WriteAllText($script:summaryPath, ($script:summary | ConvertTo-Json -Depth 9), $script:utf8)
     }
+}
+function Get-ExplorerConfigurations([string]$Mode) {
+    if ($Mode -ceq 'AutomatedValidation') { return @('debug', 'release') }
+    if ($Mode -ceq 'BindOnlyIndependentReview') { return @('release') }
+    throw 'Exact guest Explorer mode is unknown.'
 }
 
 try {
@@ -75,10 +81,14 @@ try {
         $manifest.run_id -cne $runId -or
         $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
         $manifest.configuration -cne 'Release-and-Debug-MT-x64' -or
-        $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high') {
+        $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high' -or
+        @('AutomatedValidation','BindOnlyIndependentReview') -cnotcontains
+            [string]$manifest.explorer_guest_mode -or
+        $manifest.independent_review_configuration -cne 'release') {
         throw 'Guest manifest does not match the exact package.'
     }
     $summary.source_commit = $manifest.source_commit
+    $summary.explorer_guest_mode = $manifest.explorer_guest_mode
     foreach ($item in @(
         @{ Path = $inputMarker; Hash = $manifest.input_marker_sha256 },
         @{ Path = $outputMarker; Hash = $manifest.output_marker_sha256 },
@@ -336,8 +346,21 @@ try {
     }
     Save-Summary
     $driver = Join-Path $inputDir 'explorer-driver.ps1'
-    foreach ($configuration in @('debug', 'release')) {
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")
+    # Reuse the already-tested product reader for a LIVE bind-only product.
+    # Import only this read function, never the driver's startup/native/input.
+    $readerTokens = $null; $readerErrors = $null
+    $readerAst = [Management.Automation.Language.Parser]::ParseFile($driver,
+        [ref]$readerTokens,[ref]$readerErrors)
+    $readerFunction = $readerAst.Find({param($node)
+        $node -is [Management.Automation.Language.FunctionDefinitionAst] -and
+        $node.Name -ceq 'Product-Rows'
+    },$true)
+    if ($readerErrors.Count -ne 0 -or -not $readerFunction) {
+        throw 'Verified driver live product reader is unavailable.'
+    }
+    . ([scriptblock]::Create($readerFunction.Extent.Text))
+    foreach ($configuration in @(Get-ExplorerConfigurations $manifest.explorer_guest_mode)) {
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId -Mode $manifest.explorer_guest_mode *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")
         $driverExit = $LASTEXITCODE
         $driverEvidence = Join-Path $outputDir "$runId-explorer-driver-$configuration.jsonl"
         $productEvidence = Join-Path $outputDir $(if ($configuration -ceq 'debug') {
@@ -366,13 +389,8 @@ try {
         $driverShutdown = @($driverRows | Where-Object { $_.type -ceq 'shutdown' })
         $productRows = @()
         if (Test-Path -LiteralPath $productEvidence -PathType Leaf) {
-            foreach ($line in [IO.File]::ReadAllLines($productEvidence)) {
-                if ([string]::IsNullOrWhiteSpace($line)) {
-                    throw "Empty Explorer product JSONL line in $configuration."
-                }
-                try { $productRows += ($line | ConvertFrom-Json -ErrorAction Stop) }
-                catch { throw "Malformed Explorer product JSONL in $configuration." }
-            }
+            $productLog = $productEvidence
+            $productRows = @(Product-Rows)
         }
         $sequence = 0
         foreach ($row in $productRows) {
@@ -385,6 +403,52 @@ try {
         $bindings = @($productRows | Where-Object { $_.type -ceq 'binding' })
         $productConsent = @($productRows | Where-Object { $_.type -ceq 'product_consent' })
         $productShutdown = @($productRows | Where-Object { $_.type -ceq 'shutdown' })
+        if ($manifest.explorer_guest_mode -ceq 'BindOnlyIndependentReview') {
+            $review = @($driverRows | Where-Object { $_.type -ceq 'review_bound' })
+            if ($driverExit -ne 0 -or $driverStartup.Count -ne 1 -or
+                $driverStartup[0].implementation_sha -cne $manifest.source_commit -or
+                $startup.Count -ne 1 -or $startup[0].implementation_sha -cne $manifest.source_commit -or
+                $startup[0].run_id -cne $runId -or $startup[0].automated_guest_driver -ne $true -or
+                $bindings.Count -ne 3 -or $productConsent.Count -ne 1 -or
+                $productConsent[0].input_source -cne 'automated_guest_driver' -or
+                $review.Count -ne 1 -or $review[0].configuration -cne 'release' -or
+                $review[0].automatic_gestures_sent -ne $false -or
+                $review[0].functional_acceptance -cne 'NOT_CLAIMED' -or
+                $review[0].product_pid -le 0 -or $productShutdown.Count -ne 0) {
+                throw 'Bind-only preparation did not establish the exact running three-window product.'
+            }
+            $reviewPid = [int]$review[0].product_pid
+            $process = Get-Process -Id $reviewPid -ErrorAction Stop
+            if ($process.SessionId -ne $summary.session_id -or
+                -not [string]::Equals($process.Path,$explorer,[StringComparison]::OrdinalIgnoreCase)) {
+                throw 'Bind-only running product identity changed before review.'
+            }
+            $summary.explorer_stages += [ordered]@{
+                configuration = 'release'; result = 'BOUND_FOR_INDEPENDENT_REVIEW';
+                product_pid = $reviewPid; product_evidence = $productEvidence;
+                driver_evidence = $driverEvidence; automatic_gestures_sent = $false;
+                functional_acceptance = 'NOT_CLAIMED'; human_uat = 'NOT_RUN';
+                status_command = 'S'; stop_command = 'Q'; gesture_stop_hotkey = 'Ctrl+Shift+F11'
+            }
+            $summary.status = 'BOUND_FOR_INDEPENDENT_REVIEW'
+            Save-Summary
+            # One bounded process-exit wait, not input polling or a resident
+            # driver. It never closes host/guest applications on timeout.
+            Wait-Process -InputObject $process -Timeout 1800 -ErrorAction Stop
+            $finishedRows = @([IO.File]::ReadAllLines($productEvidence) | ForEach-Object {
+                $_ | ConvertFrom-Json -ErrorAction Stop
+            })
+            $finishedShutdown = @($finishedRows | Where-Object { $_.type -ceq 'shutdown' })
+            $summary.explorer_stages += [ordered]@{
+                configuration = 'release'; result = 'BIND_ONLY_PRODUCT_EXITED_REVIEW_REQUIRED';
+                actual_product_shutdown = if ($finishedShutdown.Count -eq 1) { $finishedShutdown[0].result } else { $null };
+                actual_resources_stopped = if ($finishedShutdown.Count -eq 1) { $finishedShutdown[0].resources_stopped } else { $null };
+                automatic_functional_validation = 'NOT_RUN'; human_uat = 'NOT_RUN'
+            }
+            $summary.status = 'STOPPED'
+            Save-Summary
+            exit 0
+        }
         $productComplete = $startup.Count -eq 1 -and
             $startup[0].implementation_sha -ceq $manifest.source_commit -and
             $startup[0].run_id -ceq $runId -and

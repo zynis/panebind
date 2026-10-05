@@ -237,3 +237,31 @@ A回环gen6重新获得真实END/capture权限，first free exact成功；下一
 该批仍ABORTED，动态Ctrl C、A回环完整及Release未执行；专用guest/任务已清理，
 原日志保留：driver `72C67F6CD31DCD87B6CCD9A887EE47E6A1E66F649A4B6F19D0FF2BD939D971D3`，
 product `31EF0EEA5AFB7FC00701C8B4DE707F0974977D845F5A7E2AC1C73E1C3FD7EE9B`。
+
+## 第十三批：确认资源先撤权，外部 capture 变化的起因尚未知
+
+RUNTIME `b9d5df37056ed2c2d9ae64a844f8724296231b9e`，RunId
+`97b54e0c8ebc45d9ad5bc14d0687eb06`。前三窗普通 Move、Ctrl A、B 原生 Resize
+及实际关系刷新仍成立；A 回环 gen6 first free quantum1 exact，之后 raw54 消费时
+新增实际短路原因 `gesture_retired`，raw_up=false、isolation_hit=false。
+资源实际 WM_CAPTURECHANGED/capture_to0、own_release=false、release_attempted=false，
+不是本程序正常 ReleaseCapture；detach_before QPC507199489 / after507206022
+早于 owner sample QPC507313217，确认资源侧已先撤权，JSONL 行序不是跨线程总序。
+detach 时 foreground394472 不属于 A66310/B918444/C197164 或 overlay263394，
+但未记录其身份及首次变化原因，尚不能归因于具体系统窗口或 driver 行为。
+driver 同期只发送鼠标移动及读取证据/几何，无主动激活、Ctrl 或提前 UP。
+解除关联实际成功、遮罩销毁成立；本手势 NormalUp 未成立，整批仍 ABORTED，Release
+未执行。后续仅补最初资源失败的固定原生事实，不恢复 capture 或放宽前台检查。
+专用 guest14432/启动任务已清理，清理前后输出 hash 不变；不将销毁 guest 计作产品通过。
+driver hash `FA6C89A4B861D51AE7EF266992B59B01D136D3C9C4AAF97151BC07A091C303F3`，
+product hash `95C3D73E9C2AD73EA861C6E04BE6AAB3E694B377FC646A65B415059E3C7F5EEC`。
+该源码 Release 受影响四项 offline CTest 4/4 通过；不替代此次未完成的现场闭环。
+
+新增复核入口 `prepare-r1c4b-mvp1-shield-sandbox.ps1 -GuestMode BindOnlyIndependentReview`：
+精确新 RunId/manifest/hash/guest/High 条件与真实三窗授权不变，自动绑定后不发送手势，
+留下同一个 Release console，S 状态、Q 停止；手势期 Ctrl+Shift+F11。
+准备状态 BOUND_FOR_INDEPENDENT_REVIEW 不是功能 PASS，真人 NOT_RUN。
+实际 PS 回归已覆盖 manifest 严格 mode/Release、未知组合拒绝、分支在手势前退出，
+以及既有状态集合和实时 JSONL reader；均离线通过，尚未现场运行该复核模式。
+下一包的 CaptureLost/ContextLost callback 固定身份记录只在撤销 writer 后查询，
+owner 线程序列化；operations/core 实现没有变更，旧 owned 九项前置不重新解释。

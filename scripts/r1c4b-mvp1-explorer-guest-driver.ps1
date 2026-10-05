@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][ValidateSet('debug', 'release')][string]$Configuration,
-    [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId
+    [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
+    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview')]
+    [string]$Mode = 'AutomatedValidation'
 )
 
 # Disposable Windows Sandbox test driver only. Product binaries never call
@@ -28,6 +30,16 @@ $script:bound = @()
 $script:confirmationRows = @()
 $script:targets = @()
 $script:gestureGenerations = [Collections.Generic.HashSet[long]]::new()
+
+function Test-DriverModeManifest($Manifest) {
+    if ($Manifest.explorer_guest_mode -cne $Mode -or
+        $Manifest.independent_review_configuration -cne 'release') {
+        throw 'exact_guest_driver_mode_manifest_required'
+    }
+    if ($Mode -ceq 'BindOnlyIndependentReview' -and $Configuration -cne 'release') {
+        throw 'independent_review_requires_exact_release_configuration'
+    }
+}
 
 function Test-ExactGuest {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
@@ -61,6 +73,7 @@ function Test-ExactGuest {
     if ($expected -cne (Get-FileHash -LiteralPath $product -Algorithm SHA256).Hash) {
         throw 'product_binary_mismatch'
     }
+    Test-DriverModeManifest $manifest
     if (Test-Path -LiteralPath $productLog) { throw 'product_evidence_already_exists' }
     if (Test-Path -LiteralPath $driverLog) { throw 'driver_evidence_already_exists' }
     return $manifest
@@ -1167,6 +1180,8 @@ try {
         input_source='automated_guest_driver'; live_validation=$false;
         requested_test_exception=$manifest.explorer_test_exception;
         requested_exception_run_id=$RunId; product_authority_granted=$false }
+    Record 'guest_entry_mode' @{ mode=$Mode; automatic_binding=$true;
+        automatic_gestures_planned=($Mode -ceq 'AutomatedValidation'); human_uat='NOT_RUN' }
     $callerDpi = [PaneBindMvpGuestInput]::EstablishCallerPhysicalCoordinates()
     Record 'test_driver_dpi_context' @{ thread_id=$callerDpi.thread_id;
         previous_context=$callerDpi.previous_context;
@@ -1336,6 +1351,17 @@ try {
     if ($initialStatus.topology_ready -ne $true -or
         [int]$initialStatus.relation_count -lt 2) {
         throw 'ctrl_glue_layout_not_ready'
+    }
+    if ($Mode -ceq 'BindOnlyIndependentReview') {
+        # Leave the SAME Release product/visible console running. Preparation
+        # is automated and labelled; no gesture below is sent in this mode.
+        Record 'review_bound' @{ result='BOUND_FOR_INDEPENDENT_REVIEW';
+            product_pid=$script:productPid; product=$product; product_log=$productLog;
+            product_status_sequence=$initialStatus.sequence; binding_count=3;
+            automatic_gestures_sent=$false; functional_acceptance='NOT_CLAIMED';
+            status_command='S'; stop_command='Q'; gesture_stop_hotkey='Ctrl+Shift+F11';
+            configuration='release'; human_uat='NOT_RUN' }
+        exit 0
     }
     # Both configurations exercise the same small, representative product
     # flow. Each plain gesture proves individual free/snap/hold/detach/resnap

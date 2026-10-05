@@ -5,6 +5,7 @@
 #include "platform/windows/operations/gesture_input_shield.h"
 
 #include <cstdint>
+#include <array>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -17,6 +18,19 @@ namespace panebind::platform::windows::explorer {
 enum class MvpEvidenceKind {
     Down, Start, IsolationReady, Cancel, NativeEnd, Handoff, Writer,
     RawUp, LegacyUp, IsolationGone, Rejected, Resource,
+};
+
+// Fixed read-only identity at a CaptureLost/ContextLost resource callback.
+// This is not the unobserved native WinEvent timestamp or its discarded HWND.
+// No window title, keyboard content, process path or foreign control is read.
+struct MvpResourceLossWitness final {
+    std::uint64_t callback_qpc{};
+    std::uintptr_t foreground{}, foreground_root{};
+    std::uint32_t foreground_process_id{}, foreground_thread_id{};
+    std::uint32_t root_process_id{}, root_thread_id{};
+    std::array<wchar_t, 128> root_class{};
+    std::uint32_t root_class_length{};
+    bool root_class_available{};
 };
 
 // Fixed, owner-STA facts for the entry's existing JSONL sink. Absence means
@@ -41,6 +55,7 @@ struct MvpEvidenceEvent final {
     std::optional<std::uint32_t> shield_route_message;
     std::optional<std::uintptr_t> shield_route_wparam, shield_route_capture;
     std::optional<operations::GestureShieldCaptureFacts> shield_capture;
+    std::shared_ptr<const MvpResourceLossWitness> resource_loss_witness;
     std::optional<std::uint64_t> native_attempt_qpc, raw_up_qpc;
     std::optional<std::uint32_t> shield_setup_stage, shield_native_failure,
         shield_readback_failure, shield_created_exstyle,

@@ -338,6 +338,21 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"shield_route_wparam\":" << *event.shield_route_wparam;
         if (event.shield_route_capture)
             fields << ",\"shield_route_capture\":" << *event.shield_route_capture;
+        if (event.resource_loss_witness) {
+            const auto& w = *event.resource_loss_witness;
+            fields << ",\"resource_loss_callback\":{\"qpc\":" << w.callback_qpc
+                << ",\"foreground\":" << w.foreground
+                << ",\"foreground_root\":" << w.foreground_root
+                << ",\"foreground_pid\":" << w.foreground_process_id
+                << ",\"foreground_tid\":" << w.foreground_thread_id
+                << ",\"root_pid\":" << w.root_process_id
+                << ",\"root_tid\":" << w.root_thread_id
+                << ",\"root_class\":";
+            if (w.root_class_available)
+                fields << quote(std::wstring_view(w.root_class.data(), w.root_class_length));
+            else fields << "null";
+            fields << '}';
+        }
         if (event.native_attempt_qpc) fields << ",\"native_attempt_qpc\":" << *event.native_attempt_qpc;
         if (event.raw_up_qpc) fields << ",\"raw_up_qpc\":" << *event.raw_up_qpc;
         if (event.shield_capture) {
