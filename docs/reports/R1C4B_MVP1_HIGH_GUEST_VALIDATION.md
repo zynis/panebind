@@ -166,3 +166,16 @@ GA_ROOT197358，其18次真实 WM_NCHITTEST 为HTCAPTION2、2次为HTTOP12，
 不扩大窗口权限、不把1改2。此批没有DOWN；driver hash
 `32E4D58B527D1F0AECE32C2FF43C674BBF2AA9A217A09ABF3C8ED7C415D17E55`。
 guest/任务已清理，原证据 hash 保持；新 SHA 将进入真实 Explorer 普通 Move 验证。
+
+## 第九批：真实 DOWN 已进入，原始锚点复核拒绝
+
+RUNTIME `321a2c9c94e145aba66b888e42d3b28129adc16a`，RunId
+`9a7ce667b2f04a27a0998b3bbbf91b6e`。driver 已实际命中同授权 root66310/
+PID7820/TID7864 的 caption child131946/HTCAPTION2，真实 DOWN raw_sequence2
+进入产品；产品返回 `down_anchor_not_fresh_or_consent_lost`，随后真实 START
+因 no_matching_raw_down 拒绝。没有隔离/cancel/placement。测试发出实际 UP，
+产品观测 raw_sequence4；Q 后实际停止资源，专用 guest/任务已清理。
+原产品日志 hash `4F3F052B03BE6FE4BEDB6B805B35A58664F4958147A49385DD1BDE24990B38DE`。
+该旧合并原因不能区分 capture 失败与原始/新鲜矩形变化，不能预称延迟或权限根因。
+下一最小增量分开实际 capture 失败/矩形不一致、传出已有固定数值事实；driver
+等待真实 DOWN 处理回执而非90ms后无条件推进移动。产品锚点与所有权限门槛不放宽。

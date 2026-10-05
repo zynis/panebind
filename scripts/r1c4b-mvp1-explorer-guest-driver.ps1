@@ -555,11 +555,15 @@ function Product-Rows {
     }
     return $rows
 }
-function Wait-ProductRow([string]$Type, [scriptblock]$Match, [int]$Seconds = 15) {
+function Wait-ProductRow([string]$Type, [scriptblock]$Match, [int]$Seconds = 15,
+                        [scriptblock]$Reject = $null) {
     $until = [DateTime]::UtcNow.AddSeconds($Seconds)
     do {
         foreach ($row in @(Product-Rows)) {
             if ($row.type -ceq $Type -and (& $Match $row)) { return $row }
+            if ($Reject -and (& $Reject $row)) {
+                throw "product_evidence_rejected:$($row.event):$($row.reason)"
+            }
             if ($row.type -ceq 'shutdown') { throw "product_shutdown:$($row.reason)" }
         }
         if ($script:productPid -and -not (Get-Process -Id $script:productPid -ErrorAction SilentlyContinue)) {
@@ -871,13 +875,34 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
         Assert-Test-DownTarget $hwnd $point[0] $point[1] 'gesture' $wantedHit
         $script:pressed=$true
         [PaneBindMvpGuestInput]::MouseButton($true)
-        Start-Sleep -Milliseconds 90 # actual legacy DOWN must get a chance to dispatch
+        # A fixed delay does not prove that the receiver/owner accepted the
+        # original anchor. Wait for its REAL candidate before requesting a
+        # native Move/Resize; an observed rejection stops this test immediately.
+        $downCandidate = Wait-ProductRow 'gesture_event' {
+            param($row) $row.sequence -gt $watermark -and $row.event -ceq 'down' -and
+                $row.source_member -eq $Member -and $row.reason -ceq 'candidate_only' -and
+                $row.generation -gt 0 -and $row.raw_sequence -gt 0
+        } 4 {
+            param($row) $row.type -ceq 'gesture_event' -and
+                $row.sequence -gt $watermark -and $row.source_member -eq $Member -and
+                $row.event -ceq 'rejected'
+        }
+        if (@($downCandidate.cursor).Count -ne 2 -or
+            $downCandidate.cursor[0] -ne $point[0] -or $downCandidate.cursor[1] -ne $point[1] -or
+            -not (Test-RectEqual $downCandidate.initial_visible $before)) {
+            throw 'observed_down_anchor_differs_from_actual_test_down'
+        }
+        Record 'observed_down' @{ member=$Member; product_sequence=$downCandidate.sequence;
+            generation=$downCandidate.generation; raw_sequence=$downCandidate.raw_sequence;
+            original_cursor=$downCandidate.cursor; original_visible=$downCandidate.initial_visible;
+            input_source='actual_product_candidate_not_driver_delay' }
         if (-not [PaneBindMvpGuestInput]::LeftDown()) { throw 'physical_left_not_held_after_down' }
         Send-MouseMove ($point[0]+[Math]::Sign($DeltaX)*8) ($point[1]+[Math]::Sign($DeltaY)*8) 'native_start'
         $start = Wait-ProductRow 'gesture_event' {
             param($row) $row.sequence -gt $watermark -and $row.event -ceq 'start' -and
                 $row.source_member -eq $Member
         } 4
+        if ($start.generation -ne $downCandidate.generation) { throw 'start_generation_differs_from_real_down' }
         if ($start.route -cne $ExpectedRoute) { throw "route_mismatch:$($start.route)" }
         if (-not $script:gestureGenerations.Add([long]$start.generation)) {
             throw 'gesture_generation_reused'

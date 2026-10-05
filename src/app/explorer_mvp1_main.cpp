@@ -258,6 +258,10 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"route\":" << quote(gesture_route_name(*event.route));
         if (event.reason != "none")
             fields << ",\"reason\":" << quote(event.reason);
+        if (event.capture_failure_json)
+            fields << ",\"capture_failure\":" << *event.capture_failure_json;
+        if (event.initial_positioning)
+            fields << ",\"initial_positioning\":" << rect_json(*event.initial_positioning);
         if (event.cursor)
             fields << ",\"cursor\":" << point_json(*event.cursor);
         if (event.raw_observed_cursor)

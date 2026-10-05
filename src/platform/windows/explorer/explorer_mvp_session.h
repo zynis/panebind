@@ -29,7 +29,7 @@ struct MvpEvidenceEvent final {
     std::string_view reason{"none"};
     std::optional<core::geometry::Point> cursor;
     std::optional<core::geometry::Point> raw_observed_cursor;
-    std::optional<core::geometry::Rect> initial_visible, target_visible;
+    std::optional<core::geometry::Rect> initial_visible, initial_positioning, target_visible;
     std::optional<core::geometry::Rect> actual_visible, actual_positioning;
     std::optional<bool> attempted, succeeded, outcome_known, geometry_exact;
     std::optional<bool> post_context_exact, snapped, overlay_destroyed, hotkey_unregistered;
@@ -50,6 +50,9 @@ struct MvpEvidenceEvent final {
         shield_retry_placement;
     std::optional<operations::GestureShieldWindowPosFacts> shield_windowpos_changing,
         shield_windowpos_changed;
+    // Existing fixed-label/number GroupCapture serialization, owned on the
+    // owner STA only when a real capture rejects. No resource-thread disk IO.
+    std::optional<std::string> capture_failure_json;
     std::uintptr_t overlay{};
 };
 

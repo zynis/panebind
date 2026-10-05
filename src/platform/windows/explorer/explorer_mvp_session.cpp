@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_mvp_session.h"
+#include "platform/windows/explorer/explorer_group_capture_json.h"
 
 #include "core/behavior/move_magnet_session.h"
 #include "platform/windows/explorer/explorer_mvp_attribution.h"
@@ -698,12 +699,23 @@ void ExplorerMvpSession::Impl::raw_down(const op::GestureShieldEvent& event) {
     for (std::size_t i = 0; i < 3; ++i)
         if (group->bindings()[i].window == event.observed_foreground) source = i;
     if (source == 3) return;
-    const auto reject = [&](std::string_view reason) {
+    const auto reject = [&](std::string_view reason,
+                            const detail::GroupCaptureResult* actual_capture = nullptr) {
         MvpEvidenceEvent evidence = event_for(MvpEvidenceKind::Rejected, gesture(), reason);
         evidence.source_member = source;
         evidence.raw_sequence = event.raw_sequence;
         if (event.cursor_available)
             evidence.cursor = g::Point{event.message_point.x, event.message_point.y};
+        if (actual_capture) {
+            evidence.initial_visible = rect(event.foreground_visible);
+            evidence.initial_positioning = rect(event.foreground_positioning);
+            if (*actual_capture) {
+                evidence.actual_visible = (**actual_capture)[source].visible_rect;
+                evidence.actual_positioning = (**actual_capture)[source].positioning_rect;
+            } else {
+                evidence.capture_failure_json = detail::group_capture_json(*actual_capture);
+            }
+        }
         (void)record(evidence);
     };
     if (gesture() || !healthy()) { reject("down_while_unavailable"); return; }
@@ -731,10 +743,14 @@ void ExplorerMvpSession::Impl::raw_down(const op::GestureShieldEvent& event) {
     // the receiver's native DOWN snapshot and this owner-STA capture, the
     // original window anchor is unavailable; never replace it with "now".
     const auto captured = detail::ExplorerGroupBridge::capture(*group->seal_, group->sessions());
-    if (!captured || (*captured)[source].positioning_rect !=
+    if (!captured) {
+        reject("down_consent_capture_failed", &captured);
+        return;
+    }
+    if ((*captured)[source].positioning_rect !=
             rect(event.foreground_positioning) ||
         (*captured)[source].visible_rect != rect(event.foreground_visible)) {
-        reject("down_anchor_not_fresh_or_consent_lost");
+        reject("down_anchor_changed_since_receiver_snapshot", &captured);
         return;
     }
     const MvpDownHit hit = hit_test(binding(source, member), event.message_point);
