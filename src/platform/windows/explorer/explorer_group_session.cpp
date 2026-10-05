@@ -72,10 +72,12 @@ GroupLayoutReadiness group_layout_readiness(const detail::GroupSnapshots& s) noe
 }
 ExplorerGroupSession::ExplorerGroupSession(OwnedMembers members):owner_(GetCurrentThreadId()),members_(std::move(members)) {}
 detail::GroupSessions ExplorerGroupSession::sessions() const noexcept {return {members_[0].get(),members_[1].get(),members_[2].get()};}
-std::unique_ptr<ExplorerGroupSession> ExplorerGroupSession::create(OwnedMembers members) {
+std::unique_ptr<ExplorerGroupSession> ExplorerGroupSession::create(
+    OwnedMembers members, std::string* creation_failure) {
     auto result=std::unique_ptr<ExplorerGroupSession>(new ExplorerGroupSession(std::move(members)));
     result->desktop_=std::make_unique<ExplorerVirtualDesktopManager>();
-    result->seal_=detail::ExplorerGroupBridge::bind(result->sessions(),*result->desktop_,result->binding_snapshots_);
+    result->seal_=detail::ExplorerGroupBridge::bind(result->sessions(),*result->desktop_,
+        result->binding_snapshots_, creation_failure);
     if(!result->seal_)return nullptr;
     result->current_=result->binding_snapshots_;
     result->readiness_fixture_.emplace(result->generation(),result->binding_snapshots_);

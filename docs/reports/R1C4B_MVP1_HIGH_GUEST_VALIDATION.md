@@ -78,3 +78,16 @@ SID/session实际相同、session1、RunId精确、slot1、confirmation3/token5/
 源码确定为普通 driver 缺陷；只改集合名并保留实际反例，不将此失败当平台
 权限或归因失败。未绑定三窗/发送 Move 输入；产品收到 Q 后 target_declined。
 原始日志/包保留，精确本批 guest/任务清理后新身份重验。
+
+## 第三批：三窗权限确认，产品创建拒绝待定位
+
+RUNTIME `9abad65747c6140238f1f8eee98cfbc23bffd3f8`，RunId
+`ca7cc51ed4e0484599b64468f9117abe`。集合反例已真实复现并修复，三窗分别
+通过 exact 新建/同SID/session1/High/elevated/同RunId、不同slot1/2/3，所有
+confirmation3/token5/capability1。driver 按实际 DWM 对齐 B/C，Y 实际送达；
+产品返回 `product_session_create_failed`。未取得三窗组绑定、未发 Move。
+现有 generic 日志不能区分 VDM、内存组封印、实际 native capture、hook 或
+shield 初始化，不能猜测为 High/VDM/几何原因。最小后继增量只传出现有创建
+路径的实际拒绝 stage/reason/capture facts；不删除检查，不制造资格。
+原始失败保留，下一 SHA/RunId 用该原因继续修复，而非以诊断提交结束功能轮。
+本地仅 f086 的未运行包保留；9abad 已修正其 WinPS5.1 scalar JSONL 回归夹具。

@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -63,7 +64,8 @@ public:
 
     [[nodiscard]] static std::unique_ptr<ExplorerMvpSession>
     create_after_explicit_consent(OwnedMembers members,
-                                  std::function<bool()> environment_allowed);
+                                  std::function<bool()> environment_allowed,
+                                  std::string* creation_failure = nullptr);
     ~ExplorerMvpSession();
     ExplorerMvpSession(const ExplorerMvpSession&) = delete;
     ExplorerMvpSession& operator=(const ExplorerMvpSession&) = delete;

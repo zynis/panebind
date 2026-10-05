@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "platform/windows/explorer/explorer_group_event_source.h"
 #include "platform/windows/explorer/explorer_group_readiness.h"
 #include "core/behavior/glue_group_move.h"
@@ -99,7 +100,8 @@ public:
     using OwnedMembers=std::array<std::unique_ptr<ExplorerTestSession>,3>;
     // Call only after the harness' real console group-consent confirmation.
     // Takes existing separately consented sessions, never an HWND selector.
-    static std::unique_ptr<ExplorerGroupSession> create(OwnedMembers members);
+    static std::unique_ptr<ExplorerGroupSession> create(
+        OwnedMembers members, std::string* creation_failure = nullptr);
     ~ExplorerGroupSession();
     ExplorerGroupSession(const ExplorerGroupSession&)=delete;
     ExplorerGroupSession& operator=(const ExplorerGroupSession&)=delete;

@@ -5677,33 +5677,52 @@ bool group_same_context(ExplorerWindowSnapshot a, ExplorerWindowSnapshot b) {
 }
 
 std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
-    GroupSessions sessions, ExplorerVirtualDesktopManager& manager, GroupSnapshots& original) {
-    if (manager.creation_result()!=S_OK || manager.closed() || manager.owner_thread()!=GetCurrentThreadId())
+    GroupSessions sessions, ExplorerVirtualDesktopManager& manager, GroupSnapshots& original,
+    std::string* failure) {
+    const auto reject = [failure](std::string reason) -> std::optional<ExplorerGroupSeal> {
+        if (failure) *failure = std::move(reason);
         return std::nullopt;
+    };
+    if (manager.creation_result()!=S_OK || manager.closed() || manager.owner_thread()!=GetCurrentThreadId())
+        return reject("vdm_unavailable;creation_hresult=" +
+            std::to_string(static_cast<std::uint32_t>(manager.creation_result())) +
+            ";closed=" + std::to_string(manager.closed()) +
+            ";owner_matches=" + std::to_string(manager.owner_thread() == GetCurrentThreadId()));
     for(std::size_t i=0;i<3;++i) {
-        if (!sessions[i] || !sessions[i]->impl_) return std::nullopt;
+        if (!sessions[i] || !sessions[i]->impl_)
+            return reject("member_session_missing;member=" + std::to_string(i));
         auto& impl=*sessions[i]->impl_;
         // A High test group is exactly one guest/RunId scope, never three
         // independently qualified elevated sessions. All-null keeps the
         // ordinary Medium path unchanged.
-        if (impl.sandbox_high_test != sessions[0]->impl_->sandbox_high_test ||
-            (impl.sandbox_high_test &&
-             (!impl.sandbox_high_member || impl.sandbox_high_member > 3)))
-            return std::nullopt;
-        if(impl.controller_thread_id!=GetCurrentThreadId() || !target_consent_prefix_valid(impl) ||
-           impl.group_authority_generation || impl.glue_authority_id || impl.glue_role)
-            return std::nullopt;
+        if (impl.sandbox_high_test != sessions[0]->impl_->sandbox_high_test)
+            return reject("sandbox_scope_mismatch;member=" + std::to_string(i));
+        if (impl.sandbox_high_test &&
+            (!impl.sandbox_high_member || impl.sandbox_high_member > 3))
+            return reject("sandbox_member_slot_invalid;member=" + std::to_string(i));
+        if (impl.controller_thread_id != GetCurrentThreadId())
+            return reject("owner_thread_mismatch;member=" + std::to_string(i));
+        if (!target_consent_prefix_valid(impl))
+            return reject("target_consent_prefix_invalid;member=" + std::to_string(i));
+        if (impl.group_authority_generation || impl.glue_authority_id || impl.glue_role)
+            return reject("authority_already_bound;member=" + std::to_string(i));
         for(std::size_t j=0;j<i;++j) {
             const auto& earlier=*sessions[j]->impl_;
             if (impl.sandbox_high_test &&
                 impl.sandbox_high_member == earlier.sandbox_high_member)
-                return std::nullopt;
-            if (sessions[i]==sessions[j] || impl.window==earlier.window ||
-                impl.target_location==earlier.target_location ||
-                impl.ledger.session_authority()==earlier.ledger.session_authority() ||
-                std::find(impl.forbidden_preexisting_hwnds.begin(),impl.forbidden_preexisting_hwnds.end(),
+                return reject("sandbox_member_slot_duplicate;member=" + std::to_string(i));
+            if (sessions[i] == sessions[j])
+                return reject("session_duplicate;member=" + std::to_string(i));
+            if (impl.window == earlier.window)
+                return reject("root_duplicate;member=" + std::to_string(i));
+            if (impl.target_location == earlier.target_location)
+                return reject("location_duplicate;member=" + std::to_string(i));
+            if (impl.ledger.session_authority() == earlier.ledger.session_authority())
+                return reject("session_authority_duplicate;member=" + std::to_string(i));
+            if (std::find(impl.forbidden_preexisting_hwnds.begin(),impl.forbidden_preexisting_hwnds.end(),
                     reinterpret_cast<NativeWindowKey>(earlier.window))==impl.forbidden_preexisting_hwnds.end())
-                return std::nullopt;
+                return reject("later_baseline_missing_earlier_root;member=" + std::to_string(i) +
+                              ";earlier=" + std::to_string(j));
         }
     }
     // The strict issuance prefixes and pairwise distinct frame/location proof
@@ -5711,7 +5730,7 @@ std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
     std::array<GroupMemberBinding,3> bindings{};
     static MonotonicIdSource group_generations;
     const auto generation=group_generations.issue();
-    if (!generation) return std::nullopt;
+    if (!generation) return reject("group_generation_exhausted");
     for(std::size_t i=0;i<3;++i) {
         auto& impl=*sessions[i]->impl_;
         const auto& token=*impl.issued_token;
@@ -5725,13 +5744,31 @@ std::optional<detail::ExplorerGroupSeal> detail::ExplorerGroupBridge::bind(
     }
     ExplorerGroupSeal seal{generation,bindings};
     auto captured=capture(seal,sessions);
-    if(!captured) { retire(seal,sessions); return std::nullopt; }
+    if(!captured) {
+        std::string observed = "capture_failed;reason=" + std::string(captured.reason) +
+            ";stage=" + std::string(group_capture_stage_name(captured.failure_stage)) +
+            ";member=" + (captured.failed_member_index ?
+                std::to_string(*captured.failed_member_index) : "unknown") +
+            ";eligibility=" + (captured.eligibility_reason ?
+                std::to_string(static_cast<int>(*captured.eligibility_reason)) : "unknown") +
+            ";invalidation=" + std::string(captured.glue_validation_invalidation);
+        if (captured.diagnostic)
+            observed += ";diagnostic_domain=" +
+                std::to_string(static_cast<int>(captured.diagnostic->domain)) +
+                ";diagnostic_code=" + std::to_string(captured.diagnostic->code);
+        retire(seal,sessions);
+        return reject(std::move(observed));
+    }
     original=*captured;
     for(std::size_t i=1;i<3;++i) {
         if(original[i].monitor_device_name!=original[0].monitor_device_name ||
            original[i].monitor_work_area!=original[0].monitor_work_area ||
-           original[i].dpi!=original[0].dpi) { retire(seal,sessions); return std::nullopt; }
+           original[i].dpi!=original[0].dpi) {
+            retire(seal,sessions);
+            return reject("monitor_or_dpi_mismatch;member=" + std::to_string(i));
+        }
     }
+    if (failure) *failure = "none";
     return seal;
 }
 

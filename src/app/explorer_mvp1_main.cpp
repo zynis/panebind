@@ -624,11 +624,16 @@ int run(Evidence& evidence, const std::wstring& run_id,
                                "interactive_console")))
         return stop("evidence_write_failed");
 
+    std::string creation_failure;
     session = explorer::ExplorerMvpSession::create_after_explicit_consent(
         std::move(members), [run_id, evidence_path] {
             return sandbox_run_authorized(run_id, evidence_path);
-        });
-    if (!session) return stop("product_session_create_failed");
+        }, &creation_failure);
+    if (!session) {
+        evidence.record("product_creation_rejected", ",\"observed_reason\":" +
+            quote(creation_failure.empty() ? "UNKNOWN" : creation_failure));
+        return stop("product_session_create_failed");
+    }
     const auto bound_status = session->status();
     if (!bound_status) return stop("binding_native_snapshot_unavailable");
     for (std::size_t i = 0; i < 3; ++i) {

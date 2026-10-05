@@ -1449,12 +1449,19 @@ ExplorerMvpSession::ExplorerMvpSession(std::unique_ptr<Impl> impl) noexcept
     : impl_(std::move(impl)) {}
 
 std::unique_ptr<ExplorerMvpSession> ExplorerMvpSession::create_after_explicit_consent(
-    OwnedMembers members, std::function<bool()> environment_allowed) {
-    if (!environment_allowed || !environment_allowed() || !desktop_active()) return nullptr;
-    auto group = ExplorerGroupSession::create(std::move(members));
-    if (!group || !detail::ExplorerGroupBridge::enable_live_magnet(
-            *group->seal_, group->sessions()) || !group->start_product_monitoring())
+    OwnedMembers members, std::function<bool()> environment_allowed,
+    std::string* creation_failure) {
+    const auto reject = [&](std::string_view reason) -> std::unique_ptr<ExplorerMvpSession> {
+        if (creation_failure) *creation_failure = reason;
         return nullptr;
+    };
+    if (!environment_allowed || !environment_allowed() || !desktop_active())
+        return reject("create_environment_or_desktop_rejected");
+    auto group = ExplorerGroupSession::create(std::move(members), creation_failure);
+    if (!group) return nullptr;
+    if (!detail::ExplorerGroupBridge::enable_live_magnet(*group->seal_, group->sessions()))
+        return reject("create_live_magnet_capture_rejected");
+    if (!group->start_product_monitoring()) return reject(group->reason());
     auto impl = std::make_unique<Impl>(std::move(group), std::move(environment_allowed));
     impl->callback_bridge = std::make_shared<Impl::CallbackBridge>(impl.get());
     std::weak_ptr<Impl::CallbackBridge> callback = impl->callback_bridge;
@@ -1487,7 +1494,7 @@ std::unique_ptr<ExplorerMvpSession> ExplorerMvpSession::create_after_explicit_co
     });
     if (!impl->shield->start()) {
         (void)impl->stop();
-        return nullptr;
+        return reject("create_shield_initialization_rejected");
     }
     return std::unique_ptr<ExplorerMvpSession>(new ExplorerMvpSession(std::move(impl)));
 }

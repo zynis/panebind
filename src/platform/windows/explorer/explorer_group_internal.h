@@ -77,7 +77,8 @@ struct MvpNativePlacement final {
 class ExplorerGroupBridge final {
 private:
     static std::optional<ExplorerGroupSeal> bind(GroupSessions sessions,
-        ExplorerVirtualDesktopManager& manager, GroupSnapshots& original);
+        ExplorerVirtualDesktopManager& manager, GroupSnapshots& original,
+        std::string* failure = nullptr);
     static GroupCaptureResult capture(const ExplorerGroupSeal&, GroupSessions,
         GroupCaptureMode mode=GroupCaptureMode::Strict);
     static bool receipts_healthy(const ExplorerGroupSeal&, GroupSessions) noexcept;
