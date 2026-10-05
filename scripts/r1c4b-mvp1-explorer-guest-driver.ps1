@@ -25,7 +25,7 @@ $script:ctrlPressed = $false
 $script:productPid = 0
 $script:productStarted = $false
 $script:bound = @()
-$script:confirmed = @()
+$script:confirmationRows = @()
 $script:targets = @()
 $script:gestureGenerations = [Collections.Generic.HashSet[long]]::new()
 
@@ -561,7 +561,7 @@ function Assert-GuestHighEvidence($Facts,[int]$Member,$TokenBinding = $null) {
         ($Facts.sandbox_exception_token_consent_generation -ne $TokenBinding.consent_generation -or
          $Facts.sandbox_exception_capability_generation -ne $TokenBinding.capability_generation -or
          $Facts.sandbox_exception_target_confirmation_generation -ne
-            $script:confirmed[$Member].confirmation_generation)) {
+            $script:confirmationRows[$Member].confirmation_generation)) {
         throw "actual_guest_high_scope_generation_changed:$Member"
     }
 }
@@ -1098,7 +1098,7 @@ try {
             $confirmed.sandbox_exception_token_consent_generation -ne $confirmed.token_generation) {
             throw "target_confirmation_scope_generation_mismatch:$member"
         }
-        $script:confirmed += $confirmed
+        $script:confirmationRows += $confirmed
     }
     # Align actual DWM-visible edges, not requested outer-window coordinates.
     # This is test-created, pre-consent layout preparation only; the product
@@ -1191,6 +1191,8 @@ try {
     exit 0
 } catch {
     $reason = $_.Exception.Message
+    $failureLine = $_.InvocationInfo.ScriptLineNumber
+    $failureStack = $_.ScriptStackTrace
     if ($script:pressed) {
         try { [PaneBindMvpGuestInput]::MouseButton($false); Record 'cleanup_up' @{ sent=$true } }
         catch { Record 'cleanup_up' @{ sent=$false; error=$_.Exception.Message } }
@@ -1204,6 +1206,7 @@ try {
         try { Console-Line 'Q' } catch { }
     }
     Record 'shutdown' @{ result='ABORTED'; reason=$reason;
+        script_line=$failureLine; script_stack=$failureStack;
         product_stopped_observed=$false; human_uat='NOT_RUN' }
     exit 2
 } finally {

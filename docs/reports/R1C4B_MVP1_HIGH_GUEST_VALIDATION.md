@@ -61,3 +61,20 @@ Raw/WinEvent 的 JSONL 行序不是共同原生时序。实际结果待以下记
 仅 runner 使用已允许的 `-preflight-release-normal.jsonl`；summary 仍明确
 current_input_identity，不暗示本包 owned normal 已运行。不改共享实现，仍复用
 原九项。精确本批 guest/启动任务清理后以新 SHA/RunId 继续。
+
+## 第二批：真实 High 资格已通过，driver 集合变量碰撞
+
+RUNTIME `b29a587153ac08895391d7a699d880447ad32a53`，RunId
+`07d9c471c7fd42a0a4f7bee44f4cda10`。当前预检 READY，driver 实际 caller PMV2
+建立/回读成功；DPI192 Explorer 的 outer `[425,91,2025,1291]` 与 DWM visible
+`[436,91,2014,1280]` 已在同物理尺度，非上轮半尺度。创建唯一新 A root
+HWND197360/PID7724/TID7768，确认前 normal/visible、GUI capture/move/menu clear。
+产品真实 target_confirmed：controller/target IL12288、medium=false/elevated=true、
+SID/session实际相同、session1、RunId精确、slot1、confirmation3/token5/capability1。
+没有改 token/UAC，也没有把 High 改 Medium。
+
+随后 driver `PSObject op_Addition` 失败：顶层 `$confirmed` 标量和
+`$script:confirmed` 集合处于同脚本 scope，赋值覆盖集合后 `+=` 报错。
+源码确定为普通 driver 缺陷；只改集合名并保留实际反例，不将此失败当平台
+权限或归因失败。未绑定三窗/发送 Move 输入；产品收到 Q 后 target_declined。
+原始日志/包保留，精确本批 guest/任务清理后新身份重验。
