@@ -1,4 +1,5 @@
 #include "platform/windows/explorer/explorer_group_session.h"
+#include "platform/windows/explorer/explorer_group_capture_json.h"
 #include "core/geometry/checked_arithmetic.h"
 #include "platform/windows/explorer/explorer_glue_quantum.h"
 #include <algorithm>
@@ -309,8 +310,14 @@ bool ExplorerGroupSession::quantum(std::span<const GroupEventReceipt> events,
     receipts_.insert(receipts_.end(),events.begin(),events.end());
     std::optional<detail::GroupCaptureResult> captured;
     if(!validated_sample) {
+        // One owner-STA failure witness only, never a retained authority or
+        // stale previous quantum's rejection. Use the existing fixed serializer.
+        last_product_capture_failure_json_.reset();
         captured=detail::ExplorerGroupBridge::capture(*seal_,sessions());
-        if(!*captured){poison("member_validation_failed");return false;}
+        if(!*captured) {
+            last_product_capture_failure_json_ = detail::group_capture_json(*captured);
+            poison("member_validation_failed");return false;
+        }
         validated_sample=&**captured;
     }
     const auto& live=*validated_sample;

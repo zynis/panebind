@@ -53,6 +53,7 @@ struct MvpEvidenceEvent final {
     // Existing fixed-label/number GroupCapture serialization, owned on the
     // owner STA only when a real capture rejects. No resource-thread disk IO.
     std::optional<std::string> capture_failure_json;
+    std::optional<std::string> group_reason;
     std::uintptr_t overlay{};
 };
 

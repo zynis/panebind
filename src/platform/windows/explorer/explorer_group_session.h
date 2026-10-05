@@ -133,6 +133,8 @@ public:
     [[nodiscard]] bool product_move_conflict_pending(std::size_t source) const noexcept;
     [[nodiscard]] bool healthy() const noexcept;
     [[nodiscard]] std::string_view reason() const noexcept {return reason_;}
+    [[nodiscard]] const std::optional<std::string>& last_product_capture_failure_json()
+        const noexcept { return last_product_capture_failure_json_; }
     [[nodiscard]] const auto& bindings() const noexcept {return seal_->members();}
     [[nodiscard]] const auto& binding_snapshots() const noexcept {return binding_snapshots_;}
     [[nodiscard]] const auto& gestures() const noexcept {return gestures_;}
@@ -174,6 +176,7 @@ private:
     std::vector<GroupEventReceipt> receipts_;
     std::vector<GroupFeedbackRecord> feedback_;
     std::vector<GroupEventReceipt> product_pending_events_;
+    std::optional<std::string> last_product_capture_failure_json_;
     bool product_batch_pending_{};
     std::optional<std::size_t> active_member_,plain_member_;
     DWORD start_native_time_{};

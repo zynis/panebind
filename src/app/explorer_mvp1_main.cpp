@@ -260,6 +260,8 @@ bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& sess
             fields << ",\"reason\":" << quote(event.reason);
         if (event.capture_failure_json)
             fields << ",\"capture_failure\":" << *event.capture_failure_json;
+        if (event.group_reason)
+            fields << ",\"group_reason\":" << quote(*event.group_reason);
         if (event.initial_positioning)
             fields << ",\"initial_positioning\":" << rect_json(*event.initial_positioning);
         if (event.cursor)

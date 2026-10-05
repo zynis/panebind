@@ -297,7 +297,7 @@ struct ExplorerMvpSession::Impl final {
                     op::GestureShieldRemovalReason::ContextLost);
             return false;
         }
-        evidence_events[evidence_count++] = event;
+        evidence_events[evidence_count++] = std::move(event);
         return true;
     }
 
@@ -538,7 +538,16 @@ struct ExplorerMvpSession::Impl final {
         why = reason;
         if (fatal) failed = true;
         auto current = gesture();
-        (void)record(event_for(MvpEvidenceKind::Rejected, current, reason));
+        auto evidence = event_for(MvpEvidenceKind::Rejected, current, reason);
+        if (reason == "group_product_processing_failed" && group) {
+            try {
+                evidence.group_reason = std::string(group->reason());
+                evidence.capture_failure_json = group->last_product_capture_failure_json();
+            } catch (...) {
+                failed = true; // Never defer revocation to diagnostic allocation.
+            }
+        }
+        (void)record(std::move(evidence));
         revoke(current, escape);
         if (GetCurrentThreadId() == owner && group && group->seal_)
             detail::ExplorerGroupBridge::active(*group->seal_, group->sessions(), false);

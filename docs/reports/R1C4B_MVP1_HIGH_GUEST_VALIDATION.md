@@ -179,3 +179,27 @@ PID7820/TID7864 的 caption child131946/HTCAPTION2，真实 DOWN raw_sequence2
 该旧合并原因不能区分 capture 失败与原始/新鲜矩形变化，不能预称延迟或权限根因。
 下一最小增量分开实际 capture 失败/矩形不一致、传出已有固定数值事实；driver
 等待真实 DOWN 处理回执而非90ms后无条件推进移动。产品锚点与所有权限门槛不放宽。
+
+## 第十批：三个普通 Move 正常闭环与 Ctrl A 通过，Resize 处理受阻
+
+RUNTIME `b32b55872a7fa9fd727ad0206cb000b6bf9bfd8a`，RunId
+`1ff214d0d9e44a2c90c477ae26efc2d0`。driver149行/product117行JSONL合法连续。
+Debug A gen1 / B gen3 / C gen4 五个定向 waypoint 全部实际通过：free、XY snap、
+hold outside attraction、detach beyond release、XY resnap。每窗4次真实 exact placement，
+hold 为已后验确认的 already_exact 无API；target/actual receipt 与实际 DWM 矩形相等。
+各 quantum 最多一次native receipt。原始DOWN锚点保持，真实 END / capture / association
+均有回执；Raw与legacy UP实际观察、ReleaseCapture实际true/after0、detach实际true、
+NormalUp/Gone清理成立。各 native claim QPC不晚于可靠 Raw UP；UP后 cursor probe
+零新native调用且几何不变，不将JSONL顺序当原生共同时间线。
+Ctrl A gen2实际leader及B/C followers均平移(34,0)，source writer0，无shield/cancel。
+实际caller PMV2及frame DPI192均在现场成立。
+
+B Resize gen5已实际归因 native_resize，随后 group_product_processing_failed。
+当前generic原因尚不能断定Browser/身份/尺寸原因。Strict capture本身不锁原尺寸，
+不能为通过而删除尺寸或权限检查；最小传出该次group reason及原GroupCaptureResult。
+该批仍ABORTED/BLOCKED；Resize刷新、A回环、Ctrl C及Release未执行。
+stop_cleanup回执实际succeeded=true；shutdown resources_stopped=false是原stop返回
+整体failed状态，不能擅自将整体失败改PASS。专用guest/任务已销毁且证据保持，
+不以销毁guest替代产品清理结果。
+driver hash `81BDB21D0AE5F79FAC283681685B85B2F6DD8D72B7CC75C4F9A94DB703692682`；
+product hash `5DD81817841AB8C281023AF46B6DCB5318BC09E9B27B0A60E449DC1EF93A6F47`。
