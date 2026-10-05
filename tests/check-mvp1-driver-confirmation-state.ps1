@@ -29,9 +29,11 @@ $newAppend = Assignment $current '$script:confirmationRows' $plusEquals
 
 # ConvertFrom-Json produces the same PSObject class as the actual product log
 # reader, not a hashtable with different addition behavior.
-$script:fixtureRows = @('[{"member":0,"confirmation_generation":4},' +
-    '{"member":1,"confirmation_generation":12},' +
-    '{"member":2,"confirmation_generation":20}]' | ConvertFrom-Json)
+$script:fixtureRows = @(
+    '{"member":0,"confirmation_generation":4}',
+    '{"member":1,"confirmation_generation":12}',
+    '{"member":2,"confirmation_generation":20}'
+) | ForEach-Object { $_ | ConvertFrom-Json }
 function Wait-ProductRow { return $script:fixtureRows[$member] }
 $member = 0
 . ([scriptblock]::Create($oldInit))
