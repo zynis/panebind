@@ -437,10 +437,13 @@ struct ExplorerMvpSession::Impl final {
             const HWND root = foreground ? GetAncestor(foreground, GA_ROOT) : nullptr;
             facts.foreground = reinterpret_cast<std::uintptr_t>(foreground);
             facts.foreground_root = reinterpret_cast<std::uintptr_t>(root);
+            DWORD foreground_pid{}, root_pid{};
             if (foreground) facts.foreground_thread_id = GetWindowThreadProcessId(
-                foreground, &facts.foreground_process_id);
+                foreground, &foreground_pid);
+            facts.foreground_process_id = foreground_pid;
             if (root) {
-                facts.root_thread_id = GetWindowThreadProcessId(root, &facts.root_process_id);
+                facts.root_thread_id = GetWindowThreadProcessId(root, &root_pid);
+                facts.root_process_id = root_pid;
                 const int count = GetClassNameW(root, facts.root_class.data(),
                     static_cast<int>(facts.root_class.size()));
                 facts.root_class_available = count > 0 &&
