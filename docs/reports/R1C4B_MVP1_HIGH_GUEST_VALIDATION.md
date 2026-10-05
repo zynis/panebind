@@ -122,3 +122,18 @@ post-retirement 均0；malformed=2、last_malformed_dispid=108。
 `checks=452 failures=0`。测试直接使用 BrowserReadinessEventSink：Progress0/-1
 正例及8种错误形状，原未知事件/导航身份/退出检查保留。最小修复只严格接收
 ProgressChange，不记录参数值、不产生导航回执或授权事实。独立 diff 复核无新阻断。
+
+## 第六批：产品三窗绑定成立，driver 标题栏命中未找到
+
+RUNTIME `8a02568e6a37ef6322eceec598fa45f3943c24aa`，RunId
+`fb87827480db4604a1c451cd77510404`。真实三窗 binding 与 status 成立，
+topology_ready=true、relation_count=2，三窗仍是同 SID/session1/High/elevated，
+各自 slot1/2/3 和原 token5/capability1。ProgressChange 拒绝已不再阻断创建。
+首个普通 Move 在 driver Find-Hit 中 `exact_root_hit_unavailable:2`，未发送
+gesture DOWN；不能将其当作产品归因/交接失败或 Move 通过。
+实际 DPI192、outer width420px；原命中候选固定偏移10..56px，且在前台获取之前
+查找。下一改动仅修正测试新窗准备与实际标题栏命中查找，保留产品 HTCAPTION 门槛。
+原产品日志 hash `DC267AE85154BE38B41BF51660217908199A77CB67AAD4B8FB9469394E350341`，
+driver hash `618C4F6756AFC1B0B0A6C4FDD9A88A83AF332CFFEDB3DB58DAF713838FCCA755`。
+Q 停止后产品实际 resources_stopped=true；专用 guest13436/任务已清理，证据不变。
+Debug/Release 的三个受影响 offline CTest 均3/3 PASS，未外推为现场磁吸。

@@ -326,10 +326,17 @@ public static class PaneBindMvpGuestInput {
         if(!SetWindowPos(new IntPtr(value),IntPtr.Zero,x,y,width,height,0x0014))
             throw new Win32Exception(Marshal.GetLastWin32Error(),"SetWindowPos(test-created root)");
     }
-    public static bool Foreground(long value) {
+    public sealed class ForegroundSnapshot {
+        public long requested, before, after;
+        public bool api_returned, exact_after;
+    }
+    public static ForegroundSnapshot Foreground(long value) {
         RequirePhysicalCaller();
-        SetForegroundWindow(new IntPtr(value));
-        return GetForegroundWindow()==new IntPtr(value);
+        var facts=new ForegroundSnapshot();facts.requested=value;
+        facts.before=GetForegroundWindow().ToInt64();
+        facts.api_returned=SetForegroundWindow(new IntPtr(value));
+        facts.after=GetForegroundWindow().ToInt64();facts.exact_after=facts.after==value;
+        return facts;
     }
     public sealed class DesktopSnapshot {
         public bool ready;
@@ -573,20 +580,40 @@ function Console-Line([string]$Line) {
     Record 'console_input' @{ text = $Line; source = 'guest_automated_driver'; product_pid = $script:productPid }
 }
 function Find-Hit([long]$Hwnd, [int]$Wanted) {
+    $snapshot = [PaneBindMvpGuestInput]::ObserveRoot($Hwnd)
     $rect = [PaneBindMvpGuestInput]::Rectangle($Hwnd,$false)
     $width = $rect[2]-$rect[0]; $height = $rect[3]-$rect[1]
-    $ys = if ($Wanted -eq 2) { @(10,17,24,31,40,48,56) } else {
+    if ($snapshot.exact_explorer_root -ne $true -or $snapshot.dpi -le 0) {
+        throw 'hit_probe_actual_root_or_dpi_unavailable'
+    }
+    # Retain the old physical probes and cover a bounded actual-DPI caption
+    # band. Every candidate still requires the REAL HTCAPTION; HTCLIENT is
+    # never treated as titlebar permission just because Explorer can drag it.
+    $ys = if ($Wanted -eq 2) {
+        @(@(10,17,24,31,40,48,56) + @(@(10,17,24,31,40,48,56,64) |
+            ForEach-Object { [int][Math]::Round($_*$snapshot.dpi/96.0) })) |
+            Where-Object { $_ -gt 0 -and $_ -lt $height } | Sort-Object -Unique
+    } else {
         @(($height-3),($height-5),($height-8))
     }
+    $probes = @()
     foreach ($y in $ys) {
         foreach ($fraction in @(0.2,0.3,0.4,0.5,0.6,0.7)) {
             $pointX = $rect[0]+[int]($width*$fraction)
             $pointY = $rect[1]+$y
-            if ([PaneBindMvpGuestInput]::Hit($Hwnd,$pointX,$pointY) -eq $Wanted) {
+            $actualHit = [PaneBindMvpGuestInput]::Hit($Hwnd,$pointX,$pointY)
+            $probes += @{cursor=@($pointX,$pointY); actual_hit=$actualHit}
+            if ($actualHit -eq $Wanted) {
+                Record 'actual_hit_probe' @{ hwnd=$Hwnd; wanted_hit=$Wanted;
+                    dpi=$snapshot.dpi; positioning=$rect; foreground=$snapshot.foreground;
+                    matched=$true; probes=$probes }
                 return @($pointX,$pointY)
             }
         }
     }
+    Record 'actual_hit_probe' @{ hwnd=$Hwnd; wanted_hit=$Wanted;
+        dpi=$snapshot.dpi; positioning=$rect; foreground=$snapshot.foreground;
+        matched=$false; probes=$probes }
     throw "exact_root_hit_unavailable:$Wanted"
 }
 function Send-MouseMove([int]$X,[int]$Y,[string]$Phase) {
@@ -686,8 +713,13 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
     $root = Exact-Root $Member
     $hwnd = [long]$root.hwnd
     $wantedHit = if ($Kind -ceq 'resize') { 15 } else { 2 } # HTBOTTOM / HTCAPTION
+    # Test-created exact root activation precedes caption discovery. This is
+    # guest driver setup, never a product foreground/focus/capture operation.
+    $activation = [PaneBindMvpGuestInput]::Foreground($hwnd)
+    Record 'test_foreground' @{ member=$Member; hwnd=$hwnd; facts=$activation;
+        phase='before_hit_probe'; source='guest_test_created_exact_root' }
     $point = Find-Hit $hwnd $wantedHit
-    if (-not [PaneBindMvpGuestInput]::Foreground($hwnd)) {
+    if (-not $activation.exact_after) {
         Send-MouseMove $point[0] $point[1] 'activate'
         Assert-Test-DownTarget $hwnd $point[0] $point[1] 'activate'
         $script:pressed=$true
@@ -712,7 +744,14 @@ function Invoke-Drag([int]$Member,[string]$Kind,[int]$DeltaX,[int]$DeltaY,
         }
         Start-Sleep -Milliseconds 100
     }
-    if (-not [PaneBindMvpGuestInput]::Foreground($hwnd)) { throw "foreground_not_exact:$Member" }
+    $foregroundReadback = [PaneBindMvpGuestInput]::ObserveRoot($hwnd)
+    Record 'test_foreground_readback' @{ member=$Member; hwnd=$hwnd;
+        foreground=$foregroundReadback.foreground; pid=$foregroundReadback.pid;
+        tid=$foregroundReadback.tid; exact_after=($foregroundReadback.foreground -eq $hwnd) }
+    if ($foregroundReadback.foreground -ne $hwnd -or
+        $foregroundReadback.pid -ne $root.pid -or $foregroundReadback.tid -ne $root.tid) {
+        throw "foreground_not_exact:$Member"
+    }
     $before = [PaneBindMvpGuestInput]::Rectangle($hwnd,$true)
     $beforeGroup = @()
     if ($Kind -ceq 'ctrl') {
@@ -1060,6 +1099,24 @@ try {
         if ($targetSnapshot.exact_explorer_root -ne $true -or
             $targetSnapshot.pid -ne $newRoot.pid -or $targetSnapshot.tid -ne $newRoot.tid) {
             throw "exact_new_root_identity_changed_before_confirmation:$member"
+        }
+        if ($member -eq 0) {
+            if ($targetSnapshot.dpi -le 0) { throw 'test_layout_actual_dpi_unavailable' }
+            # The old 420 physical pixels became only 210 logical pixels in
+            # the observed DPI=192 guest: tabs/system buttons can consume the
+            # entire caption band. Size this test-created layout from actual
+            # DPI and available area, then still REQUIRE a real HTCAPTION.
+            $width=[int]([Math]::Min([Math]::Round(520*$targetSnapshot.dpi/96.0),
+                ($area[2]-300)/2))
+            $height=[int]([Math]::Min([Math]::Round(280*$targetSnapshot.dpi/96.0),
+                ($area[3]-300)/2))
+            if ($width -le 0 -or $height -le 0) { throw 'test_layout_no_available_area' }
+            $places=@(@($left,$top),@(($left+$width),$top),@($left,($top+$height)))
+            Record 'test_layout_parameters' @{ actual_dpi=$targetSnapshot.dpi;
+                virtual_screen=$area; coordinate_space='actual_caller_physical_pixels';
+                requested_physical_width=$width; requested_physical_height=$height;
+                desired_logical_width=520; desired_logical_height=280;
+                source='exact_new_root_before_confirmation'; caption_authority_granted=$false }
         }
         # The target token is issued only for a normal window with room for a
         # safe translation. Prepare the already-authorized test-created root
