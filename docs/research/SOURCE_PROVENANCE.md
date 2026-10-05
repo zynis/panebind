@@ -26,6 +26,16 @@ SID、session、integrity、elevation 是分开的真实 token 查询事实；�
 及 token 代际，每次 native validation 重新读取原事实，不把 medium 改 true。
 只读查询不调整权限。guest 保护是防误运行而非防伪安全边界。
 
+同轮真实 RunId `73e4aeb0f5f746d3bc8f05f1390ba6d0` 发现 Browser sink 把
+DISPID108 计为 malformed（2次），其余订阅/导航/身份/队列事实正常。
+最初怀疑 CommandStateChange，并实际补读其官方页 cc136546，但 SDK 数值
+核对否定此猜测（未提交/部署）。随后实际补读
+[ProgressChange](https://learn.microsoft.com/en-us/previous-versions/cc136550(v=vs.85))：
+DISPID_PROGRESSCHANGE，两个输入 Long Progress / ProgressMax，Progress 可为-1。
+仅补实际108通知的严格形状接收，保留其他未知/错误形状拒绝；不证明导航
+或窗口权限，不推进导航 epoch / callback 身份凭据。Microsoft site terms，
+review2026-10-06，live contract，无外部代码复制/改编。
+
 ## MVP1 post-END input-queue association — 2026-10-04
 
 BASE `0e7a4a8240e2317381ef772674c7d31a47a9b81e`。本轮人类明确授权仅在

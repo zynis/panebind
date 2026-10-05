@@ -103,3 +103,22 @@ VDM 与先前内存绑定检查已通过；尚无普通 Move 输入或 placement
 BrowserReadinessFacts，不重查或补真，不放宽原门槛。原始产品日志 SHA-256
 `0A4AB7AD688D5C108A3FE2D26E4DD5DB1365D4810BC9987EF552219B1A341B42`。
 本批 guest16184 与专用任务已清理，输出 hash 前后一致；此清理不算产品 cleanup PASS。
+
+## 第五批：具体正常通知被错误判为 malformed
+
+RUNTIME `c6949a300a0719cc04975a62f4d1a5a98e5fba12`，RunId
+`73e4aeb0f5f746d3bc8f05f1390ba6d0`。实际失败同1122/member1；
+Browser subscribed/accepting=true、unadvised=false，callback/latest/epoch、
+matching/unrelated navigation、identity failures、quit、overflow、wrong-thread、
+post-retirement 均0；malformed=2、last_malformed_dispid=108。
+最初将108猜为 CommandStateChange，SDK static_assert 核对否定此猜测，
+该猜测补丁未提交/部署。实际108为 ProgressChange；官方合同为两个输入 Long，
+原 sink 只接受导航/退出/四个 geometry 通知，故拒绝这个合法通知。
+下一最小修复只增加实际108的严格参数合同，保留错误形状和未知事件拒绝。
+原产品日志 SHA-256 `ED54CAC0B044DAAD463567624369F2396BDA838A995B8FA256AF0964FB8A9CE4`。
+本批仍没有 Move 输入/写入；专用 guest21476 与任务已清理，所有输出 hash 保持。
+
+真实生产 sink 的 Debug 定向反例在旧实现 `checks=452 failures=3`，修复后
+`checks=452 failures=0`。测试直接使用 BrowserReadinessEventSink：Progress0/-1
+正例及8种错误形状，原未知事件/导航身份/退出检查保留。最小修复只严格接收
+ProgressChange，不记录参数值、不产生导航回执或授权事实。独立 diff 复核无新阻断。
