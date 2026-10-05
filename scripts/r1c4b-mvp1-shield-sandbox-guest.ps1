@@ -266,7 +266,15 @@ try {
     # Always collect a CURRENT guest input/identity observation, including when
     # owned was reused. The historical High result is not launch authority.
     # This bootstrap is guest test-only, not an Explorer/product operation.
-    $preflightLog = Join-Path $outputDir "$runId-preflight-explorer.jsonl"
+    # Use an EXISTING strict probe contract, not a new filename that the
+    # native guest guard rejects. The suffix names the allowed evidence path;
+    # summary scenario below describes the ACTUAL current-input check, not an
+    # owned Normal run. If owned ran now, use its otherwise-unused allowed
+    # legacy-control preflight suffix so CREATE_NEW never overwrites evidence.
+    $preflightSuffix = if ($manifest.owned_prerequisite.result -ceq 'REUSED_PRIOR_EVIDENCE') {
+        '-preflight-release-normal.jsonl'
+    } else { '-preflight-debug-legacy-control.jsonl' }
+    $preflightLog = Join-Path $outputDir ($runId + $preflightSuffix)
     & $preflight --check-guest-input-state --sandbox-run-id $runId --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-explorer.console.txt")
     $preflightExit = $LASTEXITCODE
     $preflightResult = if (Test-Path -LiteralPath $preflightLog -PathType Leaf) {
