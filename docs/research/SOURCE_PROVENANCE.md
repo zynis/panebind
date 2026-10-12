@@ -1,5 +1,38 @@
 # Source Provenance Register
 
+## MVP1 guest command-only contrast — 2026-10-12
+
+Scope: only the guest entry's console dependency becomes a single RunId/configuration
+named pipe; no movement, eligibility, foreground, capture, shield or writer design
+is changed. Independently authored; external code copied/adapted **NO/NO**.
+
+- AltSnap / mature maintained / fixed `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`,
+  GPL-3.0-or-later, reference-only: re-read `hooks.c` 694–737 worker dispatch and
+  `License.txt`; PR609 history commit `7f4afe59076b70980f71af202f63609ca3ac5745`
+  patch inspected. A filtered worker is not a Shell STA template; none reused.
+- PowerToys/FancyZones / mature production / fixed
+  `19c4d805321db86f3634e6968e14dbf25cbba14a`, MIT, reference-only: re-read
+  `FancyZones/FancyZonesApp.cpp` routing and root `LICENSE`; PR48569/
+  `dd26d86580168d2e368701f7b0c4d629dc9cd9ac` destroy/abort diff re-inspected.
+  Invalidation/abort is not successful completion. No implementation reused.
+- Microsoft Learn / official live documentation / read 2026-10-12 / Learn terms,
+  no immutable revision claimed: [CreateNamedPipe](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createnamedpipea),
+  [ConnectNamedPipe](https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-connectnamedpipe),
+  [GetNamedPipeClientProcessId](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeclientprocessid),
+  [CancelIoEx](https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-cancelioex),
+  [MsgWaitForMultipleObjectsEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex),
+  [creation flags](https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags).
+  Facts: local-only first-instance overlapped pipe, exact live PID/SID/session;
+  connected-before-Connect race; cancel request is not completion; keep pending
+  OVERLAPPED storage alive; event wait retains owner STA pumping.
+  CREATE_NO_WINDOW is not SW_HIDE and cannot combine with NEW_CONSOLE/DETACHED.
+  No samples copied/adapted; research links retained, no code attribution due.
+
+The existing [STA research](R1C4A_STA_CONSOLE_WAIT.md) informs the owner pump,
+not pipe equivalence. Private no-input IPC tests do not prove Move/UP/cleanup
+or human UAT. A passing contrast cannot identify the historical UNKNOWN
+ConsoleWindowClass owner or establish a system root cause.
+
 ## MVP1 guest 自动驱动的自有 console 对照 — 2026-10-06
 
 实际查阅 Microsoft Learn [GetConsoleWindow](https://learn.microsoft.com/en-us/windows/console/getconsolewindow)、

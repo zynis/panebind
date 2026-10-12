@@ -273,12 +273,19 @@ add_library(panebind_windows_sta_console STATIC console/sta_console_line_reader.
 target_link_libraries(panebind_windows_sta_console PUBLIC panebind_core PRIVATE user32)
 panebind_enable_warnings(panebind_windows_sta_console)
 
+# Guest command adapter only; no GUI, input or placement authority.
+add_library(panebind_windows_guest_command STATIC guest_command/sta_guest_command_pipe.cpp)
+target_link_libraries(panebind_windows_guest_command PUBLIC panebind_core PRIVATE user32 advapi32)
+target_compile_definitions(panebind_windows_guest_command PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind_windows_guest_command)
+
 # Guest-guarded MVP1 product candidate. The ordinary host exits before any
 # GUI/Raw resource; this target is not a default/interactive CTest.
 add_executable(panebind-explorer-mvp1
     ../../app/explorer_mvp1_main.cpp text_encoding.cpp observer.rc observer.manifest)
 target_link_libraries(panebind-explorer-mvp1 PRIVATE
-    panebind_windows_explorer panebind_windows_sta_console
+    panebind_windows_explorer panebind_windows_sta_console panebind_windows_guest_command
     ole32 user32 wtsapi32 advapi32)
 target_compile_definitions(panebind-explorer-mvp1 PRIVATE
     NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
@@ -289,6 +296,12 @@ endif()
 panebind_enable_warnings(panebind-explorer-mvp1)
 
 if(BUILD_TESTING)
+    # Real private pipe/process and message-only STA tests; no physical input.
+    add_executable(panebind-guest-command-tests guest_command/sta_guest_command_pipe_tests.cpp)
+    target_link_libraries(panebind-guest-command-tests PRIVATE panebind_windows_guest_command ole32 user32 advapi32)
+    panebind_enable_warnings(panebind-guest-command-tests)
+    add_test(NAME guest-command-pipe COMMAND panebind-guest-command-tests)
+    set_tests_properties(guest-command-pipe PROPERTIES TIMEOUT 35 LABELS "interactive")
     # Explicit read-only MVP1 input-attribution diagnostic. It never cancels
     # a native drag, creates an overlay, or places a third-party window.
     add_executable(panebind-explorer-anchor-diagnostic ../../app/explorer_anchor_diagnostic_main.cpp text_encoding.cpp observer.rc observer.manifest)

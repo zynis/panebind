@@ -2,6 +2,7 @@
 #include "platform/windows/explorer/explorer_mvp_guest_contract.h"
 #include "platform/windows/explorer/explorer_group_capture.h"
 #include "platform/windows/console/sta_console_line_reader.h"
+#include "platform/windows/guest_command/sta_guest_command_pipe.h"
 #include "platform/windows/text_encoding.h"
 
 #include <windows.h>
@@ -25,8 +26,12 @@ namespace explorer = panebind::platform::windows::explorer;
 namespace windows = panebind::platform::windows;
 namespace operations = panebind::platform::windows::operations;
 namespace console_input = panebind::platform::windows::console_input;
+namespace guest_command = panebind::platform::windows::guest_command;
 
 namespace {
+class Evidence;
+Evidence* guest_output_evidence{};
+bool record_guest_output(std::wstring_view message) noexcept;
 bool sandbox_run_authorized(std::wstring_view run_id,
                             std::wstring_view evidence_log) noexcept {
     return explorer::mvp1_guest_run_authorized(run_id, evidence_log);
@@ -40,6 +45,7 @@ bool console_handle(HANDLE handle) noexcept {
 }
 
 bool print(std::wstring_view message) noexcept {
+    if (guest_output_evidence) return record_guest_output(message);
     DWORD written{};
     return WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), message.data(),
                          static_cast<DWORD>(message.size()), &written,
@@ -111,6 +117,44 @@ private:
     bool good_{true};
 };
 
+bool record_guest_output(std::wstring_view message) noexcept {
+    try {
+        return guest_output_evidence && guest_output_evidence->record(
+            "entry_message", ",\"delivery\":\"guest_evidence_log\",\"text\":" + quote(message));
+    } catch (...) { return false; }
+}
+
+struct GuestOutputScope final {
+    explicit GuestOutputScope(Evidence& evidence, bool enabled) noexcept {
+        if (enabled) guest_output_evidence = &evidence;
+    }
+    ~GuestOutputScope() { guest_output_evidence = nullptr; }
+};
+
+struct EntryCommandReader final {
+    std::optional<console_input::StaConsoleLineReader> console;
+    std::unique_ptr<guest_command::StaGuestCommandPipe> pipe;
+    guest_command::PipeLineStatus last_pipe_status{guest_command::PipeLineStatus::Complete};
+
+    EntryCommandReader(bool guest_pipe, const std::wstring& run_id,
+                       std::wstring_view configuration, DWORD driver_pid) {
+        if (guest_pipe)
+            pipe = std::make_unique<guest_command::StaGuestCommandPipe>(run_id, configuration, driver_pid);
+        else
+            console.emplace(GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE));
+    }
+    bool close() noexcept { return !pipe || pipe->close(); }
+    std::string failure_reason(std::string_view fallback) const {
+        if (!pipe || last_pipe_status == guest_command::PipeLineStatus::Complete)
+            return std::string(fallback);
+        if (last_pipe_status == guest_command::PipeLineStatus::Disconnected)
+            return "guest_command_disconnected";
+        if (last_pipe_status == guest_command::PipeLineStatus::ClientExited)
+            return "guest_command_driver_exited";
+        return "guest_command_" + std::string(guest_command::pipe_line_status_name(last_pipe_status));
+    }
+};
+
 struct PumpContext final {
     Evidence* evidence{};
     explorer::ExplorerMvpSession* session{};
@@ -119,7 +163,7 @@ struct PumpContext final {
 bool drain_gesture_events(Evidence& evidence, explorer::ExplorerMvpSession& session);
 
 std::optional<std::wstring> read_line(
-    Evidence& evidence, console_input::StaConsoleLineReader& reader,
+    Evidence& evidence, EntryCommandReader& reader,
     std::string_view kind, explorer::ExplorerMvpSession* session = nullptr) {
     PumpContext context{&evidence, session};
     const auto pump = [](void* value) noexcept {
@@ -133,9 +177,42 @@ std::optional<std::wstring> read_line(
             return false;
         }
     };
-    const auto result = reader.read(session ?
+    const auto work = session ?
         console_input::StaOwnerWork{&context, pump} :
-        console_input::StaOwnerWork{});
+        console_input::StaOwnerWork{};
+    if (reader.pipe) {
+        const auto result = reader.pipe->read(work);
+        reader.last_pipe_status = result.status;
+        const auto& peer = result.peer;
+        std::ostringstream fields;
+        fields << std::boolalpha << ",\"kind\":" << quote(kind)
+               << ",\"channel\":\"guest_named_pipe\",\"result\":"
+               << quote(guest_command::pipe_line_status_name(result.status))
+               << ",\"owner_thread\":" << result.owner_thread
+               << ",\"driver_pid\":" << peer.expected_pid
+               << ",\"actual_client_pid\":" << peer.observed_pid
+               << ",\"same_sid\":" << peer.same_sid
+               << ",\"same_session\":" << peer.same_session
+               << ",\"server_integrity\":" << peer.server_integrity
+               << ",\"client_integrity\":" << peer.client_integrity
+               << ",\"server_elevated\":" << peer.server_elevated
+               << ",\"client_elevated\":" << peer.client_elevated
+               << ",\"connected\":" << result.connected
+               << ",\"cleanup_confirmed\":" << result.cleanup_confirmed
+               << ",\"pump_calls\":" << result.pump_count
+               << ",\"messages\":" << result.message_dispatch_count
+               << ",\"bytes\":" << result.byte_count
+               << ",\"error\":" << result.error
+               << ",\"input_source\":\"automated_guest_driver\"";
+        if (!evidence.record("guest_command_wait", fields.str())) return std::nullopt;
+        if (session && result.line) {
+            const bool pumped = session->pump();
+            const bool recorded = drain_gesture_events(evidence, *session);
+            if (!pumped || !recorded) return std::nullopt;
+        }
+        return result.line;
+    }
+    const auto result = reader.console->read(work);
     std::ostringstream fields;
     fields << ",\"kind\":" << quote(kind)
            << ",\"result\":"
@@ -499,7 +576,10 @@ bool show_status(Evidence& evidence, explorer::ExplorerMvpSession& session) {
 
 int run(Evidence& evidence, const std::wstring& run_id,
         const std::wstring& evidence_path, bool automated_guest_driver,
-        bool sandbox_high_test_exception) {
+        bool sandbox_high_test_exception, bool guest_pipe, DWORD driver_pid) {
+    GuestOutputScope output_scope{evidence, guest_pipe};
+    const bool debug = evidence_path.ends_with(L"-explorer-mvp1-debug.jsonl");
+    EntryCommandReader reader{guest_pipe, run_id, debug ? L"debug" : L"release", driver_pid};
     if (!evidence.record("startup", ",\"implementation_sha\":" +
             quote(PANEBIND_BUILD_SHA) +
             ",\"run_id\":" + quote(run_id) +
@@ -508,7 +588,16 @@ int run(Evidence& evidence, const std::wstring& run_id,
             ",\"sandbox_high_test_exception_requested\":" +
             (sandbox_high_test_exception ? "true" : "false") +
             ",\"automated_guest_driver\":" +
-            (automated_guest_driver ? "true" : "false"))) return 2;
+            (automated_guest_driver ? "true" : "false") +
+            ",\"command_channel\":" + quote(guest_pipe ? "guest_named_pipe" : "console") +
+            ",\"driver_pid\":" + std::to_string(driver_pid) +
+            ",\"pipe_name\":" + quote(reader.pipe ? reader.pipe->pipe_name() : L"") +
+            ",\"process_has_console\":" + (GetConsoleWindow() ? "true" : "false"))) return 2;
+    if (guest_pipe && (!reader.pipe->healthy() || GetConsoleWindow())) {
+        evidence.record("shutdown", ",\"result\":\"BLOCKED\",\"reason\":\"guest_command_endpoint_or_no_console_contract_rejected\",\"error\":" +
+            std::to_string(reader.pipe->error()));
+        return 2;
+    }
     const bool dpi_ready =
         SetProcessDpiAwarenessContext(
             DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) ||
@@ -519,18 +608,19 @@ int run(Evidence& evidence, const std::wstring& run_id,
         return 2;
     }
 
-    console_input::StaConsoleLineReader reader{
-        GetStdHandle(STD_INPUT_HANDLE), GetStdHandle(STD_OUTPUT_HANDLE)};
     std::unique_ptr<explorer::ExplorerMvpSession> session;
     const auto stop = [&](std::string_view reason) {
         const std::string saved_reason(reason);
         bool recorded_events = !session || drain_gesture_events(evidence, *session);
         bool stopped = true;
         if (session) stopped = session->stop();
+        const bool commands_stopped = reader.close();
         if (session) recorded_events = drain_gesture_events(evidence, *session) && recorded_events;
         evidence.record("shutdown", ",\"result\":\"BLOCKED\",\"reason\":" +
             quote(saved_reason) + ",\"resources_stopped\":" +
-            (stopped ? "true" : "false") +
+            (stopped && commands_stopped ? "true" : "false") +
+            ",\"session_resources_stopped\":" + (stopped ? "true" : "false") +
+            ",\"command_resources_stopped\":" + (commands_stopped ? "true" : "false") +
             ",\"gesture_events_recorded\":" +
             (recorded_events ? "true" : "false"));
         return 2;
@@ -538,13 +628,16 @@ int run(Evidence& evidence, const std::wstring& run_id,
     const auto requested_stop = [&](std::string_view source) {
         bool recorded_events = session && drain_gesture_events(evidence, *session);
         const bool stopped = session && session->stop();
+        const bool commands_stopped = reader.close();
         if (session) recorded_events = drain_gesture_events(evidence, *session) && recorded_events;
-        const bool complete = stopped && recorded_events;
+        const bool complete = stopped && recorded_events && commands_stopped;
         const bool recorded = evidence.record("shutdown", ",\"result\":" +
             std::string(complete ? "\"STOPPED\"" : "\"BLOCKED\"") +
             ",\"source\":" + quote(source) +
             ",\"resources_stopped\":" +
-            (stopped ? "true" : "false") +
+            (stopped && commands_stopped ? "true" : "false") +
+            ",\"session_resources_stopped\":" + (stopped ? "true" : "false") +
+            ",\"command_resources_stopped\":" + (commands_stopped ? "true" : "false") +
             ",\"gesture_events_recorded\":" +
             (recorded_events ? "true" : "false") +
             ",\"user_windows_closed\":false");
@@ -592,7 +685,8 @@ int run(Evidence& evidence, const std::wstring& run_id,
             L"\r\n完成后回到控制台按 Enter；输入其他内容将取消。\r\n"))
             return stop("console_failed");
         const auto answer = read_line(evidence, reader, "target_confirmation");
-        if (!answer || !answer->empty()) return stop("target_declined");
+        if (!answer) return stop(reader.failure_reason("target_declined"));
+        if (!answer->empty()) return stop("target_declined");
         auto confirmed = begin.provisioning->confirm_user_target();
         if (!confirmed.succeeded()) {
             const auto& facts = confirmed.facts;
@@ -651,7 +745,8 @@ int run(Evidence& evidence, const std::wstring& run_id,
                L"输入 Y 并按 Enter 明确同意启动；"
                L"其他输入将取消。\r\n")) return stop("console_failed");
     const auto consent = read_line(evidence, reader, "product_consent");
-    if (!consent || (*consent != L"Y" && *consent != L"y"))
+    if (!consent) return stop(reader.failure_reason("product_consent_declined"));
+    if (*consent != L"Y" && *consent != L"y")
         return stop("product_consent_declined");
     if (!evidence.record("product_consent",
                          ",\"confirmed\":true,\"input_source\":" +
@@ -702,13 +797,12 @@ int run(Evidence& evidence, const std::wstring& run_id,
             // a product failure. Still require actual resource cleanup.
             if (evidence.healthy() && session->reason() == "hotkey_stop")
                 return requested_stop("keyboard_hotkey");
-            return stop(session->healthy() ?
-                        "console_wait_failed" : session->reason());
+            return stop(session->healthy() ? reader.failure_reason("console_wait_failed") : session->reason());
         }
         if (!session->healthy()) return stop(session->reason());
         if (*command == L"Q" || *command == L"q" ||
             *command == L"STOP" || *command == L"stop")
-            return requested_stop("console_command");
+            return requested_stop(guest_pipe ? "guest_pipe_command" : "console_command");
         if (*command == L"S" || *command == L"s" || command->empty()) {
             if (!show_status(evidence, *session)) return stop("status_failed");
             continue;
@@ -729,18 +823,34 @@ int wmain(int argc, wchar_t** argv) {
     }
     bool automated_guest_driver = false;
     bool sandbox_high_test_exception = false;
-    if (argc < 5 || argc > 7) return 64;
+    bool guest_pipe = false;
+    DWORD driver_pid{};
+    if (argc < 5 || argc > 10) return 64;
     for (int i = 5; i < argc; ++i) {
         const std::wstring_view option(argv[i]);
         if (option == L"--guest-automated-driver" && !automated_guest_driver)
             automated_guest_driver = true;
         else if (option == L"--sandbox-high-integrity-test-exception" && !sandbox_high_test_exception)
             sandbox_high_test_exception = true;
+        else if (option == L"--guest-command-pipe" && !guest_pipe)
+            guest_pipe = true;
+        else if (option == L"--guest-driver-pid" && driver_pid == 0 && i + 1 < argc) {
+            const std::wstring_view pid_text(argv[++i]);
+            if (pid_text.empty() || pid_text.size() > 10) return 64;
+            std::uint64_t parsed{};
+            for (const auto digit : pid_text) {
+                if (digit < L'0' || digit > L'9') return 64;
+                parsed = parsed * 10 + static_cast<unsigned>(digit - L'0');
+            }
+            if (parsed == 0 || parsed > MAXDWORD) return 64;
+            driver_pid = static_cast<DWORD>(parsed);
+        }
         else return 64;
     }
     if (
         std::wstring_view(argv[1]) != L"--sandbox-run-id" ||
         std::wstring_view(argv[3]) != L"--evidence-log") return 64;
+    if (guest_pipe != (driver_pid != 0) || (guest_pipe && !automated_guest_driver)) return 64;
     const std::wstring run_id(argv[2]), evidence_path(argv[4]);
     if (!sandbox_run_authorized(run_id, evidence_path)) {
         constexpr wchar_t warning[] =
@@ -759,13 +869,13 @@ int wmain(int argc, wchar_t** argv) {
         }
         return 78;
     }
-    if (!console_handle(GetStdHandle(STD_INPUT_HANDLE)) ||
-        !console_handle(GetStdHandle(STD_OUTPUT_HANDLE))) return 64;
+    if (!guest_pipe && (!console_handle(GetStdHandle(STD_INPUT_HANDLE)) ||
+        !console_handle(GetStdHandle(STD_OUTPUT_HANDLE)))) return 64;
     try {
         Evidence evidence(evidence_path.c_str());
         if (!evidence.healthy()) return 65;
         return run(evidence, run_id, evidence_path, automated_guest_driver,
-                   sandbox_high_test_exception);
+                   sandbox_high_test_exception, guest_pipe, driver_pid);
     } catch (const std::exception& error) {
         print(L"Explorer MVP1 候选程序运行失败；请保留不完整证据。\r\n");
         std::cerr << error.what() << '\n';

@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview')]
+    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview',
+        'CommandStopValidation', 'CommandDisconnectValidation')]
     [string]$GuestMode = 'AutomatedValidation'
 )
 
@@ -32,7 +33,45 @@ function Get-OwnedPrerequisite {
         'src/platform/windows/observer.rc', 'src/platform/windows/observer.manifest')
     $changed = @(& git -C $repo diff --name-only $priorSource $head -- $scope)
     if ($LASTEXITCODE -ne 0) { throw 'Could not compare the reviewed owned implementation.' }
-    if ($changed.Count -ne 0) {
+    $commandOnlyBuildChange = $false
+    if ($changed.Count -eq 1 -and $changed[0] -ceq 'src/platform/windows/CMakeLists.txt') {
+        # Exact, round-specific reconstruction: only the new IPC library,
+        # its private test and the MVP1 entry link may differ. Never ignore a
+        # whole build file or reinterpret an owned/operation-target change.
+        $baseBuild = (@(& git -C $repo show "${priorSource}:src/platform/windows/CMakeLists.txt") -join "`n")
+        if ($LASTEXITCODE -ne 0) { throw 'Could not read reviewed owned build inputs.' }
+        $currentBuild = (@(& git -C $repo show "${head}:src/platform/windows/CMakeLists.txt") -join "`n")
+        if ($LASTEXITCODE -ne 0) { throw 'Could not read current owned build inputs.' }
+        $newLibrary = @'
+
+# Guest command adapter only; no GUI, input or placement authority.
+add_library(panebind_windows_guest_command STATIC guest_command/sta_guest_command_pipe.cpp)
+target_link_libraries(panebind_windows_guest_command PUBLIC panebind_core PRIVATE user32 advapi32)
+target_compile_definitions(panebind_windows_guest_command PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind_windows_guest_command)
+'@
+        $newTest = @'
+    # Real private pipe/process and message-only STA tests; no physical input.
+    add_executable(panebind-guest-command-tests guest_command/sta_guest_command_pipe_tests.cpp)
+    target_link_libraries(panebind-guest-command-tests PRIVATE panebind_windows_guest_command ole32 user32 advapi32)
+    panebind_enable_warnings(panebind-guest-command-tests)
+    add_test(NAME guest-command-pipe COMMAND panebind-guest-command-tests)
+    set_tests_properties(guest-command-pipe PROPERTIES TIMEOUT 35 LABELS "interactive")
+'@
+        $newLibrary = $newLibrary.Replace("`r`n", "`n")
+        $newTest = $newTest.Replace("`r`n", "`n")
+        $expectedBuild = $baseBuild.Replace('panebind_enable_warnings(panebind_windows_sta_console)',
+            ('panebind_enable_warnings(panebind_windows_sta_console)' + "`n" + $newLibrary))
+        $expectedBuild = $expectedBuild.Replace(
+            "    panebind_windows_explorer panebind_windows_sta_console`n    ole32 user32 wtsapi32 advapi32)",
+            "    panebind_windows_explorer panebind_windows_sta_console panebind_windows_guest_command`n    ole32 user32 wtsapi32 advapi32)")
+        $expectedBuild = $expectedBuild.Replace(
+            "if(BUILD_TESTING)`n    # Explicit read-only MVP1 input-attribution diagnostic.",
+            ("if(BUILD_TESTING)`n" + $newTest + "`n    # Explicit read-only MVP1 input-attribution diagnostic."))
+        $commandOnlyBuildChange = $currentBuild -ceq $expectedBuild
+    }
+    if ($changed.Count -ne 0 -and -not $commandOnlyBuildChange) {
         return [ordered]@{ result = 'RUN_CURRENT_PACKAGE'; reason = 'shared_source_changed';
             changed_paths = $changed }
     }
@@ -95,6 +134,11 @@ function Get-OwnedPrerequisite {
     return [ordered]@{ result = 'REUSED_PRIOR_EVIDENCE'; run_id = $priorRunId;
         source_commit = $priorSource; summary_sha256 = $summaryHash;
         shared_source_unchanged = $true; compared_source_paths = $scope;
+        command_only_build_change = $commandOnlyBuildChange;
+        actual_changed_paths = $changed;
+        build_change_review = if($commandOnlyBuildChange) {
+            'EXACT_NEW_COMMAND_LIBRARY_TEST_AND_MVP1_LINK_ONLY_OWNED_TARGET_UNCHANGED'
+        } else { 'UNCHANGED' };
         current_package_owned_execution = 'NOT_RUN'; raw_evidence = $records }
 }
 $ownedPrerequisite = Get-OwnedPrerequisite
@@ -233,7 +277,7 @@ foreach ($name in $names) {
     $binaryHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $inputDir $name) -Algorithm SHA256).Hash
 }
 $manifest = [ordered]@{
-    schema = 'r1c4b-mvp1-shield-sandbox-package/v2'
+    schema = 'r1c4b-mvp1-shield-sandbox-package/v3'
     run_id = $runId
     source_commit = $head
     configuration = 'Release-and-Debug-MT-x64'
@@ -249,6 +293,12 @@ $manifest = [ordered]@{
     debug_explorer_imports = $debugExplorerImports
     explorer_test_exception = 'exact_sandbox_same_sid_session_high'
     explorer_guest_mode = $GuestMode
+    explorer_command_channel = $(if($GuestMode -ceq 'BindOnlyIndependentReview'){
+        'console'
+    }else{'guest_named_pipe'})
+    explorer_driver_creation = $(if($GuestMode -ceq 'BindOnlyIndependentReview'){
+        'original_console_entry'
+    }else{'ProcessStartInfo_CreateNoWindow_true_UseShellExecute_false'})
     independent_review_configuration = 'release'
     owned_prerequisite = $ownedPrerequisite
     owned_guest_run = 'NOT_RUN'

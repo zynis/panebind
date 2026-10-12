@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory)][ValidateSet('debug', 'release')][string]$Configuration,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
-    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview')]
+    [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview',
+        'CommandStopValidation', 'CommandDisconnectValidation')]
     [string]$Mode = 'AutomatedValidation'
 )
 
@@ -22,6 +23,10 @@ $driverLog = Join-Path $outputDir ($RunId + '-explorer-driver-' + $Configuration
 $script:sequence = 0
 $script:writer = $null
 $script:consoleInput = [IntPtr]::Zero
+$script:commandPipe = $null
+$script:usesGuestPipe = $Mode -cne 'BindOnlyIndependentReview'
+$script:pipeName = 'PaneBindMVP1-' + $RunId + '-' + $Configuration
+$script:pipePath = '\\.\pipe\' + $script:pipeName
 $script:pressed = $false
 $script:ctrlPressed = $false
 $script:productPid = 0
@@ -61,12 +66,17 @@ function Test-ExactGuest {
     }
     $manifest = Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Raw |
         ConvertFrom-Json
-    if ($manifest.run_id -cne $RunId -or
+    if ($manifest.schema -cne 'r1c4b-mvp1-shield-sandbox-package/v3' -or
+        $manifest.run_id -cne $RunId -or
         $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
         $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high' -or
         $manifest.explorer_driver_sha256 -cne
             (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash) {
         throw 'driver_manifest_mismatch'
+    }
+    $channel = if ($script:usesGuestPipe) { 'guest_named_pipe' } else { 'console' }
+    if ($manifest.explorer_command_channel -cne $channel) {
+        throw 'exact_guest_command_channel_manifest_required'
     }
     $expected = if ($Configuration -ceq 'debug') {
         $manifest.debug_explorer_sha256
@@ -230,10 +240,10 @@ public static class PaneBindMvpGuestInput {
             throw new InvalidOperationException("guest driver caller must be actual PMV2; thread="+
                 GetCurrentThreadId()+" context="+current.ToInt64());
     }
-    public static StartupInfo ProductStartup(bool automated) {
+    public static StartupInfo ProductStartup(bool pipe) {
         var startup=new StartupInfo();startup.cb=(uint)Marshal.SizeOf(typeof(StartupInfo));
-        startup.flags=0x00000001; // STARTF_USESHOWWINDOW for this NEW process's console
-        startup.showWindow=(ushort)(automated?0:5); // SW_HIDE / SW_SHOW; no existing HWND control
+        startup.flags=pipe?0u:0x00000001u;
+        startup.showWindow=(ushort)(pipe?0:5);
         return startup;
     }
     public sealed class ProductStartSnapshot {
@@ -241,11 +251,17 @@ public static class PaneBindMvpGuestInput {
         public ushort show_window;
         public bool started;
     }
-    public static ProductStartSnapshot StartProduct(string path,string arguments,bool automated) {
+    public static uint ProductCreationFlags(bool pipe) {
+        return pipe?0x08000000u:0x00000010u;
+    }
+    public static ProductStartSnapshot StartProduct(string path,string arguments,bool pipe) {
         RequirePhysicalCaller();
-        var startup=ProductStartup(automated);
+        var startup=ProductStartup(pipe);
         ProcessInfo process;
-        var facts=new ProductStartSnapshot();facts.creation_flags=0x00000010;
+        var facts=new ProductStartSnapshot();
+        // CREATE_NO_WINDOW is not SW_HIDE. The original independent-review
+        // console remains a separate, explicit entry; no unknown HWND control.
+        facts.creation_flags=ProductCreationFlags(pipe);
         facts.startup_flags=startup.flags;facts.show_window=startup.showWindow;
         var command=new StringBuilder("\""+path+"\" "+arguments);
         if(!CreateProcessW(path,command,IntPtr.Zero,IntPtr.Zero,false,facts.creation_flags,
@@ -255,6 +271,7 @@ public static class PaneBindMvpGuestInput {
         CloseHandle(process.thread);CloseHandle(process.process);
         return facts;
     }
+    public static long DriverConsoleWindow() { return GetConsoleWindow().ToInt64(); }
     public static IntPtr AttachInput(int pid) {
         RequirePhysicalCaller();
         FreeConsole();
@@ -741,12 +758,33 @@ function Assert-GuestHighEvidence($Facts,[int]$Member,$TokenBinding = $null) {
         throw "actual_guest_high_scope_generation_changed:$Member"
     }
 }
-function Console-Line([string]$Line) {
+function Get-GuestCommandBytes([string]$Line) {
+    if ($Line -cnotmatch '^(|Y|S|Q)$') { throw 'guest_pipe_command_invalid' }
+    return ,([Text.Encoding]::ASCII.GetBytes($Line + "`n"))
+}
+function Test-GuestPipeStartup($Startup,[int]$DriverPid,[string]$PipePath) {
+    return $Startup.command_channel -ceq 'guest_named_pipe' -and
+        $Startup.pipe_name -ceq $PipePath -and [int]$Startup.driver_pid -eq $DriverPid -and
+        $Startup.process_has_console -is [bool] -and $Startup.process_has_console -eq $false
+}
+function Guest-Command([string]$Line) {
     if (-not [PaneBindMvpGuestInput]::InputDesktopReady()) {
-        throw 'guest_input_desktop_not_active_for_console'
+        throw 'guest_input_desktop_not_active_for_command'
     }
-    [PaneBindMvpGuestInput]::ConsoleLine($script:consoleInput,$Line)
-    Record 'console_input' @{ text = $Line; source = 'guest_automated_driver'; product_pid = $script:productPid }
+    if ($script:usesGuestPipe) {
+        if (-not $script:commandPipe -or -not $script:commandPipe.IsConnected) {
+            throw 'guest_pipe_command_not_ready'
+        }
+        $bytes = Get-GuestCommandBytes $Line
+        $script:commandPipe.Write($bytes,0,$bytes.Length)
+        $script:commandPipe.Flush()
+        Record 'guest_command' @{ text=$Line; source='automated_guest_driver';
+            channel='guest_named_pipe'; pipe_name=$script:pipePath;
+            client_name=$script:pipeName; product_pid=$script:productPid }
+    } else {
+        [PaneBindMvpGuestInput]::ConsoleLine($script:consoleInput,$Line)
+        Record 'console_input' @{ text=$Line; source='automated_guest_driver'; product_pid=$script:productPid }
+    }
 }
 function Find-Hit([long]$Hwnd, [int]$Wanted) {
     $snapshot = [PaneBindMvpGuestInput]::ObserveRoot($Hwnd)
@@ -851,7 +889,7 @@ function Test-RectEqual($Left,$Right) {
 function Assert-ProductGeometry([string]$Phase,[bool]$RequireGlue = $false) {
     $prior = @(Product-Rows | Select-Object -Last 1)
     $watermark = if ($prior.Count) { [long]$prior[0].sequence } else { 0 }
-    Console-Line 'S'
+    Guest-Command 'S'
     $status = Wait-ProductRow 'status' { param($row) $row.sequence -gt $watermark } 10
     if ($status.gesture_active -eq $true -or $status.glue_active -eq $true -or
         @($status.windows).Count -ne 3) { throw "product_status_not_idle:$Phase" }
@@ -1281,6 +1319,16 @@ try {
         requested_exception_run_id=$RunId; product_authority_granted=$false }
     Record 'guest_entry_mode' @{ mode=$Mode; automatic_binding=$true;
         automatic_gestures_planned=($Mode -ceq 'AutomatedValidation'); human_uat='NOT_RUN' }
+    $driverConsole = [PaneBindMvpGuestInput]::DriverConsoleWindow()
+    Record 'guest_command_transport' @{ channel=$(if($script:usesGuestPipe){'guest_named_pipe'}else{'console'});
+        pipe_name=$(if($script:usesGuestPipe){$script:pipePath}else{$null});
+        client_name=$(if($script:usesGuestPipe){$script:pipeName}else{$null});
+        driver_pid=$PID; driver_console_hwnd=$driverConsole;
+        driver_console_absent=($driverConsole -eq 0);
+        scope='this_driver_only_not_all_guest_consoles' }
+    if ($script:usesGuestPipe -and $driverConsole -ne 0) {
+        throw 'no_console_driver_creation_not_observed'
+    }
     Record 'guest_driver_process_identity' @{ caller_pid=$PID;
         observed_chain=@(Read-GuestProcessIdentityChain $PID 2);
         scope='current_driver_and_parent_runner_read_only'; operation_authority_granted=$false }
@@ -1295,21 +1343,35 @@ try {
     if ([PaneBindMvpGuestInput]::WorkArea()[2] -lt 800 -or
         [PaneBindMvpGuestInput]::WorkArea()[3] -lt 600) { throw 'guest_desktop_too_small' }
     $args = "--sandbox-run-id $RunId --evidence-log `"$productLog`" --guest-automated-driver --sandbox-high-integrity-test-exception"
-    $creation = [PaneBindMvpGuestInput]::StartProduct($product,$args,
-        ($Mode -ceq 'AutomatedValidation'))
+    if ($script:usesGuestPipe) { $args += " --guest-command-pipe --guest-driver-pid $PID" }
+    $creation = [PaneBindMvpGuestInput]::StartProduct($product,$args,$script:usesGuestPipe)
     $script:productPid = [int]$creation.pid
     $script:productStarted = $creation.started
-    Record 'product_creation_parameters' @{ mode=$Mode; application=$product; facts=$creation;
-        show_window_scope='own_new_process_console_only_not_foreign_hwnd';
-        actual_visible_server_identity='UNKNOWN_UNTIL_OBSERVED' }
-    $originalConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole(0)
-    Record 'console_attachment_identity' @{ phase='before_attach_product'; facts=$originalConsole;
-        ownership='observed_original_console_not_hide_authority' }
-    $script:consoleInput = [PaneBindMvpGuestInput]::AttachInput($script:productPid)
-    $script:attachedConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole($script:productPid)
-    Record 'console_attachment_identity' @{ phase='after_attach_product'; facts=$script:attachedConsole;
-        ownership='actual_current_console_clients_not_old_failure_foreground_attribution' }
-    Record 'product_started' @{ pid=$script:productPid; exact_console_attached=$true }
+    Record 'product_creation_parameters' @{ mode=$Mode; application=$product; arguments=$args;
+        facts=$creation; command_channel=$(if($script:usesGuestPipe){'guest_named_pipe'}else{'console'});
+        creation_scope='own_new_process_only_not_foreign_hwnd' }
+    if ($script:usesGuestPipe) {
+        $script:commandPipe = [IO.Pipes.NamedPipeClientStream]::new('.',
+            $script:pipeName,[IO.Pipes.PipeDirection]::Out,[IO.Pipes.PipeOptions]::None)
+        $script:commandPipe.Connect(20000)
+        $productStartup = Wait-ProductRow 'startup' { param($row) $row.run_id -ceq $RunId } 10
+        if (-not (Test-GuestPipeStartup $productStartup $PID $script:pipePath)) {
+            throw 'actual_product_pipe_entry_not_observed'
+        }
+        Record 'product_started' @{ pid=$script:productPid; exact_console_attached=$false;
+            command_channel='guest_named_pipe'; pipe_name=$script:pipePath;
+            client_name=$script:pipeName;
+            product_console_absent=$true; actual_product_startup_sequence=$productStartup.sequence }
+    } else {
+        $originalConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole(0)
+        Record 'console_attachment_identity' @{ phase='before_attach_product'; facts=$originalConsole;
+            ownership='observed_original_console_not_hide_authority' }
+        $script:consoleInput = [PaneBindMvpGuestInput]::AttachInput($script:productPid)
+        $script:attachedConsole = [PaneBindMvpGuestInput]::ObserveAttachedConsole($script:productPid)
+        Record 'console_attachment_identity' @{ phase='after_attach_product'; facts=$script:attachedConsole;
+            ownership='actual_current_console_clients_not_old_failure_foreground_attribution' }
+        Record 'product_started' @{ pid=$script:productPid; exact_console_attached=$true }
+    }
     $area = [PaneBindMvpGuestInput]::WorkArea()
     $width=[int]([Math]::Min(420,($area[2]-300)/2))
     $height=[int]([Math]::Min(280,($area[3]-300)/2))
@@ -1390,7 +1452,7 @@ try {
             $preparedSnapshot.visible_rect_available -ne $true) {
             throw "test_created_normal_layout_not_observed:$member"
         }
-        Console-Line ''
+        Guest-Command ''
         $confirmed = Wait-ProductRow 'target_confirmed' {
             param($row) $row.member -eq $member
         } 15
@@ -1428,7 +1490,7 @@ try {
             throw "test_layout_alignment_failed:$member"
         }
     }
-    Console-Line 'Y'
+    Guest-Command 'Y'
     $consent = Wait-ProductRow 'product_consent' { param($row) $row.confirmed -eq $true } 15
     if ($consent.input_source -cne 'automated_guest_driver') {
         throw 'product_consent_source_mislabeled'
@@ -1481,6 +1543,35 @@ try {
             configuration='release'; human_uat='NOT_RUN' }
         exit 0
     }
+    # Exercise the actual command reader before ANY synthetic gesture. These
+    # two modes share normal binding/consent, but never send mouse/key input.
+    $null=Assert-ProductGeometry 'before_guest_commands' $true
+    if ($Mode -ceq 'CommandStopValidation') {
+        Guest-Command 'Q'
+        $shutdown=Wait-ProductRow 'shutdown' { param($row) $row.result -ceq 'STOPPED' } 10
+        if ($shutdown.resources_stopped -ne $true -or
+            $shutdown.gesture_events_recorded -ne $true -or
+            $shutdown.source -cne 'guest_pipe_command') {
+            throw 'command_stop_cleanup_not_observed'
+        }
+        Record 'shutdown' @{ result='COMMAND_STOP_RECORDED'; automatic_gestures_sent=$false;
+            product_shutdown=$shutdown.result; product_resources_stopped=$true; human_uat='NOT_RUN' }
+        exit 0
+    }
+    if ($Mode -ceq 'CommandDisconnectValidation') {
+        # Closing the only client and exiting this exact driver are REAL
+        # platform facts; the runner separately observes product cleanup.
+        Record 'command_disconnect' @{ channel='guest_named_pipe'; driver_pid=$PID;
+            product_pid=$script:productPid; pipe_name=$script:pipePath;
+            client_name=$script:pipeName;
+            action='dispose_client_then_exit_driver'; product_cleanup_observed=$false }
+        $script:commandPipe.Dispose()
+        $script:commandPipe=$null
+        Record 'shutdown' @{ result='COMMAND_DRIVER_EXIT_REQUESTED';
+            automatic_gestures_sent=$false; product_pid=$script:productPid;
+            product_cleanup_observed=$false; human_uat='NOT_RUN' }
+        exit 0
+    }
     # Both configurations exercise the same small, representative product
     # flow. Each plain gesture proves individual free/snap/hold/detach/resnap
     # waypoints; neither a boolean proposal nor one snap stands in for these.
@@ -1502,7 +1593,7 @@ try {
     $null=Assert-ProductGeometry 'after_a_b_c_a' $true
     Invoke-Drag 2 'ctrl' 22 18 'ctrl_move'
     $null=Assert-ProductGeometry 'after_dynamic_ctrl_leader' $true
-    Console-Line 'Q'
+    Guest-Command 'Q'
     $shutdown = Wait-ProductRow 'shutdown' { param($row) $row.result -ceq 'STOPPED' } 10
     if ($shutdown.resources_stopped -ne $true -or
         $shutdown.gesture_events_recorded -ne $true) { throw 'product_cleanup_not_observed' }
@@ -1556,14 +1647,16 @@ try {
             error_category=[string]$_.CategoryInfo.Category; error_id=$_.FullyQualifiedErrorId;
             identity_or_control_authority_granted=$false }
     }
-    if ($script:productStarted -and $script:consoleInput -ne [IntPtr]::Zero) {
-        try { Console-Line 'Q' } catch { }
+    if ($script:productStarted -and ($script:commandPipe -or
+        $script:consoleInput -ne [IntPtr]::Zero)) {
+        try { Guest-Command 'Q' } catch { }
     }
     Record 'shutdown' @{ result='ABORTED'; reason=$reason;
         script_line=$failureLine; script_stack=$failureStack;
         product_stopped_observed=$false; human_uat='NOT_RUN' }
     exit 2
 } finally {
+    if ($script:commandPipe) { $script:commandPipe.Dispose() }
     if ($script:consoleInput -ne [IntPtr]::Zero) {
         [PaneBindMvpGuestInput]::CloseHandle($script:consoleInput) | Out-Null
     }

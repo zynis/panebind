@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $inputDir = 'C:\PaneBindMVP1\Input'
 $outputDir = 'C:\PaneBindMVP1\Output'
 $summary = [ordered]@{
-    schema = 'r1c4b-mvp1-shield-sandbox-guest/v3'
+    schema = 'r1c4b-mvp1-shield-sandbox-guest/v4'
     status = 'NOT_READY'
     run_id = $null
     source_commit = $null
@@ -36,7 +36,48 @@ function Save-Summary {
 function Get-ExplorerConfigurations([string]$Mode) {
     if ($Mode -ceq 'AutomatedValidation') { return @('debug', 'release') }
     if ($Mode -ceq 'BindOnlyIndependentReview') { return @('release') }
+    if ($Mode -ceq 'CommandStopValidation' -or
+        $Mode -ceq 'CommandDisconnectValidation') { return @('debug') }
     throw 'Exact guest Explorer mode is unknown.'
+}
+function New-GuestDriverStartInfo([string]$Driver,[string]$Configuration,
+                                 [string]$RunId,[string]$Mode) {
+    $start=[Diagnostics.ProcessStartInfo]::new()
+    $start.FileName=Join-Path $PSHOME 'powershell.exe'
+    $start.Arguments="-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$Driver`" -Configuration $Configuration -RunId $RunId -Mode $Mode"
+    $start.UseShellExecute=$false
+    $start.CreateNoWindow=$true
+    $start.RedirectStandardOutput=$true
+    $start.RedirectStandardError=$true
+    return $start
+}
+function Test-CommandChannelCleanup($Rows,[string]$Mode) {
+    if($Mode -cnotin @('CommandStopValidation','CommandDisconnectValidation')) { return $false }
+    $shutdown=@($Rows | Where-Object { $_.type -ceq 'shutdown' })
+    $cleanup=@($Rows | Where-Object {
+        $_.type -ceq 'gesture_event' -and $_.event -ceq 'resource' -and
+        $_.reason -ceq 'stop_cleanup'
+    })
+    $status=@($Rows | Where-Object { $_.type -ceq 'status' })
+    if($shutdown.Count -ne 1 -or $cleanup.Count -ne 1 -or $status.Count -lt 2 -or
+        [long]$shutdown[0].sequence -le [long]$cleanup[0].sequence -or
+        @($Rows | Where-Object {
+            $_.type -ceq 'gesture_event' -and $_.event -in @('down','start','writer')
+        }).Count -ne 0) { return $false }
+    foreach($field in @('resources_stopped','gesture_events_recorded')) {
+        if($shutdown[0].$field -isnot [bool] -or $shutdown[0].$field -ne $true) { return $false }
+    }
+    if($Mode -ceq 'CommandDisconnectValidation') {
+        if($shutdown[0].result -cne 'BLOCKED' -or $shutdown[0].reason -cnotin
+            @('guest_command_disconnected','guest_command_driver_exited')) { return $false }
+    }elseif($shutdown[0].result -cne 'STOPPED' -or
+        $shutdown[0].source -cne 'guest_pipe_command') { return $false }
+    foreach($field in @('succeeded','overlay_destroyed','hotkey_unregistered',
+        'receiver_destroyed','raw_registration_removed','winevent_unhooked',
+        'classes_unregistered','association_detached')) {
+        if($cleanup[0].$field -isnot [bool] -or $cleanup[0].$field -ne $true) { return $false }
+    }
+    return $true
 }
 function Test-BindOnlyProductCleanup($Rows) {
     $shutdown = @($Rows | Where-Object { $_.type -ceq 'shutdown' })
@@ -101,18 +142,26 @@ try {
     $summary.run_id = $runId
     Save-Summary
     $manifest = Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Raw | ConvertFrom-Json
-    if ($manifest.schema -cne 'r1c4b-mvp1-shield-sandbox-package/v2' -or
+    if ($manifest.schema -cne 'r1c4b-mvp1-shield-sandbox-package/v3' -or
         $manifest.run_id -cne $runId -or
         $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
         $manifest.configuration -cne 'Release-and-Debug-MT-x64' -or
         $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high' -or
-        @('AutomatedValidation','BindOnlyIndependentReview') -cnotcontains
+        @('AutomatedValidation','BindOnlyIndependentReview',
+            'CommandStopValidation','CommandDisconnectValidation') -cnotcontains
             [string]$manifest.explorer_guest_mode -or
         $manifest.independent_review_configuration -cne 'release') {
         throw 'Guest manifest does not match the exact package.'
     }
+    $expectedChannel=if($manifest.explorer_guest_mode -ceq 'BindOnlyIndependentReview') {
+        'console'
+    } else { 'guest_named_pipe' }
+    if($manifest.explorer_command_channel -cne $expectedChannel) {
+        throw 'Guest manifest command channel is not exact.'
+    }
     $summary.source_commit = $manifest.source_commit
     $summary.explorer_guest_mode = $manifest.explorer_guest_mode
+    $summary.explorer_command_channel = $manifest.explorer_command_channel
     foreach ($item in @(
         @{ Path = $inputMarker; Hash = $manifest.input_marker_sha256 },
         @{ Path = $outputMarker; Hash = $manifest.output_marker_sha256 },
@@ -384,8 +433,39 @@ try {
     }
     . ([scriptblock]::Create($readerFunction.Extent.Text))
     foreach ($configuration in @(Get-ExplorerConfigurations $manifest.explorer_guest_mode)) {
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId -Mode $manifest.explorer_guest_mode *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")
-        $driverExit = $LASTEXITCODE
+        if ($manifest.explorer_command_channel -ceq 'guest_named_pipe') {
+            $start=New-GuestDriverStartInfo $driver $configuration $runId $manifest.explorer_guest_mode
+            $process=[Diagnostics.Process]::new()
+            $process.StartInfo=$start
+            if(-not $process.Start()) { throw 'No-console guest driver did not start.' }
+            # Drain redirected FILE pipes, never console input, concurrently
+            # with the one bounded child wait so diagnostic output cannot fill
+            # a pipe and prevent driver/product cleanup.
+            $stdout=$process.StandardOutput.ReadToEndAsync()
+            $stderr=$process.StandardError.ReadToEndAsync()
+            $summary.explorer_stages += [ordered]@{
+                configuration=$configuration; phase='driver_creation';
+                driver_pid=$process.Id; create_no_window=$start.CreateNoWindow;
+                use_shell_execute=$start.UseShellExecute; arguments=$start.Arguments;
+                requested_creation_semantics='CREATE_NO_WINDOW_NOT_SW_HIDE';
+                actual_console_observation='recorded_by_driver_and_product';
+                scope='new_driver_and_product_only_not_all_guest_consoles'
+            }
+            Save-Summary
+            if(-not $process.WaitForExit(300000)) {
+                throw 'Guest driver bounded wait expired; no functional or cleanup PASS.'
+            }
+            $driverExit=$process.ExitCode
+            $consolePath=Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt"
+            $consoleStream=[IO.FileStream]::new($consolePath,[IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,[IO.FileShare]::Read)
+            $consoleWriter=[IO.StreamWriter]::new($consoleStream,$utf8)
+            try { $consoleWriter.Write($stdout.Result);$consoleWriter.Write($stderr.Result) }
+            finally { $consoleWriter.Dispose();$process.Dispose() }
+        } else {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $driver -Configuration $configuration -RunId $runId -Mode $manifest.explorer_guest_mode *> (Join-Path $outputDir "$runId-explorer-driver-$configuration.console.txt")
+            $driverExit=$LASTEXITCODE
+        }
         $driverEvidence = Join-Path $outputDir "$runId-explorer-driver-$configuration.jsonl"
         $productEvidence = Join-Path $outputDir $(if ($configuration -ceq 'debug') {
             "$runId-explorer-mvp1-debug.jsonl"
@@ -412,6 +492,27 @@ try {
         $driverStartup = @($driverRows | Where-Object { $_.type -ceq 'startup' })
         $driverShutdown = @($driverRows | Where-Object { $_.type -ceq 'shutdown' })
         $productRows = @()
+        if($manifest.explorer_guest_mode -ceq 'CommandDisconnectValidation') {
+            # Driver exit is only a stimulus. Observe the exact product's
+            # independent cleanup afterward; never promote child exit 0.
+            $requested=@($driverRows | Where-Object {
+                $_.type -ceq 'shutdown' -and $_.result -ceq 'COMMAND_DRIVER_EXIT_REQUESTED'
+            })
+            if($driverExit -ne 0 -or $requested.Count -ne 1 -or
+                [int]$requested[0].product_pid -le 0) {
+                throw 'Command disconnect driver did not record its exact exit stimulus.'
+            }
+            $remaining=Get-Process -Id ([int]$requested[0].product_pid) -ErrorAction SilentlyContinue
+            if($remaining) {
+                if($remaining.SessionId -ne $summary.session_id -or
+                    -not [string]::Equals($remaining.Path,$(if($configuration -ceq 'debug'){
+                        $debugExplorer
+                    }else{$explorer}),[StringComparison]::OrdinalIgnoreCase)) {
+                    throw 'Command disconnect product identity changed.'
+                }
+                Wait-Process -InputObject $remaining -Timeout 15 -ErrorAction Stop
+            }
+        }
         if (Test-Path -LiteralPath $productEvidence -PathType Leaf) {
             $productLog = $productEvidence
             $productRows = @(Product-Rows)
@@ -476,6 +577,28 @@ try {
                 throw 'Bind-only product exited without complete actual shutdown/resource cleanup evidence.'
             }
             $summary.status = 'STOPPED'
+            Save-Summary
+            exit 0
+        }
+        if($manifest.explorer_guest_mode -in @('CommandStopValidation','CommandDisconnectValidation')) {
+            $disconnect=$manifest.explorer_guest_mode -ceq 'CommandDisconnectValidation'
+            $expectedResult=if($disconnect){'COMMAND_DRIVER_EXIT_REQUESTED'}else{'COMMAND_STOP_RECORDED'}
+            $validTerminal=Test-CommandChannelCleanup $productRows $manifest.explorer_guest_mode
+            if($driverExit -ne 0 -or $driverStartup.Count -ne 1 -or
+                $driverStartup[0].implementation_sha -cne $manifest.source_commit -or
+                $driverShutdown.Count -ne 1 -or $driverShutdown[0].result -cne $expectedResult -or
+                $startup.Count -ne 1 -or $startup[0].implementation_sha -cne $manifest.source_commit -or
+                $startup[0].run_id -cne $runId -or $startup[0].command_channel -cne 'guest_named_pipe' -or
+                $startup[0].process_has_console -ne $false -or $bindings.Count -ne 3 -or
+                $productConsent.Count -ne 1 -or $productConsent[0].input_source -cne 'automated_guest_driver' -or
+                -not $validTerminal) {
+                throw 'Actual no-gesture command channel/cleanup evidence is incomplete.'
+            }
+            $summary.explorer_stages += [ordered]@{configuration=$configuration;
+                result='COMMAND_CHANNEL_CLEANUP_RECORDED'; mode=$manifest.explorer_guest_mode;
+                automatic_gestures_sent=$false; product_terminal=$productShutdown[0].result;
+                product_cleanup_confirmed=$true; human_uat='NOT_RUN'}
+            $summary.status='COMMAND_CHANNEL_CLEANUP_RECORDED'
             Save-Summary
             exit 0
         }
