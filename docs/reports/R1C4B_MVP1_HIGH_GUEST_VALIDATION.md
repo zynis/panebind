@@ -1,5 +1,9 @@
 # MVP1：精确三窗 High Sandbox 例外与功能验证
 
+2026-10-12 最新：[guest 无控制台命令对照](R1C4B_MVP1_GUEST_PIPE_VALIDATION.md)。
+绑定/状态/停止和断连收尾已实际通过；post-Resize A 仍失败，Ctrl C / Release 完整功能未放行。
+以下 2026-10-06 收口及各失败批次保留为历史，不把本次对照假说改写为系统根因。
+
 日期：2026-10-06（Asia/Shanghai）。分支 `codex/r1c4b-live-magnet`。
 BASE `2bc40fe33c12a9110e27ff9a1c930804ddcf3323`；起点 clean，标准 origin
 fetch 后分支 0/0；origin/main `81e40facf52ffdb96f76e4d737740167d485f4a7`，不合并。
