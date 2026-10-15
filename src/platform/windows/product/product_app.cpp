@@ -187,7 +187,7 @@ public:
     std::vector<BoundKey> bound_keys;
     std::optional<Gesture> gesture;v::GestureEpoch epoch;std::map<v::Key,std::vector<LayoutRecord>> undo;
     std::map<v::Key,Visual> visual;std::uint64_t operations{},native_attempts{};bool stopping{},diagnostic{},last_apply_revoked_only{};
-    std::optional<v::End> last_termination;
+    std::optional<v::End> last_termination;std::string last_prepare_diagnostic;
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
     // Keep the gesture's own original tuple, not the helper journal's older
@@ -754,19 +754,39 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
 void Application::prepare(){
     input.prepared_point();if(gesture||!settings.enabled)return;
     const auto point=input.latest();HWND hit=WindowFromPoint(point),root=hit?GetAncestor(hit,GA_ROOT):nullptr;
-    const auto snapshot=root?catalog.get(root,settings):std::nullopt;
-    if(!snapshot||GetForegroundWindow()!=root){input.prepare({});show_preview({});return;}
+    std::string admission;const auto snapshot=root?catalog.get(root,settings,&admission):std::nullopt;
+    GUITHREADINFO gui{sizeof(gui)};bool gui_read=false,hit_read=false;DWORD_PTR value{};int region=-1;DWORD hit_pid{};
+    const auto explain=[&](std::string_view reason){
+        if(!diagnostic)return;
+        const auto key=snapshot?snapshot->key:0;
+        const auto identity=std::string(reason)+":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+":"+
+            std::to_string(key)+":"+std::to_string(region)+":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"unknown");
+        // Point is evidence, not part of the dedup key: motion within one
+        // prepared/rejected region does not create a per-mouse log stream.
+        if(identity==last_prepare_diagnostic)return;last_prepare_diagnostic=identity;
+        log.event("input_preparation","\"reason\":\""+escaped(reason)+"\",\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+            ",\"key\":"+std::to_string(key)+",\"hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+            ",\"hit_pid\":"+std::to_string(hit_pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+            ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+            ",\"region\":"+std::to_string(region)+",\"actual_hit_test\":"+(hit_read?std::to_string(static_cast<LRESULT>(value)):"null")+
+            ",\"source_GUI_read\":"+(gui_read?"true":"false")+",\"capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+            ",\"move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+            ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
+            ",\"config_generation\":"+std::to_string(settings.generation));
+    };
+    if(!snapshot||GetForegroundWindow()!=root){explain(!snapshot?(root?admission:"no_actual_hit_root"):"source_not_actual_foreground");input.prepare({});show_preview({});return;}
     if(!gesture)owned_layout(*snapshot);
-    GUITHREADINFO gui{sizeof(gui)};
-    if(!GetGUIThreadInfo(snapshot->tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){input.prepare({});show_preview({});return;}
-    last_target=snapshot;DWORD_PTR value{};int region=-1;
-    const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));DWORD pid{};GetWindowThreadProcessId(hit,&pid);
-    if(pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)){
+    gui_read=GetGUIThreadInfo(snapshot->tid,&gui)!=FALSE;
+    if(!gui_read||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){explain(gui_read?"source_native_GUI_interaction_present":"source_GUI_unreadable");input.prepare({});show_preview({});return;}
+    last_target=snapshot;
+    const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));GetWindowThreadProcessId(hit,&hit_pid);
+    hit_read=hit_pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)!=FALSE;
+    if(hit_read){
         switch(static_cast<LRESULT>(value)){case HTCAPTION:region=0;break;case HTLEFT:region=1;break;case HTRIGHT:region=2;break;
         case HTTOP:region=3;break;case HTBOTTOM:region=4;break;case HTTOPLEFT:region=5;break;case HTTOPRIGHT:region=6;break;
         case HTBOTTOMLEFT:region=7;break;case HTBOTTOMRIGHT:region=8;break;default:break;}
     }
-    if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){input.prepare({});show_preview({});return;}
+    if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){explain(hit_read?"actual_hit_not_eligible_titlebar_or_resize":"actual_hit_test_unavailable_or_foreign_child");input.prepare({});show_preview({});return;}
     auto ready=std::make_shared<Prepared>();ready->source=*snapshot;ready->point=point;ready->stamp=GetTickCount();ready->region=region;ready->config_generation=settings.generation;
     prepare_mappings(*ready,settings);
     // A read-only hover preview for the actual configured left double-click.
@@ -784,12 +804,17 @@ void Application::prepare(){
         }
     }
     show_preview(stretch_preview);
-    input.prepare(std::move(ready));
+    input.prepare(std::move(ready));explain("prepared_actual_source_and_hit");
 }
 void Application::begin(const InputEvent& e){
     if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;
     const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings);
     if(!fresh||!Catalog::same(p.source,*fresh)||fresh->visible!=p.source.visible||p.config_generation!=settings.generation){
+        if(diagnostic)log.event("gesture_begin_rejected","\"generation\":"+std::to_string(e.generation)+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+
+            ",\"fresh_snapshot\":"+(fresh?"true":"false")+",\"identity_same\":"+(fresh&&Catalog::same(p.source,*fresh)?"true":"false")+
+            ",\"geometry_same\":"+(fresh&&fresh->visible==p.source.visible?"true":"false")+
+            ",\"configuration_same\":"+(p.config_generation==settings.generation?"true":"false"));
         input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;}
     Gesture active;active.down=e;active.config=settings;active.original=fresh->visible;active.previous=fresh->visible;active.edges=edges(p.region);
     active.operation_source=*fresh;active.was_maximized=fresh->maximized;active.restore_armed=fresh->maximized;

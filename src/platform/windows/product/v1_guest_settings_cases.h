@@ -142,7 +142,7 @@ void settings_guest_startup(State& s){
     if(original.startup||settings_guest_run_value().exists)throw std::runtime_error("startup_test_requires_absent_Run_value_no_unknown_overwrite");
     try{for(const bool enabled:{true,false}){const auto gui=gui_open(s);gui_page_select(s,gui,0);
             const auto checkbox=gui_find(s,gui,L"Button",L"用户登录后启动");gui_click(s,gui,checkbox);
-            s.log.check("startup_actual_checkbox",(gui_read(s,gui,checkbox,BM_GETCHECK)==BST_CHECKED)==enabled);gui_save_enter(s,gui);
+            s.log.check("startup_actual_checkbox",wait([&]{return (gui_read(s,gui,checkbox,BM_GETCHECK)==BST_CHECKED)==enabled;}));gui_save_enter(s,gui);
             const auto config=settings_guest_configuration(s);const auto entry=settings_guest_run_value();auto wanted=original;wanted.startup=enabled;wanted.generation=config.generation;
             s.log.check("startup_GUI_save_actual_Run_value",config==wanted&&(enabled?(entry.exists&&entry.type==REG_SZ&&entry.text==expected):!entry.exists),
                 "\"enabled\":"+std::string(enabled?"true":"false")+",\"exact_current_product_exe\":true,\"actual_HKCU\":true");}
@@ -164,6 +164,7 @@ void settings_guest_exclusion(State& s){
     foreground(s,s.frames[0].hwnd);const auto point=hit_point(s.frames[0].hwnd,HTCAPTION);if(!point)throw std::runtime_error("rule_exact_source_caption_missing");cursor(s,*point);Sleep(100);
     auto gui=gui_open(s);gui_page_select(s,gui,4);const auto restricted=gui_find(s,gui,L"Button",L"仅限制为该窗口类名");
     if(gui_read(s,gui,restricted,BM_GETCHECK)!=BST_CHECKED)gui_click(s,gui,restricted);
+    s.log.check("rule_actual_class_checkbox",wait([&]{return gui_read(s,gui,restricted,BM_GETCHECK)==BST_CHECKED;}));
     settings_guest_activate(s,gui,GetDlgItem(gui_page(s,gui),115));settings_guest_acknowledge(s,gui,L"已将重新核验的应用加入排除草稿");gui_save_enter(s,gui);
     const auto excluded=settings_guest_configuration(s);std::wstring fixture_exe(32768,L'\0');
     const auto exe_chars=GetModuleFileNameW(nullptr,fixture_exe.data(),static_cast<DWORD>(fixture_exe.size()));
@@ -207,7 +208,12 @@ void settings_guest_import_export(State& s){
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
     std::vector<fs::path> old_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt."))old_backups.push_back(entry.path());
-    const auto stop_mark=read(s.product_log).size();cleanup(s);const auto stopped=record(s,stop_mark,"product_stop");
+    const auto stop_mark=read(s.log.path).size();cleanup(s);std::string stopped;
+    const auto driver_text=read(s.log.path);
+    if(stop_mark<driver_text.size()){
+        std::istringstream rows(driver_text.substr(stop_mark));std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"product_stop\"")!=std::string::npos)stopped=row;
+    }
     s.log.check("corrupt_config_normal_stop_before_test_write",!s.process&&stopped.find("\"process_exit_observed\":true")!=std::string::npos&&stopped.find("\"product_exit_code\":0")!=std::string::npos);
     const auto attrs=GetFileAttributesW(path.c_str());if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))throw std::runtime_error("corrupt_config_not_exact_existing_plain_test_file");
     constexpr std::string_view corrupt="schema=1\nschema=1\nINTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG\n";

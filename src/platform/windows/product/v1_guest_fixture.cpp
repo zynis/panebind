@@ -48,7 +48,7 @@ struct Rect {
 };
 Rect translated(Rect r,LONG x,LONG y){return {r.l+x,r.t+y,r.r+x,r.b+y};}
 std::string rect(Rect r){return "["+std::to_string(r.l)+","+std::to_string(r.t)+","+std::to_string(r.r)+","+std::to_string(r.b)+"]";}
-std::string quote(std::string_view text){std::string out="\"";for(char c:text){if(c=='\\'||c=='"')out+='\\';out+=c<32?' ':c;}return out+'"';}
+std::string quote(std::string_view text){std::string out="\"";for(unsigned char c:text){if(c=='\\'||c=='"')out+='\\';out+=c<32?' ':static_cast<char>(c);}return out+'"';}
 std::string utf8(const std::wstring& text){
     if(text.empty())return {};const int size=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,text.data(),static_cast<int>(text.size()),nullptr,0,nullptr,nullptr);
     if(size<=0)throw std::runtime_error("invalid_wide_text");std::string out(static_cast<std::size_t>(size),' ');
@@ -282,11 +282,16 @@ std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect 
     return out;
 }
 struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
+void application_down_context(State&,HWND,POINT,int,std::string_view);
+void application_prepare_barrier(State&,HWND,POINT,int);
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);const auto point=hit_point(h,region);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
-    cursor(s,*point);Sleep(100);if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
+    cursor(s,*point);
+    if(s.applications[source])application_prepare_barrier(s,h,*point,region);else Sleep(100);
+    if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
     const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
+    if(!observed&&s.applications[source])application_down_context(s,h,*point,region,"after_unobserved_DOWN");
     s.log.check("production_real_down_start",observed,
         "\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation));return g;
 }
@@ -399,12 +404,53 @@ void close_explorer_target(State& s,ExplorerTarget& target){
         ",\"attempted\":"+(attempted?"true":"false")+",\"hresult\":"+std::to_string(result)+",\"actual_root_gone\":"+(gone?"true":"false")+
         ",\"directory_retained\":true,\"unknown_objects_touched\":false,\"product_cleanup_pass_inferred\":false");
 }
+fs::path new_guest_explorer_directory(State& s,std::size_t index,bool separate){
+    // The disposable guest's local disk is deliberately separate from the
+    // mapped evidence output. This is a new test route, not proof of which
+    // identity API failed on the previous mapped-directory run.
+    if(index>=3||(s.configuration!="Debug"&&s.configuration!="Release"))throw std::runtime_error("Explorer_directory_scope_invalid");
+    const fs::path guest_root=L"C:\\PaneBindV1",base=guest_root/L"Explorer",run=base/s.run;
+    if(!plain_directory(guest_root))throw std::runtime_error("Explorer_guest_local_root_not_plain");
+    if(!fs::exists(base)){if(!fs::create_directory(base))throw std::runtime_error("Explorer_guest_local_base_creation_failed");}
+    if(!plain_directory(base))throw std::runtime_error("Explorer_guest_local_base_not_plain");
+    const auto ownership=run/L"panebind-v1-explorer-run.marker";
+    const std::string expected="panebind-v1-explorer-run/1\nrun_id="+utf8(s.run)+"\nsource_sha=" PANEBIND_BUILD_SHA "\n";
+    if(!fs::exists(run)){
+        if(!fs::create_directory(run))throw std::runtime_error("Explorer_guest_local_run_creation_failed");
+        Handle file(CreateFileW(ownership.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
+        if(file.value==INVALID_HANDLE_VALUE)throw std::runtime_error("Explorer_guest_local_marker_creation_failed");
+        DWORD written{};const bool saved=WriteFile(file.value,expected.data(),static_cast<DWORD>(expected.size()),&written,nullptr)&&
+            written==expected.size()&&FlushFileBuffers(file.value);
+        const bool closed=CloseHandle(file.value)!=FALSE;file.value=nullptr;
+        if(!saved||!closed)throw std::runtime_error("Explorer_guest_local_marker_write_failed");
+    }
+    // Debug and Release in the same run may share this recognized parent,
+    // but never an already-existing leaf or an unknown ownership marker.
+    if(!plain_directory(run)||read(ownership,256)!=expected)throw std::runtime_error("Explorer_guest_local_run_ownership_unknown");
+    const auto leaf=std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+
+        std::wstring(1,static_cast<wchar_t>(L'A'+index))+(separate?L"-separate":L"");
+    const auto target=run/leaf;
+    if(fs::exists(target)||!fs::create_directory(target)||!plain_directory(target))throw std::runtime_error("exact_new_explorer_directory_required");
+    std::error_code error;const auto actual=fs::weakly_canonical(target,error);
+    if(error||!product::guest::same_exact_directory(actual,target))throw std::runtime_error("Explorer_guest_local_canonical_scope_changed");
+    s.log.emit("explorer_test_directory","\"source\":"+std::to_string(index)+",\"directory\":"+quote(utf8(target.wstring()))+
+        ",\"route\":\"guest_local_C_not_mapped_output\",\"marker\":"+quote(utf8(ownership.wstring()))+
+        ",\"marker_sha256\":"+quote(hash(ownership))+",\"leaf_new_and_empty\":"+(fs::is_empty(target)?"true":"false")+
+        ",\"old_mapped_failure_root_cause_not_inferred\":true,\"unknown_content_overwritten\":false");
+    if(!fs::is_empty(target))throw std::runtime_error("Explorer_guest_local_leaf_not_empty");return target;
+}
 bool provision_explorer(State& s,std::size_t index,bool separate){
     auto target=std::make_unique<ExplorerTarget>();target->separate=separate;
-    target->directory=s.output/(s.run+L"-explorer-"+std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+
-        std::wstring(1,static_cast<wchar_t>(L'A'+index))+(separate?L"-separate":L""));
-    if(fs::exists(target->directory)||!fs::create_directory(target->directory))throw std::runtime_error("exact_new_explorer_directory_required");
-    target->location=shell::filesystem_location_identity(target->directory);if(!target->location.filesystem())throw std::runtime_error("new_directory_file_identity_unavailable");
+    target->directory=new_guest_explorer_directory(s,index,separate);
+    target->location=shell::filesystem_location_identity(target->directory);
+    std::string file_id;constexpr char hex[]="0123456789abcdef";
+    if(target->location.identity)for(const auto value:target->location.identity->file_id){const auto byte=std::to_integer<unsigned>(value);file_id+=hex[byte>>4];file_id+=hex[byte&15];}
+    s.log.emit("explorer_directory_identity","\"source\":"+std::to_string(index)+",\"directory\":"+quote(utf8(target->directory.wstring()))+
+        ",\"filesystem\":"+(target->location.filesystem()?"true":"false")+",\"status\":"+std::to_string(static_cast<unsigned>(target->location.status))+
+        ",\"hresult\":"+std::to_string(target->location.diagnostic)+",\"volume_serial\":"+
+        (target->location.identity?std::to_string(target->location.identity->volume_serial_number):"null")+",\"file_id_128\":"+
+        (file_id.empty()?"null":quote(file_id))+",\"identity_failure_does_not_authorize_Explorer\":true");
+    if(!target->location.filesystem())throw std::runtime_error("new_directory_file_identity_unavailable");
     const auto baseline=shell::capture_shell_window_inventory();if(!baseline.complete)throw std::runtime_error("complete_shell_baseline_required");
     for(const auto& entry:baseline.windows)target->baseline.push_back(entry.window);
     std::string why;bool created=false;
@@ -552,13 +598,82 @@ void discover_application_children(ApplicationTarget& target){
         if(!added)break;
     }
 }
-bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::optional<product::Snapshot>* actual=nullptr){
-    if(!h||std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end()||GetAncestor(h,GA_ROOT)!=h||!s.target_catalog)return false;
-    auto fresh=s.target_catalog->get(h,{});if(!fresh||!equal(fresh->exe,target.executable.wstring()))return false;
+bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::optional<product::Snapshot>* actual=nullptr,std::string* why=nullptr){
+    const auto reject=[&](std::string reason){if(why)*why=std::move(reason);return false;};
+    if(!h||std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end()||GetAncestor(h,GA_ROOT)!=h||!s.target_catalog)return reject("not_new_root_or_catalog_unavailable");
+    std::string admission;auto fresh=s.target_catalog->get(h,{},&admission);
+    if(!fresh)return reject("Catalog:"+admission);
+    if(!equal(fresh->exe,target.executable.wstring()))return reject("root_image_does_not_equal_explicit_launch_image");
     const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
-    if(process==target.processes.end()||!process->handle||WaitForSingleObject(process->handle->value,0)!=WAIT_TIMEOUT||!medium(process->handle->value))return false;
-    if(target.kind=="Terminal"&&!equal(fresh->window_class,L"ConsoleWindowClass"))return false;
-    if(actual)*actual=std::move(fresh);return true;
+    if(process==target.processes.end()||!process->handle||WaitForSingleObject(process->handle->value,0)!=WAIT_TIMEOUT||!medium(process->handle->value))return reject("root_not_live_Medium_in_held_birth_verified_launch_tree");
+    if(target.kind=="Terminal"&&!equal(fresh->window_class,L"ConsoleWindowClass"))return reject("actual_terminal_root_class_not_ConsoleWindowClass");
+    if(actual)*actual=std::move(fresh);if(why)*why="exact_candidate_eligible";return true;
+}
+void application_binding_facts(State& s,ApplicationTarget& target){
+    // One bounded post-failure observation, restricted to retained launch-tree
+    // process handles. No unknown window is adopted or operated by diagnostics.
+    discover_application_children(target);
+    for(const auto& process:target.processes){
+        DWORD exit{},image_size=32768;std::wstring image(image_size,L' ');int rid=-1;bool elevated{};DWORD token_error{};
+        const bool identity=process.handle&&process_birth(process.handle->value)==process.born;
+        const bool exit_read=identity&&GetExitCodeProcess(process.handle->value,&exit)!=FALSE;
+        const bool image_read=identity&&QueryFullProcessImageNameW(process.handle->value,0,image.data(),&image_size)!=FALSE;
+        if(image_read)image.resize(image_size);const bool normal=identity&&medium(process.handle->value,&rid,&elevated,&token_error);
+        s.log.emit("application_held_process","\"application\":"+quote(target.kind)+",\"pid\":"+std::to_string(process.pid)+
+            ",\"parent_pid\":"+std::to_string(process.parent)+",\"birth\":"+std::to_string(process.born)+
+            ",\"birth_matches_retained_handle\":"+(identity?"true":"false")+",\"exit_code\":"+(exit_read?std::to_string(exit):"null")+
+            ",\"actual_image\":"+(image_read?quote(utf8(image)):"null")+",\"integrity_rid\":"+(rid<0?"null":std::to_string(rid))+
+            ",\"elevated\":"+(rid<0?"null":elevated?"true":"false")+",\"actual_Medium\":"+(normal?"true":"false")+
+            ",\"token_query_error\":"+std::to_string(token_error));
+    }
+    unsigned observed{};
+    for(const HWND h:root_baseline()){
+        DWORD pid{};const DWORD tid=GetWindowThreadProcessId(h,&pid);
+        const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& item){return item.pid==pid;});
+        if(process==target.processes.end()||!process->handle||process_birth(process->handle->value)!=process->born||
+            std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end())continue;
+        ++observed;std::string reason;std::optional<product::Snapshot> candidate;
+        const bool eligible=application_fresh(s,target,h,&candidate,&reason);std::array<wchar_t,256> cls{};GetClassNameW(h,cls.data(),static_cast<int>(cls.size()));
+        s.log.emit("application_candidate_root","\"application\":"+quote(target.kind)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+            ",\"pid\":"+std::to_string(pid)+",\"tid\":"+std::to_string(tid)+",\"window_class\":"+quote(utf8(cls.data()))+
+            ",\"visible\":"+(IsWindowVisible(h)?"true":"false")+",\"candidate_eligible\":"+(eligible?"true":"false")+
+            ",\"reason\":"+quote(reason)+",\"not_binding_or_input_authority\":true");
+    }
+    s.log.emit("application_binding_observation","\"application\":"+quote(target.kind)+",\"held_tree_new_roots\":"+std::to_string(observed)+
+        ",\"unknown_process_roots_not_queried\":true,\"single_post_failure_observation\":true");
+}
+void application_down_context(State& s,HWND h,POINT point,int expected_hit,std::string_view stage){
+    DWORD pid{},hit_pid{};const DWORD tid=GetWindowThreadProcessId(h,&pid);const HWND hit=WindowFromPoint(point);
+    GetWindowThreadProcessId(hit,&hit_pid);DWORD_PTR nonclient{};SetLastError(0);
+    const bool hit_read=hit&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
+        SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&nonclient)!=FALSE;const DWORD hit_error=hit_read?0:GetLastError();
+    GUITHREADINFO gui{sizeof(gui)};const bool gui_read=tid&&GetGUIThreadInfo(tid,&gui)!=FALSE;
+    RECT positioning{};const bool positioned=GetWindowRect(h,&positioning)!=FALSE;const HRGN rgn=CreateRectRgn(0,0,0,0);
+    const int region_type=rgn?GetWindowRgn(h,rgn):ERROR;
+    const bool region_known=positioned&&region_type!=ERROR;
+    const bool region_contains=region_known&&PtInRegion(rgn,point.x-positioning.left,point.y-positioning.top)!=FALSE;
+    if(rgn)DeleteObject(rgn);
+    s.log.emit("application_DOWN_context","\"stage\":"+quote(stage)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"pid\":"+std::to_string(pid)+",\"tid\":"+std::to_string(tid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+        ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+        ",\"hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"hit_pid\":"+std::to_string(hit_pid)+
+        ",\"hit_root_matches\":"+(hit&&GetAncestor(hit,GA_ROOT)==h?"true":"false")+
+        ",\"WM_NCHITTEST\":"+(hit_read?std::to_string(static_cast<LRESULT>(nonclient)):"null")+",\"hit_query_error\":"+std::to_string(hit_error)+
+        ",\"expected_nonclient\":"+std::to_string(expected_hit)+",\"GUI_query_succeeded\":"+(gui_read?"true":"false")+
+        ",\"capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+        ",\"move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+        ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
+        ",\"window_region_type\":"+std::to_string(region_type)+",\"region_contains_point\":"+(region_known?(region_contains?"true":"false"):"null")+
+        ",\"actual_left_down\":"+((GetAsyncKeyState(VK_LBUTTON)&0x8000)?"true":"false")+",\"product_prepared_not_inferred\":true");
+}
+void application_prepare_barrier(State& s,HWND h,POINT point,int expected_hit){
+    const auto mark=read(s.product_log).size();const bool sent=launch(s,L"--status",true);std::string status;
+    const bool observed=sent&&wait([&]{status=record(s,mark,"status");return !status.empty();},2000);
+    s.log.check("application_actual_STA_prepare_barrier",observed&&status.find("\"enabled\":true")!=std::string::npos&&
+        status.find("\"hook_owner_running\":true")!=std::string::npos&&status.find("\"gesture_active\":false")!=std::string::npos,
+        "\"production_status\":"+quote(status)+",\"actual_prepare_permission_not_inferred\":true");
+    application_down_context(s,h,point,expected_hit,"before_real_DOWN_after_STA_barrier");
+    if(!authorized_source(s,h)||GetForegroundWindow()!=h)throw std::runtime_error("application_identity_or_foreground_changed_before_DOWN");
 }
 std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string kind){
     auto target=std::make_shared<ApplicationTarget>();target->kind=std::move(kind);
@@ -604,6 +719,7 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         return matches==1;
     },12000);
     if(bound){target->identity=candidate;bound=test_root_stamp(s,*candidate,true);target->accepted=bound;}
+    if(!bound&&launched)application_binding_facts(s,*target);
     s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":"+quote(bound?"BOUND":"BLOCKED")+
         ",\"reason\":"+quote(bound?"baseline_excluded_new_root_exact_launch_tree_actual_Catalog_Medium_same_SID_session_desktop":"no_unique_eligible_root_in_held_birth_verified_launch_tree")+
         ",\"hwnd\":"+std::to_string(bound?reinterpret_cast<std::uintptr_t>(candidate->hwnd):0)+",\"pid\":"+std::to_string(bound?candidate->pid:0)+
@@ -922,20 +1038,27 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
         ",\"old_native_call_may_finish_late\":true,\"source_return_qpc\":"+std::to_string(stall.after_qpc));
 }
 void cleanup(State& s){
+    bool current_stop_confirmed=false;
     if(s.left){try{button(s,false);s.log.emit("test_cleanup","\"synthetic_release_sent\":true,\"not_product_cleanup_pass\":true");}catch(...){}}
     if(s.control){try{key(s,VK_CONTROL,false);}catch(...){}}
-    if(s.process){const bool command=launch(s,L"--quit",true);const bool stopped=WaitForSingleObject(s.process,5000)==WAIT_OBJECT_0;
-        const auto shutdown=record(s,0,"shutdown");DWORD exit_code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&exit_code);
+    if(s.process){const auto mark=read(s.product_log).size();const auto stopped_pid=s.product_pid;
+        const bool command=launch(s,L"--quit",true);const bool stopped=WaitForSingleObject(s.process,5000)==WAIT_OBJECT_0;
+        const auto shutdown=record(s,mark,"shutdown");DWORD exit_code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&exit_code);
         s.log.emit("product_stop","\"quit_command_completed\":"+std::string(command?"true":"false")+",\"process_exit_observed\":"+(stopped?"true":"false")+
             ",\"product_exit_code\":"+std::to_string(exit_code)+",\"shutdown_report\":"+quote(shutdown));
-        if(!command||!stopped||exit_code!=0||shutdown.find("\"native_worker_exited\":true")==std::string::npos||
-            shutdown.find("\"issued_native_completion_unknown\":false")==std::string::npos)s.log.failed=true;
+        current_stop_confirmed=command&&stopped&&exit_code==0&&number(shutdown,"\"process_id\":")==stopped_pid&&
+            shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos&&
+            shutdown.find("\"native_worker_exited\":true")!=std::string::npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=std::string::npos&&
+            shutdown.find("\"visual_recovery_stopped\":true")!=std::string::npos&&shutdown.find("\"visual_restore_confirmed\":true")!=std::string::npos;
+        if(!current_stop_confirmed)s.log.failed=true;
         if(!stopped){TerminateProcess(s.process,90);WaitForSingleObject(s.process,2000);s.log.failed=true;s.log.emit("test_abort","\"own_product_forced_termination\":true,\"product_cleanup_pass\":false");}
         CloseHandle(s.process);s.process=nullptr;}
     // A successful normal stop is also checked using real delivery to a
     // remaining exact empty fixture, not merely the child exit status. Forced
     // termination remains a failure regardless of this test-only observation.
-    bool delivered=false;const bool check_delivery=!s.log.failed;
+    // An earlier independent application failure remains a failure, but does
+    // not prevent observation of this instance's actual input-resource exit.
+    bool delivered=false;const bool check_delivery=current_stop_confirmed;
     for(auto& f:s.frames)if(check_delivery&&own(s,f.hwnd)&&IsWindowVisible(f.hwnd)){
         const bool front=SetForegroundWindow(f.hwnd)!=FALSE;RECT client{};POINT point{};
         if(!front||GetForegroundWindow()!=f.hwnd||!GetClientRect(f.hwnd,&client))break;
@@ -1172,7 +1295,10 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     for(const auto& item:std::array<std::pair<const wchar_t*,bool>,2>{{{L"拖动期间临时透明",desired.drag_transparency},{L"Move 中摇动",desired.shake}}}){
         const auto control=gui_find(s,gui,L"Button",item.first);
         if((gui_read(s,gui,control,BM_GETCHECK)==BST_CHECKED)!=item.second)gui_click(s,gui,control);
-        s.log.check("visual_GUI_real_checkbox",(gui_read(s,gui,control,BM_GETCHECK)==BST_CHECKED)==item.second,"\"label\":"+quote(utf8(item.first)));
+        // Focus can arrive on DOWN before the actual queued UP toggles the
+        // checkbox. Observe its real state, not SendInput/focus completion.
+        s.log.check("visual_GUI_real_checkbox",wait([&]{return (gui_read(s,gui,control,BM_GETCHECK)==BST_CHECKED)==item.second;}),
+            "\"label\":"+quote(utf8(item.first))+",\"wanted\":"+(item.second?"true":"false"));
     }
     const std::array<std::pair<const wchar_t*,int>,5> numbers{{
         {L"拖动不透明度",desired.drag_alpha},{L"摇动不透明度",desired.shake_alpha},
