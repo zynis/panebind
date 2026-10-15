@@ -199,17 +199,28 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     product::Catalog catalog;const auto displays=catalog.displays();
     if(displays.size()<2)s.log.emit("I04_cross_display","\"result\":\"ENVIRONMENT_BLOCKED\",\"reason\":\"one_actual_guest_monitor\",\"single_screen_chain_not_full_cross_screen_acceptance\":true");
     else{
-        const auto actual=catalog.get(set.frames[0].hwnd,config);if(!actual)throw std::runtime_error("I04_cross_display_source_identity_unknown");
-        const auto from=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==actual->monitor;});
+        // Product Catalog deliberately rejects the CALLER's own PID. These
+        // local fixture HWNDs therefore need independent native observation,
+        // not a relaxed production eligibility policy or a fabricated token.
+        const HWND h=set.frames[0].hwnd;const auto actual_visible=visible(h);RECT positioning{};MINMAXINFO track{};DWORD_PTR replied{};
+        if(!set.owns(0)||actual_visible!=restored||!GetWindowRect(h,&positioning)||
+            !SendMessageTimeoutW(h,WM_GETMINMAXINFO,0,reinterpret_cast<LPARAM>(&track),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&replied))
+            throw std::runtime_error("I04_cross_display_exact_owned_native_facts_unavailable");
+        const auto current_monitor=MonitorFromWindow(h,MONITOR_DEFAULTTONULL);
+        const auto from=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==current_monitor;});
         if(from==displays.end()||!from->dpi)throw std::runtime_error("I04_cross_display_source_DPI_unknown");
         const auto& to=displays[(static_cast<std::size_t>(from-displays.begin())+1)%displays.size()];
         if(!to.dpi)throw std::runtime_error("I04_cross_display_destination_DPI_unknown");
         const auto scaled=[&](LONG px){return (static_cast<long long>(px)*to.dpi+from->dpi/2)/from->dpi;};
-        const auto max_width=std::min(actual->limits.max_width,to.work.width()),max_height=std::min(actual->limits.max_height,to.work.height());
-        if(max_width<actual->limits.min_width||max_height<actual->limits.min_height)
+        const auto inset_x=static_cast<std::int64_t>(positioning.right)-positioning.left-restored.width();
+        const auto inset_y=static_cast<std::int64_t>(positioning.bottom)-positioning.top-restored.height();
+        const auto min_width=static_cast<std::int64_t>(track.ptMinTrackSize.x)-inset_x,min_height=static_cast<std::int64_t>(track.ptMinTrackSize.y)-inset_y;
+        const auto max_width=std::min(static_cast<std::int64_t>(track.ptMaxTrackSize.x)-inset_x,to.work.width());
+        const auto max_height=std::min(static_cast<std::int64_t>(track.ptMaxTrackSize.y)-inset_y,to.work.height());
+        if(min_width<=0||min_height<=0||max_width<min_width||max_height<min_height)
             throw std::runtime_error("I04_cross_display_actual_size_constraints_have_no_intersection");
-        const auto width=std::clamp<std::int64_t>(scaled(restored.width()),actual->limits.min_width,max_width);
-        const auto height=std::clamp<std::int64_t>(scaled(restored.height()),actual->limits.min_height,max_height);
+        const auto width=std::clamp<std::int64_t>(scaled(restored.width()),min_width,max_width);
+        const auto height=std::clamp<std::int64_t>(scaled(restored.height()),min_height,max_height);
         const Rect next{static_cast<LONG>(to.work.left()),static_cast<LONG>(to.work.top()),static_cast<LONG>(to.work.left()+width),static_cast<LONG>(to.work.top()+height)};
         chain_command(set,0,L"NextDisplay",next);chain_command(set,0,L"Undo",restored);
         s.log.emit("I04_cross_display","\"result\":\"ACTUAL_COMMAND_GEOMETRY_CHECKED\",\"source_display_DPI\":"+

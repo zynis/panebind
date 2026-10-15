@@ -38,6 +38,8 @@ void guest_capture_settings_page(State& s,const SettingsGui& gui,unsigned page){
     if(!gui_identity(s,gui,gui.root)||GetForegroundWindow()!=gui.root||!GetWindowRect(gui.root,&confirmed)||
         !EqualRect(&window,&confirmed)||!BitBlt(pixels.memory,0,0,width,height,pixels.screen,window.left,window.top,SRCCOPY|CAPTUREBLT))
         throw std::runtime_error("settings_capture_identity_geometry_or_BitBlt_failed");
+    // CreateDIBSection's bits may only be read after GDI drawing completes.
+    if(!GdiFlush())throw std::runtime_error("settings_capture_GdiFlush_failed");
     BITMAPFILEHEADER file_header{};file_header.bfType=0x4d42;
     file_header.bfOffBits=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER);file_header.bfSize=file_header.bfOffBits+bytes;
     Handle output(CreateFileW(target.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
