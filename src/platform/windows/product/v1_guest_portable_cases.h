@@ -145,6 +145,25 @@ void owned_portable_zip_entry_case(State& s){
         s.log.check("portable_actual_normal_no_argument_launch",launch(s,L"",false),
             "\"actual_executable\":"+quote(utf8(s.product.wstring()))+",\"arguments\":\"\",\"diagnostic_enabled\":false");
         s.log.check("portable_actual_normal_entry_startup",wait([&]{const auto row=record(s,0,"startup");return number(row,"\"process_id\":")==s.product_pid;}));
+        SettingsGui ordinary_gui;unsigned visible_settings{};
+        const bool ordinary_visible=wait([&]{
+            struct Search {State* state;SettingsGui gui;unsigned count{};} search{&s};
+            EnumWindows([](HWND h,LPARAM value)->BOOL{auto& q=*reinterpret_cast<Search*>(value);DWORD pid{},app_pid{};
+                const auto tid=GetWindowThreadProcessId(h,&pid);
+                if(pid!=q.state->product_pid||gui_class(h)!=L"PaneBindV1SettingsWindow"||!IsWindowVisible(h))return TRUE;
+                const auto owner=GetWindow(h,GW_OWNER);const auto owner_tid=GetWindowThreadProcessId(owner,&app_pid);
+                std::array<wchar_t,64> title{};const auto copied=GetWindowTextW(h,title.data(),static_cast<int>(title.size()));
+                SettingsGui candidate{h,FindWindowExW(h,nullptr,WC_TABCONTROLW,nullptr),tid};
+                if(owner_tid==tid&&app_pid==pid&&gui_class(owner)==L"PaneBind.V1.Application"&&
+                    std::wstring_view(title.data(),copied)==L"PaneBind 设置"&&gui_identity(*q.state,candidate,h)){
+                    q.gui=candidate;++q.count;}return TRUE;
+            },reinterpret_cast<LPARAM>(&search));
+            ordinary_gui=search.gui;visible_settings=search.count;return visible_settings==1;
+        });
+        s.log.check("portable_no_argument_launch_actual_visible_settings",ordinary_visible,
+            "\"actual_product_PID\":"+std::to_string(s.product_pid)+",\"settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(ordinary_gui.root))+
+            ",\"settings_TID\":"+std::to_string(ordinary_gui.tid)+",\"unique_exact_visible_Chinese_settings\":"+(ordinary_visible?"true":"false")+
+            ",\"matching_windows\":"+std::to_string(visible_settings)+",\"settings_command_sent\":false,\"tray_or_full_I12_PASS_inferred\":false");
         auto gui=gui_open(s);gui_page_select(s,gui,1);
         s.log.check("portable_fresh_default_actual_GUI",gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"10"&&
             !fs::exists(payload/L"settings.ini")&&!fs::exists(profile));gui_press(s,gui,VK_ESCAPE);

@@ -140,12 +140,22 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
         const bool actor_down_inserted=actor_identity&&actor_inserted==2;
         // Import the CHILD's successful-send ledger, not async physical state.
         // START/native receipts below independently prove product observation.
+        const auto actor_down_qpc=number(actor,"\"before_qpc\":");
+        const bool new_pair=exited&&code==0&&actor_down_inserted&&child_birth&&process_birth(child_process.value)==child_birth&&
+            number(actor,"\"parent_birth\":")==process_birth(GetCurrentProcess())&&number(actor,"\"source_tid\":")==set.thread&&
+            actor.find("\"run_id\":"+quote(utf8(s.run)))!=actor.npos&&set.owns(0)&&!s.left&&
+            actor_down_qpc>s.left_down_send_qpc&&actor_down_qpc>s.left_up_send_qpc;
+        // A verified successful child NEW DOWN starts a new test-send pair.
+        // Failed/partial/duplicate receipts and the catch-only START inference
+        // below cannot clear an already-attempted UP guard or grant authority.
+        if(new_pair)s.left_up_attempted=false;
         if(actor_identity&&actor_inserted>=1){s.left=true;s.left_down_send_qpc=number(actor,"\"before_qpc\":");}
-        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
+        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&new_pair&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
             "\"child_pid\":"+std::to_string(child.dwProcessId)+",\"exit_code\":"+std::to_string(code)+",\"child_exit_tick\":"+std::to_string(child_exit_tick)+
             ",\"source_still_alive\":"+(set.owns(0)?"true":"false")+",\"child_DOWN_insertion_confirmed\":"+
             (actor_down_inserted?"true":"null")+",\"child_SendInput_return\":"+(actor_send_count_known?std::to_string(actor_inserted):"null")+
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
+            ",\"new_verified_actor_send_pair_imported\":"+(new_pair?"true":"false")+",\"product_authority_not_granted_by_send_ledger\":true"+
             ",\"delivery_and_physical_button_held_not_inferred_from_ledger\":true,\"product_driver_channel\":false");
         Gesture g{*point,0,offset};const Rect moved=translated(*initial,-40,35);std::string actual_down,native;
         s.log.check("I08_actor_actual_START_and_exact_Move",wait([&]{g.generation=number(record(s,offset,"gesture_start"),"\"generation\":");

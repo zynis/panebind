@@ -1936,6 +1936,20 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
             "\"stage\":"+quote(stage)+",\"unconfirmed_registered_roots\":"+std::to_string(pending)+",\"unknown_identity_not_closed_to_force_PASS\":true");
     }
     const bool originals=std::all_of(s.frames.begin(),s.frames.end(),[&](const auto& f){return own(s,f.hwnd);});
+    struct Roots {State* state;unsigned visited{},matching{};bool unknown{},unexpected{};std::string actual{"["};} roots{&s};
+    const bool enumerated=EnumThreadWindows(s.owner,[](HWND h,LPARAM value)->BOOL{auto& r=*reinterpret_cast<Roots*>(value);
+        if(++r.visited>32){r.unknown=true;return FALSE;}
+        std::array<wchar_t,256> name{};DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);
+        if(tid!=r.state->owner||pid!=GetCurrentProcessId()||!GetClassNameW(h,name.data(),static_cast<int>(name.size()))){r.unknown=true;return FALSE;}
+        if(!equal(name.data(),r.state->class_name)||GetAncestor(h,GA_ROOT)!=h)return TRUE;
+        if(r.matching++)r.actual+=',';r.actual+=std::to_string(reinterpret_cast<std::uintptr_t>(h));
+        if(std::none_of(r.state->frames.begin(),r.state->frames.end(),[&](const auto& f){return f.hwnd==h&&own(*r.state,h);}))r.unexpected=true;
+        return TRUE;
+    },reinterpret_cast<LPARAM>(&roots))!=FALSE;roots.actual+=']';
+    s.log.check("independent_actual_fixture_roots_only_original_three",enumerated&&!roots.unknown&&!roots.unexpected&&roots.matching==3&&originals&&
+        !layout_ui_pending.load(std::memory_order_acquire),"\"stage\":"+quote(stage)+",\"enumeration_completed\":"+(enumerated?"true":"false")+
+        ",\"unknown_window_facts\":"+(roots.unknown?"true":"false")+",\"unexpected_fixture_root\":"+(roots.unexpected?"true":"false")+
+        ",\"actual_fixture_class_roots\":"+roots.actual+",\"RAII_return_not_used_as_destruction_proof\":true");
     GUITHREADINFO source{sizeof(source)};
     const bool source_idle=GetGUIThreadInfo(s.owner,&source)&&!source.hwndCapture&&!source.hwndMoveSize&&!source.hwndMenuOwner;
     const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD app_pid{};
@@ -2027,16 +2041,34 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
 void independent_entry_flow(State& s){
     const auto phase=[&](const char* name,void(*run)(State&)){
         independent_entry_ready(s,std::string(name)+".before",true);const auto mark=read(s.log.path).size();bool exception=false;
+        const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         try{run(s);}catch(const std::exception& error){exception=true;s.log.failed=true;
             s.log.emit("independent_entry_phase_failure","\"phase\":"+quote(name)+",\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
         const auto rows=read(s.log.path).substr(mark);
         const bool failed=exception||rows.find("\"result\":\"FAIL\"")!=rows.npos;
-        const bool blocked=rows.find("\"result\":\"BLOCKED")!=rows.npos;
+        const bool blocked=rows.find("\"result\":\"BLOCKED")!=rows.npos||rows.find("\"result\":\"ENVIRONMENT_BLOCKED\"")!=rows.npos;
         const bool not_run=rows.find("\"result\":\"NOT_RUN\"")!=rows.npos;
         if(failed||blocked||not_run)s.log.failed=true;
+        if(failed||blocked||not_run){
+            const bool pending_left=s.left,up_already_attempted=s.left_up_attempted,pending_control=s.control;
+            bool up_sent=false,control_sent=false;std::string cleanup_error;
+            if(s.left&&!s.left_up_attempted){
+                if(!s.left_down_send_qpc||s.left_down_send_qpc==down_before)cleanup_error="pending_DOWN_not_created_by_this_phase";
+                else try{button(s,false);up_sent=true;}catch(const std::exception& error){cleanup_error=error.what();}
+            }
+            if(s.control){
+                if(control_before)cleanup_error+=";pending_Ctrl_not_created_by_this_phase";
+                else try{key(s,VK_CONTROL,false);control_sent=true;}catch(const std::exception& error){cleanup_error+=';';cleanup_error+=error.what();}
+            }
+            s.log.emit("independent_phase_test_input_cleanup","\"phase\":"+quote(name)+",\"phase_left_was_outstanding\":"+(pending_left?"true":"false")+
+                ",\"UP_already_attempted_before_cleanup\":"+(up_already_attempted?"true":"false")+",\"single_pending_UP_inserted\":"+(up_sent?"true":"false")+
+                ",\"phase_Ctrl_was_outstanding\":"+(pending_control?"true":"false")+",\"own_Ctrl_release_sent\":"+(control_sent?"true":"false")+
+                ",\"cleanup_error\":"+quote(cleanup_error)+",\"not_NormalUp_or_delivery_PASS\":true,\"failed_scenario_not_retried\":true");
+        }
         independent_entry_ready(s,std::string(name)+".after",true);
         s.log.emit("independent_entry_phase_result","\"phase\":"+quote(name)+",\"result\":"+
-            quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+",\"independent_only\":true");
+            quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
+            ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
     phase("settings_GUI",settings_gui_flow);
     phase("settings_startup",settings_guest_startup);
@@ -2080,6 +2112,25 @@ void independent_entry_flow(State& s){
             ",\"test_setup_not_old_chain_PASS\":true,\"failed_portable_Move_not_retried\":true");
         independent_entry_ready(s,"original_run_copy_restart.after",true);
     }else s.log.emit("independent_entry_phase_result","\"phase\":\"portable_ordinary_entry\",\"result\":\"NOT_RUN\",\"reason\":\"Release_only_actual_package_required\"");
+    // Execute existing components with their own actual setup, not the blocked
+    // Full eight-window history or a newly invented successful continuation.
+    phase("owned_dock_stretch_component",owned_dock_stretch_chains);
+    phase("owned_interruption_component",owned_interruption_cases);
+    if(s.configuration=="Release"){
+        phase("owned_finite_I11_component",owned_finite_I11_chain);
+        const auto idle=[](State& state){
+            const auto measured=product::guest_test::measure_idle_60s(state.process,state.product_pid,process_birth(state.process));
+            state.log.emit("Release_actual_idle_measurement",measured.json_fields());
+            state.log.check("independent_Release_idle60_actual_budget",measured.completed&&measured.one_core_cpu_percent<1.0&&
+                measured.after.working_bytes<=80ULL*1024*1024,"\"independent_idle_only_not_I11_or_version_PASS\":true");
+        };
+        phase("Release_idle60_independent",idle);
+    }
+    // Native failure injection must not hide unrelated real user functions.
+    phase("owned_visual_mapping_component",visual_mapping_flow);
+    phase("owned_temporary_visual_inflight_component",owned_temporary_visual_inflight_case);
+    phase("owned_native_grid_constraint_component",owned_native_grid_constraint_case);
+    phase("owned_second_member_native_failure_component",owned_second_member_native_failure_case);
     // Successful exact Explorer roots remain available for the existing mixed
     // application group. The applications scope cleans them after that group;
     // an unsuccessful Explorer chain still cleans its own registered roots.
@@ -2090,7 +2141,8 @@ void independent_entry_flow(State& s){
     phase("application_matrix",applications);
     cleanup(s);
     s.log.emit("independent_entry_summary","\"suite\":\"IndependentEntry\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
-        ",\"owned_I02\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"Explorer_result_requires_own_phase_evidence\":true,\"human_uat\":\"NOT_RUN\"");
+        ",\"owned_I02_acceptance\":\"NOT_GRANTED\",\"I11_acceptance\":\"NOT_GRANTED\",\"Full_suite\":\"NOT_RUN\","+
+        "\"component_results_do_not_infer_whole_chain_PASS\":true,\"Explorer_result_requires_own_phase_evidence\":true,\"human_uat\":\"NOT_RUN\"");
 }
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);

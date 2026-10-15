@@ -1612,6 +1612,10 @@ int run(HINSTANCE instance,const wchar_t*){
         app.input.pause(!app.settings.enabled);app.register_keys();app.prepare();
         app.log.event("startup","\"entry\":\"production_gui\",\"integrity\":\"medium\",\"elevated\":false,\"initiator\":\"not_collected\"");
         if(!app.problem.empty())app.notify(app.problem);
+        // An explicit ordinary launch must be discoverable even when the
+        // shell cannot publish our notification icon. Background login and
+        // diagnostic modes retain their existing no-window startup.
+        if(argv.empty()||argv[0]==L"--settings")app.show_settings();
         MSG msg{};while(GetMessageW(&msg,nullptr,0,0)>0){if(app.settings_ui.translate(msg))continue;TranslateMessage(&msg);DispatchMessageW(&msg);}
         app.stop();application=nullptr;UnregisterClassW(ow.lpszClassName,instance);UnregisterClassW(app_class,instance);result=0;
     }catch(const std::exception& e){application=nullptr;MessageBoxW(nullptr,wide(e.what()).c_str(),L"PaneBind 启动失败",MB_OK|MB_ICONERROR);}
