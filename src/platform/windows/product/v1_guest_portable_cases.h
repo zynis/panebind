@@ -25,7 +25,7 @@ bool portable_plain_file(const fs::path& path){
         !(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT));
 }
 void portable_stop_current(State& s,std::string_view stage){
-    const auto pid=s.product_pid;const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();
     if(!s.process||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("portable_expected_live_product_before_normal_stop");
     cleanup(s);const auto receipt=read(s.log.path).substr(driver_mark);const auto end=record(s,mark,"shutdown");
     const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD actual_pid{};if(app)GetWindowThreadProcessId(app,&actual_pid);
@@ -36,11 +36,11 @@ void portable_stop_current(State& s,std::string_view stage){
          end.find("\"own_overlay_destroyed\":true")!=end.npos&&end.find("\"native_worker_exited\":true")!=end.npos&&
          end.find("\"issued_native_completion_unknown\":false")!=end.npos&&end.find("\"visual_recovery_stopped\":true")!=end.npos&&
          end.find("\"visual_restore_confirmed\":true")!=end.npos);
-    s.log.check("portable_normal_exit_and_actual_input_recovery",!s.process&&actual_pid!=pid&&known_shutdown&&
+    s.log.check("portable_normal_exit_and_actual_input_recovery",birth&&!s.process&&actual_pid!=pid&&known_shutdown&&
         receipt.find("\"quit_command_completed\":true")!=receipt.npos&&receipt.find("\"process_exit_observed\":true")!=receipt.npos&&
         receipt.find("\"product_exit_code\":0")!=receipt.npos&&receipt.find("\"actual_down_up_delivered\":true")!=receipt.npos&&
         receipt.find("\"own_product_forced_termination\":true")==receipt.npos,
-        "\"stage\":"+quote(stage)+",\"exact_product_pid\":"+std::to_string(pid)+",\"shutdown_log_observed\":"+(end.empty()?"false":"true")+
+        "\"stage\":"+quote(stage)+",\"exact_product_pid\":"+std::to_string(pid)+",\"exact_product_birth\":"+std::to_string(birth)+",\"shutdown_log_observed\":"+(end.empty()?"false":"true")+
         ",\"ordinary_mode_no_diagnostic_argument\":true,\"guest_destruction_used\":false");
 }
 void portable_actual_move(State& s,bool magnetic,std::string_view stage){
@@ -122,12 +122,19 @@ void owned_portable_zip_entry_case(State& s){
     s.product=executable;s.product_log=payload/L"panebind.log.jsonl";
     bool move_failed=false;
     const auto observe_move=[&](bool magnetic,std::string_view stage){
+        const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         try{portable_actual_move(s,magnetic,stage);}
         catch(const std::exception& error){
             if(s.suite!="IndependentEntry")throw;
             move_failed=true;s.log.failed=true;
             s.log.emit("portable_Move_failure_preserved","\"stage\":"+quote(stage)+",\"reason\":"+quote(error.what())+
                 ",\"actual_Move\":\"FAIL\",\"I12_PASS_inferred\":false,\"no_UP_retransmission\":true");
+            bool cleanup_up=false,cleanup_control=false;
+            if(s.left){if(!s.left_down_send_qpc||s.left_down_send_qpc==down_before)throw std::runtime_error("portable_pending_DOWN_not_this_Move");
+                button(s,false);cleanup_up=true;}
+            if(s.control){if(control_before)throw std::runtime_error("portable_pending_Ctrl_not_this_Move");key(s,VK_CONTROL,false);cleanup_control=true;}
+            s.log.emit("portable_test_pending_input_cleanup","\"stage\":"+quote(stage)+",\"single_cleanup_UP_inserted\":"+(cleanup_up?"true":"false")+
+                ",\"owned_Ctrl_release_sent\":"+(cleanup_control?"true":"false")+",\"delivery_or_NormalUp_not_inferred\":true");
             // Only actual resource idleness permits the independent ordinary
             // entry's GUI/save/exit observations. Do not re-run this Move or
             // reset its state to manufacture a successful gesture.

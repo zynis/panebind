@@ -157,10 +157,23 @@ void settings_guest_file_path(State& s,const SettingsGui& gui,bool save,const fs
     key(s,VK_CONTROL,true);settings_guest_modal_press(s,gui,modal,'A');key(s,VK_CONTROL,false);
     settings_guest_unicode(s,path.wstring(),[&]{GUITHREADINFO info{sizeof(info)};return settings_guest_modal_identity(s,gui,modal)&&
         GetForegroundWindow()==modal.root&&GetGUIThreadInfo(modal.tid,&info)&&info.hwndFocus==edit;});
-    std::wstring actual(path.wstring().size()+2,L'\0');DWORD_PTR copied{};
-    const bool text_read=SendMessageTimeoutW(edit,WM_GETTEXT,actual.size(),reinterpret_cast<LPARAM>(actual.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)!=FALSE;
-    if(!text_read||copied>=actual.size())throw std::runtime_error("native_filename_actual_text_unavailable");actual.resize(copied);
-    s.log.check("settings_native_filename_actual_keys",actual==path.wstring(),"\"new_run_output_path\":"+quote(utf8(path.wstring())));
+    const auto expected=path.wstring();std::wstring actual(expected.size()+2,L'\0');
+    unsigned reads{};DWORD read_error{};DWORD_PTR copied{};bool text_read=false;
+    const bool exact_text=wait([&]{
+        GUITHREADINFO info{sizeof(info)};DWORD pid{};
+        if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root||!GetGUIThreadInfo(modal.tid,&info)||
+           info.hwndFocus!=edit||GetWindowThreadProcessId(edit,&pid)!=modal.tid||pid!=s.product_pid||!IsChild(modal.root,edit)||
+           gui_class(edit)!=L"Edit"||!IsWindowVisible(edit)||!IsWindowEnabled(edit)||(GetWindowLongPtrW(edit,GWL_STYLE)&ES_READONLY))
+            throw std::runtime_error("native_filename_readback_exact_context_lost");
+        std::fill(actual.begin(),actual.end(),L'\0');copied=0;++reads;SetLastError(0);
+        text_read=SendMessageTimeoutW(edit,WM_GETTEXT,actual.size(),reinterpret_cast<LPARAM>(actual.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&copied)!=FALSE;
+        read_error=text_read?0:GetLastError();
+        return text_read&&copied<actual.size()&&std::wstring_view(actual.data(),copied)==expected;
+    },1500);
+    s.log.check("settings_native_filename_actual_keys",exact_text,"\"new_run_output_path\":"+quote(utf8(path.wstring()))+
+        ",\"bounded_readback_wait_ms\":1500,\"read_attempts\":"+std::to_string(reads)+",\"last_read_succeeded\":"+(text_read?"true":"false")+
+        ",\"last_read_error\":"+std::to_string(read_error)+",\"observed_copied_characters\":"+std::to_string(copied)+
+        ",\"expected_characters\":"+std::to_string(expected.size())+",\"input_resent\":false,\"actual_text_recorded\":false");
     settings_guest_modal_press(s,gui,modal,VK_RETURN);
     settings_guest_acknowledge(s,gui,save?L"已导出经过校验的设置草稿":L"已导入到草稿");
     }catch(const std::exception& failure){
@@ -226,9 +239,10 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
     const bool queried=SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(anchor->x),static_cast<short>(anchor->y)),
         SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
     const bool positioning_known=GetWindowRect(h,&fresh)!=FALSE,gui_known=GetGUIThreadInfo(s.owner,&initial)!=FALSE;
+    const auto caption=native_caption_observation(h,*anchor);
     const auto actual_visible=visible(h);
     const bool fresh_context=own(s,h)&&GetForegroundWindow()==h&&WindowFromPoint(*anchor)==h&&queried&&
-        static_cast<int>(region)==HTCAPTION&&!IsIconic(h)&&!IsZoomed(h)&&client.left<client.right&&client.top<client.bottom&&
+        static_cast<int>(region)==HTCAPTION&&caption.result()==v1::CaptionHit::Caption&&!IsIconic(h)&&!IsZoomed(h)&&client.left<client.right&&client.top<client.bottom&&
         actual_visible==before&&positioning_known&&EqualRect(&positioning,&fresh)&&gui_known&&
         !initial.hwndCapture&&!initial.hwndMoveSize&&!initial.hwndMenuOwner;
     s.log.check(label+"_fresh_native_caption_before_DOWN",fresh_context,
@@ -236,7 +250,8 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
         ",\"actual_visible\":"+(actual_visible?rect(*actual_visible):"null")+",\"actual_positioning\":"+
         (positioning_known?rect({fresh.left,fresh.top,fresh.right,fresh.bottom}):"null")+",\"source_GUI_known\":"+(gui_known?"true":"false")+
         ",\"actual_region\":"+(queried?std::to_string(region):"null")+",\"actual_foreground\":"+
-        std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"point\":["+std::to_string(anchor->x)+","+std::to_string(anchor->y)+"]");
+        std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"point\":["+std::to_string(anchor->x)+","+std::to_string(anchor->y)+"]"+
+        ",\"selected_caption_facts\":"+native_caption_json(caption));
     const LONG drag_x=GetSystemMetrics(SM_CXDRAG),drag_y=GetSystemMetrics(SM_CYDRAG);
     if(drag_x<0||drag_y<0||drag_x>128||drag_y>128||requested_dx<=0)
         throw std::runtime_error("settings_native_Move_drag_metrics_out_of_test_bounds");

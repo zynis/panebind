@@ -6,6 +6,7 @@
 #include "core/v1/layout.h"
 #include "core/v1/settings.h"
 #include "core/v1/gesture.h"
+#include "core/v1/caption_hit_guard.h"
 #include "core/v1/visual_ownership.h"
 #include "core/geometry/magnet_constraint_solver.h"
 #include "core/movement/translation.h"
@@ -774,6 +775,14 @@ void Application::prepare(){
     // rejects that operation rather than silently authorizing a resize.
     std::string admission;const auto snapshot=root?catalog.get(root,settings,&admission,false,false):std::nullopt;
     GuiContext gui_context;auto& gui=gui_context.actual;bool gui_read=false,hit_read=false;DWORD_PTR value{};int region=-1;DWORD hit_pid{};
+    const auto query_dpi_context=GetThreadDpiAwarenessContext();
+    const auto window_dpi_context=root?GetWindowDpiAwarenessContext(root):nullptr;
+    const UINT window_dpi=root?GetDpiForWindow(root):0;
+    RECT caption_buttons{},caption_window{};HRESULT caption_hresult=E_PENDING;
+    bool caption_checked=false,caption_window_known=false,caption_standard_buttons=false;
+    auto caption_result=v::CaptionHit::Unknown;
+    const auto raw_caption_rect=[](const RECT& r){return "["+std::to_string(r.left)+","+std::to_string(r.top)+","+
+        std::to_string(r.right)+","+std::to_string(r.bottom)+"]";};
     const auto explain=[&](std::string_view reason){
         if(!diagnostic)return;
         const auto key=snapshot?snapshot->key:0;
@@ -793,6 +802,18 @@ void Application::prepare(){
             ",\"source_GUI_read\":"+(gui_read?"true":"false")+",\"capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
             ",\"move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
             ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
+            ",\"query_thread_DPI_context\":"+std::to_string(reinterpret_cast<std::intptr_t>(query_dpi_context))+
+            ",\"query_thread_PMV2\":"+(AreDpiAwarenessContextsEqual(query_dpi_context,DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)?"true":"false")+
+            ",\"window_DPI_context\":"+(window_dpi_context?std::to_string(reinterpret_cast<std::intptr_t>(window_dpi_context)):"null")+
+            ",\"window_DPI\":"+(window_dpi?std::to_string(window_dpi):"null")+
+            ",\"caption_buttons_checked\":"+(caption_checked?"true":"false")+
+            ",\"caption_buttons_hresult\":"+(caption_checked?std::to_string(caption_hresult):"null")+
+            ",\"caption_buttons_window_relative\":"+(caption_checked&&SUCCEEDED(caption_hresult)?
+                raw_caption_rect(caption_buttons):"null")+
+            ",\"caption_positioning\":"+(caption_window_known?
+                raw_caption_rect(caption_window):"null")+
+            ",\"standard_caption_buttons_possible\":"+(caption_checked?(caption_standard_buttons?"true":"false"):"null")+
+            ",\"caption_button_guard\":"+(caption_checked?"\""+std::string(v::caption_hit_name(caption_result))+"\"":"null")+
             ",\"config_generation\":"+std::to_string(settings.generation));
     };
     if(!snapshot||GetForegroundWindow()!=root){explain(!snapshot?(root?admission:"no_actual_hit_root"):"source_not_actual_foreground");input.prepare({});show_preview({});return;}
@@ -801,11 +822,32 @@ void Application::prepare(){
     if(!gui_context.idle()){explain(gui_read?"source_native_GUI_interaction_present":"source_GUI_unreadable");input.prepare({});show_preview({});return;}
     last_target=snapshot;
     const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));GetWindowThreadProcessId(hit,&hit_pid);
-    hit_read=hit_pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)!=FALSE;
+    // WM_NCHITTEST carries signed 16-bit screen coordinates. Do not query a
+    // different wrapped point on a virtual desktop outside that message range.
+    const bool hit_point_representable=point.x>=std::numeric_limits<short>::min()&&point.x<=std::numeric_limits<short>::max()&&
+        point.y>=std::numeric_limits<short>::min()&&point.y<=std::numeric_limits<short>::max();
+    hit_read=hit_point_representable&&hit_pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)!=FALSE;
     if(hit_read){
         switch(static_cast<LRESULT>(value)){case HTCAPTION:region=0;break;case HTLEFT:region=1;break;case HTRIGHT:region=2;break;
         case HTTOP:region=3;break;case HTBOTTOM:region=4;break;case HTTOPLEFT:region=5;break;case HTTOPRIGHT:region=6;break;
         case HTBOTTOMLEFT:region=7;break;case HTBOTTOMRIGHT:region=8;break;default:break;}
+    }
+    if(region==0){
+        // This is an independent exclusion, not a replacement hit test and
+        // never a call into a foreign DwmDefWindowProc. Preserve raw bounds:
+        // DWM returns WINDOW-relative edges, so use the positioning origin.
+        caption_checked=true;caption_hresult=DwmGetWindowAttribute(root,DWMWA_CAPTION_BUTTON_BOUNDS,&caption_buttons,sizeof(caption_buttons));
+        caption_window_known=GetWindowRect(root,&caption_window)!=FALSE;
+        SetLastError(0);const auto style=GetWindowLongPtrW(root,GWL_STYLE);const bool style_known=style!=0||GetLastError()==0;
+        caption_standard_buttons=!style_known||((style&WS_CAPTION)==WS_CAPTION&&(style&(WS_SYSMENU|WS_MINIMIZEBOX|WS_MAXIMIZEBOX))!=0);
+        const v::CaptionButtonFacts facts{{point.x,point.y},
+            {caption_window.left,caption_window.top,caption_window.right,caption_window.bottom},
+            {caption_buttons.left,caption_buttons.top,caption_buttons.right,caption_buttons.bottom},
+            caption_window_known,SUCCEEDED(caption_hresult),
+            query_dpi_context&&window_dpi_context&&window_dpi&&AreDpiAwarenessContextsEqual(query_dpi_context,DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2),
+            IsWindowVisible(root)&&!IsIconic(root),caption_standard_buttons};
+        caption_result=v::caption_hit(facts);
+        if(caption_result!=v::CaptionHit::Caption){explain(v::caption_hit_name(caption_result));input.prepare({});show_preview({});return;}
     }
     if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){explain(hit_read?"actual_hit_not_eligible_titlebar_or_resize":"actual_hit_test_unavailable_or_foreign_child");input.prepare({});show_preview({});return;}
     auto ready=std::make_shared<Prepared>();ready->source=*snapshot;ready->point=point;ready->stamp=GetTickCount();ready->region=region;ready->config_generation=settings.generation;
@@ -1422,7 +1464,11 @@ LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
 }
 void create_tray(Application& app){NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=app.window;n.uID=1;
     n.uFlags=NIF_MESSAGE|NIF_ICON|NIF_TIP;n.uCallbackMessage=tray_message;n.hIcon=LoadIconW(nullptr,IDI_APPLICATION);
-    wcscpy_s(n.szTip,L"PaneBind");Shell_NotifyIconW(NIM_ADD,&n);n.uVersion=NOTIFYICON_VERSION_4;Shell_NotifyIconW(NIM_SETVERSION,&n);app.tray();}
+    wcscpy_s(n.szTip,L"PaneBind");const bool added=Shell_NotifyIconW(NIM_ADD,&n)!=FALSE;
+    n.uVersion=NOTIFYICON_VERSION_4;const bool versioned=added&&Shell_NotifyIconW(NIM_SETVERSION,&n)!=FALSE;
+    app.log.event("tray_registration","\"owner_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(app.window))+
+        ",\"uid\":1,\"NIM_ADD_succeeded\":"+(added?"true":"false")+",\"NIM_SETVERSION_attempted\":"+(added?"true":"false")+
+        ",\"NIM_SETVERSION_succeeded\":"+(versioned?"true":"false")+",\"icon_reachability_or_menu_delivery_not_inferred\":true");app.tray();}
 LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
     auto* a=application;if(!a)return DefWindowProcW(w,message,wp,lp);
     try{

@@ -1,4 +1,5 @@
 #include "core/v1/gesture.h"
+#include "core/v1/caption_hit_guard.h"
 
 #include <iostream>
 #include <limits>
@@ -12,6 +13,52 @@ void check(bool condition, const char* name) {
 }
 }
 int main() {
+    // This is the same decision used by production preparation and the guest
+    // caption-point selector; button bounds below are synthetic, NOT an
+    // observation of the fdfe run (which did not record DWM button bounds).
+    v1::CaptionButtonFacts caption{{151, 89}, {111, 80, 369, 449},
+                                 {35, 0, 258, 46}, true, true, true, true, true};
+    check(v1::caption_hit(caption) == v1::CaptionHit::SystemButton,
+          "manual caption cannot authorize point inside independent system button area");
+    caption.point = {140, 89};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Caption,
+          "genuine caption outside system button area remains available");
+    caption.point = {146, 89};
+    check(v1::caption_hit(caption) == v1::CaptionHit::SystemButton,
+          "button rectangle uses positioning origin rather than visible origin");
+    caption.point = {146, 126};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Caption,
+          "caption button bottom edge is exclusive");
+    caption.buttons_known = false;
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "DWM failure is not proof of absent standard buttons");
+    caption.buttons_known = true; caption.relative_buttons = {40, 0, 30, 46};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "invalid raw button edges are not normalized into permission");
+    caption.relative_buttons = {35, 0, 300, 46};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "out of window button bounds reject standard caption preparation");
+    caption.standard_buttons_possible = false; caption.buttons_known = false;
+    check(v1::caption_hit(caption) == v1::CaptionHit::Caption,
+          "custom caption without standard button styles is not unconditionally rejected");
+    caption.comparable_coordinates = false;
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "unknown coordinate context never grants caption permission");
+    caption = {{-1800, -980}, {-1920, -1000, -1420, -500},
+               {100, 0, 500, 40}, true, true, true, true, true};
+    check(v1::caption_hit(caption) == v1::CaptionHit::SystemButton,
+          "negative monitor coordinates use checked signed positioning origin");
+    caption.point = {-1900, -980};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Caption,
+          "negative-coordinate real caption remains available");
+    caption.window = {std::numeric_limits<std::int64_t>::min(), 0,
+                      std::numeric_limits<std::int64_t>::max(), 400};
+    caption.point = {0, 10};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "unrepresentable raw window span rejects without overflow");
+    caption = {{10, 10}, {0, 0, 100, 100}, {70, 0, 100, 30}, true, true, true, false, true};
+    check(v1::caption_hit(caption) == v1::CaptionHit::Unknown,
+          "invisible or minimized window does not use undefined DWM bounds");
     v1::GestureEpoch epoch;
     check(!epoch.active() && !epoch.motion(0) && !epoch.begin(0), "cold state cannot accept zero generation");
     check(epoch.begin(1) && epoch.active() && epoch.generation() == 1 && epoch.motion(1), "first generation active");

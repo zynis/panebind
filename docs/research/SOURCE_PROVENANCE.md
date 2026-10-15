@@ -1977,6 +1977,51 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   revalidation remains required. Existing pinned prior art is reused;
   external code copied/adapted/translated/mechanically rewritten: **NO**.
 
+### V1 caption/system-button exclusion follow-up — 2026-10-16
+
+- Actual guest `fdfe8a79403342259401aad1b6a45b7c`, source
+  `783078111ebee3d17cdaa80244180e0f4b4f155b`, retained a fresh explicit
+  WM_NCHITTEST result HTCAPTION at `[151,89]`, followed by the same source's
+  actual WM_NCLBUTTONDOWN wParam HTMINBUTTON and no SC_MOVE. The original
+  record contains no NC lParam or DWM button bounds; it does not establish
+  identical message coordinates, a DPI root cause, or a DWM fix PASS.
+- Re-read mature GPL-3.0-or-later AltSnap (reference-only), repository
+  <https://github.com/RamonUnch/AltSnap>, exact commit
+  `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`: `hooks.c` caption classification
+  and `unfuck.h` caption-bounds query; inspected actual path history commit
+  `9fe1e8c44e8081b3a13650eeca2d51a25f56b4aa` (2022-07-23, caption detection
+  repair). Lesson only: a positive caption query needs independent system
+  button exclusion. Re-read mature MIT PowerToys/FancyZones, repository
+  <https://github.com/microsoft/PowerToys>, exact commit
+  `19c4d805321db86f3634e6968e14dbf25cbba14a`, `WindowMouseSnap.cpp`: its
+  move-size/cursor heuristic is not proof of PaneBind's pre-DOWN caption
+  classification. No external code copied, adapted, translated or derived;
+  no new attribution obligation. PaneBind's raw-rectangle decision is an
+  original implementation from the official coordinate contract.
+- Actually re-read Microsoft live primary documentation (no immutable
+  revision; Microsoft site terms; links/paraphrase only, no sample reuse):
+  [WM_NCHITTEST](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest),
+  [WM_NCLBUTTONDOWN](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nclbuttondown),
+  [DWMWINDOWATTRIBUTE](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute),
+  [DwmDefWindowProc](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmdefwindowproc),
+  [GetWindowRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect),
+  [mixed-mode DPI](https://learn.microsoft.com/en-us/windows/win32/hidpi/high-dpi-improvements-for-desktop-applications),
+  [GetWindowDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowdpiawarenesscontext),
+  [LogicalToPhysicalPointForPerMonitorDPI](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-logicaltophysicalpointforpermonitordpi).
+  Button bounds are window-relative; GetWindowRect may be virtualized, and
+  visible-frame bounds are not a substitute positioning origin. A missing or
+  invalid DWM reply is not evidence that standard buttons are absent. Custom
+  frames' DwmDefWindowProc guidance is for their own message handling, not
+  authority to call a foreign procedure or change its message semantics.
+- Product preparation and guest caption selection now use the same small
+  pure exclusion decision, with checked signed arithmetic and raw-edge
+  validation. Standard-button windows with unknown bounds fail closed;
+  explicitly button-less custom styles retain their existing caption query
+  path. The test observer records actual NC signed coordinates, receiver and
+  window DPI contexts and at-message DWM facts without altering messages.
+  Snapshot/query contexts are labelled separately from the NC sender.
+  Implementation/offline checks do not award native interaction PASS.
+
 ### V1 bounded native-file-dialog driver readiness — 2026-10-16
 
 - Run `b4eeef9c5c1d41f6bcd90ef6461f4240` source
@@ -2001,6 +2046,22 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   same exact foreground file modal before verifying return to own settings.
   Existing pinned prior art reused; no external implementation copied,
   adapted, translated or mechanically rewritten. New runtime test pending.
+- Native filename readback follow-up (2026-10-16): run
+  `fdfe8a79403342259401aad1b6a45b7c` source
+  `783078111ebee3d17cdaa80244180e0f4b4f155b` identified the actual editable
+  filename focus via Alt+N (sequence356), but its single immediate text read
+  failed the exact-path check361; local real Escape returned to own settings
+  at362. The record does not prove a unique system cause. Actually re-read
+  [SendMessageTimeoutW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw)
+  and [WM_GETTEXT](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-gettext).
+  A successful input insertion is not evidence that queued Unicode input has
+  already updated the edit. The same guest driver now waits at most1500ms
+  for the actual exact text, with each read bounded100ms and preceded by
+  precise modal/focus/PID/TID/foreground/editable checks. It sends the path
+  once, never retries typing, and failure records only copied length/read
+  error rather than text. The original failure and local-cancel contract
+  remain. This is test-driver sequencing, not a product save change or a
+  claimed native PASS. No external implementation copied or adapted.
 
 ### V1 exact readonly-legend navigation correction — 2026-10-16
 
@@ -2027,3 +2088,18 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   custom editor text. Original failures remain unchanged; compiling this
   change does not award runtime PASS. Existing pinned prior art is reused;
   external code copied/adapted/translated/mechanically rewritten: **NO**.
+
+### V1 notification registration receipt — 2026-10-16
+
+- Actual source `783078111ebee3d17cdaa80244180e0f4b4f155b`, RunId
+  `fdfe8a79403342259401aad1b6a45b7c`, fixture sequence420 returned E_FAIL
+  from the exact own icon's Shell_NotifyIconGetRect. It does not establish
+  whether NIM_ADD itself succeeded. The production registration call had
+  discarded its BOOL result. Actually read Microsoft's
+  [Shell_NotifyIconW](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw)
+  and [notification-area guidance](https://learn.microsoft.com/en-us/windows/win32/shell/notification-area).
+  Record the actual ADD and (only after successful ADD) SETVERSION BOOLs,
+  without treating icon registration as actual reachability or menu delivery.
+  No timer/retry, foreign shell manipulation, focus operation or inferred
+  LastError contract was added. Existing pinned architecture references are
+  unchanged; external code copied or adapted: **NO**. Runtime remains pending.
