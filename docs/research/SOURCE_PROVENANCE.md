@@ -1977,6 +1977,31 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   revalidation remains required. Existing pinned prior art is reused;
   external code copied/adapted/translated/mechanically rewritten: **NO**.
 
+### V1 bounded native-file-dialog driver readiness — 2026-10-16
+
+- Run `b4eeef9c5c1d41f6bcd90ef6461f4240` source
+  `2eb186ca6bf095c7df98d8d1f5a5708259600ae5`: exact native export dialog
+  title/owner/PID/TID passed at sequence355, then immediate filename-child
+  enumeration failed at356. This does not establish a product select_file
+  defect or prove whether the child was absent, late or differently arranged.
+- Actually read Microsoft's
+  [Open and Save As dialog boxes](https://learn.microsoft.com/en-us/windows/win32/dlgbox/open-and-save-as-dialog-boxes),
+  [Windows dialog shortcuts](https://support.microsoft.com/en-us/accessibility/windows/keyboard-shortcuts-in-windows),
+  and [Visio Open/Save dialog shortcuts](https://support.microsoft.com/en-us/accessibility/visio/keyboard-shortcuts-for-visio).
+  The control-ID documentation distinguishes edt1 and cmb13; the shortcut
+  source describes Alt+N for the filename field, not a guarantee for every
+  localized/custom dialog. Actual focus and the resulting file remain tested.
+- Original guest-only repair waits a bounded1500ms for a unique documented
+  filename edit; otherwise sends Alt+N once and requires actual editable
+  EDIT focus under the already-confirmed foreground modal, same PID/TID.
+  Real Unicode input/readback/Enter and subsequent file parsing remain; no
+  WM_SETTEXT, direct save API or successful-send delivery inference. Failure
+  retains its original verdict, records at most128 class/ID/style/ancestor
+  entries without text if unresolved, and only attempts real Escape on that
+  same exact foreground file modal before verifying return to own settings.
+  Existing pinned prior art reused; no external implementation copied,
+  adapted, translated or mechanically rewritten. New runtime test pending.
+
 ### V1 exact readonly-legend navigation correction — 2026-10-16
 
 - Actual run `3e478afcf62d4535a7030cf3b98d8451`, source

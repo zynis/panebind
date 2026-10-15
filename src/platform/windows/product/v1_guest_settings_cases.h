@@ -92,25 +92,68 @@ void settings_guest_acknowledge(State& s,const SettingsGui& gui,std::wstring_vie
     s.log.check("settings_actual_Enter_dismisses_modal",wait([&]{return !IsWindow(modal.root)&&GetForegroundWindow()==gui.root;}));
 }
 HWND settings_guest_filename(State& s,const SettingsGui& gui,const SettingsGuestModal& modal){
-    std::vector<HWND> candidates;
-    struct Search {std::vector<HWND>* candidates;} query{&candidates};
-    EnumChildWindows(modal.root,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);
-        if(gui_class(h)!=L"Edit"||!IsWindowVisible(h)||!IsWindowEnabled(h)||(GetWindowLongPtrW(h,GWL_STYLE)&ES_READONLY))return TRUE;
-        bool filename=GetDlgCtrlID(h)==1152;HWND parent=GetParent(h);unsigned limit=8;
-        while(parent&&limit--){if(GetDlgCtrlID(parent)==1148){filename=true;break;}parent=GetParent(parent);}
-        if(filename)q.candidates->push_back(h);return TRUE;
-    },reinterpret_cast<LPARAM>(&query));
-    if(!settings_guest_modal_identity(s,gui,modal)||candidates.size()!=1)throw std::runtime_error("native_filename_edit_not_uniquely_identified");
-    DWORD pid{};if(GetWindowThreadProcessId(candidates[0],&pid)!=modal.tid||pid!=s.product_pid)throw std::runtime_error("native_filename_edit_identity_changed");
-    return candidates[0];
+    const auto editable=[&](HWND h){DWORD pid{};return settings_guest_modal_identity(s,gui,modal)&&GetForegroundWindow()==modal.root&&
+        h&&IsChild(modal.root,h)&&GetWindowThreadProcessId(h,&pid)==modal.tid&&pid==s.product_pid&&gui_class(h)==L"Edit"&&
+        IsWindowVisible(h)&&IsWindowEnabled(h)&&!(GetWindowLongPtrW(h,GWL_STYLE)&ES_READONLY);};
+    HWND found{};unsigned candidates{},visited{};
+    const bool ready=wait([&]{
+        if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root)return false;
+        struct Search {HWND modal,found{};DWORD pid,tid;unsigned candidates{},visited{};} query{modal.root,nullptr,s.product_pid,modal.tid};
+        EnumChildWindows(modal.root,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);if(++q.visited>128)return FALSE;
+            DWORD pid{};if(GetWindowThreadProcessId(h,&pid)!=q.tid||pid!=q.pid||gui_class(h)!=L"Edit"||!IsChild(q.modal,h)||
+                !IsWindowVisible(h)||!IsWindowEnabled(h)||(GetWindowLongPtrW(h,GWL_STYLE)&ES_READONLY))return TRUE;
+            bool filename=GetDlgCtrlID(h)==1152;HWND parent=GetParent(h);unsigned limit=8;
+            while(parent&&parent!=q.modal&&limit--){if(GetDlgCtrlID(parent)==1148){filename=true;break;}parent=GetParent(parent);}
+            if(filename){q.found=h;++q.candidates;}return TRUE;
+        },reinterpret_cast<LPARAM>(&query));
+        found=query.found;candidates=query.candidates;visited=query.visited;
+        return visited<=128&&candidates==1&&editable(found);
+    },1500);
+    bool used_alt_n=false;
+    if(!ready){
+        GUITHREADINFO context{sizeof(context)};
+        if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root||!GetGUIThreadInfo(modal.tid,&context)||
+           !context.hwndFocus||!IsChild(modal.root,context.hwndFocus))throw std::runtime_error("native_filename_shortcut_modal_context_invalid");
+        for(const int code:std::array{VK_CONTROL,VK_MENU,VK_SHIFT,VK_LWIN,VK_RWIN})
+            if(GetAsyncKeyState(code)&0x8000)throw std::runtime_error("native_filename_shortcut_modifiers_not_released");
+        bool alt_down=false;
+        try{alt_down=true;key(s,VK_MENU,true);settings_guest_modal_press(s,gui,modal,'N');key(s,VK_MENU,false);alt_down=false;}
+        catch(...){if(alt_down)try{key(s,VK_MENU,false);}catch(...){}throw;}
+        used_alt_n=true;
+        if(!wait([&]{GUITHREADINFO actual{sizeof(actual)};if(!GetGUIThreadInfo(modal.tid,&actual)||!editable(actual.hwndFocus))return false;
+            found=actual.hwndFocus;return true;},1500)){
+            struct Snapshot {std::string rows{"["};unsigned visited{};HWND modal;} snapshot{"[",0,modal.root};
+            EnumChildWindows(modal.root,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Snapshot*>(data);if(q.visited++>=128)return FALSE;
+                DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);if(q.rows.size()>1)q.rows+=',';
+                q.rows+="{\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"class\":"+quote(utf8(gui_class(h)))+
+                    ",\"id\":"+std::to_string(GetDlgCtrlID(h))+",\"style\":"+std::to_string(GetWindowLongPtrW(h,GWL_STYLE))+
+                    ",\"pid\":"+std::to_string(pid)+",\"tid\":"+std::to_string(tid)+",\"visible\":"+(IsWindowVisible(h)?"true":"false")+
+                    ",\"enabled\":"+(IsWindowEnabled(h)?"true":"false")+",\"ancestors\":[";
+                HWND parent=GetParent(h);for(unsigned n=0;parent&&n<8;++n){if(n)q.rows+=',';q.rows+=std::to_string(reinterpret_cast<std::uintptr_t>(parent));
+                    if(parent==q.modal)break;parent=GetParent(parent);}q.rows+="]}";return TRUE;
+            },reinterpret_cast<LPARAM>(&snapshot));snapshot.rows+=']';
+            s.log.emit("settings_native_filename_unavailable","\"documented_candidate_count\":"+std::to_string(candidates)+
+                ",\"child_snapshot_cap\":128,\"children\":"+snapshot.rows+",\"control_text_recorded\":false,\"actual_Alt_N_sent\":true");
+            throw std::runtime_error("native_filename_actual_shortcut_focus_not_editable");
+        }
+    }
+    if(!editable(found))throw std::runtime_error("native_filename_edit_identity_changed");
+    s.log.emit("settings_native_filename_identified","\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(found))+
+        ",\"actual_Alt_N_used\":"+(used_alt_n?"true":"false")+",\"bounded_readiness_wait\":true,\"exact_modal_PID_TID\":true");
+    return found;
 }
 void settings_guest_file_path(State& s,const SettingsGui& gui,bool save,const fs::path& path){
-    if(path.parent_path()!=s.output||path.extension()!=L".conf")throw std::runtime_error("settings_native_dialog_path_not_run_output");
+    settings_guest_scope(s);
+    if(!path.is_absolute()||path.parent_path()!=s.output||path.extension()!=L".conf"||!path.filename().wstring().starts_with(s.run+L"-"))
+        throw std::runtime_error("settings_native_dialog_path_not_run_output");
     settings_guest_activate(s,gui,GetDlgItem(gui.root,save?113:112));
     const auto modal=settings_guest_modal(s,gui,save?L"导出当前设置草稿":L"导入 PaneBind 配置");
+    try{
     const auto edit=settings_guest_filename(s,gui,modal);RECT r{};if(!GetWindowRect(edit,&r))throw std::runtime_error("native_filename_edit_bounds_missing");
     const POINT point{r.left+(r.right-r.left)/2,r.top+(r.bottom-r.top)/2};cursor(s,point);
     if(WindowFromPoint(point)!=edit)throw std::runtime_error("native_filename_edit_actual_hit_mismatch");button(s,true);button(s,false);
+    s.log.check("settings_native_filename_actual_focus",wait([&]{GUITHREADINFO info{sizeof(info)};return settings_guest_modal_identity(s,gui,modal)&&
+        GetForegroundWindow()==modal.root&&GetGUIThreadInfo(modal.tid,&info)&&info.hwndFocus==edit;},1500));
     key(s,VK_CONTROL,true);settings_guest_modal_press(s,gui,modal,'A');key(s,VK_CONTROL,false);
     settings_guest_unicode(s,path.wstring(),[&]{GUITHREADINFO info{sizeof(info)};return settings_guest_modal_identity(s,gui,modal)&&
         GetForegroundWindow()==modal.root&&GetGUIThreadInfo(modal.tid,&info)&&info.hwndFocus==edit;});
@@ -120,6 +163,20 @@ void settings_guest_file_path(State& s,const SettingsGui& gui,bool save,const fs
     s.log.check("settings_native_filename_actual_keys",actual==path.wstring(),"\"new_run_output_path\":"+quote(utf8(path.wstring())));
     settings_guest_modal_press(s,gui,modal,VK_RETURN);
     settings_guest_acknowledge(s,gui,save?L"已导出经过校验的设置草稿":L"已导入到草稿");
+    }catch(const std::exception& failure){
+        bool attempted=false,closed=false;std::string cleanup_error;
+        if(settings_guest_modal_identity(s,gui,modal)&&GetForegroundWindow()==modal.root){
+            try{if(s.control)key(s,VK_CONTROL,false);if(s.left)button(s,false);
+                attempted=true;settings_guest_modal_press(s,gui,modal,VK_ESCAPE);
+                closed=wait([&]{return !IsWindow(modal.root)&&gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root;},1500);
+            }catch(const std::exception& error){cleanup_error=error.what();}
+        }
+        s.log.emit("settings_native_file_modal_failure_cleanup","\"original_failure\":"+quote(failure.what())+
+            ",\"exact_original_modal\":"+std::to_string(reinterpret_cast<std::uintptr_t>(modal.root))+
+            ",\"actual_Escape_attempted\":"+(attempted?"true":"false")+",\"original_modal_closed_returned_to_own_settings\":"+(closed?"true":"false")+
+            ",\"cleanup_error\":"+quote(cleanup_error)+",\"original_failure_preserved\":true,\"functional_PASS_inferred\":false");
+        throw;
+    }
 }
 struct SettingsGuestRunValue {bool exists{};DWORD type{};std::wstring text;};
 SettingsGuestRunValue settings_guest_run_value(){
@@ -271,13 +328,31 @@ void settings_guest_import_export(State& s){
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
     std::vector<fs::path> old_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt."))old_backups.push_back(entry.path());
-    const auto stop_mark=read(s.log.path).size();cleanup(s);std::string stopped;
+    const auto stop_mark=read(s.log.path).size(),product_stop_mark=read(s.product_log).size();const auto stopped_pid=s.product_pid;
+    const bool exact_process_before=s.process&&stopped_pid&&GetProcessId(s.process)==stopped_pid&&process_birth(s.process)&&
+        WaitForSingleObject(s.process,0)==WAIT_TIMEOUT;cleanup(s);std::string stopped,input_recovery;bool forced=false;
     const auto driver_text=read(s.log.path);
     if(stop_mark<driver_text.size()){
         std::istringstream rows(driver_text.substr(stop_mark));std::string row;
-        while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"product_stop\"")!=std::string::npos)stopped=row;
+        while(std::getline(rows,row))if(row.ends_with('}')){
+            if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
+            if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)input_recovery=row;
+            forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
+        }
     }
-    s.log.check("corrupt_config_normal_stop_before_test_write",!s.process&&stopped.find("\"process_exit_observed\":true")!=std::string::npos&&stopped.find("\"product_exit_code\":0")!=std::string::npos);
+    const auto shutdown=record(s,product_stop_mark,"shutdown");
+    const bool resources=number(shutdown,"\"process_id\":")==stopped_pid&&
+        shutdown.find("\"own_hooks_stopped\":true")!=shutdown.npos&&shutdown.find("\"own_overlay_destroyed\":true")!=shutdown.npos&&
+        shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&
+        shutdown.find("\"visual_recovery_stopped\":true")!=shutdown.npos&&shutdown.find("\"visual_restore_confirmed\":true")!=shutdown.npos;
+    const bool delivered=input_recovery.find("\"check_requested\":true")!=input_recovery.npos&&
+        input_recovery.find("\"executed\":true")!=input_recovery.npos&&input_recovery.find("\"actual_down_up_delivered\":true")!=input_recovery.npos&&
+        input_recovery.find("\"DOWN_SendInput_called\":true")!=input_recovery.npos&&input_recovery.find("\"UP_SendInput_called\":true")!=input_recovery.npos;
+    s.log.check("corrupt_config_normal_stop_before_test_write",exact_process_before&&!s.process&&!forced&&resources&&delivered&&
+        stopped.find("\"quit_command_completed\":true")!=stopped.npos&&stopped.find("\"process_exit_observed\":true")!=stopped.npos&&
+        stopped.find("\"product_exit_code\":0")!=stopped.npos,"\"stopped_PID\":"+std::to_string(stopped_pid)+
+        ",\"this_stop_resource_receipt\":"+(resources?"true":"false")+",\"actual_client_input_recovery\":"+quote(delivered?"OBSERVED":"UNKNOWN_OR_FAILED")+
+        ",\"forced_termination_observed\":"+(forced?"true":"false")+",\"historical_shutdown_not_reused\":true");
     const auto attrs=GetFileAttributesW(path.c_str());if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))throw std::runtime_error("corrupt_config_not_exact_existing_plain_test_file");
     constexpr std::string_view corrupt="schema=1\nschema=1\nINTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG\n";
     {std::ofstream file(path,std::ios::binary|std::ios::trunc);file.write(corrupt.data(),static_cast<std::streamsize>(corrupt.size()));file.close();if(!file)throw std::runtime_error("corrupt_config_test_write_failed");}

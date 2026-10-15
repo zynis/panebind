@@ -1188,9 +1188,19 @@ void matrix_mixed_group(State& s,const std::shared_ptr<ApplicationTarget>& brows
 }
 void cleanup_applications(State& s){
     s.applications={};
+    std::vector<std::shared_ptr<ApplicationTarget>> unconfirmed;
     for(const auto& target:s.created_applications)if(target&&target->accepted&&!target->cleanup_confirmed){s.applications[0]=target;
-        if(!matrix_show_source(s,0,true))s.log.failed=true;close_application(s,*target);s.applications[0].reset();}
-    s.created_applications.clear();
+        bool closed=false;std::string why;
+        try{
+            if(target->identity&&IsWindow(target->identity->hwnd)&&!matrix_show_source(s,0,true))why="exact_root_show_not_confirmed";
+            closed=close_application(s,*target)&&target->cleanup_confirmed;
+        }catch(const std::exception& error){why=error.what();}
+        if(!closed){s.log.failed=true;unconfirmed.push_back(target);}
+        s.log.emit("application_cleanup_result","\"application\":"+quote(target->kind)+",\"result\":"+quote(closed?"PASS":"FAIL")+
+            ",\"actual_root_gone\":"+(target->cleanup_confirmed?"true":"false")+",\"registration_retained\":"+(closed?"false":"true")+
+            ",\"reason\":"+quote(why)+",\"identity_invalid_windows_not_controlled\":true");
+        s.applications[0].reset();}
+    s.created_applications=std::move(unconfirmed);
 }
 void independent_entry_ready(State&,std::string_view,bool);
 void application_matrix_flow(State& s){
@@ -1512,7 +1522,9 @@ SettingsGui gui_open(State& s){
 void gui_edit_number(State& s,const SettingsGui& gui,HWND edit,unsigned number_value){
     gui_click(s,gui,edit);gui_require_input(s,gui);key(s,VK_CONTROL,true);gui_press(s,gui,'A');key(s,VK_CONTROL,false);
     const auto wanted=std::to_wstring(number_value);for(const auto digit:wanted)gui_press(s,gui,static_cast<WORD>(digit));
-    s.log.check("GUI_actual_edit_keys",wait([&]{return gui_text(s,gui,edit)==wanted;}),"\"actual_text\":"+quote(utf8(gui_text(s,gui,edit))));
+    const bool edited=wait([&]{return gui_text(s,gui,edit)==wanted;});
+    const auto actual=gui_text(s,gui,edit);
+    s.log.check("GUI_actual_edit_keys",edited&&actual==wanted,"\"actual_text\":"+quote(utf8(actual)));
     const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
     s.log.check("GUI_actual_Tab_focus",wait([&]{const auto after=gui_focus(gui);return after&&after!=before&&gui_identity(s,gui,after);}));
 }
@@ -1788,6 +1800,12 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
     if(s.suite!="IndependentEntry")throw std::runtime_error("independent_gate_wrong_suite");
+    if(stage=="application_matrix.after"||stage.starts_with("portable.")){
+        const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
+            return target&&target->accepted&&!target->cleanup_confirmed;});
+        s.log.check("independent_application_cleanup_confirmed_before_next_scope",pending==0,
+            "\"stage\":"+quote(stage)+",\"unconfirmed_registered_roots\":"+std::to_string(pending)+",\"unknown_identity_not_closed_to_force_PASS\":true");
+    }
     const bool originals=std::all_of(s.frames.begin(),s.frames.end(),[&](const auto& f){return own(s,f.hwnd);});
     GUITHREADINFO source{sizeof(source)};
     const bool source_idle=GetGUIThreadInfo(s.owner,&source)&&!source.hwndCapture&&!source.hwndMoveSize&&!source.hwndMenuOwner;
@@ -2061,6 +2079,9 @@ void drive(State& s){
         catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
         application_matrix_flow(s);
         cleanup_explorers(s);
+        s.log.check("Full_application_registered_roots_closed_before_portable",std::none_of(s.created_applications.begin(),s.created_applications.end(),
+            [](const auto& target){return target&&target->accepted&&!target->cleanup_confirmed;}),
+            "\"unknown_identity_windows_not_closed_to_force_PASS\":true");
         if(s.configuration=="Release")owned_portable_zip_entry_case(s);
         cleanup(s);
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
