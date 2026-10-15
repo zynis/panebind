@@ -596,13 +596,15 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
     s.log.check(std::move(name),ok,"\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+
         ",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+",\"trajectory_pause_ms\":60,\"production_receipt\":"+quote(receipt));
 }
+product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
 void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     const auto mark=read(s.product_log).size();const auto raw_before=raw_mouse_observer_json();
     bool attempted=false,returned=false,raw_logged=false;std::string end;
     try{
         attempted=true;button(s,false);returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
-        Sleep(150);GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(source_thread(s,source),&gui)!=FALSE;const auto actual=visible(source_window(s,source));
+        Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
+        const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
         const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
         // Emit before the existing throwing assertion, including when its
         // normal-UP observation failed. Raw remains a fixture-side interval
@@ -614,7 +616,13 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"Raw_does_not_change_original_assertion_or_authority\":true");raw_logged=true;
         s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
             "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
-            ",\"source_thread_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture))+",\"production_end\":"+quote(end));
+            ",\"source_thread_capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+            ",\"source_GUI_known\":"+(gui_read?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
+            ",\"source_GUI_identity_reason\":"+quote(context_reason)+",\"source_GUI_owner_succeeded\":"+(context.owner_succeeded?"true":"false")+
+            ",\"source_GUI_owner_error\":"+std::to_string(context.owner_error)+",\"source_GUI_foreground_succeeded\":"+(context.foreground_succeeded?"true":"false")+
+            ",\"source_GUI_foreground_error\":"+std::to_string(context.foreground_error)+",\"source_GUI_foreground_before\":"+
+            std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
+            std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+",\"production_end\":"+quote(end));
     }catch(...){
         if(!raw_logged)try{s.log.emit("ordinary_gesture_UP_Raw_observation","\"generation\":"+std::to_string(g.generation)+",\"source_member\":"+std::to_string(source)+
             ",\"phase\":\"exception_during_existing_UP_observation\",\"single_test_UP_attempted\":"+(attempted?"true":"false")+
@@ -923,6 +931,26 @@ bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::opti
         return reject("terminal_not_exact_ConsoleWindowClass_of_explicit_cmd_child");
     if(actual)*actual=std::move(fresh);if(why)*why="exact_candidate_eligible";return true;
 }
+product::GuiContext fixture_source_gui_context(State& s,std::size_t source,std::string& why){
+    product::GuiContext result;const HWND h=source_window(s,source);const auto& target=s.applications.at(source);
+    if(target){
+        std::optional<product::Snapshot> fresh;
+        if(!target->accepted||!target->identity||!authorized_source(s,h)){
+            why="application_not_current_exact_authorized_root";return result;}
+        if(!application_fresh(s,*target,h,&fresh,&why)||!fresh)return result;
+        if(!product::Catalog::same(*target->identity,*fresh)){why="fresh_application_identity_changed";return result;}
+        // Use precisely the production adapter's owner-thread-first rule.
+        // Its Console-only foreground fallback still requires real GTI(0),
+        // exact active HWND and matching foreground observations on both sides.
+        return product::observe_gui_context(*fresh);
+    }
+    // Preserve the original owned/Explorer test path; no general foreground
+    // fallback or eligibility relaxation is introduced for other targets.
+    SetLastError(ERROR_SUCCESS);result.owner_succeeded=GetGUIThreadInfo(source_thread(s,source),&result.actual)!=FALSE;
+    result.owner_error=result.owner_succeeded?ERROR_SUCCESS:GetLastError();
+    if(result.owner_succeeded)result.mode=product::GuiContextMode::OwnerThread;
+    why="original_owner_thread_query";return result;
+}
 void application_binding_facts(State& s,ApplicationTarget& target){
     // One bounded post-failure observation, restricted to retained launch-tree
     // process handles. No unknown window is adopted or operated by diagnostics.
@@ -1205,10 +1233,17 @@ void matrix_escape_and_client(State& s,const std::string& label){
     const bool actual=matrix_client_child(s,facts[0],hit)&&
         SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&region==HTCLIENT;
     if(!actual)throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
-    const auto click_mark=read(s.product_log).size();button(s,true);button(s,false);Sleep(150);GUITHREADINFO gui{sizeof(gui)};
-    const bool focused=GetGUIThreadInfo(source_thread(s,0),&gui)&&gui.hwndFocus&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
+    const auto click_mark=read(s.product_log).size();button(s,true);button(s,false);Sleep(150);
+    std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
+    const bool focused=context.known()&&gui.hwndFocus&&IsWindow(gui.hwndFocus)&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
     s.log.check(label+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
         "\"actual_hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"focus_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndFocus))+
+        ",\"source_GUI_known\":"+(context.known()?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
+        ",\"source_GUI_identity_reason\":"+quote(context_reason)+",\"source_GUI_owner_succeeded\":"+(context.owner_succeeded?"true":"false")+
+        ",\"source_GUI_owner_error\":"+std::to_string(context.owner_error)+",\"source_GUI_foreground_succeeded\":"+(context.foreground_succeeded?"true":"false")+
+        ",\"source_GUI_foreground_error\":"+std::to_string(context.foreground_error)+",\"source_GUI_foreground_before\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+
         ",\"document_mutation\":false,\"semantic_text_delivery_not_proven_by_focus\":true");
     const auto target=s.applications[0];if(!target)throw std::runtime_error("matrix_client_application_binding_missing");
     const auto nonce=L"PaneBind-Client-"+s.run;

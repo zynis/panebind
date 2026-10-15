@@ -37,9 +37,30 @@ void settings_guest_unicode(State& s,std::wstring_view text,const std::function<
 }
 void settings_guest_replace(State& s,const SettingsGui& gui,HWND edit,std::wstring_view text){
     gui_click(s,gui,edit);gui_require_input(s,gui);key(s,VK_CONTROL,true);gui_press(s,gui,'A');key(s,VK_CONTROL,false);
-    settings_guest_unicode(s,text,[&]{return gui_identity(s,gui,edit)&&GetForegroundWindow()==gui.root&&gui_focus(gui)==edit;});
-    s.log.check("settings_actual_editor_input",wait([&]{return settings_guest_text(s,gui,edit)==text;}),
-        "\"input_kind\":\"actual_Unicode_keys\",\"content_logged\":false");
+    const auto exact=[&]{const auto style=GetWindowLongPtrW(edit,GWL_STYLE);
+        return gui_identity(s,gui,edit)&&GetForegroundWindow()==gui.root&&gui_focus(gui)==edit&&
+            gui_class(edit)==L"Edit"&&IsWindowVisible(edit)&&IsWindowEnabled(edit)&&
+            (style&ES_MULTILINE)&&(style&ES_WANTRETURN)&&!(style&ES_READONLY);};
+    // A multiline EDIT's native Enter supplies one hard CRLF. Do not inject
+    // Unicode CR and LF as two separate user operations and then assume the
+    // resulting control text has that same representation.
+    for(std::size_t begin=0;begin<text.size();){const auto end=text.find(L"\r\n",begin);
+        const auto line=text.substr(begin,end==std::wstring_view::npos?text.size()-begin:end-begin);
+        if(line.find_first_of(L"\r\n")!=std::wstring_view::npos)throw std::runtime_error("settings_test_noncanonical_line_break");
+        settings_guest_unicode(s,line,exact);if(end==std::wstring_view::npos)break;
+        if(!exact())throw std::runtime_error("settings_test_line_break_target_changed");gui_press(s,gui,VK_RETURN);begin=end+2;
+    }
+    std::wstring observed;const bool readback=wait([&]{gui_require_input(s,gui);
+        if(!exact())throw std::runtime_error("settings_test_readback_target_changed");
+        observed=settings_guest_text(s,gui,edit);return observed==text;});
+    const auto line_facts=[](std::wstring_view value){std::size_t pairs{};
+        for(std::size_t n=0;n+1<value.size();++n)if(value[n]==L'\r'&&value[n+1]==L'\n')++pairs;
+        return "{\"characters\":"+std::to_string(value.size())+",\"CR\":"+std::to_string(std::count(value.begin(),value.end(),L'\r'))+
+            ",\"LF\":"+std::to_string(std::count(value.begin(),value.end(),L'\n'))+",\"CRLF_pairs\":"+std::to_string(pairs)+
+            ",\"ends_in_line_break\":"+(!value.empty()&&(value.back()==L'\r'||value.back()==L'\n')?"true":"false")+"}";};
+    s.log.check("settings_actual_editor_input",readback,
+        "\"input_kind\":\"actual_Unicode_keys_native_Enter_between_lines\",\"expected_shape\":"+line_facts(text)+
+        ",\"actual_shape\":"+line_facts(observed)+",\"content_logged\":false,\"input_resent\":false");
 }
 // Buttons which open a modal cannot use gui_click's postcondition that focus
 // remains in the settings root. Validate the same actual hit, then inspect the
@@ -315,7 +336,8 @@ void settings_guest_exclusion(State& s){
             rule.excluded&&rule.window_class==utf8(s.class_name)&&rule.feature_mask==0xffffffffU;});
     s.log.check("rule_actual_GUI_added_exact_source_class",exact_rule);
     settings_guest_effect_layout(s);settings_guest_native_move(s,36,21,"excluded_Move");
-    std::string rules;for(const auto row:v::settings_detail::split(v::serialize(original),'\n'))if(row.starts_with("rule_count=")||row.starts_with("rule.")){rules+=row;rules+="\r\n";}
+    std::string rules;for(const auto row:v::settings_detail::split(v::serialize(original),'\n'))if(row.starts_with("rule_count=")||row.starts_with("rule.")){
+        if(!rules.empty())rules+="\r\n";rules+=row;}
     gui=gui_open(s);gui_page_select(s,gui,4);std::wstring wide_rules(rules.begin(),rules.end());
     settings_guest_replace(s,gui,gui_number(s,gui,L"rule.编号"),wide_rules);gui_save_enter(s,gui);
     s.log.check("rule_actual_GUI_removed_exclusion",settings_guest_configuration(s).rules==original.rules);settings_guest_move_effect(s,true,"rule_unexcluded_next_actual_Move");

@@ -2103,3 +2103,25 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   No timer/retry, foreign shell manipulation, focus operation or inferred
   LastError contract was added. Existing pinned architecture references are
   unchanged; external code copied or adapted: **NO**. Runtime remains pending.
+
+### V1 rules-editor native line breaks — 2026-10-16
+
+- Run `945c28c08a4a43d4b6801b15706aa33d`, source
+  `3a65a41e7e4c4382ddde4a343b7df30d301a4857`, actually completed the excluded
+  native Move at fixture532/534/536 without a product writer. Restoring the
+  original rules through real input then failed exact text readback at545;
+  the old driver appended a CRLF even to `rule_count=0` and injected CR and
+  LF separately. The evidence did not record the received string, so a
+  unique runtime cause is not established.
+- Actually read Microsoft's [Edit Control Text Operations](https://learn.microsoft.com/en-us/windows/win32/controls/edit-controls-text-operations)
+  and [About Edit Controls](https://learn.microsoft.com/en-us/windows/win32/controls/about-edit-controls).
+  A standard multiline edit represents a user hard line break as CRLF;
+  ES_WANTRETURN permits Enter to insert it. Original test-driver correction:
+  join rule rows with CRLF but no redundant final break, and use actual
+  Enter once between rows rather than Unicode CR followed by Unicode LF.
+  Retain exact foreground/focus/identity checks, exact readback, real Save
+  and parsed-rule/next-Move assertions. No WM_SETTEXT or normalized-readback
+  substitute. Bounded failure facts record character and CR/LF counts,
+  never rule content. New runtime validation remains pending; prior raw
+  failure is unchanged. Existing pinned architecture references reused;
+  external code copied/adapted: **NO**.
