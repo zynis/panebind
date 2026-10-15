@@ -160,7 +160,7 @@ public:
     void log_status(){
         const auto windows=catalog.all(settings);log.event("status","\"enabled\":"+std::string(settings.enabled?"true":"false")+
             ",\"hook_owner_running\":"+(input.healthy()?"true":"false")+",\"gesture_active\":"+(gesture?"true":"false")+
-            ",\"eligible_windows\":"+std::to_string(windows.size())+",\"operations\":"+std::to_string(operations)+",\"native_attempts\":"+std::to_string(native_attempts));
+            ",\"eligible_windows\":"+std::to_string(windows.size())+",\"operations\":"+std::to_string(operations)+",\"native_callsite_claims\":"+std::to_string(native_attempts));
     }
     bool save(v::Settings value){
         const auto error=v::validate(value);if(!error.empty()){notify(L"配置无效："+wide(error));return false;}
@@ -192,7 +192,8 @@ public:
         ++operations;
         if(stopping||!settings.enabled)return false;
         const bool completed_normal_up=completion&&!gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp;
-        const auto receipts=writer.batch(identities,plan.placements,settings,input.operation_guard(generation,completed_normal_up));
+        const HWND authority_source=gesture?gesture->down.prepared->source.hwnd:completed_normal_up&&!identities.empty()?identities.front().hwnd:nullptr;
+        const auto receipts=writer.batch(identities,plan.placements,settings,input.operation_guard(generation,completed_normal_up,authority_source));
         bool ok=receipts.size()==plan.placements.size();
         bool any_attempt=false,only_revocation=!receipts.empty();
         for(const auto& receipt:receipts){
@@ -201,7 +202,8 @@ public:
             if(receipt.native_attempted)++native_attempts;
             if(diagnostic||!receipt.accepted)log.event("placement","\"generation\":"+std::to_string(generation)+",\"operation\":"+std::to_string(operations)+
                 ",\"intent_reason\":\""+escaped(plan.reason)+"\""+
-                ",\"key\":"+std::to_string(receipt.before.key)+",\"native_attempted\":"+(receipt.native_attempted?"true":"false")+
+                ",\"key\":"+std::to_string(receipt.before.key)+",\"native_callsite_claimed\":"+(receipt.native_attempted?"true":"false")+
+                ",\"native_attempted\":"+(receipt.native_attempted?(receipt.completion_known?"true":"null"):"false")+
                 ",\"call_id\":"+std::to_string(receipt.call_id)+
                 ",\"native_succeeded\":"+(receipt.native_succeeded?"true":"false")+",\"error\":"+std::to_string(receipt.error)+
                 ",\"native_completion_known\":"+(receipt.completion_known?"true":"false")+
@@ -497,6 +499,7 @@ Application* application{};
 void Application::command(v::Action action,std::optional<Snapshot> target){
     if(action==v::Action::Pause){set_paused(settings.enabled);return;}
     if(action==v::Action::Settings){show_settings();return;}if(action==v::Action::Exit){DestroyWindow(window);return;}
+    if(!settings.enabled){notify(L"增强已暂停；请先恢复后再执行窗口命令。");return;}
     if(gesture)finish(v::End::Paused);
     // A hotkey may be the first action after startup, without mouse motion.
     // Tray commands may fall back to the last admitted app when our menu owns
@@ -917,6 +920,7 @@ void Application::finish(v::End reason){
         }
     }
     if(state.drag_visual)visual_restore(*state.drag_visual);
+    input.finish_completion(state.down.generation);
     log.event("gesture_end","\"generation\":"+std::to_string(state.down.generation)+",\"end\":"+std::to_string(static_cast<int>(reason))+
         ",\"normal_up\":"+std::string(reason==v::End::NormalUp?"true":"false")+",\"pending_retired\":true");
 }

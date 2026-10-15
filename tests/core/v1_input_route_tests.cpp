@@ -86,6 +86,21 @@ int main() {
           product::native_event_is_current(101,100),"previous gesture native event cannot invalidate new DOWN");
     check(product::native_event_is_current(2,0xfffffff0u)&&!product::native_event_is_current(0xfffffff0u,2),
           "native 32 bit timestamp fence handles system tick rollover");
+    // This is the production guard predicate, including the formerly unsafe
+    // normal-UP completion route. Follow the actual receive/dispatch order.
+    std::uint64_t active=1,completion=0;
+    check(product::operation_permission(1,active,completion,true,false),"g1 DOWN owns active writes");
+    active=0;completion=1;
+    check(!product::operation_permission(1,active,completion,true,false)&&
+          product::operation_permission(1,active,completion,true,true),"actual normal UP permits only its distinct completion route");
+    completion=0;active=2;
+    check(!product::operation_permission(1,active,completion,true,true),"new DOWN retires g1 completion even when its captured allow_completion boolean was true");
+    active=0;completion=2;
+    check(!product::operation_permission(1,active,completion,true,true)&&product::operation_permission(2,active,completion,true,true),
+          "g2 normal UP never revives g1");
+    completion=0;
+    check(!product::operation_permission(2,active,completion,true,true),"abort retires completion without pretending the native call was cancelled");
+    check(!product::operation_permission(2,0,2,false,true),"pause or stop independently rejects same-generation completion");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";
     return failures==0?0:1;
 }

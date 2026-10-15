@@ -34,21 +34,21 @@ bool InputService::start(HWND owner){
     return result==WAIT_OBJECT_0&&healthy_;
 }
 void InputService::stop(){
-    *available_=false;*authorized_=0;paused_=true;stop_requested_=true;
+    *completion_=0;*available_=false;*authorized_=0;paused_=true;stop_requested_=true;
     if(thread_.joinable()){const auto id=thread_id_.load();if(id)PostThreadMessageW(id,WM_QUIT,0,0);thread_.join();}
     prepared_.store({});
 }
-void InputService::pause(bool value){paused_=value;*available_=!value&&healthy_;const auto retired=authorized_->exchange(0);
+void InputService::pause(bool value){*completion_=0;paused_=value;*available_=!value&&healthy_;const auto retired=authorized_->exchange(0);
     const auto id=thread_id_.load();if(value&&id)PostThreadMessageW(id,WM_APP+1,static_cast<WPARAM>(retired),0);}
 POINT InputService::latest()const{auto p=point_.load();return {static_cast<LONG>(p>>32),static_cast<LONG>(p&0xffffffffu)};}
 bool InputService::push(InputEvent e){
     const auto w=write_.load(std::memory_order_relaxed);
     const auto next=(w+1)%static_cast<unsigned>(queue_.size());
-    if(next==read_.load(std::memory_order_acquire)){*available_=false;*authorized_=0;healthy_=false;
+    if(next==read_.load(std::memory_order_acquire)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
         if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         PostMessageW(owner_,catalog_message,1,0);return false;}
     queue_[w]=std::move(e);write_.store(static_cast<unsigned>(next),std::memory_order_release);
-    if(!PostMessageW(owner_,input_message,0,0)){*available_=false;*authorized_=0;healthy_=false;
+    if(!PostMessageW(owner_,input_message,0,0)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
         if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         return false;}return true;
 }
@@ -56,7 +56,7 @@ bool InputService::pop(InputEvent& e){const auto r=read_.load(std::memory_order_
     if(r==write_.load(std::memory_order_acquire))return false;e=std::move(queue_[r]);
     read_.store((r+1)%static_cast<unsigned>(queue_.size()),std::memory_order_release);return true;}
 void InputService::abort(core::v1::End end){
-    *authorized_=0;
+    *completion_=0;*authorized_=0;
     if(consumed_down_&&!aborted_){aborted_=true;active_end_=end;
         push({InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_});}
     // Retain the consumed-button pair until the actual matching UP; no synthetic
@@ -67,6 +67,9 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);
     const auto& packet=*reinterpret_cast<MSLLHOOKSTRUCT*>(param);
     const auto tick=GetTickCount64();
+    // Any newly observed physical/test DOWN retires an earlier UP's pending
+    // discrete dock commit, even if this new click passes through natively.
+    if(down(message))*self->completion_=0;
     self->point_=(static_cast<std::uint64_t>(static_cast<std::uint32_t>(packet.pt.x))<<32)|static_cast<std::uint32_t>(packet.pt.y);
     if(self->consumed_down_&&!self->aborted_&&self->stop_requested_)self->abort(core::v1::End::Exit);
     else if(self->consumed_down_&&!self->aborted_&&self->paused_)self->abort(core::v1::End::Paused);
@@ -120,6 +123,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             }
         }
     }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
+        *self->completion_=!self->aborted_&&self->active_end_==core::v1::End::NormalUp?self->generation_:0;
         *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
         self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
             self->active_end_,self->active_prepared_,self->active_action_});
@@ -179,7 +183,7 @@ void InputService::run(){
         else if(msg.message==WM_APP+2&&msg.wParam&&consumed_down_&&msg.wParam==generation_)abort(static_cast<core::v1::End>(msg.lParam));
         else{TranslateMessage(&msg);DispatchMessageW(&msg);}
     }
-    *available_=false;*authorized_=0;healthy_=false;KillTimer(receiver_,gesture_deadline_timer);
+    *completion_=0;*available_=false;*authorized_=0;healthy_=false;KillTimer(receiver_,gesture_deadline_timer);
     if(stop_ok)UnregisterHotKey(nullptr,910);if(hook_)UnhookWindowsHookEx(hook_);hook_=nullptr;
     for(auto h:events_)if(h)UnhookWinEvent(h);
     if(raw_ok){key.dwFlags=RIDEV_REMOVE;key.hwndTarget=nullptr;RegisterRawInputDevices(&key,1,sizeof(key));}

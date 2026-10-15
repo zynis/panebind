@@ -45,6 +45,10 @@ inline DownDecision route_down(const Prepared& prepared,int button,int clicks,un
 inline bool native_event_is_current(DWORD event_stamp,DWORD down_stamp) {
     return static_cast<DWORD>(event_stamp-down_stamp)<0x80000000u;
 }
+inline bool operation_permission(std::uint64_t generation,std::uint64_t active,std::uint64_t normal_up,
+                                 bool available,bool allow_completion){
+    return available&&(!generation||active==generation||(allow_completion&&normal_up==generation));
+}
 enum class InputKind { Down, Move, Up, Abort, Mapped };
 struct InputEvent {
     InputKind kind{};
@@ -70,14 +74,17 @@ public:
     void pause(bool value);
     bool allowed(std::uint64_t g)const {return g && authorized_->load()==g && !paused_;}
     void revoke(core::v1::End reason=core::v1::End::SourceLost){
+        if(reason!=core::v1::End::NormalUp)*completion_=0;
         const auto retired=authorized_->exchange(0);const auto id=thread_id_.load();
         if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(retired),static_cast<LPARAM>(reason));
     }
     // Safe to retain at a bounded native worker boundary, even if the UI
     // retires/destroys this service. Only shared atomics are captured.
-    std::function<bool()> operation_guard(std::uint64_t generation,bool normal_up_completion=false)const {
-        return [authority=authorized_,available=available_,generation,normal_up_completion]{
-            return available->load()&&(!generation||authority->load()==generation||normal_up_completion);
+    void finish_completion(std::uint64_t generation){completion_->compare_exchange_strong(generation,0);}
+    std::function<bool()> operation_guard(std::uint64_t generation,bool normal_up_completion=false,HWND source=nullptr)const {
+        return [authority=authorized_,completion=completion_,available=available_,generation,normal_up_completion,source]{
+            return (!generation||(source&&GetForegroundWindow()==source))&&
+                operation_permission(generation,authority->load(),completion->load(),available->load(),normal_up_completion);
         };
     }
     bool healthy()const {return healthy_;}
@@ -97,6 +104,7 @@ private:
     std::thread thread_;
     std::atomic<bool> paused_{false},healthy_{false},prepare_pending_{false},stop_requested_{false};
     std::shared_ptr<std::atomic<std::uint64_t>> authorized_{std::make_shared<std::atomic<std::uint64_t>>(0)};
+    std::shared_ptr<std::atomic<std::uint64_t>> completion_{std::make_shared<std::atomic<std::uint64_t>>(0)};
     std::shared_ptr<std::atomic<bool>> available_{std::make_shared<std::atomic<bool>>(false)};
     std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
     std::atomic<std::shared_ptr<const Prepared>> prepared_;
