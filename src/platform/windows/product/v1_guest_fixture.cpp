@@ -1285,6 +1285,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_layout_cases.h"
 #include "platform/windows/product/v1_guest_settings_cases.h"
 #include "platform/windows/product/v1_guest_product_chains.h"
+#include "platform/windows/product/v1_guest_interruptions.h"
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
@@ -1371,7 +1372,9 @@ void drive(State& s){
         owned_temporary_visual_inflight_case(s);
         owned_settings_lifecycle_cases(s);
         owned_dock_stretch_chains(s);
+        owned_interruption_cases(s);
         if(s.configuration=="Release"){
+            owned_finite_I11_chain(s);
             const auto idle=product::guest_test::measure_idle_60s(s.process,s.product_pid,process_birth(s.process));
             s.log.emit("Release_actual_idle_measurement",idle.json_fields());
             if(!idle.completed||idle.one_core_cpu_percent>=1.0||idle.after.working_bytes>80ULL*1024*1024)s.log.failed=true;

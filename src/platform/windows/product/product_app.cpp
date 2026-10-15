@@ -49,6 +49,51 @@ v::Edges edges(int region){switch(region){case 1:return {true,false,false,false}
 case 3:return {false,true,false,false};case 4:return {false,false,false,true};case 5:return {true,true,false,false};
 case 6:return {false,true,true,false};case 7:return {true,false,false,true};case 8:return {false,false,true,true};default:return {};}}
 bool is_resize(v::Edges e){return e.left||e.right||e.top||e.bottom;}
+struct FeedbackLine {
+    v::Point first,last;
+    bool operator==(const FeedbackLine&)const=default;
+};
+constexpr std::optional<FeedbackLine> selected_feedback_edge(v::Rect actual,v::Rect target,g::Edge moving,g::Edge matched){
+    if(actual.empty()||target.empty()||!g::edges_share_axis(moving,matched)||
+        g::edge_coordinate(actual,moving)!=g::edge_coordinate(target,matched))return {};
+    const auto coordinate=g::edge_coordinate(actual,moving);
+    return moving==g::Edge::Left||moving==g::Edge::Right?
+        FeedbackLine{{coordinate,actual.top()},{coordinate,actual.bottom()}}:
+        FeedbackLine{{actual.left(),coordinate},{actual.right(),coordinate}};
+}
+constexpr std::optional<FeedbackLine> shared_feedback_contact(const v::layout_detail::EdgeSegment& first,
+    const v::layout_detail::EdgeSegment& second,bool x){
+    const auto start=std::max(first.start,second.start),end=std::min(first.end,second.end);
+    if(first.index==second.index||first.low==second.low||first.coordinate!=second.coordinate||start>=end)return {};
+    return x?FeedbackLine{{first.coordinate,start},{first.coordinate,end}}:
+        FeedbackLine{{start,first.coordinate},{end,first.coordinate}};
+}
+std::vector<FeedbackLine> shared_feedback_edges(std::span<const v::Item> actual,v::Key source,v::Edges active,std::int64_t tolerance){
+    const auto found=std::find_if(actual.begin(),actual.end(),[&](const auto& item){return item.id==source;});
+    if(found==actual.end())return {};
+    const auto index=static_cast<std::size_t>(found-actual.begin());std::vector<FeedbackLine> result;
+    const auto axis=[&](bool x,bool low){
+        // Reuse the production layout's contiguous shared-line selection, but
+        // render only contacts ALREADY present in actual geometry. A tolerance
+        // gap or proposed line is not drawn as a successful shared edge.
+        const auto selected=v::layout_detail::resize_axis(actual,index,x,low,0,tolerance,true);
+        if(!selected.accepted)return;
+        for(std::size_t i=0;i<selected.edges.size();++i)for(std::size_t j=i+1;j<selected.edges.size();++j)
+            if(const auto line=shared_feedback_contact(selected.edges[i],selected.edges[j],x);
+                line&&std::find(result.begin(),result.end(),*line)==result.end())result.push_back(*line);
+    };
+    if(active.left||active.right)axis(true,active.left);
+    if(active.top||active.bottom)axis(false,active.top);
+    return result;
+}
+static_assert(selected_feedback_edge({10,20,110,100},{110,50,210,130},g::Edge::Right,g::Edge::Left)==
+    std::optional<FeedbackLine>{{{110,20},{110,100}}});
+static_assert(!selected_feedback_edge({10,20,109,100},{110,50,210,130},g::Edge::Right,g::Edge::Left));
+static_assert(!selected_feedback_edge({10,20,110,100},{10,110,210,130},g::Edge::Left,g::Edge::Top));
+static_assert(shared_feedback_contact({0,false,110,20,100},{1,true,110,50,130},true)==
+    std::optional<FeedbackLine>{{{110,50},{110,100}}});
+static_assert(!shared_feedback_contact({0,false,110,20,50},{1,true,110,50,130},true));
+static_assert(!shared_feedback_contact({0,false,110,20,100},{1,true,111,50,130},true));
 v::Edges stretch_edges(v::Action action){
     return {action==v::Action::StretchLeft||action==v::Action::StretchHorizontal||action==v::Action::StretchAll,
         action==v::Action::StretchTop||action==v::Action::StretchVertical||action==v::Action::StretchAll,
@@ -153,6 +198,7 @@ public:
     v::TimingHistogram input_post_timing;std::map<std::uint64_t,std::uint64_t> delayed_input_qpc;
     UINT_PTR seam_timer_serial{0x50420000};
     bool overlay_outline{};v::Rect overlay_bounds;std::vector<v::Rect> overlay_members;
+    std::vector<FeedbackLine> overlay_magnet_edges,overlay_shared_edges;
     std::wstring overlay_hint;UINT overlay_dpi{96};COLORREF overlay_color{},overlay_key{};
     explicit Application(HINSTANCE h):instance(h){}
     ~Application(){stop();}
@@ -475,7 +521,7 @@ public:
         tray();if(!paused)prepare();log_status();
     }
     void show_preview(std::optional<v::Rect> rect){
-        overlay_outline=false;overlay_members.clear();overlay_hint.clear();overlay_bounds={};
+        overlay_outline=false;overlay_members.clear();overlay_magnet_edges.clear();overlay_shared_edges.clear();overlay_hint.clear();overlay_bounds={};
         if(!overlay)return;
         const auto& config=gesture?gesture->config:settings;
         if(!rect||!config.preview){ShowWindow(overlay,SW_HIDE);return;}
@@ -490,10 +536,12 @@ public:
             ShowWindow(overlay,SW_HIDE);return;}
         InvalidateRect(overlay,nullptr,FALSE);
     }
-    void show_feedback(const std::vector<Snapshot>& actual,std::wstring hint){
+    void show_feedback(const std::vector<Snapshot>& actual,std::wstring hint,
+        std::vector<FeedbackLine> magnet_edges={},std::vector<FeedbackLine> shared_edges={}){
         if(!overlay||!gesture||!gesture->config.feedback||!input.allowed(gesture->down.generation)||actual.empty()){
             show_preview({});return;
         }
+        if(!gesture->ctrl&&magnet_edges.empty()){show_preview({});return;}
         const auto displays=catalog.displays();if(displays.empty()){show_preview({});return;}
         constexpr auto lo=std::numeric_limits<std::int32_t>::min(),hi=std::numeric_limits<std::int32_t>::max();
         const auto native=[](const v::Rect& r){
@@ -522,10 +570,23 @@ public:
         if(!top){show_preview({});return;}
         bounds={bounds.left(),std::max(desktop.top(),*top),bounds.right(),bounds.bottom()};
         if(!native(bounds)||!input.allowed(gesture->down.generation)){show_preview({});return;}
-        overlay_outline=true;overlay_bounds=bounds;overlay_members=std::move(clipped);overlay_hint=std::move(hint);
+        const auto clip_lines=[&](std::vector<FeedbackLine>& lines){
+            std::vector<FeedbackLine> result;
+            for(auto line:lines){
+                if(line.first.x==line.last.x&&line.first.x>=bounds.left()&&line.first.x<=bounds.right()){
+                    line.first.y=std::max(line.first.y,bounds.top());line.last.y=std::min(line.last.y,bounds.bottom());
+                    if(line.first.y<line.last.y)result.push_back(line);
+                }else if(line.first.y==line.last.y&&line.first.y>=bounds.top()&&line.first.y<=bounds.bottom()){
+                    line.first.x=std::max(line.first.x,bounds.left());line.last.x=std::min(line.last.x,bounds.right());
+                    if(line.first.x<line.last.x)result.push_back(line);
+                }
+            }return result;
+        };
+        overlay_outline=true;overlay_bounds=bounds;overlay_members=gesture->ctrl?std::move(clipped):std::vector<v::Rect>{};overlay_hint=std::move(hint);
+        overlay_magnet_edges=clip_lines(magnet_edges);overlay_shared_edges=clip_lines(shared_edges);
         overlay_dpi=actual.front().dpi;overlay_color=static_cast<COLORREF>(gesture->config.preview_color);
         for(const auto candidate:{RGB(1,2,3),RGB(4,5,6),RGB(7,8,9),RGB(10,11,12)}){
-            if(candidate!=overlay_color&&candidate!=GetSysColor(COLOR_INFOBK)&&candidate!=GetSysColor(COLOR_INFOTEXT)){overlay_key=candidate;break;}
+            if(candidate!=overlay_color&&candidate!=GetSysColor(COLOR_GRAYTEXT)&&candidate!=GetSysColor(COLOR_INFOBK)&&candidate!=GetSysColor(COLOR_INFOTEXT)){overlay_key=candidate;break;}
         }
         // The background is truly color-keyed out. Unlike a filled rectangle,
         // group feedback leaves the applications between the outlines visible.
@@ -780,7 +841,9 @@ void Application::begin(const InputEvent& e){
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+",\"original\":"+rectangle(fresh->visible));
     if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
-        L"Ctrl 临时邻接："+std::to_wstring(gesture->members.size())+(is_resize(gesture->edges)?L" 个窗口，共享活动边；尚未缩放":L" 个窗口；尚未移动"));
+        L"Ctrl 临时邻接："+std::to_wstring(gesture->members.size())+(is_resize(gesture->edges)?L" 个窗口；粗线为实际共享边，尚未缩放":L" 个窗口；细框仅表示成员，尚未移动"),{},
+        is_resize(gesture->edges)?shared_feedback_edges(items(gesture->members),fresh->key,gesture->edges,
+            dip(settings.adjacency_dip,fresh->dpi)):std::vector<FeedbackLine>{});
     if(e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u)){
         auto other=catalog.all(settings);other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
         const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(other),settings.smart_stretch);
@@ -980,14 +1043,17 @@ void Application::motion(const InputEvent& e){
     request.motion=m::MotionSample{state.previous,state.last_tick,e.tick,1000,dip(config.speed_dip,source.dpi)};
     request.interaction=is_resize(state.edges)?m::Interaction::Resize:m::Interaction::Move;
     request.edges={state.edges.left,state.edges.top,state.edges.right,state.edges.bottom};request.latched_resize=is_resize(state.edges);
+    std::optional<m::SatisfiedConstraint> adopted_x,adopted_y;
     const bool magnet_on=(is_resize(state.edges)?config.magnet_resize:config.magnet_move)&&(source.feature_mask&1u);
     if(magnet_on&&!(state.ctrl&&is_resize(state.edges))){
         const auto result=m::MagnetConstraintSolver::solve(request);
         if(result.proposal){const auto& proposal=*result.proposal;
-            if(state.ctrl){for(auto& p:plan.placements)p.visible=core::movement::translate_rect(p.visible,{proposal.move_delta.x,proposal.move_delta.y});}
+            bool adopted=false;
+            if(state.ctrl){for(auto& p:plan.placements)p.visible=core::movement::translate_rect(p.visible,{proposal.move_delta.x,proposal.move_delta.y});adopted=true;}
             else if(proposal.corrected.width()>=source.limits.min_width&&proposal.corrected.height()>=source.limits.min_height&&
-                proposal.corrected.width()<=source.limits.max_width&&proposal.corrected.height()<=source.limits.max_height)
-                src->visible=proposal.corrected;
+                proposal.corrected.width()<=source.limits.max_width&&proposal.corrected.height()<=source.limits.max_height){
+                src->visible=proposal.corrected;adopted=true;}
+            if(adopted){adopted_x=proposal.selected_x;adopted_y=proposal.selected_y;}
             const auto latch=[&](const auto& constraint)->std::optional<m::MagnetAxisPreference>{
                 if(!constraint)return {};return m::MagnetAxisPreference{constraint->target,constraint->kind,constraint->moving_edge,constraint->target_edge,dip(config.release_dip,source.dpi)};};
             state.x=latch(proposal.selected_x);state.y=latch(proposal.selected_y);
@@ -1007,8 +1073,34 @@ void Application::motion(const InputEvent& e){
         }}else if(state.x||state.y){
             if(const auto found=state.expected.find(source.key);found!=state.expected.end())actual.push_back(found->second);
         }
-        if(!actual.empty())show_feedback(actual,state.ctrl?
-            (is_resize(state.edges)?L"Ctrl 联动缩放：":L"Ctrl 联动移动：")+std::to_wstring(actual.size())+L" 个临时邻接窗口":L"");
+        std::vector<FeedbackLine> adopted_edges,shared_edges;
+        if(!actual.empty()){
+            auto scope=actual.front().visible;
+            for(const auto& member:actual)scope={std::min(scope.left(),member.visible.left()),std::min(scope.top(),member.visible.top()),
+                std::max(scope.right(),member.visible.right()),std::max(scope.bottom(),member.visible.bottom())};
+            const auto selected=[&](const std::optional<m::SatisfiedConstraint>& constraint){
+                if(!constraint)return;
+                std::optional<v::Rect> actual_target;
+                if(constraint->target.value()=="work"&&display!=displays.end()){
+                    const auto current_displays=catalog.displays();const auto current=std::find_if(current_displays.begin(),current_displays.end(),
+                        [&](const auto& d){return d.monitor==display->monitor;});
+                    if(current!=current_displays.end()&&current->work==display->work)actual_target=current->work;
+                }else for(const auto& target:state.targets)if(std::to_string(target.key)==constraint->target.value()){
+                    const auto current=catalog.get(target.hwnd,settings,nullptr,false,false);
+                    if(current&&Catalog::same(target,*current)&&(current->feature_mask&1u))actual_target=current->visible;
+                    break;
+                }
+                // Solver selection alone is not success evidence. The actual
+                // accepted writer result and a still-current target must agree.
+                if(actual_target)if(const auto line=selected_feedback_edge(scope,*actual_target,
+                    constraint->moving_edge,constraint->target_edge))adopted_edges.push_back(*line);
+            };
+            selected(adopted_x);selected(adopted_y);
+            if(state.ctrl&&is_resize(state.edges))shared_edges=shared_feedback_edges(items(actual),source.key,state.edges,dip(config.adjacency_dip,source.dpi));
+            show_feedback(actual,state.ctrl?
+                (is_resize(state.edges)?L"Ctrl 联动缩放：":L"Ctrl 联动移动：")+std::to_wstring(actual.size())+
+                    L" 个临时成员；细框为成员，粗线为实际吸附／共享边":L"",std::move(adopted_edges),std::move(shared_edges));
+        }
     }
     if(input.allowed(e.generation)&&config.shake&&!is_resize(state.edges)&&(source.feature_mask&32u)&&state.shake.sample({e.point.x,e.point.y},e.tick,
         static_cast<int>(dip(config.shake_amplitude_dip,source.dpi)),static_cast<unsigned>(config.shake_reversals),static_cast<std::uint64_t>(config.shake_window_ms))){
@@ -1216,14 +1308,34 @@ LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
         HBRUSH brush=CreateSolidBrush(app?(app->overlay_outline?app->overlay_key:app->overlay_color):RGB(0,120,215));
         FillRect(dc,&r,brush);DeleteObject(brush);
         if(app&&app->overlay_outline){
-            const int thickness=std::max(1,MulDiv(2,static_cast<int>(app->overlay_dpi),96));
-            HBRUSH line=CreateSolidBrush(app->overlay_color);
+            const int thickness=std::max(1,MulDiv(1,static_cast<int>(app->overlay_dpi),96));
+            HBRUSH line=CreateSolidBrush(GetSysColor(COLOR_GRAYTEXT));
             for(const auto& member:app->overlay_members){
                 RECT border{static_cast<LONG>(member.left()-app->overlay_bounds.left()),static_cast<LONG>(member.top()-app->overlay_bounds.top()),
                     static_cast<LONG>(member.right()-app->overlay_bounds.left()),static_cast<LONG>(member.bottom()-app->overlay_bounds.top())};
                 for(int stroke=0;stroke<thickness&&border.right>border.left&&border.bottom>border.top;++stroke){FrameRect(dc,&border,line);InflateRect(&border,-1,-1);}
             }
             DeleteObject(line);
+            const auto draw_edges=[&](const std::vector<FeedbackLine>& lines,int dip_width){
+                const LONG width=std::max(1,MulDiv(dip_width,static_cast<int>(app->overlay_dpi),96));
+                HBRUSH highlight=CreateSolidBrush(app->overlay_color);
+                for(const auto& segment:lines){
+                    const LONG left=static_cast<LONG>(segment.first.x-app->overlay_bounds.left());
+                    const LONG top=static_cast<LONG>(segment.first.y-app->overlay_bounds.top());
+                    const LONG right=static_cast<LONG>(segment.last.x-app->overlay_bounds.left());
+                    const LONG bottom=static_cast<LONG>(segment.last.y-app->overlay_bounds.top());
+                    RECT strip{};
+                    if(left==right){const LONG x=std::clamp(left-width/2,0L,std::max(0L,r.right-width));
+                        strip={x,top,std::min(r.right,x+width),bottom};}
+                    else{const LONG y=std::clamp(top-width/2,0L,std::max(0L,r.bottom-width));
+                        strip={left,y,right,std::min(r.bottom,y+width)};}
+                    if(strip.left<strip.right&&strip.top<strip.bottom)FillRect(dc,&strip,highlight);
+                }
+                DeleteObject(highlight);
+            };
+            // Member membership is a thin neutral outline. Thick coloured
+            // strokes identify only actual selected magnet/shared-edge facts.
+            draw_edges(app->overlay_shared_edges,3);draw_edges(app->overlay_magnet_edges,4);
             if(!app->overlay_hint.empty()){
                 RECT caption=r;caption.bottom=std::min<LONG>(caption.bottom,MulDiv(25,static_cast<int>(app->overlay_dpi),96));
                 HBRUSH background=CreateSolidBrush(GetSysColor(COLOR_INFOBK));FillRect(dc,&caption,background);DeleteObject(background);

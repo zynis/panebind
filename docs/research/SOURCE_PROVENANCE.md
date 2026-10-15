@@ -1717,3 +1717,13 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   click. The old rejection did not record the actual hit HWND/class. New
   evidence records both target and hit; the layout fix remains a candidate
   until actual clicks pass. No copied/adapted sample implementation.
+- Exact-edge feedback (2026-10-15, original V1 code): reused the previously
+  inspected FancyZones overlay teardown / coordinate history and AltSnap
+  hollow-preview lessons above (reference only). Re-read official
+  [extended window styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles),
+  [SetLayeredWindowAttributes](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setlayeredwindowattributes)
+  and [FillRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-fillrect).
+  Thin member outlines are distinct from thick, exact-postverified selected
+  magnet edges / actual shared contacts. Existing nonactivating, hit-transparent
+  overlay semantics are unchanged. No external code copied or adapted; native
+  visual acceptance remains dependent on the matching guest run.
