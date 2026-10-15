@@ -1553,3 +1553,68 @@ clear；显式 foreground TID 的 GetGUIThreadInfo 与前后 tuple 是有序而�
 字段；查询失败保留 null/error。SetForegroundWindow 拒绝不唯一归因；SendInput
 没有目标 HWND，禁止为通过测试干预第三方 capture。无新枚举器/foreign title/
 path/content 读取，无 hook、输入或窗口操作扩权。
+## V1 production mainline — 2026-10-15
+
+Additional official platform checks on 2026-10-15: `WM_GETMINMAXINFO`,
+`MINMAXINFO`, `SendMessageTimeoutW`, `GetUserObjectInformationW` (`UOI_IO`),
+`GetGUIThreadInfo`, and `GetLayeredWindowAttributes` were read on Microsoft
+Learn. The production GUI queries declared min/max track bounds with a bounded
+OS-marshalled system message, outside the input callback; unknown/hung replies
+reject eligibility. Arbitrary application sizing grids are not inferred from
+this message. Input-desktop checks use actual `UOI_IO` plus active-session facts,
+not desktop names alone. These are original adapters, not imported source.
+
+- https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-getminmaxinfo
+- https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-minmaxinfo
+- https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw
+- https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getuserobjectinformationw
+- https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo
+- https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getlayeredwindowattributes
+
+Scope: user-approved [V1 contract](../PANEBIND_V1_DEVELOPMENT_GUIDE.md), not a
+rewrite of the older observer/Explorer experiment permissions or verdicts.
+Original PaneBind implementation; external code copied/adapted/translated: NO.
+
+- AltSnap (mature maintained), revision 5c86416ad21e4b72844a998a746bd3bb0bee5f5d,
+  GPL-3.0-or-later, reference-only: existing ALTSNAP_REVIEW and hook/worker
+  provenance reused; pinned hooks.c and License.txt actually re-read, plus
+  [PR609 worker history](https://github.com/RamonUnch/AltSnap/pull/609).
+  Lesson: keep callback work separate from placement and own complete input
+  pairs; neither its GPL implementation nor polling fallback is reused.
+- PowerToys/FancyZones (mature production), revision 19c4d805321db86f3634e6968e14dbf25cbba14a,
+  root LICENSE MIT, reference-only: existing FANCYZONES_REVIEW reused;
+  pinned FancyZonesApp.cpp/LICENSE and actual
+  [destroy-abort diff](https://github.com/microsoft/PowerToys/commit/dd26d86580168d2e368701f7b0c4d629dc9cd9ac)
+  read again. Event ingress, STA owner dispatch, lifecycle invalidation and
+  abort-not-commit are applicable lessons; FancyZones is not evidence that
+  PaneBind's newly selected mouse route works.
+- Official Microsoft contracts actually read, paraphrase only:
+  [LowLevelMouseProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc),
+  [SetWindowsHookEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowshookexw),
+  [RegisterHotKey](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerhotkey),
+  [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos),
+  [current virtual desktop](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ivirtualdesktopmanager-iswindowoncurrentvirtualdesktop).
+  Own-process LL callback, dedicated message loop, bounded handoff, negative-code
+  passthrough, possible silent hook removal, real registration errors, no F12,
+  actual frame postverify and explicit desktop eligibility are preserved.
+  Existing geometry/frame/Resize research is reused; no foreign WM_GETMINMAXINFO
+  response is presumed to reveal every application constraint.
+- Guest-only Medium launch research: official
+  [CreateRestrictedToken](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-createrestrictedtoken),
+  [DuplicateTokenEx](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-duplicatetokenex),
+  [SetTokenInformation](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-settokeninformation),
+  [token information](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ne-winnt-token_information_class),
+  [CreateProcessWithTokenW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithtokenw),
+  [CreateProcessAsUserW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessasuserw),
+  [MIC](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control).
+  Use an already-linked standard token if available, otherwise a newly created
+  LUA-restricted child token; verify actual SID/session/Medium/non-elevated
+  facts before resuming that guest child. Do not modify the original token,
+  host accounts, UAC or policy, or infer Medium from a requested flag.
+  These are design/API facts, not yet a native test result.
+- The V1 seam preview uses a generation/zone-specific, one-shot
+  [SetTimer](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-settimer)
+  / [KillTimer](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-killtimer)
+  wait, read 2026-10-15. It never samples the cursor or calls the geometry writer.
+  Queued timer messages survive cancellation; a never-reused identifier filters
+  obsolete generations. This is not a resident polling input source.

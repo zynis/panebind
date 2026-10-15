@@ -1,5 +1,49 @@
 enable_language(RC)
 
+# Ordinary-permission V1 product. Historical observer and exact Explorer
+# experiments remain separate and retain their original contracts.
+execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    OUTPUT_VARIABLE PANEBIND_V1_SHA OUTPUT_STRIP_TRAILING_WHITESPACE)
+add_library(panebind_windows_product STATIC
+    product/window_catalog.cpp product/window_writer.cpp
+    product/input_service.cpp product/settings_window.cpp product/product_app.cpp)
+target_link_libraries(panebind_windows_product PUBLIC panebind_core PRIVATE
+    user32 gdi32 dwmapi advapi32 ole32 uuid shell32 comctl32 comdlg32 wtsapi32
+    panebind_windows_operation_geometry)
+target_compile_definitions(panebind_windows_product PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
+    PANEBIND_BUILD_SHA="${PANEBIND_V1_SHA}")
+panebind_enable_warnings(panebind_windows_product)
+add_executable(panebind WIN32 ../../app/v1_main.cpp product/product.rc)
+target_link_libraries(panebind PRIVATE panebind_windows_product)
+target_compile_definitions(panebind PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+panebind_enable_warnings(panebind)
+add_executable(panebind-v1-guest-fixture WIN32 product/v1_guest_fixture.cpp product/product.rc)
+target_compile_definitions(panebind-v1-guest-fixture PRIVATE
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
+    PANEBIND_BUILD_SHA="${PANEBIND_V1_SHA}")
+target_link_libraries(panebind-v1-guest-fixture PRIVATE user32 gdi32 dwmapi wtsapi32 advapi32 shell32)
+target_compile_features(panebind-v1-guest-fixture PRIVATE cxx_std_20)
+panebind_enable_warnings(panebind-v1-guest-fixture)
+if(MSVC)
+    target_link_options(panebind PRIVATE /MANIFEST:NO)
+    target_link_options(panebind-v1-guest-fixture PRIVATE /MANIFEST:NO)
+endif()
+if(BUILD_TESTING)
+    add_executable(panebind-v1-writer-tests product/window_writer_tests.cpp)
+    target_link_libraries(panebind-v1-writer-tests PRIVATE panebind_windows_product)
+    target_compile_definitions(panebind-v1-writer-tests PRIVATE UNICODE _UNICODE)
+    panebind_enable_warnings(panebind-v1-writer-tests)
+    add_test(NAME v1-writer COMMAND panebind-v1-writer-tests)
+    add_executable(panebind-v1-input-route-tests ../../../tests/core/v1_input_route_tests.cpp)
+    target_link_libraries(panebind-v1-input-route-tests PRIVATE panebind_windows_product)
+    target_compile_definitions(panebind-v1-input-route-tests PRIVATE UNICODE _UNICODE)
+    panebind_enable_warnings(panebind-v1-input-route-tests)
+    add_test(NAME v1-input-route COMMAND panebind-v1-input-route-tests)
+    set_tests_properties(v1-writer v1-input-route PROPERTIES LABELS "offline")
+endif()
+
 add_library(
     panebind_windows_observer
     STATIC
