@@ -18,6 +18,43 @@ function Marker([string]$Path) {
     if($value -cnotmatch '^[0-9a-f]{32}$'){throw 'Invalid exact run marker.'}
     return $value
 }
+function Fixture-ExitReason([uint32]$Code) {
+    # Safe meanings of the actual fixture exit status. These never infer a
+    # platform cause, input delivery or product PASS from a numeric exit.
+    $reasons=@{
+        0=@('driver_exited_zero_evidence_required',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('cZqoUgCQ+lH2lgz/zU57mA1ZOGifUv2ADk4FbgZ0wYtuYw=='))))
+        1=@('fixture_runtime_or_function_failed',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZgBpAHgAdAB1AHIAZQAgANCPTIgWYp9S/YDAaOVnMVkljQ=='))))
+        64=@('fixture_command_line_unavailable',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('4GXVbPuL1lMgAGYAaQB4AHQAdQByAGUAIAB9VOROTIg='))))
+        78=@('initial_guest_scope_not_authorized',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('HVLLWSAAZwB1AGUAcwB0ACAAJo03YgEwUgB1AG4ASQBkACAAFmLCU3BlA4P0Vg1OJns='))))
+        80=@('input_RunId_marker_invalid',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k49lUe52VV8gAFIAdQBuAEkAZAAgAAdosIsNTu9T+4sWYg1OOVNNkQ=='))))
+        81=@('output_RunId_marker_invalid',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k4/6Ue52VV8gAFIAdQBuAEkAZAAgAAdosIsNTu9T+4sWYg1OOVNNkQ=='))))
+        82=@('output_lexical_path_not_exact',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k4/6UcJTcGUNTi9mvnxueIhjQ2fvjYRf'))))
+        83=@('product_lexical_path_not_exact',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('p07BVMJTcGUNTi9mLGcgAFIAdQBuAEkAZAAgAIR2vnxueCAARABlAGIAdQBnAC8AUgBlAGwAZQBhAHMAZQAgAO+NhF8='))))
+        84=@('output_directory_not_plain',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k4/6Ue52VV8NTu9T+4sBMA1OL2budlVfFmJ3UQlnzZHjiZBnXlwnYBv/KmeZUSAAZwB1AGEAcgBkACAA5WXXXw=='))))
+        85=@('guard_evidence_creation_failed',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('4GXVbLBl+l4gAGcAdQBhAHIAZAAgAOVl118b//JdCWeHZfZODU4aT4aJ1nY='))))
+        86=@('input_directory_not_plain',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k49lUe52VV8NTu9T+4sBMA1OL2budlVfFmJ3UQlnzZHjiZBnXlwnYA=='))))
+        87=@('own_token_not_verified_Medium_non_elevated',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZgBpAHgAdAB1AHIAZQAgAOqBq44gAHQAbwBrAGUAbgAgACpnOGieWzpOIABNAGUAZABpAHUAbQAgABROXpfQY0dT'))))
+        88=@('own_interactive_session_unavailable',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZgBpAHgAdAB1AHIAZQAgAOqBq45el/aWpE6STiAAcwBlAHMAcwBpAG8AbgAgAA1O71M4aJ5b'))))
+        89=@('own_Default_input_desktop_not_verified',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZgBpAHgAdAB1AHIAZQAgAOqBq44gAEQAZQBmAGEAdQBsAHQAIACTj2VRTGhilxZiIABVAE8ASQBfAEkATwAgACpnGpDHjw=='))))
+        90=@('own_WTS_session_not_active',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZgBpAHgAdAB1AHIAZQAgAOqBq44gAFcAVABTACAAGk/diypnOGieWzpOIABBAGMAdABpAHYAZQA='))))
+        91=@('output_canonical_path_not_exact',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k4/6Ue52VV/EiQOD742EXw1O71P7ixZiDU5Je45OiGNDZ++NhF8='))))
+        92=@('product_directory_not_plain',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('LGcgAFIAdQBuAEkAZAAgAKdOwVTudlVfDU7hbrONbmYakO52VV+BiUJs'))))
+        93=@('Debug_input_directory_not_plain',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('RABlAGIAdQBnACAAk49lUVBb7nZVXw1O4W6zjW5mGpDudlVfgYlCbA=='))))
+        94=@('actual_product_not_plain_file',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('8l0NWTZSp07BVA1OL2bvUzhonluEdm5mGpCHZfZO'))))
+        95=@('input_product_not_plain_file',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('k49lUadOwVQNTi9m71M4aJ5bhHZuZhqQh2X2Tg=='))))
+        96=@('product_canonical_path_not_exact',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('p07BVMSJA4PvjYRfDU7vU/uLFmINTkl7jk4sZyAAUgB1AG4ASQBkACAAvnxueO+NhF8='))))
+        97=@('product_source_hash_mismatch_or_unreadable',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('p07BVA5Ok49lUTZSwVTIVAxeDU4ATvSBFmINTu9T+4vWUw=='))))
+        98=@('portable_run_marker_missing',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('LGcgAFIAdQBuAEkAZAAgAKdOwVQ6fxFcv086ZBlQCZAHaLCL'))))
+        99=@('preexisting_product_instance_present',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('8l0JZ6dOwVSeW4tPDP/SYt1+DVkodQ=='))))
+        100=@('PMV2_context_not_available',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('4GXVbDhonlsgAFAATQB2ADIAIABEAFAASQAgAApOC06HZQ=='))))
+        101=@('product_runtime_directory_is_not_fresh',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('LGcgAFIAdQBuAEkAZAAgAPJdCWenTsFU5WXXXxZivotufwz/0mLdfoaJ1nY='))))
+        102=@('product_changed_after_guard',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('jFsQYiAAZwB1AGEAcgBkACAADlQ2UsFUyFQMXo1RIWvAaOVnMVkljQ=='))))
+        103=@('guard_observation_or_evidence_exception',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZwB1AGEAcgBkACAAwonfWxZiwYtuY5lRZVECXzheG/8NTqhjrWV3UVNPr3ODWJ9T4FY='))))
+    }
+    if($reasons.ContainsKey([int]$Code)){$reason=$reasons[[int]$Code]}
+    else{$reason=@('unmapped_fixture_exit_status',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('KmcgZgRchHYgAGYAaQB4AHQAdQByAGUAIAAAkPpRtnIBYAz/AJfAaOVnn1PLWcGLbmM='))))}
+    [ordered]@{code=$Code;reason_en=$reason[0];reason_zh=$reason[1];feature_pass_inferred=$false}
+}
 try {
     # These checks precede compilation or any token/process creation API. This
     # entry is not a general launch tool and has no host override switch.
@@ -297,6 +334,9 @@ public static class PaneBindV1MediumGuest {
             fixture=$fixture;fixture_sha256=(Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash;
             arguments=$arguments;actual_result=$null;feature_result='NOT_EVALUATED';human_uat='NOT_RUN'}
         $stage.actual_result=[PaneBindV1MediumGuest]::Run($fixture,$arguments,[uint32]$StageTimeoutSeconds)
+        if($stage.actual_result.ContainsKey('fixture_exit_code')){
+            $stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result['fixture_exit_code'])
+        }
         $summary.stages+=,$stage
         New-Evidence (Join-Path $outputDir ($RunId+'-'+$configuration+'-launch.json')) ($stage|ConvertTo-Json -Depth 15)
         if($stage.actual_result.status -cne 'FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED' -or $stage.actual_result.forced_test_cleanup){

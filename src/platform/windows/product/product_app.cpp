@@ -891,7 +891,13 @@ void Application::finish(v::End reason){
         if(current&&Catalog::same(state.down.prepared->source,*current)&&
             state.expected.contains(current->key)&&current->visible==state.expected.at(current->key).visible&&
             current->positioning==state.expected.at(current->key).positioning&&!stopping&&settings.enabled){
-            if(*state.dock_action==v::Action::Maximize)ShowWindowAsync(current->hwnd,SW_MAXIMIZE);
+            if(*state.dock_action==v::Action::Maximize){
+                const auto guard=input.operation_guard(state.down.generation,true,current->hwnd);
+                const bool claimed=guard();const bool requested=claimed&&ShowWindowAsync(current->hwnd,SW_MAXIMIZE)!=FALSE;
+                log.event("normal_up_maximize","\"generation\":"+std::to_string(state.down.generation)+
+                    ",\"native_attempted\":"+(claimed?"true":"false")+",\"request_started\":"+(requested?"true":"false")+
+                    ",\"actual_state_completion\":\"not_observed_by_request_return\"");
+            }
             else if(apply({true,"normal_up_dock",{{current->key,*state.dock_rect}}},{*current},state.down.generation,true))remember_receipt(*current,true);
         }
     }else if(reason==v::End::Escape){

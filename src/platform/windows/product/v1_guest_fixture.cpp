@@ -64,11 +64,11 @@ bool desktop(){
         GetUserObjectInformationW(h,UOI_IO,&receiving_input,sizeof(receiving_input),&bytes)&&receiving_input!=FALSE;
     const bool closed=CloseDesktop(h)!=FALSE;return ok&&closed&&equal(a.data(),L"Default")&&equal(a.data(),b.data());
 }
-bool medium(HANDLE process,int* integrity=nullptr,bool* elevated=nullptr){
-    HANDLE raw{};if(!OpenProcessToken(process,TOKEN_QUERY,&raw))return false;Handle token(raw);
+bool medium(HANDLE process,int* integrity=nullptr,bool* elevated=nullptr,DWORD* error=nullptr){
+    if(error)*error=0;HANDLE raw{};if(!OpenProcessToken(process,TOKEN_QUERY,&raw)){if(error)*error=GetLastError();return false;}Handle token(raw);
     alignas(TOKEN_MANDATORY_LABEL) std::array<unsigned char,512> bytes{};DWORD size{};TOKEN_ELEVATION elevation{};
-    if(!GetTokenInformation(token.value,TokenIntegrityLevel,bytes.data(),static_cast<DWORD>(bytes.size()),&size)||
-        !GetTokenInformation(token.value,TokenElevation,&elevation,sizeof(elevation),&size))return false;
+    if(!GetTokenInformation(token.value,TokenIntegrityLevel,bytes.data(),static_cast<DWORD>(bytes.size()),&size)){if(error)*error=GetLastError();return false;}
+    if(!GetTokenInformation(token.value,TokenElevation,&elevation,sizeof(elevation),&size)){if(error)*error=GetLastError();return false;}
     const auto sid=reinterpret_cast<TOKEN_MANDATORY_LABEL*>(bytes.data())->Label.Sid;
     if(!IsValidSid(sid)||!*GetSidSubAuthorityCount(sid))return false;
     const auto rid=*GetSidSubAuthority(sid,*GetSidSubAuthorityCount(sid)-1U);
@@ -599,29 +599,95 @@ void drive(State& s){
     if(SUCCEEDED(apartment))CoUninitialize();
     PostThreadMessageW(s.owner,WM_QUIT,0,0);
 }
-bool guard(State& s){
-    if(s.run.size()!=32||!std::all_of(s.run.begin(),s.run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return false;
+int guard_reject(State& s,int code,std::string_view reason){
+    if(!s.log.path.empty())s.log.emit("guard_rejected","\"exit_code\":"+std::to_string(code)+",\"reason\":"+quote(reason)+",\"input_sent\":false");
+    return code;
+}
+bool guard_desktop(State& s){
+    const HDESK input=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);const DWORD open_error=input?0:GetLastError();
+    const HDESK owner=GetThreadDesktop(GetCurrentThreadId());const HWINSTA station=GetProcessWindowStation();
+    std::array<wchar_t,128> input_name{},owner_name{},station_name{};DWORD needed{};BOOL input_io{},owner_io{};
+    const bool input_named=input&&GetUserObjectInformationW(input,UOI_NAME,input_name.data(),static_cast<DWORD>(sizeof(input_name)),&needed);
+    const DWORD input_name_error=input_named?0:input?GetLastError():open_error;
+    const bool owner_named=owner&&GetUserObjectInformationW(owner,UOI_NAME,owner_name.data(),static_cast<DWORD>(sizeof(owner_name)),&needed);
+    const DWORD owner_name_error=owner_named?0:GetLastError();
+    const bool station_named=station&&GetUserObjectInformationW(station,UOI_NAME,station_name.data(),static_cast<DWORD>(sizeof(station_name)),&needed);
+    const DWORD station_error=station_named?0:GetLastError();
+    const bool input_queried=input&&GetUserObjectInformationW(input,UOI_IO,&input_io,sizeof(input_io),&needed);
+    const DWORD input_io_error=input_queried?0:input?GetLastError():open_error;
+    const bool owner_queried=owner&&GetUserObjectInformationW(owner,UOI_IO,&owner_io,sizeof(owner_io),&needed);
+    const DWORD owner_io_error=owner_queried?0:GetLastError();
+    const bool closed=!input||CloseDesktop(input)!=FALSE;const DWORD close_error=closed?0:GetLastError();
+    s.log.emit("guard_desktop","\"open_input_succeeded\":"+std::string(input?"true":"false")+",\"open_input_error\":"+std::to_string(open_error)+
+        ",\"input_name\":"+quote(utf8(input_name.data()))+",\"input_name_error\":"+std::to_string(input_name_error)+
+        ",\"owner_name\":"+quote(utf8(owner_name.data()))+",\"owner_name_error\":"+std::to_string(owner_name_error)+
+        ",\"window_station\":"+quote(utf8(station_name.data()))+",\"station_name_error\":"+std::to_string(station_error)+
+        ",\"input_uoi_io\":"+(input_queried?(input_io?"true":"false"):"null")+",\"input_uoi_error\":"+std::to_string(input_io_error)+
+        ",\"owner_uoi_io\":"+(owner_queried?(owner_io?"true":"false"):"null")+",\"owner_uoi_error\":"+std::to_string(owner_io_error)+
+        ",\"close_input_succeeded\":"+(closed?"true":"false")+",\"close_input_error\":"+std::to_string(close_error));
+    return input&&input_named&&owner_named&&station_named&&input_queried&&owner_queried&&input_io&&owner_io&&closed&&
+        equal(input_name.data(),L"Default")&&equal(owner_name.data(),L"Default")&&equal(station_name.data(),L"WinSta0");
+}
+int guard(State& s){
+    // Before the exact guest + lexical scope + markers, never write evidence
+    // or resolve arbitrary caller-supplied filesystem paths.
+    if(s.run.size()!=32||!std::all_of(s.run.begin(),s.run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
     std::array<wchar_t,128> username{};DWORD length=static_cast<DWORD>(username.size()),session{};
-    if(!GetUserNameW(username.data(),&length)||!equal(username.data(),L"WDAGUtilityAccount")||
-        !ProcessIdToSessionId(GetCurrentProcessId(),&session)||!session||!medium(GetCurrentProcess())||!desktop())return false;
-    LPWSTR value{};DWORD bytes{};const bool queried=WTSQuerySessionInformationW(WTS_CURRENT_SERVER_HANDLE,session,WTSConnectState,&value,&bytes)!=FALSE;
-    const bool active=queried&&bytes>=sizeof(WTS_CONNECTSTATE_CLASS)&&*reinterpret_cast<WTS_CONNECTSTATE_CLASS*>(value)==WTSActive;if(value)WTSFreeMemory(value);if(!active)return false;
-    const fs::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";std::error_code error;
-    if(!plain_directory(input)||!plain_directory(output)||!equal(fs::weakly_canonical(s.output,error).wstring(),output.wstring())||error||
-        !marker(input/L"panebind-v1-input.marker",s.run)||!marker(output/L"panebind-v1-output.marker",s.run))return false;
-    const auto actual=fs::canonical(s.input_product,error);if(error)return false;
+    if(!GetUserNameW(username.data(),&length)||!equal(username.data(),L"WDAGUtilityAccount"))return 78;
+    const fs::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";
+    if(!s.output.is_absolute()||!equal(s.output.lexically_normal().wstring(),output.wstring()))return 82;
+    const auto requested=s.input_product.lexically_normal();
     const fs::path debug_dir=output/(s.run+L"-product-Debug"),release_dir=output/(s.run+L"-product-Release");
-    const bool debug=equal(actual.wstring(),(debug_dir/L"panebind.exe").wstring());
-    if(!debug&&!equal(actual.wstring(),(release_dir/L"panebind.exe").wstring()))return false;
-    if(!plain_directory(actual.parent_path())||(debug&&!plain_directory(input/L"Debug")))return false;
-    if(GetFileAttributesW(actual.c_str())&FILE_ATTRIBUTE_REPARSE_POINT)return false;
+    const bool debug=equal(requested.wstring(),(debug_dir/L"panebind.exe").wstring());
+    if(!requested.is_absolute()||(!debug&&!equal(requested.wstring(),(release_dir/L"panebind.exe").wstring())))return 83;
+    if(!marker(input/L"panebind-v1-input.marker",s.run))return 80;
+    if(!marker(output/L"panebind-v1-output.marker",s.run))return 81;
+    const DWORD output_attrs=GetFileAttributesW(output.c_str());const DWORD output_error=output_attrs==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+    if(output_attrs==INVALID_FILE_ATTRIBUTES||!(output_attrs&FILE_ATTRIBUTE_DIRECTORY)||(output_attrs&FILE_ATTRIBUTE_REPARSE_POINT))return 84;
+    s.configuration=debug?"Debug":"Release";const std::wstring suffix=debug?L"debug":L"release";
+    s.log.path=output/(s.run+L"-"+suffix+L"-fixture.jsonl");
+    {Handle file(CreateFileW(s.log.path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE){s.log.path.clear();return 85;}}
+    s.log.emit("guard_scope","\"run_id\":"+quote(utf8(s.run))+",\"configuration\":"+quote(s.configuration)+
+        ",\"exact_guest_account\":true,\"exact_run_markers\":true,\"requested_output\":"+quote(utf8(s.output.wstring()))+
+        ",\"requested_product\":"+quote(utf8(requested.wstring()))+",\"output_attributes\":"+std::to_string(output_attrs)+",\"output_attributes_error\":"+std::to_string(output_error)+
+        ",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(GetCurrentThreadId())+",\"input_sent\":false");
+    const DWORD input_attrs=GetFileAttributesW(input.c_str());const DWORD input_error=input_attrs==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+    s.log.emit("guard_input_directory","\"path\":"+quote(utf8(input.wstring()))+",\"attributes\":"+std::to_string(input_attrs)+",\"win32_error\":"+std::to_string(input_error));
+    if(input_attrs==INVALID_FILE_ATTRIBUTES||!(input_attrs&FILE_ATTRIBUTE_DIRECTORY)||(input_attrs&FILE_ATTRIBUTE_REPARSE_POINT))return guard_reject(s,86,"input_directory_not_plain");
+    int rid=-1;bool elevated{};DWORD token_error{};const bool normal=medium(GetCurrentProcess(),&rid,&elevated,&token_error);
+    s.log.emit("guard_token","\"integrity_rid\":"+(rid<0?std::string("null"):std::to_string(rid))+",\"elevated\":"+(rid<0?"null":(elevated?"true":"false"))+
+        ",\"medium_non_elevated\":"+(normal?"true":"false")+",\"win32_error\":"+std::to_string(token_error));
+    if(!normal)return guard_reject(s,87,"own_token_not_verified_Medium_non_elevated");
+    const bool session_read=ProcessIdToSessionId(GetCurrentProcessId(),&session)!=FALSE;const DWORD session_error=session_read?0:GetLastError();
+    s.log.emit("guard_session","\"query_succeeded\":"+std::string(session_read?"true":"false")+",\"session_id\":"+std::to_string(session)+",\"win32_error\":"+std::to_string(session_error));
+    if(!session_read||!session)return guard_reject(s,88,"own_interactive_session_unavailable");
+    if(!guard_desktop(s))return guard_reject(s,89,"own_Default_input_desktop_not_verified");
+    LPWSTR value{};DWORD bytes{};const bool queried=WTSQuerySessionInformationW(WTS_CURRENT_SERVER_HANDLE,session,WTSConnectState,&value,&bytes)!=FALSE;
+    const DWORD wts_error=queried?0:GetLastError();const int state=queried&&bytes>=sizeof(WTS_CONNECTSTATE_CLASS)?*reinterpret_cast<WTS_CONNECTSTATE_CLASS*>(value):-1;
+    if(value)WTSFreeMemory(value);
+    s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
+    if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
+    std::error_code error;const auto actual_output=fs::weakly_canonical(output,error);
+    s.log.emit("guard_output_canonical","\"path\":"+quote(utf8(actual_output.wstring()))+",\"error_code\":"+std::to_string(error.value()));
+    if(error||!equal(actual_output.wstring(),output.wstring()))return guard_reject(s,91,"output_canonical_path_not_exact");
+    if(!plain_directory(requested.parent_path()))return guard_reject(s,92,"product_directory_not_plain");
+    if(debug&&!plain_directory(input/L"Debug"))return guard_reject(s,93,"Debug_input_directory_not_plain");
     const fs::path source=debug?input/L"Debug"/L"panebind.exe":input/L"panebind.exe";
-    if(!fs::is_regular_file(source,error)||error)return false;
+    for(const auto& path:std::array{requested,source}){
+        const DWORD attrs=GetFileAttributesW(path.c_str());const DWORD e=attrs==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+        s.log.emit("guard_executable_attributes","\"path\":"+quote(utf8(path.wstring()))+",\"attributes\":"+std::to_string(attrs)+",\"win32_error\":"+std::to_string(e));
+        if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))
+            return guard_reject(s,path==requested?94:95,"executable_not_plain_regular_file");
+    }
+    const auto actual=fs::canonical(requested,error);
+    s.log.emit("guard_product_canonical","\"path\":"+quote(utf8(actual.wstring()))+",\"error_code\":"+std::to_string(error.value()));
+    if(error||!equal(actual.wstring(),requested.wstring()))return guard_reject(s,96,"product_canonical_path_not_exact");
     const auto source_hash=hash(source),actual_hash=hash(actual);
-    if(source_hash.empty()||source_hash!=actual_hash)return false;
-    if(!read(actual.parent_path()/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return false;
-    s.input_product=source;s.product=actual;s.output=output;s.configuration=debug?"Debug":"Release";
-    return !FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
+    s.log.emit("guard_executable_hashes","\"input_sha256\":"+quote(source_hash)+",\"actual_sha256\":"+quote(actual_hash));
+    if(source_hash.empty()||source_hash!=actual_hash)return guard_reject(s,97,"product_source_hash_mismatch_or_unreadable");
+    if(!read(actual.parent_path()/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return guard_reject(s,98,"portable_run_marker_missing");
+    if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))return guard_reject(s,99,"preexisting_product_instance_present");
+    s.input_product=source;s.product=actual;s.output=output;return 0;
 }
 } // namespace
 
@@ -634,14 +700,16 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         LocalFree(args);return 0;
     }
     bool parsed=count==7;if(parsed)for(int n=1;n<count;n+=2){const std::wstring name=args[n];if(name==L"--run-id")s.run=args[n+1];else if(name==L"--output")s.output=args[n+1];else if(name==L"--product")s.input_product=args[n+1];else parsed=false;}
-    LocalFree(args);if(!parsed||!guard(s))return 78;
-    if(!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)&&!AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))return 78;
+    LocalFree(args);if(!parsed)return 78;
+    try{const int result=guard(s);if(result)return result;}catch(...){try{return guard_reject(s,103,"guard_observation_or_evidence_exception");}catch(...){return 103;}}
+    const bool dpi_set=SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)!=FALSE;const DWORD dpi_error=dpi_set?0:GetLastError();
+    const bool pmv2=AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)!=FALSE;
+    s.log.emit("guard_DPI","\"set_succeeded\":"+std::string(dpi_set?"true":"false")+",\"win32_error\":"+std::to_string(dpi_error)+",\"actual_thread_PMV2\":"+(pmv2?"true":"false"));
+    if(!dpi_set&&!pmv2)return guard_reject(s,100,"PMV2_context_not_available");
     try{
-        const std::wstring suffix=s.configuration=="Debug"?L"debug":L"release";s.product_log=s.product.parent_path()/L"panebind.log.jsonl";
-        if(fs::exists(s.product_log)||fs::exists(s.product.parent_path()/L"settings.ini"))return 78;
-        const auto source=hash(s.input_product),copy=hash(s.product);if(source.empty()||source!=copy)return 1;
-        s.log.path=s.output/(s.run+L"-"+suffix+L"-fixture.jsonl");
-        {Handle file(CreateFileW(s.log.path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE)return 78;}
+        s.product_log=s.product.parent_path()/L"panebind.log.jsonl";
+        if(fs::exists(s.product_log)||fs::exists(s.product.parent_path()/L"settings.ini"))return guard_reject(s,101,"product_runtime_directory_is_not_fresh");
+        const auto source=hash(s.input_product),copy=hash(s.product);if(source.empty()||source!=copy)return guard_reject(s,102,"product_changed_after_guard");
         s.log.emit("guard","\"run_id\":"+quote(utf8(s.run))+",\"configuration\":"+quote(s.configuration)+",\"actual_integrity\":\"Medium\",\"elevated\":false,\"driver_has_console\":"+
             std::string(GetConsoleWindow()?"true":"false")+",\"input_executable\":"+quote(utf8(s.input_product.wstring()))+",\"actual_executable\":"+quote(utf8(s.product.wstring()))+
             ",\"binary_sha256\":"+quote(source)+",\"human_uat\":\"NOT_RUN\"");

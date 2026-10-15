@@ -11,8 +11,9 @@ target_link_libraries(panebind_windows_product PUBLIC panebind_core PRIVATE
     user32 gdi32 dwmapi advapi32 ole32 uuid shell32 comctl32 comdlg32 wtsapi32
     panebind_windows_operation_geometry)
 target_compile_definitions(panebind_windows_product PRIVATE
-    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
-    PANEBIND_BUILD_SHA="${PANEBIND_V1_SHA}")
+    NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+set_source_files_properties(product/product_app.cpp PROPERTIES
+    COMPILE_DEFINITIONS "PANEBIND_BUILD_SHA=\"${PANEBIND_V1_SHA}\"")
 panebind_enable_warnings(panebind_windows_product)
 add_executable(panebind WIN32 ../../app/v1_main.cpp product/product.rc)
 target_link_libraries(panebind PRIVATE panebind_windows_product)
