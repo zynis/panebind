@@ -299,7 +299,7 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     if (!result.native_succeeded) result.reason = "native_placement_failed";
     else if (!result.after) result.reason = "postverify_" + capture_reason;
     else if (!result.identity_valid) result.reason = "identity_changed_after_native_attempt";
-    else if (!result.geometry_exact) result.reason = "native_result_not_exact_or_app_constrained";
+    else if (!result.geometry_exact) result.reason = "native_geometry_not_exact_constraints_unattributed";
     else if (!result.after_qpc) result.reason = "native_completion_clock_unavailable";
     else { result.accepted = true; result.reason = "exact_native_completion"; }
     return result;

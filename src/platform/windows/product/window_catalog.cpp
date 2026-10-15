@@ -351,6 +351,7 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
             return reject("application_track_limits_invalid");
         result.limits.min_width=minimum_width;result.limits.min_height=minimum_height;
         result.limits.max_width=maximum_width;result.limits.max_height=maximum_height;
+        result.declared_track_limits_observed=true;
     }
     if (!result.can_resize) {
         result.limits.min_width = result.limits.max_width = result.visible.width();

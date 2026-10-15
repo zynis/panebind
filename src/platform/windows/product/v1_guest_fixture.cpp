@@ -7,11 +7,13 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <commctrl.h>
 #include <dwmapi.h>
 #include <shellapi.h>
 #include <wtsapi32.h>
 #include <wincrypt.h>
 #include <objbase.h>
+#include <tlhelp32.h>
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
@@ -135,12 +137,20 @@ struct WriterStall {
     std::atomic<std::uint64_t> before_qpc{},after_qpc{},before_tick{};
     std::atomic<UINT> flags{};std::atomic<int> x{},y{},width{},height{};
 };
-struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1};WriterStall stall;};
+struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;};
 struct ExplorerTarget {
     fs::path directory;shell::ShellLocationFact location;std::unique_ptr<shell::ExplorerProvisioningLease> lease;
     std::unique_ptr<shell::ExplorerConsentTargetObservation> observation;
     std::optional<product::Snapshot> identity;HWND hwnd{};DWORD pid{},tid{};std::uint64_t born{};
     std::vector<HWND> baseline;bool separate{},navigated{};
+};
+struct ApplicationProcess {
+    DWORD pid{},parent{};std::uint64_t born{};std::unique_ptr<Handle> handle;
+};
+struct ApplicationTarget {
+    std::string kind;fs::path executable,directory;std::wstring command;
+    std::vector<HWND> baseline;std::vector<ApplicationProcess> processes;
+    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{};
 };
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
@@ -149,14 +159,21 @@ struct State{
     std::array<std::unique_ptr<ExplorerTarget>,3> explorer;
     std::vector<std::unique_ptr<ExplorerTarget>> retired_explorers;
     std::unique_ptr<product::Catalog> target_catalog;
+    std::array<std::shared_ptr<ApplicationTarget>,3> applications;
+    std::vector<std::shared_ptr<ApplicationTarget>> created_applications;
 };
-HWND source_window(State& s,std::size_t source){return s.explorer.at(source)?s.explorer[source]->hwnd:s.frames.at(source).hwnd;}
-DWORD source_thread(State& s,std::size_t source){return s.explorer.at(source)?s.explorer[source]->tid:s.owner;}
+HWND source_window(State& s,std::size_t source){return s.applications.at(source)&&s.applications[source]->identity?s.applications[source]->identity->hwnd:
+    (s.explorer.at(source)?s.explorer[source]->hwnd:s.frames.at(source).hwnd);}
+DWORD source_thread(State& s,std::size_t source){return s.applications.at(source)&&s.applications[source]->identity?s.applications[source]->identity->tid:
+    (s.explorer.at(source)?s.explorer[source]->tid:s.owner);}
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
     if(frame){
-        if(message==WM_GETMINMAXINFO){auto* mm=reinterpret_cast<MINMAXINFO*>(lp);mm->ptMinTrackSize={frame->min_width,frame->min_height};mm->ptMaxTrackSize={1800,1400};return 0;}
+        if(message==WM_GETMINMAXINFO){auto* mm=reinterpret_cast<MINMAXINFO*>(lp);mm->ptMinTrackSize={frame->min_width,frame->min_height};
+            const auto dpi=GetDpiForWindow(h);
+            mm->ptMaxTrackSize={frame->max_width>0?frame->max_width:GetSystemMetricsForDpi(SM_CXMAXTRACK,dpi),
+                frame->max_height>0?frame->max_height:GetSystemMetricsForDpi(SM_CYMAXTRACK,dpi)};return 0;}
         if(message==WM_WINDOWPOSCHANGING&&frame->stall.armed.load()&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&frame->stall.armed.exchange(false)){
             // TEST ONLY: this exact empty fixture owns this window/thread.
             // No source parameters are modified; the product's already-issued
@@ -216,11 +233,14 @@ void key(State& s,WORD code,bool pressed){
 }
 void button(State& s,bool pressed){INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_LEFTDOWN:MOUSEEVENTF_LEFTUP;inject(packet);s.left=pressed;}
 std::optional<POINT> hit_point(HWND h,int required){
-    RECT p{};if(!GetWindowRect(h,&p))return {};
+    RECT p{};DWORD root_pid{};if(!GetWindowRect(h,&p)||!GetWindowThreadProcessId(h,&root_pid))return {};
     const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
     const LONG left=required==HTBOTTOM?(p.left+p.right)/2:p.left+40,right=required==HTBOTTOM?left+1:p.right-40;
-    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=8){DWORD_PTR hit{};const POINT point{x,y};if(WindowFromPoint(point)!=h)continue;
-        if(SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG,100,&hit)&&static_cast<int>(hit)==required)return point;}
+    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=8){DWORD_PTR hit{};const POINT point{x,y};const HWND actual=WindowFromPoint(point);DWORD actual_pid{};
+        if(!actual||GetAncestor(actual,GA_ROOT)!=h||!GetWindowThreadProcessId(actual,&actual_pid)||actual_pid!=root_pid)continue;
+        // The production adapter queries the actual hit child, not an idealized
+        // root. Chromium/custom title bars can legitimately return HTCAPTION.
+        if(SendMessageTimeoutW(actual,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)&&static_cast<int>(hit)==required)return point;}
     return {};
 }
 bool own(State&,HWND);
@@ -336,6 +356,14 @@ bool exact_shell_location(ExplorerTarget& target){
 }
 bool authorized_source(State& s,HWND h){
     if(own(s,h))return true;
+    for(const auto& target:s.applications)if(target&&target->accepted&&target->identity&&target->identity->hwnd==h&&s.target_catalog){
+        const auto fresh=s.target_catalog->get(h,{});
+        if(!fresh||!product::Catalog::same(*target->identity,*fresh)||
+            std::find(target->baseline.begin(),target->baseline.end(),h)!=target->baseline.end())return false;
+        const auto process=std::find_if(target->processes.begin(),target->processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
+        return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&
+            equal(fresh->exe,target->executable.wstring());
+    }
     for(auto& target:s.explorer)if(target&&target->hwnd==h&&target->identity&&s.target_catalog){
         const auto fresh=s.target_catalog->get(h,{});
         return fresh&&product::Catalog::same(*target->identity,*fresh)&&native_explorer_identity(*target,h)&&exact_shell_location(*target);
@@ -468,6 +496,116 @@ void cleanup_explorers(State& s){
     s.retired_explorers.clear();s.target_catalog.reset();
     for(auto& frame:s.frames)if(own(s,frame.hwnd)&&!IsWindowVisible(frame.hwnd))ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
 }
+// Application-matrix automation stays in this guarded test executable. Process
+// names, a returned PID, or an attractive title never authorize input.
+std::uint64_t process_birth(HANDLE process){
+    FILETIME born{},ended{},kernel{},user{};if(!GetProcessTimes(process,&born,&ended,&kernel,&user))return 0;
+    return (static_cast<std::uint64_t>(born.dwHighDateTime)<<32)|born.dwLowDateTime;
+}
+std::vector<HWND> root_baseline(){
+    std::vector<HWND> out;EnumWindows([](HWND h,LPARAM context)->BOOL{
+        auto& roots=*reinterpret_cast<std::vector<HWND>*>(context);if(roots.size()>=1024)return FALSE;
+        if(GetAncestor(h,GA_ROOT)==h)roots.push_back(h);return TRUE;},reinterpret_cast<LPARAM>(&out));return out;
+}
+std::string application_version(const fs::path& image){
+    const HMODULE library=LoadLibraryExW(L"version.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);if(!library)return "UNKNOWN";
+    using Size=DWORD(WINAPI*)(LPCWSTR,LPDWORD);using Get=BOOL(WINAPI*)(LPCWSTR,DWORD,DWORD,LPVOID);using Query=BOOL(WINAPI*)(LPCVOID,LPCWSTR,LPVOID*,PUINT);
+    const auto size=reinterpret_cast<Size>(GetProcAddress(library,"GetFileVersionInfoSizeW"));
+    const auto get=reinterpret_cast<Get>(GetProcAddress(library,"GetFileVersionInfoW"));const auto query=reinterpret_cast<Query>(GetProcAddress(library,"VerQueryValueW"));
+    DWORD ignored{};const DWORD length=size?size(image.c_str(),&ignored):0;std::string out="UNKNOWN";
+    if(length&&length<=1024*1024&&get&&query){std::vector<BYTE> bytes(length);VS_FIXEDFILEINFO* fact{};UINT count{};
+        if(get(image.c_str(),0,length,bytes.data())&&query(bytes.data(),L"\\",reinterpret_cast<void**>(&fact),&count)&&count>=sizeof(*fact)&&fact->dwSignature==0xfeef04bd)
+            out=std::to_string(HIWORD(fact->dwFileVersionMS))+"."+std::to_string(LOWORD(fact->dwFileVersionMS))+"."+
+                std::to_string(HIWORD(fact->dwFileVersionLS))+"."+std::to_string(LOWORD(fact->dwFileVersionLS));
+    }
+    FreeLibrary(library);return out;
+}
+void discover_application_children(ApplicationTarget& target){
+    Handle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0));if(snapshot.value==INVALID_HANDLE_VALUE)return;
+    std::vector<PROCESSENTRY32W> facts;PROCESSENTRY32W item{sizeof(item)};
+    if(Process32FirstW(snapshot.value,&item))do{if(facts.size()>=4096)break;facts.push_back(item);}while(Process32NextW(snapshot.value,&item));
+    for(unsigned pass=0;pass<8&&target.processes.size()<64;++pass){bool added=false;
+        for(const auto& candidate:facts){
+            if(candidate.th32ProcessID==GetCurrentProcessId()||std::any_of(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==candidate.th32ProcessID;}))continue;
+            const auto parent=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==candidate.th32ParentProcessID;});
+            // Retain handles: a recycled PID cannot create a false ancestry
+            // edge, including after the known launcher has already exited.
+            if(parent==target.processes.end()||!parent->handle||process_birth(parent->handle->value)!=parent->born)continue;
+            auto handle=std::make_unique<Handle>(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,candidate.th32ProcessID));
+            if(!handle->value)continue;const auto born=process_birth(handle->value);
+            if(!born||born<parent->born||born<target.processes.front().born)continue;
+            target.processes.push_back({candidate.th32ProcessID,candidate.th32ParentProcessID,born,std::move(handle)});added=true;if(target.processes.size()>=64)break;
+        }
+        if(!added)break;
+    }
+}
+bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::optional<product::Snapshot>* actual=nullptr){
+    if(!h||std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end()||GetAncestor(h,GA_ROOT)!=h||!s.target_catalog)return false;
+    auto fresh=s.target_catalog->get(h,{});if(!fresh||!equal(fresh->exe,target.executable.wstring()))return false;
+    const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
+    if(process==target.processes.end()||!process->handle||WaitForSingleObject(process->handle->value,0)!=WAIT_TIMEOUT||!medium(process->handle->value))return false;
+    if(target.kind=="Terminal"&&!equal(fresh->window_class,L"ConsoleWindowClass"))return false;
+    if(actual)*actual=std::move(fresh);return true;
+}
+std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string kind){
+    auto target=std::make_shared<ApplicationTarget>();target->kind=std::move(kind);
+    const fs::path base=fs::path(L"C:\\PaneBindV1\\Applications")/s.run;
+    if(!plain_directory(base)&&!fs::create_directory(base))throw std::runtime_error("application_RunId_directory_not_available");
+    target->directory=base/(std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+std::wstring(target->kind.begin(),target->kind.end()));
+    if(fs::exists(target->directory)||!fs::create_directory(target->directory)||!plain_directory(target->directory))throw std::runtime_error("fresh_application_directory_required");
+    std::array<wchar_t,MAX_PATH> system{};if(!GetSystemDirectoryW(system.data(),static_cast<UINT>(system.size())))throw std::runtime_error("official_guest_System_directory_unavailable");
+    const fs::path blank=target->directory/L"PaneBind-empty.txt";
+    if(target->kind=="Notepad"){target->executable=fs::path(system.data())/L"notepad.exe";std::ofstream(blank,std::ios::binary).close();target->command=L"\""+target->executable.wstring()+L"\" \""+blank.wstring()+L"\"";}
+    else if(target->kind=="Edge"){
+        for(const fs::path candidate:{fs::path(L"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"),fs::path(L"C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe")})
+            if(fs::is_regular_file(candidate)){target->executable=candidate;break;}
+        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir=\""+(target->directory/L"Profile").wstring()+L"\" --no-first-run --no-default-browser-check --disable-background-mode --new-window about:blank";
+    }else if(target->kind=="VSCode"){
+        target->executable=base/L"VSCode"/L"Code.exe";std::ofstream(blank,std::ios::binary).close();
+        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
+    }else if(target->kind=="Terminal"){
+        target->executable=fs::path(system.data())/L"conhost.exe";
+        target->command=L"\""+target->executable.wstring()+L"\" \""+(fs::path(system.data())/L"cmd.exe").wstring()+L"\" /d /q /k title PaneBind-"+s.run+L"-Terminal";
+    }else throw std::runtime_error("unknown_application_class");
+    s.created_applications.push_back(target);target->baseline=root_baseline();
+    if(target->executable.empty()||!fs::is_regular_file(target->executable)){
+        s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":\"BLOCKED\",\"reason\":\"explicit_official_executable_not_available\",\"input_sent\":false");return target;
+    }
+    STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION info{};std::wstring line=target->command;
+    const bool launched=CreateProcessW(target->executable.c_str(),line.data(),nullptr,nullptr,FALSE,CREATE_NEW_PROCESS_GROUP,nullptr,target->directory.c_str(),&startup,&info)!=FALSE;
+    const DWORD error=launched?0:GetLastError();int rid=-1;bool elevated{},normal=false;
+    if(launched){CloseHandle(info.hThread);normal=medium(info.hProcess,&rid,&elevated);target->processes.push_back({info.dwProcessId,GetCurrentProcessId(),process_birth(info.hProcess),std::make_unique<Handle>(info.hProcess)});}
+    s.log.emit("application_launch","\"application\":"+quote(target->kind)+",\"command\":"+quote(utf8(line))+",\"executable\":"+quote(utf8(target->executable.wstring()))+
+        ",\"file_version\":"+quote(application_version(target->executable))+",\"binary_sha256\":"+quote(hash(target->executable))+
+        ",\"api_succeeded\":"+(launched?"true":"false")+",\"win32_error\":"+std::to_string(error)+",\"launch_PID\":"+std::to_string(launched?info.dwProcessId:0)+
+        ",\"launch_integrity_rid\":"+(rid<0?"null":std::to_string(rid))+",\"launch_elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"launch_is_not_binding_proof\":true");
+    std::optional<product::Snapshot> candidate;bool bound=false;
+    if(normal&&target->processes.front().born)bound=wait([&]{
+        discover_application_children(*target);candidate.reset();unsigned matches{};
+        for(HWND h:root_baseline()){std::optional<product::Snapshot> fresh;if(application_fresh(s,*target,h,&fresh)){++matches;candidate=std::move(fresh);}}
+        return matches==1;
+    },12000);
+    if(bound){target->identity=candidate;target->accepted=true;}
+    s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":"+quote(bound?"BOUND":"BLOCKED")+
+        ",\"reason\":"+quote(bound?"baseline_excluded_new_root_exact_launch_tree_actual_Catalog_Medium_same_SID_session_desktop":"no_unique_eligible_root_in_held_birth_verified_launch_tree")+
+        ",\"hwnd\":"+std::to_string(bound?reinterpret_cast<std::uintptr_t>(candidate->hwnd):0)+",\"pid\":"+std::to_string(bound?candidate->pid:0)+
+        ",\"tid\":"+std::to_string(bound?candidate->tid:0)+",\"birth\":"+std::to_string(bound?candidate->born:0)+",\"key\":"+std::to_string(bound?candidate->key:0)+
+        ",\"window_class\":"+quote(bound?utf8(candidate->window_class):"UNKNOWN")+",\"retained_process_facts\":"+std::to_string(target->processes.size())+
+        ",\"input_sent\":false,\"product_permission_override\":false");return target;
+}
+bool close_application(State& s,ApplicationTarget& target){
+    bool attempted=false,gone=false;
+    if(target.accepted&&target.identity){std::optional<product::Snapshot> fresh;
+        if(application_fresh(s,target,target.identity->hwnd,&fresh)&&product::Catalog::same(*target.identity,*fresh)){
+            attempted=PostMessageW(fresh->hwnd,WM_CLOSE,0,0)!=FALSE;gone=attempted&&wait([&]{return !IsWindow(fresh->hwnd);},3000);
+        }else gone=!IsWindow(target.identity->hwnd);
+        if(!gone)s.log.failed=true;
+    }
+    target.cleanup_confirmed=gone;
+    s.log.emit("application_cleanup","\"application\":"+quote(target.kind)+",\"root_confirmed\":"+(target.accepted?"true":"false")+
+        ",\"exact_root_close_attempted\":"+(attempted?"true":"false")+",\"actual_root_gone\":"+(gone?"true":"false")+
+        ",\"unknown_windows_touched\":false,\"processes_force_terminated\":false,\"guest_local_data_retained\":true");return gone||!target.accepted;
+}
 enum class BlockedWriterExit { RealUp, EmergencyHotkey };
 // Deliberately NOT invoked by drive(): first establish the normal production
 // chain. This case terminates that product instance and belongs at the end of
@@ -556,6 +694,165 @@ void cleanup(State& s){
         ",\"only_test_owned_window\":true,\"not_guest_destruction\":true");
     if(check_delivery&&!delivered)s.log.failed=true;
 }
+// Real GUI exercise in the already-guarded guest, using the SAME executable
+// and production settings handlers. Native messages below only READ controls;
+// every interaction is an actual SendInput mouse/key event, not BM_CLICK,
+// WM_COMMAND, WM_SETTEXT or a private settings API.
+struct SettingsGui {HWND root{},tab{};DWORD tid{};};
+std::wstring gui_class(HWND h){std::array<wchar_t,128> name{};const int n=GetClassNameW(h,name.data(),static_cast<int>(name.size()));return n>0?std::wstring(name.data(),n):L"";}
+bool gui_identity(State& s,const SettingsGui& gui,HWND control){
+    DWORD root_pid{},control_pid{},app_pid{};const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
+    return s.process&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&app&&
+        GetWindowThreadProcessId(app,&app_pid)&&app_pid==s.product_pid&&
+        GetWindowThreadProcessId(gui.root,&root_pid)==gui.tid&&root_pid==s.product_pid&&
+        gui_class(gui.root)==L"PaneBindV1SettingsWindow"&&GetWindow(gui.root,GW_OWNER)==app&&
+        IsWindowVisible(gui.root)&&GetWindowThreadProcessId(control,&control_pid)==gui.tid&&control_pid==s.product_pid&&
+        (control==gui.root||GetAncestor(control,GA_ROOT)==gui.root);
+}
+DWORD_PTR gui_read(State& s,const SettingsGui& gui,HWND control,UINT message,WPARAM w=0,LPARAM l=0){
+    DWORD_PTR answer{};
+    if(!gui_identity(s,gui,control)||!SendMessageTimeoutW(control,message,w,l,SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&answer))
+        throw std::runtime_error("GUI_exact_owned_control_read_failed");
+    return answer;
+}
+std::wstring gui_text(State& s,const SettingsGui& gui,HWND control){
+    std::array<wchar_t,512> value{};
+    // WM_GETTEXT is a system-marshalled message. Never pass a local pointer
+    // through cross-process TCM_GETITEMRECT or another WM_USER structure.
+    const auto copied=gui_read(s,gui,control,WM_GETTEXT,value.size(),reinterpret_cast<LPARAM>(value.data()));
+    if(copied>=value.size())throw std::runtime_error("GUI_control_text_unbounded");return {value.data(),copied};
+}
+HWND gui_focus(const SettingsGui& gui){GUITHREADINFO info{sizeof(info)};return GetGUIThreadInfo(gui.tid,&info)?info.hwndFocus:nullptr;}
+HWND gui_page(State& s,const SettingsGui& gui){
+    HWND page{};unsigned count{};
+    for(HWND h=GetWindow(gui.root,GW_CHILD);h;h=GetWindow(h,GW_HWNDNEXT))if(gui_class(h)==L"PaneBindV1SettingsPage"&&IsWindowVisible(h)){
+        if(!gui_identity(s,gui,h))throw std::runtime_error("GUI_page_identity_changed");page=h;++count;
+    }
+    if(count!=1)throw std::runtime_error("GUI_exactly_one_visible_page_required");return page;
+}
+HWND gui_find(State& s,const SettingsGui& gui,std::wstring_view cls,std::wstring_view prefix){
+    for(HWND h=GetWindow(gui_page(s,gui),GW_CHILD);h;h=GetWindow(h,GW_HWNDNEXT))
+        if(gui_class(h)==cls&&gui_text(s,gui,h).starts_with(prefix))return h;
+    throw std::runtime_error("GUI_named_production_control_missing");
+}
+HWND gui_number(State& s,const SettingsGui& gui,std::wstring_view label){
+    const auto caption=gui_find(s,gui,L"Static",label);const auto edit=GetWindow(caption,GW_HWNDNEXT);
+    if(gui_class(edit)!=L"Edit"||GetParent(edit)!=GetParent(caption)||!gui_identity(s,gui,edit))
+        throw std::runtime_error("GUI_label_and_actual_edit_not_adjacent");return edit;
+}
+void gui_click(State& s,const SettingsGui& gui,HWND control){
+    if(!gui_identity(s,gui,control)||!IsWindowVisible(control)||!IsWindowEnabled(control)||s.left)
+        throw std::runtime_error("GUI_click_target_not_exact_visible_enabled");
+    RECT actual{},page{},client{};
+    if(!GetWindowRect(control,&actual)||!GetWindowRect(GetParent(control),&page)||!GetClientRect(gui.root,&client))
+        throw std::runtime_error("GUI_click_geometry_unavailable");
+    MapWindowPoints(gui.root,nullptr,reinterpret_cast<POINT*>(&client),2);
+    RECT clipped{},visible_part{};
+    if(!IntersectRect(&clipped,&actual,&page)||!IntersectRect(&visible_part,&clipped,&client))throw std::runtime_error("GUI_control_not_reachable");
+    const POINT point{visible_part.left+(visible_part.right-visible_part.left)/2,visible_part.top+(visible_part.bottom-visible_part.top)/2};
+    cursor(s,point);const auto hit=WindowFromPoint(point);
+    if(!gui_identity(s,gui,control)||(hit!=control&&!IsChild(control,hit)))throw std::runtime_error("GUI_actual_hit_is_not_target_control");
+    button(s,true);button(s,false);
+    s.log.check("GUI_actual_mouse_click",wait([&]{return GetForegroundWindow()==gui.root&&gui_focus(gui)==control;}),
+        "\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+",\"control\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(control))+",\"pid\":"+std::to_string(s.product_pid)+
+        ",\"hit_confirmed\":true,\"input_kind\":\"SendInput_LEFTDOWN_LEFTUP\"");
+}
+void gui_require_input(State& s,const SettingsGui& gui){
+    if(!gui_identity(s,gui,gui.tab)||GetForegroundWindow()!=gui.root||!gui_identity(s,gui,gui_focus(gui)))
+        throw std::runtime_error("GUI_keyboard_target_no_longer_exact_product");
+}
+void gui_press(State& s,const SettingsGui& gui,WORD vk){gui_require_input(s,gui);key(s,vk,true);key(s,vk,false);}
+void gui_page_select(State& s,const SettingsGui& gui,unsigned wanted){
+    if(wanted>=6||gui_read(s,gui,gui.tab,TCM_GETITEMCOUNT)!=6)throw std::runtime_error("GUI_six_production_pages_required");
+    bool changed=false;
+    for(unsigned n=0;n<6&&gui_read(s,gui,gui.tab,TCM_GETCURSEL)!=wanted;++n){
+        const auto before=gui_read(s,gui,gui.tab,TCM_GETCURSEL);
+        gui_require_input(s,gui);key(s,VK_CONTROL,true);gui_press(s,gui,VK_TAB);key(s,VK_CONTROL,false);changed=true;
+        if(!wait([&]{return gui_read(s,gui,gui.tab,TCM_GETCURSEL)==(before+1)%6;}))throw std::runtime_error("GUI_actual_CtrlTab_did_not_select_next_page");
+    }
+    s.log.check("GUI_page_"+std::to_string(wanted),gui_read(s,gui,gui.tab,TCM_GETCURSEL)==wanted&&gui_page(s,gui),
+        "\"selection_via\":"+quote(changed?"actual_CtrlTab":"already_selected_actual_page")+",\"production_page\":"+std::to_string(wanted));
+}
+SettingsGui gui_open(State& s){
+    s.log.check("GUI_production_settings_command",launch(s,L"--settings",true));SettingsGui gui;
+    const bool found=wait([&]{
+        struct Search {DWORD pid{};HWND root{};DWORD tid{};} search{s.product_pid};
+        EnumWindows([](HWND h,LPARAM data)->BOOL{auto& query=*reinterpret_cast<Search*>(data);DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);
+            if(pid==query.pid&&gui_class(h)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(h)){query.root=h;query.tid=tid;return FALSE;}return TRUE;},reinterpret_cast<LPARAM>(&search));
+        gui={search.root,search.root?GetDlgItem(search.root,100):nullptr,search.tid};return gui.root&&gui.tab&&
+            gui_class(gui.tab)==WC_TABCONTROLW&&gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui));
+    });
+    s.log.check("GUI_exact_product_settings_window",found,"\"pid\":"+std::to_string(s.product_pid)+
+        ",\"class\":\"PaneBindV1SettingsWindow\",\"owner_and_child_identity_verified\":true");return gui;
+}
+void gui_edit_number(State& s,const SettingsGui& gui,HWND edit,unsigned number_value){
+    gui_click(s,gui,edit);gui_require_input(s,gui);key(s,VK_CONTROL,true);gui_press(s,gui,'A');key(s,VK_CONTROL,false);
+    const auto wanted=std::to_wstring(number_value);for(const auto digit:wanted)gui_press(s,gui,static_cast<WORD>(digit));
+    s.log.check("GUI_actual_edit_keys",wait([&]{return gui_text(s,gui,edit)==wanted;}),"\"actual_text\":"+quote(utf8(gui_text(s,gui,edit))));
+    const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
+    s.log.check("GUI_actual_Tab_focus",wait([&]{const auto after=gui_focus(gui);return after&&after!=before&&gui_identity(s,gui,after);}));
+}
+void gui_save_enter(State& s,const SettingsGui& gui){
+    const auto save=GetDlgItem(gui.root,IDOK);
+    for(unsigned n=0;n<64&&gui_focus(gui)!=save;++n){
+        if(!gui_identity(s,gui,save))throw std::runtime_error("GUI_save_identity_changed");
+        const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
+        if(!wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before;}))throw std::runtime_error("GUI_save_Tab_not_processed");
+    }
+    s.log.check("GUI_Tab_reached_save",gui_focus(gui)==save);
+    gui_press(s,gui,VK_RETURN);
+    s.log.check("GUI_actual_Enter_saved_and_closed",wait([&]{return !IsWindow(gui.root);}),"\"input_kind\":\"actual_Enter_on_focused_IDOK\"");
+}
+void settings_gui_flow(State& s){
+    namespace settings=panebind::core::v1;
+    const auto path=s.product.parent_path()/L"settings.ini";const bool existed=fs::exists(path);const auto before=read(path);
+    const auto parsed=existed?settings::parse(before):settings::ParseResult{settings::default_settings(),{}};
+    if(!parsed.value)throw std::runtime_error("GUI_existing_configuration_invalid");const auto original=*parsed.value;
+    auto gui=gui_open(s);
+    // Visit all six real pages. Toggle reversible draft-only checkboxes on
+    // general/magnet/docking/visual pages, focus the shortcut editor, and
+    // toggle the rule's class filter without creating or excluding an app.
+    constexpr std::array<const wchar_t*,6> labels{L"启用 PaneBind",L"移动时磁吸",L"启用边角停靠",L"键盘微移",L"仅限制为该窗口类名",L"显示实际吸附"};
+    for(unsigned page=0;page<6;++page){gui_page_select(s,gui,page);
+        if(page==3){const auto edit=gui_number(s,gui,labels[page]);gui_click(s,gui,edit);const auto old=gui_focus(gui);gui_press(s,gui,VK_TAB);
+            s.log.check("GUI_shortcuts_actual_Tab",wait([&]{return gui_focus(gui)&&gui_focus(gui)!=old;}));}
+        else{const auto check=gui_find(s,gui,L"Button",labels[page]);const auto old=gui_read(s,gui,check,BM_GETCHECK);
+            gui_click(s,gui,check);s.log.check("GUI_page_checkbox_real_toggle",wait([&]{return gui_read(s,gui,check,BM_GETCHECK)!=old;}),"\"page\":"+std::to_string(page));
+            gui_click(s,gui,check);s.log.check("GUI_page_checkbox_real_restore",wait([&]{return gui_read(s,gui,check,BM_GETCHECK)==old;}),"\"page\":"+std::to_string(page));}
+    }
+    gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),original.attraction_dip==7?8:7);
+    gui_press(s,gui,VK_ESCAPE);
+    s.log.check("GUI_actual_Esc_cancel_unchanged",wait([&]{return !IsWindow(gui.root);})&&fs::exists(path)==existed&&read(path)==before,
+        "\"file_existed_before\":"+std::string(existed?"true":"false")+",\"config_bytes_unchanged\":true");
+    const auto save_attraction=[&](unsigned value){auto current=gui_open(s);gui_page_select(s,current,1);
+        gui_edit_number(s,current,gui_number(s,current,L"吸引距离"),value);gui_save_enter(s,current);
+        const auto actual=settings::parse(read(path));if(!actual.value)throw std::runtime_error("GUI_saved_file_not_valid_configuration");
+        auto expected=original;expected.attraction_dip=static_cast<int>(value);expected.generation=actual.value->generation;
+        s.log.check("GUI_save_actual_configuration",*actual.value==expected&&actual.value->generation>original.generation,
+            "\"attraction_dip\":"+std::to_string(actual.value->attraction_dip)+",\"generation\":"+std::to_string(actual.value->generation));return *actual.value;};
+    const auto saved=save_attraction(0);
+    const auto no_snap=[&](std::string_view stage){
+        const std::array<Rect,3> independent{{{120,80,380,440},{380,80,640,260},{380,260,640,440}}};
+        for(std::size_t n=0;n<3;++n)s.log.check("GUI_effect_fixture_setup",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,independent[n]),
+            "\"stage\":"+quote(stage)+",\"not_a_replacement_for_prior_I02\":true");
+        const auto g=down(s,0);const auto expected=translated(independent[0],-6,3);
+        phase(s,0,g,-6,3,expected,"GUI_attraction_zero_"+std::string(stage),true);up(s,0,g,expected);
+    };
+    no_snap("next_gesture");
+    cleanup(s);if(s.log.failed)throw std::runtime_error("GUI_restart_normal_stop_failed");const auto restart_mark=read(s.product_log).size();
+    s.log.check("GUI_restart_same_product",launch(s,L"--diagnostic",false));
+    s.log.check("GUI_restart_new_startup",wait([&]{const auto row=record(s,restart_mark,"startup");return number(row,"\"process_id\":")==s.product_pid;}));
+    const auto retained=settings::parse(read(path));s.log.check("GUI_restart_persisted_configuration",retained.value&&*retained.value==saved);
+    gui=gui_open(s);gui_page_select(s,gui,1);
+    s.log.check("GUI_restart_actual_edit_value",gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"0");gui_press(s,gui,VK_ESCAPE);
+    s.log.check("GUI_restart_Esc_closed",wait([&]{return !IsWindow(gui.root);}));no_snap("after_restart");
+    // Restore via the SAME real GUI so the following Explorer 10/16 trajectory
+    // keeps its original preconditions. No direct configuration file mutation.
+    const auto restored=save_attraction(static_cast<unsigned>(original.attraction_dip));
+    s.log.check("GUI_original_settings_restored_before_Explorer",restored.attraction_dip==original.attraction_dip&&restored.generation>saved.generation);
+    s.log.emit("settings_GUI_sequence","\"six_pages\":true,\"actual_mouse_and_Tab_Enter_Esc\":true,\"cancel_unchanged\":true,\"save_changes_next_Move\":true,\"restart_persists_and_changes_Move\":true,\"original_attraction_restored\":true,\"human_uat\":\"NOT_RUN\"");
+}
 void drive(State& s){
     const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
     try{
@@ -609,6 +906,7 @@ void drive(State& s){
         s.log.check("production_half_screen_command",half_ok,
             "\"expected\":"+rect(half)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
+        settings_gui_flow(s);
         explorer_flow(s);
         cleanup_explorers(s);
         cleanup(s);

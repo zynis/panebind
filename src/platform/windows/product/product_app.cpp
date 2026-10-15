@@ -77,7 +77,7 @@ public:
         if(fs::exists(path_,ec)&&fs::file_size(path_,ec)>512*1024){auto old=path_;old+=L".1";fs::remove(old,ec);fs::rename(path_,old,ec);}
         std::ofstream out(path_,std::ios::app|std::ios::binary);
         if(out)out<<"{\"schema\":\"panebind-v1/1\",\"source_sha\":\""<<PANEBIND_BUILD_SHA<<"\",\"sequence\":"<<++sequence_
-            <<",\"tick\":"<<GetTickCount64()<<",\"type\":\""<<escaped(type)<<"\""<<(fields.empty()?"":",")<<fields<<"}\n";
+            <<",\"process_id\":"<<GetCurrentProcessId()<<",\"tick\":"<<GetTickCount64()<<",\"type\":\""<<escaped(type)<<"\""<<(fields.empty()?"":",")<<fields<<"}\n";
     }
     const fs::path& path()const{return path_;}
 };
@@ -220,6 +220,8 @@ public:
                 ",\"native_completion_known\":"+(receipt.completion_known?"true":"false")+
                 ",\"target\":"+rectangle(receipt.requested)+",\"actual\":"+(receipt.after?rectangle(receipt.after->visible):"null")+
                 ",\"identity_valid\":"+(receipt.identity_valid?"true":"false")+",\"exact\":"+(receipt.geometry_exact?"true":"false")+
+                ",\"declared_track_limits_observed\":"+(receipt.before.declared_track_limits_observed?"true":"false")+
+                ",\"application_grid_known\":"+(receipt.before.application_grid_known?"true":"false")+
                 ",\"reason\":\""+escaped(receipt.reason)+"\",\"native_before_qpc\":"+std::to_string(receipt.before_qpc)+
                 ",\"native_after_qpc\":"+std::to_string(receipt.after_qpc)+",\"authority_after\":"+(generation&&input.allowed(generation)?"true":"false")+
                 ",\"post_observed_qpc\":"+std::to_string(receipt.post_observed_qpc)+

@@ -29,6 +29,9 @@ struct Snapshot {
     core::v1::Limits limits;
     bool maximized{}, can_resize{}, minimized{};
     std::uint32_t feature_mask{0xffffffffU};
+    // A WM_GETMINMAXINFO response does not reveal an arbitrary app grid.
+    // Unknown grid is never relabelled as a measured one-pixel size policy.
+    bool declared_track_limits_observed{},application_grid_known{};
 };
 
 struct Display {

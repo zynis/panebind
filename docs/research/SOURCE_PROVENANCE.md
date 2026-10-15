@@ -1668,3 +1668,18 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   cross-process message context for COM admission. The original failure did
   not record a COM HRESULT, so that specific system cause remains an inference,
   not an observed HRESULT. Delivery is reported separately from actual geometry.
+- Internal compatibility-test binary, not PaneBind source reuse: Microsoft
+  Visual Studio Code official Windows x64 ZIP 1.142.0, upstream commit
+  `6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1`, reviewed 2026-10-15.
+  [Microsoft product terms](https://code.visualstudio.com/license) permit
+  internal application development/testing; this binary is not relabelled as
+  the MIT Code-OSS source distribution and is not shipped in the PaneBind user
+  package. Official [portable ZIP documentation](https://code.visualstudio.com/docs/setup/portable)
+  and update metadata were read. ZIP SHA256
+  `ACE1DA7D1432D43C1AB4B2BBF643F6494F6D25DEC07494976755EAC522CD50D9`
+  matches official metadata; Code.exe version/signature were statically checked
+  (valid Microsoft signature), without running it on the host. Preserve the
+  entire archive's license/ThirdPartyNotices in disposable-guest extraction.
+  Source modules copied/adapted/translated: NONE. The fresh portable data
+  directory is test state, not a user profile migration or a product dependency.
+  Asset availability/hash validation does not establish app compatibility.

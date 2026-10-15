@@ -87,6 +87,81 @@ function Read-TestApplicationAvailability {
     [ordered]@{utc=[DateTime]::UtcNow.ToString('o');guest_only=$true;known_executables=$paths;exact_package_names=$packages;
         executable_or_package_presence_is_not_window_or_function_validation=$true;no_installation_or_process_start=$true}
 }
+function Prepare-VSCodeTestAsset($Asset){
+    # Called only after the exact WDAG/RunId/mapped-input guards and complete
+    # payload hashes passed. Applications is guest-local, never a host mapping.
+    $applicationRoot='C:\PaneBindV1\Applications\'+$RunId+'\VSCode'
+    $record=[ordered]@{kind='VSCode';version=$Asset.version;commit=$Asset.commit;guest_directory=$applicationRoot;
+        status='PREPARING';actual_exe=$null;actual_exe_sha256=$null;file_version=$null;marker=$null;
+        application_started=$false;synthetic_input_sent=$false;function_result='NOT_RUN';error=$null}
+    $evidence=Join-Path $outputDir ($RunId+'-vscode-asset.json')
+    try{
+        if($Asset.kind -cne 'VSCode' -or $Asset.version -cne '1.142.0' -or
+           $Asset.commit -cne '6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1' -or
+           $Asset.relative_path -cne 'VSCode-test.zip' -or $Asset.exe_relative_path -cne 'Code.exe' -or
+           $Asset.zip_sha256 -cne 'ACE1DA7D1432D43C1AB4B2BBF643F6494F6D25DEC07494976755EAC522CD50D9' -or
+           $Asset.exe_sha256 -cne '5CA701A1FACB91FEC1AC6BBAE11FC837821A1DA34DDEBB91A0BAD7E87AB88144' -or
+           $Asset.zip_size -ne 351679077 -or $Asset.expected_entries -ne 3902 -or $Asset.max_entries -ne 10000 -or
+           $Asset.expected_expanded_bytes -ne 1035323400 -or $Asset.max_expanded_bytes -ne 1610612736 -or
+           $Asset.guest_directory -cne $applicationRoot){throw 'Unrecognized VS Code asset identity or extraction bounds.'}
+        foreach($path in @('C:\PaneBindV1','C:\PaneBindV1\Applications')){
+            if(Test-Path -LiteralPath $path){$item=Get-Item -LiteralPath $path;if(-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Guest application ancestors must be plain local directories.'}}
+        }
+        $runRoot='C:\PaneBindV1\Applications\'+$RunId
+        if(Test-Path -LiteralPath $runRoot){throw 'Guest application RunId directory already exists; never reuse unknown application state.'}
+        $zipPath=Join-Path $inputDir 'VSCode-test.zip'
+        if((Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash -cne $Asset.zip_sha256){throw 'VS Code ZIP hash changed before extraction.'}
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive=[IO.Compression.ZipFile]::OpenRead($zipPath)
+        try{
+            if($archive.Entries.Count -ne $Asset.expected_entries -or $archive.Entries.Count -gt $Asset.max_entries){throw 'VS Code ZIP entry bound mismatch.'}
+            $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            [long]$expanded=0
+            foreach($entry in $archive.Entries){
+                $name=$entry.FullName.Replace('\','/')
+                $parts=@($name.Split('/') | Where-Object {$_ -ne ''})
+                if(-not $name -or $name.StartsWith('/') -or $name -match '[:\x00-\x1f<>"|?*]' -or
+                   @($parts | Where-Object {$_ -eq '..' -or $_ -eq '.' -or $_.EndsWith('.') -or $_.EndsWith(' ') -or $_ -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)'}).Count){throw 'Unsafe VS Code ZIP path.'}
+                if((($entry.ExternalAttributes -shr 16) -band 0xf000) -eq 0xa000 -or ($entry.ExternalAttributes -band 0x400)){throw 'VS Code ZIP symlink/reparse entry rejected.'}
+                $destination=[IO.Path]::GetFullPath((Join-Path $applicationRoot $name.Replace('/','\')))
+                if(-not $destination.StartsWith($applicationRoot+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'VS Code ZIP target escapes its new guest directory.'}
+                if(-not $seen.Add($destination.TrimEnd('\'))){throw 'Colliding normalized VS Code ZIP path.'}
+                if($entry.Length -gt 536870912){throw 'Oversized single VS Code ZIP entry.'}
+                $expanded+=$entry.Length
+                if($expanded -gt $Asset.max_expanded_bytes){throw 'VS Code ZIP expanded-size bound exceeded.'}
+            }
+            if($expanded -ne $Asset.expected_expanded_bytes){throw 'VS Code ZIP expanded-size identity mismatch.'}
+            [IO.Directory]::CreateDirectory('C:\PaneBindV1\Applications')|Out-Null
+            New-Item -ItemType Directory -Path $runRoot -ErrorAction Stop|Out-Null
+            New-Item -ItemType Directory -Path $applicationRoot -ErrorAction Stop|Out-Null
+            foreach($entry in $archive.Entries){
+                $destination=Join-Path $applicationRoot $entry.FullName.Replace('/','\')
+                if(-not $entry.Name){[IO.Directory]::CreateDirectory($destination)|Out-Null;continue}
+                [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination))|Out-Null
+                [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$destination,$false)
+            }
+            $record['archive_entries']=$archive.Entries.Count;$record['expanded_bytes']=$expanded
+        }finally{$archive.Dispose()}
+        $exe=Join-Path $applicationRoot 'Code.exe'
+        $actual=Get-Item -LiteralPath $exe
+        if($actual.PSIsContainer -or ($actual.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Prepared Code.exe is not an ordinary file.'}
+        $record.actual_exe=$exe;$record.actual_exe_sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+        $record.file_version=[Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion
+        if($record.actual_exe_sha256 -cne $Asset.exe_sha256 -or $record.file_version -cne $Asset.version){throw 'Prepared Code.exe version/hash mismatch.'}
+        # The official ZIP portable route owns this fresh local data directory.
+        # No inherited host profile, installation, ACL/token change or launch.
+        New-Item -ItemType Directory -Path (Join-Path $applicationRoot 'data') -ErrorAction Stop|Out-Null
+        $record.marker=Join-Path $applicationRoot 'panebind-v1-test-application.marker'
+        New-Evidence $record.marker $RunId
+        $record.status='PREPARED_NOT_LAUNCHED'
+        return $record
+    }catch{
+        $record.status='FAILED';$record.error=$_.Exception.Message
+        throw
+    }finally{
+        if(-not (Test-Path -LiteralPath $evidence)){New-Evidence $evidence ($record|ConvertTo-Json -Depth 7)}
+    }
+}
 try {
     # These checks precede compilation or any token/process creation API. This
     # entry is not a general launch tool and has no host override switch.
@@ -108,16 +183,22 @@ try {
     $summary.source_commit=$manifest.source_commit
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
+    $assets=@()
+    if($null -ne $manifest.test_assets){$assets=@($manifest.test_assets)}
+    if($assets.Count -gt 1 -or ($assets.Count -eq 1 -and $assets[0].kind -cne 'VSCode')){throw 'Only one reviewed optional VS Code test asset is permitted.'}
+    if($assets.Count){$allowed+='VSCode-test.zip'}
     $seen=@{}
     foreach($file in @($manifest.files)){
         if($file.relative_path -cnotin $allowed -or $seen.ContainsKey($file.relative_path)){throw 'Unknown or duplicate payload file.'}
         $seen[$file.relative_path]=$true
         $actual=Get-Item -LiteralPath (Join-Path $inputDir $file.relative_path)
-        if($actual.PSIsContainer -or $actual.Length -ne [long]$file.size -or
+        if($actual.PSIsContainer -or ($actual.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $actual.Length -ne [long]$file.size -or
            (Get-FileHash -LiteralPath $actual.FullName -Algorithm SHA256).Hash -cne $file.sha256){throw 'Payload size/hash mismatch.'}
     }
     if($seen.Count -ne $allowed.Count){throw 'Payload manifest is incomplete.'}
     $summary['application_availability']=Read-TestApplicationAvailability
+    $summary['test_assets']=@()
+    foreach($asset in $assets){$summary.test_assets+=,(Prepare-VSCodeTestAsset $asset)}
     # Official API references inspected 2026-10-15. Original orchestration code:
     # /windows/win32/api/winnt/ne-winnt-token_information_class (TokenLinkedToken)
     # /windows/win32/api/securitybaseapi/nf-securitybaseapi-createrestrictedtoken
