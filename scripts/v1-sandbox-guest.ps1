@@ -55,6 +55,38 @@ function Fixture-ExitReason([uint32]$Code) {
     else{$reason=@('unmapped_fixture_exit_status',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('KmcgZgRchHYgAGYAaQB4AHQAdQByAGUAIAAAkPpRtnIBYAz/AJfAaOVnn1PLWcGLbmM='))))}
     [ordered]@{code=$Code;reason_en=$reason[0];reason_zh=$reason[1];feature_pass_inferred=$false}
 }
+function Read-TestApplicationAvailability {
+    # Guest-only, bounded known executable/package lookups. No directory
+    # traversal, installation, launch, user documents or settings inspection.
+    $known=@(
+        @{kind='WindowsNotepad';path='C:\Windows\System32\notepad.exe'},
+        @{kind='Edge';path='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'},
+        @{kind='Edge';path='C:\Program Files\Microsoft\Edge\Application\msedge.exe'},
+        @{kind='VSCode';path='C:\Program Files\Microsoft VS Code\Code.exe'},
+        @{kind='VSCode';path='C:\Users\WDAGUtilityAccount\AppData\Local\Programs\Microsoft VS Code\Code.exe'},
+        @{kind='WindowsTerminalAlias';path='C:\Users\WDAGUtilityAccount\AppData\Local\Microsoft\WindowsApps\wt.exe'}
+    )
+    $paths=@(foreach($item in $known){
+        $entry=[ordered]@{kind=$item.kind;path=$item.path;exists=$null;file_version=$null;query_error=$null}
+        try{
+            $entry.exists=Test-Path -LiteralPath $item.path -PathType Leaf -ErrorAction Stop
+            if($entry.exists){$entry.file_version=[Diagnostics.FileVersionInfo]::GetVersionInfo($item.path).FileVersion}
+        }catch{$entry.query_error=$_.FullyQualifiedErrorId}
+        $entry
+    })
+    $packages=@(foreach($name in @('Microsoft.WindowsNotepad','Microsoft.WindowsTerminal','Microsoft.MicrosoftEdge.Stable','Microsoft.VisualStudioCode')){
+        $entry=[ordered]@{requested_name=$name;found=$null;versions=@();query_error=$null}
+        try{
+            $found=@(Get-AppxPackage -Name $name -ErrorAction Stop)
+            if($found.Count -gt 8){throw 'Exact known package result exceeds bounded inventory.'}
+            $entry.found=$found.Count -gt 0
+            $entry.versions=@($found|ForEach-Object{[ordered]@{name=$_.Name;version=$_.Version.ToString();architecture=$_.Architecture.ToString()}})
+        }catch{$entry.query_error=$_.FullyQualifiedErrorId}
+        $entry
+    })
+    [ordered]@{utc=[DateTime]::UtcNow.ToString('o');guest_only=$true;known_executables=$paths;exact_package_names=$packages;
+        executable_or_package_presence_is_not_window_or_function_validation=$true;no_installation_or_process_start=$true}
+}
 try {
     # These checks precede compilation or any token/process creation API. This
     # entry is not a general launch tool and has no host override switch.
@@ -85,6 +117,7 @@ try {
            (Get-FileHash -LiteralPath $actual.FullName -Algorithm SHA256).Hash -cne $file.sha256){throw 'Payload size/hash mismatch.'}
     }
     if($seen.Count -ne $allowed.Count){throw 'Payload manifest is incomplete.'}
+    $summary['application_availability']=Read-TestApplicationAvailability
     # Official API references inspected 2026-10-15. Original orchestration code:
     # /windows/win32/api/winnt/ne-winnt-token_information_class (TokenLinkedToken)
     # /windows/win32/api/securitybaseapi/nf-securitybaseapi-createrestrictedtoken

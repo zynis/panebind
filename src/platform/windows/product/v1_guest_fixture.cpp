@@ -13,6 +13,7 @@
 #include <wincrypt.h>
 #include <objbase.h>
 #include "platform/windows/product/window_catalog.h"
+#include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
 #include <algorithm>
 #include <array>
@@ -635,7 +636,7 @@ int guard(State& s){
     std::array<wchar_t,128> username{};DWORD length=static_cast<DWORD>(username.size()),session{};
     if(!GetUserNameW(username.data(),&length)||!equal(username.data(),L"WDAGUtilityAccount"))return 78;
     const fs::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";
-    if(!s.output.is_absolute()||!equal(s.output.lexically_normal().wstring(),output.wstring()))return 82;
+    if(!product::guest::same_exact_directory(s.output.lexically_normal(),output))return 82;
     const auto requested=s.input_product.lexically_normal();
     const fs::path debug_dir=output/(s.run+L"-product-Debug"),release_dir=output/(s.run+L"-product-Release");
     const bool debug=equal(requested.wstring(),(debug_dir/L"panebind.exe").wstring());
@@ -669,7 +670,7 @@ int guard(State& s){
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     std::error_code error;const auto actual_output=fs::weakly_canonical(output,error);
     s.log.emit("guard_output_canonical","\"path\":"+quote(utf8(actual_output.wstring()))+",\"error_code\":"+std::to_string(error.value()));
-    if(error||!equal(actual_output.wstring(),output.wstring()))return guard_reject(s,91,"output_canonical_path_not_exact");
+    if(error||!product::guest::same_exact_directory(actual_output,output))return guard_reject(s,91,"output_canonical_path_not_exact");
     if(!plain_directory(requested.parent_path()))return guard_reject(s,92,"product_directory_not_plain");
     if(debug&&!plain_directory(input/L"Debug"))return guard_reject(s,93,"Debug_input_directory_not_plain");
     const fs::path source=debug?input/L"Debug"/L"panebind.exe":input/L"panebind.exe";

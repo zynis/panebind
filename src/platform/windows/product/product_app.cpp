@@ -49,6 +49,12 @@ v::Edges edges(int region){switch(region){case 1:return {true,false,false,false}
 case 3:return {false,true,false,false};case 4:return {false,false,false,true};case 5:return {true,true,false,false};
 case 6:return {false,true,true,false};case 7:return {true,false,false,true};case 8:return {false,false,true,true};default:return {};}}
 bool is_resize(v::Edges e){return e.left||e.right||e.top||e.bottom;}
+v::Edges stretch_edges(v::Action action){
+    return {action==v::Action::StretchLeft||action==v::Action::StretchHorizontal||action==v::Action::StretchAll,
+        action==v::Action::StretchTop||action==v::Action::StretchVertical||action==v::Action::StretchAll,
+        action==v::Action::StretchRight||action==v::Action::StretchHorizontal||action==v::Action::StretchAll,
+        action==v::Action::StretchBottom||action==v::Action::StretchVertical||action==v::Action::StretchAll};
+}
 std::wstring action_label(v::Action a){
     constexpr std::array<const wchar_t*,37> labels{
         L"不执行",L"最小化",L"最大化",L"恢复",L"居中",L"置于后方",
@@ -408,6 +414,10 @@ public:
         overlay_color=static_cast<COLORREF>(config.preview_color);
         if(!SetLayeredWindowAttributes(overlay,0,static_cast<BYTE>(config.preview_alpha),LWA_ALPHA)){ShowWindow(overlay,SW_HIDE);return;}
         const auto& r=*rect;
+        constexpr auto low=std::numeric_limits<int>::min(),high=std::numeric_limits<int>::max();
+        const auto width=g::checked_difference(r.right(),r.left()),height=g::checked_difference(r.bottom(),r.top());
+        if(!width||!height||*width<=0||*height<=0||*width>high||*height>high||
+            r.left()<low||r.top()<low||r.right()>high||r.bottom()>high){ShowWindow(overlay,SW_HIDE);return;}
         if(!SetWindowPos(overlay,HWND_TOPMOST,static_cast<int>(r.left()),static_cast<int>(r.top()),static_cast<int>(r.width()),static_cast<int>(r.height()),SWP_NOACTIVATE|SWP_SHOWWINDOW)){
             ShowWindow(overlay,SW_HIDE);return;}
         InvalidateRect(overlay,nullptr,FALSE);
@@ -565,12 +575,8 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
         const auto history=owned_layout(s);if(!history){notify(L"当前窗口已改变，或没有仍归属本窗口的布局可撤销。");return;}
         desired=history->back().before.visible;keep_history=false;break;}
     case v::Action::StretchLeft:case v::Action::StretchRight:case v::Action::StretchTop:case v::Action::StretchBottom:
-    case v::Action::StretchHorizontal:case v::Action::StretchVertical:case v::Action::StretchAll:{if(!settings.stretch||!(s.feature_mask&8u))return;v::Edges e{};
-        e.left=action==v::Action::StretchLeft||action==v::Action::StretchHorizontal||action==v::Action::StretchAll;
-        e.right=action==v::Action::StretchRight||action==v::Action::StretchHorizontal||action==v::Action::StretchAll;
-        e.top=action==v::Action::StretchTop||action==v::Action::StretchVertical||action==v::Action::StretchAll;
-        e.bottom=action==v::Action::StretchBottom||action==v::Action::StretchVertical||action==v::Action::StretchAll;
-        desired=v::stretch(s.visible,s.work,e,false,others,settings.smart_stretch);break;}
+    case v::Action::StretchHorizontal:case v::Action::StretchVertical:case v::Action::StretchAll:{if(!settings.stretch||!(s.feature_mask&8u))return;
+        desired=v::stretch(s.visible,s.work,stretch_edges(action),false,others,settings.smart_stretch);break;}
     default:if(action>=v::Action::DockLeft&&action<=v::Action::DockBottomRight&&settings.docking&&(s.feature_mask&4u))
         desired=v::smart_dock(s.work,action,others,settings.smart_docking);else return;
     }
@@ -590,10 +596,10 @@ void Application::prepare(){
     input.prepared_point();if(gesture||!settings.enabled)return;
     const auto point=input.latest();HWND hit=WindowFromPoint(point),root=hit?GetAncestor(hit,GA_ROOT):nullptr;
     const auto snapshot=root?catalog.get(root,settings):std::nullopt;
-    if(!snapshot||GetForegroundWindow()!=root){input.prepare({});return;}
+    if(!snapshot||GetForegroundWindow()!=root){input.prepare({});show_preview({});return;}
     if(!gesture)owned_layout(*snapshot);
     GUITHREADINFO gui{sizeof(gui)};
-    if(!GetGUIThreadInfo(snapshot->tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){input.prepare({});return;}
+    if(!GetGUIThreadInfo(snapshot->tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){input.prepare({});show_preview({});return;}
     last_target=snapshot;DWORD_PTR value{};int region=-1;
     const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));DWORD pid{};GetWindowThreadProcessId(hit,&pid);
     if(pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)){
@@ -601,9 +607,24 @@ void Application::prepare(){
         case HTTOP:region=3;break;case HTBOTTOM:region=4;break;case HTTOPLEFT:region=5;break;case HTTOPRIGHT:region=6;break;
         case HTBOTTOMLEFT:region=7;break;case HTBOTTOMRIGHT:region=8;break;default:break;}
     }
-    if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){input.prepare({});return;}
+    if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){input.prepare({});show_preview({});return;}
     auto ready=std::make_shared<Prepared>();ready->source=*snapshot;ready->point=point;ready->stamp=GetTickCount();ready->region=region;ready->config_generation=settings.generation;
     prepare_mappings(*ready,settings);
+    // A read-only hover preview for the actual configured left double-click.
+    // It does not claim that a double-click occurred or authorize any writer.
+    std::optional<v::Rect> stretch_preview;
+    if(region>0&&settings.stretch&&(snapshot->feature_mask&8u)){
+        const unsigned mods=((GetAsyncKeyState(VK_MENU)&0x8000)?1u:0u)|((GetAsyncKeyState(VK_CONTROL)&0x8000)?2u:0u)|
+            ((GetAsyncKeyState(VK_SHIFT)&0x8000)?4u:0u)|(((GetAsyncKeyState(VK_LWIN)|GetAsyncKeyState(VK_RWIN))&0x8000)?8u:0u);
+        const auto route=route_down(*ready,1,2,mods);
+        const bool mapped=route.route==DownRoute::Mapped&&route.action>=v::Action::StretchLeft&&route.action<=v::Action::StretchAll;
+        const bool corner=route.route==DownRoute::Gesture&&region>=5;
+        if(mapped||corner){auto other=catalog.all(settings);
+            other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==snapshot->key;}),other.end());
+            stretch_preview=v::stretch(snapshot->visible,snapshot->work,mapped?stretch_edges(route.action):edges(region),corner&&(mods&4u),items(other),settings.smart_stretch);
+        }
+    }
+    show_preview(stretch_preview);
     input.prepare(std::move(ready));
 }
 void Application::begin(const InputEvent& e){
@@ -660,8 +681,11 @@ void Application::begin(const InputEvent& e){
     if(!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+",\"original\":"+rectangle(fresh->visible));
+    if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
+        L"Ctrl 临时邻接："+std::to_wstring(gesture->members.size())+(is_resize(gesture->edges)?L" 个窗口，共享活动边；尚未缩放":L" 个窗口；尚未移动"));
     if(e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u)){
-        const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(gesture->targets),settings.smart_stretch);
+        auto other=catalog.all(settings);other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
+        const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(other),settings.smart_stretch);
         if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);
         input.revoke();finish(v::End::Paused);
     }
@@ -1161,6 +1185,13 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             return FALSE;}
         case WM_DISPLAYCHANGE:case WM_DPICHANGED:case WM_SETTINGCHANGE:
             a->input.revoke();a->finish(v::End::SessionLost);a->prepare();return 0;
+        case WM_POWERBROADCAST:
+            if(wp==PBT_APMSUSPEND||wp==PBT_APMRESUMEAUTOMATIC||wp==PBT_APMRESUMESUSPEND){
+                a->input.revoke();a->finish(v::End::SessionLost);a->input.prepare({});
+                // Automatic resume does not prove that a user is present.
+                // New preparation still performs active-input-desktop checks.
+                if(wp!=PBT_APMSUSPEND)a->prepare();return TRUE;
+            }break;
         case WM_WTSSESSION_CHANGE:
             if(wp==WTS_SESSION_LOCK||wp==WTS_SESSION_LOGOFF||wp==WTS_CONSOLE_DISCONNECT||wp==WTS_REMOTE_DISCONNECT){
                 a->input.revoke();a->finish(v::End::SessionLost);a->input.prepare({});}

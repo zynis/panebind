@@ -1635,3 +1635,15 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   A finite wait may retire later requests but cannot cancel an issued native
   call. Delayed completion records use the same call ID and never restore
   authority. Current guest evidence, not this design, must prove exit behavior.
+- Additional original V1 event and timing integration (2026-10-15): official
+  [WM_POWERBROADCAST](https://learn.microsoft.com/en-us/windows/win32/power/wm-powerbroadcast),
+  [PBT_APMSUSPEND](https://learn.microsoft.com/en-us/windows/win32/power/pbt-apmsuspend)
+  and [PBT_APMRESUMEAUTOMATIC](https://learn.microsoft.com/en-us/windows/win32/power/pbt-apmresumeautomatic)
+  were read. Suspend retires the current gesture; automatic resume does not
+  establish user presence and fresh input-desktop admission remains required.
+  Official QPC/QPF and acquiring-high-resolution-timestamps guidance was also
+  checked for bounded callback and hook-observed-to-postverify distributions.
+  Same-machine software QPC observations are not physical display latency;
+  cross-thread one-tick quantization and missing clocks are reported. No
+  external implementation was copied or adapted. No sleep/resume or timing
+  performance PASS is inferred from these API checks.
