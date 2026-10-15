@@ -185,6 +185,7 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
         throw std::runtime_error("settings_native_Move_drag_metrics_out_of_test_bounds");
     const LONG trigger_dx=drag_x+1,dx=std::max(requested_dx,trigger_dx+1);const auto expected=translated(*before,dx,dy);
     const auto mark=read(s.product_log).size();const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();
+    const auto native_before=native_move_boundary_json(s.frames[0]);
     bool up_attempted=false;
     try{
         button(s,true);
@@ -192,8 +193,11 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
         // driver waited for START without ever sending its planned movement;
         // this does not presume which Windows internal path needs a threshold.
         cursor(s,{anchor->x+trigger_dx,anchor->y});
-        s.log.check(label+"_actual_native_START",wait([&]{return s.frames[0].starts.load()==starts+1;}),
-            "\"motion_before_START_wait\":true,\"system_drag_metrics\":["+std::to_string(drag_x)+","+std::to_string(drag_y)+"]");
+        const bool started=wait([&]{return s.frames[0].starts.load()==starts+1;});
+        const auto native_after_start=native_move_boundary_json(s.frames[0]);
+        s.log.check(label+"_actual_native_START",started,
+            "\"motion_before_START_wait\":true,\"system_drag_metrics\":["+std::to_string(drag_x)+","+std::to_string(drag_y)+"]"+
+            ",\"source_native_messages_before\":"+native_before+",\"source_native_messages_after_START_wait\":"+native_after_start);
         cursor(s,{anchor->x+dx,anchor->y+dy});
         s.log.check(label+"_actual_native_geometry",wait([&]{return visible(h)==expected;}),"\"expected\":"+rect(expected)+
             ",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
@@ -206,12 +210,14 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
         GUITHREADINFO observed{sizeof(observed)};const bool idle=wait([&]{return own(s,h)&&GetGUIThreadInfo(s.owner,&observed)&&
             !observed.hwndCapture&&!observed.hwndMoveSize&&!observed.hwndMenuOwner;},1500);
         RECT actual{},actual_client{};const bool rect_known=GetWindowRect(h,&actual)!=FALSE,client_known=GetClientRect(h,&actual_client)!=FALSE;
+        const auto native_after_cleanup=native_move_boundary_json(s.frames[0]);
         s.log.emit("settings_native_Move_failure_cleanup","\"stage\":"+quote(stage)+",\"cleanup_UP_inserted\":"+(cleanup_up?"true":"false")+
             ",\"UP_attempted\":"+(up_attempted?"true":"false")+",\"driver_left_outstanding\":"+(s.left?"true":"false")+
             ",\"exact_source_GUI_idle\":"+(idle?"true":"false")+",\"source_iconic\":"+(IsIconic(h)?"true":"false")+
             ",\"source_zoomed\":"+(IsZoomed(h)?"true":"false")+",\"actual_positioning\":"+(rect_known?rect({actual.left,actual.top,actual.right,actual.bottom}):"null")+
             ",\"actual_client\":"+(client_known?rect({actual_client.left,actual_client.top,actual_client.right,actual_client.bottom}):"null")+
             ",\"actual_START_delta\":"+std::to_string(s.frames[0].starts.load()-starts)+",\"actual_END_delta\":"+std::to_string(s.frames[0].ends.load()-ends)+
+            ",\"source_native_messages_before\":"+native_before+",\"source_native_messages_after_cleanup\":"+native_after_cleanup+
             ",\"original_failure_preserved\":true,\"cleanup_send_not_NormalUp_or_delivery_PASS\":true");
         throw;
     }

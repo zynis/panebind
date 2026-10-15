@@ -98,7 +98,7 @@ struct SettingsWindow::Impl {
     std::array<Page,6> pages;
     std::vector<Field> fields;
     std::array<HWND,8> dock_actions{};
-    HWND hotkey_text{},mouse_text{},rules_text{},metadata{},rule_class_filter{};
+    HWND hotkey_text{},mouse_text{},rules_text{},legend_text{},metadata{},rule_class_filter{};
     std::array<HWND,7> footer{};
     int selected{};
     int px(int value) const {return MulDiv(value,static_cast<int>(dpi),96);}
@@ -209,8 +209,8 @@ struct SettingsWindow::Impl {
         note(shortcuts,L"鼠标按键：左1、右2、中3、X1=4、X2=5；点击次数1或2。未映射的按钮／客户区默认透传，系统按钮不作为标题栏。",48);
         std::wstring actions=L"动作标识 → 中文行为：\r\n";
         for(std::size_t i=1;i<action_labels.size();++i) actions+=widen(v::action_name(static_cast<v::Action>(i)))+L" → "+action_labels[i]+L"\r\n";
-        const auto legend=add(shortcuts,L"EDIT",actions.c_str(),WS_TABSTOP|WS_VSCROLL|ES_MULTILINE|ES_READONLY|ES_AUTOVSCROLL,12,shortcuts.next_y,0,200,true);
-        (void)legend; shortcuts.next_y+=212;
+        legend_text=add(shortcuts,L"EDIT",actions.c_str(),WS_TABSTOP|WS_VSCROLL|ES_MULTILINE|ES_READONLY|ES_AUTOVSCROLL,12,shortcuts.next_y,0,200,true);
+        shortcuts.next_y+=212;
         auto& rules=pages[4];
         note(rules,L"可以从打开设置前的合格前台应用添加排除规则。产品会重新核验其身份；此操作只修改草稿，保存后才应用。",56);
         add(rules,L"BUTTON",L"添加已核验前台应用的排除规则 (&A)",WS_TABSTOP|BS_PUSHBUTTON,12,rules.next_y,0,32,true,id_current_app_rule);
@@ -375,7 +375,7 @@ struct SettingsWindow::Impl {
     static LRESULT CALLBACK control_proc(HWND child,UINT message,WPARAM w,LPARAM l,UINT_PTR id,DWORD_PTR data) {
         auto* page=reinterpret_cast<Page*>(data);
         if(message==WM_GETDLGCODE&&page&&page->owner&&
-           (child==page->owner->hotkey_text||child==page->owner->mouse_text||child==page->owner->rules_text)) {
+           (child==page->owner->hotkey_text||child==page->owner->mouse_text||child==page->owner->rules_text||child==page->owner->legend_text)) {
             const auto code=DefSubclassProc(child,message,w,l);
             // Multiline EDIT claims all keys. Its immediate parent is our
             // scrolling page, not a dialog procedure, so its own TAB handling
@@ -561,7 +561,7 @@ bool SettingsWindow::translate(MSG& message){
         TabCtrl_SetCurSel(impl_->tab,impl_->selected);impl_->layout();SetFocus(impl_->tab);return true;
     }
     const auto focus=GetFocus();
-    const bool own_multiline=focus&&(focus==impl_->hotkey_text||focus==impl_->mouse_text||focus==impl_->rules_text)&&
+    const bool own_multiline=focus&&(focus==impl_->hotkey_text||focus==impl_->mouse_text||focus==impl_->rules_text||focus==impl_->legend_text)&&
         message.hwnd==focus&&IsChild(impl_->window,focus)&&GetForegroundWindow()==impl_->window&&
         GetWindowThreadProcessId(focus,nullptr)==GetCurrentThreadId()&&GetActiveWindow()==impl_->window&&
         IsWindowEnabled(impl_->window)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);

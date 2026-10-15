@@ -148,9 +148,31 @@ struct NativeBatchLoss {
     std::atomic<bool> destroy_called{},destroy_return{},destroy_gone{},completed{};std::atomic<SHORT> async_left_state{};
     std::atomic<DWORD> destroy_error{};std::atomic<std::uint64_t> destroy_qpc{};
 };
+struct NativeMoveBoundary {
+    std::atomic<std::uint64_t> version{};
+    std::array<std::atomic<std::uint64_t>,2> count{};
+    std::array<std::atomic<WPARAM>,2> wparam{};
+    std::array<std::atomic<LONG>,2> message_time{};
+    std::array<std::atomic<SHORT>,2> key_state{};
+};
 struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};std::array<std::atomic<unsigned>,5> client_down{},client_up{};
     LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
-    std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;};
+    std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;NativeMoveBoundary native_move_boundary;};
+std::string native_move_boundary_json(const Frame& frame){
+    const auto& fact=frame.native_move_boundary;
+    for(unsigned attempt=0;attempt<3;++attempt){const auto version=fact.version.load();if(version&1u)continue;
+        std::array<std::uint64_t,2> count{},wp{};std::array<LONG,2> time{};std::array<SHORT,2> key{};
+        for(std::size_t n=0;n<2;++n){count[n]=fact.count[n].load();wp[n]=fact.wparam[n].load();
+            time[n]=fact.message_time[n].load();key[n]=fact.key_state[n].load();}
+        if(version!=fact.version.load())continue;
+        const auto row=[&](std::size_t n){return "{\"count\":"+std::to_string(count[n])+",\"last_wparam\":"+
+            (count[n]?std::to_string(wp[n]):"null")+",\"last_GetMessageTime_return\":"+(count[n]?std::to_string(time[n]):"null")+
+            ",\"last_GetKeyState_LMB_return\":"+(count[n]?std::to_string(key[n]):"null")+"}";};
+        return "{\"snapshot_known\":true,\"WM_NCLBUTTONDOWN\":"+row(0)+",\"WM_SYSCOMMAND_SC_MOVE\":"+row(1)+
+            ",\"button_delivery_or_physical_state_not_inferred_from_key_state\":true}";
+    }
+    return "{\"snapshot_known\":false,\"reason\":\"concurrent_window_message_observation\"}";
+}
 struct ExplorerTarget {
     fs::path directory;shell::ShellLocationFact location;std::unique_ptr<shell::ExplorerProvisioningLease> lease;
     std::unique_ptr<shell::ExplorerConsentTargetObservation> observation;
@@ -282,6 +304,14 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
     if(frame){
+        if(message==WM_NCLBUTTONDOWN||(message==WM_SYSCOMMAND&&(wp&0xfff0u)==SC_MOVE)){
+            // One owning UI thread publishes fixed facts only. Preserve the
+            // original message and the DefWindowProc call below, including
+            // nested default processing; never write evidence on this thread.
+            auto& fact=frame->native_move_boundary;const std::size_t index=message==WM_NCLBUTTONDOWN?0u:1u;
+            ++fact.version;++fact.count[index];fact.wparam[index]=wp;
+            fact.message_time[index]=GetMessageTime();fact.key_state[index]=GetKeyState(VK_LBUTTON);++fact.version;
+        }
         if(message==WM_GETMINMAXINFO){auto* mm=reinterpret_cast<MINMAXINFO*>(lp);mm->ptMinTrackSize={frame->min_width,frame->min_height};
             const auto dpi=GetDpiForWindow(h);
             mm->ptMaxTrackSize={frame->max_width>0?frame->max_width:GetSystemMetricsForDpi(SM_CXMAXTRACK,dpi),
@@ -1486,6 +1516,13 @@ void gui_edit_number(State& s,const SettingsGui& gui,HWND edit,unsigned number_v
     const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
     s.log.check("GUI_actual_Tab_focus",wait([&]{const auto after=gui_focus(gui);return after&&after!=before&&gui_identity(s,gui,after);}));
 }
+std::optional<bool> gui_public_action_legend(State& s,const SettingsGui& gui,HWND control){
+    if(!gui_identity(s,gui,control)||gui_class(control)!=L"Edit")return {};
+    std::array<wchar_t,25> prefix{};DWORD_PTR copied{};
+    if(!SendMessageTimeoutW(control,WM_GETTEXT,prefix.size(),reinterpret_cast<LPARAM>(prefix.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&copied)||
+       copied>=prefix.size())return {};
+    return std::wstring_view(prefix.data(),copied).starts_with(L"动作标识 → 中文行为：");
+}
 void gui_save_enter(State& s,const SettingsGui& gui){
     const auto save=GetDlgItem(gui.root,IDOK);
     for(unsigned n=0;n<64&&gui_focus(gui)!=save;++n){
@@ -1494,6 +1531,8 @@ void gui_save_enter(State& s,const SettingsGui& gui){
         if(!wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before;})){
             const auto after=gui_focus(gui);DWORD focus_pid{},foreground_pid{};const auto focus_tid=GetWindowThreadProcessId(after,&focus_pid);
             const auto foreground=GetForegroundWindow();GetWindowThreadProcessId(foreground,&foreground_pid);
+            const auto public_legend=gui_public_action_legend(s,gui,after);SetLastError(0);const auto style=GetWindowLongPtrW(after,GWL_STYLE);
+            const auto style_error=GetLastError();const bool style_known=gui_identity(s,gui,after)&&(style||!style_error);
             const auto query=[&](WPARAM code){DWORD_PTR value{};MSG keyboard{};keyboard.hwnd=after;keyboard.message=WM_KEYDOWN;keyboard.wParam=code;
                 const bool known=gui_identity(s,gui,after)&&SendMessageTimeoutW(after,WM_GETDLGCODE,code,reinterpret_cast<LPARAM>(&keyboard),
                     SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&value)!=FALSE;
@@ -1502,6 +1541,10 @@ void gui_save_enter(State& s,const SettingsGui& gui){
                 ",\"focus_before\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before))+
                 ",\"focus_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(after))+",\"focus_class\":"+quote(utf8(gui_class(after)))+
                 ",\"focus_pid\":"+std::to_string(focus_pid)+",\"focus_tid\":"+std::to_string(focus_tid)+
+                ",\"focus_ES_READONLY\":"+(style_known?((style&ES_READONLY)?"true":"false"):"null")+
+                ",\"focus_ES_MULTILINE\":"+(style_known?((style&ES_MULTILINE)?"true":"false"):"null")+
+                ",\"fixed_public_action_legend_prefix\":"+(public_legend?(*public_legend?"true":"false"):"null")+
+                ",\"custom_control_text_recorded\":false"+
                 ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"foreground_pid\":"+std::to_string(foreground_pid)+
                 ",\"readonly_WM_GETDLGCODE_with_WM_KEYDOWN_MSG\":{\"VK_TAB\":"+query(VK_TAB)+",\"VK_ESCAPE\":"+query(VK_ESCAPE)+
                 "},\"actual_Tab_input_preserved\":true,\"query_is_not_historical_query_arguments_or_key_delivery_receipt\":true");
@@ -1530,6 +1573,15 @@ void settings_gui_flow(State& s){
             gui_click(s,gui,check);s.log.check("GUI_page_checkbox_real_restore",wait([&]{return gui_read(s,gui,check,BM_GETCHECK)==old;}),"\"page\":"+std::to_string(page));}
     }
     gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),original.attraction_dip==7?8:7);
+    gui_page_select(s,gui,3);HWND mouse_edit{};
+    for(HWND child=GetWindow(gui_page(s,gui),GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
+        if(gui_class(child)==L"Edit"&&gui_text(s,gui,child).starts_with(L"mouse_count=")){mouse_edit=child;break;}
+    if(!mouse_edit)throw std::runtime_error("GUI_mouse_edit_for_legend_navigation_missing");
+    gui_click(s,gui,mouse_edit);gui_press(s,gui,VK_TAB);
+    s.log.check("GUI_mouse_Tab_reaches_readonly_action_legend",wait([&]{const auto focus=gui_focus(gui);
+        const auto legend=gui_public_action_legend(s,gui,focus);const auto style=GetWindowLongPtrW(focus,GWL_STYLE);
+        return focus!=mouse_edit&&legend&&*legend&&(style&ES_READONLY)&&(style&ES_MULTILINE);}),
+        "\"actual_Tab_from_mouse_EDIT\":true,\"only_fixed_public_legend_prefix_compared\":true");
     gui_press(s,gui,VK_ESCAPE);
     s.log.check("GUI_actual_Esc_cancel_unchanged",wait([&]{return !IsWindow(gui.root);})&&fs::exists(path)==existed&&read(path)==before,
         "\"file_existed_before\":"+std::string(existed?"true":"false")+",\"config_bytes_unchanged\":true");

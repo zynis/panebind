@@ -1976,3 +1976,29 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   queries without pretending those queries prove key delivery. New native
   revalidation remains required. Existing pinned prior art is reused;
   external code copied/adapted/translated/mechanically rewritten: **NO**.
+
+### V1 exact readonly-legend navigation correction — 2026-10-16
+
+- Actual run `3e478afcf62d4535a7030cf3b98d8451`, source
+  `14b6603746c2d97a2e11ec152b7f327c11a0a4d8`: the mapped mouse editor was
+  HWND524982 (sequence264), but both failure snapshots271/283 showed focus
+  HWND524978, class EDIT, and bounded WM_GETDLGCODE Tab/Escape returns141.
+  Source inspection found a fourth multiline tab stop after mouse_text:
+  the readonly public action legend. Its HWND was only a discarded local;
+  both the dialog-code override and actual-key navigation enumerated only
+  hotkey_text/mouse_text/rules_text. Thus moving out of the mouse editor did
+  not prove the following readonly edit could yield Tab/Escape. This is a
+  concrete omitted product control, not a demonstrated system input cause.
+- Reused the official GetNextDlgTabItem, SetFocus, WM_GETDLGCODE and edit
+  control contracts actually read in the preceding entry. Original repair:
+  retain this exact fourth HWND and include it in both existing bounded
+  navigation decisions; no style-based generic control framework or foreign
+  focus operation. The existing GUI case now actually Tabs from mouse_text
+  to the readonly legend, compares only its fixed public heading, and sends
+  real Escape to cancel the modified draft. M09's existing real Tab-to-Save
+  and Enter checks continue to exercise navigation through the legend.
+- A failure-only snapshot adds ES_READONLY/ES_MULTILINE and a boolean match
+  against at most24 characters of that fixed public heading. It records no
+  custom editor text. Original failures remain unchanged; compiling this
+  change does not award runtime PASS. Existing pinned prior art is reused;
+  external code copied/adapted/translated/mechanically rewritten: **NO**.
