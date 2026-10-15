@@ -1826,11 +1826,14 @@ void independent_entry_flow(State& s){
     };
     phase("settings_GUI",settings_gui_flow);
     phase("settings_startup",settings_guest_startup);
-    phase("settings_exclusion",settings_guest_exclusion);
+    phase("five_button_mapping",owned_mouse_mapping_cases);
     phase("settings_import_export",settings_guest_import_export);
     phase("settings_corrupt_restart",settings_guest_corrupt_restart);
     phase("tray",owned_tray_entry_cases);
-    phase("five_button_mapping",owned_mouse_mapping_cases);
+    // These are independent entry cases, not the Full historical chain.
+    // Finish the non-drag GUI/command paths before the exclusion case's
+    // actual native Move; an input failure must not hide unrelated results.
+    phase("settings_exclusion",settings_guest_exclusion);
     // Successful exact Explorer roots remain available for the existing mixed
     // application group. The applications scope cleans them after that group;
     // an unsuccessful Explorer chain still cleans its own registered roots.

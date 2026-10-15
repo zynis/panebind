@@ -1897,3 +1897,31 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   the guarded guest case. Compilation is not native delivery evidence; that
   new implementation still requires a new-identity guest run. External code
   copied, adapted, translated or mechanically rewritten: **NO**.
+
+### V1 owned native-Move test sequencing — 2026-10-16
+
+- Reused the existing pinned AltSnap/FancyZones input research; no additional
+  upstream implementation or new external code was inspected or reused.
+- Official pages actually read:
+  [WM_ENTERSIZEMOVE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-entersizemove),
+  [WM_NCLBUTTONDOWN](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nclbuttondown),
+  and [DragDetect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-dragdetect).
+  WM_ENTERSIZEMOVE reports actual modal-loop entry; nonclient DOWN is posted
+  and DefWindowProc decides the applicable action. DragDetect documents the
+  configurable system drag rectangle, but does not prove that a particular
+  DefWindowProc implementation used that function in the failed run.
+- Run `3b0011d2ece5475db6782f96434703e3`, source
+  `f796d26e9678ac729f2a35abe50a0fbae4bc3d29`, recorded one DOWN at fixture
+  sequence 263 followed by a 3.5-second START wait failure at 264. The driver
+  never sent its planned motion before that wait. This proves a missing test
+  stimulus, not the platform cause of the missing START or later empty client
+  rectangle. The original driver failure remains unchanged evidence.
+- Original guest-only repair: acquire the anchor after exact foreground, then
+  recheck actual hit/HTCAPTION, original geometry and idle GUI facts; send a
+  bounded real displacement beyond the recorded drag metric before waiting
+  for actual START, followed by real destination motion, exact geometry, one
+  UP and actual END. Both exclusion and paused-tray checks still require zero
+  product gesture starts and placements. Failure cleanup is one unsent UP
+  attempt plus bounded actual GUI-idle observation; its send is not delivery,
+  NormalUp or a functional PASS. No production input behavior changed.
+  External code copied, adapted, translated or mechanically rewritten: **NO**.

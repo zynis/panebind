@@ -159,6 +159,63 @@ void settings_guest_move_effect(State& s,bool snap,std::string_view name){
     settings_guest_effect_layout(s);const auto g=down(s,0);const Rect expected=snap?Rect{140,80,380,440}:Rect{134,83,374,443};
     phase(s,0,g,14,3,expected,std::string(name),true);up(s,0,g,expected);
 }
+void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_view stage){
+    const HWND h=s.frames[0].hwnd;const std::string label(stage);foreground(s,h);
+    const auto before=visible(h);const auto anchor=hit_point(h,HTCAPTION);RECT positioning{},client{};
+    if(!before||!anchor||!GetWindowRect(h,&positioning)||!GetClientRect(h,&client))
+        throw std::runtime_error("settings_native_Move_original_geometry_unknown");
+    cursor(s,*anchor);Sleep(100);
+    GUITHREADINFO initial{sizeof(initial)};RECT fresh{};DWORD_PTR region{};
+    const bool queried=SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(anchor->x),static_cast<short>(anchor->y)),
+        SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
+    const bool positioning_known=GetWindowRect(h,&fresh)!=FALSE,gui_known=GetGUIThreadInfo(s.owner,&initial)!=FALSE;
+    const auto actual_visible=visible(h);
+    const bool fresh_context=own(s,h)&&GetForegroundWindow()==h&&WindowFromPoint(*anchor)==h&&queried&&
+        static_cast<int>(region)==HTCAPTION&&!IsIconic(h)&&!IsZoomed(h)&&client.left<client.right&&client.top<client.bottom&&
+        actual_visible==before&&positioning_known&&EqualRect(&positioning,&fresh)&&gui_known&&
+        !initial.hwndCapture&&!initial.hwndMoveSize&&!initial.hwndMenuOwner;
+    s.log.check(label+"_fresh_native_caption_before_DOWN",fresh_context,
+        "\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"source_iconic\":"+(IsIconic(h)?"true":"false")+
+        ",\"actual_visible\":"+(actual_visible?rect(*actual_visible):"null")+",\"actual_positioning\":"+
+        (positioning_known?rect({fresh.left,fresh.top,fresh.right,fresh.bottom}):"null")+",\"source_GUI_known\":"+(gui_known?"true":"false")+
+        ",\"actual_region\":"+(queried?std::to_string(region):"null")+",\"actual_foreground\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"point\":["+std::to_string(anchor->x)+","+std::to_string(anchor->y)+"]");
+    const LONG drag_x=GetSystemMetrics(SM_CXDRAG),drag_y=GetSystemMetrics(SM_CYDRAG);
+    if(drag_x<0||drag_y<0||drag_x>128||drag_y>128||requested_dx<=0)
+        throw std::runtime_error("settings_native_Move_drag_metrics_out_of_test_bounds");
+    const LONG trigger_dx=drag_x+1,dx=std::max(requested_dx,trigger_dx+1);const auto expected=translated(*before,dx,dy);
+    const auto mark=read(s.product_log).size();const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();
+    bool up_attempted=false;
+    try{
+        button(s,true);
+        // Supply an actual displacement before waiting for entry. The prior
+        // driver waited for START without ever sending its planned movement;
+        // this does not presume which Windows internal path needs a threshold.
+        cursor(s,{anchor->x+trigger_dx,anchor->y});
+        s.log.check(label+"_actual_native_START",wait([&]{return s.frames[0].starts.load()==starts+1;}),
+            "\"motion_before_START_wait\":true,\"system_drag_metrics\":["+std::to_string(drag_x)+","+std::to_string(drag_y)+"]");
+        cursor(s,{anchor->x+dx,anchor->y+dy});
+        s.log.check(label+"_actual_native_geometry",wait([&]{return visible(h)==expected;}),"\"expected\":"+rect(expected)+
+            ",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
+        up_attempted=true;button(s,false);
+        s.log.check(label+"_native_END_no_product_writer",wait([&]{return s.frames[0].ends.load()==ends+1;})&&
+            record(s,mark,"gesture_start").empty()&&record(s,mark,"placement").empty()&&visible(h)==expected,
+            "\"ordinary_native_Move_preserved\":true,\"actual_START_and_END_required\":true");
+    }catch(...){
+        bool cleanup_up=false;if(s.left&&!up_attempted){up_attempted=true;try{button(s,false);cleanup_up=true;}catch(...){};}
+        GUITHREADINFO observed{sizeof(observed)};const bool idle=wait([&]{return own(s,h)&&GetGUIThreadInfo(s.owner,&observed)&&
+            !observed.hwndCapture&&!observed.hwndMoveSize&&!observed.hwndMenuOwner;},1500);
+        RECT actual{},actual_client{};const bool rect_known=GetWindowRect(h,&actual)!=FALSE,client_known=GetClientRect(h,&actual_client)!=FALSE;
+        s.log.emit("settings_native_Move_failure_cleanup","\"stage\":"+quote(stage)+",\"cleanup_UP_inserted\":"+(cleanup_up?"true":"false")+
+            ",\"UP_attempted\":"+(up_attempted?"true":"false")+",\"driver_left_outstanding\":"+(s.left?"true":"false")+
+            ",\"exact_source_GUI_idle\":"+(idle?"true":"false")+",\"source_iconic\":"+(IsIconic(h)?"true":"false")+
+            ",\"source_zoomed\":"+(IsZoomed(h)?"true":"false")+",\"actual_positioning\":"+(rect_known?rect({actual.left,actual.top,actual.right,actual.bottom}):"null")+
+            ",\"actual_client\":"+(client_known?rect({actual_client.left,actual_client.top,actual_client.right,actual_client.bottom}):"null")+
+            ",\"actual_START_delta\":"+std::to_string(s.frames[0].starts.load()-starts)+",\"actual_END_delta\":"+std::to_string(s.frames[0].ends.load()-ends)+
+            ",\"original_failure_preserved\":true,\"cleanup_send_not_NormalUp_or_delivery_PASS\":true");
+        throw;
+    }
+}
 void settings_guest_exclusion(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);
     foreground(s,s.frames[0].hwnd);const auto point=hit_point(s.frames[0].hwnd,HTCAPTION);if(!point)throw std::runtime_error("rule_exact_source_caption_missing");cursor(s,*point);Sleep(100);
@@ -179,13 +236,7 @@ void settings_guest_exclusion(State& s){
         return v::settings_detail::ascii_fold(rule.exe)==v::settings_detail::ascii_fold(utf8(fixture_exe))&&
             rule.excluded&&rule.window_class==utf8(s.class_name)&&rule.feature_mask==0xffffffffU;});
     s.log.check("rule_actual_GUI_added_exact_source_class",exact_rule);
-    settings_guest_effect_layout(s);const auto before=visible(s.frames[0].hwnd);const auto anchor=hit_point(s.frames[0].hwnd,HTCAPTION);
-    if(!before||!anchor)throw std::runtime_error("excluded_source_geometry_missing");foreground(s,s.frames[0].hwnd);cursor(s,*anchor);Sleep(100);
-    const auto mark=read(s.product_log).size();const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();button(s,true);
-    s.log.check("excluded_Move_actual_native_START",wait([&]{return s.frames[0].starts.load()==starts+1;}));cursor(s,{anchor->x+36,anchor->y+21});
-    const auto expected=translated(*before,36,21);s.log.check("excluded_Move_actual_native_geometry",wait([&]{return visible(s.frames[0].hwnd)==expected;}));button(s,false);
-    s.log.check("excluded_Move_native_END_no_product_writer",wait([&]{return s.frames[0].ends.load()==ends+1;})&&record(s,mark,"gesture_start").empty()&&record(s,mark,"placement").empty(),
-        "\"ordinary_native_Move_preserved\":true,\"actual_END_observed\":true");
+    settings_guest_effect_layout(s);settings_guest_native_move(s,36,21,"excluded_Move");
     std::string rules;for(const auto row:v::settings_detail::split(v::serialize(original),'\n'))if(row.starts_with("rule_count=")||row.starts_with("rule.")){rules+=row;rules+="\r\n";}
     gui=gui_open(s);gui_page_select(s,gui,4);std::wstring wide_rules(rules.begin(),rules.end());
     settings_guest_replace(s,gui,gui_number(s,gui,L"rule.编号"),wide_rules);gui_save_enter(s,gui);
@@ -352,13 +403,7 @@ void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu)
     try{
         tray_guest_choose(s,owner,*first,500,L"暂停增强");
         s.log.check("tray_actual_pause_saved",wait([&]{return !settings_guest_configuration(s).enabled;}));paused=true;
-        settings_guest_effect_layout(s);const auto source=s.frames[0].hwnd;foreground(s,source);const auto anchor=hit_point(source,HTCAPTION);
-        if(!anchor)throw std::runtime_error("tray_paused_native_caption_unavailable");cursor(s,*anchor);Sleep(100);
-        const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();const auto mark=read(s.product_log).size();button(s,true);
-        s.log.check("tray_pause_actual_native_START",wait([&]{return s.frames[0].starts.load()==starts+1;}));cursor(s,{anchor->x+14,anchor->y+3});
-        constexpr Rect native{134,83,374,443};s.log.check("tray_pause_native_Move_without_magnet",wait([&]{return visible(source)==native;}));button(s,false);
-        s.log.check("tray_pause_actual_native_END_no_enhancement",wait([&]{return s.frames[0].ends.load()==ends+1;})&&
-            record(s,mark,"gesture_start").empty()&&record(s,mark,"placement").empty());
+        settings_guest_effect_layout(s);const auto source=s.frames[0].hwnd;settings_guest_native_move(s,14,3,"tray_pause");
         tray_guest_choose(s,owner,open(),500,L"恢复增强");
         s.log.check("tray_actual_resume_saved",wait([&]{return settings_guest_configuration(s).enabled;}));paused=false;
         settings_guest_move_effect(s,true,"tray_resume_fresh_actual_Move");
