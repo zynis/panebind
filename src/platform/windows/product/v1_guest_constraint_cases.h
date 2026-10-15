@@ -53,7 +53,7 @@ bool constraint_existing_fixed_case(State& s){
     const Rect constrained{initial.l,initial.t,initial.l+expected_native_width-frame_width,initial.t+expected_native_height-frame_height};
     if(constrained==requested||constrained.width()<=0||constrained.height()<=0)
         throw std::runtime_error("I10_grid_independent_nonexact_expectation_invalid");
-    frame.grid=grid; // Same owner thread as the exact newly-created WndProc.
+    if(!set.set_grid(0,grid))throw std::runtime_error("I10_grid_owner_UI_update_failed");
     s.log.emit("I10_native_grid_policy","\"native_grid\":17,\"policy_actor\":\"exact_owned_test_application\",\"policy_units\":\"positioning_size\"," 
         "\"requested_visible\":"+rect(requested)+",\"independent_expected_visible\":"+rect(constrained)+
         ",\"requested_positioning_size\":["+std::to_string(requested_native_width)+","+std::to_string(initial_native_height)+
@@ -93,7 +93,7 @@ bool constraint_existing_fixed_case(State& s){
     s.log.check("I10_no_grid_retry_or_new_placement_after_abort",attempted(constraint_generation_placements(s,g.offset,g.generation))==1&&visible(frame.hwnd)==constrained,
         "\"independent_actual_constraint_rejection\":true,\"pending_retired\":true");
 
-    frame.grid=1;
+    if(!set.set_grid(0,1))throw std::runtime_error("I10_grid_owner_UI_reset_failed");
     s.log.emit("I10_test_application_grid_reset","\"from\":17,\"to\":1,\"only_after_real_UP\":true,\"actor\":\"test_owned_app\",\"geometry_reset\":false");
     // Recovery starts at the actually constrained rectangle; no product
     // restart, source replacement or geometry reset hides the failed state.

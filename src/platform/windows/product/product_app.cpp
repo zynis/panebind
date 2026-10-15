@@ -759,12 +759,13 @@ void Application::prepare(){
     // actual declared bounds before any placement; an unknown reply still
     // rejects that operation rather than silently authorizing a resize.
     std::string admission;const auto snapshot=root?catalog.get(root,settings,&admission,false,false):std::nullopt;
-    GUITHREADINFO gui{sizeof(gui)};bool gui_read=false,hit_read=false;DWORD_PTR value{};int region=-1;DWORD hit_pid{};
+    GuiContext gui_context;auto& gui=gui_context.actual;bool gui_read=false,hit_read=false;DWORD_PTR value{};int region=-1;DWORD hit_pid{};
     const auto explain=[&](std::string_view reason){
         if(!diagnostic)return;
         const auto key=snapshot?snapshot->key:0;
         const auto identity=std::string(reason)+":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+":"+
-            std::to_string(key)+":"+std::to_string(region)+":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"unknown");
+            std::to_string(key)+":"+std::to_string(region)+":"+gui_context_mode_name(gui_context.mode)+":"+
+            (gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"unknown");
         // Point is evidence, not part of the dedup key: motion within one
         // prepared/rejected region does not create a per-mouse log stream.
         if(identity==last_prepare_diagnostic)return;last_prepare_diagnostic=identity;
@@ -773,6 +774,8 @@ void Application::prepare(){
             ",\"hit_pid\":"+std::to_string(hit_pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
             ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
             ",\"region\":"+std::to_string(region)+",\"actual_hit_test\":"+(hit_read?std::to_string(static_cast<LRESULT>(value)):"null")+
+            ",\"GUI_context_mode\":\""+gui_context_mode_name(gui_context.mode)+"\",\"GUI_owner_query_error\":"+std::to_string(gui_context.owner_error)+
+            ",\"GUI_foreground_query_error\":"+std::to_string(gui_context.foreground_error)+
             ",\"source_GUI_read\":"+(gui_read?"true":"false")+",\"capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
             ",\"move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
             ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
@@ -780,8 +783,8 @@ void Application::prepare(){
     };
     if(!snapshot||GetForegroundWindow()!=root){explain(!snapshot?(root?admission:"no_actual_hit_root"):"source_not_actual_foreground");input.prepare({});show_preview({});return;}
     if(!gesture)owned_layout(*snapshot);
-    gui_read=GetGUIThreadInfo(snapshot->tid,&gui)!=FALSE;
-    if(!gui_read||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){explain(gui_read?"source_native_GUI_interaction_present":"source_GUI_unreadable");input.prepare({});show_preview({});return;}
+    gui_context=observe_gui_context(*snapshot);gui_read=gui_context.known();
+    if(!gui_context.idle()){explain(gui_read?"source_native_GUI_interaction_present":"source_GUI_unreadable");input.prepare({});show_preview({});return;}
     last_target=snapshot;
     const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));GetWindowThreadProcessId(hit,&hit_pid);
     hit_read=hit_pid==snapshot->pid&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,lp,SMTO_ABORTIFHUNG|SMTO_BLOCK,30,&value)!=FALSE;
@@ -956,8 +959,7 @@ void Application::seam_timeout(UINT_PTR timer){
     const auto source=gesture->operation_source;
     const auto current=catalog.get(source.hwnd,settings);
     if(!current||!Catalog::same(source,*current)||GetForegroundWindow()!=source.hwnd){finish(v::End::FocusLost);return;}
-    GUITHREADINFO gui{sizeof(gui)};
-    if(!GetGUIThreadInfo(source.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){finish(v::End::FocusLost);return;}
+    if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
     for(const auto& [key,expected]:gesture->expected){
         (void)key;const auto actual=catalog.get(expected.hwnd,settings);
         if(!actual||!Catalog::same(expected,*actual)||actual->visible!=expected.visible||actual->positioning!=expected.positioning||
@@ -980,10 +982,10 @@ void Application::request_native_restore(const InputEvent& move){
     const auto threshold_y=std::max(1,GetSystemMetricsForDpi(SM_CYDRAG,original.dpi)/2);
     if(dx>-threshold_x&&dx<threshold_x&&dy>-threshold_y&&dy<threshold_y)return;
     const auto fresh=catalog.get(original.hwnd,settings);
-    GUITHREADINFO gui{sizeof(gui)};WINDOWPLACEMENT placement{sizeof(placement)};
+    WINDOWPLACEMENT placement{sizeof(placement)};
     if(!fresh||!Catalog::same(original,*fresh)||!fresh->maximized||fresh->visible!=original.visible||
         fresh->positioning!=original.positioning||GetForegroundWindow()!=original.hwnd||
-        !GetGUIThreadInfo(original.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||
+        !observe_gui_context(original).idle()||
         !GetWindowPlacement(original.hwnd,&placement)||placement.showCmd!=SW_SHOWMAXIMIZED||
         placement.rcNormalPosition.right<=placement.rcNormalPosition.left||placement.rcNormalPosition.bottom<=placement.rcNormalPosition.top){
         finish(v::End::SourceLost);return;
@@ -1012,8 +1014,7 @@ void Application::restore_progress(){
     const auto fresh=catalog.get(original.hwnd,settings);
     if(!fresh||!Catalog::same(original,*fresh)||GetForegroundWindow()!=original.hwnd){finish(v::End::SourceLost);return;}
     if(fresh->maximized||fresh->minimized)return;
-    GUITHREADINFO gui{sizeof(gui)};
-    if(!GetGUIThreadInfo(fresh->tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){finish(v::End::FocusLost);return;}
+    if(!observe_gui_context(*fresh).idle()){finish(v::End::FocusLost);return;}
     auto normal=fresh->visible;
     if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
     const auto anchor=v::restored_move_anchor(original.visible,normal,{gesture->down.point.x,gesture->down.point.y});
@@ -1051,7 +1052,7 @@ void Application::motion(const InputEvent& e){
     if(gesture->restore_armed||gesture->restore_pending){gesture->restore_move=e;if(gesture->restore_armed)request_native_restore(e);return;}
     auto& state=*gesture;const auto& config=state.config;const auto source=state.operation_source;const auto fresh=catalog.get(source.hwnd,settings);
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
-    GUITHREADINFO gui{sizeof(gui)};if(!GetGUIThreadInfo(source.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner){finish(v::End::FocusLost);return;}
+    if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
     refresh_targets();
     const v::Point delta{static_cast<std::int64_t>(e.point.x)-state.down.point.x,static_cast<std::int64_t>(e.point.y)-state.down.point.y};
     auto list=items(state.members);v::Plan plan;

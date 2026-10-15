@@ -1744,3 +1744,16 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   profile. Run `8cc920c8b1584531b248e602b672d186` observed only hidden Code roots
   and one `0x80070005` child exit. The conflicting profile setup is corrected,
   but that exit's root cause / Code compatibility is not presumed proved.
+- Exact foreground-console GUI observation (2026-10-15, original V1 code):
+  revisited the pinned reference-only GUI/capture research above and official
+  [GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo)
+  / [GUITHREADINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-guithreadinfo).
+  An owner without a GUI queue can fail; thread ID zero queries the actual
+  foreground queue. Only an exact foreground `ConsoleWindowClass` may use a
+  successful zero-ID query with matching actual active HWND, unchanged native
+  PID/TID and matching foreground observations. Nonempty capture/move/menu and
+  unknown results remain rejected; ordered reads are not an atomic desktop
+  snapshot. Run `3e5d9c491c5642efb7ca02ce82d6db55` observed owner-query failure
+  on the bound cmd frame. The narrow fallback is a candidate pending native
+  validation, not evidence of compatibility. No copied/adapted source code,
+  input attachment, foreground control or new window-operation authority.

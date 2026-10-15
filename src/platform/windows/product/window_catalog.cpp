@@ -210,7 +210,46 @@ bool active_session(DWORD expected_session) noexcept {
     return active;
 }
 
+constexpr GuiContextMode choose_gui_context_mode(bool identity_current,bool owner_succeeded,bool exact_console,
+    bool foreground_before_matches,bool foreground_succeeded,bool active_matches,bool foreground_after_matches) noexcept {
+    if(!identity_current)return GuiContextMode::Unknown;
+    if(owner_succeeded)return GuiContextMode::OwnerThread;
+    return exact_console&&foreground_before_matches&&foreground_succeeded&&active_matches&&foreground_after_matches?
+        GuiContextMode::ForegroundConsole:GuiContextMode::Unknown;
+}
+
 } // namespace
+
+GuiContext observe_gui_context(const Snapshot& expected) {
+    GuiContext result;
+    const auto current_identity=[&]{
+        DWORD pid{};return expected.hwnd&&expected.pid&&expected.tid&&IsWindow(expected.hwnd)&&
+            GetAncestor(expected.hwnd,GA_ROOT)==expected.hwnd&&
+            GetWindowThreadProcessId(expected.hwnd,&pid)==expected.tid&&pid==expected.pid;
+    };
+    if(!current_identity())return result;
+    result.foreground_before=GetForegroundWindow();SetLastError(ERROR_SUCCESS);
+    result.owner_succeeded=GetGUIThreadInfo(expected.tid,&result.actual)!=FALSE;
+    result.owner_error=result.owner_succeeded?ERROR_SUCCESS:GetLastError();
+    bool exact_console=false;
+    if(!result.owner_succeeded&&expected.window_class==L"ConsoleWindowClass"){
+        std::array<wchar_t,64> actual_class{};
+        exact_console=GetClassNameW(expected.hwnd,actual_class.data(),static_cast<int>(actual_class.size()))>0&&
+            std::wstring_view(actual_class.data())==L"ConsoleWindowClass";
+        result.foreground_before=GetForegroundWindow();
+        if(exact_console&&result.foreground_before==expected.hwnd){
+            GUITHREADINFO foreground{sizeof(foreground)};SetLastError(ERROR_SUCCESS);
+            result.foreground_succeeded=GetGUIThreadInfo(0,&foreground)!=FALSE;
+            result.foreground_error=result.foreground_succeeded?ERROR_SUCCESS:GetLastError();
+            if(result.foreground_succeeded)result.actual=foreground;
+        }
+    }
+    result.foreground_after=GetForegroundWindow();
+    result.mode=choose_gui_context_mode(current_identity(),result.owner_succeeded,exact_console,
+        result.foreground_before==expected.hwnd,result.foreground_succeeded,result.actual.hwndActive==expected.hwnd,
+        result.foreground_after==expected.hwnd);
+    return result;
+}
 
 struct Catalog::Impl {
     DWORD owner{GetCurrentThreadId()}, own_pid{GetCurrentProcessId()};
@@ -512,6 +551,20 @@ int main(){
     check(p::without_box_covered({front,rear},false).size()==2,"unknown or changed Z order cannot assert occlusion");
     check(p::without_box_covered({box(1,{0,0,50,100}),box(2,{50,0,100,100}),box(3,{0,0,100,100})},true).size()==3,
         "rectangle-only policy does not invent multi-window union coverage");
+    using Mode=p::GuiContextMode;
+    check(p::choose_gui_context_mode(true,true,false,false,false,false,false)==Mode::OwnerThread,"successful owner GUI query remains preferred for ordinary and follower frames");
+    check(p::choose_gui_context_mode(true,false,true,true,true,true,true)==Mode::ForegroundConsole,"exact foreground console accepts actual matching GTI zero result");
+    check(p::choose_gui_context_mode(true,false,false,true,true,true,true)==Mode::Unknown,"ordinary classes cannot use foreground-console fallback");
+    check(p::choose_gui_context_mode(true,false,true,false,true,true,true)==Mode::Unknown,"background console cannot use fallback");
+    check(p::choose_gui_context_mode(true,false,true,true,false,true,true)==Mode::Unknown,"failed GTI zero is unknown rather than empty capture");
+    check(p::choose_gui_context_mode(true,false,true,true,true,false,true)==Mode::Unknown,"foreground GUI active HWND must be the exact console root");
+    check(p::choose_gui_context_mode(true,false,true,true,true,true,false)==Mode::Unknown,"foreground change during observation rejects fallback");
+    check(p::choose_gui_context_mode(false,true,true,true,true,true,true)==Mode::Unknown,"lost source identity rejects even successful native GUI reads");
+    p::GuiContext gui;gui.mode=Mode::ForegroundConsole;
+    check(gui.idle(),"confirmed GUI result with actual empty capture/move/menu is idle");
+    gui.actual.hwndCapture=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console capture still rejects interaction");
+    gui.actual.hwndCapture=nullptr;gui.actual.hwndMoveSize=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console native move-size still rejects interaction");
+    gui.actual.hwndMoveSize=nullptr;gui.actual.hwndMenuOwner=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console menu still rejects interaction");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";return failures?1:0;
 }
 #endif

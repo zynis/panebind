@@ -40,6 +40,26 @@ struct Display {
     UINT dpi{};
 };
 
+enum class GuiContextMode { Unknown, OwnerThread, ForegroundConsole };
+[[nodiscard]] constexpr const char* gui_context_mode_name(GuiContextMode mode) noexcept {
+    switch(mode){case GuiContextMode::OwnerThread:return "owner_thread";
+        case GuiContextMode::ForegroundConsole:return "foreground_console";default:return "unknown";}
+}
+struct GuiContext {
+    GUITHREADINFO actual{sizeof(GUITHREADINFO)};
+    GuiContextMode mode{GuiContextMode::Unknown};
+    HWND foreground_before{},foreground_after{};
+    DWORD owner_error{},foreground_error{};
+    bool owner_succeeded{},foreground_succeeded{};
+    [[nodiscard]] bool known()const noexcept{return mode!=GuiContextMode::Unknown;}
+    [[nodiscard]] bool idle()const noexcept{return known()&&!actual.hwndCapture&&!actual.hwndMoveSize&&!actual.hwndMenuOwner;}
+};
+// Read-only facts, never window-operation authority. For an exact foreground
+// ConsoleWindowClass whose reported owner has no GUI queue, GTI(0) must really
+// succeed and identify this same active root between matching foreground reads.
+// Background console followers and every unknown result remain rejected.
+[[nodiscard]] GuiContext observe_gui_context(const Snapshot&);
+
 // Product admission is deliberately independent of owned/Explorer test tokens.
 // Construct, use and destroy on the same already-initialized UI STA. Its normal
 // message pump must keep delivering lifecycle WinEvents; get() never dispatches

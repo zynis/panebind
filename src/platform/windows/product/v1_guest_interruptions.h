@@ -107,10 +107,10 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
             catch(...){try{key(s,VK_F11,false);key(s,VK_SHIFT,false);key(s,VK_CONTROL,false);}catch(...){}throw;}
         }else{
             expected=v::End::SourceLost;
-            s.log.check("I08_close_only_exact_new_blank_source",set.owns(source)&&GetCurrentThreadId()==set.thread&&DestroyWindow(h)&&!IsWindow(h),
+            s.log.check("I08_close_only_exact_new_blank_source",set.owns(source)&&set.destroy(source)&&!IsWindow(h),
                 "\"native_API\":\"DestroyWindow\",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
                 ",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(set.thread)+",\"no_user_document\":true");
-            destroyed=true;set.frames[source].hwnd=nullptr;set.active=1;
+            destroyed=true;set.active=1;
         }
         s.log.emit("I08_actual_terminator","\"cause\":"+std::to_string(static_cast<unsigned>(cause))+
             ",\"generation\":"+std::to_string(g.generation)+",\"source_key\":"+std::to_string(source_key)+

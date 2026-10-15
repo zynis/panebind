@@ -7,71 +7,171 @@
 // Deliberately not called until the parent selects this L2 phase.
 
 struct LayoutLimit {LONG min_width{100},min_height{100},max_width{2000},max_height{1400};};
+// Only the existing fixture UI STA creates, configures and destroys these
+// windows. The driver is free to perform synchronous evidence IO without
+// starving the product's bounded WM_GETMINMAXINFO query.
+constexpr UINT layout_ui_command=WM_APP+0x62;
+struct LayoutUiStorage {
+    std::array<Frame,8> frames;std::array<HWND,3> originals{};
+    std::array<LONG_PTR,3> original_data{};std::array<bool,3> old_visible{},visibility_saved{};
+    HINSTANCE instance{};std::wstring class_name;DWORD owner{};HWND anchor{};
+    std::atomic<bool> abandoned{};bool cleaned{};
+    // Windows retain pointers to Frame. Keep that storage alive even when a
+    // driver request times out; only the owner may release it after destruction.
+    std::shared_ptr<LayoutUiStorage> window_lifetime;
+};
+enum class LayoutUiOperation {Create,Configure,Destroy,DestroyOne,Grid};
+struct LayoutUiRequest {
+    std::shared_ptr<LayoutUiStorage> storage;LayoutUiOperation operation{};
+    std::vector<Rect> expected;std::vector<LayoutLimit> limits;std::size_t member{};LONG grid{1};
+    std::atomic<bool> cancelled{},done{},cleanup_done{};bool success{},cleanup_success{};std::string error;
+};
+std::atomic<std::shared_ptr<LayoutUiRequest>> layout_ui_pending;
+bool layout_ui_owns(const LayoutUiStorage& storage,std::size_t index){
+    if(index>=storage.frames.size())return false;const auto& frame=storage.frames[index];DWORD pid{};
+    return frame.hwnd&&IsWindow(frame.hwnd)&&GetWindowThreadProcessId(frame.hwnd,&pid)==storage.owner&&pid==GetCurrentProcessId()&&
+        GetAncestor(frame.hwnd,GA_ROOT)==frame.hwnd&&gui_class(frame.hwnd)==storage.class_name&&
+        GetWindowLongPtrW(frame.hwnd,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&frame);
+}
+bool layout_ui_original(const LayoutUiStorage& storage,std::size_t index){
+    DWORD pid{};const HWND h=storage.originals[index];return h&&IsWindow(h)&&
+        GetWindowThreadProcessId(h,&pid)==storage.owner&&pid==GetCurrentProcessId()&&GetAncestor(h,GA_ROOT)==h&&
+        gui_class(h)==storage.class_name&&GetWindowLongPtrW(h,GWLP_USERDATA)==storage.original_data[index];
+}
+bool layout_ui_cleanup(const std::shared_ptr<LayoutUiStorage>& storage){
+    if(GetCurrentThreadId()!=storage->owner)return false;bool exact=true;
+    for(std::size_t n=0;n<storage->frames.size();++n){auto& frame=storage->frames[n];if(!frame.hwnd)continue;
+        if(!IsWindow(frame.hwnd)){frame.hwnd=nullptr;continue;}
+        if(!layout_ui_owns(*storage,n)){exact=false;continue;}const HWND h=frame.hwnd;
+        if(DestroyWindow(h)&&!IsWindow(h))frame.hwnd=nullptr;else exact=false;
+    }
+    for(std::size_t n=0;n<storage->originals.size();++n)if(storage->visibility_saved[n]){
+        if(!layout_ui_original(*storage,n)){exact=false;continue;}
+        ShowWindow(storage->originals[n],storage->old_visible[n]?SW_SHOWNOACTIVATE:SW_HIDE);
+        if((IsWindowVisible(storage->originals[n])!=FALSE)!=storage->old_visible[n])exact=false;
+    }
+    const bool gone=std::all_of(storage->frames.begin(),storage->frames.end(),[](const Frame& f){return !f.hwnd;});
+    storage->cleaned=exact&&gone;if(gone)storage->window_lifetime.reset();return storage->cleaned;
+}
+bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
+    if(message!=layout_ui_command)return false;auto request=layout_ui_pending.load(std::memory_order_acquire);
+    if(!request||reinterpret_cast<LPARAM>(request.get())!=lp)return true;
+    const auto storage=request->storage;
+    if(h!=storage->anchor||GetCurrentThreadId()!=storage->owner||!layout_ui_original(*storage,0))return true;
+    // A timed-out request remains owned by pending until this exact UI thread
+    // can cancel it. No queued message ever refers to stack Frame storage.
+    if(request->cancelled.load()||storage->abandoned.load()){
+        request->cleanup_success=layout_ui_cleanup(storage);request->success=false;
+        request->cleanup_done.store(true,std::memory_order_release);request->done.store(true,std::memory_order_release);
+        auto same=request;layout_ui_pending.compare_exchange_strong(same,{});return true;
+    }
+    try{
+        const auto check_cancel=[&]{if(request->cancelled.load()||storage->abandoned.load())throw std::runtime_error("layout_UI_request_cancelled");};
+        if(request->operation==LayoutUiOperation::Create){
+            storage->window_lifetime=storage;
+            for(std::size_t n=0;n<storage->originals.size();++n){check_cancel();if(!layout_ui_original(*storage,n))throw std::runtime_error("layout_original_identity_changed");
+                storage->old_visible[n]=IsWindowVisible(storage->originals[n])!=FALSE;storage->visibility_saved[n]=true;ShowWindow(storage->originals[n],SW_HIDE);}
+            for(std::size_t n=0;n<storage->frames.size();++n){check_cancel();auto& frame=storage->frames[n];
+                const auto title=L"PaneBind V1 layout — "+std::to_wstring(n+1);
+                frame.hwnd=CreateWindowExW(0,storage->class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,
+                    100+static_cast<int>(n)*20,100,400,400,nullptr,nullptr,storage->instance,&frame);
+                if(!frame.hwnd||!layout_ui_owns(*storage,n))throw std::runtime_error("layout_test_window_creation_failed");
+                ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);UpdateWindow(frame.hwnd);
+            }
+        }else if(request->operation==LayoutUiOperation::Configure){
+            for(std::size_t n=0;n<storage->frames.size();++n){check_cancel();if(!layout_ui_owns(*storage,n))throw std::runtime_error("layout_owned_identity_changed");
+                auto& frame=storage->frames[n];if(n>=request->expected.size()){ShowWindow(frame.hwnd,SW_HIDE);continue;}
+                const auto observed=visible(frame.hwnd);RECT positioning{};
+                if(!observed||!GetWindowRect(frame.hwnd,&positioning))throw std::runtime_error("layout_frame_insets_unknown");
+                const LONG dx=positioning.right-positioning.left-observed->width(),dy=positioning.bottom-positioning.top-observed->height();
+                const auto bound=request->limits.empty()?LayoutLimit{}:request->limits[n];
+                if(bound.min_width<=0||bound.min_height<=0||bound.max_width<bound.min_width||bound.max_height<bound.min_height||
+                    bound.min_width+dx<=0||bound.min_height+dy<=0)throw std::runtime_error("layout_test_constraint_invalid");
+                frame.min_width=bound.min_width+dx;frame.min_height=bound.min_height+dy;
+                frame.max_width=bound.max_width+dx;frame.max_height=bound.max_height+dy;frame.grid=1;
+                const auto target=request->expected[n];const LONG left=target.l-(observed->l-positioning.left),top=target.t-(observed->t-positioning.top);
+                const LONG right=target.r+(positioning.right-observed->r),bottom=target.b+(positioning.bottom-observed->b);
+                ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
+                if(!SetWindowPos(frame.hwnd,nullptr,left,top,right-left,bottom-top,SWP_NOACTIVATE|SWP_NOZORDER))
+                    throw std::runtime_error("layout_owned_setup_native_placement_failed");
+            }
+        }else if(request->operation==LayoutUiOperation::Destroy){
+            if(!layout_ui_cleanup(storage))throw std::runtime_error("layout_owned_UI_cleanup_failed");
+        }else{
+            check_cancel();if(!layout_ui_owns(*storage,request->member))throw std::runtime_error("layout_owned_member_identity_changed");
+            auto& frame=storage->frames[request->member];
+            if(request->operation==LayoutUiOperation::Grid){if(request->grid<1)throw std::runtime_error("layout_invalid_native_grid");frame.grid=request->grid;}
+            else{const HWND original=frame.hwnd;if(!DestroyWindow(original)||IsWindow(original))throw std::runtime_error("layout_owned_member_destroy_failed");frame.hwnd=nullptr;}
+        }
+        check_cancel();request->success=true;
+    }catch(const std::exception& error){request->error=error.what();storage->abandoned=true;request->success=false;}
+    // Normal requests are acknowledged by the driver. Keeping pending until
+    // that acknowledgement closes the timeout-vs-completion cleanup race.
+    const bool abandoning=request->cancelled.load()||storage->abandoned.load();
+    if(abandoning){request->success=false;request->cleanup_success=layout_ui_cleanup(storage);request->cleanup_done.store(true,std::memory_order_release);}
+    request->done.store(true,std::memory_order_release);
+    if(abandoning){auto same=request;layout_ui_pending.compare_exchange_strong(same,{});}
+    return true;
+}
 struct LayoutFixtures {
-    State& state;std::array<Frame,8> frames;std::array<bool,3> old_visible{},visibility_saved{};
-    DWORD thread{GetCurrentThreadId()};std::size_t active{};bool closed{};
-    explicit LayoutFixtures(State& s):state(s){}
-    bool owns(std::size_t index)const{
-        if(index>=frames.size())return false;const auto& frame=frames[index];DWORD pid{};
-        return frame.hwnd&&IsWindow(frame.hwnd)&&GetWindowThreadProcessId(frame.hwnd,&pid)==thread&&pid==GetCurrentProcessId()&&
-            GetAncestor(frame.hwnd,GA_ROOT)==frame.hwnd&&gui_class(frame.hwnd)==state.class_name&&
-            GetWindowLongPtrW(frame.hwnd,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&frame);
+    State& state;std::shared_ptr<LayoutUiStorage> storage;std::array<Frame,8>& frames;
+    DWORD thread{};std::size_t active{};bool closed{},cleanup_exact{};
+    explicit LayoutFixtures(State& s):state(s),storage(std::make_shared<LayoutUiStorage>()),frames(storage->frames),thread(s.owner){
+        storage->instance=s.instance;storage->class_name=s.class_name;storage->owner=s.owner;storage->anchor=s.frames[0].hwnd;
+        for(std::size_t n=0;n<s.frames.size();++n){storage->originals[n]=s.frames[n].hwnd;storage->original_data[n]=reinterpret_cast<LONG_PTR>(&s.frames[n]);}
+    }
+    bool owns(std::size_t index)const{return layout_ui_owns(*storage,index);}
+    bool run(LayoutUiOperation operation,const std::vector<Rect>& expected={},const std::vector<LayoutLimit>& limits={},std::size_t member=0,LONG grid=1){
+        auto request=std::make_shared<LayoutUiRequest>();request->storage=storage;request->operation=operation;request->expected=expected;
+        request->limits=limits;request->member=member;request->grid=grid;std::shared_ptr<LayoutUiRequest> empty;
+        if(!layout_ui_pending.compare_exchange_strong(empty,request))return false;
+        if(!PostMessageW(storage->anchor,layout_ui_command,0,reinterpret_cast<LPARAM>(request.get()))){
+            auto same=request;layout_ui_pending.compare_exchange_strong(same,{});return false;
+        }
+        const bool completed=wait([&]{return request->done.load(std::memory_order_acquire);},3500);
+        if(!completed){request->cancelled=true;storage->abandoned=true;
+            // One bounded cleanup request, not a retry loop. Its shared owner
+            // persists if the UI is still unavailable; that is never PASS.
+            (void)PostMessageW(storage->anchor,layout_ui_command,0,reinterpret_cast<LPARAM>(request.get()));
+            const bool cleanup_observed=wait([&]{return request->cleanup_done.load(std::memory_order_acquire);},1000);
+            state.log.emit("layout_UI_timeout","\"owner_tid\":"+std::to_string(thread)+",\"operation\":"+
+                std::to_string(static_cast<unsigned>(operation))+",\"cleanup_completed\":"+(cleanup_observed?"true":"false")+
+                ",\"cleanup_exact\":"+(cleanup_observed?(request->cleanup_success?"true":"false"):"null")+",\"request_PASS\":false");return false;
+        }
+        auto same=request;layout_ui_pending.compare_exchange_strong(same,{});
+        if(!request->success&&!request->error.empty())state.log.emit("layout_UI_failure","\"reason\":"+quote(request->error)+",\"owner_tid\":"+std::to_string(thread));
+        return request->success;
     }
     void create(){
         if(!state.process||WaitForSingleObject(state.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("layout_product_not_running");
         for(std::size_t n=0;n<3;++n){
             if(state.explorer[n]||state.applications[n]||!own(state,state.frames[n].hwnd))throw std::runtime_error("layout_other_targets_must_be_released_first");
-            old_visible[n]=IsWindowVisible(state.frames[n].hwnd)!=FALSE;visibility_saved[n]=true;
-            ShowWindow(state.frames[n].hwnd,SW_HIDE);
         }
-        for(std::size_t n=0;n<frames.size();++n){
-            auto& frame=frames[n];const auto title=L"PaneBind V1 layout — "+std::to_wstring(n+1);
-            frame.hwnd=CreateWindowExW(0,state.class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,
-                100+static_cast<int>(n)*20,100,400,400,nullptr,nullptr,state.instance,&frame);
-            if(!frame.hwnd)throw std::runtime_error("layout_test_window_creation_failed");
-            ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);UpdateWindow(frame.hwnd);
-            if(!wait([&]{return owns(n)&&visible(frame.hwnd).has_value();}))throw std::runtime_error("layout_actual_frame_unavailable");
-        }
+        if(!run(LayoutUiOperation::Create))throw std::runtime_error("layout_main_UI_creation_failed");
+        for(std::size_t n=0;n<frames.size();++n)if(!wait([&]{return owns(n)&&visible(frames[n].hwnd).has_value();}))throw std::runtime_error("layout_actual_frame_unavailable");
         state.log.emit("layout_owned_scope","\"windows\":8,\"pid\":"+std::to_string(GetCurrentProcessId())+
-            ",\"tid\":"+std::to_string(thread)+",\"original_driver_frames_hidden\":true,\"app_grid\":1,\"automatic_guest_driver\":true");
+            ",\"tid\":"+std::to_string(thread)+",\"driver_tid\":"+std::to_string(GetCurrentThreadId())+
+            ",\"existing_main_UI_STA\":true,\"original_driver_frames_hidden\":true,\"app_grid\":1,\"automatic_guest_driver\":true");
     }
     void setup(const std::vector<Rect>& expected,const std::vector<LayoutLimit>& limits={}){
         if(expected.empty()||expected.size()>frames.size()||(!limits.empty()&&limits.size()!=expected.size()))throw std::runtime_error("layout_case_bound_invalid");
-        if(state.left||state.control)throw std::runtime_error("layout_setup_requires_released_input");active=expected.size();
-        for(std::size_t n=0;n<frames.size();++n){
-            if(!owns(n))throw std::runtime_error("layout_owned_identity_changed");
-            if(n>=active){ShowWindow(frames[n].hwnd,SW_HIDE);continue;}
-            const auto observed=visible(frames[n].hwnd);RECT positioning{};
-            if(!observed||!GetWindowRect(frames[n].hwnd,&positioning))throw std::runtime_error("layout_frame_insets_unknown");
-            const LONG dx=positioning.right-positioning.left-observed->width(),dy=positioning.bottom-positioning.top-observed->height();
+        if(state.left||state.control)throw std::runtime_error("layout_setup_requires_released_input");
+        if(!run(LayoutUiOperation::Configure,expected,limits))throw std::runtime_error("layout_main_UI_configuration_failed");active=expected.size();
+        for(std::size_t n=0;n<active;++n){
             const auto bound=limits.empty()?LayoutLimit{}:limits[n];
-            if(bound.min_width<=0||bound.min_height<=0||bound.max_width<bound.min_width||bound.max_height<bound.min_height||
-                bound.min_width+dx<=0||bound.min_height+dy<=0)throw std::runtime_error("layout_test_constraint_invalid");
-            // These HWNDs belong to THIS driver thread, so their WndProc cannot
-            // concurrently read a partially changed non-atomic Frame contract.
-            frames[n].min_width=bound.min_width+dx;frames[n].min_height=bound.min_height+dy;
-            frames[n].max_width=bound.max_width+dx;frames[n].max_height=bound.max_height+dy;frames[n].grid=1;
-            ShowWindow(frames[n].hwnd,SW_SHOWNOACTIVATE);
-            state.log.check("layout_actual_independent_setup",fixture_rect(frames[n].hwnd,expected[n]),
+            state.log.check("layout_actual_independent_setup",wait([&]{return owns(n)&&visible(frames[n].hwnd)==expected[n];},1000),
                 "\"member\":"+std::to_string(n)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(frames[n].hwnd))+
                 ",\"expected_visible\":"+rect(expected[n])+",\"declared_visible_min\":["+std::to_string(bound.min_width)+","+
                 std::to_string(bound.min_height)+"],\"declared_visible_max\":["+std::to_string(bound.max_width)+","+
                 std::to_string(bound.max_height)+"],\"native_grid\":1,\"not_claiming_unknown_application_grid\":true");
         }
     }
+    bool destroy(std::size_t member){return member<frames.size()&&run(LayoutUiOperation::DestroyOne,{}, {},member);}
+    bool set_grid(std::size_t member,LONG grid){return member<frames.size()&&grid>0&&run(LayoutUiOperation::Grid,{}, {},member,grid);}
     bool close(){
-        if(closed)return true;closed=true;bool exact=true;
-        for(std::size_t n=0;n<frames.size();++n)if(frames[n].hwnd){
-            if(!owns(n)){exact=false;continue;}
-            const HWND h=frames[n].hwnd;exact=(DestroyWindow(h)!=FALSE&&!IsWindow(h))&&exact;frames[n].hwnd=nullptr;
-        }
-        for(std::size_t n=0;n<3;++n)if(visibility_saved[n]){if(own(state,state.frames[n].hwnd)){
-            ShowWindow(state.frames[n].hwnd,old_visible[n]?SW_SHOWNOACTIVATE:SW_HIDE);
-            exact=((IsWindowVisible(state.frames[n].hwnd)!=FALSE)==old_visible[n])&&exact;
-        }else exact=false;}
-        return exact;
+        if(closed)return cleanup_exact;closed=true;cleanup_exact=run(LayoutUiOperation::Destroy);if(!cleanup_exact)state.log.failed=true;return cleanup_exact;
     }
-    ~LayoutFixtures(){if(!closed)close();} // test-owned windows only, not product cleanup PASS
+    ~LayoutFixtures(){try{if(!closed)close();}catch(...){state.log.failed=true;}} // test-owned windows only, not product cleanup PASS
 };
 
 std::optional<POINT> layout_hit(LayoutFixtures& set,std::size_t source,int required){
@@ -91,9 +191,9 @@ std::optional<POINT> layout_hit(LayoutFixtures& set,std::size_t source,int requi
             static_cast<int>(hit)==required)return point;
     }return {};
 }
-// This driver STA owns the local layout HWNDs. PeekMessage services incoming
-// nonqueued SendMessage/SendMessageTimeout requests (notably native tracking
-// limits) without dispatching a queued, possibly UNCONSUMED nonclient DOWN.
+// The existing UI STA now owns these HWNDs and independently serves tracking
+// queries. This driver wait also services nonqueued requests without dispatching
+// unrelated queued input while it awaits a real product START receipt.
 // This finite test observation is not a product input/polling mechanism.
 bool layout_wait_sent(const std::function<bool()>& observed,DWORD duration){
     const auto deadline=GetTickCount64()+duration;

@@ -175,7 +175,9 @@ bool test_root_stamp(State& s,const product::Snapshot& identity,bool install=fal
     if(install&&(!SetPropW(identity.hwnd,name.c_str(),value)))return false;
     return GetPropW(identity.hwnd,name.c_str())==value;
 }
+bool layout_ui_message(HWND,UINT,WPARAM,LPARAM);
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
+    if(layout_ui_message(h,message,wp,lp))return 0;
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
     if(frame){
@@ -282,7 +284,7 @@ std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect 
     return out;
 }
 struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
-void application_down_context(State&,HWND,POINT,int,std::string_view);
+bool application_down_context(State&,HWND,POINT,int,std::string_view);
 void application_prepare_barrier(State&,HWND,POINT,int);
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);const auto point=hit_point(h,region);
@@ -646,7 +648,7 @@ void application_binding_facts(State& s,ApplicationTarget& target){
     s.log.emit("application_binding_observation","\"application\":"+quote(target.kind)+",\"held_tree_new_roots\":"+std::to_string(observed)+
         ",\"unknown_process_roots_not_queried\":true,\"single_post_failure_observation\":true");
 }
-void application_down_context(State& s,HWND h,POINT point,int expected_hit,std::string_view stage){
+bool application_down_context(State& s,HWND h,POINT point,int expected_hit,std::string_view stage){
     DWORD pid{},hit_pid{};const DWORD tid=GetWindowThreadProcessId(h,&pid);const HWND hit=WindowFromPoint(point);
     GetWindowThreadProcessId(hit,&hit_pid);DWORD_PTR nonclient{};SetLastError(0);
     const bool hit_read=hit&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
@@ -669,6 +671,12 @@ void application_down_context(State& s,HWND h,POINT point,int expected_hit,std::
         ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
         ",\"window_region_type\":"+std::to_string(region_type)+",\"region_contains_point\":"+(region_known?(region_contains?"true":"false"):"null")+
         ",\"actual_left_down\":"+((GetAsyncKeyState(VK_LBUTTON)&0x8000)?"true":"false")+",\"product_prepared_not_inferred\":true");
+    // The earlier hit search is not perpetual permission. 3e observed a
+    // caption initially, then ERROR_TIMEOUT before DOWN; do not inject based
+    // on that stale search. Unknown GUI state is still not called "no capture"
+    // and this receipt never substitutes for the product preparation gate.
+    return hit_read&&static_cast<LRESULT>(nonclient)==expected_hit&&pid&&hit_pid==pid&&
+        hit&&GetAncestor(hit,GA_ROOT)==h&&GetForegroundWindow()==h;
 }
 void application_prepare_barrier(State& s,HWND h,POINT point,int expected_hit){
     const auto mark=read(s.product_log).size();const bool sent=launch(s,L"--status",true);std::string status;
@@ -676,7 +684,8 @@ void application_prepare_barrier(State& s,HWND h,POINT point,int expected_hit){
     s.log.check("application_actual_STA_prepare_barrier",observed&&status.find("\"enabled\":true")!=std::string::npos&&
         status.find("\"hook_owner_running\":true")!=std::string::npos&&status.find("\"gesture_active\":false")!=std::string::npos,
         "\"production_status\":"+quote(status)+",\"actual_prepare_permission_not_inferred\":true");
-    application_down_context(s,h,point,expected_hit,"before_real_DOWN_after_STA_barrier");
+    if(!application_down_context(s,h,point,expected_hit,"before_real_DOWN_after_STA_barrier"))
+        throw std::runtime_error("application_actual_hit_unavailable_before_DOWN");
     if(!authorized_source(s,h)||GetForegroundWindow()!=h)throw std::runtime_error("application_identity_or_foreground_changed_before_DOWN");
 }
 std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string kind){
@@ -1502,10 +1511,9 @@ void drive(State& s){
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
         owned_settings_screenshots(s);
         settings_gui_flow(s);
-        try{explorer_flow(s);}
-        catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
-        application_matrix_flow(s);
-        cleanup_explorers(s);
+        // Complete independent owned DEV before retrying application-specific
+        // environment gaps. A failed application admission is not permission
+        // to bypass it, nor a reason to leave unrelated product paths untested.
         visual_mapping_flow(s);
         owned_layout_cases(s);
         owned_native_grid_constraint_case(s);
@@ -1519,6 +1527,10 @@ void drive(State& s){
             s.log.emit("Release_actual_idle_measurement",idle.json_fields());
             if(!idle.completed||idle.one_core_cpu_percent>=1.0||idle.after.working_bytes>80ULL*1024*1024)s.log.failed=true;
         }
+        try{explorer_flow(s);}
+        catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
+        application_matrix_flow(s);
+        cleanup_explorers(s);
         cleanup(s);
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;

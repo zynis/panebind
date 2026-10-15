@@ -32,7 +32,7 @@ std::optional<v::VisualState> read_visual(HWND hwnd){
 bool same_changed_visual(const v::VisualState& a,const v::VisualState& b,bool alpha,bool top){
     return(!alpha||v::same_alpha(a,b))&&(!top||a.topmost==b.topmost);
 }
-bool native_visual_identity(const Snapshot& expected){
+bool native_visual_identity(const Snapshot& expected,GuiContextMode* observed_mode=nullptr){
     DWORD pid{};if(!expected.hwnd||!expected.born||GetWindowThreadProcessId(expected.hwnd,&pid)!=expected.tid||pid!=expected.pid||pid==GetCurrentProcessId())return false;
     HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid);if(!process)return false;
     FILETIME birth{},exited{},kernel{},user{};HANDLE token{},own_token{};
@@ -60,7 +60,8 @@ bool native_visual_identity(const Snapshot& expected){
                 *GetSidSubAuthority(sid,*GetSidSubAuthorityCount(sid)-1)==SECURITY_MANDATORY_MEDIUM_RID&&IsValidSid(a)&&IsValidSid(b)&&EqualSid(a,b);}
     }
     if(token)CloseHandle(token);if(own_token)CloseHandle(own_token);CloseHandle(process);
-    GUITHREADINFO gui{sizeof(gui)};if(!valid||!GetGUIThreadInfo(expected.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)return false;
+    if(!valid)return false;const auto gui=observe_gui_context(expected);if(observed_mode)*observed_mode=gui.mode;
+    if(!gui.idle())return false;
     const auto desktop=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!desktop)return false;
     BOOL receiving{};DWORD bytes{};valid=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&bytes)&&receiving;
     CloseDesktop(desktop);return valid;
@@ -225,19 +226,19 @@ struct WindowWriter::NativeExecutor {
         }
         return true;
     }
-    static bool exact_context(const Snapshot& e){
+    static bool exact_context(const Snapshot& e,GuiContextMode* observed_mode=nullptr){
         DWORD pid{};if(GetWindowThreadProcessId(e.hwnd,&pid)!=e.tid||pid!=e.pid)return false;
         HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid);
         if(!process)return false;FILETIME created{},exit{},kernel{},user{};
         const bool identity=WaitForSingleObject(process,0)==WAIT_TIMEOUT&&GetProcessTimes(process,&created,&exit,&kernel,&user)&&
             ((static_cast<std::uint64_t>(created.dwHighDateTime)<<32)|created.dwLowDateTime)==e.born;
         CloseHandle(process);if(!identity)return false;
-        RECT positioning{},visible{};GUITHREADINFO gui{sizeof(gui)};
+        RECT positioning{},visible{};
         const auto equal=[](const RECT& a,const Rect& b){return a.left==b.left()&&a.top==b.top()&&a.right==b.right()&&a.bottom==b.bottom();};
         if(!GetWindowRect(e.hwnd,&positioning)||FAILED(DwmGetWindowAttribute(e.hwnd,DWMWA_EXTENDED_FRAME_BOUNDS,&visible,sizeof(visible)))||
             !equal(positioning,e.positioning)||!equal(visible,e.visible)||GetDpiForWindow(e.hwnd)!=e.dpi||
-            MonitorFromWindow(e.hwnd,MONITOR_DEFAULTTONULL)!=e.monitor||(IsZoomed(e.hwnd)!=FALSE)!=e.maximized||(IsIconic(e.hwnd)!=FALSE)!=e.minimized||
-            !GetGUIThreadInfo(e.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)return false;
+            MonitorFromWindow(e.hwnd,MONITOR_DEFAULTTONULL)!=e.monitor||(IsZoomed(e.hwnd)!=FALSE)!=e.maximized||(IsIconic(e.hwnd)!=FALSE)!=e.minimized)return false;
+        const auto gui=observe_gui_context(e);if(observed_mode)*observed_mode=gui.mode;if(!gui.idle())return false;
         const auto desktop=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!desktop)return false;
         BOOL receiving{};DWORD size{};
         const bool active=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&size)&&receiving;
@@ -251,12 +252,13 @@ struct WindowWriter::NativeExecutor {
                 if(shared->stopping)break;std::shared_ptr<Work> work;
                 {std::lock_guard lock(shared->mutex);work=shared->pending;}
                 if(!work)continue;
-                const bool context=work->operation==Operation::Visual?native_visual_identity(work->expected):exact_context(work->expected);
+                GuiContextMode gui_mode=GuiContextMode::Unknown;
+                const bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode):exact_context(work->expected,&gui_mode);
                 bool issue=false;
                 {
                     std::lock_guard lock(work->mutex);
                     if(work->cancelled||shared->stopping)work->reason="native_worker_admission_cancelled";
-                    else if(!context)work->reason="native_worker_context_changed";
+                    else if(!context)work->reason=std::string("native_worker_context_changed:GUI_context=")+gui_context_mode_name(gui_mode);
                     else if(!work->cleanup_owned&&!allowed_by_guard(work->guard,work->reason)){}
                     else issue=true;
                 }
