@@ -81,7 +81,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     // discrete dock commit, even if this new click passes through natively.
     if(down(message)){
         *self->completion_=0;
-        if(retire_aborted_pair_for_down(self->consumed_down_,self->aborted_,self->authorized_->load()==0,
+        if(retire_revoked_pair_for_down(self->consumed_down_,self->authorized_->load(),
             self->button_,button(message,packet.mouseData),self->active_down_stamp_,packet.time)){
             // The old write generation stays revoked. Retire its input pair
             // BEFORE considering current preparation, so an unprepared/native
@@ -117,7 +117,12 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             // a second native geometry writer. The consumed button's actual
             // UP is still paired below, with the existing finite deadline.
             consume=false;
-        }else if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
+        }
+        // Waiting for a revoked pair's UP must not freeze hover preparation.
+        // The GUI still refuses to prepare while its gesture is active; this
+        // event-driven request grants no write authority and starts no timer.
+        if(motion_requests_preparation(self->consumed_down_,self->authorized_->load())&&
+            !self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
     }else if(down(message)&&!self->consumed_down_&&!self->paused_&&self->healthy_){
         auto p=self->prepared_.load();const auto mods=modifiers();const auto b=button(message,packet.mouseData);
         // Incomplete/stale preparation passes through. Never hit-test/COM/wait in

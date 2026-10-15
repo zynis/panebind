@@ -64,13 +64,15 @@ struct ClickCandidate {
 inline bool native_event_is_current(DWORD event_stamp,DWORD down_stamp) {
     return static_cast<DWORD>(event_stamp-down_stamp)<0x80000000u;
 }
-// A new actual DOWN is a resynchronization boundary only for an already
-// aborted, fully revoked pair. It is not a substitute UP or renewed authority.
-inline bool retire_aborted_pair_for_down(bool consumed,bool aborted,bool authority_retired,
+// Hard revocation precedes dispatch of its queued abort notification. A new
+// actual DOWN may retire that revoked pair without waiting for the notification;
+// an active authorized pair is never retired by an overlapping DOWN.
+inline bool retire_revoked_pair_for_down(bool consumed,std::uint64_t authority,
                                         int paired_button,int incoming_button,DWORD old_down,DWORD new_down){
-    return consumed&&aborted&&authority_retired&&paired_button>=1&&paired_button<=5&&
+    return consumed&&authority==0&&paired_button>=1&&paired_button<=5&&
         incoming_button==paired_button&&native_event_is_current(new_down,old_down);
 }
+inline bool motion_requests_preparation(bool consumed,std::uint64_t authority){return !consumed||authority==0;}
 inline bool button_up_matches_current_pair(bool consumed,int paired_button,int incoming_button,DWORD down_stamp,DWORD up_stamp){
     return consumed&&paired_button>=1&&paired_button<=5&&incoming_button==paired_button&&
         native_event_is_current(up_stamp,down_stamp);

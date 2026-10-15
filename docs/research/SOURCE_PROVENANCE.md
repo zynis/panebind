@@ -1823,3 +1823,12 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   to an old gesture. This does not synthesize UP or explain the absent callback
   in prior guest evidence. Pinned prior-art findings are reused without a new
   source-inspection claim; no external implementation copied or adapted.
+- Revocation dispatch/hover follow-up (2026-10-15, original V1 integration):
+  the preceding timestamp references remain applicable. GUI hard revocation
+  sets authority to zero before its queued owner abort is dispatched. Pair
+  retirement therefore uses that actual zero authority, not the later abort
+  flag; a live authorized pair remains ineligible. MOVE while awaiting the
+  revoked pair's UP also requests normal GUI preparation, whose active-gesture
+  guard and fresh-identity checks remain unchanged. Neither action creates an
+  UP, restores an old generation, or establishes why a previous callback was
+  absent. No additional API, input source, upstream code or retry loop added.
