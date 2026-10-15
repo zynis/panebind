@@ -193,6 +193,20 @@ int main() {
     completion=up_end==v1::End::NormalUp?active:0;active=0;
     check(!product::operation_permission(5,active,completion,true,true),
           "production matching-UP failure leaves both active writes and discrete completion revoked");
+    std::atomic<std::uint64_t> exact_active{20},exact_completion{0};
+    check(product::revoke_exact_generation(exact_active,exact_completion,20)&&exact_active==0&&exact_completion==0,
+          "actual mapped completion CAS retires its remaining active generation");
+    exact_active=21;exact_completion=21;
+    check(!product::revoke_exact_generation(exact_active,exact_completion,20)&&exact_active==21&&exact_completion==21,
+          "old mapped completion cannot revoke a later DOWN or its actual normal-UP capability");
+    exact_active=0;exact_completion=20;
+    check(!product::revoke_exact_generation(exact_active,exact_completion,20)&&exact_active==0&&exact_completion==0,
+          "mapped handler returning after its own UP retires only its exact old completion token");
+    exact_active=21;exact_completion=20;
+    check(!product::revoke_exact_generation(exact_active,exact_completion,20)&&exact_active==21&&exact_completion==0,
+          "active CAS and completion CAS independently preserve a newer gesture while retiring an old token");
+    check(!product::revoke_exact_generation(exact_active,exact_completion,0)&&exact_active==21,
+          "zero-generation discrete command cannot revoke a gesture");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";
     return failures==0?0:1;
 }

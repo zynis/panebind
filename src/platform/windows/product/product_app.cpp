@@ -1203,9 +1203,11 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
     // Receipt of an already-normalized hook observation, not a reconstruction
     // from async key state. Keep a retired generation's real matching UP
     // visible without recreating its gesture or granting write permission.
-    if(diagnostic&&(e.kind==InputKind::Down||e.kind==InputKind::Up))
+    if(diagnostic&&(e.kind==InputKind::Down||e.kind==InputKind::Mapped||e.kind==InputKind::Up))
         log.event("input_button_observed","\"source\":\"WH_MOUSE_LL\",\"kind\":\""+
-            std::string(e.kind==InputKind::Down?"DOWN":"UP")+"\",\"generation\":"+std::to_string(e.generation)+
+            std::string(e.kind==InputKind::Up?"UP":"DOWN")+"\",\"generation\":"+std::to_string(e.generation)+
+            ",\"route\":\""+(e.action!=v::Action::None?"mapped":"gesture")+"\",\"action\":\""+
+            std::string(v::action_name(e.action))+"\",\"action_enum\":"+std::to_string(static_cast<unsigned>(e.action))+
             ",\"button\":"+std::to_string(e.button)+",\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)+
             ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
             ",\"event_end\":"+std::to_string(static_cast<unsigned>(e.end))+
@@ -1213,9 +1215,19 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             ",\"write_authority_granted_by_receipt\":false");
     if(e.kind==InputKind::Move){latest_move=e;continue;}flush();
     if(e.kind==InputKind::Down)begin(e);
-    else if(e.kind==InputKind::Mapped&&e.prepared){
-        const auto action=e.prepared->region==0&&e.clicks==2&&e.action==v::Action::Maximize&&IsZoomed(e.prepared->source.hwnd)?v::Action::Restore:e.action;
-        command(action,e.prepared->source);
+    else if(e.kind==InputKind::Mapped){
+        const auto action=e.prepared&&e.prepared->region==0&&e.clicks==2&&e.action==v::Action::Maximize&&
+            IsZoomed(e.prepared->source.hwnd)?v::Action::Restore:e.action;
+        // A discrete command may return after the hook has observed UP and a
+        // later DOWN. Retire only this generation, including rejection/throw;
+        // a check followed by unconditional revoke would race that new DOWN.
+        try{if(e.prepared)command(action,e.prepared->source);}
+        catch(...){input.revoke_generation(e.generation);throw;}
+        const bool retired=input.revoke_generation(e.generation);
+        if(diagnostic)log.event("mapped_command_completed","\"generation\":"+std::to_string(e.generation)+
+            ",\"action\":\""+std::string(v::action_name(action))+"\",\"handler_invoked\":"+(e.prepared?"true":"false")+
+            ",\"handler_returned\":true,\"active_generation_revoke_CAS_succeeded\":"+(retired?"true":"false")+
+            ",\"native_success_not_inferred_from_handler_return\":true");
     }
     else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);}
     else if(e.kind==InputKind::Abort){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}

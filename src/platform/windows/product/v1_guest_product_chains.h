@@ -298,6 +298,142 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         throw std::runtime_error("chain_original_app_visual_restore_failed");
     s.log.check("chain_original_app_visual_exact",wait([&]{const auto now=native_visual(h);return now&&*now==original;}));
 }
+// M09-F02: one real client pair and one real mapped caption pair per button.
+// This is a guest-only input driver, not another product routing path.
+[[maybe_unused]] void owned_mouse_mapping_cases(State& s){
+    namespace v=panebind::core::v1;
+    const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    if(!original.enabled||s.left||s.control)throw std::runtime_error("M09_mouse_mapping_requires_enabled_released_product");
+    chain_check_product(s,pid,birth);LayoutFixtures set{s};set.create();const auto work=chain_work(set.frames[0].hwnd);
+    if(work.width()<900||work.height()<650)throw std::runtime_error("M09_mouse_mapping_actual_work_area_too_small");
+    const Rect initial{work.l+220,work.t+180,work.l+700,work.t+500};
+    set.setup({initial},{{120,100,work.width(),work.height()}});auto& frame=set.frames[0];const HWND h=frame.hwnd;
+    const auto original_visual=native_visual(h);if(!set.owns(0)||!original_visual||!original_visual->known)
+        throw std::runtime_error("M09_mouse_mapping_exact_native_visual_unknown");
+    unsigned pending_button{};bool configuration_changed{};
+    const auto counts=[&]{std::array<std::array<unsigned,2>,5> result{};
+        for(std::size_t n=0;n<5;++n)result[n]={frame.client_down[n].load(),frame.client_up[n].load()};return result;};
+    const auto count_json=[](const std::array<std::array<unsigned,2>,5>& value){std::string out="[";
+        for(std::size_t n=0;n<value.size();++n){if(n)out+=',';out+='['+std::to_string(value[n][0])+','+std::to_string(value[n][1])+']';}return out+']';};
+    const auto released_modifiers=[&]{for(const int code:std::array{VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
+        if(GetAsyncKeyState(code)&0x8000)return false;return !s.control;};
+    const auto send_button=[&](unsigned which,bool pressed){
+        if(which<1||which>5||!desktop()||(pressed&&(pending_button||!set.owns(0)||GetForegroundWindow()!=h||!released_modifiers())))
+            throw std::runtime_error("M09_mouse_mapping_real_input_context_invalid");
+        if(which==1){
+            try{button(s,pressed);}catch(...){pending_button=s.left?1u:0u;throw;}
+            pending_button=pressed?which:0;return;
+        }
+        INPUT input{};input.type=INPUT_MOUSE;
+        constexpr std::array<DWORD,5> down_flags{MOUSEEVENTF_LEFTDOWN,MOUSEEVENTF_RIGHTDOWN,MOUSEEVENTF_MIDDLEDOWN,MOUSEEVENTF_XDOWN,MOUSEEVENTF_XDOWN};
+        constexpr std::array<DWORD,5> up_flags{MOUSEEVENTF_LEFTUP,MOUSEEVENTF_RIGHTUP,MOUSEEVENTF_MIDDLEUP,MOUSEEVENTF_XUP,MOUSEEVENTF_XUP};
+        input.mi.dwFlags=(pressed?down_flags:up_flags)[which-1];input.mi.mouseData=which==4?XBUTTON1:which==5?XBUTTON2:0;
+        LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);UINT inserted=UINT_MAX;DWORD error{};
+        const auto receipt=[&]{QueryPerformanceCounter(&after);s.log.emit("M09_test_button_send","\"button\":"+std::to_string(which)+
+            ",\"requested\":"+quote(pressed?"DOWN":"UP")+",\"send_before_qpc\":"+std::to_string(before.QuadPart>0?before.QuadPart:0)+
+            ",\"send_after_qpc\":"+std::to_string(after.QuadPart>0?after.QuadPart:0)+",\"mouse_flags\":"+std::to_string(input.mi.dwFlags)+
+            ",\"mouse_data\":"+std::to_string(input.mi.mouseData)+",\"SendInput_called\":"+(inserted==UINT_MAX?"false":"true")+
+            ",\"SendInput_return\":"+(inserted==UINT_MAX?"null":std::to_string(inserted))+",\"SendInput_error\":"+std::to_string(error)+
+            ",\"driver_button_outstanding\":"+std::to_string(pending_button)+",\"delivery_and_physical_held_not_inferred\":true");};
+        try{inject(input,&inserted,&error);}catch(...){receipt();throw;}
+        pending_button=pressed?which:0;receipt();
+    };
+    const auto real_point=[&](bool caption){
+        chain_front(set,0);POINT point{};
+        if(caption){const auto hit=layout_hit(set,0,HTCAPTION);if(!hit)throw std::runtime_error("M09_actual_caption_unavailable");point=*hit;}
+        else{RECT client{};if(!GetClientRect(h,&client))throw std::runtime_error("M09_actual_client_unavailable");
+            point={(client.left+client.right)/2,(client.top+client.bottom)/2};
+            if(!ClientToScreen(h,&point))throw std::runtime_error("M09_actual_client_screen_unknown");}
+        cursor(s,point);const HWND actual_hit=WindowFromPoint(point);DWORD_PTR region{};GUITHREADINFO info{sizeof(info)};
+        const bool native_hit=actual_hit==h&&SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&static_cast<int>(region)==(caption?HTCAPTION:HTCLIENT);
+        s.log.check("M09_real_exact_source_and_native_region",set.owns(0)&&GetForegroundWindow()==h&&native_hit&&released_modifiers()&&
+            GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
+            "\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"source_TID\":"+std::to_string(set.thread)+
+            ",\"actual_native_region\":"+std::to_string(region)+",\"expected_region\":"+std::to_string(caption?HTCAPTION:HTCLIENT)+
+            ",\"actual_point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"actual_modifiers_clear\":"+(released_modifiers()?"true":"false"));
+        // Existing source UI STA independently serves preparation's sent query.
+        (void)wait([]{return false;},100);
+    };
+    const auto client_pair=[&](unsigned which,const char* stage){
+        real_point(false);const auto before=counts();const auto mark=read(s.product_log).size();const auto starts=frame.starts.load();
+        send_button(which,true);const bool down_observed=wait([&]{return frame.client_down[which-1].load()==before[which-1][0]+1;},1000);
+        send_button(which,false);const bool up_observed=wait([&]{return frame.client_up[which-1].load()==before[which-1][1]+1;},1000);
+        auto expected=before;++expected[which-1][0];++expected[which-1][1];const auto after=counts();GUITHREADINFO info{sizeof(info)};
+        s.log.check("M09_actual_unmapped_client_button_pair",down_observed&&up_observed&&after==expected&&set.owns(0)&&visible(h)==initial&&
+            record(s,mark,"gesture_start").empty()&&frame.starts.load()==starts&&GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
+            "\"stage\":"+quote(stage)+",\"button\":"+std::to_string(which)+",\"actual_client_DOWN_UP_counts_before\":"+count_json(before)+
+            ",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+",\"native_client_message_delivery_observed\":true");
+    };
+    const auto mouse_fragment=[](const v::Settings& value){std::wstring fragment;const auto serialized=v::serialize(value);
+        for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with("mouse_count=")||row.starts_with("mouse.")){
+            for(const char c:row){if(static_cast<unsigned char>(c)>=128)throw std::runtime_error("M09_mouse_fragment_non_ASCII");fragment+=static_cast<wchar_t>(c);}fragment+=L"\r\n";
+        }if(fragment.empty()||fragment.size()>16384)throw std::runtime_error("M09_original_mouse_fragment_exceeds_existing_GUI_test_bound");return fragment;};
+    const auto original_fragment=mouse_fragment(original);
+    const auto save_mouse=[&](const std::vector<v::MouseBinding>& bindings){
+        const auto before=chain_settings(s);auto wanted=before;wanted.mouse_bindings=bindings;const auto fragment=mouse_fragment(wanted);
+        auto gui=gui_open(s);gui_page_select(s,gui,3);HWND edit{};
+        for(HWND child=GetWindow(gui_page(s,gui),GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
+            if(gui_class(child)==L"Edit"&&chain_edit_text(s,gui,child).starts_with(L"mouse_count=")){edit=child;break;}
+        if(!edit)throw std::runtime_error("M09_actual_mouse_not_hotkey_editor_missing");
+        s.log.emit("M09_actual_mouse_editor","\"production_page\":3,\"control_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(edit))+
+            ",\"actual_control_ID\":"+std::to_string(GetDlgCtrlID(edit))+",\"class\":\"Edit\",\"actual_prefix\":\"mouse_count=\",\"hotkey_editor_used\":false");
+        chain_type_fragment(s,gui,edit,fragment);gui_save_enter(s,gui);const auto actual=chain_settings(s);wanted.generation=actual.generation;
+        s.log.check("M09_actual_GUI_mouse_configuration_saved",actual==wanted&&actual.generation>before.generation);
+    };
+    const auto restore=[&]{
+        const auto mark=read(s.product_log).size();
+        s.log.check("M09_actual_pause_restores_owned_visual",launch(s,L"--pause",true)&&wait([&]{const auto row=record(s,mark,"status");
+            const auto actual=native_visual(h);return row.find("\"enabled\":false")!=std::string::npos&&actual&&*actual==*original_visual;}));
+        // Restore the actual topmost tuple BEFORE opening settings, so our
+        // own test topmost source cannot obscure the real editor's hit target.
+        if(configuration_changed){save_mouse(original.mouse_bindings);configuration_changed=false;}
+        const auto resume=read(s.product_log).size();s.log.check("M09_actual_resume_preserves_original_configuration",launch(s,L"--command Pause",true)&&wait([&]{
+            return record(s,resume,"status").find("\"enabled\":true")!=std::string::npos;}));
+        const auto actual=chain_settings(s);auto expected=original;expected.generation=actual.generation;
+        s.log.check("M09_original_full_configuration_and_visual_restored",actual==expected&&set.owns(0)&&visible(h)==initial&&
+            native_visual(h)==original_visual,"\"original_mouse_fragment_characters\":"+std::to_string(original_fragment.size()));
+    };
+    try{
+        for(unsigned which=1;which<=5;++which)client_pair(which,"before_caption_mapping");
+        std::vector<v::MouseBinding> bindings;for(int which=1;which<=5;++which)bindings.push_back({0,which,1,0,v::Action::ToggleTopmost});
+        configuration_changed=true;save_mouse(bindings);
+        for(unsigned which=1;which<=5;++which){
+            real_point(true);const auto mark=read(s.product_log).size();const auto before=counts();const auto before_visual=native_visual(h);
+            if(!before_visual||!before_visual->known)throw std::runtime_error("M09_before_mapped_native_tuple_unknown");
+            auto expected_visual=*before_visual;expected_visual.topmost=!expected_visual.topmost;
+            send_button(which,true);std::string mapped,completed;std::uint64_t generation{};
+            const bool changed=wait([&]{
+                mapped.clear();std::istringstream rows(read(s.product_log).substr(mark));std::string row;
+                while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"input_button_observed\"")!=std::string::npos&&
+                    row.find("\"source\":\"WH_MOUSE_LL\"")!=std::string::npos&&row.find("\"kind\":\"DOWN\"")!=std::string::npos&&
+                    row.find("\"route\":\"mapped\"")!=std::string::npos&&row.find("\"action\":\"ToggleTopmost\"")!=std::string::npos&&
+                    number(row,"\"button\":")==which&&number(row,"\"hook_observed_qpc\":"))mapped=row;
+                generation=number(mapped,"\"generation\":");completed=record(s,mark,"mapped_command_completed",generation);
+                const auto actual=native_visual(h);return generation&&completed.find("\"action\":\"ToggleTopmost\"")!=std::string::npos&&
+                    completed.find("\"handler_invoked\":true")!=std::string::npos&&completed.find("\"handler_returned\":true")!=std::string::npos&&
+                    actual&&*actual==expected_visual&&set.owns(0)&&visible(h)==initial;
+            },1500);
+            send_button(which,false);std::string observed_up;
+            const bool up_observed=wait([&]{observed_up=actual_up(s,mark,generation,static_cast<int>(which));return !observed_up.empty();},1500);
+            GUITHREADINFO info{sizeof(info)};const auto after=counts();
+            s.log.check("M09_real_five_button_caption_mapping",changed&&up_observed&&after==before&&record(s,mark,"gesture_start",generation).empty()&&
+                GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
+                "\"button\":"+std::to_string(which)+",\"generation\":"+std::to_string(generation)+",\"actual_mapped_DOWN\":"+(mapped.empty()?"null":quote(mapped))+
+                ",\"actual_command_receipt\":"+(completed.empty()?"null":quote(completed))+",\"actual_matching_UP\":"+(observed_up.empty()?"null":quote(observed_up))+
+                ",\"expected_native_topmost\":"+(expected_visual.topmost?"true":"false")+",\"complete_native_visual_tuple_exact\":"+(native_visual(h)==std::optional<NativeVisual>{expected_visual}?"true":"false")+
+                ",\"actual_client_DOWN_UP_counts_before\":"+count_json(before)+",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+
+                ",\"no_client_button_misdelivery\":"+(after==before?"true":"false")+",\"drag_NormalUp_or_native_success_from_handler_return_not_inferred\":true");
+        }
+        restore();client_pair(1,"after_original_mouse_and_visual_restored");chain_check_product(s,pid,birth);
+        s.log.check("M09_five_button_owned_resources_closed",set.close());
+        s.log.emit("M09_actual_five_button_mapping_sequence","\"title_single_click_buttons\":[1,2,3,4,5],\"actual_client_passthrough_buttons\":[1,2,3,4,5],\"actual_GUI_mouse_editor\":true,\"original_mouse_configuration_and_visual_restored\":true,\"human_uat\":\"NOT_RUN\"");
+    }catch(...){
+        if(pending_button)try{send_button(pending_button,false);}catch(...){s.log.failed=true;}
+        try{restore();}catch(const std::exception& error){s.log.failed=true;s.log.emit("M09_mapping_recovery_failed","\"reason\":"+quote(error.what())+",\"cleanup_PASS\":false");}
+        throw;
+    }
+}
 void chain_i06_owned_core(State& s){
     const auto original=chain_settings(s);const HWND h=s.frames[0].hwnd;const auto old=native_visual(h);
     if(!own(s,h)||!old||!old->known)throw std::runtime_error("I11_I06_exact_original_visual_unknown");

@@ -242,3 +242,190 @@ void settings_guest_corrupt_restart(State& s){
     s.log.emit("settings_lifecycle_sequence","\"actual_startup_Run_add_remove\":true,\"actual_exclusion_native_Move_and_reenable\":true,\"actual_native_import_export\":true,"
         "\"actual_corrupt_backup_default_restart_and_Move\":true,\"real_GUI_input\":true,\"human_uat\":\"NOT_RUN\"");
 }
+
+// Actual tray/menu input, never a private command or a fabricated WM_COMMAND.
+// Shell geometry identifies only this exact app HWND + UID 1. An inaccessible
+// icon is a bounded BLOCKED result; no other notification icon is manipulated.
+struct TrayGuestOwner {HWND app{};DWORD tid{};std::uint64_t birth{};};
+bool tray_guest_owner(State& s,const TrayGuestOwner& owner){
+    DWORD pid{};return desktop()&&s.process&&GetProcessId(s.process)==s.product_pid&&medium(s.process)&&
+        WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&process_birth(s.process)==owner.birth&&
+        FindWindowW(L"PaneBind.V1.Application",L"PaneBind")==owner.app&&
+        GetWindowThreadProcessId(owner.app,&pid)==owner.tid&&pid==s.product_pid;
+}
+struct TrayGuestMenu {HWND window{};HMENU handle{};};
+bool tray_guest_menu(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu){
+    DWORD pid{};GUITHREADINFO gui{sizeof(gui)};MENUBARINFO bar{sizeof(bar)};
+    return tray_guest_owner(s,owner)&&menu.window&&gui_class(menu.window)==L"#32768"&&IsWindowVisible(menu.window)&&
+        GetWindowThreadProcessId(menu.window,&pid)==owner.tid&&pid==s.product_pid&&
+        GetGUIThreadInfo(owner.tid,&gui)&&gui.hwndMenuOwner==owner.app&&(gui.flags&GUI_INMENUMODE)&&
+        GetForegroundWindow()==owner.app&&GetMenuBarInfo(menu.window,OBJID_CLIENT,0,&bar)&&bar.hMenu==menu.handle;
+}
+std::optional<TrayGuestMenu> tray_guest_open(State& s,const TrayGuestOwner& owner){
+    if(!tray_guest_owner(s,owner)||s.left||s.control)throw std::runtime_error("tray_exact_idle_product_required");
+    NOTIFYICONIDENTIFIER id{sizeof(id)};id.hWnd=owner.app;id.uID=1;RECT area{};
+    const HRESULT queried=Shell_NotifyIconGetRect(&id,&area);DWORD shell_pid{},hit_pid{};
+    GetWindowThreadProcessId(GetShellWindow(),&shell_pid);
+    const bool rectangle=SUCCEEDED(queried)&&area.left<area.right&&area.top<area.bottom;
+    POINT point{};HWND hit{};bool mapped=false;
+    if(rectangle)point={area.left+(area.right-area.left)/2,area.top+(area.bottom-area.top)/2};
+    if(rectangle&&MonitorFromPoint(point,MONITOR_DEFAULTTONULL)){
+        cursor(s,point);RECT fresh{};hit=WindowFromPoint(point);GetWindowThreadProcessId(hit,&hit_pid);
+        const auto root_class=gui_class(GetAncestor(hit,GA_ROOT));
+        mapped=tray_guest_owner(s,owner)&&Shell_NotifyIconGetRect(&id,&fresh)==S_OK&&EqualRect(&area,&fresh)&&
+            shell_pid&&hit_pid==shell_pid&&(root_class==L"Shell_TrayWnd"||root_class==L"NotifyIconOverflowWindow"||root_class==L"TopLevelWindowForOverflowXamlIsland");}
+    s.log.emit("tray_exact_icon_rect","\"app_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(owner.app))+
+        ",\"product_pid\":"+std::to_string(s.product_pid)+",\"uid\":1,\"GetRect_hresult\":"+std::to_string(static_cast<long>(queried))+
+        ",\"screen_rect\":"+(rectangle?rect({area.left,area.top,area.right,area.bottom}):"null")+
+        ",\"screen_point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"foreground\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"actual_hit\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"hit_pid\":"+std::to_string(hit_pid)+
+        ",\"exact_own_icon_shell_mapping\":"+(mapped?"true":"false")+",\"coordinate_conversion\":\"Shell_screen_pixels_PMv2_no_manual_scaling\"");
+    if(!mapped)return {};
+    bool right_down=false;try{for(const bool pressed:{true,false}){
+        if(pressed&&(!tray_guest_owner(s,owner)||WindowFromPoint(point)!=hit))throw std::runtime_error("tray_icon_changed_before_actual_RIGHTDOWN");
+        INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_RIGHTDOWN:MOUSEEVENTF_RIGHTUP;
+        UINT sent=UINT_MAX;DWORD error{};inject(packet,&sent,&error);right_down=pressed;
+        s.log.emit("tray_actual_right_input","\"DOWN\":"+std::string(pressed?"true":"false")+",\"SendInput_return\":"+std::to_string(sent)+",\"delivery_inferred\":false");
+    }}catch(...){if(right_down){INPUT up{};up.type=INPUT_MOUSE;up.mi.dwFlags=MOUSEEVENTF_RIGHTUP;try{inject(up);}catch(...){}}throw;}
+    TrayGuestMenu found;
+    const bool opened=wait([&]{
+        struct Search {State* s;const TrayGuestOwner* owner;TrayGuestMenu found;unsigned count{};} q{&s,&owner};
+        EnumThreadWindows(owner.tid,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);MENUBARINFO bar{sizeof(bar)};
+            if(gui_class(h)==L"#32768"&&IsWindowVisible(h)&&GetMenuBarInfo(h,OBJID_CLIENT,0,&bar)){
+                TrayGuestMenu candidate{h,bar.hMenu};if(tray_guest_menu(*q.s,*q.owner,candidate)){q.found=candidate;++q.count;}}return TRUE;
+        },reinterpret_cast<LPARAM>(&q));found=q.found;return q.count==1;
+    });
+    if(!opened)throw std::runtime_error("tray_actual_RIGHTUP_did_not_open_exact_product_menu");return found;
+}
+struct TrayGuestItem {UINT position{},id{};std::wstring text;RECT area{};};
+std::vector<TrayGuestItem> tray_guest_items(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu){
+    if(!tray_guest_menu(s,owner,menu))throw std::runtime_error("tray_popup_identity_changed");
+    const int count=GetMenuItemCount(menu.handle);if(count<7||count>12)throw std::runtime_error("tray_menu_count_outside_production_bound");
+    std::vector<TrayGuestItem> result;std::string rows="[";
+    for(int n=0;n<count;++n){MENUITEMINFOW info{sizeof(info)};std::array<wchar_t,256> label{};info.fMask=MIIM_STRING|MIIM_ID|MIIM_STATE|MIIM_FTYPE;
+        info.dwTypeData=label.data();info.cch=static_cast<UINT>(label.size());RECT r{};
+        if(!GetMenuItemInfoW(menu.handle,static_cast<UINT>(n),TRUE,&info)||info.cch>=label.size())throw std::runtime_error("tray_menu_read_unavailable");
+        if(info.fType&MFT_SEPARATOR)continue;
+        if((info.fState&(MFS_DISABLED|MFS_GRAYED))||!GetMenuItemRect(nullptr,menu.handle,static_cast<UINT>(n),&r)||r.left>=r.right||r.top>=r.bottom)
+            throw std::runtime_error("tray_menu_item_not_enabled_or_visible");
+        result.push_back({static_cast<UINT>(n),info.wID,std::wstring(label.data(),info.cch),r});
+        if(rows.size()>1)rows+=',';rows+="{\"position\":"+std::to_string(n)+",\"id\":"+std::to_string(info.wID)+",\"text\":"+
+            quote(utf8(result.back().text))+",\"screen_rect\":"+rect({r.left,r.top,r.right,r.bottom})+"}";
+    }
+    rows+=']';s.log.emit("tray_actual_menu_items","\"exact_product_PID_TID\":true,\"items\":"+rows);return result;
+}
+void tray_guest_choose(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu,UINT id,std::wstring_view prefix){
+    const auto items=tray_guest_items(s,owner,menu);const auto found=std::find_if(items.begin(),items.end(),[&](const auto& item){return item.id==id&&item.text.starts_with(prefix);});
+    if(found==items.end())throw std::runtime_error("tray_expected_Chinese_menu_action_missing");
+    const POINT point{found->area.left+(found->area.right-found->area.left)/2,found->area.top+(found->area.bottom-found->area.top)/2};cursor(s,point);
+    RECT fresh{};const auto hit=WindowFromPoint(point);DWORD hit_pid{};
+    if(!tray_guest_menu(s,owner,menu)||GetWindowThreadProcessId(hit,&hit_pid)!=owner.tid||hit_pid!=s.product_pid||gui_class(hit)!=L"#32768"||
+       !GetMenuItemRect(nullptr,menu.handle,found->position,&fresh)||!EqualRect(&fresh,&found->area))throw std::runtime_error("tray_menu_actual_hit_or_mapping_changed");
+    button(s,true);button(s,false);
+    s.log.emit("tray_actual_menu_click","\"item_id\":"+std::to_string(id)+",\"Chinese_label\":"+quote(utf8(found->text))+",\"WM_COMMAND_injected\":false");
+}
+void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu){
+    if(!tray_guest_menu(s,owner,menu))throw std::runtime_error("tray_Escape_not_exact_product_menu");key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
+    s.log.check("tray_actual_Escape_closes_menu",wait([&]{GUITHREADINFO g{sizeof(g)};return tray_guest_owner(s,owner)&&GetGUIThreadInfo(owner.tid,&g)&&!g.hwndMenuOwner;}));
+}
+[[maybe_unused]] void owned_tray_entry_cases(State& s){
+    settings_guest_scope(s);const auto original=settings_guest_configuration(s);
+    if(!original.enabled||s.left||s.control||s.explorer[0]||s.applications[0])throw std::runtime_error("tray_cases_require_enabled_exact_owned_baseline");
+    const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};const auto tid=GetWindowThreadProcessId(app,&pid);
+    TrayGuestOwner owner{app,tid,process_birth(s.process)};if(!app||pid!=s.product_pid||!owner.birth||!tray_guest_owner(s,owner))throw std::runtime_error("tray_exact_product_app_missing");
+    std::array<Rect,3> before{};for(std::size_t n=0;n<3;++n){const auto actual=visible(s.frames[n].hwnd);if(!own(s,s.frames[n].hwnd)||!actual)throw std::runtime_error("tray_exact_owned_geometry_missing");before[n]=*actual;}
+    const auto open=[&]()->TrayGuestMenu{const auto menu=tray_guest_open(s,owner);if(!menu)throw std::runtime_error("tray_own_icon_not_exactly_reachable");return *menu;};
+    const auto first=tray_guest_open(s,owner);
+    if(!first){s.log.failed=true;s.log.emit("tray_entry_result","\"result\":\"BLOCKED\",\"reason\":\"exact_current_product_UID1_icon_not_reachable\",\"menu_input_sent\":false,\"other_flows_may_continue\":true");return;}
+    const auto items=tray_guest_items(s,owner,*first);
+    for(const auto& expected:std::array<std::pair<UINT,std::wstring_view>,6>{{{500,L"暂停增强"},{501,L"设置"},{502,L"排除上一个应用"},{503,L"帮助"},{504,L"导出诊断"},{505,L"退出"}}})
+        s.log.check("tray_Chinese_action_discoverable",std::count_if(items.begin(),items.end(),[&](const auto& item){return item.id==expected.first&&item.text.starts_with(expected.second);})==1,
+            "\"item_id\":"+std::to_string(expected.first)+",\"label\":"+quote(utf8(std::wstring(expected.second))));
+    bool paused=false;
+    try{
+        tray_guest_choose(s,owner,*first,500,L"暂停增强");
+        s.log.check("tray_actual_pause_saved",wait([&]{return !settings_guest_configuration(s).enabled;}));paused=true;
+        settings_guest_effect_layout(s);const auto source=s.frames[0].hwnd;foreground(s,source);const auto anchor=hit_point(source,HTCAPTION);
+        if(!anchor)throw std::runtime_error("tray_paused_native_caption_unavailable");cursor(s,*anchor);Sleep(100);
+        const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();const auto mark=read(s.product_log).size();button(s,true);
+        s.log.check("tray_pause_actual_native_START",wait([&]{return s.frames[0].starts.load()==starts+1;}));cursor(s,{anchor->x+14,anchor->y+3});
+        constexpr Rect native{134,83,374,443};s.log.check("tray_pause_native_Move_without_magnet",wait([&]{return visible(source)==native;}));button(s,false);
+        s.log.check("tray_pause_actual_native_END_no_enhancement",wait([&]{return s.frames[0].ends.load()==ends+1;})&&
+            record(s,mark,"gesture_start").empty()&&record(s,mark,"placement").empty());
+        tray_guest_choose(s,owner,open(),500,L"恢复增强");
+        s.log.check("tray_actual_resume_saved",wait([&]{return settings_guest_configuration(s).enabled;}));paused=false;
+        settings_guest_move_effect(s,true,"tray_resume_fresh_actual_Move");
+        const auto current=visible(source);if(!current)throw std::runtime_error("tray_resume_resize_geometry_missing");auto resized=*current;resized.b+=28;
+        const auto resize=down(s,0,false,HTBOTTOM);phase(s,0,resize,0,28,resized,"tray_resume_fresh_actual_Resize",true);up(s,0,resize,resized);
+        tray_guest_choose(s,owner,open(),501,L"设置");SettingsGui settings;
+        s.log.check("tray_actual_menu_opens_settings",wait([&]{struct Query{State* s;SettingsGui found;unsigned count{};} q{&s};
+            EnumThreadWindows(owner.tid,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Query*>(data);SettingsGui candidate{h,GetDlgItem(h,100),GetWindowThreadProcessId(h,nullptr)};
+                if(gui_class(h)==L"PaneBindV1SettingsWindow"&&candidate.tab&&gui_identity(*q.s,candidate,candidate.tab)){q.found=candidate;++q.count;}return TRUE;
+            },reinterpret_cast<LPARAM>(&q));settings=q.found;return q.count==1&&GetForegroundWindow()==settings.root&&gui_identity(s,settings,gui_focus(settings));}));
+        gui_press(s,settings,VK_ESCAPE);s.log.check("tray_actual_settings_Escape",wait([&]{return !IsWindow(settings.root);}));
+        tray_guest_choose(s,owner,open(),503,L"帮助");HWND help{};
+        s.log.check("tray_actual_help_dialog",wait([&]{struct Query{HWND app;DWORD pid;HWND found{};unsigned count{};} q{owner.app,s.product_pid};
+            EnumThreadWindows(owner.tid,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Query*>(data);DWORD pid{};std::array<wchar_t,128> title{};GetWindowTextW(h,title.data(),static_cast<int>(title.size()));
+                if(GetWindowThreadProcessId(h,&pid)&&pid==q.pid&&GetWindow(h,GW_OWNER)==q.app&&gui_class(h)==L"#32770"&&std::wstring_view(title.data())==L"PaneBind 帮助"&&IsWindowVisible(h)){q.found=h;++q.count;}return TRUE;
+            },reinterpret_cast<LPARAM>(&q));help=q.found;return q.count==1&&GetForegroundWindow()==help;}));
+        struct HelpText {HWND root;DWORD pid,tid;bool matched{};unsigned left{32};} help_text{help,s.product_pid,owner.tid};
+        EnumChildWindows(help,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<HelpText*>(data);if(!q.left--)return FALSE;DWORD pid{};
+            if(gui_class(h)!=L"Static"||GetWindowThreadProcessId(h,&pid)!=q.tid||pid!=q.pid||!IsChild(q.root,h))return TRUE;
+            std::array<wchar_t,1024> body{};DWORD_PTR copied{};
+            if(SendMessageTimeoutW(h,WM_GETTEXT,body.size(),reinterpret_cast<LPARAM>(body.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,200,&copied)&&copied<body.size()){
+                const std::wstring_view actual(body.data(),copied);q.matched=q.matched||(actual.starts_with(L"普通权限运行。")&&actual.find(L"Ctrl+Shift+F11")!=actual.npos);}
+            return TRUE;
+        },reinterpret_cast<LPARAM>(&help_text));s.log.check("tray_help_actual_Chinese_usage",help_text.matched);
+        GUITHREADINFO help_context{sizeof(help_context)};if(!tray_guest_owner(s,owner)||GetForegroundWindow()!=help||!GetGUIThreadInfo(owner.tid,&help_context)||
+            !help_context.hwndFocus||(help_context.hwndFocus!=help&&!IsChild(help,help_context.hwndFocus)))throw std::runtime_error("tray_help_keyboard_identity_changed");
+        key(s,VK_RETURN,true);key(s,VK_RETURN,false);s.log.check("tray_actual_Enter_closes_help",wait([&]{return !IsWindow(help);}));
+        const auto directory=s.product.parent_path();std::vector<fs::path> previous;
+        for(const auto& entry:fs::directory_iterator(directory))if(entry.path().filename().wstring().starts_with(L"diagnostic-"))previous.push_back(entry.path());
+        if(previous.size()>16)throw std::runtime_error("tray_run_diagnostic_inventory_over_bound");
+        tray_guest_choose(s,owner,open(),504,L"导出诊断");fs::path exported;
+        s.log.check("tray_actual_menu_creates_new_diagnostic",wait([&]{std::vector<fs::path> fresh;
+            for(const auto& entry:fs::directory_iterator(directory))if(entry.path().filename().wstring().starts_with(L"diagnostic-")&&std::find(previous.begin(),previous.end(),entry.path())==previous.end())fresh.push_back(entry.path());
+            if(fresh.size()!=1)return false;exported=fresh[0];return fs::is_regular_file(exported)&&fs::file_size(exported)>0&&fs::file_size(exported)<=300*1024;}));
+        const auto attributes=GetFileAttributesW(exported.c_str());const auto name=exported.filename().wstring();
+        if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||name.size()<16||!name.ends_with(L".txt")||
+           !std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';}))throw std::runtime_error("tray_diagnostic_not_exact_new_plain_run_file");
+        const auto text=read(exported,300*1024);const auto config=text.find("\nschema="),tail=text.find("\n\nRecent failure: ");
+        if(config==text.npos||tail==text.npos||tail<=config||!text.starts_with("PaneBind V1\nSOURCE_SHA=" PANEBIND_BUILD_SHA "\nHUMAN_UAT=PENDING\n")||
+           !text.ends_with("\nWindow titles, document contents and full rule paths are not collected.\n"))throw std::runtime_error("tray_diagnostic_structure_or_source_invalid");
+        std::istringstream header(text.substr(0,config+1));std::string line;bool known_headers=true;
+        while(std::getline(header,line)){
+            const bool known=line=="PaneBind V1"||line=="SOURCE_SHA=" PANEBIND_BUILD_SHA||line=="HUMAN_UAT=PENDING"||
+                line.starts_with("OS_BUILD=")||line.starts_with("OS_UBR=")||line.starts_with("LAST_GESTURE_END=")||
+                line.starts_with("HOOK_OWNER_RUNNING=")||line.starts_with("DISPLAY_DPI=")||line.starts_with("LAST_WINDOW_CLASS=");
+            known_headers=known_headers&&known;
+        }
+        const auto parsed=panebind::core::v1::parse(std::string_view(text).substr(config+1,tail-config));
+        if(!known_headers||!parsed.value)throw std::runtime_error("tray_diagnostic_actual_headers_or_settings_not_parseable");
+        bool private_values_absent=text.find(utf8(directory.wstring()))==text.npos&&text.find(utf8(s.output.wstring()))==text.npos&&
+            text.find("INTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG")==text.npos;
+        for(const auto& frame:s.frames){std::array<wchar_t,128> title{};const auto n=GetWindowTextW(frame.hwnd,title.data(),static_cast<int>(title.size()));
+            if(!own(s,frame.hwnd)||n<=0||n>=static_cast<int>(title.size()))throw std::runtime_error("tray_privacy_exact_owned_title_unavailable");
+            if(text.find(utf8(std::wstring(title.data(),n)))!=text.npos)private_values_absent=false;}
+        std::size_t index{};for(const auto& rule:parsed.value->rules)if(rule.exe!="redacted-app-"+std::to_string(++index)+".exe")private_values_absent=false;
+        s.log.check("tray_diagnostic_actual_parse_and_privacy",private_values_absent,"\"new_run_file\":"+quote(utf8(exported.filename().wstring()))+
+            ",\"sha256\":"+quote(hash(exported))+",\"actual_owned_titles_and_run_paths_absent\":"+(private_values_absent?"true":"false")+",\"no_real_documents_opened\":true,\"not_universal_privacy_validation\":true");
+        const UINT taskbar=RegisterWindowMessageW(L"TaskbarCreated");DWORD_PTR response{};const bool delivered=taskbar&&tray_guest_owner(s,owner)&&
+            SendMessageTimeoutW(owner.app,taskbar,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,1000,&response)!=FALSE;
+        s.log.check("tray_own_TaskbarCreated_simulation_delivered",delivered,"\"only_exact_product_app_not_broadcast\":true,\"actual_Shell_restart\":false");
+        const auto recreated=open();tray_guest_items(s,owner,recreated);tray_guest_dismiss(s,owner,recreated);
+        const auto final=settings_guest_configuration(s);auto expected=original;expected.generation=final.generation;
+        s.log.check("tray_options_restored_except_saved_generation",final==expected);
+        for(std::size_t n=0;n<3;++n)s.log.check("tray_owned_original_layout_restored",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,before[n]));
+        s.log.emit("tray_entry_result","\"result\":\"PASS\",\"actual_UID1_mouse_menu\":true,\"native_pause_and_new_Move_Resize_after_resume\":true,\"actual_settings_help_diagnostic\":true,\"exit_item_present_not_clicked\":true,\"not_complete_M01_or_M12\":true,\"human_uat\":\"NOT_RUN\"");
+    }catch(...){
+        if(s.left){try{button(s,false);}catch(...){}}
+        GUITHREADINFO active_menu{sizeof(active_menu)};
+        if(tray_guest_owner(s,owner)&&GetForegroundWindow()==owner.app&&GetGUIThreadInfo(owner.tid,&active_menu)&&active_menu.hwndMenuOwner==owner.app){
+            try{key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);wait([&]{GUITHREADINFO g{sizeof(g)};return GetGUIThreadInfo(owner.tid,&g)&&!g.hwndMenuOwner;},1000);}catch(...){}
+        }
+        if(paused&&tray_guest_owner(s,owner)){try{const auto menu=open();tray_guest_choose(s,owner,menu,500,L"恢复增强");
+            s.log.emit("tray_test_cleanup","\"resume_via_actual_menu_requested\":true,\"not_feature_PASS\":true");}catch(...){}}
+        throw;
+    }
+}

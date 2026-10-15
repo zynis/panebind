@@ -148,7 +148,8 @@ struct NativeBatchLoss {
     std::atomic<bool> destroy_called{},destroy_return{},destroy_gone{},completed{};std::atomic<SHORT> async_left_state{};
     std::atomic<DWORD> destroy_error{};std::atomic<std::uint64_t> destroy_qpc{};
 };
-struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
+struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};std::array<std::atomic<unsigned>,5> client_down{},client_up{};
+    LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
     std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;};
 struct ExplorerTarget {
     fs::path directory;shell::ShellLocationFact location;std::unique_ptr<shell::ExplorerProvisioningLease> lease;
@@ -233,6 +234,15 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
         }
         if(message==WM_WINDOWPOSCHANGING&&frame->grid>1){auto* p=reinterpret_cast<WINDOWPOS*>(lp);if(!(p->flags&SWP_NOSIZE)){
             p->cx=std::max(frame->min_width,(p->cx/frame->grid)*frame->grid);p->cy=std::max(frame->min_height,(p->cy/frame->grid)*frame->grid);}}
+        // Actual CLIENT messages only. Nonclient messages and test insertion
+        // returns are deliberately not counted as client delivery.
+        unsigned client_button{};bool client_pressed{};
+        if(message==WM_LBUTTONDOWN||message==WM_LBUTTONUP){client_button=1;client_pressed=message==WM_LBUTTONDOWN;}
+        else if(message==WM_RBUTTONDOWN||message==WM_RBUTTONUP){client_button=2;client_pressed=message==WM_RBUTTONDOWN;}
+        else if(message==WM_MBUTTONDOWN||message==WM_MBUTTONUP){client_button=3;client_pressed=message==WM_MBUTTONDOWN;}
+        else if(message==WM_XBUTTONDOWN||message==WM_XBUTTONUP){const auto x=GET_XBUTTON_WPARAM(wp);
+            client_button=x==XBUTTON1?4u:x==XBUTTON2?5u:0u;client_pressed=message==WM_XBUTTONDOWN;}
+        if(client_button){if(client_pressed)++frame->client_down[client_button-1];else ++frame->client_up[client_button-1];}
         if(message==WM_LBUTTONDOWN)++frame->down;if(message==WM_LBUTTONUP)++frame->up;
         if(message==WM_ENTERSIZEMOVE)++frame->starts;if(message==WM_EXITSIZEMOVE)++frame->ends;
     }
@@ -1664,6 +1674,8 @@ void drive(State& s){
         owned_second_member_native_failure_case(s);
         owned_temporary_visual_inflight_case(s);
         owned_settings_lifecycle_cases(s);
+        owned_tray_entry_cases(s);
+        owned_mouse_mapping_cases(s);
         owned_dock_stretch_chains(s);
         owned_interruption_cases(s);
         if(s.configuration=="Release"){

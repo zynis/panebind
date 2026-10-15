@@ -81,6 +81,13 @@ inline bool operation_permission(std::uint64_t generation,std::uint64_t active,s
                                  bool available,bool allow_completion){
     return available&&(!generation||active==generation||(allow_completion&&normal_up==generation));
 }
+inline bool revoke_exact_generation(std::atomic<std::uint64_t>& active,std::atomic<std::uint64_t>& completion,
+                                    std::uint64_t generation){
+    if(!generation)return false;
+    auto expected=generation;const bool retired=active.compare_exchange_strong(expected,0);
+    expected=generation;completion.compare_exchange_strong(expected,0);
+    return retired;
+}
 // Actual matching-UP decision used by the callback. Native foreground events
 // may still be queued: current facts, not their eventual delivery, determine
 // whether this generation can receive a NormalUp completion capability.
@@ -160,6 +167,11 @@ public:
         if(reason!=core::v1::End::NormalUp)*completion_=0;
         const auto retired=authorized_->exchange(0);const auto id=thread_id_.load();
         if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(retired),static_cast<LPARAM>(reason));
+    }
+    bool revoke_generation(std::uint64_t generation,core::v1::End reason=core::v1::End::SourceLost){
+        const bool retired=revoke_exact_generation(*authorized_,*completion_,generation);const auto id=thread_id_.load();
+        if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(generation),static_cast<LPARAM>(reason));
+        return retired;
     }
     // Safe to retain at a bounded native worker boundary, even if the UI
     // retires/destroys this service. Only shared atomics are captured.
