@@ -754,7 +754,11 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
 void Application::prepare(){
     input.prepared_point();if(gesture||!settings.enabled)return;
     const auto point=input.latest();HWND hit=WindowFromPoint(point),root=hit?GetAncestor(hit,GA_ROOT):nullptr;
-    std::string admission;const auto snapshot=root?catalog.get(root,settings,&admission):std::nullopt;
+    // Hover preparation needs identity/physical geometry, not repeated foreign
+    // tracking-limit messages. Only the frozen operation members below query
+    // actual declared bounds before any placement; an unknown reply still
+    // rejects that operation rather than silently authorizing a resize.
+    std::string admission;const auto snapshot=root?catalog.get(root,settings,&admission,false,false):std::nullopt;
     GUITHREADINFO gui{sizeof(gui)};bool gui_read=false,hit_read=false;DWORD_PTR value{};int region=-1;DWORD hit_pid{};
     const auto explain=[&](std::string_view reason){
         if(!diagnostic)return;
@@ -808,7 +812,7 @@ void Application::prepare(){
 }
 void Application::begin(const InputEvent& e){
     if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;
-    const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings);
+    const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings,nullptr,false,false);
     if(!fresh||!Catalog::same(p.source,*fresh)||fresh->visible!=p.source.visible||p.config_generation!=settings.generation){
         if(diagnostic)log.event("gesture_begin_rejected","\"generation\":"+std::to_string(e.generation)+
             ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+
@@ -842,6 +846,7 @@ void Application::begin(const InputEvent& e){
             input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;
         }
         member=*actual;
+        if(member.key==fresh->key)active.operation_source=member;
     }
     if(std::none_of(active.members.begin(),active.members.end(),[&](const auto& member){return member.key==fresh->key;})){
         input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;

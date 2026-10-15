@@ -91,20 +91,71 @@ std::optional<POINT> layout_hit(LayoutFixtures& set,std::size_t source,int requi
             static_cast<int>(hit)==required)return point;
     }return {};
 }
+// This driver STA owns the local layout HWNDs. PeekMessage services incoming
+// nonqueued SendMessage/SendMessageTimeout requests (notably native tracking
+// limits) without dispatching a queued, possibly UNCONSUMED nonclient DOWN.
+// This finite test observation is not a product input/polling mechanism.
+bool layout_wait_sent(const std::function<bool()>& observed,DWORD duration){
+    const auto deadline=GetTickCount64()+duration;
+    for(;;){
+        MSG message{};
+        if(PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE|PM_QS_SENDMESSAGE)&&message.message==WM_QUIT)
+            throw std::runtime_error("layout_driver_quit_during_sent_message_wait");
+        if(observed())return true;
+        const auto now=GetTickCount64();if(now>=deadline)return false;
+        const auto pause=static_cast<DWORD>(std::min<ULONGLONG>(20,deadline-now));
+        const auto result=MsgWaitForMultipleObjectsEx(0,nullptr,pause,QS_SENDMESSAGE,MWMO_INPUTAVAILABLE);
+        if(result!=WAIT_OBJECT_0&&result!=WAIT_TIMEOUT)throw std::runtime_error("layout_sent_message_wait_failed");
+    }
+}
+void layout_failed_start_release(State& s,std::uint64_t generation,bool down_sent){
+    bool up_sent=false,control_sent=false,released=false;std::string error;
+    try{
+        // Send the real test UP BEFORE ordinary queue dispatch/stack cleanup.
+        // A fallback native modal loop must not get entered while DOWN remains
+        // held, and an injection return is not a product NormalUp receipt.
+        if(s.left){button(s,false);up_sent=true;}
+        if(s.control){INPUT packet{};packet.type=INPUT_KEYBOARD;packet.ki.wVk=VK_CONTROL;
+            packet.ki.dwFlags=KEYEVENTF_KEYUP;packet.ki.dwExtraInfo=0x50425631;
+            if(!desktop()||SendInput(1,&packet,sizeof(packet))!=1)throw std::runtime_error("layout_failed_start_control_release_failed");
+            s.control=false;control_sent=true;}
+        released=layout_wait_sent([&]{return !(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000);},250);
+    }catch(const std::exception& failure){error=failure.what();}
+    s.log.emit("layout_failed_START_test_cleanup","\"generation\":"+std::to_string(generation)+
+        ",\"test_DOWN_sent\":"+(down_sent?"true":"false")+",\"test_UP_sent\":"+(up_sent?"true":"false")+
+        ",\"test_Control_UP_sent\":"+(control_sent?"true":"false")+",\"released_state_observed\":"+(released?"true":"false")+
+        ",\"error\":"+quote(error)+",\"queued_NC_input_dispatched_before_release\":false,\"product_NormalUp_or_fallback_PASS_inferred\":false");
+}
 Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl){
     auto& s=set.state;if(source>=set.active||!set.owns(source)||s.left||s.control)throw std::runtime_error("layout_source_not_exact_or_input_busy");
     const HWND h=set.frames[source].hwnd;
     s.log.check("layout_exact_source_foreground",SetForegroundWindow(h)&&wait([&]{return GetForegroundWindow()==h;}));
     const auto point=layout_hit(set,source,region);if(!point)throw std::runtime_error("layout_real_requested_HT_region_unavailable");
-    cursor(s,*point);Sleep(100);if(ctrl)key(s,VK_CONTROL,true);
-    Gesture g{*point,0,read(s.product_log).size()};button(s,true);
-    const bool started=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
-    const auto start=record(s,g.offset,"gesture_start",g.generation);
-    s.log.check("layout_real_DOWN_production_start",started&&start.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=std::string::npos&&
-        start.find(region==HTCAPTION?"\"resize\":false":"\"resize\":true")!=std::string::npos,
+    Gesture g{*point,0,0};bool down_sent=false,started=false;std::string start;
+    try{
+        // Keep the original 100 ms preparation interval, but actually serve
+        // the product's synchronous queries. No Sleep/key/launch gap after it.
+        if(ctrl)key(s,VK_CONTROL,true);cursor(s,*point);g.offset=read(s.product_log).size();const auto hover=GetTickCount64();
+        (void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
+        if(!set.owns(source)||GetForegroundWindow()!=h||GetAncestor(WindowFromPoint(*point),GA_ROOT)!=h)
+            throw std::runtime_error("layout_source_or_hover_hit_changed_before_DOWN");
+        button(s,true);down_sent=true;
+        started=layout_wait_sent([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;},3500);
+        start=record(s,g.offset,"gesture_start",g.generation);
+    }catch(...){layout_failed_start_release(s,g.generation,down_sent);throw;}
+    GUITHREADINFO native{sizeof(native)};const bool native_read=GetGUIThreadInfo(set.thread,&native)!=FALSE;
+    const bool accepted=started&&set.owns(source)&&GetForegroundWindow()==h&&native_read&&!native.hwndCapture&&!native.hwndMoveSize&&
+        start.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=std::string::npos&&
+        start.find(region==HTCAPTION?"\"resize\":false":"\"resize\":true")!=std::string::npos;
+    if(!accepted)layout_failed_start_release(s,g.generation,down_sent);
+    s.log.check("layout_real_DOWN_production_start",accepted,
         "\"source\":"+std::to_string(source)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
         ",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(set.thread)+
-        ",\"native_hit\":"+std::to_string(region)+",\"generation\":"+std::to_string(g.generation));return g;
+        ",\"native_hit\":"+std::to_string(region)+",\"generation\":"+std::to_string(g.generation)+
+        ",\"START_wait_services_sent_only\":true,\"actual_GUI_facts_available\":"+(native_read?"true":"false")+
+        ",\"actual_capture\":"+(native_read?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndCapture)):"null")+
+        ",\"actual_move_size\":"+(native_read?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndMoveSize)):"null")+
+        ",\"actual_native_modal_starts\":"+std::to_string(set.frames[source].starts.load())+",\"production_start\":"+quote(start));return g;
 }
 void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG dx,LONG dy,const std::vector<Rect>& expected,std::string name){
     auto& s=set.state;if(expected.size()!=set.active)throw std::runtime_error("layout_expected_member_count");

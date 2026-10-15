@@ -129,6 +129,49 @@ std::uint64_t ticks(FILETIME value) noexcept {
     return (static_cast<std::uint64_t>(value.dwHighDateTime) << 32U) | value.dwLowDateTime;
 }
 
+// Deliberately a FRAME-RECTANGLE candidate policy, not a claim about opaque
+// pixels/alpha/custom regions. One known front frame must contain the whole
+// rear frame; partial coverage and unions of several fronts remain eligible.
+std::vector<Snapshot> without_box_covered(std::vector<Snapshot> front_to_back,bool order_confirmed) {
+    if(!order_confirmed)return front_to_back;
+    std::vector<Snapshot> result;
+    for(std::size_t index=0;index<front_to_back.size();++index){
+        const auto& candidate=front_to_back[index];bool covered=false;
+        for(std::size_t front=0;front<index;++front){
+            const auto& above=front_to_back[front].visible;const auto& rear=candidate.visible;
+            if(!above.empty()&&!rear.empty()&&above.left()<=rear.left()&&above.top()<=rear.top()&&
+                above.right()>=rear.right()&&above.bottom()>=rear.bottom()){covered=true;break;}
+        }
+        if(!covered)result.push_back(candidate);
+    }
+    return result;
+}
+
+std::optional<std::vector<HWND>> bounded_z_order() {
+    std::vector<HWND> result;
+    // The official GetWindow contract warns about lifetime/loop races. This
+    // finite observation rejects duplicate handles and is compared again; it
+    // is not a replacement resident window-enumeration or polling mechanism.
+    for(HWND current=GetTopWindow(nullptr);current;current=GetWindow(current,GW_HWNDNEXT)){
+        if(result.size()>=1024||!IsWindow(current)||
+            std::find(result.begin(),result.end(),current)!=result.end())return {};
+        result.push_back(current);
+    }
+    return result;
+}
+
+bool frame_still_matches(const Snapshot& snapshot) {
+    DWORD pid{};RECT positioning{},visible{};
+    return IsWindowVisible(snapshot.hwnd)&&!IsIconic(snapshot.hwnd)&&
+        GetWindowThreadProcessId(snapshot.hwnd,&pid)==snapshot.tid&&pid==snapshot.pid&&
+        GetAncestor(snapshot.hwnd,GA_ROOT)==snapshot.hwnd&&
+        GetWindowRect(snapshot.hwnd,&positioning)&&
+        SUCCEEDED(DwmGetWindowAttribute(snapshot.hwnd,DWMWA_EXTENDED_FRAME_BOUNDS,&visible,sizeof(visible)))&&
+        positive(positioning)==snapshot.positioning&&positive(visible)==snapshot.visible&&
+        GetDpiForWindow(snapshot.hwnd)==snapshot.dpi&&
+        MonitorFromWindow(snapshot.hwnd,MONITOR_DEFAULTTONULL)==snapshot.monitor;
+}
+
 bool pmv2_context() noexcept {
     return AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) != FALSE;
@@ -380,19 +423,34 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
 std::vector<Snapshot> Catalog::all(const core::v1::Settings& settings) {
     std::vector<Snapshot> result;
     if (impl_->owner != GetCurrentThreadId()) return result;
-    struct Context { Catalog* catalog; const core::v1::Settings* settings; std::vector<Snapshot>* output; };
+    const auto before=bounded_z_order();
+    struct Context { Catalog* catalog; const core::v1::Settings* settings; std::vector<Snapshot>* output;std::size_t roots{};bool truncated{}; };
     Context context{this, &settings, &result};
-    EnumWindows([](HWND window, LPARAM value) -> BOOL {
+    const bool enumerated=EnumWindows([](HWND window, LPARAM value) -> BOOL {
         auto& ctx = *reinterpret_cast<Context*>(value);
+        if(++ctx.roots>1024){ctx.truncated=true;return FALSE;}
         try {
             // Magnet candidates need actual geometry/identity, not hundreds
             // of synchronous app-constraint queries. Actual operation members
             // are re-admitted with declared limits before planning/writing.
-            if (auto snapshot = ctx.catalog->get(window, *ctx.settings,nullptr,false,false)) ctx.output->push_back(std::move(*snapshot));
-            return ctx.output->size() < 256 ? TRUE : FALSE;
+            if (auto snapshot = ctx.catalog->get(window, *ctx.settings,nullptr,false,false)){
+                if(ctx.output->size()==256){ctx.truncated=true;return FALSE;}
+                ctx.output->push_back(std::move(*snapshot));
+            }
+            return TRUE;
         } catch (...) { return FALSE; }
-    }, reinterpret_cast<LPARAM>(&context));
-    return result;
+    }, reinterpret_cast<LPARAM>(&context))!=FALSE;
+    // A truncated set cannot stand in for the complete group/candidate set.
+    if(!enumerated||context.truncated)return {};
+    const bool frames_current=std::all_of(result.begin(),result.end(),frame_still_matches);
+    const auto after=bounded_z_order();
+    if(!before||!after||*before!=*after||!frames_current)return without_box_covered(std::move(result),false);
+    for(const auto& snapshot:result)if(std::find(after->begin(),after->end(),snapshot.hwnd)==after->end())
+        return without_box_covered(std::move(result),false);
+    std::sort(result.begin(),result.end(),[&](const auto& first,const auto& second){
+        return std::find(after->begin(),after->end(),first.hwnd)<std::find(after->begin(),after->end(),second.hwnd);
+    });
+    return without_box_covered(std::move(result),true);
 }
 
 std::vector<Display> Catalog::displays() {
@@ -444,6 +502,16 @@ int main(){
     check(p::rules_allow(settings,snapshot,why)&&snapshot.feature_mask==0xffffffffu,"feature mask does not leak into other literal class");
     settings.rules.front().window_class.clear();settings.rules.front().excluded=true;
     check(!p::rules_allow(settings,snapshot,why),"empty class deliberately still matches all program windows");
+    const auto box=[](std::uint64_t key,v::Rect r){p::Snapshot result;result.key=key;result.visible=r;return result;};
+    const auto front=box(1,{0,0,100,100}),rear=box(2,{10,10,90,90});
+    check(p::without_box_covered({front,rear},true).size()==1,"actual front frame fully containing rear removes only rear candidate");
+    check(p::without_box_covered({rear,front},true).size()==2,"a larger frame behind cannot cover a front candidate");
+    check(p::without_box_covered({front,box(3,{90,90,110,110})},true).size()==2,"partially exposed rear remains a geometry candidate");
+    check(p::without_box_covered({front,box(3,{100,0,200,100})},true).size()==2,"edge-adjacent frames remain available for glue");
+    check(p::without_box_covered({front,box(3,front.visible)},true).size()==1,"equal bounds respect confirmed actual front order");
+    check(p::without_box_covered({front,rear},false).size()==2,"unknown or changed Z order cannot assert occlusion");
+    check(p::without_box_covered({box(1,{0,0,50,100}),box(2,{50,0,100,100}),box(3,{0,0,100,100})},true).size()==3,
+        "rectangle-only policy does not invent multi-window union coverage");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";return failures?1:0;
 }
 #endif

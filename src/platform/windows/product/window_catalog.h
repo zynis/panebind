@@ -54,6 +54,11 @@ public:
     [[nodiscard]] std::optional<Snapshot> get(HWND window,
         const core::v1::Settings& settings, std::string* why = nullptr,
         bool include_minimized_for_restore = false, bool query_track_limits = true);
+    // Magnet/group candidates share one conservative frame-rectangle policy:
+    // with complete enumeration and unchanged bounded actual Z/frame reads,
+    // omit a rear frame wholly contained by one eligible front frame. Partial
+    // coverage remains; unknown Z makes no occlusion claim. This is not pixel
+    // visibility. Truncated enumeration returns no invented complete group.
     [[nodiscard]] std::vector<Snapshot> all(const core::v1::Settings& settings);
     [[nodiscard]] std::vector<Display> displays();
     [[nodiscard]] static bool same(const Snapshot& first, const Snapshot& second);

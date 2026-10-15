@@ -1727,3 +1727,20 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   magnet edges / actual shared contacts. Existing nonactivating, hit-transparent
   overlay semantics are unchanged. No external code copied or adapted; native
   visual acceptance remains dependent on the matching guest run.
+- Candidate occlusion policy (2026-10-15, original V1 code): revisited the
+  already pinned AltSnap occlusion findings (#681/#682) above, reference only,
+  plus official [EnumWindows](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumwindows),
+  [GetTopWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-gettopwindow)
+  and [GetWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindow).
+  Enumeration order is not assumed to prove Z order. Two finite native Z-chain
+  observations and unchanged frame reads permit conservative single-frame
+  containment filtering; partial coverage / unknown order is not a pixel-level
+  visibility assertion. No copied/adapted GPL code or general compositor added.
+- VS Code test profile (2026-10-15): read official
+  [portable mode](https://code.visualstudio.com/docs/setup/portable), which
+  specifies that a program-local `data` folder overrides explicit user-data /
+  extensions command-line directories. New guest bundles no longer create that
+  competing bootstrap-owned folder; the Medium fixture uses its own fresh CLI
+  profile. Run `8cc920c8b1584531b248e602b672d186` observed only hidden Code roots
+  and one `0x80070005` child exit. The conflicting profile setup is corrected,
+  but that exit's root cause / Code compatibility is not presumed proved.

@@ -149,7 +149,7 @@ struct ApplicationProcess {
     DWORD pid{},parent{};std::uint64_t born{};std::unique_ptr<Handle> handle;
 };
 struct ApplicationTarget {
-    std::string kind;fs::path executable,directory;std::wstring command;
+    std::string kind;fs::path executable,root_executable,directory;std::wstring command;
     std::vector<HWND> baseline;std::vector<ApplicationProcess> processes;
     std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{};
 };
@@ -371,12 +371,14 @@ bool exact_shell_location(ExplorerTarget& target){
 bool authorized_source(State& s,HWND h){
     if(own(s,h))return true;
     for(const auto& target:s.applications)if(target&&target->accepted&&target->identity&&target->identity->hwnd==h&&s.target_catalog){
-        const auto fresh=s.target_catalog->get(h,{});
+        // Identity rechecks do not require a new cross-process constraint
+        // message. Actual layout planning/writing separately queries limits.
+        const auto fresh=s.target_catalog->get(h,{},nullptr,false,false);
         if(!fresh||!product::Catalog::same(*target->identity,*fresh)||
             std::find(target->baseline.begin(),target->baseline.end(),h)!=target->baseline.end())return false;
         const auto process=std::find_if(target->processes.begin(),target->processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
         return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&
-            equal(fresh->exe,target->executable.wstring());
+            equal(fresh->exe,target->root_executable.wstring());
     }
     for(auto& target:s.explorer)if(target&&target->hwnd==h&&target->identity&&s.target_catalog){
         const auto fresh=s.target_catalog->get(h,{});
@@ -601,12 +603,14 @@ void discover_application_children(ApplicationTarget& target){
 bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::optional<product::Snapshot>* actual=nullptr,std::string* why=nullptr){
     const auto reject=[&](std::string reason){if(why)*why=std::move(reason);return false;};
     if(!h||std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end()||GetAncestor(h,GA_ROOT)!=h||!s.target_catalog)return reject("not_new_root_or_catalog_unavailable");
-    std::string admission;auto fresh=s.target_catalog->get(h,{},&admission);
+    std::string admission;auto fresh=s.target_catalog->get(h,{},&admission,false,false);
     if(!fresh)return reject("Catalog:"+admission);
-    if(!equal(fresh->exe,target.executable.wstring()))return reject("root_image_does_not_equal_explicit_launch_image");
+    if(!equal(fresh->exe,target.root_executable.wstring()))return reject("root_image_does_not_equal_explicit_requested_root_image");
     const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
     if(process==target.processes.end()||!process->handle||WaitForSingleObject(process->handle->value,0)!=WAIT_TIMEOUT||!medium(process->handle->value))return reject("root_not_live_Medium_in_held_birth_verified_launch_tree");
-    if(target.kind=="Terminal"&&!equal(fresh->window_class,L"ConsoleWindowClass"))return reject("actual_terminal_root_class_not_ConsoleWindowClass");
+    if(target.kind=="Terminal"&&(!equal(fresh->window_class,L"ConsoleWindowClass")||
+        target.processes.empty()||process->parent!=target.processes.front().pid))
+        return reject("terminal_not_exact_ConsoleWindowClass_of_explicit_cmd_child");
     if(actual)*actual=std::move(fresh);if(why)*why="exact_candidate_eligible";return true;
 }
 void application_binding_facts(State& s,ApplicationTarget& target){
@@ -694,12 +698,19 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         auto url=html.wstring();std::replace(url.begin(),url.end(),L'\\',L'/');
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir=\""+(target->directory/L"Profile").wstring()+L"\" --no-first-run --no-default-browser-check --disable-background-mode --new-window \"file:///"+url+L"\"";
     }else if(target->kind=="VSCode"){
-        target->executable=base/L"VSCode"/L"Code.exe";std::ofstream(blank,std::ios::binary).close();
+        target->executable=base/L"VSCode"/L"Code.exe";
+        if(fs::exists(base/L"VSCode"/L"data"))throw std::runtime_error("VSCode_portable_data_would_override_exact_test_profile");
+        std::ofstream(blank,std::ios::binary).close();
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
     }else if(target->kind=="Terminal"){
         target->executable=fs::path(system.data())/L"conhost.exe";
-        target->command=L"\""+target->executable.wstring()+L"\" \""+(fs::path(system.data())/L"cmd.exe").wstring()+L"\" /d /q /k title PaneBind-"+s.run+L"-Terminal";
+        // Actual 8cc evidence reports ConsoleWindowClass on the exact cmd
+        // child, not the conhost launcher. Bind only this explicitly requested
+        // image AND its retained direct-parent/birth relationship.
+        target->root_executable=fs::path(system.data())/L"cmd.exe";
+        target->command=L"\""+target->executable.wstring()+L"\" \""+target->root_executable.wstring()+L"\" /d /q /k title PaneBind-"+s.run+L"-Terminal";
     }else throw std::runtime_error("unknown_application_class");
+    if(target->root_executable.empty())target->root_executable=target->executable;
     s.created_applications.push_back(target);target->baseline=root_baseline();
     if(target->executable.empty()||!fs::is_regular_file(target->executable)){
         s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":\"BLOCKED\",\"reason\":\"explicit_official_executable_not_available\",\"input_sent\":false");return target;
@@ -709,6 +720,7 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
     const DWORD error=launched?0:GetLastError();int rid=-1;bool elevated{},normal=false;
     if(launched){CloseHandle(info.hThread);normal=medium(info.hProcess,&rid,&elevated);target->processes.push_back({info.dwProcessId,GetCurrentProcessId(),process_birth(info.hProcess),std::make_unique<Handle>(info.hProcess)});}
     s.log.emit("application_launch","\"application\":"+quote(target->kind)+",\"command\":"+quote(utf8(line))+",\"executable\":"+quote(utf8(target->executable.wstring()))+
+        ",\"explicit_expected_root_image\":"+quote(utf8(target->root_executable.wstring()))+
         ",\"file_version\":"+quote(application_version(target->executable))+",\"binary_sha256\":"+quote(hash(target->executable))+
         ",\"api_succeeded\":"+(launched?"true":"false")+",\"win32_error\":"+std::to_string(error)+",\"launch_PID\":"+std::to_string(launched?info.dwProcessId:0)+
         ",\"launch_integrity_rid\":"+(rid<0?"null":std::to_string(rid))+",\"launch_elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"launch_is_not_binding_proof\":true");
@@ -950,7 +962,7 @@ void application_matrix_flow(State& s){
                 if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_unused_exact_source_hide_failed");
                 s.applications[0]=target;matrix_layout(s,kind+"_independent_actual_constraints_setup");matrix_five(s,0,kind+".Move");
                 const auto before=visible(source_window(s,0));if(!before)throw std::runtime_error("matrix_Resize_before_geometry_unknown");
-                const auto identity=s.target_catalog->get(source_window(s,0),{});if(!identity)throw std::runtime_error("matrix_Resize_actual_identity_changed");
+                const auto identity=s.target_catalog->get(source_window(s,0),{},nullptr,false,false);if(!identity)throw std::runtime_error("matrix_Resize_actual_identity_changed");
                 const LONG amount=matrix_pixels(28,identity->dpi);const auto g=down(s,0,false,HTBOTTOM);auto after=*before;after.b+=amount;
                 phase(s,0,g,0,amount,after,kind+".Resize",true);up(s,0,g,after);
                 matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
@@ -1412,6 +1424,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_settings_cases.h"
 #include "platform/windows/product/v1_guest_product_chains.h"
 #include "platform/windows/product/v1_guest_interruptions.h"
+#include "platform/windows/product/v1_guest_constraint_cases.h"
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
@@ -1495,6 +1508,7 @@ void drive(State& s){
         cleanup_explorers(s);
         visual_mapping_flow(s);
         owned_layout_cases(s);
+        owned_native_grid_constraint_case(s);
         owned_temporary_visual_inflight_case(s);
         owned_settings_lifecycle_cases(s);
         owned_dock_stretch_chains(s);

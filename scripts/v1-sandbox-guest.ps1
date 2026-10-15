@@ -149,9 +149,13 @@ function Prepare-VSCodeTestAsset($Asset){
         $record.actual_exe=$exe;$record.actual_exe_sha256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
         $record.file_version=[Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion
         if($record.actual_exe_sha256 -cne $Asset.exe_sha256 -or $record.file_version -cne $Asset.version){throw 'Prepared Code.exe version/hash mismatch.'}
-        # The official ZIP portable route owns this fresh local data directory.
-        # No inherited host profile, installation, ACL/token change or launch.
-        New-Item -ItemType Directory -Path (Join-Path $applicationRoot 'data') -ErrorAction Stop|Out-Null
+        # No portable data folder: VS Code documents that it OVERRIDES the
+        # explicit --user-data-dir / --extensions-dir used by the Medium
+        # fixture. The fixture does not modify extracted program files and owns
+        # fresh per-configuration profile directories instead.
+        # No ACL/token change, inherited host profile, installation or launch.
+        if(Test-Path -LiteralPath (Join-Path $applicationRoot 'data')){throw 'Unexpected VS Code portable data overrides explicit test profile.'}
+        $record['profile_mode']='explicit_cli_directories_created_by_Medium_fixture_no_portable_data'
         $record.marker=Join-Path $applicationRoot 'panebind-v1-test-application.marker'
         New-Evidence $record.marker $RunId
         $record.status='PREPARED_NOT_LAUNCHED'
