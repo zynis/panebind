@@ -390,7 +390,10 @@ void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu)
         const auto attributes=GetFileAttributesW(exported.c_str());const auto name=exported.filename().wstring();
         if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||name.size()<16||!name.ends_with(L".txt")||
            !std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';}))throw std::runtime_error("tray_diagnostic_not_exact_new_plain_run_file");
-        const auto text=read(exported,300*1024);const auto config=text.find("\nschema="),tail=text.find("\n\nRecent failure: ");
+        // serialize() starts with its fixed configuration comment. It belongs
+        // to the parsed settings section, not the diagnostic header whitelist.
+        constexpr std::string_view config_header="\n# PaneBind configuration v1; UTF-8; modifiers Alt=1 Ctrl=2 Shift=4 Super=8\n";
+        const auto text=read(exported,300*1024);const auto config=text.find(config_header),tail=text.find("\n\nRecent failure: ");
         if(config==text.npos||tail==text.npos||tail<=config||!text.starts_with("PaneBind V1\nSOURCE_SHA=" PANEBIND_BUILD_SHA "\nHUMAN_UAT=PENDING\n")||
            !text.ends_with("\nWindow titles, document contents and full rule paths are not collected.\n"))throw std::runtime_error("tray_diagnostic_structure_or_source_invalid");
         std::istringstream header(text.substr(0,config+1));std::string line;bool known_headers=true;
