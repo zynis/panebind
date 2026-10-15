@@ -99,12 +99,16 @@ inline bool rule_text(std::string_view value, std::size_t limit) {
     for (const unsigned char c : value) if (c < 32 || c == 127) return false;
     return true;
 }
-inline std::string ascii_fold(std::string_view value) {
+inline std::string ascii_case_fold(std::string_view value) {
     std::string result(value);
     for (char& c : result) {
         if (c >= 'A' && c <= 'Z') c = static_cast<char>(c + ('a' - 'A'));
-        if (c == '/') c = '\\';
     }
+    return result;
+}
+inline std::string ascii_fold(std::string_view value) {
+    auto result=ascii_case_fold(value);
+    for(char& c:result)if(c=='/')c='\\';
     return result;
 }
 inline std::string escape(std::string_view value) {
@@ -245,7 +249,7 @@ inline std::string validate(const Settings& value) {
             return "应用规则需要有效的 UTF-8 程序名称/路径及可选类名";
         if (r.exe.find_first_of("*?\"<>|") != std::string::npos)
             return "应用规则不支持通配符或模糊路径";
-        if (!rules.emplace(ascii_fold(r.exe), ascii_fold(r.window_class)).second)
+        if (!rules.emplace(ascii_fold(r.exe), ascii_case_fold(r.window_class)).second)
             return "应用规则重复；路径匹配不区分 ASCII 大小写和斜杠方向";
         file_budget += escape(r.exe).size() + escape(r.window_class).size() + 64;
     }

@@ -12,6 +12,9 @@
 #include <limits>
 #include <unordered_map>
 #include <utility>
+#ifdef PANEBIND_V1_CATALOG_RULE_TEST
+#include <iostream>
+#endif
 
 namespace panebind::platform::windows::product {
 namespace {
@@ -76,7 +79,7 @@ bool normal_integrity(const Security& value) noexcept {
         !value.elevated && !value.ui_access && !value.app_container;
 }
 
-std::optional<std::wstring> wide(std::string_view text) {
+std::optional<std::wstring> wide(std::string_view text,bool path=false) {
     if (text.empty()) return std::wstring{};
     if (text.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) return std::nullopt;
     const int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(),
@@ -85,7 +88,7 @@ std::optional<std::wstring> wide(std::string_view text) {
     std::wstring result(static_cast<std::size_t>(size), L'\0');
     if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(),
         static_cast<int>(text.size()), result.data(), size) != size) return std::nullopt;
-    std::replace(result.begin(), result.end(), L'/', L'\\');
+    if(path)std::replace(result.begin(), result.end(), L'/', L'\\');
     return result;
 }
 
@@ -105,7 +108,7 @@ bool rules_allow(const core::v1::Settings& settings, Snapshot& snapshot, std::st
     const auto separator = snapshot.exe.find_last_of(L"\\/");
     const auto basename = snapshot.exe.substr(separator == std::wstring::npos ? 0 : separator + 1);
     for (const auto& rule : settings.rules) {
-        const auto exe = wide(rule.exe), cls = wide(rule.window_class);
+        const auto exe = wide(rule.exe,true), cls = wide(rule.window_class);
         if (!exe || !cls) { why = "invalid_utf8_application_rule"; return false; }
         const bool full_path = exe->find_first_of(L"\\/") != std::wstring::npos;
         if (!equal_path(full_path ? snapshot.exe : basename, *exe) ||
@@ -417,3 +420,28 @@ std::vector<Display> Catalog::displays() {
 }
 
 } // namespace panebind::platform::windows::product
+
+#ifdef PANEBIND_V1_CATALOG_RULE_TEST
+// Exercise the production conversion/matching path, without constructing a
+// Catalog or observing/controlling any native window on the build host.
+int main(){
+    namespace p=panebind::platform::windows::product;
+    namespace v=panebind::core::v1;
+    int checks{},failures{};auto check=[&](bool ok,const char* name){++checks;if(!ok){++failures;std::cerr<<"FAIL "<<name<<'\n';}};
+    v::Settings settings=v::default_settings();p::Snapshot snapshot;
+    snapshot.exe=L"C:\\Apps\\Editor.exe";snapshot.window_class=L"Frame/A";
+    settings.rules={{"C:/Apps/EDITOR.exe","frame/A",true,0xffffffffu}};std::string why;
+    check(!p::rules_allow(settings,snapshot,why)&&why=="application_excluded","full executable path separators normalize while class letters compare ordinally");
+    why.clear();settings.rules.front().window_class="frame\\A";
+    check(p::rules_allow(settings,snapshot,why)&&why.empty(),"different literal class slash cannot exclude another class");
+    settings.rules.front().exe="editor.exe";settings.rules.front().window_class="FRAME/A";
+    check(!p::rules_allow(settings,snapshot,why),"basename and class case-insensitive matching retained");
+    snapshot.feature_mask=0xffffffffu;settings.rules.front().excluded=false;settings.rules.front().feature_mask=2u;
+    check(p::rules_allow(settings,snapshot,why)&&snapshot.feature_mask==2u,"per-application feature mask applies to the exact class");
+    snapshot.feature_mask=0xffffffffu;snapshot.window_class=L"Frame\\A";
+    check(p::rules_allow(settings,snapshot,why)&&snapshot.feature_mask==0xffffffffu,"feature mask does not leak into other literal class");
+    settings.rules.front().window_class.clear();settings.rules.front().excluded=true;
+    check(!p::rules_allow(settings,snapshot,why),"empty class deliberately still matches all program windows");
+    std::cout<<checks<<" checks, "<<failures<<" failures\n";return failures?1:0;
+}
+#endif

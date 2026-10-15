@@ -147,6 +147,7 @@ public:
     std::optional<v::End> last_termination;
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
+    v::TimingHistogram input_post_timing;std::map<std::uint64_t,std::uint64_t> delayed_input_qpc;
     UINT_PTR seam_timer_serial{0x50420000};
     bool overlay_outline{};v::Rect overlay_bounds;std::vector<v::Rect> overlay_members;
     std::wstring overlay_hint;UINT overlay_dpi{96};COLORREF overlay_color{},overlay_key{};
@@ -184,7 +185,7 @@ public:
     }
     std::vector<v::Item> items(const std::vector<Snapshot>& list)const{std::vector<v::Item> result;
         for(const auto& s:list)result.push_back({s.key,s.visible,s.limits});return result;}
-    bool apply(const v::Plan& plan,std::vector<Snapshot> identities,std::uint64_t generation=0,bool completion=false){
+    bool apply(const v::Plan& plan,std::vector<Snapshot> identities,std::uint64_t generation=0,bool completion=false,std::uint64_t observed_qpc=0){
         last_exact_receipts.clear();
         last_apply_revoked_only=false;
         if(!plan.accepted)return false;if(plan.placements.empty())return true;
@@ -200,6 +201,10 @@ public:
             any_attempt=any_attempt||receipt.native_attempted;
             only_revocation=only_revocation&&receipt.reason=="operation_revoked_before_native_attempt";
             if(receipt.native_attempted)++native_attempts;
+            if(receipt.native_attempted){
+                if(receipt.completion_known)input_post_timing.observe_qpc(observed_qpc,receipt.post_observed_qpc,input.counter_frequency());
+                else delayed_input_qpc[receipt.call_id]=observed_qpc; // At most the one issued worker call.
+            }
             if(diagnostic||!receipt.accepted)log.event("placement","\"generation\":"+std::to_string(generation)+",\"operation\":"+std::to_string(operations)+
                 ",\"intent_reason\":\""+escaped(plan.reason)+"\""+
                 ",\"key\":"+std::to_string(receipt.before.key)+",\"native_callsite_claimed\":"+(receipt.native_attempted?"true":"false")+
@@ -212,6 +217,7 @@ public:
                 ",\"reason\":\""+escaped(receipt.reason)+"\",\"native_before_qpc\":"+std::to_string(receipt.before_qpc)+
                 ",\"native_after_qpc\":"+std::to_string(receipt.after_qpc)+",\"authority_after\":"+(generation&&input.allowed(generation)?"true":"false")+
                 ",\"post_observed_qpc\":"+std::to_string(receipt.post_observed_qpc)+
+                ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
                 ",\"normal_up_completion\":"+(completion?"true":"false"));
             if(receipt.after&&receipt.identity_valid&&gesture)gesture->expected[receipt.before.key]=*receipt.after;
             if(receipt.after&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact)
@@ -473,7 +479,7 @@ public:
     void restore_progress();
     void restore_timeout(UINT_PTR);
     void cancel_restore_wait();
-    void finish(v::End);
+    void finish(v::End,std::uint64_t observed_qpc=0);
     void consume();
     void show_settings();
     void register_keys();
@@ -484,7 +490,11 @@ public:
     void menu();
     void stop();
     void log_delayed_completions(){
-        for(const auto& r:writer.take_delayed_completions(settings))log.event("native_completion",
+        for(const auto& r:writer.take_delayed_completions(settings)){
+            const auto found=delayed_input_qpc.find(r.call_id);
+            input_post_timing.observe_qpc(found==delayed_input_qpc.end()?0:found->second,r.post_observed_qpc,input.counter_frequency());
+            if(found!=delayed_input_qpc.end())delayed_input_qpc.erase(found);
+            log.event("native_completion",
             "\"call_id\":"+std::to_string(r.call_id)+",\"key\":"+std::to_string(r.before.key)+
             ",\"native_attempted\":"+(r.native_attempted?"true":"false")+",\"native_succeeded\":"+(r.native_succeeded?"true":"false")+
             ",\"native_completion_known\":"+(r.completion_known?"true":"false")+",\"error\":"+std::to_string(r.error)+
@@ -492,6 +502,7 @@ public:
             ",\"identity_valid\":"+(r.identity_valid?"true":"false")+",\"geometry_exact_at_delayed_observation\":"+(r.geometry_exact?"true":"false")+
             ",\"native_before_qpc\":"+std::to_string(r.before_qpc)+",\"native_after_qpc\":"+std::to_string(r.after_qpc)+
             ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+",\"new_write_authority_granted\":false");
+        }
     }
 };
 Application* application{};
@@ -651,7 +662,7 @@ void Application::begin(const InputEvent& e){
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+",\"original\":"+rectangle(fresh->visible));
     if(e.clicks==2&&p.region>0&&settings.stretch&&(fresh->feature_mask&8u)){
         const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(gesture->targets),settings.smart_stretch);
-        if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation))remember_receipt(*fresh,true);
+        if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);
         input.revoke();finish(v::End::Paused);
     }
 }
@@ -862,7 +873,7 @@ void Application::motion(const InputEvent& e){
     }
     state.previous=raw;state.last_tick=e.tick;const bool dock_shown=dock_preview(e.point,e.tick);
     if(!dock_shown)show_preview({});
-    if(!apply(plan,state.members,e.generation)){
+    if(!apply(plan,state.members,e.generation,false,e.hook_observed_qpc)){
         // Only the matching actual UP event may finish NormalUp. A concurrent
         // hook-side revocation is not itself evidence of which terminator won.
         if(!last_apply_revoked_only){state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);}return;}
@@ -884,7 +895,7 @@ void Application::motion(const InputEvent& e){
         else if(input.allowed(e.generation)){const auto record=visual_begin(*fresh,true,static_cast<BYTE>(config.shake_alpha),false);if(record)visual[source.key]=*record;}
     }
 }
-void Application::finish(v::End reason){
+void Application::finish(v::End reason,std::uint64_t observed_qpc){
     input.revoke(reason);cancel_seam_timer();cancel_restore_wait();show_preview({});if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
     if(reason==v::End::NormalUp&&state.dock_action&&state.dock_rect){
         const auto current=catalog.get(state.down.prepared->source.hwnd,settings);
@@ -898,7 +909,7 @@ void Application::finish(v::End reason){
                     ",\"native_attempted\":"+(claimed?"true":"false")+",\"request_started\":"+(requested?"true":"false")+
                     ",\"actual_state_completion\":\"not_observed_by_request_return\"");
             }
-            else if(apply({true,"normal_up_dock",{{current->key,*state.dock_rect}}},{*current},state.down.generation,true))remember_receipt(*current,true);
+            else if(apply({true,"normal_up_dock",{{current->key,*state.dock_rect}}},{*current},state.down.generation,true,observed_qpc))remember_receipt(*current,true);
         }
     }else if(reason==v::End::Escape){
         if(state.was_maximized){
@@ -939,7 +950,7 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         const auto action=e.prepared->region==0&&e.clicks==2&&e.action==v::Action::Maximize&&IsZoomed(e.prepared->source.hwnd)?v::Action::Restore:e.action;
         command(action,e.prepared->source);
     }
-    else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}
+    else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);}
     else if(e.kind==InputKind::Abort){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}
     }flush();
 }
@@ -1037,6 +1048,19 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();finish(
     const bool native_writer_exited=writer.stop();
     const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
     log_delayed_completions();
+    const auto timing_fields=[](const v::TimingSnapshot& value,unsigned percentile){
+        const auto upper=value.percentile_upper_us(percentile);
+        return "\"samples\":"+std::to_string(value.samples)+",\"discarded\":"+std::to_string(value.discarded)+
+            ",\"missing_clock\":"+std::to_string(value.missing_clock)+",\"reversed_clock\":"+std::to_string(value.reversed_clock)+
+            ",\"conversion_overflow\":"+std::to_string(value.conversion_overflow)+",\"saturated\":"+(value.saturated?"true":"false")+
+            ",\"percentile\":"+std::to_string(percentile)+",\"percentile_bucket_upper_us\":"+(upper?std::to_string(*upper):"null")+
+            ",\"maximum_us\":"+std::to_string(value.maximum_us);
+    };
+    log.event("timing_summary","\"qpc_frequency\":"+std::to_string(input.counter_frequency())+
+        ",\"clock_scope\":\"same_machine_QPC_software_observation_cross_thread_one_tick_quantization\""+
+        ",\"mouse_callback\":{"+timing_fields(input.callback_timing(),99)+",\"excludes_downstream_CallNextHookEx\":true}"+
+        ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.snapshot(),95)+
+        ",\"sample_unit\":\"native_placement\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
     for(auto& [key,record]:visual){(void)key;visual_restore(record);}visual.clear();
     const bool recovery_stopped=recovery.stop();
     for(const auto& key:bound_keys)UnregisterHotKey(window,key.id);bound_keys.clear();

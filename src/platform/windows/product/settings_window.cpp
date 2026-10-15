@@ -349,7 +349,7 @@ struct SettingsWindow::Impl {
         if(SendMessageW(rule_class_filter,BM_GETCHECK,0,0)!=BST_CHECKED)observed->window_class.clear();
         const auto same=[&](const v::Rule& item){
             return v::settings_detail::ascii_fold(item.exe)==v::settings_detail::ascii_fold(observed->exe)&&
-                v::settings_detail::ascii_fold(item.window_class)==v::settings_detail::ascii_fold(observed->window_class);};
+                v::settings_detail::ascii_case_fold(item.window_class)==v::settings_detail::ascii_case_fold(observed->window_class);};
         const auto existing=std::find_if(candidate->rules.begin(),candidate->rules.end(),same);
         if(existing!=candidate->rules.end())existing->excluded=true;
         else candidate->rules.push_back(*observed);

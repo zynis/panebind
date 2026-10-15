@@ -113,6 +113,11 @@ int main() {
     rejects(changed("rule_count=0", "rule_count=1\nrule.0=editor%00.exe||true|1"), "decoded NUL rejected");
     rejects(changed("rule_count=0", "rule_count=1\nrule.0=*.exe||true|1"), "wildcard rule rejected");
     rejects(changed("rule_count=0", "rule_count=2\nrule.0=C:/Apps/EDIT.EXE|Frame|true|1\nrule.1=c:\\apps\\edit.exe|frame|false|1"), "equivalent ASCII paths and classes duplicate rejected");
+    const auto distinct_classes=v1::parse(changed("rule_count=0", "rule_count=2\nrule.0=editor.exe|Frame/A|true|1\nrule.1=EDITOR.EXE|frame\\A|false|1"));
+    check(distinct_classes.value&&distinct_classes.value->rules.size()==2,
+          "class names are not file paths and distinct slash characters remain distinct");
+    if(distinct_classes.value)check(v1::parse(v1::serialize(*distinct_classes.value)).value==distinct_classes.value,
+          "independent exact window classes survive editing export and import");
     rejects(std::string(minimal) + std::string(1, '\0'), "embedded NUL rejected");
     rejects(std::string(minimal) + std::string("\xc0\x80", 2), "overlong utf8 rejected");
     rejects(std::string(minimal) + std::string("\xed\xa0\x80", 3), "utf8 surrogate rejected");

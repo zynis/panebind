@@ -22,6 +22,9 @@ bool up(WPARAM m){return m==WM_LBUTTONUP||m==WM_RBUTTONUP||m==WM_MBUTTONUP||m==W
 bool InputService::start(HWND owner){
     if(thread_.joinable())return healthy_;
     if(!IsWindow(owner))return false;
+    static_assert(std::atomic<std::uint64_t>::is_always_lock_free,"hook timing counters must not hide a lock");
+    LARGE_INTEGER frequency{};counter_frequency_=QueryPerformanceFrequency(&frequency)&&frequency.QuadPart>0?
+        static_cast<std::uint64_t>(frequency.QuadPart):0;
     paused_=false;healthy_=false;stop_requested_=false;prepare_pending_=false;
     read_=0;write_=0;consumed_down_=false;aborted_=false;have_last_down_=false;
     owner_=owner;ready_=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!ready_)return false;
@@ -65,6 +68,7 @@ void InputService::abort(core::v1::End end){
 LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     auto* self=instance_;if(code<0||!self)return CallNextHookEx(nullptr,code,message,param);
     LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);
+    const auto observed_qpc=before.QuadPart>0?static_cast<std::uint64_t>(before.QuadPart):0;
     const auto& packet=*reinterpret_cast<MSLLHOOKSTRUCT*>(param);
     const auto tick=GetTickCount64();
     // Any newly observed physical/test DOWN retires an earlier UP's pending
@@ -81,7 +85,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 const auto& p=self->active_prepared_;
                 if(!p||GetForegroundWindow()!=p->source.hwnd)self->abort(core::v1::End::FocusLost);
                 else self->push({InputKind::Move,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
-                    self->active_end_,p,self->active_action_});
+                    self->active_end_,p,self->active_action_,observed_qpc});
             }
             // After abort, normal cursor routing resumes immediately. Retain
             // only the matching consumed-DOWN's UP pair, with a finite deadline.
@@ -117,7 +121,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 self->deadline_=tick+gesture_deadline_ms;
                 if(SetTimer(self->receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr))
                     consume=self->push({route.route==DownRoute::Mapped?InputKind::Mapped:InputKind::Down,
-                        packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action});
+                        packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc});
                 if(!consume){self->consumed_down_=false;*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
@@ -126,12 +130,19 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         *self->completion_=!self->aborted_&&self->active_end_==core::v1::End::NormalUp?self->generation_:0;
         *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
         self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
-            self->active_end_,self->active_prepared_,self->active_action_});
+            self->active_end_,self->active_prepared_,self->active_action_,observed_qpc});
         self->consumed_down_=false;self->active_prepared_.reset();
         if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
     }
-    QueryPerformanceCounter(&after);auto old=self->max_ticks_.load();const auto duration=static_cast<std::uint64_t>(after.QuadPart-before.QuadPart);
-    while(duration>old&&!self->max_ticks_.compare_exchange_weak(old,duration)){}
+    QueryPerformanceCounter(&after);
+    const auto finished_qpc=after.QuadPart>0?static_cast<std::uint64_t>(after.QuadPart):0;
+    self->callback_timing_.observe_qpc(observed_qpc,finished_qpc,self->counter_frequency_);
+    if(observed_qpc&&finished_qpc>=observed_qpc){
+        const auto duration=finished_qpc-observed_qpc;
+        // This hook owner is the sole writer; no unbounded CAS retry belongs
+        // in the callback. Downstream CallNextHookEx time is excluded.
+        if(duration>self->max_ticks_.load(std::memory_order_relaxed))self->max_ticks_.store(duration,std::memory_order_relaxed);
+    }
     return consume?1:CallNextHookEx(nullptr,code,message,param);
 }
 void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,LONG child,DWORD,DWORD stamp){

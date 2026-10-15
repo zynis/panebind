@@ -34,6 +34,12 @@ if(MSVC)
     target_link_options(panebind-v1-guest-fixture PRIVATE /MANIFEST:NO)
 endif()
 if(BUILD_TESTING)
+    add_executable(panebind-v1-catalog-rule-tests product/window_catalog.cpp)
+    target_compile_definitions(panebind-v1-catalog-rule-tests PRIVATE
+        PANEBIND_V1_CATALOG_RULE_TEST UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+    target_link_libraries(panebind-v1-catalog-rule-tests PRIVATE panebind_windows_product)
+    panebind_enable_warnings(panebind-v1-catalog-rule-tests)
+    add_test(NAME v1-catalog-rules COMMAND panebind-v1-catalog-rule-tests)
     add_executable(panebind-v1-recovery-tests product/visual_recovery.cpp)
     target_compile_definitions(panebind-v1-recovery-tests PRIVATE
         PANEBIND_VISUAL_RECOVERY_MODEL_TEST UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
@@ -50,7 +56,7 @@ if(BUILD_TESTING)
     target_compile_definitions(panebind-v1-input-route-tests PRIVATE UNICODE _UNICODE)
     panebind_enable_warnings(panebind-v1-input-route-tests)
     add_test(NAME v1-input-route COMMAND panebind-v1-input-route-tests)
-    set_tests_properties(v1-writer v1-input-route v1-recovery PROPERTIES LABELS "offline")
+    set_tests_properties(v1-writer v1-input-route v1-recovery v1-catalog-rules PROPERTIES LABELS "offline")
 endif()
 
 add_library(

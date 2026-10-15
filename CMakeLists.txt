@@ -22,6 +22,11 @@ target_include_directories(panebind_core INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/
 target_compile_features(panebind_core INTERFACE cxx_std_20)
 
 if(BUILD_TESTING)
+    add_executable(panebind-v1-timing-tests tests/core/v1_timing_tests.cpp)
+    target_link_libraries(panebind-v1-timing-tests PRIVATE panebind_core)
+    panebind_enable_warnings(panebind-v1-timing-tests)
+    add_test(NAME v1-timing COMMAND panebind-v1-timing-tests)
+    set_tests_properties(v1-timing PROPERTIES LABELS "offline")
     add_executable(panebind-v1-visual-tests tests/core/v1_visual_tests.cpp)
     target_link_libraries(panebind-v1-visual-tests PRIVATE panebind_core)
     panebind_enable_warnings(panebind-v1-visual-tests)

@@ -1,5 +1,6 @@
 #pragma once
 #include "window_catalog.h"
+#include "core/v1/timing_histogram.h"
 #include <array>
 #include <atomic>
 #include <functional>
@@ -59,6 +60,9 @@ struct InputEvent {
     core::v1::End end{core::v1::End::NormalUp};
     std::shared_ptr<const Prepared> prepared;
     core::v1::Action action{core::v1::Action::None};
+    // Actual QPC at the beginning of this mouse-hook observation. Zero means
+    // no such observation (e.g. WinEvent abort), never an invented timestamp.
+    std::uint64_t hook_observed_qpc{};
 };
 // Dedicated message owner. No COM, file IO, cross-process messaging or geometry
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
@@ -89,6 +93,10 @@ public:
     }
     bool healthy()const {return healthy_;}
     std::uint64_t max_callback_ticks()const{return max_ticks_;}
+    // Join stop() before final reporting. A live relaxed snapshot is bounded
+    // and race-free but not an atomic view of simultaneous callback updates.
+    core::v1::TimingSnapshot callback_timing()const{return callback_timing_.snapshot();}
+    std::uint64_t counter_frequency()const{return counter_frequency_;}
     std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
 private:
     static LRESULT CALLBACK mouse(int,WPARAM,LPARAM);
@@ -107,6 +115,8 @@ private:
     std::shared_ptr<std::atomic<std::uint64_t>> completion_{std::make_shared<std::atomic<std::uint64_t>>(0)};
     std::shared_ptr<std::atomic<bool>> available_{std::make_shared<std::atomic<bool>>(false)};
     std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
+    std::uint64_t counter_frequency_{};
+    core::v1::TimingHistogram callback_timing_;
     std::atomic<std::shared_ptr<const Prepared>> prepared_;
     std::array<InputEvent,256> queue_{};
     std::atomic<unsigned> read_{0},write_{0};
