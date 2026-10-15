@@ -1810,3 +1810,16 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   a test-evidence assumption, not a claimed Windows/product root cause.
   Previously pinned AltSnap/FancyZones research remains reused; no new
   upstream source inspection or copied/adapted implementation is claimed.
+- Aborted-pair resynchronization (2026-10-15, original V1 decision): read
+  official [MSLLHOOKSTRUCT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct)
+  and [GetMessageTime](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessagetime).
+  The hook packet contains a message timestamp, not a gesture identity; native
+  timestamp differences must account for wrap rather than JSONL line order.
+  Only an already aborted/revoked pair may retire on a current same-button
+  actual DOWN. New preparation and routing remain mandatory, and insufficient
+  preparation leaves the whole new pair native. An explicitly older UP cannot
+  complete/revoke the current pair; it is not broadly consumed as an unknown
+  event. A later-injected UP carrying a new timestamp cannot be proven to belong
+  to an old gesture. This does not synthesize UP or explain the absent callback
+  in prior guest evidence. Pinned prior-art findings are reused without a new
+  source-inspection claim; no external implementation copied or adapted.

@@ -125,6 +125,37 @@ int main() {
           product::native_event_is_current(101,100),"previous gesture native event cannot invalidate new DOWN");
     check(product::native_event_is_current(2,0xfffffff0u)&&!product::native_event_is_current(0xfffffff0u,2),
           "native 32 bit timestamp fence handles system tick rollover");
+    bool pair_consumed=true,pair_aborted=true;std::uint64_t pair_authority=0;
+    const bool resync=product::retire_aborted_pair_for_down(pair_consumed,pair_aborted,pair_authority==0,1,1,100,200);
+    check(resync,"actual aborted revoked pair retires on a current same button DOWN rather than stealing its UP");
+    if(resync)pair_consumed=false;
+    product::Prepared unprepared;unprepared.region=-1;
+    check(product::route_down(unprepared,1,1,0).route==product::DownRoute::Pass&&
+          !product::button_up_matches_current_pair(pair_consumed,1,1,100,250)&&pair_authority==0,
+          "retirement precedes preparation so an unprepared new DOWN and UP both pass without reviving old writes");
+    prepared.region=0;product::prepare_mappings(prepared,v1::default_settings());
+    check(product::route_down(prepared,1,1,0).route==product::DownRoute::Gesture,
+          "resynchronized current DOWN still uses the unchanged production routing table");
+    pair_consumed=true;pair_aborted=false;pair_authority=17;
+    check(!product::button_up_matches_current_pair(pair_consumed,1,1,200,150)&&pair_authority==17,
+          "late old timestamp UP cannot match or revoke the newer pair");
+    check(product::button_up_matches_current_pair(pair_consumed,1,1,200,250)&&
+          !product::button_up_matches_current_pair(pair_consumed,1,2,200,250),
+          "current matching UP retains its route while an unrelated button does not match");
+    check(!product::retire_aborted_pair_for_down(true,false,true,1,1,100,200)&&
+          !product::retire_aborted_pair_for_down(true,true,false,1,1,100,200)&&
+          !product::retire_aborted_pair_for_down(true,true,true,1,2,100,200),
+          "unaborted overlapping DOWN live authority and other button cannot resynchronize");
+    check(!product::retire_aborted_pair_for_down(true,true,true,1,1,200,100)&&
+          product::retire_aborted_pair_for_down(true,true,true,1,1,0xfffffff0u,2)&&
+          product::button_up_matches_current_pair(true,1,1,0xfffffff0u,2)&&
+          !product::button_up_matches_current_pair(true,1,1,2,0xfffffff0u),
+          "actual pair predicates preserve the native timestamp wrap fence and reject stale DOWN or UP");
+    product::ClickCandidate stale_release;stale_release.begin({10,10},1,true);
+    if(product::native_event_is_current(150,200))stale_release.release(1);
+    stale_release.motion({30,10},4,4);
+    check(!stale_release.eligible&&stale_release.pressing,
+          "stale UP cannot stop the new click press tracker before its actual drag retires the candidate");
     // This is the production guard predicate, including the formerly unsafe
     // normal-UP completion route. Follow the actual receive/dispatch order.
     std::uint64_t active=1,completion=0;

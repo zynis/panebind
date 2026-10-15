@@ -8,11 +8,11 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
-    "runtime_sha": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
+    "runtime_sha": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "committed-built-runtime-partial-actual-DEV-reviewed",
-    "note": "当前ff runtime已构建Debug/Release并各通过10项offline；d49实际运行仍FAIL。此前cb807/48bd完成T到L与四格，8453/e811完成八窗和grid非exact拒绝但后续联合断言失败。ff分开ledger/actual LL/Async后，单次调用子项通过而实际UP观察失败。IMPLEMENTED现为57/60，M12三项交付IN_PROGRESS；完整DEV/对标0/40，不以局部结果计分。final_sha与CI不推测。"
+    "note": "当前实际运行身份为2a/eae，包含双配置构建，实际Release FAIL：FocusLost在本代native前，不能写本次grid已调用。d49真实grid拒绝和UP缺失历史保留。eae post-stop真实点击及计数增长通过子场景；另有确定性aborted新pair不对称缺陷在修，未预填新SHA。IMPLEMENTED为57/60，M12三项交付IN_PROGRESS；完整DEV/对标0/40，final_sha与CI不推测。"
   },
   "scorecard": {
     "denominator": 40,
@@ -1799,7 +1799,7 @@
         "scripts/v1-prepare-portable.ps1"
       ],
       "implementation_status": "IN_PROGRESS",
-      "implementation_note": "ff已有Debug/Release构建及真七文件Release便携包6d022，实际guest d49在grid后UP检查失败，未到达I12。中文空格解压/普通无参入口/实际设置效果/退出用例已接线，打包和identity-only不构成交付验收。",
+      "implementation_note": "2a已有双配置构建和真七文件便携包b650；eae更早在本代native前FocusLost，未到I12。d49/6d022历史保留。中文空格解压/普通无参入口/实际设置效果/退出用例已接线，打包和identity-only不构成交付验收。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -1832,7 +1832,7 @@
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
       "implementation_status": "IN_PROGRESS",
-      "implementation_note": "固定合同ID、ff/d49当前身份与e811/8453局部事实已登记；269b/df93/88e/aae等历史失败保留。57项生产接线不等于DEV通过；T/L/四格/八窗及grid子项不升级完整功能/B/I，整体仍FAIL，未运行不计分。",
+      "implementation_note": "固定合同ID、2a/eae当前身份及ff/d49、e811/8453历史局部事实已登记，旧失败保留。eae无本代native、post-stop真实点击PASS与整体FAIL分开；57项生产接线不等于DEV通过，未运行不计分。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -3311,17 +3311,25 @@
       "id": "V1-D07",
       "status": "OPEN",
       "kind": "POST_STOP_CLIENT_DELIVERY_NOT_CONFIRMED",
-      "description": "历史aae/cb807/8453的raw false与各自证据保留，不能仅凭该字段推定发送。d49 shutdown flags=true、unknown=false且退出码0，但seq525到526没有test_cursor/test_button_send，未执行到点击发送；具体前置条件UNKNOWN。raw executed=true源于资源flags，不证明点击，raw delivered=false不证明产品投递失败。92b独立真实DOWN/UP通过子场景另列；guest/task清理不替代产品cleanup。",
+      "description": "eae seq522-525确有真实cursor/DOWN/UP发送和计数[1,1]到[2,2]，post-stop投递子场景PASS。d49未执行到发送、旧raw executed来自资源flags，不是投递失败证明；历史各批及92b真实投递子场景保留。该定向PASS不代表整版cleanup验收，guest/task清理不代替产品事实。",
       "features": ["M01-F04", "M03-F05"],
-      "partial_observation_ids": ["PO-AAE-STOP", "PO-D49-GRID-UP"]
+      "partial_observation_ids": ["PO-AAE-STOP", "PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP"]
     },
     {
       "id": "V1-D08",
       "status": "OPEN",
       "kind": "ABORTED_GENERATION_ACTUAL_UP_NOT_OBSERVED",
-      "description": "ff/d49 gen16在真实grid非exact后abort。seq518单次native调用检查通过，最后native回执authority_after=true、driver outstanding=true但Async=0是分开的事实；seq522测试UP插入1不证明投递，seq523未观察产品本代实际UP。具体原因仍待定位，不把Async或账本补成UP，也不把缺失证据改NormalUp。",
+      "description": "d49 gen16曾真实grid非exact后abort、单次调用通过但实际UP缺失。eae gen16更早FocusLost且无native，单次cleanupUP插入1，shutdown callback快照count16/lastg15，没有本代UP进现有hook的观察。两批不同失败链保留；不推断UIPI/系统根因，不把Async/账本补成UP或NormalUp。",
       "features": ["M03-F03", "M03-F05", "M04-F02"],
-      "partial_observation_ids": ["PO-D49-GRID-UP"]
+      "partial_observation_ids": ["PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP"]
+    },
+    {
+      "id": "V1-D09",
+      "status": "DEV_FIX_IN_PROGRESS",
+      "kind": "ABORTED_PAIR_NEW_DOWN_UP_ASYMMETRY",
+      "description": "确定性源码反例：旧aborted pair未完成时，新DOWN透传而对应新UP被旧pair消费。修复中，尚无新实现SHA/现场PASS；这不证明eae失焦或本代UP未观察的根因。后续仅资源安全后继续新Move/Ctrl，不预填结果。",
+      "features": ["M04-F01", "M04-F02"],
+      "partial_observation_ids": ["PO-EAE-FOCUS-UP-STOP"]
     }
   ],
   "evidence_policy": {
@@ -3396,41 +3404,73 @@
       "manifest_sha256": "89B6E10C8F22512AF3789F541EDF12DA6D756FE74852F63855030D5F47BE004D",
       "guest_function_status": "FAIL_AFTER_EIGHT_WINDOW_AND_GRID_REJECTION_SUBSTEPS",
       "note": "八窗末成员Ctrl及真实grid非exact拒绝通过，下一联合断言失败且原记录子项未知。"
+    },
+    {
+      "run_id": "d49ec6c63b5341b8b70f054106a4c74d",
+      "source_sha": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
+      "receipt_path": "uat/v1-sandbox/d49ec6c63b5341b8b70f054106a4c74d/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/d49ec6c63b5341b8b70f054106a4c74d/input/manifest.json",
+      "zip_sha256": "F4D151E1131B7DA51A6B3D86F1C75879C946810FF21B5F6203C8B2584F0F11E5",
+      "manifest_sha256": "DBC0ADA863C0DCDE56040299314ABEE4537684E3EB68F88F3F1C2D8FB9D92E44",
+      "release_binary_sha256": "13D7C9FB00E651AF4A474E8A05D54268F4D63A3B8D4BA3270A3EA38CCB9C0CCD",
+      "debug_binary_sha256": "E72E44A8F409491729D72F687FCF9DB83C84D87CF6ECEF02EEF796AC5B1F6207",
+      "release_fixture_sha256": "D5C220364A470B224C56536243A19C29A5C04D440FDB3077EDBAF95CA903C563",
+      "debug_fixture_sha256": "97877FA9F9B03A689A72092D8140A131FA877877B04D809873C745D847A8B10A",
+      "guest_function_status": "FAIL_AFTER_OBSERVED_GRID_REJECTION_ACTUAL_UP_MISSING",
+      "note": "真实grid单次调用和非exact拒绝保持原结论；actualUP缺失，post-stop未执行到发送。不能以新eae失败链覆盖本批。"
     }
   ],
   "current_package": {
-    "run_id": "d49ec6c63b5341b8b70f054106a4c74d",
-    "source_sha": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
-    "packaging_head": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
-    "receipt_path": "uat/v1-sandbox/d49ec6c63b5341b8b70f054106a4c74d/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/d49ec6c63b5341b8b70f054106a4c74d/input/manifest.json",
-    "zip_sha256": "F4D151E1131B7DA51A6B3D86F1C75879C946810FF21B5F6203C8B2584F0F11E5",
-    "manifest_sha256": "DBC0ADA863C0DCDE56040299314ABEE4537684E3EB68F88F3F1C2D8FB9D92E44",
-    "release_binary_sha256": "13D7C9FB00E651AF4A474E8A05D54268F4D63A3B8D4BA3270A3EA38CCB9C0CCD",
-    "debug_binary_sha256": "E72E44A8F409491729D72F687FCF9DB83C84D87CF6ECEF02EEF796AC5B1F6207",
-    "release_fixture_sha256": "D5C220364A470B224C56536243A19C29A5C04D440FDB3077EDBAF95CA903C563",
-    "debug_fixture_sha256": "97877FA9F9B03A689A72092D8140A131FA877877B04D809873C745D847A8B10A",
+    "run_id": "eae17bbdfc6740789cd8c06b602c1be4",
+    "source_sha": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+    "packaging_head": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+    "receipt_path": "uat/v1-sandbox/eae17bbdfc6740789cd8c06b602c1be4/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/eae17bbdfc6740789cd8c06b602c1be4/input/manifest.json",
+    "zip_sha256": "D7358493DB2DDBB4AB8B7239D38243947DF637BCF3521FE3BC2B43219EDA1662",
+    "manifest_sha256": "BABE15A53D178EE7EEBDC5515D13D9A95324B4B6796297F0E4520F2D0BDF2EF9",
+    "release_binary_sha256": "CBB4AECCC5101492518E3E9D49FD62A681F9699B8558772CC80191DA611A443A",
+    "debug_binary_sha256": "CB57B21DE8AB2F208FA32350C04EAB9000FE4A64DFD32A45180533F669BC4FFD",
+    "release_fixture_sha256": "F52EE00365D395C8D2B9E5FE8C945D4AB4C0F25635C93944D54B395D1637E85F",
+    "debug_fixture_sha256": "5A441840CF77FD7850A4220D5F1F4AA9F5788E6491FBA58A36DCE6A2111529A4",
     "identity_basis": "actual_local_files_SHA256_equal_receipt_and_binary_identity_manifest",
     "package_kind": "isolated_automated_guest_package_not_final_portable_delivery",
     "build_status": "COMMITTED_BUILT",
     "guest_configurations": "Release",
     "deployment_status": "DEPLOYED_COLLECTED_OWNED_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
-    "guest_function_status": "FAIL_AFTER_OBSERVED_GRID_REJECTION_ACTUAL_UP_MISSING",
+    "guest_function_status": "FAIL_FOCUS_LOST_BEFORE_NATIVE_POST_STOP_ACTUAL_CLICK_PASS",
     "human_uat": "NOT_RUN",
-    "note": "已读取d49原始fixture/product日志并获主执行者终局/清理确认。T/L/四格/八窗与grid非exact拒绝、单次attempt子项通过，本代实际UP观察失败。post-stop未执行到点击发送，前置条件UNKNOWN，不能由raw false推定产品投递失败；后续I12等未到达。不以构建/退出码/guest销毁计功能PASS。"
+    "note": "已读取eae原始日志。PID976/gen16真实DOWN/START后FocusLost，无本代native；fixture grid断言FAIL时actual仍原矩形，固定文案不是API回执。cleanupUP插入1而callback最后仍g15；post-stop确有发送/实际计数增长PASS。整批FAIL，不推定机制根因；历史d49真实grid拒绝/UP缺失不改写。"
   },
   "portable_candidate": {
-    "package_id": "6d022b480e154e9e8c2c633ba071fcc3",
-    "source_commit": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
-    "packaging_head": "ff480819ca23d2593bdfaebf2c5a8c1f77281dc9",
-    "receipt_path": "uat/v1-portable/6d022b480e154e9e8c2c633ba071fcc3/package-receipt.json",
-    "zip_sha256": "8457132418D48803754DC9F34F3B342E38FA58A13F81665D79F7AA08164EE2BF",
-    "manifest_sha256": "DC394C46184F5A477D36BD0AFB8B00751D5EA234109336E2A43AE7532581CB97",
-    "binary_sha256": "13D7C9FB00E651AF4A474E8A05D54268F4D63A3B8D4BA3270A3EA38CCB9C0CCD",
+    "package_id": "b650691ce6c4427eb969d185eccde8ea",
+    "source_commit": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+    "packaging_head": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+    "receipt_path": "uat/v1-portable/b650691ce6c4427eb969d185eccde8ea/package-receipt.json",
+    "zip_sha256": "7D24FA1EF78159034A96F76EFF3CBF775E400BBC772E41D366061F736BD1FE7A",
+    "manifest_sha256": "26F1BB78092F4CE5D31A5856C1568EEA2D1607BF7FD19F8900C63FA0FB21979C",
+    "binary_sha256": "CBB4AECCC5101492518E3E9D49FD62A681F9699B8558772CC80191DA611A443A",
     "actual_ordinary_no_argument_entry": "NOT_RUN",
-    "note": "真实七文件ZIP已生成并加入d49，本批在grid后失败而未到达I12。文档打包HEAD不冒充二进制runtime；后续docs-only重包ZIP哈希变化须单独校验，不复用旧ZIP实测身份。"
+    "note": "真实七文件ZIP已生成并加入eae，本批在首native前失焦而未到I12。历史6d022/ff包和记录保留；文档HEAD不冒充runtime，docs-only重包ZIP哈希变化须单独校验，不复用旧ZIP实测身份。"
   },
   "evidence": [
+    {
+      "id": "EV-EAE-FIXTURE",
+      "kind": "raw_automated_guest_jsonl",
+      "path": "uat/v1-control/eae17bbdfc6740789cd8c06b602c1be4/collection-20261015T152931313Z-b28a5b4cf7b640058713ddc85354334b/eae17bbdfc6740789cd8c06b602c1be4-release-fixture.jsonl",
+      "sha256": "B70150602545AC5C0792641C523A100EA7262313E1FF19E66F833CAF200C7F35",
+      "source_sha": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+      "run_id": "eae17bbdfc6740789cd8c06b602c1be4",
+      "configuration": "Release",
+      "overall_verdict": "FAIL"
+    },
+    {
+      "id": "EV-EAE-PRODUCT",
+      "kind": "raw_product_jsonl",
+      "path": "uat/v1-control/eae17bbdfc6740789cd8c06b602c1be4/collection-20261015T152931313Z-b28a5b4cf7b640058713ddc85354334b/eae17bbdfc6740789cd8c06b602c1be4-product-Release/panebind.log.jsonl",
+      "sha256": "BB47FFF4CE7F913168900DE43410234F9139D243D5D8F46D5D057ED65FF9B4F6",
+      "source_sha": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+      "run_id": "eae17bbdfc6740789cd8c06b602c1be4"
+    },
     {
       "id": "EV-CB807-FIXTURE",
       "kind": "raw_automated_guest_jsonl",
@@ -3549,6 +3589,30 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-EAE-FOCUS-UP-STOP",
+      "scope": "Release_owned_FocusLost_before_native_and_actual_post_stop_delivery",
+      "status": "FAIL",
+      "run_id": "eae17bbdfc6740789cd8c06b602c1be4",
+      "source_sha": "2a8475aad83e1c7d26be3a866ab73314ae8bf5f3",
+      "evidence_ids": ["EV-EAE-FIXTURE", "EV-EAE-PRODUCT"],
+      "generation": 16,
+      "product_pid": 976,
+      "actual_product_sequence": {"DOWN": 138, "START": 139, "FocusLost_end2": 140},
+      "actual_native_attempt_this_generation": false,
+      "grid_assertion_sequence": 517,
+      "grid_assertion_result": "FAIL",
+      "actual_rectangle": [140, 140, 540, 540],
+      "fixture_native_result_literal_is_API_receipt": false,
+      "cleanup_UP": {"fixture_sequence": 519, "SendInput_return": 1, "delivery_inferred": false},
+      "shutdown_UP_callback_snapshot": {"product_sequence": 145, "callback_count": 16, "last_generation_at_entry": 15, "generation16_UP_observed_in_existing_hook": false},
+      "post_stop": {"fixture_sequence": 525, "actual_cursor_DOWN_UP_sequences": [522, 523, 524], "click_executed": true, "DOWN_SendInput_called": true, "UP_SendInput_called": true, "counts_before": [1, 1], "counts_after": [2, 2], "actual_delivery_result": "PASS"},
+      "dedicated_guest_and_task_cleaned": true,
+      "overall_result": "FAIL",
+      "UIPI_or_system_root_cause_proven": false,
+      "whole_cleanup_acceptance": "NOT_GRANTED",
+      "followup": "确定性旧aborted pair下新DOWN透传/新UP消费缺陷在修，不推定其造成本次FocusLost；安全条件成立后才续新Move/Ctrl，不预填新SHA或现场PASS。"
+    },
     {
       "id": "PO-CB807-TOPOLOGY",
       "scope": "Release_Medium_owned_T_L_and_four_grid_subset",

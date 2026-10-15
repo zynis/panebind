@@ -64,6 +64,17 @@ struct ClickCandidate {
 inline bool native_event_is_current(DWORD event_stamp,DWORD down_stamp) {
     return static_cast<DWORD>(event_stamp-down_stamp)<0x80000000u;
 }
+// A new actual DOWN is a resynchronization boundary only for an already
+// aborted, fully revoked pair. It is not a substitute UP or renewed authority.
+inline bool retire_aborted_pair_for_down(bool consumed,bool aborted,bool authority_retired,
+                                        int paired_button,int incoming_button,DWORD old_down,DWORD new_down){
+    return consumed&&aborted&&authority_retired&&paired_button>=1&&paired_button<=5&&
+        incoming_button==paired_button&&native_event_is_current(new_down,old_down);
+}
+inline bool button_up_matches_current_pair(bool consumed,int paired_button,int incoming_button,DWORD down_stamp,DWORD up_stamp){
+    return consumed&&paired_button>=1&&paired_button<=5&&incoming_button==paired_button&&
+        native_event_is_current(up_stamp,down_stamp);
+}
 inline bool operation_permission(std::uint64_t generation,std::uint64_t active,std::uint64_t normal_up,
                                  bool available,bool allow_completion){
     return available&&(!generation||active==generation||(allow_completion&&normal_up==generation));

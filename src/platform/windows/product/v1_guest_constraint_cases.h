@@ -60,25 +60,35 @@ bool constraint_existing_fixed_case(State& s){
         "],\"expected_positioning_size\":["+std::to_string(expected_native_width)+","+std::to_string(expected_native_height)+
         "],\"product_grid_override\":false");
     const auto g=layout_down(set,0,HTRIGHT,false);Sleep(60);cursor(s,{g.anchor.x+travel,g.anchor.y});
-    std::string receipt;
-    const bool rejected=wait([&]{
-        for(const auto& row:constraint_generation_placements(s,g.offset,g.generation)){
+    const auto attempted=[](const std::vector<std::string>& rows){return static_cast<unsigned>(std::count_if(rows.begin(),rows.end(),[](const auto& row){
+        return row.find("\"native_attempted\":false")==std::string::npos&&row.find("\"native_callsite_claimed\":true")!=std::string::npos;}));};
+    std::string receipt,first_end;bool pre_native_focus_lost=false,grid_observed=false;
+    (void)wait([&]{
+        const auto rows=constraint_generation_placements(s,g.offset,g.generation);
+        for(const auto& row:rows){
             if(row.find("\"native_attempted\":true")!=std::string::npos&&row.find("\"native_completion_known\":true")!=std::string::npos&&
                row.find("\"native_succeeded\":true")!=std::string::npos&&row.find("\"identity_valid\":true")!=std::string::npos&&
                row.find("\"exact\":false")!=std::string::npos&&row.find("\"target\":"+rect(requested))!=std::string::npos&&
                row.find("\"actual\":"+rect(constrained))!=std::string::npos&&
                row.find("native_geometry_not_exact_constraints_unattributed")!=std::string::npos)receipt=row;
         }
-        return !receipt.empty()&&visible(frame.hwnd)==constrained&&
-            record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos;
+        first_end=record(s,g.offset,"gesture_end",g.generation);
+        grid_observed=!receipt.empty()&&visible(frame.hwnd)==constrained&&first_end.find("\"normal_up\":false")!=std::string::npos;
+        pre_native_focus_lost=receipt.empty()&&attempted(rows)==0&&set.owns(0)&&visible(frame.hwnd)==initial&&
+            number(first_end,"\"end\":")==static_cast<std::uint64_t>(panebind::core::v1::End::FocusLost)&&
+            first_end.find("\"normal_up\":false")!=std::string::npos&&first_end.find("\"pending_retired\":true")!=std::string::npos;
+        return grid_observed||pre_native_focus_lost;
     });
-    s.log.check("I10_native_grid_nonexact_rejected_not_false_API_failure",rejected,
-        "\"generation\":"+std::to_string(g.generation)+",\"actual\":"+(visible(frame.hwnd)?rect(*visible(frame.hwnd)):"null")+
-        ",\"observed_native_result\":\"SetWindowPos_returned_true_but_geometry_nonexact\",\"not_arbitrary_app_grid_inference\":true");
+    const std::string grid_fields="\"generation\":"+std::to_string(g.generation)+",\"actual\":"+(visible(frame.hwnd)?rect(*visible(frame.hwnd)):"null")+
+        ",\"observed_native_result\":"+(grid_observed?quote("SetWindowPos_returned_true_but_geometry_nonexact"):"null")+
+        ",\"grid_native_status\":"+quote(pre_native_focus_lost?"NOT_RUN_PRE_NATIVE_FOCUS_LOST":grid_observed?"OBSERVED":"NOT_OBSERVED")+
+        ",\"actual_end\":"+(first_end.empty()?"null":quote(first_end))+",\"not_arbitrary_app_grid_inference\":true";
+    if(pre_native_focus_lost){s.log.failed=true;s.log.emit("case","\"case\":\"I10_native_grid_nonexact_rejected_not_false_API_failure\",\"result\":\"FAIL\","+grid_fields);}
+    else s.log.check("I10_native_grid_nonexact_rejected_not_false_API_failure",grid_observed,grid_fields);
     const auto before_more=constraint_generation_placements(s,g.offset,g.generation);
-    const auto attempted=[](const std::vector<std::string>& rows){return static_cast<unsigned>(std::count_if(rows.begin(),rows.end(),[](const auto& row){
-        return row.find("\"native_attempted\":false")==std::string::npos&&row.find("\"native_callsite_claimed\":true")!=std::string::npos;}));};
-    s.log.check("I10_native_grid_single_attempt_before_test_UP",attempted(before_more)==1&&s.left&&actual_up(s,g.offset,g.generation).empty()&&
+    const unsigned expected_calls=pre_native_focus_lost?0u:1u;
+    if(pre_native_focus_lost)s.log.emit("case","\"case\":\"I10_native_grid_single_attempt_before_test_UP\",\"result\":\"NOT_RUN\",\"actual_native_calls\":0,\"initial_FAIL_preserved\":true");
+    else s.log.check("I10_native_grid_single_attempt_before_test_UP",attempted(before_more)==1&&s.left&&actual_up(s,g.offset,g.generation).empty()&&
         receipt.find("\"authority_after\":true")!=std::string::npos,
         "\"driver_left_outstanding\":"+std::string(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
         ",\"last_native_authority_after\":"+(receipt.find("\"authority_after\":true")!=std::string::npos?"true":receipt.find("\"authority_after\":false")!=std::string::npos?"false":"null")+
@@ -127,26 +137,39 @@ bool constraint_existing_fixed_case(State& s){
         return driver_released&&!observed_up.empty()&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize;
     });
     const bool ordinary_abort=observed_end.find("\"normal_up\":false")!=std::string::npos;std::string after_UP_status;bool snapshot_requested{},snapshot_observed{};DWORD snapshot_exit=STILL_ACTIVE;
-    if(!up_and_context||!ordinary_abort){const auto failed_up_mark=read(s.product_log).size();
+    if(!up_and_context||!ordinary_abort||pre_native_focus_lost){const auto failed_up_mark=read(s.product_log).size();
         snapshot_requested=launch(s,L"--status",true,&snapshot_exit);
         snapshot_observed=wait([&]{after_UP_status=record(s,failed_up_mark,"status");return !after_UP_status.empty();},1000);
     }
-    s.log.check("I10_abort_real_UP_not_NormalUp",up_and_context&&ordinary_abort,
-        "\"actual_UP\":"+(observed_up.empty()?"null":quote(observed_up))+",\"driver_left_released_ledger\":"+(driver_released?"true":"false")+
+    const std::string up_fields="\"actual_UP\":"+(observed_up.empty()?"null":quote(observed_up))+",\"driver_left_released_ledger\":"+(driver_released?"true":"false")+
         ",\"source_GUI_known\":"+(source_gui_known?"true":"false")+",\"source_GUI_query_error\":"+std::to_string(source_gui_error)+
         ",\"actual_capture\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndCapture)):"null")+
         ",\"actual_move_size\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndMoveSize)):"null")+
         ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"after_UP_status_requested\":"+(snapshot_requested?"true":"false")+
         ",\"after_UP_status_command_exit\":"+std::to_string(snapshot_exit)+",\"after_UP_status_observed\":"+(snapshot_observed?"true":"false")+
-        ",\"after_UP_status_with_mouse_up_callbacks\":"+(after_UP_status.empty()?"null":quote(after_UP_status)));
-    s.log.check("I10_no_grid_retry_or_new_placement_after_abort",attempted(constraint_generation_placements(s,g.offset,g.generation))==1&&visible(frame.hwnd)==constrained,
-        "\"independent_actual_constraint_rejection\":true,\"pending_retired\":true");
+        ",\"after_UP_status_with_mouse_up_callbacks\":"+(after_UP_status.empty()?"null":quote(after_UP_status));
+    if(up_and_context&&ordinary_abort)s.log.check("I10_abort_real_UP_not_NormalUp",true,up_fields);
+    else{s.log.failed=true;s.log.emit("case","\"case\":\"I10_abort_real_UP_not_NormalUp\",\"result\":\"FAIL\","+up_fields);}
+    const Rect required_actual=pre_native_focus_lost?initial:constrained;const auto recovery_actual=visible(frame.hwnd);
+    const bool retired=ordinary_abort&&observed_end.find("\"pending_retired\":true")!=std::string::npos;
+    const bool no_new_calls=attempted(constraint_generation_placements(s,g.offset,g.generation))==expected_calls;
+    s.log.check("I10_retired_generation_no_new_placement_actual_state",retired&&no_new_calls&&set.owns(0)&&recovery_actual&&*recovery_actual==required_actual,
+        "\"expected_native_calls\":"+std::to_string(expected_calls)+",\"grid_native_observed\":"+(grid_observed?"true":"false")+
+        ",\"expected_actual_branch\":"+rect(required_actual)+",\"actual\":"+(recovery_actual?rect(*recovery_actual):"null"));
+    if(pre_native_focus_lost||!up_and_context){
+        s.log.check("I10_failed_subcase_safe_for_new_legal_gesture",driver_released&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize&&!source_gui.hwndMenuOwner&&
+            snapshot_requested&&snapshot_observed&&snapshot_exit==0&&after_UP_status.find("\"gesture_active\":false")!=std::string::npos&&
+            after_UP_status.find("\"hook_owner_running\":true")!=std::string::npos&&retired&&no_new_calls,
+            "\"missing_original_UP_not_relabelled_PASS\":true,\"initial_case_FAIL_preserved\":true,\"fresh_status\":"+quote(after_UP_status));
+    }
 
     if(!set.set_grid(0,1))throw std::runtime_error("I10_grid_owner_UI_reset_failed");
-    s.log.emit("I10_test_application_grid_reset","\"from\":17,\"to\":1,\"only_after_real_UP\":true,\"actor\":\"test_owned_app\",\"geometry_reset\":false");
-    // Recovery starts at the actually constrained rectangle; no product
-    // restart, source replacement or geometry reset hides the failed state.
-    const auto next=layout_down(set,0,HTCAPTION,false);const auto moved=translated(constrained,31,29);
+    s.log.emit("I10_test_application_grid_reset","\"from\":17,\"to\":1,\"only_after_single_test_UP_sent\":true,\"actual_matching_UP_observed\":"+
+        std::string(observed_up.empty()?"false":"true")+",\"actor\":\"test_owned_app\",\"geometry_reset\":false");
+    // Recovery starts at the verified actual rectangle: original after a
+    // pre-native FocusLost, constrained only after the real nonexact call.
+    // No product restart, source replacement or geometry reset hides failure.
+    const auto next=layout_down(set,0,HTCAPTION,false);const auto moved=translated(*recovery_actual,31,29);
     s.log.check("I10_post_grid_new_generation",next.generation>g.generation);
     layout_phase(set,0,next,31,29,{moved},"I10_post_grid_actual_ordinary_Move");layout_up(set,next,{moved});
     const Rect neighbour{moved.r,moved.t,moved.r+300,moved.b};
@@ -155,8 +178,9 @@ bool constraint_existing_fixed_case(State& s){
     s.log.check("I10_post_grid_Ctrl_new_generation",ctrl.generation>next.generation);
     layout_phase(set,1,ctrl,29,23,group,"I10_post_grid_actual_Ctrl_source_and_follower");layout_up(set,ctrl,group);
     s.log.check("I10_grid_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_cleanup\":true");
-    s.log.emit("I10_native_constraint_scope","\"status\":\"PARTIAL\",\"one_native_grid_nonexact_and_recovery_observed\":true," 
-        "\"fixed_size_prior_actual_case_observed\":"+std::string(fixed_observed?"true":"false")+
-        ",\"second_member_SetWindowPos_FALSE\":\"NOT_RUN\",\"missing_capability\":\"existing_fixture_has_no_safe_second_member_native_API_failure_injection\"," 
+    s.log.emit("I10_native_constraint_scope","\"status\":\"PARTIAL\",\"one_native_grid_nonexact_and_recovery_observed\":"+std::string(grid_observed?"true":"false")+
+        ",\"original_UP_observed\":"+(!observed_up.empty()?"true":"false")+",\"pre_native_FocusLost_FAIL_preserved\":"+(pre_native_focus_lost?"true":"false")+
+        ",\"fixed_size_prior_actual_case_observed\":"+(fixed_observed?"true":"false")+
+        ",\"second_member_SetWindowPos_FALSE\":\"SEPARATE_CASE\","
         "\"grid_nonexact_not_relabelled_as_API_FALSE\":true,\"whole_I10_PASS\":false,\"human_uat\":\"NOT_RUN\"");
 }

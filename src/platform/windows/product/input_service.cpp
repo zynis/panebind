@@ -81,12 +81,22 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     // discrete dock commit, even if this new click passes through natively.
     if(down(message)){
         *self->completion_=0;
+        if(retire_aborted_pair_for_down(self->consumed_down_,self->aborted_,self->authorized_->load()==0,
+            self->button_,button(message,packet.mouseData),self->active_down_stamp_,packet.time)){
+            // The old write generation stays revoked. Retire its input pair
+            // BEFORE considering current preparation, so an unprepared/native
+            // new DOWN cannot have its real UP stolen by the aborted pair.
+            KillTimer(self->receiver_,gesture_deadline_timer);self->consumed_down_=false;
+            self->active_prepared_.reset();self->active_action_=core::v1::Action::None;
+            self->click_candidate_={};
+        }
         // An overlapping press is not a completed first click. Never revive a
         // candidate by returning to its anchor after a drag or another DOWN.
         if(self->click_candidate_.pressing)self->click_candidate_={};
     }
     if(message==WM_MOUSEMOVE)self->click_candidate_.motion(packet.pt,self->drag_x_,self->drag_y_);
-    if(up(message))self->click_candidate_.release(button(message,packet.mouseData));
+    if(up(message)&&native_event_is_current(packet.time,self->last_down_))
+        self->click_candidate_.release(button(message,packet.mouseData));
     self->point_=(static_cast<std::uint64_t>(static_cast<std::uint32_t>(packet.pt.x))<<32)|static_cast<std::uint32_t>(packet.pt.y);
     if(self->consumed_down_&&!self->aborted_&&self->stop_requested_)self->abort(core::v1::End::Exit);
     else if(self->consumed_down_&&!self->aborted_&&self->paused_)self->abort(core::v1::End::Paused);
@@ -143,7 +153,8 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
         }else self->click_candidate_={};
-    }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
+    }else if(up(message)&&button_up_matches_current_pair(self->consumed_down_,self->button_,
+        button(message,packet.mouseData),self->active_down_stamp_,packet.time)){
         up_observation.matching_branch_taken=true;
         const auto& prepared=self->active_prepared_;DWORD source_pid{};
         const DWORD source_tid=prepared?GetWindowThreadProcessId(prepared->source.hwnd,&source_pid):0;

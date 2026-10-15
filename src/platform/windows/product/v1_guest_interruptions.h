@@ -140,9 +140,12 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         if(focus_target)s.log.check("I08_product_does_not_retake_foreground",GetForegroundWindow()==focus_target);
         LARGE_INTEGER up_before{};if(!QueryPerformanceCounter(&up_before)||up_before.QuadPart<=0)throw std::runtime_error("I08_actual_UP_clock_unavailable");
         button(s,false);
-        s.log.check("I08_matching_test_UP_actually_observed",wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty();}),
-            "\"single_actual_UP\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+",\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+
-            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"not_NormalUp_evidence\":true");
+        const bool matching_up=wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty();});
+        const std::string up_fields="\"single_test_UP_sent\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+
+            ",\"actual_UP\":"+(actual_up(s,g.offset,g.generation).empty()?"null":quote(actual_up(s,g.offset,g.generation)))+
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"not_NormalUp_evidence\":true";
+        if(matching_up)s.log.check("I08_matching_test_UP_actually_observed",true,up_fields);
+        else{s.log.failed=true;s.log.emit("case","\"case\":\"I08_matching_test_UP_actually_observed\",\"result\":\"FAIL\","+up_fields);}
         // Bounded observation following one actual post-revocation cursor
         // event. Native entry QPC, not JSONL order, decides call timing.
         Sleep(120);interruption_audit_calls(s,g,static_cast<std::uint64_t>(trigger.QuadPart),
@@ -157,7 +160,8 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         }
         chain_check_product(s,pid,birth);interruption_recovery(s,set,g.generation);chain_check_product(s,pid,birth);
         s.log.emit("I08_cause_and_following_recovery","\"cause\":"+std::to_string(static_cast<unsigned>(cause))+
-            ",\"actual_non_NormalUp_termination\":true,\"new_real_Move_Resize_UP\":true,\"product_restarted\":false");
+            ",\"actual_non_NormalUp_termination\":true,\"original_abort_UP_observed\":"+(matching_up?"true":"false")+
+            ",\"original_UP_subcase_FAIL_preserved\":"+(matching_up?"false":"true")+",\"new_real_Move_Resize_UP\":true,\"product_restarted\":false");
     }
     owned_input_actor_exit(s,set,pid,birth);
     chain_gui_save(s,original);s.log.check("I08_exact_fixture_resources_closed",set.close());chain_check_product(s,pid,birth);
