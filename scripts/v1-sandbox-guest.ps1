@@ -225,11 +225,23 @@ public static class PaneBindV1MediumGuest {
             var startup=new Startup();startup.cb=(uint)Marshal.SizeOf(typeof(Startup));startup.desktop="winsta0\\default";
             string command="\""+executable+"\" "+arguments;
             if(command.Length>1023)throw new InvalidOperationException("Bounded token launch command too long");
+            result["requested_executable"]=executable;result["requested_desktop"]=startup.desktop;
+            result["requested_directory"]="C:\\PaneBindV1\\Output";result["requested_creation_flags"]=NO_WINDOW|CREATE_SUSPENDED;
+            var launchToken=Facts(candidate);result["launch_token"]=launchToken.Public();
+            if(!Medium(launchToken,own))throw new InvalidOperationException("Launch token no longer satisfies exact Medium contract");
             bool created=CreateProcessWithTokenW(candidate,0,executable,new StringBuilder(command),NO_WINDOW|CREATE_SUSPENDED,IntPtr.Zero,"C:\\PaneBindV1\\Output",ref startup,out info);
-            int error=created?0:Marshal.GetLastWin32Error();processAttempts.Add(new Dictionary<string,object>{{"api","CreateProcessWithTokenW"},{"succeeded",created},{"win32_error",error}});
-            if(!created&&error==1314){
+            int error=created?0:Marshal.GetLastWin32Error();processAttempts.Add(new Dictionary<string,object>{{"api","CreateProcessWithTokenW"},{"succeeded",created},{"win32_error",error},{"same_candidate_token",true},{"executable",executable},{"desktop",startup.desktop}});
+            // One bounded API contrast only. ERROR_ACCESS_DENIED is not proof
+            // that the RO mapping or its ACL is the cause: AsUser has a
+            // distinct documented token/privilege contract. Keep the token,
+            // image, directory and desktop unchanged; do not adjust security.
+            if(!created&&(error==1314||error==5)){
+                result["as_user_fallback_trigger_win32_error"]=error;
+                result["fallback_desktop"]=Desktop(own.Session);
+                startup=new Startup();startup.cb=(uint)Marshal.SizeOf(typeof(Startup));startup.desktop="winsta0\\default";
+                info=new ProcessInfo();
                 created=CreateProcessAsUserW(candidate,executable,new StringBuilder(command),IntPtr.Zero,IntPtr.Zero,false,NO_WINDOW|CREATE_SUSPENDED,IntPtr.Zero,"C:\\PaneBindV1\\Output",ref startup,out info);
-                error=created?0:Marshal.GetLastWin32Error();processAttempts.Add(new Dictionary<string,object>{{"api","CreateProcessAsUserW"},{"succeeded",created},{"win32_error",error}});
+                error=created?0:Marshal.GetLastWin32Error();processAttempts.Add(new Dictionary<string,object>{{"api","CreateProcessAsUserW"},{"succeeded",created},{"win32_error",error},{"same_candidate_token",true},{"executable",executable},{"desktop",startup.desktop}});
             }
             if(!created)throw new Win32Exception(error,"Medium child creation failed; no security policy or ACL changes attempted");
             result["fixture_pid"]=info.pid;result["fixture_tid"]=info.tid;result["requested_desktop"]=startup.desktop;

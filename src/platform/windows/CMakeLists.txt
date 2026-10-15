@@ -6,7 +6,7 @@ execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${PROJECT_SOURCE_D
     OUTPUT_VARIABLE PANEBIND_V1_SHA OUTPUT_STRIP_TRAILING_WHITESPACE)
 add_library(panebind_windows_product STATIC
     product/window_catalog.cpp product/window_writer.cpp
-    product/input_service.cpp product/settings_window.cpp product/product_app.cpp)
+    product/input_service.cpp product/settings_window.cpp product/visual_recovery.cpp product/product_app.cpp)
 target_link_libraries(panebind_windows_product PUBLIC panebind_core PRIVATE
     user32 gdi32 dwmapi advapi32 ole32 uuid shell32 comctl32 comdlg32 wtsapi32
     panebind_windows_operation_geometry)
@@ -23,7 +23,9 @@ add_executable(panebind-v1-guest-fixture WIN32 product/v1_guest_fixture.cpp prod
 target_compile_definitions(panebind-v1-guest-fixture PRIVATE
     NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00
     PANEBIND_BUILD_SHA="${PANEBIND_V1_SHA}")
-target_link_libraries(panebind-v1-guest-fixture PRIVATE user32 gdi32 dwmapi wtsapi32 advapi32 shell32)
+target_link_libraries(panebind-v1-guest-fixture PRIVATE
+    panebind_windows_product panebind_windows_explorer
+    user32 gdi32 dwmapi wtsapi32 advapi32 shell32 ole32 oleaut32)
 target_compile_features(panebind-v1-guest-fixture PRIVATE cxx_std_20)
 panebind_enable_warnings(panebind-v1-guest-fixture)
 if(MSVC)
@@ -31,6 +33,12 @@ if(MSVC)
     target_link_options(panebind-v1-guest-fixture PRIVATE /MANIFEST:NO)
 endif()
 if(BUILD_TESTING)
+    add_executable(panebind-v1-recovery-tests product/visual_recovery.cpp)
+    target_compile_definitions(panebind-v1-recovery-tests PRIVATE
+        PANEBIND_VISUAL_RECOVERY_MODEL_TEST UNICODE _UNICODE NOMINMAX WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0A00)
+    target_link_libraries(panebind-v1-recovery-tests PRIVATE panebind_windows_product)
+    panebind_enable_warnings(panebind-v1-recovery-tests)
+    add_test(NAME v1-recovery COMMAND panebind-v1-recovery-tests)
     add_executable(panebind-v1-writer-tests product/window_writer_tests.cpp)
     target_link_libraries(panebind-v1-writer-tests PRIVATE panebind_windows_product)
     target_compile_definitions(panebind-v1-writer-tests PRIVATE UNICODE _UNICODE)
@@ -41,7 +49,7 @@ if(BUILD_TESTING)
     target_compile_definitions(panebind-v1-input-route-tests PRIVATE UNICODE _UNICODE)
     panebind_enable_warnings(panebind-v1-input-route-tests)
     add_test(NAME v1-input-route COMMAND panebind-v1-input-route-tests)
-    set_tests_properties(v1-writer v1-input-route PROPERTIES LABELS "offline")
+    set_tests_properties(v1-writer v1-input-route v1-recovery PROPERTIES LABELS "offline")
 endif()
 
 add_library(

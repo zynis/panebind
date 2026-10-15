@@ -245,6 +245,28 @@ inline AxisPlan resize_axis(std::span<const Item> items, std::size_t source,
     return result;
 }
 
+// A drag leaving our discrete layout restores its previous normal SIZE under
+// the ORIGINAL down point. This is an intent anchor, never a claimed observed
+// window rectangle. The adapter retains the actual down snapshot separately
+// for authority, postverification and Escape; snap feedback never updates it.
+[[nodiscard]] inline std::optional<Rect> restored_move_anchor(Rect down_visible,Rect normal,
+                                                             Point cursor_down) {
+    if(!layout_detail::valid_rect(down_visible)||!layout_detail::valid_rect(normal))return std::nullopt;
+    const auto offset_x=geometry::checked_difference(cursor_down.x,down_visible.left());
+    const auto offset_y=geometry::checked_difference(cursor_down.y,down_visible.top());
+    if(!offset_x||!offset_y)return std::nullopt;
+    const auto x=std::clamp(*offset_x,std::int64_t{},down_visible.width());
+    if(x&&normal.width()>std::numeric_limits<std::int64_t>::max()/x)return std::nullopt;
+    const auto anchored_x=x*normal.width()/down_visible.width();
+    const auto anchored_y=std::clamp(*offset_y,std::int64_t{},normal.height()-1);
+    const auto left=geometry::checked_difference(cursor_down.x,anchored_x);
+    const auto top=geometry::checked_difference(cursor_down.y,anchored_y);
+    if(!left||!top)return std::nullopt;
+    const auto right=geometry::checked_add(*left,normal.width());
+    const auto bottom=geometry::checked_add(*top,normal.height());
+    return right&&bottom?std::optional{Rect{*left,*top,*right,*bottom}}:std::nullopt;
+}
+
 [[nodiscard]] inline Plan resize_group(std::span<const Item> items, Key source, Edges edges,
                                         Point delta, std::int64_t tolerance) {
     if (tolerance < 0 || !layout_detail::valid_items(items) ||

@@ -230,7 +230,7 @@ bool Catalog::same(const Snapshot& first, const Snapshot& second) {
 }
 
 std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& settings, std::string* why,
-    bool include_minimized_for_restore) {
+    bool include_minimized_for_restore,bool query_track_limits) {
     auto reject = [&](std::string reason) -> std::optional<Snapshot> {
         // A previously admitted identity cannot regain its old generation
         // after it has been observed ineligible or unreadable.
@@ -330,7 +330,7 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
         static_cast<std::int64_t>(min_track_width) - frame_width);
     result.limits.min_height = std::max<std::int64_t>(1,
         static_cast<std::int64_t>(min_track_height) - frame_height);
-    if(result.can_resize){
+    if(result.can_resize&&query_track_limits){
         MINMAXINFO limits{};
         limits.ptMaxSize={static_cast<LONG>(result.work.width()),static_cast<LONG>(result.work.height())};
         limits.ptMaxPosition={static_cast<LONG>(result.work.left()),static_cast<LONG>(result.work.top())};
@@ -380,7 +380,10 @@ std::vector<Snapshot> Catalog::all(const core::v1::Settings& settings) {
     EnumWindows([](HWND window, LPARAM value) -> BOOL {
         auto& ctx = *reinterpret_cast<Context*>(value);
         try {
-            if (auto snapshot = ctx.catalog->get(window, *ctx.settings)) ctx.output->push_back(std::move(*snapshot));
+            // Magnet candidates need actual geometry/identity, not hundreds
+            // of synchronous app-constraint queries. Actual operation members
+            // are re-admitted with declared limits before planning/writing.
+            if (auto snapshot = ctx.catalog->get(window, *ctx.settings,nullptr,false,false)) ctx.output->push_back(std::move(*snapshot));
             return ctx.output->size() < 256 ? TRUE : FALSE;
         } catch (...) { return FALSE; }
     }, reinterpret_cast<LPARAM>(&context));

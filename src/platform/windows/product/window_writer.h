@@ -4,12 +4,14 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
 #include <vector>
 
 namespace panebind::platform::windows::product {
+inline constexpr UINT native_completion_message=WM_APP+46;
 
 class WindowWriter final {
 public:
@@ -17,13 +19,14 @@ public:
         // accepted means the requested target was actually postverified, or
         // was already exact without a native call. Admission alone is not
         // successful completion; the native facts below remain independent.
-        bool accepted{}, native_attempted{}, native_succeeded{};
+        bool accepted{}, native_attempted{}, native_succeeded{}, completion_known{true};
         bool identity_valid{}, geometry_exact{};
         DWORD error{};
         Snapshot before;
         std::optional<Snapshot> after;
         core::v1::Rect requested;
         std::uint64_t before_qpc{}, after_qpc{};
+        std::uint64_t call_id{},post_observed_qpc{};
         std::string reason;
     };
 
@@ -42,7 +45,14 @@ public:
     [[nodiscard]] static Preparation prepare(const Snapshot& expected,
         const Snapshot& actual, const core::v1::Rect& desired);
 
-    explicit WindowWriter(Catalog& catalog) noexcept;
+    explicit WindowWriter(Catalog& catalog);
+    ~WindowWriter();
+    // Retire pending admission; an issued native call is not OS-cancellable.
+    // False means it was still in flight at the bounded shutdown boundary.
+    bool stop();
+    [[nodiscard]] bool has_unconfirmed_native_call()const;
+    void notify_on_completion(HWND);
+    [[nodiscard]] std::vector<Receipt> take_delayed_completions(const core::v1::Settings&);
     [[nodiscard]] Receipt place(const Snapshot& expected,
         const core::v1::Rect& desired, const core::v1::Settings& settings,
         Guard guard);
@@ -56,6 +66,8 @@ public:
 
 private:
     Catalog& catalog_;
+    struct NativeExecutor;
+    std::unique_ptr<NativeExecutor> executor_;
 };
 
 } // namespace panebind::platform::windows::product

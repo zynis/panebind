@@ -11,6 +11,9 @@
 #include <shellapi.h>
 #include <wtsapi32.h>
 #include <wincrypt.h>
+#include <objbase.h>
+#include "platform/windows/product/window_catalog.h"
+#include "platform/windows/explorer/explorer_shell_inventory.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -19,6 +22,7 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -31,6 +35,8 @@
 #endif
 namespace {
 namespace fs=std::filesystem;
+namespace product=panebind::platform::windows::product;
+namespace shell=panebind::platform::windows::explorer;
 struct Rect {
     LONG l{},t{},r{},b{};
     bool operator==(const Rect&)const=default;
@@ -58,14 +64,16 @@ bool desktop(){
         GetUserObjectInformationW(h,UOI_IO,&receiving_input,sizeof(receiving_input),&bytes)&&receiving_input!=FALSE;
     const bool closed=CloseDesktop(h)!=FALSE;return ok&&closed&&equal(a.data(),L"Default")&&equal(a.data(),b.data());
 }
-bool medium(HANDLE process){
+bool medium(HANDLE process,int* integrity=nullptr,bool* elevated=nullptr){
     HANDLE raw{};if(!OpenProcessToken(process,TOKEN_QUERY,&raw))return false;Handle token(raw);
     alignas(TOKEN_MANDATORY_LABEL) std::array<unsigned char,512> bytes{};DWORD size{};TOKEN_ELEVATION elevation{};
     if(!GetTokenInformation(token.value,TokenIntegrityLevel,bytes.data(),static_cast<DWORD>(bytes.size()),&size)||
         !GetTokenInformation(token.value,TokenElevation,&elevation,sizeof(elevation),&size))return false;
     const auto sid=reinterpret_cast<TOKEN_MANDATORY_LABEL*>(bytes.data())->Label.Sid;
-    return IsValidSid(sid)&&*GetSidSubAuthorityCount(sid)>0&&
-        *GetSidSubAuthority(sid,*GetSidSubAuthorityCount(sid)-1U)==SECURITY_MANDATORY_MEDIUM_RID&&!elevation.TokenIsElevated;
+    if(!IsValidSid(sid)||!*GetSidSubAuthorityCount(sid))return false;
+    const auto rid=*GetSidSubAuthority(sid,*GetSidSubAuthorityCount(sid)-1U);
+    if(integrity)*integrity=static_cast<int>(rid);if(elevated)*elevated=elevation.TokenIsElevated!=0;
+    return rid==SECURITY_MANDATORY_MEDIUM_RID&&!elevation.TokenIsElevated;
 }
 std::string read(const fs::path& path,std::size_t cap=2*1024*1024){
     std::error_code error;if(!fs::is_regular_file(path,error)||fs::file_size(path,error)>cap)return {};
@@ -89,7 +97,15 @@ std::string hash(const fs::path& path){
     constexpr char digits[]="0123456789ABCDEF";std::string out;for(auto b:digest){out+=digits[b>>4];out+=digits[b&15];}return out;
 }
 bool wait(const std::function<bool()>& predicate,DWORD duration=3500){
-    const auto end=GetTickCount64()+duration;do{if(predicate())return true;Sleep(20);}while(GetTickCount64()<end);return predicate();
+    const auto end=GetTickCount64()+duration;do{
+        // This driver STA must also receive real Shell COM callbacks. The
+        // empty fixture windows themselves belong to the independent UI STA.
+        MSG message{};unsigned budget=512;while(budget--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
+            if(message.message==WM_QUIT)throw std::runtime_error("test_driver_quit");
+            TranslateMessage(&message);DispatchMessageW(&message);
+        }
+        if(predicate())return true;Sleep(20);
+    }while(GetTickCount64()<end);return predicate();
 } // Bounded TEST observation, never a product event source.
 std::optional<Rect> visible(HWND h){
     RECT r{};if(!IsWindow(h)||FAILED(DwmGetWindowAttribute(h,DWMWA_EXTENDED_FRAME_BOUNDS,&r,sizeof(r)))||r.left>=r.right||r.top>=r.bottom)return {};
@@ -113,17 +129,43 @@ struct Log{
         if(!passed){failed=true;throw std::runtime_error(name);}
     }
 };
-struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1};};
+struct WriterStall {
+    std::atomic<bool> armed{},entered{},finished{},left_down{};
+    std::atomic<std::uint64_t> before_qpc{},after_qpc{},before_tick{};
+    std::atomic<UINT> flags{};std::atomic<int> x{},y{},width{},height{};
+};
+struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1};WriterStall stall;};
+struct ExplorerTarget {
+    fs::path directory;shell::ShellLocationFact location;std::unique_ptr<shell::ExplorerProvisioningLease> lease;
+    std::unique_ptr<shell::ExplorerConsentTargetObservation> observation;
+    std::optional<product::Snapshot> identity;HWND hwnd{};DWORD pid{},tid{};std::uint64_t born{};
+    std::vector<HWND> baseline;bool separate{},navigated{};
+};
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
     std::string configuration;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
     HANDLE process{};DWORD product_pid{},owner{};bool left{},control{};
+    std::array<std::unique_ptr<ExplorerTarget>,3> explorer;
+    std::vector<std::unique_ptr<ExplorerTarget>> retired_explorers;
+    std::unique_ptr<product::Catalog> target_catalog;
 };
+HWND source_window(State& s,std::size_t source){return s.explorer.at(source)?s.explorer[source]->hwnd:s.frames.at(source).hwnd;}
+DWORD source_thread(State& s,std::size_t source){return s.explorer.at(source)?s.explorer[source]->tid:s.owner;}
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
     if(frame){
         if(message==WM_GETMINMAXINFO){auto* mm=reinterpret_cast<MINMAXINFO*>(lp);mm->ptMinTrackSize={frame->min_width,frame->min_height};mm->ptMaxTrackSize={1800,1400};return 0;}
+        if(message==WM_WINDOWPOSCHANGING&&frame->stall.armed.load()&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&frame->stall.armed.exchange(false)){
+            // TEST ONLY: this exact empty fixture owns this window/thread.
+            // No source parameters are modified; the product's already-issued
+            // SetWindowPos may finish after UP. Never suspend another process.
+            const auto* position=reinterpret_cast<const WINDOWPOS*>(lp);LARGE_INTEGER qpc{};QueryPerformanceCounter(&qpc);
+            frame->stall.flags=position->flags;frame->stall.x=position->x;frame->stall.y=position->y;
+            frame->stall.width=position->cx;frame->stall.height=position->cy;frame->stall.before_qpc=static_cast<std::uint64_t>(qpc.QuadPart);
+            frame->stall.before_tick=GetTickCount64();frame->stall.left_down=true;frame->stall.entered=true;
+            Sleep(1000);QueryPerformanceCounter(&qpc);frame->stall.after_qpc=static_cast<std::uint64_t>(qpc.QuadPart);frame->stall.finished=true;
+        }
         if(message==WM_WINDOWPOSCHANGING&&frame->grid>1){auto* p=reinterpret_cast<WINDOWPOS*>(lp);if(!(p->flags&SWP_NOSIZE)){
             p->cx=std::max(frame->min_width,(p->cx/frame->grid)*frame->grid);p->cy=std::max(frame->min_height,(p->cy/frame->grid)*frame->grid);}}
         if(message==WM_LBUTTONDOWN)++frame->down;if(message==WM_LBUTTONUP)++frame->up;
@@ -154,15 +196,16 @@ void key(State& s,WORD code,bool pressed){
 void button(State& s,bool pressed){INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_LEFTDOWN:MOUSEEVENTF_LEFTUP;inject(packet);s.left=pressed;}
 std::optional<POINT> hit_point(HWND h,int required){
     RECT p{};if(!GetWindowRect(h,&p))return {};
-    const LONG x=required==HTBOTTOM?(p.left+p.right)/2:p.left+80;
     const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
-    for(LONG y=begin;y<end;++y){DWORD_PTR hit{};const POINT point{x,y};if(WindowFromPoint(point)!=h)continue;
+    const LONG left=required==HTBOTTOM?(p.left+p.right)/2:p.left+40,right=required==HTBOTTOM?left+1:p.right-40;
+    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=8){DWORD_PTR hit{};const POINT point{x,y};if(WindowFromPoint(point)!=h)continue;
         if(SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG,100,&hit)&&static_cast<int>(hit)==required)return point;}
     return {};
 }
 bool own(State&,HWND);
+bool authorized_source(State&,HWND);
 void foreground(State& s,HWND h){
-    if(!own(s,h))throw std::runtime_error("not_exact_owned_source");
+    if(!authorized_source(s,h))throw std::runtime_error("not_exact_test_created_source");
     const bool result=SetForegroundWindow(h)!=FALSE;
     s.log.check("foreground_exact_owned_source",result&&wait([&]{return GetForegroundWindow()==h;},1000),"\"api_return\":"+std::string(result?"true":"false"));
 }
@@ -190,7 +233,7 @@ std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect 
 }
 struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
-    const auto h=s.frames[source].hwnd;foreground(s,h);const auto point=hit_point(h,region);
+    const auto h=source_window(s,source);foreground(s,h);const auto point=hit_point(h,region);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
     cursor(*point);Sleep(100);if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
     const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
@@ -200,32 +243,33 @@ Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
 void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect expected,std::string name,bool native){
     // Deliberately paced input trajectory below the configured speed cutoff;
     // this is not a product retry, cursor sampler or authority workaround.
+    if(!authorized_source(s,source_window(s,source)))throw std::runtime_error("test_source_identity_revoked");
     Sleep(60);const auto mark=read(s.product_log).size();cursor({g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
-    const bool ok=wait([&]{receipt=placement(s,mark,g.generation,expected,native);return visible(s.frames[source].hwnd)==expected&&!receipt.empty();});
-    const auto actual=visible(s.frames[source].hwnd);
+    const bool ok=wait([&]{receipt=placement(s,mark,g.generation,expected,native);return visible(source_window(s,source))==expected&&!receipt.empty();});
+    const auto actual=visible(source_window(s,source));
     s.log.check(std::move(name),ok,"\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+
         ",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+",\"trajectory_pause_ms\":60,\"production_receipt\":"+quote(receipt));
 }
 void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);std::string end;
     const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
-    Sleep(150);GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(s.owner,&gui)!=FALSE;const auto actual=visible(s.frames[source].hwnd);
+    Sleep(150);GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(source_thread(s,source),&gui)!=FALSE;const auto actual=visible(source_window(s,source));
     s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
         "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
         ",\"source_thread_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture))+",\"production_end\":"+quote(end));
 }
 void five(State& s,std::size_t source,std::string label){
-    const auto original=visible(s.frames[source].hwnd);if(!original)throw std::runtime_error("owned_geometry_missing");
+    const auto original=visible(source_window(s,source));if(!original)throw std::runtime_error("test_source_geometry_missing");
     const auto g=down(s,source);const LONG dx=source==0?-40:50,dy=source==1?-35:40;
     phase(s,source,g,dx,dy,translated(*original,dx,dy),label+".free",true);
     phase(s,source,g,-6,3,*original,label+".xy_snap",true);phase(s,source,g,-8,5,*original,label+".hold",false);
     phase(s,source,g,dx,dy,translated(*original,dx,dy),label+".detach",true);phase(s,source,g,-5,4,*original,label+".resnap",true);up(s,source,g,*original);
 }
 void ctrl_move(State& s,std::size_t source,LONG dx,LONG dy,std::string label){
-    std::array<Rect,3> before{};for(std::size_t n=0;n<3;++n){const auto r=visible(s.frames[n].hwnd);if(!r)throw std::runtime_error("group_geometry_missing");before[n]=*r;}
+    std::array<Rect,3> before{};for(std::size_t n=0;n<3;++n){const auto r=visible(source_window(s,n));if(!r)throw std::runtime_error("group_geometry_missing");before[n]=*r;}
     const auto g=down(s,source,true);phase(s,source,g,dx,dy,translated(before[source],dx,dy),label+".source",true);
     for(std::size_t n=0;n<3;++n){const auto target=translated(before[n],dx,dy);s.log.check(label+".member_"+std::to_string(n),
-        wait([&]{return visible(s.frames[n].hwnd)==target;}),"\"expected\":"+rect(target));}
+        wait([&]{return visible(source_window(s,n))==target;}),"\"expected\":"+rect(target));}
     up(s,source,g,translated(before[source],dx,dy));
 }
 bool own(State& s,HWND window){
@@ -235,6 +279,233 @@ bool own(State& s,HWND window){
     const auto frame=std::find_if(s.frames.begin(),s.frames.end(),[&](const auto& f){return f.hwnd==window;});
     return frame!=s.frames.end()&&GetWindowLongPtrW(window,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&*frame);
 }
+bool native_explorer_identity(ExplorerTarget& target,HWND h,bool initialize=false){
+    DWORD pid{};const DWORD tid=GetWindowThreadProcessId(h,&pid);std::array<wchar_t,128> name{};
+    if(!h||!tid||!pid||!IsWindow(h)||GetAncestor(h,GA_ROOT)!=h||
+        GetClassNameW(h,name.data(),static_cast<int>(name.size()))<=0||!equal(name.data(),L"CabinetWClass")||
+        std::find(target.baseline.begin(),target.baseline.end(),h)!=target.baseline.end())return false;
+    Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid));FILETIME birth{},ended{},kernel{},user{};
+    if(!process.value||WaitForSingleObject(process.value,0)!=WAIT_TIMEOUT||!GetProcessTimes(process.value,&birth,&ended,&kernel,&user))return false;
+    std::array<wchar_t,32768> image{},windows{};DWORD image_size=static_cast<DWORD>(image.size());
+    if(!QueryFullProcessImageNameW(process.value,0,image.data(),&image_size)||!GetWindowsDirectoryW(windows.data(),static_cast<UINT>(windows.size()))||
+        !equal(image.data(),(fs::path(windows.data())/L"explorer.exe").wstring()))return false;
+    const std::uint64_t born=(static_cast<std::uint64_t>(birth.dwHighDateTime)<<32)|birth.dwLowDateTime;
+    if(initialize){target.hwnd=h;target.pid=pid;target.tid=tid;target.born=born;return true;}
+    return h==target.hwnd&&pid==target.pid&&tid==target.tid&&born==target.born;
+}
+bool exact_shell_location(ExplorerTarget& target){
+    const auto directory=shell::filesystem_location_identity(target.directory);
+    if(!shell::same_filesystem_location(directory,target.location))return false;
+    const auto inventory=shell::capture_shell_window_inventory();const auto* entry=inventory.find(target.hwnd);
+    if(!inventory.complete||!entry||entry->shell_entry_count!=1||entry->locations.size()!=1||
+        !shell::same_filesystem_location(entry->locations.front(),target.location))return false;
+    unsigned matches{};for(const auto& window:inventory.windows)for(const auto& location:window.locations)
+        if(shell::same_filesystem_location(location,target.location))++matches;
+    if(matches!=1)return false;
+    if(target.lease){
+        const auto h=target.lease->current_hwnd();if(!h.succeeded()||h.window!=target.hwnd||
+            !shell::same_filesystem_location(target.lease->current_location(),target.location))return false;
+    }
+    if(target.observation){
+        const auto h=target.observation->current_window_key();if(!h.succeeded()||h.window_key!=reinterpret_cast<std::uintptr_t>(target.hwnd)||
+            !shell::same_filesystem_location(target.observation->current_location(),target.location))return false;
+        const auto facts=target.observation->facts();if(!facts.canonical_identity_matches||facts.navigation_changed_since_binding())return false;
+    }
+    return true;
+}
+bool authorized_source(State& s,HWND h){
+    if(own(s,h))return true;
+    for(auto& target:s.explorer)if(target&&target->hwnd==h&&target->identity&&s.target_catalog){
+        const auto fresh=s.target_catalog->get(h,{});
+        return fresh&&product::Catalog::same(*target->identity,*fresh)&&native_explorer_identity(*target,h)&&exact_shell_location(*target);
+    }
+    return false;
+}
+void close_explorer_target(State& s,ExplorerTarget& target){
+    if(target.observation){(void)target.observation->retire();target.observation.reset();}
+    bool attempted=false;HRESULT result=E_ACCESSDENIED;
+    // A failed eligibility check never permits geometry/input. Test cleanup
+    // may close only the exact newly-created automation object/root, never a
+    // pre-existing frame. Unknown or reused identities are simply preserved.
+    if(native_explorer_identity(target,target.hwnd)&&(!target.navigated||exact_shell_location(target))){
+        if(target.lease){const auto h=target.lease->current_hwnd();if(h.succeeded()&&h.window==target.hwnd){attempted=true;result=target.lease->quit().hresult;}}
+        else if(target.identity&&s.target_catalog){
+            const auto actual=s.target_catalog->get(target.hwnd,{});
+            if(actual&&product::Catalog::same(*target.identity,*actual)){attempted=true;result=PostMessageW(target.hwnd,WM_CLOSE,0,0)?S_OK:HRESULT_FROM_WIN32(GetLastError());}
+        }
+    }
+    if(target.lease){(void)target.lease->close_browser_events();target.lease.reset();}
+    const bool gone=target.hwnd&&(!IsWindow(target.hwnd)||(attempted&&result==S_OK&&wait([&]{return !IsWindow(target.hwnd);},3000)));
+    if(target.identity&&!gone)s.log.failed=true;
+    s.log.emit("exact_explorer_cleanup","\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target.hwnd))+
+        ",\"attempted\":"+(attempted?"true":"false")+",\"hresult\":"+std::to_string(result)+",\"actual_root_gone\":"+(gone?"true":"false")+
+        ",\"directory_retained\":true,\"unknown_objects_touched\":false,\"product_cleanup_pass_inferred\":false");
+}
+bool provision_explorer(State& s,std::size_t index,bool separate){
+    auto target=std::make_unique<ExplorerTarget>();target->separate=separate;
+    target->directory=s.output/(s.run+L"-explorer-"+std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+
+        std::wstring(1,static_cast<wchar_t>(L'A'+index))+(separate?L"-separate":L""));
+    if(fs::exists(target->directory)||!fs::create_directory(target->directory))throw std::runtime_error("exact_new_explorer_directory_required");
+    target->location=shell::filesystem_location_identity(target->directory);if(!target->location.filesystem())throw std::runtime_error("new_directory_file_identity_unavailable");
+    const auto baseline=shell::capture_shell_window_inventory();if(!baseline.complete)throw std::runtime_error("complete_shell_baseline_required");
+    for(const auto& entry:baseline.windows)target->baseline.push_back(entry.window);
+    std::string why;bool created=false;
+    if(!separate){
+        auto result=shell::create_explorer_provisioning_lease(GetTickCount64()+1,index+1,target->directory);
+        s.log.emit("explorer_create","\"method\":\"single_owned_COM_lease\",\"source\":"+std::to_string(index)+
+            ",\"succeeded\":"+(result.succeeded()?"true":"false")+",\"hresult\":"+std::to_string(result.diagnostic?result.diagnostic->hresult:S_OK));
+        target->lease=std::move(result.lease);
+        if(result.succeeded()||target->lease){
+            // Never navigate an object whose root has not first been proven
+            // new. A successful CoCreate call alone is not ownership.
+            HWND candidate{};const bool fresh=wait([&]{const auto h=target->lease->current_hwnd();if(h.succeeded())candidate=h.window;return native_explorer_identity(*target,candidate,true);},5000);
+            Handle process(fresh?OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,target->pid):nullptr);int rid=-1;bool elevated=false;
+            const bool normal=process.value&&medium(process.value,&rid,&elevated);
+            s.log.emit("explorer_actual_process","\"source\":"+std::to_string(index)+",\"new_root_confirmed\":"+(fresh?"true":"false")+
+                ",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(candidate))+",\"pid\":"+std::to_string(target->pid)+
+                ",\"tid\":"+std::to_string(target->tid)+",\"integrity_rid\":"+(rid<0?"null":std::to_string(rid))+
+                ",\"elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"eligible_medium\":"+(normal?"true":"false"));
+            if(fresh&&normal){const auto navigation=target->lease->navigate_to_target_and_show();target->navigated=navigation.succeeded();
+                created=target->navigated&&wait([&]{return exact_shell_location(*target)&&IsWindowVisible(target->hwnd);},5000);why=navigation.succeeded()?"shell_location_not_ready":"owned_navigation_failed";}
+            else why=fresh?"actual_target_not_medium_non_elevated":"new_root_unproven_before_navigation";
+        }else why="owned_COM_creation_failed";
+    }else{
+        std::array<wchar_t,MAX_PATH> windows{};if(!GetWindowsDirectoryW(windows.data(),static_cast<UINT>(windows.size())))throw std::runtime_error("guest_Windows_directory_unavailable");
+        const fs::path executable=fs::path(windows.data())/L"explorer.exe";
+        std::wstring line=L"\""+executable.wstring()+L"\" /separate /n,\""+target->directory.wstring()+L"\"";
+        STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION info{};
+        const bool launched=CreateProcessW(executable.c_str(),line.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW,nullptr,s.output.c_str(),&startup,&info)!=FALSE;
+        const DWORD error=launched?0:GetLastError();const bool medium_launch=launched&&medium(info.hProcess);
+        s.log.emit("explorer_create","\"method\":\"one_separate_process_contrast\",\"source\":"+std::to_string(index)+
+            ",\"api_succeeded\":"+(launched?"true":"false")+",\"win32_error\":"+std::to_string(error)+",\"launch_process_actual_medium\":"+(medium_launch?"true":"false")+
+            ",\"command\":"+quote(utf8(line))+",\"new_root_or_eligibility_inferred_from_launch\":false");
+        if(launched){CloseHandle(info.hThread);CloseHandle(info.hProcess);}
+        if(medium_launch)created=wait([&]{
+            const auto inventory=shell::capture_shell_window_inventory();if(!inventory.complete)return false;
+            HWND candidate{};unsigned matches{};for(const auto& entry:inventory.windows)for(const auto& location:entry.locations)
+                if(shell::same_filesystem_location(location,target->location)){++matches;candidate=entry.window;}
+            if(matches!=1||!native_explorer_identity(*target,candidate,true))return false;
+            target->navigated=true;return exact_shell_location(*target)&&IsWindowVisible(candidate);
+        },8000);
+        why=launched?"no_unique_new_medium_root":"separate_process_creation_failed";
+    }
+    if(created){
+        Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,target->pid));int rid=-1;bool elevated=false;
+        const bool actual_medium=process.value&&medium(process.value,&rid,&elevated);
+        s.log.emit("explorer_actual_root_token","\"source\":"+std::to_string(index)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target->hwnd))+
+            ",\"pid\":"+std::to_string(target->pid)+",\"integrity_rid\":"+(rid<0?"null":std::to_string(rid))+
+            ",\"elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"medium\":"+(actual_medium?"true":"false")+
+            ",\"process_launch_was_not_binding_proof\":true");
+        target->identity=s.target_catalog->get(target->hwnd,{},&why);
+        if(target->identity){
+            auto binding=shell::bind_explorer_consent_target(reinterpret_cast<std::uintptr_t>(target->hwnd),*target->location.identity);
+            if(binding.succeeded())target->observation=std::move(binding.observation);else{target->identity.reset();why="canonical_shell_observation_binding_failed";}
+        }
+    }
+    const bool accepted=target->identity.has_value()&&target->observation&&exact_shell_location(*target);
+    s.log.emit("explorer_binding","\"source\":"+std::to_string(index)+",\"method\":"+quote(separate?"separate_process":"owned_COM_lease")+
+        ",\"directory\":"+quote(utf8(target->directory.wstring()))+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target->hwnd))+
+        ",\"pid\":"+std::to_string(target->pid)+",\"tid\":"+std::to_string(target->tid)+",\"process_birth\":"+std::to_string(target->born)+
+        ",\"accepted\":"+(accepted?"true":"false")+",\"reason\":"+quote(accepted?"actual_medium_same_user_session_new_root_exact_Shell_path":why)+
+        ",\"product_permission_override\":false,\"input_sent\":false");
+    if(accepted)s.explorer[index]=std::move(target);else s.retired_explorers.push_back(std::move(target));
+    return accepted;
+}
+void explorer_flow(State& s){
+    s.target_catalog=std::make_unique<product::Catalog>();
+    // Hide only this fixture's exact windows after preserving the full owned
+    // historical sequence; do not rearrange the old state or any other app.
+    for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_HIDE);
+    for(std::size_t n=0;n<3;++n){
+        const bool com=provision_explorer(s,n,false);
+        s.log.check("exact_Medium_Explorer_created",com||provision_explorer(s,n,true),"\"source\":"+std::to_string(n));
+    }
+    MONITORINFO monitor{sizeof(monitor)};if(!GetMonitorInfoW(MonitorFromWindow(source_window(s,0),MONITOR_DEFAULTTONULL),&monitor))throw std::runtime_error("Explorer_monitor_unavailable");
+    LONG width=380,height=240;for(const auto& target:s.explorer){
+        width=std::max(width,static_cast<LONG>(target->identity->limits.min_width));
+        height=std::max(height,static_cast<LONG>(target->identity->limits.min_height));
+    }
+    const LONG x=monitor.rcWork.left+60,y=monitor.rcWork.top+55;
+    s.log.check("Explorer_three_window_space_available",2*width+120<=monitor.rcWork.right-monitor.rcWork.left&&2*height+110<=monitor.rcWork.bottom-monitor.rcWork.top,
+        "\"chosen_visible_width\":"+std::to_string(width)+",\"chosen_half_height\":"+std::to_string(height));
+    const std::array<Rect,3> layout{{{x,y,x+width,y+2*height},{x+width,y,x+2*width,y+height},{x+width,y+height,x+2*width,y+2*height}}};
+    for(std::size_t n=0;n<3;++n){
+        if(!authorized_source(s,source_window(s,n)))throw std::runtime_error("Explorer_identity_lost_before_fixture_layout");
+        s.log.check("exact_Explorer_fixture_layout",fixture_rect(source_window(s,n),layout[n]),"\"source\":"+std::to_string(n)+",\"actual\":"+rect(layout[n]));
+    }
+    five(s,0,"Explorer_A_initial");
+    s.log.emit("Explorer_first_real_Move","\"result\":\"PASS\",\"normal_up_checked\":true,\"High_exception_used\":false");
+    ctrl_move(s,0,34,0,"Explorer_Ctrl_A");five(s,1,"Explorer_B");five(s,2,"Explorer_C");
+    const auto before=visible(source_window(s,1));if(!before)throw std::runtime_error("Explorer_B_resize_missing");
+    const auto g=down(s,1,false,HTBOTTOM);auto after=*before;after.b+=28;phase(s,1,g,0,28,after,"Explorer_B_resize",true);up(s,1,g,after);
+    five(s,0,"Explorer_A_post_resize");ctrl_move(s,2,22,18,"Explorer_Ctrl_C");
+    s.log.emit("Explorer_I02","\"result\":\"PASS\",\"actual_Medium_new_roots\":true,\"human_uat\":\"NOT_RUN\"");
+}
+void cleanup_explorers(State& s){
+    for(auto& target:s.explorer)if(target){try{close_explorer_target(s,*target);}catch(...){s.log.failed=true;}target.reset();}
+    for(auto& target:s.retired_explorers)if(target){try{close_explorer_target(s,*target);}catch(...){s.log.failed=true;}}
+    s.retired_explorers.clear();s.target_catalog.reset();
+    for(auto& frame:s.frames)if(own(s,frame.hwnd)&&!IsWindowVisible(frame.hwnd))ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
+}
+enum class BlockedWriterExit { RealUp, EmergencyHotkey };
+// Deliberately NOT invoked by drive(): first establish the normal production
+// chain. This case terminates that product instance and belongs at the end of
+// an explicitly selected L2 run, never in the ordinary application path.
+[[maybe_unused]] void blocked_writer_case(State& s,std::size_t source,BlockedWriterExit exit){
+    if(source>=s.frames.size()||!own(s,s.frames[source].hwnd)||!s.process)throw std::runtime_error("L2_exact_owned_source_required");
+    auto& stall=s.frames[source].stall;
+    s.log.check("L2_no_previous_stall",!stall.armed&&!stall.entered&&!stall.finished);
+    const auto g=down(s,source);stall.armed=true;Sleep(60);cursor({g.anchor.x-42,g.anchor.y+35});
+    s.log.check("L2_native_call_observed_in_owned_wndproc",wait([&]{return stall.entered.load();},800)&&stall.left_down.load()&&
+        (GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"generation\":"+std::to_string(g.generation)+",\"message\":\"WM_WINDOWPOSCHANGING\",\"bounded_sleep_ms\":1000");
+    s.log.emit("L2_native_call_entered","\"generation\":"+std::to_string(g.generation)+",\"actual_owned_hwnd\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(s.frames[source].hwnd))+",\"native_entry_qpc\":"+std::to_string(stall.before_qpc)+
+        ",\"actual_flags\":"+std::to_string(stall.flags)+",\"actual_positioning\":["+std::to_string(stall.x)+","+std::to_string(stall.y)+","+
+        std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"left_down_at_entry\":true");
+    const auto mark=read(s.product_log).size();LARGE_INTEGER sent{};QueryPerformanceCounter(&sent);
+    if(exit==BlockedWriterExit::RealUp)button(s,false);
+    else{
+        key(s,VK_CONTROL,true);key(s,VK_SHIFT,true);key(s,VK_F11,true);key(s,VK_F11,false);key(s,VK_SHIFT,false);key(s,VK_CONTROL,false);
+    }
+    s.log.emit("L2_terminator_sent","\"generation\":"+std::to_string(g.generation)+",\"kind\":"+
+        quote(exit==BlockedWriterExit::RealUp?"single_test_real_up":"actual_CtrlShiftF11")+",\"send_before_qpc\":"+
+        std::to_string(sent.QuadPart)+",\"source_still_blocked_after_send\":"+(stall.finished?"false":"true"));
+    const auto status_begin=GetTickCount64();DWORD status_exit{};const bool status_command=launch(s,L"--status",true,&status_exit);
+    const auto status=record(s,mark,"status");const auto status_ms=GetTickCount64()-status_begin;
+    s.log.check("L2_GUI_status_independent_of_issued_call",status_command&&!status.empty()&&!stall.finished,
+        "\"actual_elapsed_ms\":"+std::to_string(status_ms)+",\"command_exit\":"+std::to_string(status_exit)+",\"status\":"+quote(status));
+    if(exit==BlockedWriterExit::EmergencyHotkey){
+        const auto hotkey=record(s,mark,"emergency_hotkey");
+        s.log.check("L2_actual_WM_HOTKEY",hotkey.find("\"native_message\":\"WM_HOTKEY\"")!=std::string::npos&&
+            hotkey.find("\"registration_id\":910")!=std::string::npos,"\"production_event\":"+quote(hotkey));
+    }
+    const auto end=record(s,g.offset,"gesture_end",g.generation);
+    s.log.check("L2_failed_native_call_not_NormalUp",!end.empty()&&end.find("\"normal_up\":false")!=std::string::npos,"\"production_end\":"+quote(end));
+    // Once the actual terminator was observed and the generation ended, extra
+    // cursor events may not start new calls. This does not cancel the old one.
+    cursor({g.anchor.x-58,g.anchor.y+45});const bool quit_started_while_blocked=!stall.finished;
+    DWORD quit_exit{};const bool quit_command=launch(s,L"--quit",true,&quit_exit);
+    const bool stopped=WaitForSingleObject(s.process,1500)==WAIT_OBJECT_0;DWORD code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&code);
+    const auto shutdown=record(s,mark,"shutdown");const bool stopped_before_source_resumed=!stall.finished;
+    s.log.check("L2_own_input_resources_exit_independently",quit_command&&stopped&&code==0&&quit_started_while_blocked&&stopped_before_source_resumed&&
+        shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos,
+        "\"quit_exit\":"+std::to_string(quit_exit)+",\"source_still_blocked_at_exit\":"+(stopped_before_source_resumed?"true":"false")+",\"shutdown\":"+quote(shutdown));
+    s.log.emit("L2_native_completion_at_process_exit","\"native_worker_exited_reported\":"+
+        std::string(shutdown.find("\"native_worker_exited\":true")!=std::string::npos?"true":"false")+
+        ",\"issued_native_completion_unknown\":"+(shutdown.find("\"issued_native_completion_unknown\":true")!=std::string::npos?"true":"false")+
+        ",\"issued_call_cancelled_claimed\":false,\"product_cleanup_pass_inferred\":false");
+    CloseHandle(s.process);s.process=nullptr;
+    s.log.check("L2_owned_source_bounded_resume",wait([&]{return stall.finished.load();},1500));
+    if(s.left)button(s,false); // TEST cleanup after the measured product exit.
+    std::istringstream rows(read(s.product_log).substr(g.offset));std::string row;unsigned issued{},late_issued{};bool timeout_unknown=false;
+    while(std::getline(rows,row))if(row.find("\"type\":\"placement\"")!=std::string::npos&&number(row,"\"generation\":")==g.generation){
+        if(row.find("\"native_attempted\":true")!=std::string::npos){++issued;if(number(row,"\"native_before_qpc\":")>static_cast<std::uint64_t>(sent.QuadPart))++late_issued;}
+        timeout_unknown=timeout_unknown||row.find("\"native_completion_known\":false")!=std::string::npos;
+    }
+    s.log.check("L2_no_new_native_attempt_after_terminator",issued==1&&late_issued==0&&timeout_unknown,
+        "\"issued_receipts\":"+std::to_string(issued)+",\"issued_after_terminator\":"+std::to_string(late_issued)+
+        ",\"old_native_call_may_finish_late\":true,\"source_return_qpc\":"+std::to_string(stall.after_qpc));
+}
 void cleanup(State& s){
     if(s.left){try{button(s,false);s.log.emit("test_cleanup","\"synthetic_release_sent\":true,\"not_product_cleanup_pass\":true");}catch(...){}}
     if(s.control){try{key(s,VK_CONTROL,false);}catch(...){}}
@@ -242,7 +513,8 @@ void cleanup(State& s){
         const auto shutdown=record(s,0,"shutdown");DWORD exit_code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&exit_code);
         s.log.emit("product_stop","\"quit_command_completed\":"+std::string(command?"true":"false")+",\"process_exit_observed\":"+(stopped?"true":"false")+
             ",\"product_exit_code\":"+std::to_string(exit_code)+",\"shutdown_report\":"+quote(shutdown));
-        if(!command||!stopped||exit_code!=0||shutdown.empty())s.log.failed=true;
+        if(!command||!stopped||exit_code!=0||shutdown.find("\"native_worker_exited\":true")==std::string::npos||
+            shutdown.find("\"issued_native_completion_unknown\":false")==std::string::npos)s.log.failed=true;
         if(!stopped){TerminateProcess(s.process,90);WaitForSingleObject(s.process,2000);s.log.failed=true;s.log.emit("test_abort","\"own_product_forced_termination\":true,\"product_cleanup_pass\":false");}
         CloseHandle(s.process);s.process=nullptr;}
     // A successful normal stop is also checked using real delivery to a
@@ -264,7 +536,9 @@ void cleanup(State& s){
     if(check_delivery&&!delivered)s.log.failed=true;
 }
 void drive(State& s){
+    const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
     try{
+        if(FAILED(apartment))throw std::runtime_error("fixture_driver_COM_STA_initialization_failed");
         s.log.check("guest_input_baseline_clear",!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
             !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000));
         const std::array<Rect,3> layout{{{120,80,380,440},{380,80,640,260},{380,260,640,440}}};
@@ -313,12 +587,16 @@ void drive(State& s){
         const bool half_ok=launch(s,L"--command DockLeft",true)&&wait([&]{return visible(s.frames[0].hwnd)==half;});
         s.log.check("production_half_screen_command",half_ok,
             "\"expected\":"+rect(half)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
+        s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
+        explorer_flow(s);
+        cleanup_explorers(s);
         cleanup(s);
-        if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
+        if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;
     }catch(const std::exception& error){
-        try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup(s);}catch(...){}s.result=1;
+        try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup_explorers(s);cleanup(s);}catch(...){}s.result=1;
     }
+    if(SUCCEEDED(apartment))CoUninitialize();
     PostThreadMessageW(s.owner,WM_QUIT,0,0);
 }
 bool guard(State& s){

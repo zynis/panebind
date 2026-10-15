@@ -2,6 +2,7 @@
 #include "window_catalog.h"
 #include <array>
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -67,10 +68,21 @@ public:
     POINT latest()const;
     void prepared_point(){prepare_pending_=false;}
     void pause(bool value);
-    bool allowed(std::uint64_t g)const {return g && authorized_.load()==g && !paused_;}
-    void revoke(){authorized_=0;}
+    bool allowed(std::uint64_t g)const {return g && authorized_->load()==g && !paused_;}
+    void revoke(core::v1::End reason=core::v1::End::SourceLost){
+        const auto retired=authorized_->exchange(0);const auto id=thread_id_.load();
+        if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(retired),static_cast<LPARAM>(reason));
+    }
+    // Safe to retain at a bounded native worker boundary, even if the UI
+    // retires/destroys this service. Only shared atomics are captured.
+    std::function<bool()> operation_guard(std::uint64_t generation,bool normal_up_completion=false)const {
+        return [authority=authorized_,available=available_,generation,normal_up_completion]{
+            return available->load()&&(!generation||authority->load()==generation||normal_up_completion);
+        };
+    }
     bool healthy()const {return healthy_;}
     std::uint64_t max_callback_ticks()const{return max_ticks_;}
+    std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
 private:
     static LRESULT CALLBACK mouse(int,WPARAM,LPARAM);
     static void CALLBACK event(HWINEVENTHOOK,DWORD,HWND,LONG,LONG,DWORD,DWORD);
@@ -84,7 +96,9 @@ private:
     HANDLE ready_{};
     std::thread thread_;
     std::atomic<bool> paused_{false},healthy_{false},prepare_pending_{false},stop_requested_{false};
-    std::atomic<std::uint64_t> authorized_{0},point_{0},max_ticks_{0};
+    std::shared_ptr<std::atomic<std::uint64_t>> authorized_{std::make_shared<std::atomic<std::uint64_t>>(0)};
+    std::shared_ptr<std::atomic<bool>> available_{std::make_shared<std::atomic<bool>>(false)};
+    std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
     std::atomic<std::shared_ptr<const Prepared>> prepared_;
     std::array<InputEvent,256> queue_{};
     std::atomic<unsigned> read_{0},write_{0};

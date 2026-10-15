@@ -50,7 +50,7 @@ public:
 
     [[nodiscard]] std::optional<Snapshot> get(HWND window,
         const core::v1::Settings& settings, std::string* why = nullptr,
-        bool include_minimized_for_restore = false);
+        bool include_minimized_for_restore = false, bool query_track_limits = true);
     [[nodiscard]] std::vector<Snapshot> all(const core::v1::Settings& settings);
     [[nodiscard]] std::vector<Display> displays();
     [[nodiscard]] static bool same(const Snapshot& first, const Snapshot& second);

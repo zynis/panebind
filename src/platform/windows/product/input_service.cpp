@@ -34,21 +34,21 @@ bool InputService::start(HWND owner){
     return result==WAIT_OBJECT_0&&healthy_;
 }
 void InputService::stop(){
-    authorized_=0;paused_=true;stop_requested_=true;
+    *available_=false;*authorized_=0;paused_=true;stop_requested_=true;
     if(thread_.joinable()){const auto id=thread_id_.load();if(id)PostThreadMessageW(id,WM_QUIT,0,0);thread_.join();}
     prepared_.store({});
 }
-void InputService::pause(bool value){paused_=value;const auto retired=authorized_.exchange(0);
+void InputService::pause(bool value){paused_=value;*available_=!value&&healthy_;const auto retired=authorized_->exchange(0);
     const auto id=thread_id_.load();if(value&&id)PostThreadMessageW(id,WM_APP+1,static_cast<WPARAM>(retired),0);}
 POINT InputService::latest()const{auto p=point_.load();return {static_cast<LONG>(p>>32),static_cast<LONG>(p&0xffffffffu)};}
 bool InputService::push(InputEvent e){
     const auto w=write_.load(std::memory_order_relaxed);
     const auto next=(w+1)%static_cast<unsigned>(queue_.size());
-    if(next==read_.load(std::memory_order_acquire)){authorized_=0;healthy_=false;
+    if(next==read_.load(std::memory_order_acquire)){*available_=false;*authorized_=0;healthy_=false;
         if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         PostMessageW(owner_,catalog_message,1,0);return false;}
     queue_[w]=std::move(e);write_.store(static_cast<unsigned>(next),std::memory_order_release);
-    if(!PostMessageW(owner_,input_message,0,0)){authorized_=0;healthy_=false;
+    if(!PostMessageW(owner_,input_message,0,0)){*available_=false;*authorized_=0;healthy_=false;
         if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         return false;}return true;
 }
@@ -56,7 +56,7 @@ bool InputService::pop(InputEvent& e){const auto r=read_.load(std::memory_order_
     if(r==write_.load(std::memory_order_acquire))return false;e=std::move(queue_[r]);
     read_.store((r+1)%static_cast<unsigned>(queue_.size()),std::memory_order_release);return true;}
 void InputService::abort(core::v1::End end){
-    authorized_=0;
+    *authorized_=0;
     if(consumed_down_&&!aborted_){aborted_=true;active_end_=end;
         push({InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_});}
     // Retain the consumed-button pair until the actual matching UP; no synthetic
@@ -107,7 +107,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             const int clicks=double_click?2:1;
             const auto route=route_down(*p,b,clicks,mods);
             if(route.route!=DownRoute::Pass&&self->next_generation_!=std::numeric_limits<std::uint64_t>::max()){
-                self->generation_=++self->next_generation_;self->authorized_=self->generation_;
+                self->generation_=++self->next_generation_;*self->authorized_=self->generation_;
                 self->consumed_down_=true;self->aborted_=false;self->button_=b;self->modifiers_=mods;
                 self->active_down_stamp_=packet.time;
                 self->active_prepared_=p;self->active_action_=route.action;self->active_end_=core::v1::End::NormalUp;
@@ -115,12 +115,12 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 if(SetTimer(self->receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr))
                     consume=self->push({route.route==DownRoute::Mapped?InputKind::Mapped:InputKind::Down,
                         packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action});
-                if(!consume){self->consumed_down_=false;self->authorized_=0;self->active_prepared_.reset();
+                if(!consume){self->consumed_down_=false;*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
         }
     }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
-        self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
+        *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
         self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
             self->active_end_,self->active_prepared_,self->active_action_});
         self->consumed_down_=false;self->active_prepared_.reset();
@@ -172,13 +172,14 @@ void InputService::run(){
     const std::array<DWORD,5> ev{EVENT_SYSTEM_FOREGROUND,EVENT_OBJECT_DESTROY,EVENT_OBJECT_SHOW,EVENT_OBJECT_LOCATIONCHANGE,EVENT_SYSTEM_CAPTURESTART};
     bool event_ok=true;for(std::size_t i=0;i<ev.size();++i){events_[i]=SetWinEventHook(ev[i],ev[i],nullptr,event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);event_ok=event_ok&&events_[i];}
     const bool stop_ok=RegisterHotKey(nullptr,910,MOD_CONTROL|MOD_SHIFT|MOD_NOREPEAT,VK_F11);
-    healthy_=hook_&&raw_ok&&event_ok&&stop_ok;SetEvent(ready_);
+    healthy_=hook_&&raw_ok&&event_ok&&stop_ok;*available_=healthy_&&!paused_;SetEvent(ready_);
     if(healthy_&&!stop_requested_)while(GetMessageW(&msg,nullptr,0,0)>0){
-        if(msg.message==WM_HOTKEY&&msg.wParam==910){paused_=true;abort(core::v1::End::Paused);PostMessageW(owner_,catalog_message,2,0);}
+        if(msg.message==WM_HOTKEY&&msg.wParam==910){++emergency_hotkey_messages_;*available_=false;paused_=true;abort(core::v1::End::Paused);PostMessageW(owner_,catalog_message,2,0);}
         else if(msg.message==WM_APP+1&&msg.wParam&&consumed_down_&&msg.wParam==generation_)abort(core::v1::End::Paused);
+        else if(msg.message==WM_APP+2&&msg.wParam&&consumed_down_&&msg.wParam==generation_)abort(static_cast<core::v1::End>(msg.lParam));
         else{TranslateMessage(&msg);DispatchMessageW(&msg);}
     }
-    authorized_=0;healthy_=false;KillTimer(receiver_,gesture_deadline_timer);
+    *available_=false;*authorized_=0;healthy_=false;KillTimer(receiver_,gesture_deadline_timer);
     if(stop_ok)UnregisterHotKey(nullptr,910);if(hook_)UnhookWindowsHookEx(hook_);hook_=nullptr;
     for(auto h:events_)if(h)UnhookWinEvent(h);
     if(raw_ok){key.dwFlags=RIDEV_REMOVE;key.hwndTarget=nullptr;RegisterRawInputDevices(&key,1,sizeof(key));}

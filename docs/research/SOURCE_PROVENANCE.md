@@ -1618,3 +1618,20 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   wait, read 2026-10-15. It never samples the cursor or calls the geometry writer.
   Queued timer messages survive cancellation; a never-reused identifier filters
   obsolete generations. This is not a resident polling input source.
+- V1 visual recovery (original code, no external implementation): official
+  [named-pipe security](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights),
+  [client PID](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeclientprocessid),
+  [server PID](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeserverprocessid),
+  [layered attributes](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setlayeredwindowattributes),
+  [window style mutation](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlongptrw),
+  and [message/event wait](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex)
+  were actually read on 2026-10-15. A same-executable/Medium/logon-session helper
+  acknowledges prior/planned property tuples before mutation and independently
+  waits on parent exit. It does not hook input, inject code, reclaim capture or
+  infer unknown alpha attributes. Unknown first-layered intermediate state and
+  failed bounded cleanup remain failures, not cleanup PASS.
+- V1 native worker reuses the inspected AltSnap worker-dispatch lesson only;
+  no source copied/adapted. One native call runs outside the GUI/input owners.
+  A finite wait may retire later requests but cannot cancel an issued native
+  call. Delayed completion records use the same call ID and never restore
+  authority. Current guest evidence, not this design, must prove exit behavior.

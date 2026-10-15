@@ -5,7 +5,12 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
+#include <dwmapi.h>
 #include <limits>
+#include <mutex>
+#include <stdexcept>
+#include <thread>
 #include <unordered_set>
 
 namespace panebind::platform::windows::product {
@@ -92,7 +97,136 @@ WindowWriter::Receipt rejected(const Snapshot& expected, const Rect& desired, st
 
 } // namespace
 
-WindowWriter::WindowWriter(Catalog& catalog) noexcept : catalog_(catalog) {}
+// Exactly one native worker. It owns no hook, input queue, capture, Catalog or
+// application object. A hung foreign WindowProc cannot trap the GUI/input
+// resource owner. After a timeout no subsequent operation overtakes the issued
+// call; its eventual result remains distinct from cancellation of NEW calls.
+struct WindowWriter::NativeExecutor {
+    struct Work {
+        Snapshot expected;Rect native,requested;Guard guard;std::uint64_t id{};
+        HANDLE done{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
+        std::mutex mutex;bool cancelled{},attempted{},succeeded{},known{},timed_out{};
+        DWORD error{};std::uint64_t before{},after{};std::string reason;
+        ~Work(){if(done)CloseHandle(done);}
+    };
+    struct State {
+        HANDLE wake{CreateEventW(nullptr,FALSE,FALSE,nullptr)},exited{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
+        std::atomic<bool> stopping{};std::atomic<HWND> notify{};
+        std::mutex mutex;std::shared_ptr<Work> pending;std::vector<std::shared_ptr<Work>> late;
+        std::uint64_t next_id{};
+        ~State(){if(wake)CloseHandle(wake);if(exited)CloseHandle(exited);}
+    };
+    std::shared_ptr<State> state{std::make_shared<State>()};std::thread thread;
+    static bool exact_context(const Snapshot& e){
+        DWORD pid{};if(GetWindowThreadProcessId(e.hwnd,&pid)!=e.tid||pid!=e.pid)return false;
+        HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid);
+        if(!process)return false;FILETIME created{},exit{},kernel{},user{};
+        const bool identity=WaitForSingleObject(process,0)==WAIT_TIMEOUT&&GetProcessTimes(process,&created,&exit,&kernel,&user)&&
+            ((static_cast<std::uint64_t>(created.dwHighDateTime)<<32)|created.dwLowDateTime)==e.born;
+        CloseHandle(process);if(!identity)return false;
+        RECT positioning{},visible{};GUITHREADINFO gui{sizeof(gui)};
+        const auto equal=[](const RECT& a,const Rect& b){return a.left==b.left()&&a.top==b.top()&&a.right==b.right()&&a.bottom==b.bottom();};
+        if(!GetWindowRect(e.hwnd,&positioning)||FAILED(DwmGetWindowAttribute(e.hwnd,DWMWA_EXTENDED_FRAME_BOUNDS,&visible,sizeof(visible)))||
+            !equal(positioning,e.positioning)||!equal(visible,e.visible)||GetDpiForWindow(e.hwnd)!=e.dpi||
+            MonitorFromWindow(e.hwnd,MONITOR_DEFAULTTONULL)!=e.monitor||(IsZoomed(e.hwnd)!=FALSE)!=e.maximized||(IsIconic(e.hwnd)!=FALSE)!=e.minimized||
+            !GetGUIThreadInfo(e.tid,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)return false;
+        const auto desktop=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!desktop)return false;
+        BOOL receiving{};DWORD size{};
+        const bool active=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&size)&&receiving;
+        CloseDesktop(desktop);return active;
+    }
+    NativeExecutor(){
+        if(!state->wake||!state->exited)throw std::runtime_error("native_worker_events_failed");
+        state->late.reserve(8);
+        thread=std::thread([shared=state]{
+            while(WaitForSingleObject(shared->wake,INFINITE)==WAIT_OBJECT_0){
+                if(shared->stopping)break;std::shared_ptr<Work> work;
+                {std::lock_guard lock(shared->mutex);work=shared->pending;}
+                if(!work)continue;
+                const bool context=exact_context(work->expected);
+                bool issue=false;
+                {
+                    std::lock_guard lock(work->mutex);
+                    if(work->cancelled||shared->stopping)work->reason="native_worker_admission_cancelled";
+                    else if(!context)work->reason="native_worker_context_changed";
+                    else if(!allowed_by_guard(work->guard,work->reason)){}
+                    else{work->before=now();if(work->before){work->attempted=true;issue=true;}else work->reason="native_attempt_clock_unavailable";}
+                }
+                if(issue){
+                    // An UP after this claim retires later requests; it cannot
+                    // undo a SetWindowPos already issued to the OS.
+                    const auto& r=work->native;
+                    const BOOL success=SetWindowPos(work->expected.hwnd,nullptr,static_cast<int>(r.left()),static_cast<int>(r.top()),
+                        static_cast<int>(r.width()),static_cast<int>(r.height()),SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOOWNERZORDER);
+                    const DWORD error=success?ERROR_SUCCESS:GetLastError();const auto completed=now();
+                    std::lock_guard lock(work->mutex);work->succeeded=success!=FALSE;work->error=error;work->after=completed;
+                }
+                bool delayed{};
+                {std::lock_guard lock(work->mutex);work->known=true;delayed=work->timed_out;}
+                SetEvent(work->done);
+                if(delayed){
+                    {std::lock_guard lock(shared->mutex);shared->late.push_back(work);}
+                    if(const auto owner=shared->notify.load();owner&&!shared->stopping)PostMessageW(owner,native_completion_message,0,0);
+                }
+            }
+            SetEvent(shared->exited);
+        });
+    }
+    std::shared_ptr<Work> execute(const Snapshot& expected,const Rect& native,const Rect& requested,Guard guard){
+        auto work=std::make_shared<Work>();if(!work->done)return {};
+        work->expected=expected;work->native=native;work->requested=requested;work->guard=std::move(guard);work->reason.reserve(128);
+        {
+            std::lock_guard lock(state->mutex);
+            if(state->stopping||state->late.size()>=8||state->next_id==std::numeric_limits<std::uint64_t>::max()||
+                (state->pending&&WaitForSingleObject(state->pending->done,0)!=WAIT_OBJECT_0))return {};
+            work->id=++state->next_id;
+            state->pending=work;
+        }
+        SetEvent(state->wake);
+        // One bounded operation wait, not a cursor/event polling loop. This
+        // does not hold any lock used by UP or emergency-stop processing.
+        if(WaitForSingleObject(work->done,250)!=WAIT_OBJECT_0){
+            std::lock_guard lock(work->mutex);work->cancelled=true;work->timed_out=!work->known;
+            if(!work->known)work->reason=work->attempted?"native_call_completion_timeout_in_flight":"native_worker_admission_timeout";
+        }
+        return work;
+    }
+    bool stop(){
+        if(!thread.joinable())return WaitForSingleObject(state->exited,0)==WAIT_OBJECT_0;
+        state->notify=nullptr;state->stopping=true;
+        {std::lock_guard lock(state->mutex);if(state->pending){std::lock_guard job_lock(state->pending->mutex);state->pending->cancelled=true;}}
+        SetEvent(state->wake);const bool exited=WaitForSingleObject(state->exited,100)==WAIT_OBJECT_0;
+        if(exited)thread.join();else thread.detach();
+        // A detached in-flight worker retains only shared State/Work and native
+        // values, never a destroyed Application/Catalog/Guard stack reference.
+        return exited;
+    }
+    ~NativeExecutor(){stop();}
+};
+
+WindowWriter::WindowWriter(Catalog& catalog) : catalog_(catalog),executor_(std::make_unique<NativeExecutor>()) {}
+WindowWriter::~WindowWriter()=default;
+bool WindowWriter::stop(){return executor_->stop();}
+bool WindowWriter::has_unconfirmed_native_call()const{
+    std::lock_guard lock(executor_->state->mutex);const auto work=executor_->state->pending;if(!work)return false;
+    std::lock_guard job_lock(work->mutex);return work->attempted&&!work->known;
+}
+void WindowWriter::notify_on_completion(HWND owner){executor_->state->notify=owner;}
+std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const core::v1::Settings& settings){
+    std::vector<std::shared_ptr<NativeExecutor::Work>> jobs;
+    {std::lock_guard lock(executor_->state->mutex);jobs.swap(executor_->state->late);executor_->state->late.reserve(8);}
+    std::vector<Receipt> result;result.reserve(jobs.size());
+    for(const auto& job:jobs){
+        Receipt r;r.before=job->expected;r.requested=job->requested;
+        {std::lock_guard lock(job->mutex);r.call_id=job->id;r.native_attempted=job->attempted;r.native_succeeded=job->succeeded;
+            r.completion_known=job->known;r.before_qpc=job->before;r.after_qpc=job->after;r.error=job->error;}
+        r.after=catalog_.get(r.before.hwnd,settings);r.post_observed_qpc=now();
+        r.identity_valid=r.after&&Catalog::same(r.before,*r.after);
+        r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
+        r.accepted=r.completion_known&&r.native_attempted&&r.native_succeeded&&r.geometry_exact;
+        r.reason="delayed_native_completion_observed_no_authority_restored";result.push_back(std::move(r));
+    }return result;
+}
 
 WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
     const Snapshot& actual, const Rect& desired) {
@@ -145,25 +279,20 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     }
 
     const auto& native = *prepared.positioning;
-    result.before_qpc = now();
-    if (!result.before_qpc) { result.reason = "native_attempt_clock_unavailable"; return result; }
     if (!allowed_by_guard(guard, result.reason)) return result;
-    // No capture, COM, lock, dispatch or authority work between the final
-    // runtime claim and this call. It is not an atomic OS cancellation API;
-    // a later UP retires subsequent requests, not this issued native operation.
-    result.native_attempted = true;
-    const BOOL success = SetWindowPos(before->hwnd, nullptr,
-        static_cast<int>(native.left()), static_cast<int>(native.top()),
-        static_cast<int>(native.width()), static_cast<int>(native.height()),
-        SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-    result.error = success ? ERROR_SUCCESS : GetLastError();
-    result.native_succeeded = success != FALSE;
-    result.after_qpc = now();
+    const auto work=executor_->execute(*before,native,desired,std::move(guard));
+    if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
+    {
+        std::lock_guard lock(work->mutex);
+        result.call_id=work->id;result.native_attempted=work->attempted;result.native_succeeded=work->succeeded;
+        result.completion_known=work->known;result.error=work->error;result.before_qpc=work->before;result.after_qpc=work->after;
+        if(!work->known||!work->attempted){result.reason=work->reason;return result;}
+    }
 
     // This is observation of an issued call, not a new permission request.
     // In particular, do not call guard again: a matching normal UP must not
     // turn an otherwise exact completion into a false authority failure.
-    result.after = catalog_.get(before->hwnd, settings, &capture_reason);
+    result.after = catalog_.get(before->hwnd, settings, &capture_reason);result.post_observed_qpc=now();
     result.identity_valid = result.after && Catalog::same(*before, *result.after);
     result.geometry_exact = result.identity_valid && result.after->visible == desired &&
         result.after->positioning == native;

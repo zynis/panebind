@@ -109,6 +109,12 @@ void shared_resize() {
     expect(!v::resize_single(single,right,{5,0}).accepted,"invalid dimension interval rejects");
 }
 void docking_and_stretch() {
+    const auto restored=v::restored_move_anchor({0,0,960,1040},{100,100,700,500},{480,20});
+    expect(restored&&*restored==Rect{180,0,780,400},"drag-out restoration preserves original down title offset and proportional X anchor");
+    const auto repeated_anchor=v::restored_move_anchor({0,0,960,1040},{100,100,700,500},{480,20});
+    expect(restored==repeated_anchor,"restoration intent anchor independent of corrected later rectangles");
+    const auto negative_anchor=v::restored_move_anchor({-1920,0,-960,1040},{-1600,100,-1000,500},{-1440,20});
+    expect(negative_anchor&&*negative_anchor==Rect{-1740,0,-1140,400},"drag-out original anchor supports negative monitor coordinates");
     const Rect work{0,0,1919,1039};
     expect(v::dock(work,v::Action::DockLeft)==Rect{0,0,959,1039} &&
            v::dock(work,v::Action::DockRight)==Rect{959,0,1919,1039},"G09 odd half split x959 no gap");
