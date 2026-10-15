@@ -21,10 +21,16 @@ struct LayoutUiStorage {
     std::shared_ptr<LayoutUiStorage> window_lifetime;
 };
 enum class LayoutUiOperation {Create,Configure,Destroy,DestroyOne,Grid};
+struct LayoutNativeSetup {
+    bool attempted{},returned{};DWORD error{};Rect requested;UINT dpi{};
+    POINT system_min{},system_min_track{},declared_min{},declared_max{};
+    std::optional<Rect> after_visible,after_positioning;
+};
 struct LayoutUiRequest {
     std::shared_ptr<LayoutUiStorage> storage;LayoutUiOperation operation{};
     std::vector<Rect> expected;std::vector<LayoutLimit> limits;std::size_t member{};LONG grid{1};
     std::atomic<bool> cancelled{},done{},cleanup_done{};bool success{},cleanup_success{};std::string error;
+    std::array<LayoutNativeSetup,8> native_setup;
 };
 std::atomic<std::shared_ptr<LayoutUiRequest>> layout_ui_pending;
 bool layout_ui_owns(const LayoutUiStorage& storage,std::size_t index){
@@ -92,7 +98,16 @@ bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
                 const auto target=request->expected[n];const LONG left=target.l-(observed->l-positioning.left),top=target.t-(observed->t-positioning.top);
                 const LONG right=target.r+(positioning.right-observed->r),bottom=target.b+(positioning.bottom-observed->b);
                 ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
-                if(!SetWindowPos(frame.hwnd,nullptr,left,top,right-left,bottom-top,SWP_NOACTIVATE|SWP_NOZORDER))
+                auto& receipt=request->native_setup[n];receipt.dpi=GetDpiForWindow(frame.hwnd);receipt.requested={left,top,right,bottom};
+                receipt.system_min={GetSystemMetricsForDpi(SM_CXMIN,receipt.dpi),GetSystemMetricsForDpi(SM_CYMIN,receipt.dpi)};
+                receipt.system_min_track={GetSystemMetricsForDpi(SM_CXMINTRACK,receipt.dpi),GetSystemMetricsForDpi(SM_CYMINTRACK,receipt.dpi)};
+                receipt.declared_min={frame.min_width,frame.min_height};receipt.declared_max={frame.max_width,frame.max_height};
+                receipt.attempted=true;SetLastError(0);
+                receipt.returned=SetWindowPos(frame.hwnd,nullptr,left,top,right-left,bottom-top,SWP_NOACTIVATE|SWP_NOZORDER)!=FALSE;
+                receipt.error=receipt.returned?0:GetLastError();
+                receipt.after_visible=visible(frame.hwnd);RECT actual{};
+                if(GetWindowRect(frame.hwnd,&actual))receipt.after_positioning=Rect{actual.left,actual.top,actual.right,actual.bottom};
+                if(!receipt.returned)
                     throw std::runtime_error("layout_owned_setup_native_placement_failed");
             }
         }else if(request->operation==LayoutUiOperation::Destroy){
@@ -115,13 +130,14 @@ bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
 }
 struct LayoutFixtures {
     State& state;std::shared_ptr<LayoutUiStorage> storage;std::array<Frame,8>& frames;
-    DWORD thread{};std::size_t active{};bool closed{},cleanup_exact{};
+    DWORD thread{};std::size_t active{};bool closed{},cleanup_exact{},configuration_observed{};std::array<LayoutNativeSetup,8> configured_native;
     explicit LayoutFixtures(State& s):state(s),storage(std::make_shared<LayoutUiStorage>()),frames(storage->frames),thread(s.owner){
         storage->instance=s.instance;storage->class_name=s.class_name;storage->owner=s.owner;storage->anchor=s.frames[0].hwnd;
         for(std::size_t n=0;n<s.frames.size();++n){storage->originals[n]=s.frames[n].hwnd;storage->original_data[n]=reinterpret_cast<LONG_PTR>(&s.frames[n]);}
     }
     bool owns(std::size_t index)const{return layout_ui_owns(*storage,index);}
     bool run(LayoutUiOperation operation,const std::vector<Rect>& expected={},const std::vector<LayoutLimit>& limits={},std::size_t member=0,LONG grid=1){
+        if(operation==LayoutUiOperation::Configure)configuration_observed=false;
         auto request=std::make_shared<LayoutUiRequest>();request->storage=storage;request->operation=operation;request->expected=expected;
         request->limits=limits;request->member=member;request->grid=grid;std::shared_ptr<LayoutUiRequest> empty;
         if(!layout_ui_pending.compare_exchange_strong(empty,request))return false;
@@ -138,6 +154,7 @@ struct LayoutFixtures {
                 std::to_string(static_cast<unsigned>(operation))+",\"cleanup_completed\":"+(cleanup_observed?"true":"false")+
                 ",\"cleanup_exact\":"+(cleanup_observed?(request->cleanup_success?"true":"false"):"null")+",\"request_PASS\":false");return false;
         }
+        if(operation==LayoutUiOperation::Configure){configured_native=request->native_setup;configuration_observed=true;}
         auto same=request;layout_ui_pending.compare_exchange_strong(same,{});
         if(!request->success&&!request->error.empty())state.log.emit("layout_UI_failure","\"reason\":"+quote(request->error)+",\"owner_tid\":"+std::to_string(thread));
         return request->success;
@@ -156,14 +173,36 @@ struct LayoutFixtures {
     void setup(const std::vector<Rect>& expected,const std::vector<LayoutLimit>& limits={}){
         if(expected.empty()||expected.size()>frames.size()||(!limits.empty()&&limits.size()!=expected.size()))throw std::runtime_error("layout_case_bound_invalid");
         if(state.left||state.control)throw std::runtime_error("layout_setup_requires_released_input");
-        if(!run(LayoutUiOperation::Configure,expected,limits))throw std::runtime_error("layout_main_UI_configuration_failed");active=expected.size();
+        if(!run(LayoutUiOperation::Configure,expected,limits)){
+            if(configuration_observed)for(std::size_t n=0;n<expected.size();++n)if(configured_native[n].attempted){const auto& native=configured_native[n];
+                state.log.emit("layout_native_configuration_failure","\"member\":"+std::to_string(n)+",\"requested_positioning\":"+rect(native.requested)+
+                    ",\"SetWindowPos_return\":"+(native.returned?"true":"false")+",\"SetWindowPos_error\":"+std::to_string(native.error)+
+                    ",\"observed_visible_before_cleanup\":"+(native.after_visible?rect(*native.after_visible):"null")+
+                    ",\"observed_positioning_before_cleanup\":"+(native.after_positioning?rect(*native.after_positioning):"null")+
+                    ",\"actual_DPI\":"+std::to_string(native.dpi)+",\"SM_CXMIN_CYMIN\":["+std::to_string(native.system_min.x)+","+std::to_string(native.system_min.y)+
+                    "],\"SM_CXMINTRACK_CYMINTRACK\":["+std::to_string(native.system_min_track.x)+","+std::to_string(native.system_min_track.y)+
+                    "],\"declared_native_min\":["+std::to_string(native.declared_min.x)+","+std::to_string(native.declared_min.y)+"]"+
+                    ",\"cleanup_may_already_have_destroyed_exact_window\":true");}
+            throw std::runtime_error("layout_main_UI_configuration_failed");
+        }active=expected.size();
         for(std::size_t n=0;n<active;++n){
             const auto bound=limits.empty()?LayoutLimit{}:limits[n];
-            state.log.check("layout_actual_independent_setup",wait([&]{return owns(n)&&visible(frames[n].hwnd)==expected[n];},1000),
+            const bool exact=wait([&]{return owns(n)&&visible(frames[n].hwnd)==expected[n];},1000);
+            const auto actual=visible(frames[n].hwnd);RECT actual_native{};const bool positioned=GetWindowRect(frames[n].hwnd,&actual_native)!=FALSE;
+            const auto& native=configured_native[n];
+            state.log.check("layout_actual_independent_setup",exact,
                 "\"member\":"+std::to_string(n)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(frames[n].hwnd))+
                 ",\"expected_visible\":"+rect(expected[n])+",\"declared_visible_min\":["+std::to_string(bound.min_width)+","+
                 std::to_string(bound.min_height)+"],\"declared_visible_max\":["+std::to_string(bound.max_width)+","+
-                std::to_string(bound.max_height)+"],\"native_grid\":1,\"not_claiming_unknown_application_grid\":true");
+                std::to_string(bound.max_height)+"],\"native_grid\":1,\"not_claiming_unknown_application_grid\":true"+
+                (exact?std::string{}:",\"actual_visible\":"+(actual?rect(*actual):"null")+",\"actual_positioning\":"+
+                    (positioned?rect({actual_native.left,actual_native.top,actual_native.right,actual_native.bottom}):"null")+
+                    ",\"requested_positioning\":"+rect(native.requested)+",\"fixture_SetWindowPos_attempted\":"+(native.attempted?"true":"false")+
+                    ",\"fixture_SetWindowPos_return\":"+(native.returned?"true":"false")+",\"fixture_SetWindowPos_error\":"+std::to_string(native.error)+
+                    ",\"actual_DPI\":"+std::to_string(native.dpi)+",\"SM_CXMIN_CYMIN\":["+std::to_string(native.system_min.x)+","+std::to_string(native.system_min.y)+
+                    "],\"SM_CXMINTRACK_CYMINTRACK\":["+std::to_string(native.system_min_track.x)+","+std::to_string(native.system_min_track.y)+
+                    "],\"declared_native_min\":["+std::to_string(native.declared_min.x)+","+std::to_string(native.declared_min.y)+
+                    "],\"declared_native_max\":["+std::to_string(native.declared_max.x)+","+std::to_string(native.declared_max.y)+"]"));
         }
     }
     bool destroy(std::size_t member){return member<frames.size()&&run(LayoutUiOperation::DestroyOne,{}, {},member);}
@@ -339,9 +378,49 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     layout_phase(set,3,g,40,35,{four[0],four[1],four[2],{580,365,940,535}},"G07_four_grid_following_ordinary_Move");
     layout_up(set,g,{four[0],four[1],four[2],{580,365,940,535}});
 
-    std::vector<Rect> eight,moved;
-    for(LONG n=0;n<8;++n){const LONG x=100+(n%4)*180,y=100+(n/4)*180;eight.push_back({x,y,x+180,y+180});moved.push_back({x+40,y+30,x+220,y+210});}
-    set.setup(eight);g=layout_down(set,7,HTCAPTION,true);
+    std::vector<Rect> eight,moved;std::vector<LayoutLimit> eight_limits;
+    try{
+        MONITORINFO display{sizeof(display)};const auto monitor=MonitorFromWindow(set.frames[0].hwnd,MONITOR_DEFAULTTONULL);
+        if(!monitor||!GetMonitorInfoW(monitor,&display))throw std::runtime_error("eight_owned_actual_monitor_unknown");
+        const LONG work_width=display.rcWork.right-display.rcWork.left,work_height=display.rcWork.bottom-display.rcWork.top;
+        LONG width=250,height=180,margin=0;
+        for(std::size_t n=0;n<8;++n){const auto frame=visible(set.frames[n].hwnd);RECT native{};const auto dpi=GetDpiForWindow(set.frames[n].hwnd);
+            if(!set.owns(n)||!frame||!GetWindowRect(set.frames[n].hwnd,&native)||!dpi||MonitorFromWindow(set.frames[n].hwnd,MONITOR_DEFAULTTONULL)!=monitor)
+                throw std::runtime_error("eight_owned_actual_frame_or_DPI_unknown");
+            const LONG dx=native.right-native.left-frame->width(),dy=native.bottom-native.top-frame->height();
+            const LONG padding=MulDiv(32,static_cast<int>(dpi),96);
+            const LONG min_w=std::max(GetSystemMetricsForDpi(SM_CXMIN,dpi),GetSystemMetricsForDpi(SM_CXMINTRACK,dpi));
+            const LONG min_h=std::max(GetSystemMetricsForDpi(SM_CYMIN,dpi),GetSystemMetricsForDpi(SM_CYMINTRACK,dpi));
+            if(padding<=0||min_w<=0||min_h<=0||dx<0||dy<0)throw std::runtime_error("eight_owned_native_minimum_unknown");
+            width=std::max(width,min_w-dx+padding);height=std::max(height,min_h-dy+padding);margin=std::max(margin,padding);
+            s.log.emit("eight_owned_actual_native_minimum","\"member\":"+std::to_string(n)+",\"dpi\":"+std::to_string(dpi)+
+                ",\"native_minimum\":["+std::to_string(min_w)+","+std::to_string(min_h)+"],\"actual_frame_delta\":["+
+                std::to_string(dx)+","+std::to_string(dy)+"],\"safety_margin_pixels\":"+std::to_string(padding));
+        }
+        LONG columns=4,rows=2;
+        const auto fits=[&](LONG cols,LONG count){return static_cast<long long>(cols)*width+margin*2+40<=work_width&&static_cast<long long>(count)*height+margin*2+30<=work_height;};
+        if(!fits(columns,rows)){columns=2;rows=4;if(!fits(columns,rows))throw std::runtime_error("eight_owned_actual_work_area_too_small");}
+        for(LONG n=0;n<8;++n){const LONG x=display.rcWork.left+margin+(n%columns)*width,y=display.rcWork.top+margin+(n/columns)*height;
+            const Rect initial{x,y,x+width,y+height};eight.push_back(initial);moved.push_back(translated(initial,40,30));eight_limits.push_back({100,100,work_width,work_height});}
+        s.log.emit("eight_owned_independent_geometry","\"columns\":"+std::to_string(columns)+",\"rows\":"+std::to_string(rows)+
+            ",\"visible_cell\":["+std::to_string(width)+","+std::to_string(height)+"],\"actual_work_area\":"+
+            rect({display.rcWork.left,display.rcWork.top,display.rcWork.right,display.rcWork.bottom})+",\"product_target_not_used_as_oracle\":true");
+        set.setup(eight,eight_limits);
+    }catch(const std::exception& failure){
+        const std::string why=failure.what();
+        // This is ONLY the known eight-window pre-DOWN preparation branch.
+        // A failed actual gesture never enters this continuation path.
+        if(why!="layout_actual_independent_setup"&&why!="layout_main_UI_configuration_failed"&&!why.starts_with("eight_owned_"))throw;
+        s.log.failed=true;const auto previous_end=record(s,g.offset,"gesture_end",g.generation);const auto mark=read(s.product_log).size();
+        const bool status=launch(s,L"--status",true)&&wait([&]{return record(s,mark,"status").find("\"gesture_active\":false")!=std::string::npos;});
+        const bool closed=set.close();GUITHREADINFO gui{sizeof(gui)};
+        s.log.check("eight_owned_pre_DOWN_failure_exact_cleanup",closed&&status&&!s.left&&!s.control&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
+            !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&
+            previous_end.find("\"normal_up\":true")!=std::string::npos&&previous_end.find("\"pending_retired\":true")!=std::string::npos,
+            "\"original_failure\":"+quote(why)+",\"last_four_window_generation\":"+std::to_string(g.generation)+
+            ",\"eight_window_DOWN_sent\":false,\"eight_window_functional_PASS\":false,\"original_FAIL_preserved\":true");return;
+    }
+    g=layout_down(set,7,HTCAPTION,true);
     layout_phase(set,7,g,40,30,moved,"eight_owned_last_member_real_Ctrl_source");layout_up(set,g,moved);
     s.log.check("layout_eight_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_product_cleanup\":true");
     s.log.emit("owned_layout_sequence","\"G06_vertical_horizontal\":true,\"I03_T_to_L_continuous\":true,\"G07_four_grid\":true,\"eight_actual_owned\":true,\"app_grid\":1,\"human_uat\":\"NOT_RUN\"");
