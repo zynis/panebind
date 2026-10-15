@@ -510,13 +510,19 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     const auto source_key=number(record(s,g.offset,"gesture_start",g.generation),"\"key\":");
     s.log.check("temporary_inflight_actual_generation_source_key",source_key!=0&&s.left&&actual_up(s,g.offset,g.generation).empty());
     stall.armed=true;Sleep(60);cursor(s,{g.anchor.x-42,g.anchor.y+35});
-    s.log.check("temporary_inflight_real_native_WndProc_entered",wait([&]{return stall.entered.load();},800)&&
-        s.left&&!stall.finished.load()&&actual_up(s,g.offset,g.generation).empty(),
+    const bool native_entered=wait([&]{return stall.entered.load();},800);
+    const bool native_entry_valid=native_entered&&s.left&&!stall.finished.load()&&actual_up(s,g.offset,g.generation).empty();
+    // Function arguments have no left-to-right evaluation guarantee. Capture
+    // actual WndProc evidence only AFTER the wait published entered=true.
+    const auto entry_qpc=stall.before_qpc.load();const auto entry_flags=stall.flags.load();
+    const auto entry_x=stall.x.load(),entry_y=stall.y.load(),entry_width=stall.width.load(),entry_height=stall.height.load();
+    const auto entry_async=stall.async_left_state.load();
+    s.log.check("temporary_inflight_real_native_WndProc_entered",native_entry_valid,
         "\"generation\":"+std::to_string(g.generation)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
-        ",\"message\":\"WM_WINDOWPOSCHANGING\",\"test_owned_pause_ms\":1000,\"native_entry_qpc\":"+std::to_string(stall.before_qpc)+
-        ",\"actual_flags\":"+std::to_string(stall.flags)+",\"actual_positioning\":["+std::to_string(stall.x)+","+
-        std::to_string(stall.y)+","+std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"driver_left_outstanding\":"+(s.left?"true":"false")+
-        ",\"async_left_at_native_entry\":"+std::to_string(stall.async_left_state.load())+",\"physical_button_held_not_inferred\":true");
+        ",\"message\":\"WM_WINDOWPOSCHANGING\",\"test_owned_pause_ms\":1000,\"native_entry_qpc\":"+std::to_string(entry_qpc)+
+        ",\"actual_flags\":"+std::to_string(entry_flags)+",\"actual_positioning\":["+std::to_string(entry_x)+","+
+        std::to_string(entry_y)+","+std::to_string(entry_width)+","+std::to_string(entry_height)+"],\"driver_left_outstanding\":"+(s.left?"true":"false")+
+        ",\"async_left_at_native_entry\":"+std::to_string(entry_async)+",\"physical_button_held_not_inferred\":true");
     LARGE_INTEGER up_before{},up_after{};QueryPerformanceCounter(&up_before);
     button(s,false);QueryPerformanceCounter(&up_after); // Exactly one real test UP, never a product cleanup substitute.
     s.log.emit("temporary_inflight_real_UP_sent","\"generation\":"+std::to_string(g.generation)+
@@ -525,12 +531,18 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     s.log.check("temporary_inflight_UP_before_source_returns",!stall.finished&&up_before.QuadPart>0&&
         static_cast<std::uint64_t>(up_before.QuadPart)>stall.before_qpc.load());
     std::string ended;
-    s.log.check("temporary_inflight_generation_actually_retired",wait([&]{ended=record(s,g.offset,"gesture_end",g.generation);
-        return !actual_up(s,g.offset,g.generation).empty()&&ended.find("\"pending_retired\":true")!=std::string::npos;},1000),
-        "\"generation\":"+std::to_string(g.generation)+",\"NormalUp_not_inferred_from_test_UP\":true");
+    const bool retired_with_UP=wait([&]{ended=record(s,g.offset,"gesture_end",g.generation);
+        return !actual_up(s,g.offset,g.generation).empty()&&ended.find("\"pending_retired\":true")!=std::string::npos;},1000);
+    const auto initial_UP=actual_up(s,g.offset,g.generation);const bool missing_UP=!retired_with_UP&&initial_UP.empty();
+    const std::string retirement_fields="\"generation\":"+std::to_string(g.generation)+",\"NormalUp_not_inferred_from_test_UP\":true,\"actual_UP\":"+
+        (initial_UP.empty()?"null":quote(initial_UP))+",\"actual_end\":"+(ended.empty()?"null":quote(ended));
+    if(missing_UP){s.log.failed=true;s.log.emit("case","\"case\":\"temporary_inflight_generation_actually_retired\",\"result\":\"FAIL\","+retirement_fields);}
+    else s.log.check("temporary_inflight_generation_actually_retired",retired_with_UP,retirement_fields);
     s.log.emit("temporary_inflight_actual_end","\"generation\":"+std::to_string(g.generation)+",\"production_end\":"+quote(ended)+
-        ",\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation)));
-    cursor(s,{g.anchor.x-58,g.anchor.y+45}); // No button held: this must not grant another placement.
+        ",\"actual_UP\":"+(initial_UP.empty()?"null":quote(initial_UP)));
+    // One UP was inserted by the test driver. Missing receipt remains unknown;
+    // this subsequent cursor input must not renew the retired generation.
+    cursor(s,{g.anchor.x-58,g.anchor.y+45});
     s.log.check("temporary_inflight_source_boundedly_resumed",wait([&]{return stall.finished.load();},1500));
     const Rect late_target=translated(initial,-42,35);
     std::uint64_t call_id{};std::string issued,late;
@@ -547,7 +559,8 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
             number(row,"\"call_id\":")==call_id)late=row;
         return !late.empty();
     };
-    s.log.check("temporary_inflight_late_native_receipt_exact",wait(find_late,2000)&&
+    const bool late_observed=wait(find_late,2000);
+    s.log.check("temporary_inflight_late_native_receipt_exact",late_observed&&
         issued.find("\"native_completion_known\":false")!=std::string::npos&&
         number(issued,"\"native_before_qpc\":")<static_cast<std::uint64_t>(up_before.QuadPart)&&
         number(late,"\"key\":")==source_key&&late.find("\"native_completion_known\":true")!=std::string::npos&&
@@ -579,16 +592,32 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=std::string::npos){
         ++calls;if(number(row,"\"native_before_qpc\":")>=static_cast<std::uint64_t>(up_before.QuadPart))++after_up;
     }
-    s.log.check("temporary_inflight_UP_no_new_geometry_call",calls==1&&after_up==0&&!s.left&&!actual_up(s,g.offset,g.generation).empty()&&
+    s.log.check("temporary_inflight_after_test_UP_send_no_new_geometry_call",calls==1&&after_up==0&&!s.left&&
         s.process&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT,
-        "\"issued_geometry_calls\":"+std::to_string(calls)+",\"issued_after_test_UP_send_start\":"+std::to_string(after_up));
+        "\"issued_geometry_calls\":"+std::to_string(calls)+",\"issued_after_test_UP_send_start\":"+std::to_string(after_up)+
+        ",\"actual_UP_timing_not_inferred\":true");
+    if(missing_UP){
+        const auto status_mark=read(s.product_log).size();std::string status;DWORD status_exit=STILL_ACTIVE;
+        const bool requested=launch(s,L"--status",true,&status_exit);
+        const bool observed=wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
+        ended=record(s,g.offset,"gesture_end",g.generation);GUITHREADINFO gui{sizeof(gui)};
+        const bool native_idle=GetGUIThreadInfo(s.owner,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+        s.log.check("temporary_inflight_missing_UP_actual_cleanup_safe",requested&&status_exit==0&&observed&&
+            status.find("\"gesture_active\":false")!=std::string::npos&&status.find("\"hook_owner_running\":true")!=std::string::npos&&
+            ended.find("\"normal_up\":false")!=std::string::npos&&ended.find("\"pending_retired\":true")!=std::string::npos&&
+            native_idle&&own(s,h)&&visible(h)==late_target&&native_visual_is(h,173,false)&&stall.finished.load()&&calls==1&&after_up==0,
+            "\"original_UP_case_FAIL_preserved\":true,\"actual_status\":"+quote(status)+",\"actual_end\":"+quote(ended)+
+            ",\"source_native_idle\":"+(native_idle?"true":"false")+",\"late_completion_and_helper_cleanup_required_above\":true");
+    }
     // No product restart or reconfiguration between the old completion and
     // this new actual DOWN. The next generation still uses its own anchors.
-    const auto next=down(s,0);visual_exact(s,h,190,false,"temporary_inflight_next_gesture_alpha190");
-    s.log.check("temporary_inflight_next_generation_is_fresh",next.generation>g.generation);
-    const auto next_target=translated(late_target,40,30);
-    phase(s,0,next,40,30,next_target,"temporary_inflight_next_real_Move_exact",true);up(s,0,next,next_target);
-    visual_exact(s,h,173,false,"temporary_inflight_next_real_UP_restores_alpha173");
+    if(!missing_UP){
+        const auto next=down(s,0);visual_exact(s,h,190,false,"temporary_inflight_next_gesture_alpha190");
+        s.log.check("temporary_inflight_next_generation_is_fresh",next.generation>g.generation);
+        const auto next_target=translated(late_target,40,30);
+        phase(s,0,next,40,30,next_target,"temporary_inflight_next_real_Move_exact",true);up(s,0,next,next_target);
+        visual_exact(s,h,173,false,"temporary_inflight_next_real_UP_restores_alpha173");
+    }else s.log.emit("case","\"case\":\"temporary_inflight_next_real_Move_UP\",\"result\":\"NOT_RUN\",\"reason\":\"original_matching_UP_not_observed\",\"original_FAIL_preserved\":true");
     visual_gui_save(s,original_config);
     visual_command(s,h,L"OpacityUp",205,false); // retire the permanent ownership before app-side fixture restoration
     SetLastError(0);const auto ex=GetWindowLongPtrW(h,GWL_EXSTYLE);if(!ex&&GetLastError())throw std::runtime_error("temporary_inflight_original_style_read_failed");
@@ -598,10 +627,31 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         throw std::runtime_error("temporary_inflight_original_visual_restore_failed");
     s.log.check("temporary_inflight_fixture_original_tuple_restored",wait([&]{const auto now=native_visual(h);return now&&*now==*original_visual;}));
     for(std::size_t n=0;n<3;++n){s.log.check("temporary_inflight_original_layout_restored",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,original_rects[n]));
-        ShowWindow(s.frames[n].hwnd,original_shown[n]?SW_SHOWNOACTIVATE:SW_HIDE);}
+        ShowWindow(s.frames[n].hwnd,original_shown[n]?SW_SHOWNOACTIVATE:SW_HIDE);
+        s.log.check("temporary_inflight_original_visibility_restored",own(s,s.frames[n].hwnd)&&(IsWindowVisible(s.frames[n].hwnd)!=FALSE)==original_shown[n]);}
+    if(missing_UP){
+        const auto mark=read(s.product_log).size();std::string status;DWORD exit=STILL_ACTIVE;
+        const bool requested=launch(s,L"--status",true,&exit);const bool observed=wait([&]{status=record(s,mark,"status");return !status.empty();},1000);
+        GUITHREADINFO gui{sizeof(gui)};const auto restored_config=settings::parse(read(s.product.parent_path()/L"settings.ini"));
+        auto expected_config=original_config;if(restored_config.value)expected_config.generation=restored_config.value->generation;
+        bool layout_restored=true;for(std::size_t n=0;n<3;++n)layout_restored=layout_restored&&own(s,s.frames[n].hwnd)&&
+            visible(s.frames[n].hwnd)==original_rects[n]&&(IsWindowVisible(s.frames[n].hwnd)!=FALSE)==original_shown[n];
+        unsigned final_calls{};std::istringstream rows(read(s.product_log).substr(g.offset));std::string observed_row;
+        while(std::getline(rows,observed_row))if(observed_row.find("\"type\":\"placement\"")!=std::string::npos&&
+            number(observed_row,"\"generation\":")==g.generation&&observed_row.find("\"native_callsite_claimed\":true")!=std::string::npos)++final_calls;
+        s.log.check("temporary_inflight_failed_case_restored_safe_for_independent_flow",requested&&exit==0&&observed&&
+            status.find("\"gesture_active\":false")!=std::string::npos&&status.find("\"hook_owner_running\":true")!=std::string::npos&&
+            restored_config.value&&*restored_config.value==expected_config&&layout_restored&&native_visual(h)==original_visual&&final_calls==1&&
+            !s.left&&!s.control&&GetGUIThreadInfo(s.owner,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner,
+            "\"actual_status\":"+quote(status)+",\"old_generation_native_calls\":"+std::to_string(final_calls)+
+            ",\"original_UP_FAIL_preserved\":true,\"configuration_visual_geometry_visibility_verified\":true");
+    }
     // Reset only this completed, logged test injection so later independent
     // writer-exit cases may use the same exact fixture. No product facts or
     // observed raw/legacy event counters are rewritten.
     stall.armed=false;stall.entered=false;stall.finished=false;stall.async_left_state=0;
-    s.log.emit("temporary_visual_inflight_sequence","\"single_test_UP\":true,\"late_exact_geometry_observed\":true,\"actual_temporary_alpha_restored\":173,\"next_actual_Move_UP\":true,\"same_product_process\":true,\"human_uat\":\"NOT_RUN\"");
+    s.log.emit("temporary_visual_inflight_sequence","\"result\":"+quote(missing_UP?"FAIL_SAFE_TO_CONTINUE":"PASS")+
+        ",\"single_test_UP_sent\":true,\"matching_UP_observed_in_required_interval\":"+(missing_UP?"false":"true")+
+        ",\"late_exact_geometry_observed\":true,\"actual_temporary_alpha_restored\":173,\"next_actual_Move_UP\":"+(missing_UP?"false":"true")+
+        ",\"next_actual_Move_UP_status\":"+quote(missing_UP?"NOT_RUN":"PASS")+",\"same_product_process\":true,\"human_uat\":\"NOT_RUN\"");
 }
