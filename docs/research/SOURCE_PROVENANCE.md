@@ -1832,3 +1832,44 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   guard and fresh-identity checks remain unchanged. Neither action creates an
   UP, restores an old generation, or establishes why a previous callback was
   absent. No additional API, input source, upstream code or retry loop added.
+
+### V1 bounded missing-UP review — 2026-10-16
+
+- AltSnap, mature maintained, repository <https://github.com/RamonUnch/AltSnap>,
+  exact local revision `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`;
+  `License.txt` and source headers: GPL-3.0-or-later, **reference only**.
+  Re-read `hooks.c` timer dispatch around 5715–5726 and the actual bodies and
+  discussion of [#532](https://github.com/RamonUnch/AltSnap/issues/532),
+  [#545](https://github.com/RamonUnch/AltSnap/issues/545), and worker
+  [PR #609](https://github.com/RamonUnch/AltSnap/pull/609).
+  These report intermittent interaction/button-state failures and historical
+  worker/rehook mitigations, not a demonstrated cause of PaneBind's missing
+  callback. Its five-second rehook polling is **not adopted**.
+- Microsoft PowerToys/FancyZones, mature production, repository
+  <https://github.com/microsoft/PowerToys>; existing source/license pin
+  `19c4d805321db86f3634e6968e14dbf25cbba14a`, root license MIT, reference only.
+  Re-read [#50130](https://github.com/microsoft/PowerToys/issues/50130),
+  [PR #49985](https://github.com/microsoft/PowerToys/pull/49985), and its
+  history page for `d68980a81bb8de144bdec998a114e948bf68c563`.
+  The issue discussion attributes a keyboard-state regression to suppressing
+  the same input needed by its own Raw Input handler; this is a warning not to
+  presume independent LL/Raw delivery. The large commit page did not expose
+  its cited source hunk to this inspection; no hunk-level verification or
+  source reuse is claimed.
+- Official pages actually read:
+  [LowLevelMouseProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc),
+  [CallNextHookEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-callnexthookex),
+  [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput),
+  [Raw Input overview](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input),
+  [RegisterRawInputDevices](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerrawinputdevices),
+  [GetRegisteredRawInputDevices](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getregisteredrawinputdevices),
+  [WM_INPUT](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-input),
+  [RAWMOUSE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawmouse).
+  Existing callback measurements exclude downstream `CallNextHookEx` time and
+  time before callback entry; they cannot establish either timeout or UIPI as
+  this failure's cause. Historical MVP guest logs actually contain SendInput
+  followed by Raw UP, but did not use this V1 consumed-DOWN route. A bounded,
+  fixed-atomic mouse observer in the Medium guest fixture is diagnostic only:
+  no synthetic receipt, generation authority, product termination, rehooking,
+  or geometry behavior is added. Zero Raw observations remain UNKNOWN, not a
+  product failure. External implementation copied/adapted/translated: **NO**.

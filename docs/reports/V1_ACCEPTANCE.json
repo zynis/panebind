@@ -8,11 +8,11 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
-    "runtime_sha": "0fa45218b7b246e5b2908eeca3eadecc2ce13935",
+    "runtime_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "committed-built-runtime-partial-actual-DEV-reviewed",
-    "note": "最新已审阅实际运行身份为0fa/7cac，文档packaging_head=d67。Debug/Release构建及各10项offline通过；实际Release整体FAIL：真实DOWNg16、call44在途约1秒，250ms超时SourceLost/pending_retired，单次测试UP未进入现有hook，原因UNKNOWN。迟到call44 exact及临时alpha190到173真实恢复/helperACK成立，post-stop真实点击PASS，但不算整链通过。seq579零payload来自实参求值顺序证据缺陷，后继f626b6ee8c934da08497172898f6d93d155d5964已修并完成双配置构建/各10offline，现场未运行；不替换已运行身份。1bee/cf及更早失败保留。托盘/五键/设置生命周期/应用/I11/I12未到达。IMPLEMENTED 57/60+M12三项IN_PROGRESS，DEV 0/60、对标0/40；不推测未来包、final_sha或CI。"
+    "note": "最新已审阅实际运行f626/8cee，packaging_head=d22。D/R构建各10offline通过，Release整体FAIL：普通C g4五阶段几何exact，单次测试UP返回1，但3500ms内无actualUP/正常end；stop才Exit，shutdown UP callback count3/lastg3。UP前cursor440,273在C实际矩形内，旧窗外轨迹不能解释全部失败；原因UNKNOWN，普通收尾阻断实时手势整链而非仅故障注入。post-stop真实点击0到1 PASS子场景，精确清理/evidenceunchanged。0fa/7cac与cf/1bee及更早失败保留。IndependentEntry/fixture只读Raw正在实现，无新SHA/结果，不当产品修复或功能进度。57IMPLEMENTED+3M12IN_PROGRESS，DEV0/60、B0/40；未到项目NOT_RUN，final_sha/CI不推测。"
   },
   "scorecard": {
     "denominator": 40,
@@ -1799,7 +1799,7 @@
         "scripts/v1-prepare-portable.ps1"
       ],
       "implementation_status": "IN_PROGRESS",
-      "implementation_note": "0fa双配置构建和七文件便携包f6b4已绑定runtime与文档HEAD d67；7cac在真实在途异常场景失败，未到I12。cf/d6ab、2a/b650、ff/6d022历史保留。中文空格解压/普通无参入口/实际设置效果/退出用例已接线，打包和identity-only不构成交付验收。",
+      "implementation_note": "f626双配置构建和七文件便携包9a24已绑定runtime与文档HEAD d22；8cee普通C收尾失败，未到I12。0fa/f6b4、cf/d6ab、2a/b650、ff/6d022历史保留。中文空格解压/普通无参入口/实际设置效果/退出用例已接线，打包和identity-only不构成交付验收。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -1832,7 +1832,7 @@
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
       "implementation_status": "IN_PROGRESS",
-      "implementation_note": "固定合同ID、0fa/7cac最新已审阅运行身份及cf/1bee、2a/eae、ff/d49历史事实已登记，旧失败保留。7cac真实在途/迟到exact/临时alpha恢复与缺失UP、整批FAIL分开；seq579零payload证据缺陷不冒充native未进入。57项生产接线不等于DEV通过，未运行不计分。",
+      "implementation_note": "固定合同ID、f626/8cee最新已审阅运行身份及0fa/7cac、cf/1bee、2a/eae历史事实已登记。8cee普通C五阶段几何exact与无actualUP/NormalUp、整批FAIL分开，post-stop投递单列；旧失败保留，未运行不计分，57项生产接线不等于DEV通过。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -3311,17 +3311,17 @@
       "id": "V1-D07",
       "status": "OPEN",
       "kind": "POST_STOP_CLIENT_DELIVERY_NOT_CONFIRMED",
-      "description": "7cac seq586-589、1bee seq517-520与eae seq522-525确有真实cursor/DOWN/UP发送和计数[1,1]到[2,2]，post-stop投递子场景PASS。d49未执行到发送、旧raw executed来自资源flags，不是投递失败证明；历史各批及92b真实投递子场景保留。该定向PASS不代表整版cleanup验收，guest/task清理不代替产品事实。",
+      "description": "8cee seq88-91实际cursor/DOWN/UP发送与窗口计数[0,0]到[1,1]，7cac/1bee/eae计数[1,1]到[2,2]，post-stop投递子场景PASS；不代替普通手势本代UP。d49未执行到发送、旧raw executed来自资源flags，不是投递失败证明；历史保留。该子项PASS不代表整版cleanup验收，guest/task清理不代替产品事实。",
       "features": ["M01-F04", "M03-F05"],
-      "partial_observation_ids": ["PO-AAE-STOP", "PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-1BEE-BEFORE-DOWN", "PO-7CAC-INFLIGHT-UP"]
+      "partial_observation_ids": ["PO-AAE-STOP", "PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-1BEE-BEFORE-DOWN", "PO-7CAC-INFLIGHT-UP", "PO-8CEE-ORDINARY-C-UP"]
     },
     {
       "id": "V1-D08",
       "status": "OPEN",
-      "kind": "ABORTED_GENERATION_ACTUAL_UP_NOT_OBSERVED",
-      "description": "7cac gen16/call44真实在途时发单次测试UP，未进入现有hook观察；250ms后SourceLost退休，迟到exact与alpha190到173实际清理ACK成立，整批仍FAIL。d49真实grid非exact后abort与eae更早FocusLost的UP缺失历史保持，原因仍UNKNOWN；1bee未发本次DOWN，不是UP复现。不推断UIPI/系统根因，不把Async/账本补成UP或NormalUp。",
+      "kind": "ORDINARY_AND_ABORTED_GENERATION_ACTUAL_UP_NOT_OBSERVED",
+      "description": "8cee普通C g4五阶段几何exact后单次测试UP返回1，3500ms内无actualUP/正常end；stop才Exit，callback count3/lastg3。cursor440,273位于实际C[414260674440]内，旧窗外轨迹不能解释所有失败。此问题阻断普通实时手势整链，不只故障注入。7cac在途/迟到exact/alpha恢复及d49/eae不同失败保留，1bee未发DOWN不是UP复现。原因UNKNOWN，不断言UIPI/hook移除/系统根因，不把账本或Async补成UP。",
       "features": ["M03-F03", "M03-F05", "M04-F02"],
-      "partial_observation_ids": ["PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-7CAC-INFLIGHT-UP"]
+      "partial_observation_ids": ["PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-7CAC-INFLIGHT-UP", "PO-8CEE-ORDINARY-C-UP"]
     },
     {
       "id": "V1-D09",
@@ -3462,42 +3462,79 @@
       "portable_zip_sha256": "95DBF8BA35BBD3B016B808341E41EA5870C76B1A7FCBF2320E92AE79E5021F58",
       "portable_manifest_sha256": "9CBA189787CA79A360D01A8A01DB91093A93D2990FF67255775BEF59A0BFC1BA",
       "note": "本批I10在发DOWN前hover/前台对象改变，DOWN/UP均未发，无新START/native；不是grid或UP复现。post-stop真实投递PASS，整批FAIL；原始证据及精确guest/task清理/evidence_unchanged保留，I12未到达。"
+    },
+    {
+      "run_id": "7cac94a0561349c3ba1fde679cd27c11",
+      "source_sha": "0fa45218b7b246e5b2908eeca3eadecc2ce13935",
+      "packaging_head": "d67b6da307b21dfd05dd9bd0ce0bf3f939e10b76",
+      "receipt_path": "uat/v1-sandbox/7cac94a0561349c3ba1fde679cd27c11/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/7cac94a0561349c3ba1fde679cd27c11/input/manifest.json",
+      "zip_sha256": "1D50DB71AA41FE2F8E94D49159608CD43EA5C3461BC0FB93A39C5B6E367C89E3",
+      "manifest_sha256": "8882B1BD3A9454A371E14F59C8E06DB4A625DB80BA657B4F6E248425B5FE11D4",
+      "release_binary_sha256": "F2300BE43A917695923A28BC943A4610DB623C0FFD6B28074BC07D4A376735B0",
+      "debug_binary_sha256": "70E32FE646F3E0617376DA01B3DAA4A2AA1C174B8870E949F8CDFC5071CB1E11",
+      "release_fixture_sha256": "A6C1AE67AAA627A0D96EF93C68DD73F3D8B0A9BB433163B71E3AD2ED21D34091",
+      "debug_fixture_sha256": "B4E9A236B87C6E55B2541311D6E267978762998B92A5B098B0FFDEFBA7A952C9",
+      "guest_function_status": "FAIL_INFLIGHT_ACTUAL_UP_NOT_OBSERVED_LATE_EXACT_ALPHA_RESTORED_POST_STOP_CLICK_PASS",
+      "portable_package_id": "f6b4f2556df94a86bbcafc1fe24ff5e9",
+      "portable_receipt_path": "uat/v1-portable/f6b4f2556df94a86bbcafc1fe24ff5e9/package-receipt.json",
+      "portable_zip_sha256": "F6A81D1080B2E0BEB520A9A74FCC33E2539DC9353292C11D2F82171DA3F5B143",
+      "portable_manifest_sha256": "66D75A097E5E5B810232E28A82C095689D6803CD2B634E85BDB5670DCFE3A505",
+      "note": "真实DOWNg16/call44在途约1秒，单UP缺失、250ms超时SourceLost退休；迟到exact和alpha190到173清理ACK实际成立，post-stop真实投递PASS、整批FAIL。seq579零payload原始证据保留，不能解释为native未进入。I12未到达。"
     }
   ],
   "current_package": {
-    "run_id": "7cac94a0561349c3ba1fde679cd27c11",
-    "source_sha": "0fa45218b7b246e5b2908eeca3eadecc2ce13935",
-    "packaging_head": "d67b6da307b21dfd05dd9bd0ce0bf3f939e10b76",
-    "receipt_path": "uat/v1-sandbox/7cac94a0561349c3ba1fde679cd27c11/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/7cac94a0561349c3ba1fde679cd27c11/input/manifest.json",
-    "zip_sha256": "1D50DB71AA41FE2F8E94D49159608CD43EA5C3461BC0FB93A39C5B6E367C89E3",
-    "manifest_sha256": "8882B1BD3A9454A371E14F59C8E06DB4A625DB80BA657B4F6E248425B5FE11D4",
-    "release_binary_sha256": "F2300BE43A917695923A28BC943A4610DB623C0FFD6B28074BC07D4A376735B0",
-    "debug_binary_sha256": "70E32FE646F3E0617376DA01B3DAA4A2AA1C174B8870E949F8CDFC5071CB1E11",
-    "release_fixture_sha256": "A6C1AE67AAA627A0D96EF93C68DD73F3D8B0A9BB433163B71E3AD2ED21D34091",
-    "debug_fixture_sha256": "B4E9A236B87C6E55B2541311D6E267978762998B92A5B098B0FFDEFBA7A952C9",
+    "run_id": "8cee44b3378f41998e8e5dcf9635f5f3",
+    "source_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
+    "packaging_head": "d22ec87a3021746fb7e8e63aa230fa7d496c50bc",
+    "receipt_path": "uat/v1-sandbox/8cee44b3378f41998e8e5dcf9635f5f3/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/8cee44b3378f41998e8e5dcf9635f5f3/input/manifest.json",
+    "zip_sha256": "5CDC535CA3722719F8C52F05FA424612AD72924A03B4B6531295ABBFEB180A6A",
+    "manifest_sha256": "387E9F685D1BC1D96E89B16BA8E488F9190D3529389DA02E7FF9AC2E9E0C5066",
+    "release_binary_sha256": "910374EE1B72C4D0C2574FA2FD1460F7BCAF0D5DC8D0650F0196C4E975475F8F",
+    "debug_binary_sha256": "DE1F7306579D4A443BD9242347A299044B106C6DA2F7E77B5ABC630EC1E22F6A",
+    "release_fixture_sha256": "12F6F15A7BDDECFB1369878AA081523594369924518AE38743A1BB6388672E68",
+    "debug_fixture_sha256": "8B254869F21454CB78B5E7A0CBC4E28F36BC15545DC5B2A5B260AFE9E318CA30",
     "identity_basis": "actual_local_files_SHA256_equal_receipt_and_binary_identity_manifest",
     "package_kind": "isolated_automated_guest_package_not_final_portable_delivery",
     "build_status": "COMMITTED_BUILT",
     "guest_configurations": "Release",
     "deployment_status": "DEPLOYED_COLLECTED_OWNED_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
-    "guest_function_status": "FAIL_INFLIGHT_ACTUAL_UP_NOT_OBSERVED_LATE_EXACT_ALPHA_RESTORED_POST_STOP_CLICK_PASS",
+    "guest_function_status": "FAIL_ORDINARY_C_ACTUAL_UP_NOT_OBSERVED_POST_STOP_CLICK_PASS",
     "offline_regression": {"Debug": "10/10_PASS", "Release": "10/10_PASS", "not_function_DEV_PASS": true},
     "human_uat": "NOT_RUN",
-    "note": "已读取7cac fixture565-590与product145-156。真实DOWNg16/call44在途约1秒；单次测试UP未进现有hook，250ms后SourceLost/pending_retired，late44 exact并190到173清理ACK实际成立。seq579零payload系实参求值顺序缺陷，不证明未进入native；原证据保留，后继f626已提交修复/构建但现场未运行。post-stop真实投递PASS、整批FAIL，精确guest/task已清理/evidence_unchanged。尚未到设置生命周期/托盘/五键/I11/应用/I12；不推测后继包。"
+    "note": "已读取8cee fixture69-92与product37-46：普通C g4 free/xy/hold/detach/resnap真实exact，seq84单UP返回1但3500ms无actualUP/end，85FAIL；stop end8/Exit不是NormalUp，shutdown callbackcount3/lastg3。UPcursor440,273在实际C[414260674440]内，不能用旧窗外轨迹解释所有失败；原因UNKNOWN。poststop91真实计数0到1 PASS，整批FAIL；精确收证/guest/task清理、evidenceunchanged。尚未到lifecycle/tray/mouse/I11/应用/I12。"
   },
   "portable_candidate": {
-    "package_id": "f6b4f2556df94a86bbcafc1fe24ff5e9",
-    "source_commit": "0fa45218b7b246e5b2908eeca3eadecc2ce13935",
-    "packaging_head": "d67b6da307b21dfd05dd9bd0ce0bf3f939e10b76",
-    "receipt_path": "uat/v1-portable/f6b4f2556df94a86bbcafc1fe24ff5e9/package-receipt.json",
-    "zip_sha256": "F6A81D1080B2E0BEB520A9A74FCC33E2539DC9353292C11D2F82171DA3F5B143",
-    "manifest_sha256": "66D75A097E5E5B810232E28A82C095689D6803CD2B634E85BDB5670DCFE3A505",
-    "binary_sha256": "F2300BE43A917695923A28BC943A4610DB623C0FFD6B28074BC07D4A376735B0",
+    "package_id": "9a24ab31cda1423fb3c2e9a0690ca8a2",
+    "source_commit": "f626b6ee8c934da08497172898f6d93d155d5964",
+    "packaging_head": "d22ec87a3021746fb7e8e63aa230fa7d496c50bc",
+    "receipt_path": "uat/v1-portable/9a24ab31cda1423fb3c2e9a0690ca8a2/package-receipt.json",
+    "zip_sha256": "5F67870513EA12A61E3F97020CDC22005FC625A0FB60D4C5A0D5BFEEB782596D",
+    "manifest_sha256": "344B431F11B00DD94FF326CF72F299852B7C50AA3E8F6FDC971494488E31CA00",
+    "binary_sha256": "910374EE1B72C4D0C2574FA2FD1460F7BCAF0D5DC8D0650F0196C4E975475F8F",
     "actual_ordinary_no_argument_entry": "NOT_RUN",
-    "note": "真实七文件ZIP已生成并加入7cac，RUNTIME0fa与docs-only packaging_head d67分开；本批在真实在途异常场景失败，未到I12。历史d6ab/cf、b650/2a、6d022/ff保留；此处指最新已审阅运行批候选，不推测后继包，不复用旧ZIP实测身份。"
+    "note": "真实七文件ZIP已生成并加入8cee，RUNTIMEf626与docs-only packaging_head d22分开；本批普通C收尾失败未到I12。历史f6b4/0fa、d6ab/cf、b650/2a、6d022/ff保留；不推测后继包或复用旧ZIP实测身份。"
   },
   "evidence": [
+    {
+      "id": "EV-8CEE-FIXTURE",
+      "kind": "raw_automated_guest_jsonl",
+      "path": "uat/v1-control/8cee44b3378f41998e8e5dcf9635f5f3/collection-20261015T163804486Z-3dda0c7311f849bbab49bbefc9f3ee8f/8cee44b3378f41998e8e5dcf9635f5f3-release-fixture.jsonl",
+      "sha256": "87A0E8822C7F0650C0DCAF9D1F388C426B495B8E8484A6EDD6AFF09303405E69",
+      "source_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
+      "run_id": "8cee44b3378f41998e8e5dcf9635f5f3",
+      "configuration": "Release",
+      "overall_verdict": "FAIL"
+    },
+    {
+      "id": "EV-8CEE-PRODUCT",
+      "kind": "raw_product_jsonl",
+      "path": "uat/v1-control/8cee44b3378f41998e8e5dcf9635f5f3/collection-20261015T163804486Z-3dda0c7311f849bbab49bbefc9f3ee8f/8cee44b3378f41998e8e5dcf9635f5f3-product-Release/panebind.log.jsonl",
+      "sha256": "FE4F6C13A1773261D7B9CFD099D8D981CC0D0FCF1101C6767202D71DFD525B74",
+      "source_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
+      "run_id": "8cee44b3378f41998e8e5dcf9635f5f3"
+    },
     {
       "id": "EV-7CAC-FIXTURE",
       "kind": "raw_automated_guest_jsonl",
@@ -3670,6 +3707,41 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-8CEE-ORDINARY-C-UP",
+      "scope": "Release_Medium_owned_ordinary_C_five_stages_exact_but_normal_UP_missing",
+      "status": "FAIL",
+      "run_id": "8cee44b3378f41998e8e5dcf9635f5f3",
+      "source_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
+      "evidence_ids": ["EV-8CEE-FIXTURE", "EV-8CEE-PRODUCT"],
+      "product_pid": 7108,
+      "generation": 4,
+      "source_index": 2,
+      "source_HWND": 131680,
+      "actual_DOWN_sequence": 37,
+      "actual_START_sequence": 38,
+      "five_stages": {"fixture_sequences": [75, 77, 79, 81, 83], "stages": ["free", "xy_snap", "hold", "detach", "resnap"], "actual_geometry_exact": true, "product_placement_sequences": [39, 40, 41, 42, 43], "hold_already_exact_no_native_call": true, "other_four_stages_actual_native_calls": [12, 13, 14, 15]},
+      "single_test_UP": {"fixture_sequence": 84, "SendInput_return": 1, "driver_ledger_cleared": true, "actual_hook_UP_observed": false},
+      "observed_failure": "fixture85 normal_up_and_no_late_geometry FAIL; no actualUP or normal gesture_end within 3500ms",
+      "cursor_before_UP": [440, 273],
+      "actual_source_rect_before_UP": [414, 260, 674, 440],
+      "cursor_inside_actual_source_rect": true,
+      "old_outside_window_trajectory_explains_all_failures": false,
+      "stop_end": {"product_sequence": 44, "end": 8, "reason": "Exit", "normal_up": false, "pending_retired": true},
+      "shutdown": {"product_sequence": 46, "resource_flags_true": true, "issued_native_completion_unknown": false, "mouse_UP_callback_count": 3, "last_UP_generation_at_entry": 3},
+      "post_stop": {"fixture_sequence": 91, "actual_cursor_DOWN_UP_sequences": [88, 89, 90], "click_executed": true, "counts_before": [0, 0], "counts_after": [1, 1], "actual_delivery_result": "PASS"},
+      "dedicated_guest_and_task_cleaned": true,
+      "evidence_unchanged": true,
+      "cleanup_receipt_path": "uat/v1-control/8cee44b3378f41998e8e5dcf9635f5f3/cleanup-receipt.json",
+      "not_reached": ["设置生命周期", "托盘真实入口", "五键与mapped入口", "I11", "应用矩阵", "I12真ZIP普通入口"],
+      "overall_result": "FAIL",
+      "ordinary_realtime_gesture_chain": "BLOCKED",
+      "not_limited_to_fault_injection": true,
+      "missing_UP_root_cause": "UNKNOWN",
+      "UIPI_hook_removal_or_system_root_cause_proven": false,
+      "whole_cleanup_acceptance": "NOT_GRANTED",
+      "followup": "IndependentEntry suite与fixture只读Raw观察正在实现，无新SHA/结果；仅验证分流与观察，不算产品修复、功能进度或完整原链通过。"
+    },
     {
       "id": "PO-7CAC-INFLIGHT-UP",
       "scope": "Release_owned_real_inflight_timeout_late_exact_temporary_alpha_cleanup_and_missing_UP",

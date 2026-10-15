@@ -6,6 +6,7 @@ param(
     [string]$PortablePackageDirectory,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
+    [ValidateSet('Full','IndependentEntry')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
@@ -290,6 +291,7 @@ $manifest = [ordered]@{
     test_assets=$testAssets;
     portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
+    guest_suite=$Suite;
     configurations=@($binaries | ForEach-Object { [ordered]@{ name=$_.configuration; product_identity=$_.product_identity;
         fixture_identity=$_.fixture_identity; fixture_identity_kind=$_.fixture_identity_kind; manifest_expected_source=$head } });
     tracked_non_source_changes=$trackedChanges;
@@ -314,7 +316,7 @@ $wsb = @"
     <MappedFolder><HostFolder>$xmlRemoteInput</HostFolder><SandboxFolder>C:\PaneBindV1\Input</SandboxFolder><ReadOnly>true</ReadOnly></MappedFolder>
     <MappedFolder><HostFolder>$xmlRemoteOutput</HostFolder><SandboxFolder>C:\PaneBindV1\Output</SandboxFolder><ReadOnly>false</ReadOnly></MappedFolder>
   </MappedFolders>
-  <LogonCommand><Command>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-sandbox-guest.ps1 -RunId $RunId -Configurations $GuestConfigurations</Command></LogonCommand>
+  <LogonCommand><Command>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-sandbox-guest.ps1 -RunId $RunId -Configurations $GuestConfigurations -Suite $Suite</Command></LogonCommand>
 </Configuration>
 "@
 Write-NewText (Join-Path $packageRoot 'PaneBindV1.wsb') $wsb
@@ -322,7 +324,7 @@ $zipPath = Join-Path $packageRoot ($RunId + '.zip')
 Compress-Archive -LiteralPath @($inputDir,$outputDir,(Join-Path $packageRoot 'PaneBindV1.wsb')) -DestinationPath $zipPath -CompressionLevel Optimal
 $receipt = [ordered]@{ schema='panebind-v1-package-receipt/1'; run_id=$RunId; source_commit=$head; packaging_head=$packagingHead;
     source_scope_equivalent=$true;documentation_inputs=$packagingIdentity.documentation_inputs;
-    package_root=$packageRoot; remote_root=$remoteRoot; zip=$zipPath;
+    package_root=$packageRoot; remote_root=$remoteRoot; zip=$zipPath; guest_suite=$Suite;
     zip_sha256=(Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash;
     manifest_sha256=(Get-FileHash -LiteralPath (Join-Path $inputDir 'manifest.json') -Algorithm SHA256).Hash;
     wsb_sha256=(Get-FileHash -LiteralPath (Join-Path $packageRoot 'PaneBindV1.wsb') -Algorithm SHA256).Hash;

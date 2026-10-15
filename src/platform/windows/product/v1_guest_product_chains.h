@@ -356,14 +356,15 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         (void)wait([]{return false;},100);
     };
     const auto client_pair=[&](unsigned which,const char* stage){
-        real_point(false);const auto before=counts();const auto mark=read(s.product_log).size();const auto starts=frame.starts.load();
+        real_point(false);const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto mark=read(s.product_log).size();const auto starts=frame.starts.load();
         send_button(which,true);const bool down_observed=wait([&]{return frame.client_down[which-1].load()==before[which-1][0]+1;},1000);
         send_button(which,false);const bool up_observed=wait([&]{return frame.client_up[which-1].load()==before[which-1][1]+1;},1000);
-        auto expected=before;++expected[which-1][0];++expected[which-1][1];const auto after=counts();GUITHREADINFO info{sizeof(info)};
+        auto expected=before;++expected[which-1][0];++expected[which-1][1];const auto after=counts();const auto raw_after=raw_mouse_observer_json();GUITHREADINFO info{sizeof(info)};
         s.log.check("M09_actual_unmapped_client_button_pair",down_observed&&up_observed&&after==expected&&set.owns(0)&&visible(h)==initial&&
             record(s,mark,"gesture_start").empty()&&frame.starts.load()==starts&&GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
             "\"stage\":"+quote(stage)+",\"button\":"+std::to_string(which)+",\"actual_client_DOWN_UP_counts_before\":"+count_json(before)+
-            ",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+",\"native_client_message_delivery_observed\":true");
+            ",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+",\"native_client_message_delivery_observed\":"+(down_observed&&up_observed?"true":"false")+",\"fixture_Raw_before\":"+
+            raw_before+",\"fixture_Raw_after\":"+raw_after+",\"Raw_zero_does_not_fail_product_case\":true");
     };
     const auto mouse_fragment=[](const v::Settings& value){std::wstring fragment;const auto serialized=v::serialize(value);
         for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with("mouse_count=")||row.starts_with("mouse.")){
@@ -399,7 +400,7 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         std::vector<v::MouseBinding> bindings;for(int which=1;which<=5;++which)bindings.push_back({0,which,1,0,v::Action::ToggleTopmost});
         configuration_changed=true;save_mouse(bindings);
         for(unsigned which=1;which<=5;++which){
-            real_point(true);const auto mark=read(s.product_log).size();const auto before=counts();const auto before_visual=native_visual(h);
+            real_point(true);const auto mark=read(s.product_log).size();const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto before_visual=native_visual(h);
             if(!before_visual||!before_visual->known)throw std::runtime_error("M09_before_mapped_native_tuple_unknown");
             auto expected_visual=*before_visual;expected_visual.topmost=!expected_visual.topmost;
             send_button(which,true);std::string mapped,completed;std::uint64_t generation{};
@@ -416,13 +417,14 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
             },1500);
             send_button(which,false);std::string observed_up;
             const bool up_observed=wait([&]{observed_up=actual_up(s,mark,generation,static_cast<int>(which));return !observed_up.empty();},1500);
-            GUITHREADINFO info{sizeof(info)};const auto after=counts();
+            GUITHREADINFO info{sizeof(info)};const auto after=counts();const auto raw_after=raw_mouse_observer_json();
             s.log.check("M09_real_five_button_caption_mapping",changed&&up_observed&&after==before&&record(s,mark,"gesture_start",generation).empty()&&
                 GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
                 "\"button\":"+std::to_string(which)+",\"generation\":"+std::to_string(generation)+",\"actual_mapped_DOWN\":"+(mapped.empty()?"null":quote(mapped))+
                 ",\"actual_command_receipt\":"+(completed.empty()?"null":quote(completed))+",\"actual_matching_UP\":"+(observed_up.empty()?"null":quote(observed_up))+
                 ",\"expected_native_topmost\":"+(expected_visual.topmost?"true":"false")+",\"complete_native_visual_tuple_exact\":"+(native_visual(h)==std::optional<NativeVisual>{expected_visual}?"true":"false")+
                 ",\"actual_client_DOWN_UP_counts_before\":"+count_json(before)+",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+
+                ",\"fixture_Raw_before\":"+raw_before+",\"fixture_Raw_after\":"+raw_after+",\"Raw_zero_does_not_fail_product_case\":true"+
                 ",\"no_client_button_misdelivery\":"+(after==before?"true":"false")+",\"drag_NormalUp_or_native_success_from_handler_return_not_inferred\":true");
         }
         restore();client_pair(1,"after_original_mouse_and_visual_restored");chain_check_product(s,pid,birth);

@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
+      [ValidateSet('Full','IndependentEntry')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -8,7 +9,8 @@ $outputDir='C:\PaneBindV1\Output'
 $utf8=New-Object Text.UTF8Encoding($false)
 $summaryPath=$null
 $summary=[ordered]@{schema='panebind-v1-guest/1';run_id=$RunId;status='NOT_READY';
-    source_commit=$null;requested_configurations=$Configurations;automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
+    source_commit=$null;requested_configurations=$Configurations;requested_suite=$Suite;actual_suite=$null;
+    automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
 function New-Evidence([string]$Path,[string]$Text) {
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$bytes=$script:utf8.GetBytes($Text);$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
@@ -51,6 +53,7 @@ function Fixture-ExitReason([uint32]$Code) {
         101=@('product_runtime_directory_is_not_fresh',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('LGcgAFIAdQBuAEkAZAAgAPJdCWenTsFU5WXXXxZivotufwz/0mLdfoaJ1nY='))))
         102=@('product_changed_after_guard',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('jFsQYiAAZwB1AGEAcgBkACAADlQ2UsFUyFQMXo1RIWvAaOVnMVkljQ=='))))
         103=@('guard_observation_or_evidence_exception',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZwB1AGEAcgBkACAAwonfWxZiwYtuY5lRZVECXzheG/8NTqhjrWV3UVNPr3ODWJ9T4FY='))))
+        104=@('fixture_suite_manifest_mismatch',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('S23ViwmQeZgOTixnIABSAHUAbgBJAGQAIADqU/uLBW5VUw1OAE70gQ=='))))
     }
     if($Code -le [int]::MaxValue -and $reasons.ContainsKey([int]$Code)){$reason=$reasons[[int]$Code]}
     else{$reason=@('unmapped_fixture_exit_status',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('KmcgZgRchHYgAGYAaQB4AHQAdQByAGUAIAAAkPpRtnIBYAz/AJfAaOVnn1PLWcGLbmM='))))}
@@ -250,12 +253,14 @@ try {
     if(Test-Path -LiteralPath $summaryPath){throw 'A summary already exists; preserve this batch and use a new RunId.'}
     $manifest=Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Encoding UTF8 -Raw | ConvertFrom-Json
     if($manifest.guest_configurations -cne $Configurations){throw 'Configuration selection must match this immutable package manifest.'}
+    if($manifest.guest_suite -cne $Suite){throw 'Suite selection must match this immutable package manifest.'}
     if($manifest.schema -cne 'panebind-v1-sandbox/1' -or $manifest.run_id -cne $RunId -or
        $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
        $manifest.guest_input -cne $inputDir -or $manifest.guest_output -cne $outputDir -or
        $manifest.host_root -cne ('I:\PaneBindMVP1Runs\'+$RunId)){
         throw 'Manifest identity or exact deployment paths disagree.'}
     $summary.source_commit=$manifest.source_commit
+    $summary.actual_suite=$Suite
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
     $assets=@()
@@ -528,11 +533,11 @@ public static class PaneBindV1MediumGuest {
         $sourceHash=(Get-FileHash -LiteralPath $sourceProduct -Algorithm SHA256).Hash
         $actualHash=(Get-FileHash -LiteralPath $actualProduct -Algorithm SHA256).Hash
         if($sourceHash -cne $actualHash){throw 'Copied product hash mismatch.'}
-        $arguments='--run-id '+$RunId+' --output "'+$outputDir+'" --product "'+$actualProduct+'"'
+        $arguments='--run-id '+$RunId+' --output "'+$outputDir+'" --product "'+$actualProduct+'" --suite '+$Suite
         $stage=[ordered]@{configuration=$configuration;source_input=$sourceProduct;actual_exe=$actualProduct;
             source_input_sha256=$sourceHash;actual_exe_sha256=$actualHash;hash_equal=$true;
             fixture=$fixture;fixture_sha256=(Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash;
-            arguments=$arguments;actual_result=$null;feature_result='NOT_EVALUATED';human_uat='NOT_RUN'}
+            arguments=$arguments;actual_suite=$Suite;actual_result=$null;feature_result='NOT_EVALUATED';human_uat='NOT_RUN'}
         $stage.actual_result=[PaneBindV1MediumGuest]::Run($fixture,$arguments,[uint32]$StageTimeoutSeconds)
         if($stage.actual_result.ContainsKey('fixture_exit_code')){
             $stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result['fixture_exit_code'])

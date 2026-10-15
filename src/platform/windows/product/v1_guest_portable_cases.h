@@ -120,6 +120,20 @@ void owned_portable_zip_entry_case(State& s){
     const auto old_product=s.product,old_log=s.product_log;const auto old_pid=s.product_pid;
     struct Restore {State& s;fs::path product,log;DWORD pid;~Restore(){s.product=product;s.product_log=log;s.product_pid=pid;}} restore{s,old_product,old_log,old_pid};
     s.product=executable;s.product_log=payload/L"panebind.log.jsonl";
+    bool move_failed=false;
+    const auto observe_move=[&](bool magnetic,std::string_view stage){
+        try{portable_actual_move(s,magnetic,stage);}
+        catch(const std::exception& error){
+            if(s.suite!="IndependentEntry")throw;
+            move_failed=true;s.log.failed=true;
+            s.log.emit("portable_Move_failure_preserved","\"stage\":"+quote(stage)+",\"reason\":"+quote(error.what())+
+                ",\"actual_Move\":\"FAIL\",\"I12_PASS_inferred\":false,\"no_UP_retransmission\":true");
+            // Only actual resource idleness permits the independent ordinary
+            // entry's GUI/save/exit observations. Do not re-run this Move or
+            // reset its state to manufacture a successful gesture.
+            independent_entry_ready(s,std::string("portable.")+std::string(stage)+".after_failure",false);
+        }
+    };
     try{
         s.log.check("portable_actual_normal_no_argument_launch",launch(s,L"",false),
             "\"actual_executable\":"+quote(utf8(s.product.wstring()))+",\"arguments\":\"\",\"diagnostic_enabled\":false");
@@ -128,17 +142,19 @@ void owned_portable_zip_entry_case(State& s){
         s.log.check("portable_fresh_default_actual_GUI",gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"10"&&
             !fs::exists(payload/L"settings.ini")&&!fs::exists(profile));gui_press(s,gui,VK_ESCAPE);
         s.log.check("portable_actual_Escape_closes_settings",wait([&]{return !IsWindow(gui.root);}));
-        portable_actual_move(s,true,"fresh_default_10_DIP");
+        observe_move(true,"fresh_default_10_DIP");
         gui=gui_open(s);gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),0);gui_save_enter(s,gui);
         const auto saved=panebind::core::v1::parse(read(payload/L"settings.ini"));auto expected=panebind::core::v1::default_settings();
         if(saved.value)expected.generation=saved.value->generation;
         expected.attraction_dip=0;
         s.log.check("portable_actual_GUI_save_only_extracted_configuration",saved.value&&*saved.value==expected&&saved.value->generation>0&&!fs::exists(profile),
             "\"actual_configuration\":"+quote(utf8((payload/L"settings.ini").wstring()))+",\"user_profile_created\":false");
-        portable_actual_move(s,false,"GUI_saved_attraction_zero_actual_effect");
+        observe_move(false,"GUI_saved_attraction_zero_actual_effect");
         portable_stop_current(s,"normal_no_argument_ZIP_instance");
         s.log.check("portable_delivered_bytes_retained_and_no_profile",hash(executable)==identity[5]&&hash(payload/L"manifest.json")==identity[4]&&
             hash(input/L"PaneBindV1-portable-test.zip")==identity[3]&&!fs::exists(profile));
-        s.log.emit("portable_normal_entry_result","\"I12\":\"PASS\",\"actual_Release_ZIP\":true,\"normal_arguments_empty\":true,\"actual_GUI_and_configuration_effect\":true,\"human_UAT\":\"NOT_RUN\"");
+        s.log.emit("portable_normal_entry_result","\"I12\":"+quote(move_failed?"FAIL":"PASS")+
+            ",\"suite\":"+quote(s.suite)+",\"actual_Release_ZIP\":true,\"normal_arguments_empty\":true,\"actual_GUI_saved_configuration\":true,"+
+            "\"actual_Move_effect\":"+quote(move_failed?"FAIL":"PASS")+",\"actual_normal_exit_and_bytes_checked\":true,\"human_UAT\":\"NOT_RUN\"");
     }catch(...){try{cleanup(s);}catch(...){}throw;}
 }

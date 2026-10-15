@@ -167,7 +167,7 @@ struct ApplicationTarget {
 };
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
-    std::string configuration;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
+    std::string configuration,suite{"Full"};std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
     HANDLE process{};DWORD product_pid{},owner{};
     // Driver send ledger only: successful insertion is not native delivery or
     // physical button state. A separate product hook receipt proves receipt.
@@ -178,6 +178,90 @@ struct State{
     std::array<std::shared_ptr<ApplicationTarget>,3> applications;
     std::vector<std::shared_ptr<ApplicationTarget>> created_applications;
 };
+bool own(State&,HWND);
+// IndependentEntry TEST observation only. One existing fixture UI STA writes
+// fixed atomics; the driver reads at most three times. No product authority,
+// normalized UP, HWND input attribution, callback disk IO or ring is created.
+struct GuestRawMouseObserver {
+    std::atomic<HWND> target{};std::atomic<bool> registered{};
+    std::atomic<std::uint64_t> version{},packets{},buttons{},qpc{},device{},extra{},errors{};
+    std::atomic<DWORD> stamp{};std::atomic<USHORT> flags{};
+    std::array<std::atomic<std::uint64_t>,5> downs{},ups{};
+} guest_raw_mouse;
+bool raw_mouse_observer_registration(std::optional<RAWINPUTDEVICE>& mouse){
+    std::array<RAWINPUTDEVICE,32> devices{};UINT capacity=static_cast<UINT>(devices.size());
+    const auto count=GetRegisteredRawInputDevices(devices.data(),&capacity,sizeof(RAWINPUTDEVICE));
+    if(count==static_cast<UINT>(-1)||count>devices.size())return false;
+    for(UINT n=0;n<count;++n)if(devices[n].usUsagePage==1&&devices[n].usUsage==2){if(mouse)return false;mouse=devices[n];}
+    return true;
+}
+bool raw_mouse_observer_start(State& s,HWND h){
+    std::optional<RAWINPUTDEVICE> previous;SetLastError(0);
+    const bool exact=desktop()&&medium(GetCurrentProcess())&&own(s,h)&&!guest_raw_mouse.target.load();
+    const bool inventory_known=exact&&raw_mouse_observer_registration(previous);
+    bool attempted=false,returned=false,verified=false;DWORD error{};
+    if(inventory_known&&!previous){RAWINPUTDEVICE mouse{1,2,RIDEV_INPUTSINK,h};guest_raw_mouse.target=h;attempted=true;
+        SetLastError(0);returned=RegisterRawInputDevices(&mouse,1,sizeof(mouse))!=FALSE;error=returned?0:GetLastError();
+        if(returned){std::optional<RAWINPUTDEVICE> current;verified=raw_mouse_observer_registration(current)&&current&&
+            current->hwndTarget==h&&current->dwFlags==RIDEV_INPUTSINK;guest_raw_mouse.registered=true;}
+        else guest_raw_mouse.target=nullptr;
+    }
+    s.log.emit("guest_raw_mouse_observer_registration","\"result\":"+quote(verified?"REGISTERED_OBSERVATION_ONLY":"UNKNOWN")+
+        ",\"actual_target\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"exact_test_owned\":"+(exact?"true":"false")+
+        ",\"previous_registration_inventory_known\":"+(inventory_known?"true":"false")+",\"previous_mouse_registration_present\":"+
+        (inventory_known?(previous?"true":"false"):"null")+",\"RegisterRawInputDevices_attempted\":"+(attempted?"true":"false")+
+        ",\"RegisterRawInputDevices_return\":"+(attempted?(returned?"true":"false"):"null")+",\"error\":"+std::to_string(error)+
+        ",\"actual_registration_verified\":"+(verified?"true":"false")+",\"input_delivery_or_product_PASS_not_inferred\":true");return verified;
+}
+bool raw_mouse_observer_stop(State& s){
+    const HWND target=guest_raw_mouse.target.load();std::optional<RAWINPUTDEVICE> before;
+    const bool known=raw_mouse_observer_registration(before);bool attempted=false,returned=false;DWORD error{};
+    const bool ours=known&&before&&target&&before->hwndTarget==target&&before->dwFlags==RIDEV_INPUTSINK;
+    if(ours){RAWINPUTDEVICE mouse{1,2,RIDEV_REMOVE,nullptr};attempted=true;SetLastError(0);
+        returned=RegisterRawInputDevices(&mouse,1,sizeof(mouse))!=FALSE;error=returned?0:GetLastError();}
+    std::optional<RAWINPUTDEVICE> after;const bool after_known=raw_mouse_observer_registration(after);
+    const bool absent=after_known&&!after;const bool stopped=absent&&(!target||!before||returned);
+    if(stopped){guest_raw_mouse.registered=false;guest_raw_mouse.target=nullptr;}
+    s.log.emit("guest_raw_mouse_observer_removal","\"registration_before_known\":"+std::string(known?"true":"false")+
+        ",\"only_own_exact_target_removed\":"+(ours?"true":"false")+",\"RIDEV_REMOVE_attempted\":"+(attempted?"true":"false")+
+        ",\"RegisterRawInputDevices_return\":"+(attempted?(returned?"true":"false"):"null")+",\"error\":"+std::to_string(error)+
+        ",\"registration_after_known\":"+(after_known?"true":"false")+",\"mouse_registration_actually_absent\":"+
+        (after_known?(absent?"true":"false"):"null")+",\"observer_stopped\":"+(stopped?"true":"false")+
+        ",\"product_cleanup_PASS_not_inferred\":true");return stopped;
+}
+void raw_mouse_observer_message(HWND h,UINT message,LPARAM lp){
+    if(message!=WM_INPUT||guest_raw_mouse.target.load()!=h)return;
+    RAWINPUT raw{};UINT bytes=sizeof(raw);const auto read_bytes=GetRawInputData(reinterpret_cast<HRAWINPUT>(lp),RID_INPUT,&raw,&bytes,sizeof(RAWINPUTHEADER));
+    if(read_bytes==static_cast<UINT>(-1)||read_bytes<sizeof(RAWINPUTHEADER)+sizeof(RAWMOUSE)||raw.header.dwType!=RIM_TYPEMOUSE||raw.header.dwSize!=read_bytes){
+        ++guest_raw_mouse.errors;return;
+    }
+    LARGE_INTEGER observed{};QueryPerformanceCounter(&observed);++guest_raw_mouse.version;++guest_raw_mouse.packets;
+    const auto buttons=raw.data.mouse.usButtonFlags;
+    if(buttons&0x3ffu){++guest_raw_mouse.buttons;guest_raw_mouse.flags=buttons;guest_raw_mouse.stamp=static_cast<DWORD>(GetMessageTime());
+        guest_raw_mouse.qpc=observed.QuadPart>0?static_cast<std::uint64_t>(observed.QuadPart):0;
+        guest_raw_mouse.device=static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(raw.header.hDevice));guest_raw_mouse.extra=raw.data.mouse.ulExtraInformation;
+        constexpr std::array<USHORT,5> down{RI_MOUSE_LEFT_BUTTON_DOWN,RI_MOUSE_RIGHT_BUTTON_DOWN,RI_MOUSE_MIDDLE_BUTTON_DOWN,RI_MOUSE_BUTTON_4_DOWN,RI_MOUSE_BUTTON_5_DOWN};
+        constexpr std::array<USHORT,5> up{RI_MOUSE_LEFT_BUTTON_UP,RI_MOUSE_RIGHT_BUTTON_UP,RI_MOUSE_MIDDLE_BUTTON_UP,RI_MOUSE_BUTTON_4_UP,RI_MOUSE_BUTTON_5_UP};
+        for(std::size_t n=0;n<5;++n){if(buttons&down[n])++guest_raw_mouse.downs[n];if(buttons&up[n])++guest_raw_mouse.ups[n];}
+    }
+    ++guest_raw_mouse.version;
+}
+std::string raw_mouse_observer_json(){
+    for(unsigned attempt=0;attempt<3;++attempt){const auto before=guest_raw_mouse.version.load();if(before&1u)continue;
+        const auto packets=guest_raw_mouse.packets.load(),buttons=guest_raw_mouse.buttons.load(),qpc=guest_raw_mouse.qpc.load(),device=guest_raw_mouse.device.load(),extra=guest_raw_mouse.extra.load();
+        const auto stamp=guest_raw_mouse.stamp.load();const auto flags=guest_raw_mouse.flags.load();std::array<std::array<std::uint64_t,2>,5> counts{};
+        for(std::size_t n=0;n<5;++n)counts[n]={guest_raw_mouse.downs[n].load(),guest_raw_mouse.ups[n].load()};
+        if(before!=guest_raw_mouse.version.load())continue;std::string rows="[";
+        for(std::size_t n=0;n<5;++n){if(n)rows+=',';rows+='['+std::to_string(counts[n][0])+','+std::to_string(counts[n][1])+']';}rows+=']';
+        return "{\"snapshot_known\":true,\"registered\":"+std::string(guest_raw_mouse.registered.load()?"true":"false")+
+            ",\"actual_mouse_packets\":"+std::to_string(packets)+",\"actual_button_packets\":"+std::to_string(buttons)+",\"actual_button_DOWN_UP_counts\":"+rows+
+            ",\"last_button_flags\":"+(buttons?std::to_string(flags):"null")+",\"last_button_message_time\":"+(buttons?std::to_string(stamp):"null")+
+            ",\"last_button_receiver_qpc\":"+(buttons?std::to_string(qpc):"null")+",\"last_button_hDevice\":"+(buttons?std::to_string(device):"null")+
+            ",\"last_button_extra_information\":"+(buttons?std::to_string(extra):"null")+",\"raw_read_errors\":"+std::to_string(guest_raw_mouse.errors.load())+
+            ",\"generation_authority_or_NormalUp_not_inferred\":true}";
+    }
+    return "{\"snapshot_known\":false,\"reason\":\"concurrent_native_observation\",\"generation_authority_or_NormalUp_not_inferred\":true}";
+}
 HWND source_window(State& s,std::size_t source){return s.applications.at(source)&&s.applications[source]->identity?s.applications[source]->identity->hwnd:
     (s.explorer.at(source)?s.explorer[source]->hwnd:s.frames.at(source).hwnd);}
 DWORD source_thread(State& s,std::size_t source){return s.applications.at(source)&&s.applications[source]->identity?s.applications[source]->identity->tid:
@@ -193,6 +277,8 @@ bool test_root_stamp(State& s,const product::Snapshot& identity,bool install=fal
 bool layout_ui_message(HWND,UINT,WPARAM,LPARAM);
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     if(layout_ui_message(h,message,wp,lp))return 0;
+    // Preserve DefWindowProc below, including required WM_INPUT cleanup.
+    raw_mouse_observer_message(h,message,lp);
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
     if(frame){
@@ -1588,7 +1674,135 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_interruptions.h"
 #include "platform/windows/product/v1_guest_constraint_cases.h"
 #include "platform/windows/product/v1_guest_batch_failure_case.h"
+void independent_entry_ready(State&,std::string_view,bool);
 #include "platform/windows/product/v1_guest_portable_cases.h"
+// A continuation gate for independent cases, not a replacement for a failed
+// gesture's actual UP or cleanup. It neither injects a release nor resets a
+// window's geometry. All input below targets this exact product's own UI.
+void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
+    if(s.suite!="IndependentEntry")throw std::runtime_error("independent_gate_wrong_suite");
+    const bool originals=std::all_of(s.frames.begin(),s.frames.end(),[&](const auto& f){return own(s,f.hwnd);});
+    GUITHREADINFO source{sizeof(source)};
+    const bool source_idle=GetGUIThreadInfo(s.owner,&source)&&!source.hwndCapture&&!source.hwndMoveSize&&!source.hwndMenuOwner;
+    const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD app_pid{};
+    const auto app_tid=app?GetWindowThreadProcessId(app,&app_pid):0;
+    const auto birth=s.process?process_birth(s.process):0;
+    const auto actual_hash=hash(s.product),source_hash=hash(s.input_product);
+    const bool alive=s.process&&s.product_pid&&birth&&app_tid&&app_pid==s.product_pid&&
+        GetProcessId(s.process)==s.product_pid&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&medium(s.process)&&
+        !actual_hash.empty()&&actual_hash==source_hash;
+    s.log.check("independent_entry_initial_resource_identity",!s.left&&!s.control&&originals&&source_idle&&alive&&
+        !layout_ui_pending.load(std::memory_order_acquire),"\"stage\":"+quote(stage)+
+        ",\"driver_outstanding_is_not_delivery\":true,\"no_synthetic_UP_sent_by_gate\":true");
+    GUITHREADINFO product_gui{sizeof(product_gui)};
+    if(!GetGUIThreadInfo(app_tid,&product_gui)||product_gui.hwndCapture||product_gui.hwndMoveSize)
+        throw std::runtime_error("independent_product_GUI_context_unknown_or_busy");
+    if(product_gui.hwndActive&&product_gui.hwndActive!=app){
+        SettingsGui candidate{product_gui.hwndActive,GetDlgItem(product_gui.hwndActive,100),app_tid};
+        if(!gui_identity(s,candidate,candidate.tab))throw std::runtime_error("independent_unknown_active_product_modal_not_controlled");
+    }
+    if(product_gui.hwndMenuOwner){
+        DWORD menu_pid{};GetWindowThreadProcessId(product_gui.hwndMenuOwner,&menu_pid);
+        if(product_gui.hwndMenuOwner!=app||menu_pid!=s.product_pid||GetForegroundWindow()!=app)
+            throw std::runtime_error("independent_menu_not_exact_product_owner");
+        key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
+        s.log.check("independent_actual_product_menu_Escape",wait([&]{GUITHREADINFO g{sizeof(g)};
+            return GetGUIThreadInfo(app_tid,&g)&&!g.hwndMenuOwner&&!g.hwndCapture&&!g.hwndMoveSize;}));
+    }
+    struct Settings {State* s;HWND app;DWORD tid;SettingsGui gui;unsigned count{};} query{&s,app,app_tid};
+    EnumThreadWindows(app_tid,[](HWND h,LPARAM p)->BOOL{auto& q=*reinterpret_cast<Settings*>(p);
+        if(gui_class(h)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(h)){
+            SettingsGui candidate{h,GetDlgItem(h,100),q.tid};if(GetWindow(h,GW_OWNER)==q.app&&gui_identity(*q.s,candidate,candidate.tab)){q.gui=candidate;++q.count;}}
+        return TRUE;},reinterpret_cast<LPARAM>(&query));
+    if(query.count>1)throw std::runtime_error("independent_multiple_settings_windows");
+    if(query.count){
+        if(GetForegroundWindow()!=query.gui.root)throw std::runtime_error("independent_settings_has_unknown_modal_or_foreground");
+        gui_press(s,query.gui,VK_ESCAPE);
+        s.log.check("independent_actual_settings_Escape",wait([&]{return !IsWindow(query.gui.root);}));
+    }
+    const auto status=[&]{std::string row;const auto mark=read(s.product_log).size();DWORD code=STILL_ACTIVE;
+        if(!launch(s,L"--status",true,&code)||code||!wait([&]{row=record(s,mark,"status");return !row.empty();},1000)||
+           number(row,"\"process_id\":")!=s.product_pid)throw std::runtime_error("independent_fresh_status_unavailable");return row;};
+    auto facts=status();
+    if(facts.find("\"gesture_active\":true")!=facts.npos){
+        const auto mark=read(s.product_log).size();
+        s.log.check("independent_explicit_abort_pause_command",launch(s,L"--pause",true));
+        s.log.check("independent_abort_observed_not_NormalUp",wait([&]{const auto end=record(s,mark,"gesture_end");
+            return !end.empty()&&number(end,"\"end\":")==static_cast<unsigned>(panebind::core::v1::End::Paused)&&
+                end.find("\"normal_up\":false")!=end.npos;}));facts=status();
+    }
+    const auto idle=[](const std::string& row){return row.find("\"gesture_active\":false")!=row.npos&&
+        row.find("\"native_operation_pending\":false")!=row.npos&&row.find("\"native_completion_unknown\":false")!=row.npos&&
+        row.find("\"visual_restore_pending\":false")!=row.npos;};
+    s.log.check("independent_entry_actual_idle_before_continuation",idle(facts)&&GetGUIThreadInfo(app_tid,&product_gui)&&
+        !product_gui.hwndCapture&&!product_gui.hwndMoveSize&&!product_gui.hwndMenuOwner,
+        "\"stage\":"+quote(stage)+",\"status\":"+quote(facts)+",\"failed_case_PASS_inferred\":false");
+    if(!restore_defaults&&facts.find("\"enabled\":false")!=facts.npos){
+        // Ordinary portable-entry checks keep their current saved attraction
+        // value; only resume after a separately observed abort/idle gate.
+        const auto before=matrix_settings(s);const auto gui=gui_open(s);gui_page_select(s,gui,0);
+        const auto enabled=gui_find(s,gui,L"Button",L"启用 PaneBind");
+        if(gui_read(s,gui,enabled,BM_GETCHECK)!=BST_CHECKED)gui_click(s,gui,enabled);
+        s.log.check("independent_portable_resume_actual_checkbox",wait([&]{return gui_read(s,gui,enabled,BM_GETCHECK)==BST_CHECKED;}));
+        gui_save_enter(s,gui);const auto restored=matrix_settings(s);auto expected=before;
+        expected.enabled=true;expected.generation=restored.generation;facts=status();
+        s.log.check("independent_portable_resume_preserves_other_settings",restored==expected&&idle(facts)&&
+            facts.find("\"enabled\":true")!=facts.npos,"\"not_recovery_of_old_generation\":true");
+    }
+    if(restore_defaults){
+        namespace v=panebind::core::v1;const auto actual=matrix_settings(s);auto expected=v::default_settings();expected.generation=actual.generation;
+        const auto run=settings_guest_run_value();const auto own_run=L"\""+s.product.wstring()+L"\" --startup";
+        if(run.exists&&run.text!=own_run)throw std::runtime_error("independent_unknown_startup_value_not_modified");
+        if(actual!=expected||run.exists||!fs::exists(s.product.parent_path()/L"settings.ini")||facts.find("\"enabled\":true")==facts.npos){
+            const auto gui=gui_open(s);settings_guest_activate(s,gui,GetDlgItem(gui.root,111));
+            const auto modal=settings_guest_modal(s,gui,L"PaneBind");const auto yes=GetDlgItem(modal.root,IDYES);RECT r{};
+            DWORD yes_pid{};if(!yes||GetWindowThreadProcessId(yes,&yes_pid)!=gui.tid||yes_pid!=s.product_pid||
+                !IsChild(modal.root,yes)||!GetWindowRect(yes,&r))throw std::runtime_error("independent_defaults_confirmation_unknown");
+            const POINT point{(r.left+r.right)/2,(r.top+r.bottom)/2};cursor(s,point);
+            if(!settings_guest_modal_identity(s,gui,modal)||GetForegroundWindow()!=modal.root||WindowFromPoint(point)!=yes)
+                throw std::runtime_error("independent_defaults_actual_yes_hit_changed");
+            button(s,true);button(s,false);
+            s.log.check("independent_defaults_real_confirmation",wait([&]{return !IsWindow(modal.root)&&GetForegroundWindow()==gui.root;}));
+            gui_save_enter(s,gui);
+        }
+        const auto restored=settings_guest_configuration(s);expected.generation=restored.generation;facts=status();
+        s.log.check("independent_defaults_actual_saved_and_readback",restored==expected&&!settings_guest_run_value().exists&&idle(facts)&&
+            facts.find("\"enabled\":true")!=facts.npos,"\"stage\":"+quote(stage)+",\"test_setup_only_not_failed_case_PASS\":true");
+    }
+}
+void independent_entry_flow(State& s){
+    const auto phase=[&](const char* name,void(*run)(State&)){
+        independent_entry_ready(s,std::string(name)+".before",true);const auto mark=read(s.log.path).size();bool exception=false;
+        try{run(s);}catch(const std::exception& error){exception=true;s.log.failed=true;
+            s.log.emit("independent_entry_phase_failure","\"phase\":"+quote(name)+",\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
+        const auto rows=read(s.log.path).substr(mark);
+        const bool failed=exception||rows.find("\"result\":\"FAIL\"")!=rows.npos;
+        const bool blocked=rows.find("\"result\":\"BLOCKED")!=rows.npos;
+        const bool not_run=rows.find("\"result\":\"NOT_RUN\"")!=rows.npos;
+        if(failed||blocked||not_run)s.log.failed=true;
+        independent_entry_ready(s,std::string(name)+".after",true);
+        s.log.emit("independent_entry_phase_result","\"phase\":"+quote(name)+",\"result\":"+
+            quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+",\"independent_only\":true");
+    };
+    phase("settings_GUI",settings_gui_flow);
+    phase("settings_startup",settings_guest_startup);
+    phase("settings_exclusion",settings_guest_exclusion);
+    phase("settings_import_export",settings_guest_import_export);
+    phase("settings_corrupt_restart",settings_guest_corrupt_restart);
+    phase("tray",owned_tray_entry_cases);
+    phase("five_button_mapping",owned_mouse_mapping_cases);
+    const auto explorer=[](State& state){try{explorer_flow(state);}catch(...){cleanup_explorers(state);throw;}cleanup_explorers(state);};
+    phase("Explorer_actual_chain",explorer);
+    const auto applications=[](State& state){try{application_matrix_flow(state);}catch(...){cleanup_applications(state);cleanup_explorers(state);throw;}
+        cleanup_applications(state);cleanup_explorers(state);};
+    phase("application_matrix",applications);
+    if(s.configuration=="Release"){
+        independent_entry_ready(s,"portable.before",true);owned_portable_zip_entry_case(s);
+    }else s.log.emit("independent_entry_phase_result","\"phase\":\"portable_ordinary_entry\",\"result\":\"NOT_RUN\",\"reason\":\"Release_only_actual_package_required\"");
+    cleanup(s);
+    s.log.emit("independent_entry_summary","\"suite\":\"IndependentEntry\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+        ",\"owned_I02\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"Explorer_result_requires_own_phase_evidence\":true,\"human_uat\":\"NOT_RUN\"");
+}
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
@@ -1631,6 +1845,10 @@ void drive(State& s){
             FindWindowW(L"PaneBind.V1.Application",L"PaneBind")==app&&wait([&]{return !record(s,mark,"status").empty();});
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
+        s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
+        if(s.suite=="IndependentEntry"){
+            independent_entry_flow(s);s.result=s.log.failed?1:0;
+        }else{
         // Preserve the complete historical action order. Initial layout is
         // fixture setup only; no geometry reset occurs between these gestures.
         five(s,0,"A_initial");
@@ -1734,6 +1952,7 @@ void drive(State& s){
         cleanup(s);
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;
+        }
     }catch(const std::exception& error){
         try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup(s);cleanup_applications(s);cleanup_explorers(s);}catch(...){}s.result=1;
     }
@@ -1808,6 +2027,10 @@ int guard(State& s){
     if(value)WTSFreeMemory(value);
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
+    const auto package=read(input/L"manifest.json",256*1024);
+    if((s.suite!="Full"&&s.suite!="IndependentEntry")||portable_field(package,"guest_suite")!=s.suite)
+        return guard_reject(s,104,"fixture_suite_manifest_mismatch");
+    s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     std::error_code error;const auto actual_output=fs::weakly_canonical(output,error);
     s.log.emit("guard_output_canonical","\"path\":"+quote(utf8(actual_output.wstring()))+",\"error_code\":"+std::to_string(error.value()));
     if(error||!product::guest::same_exact_directory(actual_output,output))return guard_reject(s,91,"output_canonical_path_not_exact");
@@ -1844,7 +2067,13 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         if(output&&output!=INVALID_HANDLE_VALUE)WriteFile(output,identity,static_cast<DWORD>(sizeof(identity)-1),&written,nullptr);
         LocalFree(args);return 0;
     }
-    bool parsed=count==7;if(parsed)for(int n=1;n<count;n+=2){const std::wstring name=args[n];if(name==L"--run-id")s.run=args[n+1];else if(name==L"--output")s.output=args[n+1];else if(name==L"--product")s.input_product=args[n+1];else parsed=false;}
+    bool parsed=count==7||count==9;unsigned seen{};
+    if(parsed)for(int n=1;n<count;n+=2){const std::wstring name=args[n];unsigned field{};
+        if(name==L"--run-id"){field=1;s.run=args[n+1];}else if(name==L"--output"){field=2;s.output=args[n+1];}
+        else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
+            const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";else parsed=false;}
+        else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
+    parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
     try{const int result=guard(s);if(result)return result;}catch(...){try{return guard_reject(s,103,"guard_observation_or_evidence_exception");}catch(...){return 103;}}
     const bool dpi_set=SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)!=FALSE;const DWORD dpi_error=dpi_set?0:GetLastError();
@@ -1855,7 +2084,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         s.product_log=s.product.parent_path()/L"panebind.log.jsonl";
         if(fs::exists(s.product_log)||fs::exists(s.product.parent_path()/L"settings.ini"))return guard_reject(s,101,"product_runtime_directory_is_not_fresh");
         const auto source=hash(s.input_product),copy=hash(s.product);if(source.empty()||source!=copy)return guard_reject(s,102,"product_changed_after_guard");
-        s.log.emit("guard","\"run_id\":"+quote(utf8(s.run))+",\"configuration\":"+quote(s.configuration)+",\"actual_integrity\":\"Medium\",\"elevated\":false,\"driver_has_console\":"+
+        s.log.emit("guard","\"run_id\":"+quote(utf8(s.run))+",\"configuration\":"+quote(s.configuration)+",\"suite\":"+quote(s.suite)+",\"actual_integrity\":\"Medium\",\"elevated\":false,\"driver_has_console\":"+
             std::string(GetConsoleWindow()?"true":"false")+",\"input_executable\":"+quote(utf8(s.input_product.wstring()))+",\"actual_executable\":"+quote(utf8(s.product.wstring()))+
             ",\"binary_sha256\":"+quote(source)+",\"human_uat\":\"NOT_RUN\"");
         s.class_name=L"PaneBind.V1.OwnedFixture."+s.run;WNDCLASSW wc{};wc.hInstance=instance;wc.lpfnWndProc=procedure;wc.lpszClassName=s.class_name.c_str();wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);wc.hbrBackground=GetSysColorBrush(COLOR_WINDOW);
@@ -1863,11 +2092,15 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         for(std::size_t n=0;n<3;++n){const auto title=L"PaneBind V1 — "+std::wstring(1,static_cast<wchar_t>(L'A'+n));
             s.frames[n].hwnd=CreateWindowExW(0,s.class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,100+static_cast<int>(n)*250,80,260,260,nullptr,nullptr,instance,&s.frames[n]);
             if(!s.frames[n].hwnd)throw std::runtime_error("owned_window_creation_failed");ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);UpdateWindow(s.frames[n].hwnd);}
+        if(s.suite=="IndependentEntry")raw_mouse_observer_start(s,s.frames[0].hwnd);
         MSG message{};PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE);s.driver=std::thread([&]{drive(s);});
         while(GetMessageW(&message,nullptr,0,0)>0){TranslateMessage(&message);DispatchMessageW(&message);}if(s.driver.joinable())s.driver.join();
+        if(guest_raw_mouse.target.load()&&!raw_mouse_observer_stop(s))s.log.failed=true;
         bool destroyed=true;for(auto& f:s.frames)if(f.hwnd&&IsWindow(f.hwnd)){if(!own(s,f.hwnd)){destroyed=false;continue;}destroyed=DestroyWindow(f.hwnd)&&destroyed;}UnregisterClassW(s.class_name.c_str(),instance);
-        s.log.emit("driver_shutdown","\"result\":"+quote(s.result==0&&!s.log.failed&&destroyed?"PASS":"FAIL")+",\"owned_windows_destroyed\":"+std::string(destroyed?"true":"false")+
+        s.log.emit("driver_shutdown","\"result\":"+quote(s.result==0&&!s.log.failed&&destroyed?"PASS":"FAIL")+",\"suite\":"+quote(s.suite)+",\"owned_windows_destroyed\":"+std::string(destroyed?"true":"false")+
             ",\"product_process_closed\":"+std::string(!s.process?"true":"false")+",\"scope\":\"exact_guest_targets_not_full_acceptance\",\"human_uat\":\"NOT_RUN\"");
         return s.result==0&&!s.log.failed&&destroyed?0:1;
-    }catch(...){if(s.driver.joinable())s.driver.join();for(auto& f:s.frames)if(own(s,f.hwnd))DestroyWindow(f.hwnd);return 1;}
+    }catch(...){if(s.driver.joinable())s.driver.join();
+        if(guest_raw_mouse.target.load())try{raw_mouse_observer_stop(s);}catch(...){}
+        for(auto& f:s.frames)if(own(s,f.hwnd))DestroyWindow(f.hwnd);return 1;}
 }
