@@ -1658,3 +1658,13 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   owning the matching DOWN/UP pair. No injected product input, capture or
   native-loop correction is introduced. Actual cursor/geometry/UP evidence,
   not this hypothesis, determines that candidate's verdict.
+- V1 second-instance command dispatch: official
+  [WM_COPYDATA](https://learn.microsoft.com/en-us/windows/win32/dataxchg/wm-copydata)
+  and SendMessage contracts were read 2026-10-15 after run
+  `12dca72858ad4f2088f24e724eec8d5c` completed the owned historical gesture
+  sequence but rejected the synchronously dispatched Center command. The
+  receiver now validates/copies the action enum and posts it to its own STA
+  queue; no borrowed pointer survives WM_COPYDATA. This avoids synchronous
+  cross-process message context for COM admission. The original failure did
+  not record a COM HRESULT, so that specific system cause remains an inference,
+  not an observed HRESULT. Delivery is reported separately from actual geometry.

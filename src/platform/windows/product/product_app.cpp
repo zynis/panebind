@@ -31,7 +31,7 @@ namespace m=core::magnet;
 namespace fs=std::filesystem;
 namespace {
 constexpr wchar_t app_class[]=L"PaneBind.V1.Application";
-constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31;
+constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31, queued_command_message=WM_APP+32;
 constexpr UINT menu_pause=500,menu_settings=501,menu_exclude=502,menu_help=503,menu_diagnostic=504,menu_exit=505;
 std::wstring wide(std::string_view s){
     if(s.empty())return {};const int n=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),nullptr,0);
@@ -527,8 +527,13 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
     // foreground; never accept an unrelated stale HWND without recapture.
     const auto foreground=target?std::optional<Snapshot>{}:catalog.get(GetForegroundWindow(),settings);
     const auto source=target?target:foreground?foreground:last_target;if(!source){notify(L"没有可操作的普通前台窗口。");return;}
-    auto now=catalog.get(source->hwnd,settings,nullptr,action==v::Action::Restore);
-    if(!now||!Catalog::same(*source,*now)){notify(L"目标窗口资格已经失效。");return;}
+    std::string admission_reason;auto now=catalog.get(source->hwnd,settings,&admission_reason,action==v::Action::Restore);
+    if(!now||!Catalog::same(*source,*now)){
+        log.event("command_rejected","\"action\":\""+std::string(v::action_name(action))+"\",\"reason\":\""+
+            escaped(now?"identity_changed":admission_reason)+"\",\"expected_key\":"+std::to_string(source->key)+
+            ",\"actual_key\":"+(now?std::to_string(now->key):"null"));
+        notify(L"目标窗口资格已经失效。");return;
+    }
     auto s=*now;if(!(s.feature_mask&16u)){notify(L"应用规则禁用了窗口命令。");return;}last_target=s;v::Rect desired=s.visible;bool geometry=true,keep_history=true;
     const auto step=dip(settings.step_dip,s.dpi);auto others=items(catalog.all(settings));
     others.erase(std::remove_if(others.begin(),others.end(),[&](const auto& item){return item.id==s.key;}),others.end());
@@ -1181,8 +1186,14 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             const auto* data=reinterpret_cast<COPYDATASTRUCT*>(lp);
             if(data&&data->dwData==0x50425631&&data->cbData>=1&&data->cbData<80&&data->lpData){
                 const auto name=std::string_view(static_cast<const char*>(data->lpData),data->cbData-1);
-                const auto command=v::action_from_name(name);if(command){a->command(*command);return TRUE;}}
+                const auto command=v::action_from_name(name);
+                // Copy only the validated enum, never retain WM_COPYDATA's
+                // borrowed pointer. Catalog's COM desktop admission must run
+                // in the normal STA pump, not a cross-process SendMessage.
+                if(command)return PostMessageW(w,queued_command_message,static_cast<WPARAM>(*command),0)?TRUE:FALSE;}
             return FALSE;}
+        case queued_command_message:
+            if(wp<v::settings_detail::action_names.size())a->command(static_cast<v::Action>(wp));return 0;
         case WM_DISPLAYCHANGE:case WM_DPICHANGED:case WM_SETTINGCHANGE:
             a->input.revoke();a->finish(v::End::SessionLost);a->prepare();return 0;
         case WM_POWERBROADCAST:
@@ -1234,13 +1245,13 @@ int run(HINSTANCE instance,const wchar_t*){
     const HANDLE mutex=CreateMutexW(nullptr,FALSE,L"Local\\PaneBind.V1.SingleInstance");
     const bool existing=mutex&&GetLastError()==ERROR_ALREADY_EXISTS;
     if(!mutex){CoUninitialize();return 1;}
-    if(existing){const auto target=FindWindowW(app_class,L"PaneBind");
+    if(existing){const auto target=FindWindowW(app_class,L"PaneBind");int delivered=2;
         if(target){if(argv.size()==2&&argv[0]==L"--command"){
                 const auto name=utf8(argv[1]);COPYDATASTRUCT data{0x50425631,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
-                SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result);
-            }else PostMessageW(target,external_message,(!argv.empty()&&argv[0]==L"--quit")?1:(!argv.empty()&&argv[0]==L"--pause")?2:
-                (!argv.empty()&&argv[0]==L"--status")?3:0,0);}
-        CloseHandle(mutex);CoUninitialize();return target?0:2;
+                delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;
+            }else delivered=PostMessageW(target,external_message,(!argv.empty()&&argv[0]==L"--quit")?1:(!argv.empty()&&argv[0]==L"--pause")?2:
+                (!argv.empty()&&argv[0]==L"--status")?3:0,0)?0:2;}
+        CloseHandle(mutex);CoUninitialize();return delivered;
     }
     if(!argv.empty()&&(argv[0]==L"--quit"||argv[0]==L"--pause"||argv[0]==L"--status"||argv[0]==L"--command")){
         CloseHandle(mutex);CoUninitialize();return 2;}

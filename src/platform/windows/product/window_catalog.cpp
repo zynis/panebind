@@ -280,8 +280,9 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     if (FAILED(DwmGetWindowAttribute(window, DWMWA_CLOAKED, &cloak, sizeof(cloak))) || cloak != 0)
         return reject("cloaked_or_unknown");
     BOOL on_current_desktop{};
-    if (impl_->desktops->IsWindowOnCurrentVirtualDesktop(window, &on_current_desktop) != S_OK ||
-        on_current_desktop == FALSE) return reject("not_confirmed_current_virtual_desktop");
+    const HRESULT desktop_result=impl_->desktops->IsWindowOnCurrentVirtualDesktop(window, &on_current_desktop);
+    if(desktop_result!=S_OK)return reject("virtual_desktop_query_failed:"+std::to_string(static_cast<std::uint32_t>(desktop_result)));
+    if(on_current_desktop==FALSE)return reject("not_confirmed_current_virtual_desktop");
 
     const Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, FALSE, result.pid));
     if (!process.get() || WaitForSingleObject(process.get(), 0) != WAIT_TIMEOUT)
