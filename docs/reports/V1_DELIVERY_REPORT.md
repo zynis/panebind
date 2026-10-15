@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-实际能证明的操作目前仍主要来自隔离 guest 的普通权限 owned 窗口。历史 T→L／四格／八窗及 grid 拒绝证据保留；最新 f626／8cee 的普通 C Move 五阶段实际几何通过，但真实 UP 未闭环，停止才以 Exit 终止，整体 FAIL。该反例发生在普通移动而非故障注入，正常收尾现已阻断实时手势整链。post-stop 的实际点击发送和窗口计数增长通过此子场景。真实 Explorer、完整跨应用组、显示矩阵和最终便携包仍未通过整版验收，不将接线或局部自动 DEV 等同宿主试用／人工 UAT。
+实际能证明的操作已不只限于旧 owned 探针：普通权限 Release 的真实七文件 ZIP 已完成无参启动、首次可见中文设置、保存后 Move 效果和正常退出；真实 Terminal 已完成 Move 五阶段、Resize、窗口命令、Esc 与客户输入。设置生命周期、五键映射、owned 视觉及独立 60 秒空闲测量也有新的局部证据。最新已审阅 e4／593 的 `IndependentEntry` 整批仍 FAIL：托盘受阻，dock／I08／I11／native 故障及 Edge 收尾未闭环；正式 Medium Explorer、编辑器、混合应用组和显示矩阵仍不满足整版门槛。旧 f626／8cee 普通 C 缺 UP 及其他原始失败保留；后继某次正常 UP 不把它们改写为通过。以下局部结果不等同最终整版交付、宿主试用或真人 UAT。
 
 ## 源码与包身份
 
@@ -12,12 +12,12 @@
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 最新已运行 runtime | `f626b6ee8c934da08497172898f6d93d155d5964`；Debug／Release 构建与各 10 项 offline 通过，实际现场运行 Release；不据此转记功能通过 |
-| 本包文档打包 HEAD | `d22ec87a3021746fb7e8e63aa230fa7d496c50bc`，相对 RUNTIME 仅允许三交付文档差异，二进制身份仍为 f626 |
-| 最新已审阅现场 | f626／RunId `8cee44b3378f41998e8e5dcf9635f5f3`；普通 C gen4 五阶段 exact，单次测试 UP 后无实际 UP／正常 end，stop Exit，整体 FAIL；7cac／1bee／eae 原始失败保留 |
-| 当前批次收尾 | 8cee collection 与精确 guest／任务清理回执已保存，证据未变；shutdown 资源字段 true，post-stop 真实发送及计数 `[0,0]→[1,1]` 通过此子场景，不代表正常手势／整版 cleanup 验收 |
-| 当前 guest ZIP／manifest SHA-256 | `5CDC535CA3722719F8C52F05FA424612AD72924A03B4B6531295ABBFEB180A6A`／`387E9F685D1BC1D96E89B16BA8E488F9190D3529389DA02E7FF9AC2E9E0C5066` |
-| 当前真便携包 | PackageId `9a24ab31cda1423fb3c2e9a0690ca8a2`；ZIP `5F67870513EA12A61E3F97020CDC22005FC625A0FB60D4C5A0D5BFEEB782596D`；Release EXE `910374EE1B72C4D0C2574FA2FD1460F7BCAF0D5DC8D0650F0196C4E975475F8F`；8cee 未到达 I12 普通入口，NOT_RUN；旧 f6b4／d6ab／b650／6d022 保留 |
+| 当前已收证候选 runtime | `59326ce35a4f380343bdf78353087cb30d595be4`；Debug／Release 重建与各 10 项 offline 通过，e4 实际运行 Release；仍是开发候选，不固定最终交付 SHA |
+| 此候选打包 HEAD | `59326ce35a4f380343bdf78353087cb30d595be4`；新包与旧 f626／d22、783、3a65、50df 分别绑定，不跨包继承现场通过 |
+| 最新已审阅现场 | RunId `e4a9f65c5034440f9822babf794956db`，Release／Medium／`IndependentEntry`；真实局部结果见下，整批 FAIL；不是 Full／I02／I11 整链通过 |
+| 此批实际退出 | 产品正常退出，hooks／overlay／native worker／visual recovery 资源字段 true，unknown native=false；post-stop 真实客户计数 `[5,5]→[6,6]`；Edge exact 根关闭未确认，登记保留，不记整批 cleanup PASS；精确 guest／任务编排清理回执为 true，证据未变、部署保留 |
+| 此候选 guest ZIP／manifest SHA-256 | `F85330A09C2EA9B5B847B317C9148DF8F8436E8D5F613FE5412C3ABFD32CCB1C`／`65BFD26624CCE39B11F3C358918B0E4929471FCD642EF6BC13DBE2F314B2FA48` |
+| 此候选真便携包 | PackageId `458849b1956440f3a7fcf3f487e85974`；ZIP `E05DE47F3C30B405B47E2F20B883C076E9768D4B98CA81FCBDCAD0A975A82A1B`；Release EXE `692728AD934FFD221342D335AFCB30B4F90DF0909A2BDF1DAAA9E4B063F27BC6`；e4 seq593–647 普通无参子流程实际通过，不据此宣布整版／真人验收通过；旧包保留 |
 | 历史 aae 已收证 | `a2eb05f7e76d05ec9378e0d12631dfd22c326fbb`／`aae67076ccda4bdb9300c9015108231a`，整体 FAIL；原始证据及清理回执保留 |
 | aae ZIP／manifest SHA-256 | `31132A5BCBB4EAB8F488BCE647B80A5A36A6E57540B5DA83FF41FC5BE2D8B8EF`／`DF95AEEA2336F7217A051A5341B8BE85F5E379147B48CC377B369ABCEF4BC793` |
 | aae Release／Debug EXE SHA-256 | `A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56`／`6C1B5EB112CC8169E166A13A627AE16B2A354BAB63882224FCC65301E0C2C596` |
@@ -31,6 +31,42 @@
 
 ## 已运行的功能与明确失败
 
+### e4／593：普通便携入口、Terminal 与独立组件有实际进展，整批仍 FAIL
+
+原始证据：`uat/v1-control/e4a9f65c5034440f9822babf794956db/collection-20261015T185026239Z-b2e503d862f240b7b630d979e3892d5d/`。这是 `IndependentEntry`，不是绕开失败后补记 Full 通过；每一独立阶段之间都核验当前产品身份、真实 idle／pending 状态、driver 账本及原三窗资源归属，失败保留后才在安全条件成立时继续。
+
+- 真实设置 GUI、登录启动开关／自己的实际 Run 值、导入导出、损坏配置备份／默认恢复、排除及还原的 phase 分别在 seq203、236、442、492、580 通过。标题五键实际映射／同代 UP／置顶反转和客户区五键透传子流程 seq344 通过；不是把映射 UP 当作拖动 NormalUp。
+- 真七文件 ZIP 在带中文／空格的独立解压位置以空参数正常启动（seq593）；首次同 PID 唯一中文设置实际可见（595），没有发送 `--settings` 促成首次出现。默认设置、Esc、实际 Move、GUI 保存后下一 Move 效果、正常退出／真实客户输入恢复、交付字节不变及无用户 profile 写入均有回执，647 为该便携子流程 PASS。它不是 `--build-identity`、构建或 driver 注入产品权限的替代入口；真人 UAT 和整版验收仍未通过。
+- Release 独立空闲实测 seq1234 为 60.0009748 秒、单逻辑核 CPU 平均 0%，结束工作集 26,361,856 字节、private commit 3,645,440 字节。后者是提交量，不是驻留内存；这不是两轮／15 分钟 I11 证据。owned 视觉映射、原属性及布局恢复组件 seq1614 通过。
+- 实际 Terminal 的五阶段 Move、匹配真实 UP、Resize、Center／DockLeft／Undo／Stretch、Esc 恢复与客户区输入 seq1874–1925 通过；1927 精确根关闭确认，1928 为该类别本次范围 PASS。只证明此真实终端类别，不外推 Explorer／编辑器或混合组。
+- 托盘 seq498／504 为 BLOCKED：精确当前 UID1 图标不可达。dock 后自由移动806、I08 匹配 UP1032／actor START1064、I11 普通 UP1208、临时在途1694、grid status1796、第二成员 status1824 各保留 FAIL；没有把 `FAIL_SAFE_TO_CONTINUE` 改成场景通过。单屏的跨屏项目774明确为 `ENVIRONMENT_BLOCKED`。
+- Explorer 实际根 `integrity_rid=8192,elevated=true,medium=false`，资格拒绝且没有发送该目标输入；Notepad／VSCode 本批指定 EXE 缺失，BLOCKED。Edge 在 actual hit 检查1958失败，随后 exact 根关闭未确认，登记保留；未知身份不被强关，整个混合组未完成。
+- 产品正常退出的真实资源 flags、post-stop 客户计数增长成立，但 Edge 清理未确认且整批 `driver_shutdown=FAIL`。这些结果与 guest 后续销毁分别记账，不把影响被隔离等同产品 cleanup 通过。后继修复及最终候选身份尚由主执行继续，不预填结果。
+
+### bdab／50df：owned I02 子链及 T／L／四格通过，八窗因失焦中止
+
+源码 `50dfdaa69352ad86f3b8da73c05badd3f361f73e`；原始证据：`uat/v1-control/bdab2e5e8aa648caa7bfe50124caa89d/collection-20261015T183312474Z-cf8ba2b9a13f455cac309ec73f6fbb83/`。
+
+- Release `Full` fixture seq30–134 实际完成 owned A/B/C 普通五阶段、Ctrl A、B 原生 Resize 后 A 回环、Ctrl C、匹配 UP 及 Center／Dock 命令；随后 T／L／四格对应共享缩放和 source 切换通过子场景。它是 owned 子链，不替代正式 I02 的 Explorer／混合应用范围。
+- 八窗 source7 的真实 Ctrl DOWN／g15 后，前台短暂变为未知 HWND3146652；产品按 FocusLost 撤权，本代 placement=0。驱动新的光标插入返回1，但独立 GetCursorPos 未到目标，seq512 `test_cursor_not_exact`，整批 FAIL。不操作未知窗口、不重试原八窗链，也不把它预判成产品写入错误。
+- 正常 stop 与 post-stop 客户输入通过各自子项，不能关闭八窗失败。后面的应用和普通便携入口未由本批运行；不能把 e4 的独立分段结果拼接成 bdab 的 Full 通过。
+
+### 945c／3a65：Terminal 真实正常 UP，旧 fixture 的 Console 查询分支误拒
+
+源码 `3a65a41e7e4c4382ddde4a343b7df30d301a4857`；原始证据：`uat/v1-control/945c28c08a4a43d4b6801b15706aa33d/collection-20261015T182256411Z-b77926536cb34647a4b701dda2338002/`。
+
+- Terminal 五阶段实际几何成立，最终 `[150,150,1050,810]`。fixture681 单次 UP 后，682 引出产品 PID5852 seq22 的同 g1 实际 LL UP，seq23 明确 `normal_up=true,pending_retired=true`。
+- fixture683 整体仍 FAIL；旧 `up()` 直接按 source TID 查询 Console 的 GUI 队列，与生产精确前台 Console fallback 不一致。原683没有该查询的具体错误码，不能补造；686以生产 helper 实际确认 `foreground_console`／GUI idle。此确定性驱动差异已修，e4 以新身份重新验证 Terminal 完整本次类别范围。
+- 原945c整批失败与当时未完成的 Resize／命令／客户输入保持原样；这一真实 NormalUp 不关闭其他构建中普通或异常场景的实际 UP 缺失。
+
+### fdfe／783：GUI、五键与损坏恢复通过子流程，其余失败不隐藏
+
+源码 `783078111ebee3d17cdaa80244180e0f4b4f155b`；原始证据：`uat/v1-control/fdfe8a79403342259401aad1b6a45b7c/collection-20261015T180117207Z-cb793400912e4c7bade308ff7387196a/`。
+
+- IndependentEntry 的真实六页 GUI（201）、登录启动开关与实际 Run 值恢复（232）、五键客户区透传／标题映射及资源关闭（338）通过各自子流程。损坏配置前真实正常退出与客户输入恢复、重启提示、exact 备份字节、默认值和原选项恢复377–416通过，未把历史快照充作本次结果。
+- 原生文件名键入361失败；实际 local Esc 取消不使导入导出通过。托盘421／425 BLOCKED。排除 native Move 的起手预检 HTCAPTION=2 与实际 `WM_NCLBUTTONDOWN` wparam=8 冲突，485失败，不能写成已进入原生 Move。
+- Edge 绑定后 DOWN／START531失败；旧 catch 的 outstanding DOWN 尚未清理，安全门534拒绝继续；exact 根关闭未确认，登记保留，536／548 FAIL。后继已修一次有账本依据的测试清理及 caption 几何判断，旧失败不改写。Terminal 和普通七文件 ZIP 入口本批未到达。
+
 ### 8cee／f626：普通 C 五阶段几何通过，正常 UP 收尾失败
 
 原始证据：`uat/v1-control/8cee44b3378f41998e8e5dcf9635f5f3/collection-20261015T163804486Z-3dda0c7311f849bbab49bbefc9f3ee8f/`。
@@ -39,7 +75,7 @@
 - seq84 单次测试 UP 的 SendInput 返回 1；约 3500ms 等待内无本代 actual UP／gesture_end，seq85 的 `normal_up_and_no_late_geometry` FAIL。最终产品 seq44 仅在 stop 时记录 end=8／Exit、`normal_up=false`；shutdown seq46 的 UP callback count=3、last generation=3。不得以停止终止代替正常松键。
 - 松键前实际 cursor `[440,273]` 位于实际 C `[414,260,674,440]` 内，旧窗外轨迹不能解释全部 UP 失败；本批未证明 UIPI、hook 被移除或系统根因，原因 UNKNOWN。普通收尾现在阻断实时手势整链，不再仅是异常注入路线的问题。
 - seq87 正常退出、资源 flags true、无未知 native 完成；seq88–91 真正发送 cursor／DOWN／UP，窗口计数 `[0,0]→[1,1]`，post-stop 投递子场景 PASS。seq92 整体 FAIL，精确 guest／任务已清理且证据未变，不由此关闭正常 UP 问题。
-- 本批未到设置生命周期、托盘、五键、I11、应用矩阵或真 ZIP 入口，继续 NOT_RUN。IndependentEntry suite 和 fixture 只读 Raw 观察仅是正在实现的验证分流／观察能力，尚无新提交身份或结果，不记为产品修复、功能进度或原失败链通过。
+- 本批未到设置生命周期、托盘、五键、I11、应用矩阵或真 ZIP 入口，保留本批 NOT_RUN。后继 IndependentEntry 和 fixture 只读 Raw 观察已实施并按各自新 SHA／RunId 运行，详见上文；不改写8cee失败，不将只读 Raw 计数当作某 source／generation 的授权或真实 NormalUp。
 
 ### 7cac／0fa：真实在途超时、迟到完成与临时属性恢复，实际 UP 仍未观察
 
@@ -138,14 +174,14 @@
 
 - hover 预备只取资格／命中所需快照，避免重复同步 bounds 查询；真实 operation 仍保留完整 bounds 预检，不把未知约束设为允许。
 - 测试 STA 的有界等待处理必要 sent messages，针对 8cc 自建窗约束查询与等待相互阻断；不是给产品增设轮询。
-- Catalog 使用确定的实际矩形遮挡判定；吸附边线与 Ctrl 共享边从实际回执／几何绘制。尚无本批现场可视验收。
-- Edge driver 消除 DOWN 前重复 bounds 查询；Terminal 精确根映像适配为实际 cmd。都等待匹配新构建复验，不凭修代码关闭。
+- Catalog 使用确定的实际矩形遮挡判定；吸附边线与 Ctrl 共享边从实际回执／几何绘制。e4 的 owned 视觉组件有实际结果，但未外推所有 DPI／应用或真人观感。
+- Edge driver 消除 DOWN 前重复 bounds 查询；Terminal 精确根映像适配为实际 cmd，Console GUI 查询也与生产严格 fallback 对齐。Terminal 已由 e4 重新运行本次类别；Edge 仍有实际命中及收尾失败，不能共同写成通过。
 - 已接原生 grid17 拒绝与后续 Move／Ctrl 恢复入口；8453 已真实观察 non-exact 后拒绝，但后续联合断言失败，恢复尚未通过。grid 由自有应用在 `WM_WINDOWPOSCHANGING` 实施，不伪造产品已知 grid。
 - Code 去掉可能覆盖显式命令行的 bootstrap data 设置，仅作为可区分假设；尚不能据此宣布根因或修复成功。
 
 原始 DOWN、单 writer、撤权后无新调用、在途调用与完成未知分开、actual postverify 及精确视觉所有权合同继续保留。构建、L1/core 测试与局部 owned 结果都不能替代当前 Release 的整功能／模块验收。
 
-ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和普通无参入口验证；I10 在途成员失败／存活成员恢复用例；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开观察，避免联合断言无法定位。d49 的分流已给出上述具体事实，但未到达后续在途／便携路径。JSON 现有真实生产接线为 57/60 IMPLEMENTED，三项 M12 交付工作为 IN_PROGRESS；这是实现分类，不是 57 项 DEV PASS。ZIP 解包合成检查、身份 guard、构建和离线回归均不替代现场功能。
+ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口及 I10 在途失败用例均已接线；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开记录。后继实际结果见各批，不再用“未到达全部后续功能”概括当前状态。M12-F03 的便携组件和 F04 的固定表／校验器／证据绑定已有实际交付，JSON 实施分类调整为 **59/60 IMPLEMENTED、1 项说明走查 IN_PROGRESS**；完整功能 DEV 仍 0/60、对标仍 0/40，不以实施数或局部运行凑分。
 
 ## 集中缺口与待核验项
 
@@ -153,28 +189,28 @@ ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和
 
 | 项目 | 证据与现状 | 下一项明确验证 |
 | --- | --- | --- |
-| 设置命中／checkbox 时序 | 269b 首命中失败的定向修复后已有真实六页操作；88e 视觉 checkbox 失败后，aae 视觉配置／tuple／布局恢复流程返回 | 旧失败保留，不再把已复验的同一 checkbox 当未修缺陷；登录启动、排除、导入导出及损坏配置 I07 仍待到达 |
+| 设置与生命周期 | 269b／88e 旧命中失败保留；e4 实际六页、登录启动、导入导出、损坏恢复、排除及原配置恢复通过对应子流程 | 完整 M11／I07、所有设置项与高 DPI 走查仍未通过，不重开已关闭 checkbox 专项 |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
-| Edge／Terminal adapter | 重复 bounds 查询及实际 cmd 根映像识别已有具体修正 | 精确新窗口重新绑定、真实 DOWN、完整几何及客户区输入 |
+| Edge／Terminal adapter | 945c Terminal 实际 NormalUp 后旧 fixture 查询误拒；e4 对齐严格 Console fallback 后该类别实际 Move／Resize／命令／Esc／客户输入通过 | Terminal 不外推其他类别；Edge 命中与 exact 根清理仍有失败，保留登记且不控制身份未知窗 |
 | grid 与应用钳制 | 8453／d49 曾真实 non-exact 后拒绝；eae 无本代 native；1bee 更早在 DOWN 前 hover／前台对象改变 | 保留每批差异；1bee 不能新增 grid／UP 结论，仍须真实匹配输入与后续 Move／Ctrl |
-| 视觉／恢复与边线 | 7cac call44 迟到 exact 后真实恢复临时 alpha 190→173、helper ACK，并在退出恢复205；旧视觉局部证据保留 | 仍缺本代实际 UP，不能把具体恢复或正常 stop 推成整条异常链／硬崩溃通过 |
+| 视觉／恢复与边线 | 7cac call44 迟到 exact／alpha 恢复事实保留；e4 owned 视觉组件实际通过，但临时在途组件仍 FAIL | 不能把正常视觉或 helper 恢复推成缺 UP、故障／硬崩溃整链通过 |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
-| 普通 Move 正常收尾 | 8cee 普通 C g4 五阶段 exact，但本代 UP／NormalUp 未观察，stop 才 Exit；光标在窗内 | 实时手势整链 BLOCKED，原因 UNKNOWN；IndependentEntry／只读 Raw 观察尚在实现，不充当修复结果 |
+| 普通 Move 正常收尾 | 8cee 普通 C 缺 UP 失败保留；bdab owned 子链、e4 普通 ZIP 及 Terminal 有真实 NormalUp；e4 I11 组件再次有正常 UP 断言失败 | 局部成功不关闭不同场景反例；原因仍 UNKNOWN，分段验证不拼成整条连续链通过 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
-| 托盘与五键入口 | 已接实际菜单／五键／映射的 guest 用例；1bee／7cac 未到达 | NOT_RUN，不由离线组合测试或可编译推定实际入口通过 |
-| 在途日志 payload | 7cac seq579 的 payload 可先于 wait 求值而记零；实际 native 进入及迟到 exact 由产品 call44 单独证实 | f626 已提交修复、构建和运行，但8cee未到此定向场景；该项仍 NOT_RUN，不改写原始证据 |
+| 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
+| 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |
 
 ### 仍缺的实际环境或尚未闭合能力
 
 | 项目 | 准确边界 |
 | --- | --- |
 | 正式 Medium Explorer | 本批根窗 elevated=true，不满足正式资格；本地目录身份已恢复，不再误报为 file ID 未实现。不得套用旧 High guest 例外。 |
-| Code | 精确可见合格根绑定仍未成立，隐藏根／子根拒绝尚未定因；参数变化只是待检验假设。 |
+| Code | 历史隐藏根／子根拒绝尚未定因；e4 本包未带指定官方 EXE，明确 BLOCKED，不能沿用旧资产准备为本批已运行。 |
 | Notepad | 当前 guest 的指定系统 EXE／Appx 缺失；未运行的应用路径不能记 PASS，不在宿主安装或修改账户／UAC来补分。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | driver 断开收尾、第二成员真实 native failure、完整两轮与 15 分钟混合运行未闭环；7cac 在真实在途调用期间未观察实际 UP，迟到 exact 和临时 alpha 清理虽成立，整链仍失败。d49／eae／1bee 的不同历史保留。grid 非 exact 或窗口消失不冒充 API 返回 FALSE。 |
-| 最终便携交付 | 最新真便携包9a24已绑定f626／文档HEAD d22并加入8cee，普通无参入口未到达；旧f6b4／d6ab／b650／6d022保留。解包／打包准备、identity-only或合成检查不替代I12。 |
+| I08／I10／I11 | e4 实际执行了中断、临时在途、grid／第二成员及 I11 组件，具体失败见上，不再统称 NOT_RUN；整个 actor／匹配 UP、status 响应、两轮与15分钟仍未闭环。独立 idle60 不替代 I11；历史各批差异保留。 |
+| 最终便携交付 | 458849／593 已在 e4 完成普通无参可见 GUI、真实保存／Move／退出子流程；最终整版候选与按说明完整走查仍未完成。旧9a24／f6b4／d6ab／b650／6d022保留，新的局部结果不重绑旧 ZIP。 |
 
 ## 持续验证与交付边界
 

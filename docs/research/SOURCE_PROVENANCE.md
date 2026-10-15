@@ -2125,3 +2125,36 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   never rule content. New runtime validation remains pending; prior raw
   failure is unchanged. Existing pinned architecture references reused;
   external code copied/adapted: **NO**.
+
+### V1 Raw/LL termination feasibility closure — 2026-10-16
+
+Run `e4a9f65c5034440f9822babf794956db`, source
+`59326ce35a4f380343bdf78353087cb30d595be4`, fixture1207 observed a Raw left-UP
+increment in the single-test-UP interval while generation23 had no LL-UP or
+NormalUp; its Raw source/generation remained UNKNOWN. Reused the existing
+mature/reference-only AltSnap GPL-3.0-or-later pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d` and PowerToys/FancyZones MIT pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a` source/history registrations above;
+actually re-read [AltSnap #532](https://github.com/RamonUnch/AltSnap/issues/532)
+and [PowerToys #50130](https://github.com/microsoft/PowerToys/issues/50130).
+The latter discusses history `d68980a81bb8de144bdec998a114e948bf68c563` /
+PR49985, but the direct KeyboardInput.cpp/commit-patch retrieval failed this
+time; no newly verified source hunk or mouse-pairing precedent is claimed.
+Actually read Microsoft live primary contracts:
+[MSLLHOOKSTRUCT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-msllhookstruct),
+[RAWMOUSE](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawmouse),
+[RAWINPUTHEADER](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawinputheader),
+[GetMessageTime](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessagetime),
+[WM_INPUT](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-input),
+[RegisterRawInputDevices](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerrawinputdevices),
+[Raw Input overview](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-raw-input),
+and [message queues](https://learn.microsoft.com/en-us/windows/win32/winmsg/about-messages-and-message-queues).
+They do not specify a shared LL/Raw event ID or equality of the two message
+timestamps; Raw has no source HWND/generation, LL has no device handle, and
+zero Raw hDevice can be legitimate. Therefore interval-UP/current-generation
+binding cannot authorize NormalUp/dock. A possible bounded, immutable-DOWN-
+paired Raw abort remains a candidate only: ambiguity/staleness must not revoke
+a newer generation, and it would not close the normal-termination gate.
+No Raw product implementation or new empirical PASS follows from this review.
+Microsoft site terms; links/paraphrase only. External implementation copied,
+adapted, translated or mechanically rewritten: **NO**; no new attribution.

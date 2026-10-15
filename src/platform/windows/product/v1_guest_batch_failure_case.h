@@ -69,7 +69,8 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         s.log.emit("I10_second_native_outcome","\"status\":"+quote(api_false?"ACTUAL_API_FALSE_OBSERVED":"PARTIAL_API_TRUE_IDENTITY_LOST")+
             ",\"SetWindowPos_FALSE_observed\":"+(api_false?"true":"false")+",\"whole_I10_PASS\":false,\"actual_receipt\":"+quote(second_receipt));
         disarm();const auto before=calls().size();const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+91,g.anchor.y+23});
-        s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;}));
+        const auto status_offset=read(s.product_log).size();
+        s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
         button(s,false);key(s,VK_CONTROL,false);
         GUITHREADINFO gui{sizeof(gui)};
         s.log.check("I10_failure_real_UP_without_new_batch_attempt",wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty()&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&

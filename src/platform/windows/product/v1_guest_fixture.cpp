@@ -1258,16 +1258,19 @@ void matrix_escape_and_client(State& s,const std::string& label){
         const auto plain=utf8(nonce);std::string utf16;
         for(const wchar_t c:nonce){utf16.push_back(static_cast<char>(c&255));utf16.push_back(static_cast<char>((c>>8)&255));}
         const auto content_matches=[&]{const auto bytes=read(blank,4096);return bytes==plain||bytes==std::string("\xef\xbb\xbf")+plain||bytes==std::string("\xff\xfe")+utf16;};
-        s.log.check(label+".actual_client_text_and_native_save",wait(content_matches),"\"guest_new_file_only\":true,\"expected_text_bytes\":"+std::to_string(plain.size())+
-            ",\"actual_saved_sha256\":"+quote(hash(blank))+",\"clipboard_or_private_API_used\":false");
+        const bool saved=wait(content_matches);const auto saved_hash=hash(blank);
+        s.log.check(label+".actual_client_text_and_native_save",saved&&!saved_hash.empty(),"\"guest_new_file_only\":true,\"expected_text_bytes\":"+std::to_string(plain.size())+
+            ",\"actual_saved_sha256\":"+quote(saved_hash)+",\"clipboard_or_private_API_used\":false");
         matrix_chord(s,'A');key(s,VK_BACK,true);key(s,VK_BACK,false);matrix_chord(s,'S');
         s.log.check(label+".blank_document_restored_before_close",wait([&]{if(!fs::is_regular_file(blank))return false;const auto bytes=read(blank,4096);return
             (bytes.empty()&&fs::file_size(blank)==0)||bytes==std::string("\xef\xbb\xbf")||bytes==std::string("\xff\xfe");}));
     }else if(target->kind=="Terminal"){
         const auto receipt=target->directory/L"client-input-receipt.txt";if(fs::exists(receipt))throw std::runtime_error("matrix_terminal_receipt_must_be_new");
         key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);matrix_text(s,L"echo "+nonce+L">\""+receipt.wstring()+L"\"");key(s,VK_RETURN,true);key(s,VK_RETURN,false);
-        s.log.check(label+".actual_terminal_client_input",wait([&]{auto text=read(receipt,4096);while(!text.empty()&&(text.back()=='\r'||text.back()=='\n'||text.back()==' '))text.pop_back();return text==utf8(nonce);}),
-            "\"known_cmd_child_in_new_conhost_only\":true,\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(hash(receipt)));
+        const bool delivered=wait([&]{auto text=read(receipt,4096);while(!text.empty()&&(text.back()=='\r'||text.back()=='\n'||text.back()==' '))text.pop_back();return text==utf8(nonce);});
+        const auto receipt_hash=hash(receipt);
+        s.log.check(label+".actual_terminal_client_input",delivered&&!receipt_hash.empty(),
+            "\"known_cmd_child_in_new_conhost_only\":true,\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(receipt_hash));
     }
     s.log.check(label+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
     for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_Escape_hidden_target_identity_changed");

@@ -233,7 +233,11 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     ShowWindow(set.frames[1].hwnd,SW_SHOWNOACTIVATE);set.active=2;
     s.log.check("I04_target_only_fixture_setup_for_resnap",fixture_rect(set.frames[1].hwnd,neighbour));
     config.magnet_move=true;chain_gui_save(s,config);g=layout_down(set,0,HTCAPTION,false);
-    layout_phase(set,0,g,-40,35,{translated(restored,-40,35),neighbour},"I04_post_dock_real_free");
+    // The real drag-out/Undo source can be near the work-area left edge.
+    // Move right for this FREE oracle: moving left40 from actual left48
+    // yields8, legitimately inside the configured 15px attraction at144DPI.
+    // Keep both original anchors and all preceding product operations intact.
+    layout_phase(set,0,g,40,35,{translated(restored,40,35),neighbour},"I04_post_dock_real_free");
     layout_phase(set,0,g,-6,3,{restored,neighbour},"I04_post_dock_real_resnap");layout_up(set,g,{restored,neighbour});
 
     // I05: a real full-height 40%-width neighbour defines a non-half smart

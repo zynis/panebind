@@ -158,11 +158,12 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"new_verified_actor_send_pair_imported\":"+(new_pair?"true":"false")+",\"product_authority_not_granted_by_send_ledger\":true"+
             ",\"delivery_and_physical_button_held_not_inferred_from_ledger\":true,\"product_driver_channel\":false");
         Gesture g{*point,0,offset};const Rect moved=translated(*initial,-40,35);std::string actual_down,native;
-        s.log.check("I08_actor_actual_START_and_exact_Move",wait([&]{g.generation=number(record(s,offset,"gesture_start"),"\"generation\":");
+        const bool observed_move=wait([&]{g.generation=number(record(s,offset,"gesture_start"),"\"generation\":");
             actual_down=record(s,offset,"input_button_observed",g.generation);native=placement(s,offset,g.generation,moved,true);
             return g.generation&&set.owns(0)&&visible(source)==moved&&actual_up(s,offset,g.generation).empty()&&
                 actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=std::string::npos&&actual_down.find("\"kind\":\"DOWN\"")!=std::string::npos&&
-                number(actual_down,"\"hook_observed_qpc\":")&&native.find("\"authority_after\":true")!=std::string::npos;}),
+                number(actual_down,"\"hook_observed_qpc\":")&&native.find("\"authority_after\":true")!=std::string::npos;});
+        s.log.check("I08_actor_actual_START_and_exact_Move",observed_move,
             "\"actual_DOWN\":"+quote(actual_down)+",\"actual_native_receipt\":"+quote(native));
         std::string ended;const bool terminal=wait([&]{ended=record(s,offset,"gesture_end",g.generation);
             return !ended.empty()||!set.owns(0)||GetForegroundWindow()!=source||!actual_up(s,offset,g.generation).empty();},35000);
@@ -177,7 +178,8 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true");
         const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;});};
         const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);cursor(s,{point->x-11,point->y+47});
-        s.log.check("I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;})&&
+        const auto status_offset=read(s.product_log).size();
+        s.log.check("I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
             calls()==baseline&&baseline>0&&visible(source)==moved);
         // This UP is a test cleanup action after actual Deadline, not product
         // NormalUp, a replay, or a product recovery feature.

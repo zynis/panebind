@@ -13,7 +13,12 @@ std::vector<std::string> constraint_generation_placements(State& s,std::size_t o
 }
 std::uint64_t constraint_last_product_sequence(State& s){
     std::istringstream rows(read(s.product_log));std::string row;std::uint64_t sequence{};
-    while(std::getline(rows,row))if(row.ends_with('}'))sequence=std::max(sequence,number(row,"\"sequence\":"));return sequence;
+    while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"process_id\":")==s.product_pid)
+        sequence=std::max(sequence,number(row,"\"sequence\":"));return sequence;
+}
+bool constraint_current_status_after(State& s,std::size_t offset,std::uint64_t sequence){
+    const auto status=record(s,offset,"status");
+    return number(status,"\"process_id\":")==s.product_pid&&number(status,"\"sequence\":")>sequence;
 }
 bool constraint_existing_fixed_case(State& s){
     std::istringstream rows(read(s.log.path));std::string row;
@@ -98,8 +103,9 @@ bool constraint_existing_fixed_case(State& s){
     // The status sequence is NOT a common native clock/order with mouse input,
     // and does not claim that every native queue was drained.
     const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+travel+53,g.anchor.y+11});
+    const auto status_offset=read(s.product_log).size();
     DWORD status_exit{};s.log.check("I10_after_abort_status_command",launch(s,L"--status",true,&status_exit)&&status_exit==0);
-    s.log.check("I10_after_abort_status_observed",wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;}));
+    s.log.check("I10_after_abort_status_observed",wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
     // Read-only routing facts at the ORIGINAL UP point. Do not move, activate
     // a window, alter integrity, or insert another UP to improve this result.
     POINT up_cursor{};SetLastError(0);const bool cursor_known=GetCursorPos(&up_cursor)!=FALSE;const DWORD cursor_error=cursor_known?0:GetLastError();
