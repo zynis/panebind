@@ -1925,3 +1925,54 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   attempt plus bounded actual GUI-idle observation; its send is not delivery,
   NormalUp or a functional PASS. No production input behavior changed.
   External code copied, adapted, translated or mechanically rewritten: **NO**.
+
+### V1 current-route Raw observation follow-up — 2026-10-16
+
+- Actual `4dee2fc` / Run `43b7fa0483384156ab1a4f5a8dfc2057` registered
+  and read back the fixture-only INPUTSINK mouse target. Five unmapped
+  client button pairs each had actual client DOWN/UP delivery and matching
+  per-button Raw counter increases. Two ordinary generation-1 Moves in
+  different product instances also observed both LL UP and Raw UP with normal
+  termination. These are software-input guest observations, not hardware or
+  product Raw-receiver evidence, and do not explain the older missing LL UP.
+- The same observer is now enabled after the identical exact-guest guards
+  for Full as well as IndependentEntry. The existing Full gestures and
+  single-UP assertions remain unchanged. This allows one discriminating
+  comparison with an actual missing-UP interval, rather than repeating an
+  uninstrumented failing batch or assuming Raw independence from hook
+  suppression. No new product API, authority, synthetic UP or polling is
+  added. Source/generation attribution remains UNKNOWN; an interval counter
+  is not itself permission to end a product gesture.
+- Official Raw Input and upstream input references are those actually read
+  and recorded above; no additional external implementation was inspected,
+  copied, adapted, translated or mechanically rewritten for this change.
+
+### V1 actual multiline-key navigation follow-up — 2026-10-16
+
+- Run `43b7fa0483384156ab1a4f5a8dfc2057`, source
+  `4dee2fcfccef7d293702bc5df9a957cd07705ee0`, retained the earlier targeted
+  WM_GETDLGCODE adjustment, but actual mouse-edit input at sequence270 still
+  led to Tab-to-save and later Escape failures. Its original records do not
+  include the WM_GETDLGCODE arguments or per-Tab focus transitions, so they
+  do not establish the precise native query/dispatch responsible. Earlier
+  rules-edit success is not extrapolated to the mouse editor.
+- Official pages actually read:
+  [GetNextDlgTabItem](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getnextdlgtabitem),
+  [SetFocus](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setfocus),
+  [WM_GETDLGCODE](https://learn.microsoft.com/en-us/windows/win32/dlgbox/wm-getdlgcode),
+  and [About Edit Controls](https://learn.microsoft.com/en-us/windows/win32/controls/about-edit-controls).
+  The first API searches actual visible/enabled tab stops and recursively
+  searches WS_EX_CONTROLPARENT children. SetFocus is used only within this
+  same UI thread and already-active settings window, never to recover foreign
+  focus or foreground. The old adjustment only negotiated EDIT's requested
+  keys; it did not explicitly navigate the root from an actual queued key.
+- Original minimal follow-up: the normal STA translate path handles only
+  actual WM_KEYDOWN Tab/Escape when the exact current focus is one of the
+  three settings multiline edits. Plain/Shift-Tab follows the actual root
+  tab order; plain Escape cancels the draft. Ctrl-Tab retains page switching,
+  and Enter/newlines and ordinary editing remain native. The guest still
+  sends actual keys and requires real focus change, save and window exit;
+  one failure-only readback records focus/class and bounded dialog-code
+  queries without pretending those queries prove key delivery. New native
+  revalidation remains required. Existing pinned prior art is reused;
+  external code copied/adapted/translated/mechanically rewritten: **NO**.

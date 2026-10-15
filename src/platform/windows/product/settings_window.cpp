@@ -553,11 +553,30 @@ void SettingsWindow::close(){impl_->close();}
 HWND SettingsWindow::handle()const{return impl_->window;}
 bool SettingsWindow::translate(MSG& message){
     if(!impl_->window)return false;
-    if(message.message==WM_KEYDOWN&&message.wParam==VK_TAB&&(GetKeyState(VK_CONTROL)&0x8000)&&
+    const bool system_modifier=(GetKeyState(VK_MENU)&0x8000)||(GetKeyState(VK_LWIN)&0x8000)||(GetKeyState(VK_RWIN)&0x8000);
+    if(message.message==WM_KEYDOWN&&message.wParam==VK_TAB&&(GetKeyState(VK_CONTROL)&0x8000)&&!system_modifier&&
        (message.hwnd==impl_->window||IsChild(impl_->window,message.hwnd))){
         const int direction=(GetKeyState(VK_SHIFT)&0x8000)?-1:1;
         impl_->selected=(impl_->selected+static_cast<int>(impl_->pages.size())+direction)%static_cast<int>(impl_->pages.size());
         TabCtrl_SetCurSel(impl_->tab,impl_->selected);impl_->layout();SetFocus(impl_->tab);return true;
+    }
+    const auto focus=GetFocus();
+    const bool own_multiline=focus&&(focus==impl_->hotkey_text||focus==impl_->mouse_text||focus==impl_->rules_text)&&
+        message.hwnd==focus&&IsChild(impl_->window,focus)&&GetForegroundWindow()==impl_->window&&
+        GetWindowThreadProcessId(focus,nullptr)==GetCurrentThreadId()&&GetActiveWindow()==impl_->window&&
+        IsWindowEnabled(impl_->window)&&IsWindowVisible(focus)&&IsWindowEnabled(focus);
+    if(message.message==WM_KEYDOWN&&own_multiline&&!(GetKeyState(VK_CONTROL)&0x8000)&&!system_modifier){
+        // Navigate the root's actual tab order, not EDIT's immediate scrolling
+        // page. Do not rely solely on EDIT's WM_GETDLGCODE negotiation after
+        // multiline input, and never focus another application's window.
+        if(message.wParam==VK_TAB){
+            const auto next=GetNextDlgTabItem(impl_->window,focus,(GetKeyState(VK_SHIFT)&0x8000)!=0);
+            if(next&&next!=focus&&IsChild(impl_->window,next)&&IsWindowVisible(next)&&IsWindowEnabled(next)&&
+               GetWindowThreadProcessId(next,nullptr)==GetCurrentThreadId()){
+                SetFocus(next);return true;
+            }
+        }
+        if(message.wParam==VK_ESCAPE){impl_->close();return true;}
     }
     return IsDialogMessageW(impl_->window,&message)!=FALSE;
 }

@@ -1491,7 +1491,22 @@ void gui_save_enter(State& s,const SettingsGui& gui){
     for(unsigned n=0;n<64&&gui_focus(gui)!=save;++n){
         if(!gui_identity(s,gui,save))throw std::runtime_error("GUI_save_identity_changed");
         const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
-        if(!wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before;}))throw std::runtime_error("GUI_save_Tab_not_processed");
+        if(!wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before;})){
+            const auto after=gui_focus(gui);DWORD focus_pid{},foreground_pid{};const auto focus_tid=GetWindowThreadProcessId(after,&focus_pid);
+            const auto foreground=GetForegroundWindow();GetWindowThreadProcessId(foreground,&foreground_pid);
+            const auto query=[&](WPARAM code){DWORD_PTR value{};MSG keyboard{};keyboard.hwnd=after;keyboard.message=WM_KEYDOWN;keyboard.wParam=code;
+                const bool known=gui_identity(s,gui,after)&&SendMessageTimeoutW(after,WM_GETDLGCODE,code,reinterpret_cast<LPARAM>(&keyboard),
+                    SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&value)!=FALSE;
+                return known?std::to_string(value):std::string("null");};
+            s.log.emit("GUI_actual_Tab_navigation_failure","\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+                ",\"focus_before\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before))+
+                ",\"focus_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(after))+",\"focus_class\":"+quote(utf8(gui_class(after)))+
+                ",\"focus_pid\":"+std::to_string(focus_pid)+",\"focus_tid\":"+std::to_string(focus_tid)+
+                ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"foreground_pid\":"+std::to_string(foreground_pid)+
+                ",\"readonly_WM_GETDLGCODE_with_WM_KEYDOWN_MSG\":{\"VK_TAB\":"+query(VK_TAB)+",\"VK_ESCAPE\":"+query(VK_ESCAPE)+
+                "},\"actual_Tab_input_preserved\":true,\"query_is_not_historical_query_arguments_or_key_delivery_receipt\":true");
+            throw std::runtime_error("GUI_save_Tab_not_processed");
+        }
     }
     s.log.check("GUI_Tab_reached_save",gui_focus(gui)==save);
     gui_press(s,gui,VK_RETURN);
@@ -2138,7 +2153,10 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         for(std::size_t n=0;n<3;++n){const auto title=L"PaneBind V1 — "+std::wstring(1,static_cast<wchar_t>(L'A'+n));
             s.frames[n].hwnd=CreateWindowExW(0,s.class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,100+static_cast<int>(n)*250,80,260,260,nullptr,nullptr,instance,&s.frames[n]);
             if(!s.frames[n].hwnd)throw std::runtime_error("owned_window_creation_failed");ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);UpdateWindow(s.frames[n].hwnd);}
-        if(s.suite=="IndependentEntry")raw_mouse_observer_start(s,s.frames[0].hwnd);
+        // Both suites have passed the same exact disposable-guest guards.
+        // Observe the existing Full gestures too, so an actual missing hook
+        // UP can be compared with Raw delivery without changing termination.
+        raw_mouse_observer_start(s,s.frames[0].hwnd);
         MSG message{};PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE);s.driver=std::thread([&]{drive(s);});
         while(GetMessageW(&message,nullptr,0,0)>0){TranslateMessage(&message);DispatchMessageW(&message);}if(s.driver.joinable())s.driver.join();
         if(guest_raw_mouse.target.load()&&!raw_mouse_observer_stop(s))s.log.failed=true;
