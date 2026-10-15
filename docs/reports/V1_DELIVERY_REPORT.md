@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-实际能证明的操作目前仍主要来自隔离 guest 的普通权限 owned 窗口。已有 T→L／四格／八窗与历史 grid 拒绝子场景；最新 eae／2a 更早在首个 native 调用前因 FocusLost 终止，本次不是 grid 非 exact 的再次复现。post-stop 的实际点击发送和窗口计数增长通过，但整体仍 FAIL。真实 Explorer、完整跨应用组、显示矩阵和最终便携包仍未通过整版验收，不将接线或局部自动 DEV 等同宿主试用／人工 UAT。
+实际能证明的操作目前仍主要来自隔离 guest 的普通权限 owned 窗口。已有 T→L／四格／八窗与历史 grid 拒绝子场景；最新 cf／1bee 在 I10 发 DOWN 前因 hover／前台对象改变而中止，本次 DOWN 和 native 均未发出，不是 grid 或 UP 的再次复现。post-stop 的实际点击发送和窗口计数增长通过，但整体仍 FAIL。真实 Explorer、完整跨应用组、显示矩阵和最终便携包仍未通过整版验收，不将接线或局部自动 DEV 等同宿主试用／人工 UAT。
 
 ## 源码与包身份
 
@@ -12,11 +12,11 @@
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 当前已提交／已构建 runtime | `2a8475aad83e1c7d26be3a866ab73314ae8bf5f3`；本包含 Debug／Release，实际运行 Release；ff 历史各 10 项 offline 结果保留，不据此转记新批现场通过 |
-| 最新已审阅现场 | 2a／RunId `eae17bbdfc6740789cd8c06b602c1be4`；gen16 FocusLost、无本代 native，整体 FAIL；d49／8453 原始失败保留 |
-| 当前批次收尾 | eae collection 与精确 guest／任务清理回执已保存；shutdown 资源字段 true，post-stop 真实发送及计数 `[1,1]→[2,2]` 通过此子场景，不代表整版 cleanup 验收 |
-| 当前 guest ZIP／manifest SHA-256 | `D7358493DB2DDBB4AB8B7239D38243947DF637BCF3521FE3BC2B43219EDA1662`／`BABE15A53D178EE7EEBDC5515D13D9A95324B4B6796297F0E4520F2D0BDF2EF9` |
-| 当前真便携包 | PackageId `b650691ce6c4427eb969d185eccde8ea`；ZIP `7D24FA1EF78159034A96F76EFF3CBF775E400BBC772E41D366061F736BD1FE7A`；Release EXE `CBB4AECCC5101492518E3E9D49FD62A681F9699B8558772CC80191DA611A443A`；eae 未到达 I12 普通入口，NOT_RUN；旧 6d022 保留 |
+| 最新已运行 runtime | `cf2232d9f8112ce82b5b45ce4b40dab95486918c`；Debug／Release 构建与各 10 项 offline 通过，实际现场运行 Release；不据此转记功能通过 |
+| 最新已审阅现场 | cf／RunId `1bee4d83fa2d4786ad0319a69d3227c6`；I10 DOWN 前 hover／前台对象改变，本次 DOWN／native 未发出，整体 FAIL；eae／d49／8453 原始失败保留 |
+| 当前批次收尾 | 1bee collection 与精确 guest／任务清理回执已保存，证据未变；shutdown 资源字段 true，post-stop 真实发送及计数 `[1,1]→[2,2]` 通过此子场景，不代表整版 cleanup 验收 |
+| 当前 guest ZIP／manifest SHA-256 | `C454AC6F6E793A73BB41B6E317856791C5CDD4D39FB4F8B5C2A378A4DF7554FD`／`7124F85243D54C9B4741B461D8E3C8AC0B0B68580D6A6C01C52F3D1654594C4A` |
+| 当前真便携包 | PackageId `d6ab86dd05844a938e8e466bf0c0a21b`；ZIP `95DBF8BA35BBD3B016B808341E41EA5870C76B1A7FCBF2320E92AE79E5021F58`；Release EXE `1DFCC8522194FFC94D13EC387B1C9F931DF81E72DB7355DFF0609B1D1AF015A6`；1bee 未到达 I12 普通入口，NOT_RUN；旧 b650／6d022 保留 |
 | 历史 aae 已收证 | `a2eb05f7e76d05ec9378e0d12631dfd22c326fbb`／`aae67076ccda4bdb9300c9015108231a`，整体 FAIL；原始证据及清理回执保留 |
 | aae ZIP／manifest SHA-256 | `31132A5BCBB4EAB8F488BCE647B80A5A36A6E57540B5DA83FF41FC5BE2D8B8EF`／`DF95AEEA2336F7217A051A5341B8BE85F5E379147B48CC377B369ABCEF4BC793` |
 | aae Release／Debug EXE SHA-256 | `A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56`／`6C1B5EB112CC8169E166A13A627AE16B2A354BAB63882224FCC65301E0C2C596` |
@@ -30,6 +30,15 @@
 
 ## 已运行的功能与明确失败
 
+### 1bee／cf：I10 发 DOWN 前对象改变，真实 post-stop 点击通过
+
+原始证据：`uat/v1-control/1bee4d83fa2d4786ad0319a69d3227c6/collection-20261015T161147990Z-6fe4611acd8b4b148eb258a15c99dbcb/`。
+
+- fixture seq507 已完成本批 owned T／L／四格／八窗子链；seq509–513 准备下一精确 source 与实际 cursor。产品 PID3604 seq136 曾确认 source HWND459520／HTRIGHT，随后 seq137–139 记录前台及 hover 对象改变、资格／命中不满足；fixture seq514 明确 `test_DOWN_sent=false, test_UP_sent=false, generation=0`，seq515 为 `layout_source_or_hover_hit_changed_before_DOWN`。本次 I10 没有 DOWN、START 或 native 调用，不是 grid 非 exact 或缺失 UP 的新复现，改变对象的根因未定。
+- seq516 正常退出，产品 seq140／141 为 timing／shutdown；所有资源字段 true、无 unknown native completion。seq517–520 确有实际 cursor、DOWN／UP 发送及窗口计数 `[1,1]→[2,2]`，post-stop 投递子场景 PASS；seq521 整体仍 FAIL。collection 与 cleanup 回执确认精确 guest／任务清理、证据未变，不由 guest 销毁推定产品 cleanup。
+- 既有配对修复已提交：`85c1599172f946ef86b9e84838e0a068fcda3341` 退休旧 aborted pair；`b092f01ab18ba9624b4d483c9e2404a844ac6309` 修复 authority=0 下新配对及 hover 准备刷新；`2c37573ae7afc160b00094474eabef411c03949c` 增加 mapped 配对精确 generation CAS。不能据此认定历史实际 UP 缺失根因已证实或闭环。2c 的 ea7 包仅部署、未启动，不算现场运行。
+- 托盘真实菜单、五键与映射用例已接生产测试入口，1bee 未到达，保持 NOT_RUN；后续 I10 恢复、设置生命周期、I11、应用矩阵及真便携 ZIP 普通入口均未由本批验证。不预填后续源码／包结果。
+
 ### eae／2a：首写入前 FocusLost，真实 post-stop 点击通过
 
 原始证据：`uat/v1-control/eae17bbdfc6740789cd8c06b602c1be4/collection-20261015T152931313Z-b28a5b4cf7b640058713ddc85354334b/`。
@@ -37,7 +46,7 @@
 - 产品 PID976 的 seq138 为本代真实 DOWN，seq139 为 gen16 START，seq140 立即以 end=2／FocusLost 终止，未发生本代 native placement。fixture seq517 的 grid 检查 FAIL，实际仍为原矩形 `[140,140,540,540]`；其 `observed_native_result` 固定文案不是 API 回执，不能据此宣称已调用或再次复现 grid 非 exact。
 - 失败后仅一笔测试清理 UP（seq519，SendInput 返回 1）；shutdown seq145 的实际 UP callback 快照 count=16、last generation=15，没有本代 UP 进入现有 hook 的观察。不能据此断定 UIPI、系统根因或制造 UP／NormalUp；d49 曾真正执行 grid 后拒绝及缺失 UP 的历史保持原样。
 - post-stop 此次确有独立 cursor、DOWN、UP（seq522–524），seq525 明确 `executed=true`、两笔 SendInput 实际调用、窗口计数 `[1,1]→[2,2]`，该真实投递子场景 PASS。与 d49 未走到发送、仅有旧 raw `executed=true` 的情形区分；退出字段 true、guest 销毁或本次点击都不把整批 FAIL 改为 PASS。
-- 另已发现确定性源码反例：旧 aborted 配对残留时，新 DOWN 透传但对应新 UP 被旧配对吞掉。修复正在进行，尚无新实现 SHA／现场结果；这不是对 eae FocusLost 或未观察 UP 根因的预先结论。后续仅在输入资源状态已确认安全后继续实际新 Move／Ctrl，尚未运行的恢复、在途失败和 I12 保持 NOT_RUN。
+- 当时发现确定性源码反例：旧 aborted 配对残留时，新 DOWN 透传但对应新 UP 被旧配对吞掉；后续 85c／b092 与 2c 的已提交修复见上节。该反例不自动证明 eae FocusLost 或未观察 UP 的根因，历史失败保留；恢复、在途失败和 I12 未运行仍保持 NOT_RUN。
 
 ### d49／ff：grid 单次调用成立，abort 后实际 UP 未观察
 
@@ -124,10 +133,11 @@ ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和
 | 设置命中／checkbox 时序 | 269b 首命中失败的定向修复后已有真实六页操作；88e 视觉 checkbox 失败后，aae 视觉配置／tuple／布局恢复流程返回 | 旧失败保留，不再把已复验的同一 checkbox 当未修缺陷；登录启动、排除、导入导出及损坏配置 I07 仍待到达 |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
 | Edge／Terminal adapter | 重复 bounds 查询及实际 cmd 根映像识别已有具体修正 | 精确新窗口重新绑定、真实 DOWN、完整几何及客户区输入 |
-| grid 与应用钳制 | 8453／d49 曾真实 non-exact 后拒绝；eae 更早 FocusLost、无本代 native，不是再次执行 grid | 保留每批差异，验证匹配输入／后续 Move／Ctrl；未知 grid 不冒充可查询 |
+| grid 与应用钳制 | 8453／d49 曾真实 non-exact 后拒绝；eae 无本代 native；1bee 更早在 DOWN 前 hover／前台对象改变 | 保留每批差异；1bee 不能新增 grid／UP 结论，仍须真实匹配输入与后续 Move／Ctrl |
 | 视觉／恢复与边线 | 临时／永久原值、独立 helper、completion barrier、迟到完成与实际边线已接线，已有视觉局部证据 | 当前构建补异常／未知完成和反馈实际观察，不能把正常 stop 推成硬崩溃通过 |
-| post-stop 实际输入恢复 | eae 实际点击发送、命中和计数增长 PASS；d49 未执行到发送，不能判投递失败；历史各批原记录及 92b 真实投递子场景保留 | 不再把 d49 raw false 当产品吞输入；继续分别记录发送／实际接收，不能推成整版 cleanup 验收 |
-| aborted 新配对 | 确定性源码反例：旧 aborted pair 下新 DOWN 透传、新 UP 却被旧 pair 消费 | 在修，不预填新 SHA／PASS；仅资源安全后继续新 Move／Ctrl，不把该反例武断归因本批失焦 |
+| post-stop 实际输入恢复 | 1bee／eae 实际点击发送、命中和计数增长 PASS；d49 未执行到发送，不能判投递失败；历史各批原记录保留 | 继续分别记录发送／实际接收，不能推成整版 cleanup 验收 |
+| aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
+| 托盘与五键入口 | 已接实际菜单／五键／映射的 guest 用例；1bee 未到达 | NOT_RUN，不由离线组合测试或可编译推定实际入口通过 |
 
 ### 仍缺的实际环境或尚未闭合能力
 
@@ -138,8 +148,8 @@ ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和
 | Notepad | 当前 guest 的指定系统 EXE／Appx 缺失；未运行的应用路径不能记 PASS，不在宿主安装或修改账户／UAC来补分。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | driver 断开收尾、第二成员真实 native failure、完整两轮与 15 分钟混合运行未闭环；d49 在 grid 后实际 UP 检查失败，eae 更早 FocusLost，后续未到达。grid 非 exact 或窗口消失不冒充 API 返回 FALSE。 |
-| 最终便携交付 | 最新真便携包 b650 已绑定 2a 并加入 eae，实际普通无参入口未到达；旧 6d022 保留。解包／打包准备、identity-only 或合成检查不替代 I12。 |
+| I08／I10／I11 | driver 断开收尾、第二成员真实 native failure、完整两轮与 15 分钟混合运行未闭环；d49 在 grid 后实际 UP 检查失败，eae 更早 FocusLost，1bee 在 DOWN 前准备失败。grid 非 exact 或窗口消失不冒充 API 返回 FALSE。 |
+| 最终便携交付 | 最新真便携包 d6ab 已绑定 cf 并加入 1bee，实际普通无参入口未到达；旧 b650／6d022 保留。解包／打包准备、identity-only 或合成检查不替代 I12。 |
 
 ## 持续验证与交付边界
 
