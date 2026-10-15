@@ -114,8 +114,9 @@ std::string chain_any_placement(State& s,std::size_t offset,Rect expected){
 void chain_command(LayoutFixtures& set,std::size_t source,const wchar_t* action,Rect expected){
     auto& s=set.state;chain_front(set,source);const auto mark=read(s.product_log).size();
     const bool sent=launch(s,L"--command "+std::wstring(action),true);std::string receipt;
-    s.log.check("chain_real_command_"+utf8(action),sent&&wait([&]{receipt=chain_any_placement(s,mark,expected);
-        return set.owns(source)&&visible(set.frames[source].hwnd)==expected&&!receipt.empty();}),
+    const bool completed=sent&&wait([&]{receipt=chain_any_placement(s,mark,expected);
+        return set.owns(source)&&visible(set.frames[source].hwnd)==expected&&!receipt.empty();});
+    s.log.check("chain_real_command_"+utf8(action),completed,
         "\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt));
 }
 void chain_hotkey(State& s,WORD code){
@@ -124,7 +125,8 @@ void chain_hotkey(State& s,WORD code){
 }
 void chain_hotkey_exact(LayoutFixtures& set,WORD code,Rect expected,const char* label){
     auto& s=set.state;chain_front(set,0);const auto mark=read(s.product_log).size();chain_hotkey(s,code);std::string receipt;
-    s.log.check(label,wait([&]{receipt=chain_any_placement(s,mark,expected);return set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();}),
+    const bool completed=wait([&]{receipt=chain_any_placement(s,mark,expected);return set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();});
+    s.log.check(label,completed,
         "\"actual_registered_hotkey\":true,\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt));
 }
 Rect chain_work(HWND h){MONITORINFO info{sizeof(info)};
@@ -264,7 +266,7 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     chain_hotkey_exact(set,new_key,moved,"I05_actual_GUI_changed_hotkey_changes_geometry");chain_command(set,0,L"Undo",source);
     s.log.check("I05_neighbour_geometry_not_modified",set.owns(1)&&visible(set.frames[1].hwnd)==left);
     chain_gui_save(s,original);chain_check_product(s,pid,birth);s.log.check("I04_I05_exact_test_windows_closed",set.close());
-    s.log.emit("I04_I05_actual_core_sequence","\"screen_edge_preview_leave_corner_UP_drag_restore\":true,\"real_half_screen_hotkey\":true,\"smart_on_off\":true,\"edge_corner_Shift_double_clicks\":true,\"micro_move_resize\":true,\"GUI_changed_hotkey\":true,\"same_product_process\":true,\"full_cross_screen_verdict_separate\":true,\"human_uat\":\"NOT_RUN\"");
+    s.log.emit("I04_I05_actual_core_sequence","\"screen_edge_preview_leave_corner_UP_drag_restore\":true,\"real_half_screen_hotkey\":true,\"smart_docking_on_off\":true,\"smart_stretch_enabled_only\":true,\"edge_corner_Shift_double_clicks\":true,\"micro_move_resize\":true,\"GUI_changed_hotkey\":true,\"same_product_process\":true,\"full_cross_screen_verdict_separate\":true,\"human_uat\":\"NOT_RUN\"");
 }
 
 void chain_i02_owned_core(State& s,unsigned round){

@@ -39,6 +39,10 @@ bool input_actor_desktop(DWORD source_tid,DWORD parent_pid){
     const bool active=queried&&bytes>=sizeof(WTS_CONNECTSTATE_CLASS)&&*reinterpret_cast<WTS_CONNECTSTATE_CLASS*>(raw)==WTSActive;
     if(raw)WTSFreeMemory(raw);return active;
 }
+std::wstring input_actor_start_event(const std::wstring& run,DWORD parent,std::uint64_t birth,DWORD child){
+    return L"Local\\PaneBind.V1.InputActor.Start."+run+L"."+std::to_wstring(parent)+L"."+
+        std::to_wstring(birth)+L"."+std::to_wstring(child);
+}
 int input_actor_child(int count,LPWSTR* args){
     if(count!=11)return 78;const std::wstring run=args[2];
     if(run.size()!=32||!std::all_of(run.begin(),run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
@@ -73,6 +77,8 @@ int input_actor_child(int count,LPWSTR* args){
         !SendMessageTimeoutW(source,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(from.x),static_cast<short>(from.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)||hit!=HTCAPTION)return 78;
     const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),w=GetSystemMetrics(SM_CXVIRTUALSCREEN),h=GetSystemMetrics(SM_CYVIRTUALSCREEN);
     if(w<2||h<2||target.x<x||target.y<y||static_cast<long long>(target.x)>=static_cast<long long>(x)+w||static_cast<long long>(target.y)>=static_cast<long long>(y)+h)return 78;
+    const auto event_name=input_actor_start_event(run,parent_pid,born,GetCurrentProcessId());
+    Handle start_ack(OpenEventW(SYNCHRONIZE,FALSE,event_name.c_str()));if(!start_ack.value)return 78;
     const fs::path receipt=output/(run+(debug?L"-debug-input-actor.json":L"-release-input-actor.json"));
     Handle file(CreateFileW(receipt.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE)return 78;
     std::array<INPUT,2> packets{};for(auto& p:packets){p.type=INPUT_MOUSE;p.mi.dwExtraInfo=0x50425631;}
@@ -86,17 +92,54 @@ int input_actor_child(int count,LPWSTR* args){
         !GetCursorPos(&actual)||actual.x!=from.x||actual.y!=from.y||WindowFromPoint(from)!=source||GetForegroundWindow()!=source||
         (GetAsyncKeyState(VK_LBUTTON)&0x8000)||(GetAsyncKeyState(VK_CONTROL)&0x8000)||(GetAsyncKeyState(VK_SHIFT)&0x8000)||
         (GetAsyncKeyState(VK_MENU)&0x8000)||(GetAsyncKeyState(VK_LWIN)&0x8000)||(GetAsyncKeyState(VK_RWIN)&0x8000))return 78;
-    LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);const auto before_tick=GetTickCount64();
-    const UINT inserted=SendInput(static_cast<UINT>(packets.size()),packets.data(),sizeof(INPUT));const DWORD error=inserted==packets.size()?0:GetLastError();
-    const auto after_tick=GetTickCount64();QueryPerformanceCounter(&after);
+    // One actual DOWN, then an acknowledgement of the PARENT's observed
+    // product START. Never replace it with a delay or replay the press.
+    LARGE_INTEGER before{},after_down{},before_move{},after{},ack_before{},ack_after{};
+    QueryPerformanceCounter(&before);const auto before_tick=GetTickCount64();
+    const UINT down_inserted=SendInput(1,&packets[0],sizeof(INPUT));const DWORD down_error=down_inserted==1?0:GetLastError();
+    QueryPerformanceCounter(&after_down);after=after_down;
+    DWORD ack_result=WAIT_FAILED,ack_error{};bool pre_move_context=false,move_attempted=false,cursor_known=false,cursor_exact=false;
+    DWORD cursor_error{},move_error{};UINT move_inserted{},cursor_observations{};POINT actual_after{};
+    if(down_inserted==1){
+        QueryPerformanceCounter(&ack_before);const std::array<HANDLE,2> waits{start_ack.value,parent.value};
+        ack_result=WaitForMultipleObjects(static_cast<DWORD>(waits.size()),waits.data(),FALSE,2500);
+        if(ack_result==WAIT_FAILED)ack_error=GetLastError();QueryPerformanceCounter(&ack_after);
+        if(ack_result==WAIT_OBJECT_0){
+            GUITHREADINFO gui{sizeof(gui)};
+            pre_move_context=WaitForSingleObject(parent.value,0)==WAIT_TIMEOUT&&process_birth(parent.value)==born&&
+                input_actor_desktop(source_tid,parent_pid)&&IsWindow(source)&&GetAncestor(source,GA_ROOT)==source&&
+                GetWindowThreadProcessId(source,&actual_pid)==source_tid&&actual_pid==parent_pid&&gui_class(source)==expected_class&&
+                GetForegroundWindow()==source&&GetGUIThreadInfo(source_tid,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+                GetCursorPos(&actual)&&actual.x==from.x&&actual.y==from.y&&WindowFromPoint(from)==source;
+            if(pre_move_context){
+                move_attempted=true;QueryPerformanceCounter(&before_move);
+                move_inserted=SendInput(1,&packets[1],sizeof(INPUT));move_error=move_inserted==1?0:GetLastError();QueryPerformanceCounter(&after);
+                if(move_inserted==1)cursor_exact=wait([&]{++cursor_observations;cursor_known=GetCursorPos(&actual_after)!=FALSE;
+                    cursor_error=cursor_known?0:GetLastError();return cursor_known&&actual_after.x==target.x&&actual_after.y==target.y;},500);
+            }
+        }
+    }
+    const UINT inserted=down_inserted+move_inserted;const DWORD error=down_error?down_error:move_error;
+    const auto after_tick=GetTickCount64();
     const std::string text="{\"schema\":\"panebind-v1-test-input-actor/1\",\"source_sha\":\"" PANEBIND_BUILD_SHA "\",\"run_id\":"+quote(utf8(run))+
         ",\"image_sha256\":"+quote(image_hash)+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"parent_pid\":"+std::to_string(parent_pid)+
         ",\"parent_birth\":"+std::to_string(born)+",\"source_hwnd\":"+std::to_string(hwnd_value)+",\"source_tid\":"+std::to_string(source_tid)+
         ",\"same_SID_session_Medium_guest\":true,\"SendInput_return\":"+std::to_string(inserted)+",\"SendInput_error\":"+std::to_string(error)+
+        ",\"DOWN_SendInput_called\":true,\"DOWN_SendInput_return\":"+std::to_string(down_inserted)+",\"DOWN_SendInput_error\":"+std::to_string(down_error)+
+        ",\"DOWN_after_qpc\":"+std::to_string(after_down.QuadPart)+",\"START_ack_wait_limit_ms\":2500,\"START_ack_wait_result\":"+std::to_string(ack_result)+
+        ",\"START_ack_wait_error\":"+std::to_string(ack_error)+",\"START_ack_before_qpc\":"+std::to_string(ack_before.QuadPart)+
+        ",\"START_ack_after_qpc\":"+std::to_string(ack_after.QuadPart)+",\"START_ack_received\":"+(ack_result==WAIT_OBJECT_0?"true":"false")+
+        ",\"START_ack_event\":"+quote(utf8(event_name))+",\"child_event_access\":\"SYNCHRONIZE_ONLY\",\"pre_MOVE_exact_context\":"+(pre_move_context?"true":"false")+
+        ",\"MOVE_SendInput_called\":"+(move_attempted?"true":"false")+",\"MOVE_SendInput_return\":"+std::to_string(move_inserted)+
+        ",\"MOVE_SendInput_error\":"+std::to_string(move_error)+",\"MOVE_before_qpc\":"+std::to_string(before_move.QuadPart)+
+        ",\"cursor_observations\":"+std::to_string(cursor_observations)+",\"GetCursorPos_succeeded\":"+(cursor_known?"true":"false")+
+        ",\"GetCursorPos_error\":"+std::to_string(cursor_error)+",\"requested_cursor\":["+std::to_string(target.x)+","+std::to_string(target.y)+"]"+
+        ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(actual_after.x)+","+std::to_string(actual_after.y)+"]":"null")+
+        ",\"actual_cursor_exact\":"+(cursor_exact?"true":"false")+",\"native_MOVE_delivery_not_inferred_from_SendInput\":true"+
         ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
         ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"UP_sent\":false,\"product_driver_channel\":false,\"automated_guest_driver\":true}\n";
     DWORD written{};const bool saved=WriteFile(file.value,text.data(),static_cast<DWORD>(text.size()),&written,nullptr)&&written==text.size()&&FlushFileBuffers(file.value);
-    return saved&&inserted==packets.size()?0:1;
+    return saved&&down_inserted==1&&ack_result==WAIT_OBJECT_0&&pre_move_context&&move_inserted==1&&cursor_exact?0:1;
 }
 void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth){
     namespace v=panebind::core::v1;const HWND source=set.frames[0].hwnd;const auto initial=visible(source);
@@ -112,9 +155,15 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
     std::wstring command=L"\""+std::wstring(self.data())+L"\" --input-actor-once "+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
         std::to_wstring(process_birth(GetCurrentProcess()))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(source))+L" "+std::to_wstring(set.thread)+L" "+
         std::to_wstring(point->x)+L" "+std::to_wstring(point->y)+L" "+std::to_wstring(point->x-40)+L" "+std::to_wstring(point->y+35);
+    std::uint64_t expected_key{};std::string prepared;{std::istringstream rows(read(s.product_log));std::string line;
+        while(std::getline(rows,line))if(line.find("\"type\":\"input_preparation\"")!=line.npos&&
+            line.find("\"reason\":\"prepared_actual_source_and_hit\"")!=line.npos&&number(line,"\"process_id\":")==product_pid&&
+            number(line,"\"root\":")==reinterpret_cast<std::uintptr_t>(source)&&line.find("\"region\":0")!=line.npos){
+            expected_key=number(line,"\"key\":");prepared=line;}}
+    if(!expected_key)throw std::runtime_error("I08_actor_product_source_key_not_observed");
     const auto offset=read(s.product_log).size();STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION child{};
-    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
-    Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false;
+    if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW|CREATE_SUSPENDED,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
+    Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
     std::uint64_t actor_inserted{};
     const auto child_birth=process_birth(child_process.value);
     const auto stop_test_actor=[&]{
@@ -127,7 +176,39 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"retained_exact_child_handle\":"+(exact?"true":"false")+",\"TerminateProcess_requested\":"+(requested?"true":"false")+
             ",\"actor_exit_observed\":"+(gone?"true":"false")+",\"product_or_source_terminated\":false,\"functional_PASS\":false");return gone;
     };
+    Handle start_ack;std::string actual_down,actual_start;Gesture g{*point,0,offset};
     try{
+        const auto event_name=input_actor_start_event(s.run,GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId);
+        SetLastError(0);start_ack.value=CreateEventW(nullptr,TRUE,FALSE,event_name.c_str());const auto event_error=GetLastError();
+        s.log.check("I08_actor_fresh_START_event",start_ack.value&&event_error!=ERROR_ALREADY_EXISTS&&child_birth,
+            "\"event\":"+quote(utf8(event_name))+",\"CreateEvent_return\":"+(start_ack.value?"true":"false")+
+            ",\"CreateEvent_error\":"+std::to_string(event_error)+",\"unknown_existing_event_not_signaled\":true");
+        const DWORD resumed=ResumeThread(child_thread.value);const auto resume_error=resumed==static_cast<DWORD>(-1)?GetLastError():0;
+        actor_resumed=resumed!=static_cast<DWORD>(-1)&&resumed<=1;
+        s.log.check("I08_actor_resume_exact_child",resumed==1,"\"ResumeThread_previous_suspend_count\":"+std::to_string(resumed)+
+            ",\"ResumeThread_error\":"+std::to_string(resume_error));
+        bool ack_ready=false;
+        (void)wait([&]{
+            if(WaitForSingleObject(child_process.value,0)!=WAIT_TIMEOUT)return true;
+            actual_start=record(s,offset,"gesture_start");g.generation=number(actual_start,"\"generation\":");
+            actual_down=record(s,offset,"input_button_observed",g.generation);
+            ack_ready=g.generation&&number(actual_start,"\"process_id\":")==product_pid&&number(actual_start,"\"key\":")==expected_key&&
+                actual_start.find("\"resize\":false")!=actual_start.npos&&actual_start.find("\"ctrl\":false")!=actual_start.npos&&
+                actual_start.find("\"original\":"+rect(*initial))!=actual_start.npos&&number(actual_down,"\"process_id\":")==product_pid&&
+                number(actual_down,"\"source_key\":")==expected_key&&number(actual_down,"\"button\":")==1&&
+                actual_down.find("\"kind\":\"DOWN\"")!=actual_down.npos&&actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=actual_down.npos&&
+                number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
+                actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty();
+            return ack_ready;
+        },5000);
+        const bool ack_called=ack_ready&&WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT;
+        const bool ack_sent=ack_called&&SetEvent(start_ack.value)!=FALSE;const auto ack_error=ack_called&&!ack_sent?GetLastError():0;
+        s.log.check("I08_actor_actual_product_START_ack_once",ack_sent,
+            "\"generation\":"+std::to_string(g.generation)+",\"expected_source_key\":"+std::to_string(expected_key)+
+            ",\"current_product_PID\":"+std::to_string(product_pid)+",\"actual_DOWN\":"+quote(actual_down)+",\"actual_START\":"+quote(actual_start)+
+            ",\"prepared_source\":"+quote(prepared)+",\"SetEvent_called\":"+(ack_called?"true":"false")+
+            ",\"SetEvent_return\":"+(ack_sent?"true":"false")+",\"SetEvent_error\":"+std::to_string(ack_error)+
+            ",\"ack_is_test_synchronization_not_product_authority\":true");
         const bool exited=wait([&]{return WaitForSingleObject(child_process.value,0)==WAIT_OBJECT_0;},5000);DWORD code=STILL_ACTIVE;
         if(!exited)(void)stop_test_actor();
         if(exited)GetExitCodeProcess(child_process.value,&code);const auto child_exit_tick=GetTickCount64();
@@ -137,29 +218,29 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             number(actor,"\"parent_pid\":")==GetCurrentProcessId()&&number(actor,"\"pid\":")==child.dwProcessId&&
             number(actor,"\"source_hwnd\":")==reinterpret_cast<std::uintptr_t>(source)&&number(actor,"\"before_qpc\":");
         actor_send_count_known=actor_identity;actor_inserted=actor_identity?number(actor,"\"SendInput_return\":"):0;
-        const bool actor_down_inserted=actor_identity&&actor_inserted==2;
+        const bool actor_down_inserted=actor_identity&&number(actor,"\"DOWN_SendInput_return\":")==1;
         // Import the CHILD's successful-send ledger, not async physical state.
         // START/native receipts below independently prove product observation.
         const auto actor_down_qpc=number(actor,"\"before_qpc\":");
-        const bool new_pair=exited&&code==0&&actor_down_inserted&&child_birth&&process_birth(child_process.value)==child_birth&&
+        const bool new_pair=exited&&actor_down_inserted&&child_birth&&process_birth(child_process.value)==child_birth&&
             number(actor,"\"parent_birth\":")==process_birth(GetCurrentProcess())&&number(actor,"\"source_tid\":")==set.thread&&
             actor.find("\"run_id\":"+quote(utf8(s.run)))!=actor.npos&&set.owns(0)&&!s.left&&
             actor_down_qpc>s.left_down_send_qpc&&actor_down_qpc>s.left_up_send_qpc;
         // A verified successful child NEW DOWN starts a new test-send pair.
-        // Failed/partial/duplicate receipts and the catch-only START inference
-        // below cannot clear an already-attempted UP guard or grant authority.
+        // The independent DOWN return remains known if MOVE/ack later fails.
+        // Duplicate/unknown receipts cannot clear an attempted UP or grant
+        // product authority; only this verified new test-send pair is imported.
         if(new_pair)s.left_up_attempted=false;
         if(actor_identity&&actor_inserted>=1){s.left=true;s.left_down_send_qpc=number(actor,"\"before_qpc\":");}
-        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&new_pair&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
+        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&actor_inserted==2&&new_pair&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
             "\"child_pid\":"+std::to_string(child.dwProcessId)+",\"exit_code\":"+std::to_string(code)+",\"child_exit_tick\":"+std::to_string(child_exit_tick)+
             ",\"source_still_alive\":"+(set.owns(0)?"true":"false")+",\"child_DOWN_insertion_confirmed\":"+
             (actor_down_inserted?"true":"null")+",\"child_SendInput_return\":"+(actor_send_count_known?std::to_string(actor_inserted):"null")+
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"new_verified_actor_send_pair_imported\":"+(new_pair?"true":"false")+",\"product_authority_not_granted_by_send_ledger\":true"+
             ",\"delivery_and_physical_button_held_not_inferred_from_ledger\":true,\"product_driver_channel\":false");
-        Gesture g{*point,0,offset};const Rect moved=translated(*initial,-40,35);std::string actual_down,native;
-        const bool observed_move=wait([&]{g.generation=number(record(s,offset,"gesture_start"),"\"generation\":");
-            actual_down=record(s,offset,"input_button_observed",g.generation);native=placement(s,offset,g.generation,moved,true);
+        const Rect moved=translated(*initial,-40,35);std::string native;
+        const bool observed_move=wait([&]{native=placement(s,offset,g.generation,moved,true);
             return g.generation&&set.owns(0)&&visible(source)==moved&&actual_up(s,offset,g.generation).empty()&&
                 actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=std::string::npos&&actual_down.find("\"kind\":\"DOWN\"")!=std::string::npos&&
                 number(actual_down,"\"hook_observed_qpc\":")&&native.find("\"authority_after\":true")!=std::string::npos;});
@@ -194,16 +275,46 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
         s.log.emit("I08_input_actor_exit_scope","\"status\":\"INPUT_ACTOR_EXIT_DEADLINE_AND_RECOVERY_OBSERVED\",\"source_destroyed\":false,\"product_driver_channel\":false," 
             "\"actual_main_fixture_test_UP\":true,\"same_product_new_Move_Resize\":true,\"whole_I08_PASS\":false,\"human_uat\":\"NOT_RUN\"");
     }catch(...){
-        // The child is one-shot with no waits. Keep desktop exposure bounded
+        // The child has only the bounded START acknowledgement/readback waits.
+        // Keep desktop exposure bounded
         // even when its evidence/start/deadline fails, never turn cleanup into
         // a functional PASS. No product process or source is terminated here.
         try{const bool actor_gone=stop_test_actor();
-            // A real START may survive a missing/failed receipt write. Keep
-            // that observation separate from an unknown child API return.
-            const auto started=record(s,offset,"gesture_start");if(number(started,"\"generation\":"))s.left=true;
-            if(!test_up){button(s,false);test_up=true;}
-            s.log.emit("I08_input_actor_failed_test_cleanup","\"test_UP_sent\":"+std::string(test_up?"true":"false")+
-                ",\"actor_exit_observed\":"+(actor_gone?"true":"false")+",\"child_SendInput_return\":"+
+            // A new verified single DOWN can survive an ack/MOVE failure or
+            // a failed final receipt write. Never infer it from async state.
+            const auto failed_actor=read(receipt,8192);
+            if(!actor_send_count_known&&failed_actor.ends_with("}\n")&&
+                number(failed_actor,"\"parent_pid\":")==GetCurrentProcessId()&&number(failed_actor,"\"pid\":")==child.dwProcessId&&
+                number(failed_actor,"\"parent_birth\":")==process_birth(GetCurrentProcess())&&
+                number(failed_actor,"\"source_hwnd\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                failed_actor.find("\"source_sha\":\"" PANEBIND_BUILD_SHA "\"")!=failed_actor.npos){
+                actor_send_count_known=true;actor_inserted=number(failed_actor,"\"SendInput_return\":");
+                const auto stamp=number(failed_actor,"\"before_qpc\":");
+                if(number(failed_actor,"\"DOWN_SendInput_return\":")==1&&!s.left&&stamp>s.left_down_send_qpc&&stamp>s.left_up_send_qpc){
+                    s.left_up_attempted=false;s.left=true;s.left_down_send_qpc=stamp;}}
+            const auto started=record(s,offset,"gesture_start");const auto generation=number(started,"\"generation\":");
+            const auto observed_down=record(s,offset,"input_button_observed",generation);const auto down_qpc=number(observed_down,"\"hook_observed_qpc\":");
+            if(generation&&number(started,"\"process_id\":")==product_pid&&number(started,"\"key\":")==expected_key&&
+                number(observed_down,"\"process_id\":")==product_pid&&number(observed_down,"\"source_key\":")==expected_key&&
+                observed_down.find("\"kind\":\"DOWN\"")!=observed_down.npos&&down_qpc>s.left_down_send_qpc&&down_qpc>s.left_up_send_qpc&&!s.left){
+                s.left_up_attempted=false;s.left=true;s.left_down_send_qpc=down_qpc;}
+            const bool actor_down_possible=actor_resumed&&(s.left||!actor_send_count_known||actor_inserted>=1);
+            if(!test_up&&actor_down_possible){
+                // A failed receipt may leave only UNKNOWN partial insertion.
+                // This actor's local fence permits ONE guest-only cleanup UP,
+                // not a reset/retry of an UP already attempted for this actor.
+                if(!s.left&&s.left_up_attempted&&!actor_send_count_known){
+                    test_up=true;INPUT release{};release.type=INPUT_MOUSE;release.mi.dwFlags=MOUSEEVENTF_LEFTUP;release.mi.dwExtraInfo=0x50425631;
+                    const bool input_desktop=desktop();const UINT inserted=input_desktop?SendInput(1,&release,sizeof(release)):0;
+                    const auto error=input_desktop&&inserted!=1?GetLastError():0;
+                    s.log.emit("I08_unknown_actor_single_test_UP","\"SendInput_called\":"+std::string(input_desktop?"true":"false")+
+                        ",\"SendInput_return\":"+std::to_string(inserted)+",\"error\":"+std::to_string(error)+
+                        ",\"actor_local_UP_attempt_retired\":true,\"previous_UP_guard_not_reset\":true,\"delivery_not_inferred\":true");
+                }else{test_up=true;button(s,false);}
+            }
+            s.log.emit("I08_input_actor_failed_test_cleanup","\"test_UP_attempted\":"+std::string(test_up?"true":"false")+
+                ",\"actor_resumed\":"+(actor_resumed?"true":"false")+",\"actor_DOWN_possible_or_confirmed\":"+(actor_down_possible?"true":"false")+
+                ",\"test_UP_delivery_not_inferred\":true,\"actor_exit_observed\":"+(actor_gone?"true":"false")+",\"child_SendInput_return\":"+
                 (actor_send_count_known?std::to_string(actor_inserted):"null")+",\"actual_START_observed\":"+
                 (number(started,"\"generation\":")?"true":"false")+",\"input_delivery_not_inferred\":true,\"functional_PASS\":false");}catch(...){}throw;
     }
