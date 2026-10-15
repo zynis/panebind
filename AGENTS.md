@@ -4,6 +4,39 @@ These rules apply to every contributor and every development round in this
 repository. A round-specific brief may narrow the allowed scope but may not
 silently broaden it.
 
+## Current authorized version — PaneBind V1 (2026-10-15)
+
+The user has explicitly authorized the complete Windows 11 V1 scope and
+reevaluation of non-injected low-level mouse hooks. Read
+[`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`](docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md)
+before continuing the product mainline. It is the current execution and
+acceptance contract: 12 modules, 60 features, and 32 mandatory capabilities in
+a fixed 40-item AquaSnap benchmark (80% functional coverage), plus actual
+Release/Medium integration and product usability gates.
+
+- The current round includes all P0–P5 milestones in that guide. Continue
+  implementation, integration, testing and in-scope repairs through whole-version
+  delivery; do not stop at an old Fix, module or internal milestone to request
+  approval again.
+- The guide's section 2 explicitly supersedes historical narrow-round limits,
+  the blanket exclusion of `WH_MOUSE_LL`, fixed-three-Explorer product scope,
+  and Debug-before-all-Release gates for this new product path. Old experiments
+  and their evidence retain their original boundaries and verdicts.
+- Product eligibility must be separate from the isolated automated-test target
+  restriction. Do not broaden old owned/Explorer tokens into arbitrary-window
+  authority. No DLL injection, drivers, high-frequency polling, telemetry or
+  uncontrolled host input is authorized.
+- An invalidated architecture assumption stops that route, not unrelated
+  authorized work. Use the guide's bounded investigation and replacement rules;
+  preserve actual failures and never award PASS for unexecuted checks.
+- Existing licensing, user-data, host-system and standard Git transport rules
+  still apply. No automatic merge to main or public release is authorized.
+
+This is an explicit user-approved version-scope amendment, not permission to
+invent further scope or bypass platform access controls. Historical R0 research
+limits remain applicable to the R0 observer, not to the separately authorized
+V1 production implementation.
+
 ## Communication language
 
 - Unless the user explicitly requests another language, use Simplified Chinese

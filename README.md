@@ -4,6 +4,24 @@ PaneBind is an early-stage, open-source desktop window-enhancement project.
 Windows is the first implementation platform, while the geometry and event
 model are designed to remain platform-neutral.
 
+## Current development contract — V1
+
+The user-authorized [V1 development and DEV acceptance guide](docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md)
+is the current mainline plan. It defines 12 modules, 60 feature contracts,
+continuous implementation through whole-version delivery, and 32 mandatory
+capabilities in a fixed 40-item AquaSnap benchmark (80% functional coverage).
+Ordinary-permission Release, actual application/display compatibility and
+integration gates are also mandatory. This is a target, not a claim that V1
+has already been implemented or accepted.
+
+At the guide's baseline (`065b69f`), the
+[latest guest-pipe validation report](docs/reports/R1C4B_MVP1_GUEST_PIPE_VALIDATION.md)
+still records a failed post-Resize gesture and no complete product candidate.
+Follow the V1 guide rather than treating the old small-round stopping points
+below as current execution gates.
+
+## Historical implementation and evidence
+
 The current R1-C3B baseline includes a narrowly authorized two-Explorer
 Ctrl+Move test session, with human Debug smoothness accepted between A and B.
 The [human validation report](docs/reports/R1C3B_HUMAN_VALIDATION_REPORT.md)
