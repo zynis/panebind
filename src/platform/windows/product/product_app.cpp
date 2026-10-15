@@ -1192,7 +1192,15 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.s
     const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
     log_delayed_completions();
     const bool recovery_stopped=recovery.stop();
-    const bool visual_restore_confirmed=recovery_stopped&&pending_visual.empty();
+    // A confirmed helper stop postverified all its held originals AFTER the
+    // exact completion barrier. Retire local journals too, including a job
+    // cancelled before issue by stop() (which need not produce a late wake).
+    // This is final property cleanup only, never a successful old mutation or
+    // renewed input/geometry authority.
+    if(recovery_stopped&&!writer.has_pending_native_operation()){
+        pending_visual.clear();deferred_drag_visual.reset();recovery_owned.clear();
+    }
+    const bool visual_restore_confirmed=recovery_stopped&&pending_visual.empty()&&!deferred_drag_visual;
     for(const auto& key:bound_keys)UnregisterHotKey(window,key.id);bound_keys.clear();
     NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;Shell_NotifyIconW(NIM_DELETE,&n);
     if(overlay)DestroyWindow(overlay);overlay=nullptr;WTSUnRegisterSessionNotification(window);

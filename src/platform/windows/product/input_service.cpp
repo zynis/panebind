@@ -131,6 +131,15 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             }
         }
     }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
+        const auto& prepared=self->active_prepared_;DWORD source_pid{};
+        const DWORD source_tid=prepared?GetWindowThreadProcessId(prepared->source.hwnd,&source_pid):0;
+        const bool source_current=prepared&&self->generation_&&self->authorized_->load()==self->generation_&&
+            prepared->source.key&&prepared->source.hwnd&&IsWindow(prepared->source.hwnd)&&
+            GetAncestor(prepared->source.hwnd,GA_ROOT)==prepared->source.hwnd&&
+            source_tid==prepared->source.tid&&source_pid==prepared->source.pid;
+        self->active_end_=matching_up_end(self->aborted_,self->active_end_,source_current,
+            prepared&&GetForegroundWindow()==prepared->source.hwnd);
+        if(self->active_end_!=core::v1::End::NormalUp)self->aborted_=true;
         *self->completion_=!self->aborted_&&self->active_end_==core::v1::End::NormalUp?self->generation_:0;
         *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
         self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,

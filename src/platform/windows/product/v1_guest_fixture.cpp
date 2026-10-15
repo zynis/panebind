@@ -1007,7 +1007,12 @@ void gui_click(State& s,const SettingsGui& gui,HWND control){
     if(!IntersectRect(&clipped,&actual,&page)||!IntersectRect(&visible_part,&clipped,&client))throw std::runtime_error("GUI_control_not_reachable");
     const POINT point{visible_part.left+(visible_part.right-visible_part.left)/2,visible_part.top+(visible_part.bottom-visible_part.top)/2};
     cursor(s,point);const auto hit=WindowFromPoint(point);
-    if(!gui_identity(s,gui,control)||(hit!=control&&!IsChild(control,hit)))throw std::runtime_error("GUI_actual_hit_is_not_target_control");
+    DWORD actual_hit_pid{};GetWindowThreadProcessId(hit,&actual_hit_pid);
+    s.log.check("GUI_actual_hit_is_target_control",gui_identity(s,gui,control)&&(hit==control||IsChild(control,hit)),
+        "\"control\":"+std::to_string(reinterpret_cast<std::uintptr_t>(control))+",\"control_class\":"+quote(utf8(gui_class(control)))+
+        ",\"control_text\":"+quote(utf8(gui_text(s,gui,control)))+",\"rect\":"+rect({actual.left,actual.top,actual.right,actual.bottom})+
+        ",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+        ",\"hit_class\":"+quote(utf8(gui_class(hit)))+",\"hit_pid\":"+std::to_string(actual_hit_pid));
     button(s,true);button(s,false);
     s.log.check("GUI_actual_mouse_click",wait([&]{return GetForegroundWindow()==gui.root&&gui_focus(gui)==control;}),
         "\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+",\"control\":"+
@@ -1276,7 +1281,10 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     for(std::size_t n=0;n<3;++n){s.log.check("visual_fixture_layout_restored",fixture_rect(s.frames[n].hwnd,old_rects[n]));if(shown[n])ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);}
     s.log.emit("visual_mapping_sequence","\"real_property_readbacks\":true,\"actual_registered_hotkey\":true,\"real_GUI_configuration\":true,\"NormalUp_and_Escape\":true,\"two_real_shake_gestures\":true,\"human_uat\":\"NOT_RUN\"");
 }
+#include "platform/windows/product/v1_guest_settings_capture.h"
 #include "platform/windows/product/v1_guest_layout_cases.h"
+#include "platform/windows/product/v1_guest_settings_cases.h"
+#include "platform/windows/product/v1_guest_product_chains.h"
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
@@ -1352,6 +1360,7 @@ void drive(State& s){
         s.log.check("production_half_screen_command",half_ok,
             "\"expected\":"+rect(half)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
+        owned_settings_screenshots(s);
         settings_gui_flow(s);
         try{explorer_flow(s);}
         catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
@@ -1360,6 +1369,8 @@ void drive(State& s){
         visual_mapping_flow(s);
         owned_layout_cases(s);
         owned_temporary_visual_inflight_case(s);
+        owned_settings_lifecycle_cases(s);
+        owned_dock_stretch_chains(s);
         if(s.configuration=="Release"){
             const auto idle=product::guest_test::measure_idle_60s(s.process,s.product_pid,process_birth(s.process));
             s.log.emit("Release_actual_idle_measurement",idle.json_fields());

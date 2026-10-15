@@ -1707,3 +1707,13 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   Recovery waits for that real event; timeout/unreadable alpha is not successful
   cleanup or external replacement. No external implementation was copied or
   adapted. Event/preparation tests are not native window/hung-application PASS.
+- Settings page hit routing (2026-10-15, original code): official
+  [tab display-area documentation](https://learn.microsoft.com/en-us/windows/win32/controls/tab-controls),
+  [tabbed dialog layout](https://learn.microsoft.com/en-us/windows/win32/controls/create-a-tabbed-dialog-box)
+  and SetWindowPos were inspected. The selected child page is raised above
+  its sibling tab control with NOACTIVATE; no foreign z-order is changed.
+  Release run `269b8f1f2941478990f9d769d3b1d9c1` proved actual settings
+  foreground/focus but rejected the first checkbox's hit before sending its
+  click. The old rejection did not record the actual hit HWND/class. New
+  evidence records both target and hit; the layout fix remains a candidate
+  until actual clicks pass. No copied/adapted sample implementation.

@@ -223,7 +223,11 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     const Rect initial{monitor.rcWork.left+200,monitor.rcWork.top+160,monitor.rcWork.left+600,monitor.rcWork.top+460};
     s.log.check("temporary_inflight_independent_fixture_layout",fixture_rect(h,initial));
     auto desired=original_config;desired.attraction_dip=0;desired.drag_transparency=true;desired.drag_alpha=190;desired.shake=false;
-    visual_gui_save(s,desired);own_visual_setup(s,h,173,false);
+    visual_gui_save(s,desired);own_visual_setup(s,h,205,false);
+    // The permanent command's original is205, while the pre-DOWN temporary
+    // original is173. Falling back to the helper's oldest original would be
+    // observably WRONG while the product is still running.
+    visual_command(s,h,L"OpacityDown",173,false);
     auto& stall=s.frames[0].stall;
     s.log.check("temporary_inflight_no_previous_native_stall",!stall.armed&&!stall.entered&&!stall.finished);
     const auto g=down(s,0);visual_exact(s,h,190,false,"temporary_inflight_actual_pressed_alpha190");
@@ -308,6 +312,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     phase(s,0,next,40,30,next_target,"temporary_inflight_next_real_Move_exact",true);up(s,0,next,next_target);
     visual_exact(s,h,173,false,"temporary_inflight_next_real_UP_restores_alpha173");
     visual_gui_save(s,original_config);
+    visual_command(s,h,L"OpacityUp",205,false); // retire the permanent ownership before app-side fixture restoration
     SetLastError(0);const auto ex=GetWindowLongPtrW(h,GWL_EXSTYLE);if(!ex&&GetLastError())throw std::runtime_error("temporary_inflight_original_style_read_failed");
     SetLastError(0);const auto prior=SetWindowLongPtrW(h,GWL_EXSTYLE,original_visual->layered?ex|WS_EX_LAYERED:ex&~WS_EX_LAYERED);
     if((!prior&&GetLastError())||(original_visual->layered&&!SetLayeredWindowAttributes(h,original_visual->color,original_visual->alpha,original_visual->flags))||

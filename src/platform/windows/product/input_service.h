@@ -50,6 +50,16 @@ inline bool operation_permission(std::uint64_t generation,std::uint64_t active,s
                                  bool available,bool allow_completion){
     return available&&(!generation||active==generation||(allow_completion&&normal_up==generation));
 }
+// Actual matching-UP decision used by the callback. Native foreground events
+// may still be queued: current facts, not their eventual delivery, determine
+// whether this generation can receive a NormalUp completion capability.
+inline core::v1::End matching_up_end(bool aborted,core::v1::End observed_end,
+                                   bool source_current,bool foreground_matches){
+    if(observed_end!=core::v1::End::NormalUp)return observed_end;
+    if(!source_current||aborted)return core::v1::End::SourceLost;
+    if(!foreground_matches)return core::v1::End::FocusLost;
+    return core::v1::End::NormalUp;
+}
 enum class InputKind { Down, Move, Up, Abort, Mapped };
 struct InputEvent {
     InputKind kind{};

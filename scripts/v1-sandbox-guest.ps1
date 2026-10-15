@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateRange(30,1200)][int]$StageTimeoutSeconds=360)
+      [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
 $outputDir='C:\PaneBindV1\Output'

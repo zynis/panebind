@@ -101,6 +101,24 @@ int main() {
     completion=0;
     check(!product::operation_permission(2,active,completion,true,true),"abort retires completion without pretending the native call was cancelled");
     check(!product::operation_permission(2,0,2,false,true),"pause or stop independently rejects same-generation completion");
+    check(product::matching_up_end(false,v1::End::NormalUp,true,true)==v1::End::NormalUp,
+          "actual foreground and current source generation permit matching normal UP");
+    check(product::matching_up_end(false,v1::End::NormalUp,true,false)==v1::End::FocusLost,
+          "UP arriving before queued foreground WinEvent still records actual focus loss");
+    check(product::matching_up_end(false,v1::End::NormalUp,false,true)==v1::End::SourceLost&&
+          product::matching_up_end(false,v1::End::NormalUp,false,false)==v1::End::SourceLost,
+          "destroyed replaced or explicitly retired source generation cannot receive normal completion");
+    check(product::matching_up_end(true,v1::End::FocusLost,true,true)==v1::End::FocusLost&&
+          product::matching_up_end(true,v1::End::Deadline,true,true)==v1::End::Deadline&&
+          product::matching_up_end(true,v1::End::Paused,true,true)==v1::End::Paused,
+          "foreground return after an observed abort cannot rewrite failure as NormalUp");
+    check(product::matching_up_end(true,v1::End::NormalUp,true,true)!=v1::End::NormalUp,
+          "already aborted admission cannot mint a completion capability even if its old end was normal");
+    active=5;completion=0;
+    const auto up_end=product::matching_up_end(false,v1::End::NormalUp,true,false);
+    completion=up_end==v1::End::NormalUp?active:0;active=0;
+    check(!product::operation_permission(5,active,completion,true,true),
+          "production matching-UP failure leaves both active writes and discrete completion revoked");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";
     return failures==0?0:1;
 }

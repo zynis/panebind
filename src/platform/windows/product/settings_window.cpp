@@ -421,6 +421,10 @@ struct SettingsWindow::Impl {
         for(auto& page:pages) {
             MoveWindow(page.hwnd,inner.left,inner.top,std::max<LONG>(1,inner.right-inner.left),std::max<LONG>(1,inner.bottom-inner.top),TRUE);
             ShowWindow(page.hwnd,page.index==selected?SW_SHOW:SW_HIDE);arrange_page(page);
+            // Tab and page are siblings. The tab spans the display area as
+            // well as its header; keep the selected page ABOVE it for actual
+            // mouse hit testing, without activating either window.
+            if(page.index==selected)SetWindowPos(page.hwnd,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
         }
         for(std::size_t i=0;i<footer.size();++i) {
             const int row=static_cast<int>(i)/columns,column=static_cast<int>(i)%columns;
