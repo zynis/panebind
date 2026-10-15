@@ -90,11 +90,55 @@ bool constraint_existing_fixed_case(State& s){
     const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+travel+53,g.anchor.y+11});
     DWORD status_exit{};s.log.check("I10_after_abort_status_command",launch(s,L"--status",true,&status_exit)&&status_exit==0);
     s.log.check("I10_after_abort_status_observed",wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;}));
+    // Read-only routing facts at the ORIGINAL UP point. Do not move, activate
+    // a window, alter integrity, or insert another UP to improve this result.
+    POINT up_cursor{};SetLastError(0);const bool cursor_known=GetCursorPos(&up_cursor)!=FALSE;const DWORD cursor_error=cursor_known?0:GetLastError();
+    const HWND up_hit=cursor_known?WindowFromPoint(up_cursor):nullptr,up_root=up_hit?GetAncestor(up_hit,GA_ROOT):nullptr,up_foreground=GetForegroundWindow();
+    DWORD up_hit_pid{},up_root_pid{};const DWORD up_hit_tid=up_hit?GetWindowThreadProcessId(up_hit,&up_hit_pid):0,up_root_tid=up_root?GetWindowThreadProcessId(up_root,&up_root_pid):0;
+    const auto up_hit_class=up_hit?gui_class(up_hit):std::wstring{},up_root_class=up_root?gui_class(up_root):std::wstring{};
+    int up_root_rid=-1;bool up_root_elevated{},up_root_medium{},up_root_identity{};DWORD up_root_token_error{};
+    if(up_root_pid){SetLastError(0);Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,up_root_pid));
+        if(!process.value)up_root_token_error=GetLastError();else{
+            up_root_medium=medium(process.value,&up_root_rid,&up_root_elevated,&up_root_token_error);DWORD current_pid{};
+            up_root_identity=WaitForSingleObject(process.value,0)==WAIT_TIMEOUT&&IsWindow(up_root)&&
+                GetWindowThreadProcessId(up_root,&current_pid)==up_root_tid&&current_pid==up_root_pid;
+            if(!up_root_identity)up_root_rid=-1;
+        }
+    }
+    s.log.emit("I10_before_original_test_UP_routing","\"GetCursorPos_succeeded\":"+std::string(cursor_known?"true":"false")+
+        ",\"GetCursorPos_error\":"+std::to_string(cursor_error)+",\"actual_cursor\":"+(cursor_known?"["+std::to_string(up_cursor.x)+","+std::to_string(up_cursor.y)+"]":"null")+
+        ",\"hit_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(up_hit))+",\"hit_PID\":"+std::to_string(up_hit_pid)+",\"hit_TID\":"+std::to_string(up_hit_tid)+
+        ",\"hit_class\":"+(up_hit_class.empty()?"null":quote(utf8(up_hit_class)))+",\"root_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(up_root))+
+        ",\"root_PID\":"+std::to_string(up_root_pid)+",\"root_TID\":"+std::to_string(up_root_tid)+",\"root_class\":"+(up_root_class.empty()?"null":quote(utf8(up_root_class)))+
+        ",\"hit_root_is_exact_source\":"+(set.owns(0)&&up_root==frame.hwnd?"true":"false")+",\"actual_foreground\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(up_foreground))+",\"foreground_is_exact_source\":"+(set.owns(0)&&up_foreground==frame.hwnd?"true":"false")+
+        ",\"root_identity_still_current\":"+(up_root_identity?"true":"false")+",\"root_integrity_rid\":"+(up_root_rid<0?"null":std::to_string(up_root_rid))+
+        ",\"root_elevated\":"+(up_root_rid<0?"null":up_root_elevated?"true":"false")+",\"root_medium_non_elevated\":"+(up_root_rid<0?"null":up_root_medium?"true":"false")+
+        ",\"root_token_query_error\":"+std::to_string(up_root_token_error)+",\"original_trajectory_unchanged\":true,\"routing_cause_not_inferred\":true");
     button(s,false);
-    s.log.check("I10_abort_real_UP_not_NormalUp",wait([&]{GUITHREADINFO info{sizeof(info)};return !s.left&&!actual_up(s,g.offset,g.generation).empty()&&
-        GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture;})&&
-        record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
-        "\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
+    std::string observed_up,observed_end;GUITHREADINFO source_gui{sizeof(source_gui)};bool source_gui_known{},driver_released{};DWORD source_gui_error{};
+    const bool up_and_context=wait([&]{
+        // Read EVERY independent fact even when actual UP is still missing.
+        // Otherwise && short circuit would turn an absent receipt into an
+        // unsupported statement about the native source thread's GUI state.
+        driver_released=!s.left;observed_up=actual_up(s,g.offset,g.generation);observed_end=record(s,g.offset,"gesture_end",g.generation);
+        source_gui={sizeof(source_gui)};SetLastError(0);source_gui_known=GetGUIThreadInfo(set.thread,&source_gui)!=FALSE;
+        source_gui_error=source_gui_known?0:GetLastError();
+        return driver_released&&!observed_up.empty()&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize;
+    });
+    const bool ordinary_abort=observed_end.find("\"normal_up\":false")!=std::string::npos;std::string after_UP_status;bool snapshot_requested{},snapshot_observed{};DWORD snapshot_exit=STILL_ACTIVE;
+    if(!up_and_context||!ordinary_abort){const auto failed_up_mark=read(s.product_log).size();
+        snapshot_requested=launch(s,L"--status",true,&snapshot_exit);
+        snapshot_observed=wait([&]{after_UP_status=record(s,failed_up_mark,"status");return !after_UP_status.empty();},1000);
+    }
+    s.log.check("I10_abort_real_UP_not_NormalUp",up_and_context&&ordinary_abort,
+        "\"actual_UP\":"+(observed_up.empty()?"null":quote(observed_up))+",\"driver_left_released_ledger\":"+(driver_released?"true":"false")+
+        ",\"source_GUI_known\":"+(source_gui_known?"true":"false")+",\"source_GUI_query_error\":"+std::to_string(source_gui_error)+
+        ",\"actual_capture\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndCapture)):"null")+
+        ",\"actual_move_size\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndMoveSize)):"null")+
+        ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"after_UP_status_requested\":"+(snapshot_requested?"true":"false")+
+        ",\"after_UP_status_command_exit\":"+std::to_string(snapshot_exit)+",\"after_UP_status_observed\":"+(snapshot_observed?"true":"false")+
+        ",\"after_UP_status_with_mouse_up_callbacks\":"+(after_UP_status.empty()?"null":quote(after_UP_status)));
     s.log.check("I10_no_grid_retry_or_new_placement_after_abort",attempted(constraint_generation_placements(s,g.offset,g.generation))==1&&visible(frame.hwnd)==constrained,
         "\"independent_actual_constraint_rejection\":true,\"pending_retired\":true");
 

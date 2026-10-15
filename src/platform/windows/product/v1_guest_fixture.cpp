@@ -1171,19 +1171,68 @@ void cleanup(State& s){
     // termination remains a failure regardless of this test-only observation.
     // An earlier independent application failure remains a failure, but does
     // not prevent observation of this instance's actual input-resource exit.
-    bool delivered=false;const bool check_delivery=current_stop_confirmed;
-    for(auto& f:s.frames)if(check_delivery&&own(s,f.hwnd)&&IsWindowVisible(f.hwnd)){
-        const bool front=SetForegroundWindow(f.hwnd)!=FALSE;RECT client{};POINT point{};
-        if(!front||GetForegroundWindow()!=f.hwnd||!GetClientRect(f.hwnd,&client))break;
-        point={(client.left+client.right)/2,(client.top+client.bottom)/2};
-        if(!ClientToScreen(f.hwnd,&point))break;
-        try{cursor(s,point);if(WindowFromPoint(point)!=f.hwnd)break;const auto downs=f.down.load(),ups=f.up.load();
-            button(s,true);button(s,false);delivered=wait([&]{return f.down.load()==downs+1&&f.up.load()==ups+1;},1000);
-        }catch(...){if(s.left){try{button(s,false);}catch(...){}}}
-        break;
+    bool delivered=false;const bool check_delivery=current_stop_confirmed;Frame* selected{};std::string candidates="[",why=check_delivery?"no_exact_owned_candidate":"current_product_stop_not_confirmed";
+    for(std::size_t n=0;n<s.frames.size();++n){auto& f=s.frames[n];const bool exact=own(s,f.hwnd),shown=exact&&IsWindowVisible(f.hwnd)!=FALSE;
+        if(n)candidates+=',';candidates+="{\"member\":"+std::to_string(n)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(f.hwnd))+
+            ",\"exact_owned\":"+(exact?"true":"false")+",\"visible\":"+(exact?(shown?"true":"false"):"null")+"}";
+        if(exact&&(!selected||(shown&&!IsWindowVisible(selected->hwnd))))selected=&f;
+    }candidates+=']';
+    bool show_requested=false,show_previous=false,visible_after=false,front_called=false,front_return=false,front_observed=false;
+    bool client_read=false,converted=false,hit_read=false,down_invoked=false,up_invoked=false,counts_known=false;
+    RECT client{};POINT point{};HWND actual_foreground{},hit{};unsigned downs_before{},ups_before{},downs_after{},ups_after{};
+    const auto click_offset=read(s.log.path).size();const auto prior_down_send=s.left_down_send_qpc;
+    if(check_delivery&&selected){auto& f=*selected;
+        try{
+            // Only a window CREATED by this exact fixture may be shown. This
+            // is test setup, not proof that product cleanup succeeded.
+            if(!own(s,f.hwnd))throw std::runtime_error("selected_owned_identity_changed");
+            if(!IsWindowVisible(f.hwnd)){show_requested=true;show_previous=ShowWindow(f.hwnd,SW_SHOWNOACTIVATE)!=FALSE;}
+            visible_after=wait([&]{return own(s,f.hwnd)&&IsWindowVisible(f.hwnd);},1000);
+            if(!visible_after)throw std::runtime_error("selected_owned_window_not_visible");
+            front_called=true;front_return=SetForegroundWindow(f.hwnd)!=FALSE;
+            front_observed=wait([&]{return own(s,f.hwnd)&&GetForegroundWindow()==f.hwnd;},1000);actual_foreground=GetForegroundWindow();
+            if(!front_observed)throw std::runtime_error("actual_foreground_not_selected_owned_window");
+            client_read=GetClientRect(f.hwnd,&client)!=FALSE;
+            if(!client_read||client.left>=client.right||client.top>=client.bottom)throw std::runtime_error("selected_owned_client_rect_unavailable_or_empty");
+            point={(client.left+client.right)/2,(client.top+client.bottom)/2};converted=ClientToScreen(f.hwnd,&point)!=FALSE;
+            if(!converted)throw std::runtime_error("selected_owned_client_to_screen_failed");
+            cursor(s,point);hit=WindowFromPoint(point);hit_read=true;
+            if(!own(s,f.hwnd)||GetForegroundWindow()!=f.hwnd||hit!=f.hwnd)throw std::runtime_error("actual_client_hit_not_selected_owned_window");
+            downs_before=f.down.load();ups_before=f.up.load();counts_known=true;
+            down_invoked=true;button(s,true);up_invoked=true;button(s,false);
+            delivered=wait([&]{return f.down.load()==downs_before+1&&f.up.load()==ups_before+1;},1000);
+            why=delivered?"actual_client_DOWN_UP_delivered":"actual_client_DOWN_UP_not_observed";
+        }catch(const std::exception& error){why=error.what();
+            if(s.left&&!up_invoked){try{up_invoked=true;button(s,false);}catch(...){};}}
+        if(counts_known){downs_after=f.down.load();ups_after=f.up.load();}
     }
-    s.log.emit("post_stop_actual_client_click","\"executed\":"+std::string(check_delivery?"true":"false")+",\"actual_down_up_delivered\":"+std::string(delivered?"true":"false")+
-        ",\"only_test_owned_window\":true,\"not_guest_destruction\":true");
+    // button() logs whether SendInput was actually reached, including failure.
+    // Entering the branch or a successful product shutdown is NOT execution.
+    bool down_record=false,up_record=false,down_called=false,up_called=false;
+    const auto click_bytes=read(s.log.path);if(click_offset<click_bytes.size()){
+        std::istringstream rows(click_bytes.substr(click_offset));std::string line;
+        while(std::getline(rows,line))if(line.ends_with('}')&&line.find("\"type\":\"test_button_send\"")!=std::string::npos){
+            if(line.find("\"requested\":\"DOWN\"")!=std::string::npos){down_record=true;down_called=line.find("\"SendInput_called\":true")!=std::string::npos;}
+            if(line.find("\"requested\":\"UP\"")!=std::string::npos){up_record=true;up_called=line.find("\"SendInput_called\":true")!=std::string::npos;}
+        }
+    }
+    const bool successful_down_send=s.left_down_send_qpc&&s.left_down_send_qpc!=prior_down_send;
+    const std::string executed=down_called||successful_down_send?"true":(!down_invoked||down_record?"false":"null");
+    s.log.emit("post_stop_actual_client_click","\"check_requested\":"+std::string(check_delivery?"true":"false")+",\"executed\":"+executed+
+        ",\"actual_down_up_delivered\":"+(delivered?"true":"false")+",\"candidates\":"+candidates+
+        ",\"selected_target\":"+(selected?std::to_string(reinterpret_cast<std::uintptr_t>(selected->hwnd)):"null")+
+        ",\"test_setup_ShowWindow_requested\":"+(show_requested?"true":"false")+",\"ShowWindow_previous_visible\":"+(show_requested?(show_previous?"true":"false"):"null")+
+        ",\"visible_after_test_setup\":"+(selected&&check_delivery?(visible_after?"true":"false"):"null")+
+        ",\"SetForegroundWindow_called\":"+(front_called?"true":"false")+",\"SetForegroundWindow_return\":"+(front_called?(front_return?"true":"false"):"null")+
+        ",\"actual_foreground_matches\":"+(front_called?(front_observed?"true":"false"):"null")+",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual_foreground))+
+        ",\"GetClientRect_succeeded\":"+(client_read?"true":"false")+",\"client_rect\":"+(client_read?rect({client.left,client.top,client.right,client.bottom}):"null")+
+        ",\"ClientToScreen_succeeded\":"+(converted?"true":"false")+",\"client_screen_point\":"+(converted?"["+std::to_string(point.x)+","+std::to_string(point.y)+"]":"null")+
+        ",\"actual_hit\":"+(hit_read?std::to_string(reinterpret_cast<std::uintptr_t>(hit)):"null")+
+        ",\"DOWN_SendInput_called\":"+(down_record?(down_called?"true":"false"):successful_down_send?"true":!down_invoked?"false":"null")+
+        ",\"UP_SendInput_called\":"+(up_record?(up_called?"true":"false"):!up_invoked?"false":"null")+
+        ",\"counts_before\":"+(counts_known?"["+std::to_string(downs_before)+","+std::to_string(ups_before)+"]":"null")+
+        ",\"counts_after\":"+(counts_known?"["+std::to_string(downs_after)+","+std::to_string(ups_after)+"]":"null")+
+        ",\"reason\":"+quote(why)+",\"show_is_test_setup_not_product_cleanup_PASS\":true,\"only_test_owned_window\":true,\"not_guest_destruction\":true");
     if(check_delivery&&!delivered)s.log.failed=true;
 }
 // Real GUI exercise in the already-guarded guest, using the SAME executable

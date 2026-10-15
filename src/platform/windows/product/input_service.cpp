@@ -71,6 +71,12 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     const auto observed_qpc=before.QuadPart>0?static_cast<std::uint64_t>(before.QuadPart):0;
     const auto& packet=*reinterpret_cast<MSLLHOOKSTRUCT*>(param);
     const auto tick=GetTickCount64();
+    const bool observed_up=up(message);MouseUpCallbackSnapshot up_observation;
+    if(observed_up){
+        up_observation.callback_count=++self->up_callback_count_;up_observation.hook_observed_qpc=observed_qpc;
+        up_observation.button=button(message,packet.mouseData);up_observation.generation_at_entry=self->generation_;
+        up_observation.consumed_before=self->consumed_down_;up_observation.aborted_before=self->aborted_;
+    }
     // Any newly observed physical/test DOWN retires an earlier UP's pending
     // discrete dock commit, even if this new click passes through natively.
     if(down(message)){
@@ -138,6 +144,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             }
         }else self->click_candidate_={};
     }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
+        up_observation.matching_branch_taken=true;
         const auto& prepared=self->active_prepared_;DWORD source_pid{};
         const DWORD source_tid=prepared?GetWindowThreadProcessId(prepared->source.hwnd,&source_pid):0;
         const bool source_current=prepared&&self->generation_&&self->authorized_->load()==self->generation_&&
@@ -149,11 +156,13 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         if(self->active_end_!=core::v1::End::NormalUp)self->aborted_=true;
         *self->completion_=!self->aborted_&&self->active_end_==core::v1::End::NormalUp?self->generation_:0;
         *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
-        self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
+        up_observation.push_attempted=true;
+        up_observation.push_succeeded=self->push({InputKind::Up,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
             self->active_end_,self->active_prepared_,self->active_action_,observed_qpc});
         self->consumed_down_=false;self->active_prepared_.reset();
         if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
     }
+    if(observed_up)self->up_observation_.publish(up_observation);
     QueryPerformanceCounter(&after);
     const auto finished_qpc=after.QuadPart>0?static_cast<std::uint64_t>(after.QuadPart):0;
     self->callback_timing_.observe_qpc(observed_qpc,finished_qpc,self->counter_frequency_);

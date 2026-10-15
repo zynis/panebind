@@ -33,6 +33,16 @@ namespace {
 constexpr wchar_t app_class[]=L"PaneBind.V1.Application";
 constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31, queued_command_message=WM_APP+32;
 constexpr UINT menu_pause=500,menu_settings=501,menu_exclude=502,menu_help=503,menu_diagnostic=504,menu_exit=505;
+std::string mouse_up_callback_json(const MouseUpCallbackSnapshot& value){
+    if(!value.known)return "{\"snapshot_known\":false,\"callback_count\":null,\"last\":null}";
+    const auto prefix="{\"snapshot_known\":true,\"callback_count\":"+std::to_string(value.callback_count)+",\"last\":";
+    if(!value.callback_count)return prefix+"null}";
+    return prefix+"{\"hook_observed_qpc\":"+std::to_string(value.hook_observed_qpc)+
+        ",\"button\":"+std::to_string(value.button)+",\"generation_at_entry\":"+std::to_string(value.generation_at_entry)+
+        ",\"consumed_before\":"+(value.consumed_before?"true":"false")+",\"aborted_before\":"+(value.aborted_before?"true":"false")+
+        ",\"matching_branch_taken\":"+(value.matching_branch_taken?"true":"false")+
+        ",\"push_attempted\":"+(value.push_attempted?"true":"false")+",\"push_succeeded\":"+(value.push_succeeded?"true":"false")+"}}";
+}
 std::wstring wide(std::string_view s){
     if(s.empty())return {};const int n=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),nullptr,0);
     if(!n)return {};std::wstring r(static_cast<std::size_t>(n),L' ');MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,s.data(),static_cast<int>(s.size()),r.data(),n);return r;
@@ -210,7 +220,8 @@ public:
     void log_status(){
         const auto windows=catalog.all(settings);log.event("status","\"enabled\":"+std::string(settings.enabled?"true":"false")+
             ",\"hook_owner_running\":"+(input.healthy()?"true":"false")+",\"gesture_active\":"+(gesture?"true":"false")+
-            ",\"eligible_windows\":"+std::to_string(windows.size())+",\"operations\":"+std::to_string(operations)+",\"native_callsite_claims\":"+std::to_string(native_attempts));
+            ",\"eligible_windows\":"+std::to_string(windows.size())+",\"operations\":"+std::to_string(operations)+",\"native_callsite_claims\":"+std::to_string(native_attempts)+
+            ",\"mouse_up_callbacks\":"+mouse_up_callback_json(input.mouse_up_callbacks()));
     }
     bool save(v::Settings value){
         const auto error=v::validate(value);if(!error.empty()){notify(L"配置无效："+wide(error));return false;}
@@ -1341,7 +1352,8 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.s
     log.event("shutdown","\"own_hooks_stopped\":true,\"own_overlay_destroyed\":true,\"native_worker_exited\":"+
         std::string(native_writer_exited?"true":"false")+",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false")+
-        ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false"));
+        ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false")+
+        ",\"mouse_up_callbacks\":"+mouse_up_callback_json(input.mouse_up_callbacks()));
 }
 LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
     if(message==WM_NCHITTEST)return HTTRANSPARENT;if(message==WM_MOUSEACTIVATE)return MA_NOACTIVATE;

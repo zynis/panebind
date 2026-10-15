@@ -15,6 +15,19 @@ void check(bool condition, const char* name) {
 // GUI adapter / low-level callback. It never starts InputService, installs a
 // hook, synthesizes input, queries foreground, or opens a user window.
 int main() {
+    product::MouseUpCallbackObservation up_observation;
+    const auto initial_up=up_observation.snapshot();
+    check(initial_up.known&&initial_up.callback_count==0,"initial UP diagnostic snapshot reports no observed callback");
+    check(!product::MouseUpCallbackObservation::coherent(1,1)&&!product::MouseUpCallbackObservation::coherent(2,4)&&
+          product::MouseUpCallbackObservation::coherent(4,4),"actual bounded snapshot predicate rejects in-progress and changed publication");
+    up_observation.publish({true,1,123,16,1,true,true,true,true,true});const auto matched_up=up_observation.snapshot();
+    check(matched_up.known&&matched_up.callback_count==1&&matched_up.hook_observed_qpc==123&&matched_up.generation_at_entry==16&&
+          matched_up.button==1&&matched_up.consumed_before&&matched_up.aborted_before&&matched_up.matching_branch_taken&&
+          matched_up.push_attempted&&matched_up.push_succeeded,"actual atomic publication retains one matched aborted UP and queue result");
+    up_observation.publish({true,2,456,16,2,false,true,false,false,false});const auto unpaired_up=up_observation.snapshot();
+    check(unpaired_up.known&&unpaired_up.callback_count==2&&unpaired_up.hook_observed_qpc==456&&unpaired_up.button==2&&
+          !unpaired_up.consumed_before&&unpaired_up.aborted_before&&!unpaired_up.matching_branch_taken&&
+          !unpaired_up.push_attempted&&!unpaired_up.push_succeeded,"unpaired actual UP callback is not fabricated as normalized UP delivery");
     product::Prepared prepared;
     auto settings = v1::default_settings();
     prepared.region = 0;

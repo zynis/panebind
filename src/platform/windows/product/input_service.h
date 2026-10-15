@@ -92,6 +92,44 @@ struct InputEvent {
     // no such observation (e.g. WinEvent abort), never an invented timestamp.
     std::uint64_t hook_observed_qpc{};
 };
+struct MouseUpCallbackSnapshot {
+    bool known{};
+    std::uint64_t callback_count{},hook_observed_qpc{},generation_at_entry{};
+    int button{};
+    bool consumed_before{},aborted_before{},matching_branch_taken{},push_attempted{},push_succeeded{};
+};
+// One hook owner publishes; the GUI makes at most three coherent reads. Every
+// payload word is atomic too: an inconsistent observation is UNKNOWN, never a
+// mixed packet or a C++ data race. There are no waits/retries on the publisher.
+class MouseUpCallbackObservation {
+public:
+    static constexpr bool coherent(std::uint64_t before,std::uint64_t after){return !(before&1u)&&before==after;}
+    void publish(const MouseUpCallbackSnapshot& value){
+        sequence_.fetch_add(1);
+        count_.store(value.callback_count);qpc_.store(value.hook_observed_qpc);generation_.store(value.generation_at_entry);
+        const auto flags=static_cast<std::uint64_t>(value.button)&255u;
+        details_.store(flags|(static_cast<std::uint64_t>(value.consumed_before)<<8)|
+            (static_cast<std::uint64_t>(value.aborted_before)<<9)|(static_cast<std::uint64_t>(value.matching_branch_taken)<<10)|
+            (static_cast<std::uint64_t>(value.push_attempted)<<11)|(static_cast<std::uint64_t>(value.push_succeeded)<<12));
+        sequence_.fetch_add(1);
+    }
+    MouseUpCallbackSnapshot snapshot()const{
+        for(unsigned attempt=0;attempt<3;++attempt){
+            const auto before=sequence_.load();if(before&1u)continue;
+            MouseUpCallbackSnapshot out;out.callback_count=count_.load();out.hook_observed_qpc=qpc_.load();
+            out.generation_at_entry=generation_.load();const auto flags=details_.load();
+            if(!coherent(before,sequence_.load()))continue;
+            out.known=true;out.button=static_cast<int>(flags&255u);out.consumed_before=(flags&(1u<<8))!=0;
+            out.aborted_before=(flags&(1u<<9))!=0;out.matching_branch_taken=(flags&(1u<<10))!=0;
+            out.push_attempted=(flags&(1u<<11))!=0;out.push_succeeded=(flags&(1u<<12))!=0;return out;
+        }
+        return {};
+    }
+private:
+    // Sequentially consistent operations retain a single order across the
+    // sequence and payload words; a relaxed multiword read is not substituted.
+    std::atomic<std::uint64_t> sequence_{},count_{},qpc_{},generation_{},details_{};
+};
 // Dedicated message owner. No COM, file IO, cross-process messaging or geometry
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
 class InputService {
@@ -126,6 +164,7 @@ public:
     core::v1::TimingSnapshot callback_timing()const{return callback_timing_.snapshot();}
     std::uint64_t counter_frequency()const{return counter_frequency_;}
     std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
+    MouseUpCallbackSnapshot mouse_up_callbacks()const{return up_observation_.snapshot();}
 private:
     static LRESULT CALLBACK mouse(int,WPARAM,LPARAM);
     static void CALLBACK event(HWINEVENTHOOK,DWORD,HWND,LONG,LONG,DWORD,DWORD);
@@ -144,6 +183,7 @@ private:
     std::shared_ptr<std::atomic<bool>> available_{std::make_shared<std::atomic<bool>>(false)};
     std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
     std::uint64_t counter_frequency_{};
+    std::uint64_t up_callback_count_{};MouseUpCallbackObservation up_observation_;
     core::v1::TimingHistogram callback_timing_;
     std::atomic<std::shared_ptr<const Prepared>> prepared_;
     std::array<InputEvent,256> queue_{};
