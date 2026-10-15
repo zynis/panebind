@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-实际能证明的操作目前仍主要来自隔离 guest 的普通权限 owned 窗口。已有 T→L／四格／八窗与历史 grid 拒绝子场景；最新 cf／1bee 在 I10 发 DOWN 前因 hover／前台对象改变而中止，本次 DOWN 和 native 均未发出，不是 grid 或 UP 的再次复现。post-stop 的实际点击发送和窗口计数增长通过，但整体仍 FAIL。真实 Explorer、完整跨应用组、显示矩阵和最终便携包仍未通过整版验收，不将接线或局部自动 DEV 等同宿主试用／人工 UAT。
+实际能证明的操作目前仍主要来自隔离 guest 的普通权限 owned 窗口。已有 T→L／四格／八窗与历史 grid 拒绝子场景；最新 0fa／7cac 已实际进入单次 native 在途调用，250ms 超时撤权后迟到 exact 完成，临时 alpha 清理也有实际回执，但单次测试 UP 未进入现有 hook 观察，整体仍 FAIL。post-stop 的实际点击发送和窗口计数增长通过此子场景。真实 Explorer、完整跨应用组、显示矩阵和最终便携包仍未通过整版验收，不将接线或局部自动 DEV 等同宿主试用／人工 UAT。
 
 ## 源码与包身份
 
@@ -12,11 +12,12 @@
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 最新已运行 runtime | `cf2232d9f8112ce82b5b45ce4b40dab95486918c`；Debug／Release 构建与各 10 项 offline 通过，实际现场运行 Release；不据此转记功能通过 |
-| 最新已审阅现场 | cf／RunId `1bee4d83fa2d4786ad0319a69d3227c6`；I10 DOWN 前 hover／前台对象改变，本次 DOWN／native 未发出，整体 FAIL；eae／d49／8453 原始失败保留 |
-| 当前批次收尾 | 1bee collection 与精确 guest／任务清理回执已保存，证据未变；shutdown 资源字段 true，post-stop 真实发送及计数 `[1,1]→[2,2]` 通过此子场景，不代表整版 cleanup 验收 |
-| 当前 guest ZIP／manifest SHA-256 | `C454AC6F6E793A73BB41B6E317856791C5CDD4D39FB4F8B5C2A378A4DF7554FD`／`7124F85243D54C9B4741B461D8E3C8AC0B0B68580D6A6C01C52F3D1654594C4A` |
-| 当前真便携包 | PackageId `d6ab86dd05844a938e8e466bf0c0a21b`；ZIP `95DBF8BA35BBD3B016B808341E41EA5870C76B1A7FCBF2320E92AE79E5021F58`；Release EXE `1DFCC8522194FFC94D13EC387B1C9F931DF81E72DB7355DFF0609B1D1AF015A6`；1bee 未到达 I12 普通入口，NOT_RUN；旧 b650／6d022 保留 |
+| 最新已运行 runtime | `0fa45218b7b246e5b2908eeca3eadecc2ce13935`；Debug／Release 构建与各 10 项 offline 通过，实际现场运行 Release；不据此转记功能通过 |
+| 本包文档打包 HEAD | `d67b6da307b21dfd05dd9bd0ce0bf3f939e10b76`，相对 RUNTIME 仅允许三交付文档差异，二进制身份仍为 0fa |
+| 最新已审阅现场 | 0fa／RunId `7cac94a0561349c3ba1fde679cd27c11`；gen16／call44 真实在途，超时后迟到 exact 及 alpha 恢复成立，但实际 UP 未观察，整体 FAIL；1bee／eae／d49 原始失败保留 |
+| 当前批次收尾 | 7cac collection 与精确 guest／任务清理回执已保存，证据未变；shutdown 资源字段 true，post-stop 真实发送及计数 `[1,1]→[2,2]` 通过此子场景，不代表整版 cleanup 验收 |
+| 当前 guest ZIP／manifest SHA-256 | `1D50DB71AA41FE2F8E94D49159608CD43EA5C3461BC0FB93A39C5B6E367C89E3`／`8882B1BD3A9454A371E14F59C8E06DB4A625DB80BA657B4F6E248425B5FE11D4` |
+| 当前真便携包 | PackageId `f6b4f2556df94a86bbcafc1fe24ff5e9`；ZIP `F6A81D1080B2E0BEB520A9A74FCC33E2539DC9353292C11D2F82171DA3F5B143`；Release EXE `F2300BE43A917695923A28BC943A4610DB623C0FFD6B28074BC07D4A376735B0`；7cac 未到达 I12 普通入口，NOT_RUN；旧 d6ab／b650／6d022 保留 |
 | 历史 aae 已收证 | `a2eb05f7e76d05ec9378e0d12631dfd22c326fbb`／`aae67076ccda4bdb9300c9015108231a`，整体 FAIL；原始证据及清理回执保留 |
 | aae ZIP／manifest SHA-256 | `31132A5BCBB4EAB8F488BCE647B80A5A36A6E57540B5DA83FF41FC5BE2D8B8EF`／`DF95AEEA2336F7217A051A5341B8BE85F5E379147B48CC377B369ABCEF4BC793` |
 | aae Release／Debug EXE SHA-256 | `A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56`／`6C1B5EB112CC8169E166A13A627AE16B2A354BAB63882224FCC65301E0C2C596` |
@@ -29,6 +30,18 @@
 每批实际身份保存在 `uat/v1-sandbox/<RunId>/package-receipt.json` 与 `input/manifest.json`，便携包在 `uat/v1-portable/<PackageId>/package-receipt.json`。历史包与原始失败继续保留。`source_commit`／EXE self identity 为 RUNTIME，`packaging_head` 为实际文档打包 HEAD；仅允许三个交付文档的已提交差异，源码／脚本／LICENSE／AGENTS 及 dirty 输入均拒绝。实际纯 Git guard 正反检查已通过，不赋予功能 PASS，也不将旧 ZIP 结果改绑定到文档更新后的新 ZIP。打包 receipt 的部署字段不是当前执行结果，现场状态以实际回执为准。
 
 ## 已运行的功能与明确失败
+
+### 7cac／0fa：真实在途超时、迟到完成与临时属性恢复，实际 UP 仍未观察
+
+原始证据：`uat/v1-control/7cac94a0561349c3ba1fde679cd27c11/collection-20261015T162312746Z-12c84270720a4e3ab136d02478f86151/`。
+
+- fixture seq565–577 与产品 PID6868 seq143–147 记录真实 OpacityDown `205→173`，随后实际 DOWN／START gen16 与临时 alpha `173→190`。不是诊断许可代替实际修改。
+- 自建 source 在 `WM_WINDOWPOSCHANGING` 中有界暂停 1000ms；call44 的实际 `native_before_qpc=519183982`、`native_after_qpc=529210003` 及迟到 exact 回读证实原生调用真的在途约 1 秒。250ms writer 等待预算耗尽后，产品 seq148 记 completion unknown，seq150 以 SourceLost／end=3 退休 pending，不能把超时说成调用未发出或已取消。
+- 单次测试 UP（fixture seq580／581，SendInput 返回 1）在 source 仍阻塞时发出；产品未观察到本代 hook UP，shutdown seq156 最后 callback 仍为 gen15。seq583 的完整终止检查 FAIL；尽管产品已有 SourceLost 退休记录，也不能补成 NormalUp，缺失 UP 的原因 UNKNOWN。
+- seq151 记录 call44 迟到 exact、`new_write_authority_granted=false`；seq152／153 通过实际 alpha API 将 `190→173` 并取得 helper commit ACK、退休临时持有状态；seq155 正常退出前又恢复原 tuple `173→205`。这些具体恢复事实成立，但不是整个异常链通过。
+- fixture seq579 的 `native_entry_qpc=0`、flags／positioning 零值是日志 payload 实参与 `wait(...)` 实参求值顺序造成的确定性证据缺陷，不能推断 native 未进入；原日志不改。后继 `f626b6ee8c934da08497172898f6d93d155d5964` 已修并通过 Debug／Release 构建及各10项 offline，现场尚未运行；不替换 7cac 的实际运行身份或预填复验结果。
+- seq585 正常退出，产品 seq156 资源字段全 true、无未知在途完成；seq586–589 真实发送 cursor／DOWN／UP 并观察窗口计数 `[1,1]→[2,2]`，post-stop 投递子场景 PASS。seq590 整体 FAIL。精确 guest／任务已清理、证据保持不变，不以销毁 guest 代替清理通过。
+- 设置生命周期、托盘、五键、I11、应用矩阵及 I12 均未到达，NOT_RUN。后续仅调整测试顺序让未受阻功能先运行，不无改动重复同一缺 UP 路线，不将后续未运行包写成通过。
 
 ### 1bee／cf：I10 发 DOWN 前对象改变，真实 post-stop 点击通过
 
@@ -134,10 +147,11 @@ ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
 | Edge／Terminal adapter | 重复 bounds 查询及实际 cmd 根映像识别已有具体修正 | 精确新窗口重新绑定、真实 DOWN、完整几何及客户区输入 |
 | grid 与应用钳制 | 8453／d49 曾真实 non-exact 后拒绝；eae 无本代 native；1bee 更早在 DOWN 前 hover／前台对象改变 | 保留每批差异；1bee 不能新增 grid／UP 结论，仍须真实匹配输入与后续 Move／Ctrl |
-| 视觉／恢复与边线 | 临时／永久原值、独立 helper、completion barrier、迟到完成与实际边线已接线，已有视觉局部证据 | 当前构建补异常／未知完成和反馈实际观察，不能把正常 stop 推成硬崩溃通过 |
-| post-stop 实际输入恢复 | 1bee／eae 实际点击发送、命中和计数增长 PASS；d49 未执行到发送，不能判投递失败；历史各批原记录保留 | 继续分别记录发送／实际接收，不能推成整版 cleanup 验收 |
+| 视觉／恢复与边线 | 7cac call44 迟到 exact 后真实恢复临时 alpha 190→173、helper ACK，并在退出恢复205；旧视觉局部证据保留 | 仍缺本代实际 UP，不能把具体恢复或正常 stop 推成整条异常链／硬崩溃通过 |
+| post-stop 实际输入恢复 | 7cac／1bee／eae 实际点击发送、命中和计数增长 PASS；d49 未执行到发送，不能判投递失败；历史各批原记录保留 | 继续分别记录发送／实际接收，不能推成整版 cleanup 验收 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
-| 托盘与五键入口 | 已接实际菜单／五键／映射的 guest 用例；1bee 未到达 | NOT_RUN，不由离线组合测试或可编译推定实际入口通过 |
+| 托盘与五键入口 | 已接实际菜单／五键／映射的 guest 用例；1bee／7cac 未到达 | NOT_RUN，不由离线组合测试或可编译推定实际入口通过 |
+| 在途日志 payload | 7cac seq579 的 payload 可先于 wait 求值而记零；实际 native 进入及迟到 exact 由产品 call44 单独证实 | f626 已提交修复、双配置构建及各10项 offline 通过；现场 NOT_RUN，不改写原始证据或将零值当未调用 |
 
 ### 仍缺的实际环境或尚未闭合能力
 
@@ -148,8 +162,8 @@ ff 已提交并构建：真实七文件便携 ZIP 的精确源身份／哈希和
 | Notepad | 当前 guest 的指定系统 EXE／Appx 缺失；未运行的应用路径不能记 PASS，不在宿主安装或修改账户／UAC来补分。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | driver 断开收尾、第二成员真实 native failure、完整两轮与 15 分钟混合运行未闭环；d49 在 grid 后实际 UP 检查失败，eae 更早 FocusLost，1bee 在 DOWN 前准备失败。grid 非 exact 或窗口消失不冒充 API 返回 FALSE。 |
-| 最终便携交付 | 最新真便携包 d6ab 已绑定 cf 并加入 1bee，实际普通无参入口未到达；旧 b650／6d022 保留。解包／打包准备、identity-only 或合成检查不替代 I12。 |
+| I08／I10／I11 | driver 断开收尾、第二成员真实 native failure、完整两轮与 15 分钟混合运行未闭环；7cac 在真实在途调用期间未观察实际 UP，迟到 exact 和临时 alpha 清理虽成立，整链仍失败。d49／eae／1bee 的不同历史保留。grid 非 exact 或窗口消失不冒充 API 返回 FALSE。 |
+| 最终便携交付 | 最新真便携包 f6b4 已绑定 0fa／文档 HEAD d67 并加入 7cac，实际普通无参入口未到达；旧 d6ab／b650／6d022 保留。解包／打包准备、identity-only 或合成检查不替代 I12。 |
 
 ## 持续验证与交付边界
 
