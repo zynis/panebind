@@ -1783,3 +1783,12 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   neither an exit code nor test cleanup UP is product termination evidence.
   No external source code copied/adapted; native cases remain unexecuted until
   their matching new-build guest receipts are reviewed.
+- Failure-time cursor observation (2026-10-15): read official
+  [GetClipCursor](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclipcursor).
+  Its successful rectangle is the current confinement, or screen dimensions
+  when unconfined; it is read-only. A single failed test cursor observation now
+  includes that rectangle and actual foreground class/PID/TID and GUI facts.
+  It never calls ClipCursor, retakes foreground or releases foreign capture.
+  Run `92b2b41ea7f946bebca7a519a3c79831` had a real FocusLost terminal event
+  followed by unsuccessful exact cursor observation. This does not establish
+  which external/system component caused either observation. No external code.

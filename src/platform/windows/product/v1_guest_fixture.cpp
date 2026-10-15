@@ -252,6 +252,25 @@ void cursor(State& s,POINT point){
     input.mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(h)*2));
     UINT delivered=UINT_MAX;DWORD injection_error{},position_error{};bool position_read=false;unsigned observations{};
     const auto evidence=[&](bool exact){
+        std::string failure_context;
+        if(!exact){
+            // One failure-time native observation, not a retry/permission or
+            // an attempt to reclaim focus/capture. Packet coordinates alone
+            // did not prove the actual system cursor in the failing run.
+            const HWND foreground_window=GetForegroundWindow();DWORD foreground_pid{};
+            const DWORD foreground_tid=GetWindowThreadProcessId(foreground_window,&foreground_pid);
+            std::array<wchar_t,128> foreground_class{};
+            const bool class_read=foreground_window&&GetClassNameW(foreground_window,foreground_class.data(),static_cast<int>(foreground_class.size()))>0;
+            GUITHREADINFO gui{sizeof(gui)};const bool gui_read=foreground_tid&&GetGUIThreadInfo(foreground_tid,&gui)!=FALSE;
+            RECT clipping{};const bool clip_read=GetClipCursor(&clipping)!=FALSE;
+            failure_context=",\"failure_actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground_window))+
+                ",\"failure_foreground_pid\":"+std::to_string(foreground_pid)+",\"failure_foreground_tid\":"+std::to_string(foreground_tid)+
+                ",\"failure_foreground_class\":"+(class_read?quote(utf8(foreground_class.data())):"null")+
+                ",\"failure_GUI_read\":"+(gui_read?"true":"false")+
+                ",\"failure_actual_capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+                ",\"failure_actual_move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+                ",\"failure_clip_rect\":"+(clip_read?rect({clipping.left,clipping.top,clipping.right,clipping.bottom}):"null");
+        }
         s.log.emit("test_cursor_observation","\"requested\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"before\":"+
             (before_read?"["+std::to_string(before.x)+","+std::to_string(before.y)+"]":"null")+",\"before_GetCursorPos_error\":"+std::to_string(before_error)+
             ",\"actual\":"+(position_read?"["+std::to_string(actual.x)+","+std::to_string(actual.y)+"]":"null")+
@@ -260,7 +279,7 @@ void cursor(State& s,POINT point){
             "],\"normalized_absolute\":["+std::to_string(input.mi.dx)+","+std::to_string(input.mi.dy)+"],\"mouse_flags\":"+std::to_string(input.mi.dwFlags)+
             ",\"SendInput_called\":"+(delivered==UINT_MAX?"false":"true")+",\"SendInput_return\":"+(delivered==UINT_MAX?"null":std::to_string(delivered))+
             ",\"SendInput_error_on_failure\":"+std::to_string(injection_error)+",\"bounded_observations\":"+std::to_string(observations)+
-            ",\"exact_system_cursor\":"+(exact?"true":"false")+",\"product_packet_not_used_as_cursor_proof\":true");
+            ",\"exact_system_cursor\":"+(exact?"true":"false")+",\"product_packet_not_used_as_cursor_proof\":true"+failure_context);
     };
     try{inject(input,&delivered,&injection_error);}catch(...){
         position_read=GetCursorPos(&actual)!=FALSE;position_error=position_read?0:GetLastError();evidence(false);throw;
@@ -1549,7 +1568,6 @@ void drive(State& s){
         // Complete independent owned DEV before retrying application-specific
         // environment gaps. A failed application admission is not permission
         // to bypass it, nor a reason to leave unrelated product paths untested.
-        visual_mapping_flow(s);
         owned_layout_cases(s);
         owned_native_grid_constraint_case(s);
         owned_second_member_native_failure_case(s);
@@ -1563,6 +1581,7 @@ void drive(State& s){
             s.log.emit("Release_actual_idle_measurement",idle.json_fields());
             if(!idle.completed||idle.one_core_cpu_percent>=1.0||idle.after.working_bytes>80ULL*1024*1024)s.log.failed=true;
         }
+        visual_mapping_flow(s);
         try{explorer_flow(s);}
         catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
         application_matrix_flow(s);
