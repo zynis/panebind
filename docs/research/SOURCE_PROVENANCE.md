@@ -1647,3 +1647,14 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   cross-thread one-tick quantization and missing clocks are reported. No
   external implementation was copied or adapted. No sleep/resume or timing
   performance PASS is inferred from these API checks.
+- The first V1 Medium native run (`87cf12b7490747669ac7ce34e7059da1`,
+  `7878e573d2f6f8c09dafe75230dade48ceae366a`) observed one exact source
+  placement but the test's independent `GetCursorPos` check then failed.
+  The existing active route filtered every `WM_MOUSEMOVE`. Re-read official
+  LowLevelMouseProc, GetCursorPos and SendInput contracts: insertion is not
+  delivery and suppression blocks the rest of the hook/target route; those
+  pages alone do not establish why that cursor check failed. The next bounded
+  comparison observes motion but forwards it to `CallNextHookEx`, while still
+  owning the matching DOWN/UP pair. No injected product input, capture or
+  native-loop correction is introduced. Actual cursor/geometry/UP evidence,
+  not this hypothesis, determines that candidate's verdict.

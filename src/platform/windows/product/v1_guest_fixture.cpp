@@ -176,17 +176,37 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
         DrawTextW(dc,L"PaneBind V1 — 自建空白测试窗口",-1,&r,DT_CENTER|DT_VCENTER|DT_SINGLELINE);EndPaint(h,&p);return 0;}
     return DefWindowProcW(h,message,wp,lp);
 }
-void inject(INPUT packet){
+void inject(INPUT packet,UINT* delivered=nullptr,DWORD* failure_error=nullptr){
     if(!desktop())throw std::runtime_error("guest_input_desktop_became_inactive");packet.mi.dwExtraInfo=0x50425631;
-    if(SendInput(1,&packet,sizeof(packet))!=1)throw std::runtime_error("test_SendInput_failed");
+    const UINT count=SendInput(1,&packet,sizeof(packet));const DWORD error=count==1?0:GetLastError();
+    if(delivered)*delivered=count;if(failure_error)*failure_error=error;
+    if(count!=1)throw std::runtime_error("test_SendInput_failed");
 }
-void cursor(POINT point){
+void cursor(State& s,POINT point){
     const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),w=GetSystemMetrics(SM_CXVIRTUALSCREEN),h=GetSystemMetrics(SM_CYVIRTUALSCREEN);
     if(w<2||h<2||point.x<x||point.y<y||point.x>=x+w||point.y>=y+h)throw std::runtime_error("test_cursor_outside_virtual_screen");
+    POINT before{},actual{};const bool before_read=GetCursorPos(&before)!=FALSE;const DWORD before_error=before_read?0:GetLastError();
     INPUT input{};input.type=INPUT_MOUSE;input.mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
     input.mi.dx=static_cast<LONG>(((static_cast<long long>(point.x-x)*2+1)*65536)/(static_cast<long long>(w)*2));
-    input.mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(h)*2));inject(input);
-    if(!wait([&]{POINT p{};return GetCursorPos(&p)&&p.x==point.x&&p.y==point.y;},500))throw std::runtime_error("test_cursor_not_exact");
+    input.mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(h)*2));
+    UINT delivered=UINT_MAX;DWORD injection_error{},position_error{};bool position_read=false;unsigned observations{};
+    const auto evidence=[&](bool exact){
+        s.log.emit("test_cursor_observation","\"requested\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"before\":"+
+            (before_read?"["+std::to_string(before.x)+","+std::to_string(before.y)+"]":"null")+",\"before_GetCursorPos_error\":"+std::to_string(before_error)+
+            ",\"actual\":"+(position_read?"["+std::to_string(actual.x)+","+std::to_string(actual.y)+"]":"null")+
+            ",\"GetCursorPos_succeeded\":"+(position_read?"true":"false")+",\"GetCursorPos_error\":"+std::to_string(position_error)+
+            ",\"virtual_screen\":["+std::to_string(x)+","+std::to_string(y)+","+std::to_string(w)+","+std::to_string(h)+
+            "],\"normalized_absolute\":["+std::to_string(input.mi.dx)+","+std::to_string(input.mi.dy)+"],\"mouse_flags\":"+std::to_string(input.mi.dwFlags)+
+            ",\"SendInput_called\":"+(delivered==UINT_MAX?"false":"true")+",\"SendInput_return\":"+(delivered==UINT_MAX?"null":std::to_string(delivered))+
+            ",\"SendInput_error_on_failure\":"+std::to_string(injection_error)+",\"bounded_observations\":"+std::to_string(observations)+
+            ",\"exact_system_cursor\":"+(exact?"true":"false")+",\"product_packet_not_used_as_cursor_proof\":true");
+    };
+    try{inject(input,&delivered,&injection_error);}catch(...){
+        position_read=GetCursorPos(&actual)!=FALSE;position_error=position_read?0:GetLastError();evidence(false);throw;
+    }
+    const bool exact=wait([&]{++observations;position_read=GetCursorPos(&actual)!=FALSE;position_error=position_read?0:GetLastError();
+        return position_read&&actual.x==point.x&&actual.y==point.y;},500);
+    evidence(exact);if(!exact)throw std::runtime_error("test_cursor_not_exact");
 }
 void key(State& s,WORD code,bool pressed){
     INPUT packet{};packet.type=INPUT_KEYBOARD;packet.ki.wVk=code;packet.ki.dwFlags=pressed?0:KEYEVENTF_KEYUP;packet.ki.dwExtraInfo=0x50425631;
@@ -236,7 +256,7 @@ struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);const auto point=hit_point(h,region);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
-    cursor(*point);Sleep(100);if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
+    cursor(s,*point);Sleep(100);if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
     const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
     s.log.check("production_real_down_start",observed,
         "\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation));return g;
@@ -245,7 +265,7 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
     // Deliberately paced input trajectory below the configured speed cutoff;
     // this is not a product retry, cursor sampler or authority workaround.
     if(!authorized_source(s,source_window(s,source)))throw std::runtime_error("test_source_identity_revoked");
-    Sleep(60);const auto mark=read(s.product_log).size();cursor({g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
+    Sleep(60);const auto mark=read(s.product_log).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
     const bool ok=wait([&]{receipt=placement(s,mark,g.generation,expected,native);return visible(source_window(s,source))==expected&&!receipt.empty();});
     const auto actual=visible(source_window(s,source));
     s.log.check(std::move(name),ok,"\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+
@@ -456,7 +476,7 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     if(source>=s.frames.size()||!own(s,s.frames[source].hwnd)||!s.process)throw std::runtime_error("L2_exact_owned_source_required");
     auto& stall=s.frames[source].stall;
     s.log.check("L2_no_previous_stall",!stall.armed&&!stall.entered&&!stall.finished);
-    const auto g=down(s,source);stall.armed=true;Sleep(60);cursor({g.anchor.x-42,g.anchor.y+35});
+    const auto g=down(s,source);stall.armed=true;Sleep(60);cursor(s,{g.anchor.x-42,g.anchor.y+35});
     s.log.check("L2_native_call_observed_in_owned_wndproc",wait([&]{return stall.entered.load();},800)&&stall.left_down.load()&&
         (GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"generation\":"+std::to_string(g.generation)+",\"message\":\"WM_WINDOWPOSCHANGING\",\"bounded_sleep_ms\":1000");
     s.log.emit("L2_native_call_entered","\"generation\":"+std::to_string(g.generation)+",\"actual_owned_hwnd\":"+
@@ -484,7 +504,7 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     s.log.check("L2_failed_native_call_not_NormalUp",!end.empty()&&end.find("\"normal_up\":false")!=std::string::npos,"\"production_end\":"+quote(end));
     // Once the actual terminator was observed and the generation ended, extra
     // cursor events may not start new calls. This does not cancel the old one.
-    cursor({g.anchor.x-58,g.anchor.y+45});const bool quit_started_while_blocked=!stall.finished;
+    cursor(s,{g.anchor.x-58,g.anchor.y+45});const bool quit_started_while_blocked=!stall.finished;
     DWORD quit_exit{};const bool quit_command=launch(s,L"--quit",true,&quit_exit);
     const bool stopped=WaitForSingleObject(s.process,1500)==WAIT_OBJECT_0;DWORD code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&code);
     const auto shutdown=record(s,mark,"shutdown");const bool stopped_before_source_resumed=!stall.finished;
@@ -527,7 +547,7 @@ void cleanup(State& s){
         if(!front||GetForegroundWindow()!=f.hwnd||!GetClientRect(f.hwnd,&client))break;
         point={(client.left+client.right)/2,(client.top+client.bottom)/2};
         if(!ClientToScreen(f.hwnd,&point))break;
-        try{cursor(point);if(WindowFromPoint(point)!=f.hwnd)break;const auto downs=f.down.load(),ups=f.up.load();
+        try{cursor(s,point);if(WindowFromPoint(point)!=f.hwnd)break;const auto downs=f.down.load(),ups=f.up.load();
             button(s,true);button(s,false);delivered=wait([&]{return f.down.load()==downs+1&&f.up.load()==ups+1;},1000);
         }catch(...){if(s.left){try{button(s,false);}catch(...){}}}
         break;
@@ -573,7 +593,7 @@ void drive(State& s){
         // Ordinary second-instance commands use the same production handler,
         // not a direct test writer or a window message invented as a result.
         foreground(s,s.frames[0].hwnd);const auto hit=hit_point(s.frames[0].hwnd,HTCAPTION);
-        if(!hit)throw std::runtime_error("command_target_titlebar_unavailable");cursor(*hit);Sleep(100);
+        if(!hit)throw std::runtime_error("command_target_titlebar_unavailable");cursor(s,*hit);Sleep(100);
         const auto initial=visible(s.frames[0].hwnd);MONITORINFO monitor{sizeof(monitor)};
         if(!initial||!GetMonitorInfoW(MonitorFromWindow(s.frames[0].hwnd,MONITOR_DEFAULTTONULL),&monitor))
             throw std::runtime_error("command_monitor_unavailable");

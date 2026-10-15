@@ -87,9 +87,13 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 else self->push({InputKind::Move,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
                     self->active_end_,p,self->active_action_,observed_qpc});
             }
-            // After abort, normal cursor routing resumes immediately. Retain
-            // only the matching consumed-DOWN's UP pair, with a finite deadline.
-            consume=!self->aborted_;
+            // Observe motion, but let Windows update/route the real cursor.
+            // The matching DOWN was already consumed, so it did not start a
+            // native nonclient Move/Resize loop. Filtering every MOVE can
+            // suppress the system cursor itself; it is not needed to prevent
+            // a second native geometry writer. The consumed button's actual
+            // UP is still paired below, with the existing finite deadline.
+            consume=false;
         }else if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
     }else if(down(message)&&!self->consumed_down_&&!self->paused_&&self->healthy_){
         auto p=self->prepared_.load();const auto mods=modifiers();const auto b=button(message,packet.mouseData);
