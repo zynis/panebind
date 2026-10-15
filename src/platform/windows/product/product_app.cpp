@@ -220,6 +220,9 @@ public:
     void log_status(){
         const auto windows=catalog.all(settings);log.event("status","\"enabled\":"+std::string(settings.enabled?"true":"false")+
             ",\"hook_owner_running\":"+(input.healthy()?"true":"false")+",\"gesture_active\":"+(gesture?"true":"false")+
+            ",\"native_operation_pending\":"+(writer.has_pending_native_operation()?"true":"false")+
+            ",\"native_completion_unknown\":"+(writer.has_unconfirmed_native_call()?"true":"false")+
+            ",\"visual_restore_pending\":"+(!pending_visual.empty()||deferred_drag_visual?"true":"false")+
             ",\"eligible_windows\":"+std::to_string(windows.size())+",\"operations\":"+std::to_string(operations)+",\"native_callsite_claims\":"+std::to_string(native_attempts)+
             ",\"mouse_up_callbacks\":"+mouse_up_callback_json(input.mouse_up_callbacks()));
     }

@@ -1670,8 +1670,6 @@ void drive(State& s){
         // environment gaps. A failed application admission is not permission
         // to bypass it, nor a reason to leave unrelated product paths untested.
         owned_layout_cases(s);
-        owned_native_grid_constraint_case(s);
-        owned_second_member_native_failure_case(s);
         owned_temporary_visual_inflight_case(s);
         owned_settings_lifecycle_cases(s);
         owned_tray_entry_cases(s);
@@ -1685,6 +1683,49 @@ void drive(State& s){
             if(!idle.completed||idle.one_core_cpu_percent>=1.0||idle.after.working_bytes>80ULL*1024*1024)s.log.failed=true;
         }
         visual_mapping_flow(s);
+        // Keep I10 constraint/failure-injection probes after independent owned
+        // functions. A failure is retained, not turned into a successful I10
+        // chain; only observed cleanup permits the next independent scenario.
+        const auto independent_I10=[&](const char* name,void(*scenario)(State&)){
+            const HANDLE original_process=s.process;const DWORD original_pid=s.product_pid;
+            const auto original_birth=original_process?process_birth(original_process):0;
+            bool scenario_failed=false;
+            try{scenario(s);}
+            catch(const std::exception& error){scenario_failed=true;s.log.failed=true;
+                s.log.emit("independent_I10_scenario_failure","\"scenario\":"+quote(name)+",\"reason\":"+quote(error.what())+
+                    ",\"original_failure_preserved\":true,\"functional_PASS\":false");}
+            const bool driver_released=!s.left&&!s.control;
+            const bool layout_idle=!layout_ui_pending.load(std::memory_order_acquire);
+            bool originals_exact=true;for(const auto& frame:s.frames)originals_exact=own(s,frame.hwnd)&&originals_exact;
+            GUITHREADINFO gui{sizeof(gui)};SetLastError(0);const bool gui_known=GetGUIThreadInfo(s.owner,&gui)!=FALSE;
+            const DWORD gui_error=gui_known?0:GetLastError();
+            const bool gui_idle=gui_known&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+            const bool product_current=original_process&&s.process==original_process&&s.product_pid==original_pid&&original_pid&&original_birth&&
+                GetProcessId(original_process)==original_pid&&process_birth(original_process)==original_birth&&
+                WaitForSingleObject(original_process,0)==WAIT_TIMEOUT;
+            std::string status;bool status_requested=false,status_observed=false;DWORD status_exit=STILL_ACTIVE;
+            if(driver_released&&layout_idle&&originals_exact&&gui_idle&&product_current){
+                const auto status_mark=read(s.product_log).size();status_requested=launch(s,L"--status",true,&status_exit);
+                if(status_requested)status_observed=wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
+            }
+            const bool product_idle=status_observed&&status_exit==0&&number(status,"\"process_id\":")==original_pid&&
+                status.find("\"gesture_active\":false")!=std::string::npos&&
+                status.find("\"native_operation_pending\":false")!=std::string::npos&&
+                status.find("\"native_completion_unknown\":false")!=std::string::npos&&
+                status.find("\"visual_restore_pending\":false")!=std::string::npos;
+            s.log.check("independent_I10_resources_safe_to_continue",driver_released&&layout_idle&&originals_exact&&gui_idle&&product_current&&
+                status_requested&&product_idle,"\"scenario\":"+quote(name)+",\"scenario_exception_preserved\":"+(scenario_failed?"true":"false")+
+                ",\"driver_buttons_released_ledger\":"+(driver_released?"true":"false")+",\"layout_UI_pending_empty\":"+(layout_idle?"true":"false")+
+                ",\"original_three_exact_owned\":"+(originals_exact?"true":"false")+",\"source_UI_GUI_known\":"+(gui_known?"true":"false")+
+                ",\"source_UI_GUI_error\":"+std::to_string(gui_error)+",\"source_UI_capture\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+                ",\"source_UI_move_size\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+                ",\"source_UI_menu_owner\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
+                ",\"exact_product_process_alive\":"+(product_current?"true":"false")+",\"fresh_status_requested\":"+(status_requested?"true":"false")+
+                ",\"fresh_status_observed\":"+(status_observed?"true":"false")+",\"fresh_status_exit\":"+std::to_string(status_exit)+
+                ",\"fresh_status\":"+(status.empty()?"null":quote(status))+",\"independent_scenario_continuation_only\":true,\"I10_PASS_inferred\":false");
+        };
+        independent_I10("native_grid_constraint",owned_native_grid_constraint_case);
+        independent_I10("second_member_native_failure",owned_second_member_native_failure_case);
         try{explorer_flow(s);}
         catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
         application_matrix_flow(s);

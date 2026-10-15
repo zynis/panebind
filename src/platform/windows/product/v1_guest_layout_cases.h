@@ -270,14 +270,60 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
     const HWND h=set.frames[source].hwnd;
     s.log.check("layout_exact_source_foreground",SetForegroundWindow(h)&&wait([&]{return GetForegroundWindow()==h;}));
     const auto point=layout_hit(set,source,region);if(!point)throw std::runtime_error("layout_real_requested_HT_region_unavailable");
+    const auto original_visible=visible(h);RECT original_positioning{};
+    if(!original_visible||!GetWindowRect(h,&original_positioning))throw std::runtime_error("layout_pre_DOWN_geometry_unknown");
     Gesture g{*point,0,0};bool down_sent=false,started=false;std::string start;
     try{
         // Keep the original 100 ms preparation interval, but actually serve
         // the product's synchronous queries. No Sleep/key/launch gap after it.
-        if(ctrl)key(s,VK_CONTROL,true);cursor(s,*point);g.offset=read(s.product_log).size();const auto hover=GetTickCount64();
-        (void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
-        if(!set.owns(source)||GetForegroundWindow()!=h||GetAncestor(WindowFromPoint(*point),GA_ROOT)!=h)
-            throw std::runtime_error("layout_source_or_hover_hit_changed_before_DOWN");
+        if(ctrl)key(s,VK_CONTROL,true);g.offset=read(s.product_log).size();
+        for(unsigned preparation=0;preparation<2;++preparation){
+            cursor(s,*point);const auto hover=GetTickCount64();
+            (void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
+            const bool exact=set.owns(source);const auto actual_visible=visible(h);RECT actual_positioning{};
+            const bool positioning_known=GetWindowRect(h,&actual_positioning)!=FALSE;
+            const bool geometry_unchanged=actual_visible==original_visible&&positioning_known&&EqualRect(&actual_positioning,&original_positioning);
+            POINT actual_cursor{};const bool cursor_known=GetCursorPos(&actual_cursor)!=FALSE;
+            const HWND actual_hit=cursor_known?WindowFromPoint(actual_cursor):nullptr;
+            const HWND actual_root=actual_hit?GetAncestor(actual_hit,GA_ROOT):nullptr;
+            DWORD hit_pid{},foreground_pid{};const DWORD hit_tid=actual_hit?GetWindowThreadProcessId(actual_hit,&hit_pid):0;
+            const HWND foreground_now=GetForegroundWindow();const DWORD foreground_tid=foreground_now?GetWindowThreadProcessId(foreground_now,&foreground_pid):0;
+            DWORD_PTR actual_region{};const bool region_known=actual_hit==h&&SendMessageTimeoutW(h,WM_NCHITTEST,0,
+                MAKELPARAM(static_cast<short>(point->x),static_cast<short>(point->y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&actual_region)!=FALSE;
+            GUITHREADINFO native{sizeof(native)};SetLastError(0);const bool gui_known=GetGUIThreadInfo(set.thread,&native)!=FALSE;
+            const DWORD gui_error=gui_known?0:GetLastError();
+            const bool native_idle=gui_known&&!native.hwndCapture&&!native.hwndMoveSize&&!native.hwndMenuOwner;
+            const bool ready=exact&&geometry_unchanged&&foreground_now==h&&cursor_known&&actual_cursor.x==point->x&&actual_cursor.y==point->y&&
+                actual_root==h&&actual_hit==h&&region_known&&static_cast<int>(actual_region)==region&&native_idle;
+            // Do not write evidence between a successful fresh check and DOWN.
+            // On rejection preserve each actual fact instead of an opaque OR.
+            if(ready)break;
+            s.log.emit("layout_pre_DOWN_preparation_rejected","\"preparation\":"+std::to_string(preparation+1)+
+                ",\"test_DOWN_sent\":false,\"exact_source\":"+(exact?"true":"false")+",\"geometry_unchanged\":"+(geometry_unchanged?"true":"false")+
+                ",\"expected_visible\":"+rect(*original_visible)+",\"actual_visible\":"+(actual_visible?rect(*actual_visible):"null")+
+                ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"actual_foreground\":"+
+                std::to_string(reinterpret_cast<std::uintptr_t>(foreground_now))+",\"foreground_PID\":"+std::to_string(foreground_pid)+
+                ",\"foreground_TID\":"+std::to_string(foreground_tid)+",\"foreground_class\":"+(foreground_now?quote(utf8(gui_class(foreground_now))):"null")+
+                ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(actual_cursor.x)+","+std::to_string(actual_cursor.y)+"]":"null")+
+                ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual_hit))+",\"hit_root\":"+
+                std::to_string(reinterpret_cast<std::uintptr_t>(actual_root))+",\"hit_PID\":"+std::to_string(hit_pid)+",\"hit_TID\":"+std::to_string(hit_tid)+
+                ",\"actual_native_region\":"+(region_known?std::to_string(actual_region):"null")+",\"expected_native_region\":"+std::to_string(region)+
+                ",\"source_GUI_known\":"+(gui_known?"true":"false")+",\"source_GUI_error\":"+std::to_string(gui_error)+
+                ",\"actual_capture\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndCapture)):"null")+
+                ",\"actual_move_size\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndMoveSize)):"null")+
+                ",\"actual_menu_owner\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndMenuOwner)):"null")+
+                ",\"unknown_window_not_manipulated\":true");
+            // One bounded repair of exact TEST-owned foreground/hover setup,
+            // never a retry after input. Identity/geometry/native-context
+            // failures cannot be accepted as a new preparation baseline.
+            if(preparation||!exact||!geometry_unchanged||!native_idle||!set.owns(source))
+                throw std::runtime_error("layout_source_or_hover_hit_changed_before_DOWN");
+            const bool foreground_return=SetForegroundWindow(h)!=FALSE;
+            const bool foreground_observed=layout_wait_sent([&]{return GetForegroundWindow()==h;},1000);
+            s.log.check("layout_exact_owned_pre_DOWN_reprepare",foreground_return&&foreground_observed,
+                "\"SetForegroundWindow_return\":"+std::string(foreground_return?"true":"false")+
+                ",\"actual_foreground_matches\":"+(foreground_observed?"true":"false")+",\"test_DOWN_sent\":false,\"maximum_repreparations\":1");
+        }
         button(s,true);down_sent=true;
         started=layout_wait_sent([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;},3500);
         start=record(s,g.offset,"gesture_start",g.generation);
