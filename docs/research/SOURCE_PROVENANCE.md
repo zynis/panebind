@@ -1757,3 +1757,29 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   on the bound cmd frame. The narrow fallback is a candidate pending native
   validation, not evidence of compatibility. No copied/adapted source code,
   input attachment, foreground control or new window-operation authority.
+- Click-versus-drag candidate retirement (2026-10-15, original V1 code): read
+  official [mouse input](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-mouse-input),
+  [DragDetect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-dragdetect)
+  and [GetSystemMetrics](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getsystemmetrics).
+  The system defines separate double-click and held-button drag tolerances.
+  PaneBind retires its click candidate monotonically once held motion exceeds
+  the actual system drag tolerance; it does not call blocking/capturing
+  DragDetect. Genuine unmoved clicks retain the existing double-click routes.
+  Run `aae67076ccda4bdb9300c9015108231a` observed a real 80-pixel trial drag,
+  then an unclaimed same-point START after a short interval; its logs did not
+  directly observe the callback's `clicks=2`. The source counterexample explains
+  that possible pass-through without claiming Windows' internal recognizer
+  has the same state machine. No external code copied/adapted.
+- Owned batch-loss test (2026-10-15, original test code): read official
+  [DestroyWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-destroywindow),
+  [WM_WINDOWPOSCHANGING](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-windowposchanging)
+  and [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos).
+  The exact empty test window destroys only itself, on its owner thread,
+  during the second actual batch sizing callback. No API-result override is
+  added. Outer FALSE and outer TRUE with subsequent identity loss are separate
+  observed outcomes, not a documented guarantee that destruction returns FALSE.
+  The separate one-shot guest input actor likewise must actually exit and leave
+  the button held before testing the unchanged 30-second product deadline;
+  neither an exit code nor test cleanup UP is product termination evidence.
+  No external source code copied/adapted; native cases remain unexecuted until
+  their matching new-build guest receipts are reviewed.

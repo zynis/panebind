@@ -43,6 +43,24 @@ inline DownDecision route_down(const Prepared& prepared,int button,int clicks,un
     if((mods&4u)||clicks==2)return {};
     return {DownRoute::Gesture,core::v1::Action::None};
 }
+// A press that became a drag cannot become the first click of a double-click,
+// even if the cursor subsequently returns to its DOWN point. Track native
+// passthrough presses too; consumption is unrelated to click eligibility.
+struct ClickCandidate {
+    POINT anchor{};
+    int button{};
+    bool eligible{},pressing{};
+    void begin(POINT point,int pressed_button,bool candidate){
+        anchor=point;button=pressed_button;eligible=candidate;pressing=true;
+    }
+    void motion(POINT point,std::int64_t drag_x,std::int64_t drag_y){
+        if(!eligible||!pressing)return;
+        const auto dx=static_cast<std::int64_t>(point.x)-anchor.x;
+        const auto dy=static_cast<std::int64_t>(point.y)-anchor.y;
+        if(drag_x<0||drag_y<0||dx < -drag_x||dx > drag_x||dy < -drag_y||dy > drag_y)eligible=false;
+    }
+    void release(int released_button){if(pressing&&released_button==button)pressing=false;}
+};
 inline bool native_event_is_current(DWORD event_stamp,DWORD down_stamp) {
     return static_cast<DWORD>(event_stamp-down_stamp)<0x80000000u;
 }
@@ -137,14 +155,14 @@ private:
     unsigned modifiers_{};
     DWORD last_down_{};
     DWORD active_down_stamp_{};
-    POINT last_down_point_{};
     int last_region_{-1};
     int last_button_{};
     unsigned last_modifiers_{};
     std::uint64_t last_source_key_{},deadline_{};
-    bool have_last_down_{};
+    ClickCandidate click_candidate_;
     UINT double_click_time_{};
     int double_click_x_{},double_click_y_{};
+    std::int64_t drag_x_{},drag_y_{};
     std::shared_ptr<const Prepared> active_prepared_;
     core::v1::Action active_action_{core::v1::Action::None};
     core::v1::End active_end_{core::v1::End::NormalUp};

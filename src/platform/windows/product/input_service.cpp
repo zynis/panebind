@@ -26,7 +26,7 @@ bool InputService::start(HWND owner){
     LARGE_INTEGER frequency{};counter_frequency_=QueryPerformanceFrequency(&frequency)&&frequency.QuadPart>0?
         static_cast<std::uint64_t>(frequency.QuadPart):0;
     paused_=false;healthy_=false;stop_requested_=false;prepare_pending_=false;
-    read_=0;write_=0;consumed_down_=false;aborted_=false;have_last_down_=false;
+    read_=0;write_=0;consumed_down_=false;aborted_=false;click_candidate_={};
     owner_=owner;ready_=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!ready_)return false;
     try{thread_=std::thread([this]{run();});}catch(...){CloseHandle(ready_);ready_=nullptr;return false;}
     const auto result=WaitForSingleObject(ready_,5000);
@@ -73,7 +73,14 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     const auto tick=GetTickCount64();
     // Any newly observed physical/test DOWN retires an earlier UP's pending
     // discrete dock commit, even if this new click passes through natively.
-    if(down(message))*self->completion_=0;
+    if(down(message)){
+        *self->completion_=0;
+        // An overlapping press is not a completed first click. Never revive a
+        // candidate by returning to its anchor after a drag or another DOWN.
+        if(self->click_candidate_.pressing)self->click_candidate_={};
+    }
+    if(message==WM_MOUSEMOVE)self->click_candidate_.motion(packet.pt,self->drag_x_,self->drag_y_);
+    if(up(message))self->click_candidate_.release(button(message,packet.mouseData));
     self->point_=(static_cast<std::uint64_t>(static_cast<std::uint32_t>(packet.pt.x))<<32)|static_cast<std::uint32_t>(packet.pt.y);
     if(self->consumed_down_&&!self->aborted_&&self->stop_requested_)self->abort(core::v1::End::Exit);
     else if(self->consumed_down_&&!self->aborted_&&self->paused_)self->abort(core::v1::End::Paused);
@@ -104,17 +111,17 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         // The GUI still revalidates identity and geometry before ANY write.
         if(p&&p->region>=0&&p->point.x==packet.pt.x&&p->point.y==packet.pt.y&&
             GetForegroundWindow()==p->source.hwnd){
-            const auto difference_x=static_cast<std::int64_t>(packet.pt.x)-self->last_down_point_.x;
-            const auto difference_y=static_cast<std::int64_t>(packet.pt.y)-self->last_down_point_.y;
-            const bool double_click=self->have_last_down_&&
+            const auto difference_x=static_cast<std::int64_t>(packet.pt.x)-self->click_candidate_.anchor.x;
+            const auto difference_y=static_cast<std::int64_t>(packet.pt.y)-self->click_candidate_.anchor.y;
+            const bool double_click=self->click_candidate_.eligible&&
                 static_cast<DWORD>(packet.time-self->last_down_)<=self->double_click_time_&&
                 difference_x>=-self->double_click_x_&&difference_x<=self->double_click_x_&&
                 difference_y>=-self->double_click_y_&&difference_y<=self->double_click_y_&&
                 self->last_region_==p->region&&self->last_button_==b&&self->last_modifiers_==mods&&
                 self->last_source_key_==p->source.key;
-            self->last_down_=packet.time;self->last_down_point_=packet.pt;self->last_region_=p->region;
+            self->last_down_=packet.time;self->last_region_=p->region;
             self->last_button_=b;self->last_modifiers_=mods;self->last_source_key_=p->source.key;
-            self->have_last_down_=!double_click;
+            self->click_candidate_.begin(packet.pt,b,!double_click);
             const int clicks=double_click?2:1;
             const auto route=route_down(*p,b,clicks,mods);
             if(route.route!=DownRoute::Pass&&self->next_generation_!=std::numeric_limits<std::uint64_t>::max()){
@@ -129,7 +136,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 if(!consume){self->consumed_down_=false;*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
-        }
+        }else self->click_candidate_={};
     }else if(up(message)&&self->consumed_down_&&button(message,packet.mouseData)==self->button_){
         const auto& prepared=self->active_prepared_;DWORD source_pid{};
         const DWORD source_tid=prepared?GetWindowThreadProcessId(prepared->source.hwnd,&source_pid):0;
@@ -192,6 +199,12 @@ void InputService::run(){
     instance_=this;MSG msg{};PeekMessageW(&msg,nullptr,0,0,PM_NOREMOVE);thread_id_=GetCurrentThreadId();
     double_click_time_=GetDoubleClickTime();double_click_x_=std::max(1,GetSystemMetrics(SM_CXDOUBLECLK)/2);
     double_click_y_=std::max(1,GetSystemMetrics(SM_CYDOUBLECLK)/2);
+    // Unlike the full double-click rectangle dimensions, SM_CX/YDRAG are the
+    // distances allowed on either side of the DOWN point. Widen before taking
+    // the magnitude so unusual signed metrics cannot overflow in the hook.
+    const auto drag_x=static_cast<std::int64_t>(GetSystemMetrics(SM_CXDRAG));
+    const auto drag_y=static_cast<std::int64_t>(GetSystemMetrics(SM_CYDRAG));
+    drag_x_=drag_x<0?-drag_x:drag_x;drag_y_=drag_y<0?-drag_y:drag_y;
     WNDCLASSW wc{};wc.lpfnWndProc=receiver;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"PaneBind.V1.Input";
     const auto atom=RegisterClassW(&wc);receiver_=CreateWindowW(wc.lpszClassName,L"",0,0,0,0,0,HWND_MESSAGE,nullptr,wc.hInstance,nullptr);
     RAWINPUTDEVICE key{1,6,RIDEV_INPUTSINK,receiver_};

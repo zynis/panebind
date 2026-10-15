@@ -1,0 +1,3587 @@
+{
+  "schema": "panebind-v1-acceptance/1",
+  "contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md",
+  "contract_version": "1.0",
+  "record_date": "2026-10-15",
+  "branch": "codex/r1c4b-live-magnet",
+  "engineering_status": "IN_PROGRESS",
+  "dev_complete": false,
+  "human_uat": "PENDING",
+  "source_identity": {
+    "runtime_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+    "pending_runtime_sha": null,
+    "final_sha": null,
+    "implementation_inspected": "committed-built-runtime-with-pending-source-changes",
+    "note": "当前实际受测runtime为aae包的a2eb；工作树新增拖动后click候选退休、真Release便携ZIP普通入口、I10在途成员失败接线，尚未形成固定新构建/Run，不属于aae实测实现。逐项完整DEV身份在完整证据绑定前保持null；IMPLEMENTED仅表示生产接线。final_sha与CI不在此推测。"
+  },
+  "scorecard": {
+    "denominator": 40,
+    "mandatory_count": 32,
+    "mandatory_ids": [
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14",
+      "B15",
+      "B16",
+      "B17",
+      "B18",
+      "B19",
+      "B20",
+      "B21",
+      "B22",
+      "B23",
+      "B24",
+      "B25",
+      "B26",
+      "B27",
+      "B28",
+      "B29",
+      "B30",
+      "B31",
+      "B32"
+    ],
+    "pass_count": 0,
+    "points": 0,
+    "coverage_percent": 0,
+    "required_points": 80,
+    "formula": "PASS benchmark count / 40 * 100",
+    "mandatory_all_pass": false,
+    "deferred_ids": [
+      "B33",
+      "B34",
+      "B35",
+      "B36",
+      "B37",
+      "B38",
+      "B39",
+      "B40"
+    ],
+    "note": "IMPLEMENTED、纯core测试、旧High局部证据、构建、NOT_RUN/BLOCKED均计0；B01-B32必须全部PASS，不能30/40停止。"
+  },
+  "hard_gates": [
+    {
+      "id": "HG01",
+      "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "HG02",
+      "description": "普通中文GUI/托盘，无driver/三目录/逐窗确认要求。",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "HG03",
+      "description": "当前Release/Medium五种真实应用与E01-E05显示/环境矩阵。",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "HG04",
+      "description": "I01-I12及post-Resize回环、中断恢复/新手势/资源退出。",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "HG05",
+      "description": "无未修S0/S1；60秒空闲、hook耗时、15分钟连续运行及资源实测。",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "HG06",
+      "description": "可复核便携包/SHA/哈希/中文用法/证据/集中缺陷；HUMAN_UAT独立。",
+      "status": "NOT_RUN"
+    }
+  ],
+  "features": [
+    {
+      "id": "M01-F01",
+      "name": "原生 GUI 子系统入口，单实例，普通权限启动；第二次启动打开已有设置/状态。配置损坏进入可解释恢复状态",
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M01-F01-DEV",
+          "required_observation": "从带空格/中文路径启动两次，只一个行为实例；无额外控制台；不弹 UAC；第二次可退出且不重复注册钩子",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M01-F02",
+      "name": "中文托盘：启用/暂停、设置、排除当前应用、帮助、诊断、退出；显示运行/暂停/故障状态，任务栏 Explorer 重启后重建图标",
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M01-F02-DEV",
+          "required_observation": "实际点击各入口；图标状态与后台一致；模拟 TaskbarCreated 后仍可打开菜单；不改变前台目标选择",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M01-F03",
+      "name": "暂停立刻终止增强手势并释放暂用资源，恢复后重新采样；暂停期间正常原生操作",
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M01-F03-DEV",
+          "required_observation": "活动 Ctrl Move 中暂停；停止新增写入，其他窗口可点击；恢复后新 Move/Resize 各一次成功",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M01-F04",
+      "name": "正常退出、紧急暂停、崩溃边界收尾；释放自己持有的 hooks/capture/overlay/hotkeys；仅恢复自己改变且身份仍有效的临时视觉状态",
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "独立native executor、精确owned视觉恢复helper、未确认调用completion barrier与正常stop顺序已提交构建；硬崩溃及悬挂窗口清理仍需当前构建现场验证。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M01-F04-DEV",
+          "required_observation": "在空闲及活动手势中分别退出；无残留遮罩/输入封锁；重复 stop 幂等；进程异常退出后测试桌面仍可操作",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M01-F05",
+      "name": "登录启动开关默认关闭，选择后使用用户级入口，关闭后移除自己的入口；启动即读取上次启用状态",
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M01-F05-DEV",
+          "required_observation": "在隔离 guest 中启用/禁用并检查真实入口和启动参数；模拟登录启动与手工启动不重复。开发宿主不得启用",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M02-F01",
+      "name": "自动接入同用户/同 session/Medium 的普通顶层窗口及可确认的独立工具窗；排除桌面、任务栏、菜单、提示、隐藏/cloaked、自己 UI、非当前桌面和高权限窗",
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M02-F01-DEV",
+          "required_observation": "正反 fixtures 覆盖上述类型，记录拒绝理由；Explorer/编辑器/浏览器直接可用；无需新目录 nonce；被排除对象零写入",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M02-F02",
+      "name": "create/show/hide/destroy、最小化/最大化、进程退出及 HWND 复用更新资格和代际；不可把同 PID 或同类名等同同窗口",
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M02-F02-DEV",
+          "required_observation": "在组中关闭一个测试窗口再创建新窗；旧 token/队列失效；同进程的未选窗口不被误动",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M02-F03",
+      "name": "全局开关、应用排除、功能规则；默认支持可安全识别的普通窗；规则改变在下一手势生效，当前撤销类变更立即中止",
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M02-F03-DEV",
+          "required_observation": "排除编辑器后只剩其他窗参与；撤销排除后重采样恢复；路径/类名匹配确定，不靠标题猜应用",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M02-F04",
+      "name": "PMv2、单/多屏工作区、负坐标、显示器重新排列、DPI 改变及断开；按真实当前屏选择工作区",
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M02-F04-DEV",
+          "required_observation": "第 7 节显示矩阵；停靠不盖任务栏；跨 100/150% 屏后尺寸策略符合文档；拔除测试屏后剩余窗可取回",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M02-F05",
+      "name": "当前虚拟桌面隔离、桌面切换/锁屏/休眠导致活动手势撤销；解锁/返回后重新确认资格",
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "实际虚拟桌面资格、WTS session撤权及WM_POWERBROADCAST suspend/resume撤销和重新准备已接线；真实桌面/锁定/休眠恢复仍未在本表验收。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M02-F05-DEV",
+          "required_observation": "有真实第二桌面时切换并验证不操作不可见旧组；session change 注入验证撤权；实际恢复后首个手势成功",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M03-F01",
+      "name": "visible/positioning 坐标转换、DPI 换算、整数边界和溢出检查；保留独立边框偏移",
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M03-F01-DEV",
+          "required_observation": "G01 及负坐标/非对称边框；算出的 positioning rect 与独立数值相等；DPI 改变刷新偏移",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M03-F02",
+      "name": "统一 Move/Resize/batch writer，读取真实结果；无效身份/代际拒绝；重复相同目标无重复写入",
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M03-F02-DEV",
+          "required_observation": "G02、同一目标重复、部分 native 失败、窗口销毁；分别记录 Requested/Actual，不把部分成功写作全通过",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M03-F03",
+      "name": "尺寸约束、固定尺寸窗、应用自定义尺寸栅格；合法区域之外钳制或拒绝，不递归对抗应用",
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "生产min/max、固定尺寸与actual postverify/拒绝已接线；aae固定邻居拒绝及共享约束钳制有局部实测。任意app栅格未知，不伪造读取；原生grid17及恢复尚未到达，不表示完整DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M03-F03-DEV",
+          "required_observation": "用有明确 min/max/grid 的原生 fixture 和真实应用验证；尺寸不足时几何不穿越，不能通过持续 SetWindowPos 震荡",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D01"
+      ]
+    },
+    {
+      "id": "M03-F04",
+      "name": "停靠/拉伸的恢复矩形与正常最大化状态分离；只保存当前窗口身份的有限历史，支持撤销最后一次离散布局动作",
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "有限actual回执历史、身份/几何失效退休、停靠拖离与异步RestorePending已提交构建；不再是未绑定工作树改动，原生完整恢复仍待验证。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M03-F04-DEV",
+          "required_observation": "窗口停靠→拉伸→恢复/撤销；预期回到对应历史；关闭重建窗口不继承旧坐标；手工移动后不强行恢复旧布局",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M03-F05",
+      "name": "批次失败后有界收尾、实际几何重建；Esc 正常取消可恢复有效成员，权限失效只停止",
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "统一native executor、250ms有界回执、实际部分前缀、撤权及迟到完成处理已提交构建；不把未完成调用当作已取消，当前完整故障链仍待现场验证。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M03-F05-DEV",
+          "required_observation": "故障发生在第二成员时，第三成员不继续盲写；实际状态可见；下一手势用新快照，不能继续旧 generation",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M04-F01",
+      "name": "正确区分标题栏 Move、边/角 Resize、双击及普通客户区点击；准备不足时透传，不错吞输入",
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M04-F01-DEV",
+          "required_observation": "标题栏、八方向边角、标签栏按钮、客户区、菜单各操作一次；只目标手势进入增强，原按钮/文字选择可正常使用",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M04-F02",
+      "name": "手势状态 Idle→Prepared→Active→Completing/Aborting→Idle；修饰键和源窗口锁定，真实 DOWN/UP 对应",
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M04-F02-DEV",
+          "required_observation": "连续手势、重复 UP、迟到事件、按键中途变化；无跨代写入和粘滞状态，G08 通过",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M04-F03",
+      "name": "按第 4.4 节仲裁，功能开关/Shift bypass/热键并发确定；不能多个引擎同时写同一窗",
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M04-F03-DEV",
+          "required_observation": "Ctrl 与磁吸、边缘停靠、Shift、暂停、设置改变组合；每输入只一个生效模式且表现可解释",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M04-F04",
+      "name": "失焦/capture、Esc、源销毁、会话失活、watchdog/队列故障有界中止；不抢回未知前台，不争抢 capture",
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M04-F04-DEV",
+          "required_observation": "分别注入相关事件/制造合法失焦；终止原因真实，撤权后新增写入为零；原生输入可继续",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M04-F05",
+      "name": "终止后资源完整释放并返回可开始状态；新手势不能依赖重启整个程序",
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M04-F05-DEV",
+          "required_observation": "完整历史回环、异常后新 Move/Resize/Ctrl；一般失效后只需重新开始手势。必须重启才恢复的频发故障为 S1",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M05-F01",
+      "name": "移动时外边缘吸附，维持窗口大小；只选可见/有合理交叠的合格目标；重复候选确定性选择",
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M05-F01-DEV",
+          "required_observation": "G03、上下/左右旋转及负坐标；实际拖动接近、保持、拉开、重吸；最终边缘误差符合 G0",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M05-F02",
+      "name": "内边/同侧边、角点及 X/Y 联合对齐；组合约束须兼容，不为达成一个轴破坏另一轴的尺寸",
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M05-F02-DEV",
+          "required_observation": "两个等距目标、角点、不同大小窗口；顺序打乱结果不变；G03 双轴结果吻合",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M05-F03",
+      "name": "工作区边缘吸附，支持不同显示器；当前屏依据真实手势位置和源窗关系确定",
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M05-F03-DEV",
+          "required_observation": "四边与显示接缝；任务栏保留；快速跨屏不被错误永久锁在边界",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M05-F04",
+      "name": "Resize 仅调整活动边/角，固定边不漂移；先满足尺寸限制再接受磁吸候选",
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M05-F04-DEV",
+          "required_observation": "八方向及固定尺寸 fixture；G04 数值通过；真实应用原生 Resize 后仍可 Move",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M05-F05",
+      "name": "滞回、速度抑制、距离/速度配置；按原始意图判断释放，不能用已吸附矩形自我锁住",
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M05-F05-DEV",
+          "required_observation": "10/16 DIP 边界、速度零/大/异常时间戳；吸附阈值内无抖动，超释放阈值可拉开；快移不出现永久粘住",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M06-F01",
+      "name": "邻接由几何构建，角碰不成边；遮挡/资格冲突有确定规则；支持至少 8 窗，3 窗只是测试起点",
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "几何连通、最多8窗、资格/遮挡过滤及实际Catalog生产接线存在；完整拓扑/应用/显示矩阵仍需现场验证，不把局部owned组当整功能通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M06-F01-DEV",
+          "required_observation": "2/3/8 窗链、T/L 图、孤立窗、角接触；G05；输出与独立预期的边集合一致",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M06-F02",
+      "name": "Ctrl Move 在起点冻结整个连通组，成员保持起点相对偏移；source 与 follower 都按同一绝对位移",
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M06-F02-DEV",
+          "required_observation": "G05 三窗移动，A/B/C 各作 source；既不拖漏成员也不拉入邻近非成员；无累计漂移",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M06-F03",
+      "name": "无永久 Leader；每次起手重新选组，结束后角色清空；对整个组外轮廓可磁吸但不改变组内偏移",
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M06-F03-DEV",
+          "required_observation": "A→C→B 连续发起；组吸附屏边/外部窗口后内部间距保持；断开再 Ctrl 仅移动新组",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M06-F04",
+      "name": "普通 Move/Resize/停靠/拉伸/关闭后刷新关系；必须使用 actual rect，不能仅使用 proposal",
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M06-F04-DEV",
+          "required_observation": "B Resize→重建→A Move→Ctrl C 的历史回环；拓扑变化精确对应实际几何，无陈旧成员",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M06-F05",
+      "name": "Shift bypass 和单窗普通拖动用于解除当前邻接；成员失效中止并清理；规则排除即时撤权",
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M06-F05-DEV",
+          "required_observation": "在组中排除/关闭一窗、拉开一个成员、异常后再操作；原组不能继续写入失效成员",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M07-F01",
+      "name": "左右两窗 Ctrl 拖动共享竖边；外边不动，一宽一窄，达到任一 min/max 即限制位移",
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M07-F01-DEV",
+          "required_observation": "G06；左右任一窗发起都得到相同结果；超过约束后不交叉、不单独继续缩一个窗",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M07-F02",
+      "name": "上下两窗共享横边同规则；横/竖实现共用轴逻辑但分别实测",
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M07-F02-DEV",
+          "required_observation": "G06 转置；上/下源切换；固定高度邻窗拒绝/限制并说明原因",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M07-F03",
+      "name": "T 形一个长边邻接多个短边，一条共享分割线统一移动；L 形只调整有交叠的接触边，不凭空填空洞",
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M07-F03-DEV",
+          "required_observation": "G07 T/L 数值案例；非参与外边不动，邻窗不重叠；断开的同坐标边不得被误带",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M07-F04",
+      "name": "拖角可同时影响两条轴；每轴独立求可行区间但一次形成一致计划；共享节点相同值，不裂缝",
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M07-F04-DEV",
+          "required_observation": "四格交汇点及 L 形角；某轴 min 限制不破坏另一轴；不支持的歧义布局明确拒绝，不随机选邻窗",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M07-F05",
+      "name": "全参与成员约束求交并统一钳制；实际 Resize 后核验、重建、清空角色；部分失败遵循 M03-F05",
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "共享边全参与min/max交集、统一钳制及实际回读/失败停止已接线；aae竖横双窗/竖向两侧source及固定邻居拒绝通过局部检查。T布局START失败，grid和部分失败恢复未完成，完整DEV不通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M07-F05-DEV",
+          "required_observation": "任一成员自定义 min/grid/关闭；失败后恢复可操作；完成后立即普通 Move 和 Ctrl Move 通过",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D01"
+      ]
+    },
+    {
+      "id": "M08-F01",
+      "name": "四方向半屏、四角四分屏；拖入预览，离开取消，松手提交；同动作也能由命令调用",
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M08-F01-DEV",
+          "required_observation": "G09 含奇数工作区；8 目标及任务栏/负坐标；预览与提交几何一致，未松手不离散提交",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M08-F02",
+      "name": "顶部最大化与自定义八方向动作；恢复为正确普通矩形，拖离停靠位置有可预测恢复；与 Windows 原生 Snap 不双重提交",
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "普通停靠拖离、最大化RestorePending及八方向动作已提交构建；真实原生Snap共存、不同起点和屏幕接缝尚无当前构建完整通过证据。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M08-F02-DEV",
+          "required_observation": "最大化/普通/已停靠三起点；启用 Windows 原生 Snap 时实测共存；本方案不通过修改宿主系统设置解决冲突",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M08-F03",
+      "name": "智能停靠依据当前工作区内已停靠邻窗的分割线填剩余区域；有多个候选按有交叠、距离、稳定 ID 决定",
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M08-F03-DEV",
+          "required_observation": "G10；目标太窄或歧义无合法区域时用明确普通分区/拒绝策略，不挤压其他窗；设置可关闭",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M08-F04",
+      "name": "边双击单向、Shift 沿同轴双向、角双击双轴拉伸；未操作边保持；重复动作/恢复命令可恢复此前矩形",
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M08-F04-DEV",
+          "required_observation": "G11 四边、四角、Shift；双击时间/移动阈值区分真实拖动；窗口按钮不被误认作边",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M08-F05",
+      "name": "智能拉伸到射线方向最近且有正交交叠的合格窗边，无邻窗到工作区边；支持忽略邻窗模式",
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M08-F05-DEV",
+          "required_observation": "G11 最近窗、远窗、无交叠窗、被排除窗；最终不越过第一个合法阻挡；尺寸约束优先",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M09-F01",
+      "name": "所有本轮离散动作可绑定热键，支持清空/修改、冲突检测；优先 RegisterHotKey，按需识别必要修饰键，不做通用键盘记录",
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M09-F01-DEV",
+          "required_observation": "真注册冲突、重复映射、配置热更新、退出释放；动作命中最后有效前台窗；每按一次执行一次",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M09-F02",
+      "name": "标题栏、四边、四角的点击/双击映射，支持左/中/右/X1/X2 与修饰键；默认不改系统关闭/最小化按钮",
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M09-F02-DEV",
+          "required_observation": "修改映射后真实触发；无映射透传；按下抬起配对；fixture 验证五键，实鼠未具备五键需单独标硬件覆盖",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M09-F03",
+      "name": "最大化/最小化/恢复/居中/置后、按步长微移/调宽高、移到相邻显示器；目标身份有效，恢复状态一致",
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M09-F03-DEV",
+          "required_observation": "菜单与热键调用同一实现；微移边界/尺寸下限、双屏目标选择；移动屏幕时保留约定的 DIP 尺寸并钳制到工作区",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "M09-F04",
+      "name": "置顶与透明度可单独调节且可逆；保存实际旧状态，身份失效不恢复到新窗口；不覆盖应用后来主动改变的属性",
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M09-F04-DEV",
+          "required_observation": "原已置顶/分层窗、普通窗、应用自行变更、关闭重建；暂停/退出按所有权记录清理；不能强制把所有窗变不透明",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M09-F05",
+      "name": "摇动只在有效 Move 中根据幅度/速度/反向次数/窗口时长触发，一次手势至多一次；切换置顶和设定透明度，再次恢复",
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M09-F05-DEV",
+          "required_observation": "合成轨迹确定性检测，慢移/单次反向不误触；实际窗摇动两次回到原态；与系统 Shake 共存问题需实测处理",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M10-F01",
+      "name": "停靠/拉伸预览清晰显示未来边界，可设颜色与透明度；不抢焦点、不挡输入，跨屏正确定位",
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "实际停靠预览、边角双击拉伸hover预览、颜色/alpha、工作区及接缝一次性定时器已提交构建；DPI、命中穿透与预览/最终actual一致仍待现场验证。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M10-F01-DEV",
+          "required_observation": "比较 preview 与最终 actual；鼠标穿透、切屏、取消/退出后浮层为零；100/150/200% 不错位",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M10-F02",
+      "name": "吸附时轻量标识当前边；只显示实际采纳约束，不给未成功操作画成功提示",
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "生产motion仅在accepted且actual exact回执后按已采纳约束绘制实际吸附边线，目标几何重新核验；失败/无约束撤销提示。真实边线显示与撤销尚未现场验证，不以core断言替代。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M10-F02-DEV",
+          "required_observation": "吸附→拉开→取消、writer 失败；标识与回执一致，失败不残留",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M10-F03",
+      "name": "Ctrl 起手提示当前连通成员/共享边；Shift bypass 有可理解反馈；说明关系是几何结果",
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "Ctrl起手显示实际连通成员，Resize起手及actual回读后计算真实共享边粗线，成员细框与已采纳吸附线分开；Shift原生绕过说明已接入帮助/托盘提示。显示、焦点与可发现性仍待现场验证。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M10-F03-DEV",
+          "required_observation": "A/B/C 角色变化、关系重建后提示同步；提示不修改组成员；默认简洁可关闭",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M10-F04",
+      "name": "可选拖动透明仅作用于当前有效源；结束/取消/异常恢复原实际 alpha，与永久透明/置顶功能共存",
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "临时/永久属性独立所有权、正常UP后deferred临时恢复、native迟到完成与独立helper精确tuple恢复已提交构建；按属性未知结果保留未确认，不冒充完整异常清理通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M10-F04-DEV",
+          "required_observation": "已半透明窗开始 Move→结束、失焦、退出；恢复其原值而非固定 255；不支持透明的应用显示限制",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D02"
+      ]
+    },
+    {
+      "id": "M10-F05",
+      "name": "UI 支持键盘访问、可见焦点、高对比及常用 DPI；故障/暂停提示清楚；动画服从关闭选项",
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M10-F05-DEV",
+          "required_observation": "Tab/Enter/Esc 走主要设置路径，中文不截断，200% UI 无主要控件丢失；弹出提示不改变操作前台",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D04"
+      ],
+      "partial_observation_ids": [
+        "PO-269B-GUI"
+      ]
+    },
+    {
+      "id": "M11-F01",
+      "name": "原生中文设置页：常规、磁吸/联动、停靠/拉伸、快捷操作、应用规则、诊断；操作描述清楚，不暴露 RunId/token 等内部术语",
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M11-F01-DEV",
+          "required_observation": "从托盘打开逐页修改并真实操作；每个控件必须接线，不能有摆设开关；保存/取消含义明确",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D04"
+      ],
+      "partial_observation_ids": [
+        "PO-269B-GUI"
+      ]
+    },
+    {
+      "id": "M11-F02",
+      "name": "功能开关、磁吸/释放/速度、分区动作、视觉参数及摇动参数验证范围；活动手势固定旧配置",
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M11-F02-DEV",
+          "required_observation": "非法负值/溢出/释放小于吸引拒绝并说明；修改后下次手势采用新值；禁用行为即停止新动作",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M11-F03",
+      "name": "键鼠映射编辑及冲突提示，提供恢复该页默认；映射与帮助显示来自同一数据源",
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M11-F03-DEV",
+          "required_observation": "保存冲突不破坏原有效映射；修改后显示和真实执行一致；不能截图里写一套、后台用另一套",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M11-F04",
+      "name": "按实际 exe 路径/名称及可选类名设置排除/每应用功能；从当前应用添加规则，无需填 HWND",
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M11-F04-DEV",
+          "required_observation": "选中测试应用添加排除→真实不再操作→移除恢复；程序同名不同路径行为可解释；默认不记录标题内容",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M11-F05",
+      "name": "带 schema 的原子保存、损坏备份、恢复默认、导入/导出；便携/用户目录路径明确，写失败不假报保存",
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M11-F05-DEV",
+          "required_observation": "半写文件/无权限/旧schema/未知字段；原有效配置不丢，重启一致；恢复默认只影响 PaneBind",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M12-F01",
+      "name": "默认低噪声本地日志，限大小轮转；诊断开关才记录详细轨迹；窗口标题和文档路径默认省略",
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M12-F01-DEV",
+          "required_observation": "日志到达上限轮转；生产回调不做磁盘 IO；关闭诊断仍能看到关键失败原因；无网络发送",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M12-F02",
+      "name": "导出故障包：版本、OS/DPI/窗口类别、脱敏配置、最近错误及手势终止原因；不收集文档内容",
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M12-F02-DEV",
+          "required_observation": "用人为失效生成可读包，离线解析；敏感字段默认脱敏；失败导出明确报错，不生成假完整包",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "M12-F03",
+      "name": "Release 便携 ZIP，包含唯一用户主 EXE、必要依赖/许可证、中文快速入门、配置说明、已知问题、SHA256",
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md",
+        "scripts/v1-prepare-portable.ps1"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "implementation_note": "aae runtime Debug/Release隔离包已绑定哈希，实跑Release。工作树已接同HEAD七文件真ZIP、中文空格路径解压和普通无参入口/实际设置效果/退出验证；新构建与现场I12尚未运行，不把打包或identity-only当交付验收。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M12-F03-DEV",
+          "required_observation": "在干净隔离环境从解压包启动，不依赖源码树、编译工具、网络或 driver；文件缺失/依赖错版本能发现",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D03"
+      ]
+    },
+    {
+      "id": "M12-F04",
+      "name": "功能/模块/对标/整链的机器可读结果及源码/包哈希绑定；状态区分实现、实际测试、未测、失败",
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "implementation_note": "固定合同ID与当前aae/a2eb身份已登记；269b、df93、88e等历史保留。aae共享Resize局部通过、T START失败及stop后client投递失败分别记录，整体仍FAIL，未运行整版门槛不计分。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M12-F04-DEV",
+          "required_observation": "校验所有 60 IDs 和 B01–B40 只有唯一结果；PASS 行有运行环境/证据；最终分数只从实际 PASS 计算",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D03",
+        "V1-D05"
+      ],
+      "partial_observation_ids": [
+        "PO-DF93-RUNNER"
+      ]
+    },
+    {
+      "id": "M12-F05",
+      "name": "用户可执行说明：启动、启停、磁吸/联动/缩放/停靠/恢复、设置及退出；一份集中缺陷清单和整体 review 入口",
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "implementation_note": "中文快速入门已按当前生产接线更新，明确启动/停止、设置、键鼠及规则用法；最终便携包身份与按说明实际走查仍未完成。",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "cases": [
+        {
+          "id": "M12-F05-DEV",
+          "required_observation": "按文档在最终包走一遍；命令/菜单名字与实际一致；本轮自动 DEV 不能写成真人体验通过",
+          "status": "NOT_RUN",
+          "evidence_paths": []
+        }
+      ],
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [
+        "V1-D03"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "M01",
+      "name": "应用生命期、托盘、启停",
+      "feature_ids": [
+        "M01-F01",
+        "M01-F02",
+        "M01-F03",
+        "M01-F04",
+        "M01-F05"
+      ],
+      "production_entry": "panebind.exe → production GUI / tray / pause / exit",
+      "code_paths": [
+        "src/app/v1_main.cpp",
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M02",
+      "name": "窗口资格、生命周期、显示器",
+      "feature_ids": [
+        "M02-F01",
+        "M02-F02",
+        "M02-F03",
+        "M02-F04",
+        "M02-F05"
+      ],
+      "production_entry": "production Catalog admission before prepare, begin, command and writer",
+      "code_paths": [
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M03",
+      "name": "几何与窗口操作、约束/回读",
+      "feature_ids": [
+        "M03-F01",
+        "M03-F02",
+        "M03-F03",
+        "M03-F04",
+        "M03-F05"
+      ],
+      "production_entry": "production command / motion / finish → WindowWriter actual receipts",
+      "code_paths": [
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/operations/window_rect_adjustment.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M04",
+      "name": "输入、手势、行为仲裁、异常收尾",
+      "feature_ids": [
+        "M04-F01",
+        "M04-F02",
+        "M04-F03",
+        "M04-F04",
+        "M04-F05"
+      ],
+      "production_entry": "production InputService → Application::consume/begin/motion/finish",
+      "code_paths": [
+        "src/platform/windows/product/input_service.cpp",
+        "src/platform/windows/product/input_service.h",
+        "src/core/v1/gesture.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M05",
+      "name": "磁吸",
+      "feature_ids": [
+        "M05-F01",
+        "M05-F02",
+        "M05-F03",
+        "M05-F04",
+        "M05-F05"
+      ],
+      "production_entry": "production ordinary Move/Resize → MagnetConstraintSolver → single writer",
+      "code_paths": [
+        "src/core/geometry/magnet_constraint_solver.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M06",
+      "name": "关系图和联动移动",
+      "feature_ids": [
+        "M06-F01",
+        "M06-F02",
+        "M06-F03",
+        "M06-F04",
+        "M06-F05"
+      ],
+      "production_entry": "production Ctrl DOWN → fresh eligible connected component → actual writer receipts",
+      "code_paths": [
+        "src/core/topology/window_adjacency.h",
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M07",
+      "name": "联动缩放",
+      "feature_ids": [
+        "M07-F01",
+        "M07-F02",
+        "M07-F03",
+        "M07-F04",
+        "M07-F05"
+      ],
+      "production_entry": "production Ctrl border/corner Resize → resize_group → WindowWriter",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/window_catalog.cpp",
+        "src/platform/windows/product/window_writer.cpp",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M08",
+      "name": "停靠、拉伸和恢复",
+      "feature_ids": [
+        "M08-F01",
+        "M08-F02",
+        "M08-F03",
+        "M08-F04",
+        "M08-F05"
+      ],
+      "production_entry": "production dock_preview / normal UP / border double-click / command / RestorePending",
+      "code_paths": [
+        "src/core/v1/layout.h",
+        "src/platform/windows/product/product_app.cpp",
+        "src/core/v1/settings.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M09",
+      "name": "键鼠命令、置顶/透明/摇动",
+      "feature_ids": [
+        "M09-F01",
+        "M09-F02",
+        "M09-F03",
+        "M09-F04",
+        "M09-F05"
+      ],
+      "production_entry": "production WM_HOTKEY / mapped mouse / tray → command and visual ownership",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/input_service.cpp",
+        "src/core/v1/settings.h",
+        "src/core/v1/visual_ownership.h"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M10",
+      "name": "预览和关系反馈",
+      "feature_ids": [
+        "M10-F01",
+        "M10-F02",
+        "M10-F03",
+        "M10-F04",
+        "M10-F05"
+      ],
+      "production_entry": "production accepted receipts → feedback; active gesture → preview and temporary visual state",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "src/platform/windows/product/settings_window.cpp",
+        "src/platform/windows/product/visual_recovery.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M11",
+      "name": "设置、应用规则、配置版本",
+      "feature_ids": [
+        "M11-F01",
+        "M11-F02",
+        "M11-F03",
+        "M11-F04",
+        "M11-F05"
+      ],
+      "production_entry": "production tray SettingsWindow → validate / real save callback / hotkey registration",
+      "code_paths": [
+        "src/platform/windows/product/settings_window.cpp",
+        "src/core/v1/settings.h",
+        "src/platform/windows/product/product_app.cpp"
+      ],
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "M12",
+      "name": "日志、证据、打包、帮助",
+      "feature_ids": [
+        "M12-F01",
+        "M12-F02",
+        "M12-F03",
+        "M12-F04",
+        "M12-F05"
+      ],
+      "production_entry": "production log / diagnostic / distribution and current-build evidence",
+      "code_paths": [
+        "src/platform/windows/product/product_app.cpp",
+        "scripts/v1-prepare-sandbox.ps1",
+        "scripts/v1-sandbox-guest.ps1",
+        "docs/V1_QUICK_START.md",
+        "docs/reports/V1_ACCEPTANCE.json",
+        "docs/reports/V1_DELIVERY_REPORT.md",
+        "scripts/v1-prepare-portable.ps1"
+      ],
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": []
+    }
+  ],
+  "benchmarks": [
+    {
+      "id": "B01",
+      "name": "移动时吸附其他窗口外边缘",
+      "feature_contract": "M05-F01",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B02",
+      "name": "内边缘/同侧边缘对齐",
+      "feature_contract": "M05-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B03",
+      "name": "相邻角点及 X/Y 同时对齐",
+      "feature_contract": "M05-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B04",
+      "name": "显示器工作区边缘磁吸",
+      "feature_contract": "M05-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B05",
+      "name": "Resize 中活动边/角磁吸",
+      "feature_contract": "M05-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B06",
+      "name": "距离、快速移动抑制及稳定拉开",
+      "feature_contract": "M05-F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B07",
+      "name": "Ctrl 移动两个邻接窗口",
+      "feature_contract": "M06-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B08",
+      "name": "Ctrl 移动多窗连通组，任意成员发起",
+      "feature_contract": "M06-F01～F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B09",
+      "name": "左右相邻窗口共享竖边联动 Resize",
+      "feature_contract": "M07-F01",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B10",
+      "name": "上下相邻窗口共享横边联动 Resize",
+      "feature_contract": "M07-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B11",
+      "name": "多窗 T/L 布局联动 Resize 和尺寸约束",
+      "feature_contract": "M07-F03～F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B12",
+      "name": "四个方向半屏停靠",
+      "feature_contract": "M08-F01",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B13",
+      "name": "四个角四分屏停靠",
+      "feature_contract": "M08-F01",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B14",
+      "name": "顶边最大化、边角动作配置及恢复",
+      "feature_contract": "M08-F02、M11-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B15",
+      "name": "参考已有停靠窗口的智能停靠",
+      "feature_contract": "M08-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B16",
+      "name": "双击单边，单向拉伸",
+      "feature_contract": "M08-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B17",
+      "name": "Shift 双击，沿轴双向拉伸",
+      "feature_contract": "M08-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B18",
+      "name": "双击角，双轴拉伸",
+      "feature_contract": "M08-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B19",
+      "name": "拉伸到最近邻窗/屏幕边缘",
+      "feature_contract": "M08-F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B20",
+      "name": "可逆置顶和透明度调整",
+      "feature_contract": "M09-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B21",
+      "name": "摇动切换置顶加透明，重复摇动恢复",
+      "feature_contract": "M09-F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B22",
+      "name": "拖动期间透明，结束/取消后恢复",
+      "feature_contract": "M10-F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B23",
+      "name": "可配置键盘操作映射",
+      "feature_contract": "M09-F01",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B24",
+      "name": "常用窗口命令：最小化/最大化/恢复/居中/置后/微移/微调大小",
+      "feature_contract": "M09-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B25",
+      "name": "标题栏、边、角的鼠标映射，修饰键和五键输入模型",
+      "feature_contract": "M09-F02、M11-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B26",
+      "name": "多屏移动、每屏停靠/磁吸与跨屏快捷操作",
+      "feature_contract": "M02-F04、M09-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B27",
+      "name": "托盘入口、启用/暂停/退出",
+      "feature_contract": "M01-F01～F04",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B28",
+      "name": "图形设置与持久化",
+      "feature_contract": "M11-F01～F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B29",
+      "name": "用户可选择的登录启动、恢复默认配置",
+      "feature_contract": "M01-F05、M11-F05",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B30",
+      "name": "停靠预览矩形，颜色/透明度选项",
+      "feature_contract": "M10-F01、M11-F02",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B31",
+      "name": "简体中文界面",
+      "feature_contract": "M01、M11",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B32",
+      "name": "可直接运行的便携包",
+      "feature_contract": "M12-F03",
+      "mandatory": true,
+      "weight": 2.5,
+      "implementation_status": "IN_PROGRESS",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。"
+    },
+    {
+      "id": "B33",
+      "name": "完整 15 类框架点击区及系统按钮二级动作",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B34",
+      "name": "全部扩展命令：托盘化第三方窗、批量最小化、跨屏最大化、进程/电源动作等",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B35",
+      "name": "MDI 子窗口完整支持",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B36",
+      "name": "TidyTabs 分组互操作",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B37",
+      "name": "Windows 7/8/8.1/10 兼容范围",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B38",
+      "name": "简体中文之外的完整多语种覆盖",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B39",
+      "name": "在线自动更新",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    },
+    {
+      "id": "B40",
+      "name": "多套停靠指示图标皮肤等完整外观选项",
+      "feature_contract": "—",
+      "mandatory": false,
+      "weight": 2.5,
+      "implementation_status": "NOT_STARTED",
+      "dev_status": "DEFERRED",
+      "human_status": "N_A",
+      "points_awarded": 0,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "方案冻结后续项；本轮不做，仍在40项分母内。"
+    }
+  ],
+  "integration_chains": [
+    {
+      "id": "I01",
+      "name": "产品入口",
+      "sequence": "解压→双击→托盘→启用→新开普通窗→磁吸→改设置→退出→重启",
+      "required_observation": "无 driver/三窗确认；真实效果与设置一致；包独立可用",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-GUI"
+      ]
+    },
+    {
+      "id": "I02",
+      "name": "历史失败回环",
+      "sequence": "A 五阶段普通 Move→Ctrl A 带 B/C→B Move→C Move→B 真实原生 Resize→关系刷新→A 五阶段 Move→Ctrl C→UP→停止",
+      "required_observation": "每段真实执行且完整终止；post-Resize A 必有实际 placement，Ctrl C 真带 follower；Release/Medium；不可用直接摆出相似布局替代前置过程",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "I03",
+      "name": "联动缩放组合",
+      "sequence": "三窗组成 T→共享竖边 Resize→横边 Resize→达到最小尺寸→拉回→普通 Move→改成 L→Ctrl 换 Leader",
+      "required_observation": "所有实际矩形符合共享线/约束；重建关系正确；不重启、不切回测试专用实现",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I04",
+      "name": "磁吸和停靠",
+      "sequence": "普通磁吸→屏边预览→离开取消→角停靠→拖离恢复→快捷键半屏→跨屏→再磁吸",
+      "required_observation": "只有一次生效行为，无原生/产品双重回弹，任务栏与负坐标正确",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I05",
+      "name": "拉伸和快捷键",
+      "sequence": "布置不等宽停靠窗→智能填余区→边/角/Shift 拉伸→恢复→微移/调尺寸→改变热键再操作",
+      "required_observation": "两类入口同结果；smart 开关有效；不误吞普通应用输入",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I06",
+      "name": "视觉状态",
+      "sequence": "原半透明/置顶窗→开启拖动透明→拖动结束→摇动开/关→暂停→退出",
+      "required_observation": "每个阶段恢复正确旧状态，不把用户自有属性清掉；预览/关系层无残留",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I07",
+      "name": "配置规则",
+      "sequence": "排除某应用→尝试磁吸/组操作→取消排除→导出→修改→导入→配置损坏后重启",
+      "required_observation": "排除零写入、无陈旧组；配置失败可解释，原有效配置不丢",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I08",
+      "name": "中断恢复",
+      "sequence": "活动手势中分别 Esc、合法失焦、关闭自建源、紧急暂停、driver 断开；每次之后重新 Move/Resize",
+      "required_observation": "原因标记正确、撤权后无新写入、所有输入资源释放、新手势能工作。关闭只针对无用户数据的测试对象",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I09",
+      "name": "环境变化",
+      "sequence": "当前桌面→另一虚拟桌面→返回；显示 DPI/拓扑变化；锁定/解锁（隔离环境）",
+      "required_observation": "非当前桌面不被操纵，重建后可操作；未具备的真实环境明确 BLOCKED",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I10",
+      "name": "约束和失效",
+      "sequence": "min/max/grid fixture 组 Resize→强制第二成员 native failure→回读→开始新合法手势",
+      "required_observation": "无无穷重试/尺寸穿越/悬挂；失败不冒充成功，后续状态正确",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I11",
+      "name": "有限连续运行",
+      "sequence": "在同一启动中完成 I02–I06 的核心动作两轮，再做 15 分钟混合操作与空闲",
+      "required_observation": "无累积输入/资源残留、无必须重启才恢复的常见故障；不把时长折算成全面稳定性证明",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    },
+    {
+      "id": "I12",
+      "name": "整版交付检查",
+      "sequence": "在干净隔离环境从 ZIP 按中文指南运行，查版本、证据、诊断和全部入口",
+      "required_observation": "版本/SHA/文件清单一致；没有依赖开发目录、绝对临时路径或未打包 DLL",
+      "dev_status": "NOT_RUN",
+      "human_status": "NOT_RUN",
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "defects": []
+    }
+  ],
+  "environments": [
+    {
+      "id": "E01",
+      "required_environment": "Windows 11 x64，Medium，单屏 100%",
+      "coverage": "I01–I12 中可适用全部项；记录 OS build、输入方法及 session",
+      "mandatory": true,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "本表未读取本轮环境，不能根据历史状态猜测可用/不可用。"
+    },
+    {
+      "id": "E02",
+      "required_environment": "Medium，单屏 150%，200% UI 检查",
+      "coverage": "磁吸/Resize/停靠/拉伸与所有主要设置页面",
+      "mandatory": true,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "本表未读取本轮环境，不能根据历史状态猜测可用/不可用。"
+    },
+    {
+      "id": "E03",
+      "required_environment": "Medium，双屏同 DPI，副屏有负坐标",
+      "coverage": "两屏边角、跨屏、各自工作区、移到相邻屏",
+      "mandatory": true,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "本表未读取本轮环境，不能根据历史状态猜测可用/不可用。"
+    },
+    {
+      "id": "E04",
+      "required_environment": "Medium，双屏混合 100%/150%",
+      "coverage": "跨屏 Move/Resize、组操作、停靠/预览和 frame 重测",
+      "mandatory": true,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "本表未读取本轮环境，不能根据历史状态猜测可用/不可用。"
+    },
+    {
+      "id": "E05",
+      "required_environment": "Medium，拓扑/DPI改变、虚拟桌面/会话变更",
+      "coverage": "I09 及恢复首手势",
+      "mandatory": true,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "本表未读取本轮环境，不能根据历史状态猜测可用/不可用。"
+    },
+    {
+      "id": "E06",
+      "required_environment": "专用 High guest",
+      "coverage": "可复用隔离验证/对照；保持真实权限，不替代 E01–E05",
+      "mandatory": false,
+      "dev_status": "NOT_RUN",
+      "available": null,
+      "actual_os_build": null,
+      "actual_integrity": null,
+      "actual_session": null,
+      "display_configuration": null,
+      "source_sha": null,
+      "binary_sha256": null,
+      "environment_id": null,
+      "run_id": null,
+      "evidence_paths": [],
+      "note": "High只作历史隔离对照；正式V1继续拒绝High，不能替代E01-E05。"
+    }
+  ],
+  "application_matrix": [
+    {
+      "id": "A01",
+      "required_target": "精确原生fixture：明确min/max/grid及失败注入",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": [],
+      "partial_observation_ids": [
+        "PO-269B-OWNED"
+      ]
+    },
+    {
+      "id": "A02",
+      "required_target": "Explorer",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "A03",
+      "required_target": "当前Windows Notepad",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "A04",
+      "required_target": "Edge或Chrome：一个浏览器类别",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "A05",
+      "required_target": "VS Code：Electron",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "A06",
+      "required_target": "Windows Terminal或实际终端应用",
+      "dev_status": "NOT_RUN",
+      "actual_version": null,
+      "evidence_paths": []
+    }
+  ],
+  "nonfunctional": [
+    {
+      "id": "NF01",
+      "requirement": "Release空闲60秒：CPU折合单逻辑核平均<1%，工作集目标<=80MiB，记录真实值。",
+      "dev_status": "NOT_RUN",
+      "observed": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "NF02",
+      "requirement": "hook回调p99目标<1ms；输入到回读p95目标<50ms，不称为物理显示延迟。",
+      "dev_status": "NOT_RUN",
+      "observed": null,
+      "evidence_paths": []
+    },
+    {
+      "id": "NF03",
+      "requirement": "I11两轮核心链与15分钟混合运行，无残留和无界资源增长。",
+      "dev_status": "NOT_RUN",
+      "observed": null,
+      "evidence_paths": []
+    }
+  ],
+  "defects": [
+    {
+      "id": "V1-D01",
+      "status": "OPEN",
+      "kind": "IMPLEMENTATION_GAP",
+      "description": "未知app栅格是平台适配限制，不代表min/max和postverify拒绝未接线。aae真实共享交集钳制/固定邻居拒绝通过；grid17非exact拒绝与后续恢复尚未运行，不能据核心grid或局部结果关闭完整约束验收。",
+      "features": [
+        "M03-F03",
+        "M07-F05"
+      ]
+    },
+    {
+      "id": "V1-D02",
+      "status": "OPEN",
+      "kind": "RUNTIME_REVALIDATION_PENDING",
+      "description": "RestorePending、独立native executor、completion barrier、deferred临时视觉恢复及helper已在当前runtime提交并构建；完整异常/硬崩溃与迟到完成的现场证据仍需复验，不能据正常stop关闭。",
+      "features": [
+        "M01-F04",
+        "M03-F04",
+        "M03-F05",
+        "M08-F02",
+        "M10-F04"
+      ]
+    },
+    {
+      "id": "V1-D03",
+      "status": "OPEN",
+      "kind": "ACCEPTANCE_EVIDENCE_MISSING",
+      "description": "当前Release/Medium整链、应用/显示矩阵与最终便携交付未有可计分证据。",
+      "features": [
+        "M12-F03",
+        "M12-F04",
+        "M12-F05"
+      ]
+    },
+    {
+      "id": "V1-D04",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
+      "kind": "HISTORICAL_GUI_HIT_FAILURE",
+      "description": "269b首checkbox命中失败的原结论保留；修复后88e真实六页操作/距离保存重启通过，aae视觉GUI配置/原tuple及布局恢复返回。该定向问题已复验，不等于M11全部设置项/DPI/生命周期DEV通过。",
+      "features": [
+        "M11-F01",
+        "M10-F05"
+      ],
+      "partial_observation_ids": [
+        "PO-269B-GUI"
+      ]
+    },
+    {
+      "id": "V1-D05",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
+      "kind": "HISTORICAL_RUNNER_BOUND_MISMATCH",
+      "description": "df93外1800/内1200拒绝且未输入的历史保留；边界统一后88e与aae已实际启动Medium fixture并运行功能链，该定向启动问题已复验，不使后续功能失败变PASS。",
+      "features": [
+        "M12-F04"
+      ],
+      "partial_observation_ids": [
+        "PO-DF93-RUNNER"
+      ]
+    },
+    {
+      "id": "V1-D06",
+      "status": "DEV_FIXED_PENDING_REVALIDATION",
+      "kind": "REAL_START_NOT_CLAIMED_AFTER_PRIOR_DRAG",
+      "description": "aae新T布局已prepared，随后实际native capture/move-size，产品START未领取。工作树已使拖动press永久退出双击首击候选，返回原锚点也不重获候选；该修复尚未新Run验证，不能声称日志已观测clicks=2或根因已证实。",
+      "features": ["M04-F01", "M07-F01"],
+      "partial_observation_ids": ["PO-AAE-T-START"]
+    },
+    {
+      "id": "V1-D07",
+      "status": "OPEN",
+      "kind": "POST_STOP_CLIENT_DELIVERY_NOT_CONFIRMED",
+      "description": "aae原产品shutdown全部资源flags为true、unknown completion=false且退出码0，但实际post-stop client DOWN/UP delivered=false。整体cleanup未通过，guest/task清理不得替代该投递观察。",
+      "features": ["M01-F04", "M03-F05"],
+      "partial_observation_ids": ["PO-AAE-STOP"]
+    }
+  ],
+  "evidence_policy": {
+    "pure_core_tests_are_function_dev": false,
+    "build_success_is_runtime_pass": false,
+    "high_guest_replaces_medium": false,
+    "historical_evidence_relabelled": false,
+    "jsonl_order_is_cross_thread_native_order": false,
+    "unobserved_values": "null_or_NOT_RUN",
+    "raw_evidence_in_git": false,
+    "partial_observations_award_whole_contract_pass": false,
+    "current_package_runtime_results_reviewed": true
+  },
+  "historical_packages": [
+    {
+      "run_id": "aca221f7421c404b8f946ddacda058e2",
+      "source_sha": "22a9b8b8621a9a720e320f3982cc4553dc6bd107",
+      "receipt_path": "uat/v1-sandbox/aca221f7421c404b8f946ddacda058e2/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/aca221f7421c404b8f946ddacda058e2/input/manifest.json",
+      "zip_sha256": "5D7238CBC278D4B26B5E81213244861851DB2CB74C5B5A48AAA30D92BB4DD0B2",
+      "manifest_sha256": "883707E38756278D1133D8C9913DC8FB3610A0B887A470698E088B85BA06DE27",
+      "release_binary_sha256": "0C8FE438A7EF037EAF62CC7B3E85777F2BEAC556B434EF4F573795D95F90C002",
+      "debug_binary_sha256": "556F67C5FF56496FF753195716193737A41A6F0EC70B8996A72EB86309F0F896",
+      "identity_basis": "local_manifest_and_package_receipt",
+      "deployment_status": "NOT_RECORDED_HERE",
+      "guest_function_status": "NOT_RUN",
+      "note": "历史22a9构建与原身份/哈希保留；不包含后续修复，不能代表当前runtime或本轮现场结果。"
+    },
+    {
+      "run_id": "88e4574bac3c4eba801431a559d58a3a",
+      "source_sha": "fcca29306ded7f483f8381901bbc7fb706cdf1c6",
+      "receipt_path": "uat/v1-sandbox/88e4574bac3c4eba801431a559d58a3a/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/88e4574bac3c4eba801431a559d58a3a/input/manifest.json",
+      "zip_sha256": "5846E7DAA25EE7E945670BBA73932B2BE47822CA2C484C61377301DE58C0CD2E",
+      "manifest_sha256": "07522B97A7E6FF9749EB24C71FC8C76A688D10F3DEBB9D9CC99DD46B00B7CDD8",
+      "release_binary_sha256": "8B74F6D6505D9797B864E1650006814B5A0D52E609D45C469537E7C387E4B4B1",
+      "debug_binary_sha256": "5FBA3AC7DDBF3617C47E44447AAD444265B0B7B868392A6550676F144EDF5F38",
+      "release_fixture_sha256": "FAEB306B6E4B174A33E8720C970EB2DA398CDF7DCCEDA18C779D46E9417C861C",
+      "debug_fixture_sha256": "F6166FC7705C1D21CA7F9B86F0E22AD8124ABE57B21BF47816E1AA9386F2F5A1",
+      "identity_basis": "retained_previous_current_package_identity",
+      "guest_function_status": "FAIL_WITH_PARTIAL_OWNED_GUI_OBSERVATIONS",
+      "note": "原88e构建与失败保留，详见交付报告原collection；不改写为当前aae或整功能PASS。"
+    }
+  ],
+  "current_package": {
+    "run_id": "aae67076ccda4bdb9300c9015108231a",
+    "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+    "receipt_path": "uat/v1-sandbox/aae67076ccda4bdb9300c9015108231a/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/aae67076ccda4bdb9300c9015108231a/input/manifest.json",
+    "zip_sha256": "31132A5BCBB4EAB8F488BCE647B80A5A36A6E57540B5DA83FF41FC5BE2D8B8EF",
+    "manifest_sha256": "DF95AEEA2336F7217A051A5341B8BE85F5E379147B48CC377B369ABCEF4BC793",
+    "release_binary_sha256": "A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56",
+    "debug_binary_sha256": "6C1B5EB112CC8169E166A13A627AE16B2A354BAB63882224FCC65301E0C2C596",
+    "release_fixture_sha256": "A8FEEC802FD54A1CF629A83E5542737A873025819A5FA84A96AC2A1BF3AD1DC8",
+    "debug_fixture_sha256": "DB5753E0867D34C10A492B62B4D43255EA67D2BED7C1DC04868F91D6CB0EE00B",
+    "identity_basis": "actual_local_files_SHA256_equal_receipt_and_binary_identity_manifest",
+    "package_kind": "isolated_automated_guest_package_not_final_portable_delivery",
+    "build_status": "COMMITTED_BUILT",
+    "guest_configurations": "Release",
+    "deployment_status": "DEPLOYED_COLLECTED_OWNED_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+    "guest_function_status": "FAIL_WITH_PARTIAL_SHARED_RESIZE_OBSERVATIONS",
+    "human_uat": "NOT_RUN",
+    "note": "已读取aae真实fixture/product/guest summary及cleanup回执。双窗共享Resize与约束子步骤通过；T START失败，shutdown资源flags通过但post-stop client投递失败，整体FAIL。包生成receipt的旧布尔值不替代实际部署/运行回执。"
+  },
+  "evidence": [
+    {
+      "id": "EV-269B-FIXTURE",
+      "kind": "raw_automated_guest_jsonl",
+      "path": "uat/v1-control/269b8f1f2941478990f9d769d3b1d9c1/collection-20261015T122355769Z-ee58d00aacf04371bcd3001deb9b7935/269b8f1f2941478990f9d769d3b1d9c1-release-fixture.jsonl",
+      "sha256": "A176D8505419ACDF5373FABE6627817595A2C3B2CBE747BDDA4B6B9A5193E085",
+      "source_sha": "8c3842802229c45306cf164736ad24980c3e58c3",
+      "binary_sha256": "73F95B0A8B2881DA2662568D5D7F5E69F09BD70ABBD6126BABB820D809F7DEA6",
+      "run_id": "269b8f1f2941478990f9d769d3b1d9c1",
+      "configuration": "Release",
+      "actual_integrity": "Medium",
+      "elevated": false,
+      "actual_session": 1,
+      "overall_verdict": "FAIL",
+      "automated_guest_driver": true,
+      "human_uat": "NOT_RUN"
+    },
+    {
+      "id": "EV-269B-PRODUCT",
+      "kind": "raw_product_jsonl",
+      "path": "uat/v1-control/269b8f1f2941478990f9d769d3b1d9c1/collection-20261015T122355769Z-ee58d00aacf04371bcd3001deb9b7935/269b8f1f2941478990f9d769d3b1d9c1-product-Release/panebind.log.jsonl",
+      "sha256": "39E0CF7249DEFB198ED57CD4730B3670082019C931234DD106910BD730B29AC2",
+      "source_sha": "8c3842802229c45306cf164736ad24980c3e58c3",
+      "run_id": "269b8f1f2941478990f9d769d3b1d9c1"
+    },
+    {
+      "id": "EV-269B-LAUNCH",
+      "kind": "actual_launch_and_token_receipt",
+      "path": "uat/v1-control/269b8f1f2941478990f9d769d3b1d9c1/collection-20261015T122355769Z-ee58d00aacf04371bcd3001deb9b7935/269b8f1f2941478990f9d769d3b1d9c1-Release-launch.json",
+      "source_sha": "8c3842802229c45306cf164736ad24980c3e58c3",
+      "run_id": "269b8f1f2941478990f9d769d3b1d9c1",
+      "status": "FIXTURE_FAILED",
+      "fixture_exit_code": 1,
+      "forced_test_cleanup": false,
+      "descendants_alive_at_fixture_exit": 0
+    },
+    {
+      "id": "EV-DF93-SUMMARY",
+      "kind": "actual_guest_bootstrap_failure",
+      "path": "uat/v1-control/df93bd61928448fc90274bd3506a95a2/collection-20261015T124950484Z-2cfbcda434f64edfac162bcdea21ff79/df93bd61928448fc90274bd3506a95a2-guest-summary.json",
+      "sha256": "EBC84A80E3DD3EF7D115FAD678AD63B3908369E4C632B6DA0AC0817B7A539A4C",
+      "source_sha": "85afc19c0a42eb903c515b1f2c407f63a5513783",
+      "run_id": "df93bd61928448fc90274bd3506a95a2",
+      "status": "BLOCKED_OR_FAILED",
+      "stage_count": 0
+    },
+    {
+      "id": "EV-AAE-FIXTURE",
+      "kind": "raw_automated_guest_jsonl",
+      "path": "uat/v1-control/aae67076ccda4bdb9300c9015108231a/collection-20261015T140152142Z-ddf706cc15c248109b5ed8df484de5e5/aae67076ccda4bdb9300c9015108231a-release-fixture.jsonl",
+      "sha256": "1434F18B748ACDF097AB2526CED0D869AD1618584B2BE8C6CBC3904005614C29",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "binary_sha256": "A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56",
+      "run_id": "aae67076ccda4bdb9300c9015108231a",
+      "configuration": "Release",
+      "actual_integrity": "Medium",
+      "elevated": false,
+      "actual_session": 1,
+      "overall_verdict": "FAIL",
+      "automated_guest_driver": true,
+      "human_uat": "NOT_RUN"
+    },
+    {
+      "id": "EV-AAE-PRODUCT",
+      "kind": "raw_product_jsonl",
+      "path": "uat/v1-control/aae67076ccda4bdb9300c9015108231a/collection-20261015T140152142Z-ddf706cc15c248109b5ed8df484de5e5/aae67076ccda4bdb9300c9015108231a-product-Release/panebind.log.jsonl",
+      "sha256": "E6296D73740A1FFBFC802977F6B1C3A27023957472D753458CF464AFD3E52F14",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "run_id": "aae67076ccda4bdb9300c9015108231a"
+    },
+    {
+      "id": "EV-AAE-SUMMARY",
+      "kind": "actual_guest_bootstrap_result",
+      "path": "uat/v1-control/aae67076ccda4bdb9300c9015108231a/collection-20261015T140152142Z-ddf706cc15c248109b5ed8df484de5e5/aae67076ccda4bdb9300c9015108231a-guest-summary.json",
+      "sha256": "AA67D2100DA5B0C96AAF12E5E4253B7CCB8A927FBB2DD1112894576AEF360EC6",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "run_id": "aae67076ccda4bdb9300c9015108231a",
+      "status": "BLOCKED_OR_FAILED"
+    }
+  ],
+  "partial_observations": [
+    {
+      "id": "PO-269B-OWNED",
+      "scope": "historical_Release_Medium_exact_owned_fixture_subset_not_complete_Explorer_I02",
+      "status": "PARTIAL",
+      "source_sha": "8c3842802229c45306cf164736ad24980c3e58c3",
+      "run_id": "269b8f1f2941478990f9d769d3b1d9c1",
+      "evidence_ids": [
+        "EV-269B-FIXTURE",
+        "EV-269B-PRODUCT",
+        "EV-269B-LAUNCH"
+      ],
+      "observed_passed_substeps": [
+        "单实例production GUI启动及second-instance status",
+        "owned A/B/C五阶段普通Move、Ctrl A",
+        "owned B实际Resize后A自由/XY吸附/保持/脱离/重吸附",
+        "owned Ctrl C source及各member实际矩形",
+        "production Center与DockLeft命令实际几何"
+      ],
+      "evidence_sequence_markers": {
+        "center": 113,
+        "dock_left": 114,
+        "owned_core_sequence": 115
+      },
+      "limitations": [
+        "fixture内I02字符串仅为owned动作子链，不能替代Explorer/混合应用完整I02及正常整版通过。",
+        "该旧构建后续GUI失败，整体fixture_exit_code=1。",
+        "不继承为fcca293整功能、模块、B或I通过。"
+      ]
+    },
+    {
+      "id": "PO-269B-GUI",
+      "scope": "historical_real_product_settings_window_and_first_checkbox",
+      "status": "FAIL",
+      "source_sha": "8c3842802229c45306cf164736ad24980c3e58c3",
+      "run_id": "269b8f1f2941478990f9d769d3b1d9c1",
+      "evidence_ids": [
+        "EV-269B-FIXTURE",
+        "EV-269B-PRODUCT"
+      ],
+      "observed_passed_substeps": [
+        "production settings命令",
+        "同PID精确设置root/tab及前台核验",
+        "page0选中"
+      ],
+      "observed_failure": "GUI_actual_hit_is_not_target_control",
+      "failure_sequence": 120,
+      "followup": "真实设置页命中修复已进入当前已提交构建，等待新现场结果，不改写旧失败。",
+      "not_executed_after_failure": [
+        "完整六页checkbox/键盘流程",
+        "保存改变Move及restart",
+        "Explorer与应用矩阵",
+        "I07设置生命周期",
+        "Release idle与完整连续运行"
+      ]
+    },
+    {
+      "id": "PO-DF93-RUNNER",
+      "scope": "historical_guest_pre_fixture_bound_check",
+      "status": "BLOCKED",
+      "source_sha": "85afc19c0a42eb903c515b1f2c407f63a5513783",
+      "run_id": "df93bd61928448fc90274bd3506a95a2",
+      "evidence_ids": [
+        "EV-DF93-SUMMARY"
+      ],
+      "requested_stage_timeout_seconds": 1800,
+      "old_inner_max_seconds": 1200,
+      "observed_error": "Exception calling Run: Exact guest fixture scope required",
+      "fixture_started": false,
+      "product_started": false,
+      "synthetic_input_sent": false,
+      "test_asset_status": "VSCode prepared and hash checked, not launched; not application function evidence",
+      "followup": "runner外/内边界统一后88e/aae已实际启动并运行；本条仍保留df93原始无输入拒绝，不据后续结果改写历史。"
+    },
+    {
+      "id": "PO-AAE-SHARED-RESIZE",
+      "scope": "Release_Medium_owned_two_window_shared_edge_and_constraint_subset",
+      "status": "PARTIAL",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "run_id": "aae67076ccda4bdb9300c9015108231a",
+      "evidence_ids": ["EV-AAE-FIXTURE", "EV-AAE-PRODUCT"],
+      "observed_passed_substeps": [
+        "竖向双窗共享边实际Resize，最小尺寸交集统一钳制",
+        "竖向相反侧source操作同一共享边",
+        "横向双窗共享边实际Resize及最小尺寸交集统一钳制",
+        "固定min=max邻居使真实DOWN/Move/UP保持几何且无placement",
+        "各已完成手势matching UP后无capture且实际几何保持"
+      ],
+      "evidence_sequence_markers": {"vertical": 548, "vertical_clamp": 552, "opposite_source": 563, "horizontal": 574, "horizontal_clamp": 578, "fixed_neighbour": 591},
+      "native_receipts": {"process_id": 6704, "example_exact_call_ids": [35, 36, 37, 38, 39, 40]},
+      "limitations": ["不是所有source/拓扑、完整M07或I10通过；后续T START失败。", "应用未知grid不因这些min/max场景变为已知。"]
+    },
+    {
+      "id": "PO-AAE-T-START",
+      "scope": "new_T_layout_real_DOWN_after_completed_shared_Resize",
+      "status": "FAIL",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "run_id": "aae67076ccda4bdb9300c9015108231a",
+      "evidence_ids": ["EV-AAE-FIXTURE", "EV-AAE-PRODUCT"],
+      "fixture_failure_sequence": 598,
+      "observed_failure": "layout_real_DOWN_production_start",
+      "product_observations": {"process_id": 6704, "prepared_sequence": 89, "native_GUI_interaction_sequence": 90, "actual_capture": 1835770, "actual_move_size": 1835770},
+      "clicks_2_empirically_observed": false,
+      "followup": "工作树click候选在拖动后失效修复待新身份运行；不推定原生clicks2或系统根因。",
+      "not_executed_after_failure": ["T/扩展拓扑后续操作", "原生grid17与恢复", "I07设置生命周期", "I08 driver断开", "I10第二成员在途失败", "I11两轮与15分钟", "Release 60秒idle", "后续应用矩阵", "I12真实ZIP普通无参入口"]
+    },
+    {
+      "id": "PO-AAE-STOP",
+      "scope": "exact_product_shutdown_facts_vs_actual_input_recovery_and_guest_orchestration",
+      "status": "FAIL",
+      "source_sha": "a2eb05f7e76d05ec9378e0d12631dfd22c326fbb",
+      "run_id": "aae67076ccda4bdb9300c9015108231a",
+      "evidence_ids": ["EV-AAE-FIXTURE", "EV-AAE-PRODUCT", "EV-AAE-SUMMARY"],
+      "normal_product_exit": true,
+      "product_shutdown_resource_flags_true": true,
+      "issued_native_completion_unknown": false,
+      "post_stop_client_click_sequence": 601,
+      "actual_down_up_delivered": false,
+      "whole_product_cleanup_pass": false,
+      "orchestration_cleanup_receipt": "uat/v1-control/aae67076ccda4bdb9300c9015108231a/cleanup-receipt.json",
+      "dedicated_guest_exited": true,
+      "task_removed": true,
+      "evidence_unchanged": true,
+      "guest_destruction_counts_as_product_cleanup": false
+    }
+  ]
+}

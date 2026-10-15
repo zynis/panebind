@@ -88,6 +88,75 @@ function Read-TestApplicationAvailability {
     [ordered]@{utc=[DateTime]::UtcNow.ToString('o');guest_only=$true;known_executables=$paths;exact_package_names=$packages;
         executable_or_package_presence_is_not_window_or_function_validation=$true;no_installation_or_process_start=$true}
 }
+function Prepare-PortableTestPackage($Spec,[string]$SourceCommit,[string]$ReleaseHash){
+    $suffix=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('LQC/TzpkIAAtTodlIAB6ejxo'))
+    $runRoot=Join-Path $outputDir ($RunId+$suffix)
+    $payload=Join-Path $runRoot 'PaneBindV1'
+    $ready=Join-Path $outputDir ($RunId+'-portable-ready.marker')
+    if($Spec.kind -cne 'PaneBindReleasePortable' -or $Spec.relative_path -cne 'PaneBindV1-portable-test.zip' -or
+       $Spec.package_id -cnotmatch '^[0-9a-f]{32}$' -or $Spec.source_commit -cne $SourceCommit -or
+       $Spec.exe_sha256 -cne $ReleaseHash -or $Spec.zip_sha256 -cnotmatch '^[A-F0-9]{64}$' -or
+       $Spec.manifest_sha256 -cnotmatch '^[A-F0-9]{64}$' -or [long]$Spec.zip_size -le 0 -or [long]$Spec.zip_size -gt 32MB -or
+       [long]$Spec.expanded_bytes -le 0 -or [long]$Spec.expanded_bytes -gt 32MB){throw 'Unrecognized exact Release portable package contract.'}
+    if((Test-Path -LiteralPath $runRoot) -or (Test-Path -LiteralPath $ready)){throw 'Portable guest target already exists; never reuse unknown state.'}
+    $names=@('panebind.exe','portable.flag','LICENSE','manifest.json')+@('LU6HZetfH5BlUeiVLgBtAGQA','TZFuf/SLDmYuAG0AZAA=','8l3ld+6VmJguAG0AZAA=' | ForEach-Object {[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($_))})
+    $files=@($Spec.files);$expected=@{};$expanded=[long]0
+    if($files.Count -ne 7){throw 'Portable package must have exactly seven payload files.'}
+    foreach($file in $files){
+        if($file.relative_path -cnotin $names -or $expected.ContainsKey($file.relative_path) -or
+           $file.sha256 -cnotmatch '^[A-F0-9]{64}$' -or [long]$file.size -le 0 -or [long]$file.size -gt 32MB){throw 'Unknown, duplicate or unbounded portable payload.'}
+        $expected[$file.relative_path]=$file;$expanded+=[long]$file.size
+    }
+    if($expanded -ne [long]$Spec.expanded_bytes -or $expected['panebind.exe'].sha256 -cne $Spec.exe_sha256 -or
+       $expected['manifest.json'].sha256 -cne $Spec.manifest_sha256){throw 'Portable expanded inventory/binary identity mismatch.'}
+    $zip=Join-Path $inputDir $Spec.relative_path
+    if((Get-Item -LiteralPath $zip).Length -ne [long]$Spec.zip_size -or
+       (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -cne $Spec.zip_sha256){throw 'Portable input ZIP identity mismatch.'}
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive=[IO.Compression.ZipFile]::OpenRead($zip)
+    try{
+        if($archive.Entries.Count -gt 8 -or @($archive.Entries | Where-Object {$_.Name}).Count -ne 7){throw 'Portable ZIP has unknown or missing entries.'}
+        $seen=@{}
+        # Verify EVERY archived byte and exact flat path before creating the
+        # new output directory; ExtractToDirectory is deliberately not used.
+        foreach($entry in $archive.Entries){
+            $normalized=$entry.FullName.Replace('\','/')
+            if(-not $entry.Name){if($normalized -cne 'PaneBindV1/'){throw 'Unexpected portable ZIP directory.'};continue}
+            if(-not $normalized.StartsWith('PaneBindV1/',[StringComparison]::Ordinal)){throw 'Portable ZIP root mismatch.'}
+            $leaf=$normalized.Substring(11)
+            if($leaf -cnotin $names -or $seen.ContainsKey($leaf) -or
+               (($entry.ExternalAttributes -shr 16) -band 0xf000) -notin @(0,0x8000) -or ($entry.ExternalAttributes -band 0x400)){throw 'Portable ZIP path/collision/link rejected.'}
+            if($entry.Length -ne [long]$expected[$leaf].size){throw 'Portable ZIP entry size mismatch.'}
+            $stream=$entry.Open();$digest=[Security.Cryptography.SHA256]::Create()
+            try{$actual=([BitConverter]::ToString($digest.ComputeHash($stream))).Replace('-','')}finally{$digest.Dispose();$stream.Dispose()}
+            if($actual -cne $expected[$leaf].sha256){throw 'Portable ZIP entry hash mismatch.'};$seen[$leaf]=$true
+        }
+        [IO.Directory]::CreateDirectory($runRoot)|Out-Null
+        [IO.Directory]::CreateDirectory($payload)|Out-Null
+        foreach($entry in $archive.Entries){if($entry.Name){
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,(Join-Path $payload $entry.FullName.Replace('\','/').Substring(11)),$false)
+        }}
+    }finally{$archive.Dispose()}
+    foreach($file in $files){$actual=Get-Item -LiteralPath (Join-Path $payload $file.relative_path)
+        if($actual.PSIsContainer -or ($actual.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $actual.Length -ne [long]$file.size -or
+           (Get-FileHash -LiteralPath $actual.FullName -Algorithm SHA256).Hash -cne $file.sha256){throw 'Portable extracted file identity mismatch.'}}
+    $inner=Get-Content -LiteralPath (Join-Path $payload 'manifest.json') -Encoding UTF8 -Raw|ConvertFrom-Json
+    if($inner.schema -cne 'panebind-v1-portable/1' -or $inner.package_id -cne $Spec.package_id -or
+       $inner.source_commit -cne $SourceCommit -or $inner.configuration -cne 'Release' -or
+       $inner.binary_identity.source_commit -cne $SourceCommit -or $inner.binary_identity.requires_elevation -ne $false -or
+       $inner.binary_sha256 -cne $ReleaseHash -or @($inner.files).Count -ne 6){throw 'Portable inner manifest is not this ordinary-permission Release.'}
+    $innerSeen=@{}
+    foreach($file in @($inner.files)){
+        if($file.relative_path -ceq 'manifest.json' -or -not $expected.ContainsKey($file.relative_path) -or $innerSeen.ContainsKey($file.relative_path) -or
+           $file.sha256 -cne $expected[$file.relative_path].sha256 -or [long]$file.size -ne [long]$expected[$file.relative_path].size){throw 'Portable inner manifest inventory mismatch.'}
+        $innerSeen[$file.relative_path]=$true
+    }
+    if([IO.File]::ReadAllText((Join-Path $payload 'portable.flag'),$utf8) -cne "PaneBind V1 portable candidate`n" -or
+       (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -cne $Spec.zip_sha256){throw 'Portable flag or ZIP changed before readiness.'}
+    New-Evidence $ready ((@($RunId,$Spec.package_id,$SourceCommit,$Spec.zip_sha256,$Spec.manifest_sha256,$ReleaseHash)-join "`n")+"`n")
+    return [ordered]@{package_id=$Spec.package_id;source_commit=$SourceCommit;status='EXTRACTED_NOT_RUN';actual_directory=$payload;
+        zip_sha256=$Spec.zip_sha256;exe_sha256=$ReleaseHash;marker=$ready;normal_GUI_started=$false;function_result='NOT_RUN'}
+}
 function Prepare-VSCodeTestAsset($Asset){
     # Called only after the exact WDAG/RunId/mapped-input guards and complete
     # payload hashes passed. Applications is guest-local, never a host mapping.
@@ -193,6 +262,10 @@ try {
     if($null -ne $manifest.test_assets){$assets=@($manifest.test_assets)}
     if($assets.Count -gt 1 -or ($assets.Count -eq 1 -and $assets[0].kind -cne 'VSCode')){throw 'Only one reviewed optional VS Code test asset is permitted.'}
     if($assets.Count){$allowed+='VSCode-test.zip'}
+    if($null -ne $manifest.portable_test){
+        if($Configurations -ceq 'Debug'){throw 'Portable validation requires a Release stage.'}
+        $allowed+='PaneBindV1-portable-test.zip'
+    }
     $seen=@{}
     foreach($file in @($manifest.files)){
         if($file.relative_path -cnotin $allowed -or $seen.ContainsKey($file.relative_path)){throw 'Unknown or duplicate payload file.'}
@@ -205,6 +278,11 @@ try {
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()
     foreach($asset in $assets){$summary.test_assets+=,(Prepare-VSCodeTestAsset $asset)}
+    if($null -ne $manifest.portable_test){
+        $release=@($manifest.files | Where-Object relative_path -ceq 'panebind.exe')
+        if($release.Count -ne 1){throw 'Portable source Release identity missing.'}
+        $summary['portable_test']=Prepare-PortableTestPackage $manifest.portable_test $manifest.source_commit $release[0].sha256
+    }
     # Official API references inspected 2026-10-15. Original orchestration code:
     # /windows/win32/api/winnt/ne-winnt-token_information_class (TokenLinkedToken)
     # /windows/win32/api/securitybaseapi/nf-securitybaseapi-createrestrictedtoken

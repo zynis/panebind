@@ -26,6 +26,32 @@ int main() {
     check(product::route_down(prepared,1,1,4).route == product::DownRoute::Pass &&
           product::route_down(prepared,1,1,6).route == product::DownRoute::Pass,
           "Shift and Ctrl Shift ordinary move bypass");
+    product::ClickCandidate click;
+    click.begin({498,296},1,true);
+    click.motion({578,296},4,4);
+    check(!click.eligible&&click.pressing,"production press tracking retires the 80 pixel drag before its UP");
+    click.motion({498,296},4,4);click.release(1);
+    check(!click.eligible&&!click.pressing,"return to DOWN point and matching UP cannot revive dragged click candidate");
+    click.begin({-100,-200},1,true);click.motion({-104,-196},4,4);
+    check(click.eligible&&click.pressing,"system drag distances are inclusive on both signed axes");
+    click.release(2);
+    check(click.pressing,"unrelated button UP cannot stop click candidate tracking");
+    click.release(1);click.motion({10000,20000},4,4);
+    check(click.eligible&&!click.pressing,"matching UP preserves undragged first click and later hover cannot retire it");
+    click.begin({0,0},1,true);click.motion({0,-5},4,4);
+    check(!click.eligible,"vertical movement beyond drag distance retires first click");
+    click.begin({LONG_MIN,LONG_MAX},1,true);click.motion({LONG_MAX,LONG_MIN},4,4);
+    check(!click.eligible,"full signed physical coordinate difference cannot overflow click motion check");
+    click.begin({50,50},1,true);click.motion({54,54},4,4);click.release(1);
+    const auto unchanged_double=product::route_down(prepared,1,click.eligible?2:1,0);
+    check(unchanged_double.route==product::DownRoute::Mapped&&unchanged_double.action==v1::Action::Maximize,
+          "true undragged title double click retains existing mapped action");
+    check(product::route_down(prepared,1,1,4).route==product::DownRoute::Pass,
+          "passthrough press fixture uses unchanged native bypass route");
+    click.begin({10,10},1,true);click.motion({15,10},4,4);click.release(1);
+    check(!click.eligible&&!click.pressing,"same production tracker retires a passthrough drag independently of consumption");
+    click.begin({10,10},1,false);click.motion({10,10},4,4);click.release(1);
+    check(!click.eligible,"second click does not seed a spurious triple click candidate");
     const auto title_double = product::route_down(prepared,1,2,0);
     check(title_double.route == product::DownRoute::Mapped && title_double.action == v1::Action::Maximize,
           "default title double click is explicit command not native evidence");

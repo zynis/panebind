@@ -3,6 +3,7 @@ param(
     [ValidatePattern('^[0-9a-f]{32}$')][string]$RunId = ([Guid]::NewGuid().ToString('N')),
     [string]$BuildDirectory,
     [string]$VSCodeAssetDirectory,
+    [string]$PortablePackageDirectory,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
@@ -129,6 +130,82 @@ foreach ($configuration in @('Debug','Release')) {
         fixture_identity=(Read-BuildIdentity $fixture);
         fixture_identity_kind='binary_self_reported' }
 }
+$portableTest=$null
+$portableZip=$null
+if($PortablePackageDirectory){
+    if($GuestConfigurations -ceq 'Debug'){throw 'Portable ZIP validation is only available in a Release-containing guest run.'}
+    $portableRoot=[IO.Path]::GetFullPath($PortablePackageDirectory)
+    $portableParent=Join-Path $repo 'uat\v1-portable'
+    $portableId=[IO.Path]::GetFileName($portableRoot)
+    if(-not [string]::Equals([IO.Path]::GetDirectoryName($portableRoot),$portableParent,[StringComparison]::OrdinalIgnoreCase) -or
+       $portableId -cnotmatch '^[0-9a-f]{32}$'){throw 'Portable input must be one exact ignored uat/v1-portable/PackageId directory.'}
+    $cursor=$portableRoot
+    while($cursor -and $cursor.StartsWith($repo,[StringComparison]::OrdinalIgnoreCase)){
+        if((Get-Item -LiteralPath $cursor).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Portable input ancestors must not be reparse points.'}
+        $cursor=[IO.Path]::GetDirectoryName($cursor)
+    }
+    $portableReceiptPath=Join-Path $portableRoot 'package-receipt.json'
+    & git -C $repo check-ignore -- $portableReceiptPath | Out-Null
+    if($LASTEXITCODE -ne 0){throw 'Portable package must remain an ignored local artifact.'}
+    $portableReceipt=Get-Content -LiteralPath $portableReceiptPath -Encoding UTF8 -Raw | ConvertFrom-Json
+    $portableZip=Join-Path $portableRoot ('PaneBindV1-Release-'+$portableId+'.zip')
+    $portableManifestPath=Join-Path $portableRoot 'PaneBindV1\manifest.json'
+    $portablePayload=Get-Item -LiteralPath (Join-Path $portableRoot 'PaneBindV1')
+    if(-not $portablePayload.PSIsContainer -or ($portablePayload.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Portable payload directory must be plain.'}
+    foreach($filePath in @($portableReceiptPath,$portableZip,$portableManifestPath)){
+        $item=Get-Item -LiteralPath $filePath
+        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Portable inputs must be ordinary files.'}
+    }
+    $portableManifest=Get-Content -LiteralPath $portableManifestPath -Encoding UTF8 -Raw | ConvertFrom-Json
+    $releaseIdentity=@($binaries | Where-Object configuration -ceq 'Release')[0].product_identity
+    if($portableReceipt.schema -cne 'panebind-v1-portable-receipt/1' -or $portableReceipt.package_id -cne $portableId -or
+       $portableReceipt.source_commit -cne $head -or $portableReceipt.binary_sha256 -cne $releaseIdentity.verified_binary_sha256 -or
+       $portableManifest.schema -cne 'panebind-v1-portable/1' -or $portableManifest.source_commit -cne $head -or
+       $portableManifest.package_id -cne $portableId -or $portableManifest.configuration -cne 'Release' -or
+       $portableManifest.binary_identity.source_commit -cne $head -or $portableManifest.binary_sha256 -cne $portableReceipt.binary_sha256 -or
+       $portableManifest.binary_identity.requires_elevation -ne $false -or
+       (Get-FileHash -LiteralPath $portableZip -Algorithm SHA256).Hash -cne $portableReceipt.zip_sha256 -or
+       (Get-FileHash -LiteralPath $portableManifestPath -Algorithm SHA256).Hash -cne $portableReceipt.manifest_sha256){throw 'Portable ZIP must bind this exact committed Release build, receipt and manifest.'}
+    $portableNames=@('panebind.exe','portable.flag','LICENSE','manifest.json')+@('LU6HZetfH5BlUeiVLgBtAGQA','TZFuf/SLDmYuAG0AZAA=','8l3ld+6VmJguAG0AZAA=' | ForEach-Object {[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($_))})
+    $portableFiles=@($portableReceipt.files);$seenPortable=@{};$expanded=[long]0
+    if($portableFiles.Count -ne 7){throw 'Portable receipt must describe exactly seven user package files.'}
+    foreach($file in $portableFiles){
+        if($file.relative_path -cnotin $portableNames -or $seenPortable.ContainsKey($file.relative_path) -or
+           $file.sha256 -cnotmatch '^[A-F0-9]{64}$' -or [long]$file.size -le 0 -or [long]$file.size -gt 32MB){throw 'Unknown, duplicate or unbounded portable file.'}
+        $seenPortable[$file.relative_path]=$file;$expanded+=[long]$file.size
+    }
+    if($seenPortable['panebind.exe'].sha256 -cne $portableReceipt.binary_sha256 -or
+       $seenPortable['manifest.json'].sha256 -cne $portableReceipt.manifest_sha256 -or @($portableManifest.files).Count -ne 6){throw 'Portable receipt payload identity differs from its binary/manifest identity.'}
+    $innerSeen=@{}
+    foreach($file in @($portableManifest.files)){
+        if($file.relative_path -ceq 'manifest.json' -or -not $seenPortable.ContainsKey($file.relative_path) -or $innerSeen.ContainsKey($file.relative_path) -or
+           $file.sha256 -cne $seenPortable[$file.relative_path].sha256 -or [long]$file.size -ne [long]$seenPortable[$file.relative_path].size){throw 'Portable inner manifest differs from the exact archive inventory.'}
+        $innerSeen[$file.relative_path]=$true
+    }
+    $zipBytes=(Get-Item -LiteralPath $portableZip).Length
+    if($expanded -gt 32MB -or $zipBytes -le 0 -or $zipBytes -gt 32MB){throw 'Portable test archive exceeds the small package bound.'}
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive=[IO.Compression.ZipFile]::OpenRead($portableZip)
+    try{
+        $entries=@($archive.Entries | Where-Object {$_.Name});$seenEntries=@{}
+        if($archive.Entries.Count -gt 8 -or $entries.Count -ne 7){throw 'Portable archive must contain seven actual payload files.'}
+        foreach($entry in $archive.Entries){
+            $name=$entry.FullName.Replace('\','/')
+            if(-not $entry.Name){if($name -cne 'PaneBindV1/'){throw 'Unknown portable ZIP directory.'};continue}
+            if(-not $name.StartsWith('PaneBindV1/',[StringComparison]::Ordinal)){throw 'Portable ZIP root mismatch.'}
+            $leaf=$name.Substring(11)
+            if($leaf -cnotin $portableNames -or $seenEntries.ContainsKey($leaf) -or
+               (($entry.ExternalAttributes -shr 16) -band 0xf000) -notin @(0,0x8000) -or ($entry.ExternalAttributes -band 0x400)){throw 'Portable ZIP path, duplicate or link rejected.'}
+            $expected=$seenPortable[$leaf];if($entry.Length -ne [long]$expected.size){throw 'Portable ZIP file size mismatch.'}
+            $stream=$entry.Open();$digest=[Security.Cryptography.SHA256]::Create()
+            try{$actualHash=([BitConverter]::ToString($digest.ComputeHash($stream))).Replace('-','')}finally{$digest.Dispose();$stream.Dispose()}
+            if($actualHash -cne $expected.sha256){throw 'Portable ZIP file hash mismatch.'};$seenEntries[$leaf]=$true
+        }
+    }finally{$archive.Dispose()}
+    $portableTest=[ordered]@{kind='PaneBindReleasePortable';relative_path='PaneBindV1-portable-test.zip';package_id=$portableId;
+        source_commit=$head;zip_sha256=$portableReceipt.zip_sha256;zip_size=$zipBytes;manifest_sha256=$portableReceipt.manifest_sha256;
+        exe_sha256=$portableReceipt.binary_sha256;expanded_bytes=$expanded;files=$portableFiles;function_result='NOT_RUN'}
+}
 [IO.Directory]::CreateDirectory($inputDir) | Out-Null
 [IO.Directory]::CreateDirectory($outputDir) | Out-Null
 [IO.Directory]::CreateDirectory((Join-Path $inputDir 'Debug')) | Out-Null
@@ -153,6 +230,13 @@ if($vsCodeZip){
        (Get-FileHash -LiteralPath $vsCodeZip -Algorithm SHA256).Hash -cne $testAssets[0].zip_sha256){throw 'VS Code ZIP changed during package copy; incomplete batch preserved.'}
     $payloadFiles+='VSCode-test.zip'
 }
+if($portableZip){
+    $copied=Join-Path $inputDir 'PaneBindV1-portable-test.zip'
+    [IO.File]::Copy($portableZip,$copied,$false)
+    if((Get-FileHash -LiteralPath $copied -Algorithm SHA256).Hash -cne $portableTest.zip_sha256 -or
+       (Get-FileHash -LiteralPath $portableZip -Algorithm SHA256).Hash -cne $portableTest.zip_sha256){throw 'Portable ZIP changed while copied; incomplete batch preserved.'}
+    $payloadFiles+='PaneBindV1-portable-test.zip'
+}
 $files = @($payloadFiles | ForEach-Object {
     $file = Get-Item -LiteralPath (Join-Path $inputDir $_)
     [ordered]@{ relative_path=$_; size=$file.Length; sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash }
@@ -161,6 +245,7 @@ $manifest = [ordered]@{
     schema='panebind-v1-sandbox/1'; run_id=$RunId; source_commit=$head; branch=$branch;
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
+    portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
     configurations=@($binaries | ForEach-Object { [ordered]@{ name=$_.configuration; product_identity=$_.product_identity;
         fixture_identity=$_.fixture_identity; fixture_identity_kind=$_.fixture_identity_kind; manifest_expected_source=$head } });

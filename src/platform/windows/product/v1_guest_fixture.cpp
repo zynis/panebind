@@ -10,6 +10,7 @@
 #include <commctrl.h>
 #include <dwmapi.h>
 #include <shellapi.h>
+#include <shlobj.h>
 #include <wtsapi32.h>
 #include <wincrypt.h>
 #include <objbase.h>
@@ -138,7 +139,17 @@ struct WriterStall {
     std::atomic<std::uint64_t> before_qpc{},after_qpc{},before_tick{};
     std::atomic<UINT> flags{};std::atomic<int> x{},y{},width{},height{};
 };
-struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;};
+struct NativeBatchLossMember {
+    std::atomic<unsigned> order{};std::atomic<UINT> flags{};std::atomic<int> x{},y{},width{},height{};
+};
+struct NativeBatchLoss {
+    std::array<HWND,3> exact{};std::array<LONG_PTR,3> userdata{};DWORD owner{};
+    std::array<NativeBatchLossMember,3> member;std::atomic<unsigned> arrivals{};
+    std::atomic<bool> destroy_called{},destroy_return{},destroy_gone{},left_held{},completed{};
+    std::atomic<DWORD> destroy_error{};std::atomic<std::uint64_t> destroy_qpc{};
+};
+struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
+    std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;};
 struct ExplorerTarget {
     fs::path directory;shell::ShellLocationFact location;std::unique_ptr<shell::ExplorerProvisioningLease> lease;
     std::unique_ptr<shell::ExplorerConsentTargetObservation> observation;
@@ -185,6 +196,28 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
             const auto dpi=GetDpiForWindow(h);
             mm->ptMaxTrackSize={frame->max_width>0?frame->max_width:GetSystemMetricsForDpi(SM_CXMAXTRACK,dpi),
                 frame->max_height>0?frame->max_height:GetSystemMetricsForDpi(SM_CYMAXTRACK,dpi)};return 0;}
+        if(message==WM_WINDOWPOSCHANGING){
+            const auto loss=frame->native_batch_loss.load();const auto* position=reinterpret_cast<const WINDOWPOS*>(lp);
+            if(loss&&position&&!(position->flags&SWP_NOSIZE)&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&GetCurrentThreadId()==loss->owner){
+                for(std::size_t n=0;n<loss->exact.size();++n)if(loss->exact[n]==h&&loss->userdata[n]==reinterpret_cast<LONG_PTR>(frame)&&
+                    GetWindowLongPtrW(h,GWLP_USERDATA)==loss->userdata[n]&&GetAncestor(h,GA_ROOT)==h){
+                    // Guest TEST application behavior, never a product fault
+                    // hook. Only an actually received sizing call counts.
+                    frame->native_batch_loss.store({});auto& observed=loss->member[n];
+                    observed.flags=position->flags;observed.x=position->x;observed.y=position->y;observed.width=position->cx;observed.height=position->cy;
+                    const auto order=loss->arrivals.fetch_add(1)+1;observed.order=order;
+                    if(order==2){LARGE_INTEGER qpc{};QueryPerformanceCounter(&qpc);loss->destroy_qpc=static_cast<std::uint64_t>(qpc.QuadPart);
+                        loss->left_held=true;loss->destroy_called=true;SetLastError(0);
+                        const bool result=DestroyWindow(h)!=FALSE;loss->destroy_error=result?0:GetLastError();loss->destroy_return=result;
+                        loss->destroy_gone=!IsWindow(h);loss->completed.store(true,std::memory_order_release);
+                        // The native outer SetWindowPos result is deliberately
+                        // NOT inferred from this DestroyWindow result.
+                        if(!IsWindow(h))return 0;
+                    }
+                    break;
+                }
+            }
+        }
         if(message==WM_WINDOWPOSCHANGING&&frame->stall.armed.load()&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&frame->stall.armed.exchange(false)){
             // TEST ONLY: this exact empty fixture owns this window/thread.
             // No source parameters are modified; the product's already-issued
@@ -1434,6 +1467,8 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_product_chains.h"
 #include "platform/windows/product/v1_guest_interruptions.h"
 #include "platform/windows/product/v1_guest_constraint_cases.h"
+#include "platform/windows/product/v1_guest_batch_failure_case.h"
+#include "platform/windows/product/v1_guest_portable_cases.h"
 void record_guest_environment(State& s){
     std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
@@ -1517,6 +1552,7 @@ void drive(State& s){
         visual_mapping_flow(s);
         owned_layout_cases(s);
         owned_native_grid_constraint_case(s);
+        owned_second_member_native_failure_case(s);
         owned_temporary_visual_inflight_case(s);
         owned_settings_lifecycle_cases(s);
         owned_dock_stretch_chains(s);
@@ -1531,6 +1567,7 @@ void drive(State& s){
         catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
         application_matrix_flow(s);
         cleanup_explorers(s);
+        if(s.configuration=="Release")owned_portable_zip_entry_case(s);
         cleanup(s);
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;
@@ -1630,10 +1667,14 @@ int guard(State& s){
     if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))return guard_reject(s,99,"preexisting_product_instance_present");
     s.input_product=source;s.product=actual;s.output=output;return 0;
 }
+#include "platform/windows/product/v1_guest_input_actor.h"
 } // namespace
 
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
     State s;s.instance=instance;s.owner=GetCurrentThreadId();int count{};LPWSTR* args=CommandLineToArgvW(GetCommandLineW(),&count);if(!args)return 64;
+    if(count>=2&&std::wstring_view(args[1])==L"--input-actor-once"){
+        int result=78;try{result=input_actor_child(count,args);}catch(...){}LocalFree(args);return result;
+    }
     if(count==2&&std::wstring_view(args[1])==L"--build-identity"){
         constexpr char identity[]="{\"product\":\"PaneBind V1 guest fixture\",\"source_commit\":\"" PANEBIND_BUILD_SHA "\",\"host_synthetic_input\":\"forbidden\",\"requires_medium_guest\":true}\n";
         DWORD written{};const auto output=GetStdHandle(STD_OUTPUT_HANDLE);

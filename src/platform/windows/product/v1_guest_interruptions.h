@@ -4,6 +4,7 @@
 // The test uses real keyboard/mouse input, native foreground and destruction;
 // it never calls a product abort handler or manufactures a terminal event.
 enum class GuestInterruption { Escape, Foreground, EmergencyHotkey, SourceDestroyed };
+void owned_input_actor_exit(State&,LayoutFixtures&,DWORD,std::uint64_t);
 std::string interruption_end(State& s,const Gesture& g,panebind::core::v1::End expected,bool destroyed,HWND old_source){
     namespace v=panebind::core::v1;std::string ended;
     const bool observed=wait([&]{
@@ -150,10 +151,7 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         s.log.emit("I08_cause_and_following_recovery","\"cause\":"+std::to_string(static_cast<unsigned>(cause))+
             ",\"actual_non_NormalUp_termination\":true,\"new_real_Move_Resize_UP\":true,\"product_restarted\":false");
     }
+    owned_input_actor_exit(s,set,pid,birth);
     chain_gui_save(s,original);s.log.check("I08_exact_fixture_resources_closed",set.close());chain_check_product(s,pid,birth);
-    // V1 is a standalone product, not an attached driver-controlled runtime.
-    // Killing this fixture also destroys its sources, so that would repeat
-    // SourceDestroyed rather than prove a distinct driver-disconnect route.
-    s.log.emit("I08_driver_disconnect","\"result\":\"NOT_RUN_CAPABILITY_GAP\",\"reason\":\"no_existing_independent_driver_disconnect_observation_path\",\"source_destruction_not_relabelled\":true");
-    s.log.emit("I08_actual_interruption_sequence","\"result\":\"FOUR_CAUSES_AND_RECOVERY_CHECKED_DRIVER_DISCONNECT_NOT_RUN\",\"Escape\":true,\"real_foreground\":true,\"exact_blank_source_close\":true,\"actual_WM_HOTKEY\":true,\"same_product_process\":true,\"full_I08_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
+    s.log.emit("I08_actual_interruption_sequence","\"result\":\"FOUR_CAUSES_AND_INPUT_ACTOR_EXIT_DEADLINE_CHECKED\",\"Escape\":true,\"real_foreground\":true,\"exact_blank_source_close\":true,\"actual_WM_HOTKEY\":true,\"input_actor_exit_then_real_30s_Deadline\":true,\"product_driver_channel\":false,\"same_product_process\":true,\"full_I08_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
 }
