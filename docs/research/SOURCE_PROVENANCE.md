@@ -1683,3 +1683,27 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   Source modules copied/adapted/translated: NONE. The fresh portable data
   directory is test state, not a user profile migration or a product dependency.
   Asset availability/hash validation does not establish app compatibility.
+- Explicit settings activation (original V1 code, 2026-10-15): read official
+  [AllowSetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-allowsetforegroundwindow)
+  and [SetForegroundWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow).
+  A second instance opening settings transfers permission only to the existing
+  product PID; the product requests activation only for its own settings UI.
+  Windows may deny activation. No gesture restores foreign foreground, no
+  ASFW_ANY, focus lock timeout setting or AttachThreadInput is used. Run
+  `36577e33b07f4006bc9dd789b5f36c57` observed the exact settings-window check
+  fail but did not identify which conjunction failed; the patch adds individual
+  root/tab/foreground/focus facts. No root cause or UI PASS is inferred here.
+- Bounded visual mutation / recovery ordering (original V1 code, 2026-10-15):
+  re-read official SetWindowLongPtr / SetWindowPos synchronous-message and
+  SWP_ASYNCWINDOWPOS contracts; style, alpha and z-order changes now share the
+  existing single native executor rather than blocking the GUI/input owner.
+  The recovery ordering review inspected official
+  [DuplicateHandle](https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-duplicatehandle),
+  [CompareObjectHandles](https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-compareobjecthandles)
+  and [WaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject).
+  The exact worker completion event is duplicated with SYNCHRONIZE-only access
+  to the verified same-image/Medium helper before publishing visual work. The
+  synchronous acknowledgement callback does not escape into worker lifetime.
+  Recovery waits for that real event; timeout/unreadable alpha is not successful
+  cleanup or external replacement. No external implementation was copied or
+  adapted. Event/preparation tests are not native window/hung-application PASS.

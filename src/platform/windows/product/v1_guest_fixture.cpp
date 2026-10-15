@@ -16,6 +16,7 @@
 #include <tlhelp32.h>
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"
+#include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
 #include <algorithm>
 #include <array>
@@ -150,7 +151,7 @@ struct ApplicationProcess {
 struct ApplicationTarget {
     std::string kind;fs::path executable,directory;std::wstring command;
     std::vector<HWND> baseline;std::vector<ApplicationProcess> processes;
-    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{};
+    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{};
 };
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
@@ -166,6 +167,14 @@ HWND source_window(State& s,std::size_t source){return s.applications.at(source)
     (s.explorer.at(source)?s.explorer[source]->hwnd:s.frames.at(source).hwnd);}
 DWORD source_thread(State& s,std::size_t source){return s.applications.at(source)&&s.applications[source]->identity?s.applications[source]->identity->tid:
     (s.explorer.at(source)?s.explorer[source]->tid:s.owner);}
+std::wstring test_root_property(const State& s){return L"PaneBind.V1.ExactGuestRoot."+s.run;}
+bool test_root_stamp(State& s,const product::Snapshot& identity,bool install=false){
+    if(!identity.hwnd||!identity.key)return false;const auto name=test_root_property(s);const auto value=reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(identity.key));
+    const auto existing=GetPropW(identity.hwnd,name.c_str());
+    if(install&&existing&&existing!=value)return false;
+    if(install&&(!SetPropW(identity.hwnd,name.c_str(),value)))return false;
+    return GetPropW(identity.hwnd,name.c_str())==value;
+}
 LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
@@ -451,7 +460,7 @@ bool provision_explorer(State& s,std::size_t index,bool separate){
             if(binding.succeeded())target->observation=std::move(binding.observation);else{target->identity.reset();why="canonical_shell_observation_binding_failed";}
         }
     }
-    const bool accepted=target->identity.has_value()&&target->observation&&exact_shell_location(*target);
+    const bool accepted=target->identity.has_value()&&target->observation&&exact_shell_location(*target)&&test_root_stamp(s,*target->identity,true);
     s.log.emit("explorer_binding","\"source\":"+std::to_string(index)+",\"method\":"+quote(separate?"separate_process":"owned_COM_lease")+
         ",\"directory\":"+quote(utf8(target->directory.wstring()))+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target->hwnd))+
         ",\"pid\":"+std::to_string(target->pid)+",\"tid\":"+std::to_string(target->tid)+",\"process_birth\":"+std::to_string(target->born)+
@@ -503,9 +512,10 @@ std::uint64_t process_birth(HANDLE process){
     return (static_cast<std::uint64_t>(born.dwHighDateTime)<<32)|born.dwLowDateTime;
 }
 std::vector<HWND> root_baseline(){
-    std::vector<HWND> out;EnumWindows([](HWND h,LPARAM context)->BOOL{
+    std::vector<HWND> out;const bool complete=EnumWindows([](HWND h,LPARAM context)->BOOL{
         auto& roots=*reinterpret_cast<std::vector<HWND>*>(context);if(roots.size()>=1024)return FALSE;
-        if(GetAncestor(h,GA_ROOT)==h)roots.push_back(h);return TRUE;},reinterpret_cast<LPARAM>(&out));return out;
+        if(GetAncestor(h,GA_ROOT)==h)roots.push_back(h);return TRUE;},reinterpret_cast<LPARAM>(&out))!=FALSE;
+    if(!complete)throw std::runtime_error("bounded_root_baseline_incomplete");return out;
 }
 std::string application_version(const fs::path& image){
     const HMODULE library=LoadLibraryExW(L"version.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);if(!library)return "UNKNOWN";
@@ -534,6 +544,9 @@ void discover_application_children(ApplicationTarget& target){
             auto handle=std::make_unique<Handle>(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,candidate.th32ProcessID));
             if(!handle->value)continue;const auto born=process_birth(handle->value);
             if(!born||born<parent->born||born<target.processes.front().born)continue;
+            FILETIME pb{},pe{},pk{},pu{};if(!GetProcessTimes(parent->handle->value,&pb,&pe,&pk,&pu))continue;
+            const auto ended=(static_cast<std::uint64_t>(pe.dwHighDateTime)<<32)|pe.dwLowDateTime;
+            if(ended&&born>ended)continue; // A child cannot be born after this exact parent died.
             target.processes.push_back({candidate.th32ProcessID,candidate.th32ParentProcessID,born,std::move(handle)});added=true;if(target.processes.size()>=64)break;
         }
         if(!added)break;
@@ -550,6 +563,7 @@ bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::opti
 std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string kind){
     auto target=std::make_shared<ApplicationTarget>();target->kind=std::move(kind);
     const fs::path base=fs::path(L"C:\\PaneBindV1\\Applications")/s.run;
+    if(!plain_directory(base.parent_path())&&!fs::create_directory(base.parent_path()))throw std::runtime_error("guest_application_root_not_available");
     if(!plain_directory(base)&&!fs::create_directory(base))throw std::runtime_error("application_RunId_directory_not_available");
     target->directory=base/(std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+std::wstring(target->kind.begin(),target->kind.end()));
     if(fs::exists(target->directory)||!fs::create_directory(target->directory)||!plain_directory(target->directory))throw std::runtime_error("fresh_application_directory_required");
@@ -559,7 +573,11 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
     else if(target->kind=="Edge"){
         for(const fs::path candidate:{fs::path(L"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"),fs::path(L"C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe")})
             if(fs::is_regular_file(candidate)){target->executable=candidate;break;}
-        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir=\""+(target->directory/L"Profile").wstring()+L"\" --no-first-run --no-default-browser-check --disable-background-mode --new-window about:blank";
+        const auto html=target->directory/L"PaneBind-empty.html";
+        std::ofstream page(html,std::ios::binary);page<<"<!doctype html><meta charset=utf-8><title>PaneBind blank</title><body style='margin:0;height:100vh' onclick=\"document.title='PaneBind-Mouse-"<<utf8(s.run)<<"'\"></body>";page.close();
+        if(!page)throw std::runtime_error("guest_offline_browser_fixture_write_failed");
+        auto url=html.wstring();std::replace(url.begin(),url.end(),L'\\',L'/');
+        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir=\""+(target->directory/L"Profile").wstring()+L"\" --no-first-run --no-default-browser-check --disable-background-mode --new-window \"file:///"+url+L"\"";
     }else if(target->kind=="VSCode"){
         target->executable=base/L"VSCode"/L"Code.exe";std::ofstream(blank,std::ios::binary).close();
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
@@ -585,7 +603,7 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         for(HWND h:root_baseline()){std::optional<product::Snapshot> fresh;if(application_fresh(s,*target,h,&fresh)){++matches;candidate=std::move(fresh);}}
         return matches==1;
     },12000);
-    if(bound){target->identity=candidate;target->accepted=true;}
+    if(bound){target->identity=candidate;bound=test_root_stamp(s,*candidate,true);target->accepted=bound;}
     s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":"+quote(bound?"BOUND":"BLOCKED")+
         ",\"reason\":"+quote(bound?"baseline_excluded_new_root_exact_launch_tree_actual_Catalog_Medium_same_SID_session_desktop":"no_unique_eligible_root_in_held_birth_verified_launch_tree")+
         ",\"hwnd\":"+std::to_string(bound?reinterpret_cast<std::uintptr_t>(candidate->hwnd):0)+",\"pid\":"+std::to_string(bound?candidate->pid:0)+
@@ -594,9 +612,10 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         ",\"input_sent\":false,\"product_permission_override\":false");return target;
 }
 bool close_application(State& s,ApplicationTarget& target){
+    if(target.cleanup_confirmed)return true;
     bool attempted=false,gone=false;
     if(target.accepted&&target.identity){std::optional<product::Snapshot> fresh;
-        if(application_fresh(s,target,target.identity->hwnd,&fresh)&&product::Catalog::same(*target.identity,*fresh)){
+        if(application_fresh(s,target,target.identity->hwnd,&fresh)&&product::Catalog::same(*target.identity,*fresh)&&test_root_stamp(s,*target.identity)){
             attempted=PostMessageW(fresh->hwnd,WM_CLOSE,0,0)!=FALSE;gone=attempted&&wait([&]{return !IsWindow(fresh->hwnd);},3000);
         }else gone=!IsWindow(target.identity->hwnd);
         if(!gone)s.log.failed=true;
@@ -605,6 +624,240 @@ bool close_application(State& s,ApplicationTarget& target){
     s.log.emit("application_cleanup","\"application\":"+quote(target.kind)+",\"root_confirmed\":"+(target.accepted?"true":"false")+
         ",\"exact_root_close_attempted\":"+(attempted?"true":"false")+",\"actual_root_gone\":"+(gone?"true":"false")+
         ",\"unknown_windows_touched\":false,\"processes_force_terminated\":false,\"guest_local_data_retained\":true");return gone||!target.accepted;
+}
+panebind::core::v1::Settings matrix_settings(State& s){
+    const auto path=s.product.parent_path()/L"settings.ini";if(!fs::exists(path))return panebind::core::v1::default_settings();
+    auto parsed=panebind::core::v1::parse(read(path));if(!parsed.value)throw std::runtime_error("matrix_actual_product_configuration_invalid");return *parsed.value;
+}
+bool matrix_show_source(State& s,std::size_t source,bool show){
+    const HWND h=source_window(s,source);if(own(s,h)){ShowWindow(h,show?SW_SHOWNOACTIVATE:SW_HIDE);return true;}
+    const product::Snapshot* identity=s.applications[source]&&s.applications[source]->identity?&*s.applications[source]->identity:
+        s.explorer[source]&&s.explorer[source]->identity?&*s.explorer[source]->identity:nullptr;
+    DWORD pid{};std::array<wchar_t,256> cls{};const DWORD tid=GetWindowThreadProcessId(h,&pid);
+    if(!identity||h!=identity->hwnd||pid!=identity->pid||tid!=identity->tid||!test_root_stamp(s,*identity)||GetClassNameW(h,cls.data(),static_cast<int>(cls.size()))<=0||!equal(cls.data(),identity->window_class))return false;
+    Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid));std::array<wchar_t,32768> path{};DWORD length=static_cast<DWORD>(path.size());
+    if(!process.value||WaitForSingleObject(process.value,0)!=WAIT_TIMEOUT||process_birth(process.value)!=identity->born||!medium(process.value)||
+        !QueryFullProcessImageNameW(process.value,0,path.data(),&length)||!equal(path.data(),identity->exe))return false;
+    ShowWindow(h,show?SW_SHOWNOACTIVATE:SW_HIDE);return (IsWindowVisible(h)!=FALSE)==show;
+}
+LONG matrix_pixels(int dip,UINT dpi){
+    if(dip<0||dip>20000||dpi<48||dpi>960)throw std::runtime_error("matrix_DPI_or_parameter_out_of_range");
+    return static_cast<LONG>((static_cast<std::int64_t>(dip)*dpi+48)/96);
+}
+std::array<product::Snapshot,3> matrix_sources(State& s){
+    std::array<product::Snapshot,3> out{};
+    for(std::size_t n=0;n<out.size();++n){const HWND h=source_window(s,n);if(!authorized_source(s,h))throw std::runtime_error("matrix_source_identity_no_longer_authorized");
+        if(own(s,h)){
+            // A Catalog correctly excludes its caller's own UI. This fixture
+            // reads only its exact owned HWND independently; these facts are
+            // NOT an admission receipt for the separate product process.
+            const auto actual=visible(h);RECT positioning{};MONITORINFO monitor{sizeof(monitor)};MINMAXINFO mm{};DWORD_PTR answered{};
+            const auto display=MonitorFromWindow(h,MONITOR_DEFAULTTONULL);const auto dpi=GetDpiForWindow(h);
+            if(!actual||!GetWindowRect(h,&positioning)||!display||!dpi||!GetMonitorInfoW(display,&monitor)||!medium(GetCurrentProcess())||
+                !SendMessageTimeoutW(h,WM_GETMINMAXINFO,0,reinterpret_cast<LPARAM>(&mm),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&answered))throw std::runtime_error("matrix_owned_independent_native_geometry_unavailable");
+            auto& fact=out[n];fact.hwnd=h;fact.pid=GetCurrentProcessId();fact.tid=s.owner;fact.born=process_birth(GetCurrentProcess());fact.dpi=dpi;fact.monitor=display;fact.can_resize=true;
+            fact.visible=panebind::core::v1::Rect{actual->l,actual->t,actual->r,actual->b};fact.positioning=panebind::core::v1::Rect{positioning.left,positioning.top,positioning.right,positioning.bottom};
+            fact.work=panebind::core::v1::Rect{monitor.rcWork.left,monitor.rcWork.top,monitor.rcWork.right,monitor.rcWork.bottom};
+            const LONG horizontal=positioning.right-positioning.left-actual->width(),vertical=positioning.bottom-positioning.top-actual->height();
+            fact.limits={std::max<LONG>(1,mm.ptMinTrackSize.x-horizontal),std::max<LONG>(1,mm.ptMinTrackSize.y-vertical),
+                std::max<LONG>(1,mm.ptMaxTrackSize.x-horizontal),std::max<LONG>(1,mm.ptMaxTrackSize.y-vertical),1,1};
+            fact.maximized=IsZoomed(h)!=FALSE;fact.minimized=IsIconic(h)!=FALSE;
+        }else{auto fresh=s.target_catalog->get(h,{});if(!fresh)throw std::runtime_error("matrix_source_not_current_Medium_Catalog_eligible");out[n]=*fresh;}}
+    return out;
+}
+void matrix_layout(State& s,std::string_view label){
+    for(std::size_t n=0;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_real_source_show_identity_failed");
+    auto facts=matrix_sources(s);
+    for(const auto& fact:facts)if(fact.maximized||fact.minimized){
+        const bool requested=ShowWindowAsync(fact.hwnd,SW_RESTORE)!=FALSE;
+        s.log.check("matrix_setup_actual_native_restore",requested&&wait([&]{return !IsIconic(fact.hwnd)&&!IsZoomed(fact.hwnd);}),
+            "\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(fact.hwnd))+",\"setup_not_product_restore_test\":true");}
+    facts=matrix_sources(s);const auto& work=facts[0].work;const auto config=matrix_settings(s);
+    LONG width=matrix_pixels(500,facts[0].dpi),height=matrix_pixels(220,facts[0].dpi);
+    const LONG margin=matrix_pixels(std::max(100,config.release_dip*4),facts[0].dpi);
+    for(std::size_t n=0;n<facts.size();++n){if(facts[n].monitor!=facts[0].monitor||facts[n].dpi!=facts[0].dpi)throw std::runtime_error("matrix_requires_one_actual_DPI_monitor");
+        width=std::max(width,static_cast<LONG>(facts[n].limits.min_width));
+        height=std::max(height,static_cast<LONG>(n?(facts[n].limits.min_height):((facts[n].limits.min_height+1)/2)));}
+    width+=matrix_pixels(100,facts[0].dpi); // Real min-size slack for shared Resize.
+    const LONG x=static_cast<LONG>(work.left())+margin,y=static_cast<LONG>(work.top())+margin;
+    if(2*width+2*margin>work.width()||2*height+2*margin>work.height())throw std::runtime_error("matrix_real_work_area_too_small_for_declared_application_constraints");
+    const std::array<Rect,3> layout{{{x,y,x+width,y+2*height},{x+width,y,x+2*width,y+height},{x+width,y+height,x+2*width,y+2*height}}};
+    for(std::size_t n=0;n<facts.size();++n){if(layout[n].width()>facts[n].limits.max_width||layout[n].height()>facts[n].limits.max_height)throw std::runtime_error("matrix_layout_exceeds_actual_application_maximum");
+        if(!authorized_source(s,facts[n].hwnd))throw std::runtime_error("matrix_identity_changed_before_layout");
+        ShowWindow(facts[n].hwnd,SW_SHOWNOACTIVATE);
+        s.log.check("matrix_real_setup_layout",fixture_rect(facts[n].hwnd,layout[n]),"\"stage\":"+quote(label)+",\"source\":"+std::to_string(n)+
+            ",\"expected\":"+rect(layout[n])+",\"min_visible_size\":["+std::to_string(facts[n].limits.min_width)+","+std::to_string(facts[n].limits.min_height)+
+            "],\"dpi\":"+std::to_string(facts[n].dpi)+",\"work_area\":["+std::to_string(work.left())+","+std::to_string(work.top())+","+std::to_string(work.right())+","+std::to_string(work.bottom())+
+            "],\"fixture_setup_not_product_placement\":true");}
+}
+void matrix_five(State& s,std::size_t source,const std::string& label){
+    const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const auto original=visible(source_window(s,source));
+    if(!original||config.attraction_dip<4)throw std::runtime_error("matrix_five_requires_actual_nonzero_attraction_configuration");
+    const UINT dpi=facts[source].dpi;const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),dpi);
+    const LONG near_delta=std::max<LONG>(1,matrix_pixels(std::max(1,config.attraction_dip/2),dpi));
+    const LONG dy=source==1?-travel:travel,dx=source==0?-travel:travel;
+    const auto g=down(s,source);phase(s,source,g,dx,dy,translated(*original,dx,dy),label+".free",true);
+    phase(s,source,g,-near_delta,std::max<LONG>(1,near_delta/2),*original,label+".xy_snap",true);
+    phase(s,source,g,-near_delta-1,std::max<LONG>(1,near_delta/2)+1,*original,label+".hold",false);
+    phase(s,source,g,dx,dy,translated(*original,dx,dy),label+".detach",true);
+    phase(s,source,g,-near_delta+1,std::max<LONG>(1,near_delta/2),*original,label+".resnap",true);up(s,source,g,*original);
+}
+void matrix_commands(State& s,const std::string& label){
+    const HWND h=source_window(s,0);const auto facts=matrix_sources(s);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_command_geometry_unknown");
+    // Hide only the two exact test-created targets so smart stretch has the
+    // independently known work-area boundary, not an accidental neighbour.
+    for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_hide_target_identity_changed");
+    const auto& w=facts[0].work;Rect center{static_cast<LONG>(w.left()+(w.width()-original->width())/2),static_cast<LONG>(w.top()+(w.height()-original->height())/2),0,0};center.r=center.l+original->width();center.b=center.t+original->height();
+    const auto command=[&](std::wstring action,Rect expected){
+        foreground(s,h);const auto before=visible(h);const auto mark=read(s.product_log).size();const auto limits=facts[0].limits;
+        const bool legal=expected.width()>=limits.min_width&&expected.width()<=limits.max_width&&expected.height()>=limits.min_height&&expected.height()<=limits.max_height;
+        const bool sent=launch(s,L"--command "+action,true);bool observed=false;std::string evidence;
+        if(legal)observed=sent&&wait([&]{return visible(h)==expected;});
+        else observed=sent&&wait([&]{evidence=record(s,mark,"placement");return visible(h)==before&&evidence.find("\"native_attempted\":false")!=std::string::npos&&evidence.find("target_violates_size_constraints")!=std::string::npos;});
+        s.log.check(label+".command_"+utf8(action),observed,"\"requested\":"+rect(expected)+",\"actual\":"+(visible(h)?rect(*visible(h)):"null")+
+            ",\"expected_outcome\":"+quote(legal?"exact":"declared_application_constraint_safe_rejection")+",\"rejection_receipt\":"+quote(evidence));
+        return legal;
+    };
+    command(L"Center",center);
+    const LONG split=static_cast<LONG>(w.left()+w.width()/2);const Rect half{static_cast<LONG>(w.left()),static_cast<LONG>(w.top()),split,static_cast<LONG>(w.bottom())};
+    if(command(L"DockLeft",half))command(L"Undo",center);
+    if(command(L"StretchHorizontal",{static_cast<LONG>(w.left()),center.t,static_cast<LONG>(w.right()),center.b}))command(L"Undo",center);
+    for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_hidden_target_identity_changed");
+}
+void matrix_text(State& s,const std::wstring& text){
+    for(const wchar_t c:text){if(!authorized_source(s,source_window(s,0))||GetForegroundWindow()!=source_window(s,0))throw std::runtime_error("matrix_text_target_not_exact_foreground");
+        for(const bool release:{false,true}){INPUT packet{};packet.type=INPUT_KEYBOARD;packet.ki.wScan=c;
+            packet.ki.dwFlags=KEYEVENTF_UNICODE|(release?KEYEVENTF_KEYUP:0);packet.ki.dwExtraInfo=0x50425631;
+            if(!desktop()||SendInput(1,&packet,sizeof(packet))!=1)throw std::runtime_error("matrix_client_text_SendInput_failed");}}
+}
+void matrix_chord(State& s,WORD key_code){key(s,VK_CONTROL,true);key(s,key_code,true);key(s,key_code,false);key(s,VK_CONTROL,false);}
+bool matrix_client_child(State& s,const product::Snapshot& source,HWND child){
+    DWORD pid{};if(!child||GetAncestor(child,GA_ROOT)!=source.hwnd||!GetWindowThreadProcessId(child,&pid))return false;
+    if(pid==source.pid)return true;
+    const auto& target=s.applications[0];if(!target)return false;discover_application_children(*target);
+    const auto process=std::find_if(target->processes.begin(),target->processes.end(),[&](const auto& p){return p.pid==pid;});
+    return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&process_birth(process->handle->value)==process->born;
+}
+void matrix_escape_and_client(State& s,const std::string& label){
+    const HWND h=source_window(s,0);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_escape_geometry_unknown");
+    const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
+    for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_Escape_target_hide_identity_failed");
+    const auto g=down(s,0);phase(s,0,g,-travel,travel,translated(*original,-travel,travel),label+".Escape_before",true);
+    const auto mark=read(s.product_log).size();key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);std::string end;
+    const bool escaped=wait([&]{end=record(s,mark,"gesture_end",g.generation);return !end.empty()&&visible(h)==original;});
+    button(s,false); // Test cleanup after Escape, deliberately not NormalUp.
+    s.log.check(label+".Escape_restore",escaped&&end.find("\"normal_up\":false")!=std::string::npos,
+        "\"production_end\":"+quote(end)+",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
+    foreground(s,h);RECT client{};if(!GetClientRect(h,&client))throw std::runtime_error("matrix_client_geometry_unknown");
+    POINT point{(client.right-client.left)/2,(client.bottom-client.top)/2};if(!ClientToScreen(h,&point))throw std::runtime_error("matrix_client_screen_unknown");cursor(s,point);
+    const HWND hit=WindowFromPoint(point);DWORD_PTR region{};
+    const bool actual=matrix_client_child(s,facts[0],hit)&&
+        SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&region==HTCLIENT;
+    if(!actual)throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
+    const auto click_mark=read(s.product_log).size();button(s,true);button(s,false);Sleep(150);GUITHREADINFO gui{sizeof(gui)};
+    const bool focused=GetGUIThreadInfo(source_thread(s,0),&gui)&&gui.hwndFocus&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
+    s.log.check(label+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
+        "\"actual_hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"focus_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndFocus))+
+        ",\"document_mutation\":false,\"semantic_text_delivery_not_proven_by_focus\":true");
+    const auto target=s.applications[0];if(!target)throw std::runtime_error("matrix_client_application_binding_missing");
+    const auto nonce=L"PaneBind-Client-"+s.run;
+    if(target->kind=="Edge"){
+        const auto expected=L"PaneBind-Mouse-"+s.run;std::array<wchar_t,1024> title{};
+        const bool delivered=wait([&]{return GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&std::wstring(title.data()).find(expected)!=std::wstring::npos;});
+        s.log.check(label+".actual_offline_page_client_click",delivered,"\"DOM_click_effect_observed_in_native_title\":"+std::string(delivered?"true":"false")+",\"offline_test_page_only\":true");
+    }else if(target->kind=="Notepad"||target->kind=="VSCode"){
+        const auto blank=target->directory/L"PaneBind-empty.txt";
+        if(!read(blank,4096).empty()||fs::file_size(blank)!=0)throw std::runtime_error("matrix_editor_blank_input_changed_before_test");
+        matrix_chord(s,VK_END);matrix_text(s,nonce);matrix_chord(s,'S');
+        const auto plain=utf8(nonce);std::string utf16;
+        for(const wchar_t c:nonce){utf16.push_back(static_cast<char>(c&255));utf16.push_back(static_cast<char>((c>>8)&255));}
+        const auto content_matches=[&]{const auto bytes=read(blank,4096);return bytes==plain||bytes==std::string("\xef\xbb\xbf")+plain||bytes==std::string("\xff\xfe")+utf16;};
+        s.log.check(label+".actual_client_text_and_native_save",wait(content_matches),"\"guest_new_file_only\":true,\"expected_text_bytes\":"+std::to_string(plain.size())+
+            ",\"actual_saved_sha256\":"+quote(hash(blank))+",\"clipboard_or_private_API_used\":false");
+        matrix_chord(s,'A');key(s,VK_BACK,true);key(s,VK_BACK,false);matrix_chord(s,'S');
+        s.log.check(label+".blank_document_restored_before_close",wait([&]{if(!fs::is_regular_file(blank))return false;const auto bytes=read(blank,4096);return
+            (bytes.empty()&&fs::file_size(blank)==0)||bytes==std::string("\xef\xbb\xbf")||bytes==std::string("\xff\xfe");}));
+    }else if(target->kind=="Terminal"){
+        const auto receipt=target->directory/L"client-input-receipt.txt";if(fs::exists(receipt))throw std::runtime_error("matrix_terminal_receipt_must_be_new");
+        key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);matrix_text(s,L"echo "+nonce+L">\""+receipt.wstring()+L"\"");key(s,VK_RETURN,true);key(s,VK_RETURN,false);
+        s.log.check(label+".actual_terminal_client_input",wait([&]{auto text=read(receipt,4096);while(!text.empty()&&(text.back()=='\r'||text.back()=='\n'||text.back()==' '))text.pop_back();return text==utf8(nonce);}),
+            "\"known_cmd_child_in_new_conhost_only\":true,\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(hash(receipt)));
+    }
+    s.log.check(label+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
+    for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_Escape_hidden_target_identity_changed");
+}
+void matrix_input_idle(State& s){
+    if(s.left){button(s,false);s.log.emit("test_cleanup","\"synthetic_release_sent\":true,\"not_product_NormalUp\":true");}
+    if(s.control)key(s,VK_CONTROL,false);
+    const auto mark=read(s.product_log).size();const bool sent=launch(s,L"--status",true);std::string status;
+    const bool idle=sent&&wait([&]{status=record(s,mark,"status");return status.find("\"gesture_active\":false")!=std::string::npos;});
+    s.log.check("matrix_between_categories_actual_idle",idle&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000),
+        "\"production_status\":"+quote(status)+",\"no_new_input_if_unknown\":true");
+}
+void matrix_mixed_group(State& s,const std::shared_ptr<ApplicationTarget>& browser,const std::shared_ptr<ApplicationTarget>& editor){
+    if(!browser||!editor||browser==editor||!browser->matrix_passed||!editor->matrix_passed||!s.explorer[0]){
+        s.log.failed=true;s.log.emit("mixed_application_group","\"result\":\"BLOCKED\",\"reason\":\"exact_Medium_Explorer_browser_and_editor_preconditions_not_all_passed\"");return;
+    }
+    for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,false))throw std::runtime_error("mixed_unused_Explorer_hide_identity_failed");
+    s.applications[1]=browser;s.applications[2]=editor;
+    for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("mixed_confirmed_application_restore_failed");
+    matrix_layout(s,"fresh_real_Explorer_browser_editor_T_not_replacement_for_prior_I02");
+    const auto facts=matrix_sources(s);const LONG dx=matrix_pixels(34,facts[0].dpi),dy=matrix_pixels(18,facts[0].dpi);
+    ctrl_move(s,0,dx,0,"Mixed_Explorer_Ctrl");matrix_five(s,1,"Mixed_browser_Move");
+    std::array<Rect,3> before{};for(std::size_t n=0;n<3;++n){const auto actual=visible(source_window(s,n));if(!actual)throw std::runtime_error("mixed_shared_Resize_geometry_unknown");before[n]=*actual;}
+    const auto fresh=matrix_sources(s);const LONG resize=matrix_pixels(24,fresh[0].dpi);
+    if(before[1].width()-resize<fresh[1].limits.min_width||before[2].width()-resize<fresh[2].limits.min_width)throw std::runtime_error("mixed_shared_Resize_no_real_constraint_slack");
+    auto after=before;after[0].r+=resize;after[1].l+=resize;after[2].l+=resize;
+    const auto g=down(s,0,true,HTRIGHT);phase(s,0,g,resize,0,after[0],"Mixed_Ctrl_shared_vertical_Resize.source",true);
+    for(std::size_t n=1;n<3;++n)s.log.check("Mixed_Ctrl_shared_vertical_Resize.member_"+std::to_string(n),wait([&]{return visible(source_window(s,n))==after[n];}),
+        "\"expected\":"+rect(after[n])+",\"actual\":"+(visible(source_window(s,n))?rect(*visible(source_window(s,n))):"null"));
+    up(s,0,g,after[0]);matrix_five(s,0,"Mixed_Explorer_post_Resize");ctrl_move(s,2,matrix_pixels(22,fresh[2].dpi),dy,"Mixed_editor_Ctrl_after_Resize");
+    s.log.emit("mixed_application_group","\"result\":\"PASS\",\"members\":[\"Explorer\","+quote(browser->kind)+","+quote(editor->kind)+
+        "],\"real_Medium_roots\":true,\"Ctrl_Move_shared_Resize_post_Resize_Move\":true,\"not_full_I03_or_human_UAT\":true");
+}
+void cleanup_applications(State& s){
+    s.applications={};
+    for(const auto& target:s.created_applications)if(target&&target->accepted&&!target->cleanup_confirmed){s.applications[0]=target;
+        if(!matrix_show_source(s,0,true))s.log.failed=true;close_application(s,*target);s.applications[0].reset();}
+    s.created_applications.clear();
+}
+void application_matrix_flow(State& s){
+    if(!s.target_catalog)s.target_catalog=std::make_unique<product::Catalog>();
+    for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_HIDE);
+    std::shared_ptr<ApplicationTarget> browser,editor;
+    for(const std::string kind:{"Notepad","Edge","VSCode","Terminal"}){
+        std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
+        try{
+            matrix_input_idle(s);target=provision_application(s,kind);
+            if(!target->accepted){reason="no_exact_eligible_new_root";s.log.failed=true;}
+            else{
+                if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_unused_exact_source_hide_failed");
+                s.applications[0]=target;matrix_layout(s,kind+"_independent_actual_constraints_setup");matrix_five(s,0,kind+".Move");
+                const auto before=visible(source_window(s,0));if(!before)throw std::runtime_error("matrix_Resize_before_geometry_unknown");
+                const auto identity=s.target_catalog->get(source_window(s,0),{});if(!identity)throw std::runtime_error("matrix_Resize_actual_identity_changed");
+                const LONG amount=matrix_pixels(28,identity->dpi);const auto g=down(s,0,false,HTBOTTOM);auto after=*before;after.b+=amount;
+                phase(s,0,g,0,amount,after,kind+".Resize",true);up(s,0,g,after);
+                matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
+            }
+        }catch(const std::exception& error){reason=error.what();s.log.failed=true;}
+        // Always recover input before attempting another category. This is
+        // separately reported test cleanup, never manufactured product UP.
+        matrix_input_idle(s);
+        for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true)){s.log.failed=true;throw std::runtime_error("matrix_exact_Explorer_restore_failed_after_category");}
+        if(passed&&(kind=="Edge"||kind=="Notepad"||kind=="VSCode")){
+            if(kind=="Edge")browser=target;
+            if(kind=="Notepad"||(!editor&&kind=="VSCode"))editor=target;
+            if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_confirmed_application_hide_failed");
+        }else if(target)close_application(s,*target);
+        s.applications[0].reset();
+        s.log.emit("application_matrix_result","\"application\":"+quote(kind)+",\"result\":"+quote(passed?"PASS":target&&target->accepted?"FAIL":"BLOCKED")+
+            ",\"reason\":"+quote(reason)+",\"scope\":\"actual_Medium_Move_Resize_commands_Escape_client\",\"human_uat\":\"NOT_RUN\"");
+    }
+    try{matrix_mixed_group(s,browser,editor);}
+    catch(const std::exception& error){s.log.failed=true;s.log.emit("mixed_application_group","\"result\":\"FAIL\",\"reason\":"+quote(error.what()));matrix_input_idle(s);}
+    cleanup_applications(s);
+    for(std::size_t n=0;n<3;++n)if(!matrix_show_source(s,n,true))s.log.failed=true;
+    for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
 }
 enum class BlockedWriterExit { RealUp, EmergencyHotkey };
 // Deliberately NOT invoked by drive(): first establish the normal production
@@ -658,7 +911,10 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     if(s.left)button(s,false); // TEST cleanup after the measured product exit.
     std::istringstream rows(read(s.product_log).substr(g.offset));std::string row;unsigned issued{},late_issued{};bool timeout_unknown=false;
     while(std::getline(rows,row))if(row.find("\"type\":\"placement\"")!=std::string::npos&&number(row,"\"generation\":")==g.generation){
-        if(row.find("\"native_attempted\":true")!=std::string::npos){++issued;if(number(row,"\"native_before_qpc\":")>static_cast<std::uint64_t>(sent.QuadPart))++late_issued;}
+        // A timed-out issued call is a real callsite claim, not a fabricated
+        // successful API return. The target's actual WindowProc entry above
+        // independently proves that this call reached the native window.
+        if(row.find("\"native_callsite_claimed\":true")!=std::string::npos){++issued;if(number(row,"\"native_before_qpc\":")>static_cast<std::uint64_t>(sent.QuadPart))++late_issued;}
         timeout_unknown=timeout_unknown||row.find("\"native_completion_known\":false")!=std::string::npos;
     }
     s.log.check("L2_no_new_native_attempt_after_terminator",issued==1&&late_issued==0&&timeout_unknown,
@@ -783,8 +1039,18 @@ SettingsGui gui_open(State& s){
         gui={search.root,search.root?GetDlgItem(search.root,100):nullptr,search.tid};return gui.root&&gui.tab&&
             gui_class(gui.tab)==WC_TABCONTROLW&&gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui));
     });
+    DWORD foreground_pid{},root_pid{};GetWindowThreadProcessId(GetForegroundWindow(),&foreground_pid);
+    GetWindowThreadProcessId(gui.root,&root_pid);
     s.log.check("GUI_exact_product_settings_window",found,"\"pid\":"+std::to_string(s.product_pid)+
-        ",\"class\":\"PaneBindV1SettingsWindow\",\"owner_and_child_identity_verified\":true");return gui;
+        ",\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+        ",\"root_pid\":"+std::to_string(root_pid)+",\"root_class\":"+quote(utf8(gui_class(gui.root)))+
+        ",\"tab\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.tab))+
+        ",\"tab_class\":"+quote(utf8(gui_class(gui.tab)))+
+        ",\"owner\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetWindow(gui.root,GW_OWNER)))+
+        ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+        ",\"foreground_pid\":"+std::to_string(foreground_pid)+
+        ",\"focus\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui_focus(gui)))+
+        ",\"exact_identity\":"+(gui.root&&gui.tab&&gui_identity(s,gui,gui.tab)?"true":"false"));return gui;
 }
 void gui_edit_number(State& s,const SettingsGui& gui,HWND edit,unsigned number_value){
     gui_click(s,gui,edit);gui_require_input(s,gui);key(s,VK_CONTROL,true);gui_press(s,gui,'A');key(s,VK_CONTROL,false);
@@ -853,10 +1119,190 @@ void settings_gui_flow(State& s){
     s.log.check("GUI_original_settings_restored_before_Explorer",restored.attraction_dip==original.attraction_dip&&restored.generation>saved.generation);
     s.log.emit("settings_GUI_sequence","\"six_pages\":true,\"actual_mouse_and_Tab_Enter_Esc\":true,\"cancel_unchanged\":true,\"save_changes_next_Move\":true,\"restart_persists_and_changes_Move\":true,\"original_attraction_restored\":true,\"human_uat\":\"NOT_RUN\"");
 }
+// Only invoked by the parent-selected L2 sequence after earlier evidence is
+// reviewed. These are actual test-owned window attributes, never core verdicts.
+struct NativeVisual {
+    bool layered{},topmost{},known{true};BYTE alpha{255};COLORREF color{};DWORD flags{};
+    bool operator==(const NativeVisual&)const=default;
+};
+std::optional<NativeVisual> native_visual(HWND h){
+    SetLastError(0);const auto ex=GetWindowLongPtrW(h,GWL_EXSTYLE);if(!ex&&GetLastError())return {};
+    NativeVisual value;value.layered=(ex&WS_EX_LAYERED)!=0;value.topmost=(ex&WS_EX_TOPMOST)!=0;
+    if(value.layered)value.known=GetLayeredWindowAttributes(h,&value.color,&value.alpha,&value.flags)!=FALSE;
+    return value;
+}
+bool native_visual_is(HWND h,BYTE alpha,bool top){
+    const auto now=native_visual(h);return now&&now->layered&&now->known&&now->alpha==alpha&&now->color==0&&now->flags==LWA_ALPHA&&now->topmost==top;
+}
+void own_visual_setup(State& s,HWND h,BYTE alpha,bool top){
+    if(!own(s,h))throw std::runtime_error("visual_setup_not_exact_owned_fixture");
+    SetLastError(0);const auto ex=GetWindowLongPtrW(h,GWL_EXSTYLE);if(!ex&&GetLastError())throw std::runtime_error("visual_setup_style_read_failed");
+    SetLastError(0);const auto previous=SetWindowLongPtrW(h,GWL_EXSTYLE,ex|WS_EX_LAYERED);
+    if((!previous&&GetLastError())||!SetLayeredWindowAttributes(h,0,alpha,LWA_ALPHA)||
+        !SetWindowPos(h,top?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE))
+        throw std::runtime_error("visual_setup_native_failed");
+    s.log.check("visual_fixture_app_setup",wait([&]{return native_visual_is(h,alpha,top);}),
+        "\"actor\":\"fixture_app_not_product\",\"alpha\":"+std::to_string(alpha)+",\"topmost\":"+(top?"true":"false"));
+}
+void visual_exact(State& s,HWND h,BYTE alpha,bool top,std::string name){
+    s.log.check(std::move(name),wait([&]{return own(s,h)&&native_visual_is(h,alpha,top);}),
+        "\"actual_native_layered_alpha\":"+std::to_string(alpha)+",\"actual_topmost\":"+(top?"true":"false")+
+        ",\"readback\":\"GetLayeredWindowAttributes_and_GWL_EXSTYLE\"");
+}
+void visual_command(State& s,HWND h,std::wstring_view name,BYTE alpha,bool top){
+    foreground(s,h);const auto point=hit_point(h,HTCAPTION);if(!point)throw std::runtime_error("visual_command_caption_missing");
+    cursor(s,*point);Sleep(100);s.log.check("visual_production_command",launch(s,L"--command "+std::wstring(name),true),"\"action\":"+quote(utf8(std::wstring(name))));
+    visual_exact(s,h,alpha,top,"visual_command_actual_"+utf8(std::wstring(name)));
+}
+void visual_toggle_hotkey(State& s,HWND h,BYTE alpha,bool top){
+    foreground(s,h);
+    try{key(s,VK_CONTROL,true);key(s,VK_MENU,true);key(s,'T',true);key(s,'T',false);key(s,VK_MENU,false);key(s,VK_CONTROL,false);}
+    catch(...){try{key(s,'T',false);key(s,VK_MENU,false);key(s,VK_CONTROL,false);}catch(...){}throw;}
+    visual_exact(s,h,alpha,top,"visual_actual_registered_CtrlAltT");
+}
+panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::Settings& desired){
+    const auto gui=gui_open(s);gui_page_select(s,gui,1);
+    gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),static_cast<unsigned>(desired.attraction_dip));
+    gui_page_select(s,gui,5);
+    for(const auto& item:std::array<std::pair<const wchar_t*,bool>,2>{{{L"拖动期间临时透明",desired.drag_transparency},{L"Move 中摇动",desired.shake}}}){
+        const auto control=gui_find(s,gui,L"Button",item.first);
+        if((gui_read(s,gui,control,BM_GETCHECK)==BST_CHECKED)!=item.second)gui_click(s,gui,control);
+        s.log.check("visual_GUI_real_checkbox",(gui_read(s,gui,control,BM_GETCHECK)==BST_CHECKED)==item.second,"\"label\":"+quote(utf8(item.first)));
+    }
+    const std::array<std::pair<const wchar_t*,int>,5> numbers{{
+        {L"拖动不透明度",desired.drag_alpha},{L"摇动不透明度",desired.shake_alpha},
+        {L"摇动幅度",desired.shake_amplitude_dip},{L"摇动反向次数",desired.shake_reversals},{L"摇动时间窗口",desired.shake_window_ms}}};
+    for(const auto& item:numbers)gui_edit_number(s,gui,gui_number(s,gui,item.first),static_cast<unsigned>(item.second));
+    gui_save_enter(s,gui);
+    const auto observed=panebind::core::v1::parse(read(s.product.parent_path()/L"settings.ini"));
+    auto expected=desired;if(observed.value)expected.generation=observed.value->generation;
+    s.log.check("visual_GUI_saved_parameters",observed.value&&*observed.value==expected);
+    return *observed.value;
+}
+[[maybe_unused]] void visual_mapping_flow(State& s){
+    namespace settings=panebind::core::v1;
+    const HWND h=s.frames[0].hwnd;
+    if(!own(s,h)||source_window(s,0)!=h)throw std::runtime_error("visual_flow_exact_owned_mode_required");
+    const auto original_visual=native_visual(h);if(!original_visual||!original_visual->known)throw std::runtime_error("visual_original_tuple_unknown");
+    const auto parsed=settings::parse(read(s.product.parent_path()/L"settings.ini"));
+    if(!parsed.value)throw std::runtime_error("visual_original_configuration_missing");
+    const auto original=*parsed.value;
+    if(std::none_of(original.hotkeys.begin(),original.hotkeys.end(),[](const auto& key){return key.modifiers==3&&key.key=='T'&&key.action==settings::Action::ToggleTopmost;}))
+        throw std::runtime_error("visual_default_CtrlAltT_mapping_precondition_missing");
+    std::array<Rect,3> old_rects{};std::array<bool,3> shown{};
+    for(std::size_t n=0;n<3;++n){const auto r=visible(s.frames[n].hwnd);if(!own(s,s.frames[n].hwnd)||!r)throw std::runtime_error("visual_fixture_original_missing");
+        old_rects[n]=*r;shown[n]=IsWindowVisible(s.frames[n].hwnd)!=FALSE;if(n)ShowWindow(s.frames[n].hwnd,SW_HIDE);}
+    MONITORINFO monitor{sizeof(monitor)};
+    if(!GetMonitorInfoW(MonitorFromWindow(h,MONITOR_DEFAULTTONULL),&monitor))throw std::runtime_error("visual_work_area_unknown");
+    const Rect base{monitor.rcWork.left+200,monitor.rcWork.top+160,monitor.rcWork.left+600,monitor.rcWork.top+460};
+    s.log.check("visual_independent_fixture_layout",fixture_rect(h,base),"\"not_substitute_for_I02\":true");
+    auto desired=original;desired.attraction_dip=0;desired.drag_transparency=false;desired.shake=false;
+    own_visual_setup(s,h,173,false);visual_gui_save(s,desired);own_visual_setup(s,h,173,true);
+    visual_command(s,h,L"OpacityDown",141,true);visual_toggle_hotkey(s,h,141,false);
+    visual_command(s,h,L"OpacityDown",109,false);visual_command(s,h,L"OpacityUp",141,false);
+    const auto resume=[&]{const auto mark=read(s.product_log).size();s.log.check("visual_resume_command",launch(s,L"--command Pause",true));
+        s.log.check("visual_resume_actual_enabled",wait([&]{return record(s,mark,"status").find("\"enabled\":true")!=std::string::npos;}));};
+    s.log.check("visual_pause_command",launch(s,L"--pause",true));visual_exact(s,h,173,true,"visual_pause_restores_actual_original_tuple");resume();
+    visual_command(s,h,L"OpacityDown",141,true);visual_toggle_hotkey(s,h,141,false);
+    const auto stop_mark=read(s.product_log).size(),driver_stop_mark=read(s.log.path).size();
+    const auto stopped_pid=s.product_pid;cleanup(s);
+    // Earlier independent application failures remain in the global verdict,
+    // but do not turn this fresh, actually observed stop into a false failure.
+    // Conversely, a forced termination or an older instance's shutdown cannot
+    // satisfy this visual-restoration check.
+    std::string stop_receipt;const auto driver_text=read(s.log.path);
+    if(driver_stop_mark<driver_text.size()){
+        std::istringstream rows(driver_text.substr(driver_stop_mark));std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"product_stop\"")!=std::string::npos)stop_receipt=row;
+    }
+    const auto stopped=record(s,stop_mark,"shutdown");
+    s.log.check("visual_normal_exit_actual_receipts",!s.process&&
+        stop_receipt.find("\"quit_command_completed\":true")!=std::string::npos&&
+        stop_receipt.find("\"process_exit_observed\":true")!=std::string::npos&&
+        stop_receipt.find("\"product_exit_code\":0,")!=std::string::npos&&
+        number(stopped,"\"process_id\":")==stopped_pid&&
+        stopped.find("\"own_hooks_stopped\":true")!=std::string::npos&&
+        stopped.find("\"own_overlay_destroyed\":true")!=std::string::npos&&
+        stopped.find("\"native_worker_exited\":true")!=std::string::npos&&
+        stopped.find("\"issued_native_completion_unknown\":false")!=std::string::npos&&
+        stopped.find("\"visual_recovery_stopped\":true")!=std::string::npos&&
+        stopped.find("\"visual_restore_confirmed\":true")!=std::string::npos,
+        "\"product_stop\":"+quote(stop_receipt)+",\"shutdown\":"+quote(stopped)+",\"previous_global_failures_preserved\":true");
+    visual_exact(s,h,173,true,"visual_normal_exit_restores_actual_original_tuple");
+    s.log.check("visual_exit_helper_confirmed",record(s,stop_mark,"shutdown").find("\"visual_recovery_stopped\":true")!=std::string::npos);
+    const auto restart=read(s.product_log).size();s.log.check("visual_restart_same_product",launch(s,L"--diagnostic",false));
+    s.log.check("visual_restart_actual_startup",wait([&]{return number(record(s,restart,"startup"),"\"process_id\":")==s.product_pid;}));
+    visual_command(s,h,L"OpacityDown",141,true);
+    s.log.check("visual_app_changes_alpha_199",SetLayeredWindowAttributes(h,0,199,LWA_ALPHA)!=FALSE);visual_exact(s,h,199,true,"visual_app_actual_alpha_199");
+    s.log.check("visual_pause_after_app_change",launch(s,L"--pause",true));visual_exact(s,h,199,true,"visual_cleanup_does_not_overwrite_app_alpha_199");resume();
+    own_visual_setup(s,h,173,false);
+    desired.drag_transparency=true;desired.shake=false;desired.drag_alpha=190;desired.shake_alpha=190;
+    desired.shake_amplitude_dip=24;desired.shake_reversals=3;desired.shake_window_ms=2000;
+    visual_gui_save(s,desired);own_visual_setup(s,h,173,true);
+    auto start=*visible(h);auto g=down(s,0);visual_exact(s,h,190,true,"visual_drag_actual_alpha_while_pressed");
+    phase(s,0,g,-40,35,translated(start,-40,35),"visual_drag_actual_Move",true);up(s,0,g,translated(start,-40,35));
+    visual_exact(s,h,173,true,"visual_NormalUp_restores_original_alpha");
+    start=*visible(h);g=down(s,0);visual_exact(s,h,190,true,"visual_abort_drag_actual_alpha_while_pressed");
+    phase(s,0,g,40,35,translated(start,40,35),"visual_abort_actual_Move",true);
+    key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
+    s.log.check("visual_actual_Escape_end",wait([&]{const auto end=record(s,g.offset,"gesture_end",g.generation);return !end.empty()&&number(end,"\"end\":")==1&&end.find("\"normal_up\":false")!=std::string::npos;}));
+    s.log.check("visual_Escape_original_geometry",wait([&]{return visible(h)==start;}));visual_exact(s,h,173,true,"visual_Escape_restores_original_alpha");
+    button(s,false);s.log.check("visual_abort_matching_real_UP",wait([&]{return !(GetAsyncKeyState(VK_LBUTTON)&0x8000);}));
+    own_visual_setup(s,h,173,false);desired.drag_transparency=false;desired.shake=true;visual_gui_save(s,desired);
+    const UINT dpi=GetDpiForWindow(h);if(!dpi)throw std::runtime_error("visual_shake_DPI_unknown");
+    const LONG step=std::max<LONG>(48,MulDiv(24,static_cast<int>(dpi),96)*2);
+    const auto count_mutations=[&](std::size_t offset){std::istringstream rows(read(s.product_log).substr(offset));std::string row;unsigned count{};
+        while(std::getline(rows,row))if(row.find("\"type\":\"visual_mutation\"")!=std::string::npos)++count;return count;};
+    for(unsigned gesture=0;gesture<2;++gesture){
+        start=*visible(h);g=down(s,0);LONG dx{};
+        for(unsigned point=0;point<5;++point){dx=point%2?-step:step;phase(s,0,g,dx,0,translated(start,dx,0),"visual_real_shake_"+std::to_string(gesture)+"_"+std::to_string(point),true);}
+        const BYTE alpha=gesture?173:190;const bool top=gesture==0;
+        visual_exact(s,h,alpha,top,gesture?"visual_second_shake_restores_tuple":"visual_first_shake_sets_tuple");
+        s.log.check("visual_shake_actual_mutation_receipts",wait([&]{return count_mutations(g.offset)>=2;}));
+        const auto after_trigger=read(s.product_log).size();
+        for(unsigned point=0;point<4;++point){dx=point%2?step:-step;phase(s,0,g,dx,0,translated(start,dx,0),"visual_same_gesture_extra_reverse",true);}
+        up(s,0,g,translated(start,dx,0));visual_exact(s,h,alpha,top,"visual_shake_tuple_after_real_UP");
+        s.log.check("visual_at_most_one_toggle_per_real_gesture",count_mutations(after_trigger)==0);
+    }
+    // Current tuple is 173/not-topmost and no permanent shake ownership remains.
+    visual_gui_save(s,original);
+    s.log.check("visual_original_configuration_restored",!settings::parse(read(s.product.parent_path()/L"settings.ini")).error.size());
+    SetLastError(0);const auto current=GetWindowLongPtrW(h,GWL_EXSTYLE);if(!current&&GetLastError())throw std::runtime_error("visual_final_style_unknown");
+    SetLastError(0);const auto previous=SetWindowLongPtrW(h,GWL_EXSTYLE,original_visual->layered?current|WS_EX_LAYERED:current&~WS_EX_LAYERED);
+    if((!previous&&GetLastError())||(original_visual->layered&&!SetLayeredWindowAttributes(h,original_visual->color,original_visual->alpha,original_visual->flags))||
+        !SetWindowPos(h,original_visual->topmost?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE))
+        throw std::runtime_error("visual_fixture_original_restore_failed");
+    s.log.check("visual_fixture_original_tuple_restored",wait([&]{const auto actual=native_visual(h);return actual&&*actual==*original_visual;}));
+    for(std::size_t n=0;n<3;++n){s.log.check("visual_fixture_layout_restored",fixture_rect(s.frames[n].hwnd,old_rects[n]));if(shown[n])ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);}
+    s.log.emit("visual_mapping_sequence","\"real_property_readbacks\":true,\"actual_registered_hotkey\":true,\"real_GUI_configuration\":true,\"NormalUp_and_Escape\":true,\"two_real_shake_gestures\":true,\"human_uat\":\"NOT_RUN\"");
+}
+#include "platform/windows/product/v1_guest_layout_cases.h"
+void record_guest_environment(State& s){
+    std::array<wchar_t,64> build{};DWORD size=static_cast<DWORD>(build.size()*sizeof(wchar_t)),ubr{},ubr_size=sizeof(ubr);
+    const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&size)==ERROR_SUCCESS;
+    const bool ubr_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"UBR",RRF_RT_REG_DWORD,nullptr,&ubr,&ubr_size)==ERROR_SUCCESS;
+    std::array<wchar_t,KL_NAMELENGTH> keyboard{};const bool keyboard_known=GetKeyboardLayoutNameW(keyboard.data())!=FALSE;
+    struct Monitors {std::vector<std::string> rows;bool complete{true};} monitors;
+    const bool enumerated=EnumDisplayMonitors(nullptr,nullptr,[](HMONITOR h,HDC,LPRECT,LPARAM data)->BOOL{
+        auto& out=*reinterpret_cast<Monitors*>(data);MONITORINFO info{sizeof(info)};
+        if(out.rows.size()>=16||!GetMonitorInfoW(h,&info)){out.complete=false;return FALSE;}
+        out.rows.push_back("{\"bounds\":"+rect({info.rcMonitor.left,info.rcMonitor.top,info.rcMonitor.right,info.rcMonitor.bottom})+
+            ",\"work\":"+rect({info.rcWork.left,info.rcWork.top,info.rcWork.right,info.rcWork.bottom})+
+            ",\"primary\":"+((info.dwFlags&MONITORINFOF_PRIMARY)?"true":"false")+"}");return TRUE;
+    },reinterpret_cast<LPARAM>(&monitors))!=FALSE;
+    std::string rows="[";for(const auto& row:monitors.rows){if(rows.size()>1)rows+=',';rows+=row;}rows+=']';
+    s.log.emit("actual_guest_environment","\"os_build\":"+(build_known?quote(utf8(build.data())):"null")+
+        ",\"ubr\":"+(ubr_known?std::to_string(ubr):"null")+",\"system_dpi\":"+std::to_string(GetDpiForSystem())+
+        ",\"source_window_dpi\":"+std::to_string(GetDpiForWindow(s.frames[0].hwnd))+
+        ",\"keyboard_layout\":"+(keyboard_known?quote(utf8(keyboard.data())):"null")+
+        ",\"monitors_complete\":"+(enumerated&&monitors.complete?"true":"false")+",\"monitors\":"+rows+
+        ",\"synthetic_display_configuration_used\":false");
+}
 void drive(State& s){
     const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
     try{
         if(FAILED(apartment))throw std::runtime_error("fixture_driver_COM_STA_initialization_failed");
+        record_guest_environment(s);
         s.log.check("guest_input_baseline_clear",!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
             !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000));
         const std::array<Rect,3> layout{{{120,80,380,440},{380,80,640,260},{380,260,640,440}}};
@@ -907,13 +1353,23 @@ void drive(State& s){
             "\"expected\":"+rect(half)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
         settings_gui_flow(s);
-        explorer_flow(s);
+        try{explorer_flow(s);}
+        catch(const std::exception& error){s.log.failed=true;s.log.emit("Explorer_core_result","\"result\":\"BLOCKED_OR_FAIL\",\"reason\":"+quote(error.what())+",\"other_application_classes_continue_after_exact_cleanup\":true");cleanup_explorers(s);}
+        application_matrix_flow(s);
         cleanup_explorers(s);
+        visual_mapping_flow(s);
+        owned_layout_cases(s);
+        owned_temporary_visual_inflight_case(s);
+        if(s.configuration=="Release"){
+            const auto idle=product::guest_test::measure_idle_60s(s.process,s.product_pid,process_birth(s.process));
+            s.log.emit("Release_actual_idle_measurement",idle.json_fields());
+            if(!idle.completed||idle.one_core_cpu_percent>=1.0||idle.after.working_bytes>80ULL*1024*1024)s.log.failed=true;
+        }
         cleanup(s);
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;
     }catch(const std::exception& error){
-        try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup_explorers(s);cleanup(s);}catch(...){}s.result=1;
+        try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup(s);cleanup_applications(s);cleanup_explorers(s);}catch(...){}s.result=1;
     }
     if(SUCCEEDED(apartment))CoUninitialize();
     PostThreadMessageW(s.owner,WM_QUIT,0,0);
@@ -1041,7 +1497,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         while(GetMessageW(&message,nullptr,0,0)>0){TranslateMessage(&message);DispatchMessageW(&message);}if(s.driver.joinable())s.driver.join();
         bool destroyed=true;for(auto& f:s.frames)if(f.hwnd&&IsWindow(f.hwnd)){if(!own(s,f.hwnd)){destroyed=false;continue;}destroyed=DestroyWindow(f.hwnd)&&destroyed;}UnregisterClassW(s.class_name.c_str(),instance);
         s.log.emit("driver_shutdown","\"result\":"+quote(s.result==0&&!s.log.failed&&destroyed?"PASS":"FAIL")+",\"owned_windows_destroyed\":"+std::string(destroyed?"true":"false")+
-            ",\"product_process_closed\":"+std::string(!s.process?"true":"false")+",\"not_a_medium_application_matrix\":true,\"human_uat\":\"NOT_RUN\"");
+            ",\"product_process_closed\":"+std::string(!s.process?"true":"false")+",\"scope\":\"exact_guest_targets_not_full_acceptance\",\"human_uat\":\"NOT_RUN\"");
         return s.result==0&&!s.log.failed&&destroyed?0:1;
     }catch(...){if(s.driver.joinable())s.driver.join();for(auto& f:s.frames)if(own(s,f.hwnd))DestroyWindow(f.hwnd);return 1;}
 }

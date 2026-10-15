@@ -1,5 +1,6 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
+      [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
       [ValidateRange(30,1200)][int]$StageTimeoutSeconds=360)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -7,7 +8,7 @@ $outputDir='C:\PaneBindV1\Output'
 $utf8=New-Object Text.UTF8Encoding($false)
 $summaryPath=$null
 $summary=[ordered]@{schema='panebind-v1-guest/1';run_id=$RunId;status='NOT_READY';
-    source_commit=$null;automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
+    source_commit=$null;requested_configurations=$Configurations;automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
 function New-Evidence([string]$Path,[string]$Text) {
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$bytes=$script:utf8.GetBytes($Text);$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
@@ -175,6 +176,7 @@ try {
     $summaryPath=Join-Path $outputDir ($RunId+'-guest-summary.json')
     if(Test-Path -LiteralPath $summaryPath){throw 'A summary already exists; preserve this batch and use a new RunId.'}
     $manifest=Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Encoding UTF8 -Raw | ConvertFrom-Json
+    if($manifest.guest_configurations -cne $Configurations){throw 'Configuration selection must match this immutable package manifest.'}
     if($manifest.schema -cne 'panebind-v1-sandbox/1' -or $manifest.run_id -cne $RunId -or
        $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
        $manifest.guest_input -cne $inputDir -or $manifest.guest_output -cne $outputDir -or
@@ -429,7 +431,9 @@ public static class PaneBindV1MediumGuest {
     }
 }
 '@
-    foreach($configuration in @('Debug','Release')) {
+    $anyStageFailed=$false
+    $selectedConfigurations=if($Configurations -ceq 'DebugAndRelease'){@('Debug','Release')}else{@($Configurations)}
+    foreach($configuration in $selectedConfigurations) {
         $sourceDir=if($configuration -ceq 'Release'){$inputDir}else{Join-Path $inputDir 'Debug'}
         $sourceProduct=Join-Path $sourceDir 'panebind.exe'
         $fixture=Join-Path $sourceDir 'panebind-v1-guest-fixture.exe'
@@ -451,12 +455,44 @@ public static class PaneBindV1MediumGuest {
         if($stage.actual_result.ContainsKey('fixture_exit_code')){
             $stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result['fixture_exit_code'])
         }
+        $stageFailed=$stage.actual_result.status -cne 'FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED' -or $stage.actual_result.forced_test_cleanup
+        $stage['safe_to_continue_independent_release']=$false
+        if($stageFailed -and $configuration -ceq 'Debug' -and
+           $stage.actual_result.status -ceq 'FIXTURE_FAILED' -and
+           -not $stage.actual_result.forced_test_cleanup -and
+           $stage.actual_result.descendants_alive_at_fixture_exit -eq 0){
+            # A local Debug function failure does not prohibit the authorized
+            # independent Release contrast. Require actual normal product exit
+            # and all its cleanup facts, not job/guest destruction or exit=0.
+            $driverPath=Join-Path $outputDir ($RunId+'-debug-fixture.jsonl')
+            $productLog=Join-Path $actualDir 'panebind.log.jsonl'
+            if((Test-Path -LiteralPath $driverPath -PathType Leaf) -and (Test-Path -LiteralPath $productLog -PathType Leaf) -and
+               (Get-Item -LiteralPath $driverPath).Length -le 8MB -and (Get-Item -LiteralPath $productLog).Length -le 1MB){
+                $driverRows=@(Get-Content -LiteralPath $driverPath -Encoding UTF8 | ForEach-Object {$_|ConvertFrom-Json})
+                $productRows=@(Get-Content -LiteralPath $productLog -Encoding UTF8 | ForEach-Object {$_|ConvertFrom-Json})
+                $driverEnd=@($driverRows|Where-Object {$_.type -ceq 'driver_shutdown'}|Select-Object -Last 1)
+                $stop=@($driverRows|Where-Object {$_.type -ceq 'product_stop'}|Select-Object -Last 1)
+                $nativeStop=@($productRows|Where-Object {$_.type -ceq 'shutdown'}|Select-Object -Last 1)
+                $externalCleanup=@($driverRows|Where-Object {
+                    ($_.type -ceq 'exact_explorer_cleanup' -and $_.actual_root_gone -ne $true) -or
+                    ($_.type -ceq 'application_cleanup' -and $_.root_confirmed -eq $true -and $_.actual_root_gone -ne $true)})
+                $stage.safe_to_continue_independent_release=$driverEnd.Count -eq 1 -and $stop.Count -eq 1 -and $nativeStop.Count -eq 1 -and
+                    $externalCleanup.Count -eq 0 -and
+                    $driverEnd[0].owned_windows_destroyed -eq $true -and $driverEnd[0].product_process_closed -eq $true -and
+                    $stop[0].process_exit_observed -eq $true -and $stop[0].product_exit_code -eq 0 -and
+                    $nativeStop[0].own_hooks_stopped -eq $true -and $nativeStop[0].own_overlay_destroyed -eq $true -and
+                    $nativeStop[0].native_worker_exited -eq $true -and $nativeStop[0].issued_native_completion_unknown -eq $false -and
+                    $nativeStop[0].visual_recovery_stopped -eq $true -and $nativeStop[0].visual_restore_confirmed -eq $true
+            }
+        }
         $summary.stages+=,$stage
         New-Evidence (Join-Path $outputDir ($RunId+'-'+$configuration+'-launch.json')) ($stage|ConvertTo-Json -Depth 15)
-        if($stage.actual_result.status -cne 'FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED' -or $stage.actual_result.forced_test_cleanup){
-            throw ('Actual Medium '+$configuration+' fixture failed or required test-only forced cleanup; inspect launch/raw evidence.')}
+        if($stageFailed){$anyStageFailed=$true
+            if(-not $stage.safe_to_continue_independent_release){
+                throw ('Actual Medium '+$configuration+' fixture failed or cleanup was not independently confirmed; inspect launch/raw evidence.')}
+        }
     }
-    $summary.status='AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE'
+    $summary.status=if($anyStageFailed){'AUTOMATED_FIXTURES_COMPLETED_WITH_FAILURES'}else{'AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE'}
 } catch {
     $summary.status='BLOCKED_OR_FAILED'
     $summary.error=$_.Exception.Message

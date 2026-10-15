@@ -35,6 +35,10 @@ int main() {
         if (!condition) { ++failures; std::cerr << "FAIL: " << name << '\n'; }
     };
     const auto initial = fixture();
+    check(p::WindowWriter::complete_unissued_on_stop(false,false),"stop completes and signals only never-issued pending admission");
+    check(!p::WindowWriter::complete_unissued_on_stop(true,false),"stop cannot signal or claim completion of an issued unknown native call");
+    check(!p::WindowWriter::complete_unissued_on_stop(false,true)&&!p::WindowWriter::complete_unissued_on_stop(true,true),
+        "stop does not invent another completion for an already finished call");
     const Rect desired{180, 130, 730, 570};
     auto prepared = p::WindowWriter::prepare(initial, initial, desired);
     check(prepared.accepted && prepared.identity_valid && !prepared.noop, "G01 admission");
@@ -134,6 +138,29 @@ int main() {
     changed = initial;
     changed.positioning = {};
     check(!p::WindowWriter::prepare(initial, changed, desired).accepted, "invalid actual positioning frame rejected");
+
+    namespace v=panebind::core::v1;
+    v::VisualState original;auto applied=original;applied.layered=true;applied.alpha=190;applied.flags=LWA_ALPHA;
+    auto visual=p::WindowWriter::prepare_visual(original,original,applied,true,false);
+    check(visual.accepted&&!visual.noop,"actual shared visual alpha admission requires a native change");
+    auto external=applied;external.alpha=120;
+    check(!p::WindowWriter::prepare_visual(applied,external,original,true,false).accepted,"external alpha change is not silently rebased");
+    v::VisualOwnership owned{original,applied,false,true};
+    visual=p::WindowWriter::prepare_visual(applied,applied,original,true,false,owned);
+    check(visual.accepted&&!visual.noop,"retired-input cleanup may restore only the still-owned original");
+    check(!p::WindowWriter::prepare_visual(applied,applied,external,true,false,owned).accepted,"cleanup mode cannot set a different new alpha");
+    check(!p::WindowWriter::prepare_visual(applied,external,original,true,false,owned).accepted,"cleanup mode cannot overwrite an externally replaced tuple");
+    owned.changed_alpha=false;
+    check(!p::WindowWriter::prepare_visual(applied,applied,original,true,false,owned).accepted,"cleanup mode rejects unowned alpha even with a caller guard");
+    auto unknown=original;unknown.layered=true;unknown.attributes_known=false;
+    auto top=unknown;top.topmost=true;
+    check(p::WindowWriter::prepare_visual(unknown,unknown,top,false,true).accepted,"top-only operation preserves unreadable unrelated alpha");
+    check(!p::WindowWriter::prepare_visual(unknown,unknown,applied,true,false).accepted,"unreadable alpha cannot acquire mutation authority");
+    owned={unknown,top,true,false};
+    check(p::WindowWriter::prepare_visual(top,top,unknown,false,true,owned).accepted,"exact owned top can be restored independently of unknown alpha");
+    owned.original.topmost=true;
+    check(!p::WindowWriter::prepare_visual(top,top,unknown,false,true,owned).accepted,"cleanup top target must equal its held original");
+    check(p::WindowWriter::prepare_visual(applied,applied,applied,true,false).noop,"already-exact property receipt does not invent a native API call");
 
     std::cout << "v1-window-writer-preparation checks=" << checks << " failures=" << failures << '\n';
     return failures ? 1 : 0;

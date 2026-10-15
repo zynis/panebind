@@ -522,7 +522,10 @@ struct SettingsWindow::Impl {
             width,height,owner,nullptr,GetModuleHandleW(nullptr),this);
         if(!created){MessageBoxW(owner,L"无法创建设置窗口，请查看系统资源和诊断记录。",L"PaneBind",MB_OK|MB_ICONERROR);return;}
         if(!animate()||!AnimateWindow(created,100,AW_BLEND|AW_ACTIVATE))ShowWindow(created,SW_SHOWNORMAL);
-        UpdateWindow(created);SetFocus(tab);
+        // This is an explicit user request to open our settings, never a
+        // gesture/foreign-window recovery. A second instance may transfer its
+        // foreground permission to this process; Windows still decides.
+        UpdateWindow(created);SetForegroundWindow(created);SetFocus(tab);
     }
 };
 

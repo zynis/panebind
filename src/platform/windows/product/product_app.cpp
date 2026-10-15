@@ -96,6 +96,18 @@ bool atomic_save(const fs::path& p,std::string_view text){
 }
 struct Visual {
     Snapshot identity;v::VisualOwnership ownership;
+    static void observe_owned(v::VisualOwnership& record,const v::VisualState& actual){
+        // An unreadable layered tuple is not evidence that another writer
+        // replaced our alpha. Topmost remains independently observable.
+        if(record.changed_alpha&&actual.layered&&!actual.attributes_known){
+            if(record.changed_top&&!v::owns_top(record,actual))record.changed_top=false;
+            if(!record.changed_top)record.original.topmost=record.applied.topmost=actual.topmost;
+        }else v::observe_visual(record,actual);
+    }
+    static std::string fields(const v::VisualState& value){return "{\"layered\":"+std::string(value.layered?"true":"false")+
+        ",\"attributes_known\":"+(value.attributes_known?"true":"false")+",\"alpha\":"+std::to_string(value.alpha)+
+        ",\"color\":"+std::to_string(value.color)+",\"flags\":"+std::to_string(value.flags)+
+        ",\"topmost\":"+(value.topmost?"true":"false")+"}";}
     static std::optional<v::VisualState> read(HWND hwnd){
         SetLastError(0);const auto ex=GetWindowLongPtrW(hwnd,GWL_EXSTYLE);
         if(!ex&&GetLastError())return {};
@@ -104,26 +116,6 @@ struct Visual {
             value.attributes_known=GetLayeredWindowAttributes(hwnd,&color,&alpha,&flags)!=FALSE;
             if(value.attributes_known){value.alpha=alpha;value.color=color;value.flags=flags;}
         }return value;
-    }
-    static bool assign_alpha(HWND hwnd,const v::VisualState& expected,const v::VisualState& target,
-                             const std::function<bool()>& identity){
-        const auto current=read(hwnd);
-        if(!identity()||!current||!v::same_alpha(*current,expected)||
-            (target.layered&&!target.attributes_known))return false;
-        if(v::same_alpha(*current,target))return true;
-        SetLastError(0);const auto ex=GetWindowLongPtrW(hwnd,GWL_EXSTYLE);
-        if(!ex&&GetLastError())return false;
-        if(target.layered){
-            if(!current->layered){SetLastError(0);
-                const auto before=SetWindowLongPtrW(hwnd,GWL_EXSTYLE,ex|WS_EX_LAYERED);
-                if(!before&&GetLastError())return false;
-            }
-            if(!identity()||!SetLayeredWindowAttributes(hwnd,target.color,target.alpha,target.flags))return false;
-        }else{
-            SetLastError(0);const auto before=SetWindowLongPtrW(hwnd,GWL_EXSTYLE,ex&~WS_EX_LAYERED);
-            if(!before&&GetLastError())return false;
-        }
-        const auto after=read(hwnd);return identity()&&after&&v::same_alpha(*after,target);
     }
 };
 struct Gesture {
@@ -153,6 +145,11 @@ public:
     std::optional<v::End> last_termination;
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
+    // Keep the gesture's own original tuple, not the helper journal's older
+    // permanent-visual baseline, while an already-issued native call finishes.
+    std::optional<Visual> deferred_drag_visual;
+    struct PendingVisual {Snapshot identity;v::VisualOwnership planned;};
+    std::map<std::uint64_t,PendingVisual> pending_visual;
     v::TimingHistogram input_post_timing;std::map<std::uint64_t,std::uint64_t> delayed_input_qpc;
     UINT_PTR seam_timer_serial{0x50420000};
     bool overlay_outline{};v::Rect overlay_bounds;std::vector<v::Rect> overlay_members;
@@ -255,10 +252,25 @@ public:
     void remember_receipt(const Snapshot& before,bool drag_restore=false){
         if(const auto actual=last_exact_receipts.find(before.key);actual!=last_exact_receipts.end())remember(before,actual->second,drag_restore);
     }
+    bool commit_visual(const Snapshot& identity,v::VisualOwnership planned,const v::VisualState& actual){
+        if(planned.changed_top)v::record_top(planned,actual);
+        if(planned.changed_alpha){
+            if(actual.layered&&!actual.attributes_known)return false;
+            v::record_alpha(planned,actual);
+        }
+        if(!recovery.commit(identity,planned))return false;
+        if(v::visual_changes(planned))recovery_owned[identity.key]=planned;else recovery_owned.erase(identity.key);
+        return true;
+    }
     bool mutate_visual(const Snapshot& identity,const v::VisualState& before,const v::VisualState& target,
-                       bool alpha_change,bool top_change,const std::function<bool()>& native,bool cleanup=false){
+                       bool alpha_change,bool top_change,std::optional<v::VisualOwnership> cleanup_owned={}){
+        const bool cleanup=cleanup_owned.has_value();
+        // No property operation may overtake a geometry/property native call
+        // whose completion is unknown. In particular never collapse helper
+        // prior/planned tuples merely because the bounded UI wait ended.
+        if(writer.has_pending_native_operation()||!pending_visual.empty())return false;
         auto owned=recovery_owned.contains(identity.key)?recovery_owned.at(identity.key):v::VisualOwnership{before,before,false,false};
-        v::observe_visual(owned,before);
+        Visual::observe_owned(owned,before);
         auto planned=owned;planned.applied=target;
         // During prepare a restoring transition is still owned; commit clears
         // the flag only after actual equality with the original is observed.
@@ -269,27 +281,40 @@ public:
             log.event("visual_recovery","\"phase\":\"prepare_rejected\",\"reason\":\""+escaped(recovery.error())+"\"");return false;
         }
         const auto generation=gesture?gesture->down.generation:0;
-        const bool permitted=cleanup||!generation||(input.allowed(generation)&&GetForegroundWindow()==identity.hwnd);
-        const bool attempted=permitted;
-        const bool succeeded=attempted&&native();
-        const auto actual=Visual::read(identity.hwnd);bool acknowledged=false;
-        if(actual){
-            auto completed=planned;
-            if(planned.changed_top)v::record_top(completed,*actual);
-            if(planned.changed_alpha&&(!actual->layered||actual->attributes_known))v::record_alpha(completed,*actual);
-            acknowledged=recovery.commit(identity,completed);
-            if(acknowledged){if(v::visual_changes(completed))recovery_owned[identity.key]=completed;else recovery_owned.erase(identity.key);}
-        }
-        log.event("visual_mutation","\"key\":"+std::to_string(identity.key)+",\"mutation_started\":"+(attempted?"true":"false")+
+        // Cleanup authority is the already-owned, actually observed tuple,
+        // not renewed input authority. Capture no Application/Visual references
+        // in work which can outlive this bounded call.
+        auto cleanup_claim=std::make_shared<std::atomic<bool>>(cleanup);
+        auto guard=cleanup?WindowWriter::Guard{[cleanup_claim]{return cleanup_claim->load();}}:
+            input.operation_guard(generation,false,generation?identity.hwnd:nullptr);
+        const auto receipt=writer.visual(identity,before,target,alpha_change,top_change,settings,std::move(guard),cleanup_owned,
+            [this](HANDLE completion){return recovery.defer_until_native_completion(completion);});
+        *cleanup_claim=false;
+        bool acknowledged=false;
+        if(!receipt.completion_known&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
+        else if(receipt.identity_valid&&receipt.visual_after)acknowledged=commit_visual(identity,planned,*receipt.visual_after);
+        if(receipt.completion_known&&!acknowledged&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
+        log.event("visual_mutation","\"key\":"+std::to_string(identity.key)+",\"generation\":"+std::to_string(generation)+
+            ",\"mutation_started\":"+(receipt.native_attempted?"true":"false")+
+            ",\"call_id\":"+std::to_string(receipt.call_id)+
+            ",\"native_attempted\":"+(receipt.native_attempted?(receipt.completion_known?"true":"null"):"false")+
+            ",\"native_completion_known\":"+(receipt.completion_known?"true":"false")+
+            ",\"before\":"+Visual::fields(before)+",\"target\":"+Visual::fields(target)+
+            ",\"actual\":"+(receipt.visual_after?Visual::fields(*receipt.visual_after):"null")+
+            ",\"style_native_attempted\":"+(receipt.visual_native.style_attempted?"true":"false")+
+            ",\"alpha_native_attempted\":"+(receipt.visual_native.alpha_attempted?"true":"false")+
+            ",\"zorder_native_attempted\":"+(receipt.visual_native.zorder_attempted?"true":"false")+
             ",\"cleanup_owned_property\":"+(cleanup?"true":"false")+
-            ",\"native_sequence_returned_success\":"+(succeeded?"true":"false")+",\"recovery_commit_ack\":"+(acknowledged?"true":"false")+
+            ",\"native_sequence_returned_success\":"+(receipt.native_succeeded?"true":"false")+
+            ",\"visual_exact\":"+(receipt.visual_exact?"true":"false")+",\"reason\":\""+escaped(receipt.reason)+"\",\"recovery_commit_ack\":"+(acknowledged?"true":"false")+
             ",\"helper_pid\":"+std::to_string(recovery.helper_pid())+",\"no_foreground_recovery\":true");
-        return succeeded&&acknowledged;
+        return receipt.accepted&&receipt.visual_exact&&acknowledged;
     }
     void reconcile_recovery(const Snapshot& identity){
+        if(writer.has_pending_native_operation()||!pending_visual.empty())return;
         const auto entry=recovery_owned.find(identity.key);if(entry==recovery_owned.end())return;
         const auto actual=Visual::read(identity.hwnd);
-        if(actual){v::observe_visual(entry->second,*actual);
+        if(actual){Visual::observe_owned(entry->second,*actual);
             if(!v::visual_changes(entry->second)&&recovery.forget(identity.key))recovery_owned.erase(entry);}
     }
     bool visual_restore(Visual& record){
@@ -300,9 +325,10 @@ public:
         // A different alpha/color/flags/layered tuple belongs to the app, not
         // to our old record. No restoration write is allowed in that case.
         if(record.ownership.changed_alpha){
-            if(v::owns_alpha(record.ownership,*observed)){
+            if(observed->layered&&!observed->attributes_known)ok=false;
+            else if(v::owns_alpha(record.ownership,*observed)){
                 auto target=*observed;v::copy_alpha(target,record.ownership.original);
-                const bool assigned=mutate_visual(record.identity,*observed,target,true,false,[&]{return Visual::assign_alpha(h,*observed,target,valid);},true);
+                const bool assigned=mutate_visual(*now,*observed,target,true,false,record.ownership);
                 const auto after=Visual::read(h);
                 if(assigned&&after&&v::same_alpha(*after,record.ownership.original))record.ownership.changed_alpha=false;
                 else ok=false;
@@ -312,22 +338,51 @@ public:
         if(record.ownership.changed_top){
             if(v::owns_top(record.ownership,*observed)){
                 auto target=*observed;target.topmost=record.ownership.original.topmost;
-                const bool assigned=mutate_visual(record.identity,*observed,target,false,true,[&]{return valid()&&SetWindowPos(h,target.topmost?HWND_TOPMOST:HWND_NOTOPMOST,
-                    0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE)!=FALSE;},true);
+                const bool assigned=mutate_visual(*now,*observed,target,false,true,record.ownership);
                 const auto after=Visual::read(h);
                 if(assigned&&valid()&&after&&after->topmost==record.ownership.original.topmost)record.ownership.changed_top=false;
                 else ok=false;
             }else record.ownership.changed_top=false;
         }reconcile_recovery(record.identity);return ok;
     }
+    void retry_deferred_drag_visual(){
+        if(!deferred_drag_visual||writer.has_pending_native_operation()||!pending_visual.empty())return;
+        auto& record=*deferred_drag_visual;
+        // No replacement HWND is touched. A still-existing but ineligible or
+        // unreadable source stays pending rather than being called restored.
+        if(!IsWindow(record.identity.hwnd)){
+            log.event("temporary_visual_cleanup","\"key\":"+std::to_string(record.identity.key)+
+                ",\"status\":\"source_destroyed_no_restore\",\"new_write_authority_granted\":false");
+            deferred_drag_visual.reset();return;
+        }
+        const bool restored=visual_restore(record);
+        if(!v::visual_changes(record.ownership)){
+            log.event("temporary_visual_cleanup","\"key\":"+std::to_string(record.identity.key)+
+                ",\"status\":\"held_attributes_retired\",\"restore_confirmed\":"+(restored?"true":"false")+
+                ",\"new_write_authority_granted\":false");
+            deferred_drag_visual.reset();
+        }
+    }
+    void restore_drag_visual(Visual record){
+        // visual_begin refuses a second temporary mutation until this single
+        // slot is retired, so no later gesture can replace the saved original.
+        if(deferred_drag_visual){
+            log.event("temporary_visual_cleanup","\"key\":"+std::to_string(record.identity.key)+
+                ",\"status\":\"unexpected_existing_record\",\"restore_confirmed\":false");return;
+        }
+        deferred_drag_visual=std::move(record);retry_deferred_drag_visual();
+        if(deferred_drag_visual)log.event("temporary_visual_cleanup","\"key\":"+
+            std::to_string(deferred_drag_visual->identity.key)+",\"status\":\"deferred\",\"restore_confirmed\":false");
+    }
     std::optional<Visual> visual_begin(const Snapshot& s,bool top,BYTE alpha,bool temporary){
+        if(temporary){retry_deferred_drag_visual();if(deferred_drag_visual)return {};}
         const auto now=catalog.get(s.hwnd,settings);if(!now||!Catalog::same(s,*now))return {};
         const auto before=Visual::read(s.hwnd);if(!before||(before->layered&&!before->attributes_known))return {};
         Visual record;record.identity=s;record.ownership.original=record.ownership.applied=*before;
         const auto valid=[&]{const auto current=catalog.get(s.hwnd,settings);return current&&Catalog::same(s,*current);};
         if(!temporary&&top!=before->topmost){
             auto target=*before;target.topmost=top;
-            const bool assigned=mutate_visual(s,*before,target,false,true,[&]{return valid()&&SetWindowPos(s.hwnd,top?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE)!=FALSE;});
+            const bool assigned=mutate_visual(s,*before,target,false,true);
             const auto after=Visual::read(s.hwnd);
             if(!assigned||!valid()||!after||after->topmost!=top)return {};
             v::record_top(record.ownership,*after);
@@ -339,10 +394,22 @@ public:
         }
         if(alpha!=v::effective_alpha(*current,LWA_ALPHA)){
             auto target=*current;target.layered=true;target.attributes_known=true;target.alpha=alpha;target.flags|=LWA_ALPHA;
-            const bool assigned=mutate_visual(s,*current,target,true,false,[&]{return Visual::assign_alpha(s.hwnd,*current,target,valid);});
+            const bool mutation_admitted=!writer.has_pending_native_operation()&&pending_visual.empty();
+            const bool assigned=mutate_visual(s,*current,target,true,false);
             const auto after=Visual::read(s.hwnd);
             if(after&&valid()&&v::same_alpha(*after,target))v::record_alpha(record.ownership,*after);
             if(!assigned){
+                const bool pending_this_alpha=mutation_admitted&&std::any_of(pending_visual.begin(),pending_visual.end(),[&](const auto& pending){
+                    return pending.second.identity.key==s.key&&pending.second.planned.changed_alpha&&
+                        v::same_alpha(pending.second.planned.applied,target);
+                });
+                if(temporary&&pending_this_alpha){
+                    // This is a pending tuple, not an observed success. Once
+                    // the actual call completes, cleanup may restore it ONLY
+                    // if the actual tuple still matches this exact target.
+                    v::copy_alpha(record.ownership.applied,target);record.ownership.changed_alpha=true;
+                    restore_drag_visual(std::move(record));return {};
+                }
                 const bool restored=visual_restore(record);
                 const auto final=Visual::read(s.hwnd);
                 const bool rollback_exact=restored&&valid()&&final&&
@@ -361,14 +428,13 @@ public:
         Visual record;
         if(stored!=visual.end())record=stored->second;
         else{record.identity=*fresh;record.ownership.original=record.ownership.applied=*before;}
-        v::observe_visual(record.ownership,*before);
+        Visual::observe_owned(record.ownership,*before);
         const auto valid=[&]{const auto current=catalog.get(source.hwnd,settings);return current&&Catalog::same(record.identity,*current);};
         bool success{};
         if(action==v::Action::ToggleTopmost){
             const bool requested=!before->topmost;
             auto target=*before;target.topmost=requested;
-            const bool assigned=mutate_visual(source,*before,target,false,true,[&]{return valid()&&SetWindowPos(source.hwnd,requested?HWND_TOPMOST:HWND_NOTOPMOST,
-                0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE)!=FALSE;});
+            const bool assigned=mutate_visual(*fresh,*before,target,false,true);
             const auto after=Visual::read(source.hwnd);
             if(after&&valid()){
                 // Keep alpha ownership only if the application did not change
@@ -389,7 +455,7 @@ public:
             }else if(alpha!=v::effective_alpha(*before,LWA_ALPHA)){
                 target.layered=true;target.attributes_known=true;target.alpha=static_cast<BYTE>(alpha);target.flags|=LWA_ALPHA;
             }
-            success=mutate_visual(source,*before,target,!v::same_alpha(*before,target),false,[&]{return Visual::assign_alpha(source.hwnd,*before,target,valid);});
+            success=mutate_visual(*fresh,*before,target,!v::same_alpha(*before,target),false);
             const auto after=Visual::read(source.hwnd);
             if(after&&valid()){
                 if(record.ownership.changed_top&&!v::owns_top(record.ownership,*after))record.ownership.changed_top=false;
@@ -503,6 +569,21 @@ public:
     void stop();
     void log_delayed_completions(){
         for(const auto& r:writer.take_delayed_completions(settings)){
+            if(r.operation!=WindowWriter::Operation::Placement){
+                bool acknowledged=false;
+                if(const auto pending=pending_visual.find(r.call_id);pending!=pending_visual.end()){
+                    if(r.completion_known&&r.identity_valid&&r.visual_after)
+                        acknowledged=commit_visual(pending->second.identity,pending->second.planned,*r.visual_after);
+                    // A failed commit leaves the helper's pending tuple intact.
+                    // No new authority is granted by this late observation.
+                    if(acknowledged)pending_visual.erase(pending);
+                }
+                log.event("property_native_completion","\"call_id\":"+std::to_string(r.call_id)+
+                    ",\"key\":"+std::to_string(r.before.key)+",\"native_succeeded\":"+(r.native_succeeded?"true":"false")+
+                    ",\"identity_valid\":"+(r.identity_valid?"true":"false")+",\"visual_exact\":"+(r.visual_exact?"true":"false")+
+                    ",\"recovery_commit_ack\":"+(acknowledged?"true":"false")+",\"new_write_authority_granted\":false");
+                continue;
+            }
             const auto found=delayed_input_qpc.find(r.call_id);
             input_post_timing.observe_qpc(found==delayed_input_qpc.end()?0:found->second,r.post_observed_qpc,input.counter_frequency());
             if(found!=delayed_input_qpc.end())delayed_input_qpc.erase(found);
@@ -515,6 +596,7 @@ public:
             ",\"native_before_qpc\":"+std::to_string(r.before_qpc)+",\"native_after_qpc\":"+std::to_string(r.after_qpc)+
             ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+",\"new_write_authority_granted\":false");
         }
+        retry_deferred_drag_visual();
     }
 };
 Application* application{};
@@ -547,7 +629,16 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
         else{const auto history=owned_layout(s);if(!history){geometry=false;break;}
             desired=history->back().before.visible;keep_history=false;}
         break;
-    case v::Action::Lower:SetWindowPos(s.hwnd,HWND_BOTTOM,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);geometry=false;break;
+    case v::Action::Lower:{const auto receipt=writer.lower(s,settings,input.operation_guard(0));
+        log.event("lower_result","\"key\":"+std::to_string(s.key)+",\"call_id\":"+std::to_string(receipt.call_id)+
+            ",\"native_attempted\":"+(receipt.native_attempted?(receipt.completion_known?"true":"null"):"false")+
+            ",\"native_completion_known\":"+(receipt.completion_known?"true":"false")+
+            ",\"native_succeeded\":"+(receipt.native_succeeded?"true":"false")+
+            ",\"bottom_observed\":"+(receipt.z_bottom_observed?"true":"false")+
+            ",\"actual_previous\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receipt.z_previous))+
+            ",\"actual_next\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receipt.z_next))+
+            ",\"reason\":\""+escaped(receipt.reason)+"\"");
+        if(!receipt.accepted)notify(L"置后未确认完成；后续操作等待真实原生调用结束。");geometry=false;break;}
     case v::Action::Center:{const auto l=s.work.left()+(s.work.width()-s.visible.width())/2,t=s.work.top()+(s.work.height()-s.visible.height())/2;
         desired={l,t,l+s.visible.width(),t+s.visible.height()};break;}
     case v::Action::MoveLeft:case v::Action::MoveRight:case v::Action::MoveUp:case v::Action::MoveDown:{
@@ -921,7 +1012,7 @@ void Application::motion(const InputEvent& e){
     }
     if(input.allowed(e.generation)&&config.shake&&!is_resize(state.edges)&&(source.feature_mask&32u)&&state.shake.sample({e.point.x,e.point.y},e.tick,
         static_cast<int>(dip(config.shake_amplitude_dip,source.dpi)),static_cast<unsigned>(config.shake_reversals),static_cast<std::uint64_t>(config.shake_window_ms))){
-        if(state.drag_visual){visual_restore(*state.drag_visual);state.drag_visual.reset();}
+        if(state.drag_visual){restore_drag_visual(std::move(*state.drag_visual));state.drag_visual.reset();}
         if(visual.contains(source.key)){visual_restore(visual[source.key]);visual.erase(source.key);}
         else if(input.allowed(e.generation)){const auto record=visual_begin(*fresh,true,static_cast<BYTE>(config.shake_alpha),false);if(record)visual[source.key]=*record;}
     }
@@ -967,7 +1058,7 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
             if(after!=state.expected.end()&&(after->second.visible!=before.visible||after->second.positioning!=before.positioning))undo.erase(before.key);
         }
     }
-    if(state.drag_visual)visual_restore(*state.drag_visual);
+    if(state.drag_visual)restore_drag_visual(std::move(*state.drag_visual));
     input.finish_completion(state.down.generation);
     log.event("gesture_end","\"generation\":"+std::to_string(state.down.generation)+",\"end\":"+std::to_string(static_cast<int>(reason))+
         ",\"normal_up\":"+std::string(reason==v::End::NormalUp?"true":"false")+",\"pending_retired\":true");
@@ -1045,11 +1136,17 @@ void Application::show_settings(){
         if(!fresh||!Catalog::same(*last_target,*fresh))return {};
         return v::Rule{utf8(fresh->exe),utf8(fresh->window_class),true,0xffffffffu};
     });
+    log.event("settings_open","\"created\":"+std::string(settings_ui.handle()?"true":"false")+
+        ",\"foreground_is_settings\":"+(GetForegroundWindow()==settings_ui.handle()?"true":"false")+
+        ",\"own_focus_present\":"+(GetFocus()?"true":"false"));
 }
 void Application::export_diagnostic(){
     const auto name=config_path.parent_path()/(L"diagnostic-"+std::to_wstring(GetTickCount64())+L".txt");
     if(fs::exists(name)){notify(L"诊断目标已存在，未覆盖。");return;}
-    auto redacted=settings;for(auto& rule:redacted.rules)rule.exe=utf8(fs::path(wide(rule.exe)).filename().wstring());
+    auto redacted=settings;std::size_t rule_index{};
+    // A basename can collide after redaction although the full-path rules
+    // were distinct. Unique opaque names preserve a valid serializable copy.
+    for(auto& rule:redacted.rules)rule.exe="redacted-app-"+std::to_string(++rule_index)+".exe";
     std::array<wchar_t,64> build{};DWORD length=static_cast<DWORD>(sizeof(build)),ubr{},dword_length=sizeof(ubr);
     const bool build_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"CurrentBuildNumber",RRF_RT_REG_SZ,nullptr,build.data(),&length)==ERROR_SUCCESS;
     const bool ubr_known=RegGetValueW(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"UBR",RRF_RT_REG_DWORD,nullptr,&ubr,&dword_length)==ERROR_SUCCESS;
@@ -1075,9 +1172,7 @@ void Application::menu(){POINT pt{};GetCursorPos(&pt);HMENU popup=CreatePopupMen
     // foreground recovery. No third-party window is activated by the product.
     SetForegroundWindow(window);TrackPopupMenu(popup,TPM_RIGHTBUTTON,pt.x,pt.y,0,window,nullptr);PostMessageW(window,WM_NULL,0,0);DestroyMenu(popup);
 }
-void Application::stop(){if(stopping)return;stopping=true;input.revoke();finish(v::End::Exit);input.stop();settings_ui.close();
-    const bool native_writer_exited=writer.stop();
-    const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
+void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
     log_delayed_completions();
     const auto timing_fields=[](const v::TimingSnapshot& value,unsigned percentile){
         const auto upper=value.percentile_upper_us(percentile);
@@ -1093,13 +1188,18 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();finish(
         ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.snapshot(),95)+
         ",\"sample_unit\":\"native_placement\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
     for(auto& [key,record]:visual){(void)key;visual_restore(record);}visual.clear();
+    const bool native_writer_exited=writer.stop();
+    const bool issued_completion_unknown=writer.has_unconfirmed_native_call();
+    log_delayed_completions();
     const bool recovery_stopped=recovery.stop();
+    const bool visual_restore_confirmed=recovery_stopped&&pending_visual.empty();
     for(const auto& key:bound_keys)UnregisterHotKey(window,key.id);bound_keys.clear();
     NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;Shell_NotifyIconW(NIM_DELETE,&n);
     if(overlay)DestroyWindow(overlay);overlay=nullptr;WTSUnRegisterSessionNotification(window);
     log.event("shutdown","\"own_hooks_stopped\":true,\"own_overlay_destroyed\":true,\"native_worker_exited\":"+
         std::string(native_writer_exited?"true":"false")+",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
-        ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false"));
+        ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false")+
+        ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false"));
 }
 LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
     if(message==WM_NCHITTEST)return HTTRANSPARENT;if(message==WM_MOUSEACTIVATE)return MA_NOACTIVATE;
@@ -1248,6 +1348,10 @@ int run(HINSTANCE instance,const wchar_t*){
     const bool existing=mutex&&GetLastError()==ERROR_ALREADY_EXISTS;
     if(!mutex){CoUninitialize();return 1;}
     if(existing){const auto target=FindWindowW(app_class,L"PaneBind");int delivered=2;
+        const bool opens_settings=argv.empty()||argv[0]==L"--settings"||
+            (argv.size()==2&&argv[0]==L"--command"&&argv[1]==L"Settings");
+        if(target&&opens_settings){DWORD target_pid{};
+            if(GetWindowThreadProcessId(target,&target_pid)&&target_pid)AllowSetForegroundWindow(target_pid);}
         if(target){if(argv.size()==2&&argv[0]==L"--command"){
                 const auto name=utf8(argv[1]);COPYDATASTRUCT data{0x50425631,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
                 delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;

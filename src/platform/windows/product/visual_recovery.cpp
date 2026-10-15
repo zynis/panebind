@@ -16,11 +16,11 @@
 namespace panebind::platform::windows::product {
 namespace {
 namespace v=core::v1;
-constexpr DWORD wire_magic=0x31565250,io_ms=750,launch_ms=2500;
-enum class Command:DWORD { Remember=1,Forget=2,Stop=3,Commit=4 };
+constexpr DWORD wire_magic=0x31565250,io_ms=750,launch_ms=2500,barrier_ms=1800,stop_io_ms=2750;
+enum class Command:DWORD { Remember=1,Forget=2,Stop=3,Commit=4,CompletionBarrier=5 };
 struct Wire {
     DWORD magic{wire_magic},size{sizeof(Wire)},command{};
-    std::uint64_t serial{},key{},hwnd{},born{};
+    std::uint64_t serial{},key{},hwnd{},born{},completion_handle{};
     DWORD pid{},tid{};
     v::VisualOwnership ownership;
     std::array<wchar_t,1024> exe{};
@@ -70,6 +70,41 @@ bool nonce_valid(std::wstring_view value){return value.size()==32&&std::all_of(v
 std::optional<std::uint64_t> unsigned_number(std::wstring_view value){std::uint64_t n{};if(value.empty()||value.size()>20)return {};
     for(auto c:value){if(c<L'0'||c>L'9'||n>(std::numeric_limits<std::uint64_t>::max()-static_cast<unsigned>(c-L'0'))/10)return {};n=n*10+static_cast<unsigned>(c-L'0');}return n;}
 void pump(){MSG message{};for(unsigned n=0;n<128&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE);++n){if(message.message==WM_QUIT)continue;TranslateMessage(&message);DispatchMessageW(&message);}}
+bool same_kernel_object(HANDLE a,HANDLE b){
+    using Compare=BOOL(WINAPI*)(HANDLE,HANDLE);
+    const auto module=GetModuleHandleW(L"kernelbase.dll");
+    const auto compare=module?reinterpret_cast<Compare>(GetProcAddress(module,"CompareObjectHandles")):nullptr;
+    return compare&&compare(a,b)!=FALSE;
+}
+struct CompletionBarrier {
+    Handle event;
+    // Ownership transfers on a valid received command, even if its ACK is
+    // lost. All rejection paths close the incoming duplicate exactly once.
+    bool adopt(HANDLE incoming){
+        if(!incoming||incoming==INVALID_HANDLE_VALUE)return false;
+        if(incoming==event.value)return true;
+        Handle owned(incoming);DWORD flags{};
+        if(!GetHandleInformation(incoming,&flags))return false;
+        if(event.value){
+            if(same_kernel_object(event.value,incoming))return true;
+            if(WaitForSingleObject(event.value,0)!=WAIT_OBJECT_0)return false;
+        }
+        const auto state=WaitForSingleObject(incoming,0);
+        if(state!=WAIT_OBJECT_0&&state!=WAIT_TIMEOUT)return false;
+        event.close();event.value=owned.value;owned.value=nullptr;return true;
+    }
+    bool ready(DWORD timeout){
+        if(!event.value)return false;const auto start=GetTickCount64();
+        for(;;){
+            const auto elapsed=GetTickCount64()-start;const DWORD remaining=elapsed>=timeout?0:timeout-static_cast<DWORD>(elapsed);
+            const auto result=MsgWaitForMultipleObjectsEx(1,&event.value,remaining,QS_ALLINPUT,MWMO_INPUTAVAILABLE);
+            if(result==WAIT_OBJECT_0)return true;
+            if(result==WAIT_OBJECT_0+1){pump();if(GetTickCount64()-start<timeout)continue;
+                return WaitForSingleObject(event.value,0)==WAIT_OBJECT_0;}
+            return false;
+        }
+    }
+};
 struct Io {
     OVERLAPPED ov{};std::array<unsigned char,sizeof(Wire)> bytes{};
     Io(){ov.hEvent=CreateEventW(nullptr,TRUE,FALSE,nullptr);}
@@ -115,6 +150,13 @@ std::optional<v::VisualState> visual(HWND hwnd){SetLastError(0);const auto ex=Ge
 bool identity(const Wire& wire,const Snapshot& source){return reinterpret_cast<std::uintptr_t>(source.hwnd)==wire.hwnd&&source.pid==wire.pid&&
     source.tid==wire.tid&&source.born==wire.born&&equal(source.exe,wire.exe.data())&&source.window_class==wire.window_class.data();}
 struct Record {Snapshot identity;v::VisualOwnership ownership;std::optional<v::VisualOwnership> previous;bool pending{};};
+bool ready_to_restore(const std::map<std::uint64_t,Record>& records,CompletionBarrier& barrier,DWORD timeout=barrier_ms){
+    if(barrier.event.value)return barrier.ready(timeout);
+    // A pre-native/ACK-lost crash without a recorded event is NOT evidence that
+    // a prepared transition completed. Fail closed, keeping the journal until
+    // this failed helper exits; never clear it or claim cleanup PASS.
+    return std::none_of(records.begin(),records.end(),[](const auto& item){return item.second.pending;});
+}
 const v::VisualOwnership* alpha_owner(const Record& record,const v::VisualState& current){
     if(v::owns_alpha(record.ownership,current))return &record.ownership;
     if(record.pending&&record.previous&&v::owns_alpha(*record.previous,current))return &*record.previous;
@@ -144,6 +186,9 @@ bool commit_matches(const Record& record,const v::VisualOwnership& completed,con
 bool unknown_owned_alpha(const Record& record,const v::VisualState& current){
     return current.layered&&!current.attributes_known&&
         (record.ownership.changed_alpha||(record.pending&&record.previous&&record.previous->changed_alpha));
+}
+bool forget_allowed(const Record& record,const v::VisualState& current){
+    return !unknown_owned_alpha(record,current)&&!alpha_owner(record,current)&&!top_owner(record,current);
 }
 class Watchdog {
     Handle stop_{CreateEventW(nullptr,TRUE,FALSE,nullptr)},timer_{CreateWaitableTimerW(nullptr,TRUE,nullptr)};std::thread thread_;
@@ -217,7 +262,7 @@ bool forget(Catalog& catalog,std::map<std::uint64_t,Record>& records,std::uint64
     const auto fresh=catalog.get(entry->second.identity.hwnd,v::default_settings(),nullptr,true,false);
     if(!fresh){if(!IsWindow(entry->second.identity.hwnd)){records.erase(entry);return true;}return false;}
     if(!Catalog::same(entry->second.identity,*fresh)){records.erase(entry);return true;}
-    const auto current=visual(fresh->hwnd);if(!current||alpha_owner(entry->second,*current)||top_owner(entry->second,*current))return false;
+    const auto current=visual(fresh->hwnd);if(!current||!forget_allowed(entry->second,*current))return false;
     records.erase(entry);return true;
 }
 int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonce){
@@ -233,19 +278,24 @@ int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonc
     const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);if(FAILED(apartment))return 78;
     struct Com {~Com(){CoUninitialize();}} com;
     if(!AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))return 78;
-    Catalog catalog;std::map<std::uint64_t,Record> records;Reply hello;hello.status=1;
+    Catalog catalog;std::map<std::uint64_t,Record> records;CompletionBarrier barrier;Reply hello;hello.status=1;
     if(transfer(pipe.value,parent.value,true,&hello,sizeof(hello),1000,true,true)!=IoResult::Complete)return 78;
     bool requested_stop=false;std::uint64_t previous_serial{};
     for(;;){Wire wire;watchdog.idle();const auto read=transfer(pipe.value,parent.value,false,&wire,sizeof(wire),INFINITE,true,true);if(!watchdog.arm())return 79;
         if(read!=IoResult::Complete)break;
         if(wire.magic!=wire_magic||wire.size!=sizeof(wire)||!wire.serial||wire.serial<=previous_serial)break;
         previous_serial=wire.serial;bool accepted{};
-        if(wire.command==static_cast<DWORD>(Command::Remember))accepted=remember(catalog,records,wire);
-        else if(wire.command==static_cast<DWORD>(Command::Forget))accepted=forget(catalog,records,wire.key);
-        else if(wire.command==static_cast<DWORD>(Command::Commit))accepted=commit(catalog,records,wire);
+        const bool settled=!barrier.event.value||barrier.ready(0);
+        if(wire.command==static_cast<DWORD>(Command::Remember))accepted=settled&&remember(catalog,records,wire);
+        else if(wire.command==static_cast<DWORD>(Command::Forget))accepted=settled&&forget(catalog,records,wire.key);
+        else if(wire.command==static_cast<DWORD>(Command::Commit))accepted=settled&&commit(catalog,records,wire);
+        else if(wire.command==static_cast<DWORD>(Command::CompletionBarrier)){
+            if(!records.empty())accepted=barrier.adopt(reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(wire.completion_handle)));
+            else{Handle unused(reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(wire.completion_handle)));}
+        }
         else if(wire.command==static_cast<DWORD>(Command::Stop)){requested_stop=true;accepted=true;}
         else break;
-        if(requested_stop){bool exact=true;pump();for(auto& item:records)exact=restore(catalog,item.second)&&exact;
+        if(requested_stop){bool exact=ready_to_restore(records,barrier);if(exact){pump();for(auto& item:records)exact=restore(catalog,item.second)&&exact;}
             if(exact)records.clear();accepted=exact;}
         Reply reply;reply.serial=wire.serial;reply.status=accepted?1u:0u;reply.records=static_cast<DWORD>(records.size());
         if(transfer(pipe.value,parent.value,true,&reply,sizeof(reply),1000,true,true)!=IoResult::Complete)break;
@@ -254,13 +304,13 @@ int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonc
     }
     // A broken channel withdraws visual permission just as parent exit does.
     // Restore only exact owned tuples; never reconstruct a missing authority.
-    pump();bool exact=true;for(auto& item:records)exact=restore(catalog,item.second)&&exact;
+    bool exact=ready_to_restore(records,barrier);if(exact){pump();for(auto& item:records)exact=restore(catalog,item.second)&&exact;}
     return exact?0:4;
 }
 } // namespace
 
 struct VisualRecovery::Impl {
-    DWORD owner{GetCurrentThreadId()},pid{};Handle pipe,process;std::uint64_t serial{};std::set<std::uint64_t> keys;std::string failure;
+    DWORD owner{GetCurrentThreadId()},pid{};Handle pipe,process;std::uint64_t serial{},helper_born{};std::set<std::uint64_t> keys;std::string failure;
     bool start(){
         if(!process.value&&!keys.empty()){failure="visual_recovery_cleanup_unconfirmed";return false;}
         if(process.value){if(WaitForSingleObject(process.value,0)==WAIT_TIMEOUT&&pipe.value)return true;
@@ -286,6 +336,7 @@ struct VisualRecovery::Impl {
         process.value=child.hProcess;pid=child.dwProcessId;CloseHandle(child.hThread);
         const auto child_facts=facts(process.value);
         if(!peers(own,child_facts)||child_facts.born<own.born){cancel(pipe.value,connect);pipe.close();failure="recovery_helper_identity_rejected";return false;}
+        helper_born=child_facts.born;
         if(!connected&&connection_error!=ERROR_PIPE_CONNECTED){const std::array<HANDLE,2> waits{connect->ov.hEvent,process.value};
             if(WaitForMultipleObjects(2,waits.data(),FALSE,launch_ms)!=WAIT_OBJECT_0){cancel(pipe.value,connect);pipe.close();failure="recovery_helper_connect_timeout";return false;}
             DWORD bytes{};if(!GetOverlappedResult(pipe.value,&connect->ov,&bytes,FALSE)){pipe.close();failure="recovery_connect_result_failed";return false;}}
@@ -293,17 +344,17 @@ struct VisualRecovery::Impl {
         Reply hello;if(transfer(pipe.value,process.value,false,&hello,sizeof(hello),io_ms,false)!=IoResult::Complete||hello.magic!=wire_magic||hello.status!=1||hello.serial){
             pipe.close();failure="recovery_handshake_failed";return false;}return true;
     }
-    bool request(Wire& wire,Reply& reply){
+    bool request(Wire& wire,Reply& reply,DWORD timeout=io_ms){
         if(owner!=GetCurrentThreadId()||!pipe.value||!process.value||serial==std::numeric_limits<std::uint64_t>::max()){failure="recovery_client_unavailable";return false;}
         wire.serial=++serial;
         if(transfer(pipe.value,process.value,true,&wire,sizeof(wire),io_ms,false)!=IoResult::Complete||
-           transfer(pipe.value,process.value,false,&reply,sizeof(reply),io_ms,false)!=IoResult::Complete||reply.magic!=wire_magic||reply.serial!=wire.serial||reply.status!=1){
+           transfer(pipe.value,process.value,false,&reply,sizeof(reply),timeout,false)!=IoResult::Complete||reply.magic!=wire_magic||reply.serial!=wire.serial||reply.status!=1){
             pipe.close();failure="recovery_record_not_acknowledged";return false;}return true;
     }
     bool finish_process(){pipe.close();if(!process.value)return true;
         const bool ended=WaitForSingleObject(process.value,1200)==WAIT_OBJECT_0;DWORD result{};
         const bool exact=ended&&GetExitCodeProcess(process.value,&result)&&result==0;
-        process.close();pid=0;if(!exact)failure="recovery_helper_cleanup_unconfirmed";return exact;}
+        process.close();pid=0;helper_born=0;if(!exact)failure="recovery_helper_cleanup_unconfirmed";return exact;}
 };
 
 VisualRecovery::VisualRecovery():impl_(std::make_unique<Impl>()){}
@@ -325,6 +376,25 @@ bool VisualRecovery::commit(const Snapshot& identity,const v::VisualOwnership& o
     if(!v::visual_changes(ownership)){impl_->keys.erase(identity.key);if(impl_->keys.empty())return impl_->finish_process();}
     return true;
 }
+bool VisualRecovery::defer_until_native_completion(HANDLE borrowed_event){
+    if(impl_->owner!=GetCurrentThreadId()||!borrowed_event||borrowed_event==INVALID_HANDLE_VALUE||impl_->keys.empty()||!impl_->pipe.value||!impl_->process.value){
+        impl_->failure="recovery_completion_barrier_client_unavailable";return false;}
+    ULONG client{};const auto own=facts(GetCurrentProcess()),helper=facts(impl_->process.value);
+    if(WaitForSingleObject(impl_->process.value,0)!=WAIT_TIMEOUT||GetProcessId(impl_->process.value)!=impl_->pid||
+        !GetNamedPipeClientProcessId(impl_->pipe.value,&client)||client!=impl_->pid||!peers(own,helper)||helper.born!=impl_->helper_born){
+        impl_->failure="recovery_completion_barrier_exact_helper_rejected";return false;}
+    HANDLE remote{};
+    if(!DuplicateHandle(GetCurrentProcess(),borrowed_event,impl_->process.value,&remote,SYNCHRONIZE,FALSE,0)){
+        impl_->failure="recovery_completion_barrier_duplicate_failed";return false;}
+    Wire wire;wire.command=static_cast<DWORD>(Command::CompletionBarrier);wire.completion_handle=reinterpret_cast<std::uintptr_t>(remote);Reply reply;
+    // The numeric remote handle is NEVER closed in this process. Once the
+    // command can have reached the peer, reclaiming it by remote numeric value
+    // would race handle reuse/double-close. The verified helper adopts/closes
+    // it; on an uncertain transfer, its bounded process exit closes any unread
+    // duplicate. The caller must mark the unissued Work done even on ACK loss.
+    if(!impl_->request(wire,reply)){impl_->failure="recovery_completion_barrier_not_acknowledged";return false;}
+    return true;
+}
 bool VisualRecovery::forget(std::uint64_t key){
     if(!impl_->keys.contains(key))return true;Wire wire;wire.command=static_cast<DWORD>(Command::Forget);wire.key=key;Reply reply;
     if(!impl_->request(wire,reply))return false;impl_->keys.erase(key);
@@ -332,7 +402,7 @@ bool VisualRecovery::forget(std::uint64_t key){
 }
 bool VisualRecovery::stop(){
     if(!impl_->process.value)return impl_->keys.empty();bool exact=true;
-    if(impl_->pipe.value){Wire wire;wire.command=static_cast<DWORD>(Command::Stop);Reply reply;exact=impl_->request(wire,reply);if(exact)impl_->keys.clear();}
+    if(impl_->pipe.value){Wire wire;wire.command=static_cast<DWORD>(Command::Stop);Reply reply;exact=impl_->request(wire,reply,stop_io_ms);if(exact)impl_->keys.clear();}
     else exact=impl_->keys.empty();const bool ended=impl_->finish_process();return ended&&exact;
 }
 std::string VisualRecovery::error()const{return impl_->failure;}
@@ -395,6 +465,32 @@ int recovery_model_tests(){
     auto unreadable=previous.applied;unreadable.attributes_known=false;unreadable.topmost=true;
     check(unknown_owned_alpha(unknown,unreadable)&&!alpha_owner(unknown,unreadable),"unknown owned alpha remains failed and cannot be restored speculatively");
     check(top_owner(unknown,unreadable)==&unknown.ownership,"unknown alpha does not suppress independent exact top cleanup");
+    auto alpha_only=unknown;alpha_only.ownership.changed_top=false;
+    check(!forget_allowed(alpha_only,unreadable),"unknown alpha must not erase recovery journal merely because alpha_owner is null");
+    auto replaced=previous.applied;replaced.alpha=166;
+    check(forget_allowed(alpha_only,replaced),"known external alpha replacement may retire owned journal without rewriting it");
+    CompletionBarrier barrier;std::map<std::uint64_t,Record> pending{{1,record}};pending.begin()->second.pending=true;
+    check(!ready_to_restore(pending,barrier,0),"pending visual transition without acknowledged barrier remains UNKNOWN");
+    Handle first(CreateEventW(nullptr,TRUE,FALSE,nullptr));HANDLE first_copy{};
+    const bool duplicated=first.value&&DuplicateHandle(GetCurrentProcess(),first.value,GetCurrentProcess(),&first_copy,SYNCHRONIZE,FALSE,0);
+    check(duplicated&&barrier.adopt(first_copy),"actual SYNCHRONIZE duplicate adopted before native mutation");
+    check(!ready_to_restore(pending,barrier,0),"unsignaled completion prevents pre-native original tuple from being treated as cleanup success");
+    if(first.value)SetEvent(first.value);
+    check(ready_to_restore(pending,barrier,0),"actual matching native completion permits independent owned restore");
+    HANDLE same_copy{};const bool same_duplicate=first.value&&DuplicateHandle(GetCurrentProcess(),first.value,GetCurrentProcess(),&same_copy,SYNCHRONIZE,FALSE,0);
+    check(same_duplicate&&barrier.adopt(same_copy),"duplicate same-call registration is idempotent without double close");
+    Handle next_event(CreateEventW(nullptr,TRUE,FALSE,nullptr));HANDLE next_copy{};
+    const bool next_duplicate=next_event.value&&DuplicateHandle(GetCurrentProcess(),next_event.value,GetCurrentProcess(),&next_copy,SYNCHRONIZE,FALSE,0);
+    check(next_duplicate&&barrier.adopt(next_copy),"next exact call replaces only a completed barrier");
+    check(!ready_to_restore(pending,barrier,0),"previous signaled event never completes a different native call");
+    Handle third(CreateEventW(nullptr,TRUE,TRUE,nullptr));HANDLE third_copy{};
+    const bool third_duplicate=third.value&&DuplicateHandle(GetCurrentProcess(),third.value,GetCurrentProcess(),&third_copy,SYNCHRONIZE,FALSE,0);
+    check(third_duplicate&&!barrier.adopt(third_copy)&&!ready_to_restore(pending,barrier,0),"a different call cannot replace the unfinished barrier");
+    check(!barrier.adopt(nullptr),"invalid completion handle fails closed");
+    if(next_event.value)SetEvent(next_event.value);next_event.close();
+    check(ready_to_restore(pending,barrier,0),"borrowed source close does not invalidate the helper-owned event duplicate");
+    pending.begin()->second.pending=false;CompletionBarrier absent;
+    check(ready_to_restore(pending,absent,0),"already committed journal without a native pending call retains ordinary recovery path");
     Wire wire;wire.hwnd=1;wire.key=900;wire.pid=10;wire.tid=20;wire.born=30;
     const std::wstring exe=L"C:\\Fixture\\app.exe",cls=L"Fixture.Window";
     std::copy(exe.begin(),exe.end(),wire.exe.begin());std::copy(cls.begin(),cls.end(),wire.window_class.begin());

@@ -25,6 +25,10 @@ public:
     // Collapse a prepared transition only after actual native postverification.
     // Until this receipt, helper retains both prior and planned owned tuples.
     bool commit(const Snapshot&,const core::v1::VisualOwnership& actual);
+    // Before the matching native visual call: duplicate this borrowed event
+    // with SYNCHRONIZE access into the exact verified helper, and require ACK.
+    // Caller keeps/owns its handle. False forbids issuing that native call.
+    bool defer_until_native_completion(HANDLE borrowed_event);
     // Call only once actual restore/external replacement revoked our ownership.
     // Last removal causes helper exit; next actual mutation starts a new helper.
     bool forget(std::uint64_t parent_key);

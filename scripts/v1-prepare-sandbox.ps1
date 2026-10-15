@@ -3,6 +3,7 @@ param(
     [ValidatePattern('^[0-9a-f]{32}$')][string]$RunId = ([Guid]::NewGuid().ToString('N')),
     [string]$BuildDirectory,
     [string]$VSCodeAssetDirectory,
+    [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
@@ -160,6 +161,7 @@ $manifest = [ordered]@{
     schema='panebind-v1-sandbox/1'; run_id=$RunId; source_commit=$head; branch=$branch;
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
+    guest_configurations=$GuestConfigurations;
     configurations=@($binaries | ForEach-Object { [ordered]@{ name=$_.configuration; product_identity=$_.product_identity;
         fixture_identity=$_.fixture_identity; fixture_identity_kind=$_.fixture_identity_kind; manifest_expected_source=$head } });
     tracked_non_source_changes=$trackedChanges;
@@ -184,7 +186,7 @@ $wsb = @"
     <MappedFolder><HostFolder>$xmlRemoteInput</HostFolder><SandboxFolder>C:\PaneBindV1\Input</SandboxFolder><ReadOnly>true</ReadOnly></MappedFolder>
     <MappedFolder><HostFolder>$xmlRemoteOutput</HostFolder><SandboxFolder>C:\PaneBindV1\Output</SandboxFolder><ReadOnly>false</ReadOnly></MappedFolder>
   </MappedFolders>
-  <LogonCommand><Command>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-sandbox-guest.ps1 -RunId $RunId</Command></LogonCommand>
+  <LogonCommand><Command>powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-sandbox-guest.ps1 -RunId $RunId -Configurations $GuestConfigurations</Command></LogonCommand>
 </Configuration>
 "@
 Write-NewText (Join-Path $packageRoot 'PaneBindV1.wsb') $wsb
