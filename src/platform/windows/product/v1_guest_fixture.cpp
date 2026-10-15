@@ -493,12 +493,31 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
         ",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+",\"trajectory_pause_ms\":60,\"production_receipt\":"+quote(receipt));
 }
 void up(State& s,std::size_t source,const Gesture& g,Rect expected){
-    const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);std::string end;
-    const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
-    Sleep(150);GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(source_thread(s,source),&gui)!=FALSE;const auto actual=visible(source_window(s,source));
-    s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
-        "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
-        ",\"source_thread_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture))+",\"production_end\":"+quote(end));
+    const auto mark=read(s.product_log).size();const auto raw_before=raw_mouse_observer_json();
+    bool attempted=false,returned=false,raw_logged=false;std::string end;
+    try{
+        attempted=true;button(s,false);returned=true;if(s.control)key(s,VK_CONTROL,false);
+        const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
+        Sleep(150);GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(source_thread(s,source),&gui)!=FALSE;const auto actual=visible(source_window(s,source));
+        const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
+        // Emit before the existing throwing assertion, including when its
+        // normal-UP observation failed. Raw remains a fixture-side interval
+        // observation, never a source/generation or termination substitute.
+        s.log.emit("ordinary_gesture_UP_Raw_observation","\"generation\":"+std::to_string(g.generation)+",\"source_member\":"+std::to_string(source)+
+            ",\"phase\":\"after_existing_normal_wait\",\"single_test_UP_attempted\":true,\"single_test_UP_call_returned\":true,\"normal_end_observed\":"+
+            (observed?"true":"false")+",\"actual_matching_LL_UP\":"+(actual_LL_UP.empty()?"null":quote(actual_LL_UP))+
+            ",\"production_end\":"+(end.empty()?"null":quote(end))+",\"fixture_Raw_before_single_UP\":"+raw_before+",\"fixture_Raw_after_normal_wait\":"+raw_after+
+            ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"Raw_does_not_change_original_assertion_or_authority\":true");raw_logged=true;
+        s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
+            "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
+            ",\"source_thread_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture))+",\"production_end\":"+quote(end));
+    }catch(...){
+        if(!raw_logged)try{s.log.emit("ordinary_gesture_UP_Raw_observation","\"generation\":"+std::to_string(g.generation)+",\"source_member\":"+std::to_string(source)+
+            ",\"phase\":\"exception_during_existing_UP_observation\",\"single_test_UP_attempted\":"+(attempted?"true":"false")+
+            ",\"single_test_UP_call_returned\":"+(returned?"true":"false")+",\"fixture_Raw_before_single_UP\":"+raw_before+
+            ",\"fixture_Raw_at_exception\":"+raw_mouse_observer_json()+",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"original_exception_rethrown\":true");}catch(...){}
+        throw;
+    }
 }
 void five(State& s,std::size_t source,std::string label){
     const auto original=visible(source_window(s,source));if(!original)throw std::runtime_error("test_source_geometry_missing");
@@ -1143,6 +1162,7 @@ void cleanup_applications(State& s){
         if(!matrix_show_source(s,0,true))s.log.failed=true;close_application(s,*target);s.applications[0].reset();}
     s.created_applications.clear();
 }
+void independent_entry_ready(State&,std::string_view,bool);
 void application_matrix_flow(State& s){
     if(!s.target_catalog)s.target_catalog=std::make_unique<product::Catalog>();
     for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_HIDE);
@@ -1162,6 +1182,27 @@ void application_matrix_flow(State& s){
                 matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
             }
         }catch(const std::exception& error){reason=error.what();s.log.failed=true;}
+        if(!passed&&s.suite=="IndependentEntry"){
+            s.log.emit("application_category_failure_preserved","\"application\":"+quote(kind)+",\"reason\":"+quote(reason)+
+                ",\"result\":"+quote(target&&target->accepted?"FAIL":"BLOCKED")+",\"UP_retransmission\":false");
+            // The next category must not inherit this one's active gesture.
+            // Observe the exact source's real GUI state before any settings
+            // restoration can change foreground (notably for consoles).
+            if(target&&target->accepted){
+                std::optional<product::Snapshot> fresh;std::string rejected;
+                const bool exact=target->identity&&application_fresh(s,*target,target->identity->hwnd,&fresh,&rejected)&&fresh&&
+                    product::Catalog::same(*target->identity,*fresh);
+                const auto gui=exact?product::observe_gui_context(*fresh):product::GuiContext{};
+                s.log.check("application_failed_category_source_GUI_idle",exact&&gui.idle(),
+                    "\"application\":"+quote(kind)+",\"identity_rejection\":"+quote(rejected)+
+                    ",\"GUI_context_mode\":"+quote(product::gui_context_mode_name(gui.mode))+",\"failed_function_PASS_inferred\":false");
+            }
+            // This gate requires an empty send ledger before it can issue
+            // the existing explicit pause, observes actual abort/idle facts,
+            // and restores this run's defaults through the real product GUI.
+            // It never repeats an UP or retries the failed application Move.
+            independent_entry_ready(s,"application."+kind+".after_failure",true);
+        }
         // Always recover input before attempting another category. This is
         // separately reported test cleanup, never manufactured product UP.
         matrix_input_idle(s);
@@ -1674,7 +1715,6 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_interruptions.h"
 #include "platform/windows/product/v1_guest_constraint_cases.h"
 #include "platform/windows/product/v1_guest_batch_failure_case.h"
-void independent_entry_ready(State&,std::string_view,bool);
 #include "platform/windows/product/v1_guest_portable_cases.h"
 // A continuation gate for independent cases, not a replacement for a failed
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
@@ -1791,7 +1831,10 @@ void independent_entry_flow(State& s){
     phase("settings_corrupt_restart",settings_guest_corrupt_restart);
     phase("tray",owned_tray_entry_cases);
     phase("five_button_mapping",owned_mouse_mapping_cases);
-    const auto explorer=[](State& state){try{explorer_flow(state);}catch(...){cleanup_explorers(state);throw;}cleanup_explorers(state);};
+    // Successful exact Explorer roots remain available for the existing mixed
+    // application group. The applications scope cleans them after that group;
+    // an unsuccessful Explorer chain still cleans its own registered roots.
+    const auto explorer=[](State& state){try{explorer_flow(state);}catch(...){cleanup_explorers(state);throw;}};
     phase("Explorer_actual_chain",explorer);
     const auto applications=[](State& state){try{application_matrix_flow(state);}catch(...){cleanup_applications(state);cleanup_explorers(state);throw;}
         cleanup_applications(state);cleanup_explorers(state);};

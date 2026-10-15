@@ -1873,3 +1873,27 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   no synthetic receipt, generation authority, product termination, rehooking,
   or geometry behavior is added. Zero Raw observations remain UNKNOWN, not a
   product failure. External implementation copied/adapted/translated: **NO**.
+
+### V1 multiline settings keyboard navigation — 2026-10-16
+
+- Reused the existing pinned AltSnap/FancyZones UI/input research; no new
+  upstream implementation was inspected or reused for this focused repair.
+- Official pages actually read:
+  [IsDialogMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-isdialogmessagew),
+  [WM_GETDLGCODE](https://learn.microsoft.com/en-us/windows/win32/dlgbox/wm-getdlgcode),
+  [About Edit Controls](https://learn.microsoft.com/en-us/windows/win32/controls/about-edit-controls),
+  and [Edit Control Styles](https://learn.microsoft.com/en-us/windows/win32/controls/edit-control-styles).
+  Multiline EDIT reports DLGC_WANTALLKEYS; IsDialogMessage consults this
+  contract before handling dialog navigation. PaneBind's edits have a custom
+  scrolling-page parent, not a dialog procedure. After Add Rule explicitly
+  focuses the rules edit, the prior code delegated neither Tab nor Escape to
+  the settings-root navigation path. Run `d815b5dcbfe84ecc9fe69516b137b9b1`
+  observed a real successful rule notice/Enter close followed by unmoved Tab
+  and unsuccessful Escape; no actual save is inferred from that failure.
+- Original PaneBind repair: only the three owned multiline mapping/rule edits
+  yield Tab and Escape through WM_GETDLGCODE to the existing IsDialogMessage
+  path. Enter/newline and ordinary edit behavior are unchanged. Existing real
+  Tab-to-save input remains; a real Escape-from-rules-edit check is added to
+  the guarded guest case. Compilation is not native delivery evidence; that
+  new implementation still requires a new-identity guest run. External code
+  copied, adapted, translated or mechanically rewritten: **NO**.

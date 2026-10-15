@@ -374,6 +374,18 @@ struct SettingsWindow::Impl {
     }
     static LRESULT CALLBACK control_proc(HWND child,UINT message,WPARAM w,LPARAM l,UINT_PTR id,DWORD_PTR data) {
         auto* page=reinterpret_cast<Page*>(data);
+        if(message==WM_GETDLGCODE&&page&&page->owner&&
+           (child==page->owner->hotkey_text||child==page->owner->mouse_text||child==page->owner->rules_text)) {
+            const auto code=DefSubclassProc(child,message,w,l);
+            // Multiline EDIT claims all keys. Its immediate parent is our
+            // scrolling page, not a dialog procedure, so its own TAB handling
+            // cannot navigate the root and ESC is otherwise retained by EDIT.
+            // Delegate only these two actual keys to the root IsDialogMessage
+            // path; keep ENTER/newline, selection and editing behavior intact.
+            if(w==VK_TAB||w==VK_ESCAPE)
+                return code&~static_cast<LRESULT>(DLGC_WANTALLKEYS|DLGC_WANTTAB|DLGC_WANTCHARS);
+            return code;
+        }
         if(message==WM_SETFOCUS&&page&&page->owner)page->owner->reveal(*page,child);
         if(message==WM_NCDESTROY)RemoveWindowSubclass(child,control_proc,id);
         return DefSubclassProc(child,message,w,l);

@@ -162,7 +162,13 @@ void settings_guest_move_effect(State& s,bool snap,std::string_view name){
 void settings_guest_exclusion(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);
     foreground(s,s.frames[0].hwnd);const auto point=hit_point(s.frames[0].hwnd,HTCAPTION);if(!point)throw std::runtime_error("rule_exact_source_caption_missing");cursor(s,*point);Sleep(100);
-    auto gui=gui_open(s);gui_page_select(s,gui,4);const auto restricted=gui_find(s,gui,L"Button",L"仅限制为该窗口类名");
+    auto gui=gui_open(s);gui_page_select(s,gui,4);
+    // Exercise cancellation from the same multiline EDIT that receives focus
+    // after Add Rule. This is a real guest key, not a close/command message.
+    gui_click(s,gui,gui_number(s,gui,L"rule.编号"));gui_press(s,gui,VK_ESCAPE);
+    s.log.check("rule_multiline_actual_Escape_cancels_without_save",wait([&]{return !IsWindow(gui.root);})&&
+        settings_guest_configuration(s)==original,"\"input_kind\":\"actual_Escape_from_rules_EDIT\"");
+    gui=gui_open(s);gui_page_select(s,gui,4);const auto restricted=gui_find(s,gui,L"Button",L"仅限制为该窗口类名");
     if(gui_read(s,gui,restricted,BM_GETCHECK)!=BST_CHECKED)gui_click(s,gui,restricted);
     s.log.check("rule_actual_class_checkbox",wait([&]{return gui_read(s,gui,restricted,BM_GETCHECK)==BST_CHECKED;}));
     settings_guest_activate(s,gui,GetDlgItem(gui_page(s,gui),115));settings_guest_acknowledge(s,gui,L"已将重新核验的应用加入排除草稿");gui_save_enter(s,gui);
