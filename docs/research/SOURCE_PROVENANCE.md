@@ -1792,3 +1792,21 @@ Original PaneBind implementation; external code copied/adapted/translated: NO.
   Run `92b2b41ea7f946bebca7a519a3c79831` had a real FocusLost terminal event
   followed by unsuccessful exact cursor observation. This does not establish
   which external/system component caused either observation. No external code.
+- Hook observations versus test input bookkeeping (2026-10-15, original V1
+  code): read official
+  [GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate),
+  [LowLevelMouseProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc)
+  and [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput).
+  SendInput's return counts inserted events, not product/target delivery. The
+  low-level mouse callback observes an event before target-queue posting and
+  may suppress its onward delivery. No inspected contract guarantees that a
+  consumed DOWN makes another thread's async button high bit true; async zero
+  also has documented access/desktop failure meanings. Actual normalized
+  DOWN/UP receipts and driver send/QPC bookkeeping are recorded separately,
+  with async SHORT values retained only as readings. Run
+  `8453f79385e64ca29c2a73eeb4bc305c` observed one real nonexact Call42 and live
+  generation authority at its completion; the later combined test assertion
+  did not record each operand and does not prove why it failed. This repairs
+  a test-evidence assumption, not a claimed Windows/product root cause.
+  Previously pinned AltSnap/FancyZones research remains reused; no new
+  upstream source inspection or copied/adapted implementation is claimed.

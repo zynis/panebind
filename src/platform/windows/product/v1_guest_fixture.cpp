@@ -135,7 +135,7 @@ struct Log{
     }
 };
 struct WriterStall {
-    std::atomic<bool> armed{},entered{},finished{},left_down{};
+    std::atomic<bool> armed{},entered{},finished{};std::atomic<SHORT> async_left_state{};
     std::atomic<std::uint64_t> before_qpc{},after_qpc{},before_tick{};
     std::atomic<UINT> flags{};std::atomic<int> x{},y{},width{},height{};
 };
@@ -145,7 +145,7 @@ struct NativeBatchLossMember {
 struct NativeBatchLoss {
     std::array<HWND,3> exact{};std::array<LONG_PTR,3> userdata{};DWORD owner{};
     std::array<NativeBatchLossMember,3> member;std::atomic<unsigned> arrivals{};
-    std::atomic<bool> destroy_called{},destroy_return{},destroy_gone{},left_held{},completed{};
+    std::atomic<bool> destroy_called{},destroy_return{},destroy_gone{},completed{};std::atomic<SHORT> async_left_state{};
     std::atomic<DWORD> destroy_error{};std::atomic<std::uint64_t> destroy_qpc{};
 };
 struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
@@ -167,7 +167,10 @@ struct ApplicationTarget {
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
     std::string configuration;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
-    HANDLE process{};DWORD product_pid{},owner{};bool left{},control{};
+    HANDLE process{};DWORD product_pid{},owner{};
+    // Driver send ledger only: successful insertion is not native delivery or
+    // physical button state. A separate product hook receipt proves receipt.
+    bool left{},control{};std::uint64_t left_down_send_qpc{},left_up_send_qpc{};
     std::array<std::unique_ptr<ExplorerTarget>,3> explorer;
     std::vector<std::unique_ptr<ExplorerTarget>> retired_explorers;
     std::unique_ptr<product::Catalog> target_catalog;
@@ -198,7 +201,7 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
                 frame->max_height>0?frame->max_height:GetSystemMetricsForDpi(SM_CYMAXTRACK,dpi)};return 0;}
         if(message==WM_WINDOWPOSCHANGING){
             const auto loss=frame->native_batch_loss.load();const auto* position=reinterpret_cast<const WINDOWPOS*>(lp);
-            if(loss&&position&&!(position->flags&SWP_NOSIZE)&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&GetCurrentThreadId()==loss->owner){
+            if(loss&&position&&!(position->flags&SWP_NOSIZE)&&GetCurrentThreadId()==loss->owner){
                 for(std::size_t n=0;n<loss->exact.size();++n)if(loss->exact[n]==h&&loss->userdata[n]==reinterpret_cast<LONG_PTR>(frame)&&
                     GetWindowLongPtrW(h,GWLP_USERDATA)==loss->userdata[n]&&GetAncestor(h,GA_ROOT)==h){
                     // Guest TEST application behavior, never a product fault
@@ -207,7 +210,7 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
                     observed.flags=position->flags;observed.x=position->x;observed.y=position->y;observed.width=position->cx;observed.height=position->cy;
                     const auto order=loss->arrivals.fetch_add(1)+1;observed.order=order;
                     if(order==2){LARGE_INTEGER qpc{};QueryPerformanceCounter(&qpc);loss->destroy_qpc=static_cast<std::uint64_t>(qpc.QuadPart);
-                        loss->left_held=true;loss->destroy_called=true;SetLastError(0);
+                        loss->async_left_state=GetAsyncKeyState(VK_LBUTTON);loss->destroy_called=true;SetLastError(0);
                         const bool result=DestroyWindow(h)!=FALSE;loss->destroy_error=result?0:GetLastError();loss->destroy_return=result;
                         loss->destroy_gone=!IsWindow(h);loss->completed.store(true,std::memory_order_release);
                         // The native outer SetWindowPos result is deliberately
@@ -218,14 +221,14 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
                 }
             }
         }
-        if(message==WM_WINDOWPOSCHANGING&&frame->stall.armed.load()&&(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&frame->stall.armed.exchange(false)){
+        if(message==WM_WINDOWPOSCHANGING&&frame->stall.armed.load()&&!(reinterpret_cast<const WINDOWPOS*>(lp)->flags&SWP_NOSIZE)&&frame->stall.armed.exchange(false)){
             // TEST ONLY: this exact empty fixture owns this window/thread.
             // No source parameters are modified; the product's already-issued
             // SetWindowPos may finish after UP. Never suspend another process.
             const auto* position=reinterpret_cast<const WINDOWPOS*>(lp);LARGE_INTEGER qpc{};QueryPerformanceCounter(&qpc);
             frame->stall.flags=position->flags;frame->stall.x=position->x;frame->stall.y=position->y;
             frame->stall.width=position->cx;frame->stall.height=position->cy;frame->stall.before_qpc=static_cast<std::uint64_t>(qpc.QuadPart);
-            frame->stall.before_tick=GetTickCount64();frame->stall.left_down=true;frame->stall.entered=true;
+            frame->stall.before_tick=GetTickCount64();frame->stall.async_left_state=GetAsyncKeyState(VK_LBUTTON);frame->stall.entered=true;
             Sleep(1000);QueryPerformanceCounter(&qpc);frame->stall.after_qpc=static_cast<std::uint64_t>(qpc.QuadPart);frame->stall.finished=true;
         }
         if(message==WM_WINDOWPOSCHANGING&&frame->grid>1){auto* p=reinterpret_cast<WINDOWPOS*>(lp);if(!(p->flags&SWP_NOSIZE)){
@@ -294,7 +297,31 @@ void key(State& s,WORD code,bool pressed){
     if(code==VK_CONTROL)s.control=pressed;
     if(!wait([&]{return ((GetAsyncKeyState(code)&0x8000)!=0)==pressed;},500))throw std::runtime_error("test_key_state_not_observed");
 }
-void button(State& s,bool pressed){INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_LEFTDOWN:MOUSEEVENTF_LEFTUP;inject(packet);s.left=pressed;}
+void button(State& s,bool pressed){
+    INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_LEFTDOWN:MOUSEEVENTF_LEFTUP;
+    const bool outstanding_before=s.left;const SHORT async_before=GetAsyncKeyState(VK_LBUTTON);
+    LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);UINT delivered=UINT_MAX;DWORD error{};
+    const auto receipt=[&]{
+        QueryPerformanceCounter(&after);
+        s.log.emit("test_button_send","\"requested\":"+quote(pressed?"DOWN":"UP")+
+            ",\"send_before_qpc\":"+std::to_string(before.QuadPart>0?before.QuadPart:0)+
+            ",\"send_after_qpc\":"+std::to_string(after.QuadPart>0?after.QuadPart:0)+
+            ",\"mouse_flags\":"+std::to_string(packet.mi.dwFlags)+
+            ",\"SendInput_called\":"+(delivered==UINT_MAX?"false":"true")+
+            ",\"SendInput_return\":"+(delivered==UINT_MAX?"null":std::to_string(delivered))+
+            ",\"SendInput_error_on_failure\":"+std::to_string(error)+
+            ",\"driver_left_outstanding_before\":"+(outstanding_before?"true":"false")+
+            ",\"driver_left_outstanding_after\":"+(s.left?"true":"false")+
+            ",\"async_left_before\":"+std::to_string(async_before)+
+            ",\"async_left_after\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
+            ",\"delivery_not_inferred\":true,\"physical_button_held_not_inferred\":true");
+    };
+    try{inject(packet,&delivered,&error);}catch(...){receipt();throw;}
+    s.left=pressed;
+    const auto qpc=before.QuadPart>0?static_cast<std::uint64_t>(before.QuadPart):0;
+    if(pressed)s.left_down_send_qpc=qpc;else s.left_up_send_qpc=qpc;
+    receipt();
+}
 std::optional<POINT> hit_point(HWND h,int required){
     RECT p{};DWORD root_pid{};if(!GetWindowRect(h,&p)||!GetWindowThreadProcessId(h,&root_pid))return {};
     const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
@@ -327,6 +354,16 @@ std::uint64_t number(const std::string& line,std::string_view field){
 std::string record(State& s,std::size_t offset,std::string_view type,std::uint64_t generation=0){
     const auto text=read(s.product_log);if(offset>=text.size())return {};std::istringstream stream(text.substr(offset));std::string line,out;
     while(std::getline(stream,line))if(line.ends_with('}')&&line.find("\"type\":"+quote(type))!=std::string::npos&&(!generation||number(line,"\"generation\":")==generation))out=line;return out;
+}
+std::string actual_up(State& s,std::size_t offset,std::uint64_t generation,int pressed_button=1){
+    if(!generation||pressed_button<1||pressed_button>5)return {};
+    const auto text=read(s.product_log);if(offset>=text.size())return {};
+    std::istringstream rows(text.substr(offset));std::string line,observed;
+    while(std::getline(rows,line))if(line.ends_with('}')&&line.find("\"type\":\"input_button_observed\"")!=line.npos&&
+        line.find("\"source\":\"WH_MOUSE_LL\"")!=line.npos&&line.find("\"kind\":\"UP\"")!=line.npos&&
+        number(line,"\"generation\":")==generation&&number(line,"\"button\":")==static_cast<unsigned>(pressed_button)&&
+        number(line,"\"hook_observed_qpc\":"))observed=line;
+    return observed;
 }
 std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect expected,bool native){
     const auto text=read(s.product_log);if(offset>=text.size())return {};std::istringstream stream(text.substr(offset));std::string line,out;
@@ -1057,12 +1094,15 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     auto& stall=s.frames[source].stall;
     s.log.check("L2_no_previous_stall",!stall.armed&&!stall.entered&&!stall.finished);
     const auto g=down(s,source);stall.armed=true;Sleep(60);cursor(s,{g.anchor.x-42,g.anchor.y+35});
-    s.log.check("L2_native_call_observed_in_owned_wndproc",wait([&]{return stall.entered.load();},800)&&stall.left_down.load()&&
-        (GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"generation\":"+std::to_string(g.generation)+",\"message\":\"WM_WINDOWPOSCHANGING\",\"bounded_sleep_ms\":1000");
+    s.log.check("L2_native_call_observed_in_owned_wndproc",wait([&]{return stall.entered.load();},800)&&s.left&&g.generation&&
+        actual_up(s,g.offset,g.generation).empty(),"\"generation\":"+std::to_string(g.generation)+
+        ",\"message\":\"WM_WINDOWPOSCHANGING\",\"bounded_sleep_ms\":1000,\"driver_DOWN_outstanding\":"+(s.left?"true":"false")+
+        ",\"async_left_state\":"+std::to_string(stall.async_left_state.load()));
     s.log.emit("L2_native_call_entered","\"generation\":"+std::to_string(g.generation)+",\"actual_owned_hwnd\":"+
         std::to_string(reinterpret_cast<std::uintptr_t>(s.frames[source].hwnd))+",\"native_entry_qpc\":"+std::to_string(stall.before_qpc)+
         ",\"actual_flags\":"+std::to_string(stall.flags)+",\"actual_positioning\":["+std::to_string(stall.x)+","+std::to_string(stall.y)+","+
-        std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"left_down_at_entry\":true");
+        std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"async_left_state_at_entry\":"+
+        std::to_string(stall.async_left_state.load())+",\"async_sample_not_delivery_proof\":true");
     const auto mark=read(s.product_log).size();LARGE_INTEGER sent{};QueryPerformanceCounter(&sent);
     if(exit==BlockedWriterExit::RealUp)button(s,false);
     else{
@@ -1451,7 +1491,9 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
     s.log.check("visual_actual_Escape_end",wait([&]{const auto end=record(s,g.offset,"gesture_end",g.generation);return !end.empty()&&number(end,"\"end\":")==1&&end.find("\"normal_up\":false")!=std::string::npos;}));
     s.log.check("visual_Escape_original_geometry",wait([&]{return visible(h)==start;}));visual_exact(s,h,173,true,"visual_Escape_restores_original_alpha");
-    button(s,false);s.log.check("visual_abort_matching_real_UP",wait([&]{return !(GetAsyncKeyState(VK_LBUTTON)&0x8000);}));
+    button(s,false);s.log.check("visual_abort_matching_real_UP",wait([&]{return !actual_up(s,g.offset,g.generation).empty();}),
+        "\"actual_product_UP\":"+quote(actual_up(s,g.offset,g.generation))+
+        ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
     own_visual_setup(s,h,173,false);desired.drag_transparency=false;desired.shake=true;visual_gui_save(s,desired);
     const UINT dpi=GetDpiForWindow(h);if(!dpi)throw std::runtime_error("visual_shake_DPI_unknown");
     const LONG step=std::max<LONG>(48,MulDiv(24,static_cast<int>(dpi),96)*2);

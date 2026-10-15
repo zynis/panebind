@@ -78,7 +78,11 @@ bool constraint_existing_fixed_case(State& s){
     const auto before_more=constraint_generation_placements(s,g.offset,g.generation);
     const auto attempted=[](const std::vector<std::string>& rows){return static_cast<unsigned>(std::count_if(rows.begin(),rows.end(),[](const auto& row){
         return row.find("\"native_attempted\":false")==std::string::npos&&row.find("\"native_callsite_claimed\":true")!=std::string::npos;}));};
-    s.log.check("I10_native_grid_single_attempt_before_revoke",attempted(before_more)==1&&s.left&&(GetAsyncKeyState(VK_LBUTTON)&0x8000));
+    s.log.check("I10_native_grid_single_attempt_before_test_UP",attempted(before_more)==1&&s.left&&actual_up(s,g.offset,g.generation).empty()&&
+        receipt.find("\"authority_after\":true")!=std::string::npos,
+        "\"driver_left_outstanding\":"+std::string(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
+        ",\"last_native_authority_after\":"+(receipt.find("\"authority_after\":true")!=std::string::npos?"true":receipt.find("\"authority_after\":false")!=std::string::npos?"false":"null")+
+        ",\"physical_button_held_not_inferred\":true");
     // A later real cursor input plus a fresh ordinary --status response checks
     // the bounded observation interval and independent product responsiveness.
     // The status sequence is NOT a common native clock/order with mouse input,
@@ -87,9 +91,10 @@ bool constraint_existing_fixed_case(State& s){
     DWORD status_exit{};s.log.check("I10_after_abort_status_command",launch(s,L"--status",true,&status_exit)&&status_exit==0);
     s.log.check("I10_after_abort_status_observed",wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;}));
     button(s,false);
-    s.log.check("I10_abort_real_UP_not_NormalUp",wait([&]{GUITHREADINFO info{sizeof(info)};return !s.left&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
+    s.log.check("I10_abort_real_UP_not_NormalUp",wait([&]{GUITHREADINFO info{sizeof(info)};return !s.left&&!actual_up(s,g.offset,g.generation).empty()&&
         GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture;})&&
-        record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos);
+        record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
+        "\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
     s.log.check("I10_no_grid_retry_or_new_placement_after_abort",attempted(constraint_generation_placements(s,g.offset,g.generation))==1&&visible(frame.hwnd)==constrained,
         "\"independent_actual_constraint_rejection\":true,\"pending_retired\":true");
 

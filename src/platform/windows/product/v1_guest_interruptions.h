@@ -47,10 +47,11 @@ void interruption_idle(State& s,LayoutFixtures& set,bool enabled){
         status.find("\"hook_owner_running\":true")!=std::string::npos;});
     GUITHREADINFO info{sizeof(info)};
     s.log.check("I08_actual_idle_input_and_resource_facts",observed&&!s.left&&!s.control&&
-        !(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
+        !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
         GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner,
         "\"production_status\":"+quote(status)+",\"actual_source_thread_capture\":"+
         std::to_string(reinterpret_cast<std::uintptr_t>(info.hwndCapture))+
+        ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
         ",\"resident_hook_expected_until_final_product_exit\":true,\"full_shutdown_not_inferred\":true");
     chain_preview_hidden(s,"I08_actual_gesture_overlay_hidden");
 }
@@ -94,7 +95,11 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         auto moved=initial;moved[source]=translated(initial[source],-40,35);
         layout_phase(set,source,g,-40,35,moved,"I08_real_active_Move_before_interruption");
         const auto source_key=number(record(s,g.offset,"gesture_start",g.generation),"\"key\":");
-        s.log.check("I08_actual_pressed_source_before_interruption",source_key&&set.owns(source)&&s.left&&(GetAsyncKeyState(VK_LBUTTON)&0x8000));
+        const auto last_native=placement(s,g.offset,g.generation,moved[source],true);
+        s.log.check("I08_actual_active_source_before_interruption",source_key&&set.owns(source)&&s.left&&actual_up(s,g.offset,g.generation).empty()&&
+            last_native.find("\"authority_after\":true")!=std::string::npos,
+            "\"driver_left_outstanding\":"+std::string(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
+            ",\"actual_authorized_native_receipt\":"+quote(last_native)+",\"physical_button_held_not_inferred\":true");
         const auto mark=read(s.product_log).size();LARGE_INTEGER trigger{};
         if(!QueryPerformanceCounter(&trigger)||trigger.QuadPart<=0)throw std::runtime_error("I08_trigger_QPC_unavailable");
         v::End expected=v::End::Escape;bool destroyed=false;HWND focus_target{};
@@ -116,13 +121,15 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         s.log.emit("I08_actual_terminator","\"cause\":"+std::to_string(static_cast<unsigned>(cause))+
             ",\"generation\":"+std::to_string(g.generation)+",\"source_key\":"+std::to_string(source_key)+
             ",\"source_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"trigger_before_qpc\":"+
-            std::to_string(trigger.QuadPart)+",\"physical_left_still_down\":"+((GetAsyncKeyState(VK_LBUTTON)&0x8000)?"true":"false")+
+            std::to_string(trigger.QuadPart)+",\"driver_left_outstanding\":"+(s.left?"true":"false")+
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"product_handler_directly_called\":false");
         const auto ended=interruption_end(s,g,expected,destroyed,h);
         if(cause==GuestInterruption::EmergencyHotkey){
             const auto hotkey=record(s,mark,"emergency_hotkey");
             s.log.check("I08_actual_WM_HOTKEY_while_pressed",hotkey.find("\"native_message\":\"WM_HOTKEY\"")!=std::string::npos&&
-                number(hotkey,"\"registration_id\":")==910&&(GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"production_hotkey\":"+quote(hotkey));
+                number(hotkey,"\"registration_id\":")==910&&s.left&&actual_up(s,g.offset,g.generation).empty(),"\"production_hotkey\":"+quote(hotkey)+
+                ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
         }
         const Rect expected_source=cause==GuestInterruption::Escape?initial[source]:moved[source];
         if(!destroyed)s.log.check("I08_actual_geometry_after_interruption",wait([&]{return set.owns(source)&&visible(h)==expected_source;}),
@@ -133,8 +140,9 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         if(focus_target)s.log.check("I08_product_does_not_retake_foreground",GetForegroundWindow()==focus_target);
         LARGE_INTEGER up_before{};if(!QueryPerformanceCounter(&up_before)||up_before.QuadPart<=0)throw std::runtime_error("I08_actual_UP_clock_unavailable");
         button(s,false);
-        s.log.check("I08_matching_test_UP_actually_released",wait([&]{return !(GetAsyncKeyState(VK_LBUTTON)&0x8000);}),
-            "\"single_actual_UP\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+",\"not_NormalUp_evidence\":true");
+        s.log.check("I08_matching_test_UP_actually_observed",wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty();}),
+            "\"single_actual_UP\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+",\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"not_NormalUp_evidence\":true");
         // Bounded observation following one actual post-revocation cursor
         // event. Native entry QPC, not JSONL order, decides call timing.
         Sleep(120);interruption_audit_calls(s,g,static_cast<std::uint64_t>(trigger.QuadPart),

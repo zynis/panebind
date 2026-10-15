@@ -5,6 +5,41 @@ param(
     [string]$BuildDirectory
 )
 $ErrorActionPreference = 'Stop'
+function Assert-PackagingSource([string]$Repository,[string]$Runtime,[string]$PackagingHead) {
+    if($Runtime -cnotmatch '^[0-9a-f]{40}$' -or $PackagingHead -cnotmatch '^[0-9a-f]{40}$'){throw 'Explicit full runtime and packaging commit identities are required.'}
+    & git -C $Repository cat-file -e ($Runtime+'^{commit}')
+    if($LASTEXITCODE -ne 0){throw 'Runtime SourceCommit is not an available local commit.'}
+    & git -C $Repository merge-base --is-ancestor $Runtime $PackagingHead
+    if($LASTEXITCODE -ne 0){throw 'Runtime SourceCommit must be an ancestor of the actual packaging HEAD.'}
+    $actualHead=(& git -C $Repository rev-parse HEAD).Trim()
+    if($LASTEXITCODE -ne 0 -or $actualHead -cne $PackagingHead){throw 'Packaging HEAD changed during identity verification.'}
+    $deliveryDocs=@('docs/V1_QUICK_START.md','docs/reports/V1_ACCEPTANCE.json','docs/reports/V1_DELIVERY_REPORT.md')
+    # Inspect every intervening commit as well as the endpoint diff: a source
+    # edit followed by a revert is not a docs-only finalization.
+    $rangeFiles=@(& git -C $Repository log --format= --name-only --no-renames ($Runtime+'..'+$PackagingHead) --)
+    if($LASTEXITCODE -ne 0){throw 'Cannot inspect runtime-to-final commit changes.'}
+    $endFiles=@(& git -C $Repository diff --name-only --no-renames $Runtime $PackagingHead --)
+    if($LASTEXITCODE -ne 0){throw 'Cannot compare runtime and packaging trees.'}
+    $changed=@(@($rangeFiles)+@($endFiles)|Where-Object{$_}|Sort-Object -Unique)
+    if(@($changed|Where-Object{$_ -cnotin $deliveryDocs}).Count){throw 'Only the three delivery documents may differ after Runtime; source, scripts, LICENSE, AGENTS and other files are forbidden.'}
+    $cleanScope=@('src','tests','scripts','cmake','CMakeLists.txt','LICENSE','AGENTS.md')+$deliveryDocs
+    $dirty=@(& git -C $Repository diff --name-only HEAD -- @cleanScope)
+    if($LASTEXITCODE -ne 0){throw 'Cannot inspect source and delivery-document worktree status.'}
+    $untracked=@(& git -C $Repository ls-files --others --exclude-standard -- @cleanScope)
+    if($LASTEXITCODE -ne 0 -or $dirty.Count -or $untracked.Count){throw 'Commit source and the three delivery documents before packaging; unrelated plan input remains permitted.'}
+    foreach($relative in @($deliveryDocs)+@('LICENSE','AGENTS.md')){
+        & git -C $Repository ls-files --error-unmatch -- $relative | Out-Null
+        if($LASTEXITCODE -ne 0){throw 'Delivery documents, LICENSE and AGENTS must belong to the committed packaging HEAD.'}
+    }
+    $inputs=@(foreach($relative in $deliveryDocs){
+        $path=Join-Path $Repository $relative
+        $item=Get-Item -LiteralPath $path
+        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Delivery input must be an ordinary file.'}
+        [ordered]@{path=$relative;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}
+    })
+    return [ordered]@{source_commit=$Runtime;packaging_head=$PackagingHead;source_scope_equivalent=$true;
+        docs_only_changes=$changed;documentation_inputs=$inputs}
+}
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $BuildDirectory) { $BuildDirectory = Join-Path $repo 'out\v1-dev' }
 $build = [IO.Path]::GetFullPath($BuildDirectory)
@@ -25,8 +60,10 @@ function Assert-OrdinaryPath([string]$Path) {
 Assert-OrdinaryPath $build
 $branch = (& git -C $repo branch --show-current).Trim()
 if ($LASTEXITCODE -ne 0 -or $branch -cne 'codex/r1c4b-live-magnet') { throw 'Unexpected development branch.' }
-$head = (& git -C $repo rev-parse HEAD).Trim()
-if ($LASTEXITCODE -ne 0 -or $head -cne $SourceCommit) { throw 'SourceCommit must equal current committed HEAD; no old-source or dirty-source package is permitted.' }
+$packagingHead = (& git -C $repo rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Cannot identify actual packaging HEAD.' }
+$packagingIdentity=Assert-PackagingSource $repo $SourceCommit $packagingHead
+$head=$SourceCommit
 $scope = @('src','tests','scripts','cmake','CMakeLists.txt')
 $dirty = @(& git -C $repo diff --name-only HEAD -- @scope)
 if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect tracked source changes.' }
@@ -119,7 +156,7 @@ if ((Get-FileHash -LiteralPath (Join-Path $payload 'panebind.exe') -Algorithm SH
 if ((Get-FileHash -LiteralPath (Join-Path $payload 'LICENSE') -Algorithm SHA256).Hash -cne $inputHashes[$licensePath]) { throw 'LICENSE changed during packaging; incomplete package preserved.' }
 Write-NewText (Join-Path $payload 'portable.flag') "PaneBind V1 portable candidate`n"
 $banner=@"
-> 本包源码：$head；包标识：$PackageId。实际二进制身份与文件校验见 manifest.json。
+> 二进制源码：$head；文档打包提交：$packagingHead；包标识：$PackageId。实际二进制身份与文件校验见 manifest.json。
 > 状态：开发候选，尚无本便携包从干净 guest 启动的验收结论；不授权宿主试用。下方复用源内使用说明，其历史包身份／历史测试状态不指代本包。是否满足整版验收须以独立证据判断；本打包动作不授予 PASS。
 
 "@
@@ -150,7 +187,8 @@ Write-NewText (Join-Path $payload '配置说明.md') $configuration
 Write-NewText (Join-Path $payload '已知问题.md') ("# PaneBind V1 集中已知问题与验证边界`n`n本包源码 $head；便携包独立验收 NOT_RUN，真人 UAT NOT_RUN。本文件保留打包输入报告中的集中缺口，不因生成 ZIP 关闭缺陷。普通权限 Release、连续混合操作、显示器／应用兼容及 32 必过能力需独立证据。历史 High guest 不等于当前产品通过。`n`n"+$issues.Groups[1].Value)
 $names=@('panebind.exe','portable.flag','LICENSE','中文快速入门.md','配置说明.md','已知问题.md')
 $files=@($names | ForEach-Object { $item=Get-Item -LiteralPath (Join-Path $payload $_); [ordered]@{relative_path=$_;size=$item.Length;sha256=(Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash} })
-$manifest=[ordered]@{schema='panebind-v1-portable/1';package_id=$PackageId;source_commit=$head;branch=$branch;
+$manifest=[ordered]@{schema='panebind-v1-portable/1';package_id=$PackageId;source_commit=$head;packaging_head=$packagingHead;branch=$branch;
+    source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
     created_utc=[DateTime]::UtcNow.ToString('o');configuration='Release';runtime='MultiThreaded (/MT)';
     binary_identity=$identity;binary_sha256=$beforeHash;system_imports=$dependencies;files=$files;
     source_inputs=@(@{path='docs/V1_QUICK_START.md';sha256=$inputHashes[$quickPath]},
@@ -180,7 +218,8 @@ try {
         if ($hash -cne $expected[0].sha256) { throw 'ZIP content does not match the packaged file manifest.' }
     }
 } finally { $archive.Dispose() }
-$receipt=[ordered]@{schema='panebind-v1-portable-receipt/1';package_id=$PackageId;source_commit=$head;package_root=$root;
+$receipt=[ordered]@{schema='panebind-v1-portable-receipt/1';package_id=$PackageId;source_commit=$head;packaging_head=$packagingHead;package_root=$root;
+    source_scope_equivalent=$true;documentation_inputs=$packagingIdentity.documentation_inputs;
     zip=$zip;zip_sha256=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash;
     manifest_sha256=(Get-FileHash -LiteralPath (Join-Path $payload 'manifest.json') -Algorithm SHA256).Hash;
     binary_sha256=$beforeHash;files=$archivedFiles;gui_started=$false;clean_guest_portable_validation='NOT_RUN';human_uat='NOT_RUN'}

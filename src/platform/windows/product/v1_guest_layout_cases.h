@@ -315,8 +315,8 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
 }
 void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& expected){
     auto& s=set.state;const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
-    s.log.check("layout_actual_matching_UP",wait([&]{return record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
-    Sleep(100);GUITHREADINFO gui{sizeof(gui)};bool stable=GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000);
+    s.log.check("layout_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
+    Sleep(100);GUITHREADINFO gui{sizeof(gui)};bool stable=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture;
     for(std::size_t n=0;n<expected.size();++n)stable=stable&&set.owns(n)&&visible(set.frames[n].hwnd)==expected[n];
     s.log.check("layout_UP_actual_geometry_and_no_capture",stable,"\"generation\":"+std::to_string(g.generation));
 }
@@ -462,14 +462,15 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     s.log.check("temporary_inflight_no_previous_native_stall",!stall.armed&&!stall.entered&&!stall.finished);
     const auto g=down(s,0);visual_exact(s,h,190,false,"temporary_inflight_actual_pressed_alpha190");
     const auto source_key=number(record(s,g.offset,"gesture_start",g.generation),"\"key\":");
-    s.log.check("temporary_inflight_actual_generation_source_key",source_key!=0);
+    s.log.check("temporary_inflight_actual_generation_source_key",source_key!=0&&s.left&&actual_up(s,g.offset,g.generation).empty());
     stall.armed=true;Sleep(60);cursor(s,{g.anchor.x-42,g.anchor.y+35});
     s.log.check("temporary_inflight_real_native_WndProc_entered",wait([&]{return stall.entered.load();},800)&&
-        stall.left_down.load()&&!stall.finished.load()&&(GetAsyncKeyState(VK_LBUTTON)&0x8000),
+        s.left&&!stall.finished.load()&&actual_up(s,g.offset,g.generation).empty(),
         "\"generation\":"+std::to_string(g.generation)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
         ",\"message\":\"WM_WINDOWPOSCHANGING\",\"test_owned_pause_ms\":1000,\"native_entry_qpc\":"+std::to_string(stall.before_qpc)+
         ",\"actual_flags\":"+std::to_string(stall.flags)+",\"actual_positioning\":["+std::to_string(stall.x)+","+
-        std::to_string(stall.y)+","+std::to_string(stall.width)+","+std::to_string(stall.height)+"]");
+        std::to_string(stall.y)+","+std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"driver_left_outstanding\":"+(s.left?"true":"false")+
+        ",\"async_left_at_native_entry\":"+std::to_string(stall.async_left_state.load())+",\"physical_button_held_not_inferred\":true");
     LARGE_INTEGER up_before{},up_after{};QueryPerformanceCounter(&up_before);
     button(s,false);QueryPerformanceCounter(&up_after); // Exactly one real test UP, never a product cleanup substitute.
     s.log.emit("temporary_inflight_real_UP_sent","\"generation\":"+std::to_string(g.generation)+
@@ -479,9 +480,10 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         static_cast<std::uint64_t>(up_before.QuadPart)>stall.before_qpc.load());
     std::string ended;
     s.log.check("temporary_inflight_generation_actually_retired",wait([&]{ended=record(s,g.offset,"gesture_end",g.generation);
-        return ended.find("\"pending_retired\":true")!=std::string::npos;},1000),
+        return !actual_up(s,g.offset,g.generation).empty()&&ended.find("\"pending_retired\":true")!=std::string::npos;},1000),
         "\"generation\":"+std::to_string(g.generation)+",\"NormalUp_not_inferred_from_test_UP\":true");
-    s.log.emit("temporary_inflight_actual_end","\"generation\":"+std::to_string(g.generation)+",\"production_end\":"+quote(ended));
+    s.log.emit("temporary_inflight_actual_end","\"generation\":"+std::to_string(g.generation)+",\"production_end\":"+quote(ended)+
+        ",\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation)));
     cursor(s,{g.anchor.x-58,g.anchor.y+45}); // No button held: this must not grant another placement.
     s.log.check("temporary_inflight_source_boundedly_resumed",wait([&]{return stall.finished.load();},1500));
     const Rect late_target=translated(initial,-42,35);
@@ -531,7 +533,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=std::string::npos){
         ++calls;if(number(row,"\"native_before_qpc\":")>=static_cast<std::uint64_t>(up_before.QuadPart))++after_up;
     }
-    s.log.check("temporary_inflight_UP_no_new_geometry_call",calls==1&&after_up==0&&!s.left&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
+    s.log.check("temporary_inflight_UP_no_new_geometry_call",calls==1&&after_up==0&&!s.left&&!actual_up(s,g.offset,g.generation).empty()&&
         s.process&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT,
         "\"issued_geometry_calls\":"+std::to_string(calls)+",\"issued_after_test_UP_send_start\":"+std::to_string(after_up));
     // No product restart or reconfiguration between the old completion and
@@ -554,6 +556,6 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     // Reset only this completed, logged test injection so later independent
     // writer-exit cases may use the same exact fixture. No product facts or
     // observed raw/legacy event counters are rewritten.
-    stall.armed=false;stall.entered=false;stall.finished=false;stall.left_down=false;
+    stall.armed=false;stall.entered=false;stall.finished=false;stall.async_left_state=0;
     s.log.emit("temporary_visual_inflight_sequence","\"single_test_UP\":true,\"late_exact_geometry_observed\":true,\"actual_temporary_alpha_restored\":173,\"next_actual_Move_UP\":true,\"same_product_process\":true,\"human_uat\":\"NOT_RUN\"");
 }

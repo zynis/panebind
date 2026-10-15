@@ -1189,6 +1189,17 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
 void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
     const auto flush=[&]{if(latest_move){motion(*latest_move);latest_move.reset();}};
     while(input.pop(e)){
+    // Receipt of an already-normalized hook observation, not a reconstruction
+    // from async key state. Keep a retired generation's real matching UP
+    // visible without recreating its gesture or granting write permission.
+    if(diagnostic&&(e.kind==InputKind::Down||e.kind==InputKind::Up))
+        log.event("input_button_observed","\"source\":\"WH_MOUSE_LL\",\"kind\":\""+
+            std::string(e.kind==InputKind::Down?"DOWN":"UP")+"\",\"generation\":"+std::to_string(e.generation)+
+            ",\"button\":"+std::to_string(e.button)+",\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)+
+            ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
+            ",\"event_end\":"+std::to_string(static_cast<unsigned>(e.end))+
+            ",\"gesture_generation_active_at_GUI_receive\":"+(gesture&&gesture->down.generation==e.generation?"true":"false")+
+            ",\"write_authority_granted_by_receipt\":false");
     if(e.kind==InputKind::Move){latest_move=e;continue;}flush();
     if(e.kind==InputKind::Down)begin(e);
     else if(e.kind==InputKind::Mapped&&e.prepared){

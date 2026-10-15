@@ -6,8 +6,8 @@
 // thread; the real outer SetWindowPos and postverification classify the result.
 void batch_loss_release(LayoutFixtures& set,const Gesture& g,const std::vector<std::size_t>& live,const std::vector<Rect>& expected){
     auto& s=set.state;const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
-    s.log.check("I10_recovery_actual_matching_UP",wait([&]{return record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
-    GUITHREADINFO gui{sizeof(gui)};bool exact=GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000);
+    s.log.check("I10_recovery_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
+    GUITHREADINFO gui{sizeof(gui)};bool exact=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;
     for(std::size_t n=0;n<live.size();++n)exact=exact&&set.owns(live[n])&&visible(set.frames[live[n]].hwnd)==expected[n];
     s.log.check("I10_recovery_UP_actual_survivors",exact,"\"generation\":"+std::to_string(g.generation));
 }
@@ -41,11 +41,12 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         Sleep(60);cursor(s,{g.anchor.x+60,g.anchor.y});
         const bool destruction=wait([&]{return loss->completed.load(std::memory_order_acquire);},1500);
         std::size_t first=3,second=3;for(std::size_t n=0;n<3;++n){if(loss->member[n].order==1)first=n;if(loss->member[n].order==2)second=n;}
-        s.log.check("I10_second_actual_sizing_member_destroyed",destruction&&loss->destroy_called&&loss->destroy_return&&loss->destroy_gone&&loss->left_held&&
+        s.log.check("I10_second_actual_sizing_member_destroyed",destruction&&loss->destroy_called&&loss->destroy_return&&loss->destroy_gone&&s.left&&actual_up(s,g.offset,g.generation).empty()&&
             loss->arrivals==2&&first<3&&second<3&&first!=second&&!IsWindow(loss->exact[second]),
             "\"first_member\":"+std::to_string(first)+",\"second_member\":"+std::to_string(second)+
             ",\"DestroyWindow_return\":"+(loss->destroy_return?"true":"false")+",\"DestroyWindow_error\":"+std::to_string(loss->destroy_error)+
-            ",\"destroy_qpc\":"+std::to_string(loss->destroy_qpc)+",\"destroy_on_actual_owner_thread\":true,\"outer_SetWindowPos_result_not_inferred\":true");
+            ",\"destroy_qpc\":"+std::to_string(loss->destroy_qpc)+",\"destroy_on_actual_owner_thread\":true,\"driver_left_outstanding\":"+(s.left?"true":"false")+
+            ",\"async_left_at_destroy\":"+std::to_string(loss->async_left_state.load())+",\"physical_button_held_not_inferred\":true,\"outer_SetWindowPos_result_not_inferred\":true");
         for(std::size_t n=0;n<3;++n)if(loss->member[n].order){const auto& actual=loss->member[n];
             s.log.emit("I10_owned_actual_sizing_callback","\"member\":"+std::to_string(n)+",\"hwnd\":"+
                 std::to_string(reinterpret_cast<std::uintptr_t>(loss->exact[n]))+",\"actual_order\":"+std::to_string(actual.order)+
@@ -71,9 +72,10 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return number(record(s,0,"status"),"\"sequence\":")>barrier;}));
         button(s,false);key(s,VK_CONTROL,false);
         GUITHREADINFO gui{sizeof(gui)};
-        s.log.check("I10_failure_real_UP_without_new_batch_attempt",wait([&]{return !(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&
+        s.log.check("I10_failure_real_UP_without_new_batch_attempt",wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty()&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&
             calls().size()==before&&before==2&&loss->arrivals==2&&record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
-            "\"third_member_native_attempts\":0,\"no_compensating_window_movement\":true");
+            "\"third_member_native_attempts\":0,\"no_compensating_window_movement\":true,\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
         std::vector<std::size_t> live;std::vector<Rect> actual;
         for(std::size_t n=0;n<3;++n)if(n!=second){const auto frame=visible(set.frames[n].hwnd);if(!set.owns(n)||!frame)throw std::runtime_error("I10_survivor_actual_snapshot_missing");live.push_back(n);actual.push_back(*frame);}
         const std::size_t source=live[0];const Rect neighbour=actual[1];const Rect from=actual[0];
