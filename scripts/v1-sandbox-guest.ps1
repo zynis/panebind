@@ -367,7 +367,7 @@ public static class PaneBindV1MediumGuest {
             if(!identity.Name.EndsWith("\\WDAGUtilityAccount",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Disposable guest account required");
         bool exactFixture=string.Equals(executable,"C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe",StringComparison.OrdinalIgnoreCase)||
             string.Equals(executable,"C:\\PaneBindV1\\Input\\Debug\\panebind-v1-guest-fixture.exe",StringComparison.OrdinalIgnoreCase);
-        if(timeoutSeconds<30||timeoutSeconds>1200||!exactFixture)throw new InvalidOperationException("Exact guest fixture scope required");
+        if(timeoutSeconds<30||timeoutSeconds>1800||!exactFixture)throw new InvalidOperationException("Exact guest fixture scope required");
         var result=new Dictionary<string,object>{{"status","BLOCKED"},{"fixture_started",false},{"product_cleanup_pass",false},{"process_creation_attempts",new List<object>()},{"token_attempts",new List<object>()}};
         var tokenAttempts=(List<object>)result["token_attempts"];var processAttempts=(List<object>)result["process_creation_attempts"];
         IntPtr original=IntPtr.Zero,candidate=IntPtr.Zero,job=IntPtr.Zero;var info=new ProcessInfo();bool assigned=false;
