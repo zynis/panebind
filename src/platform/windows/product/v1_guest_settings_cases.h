@@ -364,9 +364,14 @@ void settings_guest_import_export(State& s){
 }
 std::vector<fs::path> settings_guest_diagnostic_inventory(State& s){
     settings_guest_scope(s);std::vector<fs::path> files;
-    for(const auto& entry:fs::directory_iterator(s.product.parent_path()))
-        if(entry.path().filename().wstring().starts_with(L"diagnostic-")){
+    for(const auto& entry:fs::directory_iterator(s.product.parent_path())){
+        const auto name=entry.path().filename().wstring();
+        // atomic_save's diagnostic-<tick>.txt.tmp.<pid>.<tick> can disappear
+        // during rename. Only the exact final filename is a result candidate.
+        if(name.starts_with(L"diagnostic-")&&name.size()>=16&&name.ends_with(L".txt")&&
+            std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';})){
             files.push_back(entry.path());if(files.size()>16)throw std::runtime_error("guest_run_diagnostic_inventory_over_bound");}
+    }
     return files;
 }
 void settings_guest_diagnostic_result(State& s,const std::vector<fs::path>& previous,std::string_view entry){
@@ -408,6 +413,30 @@ void settings_guest_diagnostic_result(State& s,const std::vector<fs::path>& prev
 }
 [[maybe_unused]] void owned_settings_diagnostic_case(State& s){
     settings_guest_scope(s);const auto configuration=s.product.parent_path()/L"settings.ini";const auto original=read(configuration);
+    auto& frame=s.frames[0];const HWND source=frame.hwnd;RECT client{};GUITHREADINFO context{sizeof(context)};
+    if(!own(s,source)||!IsWindowVisible(source)||IsIconic(source)||s.left||s.control||!desktop()||
+       !GetClientRect(source,&client)||client.left>=client.right||client.top>=client.bottom||
+       !GetGUIThreadInfo(s.owner,&context)||context.hwndCapture||context.hwndMoveSize||context.hwndMenuOwner)
+        throw std::runtime_error("settings_diagnostic_test_setup_exact_client_not_idle");
+    POINT point{client.left+(client.right-client.left)/2,client.top+(client.bottom-client.top)/2};
+    if(!ClientToScreen(source,&point)||point.x<SHRT_MIN||point.x>SHRT_MAX||point.y<SHRT_MIN||point.y>SHRT_MAX)
+        throw std::runtime_error("settings_diagnostic_test_setup_client_screen_unknown");
+    cursor(s,point);DWORD_PTR hit{};
+    if(!own(s,source)||!desktop()||WindowFromPoint(point)!=source||
+       !GetGUIThreadInfo(s.owner,&context)||context.hwndCapture||context.hwndMoveSize||context.hwndMenuOwner||
+       !SendMessageTimeoutW(source,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)||hit!=HTCLIENT)
+        throw std::runtime_error("settings_diagnostic_test_setup_client_hit_not_exact");
+    const auto downs=frame.client_down[0].load(),ups=frame.client_up[0].load();
+    button(s,true);button(s,false);
+    const bool activated=wait([&]{return own(s,source)&&GetForegroundWindow()==source&&
+        frame.client_down[0].load()==downs+1&&frame.client_up[0].load()==ups+1&&
+        GetGUIThreadInfo(s.owner,&context)&&!context.hwndCapture&&!context.hwndMoveSize&&!context.hwndMenuOwner;});
+    s.log.check("settings_diagnostic_test_setup_actual_client_activation",activated,
+        "\"automated_test_setup\":true,\"actual_client_DOWN_UP_required\":true,\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+
+        ",\"counts_before\":["+std::to_string(downs)+","+std::to_string(ups)+"],\"counts_after\":["+
+        std::to_string(frame.client_down[0].load())+","+std::to_string(frame.client_up[0].load())+
+        "],\"actual_foreground_matches\":"+(GetForegroundWindow()==source?"true":"false")+",\"SetForegroundWindow_called\":false,\"input_repeated\":false");
     const auto previous=settings_guest_diagnostic_inventory(s);const auto gui=gui_open(s);HWND diagnostic{};unsigned matches{};
     for(HWND child=GetWindow(gui.root,GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
         if(gui_class(child)==L"Button"&&gui_identity(s,gui,child)&&gui_text(s,gui,child)==L"诊断 (&D)"&&IsWindowVisible(child)&&IsWindowEnabled(child)){
