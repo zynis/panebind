@@ -6,7 +6,7 @@ param(
     [string]$PortablePackageDirectory,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
-    [ValidateSet('Full','IndependentEntry')][string]$Suite='Full',
+    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity

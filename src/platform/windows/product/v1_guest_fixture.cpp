@@ -2074,6 +2074,7 @@ void independent_entry_flow(State& s){
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
     phase("settings_GUI",settings_gui_flow);
+    phase("settings_GUI_diagnostic",owned_settings_diagnostic_case);
     phase("settings_startup",settings_guest_startup);
     phase("five_button_mapping",owned_mouse_mapping_cases);
     phase("settings_import_export",settings_guest_import_export);
@@ -2192,6 +2193,13 @@ void drive(State& s){
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
         if(s.suite=="IndependentEntry"){
             independent_entry_flow(s);s.result=s.log.failed?1:0;
+        }else if(s.suite=="SettingsDiagnostic"){
+            owned_settings_diagnostic_case(s);
+            if(s.configuration=="Release")owned_portable_zip_entry_case(s);
+            cleanup(s);s.result=s.log.failed?1:0;
+            s.log.emit("settings_diagnostic_summary","\"suite\":\"SettingsDiagnostic\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+                ",\"scope\":\"settings_diagnostic_and_Release_portable_only\",\"actual_entry\":\"settings_footer\",\"scoped_only\":true,"+
+                "\"tray_acceptance\":\"NOT_GRANTED\",\"whole_I01_or_I12_acceptance\":\"NOT_GRANTED\",\"Full_suite\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
         }else{
         // Preserve the complete historical action order. Initial layout is
         // fixture setup only; no geometry reset occurs between these gestures.
@@ -2228,6 +2236,7 @@ void drive(State& s){
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
         owned_settings_screenshots(s);
         settings_gui_flow(s);
+        owned_settings_diagnostic_case(s);
         // Complete independent owned DEV before retrying application-specific
         // environment gaps. A failed application admission is not permission
         // to bypass it, nor a reason to leave unrelated product paths untested.
@@ -2375,7 +2384,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     std::error_code error;const auto actual_output=fs::weakly_canonical(output,error);
@@ -2418,7 +2427,8 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
     if(parsed)for(int n=1;n<count;n+=2){const std::wstring name=args[n];unsigned field{};
         if(name==L"--run-id"){field=1;s.run=args[n+1];}else if(name==L"--output"){field=2;s.output=args[n+1];}
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
-            const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";else parsed=false;}
+            const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
+            else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
@@ -2439,7 +2449,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         for(std::size_t n=0;n<3;++n){const auto title=L"PaneBind V1 — "+std::wstring(1,static_cast<wchar_t>(L'A'+n));
             s.frames[n].hwnd=CreateWindowExW(0,s.class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,100+static_cast<int>(n)*250,80,260,260,nullptr,nullptr,instance,&s.frames[n]);
             if(!s.frames[n].hwnd)throw std::runtime_error("owned_window_creation_failed");ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);UpdateWindow(s.frames[n].hwnd);}
-        // Both suites have passed the same exact disposable-guest guards.
+        // Every suite passes the same exact disposable-guest guards.
         // Observe the existing Full gestures too, so an actual missing hook
         // UP can be compared with Raw delivery without changing termination.
         raw_mouse_observer_start(s,s.frames[0].hwnd);

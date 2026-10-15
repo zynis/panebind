@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-实际能证明的操作已不只限于旧 owned 探针：普通权限 Release 的真实七文件 ZIP 已完成无参启动、首次可见中文设置、保存后 Move 效果和正常退出；真实 Terminal 已完成 Move 五阶段、Resize、窗口命令、Esc 与客户输入。设置生命周期、五键映射、owned 视觉及独立 60 秒空闲测量也有新的局部证据。最新已审阅 e4／593 的 `IndependentEntry` 整批仍 FAIL：托盘受阻，dock／I08／I11／native 故障及 Edge 收尾未闭环；正式 Medium Explorer、编辑器、混合应用组和显示矩阵仍不满足整版门槛。旧 f626／8cee 普通 C 缺 UP 及其他原始失败保留；后继某次正常 UP 不把它们改写为通过。以下局部结果不等同最终整版交付、宿主试用或真人 UAT。
+本次阶段交付为 **PARTIAL**，不是 COMPLETE。普通权限 Release 的真实七文件 ZIP 已实际无参启动、显示中文设置、保存后产生 Move 效果并正常退出；真实 Terminal 的 Move／Resize／命令／Esc／客户输入有类别结果。最新 b60／c01 又实际完成单屏停靠／拉伸核心、actor 默认截止后同进程新手势、第二成员失败后存活成员恢复等子流程。普通 I11 的正常 UP、grid／sourceclose 原代 UP 仍有缺证，**S1 未关闭，不宜宿主试用**；托盘、正式 Medium Explorer、完整五类应用及显示矩阵仍受阻。593／e4、f626／8cee 及全部旧失败保持原样，不用局部成功或 Raw 计数补成 NormalUp，不把实施完成当作整版验收通过。
 
 ## 源码与包身份
 
@@ -12,12 +12,12 @@
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 当前已收证候选 runtime | `59326ce35a4f380343bdf78353087cb30d595be4`；Debug／Release 重建与各 10 项 offline 通过，e4 实际运行 Release；仍是开发候选，不固定最终交付 SHA |
-| 此候选打包 HEAD | `59326ce35a4f380343bdf78353087cb30d595be4`；新包与旧 f626／d22、783、3a65、50df 分别绑定，不跨包继承现场通过 |
-| 最新已审阅现场 | RunId `e4a9f65c5034440f9822babf794956db`，Release／Medium／`IndependentEntry`；真实局部结果见下，整批 FAIL；不是 Full／I02／I11 整链通过 |
+| 当前已收证候选 runtime | `b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8`；fresh configure、Debug／Release 全产品／fixture／10 offline executables 重建及各10项 CTest 实际通过，c01 现场运行 Release；这是 latest-tested 快照，不固定最终交付 SHA |
+| 此候选打包 HEAD | `b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8`；新包与旧593／e4、f626／d22、783、3a65、50df分别绑定，不跨包继承现场通过 |
+| 最新已审阅现场 | RunId `c01ffe67d3004961bd00765312869c8a`，Release／Medium／`IndependentEntry`；实际进展为 PARTIAL，整批 fixture FAIL；不是 Full／I02／I11 整链通过 |
 | 此批实际退出 | 产品正常退出，hooks／overlay／native worker／visual recovery 资源字段 true，unknown native=false；post-stop 真实客户计数 `[5,5]→[6,6]`；Edge exact 根关闭未确认，登记保留，不记整批 cleanup PASS；精确 guest／任务编排清理回执为 true，证据未变、部署保留 |
-| 此候选 guest ZIP／manifest SHA-256 | `F85330A09C2EA9B5B847B317C9148DF8F8436E8D5F613FE5412C3ABFD32CCB1C`／`65BFD26624CCE39B11F3C358918B0E4929471FCD642EF6BC13DBE2F314B2FA48` |
-| 此候选真便携包 | PackageId `458849b1956440f3a7fcf3f487e85974`；ZIP `E05DE47F3C30B405B47E2F20B883C076E9768D4B98CA81FCBDCAD0A975A82A1B`；Release EXE `692728AD934FFD221342D335AFCB30B4F90DF0909A2BDF1DAAA9E4B063F27BC6`；e4 seq593–647 普通无参子流程实际通过，不据此宣布整版／真人验收通过；旧包保留 |
+| 此候选 guest ZIP／manifest SHA-256 | `E3C4AFCA911BD51C77483CF719A76C9C387D57A2D6BEEC44A2FF46C10BA1360E`／`A9F4FE1B90AC6232A3424269AAD5B2F514101E249EA223C85FC9D05E8EBB5754` |
+| 此候选真便携包 | PackageId `b5a15c4352bc4b79b8457eebe085182a`；ZIP `8682DDF108350D2BAE5F8FC8C91D837CD3CD59A1F22CE8601A4E830ED6809411`；manifest `84BCB1DFCA3672EBB9269C293BD2F018F54B1DFD42C691AA21E42539561E6AB2`；Release EXE `65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD`；c01 seq593–647 普通无参子流程实际通过，不宣布整版／真人验收通过；旧458849及更早包保留 |
 | 历史 aae 已收证 | `a2eb05f7e76d05ec9378e0d12631dfd22c326fbb`／`aae67076ccda4bdb9300c9015108231a`，整体 FAIL；原始证据及清理回执保留 |
 | aae ZIP／manifest SHA-256 | `31132A5BCBB4EAB8F488BCE647B80A5A36A6E57540B5DA83FF41FC5BE2D8B8EF`／`DF95AEEA2336F7217A051A5341B8BE85F5E379147B48CC377B369ABCEF4BC793` |
 | aae Release／Debug EXE SHA-256 | `A1F92E7773607A6DB8967E0AE10B47257474C3947B3F3B96B643A639574C9E56`／`6C1B5EB112CC8169E166A13A627AE16B2A354BAB63882224FCC65301E0C2C596` |
@@ -30,6 +30,18 @@
 每批实际身份保存在 `uat/v1-sandbox/<RunId>/package-receipt.json` 与 `input/manifest.json`，便携包在 `uat/v1-portable/<PackageId>/package-receipt.json`。历史包与原始失败继续保留。`source_commit`／EXE self identity 为 RUNTIME，`packaging_head` 为实际文档打包 HEAD；仅允许三个交付文档的已提交差异，源码／脚本／LICENSE／AGENTS 及 dirty 输入均拒绝。实际纯 Git guard 正反检查已通过，不赋予功能 PASS，也不将旧 ZIP 结果改绑定到文档更新后的新 ZIP。打包 receipt 的部署字段不是当前执行结果，现场状态以实际回执为准。
 
 ## 已运行的功能与明确失败
+
+### c01／b60：单屏停靠／拉伸、默认截止和失败后恢复取得实际子结果
+
+原始证据：`uat/v1-control/c01ffe67d3004961bd00765312869c8a/collection-20261015T192211498Z-87901c575af04496bcfdf88477990983/`。Release／Medium／`IndependentEntry`，只计实际独立范围，不拼成 Full 或整版通过。
+
+- 设置 GUI／登录启动／五键／导入导出／损坏恢复／排除及还原、七文件 ZIP 普通无参可见设置／真实保存效果／退出、Terminal 本次类别、owned 视觉再次取得对应实际子结果。portable647、Terminal2154、visual1779均只绑定本源码／包；托盘498／504仍因精确 UID1 图标不可达 BLOCKED。
+- I04／I05 seq700–1005 单屏核心实际通过：自由移动／XY、屏幕边缘预览与离开取消、角停靠真实 UP 提交、拖离恢复原尺寸与 DOWN 锚点、实际注册半屏热键、停靠后自由移动806／重吸附810、smartDock 开关的不同实际矩形；智能拉伸开启下的边／角双击与 Shift 组合、微移／调高、真实 GUI 更改热键的几何效果及邻居不改。原配置恢复1003与自有窗关闭1004通过。774实际仅单屏，跨屏为 `ENVIRONMENT_BLOCKED`，phase1011保持 BLOCKED，不称整个 I04 或所有智能拉伸模式通过。
+- actor g23／call43 真实 DOWN、START 和 exact Move1252通过；默认 deadline=30000ms，产品实际 Deadline end／pending退休1253。30031ms 是 child **发送前 tick87906 到产品 end117937**，不是 actor 退出后或 START 后整30秒。1255无新增 native 调用；1257仅测试 cleanup UP 已发／native idle，同 g实际产品UP仍为null，不补成NormalUp。随后同 PID6356 新 g24 Move、g25 Resize exact及各实际 LL UP／NormalUp通过。I08另一个 sourceclose g20虽撤权、无新调用且后续恢复成立，其原匹配UP1217仍FAIL，整个I08不通过。
+- 第二成员故障2017：第一个 exact，第二个原生 API 返回 TRUE 后身份丢失，第三个没有调用；不是观察到 API FALSE。status2020、原代实际UP且无新批2022、存活两窗新 Move2029／形成接触2039／Ctrl2049及匹配UP和资源关闭2053均通过，component2058 PASS。该真实失败与恢复符合本次子场景，不新增必须另取 API FALSE 的门槛，也不升整个I10。
+- grid1957／1958实际单次API TRUE／non-exact拒绝、1961 status、1965撤权后无新增placement，以及后续新 Move／Ctrl／真实UP和资源关闭成立；但原g6UP1964为null，grid原断言FAIL、phase2000仍FAIL。临时在途1859的原失败及安全继续记录也保留。
+- I11 g26的五阶段实际几何正确，hold为`already_exact_no_native_call`，不是五次 native调用；1372／1373实际LL UP/end仍null，Raw独立计数97→98的source／generation归属UNKNOWN。显式Pause为异常收尾，不是NormalUp；两轮／15分钟未完成。没有可靠共享事件身份，产品未增加 RawNormalUp fallback，S1保持OPEN，不无新证据重复同路线。
+- 独立空闲1399实测60.0035803秒、单逻辑核CPU0%，末工作集26,562,560字节、private commit3,981,312字节；private不是驻留，idle不代替I11。Explorer正式资格、Notepad／VSCode缺项及Edge命中／exact关闭问题仍保留。产品正常退出和post-stop计数`[5,5]→[6,6]`成立，精确guest／任务已清理、证据未变；整批仍FAIL，销毁guest不代替未确认的Edge或产品整版cleanup。
 
 ### e4／593：普通便携入口、Terminal 与独立组件有实际进展，整批仍 FAIL
 
@@ -181,7 +193,7 @@
 
 原始 DOWN、单 writer、撤权后无新调用、在途调用与完成未知分开、actual postverify 及精确视觉所有权合同继续保留。构建、L1/core 测试与局部 owned 结果都不能替代当前 Release 的整功能／模块验收。
 
-ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口及 I10 在途失败用例均已接线；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开记录。后继实际结果见各批，不再用“未到达全部后续功能”概括当前状态。M12-F03 的便携组件和 F04 的固定表／校验器／证据绑定已有实际交付，JSON 实施分类调整为 **59/60 IMPLEMENTED、1 项说明走查 IN_PROGRESS**；完整功能 DEV 仍 0/60、对标仍 0/40，不以实施数或局部运行凑分。
+ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口及 I10 在途失败用例均已接线；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开记录。后继实际结果见各批，不再用“未到达全部后续功能”概括当前状态。M12 的便携组件、固定表／校验器／证据绑定、中文可执行指南／集中缺陷／review入口均已落地；指南的实际命令、六页设置及托盘名称已与源码核对，**60/60 IMPLEMENTED仅表示已实施，不代表实现正确、说明完整现场走查或DEV通过**。完整功能 DEV 仍0/60、对标仍0/40、整链仍未通过，S1不因实施数关闭。
 
 ## 集中缺口与待核验项
 
@@ -192,10 +204,10 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 设置与生命周期 | 269b／88e 旧命中失败保留；e4 实际六页、登录启动、导入导出、损坏恢复、排除及原配置恢复通过对应子流程 | 完整 M11／I07、所有设置项与高 DPI 走查仍未通过，不重开已关闭 checkbox 专项 |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
 | Edge／Terminal adapter | 945c Terminal 实际 NormalUp 后旧 fixture 查询误拒；e4 对齐严格 Console fallback 后该类别实际 Move／Resize／命令／Esc／客户输入通过 | Terminal 不外推其他类别；Edge 命中与 exact 根清理仍有失败，保留登记且不控制身份未知窗 |
-| grid 与应用钳制 | 8453／d49 曾真实 non-exact 后拒绝；eae 无本代 native；1bee 更早在 DOWN 前 hover／前台对象改变 | 保留每批差异；1bee 不能新增 grid／UP 结论，仍须真实匹配输入与后续 Move／Ctrl |
+| grid 与成员失败 | c01真实grid非exact拒绝与后继新Move／Ctrl成立，但原g6UP缺失；第二成员API TRUE后identityloss／停止第三及存活两窗恢复子流程通过 | grid原失败保留，整个I10不升PASS；不把身份丢失叫API FALSE，也不为此增加新的矩阵门槛 |
 | 视觉／恢复与边线 | 7cac call44 迟到 exact／alpha 恢复事实保留；e4 owned 视觉组件实际通过，但临时在途组件仍 FAIL | 不能把正常视觉或 helper 恢复推成缺 UP、故障／硬崩溃整链通过 |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
-| 普通 Move 正常收尾 | 8cee 普通 C 缺 UP 失败保留；bdab owned 子链、e4 普通 ZIP 及 Terminal 有真实 NormalUp；e4 I11 组件再次有正常 UP 断言失败 | 局部成功不关闭不同场景反例；原因仍 UNKNOWN，分段验证不拼成整条连续链通过 |
+| 普通 Move 正常收尾 | c01 I11 g26几何正确却无实际LL UP/end；独立Raw97→98仍不能归属。旧8cee／e4等失败保留，其他NormalUp成功不补缺失 | S1 OPEN；没有可靠共享事件身份，不加未证明Raw fallback，也不以无新事实重复运行同路线 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
 | 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
 | 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |
@@ -209,8 +221,8 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | Notepad | 当前 guest 的指定系统 EXE／Appx 缺失；未运行的应用路径不能记 PASS，不在宿主安装或修改账户／UAC来补分。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | e4 实际执行了中断、临时在途、grid／第二成员及 I11 组件，具体失败见上，不再统称 NOT_RUN；整个 actor／匹配 UP、status 响应、两轮与15分钟仍未闭环。独立 idle60 不替代 I11；历史各批差异保留。 |
-| 最终便携交付 | 458849／593 已在 e4 完成普通无参可见 GUI、真实保存／Move／退出子流程；最终整版候选与按说明完整走查仍未完成。旧9a24／f6b4／d6ab／b650／6d022保留，新的局部结果不重绑旧 ZIP。 |
+| I08／I10／I11 | c01 actor真实默认Deadline及后续同PIDMove／Resize、第二成员失败后恢复、status实际响应已通过对应子项；sourceclose／grid匹配UP、I11正常UP、完整两轮／15分钟仍未闭环。独立idle60不替代I11，历史失败保留。 |
+| 最终便携交付 | b5a15／b60在c01、458849／593在e4分别完成普通无参可见GUI、真实保存／Move／退出子流程；最终整版候选与按说明完整走查仍未完成。所有旧包保留，不重绑证据。 |
 
 ## 持续验证与交付边界
 

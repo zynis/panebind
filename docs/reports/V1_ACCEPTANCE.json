@@ -8,11 +8,11 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
-    "runtime_sha": "59326ce35a4f380343bdf78353087cb30d595be4",
+    "runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "committed-built-runtime-partial-actual-DEV-reviewed",
-    "note": "latest-tested快照为593/e4 Release IndependentEntry，不是最终整版候选。历史f626/8cee普通C缺实际UP失败保留；已追加783/fdfe真实GUI/五键/损坏恢复、3a65/945c Terminal实际NormalUp及旧fixture误拒、50df/bdab owned子链/八窗失焦失败。e4普通七文件ZIP空参数可见设置/保存效果/正常退出、Terminal类别、视觉及独立idle60有实际证据，但托盘、dock/I08/I11/nativefault和Edge收尾仍失败或受阻；不升级整链/模块/B，不推测下轮runtime、final_sha或CI。M12-F03/F04已有实际组件，59IMPLEMENTED+1IN_PROGRESS仅为实施分类；DEV0/60、B0/40不变。"
+    "note": "latest-tested为b60/c01 Release IndependentEntry，不是最终整版候选；593/e4及全部历史失败保留。c01单屏I04/I05核心通过对应动作，跨屏单屏受阻；actor真实START/exact、默认Deadline（child发送前到end30031ms）和同PID后续Move/Resize真实UP通过对应子项。Grid非exact拒绝/无新写/后续Move-Ctrl成立但本代实际UP缺失；第二成员是API TRUE+identitylost而非FALSE，存活两窗恢复子流程通过；I11普通g26实际LL UP/end仍缺失，Raw不可归属。普通七文件ZIP/设置/五键/Terminal/视觉/idle60有实际子结果，托盘/Explorer/编辑器/Edge收尾仍受阻。整批FAIL、DEV0/60、B0/40；60IMPLEMENTED仅为实施分类，不是正确性/DEV/整版验收，S1仍OPEN，不推测下轮runtime/final_sha/CI。"
   },
   "scorecard": {
     "denominator": 40,
@@ -1799,7 +1799,7 @@
         "scripts/v1-prepare-portable.ps1"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "真实七文件Release便携ZIP、许可证/中文说明/manifest和源码/二进制SHA绑定、精确身份打包guard及普通无参验证入口均已交付。593/e4已实际观察Package458849的无参可见设置、保存后Move效果、正常退出及字节/用户profile检查（PO-E4-PORTABLE）；仅说明组件实施与该包子场景，不把最终整版交付、其他应用/环境或真人UAT改为PASS。旧9a24/f6b4/d6ab/b650/6d022身份及失败保留。",
+      "implementation_note": "真实七文件Release便携ZIP、许可证/中文说明/manifest和源码/二进制SHA绑定、精确身份打包guard及普通无参验证入口均已交付。593/e4的Package458849与b60/c01的Packageb5a15分别实际观察无参可见设置、保存后Move效果、正常退出及字节/用户profile检查；仅说明组件实施与各自包子场景，不把最终整版交付、其他应用/环境或真人UAT改为PASS。旧包身份及失败保留。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -1818,7 +1818,7 @@
       "defects": [
         "V1-D03"
       ],
-      "partial_observation_ids": ["PO-E4-PORTABLE"]
+      "partial_observation_ids": ["PO-E4-PORTABLE", "PO-C01-PORTABLE"]
     },
     {
       "id": "M12-F04",
@@ -1859,7 +1859,9 @@
         "PO-FDFE-INDEPENDENT",
         "PO-945C-TERMINAL-UP",
         "PO-BDAB-OWNED-FULL",
-        "PO-E4-INDEPENDENT"
+        "PO-E4-INDEPENDENT",
+        "PO-C01-INDEPENDENT",
+        "PO-C01-NATIVE-FAILURES"
       ]
     },
     {
@@ -1874,8 +1876,8 @@
         "docs/reports/V1_ACCEPTANCE.json",
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
-      "implementation_status": "IN_PROGRESS",
-      "implementation_note": "中文快速入门已按当前生产接线更新，明确启动/停止、设置、键鼠及规则用法；最终便携包身份与按说明实际走查仍未完成。",
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "中文可执行快速入门、集中缺陷和整体review入口已交付；无参/--settings/--status/--pause/--quit、默认快捷键、托盘/六页菜单名称已与实际生产源码核对，当前包及真实局部证据绑定明确。IMPLEMENTED不代表说明完整实际走查、真人体验或最终整版交付通过，DEV仍未通过。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "cases": [
@@ -2197,7 +2199,8 @@
         "docs/reports/V1_DELIVERY_REPORT.md",
         "scripts/v1-prepare-portable.ps1"
       ],
-      "implementation_status": "IN_PROGRESS",
+      "implementation_status": "IMPLEMENTED",
+      "implementation_note": "日志/诊断/便携组件、固定机器表及校验器、中文指南和集中缺陷review入口均已落地；模块实施不等于模块DEV或整版验收通过。",
       "dev_status": "NOT_RUN",
       "human_status": "NOT_RUN",
       "source_sha": null,
@@ -3325,9 +3328,9 @@
       "id": "V1-D08",
       "status": "OPEN",
       "kind": "ORDINARY_AND_ABORTED_GENERATION_ACTUAL_UP_NOT_OBSERVED",
-      "description": "8cee普通C g4五阶段exact后单次测试UP返回1，3500ms内无actualUP/正常end；stop才Exit，callback count3/lastg3，cursor仍在C内。bdab owned子链与e4便携/Terminal虽有真实NormalUp，e4 I11组件1208仍出现正常UP联合断言FAIL；不能用成功子流程关闭其他具体反例。7cac在途/迟到exact/alpha恢复及d49/eae不同失败保留，1bee未发DOWN不是UP复现。原因UNKNOWN，不断言UIPI/hook移除/系统根因，不把账本、Async或未归属Raw计数补成UP。",
+      "description": "8cee普通C、e4 I11组件及其他缺UP失败保留。b60/c01 I11 g26五阶段几何正确（hold为already_exact无native），单次测试UP后1372/1373实际LL UP/end仍null；Raw97到98只是独立接收计数且source/generation归属UNKNOWN。c01 grid g6和sourceclose g20匹配UP也未观察，撤权/后续新手势通过不能关闭原失败。其他普通便携/Terminal或actor后的NormalUp成功亦不能补造这些缺失事实。原因UNKNOWN，不断言UIPI/hook移除/系统根因，不把driver账本、Async或Raw补成UP，S1尚未关闭。",
       "features": ["M03-F03", "M03-F05", "M04-F02"],
-      "partial_observation_ids": ["PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-7CAC-INFLIGHT-UP", "PO-8CEE-ORDINARY-C-UP", "PO-BDAB-OWNED-FULL", "PO-945C-TERMINAL-UP", "PO-E4-INDEPENDENT"]
+      "partial_observation_ids": ["PO-D49-GRID-UP", "PO-EAE-FOCUS-UP-STOP", "PO-7CAC-INFLIGHT-UP", "PO-8CEE-ORDINARY-C-UP", "PO-BDAB-OWNED-FULL", "PO-945C-TERMINAL-UP", "PO-E4-INDEPENDENT", "PO-C01-INDEPENDENT", "PO-C01-NATIVE-FAILURES"]
     },
     {
       "id": "V1-D09",
@@ -3349,9 +3352,9 @@
       "id": "V1-D11",
       "status": "OPEN",
       "kind": "DOCK_INTERRUPTION_AND_NATIVE_FAILURE_COMPONENTS_NOT_CLOSED",
-      "description": "e4实际到达dock806、I08 UP1032/actor1064、I11普通UP1208、临时在途1694、grid status1796与第二成员status1824失败；各原始断言保留，不把安全恢复后继续当成原失败通过，不将不同失败预判为同一系统原因。后继最小修复与新身份复验另记。",
+      "description": "e4 dock/actor/status等原失败保留。b60/c01已实际越过单屏I04/I05核心、actor真实START/exact/默认Deadline与后续新Move-Resize、第二成员identityloss与存活成员恢复，均只作对应子项；跨屏受阻，I08 sourceclose匹配UP、I11普通UP、临时在途和grid匹配UP仍失败。status在c01 1961/2020实际通过，不再错误写成尚未响应；不把安全恢复后继续或API TRUE+identityloss当完整故障链/API FALSE通过。",
       "features": ["M03-F05", "M04-F04", "M04-F05", "M08-F02", "M10-F04"],
-      "partial_observation_ids": ["PO-E4-INDEPENDENT"]
+      "partial_observation_ids": ["PO-E4-INDEPENDENT", "PO-C01-INDEPENDENT", "PO-C01-NATIVE-FAILURES"]
     },
     {
       "id": "V1-D12",
@@ -3374,6 +3377,24 @@
     "current_package_runtime_results_reviewed": true
   },
   "historical_packages": [
+    {
+      "run_id": "e4a9f65c5034440f9822babf794956db",
+      "source_sha": "59326ce35a4f380343bdf78353087cb30d595be4",
+      "packaging_head": "59326ce35a4f380343bdf78353087cb30d595be4",
+      "receipt_path": "uat/v1-sandbox/e4a9f65c5034440f9822babf794956db/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/e4a9f65c5034440f9822babf794956db/input/manifest.json",
+      "zip_sha256": "F85330A09C2EA9B5B847B317C9148DF8F8436E8D5F613FE5412C3ABFD32CCB1C",
+      "manifest_sha256": "65BFD26624CCE39B11F3C358918B0E4929471FCD642EF6BC13DBE2F314B2FA48",
+      "release_binary_sha256": "692728AD934FFD221342D335AFCB30B4F90DF0909A2BDF1DAAA9E4B063F27BC6",
+      "debug_binary_sha256": "3E16C3A9409A4AA34062433830C35E2FC5BB49BC66D852C2AF647DFFA89D11F1",
+      "release_fixture_sha256": "EE99E27897963799E78C6A64FA3B488A1BB99881FCEC5FC187FF7269A9A2A963",
+      "debug_fixture_sha256": "E7390426EA469A608B27E82963957200DA5BC88BF8C6EE7976F404F023B98FF6",
+      "deployment_status": "DEPLOYED_COLLECTED_OWNED_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "guest_suite": "IndependentEntry",
+      "guest_function_status": "FAIL_WITH_ACTUAL_PORTABLE_TERMINAL_GUI_VISUAL_IDLE_COMPONENT_RESULTS",
+      "portable_candidate": {"package_id": "458849b1956440f3a7fcf3f487e85974", "receipt_path": "uat/v1-portable/458849b1956440f3a7fcf3f487e85974/package-receipt.json", "zip_sha256": "E05DE47F3C30B405B47E2F20B883C076E9768D4B98CA81FCBDCAD0A975A82A1B", "manifest_sha256": "2187F8ABF3CC47AF6DC0A3168EB80A30296D664C7A9F7AE5C5A0D7EC277F0C94", "actual_ordinary_no_argument_entry": "PASS_SCOPED_GUEST_SUBFLOW_NOT_FULL_I12_OR_VERSION_ACCEPTANCE"},
+      "note": "保留593/e4前latest实际快照；普通ZIP/Terminal/设置/视觉/idle子结果与dock/I08/I11/nativefault/Edge失败分别见PO-E4-*。后继c01不改写这些原失败，不跨包重绑证据。"
+    },
     {
       "run_id": "8cee44b3378f41998e8e5dcf9635f5f3",
       "source_sha": "f626b6ee8c934da08497172898f6d93d155d5964",
@@ -3570,43 +3591,62 @@
     }
   ],
   "current_package": {
-    "run_id": "e4a9f65c5034440f9822babf794956db",
-    "source_sha": "59326ce35a4f380343bdf78353087cb30d595be4",
-    "packaging_head": "59326ce35a4f380343bdf78353087cb30d595be4",
-    "receipt_path": "uat/v1-sandbox/e4a9f65c5034440f9822babf794956db/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/e4a9f65c5034440f9822babf794956db/input/manifest.json",
-    "zip_sha256": "F85330A09C2EA9B5B847B317C9148DF8F8436E8D5F613FE5412C3ABFD32CCB1C",
-    "manifest_sha256": "65BFD26624CCE39B11F3C358918B0E4929471FCD642EF6BC13DBE2F314B2FA48",
-    "release_binary_sha256": "692728AD934FFD221342D335AFCB30B4F90DF0909A2BDF1DAAA9E4B063F27BC6",
-    "debug_binary_sha256": "3E16C3A9409A4AA34062433830C35E2FC5BB49BC66D852C2AF647DFFA89D11F1",
-    "release_fixture_sha256": "EE99E27897963799E78C6A64FA3B488A1BB99881FCEC5FC187FF7269A9A2A963",
-    "debug_fixture_sha256": "E7390426EA469A608B27E82963957200DA5BC88BF8C6EE7976F404F023B98FF6",
+    "run_id": "c01ffe67d3004961bd00765312869c8a",
+    "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+    "packaging_head": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+    "receipt_path": "uat/v1-sandbox/c01ffe67d3004961bd00765312869c8a/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/c01ffe67d3004961bd00765312869c8a/input/manifest.json",
+    "zip_sha256": "E3C4AFCA911BD51C77483CF719A76C9C387D57A2D6BEEC44A2FF46C10BA1360E",
+    "manifest_sha256": "A9F4FE1B90AC6232A3424269AAD5B2F514101E249EA223C85FC9D05E8EBB5754",
+    "release_binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+    "debug_binary_sha256": "2AC4C955018735866FE1CEE60EE033A5C001CB821398DDFEB7B1CFACE233A6DF",
+    "release_fixture_sha256": "912FC5A7E182D1F11D062E7F40A9AC237EFCFB30528FBD34E57C750D29FFD713",
+    "debug_fixture_sha256": "54E9AD19987C588D1B041208E35AA3CA26C443C66F4D7E835E216A8B8AD44A2D",
     "identity_basis": "actual_local_files_SHA256_equal_receipt_and_binary_identity_manifest",
     "package_kind": "isolated_automated_guest_package_not_final_portable_delivery",
     "build_status": "COMMITTED_BUILT",
     "guest_configurations": "Release",
     "guest_suite": "IndependentEntry",
     "deployment_status": "DEPLOYED_COLLECTED_OWNED_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
-    "guest_function_status": "FAIL_WITH_ACTUAL_PORTABLE_TERMINAL_GUI_VISUAL_IDLE_COMPONENT_RESULTS",
+    "guest_function_status": "PARTIAL_FUNCTIONAL_PROGRESS_OVERALL_FIXTURE_FAIL_S1_NORMAL_UP_OPEN",
     "offline_regression": {"Debug": "10/10_PASS", "Release": "10/10_PASS", "not_function_DEV_PASS": true},
     "human_uat": "NOT_RUN",
-    "note": "latest-tested593/e4实际1985行fixture与产品日志已收证：普通七文件ZIP空参数/首次可见设置/保存效果/正常退出、Terminal类别、设置/五键/视觉/独立idle60通过各自子项；托盘BLOCKED，dock/I08/I11/nativefault/Edge关闭仍FAIL，完整DEV/B不计通过。guest/task精确清理且证据未变；产品stop资源字段与poststop客户计数[5,5]到[6,6]成立，但Edge登记保留，不判整版cleanup。此快照不预填下一候选或最终SHA。"
+    "note": "latest-tested b60/c01已收证2211行fixture与产品日志。D/R新构建及各10offline实际通过；普通ZIP/Terminal/设置/五键/视觉/idle、单屏I04/I05核心、actor默认Deadline后新Move-Resize、第二成员真实identityloss后恢复有各自实际结果。跨屏单屏BLOCKED；普通I11 UP、grid/sourceclose匹配UP、临时在途、托盘/Explorer/编辑器/Edge收尾未全过，整体fixtureFAIL且S1未闭。产品正常stop及poststop5到6成立，guest/task精确清理/证据未变不代替产品cleanup；不预填下一候选或最终SHA。"
   },
   "portable_candidate": {
-    "package_id": "458849b1956440f3a7fcf3f487e85974",
-    "source_commit": "59326ce35a4f380343bdf78353087cb30d595be4",
-    "packaging_head": "59326ce35a4f380343bdf78353087cb30d595be4",
-    "receipt_path": "uat/v1-portable/458849b1956440f3a7fcf3f487e85974/package-receipt.json",
-    "manifest_path": "uat/v1-portable/458849b1956440f3a7fcf3f487e85974/PaneBindV1/manifest.json",
-    "zip_sha256": "E05DE47F3C30B405B47E2F20B883C076E9768D4B98CA81FCBDCAD0A975A82A1B",
-    "manifest_sha256": "2187F8ABF3CC47AF6DC0A3168EB80A30296D664C7A9F7AE5C5A0D7EC277F0C94",
-    "binary_sha256": "692728AD934FFD221342D335AFCB30B4F90DF0909A2BDF1DAAA9E4B063F27BC6",
+    "package_id": "b5a15c4352bc4b79b8457eebe085182a",
+    "source_commit": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+    "packaging_head": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+    "receipt_path": "uat/v1-portable/b5a15c4352bc4b79b8457eebe085182a/package-receipt.json",
+    "manifest_path": "uat/v1-portable/b5a15c4352bc4b79b8457eebe085182a/PaneBindV1/manifest.json",
+    "zip_sha256": "8682DDF108350D2BAE5F8FC8C91D837CD3CD59A1F22CE8601A4E830ED6809411",
+    "manifest_sha256": "84BCB1DFCA3672EBB9269C293BD2F018F54B1DFD42C691AA21E42539561E6AB2",
+    "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
     "actual_ordinary_no_argument_entry": "PASS_SCOPED_GUEST_SUBFLOW_NOT_FULL_I12_OR_VERSION_ACCEPTANCE",
-    "run_id": "e4a9f65c5034440f9822babf794956db",
-    "partial_observation_id": "PO-E4-PORTABLE",
-    "note": "本地ZIP/manifest/EXE实际SHA256与manifest/receipt逐一相等。e4 seq593-647已实际以本包普通空参数启动、首次中文设置可见、保存效果/正常退出/字节与profile检查通过；全批IndependentEntry仍FAIL，最终整版门槛/说明完整走查/真人UAT不升PASS。旧9a24及更早包身份保留在历史，不跨包继承。"
+    "run_id": "c01ffe67d3004961bd00765312869c8a",
+    "partial_observation_id": "PO-C01-PORTABLE",
+    "note": "本地ZIP/manifest/EXE实际SHA256与manifest/receipt逐一相等。c01 seq593-647实际以本包普通空参数启动、首次中文设置可见、保存效果/正常退出/字节与profile检查通过；全批IndependentEntry仍FAIL，最终整版门槛/说明完整走查/真人UAT不升PASS。旧458849/593、9a24及更早包身份保留在历史，不跨包继承。"
   },
   "evidence": [
+    {
+      "id": "EV-C01-FIXTURE",
+      "kind": "raw_automated_guest_jsonl",
+      "path": "uat/v1-control/c01ffe67d3004961bd00765312869c8a/collection-20261015T192211498Z-87901c575af04496bcfdf88477990983/c01ffe67d3004961bd00765312869c8a-release-fixture.jsonl",
+      "sha256": "283C549F036698D767FAF0F118C632F726017C9BEDA6FEF10D80E66764BE3D41",
+      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "configuration": "Release",
+      "suite": "IndependentEntry",
+      "overall_verdict": "FAIL"
+    },
+    {
+      "id": "EV-C01-PRODUCT",
+      "kind": "raw_product_jsonl",
+      "path": "uat/v1-control/c01ffe67d3004961bd00765312869c8a/collection-20261015T192211498Z-87901c575af04496bcfdf88477990983/c01ffe67d3004961bd00765312869c8a-product-Release/panebind.log.jsonl",
+      "sha256": "7177A7FAE806B166402B5D43674864A15DA2ED80A060A3A474C0C460DBE5ECA7",
+      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+      "run_id": "c01ffe67d3004961bd00765312869c8a"
+    },
     {
       "id": "EV-E4-FIXTURE",
       "kind": "raw_automated_guest_jsonl",
@@ -3873,6 +3913,53 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-C01-INDEPENDENT",
+      "scope": "Release_Medium_IndependentEntry_actual_single_display_dock_stretch_Deadline_and_other_components",
+      "status": "PARTIAL",
+      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "suite": "IndependentEntry",
+      "actual_integrity": "Medium",
+      "evidence_ids": ["EV-C01-FIXTURE", "EV-C01-PRODUCT"],
+      "observed_passed_substeps": ["真实设置GUI/登录启动/五键映射/导入导出/损坏配置/排除与恢复，phase203/236/344/442/492/580", "单屏I04：真实自由/XY、边缘preview/离开取消、角停靠真UP提交、拖离恢复原尺寸及DOWN锚点、实际注册半屏热键、postdock自由移动/重吸附、smartDock开关对应实际矩形，700-883", "I05实际边/角双击、Shift双击、微移/调高、GUI改热键影响实际几何、邻居不被改动及原配置/资源恢复，893-1004（智能拉伸开启范围）", "输入actor真实单次DOWN/START/exact后不发UP退出；默认Deadline有实际end与pending退休；同PID随后新Move/Resize exact及真实UP", "Terminal2154本次Move/Resize/commands/Esc/client类别通过且exact关闭；owned视觉1779、独立idle60通过各自子项"],
+      "actor_deadline": {"generation": 23, "actual_call_id": 43, "configured_deadline_ms": 30000, "child_before_SendInput_tick": 87906, "actual_end_tick": 117937, "elapsed_from_child_before_send_ms": 30031, "normal_up": false, "cleanup_UP_sent": true, "actual_matching_product_cleanup_UP": null, "same_product_new_Move_and_Resize_with_actual_UP": true, "whole_I08_pass": false},
+      "idle60": {"elapsed_seconds": 60.0035803, "one_logical_core_cpu_percent": 0, "after_working_bytes": 26562560, "after_private_commit_bytes": 3981312, "private_commit_is_not_resident_memory": true, "not_fifteen_minute_I11": true},
+      "observed_failures_or_blocks": ["774单屏跨屏ENVIRONMENT_BLOCKED，I04/I05 phase1011 BLOCKED，不据单屏核心推完整I04", "I08 sourceclose g20实际撤权/后续新Move-Resize成立，但原匹配UP1217 FAIL，phase1327 FAIL", "I11 g26五阶段几何正确但1372/1373实际LL UP/end=null；Raw UP97到98归属UNKNOWN，Pause为异常收尾不是NormalUp", "临时在途1859 FAIL_SAFE_TO_CONTINUE；grid实际匹配UP1964 FAIL", "托盘UID1不可达BLOCKED；Explorer实际elevated根被资格拒绝；Notepad/VSCode指定EXE缺失；Edge实际hit2184 FAIL且exact关闭未确认"],
+      "shutdown": {"product_normal_exit_observed": true, "own_resource_flags_true": true, "issued_native_completion_unknown": false, "actual_post_stop_client_counts_before": [5, 5], "actual_post_stop_client_counts_after": [6, 6], "unconfirmed_Edge_registration_retained": true, "whole_product_cleanup_pass": false, "dedicated_guest_exited": true, "task_removed": true, "evidence_unchanged": true},
+      "overall_fixture_verdict": "FAIL",
+      "human_uat": "NOT_RUN",
+      "limitations": ["Independent分段不拼接成Full/I02/I11/整版PASS；单屏不替代跨屏或混合DPI。", "真实Raw接收没有可靠共同source/generation身份，未增加生产RawNormalUp fallback；S1缺UP仍OPEN。", "Deadline30031ms从child发送前到产品end计，不宣称从actor退出后或START后整30秒。"]
+    },
+    {
+      "id": "PO-C01-NATIVE-FAILURES",
+      "scope": "actual_grid_nonexact_rejection_and_second_member_identity_loss_with_recovery",
+      "status": "PARTIAL",
+      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "evidence_ids": ["EV-C01-FIXTURE", "EV-C01-PRODUCT"],
+      "grid": {"single_actual_native_call": true, "native_API_result": true, "geometry_exact": false, "actual": [140, 140, 564, 539], "rejected_without_new_placement": true, "status_barrier_sequence": 1961, "actual_matching_generation_UP": null, "matching_UP_failure_sequence": 1964, "subsequent_fresh_Move_and_Ctrl_with_actual_UP": true, "resource_close_sequence": 1993, "whole_grid_case_pass": false},
+      "second_member": {"first_exact": true, "second_native_API_result": true, "second_post_identity_lost": true, "native_API_FALSE_observed": false, "third_native_attempt": false, "actual_failure_and_no_third_attempt_sequence": 2017, "actual_failure_UP_and_no_new_batch_sequence": 2022, "survivor_fresh_Move_sequence": 2029, "survivor_actual_new_contact_sequence": 2039, "survivor_Ctrl_two_window_sequence": 2049, "survivor_actual_UP_and_close_sequences": [2051, 2052, 2053], "scoped_component_phase_result": "PASS", "scoped_component_phase_sequence": 2058},
+      "limitations": ["API TRUE+postverify身份丢失是本次真实失败，不冒充原生API FALSE；不新增必须另取FALSE的验收门槛。", "原grid匹配UP缺失保持FAIL，安全资源门和后继恢复不关闭它；整个I10不因第二成员子流程通过而PASS。"]
+    },
+    {
+      "id": "PO-C01-PORTABLE",
+      "scope": "actual_b60_Release_seven_file_ZIP_ordinary_no_argument_entry_subflow",
+      "status": "PARTIAL",
+      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "evidence_ids": ["EV-C01-FIXTURE"],
+      "package_id": "b5a15c4352bc4b79b8457eebe085182a",
+      "zip_sha256": "8682DDF108350D2BAE5F8FC8C91D837CD3CD59A1F22CE8601A4E830ED6809411",
+      "manifest_sha256": "84BCB1DFCA3672EBB9269C293BD2F018F54B1DFD42C691AA21E42539561E6AB2",
+      "observed_passed_substeps": ["七文件ZIP中文/空格目录普通空参数启动及首次可见中文设置（593-595）", "默认值/Esc关闭、实际Move效果、GUI保存后下一Move效果", "正常退出与真实输入恢复、交付字节与无用户profile检查（645-646）"],
+      "scoped_driver_result": "PASS",
+      "scoped_result_sequence": 647,
+      "limitations": ["只绑定本包/本guest子流程，不替代完整I12/整版/真人UAT；整个IndependentEntry仍FAIL。", "旧458849/593包及其原始结果保留，未跨包继承身份。"]
+    },
     {
       "id": "PO-E4-INDEPENDENT",
       "scope": "Release_Medium_IndependentEntry_components_not_Full_I02_I11_or_version_acceptance",

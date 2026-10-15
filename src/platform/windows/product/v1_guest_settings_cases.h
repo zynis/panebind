@@ -362,6 +362,62 @@ void settings_guest_import_export(State& s){
         else{gui_press(s,gui,VK_ESCAPE);s.log.check("settings_native_import_cancel_no_runtime_write",wait([&]{return !IsWindow(gui.root);})&&read(config_path)==bytes);}}
     settings_guest_attraction(s,original.attraction_dip);
 }
+std::vector<fs::path> settings_guest_diagnostic_inventory(State& s){
+    settings_guest_scope(s);std::vector<fs::path> files;
+    for(const auto& entry:fs::directory_iterator(s.product.parent_path()))
+        if(entry.path().filename().wstring().starts_with(L"diagnostic-")){
+            files.push_back(entry.path());if(files.size()>16)throw std::runtime_error("guest_run_diagnostic_inventory_over_bound");}
+    return files;
+}
+void settings_guest_diagnostic_result(State& s,const std::vector<fs::path>& previous,std::string_view entry){
+    const auto directory=s.product.parent_path();fs::path exported;
+    const bool created=wait([&]{const auto files=settings_guest_diagnostic_inventory(s);std::vector<fs::path> fresh;
+        for(const auto& path:files)if(std::find(previous.begin(),previous.end(),path)==previous.end())fresh.push_back(path);
+        if(fresh.size()!=1)return false;exported=fresh[0];return fs::is_regular_file(exported)&&fs::file_size(exported)>0&&fs::file_size(exported)<=300*1024;});
+    const std::string prefix=entry=="tray_menu"?"tray":"settings_GUI";
+    s.log.check(prefix+"_actual_creates_new_diagnostic",created,"\"actual_entry\":"+quote(entry));
+    const auto attributes=GetFileAttributesW(exported.c_str());const auto name=exported.filename().wstring();
+    if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||name.size()<16||!name.ends_with(L".txt")||
+       !std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';}))throw std::runtime_error("guest_diagnostic_not_exact_new_plain_run_file");
+    // serialize()'s fixed public comment belongs to the parsed settings,
+    // rather than the diagnostic header whitelist. Both UI routes share it.
+    constexpr std::string_view config_header="\n# PaneBind configuration v1; UTF-8; modifiers Alt=1 Ctrl=2 Shift=4 Super=8\n";
+    const auto text=read(exported,300*1024);const auto config=text.find(config_header),tail=text.find("\n\nRecent failure: ");
+    if(config==text.npos||tail==text.npos||tail<=config||!text.starts_with("PaneBind V1\nSOURCE_SHA=" PANEBIND_BUILD_SHA "\nHUMAN_UAT=PENDING\n")||
+       !text.ends_with("\nWindow titles, document contents and full rule paths are not collected.\n"))throw std::runtime_error("guest_diagnostic_structure_or_source_invalid");
+    std::istringstream header(text.substr(0,config+1));std::string line;bool known_headers=true;
+    while(std::getline(header,line)){
+        const bool known=line=="PaneBind V1"||line=="SOURCE_SHA=" PANEBIND_BUILD_SHA||line=="HUMAN_UAT=PENDING"||
+            line.starts_with("OS_BUILD=")||line.starts_with("OS_UBR=")||line.starts_with("LAST_GESTURE_END=")||
+            line.starts_with("HOOK_OWNER_RUNNING=")||line.starts_with("DISPLAY_DPI=")||line.starts_with("LAST_WINDOW_CLASS=");
+        known_headers=known_headers&&known;
+    }
+    const auto parsed=panebind::core::v1::parse(std::string_view(text).substr(config+1,tail-config));
+    if(!known_headers||!parsed.value)throw std::runtime_error("guest_diagnostic_actual_headers_or_settings_not_parseable");
+    bool private_values_absent=text.find(utf8(directory.wstring()))==text.npos&&text.find(utf8(s.output.wstring()))==text.npos&&
+        text.find("INTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG")==text.npos;
+    for(const auto& frame:s.frames){std::array<wchar_t,128> title{};const auto n=GetWindowTextW(frame.hwnd,title.data(),static_cast<int>(title.size()));
+        if(!own(s,frame.hwnd)||n<=0||n>=static_cast<int>(title.size()))throw std::runtime_error("guest_privacy_exact_owned_title_unavailable");
+        if(text.find(utf8(std::wstring(title.data(),n)))!=text.npos)private_values_absent=false;}
+    std::size_t index{};for(const auto& rule:parsed.value->rules)if(rule.exe!="redacted-app-"+std::to_string(++index)+".exe")private_values_absent=false;
+    const auto digest=hash(exported);
+    s.log.check(prefix+"_diagnostic_actual_parse_and_privacy",private_values_absent&&!digest.empty(),"\"actual_entry\":"+quote(entry)+
+        ",\"new_run_file\":"+quote(utf8(exported.filename().wstring()))+",\"sha256\":"+quote(digest)+
+        ",\"actual_owned_titles_and_run_paths_absent\":"+(private_values_absent?"true":"false")+
+        ",\"no_real_documents_opened\":true,\"not_universal_privacy_validation\":true,\"tray_or_full_M12_PASS_inferred\":false");
+}
+[[maybe_unused]] void owned_settings_diagnostic_case(State& s){
+    settings_guest_scope(s);const auto configuration=s.product.parent_path()/L"settings.ini";const auto original=read(configuration);
+    const auto previous=settings_guest_diagnostic_inventory(s);const auto gui=gui_open(s);HWND diagnostic{};unsigned matches{};
+    for(HWND child=GetWindow(gui.root,GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
+        if(gui_class(child)==L"Button"&&gui_identity(s,gui,child)&&gui_text(s,gui,child)==L"诊断 (&D)"&&IsWindowVisible(child)&&IsWindowEnabled(child)){
+            diagnostic=child;++matches;}
+    s.log.check("settings_GUI_diagnostic_actual_button_identified",matches==1,"\"actual_entry\":\"settings_footer\",\"tray_menu_used\":false");
+    gui_click(s,gui,diagnostic);settings_guest_diagnostic_result(s,previous,"settings_footer");
+    gui_press(s,gui,VK_ESCAPE);
+    s.log.check("settings_GUI_diagnostic_return_and_configuration_unchanged",wait([&]{return !IsWindow(gui.root);})&&read(configuration)==original,
+        "\"actual_Escape\":true,\"settings_saved_by_test\":false,\"tray_or_full_M12_PASS_inferred\":false");
+}
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
     std::vector<fs::path> old_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt."))old_backups.push_back(entry.path());
@@ -549,39 +605,8 @@ void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu)
         GUITHREADINFO help_context{sizeof(help_context)};if(!tray_guest_owner(s,owner)||GetForegroundWindow()!=help||!GetGUIThreadInfo(owner.tid,&help_context)||
             !help_context.hwndFocus||(help_context.hwndFocus!=help&&!IsChild(help,help_context.hwndFocus)))throw std::runtime_error("tray_help_keyboard_identity_changed");
         key(s,VK_RETURN,true);key(s,VK_RETURN,false);s.log.check("tray_actual_Enter_closes_help",wait([&]{return !IsWindow(help);}));
-        const auto directory=s.product.parent_path();std::vector<fs::path> previous;
-        for(const auto& entry:fs::directory_iterator(directory))if(entry.path().filename().wstring().starts_with(L"diagnostic-"))previous.push_back(entry.path());
-        if(previous.size()>16)throw std::runtime_error("tray_run_diagnostic_inventory_over_bound");
-        tray_guest_choose(s,owner,open(),504,L"导出诊断");fs::path exported;
-        s.log.check("tray_actual_menu_creates_new_diagnostic",wait([&]{std::vector<fs::path> fresh;
-            for(const auto& entry:fs::directory_iterator(directory))if(entry.path().filename().wstring().starts_with(L"diagnostic-")&&std::find(previous.begin(),previous.end(),entry.path())==previous.end())fresh.push_back(entry.path());
-            if(fresh.size()!=1)return false;exported=fresh[0];return fs::is_regular_file(exported)&&fs::file_size(exported)>0&&fs::file_size(exported)<=300*1024;}));
-        const auto attributes=GetFileAttributesW(exported.c_str());const auto name=exported.filename().wstring();
-        if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||name.size()<16||!name.ends_with(L".txt")||
-           !std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';}))throw std::runtime_error("tray_diagnostic_not_exact_new_plain_run_file");
-        // serialize() starts with its fixed configuration comment. It belongs
-        // to the parsed settings section, not the diagnostic header whitelist.
-        constexpr std::string_view config_header="\n# PaneBind configuration v1; UTF-8; modifiers Alt=1 Ctrl=2 Shift=4 Super=8\n";
-        const auto text=read(exported,300*1024);const auto config=text.find(config_header),tail=text.find("\n\nRecent failure: ");
-        if(config==text.npos||tail==text.npos||tail<=config||!text.starts_with("PaneBind V1\nSOURCE_SHA=" PANEBIND_BUILD_SHA "\nHUMAN_UAT=PENDING\n")||
-           !text.ends_with("\nWindow titles, document contents and full rule paths are not collected.\n"))throw std::runtime_error("tray_diagnostic_structure_or_source_invalid");
-        std::istringstream header(text.substr(0,config+1));std::string line;bool known_headers=true;
-        while(std::getline(header,line)){
-            const bool known=line=="PaneBind V1"||line=="SOURCE_SHA=" PANEBIND_BUILD_SHA||line=="HUMAN_UAT=PENDING"||
-                line.starts_with("OS_BUILD=")||line.starts_with("OS_UBR=")||line.starts_with("LAST_GESTURE_END=")||
-                line.starts_with("HOOK_OWNER_RUNNING=")||line.starts_with("DISPLAY_DPI=")||line.starts_with("LAST_WINDOW_CLASS=");
-            known_headers=known_headers&&known;
-        }
-        const auto parsed=panebind::core::v1::parse(std::string_view(text).substr(config+1,tail-config));
-        if(!known_headers||!parsed.value)throw std::runtime_error("tray_diagnostic_actual_headers_or_settings_not_parseable");
-        bool private_values_absent=text.find(utf8(directory.wstring()))==text.npos&&text.find(utf8(s.output.wstring()))==text.npos&&
-            text.find("INTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG")==text.npos;
-        for(const auto& frame:s.frames){std::array<wchar_t,128> title{};const auto n=GetWindowTextW(frame.hwnd,title.data(),static_cast<int>(title.size()));
-            if(!own(s,frame.hwnd)||n<=0||n>=static_cast<int>(title.size()))throw std::runtime_error("tray_privacy_exact_owned_title_unavailable");
-            if(text.find(utf8(std::wstring(title.data(),n)))!=text.npos)private_values_absent=false;}
-        std::size_t index{};for(const auto& rule:parsed.value->rules)if(rule.exe!="redacted-app-"+std::to_string(++index)+".exe")private_values_absent=false;
-        s.log.check("tray_diagnostic_actual_parse_and_privacy",private_values_absent,"\"new_run_file\":"+quote(utf8(exported.filename().wstring()))+
-            ",\"sha256\":"+quote(hash(exported))+",\"actual_owned_titles_and_run_paths_absent\":"+(private_values_absent?"true":"false")+",\"no_real_documents_opened\":true,\"not_universal_privacy_validation\":true");
+        const auto previous=settings_guest_diagnostic_inventory(s);
+        tray_guest_choose(s,owner,open(),504,L"导出诊断");settings_guest_diagnostic_result(s,previous,"tray_menu");
         const UINT taskbar=RegisterWindowMessageW(L"TaskbarCreated");DWORD_PTR response{};const bool delivered=taskbar&&tray_guest_owner(s,owner)&&
             SendMessageTimeoutW(owner.app,taskbar,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,1000,&response)!=FALSE;
         s.log.check("tray_own_TaskbarCreated_simulation_delivered",delivered,"\"only_exact_product_app_not_broadcast\":true,\"actual_Shell_restart\":false");
