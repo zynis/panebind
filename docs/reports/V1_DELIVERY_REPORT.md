@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。另一个a623输入候选已真实消费exact LL DOWN，但未到capture且无writer调用，具体拒绝原因UNKNOWN；不是新NormalUp或输入机制PASS。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。a623当时拒绝项UNKNOWN原样保留；后继f63识别ConsumedDown候选误用异步左键high门，bd53已修而尚未现场复验，无新capture／writer／NormalUp PASS。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
@@ -34,6 +34,15 @@ Run `f9b6012a43e345648d52c067ff9594f8`，同R2／458A62、原98fc便携ZIP不变
 - startup329、import/export588（含新映射检查）、saveFailure696、corrupt749、exclusion845和portable919均有实际阶段范围结果；仅tray755／761 BLOCKED导致932／934整体FAIL，Core I11／应用矩阵／Full NOT_RUN。912正常产品退出、916客户`[7,7]→[8,8]`，927另一个run-copy退出及931客户`[8,8]→[9,9]`，与精确guest／task已清理／证据未变分开记账。
 - **a623是另一个新输入平台探针，不是当前R2产品**：[原始小摘录](v1-evidence/a623-consumed-down-probe-selected.jsonl)，Run `a623eafefe2a470eb5877f876da37077`，源码9a77、Debug探针 `F7C81FDB88C16CF6BF8AC2DECAFC51B191C9F2C517DFF4F00A482EF2537AC406`；原日志SHA `DBC8F42DBD5BD797152F93406EAB7F389FA7059F6E7F446567C97BE22B106115`。seq15真实exact LL DOWN已consume，随后final_guarded_cleanup；seq24 capture_attempts=0、native_attempts=0、writer_started=false、completed_gestures=0，V1 InputService／MoveSession／writer均未arm。清理单次UP后seq19真实LL UP但未推断legacy投递，不能记新机制NormalUp。scenario_pass=false；未运行capture建立／丢失／独立退出风险或Explorer，不给PASS。当前具体拒绝项尚未细分，不推测系统、权限或根因，也不凭首场就宣布整机制不可能；旧D08不关闭。
 - 用户已确认合法Windows ISO／VM，但RAM不足不能新建VM；不是无介质或未回复，不调整宿主资源／其他任务。所有输入仍限专用guest，未来新Run结果不预填。
+
+## f63：明确拒绝在旧异步左键门；修订未预填现场结果
+
+Run `f63d6bc443534f5c94ca637a60b412ae`，另一个Debug平台探针源码`6685a08d8ff3ade1f6714603eee1edf5beb4f619`／EXE `8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656`，不是R2产品。见[关键原始摘录](v1-evidence/f63-consumed-down-pre-capture-selected.jsonl)，5410字节原日志SHA-256 `E50916B144E1FF8061329A6E9B1952D466F51E620566D63D37F6D32DC7BF4CD4`。
+
+- seq15真实exact LL DOWN已消费；seq16 receipt／published、同代／单DOWN、未UP／未退休及全部上下文成立，而`GetAsyncKeyState_LBUTTON_return=0`／`left_high=false`。结合该源码入场判定，此次唯一拒绝项是消费DOWN候选仍要求旧物理异步左键high；不证明实际物理UP、系统根因或原D08根因。记录本身明确不是跨线程原子快照，不把JSONL顺序升级为共同原生时序。
+- seq25仍为`capture_attempts=0`、`native_attempts=0`、`writer_started=false`、`completed_gestures=0`；未到capture／关联／writer。单次测试清理UP后的seq20实际LL-UP观察为false，不补造NormalUp，也不以清理资源flags证明尚未建立资源的生命周期通过。a623的当时UNKNOWN和原身份不改写。
+- 修订`bd53b68629abc69e05a088f929b41379fd3fff2b`让ConsumedDown按真实receipt／generation／active／未UP／未撤权／deadline入场，其他鼠标键仍须实际clear；旧native Move物理门保留。当前标`DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION`，不是正式产品替换或新路线通过。
+- 收集及精确guest／任务清理前后证据哈希一致；部署保留、其他资源未改。guest销毁不算产品cleanup PASS。下一步只复验该修订的真实capture、Raw／legacy UP、解除关联与退出；满足前不外推Explorer，6/60及2/40分数不变。
 
 ## 历史0a8f：登录模拟与普通二启合同通过，故障诊断仍缺导出失败负例
 
@@ -381,6 +390,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 视觉／恢复与边线 | 7cac call44 迟到 exact／alpha 恢复事实保留；e4 owned 视觉组件实际通过，但临时在途组件仍 FAIL | 不能把正常视觉或 helper 恢复推成缺 UP、故障／硬崩溃整链通过 |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
 | 普通 Move 正常收尾 | c01 I11 g26几何正确却无实际LL UP/end；独立Raw97→98仍不能归属。旧8cee／e4等失败保留，其他NormalUp成功不补缺失 | S1 OPEN；没有可靠共享事件身份，不加未证明Raw fallback，也不以无新事实重复运行同路线 |
+| ConsumedDown候选入场门 | f63/6685实录receipt、同代、无UP及上下文成立而异步左键0，具体拒绝在旧物理high门；无capture／关联／writer | bd53按模式修订，现场待验；只定位该候选入场缺口，不是旧D08根因或新NormalUp PASS |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
 | 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
 | 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |

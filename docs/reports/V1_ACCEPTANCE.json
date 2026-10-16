@@ -14,7 +14,7 @@
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "R2/458冻结；f9同98fc新driver实际注册冲突/旧命令保持/新映射与页默认动作帮助完整M11-F03通过，当前6功能、B29/B32共5%。a623新输入探针仅真实LL DOWN消费后未到capture，根因UNKNOWN且无writer/NormalUp通过；D08原反例保留。",
+    "note": "R2/458冻结；f9同98fc新driver实际完成M11-F03，当前6功能、B29/B32共5%。a623当时拒绝项UNKNOWN原样保留；后继f63按其6685源码识别ConsumedDown候选误用async左键high门，bd53已修但未现场复验，无capture/writer/NormalUp PASS；不关闭D08。",
     "pending_product_note": "后继仅driver/测试布局/诊断继续复用同R2产品，不将新布局通过预填或重建产品。用户已回复已有Windows ISO/VM但内存不足、无法新建VM；不是缺ISO或待回复。普通完整桌面/多屏仍需可用隔离交互环境与资源，继续当前Sandbox可运行项。",
     "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
     "latest_observed_run_id": "f9b6012a43e345648d52c067ff9594f8"
@@ -1189,7 +1189,8 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl"
+        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
       ],
       "defects": [
         "V1-D09",
@@ -1207,7 +1208,8 @@
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY"
+        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1222,6 +1224,15 @@
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
         "result": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
+        "current_product_source_unchanged": true,
+        "not_NormalUp_or_writer_PASS": true
+      },
+      "latest_investigation_candidate_observation": {
+        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
         "current_product_source_unchanged": true,
         "not_NormalUp_or_writer_PASS": true
       }
@@ -1275,7 +1286,8 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl"
+        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1301,7 +1313,8 @@
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
-        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY"
+        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1316,6 +1329,15 @@
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
         "result": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
+        "current_product_source_unchanged": true,
+        "not_NormalUp_or_writer_PASS": true
+      },
+      "latest_investigation_candidate_observation": {
+        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
         "current_product_source_unchanged": true,
         "not_NormalUp_or_writer_PASS": true
       }
@@ -1423,7 +1445,8 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl"
+        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1442,7 +1465,8 @@
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
-        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY"
+        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1458,6 +1482,15 @@
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
         "result": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
+        "current_product_source_unchanged": true,
+        "not_NormalUp_or_writer_PASS": true
+      },
+      "latest_investigation_candidate_observation": {
+        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
         "current_product_source_unchanged": true,
         "not_NormalUp_or_writer_PASS": true
       }
@@ -1509,7 +1542,8 @@
         "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7cd-product-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl"
+        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1534,7 +1568,8 @@
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY"
+        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1549,6 +1584,15 @@
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
         "result": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
+        "current_product_source_unchanged": true,
+        "not_NormalUp_or_writer_PASS": true
+      },
+      "latest_investigation_candidate_observation": {
+        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
         "current_product_source_unchanged": true,
         "not_NormalUp_or_writer_PASS": true
       }
@@ -7592,14 +7636,21 @@
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
-        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY"
+        "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
       ],
       "route_replacement_investigation": {
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "status": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
         "new_candidate_first_LL_DOWN_consumed": true,
         "new_capture_or_normal_end_proven": false,
-        "original_defect_closed": false
+        "original_defect_closed": false,
+        "latest_observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "latest_status": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+        "latest_candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "old_native_physical_key_gate_changed": false
       }
     },
     {
@@ -9276,6 +9327,18 @@
       "sha256": "DBC8F42DBD5BD797152F93406EAB7F389FA7059F6E7F446567C97BE22B106115",
       "repository_excerpt_path": "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
       "repository_excerpt_sha256": "DF1F8390A94D6A211933853FB714B89E53AD5045982CFE43439530A7596F3105"
+    },
+    {
+      "id": "EV-F63-CONSUMED-DOWN-PRECAPTURE-FACTS",
+      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
+      "candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+      "candidate_binary_sha256": "8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656",
+      "configuration": "Debug",
+      "candidate_kind": "separate_guest_consumed_DOWN_platform_probe_NOT_frozen_V1_product_EXE",
+      "path": "uat/r1c4b-mvp1-command-control/f63d6bc443534f5c94ca637a60b412ae/collection-20261016T121738409Z-f7671e0035124bf3a21996cb5e2b7447/f63d6bc443534f5c94ca637a60b412ae-debug-consumed-down-normal-repeat.jsonl",
+      "sha256": "E50916B144E1FF8061329A6E9B1952D466F51E620566D63D37F6D32DC7BF4CD4",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+      "repository_excerpt_sha256": "2A957737E0E6EF9E72EC5BBEA8B7D9B8C31C33C72BCB8C75259BE1B9B4E59FE1"
     }
   ],
   "partial_observations": [
@@ -9325,6 +9388,28 @@
       "old_D08_root_cause_proven": false,
       "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
       "next_action": "仅用新事实分流实际拒绝前提；当前未知具体失败项，不推定系统/权限根因，不把首场失败称整个方案已证伪或放行后续capture风险/Explorer。"
+    },
+    {
+      "id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+      "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+      "status": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
+      "candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+      "candidate_binary_sha256": "8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656",
+      "configuration": "Debug",
+      "evidence_ids": [
+        "EV-F63-CONSUMED-DOWN-PRECAPTURE-FACTS"
+      ],
+      "observed": "seq15真实exact LL DOWN已消费；seq16 receipt/published=true、同代、DOWN_count=1、post_failed=false、UP_seen=false、UP_count=0、retired=false、stable_context=true/context_reason=none，而GetAsyncKeyState_LBUTTON_return=0/left_high=false。结合该源码入场谓词，异步左键high是此次唯一拒绝门；这是消费DOWN候选复用旧物理门的具体不匹配，不证明真实UP、系统根因或原D08根因。seq25 capture_attempts=0/native_attempts=0/writer_started=false/completed_gestures=0，未建立capture/关联且无新机制NormalUp。",
+      "sampling_boundary": "seq16明确cross_thread_atomic_snapshot=false；只描述所记录事实与对应生产谓词，不推断未记录的共同原生时序或物理按键状态。",
+      "actual_UP_inferred_from_key_state": false,
+      "new_route_NormalUp_PASS": false,
+      "old_D08_root_cause_proven": false,
+      "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
+      "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+      "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "repair_scope": "ConsumedDown按实际receipt/同代/仍active/无UP/未撤权/有限deadline判定，其他鼠标键仍须实际clear；旧native Move物理high门不变。",
+      "next_action": "只复验修订候选同一入场链；未有真实capture、实际Raw/legacy UP、解除关联与独立退出前，不放行该路线Explorer，也不升级完整V1产品或关闭D08。"
     },
     {
       "id": "PO-METADATA-INDEPENDENT-CONTRACT",
@@ -12364,6 +12449,28 @@
       "old_D08_root_cause_proven": false,
       "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
       "next_action": "仅用新事实分流实际拒绝前提；当前未知具体失败项，不推定系统/权限根因，不把首场失败称整个方案已证伪或放行后续capture风险/Explorer。"
+    },
+    "latest_route_replacement_probe": {
+      "id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+      "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
+      "status": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
+      "candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+      "candidate_binary_sha256": "8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656",
+      "configuration": "Debug",
+      "evidence_ids": [
+        "EV-F63-CONSUMED-DOWN-PRECAPTURE-FACTS"
+      ],
+      "observed": "seq15真实exact LL DOWN已消费；seq16 receipt/published=true、同代、DOWN_count=1、post_failed=false、UP_seen=false、UP_count=0、retired=false、stable_context=true/context_reason=none，而GetAsyncKeyState_LBUTTON_return=0/left_high=false。结合该源码入场谓词，异步左键high是此次唯一拒绝门；这是消费DOWN候选复用旧物理门的具体不匹配，不证明真实UP、系统根因或原D08根因。seq25 capture_attempts=0/native_attempts=0/writer_started=false/completed_gestures=0，未建立capture/关联且无新机制NormalUp。",
+      "sampling_boundary": "seq16明确cross_thread_atomic_snapshot=false；只描述所记录事实与对应生产谓词，不推断未记录的共同原生时序或物理按键状态。",
+      "actual_UP_inferred_from_key_state": false,
+      "new_route_NormalUp_PASS": false,
+      "old_D08_root_cause_proven": false,
+      "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
+      "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
+      "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "repair_scope": "ConsumedDown按实际receipt/同代/仍active/无UP/未撤权/有限deadline判定，其他鼠标键仍须实际clear；旧native Move物理high门不变。",
+      "next_action": "只复验修订候选同一入场链；未有真实capture、实际Raw/legacy UP、解除关联与独立退出前，不放行该路线Explorer，也不升级完整V1产品或关闭D08。"
     }
   }
 }

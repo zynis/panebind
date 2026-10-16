@@ -1753,6 +1753,34 @@
       ],
       "scope_result": "FAIL_STOPPED_AFTER_REAL_CONSUMED_LL_DOWN_BEFORE_CAPTURE_NO_INPUTSERVICE_SESSION_OR_WRITER_NO_ROUTE_PASS",
       "whole_version_PASS": false
+    },
+    {
+      "evidence_id": "EV-F63-CONSUMED-DOWN-PRECAPTURE-FACTS",
+      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
+      "candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+      "candidate_binary_sha256": "8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656",
+      "configuration": "Debug",
+      "candidate_kind": "separate_guest_consumed_DOWN_platform_probe_NOT_frozen_V1_product_EXE",
+      "original_path": "uat/r1c4b-mvp1-command-control/f63d6bc443534f5c94ca637a60b412ae/collection-20261016T121738409Z-f7671e0035124bf3a21996cb5e2b7447/f63d6bc443534f5c94ca637a60b412ae-debug-consumed-down-normal-repeat.jsonl",
+      "original_sha256": "E50916B144E1FF8061329A6E9B1952D466F51E620566D63D37F6D32DC7BF4CD4",
+      "original_bytes": 5410,
+      "excerpt_path": "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+      "excerpt_sha256": "2A957737E0E6EF9E72EC5BBEA8B7D9B8C31C33C72BCB8C75259BE1B9B4E59FE1",
+      "excerpt_bytes": 8118,
+      "excerpt_sequences": [
+        1,
+        6,
+        9,
+        15,
+        16,
+        17,
+        20,
+        21,
+        23,
+        25
+      ],
+      "scope_result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
+      "whole_version_PASS": false
     }
   ],
   "offline_transcripts": [
@@ -2278,6 +2306,21 @@
       },
       "guest_destruction_not_product_cleanup_PASS": true,
       "unconfirmed_Edge_exact_root_cleanup_not_closed": true
+    },
+    {
+      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
+      "original_path": "uat/r1c4b-mvp1-command-control/f63d6bc443534f5c94ca637a60b412ae/cleanup-receipt.json",
+      "original_sha256": "3D2DD9A367C34DCE40F553886E084A3852204CAE35C16B19D225DCBC9B120E3C",
+      "observed_flags": {
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "other_files_or_resources_changed": false
+      },
+      "product_runtime_scope": "separate platform feasibility probe rejected before capture/association/writer; shutdown flags not proof of unexercised resource lifecycle",
+      "guest_destruction_not_product_cleanup_PASS": true
     }
   ],
   "new_candidate_scope_note": "Latestf9 same frozenR2/458 and98fc product, new separately pinned9a77 driver: M11F03 real registration conflict/default/help independentPASS; wholeEntry onlytrayBLOCKED remainsFAIL. Separatea623 consumedDOWN feasibility probe realDOWN then fails beforecapture with no InputService/MoveSession/writer, no newNormalUpPASS; reasonUNKNOWN, notrebound toR2.",
