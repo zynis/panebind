@@ -11,11 +11,11 @@
     "runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": "2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8",
+    "pending_runtime_sha": "187616742a1b7195ce46dce6d9df881b413975e6",
     "final_sha": null,
-    "implementation_inspected": "R9_RESOURCE_ADMISSION_IMPLEMENTED_BUILD_PASS_RUNTIME_NOT_RUN_R8_0BE2_3FD3_SCOPED_HISTORY_RETAINED",
-    "note": "历史7/60与B29/B32共2/40保持原已通过构建/不变部分，不换绑新EXE。旧82d最新0be2 I08/visual/inflight/batch组件PASS而grid原FAIL；3fd3 grid组件定向通过但恢复g13 Resize缺本代真实UP，I08仍FAIL。新2b038生产普通入口资源策略已接线并D/R构建/offline通过，现场NOT_RUN、不能宿主试用，不继承82d现场结论。整版PARTIAL/真人UAT PENDING。",
-    "pending_product_note": "R9/2b038是实际产品行为变化，必须新EXE/新Run影响复验与最终Release整链；资源资格不构成source权限，High拒绝、WDAG原proof与失败不fallback保留。0be2/3fd3产品仍82d/C796，全部原FAIL/各scope与哈希保持，不改绑R9；新便携与现场待生成/执行。",
+    "implementation_inspected": "R9_187_RESOURCE_INPUT_DISPLAY_IMPLEMENTED_BUILD_OFFLINE_PASS_RUNTIME_NOT_RUN",
+    "note": "历史7/60与B29/B32共2/40保留原已通过身份/不变部分，不换绑新产品。187当前候选包含生产资源准入、captured实际MOVE/Down发布及display目的proof，D/R构建和各10offline通过，现场NOT_RUN。中间2b产品/4c驱动虽已构建但均未部署；旧82d的0be2/3fd3原结果不改。整版PARTIAL/真人UAT PENDING，多屏现场BLOCKED，不能宿主试用。",
+    "pending_product_note": "187必须新portable/Run，先Debug受影响路径、Release完整操作链；source-proven队列缺口不是已证缺UP根因。native只在真实CaptureReady后续行，UP后不新continuous写；display非exact不补第二placement，不授mixedDPI PASS。资源仍不是source authority，High拒绝、精确WDAG proof及失败不fallback保留。",
     "next_driver_candidate": {
       "source_sha": "f3848e9f9f00c0eaa13f3cc8c41a303ddfe331fe",
       "product_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
@@ -50,6 +50,38 @@
       }
     },
     "pending_candidate": {
+      "source_sha": "187616742a1b7195ce46dce6d9df881b413975e6",
+      "implementation_source_sha": "187616742a1b7195ce46dce6d9df881b413975e6",
+      "build_dir": "out/v1-product-input-display-r9-1876167",
+      "implementation_status": "IMPLEMENTED",
+      "repair_scope": "Production resource admission plus captured actual-MOVE single-slot/Down-before-motion publication; intended display proof for batch and late completion, fresh accepted-source context without reanchoring original DOWN, nearest adjacent NextDisplay selection with duplicate geometry rejected",
+      "runtime_validation": "NOT_RUN",
+      "ordinary_desktop_runtime": "NOT_RUN",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "debug_binary_sha256": "47C6B5ED47E7A469BF446F4BD006A34A2AAF3C92F39A05B14A51FCD01D7FDDB0",
+      "release_binary_sha256": "D4E0EA86219FF2AC48A3F91C45A77A726622A7CF6576DA8584F4ECE5C075BE64",
+      "driver_source_sha": "187616742a1b7195ce46dce6d9df881b413975e6",
+      "debug_driver_sha256": "3EB70587CD05E7D735AB0A4BC9F0C6179FEAD5B65429BD9DA9C9640E0C231BCE",
+      "release_driver_sha256": "8FB159A6D264360275FB5EEFA80B4A6A20BFD2F81AF1117FF3D9EA901689B029",
+      "debug_offline_regression": "10/10 PASS; processor2.98/wall3.04 seconds",
+      "release_offline_regression": "10/10 PASS; processor1.58/wall2.83 seconds",
+      "debug_ctest_output_log_sha256": "DF5436F78B79584C1CB898BBB4AB4A39971D258C52D3F884AE9D8A3AE84060CB",
+      "release_ctest_output_log_sha256": "722C2200CF0527853A66BADE82082FAEBC1E440B2610C96820D4754A0491CE58",
+      "build_evidence_kind": "ACTUAL_MAIN_EXECUTOR_BUILD_AND_NATIVE_CTEST_OUTPUT_LOG_NOT_PER_TEST_STDOUT",
+      "package_generated": false,
+      "ordinary_host_trial_allowed": false,
+      "new_feature_or_B_PASS": false,
+      "historical_runtime_results_rebound": false,
+      "multi_monitor_runtime": "BLOCKED",
+      "mixed_DPI_nonexact_policy": "Reject nonexact actual frame without a second placement; no runtime PASS inferred",
+      "UP_policy": "No new continuous native placement after observed UP; native continuation only after actual CaptureReady",
+      "source_authority_contract": "Medium/non-elevated eligible source still required; resource admission does not authorize a source, High/System rejected; exact WDAG proof unchanged and failed proof does not fall back",
+      "host_synthetic_input": "NOT_RUN"
+    },
+    "historical_R9_resource_policy_build": {
+      "deployment_status": "NOT_DEPLOYED",
+      "intermediate_driver_note": "4c driver was built but NOT_DEPLOYED/NOT_RUN; it supplies no runtime evidence for187.",
       "source_sha": "2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8",
       "implementation_source_sha": "2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8",
       "build_dir": "out/v1-product-resource-policy-r9-2b038db",
@@ -9038,6 +9070,22 @@
     }
   ],
   "defects": [
+    {
+      "id": "V1-D26",
+      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME",
+      "kind": "SOURCE_CONFIRMED_CAPTURED_MOVE_AND_DOWN_PUBLICATION_QUEUE_GAP",
+      "description": "主执行者源码复核确认captured实际MOVE单槽及DOWN发布之间存在队列接线缺口；4f39修订actual MOVE单槽与Down先入队，187包含该修复。此为源码确认缺口，非新的原生运行反例，也未证明是V1-D08缺UP根因。实际native continuation仍须CaptureReady，匹配UP后禁止新continuous调用；修复后的快速起手、正常UP及后继操作尚待新EXE/Run定向验证。",
+      "features": [
+        "M03-F05",
+        "M04-F02",
+        "M04-F05"
+      ],
+      "repair_source_sha": "187616742a1b7195ce46dce6d9df881b413975e6",
+      "evidence_basis": "SOURCE_REVIEW_CONFIRMED_BY_MAIN_AGENT_NOT_NEW_NATIVE_COUNTEREXAMPLE_LOG",
+      "runtime_revalidation": "NOT_RUN",
+      "separate_from_missing_UP_defect": "V1-D08",
+      "next_action": "使用187新产品/driver身份完成Debug受影响路径与Release整链；检查真实MOVE不丢、DOWN先于消费、UP后无新调用与后续可继续，不改写旧82d原运行。"
+    },
     {
       "id": "V1-D25",
       "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",

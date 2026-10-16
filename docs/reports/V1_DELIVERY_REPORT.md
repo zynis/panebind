@@ -2,7 +2,13 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。旧82d最新0be2／3fd3取得I08、视觉、在途恢复、grid和batch的具体组件结果，但3fd3恢复Resize仍缺真实本代UP、整批FAIL。新产品R9／2b038生产普通入口资源策略已接线，D/R构建及各10项offline通过，**现场NOT_RUN**；不能继承旧82d实测。历史**7/60功能、B29／B32共2/40=5%**不增加、不换绑新EXE；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。当前新候选187已接生产资源准入、实际captured MOVE／DOWN队列及目的display proof，D/R构建和各10项offline通过，**现场NOT_RUN**。中间2b产品／4c驱动已构建但未部署，不能当受测产品。旧82d最新0be2／3fd3的组件结果与失败保持原身份；历史**7/60功能、B29／B32共2/40=5%**不增加、不换绑新EXE。多屏现场仍BLOCKED，不能宿主试用，真人UAT PENDING。
+
+## 当前187候选：构建完成，等待新包实际运行
+
+源码／product与driver self-identity均为`187616742a1b7195ce46dce6d9df881b413975e6`，冻结目录`out/v1-product-input-display-r9-1876167`；D/R构建退出0、各10offline PASS，D processor2.98／wall3.04秒、R processor1.58／wall2.83秒。D产品`47C6B5ED47E7A469BF446F4BD006A34A2AAF3C92F39A05B14A51FCD01D7FDDB0`／driver`3EB70587CD05E7D735AB0A4BC9F0C6179FEAD5B65429BD9DA9C9640E0C231BCE`；R产品`D4E0EA86219FF2AC48A3F91C45A77A726622A7CF6576DA8584F4ECE5C075BE64`／driver`8FB159A6D264360275FB5EEFA80B4A6A20BFD2F81AF1117FF3D9EA901689B029`。原生CTest output-log SHA D `DF5436F78B79584C1CB898BBB4AB4A39971D258C52D3F884AE9D8A3AE84060CB`／R `722C2200CF0527853A66BADE82082FAEBC1E440B2610C96820D4754A0491CE58`；不是逐测试原stdout或现场功能证据。
+
+V1-D26仅登记源码确认的captured实际MOVE／DOWN发布队列缺口及4f39→187修复，待定向runtime；**不是V1-D08缺UP根因已查明**。native只在真实CaptureReady后续行，UP后不新continuous写。187另接显式目的display proof／batch／late completion及accepted source上下文刷新，不重锚原DOWN；NextDisplay选择相邻而非Enum顺序、重复几何拒绝。多屏现场未取得，mixedDPI实际frame非exact时拒绝、不加第二次placement，不授PASS。新portable、Debug受影响路径与Release完整链待实际执行；2b／4c中间构建仍未部署，不再发布已知缺口的中间EXE。
 
 ## 0be2＋3fd3：旧82d组件定向推进，新R9待实际验证
 

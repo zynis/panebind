@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前新候选R9源码`2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8`／Release EXE `F0406FA35EEEA4CAF09C7A662C90002AD845D6BE37F5C5B8D315EFE64F7878F7`，实际普通Medium入口资源策略已接线，D/R构建及各10项offline通过，**普通桌面及新候选现场NOT_RUN**。资源准入不授予source权限，High仍拒绝；WDAG原proof与失败不fallback保留。旧82d／C796的0be2 I08/视觉/在途/batch和3fd3 grid有实际组件通过，但后者恢复Resize缺本代真实UP，整批仍FAIL；历史七项功能／B2及9281ZIP均保留原身份，不能换绑新EXE。完整原行、构建哈希和剩余条件见交付报告；**不可宿主试用，真人UAT PENDING**。
+当前新候选R9源码`187616742a1b7195ce46dce6d9df881b413975e6`／Release EXE `D4E0EA86219FF2AC48A3F91C45A77A726622A7CF6576DA8584F4ECE5C075BE64`，已接生产资源准入、captured实际MOVE／DOWN队列与目的display proof，D/R构建及各10项offline通过，**新候选现场NOT_RUN**。2b产品／4c驱动中间构建均未部署；旧82d实测、七项功能／B2及9281ZIP保留原身份，不换绑187。资源不授source权限，High拒绝及WDAG原proof不fallback保留；UP后不新continuous写。多屏现场BLOCKED、mixedDPI非exact不补第二placement；新包及Debug受影响／Release整链仍待实际验证。完整身份与证据见交付报告；**不可宿主试用，真人UAT PENDING**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 
