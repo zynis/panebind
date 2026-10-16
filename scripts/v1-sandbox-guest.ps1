@@ -241,6 +241,115 @@ function Prepare-VSCodeTestAsset($Asset){
         if(-not (Test-Path -LiteralPath $evidence)){New-Evidence $evidence ($record|ConvertTo-Json -Depth 7)}
     }
 }
+function Prepare-OfficialMediaApps($Spec){
+    # Exact guest-only payload registration; no store/network, developer mode,
+    # unsigned-package switch, host install or application activation here.
+    # Activation/root identity remain the existing Medium fixture's real test.
+    # https://learn.microsoft.com/powershell/module/appx/add-appxpackage
+    $root='C:\PaneBindV1\OfficialApps\'+$RunId
+    $receipt=[ordered]@{kind='ReviewedWindowsMediaApps';asset_id=$Spec.asset_id;run_id=$RunId;
+        status='PREPARING';guest_directory=$root;registrations=@();activation='NOT_RUN';
+        product_or_input_started=$false;function_result='NOT_RUN';error=$null}
+    $evidence=Join-Path $outputDir ($RunId+'-official-apps.json')
+    try{
+        $pins=@{
+            'Microsoft.VCLibs.140.00_14.0.30704.0_x64__8wekyb3d8bbwe'='DA48D70F7F15E6E5B107B7E1345EFA5E6F19595007656C4FB959A3D88BC4273B'
+            'Microsoft.VCLibs.140.00.UWPDesktop_14.0.30704.0_x64__8wekyb3d8bbwe'='2C5FDF0360C91A98A38DD68ED3CEBF39638108F67F5198B938190DA3CA92DD71'
+            'Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe'='1425B2B6710481AA35776CCCCD6B0425A39B086138A653859850598491ED4B2C'
+            'Microsoft.WindowsNotepad_11.2312.18.0_x64__8wekyb3d8bbwe'='4E39B3F2FB2934F288161ED7369DB719976F8A5C0AC88A517A1CA31FAF9BB4BE'
+            'Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.language-zh-hans_8wekyb3d8bbwe'='06775630C3AF140B48F64D01407C6E20E9F9B07FF13697EF4FAF1584755F2E1B'
+            'Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.scale-100_8wekyb3d8bbwe'='85B25AB7C7531F4C8F49E0F82FC8AC0A1FA53FEFEF0D6BEB051B8E20F87AF7E6'
+            'Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.scale-125_8wekyb3d8bbwe'='AAB3795FF7EBDBF7AB6A7D798DAA2BA7CEDBDF02CA0448E74B8DBD6455995C93'
+            'Microsoft.WindowsTerminal_1.18.10301.0_x64__8wekyb3d8bbwe'='3ED96A9A5F540F3A29CCB71F230B63464318096032ED3FB43CF48D3C724CE5AB'
+            'Microsoft.WindowsNotepad_11.2312.18.0_neutral_~_8wekyb3d8bbwe'='F0C1AA97C5A0FAD3D478C6B40C08C91D26346D6B8B2AA05BF3795BFB523D2BD7'
+            'Microsoft.WindowsTerminal_3001.18.10301.0_neutral_~_8wekyb3d8bbwe'='C5DED41D2E70AA71EC251D0FD837C93C5CB49B821541BBAD49A8B6CFC57AFA82'
+        }
+        if($Spec.kind -cne 'ReviewedWindowsMediaApps' -or $Spec.asset_id -cne 'f08fc54e44cf43eb811bc317c4249158' -or
+           $Spec.relative_path -cne 'OfficialApps-test.zip' -or $Spec.guest_directory -cne $root -or
+           $Spec.signed_blockmap_evidence_sha256 -cne '17B1687624C144DA874CD6D5975439C191F43D77945F15E1DA2873F52A8FDD58' -or
+           $Spec.expected_entries -ne 584 -or $Spec.expanded_bytes -ne 63772921 -or @($Spec.packages).Count -ne 10 -or
+           [long]$Spec.zip_size -le 0 -or [long]$Spec.zip_size -gt 80MB -or $Spec.zip_sha256 -cnotmatch '^[A-F0-9]{64}$'){
+            throw 'Unrecognized exact official-media asset contract.'}
+        $seenPackages=@{}
+        foreach($package in @($Spec.packages)){
+            if(-not $pins.ContainsKey($package.name) -or $seenPackages.ContainsKey($package.name) -or
+               $package.inventory_sha256 -cne $pins[$package.name]){throw 'Unknown or changed official package inventory.'}
+            $seenPackages[$package.name]=$true
+        }
+        foreach($path in @('C:\PaneBindV1','C:\PaneBindV1\OfficialApps')){
+            if(Test-Path -LiteralPath $path){$item=Get-Item -LiteralPath $path
+                if(-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Official application ancestors must be plain guest-local directories.'}}
+        }
+        if(Test-Path -LiteralPath $root){throw 'Official application RunId directory already exists; preserve it.'}
+        $zipPath=Join-Path $inputDir $Spec.relative_path
+        if((Get-Item -LiteralPath $zipPath).Length -ne [long]$Spec.zip_size -or
+           (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash -cne $Spec.zip_sha256){throw 'Official asset archive hash/size changed.'}
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive=[IO.Compression.ZipFile]::OpenRead($zipPath)
+        try{
+            if($archive.Entries.Count -ne 584){throw 'Official archive entry count mismatch.'}
+            $rows=@{};$seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            [long]$expanded=0
+            foreach($entry in $archive.Entries){
+                $name=$entry.FullName
+                $parts=@($name.Split('/'))
+                if(-not $entry.Name -or $parts.Count -lt 2 -or -not $pins.ContainsKey($parts[0]) -or
+                   $name -match '[\\:\x00-\x1f<>"|?*]' -or
+                   @($parts|Where-Object {$_ -in @('','..','.') -or $_.EndsWith('.') -or $_.EndsWith(' ') -or $_ -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)'}).Count -or
+                   -not $seen.Add($name) -or (($entry.ExternalAttributes -shr 16) -band 0xf000) -notin @(0,0x8000) -or
+                   ($entry.ExternalAttributes -band 0x400) -or $entry.Length -gt 32MB){throw 'Unknown/unsafe official archive entry.'}
+                $expanded+=$entry.Length;if($expanded -gt 63772921){throw 'Official expanded size exceeded.'}
+                $stream=$entry.Open();$digest=[Security.Cryptography.SHA256]::Create()
+                try{$hash=([BitConverter]::ToString($digest.ComputeHash($stream))).Replace('-','')}finally{$digest.Dispose();$stream.Dispose()}
+                if(-not $rows.ContainsKey($parts[0])){$rows[$parts[0]]=@()}
+                $rows[$parts[0]]+=,[pscustomobject]@{path=$name.Substring($parts[0].Length+1);size=$entry.Length;sha256=$hash}
+            }
+            foreach($package in @($Spec.packages)){
+                $files=@($rows[$package.name]|Sort-Object path)
+                $canonical=(@($files|ForEach-Object{$_.path+'|'+$_.size+'|'+$_.sha256})-join "`n")+"`n"
+                $digest=[Security.Cryptography.SHA256]::Create()
+                try{$hash=([BitConverter]::ToString($digest.ComputeHash($utf8.GetBytes($canonical)))).Replace('-','')}finally{$digest.Dispose()}
+                if($files.Count -ne $package.files -or ($files|Measure-Object size -Sum).Sum -ne $package.bytes -or
+                   $hash -cne $pins[$package.name]){throw 'Official package archive bytes do not match reviewed inventory.'}
+            }
+            if($expanded -ne 63772921){throw 'Official archive size is incomplete.'}
+            [IO.Directory]::CreateDirectory('C:\PaneBindV1\OfficialApps')|Out-Null
+            New-Item -ItemType Directory -Path $root -ErrorAction Stop|Out-Null
+            foreach($entry in $archive.Entries){
+                $target=Join-Path $root $entry.FullName.Replace('/','\')
+                [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target))|Out-Null
+                [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$false)
+            }
+        }finally{$archive.Dispose()}
+        New-Evidence (Join-Path $root 'panebind-v1-official-apps.marker') $RunId
+        foreach($package in @($Spec.packages)){
+            $directory=Join-Path $root $package.name
+            # Re-read all copied bytes before registration, including the
+            # manifests and Microsoft signed blockmaps/signatures.
+            foreach($file in @($rows[$package.name])){
+                $actual=Get-Item -LiteralPath (Join-Path $directory $file.path.Replace('/','\'))
+                if($actual.PSIsContainer -or ($actual.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $actual.Length -ne $file.size -or
+                   (Get-FileHash -LiteralPath $actual.FullName -Algorithm SHA256).Hash -cne $file.sha256){throw 'Official extracted asset bytes changed.'}
+            }
+            $manifestPath=Join-Path $directory 'AppxManifest.xml'
+            $record=[ordered]@{package=$package.name;manifest=$manifestPath;api='Add-AppxPackage -Register -DisableDevelopmentMode';
+                attempted=$false;succeeded=$false;error=$null;hresult=$null;query=@();activation='NOT_RUN'}
+            if(-not $package.register_manifest){$record.api='bundle_metadata_not_registration_manifest';$receipt.registrations+=,$record;continue}
+            try{
+                $record.attempted=$true
+                Add-AppxPackage -Register $manifestPath -DisableDevelopmentMode -ErrorAction Stop
+                $record.succeeded=$true
+                [xml]$xml=Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8
+                $record.query=@(Get-AppxPackage -Name ([string]$xml.Package.Identity.Name) -ErrorAction Stop|Select-Object -First 8|
+                    ForEach-Object{[ordered]@{name=$_.Name;full_name=$_.PackageFullName;version=$_.Version.ToString();install_location=$_.InstallLocation;status=$_.Status.ToString()}})
+            }catch{$record.error=$_.Exception.Message;$record.hresult=$_.Exception.HResult}
+            $receipt.registrations+=,$record
+        }
+        $receipt.status=if(@($receipt.registrations|Where-Object {$_.attempted -and -not $_.succeeded}).Count){'REGISTRATION_FAILED_APPLICATION_ITEM_ONLY'}else{'REGISTERED_NOT_ACTIVATED_OR_FUNCTION_TESTED'}
+    }catch{$receipt.status='ASSET_PREPARATION_FAILED_APPLICATION_ITEM_ONLY';$receipt.error=$_.Exception.Message}
+    finally{if(-not(Test-Path -LiteralPath $evidence)){New-Evidence $evidence ($receipt|ConvertTo-Json -Depth 8)}}
+    return $receipt
+}
 try {
     # These checks precede compilation or any token/process creation API. This
     # entry is not a general launch tool and has no host override switch.
@@ -287,6 +396,11 @@ try {
     if($null -ne $manifest.test_assets){$assets=@($manifest.test_assets)}
     if($assets.Count -gt 1 -or ($assets.Count -eq 1 -and $assets[0].kind -cne 'VSCode')){throw 'Only one reviewed optional VS Code test asset is permitted.'}
     if($assets.Count){$allowed+='VSCode-test.zip'}
+    if($null -ne $manifest.official_app_assets){
+        if($manifest.official_app_assets.kind -cne 'ReviewedWindowsMediaApps' -or
+           $manifest.official_app_assets.relative_path -cne 'OfficialApps-test.zip'){throw 'Unknown optional official application asset.'}
+        $allowed+='OfficialApps-test.zip'
+    }
     if($null -ne $manifest.portable_test){
         if($Configurations -ceq 'Debug'){throw 'Portable validation requires a Release stage.'}
         $allowed+='PaneBindV1-portable-test.zip'
@@ -380,6 +494,7 @@ try {
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()
     foreach($asset in $assets){$summary.test_assets+=,(Prepare-VSCodeTestAsset $asset)}
+    if($null -ne $manifest.official_app_assets){$summary['official_app_assets']=Prepare-OfficialMediaApps $manifest.official_app_assets}
     if($null -ne $manifest.portable_test){
         $release=@($manifest.files | Where-Object relative_path -ceq 'panebind.exe')
         if($release.Count -ne 1){throw 'Portable source Release identity missing.'}

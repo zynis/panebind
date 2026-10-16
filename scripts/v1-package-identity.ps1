@@ -1,16 +1,15 @@
 # Shared identity checks for the existing V1 portable and guest packagers.
 # This file does not build, launch the product, or create a package.
 function Test-V1ProductToolOnlyPath([string]$Path) {
-    # Audited against src/platform/windows/CMakeLists.txt: panebind links only
-    # panebind_windows_product -> core + operation_geometry (the latter has
-    # window_translation.cpp only). These exact historical-MVP1 inputs belong
-    # to separate shield/owned-validation/flow targets, not the V1 product EXE.
+    # Audited against src/platform/windows/CMakeLists.txt: V1 now links the
+    # shared GestureInputShield as well as core + operation_geometry. Changes
+    # to gesture_input_shield.h/.cpp MUST invalidate product-binary reuse.
+    # These remaining exact historical-MVP1 inputs belong only to separate
+    # owned-validation/flow targets, not the V1 product EXE.
     # This is Product-only: the V1 fixture DOES link windows_explorer/shield,
     # so the separate Driver scope below is deliberately not widened. CMake,
     # real operation_geometry and all production includes remain protected.
     $separateMvp1Inputs=@(
-        'src/platform/windows/operations/gesture_input_shield.h',
-        'src/platform/windows/operations/gesture_input_shield.cpp',
         'src/platform/windows/operations/owned_gesture_shield_validation.cpp',
         'src/platform/windows/explorer/explorer_mvp_flow_tests.cpp',
         'scripts/prepare-r1c4b-mvp1-shield-sandbox.ps1',

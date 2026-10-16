@@ -5,6 +5,7 @@ param(
     # Driver-only changes do not require rebuilding or relabelling the product.
     [string]$ProductBuildDirectory,
     [string]$VSCodeAssetDirectory,
+    [string]$OfficialAppAssetDirectory,
     [string]$PortablePackageDirectory,
     [switch]$MediumEnvironmentProbe,
     [switch]$MediumDesktopProbe,
@@ -102,6 +103,70 @@ function Read-BuildIdentity([string]$Executable,[string]$Kind,[string]$ExpectedS
 }
 $testAssets=@()
 $vsCodeZip=$null
+$officialApps=$null
+$officialFiles=@()
+if($OfficialAppAssetDirectory){
+    # Pinned user-provided Windows media payloads, verified with the official
+    # IAppxFactory signed-blockmap API. Internal guest assets, not a product
+    # redistribution or a generic Appx importer. No media executable is run.
+    $assetRoot=[IO.Path]::GetFullPath($OfficialAppAssetDirectory)
+    if($assetRoot -cne (Join-Path $repo 'uat\v1-assets\f08fc54e44cf43eb811bc317c4249158')){throw 'Only the reviewed exact official-media asset directory is accepted.'}
+    $cursor=$assetRoot
+    while($cursor -and $cursor.StartsWith($repo,[StringComparison]::OrdinalIgnoreCase)){
+        if((Get-Item -LiteralPath $cursor).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Official asset ancestors must not be reparse points.'}
+        $cursor=[IO.Path]::GetDirectoryName($cursor)
+    }
+    $pins=@(
+        @('official-dependencies','Microsoft.VCLibs.140.00_14.0.30704.0_x64__8wekyb3d8bbwe',16,2112335,'DA48D70F7F15E6E5B107B7E1345EFA5E6F19595007656C4FB959A3D88BC4273B'),
+        @('official-dependencies','Microsoft.VCLibs.140.00.UWPDesktop_14.0.30704.0_x64__8wekyb3d8bbwe',28,14114229,'2C5FDF0360C91A98A38DD68ED3CEBF39638108F67F5198B938190DA3CA92DD71'),
+        @('official-dependencies','Microsoft.UI.Xaml.2.8_8.2310.30001.0_x64__8wekyb3d8bbwe',9,17113065,'1425B2B6710481AA35776CCCCD6B0425A39B086138A653859850598491ED4B2C'),
+        @('official-apps','Microsoft.WindowsNotepad_11.2312.18.0_x64__8wekyb3d8bbwe',232,11850868,'4E39B3F2FB2934F288161ED7369DB719976F8A5C0AC88A517A1CA31FAF9BB4BE'),
+        @('official-apps','Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.language-zh-hans_8wekyb3d8bbwe',4,22911,'06775630C3AF140B48F64D01407C6E20E9F9B07FF13697EF4FAF1584755F2E1B'),
+        @('official-apps','Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.scale-100_8wekyb3d8bbwe',22,33245,'85B25AB7C7531F4C8F49E0F82FC8AC0A1FA53FEFEF0D6BEB051B8E20F87AF7E6'),
+        @('official-apps','Microsoft.WindowsNotepad_11.2312.18.0_neutral_split.scale-125_8wekyb3d8bbwe',22,38984,'AAB3795FF7EBDBF7AB6A7D798DAA2BA7CEDBDF02CA0448E74B8DBD6455995C93'),
+        @('official-apps','Microsoft.WindowsTerminal_1.18.10301.0_x64__8wekyb3d8bbwe',245,18416538,'3ED96A9A5F540F3A29CCB71F230B63464318096032ED3FB43CF48D3C724CE5AB'),
+        @('official-apps','Microsoft.WindowsNotepad_11.2312.18.0_neutral_~_8wekyb3d8bbwe',3,47446,'F0C1AA97C5A0FAD3D478C6B40C08C91D26346D6B8B2AA05BF3795BFB523D2BD7'),
+        @('official-apps','Microsoft.WindowsTerminal_3001.18.10301.0_neutral_~_8wekyb3d8bbwe',3,23300,'C5DED41D2E70AA71EC251D0FD837C93C5CB49B821541BBAD49A8B6CFC57AFA82'))
+    $auditHashes=@{'signed-blockmap-validation.json'='17B1687624C144DA874CD6D5975439C191F43D77945F15E1DA2873F52A8FDD58';'official-apps-inspection.json'='49DF1B2698788EB77ECB4F737A2DE92C0DCC4244273AAF8C61B7617C6F087C71'}
+    foreach($name in $auditHashes.Keys){
+        $item=Get-Item -LiteralPath (Join-Path $assetRoot $name)
+        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+           (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash -cne $auditHashes[$name]){throw 'Reviewed official asset evidence identity changed.'}
+    }
+    $audit=Get-Content -LiteralPath (Join-Path $assetRoot 'signed-blockmap-validation.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    if($audit.schema -cne 'panebind-iso-signed-blockmap-validation/1' -or @($audit.packages).Count -ne 10 -or
+       @($audit.packages|Where-Object {$_.native_hresult -cne '0x00000000' -or $_.validated_signed_blockmap -ne $true}).Count){throw 'All ten exact signed blockmaps must have actual successful validation.'}
+    $packages=@()
+    foreach($pin in $pins){
+        $root=Join-Path $assetRoot ($pin[0]+'\Program Files\WindowsApps\'+$pin[1])
+        $pending=New-Object 'System.Collections.Generic.Queue[string]';$pending.Enqueue($root);$rows=@()
+        while($pending.Count){
+            $directory=$pending.Dequeue();$actual=Get-Item -LiteralPath $directory
+            if(-not $actual.PSIsContainer -or ($actual.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Official package directories must be plain.'}
+            foreach($item in @(Get-ChildItem -LiteralPath $directory -Force)){
+                if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Official package link rejected.'}
+                if($item.PSIsContainer){$pending.Enqueue($item.FullName);continue}
+                if($rows.Count -ge 600 -or $item.Length -gt 32MB){throw 'Official package bounds exceeded.'}
+                $relative=$item.FullName.Substring($root.Length+1).Replace('\','/')
+                if($relative -match '[|\r\n:]'){throw 'Official inventory path rejected.'}
+                $rows+=,[pscustomobject]@{path=$relative;size=$item.Length;sha256=(Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash;source=$item.FullName}
+            }
+        }
+        $rows=@($rows|Sort-Object path)
+        $canonical=(@($rows|ForEach-Object{$_.path+'|'+$_.size+'|'+$_.sha256})-join "`n")+"`n"
+        $digest=[Security.Cryptography.SHA256]::Create()
+        try{$inventory=([BitConverter]::ToString($digest.ComputeHash($utf8.GetBytes($canonical)))).Replace('-','')}finally{$digest.Dispose()}
+        if($rows.Count -ne $pin[2] -or ($rows|Measure-Object size -Sum).Sum -ne $pin[3] -or $inventory -cne $pin[4]){throw ('Reviewed package inventory changed: '+$pin[1])}
+        $packages+=,[ordered]@{name=$pin[1];files=$pin[2];bytes=$pin[3];inventory_sha256=$pin[4];register_manifest=(Test-Path -LiteralPath (Join-Path $root 'AppxManifest.xml'))}
+        foreach($row in $rows){$officialFiles+=,[pscustomobject]@{path=($pin[1]+'/'+$row.path);source=$row.source;size=$row.size;sha256=$row.sha256}}
+    }
+    $officialApps=[ordered]@{kind='ReviewedWindowsMediaApps';relative_path='OfficialApps-test.zip';asset_id='f08fc54e44cf43eb811bc317c4249158';
+        guest_directory=('C:\PaneBindV1\OfficialApps\'+$RunId);packages=$packages;expected_entries=$officialFiles.Count;
+        expanded_bytes=($officialFiles|Measure-Object size -Sum).Sum;zip_sha256=$null;zip_size=$null;
+        signed_blockmap_evidence_sha256=$auditHashes['signed-blockmap-validation.json'];
+        source_iso_whole_hash='NOT_VERIFIED';wim_warning='PRESERVED_SOME_FILES_HAVE_INCORRECT_REFERENCE_COUNT';
+        license_scope='user_provided_official_media_internal_guest_test_only_not_product_distribution';registration='NOT_RUN';activation='NOT_RUN'}
+}
 if($VSCodeAssetDirectory){
     # One pinned, previously downloaded official test asset, not a general
     # application downloader or permission to package arbitrary executables.
@@ -270,6 +335,20 @@ if($portableZip){
        (Get-FileHash -LiteralPath $portableZip -Algorithm SHA256).Hash -cne $portableTest.zip_sha256){throw 'Portable ZIP changed while copied; incomplete batch preserved.'}
     $payloadFiles+='PaneBindV1-portable-test.zip'
 }
+if($officialApps){
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archivePath=Join-Path $inputDir $officialApps.relative_path
+    $archive=[IO.Compression.ZipFile]::Open($archivePath,[IO.Compression.ZipArchiveMode]::Create)
+    try{foreach($file in $officialFiles){
+        $entry=$archive.CreateEntry($file.path,[IO.Compression.CompressionLevel]::Optimal)
+        $source=[IO.File]::OpenRead($file.source);$target=$entry.Open()
+        try{$source.CopyTo($target)}finally{$target.Dispose();$source.Dispose()}
+        if((Get-FileHash -LiteralPath $file.source -Algorithm SHA256).Hash -cne $file.sha256){throw 'Official asset changed during archive creation; preserve incomplete batch.'}
+    }}finally{$archive.Dispose()}
+    $officialApps.zip_sha256=(Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash
+    $officialApps.zip_size=(Get-Item -LiteralPath $archivePath).Length
+    $payloadFiles+=$officialApps.relative_path
+}
 $files = @($payloadFiles | ForEach-Object {
     $file = Get-Item -LiteralPath (Join-Path $inputDir $_)
     [ordered]@{ relative_path=$_; size=$file.Length; sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash }
@@ -287,6 +366,7 @@ $manifest = [ordered]@{
     source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
+    official_app_assets=$officialApps;
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
     medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck'};
     portable_test=$portableTest;

@@ -20,12 +20,9 @@ foreach($path in @('docs/reports/V1_ACCEPTANCE.json','scripts/v1-sandbox-guest.p
     Check (Test-V1ProductToolOnlyPath $path) ('tool-only path remains outside product identity: '+$path)
 }
 # Exact separate-target exemptions, not an operations/Explorer directory rule.
-# Current CMake product source/link declarations and their include closure were
-# inspected before adding these. Any future CMake/product/include change still
-# invalidates reuse; the Driver scope is unchanged because it links Explorer.
+# V1 now links GestureInputShield: only the unlinked owned/flow/test inputs
+# remain exempt. The Driver scope is unchanged because it also links Explorer.
 foreach($path in @(
-    'src/platform/windows/operations/gesture_input_shield.h',
-    'src/platform/windows/operations/gesture_input_shield.cpp',
     'src/platform/windows/operations/owned_gesture_shield_validation.cpp',
     'src/platform/windows/explorer/explorer_mvp_flow_tests.cpp',
     'scripts/prepare-r1c4b-mvp1-shield-sandbox.ps1',
@@ -33,11 +30,14 @@ foreach($path in @(
     Check (Test-V1ProductToolOnlyPath $path) ('exact unlinked MVP1 input permits unchanged V1 product reuse: '+$path)
 }
 foreach($path in @(
+    'src/platform/windows/operations/gesture_input_shield.h',
+    'src/platform/windows/operations/gesture_input_shield.cpp',
     'src/platform/windows/operations/window_translation.cpp',
     'src/platform/windows/operations/window_translation.h',
     'src/platform/windows/operations/window_rect_adjustment.h',
     'src/core/geometry/geometry.h',
     'src/platform/windows/product/input_service.cpp',
+    'src/platform/windows/product/guest_capture_scope.h',
     'src/platform/windows/CMakeLists.txt',
     'src/platform/windows/operations/owned_gesture_overlay_probe.cpp',
     'src/platform/windows/operations/gesture_input_shield_other.cpp',
