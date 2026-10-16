@@ -736,7 +736,7 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
         ",\"driver_left_outstanding_before\":true,\"driver_left_outstanding_after\":"+(s.left?"true":"false")+",\"delivery_not_inferred\":true,\"physical_button_held_not_inferred\":true");
     if(inserted!=packets.size())throw std::runtime_error("normal_release_serial_insertion_partial_delivery_UNKNOWN_no_UP_retry");
 }
-std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nullptr){
+std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nullptr,bool terminal_drag_bar=false){
     const auto started=GetTickCount64();RECT p{};DWORD root_pid{};
     SetLastError(0);const bool positioned=GetWindowRect(h,&p)!=FALSE;const DWORD positioning_error=positioned?0:GetLastError();
     SetLastError(0);const DWORD root_tid=GetWindowThreadProcessId(h,&root_pid),identity_error=root_tid?0:GetLastError();
@@ -777,6 +777,24 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
         const std::int64_t top=static_cast<std::int64_t>(p.top)+(actual_button_band?buttons.top:border_y),
             bottom=actual_button_band?static_cast<std::int64_t>(p.top)+buttons.bottom:top+(dpi?GetSystemMetricsForDpi(SM_CYCAPTION,dpi):0);
         candidate_mode=actual_button_band?"DWM_button_bounds_plus_DPI_border_edge_candidates_8x3":"DPI_frame_caption_edge_candidates_8x3";
+        if(terminal_drag_bar){
+            // Run1acb's real pixels/child facts show that the former first
+            // point was over XAML/tab content, not Terminal's actual drag bar.
+            // Its root's external HTCAPTION is not proof of native dragging.
+            // Prefer ONE actual, unique child band; all hit/identity/DWM gates
+            // below and the real native START gate remain required.
+            candidate_mode="actual_unique_Terminal_drag_bar_child_center_before_DWM_buttons";
+            const auto bar=FindWindowExW(h,nullptr,L"DRAG_BAR_WINDOW_CLASS",nullptr);
+            DWORD bar_pid{};const auto bar_tid=bar?GetWindowThreadProcessId(bar,&bar_pid):0;RECT band{};
+            if(bar&&bar_tid==root_tid&&bar_pid==root_pid&&GetAncestor(bar,GA_ROOT)==h&&IsWindowVisible(bar)&&
+                !FindWindowExW(h,bar,L"DRAG_BAR_WINDOW_CLASS",nullptr)&&GetWindowRect(bar,&band)&&
+                band.left>=p.left&&band.top>=p.top&&band.right<=p.right&&band.bottom<=p.bottom&&
+                band.left<band.right&&band.top<band.bottom){
+                const auto safe_right=std::min<std::int64_t>(band.right,right);
+                if(band.left<safe_right)candidate((static_cast<std::int64_t>(band.left)+safe_right)/2,
+                    (static_cast<std::int64_t>(band.top)+band.bottom)/2);
+            }
+        }else{
         // A single small candidate set, not a raster or a retry. These are
         // proposed points only: the SAME actual child hit and DWM exclusion
         // gates below still have to succeed before any input is sent.
@@ -790,6 +808,7 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
             const std::array<std::int64_t,3> ys{static_cast<std::int64_t>(p.top)+std::max<std::int64_t>(1,border_y/2),
                 top+(bottom-top)/2,top+(bottom-top)*3/4};
             for(const auto y:ys)for(const auto x:xs)candidate(x,y);
+        }
         }
     }else candidate_mode="unsupported_nonclient_region_no_candidate";
     candidate_rows+=']';
@@ -820,6 +839,10 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
         if(!read){++query_failures;sample("actual_hit_query_failed",point,actual,actual_root,actual_pid,actual_tid,true,false,hit,error,caption);continue;}
         if(static_cast<int>(hit)!=required){++wrong_hits;sample("actual_hit_different",point,actual,actual_root,actual_pid,actual_tid,true,true,hit,0,caption);continue;}
         if(required==HTCAPTION){const auto fresh=native_caption_observation(h,point);if(fresh.result()!=v1::CaptionHit::Caption){++fresh_guard_rejections;sample("fresh_caption_guard_rejected",point,actual,actual_root,actual_pid,actual_tid,true,true,hit,0,fresh);continue;}}
+        if(terminal_drag_bar&&failure_facts)*failure_facts="{\"candidate_mode\":"+quote(candidate_mode)+
+            ",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"hit_hwnd\":"+
+            std::to_string(reinterpret_cast<std::uintptr_t>(actual))+",\"actual_hit\":"+std::to_string(static_cast<LRESULT>(hit))+
+            ",\"native_START_or_product_authority_inferred\":false}";
         return point;
     }
     if(failure_facts){
@@ -1063,7 +1086,11 @@ void guest_native_pending_threshold_move(State& s,HWND source,POINT anchor,std::
 }
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);std::string hit_failure;
-    const auto point=hit_point(h,region,&hit_failure);
+    const auto& application=s.applications[source];
+    const bool terminal_bar=region==HTCAPTION&&application&&application->kind=="Terminal"&&application->identity&&
+        equal(application->identity->window_class,L"CASCADIA_HOSTING_WINDOW_CLASS");
+    const auto point=hit_point(h,region,&hit_failure,terminal_bar);
+    if(point&&terminal_bar)s.log.emit("application_nonclient_search_choice","\"application\":\"Terminal\",\"facts\":"+hit_failure);
     if(!point)s.log.emit("application_nonclient_search_failure","\"application\":"+quote(s.applications[source]?s.applications[source]->kind:own(s,h)?"OwnedFixture":"Explorer")+",\"facts\":"+hit_failure);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
     cursor(s,*point);
@@ -2865,7 +2892,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -2992,6 +3019,7 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
 }
 #include "platform/windows/product/v1_guest_terminal_case.h"
 void independent_entry_flow(State& s,bool core_and_applications=false){
+    const bool owned_components_only=s.suite=="OwnedComponentsOnly";
     const auto phase=[&](const char* name,void(*run)(State&)){
         independent_entry_ready(s,std::string(name)+".before",true);const auto mark=s.log.mark();bool exception=false;
         const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
@@ -3073,18 +3101,21 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             ",\"test_setup_not_old_chain_PASS\":true,\"failed_portable_Move_not_retried\":true");
         independent_entry_ready(s,"original_run_copy_restart.after",true);
     }else s.log.emit("independent_entry_phase_result","\"phase\":\"portable_ordinary_entry\",\"result\":\"NOT_RUN\",\"reason\":\"Release_only_actual_package_required\"");
-    }else s.log.emit("scoped_prior_components_not_repeated","\"suite\":\"CoreAndApplications\",\"settings_portable_rapid_cases\":\"NOT_RUN_IN_THIS_BATCH\",\"earlier_evidence_not_rebound\":true");
+    }else s.log.emit("scoped_prior_components_not_repeated","\"suite\":"+quote(s.suite)+",\"settings_portable_rapid_cases\":\"NOT_RUN_IN_THIS_BATCH\",\"earlier_evidence_not_rebound\":true");
     if(s.suite=="EntryAndSettings"){
         cleanup(s);
         s.log.emit("entry_settings_summary","\"suite\":\"EntryAndSettings\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
             ",\"scope\":\"existing_entry_settings_and_Release_portable_only\",\"owned_Core_I11\":\"NOT_RUN\",\"application_matrix\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
         return;
     }
+    if(owned_components_only){
+        s.log.emit("owned_components_skipped_scopes","\"suite\":\"OwnedComponentsOnly\",\"settings\":\"NOT_RUN\",\"portable\":\"NOT_RUN\",\"rapid_terminal_motion\":\"NOT_RUN\",\"I11\":\"NOT_RUN\",\"Release_idle60\":\"NOT_RUN\",\"Explorer\":\"NOT_RUN\",\"applications\":\"NOT_RUN\",\"prior_evidence_not_rebound\":true");
+    }
     // Execute existing components with their own actual setup, not the blocked
     // Full eight-window history or a newly invented successful continuation.
     phase("owned_dock_stretch_component",owned_dock_stretch_chains);
     phase("owned_interruption_component",owned_interruption_cases);
-    if(s.configuration=="Release"){
+    if(s.configuration=="Release"&&!owned_components_only){
         phase("owned_finite_I11_component",owned_finite_I11_chain);
         const auto idle=[](State& state){
             const auto measured=product::guest_test::measure_idle_60s(state.process,state.product_pid,process_birth(state.process));
@@ -3099,6 +3130,12 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
     phase("owned_temporary_visual_inflight_component",owned_temporary_visual_inflight_case);
     phase("owned_native_grid_constraint_component",owned_native_grid_constraint_case);
     phase("owned_second_member_native_failure_component",owned_second_member_native_failure_case);
+    if(owned_components_only){
+        cleanup(s);
+        s.log.emit("owned_components_summary","\"suite\":\"OwnedComponentsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"existing_owned_dock_stretch_interruption_visual_inflight_grid_batch_components_only\",\"owned_I02_acceptance\":\"NOT_GRANTED\",\"I11_acceptance\":\"NOT_GRANTED\",\"settings\":\"NOT_RUN\",\"portable\":\"NOT_RUN\",\"Release_idle60\":\"NOT_RUN\",\"Explorer\":\"NOT_RUN\",\"application_matrix\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"whole_version_acceptance\":\"NOT_GRANTED\",\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     // Successful exact Explorer roots remain available for the existing mixed
     // application group. The applications scope cleans them after that group;
     // an unsuccessful Explorer chain still cleans its own registered roots.
@@ -3159,8 +3196,8 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"){
-            independent_entry_flow(s,s.suite=="CoreAndApplications");s.result=s.log.failed?1:0;
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"){
+            independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="ApplicationsOnly"){
             try{
                 independent_entry_ready(s,"application_matrix.before",true);
@@ -3382,7 +3419,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3454,7 +3491,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;

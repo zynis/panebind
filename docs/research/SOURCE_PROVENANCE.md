@@ -1,5 +1,44 @@
 # Source Provenance Register
 
+## V1 application follow-up: real drag band and Chromium startup failure — 2026-10-17
+
+Run `1acb8c6bd6184c5bbf615497bf6bb57a` retained the actual Terminal screen
+(`2081C3B55CEC30362CD48BA99AA4AB7B1440A738E7FFB4988EB971530630F5A3`)
+and child inventory: the old point `[153,172]` was outside its actual
+`DRAG_BAR_WINDOW_CLASS` band `[632,151,1048,211)`. The existing fixed Terminal
+revision / issue8795 / PR11680 review below already establishes that an external
+root HTCAPTION does not prove native dragging. Reused that evidence; reread
+`IslandWindow.cpp` at `dc8ae365847d41f62d1ebca93815bb00959bc12f` (MIT,
+reference only) and Microsoft's [FindWindowExW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-findwindowexw)
+contract (direct children, not recursive). A TEST-only point candidate may use
+one unique real child band, excluding actual DWM buttons. Actual hit, source
+identity, foreground, native START and all product authority gates remain.
+The screen also shows cmd startup `0xd0000022`; moving its frame would not
+prove that Terminal's shell/client works. New point selection is pending runtime.
+
+The same run's Code log actually reports GPU child launch error49 and a fatal
+unusable GPU process, even with the official `--disable-gpu` option. Inspected
+the official version chain: [VS Code1.142.0 .npmrc](https://raw.githubusercontent.com/microsoft/vscode/1.142.0/.npmrc)
+pins Electron43.7.7; [Electron DEPS](https://raw.githubusercontent.com/electron/electron/v43.7.7/DEPS)
+pins Chromium150.0.7871.250. At that tag,
+[sandbox_types.h](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/sandbox/win/src/sandbox_types.h)
+defines49 as `SBOX_ERROR_CANNOT_CREATE_RESTRICTED_TOKEN`; [sandbox_policy_base.cc](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/sandbox/win/src/sandbox_policy_base.cc)
+returns it when preparing the restricted primary token fails. Also inspected
+that tag's GPU host/mode handling and Electron's `DisableHardwareAcceleration`:
+software rendering does not guarantee absence of a GPU/Viz child sandbox.
+The lower-level failed API/errno remains UNKNOWN; do not identify this as a
+Win32 error49, hardware-driver defect, UIPI or a PaneBind input failure.
+No evidence-backed additional software flag within the current security
+boundaries was found. Do not disable sandboxing or alter token/ACL/system
+configuration to manufacture an application PASS.
+
+Upstream classification: mature official production projects. VS Code/Electron
+source MIT, Chromium BSD-style with its source LICENSE; no code copied/adapted,
+translated or redistributed into PaneBind, no new dependency/attribution due.
+Official live API documentation has no immutable revision claim. Historical
+failures keep their original product/driver identity; Edge's actual blank pixels
+do not prove the same startup cause as Code.
+
 ## MVP1 guest command-only contrast — 2026-10-12
 
 Scope: only the guest entry's console dependency becomes a single RunId/configuration
