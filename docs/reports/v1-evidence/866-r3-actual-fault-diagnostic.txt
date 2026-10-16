@@ -1,0 +1,71 @@
+PaneBind V1
+SOURCE_SHA=37e5ffce1290f3c8e07056083e42666859eebe0d
+HUMAN_UAT=PENDING
+OS_BUILD=26100
+OS_UBR=9711
+LAST_GESTURE_END=0
+HOOK_OWNER_RUNNING=true
+DISPLAY_DPI=144 WORK=[0,0,3050,1596]
+LAST_WINDOW_CLASS=PaneBind.V1.OwnedFixture.866d2342e2994233a48c8a97106d660f DPI=144
+# PaneBind configuration v1; UTF-8; modifiers Alt=1 Ctrl=2 Shift=4 Super=8
+schema=1
+generation=16
+enabled=true
+magnet_move=true
+magnet_resize=true
+glue=true
+docking=true
+stretch=true
+smart_docking=true
+smart_stretch=true
+preview=true
+feedback=true
+drag_transparency=false
+shake=false
+animations=false
+startup=false
+attraction_dip=10
+release_dip=16
+speed_dip=2000
+adjacency_dip=2
+step_dip=10
+preview_alpha=100
+preview_color=14120960
+drag_alpha=190
+shake_alpha=190
+shake_amplitude_dip=24
+shake_reversals=3
+shake_window_ms=700
+seam_dwell_ms=400
+dock.0=DockLeft
+dock.1=DockRight
+dock.2=Maximize
+dock.3=DockBottom
+dock.4=DockTopLeft
+dock.5=DockTopRight
+dock.6=DockBottomLeft
+dock.7=DockBottomRight
+hotkey_count=9
+hotkey.0=3,37,DockLeft
+hotkey.1=3,39,DockRight
+hotkey.2=3,38,Maximize
+hotkey.3=3,40,DockBottom
+hotkey.4=3,67,Center
+hotkey.5=3,82,Restore
+hotkey.6=3,85,Undo
+hotkey.7=3,84,ToggleTopmost
+hotkey.8=3,78,NextDisplay
+mouse_count=9
+mouse.0=0,1,2,0,Maximize
+mouse.1=1,1,2,0,StretchLeft
+mouse.2=2,1,2,0,StretchRight
+mouse.3=3,1,2,0,StretchTop
+mouse.4=4,1,2,0,StretchBottom
+mouse.5=1,1,2,4,StretchHorizontal
+mouse.6=2,1,2,4,StretchHorizontal
+mouse.7=3,1,2,4,StretchVertical
+mouse.8=4,1,2,4,StretchVertical
+rule_count=0
+
+Recent failure: 无法原子保存配置，原配置未覆盖。
+Window titles, document contents and full rule paths are not collected.

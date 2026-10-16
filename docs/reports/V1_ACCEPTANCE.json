@@ -8,16 +8,16 @@
   "dev_complete": false,
   "human_uat": "PENDING",
   "source_identity": {
-    "runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+    "runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "pending_runtime_sha": null,
     "final_sha": null,
-    "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "R2/458冻结；f9同98fc完成M11-F03，当前6功能、B29/B32共5%。a623原UNKNOWN/f63原async门拒绝保留；后继d546以4cd独立Debug探针两代真实关联/capture/legacy UP/释放/解除/NormalUp撤罩通过资源范围；无V1 InputService/MoveSession/writer，退出风险/Explorer/Release新路线未跑，旧D08 OPEN。 86a同R2真实导出失败无可见提示，M12-F02从BLOCKED转FAIL；37e5 UI-only新源码待构建/现场，不换绑R2既有6个PASS。",
-    "pending_product_note": "37e5为真实产品UI-only修复（导出失败自有MessageBox反馈），新EXE身份和定向运行待完成；此前R2/458及原98fc的实测/6项PASS原身份保留，驱动变更仍不重建产品。用户已有合法ISO/VM但RAM不足，不新建VM/改宿主资源；普通完整桌面/多屏继续缺可用隔离资源。",
-    "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "latest_observed_run_id": "f9b6012a43e345648d52c067ff9594f8"
+    "implementation_inspected": "CURRENT_R3_REAL_RELEASE_MEDIUM_ENTRY_DIAGNOSTIC_PORTABLE_SCOPED_NOT_WHOLE_VERSION",
+    "note": "当前R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
+    "pending_product_note": "R3为新的产品EXE，actual866日志不绑R2；后继正式输入/新资源产品接线还将产生新候选，未生成身份或结果不预填。已有ISO/VM但RAM不足；只读台式机库存未确认可用注册VM，不等于全盘不存在，未启动/改资源。",
+    "latest_observed_runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "latest_observed_run_id": "866d2342e2994233a48c8a97106d660f"
   },
   "scorecard": {
     "denominator": 40,
@@ -72,7 +72,7 @@
       "B39",
       "B40"
     ],
-    "note": "当前R2仅B29（M01-F05/M11-F05完整独立合同）及B32（原98fc便携独立合同）PASS，共5%；6/60功能PASS不等于所有关联功能、模块或整版通过，B33–B40固定DEFERRED。旧包/批次原身份保留。"
+    "note": "固定B29/B32通过，共2/40=5%；当前7/60独立功能有完整合同证据，含新R3/866 M12-F02定向通过，不等于模块/正式输入或整版通过。六项原R2完整结果保持原身份，R3对应entry/settings/portable重验单列；B33–B40固定DEFERRED。"
   },
   "hard_gates": [
     {
@@ -168,7 +168,8 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -180,7 +181,8 @@
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -208,7 +210,15 @@
       "nonblocking_historical_defects": [
         "V1-D14"
       ],
-      "historical_defect_scope_note": "97不同源码顺序Debug→Release测试激活差异保留OPEN；不是当前同R2普通二启合同失败或其根因已关闭。"
+      "historical_defect_scope_note": "97不同源码顺序Debug→Release测试激活差异保留OPEN；不是当前同R2普通二启合同失败或其根因已关闭。",
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": false
+      }
     },
     {
       "id": "M01-F02",
@@ -458,7 +468,8 @@
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -474,7 +485,8 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -492,7 +504,15 @@
           "run_id": "c01ffe67d3004961bd00765312869c8a",
           "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9d74 seq264/267真实启用精确HKCU Run --startup，276/279关闭并移除，284组件PASS。"
         }
-      ]
+      ],
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": false
+      }
     },
     {
       "id": "M02-F01",
@@ -1122,14 +1142,16 @@
       "defects": [
         "V1-D02",
         "V1-D08",
-        "V1-D11"
+        "V1-D11",
+        "V1-D23"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
       "observed": "c01第二成员失败无第三调用及幸存恢复通过；grid/sourceclose匹配UP、临时在途仍有原失败。",
       "remaining_conditions": [
-        "真实释放与恢复组合有未关闭反例；安全撤权不等于完整收尾通过。"
+        "真实释放与恢复组合有未关闭反例；安全撤权不等于完整收尾通过。",
+        "源码确认D23：匹配UP后仍可能新增continuous terminal native调用，非在途完成；明确DockCommit例外不涵盖该路径。新修复/定向现场尚未运行。"
       ],
       "next_action": "修释放路径后按影响复验Esc/失效/第二成员及下一手势。",
       "partial_observation_ids": [
@@ -1191,7 +1213,11 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
         "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
-        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
       ],
       "defects": [
         "V1-D09",
@@ -1211,7 +1237,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1230,12 +1257,18 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
-        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "observation_id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+        "result": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
         "current_product_source_unchanged": true,
         "V1_Move_or_Explorer_PASS": false,
-        "exit_risk_scenarios": "NOT_RUN"
+        "remaining_not_run": {
+          "real_Move_writer_and_writer_stall": "NOT_RUN",
+          "cross_process_Explorer": "NOT_RUN",
+          "new_route_Release": "NOT_RUN",
+          "capture_loss": "NOT_RUN",
+          "human_uat": "NOT_RUN"
+        }
       }
     },
     {
@@ -1289,20 +1322,26 @@
         "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
         "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
-        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
         "V1-D09",
         "V1-D15",
-        "V1-D17"
+        "V1-D17",
+        "V1-D23"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
       "observed": "c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。",
       "remaining_conditions": [
-        "匹配释放及跨代/迟到事件在连续操作中未完全闭环。"
+        "匹配释放及跨代/迟到事件在连续操作中未完全闭环。",
+        "源码确认D23：匹配UP后仍可能新增continuous terminal native调用，非在途完成；明确DockCommit例外不涵盖该路径。新修复/定向现场尚未运行。"
       ],
       "next_action": "D17定向已关闭，不再扩展已关闭专项；保留D08真实postResize/visual等缺UP失败，按有限路线区分driver/guest与产品，最终同候选完整链和15分钟另验。",
       "partial_observation_ids": [
@@ -1317,7 +1356,8 @@
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1336,12 +1376,18 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
-        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "observation_id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+        "result": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
         "current_product_source_unchanged": true,
         "V1_Move_or_Explorer_PASS": false,
-        "exit_risk_scenarios": "NOT_RUN"
+        "remaining_not_run": {
+          "real_Move_writer_and_writer_stall": "NOT_RUN",
+          "cross_process_Explorer": "NOT_RUN",
+          "new_route_Release": "NOT_RUN",
+          "capture_loss": "NOT_RUN",
+          "human_uat": "NOT_RUN"
+        }
       }
     },
     {
@@ -1449,7 +1495,11 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
         "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
-        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1470,7 +1520,8 @@
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1490,12 +1541,18 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
-        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "observation_id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+        "result": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
         "current_product_source_unchanged": true,
         "V1_Move_or_Explorer_PASS": false,
-        "exit_risk_scenarios": "NOT_RUN"
+        "remaining_not_run": {
+          "real_Move_writer_and_writer_stall": "NOT_RUN",
+          "cross_process_Explorer": "NOT_RUN",
+          "new_route_Release": "NOT_RUN",
+          "capture_loss": "NOT_RUN",
+          "human_uat": "NOT_RUN"
+        }
       }
     },
     {
@@ -1547,20 +1604,26 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
         "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
-        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
         "V1-D11",
         "V1-D15",
-        "V1-D17"
+        "V1-D17",
+        "V1-D23"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
       "observed": "c01同PID Deadline后Move/Resize与故障后幸存Move/Ctrl通过；I11 g26未NormalUp，完整连续链未成立。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。",
       "remaining_conditions": [
-        "无需重启的全核心连续操作合同仍被普通释放反例阻断。"
+        "无需重启的全核心连续操作合同仍被普通释放反例阻断。",
+        "源码确认D23：匹配UP后仍可能新增continuous terminal native调用，非在途完成；明确DockCommit例外不涵盖该路径。新修复/定向现场尚未运行。"
       ],
       "next_action": "D17定向已关闭，不再扩展已关闭专项；保留D08真实postResize/visual等缺UP失败，按有限路线区分driver/guest与产品，最终同候选完整链和15分钟另验。",
       "partial_observation_ids": [
@@ -1574,7 +1637,8 @@
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1593,12 +1657,18 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
-        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "observation_id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+        "result": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
         "current_product_source_unchanged": true,
         "V1_Move_or_Explorer_PASS": false,
-        "exit_risk_scenarios": "NOT_RUN"
+        "remaining_not_run": {
+          "real_Move_writer_and_writer_stall": "NOT_RUN",
+          "cross_process_Explorer": "NOT_RUN",
+          "new_route_Release": "NOT_RUN",
+          "capture_loss": "NOT_RUN",
+          "human_uat": "NOT_RUN"
+        }
       }
     },
     {
@@ -3753,7 +3823,8 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/f9-mapping-product-selected.jsonl"
+        "docs/reports/v1-evidence/f9-mapping-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -3767,7 +3838,8 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-        "PO-F9-MAPPING-CONFLICT-DEFAULTS"
+        "PO-F9-MAPPING-CONFLICT-DEFAULTS",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3785,7 +3857,15 @@
           "run_id": "c01ffe67d3004961bd00765312869c8a",
           "observed": "c01真实五键映射及GUI热键更改影响实际目标。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。"
         }
-      ]
+      ],
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": false
+      }
     },
     {
       "id": "M11-F04",
@@ -3908,7 +3988,8 @@
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -3926,7 +4007,8 @@
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-5017-SETTINGS-REAL-EFFECTS",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3944,7 +4026,15 @@
           "run_id": "c01ffe67d3004961bd00765312869c8a",
           "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。"
         }
-      ]
+      ],
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": false
+      }
     },
     {
       "id": "M12-F01",
@@ -4026,14 +4116,14 @@
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "生产GUI/托盘共用export_diagnostic；86a已补实际导出自身失败负例：无假文件/恢复通过但缺可见报错FAIL，37e5补UI反馈待新候选复验。",
-      "dev_status": "FAIL",
+      "implementation_note": "37e5补显式导出失败的自有中文错误MessageBox；866实际可见modal/真实ack、无假包、原ACL/原实例恢复、恢复后导出解析及真实故障字段完整通过，只授本功能。",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M12-F02-DEV",
           "required_observation": "用人为失效生成可读包，离线解析；敏感字段默认脱敏；失败导出明确报错，不生成假完整包",
-          "status": "FAIL",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
@@ -4041,21 +4131,25 @@
             "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
             "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
             "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
+            "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
+            "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+            "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+            "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
             "PO-97-SETTINGS-DIAGNOSTIC",
             "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
-            "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+            "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+            "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
       "environment_id": "E02",
-      "run_id": "86a42fd21f544a0dba0db056be424946",
+      "run_id": "866d2342e2994233a48c8a97106d660f",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
@@ -4068,11 +4162,12 @@
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
         "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt"
       ],
-      "defects": [
-        "V1-D22"
-      ],
+      "defects": [],
       "partial_observation_ids": [
         "PO-97-SETTINGS-DIAGNOSTIC",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -4082,31 +4177,33 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
-        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "ACTUAL_PRODUCT_EXPORT_FAILURE_VISIBLE_FEEDBACK_NEGATIVE_PENDING_UI_ONLY_FIX",
-      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。；86a真实同SID本地DACL拒绝5后实际点击导出，仅日志notice/无可见modal，0假final/tmp且配置未变；精确ACL恢复后再次导出/解析通过，原实例恢复后仍保留739/746FAIL。",
-      "remaining_conditions": [
-        "导出自身失败负例已实际运行，不再NOT_RUN：旧R2缺少用户可见错误反馈。37e5 UI-only新候选仍须真实modal/无假包、DACL精确恢复、恢复后导出及正常停机复验；原完整内容/脱敏证据保持各自身份，未换绑新EXE。"
-      ],
-      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。",
+      "status_basis": "COMPLETE_INDEPENDENT_DIAGNOSTIC_EXPORT_CONTRACT_ACTUAL_NEW_R3_TARGETED_REVALIDATION",
+      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。；86a真实同SID本地DACL拒绝5后实际点击导出，仅日志notice/无可见modal，0假final/tmp且配置未变；精确ACL恢复后再次导出/解析通过，原实例恢复后仍保留739/746FAIL。；新866/R3实际同目录拒5后有可见中文错误modal/2次真实文本查询并实际Enter关闭；0假包/配置不变，精确恢复后导出解析与原实例恢复均通过。真实配置失败诊断原件含完整R3/OS/DPI/窗口类别/脱敏设置/Recent failure/终止原因并入库。",
+      "remaining_conditions": [],
+      "next_action": "本功能定向闭合，保留86a原失败；只按后续真实影响复验，不追加无关托盘/整版条件。Module M12及正式输入/Full仍未通过。",
       "latest_product_observation": {
-        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
-        "driver_binary_sha256": "75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA",
-        "run_id": "86a42fd21f544a0dba0db056be424946",
+        "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "product_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "driver_binary_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
         "observation_ids": [
-          "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+          "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
         ],
-        "scope": "actual_R2_ordinary_Medium_GUI_export_failure_same_SID_guest_local_DACL_and_recovery_not_Full"
+        "scope": "new_R3_Release_Medium_EntryAndSettings_GUI_export_failure_and_recovery_independent_contracts_not_Full"
       },
       "resolved_or_nonblocking_historical_defects": [
-        "V1-D16"
+        "V1-D16",
+        "V1-D22"
       ],
-      "pending_fix_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d"
+      "pending_fix_source_sha": null
     },
     {
       "id": "M12-F03",
@@ -4160,7 +4257,8 @@
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -4173,7 +4271,8 @@
         "PO-D85-R2-PORTABLE-CONTRACT",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
-        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -4229,7 +4328,15 @@
           "package_id": "98fc5fb109a740aba7c27baa0cd29825",
           "observed": "9d74同98fc原ZIP普通默认/保存效果/UP与退出子链实际通过；不换绑新driver。"
         }
-      ]
+      ],
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": false
+      }
     },
     {
       "id": "M12-F04",
@@ -4279,7 +4386,8 @@
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/acceptance-metadata-contract-transcript.txt"
+        "docs/reports/v1-evidence/acceptance-metadata-contract-transcript.txt",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -4294,7 +4402,8 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
-        "PO-METADATA-INDEPENDENT-CONTRACT"
+        "PO-METADATA-INDEPENDENT-CONTRACT",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -4321,7 +4430,15 @@
         "V1-D03",
         "V1-D05",
         "V1-D16"
-      ]
+      ],
+      "current_candidate_review": {
+        "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+        "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "run_id": "866d2342e2994233a48c8a97106d660f",
+        "scope": "UI-only export-failure feedback diff; relevant actual866 entry/settings/portable reruns, not Full",
+        "previous_native_results_keep_original_identity": true,
+        "metadata_validator_current_run_required": true
+      }
     },
     {
       "id": "M12-F05",
@@ -5062,7 +5179,7 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "日志/诊断/便携组件、固定机器表及校验器、中文指南和集中缺陷review入口均已落地；模块实施不等于模块DEV或整版验收通过。",
-      "dev_status": "FAIL",
+      "dev_status": "BLOCKED",
       "human_status": "NOT_RUN",
       "source_sha": null,
       "binary_sha256": null,
@@ -5082,7 +5199,10 @@
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
         "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -5111,15 +5231,15 @@
         "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
         "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
         "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
-        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "remaining_conditions": [
         "M12-F01: 见对应功能的具体remaining_conditions",
-        "M12-F02: 见对应功能的具体remaining_conditions",
         "M12-F05: 见对应功能的具体remaining_conditions"
       ],
       "next_action": "M12-F03已按独立便携合同PASS；其余功能与模块按完整DEV合同继续，不由9e5定向包推整版通过。",
-      "observed": "；R2/d85 M12-F03独立包合同PASS，不代替完整M12模块/I12。；86a补真实导出自身失败，M12-F02可见反馈FAIL，37e5待定向复验，不因包/元数据独立PASS授模块通过。"
+      "observed": "；R2/d85 M12-F03独立包合同PASS，不代替完整M12模块/I12。；86a补真实导出自身失败，M12-F02可见反馈FAIL，37e5待定向复验，不因包/元数据独立PASS授模块通过。；866新R3已定向关闭D22/M12F02独立PASS，其他模块合同不自动通过。"
     }
   ],
   "benchmarks": [
@@ -7011,7 +7131,8 @@
         "actual_Medium_nonElev_nonAdmin_session1": true,
         "child_phase_or_receipt_observed": false,
         "same_route_further_attempts": "STOPPED_FINITE_INVESTIGATION_BUDGET"
-      }
+      },
+      "existing_VM_inventory_ref": "evidence_mapping.existing_VM_inventory"
     },
     {
       "id": "E02",
@@ -7116,7 +7237,8 @@
         "actual_Medium_nonElev_nonAdmin_session1": true,
         "child_phase_or_receipt_observed": false,
         "same_route_further_attempts": "STOPPED_FINITE_INVESTIGATION_BUDGET"
-      }
+      },
+      "existing_VM_inventory_ref": "evidence_mapping.existing_VM_inventory"
     },
     {
       "id": "E04",
@@ -7168,7 +7290,8 @@
         "actual_Medium_nonElev_nonAdmin_session1": true,
         "child_phase_or_receipt_observed": false,
         "same_route_further_attempts": "STOPPED_FINITE_INVESTIGATION_BUDGET"
-      }
+      },
+      "existing_VM_inventory_ref": "evidence_mapping.existing_VM_inventory"
     },
     {
       "id": "E05",
@@ -7220,7 +7343,8 @@
         "actual_Medium_nonElev_nonAdmin_session1": true,
         "child_phase_or_receipt_observed": false,
         "same_route_further_attempts": "STOPPED_FINITE_INVESTIGATION_BUDGET"
-      }
+      },
+      "existing_VM_inventory_ref": "evidence_mapping.existing_VM_inventory"
     },
     {
       "id": "E06",
@@ -7657,7 +7781,8 @@
         "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
       ],
       "route_replacement_investigation": {
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
@@ -7665,16 +7790,23 @@
         "new_candidate_first_LL_DOWN_consumed": true,
         "new_capture_or_normal_end_proven": true,
         "original_defect_closed": false,
-        "latest_observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "latest_status": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
-        "latest_candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+        "latest_observation_id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "latest_status": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
+        "latest_candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
         "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
         "repair_status": "ASYNC_GATE_FIX_TARGETED_OWNED_RESOURCE_NORMAL_REPEAT_VERIFIED_ONLY",
         "old_native_physical_key_gate_changed": false,
-        "latest_candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
-        "proof_scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "latest_candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+        "proof_scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
         "new_V1_Move_or_Explorer_proven": false,
-        "exit_risks": "NOT_RUN"
+        "exit_risks": "TARGETED_EARLYUP_HOTKEY_AND_SHORT_DEADLINE_SOURCE_PAUSE_SCOPED_PASS",
+        "remaining_not_run": {
+          "real_Move_writer_and_writer_stall": "NOT_RUN",
+          "cross_process_Explorer": "NOT_RUN",
+          "new_route_Release": "NOT_RUN",
+          "capture_loss": "NOT_RUN",
+          "human_uat": "NOT_RUN"
+        }
       }
     },
     {
@@ -7944,28 +8076,52 @@
     },
     {
       "id": "V1-D22",
-      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
       "severity": "S2",
       "kind": "DIAGNOSTIC_EXPORT_FAILURE_NO_VISIBLE_GUI_FEEDBACK",
       "product_code_changed": true,
-      "description": "86a使用原R2/458普通Medium GUI，在精确guest-local同SID FILE_ADD_FILE拒绝5下，真实导出失败仅记录notice，没有实际可见错误modal；无假final/tmp包且原配置未变。原DACL恢复、正例重新导出解析、原实例恢复均通过后，visible_error_required真实FAIL，不是环境或收集工具错误。37e5仅补自有中文错误MessageBox及保留notice；新构建/实际可见反馈尚待定向复验，不能用API返回补PASS。",
+      "description": "86a使用原R2/458普通Medium GUI，在精确guest-local同SID FILE_ADD_FILE拒绝5下，真实导出失败仅记录notice，没有实际可见错误modal；无假final/tmp包且原配置未变。原DACL恢复、正例重新导出解析、原实例恢复均通过后，visible_error_required真实FAIL，不是环境或收集工具错误。37e5仅补自有中文错误MessageBox及保留notice；新构建/实际可见反馈尚待定向复验，不能用API返回补PASS。 后继866以新R3/658C12实际观察中文modal并Enter关闭；原ACL恢复/0假包/再次导出解析/原实例恢复后740/745 PASS，按此精确范围关闭，不是独立review或整版自签。",
       "features": [
         "M12-F02"
       ],
       "partial_observation_ids": [
-        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+        "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
       ],
       "evidence_paths": [
         "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt"
       ],
       "failed_product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "failed_product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "failed_run_id": "86a42fd21f544a0dba0db056be424946",
       "repair_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
       "repair_scope": "UI-only: failed explicit export now requests own MessageBoxW and retains failure notice/no fake export. No target-window interaction or input/geometry logic changes.",
-      "repair_status": "DEV_FIXED_PENDING_BUILD_AND_TARGETED_RUNTIME_REVALIDATION",
-      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。"
+      "repair_status": "ACTUAL_VISIBLE_ERROR_AND_FULL_EXPORT_FAILURE_RECOVERY_CONTRACT_TARGETED_PASS",
+      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。",
+      "targeted_runtime_run_id": "866d2342e2994233a48c8a97106d660f",
+      "targeted_runtime_product_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "targeted_runtime_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067"
+    },
+    {
+      "id": "V1-D23",
+      "status": "SOURCE_CONFIRMED_OPEN_PENDING_REPAIR_AND_TARGETED_NATIVE_VALIDATION",
+      "severity": "S1",
+      "kind": "NEW_CONTINUOUS_TERMINAL_PLACEMENT_AFTER_MATCHED_UP_NOT_ALREADY_ISSUED_COMPLETION",
+      "description": "源码复核确认R408引入的NormalUp terminal路径仍可在匹配UP被观察后发起新的continuous native placement，区别于已发出调用的在途完成，违反guide5.2。R3继承该逻辑；旧rapid251和其他NormalUp PASS只证明当时断言，不证明此合同已满足，不重标签旧运行。release DockCommit是guide M08单独明确例外，不能据此放行continuous terminal。主执行者与input代理确认正在收窄修复；尚无新修复身份/现场结果，不预填。",
+      "features": [
+        "M03-F05",
+        "M04-F02",
+        "M04-F05"
+      ],
+      "source_reviewed_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "origin_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "evidence_basis": "SOURCE_REVIEW_CONFIRMED_BY_MAIN_AND_INPUT_AGENTS_NOT_NEW_NATIVE_COUNTEREXAMPLE_LOG",
+      "runtime_revalidation": "NOT_RUN",
+      "next_action": "仅修复UP后新continuous调用与新资源产品接线的实际缺口，保留已发出调用/精确后验/停止语义及明确DockCommit例外；以新SHA定向及最终整链验证。"
     }
   ],
   "evidence_policy": {
@@ -8583,67 +8739,119 @@
       },
       "human_uat": "NOT_RUN",
       "note": "R2 EXE与98fc ZIP不变；0a8f补实际startup/二启及真实配置失败故障包，当前独立F01/F05与B29通过；诊断导出失败负例未跑，整批仅tray BLOCKED仍FAIL，非Full/I11/apps。"
+    },
+    {
+      "run_id": "f9b6012a43e345648d52c067ff9594f8",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "driver_source_sha": "9a77cd755b08edb5e0a38be567e437d664959be4",
+      "packaging_head": "9a77cd755b08edb5e0a38be567e437d664959be4",
+      "receipt_path": "uat/v1-sandbox/f9b6012a43e345648d52c067ff9594f8/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/f9b6012a43e345648d52c067ff9594f8/input/manifest.json",
+      "zip_sha256": "49EB7A5E14E7A669678ED707D6A90B423D7BCB1E75F2F78EA91F1C6F30107CD6",
+      "manifest_sha256": "56602FF600FBF10594874576B424887EF277DA3EEAD8E5CE6FD5E6D2143868C7",
+      "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
+      "release_fixture_sha256": "EB3C2F76F680ADCF5F838740C3BF7BC5ECC82D53C62266B0E4FDB950B4AF6F97",
+      "debug_fixture_sha256": "4BF9F22536B2AF60786583ADCD22EF9318FC949991260A42FB473A4CED6C9923",
+      "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
+      "guest_configurations": "Release",
+      "guest_suite": "EntryAndSettings",
+      "guest_function_status": "MAPPING_CONFLICT_DEFAULTS_INDEPENDENT_PASS_EXISTING_ENTRY_COMPONENTS_PASS_WHOLE_TRAY_BLOCKED",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "offline_regression": {
+        "Debug": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 4.07,
+          "label_seconds": 4.03
+        },
+        "Release": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 3.01,
+          "label_seconds": 1.65
+        },
+        "input_route_directed_each_configuration": "252/252_PASS",
+        "evidence_kind": "PARENT_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
+        "tool_chunks": [
+          "505e83",
+          "23335e"
+        ],
+        "not_function_DEV_PASS": true
+      },
+      "human_uat": "NOT_RUN",
+      "note": "产品R2和98fc原ZIP不变；f9新driver实际完成M11-F03，整EntryAndSettings仅trayBLOCKED仍FAIL。a623为另一个新输入平台探针，非R2产品/不是新NormalUp或writer通过。",
+      "portable_candidate": {
+        "package_id": "98fc5fb109a740aba7c27baa0cd29825",
+        "source_commit": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "packaging_head": "ecab19190196365211a1ce22e76cf2316240c899",
+        "receipt_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/package-receipt.json",
+        "manifest_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/PaneBindV1/manifest.json",
+        "zip_sha256": "E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236",
+        "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "actual_ordinary_no_argument_entry": "PASS_ACTUAL_NORMAL_GUI_DEFAULT_AND_SAVED_SETTING_MOVE_NORMALUP_NORMAL_EXIT_BYTES",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "partial_observation_id": "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+        "functional_driver_chain": "PASS_SCOPED_PORTABLE_WITH_ORDINARY_SECONDARY_NOT_FULL_I12",
+        "prior_independent_portable_contract_PASS": "R2_0c710_d85_evidence_retained_not_rebound",
+        "note": "原98fc ZIP同EXE，0a8f实际无参二启保持原PID/birth/设置HWND，默认与保存后的实际Move/UP、正常退出/原字节/无profile通过；9d74/5017与0c710历史保留，不换绑。",
+        "latest_scoped_result": "f9/919 same98fc actual portable subchainPASS, notFull; 0a8f and9d74 original identities retained",
+        "latest_additional_scoped_run_id": "f9b6012a43e345648d52c067ff9594f8"
+      },
+      "retained_from": "previous_current_R2_package_and_portable_whole_objects_not_rebound_to_R3"
     }
   ],
   "current_package": {
-    "run_id": "f9b6012a43e345648d52c067ff9594f8",
-    "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "driver_source_sha": "9a77cd755b08edb5e0a38be567e437d664959be4",
-    "packaging_head": "9a77cd755b08edb5e0a38be567e437d664959be4",
-    "receipt_path": "uat/v1-sandbox/f9b6012a43e345648d52c067ff9594f8/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/f9b6012a43e345648d52c067ff9594f8/input/manifest.json",
-    "zip_sha256": "49EB7A5E14E7A669678ED707D6A90B423D7BCB1E75F2F78EA91F1C6F30107CD6",
-    "manifest_sha256": "56602FF600FBF10594874576B424887EF277DA3EEAD8E5CE6FD5E6D2143868C7",
-    "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-    "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
-    "release_fixture_sha256": "EB3C2F76F680ADCF5F838740C3BF7BC5ECC82D53C62266B0E4FDB950B4AF6F97",
-    "debug_fixture_sha256": "4BF9F22536B2AF60786583ADCD22EF9318FC949991260A42FB473A4CED6C9923",
-    "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
+    "run_id": "866d2342e2994233a48c8a97106d660f",
+    "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "packaging_head": "5a8e746ed87286759365c641e44f8c26341b3c14",
+    "receipt_path": "uat/v1-sandbox/866d2342e2994233a48c8a97106d660f/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/866d2342e2994233a48c8a97106d660f/input/manifest.json",
+    "zip_sha256": "862BA10029FBACC8540D90ED4ECFBFE2DE816100922559120B29748075CFBC4A",
+    "manifest_sha256": "934D5DCE05D82116974C7EEEA896ADF7FB3BDDAF667DFC17C5B44B2FD1BC0788",
+    "release_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+    "debug_binary_sha256": "59D90E1B266ADCEF0C1EE2521FCC6BE6922FDD8866B2EAE6012DCBF7D705D9F7",
+    "release_fixture_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+    "debug_fixture_sha256": "6DF43E35BA7B31218859CCF2AB9AB242100DBEF2349E792BE55921345312886A",
+    "identity_basis": "ACTUAL_NEW_BINARY_MANIFEST_HASHES_AND_866_GUEST_OBSERVATIONS_NOT_REBOUND",
     "guest_configurations": "Release",
     "guest_suite": "EntryAndSettings",
-    "guest_function_status": "MAPPING_CONFLICT_DEFAULTS_INDEPENDENT_PASS_EXISTING_ENTRY_COMPONENTS_PASS_WHOLE_TRAY_BLOCKED",
+    "guest_function_status": "DIAGNOSTIC_EXPORT_CONTRACT_TARGETED_PASS_ENTRY_COMPONENTS_PASS_WHOLE_TRAY_BLOCKED",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "offline_regression": {
       "Debug": {
         "passed": 10,
         "total": 10,
-        "elapsed_seconds": 4.07,
-        "label_seconds": 4.03
+        "elapsed_seconds": 4.83
       },
       "Release": {
         "passed": 10,
         "total": 10,
-        "elapsed_seconds": 3.01,
-        "label_seconds": 1.65
+        "elapsed_seconds": null
       },
-      "input_route_directed_each_configuration": "252/252_PASS",
-      "evidence_kind": "PARENT_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
-      "tool_chunks": [
-        "505e83",
-        "23335e"
-      ],
+      "evidence_kind": "MAIN_AGENT_ACTUAL_TOOL_OUTPUT_NOT_ARCHIVED_STDOUT",
+      "Release_elapsed_not_available_in_this_snapshot": true,
       "not_function_DEV_PASS": true
     },
     "human_uat": "NOT_RUN",
-    "note": "产品R2和98fc原ZIP不变；f9新driver实际完成M11-F03，整EntryAndSettings仅trayBLOCKED仍FAIL。a623为另一个新输入平台探针，非R2产品/不是新NormalUp或writer通过。"
+    "note": "新R3 actual866，不换绑旧R2/98fc。M12F02独立合同通过/D22定向关闭；tray阻断整Entry，D08和已确认UP后新continuous调用风险D23仍未关闭，不能试用或授Full。"
   },
   "portable_candidate": {
-    "package_id": "98fc5fb109a740aba7c27baa0cd29825",
-    "source_commit": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "packaging_head": "ecab19190196365211a1ce22e76cf2316240c899",
-    "receipt_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/package-receipt.json",
-    "manifest_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/PaneBindV1/manifest.json",
-    "zip_sha256": "E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236",
-    "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
-    "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-    "actual_ordinary_no_argument_entry": "PASS_ACTUAL_NORMAL_GUI_DEFAULT_AND_SAVED_SETTING_MOVE_NORMALUP_NORMAL_EXIT_BYTES",
-    "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
-    "partial_observation_id": "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
-    "functional_driver_chain": "PASS_SCOPED_PORTABLE_WITH_ORDINARY_SECONDARY_NOT_FULL_I12",
-    "prior_independent_portable_contract_PASS": "R2_0c710_d85_evidence_retained_not_rebound",
-    "note": "原98fc ZIP同EXE，0a8f实际无参二启保持原PID/birth/设置HWND，默认与保存后的实际Move/UP、正常退出/原字节/无profile通过；9d74/5017与0c710历史保留，不换绑。",
-    "latest_scoped_result": "f9/919 same98fc actual portable subchainPASS, notFull; 0a8f and9d74 original identities retained",
-    "latest_additional_scoped_run_id": "f9b6012a43e345648d52c067ff9594f8"
+    "package_id": "a00b5b383acf4133b4e26ae369fbe5da",
+    "source_commit": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "packaging_head": "5a8e746ed87286759365c641e44f8c26341b3c14",
+    "receipt_path": "uat/v1-portable/a00b5b383acf4133b4e26ae369fbe5da/package-receipt.json",
+    "manifest_path": "uat/v1-portable/a00b5b383acf4133b4e26ae369fbe5da/PaneBindV1/manifest.json",
+    "zip_sha256": "30B2C32DB7C54E931F77600B82247A0A90FF20730EBF6F74B8D4DC87EDB19719",
+    "manifest_sha256": "719F58EE9B77753DC867986C541E155123CBA40627A536B5C2A6C9242AADB03C",
+    "binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+    "actual_ordinary_no_argument_entry": "PASS_SCOPED_ACTUAL_STARTUP_SECONDARY_SETTINGS_SAVE_EFFECT_EXIT_AND_BYTES",
+    "run_id": "866d2342e2994233a48c8a97106d660f",
+    "partial_observation_id": "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION",
+    "functional_driver_chain": "PASS_SCOPED_PORTABLE_NOT_FULL_I12",
+    "note": "实际七文件/中文空格路径空参启动、同实例二启、保存动作及正常退出成立；7文件工具负例继承未变脚本的原身份，不重标签。旧98fc/R2整对象保留history；新R3仍未满足正式输入与整版。"
   },
   "evidence": [
     {
@@ -9428,6 +9636,98 @@
       "sha256": "FC84A77DEFBA515D2FD4B3AD951A5DD86FC2D7A34D8CDC54D1CE1B82F54127FD",
       "repository_excerpt_path": "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
       "repository_excerpt_sha256": "28481765225380CE72787290B4EBF72DAAF1449F5AA5F579F40ED3A099AFCD93"
+    },
+    {
+      "id": "EV-F481-CONSUMED-DOWN-NORMAL-REPEAT",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+      "configuration": "Debug",
+      "candidate_kind": "separate_owned_resource_probe_NOT_V1_Move",
+      "scenario": "consumed-down-normal-repeat",
+      "path": "uat/r1c4b-mvp1-command-control/f4814a3b2fc24894975adbce91a5721f/collection-20261016T131116860Z-16f3a2863a1d4fd4a3a465ada818f0a1/f4814a3b2fc24894975adbce91a5721f-debug-consumed-down-normal-repeat.jsonl",
+      "sha256": "7560AF4230E2B4B04EE8BC820CB06428845690BCCD0D434BDC02566D613FA4FE",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+      "repository_excerpt_sha256": "6E1A64DA3C76BF63A5A70B8E08DF8DA08071A8C6BC44F6A3DA765DA175060556"
+    },
+    {
+      "id": "EV-F481-CONSUMED-DOWN-EARLY-UP",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+      "configuration": "Debug",
+      "candidate_kind": "separate_owned_resource_probe_NOT_V1_Move",
+      "scenario": "consumed-down-early-up",
+      "path": "uat/r1c4b-mvp1-command-control/f4814a3b2fc24894975adbce91a5721f/collection-20261016T131116860Z-16f3a2863a1d4fd4a3a465ada818f0a1/f4814a3b2fc24894975adbce91a5721f-debug-consumed-down-early-up.jsonl",
+      "sha256": "1A3F226BF2DAB61CA97A1F2225842CBA84999FF6B3ECD2A8B4BC2582E0AF8DE5",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+      "repository_excerpt_sha256": "A3D5DF8AFB90F1128221163133FE444556C7C6B9C188BEA8540DAC164DA3313D"
+    },
+    {
+      "id": "EV-F481-CONSUMED-DOWN-STOP",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+      "configuration": "Debug",
+      "candidate_kind": "separate_owned_resource_probe_NOT_V1_Move",
+      "scenario": "consumed-down-stop",
+      "path": "uat/r1c4b-mvp1-command-control/f4814a3b2fc24894975adbce91a5721f/collection-20261016T131116860Z-16f3a2863a1d4fd4a3a465ada818f0a1/f4814a3b2fc24894975adbce91a5721f-debug-consumed-down-stop.jsonl",
+      "sha256": "68DB47DFD1ED4FC0B75B90FDAC9C807634B676AFC016FAE2F5D3F6F282DE1912",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+      "repository_excerpt_sha256": "E0B1970A61A8EE4835BB500FE2FCB29B5854F7E458515E64B0BCFE1BAFD0DBB1"
+    },
+    {
+      "id": "EV-F481-CONSUMED-DOWN-SOURCE-PAUSE",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+      "configuration": "Debug",
+      "candidate_kind": "separate_owned_resource_probe_NOT_V1_Move",
+      "scenario": "consumed-down-source-pause",
+      "path": "uat/r1c4b-mvp1-command-control/f4814a3b2fc24894975adbce91a5721f/collection-20261016T131116860Z-16f3a2863a1d4fd4a3a465ada818f0a1/f4814a3b2fc24894975adbce91a5721f-debug-consumed-down-source-pause.jsonl",
+      "sha256": "1C2919036F9BD5C06425A1876939A0DB828792E808EFF60AA88548CA8E785E93",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
+      "repository_excerpt_sha256": "6244D6F2C7884BDB321FB0DA271461EA3BA64E488A5E410E2142ADE7C16FEF34"
+    },
+    {
+      "id": "EV-866-R3-ENTRY-DIAGNOSTIC-PORTABLE",
+      "run_id": "866d2342e2994233a48c8a97106d660f",
+      "configuration": "Release",
+      "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "product_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+      "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "driver_binary_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+      "path": "uat/v1-control/866d2342e2994233a48c8a97106d660f/collection-20261016T131825981Z-2b6a4669cd9143b092e94ba304c0ca1c/866d2342e2994233a48c8a97106d660f-release-fixture.jsonl",
+      "sha256": "8A8A187E505668FEE2425656E381B12C1840D196491E0297040B6797F8DA7B52",
+      "repository_excerpt_path": "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+      "repository_excerpt_sha256": "3EEA3D39F196F879F96A2402C4D1170BD6304D670DAB03975A561B32624F041E"
+    },
+    {
+      "id": "EV-866-R3-LOCAL-EXPORT-FAILURE-PRODUCT",
+      "run_id": "866d2342e2994233a48c8a97106d660f",
+      "configuration": "Release",
+      "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "product_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+      "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "driver_binary_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+      "path": "uat/v1-control/866d2342e2994233a48c8a97106d660f/collection-20261016T131825981Z-2b6a4669cd9143b092e94ba304c0ca1c/866d2342e2994233a48c8a97106d660f-diagnostic-export-failure-Release/product-log.jsonl",
+      "sha256": "3DAB3213B441DCC1C3BE9D1725BA37BCE605490B18330235CFABFDE8B5570C25",
+      "repository_excerpt_path": "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+      "repository_excerpt_sha256": "D1C71D5D20215F046514FABD3EF99CB92CA06D43EF91525BA4C6A06C05A41D3E"
+    },
+    {
+      "id": "EV-866-R3-ACTUAL-FAULT-DIAGNOSTIC",
+      "run_id": "866d2342e2994233a48c8a97106d660f",
+      "configuration": "Release",
+      "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "product_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+      "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "driver_binary_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+      "path": "uat/v1-control/866d2342e2994233a48c8a97106d660f/collection-20261016T131825981Z-2b6a4669cd9143b092e94ba304c0ca1c/866d2342e2994233a48c8a97106d660f-product-Release/diagnostic-59359.txt",
+      "sha256": "AE1201EA6DA9EAD071A9B764D6F07291C4BC494A3572BCD6685A6C17552414C2",
+      "repository_excerpt_path": "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt",
+      "repository_excerpt_sha256": "AE1201EA6DA9EAD071A9B764D6F07291C4BC494A3572BCD6685A6C17552414C2",
+      "scope": "actual exported fault file bytes; contains no user/SID/absolute private path; rule_count=0, test fixture class only"
     }
   ],
   "partial_observations": [
@@ -12487,6 +12787,171 @@
       "human_uat": "NOT_RUN",
       "collection_note": "First local partial collection retained after exact new diagnostic subdirectory was missing from local allowlist; later same exact remote scope collected completely. This is collection-tool scope repair, not product or permission failure.",
       "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。"
+    },
+    {
+      "id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+      "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+      "status": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
+      "configuration": "Debug",
+      "evidence_ids": [
+        "EV-F481-CONSUMED-DOWN-NORMAL-REPEAT",
+        "EV-F481-CONSUMED-DOWN-EARLY-UP",
+        "EV-F481-CONSUMED-DOWN-STOP",
+        "EV-F481-CONSUMED-DOWN-SOURCE-PAUSE"
+      ],
+      "observed": "四份原JSONL全部合法且各sequence连续。normal-repeat两代实际legacy UP/自有capture释放/关联解除/NormalUp撤罩；early-up真实LL UP先于请求，资源PreLive/PhysicalButtons拒绝且无ATI/capture；stop在capture后真实Ctrl+Shift+F11/WM_HOTKEY，未先发鼠标UP即ExplicitStop释放/解除/撤罩，后仅一笔测试清理UP实收exact source；source-pause仅自有source停泵5000ms，实际3000ms Deadline先释放/解除/撤罩，实际恢复后才清理UP。",
+      "scenarios": {
+        "normal-repeat": {
+          "result": "PASS_RESOURCE_SCOPE",
+          "completed_generations": 2,
+          "generations": [
+            11390543552990,
+            11390543552991
+          ],
+          "actual_verdict_sequences": [
+            44,
+            83
+          ],
+          "actual_legacy_UP": true,
+          "own_capture_released": true,
+          "association_detached": true,
+          "normal_removal": true
+        },
+        "early-up": {
+          "result": "PASS_EXPECTED_SETUP_REJECTION_AND_ACTUAL_CLEANUP",
+          "actual_LL_UP_before_request": true,
+          "queued_result_is_not_permission": true,
+          "setup_stage": "PreLive",
+          "native_rejection": "PhysicalButtons",
+          "actual_ATI_attempts": 0,
+          "actual_capture_attempts": 0,
+          "actual_exact_source_cleanup_UP": true,
+          "NormalUp": false,
+          "verdict_sequences": [
+            30,
+            32
+          ]
+        },
+        "stop": {
+          "result": "PASS_ACTUAL_WM_HOTKEY_EXPLICITSTOP_AND_CLEANUP",
+          "actual_capture_ready_before_chord": true,
+          "actual_WM_HOTKEY": true,
+          "no_UP_observed_or_sent_before_removal": true,
+          "actual_own_capture_release_and_detach": true,
+          "actual_exact_source_cleanup_UP": true,
+          "NormalUp": false,
+          "verdict_sequences": [
+            37,
+            45
+          ]
+        },
+        "source-pause": {
+          "result": "PASS_SHORT_DEADLINE_INDEPENDENT_OF_OWNED_SOURCE_MESSAGE_PUMP",
+          "requested_deadline_ms": 3000,
+          "actual_source_pause_ms": 5000,
+          "pause_begin_tick_ms": 30703,
+          "actual_deadline_event_tick_ms": 33687,
+          "isolation_gone_tick_ms": 33687,
+          "source_resume_tick_ms": 35703,
+          "actual_ready_to_gone_ms": 2984,
+          "resource_gone_before_actual_source_resume": true,
+          "actual_exact_source_cleanup_UP": true,
+          "default_30_second_deadline_tested": false,
+          "NormalUp": false,
+          "verdict_sequences": [
+            50,
+            58
+          ]
+        }
+      },
+      "native_START_count": 0,
+      "native_END_count": 0,
+      "native_placement_count": 0,
+      "writer_started": false,
+      "V1_InputService_started": false,
+      "MoveSession_armed": false,
+      "Move_function_PASS": false,
+      "old_D08_root_cause_proven": false,
+      "original_D08_closed": false,
+      "unexercised_scope": {
+        "real_Move_writer_and_writer_stall": "NOT_RUN",
+        "cross_process_Explorer": "NOT_RUN",
+        "new_route_Release": "NOT_RUN",
+        "capture_loss": "NOT_RUN",
+        "human_uat": "NOT_RUN"
+      },
+      "physical_button_held_not_inferred_from_driver_or_async": true,
+      "legacy_resource_NormalUp_not_inferred_from_LL_or_Raw": true,
+      "old_nine_owned_scope_not_replaced": true,
+      "next_action": "资源新假设仅在四场景范围成立；继续真实共用Move会话/writer接线及新路线必要实测，随后独立验证Explorer，不用资源PASS替代磁吸或完整60功能验收。"
+    },
+    {
+      "id": "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION",
+      "scope": "new_R3_Release_Medium_EntryAndSettings_GUI_export_failure_and_recovery_independent_contracts_not_Full",
+      "status": "PASS_DIAGNOSTIC_EXPORT_FEATURE_AND_ENTRY_COMPONENTS_WHOLE_TRAY_BLOCKED",
+      "run_id": "866d2342e2994233a48c8a97106d660f",
+      "configuration": "Release",
+      "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "product_binary_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+      "driver_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "driver_binary_sha256": "0D7F1659DF312B94A9CE91F36A3BB27C37DF9D6FDC5486ED1FB3B8E9C81C522F",
+      "evidence_ids": [
+        "EV-866-R3-ENTRY-DIAGNOSTIC-PORTABLE",
+        "EV-866-R3-LOCAL-EXPORT-FAILURE-PRODUCT",
+        "EV-866-R3-ACTUAL-FAULT-DIAGNOSTIC"
+      ],
+      "actual_local_product_pid": 5488,
+      "observed": "新R3仅补导出失败UI反馈。719实际同PID/TID/自有owner错误modal可见，真实Static文本查询2次；720实际Enter关闭。0假diagnostic final/tmp且原配置不变。722/723同目录原DACL字节恢复，727/728恢复后再次实际导出并解析/脱敏；739原DACL/原实例/配置/证据恢复true后740/745定向PASS。实际配置失败后的diagnostic-59359还含R3版本/OS/DPI/窗口类别/脱敏配置/真实最近错误/终止原因，源文件和hash入库。",
+      "actual_GUI_failure_not_inferred_from_API_return": true,
+      "actual_error_modal_observed": true,
+      "actual_modal_acknowledged": true,
+      "no_fake_package": true,
+      "original_DACL_and_original_instance_restored": true,
+      "actual_positive_export_after_restore": true,
+      "other_actual_components": {
+        "settings_startup": 329,
+        "five_button_mapping": 437,
+        "mapping_conflict_and_page_defaults": 588,
+        "save_failure_and_recovery": 696,
+        "corrupt_restart": 798,
+        "exclusion": 894,
+        "portable_actual_independent_scope": 968
+      },
+      "portable": {
+        "package_id": "a00b5b383acf4133b4e26ae369fbe5da",
+        "seven_archived_files_verified_sequence": 900,
+        "ordinary_empty_argument_startup": 907,
+        "visible_Chinese_settings": 909,
+        "ordinary_secondary_exact_same_instance": 912,
+        "default_actual_geometry_and_UP": [
+          927,
+          932
+        ],
+        "saved_configuration_and_actual_effect": [
+          945,
+          955,
+          960
+        ],
+        "normal_exit_and_input_recovery": [
+          961,
+          965,
+          966
+        ],
+        "bytes_retained_no_profile": 967
+      },
+      "whole_EntryAndSettings": "FAIL_ONLY_TRAY_BLOCKED",
+      "tray_phase_sequence": 810,
+      "Core_I11": "NOT_RUN",
+      "applications": "NOT_RUN",
+      "Full": "NOT_RUN",
+      "human_uat": "NOT_RUN",
+      "new_V1_input_release_contract_NOT_proven": true,
+      "old_R2_evidence_not_rebound": true,
+      "impact_review": "R2→R3 product diff only Application::export_diagnostic failure MessageBox; core/input/geometry unchanged. NewR3 entry/settings/portable rerun actual; historical six PASS fields retain original identities, new observations separately pinned.",
+      "next_action": "保留86a真实失败与866定向关闭D22；正式输入D08及新源码D23和最终整版Release/Medium链仍独立未通过。"
     }
   ],
   "evidence_mapping": {
@@ -12538,12 +13003,36 @@
       "driver_source_sha": "9a77cd755b08edb5e0a38be567e437d664959be4",
       "driver_binary_sha256": "EB3C2F76F680ADCF5F838740C3BF7BC5ECC82D53C62266B0E4FDB950B4AF6F97",
       "run_id": "f9b6012a43e345648d52c067ff9594f8"
+    },
+    "existing_VM_inventory": {
+      "source": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+      "tool_chunks": [
+        "ea5a97",
+        "9997a7",
+        "605fde",
+        "7f069b"
+      ],
+      "host_identity_verified": "ZS-WORKSTATION",
+      "strict_existing_SSH_alias_used": true,
+      "read_only": true,
+      "host_EditionID": "Professional",
+      "OS_version": "10.0.26200",
+      "free_memory_mib_snapshot": 12259,
+      "Get_VM_cmdlet_found": false,
+      "known_VirtualBox_VMware_QEMU_commands_or_install_entries_found": false,
+      "HyperV_CIM_result": "INVALID_NAMESPACE_HRESULT_0x8004100e_NOT_A_PERMISSION_DENIAL",
+      "registered_VM_inventory": "UNKNOWN_NO_USABLE_EXISTING_REGISTERED_VM_CONFIRMED_IN_ALLOWED_INVENTORY",
+      "unknown_VM_files_or_disks_searched": false,
+      "VM_started_or_reused": false,
+      "host_CrossRec_or_user_configuration_changed": false,
+      "user_ISO_or_VM_and_insufficient_new_VM_memory_report_retained": true,
+      "scope_limit": "Not proof there are no VM files anywhere; unregistered VM ownership/memory configuration UNKNOWN. Free-RAM snapshot does not authorize allocation or override the user's resource limit."
     }
   },
   "pending_product_candidate": {
-    "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "status": "CURRENT_R2_PARTIAL_NATIVE_VERIFIED_NOT_WHOLE_VERSION_ACCEPTED",
-    "build_directory": "out/v1-product-4d07ef1",
+    "product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "status": "CURRENT_R3_PARTIAL_ACTUAL_ENTRY_SETTINGS_DIAGNOSTIC_PORTABLE_NOT_FULL",
+    "build_directory": "out/v1-product-37e5ffc",
     "build_environment": {
       "generator": "Visual Studio 18 2026",
       "architecture": "x64",
@@ -12555,139 +13044,146 @@
     "binaries": [
       {
         "configuration": "Debug",
-        "path": "out/v1-product-4d07ef1/src/platform/windows/Debug/panebind.exe",
-        "sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
-        "file": "panebind.exe",
-        "bytes": 3294208
+        "path": "uat/v1-sandbox/866d2342e2994233a48c8a97106d660f/input/Debug/panebind.exe",
+        "sha256": "59D90E1B266ADCEF0C1EE2521FCC6BE6922FDD8866B2EAE6012DCBF7D705D9F7",
+        "bytes": 3296256
       },
       {
         "configuration": "Release",
-        "path": "out/v1-product-4d07ef1/src/platform/windows/Release/panebind.exe",
-        "sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "file": "panebind.exe",
-        "bytes": 839168
+        "path": "uat/v1-sandbox/866d2342e2994233a48c8a97106d660f/input/panebind.exe",
+        "sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+        "bytes": 840704
       }
     ],
-    "separate_driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
-    "driver_build_status": "BUILT_AND_ACTUALLY_RUN",
-    "product_rebuilt_for_driver_change": false,
-    "product_rebuilt_for_product_fix": true,
     "offline_regression": {
       "Debug": {
         "passed": 10,
         "total": 10,
-        "elapsed_seconds": 4.07,
-        "label_seconds": 4.03
+        "elapsed_seconds": 4.83
       },
       "Release": {
         "passed": 10,
         "total": 10,
-        "elapsed_seconds": 3.01,
-        "label_seconds": 1.65
+        "elapsed_seconds": null
       },
-      "input_route_directed_each_configuration": "252/252_PASS",
-      "evidence_kind": "PARENT_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
-      "tool_chunks": [
-        "505e83",
-        "23335e"
-      ],
+      "evidence_kind": "MAIN_AGENT_ACTUAL_TOOL_OUTPUT_NOT_ARCHIVED_STDOUT",
+      "Release_elapsed_not_available_in_this_snapshot": true,
       "not_function_DEV_PASS": true
     },
-    "evidence_paths": [
-      "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
-    ],
-    "run_id": "30bf79c65e5b421aa1087963787898b2",
-    "package_id": "0c7107367dfa4f48b7466455b0fda8ab",
-    "native_guest_status": "TARGETED_D17_AND_TERMINAL_PASS_POSTRESIZE_UP_AND_OTHER_COMPONENT_FAILURES_PRESERVED",
+    "run_id": "866d2342e2994233a48c8a97106d660f",
+    "package_id": "a00b5b383acf4133b4e26ae369fbe5da",
+    "native_guest_status": "DIAGNOSTIC_EXPORT_CONTRACT_TARGETED_PASS_ENTRY_COMPONENTS_PASS_WHOLE_TRAY_BLOCKED",
     "human_uat": "NOT_RUN",
-    "latest_observation_ids": [
-      "PO-5017-SETTINGS-REAL-EFFECTS",
-      "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
-      "PO-D85-ENTRY-SETTINGS-SCOPED",
-      "PO-D85-R2-PORTABLE-CONTRACT",
-      "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-      "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
-      "PO-30BF-CORE-UP-AND-POSTRESIZE",
-      "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
-      "PO-30BF-REAL-APPLICATIONS",
-      "PO-30BF-MEDIUM-DESKTOP-CHILD-BOUND"
-    ],
-    "guest_package": {
-      "run_id": "30bf79c65e5b421aa1087963787898b2",
-      "packaging_head": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-      "zip_sha256": "7137540B7B9059A268CC7A4B3E3E878F06709043F73593AC94317BF137C707D5",
-      "manifest_sha256": "B0A44B1EC8C45B61E36618C6149C9E83F51AB21B6678C3D53CCE48CC17E2C1ED",
-      "guest_suite": "CoreAndApplications"
-    },
-    "portable_normal_entry": "NEW98FC_ACTUAL_NORMALUP_TRUE_BUT_DRIVER_ASSERTION_FAIL_PENDING_D21_REVALIDATION",
-    "latest_portable_validation_run_id": "d85e14904c7f4dbba0b3c08759db478c",
-    "latest_portable_attempt_run_id": "5017e5a10bdd47bfae97026f68adee3b",
-    "latest_observed_run_id": "f9b6012a43e345648d52c067ff9594f8",
-    "latest_driver_source_sha": "9a77cd755b08edb5e0a38be567e437d664959be4",
-    "note": "R2冻结；0a8f补普通二启/模拟登录与真实故障诊断，整批只有trayBLOCKED仍FAIL；无Full/真人PASS。",
-    "route_replacement_probe": {
-      "id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-      "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-      "status": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
-      "run_id": "a623eafefe2a470eb5877f876da37077",
-      "candidate_source_sha": "9a77cd755b08edb5e0a38be567e437d664959be4",
-      "candidate_binary_sha256": "F7C81FDB88C16CF6BF8AC2DECAFC51B191C9F2C517DFF4F00A482EF2537AC406",
-      "configuration": "Debug",
-      "evidence_ids": [
-        "EV-A623-CONSUMED-DOWN-PROBE"
-      ],
-      "observed": "真实LL DOWN seq15已按exact预备source消耗；随后直接走final_guarded_cleanup，seq24 capture_attempts=0/native_attempts=0/writer_started=false，未到capture，也未启动V1 InputService/MoveSession/writer。测试清理仅一次UP后seq19实际LL UP，legacy_delivery未推断；completed_gestures=0/scenario_pass=false/Move_function_PASS=false。",
-      "new_route_NormalUp_PASS": false,
-      "old_D08_root_cause_proven": false,
-      "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
-      "next_action": "仅用新事实分流实际拒绝前提；当前未知具体失败项，不推定系统/权限根因，不把首场失败称整个方案已证伪或放行后续capture风险/Explorer。"
-    },
     "latest_route_replacement_probe": {
-      "id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-      "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
-      "status": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
-      "run_id": "d546969fd0f649fcb878db5079e05184",
-      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
-      "candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
+      "id": "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+      "scope": "separate_guest_owned_consumed_DOWN_resource_normal_repeat_early_UP_actual_hotkey_and_short_deadline_source_pause_ONLY",
+      "status": "PASS_SCOPED_FOUR_OWNED_RESOURCE_SCENARIOS_NOT_Move",
+      "run_id": "f4814a3b2fc24894975adbce91a5721f",
+      "candidate_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "candidate_binary_sha256": "4A9BB4205FFD6C54221C62D04C03E2318920AEA0D8FA4A508DB6DE9FF2CCF203",
       "configuration": "Debug",
       "evidence_ids": [
-        "EV-D546-CONSUMED-DOWN-RESOURCE-NORMAL-REPEAT"
+        "EV-F481-CONSUMED-DOWN-NORMAL-REPEAT",
+        "EV-F481-CONSUMED-DOWN-EARLY-UP",
+        "EV-F481-CONSUMED-DOWN-STOP",
+        "EV-F481-CONSUMED-DOWN-SOURCE-PAUSE"
       ],
-      "generations": [
-        28810927835600,
-        28810927835601
-      ],
-      "observed": "同一hook/shield/UI两代：seq15/54真实exact LL DOWN消费；16/55异步左键0仅诊断、实际pair授权成立；21/60真实关联成功与capture=本代overlay，前台source不变。33/71实际LL UP观察true且未消费，35/73本代实际legacy UP被资源接受；39/77自有capture释放成功/回读0，41/79仅实际本代关联解除成功，42/80 NormalUp reason=0、overlay销毁及hotkey注销。44/82资源判定接受，45在旧资源清理后新generation；86两代完成/资源退出。",
-      "actual_legacy_UP_required_and_observed": true,
-      "actual_LL_UP_observed_but_not_NormalUp_authority": true,
+      "observed": "四份原JSONL全部合法且各sequence连续。normal-repeat两代实际legacy UP/自有capture释放/关联解除/NormalUp撤罩；early-up真实LL UP先于请求，资源PreLive/PhysicalButtons拒绝且无ATI/capture；stop在capture后真实Ctrl+Shift+F11/WM_HOTKEY，未先发鼠标UP即ExplicitStop释放/解除/撤罩，后仅一笔测试清理UP实收exact source；source-pause仅自有source停泵5000ms，实际3000ms Deadline先释放/解除/撤罩，实际恢复后才清理UP。",
+      "scenarios": {
+        "normal-repeat": {
+          "result": "PASS_RESOURCE_SCOPE",
+          "completed_generations": 2,
+          "generations": [
+            11390543552990,
+            11390543552991
+          ],
+          "actual_verdict_sequences": [
+            44,
+            83
+          ],
+          "actual_legacy_UP": true,
+          "own_capture_released": true,
+          "association_detached": true,
+          "normal_removal": true
+        },
+        "early-up": {
+          "result": "PASS_EXPECTED_SETUP_REJECTION_AND_ACTUAL_CLEANUP",
+          "actual_LL_UP_before_request": true,
+          "queued_result_is_not_permission": true,
+          "setup_stage": "PreLive",
+          "native_rejection": "PhysicalButtons",
+          "actual_ATI_attempts": 0,
+          "actual_capture_attempts": 0,
+          "actual_exact_source_cleanup_UP": true,
+          "NormalUp": false,
+          "verdict_sequences": [
+            30,
+            32
+          ]
+        },
+        "stop": {
+          "result": "PASS_ACTUAL_WM_HOTKEY_EXPLICITSTOP_AND_CLEANUP",
+          "actual_capture_ready_before_chord": true,
+          "actual_WM_HOTKEY": true,
+          "no_UP_observed_or_sent_before_removal": true,
+          "actual_own_capture_release_and_detach": true,
+          "actual_exact_source_cleanup_UP": true,
+          "NormalUp": false,
+          "verdict_sequences": [
+            37,
+            45
+          ]
+        },
+        "source-pause": {
+          "result": "PASS_SHORT_DEADLINE_INDEPENDENT_OF_OWNED_SOURCE_MESSAGE_PUMP",
+          "requested_deadline_ms": 3000,
+          "actual_source_pause_ms": 5000,
+          "pause_begin_tick_ms": 30703,
+          "actual_deadline_event_tick_ms": 33687,
+          "isolation_gone_tick_ms": 33687,
+          "source_resume_tick_ms": 35703,
+          "actual_ready_to_gone_ms": 2984,
+          "resource_gone_before_actual_source_resume": true,
+          "actual_exact_source_cleanup_UP": true,
+          "default_30_second_deadline_tested": false,
+          "NormalUp": false,
+          "verdict_sequences": [
+            50,
+            58
+          ]
+        }
+      },
       "native_START_count": 0,
       "native_END_count": 0,
       "native_placement_count": 0,
+      "writer_started": false,
       "V1_InputService_started": false,
       "MoveSession_armed": false,
-      "writer_started": false,
       "Move_function_PASS": false,
       "old_D08_root_cause_proven": false,
       "original_D08_closed": false,
-      "capture_exit_risk_tests": {
-        "real_hotkey_after_capture": "NOT_RUN",
-        "short_deadline": "NOT_RUN",
-        "source_thread_message_stall_independent_exit": "NOT_RUN",
-        "capture_loss_or_early_UP": "NOT_RUN"
+      "unexercised_scope": {
+        "real_Move_writer_and_writer_stall": "NOT_RUN",
+        "cross_process_Explorer": "NOT_RUN",
+        "new_route_Release": "NOT_RUN",
+        "capture_loss": "NOT_RUN",
+        "human_uat": "NOT_RUN"
       },
-      "Explorer_new_route": "NOT_RUN",
-      "Release_new_route": "NOT_RUN",
-      "human_uat": "NOT_RUN",
-      "next_action": "在新候选仅完成直接受关联机制影响的实际hotkey、短Deadline及source线程有界停泵独立退出；这些尚未运行。通过前不接正式Move writer或外推Explorer；继续冻结R2的独立可运行功能，不给60功能加分。"
+      "physical_button_held_not_inferred_from_driver_or_async": true,
+      "legacy_resource_NormalUp_not_inferred_from_LL_or_Raw": true,
+      "old_nine_owned_scope_not_replaced": true,
+      "next_action": "资源新假设仅在四场景范围成立；继续真实共用Move会话/writer接线及新路线必要实测，随后独立验证Explorer，不用资源PASS替代磁吸或完整60功能验收。"
     },
-    "pending_UI_only_repair": {
+    "UI_only_repair": {
       "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
-      "status": "DEV_FIXED_PENDING_BUILD_AND_TARGETED_RUNTIME_REVALIDATION",
       "defect_id": "V1-D22",
-      "failed_R2_observation_id": "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
-      "new_EXE_hash": "PENDING_BUILD",
-      "old_R2_results_not_rebound": true,
-      "scope": "UI-only: failed explicit export now requests own MessageBoxW and retains failure notice/no fake export. No target-window interaction or input/geometry logic changes."
-    }
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
+      "observation_id": "PO-866-R3-DIAGNOSTIC-FAILURE-AND-ENTRY-REVALIDATION"
+    },
+    "formal_input_blockers": [
+      "V1-D08",
+      "V1-D23"
+    ],
+    "whole_version_and_trial_accepted": false
   }
 }
