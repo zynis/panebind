@@ -228,7 +228,12 @@ try {
     if ($consumedDownOnly) {
         # This is a new platform hypothesis, not a rerun of the old native-END
         # route and not V1 Move acceptance. Never reuse the historical nine.
-        $cases = @(@{ configuration = 'debug'; scenario = 'consumed-down-normal-repeat'; executable = $debugOwned })
+        $cases = @(
+            @{ configuration = 'debug'; scenario = 'consumed-down-normal-repeat'; executable = $debugOwned },
+            @{ configuration = 'debug'; scenario = 'consumed-down-early-up'; executable = $debugOwned },
+            @{ configuration = 'debug'; scenario = 'consumed-down-stop'; executable = $debugOwned },
+            @{ configuration = 'debug'; scenario = 'consumed-down-source-pause'; executable = $debugOwned }
+        )
         $summary.owned_prerequisite = [ordered]@{ result='NEW_CONSUMED_DOWN_ROUTE_NOT_PREVIOUS_NATIVE_END_EVIDENCE' }
     } elseif ($manifest.owned_prerequisite.result -ceq 'REUSED_PRIOR_EVIDENCE') {
         $prior = $manifest.owned_prerequisite
@@ -268,7 +273,15 @@ try {
         $ownedExecutable = $testCase.executable
         # The unchanged exact preflight executable accepts this original
         # suffix. The summary below records the ACTUAL new probe scenario.
-        $preflightScenario = if ($consumedDownOnly) { 'normal' } else { $scenario }
+        $preflightScenario = if ($consumedDownOnly) {
+            switch -CaseSensitive ($scenario) {
+                'consumed-down-normal-repeat' { 'normal' }
+                'consumed-down-early-up' { 'early-up' }
+                'consumed-down-stop' { 'stop' }
+                'consumed-down-source-pause' { 'source-pause' }
+                default { throw 'Unknown consumed-DOWN preflight mapping.' }
+            }
+        } else { $scenario }
         $preflightLog = Join-Path $outputDir "$runId-preflight-$configuration-$preflightScenario.jsonl"
         & $preflight --check-guest-input-state --sandbox-run-id $runId --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-$configuration-$scenario.console.txt")
         $preflightExit = $LASTEXITCODE
