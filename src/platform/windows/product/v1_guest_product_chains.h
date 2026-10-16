@@ -299,7 +299,9 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
         throw std::runtime_error("I04_actual_default_half_screen_hotkey_missing");
     chain_hotkey_exact(set,VK_LEFT,half,"I04_actual_registered_half_screen_hotkey");chain_command(set,0,L"Undo",restored);
     product::Catalog catalog;const auto displays=catalog.displays();
-    if(displays.size()<2)s.log.emit("I04_cross_display","\"result\":\"ENVIRONMENT_BLOCKED\",\"reason\":\"one_actual_guest_monitor\",\"single_screen_chain_not_full_cross_screen_acceptance\":true");
+    if(displays.size()!=2)s.log.emit("I04_cross_display","\"result\":\"ENVIRONMENT_BLOCKED\",\"reason\":"+
+        quote(displays.size()<2?"one_actual_guest_monitor":"independent_exact_dual_display_fixture_not_available")+
+        ",\"single_screen_chain_not_full_cross_screen_acceptance\":true");
     else{
         // Product Catalog deliberately rejects the CALLER's own PID. These
         // local fixture HWNDs therefore need independent native observation,
@@ -311,7 +313,9 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
         const auto current_monitor=MonitorFromWindow(h,MONITOR_DEFAULTTONULL);
         const auto from=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==current_monitor;});
         if(from==displays.end()||!from->dpi)throw std::runtime_error("I04_cross_display_source_DPI_unknown");
-        const auto& to=displays[(static_cast<std::size_t>(from-displays.begin())+1)%displays.size()];
+        // The controlled two-display oracle has exactly one other monitor;
+        // never reuse the production nearest-display selector as its oracle.
+        const auto& to=displays[from==displays.begin()?1:0];
         if(!to.dpi)throw std::runtime_error("I04_cross_display_destination_DPI_unknown");
         const auto scaled=[&](LONG px){return (static_cast<long long>(px)*to.dpi+from->dpi/2)/from->dpi;};
         const auto inset_x=static_cast<std::int64_t>(positioning.right)-positioning.left-restored.width();

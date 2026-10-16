@@ -136,6 +136,42 @@ bool allowed_by_guard(const WindowWriter::Guard& guard, std::string& reason) {
     return false;
 }
 
+bool same_display(const Display& a,const Display& b,bool dpi=true){
+    return a.monitor==b.monitor&&a.bounds==b.bounds&&a.work==b.work&&(!dpi||a.dpi==b.dpi);
+}
+bool same_topology(std::span<const Display> expected,std::span<const Display> actual,bool dpi=true){
+    if(expected.empty()||expected.size()>32||expected.size()!=actual.size())return false;
+    for(const auto& display:expected){
+        if(!display.monitor||std::count_if(expected.begin(),expected.end(),[&](const auto& d){return d.monitor==display.monitor;})!=1)return false;
+        const auto found=std::find_if(actual.begin(),actual.end(),[&](const auto& d){return d.monitor==display.monitor;});
+        if(found==actual.end()||!same_display(display,*found,dpi))return false;
+    }return true;
+}
+HMONITOR planned_monitor(const Rect& native){
+    if(!native_rect(native))return nullptr;
+    const RECT rect{static_cast<LONG>(native.left()),static_cast<LONG>(native.top()),static_cast<LONG>(native.right()),static_cast<LONG>(native.bottom())};
+    return MonitorFromRect(&rect,MONITOR_DEFAULTTONULL);
+}
+// No foreign messages, Catalog/COM, DPI-probe creation or application lock on
+// the native worker. GUI pre/post checks additionally verify actual DPI.
+bool native_destination_unchanged(const WindowWriter::DestinationDisplay& proof){
+    if(planned_monitor(proof.positioning)!=proof.target.monitor)return false;
+    struct Facts{std::vector<Display> displays;bool complete{true};} facts;facts.displays.reserve(32);
+    const auto enumerate=[](HMONITOR monitor,HDC,LPRECT,LPARAM context)->BOOL{
+        auto& value=*reinterpret_cast<Facts*>(context);MONITORINFO info{sizeof(info)};
+        if(value.displays.size()>=32||!GetMonitorInfoW(monitor,&info)){value.complete=false;return FALSE;}
+        value.displays.push_back({monitor,{info.rcWork.left,info.rcWork.top,info.rcWork.right,info.rcWork.bottom},
+            {info.rcMonitor.left,info.rcMonitor.top,info.rcMonitor.right,info.rcMonitor.bottom},0});return TRUE;};
+    return EnumDisplayMonitors(nullptr,nullptr,enumerate,reinterpret_cast<LPARAM>(&facts))&&facts.complete&&
+        same_topology(proof.topology,facts.displays,false);
+}
+WindowWriter::DestinationPreparation observe_destination(Catalog& catalog,const Snapshot& before,const Rect& native){
+    const auto monitor=planned_monitor(native);
+    if(monitor==before.monitor)return WindowWriter::prepare_destination(before,native,monitor,DPI_AWARENESS_INVALID,{});
+    const auto awareness=GetAwarenessFromDpiAwarenessContext(GetWindowDpiAwarenessContext(before.hwnd));
+    return WindowWriter::prepare_destination(before,native,monitor,awareness,catalog.displays());
+}
+
 bool observe_capture_completion(WindowWriter::Receipt& receipt,const GestureCaptureLease& capture){
     if(!capture)return true;
     receipt.post_context_checked=true;
@@ -143,6 +179,21 @@ bool observe_capture_completion(WindowWriter::Receipt& receipt,const GestureCapt
     if(receipt.before.dpi!=receipt.after->dpi||receipt.before.monitor!=receipt.after->monitor||
        receipt.before.work!=receipt.after->work||receipt.before.maximized!=receipt.after->maximized||
        receipt.before.minimized!=receipt.after->minimized){receipt.post_context_reason="post_native_geometry_context_changed";return false;}
+    receipt.post_context_valid=geometry_gui_context_allowed(*receipt.after,observe_gui_context(*receipt.after),capture,
+        receipt.native_attempted?GeometryContextPhase::IssuedCompletion:GeometryContextPhase::BeforeNativeCall,&receipt.post_context_reason);
+    return receipt.post_context_valid;
+}
+
+bool observe_placement_completion(WindowWriter::Receipt& receipt,Catalog& catalog,const GestureCaptureLease& capture){
+    // Keep the pre-existing no-lease same-display completion contract. A new
+    // GUI interaction after an already exact discrete call is not evidence
+    // that call failed; this patch only adds explicit display-transition proof.
+    if(!capture&&!receipt.destination)return true;
+    receipt.post_context_checked=true;
+    if(!receipt.after){receipt.post_context_reason="post_native_identity_unavailable";return false;}
+    const auto displays=receipt.destination?catalog.displays():std::vector<Display>{};
+    const auto awareness=receipt.destination?GetAwarenessFromDpiAwarenessContext(GetWindowDpiAwarenessContext(receipt.after->hwnd)):DPI_AWARENESS_INVALID;
+    if(!WindowWriter::placement_context_matches(receipt.before,*receipt.after,receipt.destination,displays,awareness,receipt.post_context_reason))return false;
     receipt.post_context_valid=geometry_gui_context_allowed(*receipt.after,observe_gui_context(*receipt.after),capture,
         receipt.native_attempted?GeometryContextPhase::IssuedCompletion:GeometryContextPhase::BeforeNativeCall,&receipt.post_context_reason);
     return receipt.post_context_valid;
@@ -166,6 +217,7 @@ struct WindowWriter::NativeExecutor {
     struct Work {
         Snapshot expected;Rect native,requested;Guard guard;std::uint64_t id{};
         GestureCaptureLease capture;
+        std::optional<DestinationDisplay> destination;
         Operation operation{Operation::Placement};v::VisualState visual_before,visual_target;
         bool alpha_change{},top_change{};std::optional<v::VisualOwnership> cleanup_owned;VisualNativeFacts visual_native;
         HANDLE done{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
@@ -272,8 +324,11 @@ struct WindowWriter::NativeExecutor {
                 if(!work)continue;
                 GuiContextMode gui_mode=GuiContextMode::Unknown;
                 std::string context_reason;
-                const bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode,work->capture,
+                bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode,work->capture,
                     GeometryContextPhase::BeforeNativeCall,&context_reason):exact_context(work->expected,&gui_mode,work->capture,&context_reason);
+                if(context&&work->destination&&!native_destination_unchanged(*work->destination)){
+                    context=false;context_reason="destination_display_topology_changed_before_native";
+                }
                 bool issue=false;
                 {
                     std::lock_guard lock(work->mutex);
@@ -313,10 +368,12 @@ struct WindowWriter::NativeExecutor {
     }
     std::shared_ptr<Work> execute(const Snapshot& expected,const Rect& native,const Rect& requested,Guard guard,
         Operation operation=Operation::Placement,const v::VisualState& before={},const v::VisualState& target={},
-        bool alpha=false,bool top=false,std::optional<v::VisualOwnership> cleanup_owned=std::nullopt,BeforeIssue before_issue={},GestureCaptureLease capture={}){
+        bool alpha=false,bool top=false,std::optional<v::VisualOwnership> cleanup_owned=std::nullopt,BeforeIssue before_issue={},GestureCaptureLease capture={},
+        std::optional<DestinationDisplay> destination={}){
         auto work=std::make_shared<Work>();if(!work->done)return {};
         work->expected=expected;work->native=native;work->requested=requested;work->guard=std::move(guard);work->reason.reserve(128);
         work->capture=std::move(capture);
+        work->destination=std::move(destination);
         work->operation=operation;work->visual_before=before;work->visual_target=target;
         work->alpha_change=alpha;work->top_change=top;work->cleanup_owned=std::move(cleanup_owned);
         {
@@ -399,7 +456,7 @@ std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const 
     {std::lock_guard lock(executor_->state->mutex);jobs.swap(executor_->state->late);executor_->state->late.reserve(8);}
     std::vector<Receipt> result;result.reserve(jobs.size());
     for(const auto& job:jobs){
-        Receipt r;r.before=job->expected;r.requested=job->requested;
+        Receipt r;r.before=job->expected;r.requested=job->requested;r.destination=job->destination;
         {std::lock_guard lock(job->mutex);r.call_id=job->id;r.native_attempted=job->attempted;r.native_succeeded=job->succeeded;
             r.completion_known=job->known;r.before_qpc=job->before;r.after_qpc=job->after;r.error=job->error;
             r.operation=job->operation;r.visual_before=job->visual_before;r.visual_target=job->visual_target;
@@ -410,7 +467,7 @@ std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const 
         r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
         r.accepted=r.completion_known&&r.native_attempted&&r.native_succeeded&&r.geometry_exact;
         r.reason="delayed_native_completion_observed_no_authority_restored";
-        if(!observe_capture_completion(r,job->capture)){r.accepted=false;r.reason=r.post_context_reason;}
+        if(!observe_placement_completion(r,catalog_,job->capture)){r.accepted=false;r.reason=r.post_context_reason;}
         result.push_back(std::move(r));
     }return result;
 }
@@ -436,6 +493,49 @@ WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
     result.accepted = true;
     result.reason = result.noop ? "already_exact_no_native_call" : "prepared";
     return result;
+}
+
+WindowWriter::DestinationPreparation WindowWriter::prepare_destination(const Snapshot& before,const Rect& native,
+    HMONITOR planned,DPI_AWARENESS awareness,std::span<const Display> displays){
+    DestinationPreparation result;
+    if(!before.monitor||!planned||!native_rect(native)){result.reason="destination_monitor_unavailable";return result;}
+    if(planned==before.monitor){result.accepted=true;result.reason="same_display_no_transition_proof";return result;}
+    if(!same_topology(displays,displays)){result.reason="destination_display_snapshot_incomplete";return result;}
+    const auto source=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==before.monitor;});
+    const auto target=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==planned;});
+    if(source==displays.end()||target==displays.end()||source->work!=before.work||!source->dpi||!target->dpi||!before.dpi){
+        result.reason="destination_display_not_in_current_snapshot";return result;
+    }
+    UINT window_dpi{};
+    switch(awareness){
+        case DPI_AWARENESS_UNAWARE:if(before.dpi==96)window_dpi=96;break;
+        case DPI_AWARENESS_SYSTEM_AWARE:window_dpi=before.dpi;break;
+        case DPI_AWARENESS_PER_MONITOR_AWARE:if(before.dpi==source->dpi)window_dpi=target->dpi;break;
+        default:break;
+    }
+    if(!window_dpi){result.reason="destination_window_dpi_awareness_unknown_or_inconsistent";return result;}
+    result.proof=DestinationDisplay{*source,*target,native,awareness,window_dpi,{displays.begin(),displays.end()}};
+    result.accepted=true;result.reason="explicit_destination_display_bound";return result;
+}
+
+bool WindowWriter::placement_context_matches(const Snapshot& before,const Snapshot& after,
+    const std::optional<DestinationDisplay>& destination,std::span<const Display> current,DPI_AWARENESS awareness,std::string& reason){
+    if(!Catalog::same(before,after)){reason="post_native_window_identity_changed";return false;}
+    if(before.maximized!=after.maximized||before.minimized!=after.minimized||before.can_resize!=after.can_resize){
+        reason="post_native_window_state_changed";return false;
+    }
+    if(!destination){
+        if(before.monitor!=after.monitor||before.work!=after.work||before.dpi!=after.dpi){reason="post_native_geometry_context_changed";return false;}
+        return true;
+    }
+    const auto& proof=*destination;
+    if(proof.source.monitor!=before.monitor||proof.source.work!=before.work||proof.target.monitor==before.monitor||
+       !proof.window_dpi||awareness!=proof.awareness){reason="post_native_destination_proof_mismatch";return false;}
+    if(!same_topology(proof.topology,current)){reason="post_native_destination_display_topology_changed";return false;}
+    if(after.monitor!=proof.target.monitor||after.work!=proof.target.work||after.dpi!=proof.window_dpi){
+        reason="post_native_not_on_explicit_destination_display";return false;
+    }
+    return true;
 }
 
 WindowWriter::VisualPreparation WindowWriter::prepare_visual(const v::VisualState& before,const v::VisualState& actual,
@@ -511,6 +611,12 @@ WindowWriter::Receipt WindowWriter::lower(const Snapshot& expected,const v::Sett
 
 WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     const Rect& desired, const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture) {
+    return place_with_destination(expected,desired,settings,std::move(guard),std::move(capture),nullptr);
+}
+
+WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expected,
+    const Rect& desired,const core::v1::Settings& settings,Guard guard,GestureCaptureLease capture,
+    const std::optional<DestinationDisplay>* frozen){
     Receipt result = rejected(expected, desired, "not_attempted");
     if (!native_rect(desired)) {
         result.reason = "invalid_or_out_of_native_range_target";
@@ -538,8 +644,24 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     }
 
     const auto& native = *prepared.positioning;
+    if(frozen){
+        result.destination=*frozen;
+        if(result.destination){
+            const auto& proof=*result.destination;
+            const auto current=catalog_.displays();
+            const auto awareness=GetAwarenessFromDpiAwarenessContext(GetWindowDpiAwarenessContext(before->hwnd));
+            if(proof.positioning!=native||planned_monitor(native)!=proof.target.monitor||proof.source.monitor!=before->monitor||
+               proof.source.work!=before->work||awareness!=proof.awareness||!same_topology(proof.topology,current)){
+                result.reason="batch_destination_display_proof_changed";return result;
+            }
+        }else if(planned_monitor(native)!=before->monitor){result.reason="batch_unbound_destination_display_changed";return result;}
+    }else{
+        const auto destination=observe_destination(catalog_,*before,native);
+        if(!destination.accepted){result.reason=destination.reason;return result;}
+        result.destination=destination.proof;
+    }
     if (!allowed_by_guard(guard, result.reason)) return result;
-    const auto work=executor_->execute(*before,native,desired,std::move(guard),Operation::Placement,{},{},false,false,std::nullopt,{},std::move(capture));
+    const auto work=executor_->execute(*before,native,desired,std::move(guard),Operation::Placement,{},{},false,false,std::nullopt,{},std::move(capture),result.destination);
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
     {
         std::lock_guard lock(work->mutex);
@@ -555,7 +677,7 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     result.identity_valid = result.after && Catalog::same(*before, *result.after);
     result.geometry_exact = result.identity_valid && result.after->visible == desired &&
         result.after->positioning == native;
-    const bool context=observe_capture_completion(result,work->capture);
+    const bool context=observe_placement_completion(result,catalog_,work->capture);
     if (!result.native_succeeded) result.reason = "native_placement_failed";
     else if (!result.after) result.reason = "postverify_" + capture_reason;
     else if (!result.identity_valid) result.reason = "identity_changed_after_native_attempt";
@@ -577,6 +699,7 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
         return result;
     }
     std::unordered_set<core::v1::Key> members, targets;
+    std::vector<std::optional<DestinationDisplay>> destinations(placements.size());
     std::unordered_set<HWND> windows;
     for (const auto& expected : identities) {
         if (!expected.key || !expected.hwnd || !members.insert(expected.key).second ||
@@ -611,13 +734,19 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
                 result.push_back(rejected(expected, placement->visible, "batch_preflight_" + prepared.reason));
                 return result;
             }
+            if(!prepared.noop&&prepared.positioning){
+                const auto destination=observe_destination(catalog_,*current,*prepared.positioning);
+                if(!destination.accepted){result.push_back(rejected(expected,placement->visible,"batch_preflight_"+destination.reason));return result;}
+                destinations[static_cast<std::size_t>(placement-placements.begin())]=destination.proof;
+            }
         }
     }
     result.reserve(placements.size());
     for (const auto& placement : placements) {
         const auto expected = std::find_if(identities.begin(), identities.end(),
             [&](const auto& member) { return member.key == placement.id; });
-        result.push_back(place(*expected, placement.visible, settings, guard,capture));
+        const auto index=static_cast<std::size_t>(&placement-placements.data());
+        result.push_back(place_with_destination(*expected,placement.visible,settings,guard,capture,&destinations[index]));
         if (!result.back().accepted) break;
     }
     return result;

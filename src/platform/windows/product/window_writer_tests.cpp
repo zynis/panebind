@@ -1,5 +1,6 @@
 #include "platform/windows/product/window_writer.h"
 
+#include <array>
 #include <iostream>
 #include <limits>
 #include <string_view>
@@ -95,6 +96,63 @@ int main() {
     changed = initial;
     changed.work = {0, 0, 1920, 1000};
     check(!p::WindowWriter::prepare(initial, changed, desired).accepted, "work area changed before placement");
+
+    // The production adapter binds this proof from MonitorFromRect(native),
+    // before issuing the call. These opaque fixtures exercise that same
+    // admission/postverify policy, never a simulated successful Win32 call.
+    const p::Display primary{initial.monitor,initial.work,{0,0,1920,1080},96};
+    const p::Display left{reinterpret_cast<HMONITOR>(std::uintptr_t{0x4322}),
+        {-1920,-40,0,1000},{-1920,-80,0,1000},96};
+    const std::array displays{primary,left};
+    const Rect cross_native{-1008,100,-492,508};
+    auto destination=p::WindowWriter::prepare_destination(initial,cross_native,left.monitor,DPI_AWARENESS_PER_MONITOR_AWARE,displays);
+    check(destination.accepted&&destination.proof&&destination.proof->window_dpi==96&&destination.proof->positioning==cross_native,
+        "explicit native target binds same-DPI negative-coordinate destination before call");
+    auto after=initial;after.visible={-1000,100,-500,500};after.positioning=cross_native;after.monitor=left.monitor;after.work=left.work;
+    std::string context_reason;
+    check(p::WindowWriter::placement_context_matches(initial,after,destination.proof,displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "own exact same-DPI cross-display placement is not an external context failure");
+    check(!p::WindowWriter::placement_context_matches(initial,after,{},displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "unbound cross-display result is still rejected");
+    auto topology=displays;topology[1].work={-1920,-40,0,960};
+    check(!p::WindowWriter::placement_context_matches(initial,after,destination.proof,topology,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "destination taskbar/work change after binding rejects completion");
+    topology=displays;topology[0].bounds={0,0,1600,1080};
+    check(!p::WindowWriter::placement_context_matches(initial,after,destination.proof,topology,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "other display topology change is not attributed to own placement");
+    check(!p::WindowWriter::placement_context_matches(initial,after,destination.proof,std::span<const p::Display>{displays}.first(1),DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "display removal rejects the frozen destination proof");
+    auto wrong_after=after;wrong_after.monitor=primary.monitor;
+    check(!p::WindowWriter::placement_context_matches(initial,wrong_after,destination.proof,displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "completion on a different monitor cannot select its own new baseline");
+    wrong_after=after;wrong_after.dpi=144;
+    check(!p::WindowWriter::placement_context_matches(initial,wrong_after,destination.proof,displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "unexpected window DPI still rejects completion");
+    wrong_after=after;++wrong_after.born;
+    check(!p::WindowWriter::placement_context_matches(initial,wrong_after,destination.proof,displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "destination proof grants no recycled identity authority");
+    wrong_after=after;wrong_after.maximized=true;
+    check(!p::WindowWriter::placement_context_matches(initial,wrong_after,destination.proof,displays,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "own move does not authorize a simultaneous state change");
+    check(!p::WindowWriter::prepare_destination(initial,cross_native,nullptr,DPI_AWARENESS_PER_MONITOR_AWARE,displays).accepted,
+        "off-topology native destination is rejected before issue");
+    check(!p::WindowWriter::prepare_destination(initial,cross_native,left.monitor,DPI_AWARENESS_INVALID,displays).accepted,
+        "unknown window awareness cannot authorize a cross-display DPI change");
+    const auto same=p::WindowWriter::prepare_destination(initial,initial.positioning,initial.monitor,DPI_AWARENESS_INVALID,{});
+    check(same.accepted&&!same.proof,"same-monitor quantum needs no display probe or transition exception");
+    auto mixed=displays;mixed[1].dpi=144;
+    destination=p::WindowWriter::prepare_destination(initial,cross_native,left.monitor,DPI_AWARENESS_PER_MONITOR_AWARE,mixed);
+    after.dpi=144;
+    check(destination.accepted&&p::WindowWriter::placement_context_matches(initial,after,destination.proof,mixed,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "PM window expected DPI uses the explicitly measured destination display");
+    destination=p::WindowWriter::prepare_destination(initial,cross_native,left.monitor,DPI_AWARENESS_SYSTEM_AWARE,mixed);
+    after.dpi=96;
+    check(destination.accepted&&destination.proof->window_dpi==96&&p::WindowWriter::placement_context_matches(initial,after,destination.proof,mixed,DPI_AWARENESS_SYSTEM_AWARE,context_reason),
+        "system-aware window retains actual window DPI rather than monitor DPI");
+    check(!p::WindowWriter::placement_context_matches(initial,after,destination.proof,mixed,DPI_AWARENESS_PER_MONITOR_AWARE,context_reason),
+        "window awareness change after the native call is rejected");
+    check(p::WindowWriter::prepare(after,after,{-980,120,-480,520}).accepted,
+        "next quantum uses confirmed actual geometry/context without changing original intent anchors");
     changed = initial;
     changed.maximized = true;
     check(!p::WindowWriter::prepare(initial, changed, desired).accepted, "window state changed before placement");

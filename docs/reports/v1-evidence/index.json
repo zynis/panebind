@@ -383,8 +383,8 @@
       "original_bytes": 821423,
       "original_rows": 1475,
       "excerpt_path": "docs/reports/v1-evidence/3fd3-r8-grid-scope-and-recovery-resize-up-failure-selected.jsonl",
-      "excerpt_sha256": "E22DC72B5B14CF1DD9495673F46FA546B77EE331A44A6AB45CD43E6F2155428E",
-      "excerpt_bytes": 10201,
+      "excerpt_sha256": "A318C8527BD77B6AFEF858510245804BB24C0F61ED4FF161C3C553F41A02E79E",
+      "excerpt_bytes": 15943,
       "excerpt_sequences": [
         13,
         590,
@@ -399,7 +399,8 @@
         1466,
         1467,
         1472,
-        1473
+        1473,
+        1359
       ],
       "excerpt_contains_identity_header": true,
       "projection_policy": "Literal original JSON records and64-bit integer tokens preserved; per-original-line SHA256 without newline; only repository wrapper added",

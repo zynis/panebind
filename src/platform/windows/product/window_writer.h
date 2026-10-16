@@ -22,6 +22,16 @@ public:
         LONG_PTR style_previous{};
         DWORD style_error{},alpha_error{},zorder_error{};
     };
+    // Frozen before an explicitly cross-display placement, not selected from
+    // its result. Window DPI follows the target window's actual awareness;
+    // the PMv2 display probe is not a substitute for GetDpiForWindow.
+    struct DestinationDisplay {
+        Display source,target;
+        core::v1::Rect positioning;
+        DPI_AWARENESS awareness{DPI_AWARENESS_INVALID};
+        UINT window_dpi{};
+        std::vector<Display> topology;
+    };
     struct Receipt {
         // accepted means the requested target was actually postverified, or
         // was already exact without a native call. Admission alone is not
@@ -45,6 +55,7 @@ public:
         bool alpha_change{},top_change{},visual_exact{},z_bottom_observed{};
         HWND z_previous{},z_next{};
         VisualNativeFacts visual_native;
+        std::optional<DestinationDisplay> destination;
     };
 
     // Called at the last pre-native boundary, after all potentially blocking
@@ -65,6 +76,13 @@ public:
     // No window query, COM, input resource or native placement occurs here.
     [[nodiscard]] static Preparation prepare(const Snapshot& expected,
         const Snapshot& actual, const core::v1::Rect& desired);
+    struct DestinationPreparation {bool accepted{};std::optional<DestinationDisplay> proof;std::string reason;};
+    // Exact predicates also used by the native adapter. No window operation or
+    // monitor query occurs here. Same-display calls need no probe/proof.
+    [[nodiscard]] static DestinationPreparation prepare_destination(const Snapshot&,
+        const core::v1::Rect& positioning,HMONITOR planned,DPI_AWARENESS,std::span<const Display>);
+    [[nodiscard]] static bool placement_context_matches(const Snapshot& before,const Snapshot& after,
+        const std::optional<DestinationDisplay>&,std::span<const Display> current,DPI_AWARENESS,std::string& reason);
     struct VisualPreparation {bool accepted{},noop{};std::string reason;};
     // Shared admission used on GUI and native-worker sides. Cleanup may only
     // restore the exact original of a still-owned attribute, not set a new one.
@@ -107,6 +125,8 @@ public:
         const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture={});
 
 private:
+    [[nodiscard]] Receipt place_with_destination(const Snapshot&,const core::v1::Rect&,
+        const core::v1::Settings&,Guard,GestureCaptureLease,const std::optional<DestinationDisplay>* frozen);
     void observe_auxiliary(Receipt&,const core::v1::Settings&,const GestureCaptureLease& capture={});
     Catalog& catalog_;
     struct NativeExecutor;

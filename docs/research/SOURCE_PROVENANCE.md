@@ -2677,6 +2677,33 @@ this production slot. This is a source-ordering repair, not a proven explanation
 for the retained missing-UP failures or a native runtime PASS. No new input API,
 polling, resource-thread disk IO or upstream code is introduced.
 
+### V1 explicit display-transition and adjacent-command wiring — 2026-10-17
+
+Reused the pinned AltSnap/FancyZones monitor/DPI review and existing product
+Catalog/geometry bridge. Rechecked Microsoft's [MonitorFromRect](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-monitorfromrect),
+[GetMonitorInfoW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmonitorinfow),
+[GetDpiForWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow)
+and [WM_DPICHANGED](https://learn.microsoft.com/en-us/windows/win32/hidpi/wm-dpichanged)
+contracts, plus [MonitorFromWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-monitorfromwindow),
+[GetWindowDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowdpiawarenesscontext)
+and [GetAwarenessFromDpiAwarenessContext](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getawarenessfromdpiawarenesscontext).
+Native monitor selection uses the largest intersection with window
+bounds; a window's DPI depends on its awareness, and its response to a DPI
+transition may change its frame. These facts do not justify accepting arbitrary
+post-call geometry or a topology change as success. Bind an intended native
+destination before issue and still require actual identity, exact geometry and
+fresh display/GUI facts; a second corrective placement is not introduced.
+
+The adjacent-display command previously followed unspecified enumeration order.
+PaneBind's independent policy selects the nearest rectangle gap, then contact,
+centre proximity and signed bounds; it is not a cycle-through-all-screens
+promise. Indistinguishable duplicate monitor rectangles are rejected rather
+than picking a physical target by enumeration order. Existing pure layout tests use independent three-screen/negative-space
+expectations. The guest command oracle remains an explicitly two-display test,
+not a call back into the production selector. These are source/model checks,
+not empirical multi-monitor or mixed-DPI PASS. No external code was copied or
+adapted and no licensing/attribution obligation changes.
+
 Also inspected the driver's retained Catalog lifetime against its existing
 same-STA contract and Microsoft's [STA rules](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments),
 [CoUninitialize](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-couninitialize)

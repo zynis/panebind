@@ -10,6 +10,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -217,6 +218,41 @@ inline AxisPlan resize_axis(std::span<const Item> items, std::size_t source,
 }
 
 } // namespace layout_detail
+
+// Nearest physical neighbour, never the next unspecified platform-enumeration
+// entry. Gap/contact, centre distance and signed bounds break ties; this is
+// deliberately not a promise to cycle through every monitor.
+inline std::optional<std::size_t> nearest_adjacent_display(std::span<const Rect> bounds,
+                                                          std::size_t source) {
+    if(bounds.size()<2||bounds.size()>32||source>=bounds.size())return {};
+    for(std::size_t n=0;n<bounds.size();++n){
+        if(!layout_detail::valid_rect(bounds[n]))return {};
+        for(std::size_t earlier=0;earlier<n;++earlier)if(bounds[n]==bounds[earlier])return {};
+    }
+    const auto origin=bounds[source];
+    const auto distance=[](std::int64_t a,std::int64_t b)->std::uint64_t{
+        return a>=b?static_cast<std::uint64_t>(a)-static_cast<std::uint64_t>(b):
+            static_cast<std::uint64_t>(b)-static_cast<std::uint64_t>(a);
+    };
+    const auto score=[&](Rect r){
+        const auto x=r.left()>origin.right()?distance(r.left(),origin.right()):
+            origin.left()>r.right()?distance(origin.left(),r.right()):0;
+        const auto y=r.top()>origin.bottom()?distance(r.top(),origin.bottom()):
+            origin.top()>r.bottom()?distance(origin.top(),r.bottom()):0;
+        const bool no_face=!layout_detail::positive_overlap(origin.left(),origin.right(),r.left(),r.right())&&
+            !layout_detail::positive_overlap(origin.top(),origin.bottom(),r.top(),r.bottom());
+        const auto cx=distance(std::midpoint(origin.left(),origin.right()),std::midpoint(r.left(),r.right()));
+        const auto cy=distance(std::midpoint(origin.top(),origin.bottom()),std::midpoint(r.top(),r.bottom()));
+        return std::tuple{std::max(x,y),std::min(x,y),no_face,std::max(cx,cy),std::min(cx,cy),
+            r.left(),r.top(),r.right(),r.bottom()};
+    };
+    std::optional<std::size_t> selected;
+    for(std::size_t n=0;n<bounds.size();++n){
+        if(n==source)continue;
+        if(!selected||score(bounds[n])<score(bounds[*selected]))selected=n;
+    }
+    return selected;
+}
 
 [[nodiscard]] inline std::vector<Key> connected(std::span<const Item> items, Key source,
                                                std::int64_t tolerance) {

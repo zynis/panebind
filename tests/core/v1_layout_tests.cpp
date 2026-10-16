@@ -150,8 +150,27 @@ void docking_and_stretch() {
     const auto huge=std::numeric_limits<std::int64_t>::max();
     expect(v::dock({std::numeric_limits<std::int64_t>::min(),0,huge,100},v::Action::DockLeft)==Rect{},"dock overflow rejected");
 }
+void adjacent_displays() {
+    const std::array scrambled{Rect{0,0,1920,1080},Rect{3840,0,5760,1080},Rect{1920,0,3840,1080}};
+    const auto next=v::nearest_adjacent_display(scrambled,0);
+    expect(next&&scrambled[*next]==Rect{1920,0,3840,1080},"command must not skip the actual neighbour because of enumeration order");
+    const std::array reordered{scrambled[2],scrambled[0],scrambled[1]};
+    const auto same=v::nearest_adjacent_display(reordered,1);
+    expect(same&&reordered[*same]==scrambled[2],"enumeration permutation keeps the same destination");
+    const std::array negative{Rect{0,0,1920,1080},Rect{1920,0,3840,1080},Rect{-1920,0,0,1080}};
+    const auto left=v::nearest_adjacent_display(negative,0);
+    expect(left&&negative[*left]==negative[2],"equal nearest contacts use signed geometry, not enumeration order");
+    const std::array contact{Rect{0,0,100,100},Rect{100,100,200,200},Rect{100,0,200,100}};
+    expect(v::nearest_adjacent_display(contact,0)==2,"positive face contact beats a corner-only neighbour");
+    const std::array<Rect,1> one{Rect{0,0,100,100}};
+    expect(!v::nearest_adjacent_display(one,0)&&!v::nearest_adjacent_display(contact,9),"missing display or stale source index rejects selection");
+    auto invalid=contact;invalid[1]={0,0,0,100};
+    expect(!v::nearest_adjacent_display(invalid,0),"invalid topology cannot manufacture a destination");
+    const std::array duplicate{Rect{0,0,100,100},Rect{100,0,200,100},Rect{100,0,200,100}};
+    expect(!v::nearest_adjacent_display(duplicate,0),"indistinguishable monitor bounds reject rather than select an enumeration-dependent identity");
+}
 int main() {
-    translation_and_graph(); shared_resize(); docking_and_stretch();
+    translation_and_graph(); shared_resize(); docking_and_stretch(); adjacent_displays();
     if (failures) { std::cerr<<failures<<'/'<<checks<<" failed\n"; return EXIT_FAILURE; }
     std::cout<<"V1 layout "<<checks<<" checks passed\n";
     return EXIT_SUCCESS;

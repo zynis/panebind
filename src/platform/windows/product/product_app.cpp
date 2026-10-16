@@ -134,7 +134,7 @@ std::wstring action_label(v::Action a){
     constexpr std::array<const wchar_t*,37> labels{
         L"不执行",L"最小化",L"最大化",L"恢复",L"居中",L"置于后方",
         L"向左微移",L"向右微移",L"向上微移",L"向下微移",L"减小宽度",L"增加宽度",L"减小高度",L"增加高度",
-        L"移到下一显示器",L"切换置顶",L"降低不透明度",L"提高不透明度",
+        L"移到最近相邻显示器",L"切换置顶",L"降低不透明度",L"提高不透明度",
         L"左半屏",L"右半屏",L"上半屏",L"下半屏",L"左上四分屏",L"右上四分屏",L"左下四分屏",L"右下四分屏",
         L"向左拉伸",L"向右拉伸",L"向上拉伸",L"向下拉伸",L"水平双向拉伸",L"垂直双向拉伸",L"双轴拉伸",
         L"撤销布局",L"暂停／恢复",L"打开设置",L"退出"};
@@ -327,11 +327,19 @@ public:
                 ",\"post_context_checked\":"+(receipt.post_context_checked?"true":"false")+
                 ",\"post_context_valid\":"+(receipt.post_context_valid?"true":"false")+
                 ",\"post_context_reason\":\""+escaped(receipt.post_context_reason)+"\""+
+                ",\"explicit_destination_display_bound\":"+(receipt.destination?"true":"false")+
+                ",\"destination_monitor\":"+std::to_string(receipt.destination?reinterpret_cast<std::uintptr_t>(receipt.destination->target.monitor):0)+
+                ",\"destination_window_dpi\":"+std::to_string(receipt.destination?receipt.destination->window_dpi:0)+
                 ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
                 ",\"normal_up_completion\":"+(completion?"true":"false"));
             if(receipt.after&&receipt.identity_valid&&gesture)gesture->expected[receipt.before.key]=*receipt.after;
-            if(receipt.after&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact)
+            if(receipt.after&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact){
                 last_exact_receipts[receipt.before.key]=*receipt.after;
+                // This is the writer's exact actual context for the next
+                // quantum, not a new DOWN/intent or member geometry anchor.
+                if(gesture&&gesture->operation_source.key==receipt.before.key&&
+                   Catalog::same(gesture->operation_source,*receipt.after))gesture->operation_source=*receipt.after;
+            }
             ok=ok&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact;
         }
         // A completed exact prefix remains an actual completion, even if UP
@@ -736,7 +744,12 @@ public:
             ",\"target\":"+rectangle(r.requested)+",\"delayed_actual\":"+(r.after?rectangle(r.after->visible):"null")+
             ",\"identity_valid\":"+(r.identity_valid?"true":"false")+",\"geometry_exact_at_delayed_observation\":"+(r.geometry_exact?"true":"false")+
             ",\"native_before_qpc\":"+std::to_string(r.before_qpc)+",\"native_after_qpc\":"+std::to_string(r.after_qpc)+
-            ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+",\"new_write_authority_granted\":false");
+            ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+
+            ",\"explicit_destination_display_bound\":"+(r.destination?"true":"false")+
+            ",\"destination_monitor\":"+std::to_string(r.destination?reinterpret_cast<std::uintptr_t>(r.destination->target.monitor):0)+
+            ",\"destination_window_dpi\":"+std::to_string(r.destination?r.destination->window_dpi:0)+
+            ",\"post_context_valid\":"+(r.post_context_valid?"true":"false")+
+            ",\"post_context_reason\":\""+escaped(r.post_context_reason)+"\",\"new_write_authority_granted\":false");
         }
         retry_deferred_drag_visual();
     }
@@ -793,7 +806,9 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
     case v::Action::NextDisplay:{auto displays=catalog.displays();if(displays.size()<2){notify(L"当前只有一个显示器。");return;}
         const auto it=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==s.monitor;});
         if(it==displays.end()||!it->dpi){notify(L"源显示器或实际 DPI 不可确认，未移动窗口。");return;}
-        const auto index=(static_cast<std::size_t>(it-displays.begin())+1)%displays.size();const auto& d=displays[index];
+        std::vector<v::Rect> bounds;bounds.reserve(displays.size());for(const auto& display:displays)bounds.push_back(display.bounds);
+        const auto index=v::nearest_adjacent_display(bounds,static_cast<std::size_t>(it-displays.begin()));
+        if(!index){notify(L"没有可确认的相邻显示器，未移动窗口。");return;}const auto& d=displays[*index];
         if(!d.dpi){notify(L"目标显示器 DPI 不可确认，未移动窗口。");return;}
         const auto scaled=[&](std::int64_t pixels)->std::optional<std::int64_t>{
             const auto round=static_cast<std::int64_t>(it->dpi/2);

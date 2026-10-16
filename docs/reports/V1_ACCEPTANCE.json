@@ -10340,7 +10340,7 @@
       "path": "uat/v1-control/3fd3e87b9bf54a9d858324ac7d602177/collection-20261016T211927012Z-e497479475a4425fb56ed45c5a102272/3fd3e87b9bf54a9d858324ac7d602177-release-fixture.jsonl",
       "sha256": "030AD7F8468174D8C3494F62A6C07C38778A1ABE84359F0E04C806BBA83162BB",
       "repository_excerpt_path": "docs/reports/v1-evidence/3fd3-r8-grid-scope-and-recovery-resize-up-failure-selected.jsonl",
-      "repository_excerpt_sha256": "E22DC72B5B14CF1DD9495673F46FA546B77EE331A44A6AB45CD43E6F2155428E",
+      "repository_excerpt_sha256": "A318C8527BD77B6AFEF858510245804BB24C0F61ED4FF161C3C553F41A02E79E",
       "scope": "VISUAL_INFLIGHT_GRID_BATCH_COMPONENT_PASS_I08_RECOVERY_RESIZE_UP_NOT_OBSERVED"
     },
     {

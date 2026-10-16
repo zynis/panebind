@@ -6,7 +6,7 @@
 
 ## 0be2＋3fd3：旧82d组件定向推进，新R9待实际验证
 
-两批产品仍为`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／`C796DDA…ED0DE`。0be2 driver／包装`0260ce2`／EXE `20BADD9E…DEEB5`；3fd3 driver／包装`f3848e9`／EXE `06C90F6D…B95E8`。每批14条原字节摘录及完整RunId／ZIP／manifest／原件哈希见索引，旧失败不改判。
+两批产品仍为`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／`C796DDA…ED0DE`。0be2 driver／包装`0260ce2`／EXE `20BADD9E…DEEB5`；3fd3 driver／包装`f3848e9`／EXE `06C90F6D…B95E8`。0be2为14条、3fd3为15条原字节摘录（含1359实际retired-pair LL-UP、release／detach／Gone判定，仍不授normalizedUP／NormalUp）；完整RunId／ZIP／manifest／原件哈希见索引，旧失败不改判。
 
 [0be2原行](v1-evidence/0be2-r8-owned-components-and-retired-grid-up-verdict-selected.jsonl)：1720行合法连续。859 I08组件实际通过（source-close真实UP及恢复、actor默认30秒与后继恢复）；1350视觉、1578在途、1711 batch组件通过。在途1456只认可同代实际LL-UP先于abort的形态，1460真实late exact、1461 alpha173恢复、1474新Move／1481新UP有实测，不伪造NormalUp。grid原1602／1643 FAIL保留：唯一测试UP QPC区间1144310328..1144317458内实际观察到g7/button1回执1144314324，但已退休、未push；1600实际Medium/exact source。旧normalized判定漏接不是缺LL-UP，也不是正常UP通过。
 
