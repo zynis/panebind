@@ -47,6 +47,31 @@ struct GestureShieldConsumedDownRequest {
     return exact_adapter_callback_present && gesture_shield_consumed_down_receipt_valid(request);
 }
 
+[[nodiscard]] constexpr bool gesture_shield_consumed_down_active(
+    const GestureShieldConsumedDownRequest& request, std::uint64_t current_generation,
+    bool published, bool pair_active, bool up_observed, bool revoked,
+    std::uint64_t now_tick, std::uint64_t deadline_tick) noexcept {
+    // A consumed DOWN is an actual input receipt, not an async-key-state
+    // promise. A missing/retired pair or finite deadline still rejects entry.
+    return gesture_shield_consumed_down_receipt_valid(request) &&
+        request.gesture.generation == current_generation && published && pair_active &&
+        !up_observed && !revoked && deadline_tick && now_tick < deadline_tick;
+}
+
+[[nodiscard]] constexpr bool gesture_shield_entry_buttons_allowed(
+    GestureShieldEntryMode mode, bool async_left_high, bool other_buttons_clear,
+    bool consumed_pair_authorized) noexcept {
+    return other_buttons_clear && (mode == GestureShieldEntryMode::ConsumedDown ?
+        consumed_pair_authorized : async_left_high);
+}
+
+[[nodiscard]] constexpr bool gesture_shield_consumed_up_retires(
+    bool pair_active, std::uint64_t pair_generation, std::uint64_t current_generation) noexcept {
+    // The same hook actually observed an UP after its active consumed DOWN.
+    // Even a same-ms/ambiguous timestamp revokes; it never proves NormalUp.
+    return pair_active && pair_generation && pair_generation == current_generation;
+}
+
 [[nodiscard]] constexpr bool gesture_shield_raw_up_retires(
     GestureShieldEntryMode mode) noexcept {
     return mode == GestureShieldEntryMode::NativeMoveHandoff;

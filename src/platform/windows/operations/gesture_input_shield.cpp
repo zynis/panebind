@@ -29,14 +29,20 @@ HWND root_at(POINT point) noexcept {
     return hit ? GetAncestor(hit, GA_ROOT) : nullptr;
 }
 
-bool physical_move_buttons() noexcept {
-    if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0) return false;
-    // The product route (plain versus Ctrl) is frozen at native START by the
-    // adapter. A modifier pressed later must not reclassify this gesture.
+bool other_move_buttons_clear() noexcept {
+    // The adapter locks the route at native START or its actual consumed DOWN.
+    // A modifier pressed later must not reclassify this gesture.
     for (const int key : {VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2}) {
         if ((GetAsyncKeyState(key) & 0x8000) != 0) return false;
     }
     return true;
+}
+
+bool physical_move_buttons() noexcept {
+    const bool actual_left_high = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+    if (!actual_left_high) return false; // Preserve the old native handoff gate/order.
+    return gesture_shield_entry_buttons_allowed(GestureShieldEntryMode::NativeMoveHandoff,
+        actual_left_high, other_move_buttons_clear(), false);
 }
 
 bool interactive_default_desktop() noexcept {
@@ -416,7 +422,7 @@ struct GestureInputShield::Impl {
             !exact_source(request)) return GestureShieldNativeFailure::SourceIdentity;
         if (!interactive_default_desktop()) return GestureShieldNativeFailure::InputDesktop;
         if (GetForegroundWindow() != request.source) return GestureShieldNativeFailure::Foreground;
-        if (!physical_move_buttons()) return GestureShieldNativeFailure::PhysicalButtons;
+        if (!entry_move_buttons_allowed(request)) return GestureShieldNativeFailure::PhysicalButtons;
         const auto gui = gui_facts(request.thread_id);
         if (!gui.available) return GestureShieldNativeFailure::GuiQuery;
         if (gui.capture) return GestureShieldNativeFailure::Capture;
@@ -904,6 +910,16 @@ struct GestureInputShield::Impl {
         return pending_remove && pending_remove->generation == request.generation;
     }
 
+    [[nodiscard]] bool entry_move_buttons_allowed(const GestureShieldRequest& request) noexcept {
+        if (!current_consumed_down) return physical_move_buttons();
+        // Only the explicit consumed-DOWN path can use a still-live actual
+        // adapter receipt. Its callback and deadline/revoke gates are sampled
+        // again at each native boundary. Other pressed buttons still reject.
+        const bool pair_authorized = entry_authorized(request, true) && !capture_command_revoked(request);
+        return gesture_shield_entry_buttons_allowed(GestureShieldEntryMode::ConsumedDown,
+            false, other_move_buttons_clear(), pair_authorized);
+    }
+
     void capture_snapshot(GestureShieldCaptureFacts& facts,
                            const GestureShieldRequest& request,
                            bool after) noexcept {
@@ -933,7 +949,7 @@ struct GestureInputShield::Impl {
         if (!interactive_default_desktop()) return GestureShieldCaptureFailure::InputDesktop;
         if (GetForegroundWindow() != request.source)
             return GestureShieldCaptureFailure::Foreground;
-        if (!physical_move_buttons()) return GestureShieldCaptureFailure::PhysicalButtons;
+        if (!entry_move_buttons_allowed(request)) return GestureShieldCaptureFailure::PhysicalButtons;
         RECT virtual_rect{};
         SetupDiagnostics diagnostic{};
         if (!virtual_desktop_rect(virtual_rect) ||
@@ -959,7 +975,7 @@ struct GestureInputShield::Impl {
         // queued revocation last, after the identity/button/foreground reads.
         const bool source_matches = exact_source(request);
         const bool foreground_matches = GetForegroundWindow() == request.source;
-        const bool held = physical_move_buttons();
+        const bool held = entry_move_buttons_allowed(request);
         const bool revoked = capture_command_revoked(request);
         return gesture_shield_native_entry_failure(
             revoked, source_matches, held, foreground_matches);
@@ -1040,7 +1056,7 @@ struct GestureInputShield::Impl {
         association.foreground_before = GetForegroundWindow();
         association.owner_before = gui_facts(thread_id);
         association.source_before = gui_facts(request.thread_id);
-        if (capture_command_revoked(request) || !physical_move_buttons() ||
+        if (capture_command_revoked(request) || !entry_move_buttons_allowed(request) ||
             association.foreground_before != request.source)
             return GestureShieldCaptureFailure::Revoked;
         for (const auto& gui : {association.owner_before, association.source_before}) {
@@ -1172,7 +1188,7 @@ struct GestureInputShield::Impl {
             if (!authorized) facts.failure = GestureShieldCaptureFailure::Authorization;
             else if (capture_command_revoked(request))
                 facts.failure = GestureShieldCaptureFailure::Revoked;
-            else if (!physical_move_buttons())
+            else if (!entry_move_buttons_allowed(request))
                 facts.failure = GestureShieldCaptureFailure::PhysicalButtons;
         }
         if (facts.failure == GestureShieldCaptureFailure::None) {
@@ -1204,7 +1220,7 @@ struct GestureInputShield::Impl {
                 facts.failure = GestureShieldCaptureFailure::Readback;
             } else if (!interactive_default_desktop()) {
                 facts.failure = GestureShieldCaptureFailure::InputDesktop;
-            } else if (capture_command_revoked(request) || !physical_move_buttons()) {
+            } else if (capture_command_revoked(request) || !entry_move_buttons_allowed(request)) {
                 // A native call already issued cannot be retroactively canceled.
                 // This completion never publishes Ready or restores writer rights.
                 facts.failure = GestureShieldCaptureFailure::Revoked;

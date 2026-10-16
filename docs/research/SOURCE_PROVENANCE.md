@@ -2309,3 +2309,23 @@ not start V1 InputService, so it cannot compete for the stop hotkey or turn a
 second producer into its SPSC queue. First prove actual legacy UP and a next
 gesture; only then evaluate exits and cross-process product integration.
 Implementation, build and old evidence do not grant this new hypothesis PASS.
+
+Bounded admission correction (2026-10-16): actual Run
+`f63d6bc443534f5c94ca637a60b412ae`, source
+`6685a08d8ff3ade1f6714603eee1edf5beb4f619`, recorded an exact consumed LL DOWN,
+current generation, no observed UP/revocation and valid idle context, while the
+single `GetAsyncKeyState(VK_LBUTTON)` result was zero. Capture/ATI/writer were
+not attempted. This identifies the rejected gate, not a system root cause.
+Actually re-read Microsoft's
+[LowLevelMouseProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc),
+[GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate)
+and SetCapture pages above. A processed hook can prevent target delivery;
+async zero is not an attributed actual UP, and the docs do not promise the
+consumed DOWN updates that queried state. In the explicit second candidate
+only, use the actual immutable DOWN receipt plus live generation-specific
+revocation/UP/deadline facts for entry; retain actual other-button/context
+checks. Do not claim physical hold from test-driver insertion. Any UP observed
+after this active DOWN, including ambiguous/same-millisecond time, revokes new
+capture authority; that observation alone cannot award NormalUp. The old
+native-handoff route retains its physical-left requirement. No code copied or
+adapted; actual captured legacy-UP and independent-exit gates remain unproven.

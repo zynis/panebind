@@ -603,6 +603,35 @@ void consumed_down_resource_contract() {
     missing = request; missing.gesture.generation = 0;
     check(!o::gesture_shield_consumed_entry_available(missing, true),
           "missing consumed generation is not a native END substitute");
+    const auto active_pair = [&](bool published, bool active, bool up, bool revoked,
+                                 std::uint64_t generation, std::uint64_t now, std::uint64_t deadline) {
+        return o::gesture_shield_consumed_down_active(request,generation,published,active,up,revoked,now,deadline);
+    };
+    const bool actual_pair = active_pair(true,true,false,false,71,120,3000);
+    check(actual_pair && o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::ConsumedDown,false,true,actual_pair),
+          "published live consumed DOWN admits its resource boundary even when async left query is zero");
+    check(!o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::NativeMoveHandoff,false,true,actual_pair) &&
+          o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::NativeMoveHandoff,true,true,false),
+          "old native handoff still requires actual async left high, not the consumed receipt exception");
+    check(!o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::ConsumedDown,true,false,actual_pair) &&
+          !o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::NativeMoveHandoff,true,false,false),
+          "a different pressed mouse button still rejects both entry modes");
+    check(!o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::ConsumedDown,true,true,false),
+          "async left high cannot substitute for a missing or revoked consumed pair");
+    check(!active_pair(false,true,false,false,71,120,3000) && !active_pair(true,false,false,false,71,120,3000) &&
+          !active_pair(true,true,true,false,71,120,3000) && !active_pair(true,true,false,true,71,120,3000),
+          "unpublished inactive actual-UP or revoked consumed pairs reject resource entry");
+    check(!active_pair(true,true,false,false,72,120,3000) && !active_pair(true,true,false,false,71,3000,3000) &&
+          !active_pair(true,true,false,false,71,120,0),
+          "new generation expired or missing deadline cannot inherit consumed DOWN authority");
+    check(o::gesture_shield_consumed_up_retires(true,71,71) &&
+          !o::gesture_shield_consumed_up_retires(false,71,71) && !o::gesture_shield_consumed_up_retires(true,71,72),
+          "same-hook active-pair UP revokes without filtering same-ms timestamps; old or inactive pair does not grant anything");
+    const bool same_ms_up = o::gesture_shield_consumed_up_retires(true,71,71);
+    check(!active_pair(true,true,same_ms_up,false,71,120,3000) &&
+          !o::gesture_shield_entry_buttons_allowed(o::GestureShieldEntryMode::ConsumedDown,false,true,
+              active_pair(true,true,same_ms_up,false,71,120,3000)),
+          "observed same-ms UP prevents late ATI/capture even though it cannot prove NormalUp");
     const auto matches = [&](std::uint64_t generation, std::uint64_t window_generation,
                              HWND message_window, bool queued, bool capture, DWORD time,
                              std::uint64_t observed_qpc) {

@@ -97,6 +97,7 @@ struct State {
     std::atomic<bool> consumed_prepared{false}, consumed_active{false};
     std::atomic<bool> consumed_down_published{false}, consumed_up_seen{false};
     std::atomic<std::uint64_t> consumed_prepared_generation{0}, consumed_generation{0}, consumed_down_qpc{0}, consumed_up_qpc{0};
+    std::atomic<std::uint64_t> consumed_deadline_tick{0};
     std::atomic<DWORD> consumed_prepared_time{0}, consumed_down_time{0}, consumed_up_time{0}, consumed_down_flags{0}, consumed_up_flags{0};
     std::atomic<LONG> consumed_prepared_x{0}, consumed_prepared_y{0}, consumed_down_x{0}, consumed_down_y{0}, consumed_up_x{0}, consumed_up_y{0};
     std::atomic<std::uint32_t> consumed_down_count{0}, consumed_up_count{0}, consumed_move_count{0}, consumed_overlay_moves{0};
@@ -452,6 +453,14 @@ void record_release_route_snapshot(std::string_view reason,
 [[nodiscard]] bool consumed_down_scenario() noexcept {
     return s.scenario == "consumed-down-normal-repeat";
 }
+[[nodiscard]] bool consumed_pair_current() noexcept {
+    const op::GestureShieldConsumedDownRequest actual{
+        {s.consumed_generation, s.source, GetCurrentProcessId(), s.source_thread, shield_deadline_ms},
+        {s.consumed_down_x.load(),s.consumed_down_y.load()},s.consumed_down_time.load(),s.consumed_down_qpc.load()};
+    return op::gesture_shield_consumed_down_active(actual,s.generation,
+        s.consumed_down_published.load(std::memory_order_acquire),s.consumed_active,s.consumed_up_seen,
+        s.retired || s.consumed_post_failed || s.consumed_down_count != 1,GetTickCount64(),s.consumed_deadline_tick);
+}
 LRESULT CALLBACK consumed_down_hook(int code, WPARAM message, LPARAM data) noexcept {
     if (code == HC_ACTION && data) {
         const auto& actual = *reinterpret_cast<const MSLLHOOKSTRUCT*>(data);
@@ -475,16 +484,19 @@ LRESULT CALLBACK consumed_down_hook(int code, WPARAM message, LPARAM data) noexc
             s.consumed_down_published.store(true, std::memory_order_release);
             return 1; // Exactly this prepared DOWN; never MOVE/UP or other input.
         }
-        if (message == WM_LBUTTONUP && s.consumed_active.load(std::memory_order_acquire)) {
+        if (message == WM_LBUTTONUP && op::gesture_shield_consumed_up_retires(
+                s.consumed_active.load(std::memory_order_acquire),s.consumed_generation,s.generation)) {
+            s.consumed_up_seen.store(true, std::memory_order_release);
             const DWORD elapsed = actual.time - s.consumed_down_time.load();
-            if (s.consumed_generation == s.generation && elapsed != 0 && elapsed <= shield_deadline_ms) {
-                s.consumed_up_x = actual.pt.x; s.consumed_up_y = actual.pt.y;
-                s.consumed_up_time = actual.time; s.consumed_up_flags = actual.flags;
-                ++s.consumed_up_count;
-                s.consumed_up_seen.store(true, std::memory_order_release);
-                if (!PostThreadMessageW(s.consumed_hook_thread, msg_consumed_up_notice, static_cast<WPARAM>(s.consumed_generation.load()), 0))
-                    s.consumed_post_failed = true;
-            } else ++s.consumed_unmatched_LL_ups; // Old/same-tick ambiguous UP never revokes this generation.
+            if (elapsed == 0 || elapsed > shield_deadline_ms) ++s.consumed_unmatched_LL_ups;
+            s.consumed_up_x = actual.pt.x; s.consumed_up_y = actual.pt.y;
+            s.consumed_up_time = actual.time; s.consumed_up_flags = actual.flags;
+            ++s.consumed_up_count;
+            // Any actual UP seen by this hook after its active DOWN revokes
+            // future API entry, including ambiguous same-ms native timestamps.
+            // This observation does not grant captured legacy NormalUp.
+            if (!PostThreadMessageW(s.consumed_hook_thread, msg_consumed_up_notice, static_cast<WPARAM>(s.consumed_generation.load()), 0))
+                s.consumed_post_failed = true;
         } else if (message == WM_MOUSEMOVE && s.consumed_active.load(std::memory_order_acquire)) {
             ++s.consumed_move_count;
         }
@@ -2408,6 +2420,7 @@ void writer_owner() noexcept {
     if (!prepared) return false;
     s.consumed_prepared_x = s.down_point.x;s.consumed_prepared_y = s.down_point.y;
     s.consumed_prepared_generation = s.generation.load();s.consumed_prepared_time = GetTickCount();
+    s.consumed_deadline_tick = GetTickCount64() + shield_deadline_ms;
     s.consumed_prepared.store(true, std::memory_order_release);s.held = true;
     const bool inserted = send_mouse(MOUSEEVENTF_LEFTDOWN, s.down_point);
     const bool receipt = inserted && wait_for(s.consumed_down, 1500, "actual_exact_prepared_LL_down_consumed");
@@ -2431,6 +2444,13 @@ void writer_owner() noexcept {
     const bool post_failed = s.consumed_post_failed.load(), up_seen = s.consumed_up_seen.load(), retired = s.retired.load();
     const auto native_downs = s.native_downs.load(), native_starts = s.native_starts.load(), native_ends = s.native_ends.load();
     const auto cancel_attempts = s.cancel_attempts.load();
+    const bool pair_active = s.consumed_active.load();
+    const auto now_tick = GetTickCount64(), deadline_tick = s.consumed_deadline_tick.load();
+    const op::GestureShieldConsumedDownRequest request{
+        {ll_generation, s.source, GetCurrentProcessId(), s.source_thread, shield_deadline_ms},
+        {s.consumed_down_x.load(),s.consumed_down_y.load()},s.consumed_down_time.load(),s.consumed_down_qpc.load()};
+    const bool pair_authorized = op::gesture_shield_consumed_down_active(request,actual_generation,published,pair_active,
+        up_seen,retired || post_failed || down_count != 1,now_tick,deadline_tick);
     record("consumed_pre_capture_facts", ",\"receipt\":" + boolean(receipt) + ",\"published\":" + boolean(published) +
         ",\"generation\":" + std::to_string(actual_generation) + ",\"LL_generation\":" + std::to_string(ll_generation) +
         ",\"DOWN_count\":" + std::to_string(down_count) + ",\"post_failed\":" + boolean(post_failed) +
@@ -2439,19 +2459,18 @@ void writer_owner() noexcept {
         ",\"stable_context\":" + boolean(actual_context) + ",\"context_reason\":\"" + std::string(context_reason) +
         "\",\"native_DOWN_count\":" + std::to_string(native_downs) + ",\"native_START_count\":" + std::to_string(native_starts) +
         ",\"native_END_count\":" + std::to_string(native_ends) + ",\"cancel_attempts\":" + std::to_string(cancel_attempts) +
-        ",\"cross_thread_atomic_snapshot\":false,\"actual_UP_inferred_from_key_state\":false");
+        ",\"pair_active\":" + boolean(pair_active) + ",\"now_tick\":" + std::to_string(now_tick) + ",\"deadline_tick\":" + std::to_string(deadline_tick) +
+        ",\"consumed_pair_authorized\":" + boolean(pair_authorized) +
+        ",\"async_left_is_diagnostic_only\":true,\"physical_left_held_proven\":false,\"cross_thread_atomic_snapshot\":false,\"actual_UP_inferred_from_key_state\":false");
     if (!receipt || !published || ll_generation != actual_generation || post_failed || down_count != 1 || up_seen || retired ||
-        !actual_left_high || !actual_context || native_downs != 0 || native_starts != 0 || native_ends != 0 || cancel_attempts != 0) return false;
-    const op::GestureShieldConsumedDownRequest request{
-        {s.generation, s.source, GetCurrentProcessId(), s.source_thread, shield_deadline_ms},
-        {s.consumed_down_x.load(),s.consumed_down_y.load()},s.consumed_down_time.load(),s.consumed_down_qpc.load()};
+        !pair_authorized || !actual_context || native_downs != 0 || native_starts != 0 || native_ends != 0 || cancel_attempts != 0) return false;
     const bool queued = s.shield->request_capture_for_consumed_down(request);
     record("consumed_capture_request", ",\"generation\":" + std::to_string(s.generation.load()) + ",\"queued\":" + boolean(queued) +
         ",\"native_START_END_asserted\":false,\"move_session_armed\":false,\"writer_armed\":false");
     if (!queued || !wait_for(s.capture_ready, 2500, "consumed_actual_capture_ready") ||
         !wait_for(s.isolation_ready, 0, "consumed_actual_isolation_ready") || !s.capture_established ||
-        !s.association_established || s.association_detached || !owned_capture_live() || s.retired || s.consumed_up_seen ||
-        !left_high() || !stable_context() || !shield_hit(s.down_point)) return false;
+        !s.association_established || s.association_detached || !owned_capture_live() || !consumed_pair_current() ||
+        !stable_context() || !shield_hit(s.down_point)) return false;
     ResetEvent(s.raw_notice);
     const POINT moved{s.down_point.x + 35,s.down_point.y + 25};
     if (!move_cursor(moved) || !wait_for(s.raw_notice,1500,"actual_captured_legacy_MOVE") ||
@@ -2665,7 +2684,7 @@ int wmain(int argc, wchar_t** argv) {
             // manufactured native START/END. Resource API-entry checks also
             // query real source/FG/desktop/GUI state before ATI/capture.
             return consumed_down_scenario() && s.consumed_down_published.load(std::memory_order_acquire) &&
-                s.consumed_active && !s.consumed_up_seen && !s.retired && !s.armed && s.held &&
+                consumed_pair_current() && !s.armed &&
                 gesture.generation == s.generation && gesture.generation == s.consumed_generation &&
                 gesture.source == s.source && gesture.process_id == GetCurrentProcessId() && gesture.thread_id == s.source_thread &&
                 request.down_point.x == s.consumed_down_x && request.down_point.y == s.consumed_down_y &&
