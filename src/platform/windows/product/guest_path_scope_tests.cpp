@@ -63,6 +63,30 @@ int main() {
     if(!expect(guest::captured_release_hit_allowed(rejected),false,"retired READY receipt never reauthorizes release target"))return 1;
     rejected=capture;rejected.hit_root=201;
     if(!expect(guest::captured_release_hit_allowed(rejected),false,"unknown hit root rejects"))return 1;
+    auto source_spatial=capture;source_spatial.hit_root=source_spatial.source;
+    if(!expect(guest::captured_release_route_allowed(source_spatial),true,"exact source spatial hit with both actual current shield captures permits one test release")||
+       !expect(guest::captured_release_hit_allowed(source_spatial),false,"source spatial hit is not relabelled as a shield hit"))return 1;
+    rejected=source_spatial;rejected.owner_capture=201;
+    if(!expect(guest::captured_release_route_allowed(rejected),false,"source spatial hit does not waive foreign owner capture"))return 1;
+    rejected=source_spatial;rejected.expected_generation=8;
+    if(!expect(guest::captured_release_route_allowed(rejected),false,"source spatial hit does not revive an old generation"))return 1;
+    rejected=source_spatial;rejected.hit_root=201;
+    if(!expect(guest::captured_release_route_allowed(rejected),false,"foreign spatial hit remains rejected even while own capture is held"))return 1;
+    guest::ActorStartCaptureReceipt actor;actor.version=1;actor.parent_pid=10;actor.parent_birth=101;
+    actor.child_pid=20;actor.child_birth=201;actor.product_birth=421;actor.down_qpc=1000;actor.ready_qpc=1001;actor.capture=source_spatial;
+    actor.product_image_sha256.fill('A');actor.product_image_sha256[64]='\0';
+    const auto actor_match=[&](const guest::ActorStartCaptureReceipt& actual){return guest::actor_start_capture_receipt_matches(actual,10,101,20,201);};
+    if(!expect(actor_match(actor),true,"one immutable exact parent child START capture receipt is structurally bound"))return 1;
+    auto old_actor=actor;old_actor.child_birth=202;
+    if(!expect(actor_match(old_actor),false,"reused child PID cannot inherit the one-shot capture receipt"))return 1;
+    old_actor=actor;old_actor.capture.expected_generation=8;
+    if(!expect(actor_match(old_actor),false,"actor receipt rejects mismatched START READY generation"))return 1;
+    old_actor=actor;old_actor.ready_qpc=999;
+    if(!expect(actor_match(old_actor),false,"actor READY must not precede its actual DOWN receipt"))return 1;
+    old_actor=actor;old_actor.capture.source_capture=201;
+    if(!expect(actor_match(old_actor),false,"actor START ack cannot waive actual foreign capture"))return 1;
+    old_actor=actor;old_actor.product_image_sha256[0]='\0';
+    if(!expect(actor_match(old_actor),false,"incomplete product hash cannot bind an actor capture receipt"))return 1;
     const std::string legacy=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"legacy_left_up","overlay":200,"actual_legacy_up_accepted":true,"legacy_up_dispatch_qpc":1001})";
     const std::string gone=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"isolation_gone","overlay":200,"removal_reason":0,"overlay_destroyed":true,"release_attempted":true,"release_completed":true,"release_succeeded":true,"capture_after_release":0,"detach_attempted":true,"detach_completed":true,"detach_succeeded":true})";
     const std::string idle=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"status","hook_owner_running":true,"gesture_active":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false})";
@@ -71,6 +95,20 @@ int main() {
     auto aborted_gone=gone;aborted_gone.replace(aborted_gone.find("\"removal_reason\":0"),18,"\"removal_reason\":1");
     const auto mutate=[](std::string row,std::string_view from,std::string_view to){
         const auto at=row.find(from);if(at==row.npos)std::exit(2);row.replace(at,from.size(),to);return row;};
+    const std::string early_status=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"status","enabled":true,"hook_owner_running":true,"gesture_active":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false,"mouse_up_callbacks":{"snapshot_known":true,"callback_count":1,"last":{"hook_observed_qpc":1001,"button":1,"generation_at_entry":7,"consumed_before":true,"aborted_before":false,"matching_branch_taken":true,"push_attempted":false,"push_succeeded":false}}})";
+    const std::string early_failure=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"resource_failure","source":100,"source_pid":10,"source_tid":11,"overlay":200,"setup_stage":8,"native_failure":4,"capture_attempted":false,"attach_attempted":false,"release_attempted":false,"release_completed":false,"release_succeeded":false,"detach_attempted":false,"detach_completed":false,"detach_succeeded":false,"capture_actual_after":0,"capture_after_release":0})";
+    const auto early_gone=mutate(mutate(early_failure,"\"fact\":\"resource_failure\"","\"fact\":\"isolation_gone\""),
+        "\"setup_stage\":8,\"native_failure\":4","\"setup_stage\":0,\"native_failure\":0,\"removal_reason\":3,\"overlay_destroyed\":true,\"hotkey_unregistered\":true");
+    const auto early_match=[&](std::string_view status_row,std::string_view failed,std::string_view removed){
+        return guest::matching_pre_capture_click_release(status_row,failed,removed,identity);};
+    if(!expect(early_match(early_status,early_failure,early_gone),true,"actual first click UP before capture plus exact physical-button setup rejection and cleanup")||
+       !expect(early_match(early_status,early_failure,""),false,"pre-capture first click still requires actual cleanup receipt")||
+       !expect(early_match(mutate(early_status,"\"hook_observed_qpc\":1001","\"hook_observed_qpc\":999"),early_failure,early_gone),false,"old callback cannot complete this first click")||
+       !expect(early_match(early_status,mutate(early_failure,"\"generation\":7","\"generation\":8"),early_gone),false,"other generation failure cannot explain first click")||
+       !expect(early_match(early_status,mutate(early_failure,"\"native_failure\":4","\"native_failure\":3"),early_gone),false,"unrelated setup failure is not physical release evidence")||
+       !expect(early_match(early_status,early_failure,mutate(early_gone,"\"removal_reason\":3","\"removal_reason\":0")),false,"NormalUp cannot masquerade as pre-capture failure")||
+       !expect(early_match(early_status,mutate(early_failure,"\"capture_attempted\":false","\"capture_attempted\":true"),early_gone),false,"capture-attempted route requires its real normal or abort contract")||
+       !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,early_status,identity,"",early_gone),false,"pre-capture click cleanup never satisfies the unchanged NormalUp gate"))return 1;
     const auto captured_revoke=mutate(mutate(abort_status,"\"consumed_before\":false","\"consumed_before\":true"),
         "\"matching_branch_taken\":false","\"matching_branch_taken\":true");
     const auto abort_match=[&](std::string_view row,std::string_view end,std::string_view resource){

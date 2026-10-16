@@ -165,15 +165,89 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     const auto before=visible(set.frames[0].hwnd);if(!before)throw std::runtime_error("chain_double_click_before_unknown");
     if(shift)key(s,VK_SHIFT,true);cursor(s,*point);Sleep(100);const auto mark=read(s.product_log).size();
     const auto started=GetTickCount64();button(s,true);button(s,false);
-    if(!shift){s.log.check("chain_first_click_actually_terminated",wait([&]{return record(s,mark,"gesture_end").find("\"normal_up\":true")!=std::string::npos;},200));}
+    if(!shift){
+        std::string failure,gone,status,ended;std::uint64_t generation{};bool normal{},early_click{},status_requested{},status_ok{};
+        std::size_t status_mark{};DWORD status_exit=STILL_ACTIVE;
+        const bool terminated=wait([&]{
+            const auto start=record(s,mark,"gesture_start");
+            const auto active=number(start,"\"generation\":");
+            if(active){
+                ended=record(s,mark,"gesture_end",active);
+                normal=number(ended,"\"process_id\":")==s.product_pid&&
+                    ended.find("\"source_sha\":"+quote(s.product_source))!=ended.npos&&
+                    ended.find("\"normal_up\":true")!=ended.npos;
+                return normal;
+            }
+            failure.clear();gone.clear();const auto text=read(s.product_log);
+            std::istringstream rows(mark<text.size()?text.substr(mark):std::string{});std::string row;
+            while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
+                row.find("\"fact\":\"resource_failure\"")!=row.npos&&
+                number(row,"\"source\":")==reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd)&&
+                number(row,"\"source_pid\":")==GetCurrentProcessId()&&number(row,"\"source_tid\":")==set.thread)failure=row;
+            generation=number(failure,"\"generation\":");if(!generation)return false;
+            rows.clear();rows.str(mark<text.size()?text.substr(mark):std::string{});
+            while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
+                row.find("\"fact\":\"isolation_gone\"")!=row.npos&&number(row,"\"generation\":")==generation)gone=row;
+            if(gone.empty())return false;
+            if(!status_requested){
+                // One fresh public receipt AFTER actual cleanup. No input is
+                // resent, and secondary exit is not substituted for delivery.
+                status_requested=true;status_mark=read(s.product_log).size();
+                status_ok=launch(s,L"--status",true,&status_exit);
+            }
+            status=record(s,status_mark,"status");
+            const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,generation,s.left_up_send_qpc};
+            GUITHREADINFO gui{sizeof(gui)};const auto overlay=number(gone,"\"overlay\":");
+            early_click=status_ok&&status_exit==0&&
+                product::guest::matching_pre_capture_click_release(status,failure,gone,identity)&&
+                record(s,mark,"gesture_start").empty()&&record(s,mark,"placement").empty()&&
+                set.owns(0)&&visible(set.frames[0].hwnd)==before&&GetForegroundWindow()==set.frames[0].hwnd&&
+                overlay&&!IsWindow(reinterpret_cast<HWND>(static_cast<std::uintptr_t>(overlay)))&&
+                GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+            return early_click;
+        },GetDoubleClickTime());
+        s.log.check("chain_first_click_actually_terminated",terminated,
+            "\"termination\":"+quote(normal?"actual_NormalUp":early_click?"actual_LL_UP_before_capture_not_NormalUp":"unconfirmed")+
+            ",\"early_release_generation\":"+std::to_string(generation)+",\"public_status_receipt\":"+quote(status)+
+            ",\"actual_setup_failure\":"+quote(failure)+",\"actual_resource_cleanup\":"+quote(gone)+
+            ",\"NormalUp_inferred_from_early_release\":false,\"fast_drag_PASS_inferred\":false");
+    }
     else wait([&]{GUITHREADINFO info{sizeof(info)};return GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize;},200);
     if(GetTickCount64()-started>=GetDoubleClickTime()||visible(set.frames[0].hwnd)!=before){
         if(shift)key(s,VK_SHIFT,false);throw std::runtime_error("chain_real_first_click_changed_geometry_or_double_click_timed_out");}
-    button(s,true);std::string receipt;
-    const bool changed=wait([&]{receipt=chain_any_placement(s,mark,expected);return set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();});
+    DWORD_PTR fresh_region{};
+    if(!set.owns(0)||GetForegroundWindow()!=set.frames[0].hwnd||WindowFromPoint(*point)!=set.frames[0].hwnd||
+       !SendMessageTimeoutW(set.frames[0].hwnd,WM_NCHITTEST,0,
+           MAKELPARAM(static_cast<short>(point->x),static_cast<short>(point->y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&fresh_region)||
+       static_cast<int>(fresh_region)!=native_region||GetTickCount64()-started>=GetDoubleClickTime()){
+        if(shift)key(s,VK_SHIFT,false);throw std::runtime_error("chain_second_click_actual_region_or_time_changed");}
+    const bool edge=native_region==HTLEFT||native_region==HTRIGHT||native_region==HTTOP||native_region==HTBOTTOM;
+    const auto action=shift?(native_region==HTLEFT||native_region==HTRIGHT?"StretchHorizontal":"StretchVertical"):
+        native_region==HTLEFT?"StretchLeft":native_region==HTRIGHT?"StretchRight":native_region==HTTOP?"StretchTop":"StretchBottom";
+    const auto second_mark=read(s.product_log).size();button(s,true);std::string receipt,second_down,mapped;
+    const bool changed=wait([&]{
+        receipt=chain_any_placement(s,second_mark,expected);second_down=record(s,second_mark,"input_button_observed");
+        const auto generation=number(second_down,"\"generation\":");
+        const bool observed=generation&&number(second_down,"\"process_id\":")==s.product_pid&&
+            second_down.find("\"source_sha\":"+quote(s.product_source))!=second_down.npos&&
+            second_down.find("\"source\":\"WH_MOUSE_LL\"")!=second_down.npos&&second_down.find("\"kind\":\"DOWN\"")!=second_down.npos&&
+            number(second_down,"\"button\":")==1&&number(second_down,"\"hook_observed_qpc\":")>=s.left_down_send_qpc&&
+            number(receipt,"\"key\":")==number(second_down,"\"source_key\":");
+        mapped=record(s,second_mark,"mapped_command_completed",generation);
+        const bool actual_route=edge?(second_down.find("\"route\":\"mapped\"")!=second_down.npos&&
+            second_down.find("\"action\":"+quote(action))!=second_down.npos&&
+            number(mapped,"\"process_id\":")==s.product_pid&&mapped.find("\"source_sha\":"+quote(s.product_source))!=mapped.npos&&
+            mapped.find("\"action\":"+quote(action))!=mapped.npos&&mapped.find("\"handler_invoked\":true")!=mapped.npos&&
+            mapped.find("\"handler_returned\":true")!=mapped.npos):
+            (second_down.find("\"route\":\"gesture\"")!=second_down.npos&&number(receipt,"\"generation\":")==generation&&
+             receipt.find("\"intent_reason\":\"double_click_stretch\"")!=receipt.npos);
+        return observed&&actual_route&&set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();
+    });
     button(s,false);if(shift)key(s,VK_SHIFT,false);
     s.log.check(label,changed&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"actual_native_hit\":"+std::to_string(native_region)+
-        ",\"Shift\":"+(shift?"true":"false")+",\"real_DOWN_UP_DOWN_UP\":true,\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt));
+        ",\"Shift\":"+(shift?"true":"false")+",\"real_DOWN_UP_DOWN_UP\":true,\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt)+
+        ",\"actual_second_DOWN\":"+quote(second_down)+",\"actual_mapped_completion\":"+quote(mapped)+
+        ",\"corner_contextual_route_not_falsely_reported_as_mapped\":"+(edge?"false":"true"));
 }
 
 [[maybe_unused]] void owned_dock_stretch_chains(State& s){

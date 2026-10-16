@@ -600,6 +600,8 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
         width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
     const bool point_known=GetCursorPos(&point)!=FALSE;const HWND hit=point_known?GetAncestor(WindowFromPoint(point),GA_ROOT):nullptr;
     const auto capture=release_capture_facts(s,h,hit,generation);const bool shield_hit=product::guest::captured_release_hit_allowed(capture);
+    const bool captured_source_hit=hit==h&&product::guest::captured_release_route_allowed(capture);
+    const bool captured_route=shield_hit||captured_source_hit;
     const bool source_hit=hit==h&&capture.source_gui&&(!capture.source_capture||capture.source_capture==reinterpret_cast<std::uintptr_t>(h));
     s.log.emit("normal_release_route_observation","\"expected_generation\":"+std::to_string(generation)+",\"ready_generation\":"+std::to_string(capture.generation)+
         ",\"source\":"+std::to_string(capture.source)+",\"actual_hit_root\":"+std::to_string(capture.hit_root)+
@@ -607,8 +609,9 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
         ",\"actual_overlay_tid\":"+std::to_string(capture.overlay_tid)+",\"source_capture\":"+std::to_string(capture.source_capture)+
         ",\"overlay_owner_capture\":"+std::to_string(capture.owner_capture)+",\"ready_not_retired\":"+(capture.not_retired?"true":"false")+
         ",\"exact_current_product_shield_hit\":"+(shield_hit?"true":"false")+",\"direct_source_hit\":"+(source_hit?"true":"false")+
+        ",\"exact_source_spatial_hit_with_current_product_capture\":"+(captured_source_hit?"true":"false")+
         ",\"UP_SendInput_not_yet_called\":true");
-    if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!point_known||(!source_hit&&!shield_hit)||width<=0||height<=0||
+    if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!point_known||(!source_hit&&!captured_route)||width<=0||height<=0||
         point.x<x||point.y<y||static_cast<long long>(point.x)>=static_cast<long long>(x)+width||
         static_cast<long long>(point.y)>=static_cast<long long>(y)+height)
         throw std::runtime_error("normal_release_actual_cursor_or_context_unavailable");
@@ -620,12 +623,12 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
     // The route-observation log is disk IO, not a lease on its earlier facts.
     // Recheck actual hit/capture/identity once immediately before insertion.
     POINT fresh_point{};GUITHREADINFO fresh_source{sizeof(fresh_source)},fresh_owner{sizeof(fresh_owner)};DWORD fresh_pid{};
-    const HWND expected_hit=shield_hit?reinterpret_cast<HWND>(static_cast<std::uintptr_t>(capture.overlay)):h;
+    const HWND expected_hit=hit;const HWND expected_capture=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(capture.overlay));
     const bool current_source=GetWindowThreadProcessId(h,&fresh_pid)==capture.source_tid&&fresh_pid==capture.source_pid&&
         GetGUIThreadInfo(static_cast<DWORD>(capture.source_tid),&fresh_source)!=FALSE;
-    const bool current_capture=shield_hit?current_source&&GetWindowThreadProcessId(expected_hit,&fresh_pid)==capture.overlay_tid&&
+    const bool current_capture=captured_route?current_source&&GetWindowThreadProcessId(expected_capture,&fresh_pid)==capture.overlay_tid&&
         fresh_pid==s.product_pid&&GetGUIThreadInfo(static_cast<DWORD>(capture.overlay_tid),&fresh_owner)&&
-        fresh_source.hwndCapture==expected_hit&&fresh_owner.hwndCapture==expected_hit&&
+        fresh_source.hwndCapture==expected_capture&&fresh_owner.hwndCapture==expected_capture&&
         !fresh_source.hwndMoveSize&&!fresh_source.hwndMenuOwner&&!fresh_owner.hwndMoveSize&&!fresh_owner.hwndMenuOwner:
         current_source&&(!fresh_source.hwndCapture||fresh_source.hwndCapture==h);
     if(!current_capture||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&fresh_point)||
@@ -2249,28 +2252,76 @@ void gui_page_select(State& s,const SettingsGui& gui,unsigned wanted){
     s.log.check("GUI_page_"+std::to_string(wanted),gui_read(s,gui,gui.tab,TCM_GETCURSEL)==wanted&&gui_page(s,gui),
         "\"selection_via\":"+quote(changed?"actual_CtrlTab":"already_selected_actual_page")+",\"production_page\":"+std::to_string(wanted));
 }
+bool gui_activate_exact_settings(State& s,const SettingsGui& gui){
+    // Test-only normal activation of this exact product UI, not a product
+    // foreground repair and never a click on a foreign/unknown window.
+    bool down_attempted=false,up_attempted=false,activated=false;POINT point{};HWND hit{};
+    std::string reason="not_started";DWORD_PTR region{};RECT bounds{},client{};
+    const auto idle=[](DWORD tid){GUITHREADINFO info{sizeof(info)};return tid&&GetGUIThreadInfo(tid,&info)&&
+        !info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner&&
+        !(info.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
+    const auto fresh=[&]{
+        if(!desktop()||s.left||s.control||!gui_identity(s,gui,gui.tab)||!IsWindowEnabled(gui.root)||IsIconic(gui.root)||!idle(gui.tid))return false;
+        for(const int vk:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
+            if(GetAsyncKeyState(vk)&0x8000)return false;
+        const auto front=GetForegroundWindow();return front&&idle(GetWindowThreadProcessId(front,nullptr));
+    };
+    try{
+        const auto mark=read(s.product_log).size();std::string status;DWORD exit=STILL_ACTIVE;
+        if(!fresh()||!launch(s,L"--status",true,&exit)||exit||!wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000)||
+           !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0}))
+            throw std::runtime_error("settings_activation_not_exact_idle_product");
+        if(!GetWindowRect(gui.root,&bounds)||!GetClientRect(gui.root,&client))throw std::runtime_error("settings_activation_geometry_unknown");
+        MapWindowPoints(gui.root,nullptr,reinterpret_cast<POINT*>(&client),2);
+        if(client.top<=bounds.top)throw std::runtime_error("settings_activation_no_native_caption");
+        point={bounds.left+(bounds.right-bounds.left)/2,bounds.top+(client.top-bounds.top)/2};cursor(s,point);hit=WindowFromPoint(point);
+        RECT current{};POINT actual{};
+        if(!fresh()||hit!=gui.root||!GetWindowRect(gui.root,&current)||!EqualRect(&current,&bounds)||!GetCursorPos(&actual)||
+           actual.x!=point.x||actual.y!=point.y||!SendMessageTimeoutW(gui.root,WM_NCHITTEST,0,
+               MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)||region!=HTCAPTION||
+           !fresh()||WindowFromPoint(point)!=gui.root||!GetWindowRect(gui.root,&current)||!EqualRect(&current,&bounds))
+            throw std::runtime_error("settings_activation_actual_caption_hit_not_confirmed");
+        down_attempted=true;button(s,true);up_attempted=true;button(s,false);
+        activated=wait([&]{RECT after{};return !s.left&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
+            gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui))&&
+            idle(gui.tid)&&GetWindowRect(gui.root,&after)&&EqualRect(&after,&bounds);},1000);
+        reason=activated?"single_actual_caption_click_activated":"caption_click_foreground_or_focus_not_confirmed";
+    }catch(const std::exception& error){reason=error.what();
+        if(down_attempted&&s.left&&!up_attempted&&!s.left_up_attempted){try{up_attempted=true;button(s,false);}catch(...){}}
+    }
+    s.log.emit("settings_foreground_activation_setup","\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+        ",\"product_PID\":"+std::to_string(s.product_pid)+",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+        ",\"actual_region\":"+std::to_string(region)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+        ",\"DOWN_attempted\":"+(down_attempted?"true":"false")+",\"UP_attempted\":"+(up_attempted?"true":"false")+
+        ",\"actual_foreground_and_focus\":"+(activated?"true":"false")+",\"reason\":"+quote(reason)+
+        ",\"setup_not_product_gesture\":true,\"attempt_limit\":1,\"SetForegroundWindow_used\":false,\"AttachThreadInput_used\":false");
+    return activated;
+}
 SettingsGui gui_open(State& s){
     const auto mark=read(s.product_log).size();
     s.log.check("GUI_production_settings_command",launch(s,L"--settings",true));SettingsGui gui;std::string ready_receipt;bool ready_observed=false;
-    const bool found=wait([&]{
+    const bool created=wait([&]{
         // A visible root can be observed while show() is still animating and
         // before it finishes layout/focus. Secondary-command exit only proves
         // PostMessage delivery. Wait for this actual product show() receipt.
         ready_receipt=record(s,mark,"settings_open");
         ready_observed=number(ready_receipt,"\"process_id\":")==s.product_pid&&
             ready_receipt.find("\"source_sha\":"+quote(s.product_source))!=ready_receipt.npos&&
-            ready_receipt.find("\"created\":true")!=ready_receipt.npos&&
-            ready_receipt.find("\"foreground_is_settings\":true")!=ready_receipt.npos&&
-            ready_receipt.find("\"own_focus_present\":true")!=ready_receipt.npos;
+            ready_receipt.find("\"created\":true")!=ready_receipt.npos;
         if(!ready_observed)return false;
         struct Search {DWORD pid{};HWND root{};DWORD tid{};} search{s.product_pid};
         EnumWindows([](HWND h,LPARAM data)->BOOL{auto& query=*reinterpret_cast<Search*>(data);DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);
             if(pid==query.pid&&gui_class(h)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(h)){query.root=h;query.tid=tid;return FALSE;}return TRUE;},reinterpret_cast<LPARAM>(&search));
         gui={search.root,search.root?GetDlgItem(search.root,100):nullptr,search.tid};return gui.root&&gui.tab&&
-            gui_class(gui.tab)==WC_TABCONTROLW&&gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui));
+            gui_class(gui.tab)==WC_TABCONTROLW&&gui_identity(s,gui,gui.tab);
     });
     s.log.check("GUI_actual_settings_ready_receipt",ready_observed,"\"actual_product_receipt\":"+quote(ready_receipt)+
         ",\"same_PID_source_after_command\":"+(ready_observed?"true":"false")+",\"secondary_exit_not_GUI_readiness\":true");
+    // Completion of show() and current activation are separate observations.
+    // Windows may legitimately deny its foreground request; a historical
+    // false receipt must not make this exact visible UI permanently unusable.
+    bool found=created&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui));
+    if(created&&!found)found=gui_activate_exact_settings(s,gui);
     DWORD foreground_pid{},root_pid{};GetWindowThreadProcessId(GetForegroundWindow(),&foreground_pid);
     GetWindowThreadProcessId(gui.root,&root_pid);
     s.log.check("GUI_exact_product_settings_window",found,"\"pid\":"+std::to_string(s.product_pid)+

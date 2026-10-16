@@ -43,6 +43,10 @@ std::wstring input_actor_start_event(const std::wstring& run,DWORD parent,std::u
     return L"Local\\PaneBind.V1.InputActor.Start."+run+L"."+std::to_wstring(parent)+L"."+
         std::to_wstring(birth)+L"."+std::to_wstring(child);
 }
+struct InputActorCaptureView {
+    void* value{};
+    ~InputActorCaptureView(){if(value)UnmapViewOfFile(value);}
+};
 int input_actor_child(int count,LPWSTR* args){
     if(count!=11)return 78;const std::wstring run=args[2];
     if(run.size()!=32||!std::all_of(run.begin(),run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
@@ -79,6 +83,10 @@ int input_actor_child(int count,LPWSTR* args){
     if(w<2||h<2||target.x<x||target.y<y||static_cast<long long>(target.x)>=static_cast<long long>(x)+w||static_cast<long long>(target.y)>=static_cast<long long>(y)+h)return 78;
     const auto event_name=input_actor_start_event(run,parent_pid,born,GetCurrentProcessId());
     Handle start_ack(OpenEventW(SYNCHRONIZE,FALSE,event_name.c_str()));if(!start_ack.value)return 78;
+    const auto capture_name=event_name+L".CaptureReceipt";
+    Handle capture_mapping(OpenFileMappingW(FILE_MAP_READ,FALSE,capture_name.c_str()));if(!capture_mapping.value)return 78;
+    InputActorCaptureView capture_view;capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_READ,0,0,sizeof(product::guest::ActorStartCaptureReceipt));
+    if(!capture_view.value)return 78;
     const fs::path receipt=output/(run+(debug?L"-debug-input-actor.json":L"-release-input-actor.json"));
     Handle file(CreateFileW(receipt.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE)return 78;
     std::array<INPUT,2> packets{};for(auto& p:packets){p.type=INPUT_MOUSE;p.mi.dwExtraInfo=0x50425631;}
@@ -100,17 +108,51 @@ int input_actor_child(int count,LPWSTR* args){
     QueryPerformanceCounter(&after_down);after=after_down;
     DWORD ack_result=WAIT_FAILED,ack_error{};bool pre_move_context=false,move_attempted=false,cursor_known=false,cursor_exact=false;
     DWORD cursor_error{},move_error{};UINT move_inserted{},cursor_observations{};POINT actual_after{};
+    product::guest::ActorStartCaptureReceipt capture_receipt{};bool receipt_identity=false,product_live=false,source_exact=false,
+        foreground_exact=false,source_gui_known=false,owner_gui_known=false,cursor_unchanged=false,modifiers_released=false,left_still_down=false,capture_context=false;
+    product::guest::CapturedReleaseFacts fresh_capture;
     if(down_inserted==1){
         QueryPerformanceCounter(&ack_before);const std::array<HANDLE,2> waits{start_ack.value,parent.value};
         ack_result=WaitForMultipleObjects(static_cast<DWORD>(waits.size()),waits.data(),FALSE,2500);
         if(ack_result==WAIT_FAILED)ack_error=GetLastError();QueryPerformanceCounter(&ack_after);
         if(ack_result==WAIT_OBJECT_0){
-            GUITHREADINFO gui{sizeof(gui)};
-            pre_move_context=WaitForSingleObject(parent.value,0)==WAIT_TIMEOUT&&process_birth(parent.value)==born&&
+            // The event orders one immutable, actual parent START/READY
+            // receipt. Its contents alone never authorize the input below.
+            MemoryBarrier();capture_receipt=*static_cast<const product::guest::ActorStartCaptureReceipt*>(capture_view.value);
+            receipt_identity=product::guest::actor_start_capture_receipt_matches(capture_receipt,parent_pid,born,GetCurrentProcessId(),process_birth(GetCurrentProcess()))&&
+                capture_receipt.capture.source==hwnd_value&&capture_receipt.capture.source_pid==parent_pid&&capture_receipt.capture.source_tid==source_tid&&
+                capture_receipt.down_qpc>=static_cast<std::uint64_t>(before.QuadPart)&&capture_receipt.capture.product_pid<=MAXDWORD;
+            fresh_capture=capture_receipt.capture;
+            Handle product_process(receipt_identity?OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,static_cast<DWORD>(fresh_capture.product_pid)):nullptr);
+            std::array<wchar_t,32768> product_name{};DWORD product_length=static_cast<DWORD>(product_name.size());
+            const auto expected_product=output/(run+(debug?L"-product-Debug":L"-product-Release"))/L"panebind.exe";
+            product_live=product_process.value&&WaitForSingleObject(product_process.value,0)==WAIT_TIMEOUT&&
+                process_birth(product_process.value)==capture_receipt.product_birth&&medium(product_process.value)&&input_actor_same_user(product_process.value)&&
+                QueryFullProcessImageNameW(product_process.value,0,product_name.data(),&product_length)&&equal(product_name.data(),expected_product.wstring())&&
+                hash(expected_product)==capture_receipt.product_image_sha256.data();
+            source_exact=WaitForSingleObject(parent.value,0)==WAIT_TIMEOUT&&process_birth(parent.value)==born&&
                 input_actor_desktop(source_tid,parent_pid)&&IsWindow(source)&&GetAncestor(source,GA_ROOT)==source&&
-                GetWindowThreadProcessId(source,&actual_pid)==source_tid&&actual_pid==parent_pid&&gui_class(source)==expected_class&&
-                GetForegroundWindow()==source&&GetGUIThreadInfo(source_tid,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
-                GetCursorPos(&actual)&&actual.x==from.x&&actual.y==from.y&&WindowFromPoint(from)==source;
+                GetWindowThreadProcessId(source,&actual_pid)==source_tid&&actual_pid==parent_pid&&gui_class(source)==expected_class;
+            const HWND overlay=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(fresh_capture.overlay));DWORD overlay_pid{};
+            fresh_capture.overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;fresh_capture.overlay_pid=overlay_pid;
+            fresh_capture.product_identity=product_live&&IsWindow(overlay)&&GetAncestor(overlay,GA_ROOT)==overlay;
+            GUITHREADINFO gui{sizeof(gui)},owner{sizeof(owner)};
+            source_gui_known=GetGUIThreadInfo(source_tid,&gui)!=FALSE;
+            owner_gui_known=fresh_capture.overlay_tid&&GetGUIThreadInfo(static_cast<DWORD>(fresh_capture.overlay_tid),&owner)!=FALSE;
+            fresh_capture.source_gui=source_gui_known;fresh_capture.owner_gui=owner_gui_known;
+            fresh_capture.source_capture=reinterpret_cast<std::uintptr_t>(gui.hwndCapture);fresh_capture.owner_capture=reinterpret_cast<std::uintptr_t>(owner.hwndCapture);
+            fresh_capture.gui_idle_except_capture=!gui.hwndMoveSize&&!gui.hwndMenuOwner&&!owner.hwndMoveSize&&!owner.hwndMenuOwner&&
+                !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
+                !(owner.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+            foreground_exact=GetForegroundWindow()==source;
+            cursor_unchanged=GetCursorPos(&actual)&&actual.x==from.x&&actual.y==from.y;
+            fresh_capture.hit_root=cursor_unchanged?reinterpret_cast<std::uintptr_t>(GetAncestor(WindowFromPoint(actual),GA_ROOT)):0;
+            modifiers_released=!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&!(GetAsyncKeyState(VK_SHIFT)&0x8000)&&
+                !(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000);
+            left_still_down=(GetAsyncKeyState(VK_LBUTTON)&0x8000)!=0;
+            capture_context=receipt_identity&&product::guest::captured_release_route_allowed(fresh_capture)&&
+                fresh_capture.overlay_tid==capture_receipt.capture.overlay_tid&&input_actor_desktop(static_cast<DWORD>(fresh_capture.overlay_tid),parent_pid);
+            pre_move_context=receipt_identity&&product_live&&source_exact&&foreground_exact&&cursor_unchanged&&modifiers_released&&left_still_down&&capture_context;
             if(pre_move_context){
                 move_attempted=true;QueryPerformanceCounter(&before_move);
                 move_inserted=SendInput(1,&packets[1],sizeof(INPUT));move_error=move_inserted==1?0:GetLastError();QueryPerformanceCounter(&after);
@@ -130,6 +172,19 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"START_ack_wait_error\":"+std::to_string(ack_error)+",\"START_ack_before_qpc\":"+std::to_string(ack_before.QuadPart)+
         ",\"START_ack_after_qpc\":"+std::to_string(ack_after.QuadPart)+",\"START_ack_received\":"+(ack_result==WAIT_OBJECT_0?"true":"false")+
         ",\"START_ack_event\":"+quote(utf8(event_name))+",\"child_event_access\":\"SYNCHRONIZE_ONLY\",\"pre_MOVE_exact_context\":"+(pre_move_context?"true":"false")+
+        ",\"capture_receipt_access\":\"FILE_MAP_READ_ONLY\",\"capture_receipt_identity\":"+(receipt_identity?"true":"false")+
+        ",\"actual_child_birth\":"+std::to_string(process_birth(GetCurrentProcess()))+",\"capture_receipt_child_birth\":"+std::to_string(capture_receipt.child_birth)+
+        ",\"capture_receipt_generation\":"+std::to_string(capture_receipt.capture.generation)+",\"capture_receipt_product_PID\":"+std::to_string(capture_receipt.capture.product_pid)+
+        ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_ready_qpc\":"+std::to_string(capture_receipt.ready_qpc)+
+        ",\"capture_receipt_DOWN_qpc\":"+std::to_string(capture_receipt.down_qpc)+",\"actual_product_live_image_birth_Medium\":"+(product_live?"true":"false")+
+        ",\"actual_source_identity\":"+(source_exact?"true":"false")+",\"actual_foreground_is_source\":"+(foreground_exact?"true":"false")+
+        ",\"actual_source_GUI_known\":"+(source_gui_known?"true":"false")+",\"actual_owner_GUI_known\":"+(owner_gui_known?"true":"false")+
+        ",\"actual_cursor_unchanged\":"+(cursor_unchanged?"true":"false")+",\"actual_modifiers_released\":"+(modifiers_released?"true":"false")+
+        ",\"actual_left_still_down\":"+(left_still_down?"true":"false")+
+        ",\"actual_hit_root\":"+std::to_string(fresh_capture.hit_root)+",\"actual_overlay\":"+std::to_string(fresh_capture.overlay)+
+        ",\"actual_overlay_PID\":"+std::to_string(fresh_capture.overlay_pid)+",\"actual_overlay_TID\":"+std::to_string(fresh_capture.overlay_tid)+
+        ",\"actual_source_capture\":"+std::to_string(fresh_capture.source_capture)+",\"actual_owner_capture\":"+std::to_string(fresh_capture.owner_capture)+
+        ",\"actual_exact_current_product_capture\":"+(capture_context?"true":"false")+
         ",\"MOVE_SendInput_called\":"+(move_attempted?"true":"false")+",\"MOVE_SendInput_return\":"+std::to_string(move_inserted)+
         ",\"MOVE_SendInput_error\":"+std::to_string(move_error)+",\"MOVE_before_qpc\":"+std::to_string(before_move.QuadPart)+
         ",\"cursor_observations\":"+std::to_string(cursor_observations)+",\"GetCursorPos_succeeded\":"+(cursor_known?"true":"false")+
@@ -176,13 +231,23 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"retained_exact_child_handle\":"+(exact?"true":"false")+",\"TerminateProcess_requested\":"+(requested?"true":"false")+
             ",\"actor_exit_observed\":"+(gone?"true":"false")+",\"product_or_source_terminated\":false,\"functional_PASS\":false");return gone;
     };
-    Handle start_ack;std::string actual_down,actual_start;Gesture g{*point,0,offset};
+    Handle start_ack,capture_mapping;InputActorCaptureView capture_view;
+    std::string actual_down,actual_start,actual_ready;Gesture g{*point,0,offset};
+    product::guest::ActorStartCaptureReceipt capture_receipt{};
     try{
         const auto event_name=input_actor_start_event(s.run,GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId);
         SetLastError(0);start_ack.value=CreateEventW(nullptr,TRUE,FALSE,event_name.c_str());const auto event_error=GetLastError();
         s.log.check("I08_actor_fresh_START_event",start_ack.value&&event_error!=ERROR_ALREADY_EXISTS&&child_birth,
             "\"event\":"+quote(utf8(event_name))+",\"CreateEvent_return\":"+(start_ack.value?"true":"false")+
             ",\"CreateEvent_error\":"+std::to_string(event_error)+",\"unknown_existing_event_not_signaled\":true");
+        const auto capture_name=event_name+L".CaptureReceipt";SetLastError(0);
+        capture_mapping.value=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,
+            static_cast<DWORD>(sizeof(product::guest::ActorStartCaptureReceipt)),capture_name.c_str());const auto mapping_error=GetLastError();
+        if(capture_mapping.value&&mapping_error!=ERROR_ALREADY_EXISTS)
+            capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_WRITE,0,0,sizeof(product::guest::ActorStartCaptureReceipt));
+        s.log.check("I08_actor_fresh_capture_receipt",capture_mapping.value&&mapping_error!=ERROR_ALREADY_EXISTS&&capture_view.value,
+            "\"mapping\":"+quote(utf8(capture_name))+",\"CreateFileMapping_error\":"+std::to_string(mapping_error)+
+            ",\"parent_write_child_read_only\":true,\"unknown_existing_mapping_not_reused\":true");
         const DWORD resumed=ResumeThread(child_thread.value);const auto resume_error=resumed==static_cast<DWORD>(-1)?GetLastError():0;
         actor_resumed=resumed!=static_cast<DWORD>(-1)&&resumed<=1;
         s.log.check("I08_actor_resume_exact_child",resumed==1,"\"ResumeThread_previous_suspend_count\":"+std::to_string(resumed)+
@@ -192,20 +257,44 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             if(WaitForSingleObject(child_process.value,0)!=WAIT_TIMEOUT)return true;
             actual_start=record(s,offset,"gesture_start");g.generation=number(actual_start,"\"generation\":");
             actual_down=record(s,offset,"input_button_observed",g.generation);
+            actual_ready.clear();{const auto text=read(s.product_log);std::istringstream rows(offset<text.size()?text.substr(offset):std::string{});std::string line;
+                while(std::getline(rows,line))if(number(line,"\"process_id\":")==product_pid&&number(line,"\"generation\":")==g.generation&&
+                    line.find("\"source_sha\":"+quote(s.product_source))!=line.npos&&line.find("\"type\":\"gesture_input_resource\"")!=line.npos&&
+                    line.find("\"fact\":\"capture_ready\"")!=line.npos)actual_ready=line;}
+            auto capture=release_capture_facts(s,source,GetAncestor(WindowFromPoint(*point),GA_ROOT),g.generation);
+            const auto down_qpc=number(actual_down,"\"hook_observed_qpc\":"),ready_qpc=number(actual_ready,"\"resource_observed_qpc\":");
+            capture.ready_identity=capture.ready_identity&&down_qpc&&ready_qpc>=down_qpc;
             ack_ready=g.generation&&number(actual_start,"\"process_id\":")==product_pid&&number(actual_start,"\"key\":")==expected_key&&
+                actual_start.find("\"source_sha\":"+quote(s.product_source))!=actual_start.npos&&
+                actual_down.find("\"source_sha\":"+quote(s.product_source))!=actual_down.npos&&
                 actual_start.find("\"resize\":false")!=actual_start.npos&&actual_start.find("\"ctrl\":false")!=actual_start.npos&&
                 actual_start.find("\"original\":"+rect(*initial))!=actual_start.npos&&number(actual_down,"\"process_id\":")==product_pid&&
                 number(actual_down,"\"source_key\":")==expected_key&&number(actual_down,"\"button\":")==1&&
                 actual_down.find("\"kind\":\"DOWN\"")!=actual_down.npos&&actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=actual_down.npos&&
                 number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
-                actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty();
+                actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&
+                product::guest::captured_release_route_allowed(capture)&&process_birth(s.process)==product_birth;
+            if(ack_ready){
+                capture_receipt.version=1;capture_receipt.parent_pid=GetCurrentProcessId();capture_receipt.parent_birth=process_birth(GetCurrentProcess());
+                capture_receipt.child_pid=child.dwProcessId;capture_receipt.child_birth=child_birth;capture_receipt.product_birth=product_birth;
+                capture_receipt.down_qpc=down_qpc;capture_receipt.ready_qpc=ready_qpc;capture_receipt.capture=capture;
+            }
             return ack_ready;
         },5000);
-        const bool ack_called=ack_ready&&WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT;
+        const auto product_hash=ack_ready?hash(s.product):std::string{};
+        if(product_hash.size()==64)std::copy(product_hash.begin(),product_hash.end(),capture_receipt.product_image_sha256.begin());
+        const bool capture_written=ack_ready&&product::guest::actor_start_capture_receipt_matches(capture_receipt,
+            GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId,child_birth);
+        if(capture_written){*static_cast<product::guest::ActorStartCaptureReceipt*>(capture_view.value)=capture_receipt;MemoryBarrier();}
+        const bool ack_called=capture_written&&WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT;
         const bool ack_sent=ack_called&&SetEvent(start_ack.value)!=FALSE;const auto ack_error=ack_called&&!ack_sent?GetLastError():0;
         s.log.check("I08_actor_actual_product_START_ack_once",ack_sent,
             "\"generation\":"+std::to_string(g.generation)+",\"expected_source_key\":"+std::to_string(expected_key)+
             ",\"current_product_PID\":"+std::to_string(product_pid)+",\"actual_DOWN\":"+quote(actual_down)+",\"actual_START\":"+quote(actual_start)+
+            ",\"actual_CaptureReady\":"+quote(actual_ready)+",\"immutable_capture_receipt_written\":"+(capture_written?"true":"false")+
+            ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_product_sha256\":"+quote(product_hash)+
+            ",\"capture_receipt_overlay\":"+std::to_string(capture_receipt.capture.overlay)+",\"capture_receipt_owner_tid\":"+std::to_string(capture_receipt.capture.overlay_tid)+
+            ",\"capture_receipt_source_capture\":"+std::to_string(capture_receipt.capture.source_capture)+",\"capture_receipt_owner_capture\":"+std::to_string(capture_receipt.capture.owner_capture)+
             ",\"prepared_source\":"+quote(prepared)+",\"SetEvent_called\":"+(ack_called?"true":"false")+
             ",\"SetEvent_return\":"+(ack_sent?"true":"false")+",\"SetEvent_error\":"+std::to_string(ack_error)+
             ",\"ack_is_test_synchronization_not_product_authority\":true");

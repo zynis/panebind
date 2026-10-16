@@ -4,9 +4,9 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前待验候选R5源码为`afbca181ea9864eae197677b499cd29472465956`，本次真正修改产品abort清理健康判定，必须使用新EXE与新包；Debug／Release构建与相关offline均已通过，二进制哈希／构建结果以新包manifest为准，**现场为NOT_RUN，不宜宿主试用**。新输入路线仍仅在精确身份／RunId／包标记通过的已授权可丢弃guest中启用，普通宿主不启用实验路线。历史R4源码`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`／Release `3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF`的39443 Debug七代、f072部分Release、7ff及BBB失败各保留原身份，不作为R5通过。BBB实际GUI-ready定向通过，但capture丢失后共享health失效，Terminal准备和Edge暂停对照在点击前受阻；降级状态idle不是正常预算PASS。快速三包UP移动反例、完整应用／显示／托盘及D08／D23／D24待验范围继续保留。**整版仍为PARTIAL，真人UAT PENDING**；历史R3／R2七项完整合同及旧包不换绑新EXE，Raw计数不能补成NormalUp。
+当前候选R5源码为`afbca181ea9864eae197677b499cd29472465956`，Debug／Release构建与相关offline通过，Release EXE为`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。cac实际Debug预览／部分中断恢复／视觉子项通过，但source-close清理UP、actor及视觉末段仍失败；Release设置前台准备未通过，没有增强手势。便携包`784e33f0d3b642d3aa629b9c9d945247`已生成但普通入口未运行，**候选仍不宜宿主试用**。新输入路线仍仅在精确身份／RunId／包标记通过的已授权可丢弃guest中启用，普通宿主不启用实验路线。历史af0／R3／R2包与结果保持原身份，不绑定为本EXE通过；D24旧capture-loss分支本批未触发，不能关闭。快速三包UP反例、完整应用／显示／托盘及D08／D23待验范围继续保留。**整版仍为PARTIAL，真人UAT PENDING**；七项历史完整合同不重绑新EXE，Raw计数不能补成NormalUp。
 
-历史已测ZIP保持原字节。本次产品确有修改，另以新PackageId打包并复验，不覆盖旧包，也不声称新包已经通过整版测试。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
+历史已测ZIP保持原字节。本次新PackageId已生成且未通过整版测试，不覆盖旧包，也不把旧包普通入口结果继承给它。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
 
 ## 1. 正常便携启动与停止
 

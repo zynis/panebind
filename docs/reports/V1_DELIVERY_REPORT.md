@@ -2,21 +2,27 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。新产品R5=`afbca181ea9864eae197677b499cd29472465956`已提交abort清理健康判定修复，Debug／Release构建及相关offline通过；新EXE哈希已登记，现场结果尚未知，不复用af0旧EXE或换绑旧日志。最新实际仍是af0／BBB：GUI-ready定向通过，capture-loss abort触发错误healthfalse，后继START／应用准备受同一失效影响；两应用核心对照未执行。历史**7/60功能、B29／B32共2/40=5%**不变；D08／完整D23及D24修复复验、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。新产品R5=`afbca181ea9864eae197677b499cd29472465956`已完成Debug／Release构建及相关offline，最新实际Run为cac：Debug预览、三类中断后的Move／Resize恢复及部分视觉功能通过，但source-close清理UP、actor和视觉末段仍失败；Release在设置前台准备失败，没有增强手势。旧BBB的capture-loss分支本次未触发，D24不能关闭；不换绑af0或旧七项功能证据。历史**7/60功能、B29／B32共2/40=5%**不变；D08／完整D23、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
 
-## 新R5：abort清理健康修复，构建通过、现场待核验
+## 新R5：Debug组件已运行并保留失败，Release前置受阻
 
-源码`afbca181ea9864eae197677b499cd29472465956`仅把真实资源owner的no-own-capture观察与实际detach／Gone用于abort清理，未把release=false伪装成API成功，NormalUp仍要求原严格事实。构建目录`out/v1-product-abort-cleanup-afbca18`，Debug／Release product、fixture及10offline目标构建退出0、CTest各10/10通过（D processor3.09／wall3.15秒；R processor1.88／wall3.20秒）。原生CTest output-log为该目录`Debug-offline.log`／`Release-offline.log`，不是各测试程序原stdout；实际产品／driver SHA-256见验收表，新Release产品`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。新包尚未生成、现场NOT_RUN。旧af0包和下述记录保持原身份。
+源码`afbca181ea9864eae197677b499cd29472465956`仅把真实资源owner的no-own-capture观察与实际detach／Gone用于abort清理，未把release=false伪装成API成功，NormalUp仍要求原严格事实。构建目录`out/v1-product-abort-cleanup-afbca18`，Debug／Release product、fixture及10offline目标构建退出0、CTest各10/10通过（D processor3.09／wall3.15秒；R processor1.88／wall3.20秒）。原生CTest output-log为该目录`Debug-offline.log`／`Release-offline.log`，不是各测试程序原stdout；实际产品／driver SHA-256见验收表，新Release产品`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。新包已生成并实际运行，旧af0包和下述记录保持原身份。
+
+Run `cac60b01c67448f0b383f188b55422b8`，产品／driver均afbca18，包装HEAD `13df19b16c094c4cfaade62a07a7ad95fa87e9a3`；guest ZIP `8327EAC44847E7BF92A39CD335EF5860502C77482033521841855862975C0CDB`／manifest `AFFE307C72152BBB007FD124B49E0B09F79B42A94BB2E24E2E44E004C1285F97`。新便携包`784e33f0d3b642d3aa629b9c9d945247`已生成（ZIP `4C0E267011C085DC7CDC2DE02E2569E97F39199D57E7D83506A875FE631B477D`），**普通入口未运行**，不继承旧便携包PASS。
+
+[Debug fixture原行](v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl)：135／143实际本代shield命中及preview矩形／alpha、149／150正常UP撤预览／角停靠、156拖出恢复原尺寸／DOWN锚点通过；396／447／497的Esc、合法失焦、真实F11中断与后继Move／Resize在同产品恢复通过。source-close资源与后继恢复成立，但514的清理UP实际快照仍是旧g14，未匹配本次g15，542保留失败；actor548实际收到START ack却因pre_MOVE_exact_context=false未发MOVE、exit1，不作driver断开功能PASS。[实际产品](v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl)中g5在START前资源拒绝／Gone后health保持true，不能把284的短点击失败解释为已启动手势缺UP。D24原capture-loss分支没有本次证据，继续待定向验证。
+
+[视觉产品原行](v1-evidence/cac-r5-debug-visual-product-selected.jsonl)与fixture751／765／844支持NormalUp恢复alpha、Esc清理UP和摇动tuple子项；855实际source／owner仍捕获本代shield，但release上下文检查失败，856／859明确未发planned或cleanup UP，861资源门FAIL。最终Debug正常shutdown字段及869独立真实客户点击有回执，不把它们升级成该手势NormalUp。[Release原行](v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl)33观察settings_open但foreground_is_settings=false，未进入增强手势；35正常shutdown，36客户点击前台条件未成而未执行。Debug871／Release38 fixture各连续合法；Debug产品轮转合并后PID4164的1–579及PID6632的1–128各连续，Release产品1–9连续。最终收集`collection-20261016T160123707Z-2d17b32855f9403c84ec7baa49d32436`及cleanup回执确认专用guest／任务清理、证据未变，guest销毁不算产品cleanup PASS；两配置总FAIL，不提升完整功能／B项计分。
 
 BBB `bbb795de85e643eca132c3575666c3bf`（af0／e86／Release CoreAndApplications）：[fixture原行](v1-evidence/bbb-r4-ready-and-shared-health-failure-fixture-selected.jsonl)33／36／39／43／45／46真实GUI-ready、命中、modal确认及保存通过；134预览actual矩形和alpha正确，但旧pointer-hit要求FAIL。随后[产品](v1-evidence/bbb-r4-capture-loss-abort-health-product-selected.jsonl)72实际capture_lost早于测试cleanup UP，75 no-own分支未调用ReleaseCapture、77真实detach、78撤罩，80起health字段false；源码确认旧strict清理误判，登记D24待新候选复验，不声称所有hook实际退出。后继START／应用准备不是各自独立根因。
 
-BBB Terminal525仅精确绑定，532因healthfalse准备失败，没有客户命中／Move尝试；Edge584绑定、589进入暂停对照但healthy前置不成立，没有hit查询或客户点击／DOM结果，不能形成Edge原生客户可用性结论。603／616应用关闭未证仍FAIL，不用guest销毁替代。274的真实60.006秒／CPU0.0521%在healthfalse状态下测得，仅保留降级状态测量，不授正常idle或I11 PASS。619fixture／274product各合法连续，精确guest／task清理且证据未变；新产品尚未运行，旧7项及B2不变。
+BBB Terminal525仅精确绑定，532因healthfalse准备失败，没有客户命中／Move尝试；Edge584绑定、589进入暂停对照但healthy前置不成立，没有hit查询或客户点击／DOM结果，不能形成Edge原生客户可用性结论。603／616应用关闭未证仍FAIL，不用guest销毁替代。274的真实60.006秒／CPU0.0521%在healthfalse状态下测得，仅保留降级状态测量，不授正常idle或I11 PASS。619fixture／274product各合法连续，精确guest／task清理且证据未变；此段保留af0历史，R5另见上文，旧7项及B2不变。
 
 ## 历史R4：Release独立组件已运行，驱动假设与真实应用失败分开保留
 
 候选源码`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`已将InputService→GestureInputShield→共用writer实际接通；新路线保留精确guest／RunId／包与二进制身份保护，不在普通宿主启用。D23现为`DEV_FIXED_PENDING_TARGETED_RUNTIME`：匹配UP后不再允许新的continuous placement，已发出调用的完成和明确的release DockCommit保持独立语义；这不证明D08已修复。
 
-最近实际功能Run仍为`f0726df0530e4735b5fc1d57e4ae070b`，Release CoreAndApplications，产品仍af0／`3CDDFF…C8AF`不变，driver edf／`8609BD…CD7E`；打包HEAD`94f0a01af8605adbca3d319fa08ea043f3e94070`，ZIP `80A320C1564C245A45031C349B66E211A0ABBFB23094673B706B2A8903C00AD2`／manifest `390DEA13050F231FDE9B92C39EC3C71D73EB519EF2C91DCB41972955C1B2CC4E`。fixture964行连续；产品轮转`.1`与current组合后PID6712的1–391、PID6608的1–393各连续，不把current首seq203误写成丢证据。
+该历史阶段功能Run为`f0726df0530e4735b5fc1d57e4ae070b`，Release CoreAndApplications，产品仍af0／`3CDDFF…C8AF`不变，driver edf／`8609BD…CD7E`；打包HEAD`94f0a01af8605adbca3d319fa08ea043f3e94070`，ZIP `80A320C1564C245A45031C349B66E211A0ABBFB23094673B706B2A8903C00AD2`／manifest `390DEA13050F231FDE9B92C39EC3C71D73EB519EF2C91DCB41972955C1B2CC4E`。fixture964行连续；产品轮转`.1`与current组合后PID6712的1–391、PID6608的1–393各连续，不把current首seq203误写成丢证据。
 
 后继Run `7ff842bee0154a0c8c0eb1eeabd752ef`仅在初始设置／默认准备失败，**没有任何增强手势或placement，不是磁吸失败**。产品af0原EXE不变，driver b90；打包HEAD4c7dca6，ZIP `3F5BFF5824E402810947191BDC724C72A9CA3D6C0BCA70BB9FFE3D1C87463E09`／manifest `9A7C3DA088C0D12C478F0A0C19A37D1BDB5A002BDACBE223557D7C48688F3BED`。[driver原行](v1-evidence/7ff-r4-settings-ready-fixture-selected.jsonl)33窗口visible／FG tick46078，35／36真实点击tick46093；[产品](v1-evidence/7ff-r4-settings-ready-product-selected.jsonl)7的settings_open直到46125才在show／AnimateWindow返回后记录。37默认确认modal未出现FAIL保持；该时序支持driver准备竞态假设，等待完成回执及fresh控件命中修订尚待新Run，不预填根因已证或修复PASS。产品12实际正常退出、fixture44真实客户`[0,0]→[1,1]`，精确guest／task清理且证据未变另有回执。46／12行各合法连续；不改变f072实际功能、旧快速UP失败或7项功能／B2计分。
 

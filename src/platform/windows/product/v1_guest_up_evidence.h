@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <initializer_list>
 #include <limits>
 #include <optional>
 #include <string_view>
@@ -22,13 +24,41 @@ struct CapturedReleaseFacts {
     std::uint64_t overlay{},ready_actual_capture{},hit_root{},overlay_pid{},product_pid{},overlay_tid{},source_capture{},owner_capture{};
     bool product_identity{},ready_identity{},ready_attempt_succeeded{},source_gui{},owner_gui{},gui_idle_except_capture{},not_retired{};
 };
-inline bool captured_release_hit_allowed(const CapturedReleaseFacts& f){
+inline bool captured_release_context_allowed(const CapturedReleaseFacts& f){
     return f.generation&&(!f.expected_generation||f.expected_generation==f.generation)&&
         f.source&&f.source==f.ready_source&&f.source_pid&&f.source_pid==f.ready_source_pid&&
         f.source_tid&&f.source_tid==f.ready_source_tid&&f.overlay&&f.overlay==f.ready_actual_capture&&
-        f.hit_root==f.overlay&&f.product_pid&&f.overlay_pid==f.product_pid&&f.overlay_tid&&
+        f.product_pid&&f.overlay_pid==f.product_pid&&f.overlay_tid&&
         f.source_capture==f.overlay&&f.owner_capture==f.overlay&&f.product_identity&&f.ready_identity&&
         f.ready_attempt_succeeded&&f.source_gui&&f.owner_gui&&f.gui_idle_except_capture&&f.not_retired;
+}
+inline bool captured_release_hit_allowed(const CapturedReleaseFacts& f){
+    return captured_release_context_allowed(f)&&f.hit_root==f.overlay;
+}
+// WindowFromPoint is a spatial hit, not the capture delivery target. A source
+// promoted to topmost during the gesture may cover this exact shield while
+// both associated queues still report this generation's own capture.
+inline bool captured_release_route_allowed(const CapturedReleaseFacts& f){
+    return captured_release_context_allowed(f)&&(f.hit_root==f.overlay||f.hit_root==f.source);
+}
+// One immutable parent-to-child START acknowledgement, not a product permit.
+// The child must independently recheck actual process/window/GUI facts before
+// issuing its one TEST MOVE. No filenames or unknown pointers cross here.
+struct ActorStartCaptureReceipt {
+    std::uint64_t version{},parent_pid{},parent_birth{},child_pid{},child_birth{},product_birth{},down_qpc{},ready_qpc{};
+    CapturedReleaseFacts capture;
+    std::array<char,65> product_image_sha256{};
+};
+inline bool actor_start_capture_receipt_matches(const ActorStartCaptureReceipt& receipt,
+    std::uint64_t parent_pid,std::uint64_t parent_birth,std::uint64_t child_pid,std::uint64_t child_birth){
+    bool hash_known=receipt.product_image_sha256[64]=='\0';
+    for(std::size_t i=0;i<64;++i){const char c=receipt.product_image_sha256[i];
+        hash_known=hash_known&&((c>='0'&&c<='9')||(c>='A'&&c<='F'));}
+    return receipt.version==1&&parent_pid&&parent_birth&&child_pid&&child_birth&&
+        receipt.parent_pid==parent_pid&&receipt.parent_birth==parent_birth&&
+        receipt.child_pid==child_pid&&receipt.child_birth==child_birth&&receipt.product_birth&&
+        receipt.down_qpc&&receipt.ready_qpc>=receipt.down_qpc&&hash_known&&
+        receipt.capture.expected_generation==receipt.capture.generation&&captured_release_route_allowed(receipt.capture);
 }
 namespace up_evidence_detail {
 // Read only the product's bounded, canonical status serialization. Ambiguous
@@ -118,6 +148,35 @@ inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIde
         snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
         snapshot.take(",\"consumed_before\":true,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":true,\"push_succeeded\":true}}}")&&
         snapshot.text.empty();
+}
+// TEST first-click evidence only: an actual UP may finish before resource
+// capture is ready. This narrow pre-capture physical-button rejection is not
+// a NormalUp receipt or permission to continue a failed active gesture.
+inline bool matching_pre_capture_click_release(std::string_view status,std::string_view failure,
+    std::string_view gone,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    if(!matching_idle_status(status,expected)||unique_value(status,"\"enabled\":")!="true"||
+       !receipt(failure,expected,"gesture_input_resource")||!quoted(failure,"\"fact\":","resource_failure")||
+       !receipt(gone,expected,"gesture_input_resource")||!quoted(gone,"\"fact\":","isolation_gone")||
+       number(failure,"\"native_failure\":")!=4||number(gone,"\"removal_reason\":")!=3||
+       unique_value(gone,"\"overlay_destroyed\":")!="true"||unique_value(gone,"\"hotkey_unregistered\":")!="true")return false;
+    const auto stage=number(failure,"\"setup_stage\":");if(stage!=2&&stage!=4&&stage!=8)return false;
+    for(const auto key:{"\"source\":","\"source_pid\":","\"source_tid\":","\"overlay\":"}){
+        const auto value=number(failure,key);if(!value||!*value||number(gone,key)!=value)return false;
+    }
+    for(const auto row:{failure,gone}){
+        for(const auto key:{"\"capture_attempted\":","\"attach_attempted\":","\"release_attempted\":","\"release_completed\":",
+            "\"release_succeeded\":","\"detach_attempted\":","\"detach_completed\":","\"detach_succeeded\":"})
+            if(unique_value(row,key)!="false")return false;
+        if(number(row,"\"capture_actual_after\":")!=0||number(row,"\"capture_after_release\":")!=0)return false;
+    }
+    constexpr std::string_view key="\"mouse_up_callbacks\":";const auto at=status.find(key);
+    if(at==status.npos||status.find(key,at+key.size())!=status.npos)return false;
+    Cursor snapshot{status.substr(at+key.size())};std::uint64_t count{},qpc{},generation{};
+    return snapshot.take("{\"snapshot_known\":true,\"callback_count\":")&&snapshot.number(count)&&count>0&&
+        snapshot.take(",\"last\":{\"hook_observed_qpc\":")&&snapshot.number(qpc)&&qpc>0&&qpc>=expected.send_before_qpc&&
+        snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
+        snapshot.take(",\"consumed_before\":true,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":false,\"push_succeeded\":false}}}")&&snapshot.text.empty();
 }
 // ABORT cleanup evidence only. A hook receipt after revocation is not a
 // normalized gesture UP, a NormalUp permit, target delivery or idle proof.

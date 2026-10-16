@@ -13,9 +13,9 @@
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
     "pending_runtime_sha": "afbca181ea9864eae197677b499cd29472465956",
     "final_sha": null,
-    "implementation_inspected": "R5_ABORT_CLEANUP_SOURCE_IMPLEMENTED_BUILD_AND_RUNTIME_PENDING_R4_EVIDENCE_HISTORICAL",
-    "note": "当前R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
-    "pending_product_note": "新产品R5 afbca18实际修改abort清理健康判定，必须新EXE/包/Run；Debug/Release构建退出0且各10项offline通过，EXE/driver哈希已登记，新包未生成、现场NOT_RUN，不复用af0 EXE作为新功能候选。af0各Run整对象保留historical_R4_candidate，最新BBB实际GUI-ready定向通过，captureLost后错误healthfalse污染后继准备；Terminal/Edge没有执行核心对照，降级状态idle不算正常预算PASS。历史7功能/B2不变。",
+    "implementation_inspected": "R5_ABORT_CLEANUP_SOURCE_BUILD_PASS_RUNTIME_SCOPED_FAILURES_R4_EVIDENCE_HISTORICAL",
+    "note": "历史R3/658C12 actual866的七项完整合同证据保持原身份；最新产品afbca18/cac已实际Debug组件运行但有失败，Release仅设置前台准备失败，D24原capture-loss分支未触发待验。历史R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
+    "pending_product_note": "R5 afbca18 D/R各10offline通过且已生成13df/cac新包，实际Debug局部预览/中断恢复/视觉通过但组件仍有失败，Release在设置前台检查失败未进入增强手势。D24 capture-loss分支本批未触发，不能关闭；新portable784e已生成但未运行普通入口。af0历史整对象/旧7功能与B2保持原身份，不换绑新EXE。",
     "pending_candidate": {
       "source_sha": "afbca181ea9864eae197677b499cd29472465956",
       "driver_source_sha": "afbca181ea9864eae197677b499cd29472465956",
@@ -35,8 +35,18 @@
       "release_offline_wall_seconds": 3.20,
       "release_offline_ctest_output_log": "out/v1-product-abort-cleanup-afbca18/Release-offline.log",
       "release_offline_ctest_output_log_sha256": "96E4619468C8488F410AADBFA8FC6D0607C2D3688844AE69D4086AF03761AE71",
-      "package_generated": false,
-      "runtime_validation": "NOT_RUN",
+      "package_generated": true,
+      "runtime_validation": "CAC_DEBUG_COMPONENT_FAILURES_WITH_SCOPED_PASSES_RELEASE_SETTINGS_PRECONDITION_FAIL",
+      "run_id": "cac60b01c67448f0b383f188b55422b8",
+      "packaging_head": "13df19b16c094c4cfaade62a07a7ad95fa87e9a3",
+      "package_zip_sha256": "8327EAC44847E7BF92A39CD335EF5860502C77482033521841855862975C0CDB",
+      "package_manifest_sha256": "AFFE307C72152BBB007FD124B49E0B09F79B42A94BB2E24E2E44E004C1285F97",
+      "collection_path": "uat/v1-control/cac60b01c67448f0b383f188b55422b8/collection-20261016T160123707Z-2d17b32855f9403c84ec7baa49d32436",
+      "portable_package_id": "784e33f0d3b642d3aa629b9c9d945247",
+      "portable_zip_sha256": "4C0E267011C085DC7CDC2DE02E2569E97F39199D57E7D83506A875FE631B477D",
+      "portable_manifest_sha256": "0462CCF5EF8910636276375A59E5C34D810EC1E049A651D1BB215E79C9EEB11F",
+      "portable_ordinary_entry": "NOT_RUN",
+      "driver_followup": "待定向复验：首点击PreLive释放判定、actor实际capture上下文、视觉release上下文及设置窗口激活核验；本次driver修复尚未现场，不计PASS。",
       "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
       "ordinary_host_trial_allowed": false,
       "product_code_changed_new_EXE_required": true,
@@ -187,8 +197,37 @@
       },
       "ordinary_host_trial_allowed": false
     },
-    "latest_observed_runtime_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
-    "latest_observed_run_id": "bbb795de85e643eca132c3575666c3bf",
+    "latest_observed_runtime_sha": "afbca181ea9864eae197677b499cd29472465956",
+    "latest_observed_run_id": "cac60b01c67448f0b383f188b55422b8",
+    "cac_observed": {
+      "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "driver_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "run_id": "cac60b01c67448f0b383f188b55422b8",
+      "packaging_head": "13df19b16c094c4cfaade62a07a7ad95fa87e9a3",
+      "guest_suite": "CoreAndApplications",
+      "configuration_results": {
+        "Debug": "FAIL_WITH_SCOPED_COMPONENT_PASSES",
+        "Release": "FAIL_SETTINGS_FOREGROUND_BEFORE_GESTURES"
+      },
+      "collection_path": "uat/v1-control/cac60b01c67448f0b383f188b55422b8/collection-20261016T160123707Z-2d17b32855f9403c84ec7baa49d32436",
+      "collection_output_unchanged": true,
+      "cleanup_receipt_path": "uat/v1-control/cac60b01c67448f0b383f188b55422b8/cleanup-receipt.json",
+      "exact_guest_and_task_cleaned": true,
+      "evidence_unchanged": true,
+      "excerpt_evidence_ids": [
+        "EV-CAC-R5-DEBUG-COMPONENTS-AND-FAILURES",
+        "EV-CAC-R5-DEBUG-RESOURCE-AND-RECOVERY-PRODUCT",
+        "EV-CAC-R5-DEBUG-VISUAL-PRODUCT",
+        "EV-CAC-R5-RELEASE-SETTINGS-FOREGROUND-FAIL"
+      ],
+      "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+      "observed": "Debug135/143 actual current shield capture/hit plus preview geometry/alpha PASS;149/150 normal-UP preview removal/corner commit and156 original-size/DOWN-anchor drag-out PASS. Escape/foreground/F11 causes and following Move/Resize complete in same product (396/447/497); source-close resources/recovery pass but514 matching cleanup UP FAIL,542 preserves it. Actor548 has real START ack but pre_MOVE_exact_context=false, no MOVE, exit1. Visual751 NormalUp alpha/765 Escape cleanup/844 shake tuple PASS,855 release context invalid before planned UP;856/859 no planned or cleanup UP inserted,861 resource gate FAIL. Release33 settings_open exists but foreground_is_settings=false; no enhanced gestures/placements.",
+      "D24_capture_lost_event_observed": false,
+      "D24_targeted_validation": "NOT_RUN_NOT_TRIGGERED_IN_THIS_RUN",
+      "new_feature_PASS": false,
+      "new_benchmark_PASS": false,
+      "human_uat": "NOT_RUN"
+    },
     "bbb_observed": {
       "source_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
       "driver_source_sha": "e86e5ccb86e0d90401dd669c5ed289e53b23f8c5",
@@ -513,7 +552,11 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -529,7 +572,8 @@
       "next_action": "输入闭环修复后同进程执行暂停→原生操作→恢复Move/Resize。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -539,6 +583,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -581,7 +633,11 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02",
@@ -600,7 +656,8 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -610,6 +667,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -1518,7 +1583,11 @@
         "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1549,7 +1618,8 @@
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1580,6 +1650,14 @@
           "capture_loss": "NOT_RUN",
           "human_uat": "NOT_RUN"
         }
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -1691,7 +1769,11 @@
         "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1713,7 +1795,8 @@
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1745,6 +1828,14 @@
           "capture_loss": "NOT_RUN",
           "human_uat": "NOT_RUN"
         }
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -1800,7 +1891,11 @@
         "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
         "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl"
+        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1830,7 +1925,8 @@
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1861,6 +1957,14 @@
           "capture_loss": "NOT_RUN",
           "human_uat": "NOT_RUN"
         }
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2911,7 +3015,11 @@
         "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/8189-product-selected.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D15"
@@ -2928,7 +3036,8 @@
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -2939,6 +3048,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2976,7 +3093,11 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02",
@@ -2992,7 +3113,8 @@
       "next_action": "在guest现有系统Snap设置下实测三起点，不改宿主设置。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3002,6 +3124,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3414,7 +3544,11 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02"
@@ -3430,7 +3564,8 @@
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-30BF-VISUAL-RECOVERY-COMPONENTS"
+        "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3439,6 +3574,14 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 actual visual ownership/independent idle and native partial failure recovery; failed release branches retained"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3477,7 +3620,11 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -3490,7 +3637,8 @@
       "next_action": "在隔离同候选补最小正/反轨迹和重复恢复。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3500,6 +3648,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3537,7 +3693,11 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02"
@@ -3552,7 +3712,8 @@
       "next_action": "补真实显示矩阵与独立preview/actual对照。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3562,6 +3723,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3725,7 +3894,11 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02",
@@ -3744,7 +3917,8 @@
         "PO-7CAC-INFLIGHT-UP",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
-        "PO-30BF-VISUAL-RECOVERY-COMPONENTS"
+        "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3753,6 +3927,14 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 actual visual ownership/independent idle and native partial failure recovery; failed release branches retained"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -6901,7 +7083,11 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -6914,7 +7100,8 @@
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -6924,6 +7111,14 @@
         "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
         "run_id": "b49deace80fe49899375bf8d36481ea1",
         "scope": "current R Release independent single-monitor dock/stretch, interruption recovery, visual ownership and second-member failure components"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -6940,7 +7135,11 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -6951,7 +7150,8 @@
       "next_action": "同一产品补smartStretch模式差异与当前完整I05，非重跑全部历史。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "latest_product_observation": {
@@ -6960,6 +7160,14 @@
         "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
         "run_id": "b49deace80fe49899375bf8d36481ea1",
         "scope": "current R Release independent single-monitor dock/stretch, interruption recovery, visual ownership and second-member failure components"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -6977,7 +7185,11 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D02",
@@ -6992,7 +7204,8 @@
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-30BF-VISUAL-RECOVERY-COMPONENTS"
+        "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "latest_product_observation": {
@@ -7001,6 +7214,14 @@
         "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
         "run_id": "b49deace80fe49899375bf8d36481ea1",
         "scope": "current R Release independent single-monitor dock/stretch, interruption recovery, visual ownership and second-member failure components"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -7061,7 +7282,11 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -7078,7 +7303,8 @@
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
       ],
       "status_basis": "ACTUAL_RELATED_COMPONENT_FAILURE_IN_ITS_RECORDED_BUILD_NOT_CLOSED",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -7089,6 +7315,14 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "cac60b01c67448f0b383f188b55422b8",
+        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -7858,7 +8092,8 @@
       "run_id": "bbb795de85e643eca132c3575666c3bf",
       "repair_source_sha": "afbca181ea9864eae197677b499cd29472465956",
       "repair_scope": "actual typed resource-owner CaptureReleased no-own observation, exact generation/source/overlay/ownerTID and real association cleanup/Gone; abort only, NormalUp strict own-release unchanged",
-      "repair_runtime": "NOT_RUN",
+      "repair_runtime": "CAC_EXECUTED_BUT_CAPTURE_LOSS_BRANCH_NOT_TRIGGERED_TARGETED_VALIDATION_PENDING",
+      "latest_observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
       "features": ["M01-F03", "M01-F04", "M04-F05"],
       "evidence_paths": ["docs/reports/v1-evidence/bbb-r4-ready-and-shared-health-failure-fixture-selected.jsonl", "docs/reports/v1-evidence/bbb-r4-capture-loss-abort-health-product-selected.jsonl"],
       "next_action": "用新R5 EXE/Run定向验证capture-loss abort后可恢复，之后继续受影响布局/异常/应用准备与整版链；保留BBB原失败，不重绑旧运行。"
@@ -9941,6 +10176,84 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+      "scope": "R5 Debug owned preview/dock/abort/recovery/visual subcomponents; Release settings foreground failure before gestures; no full integration or application PASS",
+      "status": "SCOPED_SUBCHAINS_PASS_WITH_RECORDED_COMPONENT_FAILURES_RELEASE_PRECONDITION_FAIL",
+      "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+      "driver_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "driver_binary_sha256": "2E138447313B0C7E21EDED3AABFBA9FBB3D67985B260CF41554856774140CBF0",
+      "run_id": "cac60b01c67448f0b383f188b55422b8",
+      "configuration": "Debug and Release",
+      "packaging_head": "13df19b16c094c4cfaade62a07a7ad95fa87e9a3",
+      "evidence_ids": [
+        "EV-CAC-R5-DEBUG-COMPONENTS-AND-FAILURES",
+        "EV-CAC-R5-DEBUG-RESOURCE-AND-RECOVERY-PRODUCT",
+        "EV-CAC-R5-DEBUG-VISUAL-PRODUCT",
+        "EV-CAC-R5-RELEASE-SETTINGS-FOREGROUND-FAIL"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
+      ],
+      "feature_ids": [
+        "M01-F03",
+        "M01-F04",
+        "M04-F02",
+        "M04-F04",
+        "M04-F05",
+        "M08-F01",
+        "M08-F02",
+        "M09-F04",
+        "M09-F05",
+        "M10-F01",
+        "M10-F04"
+      ],
+      "integration_ids": [
+        "I04",
+        "I05",
+        "I06",
+        "I08"
+      ],
+      "observed": "Debug135/143 actual current shield capture/hit plus preview geometry/alpha PASS;149/150 normal-UP preview removal/corner commit and156 original-size/DOWN-anchor drag-out PASS. Escape/foreground/F11 causes and following Move/Resize complete in same product (396/447/497); source-close resources/recovery pass but514 matching cleanup UP FAIL,542 preserves it. Actor548 has real START ack but pre_MOVE_exact_context=false, no MOVE, exit1. Visual751 NormalUp alpha/765 Escape cleanup/844 shake tuple PASS,855 release context invalid before planned UP;856/859 no planned or cleanup UP inserted,861 resource gate FAIL. Release33 settings_open exists but foreground_is_settings=false; no enhanced gestures/placements.",
+      "Debug_result": "FAIL",
+      "Release_result": "FAIL_BEFORE_ENHANCED_GESTURES",
+      "Debug_product_log_sequences": "PID4164 1–579; PID6632 1–128 after joining rotated and current file, each contiguous",
+      "Debug_status_hook_owner_running_false_count": 0,
+      "D24_capture_loss_branch_triggered": false,
+      "D24_closed": false,
+      "source_close_UP_observation": {
+        "test_UP_sent": true,
+        "matching_cleanup_UP": false,
+        "latest_snapshot_generation": 14,
+        "aborted_generation": 15,
+        "latest_snapshot_qpc": 697183521,
+        "single_test_UP_send_before_qpc": 710282017,
+        "raw_source_generation_attribution_not_inferred": true
+      },
+      "actor": {
+        "actual_START_ack_received": true,
+        "pre_MOVE_exact_context": false,
+        "MOVE_SendInput_called": false,
+        "child_exit_code": 1
+      },
+      "resource_cleanup": {
+        "Debug_final_shutdown_flags": true,
+        "Debug_post_stop_actual_client_click_delivered": true,
+        "Release_final_shutdown_flags": true,
+        "Release_post_stop_client_click_executed": false,
+        "product_cleanup_not_inferred_from_guest_destruction": true
+      },
+      "exact_guest_and_task_cleaned": true,
+      "evidence_unchanged": true,
+      "whole_feature_or_chain_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "保持R5 EXE不变，修复有证据的driver前置/UP观测假设后定向复验；D24仍需真实capture-loss分支。随后继续Release和应用/完整操作链，不把Debug子链拼成Full。"
+    },
     {
       "id": "PO-F9-MAPPING-CONFLICT-DEFAULTS",
       "scope": "same_R2_real_hotkey_registration_conflict_old_command_new_mapping_and_page_defaults_public_help",
