@@ -749,12 +749,79 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
 }
 bool own(State&,HWND);
 bool authorized_source(State&,HWND);
+bool launch(State&,std::wstring,bool,DWORD*);
+std::string record(State&,std::size_t,std::string_view,std::uint64_t);
+bool activation_layout_idle();
+bool owned_client_activation_setup(State& s,HWND h){
+    // One TEST-only activation click on a blank root created by this fixture.
+    // Never attach queues, retry SetForegroundWindow, or target real apps.
+    bool attempted=false,up_attempted=false,delivered=false;std::string why="not_started",status;
+    POINT point{};HWND prior_foreground{},hit{};DWORD status_exit=STILL_ACTIVE;
+    unsigned before_down{},before_up{},after_down{},after_up{};Frame* frame{};
+    const auto modifiers_up=[] {return !(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_RBUTTON)&0x8000)&&
+        !(GetAsyncKeyState(VK_MBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_XBUTTON1)&0x8000)&&!(GetAsyncKeyState(VK_XBUTTON2)&0x8000)&&
+        !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&!(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&
+        !((GetAsyncKeyState(VK_LWIN)|GetAsyncKeyState(VK_RWIN))&0x8000);};
+    const auto idle_gui=[](DWORD tid){GUITHREADINFO gui{sizeof(gui)};return tid&&GetGUIThreadInfo(tid,&gui)&&
+        !gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+        !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
+    const auto fresh_native=[&]{
+        if(!desktop()||!own(s,h)||!IsWindowVisible(h)||IsIconic(h)||s.left||s.control||!activation_layout_idle()||!modifiers_up())return false;
+        DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);if(pid!=GetCurrentProcessId()||!idle_gui(tid))return false;
+        const auto foreground=GetForegroundWindow();const auto foreground_tid=foreground?GetWindowThreadProcessId(foreground,nullptr):0;
+        return foreground&&idle_gui(foreground_tid)&&GetForegroundWindow()==foreground;
+    };
+    try{
+        if(!fresh_native())throw std::runtime_error("owned_activation_not_exact_idle_guest_context");
+        const auto found=std::find_if(s.frames.begin(),s.frames.end(),[&](const auto& candidate){return candidate.hwnd==h;});
+        if(found==s.frames.end())throw std::runtime_error("owned_activation_blank_frame_not_registered");frame=&*found;
+        if(!s.process||GetProcessId(s.process)!=s.product_pid||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||!process_birth(s.process))
+            throw std::runtime_error("owned_activation_product_identity_not_live");
+        const auto mark=read(s.product_log).size();const bool requested=launch(s,L"--status",true,&status_exit);
+        if(!requested||status_exit||!wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000)||
+           !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0}))
+            throw std::runtime_error("owned_activation_product_not_fresh_idle");
+        RECT client{};if(!GetClientRect(h,&client)||client.left>=client.right||client.top>=client.bottom)
+            throw std::runtime_error("owned_activation_blank_client_unknown");
+        point={(client.left+client.right)/2,(client.top+client.bottom)/2};
+        if(!ClientToScreen(h,&point)||WindowFromPoint(point)!=h)throw std::runtime_error("owned_activation_client_covered_or_foreign");
+        cursor(s,point);hit=WindowFromPoint(point);DWORD_PTR actual_region{};
+        if(!fresh_native()||hit!=h||!SendMessageTimeoutW(h,WM_NCHITTEST,0,
+            MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&actual_region)||actual_region!=HTCLIENT)
+            throw std::runtime_error("owned_activation_fresh_client_hit_not_confirmed");
+        prior_foreground=GetForegroundWindow();before_down=frame->client_down[0];before_up=frame->client_up[0];
+        // A single real DOWN/UP activates through the target's native client
+        // behavior. These are setup packets, not a product gesture or UAT.
+        attempted=true;button(s,true);up_attempted=true;button(s,false);
+        delivered=wait([&]{return own(s,h)&&GetForegroundWindow()==h&&frame->client_down[0]==before_down+1&&frame->client_up[0]==before_up+1;},1000);
+        why=delivered?"actual_blank_client_click_delivered_and_activated":"owned_activation_click_delivery_or_foreground_not_confirmed";
+    }catch(const std::exception& error){why=error.what();
+        // Only the UP belonging to a successful setup DOWN may be attempted,
+        // once. A partial/failed insertion never licenses retransmission.
+        if(attempted&&s.left&&!up_attempted&&!s.left_up_attempted){try{up_attempted=true;button(s,false);}catch(...){}}
+    }
+    if(frame){after_down=frame->client_down[0];after_up=frame->client_up[0];}
+    s.log.emit("owned_foreground_client_activation_setup","\"target\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"scope\":\"exact_fixture_blank_client_only\",\"setup_not_product_gesture\":true,\"attempt_limit\":1"+
+        ",\"DOWN_attempted\":"+(attempted?"true":"false")+",\"UP_attempted\":"+(up_attempted?"true":"false")+
+        ",\"actual_client_DOWN_UP_delivered\":"+(delivered?"true":"false")+
+        ",\"foreground_before_click\":"+std::to_string(reinterpret_cast<std::uintptr_t>(prior_foreground))+
+        ",\"foreground_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+        ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+        ",\"client_screen_point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+        ",\"client_counts_before\":["+std::to_string(before_down)+","+std::to_string(before_up)+"]"+
+        ",\"client_counts_after\":["+std::to_string(after_down)+","+std::to_string(after_up)+"]"+
+        ",\"public_status_receipt\":"+quote(status)+",\"reason\":"+quote(why)+",\"AttachThreadInput_used\":false,\"SetForegroundWindow_retry\":false");
+    return delivered&&!s.left&&!s.control&&GetForegroundWindow()==h;
+}
 void foreground(State& s,HWND h){
     if(!authorized_source(s,h))throw std::runtime_error("not_exact_test_created_source");
     const bool result=SetForegroundWindow(h)!=FALSE;
-    const bool observed=wait([&]{return GetForegroundWindow()==h;},1000);
+    bool observed=wait([&]{return GetForegroundWindow()==h;},1000);bool click_setup=false;
+    if(!observed&&own(s,h)){click_setup=owned_client_activation_setup(s,h);observed=click_setup&&GetForegroundWindow()==h;}
     s.log.check("foreground_exact_owned_source",observed&&authorized_source(s,h),"\"api_return\":"+std::string(result?"true":"false")+
-        ",\"actual_foreground_matches\":"+(observed?"true":"false")+",\"SetForegroundWindow_calls\":1,\"automatic_retry\":false");
+        ",\"actual_foreground_matches\":"+(observed?"true":"false")+",\"SetForegroundWindow_calls\":1,\"automatic_retry\":false"+
+        ",\"one_exact_blank_client_activation_setup\":"+(click_setup?"true":"false"));
 }
 bool launch(State& s,std::wstring args,bool command,DWORD* exit=nullptr){
     std::wstring line=L"\""+s.product.wstring()+L"\""+(args.empty()?L"":L" "+args);STARTUPINFOW si{sizeof(si)};PROCESS_INFORMATION pi{};
@@ -1186,9 +1253,12 @@ bool application_fresh(State& s,const ApplicationTarget& target,HWND h,std::opti
     if(!equal(fresh->exe,target.root_executable.wstring()))return reject("root_image_does_not_equal_explicit_requested_root_image");
     const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& p){return p.pid==fresh->pid&&p.born==fresh->born;});
     if(process==target.processes.end()||!process->handle||WaitForSingleObject(process->handle->value,0)!=WAIT_TIMEOUT||!medium(process->handle->value))return reject("root_not_live_Medium_in_held_birth_verified_launch_tree");
-    if(target.kind=="Terminal"&&(!equal(fresh->window_class,L"ConsoleWindowClass")||
-        target.processes.empty()||process->parent!=target.processes.front().pid))
-        return reject("terminal_not_exact_ConsoleWindowClass_of_explicit_cmd_child");
+    if(target.kind=="Terminal"){
+        if(equal(target.executable.filename().wstring(),L"WindowsTerminal.exe")){
+            if(!equal(fresh->window_class,L"CASCADIA_HOSTING_WINDOW_CLASS"))return reject("terminal_not_exact_modern_Terminal_root_class");
+        }else if(!equal(fresh->window_class,L"ConsoleWindowClass")||target.processes.empty()||process->parent!=target.processes.front().pid)
+            return reject("terminal_not_exact_ConsoleWindowClass_of_explicit_cmd_child");
+    }
     if(actual)*actual=std::move(fresh);if(why)*why="exact_candidate_eligible";return true;
 }
 product::GuiContext fixture_source_gui_context(State& s,std::size_t source,std::string& why){
@@ -1401,12 +1471,36 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         std::ofstream empty(blank,std::ios::binary);empty.close();if(!empty)throw std::runtime_error("VSCode_exact_empty_document_create_failed");
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
     }else if(target->kind=="Terminal"){
-        target->executable=fs::path(system.data())/L"conhost.exe";
-        // Actual 8cc evidence reports ConsoleWindowClass on the exact cmd
-        // child, not the conhost launcher. Bind only this explicitly requested
-        // image AND its retained direct-parent/birth relationship.
-        target->root_executable=fs::path(system.data())/L"cmd.exe";
-        target->command=L"\""+target->executable.wstring()+L"\" \""+target->root_executable.wstring()+L"\" /d /q /k title PaneBind-"+s.run+L"-Terminal";
+        const bool portable_requested=fs::exists(fs::path(L"C:\\PaneBindV1\\Input")/L"Terminal-test.zip");
+        if(portable_requested){
+            const fs::path root=fs::path(L"C:\\PaneBindV1\\Terminal")/s.run;
+            const fs::path configuration=root/std::wstring(s.configuration.begin(),s.configuration.end());
+            const fs::path program=configuration/L"terminal-1.25.2733.0";
+            target->executable=program/L"WindowsTerminal.exe";
+            const DWORD attributes=GetFileAttributesW(target->executable.c_str());
+            const auto flag=program/L".portable";const DWORD flag_attributes=GetFileAttributesW(flag.c_str());
+            const bool prepared=plain_directory(root.parent_path())&&plain_directory(root)&&plain_directory(configuration)&&plain_directory(program)&&
+                marker(program/L"panebind-v1-test-application.marker",s.run)&&
+                attributes!=INVALID_FILE_ATTRIBUTES&&!(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))&&
+                flag_attributes!=INVALID_FILE_ATTRIBUTES&&!(flag_attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))&&
+                fs::file_size(flag)==0&&hash(target->executable)=="1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1";
+            s.log.emit("Terminal_test_asset","\"distribution\":\"official_modern_portable_ZIP\",\"version\":\"1.25.2733.0\",\"prepared\":"+
+                std::string(prepared?"true":"false")+",\"exact_guest_program\":"+quote(utf8(target->executable.wstring()))+
+                ",\"per_configuration_portable_settings\":true,\"application_binding_not_inferred\":true,\"fallback_to_ConsoleWindowClass\":false");
+            if(!prepared){s.log.emit("application_binding","\"application\":\"Terminal\",\"result\":\"BLOCKED\",\"reason\":\"requested_official_portable_Terminal_not_prepared\",\"input_sent\":false");return target;}
+            // --window new forces a new candidate rather than adopting an
+            // existing Terminal. Exact root/birth/Medium/launch-tree checks
+            // below still decide whether the resulting HWND is authorized.
+            target->command=L"\""+target->executable.wstring()+L"\" --window new new-tab --title \"PaneBind-"+s.run+
+                L"-Terminal\" --suppressApplicationTitle \""+(fs::path(system.data())/L"cmd.exe").wstring()+L"\" /d /q /k";
+        }else{
+            target->executable=fs::path(system.data())/L"conhost.exe";
+            // Historical evidence is explicitly Windows Console, not modern
+            // Terminal. Preserve its exact cmd-child and parent/birth checks.
+            target->root_executable=fs::path(system.data())/L"cmd.exe";
+            target->command=L"\""+target->executable.wstring()+L"\" \""+target->root_executable.wstring()+L"\" /d /q /k title PaneBind-"+s.run+L"-Terminal";
+            s.log.emit("Terminal_test_asset","\"distribution\":\"Windows_Console_host\",\"modern_Terminal_tested\":false");
+        }
     }else throw std::runtime_error("unknown_application_class");
     if(target->root_executable.empty())target->root_executable=target->executable;
     s.created_applications.push_back(target);target->baseline=root_baseline();
@@ -2331,6 +2425,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_constraint_cases.h"
 #include "platform/windows/product/v1_guest_batch_failure_case.h"
 #include "platform/windows/product/v1_guest_portable_cases.h"
+bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_acquire);}
 // A continuation gate for independent cases, not a replacement for a failed
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.

@@ -350,6 +350,73 @@ function Prepare-OfficialMediaApps($Spec){
     finally{if(-not(Test-Path -LiteralPath $evidence)){New-Evidence $evidence ($receipt|ConvertTo-Json -Depth 8)}}
     return $receipt
 }
+function Prepare-TerminalTestAsset($Spec){
+    # Microsoft officially supports this unpackaged ZIP offline. .portable
+    # confines Terminal settings to each new guest/configuration directory;
+    # no Appx registration, default-terminal change or application launch.
+    $root='C:\PaneBindV1\Terminal\'+$RunId
+    $receipt=[ordered]@{kind='WindowsTerminalPortable';run_id=$RunId;status='PREPARING';
+        guest_directory=$root;configurations=@();application_started=$false;function_result='NOT_RUN';error=$null}
+    $evidence=Join-Path $outputDir ($RunId+'-terminal-asset.json')
+    try{
+        if($Spec.kind -cne 'WindowsTerminalPortable' -or $Spec.version -cne '1.25.2733.0' -or
+           $Spec.source_commit -cne 'dc8ae365847d41f62d1ebca93815bb00959bc12f' -or
+           $Spec.relative_path -cne 'Terminal-test.zip' -or $Spec.guest_directory -cne $root -or
+           $Spec.archive_root -cne 'terminal-1.25.2733.0' -or $Spec.expected_entries -ne 63 -or $Spec.expanded_bytes -ne 34870043 -or
+           $Spec.zip_size -ne 12127272 -or $Spec.zip_sha256 -cne 'BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796' -or
+           $Spec.exe_sha256 -cne '1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1'){throw 'Unknown exact official Terminal test-asset contract.'}
+        foreach($path in @('C:\PaneBindV1','C:\PaneBindV1\Terminal')){
+            if(Test-Path -LiteralPath $path){$item=Get-Item -LiteralPath $path
+                if(-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Terminal ancestors must be plain guest-local directories.'}}
+        }
+        if(Test-Path -LiteralPath $root){throw 'Terminal RunId directory already exists; preserve evidence.'}
+        $zip=Join-Path $inputDir $Spec.relative_path
+        if((Get-Item -LiteralPath $zip).Length -ne $Spec.zip_size -or
+           (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -cne $Spec.zip_sha256){throw 'Terminal input ZIP identity mismatch.'}
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive=[IO.Compression.ZipFile]::OpenRead($zip)
+        try{
+            if($archive.Entries.Count -ne 63){throw 'Terminal ZIP entry count mismatch.'}
+            [long]$expanded=0;$seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+            foreach($entry in $archive.Entries){
+                $name=$entry.FullName;$parts=@($name.TrimEnd('/').Split('/'))
+                if(-not $name.StartsWith('terminal-1.25.2733.0/',[StringComparison]::Ordinal) -or
+                   $name -match '[\\:\x00-\x1f<>"|?*]' -or
+                   @($parts|Where-Object{$_ -in @('','..','.') -or $_.EndsWith('.') -or $_.EndsWith(' ') -or $_ -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)'}).Count -or
+                   -not $seen.Add($name.TrimEnd('/')) -or (($entry.ExternalAttributes -shr 16) -band 0xf000) -notin @(0,0x4000,0x8000) -or
+                   ($entry.ExternalAttributes -band 0x400) -or $entry.Length -gt 32MB){throw 'Unsafe Terminal archive entry.'}
+                $expanded+=$entry.Length;if($expanded -gt 34870043){throw 'Terminal expansion bound exceeded.'}
+            }
+            if($expanded -ne 34870043){throw 'Terminal expanded-size identity mismatch.'}
+            [IO.Directory]::CreateDirectory('C:\PaneBindV1\Terminal')|Out-Null
+            New-Item -ItemType Directory -Path $root -ErrorAction Stop|Out-Null
+            $selected=if($Configurations -ceq 'DebugAndRelease'){@('Debug','Release')}else{@($Configurations)}
+            foreach($configuration in $selected){
+                $destination=Join-Path $root $configuration
+                New-Item -ItemType Directory -Path $destination -ErrorAction Stop|Out-Null
+                foreach($entry in $archive.Entries){
+                    $target=Join-Path $destination $entry.FullName.Replace('/','\')
+                    if(-not $entry.Name){[IO.Directory]::CreateDirectory($target)|Out-Null;continue}
+                    [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target))|Out-Null
+                    [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$false)
+                }
+                $program=Join-Path $destination 'terminal-1.25.2733.0'
+                $exe=Join-Path $program 'WindowsTerminal.exe'
+                $hash=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
+                if($hash -cne $Spec.exe_sha256){throw 'Prepared Terminal executable hash mismatch.'}
+                New-Evidence (Join-Path $program '.portable') ''
+                New-Evidence (Join-Path $program 'panebind-v1-test-application.marker') $RunId
+                $receipt.configurations+=,[ordered]@{configuration=$configuration;actual_exe=$exe;exe_sha256=$hash;
+                    file_version=[Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion;
+                    marker=(Join-Path $program 'panebind-v1-test-application.marker');portable_settings_guest_local=$true;
+                    status='PREPARED_NOT_LAUNCHED';activation='NOT_RUN'}
+            }
+        }finally{$archive.Dispose()}
+        $receipt.status='PREPARED_NOT_LAUNCHED'
+    }catch{$receipt.status='PREPARATION_FAILED_APPLICATION_ITEM_ONLY';$receipt.error=$_.Exception.Message}
+    finally{if(-not(Test-Path -LiteralPath $evidence)){New-Evidence $evidence ($receipt|ConvertTo-Json -Depth 7)}}
+    return $receipt
+}
 try {
     # These checks precede compilation or any token/process creation API. This
     # entry is not a general launch tool and has no host override switch.
@@ -396,6 +463,11 @@ try {
     if($null -ne $manifest.test_assets){$assets=@($manifest.test_assets)}
     if($assets.Count -gt 1 -or ($assets.Count -eq 1 -and $assets[0].kind -cne 'VSCode')){throw 'Only one reviewed optional VS Code test asset is permitted.'}
     if($assets.Count){$allowed+='VSCode-test.zip'}
+    if($null -ne $manifest.terminal_test_asset){
+        if($manifest.terminal_test_asset.kind -cne 'WindowsTerminalPortable' -or
+           $manifest.terminal_test_asset.relative_path -cne 'Terminal-test.zip'){throw 'Unknown optional Terminal test asset.'}
+        $allowed+='Terminal-test.zip'
+    }
     if($null -ne $manifest.official_app_assets){
         if($manifest.official_app_assets.kind -cne 'ReviewedWindowsMediaApps' -or
            $manifest.official_app_assets.relative_path -cne 'OfficialApps-test.zip'){throw 'Unknown optional official application asset.'}
@@ -494,6 +566,7 @@ try {
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()
     foreach($asset in $assets){$summary.test_assets+=,(Prepare-VSCodeTestAsset $asset)}
+    if($null -ne $manifest.terminal_test_asset){$summary['terminal_test_asset']=Prepare-TerminalTestAsset $manifest.terminal_test_asset}
     if($null -ne $manifest.official_app_assets){$summary['official_app_assets']=Prepare-OfficialMediaApps $manifest.official_app_assets}
     if($null -ne $manifest.portable_test){
         $release=@($manifest.files | Where-Object relative_path -ceq 'panebind.exe')

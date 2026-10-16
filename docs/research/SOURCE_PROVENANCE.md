@@ -2381,3 +2381,56 @@ registration bypass or repackaged purported original MSIX is used. The assets
 remain local test inputs under their existing Windows license, are not part of
 PaneBind's MIT source/portable distribution, and still require actual guest
 registration, activation and functional validation.
+
+Actual registration follow-up: Run `e1fc79d4e1ca4c63b0572da1b4ef9150`
+attempted the eight real manifests in its disposable guest; all failed. The
+retained `appx-activity.txt` for the first VCLibs and Notepad operations records
+event 709, "the manifest is not in the package root", and event 404 with native
+`0x80070057`. The command reported wrapper `0x80073CF9`; its .NET exception
+HResult is a separate value, not a replacement native error. These copied
+directories had not been staged/registered in the guest package repository.
+No activation occurred. Do not repeat this WIM-directory Register operation
+or call it proof that Sandbox cannot run all packaged applications. Microsoft's
+[Add-AppxPackage contract](https://learn.microsoft.com/en-us/powershell/module/appx/add-appxpackage)
+distinguishes an existing/staged installation from development files, and the
+[deployment troubleshooting reference](https://learn.microsoft.com/en-us/windows/win32/appxpkg/troubleshooting)
+requires the associated deployment log. Notepad remains blocked on obtaining
+an original, normally deployable signed package; no fake-signature repacking,
+Developer Mode change or classic-Notepad substitution was performed.
+
+### V1 official Windows Terminal portable test asset — 2026-10-16
+
+Inspected Microsoft's official, mature production application distribution,
+[`microsoft/terminal` v1.25.2733.0](https://github.com/microsoft/terminal/releases/tag/v1.25.2733.0),
+annotated tag `643609c3f9e022c9fb44366a43f5ebb8567f9722`, resolving to source
+commit `dc8ae365847d41f62d1ebca93815bb00959bc12f`. GitHub reports that tag as
+unsigned; `target_commitish=main` is not the exact source identity. Inspected
+release metadata, fixed-tag LICENSE (MIT), archive layout/NOTICE and executable
+version/signature, not Terminal implementation modules, issues or PRs. No
+Terminal behavior algorithm or implementation code was copied/adapted.
+
+The official x64 ZIP `Microsoft.WindowsTerminal_1.25.2733.0_x64.zip` is
+12,127,272 bytes, SHA-256
+`BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796`,
+matching the GitHub release asset digest. Its 63 entries expand to 34,870,043
+bytes. Actual `WindowsTerminal.exe` version is `1.25.2609.30003`, SHA-256
+`1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1`;
+Authenticode returned Valid with Microsoft Corporation as signer. This binary
+signature is distinct from the unsigned source tag. The initial download
+wrapper did not yield a final process receipt; a separate read-only verifier
+checked the unchanged complete ZIP and exited zero. Neither action executed
+or installed Terminal on the development host.
+
+The official [distribution documentation](https://learn.microsoft.com/en-us/windows/terminal/distributions)
+supports unpackaged ZIP/offline operation and a local `.portable` marker;
+[CLI documentation](https://learn.microsoft.com/en-us/windows/terminal/command-line-arguments)
+defines `--window new`, `new-tab`, `--title` and `--suppressApplicationTitle`.
+The test adapter uses new per-Run/configuration guest-local directories and
+retains actual Medium, baseline-exclusion, image, class, retained process
+birth/tree and root-window checks. Specifying the portable asset does not
+permit a failed preparation to fall back to the old ConsoleWindowClass test.
+Applicable subsystem: isolated compatibility test application provisioning,
+not product input or window authority. Original copyright/license/NOTICE are
+retained with the internal asset; it is not included in PaneBind's source or
+portable product distribution. Guest activation and functional validation for
+this new asset are **NOT_RUN**, not inferred from the signature or ZIP checks.

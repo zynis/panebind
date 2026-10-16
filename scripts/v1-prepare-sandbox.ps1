@@ -5,6 +5,7 @@ param(
     # Driver-only changes do not require rebuilding or relabelling the product.
     [string]$ProductBuildDirectory,
     [string]$VSCodeAssetDirectory,
+    [string]$TerminalAssetDirectory,
     [string]$OfficialAppAssetDirectory,
     [string]$PortablePackageDirectory,
     [switch]$MediumEnvironmentProbe,
@@ -103,6 +104,47 @@ function Read-BuildIdentity([string]$Executable,[string]$Kind,[string]$ExpectedS
 }
 $testAssets=@()
 $vsCodeZip=$null
+$terminalZip=$null
+$terminalAsset=$null
+if($TerminalAssetDirectory){
+    $assetRoot=[IO.Path]::GetFullPath($TerminalAssetDirectory)
+    if($assetRoot -cne (Join-Path $repo 'uat\v1-assets\e6a9aed8fa9d460f8c0117ac8690324e')){throw 'Only the reviewed exact official Terminal asset directory is accepted.'}
+    $cursor=$assetRoot
+    while($cursor -and $cursor.StartsWith($repo,[StringComparison]::OrdinalIgnoreCase)){
+        if((Get-Item -LiteralPath $cursor).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Terminal asset ancestors must be plain.'}
+        $cursor=[IO.Path]::GetDirectoryName($cursor)
+    }
+    foreach($name in @('asset-receipt.json','official-release.json','source-identity.json','upstream-LICENSE.txt','Microsoft.WindowsTerminal_1.25.2733.0_x64.zip')){
+        $file=Get-Item -LiteralPath (Join-Path $assetRoot $name)
+        if($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Terminal asset inputs must be ordinary files.'}
+    }
+    $receipt=Get-Content -LiteralPath (Join-Path $assetRoot 'asset-receipt.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    $official=Get-Content -LiteralPath (Join-Path $assetRoot 'official-release.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    $source=Get-Content -LiteralPath (Join-Path $assetRoot 'source-identity.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    $zipHash='BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796'
+    $exeHash='1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1'
+    $zipName='Microsoft.WindowsTerminal_1.25.2733.0_x64.zip'
+    $url='https://github.com/microsoft/terminal/releases/download/v1.25.2733.0/'+$zipName
+    $entry=@($official.assets|Where-Object name -ceq $zipName)
+    if($receipt.schema -cne 'panebind-v1-terminal-test-asset/1' -or $receipt.asset_id -cne 'e6a9aed8fa9d460f8c0117ac8690324e' -or
+       $receipt.version -cne '1.25.2733.0' -or $receipt.download_url -cne $url -or $receipt.tls_verification_disabled -ne $false -or
+       $receipt.zip.sha256_actual -cne $zipHash -or $receipt.zip.entries -ne 63 -or $receipt.zip.expanded_bytes -ne 34870043 -or
+       $receipt.inspected_binary.sha256 -cne $exeHash -or $receipt.inspected_binary.authenticode_status -cne 'Valid' -or
+       $receipt.inspected_binary.signer -notmatch 'O=Microsoft Corporation' -or $receipt.license -cne 'MIT' -or
+       $official.tag_name -cne 'v1.25.2733.0' -or $official.prerelease -ne $false -or $entry.Count -ne 1 -or
+       $entry[0].digest -cne ('sha256:'+$zipHash.ToLowerInvariant()) -or $entry[0].browser_download_url -cne $url -or
+       $source.source_commit -cne 'dc8ae365847d41f62d1ebca93815bb00959bc12f' -or
+       (Get-FileHash -LiteralPath (Join-Path $assetRoot 'upstream-LICENSE.txt') -Algorithm SHA256).Hash -cne 'AD0CF28F3381CA9BB0BF101D127402D44C17BFA0991E1A00BFF7AE6679E9DADA'){
+        throw 'Terminal receipt, official metadata, actual signature/license or source identity differs from reviewed asset.'}
+    $terminalZip=Join-Path $assetRoot $zipName
+    if((Get-Item -LiteralPath $terminalZip).Length -ne 12127272 -or
+       (Get-FileHash -LiteralPath $terminalZip -Algorithm SHA256).Hash -cne $zipHash){throw 'Official Terminal ZIP bytes changed.'}
+    $terminalAsset=[ordered]@{kind='WindowsTerminalPortable';version='1.25.2733.0';source_commit=$source.source_commit;
+        relative_path='Terminal-test.zip';zip_sha256=$zipHash;zip_size=12127272;exe_sha256=$exeHash;
+        expected_entries=63;expanded_bytes=34870043;archive_root='terminal-1.25.2733.0';
+        guest_directory=('C:\PaneBindV1\Terminal\'+$RunId);license='MIT';asset_scope='internal_guest_test_only';
+        preparation='NOT_RUN';activation='NOT_RUN'}
+}
 $officialApps=$null
 $officialFiles=@()
 if($OfficialAppAssetDirectory){
@@ -349,6 +391,12 @@ if($officialApps){
     $officialApps.zip_size=(Get-Item -LiteralPath $archivePath).Length
     $payloadFiles+=$officialApps.relative_path
 }
+if($terminalZip){
+    $target=Join-Path $inputDir $terminalAsset.relative_path
+    [IO.File]::Copy($terminalZip,$target,$false)
+    if((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -cne $terminalAsset.zip_sha256){throw 'Terminal ZIP changed during package copy.'}
+    $payloadFiles+=$terminalAsset.relative_path
+}
 $files = @($payloadFiles | ForEach-Object {
     $file = Get-Item -LiteralPath (Join-Path $inputDir $_)
     [ordered]@{ relative_path=$_; size=$file.Length; sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash }
@@ -366,6 +414,7 @@ $manifest = [ordered]@{
     source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
+    terminal_test_asset=$terminalAsset;
     official_app_assets=$officialApps;
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
     medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck'};
