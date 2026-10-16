@@ -75,7 +75,24 @@ void settings_guest_activate(State& s,const SettingsGui& gui,HWND control){
     if(!gui_identity(s,gui,control)||gui_class(control)!=L"Button"||!IsWindowVisible(control)||!IsWindowEnabled(control)||
        !GetWindowRect(control,&r)||s.left)throw std::runtime_error("settings_modal_button_not_exact");
     const POINT point{r.left+(r.right-r.left)/2,r.top+(r.bottom-r.top)/2};cursor(s,point);
-    if(WindowFromPoint(point)!=control)throw std::runtime_error("settings_modal_button_actual_hit_mismatch");
+    const auto exact_hit=[&]{
+        RECT current{};POINT actual_cursor{};
+        return !s.left&&gui_identity(s,gui,control)&&gui_class(control)==L"Button"&&
+            IsWindowVisible(control)&&IsWindowEnabled(control)&&GetForegroundWindow()==gui.root&&
+            gui_identity(s,gui,gui_focus(gui))&&GetWindowRect(control,&current)&&EqualRect(&r,&current)&&
+            GetCursorPos(&actual_cursor)&&actual_cursor.x==point.x&&actual_cursor.y==point.y&&
+            PtInRect(&current,point)&&WindowFromPoint(point)==control;
+    };
+    const bool hit_ready=exact_hit();
+    s.log.check("settings_modal_button_actual_ready_hit",hit_ready,
+        "\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+        ",\"control\":"+std::to_string(reinterpret_cast<std::uintptr_t>(control))+
+        ",\"control_rect\":"+rect({r.left,r.top,r.right,r.bottom})+
+        ",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+
+        "],\"fresh_exact_target_geometry_cursor_hit\":"+(hit_ready?"true":"false")+",\"single_DOWN_UP_not_yet_sent\":true");
+    // Recheck after diagnostic I/O immediately before the one input pair.
+    // A changed layout/hit fails rather than clicking stale coordinates.
+    if(!exact_hit())throw std::runtime_error("settings_modal_button_actual_hit_or_geometry_changed");
     button(s,true);button(s,false);
 }
 struct SettingsGuestModal {HWND root{};DWORD tid{};};

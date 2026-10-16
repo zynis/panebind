@@ -2247,14 +2247,27 @@ void gui_page_select(State& s,const SettingsGui& gui,unsigned wanted){
         "\"selection_via\":"+quote(changed?"actual_CtrlTab":"already_selected_actual_page")+",\"production_page\":"+std::to_string(wanted));
 }
 SettingsGui gui_open(State& s){
-    s.log.check("GUI_production_settings_command",launch(s,L"--settings",true));SettingsGui gui;
+    const auto mark=read(s.product_log).size();
+    s.log.check("GUI_production_settings_command",launch(s,L"--settings",true));SettingsGui gui;std::string ready_receipt;bool ready_observed=false;
     const bool found=wait([&]{
+        // A visible root can be observed while show() is still animating and
+        // before it finishes layout/focus. Secondary-command exit only proves
+        // PostMessage delivery. Wait for this actual product show() receipt.
+        ready_receipt=record(s,mark,"settings_open");
+        ready_observed=number(ready_receipt,"\"process_id\":")==s.product_pid&&
+            ready_receipt.find("\"source_sha\":"+quote(s.product_source))!=ready_receipt.npos&&
+            ready_receipt.find("\"created\":true")!=ready_receipt.npos&&
+            ready_receipt.find("\"foreground_is_settings\":true")!=ready_receipt.npos&&
+            ready_receipt.find("\"own_focus_present\":true")!=ready_receipt.npos;
+        if(!ready_observed)return false;
         struct Search {DWORD pid{};HWND root{};DWORD tid{};} search{s.product_pid};
         EnumWindows([](HWND h,LPARAM data)->BOOL{auto& query=*reinterpret_cast<Search*>(data);DWORD pid{};const auto tid=GetWindowThreadProcessId(h,&pid);
             if(pid==query.pid&&gui_class(h)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(h)){query.root=h;query.tid=tid;return FALSE;}return TRUE;},reinterpret_cast<LPARAM>(&search));
         gui={search.root,search.root?GetDlgItem(search.root,100):nullptr,search.tid};return gui.root&&gui.tab&&
             gui_class(gui.tab)==WC_TABCONTROLW&&gui_identity(s,gui,gui.tab)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,gui_focus(gui));
     });
+    s.log.check("GUI_actual_settings_ready_receipt",ready_observed,"\"actual_product_receipt\":"+quote(ready_receipt)+
+        ",\"same_PID_source_after_command\":"+(ready_observed?"true":"false")+",\"secondary_exit_not_GUI_readiness\":true");
     DWORD foreground_pid{},root_pid{};GetWindowThreadProcessId(GetForegroundWindow(),&foreground_pid);
     GetWindowThreadProcessId(gui.root,&root_pid);
     s.log.check("GUI_exact_product_settings_window",found,"\"pid\":"+std::to_string(s.product_pid)+
