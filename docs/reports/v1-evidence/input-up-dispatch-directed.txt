@@ -1,0 +1,46 @@
+PaneBind V1 input UP / GUI dispatch directed regression
+Record date: 2026-10-16 (Asia/Shanghai)
+Record kind: sanitized transcription of exec_command tool output.
+NOT original program stdout; NOT a Windows guest / native input result.
+Original local transcript: uat/v1-control/input-up-dispatch-directed-20261016.txt
+Original transcript SHA-256: 28A44613D422FFCD1B955896A7A8D5B38BDD938B7B29C7B1689E29DDB8BBEE0A
+Reviewed base: ab6bf9057797e7f85fc4aa234da7b105ce143a4f
+Product fix commit: 408ac527a6bfda7b01a5e83249bd5ed0eca2714d
+Working directory: [REPOSITORY_ROOT]
+
+Scope: OFFLINE shared production predicates and original-anchor calculation.
+No InputService start, hooks, native window, or synthetic input was executed.
+
+BEFORE FIX
+The production active-only motion predicate was minimally extracted unchanged
+as dispatch_motion_permission. The directed test was added in the working tree;
+this is not a claim that an unmodified committed base already contained it.
+Build: cmake --build out/v1-dev --config Debug --parallel 4 --target panebind-v1-input-route-tests
+Build exit: 0
+Run: .\out\v1-dev\src\platform\windows\Debug\panebind-v1-input-route-tests.exe
+Run exec chunk_id: aa2269
+Run exit: 1
+Captured tool output:
+FAIL actual same-generation normal UP retains one final absolute motion when GUI dispatch is late
+226 checks, 1 failures
+
+AFTER FIX
+The same counterexample was retained. Actual matching NormalUp receives one
+separate terminal capability, using the observed UP point and original DOWN
+rect; old queued MOVE remains rejected. Terminal consumption is once-only.
+Newer DOWN, stop, abort and invalid context do not gain completion permission;
+finishing an older generation cannot revoke a newer input generation.
+Build: same directed Debug target
+Build exit: 0
+Run: same directed Debug executable
+Run exec chunk_id: bfeb65
+Run exit: 0
+Captured tool output:
+239 checks, 0 failures
+
+This establishes the deterministic GUI-consumer-lag defect and its offline
+repair only. It does NOT establish why the separate actual LL UP sometimes
+went missing. Native fast DOWN/MOVE/UP delivery, exact geometry, NormalUp,
+no late placements and a subsequent gesture still require the new product
+candidate in the isolated guest. Current tested dd60 package records remain
+bound to dd60, not to the new source or future binary.

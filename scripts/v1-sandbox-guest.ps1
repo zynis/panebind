@@ -9,7 +9,8 @@ $outputDir='C:\PaneBindV1\Output'
 $utf8=New-Object Text.UTF8Encoding($false)
 $summaryPath=$null
 $summary=[ordered]@{schema='panebind-v1-guest/1';run_id=$RunId;status='NOT_READY';
-    source_commit=$null;requested_configurations=$Configurations;requested_suite=$Suite;actual_suite=$null;
+    source_commit=$null;product_source_commit=$null;driver_source_commit=$null;packaging_head=$null;
+    requested_configurations=$Configurations;requested_suite=$Suite;actual_suite=$null;
     automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
 function New-Evidence([string]$Path,[string]$Text) {
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -54,6 +55,7 @@ function Fixture-ExitReason([uint32]$Code) {
         102=@('product_changed_after_guard',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('jFsQYiAAZwB1AGEAcgBkACAADlQ2UsFUyFQMXo1RIWvAaOVnMVkljQ=='))))
         103=@('guard_observation_or_evidence_exception',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('ZwB1AGEAcgBkACAAwonfWxZiwYtuY5lRZVECXzheG/8NTqhjrWV3UVNPr3ODWJ9T4FY='))))
         104=@('fixture_suite_manifest_mismatch',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('S23ViwmQeZgOTixnIABSAHUAbgBJAGQAIADqU/uLBW5VUw1OAE70gQ=='))))
+        105=@('product_driver_split_identity_or_interface_rejected','Product and driver identities, interface or actual executable hashes disagree; no test input was sent.')
     }
     if($Code -le [int]::MaxValue -and $reasons.ContainsKey([int]$Code)){$reason=$reasons[[int]$Code]}
     else{$reason=@('unmapped_fixture_exit_status',([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('KmcgZgRchHYgAGYAaQB4AHQAdQByAGUAIAAAkPpRtnIBYAz/AJfAaOVnn1PLWcGLbmM='))))}
@@ -256,10 +258,18 @@ try {
     if($manifest.guest_suite -cne $Suite){throw 'Suite selection must match this immutable package manifest.'}
     if($manifest.schema -cne 'panebind-v1-sandbox/1' -or $manifest.run_id -cne $RunId -or
        $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
+       $manifest.product_source_commit -cne $manifest.source_commit -or $manifest.driver_source_commit -cnotmatch '^[0-9a-f]{40}$' -or
+       $manifest.packaging_head -cnotmatch '^[0-9a-f]{40}$' -or $manifest.guest_contract -cne 'panebind-v1-guest-contract/2' -or
+       $manifest.product_interface -cne 'panebind-v1-product-guest-interface/1' -or
        $manifest.guest_input -cne $inputDir -or $manifest.guest_output -cne $outputDir -or
        $manifest.host_root -cne ('I:\PaneBindMVP1Runs\'+$RunId)){
         throw 'Manifest identity or exact deployment paths disagree.'}
     $summary.source_commit=$manifest.source_commit
+    $summary.product_source_commit=$manifest.product_source_commit
+    $summary.driver_source_commit=$manifest.driver_source_commit
+    $summary.packaging_head=$manifest.packaging_head
+    $summary['guest_contract']=$manifest.guest_contract
+    $summary['product_interface']=$manifest.product_interface
     $summary.actual_suite=$Suite
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
@@ -280,6 +290,28 @@ try {
            (Get-FileHash -LiteralPath $actual.FullName -Algorithm SHA256).Hash -cne $file.sha256){throw 'Payload size/hash mismatch.'}
     }
     if($seen.Count -ne $allowed.Count){throw 'Payload manifest is incomplete.'}
+    if(@($manifest.configurations).Count -ne 2){throw 'Both exact binary identity pairs must be present.'}
+    foreach($name in @('Debug','Release')){
+        $pair=@($manifest.configurations|Where-Object name -ceq $name)
+        if($pair.Count -ne 1){throw 'Duplicate or missing configuration identity.'};$pair=$pair[0]
+        $prefix=if($name -ceq 'Debug'){'Debug\'}else{''}
+        $productFile=@($manifest.files|Where-Object relative_path -ceq ($prefix+'panebind.exe'))
+        $driverFile=@($manifest.files|Where-Object relative_path -ceq ($prefix+'panebind-v1-guest-fixture.exe'))
+        $suffix=$name.ToLowerInvariant()
+        if($productFile.Count -ne 1 -or $driverFile.Count -ne 1 -or
+           $pair.product_identity.product -cne 'PaneBind' -or $pair.product_identity.version -cne '1.0.0-dev' -or
+           $pair.product_identity.subsystem -cne 'windows' -or $pair.product_identity.requires_elevation -ne $false -or
+           $pair.product_identity.source_commit -cne $manifest.product_source_commit -or
+           $pair.product_identity.verified_binary_sha256 -cne $productFile[0].sha256 -or
+           $manifest.('product_'+$suffix+'_sha256') -cne $productFile[0].sha256 -or
+           $pair.fixture_identity.source_commit -cne $manifest.driver_source_commit -or
+           $pair.fixture_identity.product -cne 'PaneBind V1 guest fixture' -or
+           $pair.fixture_identity.guest_contract -cne $manifest.guest_contract -or
+           $pair.fixture_identity.product_interface -cne $manifest.product_interface -or
+           $pair.fixture_identity.host_synthetic_input -cne 'forbidden' -or $pair.fixture_identity.requires_medium_guest -ne $true -or
+           $pair.fixture_identity.verified_binary_sha256 -cne $driverFile[0].sha256 -or
+           $manifest.('driver_'+$suffix+'_sha256') -cne $driverFile[0].sha256){throw 'Product/driver identities, interface contract and actual payload hashes disagree.'}
+    }
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()
     foreach($asset in $assets){$summary.test_assets+=,(Prepare-VSCodeTestAsset $asset)}
@@ -535,6 +567,8 @@ public static class PaneBindV1MediumGuest {
         if($sourceHash -cne $actualHash){throw 'Copied product hash mismatch.'}
         $arguments='--run-id '+$RunId+' --output "'+$outputDir+'" --product "'+$actualProduct+'" --suite '+$Suite
         $stage=[ordered]@{configuration=$configuration;source_input=$sourceProduct;actual_exe=$actualProduct;
+            product_source_commit=$manifest.product_source_commit;driver_source_commit=$manifest.driver_source_commit;
+            packaging_head=$manifest.packaging_head;guest_contract=$manifest.guest_contract;product_interface=$manifest.product_interface;
             source_input_sha256=$sourceHash;actual_exe_sha256=$actualHash;hash_equal=$true;
             fixture=$fixture;fixture_sha256=(Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash;
             arguments=$arguments;actual_suite=$Suite;actual_result=$null;feature_result='NOT_EVALUATED';human_uat='NOT_RUN'}

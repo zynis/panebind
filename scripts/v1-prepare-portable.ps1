@@ -5,41 +5,7 @@ param(
     [string]$BuildDirectory
 )
 $ErrorActionPreference = 'Stop'
-function Assert-PackagingSource([string]$Repository,[string]$Runtime,[string]$PackagingHead) {
-    if($Runtime -cnotmatch '^[0-9a-f]{40}$' -or $PackagingHead -cnotmatch '^[0-9a-f]{40}$'){throw 'Explicit full runtime and packaging commit identities are required.'}
-    & git -C $Repository cat-file -e ($Runtime+'^{commit}')
-    if($LASTEXITCODE -ne 0){throw 'Runtime SourceCommit is not an available local commit.'}
-    & git -C $Repository merge-base --is-ancestor $Runtime $PackagingHead
-    if($LASTEXITCODE -ne 0){throw 'Runtime SourceCommit must be an ancestor of the actual packaging HEAD.'}
-    $actualHead=(& git -C $Repository rev-parse HEAD).Trim()
-    if($LASTEXITCODE -ne 0 -or $actualHead -cne $PackagingHead){throw 'Packaging HEAD changed during identity verification.'}
-    $deliveryDocs=@('docs/V1_QUICK_START.md','docs/reports/V1_ACCEPTANCE.json','docs/reports/V1_DELIVERY_REPORT.md')
-    # Inspect every intervening commit as well as the endpoint diff: a source
-    # edit followed by a revert is not a docs-only finalization.
-    $rangeFiles=@(& git -C $Repository log --format= --name-only --no-renames ($Runtime+'..'+$PackagingHead) --)
-    if($LASTEXITCODE -ne 0){throw 'Cannot inspect runtime-to-final commit changes.'}
-    $endFiles=@(& git -C $Repository diff --name-only --no-renames $Runtime $PackagingHead --)
-    if($LASTEXITCODE -ne 0){throw 'Cannot compare runtime and packaging trees.'}
-    $changed=@(@($rangeFiles)+@($endFiles)|Where-Object{$_}|Sort-Object -Unique)
-    if(@($changed|Where-Object{$_ -cnotin $deliveryDocs}).Count){throw 'Only the three delivery documents may differ after Runtime; source, scripts, LICENSE, AGENTS and other files are forbidden.'}
-    $cleanScope=@('src','tests','scripts','cmake','CMakeLists.txt','LICENSE','AGENTS.md')+$deliveryDocs
-    $dirty=@(& git -C $Repository diff --name-only HEAD -- @cleanScope)
-    if($LASTEXITCODE -ne 0){throw 'Cannot inspect source and delivery-document worktree status.'}
-    $untracked=@(& git -C $Repository ls-files --others --exclude-standard -- @cleanScope)
-    if($LASTEXITCODE -ne 0 -or $dirty.Count -or $untracked.Count){throw 'Commit source and the three delivery documents before packaging; unrelated plan input remains permitted.'}
-    foreach($relative in @($deliveryDocs)+@('LICENSE','AGENTS.md')){
-        & git -C $Repository ls-files --error-unmatch -- $relative | Out-Null
-        if($LASTEXITCODE -ne 0){throw 'Delivery documents, LICENSE and AGENTS must belong to the committed packaging HEAD.'}
-    }
-    $inputs=@(foreach($relative in $deliveryDocs){
-        $path=Join-Path $Repository $relative
-        $item=Get-Item -LiteralPath $path
-        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Delivery input must be an ordinary file.'}
-        [ordered]@{path=$relative;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}
-    })
-    return [ordered]@{source_commit=$Runtime;packaging_head=$PackagingHead;source_scope_equivalent=$true;
-        docs_only_changes=$changed;documentation_inputs=$inputs}
-}
+. (Join-Path $PSScriptRoot 'v1-package-identity.ps1')
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $BuildDirectory) { $BuildDirectory = Join-Path $repo 'out\v1-dev' }
 $build = [IO.Path]::GetFullPath($BuildDirectory)
@@ -115,9 +81,7 @@ try {
     if (-not $process.WaitForExit(10000)) { $process.Kill(); throw 'Identity-only process timed out; no interactive product launch was requested.' }
     if ($process.ExitCode -ne 0) { throw 'Identity-only process failed.' }
     $identity=$stdout.GetAwaiter().GetResult() | ConvertFrom-Json
-    if ($identity.product -cne 'PaneBind' -or $identity.source_commit -cne $head -or $identity.requires_elevation -ne $false) {
-        throw 'Actual executable identity does not match this committed ordinary-permission product.'
-    }
+    Assert-V1BinaryInterface $identity Product $head
 } finally { $process.Dispose() }
 if ((Get-FileHash -LiteralPath $executable -Algorithm SHA256).Hash -cne $beforeHash) { throw 'Release binary changed during inspection.' }
 $quickPath=Join-Path $repo 'docs\V1_QUICK_START.md'
@@ -188,6 +152,8 @@ Write-NewText (Join-Path $payload '已知问题.md') ("# PaneBind V1 集中已�
 $names=@('panebind.exe','portable.flag','LICENSE','中文快速入门.md','配置说明.md','已知问题.md')
 $files=@($names | ForEach-Object { $item=Get-Item -LiteralPath (Join-Path $payload $_); [ordered]@{relative_path=$_;size=$item.Length;sha256=(Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash} })
 $manifest=[ordered]@{schema='panebind-v1-portable/1';package_id=$PackageId;source_commit=$head;packaging_head=$packagingHead;branch=$branch;
+    product_source_commit=$head;product_interface=$packagingIdentity.interface_contract;
+    product_unchanged_across_tool_changes=$packagingIdentity.product_unchanged_across_tool_changes;
     source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
     created_utc=[DateTime]::UtcNow.ToString('o');configuration='Release';runtime='MultiThreaded (/MT)';
     binary_identity=$identity;binary_sha256=$beforeHash;system_imports=$dependencies;files=$files;
@@ -219,6 +185,7 @@ try {
     }
 } finally { $archive.Dispose() }
 $receipt=[ordered]@{schema='panebind-v1-portable-receipt/1';package_id=$PackageId;source_commit=$head;packaging_head=$packagingHead;package_root=$root;
+    product_source_commit=$head;product_interface=$packagingIdentity.interface_contract;
     source_scope_equivalent=$true;documentation_inputs=$packagingIdentity.documentation_inputs;
     zip=$zip;zip_sha256=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash;
     manifest_sha256=(Get-FileHash -LiteralPath (Join-Path $payload 'manifest.json') -Algorithm SHA256).Hash;

@@ -4,6 +4,24 @@
 
 本次集中阶段交付为 **PARTIAL**，不是 COMPLETE。交付已测 Release 便携包 e2abc／runtime dd60：干净 guest 中普通空参数显示中文设置，真实 GUI 保存前后两次 Move／NormalUp、正常退出／字节检查，以及设置底部诊断导出／解析专项均有实际结果。主要功能动作仍单独绑定 b60／c01：Terminal 类别、单屏停靠／拉伸核心、actor 默认截止后新手势及第二成员失败恢复等，不把这些旧构建动作改绑定 dd60。普通 I11、grid／sourceclose 原代实际 UP 缺失的 **S1 未关闭，不宜宿主试用**；托盘、正式 Medium Explorer、完整五类应用及显示矩阵仍未过，顺序 Debug→Release 的输入／前台差异原因 UNKNOWN。60项已实施不等于正确性或DEV通过，正式功能／模块／B／I通过均为0；真人UAT仍PENDING。
 
+## 现有验收表的推进状态与仓库内证据
+
+继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。功能当前为9项 `FAIL`、51项 `BLOCKED`，正式PASS仍0；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。B33–B40继续固定DEFERRED／0分。
+
+每行有 `observed`、`remaining_conditions`、`next_action`，以及 `partial_observation_ids`→原观察的产品SHA／二进制哈希／RunId／证据关联；`candidate_identity_ref`仅指待验当前候选，不把旧观察改绑新EXE。模块／对标条件直接引用功能行，未另建一套任务书。后续产品修复或现场新结果按实际身份增量登记；驱动／文档变更不得清空既有产品证据。
+
+[仓库内证据索引](v1-evidence/index.json)和[摘录说明](v1-evidence/README.md)保留152条关键原始观察的脱敏摘录，含dd60／714c真实普通ZIP与诊断、b60／c01组件通过及缺UP／恢复／应用失败、50df／bdab owned回环及T/L/四格、dd60／97顺序Release客户激活失败。已独立核对四份原日志整文件哈希及对应16个原EXE哈希；每条摘录另带原行UTF-8 digest。原始大文件和包仍在索引所列ignored本地`uat/`位置，无需为源码复核反复上传整个目录。
+
+本节只是既有结果映射，不是重新运行现场或结束整版任务。实际缺UP、快速拖动消费时序风险、托盘、官方应用准备和显示环境分别推进；新的确定性反例与修复不被误写成既有LL-UP缺失根因。完整功能合同未齐时不计PASS，不以PARTIAL作为主动停止条件。
+
+## 新确定的输入消费时序缺陷：已修代码，待新候选现场复验
+
+用户提出的 `InputService` 真实UP先清active、GUI消费迟到MOVE仍要求active的风险，已用实际共用生产判定最小提取复现：旧版定向Debug为226 checks／1 failure。这是已确定的独立时序缺陷，不是此前实际LL UP缺失的根因证明。
+
+产品修复源码为 `408ac527a6bfda7b01a5e83249bd5ed0eca2714d`：排队旧MOVE仍拒绝；只有实际匹配NormalUp的UP点可以提交一次独立terminal计划，按原DOWN／窗口锚点求绝对几何，native发起前仍复核权限。后继DOWN、停止、abort或真实上下文失效不能恢复旧代写权限；旧代finish只退休自身，不能撤销较新代。修复后同一反例及相关代际／一次性／原锚点定向Debug为239 checks／0 failures。
+
+[before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。新候选源码仅放在`pending_runtime_sha`，当前已测dd60包不换绑；新EXE构建／哈希与driver身份由实际产物另行登记。下一步是新候选真实快速DOWN／MOVE／UP（GUI消费落后）→核对UP点exact终点／一次terminal／撤权后无旧MOVE或重复写→后续Move／Resize／Ctrl，再推进最终同候选整版链。原D08缺LL-UP S1及整版门槛保持未关闭，V1-D15为`DEV_FIXED_PENDING_GUEST_REVALIDATION`。
+
 ## 源码与包身份
 
 本稿是持续开发快照，不固定最终交付 SHA，不预填下一批结果。

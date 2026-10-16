@@ -2156,5 +2156,28 @@ binding cannot authorize NormalUp/dock. A possible bounded, immutable-DOWN-
 paired Raw abort remains a candidate only: ambiguity/staleness must not revoke
 a newer generation, and it would not close the normal-termination gate.
 No Raw product implementation or new empirical PASS follows from this review.
+
+### V1 same-candidate UP chain discrimination — 2026-10-16
+
+The continuation reuses the pinned AltSnap/FancyZones input and issue-history
+reviews above (reference only; no upstream code copied). Re-read Microsoft's
+[LowLevelMouseProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc),
+[CallNextHookEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-callnexthookex),
+[Hooks Overview](https://learn.microsoft.com/en-us/windows/win32/winmsg/about-hooks),
+and [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput).
+The documented chain puts a newly installed hook first; returning nonzero can
+prevent downstream hooks from receiving that event. SendInput's insertion
+count alone does not prove a callback, delivery, or product termination.
+
+Decision: one short-lived, passive, guest-test-only hook may observe the
+already-planned single UP ahead of the running product. It runs a dedicated
+message loop, records bounded atomic native packet facts and CallNextHookEx's
+actual return, always preserves that return, then unregisters. No disk IO,
+window operation, input filtering, additional UP, product permission or
+NormalUp receipt is supplied by this observation. This distinguishes a missing
+guest hook-chain observation from an event seen at the head but absent in the
+product; neither outcome by itself proves the system root cause. The initial
+implementation is not an empirical result; actual RunIds must be recorded in
+the acceptance table after execution.
 Microsoft site terms; links/paraphrase only. External implementation copied,
 adapted, translated or mechanically rewritten: **NO**; no new attribution.

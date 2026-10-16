@@ -597,15 +597,27 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
         ",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+",\"trajectory_pause_ms\":60,\"production_receipt\":"+quote(receipt));
 }
 product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
+#include "platform/windows/product/v1_guest_hook_observer.h"
 void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     const auto mark=read(s.product_log).size();const auto raw_before=raw_mouse_observer_json();
+    // Install after this product instance, so this passive observer is ahead
+    // of it for the single planned UP. A missing product callback can now be
+    // distinguished from a missing guest hook-chain observation. It is never
+    // used as product NormalUp or as permission to send a second UP.
+    GuestUpHookObservation hook_observer;
+    const bool hook_ready=hook_observer.start();
     bool attempted=false,returned=false,raw_logged=false;std::string end;
     try{
+        s.log.check("guest_passive_UP_observer_ready",hook_ready,"\"generation\":"+std::to_string(g.generation)+
+            ",\"observation\":"+hook_observer.json());
         attempted=true;button(s,false);returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
         const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
+        const bool hook_stopped=hook_observer.stop();
+        s.log.check("guest_passive_UP_observer_removed",hook_stopped,"\"generation\":"+std::to_string(g.generation)+
+            ",\"observation\":"+hook_observer.json());
         // Emit before the existing throwing assertion, including when its
         // normal-UP observation failed. Raw remains a fixture-side interval
         // observation, never a source/generation or termination substitute.
@@ -613,6 +625,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"phase\":\"after_existing_normal_wait\",\"single_test_UP_attempted\":true,\"single_test_UP_call_returned\":true,\"normal_end_observed\":"+
             (observed?"true":"false")+",\"actual_matching_LL_UP\":"+(actual_LL_UP.empty()?"null":quote(actual_LL_UP))+
             ",\"production_end\":"+(end.empty()?"null":quote(end))+",\"fixture_Raw_before_single_UP\":"+raw_before+",\"fixture_Raw_after_normal_wait\":"+raw_after+
+            ",\"passive_head_hook\":"+hook_observer.json()+
             ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"Raw_does_not_change_original_assertion_or_authority\":true");raw_logged=true;
         s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
             "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
@@ -624,10 +637,13 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
             std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+",\"production_end\":"+quote(end));
     }catch(...){
+        const bool hook_stopped=hook_observer.stop();
         if(!raw_logged)try{s.log.emit("ordinary_gesture_UP_Raw_observation","\"generation\":"+std::to_string(g.generation)+",\"source_member\":"+std::to_string(source)+
             ",\"phase\":\"exception_during_existing_UP_observation\",\"single_test_UP_attempted\":"+(attempted?"true":"false")+
             ",\"single_test_UP_call_returned\":"+(returned?"true":"false")+",\"fixture_Raw_before_single_UP\":"+raw_before+
-            ",\"fixture_Raw_at_exception\":"+raw_mouse_observer_json()+",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"original_exception_rethrown\":true");}catch(...){}
+            ",\"fixture_Raw_at_exception\":"+raw_mouse_observer_json()+",\"passive_head_hook\":"+hook_observer.json()+
+            ",\"passive_hook_cleanup_confirmed\":"+(hook_stopped?"true":"false")+
+            ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"original_exception_rethrown\":true");}catch(...){}
         throw;
     }
 }
@@ -984,6 +1000,82 @@ void application_binding_facts(State& s,ApplicationTarget& target){
     s.log.emit("application_binding_observation","\"application\":"+quote(target.kind)+",\"held_tree_new_roots\":"+std::to_string(observed)+
         ",\"unknown_process_roots_not_queried\":true,\"single_post_failure_observation\":true");
 }
+bool vscode_own_directory_probe(State& s,const fs::path& directory,std::string_view purpose){
+    // Actual Medium fixture writes only a CREATE_NEW file belonging to this
+    // RunId. Never repair ACLs, change TEMP, or delete an existing file.
+    const bool directory_plain=plain_directory(directory);int rid=-1;bool elevated{};DWORD token_error{};
+    const bool actual_medium=medium(GetCurrentProcess(),&rid,&elevated,&token_error);
+    const auto file=directory/(L"PaneBind-"+s.run+L"-"+std::wstring(s.configuration.begin(),s.configuration.end())+
+        L"-"+std::wstring(purpose.begin(),purpose.end())+L"-"+std::to_wstring(GetCurrentProcessId())+L"-"+std::to_wstring(GetTickCount64())+L".tmp");
+    Handle owned(directory_plain&&actual_medium?CreateFileW(file.c_str(),GENERIC_READ|GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_TEMPORARY,nullptr):INVALID_HANDLE_VALUE);
+    const bool create_attempted=directory_plain&&actual_medium;
+    const bool created=owned.value!=INVALID_HANDLE_VALUE;const DWORD create_error=created?0:create_attempted?GetLastError():0;
+    const std::string payload="PaneBind exact guest write/read probe "+utf8(s.run);DWORD written{},received{};
+    bool wrote=false,flushed=false,rewound=false,read_back=false,closed=false,removed=false;
+    DWORD write_error{},flush_error{},seek_error{},read_error{},close_error{},delete_error{};
+    if(created){
+        wrote=WriteFile(owned.value,payload.data(),static_cast<DWORD>(payload.size()),&written,nullptr)!=FALSE;
+        write_error=wrote?0:GetLastError();flushed=FlushFileBuffers(owned.value)!=FALSE;flush_error=flushed?0:GetLastError();
+        LARGE_INTEGER origin{};rewound=SetFilePointerEx(owned.value,origin,nullptr,FILE_BEGIN)!=FALSE;seek_error=rewound?0:GetLastError();
+        std::array<char,128> actual{};
+        read_back=rewound&&ReadFile(owned.value,actual.data(),static_cast<DWORD>(actual.size()),&received,nullptr)!=FALSE;
+        read_error=read_back?0:rewound?GetLastError():ERROR_INVALID_FUNCTION;
+        read_back=read_back&&received==payload.size()&&std::string_view(actual.data(),received)==payload;
+        closed=CloseHandle(owned.value)!=FALSE;close_error=closed?0:GetLastError();if(closed)owned.value=nullptr;
+        if(closed){removed=DeleteFileW(file.c_str())!=FALSE;delete_error=removed?0:GetLastError();}
+    }
+    const bool passed=directory_plain&&actual_medium&&created&&wrote&&written==payload.size()&&flushed&&rewound&&read_back&&closed&&removed;
+    s.log.emit("VSCode_Medium_directory_probe","\"purpose\":"+quote(purpose)+",\"directory\":"+quote(utf8(directory.wstring()))+
+        ",\"owned_probe_file\":"+quote(utf8(file.wstring()))+",\"result\":"+quote(passed?"PASS":"FAIL")+
+        ",\"integrity_rid\":"+std::to_string(rid)+",\"elevated\":"+(elevated?"true":"false")+",\"token_query_error\":"+std::to_string(token_error)+
+        ",\"plain_directory\":"+(directory_plain?"true":"false")+",\"create_attempted\":"+(create_attempted?"true":"false")+
+        ",\"create_new\":"+(created?"true":"false")+",\"create_error\":"+(create_attempted?std::to_string(create_error):"null")+
+        ",\"write\":"+(wrote?"true":"false")+",\"write_error\":"+std::to_string(write_error)+",\"flush\":"+(flushed?"true":"false")+
+        ",\"flush_error\":"+std::to_string(flush_error)+",\"rewind\":"+(rewound?"true":"false")+",\"seek_error\":"+std::to_string(seek_error)+
+        ",\"exact_read_back\":"+(read_back?"true":"false")+",\"read_error\":"+std::to_string(read_error)+",\"closed\":"+(closed?"true":"false")+
+        ",\"close_error\":"+std::to_string(close_error)+",\"owned_file_deleted\":"+(removed?"true":"false")+",\"delete_error\":"+std::to_string(delete_error)+
+        ",\"unknown_files_deleted\":false,\"ACL_token_environment_changed\":false,\"application_function_PASS_inferred\":false");
+    return passed;
+}
+void vscode_own_log_facts(State& s,const ApplicationTarget& target){
+    if(target.kind!="VSCode")return;
+    const fs::path root=target.directory/L"UserData"/L"logs";
+    // Read only this exact empty test profile. Bounded names/depth/bytes avoid
+    // collecting arbitrary profiles or growing a new tracing framework.
+    std::vector<std::pair<fs::path,unsigned>> pending{{root,0}};unsigned visited{},files{},directories{};std::size_t bytes{};bool limited=false;
+    while(!pending.empty()&&visited<64&&files<16&&directories<16&&bytes<32768){
+        const auto [directory,depth]=pending.back();pending.pop_back();
+        if(!plain_directory(directory))continue;++directories;std::error_code error;
+        fs::directory_iterator entries(directory,error);
+        if(error){s.log.emit("VSCode_own_log_read","\"directory\":"+quote(utf8(directory.wstring()))+",\"filesystem_error\":"+std::to_string(error.value()));continue;}
+        for(fs::directory_iterator end;entries!=end;entries.increment(error)){
+            if(error)break;const auto entry=*entries;
+            if(++visited>64||files>=16||bytes>=32768){limited=true;break;}
+            const auto attributes=GetFileAttributesW(entry.path().c_str());
+            if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&FILE_ATTRIBUTE_REPARSE_POINT))continue;
+            if(attributes&FILE_ATTRIBUTE_DIRECTORY){if(depth<2&&pending.size()<16)pending.emplace_back(entry.path(),depth+1);else limited=true;continue;}
+            if(entry.path().extension()!=L".log")continue;
+            ++files;const auto cap=std::min<std::size_t>(8192,32768-bytes);
+            Handle file(CreateFileW(entry.path().c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
+            const bool opened=file.value!=INVALID_HANDLE_VALUE;const DWORD open_error=opened?0:GetLastError();
+            LARGE_INTEGER length{};const bool size_read=opened&&GetFileSizeEx(file.value,&length)!=FALSE;
+            std::vector<char> text(cap);DWORD actual{};const bool read_back=opened&&ReadFile(file.value,text.data(),static_cast<DWORD>(cap),&actual,nullptr)!=FALSE;
+            const DWORD read_error=read_back?0:opened?GetLastError():open_error;bytes+=actual;
+            // Preserve ASCII diagnostics/EACCES while keeping malformed UTF-8
+            // from invalidating the JSONL evidence. No document body is read.
+            std::string safe;for(DWORD n=0;n<actual;++n){const unsigned char c=static_cast<unsigned char>(text[n]);safe+=c>=32&&c<127?static_cast<char>(c):' ';}
+            s.log.emit("VSCode_own_log_excerpt","\"relative_path\":"+quote(utf8(entry.path().lexically_relative(target.directory).wstring()))+
+                ",\"opened\":"+(opened?"true":"false")+",\"open_error\":"+std::to_string(open_error)+",\"read_succeeded\":"+(read_back?"true":"false")+
+                ",\"read_error\":"+std::to_string(read_error)+",\"file_size\":"+(size_read?std::to_string(length.QuadPart):"null")+
+                ",\"bytes_read\":"+std::to_string(actual)+",\"truncated\":"+(size_read&&length.QuadPart>actual?"true":"false")+
+                ",\"ascii_excerpt_non_ascii_replaced\":"+quote(safe)+",\"read_only\":true");
+        }
+        if(error)s.log.emit("VSCode_own_log_read","\"directory\":"+quote(utf8(directory.wstring()))+",\"filesystem_error\":"+std::to_string(error.value()));
+    }
+    s.log.emit("VSCode_own_log_summary","\"exact_profile_logs\":"+quote(utf8(root.wstring()))+",\"plain_root_available\":"+(plain_directory(root)?"true":"false")+
+        ",\"directories_read\":"+std::to_string(directories)+",\"files_read\":"+std::to_string(files)+",\"total_excerpt_bytes\":"+std::to_string(bytes)+
+        ",\"bounded_scan_truncated\":"+(limited||!pending.empty()?"true":"false")+",\"stdout_stderr_redirected\":false,\"inherited_handles\":0,\"no_log_means_cause_UNKNOWN\":true");
+}
 bool application_down_context(State& s,HWND h,POINT point,int expected_hit,std::string_view stage){
     DWORD pid{},hit_pid{};const DWORD tid=GetWindowThreadProcessId(h,&pid);const HWND hit=WindowFromPoint(point);
     GetWindowThreadProcessId(hit,&hit_pid);DWORD_PTR nonclient{};SetLastError(0);
@@ -1045,7 +1137,24 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
     }else if(target->kind=="VSCode"){
         target->executable=base/L"VSCode"/L"Code.exe";
         if(fs::exists(base/L"VSCode"/L"data"))throw std::runtime_error("VSCode_portable_data_would_override_exact_test_profile");
-        std::ofstream(blank,std::ios::binary).close();
+        bool profile_ready=true;
+        for(const auto& name:std::array{L"UserData",L"Extensions"}){
+            const auto directory=target->directory/name;const bool created=CreateDirectoryW(directory.c_str(),nullptr)!=FALSE;
+            const DWORD create_error=created?0:GetLastError();
+            s.log.emit("VSCode_explicit_profile_directory","\"path\":"+quote(utf8(directory.wstring()))+",\"created_new\":"+(created?"true":"false")+
+                ",\"win32_error\":"+std::to_string(create_error)+",\"existing_directory_not_reused\":true");
+            profile_ready=created&&vscode_own_directory_probe(s,directory,equal(name,L"UserData")?"UserData":"Extensions")&&profile_ready;
+        }
+        std::array<wchar_t,32768> temporary{};const DWORD temporary_length=GetTempPathW(static_cast<DWORD>(temporary.size()),temporary.data());
+        const DWORD temp_error=temporary_length&&temporary_length<temporary.size()?0:GetLastError();
+        const fs::path temp=temporary_length&&temporary_length<temporary.size()?fs::path(temporary.data()).lexically_normal():fs::path{};
+        const bool temp_scope=product::guest::same_exact_directory(temp,L"C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Temp")||
+            product::guest::same_exact_directory(temp,L"C:\\Windows\\Temp");
+        s.log.emit("VSCode_actual_TEMP","\"GetTempPath_length\":"+std::to_string(temporary_length)+",\"win32_error\":"+std::to_string(temp_error)+
+            ",\"path\":"+quote(utf8(temp.wstring()))+",\"exact_guest_local_TEMP_scope\":"+(temp_scope?"true":"false")+",\"environment_changed\":false");
+        profile_ready=temp_scope&&vscode_own_directory_probe(s,temp,"TEMP")&&profile_ready;
+        if(!profile_ready){s.log.emit("application_binding","\"application\":\"VSCode\",\"result\":\"BLOCKED\",\"reason\":\"actual_Medium_profile_or_TEMP_write_read_cleanup_failed\",\"input_sent\":false");return target;}
+        std::ofstream empty(blank,std::ios::binary);empty.close();if(!empty)throw std::runtime_error("VSCode_exact_empty_document_create_failed");
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
     }else if(target->kind=="Terminal"){
         target->executable=fs::path(system.data())/L"conhost.exe";
@@ -1077,6 +1186,13 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
     },12000);
     if(bound){target->identity=candidate;bound=test_root_stamp(s,*candidate,true);target->accepted=bound;}
     if(!bound&&launched)application_binding_facts(s,*target);
+    if(target->kind=="VSCode"){
+        DWORD exit{};const bool exit_read=launched&&GetExitCodeProcess(target->processes.front().handle->value,&exit)!=FALSE;
+        s.log.emit("VSCode_launch_completion","\"launch_process_exit_code\":"+(exit_read?std::to_string(exit):"null")+
+            ",\"launch_process_exited\":"+(exit_read?(exit!=STILL_ACTIVE?"true":"false"):"null")+
+            ",\"root_bound\":"+(bound?"true":"false")+",\"launcher_exit_is_not_root_binding_or_function_PASS\":true");
+        vscode_own_log_facts(s,*target);
+    }
     s.log.emit("application_binding","\"application\":"+quote(target->kind)+",\"result\":"+quote(bound?"BOUND":"BLOCKED")+
         ",\"reason\":"+quote(bound?"baseline_excluded_new_root_exact_launch_tree_actual_Catalog_Medium_same_SID_session_desktop":"no_unique_eligible_root_in_held_birth_verified_launch_tree")+
         ",\"hwnd\":"+std::to_string(bound?reinterpret_cast<std::uintptr_t>(candidate->hwnd):0)+",\"pid\":"+std::to_string(bound?candidate->pid:0)+
@@ -2041,6 +2157,7 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
             facts.find("\"enabled\":true")!=facts.npos,"\"stage\":"+quote(stage)+",\"test_setup_only_not_failed_case_PASS\":true");
     }
 }
+#include "platform/windows/product/v1_guest_terminal_case.h"
 void independent_entry_flow(State& s){
     const auto phase=[&](const char* name,void(*run)(State&)){
         independent_entry_ready(s,std::string(name)+".before",true);const auto mark=read(s.log.path).size();bool exception=false;
@@ -2075,6 +2192,7 @@ void independent_entry_flow(State& s){
     };
     phase("settings_GUI",settings_gui_flow);
     phase("settings_GUI_diagnostic",owned_settings_diagnostic_case);
+    phase("rapid_terminal_motion",owned_rapid_terminal_move);
     phase("settings_startup",settings_guest_startup);
     phase("five_button_mapping",owned_mouse_mapping_cases);
     phase("settings_import_export",settings_guest_import_export);
@@ -2234,6 +2352,7 @@ void drive(State& s){
         s.log.check("production_half_screen_command",half_ok,
             "\"expected\":"+rect(half)+",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null"));
         s.log.emit("owned_core_sequence","\"I02\":\"PASS\",\"commands\":\"PASS\",\"next\":\"real_Medium_Explorer_new_root_adapter\"");
+        owned_rapid_terminal_move(s);
         owned_settings_screenshots(s);
         settings_gui_flow(s);
         owned_settings_diagnostic_case(s);
@@ -2387,6 +2506,20 @@ int guard(State& s){
     if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
+    // The bootstrap verifies immutable per-file hashes before creating this
+    // Medium process. Bind this driver's own baked identity and both actual
+    // executable bytes independently; never relabel product evidence with the
+    // newer driver commit. The prefix contains only unique flat identity fields.
+    const auto file_inventory=package.find("\"files\"");
+    if(file_inventory==std::string::npos)return guard_reject(s,105,"split_binary_identity_missing");
+    const std::string_view package_identity(package.data(),file_inventory);
+    const auto product_source=portable_field(package_identity,"product_source_commit");
+    const auto driver_source=portable_field(package_identity,"driver_source_commit");
+    if(!portable_hex(product_source,40,false)||driver_source!=PANEBIND_BUILD_SHA||
+       portable_field(package_identity,"source_commit")!=product_source||
+       portable_field(package_identity,"guest_contract")!="panebind-v1-guest-contract/2"||
+       portable_field(package_identity,"product_interface")!="panebind-v1-product-guest-interface/1")
+        return guard_reject(s,105,"split_binary_identity_or_interface_mismatch");
     std::error_code error;const auto actual_output=fs::weakly_canonical(output,error);
     s.log.emit("guard_output_canonical","\"path\":"+quote(utf8(actual_output.wstring()))+",\"error_code\":"+std::to_string(error.value()));
     if(error||!product::guest::same_exact_directory(actual_output,output))return guard_reject(s,91,"output_canonical_path_not_exact");
@@ -2405,6 +2538,19 @@ int guard(State& s){
     const auto source_hash=hash(source),actual_hash=hash(actual);
     s.log.emit("guard_executable_hashes","\"input_sha256\":"+quote(source_hash)+",\"actual_sha256\":"+quote(actual_hash));
     if(source_hash.empty()||source_hash!=actual_hash)return guard_reject(s,97,"product_source_hash_mismatch_or_unreadable");
+    std::array<wchar_t,32768> driver_path{};
+    const DWORD driver_length=GetModuleFileNameW(nullptr,driver_path.data(),static_cast<DWORD>(driver_path.size()));
+    const fs::path expected_driver=debug?input/L"Debug"/L"panebind-v1-guest-fixture.exe":input/L"panebind-v1-guest-fixture.exe";
+    const auto driver_hash=driver_length&&driver_length<driver_path.size()?hash(driver_path.data()):std::string{};
+    const auto identity_suffix=debug?"debug_sha256":"release_sha256";
+    if(!driver_length||driver_length>=driver_path.size()||!equal(driver_path.data(),expected_driver.wstring())||
+       source_hash!=portable_field(package_identity,std::string("product_")+identity_suffix)||
+       driver_hash.empty()||driver_hash!=portable_field(package_identity,std::string("driver_")+identity_suffix))
+        return guard_reject(s,105,"split_binary_actual_hash_mismatch");
+    s.log.emit("guard_binary_identity","\"product_source_commit\":"+quote(product_source)+",\"product_sha256\":"+quote(source_hash)+
+        ",\"driver_source_commit\":"+quote(driver_source)+",\"driver_sha256\":"+quote(driver_hash)+
+        ",\"packaging_head\":"+quote(portable_field(package_identity,"packaging_head"))+
+        ",\"guest_contract\":\"panebind-v1-guest-contract/2\",\"input_sent\":false");
     if(!read(actual.parent_path()/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return guard_reject(s,98,"portable_run_marker_missing");
     if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))return guard_reject(s,99,"preexisting_product_instance_present");
     s.input_product=source;s.product=actual;s.output=output;return 0;
@@ -2418,7 +2564,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         int result=78;try{result=input_actor_child(count,args);}catch(...){}LocalFree(args);return result;
     }
     if(count==2&&std::wstring_view(args[1])==L"--build-identity"){
-        constexpr char identity[]="{\"product\":\"PaneBind V1 guest fixture\",\"source_commit\":\"" PANEBIND_BUILD_SHA "\",\"host_synthetic_input\":\"forbidden\",\"requires_medium_guest\":true}\n";
+        constexpr char identity[]="{\"product\":\"PaneBind V1 guest fixture\",\"source_commit\":\"" PANEBIND_BUILD_SHA "\",\"host_synthetic_input\":\"forbidden\",\"requires_medium_guest\":true,\"guest_contract\":\"panebind-v1-guest-contract/2\",\"product_interface\":\"panebind-v1-product-guest-interface/1\"}\n";
         DWORD written{};const auto output=GetStdHandle(STD_OUTPUT_HANDLE);
         if(output&&output!=INVALID_HANDLE_VALUE)WriteFile(output,identity,static_cast<DWORD>(sizeof(identity)-1),&written,nullptr);
         LocalFree(args);return 0;
