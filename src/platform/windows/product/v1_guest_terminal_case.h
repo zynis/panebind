@@ -11,9 +11,14 @@ void owned_rapid_terminal_case(State& s,bool ctrl,bool resize){
     // This TEST-only wait is outside the unchanged DOWN/MOVE/UP triplet.
     const UINT double_click_ms=GetDoubleClickTime();
     if(!double_click_ms||double_click_ms>5000)throw std::runtime_error("rapid_terminal_system_double_click_interval_unavailable");
-    const auto interval_before=GetTickCount64();Sleep(double_click_ms+1);const auto interval_waited=GetTickCount64()-interval_before;
+    // Sleep/GetTickCount use coarse timer ticks: requesting threshold+1 may
+    // really measure exactly threshold. Keep a small TEST-only clock margin
+    // and still require the actual observed interval to exceed the threshold.
+    constexpr UINT coarse_clock_guard_ms=32;
+    const auto interval_before=GetTickCount64();Sleep(double_click_ms+coarse_clock_guard_ms);const auto interval_waited=GetTickCount64()-interval_before;
     s.log.check("rapid_terminal_distinct_route_double_click_interval",interval_waited>double_click_ms&&GetDoubleClickTime()==double_click_ms,
-        "\"system_GetDoubleClickTime_ms\":"+std::to_string(double_click_ms)+",\"requested_wait_ms\":"+std::to_string(double_click_ms+1)+
+        "\"system_GetDoubleClickTime_ms\":"+std::to_string(double_click_ms)+",\"requested_wait_ms\":"+std::to_string(double_click_ms+coarse_clock_guard_ms)+
+        ",\"coarse_clock_guard_ms\":"+std::to_string(coarse_clock_guard_ms)+
         ",\"actual_wait_ms\":"+std::to_string(interval_waited)+",\"outside_three_packet_gesture\":true,\"prior_failure_cause_not_inferred\":true"+route_fields);
     // Error cleanup may release only this case's real Ctrl press, never add a
     // guessed mouse UP after a partially inserted three-packet array.
