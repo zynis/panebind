@@ -2570,3 +2570,34 @@ unchanged. Local original acquisition evidence, page/script hashes and byte
 offsets: `uat/v1-assets/d7b77c31807f42b5827ea50a14ddd095/acquisition-evidence.txt`.
 Applicable subsystem: isolated application compatibility test preparation;
 no external source-code reuse or new product attribution obligation.
+
+### V1 exact application-input and driver-exit follow-up — 2026-10-17
+
+Run `128f2aeb03494807becac60d68067cbb` retained real application failures with
+product82d/driver22d. Terminal's external HTCAPTION at the chosen point did not
+produce a real native START; Edge's actual HTCLIENT test with enhancements
+paused did not produce the page's expected DOM effect; Code with the documented
+software-renderer flag still had no accepted visible root. None establishes a
+GPU, security-policy, Console or input-system root cause. Reuse the bounded
+Terminal GDI observation already researched above for those exact test-created,
+bound Terminal/Edge roots after the existing test UP and real GUI-idle guard.
+No additional input, foreground activation or product authority is supplied.
+
+For Code, reread [Electron's official switches](https://www.electronjs.org/docs/latest/api/command-line-switches)
+and the existing Microsoft Code CLI records. A single next test launch may add
+`--enable-logging=file --log-file=...` inside its new, already Medium-write-tested
+UserData directory. Read only that exact startup file under the existing
+8 KiB/file, 32 KiB/total test-log bounds. No stdout/stderr inheritance,
+environment change, `--no-sandbox`, token/ACL/policy change or host install.
+An absent file remains UNKNOWN. This is not a repair claim or external code reuse.
+
+Also inspected the driver's retained Catalog lifetime against its existing
+same-STA contract and Microsoft's [STA rules](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments),
+[CoUninitialize](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-couninitialize)
+and [UnhookWinEvent](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-unhookwinevent).
+An unconfirmed app close retained the driver-created Catalog past that STA's
+CoUninitialize, allowing State destruction on the other fixture thread. Release
+this read-only observer on its original driver STA before CoUninitialize;
+preserve the app-close FAIL. Original 128f shutdown row158 does not prove process
+exit, nor does this source defect prove the observed missing-wrapper-receipt root
+cause. Actual next process exit and wrapper receipts remain required.

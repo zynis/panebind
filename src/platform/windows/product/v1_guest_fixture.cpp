@@ -1573,6 +1573,31 @@ void vscode_own_log_facts(State& s,const ApplicationTarget& target){
     // Read only this exact empty test profile. Bounded names/depth/bytes avoid
     // collecting arbitrary profiles or growing a new tracing framework.
     std::vector<std::pair<fs::path,unsigned>> pending{{root,0}};unsigned visited{},files{},directories{};std::size_t bytes{};bool limited=false;
+    const auto read_one=[&](const fs::path& path){
+        if(files>=16||bytes>=32768){limited=true;return;}
+        const auto attributes=GetFileAttributesW(path.c_str());
+        if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))return;
+        ++files;const auto cap=std::min<std::size_t>(8192,32768-bytes);
+        Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
+        const bool opened=file.value!=INVALID_HANDLE_VALUE;const DWORD open_error=opened?0:GetLastError();
+        LARGE_INTEGER length{};const bool size_read=opened&&GetFileSizeEx(file.value,&length)!=FALSE;
+        std::vector<char> text(cap);DWORD actual{};const bool read_back=opened&&ReadFile(file.value,text.data(),static_cast<DWORD>(cap),&actual,nullptr)!=FALSE;
+        const DWORD read_error=read_back?0:opened?GetLastError():open_error;bytes+=actual;
+        std::string safe;for(DWORD n=0;n<actual;++n){const unsigned char c=static_cast<unsigned char>(text[n]);safe+=c>=32&&c<127?static_cast<char>(c):' ';}
+        s.log.emit("VSCode_own_log_excerpt","\"relative_path\":"+quote(utf8(path.lexically_relative(target.directory).wstring()))+
+            ",\"opened\":"+(opened?"true":"false")+",\"open_error\":"+std::to_string(open_error)+",\"read_succeeded\":"+(read_back?"true":"false")+
+            ",\"read_error\":"+std::to_string(read_error)+",\"file_size\":"+(size_read?std::to_string(length.QuadPart):"null")+
+            ",\"bytes_read\":"+std::to_string(actual)+",\"truncated\":"+(size_read&&length.QuadPart>actual?"true":"false")+
+            ",\"ascii_excerpt_non_ascii_replaced\":"+quote(safe)+",\"read_only\":true");
+    };
+    // Electron documents file logging for Windows child processes. Inspect
+    // precisely the new launch's requested file, inside its already-created
+    // and Medium-write-tested profile; no environment or sandbox change.
+    const auto startup_log=target.directory/L"UserData"/L"electron-debug.log";
+    const auto startup_attributes=GetFileAttributesW(startup_log.c_str());
+    s.log.emit("VSCode_requested_startup_log","\"relative_path\":\"UserData/electron-debug.log\",\"actual_file_present\":"+
+        std::string(startup_attributes!=INVALID_FILE_ATTRIBUTES?"true":"false")+",\"absence_does_not_identify_cause\":true");
+    if(plain_directory(target.directory)&&plain_directory(startup_log.parent_path()))read_one(startup_log);
     while(!pending.empty()&&visited<64&&files<16&&directories<16&&bytes<32768){
         const auto [directory,depth]=pending.back();pending.pop_back();
         if(!plain_directory(directory))continue;++directories;std::error_code error;
@@ -1585,20 +1610,7 @@ void vscode_own_log_facts(State& s,const ApplicationTarget& target){
             if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&FILE_ATTRIBUTE_REPARSE_POINT))continue;
             if(attributes&FILE_ATTRIBUTE_DIRECTORY){if(depth<2&&pending.size()<16)pending.emplace_back(entry.path(),depth+1);else limited=true;continue;}
             if(entry.path().extension()!=L".log")continue;
-            ++files;const auto cap=std::min<std::size_t>(8192,32768-bytes);
-            Handle file(CreateFileW(entry.path().c_str(),GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
-            const bool opened=file.value!=INVALID_HANDLE_VALUE;const DWORD open_error=opened?0:GetLastError();
-            LARGE_INTEGER length{};const bool size_read=opened&&GetFileSizeEx(file.value,&length)!=FALSE;
-            std::vector<char> text(cap);DWORD actual{};const bool read_back=opened&&ReadFile(file.value,text.data(),static_cast<DWORD>(cap),&actual,nullptr)!=FALSE;
-            const DWORD read_error=read_back?0:opened?GetLastError():open_error;bytes+=actual;
-            // Preserve ASCII diagnostics/EACCES while keeping malformed UTF-8
-            // from invalidating the JSONL evidence. No document body is read.
-            std::string safe;for(DWORD n=0;n<actual;++n){const unsigned char c=static_cast<unsigned char>(text[n]);safe+=c>=32&&c<127?static_cast<char>(c):' ';}
-            s.log.emit("VSCode_own_log_excerpt","\"relative_path\":"+quote(utf8(entry.path().lexically_relative(target.directory).wstring()))+
-                ",\"opened\":"+(opened?"true":"false")+",\"open_error\":"+std::to_string(open_error)+",\"read_succeeded\":"+(read_back?"true":"false")+
-                ",\"read_error\":"+std::to_string(read_error)+",\"file_size\":"+(size_read?std::to_string(length.QuadPart):"null")+
-                ",\"bytes_read\":"+std::to_string(actual)+",\"truncated\":"+(size_read&&length.QuadPart>actual?"true":"false")+
-                ",\"ascii_excerpt_non_ascii_replaced\":"+quote(safe)+",\"read_only\":true");
+            read_one(entry.path());
         }
         if(error)s.log.emit("VSCode_own_log_read","\"directory\":"+quote(utf8(directory.wstring()))+",\"filesystem_error\":"+std::to_string(error.value()));
     }
@@ -1685,7 +1697,9 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         profile_ready=temp_scope&&vscode_own_directory_probe(s,temp,"TEMP")&&profile_ready;
         if(!profile_ready){s.log.emit("application_binding","\"application\":\"VSCode\",\"result\":\"BLOCKED\",\"reason\":\"actual_Medium_profile_or_TEMP_write_read_cleanup_failed\",\"input_sent\":false");return target;}
         std::ofstream empty(blank,std::ios::binary);empty.close();if(!empty)throw std::runtime_error("VSCode_exact_empty_document_create_failed");
-        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\" --disable-gpu";
+        const auto startup_log=target->directory/L"UserData"/L"electron-debug.log";
+        if(fs::exists(startup_log))throw std::runtime_error("VSCode_new_startup_log_required");
+        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\" --disable-gpu --enable-logging=file --log-file=\""+startup_log.wstring()+L"\"";
     }else if(target->kind=="Terminal"){
         const bool portable_requested=fs::exists(fs::path(L"C:\\PaneBindV1\\Input")/L"Terminal-test.zip");
         if(portable_requested){
@@ -2171,6 +2185,18 @@ void application_matrix_flow(State& s){
                 s.log.check("application_failed_category_source_GUI_idle",exact&&gui.idle(),
                     "\"application\":"+quote(kind)+",\"identity_rejection\":"+quote(rejected)+
                     ",\"GUI_context_mode\":"+quote(product::gui_context_mode_name(gui.mode))+",\"failed_function_PASS_inferred\":false");
+                // The retained Terminal failure can occur BEFORE the old
+                // client-rejection capture. Observe the real UI only after
+                // the existing single cleanup UP; never re-activate a lost
+                // foreground or infer a genuine caption from an external HT.
+                if(exact&&(kind=="Terminal"||kind=="Edge")&&s.left_down_send_qpc&&s.left_down_send_qpc!=down_before&&
+                    s.left_up_attempted&&s.left_up_send_qpc>=s.left_down_send_qpc)try{
+                    POINT actual_cursor{};
+                    if(!GetCursorPos(&actual_cursor))throw std::runtime_error("application_failure_cursor_unknown");
+                    guest_observe_application_input_rejection(s,*target,*fresh,actual_cursor,reason);
+                }catch(const std::exception& error){s.log.emit("application_input_rejection_observation_failed",
+                    "\"application\":"+quote(kind)+",\"failed_stage\":"+quote(reason)+",\"reason\":"+quote(error.what())+
+                    ",\"original_function_failure_preserved\":true,\"additional_input_sent\":false");}
             }
             // Single pending test-input cleanup above precedes the empty-ledger gate.
             // This gate requires an empty send ledger before it can issue
@@ -3269,6 +3295,20 @@ void drive(State& s){
         }
     }catch(const std::exception& error){
         try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup(s);cleanup_applications(s);cleanup_explorers(s);}catch(...){}s.result=1;
+    }
+    // This read-only Catalog owns a WinEvent hook and a COM interface created
+    // on THIS driver STA. An unconfirmed application close may retain its
+    // registration until here, but cannot transfer destruction to State on
+    // the non-COM fixture UI thread after join(). Preserve the close failure;
+    // releasing our observer is not authority to close that application.
+    if(s.target_catalog){
+        try{s.log.emit("driver_catalog_owner_release_begin","\"actual_thread_id\":"+std::to_string(GetCurrentThreadId())+
+            ",\"before_driver_CoUninitialize\":true,\"application_close_failure_not_erased\":true");}
+        catch(...){s.log.failed=true;s.result=1;}
+        s.target_catalog.reset();
+        try{s.log.emit("driver_catalog_owner_release_complete","\"actual_thread_id\":"+std::to_string(GetCurrentThreadId())+
+            ",\"actual_catalog_empty\":true,\"before_driver_CoUninitialize\":true,\"application_close_PASS_inferred\":false");}
+        catch(...){s.log.failed=true;s.result=1;}
     }
     if(SUCCEEDED(apartment))CoUninitialize();
     PostThreadMessageW(s.owner,WM_QUIT,0,0);

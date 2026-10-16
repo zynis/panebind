@@ -1,14 +1,22 @@
 #pragma once
 
-// A single guest-driver observation after Terminal's real HTCLIENT rejection.
+// A single guest-driver observation of an exact, already-bound application.
 // Like the existing SettingsGui BMP capture, this reads bounded visible screen
 // pixels using GDI; it never renders with PrintWindow or supplies input rights.
-void guest_observe_terminal_client_rejection(State& s,const ApplicationTarget& target,
-    const product::Snapshot& source,POINT point){
+void guest_observe_application_input_rejection_impl(State& s,const ApplicationTarget& target,
+    const product::Snapshot& source,POINT point,std::string_view stage,bool original_terminal_client){
+    const bool target_allowed=original_terminal_client?target.kind=="Terminal":
+        (target.kind=="Terminal"||target.kind=="Edge");
+    const bool stage_valid=!stage.empty()&&stage.size()<=120&&
+        std::all_of(stage.begin(),stage.end(),[](char c){return c>=32&&c<=126;});
+    const bool cleanup_up_attempted=original_terminal_client||
+        (s.left_up_attempted&&s.left_down_send_qpc&&s.left_up_send_qpc>=s.left_down_send_qpc);
+    const auto observation_error=[&](const char* suffix){return std::string(original_terminal_client?
+        "Terminal_observation_":"application_input_observation_")+suffix;};
     const auto exact_root=[&]{
         DWORD pid{};const DWORD tid=GetWindowThreadProcessId(source.hwnd,&pid);
         std::optional<product::Snapshot> fresh;
-        return target.kind=="Terminal"&&target.accepted&&target.identity&&source.hwnd==source_window(s,0)&&
+        return target_allowed&&target.accepted&&target.identity&&source.hwnd==source_window(s,0)&&
             product::Catalog::same(*target.identity,source)&&pid==source.pid&&tid==source.tid&&
             GetAncestor(source.hwnd,GA_ROOT)==source.hwnd&&IsWindowVisible(source.hwnd)&&!IsIconic(source.hwnd)&&
             GetForegroundWindow()==source.hwnd&&authorized_source(s,source.hwnd)&&
@@ -17,20 +25,20 @@ void guest_observe_terminal_client_rejection(State& s,const ApplicationTarget& t
     std::array<wchar_t,128> user{};DWORD user_size=static_cast<DWORD>(user.size());
     const bool exact_run=s.run.size()==32&&std::all_of(s.run.begin(),s.run.end(),[](wchar_t c){return
         (c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');});
-    if(!exact_run||(s.configuration!="Debug"&&s.configuration!="Release")||
+    if(!exact_run||(s.configuration!="Debug"&&s.configuration!="Release")||!stage_valid||!cleanup_up_attempted||
         !GetUserNameW(user.data(),&user_size)||!equal(user.data(),L"WDAGUtilityAccount")||
         !medium(GetCurrentProcess())||!desktop()||s.left||s.control||
         !product::guest::same_exact_directory(s.output.lexically_normal(),L"C:\\PaneBindV1\\Output")||
         !plain_directory(s.output)||!marker(L"C:\\PaneBindV1\\Input\\panebind-v1-input.marker",s.run)||
         !marker(s.output/L"panebind-v1-output.marker",s.run)||!exact_root())
-        throw std::runtime_error("Terminal_observation_exact_guest_run_foreground_root_required");
-    const auto bounds=visible(source.hwnd);if(!bounds)throw std::runtime_error("Terminal_observation_visible_rectangle_unknown");
+        throw std::runtime_error(observation_error("exact_guest_run_foreground_root_required"));
+    const auto bounds=visible(source.hwnd);if(!bounds)throw std::runtime_error(observation_error("visible_rectangle_unknown"));
     const LONG width=bounds->width(),height=bounds->height();
     const long long left=GetSystemMetrics(SM_XVIRTUALSCREEN),top=GetSystemMetrics(SM_YVIRTUALSCREEN);
     const long long right=left+GetSystemMetrics(SM_CXVIRTUALSCREEN),bottom=top+GetSystemMetrics(SM_CYVIRTUALSCREEN);
     if(width<=0||height<=0||width>4096||height>4096||static_cast<std::uint64_t>(width)*height>8ULL*1024*1024||
         bounds->l<left||bounds->t<top||bounds->r>right||bounds->b>bottom)
-        throw std::runtime_error("Terminal_observation_visible_rectangle_not_fully_visible_or_bounded");
+        throw std::runtime_error(observation_error("visible_rectangle_not_fully_visible_or_bounded"));
     struct ChildFact {
         HWND hwnd{};DWORD pid{},tid{};std::array<wchar_t,128> name{};int name_length{};
         RECT rectangle{};bool visible{},rectangle_known{},point_inside{},query_attempted{},query_returned{};
@@ -74,7 +82,10 @@ void guest_observe_terminal_client_rejection(State& s,const ApplicationTarget& t
             ",\"WM_NCHITTEST\":"+(fact.query_returned?std::to_string(fact.hit):"null")+
             ",\"WM_NCHITTEST_error\":"+(fact.query_attempted?std::to_string(fact.query_error):"null")+"}";}
     rows+=']';
-    s.log.emit("Terminal_client_rejection_child_inventory","\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source.hwnd))+
+    s.log.emit(original_terminal_client?"Terminal_client_rejection_child_inventory":"application_input_rejection_child_inventory",
+        "\"application\":"+quote(target.kind)+",\"actual_stage\":"+quote(stage)+
+        ",\"HTCLIENT_gate_applied\":"+(original_terminal_client?"true":"false")+
+        ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source.hwnd))+
         ",\"source_pid\":"+std::to_string(source.pid)+",\"source_tid\":"+std::to_string(source.tid)+
         ",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"],\"EnumChildWindows_return\":"+(enumerated?"true":"false")+
         ",\"EnumChildWindows_last_error\":"+std::to_string(enumeration_error)+",\"descendant_budget\":64,\"count\":"+std::to_string(children.count)+
@@ -82,37 +93,55 @@ void guest_observe_terminal_client_rejection(State& s,const ApplicationTarget& t
         ",\"point_covering_hit_query_budget\":8,\"hit_query_timeout_ms\":30,\"hit_queries\":"+std::to_string(children.queries)+
         ",\"descendants\":"+rows+",\"input_or_permission_inferred\":false,\"atomic_snapshot_inferred\":false");
     if(children.root_changed||!exact_root()||visible(source.hwnd)!=bounds)
-        throw std::runtime_error("Terminal_observation_root_or_rectangle_changed_after_inventory");
-    const auto name=s.run+L"-"+std::wstring(s.configuration.begin(),s.configuration.end())+L"-terminal-client-rejection.bmp";
-    const auto path=s.output/name;if(fs::exists(path))throw std::runtime_error("Terminal_observation_new_BMP_required");
+        throw std::runtime_error(observation_error("root_or_rectangle_changed_after_inventory"));
+    const auto name=s.run+L"-"+std::wstring(s.configuration.begin(),s.configuration.end())+
+        (original_terminal_client?L"-terminal-client-rejection.bmp":
+            target.kind=="Terminal"?L"-terminal-input-rejection.bmp":L"-edge-input-rejection.bmp");
+    const auto path=s.output/name;if(fs::exists(path))throw std::runtime_error(observation_error("new_BMP_required"));
     struct Pixels {
         HDC screen{},memory{};HBITMAP bitmap{};HGDIOBJ previous{};
         ~Pixels(){if(memory&&previous&&previous!=HGDI_ERROR)SelectObject(memory,previous);
             if(bitmap)DeleteObject(bitmap);if(memory)DeleteDC(memory);if(screen)ReleaseDC(nullptr,screen);}
     } pixels;
-    pixels.screen=GetDC(nullptr);if(!pixels.screen)throw std::runtime_error("Terminal_observation_GetDC_failed");
-    pixels.memory=CreateCompatibleDC(pixels.screen);if(!pixels.memory)throw std::runtime_error("Terminal_observation_CreateCompatibleDC_failed");
+    pixels.screen=GetDC(nullptr);if(!pixels.screen)throw std::runtime_error(observation_error("GetDC_failed"));
+    pixels.memory=CreateCompatibleDC(pixels.screen);if(!pixels.memory)throw std::runtime_error(observation_error("CreateCompatibleDC_failed"));
     BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=width;info.bmiHeader.biHeight=-height;
     info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;info.bmiHeader.biCompression=BI_RGB;
     const DWORD bytes=static_cast<DWORD>(static_cast<std::uint64_t>(width)*height*4);info.bmiHeader.biSizeImage=bytes;
     void* data{};pixels.bitmap=CreateDIBSection(pixels.screen,&info,DIB_RGB_COLORS,&data,nullptr,0);
-    if(!pixels.bitmap||!data)throw std::runtime_error("Terminal_observation_CreateDIBSection_failed");
+    if(!pixels.bitmap||!data)throw std::runtime_error(observation_error("CreateDIBSection_failed"));
     pixels.previous=SelectObject(pixels.memory,pixels.bitmap);
-    if(!pixels.previous||pixels.previous==HGDI_ERROR)throw std::runtime_error("Terminal_observation_SelectObject_failed");
+    if(!pixels.previous||pixels.previous==HGDI_ERROR)throw std::runtime_error(observation_error("SelectObject_failed"));
     if(!exact_root()||visible(source.hwnd)!=bounds||
         !BitBlt(pixels.memory,0,0,width,height,pixels.screen,bounds->l,bounds->t,SRCCOPY|CAPTUREBLT)||!GdiFlush())
-        throw std::runtime_error("Terminal_observation_identity_geometry_or_BitBlt_failed");
-    if(!exact_root()||visible(source.hwnd)!=bounds)throw std::runtime_error("Terminal_observation_root_changed_after_BitBlt");
+        throw std::runtime_error(observation_error("identity_geometry_or_BitBlt_failed"));
+    if(!exact_root()||visible(source.hwnd)!=bounds)throw std::runtime_error(observation_error("root_changed_after_BitBlt"));
     BITMAPFILEHEADER header{};header.bfType=0x4d42;header.bfOffBits=sizeof(header)+sizeof(BITMAPINFOHEADER);header.bfSize=header.bfOffBits+bytes;
     Handle file(CreateFileW(path.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
-    if(file.value==INVALID_HANDLE_VALUE)throw std::runtime_error("Terminal_observation_BMP_CREATE_NEW_failed");
+    if(file.value==INVALID_HANDLE_VALUE)throw std::runtime_error(observation_error("BMP_CREATE_NEW_failed"));
     const auto write_bytes=[&](const void* buffer,DWORD size){DWORD written{};return WriteFile(file.value,buffer,size,&written,nullptr)&&written==size;};
     const bool written=write_bytes(&header,sizeof(header))&&write_bytes(&info.bmiHeader,sizeof(info.bmiHeader))&&write_bytes(data,bytes)&&FlushFileBuffers(file.value);
     const bool closed=CloseHandle(file.value)!=FALSE;file.value=nullptr;const auto digest=hash(path);
-    if(!written||!closed||digest.empty())throw std::runtime_error("Terminal_observation_BMP_write_close_or_hash_failed");
-    s.log.emit("Terminal_client_rejection_actual_pixel_capture","\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source.hwnd))+
+    if(!written||!closed||digest.empty())throw std::runtime_error(observation_error("BMP_write_close_or_hash_failed"));
+    s.log.emit(original_terminal_client?"Terminal_client_rejection_actual_pixel_capture":"application_input_rejection_actual_pixel_capture",
+        "\"application\":"+quote(target.kind)+",\"actual_stage\":"+quote(stage)+
+        ",\"HTCLIENT_gate_applied\":"+(original_terminal_client?"true":"false")+
+        ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source.hwnd))+
         ",\"source_pid\":"+std::to_string(source.pid)+",\"source_tid\":"+std::to_string(source.tid)+",\"actual_visible_rect\":"+rect(*bounds)+
         ",\"file\":"+quote(utf8(name))+",\"bytes\":"+std::to_string(header.bfSize)+",\"sha256\":"+quote(digest)+
-        ",\"actual_screen_region_only\":true,\"occlusion_absence_not_inferred\":true,\"original_HTCLIENT_rejection_preserved\":true,"
-        "\"client_input_sent\":false,\"visual_review\":\"NOT_RUN\",\"UI_or_content_PASS_inferred\":false");
+        ",\"actual_screen_region_only\":true,\"occlusion_absence_not_inferred\":true,\"original_HTCLIENT_rejection_preserved\":"+
+        (original_terminal_client?"true":"false")+
+        (original_terminal_client?",\"client_input_sent\":false":
+            ",\"single_cleanup_UP_attempted\":true,\"test_input_ledger_empty\":true")+
+        ",\"visual_review\":\"NOT_RUN\",\"UI_or_content_PASS_inferred\":false");
+}
+
+void guest_observe_application_input_rejection(State& s,const ApplicationTarget& target,
+    const product::Snapshot& source,POINT point,std::string_view stage){
+    guest_observe_application_input_rejection_impl(s,target,source,point,stage,false);
+}
+
+void guest_observe_terminal_client_rejection(State& s,const ApplicationTarget& target,
+    const product::Snapshot& source,POINT point){
+    guest_observe_application_input_rejection_impl(s,target,source,point,"terminal_client_HTCLIENT_rejection",true);
 }
