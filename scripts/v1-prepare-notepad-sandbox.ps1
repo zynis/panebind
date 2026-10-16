@@ -75,7 +75,7 @@ $manifest=[ordered]@{schema='panebind-v1-notepad-preparation/1';run_id=$RunId;as
     official_notepad_product_id='9MSMLRH6LZF3';product_started=$false;synthetic_input_sent=$false;host_installation='NONE';
     preparation_result='NOT_RUN';application_function_result='NOT_RUN';formal_test_guest_networking='Disable'}
 $manifest['preparation_location']=[ordered]@{geo_id=244;source='read_only_test_host_configuration';physical_location_asserted=$false;
-    allowed_initial_geo_id=38970;restore_original=$true}
+    allowed_initial_geo_id=39070;restore_original=$true}
 Write-NewText (Join-Path $input 'manifest.json') ($manifest|ConvertTo-Json -Depth 10)
 $xmlInput=[Security.SecurityElement]::Escape($remote+'\input');$xmlOutput=[Security.SecurityElement]::Escape($remote+'\output')
 $wsb=@"

@@ -140,7 +140,7 @@ public static class PaneBindNotepadPreparationFacts {
     $location=$manifest.preparation_location
     if($null -eq $location -or $location.geo_id -ne 244 -or
        $location.source -cne 'read_only_test_host_configuration' -or $location.physical_location_asserted -ne $false -or
-       $location.allowed_initial_geo_id -ne 38970 -or $location.restore_original -ne $true){throw 'Exact reviewed disposable-guest preparation location configuration required.'}
+       $location.allowed_initial_geo_id -ne 39070 -or $location.restore_original -ne $true){throw 'Exact reviewed disposable-guest preparation location configuration required.'}
     $expected=[ordered]@{
         'AppInstaller_x64.msix'='2E05D50B493DB869D98643533A0141C2C75FC15F122BF5723AB4A1B93C48D267'
         'Microsoft.VCLibs.140.00_14.0.33519.0_x64.appx'='9C17B521F9D690A1F504DA5108ED6EEC5669EB3A8FD1331EEF43E40D84E74283'
@@ -209,7 +209,7 @@ public static class PaneBindNotepadPreparationFacts {
         target_geo_id=244;source='read_only_test_host_configuration';physical_location_asserted=$false;
         change_attempted=$false;change_cmdlet_completed=$false;after_change_geo_id=$null;change_verified=$false;
         restore_attempted=$false;restore_cmdlet_completed=$false;after_restore_geo_id=$null;restore_verified=$null;restore_error=$null}
-    if($originalGeoId -eq 38970){
+    if($originalGeoId -eq 39070){
         $locationChangeAttempted=$true;$receipt.location_adjustment.change_attempted=$true
         Set-WinHomeLocation -GeoId 244 -ErrorAction Stop
         $receipt.location_adjustment.change_cmdlet_completed=$true
@@ -265,9 +265,9 @@ public static class PaneBindNotepadPreparationFacts {
                 $beforeRestore=Get-WinHomeLocation
                 if($null -eq $beforeRestore.GeoId){throw 'Guest location restoration has no current GeoId fact.'}
                 $receipt.location_adjustment['before_restore_geo_id']=[long]$beforeRestore.GeoId
-                if([long]$beforeRestore.GeoId -eq 244 -and $originalGeoId -eq 38970){
+                if([long]$beforeRestore.GeoId -eq 244 -and $originalGeoId -eq 39070){
                     $receipt.location_adjustment.restore_attempted=$true
-                    Set-WinHomeLocation -GeoId 38970 -ErrorAction Stop
+                    Set-WinHomeLocation -GeoId 39070 -ErrorAction Stop
                     $receipt.location_adjustment.restore_cmdlet_completed=$true
                 }elseif([long]$beforeRestore.GeoId -ne $originalGeoId){throw 'Guest location changed to an unexpected value; do not overwrite unknown changes.'}
                 $restoredGeo=Get-WinHomeLocation
