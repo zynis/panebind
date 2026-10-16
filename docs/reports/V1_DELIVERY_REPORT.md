@@ -2,11 +2,11 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。a623／f63原失败保留；后继d546独立Debug候选两代真实capture、legacy UP、释放、解除关联及NormalUp撤罩取得资源范围PASS，但未启动V1 InputService／MoveSession／writer，退出风险、Explorer及Release新路线尚未验证。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。a623／f63原失败保留；后继d546独立Debug候选两代真实capture、legacy UP、释放、解除关联及NormalUp撤罩取得资源范围PASS，但未启动V1 InputService／MoveSession／writer，退出风险、Explorer及Release新路线尚未验证。86a同R2真实导出失败无可见提示，新增D22／M12-F02实际FAIL；37e5 UI-only修复尚待新候选验证。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
-继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。当前R2功能为6项 `PASS`、12项 `FAIL`、42项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。原R408与R2/0c710独立B32 PASS保留历史，当前98fc/f9另有真实新证据，不换绑旧EXE／ZIP／Run。B29只因其完整M01-F05／M11-F05合同实证齐备加分，不能外推B27／B28／B31；B33–B40继续固定DEFERRED／0分。
+继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。当前R2功能为6项 `PASS`、13项 `FAIL`、41项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。原R408与R2/0c710独立B32 PASS保留历史，当前98fc/f9另有真实新证据，不换绑旧EXE／ZIP／Run。B29只因其完整M01-F05／M11-F05合同实证齐备加分，不能外推B27／B28／B31；B33–B40继续固定DEFERRED／0分。
 
 每行有 `observed`、`remaining_conditions`、`next_action`，以及 `partial_observation_ids`→原观察的产品SHA／二进制哈希／RunId／证据关联；`candidate_identity_ref`仅指待验当前候选，不把旧观察改绑新EXE。模块／对标条件直接引用功能行，未另建一套任务书。后续产品修复或现场新结果按实际身份增量登记；驱动／文档变更不得清空既有产品证据。
 
@@ -34,6 +34,15 @@ Run `f9b6012a43e345648d52c067ff9594f8`，同R2／458A62、原98fc便携ZIP不变
 - startup329、import/export588（含新映射检查）、saveFailure696、corrupt749、exclusion845和portable919均有实际阶段范围结果；仅tray755／761 BLOCKED导致932／934整体FAIL，Core I11／应用矩阵／Full NOT_RUN。912正常产品退出、916客户`[7,7]→[8,8]`，927另一个run-copy退出及931客户`[8,8]→[9,9]`，与精确guest／task已清理／证据未变分开记账。
 - **a623是另一个新输入平台探针，不是当前R2产品**：[原始小摘录](v1-evidence/a623-consumed-down-probe-selected.jsonl)，Run `a623eafefe2a470eb5877f876da37077`，源码9a77、Debug探针 `F7C81FDB88C16CF6BF8AC2DECAFC51B191C9F2C517DFF4F00A482EF2537AC406`；原日志SHA `DBC8F42DBD5BD797152F93406EAB7F389FA7059F6E7F446567C97BE22B106115`。seq15真实exact LL DOWN已consume，随后final_guarded_cleanup；seq24 capture_attempts=0、native_attempts=0、writer_started=false、completed_gestures=0，V1 InputService／MoveSession／writer均未arm。清理单次UP后seq19真实LL UP但未推断legacy投递，不能记新机制NormalUp。scenario_pass=false；未运行capture建立／丢失／独立退出风险或Explorer，不给PASS。当前具体拒绝项尚未细分，不推测系统、权限或根因，也不凭首场就宣布整机制不可能；旧D08不关闭。
 - 用户已确认合法Windows ISO／VM，但RAM不足不能新建VM；不是无介质或未回复，不调整宿主资源／其他任务。所有输入仍限专用guest，未来新Run结果不预填。
+
+## 86a：真实导出失败无可见反馈，UI-only修复等待新候选复验
+
+Run `86a42fd21f544a0dba0db056be424946`，实际Release／Medium／EntryAndSettings；仍为原R2／458A62，driver源码`4cd9f269ebf619d11860c506d5c52f15bb37bce8`／Release `75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA`，打包HEAD27e47d2。主ZIP `6F63604221423DA664877C66D82CADD71CAF541788852D3AA5D182017DF2A08E`／manifest `8B20DFEC5FC9E170941DB24B45EDC68F3F8FAECC2D4A4C21EEF74DEBBB2C2FA1`。关键[fixture摘录](v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl)及[本地产品原回执](v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl)分别绑定原日志SHA `2061EFE008127154AF852F11907A1A4CF2B58DC6E805591DFD45E9E2420D8040`／`FC84A77DEFBA515D2FD4B3AD951A5DD86FC2D7A34D8CDC54D1CE1B82F54127FD`。
+
+- **M12-F02真实FAIL／V1-D22**：701核原EXE哈希，710／711在精确新guest-local目录空参启动同R2；713精确设置PID7064。714双方实际SID相同，只给该本地目录增加不继承的FILE_ADD_FILE deny，未改映射Output；715实际CreateFile拒绝5。真实诊断按钮点击后719仅有产品seq5错误notice，有界1秒核13个自有线程窗无错误modal；0个diagnostic final/tmp、配置字节不变，720无假包成立。日志错误不是用户可见报错，不把本负例写成环境阻断或继续NOT_RUN。
+- 721／722按同一目录身份恢复精确原DACL字节；726／727恢复后真实再次点击，产生新包并完成字段／配置解析及实际标题／路径脱敏专项。产品seq6成功notice、seq8正常退出，733实际客户计数`[6,6]→[7,7]`；738原DACL／证据归档／原实例与配置恢复均true后，739／740／746仍如实保留唯一可见反馈断言FAIL。原损坏配置799、排除895继续有实际阶段PASS，tray811 BLOCKED，982／984整批FAIL，不拼Full。
+- 最小产品修复`37e5ffce1290f3c8e07056083e42666859eebe0d`仅在明确导出失败时显示自有中文MessageBox、保留原notice／无假成功；不改变输入／几何或目标窗权限。**当前仅源码修复，构建身份与实际可见反馈尚待新候选复验**；旧R2的6项独立PASS及旧包／Run不换绑新EXE，不授M12-F02或整版PASS。
+- 首份部分收集因本地白名单未含精确新增诊断子目录中止，原部分副本保留；后继仅补与远端一致的精确范围后取得完整收集，不把这次工具问题写成产品／权限失败。精确guest／任务清理和证据哈希不变另有回执；guest销毁不替代上述产品退出或DACL恢复。
 
 ## d546：新候选owned资源两代正常抬键闭环，不是V1 Move通过
 
@@ -405,6 +414,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
 | 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |
 | GUI诊断与driver临时文件 | 590误纳`.tmp`的确定driver问题已由dd60 Debug97／Release714c真实final导出及parser专项复验关闭 | 设置底部“诊断”入口已实测，不因此授托盘／普遍隐私／完整M12通过 |
+| 导出失败可见反馈 | 86a同R2真实本地DACL拒5，只有日志notice，无实际错误modal；0假包、精确恢复及恢复后导出解析成立 | D22实际FAIL；37e5仅补自有UI反馈待新候选实测，不将日志/API返回冒充可见错误或给M12F02授PASS |
 
 ### 仍缺的实际环境或尚未闭合能力
 

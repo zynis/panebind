@@ -11,11 +11,11 @@
     "runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": null,
+    "pending_runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "final_sha": null,
     "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "R2/458冻结；f9同98fc完成M11-F03，当前6功能、B29/B32共5%。a623原UNKNOWN/f63原async门拒绝保留；后继d546以4cd独立Debug探针两代真实关联/capture/legacy UP/释放/解除/NormalUp撤罩通过资源范围；无V1 InputService/MoveSession/writer，退出风险/Explorer/Release新路线未跑，旧D08 OPEN。",
-    "pending_product_note": "后继仅driver/测试布局/诊断继续复用同R2产品，不将新布局通过预填或重建产品。用户已回复已有Windows ISO/VM但内存不足、无法新建VM；不是缺ISO或待回复。普通完整桌面/多屏仍需可用隔离交互环境与资源，继续当前Sandbox可运行项。",
+    "note": "R2/458冻结；f9同98fc完成M11-F03，当前6功能、B29/B32共5%。a623原UNKNOWN/f63原async门拒绝保留；后继d546以4cd独立Debug探针两代真实关联/capture/legacy UP/释放/解除/NormalUp撤罩通过资源范围；无V1 InputService/MoveSession/writer，退出风险/Explorer/Release新路线未跑，旧D08 OPEN。 86a同R2真实导出失败无可见提示，M12-F02从BLOCKED转FAIL；37e5 UI-only新源码待构建/现场，不换绑R2既有6个PASS。",
+    "pending_product_note": "37e5为真实产品UI-only修复（导出失败自有MessageBox反馈），新EXE身份和定向运行待完成；此前R2/458及原98fc的实测/6项PASS原身份保留，驱动变更仍不重建产品。用户已有合法ISO/VM但RAM不足，不新建VM/改宿主资源；普通完整桌面/多屏继续缺可用隔离资源。",
     "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
     "latest_observed_run_id": "f9b6012a43e345648d52c067ff9594f8"
   },
@@ -4026,33 +4026,36 @@
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "生产GUI/托盘共用export_diagnostic；0a8f新增真实保存失败后的GUI故障包/实际Recent failure解析，完整DEV仅缺导出自身失败负例，未预填PASS。",
-      "dev_status": "BLOCKED",
+      "implementation_note": "生产GUI/托盘共用export_diagnostic；86a已补实际导出自身失败负例：无假文件/恢复通过但缺可见报错FAIL，37e5补UI反馈待新候选复验。",
+      "dev_status": "FAIL",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M12-F02-DEV",
           "required_observation": "用人为失效生成可读包，离线解析；敏感字段默认脱敏；失败导出明确报错，不生成假完整包",
-          "status": "BLOCKED",
+          "status": "FAIL",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
             "docs/reports/v1-evidence/97-release-activation-failure.jsonl",
             "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
+            "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
+            "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
             "PO-97-SETTINGS-DIAGNOSTIC",
-            "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
+            "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+            "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "dd603a79aeba64c816e13ba49265db342c14e7e3",
-      "binary_sha256": "0CEA6E75FE171F472A020290C157EAE5A154D44B0AECC75B1E4AC60A8A7786FE",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "714c69f6feba4a0f81678c314eb1747e",
+      "run_id": "86a42fd21f544a0dba0db056be424946",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
@@ -4063,9 +4066,13 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
       ],
-      "defects": [],
+      "defects": [
+        "V1-D22"
+      ],
       "partial_observation_ids": [
         "PO-97-SETTINGS-DIAGNOSTIC",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -4074,27 +4081,32 @@
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。",
+      "status_basis": "ACTUAL_PRODUCT_EXPORT_FAILURE_VISIBLE_FEEDBACK_NEGATIVE_PENDING_UI_ONLY_FIX",
+      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。；86a真实同SID本地DACL拒绝5后实际点击导出，仅日志notice/无可见modal，0假final/tmp且配置未变；精确ACL恢复后再次导出/解析通过，原实例恢复后仍保留739/746FAIL。",
       "remaining_conditions": [
-        "真实人为配置失败后的诊断包生成、版本/OS/DPI/类别/配置/最近错误/终止原因与离线解析已在0a8f验证；仍缺诊断导出自身失败时明确报错且无假完整文件的实际负例。托盘不是本功能额外门槛，不要求普遍隐私矩阵。"
+        "导出自身失败负例已实际运行，不再NOT_RUN：旧R2缺少用户可见错误反馈。37e5 UI-only新候选仍须真实modal/无假包、DACL精确恢复、恢复后导出及正常停机复验；原完整内容/脱敏证据保持各自身份，未换绑新EXE。"
       ],
-      "next_action": "只补诊断导出自身失败的真实明确报错/无假完整文件负例；无需托盘或全局I11作本功能额外门槛。",
+      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
-        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
-        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
-        "scope": "actual_readonly_config_save_failure_then_real_GUI_export_and_offline_parse"
+        "driver_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+        "driver_binary_sha256": "75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA",
+        "run_id": "86a42fd21f544a0dba0db056be424946",
+        "observation_ids": [
+          "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+        ],
+        "scope": "actual_R2_ordinary_Medium_GUI_export_failure_same_SID_guest_local_DACL_and_recovery_not_Full"
       },
       "resolved_or_nonblocking_historical_defects": [
         "V1-D16"
-      ]
+      ],
+      "pending_fix_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d"
     },
     {
       "id": "M12-F03",
@@ -5050,7 +5062,7 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "日志/诊断/便携组件、固定机器表及校验器、中文指南和集中缺陷review入口均已落地；模块实施不等于模块DEV或整版验收通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "FAIL",
       "human_status": "NOT_RUN",
       "source_sha": null,
       "binary_sha256": null,
@@ -5068,7 +5080,9 @@
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -5096,7 +5110,8 @@
         "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
         "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
         "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
-        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
       ],
       "remaining_conditions": [
         "M12-F01: 见对应功能的具体remaining_conditions",
@@ -5104,7 +5119,7 @@
         "M12-F05: 见对应功能的具体remaining_conditions"
       ],
       "next_action": "M12-F03已按独立便携合同PASS；其余功能与模块按完整DEV合同继续，不由9e5定向包推整版通过。",
-      "observed": "；R2/d85 M12-F03独立包合同PASS，不代替完整M12模块/I12。"
+      "observed": "；R2/d85 M12-F03独立包合同PASS，不代替完整M12模块/I12。；86a补真实导出自身失败，M12-F02可见反馈FAIL，37e5待定向复验，不因包/元数据独立PASS授模块通过。"
     }
   ],
   "benchmarks": [
@@ -7926,6 +7941,31 @@
       "targeted_runtime_observation_id": "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
       "targeted_runtime_product_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "targeted_runtime_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C"
+    },
+    {
+      "id": "V1-D22",
+      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "severity": "S2",
+      "kind": "DIAGNOSTIC_EXPORT_FAILURE_NO_VISIBLE_GUI_FEEDBACK",
+      "product_code_changed": true,
+      "description": "86a使用原R2/458普通Medium GUI，在精确guest-local同SID FILE_ADD_FILE拒绝5下，真实导出失败仅记录notice，没有实际可见错误modal；无假final/tmp包且原配置未变。原DACL恢复、正例重新导出解析、原实例恢复均通过后，visible_error_required真实FAIL，不是环境或收集工具错误。37e5仅补自有中文错误MessageBox及保留notice；新构建/实际可见反馈尚待定向复验，不能用API返回补PASS。",
+      "features": [
+        "M12-F02"
+      ],
+      "partial_observation_ids": [
+        "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl"
+      ],
+      "failed_product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "failed_product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "failed_run_id": "86a42fd21f544a0dba0db056be424946",
+      "repair_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "repair_scope": "UI-only: failed explicit export now requests own MessageBoxW and retains failure notice/no fake export. No target-window interaction or input/geometry logic changes.",
+      "repair_status": "DEV_FIXED_PENDING_BUILD_AND_TARGETED_RUNTIME_REVALIDATION",
+      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。"
     }
   ],
   "evidence_policy": {
@@ -9360,6 +9400,34 @@
       "sha256": "5AAD6BF20595E215AE06181375B1EE77486687E437FB572F6DACC2A1749F093E",
       "repository_excerpt_path": "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
       "repository_excerpt_sha256": "C6F6EA44EC09FE46F4E2AC2E49ACB459B243DF797BD735BC3DDABBF1DD997CC3"
+    },
+    {
+      "id": "EV-86A-DIAGNOSTIC-EXPORT-FAILURE-FIXTURE",
+      "run_id": "86a42fd21f544a0dba0db056be424946",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "driver_binary_sha256": "75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA",
+      "path": "uat/v1-control/86a42fd21f544a0dba0db056be424946/collection-20261016T124744496Z-a7cbb758ba8e405791e67da1eb808659/86a42fd21f544a0dba0db056be424946-release-fixture.jsonl",
+      "sha256": "2061EFE008127154AF852F11907A1A4CF2B58DC6E805591DFD45E9E2420D8040",
+      "repository_excerpt_path": "docs/reports/v1-evidence/86a-diagnostic-export-failure-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "36EAAD543EC8A2EFB83FD7DBD77C9B86CD97437D0BCCEB77F8A987101877DE99"
+    },
+    {
+      "id": "EV-86A-DIAGNOSTIC-EXPORT-FAILURE-PRODUCT",
+      "run_id": "86a42fd21f544a0dba0db056be424946",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "driver_binary_sha256": "75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA",
+      "path": "uat/v1-control/86a42fd21f544a0dba0db056be424946/collection-20261016T124744496Z-a7cbb758ba8e405791e67da1eb808659/86a42fd21f544a0dba0db056be424946-diagnostic-export-failure-Release/product-log.jsonl",
+      "sha256": "FC84A77DEFBA515D2FD4B3AD951A5DD86FC2D7A34D8CDC54D1CE1B82F54127FD",
+      "repository_excerpt_path": "docs/reports/v1-evidence/86a-diagnostic-export-failure-product-selected.jsonl",
+      "repository_excerpt_sha256": "28481765225380CE72787290B4EBF72DAAF1449F5AA5F579F40ED3A099AFCD93"
     }
   ],
   "partial_observations": [
@@ -12361,6 +12429,64 @@
       "task_removed": true,
       "evidence_unchanged": true,
       "guest_destruction_counts_as_product_cleanup": false
+    },
+    {
+      "id": "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+      "scope": "actual_R2_ordinary_Medium_GUI_export_failure_same_SID_guest_local_DACL_and_recovery_not_Full",
+      "status": "FAIL_VISIBLE_ERROR_REQUIRED_NO_MODAL_OBSERVED",
+      "run_id": "86a42fd21f544a0dba0db056be424946",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "driver_binary_sha256": "75F221E5AD111455EB967D994388D72834321F854F3C0CADA3B7391D36BCB3FA",
+      "evidence_ids": [
+        "EV-86A-DIAGNOSTIC-EXPORT-FAILURE-FIXTURE",
+        "EV-86A-DIAGNOSTIC-EXPORT-FAILURE-PRODUCT"
+      ],
+      "actual_product_pid": 7064,
+      "observed": "701原R2/458精确复制到仅guest-local新目录；714双方实际TokenUser同SID、本目录FILE_ADD_FILE deny API成功且不继承，715实际CreateFile返回ERROR_ACCESS_DENIED(5)。真实GUI点击后719有产品seq5日志notice，但有界1s核13个自有线程窗无可见错误modal，且无diagnostic final/tmp文件、配置未变。721/722精确原DACL字节恢复，726/727再次实际点击生成新包并解析/实际路径标题脱敏通过；729/733本地实例正常退出及真实客户[6,6]→[7,7]。738 DACL、证据归档、原实例/配置恢复均true后739/740/746如实FAIL，只失败可见反馈合同。",
+      "actual_negative": {
+        "same_actual_SID": true,
+        "mapped_Output_DACL_changed": false,
+        "native_CreateFile_error": 5,
+        "actual_notice_logged": true,
+        "visible_error_modal_observed": false,
+        "visible_probe_budget_ms": 1000,
+        "owned_thread_windows_checked": 13,
+        "diagnostic_final_or_tmp_artifacts": 0,
+        "configuration_bytes_unchanged": true,
+        "log_notice_not_GUI_feedback": true
+      },
+      "recovery": {
+        "original_DACL_bytes_restored": true,
+        "actual_positive_export_after_restoration": true,
+        "diagnostic_sha256": "0C3A3246926FA2125E4C99CF37E2757D9DC8D4532D2212D6E2BCD1BCB8D7DA6B",
+        "raw_evidence_archived": true,
+        "original_product_and_configuration_restored": true,
+        "normal_local_product_exit_observed": true,
+        "post_stop_actual_client_counts_before": [
+          6,
+          6
+        ],
+        "post_stop_actual_client_counts_after": [
+          7,
+          7
+        ]
+      },
+      "repair_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "repair_scope": "UI-only: failed explicit export now requests own MessageBoxW and retains failure notice/no fake export. No target-window interaction or input/geometry logic changes.",
+      "repair_status": "DEV_FIXED_PENDING_BUILD_AND_TARGETED_RUNTIME_REVALIDATION",
+      "new_product_binary_or_runtime_PASS": false,
+      "previous_product_results_rebound": false,
+      "whole_suite_result": "FAIL_DIAGNOSTIC_VISIBLE_ERROR_AND_TRAY_BLOCKED",
+      "Core_I11": "NOT_RUN",
+      "application_matrix": "NOT_RUN",
+      "Full": "NOT_RUN",
+      "human_uat": "NOT_RUN",
+      "collection_note": "First local partial collection retained after exact new diagnostic subdirectory was missing from local allowlist; later same exact remote scope collected completely. This is collection-tool scope repair, not product or permission failure.",
+      "next_action": "用新UI候选的真实GUI负例确认实际中文modal及无假文件、精确DACL恢复、同实例恢复后导出和原产品恢复；旧R2错误不改写PASS，不把构建/API返回当可见观察。"
     }
   ],
   "evidence_mapping": {
@@ -12553,6 +12679,15 @@
       "Release_new_route": "NOT_RUN",
       "human_uat": "NOT_RUN",
       "next_action": "在新候选仅完成直接受关联机制影响的实际hotkey、短Deadline及source线程有界停泵独立退出；这些尚未运行。通过前不接正式Move writer或外推Explorer；继续冻结R2的独立可运行功能，不给60功能加分。"
+    },
+    "pending_UI_only_repair": {
+      "source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+      "status": "DEV_FIXED_PENDING_BUILD_AND_TARGETED_RUNTIME_REVALIDATION",
+      "defect_id": "V1-D22",
+      "failed_R2_observation_id": "PO-86A-REAL-DIAGNOSTIC-EXPORT-FAILURE",
+      "new_EXE_hash": "PENDING_BUILD",
+      "old_R2_results_not_rebound": true,
+      "scope": "UI-only: failed explicit export now requests own MessageBoxW and retains failure notice/no fake export. No target-window interaction or input/geometry logic changes."
     }
   }
 }
