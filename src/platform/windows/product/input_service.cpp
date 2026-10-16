@@ -363,11 +363,12 @@ bool InputService::push(InputEvent e){
 bool InputService::pop(InputEvent& e){const auto r=read_.load(std::memory_order_relaxed);
     if(r==write_.load(std::memory_order_acquire))return false;e=std::move(queue_[r]);
     read_.store((r+1)%static_cast<unsigned>(queue_.size()),std::memory_order_release);return true;}
-void InputService::abort(core::v1::End end){
+void InputService::abort(core::v1::End end,std::optional<InputAbortObservation> observation){
     captured_move_.retire();
     *completion_=0;*authorized_=0;
     if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=end;
-        push({InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_});}
+        InputEvent event{InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_};
+        event.abort_observation=observation;push(std::move(event));}
     if(capture_bridge_)if(auto p=capture_bridge_->pair.load();p&&p->down.generation==generation_){
         p->aborted=true;if(p->native_move)p->native_phase=NativeMovePhase::Retired;
         if(p->native_move&&!p->resource_requested){
@@ -606,7 +607,38 @@ void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,L
         }
     }
     if((s->consumed_down_||s->native_move_)&&native_event_is_current(stamp,s->active_down_stamp_)){const auto& p=s->active_prepared_;
-        if(ev==EVENT_SYSTEM_FOREGROUND&&p&&hwnd!=p->source.hwnd&&GetForegroundWindow()!=p->source.hwnd)s->abort(core::v1::End::FocusLost);
+        const auto abort_focus_lost=[&](InputAbortOrigin origin){
+            std::optional<InputAbortObservation> observation;
+            if(!s->aborted_&&p){
+                // The existing predicate has already decided to abort. Revoke
+                // before optional observations: GUI queries must not extend a
+                // known-invalid generation's native-write admission window.
+                s->captured_move_.retire();*s->completion_=0;*s->authorized_=0;
+                observation.emplace();auto& facts=*observation;
+                facts.origin=origin;facts.trigger_event=ev;facts.trigger_hwnd=hwnd;
+                facts.native_time=stamp;facts.observed_qpc=qpc_now();facts.foreground=GetForegroundWindow();
+                DWORD pid{};facts.source_identity_current=GetWindowThreadProcessId(p->source.hwnd,&pid)==p->source.tid&&pid==p->source.pid;
+                if(facts.source_identity_current){
+                    GUITHREADINFO gui{sizeof(gui)};facts.source_gui_attempted=true;SetLastError(ERROR_SUCCESS);
+                    facts.source_gui_known=GetGUIThreadInfo(p->source.tid,&gui)!=FALSE;
+                    facts.source_gui_error=facts.source_gui_known?ERROR_SUCCESS:GetLastError();
+                    if(facts.source_gui_known){facts.source_capture=gui.hwndCapture;facts.source_move_size=gui.hwndMoveSize;
+                        facts.source_menu_owner=gui.hwndMenuOwner;facts.source_gui_flags=gui.flags;}
+                }
+                const auto capture=s->capture_context(s->generation_);
+                if(capture&&capture->generation==s->generation_&&capture->owner_pid==GetCurrentProcessId()&&
+                   capture->owner_tid&&Catalog::same(capture->source,p->source)&&
+                   GetWindowThreadProcessId(capture->overlay,&pid)==capture->owner_tid&&pid==capture->owner_pid){
+                    GUITHREADINFO gui{sizeof(gui)};facts.owner_thread_id=capture->owner_tid;facts.owner_gui_attempted=true;SetLastError(ERROR_SUCCESS);
+                    facts.owner_gui_known=GetGUIThreadInfo(capture->owner_tid,&gui)!=FALSE;
+                    facts.owner_gui_error=facts.owner_gui_known?ERROR_SUCCESS:GetLastError();
+                    if(facts.owner_gui_known)facts.owner_capture=gui.hwndCapture;
+                }
+            }
+            s->abort(core::v1::End::FocusLost,observation);
+        };
+        if(ev==EVENT_SYSTEM_FOREGROUND&&p&&hwnd!=p->source.hwnd&&GetForegroundWindow()!=p->source.hwnd)
+            abort_focus_lost(InputAbortOrigin::WinEventForeground);
         if(ev==EVENT_OBJECT_DESTROY&&p&&hwnd==p->source.hwnd&&object==OBJID_WINDOW&&child==CHILDID_SELF)s->abort(core::v1::End::SourceLost);
         // This production route never takes capture. An observed new capture
         // is an invalidating native interaction, not permission to reclaim it.
@@ -618,7 +650,7 @@ void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,L
         if(ev==EVENT_SYSTEM_CAPTURESTART&&p&&hwnd&&!own_capture&&
             !native_source_capture&&
             (GetWindowThreadProcessId(hwnd,nullptr)==p->source.tid||GetAncestor(hwnd,GA_ROOT)==p->source.hwnd))
-            s->abort(core::v1::End::FocusLost);
+            abort_focus_lost(InputAbortOrigin::WinEventCaptureStart);
     }
     if((object==OBJID_WINDOW&&child==CHILDID_SELF)||ev==EVENT_SYSTEM_FOREGROUND)PostMessageW(s->owner_,catalog_message,0,0);
 }

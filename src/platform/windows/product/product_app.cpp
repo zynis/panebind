@@ -684,9 +684,40 @@ public:
     void begin(const InputEvent&);
     void native_move_event(const InputEvent&);
     void native_move_resource(const InputEvent&);
-    bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation)const {
-        return geometry_gui_context_allowed(source,observe_gui_context(source),input.capture_context(generation),
-            GeometryContextPhase::BeforeNativeCall);
+    bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation) {
+        LARGE_INTEGER before{},after{};if(diagnostic)QueryPerformanceCounter(&before);
+        const auto gui=observe_gui_context(source);
+        const auto capture=input.capture_context(generation);
+        std::string reason;
+        const bool accepted=geometry_gui_context_allowed(source,gui,capture,
+            GeometryContextPhase::BeforeNativeCall,&reason);
+        if(!accepted&&diagnostic){
+            const auto foreground_after_predicate=GetForegroundWindow();
+            QueryPerformanceCounter(&after);
+            // GUI-owner evidence only, on the existing rejection path. Do not
+            // let a later UP snapshot stand in for the context that retired a
+            // gesture, and never perform this logging on the input thread.
+            const auto hwnd=[](HWND value){return std::to_string(reinterpret_cast<std::uintptr_t>(value));};
+            log.event("gesture_GUI_context_rejected","\"generation\":"+std::to_string(generation)+
+                ",\"query_before_qpc\":"+std::to_string(before.QuadPart)+
+                ",\"query_after_qpc\":"+std::to_string(after.QuadPart)+
+                ",\"source\":"+hwnd(source.hwnd)+",\"source_key\":"+std::to_string(source.key)+
+                ",\"reason\":\""+escaped(reason)+"\",\"GUI_context_mode\":\""+gui_context_mode_name(gui.mode)+
+                "\",\"source_GUI_known\":"+(gui.known()?"true":"false")+
+                ",\"source_GUI_error\":"+std::to_string(gui.owner_error)+
+                ",\"observed_capture\":"+hwnd(gui.actual.hwndCapture)+
+                ",\"observed_move_size\":"+hwnd(gui.actual.hwndMoveSize)+
+                ",\"observed_menu_owner\":"+hwnd(gui.actual.hwndMenuOwner)+
+                ",\"observed_GUI_flags\":"+std::to_string(gui.actual.flags)+
+                ",\"foreground_after_predicate\":"+hwnd(foreground_after_predicate)+
+                ",\"capture_lease_present\":"+(capture?"true":"false")+
+                ",\"lease_overlay\":"+hwnd(capture?capture->overlay:nullptr)+
+                ",\"lease_normal_UP_observed\":"+(capture&&capture->normal_up_observed.load()?"true":"false")+
+                ",\"lease_own_release_confirmed\":"+(capture&&capture->own_release_confirmed.load()?"true":"false")+
+                ",\"lease_association_detached\":"+(capture&&capture->association_detached.load()?"true":"false")+
+                ",\"new_native_attempt\":false");
+        }
+        return accepted;
     }
     void motion(const InputEvent&,bool normal_up_completion=false);
     void refresh_targets(){
@@ -1622,6 +1653,34 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);
     }}
     else if(e.kind==InputKind::Abort){
+        if(diagnostic&&e.abort_observation){
+            const auto& facts=*e.abort_observation;
+            const auto hwnd=[](HWND value){return std::to_string(reinterpret_cast<std::uintptr_t>(value));};
+            log.event("input_abort_observed","\"generation\":"+std::to_string(e.generation)+
+                ",\"end\":"+std::to_string(static_cast<unsigned>(e.end))+
+                ",\"origin\":\""+input_abort_origin_name(facts.origin)+
+                "\",\"trigger_event\":"+std::to_string(facts.trigger_event)+
+                ",\"trigger_hwnd\":"+hwnd(facts.trigger_hwnd)+
+                ",\"native_time\":"+std::to_string(facts.native_time)+
+                ",\"observed_qpc\":"+std::to_string(facts.observed_qpc)+
+                ",\"sample_phase\":\"after_generation_revoked\""+
+                ",\"foreground\":"+hwnd(facts.foreground)+
+                ",\"source\":"+hwnd(e.prepared?e.prepared->source.hwnd:nullptr)+
+                ",\"source_PID_TID_current\":"+(facts.source_identity_current?"true":"false")+
+                ",\"source_GUI_attempted\":"+(facts.source_gui_attempted?"true":"false")+
+                ",\"source_GUI_known\":"+(facts.source_gui_known?"true":"false")+
+                ",\"source_GUI_error\":"+std::to_string(facts.source_gui_error)+
+                ",\"source_capture\":"+hwnd(facts.source_capture)+
+                ",\"source_move_size\":"+hwnd(facts.source_move_size)+
+                ",\"source_menu_owner\":"+hwnd(facts.source_menu_owner)+
+                ",\"source_GUI_flags\":"+std::to_string(facts.source_gui_flags)+
+                ",\"owner_TID\":"+std::to_string(facts.owner_thread_id)+
+                ",\"owner_GUI_attempted\":"+(facts.owner_gui_attempted?"true":"false")+
+                ",\"owner_GUI_known\":"+(facts.owner_gui_known?"true":"false")+
+                ",\"owner_GUI_error\":"+std::to_string(facts.owner_gui_error)+
+                ",\"owner_capture\":"+hwnd(facts.owner_capture)+
+                ",\"observation_not_atomic_or_write_authority\":true");
+        }
         if(native_move&&native_move->down.generation==e.generation)native_move.reset();
         if(gesture&&gesture->down.generation==e.generation)finish(e.end);
     }

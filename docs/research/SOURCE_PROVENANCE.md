@@ -2714,3 +2714,21 @@ this read-only observer on its original driver STA before CoUninitialize;
 preserve the app-close FAIL. Original 128f shutdown row158 does not prove process
 exit, nor does this source defect prove the observed missing-wrapper-receipt root
 cause. Actual next process exit and wrapper receipts remain required.
+
+### V1 bounded pre-UP termination observation — 2026-10-17
+
+Run `b1a3f530aa934059ae9950b3e35da025` preserved three exact shared-edge
+placements followed by FocusLost and actual resource removal before the single
+test UP. Both the passive test hook and product LL callback later observed that
+UP on the retired generation; this is neither missing LL delivery nor NormalUp.
+The existing record cannot distinguish the foreground WinEvent, capture-start
+WinEvent and application GUI rejection paths. Add only their bounded origin and
+actual GUI facts, transferred through the existing queue for GUI-owner logging.
+Revoke before optional observations; do not change admission or reclaim capture.
+
+Rechecked Microsoft's [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook)
+and [GetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getcapture):
+out-of-context notifications are asynchronous, while a thread-local null capture
+does not establish another queue's state. No specific WinEvent is inferred as
+this failure's cause. Reuse the previously reviewed event/resource design;
+no new input mechanism or copied/adapted upstream implementation is introduced.

@@ -202,6 +202,21 @@ inline bool native_move_handoff_compatible(const Snapshot& down,const Snapshot& 
 }
 enum class InputKind { Down, Move, Up, Abort, Mapped, Resource, NativeMovePending, NativeMoveStart, NativeMoveEnd, NativeMoveReleased };
 enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource, NativeMoveEvent };
+enum class InputAbortOrigin { Unknown,WinEventForeground,WinEventCaptureStart };
+[[nodiscard]] constexpr const char* input_abort_origin_name(InputAbortOrigin value)noexcept{
+    switch(value){case InputAbortOrigin::WinEventForeground:return "winevent_foreground";
+        case InputAbortOrigin::WinEventCaptureStart:return "winevent_capture_start";default:return "unknown";}
+}
+// One bounded observation AFTER the existing WinEvent abort decision. These
+// facts do not decide authority or imply an atomic cross-queue snapshot.
+struct InputAbortObservation {
+    InputAbortOrigin origin{InputAbortOrigin::Unknown};
+    DWORD trigger_event{},native_time{};
+    std::uint64_t observed_qpc{};
+    HWND trigger_hwnd{},foreground{},source_capture{},source_move_size{},source_menu_owner{},owner_capture{};
+    bool source_identity_current{},source_gui_attempted{},source_gui_known{},owner_gui_attempted{},owner_gui_known{};
+    DWORD source_gui_error{},source_gui_flags{},owner_thread_id{},owner_gui_error{};
+};
 struct InputEvent {
     InputKind kind{};
     POINT point{};
@@ -220,6 +235,7 @@ struct InputEvent {
     std::shared_ptr<const operations::GestureShieldEvent> resource_event;
     std::shared_ptr<const NativeMoveReceipt> native_move_receipt;
     std::shared_ptr<const Snapshot> handoff_snapshot;
+    std::optional<InputAbortObservation> abort_observation;
 };
 // Input-owner-only, one real LL MOVE observed while CaptureReady/GUI DOWN
 // publication is pending. Consumed DOWN may retain pending-capture motion;
@@ -395,7 +411,7 @@ private:
     static LRESULT CALLBACK receiver(HWND,UINT,WPARAM,LPARAM);
     void run();
     bool push(InputEvent);
-    void abort(core::v1::End);
+    void abort(core::v1::End,std::optional<InputAbortObservation> observation=std::nullopt);
     bool begin_capture(const InputEvent&);
     void drain_capture_events();
     void request_capture_stop(operations::GestureShieldRemovalReason);
