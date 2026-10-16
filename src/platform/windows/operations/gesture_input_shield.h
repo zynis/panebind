@@ -31,6 +31,10 @@ struct GestureShieldConsumedDownRequest {
     POINT down_point{};
     DWORD down_message_time{};
     std::uint64_t down_qpc{};
+    // Optional existing same-process emergency owner. Only consumed-DOWN may
+    // use this; a separate callback must verify its ACTUAL live registration.
+    DWORD external_stop_owner_pid{},external_stop_owner_tid{};
+    int external_stop_hotkey_id{};
 };
 
 [[nodiscard]] constexpr bool gesture_shield_consumed_down_receipt_valid(
@@ -408,6 +412,8 @@ struct GestureShieldEvent {
     GestureShieldRemovalReason removal_reason{GestureShieldRemovalReason::Shutdown};
     bool overlay_destroyed{};
     bool hotkey_unregistered{};
+    DWORD external_stop_owner_tid{};
+    int external_stop_hotkey_id{};
 };
 
 struct GestureShieldCallbacks {
@@ -431,6 +437,7 @@ struct GestureShieldCallbacks {
     // mandatory. Check the published actual LL receipt and current revoke/UP
     // facts; never fill native START/END or call COM/placement from here.
     std::function<bool(const GestureShieldConsumedDownRequest&)> consumed_down_authorized;
+    std::function<bool(const GestureShieldConsumedDownRequest&)> external_stop_owner_registered;
 };
 
 struct GestureShieldStopFacts {

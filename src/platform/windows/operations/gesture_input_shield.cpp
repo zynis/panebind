@@ -369,6 +369,8 @@ struct GestureInputShield::Impl {
             event.generation == current_consumed_down->gesture.generation) {
             event.entry_mode = GestureShieldEntryMode::ConsumedDown;
             event.consumed_down = *current_consumed_down;
+            event.external_stop_owner_tid = current_consumed_down->external_stop_owner_tid;
+            event.external_stop_hotkey_id = current_consumed_down->external_stop_hotkey_id;
         }
         try {
             callbacks.on_event(event);
@@ -886,6 +888,23 @@ struct GestureInputShield::Impl {
                                                foreground_before, diagnostic);
         if (diagnostic.readback != GestureShieldReadbackFailure::None) return false;
         diagnostic.stage = GestureShieldSetupStage::RegisterHotkey;
+        if (current_consumed_down && current_consumed_down->external_stop_owner_tid) {
+            const auto& external = *current_consumed_down;
+            bool registered = false;
+            try { registered = external.external_stop_owner_pid == GetCurrentProcessId() &&
+                external.external_stop_hotkey_id > 0 && callbacks.external_stop_owner_registered &&
+                callbacks.external_stop_owner_registered(external); }
+            catch (...) { registered = false; }
+            // Never silently treat ERROR_HOTKEY_ALREADY_REGISTERED as success.
+            // A verified external owner replaces only this resource's own F11.
+            if (!registered) { diagnostic.error = ERROR_INVALID_STATE; return false; }
+            hotkey_registered = false;
+            hotkey_unregistered = true;
+            diagnostic.stage = GestureShieldSetupStage::Deadline;
+            if (GetTickCount64() >= deadline_tick) return false;
+            diagnostic.stage = GestureShieldSetupStage::None;
+            return true;
+        }
         SetLastError(0);
         hotkey_registered = RegisterHotKey(nullptr, stop_hotkey_id,
             stop_hotkey_modifiers, stop_hotkey_key) != FALSE;

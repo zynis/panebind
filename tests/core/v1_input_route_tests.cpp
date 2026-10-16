@@ -18,6 +18,29 @@ void check(bool condition, const char* name) {
 // GUI adapter / low-level callback. It never starts InputService, installs a
 // hook, synthesizes input, queries foreground, or opens a user window.
 int main() {
+    std::atomic<std::uint64_t> captured_authority{40|product::input_pending_capture_mask};
+    check(!product::operation_permission(40,captured_authority,0,true,false),
+          "consumed DOWN pending shield readiness never grants a continuous placement");
+    check(product::arm_exact_capture_generation(captured_authority,40)&&captured_authority==40&&
+          product::operation_permission(40,captured_authority,0,true,false),
+          "actual CaptureReady may promote only its exact pending generation");
+    captured_authority=0;
+    check(!product::arm_exact_capture_generation(captured_authority,40)&&captured_authority==0,
+          "an early actual UP prevents late CaptureReady from restoring issue authority");
+    captured_authority=41|product::input_pending_capture_mask;
+    check(!product::arm_exact_capture_generation(captured_authority,40)&&captured_authority==(41|product::input_pending_capture_mask),
+          "a stale resource receipt cannot authorize a later DOWN generation");
+    check(!product::arm_exact_capture_generation(captured_authority,0)&&
+          !product::arm_exact_capture_generation(captured_authority,product::input_pending_capture_mask),
+          "zero and reserved pending-bit values are not real gesture identities");
+    check(product::captured_release_can_complete(true,true,false,true,true),
+          "actual captured legacy UP with confirmed own cleanup permits only release-dock completion");
+    check(!product::captured_release_can_complete(true,false,false,true,true)&&
+          !product::captured_release_can_complete(false,true,false,true,true)&&
+          !product::captured_release_can_complete(true,true,true,true,true)&&
+          !product::captured_release_can_complete(true,true,false,false,true)&&
+          !product::captured_release_can_complete(true,true,false,true,false),
+          "Raw-only UP, unknown cleanup, abort, later DOWN and stop cannot mint a normal release token");
     product::MouseUpCallbackObservation up_observation;
     const auto initial_up=up_observation.snapshot();
     check(initial_up.known&&initial_up.callback_count==0,"initial UP diagnostic snapshot reports no observed callback");
@@ -217,8 +240,8 @@ int main() {
     actual_up.end=v1::End::NormalUp;actual_up.point={180,150};
     check(!product::dispatch_motion_permission(delayed_move,false,0,30,true,false),
           "hook UP still retires old queued MOVE even when the GUI has not consumed it");
-    check(product::dispatch_motion_permission(actual_up,true,0,30,true,false),
-          "actual same-generation normal UP retains one final absolute motion when GUI dispatch is late");
+    check(!product::dispatch_motion_permission(actual_up,true,0,30,true,false),
+          "actual same-generation normal UP cannot submit a new continuous native operation when GUI dispatch is late");
     check(!product::dispatch_motion_permission(actual_up,false,0,30,true,false)&&
           !product::dispatch_motion_permission(delayed_move,true,0,30,true,false),
           "terminal capability cannot authorize ordinary dispatch or turn an old MOVE into UP");
@@ -241,8 +264,8 @@ int main() {
     check(!product::dispatch_motion_permission(invalid_up,true,0,0,true,false),
           "generation zero discrete commands never mint terminal gesture motion");
     // Follow the exact production decisions, not an always-true test adapter:
-    // hook ahead of GUI -> stale MOVE rejected -> real UP terminal once ->
-    // exact original-anchor intent -> retire completion. No active rearming.
+    // hook ahead of GUI -> stale MOVE rejected -> real UP cannot compensate
+    // with a never-issued continuous native call. No active rearming.
     std::uint64_t lag_active=0,lag_completion=30;bool terminal_consumed=false;
     unsigned active_issues{},terminal_issues{};
     std::optional<v1::Rect> final_geometry;
@@ -254,8 +277,8 @@ int main() {
             ++terminal_issues;
         }
     }
-    check(active_issues==0&&terminal_issues==1&&final_geometry==v1::Rect{160,130,560,430}&&lag_active==0,
-          "late GUI final submission uses the exact UP cursor and original DOWN rect without restoring active authority");
+    check(active_issues==0&&terminal_issues==0&&!final_geometry&&lag_active==0,
+          "late GUI cannot disguise an unissued post-UP continuous placement as an in-flight completion");
     lag_completion=0;
     check(!product::dispatch_motion_permission(actual_up,true,lag_active,lag_completion,true,terminal_consumed)&&
           !product::dispatch_motion_permission(delayed_move,false,lag_active,lag_completion,true,terminal_consumed),
@@ -351,10 +374,10 @@ int main() {
     unsigned unconsumed_terminal_issues{};
     if(product::dispatch_motion_permission(different_point_up,true,0,30,true,false)&&
        !product::motion_point_already_exact(different_point_up,true,magnetic_progress))++unconsumed_terminal_issues;
-    check(duplicate_terminal_issues==0&&unconsumed_terminal_issues==1&&
+    check(duplicate_terminal_issues==0&&unconsumed_terminal_issues==0&&
           !product::dispatch_motion_permission(different_point_up,true,31,30,true,false)&&
           !product::dispatch_motion_permission(delayed_move,false,0,30,true,false),
-          "actual terminal routing retains one unconsumed final quantum, issues none for duplicates and never rearms stale MOVE or old generation");
+          "actual UP routing issues no new continuous quantum, even at an unconsumed cursor, and never rearms stale MOVE");
     std::atomic<std::uint64_t> finish_active{31},finish_completion{31};
     check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::NormalUp)&&
           finish_active==31&&finish_completion==31,
@@ -365,7 +388,7 @@ int main() {
     finish_active=0;finish_completion=30;
     check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::NormalUp)&&
           finish_active==0&&finish_completion==30,
-          "same generation normal finish preserves only its separate dock or motion completion until consumed");
+          "same generation normal finish preserves only its separate release-dock command token until consumed");
     check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::FocusLost)&&
           finish_active==0&&finish_completion==0,
           "actual context loss retires terminal permission instead of ignoring an authority failure");

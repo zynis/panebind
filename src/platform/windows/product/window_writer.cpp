@@ -32,7 +32,8 @@ std::optional<v::VisualState> read_visual(HWND hwnd){
 bool same_changed_visual(const v::VisualState& a,const v::VisualState& b,bool alpha,bool top){
     return(!alpha||v::same_alpha(a,b))&&(!top||a.topmost==b.topmost);
 }
-bool native_visual_identity(const Snapshot& expected,GuiContextMode* observed_mode=nullptr){
+bool native_visual_identity(const Snapshot& expected,GuiContextMode* observed_mode=nullptr,
+    const GestureCaptureLease& capture={},GeometryContextPhase phase=GeometryContextPhase::BeforeNativeCall,std::string* why=nullptr){
     DWORD pid{};if(!expected.hwnd||!expected.born||GetWindowThreadProcessId(expected.hwnd,&pid)!=expected.tid||pid!=expected.pid||pid==GetCurrentProcessId())return false;
     HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid);if(!process)return false;
     FILETIME birth{},exited{},kernel{},user{};HANDLE token{},own_token{};
@@ -61,7 +62,7 @@ bool native_visual_identity(const Snapshot& expected,GuiContextMode* observed_mo
     }
     if(token)CloseHandle(token);if(own_token)CloseHandle(own_token);CloseHandle(process);
     if(!valid)return false;const auto gui=observe_gui_context(expected);if(observed_mode)*observed_mode=gui.mode;
-    if(!gui.idle())return false;
+    if(!geometry_gui_context_allowed(expected,gui,capture,phase,why))return false;
     const auto desktop=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!desktop)return false;
     BOOL receiving{};DWORD bytes{};valid=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&bytes)&&receiving;
     CloseDesktop(desktop);return valid;
@@ -135,6 +136,18 @@ bool allowed_by_guard(const WindowWriter::Guard& guard, std::string& reason) {
     return false;
 }
 
+bool observe_capture_completion(WindowWriter::Receipt& receipt,const GestureCaptureLease& capture){
+    if(!capture)return true;
+    receipt.post_context_checked=true;
+    if(!receipt.after){receipt.post_context_reason="post_native_identity_unavailable";return false;}
+    if(receipt.before.dpi!=receipt.after->dpi||receipt.before.monitor!=receipt.after->monitor||
+       receipt.before.work!=receipt.after->work||receipt.before.maximized!=receipt.after->maximized||
+       receipt.before.minimized!=receipt.after->minimized){receipt.post_context_reason="post_native_geometry_context_changed";return false;}
+    receipt.post_context_valid=geometry_gui_context_allowed(*receipt.after,observe_gui_context(*receipt.after),capture,
+        receipt.native_attempted?GeometryContextPhase::IssuedCompletion:GeometryContextPhase::BeforeNativeCall,&receipt.post_context_reason);
+    return receipt.post_context_valid;
+}
+
 WindowWriter::Receipt rejected(const Snapshot& expected, const Rect& desired, std::string reason) {
     WindowWriter::Receipt result;
     result.before = expected;
@@ -152,6 +165,7 @@ WindowWriter::Receipt rejected(const Snapshot& expected, const Rect& desired, st
 struct WindowWriter::NativeExecutor {
     struct Work {
         Snapshot expected;Rect native,requested;Guard guard;std::uint64_t id{};
+        GestureCaptureLease capture;
         Operation operation{Operation::Placement};v::VisualState visual_before,visual_target;
         bool alpha_change{},top_change{};std::optional<v::VisualOwnership> cleanup_owned;VisualNativeFacts visual_native;
         HANDLE done{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
@@ -202,7 +216,8 @@ struct WindowWriter::NativeExecutor {
                 // A multi-call style/alpha sequence is already issued. Do not
                 // leave an introduced layered style half-configured on UP;
                 // observe completion without restoring NEW gesture authority.
-                if(!native_visual_identity(work->expected))return false;
+                if(!native_visual_identity(work->expected,nullptr,work->capture,
+                    started?GeometryContextPhase::IssuedCompletion:GeometryContextPhase::BeforeNativeCall))return false;
                 const auto latest=read_visual(hwnd);
                 const bool same_unknown_introduced=latest&&introduced_layered&&latest->layered&&alpha_baseline->layered&&
                     !latest->attributes_known&&!alpha_baseline->attributes_known;
@@ -215,7 +230,8 @@ struct WindowWriter::NativeExecutor {
             }
         }
         if(work->top_change&&current->topmost!=target.topmost){
-            if(!native_visual_identity(work->expected))return false;
+            if(!native_visual_identity(work->expected,nullptr,work->capture,
+                started?GeometryContextPhase::IssuedCompletion:GeometryContextPhase::BeforeNativeCall))return false;
             const auto latest=read_visual(hwnd);if(!latest||latest->topmost!=current->topmost)return false;
             if(!claim())return false;
             {std::lock_guard lock(work->mutex);work->visual_native.zorder_attempted=true;}
@@ -226,7 +242,8 @@ struct WindowWriter::NativeExecutor {
         }
         return true;
     }
-    static bool exact_context(const Snapshot& e,GuiContextMode* observed_mode=nullptr){
+    static bool exact_context(const Snapshot& e,GuiContextMode* observed_mode=nullptr,
+        const GestureCaptureLease& capture={},std::string* why=nullptr){
         DWORD pid{};if(GetWindowThreadProcessId(e.hwnd,&pid)!=e.tid||pid!=e.pid)return false;
         HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,pid);
         if(!process)return false;FILETIME created{},exit{},kernel{},user{};
@@ -238,7 +255,8 @@ struct WindowWriter::NativeExecutor {
         if(!GetWindowRect(e.hwnd,&positioning)||FAILED(DwmGetWindowAttribute(e.hwnd,DWMWA_EXTENDED_FRAME_BOUNDS,&visible,sizeof(visible)))||
             !equal(positioning,e.positioning)||!equal(visible,e.visible)||GetDpiForWindow(e.hwnd)!=e.dpi||
             MonitorFromWindow(e.hwnd,MONITOR_DEFAULTTONULL)!=e.monitor||(IsZoomed(e.hwnd)!=FALSE)!=e.maximized||(IsIconic(e.hwnd)!=FALSE)!=e.minimized)return false;
-        const auto gui=observe_gui_context(e);if(observed_mode)*observed_mode=gui.mode;if(!gui.idle())return false;
+        const auto gui=observe_gui_context(e);if(observed_mode)*observed_mode=gui.mode;
+        if(!geometry_gui_context_allowed(e,gui,capture,GeometryContextPhase::BeforeNativeCall,why))return false;
         const auto desktop=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!desktop)return false;
         BOOL receiving{};DWORD size{};
         const bool active=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&size)&&receiving;
@@ -253,12 +271,14 @@ struct WindowWriter::NativeExecutor {
                 {std::lock_guard lock(shared->mutex);work=shared->pending;}
                 if(!work)continue;
                 GuiContextMode gui_mode=GuiContextMode::Unknown;
-                const bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode):exact_context(work->expected,&gui_mode);
+                std::string context_reason;
+                const bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode,work->capture,
+                    GeometryContextPhase::BeforeNativeCall,&context_reason):exact_context(work->expected,&gui_mode,work->capture,&context_reason);
                 bool issue=false;
                 {
                     std::lock_guard lock(work->mutex);
                     if(work->cancelled||shared->stopping)work->reason="native_worker_admission_cancelled";
-                    else if(!context)work->reason=std::string("native_worker_context_changed:GUI_context=")+gui_context_mode_name(gui_mode);
+                    else if(!context)work->reason=std::string("native_worker_context_changed:GUI_context=")+gui_context_mode_name(gui_mode)+":"+context_reason;
                     else if(!work->cleanup_owned&&!allowed_by_guard(work->guard,work->reason)){}
                     else issue=true;
                 }
@@ -293,9 +313,10 @@ struct WindowWriter::NativeExecutor {
     }
     std::shared_ptr<Work> execute(const Snapshot& expected,const Rect& native,const Rect& requested,Guard guard,
         Operation operation=Operation::Placement,const v::VisualState& before={},const v::VisualState& target={},
-        bool alpha=false,bool top=false,std::optional<v::VisualOwnership> cleanup_owned=std::nullopt,BeforeIssue before_issue={}){
+        bool alpha=false,bool top=false,std::optional<v::VisualOwnership> cleanup_owned=std::nullopt,BeforeIssue before_issue={},GestureCaptureLease capture={}){
         auto work=std::make_shared<Work>();if(!work->done)return {};
         work->expected=expected;work->native=native;work->requested=requested;work->guard=std::move(guard);work->reason.reserve(128);
+        work->capture=std::move(capture);
         work->operation=operation;work->visual_before=before;work->visual_target=target;
         work->alpha_change=alpha;work->top_change=top;work->cleanup_owned=std::move(cleanup_owned);
         {
@@ -383,12 +404,14 @@ std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const 
             r.completion_known=job->known;r.before_qpc=job->before;r.after_qpc=job->after;r.error=job->error;
             r.operation=job->operation;r.visual_before=job->visual_before;r.visual_target=job->visual_target;
             r.alpha_change=job->alpha_change;r.top_change=job->top_change;r.visual_native=job->visual_native;r.reason=job->reason;}
-        if(r.operation!=Operation::Placement){observe_auxiliary(r,settings);result.push_back(std::move(r));continue;}
+        if(r.operation!=Operation::Placement){observe_auxiliary(r,settings,job->capture);result.push_back(std::move(r));continue;}
         r.after=catalog_.get(r.before.hwnd,settings);r.post_observed_qpc=now();
         r.identity_valid=r.after&&Catalog::same(r.before,*r.after);
         r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
         r.accepted=r.completion_known&&r.native_attempted&&r.native_succeeded&&r.geometry_exact;
-        r.reason="delayed_native_completion_observed_no_authority_restored";result.push_back(std::move(r));
+        r.reason="delayed_native_completion_observed_no_authority_restored";
+        if(!observe_capture_completion(r,job->capture)){r.accepted=false;r.reason=r.post_context_reason;}
+        result.push_back(std::move(r));
     }return result;
 }
 
@@ -428,16 +451,18 @@ WindowWriter::VisualPreparation WindowWriter::prepare_visual(const v::VisualStat
     result.reason=result.noop?"visual_already_exact_no_native_call":"visual_prepared";return result;
 }
 
-void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings){
+void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings,const GestureCaptureLease& capture){
     std::string capture_reason;result.after=catalog_.get(result.before.hwnd,settings,&capture_reason,true,false);result.post_observed_qpc=now();
     result.identity_valid=result.after&&Catalog::same(result.before,*result.after);
     if(result.identity_valid)result.visual_after=read_visual(result.before.hwnd);
     result.geometry_exact=result.identity_valid&&result.after->visible==result.before.visible&&result.after->positioning==result.before.positioning;
     if(result.identity_valid){result.z_previous=GetWindow(result.before.hwnd,GW_HWNDPREV);result.z_next=GetWindow(result.before.hwnd,GW_HWNDNEXT);result.z_bottom_observed=result.z_next==nullptr;}
     result.visual_exact=result.visual_after&&same_changed_visual(*result.visual_after,result.visual_target,result.alpha_change,result.top_change);
+    const bool context=observe_capture_completion(result,capture);
     if(!result.identity_valid){result.reason="visual_postverify_"+capture_reason;return;}
     if(!result.visual_after){result.reason="visual_postverify_attributes_unavailable";return;}
     if(!result.geometry_exact){result.reason="visual_native_changed_or_unattributed_geometry";return;}
+    if(!context){result.reason=result.post_context_reason;return;}
     if(result.operation==Operation::Lower){
         result.accepted=result.native_attempted&&result.native_succeeded&&!result.visual_after->topmost&&result.z_bottom_observed;
         result.reason=result.accepted?"lower_native_bottom_observed":"lower_native_completion_requires_zorder_review";return;
@@ -448,13 +473,14 @@ void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings
 }
 
 WindowWriter::Receipt WindowWriter::visual(const Snapshot& expected,const v::VisualState& before,const v::VisualState& target,
-    bool alpha,bool top,const v::Settings& settings,Guard guard,std::optional<v::VisualOwnership> cleanup,BeforeIssue before_issue){
+    bool alpha,bool top,const v::Settings& settings,Guard guard,std::optional<v::VisualOwnership> cleanup,BeforeIssue before_issue,GestureCaptureLease capture){
     Receipt result;result.before=expected;result.requested=expected.visible;result.operation=Operation::Visual;
     result.visual_before=before;result.visual_target=target;result.alpha_change=alpha;result.top_change=top;
     if(!cleanup&&!settings.enabled){result.reason="visual_product_disabled";return result;}
     std::string why;const auto fresh=catalog_.get(expected.hwnd,settings,&why,cleanup.has_value(),false);
     if(!fresh||!Catalog::same(expected,*fresh)){result.reason="visual_preflight_"+why;return result;}
     result.before=*fresh;result.identity_valid=true;const auto actual=read_visual(fresh->hwnd);
+    if(capture&&!geometry_gui_context_allowed(*fresh,observe_gui_context(*fresh),capture,GeometryContextPhase::BeforeNativeCall,&result.reason))return result;
     if(!actual){result.reason="visual_preflight_attributes_unavailable";return result;}
     // A known no-call rejection can still settle the helper's prepared tuple.
     // This is a preflight observation, never an invented native completion.
@@ -462,12 +488,12 @@ WindowWriter::Receipt WindowWriter::visual(const Snapshot& expected,const v::Vis
     const auto prepared=prepare_visual(before,*actual,target,alpha,top,cleanup);
     if(!prepared.accepted){result.reason=prepared.reason;return result;}
     if(!cleanup&&!allowed_by_guard(guard,result.reason))return result;
-    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),Operation::Visual,before,target,alpha,top,std::move(cleanup),std::move(before_issue));
+    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),Operation::Visual,before,target,alpha,top,std::move(cleanup),std::move(before_issue),std::move(capture));
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
     result.visual_after.reset();result.post_observed_qpc=0;
     {std::lock_guard lock(work->mutex);result.call_id=work->id;result.native_attempted=work->attempted;result.native_succeeded=work->succeeded;
         result.completion_known=work->known;result.error=work->error;result.before_qpc=work->before;result.after_qpc=work->after;result.reason=work->reason;result.visual_native=work->visual_native;}
-    if(result.completion_known)observe_auxiliary(result,settings);return result;
+    if(result.completion_known)observe_auxiliary(result,settings,work->capture);return result;
 }
 
 WindowWriter::Receipt WindowWriter::lower(const Snapshot& expected,const v::Settings& settings,Guard guard){
@@ -484,7 +510,7 @@ WindowWriter::Receipt WindowWriter::lower(const Snapshot& expected,const v::Sett
 }
 
 WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
-    const Rect& desired, const core::v1::Settings& settings, Guard guard) {
+    const Rect& desired, const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture) {
     Receipt result = rejected(expected, desired, "not_attempted");
     if (!native_rect(desired)) {
         result.reason = "invalid_or_out_of_native_range_target";
@@ -497,6 +523,7 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
         return result;
     }
     result.before = *before;
+    if(capture&&!geometry_gui_context_allowed(*before,observe_gui_context(*before),capture,GeometryContextPhase::BeforeNativeCall,&result.reason))return result;
     const auto prepared = prepare(expected, *before, desired);
     result.identity_valid = prepared.identity_valid;
     if (!prepared.accepted || !prepared.positioning) { result.reason = prepared.reason; return result; }
@@ -512,7 +539,7 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
 
     const auto& native = *prepared.positioning;
     if (!allowed_by_guard(guard, result.reason)) return result;
-    const auto work=executor_->execute(*before,native,desired,std::move(guard));
+    const auto work=executor_->execute(*before,native,desired,std::move(guard),Operation::Placement,{},{},false,false,std::nullopt,{},std::move(capture));
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
     {
         std::lock_guard lock(work->mutex);
@@ -528,10 +555,12 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     result.identity_valid = result.after && Catalog::same(*before, *result.after);
     result.geometry_exact = result.identity_valid && result.after->visible == desired &&
         result.after->positioning == native;
+    const bool context=observe_capture_completion(result,work->capture);
     if (!result.native_succeeded) result.reason = "native_placement_failed";
     else if (!result.after) result.reason = "postverify_" + capture_reason;
     else if (!result.identity_valid) result.reason = "identity_changed_after_native_attempt";
     else if (!result.geometry_exact) result.reason = "native_geometry_not_exact_constraints_unattributed";
+    else if (!context) result.reason=result.post_context_reason;
     else if (!result.after_qpc) result.reason = "native_completion_clock_unavailable";
     else { result.accepted = true; result.reason = "exact_native_completion"; }
     return result;
@@ -539,7 +568,7 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
 
 std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot> identities,
     std::span<const core::v1::Placement> placements,
-    const core::v1::Settings& settings, Guard guard) {
+    const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture) {
     std::vector<Receipt> result;
     // Bound the product batch, independently of the untrusted native desktop.
     if (identities.empty() || identities.size() > 256 || placements.empty() ||
@@ -571,6 +600,9 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
             result.push_back(rejected(expected, expected.visible, "batch_preflight_" + reason));
             return result;
         }
+        if(capture&&!geometry_gui_context_allowed(*current,observe_gui_context(*current),capture,GeometryContextPhase::BeforeNativeCall,&reason)){
+            result.push_back(rejected(expected,expected.visible,"batch_preflight_"+reason));return result;
+        }
         const auto placement = std::find_if(placements.begin(), placements.end(),
             [&](const auto& target) { return target.id == expected.key; });
         if (placement != placements.end()) {
@@ -585,7 +617,7 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
     for (const auto& placement : placements) {
         const auto expected = std::find_if(identities.begin(), identities.end(),
             [&](const auto& member) { return member.key == placement.id; });
-        result.push_back(place(*expected, placement.visible, settings, guard));
+        result.push_back(place(*expected, placement.visible, settings, guard,capture));
         if (!result.back().accepted) break;
     }
     return result;

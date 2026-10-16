@@ -251,6 +251,77 @@ GuiContext observe_gui_context(const Snapshot& expected) {
     return result;
 }
 
+namespace {
+struct CaptureGuiObservation {
+    bool source_identity{},overlay_identity{},source_known{},owner_known{};
+    GUITHREADINFO source{sizeof(GUITHREADINFO)},owner{sizeof(GUITHREADINFO)};
+    HWND foreground_before{},foreground_after{};
+};
+// The same fact decision is used by actual platform observation and the
+// deterministic offline checks below. It does not grant target eligibility.
+bool capture_context_facts_allowed(const Snapshot& target,const GuiContext& target_gui,
+    const GestureCaptureLease& lease,GeometryContextPhase phase,
+    const CaptureGuiObservation& actual,std::string* why){
+    const auto reject=[&](const char* reason){if(why)*why=reason;return false;};
+    if(!lease)return target_gui.idle()?true:reject("native_GUI_context_not_idle");
+    const auto& source=lease->source;
+    if(!lease->generation||!source.hwnd||!source.key||!source.pid||!source.tid||!source.born||
+       !lease->overlay||!lease->owner_pid||!lease->owner_tid)return reject("capture_lease_identity_incomplete");
+    if(!actual.source_identity||!actual.source_known)return reject("capture_source_identity_or_GUI_unknown");
+    if(actual.foreground_before!=source.hwnd||actual.foreground_after!=source.hwnd)return reject("capture_source_foreground_changed");
+    constexpr DWORD busy=GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE;
+    if(actual.source.hwndMoveSize||actual.source.hwndMenuOwner||(actual.source.flags&busy))return reject("capture_source_native_interaction_present");
+    const bool detached=lease->association_detached.load(std::memory_order_acquire);
+    const bool released=lease->own_release_confirmed.load(std::memory_order_acquire);
+    const bool normal=lease->normal_up_observed.load(std::memory_order_acquire);
+    const bool same_queue=target.pid==source.pid&&target.tid==source.tid;
+    if(target.hwnd==source.hwnd&&!Catalog::same(target,source))return reject("capture_source_catalog_identity_changed");
+    if(same_queue){
+        if(target.born!=source.born||target_gui.mode!=GuiContextMode::OwnerThread||
+           target_gui.actual.hwndMoveSize||target_gui.actual.hwndMenuOwner||(target_gui.actual.flags&busy))return reject("capture_same_queue_context_inconsistent");
+        if(target_gui.actual.hwndCapture!=actual.source.hwndCapture){
+            if(phase==GeometryContextPhase::IssuedCompletion&&normal&&
+               ((target_gui.actual.hwndCapture==lease->overlay&&!actual.source.hwndCapture)||
+                (!target_gui.actual.hwndCapture&&actual.source.hwndCapture==lease->overlay)))
+                return reject("post_native_capture_cleanup_not_yet_confirmed");
+            return reject("capture_same_queue_context_inconsistent");
+        }
+    }else if(!target_gui.idle())return reject("capture_unassociated_target_not_idle");
+    if(actual.source.hwndCapture==lease->overlay){
+        if(!actual.overlay_identity||!actual.owner_known||actual.owner.hwndCapture!=lease->overlay||
+           actual.owner.hwndMoveSize||actual.owner.hwndMenuOwner||(actual.owner.flags&busy))return reject("capture_owner_identity_or_actual_capture_changed");
+        if(released||detached)return reject("capture_actual_ownership_conflicts_with_release_facts");
+        if(phase==GeometryContextPhase::BeforeNativeCall&&normal)return reject("capture_normal_UP_revoked_new_native_call");
+        return true;
+    }
+    if(actual.source.hwndCapture)return reject("capture_foreign_window_present");
+    if(phase==GeometryContextPhase::BeforeNativeCall)return reject("capture_actual_ownership_lost_before_native_call");
+    if(normal&&released&&detached)return true;
+    if(normal)return reject("post_native_capture_cleanup_not_yet_confirmed");
+    return reject("post_native_capture_lost_without_matching_normal_UP");
+}
+}
+
+bool geometry_gui_context_allowed(const Snapshot& target,const GuiContext& gui,
+    const GestureCaptureLease& lease,GeometryContextPhase phase,std::string* why){
+    if(!lease)return capture_context_facts_allowed(target,gui,lease,phase,{},why);
+    CaptureGuiObservation actual;const auto& source=lease->source;
+    actual.foreground_before=GetForegroundWindow();DWORD pid{};
+    actual.source_identity=source.hwnd&&source.pid&&source.tid&&source.born&&IsWindow(source.hwnd)&&
+        GetAncestor(source.hwnd,GA_ROOT)==source.hwnd&&GetWindowThreadProcessId(source.hwnd,&pid)==source.tid&&pid==source.pid;
+    if(actual.source_identity){
+        Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,source.pid));FILETIME born{},exit{},kernel{},user{};
+        actual.source_identity=process.get()&&WaitForSingleObject(process.get(),0)==WAIT_TIMEOUT&&
+            GetProcessTimes(process.get(),&born,&exit,&kernel,&user)&&ticks(born)==source.born;
+    }
+    actual.source_known=actual.source_identity&&GetGUIThreadInfo(source.tid,&actual.source)!=FALSE;
+    pid=0;actual.overlay_identity=lease->owner_pid==GetCurrentProcessId()&&lease->owner_tid&&lease->overlay&&
+        IsWindow(lease->overlay)&&GetWindowThreadProcessId(lease->overlay,&pid)==lease->owner_tid&&pid==lease->owner_pid;
+    actual.owner_known=actual.overlay_identity&&GetGUIThreadInfo(lease->owner_tid,&actual.owner)!=FALSE;
+    actual.foreground_after=GetForegroundWindow();
+    return capture_context_facts_allowed(target,gui,lease,phase,actual,why);
+}
+
 struct Catalog::Impl {
     DWORD owner{GetCurrentThreadId()}, own_pid{GetCurrentProcessId()};
     Security own_security{security(GetCurrentProcess())};
@@ -565,6 +636,41 @@ int main(){
     gui.actual.hwndCapture=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console capture still rejects interaction");
     gui.actual.hwndCapture=nullptr;gui.actual.hwndMoveSize=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console native move-size still rejects interaction");
     gui.actual.hwndMoveSize=nullptr;gui.actual.hwndMenuOwner=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1));check(!gui.idle(),"actual console menu still rejects interaction");
+    auto capture=std::make_shared<p::GestureCaptureContext>();capture->generation=7;
+    capture->source=snapshot;capture->source.hwnd=reinterpret_cast<HWND>(std::uintptr_t{10});
+    capture->source.pid=20;capture->source.tid=30;capture->source.born=40;capture->source.key=50;
+    capture->overlay=reinterpret_cast<HWND>(std::uintptr_t{60});capture->owner_pid=70;capture->owner_tid=80;
+    p::CaptureGuiObservation observed;observed.source_identity=observed.overlay_identity=observed.source_known=observed.owner_known=true;
+    observed.foreground_before=observed.foreground_after=capture->source.hwnd;
+    observed.source.hwndCapture=observed.owner.hwndCapture=capture->overlay;
+    p::GuiContext captured;captured.mode=Mode::OwnerThread;captured.actual.hwndCapture=capture->overlay;
+    const auto allowed=[&](const p::Snapshot& target,const p::GuiContext& context,p::GeometryContextPhase phase){why.clear();
+        return p::capture_context_facts_allowed(target,context,capture,phase,observed,&why);};
+    using Phase=p::GeometryContextPhase;
+    check(allowed(capture->source,captured,Phase::BeforeNativeCall),"actual source and shield capture facts admit only pre-native context, not target authority");
+    auto follower=capture->source;follower.hwnd=reinterpret_cast<HWND>(std::uintptr_t{11});++follower.key;
+    check(allowed(follower,captured,Phase::BeforeNativeCall),"separately admitted same-PID same-TID follower observes the same legal shield queue");
+    ++follower.tid;check(!allowed(follower,captured,Phase::BeforeNativeCall),"unassociated different-TID follower cannot inherit shield capture");
+    auto idle=captured;idle.actual.hwndCapture=nullptr;
+    check(allowed(follower,idle,Phase::BeforeNativeCall),"different-TID participant must remain independently idle while source capture is exact");
+    observed.owner.hwndCapture=nullptr;
+    check(!allowed(capture->source,captured,Phase::BeforeNativeCall),"source capture alone cannot replace actual shield-owner capture readback");
+    observed.owner.hwndCapture=capture->overlay;observed.source.hwndCapture=nullptr;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall),"idle after actual capture loss never admits a new native call before Lost delivery");
+    capture->normal_up_observed=true;
+    check(!allowed(capture->source,idle,Phase::IssuedCompletion)&&why=="post_native_capture_cleanup_not_yet_confirmed",
+        "actual normal UP without confirmed release and detach is explicit post-native unknown, not completion PASS");
+    capture->own_release_confirmed=true;
+    check(!allowed(capture->source,idle,Phase::IssuedCompletion),"release without actual detach still cannot claim clean issued context");
+    capture->association_detached=true;
+    check(allowed(capture->source,idle,Phase::IssuedCompletion)&&!allowed(capture->source,idle,Phase::BeforeNativeCall),
+        "actual normal UP plus release and detach permits issued observation but never restores new-call admission");
+    check(!allowed(capture->source,captured,Phase::IssuedCompletion)&&why=="post_native_capture_cleanup_not_yet_confirmed",
+        "post-native snapshot crossing normal release is not silently accepted as fresh capture");
+    observed.source.hwndCapture=reinterpret_cast<HWND>(std::uintptr_t{99});idle.actual.hwndCapture=observed.source.hwndCapture;
+    check(!allowed(capture->source,idle,Phase::IssuedCompletion),"normal-UP cleanup facts cannot authorize actual foreign capture");
+    observed.source.hwndCapture=nullptr;idle.actual.hwndCapture=nullptr;observed.foreground_after=nullptr;
+    check(!allowed(capture->source,idle,Phase::IssuedCompletion),"issued geometry does not hide an actual foreground-context change");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";return failures?1:0;
 }
 #endif

@@ -29,11 +29,29 @@ namespace panebind::platform::windows::product {
 namespace v=core::v1;
 namespace g=core::geometry;
 namespace m=core::magnet;
+namespace o=panebind::platform::windows::operations;
 namespace fs=std::filesystem;
 namespace {
 constexpr wchar_t app_class[]=L"PaneBind.V1.Application";
 constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31, queued_command_message=WM_APP+32;
 constexpr UINT menu_pause=500,menu_settings=501,menu_exclude=502,menu_help=503,menu_diagnostic=504,menu_exit=505;
+const char* shield_event_name(o::GestureShieldEventKind kind){
+    using K=o::GestureShieldEventKind;
+    switch(kind){
+    case K::RawMouse:return "raw_mouse";case K::LegacyLeftUp:return "legacy_left_up";
+    case K::IsolationReady:return "isolation_ready";case K::IsolationGone:return "isolation_gone";
+    case K::CaptureReady:return "capture_ready";case K::CaptureFailure:return "capture_failure";
+    case K::CaptureLost:return "capture_lost";case K::CaptureReleased:return "capture_released";
+    case K::ThreadAssociated:return "thread_associated";case K::ThreadDetached:return "thread_detached";
+    case K::ThreadAssociationFailure:return "thread_association_failure";
+    case K::ThreadAssociationAttempt:return "thread_association_attempt";
+    case K::ThreadAssociationPrepared:return "thread_association_prepared";
+    case K::CaptureReleaseAttempt:return "capture_release_attempt";
+    case K::HotkeyStop:return "hotkey_stop";case K::Deadline:return "deadline";
+    case K::ContextLost:return "context_lost";case K::ResourceFailure:return "resource_failure";
+    case K::OverlayMouseRoute:return "overlay_mouse_route";case K::LegacyLeftUpRejected:return "legacy_up_rejected";
+    }return "unknown";
+}
 std::string mouse_up_callback_json(const MouseUpCallbackSnapshot& value){
     if(!value.known)return "{\"snapshot_known\":false,\"callback_count\":null,\"last\":null}";
     const auto prefix="{\"snapshot_known\":true,\"callback_count\":"+std::to_string(value.callback_count)+",\"last\":";
@@ -258,16 +276,25 @@ public:
         for(auto& s:identities)if(gesture&&gesture->expected.contains(s.key))s=gesture->expected[s.key];
         ++operations;
         if(stopping||!settings.enabled)return false;
-        const bool terminal_motion=gesture&&gesture->down.generation==generation&&gesture->normal_up_motion_consumed;
-        const bool completed_normal_up=completion&&(terminal_motion||
-            (!gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp));
+        // Release-to-commit docking is an explicitly discrete command. An UP
+        // receipt never authorizes a new continuous Move/Resize placement,
+        // including a plan whose GUI consumer lagged behind the input owner.
+        const bool completed_normal_up=completion&&plan.reason=="normal_up_dock"&&
+            !gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp;
+        if(completion&&!completed_normal_up)return false;
         const HWND authority_source=gesture?gesture->down.prepared->source.hwnd:completed_normal_up&&!identities.empty()?identities.front().hwnd:nullptr;
-        const auto receipts=writer.batch(identities,plan.placements,settings,input.operation_guard(generation,completed_normal_up,authority_source));
+        const auto receipts=writer.batch(identities,plan.placements,settings,
+            input.operation_guard(generation,completed_normal_up,authority_source),
+            completed_normal_up?GestureCaptureLease{}:input.capture_context(generation));
         bool ok=receipts.size()==plan.placements.size();
-        bool any_attempt=false,only_revocation=!receipts.empty();
+        bool only_terminal_withdrawal=!receipts.empty();
         for(const auto& receipt:receipts){
-            any_attempt=any_attempt||receipt.native_attempted;
-            only_revocation=only_revocation&&receipt.reason=="operation_revoked_before_native_attempt";
+            const bool cleanup_transition=receipt.native_attempted&&receipt.native_succeeded&&receipt.completion_known&&
+                receipt.identity_valid&&receipt.geometry_exact&&
+                receipt.post_context_reason=="post_native_capture_cleanup_not_yet_confirmed";
+            only_terminal_withdrawal=only_terminal_withdrawal&&(
+                (receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact)||
+                receipt.reason=="operation_revoked_before_native_attempt"||cleanup_transition);
             if(receipt.native_attempted)++native_attempts;
             if(receipt.native_attempted){
                 if(receipt.completion_known)input_post_timing.observe_qpc(observed_qpc,receipt.post_observed_qpc,input.counter_frequency());
@@ -287,6 +314,9 @@ public:
                 ",\"reason\":\""+escaped(receipt.reason)+"\",\"native_before_qpc\":"+std::to_string(receipt.before_qpc)+
                 ",\"native_after_qpc\":"+std::to_string(receipt.after_qpc)+",\"authority_after\":"+(generation&&input.allowed(generation)?"true":"false")+
                 ",\"post_observed_qpc\":"+std::to_string(receipt.post_observed_qpc)+
+                ",\"post_context_checked\":"+(receipt.post_context_checked?"true":"false")+
+                ",\"post_context_valid\":"+(receipt.post_context_valid?"true":"false")+
+                ",\"post_context_reason\":\""+escaped(receipt.post_context_reason)+"\""+
                 ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
                 ",\"normal_up_completion\":"+(completion?"true":"false"));
             if(receipt.after&&receipt.identity_valid&&gesture)gesture->expected[receipt.before.key]=*receipt.after;
@@ -294,7 +324,11 @@ public:
                 last_exact_receipts[receipt.before.key]=*receipt.after;
             ok=ok&&receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact;
         }
-        last_apply_revoked_only=!ok&&!any_attempt&&only_revocation;
+        // A completed exact prefix remains an actual completion, even if UP
+        // retires the next admission or the capture-release receipt is still
+        // being published. Keep that UNKNOWN context separate from a native
+        // failure, and let the actual terminal event choose the end reason.
+        last_apply_revoked_only=!ok&&generation&&!input.allowed(generation)&&only_terminal_withdrawal;
         return ok;
     }
     std::vector<LayoutRecord>* owned_layout(const Snapshot& actual){
@@ -353,7 +387,8 @@ public:
         auto guard=cleanup?WindowWriter::Guard{[cleanup_claim]{return cleanup_claim->load();}}:
             input.operation_guard(generation,false,generation?identity.hwnd:nullptr);
         const auto receipt=writer.visual(identity,before,target,alpha_change,top_change,settings,std::move(guard),cleanup_owned,
-            [this](HANDLE completion){return recovery.defer_until_native_completion(completion);});
+            [this](HANDLE completion){return recovery.defer_until_native_completion(completion);},
+            cleanup?GestureCaptureLease{}:input.capture_context(generation));
         *cleanup_claim=false;
         bool acknowledged=false;
         if(!receipt.completion_known&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
@@ -618,6 +653,10 @@ public:
     void command(v::Action action,std::optional<Snapshot> target={});
     void prepare();
     void begin(const InputEvent&);
+    bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation)const {
+        return geometry_gui_context_allowed(source,observe_gui_context(source),input.capture_context(generation),
+            GeometryContextPhase::BeforeNativeCall);
+    }
     void motion(const InputEvent&,bool normal_up_completion=false);
     void refresh_targets(){
         if(!gesture)return;auto& targets=gesture->targets;
@@ -1024,7 +1063,7 @@ void Application::seam_timeout(UINT_PTR timer){
     const auto source=gesture->operation_source;
     const auto current=catalog.get(source.hwnd,settings);
     if(!current||!Catalog::same(source,*current)||GetForegroundWindow()!=source.hwnd){finish(v::End::FocusLost);return;}
-    if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
+    if(!gesture_gui_allowed(source,generation)){finish(v::End::FocusLost);return;}
     for(const auto& [key,expected]:gesture->expected){
         (void)key;const auto actual=catalog.get(expected.hwnd,settings);
         if(!actual||!Catalog::same(expected,*actual)||actual->visible!=expected.visible||actual->positioning!=expected.positioning||
@@ -1050,7 +1089,7 @@ void Application::request_native_restore(const InputEvent& move){
     WINDOWPLACEMENT placement{sizeof(placement)};
     if(!fresh||!Catalog::same(original,*fresh)||!fresh->maximized||fresh->visible!=original.visible||
         fresh->positioning!=original.positioning||GetForegroundWindow()!=original.hwnd||
-        !observe_gui_context(original).idle()||
+        !gesture_gui_allowed(original,move.generation)||
         !GetWindowPlacement(original.hwnd,&placement)||placement.showCmd!=SW_SHOWMAXIMIZED||
         placement.rcNormalPosition.right<=placement.rcNormalPosition.left||placement.rcNormalPosition.bottom<=placement.rcNormalPosition.top){
         finish(v::End::SourceLost);return;
@@ -1079,7 +1118,7 @@ void Application::restore_progress(){
     const auto fresh=catalog.get(original.hwnd,settings);
     if(!fresh||!Catalog::same(original,*fresh)||GetForegroundWindow()!=original.hwnd){finish(v::End::SourceLost);return;}
     if(fresh->maximized||fresh->minimized)return;
-    if(!observe_gui_context(*fresh).idle()){finish(v::End::FocusLost);return;}
+    if(!gesture_gui_allowed(*fresh,gesture->down.generation)){finish(v::End::FocusLost);return;}
     auto normal=fresh->visible;
     if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
     const auto anchor=v::restored_move_anchor(original.visible,normal,{gesture->down.point.x,gesture->down.point.y});
@@ -1113,6 +1152,9 @@ void Application::restore_timeout(UINT_PTR timer){
     }
 }
 void Application::motion(const InputEvent& e,bool normal_up_completion){
+    // Already-issued native calls keep their actual completion receipt. This
+    // dispatcher may not turn a terminal input sample into a new native call.
+    if(normal_up_completion)return;
     if(!gesture||!epoch.motion(e.generation)||!input.motion_allowed(e,normal_up_completion,gesture->normal_up_motion_consumed))return;
     // Claim the real terminal observation once in the serialized dispatcher.
     // The native guard independently rechecks the shared capability, so a new
@@ -1127,7 +1169,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     }
     auto& state=*gesture;const auto& config=state.config;const auto source=state.operation_source;const auto fresh=catalog.get(source.hwnd,settings);
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
-    if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
+    if(!gesture_gui_allowed(source,e.generation)){finish(v::End::FocusLost);return;}
     refresh_targets();
     if(motion_point_already_exact(e,normal_up_completion,state.exact_motion)){
         // A duplicate physical cursor is not a new motion quantum. Re-solving
@@ -1291,15 +1333,70 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
 void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
     const auto flush=[&]{if(latest_move){motion(*latest_move);latest_move.reset();}};
     while(input.pop(e)){
+    if(e.kind==InputKind::Resource&&e.resource_event){
+        flush();const auto& fact=*e.resource_event;const auto& capture=fact.capture;
+        const auto& association=capture.association;
+        const auto boolean=[](bool value){return value?"true":"false";};
+        const auto handle=[](HWND value){return std::to_string(reinterpret_cast<std::uintptr_t>(value));};
+        // These are immutable receipts drained on the GUI thread. Never do
+        // disk IO in the input/resource callback or infer a common native
+        // ordering merely from the order of these JSONL lines.
+        if(diagnostic||fact.kind!=o::GestureShieldEventKind::RawMouse||
+            (fact.raw_button_flags&RI_MOUSE_LEFT_BUTTON_UP))
+            log.event("gesture_input_resource","\"generation\":"+std::to_string(fact.generation)+
+                ",\"fact\":\""+shield_event_name(fact.kind)+"\",\"receipt_not_write_authority\":true"+
+                ",\"resource_observed_qpc\":"+std::to_string(e.resource_observed_qpc)+
+                ",\"source\":"+handle(fact.consumed_down.gesture.source)+
+                ",\"source_pid\":"+std::to_string(fact.consumed_down.gesture.process_id)+
+                ",\"source_tid\":"+std::to_string(fact.consumed_down.gesture.thread_id)+
+                ",\"overlay\":"+handle(fact.overlay)+",\"foreground\":"+handle(fact.observed_foreground)+
+                ",\"native_message\":"+std::to_string(fact.route_message)+
+                ",\"native_message_time\":"+std::to_string(fact.message_time)+
+                ",\"raw_sequence\":"+std::to_string(fact.raw_sequence)+
+                ",\"raw_button_flags\":"+std::to_string(fact.raw_button_flags)+
+                ",\"actual_legacy_up_accepted\":"+boolean(fact.legacy_up_accepted)+
+                ",\"legacy_up_dispatch_qpc\":"+std::to_string(fact.legacy_up_dispatch_qpc)+
+                ",\"capture_attempted\":"+boolean(capture.attempted)+
+                ",\"SetCapture_previous_HWND\":"+handle(capture.previous)+
+                ",\"capture_actual_after\":"+handle(capture.actual_after)+
+                ",\"capture_failure\":"+std::to_string(static_cast<unsigned>(capture.failure))+
+                ",\"release_attempted\":"+boolean(capture.release_attempted)+
+                ",\"release_completed\":"+boolean(capture.release_completed)+
+                ",\"release_succeeded\":"+boolean(capture.release_succeeded)+
+                ",\"capture_after_release\":"+handle(capture.release_after)+
+                ",\"release_before_qpc\":"+std::to_string(capture.release_before_qpc)+
+                ",\"release_after_qpc\":"+std::to_string(capture.release_after_qpc)+
+                ",\"attach_attempted\":"+boolean(association.attach_attempted)+
+                ",\"attach_completed\":"+boolean(association.attach_completed)+
+                ",\"attach_succeeded\":"+boolean(association.attach_succeeded)+
+                ",\"attach_before_qpc\":"+std::to_string(association.attach_before_qpc)+
+                ",\"attach_after_qpc\":"+std::to_string(association.attach_after_qpc)+
+                ",\"detach_attempted\":"+boolean(association.detach_attempted)+
+                ",\"detach_completed\":"+boolean(association.detach_completed)+
+                ",\"detach_succeeded\":"+boolean(association.detach_succeeded)+
+                ",\"detach_before_qpc\":"+std::to_string(association.detach_before_qpc)+
+                ",\"detach_after_qpc\":"+std::to_string(association.detach_after_qpc)+
+                ",\"setup_stage\":"+std::to_string(static_cast<unsigned>(fact.setup_stage))+
+                ",\"native_failure\":"+std::to_string(static_cast<unsigned>(fact.native_failure))+
+                ",\"removal_reason\":"+std::to_string(static_cast<unsigned>(fact.removal_reason))+
+                ",\"overlay_destroyed\":"+boolean(fact.overlay_destroyed)+
+                ",\"hotkey_unregistered\":"+boolean(fact.hotkey_unregistered)+
+                ",\"win32_error\":"+std::to_string(fact.win32_error));
+        continue;
+    }
     // Receipt of an already-normalized hook observation, not a reconstruction
     // from async key state. Keep a retired generation's real matching UP
     // visible without recreating its gesture or granting write permission.
     if(diagnostic&&(e.kind==InputKind::Down||e.kind==InputKind::Mapped||e.kind==InputKind::Up))
-        log.event("input_button_observed","\"source\":\"WH_MOUSE_LL\",\"kind\":\""+
+        log.event("input_button_observed","\"source\":\""+
+            std::string(e.origin==InputOrigin::ShieldLegacy?"shield_queued_legacy":e.origin==InputOrigin::MouseHook?"WH_MOUSE_LL":"platform_abort")+
+            "\",\"kind\":\""+
             std::string(e.kind==InputKind::Up?"UP":"DOWN")+"\",\"generation\":"+std::to_string(e.generation)+
             ",\"route\":\""+(e.action!=v::Action::None?"mapped":"gesture")+"\",\"action\":\""+
             std::string(v::action_name(e.action))+"\",\"action_enum\":"+std::to_string(static_cast<unsigned>(e.action))+
             ",\"button\":"+std::to_string(e.button)+",\"hook_observed_qpc\":"+std::to_string(e.hook_observed_qpc)+
+            ",\"native_message_time\":"+std::to_string(e.native_message_time)+
+            ",\"resource_observed_qpc\":"+std::to_string(e.resource_observed_qpc)+
             ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
             ",\"event_end\":"+std::to_string(static_cast<unsigned>(e.end))+
             ",\"gesture_generation_active_at_GUI_receive\":"+(gesture&&gesture->down.generation==e.generation?"true":"false")+
@@ -1321,10 +1418,10 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             ",\"native_success_not_inferred_from_handler_return\":true");
     }
     else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation){
-        // Queued MOVE has already been discarded after hook-side revocation.
-        // Only this actual same-generation NormalUp may submit one final plan
-        // from the original DOWN anchor and the observed UP cursor position.
-        if(e.end==v::End::NormalUp)motion(e,true);
+        // Queued continuous MOVE is retired by the input-side UP barrier.
+        // finish() may commit an already-armed discrete dock preview, never a
+        // late continuous motion plan. In-flight completion is observed by the
+        // writer's existing exact receipt path, not recreated from this UP.
         if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);
     }}
     else if(e.kind==InputKind::Abort){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}
@@ -1474,6 +1571,10 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.s
         std::string(native_writer_exited?"true":"false")+",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false")+
         ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false")+
+        ",\"guest_capture_route_used\":"+(input.capture_route_enabled()?"true":"false")+
+        ",\"own_input_resources_stopped\":"+(!input.capture_route_enabled()||input.capture_stop_facts().clean()?"true":"false")+
+        ",\"own_capture_released\":"+(input.capture_route_enabled()?(input.capture_stop_facts().capture_released?"true":"false"):"null")+
+        ",\"own_input_association_detached\":"+(input.capture_route_enabled()?(input.capture_stop_facts().association_detached?"true":"false"):"null")+
         ",\"mouse_up_callbacks\":"+mouse_up_callback_json(input.mouse_up_callbacks()));
 }
 LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
@@ -1675,6 +1776,8 @@ int run(HINSTANCE instance,const wchar_t*){
         if(!app.input.start(app.window)){app.settings.enabled=false;app.notify(L"输入资源或紧急热键初始化失败，增强保持暂停。");}
         app.input.pause(!app.settings.enabled);app.register_keys();app.prepare();
         app.log.event("startup","\"entry\":\"production_gui\",\"integrity\":\"medium\",\"elevated\":false,\"initiator\":\"not_collected\"");
+        app.log.event("input_route","\"guest_consumed_down_capture\":"+std::string(app.input.capture_route_enabled()?"true":"false")+
+            ",\"reason\":\""+escaped(app.input.capture_route_reason())+"\",\"initialization_success_not_function_PASS\":true");
         if(!app.problem.empty())app.notify(app.problem);
         // An explicit ordinary launch must be discoverable even when the
         // shell cannot publish our notification icon. Background login and

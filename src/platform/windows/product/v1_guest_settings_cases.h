@@ -275,7 +275,7 @@ void settings_guest_startup(State& s){
             stopped.find("\"quit_command_completed\":true")!=stopped.npos&&stopped.find("\"process_exit_observed\":true")!=stopped.npos&&
             stopped.find("\"product_exit_code\":0")!=stopped.npos&&shutdown.find("\"own_hooks_stopped\":true")!=shutdown.npos&&
             shutdown.find("\"own_overlay_destroyed\":true")!=shutdown.npos&&shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&
-            shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&recovery.find("\"actual_down_up_delivered\":true")!=recovery.npos,
+            shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&input_resource_stop_observed(shutdown)&&recovery.find("\"actual_down_up_delivered\":true")!=recovery.npos,
             "\"actual_shutdown\":"+quote(shutdown)+",\"actual_post_stop_input\":"+quote(recovery));
     };
     try{for(const bool enabled:{true,false}){const auto gui=gui_open(s);gui_page_select(s,gui,0);

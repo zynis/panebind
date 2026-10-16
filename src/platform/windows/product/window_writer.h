@@ -28,6 +28,10 @@ public:
         // successful completion; the native facts below remain independent.
         bool accepted{}, native_attempted{}, native_succeeded{}, completion_known{true};
         bool identity_valid{}, geometry_exact{};
+        // An issued native result and its exact geometry remain facts even
+        // while normal-UP capture cleanup is not yet confirmed.
+        bool post_context_checked{},post_context_valid{};
+        std::string post_context_reason;
         DWORD error{};
         Snapshot before;
         std::optional<Snapshot> after;
@@ -88,11 +92,11 @@ public:
     [[nodiscard]] std::vector<Receipt> take_delayed_completions(const core::v1::Settings&);
     [[nodiscard]] Receipt place(const Snapshot& expected,
         const core::v1::Rect& desired, const core::v1::Settings& settings,
-        Guard guard);
+        Guard guard,GestureCaptureLease capture={});
     [[nodiscard]] Receipt visual(const Snapshot&,const core::v1::VisualState& before,
         const core::v1::VisualState& target,bool alpha_change,bool top_change,
         const core::v1::Settings&,Guard,std::optional<core::v1::VisualOwnership> cleanup_owned=std::nullopt,
-        BeforeIssue before_issue={});
+        BeforeIssue before_issue={},GestureCaptureLease capture={});
     [[nodiscard]] Receipt lower(const Snapshot&,const core::v1::Settings&,Guard);
 
     // Prevalidate every supplied identity before any placement. There is no
@@ -100,10 +104,10 @@ public:
     // the first rejection/failure, and do not issue the remaining placements.
     [[nodiscard]] std::vector<Receipt> batch(std::span<const Snapshot> identities,
         std::span<const core::v1::Placement> placements,
-        const core::v1::Settings& settings, Guard guard);
+        const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture={});
 
 private:
-    void observe_auxiliary(Receipt&,const core::v1::Settings&);
+    void observe_auxiliary(Receipt&,const core::v1::Settings&,const GestureCaptureLease& capture={});
     Catalog& catalog_;
     struct NativeExecutor;
     std::unique_ptr<NativeExecutor> executor_;

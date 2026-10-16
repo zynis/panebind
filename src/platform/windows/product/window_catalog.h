@@ -11,6 +11,7 @@
 #include <windows.h>
 
 #include <cstdint>
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <string>
@@ -59,6 +60,25 @@ struct GuiContext {
 // succeed and identify this same active root between matching foreground reads.
 // Background console followers and every unknown result remain rejected.
 [[nodiscard]] GuiContext observe_gui_context(const Snapshot&);
+
+// Platform-only, one actual CaptureReady generation. Identity is immutable
+// after publication. These independent facts never grant window authority:
+// InputService still owns the final generation/stop admission guard.
+struct GestureCaptureContext {
+    std::uint64_t generation{};
+    Snapshot source;
+    HWND overlay{};
+    DWORD owner_tid{},owner_pid{};
+    mutable std::atomic<bool> normal_up_observed{},own_release_confirmed{},association_detached{};
+};
+using GestureCaptureLease=std::shared_ptr<const GestureCaptureContext>;
+enum class GeometryContextPhase { BeforeNativeCall,IssuedCompletion };
+// Without a lease this retains the existing idle-only policy. With a lease,
+// every new call needs ACTUAL own capture; idle is not a fallback. A target on
+// the source's same PID/TID sees the same GUI queue, but still needs its own
+// independent Catalog/plan admission. No other target gets capture authority.
+[[nodiscard]] bool geometry_gui_context_allowed(const Snapshot&,const GuiContext&,
+    const GestureCaptureLease&,GeometryContextPhase,std::string* why=nullptr);
 
 // Product admission is deliberately independent of owned/Explorer test tokens.
 // Construct, use and destroy on the same already-initialized UI STA. Its normal

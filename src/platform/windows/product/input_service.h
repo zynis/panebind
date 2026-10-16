@@ -1,6 +1,7 @@
 #pragma once
 #include "window_catalog.h"
 #include "core/v1/timing_histogram.h"
+#include "platform/windows/operations/gesture_input_shield.h"
 #include <array>
 #include <atomic>
 #include <functional>
@@ -9,6 +10,15 @@
 
 namespace panebind::platform::windows::product {
 constexpr UINT input_message=WM_APP+41, prepare_message=WM_APP+42, catalog_message=WM_APP+43;
+constexpr std::uint64_t input_pending_capture_mask=std::uint64_t{1}<<63;
+inline bool arm_exact_capture_generation(std::atomic<std::uint64_t>& authority,std::uint64_t generation){
+    if(!generation||(generation&input_pending_capture_mask))return false;
+    auto pending=generation|input_pending_capture_mask;return authority.compare_exchange_strong(pending,generation);
+}
+inline bool captured_release_can_complete(bool resources_clean,bool actual_normal_up,bool aborted,
+                                         bool same_down_serial,bool available){
+    return resources_clean&&actual_normal_up&&!aborted&&same_down_serial&&available;
+}
 struct Prepared {
     Snapshot source;
     POINT point{};
@@ -93,7 +103,7 @@ inline bool finish_exact_generation(std::atomic<std::uint64_t>& active,std::atom
                                     std::uint64_t generation,core::v1::End reason){
     if(reason!=core::v1::End::NormalUp)return revoke_exact_generation(active,completion,generation);
     if(!generation)return false;
-    // The actual matching UP already published its separate terminal token.
+    // The actual matching UP already published its separate release-dock token.
     // Retiring the GUI's older gesture must not revoke a newer hook DOWN.
     auto expected=generation;return active.compare_exchange_strong(expected,0);
 }
@@ -107,7 +117,8 @@ inline core::v1::End matching_up_end(bool aborted,core::v1::End observed_end,
     if(!foreground_matches)return core::v1::End::FocusLost;
     return core::v1::End::NormalUp;
 }
-enum class InputKind { Down, Move, Up, Abort, Mapped };
+enum class InputKind { Down, Move, Up, Abort, Mapped, Resource };
+enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource };
 struct InputEvent {
     InputKind kind{};
     POINT point{};
@@ -120,22 +131,25 @@ struct InputEvent {
     // Actual QPC at the beginning of this mouse-hook observation. Zero means
     // no such observation (e.g. WinEvent abort), never an invented timestamp.
     std::uint64_t hook_observed_qpc{};
+    InputOrigin origin{InputOrigin::MouseHook};
+    DWORD native_message_time{};
+    std::uint64_t resource_observed_qpc{};
+    std::shared_ptr<const operations::GestureShieldEvent> resource_event;
 };
-// Same dispatcher predicate as the production motion path. The terminal
-// capability is distinct from active input authority and never revives queued
-// MOVE events after the hook has observed UP.
+// Same dispatcher predicate as the production motion path. A release-only
+// docking command is not permission to submit continuous motion after UP.
 inline bool dispatch_motion_permission(const InputEvent& event,bool terminal,
                                       std::uint64_t active,std::uint64_t completion,
                                       bool available,bool terminal_consumed){
     if(!event.generation)return false;
-    if(terminal)return !terminal_consumed&&event.kind==InputKind::Up&&
-        event.end==core::v1::End::NormalUp&&
-        operation_permission(event.generation,active,completion,available,true);
+    (void)terminal_consumed;
+    if(terminal)return false;
     return event.kind==InputKind::Move&&operation_permission(event.generation,active,completion,available,false);
 }
 // Serialized GUI progress, recorded only after every placement in a quantum
-// was actually exact. This is not input authority: active MOVE/normal UP still
-// need their respective permissions and every participant's fresh actual frame.
+// was actually exact. It is not input authority: active MOVE still requires
+// active permission and every participant's fresh actual frame. UP never
+// authorizes a new continuous quantum (including an unconsumed cursor).
 struct ExactMotionPoint {std::uint64_t generation{};POINT point{};};
 inline bool motion_point_already_exact(const InputEvent& event,bool terminal,
                                       const std::optional<ExactMotionPoint>& exact){
@@ -210,12 +224,16 @@ public:
             available_->load()&&!paused_,terminal_consumed);
     }
     void revoke(core::v1::End reason=core::v1::End::SourceLost){
+        if(reason!=core::v1::End::NormalUp)retire_capture_pair(0,reason);
         if(reason!=core::v1::End::NormalUp)*completion_=0;
         const auto retired=authorized_->exchange(0);const auto id=thread_id_.load();
-        if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(retired),static_cast<LPARAM>(reason));
+        if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(retired&~pending_capture_mask),static_cast<LPARAM>(reason));
     }
     bool revoke_generation(std::uint64_t generation,core::v1::End reason=core::v1::End::SourceLost){
-        const bool retired=revoke_exact_generation(*authorized_,*completion_,generation);const auto id=thread_id_.load();
+        if(reason!=core::v1::End::NormalUp)retire_capture_pair(generation,reason);
+        bool retired=revoke_exact_generation(*authorized_,*completion_,generation);
+        auto pending=generation|pending_capture_mask;
+        retired=authorized_->compare_exchange_strong(pending,0)||retired;const auto id=thread_id_.load();
         if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(generation),static_cast<LPARAM>(reason));
         return retired;
     }
@@ -244,13 +262,23 @@ public:
     std::uint64_t counter_frequency()const{return counter_frequency_;}
     std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
     MouseUpCallbackSnapshot mouse_up_callbacks()const{return up_observation_.snapshot();}
+    GestureCaptureLease capture_context(std::uint64_t generation)const;
+    bool capture_route_enabled()const{return capture_route_enabled_;}
+    const std::string& capture_route_reason()const{return capture_route_reason_;}
+    operations::GestureShieldStopFacts capture_stop_facts()const{return capture_stop_facts_;}
 private:
+    static constexpr std::uint64_t pending_capture_mask=input_pending_capture_mask;
+    struct CaptureBridge;
     static LRESULT CALLBACK mouse(int,WPARAM,LPARAM);
     static void CALLBACK event(HWINEVENTHOOK,DWORD,HWND,LONG,LONG,DWORD,DWORD);
     static LRESULT CALLBACK receiver(HWND,UINT,WPARAM,LPARAM);
     void run();
     bool push(InputEvent);
     void abort(core::v1::End);
+    bool begin_capture(const InputEvent&);
+    void drain_capture_events();
+    void request_capture_stop(operations::GestureShieldRemovalReason);
+    void retire_capture_pair(std::uint64_t generation=0,core::v1::End reason=core::v1::End::SourceLost);
     static InputService* instance_;
     HWND owner_{},receiver_{};
     std::atomic<DWORD> thread_id_{};
@@ -287,5 +315,11 @@ private:
     core::v1::End active_end_{core::v1::End::NormalUp};
     HHOOK hook_{};
     std::array<HWINEVENTHOOK,5> events_{};
+    std::shared_ptr<CaptureBridge> capture_bridge_;
+    std::unique_ptr<operations::GestureInputShield> shield_;
+    operations::GestureShieldStopFacts capture_stop_facts_{};
+    bool capture_route_enabled_{},capture_pair_{};
+    std::optional<InputEvent> capture_pending_down_;
+    std::string capture_route_reason_{"ordinary_host_original_input_route"};
 };
 }

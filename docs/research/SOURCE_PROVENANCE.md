@@ -2329,3 +2329,55 @@ after this active DOWN, including ambiguous/same-millisecond time, revokes new
 capture authority; that observation alone cannot award NormalUp. The old
 native-handoff route retains its physical-left requirement. No code copied or
 adapted; actual captured legacy-UP and independent-exit gates remain unproven.
+
+Subsequent scoped evidence (2026-10-16): Run
+`f4814a3b2fc24894975adbce91a5721f`, source
+`37e5ffce1290f3c8e07056083e42666859eebe0d`, actually observed two successive
+consumed-DOWN owned resource lifetimes with captured legacy UP, own capture
+release and input-thread detach. Its separate early-UP, actual stop-hotkey and
+5-second owned-source pause / actual 3-second resource-deadline cases are
+indexed in `V1_ACCEPTANCE.json`. No Move writer was started. These facts permit
+integration of this second candidate, not a V1 Move/Explorer/Medium or default
+30-second-deadline PASS. The production integration retains the same resource;
+only an actual CaptureReady may promote pending authority. Resource receipts
+return through the sole input owner, and normal completion waits for actual
+legacy UP plus confirmed release/detach/removal. A separate actual registered
+input-owner stop hotkey avoids claiming a duplicate registration succeeded.
+No external implementation was copied or adapted.
+
+The former terminal-motion capability was found by source inspection to allow
+a new continuous placement after UP. That is not completion of an issued call
+and conflicts with guide section 5.2. Remove that dispatch authority; retain
+actual issued-call receipts independently and the guide's explicitly discrete
+release-to-commit docking command. Prior rapid-test outcomes retain their
+original binary, inputs and assertions, not a retroactive stronger verdict.
+
+### V1 official installation-media test assets — 2026-10-16
+
+The user supplied the existing Windows 11 Enterprise Evaluation 26200.6584
+zh-CN ISO and authorized read-only inspection for missing test applications.
+Only task-local copies were extracted; no ISO mount, host app installation or
+virtual-machine start was performed. The retained asset inventory identifies
+Notepad 11.2312.18.0, Terminal 1.18.10301.0, their resource packages and three
+matching x64 dependencies. These are the actual media versions, not a claim
+that they are the latest Store releases. Original WIM reference-count warnings
+remain preserved.
+
+The disposable local archive reader was obtained from the official
+[7-Zip 26.04 release](https://github.com/ip7z/7zip/releases/tag/26.04)
+(`ip7z/7zip`, reviewed 2026-10-16). Its `7z2604-x64.exe` digest is
+`D54BF805F9F3704D1E8DB2FA3498AE7EF2DF0312B40B558E7C71C734430A665D`.
+Inspected the release asset and bundled License.txt, not implementation code
+or project issues/PRs. The bundled license is LGPL-2.1-or-later for the main
+tool, with documented BSD-2/BSD-3 and unRAR restrictions in 7z.dll. The reader
+and its license remain local together. It is an external development tool
+only, not linked, copied or adapted into PaneBind; no tool is redistributed
+in the product package. Applicable subsystem: local official-media inspection.
+Windows SDK `IAppxFactory::CreateValidatedBlockMapReader` actually returned
+S_OK for each of the ten extracted package/blockmap/signature pairs, with
+separate per-file block checks. Notepad's EXE itself is NotSigned; package
+verification is not relabelled as an EXE Authenticode signature. No unsigned
+registration bypass or repackaged purported original MSIX is used. The assets
+remain local test inputs under their existing Windows license, are not part of
+PaneBind's MIT source/portable distribution, and still require actual guest
+registration, activation and functional validation.

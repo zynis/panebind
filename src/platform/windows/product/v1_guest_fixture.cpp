@@ -43,6 +43,15 @@
 #define PANEBIND_BUILD_SHA "unknown"
 #endif
 namespace {
+bool input_resource_stop_observed(std::string_view shutdown){
+    // Old binaries did not use this candidate resource. A new-route process
+    // must independently confirm real shield/receiver/capture/ATI cleanup;
+    // its exit code and preview-window destruction are not that evidence.
+    return shutdown.find("\"guest_capture_route_used\":true")==shutdown.npos||
+        (shutdown.find("\"own_input_resources_stopped\":true")!=shutdown.npos&&
+         shutdown.find("\"own_capture_released\":true")!=shutdown.npos&&
+         shutdown.find("\"own_input_association_detached\":true")!=shutdown.npos);
+}
 namespace fs=std::filesystem;
 namespace product=panebind::platform::windows::product;
 namespace shell=panebind::platform::windows::explorer;
@@ -697,9 +706,11 @@ std::string actual_up(State& s,std::size_t offset,std::uint64_t generation,int p
     const auto text=read(s.product_log);if(offset>=text.size())return {};
     std::istringstream rows(text.substr(offset));std::string line,observed;
     while(std::getline(rows,line))if(line.ends_with('}')&&line.find("\"type\":\"input_button_observed\"")!=line.npos&&
-        line.find("\"source\":\"WH_MOUSE_LL\"")!=line.npos&&line.find("\"kind\":\"UP\"")!=line.npos&&
+        line.find("\"kind\":\"UP\"")!=line.npos&&
         number(line,"\"generation\":")==generation&&number(line,"\"button\":")==static_cast<unsigned>(pressed_button)&&
-        number(line,"\"hook_observed_qpc\":"))observed=line;
+        ((line.find("\"source\":\"WH_MOUSE_LL\"")!=line.npos&&number(line,"\"hook_observed_qpc\":"))||
+         (pressed_button==1&&line.find("\"source\":\"shield_queued_legacy\"")!=line.npos&&
+          number(line,"\"native_message_time\":")&&number(line,"\"resource_observed_qpc\":"))))observed=line;
     return observed;
 }
 std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect expected,bool native){
@@ -1753,7 +1764,7 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     const bool stopped=WaitForSingleObject(s.process,1500)==WAIT_OBJECT_0;DWORD code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&code);
     const auto shutdown=record(s,mark,"shutdown");const bool stopped_before_source_resumed=!stall.finished;
     s.log.check("L2_own_input_resources_exit_independently",quit_command&&stopped&&code==0&&quit_started_while_blocked&&stopped_before_source_resumed&&
-        shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos,
+        shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos&&input_resource_stop_observed(shutdown),
         "\"quit_exit\":"+std::to_string(quit_exit)+",\"source_still_blocked_at_exit\":"+(stopped_before_source_resumed?"true":"false")+",\"shutdown\":"+quote(shutdown));
     s.log.emit("L2_native_completion_at_process_exit","\"native_worker_exited_reported\":"+
         std::string(shutdown.find("\"native_worker_exited\":true")!=std::string::npos?"true":"false")+
@@ -1786,7 +1797,7 @@ void cleanup(State& s){
         current_stop_confirmed=command&&stopped&&exit_code==0&&number(shutdown,"\"process_id\":")==stopped_pid&&
             shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos&&
             shutdown.find("\"native_worker_exited\":true")!=std::string::npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=std::string::npos&&
-            shutdown.find("\"visual_recovery_stopped\":true")!=std::string::npos&&shutdown.find("\"visual_restore_confirmed\":true")!=std::string::npos;
+            shutdown.find("\"visual_recovery_stopped\":true")!=std::string::npos&&shutdown.find("\"visual_restore_confirmed\":true")!=std::string::npos&&input_resource_stop_observed(shutdown);
         if(!current_stop_confirmed)s.log.failed=true;
         if(!stopped){TerminateProcess(s.process,90);WaitForSingleObject(s.process,2000);s.log.failed=true;s.log.emit("test_abort","\"own_product_forced_termination\":true,\"product_cleanup_pass\":false");}
         CloseHandle(s.process);s.process=nullptr;}
@@ -2182,7 +2193,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
         stopped.find("\"native_worker_exited\":true")!=std::string::npos&&
         stopped.find("\"issued_native_completion_unknown\":false")!=std::string::npos&&
         stopped.find("\"visual_recovery_stopped\":true")!=std::string::npos&&
-        stopped.find("\"visual_restore_confirmed\":true")!=std::string::npos,
+        stopped.find("\"visual_restore_confirmed\":true")!=std::string::npos&&input_resource_stop_observed(stopped),
         "\"product_stop\":"+quote(stop_receipt)+",\"shutdown\":"+quote(stopped)+",\"previous_global_failures_preserved\":true");
     visual_exact(s,h,173,true,"visual_normal_exit_restores_actual_original_tuple");
     s.log.check("visual_exit_helper_confirmed",record(s,stop_mark,"shutdown").find("\"visual_recovery_stopped\":true")!=std::string::npos);
@@ -2510,6 +2521,10 @@ void drive(State& s){
         s.log.check("production_create_no_window",launch(s,L"--diagnostic",false),
             "\"creation_flags\":134217728,\"actual_product\":"+quote(utf8(s.product.wstring())));
         s.log.check("production_gui_startup",wait([&]{return !record(s,0,"startup").empty();},8000));
+        const auto route=record(s,0,"input_route");
+        if(!route.empty())s.log.check("production_exact_guest_capture_route_selected",
+            route.find("\"guest_consumed_down_capture\":true")!=route.npos,
+            "\"actual_product_route_receipt\":"+quote(route)+",\"older_route_not_substituted_for_new_resource_validation\":true");
         const HWND app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};if(app)GetWindowThreadProcessId(app,&pid);
         s.log.check("single_exact_product_owner",app&&pid==s.product_pid);
         const auto mark=read(s.product_log).size();DWORD second{};
