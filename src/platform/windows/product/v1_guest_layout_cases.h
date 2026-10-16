@@ -419,11 +419,86 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
         ",\"actual\":"+rect(*visible(set.frames[n].hwnd)));
 }
 void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& expected){
-    auto& s=set.state;const auto mark=read_product(s).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
-    s.log.check("layout_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
-    Sleep(100);GUITHREADINFO gui{sizeof(gui)};bool stable=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture;
-    for(std::size_t n=0;n<expected.size();++n)stable=stable&&set.owns(n)&&visible(set.frames[n].hwnd)==expected[n];
-    s.log.check("layout_UP_actual_geometry_and_no_capture",stable,"\"generation\":"+std::to_string(g.generation));
+    auto& s=set.state;
+    // Do not perform physical evidence reads or log writes while preparing
+    // this unique UP. The already-validated cache identifies THIS layout's
+    // actual source; original-three-window authority is not substituted.
+    const bool cache_bound=s.product_evidence_path==s.product_log&&s.product_evidence.bound()&&
+        !s.product_evidence.rejected()&&s.product_evidence.pid()==s.product_pid&&s.process&&
+        s.product_evidence.birth()==process_birth(s.process);
+    const auto mark=cache_bound?s.product_evidence.text().size():std::size_t{};
+    GuestUpHookObservation head;const bool head_ready=head.start();
+    std::string snapshot="{\"status\":\"UNKNOWN\",\"reason\":\"pre_UP_snapshot_not_completed\"}";
+    try{
+        std::string ready;bool retired=false;
+        if(cache_bound)if(const auto bytes=s.product_evidence.since(g.offset)){
+            std::istringstream rows{std::string(*bytes)};std::string row;
+            while(std::getline(rows,row)){
+                if(!row.ends_with('}')||number(row,"\"process_id\":")!=s.product_pid||
+                   row.find("\"source_sha\":"+quote(s.product_source))==row.npos||
+                   number(row,"\"generation\":")!=g.generation||row.find("\"type\":\"gesture_input_resource\"")==row.npos)continue;
+                if(row.find("\"fact\":\"capture_ready\"")!=row.npos){ready=row;retired=false;}
+                else if(row.find("\"fact\":\"legacy_left_up\"")!=row.npos||row.find("\"fact\":\"capture_released\"")!=row.npos||
+                    row.find("\"fact\":\"capture_lost\"")!=row.npos||row.find("\"fact\":\"context_lost\"")!=row.npos||
+                    row.find("\"fact\":\"resource_failure\"")!=row.npos||row.find("\"fact\":\"isolation_gone\"")!=row.npos||
+                    (row.find("\"fact\":\"raw_mouse\"")!=row.npos&&(number(row,"\"raw_button_flags\":")&RI_MOUSE_LEFT_BUTTON_UP)))retired=true;
+            }
+        }
+        const HWND source=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(number(ready,"\"source\":")));
+        const HWND overlay=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(number(ready,"\"overlay\":")));
+        std::size_t member=set.active;for(std::size_t n=0;n<set.active;++n)if(set.frames[n].hwnd==source&&set.owns(n)){member=n;break;}
+        DWORD source_pid{},overlay_pid{},hit_pid{},root_pid{},foreground_pid{};
+        const DWORD source_tid=source?GetWindowThreadProcessId(source,&source_pid):0;
+        const DWORD overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;
+        const bool exact_source=member<set.active&&source_pid==GetCurrentProcessId()&&source_tid==set.thread&&
+            number(ready,"\"source_pid\":")==source_pid&&number(ready,"\"source_tid\":")==source_tid&&set.owns(member);
+        POINT point{};const bool cursor_known=GetCursorPos(&point)!=FALSE;
+        const HWND hit=cursor_known?WindowFromPoint(point):nullptr,root=hit?GetAncestor(hit,GA_ROOT):nullptr,foreground=GetForegroundWindow();
+        const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0,root_tid=root?GetWindowThreadProcessId(root,&root_pid):0;
+        const DWORD foreground_tid=foreground?GetWindowThreadProcessId(foreground,&foreground_pid):0;
+        GUITHREADINFO source_gui{sizeof(source_gui)},owner_gui{sizeof(owner_gui)},foreground_gui{sizeof(foreground_gui)};
+        const bool source_gui_known=exact_source&&GetGUIThreadInfo(source_tid,&source_gui)!=FALSE;
+        const bool owner_gui_known=overlay_tid&&GetGUIThreadInfo(overlay_tid,&owner_gui)!=FALSE;
+        const bool foreground_gui_known=foreground_tid&&GetGUIThreadInfo(foreground_tid,&foreground_gui)!=FALSE;
+        const bool shield_actual=exact_source&&!retired&&!ready.empty()&&overlay&&overlay_pid==s.product_pid&&
+            number(ready,"\"resource_observed_qpc\":")>=s.left_down_send_qpc&&s.left_down_send_qpc&&
+            number(ready,"\"capture_actual_after\":")==reinterpret_cast<std::uintptr_t>(overlay)&&
+            ready.find("\"capture_attempted\":true")!=ready.npos&&ready.find("\"capture_failure\":0,")!=ready.npos&&
+            ready.find("\"attach_succeeded\":true")!=ready.npos&&source_gui_known&&owner_gui_known&&
+            source_gui.hwndCapture==overlay&&owner_gui.hwndCapture==overlay;
+        snapshot="{\"cache_bound\":"+std::string(cache_bound?"true":"false")+",\"exact_layout_source\":"+(exact_source?"true":"false")+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+",\"source_PID\":"+std::to_string(source_pid)+",\"source_TID\":"+std::to_string(source_tid)+
+            ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(point.x)+","+std::to_string(point.y)+"]":"null")+
+            ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"hit_PID\":"+std::to_string(hit_pid)+",\"hit_TID\":"+std::to_string(hit_tid)+
+            ",\"actual_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+",\"root_PID\":"+std::to_string(root_pid)+",\"root_TID\":"+std::to_string(root_tid)+
+            ",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"foreground_PID\":"+std::to_string(foreground_pid)+",\"foreground_TID\":"+std::to_string(foreground_tid)+
+            ",\"foreground_is_exact_source\":"+(exact_source&&foreground==source?"true":"false")+
+            ",\"source_GUI_known\":"+(source_gui_known?"true":"false")+",\"source_capture\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndCapture)):"null")+
+            ",\"source_move_size\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndMoveSize)):"null")+
+            ",\"source_menu_owner\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndMenuOwner)):"null")+
+            ",\"foreground_GUI_known\":"+(foreground_gui_known?"true":"false")+",\"foreground_capture\":"+(foreground_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(foreground_gui.hwndCapture)):"null")+
+            ",\"overlay\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+",\"overlay_PID\":"+std::to_string(overlay_pid)+",\"overlay_TID\":"+std::to_string(overlay_tid)+
+            ",\"overlay_owner_GUI_known\":"+(owner_gui_known?"true":"false")+",\"overlay_owner_capture\":"+(owner_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(owner_gui.hwndCapture)):"null")+
+            ",\"exact_current_shield_capture_observed\":"+(shield_actual?"true":"false")+",\"cached_ready_not_retired\":"+(!ready.empty()&&!retired?"true":"false")+"}";
+    }catch(...){/* UNKNOWN snapshot never prevents the original unique UP. */}
+    bool observation_logged=false,up_returned=false;
+    const auto emit_observation=[&](bool stopped,bool exceptional){
+        s.log.emit("layout_single_UP_route_observation","\"generation\":"+std::to_string(g.generation)+
+            ",\"pre_UP_snapshot\":"+snapshot+",\"passive_head_ready\":"+(head_ready?"true":"false")+
+            ",\"passive_head\":"+head.json()+",\"passive_head_cleanup_confirmed\":"+(stopped?"true":"false")+
+            ",\"single_UP_attempted\":"+(s.left_up_attempted?"true":"false")+",\"single_UP_call_returned\":"+(up_returned?"true":"false")+
+            ",\"single_UP_send_before_qpc\":"+std::to_string(s.left_up_send_qpc)+",\"exceptional_path\":"+(exceptional?"true":"false")+
+            ",\"pre_UP_physical_log_IO\":false,\"extra_input_sent\":false,\"product_NormalUp_or_delivery_PASS_inferred\":false");observation_logged=true;
+    };
+    try{
+        button(s,false);up_returned=true;if(s.control)key(s,VK_CONTROL,false);
+        const bool matching=wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;});
+        const bool stopped=head.stop();emit_observation(stopped,false);
+        s.log.check("layout_actual_matching_UP",matching);
+        Sleep(100);GUITHREADINFO gui{sizeof(gui)};bool stable=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture;
+        for(std::size_t n=0;n<expected.size();++n)stable=stable&&set.owns(n)&&visible(set.frames[n].hwnd)==expected[n];
+        s.log.check("layout_UP_actual_geometry_and_no_capture",stable,"\"generation\":"+std::to_string(g.generation));
+    }catch(...){const bool stopped=head.stop();if(!observation_logged)try{emit_observation(stopped,true);}catch(...){}throw;}
 }
 
 [[maybe_unused]] void owned_layout_cases(State& s){
