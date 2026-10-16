@@ -11,12 +11,45 @@
     "runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": "afbca181ea9864eae197677b499cd29472465956",
+    "pending_runtime_sha": "eee1b7cf923eac535918c725a112fa50c7a129d6",
     "final_sha": null,
-    "implementation_inspected": "R5_ABORT_CLEANUP_SOURCE_BUILD_PASS_RUNTIME_SCOPED_FAILURES_R4_EVIDENCE_HISTORICAL",
-    "note": "历史R3/658C12 actual866的七项完整合同证据保持原身份；最新产品afbca18/cac已实际Debug组件运行但有失败，Release仅设置前台准备失败，D24原capture-loss分支未触发待验。历史R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
-    "pending_product_note": "R5 afbca18 D/R各10offline通过且已生成13df/cac新包，实际Debug局部预览/中断恢复/视觉通过但组件仍有失败，Release在设置前台检查失败未进入增强手势。D24 capture-loss分支本批未触发，不能关闭；新portable784e已生成但未运行普通入口。af0历史整对象/旧7功能与B2保持原身份，不换绑新EXE。",
+    "implementation_inspected": "R6_VISUAL_LEASE_PRODUCT_BUILD_PASS_RUNTIME_NOT_RUN_R5_SCOPED_FAILURES_HISTORICAL",
+    "note": "R6 eee1b7c产品及b701驱动已构建，现场NOT_RUN；最新实际仍为R5/90b8局部通过和失败。R3/R2七项完整功能与B29/B32保持历史身份，7/60、2/40=5%不换绑新EXE。f481只证明旧owned资源子项，不含V1会话/writer。D08、完整D23、D24未触发分支及D25复验仍开放，不授宿主试用或Full PASS。",
+    "pending_product_note": "新R6 eee1b7c已修第二shake的current capture lease及未完成owned责任，D/R产品各9offline通过，待新driver/包/现场；最新实际为R5/90b8 Debug单屏停靠拉伸子项通过，仍有真实shake失败及driver轮转/准备失败，Release未进手势。冷Release0c612已生成但未部署/未运行，不记失败；原七项功能/B2不换绑新产品。",
     "pending_candidate": {
+      "source_sha": "eee1b7cf923eac535918c725a112fa50c7a129d6",
+      "driver_source_sha": "b701abbe9aa957f70e81e7e2ee0aacaeec52693d",
+      "debug_driver_sha256": "CDFA2F712BEF16811419436DB108230F9AFC91238C84FA1EEB948ABE222A975E",
+      "release_driver_sha256": "A31596446C5647D9E80047839F6E907FB0F19AB3E5FCCE848E44AED2DDA1A5CA",
+      "driver_build_dir": "out/v1-driver-captured-layout-b90bf4e",
+      "driver_build_result": "Debug PASS_EXIT_0; Release PASS_EXIT_0",
+      "driver_guest_path_offline": "Debug1/1 proc0.14/wall0.18; Release1/1 proc0.13/wall0.25",
+      "debug_driver_ctest_output_log_sha256": "8049276199C989D94C7315A748DBD7EEE1FD3A85A7C3C593D51C7B502CD14CB5",
+      "release_driver_ctest_output_log_sha256": "0CF6BDDEF15BB575971BE85218FCFDA5FED02F920CE52B828F1F0FDE1FF61085",
+      "release_binary_sha256": "E13C106B0B63BE6B726AAC8A506D2C0E7499581186A1573AEDCB0EE40B12FCA5",
+      "debug_binary_sha256": "35DE65EB194251C5A175C7CD44CAD50967564FF03F2C4D73FCBB0724E2C9A512",
+      "build_dir": "out/v1-product-visual-lease-r6-eee1b7c",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "offline_regression": "Debug9/9 PASS; Release9/9 PASS; existing product tests excluding driver guest-path",
+      "debug_offline_processor_seconds": 1.46,
+      "debug_offline_wall_seconds": 1.55,
+      "release_offline_processor_seconds": 1.05,
+      "release_offline_wall_seconds": 1.79,
+      "debug_ctest_output_log": "out/v1-product-visual-lease-r6-eee1b7c/Debug-offline.log",
+      "debug_ctest_output_log_sha256": "A6FE76CAC43AA5F3ADEA5DFA691E8A2491A77825D62AC1C3553A55DA340EC565",
+      "release_ctest_output_log": "out/v1-product-visual-lease-r6-eee1b7c/Release-offline.log",
+      "release_ctest_output_log_sha256": "B4ABC86BE27E610A898CDC04FF5A7E08B5E960CD1E96FFFC85918788E966148C",
+      "package_generated": false,
+      "runtime_validation": "NOT_RUN",
+      "ordinary_host_trial_allowed": false,
+      "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
+      "product_code_changed_new_EXE_required": true,
+      "repair_scope": "same-generation actual capture lease retained for owned-property cleanup; unsuccessful second-shake restoration retains still-owned attributes",
+      "historical_results_rebound": false,
+      "driver_followup": "跨rotation读取修复b701 D/R构建及guest-path offline通过；现场NOT_RUN，不推定原生功能PASS。"
+    },
+    "historical_R5_candidate": {
       "source_sha": "afbca181ea9864eae197677b499cd29472465956",
       "driver_source_sha": "afbca181ea9864eae197677b499cd29472465956",
       "release_binary_sha256": "F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51",
@@ -32,7 +65,7 @@
       "debug_offline_ctest_output_log": "out/v1-product-abort-cleanup-afbca18/Debug-offline.log",
       "debug_offline_ctest_output_log_sha256": "8FA37044FAB2DE986CB58AE4086E51A81BC31393ED282C4F0B8E263D41BD7CD2",
       "release_offline_processor_seconds": 1.88,
-      "release_offline_wall_seconds": 3.20,
+      "release_offline_wall_seconds": 3.2,
       "release_offline_ctest_output_log": "out/v1-product-abort-cleanup-afbca18/Release-offline.log",
       "release_offline_ctest_output_log_sha256": "96E4619468C8488F410AADBFA8FC6D0607C2D3688844AE69D4086AF03761AE71",
       "package_generated": true,
@@ -52,6 +85,16 @@
       "product_code_changed_new_EXE_required": true,
       "repair_scope": "abort-only actual no-own-capture observation plus real detach/destruction no longer falsely poisons health; NormalUp strict own-release facts unchanged",
       "historical_results_rebound": false
+    },
+    "cold_Release_prepared_not_run": {
+      "run_id": "0c612108c54c4ccc8eddd0c4ec9558e6",
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "zip_sha256": "FBE7D5F1D8155BB8DAE34C3ED9A856A0AABE452EBE6E2FC18DC84D3A6CED5BAF",
+      "manifest_sha256": "1A9988B460572EABE6AE644341B48E0CA9583E51A514772E6FA200B56AEB55A7",
+      "deployment": "NOT_DEPLOYED",
+      "runtime": "NOT_RUN",
+      "reason": "driver log rotation defect discovered before deployment; not a failed execution"
     },
     "historical_R4_candidate": {
       "next_driver_build_transcription": {
@@ -198,7 +241,24 @@
       "ordinary_host_trial_allowed": false
     },
     "latest_observed_runtime_sha": "afbca181ea9864eae197677b499cd29472465956",
-    "latest_observed_run_id": "cac60b01c67448f0b383f188b55422b8",
+    "latest_observed_run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+    "run_90b8_observed": {
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+      "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+      "collection_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719",
+      "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
+      "Debug_result": "DEBUG_SINGLE_MONITOR_DOCK_STRETCH_SUBCHAIN_PASS_OTHER_COMPONENT_FAILURES_RELEASE_PRECONDITION_FAIL",
+      "Release_result": "SETTINGS_CURSOR_ACTUAL_NOT_MOVED_NO_CLICK_OR_ENHANCED_GESTURE",
+      "D24_closed": false,
+      "new_feature_or_B_PASS": false,
+      "cleanup_receipt_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/cleanup-receipt.json",
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true
+    },
     "cac_observed": {
       "source_sha": "afbca181ea9864eae197677b499cd29472465956",
       "driver_source_sha": "afbca181ea9864eae197677b499cd29472465956",
@@ -1926,7 +1986,8 @@
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
         "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1962,8 +2023,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -3037,7 +3098,8 @@
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -3053,8 +3115,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -3242,7 +3304,8 @@
       "next_action": "同产品补未测边角/慢移边界及恢复，不把enabled-only当全模式。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3252,6 +3315,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3302,7 +3373,8 @@
       "next_action": "补smartStretch on/off与最近合法阻挡实际差异。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3312,6 +3384,14 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+        "configuration": "Debug",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3596,13 +3676,13 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "FAIL",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M09-F05-DEV",
           "required_observation": "合成轨迹确定性检测，慢移/单次反向不误触；实际窗摇动两次回到原态；与系统 Shake 共存问题需实测处理",
-          "status": "BLOCKED",
+          "status": "FAIL",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl"
@@ -3626,19 +3706,23 @@
         "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
       ],
-      "defects": [],
+      "defects": [
+        "V1-D25"
+      ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 owned视觉实际摇动及恢复子项已执行。",
+      "observed": "c01 owned视觉实际摇动及恢复子项已执行。；90b8第二shake实际restore在UP前被context拒绝（152/153），原属性未恢复；新R6待现场。",
       "remaining_conditions": [
-        "当前候选慢移不误触、单次手势限一次与真实系统Shake共存尚未完整实测。"
+        "当前候选慢移不误触、单次手势限一次与真实系统Shake共存尚未完整实测。",
+        "R6第二shake restore与失败owned责任修复待真实定向复验。"
       ],
       "next_action": "在隔离同候选补最小正/反轨迹和重复恢复。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3653,8 +3737,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -3713,7 +3797,8 @@
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3728,8 +3813,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -3918,7 +4003,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3932,8 +4018,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -6340,7 +6426,7 @@
       "mandatory": true,
       "weight": 2.5,
       "implementation_status": "IMPLEMENTED",
-      "dev_status": "BLOCKED",
+      "dev_status": "FAIL",
       "human_status": "NOT_RUN",
       "points_awarded": 0,
       "source_sha": null,
@@ -6362,7 +6448,11 @@
       ],
       "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
+      ],
+      "defects": [
+        "V1-D25"
       ]
     },
     {
@@ -7101,7 +7191,8 @@
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -7116,8 +7207,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -7151,7 +7242,8 @@
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "latest_product_observation": {
@@ -7165,8 +7257,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -7175,7 +7267,7 @@
       "name": "视觉状态",
       "sequence": "原半透明/置顶窗→开启拖动透明→拖动结束→摇动开/关→暂停→退出",
       "required_observation": "每个阶段恢复正确旧状态，不把用户自有属性清掉；预览/关系层无残留",
-      "dev_status": "BLOCKED",
+      "dev_status": "FAIL",
       "human_status": "NOT_RUN",
       "source_sha": null,
       "binary_sha256": null,
@@ -7193,19 +7285,22 @@
       ],
       "defects": [
         "V1-D02",
-        "V1-D08"
+        "V1-D08",
+        "V1-D25"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "c01 visual1779实际原属性/拖动透明/摇动/暂停/退出子流程通过；临时在途1859仍失败。",
+      "observed": "c01 visual1779实际原属性/拖动透明/摇动/暂停/退出子流程通过；临时在途1859仍失败。；90b8第二shake实际restore在UP前被context拒绝（152/153），原属性未恢复；新R6待现场。",
       "remaining_conditions": [
-        "当前候选迟到调用/异常UP与视觉恢复完整链没有齐备。"
+        "当前候选迟到调用/异常UP与视觉恢复完整链没有齐备。",
+        "R6第二shake restore与失败owned责任修复待真实定向复验。"
       ],
       "next_action": "修释放后定向在途回执及原alpha恢复，随后跑完整I06。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "latest_product_observation": {
@@ -7219,8 +7314,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -7304,7 +7399,8 @@
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION"
       ],
       "status_basis": "ACTUAL_RELATED_COMPONENT_FAILURE_IN_ITS_RECORDED_BUILD_NOT_CLOSED",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -7320,8 +7416,8 @@
         "source_sha": "afbca181ea9864eae197677b499cd29472465956",
         "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
         "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+        "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "not_complete_contract_PASS": true
       }
     },
@@ -8082,6 +8178,32 @@
     }
   ],
   "defects": [
+    {
+      "id": "V1-D25",
+      "status": "DEV_FIXED_PENDING_RUNTIME",
+      "severity": "S1",
+      "kind": "SECOND_SHAKE_OWNED_RESTORE_DROPS_CURRENT_CAPTURE_CONTEXT_AND_FAILED_CLEANUP_RESPONSIBILITY",
+      "source_reviewed_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "description": "第二次真实摇动期间仍有本代自有capture，visual cleanup却传空lease，使原GUI-idle门拒绝alpha/topmost恢复；native实际未尝试且回读仍190/toptrue，随后旧代码无条件erase仍owned记录。934显示预期173/topfalse不是实测值，原FAIL保留。",
+      "repair_source_sha": "eee1b7cf923eac535918c725a112fa50c7a129d6",
+      "repair_scope": "仅向cleanup传实际current capture context并保留未完成owned责任；原身份/实际GUI/owned tuple门及应用自行改变退休逻辑保留。",
+      "repair_build": "DEBUG_RELEASE_PASS",
+      "repair_runtime": "NOT_RUN",
+      "features": [
+        "M09-F05",
+        "M10-F04"
+      ],
+      "benchmarks": [
+        "B21"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/90b8-r5-debug-dock-stretch-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/90b8-r5-mapped-edge-up-and-corner-abort-product-selected.jsonl",
+        "docs/reports/v1-evidence/90b8-r5-rotated-start-and-shake-restoration-failure-product-selected.jsonl"
+      ],
+      "next_action": "新R6 EXE在相同隔离环境定向验证第二shake恢复及后继操作，不以offline或旧R5 NormalUp升级PASS。"
+    },
     {
       "id": "V1-D24",
       "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME",
@@ -10176,6 +10298,63 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
+      "source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+      "configuration": "Debug",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "driver_binary_sha256": "4E7798454114CCE85DA7F033B608BE84CA2F5F5F2A898D2B09880288E9A5B128",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "evidence_ids": [
+        "EV-90B8-R5-DEBUG-DOCK-STRETCH-AND-FAILURES",
+        "EV-90B8-R5-MAPPED-EDGE-UP-AND-CORNER-ABORT",
+        "EV-90B8-R5-ROTATED-START-SHAKE-RESTORE-FAIL",
+        "EV-90B8-R5-RELEASE-CURSOR-ACTUAL-NOT-MOVED"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/90b8-r5-debug-dock-stretch-and-failures-selected.jsonl",
+        "docs/reports/v1-evidence/90b8-r5-mapped-edge-up-and-corner-abort-product-selected.jsonl",
+        "docs/reports/v1-evidence/90b8-r5-rotated-start-and-shake-restoration-failure-product-selected.jsonl",
+        "docs/reports/v1-evidence/90b8-r5-release-settings-cursor-failure-selected.jsonl"
+      ],
+      "feature_ids": [
+        "M04-F05",
+        "M08-F01",
+        "M08-F04",
+        "M08-F05",
+        "M09-F05",
+        "M10-F01",
+        "M10-F04"
+      ],
+      "integration_ids": [
+        "I04",
+        "I05",
+        "I06",
+        "I08"
+      ],
+      "status": "DEBUG_SINGLE_MONITOR_DOCK_STRETCH_SUBCHAIN_PASS_OTHER_COMPONENT_FAILURES_RELEASE_PRECONDITION_FAIL",
+      "observed": "Debug停靠/预览/拖离/再吸附和测试的边/Shift边/角/Shift角拉伸实际exact，邻窗不动；408 BLOCKED只因165单屏。284/303首点击有同代LL UP、capture前PhysicalButtons拒绝/无ATI或capture/Gone和healthyidle，不是NormalUp。mapped g6/g7实际DOWN/completion/同key4 exact及产品188/202匹配UP；角g9/g10是contextual double_click_stretch，实际end4非NormalUp后释放/解除/撤罩，精确匹配second-UP产品回执未取得，不用testsend或g0Raw补齐。607查询START空但真实产品轮转539DOWN/540START g20，失败后545legacyUP/553NormalUp；driver查询误判保留原FAIL。第二shake产品152/153实际未发native且仍190/toptrue，早于UP156，934的173/topfalse为driver预期常量而非actual。late215 native成功/延迟矩形吻合但身份后验false，1043 FAIL；1048 visual_restore_pending=true。Release34 MOVE SendInput=1但actualcursor未移动，35未click、36前置FAIL；无增强手势。",
+      "Debug_fixture_rows": 1057,
+      "Release_fixture_rows": 41,
+      "fixture_sequences_contiguous": true,
+      "product_debug_sequences": "PID6972 1–603, PID2868 1–227 after joining rotation/current; contiguous per process",
+      "D24_capture_loss_triggered": false,
+      "whole_feature_PASS": false,
+      "whole_chain_PASS": false,
+      "whole_version_PASS": false,
+      "not_run": [
+        "Release enhanced gestures",
+        "application matrix",
+        "ordinary portable entry",
+        "I02/I03/I10/I11 complete chains",
+        "idle60"
+      ],
+      "exact_guest_and_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false,
+      "next_action": "R6修视觉lease/owned责任，driver修跨rotation读取与准备假设；新身份定向运行，保留本批单屏子结果，补Release及未运行应用，不将子项拼Full。"
+    },
     {
       "id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
       "scope": "R5 Debug owned preview/dock/abort/recovery/visual subcomponents; Release settings foreground failure before gestures; no full integration or application PASS",

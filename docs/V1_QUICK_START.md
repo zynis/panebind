@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前候选R5源码为`afbca181ea9864eae197677b499cd29472465956`，Debug／Release构建与相关offline通过，Release EXE为`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。cac实际Debug预览／部分中断恢复／视觉子项通过，但source-close清理UP、actor及视觉末段仍失败；Release设置前台准备未通过，没有增强手势。便携包`784e33f0d3b642d3aa629b9c9d945247`已生成但普通入口未运行，**候选仍不宜宿主试用**。新输入路线仍仅在精确身份／RunId／包标记通过的已授权可丢弃guest中启用，普通宿主不启用实验路线。历史af0／R3／R2包与结果保持原身份，不绑定为本EXE通过；D24旧capture-loss分支本批未触发，不能关闭。快速三包UP反例、完整应用／显示／托盘及D08／D23待验范围继续保留。**整版仍为PARTIAL，真人UAT PENDING**；七项历史完整合同不重绑新EXE，Raw计数不能补成NormalUp。
+当前待验候选R6源码为`eee1b7cf923eac535918c725a112fa50c7a129d6`，修复第二摇动恢复的capture上下文与失败owned责任；Debug／Release构建和各9项产品offline通过，Release EXE为`E13C106B0B63BE6B726AAC8A506D2C0E7499581186A1573AEDCB0EE40B12FCA5`，**新包尚未生成、现场NOT_RUN，仍不宜宿主试用**。最新实测仍是afb／90b8：Debug单屏停靠／拉伸子项通过，完整跨屏缺失；第二shake恢复有真实失败，driver跨轮转START查询及Release激活准备亦失败。原784e便携包已生成但普通入口未运行；冷Release测试包0c612已准备但未部署／未运行，不记失败。新输入路线仍仅在精确身份／RunId／包标记通过的已授权可丢弃guest中启用，普通宿主不启用实验路线。历史各包与结果保持原身份，不绑定为R6通过；D24原capture-loss分支未触发，D25待定向复验。快速三包UP反例、完整应用／显示／托盘及D08／D23待验范围继续保留。**整版仍为PARTIAL，真人UAT PENDING**；七项历史完整合同不重绑新EXE，Raw计数不能补成NormalUp。
 
 历史已测ZIP保持原字节。本次新PackageId已生成且未通过整版测试，不覆盖旧包，也不把旧包普通入口结果继承给它。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
 

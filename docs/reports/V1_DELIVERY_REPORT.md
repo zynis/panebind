@@ -2,9 +2,23 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。新产品R5=`afbca181ea9864eae197677b499cd29472465956`已完成Debug／Release构建及相关offline，最新实际Run为cac：Debug预览、三类中断后的Move／Resize恢复及部分视觉功能通过，但source-close清理UP、actor和视觉末段仍失败；Release在设置前台准备失败，没有增强手势。旧BBB的capture-loss分支本次未触发，D24不能关闭；不换绑af0或旧七项功能证据。历史**7/60功能、B29／B32共2/40=5%**不变；D08／完整D23、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新产品R6=`eee1b7cf923eac535918c725a112fa50c7a129d6`已修复第二摇动恢复时丢失实际capture上下文及失败后丢弃owned责任，Debug／Release构建与各9项产品offline通过，**尚未现场运行或生成新便携包**。最新实测仍是R5／90b8：Debug单屏停靠／拉伸子链通过，仍有真实第二shake恢复失败及driver轮转查询、Release激活准备失败。历史**7/60功能、B29／B32共2/40=5%**不变，不换绑新EXE；D08、完整D23、D24未触发分支及D25定向复验、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
 
-## 新R5：Debug组件已运行并保留失败，Release前置受阻
+## 新R6：视觉恢复修复已构建，现场NOT_RUN
+
+R6在`out/v1-product-visual-lease-r6-eee1b7c`构建Debug／Release产品退出0；既有9项产品offline（不含driver guest-path）各9/9通过：Debug processor1.46／wall1.55秒，Release processor1.05／wall1.79秒。原生CTest output-log及其哈希在验收表／索引；不是逐test原stdout或现场PASS。Debug EXE `35DE65EB194251C5A175C7CD44CAD50967564FF03F2C4D73FCBB0724E2C9A512`，Release `E13C106B0B63BE6B726AAC8A506D2C0E7499581186A1573AEDCB0EE40B12FCA5`。D25仍为`DEV_FIXED_PENDING_RUNTIME`；产品确有修改，不能复用afb旧EXE作为本修复候选。
+
+## 历史R5／90b8：单屏停靠拉伸子项通过，真实失败保留
+
+Run `90b804141dfc41c9a655ff1c6a315b1d`产品仍afbca18（D/R原hash不变），driver／包装为`1b39d199d653e971dbfd01d586b0954446ed9274`；guest ZIP `AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26`／manifest `1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F`。另备冷Release包`0c612108c54c4ccc8eddd0c4ec9558e6`已生成，但因发现driver轮转查询缺口而**NOT_DEPLOYED／NOT_RUN**，不是失败运行；旧784e便携包普通入口仍NOT_RUN。
+
+[Debug fixture](v1-evidence/90b8-r5-debug-dock-stretch-and-failures-selected.jsonl)的预览／撤销／角停靠／拖出／再吸附、测试的边／Shift边／角／Shift角拉伸、GUI改热键实际几何及邻窗不动均通过；408仍BLOCKED，明确缺项165为单实际屏，未授完整I04／I05。[产品边角回执](v1-evidence/90b8-r5-mapped-edge-up-and-corner-abort-product-selected.jsonl)证明284／303首点击实际同代LL UP＋capture前PhysicalButtons拒绝和Gone，而非NormalUp；mapped g6／g7有同key4 exact、mapped completion及188／202匹配LL UP。角g9／g10是contextual `double_click_stretch`，实际非NormalUp end4后release／detach／Gone；没有取得精确匹配的second-UP产品回执，不用test SendInput或g0 Raw补齐。
+
+[轮转与shake实际产品原行](v1-evidence/90b8-r5-rotated-start-and-shake-restoration-failure-product-selected.jsonl)中，`.1`尾539 DOWN紧接current头540真实START g20；driver607却读成空，不能据此宣称产品没有START，失败后545真实legacyUP／553 NormalUp保留。第二shake152／153在实际UP156之前因空capture上下文拒绝native，actual仍190／topmost=true；fixture934写的173／false是预期常量而非回读，登记真实D25。1043的延迟native调用虽返回成功、矩形数值吻合，identity后验false且1048仍visual_restore_pending=true，保留失败，不把它改为exact PASS。
+
+[Release原行](v1-evidence/90b8-r5-release-settings-cursor-failure-selected.jsonl)34 MOVE SendInput返回1但实际cursor仍旧点，35未发送点击、36前置FAIL；没有增强手势。本批没有执行应用矩阵、普通便携入口、完整I02／I03／I10／I11或idle60。Debug1057／Release41 fixture合法连续；Debug两个产品PID各连续，所有status健康，但未触发D24的capture-loss原分支。收集`collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719`与回执确认专用guest／任务清理及证据未变；不以guest销毁替代产品cleanup PASS。R6新driver修订尚未实测，不预填通过。
+
+## 历史R5／cac：Debug组件已运行并保留失败，Release前置受阻
 
 源码`afbca181ea9864eae197677b499cd29472465956`仅把真实资源owner的no-own-capture观察与实际detach／Gone用于abort清理，未把release=false伪装成API成功，NormalUp仍要求原严格事实。构建目录`out/v1-product-abort-cleanup-afbca18`，Debug／Release product、fixture及10offline目标构建退出0、CTest各10/10通过（D processor3.09／wall3.15秒；R processor1.88／wall3.20秒）。原生CTest output-log为该目录`Debug-offline.log`／`Release-offline.log`，不是各测试程序原stdout；实际产品／driver SHA-256见验收表，新Release产品`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。新包已生成并实际运行，旧af0包和下述记录保持原身份。
 

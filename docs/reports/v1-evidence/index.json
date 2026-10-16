@@ -11,6 +11,32 @@
   },
   "acceptance_file": "docs/reports/V1_ACCEPTANCE.json",
   "pending_candidate": {
+    "source_sha": "eee1b7cf923eac535918c725a112fa50c7a129d6",
+    "driver_source_sha": null,
+    "release_binary_sha256": "E13C106B0B63BE6B726AAC8A506D2C0E7499581186A1573AEDCB0EE40B12FCA5",
+    "debug_binary_sha256": "35DE65EB194251C5A175C7CD44CAD50967564FF03F2C4D73FCBB0724E2C9A512",
+    "build_dir": "out/v1-product-visual-lease-r6-eee1b7c",
+    "debug_build_result": "PASS_EXIT_0",
+    "release_build_result": "PASS_EXIT_0",
+    "offline_regression": "Debug9/9 PASS; Release9/9 PASS; existing product tests excluding driver guest-path",
+    "debug_offline_processor_seconds": 1.46,
+    "debug_offline_wall_seconds": 1.55,
+    "release_offline_processor_seconds": 1.05,
+    "release_offline_wall_seconds": 1.79,
+    "debug_ctest_output_log": "out/v1-product-visual-lease-r6-eee1b7c/Debug-offline.log",
+    "debug_ctest_output_log_sha256": "A6FE76CAC43AA5F3ADEA5DFA691E8A2491A77825D62AC1C3553A55DA340EC565",
+    "release_ctest_output_log": "out/v1-product-visual-lease-r6-eee1b7c/Release-offline.log",
+    "release_ctest_output_log_sha256": "B4ABC86BE27E610A898CDC04FF5A7E08B5E960CD1E96FFFC85918788E966148C",
+    "package_generated": false,
+    "runtime_validation": "NOT_RUN",
+    "ordinary_host_trial_allowed": false,
+    "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
+    "product_code_changed_new_EXE_required": true,
+    "repair_scope": "same-generation actual capture lease retained for owned-property cleanup; unsuccessful second-shake restoration retains still-owned attributes",
+    "historical_results_rebound": false,
+    "driver_followup": "跨rotation日志读取及准备上下文修复尚未构建/现场，不计PASS。"
+  },
+  "historical_R5_packaging": {
     "source_sha": "afbca181ea9864eae197677b499cd29472465956",
     "build_dir": "out/v1-product-abort-cleanup-afbca18",
     "Debug_build": "PASS_EXIT_0",
@@ -36,17 +62,22 @@
     "portable_ordinary_entry": "NOT_RUN",
     "old_af0_results_rebound": false
   },
-  "f072_final_collection_note": {
-    "run_id": "f0726df0530e4735b5fc1d57e4ae070b",
-    "path": "uat/v1-control/f0726df0530e4735b5fc1d57e4ae070b/collection-20261016T150807071Z-1ca20b8f8a4f44d49ee795bc2998d052",
-    "file_count": 21,
-    "output_unchanged": true,
-    "readonly_VSCode_tool_diagnostic_relative_path": "f0726df0530e4735b5fc1d57e4ae070b-product-Release/diagnostic-16001501.txt",
-    "readonly_VSCode_tool_diagnostic_sha256": "8A1C4CBDADC68F582A58AB37F38CE568A8E03C9C9BC6691699789C80FE0EF07F",
-    "result": "UNKNOWN: known PIDs gone, no Run profile logs, no exact-path events in fixed65second window; not product-generated diagnostic or function PASS",
-    "dedicated_guest_and_task_removed": true,
-    "evidence_unchanged": true,
-    "Edge_product_cleanup_PASS": false
+  "latest_runtime_observation": {
+    "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+    "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+    "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+    "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+    "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+    "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+    "collection_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719",
+    "observation_id": "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
+    "Debug_result": "DEBUG_SINGLE_MONITOR_DOCK_STRETCH_SUBCHAIN_PASS_OTHER_COMPONENT_FAILURES_RELEASE_PRECONDITION_FAIL",
+    "Release_result": "SETTINGS_CURSOR_ACTUAL_NOT_MOVED_NO_CLICK_OR_ENHANCED_GESTURE",
+    "D24_closed": false,
+    "new_feature_or_B_PASS": false,
+    "cleanup_receipt_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/cleanup-receipt.json",
+    "exact_guest_task_cleaned": true,
+    "evidence_unchanged": true
   },
   "pending_R4_build_transcription": {
     "historical_record_only": true,
@@ -75,6 +106,260 @@
     "D08_closed": false
   },
   "records": [
+    {
+      "evidence_id": "EV-90B8-R5-DEBUG-DOCK-STRETCH-AND-FAILURES",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "configuration": "Debug",
+      "suite": "CoreAndApplications",
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "product_binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "driver_binary_sha256": "4E7798454114CCE85DA7F033B608BE84CA2F5F5F2A898D2B09880288E9A5B128",
+      "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+      "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+      "original_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719/90b804141dfc41c9a655ff1c6a315b1d-debug-fixture.jsonl",
+      "original_sha256": "4AA42C78E4B88B48DF12FDD99729F85C2145935A7E1C1D00A6E4FA08DC1E661B",
+      "original_bytes": 509369,
+      "original_rows": 1057,
+      "sequence_scope": "contiguous within original file",
+      "excerpt_path": "docs/reports/v1-evidence/90b8-r5-debug-dock-stretch-and-failures-selected.jsonl",
+      "excerpt_sha256": "8F2DDB3AD714FB620B93C2C8B7B511B1B9690F62341DCD3261F4DC68C84C5FB0",
+      "excerpt_bytes": 27660,
+      "excerpt_sequences": [
+        13,
+        150,
+        156,
+        198,
+        202,
+        284,
+        287,
+        296,
+        306,
+        315,
+        354,
+        357,
+        400,
+        405,
+        408,
+        498,
+        549,
+        599,
+        607,
+        934,
+        1043,
+        1048,
+        1057
+      ],
+      "excerpt_contains_identity_header": true,
+      "scope_result": "Debug single-monitor dock/stretch assertions pass; first click exact pre-capture UP is not NormalUp; mapped edge UP and contextual corner contracts distinct; later rotation/shake/in-flight failures preserved",
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
+    {
+      "evidence_id": "EV-90B8-R5-MAPPED-EDGE-UP-AND-CORNER-ABORT",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "configuration": "Debug",
+      "suite": "CoreAndApplications",
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "product_binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "driver_binary_sha256": "4E7798454114CCE85DA7F033B608BE84CA2F5F5F2A898D2B09880288E9A5B128",
+      "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+      "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+      "original_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719/90b804141dfc41c9a655ff1c6a315b1d-product-Debug/panebind.log.jsonl.1",
+      "original_sha256": "BFE9E9DCA5C59D0D1E2C3F3B4AF2722DB86E02B6B5E07760080F76F4B2009B87",
+      "original_bytes": 526398,
+      "original_rows": 539,
+      "sequence_scope": "contiguous within original file",
+      "excerpt_path": "docs/reports/v1-evidence/90b8-r5-mapped-edge-up-and-corner-abort-product-selected.jsonl",
+      "excerpt_sha256": "96AEAA4D49FA0EFDC42E44B31A8A9FC2EDC1F53230F4453327F7C711320367BB",
+      "excerpt_bytes": 27473,
+      "excerpt_sequences": [
+        178,
+        179,
+        181,
+        182,
+        183,
+        185,
+        188,
+        196,
+        197,
+        199,
+        202,
+        209,
+        210,
+        212,
+        218,
+        220,
+        221,
+        226,
+        228,
+        229,
+        242,
+        244,
+        245,
+        250,
+        252,
+        253,
+        539
+      ],
+      "excerpt_contains_identity_header": true,
+      "scope_result": "Actual mapped edge DOWN/command/exact/UP and contextual corner immediate non-Normal cleanup; original first-click pre-capture rejection/UP; final row actual g20 DOWN before log rotation",
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
+    {
+      "evidence_id": "EV-90B8-R5-ROTATED-START-SHAKE-RESTORE-FAIL",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "configuration": "Debug",
+      "suite": "CoreAndApplications",
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "product_binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "driver_binary_sha256": "4E7798454114CCE85DA7F033B608BE84CA2F5F5F2A898D2B09880288E9A5B128",
+      "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+      "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+      "original_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719/90b804141dfc41c9a655ff1c6a315b1d-product-Debug/panebind.log.jsonl",
+      "original_sha256": "B99F2ED37228B91D00350808469EF04804D8864CF2A3075CF2A771AC8296CD0B",
+      "original_bytes": 280966,
+      "original_rows": 291,
+      "sequence_scope": "current continues PID6972 540–603 then PID2868 1–227; per-process joined rotation continuous",
+      "excerpt_path": "docs/reports/v1-evidence/90b8-r5-rotated-start-and-shake-restoration-failure-product-selected.jsonl",
+      "excerpt_sha256": "E1310FFAAEEB6BCC01FFA7684274947BAB7016D95E08A862748B124AA4A942F7",
+      "excerpt_bytes": 21686,
+      "excerpt_sequences": [
+        [
+          6972,
+          540
+        ],
+        [
+          6972,
+          545
+        ],
+        [
+          6972,
+          548
+        ],
+        [
+          6972,
+          550
+        ],
+        [
+          6972,
+          551
+        ],
+        [
+          6972,
+          553
+        ],
+        [
+          6972,
+          555
+        ],
+        [
+          2868,
+          140
+        ],
+        [
+          2868,
+          152
+        ],
+        [
+          2868,
+          153
+        ],
+        [
+          2868,
+          156
+        ],
+        [
+          2868,
+          159
+        ],
+        [
+          2868,
+          161
+        ],
+        [
+          2868,
+          162
+        ],
+        [
+          2868,
+          164
+        ],
+        [
+          2868,
+          208
+        ],
+        [
+          2868,
+          215
+        ],
+        [
+          2868,
+          225
+        ],
+        [
+          2868,
+          227
+        ]
+      ],
+      "excerpt_contains_identity_header": true,
+      "scope_result": "Actual g20 START across rotation contradicts driver empty query; later cleanup real UP/NormalUp; second shake restoration rejected before native call while own capture active, actual tuple remains190/toptrue; later in-flight postverify failure not erased",
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
+    {
+      "evidence_id": "EV-90B8-R5-RELEASE-CURSOR-ACTUAL-NOT-MOVED",
+      "run_id": "90b804141dfc41c9a655ff1c6a315b1d",
+      "configuration": "Release",
+      "suite": "CoreAndApplications",
+      "product_source_sha": "afbca181ea9864eae197677b499cd29472465956",
+      "product_binary_sha256": "F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51",
+      "driver_source_sha": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "driver_binary_sha256": "D98DD3F2C830242FA00329978CAD67126D08F70188436277F1A1E951507607F8",
+      "packaging_head": "1b39d199d653e971dbfd01d586b0954446ed9274",
+      "package_zip_sha256": "AF40AB294DE05BFFBD2BC97FDF11C584350E990870AE1CC93207588BA7B93C26",
+      "package_manifest_sha256": "1527412A95B4E57A4F08FD7D39F12B34CC4310E9DE7DE8D268E070616BE3F44F",
+      "original_path": "uat/v1-control/90b804141dfc41c9a655ff1c6a315b1d/collection-20261016T162735937Z-8a1283ea6e654f60b7fd8164f73d0719/90b804141dfc41c9a655ff1c6a315b1d-release-fixture.jsonl",
+      "original_sha256": "4C506357785032F0E55DF2CD75B23AF7EF182C347E8276C0D82B4D237B041094",
+      "original_bytes": 16843,
+      "original_rows": 41,
+      "sequence_scope": "contiguous within original file",
+      "excerpt_path": "docs/reports/v1-evidence/90b8-r5-release-settings-cursor-failure-selected.jsonl",
+      "excerpt_sha256": "2866B2CEF1598389038659AA80966C9FEEB701A7C7B11C16BF5A84372E67AD6C",
+      "excerpt_bytes": 7275,
+      "excerpt_sequences": [
+        13,
+        33,
+        34,
+        35,
+        36,
+        38,
+        39,
+        41
+      ],
+      "excerpt_contains_identity_header": true,
+      "scope_result": "Release settings exists; single activation preparation SendInput MOVE returns1 but actual system cursor remains old point, no click or enhanced gesture; not a product Move failure",
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
     {
       "evidence_id": "EV-CAC-R5-DEBUG-COMPONENTS-AND-FAILURES",
       "run_id": "cac60b01c67448f0b383f188b55422b8",
