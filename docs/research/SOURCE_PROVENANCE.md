@@ -2468,3 +2468,38 @@ changes neither product input authority nor NormalUp evidence. Revision/commit:
 N/A (official API documentation, not inspected implementation code); no
 external code was downloaded, copied or adapted, and no new attribution or
 software redistribution right is implied.
+
+### V1 Terminal external hit-test mismatch — 2026-10-17
+
+Inspected Microsoft Terminal at `dc8ae365847d41f62d1ebca93815bb00959bc12f`
+(MIT; LICENSE blob `017b9885a46ad4c7f4367ad2949fb66fb56f977f`), specifically
+`src/cascadia/WindowsTerminal/NonClientIslandWindow.cpp` (blob
+`07eba616f1db5a36c293af3edfeca498d64b638c`, root hit testing and XAML layout)
+and `IslandWindow.cpp` (blob `e627bd44957545a58fbe09d0d132f6467c5bd572`,
+initialization, child layout and app-initialized handling). Also inspected
+[issue 8795](https://github.com/microsoft/terminal/issues/8795) and
+[PR 11680](https://github.com/microsoft/terminal/pull/11680) (merged
+`f2ebb21`; follow-up cherry-pick `ccc7468`): the latter explicitly does not
+resolve the external WindowFromPoint/WM_NCHITTEST discrepancy because XAML's
+input site handles real hit testing before the root. Confirmed the message's
+screen-coordinate/result contract against Microsoft's
+[WM_NCHITTEST documentation](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest).
+
+Applicable subsystem: V1 application compatibility and guarded TEST client
+input. Run `4e9eb4a7e1494054b2791c3797e78a37` actually found the exact Terminal
+root at the center point but its external hit-test returned HTCAPTION. The
+inspected root code can return Caption for client space; this does not prove
+that the observed application content was absent or uninitialized. Keep the
+existing client-click rejection and obtain a minimal guest screenshot/child
+observation before choosing an adapter change. No code copied, adapted,
+translated or mechanically rewritten; no additional dependency or attribution
+obligation is introduced by this read-only review. Historical results remain
+bound to their original product and driver.
+
+For the single guest-driver visual observation, confirmed the bounded GDI
+capture and child enumeration contracts against Microsoft's
+[Capturing an Image](https://learn.microsoft.com/en-us/windows/win32/gdi/capturing-an-image)
+and [EnumChildWindows](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumchildwindows).
+The implementation reuses PaneBind's own Settings capture pattern, not the
+documentation sample code; it records actual pixels only and grants no input
+authority or application PASS. No additional external code or dependency.

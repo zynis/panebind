@@ -2,11 +2,33 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。当前/MT构建R6=`baf27b1c08cf3e3d836ff68d880ebd537f0355ce`（实现修复`eee1b7cf923eac535918c725a112fa50c7a129d6`）已修复第二摇动恢复时丢失实际capture上下文及失败后丢弃owned责任，Debug／Release构建与各9项产品offline通过，**尚未现场运行或生成新便携包**。最新实测仍是R5／90b8：Debug单屏停靠／拉伸子链通过，仍有真实第二shake恢复失败及driver轮转查询、Release激活准备失败。历史**7/60功能、B29／B32共2/40=5%**不变，不换绑新EXE；D08、完整D23、D24未触发分支及D25定向复验、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新实测R7=`b0450da7c4eae68fd0e3646b3625b475a39f6c92`／driver7bec／Run4e9已完成稳定采集：actor默认30秒Deadline及后继Move／Resize、在途call33精确完成与视觉恢复实际子范围通过；source-close／grid真实清理UP、batch判定及I11日志大小读取仍失败。Terminal几何链通过但客户区输入未测，Explorer被资格策略拒绝，五应用／Edge关闭仍未齐。R6／625真实两轮／900秒与D25恢复保留原身份。历史**7/60功能、B29／B32共2/40=5%**不变，未把子范围计为整版通过；不能宿主试用，真人UAT PENDING。
 
-## 新R6：视觉恢复修复已构建，现场NOT_RUN
+## 新R7／4e9：actor和在途恢复推进，当前整链仍未通过
 
-当前便携候选在`out/v1-product-visual-lease-r6-mt-baf27b1`明确使用`-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded`（/MT），产品自报构建源码baf27b1，Debug／Release均构建退出0、9项产品offline各9/9通过：D processor3.18／wall3.25秒，R processor1.46／wall2.69秒。Debug EXE `6DCAF5162A401F1FF7EB0BF0DF80F240B5BF4B929B880C604E19B6BCBA0B00F7`，Release `A199FF709F8A19395999D9B0A3F4CEF8F570D19E594E32102A77BC58322A0DFF`；原生CTest output-log及哈希绑定该新目录。driver仍b701与已登记二进制不变。新便携包／现场NOT_RUN，预留ID不计已生成。
+产品b0450da在`out/v1-product-idle-catalog-r7-b0450da`以/MT独立构建，Debug／Release退出0、各10项offline通过（D processor3.35／wall3.42秒；R processor1.56／wall2.79秒），CTest output-log哈希登记在验收表／索引。Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`。shipping driver7bec另经D/R guest-path各1/1（D processor0.18／wall0.22，R processor0.14／wall0.25秒），不把产品构建时guest-path与shipping身份混写。
+
+新便携`364579589e454eb7a63931f68df49567`已生成，ZIP `046CE03ABB916BF4D114B899E95586AE927270AC1EAAEDC24F3D454BEBE99DC4`／manifest `60623F8D2CE7DFFC00F26714AFA81410DA6F743236FACB462B2BC4B1914F777B`，普通入口NOT_RUN。guest包`4e9eb4a7e1494054b2791c3797e78a37`绑定productb045／driver7bec／包装7bec，ZIP `F6FCEC6D5D370AB4FAED7D56EBF0BF06A5AB631675D0DD5F3CE7F65EFAAC8DE7`；本批Release CoreAndApplications整体FAIL，1836fixture行合法连续。最终收集`collection-20261016T173413819Z-65483a0d73584b9bb15ea589101d1f26`及17:36:31Z回执确认专用guest11332／任务清理、证据未变；Edge根关闭失败不由此改成PASS。R6下述实测绝不换绑R7。
+
+[本批组件原行](v1-evidence/4e9-r7-actor-inflight-and-remaining-failures-fixture-selected.jsonl)：653实际默认Deadline30031ms，684同产品后继Move／Resize通过，不再沿用R6 actor失败作本批结论；616 source-close清理UP仍缺。1554临时视觉在途组件PASS，[产品原行](v1-evidence/4e9-r7-inflight-completion-and-restore-product-selected.jsonl)显示PID5636已发call33真实成功、迟到identity／geometry exact且不授新写入权限，实际alpha190→173恢复及后继g6 Move／NormalUp；该组件未额外验证Resize。1576 grid缺真实本代清理UP；1636 batch保留normalized UP为空的FAIL，实际status417已有同代LL观察，two native／third0不变，driver解析修订待实测。963 I11因`product_log_physical_size_unavailable_or_unbounded`失败、无errno，不推rotation根因，不授当前R7两轮／15分钟；983独立idle60 PASS不是I11。
+
+[应用原行](v1-evidence/4e9-r7-application-subscopes-and-cleanup-fixture-selected.jsonl)：Explorer实际RID8192／elevated=true／medium=false，正式策略拒绝且未发输入，不能泛称已确认High。现代Terminal五阶段Move／实际UP、Resize、命令及Esc子项通过，1743客户点却是HTCAPTION=2、未发客户输入，故类别仍FAIL；1753 exact根关闭确认。Notepad指定官方EXE缺；Code仅hidden根／child0x80070005，原因UNKNOWN，不推权限根因。Edge实际暂停增强后单次native客户基线1804仍NC hit超时1460，未发click或增强Move，实际恢复enabled=true；1819／1821／1833关闭未确认。产品bounded轮转保留PID6604的1047–1108及PID5636的1–551连续记录，前进程更早原行已轮出，关键回执仍在fixture。后续只修已定位driver问题复用同R7产品，不给五应用／完整功能或B项加分。
+
+## 历史R6／625：Release连续owned功能实际推进
+
+后续仅driver修订（此提交时尚待新批运行，产品b045 EXE不变）：普通文件属性读取后若`file_size`实际返回系统not-found，仅消耗已有的一次成对重读；其他错误仍拒绝并记录真实errno/大小，不预判rotation。第二成员故障清理使用已有严格的同代、单次UP之后的公开LL回执，不要求已退休pair再生成normalized UP，也不把abort改NormalUp。source-close只在原计划唯一UP周围复用短时被动观察，原产品UP断言不放宽。Terminal仅在原客户区拒绝后保存一次精确guest根窗截图及有界子窗事实，不发送客户输入；仍须现场复核。
+
+Run `62591991e03f406ba66ced2fff997329`，product baf27b1（/MT Release `A199FF…0DFF`）、driver b701、包装594aeae；guest ZIP `75F2A6F7EC8AD9DA3BD9A9585EAC5B0D07EB01C75352A00822A6C769AFC96073`。最终收集`collection-20261016T172501084Z-7fd31afc3911438e93879d9af11c7a8e`，3375fixture行全部合法连续。
+
+[两轮与有限运行原行](v1-evidence/625-r6-release-owned-rounds-15min-and-idle-selected.jsonl)：同PID4156两轮owned核心I02–I06含实际post-Resize A五阶段、Ctrl C和匹配UP，1452／2202明确未重启。20个slot真实覆盖Move／Resize／Ctrl／命令与空闲，2864实测900.001661秒，不再把15分钟写NOT_RUN；跨屏仍单屏BLOCKED，不冒充Explorer／完整矩阵I11。handles五次采样291→291→286→288→288，GDI23→26→26→26→26、USER32→31→29→29→29：未出现这些采样严格单调增加，不等于证明无所有泄漏。独立2877测60.0125029秒、单核CPU0%、WS31,272,960→31,207,424字节；2969真实4156正常退出／资源回执，2974客户DOWN/UP计数[0,0]→[1,1]，不是guest销毁结论。
+
+[视觉及保留失败](v1-evidence/625-r6-shake-repair-and-remaining-failures-fixture-selected.jsonl)与[实际产品](v1-evidence/625-r6-shake-restoration-and-inflight-product-selected.jsonl)：新PID2320第二shake原152／153实际发出native并exact恢复alpha173／topmost=false；随后真实legacyUP、NormalUp、release／detach／Gone与UP后几何保持，3275视觉组件PASS。D25据此定向关闭，M09-F05仍缺慢移／单反向不误触及系统Shake共存，B21仍0分，不再被旧D25错误一直标失败。616 source-close本代UP、651 actor及3361在途后验继续FAIL；3366 visual_restore_pending=true，不能用最终正常shutdown或客户可点击抹掉此前失败。
+
+产品bounded轮转只保留PID4156的2698–3213及PID2320的1–240连续记录；早期4156关键回执仍以原字节嵌入fixture，不伪称全部原产品日志从1仍在两文件内。后继grid、第二成员故障、Explorer、四应用没有执行；CoreAndApplications也未重跑普通便携／startup/settings/rapid。专用guest／任务清理、证据未变均有回执，独立于两产品正常退出；不以销毁guest充当产品cleanup PASS。
+
+## 历史R6构建身份（现场结果见上，旧/MD单独保留）
+
+历史R6便携构建在`out/v1-product-visual-lease-r6-mt-baf27b1`明确使用`-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded`（/MT），产品自报构建源码baf27b1，Debug／Release均构建退出0、9项产品offline各9/9通过：D processor3.18／wall3.25秒，R processor1.46／wall2.69秒。Debug EXE `6DCAF5162A401F1FF7EB0BF0DF80F240B5BF4B929B880C604E19B6BCBA0B00F7`，Release `A199FF709F8A19395999D9B0A3F4CEF8F570D19E594E32102A77BC58322A0DFF`；原生CTest output-log及哈希绑定该目录，driver为b701。此段保留构建事实，后继625现场见上，不再把该R6产品写作从未运行。
 
 历史非便携/MD构建（不换绑为/MT）：R6在`out/v1-product-visual-lease-r6-eee1b7c`构建Debug／Release产品退出0；既有9项产品offline（不含driver guest-path）各9/9通过：Debug processor1.46／wall1.55秒，Release processor1.05／wall1.79秒。原生CTest output-log及其哈希在验收表／索引；不是逐test原stdout或现场PASS。Debug EXE `35DE65EB194251C5A175C7CD44CAD50967564FF03F2C4D73FCBB0724E2C9A512`，Release `E13C106B0B63BE6B726AAC8A506D2C0E7499581186A1573AEDCB0EE40B12FCA5`。D25仍为`DEV_FIXED_PENDING_RUNTIME`；产品确有修改，不能复用afb旧EXE作为本修复候选。 初次打包尝试`7874d9fb68564598a4191f1189d8a570`因缺/MT在创建目录前被packager拒绝，目标不存在、未部署／未运行；这是打包保护，不是产品现场失败。
 

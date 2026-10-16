@@ -43,6 +43,14 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    if(!expect(guest::product_log_metadata_pair_retry_allowed(0,true,{2,std::system_category()},false),true,"plain file then actual Windows file-not-found may recollect one whole pair")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{3,std::system_category()},false),true,"plain file then actual Windows path-not-found uses the same bounded opportunity")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(1,true,{2,std::system_category()},false),false,"persistent metadata not-found cannot gain a third read")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,false,{2,std::system_category()},false),false,"unknown directory or reparse attributes cannot authorize retry")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{5,std::system_category()},false),false,"access denied is not a rotation exception")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{2,std::generic_category()},false),false,"an unrelated errno value cannot impersonate a Windows rotation error")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{2,std::system_category()},true),false,"oversized evidence stays rejected even with not-found code")||
+       !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{},true),false,"a confirmed oversize is never retried as missing metadata"))return 1;
     const auto log_row=[](std::uint64_t pid,std::uint64_t sequence,std::uint64_t tick,std::string_view type,std::string_view sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"){
         return "{\"schema\":\"panebind-v1/1\",\"source_sha\":\""+std::string(sha)+"\",\"sequence\":"+std::to_string(sequence)+
             ",\"process_id\":"+std::to_string(pid)+",\"tick\":"+std::to_string(tick)+",\"type\":\""+std::string(type)+"\"}\n";};

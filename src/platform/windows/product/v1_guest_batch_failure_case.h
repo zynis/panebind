@@ -72,11 +72,17 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         const auto status_offset=read_product(s).size();
         s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
         button(s,false);key(s,VK_CONTROL,false);
+        // The already-aborted shield pair may be fully retired before this
+        // one cleanup UP. Its actual LL callback then has no normalized UP to
+        // enqueue. Require the existing exact after-send public receipt and
+        // non-Normal resource cleanup, never manufacture a new normal event.
+        const auto cleanup_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
         GUITHREADINFO gui{sizeof(gui)};
-        s.log.check("I10_failure_real_UP_without_new_batch_attempt",wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty()&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&
+        s.log.check("I10_failure_real_UP_without_new_batch_attempt",cleanup_up.matched&&
+            wait([&]{return !s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;})&&
             calls().size()==before&&before==2&&loss->arrivals==2&&record(s,g.offset,"gesture_end",g.generation).find("\"normal_up\":false")!=std::string::npos,
             "\"third_member_native_attempts\":0,\"no_compensating_window_movement\":true,\"actual_UP\":"+quote(actual_up(s,g.offset,g.generation))+
-            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+","+cleanup_up.json());
         std::vector<std::size_t> live;std::vector<Rect> actual;
         for(std::size_t n=0;n<3;++n)if(n!=second){const auto frame=visible(set.frames[n].hwnd);if(!set.owns(n)||!frame)throw std::runtime_error("I10_survivor_actual_snapshot_missing");live.push_back(n);actual.push_back(*frame);}
         const std::size_t source=live[0];const Rect neighbour=actual[1];const Rect from=actual[0];

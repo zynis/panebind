@@ -254,7 +254,7 @@ struct ApplicationProcess {
 struct ApplicationTarget {
     std::string kind;fs::path executable,root_executable,directory;std::wstring command;
     std::vector<HWND> baseline;std::vector<ApplicationProcess> processes;
-    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{},close_failure_facts_recorded{};
+    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{},close_failure_facts_recorded{},terminal_client_rejection_recorded{};
     std::string last_close_reason;
 };
 struct State{
@@ -282,19 +282,33 @@ const std::string& read_product(State& s){
     if(s.product_evidence.pid()!=s.product_pid||(s.process&&
        (GetProcessId(s.process)!=s.product_pid||process_birth(s.process)!=s.product_evidence.birth())))
         throw std::runtime_error("product_log_actual_process_identity_changed");
-    const auto physical=[](const fs::path& path){
+    unsigned pair_attempt{};
+    const auto physical=[&](const fs::path& path)->std::optional<std::string>{
         const auto attributes=GetFileAttributesW(path.c_str());
         if(attributes==INVALID_FILE_ATTRIBUTES){const auto error=GetLastError();if(error==ERROR_FILE_NOT_FOUND||error==ERROR_PATH_NOT_FOUND)return std::string{};
             throw std::runtime_error("product_log_physical_attributes_unavailable");}
         if(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))throw std::runtime_error("product_log_physical_file_not_plain");
         std::error_code error;const auto bytes=fs::file_size(path,error);
-        if(error||bytes>2*1024*1024)throw std::runtime_error("product_log_physical_size_unavailable_or_unbounded");
+        const bool oversized=!error&&bytes>2*1024*1024;
+        if(error||oversized){
+            const bool retry=product::guest::product_log_metadata_pair_retry_allowed(pair_attempt,true,error,oversized);
+            s.log.emit("product_log_physical_read_error","\"file\":"+quote(utf8(path.filename().wstring()))+
+                ",\"stage\":\"file_size_after_plain_attributes\",\"attributes\":"+std::to_string(attributes)+
+                ",\"filesystem_error_value\":"+std::to_string(error.value())+",\"filesystem_error_category\":"+quote(error.category().name())+
+                ",\"actual_size_known\":"+(error?"false":"true")+",\"actual_size\":"+(error?"null":std::to_string(bytes))+
+                ",\"pair_attempt\":"+std::to_string(pair_attempt+1)+",\"single_pair_recollection_allowed\":"+(retry?"true":"false")+
+                ",\"rotation_cause_confirmed\":false");
+            if(retry)return {};
+            throw std::runtime_error("product_log_physical_size_unavailable_or_unbounded");
+        }
         return read(path);
     };
     auto previous=s.product_log;previous+=L".1";std::string why;
     for(unsigned attempt=0;attempt<2;++attempt){
-        const auto old=physical(previous),current=physical(s.product_log);
-        if(s.product_evidence.observe(old,current,why))return s.product_evidence.text();
+        pair_attempt=attempt;
+        const auto old=physical(previous);if(!old)continue;
+        const auto current=physical(s.product_log);if(!current)continue;
+        if(s.product_evidence.observe(*old,*current,why))return s.product_evidence.text();
         if(s.product_evidence.rejected())break;
     }
     s.product_evidence.reject();throw std::runtime_error("product_log_evidence_rejected_"+why);
@@ -1861,6 +1875,7 @@ void edge_paused_native_client_baseline(State& s){
     if(!failure.empty()||!paused||!dom_observed||!resumed||s.left||s.control)
         throw std::runtime_error("Edge_paused_native_client_baseline_failed_enhancement_not_attempted");
 }
+#include "platform/windows/product/v1_guest_terminal_capture.h"
 void matrix_escape_and_client(State& s,const std::string& label){
     const HWND h=source_window(s,0);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_escape_geometry_unknown");
     const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
@@ -1887,7 +1902,16 @@ void matrix_escape_and_client(State& s,const std::string& label){
         ",\"WM_NCHITTEST_returned\":"+(hit_read?"true":"false")+",\"WM_NCHITTEST\":"+(hit_read?std::to_string(region):"null")+
         ",\"WM_NCHITTEST_error\":"+(exact_child?std::to_string(hit_error):"null")+",\"input_not_yet_sent\":true");
     const bool actual=exact_child&&hit_read&&region==HTCLIENT;
-    if(!actual)throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
+    if(!actual){
+        const auto target=s.applications[0];
+        if(target&&target->kind=="Terminal"&&!target->terminal_client_rejection_recorded){
+            target->terminal_client_rejection_recorded=true;
+            try{guest_observe_terminal_client_rejection(s,*target,facts[0],point);}
+            catch(const std::exception& error){s.log.emit("Terminal_client_rejection_observation_failed",
+                "\"reason\":"+quote(error.what())+",\"original_HTCLIENT_rejection_preserved\":true,\"client_input_sent\":false,\"visual_review\":\"NOT_RUN\"");}
+        }
+        throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
+    }
     const auto click_mark=read_product(s).size();button(s,true);button(s,false);Sleep(150);
     std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
     const bool focused=context.known()&&gui.hwndFocus&&IsWindow(gui.hwndFocus)&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;

@@ -4,10 +4,20 @@
 #include <string>
 #include <string_view>
 #include <stdexcept>
+#include <system_error>
 #include <utility>
 #include <vector>
 
 namespace panebind::platform::windows::product::guest {
+
+// Only a known ordinary file disappearing between attributes and file_size
+// can consume the existing pair's one retry. Permission and size failures
+// never become "rotation". These are Windows system error values, not errno.
+inline bool product_log_metadata_pair_retry_allowed(unsigned pair_attempt,bool plain_attributes,
+    const std::error_code& size_error,bool size_over_limit){
+    return pair_attempt==0&&plain_attributes&&!size_over_limit&&size_error.category()==std::system_category()&&
+        (size_error.value()==2||size_error.value()==3);
+}
 
 // TEST reader only. Physical .1/current rotation must not change an already
 // issued logical byte mark. Actual launch identity starts a new segment;

@@ -138,9 +138,33 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         // movement; otherwise this test would conceal motion-only recovery.
         cursor(s,{g.anchor.x+70,g.anchor.y+80});
         if(focus_target)s.log.check("I08_product_does_not_retake_foreground",GetForegroundWindow()==focus_target);
-        LARGE_INTEGER up_before{};if(!QueryPerformanceCounter(&up_before)||up_before.QuadPart<=0)throw std::runtime_error("I08_actual_UP_clock_unavailable");
-        button(s,false);
-        const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+        // One short-lived EXISTING passive observer around this already
+        // planned cleanup UP, only after the exact source was destroyed. It
+        // diagnoses guest-chain delivery, never replaces the product receipt.
+        std::unique_ptr<GuestUpHookObservation> cleanup_up_head;
+        bool head_ready=false,head_finished=false;
+        if(destroyed){cleanup_up_head=std::make_unique<GuestUpHookObservation>();head_ready=cleanup_up_head->start();}
+        const auto finish_cleanup_up_head=[&](std::string_view stage){
+            if(!cleanup_up_head||head_finished)return;head_finished=true;
+            const bool stopped=cleanup_up_head->stop();const auto actual_head=cleanup_up_head->json();
+            const bool one_tagged=head_ready&&stopped&&s.left_up_attempted&&s.left_up_send_qpc&&
+                number(actual_head,"\"actual_left_UP_callbacks\":")==1&&number(actual_head,"\"last_qpc\":")>=s.left_up_send_qpc&&
+                number(actual_head,"\"last_extra_information\":")==0x50425631&&
+                (number(actual_head,"\"last_flags\":")&LLMHF_INJECTED);
+            if(!head_ready||!stopped)s.log.failed=true;
+            s.log.emit("I08_destroyed_source_cleanup_UP_guest_head","\"expected_retired_generation\":"+std::to_string(g.generation)+
+                ",\"stage\":"+quote(stage)+",\"single_planned_test_UP_attempted\":"+(s.left_up_attempted?"true":"false")+
+                ",\"single_planned_test_UP_send_before_qpc\":"+(s.left_up_attempted?std::to_string(s.left_up_send_qpc):"null")+
+                ",\"observer_start_confirmed\":"+(head_ready?"true":"false")+",\"observer_stop_confirmed\":"+(stopped?"true":"false")+
+                ",\"single_tagged_guest_head_UP_observed\":"+(one_tagged?"true":"false")+",\"actual_head\":"+actual_head+
+                ",\"product_UP_or_NormalUp_inferred\":false,\"Raw_fallback_used\":false,\"additional_UP_sent\":false");
+        };
+        LARGE_INTEGER up_before{};if(!QueryPerformanceCounter(&up_before)||up_before.QuadPart<=0){
+            finish_cleanup_up_head("unique_cleanup_UP_clock_unavailable");throw std::runtime_error("I08_actual_UP_clock_unavailable");}
+        AbortCleanupUpReceipt abort_up;
+        try{button(s,false);abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);}
+        catch(...){finish_cleanup_up_head("exception_around_unique_cleanup_UP");throw;}
+        finish_cleanup_up_head("after_actual_product_cleanup_UP_observation");
         const bool matching_up=!s.left&&abort_up.matched;
         const std::string up_fields="\"single_test_UP_sent\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+
             ",\"actual_UP\":"+(actual_up(s,g.offset,g.generation).empty()?"null":quote(actual_up(s,g.offset,g.generation)))+
