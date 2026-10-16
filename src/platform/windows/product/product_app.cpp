@@ -388,7 +388,10 @@ public:
             input.operation_guard(generation,false,generation?identity.hwnd:nullptr);
         const auto receipt=writer.visual(identity,before,target,alpha_change,top_change,settings,std::move(guard),cleanup_owned,
             [this](HANDLE completion){return recovery.defer_until_native_completion(completion);},
-            cleanup?GestureCaptureLease{}:input.capture_context(generation));
+            // Owned-property cleanup is not new motion authority, but an
+            // active gesture still needs its exact actual capture context.
+            // The writer independently rejects stale/foreign/retired capture.
+            input.capture_context(generation));
         *cleanup_claim=false;
         bool acknowledged=false;
         if(!receipt.completion_known&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
@@ -1279,7 +1282,13 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     if(input.allowed(e.generation)&&config.shake&&!is_resize(state.edges)&&(source.feature_mask&32u)&&state.shake.sample({e.point.x,e.point.y},e.tick,
         static_cast<int>(dip(config.shake_amplitude_dip,source.dpi)),static_cast<unsigned>(config.shake_reversals),static_cast<std::uint64_t>(config.shake_window_ms))){
         if(state.drag_visual){restore_drag_visual(std::move(*state.drag_visual));state.drag_visual.reset();}
-        if(visual.contains(source.key)){visual_restore(visual[source.key]);visual.erase(source.key);}
+        if(const auto stored=visual.find(source.key);stored!=visual.end()){
+            (void)visual_restore(stored->second);
+            // A failed or partial restoration still owns its unchanged
+            // attributes. Keep that responsibility for a later explicit
+            // restore/stop; app-owned changes are retired by visual_restore.
+            if(!v::visual_changes(stored->second.ownership))visual.erase(stored);
+        }
         else if(input.allowed(e.generation)){const auto record=visual_begin(*fresh,true,static_cast<BYTE>(config.shake_alpha),false);if(record)visual[source.key]=*record;}
     }
 }

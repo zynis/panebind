@@ -57,6 +57,26 @@ int main(){
     auto dragging=alpha(external,170);v::record_alpha(drag,dragging);
     expect(drag.original.alpha==158&&state.original.alpha==190,"temporary drag records current permanent alpha not permanent original");
     expect(v::same_alpha(drag.original,external)&&v::owns_alpha(drag,dragging),"temporary restoration target exact observed tuple");
+    // A native/context rejection does not mutate the actual tuple. The
+    // production shake-restoration branch retains this still-owned record;
+    // it must not drop both attributes merely because the restore was tried.
+    const auto shake_original=alpha(plain,173);
+    auto shaking=alpha(shake_original,190);shaking.topmost=true;
+    v::VisualOwnership shake_owned{shake_original,shaking,true,true};
+    v::observe_visual(shake_owned,shaking);
+    expect(v::visual_changes(shake_owned)&&v::owns_alpha(shake_owned,shaking)&&v::owns_top(shake_owned,shaking),
+        "unchanged actual state after failed restoration keeps both cleanup responsibilities");
+    auto partially_restored=shaking;v::copy_alpha(partially_restored,shake_original);v::record_alpha(shake_owned,partially_restored);
+    expect(v::visual_changes(shake_owned)&&!shake_owned.changed_alpha&&v::owns_top(shake_owned,partially_restored),
+        "exact alpha restoration cannot retire an uncompleted topmost restoration");
+    partially_restored.topmost=shake_original.topmost;v::record_top(shake_owned,partially_restored);
+    expect(!v::visual_changes(shake_owned),"both exactly restored attributes retire the shake record");
+    shake_owned={shake_original,shaking,true,true};
+    auto app_changed=shaking;app_changed.alpha=199;v::observe_visual(shake_owned,app_changed);
+    expect(!shake_owned.changed_alpha&&shake_owned.changed_top&&!v::owns_alpha(shake_owned,app_changed),
+        "retaining failed cleanup never grants restoration over an application's changed alpha");
+    app_changed.topmost=false;v::observe_visual(shake_owned,app_changed);
+    expect(!v::visual_changes(shake_owned),"independent app changes can retire ownership without overwriting them");
     expect(v::stepped_alpha(255,false)==223&&v::stepped_alpha(223,false)==191&&v::stepped_alpha(191,true)==223,"multiple opacity steps deterministic");
     expect(v::stepped_alpha(20,false)==16&&v::stepped_alpha(8,false)==8&&v::stepped_alpha(0,true)==32&&v::stepped_alpha(250,true)==255,"opacity edges never reverse requested direction");
     auto unknown=external;unknown.attributes_known=false;
