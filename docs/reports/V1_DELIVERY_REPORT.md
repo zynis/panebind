@@ -2,13 +2,19 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。当前356候选仅补既有早终止三分支诊断，D/R构建和各10offline通过，**runtime NOT_RUN**，不叫修复UP。187/b1a3 Debug Full已实际FAIL：核心I02子scope与g6 Ctrl T Resize exact成立，但UP前已FocusLost；真实LL-UP到达不能当NormalUp。187/28d7 Release仍实际进行中，尚无最终结论。历史**7/60功能、B29／B32共2/40=5%**不变、原身份不换绑；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。356/f706 Debug Full已实测FAIL，owned布局／本屏停靠／中断／视觉／在途与约束有具体子范围，旧T早退未复现但不闭D08。187/28d7 Release已完成两轮／900秒、独立idle60、入口及故障组件；整I11仍BLOCKED，Explorer／应用未齐且整批FAIL。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑；356 Release仍NOT_RUN，不能宿主试用，真人UAT PENDING。
 
-## 当前356诊断候选：构建完成，尚未现场运行
+## 187 Release／356 Debug最终实际范围
+
+[28d7 Release原行](v1-evidence/28d7-r9-release-owned-rounds-900s-components-and-app-boundaries-selected.jsonl)：product／driver均187，包装b2cc，5588行合法连续。2998／3912同PID3744完成两轮，20slot实际900.000199秒；4646原FINAL_REVIEW_PENDING输出保留，4653整I11仍BLOCKED，不把两轮／时长抬成整链PASS。4659独立60.013641秒、CPU0%、WS30,593,024字节、handles280→277、GDI23／USER30仅该测量scope。startup、五键、导入／失败保存／诊断失败／损坏／排除有子PASS，tray BLOCKED；新799d ZIP普通GUI／保存后Move-UP／正常退出与字节检查1208仅入口范围。I08 2047、视觉5157／在途5385／grid5450／batch5518组件通过；Explorer5533资格失败、5535清理E_ACCESSDENIED且root未消失。5550明确builtin conhost而非现代Terminal，ownerGTI未知、单阈值MOVE后未见START，后续Code／Notepad／Edge未运行，不继承别批。wrapper wait0／exit1／desc0／forced=false，product_cleanup=false，guest16220／专用任务22:32:57Z精确清理且证据未变。
+
+[f706 Debug原行](v1-evidence/f706-r9-debug-owned-components-and-application-failures-selected.jsonl)：product／driver均356，包装08ff，2940行合法连续。174核心、686真实垂直／水平／T→L／四格／八窗、1691本屏dock/stretch、2053四cause与actor默认30秒、2533视觉、2750在途及后继恢复已运行；I08输出明确不授全合同，grid2805仍partial／original_UP_observed=false／whole_I10_PASS=false，batch真实清理UP子项保留。旧b1a3正常T早退未复现，不等于查明或修复缺UP。[产品6956/427原行](v1-evidence/f706-r9-debug-observed-foreground-termination-origin-selected.jsonl)实际记录winevent_foreground、g10、foreground2950050/source3932928/overlay4260670；与旧T不是同代／同场景，不猜触发原因或反推根因。Explorer资格FAIL；Notepad／Code本批无合格新root而BLOCKED；Edge暂停native客户基线失败未增强且root未确认关闭；classic conhost无START，Terminal根实际关闭。2931退出后客户投递未观察，wrapper wait0／exit1／desc2／forced=true／product_cleanup=false，不能以guest销毁补PASS。guest24232／专用任务22:38:01Z精确清理、证据未变。两批完整身份与原hash／ZIP／manifest在索引，不增加功能或B项。
+
+## 356运行前构建记录（后继f706已实测FAIL）
 
 product／driver两配置实际self-identity均`356d9e1b844c3f6d3efba41dd6ed39ca8f118996`，冻结`out/v1-product-termination-origin-r9-356d9e1`；D/R combined构建退出0、各10offline通过，D processor3.28／wall3.34秒，R processor1.44／wall2.63秒。D产品`5034AFD5E3672C7EE632DEBDA1880A18C76C2939ED1732139C09E0153FF37071`／driver`641DD0CD5FFFC31F7BAB01C59FA9C51469A2EA8F00FBEE07408EF812E868F5BD`；R产品`49D92161FB72179DBFE9B47236DE3CB1E8759B87E5BA427EFB8C57E8DAB94EBE`／driver`F898D300EADEDBAC324444A85A29CB7012C8766FB775DC06B76B9611A8AEDD1F`。原生CTest output-log SHA D `B9C964FB85AD64FF80D6F874FBCD3F36611BA4D74E5CBE5E6C416CF535054741`／R `646991EF391406CD0BA44054F67DA0F50F13FA2AD4E26311F3B6393F8D2FD4B7`。仅诊断、撤权先于观察／GUI日志，不改原三分支判定；不是逐测试原stdout或现场PASS。187/b1a3关键原行已入索引，FocusLost后实际LL-UP不补成NormalUp；28d7仍进行中，原现场身份不换绑。
 
-## 187运行前构建记录（后继b1a3已实测，Release进行中）
+## 187运行前构建记录（后继b1a3与28d7已实测FAIL）
 
 源码／product与driver self-identity均为`187616742a1b7195ce46dce6d9df881b413975e6`，冻结目录`out/v1-product-input-display-r9-1876167`；D/R构建退出0、各10offline PASS，D processor2.98／wall3.04秒、R processor1.58／wall2.83秒。D产品`47C6B5ED47E7A469BF446F4BD006A34A2AAF3C92F39A05B14A51FCD01D7FDDB0`／driver`3EB70587CD05E7D735AB0A4BC9F0C6179FEAD5B65429BD9DA9C9640E0C231BCE`；R产品`D4E0EA86219FF2AC48A3F91C45A77A726622A7CF6576DA8584F4ECE5C075BE64`／driver`8FB159A6D264360275FB5EEFA80B4A6A20BFD2F81AF1117FF3D9EA901689B029`。原生CTest output-log SHA D `DF5436F78B79584C1CB898BBB4AB4A39971D258C52D3F884AE9D8A3AE84060CB`／R `722C2200CF0527853A66BADE82082FAEBC1E440B2610C96820D4754A0491CE58`；不是逐测试原stdout或现场功能证据。
 
