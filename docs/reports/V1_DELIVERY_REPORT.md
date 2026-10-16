@@ -2,7 +2,13 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。356/f706 Debug Full已实测FAIL，owned布局／本屏停靠／中断／视觉／在途与约束有具体子范围，旧T早退未复现但不闭D08。187/28d7 Release已完成两轮／900秒、独立idle60、入口及故障组件；整I11仍BLOCKED，Explorer／应用未齐且整批FAIL。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑；356 Release仍NOT_RUN，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。当前212 native-first Ctrl／Resize候选已接线，**runtime NOT_RUN**；D/R构建退出0且各11项offline通过。原356/f706 Debug及187/28d7 Release实际失败、两轮／900秒与其他已测范围均保留原身份；历史**7/60功能、B29／B32共2/40=5%**不增、不换绑。不能宿主试用，真人UAT PENDING。
+
+## 当前212候选：真实native前缀与原DOWN组接线，等待现场
+
+Debug product／driver实际self-identity均212，产品SHA `8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6`、driver SHA `315FBB1D8217774736111EB40927B932F9BA14ED7357B364D47E3C5703AC6C6E`；11/11 offline PASS，processor3.27／wall3.32秒。原生CTest output-log `uat/v1-control/r10-212e197-Debug-offline-20261017.txt`／SHA `55C972BE0F869290DB88C901AE8A05E1F87A5A87C81C4B11E92F589F6F314FA1`。Release product／driver实际self-identity亦为212；产品 `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`／driver `ED8FBEBFE7370E74E4BA16E35D8CBA4F39674E35326E1FDAAAD91F821BA0ABEB`；11/11 offline PASS processor1.69／wall2.99秒，原生CTest output-log `uat/v1-control/r10-212e197-Release-offline-20261017.txt`／SHA `686B310183EC35A1723FBB97CD641E1F48633948F5BA3E25F5BC03547EA363C7`。构建和offline不是现场PASS。
+
+源码／实际product与driver身份`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，构建目录`out/v1-product-native-geometry-r10-212e197`。普通／Ctrl单击Move及边角Resize走真实START→隔离／cancel→实际END／fresh B→共用writer；保留原DOWN意图及Ctrl组，不用B重起算。原DOWN limits仅已有系统/default测量，应用declared tracking limits实际在begin B查询，不能写成DOWN已实测。fast native-only透传只证明原生位移保留，不授Glue／增强Resize PASS。运行NOT_RUN；旧356整对象保留为observed历史，不重绑定。
 
 ## 187 Release／356 Debug最终实际范围
 
@@ -12,7 +18,7 @@
 
 ## 356运行前构建记录（后继f706已实测FAIL）
 
-product／driver两配置实际self-identity均`356d9e1b844c3f6d3efba41dd6ed39ca8f118996`，冻结`out/v1-product-termination-origin-r9-356d9e1`；D/R combined构建退出0、各10offline通过，D processor3.28／wall3.34秒，R processor1.44／wall2.63秒。D产品`5034AFD5E3672C7EE632DEBDA1880A18C76C2939ED1732139C09E0153FF37071`／driver`641DD0CD5FFFC31F7BAB01C59FA9C51469A2EA8F00FBEE07408EF812E868F5BD`；R产品`49D92161FB72179DBFE9B47236DE3CB1E8759B87E5BA427EFB8C57E8DAB94EBE`／driver`F898D300EADEDBAC324444A85A29CB7012C8766FB775DC06B76B9611A8AEDD1F`。原生CTest output-log SHA D `B9C964FB85AD64FF80D6F874FBCD3F36611BA4D74E5CBE5E6C416CF535054741`／R `646991EF391406CD0BA44054F67DA0F50F13FA2AD4E26311F3B6393F8D2FD4B7`。仅诊断、撤权先于观察／GUI日志，不改原三分支判定；不是逐测试原stdout或现场PASS。187/b1a3关键原行已入索引，FocusLost后实际LL-UP不补成NormalUp；28d7仍进行中，原现场身份不换绑。
+product／driver两配置实际self-identity均`356d9e1b844c3f6d3efba41dd6ed39ca8f118996`，冻结`out/v1-product-termination-origin-r9-356d9e1`；D/R combined构建退出0、各10offline通过，D processor3.28／wall3.34秒，R processor1.44／wall2.63秒。D产品`5034AFD5E3672C7EE632DEBDA1880A18C76C2939ED1732139C09E0153FF37071`／driver`641DD0CD5FFFC31F7BAB01C59FA9C51469A2EA8F00FBEE07408EF812E868F5BD`；R产品`49D92161FB72179DBFE9B47236DE3CB1E8759B87E5BA427EFB8C57E8DAB94EBE`／driver`F898D300EADEDBAC324444A85A29CB7012C8766FB775DC06B76B9611A8AEDD1F`。原生CTest output-log SHA D `B9C964FB85AD64FF80D6F874FBCD3F36611BA4D74E5CBE5E6C416CF535054741`／R `646991EF391406CD0BA44054F67DA0F50F13FA2AD4E26311F3B6393F8D2FD4B7`。仅诊断、撤权先于观察／GUI日志，不改原三分支判定；不是逐测试原stdout或现场PASS。187/b1a3关键原行已入索引，FocusLost后实际LL-UP不补成NormalUp；28d7后继已完成且整批FAIL，各子范围见上，原现场身份不换绑。
 
 ## 187运行前构建记录（后继b1a3与28d7已实测FAIL）
 

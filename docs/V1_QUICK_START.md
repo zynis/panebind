@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前候选源码`356d9e1b844c3f6d3efba41dd6ed39ca8f118996`／Release EXE `49D92161FB72179DBFE9B47236DE3CB1E8759B87E5BA427EFB8C57E8DAB94EBE`；Debug f706已实测FAIL，Release同source仍NOT_RUN。187/28d7 Release已完成两轮／900秒及具体入口、视觉和故障组件，但整I11 BLOCKED、Explorer／应用失败或未运行，不能拼全版通过。f706旧T早退未复现，不叫UP已修复；诊断foreground origin不推未知根因。历史七项功能／B2、各旧EXE及799d ZIP实测保持原身份，不换绑；完整记录见交付报告。**不可宿主试用，真人UAT PENDING**。
+当前新候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，native-first Ctrl Move／普通及Ctrl Resize已接线；D/R构建和受影响offline通过，Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`，**现场NOT_RUN**。原DOWN组／锚点保持；DOWN limits仅已有系统/default测量，应用declared限制在begin B查询。快速native-only透传不代表Glue或增强Resize通过。原356／187已测失败和已通过子范围、历史七项功能／B2保留原身份，不换绑新候选。完整实际结果见交付报告；**不可宿主试用，真人UAT PENDING**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 
