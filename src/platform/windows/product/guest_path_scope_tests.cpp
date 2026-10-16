@@ -66,6 +66,26 @@ int main() {
     const std::string legacy=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"legacy_left_up","overlay":200,"actual_legacy_up_accepted":true,"legacy_up_dispatch_qpc":1001})";
     const std::string gone=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"isolation_gone","overlay":200,"removal_reason":0,"overlay_destroyed":true,"release_attempted":true,"release_completed":true,"release_succeeded":true,"capture_after_release":0,"detach_attempted":true,"detach_completed":true,"detach_succeeded":true})";
     const std::string idle=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"status","hook_owner_running":true,"gesture_active":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false})";
+    const std::string abort_status=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"status","native_operation_pending":true,"mouse_up_callbacks":{"snapshot_known":true,"callback_count":3,"last":{"hook_observed_qpc":1001,"button":1,"generation_at_entry":7,"consumed_before":false,"aborted_before":true,"matching_branch_taken":false,"push_attempted":false,"push_succeeded":false}}})";
+    const std::string aborted_end=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_end","generation":7,"end":1,"normal_up":false,"pending_retired":true})";
+    auto aborted_gone=gone;aborted_gone.replace(aborted_gone.find("\"removal_reason\":0"),18,"\"removal_reason\":1");
+    const auto mutate=[](std::string row,std::string_view from,std::string_view to){
+        const auto at=row.find(from);if(at==row.npos)std::exit(2);row.replace(at,from.size(),to);return row;};
+    const auto captured_revoke=mutate(mutate(abort_status,"\"consumed_before\":false","\"consumed_before\":true"),
+        "\"matching_branch_taken\":false","\"matching_branch_taken\":true");
+    const auto abort_match=[&](std::string_view row,std::string_view end,std::string_view resource){
+        return guest::matching_abort_cleanup_up(row,end,resource,identity);};
+    if(!expect(abort_match(abort_status,aborted_end,aborted_gone),true,"retired no-push actual LL cleanup UP does not require in-flight writer idle")||
+       !expect(abort_match(captured_revoke,aborted_end,aborted_gone),true,"capture-pair actual UP revokes without normalized push")||
+       !expect(abort_match("",aborted_end,aborted_gone),false,"missing actual product callback snapshot rejects abort cleanup UP")||
+       !expect(abort_match(mutate(abort_status,"\"hook_observed_qpc\":1001","\"hook_observed_qpc\":999"),aborted_end,aborted_gone),false,"older callback cannot prove this single cleanup UP")||
+       !expect(abort_match(mutate(abort_status,"\"generation_at_entry\":7","\"generation_at_entry\":8"),aborted_end,aborted_gone),false,"different generation callback rejects")||
+       !expect(abort_match(mutate(abort_status,"\"button\":1","\"button\":2"),aborted_end,aborted_gone),false,"other mouse button is not left cleanup UP")||
+       !expect(abort_match(abort_status,mutate(aborted_end,"\"normal_up\":false","\"normal_up\":true"),aborted_gone),false,"normal end cannot use abort-only evidence")||
+       !expect(abort_match(abort_status,aborted_end,gone),false,"NormalUp resource removal cannot masquerade as abort cleanup")||
+       !expect(abort_match(abort_status,aborted_end,mutate(aborted_gone,"\"detach_succeeded\":true","\"detach_succeeded\":false")),false,"unconfirmed detach rejects abort cleanup")||
+       !expect(abort_match(mutate(abort_status,"\"process_id\":42","\"process_id\":43"),aborted_end,aborted_gone),false,"other product PID snapshot rejects")||
+       !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,abort_status,identity),false,"abort cleanup snapshot cannot satisfy unchanged NormalUp gate"))return 1;
     if(!expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,legacy,gone),true,"fresh public idle status plus actual captured legacy UP and confirmed cleanup")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,"",gone),false,"Raw or idle status alone cannot replace actual legacy UP")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,legacy,""),false,"missing release and detach are not NormalUp")||

@@ -62,6 +62,10 @@ struct Cursor {
         if(!size||(size>1&&text.front()=='0'))return false;
         text.remove_prefix(size);return true;
     }
+    bool boolean(bool& value){
+        if(take("true")){value=true;return true;}
+        if(take("false")){value=false;return true;}return false;
+    }
 };
 inline std::optional<std::uint64_t> number(std::string_view row,std::string_view key){
     const auto value=unique_value(row,key);if(!value)return {};Cursor cursor{*value};std::uint64_t out{};
@@ -114,6 +118,39 @@ inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIde
         snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
         snapshot.take(",\"consumed_before\":true,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":true,\"push_succeeded\":true}}}")&&
         snapshot.text.empty();
+}
+// ABORT cleanup evidence only. A hook receipt after revocation is not a
+// normalized gesture UP, a NormalUp permit, target delivery or idle proof.
+// In-flight native completion and geometry must be verified separately.
+inline bool matching_abort_cleanup_up(std::string_view status,std::string_view ended,
+    std::string_view gone,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    if(!receipt(ended,expected,"gesture_end")||!receipt(gone,expected,"gesture_input_resource")||
+       !quoted(gone,"\"fact\":","isolation_gone")||unique_value(ended,"\"normal_up\":")!="false"||
+       unique_value(ended,"\"pending_retired\":")!="true"||!number(ended,"\"end\":")||number(ended,"\"end\":")==0||
+       !number(gone,"\"overlay\":")||number(gone,"\"overlay\":")==0||
+       !number(gone,"\"removal_reason\":")||number(gone,"\"removal_reason\":")==0||number(gone,"\"removal_reason\":")>5||
+       unique_value(gone,"\"overlay_destroyed\":")!="true"||unique_value(gone,"\"release_attempted\":")!="true"||
+       unique_value(gone,"\"release_completed\":")!="true"||unique_value(gone,"\"release_succeeded\":")!="true"||
+       number(gone,"\"capture_after_release\":")!=0||unique_value(gone,"\"detach_attempted\":")!="true"||
+       unique_value(gone,"\"detach_completed\":")!="true"||unique_value(gone,"\"detach_succeeded\":")!="true"||
+       status.empty()||status.size()>16384||status.front()!='{'||status.back()!='}'||status.find_first_of("\r\n")!=status.npos||
+       !quoted(status,"\"schema\":","panebind-v1/1")||!quoted(status,"\"type\":","status")||
+       !quoted(status,"\"source_sha\":",expected.source_sha)||number(status,"\"process_id\":")!=expected.process_id)return false;
+    constexpr std::string_view key="\"mouse_up_callbacks\":";const auto at=status.find(key);
+    if(at==status.npos||status.find(key,at+key.size())!=status.npos)return false;
+    Cursor snapshot{status.substr(at+key.size())};std::uint64_t count{},qpc{},generation{};
+    bool consumed{},aborted{},matching{},attempted{},succeeded{};
+    const bool observed=snapshot.take("{\"snapshot_known\":true,\"callback_count\":")&&snapshot.number(count)&&count>0&&
+        snapshot.take(",\"last\":{\"hook_observed_qpc\":")&&snapshot.number(qpc)&&qpc>0&&qpc>=expected.send_before_qpc&&
+        snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
+        snapshot.take(",\"consumed_before\":")&&snapshot.boolean(consumed)&&snapshot.take(",\"aborted_before\":")&&snapshot.boolean(aborted)&&
+        snapshot.take(",\"matching_branch_taken\":")&&snapshot.boolean(matching)&&snapshot.take(",\"push_attempted\":")&&snapshot.boolean(attempted)&&
+        snapshot.take(",\"push_succeeded\":")&&snapshot.boolean(succeeded)&&snapshot.take("}}}")&&snapshot.text.empty();
+    const bool retired_pair=!consumed&&aborted&&!matching&&!attempted&&!succeeded;
+    const bool captured_revoke=consumed&&matching&&!attempted&&!succeeded;
+    const bool normalized_abort=consumed&&aborted&&matching&&attempted&&succeeded;
+    return observed&&(retired_pair||captured_revoke||normalized_abort);
 }
 inline bool accepted_up_evidence(UpEvidenceMode mode,bool matching_diagnostic_event,
     std::string_view status,const UpEvidenceIdentity& expected,std::string_view legacy={},std::string_view gone={}){

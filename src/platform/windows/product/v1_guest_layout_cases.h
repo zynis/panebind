@@ -329,7 +329,20 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
         start=record(s,g.offset,"gesture_start",g.generation);
     }catch(...){layout_failed_start_release(s,g.generation,down_sent);throw;}
     GUITHREADINFO native{sizeof(native)};const bool native_read=GetGUIThreadInfo(set.thread,&native)!=FALSE;
-    const bool accepted=started&&set.owns(source)&&GetForegroundWindow()==h&&native_read&&!native.hwndCapture&&!native.hwndMoveSize&&
+    POINT actual_cursor{};const bool cursor_known=GetCursorPos(&actual_cursor)!=FALSE;
+    const HWND hit=cursor_known?WindowFromPoint(actual_cursor):nullptr,hit_root=hit?GetAncestor(hit,GA_ROOT):nullptr;
+    const auto capture=release_capture_facts(s,h,hit_root,g.generation);
+    const bool exact_shield=cursor_known&&product::guest::captured_release_hit_allowed(capture);
+    const bool native_idle=native_read&&!native.hwndCapture&&!native.hwndMoveSize&&!native.hwndMenuOwner&&
+        !(native.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+    // A real READY lease has no idle fallback: an already lost/released
+    // capture cannot pass as "no capture". Old product routes without ANY
+    // matching-process READY receipt keep their former idle-only contract.
+    const bool capture_context=exact_shield||(!capture.generation&&native_idle);
+    const bool start_identity=g.generation&&number(start,"\"process_id\":")==s.product_pid&&
+        start.find("\"source_sha\":"+quote(s.product_source))!=start.npos;
+    const bool accepted=started&&start_identity&&set.owns(source)&&GetForegroundWindow()==h&&native_read&&capture_context&&
+        !native.hwndMoveSize&&!native.hwndMenuOwner&&
         start.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=std::string::npos&&
         start.find(region==HTCAPTION?"\"resize\":false":"\"resize\":true")!=std::string::npos;
     if(!accepted)layout_failed_start_release(s,g.generation,down_sent);
@@ -340,6 +353,12 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
         ",\"START_wait_services_sent_only\":true,\"actual_GUI_facts_available\":"+(native_read?"true":"false")+
         ",\"actual_capture\":"+(native_read?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndCapture)):"null")+
         ",\"actual_move_size\":"+(native_read?std::to_string(reinterpret_cast<std::uintptr_t>(native.hwndMoveSize)):"null")+
+        ",\"capture_context\":"+quote(exact_shield?"exact_current_product_shield":capture_context?"legacy_native_idle":"rejected")+
+        ",\"START_exact_product_identity\":"+(start_identity?"true":"false")+
+        ",\"ready_generation\":"+std::to_string(capture.generation)+",\"ready_overlay\":"+std::to_string(capture.overlay)+
+        ",\"overlay_actual_PID\":"+std::to_string(capture.overlay_pid)+",\"overlay_actual_TID\":"+std::to_string(capture.overlay_tid)+
+        ",\"overlay_owner_actual_capture\":"+std::to_string(capture.owner_capture)+
+        ",\"actual_hit_root\":"+std::to_string(capture.hit_root)+",\"ready_not_retired\":"+(capture.not_retired?"true":"false")+
         ",\"actual_native_modal_starts\":"+std::to_string(set.frames[source].starts.load())+",\"production_start\":"+quote(start));return g;
 }
 void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG dx,LONG dy,const std::vector<Rect>& expected,std::string name){
@@ -530,12 +549,12 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         ",\"source_still_blocked\":"+(stall.finished?"false":"true")+",\"single_test_UP\":true");
     s.log.check("temporary_inflight_UP_before_source_returns",!stall.finished&&up_before.QuadPart>0&&
         static_cast<std::uint64_t>(up_before.QuadPart)>stall.before_qpc.load());
-    std::string ended;
-    const bool retired_with_UP=wait([&]{ended=record(s,g.offset,"gesture_end",g.generation);
-        return !actual_up(s,g.offset,g.generation).empty()&&ended.find("\"pending_retired\":true")!=std::string::npos;},1000);
+    const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+    std::string ended=abort_up.ended;
+    const bool retired_with_UP=abort_up.matched;
     const auto initial_UP=actual_up(s,g.offset,g.generation);const bool missing_UP=!retired_with_UP&&initial_UP.empty();
     const std::string retirement_fields="\"generation\":"+std::to_string(g.generation)+",\"NormalUp_not_inferred_from_test_UP\":true,\"actual_UP\":"+
-        (initial_UP.empty()?"null":quote(initial_UP))+",\"actual_end\":"+(ended.empty()?"null":quote(ended));
+        (initial_UP.empty()?"null":quote(initial_UP))+",\"actual_end\":"+(ended.empty()?"null":quote(ended))+","+abort_up.json();
     if(missing_UP){s.log.failed=true;s.log.emit("case","\"case\":\"temporary_inflight_generation_actually_retired\",\"result\":\"FAIL\","+retirement_fields);}
     else s.log.check("temporary_inflight_generation_actually_retired",retired_with_UP,retirement_fields);
     s.log.emit("temporary_inflight_actual_end","\"generation\":"+std::to_string(g.generation)+",\"production_end\":"+quote(ended)+

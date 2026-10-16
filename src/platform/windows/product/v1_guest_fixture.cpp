@@ -850,6 +850,37 @@ std::string actual_up(State& s,std::size_t offset,std::uint64_t generation,int p
           number(line,"\"native_message_time\":")&&number(line,"\"resource_observed_qpc\":"))))observed=line;
     return observed;
 }
+struct AbortCleanupUpReceipt {
+    bool matched{},status_requested{},status_observed{};DWORD status_exit{STILL_ACTIVE};
+    std::string status,ended,gone;
+    std::string json()const{
+        return "\"evidence_scope\":\"actual_LL_cleanup_UP_after_abort_not_NormalUp\",\"matching_abort_cleanup_UP\":"+
+            std::string(matched?"true":"false")+",\"single_public_status_requested\":"+(status_requested?"true":"false")+
+            ",\"public_status_exit\":"+std::to_string(status_exit)+",\"fresh_public_status_observed\":"+(status_observed?"true":"false")+
+            ",\"actual_status_receipt\":"+quote(status)+",\"actual_non_NormalUp_end\":"+quote(ended)+
+            ",\"actual_abort_resource_cleanup\":"+quote(gone)+",\"target_UP_delivery_claimed\":false,\"inflight_completion_inferred\":false";
+    }
+};
+AbortCleanupUpReceipt abort_cleanup_up_receipt(State& s,std::size_t offset,std::uint64_t generation){
+    AbortCleanupUpReceipt out;
+    if(!generation||s.left||!s.left_up_attempted||!s.left_up_send_qpc||!s.process||
+       GetProcessId(s.process)!=s.product_pid||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||!process_birth(s.process))return out;
+    const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,generation,s.left_up_send_qpc};
+    const auto status_mark=read(s.product_log).size();
+    // Exactly one public status command. The bounded wait only reads its
+    // actual receipt and resource facts; it never launches a polling process.
+    out.status_requested=launch(s,L"--status",true,&out.status_exit);
+    out.matched=wait([&]{
+        out.status=record(s,status_mark,"status");out.status_observed=!out.status.empty();
+        out.ended=record(s,offset,"gesture_end",generation);out.gone.clear();
+        const auto text=read(s.product_log);std::istringstream rows(offset<text.size()?text.substr(offset):std::string{});std::string row;
+        while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
+            row.find("\"fact\":\"isolation_gone\"")!=row.npos&&number(row,"\"generation\":")==generation)out.gone=row;
+        return out.status_requested&&out.status_exit==0&&out.status_observed&&
+            product::guest::matching_abort_cleanup_up(out.status,out.ended,out.gone,identity);
+    },1000);
+    return out;
+}
 std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect expected,bool native){
     const auto text=read(s.product_log);if(offset>=text.size())return {};std::istringstream stream(text.substr(offset));std::string line,out;
     while(std::getline(stream,line))if(line.ends_with('}')&&line.find("\"type\":\"placement\"")!=std::string::npos&&
@@ -1195,7 +1226,16 @@ void explorer_flow(State& s){
 void cleanup_explorers(State& s){
     for(auto& target:s.explorer)if(target){try{close_explorer_target(s,*target);}catch(...){s.log.failed=true;}target.reset();}
     for(auto& target:s.retired_explorers)if(target){try{close_explorer_target(s,*target);}catch(...){s.log.failed=true;}}
-    s.retired_explorers.clear();s.target_catalog.reset();
+    s.retired_explorers.clear();
+    // Explorer and application adapters share this read-only Catalog. An app
+    // whose normal WM_CLOSE has not completed still needs fresh eligibility
+    // and exact birth/identity checks during the final cleanup scope. Dropping
+    // the Catalog here must not manufacture a later identity rejection or
+    // justify closing that app without its existing admission checks.
+    const bool application_cleanup_pending=std::any_of(s.created_applications.begin(),s.created_applications.end(),
+        [](const auto& target){return target&&target->accepted&&!target->cleanup_confirmed;});
+    if(!application_cleanup_pending)s.target_catalog.reset();
+    else s.log.emit("application_cleanup_catalog_retained","\"unconfirmed_exact_application_root_remains\":true,\"identity_checks_unchanged\":true,\"cleanup_PASS_inferred\":false");
     for(auto& frame:s.frames)if(own(s,frame.hwnd)&&!IsWindowVisible(frame.hwnd))ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);
 }
 // Application-matrix automation stays in this guarded test executable. Process
@@ -1714,6 +1754,69 @@ bool matrix_client_child(State& s,const product::Snapshot& source,HWND child){
     const auto process=std::find_if(target->processes.begin(),target->processes.end(),[&](const auto& p){return p.pid==pid;});
     return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&process_birth(process->handle->value)==process->born;
 }
+void edge_paused_native_client_baseline(State& s){
+    // One discriminating baseline for the retained Edge hang. Only this
+    // exact new offline page is clicked, with product enhancements really
+    // paused. This is not proof that hooks or all input observers are absent.
+    const auto target=s.applications[0];
+    if(!target||target->kind!="Edge"||!target->accepted||!target->identity||s.left||s.control)
+        throw std::runtime_error("Edge_native_baseline_exact_idle_binding_required");
+    const HWND h=target->identity->hwnd;const auto before=visible(h);
+    bool pause_attempted=false,paused=false,click_attempted=false,dom_observed=false,resumed=false;
+    bool hit_read=false;HWND hit{};DWORD_PTR region{};DWORD hit_error{};POINT point{};
+    std::string failure,status,resume_status;const auto pause_mark=read(s.product_log).size();
+    try{
+        foreground(s,h);pause_attempted=true;
+        if(!launch(s,L"--pause",true)||!launch(s,L"--status",true)||!wait([&]{status=record(s,pause_mark,"status");return !status.empty();},1000)||
+           !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0})||status.find("\"enabled\":false")==status.npos)
+            throw std::runtime_error("Edge_native_baseline_product_pause_not_confirmed");
+        paused=true;std::optional<product::Snapshot> fresh;
+        if(!before||!application_fresh(s,*target,h,&fresh)||!fresh||GetForegroundWindow()!=h)
+            throw std::runtime_error("Edge_native_baseline_identity_or_foreground_changed");
+        const auto gui=product::observe_gui_context(*fresh);
+        RECT client{};
+        if(!gui.idle()||!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top)
+            throw std::runtime_error("Edge_native_baseline_client_or_GUI_unknown");
+        point={(client.left+client.right)/2,(client.top+client.bottom)/2};
+        if(!ClientToScreen(h,&point))throw std::runtime_error("Edge_native_baseline_client_screen_unknown");
+        cursor(s,point);hit=WindowFromPoint(point);const bool exact_child=matrix_client_child(s,*fresh,hit);
+        SetLastError(ERROR_SUCCESS);
+        hit_read=exact_child&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
+        hit_error=hit_read?ERROR_SUCCESS:exact_child?GetLastError():ERROR_SUCCESS;
+        if(!hit_read||region!=HTCLIENT||!application_fresh(s,*target,h)||GetForegroundWindow()!=h||
+           !product::observe_gui_context(*fresh).idle()||WindowFromPoint(point)!=hit)
+            throw std::runtime_error("Edge_native_baseline_fresh_exact_client_not_confirmed");
+        click_attempted=true;button(s,true);button(s,false);
+        const auto expected=L"PaneBind-Mouse-"+s.run;std::array<wchar_t,1024> title{};
+        dom_observed=wait([&]{return application_fresh(s,*target,h)&&GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&
+            std::wstring(title.data()).find(expected)!=std::wstring::npos&&visible(h)==before;},2000);
+        if(!dom_observed)failure="Edge_paused_native_client_DOM_delivery_not_observed";
+    }catch(const std::exception& error){failure=error.what();}
+    if(s.left&&!s.left_up_attempted)try{button(s,false);}catch(const std::exception& error){failure+=';';failure+=error.what();}
+    if(pause_attempted){
+        const auto mark=read(s.product_log).size();
+        const bool known=launch(s,L"--status",true)&&wait([&]{resume_status=record(s,mark,"status");return !resume_status.empty();},1000)&&
+            product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0});
+        if(known&&resume_status.find("\"enabled\":true")!=resume_status.npos)resumed=true;
+        else if(known&&resume_status.find("\"enabled\":false")!=resume_status.npos){
+            // Pause is the existing public toggle. An unsupported --resume
+            // would open Settings instead; never toggle an unknown state.
+            const auto toggle_mark=read(s.product_log).size();
+            resumed=launch(s,L"--command Pause",true)&&launch(s,L"--status",true)&&wait([&]{resume_status=record(s,toggle_mark,"status");return !resume_status.empty();},1000)&&
+                product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0})&&resume_status.find("\"enabled\":true")!=resume_status.npos;
+        }
+    }
+    s.log.emit("Edge_paused_native_client_baseline","\"scope\":\"one_exact_new_offline_page_enhancements_paused_not_hooks_absent\",\"attempt_limit\":1"+
+        std::string(",\"product_pause_confirmed\":")+(paused?"true":"false")+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"WM_NCHITTEST_returned\":"+(hit_read?"true":"false")+
+        ",\"WM_NCHITTEST\":"+(hit_read?std::to_string(region):"null")+",\"WM_NCHITTEST_error\":"+std::to_string(hit_error)+
+        ",\"single_client_click_attempted\":"+(click_attempted?"true":"false")+",\"actual_DOM_click_effect\":"+(dom_observed?"true":"false")+
+        ",\"product_resume_confirmed\":"+(resumed?"true":"false")+",\"failure\":"+quote(failure)+
+        ",\"pause_status\":"+quote(status)+",\"resume_status\":"+quote(resume_status)+",\"enhanced_Move_or_architecture_PASS_inferred\":false");
+    if(!failure.empty()||!paused||!dom_observed||!resumed||s.left||s.control)
+        throw std::runtime_error("Edge_paused_native_client_baseline_failed_enhancement_not_attempted");
+}
 void matrix_escape_and_client(State& s,const std::string& label){
     const HWND h=source_window(s,0);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_escape_geometry_unknown");
     const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
@@ -1726,9 +1829,20 @@ void matrix_escape_and_client(State& s,const std::string& label){
         "\"production_end\":"+quote(end)+",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
     foreground(s,h);RECT client{};if(!GetClientRect(h,&client))throw std::runtime_error("matrix_client_geometry_unknown");
     POINT point{(client.right-client.left)/2,(client.bottom-client.top)/2};if(!ClientToScreen(h,&point))throw std::runtime_error("matrix_client_screen_unknown");cursor(s,point);
-    const HWND hit=WindowFromPoint(point);DWORD_PTR region{};
-    const bool actual=matrix_client_child(s,facts[0],hit)&&
-        SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&region==HTCLIENT;
+    const HWND hit=WindowFromPoint(point);DWORD_PTR region{};DWORD hit_pid{};
+    const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;const HWND hit_root=hit?GetAncestor(hit,GA_ROOT):nullptr;
+    const bool exact_child=matrix_client_child(s,facts[0],hit);SetLastError(ERROR_SUCCESS);
+    const bool hit_read=exact_child&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,
+        MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
+    const DWORD hit_error=hit_read?ERROR_SUCCESS:exact_child?GetLastError():ERROR_SUCCESS;
+    s.log.emit("application_actual_client_hit","\"application\":"+quote(label)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"source_pid\":"+std::to_string(facts[0].pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+        ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"actual_hit_pid\":"+std::to_string(hit_pid)+
+        ",\"actual_hit_tid\":"+std::to_string(hit_tid)+",\"actual_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit_root))+
+        ",\"exact_bound_root_and_process_tree\":"+(exact_child?"true":"false")+",\"WM_NCHITTEST_attempted\":"+(exact_child?"true":"false")+
+        ",\"WM_NCHITTEST_returned\":"+(hit_read?"true":"false")+",\"WM_NCHITTEST\":"+(hit_read?std::to_string(region):"null")+
+        ",\"WM_NCHITTEST_error\":"+(exact_child?std::to_string(hit_error):"null")+",\"input_not_yet_sent\":true");
+    const bool actual=exact_child&&hit_read&&region==HTCLIENT;
     if(!actual)throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
     const auto click_mark=read(s.product_log).size();button(s,true);button(s,false);Sleep(150);
     std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
@@ -1766,8 +1880,11 @@ void matrix_escape_and_client(State& s,const std::string& label){
         key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);matrix_text(s,L"echo "+nonce+L">\""+receipt.wstring()+L"\"");key(s,VK_RETURN,true);key(s,VK_RETURN,false);
         const bool delivered=wait([&]{auto text=read(receipt,4096);while(!text.empty()&&(text.back()=='\r'||text.back()=='\n'||text.back()==' '))text.pop_back();return text==utf8(nonce);});
         const auto receipt_hash=hash(receipt);
+        const bool modern=equal(target->executable.filename().wstring(),L"WindowsTerminal.exe");
         s.log.check(label+".actual_terminal_client_input",delivered&&!receipt_hash.empty(),
-            "\"known_cmd_child_in_new_conhost_only\":true,\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(receipt_hash));
+            "\"terminal_distribution\":"+quote(modern?"official_modern_portable_ZIP":"Windows_Console_host")+
+            ",\"known_cmd_child_in_new_conhost_only\":"+(modern?"false":"true")+
+            ",\"requested_shell\":\"exact_guest_system_cmd\",\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(receipt_hash));
     }
     s.log.check(label+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
     for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_Escape_hidden_target_identity_changed");
@@ -1833,7 +1950,9 @@ void application_matrix_flow(State& s){
             if(!target->accepted){reason="no_exact_eligible_new_root";s.log.failed=true;}
             else{
                 if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_unused_exact_source_hide_failed");
-                s.applications[0]=target;matrix_layout(s,kind+"_independent_actual_constraints_setup");matrix_five(s,0,kind+".Move");
+                s.applications[0]=target;matrix_layout(s,kind+"_independent_actual_constraints_setup");
+                if(kind=="Edge")edge_paused_native_client_baseline(s);
+                matrix_five(s,0,kind+".Move");
                 const auto before=visible(source_window(s,0));if(!before)throw std::runtime_error("matrix_Resize_before_geometry_unknown");
                 const auto identity=s.target_catalog->get(source_window(s,0),{},nullptr,false,false);if(!identity)throw std::runtime_error("matrix_Resize_actual_identity_changed");
                 const LONG amount=matrix_pixels(28,identity->dpi);const auto g=down(s,0,false,HTBOTTOM);auto after=*before;after.b+=amount;
@@ -2386,9 +2505,10 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
     s.log.check("visual_actual_Escape_end",wait([&]{const auto end=record(s,g.offset,"gesture_end",g.generation);return !end.empty()&&number(end,"\"end\":")==1&&end.find("\"normal_up\":false")!=std::string::npos;}));
     s.log.check("visual_Escape_original_geometry",wait([&]{return visible(h)==start;}));visual_exact(s,h,173,true,"visual_Escape_restores_original_alpha");
-    button(s,false);s.log.check("visual_abort_matching_real_UP",wait([&]{return !actual_up(s,g.offset,g.generation).empty();}),
+    button(s,false);const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+    s.log.check("visual_abort_matching_real_UP",abort_up.matched,
         "\"actual_product_UP\":"+quote(actual_up(s,g.offset,g.generation))+
-        ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
+        ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+","+abort_up.json());
     own_visual_setup(s,h,173,false);desired.drag_transparency=false;desired.shake=true;visual_gui_save(s,desired);
     const UINT dpi=GetDpiForWindow(h);if(!dpi)throw std::runtime_error("visual_shake_DPI_unknown");
     const LONG step=std::max<LONG>(48,MulDiv(24,static_cast<int>(dpi),96)*2);
