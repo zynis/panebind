@@ -1,5 +1,6 @@
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
 #include <cstdlib>
 #include <iostream>
@@ -129,6 +130,29 @@ int main() {
     if(!expect(actor_match(old_actor),false,"incomplete product hash cannot bind an actor capture receipt"))return 1;
     old_actor=actor;old_actor.no_up_or_end_observed_before_ack=false;
     if(!expect(actor_match(old_actor),false,"missing actual parent no-UP no-END fact refuses a MOVE acknowledgement"))return 1;
+    guest::ActorNativeThresholdCommand threshold;threshold.version=1;threshold.parent_pid=10;threshold.parent_birth=101;
+    threshold.child_pid=20;threshold.child_birth=201;threshold.product_pid=42;threshold.product_birth=421;
+    threshold.source=100;threshold.source_pid=10;threshold.source_tid=11;threshold.generation=7;threshold.source_key=81;threshold.down_qpc=1000;
+    threshold.anchor_x=120;threshold.anchor_y=80;threshold.destination_x=125;threshold.destination_y=80;threshold.drag_x=4;threshold.drag_y=4;
+    threshold.original_visible={100,60,500,420};threshold.product_image_sha256=actor.product_image_sha256;threshold.no_up_start_or_end_observed=true;
+    const auto threshold_match=[&](const guest::ActorNativeThresholdCommand& actual){return guest::actor_native_threshold_command_matches(actual,10,101,20,201,100,11,120,80,999);};
+    if(!expect(threshold_match(threshold),true,"actual pending exact parent child source authorizes only a threshold TEST command, not START"))return 1;
+    auto invalid_threshold=threshold;invalid_threshold.child_birth=202;
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command rejects recycled child"))return 1;
+    invalid_threshold=threshold;invalid_threshold.source_pid=42;
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command cannot adopt a non-parent source"))return 1;
+    invalid_threshold=threshold;invalid_threshold.down_qpc=998;
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command rejects DOWN older than this child's single insertion"))return 1;
+    invalid_threshold=threshold;invalid_threshold.no_up_start_or_end_observed=false;
+    if(!expect(threshold_match(invalid_threshold),false,"retired or started generation cannot request threshold movement"))return 1;
+    invalid_threshold=threshold;invalid_threshold.destination_x=126;
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command cannot widen the one system metric displacement"))return 1;
+    invalid_threshold=threshold;invalid_threshold.generation=0;
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command requires actual generation"))return 1;
+    invalid_threshold=threshold;invalid_threshold.product_image_sha256[0]='\0';
+    if(!expect(threshold_match(invalid_threshold),false,"threshold command requires exact product hash"))return 1;
+    invalid_threshold=threshold;invalid_threshold.anchor_x=std::numeric_limits<std::int64_t>::min();invalid_threshold.destination_x=std::numeric_limits<std::int64_t>::max();
+    if(!expect(threshold_match(invalid_threshold),false,"malformed threshold coordinates reject before subtraction"))return 1;
     old_actor=actor;old_actor.version=1;
     if(!expect(actor_match(old_actor),false,"old receipt without the no-UP observation contract is rejected")||
        !expect(guest::actor_single_move_may_be_sent(1,0,0,true,true),true,"one synthetic DOWN plus actual START READY and fresh context permits one test MOVE, not a physical-held claim")||

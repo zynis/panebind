@@ -85,7 +85,7 @@ int input_actor_child(int count,LPWSTR* args){
     Handle start_ack(OpenEventW(SYNCHRONIZE,FALSE,event_name.c_str()));if(!start_ack.value)return 78;
     const auto capture_name=event_name+L".CaptureReceipt";
     Handle capture_mapping(OpenFileMappingW(FILE_MAP_READ,FALSE,capture_name.c_str()));if(!capture_mapping.value)return 78;
-    InputActorCaptureView capture_view;capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_READ,0,0,sizeof(product::guest::ActorStartCaptureReceipt));
+    InputActorCaptureView capture_view;capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_READ,0,0,sizeof(product::guest::ActorCaptureHandshake));
     if(!capture_view.value)return 78;
     const fs::path receipt=output/(run+(debug?L"-debug-input-actor.json":L"-release-input-actor.json"));
     Handle file(CreateFileW(receipt.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE)return 78;
@@ -102,7 +102,7 @@ int input_actor_child(int count,LPWSTR* args){
         (GetAsyncKeyState(VK_MENU)&0x8000)||(GetAsyncKeyState(VK_LWIN)&0x8000)||(GetAsyncKeyState(VK_RWIN)&0x8000))return 78;
     // One actual DOWN, then an acknowledgement of the PARENT's observed
     // product START. Never replace it with a delay or replay the press.
-    LARGE_INTEGER before{},after_down{},before_move{},after{},ack_before{},ack_after{};
+    LARGE_INTEGER before{},after_down{},before_move{},after{},ack_before{},ack_after{},threshold_before{},threshold_after{};
     QueryPerformanceCounter(&before);const auto before_tick=GetTickCount64();
     const UINT down_inserted=SendInput(1,&packets[0],sizeof(INPUT));const DWORD down_error=down_inserted==1?0:GetLastError();
     QueryPerformanceCounter(&after_down);after=after_down;
@@ -111,18 +111,85 @@ int input_actor_child(int count,LPWSTR* args){
     product::guest::ActorStartCaptureReceipt capture_receipt{};bool receipt_identity=false,product_live=false,source_exact=false,
         foreground_exact=false,source_gui_known=false,owner_gui_known=false,cursor_unchanged=false,modifiers_released=false,left_still_down=false,capture_context=false;
     SHORT async_left_value{};bool async_left_queried=false;unsigned own_up_calls{};
+    product::guest::ActorNativeThresholdCommand threshold_command{};
+    bool threshold_received=false,threshold_identity=false,threshold_context=false,threshold_attempted=false,threshold_skipped_native_started=false,threshold_skipped_actual_ready=false;
+    UINT threshold_inserted{};DWORD threshold_error{};POINT threshold_cursor{};bool threshold_cursor_known=false,threshold_cursor_exact=false;
+    POINT ready_cursor=from;
     product::guest::CapturedReleaseFacts fresh_capture;
     if(down_inserted==1){
         QueryPerformanceCounter(&ack_before);const std::array<HANDLE,2> waits{start_ack.value,parent.value};
-        ack_result=WaitForMultipleObjects(static_cast<DWORD>(waits.size()),waits.data(),FALSE,2500);
-        if(ack_result==WAIT_FAILED)ack_error=GetLastError();QueryPerformanceCounter(&ack_after);
+        const auto ack_deadline=GetTickCount64()+2500;
+        for(unsigned phase_count=0;phase_count<2;++phase_count){
+            const auto now=GetTickCount64();if(now>=ack_deadline){ack_result=WAIT_TIMEOUT;break;}
+            ack_result=WaitForMultipleObjects(static_cast<DWORD>(waits.size()),waits.data(),FALSE,static_cast<DWORD>(ack_deadline-now));
+            if(ack_result!=WAIT_OBJECT_0){if(ack_result==WAIT_FAILED)ack_error=GetLastError();break;}
+            const auto* handshake=static_cast<const product::guest::ActorCaptureHandshake*>(capture_view.value);
+            const auto phase=handshake->phase.load(std::memory_order_acquire);
+            if(phase==product::guest::ActorCapturePhase::ActualStartReady){capture_receipt=handshake->ready;break;}
+            if(phase!=product::guest::ActorCapturePhase::NativeThreshold||threshold_received){ack_result=WAIT_FAILED;ack_error=ERROR_INVALID_DATA;break;}
+            threshold_received=true;threshold_command=handshake->threshold;
+            threshold_identity=product::guest::actor_native_threshold_command_matches(threshold_command,parent_pid,born,GetCurrentProcessId(),
+                process_birth(GetCurrentProcess()),hwnd_value,source_tid,from.x,from.y,static_cast<std::uint64_t>(before.QuadPart));
+            Handle threshold_product(threshold_identity&&threshold_command.product_pid<=MAXDWORD?
+                OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,static_cast<DWORD>(threshold_command.product_pid)):nullptr);
+            std::array<wchar_t,32768> threshold_product_image{};DWORD threshold_image_size=static_cast<DWORD>(threshold_product_image.size());
+            const auto expected_product=output/(run+(debug?L"-product-Debug":L"-product-Release"))/L"panebind.exe";
+            GUITHREADINFO native{sizeof(native)};POINT current{};const auto current_visible=visible(source);
+            const Rect original{static_cast<LONG>(threshold_command.original_visible[0]),static_cast<LONG>(threshold_command.original_visible[1]),
+                static_cast<LONG>(threshold_command.original_visible[2]),static_cast<LONG>(threshold_command.original_visible[3])};
+            threshold_context=threshold_identity&&threshold_product.value&&WaitForSingleObject(threshold_product.value,0)==WAIT_TIMEOUT&&
+                process_birth(threshold_product.value)==threshold_command.product_birth&&medium(threshold_product.value)&&input_actor_same_user(threshold_product.value)&&
+                QueryFullProcessImageNameW(threshold_product.value,0,threshold_product_image.data(),&threshold_image_size)&&
+                equal(threshold_product_image.data(),expected_product.wstring())&&hash(expected_product)==threshold_command.product_image_sha256.data()&&
+                WaitForSingleObject(parent.value,0)==WAIT_TIMEOUT&&process_birth(parent.value)==born&&input_actor_desktop(source_tid,parent_pid)&&
+                IsWindow(source)&&GetAncestor(source,GA_ROOT)==source&&GetWindowThreadProcessId(source,&actual_pid)==source_tid&&actual_pid==parent_pid&&
+                gui_class(source)==expected_class&&current_visible==original&&GetForegroundWindow()==source&&GetCursorPos(&current)&&
+                current.x==from.x&&current.y==from.y&&WindowFromPoint(current)==source&&GetGUIThreadInfo(source_tid,&native)&&
+                (!native.hwndCapture||native.hwndCapture==source)&&(!native.hwndMoveSize||native.hwndMoveSize==source)&&!native.hwndMenuOwner&&
+                !(native.flags&(GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
+                !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&!(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&
+                !(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000)&&
+                threshold_command.drag_x==GetSystemMetrics(SM_CXDRAG)&&threshold_command.drag_y==GetSystemMetrics(SM_CYDRAG)&&
+                threshold_command.destination_x>=x&&threshold_command.destination_x<static_cast<long long>(x)+w&&
+                threshold_command.destination_y>=y&&threshold_command.destination_y<static_cast<long long>(y)+h;
+            if(!threshold_context){
+                // The owner may have completed the REAL handoff between the
+                // threshold signal and these fresh native reads. Accept only
+                // its separately published Ready slot, then run the original
+                // child-side capture checks; never manufacture that ACK.
+                if(threshold_identity&&handshake->phase.load(std::memory_order_acquire)==product::guest::ActorCapturePhase::ActualStartReady){
+                    capture_receipt=handshake->ready;threshold_skipped_actual_ready=true;break;
+                }
+                ack_result=WAIT_FAILED;ack_error=ERROR_INVALID_DATA;break;
+            }
+            threshold_skipped_native_started=native.hwndMoveSize==source;
+            if(!threshold_skipped_native_started){
+                if(native.flags&GUI_INMOVESIZE){ack_result=WAIT_FAILED;ack_error=ERROR_INVALID_DATA;break;}
+                INPUT threshold{};threshold.type=INPUT_MOUSE;threshold.mi.dwExtraInfo=0x50425631;
+                threshold.mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
+                threshold.mi.dx=static_cast<LONG>(((threshold_command.destination_x-x)*2+1)*65536/(static_cast<long long>(w)*2));
+                threshold.mi.dy=static_cast<LONG>(((threshold_command.destination_y-y)*2+1)*65536/(static_cast<long long>(h)*2));
+                threshold_attempted=true;QueryPerformanceCounter(&threshold_before);SetLastError(0);
+                threshold_inserted=SendInput(1,&threshold,sizeof(threshold));threshold_error=threshold_inserted==1?0:GetLastError();
+                QueryPerformanceCounter(&threshold_after);threshold_cursor_known=GetCursorPos(&threshold_cursor)!=FALSE;
+                threshold_cursor_exact=threshold_cursor_known&&threshold_cursor.x==threshold_command.destination_x&&threshold_cursor.y==threshold_command.destination_y;
+                if(threshold_inserted!=1||!threshold_cursor_exact){ack_result=WAIT_FAILED;ack_error=threshold_error?threshold_error:ERROR_INVALID_DATA;break;}
+                ready_cursor={static_cast<LONG>(threshold_command.destination_x),static_cast<LONG>(threshold_command.destination_y)};
+            }
+            // The next signal still has to announce the ORIGINAL actual
+            // START/END/CaptureReady receipt; this command is never that ACK.
+            ack_result=WAIT_FAILED;
+        }
+        QueryPerformanceCounter(&ack_after);
         if(ack_result==WAIT_OBJECT_0){
             // The event orders one immutable, actual parent START/READY
             // receipt. Its contents alone never authorize the input below.
-            MemoryBarrier();capture_receipt=*static_cast<const product::guest::ActorStartCaptureReceipt*>(capture_view.value);
             receipt_identity=product::guest::actor_start_capture_receipt_matches(capture_receipt,parent_pid,born,GetCurrentProcessId(),process_birth(GetCurrentProcess()))&&
                 capture_receipt.capture.source==hwnd_value&&capture_receipt.capture.source_pid==parent_pid&&capture_receipt.capture.source_tid==source_tid&&
-                capture_receipt.down_qpc>=static_cast<std::uint64_t>(before.QuadPart)&&capture_receipt.capture.product_pid<=MAXDWORD;
+                capture_receipt.down_qpc>=static_cast<std::uint64_t>(before.QuadPart)&&capture_receipt.capture.product_pid<=MAXDWORD&&
+                (!threshold_received||(capture_receipt.capture.generation==threshold_command.generation&&
+                    capture_receipt.capture.product_pid==threshold_command.product_pid&&capture_receipt.product_birth==threshold_command.product_birth&&
+                    capture_receipt.down_qpc==threshold_command.down_qpc));
             fresh_capture=capture_receipt.capture;
             Handle product_process(receipt_identity?OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,static_cast<DWORD>(fresh_capture.product_pid)):nullptr);
             std::array<wchar_t,32768> product_name{};DWORD product_length=static_cast<DWORD>(product_name.size());
@@ -146,7 +213,7 @@ int input_actor_child(int count,LPWSTR* args){
                 !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
                 !(owner.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
             foreground_exact=GetForegroundWindow()==source;
-            cursor_unchanged=GetCursorPos(&actual)&&actual.x==from.x&&actual.y==from.y;
+            cursor_unchanged=GetCursorPos(&actual)&&actual.x==ready_cursor.x&&actual.y==ready_cursor.y;
             fresh_capture.hit_root=cursor_unchanged?reinterpret_cast<std::uintptr_t>(GetAncestor(WindowFromPoint(actual),GA_ROOT)):0;
             modifiers_released=!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&!(GetAsyncKeyState(VK_SHIFT)&0x8000)&&
                 !(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000);
@@ -167,7 +234,7 @@ int input_actor_child(int count,LPWSTR* args){
             }
         }
     }
-    const UINT inserted=down_inserted+move_inserted;const DWORD error=down_error?down_error:move_error;
+    const UINT inserted=down_inserted+threshold_inserted+move_inserted;const DWORD error=down_error?down_error:threshold_error?threshold_error:move_error;
     const auto after_tick=GetTickCount64();
     const std::string text="{\"schema\":\"panebind-v1-test-input-actor/1\",\"source_sha\":\"" PANEBIND_BUILD_SHA "\",\"run_id\":"+quote(utf8(run))+
         ",\"image_sha256\":"+quote(image_hash)+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"parent_pid\":"+std::to_string(parent_pid)+
@@ -183,6 +250,15 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"capture_receipt_generation\":"+std::to_string(capture_receipt.capture.generation)+",\"capture_receipt_product_PID\":"+std::to_string(capture_receipt.capture.product_pid)+
         ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_ready_qpc\":"+std::to_string(capture_receipt.ready_qpc)+
         ",\"capture_receipt_DOWN_qpc\":"+std::to_string(capture_receipt.down_qpc)+",\"actual_product_live_image_birth_Medium\":"+(product_live?"true":"false")+
+        ",\"threshold_command_received\":"+(threshold_received?"true":"false")+",\"threshold_command_identity\":"+(threshold_identity?"true":"false")+
+        ",\"threshold_actual_context\":"+(threshold_context?"true":"false")+",\"threshold_command_generation\":"+std::to_string(threshold_command.generation)+
+        ",\"threshold_skipped_actual_native_MoveSize\":"+(threshold_skipped_native_started?"true":"false")+
+        ",\"threshold_skipped_separately_published_actual_READY\":"+(threshold_skipped_actual_ready?"true":"false")+
+        ",\"threshold_MOVE_SendInput_called\":"+(threshold_attempted?"true":"false")+",\"threshold_MOVE_SendInput_return\":"+std::to_string(threshold_inserted)+
+        ",\"threshold_MOVE_SendInput_error\":"+std::to_string(threshold_error)+",\"threshold_MOVE_before_qpc\":"+std::to_string(threshold_before.QuadPart)+
+        ",\"threshold_MOVE_after_qpc\":"+std::to_string(threshold_after.QuadPart)+",\"threshold_actual_cursor_exact\":"+(threshold_cursor_exact?"true":"false")+
+        ",\"threshold_requested_cursor\":["+std::to_string(threshold_command.destination_x)+","+std::to_string(threshold_command.destination_y)+"]"+
+        ",\"START_ready_expected_cursor\":["+std::to_string(ready_cursor.x)+","+std::to_string(ready_cursor.y)+"],\"original_DOWN_anchor_preserved\":true"+
         ",\"parent_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
         ",\"actual_source_identity\":"+(source_exact?"true":"false")+",\"actual_foreground_is_source\":"+(foreground_exact?"true":"false")+
         ",\"actual_source_GUI_known\":"+(source_gui_known?"true":"false")+",\"actual_owner_GUI_known\":"+(owner_gui_known?"true":"false")+
@@ -191,7 +267,8 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"GetAsyncKeyState_left_raw_SHORT\":"+(async_left_queried?std::to_string(async_left_value):"null")+
         ",\"GetAsyncKeyState_left_high_bit\":"+(async_left_queried?(left_still_down?"true":"false"):"null")+
         ",\"Async_failure_or_physical_state_distinguished\":false,\"Async_used_as_held_or_UP_proof\":false"+
-        ",\"own_DOWN_calls\":1,\"own_MOVE_calls\":"+(move_attempted?"1":"0")+",\"own_UP_calls\":"+std::to_string(own_up_calls)+
+        ",\"own_DOWN_calls\":1,\"own_MOVE_calls\":"+std::to_string(static_cast<unsigned>(threshold_attempted)+static_cast<unsigned>(move_attempted))+
+        ",\"own_threshold_MOVE_calls\":"+(threshold_attempted?"1":"0")+",\"own_post_READY_intent_MOVE_calls\":"+(move_attempted?"1":"0")+",\"own_UP_calls\":"+std::to_string(own_up_calls)+
         ",\"actual_hit_root\":"+std::to_string(fresh_capture.hit_root)+",\"actual_overlay\":"+std::to_string(fresh_capture.overlay)+
         ",\"actual_overlay_PID\":"+std::to_string(fresh_capture.overlay_pid)+",\"actual_overlay_TID\":"+std::to_string(fresh_capture.overlay_tid)+
         ",\"actual_source_capture\":"+std::to_string(fresh_capture.source_capture)+",\"actual_owner_capture\":"+std::to_string(fresh_capture.owner_capture)+
@@ -243,22 +320,25 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"actor_exit_observed\":"+(gone?"true":"false")+",\"product_or_source_terminated\":false,\"functional_PASS\":false");return gone;
     };
     Handle start_ack,capture_mapping;InputActorCaptureView capture_view;
-    std::string actual_down,actual_start,actual_ready;Gesture g{*point,0,offset};
+    std::string actual_down,actual_start,actual_ready,actual_pending,actual_native_start,actual_native_end,actual_cancel,actual_handoff;Gesture g{*point,0,offset};
     product::guest::ActorStartCaptureReceipt capture_receipt{};
+    product::guest::ActorNativeThresholdCommand threshold_command{};bool threshold_published=false;
     try{
         const auto event_name=input_actor_start_event(s.run,GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId);
-        SetLastError(0);start_ack.value=CreateEventW(nullptr,TRUE,FALSE,event_name.c_str());const auto event_error=GetLastError();
+        SetLastError(0);start_ack.value=CreateEventW(nullptr,FALSE,FALSE,event_name.c_str());const auto event_error=GetLastError();
         s.log.check("I08_actor_fresh_START_event",start_ack.value&&event_error!=ERROR_ALREADY_EXISTS&&child_birth,
             "\"event\":"+quote(utf8(event_name))+",\"CreateEvent_return\":"+(start_ack.value?"true":"false")+
-            ",\"CreateEvent_error\":"+std::to_string(event_error)+",\"unknown_existing_event_not_signaled\":true");
+            ",\"CreateEvent_error\":"+std::to_string(event_error)+",\"auto_reset_two_explicit_phases\":true,\"unknown_existing_event_not_signaled\":true");
         const auto capture_name=event_name+L".CaptureReceipt";SetLastError(0);
         capture_mapping.value=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,
-            static_cast<DWORD>(sizeof(product::guest::ActorStartCaptureReceipt)),capture_name.c_str());const auto mapping_error=GetLastError();
+            static_cast<DWORD>(sizeof(product::guest::ActorCaptureHandshake)),capture_name.c_str());const auto mapping_error=GetLastError();
         if(capture_mapping.value&&mapping_error!=ERROR_ALREADY_EXISTS)
-            capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_WRITE,0,0,sizeof(product::guest::ActorStartCaptureReceipt));
+            capture_view.value=MapViewOfFile(capture_mapping.value,FILE_MAP_WRITE,0,0,sizeof(product::guest::ActorCaptureHandshake));
         s.log.check("I08_actor_fresh_capture_receipt",capture_mapping.value&&mapping_error!=ERROR_ALREADY_EXISTS&&capture_view.value,
             "\"mapping\":"+quote(utf8(capture_name))+",\"CreateFileMapping_error\":"+std::to_string(mapping_error)+
             ",\"parent_write_child_read_only\":true,\"unknown_existing_mapping_not_reused\":true");
+        std::construct_at(static_cast<product::guest::ActorCaptureHandshake*>(capture_view.value));
+        LARGE_INTEGER resume_before{};QueryPerformanceCounter(&resume_before);
         const DWORD resumed=ResumeThread(child_thread.value);const auto resume_error=resumed==static_cast<DWORD>(-1)?GetLastError():0;
         actor_resumed=resumed!=static_cast<DWORD>(-1)&&resumed<=1;
         s.log.check("I08_actor_resume_exact_child",resumed==1,"\"ResumeThread_previous_suspend_count\":"+std::to_string(resumed)+
@@ -267,15 +347,74 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
         (void)wait([&]{
             if(WaitForSingleObject(child_process.value,0)!=WAIT_TIMEOUT)return true;
             actual_start=record(s,offset,"gesture_start");g.generation=number(actual_start,"\"generation\":");
+            actual_pending=record(s,offset,"native_move_pending");
+            const auto pending_generation=number(actual_pending,"\"generation\":");
+            if(!g.generation&&!threshold_published&&pending_generation){
+                const auto down_qpc=number(actual_pending,"\"down_hook_qpc\":");const auto down_point="\"down_point\":["+std::to_string(point->x)+","+std::to_string(point->y)+"]";
+                GUITHREADINFO gui{sizeof(gui)};POINT cursor_now{};
+                const bool not_ended=actual_up(s,offset,pending_generation).empty()&&record(s,offset,"gesture_end",pending_generation).empty()&&
+                    record(s,offset,"native_move_passthrough_release",pending_generation).empty()&&record(s,offset,"native_move_start",pending_generation).empty()&&
+                    record(s,offset,"native_move_end",pending_generation).empty();
+                const bool pending_exact=number(actual_pending,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                    number(actual_pending,"\"source_pid\":")==GetCurrentProcessId()&&number(actual_pending,"\"source_tid\":")==set.thread&&
+                    number(actual_pending,"\"source_key\":")==expected_key&&resume_before.QuadPart>0&&down_qpc>=static_cast<std::uint64_t>(resume_before.QuadPart)&&
+                    actual_pending.find(down_point)!=actual_pending.npos&&actual_pending.find("\"down_consumed\":false")!=actual_pending.npos&&
+                    actual_pending.find("\"write_authority\":false")!=actual_pending.npos;
+                const bool source_safe=pending_exact&&not_ended&&desktop()&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
+                    GetCursorPos(&cursor_now)&&cursor_now.x==point->x&&cursor_now.y==point->y&&WindowFromPoint(cursor_now)==source&&
+                    GetGUIThreadInfo(set.thread,&gui)&&(!gui.hwndCapture||gui.hwndCapture==source)&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+                    !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
+                    s.process&&GetProcessId(s.process)==product_pid&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&process_birth(s.process)==product_birth;
+                if(source_safe){
+                    const LONG drag_x=GetSystemMetrics(SM_CXDRAG),drag_y=GetSystemMetrics(SM_CYDRAG);
+                    const long long left=GetSystemMetrics(SM_XVIRTUALSCREEN),right=left+GetSystemMetrics(SM_CXVIRTUALSCREEN);
+                    const long long destination=static_cast<long long>(point->x)+drag_x+1<right?
+                        static_cast<long long>(point->x)+drag_x+1:static_cast<long long>(point->x)-drag_x-1;
+                    const auto product_hash=hash(s.product);
+                    if(drag_x<0||drag_x>128||drag_y<0||drag_y>128||destination<left||destination>=right||
+                        destination<LONG_MIN||destination>LONG_MAX||product_hash.size()!=64)
+                        throw std::runtime_error("I08_actor_threshold_actual_metrics_or_product_hash_invalid");
+                    threshold_command.version=1;threshold_command.parent_pid=GetCurrentProcessId();threshold_command.parent_birth=process_birth(GetCurrentProcess());
+                    threshold_command.child_pid=child.dwProcessId;threshold_command.child_birth=child_birth;
+                    threshold_command.product_pid=product_pid;threshold_command.product_birth=product_birth;
+                    threshold_command.source=reinterpret_cast<std::uintptr_t>(source);threshold_command.source_pid=GetCurrentProcessId();threshold_command.source_tid=set.thread;
+                    threshold_command.generation=pending_generation;threshold_command.source_key=expected_key;threshold_command.down_qpc=down_qpc;
+                    threshold_command.anchor_x=point->x;threshold_command.anchor_y=point->y;threshold_command.destination_x=destination;threshold_command.destination_y=point->y;
+                    threshold_command.drag_x=drag_x;threshold_command.drag_y=drag_y;
+                    threshold_command.original_visible={initial->l,initial->t,initial->r,initial->b};threshold_command.no_up_start_or_end_observed=not_ended;
+                    std::copy(product_hash.begin(),product_hash.end(),threshold_command.product_image_sha256.begin());
+                    auto* shared=static_cast<product::guest::ActorCaptureHandshake*>(capture_view.value);shared->threshold=threshold_command;
+                    shared->phase.store(product::guest::ActorCapturePhase::NativeThreshold,std::memory_order_release);
+                    threshold_published=true;SetLastError(0);const bool signaled=SetEvent(start_ack.value)!=FALSE;const DWORD signal_error=signaled?0:GetLastError();
+                    s.log.check("I08_actor_actual_native_pending_threshold_command_once",signaled,
+                        "\"generation\":"+std::to_string(pending_generation)+",\"actual_native_pending\":"+quote(actual_pending)+
+                        ",\"original_DOWN_anchor\":["+std::to_string(point->x)+","+std::to_string(point->y)+"],\"requested_threshold\":["+std::to_string(destination)+","+std::to_string(point->y)+"]"+
+                        ",\"actual_source_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture))+
+                        ",\"SetEvent_return\":"+(signaled?"true":"false")+",\"SetEvent_error\":"+std::to_string(signal_error)+
+                        ",\"phase\":\"NativeThreshold_not_START_ACK\",\"actual_child_MOVE_not_yet_observed\":true,\"write_authority_inferred\":false");
+                }
+            }
             actual_down=record(s,offset,"input_button_observed",g.generation);
             actual_ready.clear();{const auto text=product_log_since(s,offset);std::istringstream rows(text);std::string line;
                 while(std::getline(rows,line))if(number(line,"\"process_id\":")==product_pid&&number(line,"\"generation\":")==g.generation&&
                     line.find("\"source_sha\":"+quote(s.product_source))!=line.npos&&line.find("\"type\":\"gesture_input_resource\"")!=line.npos&&
                     line.find("\"fact\":\"capture_ready\"")!=line.npos)actual_ready=line;}
-            auto capture=release_capture_facts(s,source,GetAncestor(WindowFromPoint(*point),GA_ROOT),g.generation);
+            POINT ready_point{};const bool ready_point_known=GetCursorPos(&ready_point)!=FALSE;
+            const bool known_cursor=ready_point_known&&((ready_point.x==point->x&&ready_point.y==point->y)||
+                (threshold_published&&ready_point.x==threshold_command.destination_x&&ready_point.y==threshold_command.destination_y));
+            auto capture=release_capture_facts(s,source,known_cursor?GetAncestor(WindowFromPoint(ready_point),GA_ROOT):nullptr,g.generation);
             const auto down_qpc=number(actual_down,"\"hook_observed_qpc\":"),ready_qpc=number(actual_ready,"\"resource_observed_qpc\":");
             capture.ready_identity=capture.ready_identity&&down_qpc&&ready_qpc>=down_qpc;
-            const bool no_up_or_end=actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&capture.not_retired;
+            actual_native_start=record(s,offset,"native_move_start",g.generation);actual_native_end=record(s,offset,"native_move_end",g.generation);
+            actual_cancel=record(s,offset,"native_move_cancel",g.generation);actual_handoff=record(s,offset,"native_move_handoff",g.generation);
+            const bool real_native_end=pending_generation==g.generation&&number(actual_native_start,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                number(actual_native_start,"\"event\":")==EVENT_SYSTEM_MOVESIZESTART&&number(actual_native_start,"\"event_tid\":")==set.thread&&
+                number(actual_native_end,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&number(actual_native_end,"\"event\":")==EVENT_SYSTEM_MOVESIZEEND&&
+                number(actual_native_end,"\"event_tid\":")==set.thread&&number(actual_native_end,"\"owner_sequence\":")>number(actual_native_start,"\"owner_sequence\":")&&
+                actual_cancel.find("\"native_attempted\":true")!=actual_cancel.npos&&actual_cancel.find("\"api_returned_success\":true")!=actual_cancel.npos&&
+                actual_handoff.find("\"accepted\":true")!=actual_handoff.npos&&actual_handoff.find("\"stage\":\"actual_END_capture_pending\"")!=actual_handoff.npos;
+            const bool no_up_or_end=actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&
+                record(s,offset,"native_move_passthrough_release",g.generation).empty()&&capture.not_retired;
             ack_ready=g.generation&&number(actual_start,"\"process_id\":")==product_pid&&number(actual_start,"\"key\":")==expected_key&&
                 actual_start.find("\"source_sha\":"+quote(s.product_source))!=actual_start.npos&&
                 actual_down.find("\"source_sha\":"+quote(s.product_source))!=actual_down.npos&&
@@ -284,7 +423,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 number(actual_down,"\"source_key\":")==expected_key&&number(actual_down,"\"button\":")==1&&
                 actual_down.find("\"kind\":\"DOWN\"")!=actual_down.npos&&actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=actual_down.npos&&
                 number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
-                no_up_or_end&&
+                no_up_or_end&&real_native_end&&known_cursor&&(!threshold_published||g.generation==threshold_command.generation)&&
                 product::guest::captured_release_route_allowed(capture)&&process_birth(s.process)==product_birth;
             if(ack_ready){
                 capture_receipt.version=2;capture_receipt.parent_pid=GetCurrentProcessId();capture_receipt.parent_birth=process_birth(GetCurrentProcess());
@@ -298,13 +437,17 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
         if(product_hash.size()==64)std::copy(product_hash.begin(),product_hash.end(),capture_receipt.product_image_sha256.begin());
         const bool capture_written=ack_ready&&product::guest::actor_start_capture_receipt_matches(capture_receipt,
             GetCurrentProcessId(),process_birth(GetCurrentProcess()),child.dwProcessId,child_birth);
-        if(capture_written){*static_cast<product::guest::ActorStartCaptureReceipt*>(capture_view.value)=capture_receipt;MemoryBarrier();}
+        if(capture_written){auto* shared=static_cast<product::guest::ActorCaptureHandshake*>(capture_view.value);shared->ready=capture_receipt;
+            shared->phase.store(product::guest::ActorCapturePhase::ActualStartReady,std::memory_order_release);}
         const bool ack_called=capture_written&&WaitForSingleObject(child_process.value,0)==WAIT_TIMEOUT;
         const bool ack_sent=ack_called&&SetEvent(start_ack.value)!=FALSE;const auto ack_error=ack_called&&!ack_sent?GetLastError():0;
         s.log.check("I08_actor_actual_product_START_ack_once",ack_sent,
             "\"generation\":"+std::to_string(g.generation)+",\"expected_source_key\":"+std::to_string(expected_key)+
             ",\"current_product_PID\":"+std::to_string(product_pid)+",\"actual_DOWN\":"+quote(actual_down)+",\"actual_START\":"+quote(actual_start)+
             ",\"actual_CaptureReady\":"+quote(actual_ready)+",\"immutable_capture_receipt_written\":"+(capture_written?"true":"false")+
+            ",\"actual_native_START\":"+quote(actual_native_start)+",\"actual_native_END\":"+quote(actual_native_end)+
+            ",\"actual_native_cancel\":"+quote(actual_cancel)+",\"actual_native_handoff\":"+quote(actual_handoff)+
+            ",\"threshold_command_published\":"+(threshold_published?"true":"false")+
             ",\"actual_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
             ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_product_sha256\":"+quote(product_hash)+
             ",\"capture_receipt_overlay\":"+std::to_string(capture_receipt.capture.overlay)+",\"capture_receipt_owner_tid\":"+std::to_string(capture_receipt.capture.overlay_tid)+
@@ -335,10 +478,17 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
         // product authority; only this verified new test-send pair is imported.
         if(new_pair)s.left_up_attempted=false;
         if(actor_identity&&actor_inserted>=1){s.left=true;s.left_down_send_qpc=number(actor,"\"before_qpc\":");}
-        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&actor_inserted==2&&new_pair&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
+        const auto threshold_calls=number(actor,"\"own_threshold_MOVE_calls\":"),threshold_successes=number(actor,"\"threshold_MOVE_SendInput_return\":");
+        const bool actual_moves=number(actor,"\"own_post_READY_intent_MOVE_calls\":")==1&&number(actor,"\"MOVE_SendInput_return\":")==1&&
+            threshold_calls<=1&&threshold_successes==threshold_calls&&actor_inserted==2+threshold_successes&&
+            (!threshold_calls||(actor.find("\"threshold_command_identity\":true")!=actor.npos&&actor.find("\"threshold_actual_context\":true")!=actor.npos&&
+                number(actor,"\"threshold_command_generation\":")==g.generation&&actor.find("\"threshold_actual_cursor_exact\":true")!=actor.npos));
+        s.log.check("I08_input_actor_exited_without_UP_source_remains",exited&&code==0&&actor_down_inserted&&actual_moves&&new_pair&&s.left&&set.owns(0)&&GetForegroundWindow()==source,
             "\"child_pid\":"+std::to_string(child.dwProcessId)+",\"exit_code\":"+std::to_string(code)+",\"child_exit_tick\":"+std::to_string(child_exit_tick)+
             ",\"source_still_alive\":"+(set.owns(0)?"true":"false")+",\"child_DOWN_insertion_confirmed\":"+
             (actor_down_inserted?"true":"null")+",\"child_SendInput_return\":"+(actor_send_count_known?std::to_string(actor_inserted):"null")+
+            ",\"actual_threshold_MOVE_calls\":"+std::to_string(threshold_calls)+",\"actual_threshold_MOVE_insertions\":"+std::to_string(threshold_successes)+
+            ",\"actual_post_READY_intent_MOVE_calls\":"+std::to_string(number(actor,"\"own_post_READY_intent_MOVE_calls\":"))+
             ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"new_verified_actor_send_pair_imported\":"+(new_pair?"true":"false")+",\"product_authority_not_granted_by_send_ledger\":true"+
             ",\"delivery_and_physical_button_held_not_inferred_from_ledger\":true,\"product_driver_channel\":false");

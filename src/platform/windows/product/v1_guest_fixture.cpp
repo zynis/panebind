@@ -19,6 +19,7 @@
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
 #include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "core/v1/caption_hit_guard.h"
@@ -808,6 +809,7 @@ bool owned_client_activation_setup(State& s,HWND h){
     // One TEST-only activation click on a blank root created by this fixture.
     // Never attach queues, retry SetForegroundWindow, or target real apps.
     bool attempted=false,up_attempted=false,delivered=false;std::string why="not_started",status;
+    std::string raw_before="null";
     POINT point{};HWND prior_foreground{},hit{};DWORD status_exit=STILL_ACTIVE;
     unsigned before_down{},before_up{},after_down{},after_up{};Frame* frame{};
     const auto modifiers_up=[] {return !(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_RBUTTON)&0x8000)&&
@@ -844,6 +846,7 @@ bool owned_client_activation_setup(State& s,HWND h){
         prior_foreground=GetForegroundWindow();before_down=frame->client_down[0];before_up=frame->client_up[0];
         // A single real DOWN/UP activates through the target's native client
         // behavior. These are setup packets, not a product gesture or UAT.
+        raw_before=raw_mouse_observer_json();
         attempted=true;button(s,true);up_attempted=true;button(s,false);
         delivered=wait([&]{return own(s,h)&&GetForegroundWindow()==h&&frame->client_down[0]==before_down+1&&frame->client_up[0]==before_up+1;},1000);
         why=delivered?"actual_blank_client_click_delivered_and_activated":"owned_activation_click_delivery_or_foreground_not_confirmed";
@@ -863,6 +866,9 @@ bool owned_client_activation_setup(State& s,HWND h){
         ",\"client_screen_point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
         ",\"client_counts_before\":["+std::to_string(before_down)+","+std::to_string(before_up)+"]"+
         ",\"client_counts_after\":["+std::to_string(after_down)+","+std::to_string(after_up)+"]"+
+        ",\"existing_Raw_before_single_setup_click\":"+raw_before+
+        ",\"existing_Raw_after_setup_wait\":"+raw_mouse_observer_json()+
+        ",\"Raw_does_not_prove_source_or_UP_delivery\":true"+
         ",\"public_status_receipt\":"+quote(status)+",\"reason\":"+quote(why)+",\"AttachThreadInput_used\":false,\"SetForegroundWindow_retry\":false");
     return delivered&&!s.left&&!s.control&&GetForegroundWindow()==h;
 }
