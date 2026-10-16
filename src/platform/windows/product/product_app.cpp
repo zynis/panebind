@@ -183,6 +183,7 @@ struct Gesture {
     std::optional<Visual> drag_visual;std::uint64_t seam_since{};HMONITOR preview_monitor{};
     UINT_PTR seam_timer{};int seam_zone{-1};POINT seam_point{};bool seam_timer_failed{};
     bool layout_drag_restore{};
+    bool normal_up_motion_consumed{};
     Snapshot operation_source;
     bool restore_armed{},restore_pending{},restore_requested{},was_maximized{};
     UINT_PTR restore_timer{};WINDOWPLACEMENT restore_placement{sizeof(WINDOWPLACEMENT)};
@@ -256,7 +257,9 @@ public:
         for(auto& s:identities)if(gesture&&gesture->expected.contains(s.key))s=gesture->expected[s.key];
         ++operations;
         if(stopping||!settings.enabled)return false;
-        const bool completed_normal_up=completion&&!gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp;
+        const bool terminal_motion=gesture&&gesture->down.generation==generation&&gesture->normal_up_motion_consumed;
+        const bool completed_normal_up=completion&&(terminal_motion||
+            (!gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp));
         const HWND authority_source=gesture?gesture->down.prepared->source.hwnd:completed_normal_up&&!identities.empty()?identities.front().hwnd:nullptr;
         const auto receipts=writer.batch(identities,plan.placements,settings,input.operation_guard(generation,completed_normal_up,authority_source));
         bool ok=receipts.size()==plan.placements.size();
@@ -614,7 +617,7 @@ public:
     void command(v::Action action,std::optional<Snapshot> target={});
     void prepare();
     void begin(const InputEvent&);
-    void motion(const InputEvent&);
+    void motion(const InputEvent&,bool normal_up_completion=false);
     void refresh_targets(){
         if(!gesture)return;auto& targets=gesture->targets;
         for(auto it=targets.begin();it!=targets.end();){
@@ -627,7 +630,7 @@ public:
         }
     }
     void cancel_seam_timer(bool reset=true);
-    bool dock_preview(POINT,std::uint64_t,bool arm=true);
+    bool dock_preview(POINT,std::uint64_t,bool arm=true,bool normal_up_completion=false);
     void seam_timeout(UINT_PTR);
     void request_native_restore(const InputEvent&);
     void restore_progress();
@@ -870,6 +873,10 @@ void Application::prepare(){
     input.prepare(std::move(ready));explain("prepared_actual_source_and_hit");
 }
 void Application::begin(const InputEvent& e){
+    // A real UP may have reached the hook before the GUI sees this DOWN. Its
+    // distinct terminal capability permits building this exact context only;
+    // it does not restore active input or authorize any queued MOVE.
+    if(!input.context_allowed(e.generation))return;
     if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;
     const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings,nullptr,false,false);
     if(!fresh||!Catalog::same(p.source,*fresh)||fresh->visible!=p.source.visible||p.config_generation!=settings.generation){
@@ -878,7 +885,7 @@ void Application::begin(const InputEvent& e){
             ",\"fresh_snapshot\":"+(fresh?"true":"false")+",\"identity_same\":"+(fresh&&Catalog::same(p.source,*fresh)?"true":"false")+
             ",\"geometry_same\":"+(fresh&&fresh->visible==p.source.visible?"true":"false")+
             ",\"configuration_same\":"+(p.config_generation==settings.generation?"true":"false"));
-        input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;}
+        input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}
     Gesture active;active.down=e;active.config=settings;active.original=fresh->visible;active.previous=fresh->visible;active.edges=edges(p.region);
     active.operation_source=*fresh;active.was_maximized=fresh->maximized;active.restore_armed=fresh->maximized;
     active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;active.members=catalog.all(settings);
@@ -886,7 +893,7 @@ void Application::begin(const InputEvent& e){
     auto list=items(active.members);const auto selected=active.ctrl&&!fresh->maximized?v::connected(list,fresh->key,dip(settings.adjacency_dip,fresh->dpi)):std::vector<v::Key>{fresh->key};
     active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[&](const auto& s){
         return std::find(selected.begin(),selected.end(),s.key)==selected.end()||(active.ctrl&&!(s.feature_mask&2u));}),active.members.end());
-    if(active.members.empty()){input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;}
+    if(active.members.empty()){input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}
     // Desktop enumeration is a read-only topology snapshot. Only the selected
     // operation participants query native tracking limits; no stale/default
     // bounds may become the frozen Ctrl resize contract.
@@ -897,18 +904,18 @@ void Application::begin(const InputEvent& e){
             actual->monitor!=member.monitor||actual->work!=member.work||
             actual->maximized!=member.maximized||actual->minimized!=member.minimized||
             actual->can_resize!=member.can_resize||actual->feature_mask!=member.feature_mask){
-            input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;
+            input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
         }
         if(member.key==fresh->key&&(actual->visible!=fresh->visible||actual->positioning!=fresh->positioning||
             actual->dpi!=fresh->dpi||actual->monitor!=fresh->monitor||actual->work!=fresh->work||
             actual->maximized!=fresh->maximized||actual->minimized!=fresh->minimized)){
-            input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;
+            input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
         }
         member=*actual;
         if(member.key==fresh->key)active.operation_source=member;
     }
     if(std::none_of(active.members.begin(),active.members.end(),[&](const auto& member){return member.key==fresh->key;})){
-        input.revoke();epoch.finish(e.generation,v::End::SourceLost);return;
+        input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
     }
     active.targets=catalog.all(settings);active.targets.erase(std::remove_if(active.targets.begin(),active.targets.end(),[&](const auto& s){
         return std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u);}),active.targets.end());
@@ -926,7 +933,7 @@ void Application::begin(const InputEvent& e){
             if(anchor){gesture->layout_drag_restore=true;gesture->original=*anchor;gesture->scope_original=*anchor;gesture->previous=*anchor;}
         }
     }
-    if(!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
+    if(input.allowed(e.generation)&&!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+",\"original\":"+rectangle(fresh->visible));
     if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
@@ -937,7 +944,7 @@ void Application::begin(const InputEvent& e){
         auto other=catalog.all(settings);other.erase(std::remove_if(other.begin(),other.end(),[&](const auto& item){return item.key==fresh->key;}),other.end());
         const auto desired=v::stretch(fresh->visible,fresh->work,gesture->edges,(e.modifiers&4u)!=0,items(other),settings.smart_stretch);
         if(input.allowed(e.generation)&&apply({true,"double_click_stretch",{{fresh->key,desired}}},{*fresh},e.generation,false,e.hook_observed_qpc))remember_receipt(*fresh,true);
-        input.revoke();finish(v::End::Paused);
+        input.revoke_generation(e.generation);finish(v::End::Paused);
     }
 }
 void Application::cancel_seam_timer(bool reset){
@@ -946,11 +953,12 @@ void Application::cancel_seam_timer(bool reset){
     if(state.seam_timer){KillTimer(window,state.seam_timer);state.seam_timer=0;}
     if(reset){state.seam_since=0;state.preview_monitor=nullptr;state.seam_zone=-1;state.seam_timer_failed=false;}
 }
-bool Application::dock_preview(POINT point,std::uint64_t tick,bool arm){
+bool Application::dock_preview(POINT point,std::uint64_t tick,bool arm,bool normal_up_completion){
     if(!gesture)return false;
     auto& state=*gesture;const auto& config=state.config;const auto& source=state.operation_source;
     state.dock_action.reset();state.dock_rect.reset();
-    if(!input.allowed(state.down.generation)){cancel_seam_timer();return false;}
+    const auto permitted=[&]{return normal_up_completion?input.completion_allowed(state.down.generation):input.allowed(state.down.generation);};
+    if(!permitted()){cancel_seam_timer();return false;}
     if(!config.docking||!(source.feature_mask&4u)||is_resize(state.edges)||state.ctrl){cancel_seam_timer();return false;}
     const auto monitor=MonitorFromPoint(point,MONITOR_DEFAULTTONEAREST);const auto displays=catalog.displays();
     const auto display=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==monitor;});
@@ -994,7 +1002,7 @@ bool Application::dock_preview(POINT point,std::uint64_t tick,bool arm){
         }
         cancel_seam_timer(false);
     }else cancel_seam_timer();
-    if(!input.allowed(state.down.generation))return false;
+    if(!permitted())return false;
     state.dock_action=action;state.dock_rect=v::smart_dock(work,action,items(state.targets),config.smart_docking);
     if(state.dock_rect->empty()){state.dock_action.reset();state.dock_rect.reset();return false;}
     show_preview(state.dock_rect);return true;
@@ -1103,9 +1111,19 @@ void Application::restore_timeout(UINT_PTR timer){
         finish(v::End::Deadline);
     }
 }
-void Application::motion(const InputEvent& e){
-    if(!gesture||!epoch.motion(e.generation)||!input.allowed(e.generation))return;
-    if(gesture->restore_armed||gesture->restore_pending){gesture->restore_move=e;if(gesture->restore_armed)request_native_restore(e);return;}
+void Application::motion(const InputEvent& e,bool normal_up_completion){
+    if(!gesture||!epoch.motion(e.generation)||!input.motion_allowed(e,normal_up_completion,gesture->normal_up_motion_consumed))return;
+    // Claim the real terminal observation once in the serialized dispatcher.
+    // The native guard independently rechecks the shared capability, so a new
+    // DOWN, stop, failure or foreground change can still reject before issue.
+    if(normal_up_completion)gesture->normal_up_motion_consumed=true;
+    if(gesture->restore_armed||gesture->restore_pending){
+        if(normal_up_completion){
+            log.event("normal_up_motion_rejected","\"generation\":"+std::to_string(e.generation)+
+                ",\"reason\":\"native_restore_requires_active_gesture\",\"new_native_attempt\":false");return;
+        }
+        gesture->restore_move=e;if(gesture->restore_armed)request_native_restore(e);return;
+    }
     auto& state=*gesture;const auto& config=state.config;const auto source=state.operation_source;const auto fresh=catalog.get(source.hwnd,settings);
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
     if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
@@ -1146,9 +1164,12 @@ void Application::motion(const InputEvent& e){
             state.x=latch(proposal.selected_x);state.y=latch(proposal.selected_y);
         }else{state.x.reset();state.y.reset();}
     }
-    state.previous=raw;state.last_tick=e.tick;const bool dock_shown=dock_preview(e.point,e.tick);
+    state.previous=raw;state.last_tick=e.tick;const bool dock_shown=dock_preview(e.point,e.tick,!normal_up_completion,normal_up_completion);
     if(!dock_shown)show_preview({});
-    if(!apply(plan,state.members,e.generation,false,e.hook_observed_qpc)){
+    // One terminal quantum chooses docking OR its absolute move/resize plan;
+    // never issue a free placement followed by a corrected dock placement.
+    if(normal_up_completion&&dock_shown)return;
+    if(!apply(plan,state.members,e.generation,normal_up_completion,e.hook_observed_qpc)){
         // Only the matching actual UP event may finish NormalUp. A concurrent
         // hook-side revocation is not itself evidence of which terminator won.
         if(!last_apply_revoked_only){state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);}return;}
@@ -1197,7 +1218,8 @@ void Application::motion(const InputEvent& e){
     }
 }
 void Application::finish(v::End reason,std::uint64_t observed_qpc){
-    input.revoke(reason);cancel_seam_timer();cancel_restore_wait();show_preview({});if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
+    if(gesture)input.finish_generation(gesture->down.generation,reason);else input.revoke(reason);
+    cancel_seam_timer();cancel_restore_wait();show_preview({});if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
     if(reason==v::End::NormalUp&&state.dock_action&&state.dock_rect){
         const auto current=catalog.get(state.down.prepared->source.hwnd,settings);
         if(current&&Catalog::same(state.down.prepared->source,*current)&&
@@ -1274,7 +1296,13 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             ",\"handler_returned\":true,\"active_generation_revoke_CAS_succeeded\":"+(retired?"true":"false")+
             ",\"native_success_not_inferred_from_handler_return\":true");
     }
-    else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);}
+    else if(e.kind==InputKind::Up){if(gesture&&gesture->down.generation==e.generation){
+        // Queued MOVE has already been discarded after hook-side revocation.
+        // Only this actual same-generation NormalUp may submit one final plan
+        // from the original DOWN anchor and the observed UP cursor position.
+        if(e.end==v::End::NormalUp)motion(e,true);
+        if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);
+    }}
     else if(e.kind==InputKind::Abort){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}
     }flush();
 }

@@ -1,4 +1,5 @@
 #include "platform/windows/product/input_service.h"
+#include "core/v1/gesture.h"
 
 #include <iostream>
 
@@ -207,6 +208,70 @@ int main() {
           "active CAS and completion CAS independently preserve a newer gesture while retiring an old token");
     check(!product::revoke_exact_generation(exact_active,exact_completion,0)&&exact_active==21,
           "zero-generation discrete command cannot revoke a gesture");
+    // Deterministic producer-ahead-of-GUI order: DOWN/MOVE/normal UP have all
+    // been observed by the hook before the GUI drains their queued records.
+    product::InputEvent delayed_move;delayed_move.kind=product::InputKind::Move;delayed_move.generation=30;
+    product::InputEvent actual_up=delayed_move;actual_up.kind=product::InputKind::Up;
+    actual_up.end=v1::End::NormalUp;actual_up.point={180,150};
+    check(!product::dispatch_motion_permission(delayed_move,false,0,30,true,false),
+          "hook UP still retires old queued MOVE even when the GUI has not consumed it");
+    check(product::dispatch_motion_permission(actual_up,true,0,30,true,false),
+          "actual same-generation normal UP retains one final absolute motion when GUI dispatch is late");
+    check(!product::dispatch_motion_permission(actual_up,false,0,30,true,false)&&
+          !product::dispatch_motion_permission(delayed_move,true,0,30,true,false),
+          "terminal capability cannot authorize ordinary dispatch or turn an old MOVE into UP");
+    check(!product::dispatch_motion_permission(actual_up,true,0,30,true,true),
+          "the serialized dispatcher cannot claim a second final quantum for the same UP");
+    check(!product::dispatch_motion_permission(actual_up,true,31,30,true,false)&&
+          !product::dispatch_motion_permission(actual_up,true,31,0,true,false)&&
+          !product::operation_permission(30,31,30,true,true),
+          "a later actual DOWN rejects the older UP even for contradictory stale completion readings");
+    check(!product::dispatch_motion_permission(actual_up,true,0,30,false,false)&&
+          !product::dispatch_motion_permission(actual_up,true,0,0,true,false),
+          "pause stop callback failure or revoked terminal token cannot issue final geometry");
+    auto invalid_up=actual_up;invalid_up.end=v1::End::FocusLost;
+    check(!product::dispatch_motion_permission(invalid_up,true,0,30,true,false),
+          "source or foreground failure at the actual UP is not a normal final motion");
+    invalid_up=actual_up;invalid_up.kind=product::InputKind::Abort;
+    check(!product::dispatch_motion_permission(invalid_up,true,0,30,true,false),
+          "abort receipt cannot masquerade as physical normal UP even with an old token");
+    invalid_up=actual_up;invalid_up.generation=0;
+    check(!product::dispatch_motion_permission(invalid_up,true,0,0,true,false),
+          "generation zero discrete commands never mint terminal gesture motion");
+    // Follow the exact production decisions, not an always-true test adapter:
+    // hook ahead of GUI -> stale MOVE rejected -> real UP terminal once ->
+    // exact original-anchor intent -> retire completion. No active rearming.
+    std::uint64_t lag_active=0,lag_completion=30;bool terminal_consumed=false;
+    unsigned active_issues{},terminal_issues{};
+    std::optional<v1::Rect> final_geometry;
+    if(product::dispatch_motion_permission(delayed_move,false,lag_active,lag_completion,true,terminal_consumed))++active_issues;
+    if(product::dispatch_motion_permission(actual_up,true,lag_active,lag_completion,true,terminal_consumed)){
+        terminal_consumed=true;
+        if(product::operation_permission(30,lag_active,lag_completion,true,true)){
+            final_geometry=v1::intent({100,100,500,400},{120,120},{actual_up.point.x,actual_up.point.y},{});
+            ++terminal_issues;
+        }
+    }
+    check(active_issues==0&&terminal_issues==1&&final_geometry==v1::Rect{160,130,560,430}&&lag_active==0,
+          "late GUI final submission uses the exact UP cursor and original DOWN rect without restoring active authority");
+    lag_completion=0;
+    check(!product::dispatch_motion_permission(actual_up,true,lag_active,lag_completion,true,terminal_consumed)&&
+          !product::dispatch_motion_permission(delayed_move,false,lag_active,lag_completion,true,terminal_consumed),
+          "retiring completion leaves no late active or repeated terminal submission");
+    std::atomic<std::uint64_t> finish_active{31},finish_completion{31};
+    check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::NormalUp)&&
+          finish_active==31&&finish_completion==31,
+          "GUI finishing older normal UP cannot revoke the newer actual DOWN or its completion token");
+    check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::SourceLost)&&
+          finish_active==31&&finish_completion==31,
+          "older GUI context failure also cannot revoke newer generation input");
+    finish_active=0;finish_completion=30;
+    check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::NormalUp)&&
+          finish_active==0&&finish_completion==30,
+          "same generation normal finish preserves only its separate dock or motion completion until consumed");
+    check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::FocusLost)&&
+          finish_active==0&&finish_completion==0,
+          "actual context loss retires terminal permission instead of ignoring an authority failure");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";
     return failures==0?0:1;
 }

@@ -79,7 +79,8 @@ inline bool button_up_matches_current_pair(bool consumed,int paired_button,int i
 }
 inline bool operation_permission(std::uint64_t generation,std::uint64_t active,std::uint64_t normal_up,
                                  bool available,bool allow_completion){
-    return available&&(!generation||active==generation||(allow_completion&&normal_up==generation));
+    return available&&(!generation||(!allow_completion&&active==generation)||
+        (allow_completion&&active==0&&normal_up==generation));
 }
 inline bool revoke_exact_generation(std::atomic<std::uint64_t>& active,std::atomic<std::uint64_t>& completion,
                                     std::uint64_t generation){
@@ -87,6 +88,14 @@ inline bool revoke_exact_generation(std::atomic<std::uint64_t>& active,std::atom
     auto expected=generation;const bool retired=active.compare_exchange_strong(expected,0);
     expected=generation;completion.compare_exchange_strong(expected,0);
     return retired;
+}
+inline bool finish_exact_generation(std::atomic<std::uint64_t>& active,std::atomic<std::uint64_t>& completion,
+                                    std::uint64_t generation,core::v1::End reason){
+    if(reason!=core::v1::End::NormalUp)return revoke_exact_generation(active,completion,generation);
+    if(!generation)return false;
+    // The actual matching UP already published its separate terminal token.
+    // Retiring the GUI's older gesture must not revoke a newer hook DOWN.
+    auto expected=generation;return active.compare_exchange_strong(expected,0);
 }
 // Actual matching-UP decision used by the callback. Native foreground events
 // may still be queued: current facts, not their eventual delivery, determine
@@ -112,6 +121,18 @@ struct InputEvent {
     // no such observation (e.g. WinEvent abort), never an invented timestamp.
     std::uint64_t hook_observed_qpc{};
 };
+// Same dispatcher predicate as the production motion path. The terminal
+// capability is distinct from active input authority and never revives queued
+// MOVE events after the hook has observed UP.
+inline bool dispatch_motion_permission(const InputEvent& event,bool terminal,
+                                      std::uint64_t active,std::uint64_t completion,
+                                      bool available,bool terminal_consumed){
+    if(!event.generation)return false;
+    if(terminal)return !terminal_consumed&&event.kind==InputKind::Up&&
+        event.end==core::v1::End::NormalUp&&
+        operation_permission(event.generation,active,completion,available,true);
+    return event.kind==InputKind::Move&&operation_permission(event.generation,active,completion,available,false);
+}
 struct MouseUpCallbackSnapshot {
     bool known{};
     std::uint64_t callback_count{},hook_observed_qpc{},generation_at_entry{};
@@ -163,6 +184,20 @@ public:
     void prepared_point(){prepare_pending_=false;}
     void pause(bool value);
     bool allowed(std::uint64_t g)const {return g && authorized_->load()==g && !paused_;}
+    bool context_allowed(std::uint64_t g)const {
+        const auto active=authorized_->load();const auto terminal=completion_->load();
+        return g&&available_->load()&&!paused_&&
+            (operation_permission(g,active,terminal,true,false)||operation_permission(g,active,terminal,true,true));
+    }
+    bool completion_allowed(std::uint64_t g)const {
+        const auto active=authorized_->load();const auto terminal=completion_->load();
+        return g&&operation_permission(g,active,terminal,available_->load()&&!paused_,true);
+    }
+    bool motion_allowed(const InputEvent& event,bool terminal,bool terminal_consumed)const {
+        const auto active=authorized_->load();const auto completion=completion_->load();
+        return dispatch_motion_permission(event,terminal,active,completion,
+            available_->load()&&!paused_,terminal_consumed);
+    }
     void revoke(core::v1::End reason=core::v1::End::SourceLost){
         if(reason!=core::v1::End::NormalUp)*completion_=0;
         const auto retired=authorized_->exchange(0);const auto id=thread_id_.load();
@@ -173,13 +208,21 @@ public:
         if(retired&&id)PostThreadMessageW(id,WM_APP+2,static_cast<WPARAM>(generation),static_cast<LPARAM>(reason));
         return retired;
     }
+    void finish_generation(std::uint64_t generation,core::v1::End reason){
+        if(reason!=core::v1::End::NormalUp){revoke_generation(generation,reason);return;}
+        finish_exact_generation(*authorized_,*completion_,generation,reason);
+    }
     // Safe to retain at a bounded native worker boundary, even if the UI
     // retires/destroys this service. Only shared atomics are captured.
     void finish_completion(std::uint64_t generation){completion_->compare_exchange_strong(generation,0);}
     std::function<bool()> operation_guard(std::uint64_t generation,bool normal_up_completion=false,HWND source=nullptr)const {
         return [authority=authorized_,completion=completion_,available=available_,generation,normal_up_completion,source]{
+            // Explicit order matters: an older terminal token must not be
+            // paired with active=0 read after a newer DOWN/UP cycle. Function
+            // argument evaluation order alone does not establish this order.
+            const auto active=authority->load();const auto terminal=completion->load();
             return (!generation||(source&&GetForegroundWindow()==source))&&
-                operation_permission(generation,authority->load(),completion->load(),available->load(),normal_up_completion);
+                operation_permission(generation,active,terminal,available->load(),normal_up_completion);
         };
     }
     bool healthy()const {return healthy_;}
