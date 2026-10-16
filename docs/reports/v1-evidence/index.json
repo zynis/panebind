@@ -269,6 +269,37 @@
       "scope": "OFFLINE shared production permission and original-anchor decisions; no hooks/native window/input",
       "native_guest_result": "NOT_RUN",
       "missing_LL_UP_cause_established": false
+    },
+    {
+      "evidence_id": "EV-408AC52-BUILD-OFFLINE-TRANSCRIPT",
+      "kind": "MAIN_EXECUTOR_TOOL_OUTPUT_TRANSCRIPTION_PLUS_INDEPENDENT_FILE_CHECK_NOT_ORIGINAL_STDOUT",
+      "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "separate_driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "excerpt_path": "docs/reports/v1-evidence/408ac52-build-offline-transcript.txt",
+      "excerpt_sha256": "A7BC97DEFA7BEFC8332A4EE271655358395E9EC340220A9FB19B5C20FC073BDA",
+      "product_binaries": [
+        {
+          "configuration": "Debug",
+          "path": "out/v1-product-408ac52/src/platform/windows/Debug/panebind.exe",
+          "sha256": "BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345",
+          "file": "panebind.exe",
+          "bytes": 3287552
+        },
+        {
+          "configuration": "Release",
+          "path": "out/v1-product-408ac52/src/platform/windows/Release/panebind.exe",
+          "sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+          "file": "panebind.exe",
+          "bytes": 836608
+        }
+      ],
+      "offline_result": {
+        "Debug": "10/10_PASS_4.14_seconds",
+        "Release": "10/10_PASS_3.49_seconds"
+      },
+      "native_guest_result": "NOT_RUN",
+      "current_tested_package_rebound": false
     }
-  ]
+  ],
+  "byte_hash_checkout_policy": "docs/reports/v1-evidence/.gitattributes fixes *.jsonl/*.txt/*.json to text eol=lf; no root attributes or Git config change"
 }

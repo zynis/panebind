@@ -27,6 +27,8 @@ foreach ($entry in $index.records) {
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptance.ps1
 ```
 
-另有 [input-up-dispatch-directed.txt](input-up-dispatch-directed.txt) 是新确定GUI消费时序缺陷的脱敏工具输出转录：旧226/1、修复239/0，绑定产品修复源码`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`。它不是程序原stdout，不包含真实输入或原生placement验证，也不证明旧LL-UPmissing根因。`index.json.offline_transcripts`记录原转录与脱敏文件的独立哈希。
+另有 [input-up-dispatch-directed.txt](input-up-dispatch-directed.txt) 是新确定GUI消费时序缺陷的脱敏工具输出转录：旧226/1、修复239/0，绑定产品修复源码`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`。它不是程序原stdout，不包含真实输入或原生placement验证，也不证明旧LL-UPmissing根因。`index.json.offline_transcripts`记录原转录与脱敏文件的独立哈希。[408ac52-build-offline-transcript.txt](408ac52-build-offline-transcript.txt)另记新R产品构建、各10项D/R离线回归及独立EXE哈希检查；D driver分开构建，尚无新包或现场结果。
+
+本目录`.gitattributes`仅将`*.jsonl`／`*.txt`／`*.json`固定为`text eol=lf`，避免Windows的autocrlf使复核文件在另一checkout变换字节。未改根attributes或用户Git配置，既有摘录原字节哈希保持不变。
 
 历史实测经 `partial_observation_ids` 回到原产品身份，不因当前 `candidate_identity_ref`、更新 driver 或更新报告而换绑新 EXE。本轮新增产品修复与现场结果另作增量记录，不覆写这些反例。

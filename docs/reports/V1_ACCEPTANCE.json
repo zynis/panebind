@@ -15,7 +15,7 @@
     "final_sha": null,
     "implementation_inspected": "committed-built-runtime-partial-actual-DEV-reviewed",
     "note": "本阶段PARTIAL交付runtime/build为dd60，Debug/Release fresh构建及各10offline实际通过；97 Debug设置诊断专项PASS，后继Release真实客户激活失败保留；干净guest714c Release-only诊断+真实e2abc普通ZIP入口106行scopedPASS。主要功能实测仍单独绑定b60/c01，不把其完整动作迁移为dd60新EXE实测。590 Debug.tmp清单竞态是确定driver缺陷，dd60专项已复验修复；顺序D/R后继Release输入/前台失败原因仍UNKNOWN。S1 NormalUP、五类应用/MediumExplorer、显示矩阵、托盘缺项未关闭。60IMPLEMENTED仅为实施分类；功能DEV/模块/B/I正式均0，不是80或COMPLETE，不宜宿主试用，HUMAN_UAT仍PENDING；final_sha由主执行者实际提交后给出，不预填。",
-    "pending_product_note": "已提交新的生产输入/GUI消费时序修复，当前已测dd60包与b60历史证据保持原身份；新产品EXE构建/哈希、guest快速burst和整版操作链结果待实际登记，不预填。"
+    "pending_product_note": "新R产品Debug/Release均已构建且各10offline实际PASS；二进制独立hash/build-identity已核。driver/scripts D另行构建，复用同一份未经修改R产品EXE；尚无新包/guest结果。dd60已测package与b60历史未换绑，缺LL-UP仍OPEN。"
   },
   "scorecard": {
     "denominator": 40,
@@ -6148,7 +6148,8 @@
       "raw_large_materials_local_only": true,
       "excerpt_is_not_full_run": true,
       "identity_hashes_independently_verified": true,
-      "automatic_PASS_not_awarded": true
+      "automatic_PASS_not_awarded": true,
+      "checkout_byte_hashes": "v1-evidence/.gitattributes enforces LF for its json/jsonl/txt only; existing five excerpt byte hashes rechecked unchanged"
     }
   },
   "historical_packages": [
@@ -6826,6 +6827,16 @@
       "original_local_transcript_path": "uat/v1-control/input-up-dispatch-directed-20261016.txt",
       "original_local_transcript_sha256": "28A44613D422FFCD1B955896A7A8D5B38BDD938B7B29C7B1689E29DDB8BBEE0A",
       "native_guest_result": "NOT_RUN"
+    },
+    {
+      "id": "EV-408AC52-BUILD-OFFLINE-TRANSCRIPT",
+      "path": "docs/reports/v1-evidence/408ac52-build-offline-transcript.txt",
+      "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "run_id": null,
+      "sha256": "A7BC97DEFA7BEFC8332A4EE271655358395E9EC340220A9FB19B5C20FC073BDA",
+      "kind": "TOOL_OUTPUT_TRANSCRIPTION_PLUS_INDEPENDENT_FILE_CHECK_NOT_ORIGINAL_STDOUT",
+      "native_guest_result": "NOT_RUN"
     }
   ],
   "partial_observations": [
@@ -6837,7 +6848,8 @@
       "binary_sha256": null,
       "run_id": null,
       "evidence_ids": [
-        "EV-408AC52-UP-DISPATCH-TRANSCRIPT"
+        "EV-408AC52-UP-DISPATCH-TRANSCRIPT",
+        "EV-408AC52-BUILD-OFFLINE-TRANSCRIPT"
       ],
       "base_sha": "ab6bf9057797e7f85fc4aa234da7b105ce143a4f",
       "test_output_kind": "TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
@@ -6861,14 +6873,24 @@
       "repair": "旧排队MOVE继续拒绝；仅真实匹配NormalUp点取得一次独立terminal completion，writer发起前再核验；后继DOWN/stop/abort/失效撤销，不恢复active权限；旧代finish只退休自身。",
       "native_input_started": false,
       "native_window_or_placement_tested": false,
-      "new_binary_hash_not_yet_recorded": true,
+      "new_binary_hash_not_yet_recorded": false,
       "guest_fast_burst_result": "NOT_RUN",
       "LL_UP_missing_cause_established": false,
       "limitations": [
         "不能用离线239/0替代实际快速拖动和抬键闭环、exact几何、无迟到写及下一手势。",
-        "新R未绑定旧dd60/c01运行；现有D08缺LL-UP S1保持OPEN。"
+        "新R未绑定旧dd60/c01运行；现有D08缺LL-UP S1保持OPEN。",
+        "D driver与R产品分离；只改工具时沿用上述R原字节，不因打包HEAD更新重建或清空已有证据。"
       ],
-      "next_action": "新R实际Release/Medium guest用单次快速DOWN/MOVE/UP（GUI消费落后）核对真实UP点最终几何、一次terminal/native回执、撤权后零旧MOVE/重复写及下一Move/Resize/Ctrl；随后当前候选最终整版链。"
+      "next_action": "新R实际Release/Medium guest用单次快速DOWN/MOVE/UP（GUI消费落后）核对真实UP点最终几何、一次terminal/native回执、撤权后零旧MOVE/重复写及下一Move/Resize/Ctrl；随后当前候选最终整版链。",
+      "product_build_observation": {
+        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+        "Release_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+        "Debug_binary_sha256": "BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345",
+        "binary_self_identity_verified": true,
+        "offline_Debug": "10/10_PASS",
+        "offline_Release": "10/10_PASS",
+        "native_guest_result": "NOT_RUN"
+      }
     },
     {
       "id": "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -8064,5 +8086,59 @@
       ]
     },
     "historical_binding_lookup": "partial_observation_ids → partial_observations（原source_sha/binary_sha256/run_id/evidence_ids）→ evidence / v1-evidence/index.json；禁止只按candidate_identity_ref改写历史实测身份。"
+  },
+  "pending_product_candidate": {
+    "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+    "status": "COMMITTED_BUILT_OFFLINE_PASS_NATIVE_GUEST_NOT_RUN",
+    "build_directory": "out/v1-product-408ac52",
+    "build_environment": {
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "compiler": "MSVC 19.50.35729",
+      "windows_sdk": "10.0.26100.0",
+      "development_host_version": "10.0.26200",
+      "static_runtime": "MultiThreaded"
+    },
+    "binaries": [
+      {
+        "configuration": "Debug",
+        "path": "out/v1-product-408ac52/src/platform/windows/Debug/panebind.exe",
+        "sha256": "BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345",
+        "file": "panebind.exe",
+        "bytes": 3287552
+      },
+      {
+        "configuration": "Release",
+        "path": "out/v1-product-408ac52/src/platform/windows/Release/panebind.exe",
+        "sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+        "file": "panebind.exe",
+        "bytes": 836608
+      }
+    ],
+    "separate_driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+    "driver_build_status": "BUILT_DEBUG_RELEASE_PENDING_PACKAGE_HASH_BINDING",
+    "product_rebuilt_for_driver_change": false,
+    "offline_regression": {
+      "Debug": {
+        "passed": 10,
+        "total": 10,
+        "elapsed_seconds": 4.14
+      },
+      "Release": {
+        "passed": 10,
+        "total": 10,
+        "elapsed_seconds": 3.49
+      },
+      "evidence_kind": "TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
+      "native_or_feature_DEV_PASS_inferred": false
+    },
+    "evidence_paths": [
+      "docs/reports/v1-evidence/408ac52-build-offline-transcript.txt"
+    ],
+    "run_id": null,
+    "package_id": null,
+    "native_guest_status": "NOT_RUN",
+    "human_uat": "NOT_RUN",
+    "current_tested_package_identity_preserved": "dd603a79aeba64c816e13ba49265db342c14e7e3"
   }
 }

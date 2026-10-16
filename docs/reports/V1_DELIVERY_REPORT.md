@@ -20,7 +20,9 @@
 
 产品修复源码为 `408ac527a6bfda7b01a5e83249bd5ed0eca2714d`：排队旧MOVE仍拒绝；只有实际匹配NormalUp的UP点可以提交一次独立terminal计划，按原DOWN／窗口锚点求绝对几何，native发起前仍复核权限。后继DOWN、停止、abort或真实上下文失效不能恢复旧代写权限；旧代finish只退休自身，不能撤销较新代。修复后同一反例及相关代际／一次性／原锚点定向Debug为239 checks／0 failures。
 
-[before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。新候选源码仅放在`pending_runtime_sha`，当前已测dd60包不换绑；新EXE构建／哈希与driver身份由实际产物另行登记。下一步是新候选真实快速DOWN／MOVE／UP（GUI消费落后）→核对UP点exact终点／一次terminal／撤权后无旧MOVE或重复写→后续Move／Resize／Ctrl，再推进最终同候选整版链。原D08缺LL-UP S1及整版门槛保持未关闭，V1-D15为`DEV_FIXED_PENDING_GUEST_REVALIDATION`。
+[before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。新候选源码保留在`pending_runtime_sha`，当前已测dd60包不换绑。下一步是新候选真实快速DOWN／MOVE／UP（GUI消费落后）→核对UP点exact终点／一次terminal／撤权后无旧MOVE或重复写→后续Move／Resize／Ctrl，再推进最终同候选整版链。原D08缺LL-UP S1及整版门槛保持未关闭，V1-D15为`DEV_FIXED_PENDING_GUEST_REVALIDATION`。
+
+新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新包RunId和现场结果仍未填，不能升级正式DEV或关闭D08。
 
 ## 源码与包身份
 
@@ -29,6 +31,7 @@
 | 项目 | 当前准确状态 |
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
+| 待现场新产品候选 | R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`，D/R构建与各10offline通过；产品/driver身份分开，尚无新包/guest结果。下列dd60仍是此前实际验证包，不改写其身份 |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
 | 本阶段 runtime／build | `dd603a79aeba64c816e13ba49265db342c14e7e3`；Debug／Release fresh构建及各10项offline实际PASS；新EXE只取得下列诊断／普通ZIP专项证据，不迁移绑定旧整套动作 |
 | 此包打包 HEAD | `dd603a79aeba64c816e13ba49265db342c14e7e3`；已测ZIP不重包。最终三文档提交SHA由主执行者实际commit／push后给出，不在本文预填 |

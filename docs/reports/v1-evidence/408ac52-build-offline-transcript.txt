@@ -1,0 +1,47 @@
+PaneBind V1 product candidate build / offline regression
+Record date: 2026-10-16 (Asia/Shanghai)
+Record kind: transcription of the main executor's tool outputs and an
+independent read-only binary hash / --build-identity check.
+NOT an original stdout file. CTest stdout was not tee'd when executed.
+NOT a Windows guest functional result.
+
+Product source R: 408ac527a6bfda7b01a5e83249bd5ed0eca2714d
+Later driver/scripts source D: 83bf90362faafdfd431669b2ca545364d3898bcd
+Build directory: out/v1-product-408ac52 (configured for product R, not D)
+Generator: Visual Studio 18 2026, x64
+Compiler: MSVC 19.50.35729
+Windows SDK: 10.0.26100.0
+Recorded development host version: 10.0.26200
+Configuration flags: -DBUILD_TESTING=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+Built configurations: Debug and Release
+Built scope: panebind plus the existing ten V1 offline targets.
+
+RELEASE REGRESSION
+Command: ctest --test-dir out/v1-product-408ac52 -C Release -R '^v1-' --output-on-failure
+Recorded actual result: 10/10 PASS, 3.49 seconds
+DEBUG REGRESSION
+Command: ctest --test-dir out/v1-product-408ac52 -C Debug -R '^v1-' --output-on-failure
+Recorded actual result: 10/10 PASS, 4.14 seconds
+Ten existing test names: v1-timing, v1-visual, v1-gesture, v1-layout,
+v1-settings, v1-guest-path, v1-catalog-rule, v1-recovery, v1-writer,
+v1-input-route.
+The retained current LastTest.log is the Debug invocation; it is not presented
+as the overwritten Release stdout. The directed input-route result is
+239 checks, 0 failures, independent of native input delivery.
+
+INDEPENDENT READ-ONLY FILE CHECK (tool exec chunk fe1319 / hash follow-up)
+Both product --build-identity responses reported:
+{"product":"PaneBind","version":"1.0.0-dev","source_commit":"408ac527a6bfda7b01a5e83249bd5ed0eca2714d","subsystem":"windows","requires_elevation":false}
+Release product: 836608 bytes
+SHA-256: 48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E
+Debug product: 3287552 bytes
+SHA-256: BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345
+Release input-route test SHA-256:
+0FBA2891BBA5D906260CF91B166AA6E8C0EF2C9DF9979A423455187A795E65B0
+Debug input-route test SHA-256:
+84F316E856689FAFC6766D678E30EAAC816F78FE69408E4545D34DE9041B7F3C
+
+The product EXEs remain unchanged while the separate D driver is built or
+packaged. No new package RunId or actual guest result is inferred here.
+The tested dd60 package and all b60/other historical evidence keep their
+original product binary identities. Missing LL-UP S1 remains OPEN.
