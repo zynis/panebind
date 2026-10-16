@@ -549,9 +549,40 @@ void cursor(State& s,POINT point){
 }
 void key(State& s,WORD code,bool pressed){
     INPUT packet{};packet.type=INPUT_KEYBOARD;packet.ki.wVk=code;packet.ki.dwFlags=pressed?0:KEYEVENTF_KEYUP;packet.ki.dwExtraInfo=0x50425631;
-    if(!desktop()||SendInput(1,&packet,sizeof(packet))!=1)throw std::runtime_error("test_key_input_failed");
-    if(code==VK_CONTROL)s.control=pressed;
-    if(!wait([&]{return ((GetAsyncKeyState(code)&0x8000)!=0)==pressed;},500))throw std::runtime_error("test_key_state_not_observed");
+    const bool desktop_before=desktop();const auto foreground_before=GetForegroundWindow();
+    const SHORT before=GetAsyncKeyState(code);SHORT first=before,last=before;unsigned observations{};
+    LARGE_INTEGER send_before{},send_after{};QueryPerformanceCounter(&send_before);SetLastError(0);
+    const UINT inserted=desktop_before?SendInput(1,&packet,sizeof(packet)):0;
+    const DWORD error=inserted==1?0:GetLastError();QueryPerformanceCounter(&send_after);
+    if(inserted==1&&code==VK_CONTROL)s.control=pressed;
+    HWND changed_foreground{};DWORD changed_pid{},changed_tid{};std::array<wchar_t,128> changed_class{};bool class_known=false,foreground_changed=false;
+    const bool observed=inserted==1&&wait([&]{
+        ++observations;last=GetAsyncKeyState(code);if(observations==1)first=last;const auto foreground_now=GetForegroundWindow();
+        if(!foreground_changed&&foreground_now!=foreground_before){
+            foreground_changed=true;
+            changed_foreground=foreground_now;changed_tid=GetWindowThreadProcessId(changed_foreground,&changed_pid);
+            class_known=GetClassNameW(changed_foreground,changed_class.data(),static_cast<int>(changed_class.size()))>0;
+        }
+        return ((last&0x8000)!=0)==pressed;
+    },500);
+    // Only the fixed key this guest TEST driver just attempted is observed.
+    // No extra packet/retry, keyboard hook or product key-content collection.
+    if(code==VK_CONTROL||!observed)s.log.emit("test_key_observation",
+        "\"test_virtual_key\":"+std::to_string(code)+",\"requested_down\":"+(pressed?"true":"false")+
+        ",\"input_desktop_before\":"+(desktop_before?"true":"false")+",\"SendInput_called\":"+(desktop_before?"true":"false")+
+        ",\"SendInput_return\":"+std::to_string(inserted)+",\"SendInput_error_on_failure\":"+std::to_string(error)+
+        ",\"send_before_qpc\":"+std::to_string(send_before.QuadPart)+",\"send_after_qpc\":"+std::to_string(send_after.QuadPart)+
+        ",\"async_before_raw_SHORT\":"+std::to_string(before)+",\"async_first_raw_SHORT\":"+std::to_string(first)+",\"async_last_raw_SHORT\":"+std::to_string(last)+
+        ",\"bounded_observations\":"+std::to_string(observations)+",\"requested_state_observed\":"+(observed?"true":"false")+
+        ",\"foreground_before\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground_before))+
+        ",\"foreground_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+        ",\"foreground_change_observed\":"+(foreground_changed?"true":"false")+
+        ",\"first_changed_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(changed_foreground))+
+        ",\"first_changed_foreground_pid\":"+std::to_string(changed_pid)+",\"first_changed_foreground_tid\":"+std::to_string(changed_tid)+
+        ",\"first_changed_foreground_class\":"+(class_known?quote(utf8(changed_class.data())):"null")+
+        ",\"single_packet_no_retransmission\":true,\"actual_key_delivery_or_UIPI_cause_not_inferred\":true");
+    if(inserted!=1)throw std::runtime_error("test_key_input_failed");
+    if(!observed)throw std::runtime_error("test_key_state_not_observed");
 }
 bool authorized_source(State&,HWND);
 std::uint64_t number(const std::string&,std::string_view);
