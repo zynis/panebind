@@ -1129,7 +1129,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
     if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
     refresh_targets();
-    if(normal_up_point_already_exact(e,normal_up_completion,state.exact_motion)){
+    if(motion_point_already_exact(e,normal_up_completion,state.exact_motion)){
         // A duplicate physical cursor is not a new motion quantum. Re-solving
         // with an equal millisecond sample can discard a retained snap; even a
         // later timestamp must not snap a previously speed-suppressed free move.
@@ -1144,9 +1144,9 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
         }
         // Still refresh an actual dock/seam preview: finish owns its distinct
         // normal-UP commit. Exact free/magnet progress is not a completed dock.
-        const bool dock_shown=dock_preview(e.point,e.tick,false,true);
+        const bool dock_shown=dock_preview(e.point,e.tick,!normal_up_completion,normal_up_completion);
         if(!dock_shown)show_preview({});
-        log.event("normal_up_motion_already_exact","\"generation\":"+std::to_string(e.generation)+
+        log.event(normal_up_completion?"normal_up_motion_already_exact":"active_motion_already_exact","\"generation\":"+std::to_string(e.generation)+
             ",\"key\":"+std::to_string(source.key)+",\"actual\":"+rectangle(fresh->visible)+
             ",\"geometry_revalidated\":true,\"new_native_attempt\":false,\"dock_preview_refreshed\":"+(dock_shown?"true":"false"));
         return;

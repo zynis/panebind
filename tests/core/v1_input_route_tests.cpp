@@ -279,20 +279,32 @@ int main() {
           "duplicate same-tick UP retains the real solver invalid-sample fact rather than inventing elapsed time");
     auto magnetic_up=actual_up;magnetic_up.point={315,104};
     const std::optional<product::ExactMotionPoint> magnetic_progress{{30,magnetic_up.point}};
-    const bool same_point_complete=product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress);
+    const bool same_point_complete=product::motion_point_already_exact(magnetic_up,true,magnetic_progress);
     const auto repeated_terminal_geometry=same_point_complete?magnetic_exact:
         repeated_terminal.proposal?repeated_terminal.proposal->corrected:magnetic_raw;
     check(repeated_terminal_geometry==magnetic_exact,
           "same-point normal UP cannot replace an already exact snapped receipt with its free intent");
-    check(same_point_complete&&!product::normal_up_point_already_exact(magnetic_up,false,magnetic_progress)&&
-          !product::normal_up_point_already_exact(magnetic_up,true,std::nullopt),
+    auto duplicate_active_move=magnetic_up;duplicate_active_move.kind=product::InputKind::Move;
+    const auto duplicate_active_geometry=product::motion_point_already_exact(duplicate_active_move,false,magnetic_progress)?magnetic_exact:
+        repeated_terminal.proposal?repeated_terminal.proposal->corrected:magnetic_raw;
+    check(duplicate_active_geometry==magnetic_exact,
+          "same-point active MOVE cannot replace an already exact snapped receipt with its free intent");
+    auto changed_active_move=duplicate_active_move;++changed_active_move.point.x;
+    check(product::dispatch_motion_permission(duplicate_active_move,false,30,0,true,false)&&
+          product::motion_point_already_exact(duplicate_active_move,false,magnetic_progress)&&
+          !product::motion_point_already_exact(changed_active_move,false,magnetic_progress)&&
+          !product::dispatch_motion_permission(duplicate_active_move,false,0,30,true,false)&&
+          !product::dispatch_motion_permission(duplicate_active_move,false,31,0,true,false),
+          "active exact-point dedup still needs real MOVE authority and never consumes a new cursor or revives a retired generation");
+    check(same_point_complete&&!product::motion_point_already_exact(magnetic_up,false,magnetic_progress)&&
+          !product::motion_point_already_exact(magnetic_up,true,std::nullopt),
           "actual terminal branch only skips an already exact completed cursor, not active or unconsumed motion");
     auto different_point_up=magnetic_up;different_point_up.point.x+=4;
     auto later_up=magnetic_up;++later_up.generation;
     auto aborted_up=magnetic_up;aborted_up.end=v1::End::FocusLost;
-    check(!product::normal_up_point_already_exact(different_point_up,true,magnetic_progress)&&
-          !product::normal_up_point_already_exact(later_up,true,magnetic_progress)&&
-          !product::normal_up_point_already_exact(aborted_up,true,magnetic_progress),
+    check(!product::motion_point_already_exact(different_point_up,true,magnetic_progress)&&
+          !product::motion_point_already_exact(later_up,true,magnetic_progress)&&
+          !product::motion_point_already_exact(aborted_up,true,magnetic_progress),
           "new cursor displacement, new generation and abnormal UP never reuse an older exact cursor receipt");
     // The same production static writer preflight used before the no-op branch
     // checks actual participant geometry; opaque identities are never queried.
@@ -325,16 +337,20 @@ int main() {
           "actual production speed suppression produces the completed free rect");
     magnetic_request.motion=magnet::MotionSample{magnetic_raw,1001,1200,1000,1000};
     const auto idle_terminal=magnet::MagnetConstraintSolver::solve(magnetic_request);
-    const auto fast_terminal_geometry=product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress)?magnetic_raw:
+    const auto fast_terminal_geometry=product::motion_point_already_exact(magnetic_up,true,magnetic_progress)?magnetic_raw:
         idle_terminal.proposal?idle_terminal.proposal->corrected:magnetic_raw;
     check(idle_terminal.proposal&&fast_terminal_geometry==magnetic_raw,
           "already exact fast-free move does not suddenly snap merely because normal UP has a later tick");
+    const auto fast_duplicate_geometry=product::motion_point_already_exact(duplicate_active_move,false,magnetic_progress)?magnetic_raw:
+        idle_terminal.proposal?idle_terminal.proposal->corrected:magnetic_raw;
+    check(fast_duplicate_geometry==magnetic_raw,
+          "same-point active MOVE also preserves exact speed-suppressed free geometry instead of creating new attraction");
     unsigned duplicate_terminal_issues{};
     if(product::dispatch_motion_permission(magnetic_up,true,0,30,true,false)&&
-       !product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress))++duplicate_terminal_issues;
+       !product::motion_point_already_exact(magnetic_up,true,magnetic_progress))++duplicate_terminal_issues;
     unsigned unconsumed_terminal_issues{};
     if(product::dispatch_motion_permission(different_point_up,true,0,30,true,false)&&
-       !product::normal_up_point_already_exact(different_point_up,true,magnetic_progress))++unconsumed_terminal_issues;
+       !product::motion_point_already_exact(different_point_up,true,magnetic_progress))++unconsumed_terminal_issues;
     check(duplicate_terminal_issues==0&&unconsumed_terminal_issues==1&&
           !product::dispatch_motion_permission(different_point_up,true,31,30,true,false)&&
           !product::dispatch_motion_permission(delayed_move,false,0,30,true,false),
