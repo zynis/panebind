@@ -2,13 +2,21 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新现场产品为R4=`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`，e1fc的Debug／Release Full均因驱动缺口未完成，Debug实际几何及异常UP收尾见下一节，不授完整功能PASS。历史R3=`37e5ffce1290f3c8e07056083e42666859eebe0d`／Release EXE `658C12…CD067`的866真实可见导出失败及恢复合同通过，D22仅按此定向关闭；现有独立完整合同**7/60功能、B29／B32共2/40=5%**保持原实测身份，旧R2／R3日志和包不换绑R4。D23源码修复待R4定向运行复验，D08开放；整版最终Release／Medium连续链、应用／托盘／显示矩阵未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新现场仍为同R4=`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`／39443，Debug七代owned Move／Ctrl／Resize及postResize回环的几何、planned真实UP与资源清理已闭环；紧接的三包快速UP几何仍FAIL，Release实际前台未取得而未发手势，两个Full仍FAIL，不授完整I02或功能PASS。历史R3=`37e5ffce1290f3c8e07056083e42666859eebe0d`／866及旧R2的**7/60功能、B29／B32共2/40=5%**保持原实测身份，不换绑R4。D23只有下述Debug定向无迟到发起范围，Release及整链待验；D08开放。整版Release／Medium连续链、应用／托盘／显示矩阵未齐，不能宿主试用，真人UAT PENDING。
 
-## R4：真实输入资源接入产品，首批现场被驱动缺口阻断
+## R4：Debug owned七代闭环，快速UP与Release仍未通过
 
 候选源码`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`已将InputService→GestureInputShield→共用writer实际接通；新路线保留精确guest／RunId／包与二进制身份保护，不在普通宿主启用。D23现为`DEV_FIXED_PENDING_TARGETED_RUNTIME`：匹配UP后不再允许新的continuous placement，已发出调用的完成和明确的release DockCommit保持独立语义；这不证明D08已修复。
 
 专用目录`out/v1-captured-input-r4`实际Debug／Release构建均退出0。Debug的10项V1 offline通过，实际wall 2.87秒；Release的10项V1加explorer-mvp-flow共11项通过，实际wall 6.26秒、offline processor 2.12秒，二者不混用。Release产品SHA-256 `3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF`，Debug产品`EBDD02BE05405D1BD17E429349F5377122FA945D7F4667F5C383801344615F7B`；driver Release `29083D75012005D27EFF423FDEAAEBF7C1AF04937E9DA2F50A181D6090E2F62B`／Debug `776152AD37E6365298E4808891D8911E720AE9C392D131260F1C545B31D14B03`。上述为主执行者实际工具结果转录，不是仓库归档原stdout，不替代现场结果。新7a0便携包已生成但普通入口尚未运行；首批e1fc的Debug／Release Full均被驱动缺口阻断如下，不授完整功能PASS。Explorer／整版连续链／普通Medium完整新路线／真人结果仍NOT_RUN，旧R3／R2证据及7项独立合同不改绑此EXE。
+
+最新Run `39443acd23034e8fb7bd4eb8d1b2071a`复用原af0产品EXE，只换driver `b1dc41ba364de2282c5fc232bde34ae39d63d2ad`：Debug `3791D6EDB96A72098E4BAFA9C94BF66942D9FED9B31B7D8594DB8AA32CD35D03`／Release `DFB4D6CDF6FE8187FFB21B3534ABDDFB4A52FB4A678479587EB02497C2345671`；主ZIP `899366858A41383331CF1CF7D78BE305CCD293A97C864385729B23D9FBBEBC14`／manifest `3B3E1FC61953D6162F6F5EBD534FE0375EF65EA7A60349AC7C6CDE8C23647FD9`，packaging HEAD d74482a。原四日志hash与collection核对一致且JSON合法、sequence连续。
+
+- [Debug owned原字段摘录](v1-evidence/39443-r4-debug-owned-core-selected.jsonl)：g1–7依次A五阶段、Ctrl A三成员、B／C五阶段、真实B Resize、postResize A五阶段、Ctrl C三成员。48／64／85／106／119／141／157每次planned单UP、实际几何和无capture均通过，162仅是owned core scope，不含真实Explorer／Release，不是完整I02。
+- [产品实际资源与writer](v1-evidence/39443-r4-debug-input-resource-writer-selected.jsonl)：各代actual captureReady→accepted legacyUP→真实release／detach／NormalUp Gone→明确queued legacyUP→NormalEnd；23次该范围native发起QPC均早于各代真实passive-head UP及Raw／legacy观察。没有观察到UP后新增continuous；generation0的后继Center／DockLeft是独立命令，不误当旧手势迟到。按各producer实际QPC比较，不以JSONL行序推出跨线程原生全序。这证明Debug旧回环改善，**D08及完整D23验收仍不关闭**。
+- 紧接168一次插入DOWN／MOVE／UP三包，实际head UP及产品UP撤权已到；产品g8在PreLive／PhysicalButtons拒绝，capture／placement均0，未产生NormalUp手势。169预期最终几何未实现而FAIL保留，不能删除该快速操作要求或用安全拒绝冒充移动功能PASS。171正常退出、176实际客户`[0,1]→[1,2]`另有事实，不以guest销毁补PASS。
+- [Release前置失败](v1-evidence/39443-r4-release-foreground-failure-selected.jsonl)：28在一次SetForegroundWindow及有界实际等待后`actual_foreground_matches=false`，无DOWN／START／placement；31后继客户验证也未发送输入，不能声称客户恢复PASS。这不同于e1fc旧API短路问题。Release／跨应用仍须真实后续验证，Full仍FAIL。
+- b1dc的Debug／Release driver实际构建退出0，guest-path定向测试各1/1，0.15／0.17秒。后继driver `edf4bc45054eec209e9588a3ab9a3e464d2df41d`现也实际D/R构建退出0、guest-path各1/1，0.17／0.20秒；两脚本AST为0错误。Debug driver `B0A167704F953E62414928F2BE3868178BC2644B2D277A1B048CEE2B8A072380`／Release `8609BD877DCB063DE2F3F25A4EA560AAF4B841EC13BF5BB4DC1E6A5AC1B2CD7E`，实际build-identity均edf，af0产品哈希不变。此处均为主执行者工具输出转录、非归档原stdout或现场；edf尚无新Run结果，不加功能／对标分数。
 
 Run `e1fc79d4e1ca4c63b0572da1b4ef9150`，产品及driver均af0，打包HEAD`8f63bf46d2d1b832ce67a9af215af94985df8f28`；主ZIP `D9F9B3274F0B47EEFA4D83CA7109585B856B2D6DE59F04E3386A8CF2B68F6670`／manifest `52EC5A7B3AE2DDCF3CBFEFB5B50E5E316D9EBE86B1F868249F2C76DBDF8C64BE`，7a0便携ZIP `236FDF61F8529296639286158E28DD890E76EDA429E28A317396BF0E6F4152A5`／manifest `78ED29E69FA4B74E178096555257783B8AED8DB26F1354B2443B3A1E913CF486`。四份原日志均已独立核hash、JSON合法及sequence连续。
 
