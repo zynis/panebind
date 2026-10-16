@@ -1,5 +1,7 @@
 #include "platform/windows/product/input_service.h"
+#include "platform/windows/product/window_writer.h"
 #include "core/v1/gesture.h"
+#include "core/geometry/magnet_constraint_solver.h"
 
 #include <iostream>
 
@@ -258,6 +260,85 @@ int main() {
     check(!product::dispatch_motion_permission(actual_up,true,lag_active,lag_completion,true,terminal_consumed)&&
           !product::dispatch_motion_permission(delayed_move,false,lag_active,lag_completion,true,terminal_consumed),
           "retiring completion leaves no late active or repeated terminal submission");
+    // Actual production solver sequence behind the observed snap -> normal-UP
+    // free-rect jump. A duplicate cursor can carry the same native millisecond;
+    // invalid speed evidence must not undo an already exact completed quantum.
+    namespace magnet=panebind::core::magnet;
+    const v1::Rect magnetic_initial{100,80,360,440},magnetic_raw{115,84,375,444},magnetic_exact{120,80,380,440};
+    const std::array<magnet::MagnetTarget,1> magnetic_targets{{
+        {panebind::core::model::WindowId("neighbour"),{380,80,640,440},false}}};
+    magnet::MagnetInput magnetic_request;
+    magnetic_request.initial=magnetic_initial;magnetic_request.raw=magnetic_raw;
+    magnetic_request.targets=magnetic_targets;magnetic_request.motion=magnet::MotionSample{magnetic_initial,1000,1100,1000,1000};
+    const auto magnetic_move=magnet::MagnetConstraintSolver::solve(magnetic_request);
+    check(magnetic_move.proposal&&magnetic_move.proposal->corrected==magnetic_exact,
+          "actual product solver first consumes one exact XY snapped cursor quantum");
+    magnetic_request.motion=magnet::MotionSample{magnetic_raw,1100,1100,1000,1000};
+    const auto repeated_terminal=magnet::MagnetConstraintSolver::solve(magnetic_request);
+    check(repeated_terminal.motion==magnet::MotionState::InvalidSample&&!repeated_terminal.proposal,
+          "duplicate same-tick UP retains the real solver invalid-sample fact rather than inventing elapsed time");
+    auto magnetic_up=actual_up;magnetic_up.point={315,104};
+    const std::optional<product::ExactMotionPoint> magnetic_progress{{30,magnetic_up.point}};
+    const bool same_point_complete=product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress);
+    const auto repeated_terminal_geometry=same_point_complete?magnetic_exact:
+        repeated_terminal.proposal?repeated_terminal.proposal->corrected:magnetic_raw;
+    check(repeated_terminal_geometry==magnetic_exact,
+          "same-point normal UP cannot replace an already exact snapped receipt with its free intent");
+    check(same_point_complete&&!product::normal_up_point_already_exact(magnetic_up,false,magnetic_progress)&&
+          !product::normal_up_point_already_exact(magnetic_up,true,std::nullopt),
+          "actual terminal branch only skips an already exact completed cursor, not active or unconsumed motion");
+    auto different_point_up=magnetic_up;different_point_up.point.x+=4;
+    auto later_up=magnetic_up;++later_up.generation;
+    auto aborted_up=magnetic_up;aborted_up.end=v1::End::FocusLost;
+    check(!product::normal_up_point_already_exact(different_point_up,true,magnetic_progress)&&
+          !product::normal_up_point_already_exact(later_up,true,magnetic_progress)&&
+          !product::normal_up_point_already_exact(aborted_up,true,magnetic_progress),
+          "new cursor displacement, new generation and abnormal UP never reuse an older exact cursor receipt");
+    // The same production static writer preflight used before the no-op branch
+    // checks actual participant geometry; opaque identities are never queried.
+    product::Snapshot confirmed;
+    confirmed.hwnd=reinterpret_cast<HWND>(std::uintptr_t{0x1234});confirmed.monitor=reinterpret_cast<HMONITOR>(std::uintptr_t{0x4321});
+    confirmed.pid=20;confirmed.tid=30;confirmed.born=40;confirmed.key=50;
+    confirmed.visible=magnetic_exact;confirmed.positioning={112,80,388,448};confirmed.work={0,0,1920,1040};
+    confirmed.dpi=96;confirmed.exe=L"C:\\fixture\\owned-test.exe";confirmed.window_class=L"PaneBind.Test.Writer";confirmed.can_resize=true;
+    const auto same_frame=product::WindowWriter::prepare(confirmed,confirmed,confirmed.visible);
+    check(same_frame.accepted&&same_frame.noop,
+          "same-point terminal branch accepts only actual expected exact geometry without issuing native placement");
+    auto translated=confirmed;translated.visible=magnetic_raw;translated.positioning={107,84,383,452};
+    auto different_positioning=confirmed;different_positioning.positioning={113,80,389,448};
+    auto different_dpi=confirmed;different_dpi.dpi=120;
+    auto different_monitor=confirmed;different_monitor.monitor=reinterpret_cast<HMONITOR>(std::uintptr_t{0x8765});
+    auto different_work=confirmed;different_work.work={0,0,1900,1040};
+    auto different_identity=confirmed;++different_identity.born;
+    check(!product::WindowWriter::prepare(confirmed,translated,confirmed.visible).accepted&&
+          !product::WindowWriter::prepare(confirmed,different_positioning,confirmed.visible).accepted&&
+          !product::WindowWriter::prepare(confirmed,different_dpi,confirmed.visible).accepted&&
+          !product::WindowWriter::prepare(confirmed,different_monitor,confirmed.visible).accepted&&
+          !product::WindowWriter::prepare(confirmed,different_work,confirmed.visible).accepted&&
+          !product::WindowWriter::prepare(confirmed,different_identity,confirmed.visible).accepted,
+          "same completed cursor cannot hide external geometry, positioning, DPI, monitor, work-area or identity change");
+    // A real fast move remains free at a duplicate UP; merely waiting until UP
+    // must not create a brand-new attraction quantum at the unchanged cursor.
+    magnetic_request.motion=magnet::MotionSample{magnetic_initial,1000,1001,1000,1000};
+    const auto fast_move=magnet::MagnetConstraintSolver::solve(magnetic_request);
+    check(fast_move.motion==magnet::MotionState::Suppressed&&!fast_move.proposal,
+          "actual production speed suppression produces the completed free rect");
+    magnetic_request.motion=magnet::MotionSample{magnetic_raw,1001,1200,1000,1000};
+    const auto idle_terminal=magnet::MagnetConstraintSolver::solve(magnetic_request);
+    const auto fast_terminal_geometry=product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress)?magnetic_raw:
+        idle_terminal.proposal?idle_terminal.proposal->corrected:magnetic_raw;
+    check(idle_terminal.proposal&&fast_terminal_geometry==magnetic_raw,
+          "already exact fast-free move does not suddenly snap merely because normal UP has a later tick");
+    unsigned duplicate_terminal_issues{};
+    if(product::dispatch_motion_permission(magnetic_up,true,0,30,true,false)&&
+       !product::normal_up_point_already_exact(magnetic_up,true,magnetic_progress))++duplicate_terminal_issues;
+    unsigned unconsumed_terminal_issues{};
+    if(product::dispatch_motion_permission(different_point_up,true,0,30,true,false)&&
+       !product::normal_up_point_already_exact(different_point_up,true,magnetic_progress))++unconsumed_terminal_issues;
+    check(duplicate_terminal_issues==0&&unconsumed_terminal_issues==1&&
+          !product::dispatch_motion_permission(different_point_up,true,31,30,true,false)&&
+          !product::dispatch_motion_permission(delayed_move,false,0,30,true,false),
+          "actual terminal routing retains one unconsumed final quantum, issues none for duplicates and never rearms stale MOVE or old generation");
     std::atomic<std::uint64_t> finish_active{31},finish_completion{31};
     check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::NormalUp)&&
           finish_active==31&&finish_completion==31,

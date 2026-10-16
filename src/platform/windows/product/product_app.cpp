@@ -184,6 +184,7 @@ struct Gesture {
     UINT_PTR seam_timer{};int seam_zone{-1};POINT seam_point{};bool seam_timer_failed{};
     bool layout_drag_restore{};
     bool normal_up_motion_consumed{};
+    std::optional<ExactMotionPoint> exact_motion;
     Snapshot operation_source;
     bool restore_armed{},restore_pending{},restore_requested{},was_maximized{};
     UINT_PTR restore_timer{};WINDOWPLACEMENT restore_placement{sizeof(WINDOWPLACEMENT)};
@@ -1128,6 +1129,28 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
     if(!observe_gui_context(source).idle()){finish(v::End::FocusLost);return;}
     refresh_targets();
+    if(normal_up_point_already_exact(e,normal_up_completion,state.exact_motion)){
+        // A duplicate physical cursor is not a new motion quantum. Re-solving
+        // with an equal millisecond sample can discard a retained snap; even a
+        // later timestamp must not snap a previously speed-suppressed free move.
+        // Validate the actual completed geometry, never accept a new baseline.
+        for(const auto& member:state.members){
+            const auto expected=state.expected.find(member.key);
+            const auto actual=member.key==source.key?fresh:catalog.get(member.hwnd,settings);
+            if(expected==state.expected.end()||!actual||actual->feature_mask!=expected->second.feature_mask||
+               !WindowWriter::prepare(expected->second,*actual,expected->second.visible).accepted){
+                state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);return;
+            }
+        }
+        // Still refresh an actual dock/seam preview: finish owns its distinct
+        // normal-UP commit. Exact free/magnet progress is not a completed dock.
+        const bool dock_shown=dock_preview(e.point,e.tick,false,true);
+        if(!dock_shown)show_preview({});
+        log.event("normal_up_motion_already_exact","\"generation\":"+std::to_string(e.generation)+
+            ",\"key\":"+std::to_string(source.key)+",\"actual\":"+rectangle(fresh->visible)+
+            ",\"geometry_revalidated\":true,\"new_native_attempt\":false,\"dock_preview_refreshed\":"+(dock_shown?"true":"false"));
+        return;
+    }
     const v::Point delta{static_cast<std::int64_t>(e.point.x)-state.down.point.x,static_cast<std::int64_t>(e.point.y)-state.down.point.y};
     auto list=items(state.members);v::Plan plan;
     if(state.layout_drag_restore)for(auto& member:list)if(member.id==source.key)member.visible=state.original;
@@ -1173,6 +1196,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
         // Only the matching actual UP event may finish NormalUp. A concurrent
         // hook-side revocation is not itself evidence of which terminator won.
         if(!last_apply_revoked_only){state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);}return;}
+    state.exact_motion=ExactMotionPoint{e.generation,e.point};
     if(config.feedback&&!dock_shown){
         std::vector<Snapshot> actual;
         if(state.ctrl){for(const auto& member:state.members){

@@ -133,6 +133,16 @@ inline bool dispatch_motion_permission(const InputEvent& event,bool terminal,
         operation_permission(event.generation,active,completion,available,true);
     return event.kind==InputKind::Move&&operation_permission(event.generation,active,completion,available,false);
 }
+// Serialized GUI progress, recorded only after every placement in a quantum
+// was actually exact. This is not input authority: normal UP still needs its
+// separate capability and a fresh check of every participant's actual frame.
+struct ExactMotionPoint {std::uint64_t generation{};POINT point{};};
+inline bool normal_up_point_already_exact(const InputEvent& event,bool terminal,
+                                         const std::optional<ExactMotionPoint>& exact){
+    return terminal&&event.kind==InputKind::Up&&event.end==core::v1::End::NormalUp&&
+        exact&&event.generation!=0&&exact->generation==event.generation&&
+        event.point.x==exact->point.x&&event.point.y==exact->point.y;
+}
 struct MouseUpCallbackSnapshot {
     bool known{};
     std::uint64_t callback_count{},hook_observed_qpc{},generation_at_entry{};
