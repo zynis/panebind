@@ -2,7 +2,11 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。212/c1f8 Debug Full与477a Release IndependentEntry均已实际FAIL。Debug核心I02／commands、普通Resize正常UP及Ctrl组三成员保留原scope；Release设置、便携普通入口、视觉／在途／batch及idle60有实际子PASS，但首click、grid与应用门未齐。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。最新212产品／0f2 driver的97a8 Debug Full在下一Ctrl手势输入前被独立间隔检查阻断；快速plain Move真实LL与source queue UP均已观察，仅native-only子PASS。旧c1f8／477a失败及核心、设置、便携、视觉／在途／batch和idle60的原scope保留。Release f54d仍IN_PROGRESS无结论。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+
+## 212／0f2 Debug／97a8：真实队列UP已观察，下一输入前置FAIL
+
+product212字节未改，driver0f2，包装3ea；fixture200行JSON合法连续。[两条字面原行](v1-evidence/97a8-r10-debug-native-only-real-queue-up-and-preinput-interval-selected.jsonl)187快速plain Move exact、native START／END各1、零产品cancel／capture／placement。独立source线程WH_GETMESSAGE观察到单个PM_REMOVE WM_LBUTTONUP，MSG前后相同、extra=PBV1，CallNext返回389142770早于source END389163043；LL也实际观察到UP，不能声称已证明“缺LL分支”，更不授增强NormalUp／Glue。191下一Ctrl例system500／request501／actual500ms，间隔门FAIL时尚未发送该手势输入，不是新增产品反例。后继未运行，原Full FAIL保留。193实际产品退出0、输入／capture／关联／writer资源停止，198实际客户DOWN-UP[0,0]→[1,1]；wrapper wait0／exit1／desc0／forced=false／product_cleanup=false，各自判定。23:34:48Z精确guest33468／任务清理且证据未变，无其他资源改动。Release f54d采用同212／0f2／包装3ea仍进行中。新0fc driver仅在三包快速手势之外增加32ms粗时钟余量，仍要求实测间隔超过系统双击时间；D/R构建及各1项guest-path通过（0.14/0.19、0.12/0.25秒），EXE哈希见验收表，现场NOT_RUN，不重建产品或换绑旧运行。
 
 ## 212 Release／477a：普通便携入口与组件已测，整批FAIL
 
