@@ -31,4 +31,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptan
 
 本目录`.gitattributes`仅将`*.jsonl`／`*.txt`／`*.json`固定为`text eol=lf`，避免Windows的autocrlf使复核文件在另一checkout变换字节。未改根attributes或用户Git配置，既有摘录原字节哈希保持不变。
 
+增量8189由R产品408ac52与D driver83bf分离：`8189-fixture-selected.jsonl`／`8189-product-selected.jsonl`保留真实快速UP点terminal exact／NormalUp及后继Move子结果、GUI组件、诊断／portable两个错pin失败与正常退出／实际客户投递。新2632 ZIP普通入口因driver错pin未运行，不能用dd60旧入口通过替代。精确guest／任务清理回执与产品stop分别在索引记录；D15只按定向范围关闭，D08仍OPEN。索引中的`records`现含旧批和新批，不修改旧行或哈希。
+
 历史实测经 `partial_observation_ids` 回到原产品身份，不因当前 `candidate_identity_ref`、更新 driver 或更新报告而换绑新 EXE。本轮新增产品修复与现场结果另作增量记录，不覆写这些反例。

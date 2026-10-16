@@ -242,6 +242,99 @@
       "whole_version_PASS": false,
       "excerpt_sha256": "820BD73CB2F649F82A1884B00FB599A0D9EAE1AFB2C3B6E47C5C8223BD98B6EE",
       "excerpt_bytes": 10056
+    },
+    {
+      "evidence_id": "EV-8189-FIXTURE",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "configuration": "Release",
+      "suite": "IndependentEntry",
+      "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "product_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "driver_binary_sha256": "B7E0A77896E0DB3B841C66396AFEC93ADB4FA1F2A89BE9CA31CFEB1B7F609160",
+      "packaging_head": "665b8289e36eac93e0ea485a79e52f541dd8120f",
+      "package_manifest_sha256": "99AE0E4A2AFCE93155CFFF90C97C9D980B946F0505973619E333DC1E2BF6E4D8",
+      "original_path": "uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/collection-20261016T075702366Z-19db097048e24dcb8b4604baadcb14fb/81896dad13d5423e5de14a8363f7bcc6-release-fixture.jsonl",
+      "original_sha256": "7F145AB637EF85AC1DD75C1CFEE8D900208CF33228593E0E3CCE6108FA311F5F",
+      "excerpt_path": "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+      "excerpt_sequences": [
+        3,
+        4,
+        5,
+        12,
+        13,
+        14,
+        15,
+        17,
+        161,
+        165,
+        208,
+        225,
+        226,
+        233,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        252,
+        285,
+        393,
+        468,
+        470,
+        475,
+        493,
+        498,
+        502,
+        545,
+        551,
+        557,
+        623,
+        625,
+        630,
+        635,
+        639,
+        641,
+        642,
+        646,
+        647,
+        648
+      ],
+      "scope_result": "RAPID_TERMINAL_TARGETED_PASS_GUI_COMPONENTS_PASS_TWO_DRIVER_IDENTITY_PIN_FAILURES_RETAINED",
+      "whole_version_PASS": false,
+      "excerpt_sha256": "F9E43EDC2C775966A4C8B82CA864D56E531F5FDAEF6DC982B36D35309D89216C",
+      "excerpt_bytes": 44996
+    },
+    {
+      "evidence_id": "EV-8189-PRODUCT",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "configuration": "Release",
+      "suite": "IndependentEntry",
+      "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "product_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "driver_binary_sha256": "B7E0A77896E0DB3B841C66396AFEC93ADB4FA1F2A89BE9CA31CFEB1B7F609160",
+      "packaging_head": "665b8289e36eac93e0ea485a79e52f541dd8120f",
+      "package_manifest_sha256": "99AE0E4A2AFCE93155CFFF90C97C9D980B946F0505973619E333DC1E2BF6E4D8",
+      "original_path": "uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/collection-20261016T075702366Z-19db097048e24dcb8b4604baadcb14fb/81896dad13d5423e5de14a8363f7bcc6-product-Release/panebind.log.jsonl",
+      "original_sha256": "F2E13457EDB3C25F2CAC586E3A9EBA96045A8683C4404D797792827B20DB29D0",
+      "excerpt_path": "docs/reports/v1-evidence/8189-product-selected.jsonl",
+      "excerpt_sequences": [
+        1,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ],
+      "scope_result": "RAPID_TERMINAL_TARGETED_PASS_GUI_COMPONENTS_PASS_TWO_DRIVER_IDENTITY_PIN_FAILURES_RETAINED",
+      "whole_version_PASS": false,
+      "excerpt_sha256": "9AB313CE588AEA0CD9A6BAFABE77CD8CEA4481CC28E717C7A2B5DEB2907F4B57",
+      "excerpt_bytes": 8129
     }
   ],
   "offline_transcripts": [
@@ -301,5 +394,40 @@
       "current_tested_package_rebound": false
     }
   ],
-  "byte_hash_checkout_policy": "docs/reports/v1-evidence/.gitattributes fixes *.jsonl/*.txt/*.json to text eol=lf; no root attributes or Git config change"
+  "byte_hash_checkout_policy": "docs/reports/v1-evidence/.gitattributes fixes *.jsonl/*.txt/*.json to text eol=lf; no root attributes or Git config change",
+  "runtime_resource_receipts": [
+    {
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "original_path": "uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/cleanup-receipt.json",
+      "original_sha256": "B30768AB4BD547FEF37739E6A5111835D337A2F7F9BF203CDF8C1D9EAC60FD5B",
+      "observed_flags": {
+        "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "other_files_or_resources_changed": false
+      },
+      "product_runtime_stop_evidence": {
+        "fixture_sequences": [
+          642,
+          646
+        ],
+        "normal_product_exit_observed": true,
+        "own_resource_flags_true": true,
+        "issued_native_completion_unknown": false,
+        "post_stop_client_counts_before": [
+          3,
+          3
+        ],
+        "post_stop_client_counts_after": [
+          4,
+          4
+        ]
+      },
+      "guest_destruction_not_product_cleanup_PASS": true
+    }
+  ],
+  "new_candidate_scope_note": "8189 first actual R408ac52 run: targeted rapid normal-UP/terminal and several GUI components observed; diagnostic/portable failed because driver still pinned product content to D83bf source, so normal portable entry NOT_RUN. Do not replace dd60 tested portable identity."
 }

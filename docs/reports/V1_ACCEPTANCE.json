@@ -15,7 +15,9 @@
     "final_sha": null,
     "implementation_inspected": "committed-built-runtime-partial-actual-DEV-reviewed",
     "note": "本阶段PARTIAL交付runtime/build为dd60，Debug/Release fresh构建及各10offline实际通过；97 Debug设置诊断专项PASS，后继Release真实客户激活失败保留；干净guest714c Release-only诊断+真实e2abc普通ZIP入口106行scopedPASS。主要功能实测仍单独绑定b60/c01，不把其完整动作迁移为dd60新EXE实测。590 Debug.tmp清单竞态是确定driver缺陷，dd60专项已复验修复；顺序D/R后继Release输入/前台失败原因仍UNKNOWN。S1 NormalUP、五类应用/MediumExplorer、显示矩阵、托盘缺项未关闭。60IMPLEMENTED仅为实施分类；功能DEV/模块/B/I正式均0，不是80或COMPLETE，不宜宿主试用，HUMAN_UAT仍PENDING；final_sha由主执行者实际提交后给出，不预填。",
-    "pending_product_note": "新R产品Debug/Release均已构建且各10offline实际PASS；二进制独立hash/build-identity已核。driver/scripts D另行构建，复用同一份未经修改R产品EXE；尚无新包/guest结果。dd60已测package与b60历史未换绑，缺LL-UP仍OPEN。"
+    "pending_product_note": "R已在8189 Release/Medium实际运行快速UP点terminal与设置/启动/五键/导入/损坏/排除子项；产品EXE48F96保持不变。两个driver错pin导致诊断/portable原失败保留，普通新ZIP入口NOT_RUN；CoreAndApplications/SettingsDiagnostic后续以新driver复用R继续。D15定向关闭，D08仍OPEN，不计正式PASS。",
+    "latest_observed_runtime_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+    "latest_observed_run_id": "81896dad13d5423e5de14a8363f7bcc6"
   },
   "scorecard": {
     "denominator": 40,
@@ -143,7 +145,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D14"
@@ -151,12 +154,13 @@
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "714c seq48/50普通空参在中文空格解压目录启动并实际显示唯一设置；c01设置第二实例/重启子项已执行；97顺序Release激活失败保留。",
+      "observed": "714c seq48/50普通空参在中文空格解压目录启动并实际显示唯一设置；c01设置第二实例/重启子项已执行；97顺序Release激活失败保留。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选完整第二实例/损坏恢复/重复hooks入口合同未一次齐备，真实托盘仍缺。"
       ],
@@ -364,19 +368,21 @@
       "run_id": "c01ffe67d3004961bd00765312869c8a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。",
+      "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选按最终包验证登录入口、禁用移除和同实例合同未齐；宿主未启用。"
       ],
       "next_action": "沿用相同产品EXE在guest复验启用/禁用及模拟登录启动去重。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -515,19 +521,21 @@
       "run_id": "c01ffe67d3004961bd00765312869c8a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。",
+      "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选应用级即时撤权与下一手势采样完整合同仍缺混合应用实际证据。"
       ],
       "next_action": "官方应用就绪后组合排除→组中撤权→移除→新手势。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -721,7 +729,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D15"
@@ -729,17 +739,17 @@
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq2017真实API TRUE但身份丢失明确失败、没有第三调用；grid单次non-exact被拒，非事务成功。",
+      "observed": "c01 seq2017真实API TRUE但身份丢失明确失败、没有第三调用；grid单次non-exact被拒，非事务成功。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "当前候选完整重复同目标/no-op与全部身份/部分完成合同尚缺整链。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "当前候选完整重复同目标/no-op与全部身份/部分完成合同尚缺整链。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：保留实际receipt语义，按当前二进制补必要batch/幂等及异常恢复。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：保留实际receipt语义，按当前二进制补必要batch/幂等及异常恢复。",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
     {
@@ -1000,7 +1010,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1010,16 +1022,16 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
-      "observed": "c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。",
+      "observed": "c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "匹配释放及跨代/迟到事件在连续操作中未完全闭环。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "匹配释放及跨代/迟到事件在连续操作中未完全闭环。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：区分输入/driver/environment，修生产归属与队列消费时序，再运行真实连续链。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：区分输入/driver/environment，修生产归属与队列消费时序，再运行真实连续链。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
@@ -1172,7 +1184,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1182,16 +1196,16 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
-      "observed": "c01同PID Deadline后Move/Resize与故障后幸存Move/Ctrl通过；I11 g26未NormalUp，完整连续链未成立。",
+      "observed": "c01同PID Deadline后Move/Resize与故障后幸存Move/Ctrl通过；I11 g26未NormalUp，完整连续链未成立。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "无需重启的全核心连续操作合同仍被普通释放反例阻断。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "无需重启的全核心连续操作合同仍被普通释放反例阻断。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：修输入后同候选一次启动完成两轮核心链及15分钟，不拼重启子项。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：修输入后同候选一次启动完成两轮核心链及15分钟，不拼重启子项。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
@@ -1234,7 +1248,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1245,17 +1261,17 @@
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "bdab owned五阶段及c01多个实际自由/吸附/保持/拉开/重吸子段，非只调用solver。",
+      "observed": "bdab owned五阶段及c01多个实际自由/吸附/保持/拉开/重吸子段，非只调用solver。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "Explorer/编辑器/浏览器五阶段与完整NormalUp同候选证据未齐，S1依赖未关。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "Explorer/编辑器/浏览器五阶段与完整NormalUp同候选证据未齐，S1依赖未关。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：输入修复后同一EXE跨三类实际应用完成五阶段。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：输入修复后同一EXE跨三类实际应用完成五阶段。",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
     {
@@ -1569,7 +1585,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D12",
@@ -1579,17 +1597,17 @@
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
         "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "bdab Ctrl A/C真实source/follower矩形及匹配UP；c01故障后幸存双窗Ctrl成功。",
+      "observed": "bdab Ctrl A/C真实source/follower矩形及匹配UP；c01故障后幸存双窗Ctrl成功。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "三种真实应用组和任意source完整合同尚缺当前候选闭环。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "三种真实应用组和任意source完整合同尚缺当前候选闭环。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：准备正式应用后执行A/B/C实际组平移与非成员不动。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：准备正式应用后执行A/B/C实际组平移与非成员不动。",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
     {
@@ -1990,7 +2008,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D01",
@@ -2000,15 +2020,15 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
-      "observed": "c01真实第二成员postverify失效→无第三调用→新Move/形成接触/Ctrl与实际UP子链通过；grid原代UP失败。",
+      "observed": "c01真实第二成员postverify失效→无第三调用→新Move/形成接触/Ctrl与实际UP子链通过；grid原代UP失败。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "全部约束/部分失败后的本代释放与后续操作合同被S1阻断。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "全部约束/部分失败后的本代释放与后续操作合同被S1阻断。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：修释放后组合grid/成员失效→新Move/Ctrl，保留API TRUE/失效区别。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：修释放后组合grid/成员失效→新Move/Ctrl，保留API TRUE/失效区别。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
@@ -2048,7 +2068,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt"
+        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/8189-product-selected.jsonl"
       ],
       "defects": [
         "V1-D15"
@@ -2056,15 +2078,15 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01真实preview/离开取消/角UP提交/半屏热键/拖离恢复，单屏核心通过。",
+      "observed": "c01真实preview/离开取消/角UP提交/半屏热键/拖离恢复，单屏核心通过。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。",
       "remaining_conditions": [
-        "当前候选8目标/双屏负坐标与全部入口完整合同未齐。",
-        "新的真实UP/GUI迟到消费确定性修复仅离线通过；新R实际快速burst与后继操作尚未运行，不能关闭原缺LL-UP反例。"
+        "当前候选8目标/双屏负坐标与全部入口完整合同未齐。"
       ],
-      "next_action": "以新R候选执行实际快速DOWN/MOVE/UP、exact终点/一次terminal/无迟到写/下一手势后，再推进：同候选补未测目标和真实双屏，复用已有单屏结果不重复无关批次。",
+      "next_action": "已关闭D15定向点，不扩大专项；继续同R候选CoreAndApplications与完整连续链：同候选补未测目标和真实双屏，复用已有单屏结果不重复无关批次。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
     },
@@ -2352,19 +2374,21 @@
       "run_id": "c01ffe67d3004961bd00765312869c8a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq344五键映射同代UP、置顶反转及客户区透传通过子项，非拖动NormalUp。",
+      "observed": "c01 seq344五键映射同代UP、置顶反转及客户区透传通过子项，非拖动NormalUp。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选全部标题/边角+修饰组合与实体五键硬件观察未齐。"
       ],
       "next_action": "在guest补必要边角映射；物理五键仍单列硬件未覆盖。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -2820,7 +2844,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D04"
@@ -2828,12 +2853,13 @@
       "partial_observation_ids": [
         "PO-269B-GUI",
         "PO-C01-INDEPENDENT",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01六页控件真实点按/保存效果；714c当前EXE设置底部诊断和保存效果实际通过。",
+      "observed": "c01六页控件真实点按/保存效果；714c当前EXE设置底部诊断和保存效果实际通过。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "完整托盘打开/全部控件真实行为与不同DPI未齐，不能由截图授完整DEV。"
       ],
@@ -2876,20 +2902,22 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "714c attraction从默认10到0真实改变后继Move矩形；c01多功能/视觉设置子项执行。",
+      "observed": "714c attraction从默认10到0真实改变后继Move矩形；c01多功能/视觉设置子项执行。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选非法输入/活动代旧快照/所有参数的真实行为合同尚缺。"
       ],
       "next_action": "保留核心范围验证，再补必要活动手势切设置与下一代生效。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -2926,19 +2954,21 @@
       "run_id": "c01ffe67d3004961bd00765312869c8a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01真实五键映射及GUI热键更改影响实际目标。",
+      "observed": "c01真实五键映射及GUI热键更改影响实际目标。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选注册冲突不破坏原配置/恢复页默认与帮助一致全合同未齐。"
       ],
       "next_action": "补实际冲突→旧映射仍有效→恢复默认。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -2975,7 +3005,8 @@
       "run_id": "c01ffe67d3004961bd00765312869c8a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D12"
@@ -2983,13 +3014,14 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01排除及取消排除后实际恢复子项通过。",
+      "observed": "c01排除及取消排除后实际恢复子项通过。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选编辑器/同名不同路径/组内即时撤权范围未齐。"
       ],
       "next_action": "准备官方编辑器并以路径/可选类名复验，不按标题。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -3029,20 +3061,22 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。",
+      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。",
       "remaining_conditions": [
         "当前候选半写/写权限失败/旧schema/未知字段全部失败保护实际范围未齐。"
       ],
       "next_action": "同产品补必要写失败与重启保持，旧失败记录不改。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ]
     },
     {
@@ -3141,19 +3175,24 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/97-release-activation-failure.jsonl"
+        "docs/reports/v1-evidence/97-release-activation-failure.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
-      "defects": [],
+      "defects": [
+        "V1-D16"
+      ],
       "partial_observation_ids": [
         "PO-97-SETTINGS-DIAGNOSTIC",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。",
       "remaining_conditions": [
-        "完整失败导出/所有敏感配置、真实托盘及当前整版故障包合同未齐。"
+        "完整失败导出/所有敏感配置、真实托盘及当前整版故障包合同未齐。",
+        "8189 driver产品/驱动SHA错pin造成真实失败，需修正driver后用同R实际定向复验；普通ZIP启动本批NOT_RUN。"
       ],
       "next_action": "继续测试同一EXE补失败导出和当前具体故障包；不复跑已关闭.tmp。"
     },
@@ -3195,22 +3234,26 @@
       "run_id": "714c69f6feba4a0f81678c314eb1747e",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [
-        "V1-D03"
+        "V1-D03",
+        "V1-D16"
       ],
       "partial_observation_ids": [
         "PO-E4-PORTABLE",
         "PO-C01-PORTABLE",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "e2abc真实七文件ZIP已独立解压无参GUI→Move/保存效果→正常退出/字节不变，无源码目录或用户profile依赖。",
       "remaining_conditions": [
-        "最终整版支持矩阵/I01–I12未过；打包子流程不等于整版便携交付PASS。"
+        "最终整版支持矩阵/I01–I12未过；打包子流程不等于整版便携交付PASS。",
+        "8189 driver产品/驱动SHA错pin造成真实失败，需修正driver后用同R实际定向复验；普通ZIP启动本批NOT_RUN。"
       ],
       "next_action": "沿用这份未修改产品EXE/ZIP按新驱动复验剩余功能；产品变更才生成新候选。"
     },
@@ -3255,11 +3298,13 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D03",
-        "V1-D05"
+        "V1-D05",
+        "V1-D16"
       ],
       "partial_observation_ids": [
         "PO-DF93-RUNNER",
@@ -3269,14 +3314,16 @@
         "PO-E4-INDEPENDENT",
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "固定60/12/40/12唯一ID及校验器已执行；本次补历史/当前身份、状态/缺口映射和脱敏可复核摘录。",
       "remaining_conditions": [
-        "当前整版操作链和所有正式PASS证据未齐；校验器不自行授产品PASS。"
+        "当前整版操作链和所有正式PASS证据未齐；校验器不自行授产品PASS。",
+        "8189 driver产品/驱动SHA错pin造成真实失败，需修正driver后用同R实际定向复验；普通ZIP启动本批NOT_RUN。"
       ],
       "next_action": "将新运行按各自产品/driver哈希增量登记，历史不换绑。"
     },
@@ -3371,6 +3418,7 @@
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-E4-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES"
       ],
@@ -3414,7 +3462,8 @@
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-C01-NATIVE-FAILURES"
+        "PO-C01-NATIVE-FAILURES",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "remaining_conditions": [
         "M02-F01: 见该功能remaining_conditions及next_action",
@@ -3462,7 +3511,8 @@
         "PO-BDAB-OWNED-FULL",
         "PO-269B-OWNED",
         "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "remaining_conditions": [
         "M03-F01: 见该功能remaining_conditions及next_action",
@@ -3510,8 +3560,9 @@
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL",
+        "PO-C01-NATIVE-FAILURES"
       ],
       "remaining_conditions": [
         "M04-F01: 见该功能remaining_conditions及next_action",
@@ -3558,8 +3609,9 @@
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
         "PO-C01-INDEPENDENT",
-        "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL",
+        "PO-714C-DIAGNOSTIC-PORTABLE"
       ],
       "remaining_conditions": [
         "M05-F01: 见该功能remaining_conditions及next_action",
@@ -3606,8 +3658,9 @@
         "PO-8453-EIGHT-GRID",
         "PO-269B-OWNED",
         "PO-C01-NATIVE-FAILURES",
-        "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL",
+        "PO-C01-INDEPENDENT"
       ],
       "remaining_conditions": [
         "M06-F01: 见该功能remaining_conditions及next_action",
@@ -3654,7 +3707,8 @@
         "PO-BDAB-OWNED-FULL",
         "PO-AAE-SHARED-RESIZE",
         "PO-C01-NATIVE-FAILURES",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "remaining_conditions": [
         "M07-F01: 见该功能remaining_conditions及next_action",
@@ -3697,7 +3751,8 @@
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "remaining_conditions": [
         "M08-F01: 见该功能remaining_conditions及next_action",
@@ -3740,6 +3795,7 @@
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-269B-OWNED"
       ],
       "remaining_conditions": [
@@ -3832,7 +3888,8 @@
       "partial_observation_ids": [
         "PO-269B-GUI",
         "PO-C01-INDEPENDENT",
-        "PO-714C-DIAGNOSTIC-PORTABLE"
+        "PO-714C-DIAGNOSTIC-PORTABLE",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "remaining_conditions": [
         "M11-F01: 见该功能remaining_conditions及next_action",
@@ -3883,6 +3940,7 @@
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-97-SETTINGS-DIAGNOSTIC",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-E4-PORTABLE",
         "PO-C01-PORTABLE",
         "PO-DF93-RUNNER",
@@ -5169,7 +5227,8 @@
       "partial_observation_ids": [
         "PO-269B-GUI",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "candidate_identity_ref": "current_package",
       "observed": "714c普通七文件ZIP无参启动/中文设置/保存效果/正常退出/真实poststop通过子流程；托盘未取得。",
@@ -5204,13 +5263,13 @@
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。",
+      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "正式Explorer+自绘+编辑器混合应用合同没有运行，输入S1也未关闭。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "正式Explorer+自绘+编辑器混合应用合同没有运行，输入S1也未关闭。"
       ],
       "next_action": "修输入后在合格普通应用环境一次启动运行规定前置顺序，禁止摆相似几何替代。",
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
@@ -5236,15 +5295,15 @@
         "V1-D12"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "bdab竖/横共享线、T/min/拉回/实际Move、L换Leader、四格及真实UP通过owned子项。",
+      "observed": "bdab竖/横共享线、T/min/拉回/实际Move、L换Leader、四格及真实UP通过owned子项。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "当前候选三真实应用组合及完整一次启动整链仍缺。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "当前候选三真实应用组合及完整一次启动整链仍缺。"
       ],
       "next_action": "准备正式应用，按原顺序跑共享线与后续操作，不清空已有owned证据。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -5267,15 +5326,15 @@
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
-      "observed": "c01单屏普通/XY→preview→离开→角停靠→拖离→半屏热键→再吸附通过；774只有一实际屏。",
+      "observed": "c01单屏普通/XY→preview→离开→角停靠→拖离→半屏热键→再吸附通过；774只有一实际屏。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "跨屏/负坐标与当前候选整链缺少真实显示环境。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "跨屏/负坐标与当前候选整链缺少真实显示环境。"
       ],
       "next_action": "保留单屏证据并补真实双屏能力；不能以纯几何坐标替代。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -5360,7 +5419,8 @@
       ],
       "next_action": "同EXE补实际应用排除与完整配置链；工具变更不重建产品。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
+        "PO-C01-INDEPENDENT",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN"
     },
@@ -5385,15 +5445,15 @@
         "V1-D11"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。",
+      "observed": "c01真实actor默认Deadline30031ms、撤权、后继Move/Resize及UP通过；sourceclose原代UP1217仍缺失，phase1327 FAIL。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "原代真实释放与每类中断后恢复完整链有未关闭反例。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "原代真实释放与每类中断后恢复完整链有未关闭反例。"
       ],
       "next_action": "修输入归属/GUI迟到消费后定向复验sourceclose及一轮中断恢复。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "status_basis": "ACTUAL_RELATED_COMPONENT_FAILURE_IN_ITS_RECORDED_BUILD_NOT_CLOSED",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -5475,15 +5535,15 @@
         "V1-D08"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "c01 g26五阶段几何正确但实际LL UP/end为空；Raw97→98不授本代归属；Pause只是abort。",
+      "observed": "c01 g26五阶段几何正确但实际LL UP/end为空；Raw97→98不授本代归属；Pause只是abort。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "两轮I02–I06及15分钟未执行完，普通释放反例阻断。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "两轮I02–I06及15分钟未执行完，普通释放反例阻断。"
       ],
       "next_action": "先修有证据输入问题，再跑同一启动两轮+15分钟实际链，不追加固定百次矩阵。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL"
       ],
       "status_basis": "ACTUAL_RELATED_COMPONENT_FAILURE_IN_ITS_RECORDED_BUILD_NOT_CLOSED",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -5508,15 +5568,16 @@
         "V1-D03"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "714c真实e2abc ZIP普通入口/配置效果/诊断解析/正常退出独立子流程PASS，程序没有源码树依赖。",
+      "observed": "714c真实e2abc ZIP普通入口/配置效果/诊断解析/正常退出独立子流程PASS，程序没有源码树依赖。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
       "remaining_conditions": [
-        "全部入口及I01–I12同一候选的整版复核未齐，托盘/应用/显示仍缺。",
-        "新R快速UP点terminal修复须实际burst验证，不能由离线或旧EXE结果补齐当前链。"
+        "全部入口及I01–I12同一候选的整版复核未齐，托盘/应用/显示仍缺。"
       ],
       "next_action": "保留原ZIP原字节与哈希；产品修复后新候选最终整链再评I12。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-408AC52-UP-DISPATCH"
+        "PO-408AC52-UP-DISPATCH",
+        "PO-8189-RAPID-TERMINAL",
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -6105,9 +6166,9 @@
     },
     {
       "id": "V1-D15",
-      "status": "DEV_FIXED_PENDING_GUEST_REVALIDATION",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
       "kind": "CONFIRMED_UP_GUI_DISPATCH_TIMING_DEFECT",
-      "description": "用户指出的待验证源码风险已用实际共用生产判定最小提取复现：真实同代UP先使active=0，GUI迟到MOVE被拒而没有UP点最终移动。修复408ac52提供真实NormalUp独立一次terminal计划，保留原DOWN锚点、过期MOVE拒绝与native前权限复核；旧代finish不撤销后继代。离线旧226/1→修复239/0为工具输出转录，不是新R原生投递或现场PASS，且不是D08实际LL-UPmissing根因。",
+      "description": "用户指出的待验证源码风险已用实际共用生产判定最小提取复现：真实同代UP先使active=0，GUI迟到MOVE被拒而没有UP点最终移动。修复408ac52提供真实NormalUp独立一次terminal计划，保留原DOWN锚点、过期MOVE拒绝与native前权限复核；旧代finish不撤销后继代。离线旧226/1→修复239/0为工具输出转录，不是新R原生投递或现场PASS，且不是D08实际LL-UPmissing根因。 8189 Release/Medium seq243/244取得真实UP点一次terminal exact与NormalUp，原排队MOVE零native；后继实际Move/UP继续成立，定向复验关闭该确定性时序缺陷。D08缺LL-UP原因仍UNKNOWN/OPEN。",
       "features": [
         "M03-F02",
         "M04-F02",
@@ -6126,10 +6187,33 @@
       ],
       "separate_from_missing_LL_UP_defect": "V1-D08",
       "remaining_conditions": [
-        "新R产品binary哈希和独立driver身份登记",
-        "实际快速burst→真实同代NormalUp点几何→无迟到写→下一操作",
-        "新候选按影响回归及最终整版连续链"
-      ]
+        "不再单独扩展已关闭D15专项；后续按共享输入影响完成同候选核心连续链与整版验收，D08独立保持OPEN。"
+      ],
+      "targeted_runtime_observation_id": "PO-8189-RAPID-TERMINAL",
+      "targeted_runtime_run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "targeted_runtime_product_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "targeted_runtime_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E"
+    },
+    {
+      "id": "V1-D16",
+      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "kind": "DRIVER_PRODUCT_SOURCE_PIN_NOT_SEPARATED",
+      "description": "8189产品R/driverD身份已分离，但诊断header两处及portable-ready marker一处仍拿driver PANEBIND_BUILD_SHA核产品R，导致226/233与641真实driver失败。实际诊断header与marker均为正确R，原失败不抹除、不归为产品功能或环境失败。主执行已将三个pin接guard核验的product_source；新driver尚待对应场景实际复验，复用同R产品EXE。",
+      "features": [
+        "M12-F02",
+        "M12-F03",
+        "M12-F04"
+      ],
+      "partial_observation_ids": [
+        "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
+      ],
+      "product_code_changed": false,
+      "repair_source_sha": null,
+      "repair_identity_note": "工作区driver修复，实际新driver提交/哈希与后继Run由主执行登记，不预填。",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/8189-fixture-selected.jsonl"
+      ],
+      "next_action": "同R产品跑SettingsDiagnostic真实解析及普通便携入口；CoreAndApplications先继续未阻断功能，不拼Full。"
     }
   ],
   "evidence_policy": {
@@ -6837,9 +6921,170 @@
       "sha256": "A7BC97DEFA7BEFC8332A4EE271655358395E9EC340220A9FB19B5C20FC073BDA",
       "kind": "TOOL_OUTPUT_TRANSCRIPTION_PLUS_INDEPENDENT_FILE_CHECK_NOT_ORIGINAL_STDOUT",
       "native_guest_result": "NOT_RUN"
+    },
+    {
+      "id": "EV-8189-FIXTURE",
+      "path": "uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/collection-20261016T075702366Z-19db097048e24dcb8b4604baadcb14fb/81896dad13d5423e5de14a8363f7bcc6-release-fixture.jsonl",
+      "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "sha256": "7F145AB637EF85AC1DD75C1CFEE8D900208CF33228593E0E3CCE6108FA311F5F",
+      "repository_excerpt_path": "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "F9E43EDC2C775966A4C8B82CA864D56E531F5FDAEF6DC982B36D35309D89216C"
+    },
+    {
+      "id": "EV-8189-PRODUCT",
+      "path": "uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/collection-20261016T075702366Z-19db097048e24dcb8b4604baadcb14fb/81896dad13d5423e5de14a8363f7bcc6-product-Release/panebind.log.jsonl",
+      "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "sha256": "F2E13457EDB3C25F2CAC586E3A9EBA96045A8683C4404D797792827B20DB29D0",
+      "repository_excerpt_path": "docs/reports/v1-evidence/8189-product-selected.jsonl",
+      "repository_excerpt_sha256": "9AB313CE588AEA0CD9A6BAFABE77CD8CEA4481CC28E717C7A2B5DEB2907F4B57"
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-8189-RAPID-TERMINAL",
+      "scope": "Release Medium actual single inserted DOWN_MOVE_UP burst and product real same-generation UP terminal completion",
+      "status": "PARTIAL",
+      "scoped_result": "PASS",
+      "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "driver_binary_sha256": "B7E0A77896E0DB3B841C66396AFEC93ADB4FA1F2A89BE9CA31CFEB1B7F609160",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "configuration": "Release",
+      "actual_integrity": "Medium_RID8192_non_elevated",
+      "evidence_ids": [
+        "EV-8189-FIXTURE",
+        "EV-8189-PRODUCT"
+      ],
+      "actual_scope": {
+        "fixture_single_three_element_SendInput_sequence": 243,
+        "wait_for_START_before_UP": false,
+        "insertion_is_not_delivery": true,
+        "actual_matching_product_UP_sequence": 33,
+        "actual_product_PID": 4148,
+        "generation": 2,
+        "actual_terminal_native_sequence": 34,
+        "ordinary_native_attempts": 0,
+        "terminal_native_attempts": 1,
+        "target": [
+          195,
+          271,
+          595,
+          611
+        ],
+        "actual": [
+          195,
+          271,
+          595,
+          611
+        ],
+        "geometry_exact": true,
+        "authority_after": false,
+        "normal_up_completion": true,
+        "actual_product_end_sequence": 35,
+        "normal_up": true,
+        "pending_retired": true,
+        "independent_case_sequence": 244,
+        "passive_head_hook_actual_UP_callbacks": 1,
+        "passive_head_hook_CallNext_result": 1,
+        "passive_head_hook_unhooked": true,
+        "GUI_lag_not_inferred_from_insertion": true
+      },
+      "followup": {
+        "same_run_imported_settings_actual_Move_sequence": 470,
+        "actual_NormalUp_sequence": 475,
+        "after_restart_unexcluded_actual_Move_sequence": 625,
+        "actual_NormalUp_after_restart_sequence": 630
+      },
+      "targeted_defect_closed": "V1-D15",
+      "missing_LL_UP_defect_not_closed": "V1-D08",
+      "limitations": [
+        "只关闭确定性的真实UP/GUI消费时序缺陷对应targeted场景；不是缺LL-UP根因或所有连续手势已正常。",
+        "未恢复active权限；本次实际UP点一次terminal允许完成，不授过期MOVE或后继代重写。",
+        "正式完整功能/I02/I11与整版PASS不由本子项推得。"
+      ]
+    },
+    {
+      "id": "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
+      "scope": "Release Medium current product GUI/startup/five-button/import/corrupt/exclusion components plus two retained driver identity-pin failures",
+      "status": "PARTIAL",
+      "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+      "driver_binary_sha256": "B7E0A77896E0DB3B841C66396AFEC93ADB4FA1F2A89BE9CA31CFEB1B7F609160",
+      "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+      "evidence_ids": [
+        "EV-8189-FIXTURE",
+        "EV-8189-PRODUCT"
+      ],
+      "passed_component_phase_sequences": {
+        "settings_GUI": 208,
+        "settings_startup": 285,
+        "five_button_mapping": 393,
+        "settings_import_export": 493,
+        "settings_corrupt_restart": 545,
+        "settings_exclusion": 635
+      },
+      "driver_failures": {
+        "diagnostic": {
+          "actual_export_created_sequence": 225,
+          "first_failure_sequence": 226,
+          "phase_FAIL_sequence": 233,
+          "reason": "guest_diagnostic_structure_or_source_invalid",
+          "actual_export_header_product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+          "driver_expected_wrong_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+          "diagnostic_bytes": 1579,
+          "diagnostic_sha256": "FA170DE50D49140749AB76D618AB3326F1976C09AA7AF7F0B44C3E6F947D677E",
+          "actual_parser_PASS": false
+        },
+        "portable": {
+          "first_failure_sequence": 641,
+          "reason": "portable_ready_identity_not_this_build",
+          "actual_marker_product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+          "driver_expected_wrong_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
+          "actual_normal_empty_arguments_entry": "NOT_RUN",
+          "not_a_product_launch_or_geometry_failure": true
+        }
+      },
+      "tray": {
+        "sequence": 551,
+        "result": "BLOCKED",
+        "reason": "exact_current_product_UID1_icon_not_reachable",
+        "actual_NIM_ADD_succeeded": false,
+        "menu_input_sent": false
+      },
+      "product_shutdown": {
+        "fixture_sequence": 642,
+        "normal_exit_observed": true,
+        "own_resource_flags_true": true,
+        "issued_native_completion_unknown": false,
+        "post_stop_fixture_sequence": 646,
+        "actual_client_counts_before": [
+          3,
+          3
+        ],
+        "actual_client_counts_after": [
+          4,
+          4
+        ]
+      },
+      "orchestration_cleanup": {
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "whole_driver_result": "FAIL",
+      "driver_shutdown_sequence": 648,
+      "next_action": "修driver三个product-source pin后复用R48F96原EXE；先CoreAndApplications推进未跑核心/应用，再SettingsDiagnostic定向复验；不重跑已通过GUI或拼成Full。",
+      "human_uat": "NOT_RUN"
+    },
     {
       "id": "PO-408AC52-UP-DISPATCH",
       "scope": "OFFLINE actual shared production UP/GUI dispatch permission and original-anchor calculation",
@@ -8089,7 +8334,7 @@
   },
   "pending_product_candidate": {
     "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-    "status": "COMMITTED_BUILT_OFFLINE_PASS_NATIVE_GUEST_NOT_RUN",
+    "status": "COMMITTED_BUILT_PARTIAL_NATIVE_GUEST_OBSERVED_NOT_VERSION_ACCEPTED",
     "build_directory": "out/v1-product-408ac52",
     "build_environment": {
       "generator": "Visual Studio 18 2026",
@@ -8116,7 +8361,7 @@
       }
     ],
     "separate_driver_source_sha": "83bf90362faafdfd431669b2ca545364d3898bcd",
-    "driver_build_status": "BUILT_DEBUG_RELEASE_PENDING_PACKAGE_HASH_BINDING",
+    "driver_build_status": "D83BF_BUILT_AND_RUN_NEW_DRIVER_FIX_PENDING",
     "product_rebuilt_for_driver_change": false,
     "offline_regression": {
       "Debug": {
@@ -8135,10 +8380,22 @@
     "evidence_paths": [
       "docs/reports/v1-evidence/408ac52-build-offline-transcript.txt"
     ],
-    "run_id": null,
-    "package_id": null,
-    "native_guest_status": "NOT_RUN",
+    "run_id": "81896dad13d5423e5de14a8363f7bcc6",
+    "package_id": "2632dcb5fa83a1bd44cdf445ad0c8ad5",
+    "native_guest_status": "PARTIAL_TARGETED_RAPID_AND_GUI_COMPONENTS_TWO_DRIVER_FAILURES_RETAINED",
     "human_uat": "NOT_RUN",
-    "current_tested_package_identity_preserved": "dd603a79aeba64c816e13ba49265db342c14e7e3"
+    "current_tested_package_identity_preserved": "dd603a79aeba64c816e13ba49265db342c14e7e3",
+    "latest_observation_ids": [
+      "PO-8189-RAPID-TERMINAL",
+      "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS"
+    ],
+    "guest_package": {
+      "packaging_head": "665b8289e36eac93e0ea485a79e52f541dd8120f",
+      "zip_sha256": "BA27609500A64AE2EEE0C4070F7064DC0435EF97398C6086DAB8E4DD0DAC0FFC",
+      "manifest_sha256": "99AE0E4A2AFCE93155CFFF90C97C9D980B946F0505973619E333DC1E2BF6E4D8",
+      "portable_zip_sha256": "4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2",
+      "portable_manifest_sha256": "090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C",
+      "portable_normal_entry": "NOT_RUN_due_driver_pin_failure"
+    }
   }
 }

@@ -273,6 +273,11 @@ try {
     $summary.actual_suite=$Suite
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
+    $probeMedium=$null -ne $manifest.medium_environment_probe -and $manifest.medium_environment_probe.enabled -eq $true
+    if($probeMedium){
+        if($manifest.medium_environment_probe.kind -cne 'ReadOnlyStandardGuestAcl'){throw 'Unknown guest environment probe.'}
+        $allowed+='v1-medium-environment-probe-guest.ps1'
+    }
     $assets=@()
     if($null -ne $manifest.test_assets){$assets=@($manifest.test_assets)}
     if($assets.Count -gt 1 -or ($assets.Count -eq 1 -and $assets[0].kind -cne 'VSCode')){throw 'Only one reviewed optional VS Code test asset is permitted.'}
@@ -311,6 +316,33 @@ try {
            $pair.fixture_identity.host_synthetic_input -cne 'forbidden' -or $pair.fixture_identity.requires_medium_guest -ne $true -or
            $pair.fixture_identity.verified_binary_sha256 -cne $driverFile[0].sha256 -or
            $manifest.('driver_'+$suffix+'_sha256') -cne $driverFile[0].sha256){throw 'Product/driver identities, interface contract and actual payload hashes disagree.'}
+    }
+    if($probeMedium){
+        # Isolated environment preparation only, before any product or input.
+        # DENIED is a useful environment observation, not a product failure.
+        $probeInfo=New-Object Diagnostics.ProcessStartInfo
+        $probeInfo.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $probeInfo.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-medium-environment-probe-guest.ps1 -RunId '+$RunId
+        $probeInfo.UseShellExecute=$false;$probeInfo.CreateNoWindow=$true
+        $probe=New-Object Diagnostics.Process;$probe.StartInfo=$probeInfo
+        try{
+            if(-not $probe.Start()){throw 'Guest environment probe did not start.'}
+            if(-not $probe.WaitForExit(60000)){
+                $probe.Kill();[void]$probe.WaitForExit(5000)
+                throw 'Guest environment probe timed out; account cleanup UNKNOWN; no product/input is permitted.'
+            }
+            $probePath=Join-Path $outputDir ($RunId+'-medium-environment-probe.json')
+            $probeFile=Get-Item -LiteralPath $probePath
+            if($probeFile.PSIsContainer -or ($probeFile.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $probeFile.Length -gt 128KB){throw 'Guest environment receipt unavailable or not bounded.'}
+            $probeRecord=[IO.File]::ReadAllText($probePath)|ConvertFrom-Json
+            $probeEntry=@($manifest.files|Where-Object relative_path -ceq 'v1-medium-environment-probe-guest.ps1')
+            if($probeRecord.schema -cne 'panebind-v1-medium-environment-probe/1' -or $probeRecord.run_id -cne $RunId -or
+               $probeRecord.probe_source_commit -cne $manifest.packaging_head -or $probeRecord.driver_source_commit -cne $manifest.driver_source_commit -or
+               $probeRecord.probe_sha256 -cne $probeEntry[0].sha256 -or $probeRecord.result.account_cleanup_confirmed -ne $true -or
+               -not (($probe.ExitCode -eq 0 -and $probeRecord.result.status -ceq 'READ_ONLY_ACL_ALLOWED_PROCESS_NOT_RUN') -or
+                      ($probe.ExitCode -eq 2 -and $probeRecord.result.status -ceq 'DENIED'))){throw 'Guest environment observation or exact-account cleanup UNKNOWN; product/input not started.'}
+            $summary['medium_environment_probe']=$probeRecord
+        }finally{$probe.Dispose()}
     }
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()

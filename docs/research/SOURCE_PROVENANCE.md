@@ -2181,3 +2181,31 @@ implementation is not an empirical result; actual RunIds must be recorded in
 the acceptance table after execution.
 Microsoft site terms; links/paraphrase only. External implementation copied,
 adapted, translated or mechanically rewritten: **NO**; no new attribution.
+
+### V1 official test applications and ordinary guest precheck — 2026-10-16
+
+The author actually read Microsoft's [WinGet Sandbox bootstrap](https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget-on-windows-sandbox),
+[download / skip-license](https://learn.microsoft.com/en-us/windows/package-manager/winget/download)
+and [Sandbox FAQ](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-faq).
+The FAQ distinguishes absent inbox apps from installing a captured Appx. A
+separate, disposable preparation guest may download the exact official Notepad
+Store ID with networking enabled; formal product tests remain offline. This is
+test-environment preparation, not an empirical application PASS or permission
+to redistribute Microsoft software. WinGet v1.29.380's original signed x64
+packages and notices are pinned in the local preparation receipt; source MIT,
+binary/application terms remain Microsoft's. No external code is copied.
+
+The ordinary-user feasibility precheck follows the actually read official
+[NetUserAdd](https://learn.microsoft.com/en-us/windows/win32/api/lmaccess/nf-lmaccess-netuseradd),
+[CreateProcessWithLogonW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw),
+[GetUserObjectSecurity](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getuserobjectsecurity)
+and [AccessCheck](https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-accesscheck)
+contracts. In the exact disposable guest only, it creates one unique temporary
+standard account, checks the real credential token and existing station,
+desktop and mapped-directory DACL access, then removes only that exact account.
+It does not modify an ACL, token/session, policy, existing user or host account,
+launch a GUI, send input, or establish a working ordinary Shell. DACL allowance
+alone does not prove mandatory-integrity or actual child-process access.
+Denied/unknown results remain environment observations, not product failures.
+Existing AltSnap/FancyZones references are reused; no implementation copied,
+adapted, translated or mechanically rewritten and no new attribution required.

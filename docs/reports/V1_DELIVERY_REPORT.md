@@ -14,15 +14,27 @@
 
 本节只是既有结果映射，不是重新运行现场或结束整版任务。实际缺UP、快速拖动消费时序风险、托盘、官方应用准备和显示环境分别推进；新的确定性反例与修复不被误写成既有LL-UP缺失根因。完整功能合同未齐时不计PASS，不以PARTIAL作为主动停止条件。
 
-## 新确定的输入消费时序缺陷：已修代码，待新候选现场复验
+## 新确定的输入消费时序缺陷：代码修复与实际定向复验
 
 用户提出的 `InputService` 真实UP先清active、GUI消费迟到MOVE仍要求active的风险，已用实际共用生产判定最小提取复现：旧版定向Debug为226 checks／1 failure。这是已确定的独立时序缺陷，不是此前实际LL UP缺失的根因证明。
 
 产品修复源码为 `408ac527a6bfda7b01a5e83249bd5ed0eca2714d`：排队旧MOVE仍拒绝；只有实际匹配NormalUp的UP点可以提交一次独立terminal计划，按原DOWN／窗口锚点求绝对几何，native发起前仍复核权限。后继DOWN、停止、abort或真实上下文失效不能恢复旧代写权限；旧代finish只退休自身，不能撤销较新代。修复后同一反例及相关代际／一次性／原锚点定向Debug为239 checks／0 failures。
 
-[before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。新候选源码保留在`pending_runtime_sha`，当前已测dd60包不换绑。下一步是新候选真实快速DOWN／MOVE／UP（GUI消费落后）→核对UP点exact终点／一次terminal／撤权后无旧MOVE或重复写→后续Move／Resize／Ctrl，再推进最终同候选整版链。原D08缺LL-UP S1及整版门槛保持未关闭，V1-D15为`DEV_FIXED_PENDING_GUEST_REVALIDATION`。
+[before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。随后8189取得下述真实快速UP点terminal定向结果，V1-D15已按该精确范围关闭，不再扩展专项。原D08缺LL-UP S1及完整连续链门槛保持未关闭，两者不是同一根因；dd60旧已测包也不换绑为新R。
 
-新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新包RunId和现场结果仍未填，不能升级正式DEV或关闭D08。
+新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新Run8189的真实范围另列如下，不能升级正式DEV或关闭D08。
+
+## 8189／新R：快速UP点terminal闭环，两个driver错pin失败保留
+
+RunId `81896dad13d5423e5de14a8363f7bcc6`，Release／真实Medium RID8192、non-elevated、session1、Default／WinSta0、单屏144DPI。产品R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`／EXE `48F96C…3924E`，driver D=`83bf90362faafdfd431669b2ca545364d3898bcd`／EXE `B7E0A77896E0DB3B841C66396AFEC93ADB4FA1F2A89BE9CA31CFEB1B7F609160`；packaging HEAD=`665b8289e36eac93e0ea485a79e52f541dd8120f`。主包ZIP `BA27609500A64AE2EEE0C4070F7064DC0435EF97398C6086DAB8E4DD0DAC0FFC`／manifest `99AE0E4A2AFCE93155CFFF90C97C9D980B946F0505973619E333DC1E2BF6E4D8`均独立重算一致。原件在`uat/v1-control/81896dad13d5423e5de14a8363f7bcc6/collection-20261016T075702366Z-19db097048e24dcb8b4604baadcb14fb/`；[fixture摘录](v1-evidence/8189-fixture-selected.jsonl)与[product摘录](v1-evidence/8189-product-selected.jsonl)已入库。
+
+- 243单次SendInput数组插入DOWN／MOVE／UP三个元素，未等产品START再放UP；插入成功本身不作投递证明。244取得同g2实际产品LL UP和NormalUp，独立actual矩形`[195,271,595,611]` exact；普通native attempt=0、terminal=1。产品PID4148实际seq33 UP→34真实terminal placement（`normal_up_completion=true,authority_after=false`）→35 NormalUp／pending退休。没有恢复active权限或重放旧MOVE；测试也没有从插入方式推断GUI实际落后时长。
+- 本次被动队首hook实际观察UP一次、CallNext返回1、Unhook成功；仅为guest测试观测，不是产品Raw替代归属，也不证明旧缺LL-UP根因。后继同批导入设置的真实Move470／NormalUp475，以及重启后移除排除的Move625／NormalUp630成立。V1-D15定向关闭，D08仍OPEN；这些片段不拼成Full／I02／I11。
+- 当前R设置GUI208、登录启动285、五键393、导入导出493、损坏重启545、排除635各组件有实际阶段PASS。托盘551／557仍BLOCKED，实际NIM_ADD=false，未发送未知菜单输入。
+- 225实际导出1579字节`diagnostic-51359.txt`，其真实header为产品R，但D driver仍用自身源码SHA核对；226／233保持FAIL，未把文件存在算parser通过。641的portable-ready marker也正确写R而被错用D核验，保持原FAIL，**新2632 ZIP的普通空参入口本批NOT_RUN**，不是产品启动或几何失败。V1-D16登记这三处driver产品SHA pin缺陷；工作区修复用guard已核验的product_source，待新driver以同R复验，不重建产品。
+- 642产品正常退出、资源flags全true、unknown native=false；646实际客户计数`[3,3]→[4,4]`，与后续精确guest／临时任务退出分别记账。cleanup回执确认证据未变、部署保留、其他资源未改，不能以guest销毁替代产品结论。driver648整体FAIL保留。
+
+后续先由修正driver的`CoreAndApplications`推进未跑核心／应用，再定向`SettingsDiagnostic`复验两个pin失败；复用同R EXE，不重复已通过GUI，不将分组子项拼成Full。portable2632 ZIP哈希为`4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2`、manifest `090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C`，只作已核构建身份，不宣普通入口已验。
 
 ## 源码与包身份
 
@@ -31,7 +43,7 @@
 | 项目 | 当前准确状态 |
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
-| 待现场新产品候选 | R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`，D/R构建与各10offline通过；产品/driver身份分开，尚无新包/guest结果。下列dd60仍是此前实际验证包，不改写其身份 |
+| 新R实际候选 | R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`，D/R构建与各10offline通过；8189取得快速UP点terminal和GUI组件范围，两个driver错pin失败保留。下列dd60仍是此前实际验证的普通入口包，不改写其身份 |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
 | 本阶段 runtime／build | `dd603a79aeba64c816e13ba49265db342c14e7e3`；Debug／Release fresh构建及各10项offline实际PASS；新EXE只取得下列诊断／普通ZIP专项证据，不迁移绑定旧整套动作 |
 | 此包打包 HEAD | `dd603a79aeba64c816e13ba49265db342c14e7e3`；已测ZIP不重包。最终三文档提交SHA由主执行者实际commit／push后给出，不在本文预填 |
