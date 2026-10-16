@@ -101,6 +101,7 @@ struct State {
     std::atomic<LONG> consumed_prepared_x{0}, consumed_prepared_y{0}, consumed_down_x{0}, consumed_down_y{0}, consumed_up_x{0}, consumed_up_y{0};
     std::atomic<std::uint32_t> consumed_down_count{0}, consumed_up_count{0}, consumed_move_count{0}, consumed_overlay_moves{0};
     std::atomic<bool> consumed_legacy_accepted{false}, consumed_test_up_sent{false};
+    std::atomic<bool> consumed_normal_removal_observed{false};
     std::atomic<std::uint32_t> consumed_unmatched_LL_ups{0};
     std::atomic<std::uint64_t> raw_sequence{0}, down_watermark{0};
     std::atomic<std::uint64_t> handoff_raw_watermark{0};
@@ -762,6 +763,10 @@ void on_shield_event(const op::GestureShieldEvent& event) noexcept {
         SetEvent(s.isolation_ready);
         break;
     case op::GestureShieldEventKind::IsolationGone:
+        if (consumed_down_scenario())
+            s.consumed_normal_removal_observed = event.generation == generation &&
+                event.entry_mode == op::GestureShieldEntryMode::ConsumedDown &&
+                event.removal_reason == op::GestureShieldRemovalReason::NormalUp;
         s.isolation_gone_tick = GetTickCount64();
         s.capture_established = false;
         s.overlay = nullptr;
@@ -2440,7 +2445,7 @@ void writer_owner() noexcept {
     GUITHREADINFO source_gui{sizeof(source_gui)}, resource_gui{sizeof(resource_gui)};
     const bool queues_clean = GetGUIThreadInfo(s.source_thread,&source_gui) && GetGUIThreadInfo(s.shield_thread,&resource_gui) &&
         !source_gui.hwndCapture && !source_gui.hwndMoveSize && !resource_gui.hwndCapture && !resource_gui.hwndMoveSize;
-    const bool accepted = legacy && gone && s.consumed_legacy_accepted && s.normal_removal_requested &&
+    const bool accepted = legacy && gone && s.consumed_legacy_accepted && s.normal_removal_requested && s.consumed_normal_removal_observed &&
         s.consumed_down_count == 1 && s.consumed_test_up_sent && s.legacy_ups == 1 &&
         s.capture_attempts == 1 && s.own_capture_released && s.association_established && s.association_detached &&
         s.association_attempts == 1 && s.detach_attempts == 1 && s.overlay_destroyed && s.hotkey_unregistered &&
@@ -2449,7 +2454,8 @@ void writer_owner() noexcept {
         s.native_attempts == 0 && s.control_mouse == 0 && after && same_frame(*after,*s.initial_source);
     record("consumed_normal_resource_verdict", ",\"generation\":" + std::to_string(s.generation.load()) + ",\"gesture_index\":" +
         std::to_string(s.completed_gestures + 1) + ",\"accepted\":" + boolean(accepted) + ",\"actual_legacy_UP\":" + boolean(legacy) +
-        ",\"resource_accepted_legacy_UP\":" + boolean(s.consumed_legacy_accepted) + ",\"actual_LL_UP\":" + boolean(s.consumed_up_seen) +
+        ",\"resource_accepted_legacy_UP\":" + boolean(s.consumed_legacy_accepted) + ",\"actual_normal_removal_observed\":" + boolean(s.consumed_normal_removal_observed) +
+        ",\"actual_LL_UP\":" + boolean(s.consumed_up_seen) +
         ",\"queues_clean\":" + boolean(queues_clean) + ",\"association_detached\":" + boolean(s.association_detached) +
         ",\"own_capture_released\":" + boolean(s.own_capture_released) + ",\"raw_UP_observations_only\":" + std::to_string(s.raw_ups.load()) +
         ",\"actual_LL_UP_observations_only\":" + std::to_string(s.consumed_up_count.load()) + ",\"old_or_ambiguous_LL_UP\":" + std::to_string(s.consumed_unmatched_LL_ups.load()) +
@@ -2469,7 +2475,7 @@ void writer_owner() noexcept {
             s.capture_established = false;s.own_capture_released = false;s.association_established = false;s.association_detached = false;
             s.capture_attempts = 0;s.association_attempts = 0;s.detach_attempts = 0;s.legacy_ups = 0;s.raw_downs = 0;s.raw_ups = 0;
             s.consumed_down_published = false;s.consumed_up_seen = false;s.consumed_legacy_accepted = false;
-            s.consumed_test_up_sent = false;s.consumed_unmatched_LL_ups = 0;
+            s.consumed_test_up_sent = false;s.consumed_unmatched_LL_ups = 0;s.consumed_normal_removal_observed = false;
             s.consumed_down_count = 0;s.consumed_up_count = 0;s.consumed_move_count = 0;s.consumed_overlay_moves = 0;
             s.consumed_down_qpc = 0;s.consumed_up_qpc = 0;
             for (const HANDLE event : {s.consumed_down,s.consumed_up,s.legacy_up,s.isolation_ready,s.isolation_gone,
@@ -2662,7 +2668,7 @@ int wmain(int argc, wchar_t** argv) {
             const bool entry_guest_guard = initial_guest_guard && guest_guard(run_id,scenario_w,log_path);
             if (entry_guest_guard) consumed_hook_thread = std::thread(consumed_hook_owner);
             const bool hook_ready = entry_guest_guard && wait_for(s.consumed_hook_ready,2000,"consumed_hook_installed") && s.consumed_hook_installed;
-            record("consumed_probe_scope", ",\"hook_ready\":" + boolean(hook_ready) + ",\"exact_guest_guard_passed\":" + boolean(entry_guest_guard) +
+            record("consumed_probe_scope", ",\"hook_ready\":" + json_bool(hook_ready) + ",\"exact_guest_guard_passed\":" + json_bool(entry_guest_guard) +
                 ",\"V1_InputService_started\":false,\"MoveSession_armed\":false,\"writer_armed\":false,\"Move_function_PASS\":false");
             if (hook_ready) result = consumed_repeat();
         } else {
