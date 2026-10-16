@@ -1363,6 +1363,10 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
                 ",\"release_attempted\":"+boolean(capture.release_attempted)+
                 ",\"release_completed\":"+boolean(capture.release_completed)+
                 ",\"release_succeeded\":"+boolean(capture.release_succeeded)+
+                ",\"capture_owner_tid\":"+std::to_string(capture.owner_thread_id)+
+                ",\"capture_release_before_HWND\":"+handle(capture.release_before)+
+                ",\"capture_owner_observation_known\":"+boolean(fact.kind==o::GestureShieldEventKind::CaptureReleased&&capture.owner_thread_id!=0)+
+                ",\"capture_release_after_is_copied_no_call\":"+boolean(fact.kind==o::GestureShieldEventKind::CaptureReleased&&!capture.release_attempted)+
                 ",\"capture_after_release\":"+handle(capture.release_after)+
                 ",\"release_before_qpc\":"+std::to_string(capture.release_before_qpc)+
                 ",\"release_after_qpc\":"+std::to_string(capture.release_after_qpc)+

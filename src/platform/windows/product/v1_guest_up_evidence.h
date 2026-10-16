@@ -123,16 +123,33 @@ inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIde
 // normalized gesture UP, a NormalUp permit, target delivery or idle proof.
 // In-flight native completion and geometry must be verified separately.
 inline bool matching_abort_cleanup_up(std::string_view status,std::string_view ended,
-    std::string_view gone,const UpEvidenceIdentity& expected){
+    std::string_view gone,const UpEvidenceIdentity& expected,std::string_view released={}){
     using namespace up_evidence_detail;
+    const bool own_release=unique_value(gone,"\"release_attempted\":")=="true"&&
+        unique_value(gone,"\"release_completed\":")=="true"&&unique_value(gone,"\"release_succeeded\":")=="true"&&
+        number(gone,"\"capture_after_release\":")==0;
+    const auto overlay=number(gone,"\"overlay\":"),owner=number(released,"\"capture_owner_tid\":"),before=number(released,"\"capture_release_before_HWND\":");
+    // A typed owner-thread observation can prove abort cleanup without an API
+    // release: never infer that observation from default NULL fields in Gone.
+    const bool no_own_capture=receipt(released,expected,"gesture_input_resource")&&quoted(released,"\"fact\":","capture_released")&&
+        overlay&&*overlay&&number(released,"\"overlay\":")==overlay&&owner&&*owner&&number(gone,"\"capture_owner_tid\":")==owner&&
+        before&&*before!=*overlay&&number(released,"\"capture_after_release\":")==before&&
+        number(gone,"\"capture_release_before_HWND\":")==before&&number(gone,"\"capture_after_release\":")==before&&
+        unique_value(released,"\"capture_owner_observation_known\":")=="true"&&
+        unique_value(released,"\"capture_release_after_is_copied_no_call\":")=="true"&&
+        number(released,"\"source\":")&&number(released,"\"source\":")!=0&&number(released,"\"source\":")==number(gone,"\"source\":")&&
+        number(released,"\"source_pid\":")&&number(released,"\"source_pid\":")!=0&&number(released,"\"source_pid\":")==number(gone,"\"source_pid\":")&&
+        number(released,"\"source_tid\":")&&number(released,"\"source_tid\":")!=0&&number(released,"\"source_tid\":")==number(gone,"\"source_tid\":")&&
+        unique_value(gone,"\"hotkey_unregistered\":")=="true"&&
+        unique_value(released,"\"release_attempted\":")=="false"&&unique_value(released,"\"release_completed\":")=="false"&&
+        unique_value(released,"\"release_succeeded\":")=="false"&&unique_value(gone,"\"release_attempted\":")=="false"&&
+        unique_value(gone,"\"release_completed\":")=="false"&&unique_value(gone,"\"release_succeeded\":")=="false";
     if(!receipt(ended,expected,"gesture_end")||!receipt(gone,expected,"gesture_input_resource")||
        !quoted(gone,"\"fact\":","isolation_gone")||unique_value(ended,"\"normal_up\":")!="false"||
        unique_value(ended,"\"pending_retired\":")!="true"||!number(ended,"\"end\":")||number(ended,"\"end\":")==0||
        !number(gone,"\"overlay\":")||number(gone,"\"overlay\":")==0||
        !number(gone,"\"removal_reason\":")||number(gone,"\"removal_reason\":")==0||number(gone,"\"removal_reason\":")>5||
-       unique_value(gone,"\"overlay_destroyed\":")!="true"||unique_value(gone,"\"release_attempted\":")!="true"||
-       unique_value(gone,"\"release_completed\":")!="true"||unique_value(gone,"\"release_succeeded\":")!="true"||
-       number(gone,"\"capture_after_release\":")!=0||unique_value(gone,"\"detach_attempted\":")!="true"||
+       unique_value(gone,"\"overlay_destroyed\":")!="true"||(!own_release&&!no_own_capture)||unique_value(gone,"\"detach_attempted\":")!="true"||
        unique_value(gone,"\"detach_completed\":")!="true"||unique_value(gone,"\"detach_succeeded\":")!="true"||
        status.empty()||status.size()>16384||status.front()!='{'||status.back()!='}'||status.find_first_of("\r\n")!=status.npos||
        !quoted(status,"\"schema\":","panebind-v1/1")||!quoted(status,"\"type\":","status")||

@@ -45,6 +45,8 @@ struct InputService::CaptureBridge {
         std::atomic<std::shared_ptr<const GestureCaptureContext>> context;
         std::uint64_t deadline{},down_serial{};
         std::shared_ptr<const ShieldEvent> actual_legacy_up;
+        // Input-owner-only receipt, separate from strict normal own-release.
+        std::shared_ptr<const ShieldEvent> capture_cleanup_observation;
     };
     struct Receipt {std::shared_ptr<const ShieldEvent> event;std::uint64_t qpc{};};
     std::shared_ptr<std::atomic<std::uint64_t>> authority,completion;
@@ -155,6 +157,7 @@ void InputService::drain_capture_events(){
         resource.native_message_time=receipt.event->message_time;resource.resource_event=receipt.event;push(std::move(resource));
         const auto p=bridge.pair.load();if(!p||p->down.generation!=receipt.event->generation)continue;
         const auto& actual=*receipt.event;
+        if(actual.kind==ShieldKind::CaptureReleased)p->capture_cleanup_observation=receipt.event;
         if(actual.kind==ShieldKind::CaptureReady){
             // This is the historical READY receipt, not a fresh regrant. A
             // real UP may already have revoked issue permission while this
@@ -166,9 +169,14 @@ void InputService::drain_capture_events(){
         }
         if(p->aborted&&!aborted_)abort(actual.kind==ShieldKind::Deadline?core::v1::End::Deadline:core::v1::End::SourceLost);
         if(actual.kind!=ShieldKind::IsolationGone)continue;
-        const auto context=p->context.load();const bool clean=actual.overlay_destroyed&&actual.hotkey_unregistered&&
+        const auto context=p->context.load();const bool strict_clean=actual.overlay_destroyed&&actual.hotkey_unregistered&&
             (!actual.capture.attempted||(actual.capture.release_completed&&actual.capture.release_succeeded&&!actual.capture.release_after))&&
             operations::gesture_shield_association_cleanup_confirmed(actual.capture.association,actual.generation);
+        // An abort may already have lost capture before cleanup. The resource
+        // must not release foreign capture, and a real no-own observation plus
+        // completed detach/destruction is not a failed ReleaseCapture call.
+        const bool clean=strict_clean||captured_abort_cleanup_confirmed(context.get(),
+            p->capture_cleanup_observation.get(),actual,p->aborted.load());
         const bool actual_normal=p->normal_observed&&p->actual_legacy_up&&context&&
             actual.removal_reason==Removal::NormalUp&&context->normal_up_observed&&context->own_release_confirmed&&context->association_detached&&
             p->ready_authorized;

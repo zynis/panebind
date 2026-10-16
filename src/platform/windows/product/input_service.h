@@ -19,6 +19,40 @@ inline bool captured_release_can_complete(bool resources_clean,bool actual_norma
                                          bool same_down_serial,bool available){
     return resources_clean&&actual_normal_up&&!aborted&&same_down_serial&&available;
 }
+// CaptureReleased is emitted by the resource owner only after its actual
+// GetCapture observation. On the no-call branch release_after copies that
+// single observation; neither NULL field alone is evidence of a query.
+// This proves only that this generation no longer owns capture, not that
+// there is no capture elsewhere and not that a normal UP was delivered.
+inline bool captured_abort_cleanup_confirmed(const GestureCaptureContext* context,
+    const operations::GestureShieldEvent* observed,const operations::GestureShieldEvent& gone,bool aborted){
+    using Kind=operations::GestureShieldEventKind;
+    if(!aborted||!context||!observed||!context->generation||!context->overlay||
+       !context->owner_tid||!context->owner_pid||!context->source.hwnd||!context->source.pid||!context->source.tid||
+       observed->kind!=Kind::CaptureReleased||gone.kind!=Kind::IsolationGone||
+       gone.removal_reason==operations::GestureShieldRemovalReason::NormalUp||
+       !gone.overlay_destroyed||!gone.hotkey_unregistered)return false;
+    const auto exact=[&](const operations::GestureShieldEvent& event){
+        const auto& request=event.consumed_down.gesture;
+        return event.entry_mode==operations::GestureShieldEntryMode::ConsumedDown&&
+            event.generation==context->generation&&event.overlay==context->overlay&&
+            request.generation==context->generation&&request.source==context->source.hwnd&&
+            request.process_id==context->source.pid&&request.thread_id==context->source.tid&&
+            event.capture.owner_thread_id==context->owner_tid&&event.capture.attempted;
+    };
+    const auto observed_not_own=[&](const operations::GestureShieldCaptureFacts& facts){
+        return !facts.release_attempted&&!facts.release_completed&&!facts.release_succeeded&&
+            facts.release_before!=context->overlay&&facts.release_after==facts.release_before;
+    };
+    const auto& association=gone.capture.association;
+    return exact(*observed)&&exact(gone)&&observed_not_own(observed->capture)&&observed_not_own(gone.capture)&&
+        observed->capture.release_before==gone.capture.release_before&&
+        association.generation==context->generation&&association.owner_thread_id==context->owner_tid&&
+        association.source==context->source.hwnd&&association.source_process_id==context->source.pid&&
+        association.source_thread_id==context->source.tid&&
+        operations::gesture_shield_association_owned_pair(association,context->generation)&&
+        operations::gesture_shield_association_cleanup_confirmed(association,context->generation);
+}
 struct Prepared {
     Snapshot source;
     POINT point{};

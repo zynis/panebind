@@ -86,15 +86,41 @@ HWND chain_preview(State& s){
     return search.count==1?search.hwnd:nullptr;
 }
 void chain_preview_exact(State& s,HWND source,Rect expected){
-    const auto config=chain_settings(s);RECT actual{};COLORREF color{};BYTE alpha{};DWORD flags{};POINT pointer{};HWND actual_hit{};
-    const bool observed=wait([&]{const auto h=chain_preview(s);return h&&IsWindowVisible(h)&&GetWindowRect(h,&actual)&&
-        Rect{actual.left,actual.top,actual.right,actual.bottom}==expected&&GetLayeredWindowAttributes(h,&color,&alpha,&flags)&&
-        alpha==config.preview_alpha&&flags==LWA_ALPHA&&GetForegroundWindow()==source&&GetCursorPos(&pointer)&&
-        (actual_hit=WindowFromPoint(pointer))&&GetAncestor(actual_hit,GA_ROOT)==source&&
-        (GetWindowLongPtrW(h,GWL_EXSTYLE)&(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT))==(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT);});
+    const auto config=chain_settings(s);RECT actual{};COLORREF color{};BYTE alpha{};DWORD flags{};POINT pointer{};
+    HWND actual_hit{},hit_root{},preview{},foreground{};LONG_PTR preview_style{};bool direct_source=false,own_shield=false;
+    product::guest::CapturedReleaseFacts capture;
+    const auto started=record(s,0,"gesture_start");const auto generation=number(started,"\"generation\":");
+    const bool start_identity=generation&&number(started,"\"process_id\":")==s.product_pid&&
+        started.find("\"source_sha\":"+quote(s.product_source))!=started.npos;
+    const bool observed=wait([&]{
+        preview=chain_preview(s);actual_hit=nullptr;hit_root=nullptr;direct_source=false;own_shield=false;capture={};
+        if(!preview||!IsWindowVisible(preview)||!GetWindowRect(preview,&actual)||
+            Rect{actual.left,actual.top,actual.right,actual.bottom}!=expected||
+            !GetLayeredWindowAttributes(preview,&color,&alpha,&flags)||alpha!=config.preview_alpha||flags!=LWA_ALPHA)return false;
+        preview_style=GetWindowLongPtrW(preview,GWL_EXSTYLE);
+        if((preview_style&(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT))!=(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT))return false;
+        foreground=GetForegroundWindow();if(foreground!=source||!GetCursorPos(&pointer))return false;
+        actual_hit=WindowFromPoint(pointer);hit_root=actual_hit?GetAncestor(actual_hit,GA_ROOT):nullptr;
+        if(!hit_root||hit_root==preview)return false;
+        direct_source=hit_root==source;
+        if(!direct_source&&start_identity){
+            capture=release_capture_facts(s,source,hit_root,generation);
+            own_shield=product::guest::captured_release_hit_allowed(capture);
+        }
+        // The transparent preview must not intercept input. The consumed-DOWN
+        // route legitimately hits its current capture shield, not the source;
+        // only the exact live generation's native capture facts admit that.
+        return (direct_source||own_shield)&&GetForegroundWindow()==source;
+    });
     s.log.check("chain_actual_nonactivating_preview_rectangle",observed,"\"expected\":"+rect(expected)+
         ",\"actual\":"+rect({actual.left,actual.top,actual.right,actual.bottom})+",\"actual_alpha\":"+std::to_string(alpha)+
         ",\"actual_pointer_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual_hit))+
+        ",\"actual_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit_root))+
+        ",\"actual_preview\":"+std::to_string(reinterpret_cast<std::uintptr_t>(preview))+
+        ",\"preview_exstyle\":"+std::to_string(preview_style)+",\"expected_generation\":"+std::to_string(generation)+
+        ",\"direct_source_hit\":"+(direct_source?"true":"false")+",\"exact_current_shield_hit\":"+(own_shield?"true":"false")+
+        ",\"ready_generation\":"+std::to_string(capture.generation)+",\"ready_overlay\":"+std::to_string(capture.overlay)+
+        ",\"source_actual_capture\":"+std::to_string(capture.source_capture)+",\"owner_actual_capture\":"+std::to_string(capture.owner_capture)+
         ",\"visual_clarity_review\":\"NOT_RUN\"");
 }
 void chain_preview_hidden(State& s,const char* label){

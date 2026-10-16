@@ -41,6 +41,64 @@ int main() {
           !product::captured_release_can_complete(true,true,false,false,true)&&
           !product::captured_release_can_complete(true,true,false,true,false),
           "Raw-only UP, unknown cleanup, abort, later DOWN and stop cannot mint a normal release token");
+    namespace shield=panebind::platform::windows::operations;
+    product::GestureCaptureContext cleanup_context;
+    cleanup_context.generation=40;cleanup_context.overlay=reinterpret_cast<HWND>(400);
+    cleanup_context.owner_tid=60;cleanup_context.owner_pid=70;
+    cleanup_context.source.hwnd=reinterpret_cast<HWND>(100);cleanup_context.source.pid=20;cleanup_context.source.tid=30;
+    shield::GestureShieldEvent absent_capture;
+    absent_capture.kind=shield::GestureShieldEventKind::CaptureReleased;
+    absent_capture.entry_mode=shield::GestureShieldEntryMode::ConsumedDown;
+    absent_capture.generation=40;absent_capture.overlay=cleanup_context.overlay;
+    absent_capture.consumed_down.gesture={40,cleanup_context.source.hwnd,20,30,30000};
+    absent_capture.capture.owner_thread_id=60;absent_capture.capture.attempted=true;
+    auto aborted_gone=absent_capture;
+    aborted_gone.kind=shield::GestureShieldEventKind::IsolationGone;
+    aborted_gone.removal_reason=shield::GestureShieldRemovalReason::ContextLost;
+    aborted_gone.overlay_destroyed=true;aborted_gone.hotkey_unregistered=true;
+    auto& detached=aborted_gone.capture.association;
+    detached.generation=40;detached.owner_thread_id=60;detached.source_thread_id=30;
+    detached.source_process_id=20;detached.source=cleanup_context.source.hwnd;
+    detached.attach_attempted=true;detached.attach_completed=true;detached.attach_succeeded=true;
+    detached.detach_attempted=true;detached.detach_completed=true;detached.detach_succeeded=true;
+    const auto abort_clean=[&](const shield::GestureShieldEvent* receipt,const shield::GestureShieldEvent& gone,bool aborted=true){
+        return product::captured_abort_cleanup_confirmed(&cleanup_context,receipt,gone,aborted);
+    };
+    check(abort_clean(&absent_capture,aborted_gone),
+          "actual resource-owner absent capture receipt plus real detach and destruction permits abort cleanup");
+    auto foreign_observation=absent_capture,foreign_gone=aborted_gone;
+    foreign_observation.capture.release_before=reinterpret_cast<HWND>(900);
+    foreign_observation.capture.release_after=foreign_observation.capture.release_before;
+    foreign_gone.capture.release_before=foreign_observation.capture.release_before;
+    foreign_gone.capture.release_after=foreign_observation.capture.release_after;
+    check(abort_clean(&foreign_observation,foreign_gone)&&!foreign_observation.capture.release_attempted,
+          "an observed non-own capture is left untouched while this exact overlay and association are retired");
+    check(!abort_clean(nullptr,aborted_gone)&&!abort_clean(&absent_capture,aborted_gone,false),
+          "default NULL fields or a non-aborted generation never substitute for a real cleanup observation");
+    auto changed=absent_capture;changed.generation=41;
+    check(!abort_clean(&changed,aborted_gone),"stale capture receipt cannot clean another generation");
+    changed=absent_capture;changed.capture.owner_thread_id=61;
+    check(!abort_clean(&changed,aborted_gone),"a different thread's NULL capture is not the resource-owner observation");
+    changed=absent_capture;changed.capture.owner_thread_id=0;
+    check(!abort_clean(&changed,aborted_gone),"unknown observer identity cannot turn default NULL fields into proof");
+    changed=absent_capture;changed.overlay=reinterpret_cast<HWND>(401);
+    check(!abort_clean(&changed,aborted_gone),"another overlay's cleanup receipt is rejected");
+    changed=absent_capture;changed.consumed_down.gesture.thread_id=31;
+    check(!abort_clean(&changed,aborted_gone),"cleanup observation retains the actual source thread identity");
+    changed=absent_capture;changed.capture.release_before=cleanup_context.overlay;changed.capture.release_after=cleanup_context.overlay;
+    check(!abort_clean(&changed,aborted_gone),"still-own capture is not an absent-capture abort cleanup");
+    changed=absent_capture;changed.capture.release_attempted=true;changed.capture.release_completed=true;
+    check(!abort_clean(&changed,aborted_gone),"failed native ReleaseCapture cannot be relabeled as the no-call observation");
+    auto incomplete=aborted_gone;incomplete.capture.association.detach_succeeded=false;
+    check(!abort_clean(&absent_capture,incomplete),"failed detach still leaves input unhealthy");
+    incomplete=aborted_gone;incomplete.overlay_destroyed=false;
+    check(!abort_clean(&absent_capture,incomplete),"an undestroyed overlay is not clean");
+    incomplete=aborted_gone;incomplete.hotkey_unregistered=false;
+    check(!abort_clean(&absent_capture,incomplete),"unconfirmed hotkey cleanup remains a failure");
+    incomplete=aborted_gone;incomplete.removal_reason=shield::GestureShieldRemovalReason::NormalUp;
+    check(!abort_clean(&absent_capture,incomplete)&&
+          !product::captured_release_can_complete(true,false,true,true,true),
+          "abort cleanup cannot bypass strict own-release NormalUp or mint its completion capability");
     product::MouseUpCallbackObservation up_observation;
     const auto initial_up=up_observation.snapshot();
     check(initial_up.known&&initial_up.callback_count==0,"initial UP diagnostic snapshot reports no observed callback");

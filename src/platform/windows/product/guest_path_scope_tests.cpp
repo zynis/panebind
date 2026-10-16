@@ -86,6 +86,18 @@ int main() {
        !expect(abort_match(abort_status,aborted_end,mutate(aborted_gone,"\"detach_succeeded\":true","\"detach_succeeded\":false")),false,"unconfirmed detach rejects abort cleanup")||
        !expect(abort_match(mutate(abort_status,"\"process_id\":42","\"process_id\":43"),aborted_end,aborted_gone),false,"other product PID snapshot rejects")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,abort_status,identity),false,"abort cleanup snapshot cannot satisfy unchanged NormalUp gate"))return 1;
+    const std::string lost_release=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"capture_released","source":100,"source_pid":10,"source_tid":11,"overlay":200,"capture_owner_tid":12,"capture_release_before_HWND":0,"capture_owner_observation_known":true,"capture_release_after_is_copied_no_call":true,"release_attempted":false,"release_completed":false,"release_succeeded":false,"capture_after_release":0})";
+    const std::string lost_gone=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"isolation_gone","source":100,"source_pid":10,"source_tid":11,"overlay":200,"capture_owner_tid":12,"capture_release_before_HWND":0,"removal_reason":1,"overlay_destroyed":true,"hotkey_unregistered":true,"release_attempted":false,"release_completed":false,"release_succeeded":false,"capture_after_release":0,"detach_attempted":true,"detach_completed":true,"detach_succeeded":true})";
+    const auto lost_match=[&](std::string_view release,std::string_view gone_row){
+        return guest::matching_abort_cleanup_up(abort_status,aborted_end,gone_row,identity,release);};
+    if(!expect(lost_match(lost_release,lost_gone),true,"typed actual owner-local absent capture plus destroyed/detached abort is not a fabricated ReleaseCapture")||
+       !expect(lost_match("",lost_gone),false,"Gone default zero fields cannot invent the missing owner observation")||
+       !expect(lost_match(mutate(lost_release,"\"capture_owner_observation_known\":true","\"capture_owner_observation_known\":false"),lost_gone),false,"unknown actual capture observation rejects")||
+       !expect(lost_match(mutate(lost_release,"\"capture_owner_tid\":12","\"capture_owner_tid\":13"),lost_gone),false,"different cleanup owner rejects")||
+       !expect(lost_match(mutate(lost_release,"\"source_tid\":11","\"source_tid\":13"),lost_gone),false,"different source thread rejects abort receipt")||
+       !expect(lost_match(mutate(lost_release,"\"release_attempted\":false","\"release_attempted\":true"),lost_gone),false,"failed actual release cannot masquerade as absent-capture no-call")||
+       !expect(lost_match(lost_release,mutate(lost_gone,"\"detach_succeeded\":true","\"detach_succeeded\":false")),false,"absent capture cannot mask failed detach")||
+       !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,legacy,lost_gone),false,"abort no-call cleanup never replaces strict NormalUp release"))return 1;
     if(!expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,legacy,gone),true,"fresh public idle status plus actual captured legacy UP and confirmed cleanup")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,"",gone),false,"Raw or idle status alone cannot replace actual legacy UP")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,idle,identity,legacy,""),false,"missing release and detach are not NormalUp")||

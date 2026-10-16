@@ -140,10 +140,11 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         if(focus_target)s.log.check("I08_product_does_not_retake_foreground",GetForegroundWindow()==focus_target);
         LARGE_INTEGER up_before{};if(!QueryPerformanceCounter(&up_before)||up_before.QuadPart<=0)throw std::runtime_error("I08_actual_UP_clock_unavailable");
         button(s,false);
-        const bool matching_up=wait([&]{return !s.left&&!actual_up(s,g.offset,g.generation).empty();});
+        const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+        const bool matching_up=!s.left&&abort_up.matched;
         const std::string up_fields="\"single_test_UP_sent\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+
             ",\"actual_UP\":"+(actual_up(s,g.offset,g.generation).empty()?"null":quote(actual_up(s,g.offset,g.generation)))+
-            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"not_NormalUp_evidence\":true";
+            ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"not_NormalUp_evidence\":true,"+abort_up.json();
         if(matching_up)s.log.check("I08_matching_test_UP_actually_observed",true,up_fields);
         else{s.log.failed=true;s.log.emit("case","\"case\":\"I08_matching_test_UP_actually_observed\",\"result\":\"FAIL\","+up_fields);}
         // Bounded observation following one actual post-revocation cursor

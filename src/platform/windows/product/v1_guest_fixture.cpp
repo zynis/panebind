@@ -852,13 +852,14 @@ std::string actual_up(State& s,std::size_t offset,std::uint64_t generation,int p
 }
 struct AbortCleanupUpReceipt {
     bool matched{},status_requested{},status_observed{};DWORD status_exit{STILL_ACTIVE};
-    std::string status,ended,gone;
+    std::string status,ended,gone,released;
     std::string json()const{
         return "\"evidence_scope\":\"actual_LL_cleanup_UP_after_abort_not_NormalUp\",\"matching_abort_cleanup_UP\":"+
             std::string(matched?"true":"false")+",\"single_public_status_requested\":"+(status_requested?"true":"false")+
             ",\"public_status_exit\":"+std::to_string(status_exit)+",\"fresh_public_status_observed\":"+(status_observed?"true":"false")+
             ",\"actual_status_receipt\":"+quote(status)+",\"actual_non_NormalUp_end\":"+quote(ended)+
-            ",\"actual_abort_resource_cleanup\":"+quote(gone)+",\"target_UP_delivery_claimed\":false,\"inflight_completion_inferred\":false";
+            ",\"actual_abort_resource_cleanup\":"+quote(gone)+",\"actual_capture_cleanup_observation\":"+quote(released)+
+            ",\"target_UP_delivery_claimed\":false,\"inflight_completion_inferred\":false";
     }
 };
 AbortCleanupUpReceipt abort_cleanup_up_receipt(State& s,std::size_t offset,std::uint64_t generation){
@@ -872,12 +873,14 @@ AbortCleanupUpReceipt abort_cleanup_up_receipt(State& s,std::size_t offset,std::
     out.status_requested=launch(s,L"--status",true,&out.status_exit);
     out.matched=wait([&]{
         out.status=record(s,status_mark,"status");out.status_observed=!out.status.empty();
-        out.ended=record(s,offset,"gesture_end",generation);out.gone.clear();
+        out.ended=record(s,offset,"gesture_end",generation);out.gone.clear();out.released.clear();
         const auto text=read(s.product_log);std::istringstream rows(offset<text.size()?text.substr(offset):std::string{});std::string row;
-        while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
-            row.find("\"fact\":\"isolation_gone\"")!=row.npos&&number(row,"\"generation\":")==generation)out.gone=row;
+        while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&number(row,"\"generation\":")==generation){
+            if(row.find("\"fact\":\"isolation_gone\"")!=row.npos)out.gone=row;
+            if(row.find("\"fact\":\"capture_released\"")!=row.npos)out.released=row;
+        }
         return out.status_requested&&out.status_exit==0&&out.status_observed&&
-            product::guest::matching_abort_cleanup_up(out.status,out.ended,out.gone,identity);
+            product::guest::matching_abort_cleanup_up(out.status,out.ended,out.gone,identity,out.released);
     },1000);
     return out;
 }
@@ -2672,6 +2675,11 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
         s.log.check("independent_defaults_actual_saved_and_readback",restored==expected&&!settings_guest_run_value().exists&&idle(facts)&&
             facts.find("\"enabled\":true")!=facts.npos,"\"stage\":"+quote(stage)+",\"test_setup_only_not_failed_case_PASS\":true");
     }
+    // Enabled/idle is not evidence that the service still admits input. Do
+    // not send a later scenario's DOWN after a known resource-health failure.
+    // This is the service's report, not a claim to query silent LL-hook loss.
+    s.log.check("independent_input_service_reported_healthy",facts.find("\"hook_owner_running\":true")!=facts.npos,
+        "\"stage\":"+quote(stage)+",\"enabled_and_idle_not_health_proof\":true,\"silent_hook_health_query_claimed\":false");
 }
 #include "platform/windows/product/v1_guest_terminal_case.h"
 void independent_entry_flow(State& s,bool core_and_applications=false){
