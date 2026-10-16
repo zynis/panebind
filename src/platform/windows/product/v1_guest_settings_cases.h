@@ -243,11 +243,16 @@ void settings_guest_startup(State& s){
                 s.log.emit("test_cleanup","\"resource\":\"exact_test_created_startup_value\",\"deleted\":"+std::string(result==ERROR_SUCCESS?"true":"false")+",\"product_GUI_PASS_inferred\":false");}}catch(...){}throw;}
 }
 void settings_guest_effect_layout(State& s){
-    constexpr std::array<Rect,3> layout{{{120,80,360,440},{380,80,640,260},{380,260,640,440}}};
-    for(std::size_t n=0;n<3;++n)s.log.check("settings_effect_exact_owned_setup",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,layout[n]));
+    // Give the standard caption real space at 150% DPI. Only the source width
+    // and both targets' X coordinates change: the 20 px gap, +14/+3 intent,
+    // 6 px/3 px residual, and vertical alignment oracle remain independent.
+    constexpr std::array<Rect,3> layout{{{120,80,520,440},{540,80,800,260},{540,260,800,440}}};
+    s.log.emit("test_setup","\"purpose\":\"settings_effect_owned_caption_space\",\"source_visible_width\":400,\"initial_horizontal_gap\":20,\"product_placement_claimed\":false");
+    for(std::size_t n=0;n<3;++n)s.log.check("settings_effect_exact_owned_setup",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,layout[n]),
+        "\"test_setup\":true,\"member\":"+std::to_string(n)+",\"expected_visible\":"+rect(layout[n]));
 }
 void settings_guest_move_effect(State& s,bool snap,std::string_view name){
-    settings_guest_effect_layout(s);const auto g=down(s,0);const Rect expected=snap?Rect{140,80,380,440}:Rect{134,83,374,443};
+    settings_guest_effect_layout(s);const auto g=down(s,0);const Rect expected=snap?Rect{140,80,540,440}:Rect{134,83,534,443};
     phase(s,0,g,14,3,expected,std::string(name),true);up(s,0,g,expected);
 }
 void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_view stage){
@@ -317,6 +322,7 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
 }
 void settings_guest_exclusion(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);
+    settings_guest_effect_layout(s);
     foreground(s,s.frames[0].hwnd);const auto point=hit_point(s.frames[0].hwnd,HTCAPTION);if(!point)throw std::runtime_error("rule_exact_source_caption_missing");cursor(s,*point);Sleep(100);
     auto gui=gui_open(s);gui_page_select(s,gui,4);
     // Exercise cancellation from the same multiline EDIT that receives focus

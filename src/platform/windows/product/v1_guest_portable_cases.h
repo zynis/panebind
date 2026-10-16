@@ -44,11 +44,14 @@ void portable_stop_current(State& s,std::string_view stage){
         ",\"ordinary_mode_no_diagnostic_argument\":true,\"guest_destruction_used\":false");
 }
 void portable_actual_move(State& s,bool magnetic,std::string_view stage){
-    constexpr std::array<Rect,3> baseline{{{120,80,360,440},{380,80,640,260},{380,260,640,440}}};
+    // Widen the exact owned source, not the hit-test gate. Keep the original
+    // gap and cursor displacement so the independent attraction oracle is
+    // unchanged; all targets move right by the same added source width.
+    constexpr std::array<Rect,3> baseline{{{120,80,520,440},{540,80,800,260},{540,260,800,440}}};
     for(std::size_t n=0;n<3;++n){
         if(s.applications[n]||s.explorer[n]||!own(s,s.frames[n].hwnd))throw std::runtime_error("portable_Move_requires_only_exact_owned_frames");
         ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);
-        s.log.check("portable_actual_owned_layout",fixture_rect(s.frames[n].hwnd,baseline[n]),"\"member\":"+std::to_string(n));
+        s.log.check("portable_actual_owned_layout",fixture_rect(s.frames[n].hwnd,baseline[n]),"\"test_setup\":true,\"member\":"+std::to_string(n)+",\"expected_visible\":"+rect(baseline[n]));
     }
     const auto dpi=GetDpiForWindow(s.frames[0].hwnd);
     // This independent geometry oracle only applies where 10 DIP attracts a
@@ -56,7 +59,7 @@ void portable_actual_move(State& s,bool magnetic,std::string_view stage){
     // fit a product result. Windows may reject unsupported layouts separately.
     if(dpi<96||dpi>192)throw std::runtime_error("portable_geometry_oracle_requires_recorded_100_to_200_percent_DPI");
     const auto g=down(s,0);Sleep(60);cursor(s,{g.anchor.x+14,g.anchor.y+3});
-    const auto expected=magnetic?Rect{140,80,380,440}:Rect{134,83,374,443};
+    const auto expected=magnetic?Rect{140,80,540,440}:Rect{134,83,534,443};
     const bool geometry=wait([&]{return visible(s.frames[0].hwnd)==expected;});
     const auto actual=visible(s.frames[0].hwnd);
     s.log.check("portable_ordinary_entry_actual_Move_effect",geometry&&visible(s.frames[1].hwnd)==baseline[1]&&visible(s.frames[2].hwnd)==baseline[2],
