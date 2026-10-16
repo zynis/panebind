@@ -1,0 +1,55 @@
+PaneBind R2 0c710 portable independent contract review
+Record date: 2026-10-16 (Asia/Shanghai)
+Record kind: read-only exec_command tool-output transcription, not original stdout, not a new guest run.
+Exact review HEAD not separately captured; no inferred source identity for the reviewing shell.
+
+Product source: 4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62
+Product Release SHA-256: 458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C
+PackageId: 0c7107367dfa4f48b7466455b0fda8ab
+ZIP SHA-256: 0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F
+Manifest SHA-256: 25978E28E35AD04CE28C5540BAE49BBEB33B392B70AD74ACF5F4A6A793D56003
+Actual guest run: d85e14904c7f4dbba0b3c08759db478c
+Guest driver source: 7e174bf83ae461ed24c0c7c144a9cd8615706285
+Guest driver Release SHA-256: 6B83975D5015A1A2F8408A59A48352E369BED13A6AF252E7F5C1820BC5A00A2A
+Original guest evidence and digest: see EV-D85-FIXTURE in index.json.
+
+Tool chunk 0cc9c5 independently read the seven actual collected payload files.
+All normalized names, individual sizes and SHA-256 matched the original manifest.
+panebind.exe: 839168 bytes / 458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C / MATCH
+portable.flag: 31 bytes / E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97 / MATCH
+LICENSE: 1099 bytes / F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C / MATCH
+Chinese quick start: 11822 bytes / 314A8BB3ED1816B51C958A616C02A50BD6E1B4EFAD25608E34E41CCA92732056 / MATCH
+Chinese configuration notes: 3063 bytes / 2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA / MATCH
+Chinese known issues: 5128 bytes / 2EC145F5F735F8158DB48FE9CE83FFF8FA72F5CDD5B7D380BB62F1965D2171A5 / MATCH
+manifest.json: 5218 bytes / 25978E28E35AD04CE28C5540BAE49BBEB33B392B70AD74ACF5F4A6A793D56003 / MATCH
+
+Tool chunk 3bbc37 ran actual dumpbin /NOLOGO /DEPENDENTS on the collected package EXE.
+The 11 actual imports equal the manifest system_imports, case-normalized:
+advapi32.dll, api-ms-win-core-synch-l1-2-0.dll, comctl32.dll, comdlg32.dll,
+dwmapi.dll, gdi32.dll, kernel32.dll, ole32.dll, shell32.dll, user32.dll, wtsapi32.dll.
+No missing external/versioned C++ runtime import was hidden by the manifest.
+
+Tool chunk 1be46e independently checked unchanged real tool code:
+scripts/v1-prepare-portable.ps1: 5498C7E97BFC9E053CBC035BF6F24EDA09B898AA65AB7C1E2C8D3BCD22CD5E62
+scripts/v1-package-identity.ps1: 423595D81EBAE96243B4FA63E39F77647253A8E5F925BD6DB0C62AB849ACE82E
+tests/check-v1-package-identity.ps1: CC918DCC91C6BC453C35E25F9BF56FE611FD448B5ECEF8CF24C6E393A01F0341
+These are exactly the files from the preserved actual 25/25 negative checks in
+portable-contract-negatives-transcript.txt. The actual Prepare-PortableTestPackage
+AST function text is unchanged from negative-test commit d83f61a (LF normalized).
+Thus those missing-file rejection and external-dependency rejection checks are
+reused as unchanged tool evidence, not falsely rerun on a new product or guest.
+
+Actual d85 guest evidence:
+555 seven archived files verified, unseeded configuration.
+562 actual normal empty-argument launch from the independent extracted package.
+564 unique visible Chinese settings existed before any --settings command.
+575 this exact normal product PID6532 exited with actual shutdown resource flags.
+579 actual post-stop client counts [4,4] -> [5,5], not guest destruction.
+574 unrelated extra geometry substep failed before DOWN because no safe caption
+candidate was found by the driver; requested hit:2 is not an actual hit receipt.
+No successful Move or saved-setting effect is inferred for that failed substep.
+581 was an unrequested extra check, with no input sent; not a second stop failure.
+
+Scope: supports the independent M12-F03/B32 portable package contract only.
+Does not grant M12 module, I01/I12, tray, missing-UP, Full, version acceptance,
+host trial or HUMAN_UAT PASS. All d85 failed subchains remain failed.

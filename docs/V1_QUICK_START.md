@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前Release便携候选为`0c7107367dfa4f48b7466455b0fda8ab`，产品源码为`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`，EXE SHA-256为`458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C`，ZIP SHA-256为`0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F`。干净guest的d85／36fd批次已核对七文件、无参数可见中文设置、正常退出及真实客户鼠标投递恢复；额外Move验证在驱动标题栏预检失败，未发送该次DOWN，不能记作Move通过。30bf在同一产品EXE实际完成A／Ctrl A／B／C及原生Resize的部分闭环，但后续post-Resize A仍缺匹配UP；Terminal类别在该次测试范围通过。旧2632包及9e5／8189结果只保留历史身份，不换绑。**整版仍为PARTIAL，D08 S1未关闭，不宜宿主试用**；普通Explorer、完整五类应用、显示矩阵和托盘尚未通过，Raw计数不能补成NormalUp，真人UAT仍PENDING。
+本轮沿用的Release产品源码为`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`，EXE SHA-256为`458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C`；你取得的ZIP身份以随包manifest为准。历史已测便携包`0c7107367dfa4f48b7466455b0fda8ab`的ZIP SHA-256为`0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F`。干净guest的d85／36fd批次已核对该包七文件、无参数可见中文设置、正常退出及真实客户鼠标投递恢复；额外Move验证在驱动标题栏预检失败，未发送该次DOWN，不能记作Move通过。30bf在同一产品EXE实际完成A／Ctrl A／B／C及原生Resize的部分闭环，但后续post-Resize A仍缺匹配UP；Terminal类别在该次测试范围通过。旧2632包及9e5／8189结果只保留历史身份，不换绑。**整版仍为PARTIAL，D08 S1未关闭，不宜宿主试用**；普通Explorer、完整五类应用、显示矩阵和托盘尚未通过，Raw计数不能补成NormalUp，真人UAT仍PENDING。
 
 已测ZIP保持原字节，不因本次文档更新重打包；本指南和最新交付报告是单独附送的最新版说明，不声称ZIP内部文档已同步更新或重新实测。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
 
