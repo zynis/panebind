@@ -17,6 +17,7 @@
 #include <tlhelp32.h>
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"
+#include "platform/windows/product/v1_guest_up_evidence.h"
 #include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "core/v1/caption_hit_guard.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
@@ -732,7 +733,8 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
 }
 product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
 #include "platform/windows/product/v1_guest_hook_observer.h"
-void up(State& s,std::size_t source,const Gesture& g,Rect expected){
+void up(State& s,std::size_t source,const Gesture& g,Rect expected,
+    product::guest::UpEvidenceMode evidence_mode=product::guest::UpEvidenceMode::DiagnosticEvent){
     const auto mark=read(s.product_log).size();const auto raw_before=raw_mouse_observer_json();
     // Install after this product instance, so this passive observer is ahead
     // of it for the single planned UP. A missing product callback can now be
@@ -746,9 +748,23 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"observation\":"+hook_observer.json());
         normal_release_with_final_cursor(s,source_window(s,source));attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
+        std::string status;bool status_requested=false,status_observed=false;DWORD status_exit=STILL_ACTIVE;
+        if(observed&&evidence_mode==product::guest::UpEvidenceMode::StatusSnapshot){
+            // A new public command AFTER this same-generation NormalUp, not a
+            // cached shutdown receipt and not an implicit diagnostic fallback.
+            const auto status_mark=read(s.product_log).size();status_requested=launch(s,L"--status",true,&status_exit);
+            status_observed=status_requested&&wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
+        }
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
         const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
+        const product::guest::UpEvidenceIdentity up_identity{s.product_pid,s.product_source,g.generation,s.left_up_send_qpc};
+        const bool matching_product_UP=product::guest::accepted_up_evidence(evidence_mode,!actual_LL_UP.empty(),
+            status_requested&&status_observed&&status_exit==0?std::string_view(status):std::string_view{},up_identity);
+        const std::string up_evidence_fields="\"UP_evidence_mode\":"+quote(evidence_mode==product::guest::UpEvidenceMode::StatusSnapshot?"public_status_snapshot":"diagnostic_event")+
+            ",\"public_status_requested\":"+(status_requested?"true":"false")+",\"public_status_command_exit\":"+std::to_string(status_exit)+
+            ",\"public_status_observed\":"+(status_observed?"true":"false")+",\"single_UP_send_before_qpc\":"+std::to_string(s.left_up_send_qpc)+
+            ",\"matching_product_UP_evidence\":"+(matching_product_UP?"true":"false")+",\"public_status_receipt\":"+(status.empty()?"null":quote(status));
         const bool hook_stopped=hook_observer.stop();
         s.log.check("guest_passive_UP_observer_removed",hook_stopped,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());
@@ -759,9 +775,9 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"phase\":\"after_existing_normal_wait\",\"single_test_UP_attempted\":true,\"single_test_UP_call_returned\":true,\"normal_end_observed\":"+
             (observed?"true":"false")+",\"actual_matching_LL_UP\":"+(actual_LL_UP.empty()?"null":quote(actual_LL_UP))+
             ",\"production_end\":"+(end.empty()?"null":quote(end))+",\"fixture_Raw_before_single_UP\":"+raw_before+",\"fixture_Raw_after_normal_wait\":"+raw_after+
-            ",\"passive_head_hook\":"+hook_observer.json()+
+            ",\"passive_head_hook\":"+hook_observer.json()+","+up_evidence_fields+
             ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"Raw_does_not_change_original_assertion_or_authority\":true");raw_logged=true;
-        s.log.check("normal_up_and_no_late_geometry",observed&&!actual_LL_UP.empty()&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
+        s.log.check("normal_up_and_no_late_geometry",observed&&matching_product_UP&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
             "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
             ",\"source_thread_capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
             ",\"source_GUI_known\":"+(gui_read?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
@@ -769,7 +785,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"source_GUI_owner_error\":"+std::to_string(context.owner_error)+",\"source_GUI_foreground_succeeded\":"+(context.foreground_succeeded?"true":"false")+
             ",\"source_GUI_foreground_error\":"+std::to_string(context.foreground_error)+",\"source_GUI_foreground_before\":"+
             std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
-            std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+",\"production_end\":"+quote(end));
+            std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+",\"production_end\":"+quote(end)+","+up_evidence_fields);
     }catch(...){
         attempted=s.left_up_attempted;
         const bool hook_stopped=hook_observer.stop();

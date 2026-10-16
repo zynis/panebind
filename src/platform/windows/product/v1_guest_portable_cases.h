@@ -66,7 +66,7 @@ void portable_actual_move(State& s,bool magnetic,std::string_view stage){
         "\"stage\":"+quote(stage)+",\"source_dpi\":"+std::to_string(dpi)+",\"generation\":"+std::to_string(g.generation)+
         ",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
         ",\"evidence_kind\":\"independent_actual_geometry_and_real_START_UP\",\"native_API_receipt_claimed\":false");
-    up(s,0,g,expected);
+    up(s,0,g,expected,product::guest::UpEvidenceMode::StatusSnapshot);
 }
 void owned_portable_zip_entry_case(State& s){
     settings_guest_scope(s);
