@@ -7,6 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <aclapi.h>
 #include <commctrl.h>
 #include <dwmapi.h>
 #include <shellapi.h>
@@ -250,6 +251,9 @@ struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
     std::string configuration,suite{"Full"},product_source;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
     HANDLE process{};DWORD product_pid{},owner{};
+    // Set only while the exact guest-local diagnostic failure copy is active.
+    // Not an argument or a general product-path/permission override.
+    bool diagnostic_export_failure_local{};
     // Driver send ledger only: successful insertion is not native delivery or
     // physical button state. A separate product hook receipt proves receipt.
     bool left{},control{},left_up_attempted{};std::uint64_t left_down_send_qpc{},left_up_send_qpc{};
@@ -2393,6 +2397,7 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
     phase("five_button_mapping",owned_mouse_mapping_cases);
     phase("settings_import_export",settings_guest_import_export);
     phase("settings_save_failure",settings_guest_save_failure);
+    phase("settings_diagnostic_export_failure",settings_guest_diagnostic_export_failure);
     phase("settings_corrupt_restart",settings_guest_corrupt_restart);
     phase("tray",owned_tray_entry_cases);
     // These are independent entry cases, not the Full historical chain.

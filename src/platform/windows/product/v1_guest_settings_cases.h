@@ -7,11 +7,16 @@
 void settings_guest_scope(State& s){
     std::array<wchar_t,128> user{};DWORD count=static_cast<DWORD>(user.size());
     const auto suffix=s.configuration=="Debug"?L"Debug":s.configuration=="Release"?L"Release":L"";
+    const auto local=fs::path(L"C:\\PaneBindV1\\ExportFailure")/s.run/suffix;
+    const bool exact_run_copy=s.product==s.output/(s.run+L"-product-"+suffix)/L"panebind.exe";
+    const bool exact_local_copy=s.diagnostic_export_failure_local&&s.product==local/L"panebind.exe"&&
+        plain_directory(local)&&marker(local/L"export-failure.marker",s.run)&&
+        !hash(s.input_product).empty()&&hash(s.product)==hash(s.input_product);
     if(!desktop()||!GetUserNameW(user.data(),&count)||!equal(user.data(),L"WDAGUtilityAccount")||
        s.run.size()!=32||!std::all_of(s.run.begin(),s.run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');})||
        !equal(s.output.wstring(),L"C:\\PaneBindV1\\Output")||!plain_directory(s.output)||
        !marker(s.output/L"panebind-v1-output.marker",s.run)||
-       s.product!=s.output/(s.run+L"-product-"+suffix)/L"panebind.exe"||
+       (!exact_run_copy&&!exact_local_copy)||
        !plain_directory(s.product.parent_path())||!s.process||!medium(s.process)||
        WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT)
         throw std::runtime_error("settings_cases_exact_Medium_disposable_guest_required");
@@ -777,6 +782,199 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
     gui_press(s,gui,VK_ESCAPE);
     s.log.check("settings_GUI_diagnostic_return_and_configuration_unchanged",wait([&]{return !IsWindow(gui.root);})&&read(configuration)==original,
         "\"actual_Escape\":true,\"settings_saved_by_test\":false,\"tray_or_full_M12_PASS_inferred\":false");
+}
+// Real GUI fault on a fresh LOCAL guest copy. Never change a mapped Output
+// DACL: that directory is backed by the host I: evidence directory.
+void settings_guest_diagnostic_export_failure(State& s){
+    settings_guest_scope(s);
+    const auto original_product=s.product,original_log=s.product_log;
+    const auto original_config=read(original_product.parent_path()/L"settings.ini"),binary_hash=hash(original_product);
+    const auto original_settings=settings_guest_configuration(s);
+    if(s.diagnostic_export_failure_local||s.left||s.control||s.explorer[0]||s.applications[0]||original_settings.startup||
+       original_config.empty()||binary_hash.empty()||binary_hash!=hash(s.input_product))
+        throw std::runtime_error("diagnostic_export_failure_requires_idle_exact_owned_portable_scope");
+    const auto suffix=s.configuration=="Debug"?L"Debug":L"Release";
+    const auto base=fs::path(L"C:\\PaneBindV1\\ExportFailure"),run_parent=base/s.run,local=run_parent/suffix;
+    const auto evidence=s.output/(s.run+L"-diagnostic-export-failure-"+suffix);
+    if(fs::exists(local)||fs::exists(evidence))throw std::runtime_error("diagnostic_export_failure_requires_fresh_local_and_evidence_paths");
+    for(const auto& parent:std::array{fs::path(L"C:\\PaneBindV1"),base}){
+        if(!fs::exists(parent)&&!CreateDirectoryW(parent.c_str(),nullptr))throw std::runtime_error("diagnostic_local_parent_create_failed");
+        if(!plain_directory(parent))throw std::runtime_error("diagnostic_local_parent_not_plain");
+    }
+    const auto new_marker=[&](const fs::path& parent){const auto value=utf8(s.run)+"\n";
+        Handle file(CreateFileW((parent/L"export-failure.marker").c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));DWORD actual{};
+        if(file.value==INVALID_HANDLE_VALUE||!WriteFile(file.value,value.data(),static_cast<DWORD>(value.size()),&actual,nullptr)||actual!=value.size()||!FlushFileBuffers(file.value))
+            throw std::runtime_error("diagnostic_local_fresh_marker_write_failed");};
+    if(fs::exists(run_parent)){
+        if(!plain_directory(run_parent)||!marker(run_parent/L"export-failure.marker",s.run))throw std::runtime_error("diagnostic_existing_Run_parent_ownership_unknown");
+    }else{if(!CreateDirectoryW(run_parent.c_str(),nullptr)||!plain_directory(run_parent))throw std::runtime_error("diagnostic_Run_parent_create_failed");new_marker(run_parent);}
+    if(!CreateDirectoryW(local.c_str(),nullptr)||!plain_directory(local))throw std::runtime_error("diagnostic_fresh_local_directory_create_failed");
+    for(const auto* name:{L"panebind.exe",L"portable.flag",L"settings.ini"}){
+        const auto from=original_product.parent_path()/name,to=local/name;const auto attributes=GetFileAttributesW(from.c_str());const auto expected=hash(from);
+        if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||expected.empty()||
+           !CopyFileW(from.c_str(),to.c_str(),TRUE)||hash(to)!=expected)throw std::runtime_error("diagnostic_local_copy_not_exact_new_plain_file");
+        s.log.emit("diagnostic_export_failure_local_copy","\"filename\":"+quote(utf8(name))+",\"sha256\":"+quote(expected)+",\"no_product_rebuild\":true");
+    }
+    new_marker(local);
+    Handle directory(CreateFileW(local.c_str(),READ_CONTROL|WRITE_DAC|FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    BY_HANDLE_FILE_INFORMATION identity{};PSECURITY_DESCRIPTOR raw_security{};PACL original_acl{};
+    if(directory.value==INVALID_HANDLE_VALUE||!GetFileInformationByHandle(directory.value,&identity)||
+       !(identity.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)||(identity.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)||
+       GetSecurityInfo(directory.value,SE_FILE_OBJECT,DACL_SECURITY_INFORMATION,nullptr,nullptr,&original_acl,nullptr,&raw_security)!=ERROR_SUCCESS||
+       !original_acl||!IsValidAcl(original_acl)){
+        if(raw_security)LocalFree(raw_security);throw std::runtime_error("diagnostic_local_original_DACL_or_identity_unknown");}
+    const auto security=std::unique_ptr<void,decltype(&LocalFree)>(raw_security,&LocalFree);
+    SECURITY_DESCRIPTOR_CONTROL control{};DWORD revision{};
+    if(!GetSecurityDescriptorControl(raw_security,&control,&revision))throw std::runtime_error("diagnostic_local_DACL_control_unknown");
+    const SECURITY_INFORMATION acl_information=DACL_SECURITY_INFORMATION|((control&SE_DACL_PROTECTED)?PROTECTED_DACL_SECURITY_INFORMATION:UNPROTECTED_DACL_SECURITY_INFORMATION);
+    std::vector<unsigned char> old_acl(original_acl->AclSize);std::copy_n(reinterpret_cast<unsigned char*>(original_acl),old_acl.size(),old_acl.begin());
+    const auto same_directory=[&]{BY_HANDLE_FILE_INFORMATION held{},path{};
+        Handle fresh(CreateFileW(local.c_str(),FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+        return fresh.value!=INVALID_HANDLE_VALUE&&GetFileInformationByHandle(directory.value,&held)&&GetFileInformationByHandle(fresh.value,&path)&&
+            (path.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)&&!(path.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)&&
+            held.dwVolumeSerialNumber==identity.dwVolumeSerialNumber&&held.nFileIndexHigh==identity.nFileIndexHigh&&held.nFileIndexLow==identity.nFileIndexLow&&
+            path.dwVolumeSerialNumber==identity.dwVolumeSerialNumber&&path.nFileIndexHigh==identity.nFileIndexHigh&&path.nFileIndexLow==identity.nFileIndexLow;
+    };
+    const auto current_acl=[&]{PSECURITY_DESCRIPTOR descriptor{};PACL acl{};std::vector<unsigned char> bytes;
+        if(same_directory()&&GetSecurityInfo(directory.value,SE_FILE_OBJECT,DACL_SECURITY_INFORMATION,nullptr,nullptr,&acl,nullptr,&descriptor)==ERROR_SUCCESS&&acl&&IsValidAcl(acl)){
+            SECURITY_DESCRIPTOR_CONTROL actual_control{};DWORD actual_revision{};
+            if(GetSecurityDescriptorControl(descriptor,&actual_control,&actual_revision)&&
+               (actual_control&SE_DACL_PROTECTED)==(control&SE_DACL_PROTECTED)){
+                bytes.resize(acl->AclSize);std::copy_n(reinterpret_cast<unsigned char*>(acl),bytes.size(),bytes.begin());}}
+        if(descriptor)LocalFree(descriptor);return bytes;};
+    bool fault_may_exist=false,original_stopped=false,local_started=false,visible_failure=false,negative_checked=false;
+    std::vector<unsigned char> fault_acl;std::string failure,observed_notice;
+    const auto restore_acl=[&]{
+        if(!fault_may_exist)return current_acl()==old_acl;
+        const auto before=current_acl();const bool exact=same_directory()&&(before==fault_acl||before==old_acl);
+        const bool attempted=exact&&before!=old_acl;const DWORD result=attempted?SetSecurityInfo(directory.value,SE_FILE_OBJECT,acl_information,nullptr,nullptr,
+            reinterpret_cast<PACL>(old_acl.data()),nullptr):ERROR_SUCCESS;
+        const bool restored=exact&&result==ERROR_SUCCESS&&current_acl()==old_acl;
+        s.log.emit("diagnostic_export_failure_DACL_cleanup","\"exact_guest_local_directory\":"+std::string(exact?"true":"false")+
+            ",\"SetSecurityInfo_attempted\":"+(attempted?"true":"false")+",\"native_error\":"+std::to_string(result)+
+            ",\"original_DACL_bytes_restored\":"+(restored?"true":"false")+",\"mapped_Output_DACL_changed\":false");
+        if(restored)fault_may_exist=false;return restored;
+    };
+    const auto normal_stop=[&](std::string_view stage){
+        if(!s.process)return;const auto pid=s.product_pid;const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();cleanup(s);
+        const auto shutdown=record(s,mark,"shutdown"),rows=read(s.log.path).substr(driver_mark);
+        std::string stopped,client;std::istringstream stop_rows(rows);std::string row;
+        while(std::getline(stop_rows,row))if(row.ends_with('}')){
+            if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
+            if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)client=row;}
+        s.log.check("diagnostic_export_failure_normal_stop",!s.process&&number(shutdown,"\"process_id\":")==pid&&
+            shutdown.find("\"own_hooks_stopped\":true")!=shutdown.npos&&shutdown.find("\"own_overlay_destroyed\":true")!=shutdown.npos&&
+            shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&shutdown.find("\"visual_recovery_stopped\":true")!=shutdown.npos&&
+            shutdown.find("\"visual_restore_confirmed\":true")!=shutdown.npos&&
+            shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&rows.find("\"own_product_forced_termination\":true")==rows.npos&&
+            stopped.find("\"quit_command_completed\":true")!=stopped.npos&&stopped.find("\"process_exit_observed\":true")!=stopped.npos&&
+            stopped.find("\"product_exit_code\":0")!=stopped.npos&&client.find("\"check_requested\":true")!=client.npos&&
+            client.find("\"executed\":true")!=client.npos&&client.find("\"actual_down_up_delivered\":true")!=client.npos&&
+            client.find("\"DOWN_SendInput_called\":true")!=client.npos&&client.find("\"UP_SendInput_called\":true")!=client.npos,
+            "\"stage\":"+quote(stage)+",\"shutdown\":"+quote(shutdown)+",\"product_stop\":"+quote(stopped)+",\"actual_client_recovery\":"+quote(client));
+    };
+    const auto diagnostic_button=[&](const SettingsGui& gui){HWND found{};unsigned count{};
+        for(HWND h=GetWindow(gui.root,GW_CHILD);h;h=GetWindow(h,GW_HWNDNEXT))if(gui_class(h)==L"Button"&&gui_identity(s,gui,h)&&
+            gui_text(s,gui,h)==L"诊断 (&D)"&&IsWindowVisible(h)&&IsWindowEnabled(h)){found=h;++count;}
+        if(count!=1)throw std::runtime_error("diagnostic_failure_exact_actual_button_not_unique");return found;};
+    try{
+        original_stopped=true;normal_stop("original_run_before_local_copy");
+        if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))throw std::runtime_error("diagnostic_original_instance_still_present");
+        s.product=local/L"panebind.exe";s.product_log=local/L"panebind.log.jsonl";s.diagnostic_export_failure_local=true;
+        s.log.check("diagnostic_failure_local_ordinary_entry",launch(s,L"",false));local_started=true;
+        s.log.check("diagnostic_failure_local_identity",wait([&]{return number(record(s,0,"startup"),"\"process_id\":")==s.product_pid;})&&
+            hash(s.product)==binary_hash&&read(local/L"settings.ini")==original_config&&settings_guest_configuration(s)==original_settings,
+            "\"actual_entry\":\"empty_arguments_same_EXE_hash_guest_local_copy\",\"no_diagnostic_flag\":true");
+        const auto gui=gui_open(s);const auto button=diagnostic_button(gui);const auto previous=settings_guest_diagnostic_inventory(s);
+        Handle caller_token,product_token;HANDLE raw{};
+        if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&raw))throw std::runtime_error("diagnostic_failure_current_token_query_failed");caller_token.value=raw;
+        if(!OpenProcessToken(s.process,TOKEN_QUERY,&raw))throw std::runtime_error("diagnostic_failure_product_token_query_failed");product_token.value=raw;
+        const auto user=[](HANDLE token){DWORD size{};GetTokenInformation(token,TokenUser,nullptr,0,&size);
+            if(size<sizeof(TOKEN_USER)||size>512)throw std::runtime_error("diagnostic_failure_TokenUser_size_not_bounded");std::vector<unsigned char> bytes(size);
+            if(!GetTokenInformation(token,TokenUser,bytes.data(),size,&size))throw std::runtime_error("diagnostic_failure_TokenUser_unknown");return bytes;};
+        auto caller_user=user(caller_token.value),product_user=user(product_token.value);auto sid=reinterpret_cast<TOKEN_USER*>(caller_user.data())->User.Sid;
+        if(!IsValidSid(sid)||!IsValidSid(reinterpret_cast<TOKEN_USER*>(product_user.data())->User.Sid)||
+           !EqualSid(sid,reinterpret_cast<TOKEN_USER*>(product_user.data())->User.Sid)||current_acl()!=old_acl)
+            throw std::runtime_error("diagnostic_failure_same_actual_SID_or_original_DACL_not_confirmed");
+        EXPLICIT_ACCESSW entry{};entry.grfAccessPermissions=FILE_ADD_FILE;entry.grfAccessMode=DENY_ACCESS;entry.grfInheritance=NO_INHERITANCE;
+        BuildTrusteeWithSidW(&entry.Trustee,sid);PACL built{};const DWORD built_error=SetEntriesInAclW(1,&entry,original_acl,&built);
+        const auto built_owner=std::unique_ptr<void,decltype(&LocalFree)>(built,&LocalFree);
+        if(built_error!=ERROR_SUCCESS||!built||!IsValidAcl(built))throw std::runtime_error("diagnostic_failure_bounded_DACL_build_failed");
+        fault_acl.resize(built->AclSize);std::copy_n(reinterpret_cast<unsigned char*>(built),fault_acl.size(),fault_acl.begin());
+        fault_may_exist=true;const DWORD applied=SetSecurityInfo(directory.value,SE_FILE_OBJECT,acl_information,nullptr,nullptr,built,nullptr);
+        s.log.check("diagnostic_failure_exact_local_DACL_applied",applied==ERROR_SUCCESS&&current_acl()==fault_acl,
+            "\"native_error\":"+std::to_string(applied)+",\"denied_right\":\"FILE_ADD_FILE\",\"inheritance\":\"NO_INHERITANCE\",\"same_actual_product_and_driver_SID\":true,\"mapped_Output_DACL_changed\":false");
+        const auto probe=local/L"denied-create-probe.tmp";SetLastError(0);
+        HANDLE denied=CreateFileW(probe.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);const DWORD denied_error=denied==INVALID_HANDLE_VALUE?GetLastError():0;
+        if(denied!=INVALID_HANDLE_VALUE){CloseHandle(denied);if(!DeleteFileW(probe.c_str()))throw std::runtime_error("diagnostic_failure_unexpected_probe_cleanup_failed");}
+        s.log.check("diagnostic_failure_actual_new_file_denied",denied==INVALID_HANDLE_VALUE&&denied_error==ERROR_ACCESS_DENIED,
+            "\"CreateFile_error\":"+std::to_string(denied_error)+",\"not_product_export_evidence\":true");
+        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,button);
+        const bool notice_observed=wait([&]{observed_notice=record(s,mark,"notice");return observed_notice.find("诊断写入失败；未声明导出成功。")!=observed_notice.npos;});
+        SettingsGuestModal actual_modal;unsigned visible_checked{},text_queries{};
+        visible_failure=wait([&]{
+            struct Query {State* state;const SettingsGui* gui;unsigned* text_queries;SettingsGuestModal found;unsigned visited{},matches{};} query{&s,&gui,&text_queries};
+            EnumThreadWindows(gui.tid,[](HWND h,LPARAM p)->BOOL{auto& q=*reinterpret_cast<Query*>(p);if(++q.visited>32)return FALSE;
+                SettingsGuestModal modal{h,q.gui->tid};if(!settings_guest_modal_identity(*q.state,*q.gui,modal))return TRUE;
+                struct Text {unsigned* queries;bool found{};unsigned visited{};} text{q.text_queries};
+                EnumChildWindows(h,[](HWND child,LPARAM raw_text)->BOOL{auto& t=*reinterpret_cast<Text*>(raw_text);if(++t.visited>64)return FALSE;
+                    if(gui_class(child)!=L"Static"||!IsWindowVisible(child))return TRUE;if(*t.queries>=8)return FALSE;++*t.queries;
+                    std::array<wchar_t,1024> value{};DWORD_PTR copied{};
+                    if(SendMessageTimeoutW(child,WM_GETTEXT,value.size(),reinterpret_cast<LPARAM>(value.data()),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&copied)&&
+                       copied<value.size()&&std::wstring_view(value.data(),copied).find(L"诊断写入失败")!=std::wstring_view::npos)t.found=true;return TRUE;
+                },reinterpret_cast<LPARAM>(&text));if(text.found){q.found=modal;++q.matches;}return TRUE;
+            },reinterpret_cast<LPARAM>(&query));visible_checked=query.visited;actual_modal=query.found;return query.matches==1&&GetForegroundWindow()==actual_modal.root;
+        },1000);
+        unsigned artifacts{},children{};for(const auto& file:fs::directory_iterator(local)){
+            if(++children>12)throw std::runtime_error("diagnostic_failure_local_inventory_over_bound");
+            if(file.path().filename().wstring().starts_with(L"diagnostic-"))++artifacts;}
+        negative_checked=notice_observed&&artifacts==previous.size()&&read(local/L"settings.ini")==original_config;
+        s.log.emit("diagnostic_export_failure_observation","\"actual_notice\":"+quote(observed_notice)+",\"ordinary_non_diagnostic_entry\":true,\"visible_error_modal_observed\":"+
+            std::string(visible_failure?"true":"false")+",\"visible_probe_budget_ms\":1000,\"last_owned_thread_windows_checked\":"+std::to_string(visible_checked)+
+            ",\"actual_text_queries\":"+std::to_string(text_queries)+",\"text_query_total_limit\":8,\"per_text_timeout_ms\":100"+
+            ",\"diagnostic_final_or_tmp_artifacts\":"+std::to_string(artifacts)+",\"configuration_bytes_unchanged\":"+
+            (read(local/L"settings.ini")==original_config?"true":"false")+",\"log_notice_is_not_GUI_feedback\":true");
+        if(visible_failure){settings_guest_modal_press(s,gui,actual_modal,VK_RETURN);s.log.check("diagnostic_failure_actual_error_acknowledged",wait([&]{return !IsWindow(actual_modal.root)&&GetForegroundWindow()==gui.root;}));}
+        s.log.check("diagnostic_failure_true_negative_no_fake_package",negative_checked);
+        s.log.check("diagnostic_failure_original_DACL_restored_before_positive",restore_acl());
+        const auto before_success=settings_guest_diagnostic_inventory(s);settings_guest_activate(s,gui,diagnostic_button(gui));
+        settings_guest_diagnostic_result(s,before_success,"settings_footer_after_guest_local_DACL_restoration");
+        gui_press(s,gui,VK_ESCAPE);s.log.check("diagnostic_failure_recovered_GUI_unchanged",wait([&]{return !IsWindow(gui.root);})&&read(local/L"settings.ini")==original_config);
+    }catch(const std::exception& error){failure=error.what();}
+    // Missing visible feedback is judged only AFTER all real cleanup paths.
+    bool acl_restored=false;try{acl_restored=restore_acl();}catch(const std::exception& error){failure+=";DACL_cleanup:";failure+=error.what();}
+    if(local_started||s.product==local/L"panebind.exe")try{normal_stop("guest_local_copy_after_test");}catch(const std::exception& error){failure+=";local_stop:";failure+=error.what();}
+    bool archived=false;
+    try{
+        if(!CreateDirectoryW(evidence.c_str(),nullptr)||!plain_directory(evidence))throw std::runtime_error("diagnostic_failure_new_evidence_directory_failed");
+        unsigned copied{},diagnostics{},children{};for(const auto& file:fs::directory_iterator(local)){const auto name=file.path().filename().wstring();
+            if(++children>12)throw std::runtime_error("diagnostic_failure_local_archive_inventory_over_bound");
+            const bool diagnostic=name.size()>=16&&name.starts_with(L"diagnostic-")&&name.ends_with(L".txt")&&
+                std::all_of(name.begin()+11,name.end()-4,[](wchar_t c){return c>=L'0'&&c<=L'9';});
+            if(name!=L"panebind.log.jsonl"&&!diagnostic&&name!=L"export-failure.marker")continue;
+            const auto attributes=GetFileAttributesW(file.path().c_str());const auto expected=hash(file.path());const auto target=name==L"panebind.log.jsonl"?L"product-log.jsonl":name;
+            if(++copied>4||(diagnostic&&++diagnostics>2)||attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||
+               file.file_size()>(name==L"export-failure.marker"?128u:diagnostic?300u*1024u:2u*1024u*1024u)||
+               (name==L"export-failure.marker"&&!marker(file.path(),s.run))||expected.empty()||
+               !CopyFileW(file.path().c_str(),(evidence/target).c_str(),TRUE)||hash(evidence/target)!=expected)
+                throw std::runtime_error("diagnostic_failure_raw_evidence_copy_not_exact_bounded_plain_file");
+            s.log.emit("diagnostic_export_failure_evidence_file","\"directory\":"+quote(utf8(evidence.filename().wstring()))+",\"filename\":"+quote(utf8(target))+",\"sha256\":"+quote(expected));
+        }archived=copied>=2;
+    }catch(const std::exception& error){failure+=";archive:";failure+=error.what();}
+    s.product=original_product;s.product_log=original_log;s.diagnostic_export_failure_local=false;
+    bool original_restored=!original_stopped;
+    if(original_stopped&&!s.process)try{
+        const auto mark=read(s.product_log).size();original_restored=launch(s,L"--diagnostic",false)&&wait([&]{return number(record(s,mark,"startup"),"\"process_id\":")==s.product_pid;})&&
+            hash(s.product)==binary_hash&&read(original_product.parent_path()/L"settings.ini")==original_config&&settings_guest_configuration(s)==original_settings;
+    }catch(const std::exception& error){failure+=";original_restart:";failure+=error.what();}
+    s.log.emit("diagnostic_export_failure_cleanup","\"original_DACL_restored\":"+std::string(acl_restored?"true":"false")+
+        ",\"raw_evidence_archived\":"+(archived?"true":"false")+",\"original_product_and_configuration_restored\":"+(original_restored?"true":"false")+
+        ",\"guest_local_copy_retained\":true,\"mapped_Output_DACL_changed\":false,\"error\":"+quote(failure));
+    if(!failure.empty()||!acl_restored||!archived||!original_restored)throw std::runtime_error("diagnostic_export_failure_case_or_cleanup_failed:"+failure);
+    s.log.check("diagnostic_export_failure_visible_error_required",negative_checked&&visible_failure,
+        "\"actual_log_notice_not_substituted_for_visible_error\":true,\"failure_does_not_skip_DACL_restore_or_product_restart\":true");
 }
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
