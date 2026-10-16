@@ -1,0 +1,111 @@
+{
+  "evidence_id": "EV-B49-MEDIUM-PROBE",
+  "run_id": "b49deace80fe49899375bf8d36481ea1",
+  "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+  "product_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+  "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
+  "driver_binary_sha256": "B317E71FC71D2110568688B5E98A4294C44368EA17AB233211776A50E7CB3AAD",
+  "probe_source_sha": "718d8f59f2b3156152cec48875c01811573265d7",
+  "original_sha256": "C455B5AD290CD6577E5E17D05BB105D30F74FFEBD0E06D1386D48704DF78A0CF",
+  "scope": "credential-token read-only DACL checks only; no new-account product/Explorer process or input",
+  "record": {
+    "schema": "panebind-v1-medium-environment-probe/1",
+    "utc": "2026-10-16T08:15:12.0342464Z",
+    "run_id": "b49deace80fe49899375bf8d36481ea1",
+    "probe_source_commit": "718d8f59f2b3156152cec48875c01811573265d7",
+    "driver_source_commit": "12968acf512cd24e5dbd53853ab578e468f168a9",
+    "probe_sha256": "327F4D7335C6735108F6E5315D4E9FEA4D6AECE1FB3F86665F0293193760ECD4",
+    "automated_guest_probe": true,
+    "human_uat": "NOT_RUN",
+    "result": {
+      "status": "DENIED",
+      "account_created": true,
+      "account_cleanup_confirmed": true,
+      "gui_environment_ready": false,
+      "product_execution": "NOT_RUN",
+      "explorer_execution": "NOT_RUN",
+      "synthetic_input_sent": false,
+      "existing_acl_changed": false,
+      "existing_account_or_group_changed": false,
+      "original_token_or_policy_changed": false,
+      "password_logged_or_written": false,
+      "bootstrap_desktop": {
+        "session_id": 1,
+        "wts_state": 0,
+        "window_station": "WinSta0",
+        "thread_desktop": "Default",
+        "input_desktop": "Default",
+        "input_uoi_io": true,
+        "thread_uoi_io": true
+      },
+      "created_account_name": "[REDACTED_IDENTITY_OR_TITLE]",
+      "access_checks": [
+        {
+          "object": "WinSta0:READATTRIBUTES|ACCESSGLOBALATOMS|ENUMERATE|READSCREEN",
+          "requested_access": 802,
+          "result": "DENIED",
+          "read_only_access_check": true,
+          "mandatory_integrity_or_actual_process_access_proved": false,
+          "granted_access": 0,
+          "win32_error": 0
+        },
+        {
+          "object": "Default:READOBJECTS|CREATEWINDOW|CREATEMENU|HOOKCONTROL|ENUMERATE|WRITEOBJECTS",
+          "requested_access": 207,
+          "result": "DENIED",
+          "read_only_access_check": true,
+          "mandatory_integrity_or_actual_process_access_proved": false,
+          "granted_access": 0,
+          "win32_error": 0
+        },
+        {
+          "object": "Input:READ|TRAVERSE",
+          "requested_access": 1179817,
+          "result": "ALLOW",
+          "read_only_access_check": true,
+          "mandatory_integrity_or_actual_process_access_proved": false,
+          "granted_access": 1179817,
+          "win32_error": 0
+        },
+        {
+          "object": "Output:READ|WRITE|TRAVERSE",
+          "requested_access": 1180095,
+          "result": "ALLOW",
+          "read_only_access_check": true,
+          "mandatory_integrity_or_actual_process_access_proved": false,
+          "granted_access": 1180095,
+          "win32_error": 0
+        }
+      ],
+      "cleanup": {
+        "delete_attempted": true,
+        "profile_deletion_attempted": false,
+        "sid_query_status": 0,
+        "sid_matches_created_account": true,
+        "NetUserDel_status": 0,
+        "after_query_status": 2221,
+        "result": "EXACT_CREATED_ACCOUNT_REMOVED"
+      },
+      "NetUserAdd_status": 0,
+      "NetUserAdd_parameter_error": 0,
+      "created_sid_query_status": 0,
+      "created_account_sid_sha256": "[REDACTED_IDENTITY_OR_TITLE]",
+      "LogonUser_succeeded": true,
+      "credential_token": {
+        "sid_sha256": "[REDACTED_IDENTITY_OR_TITLE]",
+        "created_account_sid_matches": true,
+        "integrity_rid": 8192,
+        "elevated": false,
+        "admin_enabled": false,
+        "ui_access": false,
+        "app_container": false,
+        "credential_token_session_id": 1,
+        "current_desktop_session_id": 1,
+        "token_session_matches_current": true,
+        "ordinary_security_facts_verified": true,
+        "interactive_child_session_validation": "NOT_RUN"
+      },
+      "reason": "existing_guest_acl_denies_required_access_no_acl_change_attempted"
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 本目录是现有 [V1_ACCEPTANCE.json](../V1_ACCEPTANCE.json) 的脱敏复核材料，不是新任务书，也不自行授予功能或整版 PASS。
 
-先读 [index.json](index.json)：每批绑定原产品源码 SHA／EXE SHA-256、独立 driver 源码 SHA／EXE SHA-256、RunId、manifest 哈希、原始日志的本地相对路径与整文件哈希。四份 JSONL 共152条原始观察，约149 KiB；大体积原件继续只在 ignored `uat/` 保留。
+先读 [index.json](index.json)：每批绑定原产品源码 SHA／EXE SHA-256、独立 driver 源码 SHA／EXE SHA-256、RunId、manifest 哈希、原始日志的本地相对路径与整文件哈希。最初四份历史JSONL共152条原始观察，约149 KiB；后继运行按下方说明增量加入，不覆盖旧记录。大体积原件继续只在 ignored `uat/` 保留。
 
 | 摘录 | 实际范围与限制 |
 | --- | --- |
@@ -32,5 +32,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptan
 本目录`.gitattributes`仅将`*.jsonl`／`*.txt`／`*.json`固定为`text eol=lf`，避免Windows的autocrlf使复核文件在另一checkout变换字节。未改根attributes或用户Git配置，既有摘录原字节哈希保持不变。
 
 增量8189由R产品408ac52与D driver83bf分离：`8189-fixture-selected.jsonl`／`8189-product-selected.jsonl`保留真实快速UP点terminal exact／NormalUp及后继Move子结果、GUI组件、诊断／portable两个错pin失败与正常退出／实际客户投递。新2632 ZIP普通入口因driver错pin未运行，不能用dd60旧入口通过替代。精确guest／任务清理回执与产品stop分别在索引记录；D15只按定向范围关闭，D08仍OPEN。索引中的`records`现含旧批和新批，不修改旧行或哈希。
+
+后继b49由同R产品与D129 driver实际运行`CoreAndApplications`：`b49-fixture-selected.jsonl`保留当前普通／Terminal缺UP（独立guest队首observer也零UP）、恢复／视觉与真实native失败子项、VSCode真实目录探针／hidden根及Edge关闭失败；`b49-medium-probe-selected.json`仅为新普通账号credential／DACL探针，WinSta0／Default DENIED、账号精确清理，不是产品失败或绝对VM要求。
+
+`9e5-fixture-selected.jsonl`为同R／D129修正pin后的原2632 ZIP及诊断真实定向PASS。`portable-contract-negatives-transcript.txt`独立保留实际生产工具函数缺文件／外部依赖拒绝与25/25结果（工具输出转录非原stdout），并结合七文件逐项哈希及真实system imports，支持**仅M12-F03／B32便携功能合同PASS**。模块M12、I12、Full及整版没有因此通过；旧8189两个错pin原失败保留，D16只作定向关闭，D08仍OPEN。最新9e5和b49资源回执与产品正常stop／客户投递分别在索引记录，不以guest销毁替代。
 
 历史实测经 `partial_observation_ids` 回到原产品身份，不因当前 `candidate_identity_ref`、更新 driver 或更新报告而换绑新 EXE。本轮新增产品修复与现场结果另作增量记录，不覆写这些反例。

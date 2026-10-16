@@ -1,0 +1,61 @@
+PaneBind V1 portable contract negative checks
+Record date: 2026-10-16 (Asia/Shanghai)
+Record kind: direct exec_command tool-output transcription; not an original stdout sink or native guest test.
+Tool chunk_id: 3160f4
+Exit code: 0
+Product under acceptance: 408ac527a6bfda7b01a5e83249bd5ed0eca2714d
+Product Release SHA-256: 48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E
+Known guest-package baseline: 718d8f59f2b3156152cec48875c01811573265d7.
+The exact execution HEAD was not separately recorded; it is not inferred from
+the package baseline. New tool edits were uncommitted when this test ran;
+the exact executed working-tree files are bound by the hashes below.
+Exact executed test SHA-256: CC918DCC91C6BC453C35E25F9BF56FE611FD448B5ECEF8CF24C6E393A01F0341
+Actual helper scripts/v1-package-identity.ps1 SHA-256: 423595D81EBAE96243B4FA63E39F77647253A8E5F925BD6DB0C62AB849ACE82E
+Actual guest script SHA-256: 64948C0DBFBD233728BF71A983605DEEC2A43F328038B713660132E2B06DCC7D
+Actual portable packager SHA-256: 5498C7E97BFC9E053CBC035BF6F24EDA09B898AA65AB7C1E2C8D3BCD22CD5E62
+Command: powershell -NoProfile -ExecutionPolicy Bypass -File tests/check-v1-package-identity.ps1
+
+The test calls the real Assert-V1PortableDependencies helper used by the packager.
+System-only imports are accepted; adding msvcp140.dll is rejected rather than omitted.
+It loads only the real Prepare-PortableTestPackage AST function definition; a
+six-file Spec is rejected with the real seven-file-count error before extraction.
+The checked output directory was not created. No product UI or synthetic input
+was run. These negative checks do not rerun or replace the separate 9e5 guest.
+
+Independent read-only package inspection also observed exactly seven ZIP entries,
+matching the immutable Spec's normalized paths, individual sizes and SHA-256;
+ZIP SHA-256 remained 4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2.
+Actual dumpbin /NOLOGO /DEPENDENTS of that ZIP product matched all manifest
+system_imports: advapi32.dll, api-ms-win-core-synch-l1-2-0.dll, comctl32.dll,
+comdlg32.dll, dwmapi.dll, gdi32.dll, kernel32.dll, ole32.dll, shell32.dll,
+user32.dll, wtsapi32.dll. No external/versioned C++ runtime DLL was omitted.
+This inspection did not rebuild/repack/start the product.
+
+Captured tool output:
+PASS: actual b60..dd60 seven-file tool-only history preserves product scope
+PASS: old driver cannot be rebound across actual fixture implementation changes
+PASS: docs-only delivery keeps the actual dd60 driver identity
+PASS: changed product/build/governance path must reject old product: src/platform/windows/product/product_app.cpp
+PASS: changed product/build/governance path must reject old product: src/platform/windows/product/input_service.cpp
+PASS: changed product/build/governance path must reject old product: src/core/v1/gesture.h
+PASS: changed product/build/governance path must reject old product: CMakeLists.txt
+PASS: changed product/build/governance path must reject old product: LICENSE
+PASS: changed product/build/governance path must reject old product: AGENTS.md
+PASS: tool-only path remains outside product identity: docs/reports/V1_ACCEPTANCE.json
+PASS: tool-only path remains outside product identity: scripts/v1-sandbox-guest.ps1
+PASS: tool-only path remains outside product identity: tests/core/v1_input_route_tests.cpp
+PASS: tool-only path remains outside product identity: src/platform/windows/product/v1_guest_settings_cases.h
+PASS: different true product and driver source identities are compatible under exact interface contract
+PASS: product identity is never rewritten as newer driver source
+PASS: old driver without split-identity guard cannot silently pass new package
+PASS: elevated product does not match ordinary product interface
+PASS: actual portable packager accepts reviewed system-only imports
+PASS: actual portable packager rejects an omitted external/versioned runtime dependency
+PASS: test locates the actual guest portable validation function
+PASS: actual guest rejects missing payload file before extraction; no directory or product was created
+PASS: PowerShell parser: scripts/v1-package-identity.ps1
+PASS: PowerShell parser: scripts/v1-prepare-portable.ps1
+PASS: PowerShell parser: scripts/v1-prepare-sandbox.ps1
+PASS: PowerShell parser: scripts/v1-sandbox-guest.ps1
+V1 packaging identity: 25 checks passed; no package, product UI or synthetic input was run.
+
