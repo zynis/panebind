@@ -21,6 +21,7 @@
 #include "platform/windows/product/v1_guest_up_evidence.h"
 #include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
+#include "platform/windows/product/v1_guest_physical_log.h"
 #include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "core/v1/caption_hit_guard.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
@@ -292,24 +293,22 @@ const std::string& read_product(State& s){
         throw std::runtime_error("product_log_actual_process_identity_changed");
     unsigned pair_attempt{};
     const auto physical=[&](const fs::path& path)->std::optional<std::string>{
-        const auto attributes=GetFileAttributesW(path.c_str());
-        if(attributes==INVALID_FILE_ATTRIBUTES){const auto error=GetLastError();if(error==ERROR_FILE_NOT_FOUND||error==ERROR_PATH_NOT_FOUND)return std::string{};
-            throw std::runtime_error("product_log_physical_attributes_unavailable");}
-        if(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))throw std::runtime_error("product_log_physical_file_not_plain");
-        std::error_code error;const auto bytes=fs::file_size(path,error);
-        const bool oversized=!error&&bytes>2*1024*1024;
-        if(error||oversized){
-            const bool retry=product::guest::product_log_metadata_pair_retry_allowed(pair_attempt,true,error,oversized);
+        product::guest::ProductLogPhysicalFile file(path);
+        auto actual=file.snapshot();
+        if(actual.state==product::guest::ProductLogPhysicalState::Missing)return std::string{};
+        if(actual.state!=product::guest::ProductLogPhysicalState::Ready){
             s.log.emit("product_log_physical_read_error","\"file\":"+quote(utf8(path.filename().wstring()))+
-                ",\"stage\":\"file_size_after_plain_attributes\",\"attributes\":"+std::to_string(attributes)+
-                ",\"filesystem_error_value\":"+std::to_string(error.value())+",\"filesystem_error_category\":"+quote(error.category().name())+
-                ",\"actual_size_known\":"+(error?"false":"true")+",\"actual_size\":"+(error?"null":std::to_string(bytes))+
-                ",\"pair_attempt\":"+std::to_string(pair_attempt+1)+",\"single_pair_recollection_allowed\":"+(retry?"true":"false")+
+                ",\"stage\":"+quote(actual.stage)+",\"win32_error\":"+std::to_string(actual.win32_error)+
+                ",\"actual_size_known\":"+(actual.actual_size_known?"true":"false")+
+                ",\"actual_size\":"+(actual.actual_size_known?std::to_string(actual.actual_size):"null")+
+                ",\"pair_attempt\":"+std::to_string(pair_attempt+1)+",\"single_pair_recollection_allowed\":false"+
                 ",\"rotation_cause_confirmed\":false");
-            if(retry)return {};
-            throw std::runtime_error("product_log_physical_size_unavailable_or_unbounded");
+            if(std::string_view(actual.stage)=="non_plain_handle_attributes")throw std::runtime_error("product_log_physical_file_not_plain");
+            if(std::string_view(actual.stage)=="size"||std::string_view(actual.stage)=="size_limit"||
+               std::string_view(actual.stage)=="negative_size")throw std::runtime_error("product_log_physical_size_unavailable_or_unbounded");
+            throw std::runtime_error("product_log_physical_snapshot_failed");
         }
-        return read(path);
+        return std::move(actual.bytes);
     };
     auto previous=s.product_log;previous+=L".1";std::string why;
     for(unsigned attempt=0;attempt<2;++attempt){

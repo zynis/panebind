@@ -3,7 +3,9 @@
 #include "platform/windows/product/v1_guest_up_evidence.h"
 #include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
+#include "platform/windows/product/v1_guest_physical_log.h"
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -111,6 +113,85 @@ int main() {
     if(!expect(missing.observe("",two,log_reason),false,"missing initial segment cannot masquerade as complete product evidence"))return 1;
     missing.reject();
     if(!expect(missing.observe("",one+two,log_reason),false,"persistent rejected evidence cannot silently regain acceptance"))return 1;
+    // Real Win32 file handles, in this test's uniquely created build-working
+    // directory only. No test opens or deletes a user/product log.
+    namespace fs=std::filesystem;
+    LARGE_INTEGER unique{};QueryPerformanceCounter(&unique);
+    const auto physical_dir=fs::current_path()/("panebind-v1-physical-log-"+std::to_string(GetCurrentProcessId())+"-"+
+        std::to_string(GetCurrentThreadId())+"-"+std::to_string(unique.QuadPart));
+    if(!expect(fs::create_directory(physical_dir),true,"own unique physical-log test directory created in build cwd"))return 1;
+    struct OwnPhysicalFiles {
+        fs::path directory;
+        ~OwnPhysicalFiles(){
+            std::error_code ignored;
+            for(const auto name:{L"current.jsonl",L"previous.jsonl",L"oversize.jsonl",L"locked.jsonl",L"link.jsonl"})
+                fs::remove(directory/name,ignored);
+            fs::remove(directory,ignored);
+        }
+    } own_physical{physical_dir};
+    const auto write_physical=[&](const fs::path& path,std::string_view bytes){
+        const HANDLE file=CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+            nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if(file==INVALID_HANDLE_VALUE)return false;
+        DWORD written{};const bool ok=WriteFile(file,bytes.data(),static_cast<DWORD>(bytes.size()),&written,nullptr)!=FALSE&&written==bytes.size();
+        CloseHandle(file);return ok;
+    };
+    const auto current_path=physical_dir/L"current.jsonl",previous_path=physical_dir/L"previous.jsonl";
+    if(!expect(write_physical(current_path,"old\n"),true,"own old product-log physical bytes created"))return 1;
+    {
+        guest::ProductLogPhysicalFile old(current_path);
+        if(!expect(old.opened_plain_file(),true,"one old plain file handle opened with delete sharing")||
+           !expect(MoveFileExW(current_path.c_str(),previous_path.c_str(),0)!=FALSE,true,
+               "own old log can rename while the reader holds its share-delete handle")||
+           !expect(write_physical(current_path,"new\n"),true,"replacement current log is a distinct own file"))return 1;
+        guest::ProductLogPhysicalFile now(current_path);
+        const auto before_delete=old.snapshot(),current=now.snapshot();
+        if(!expect(before_delete.state==guest::ProductLogPhysicalState::Ready&&before_delete.bytes=="old\n"&&
+                   current.state==guest::ProductLogPhysicalState::Ready&&current.bytes=="new\n",true,
+                   "renamed old handle and new path return independent bounded bytes")||
+           !expect(DeleteFileW(previous_path.c_str())!=FALSE,true,
+                   "own old log can be delete-pending while its read handle remains open"))return 1;
+        const auto after_delete=old.snapshot();
+        if(!expect(after_delete.state==guest::ProductLogPhysicalState::Ready&&after_delete.bytes=="old\n",true,
+                   "same held handle reads original bytes after name deletion"))return 1;
+    }
+    guest::ProductLogPhysicalFile absent(previous_path);
+    if(!expect(absent.snapshot().state==guest::ProductLogPhysicalState::Missing,true,
+            "confirmed absent path is empty evidence, unlike access denied"))return 1;
+    const auto big_path=physical_dir/L"oversize.jsonl";
+    {const HANDLE big=CreateFileW(big_path.c_str(),GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+          nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if(!expect(big!=INVALID_HANDLE_VALUE,true,"own oversized test log created"))return 1;
+        LARGE_INTEGER end{};end.QuadPart=2*1024*1024+1;
+        const bool sized=SetFilePointerEx(big,end,nullptr,FILE_BEGIN)!=FALSE&&SetEndOfFile(big)!=FALSE;
+        CloseHandle(big);if(!expect(sized,true,"own oversized log length established"))return 1;}
+    guest::ProductLogPhysicalFile big(big_path);const auto too_big=big.snapshot();
+    if(!expect(too_big.state==guest::ProductLogPhysicalState::Failure&&too_big.actual_size_known&&
+               too_big.actual_size==2*1024*1024+1&&std::string_view(too_big.stage)=="size_limit",true,
+               "same-handle size cap rejects before unbounded read"))return 1;
+    guest::ProductLogPhysicalFile directory(physical_dir);
+    if(!expect(directory.snapshot().state==guest::ProductLogPhysicalState::Failure&&
+               std::string_view(directory.snapshot().stage)=="non_plain_handle_attributes",true,
+               "actual directory handle is not accepted as a plain log"))return 1;
+    const auto locked_path=physical_dir/L"locked.jsonl";
+    {const HANDLE locked=CreateFileW(locked_path.c_str(),GENERIC_READ|GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+        if(!expect(locked!=INVALID_HANDLE_VALUE,true,"own exclusive-share test log created"))return 1;
+        guest::ProductLogPhysicalFile denied(locked_path);const auto refusal=denied.snapshot();
+        CloseHandle(locked);
+        if(!expect(refusal.state==guest::ProductLogPhysicalState::Failure&&refusal.win32_error==ERROR_SHARING_VIOLATION&&
+                   std::string_view(refusal.stage)=="open",true,
+                   "sharing failure cannot be represented as missing or empty product evidence"))return 1;}
+    const auto link_path=physical_dir/L"link.jsonl";
+    if(CreateSymbolicLinkW(link_path.c_str(),current_path.c_str(),0)){
+        guest::ProductLogPhysicalFile link(link_path);const auto refusal=link.snapshot();
+        if(!expect(refusal.state==guest::ProductLogPhysicalState::Failure&&
+                   std::string_view(refusal.stage)=="non_plain_handle_attributes",true,
+                   "reparse link handle is rejected without reading its target"))return 1;
+    }else{const auto error=GetLastError();
+        if(error==ERROR_PRIVILEGE_NOT_HELD||error==ERROR_ACCESS_DENIED)
+            std::cout<<"guest physical-log reparse case SKIP: symlink creation win32_error="<<error<<'\n';
+        else if(!expect(false,true,"unexpected own reparse-test creation failure"))return 1;
+    }
     const auto snapshot=[&](std::string_view row){return guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,row,identity);};
     guest::CapturedReleaseFacts capture;
     capture.generation=7;capture.expected_generation=7;capture.source=100;capture.ready_source=100;
@@ -353,5 +434,5 @@ int main() {
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,false,status,identity),false,"diagnostic missing event cannot use status")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,true,"",identity),true,"diagnostic retains actual event contract")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,true,"",identity),false,"snapshot mode cannot substitute event"))return 1;
-    std::cout << checked << " guest-directory and UP-evidence cases passed; no filesystem or input operation\n";
+    std::cout << checked << " guest-directory, UP-evidence and physical-log cases passed; bounded test-owned filesystem operations; no UI or input\n";
 }

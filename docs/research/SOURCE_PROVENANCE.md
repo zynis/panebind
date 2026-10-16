@@ -1,5 +1,29 @@
 # Source Provenance Register
 
+## V1 guest evidence reader: handle-scoped rotating log snapshot — 2026-10-17
+
+Actual Release Run `f54dccc34fbe47ad9fa296c11bb11880` reached two owned core
+rounds in one product process, then driver row4524 recorded ordinary attributes
+followed by `filesystem::file_size` Windows/system error5 for the `.1` log.
+The next row aborted I11; this is not a completed 900-second observation.
+The precise origin of that access denial remains UNKNOWN. No permission
+error is reclassified as proven rotation, skipped or accepted as evidence.
+
+Inspected Microsoft's official [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
+[GetFileSizeEx](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfilesizeex)
+and [ReadFile](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile)
+contracts: shared-delete access permits rename/delete while a reader holds its
+handle; OPEN_REPARSE_POINT allows checking the opened object without following
+a reparse point; size and bytes can be obtained from that same opened handle.
+Official live documentation is not pinned to an invented source revision.
+The minimal TEST reader replaces separate path attributes/size/ifstream opens
+with one bounded, validated handle. It keeps the 2MiB bound, exact sequence
+and launch identity checks, two pair snapshots and real failure verdicts.
+It changes no product logging, input route, geometry or authority. Host offline
+file tests are file-I/O evidence only, not guest interaction or product PASS.
+Independently authored; no external implementation copied/adapted, no new
+dependency, licensing or attribution obligation.
+
 ## V1 application follow-up: real drag band and Chromium startup failure — 2026-10-17
 
 Run `1acb8c6bd6184c5bbf615497bf6bb57a` retained the actual Terminal screen
