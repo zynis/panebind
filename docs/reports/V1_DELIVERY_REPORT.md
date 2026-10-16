@@ -2,17 +2,19 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`保持不变，测试driver分别记录自身身份。最新9d74以同一98fc原ZIP完成普通空参GUI、默认／保存后实际Move、匹配真实UP／NormalUp及正常退出，D21工具合同错误定向关闭；真实配置写失败保护及恢复补齐**M11-F05独立PASS，连同M12-F03共2/60功能DEV；B32仍为唯一对标PASS，1/40=2.5%**。不因无关I11消除独立能力，也不把这些子链合成Full。M01-F05真实登录开关已测、模拟登录与手工二启仍缺实证。022 Terminal类别PASS，Edge首placement前中止原因UNKNOWN；30bf post-Resize等D08 S1仍OPEN。模块／整链仍0通过，普通Explorer／其余应用／托盘与显示矩阵未齐，宿主不宜试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`保持不变，测试driver分别记录自身身份。最新0a8f以同一98fc原ZIP补齐中文普通二启／唯一实例，实际登录模拟读取保存暂停状态与手工二启去重，结合独立机器证据合同，**M01-F01／F05、M11-F05、M12-F03／F04共5/60功能DEV独立PASS；B29／B32共2/40=5%**。真实配置保存失败后故障包内容及解析已通过，导出自身失败负例仍未测，不授完整M12-F02。独立能力不被无关I11否定，也不合成Full。022 Terminal类别PASS，Edge首placement前中止原因UNKNOWN；30bf post-Resize等D08 S1仍OPEN。模块／整链仍0通过，普通Explorer／其余应用／托盘与显示矩阵未齐，宿主不宜试用，真人UAT PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
-继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。当前R2功能为2项 `PASS`、12项 `FAIL`、46项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。原R408与R2/0c710独立B32 PASS保留历史，当前98fc/9d74另有真实新证据，不换绑旧EXE／ZIP／Run。M11-F05通过不代表含其他功能的B28或B29通过；B33–B40继续固定DEFERRED／0分。
+继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。当前R2功能为5项 `PASS`、12项 `FAIL`、43项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。原R408与R2/0c710独立B32 PASS保留历史，当前98fc/0a8f另有真实新证据，不换绑旧EXE／ZIP／Run。B29只因其完整M01-F05／M11-F05合同实证齐备加分，不能外推B27／B28／B31；B33–B40继续固定DEFERRED／0分。
 
 每行有 `observed`、`remaining_conditions`、`next_action`，以及 `partial_observation_ids`→原观察的产品SHA／二进制哈希／RunId／证据关联；`candidate_identity_ref`仅指待验当前候选，不把旧观察改绑新EXE。模块／对标条件直接引用功能行，未另建一套任务书。后续产品修复或现场新结果按实际身份增量登记；驱动／文档变更不得清空既有产品证据。
 
 [仓库内证据索引](v1-evidence/index.json)和[摘录说明](v1-evidence/README.md)保留152条关键原始观察的脱敏摘录，含dd60／714c真实普通ZIP与诊断、b60／c01组件通过及缺UP／恢复／应用失败、50df／bdab owned回环及T/L/四格、dd60／97顺序Release客户激活失败。已独立核对四份原日志整文件哈希及对应16个原EXE哈希；每条摘录另带原行UTF-8 digest。原始大文件和包仍在索引所列ignored本地`uat/`位置，无需为源码复核反复上传整个目录。
 
 本节只是既有结果映射，不是重新运行现场或结束整版任务。实际缺UP、快速拖动消费时序风险、托盘、官方应用准备和显示环境分别推进；新的确定性反例与修复不被误写成既有LL-UP缺失根因。完整功能合同未齐时不计PASS，不以PARTIAL作为主动停止条件。
+
+M12-F04的独立机器证据合同现按实际校验通过：[工具输出转录](v1-evidence/acceptance-metadata-contract-transcript.txt)明确非原stdout或现场；固定ID唯一、PASS绑定／真实分数、5项反例、29原件与摘录hash、当前包hash均实际核实。它证明元数据能力，不授其他产品功能PASS；完整整版链不是此项额外门槛。M11-F03新真实注册冲突／旧命令保护／此页默认与动作帮助的guest场景仅已接线，尚未构建运行，不预填结果。
 
 ## 新确定的输入消费时序缺陷：代码修复与实际定向复验
 
@@ -24,7 +26,17 @@
 
 新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新Run8189的真实范围另列如下，不能升级正式DEV或关闭D08。
 
-## 9d74：原98fc普通便携闭环，真实配置写失败保护通过
+## 0a8f：登录模拟与普通二启合同通过，故障诊断仍缺导出失败负例
+
+Run `0a8f1f0e477a46c1b1160291c3acb53a`，Release／Medium／`EntryAndSettings`，仍为原R2／458A62与原98fc ZIP。driver／packaging HEAD=`e81d7bdcd289aa6b18f949757b19f543f914b142`，Release driver `D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569`；主guest ZIP `BF85A23E8D4C871B80394F2B7183DF24BD8E552DD29FDCEFAC8D9477FCC6901D`／manifest `F9690BA6AEB4515069E18A2CD9ECCAF6F7F1EFB83C9A978F51FDAFA9BE77C4BB`。见[fixture摘录](v1-evidence/0a8f-fixture-selected.jsonl)、[普通产品摘录](v1-evidence/0a8f-portable-product-selected.jsonl)与[真实故障包小件](v1-evidence/0a8f-fault-diagnostic.json)，原件及hash另见索引。
+
+- **M01-F05独立PASS**：267实际建立精确本EXE的HKCU `--startup`值；276／279保存enabled=false／startup=true，285原实例正常退出及真实客户恢复。286以该实际命令参数模拟登录，287新身份；288／289实际status为disabled、无自动设置且配置字节未变。290–292手工空参二启退出0，原PID5732／birth、唯一owner及暂停状态不变，打开同主设置。313／314删除自己的入口及恢复原配置，320正常退出，324／329范围PASS。明确是模拟登录，不宣称实际Windows注销／登录；未在开发宿主启用。
+- **M01-F01独立PASS**：801原七文件包、808空参中文空格路径启动、810唯一可见中文设置；811–813第二次同EXE空参启动退出0，原PID5688／birth／设置HWND1180494不变、唯一行为owner及实际status保持。GUI子系统／asInvoker／实际Medium身份与生产mutex分支在资源创建前退出共同支持不重复初始化；不声称实测了全桌面hook数量。658–663同R2实际损坏配置notice／exact备份／默认GUI补齐恢复合同。托盘不是这一独立入口功能的额外门槛；97旧顺序配置激活失败保留历史，不宣其根因关闭。
+- **M12-F02仍PARTIAL**：553真实readonly配置失败、557／558实际中文modal、560旧bytes／draft保留后，561实际点击诊断，567取得本批新final文件，568真实字段／配置解析和实际owned标题／Run路径省略，569包含先前真实错误。文件SHA `81A9BC6BD06EF212E88B57FC88A9413E731F7929AA3FC49B57A064CA33F180C1`已独立重算，无seed故障文本。这验证“发生配置失败后成功导出故障包”，**尚未验证诊断导出自身失败时明确报错、无假完整文件**；不把两种失败混同，也不要求无关托盘或普遍隐私矩阵。
+- 同98fc普通实例828默认吸引10、833真实NormalUp；845／846保存仅解压目录配置，856吸引0、861真实NormalUp；862／867正常退出与自有资源、866客户`[7,7]→[8,8]`、868交付字节／无profile均成立，869仅本子链PASS。329登录、646保存故障、699损坏恢复及795排除阶段通过。仅705／711托盘BLOCKED使882／884整体FAIL，Core I11／应用矩阵／Full NOT_RUN，不授整版通过。
+- 877另一个run-copy正常退出、881客户`[8,8]→[9,9]`；精确guest／task已清理、证据未变／部署保留、其他资源未改另有回执，不以guest销毁授产品清理PASS。外部普通完整桌面／多屏仍缺可用隔离资源：用户已有ISO／VM但RAM不足，不写成缺ISO或等待答复。
+
+## 历史9d74：原98fc普通便携闭环，真实配置写失败保护通过
 
 Run `9d74d68f8a95441fa6344d5f9a73d0b2`，`EntryAndSettings`／Release／Medium；产品同R2／458A62不变，driver／packaging HEAD=`a01eb94db1b92fc28e32bed4b25dd4df7d4a9691`，Release driver `5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327`。主guest ZIP `0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102`／manifest `38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0`；98fc便携ZIP／R2 EXE均未改字节。关键[fixture](v1-evidence/9d74-fixture-selected.jsonl)、[普通产品](v1-evidence/9d74-portable-product-selected.jsonl)、[普通桌面对照](v1-evidence/9d74-medium-desktop-probe-selected.json)可直接复核，原件及digest见[索引](v1-evidence/index.json)。
 
@@ -143,7 +155,7 @@ RunId `81896dad13d5423e5de14a8363f7bcc6`，Release／真实Medium RID8192、non-
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 当前R2实际候选 | `4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release458A62、Debug7D503未改；d85实际新0c710独立便携PASS、022 Terminal类别PASS，D08及Edge早期中止仍OPEN；R408/2632历史原身份保留 |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 当前实测包／入口 | 最新9d74／D_A01的EntryAndSettings，同R2及原98fc ZIP；配置写失败保护完整独立PASS、普通便携两种真实设置效果／UP／退出子链PASS，整批因tray BLOCKED仍FAIL；旧批次保留，非Full |
+| 当前实测包／入口 | 最新0a8f／D_E81的EntryAndSettings，同R2及原98fc ZIP；普通二启/登录模拟独立合同、真实配置失败故障包内容与便携子链通过对应范围，整批仅tray BLOCKED仍FAIL；旧批次保留，非Full |
 | 历史原2632便携 | ZIP `4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2`；manifest `090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C`；产品R／EXE48F96未改；便携原packaging HEAD665b828，9e5 guest包HEAD718d8f5分别记录 |
 | 历史dd60 runtime／build | `dd603a79aeba64c816e13ba49265db342c14e7e3`；Debug／Release fresh构建及各10项offline实际PASS；旧结果原身份保留，不迁移绑定当前R |
 | 历史e2abc打包 HEAD | `dd603a79aeba64c816e13ba49265db342c14e7e3`；旧已测ZIP不重包，整对象已归入historical_packages；当前R/2632另立真实身份 |
@@ -345,7 +357,7 @@ RunId `81896dad13d5423e5de14a8363f7bcc6`，Release／真实Medium RID8192、non-
 
 原始 DOWN、单 writer、撤权后无新调用、在途调用与完成未知分开、actual postverify 及精确视觉所有权合同继续保留。构建、L1/core 测试与局部 owned 结果都不能替代当前 Release 的整功能／模块验收。
 
-ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口及 I10 在途失败用例均已接线；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开记录。后继实际结果见各批，不再用“未到达全部后续功能”概括当前状态。M12 的便携组件、固定表／校验器／证据绑定、中文可执行指南／集中缺陷／review入口均已落地；指南的实际命令、六页设置及托盘名称已与源码核对，**60/60 IMPLEMENTED仅表示已实施，不代表实现正确、说明完整现场走查或DEV通过**。9e5后独立便携M12-F03及B32合同通过，功能DEV为1/60、对标1/40（2.5%）；整链仍未通过，S1不因实施数或便携单项关闭。
+ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口及 I10 在途失败用例均已接线；测试 driver 账本、实际低级鼠标回调和 GetAsyncKeyState 分开记录。后继实际结果见各批，不再用“未到达全部后续功能”概括当前状态。M12 的便携组件、固定表／校验器／证据绑定、中文可执行指南／集中缺陷／review入口均已落地；指南的实际命令、六页设置及托盘名称已与源码核对，**60/60 IMPLEMENTED仅表示已实施，不代表实现正确、说明完整现场走查或DEV通过**。当前独立完整合同为5/60功能、B29／B32共2/40（5%）；模块与整链仍未通过，S1不因实施数或独立单项关闭。
 
 ## 集中缺口与待核验项
 
@@ -380,7 +392,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 
 ## 持续验证与交付边界
 
-验收全集见 [V1_ACCEPTANCE.json](V1_ACCEPTANCE.json)，产品操作见[中文快速入门](../V1_QUICK_START.md)。当前为 **1/40（2.5%）**：仅独立便携B32通过，不能称整版80%；B01–B32 全部必过，B33–B40 固定延后但保留在分母中。整版 DEV 门槛尚未满足，真人 UAT 为 `PENDING`。文档、机器表与后续证据更新应继续区分源码接通、局部实际结果和完整门槛，不能用测试数或旧 High 局部证据凑分。
+验收全集见 [V1_ACCEPTANCE.json](V1_ACCEPTANCE.json)，产品操作见[中文快速入门](../V1_QUICK_START.md)。当前为 **2/40（5%）**：独立登录启动／默认恢复B29及便携B32通过，不能称整版80%；B01–B32 全部必过，B33–B40 固定延后但保留在分母中。整版 DEV 门槛尚未满足，真人 UAT 为 `PENDING`。文档、机器表与后续证据更新应继续区分源码接通、局部实际结果和完整门槛，不能用测试数或旧 High 局部证据凑分。
 
 本稿集中交付已测原ZIP、独立最新版中文指南、机器表与历史证据索引，供整体review；它是PARTIAL阶段交付，不代表满足B01–B32或整版完成。缺可靠共享事件身份时不增加RawNormalUp，不无新证据重复同一缺UP路线。最终文档commit／push及远端SHA由主执行者实际核验后交接，本文不预填自引用FinalSHA。原失败与历史包保留，`uat/`、EXE、ZIP 不入Git；不创建PR、merge、tag或公开release。
 

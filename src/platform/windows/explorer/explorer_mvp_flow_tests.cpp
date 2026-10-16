@@ -586,6 +586,54 @@ void last_native_entry_rechecks() {
     check(o::gesture_shield_native_entry_failure(false, true, true, true) == Failure::None,
           "all observed native-entry facts permit only one imminent call, not durable authority");
 }
+
+void consumed_down_resource_contract() {
+    // Actual resource predicates only. No native hook receipt, legacy message,
+    // capture, association or END is manufactured by this offline test.
+    const auto source = reinterpret_cast<HWND>(static_cast<std::uintptr_t>(0x100));
+    const auto overlay = reinterpret_cast<HWND>(static_cast<std::uintptr_t>(0x200));
+    const auto old_overlay = reinterpret_cast<HWND>(static_cast<std::uintptr_t>(0x201));
+    o::GestureShieldConsumedDownRequest request{{71, source, 5, 6, 3000}, {120, 80}, 100, 1000};
+    check(o::gesture_shield_consumed_entry_available(request, true) &&
+          !o::gesture_shield_consumed_entry_available(request, false),
+          "consumed-DOWN queue entry requires its own exact adapter callback, not old END authorization");
+    auto missing = request; missing.down_qpc = 0;
+    check(!o::gesture_shield_consumed_entry_available(missing, true),
+          "missing actual DOWN clock does not admit a candidate request");
+    missing = request; missing.gesture.generation = 0;
+    check(!o::gesture_shield_consumed_entry_available(missing, true),
+          "missing consumed generation is not a native END substitute");
+    const auto matches = [&](std::uint64_t generation, std::uint64_t window_generation,
+                             HWND message_window, bool queued, bool capture, DWORD time,
+                             std::uint64_t observed_qpc) {
+        return o::gesture_shield_consumed_legacy_up_matches(request, generation,
+            window_generation, overlay, message_window, queued, capture, time, observed_qpc);
+    };
+    check(matches(71, 71, overlay, true, true, 110, 1100),
+          "only same-generation queued captured legacy UP has a terminal candidate");
+    check(!matches(72, 71, overlay, true, true, 110, 1100) &&
+          !matches(71, 70, overlay, true, true, 110, 1100) &&
+          !matches(71, 71, old_overlay, true, true, 110, 1100),
+          "old generation or old overlay UP cannot terminate a new gesture");
+    check(!matches(71, 71, overlay, false, true, 110, 1100) &&
+          !matches(71, 71, overlay, true, false, 110, 1100),
+          "non-queue callback or absent own capture cannot manufacture captured UP");
+    check(!matches(71, 71, overlay, true, true, 99, 1100) &&
+          !matches(71, 71, overlay, true, true, 100, 1100) &&
+          !matches(71, 71, overlay, true, true, 110, 1000),
+          "old or ambiguous native timestamp and missing post-DOWN dispatch clock fail closed");
+    request.down_message_time = 0xfffffff0u;
+    check(matches(71, 71, overlay, true, true, 16, 1100),
+          "native message-time wrap does not become a false old-generation match");
+    check(o::gesture_shield_raw_up_retires(o::GestureShieldEntryMode::NativeMoveHandoff) &&
+          !o::gesture_shield_raw_up_retires(o::GestureShieldEntryMode::ConsumedDown),
+          "new candidate Raw remains observation while old native route still revokes on Raw UP");
+    check(!o::gesture_shield_normal_up_observed(o::GestureShieldEntryMode::NativeMoveHandoff, false, true) &&
+          o::gesture_shield_normal_up_observed(o::GestureShieldEntryMode::NativeMoveHandoff, true, true) &&
+          !o::gesture_shield_normal_up_observed(o::GestureShieldEntryMode::ConsumedDown, true, false) &&
+          o::gesture_shield_normal_up_observed(o::GestureShieldEntryMode::ConsumedDown, false, true),
+          "new NormalUp needs actual accepted legacy UP; old Raw-plus-legacy contract is unchanged");
+}
 } // namespace
 
 int main() {
@@ -600,6 +648,7 @@ int main() {
         owned_cursor_result_dispatch();
         actual_hit_endpoint_classification();
         last_native_entry_rechecks();
+        consumed_down_resource_contract();
         std::cout << "Explorer MVP offline flow: " << checks << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {

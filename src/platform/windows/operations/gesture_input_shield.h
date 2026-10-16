@@ -22,6 +22,58 @@ struct GestureShieldRequest {
     std::uint32_t isolation_timeout_ms{30000};
 };
 
+enum class GestureShieldEntryMode { NativeMoveHandoff, ConsumedDown };
+
+// Separate candidate contract: an adapter has ACTUALLY consumed this exact
+// LL DOWN. It is not a native Move START/END receipt or placement authority.
+struct GestureShieldConsumedDownRequest {
+    GestureShieldRequest gesture{};
+    POINT down_point{};
+    DWORD down_message_time{};
+    std::uint64_t down_qpc{};
+};
+
+[[nodiscard]] constexpr bool gesture_shield_consumed_down_receipt_valid(
+    const GestureShieldConsumedDownRequest& request) noexcept {
+    return request.gesture.generation && request.gesture.source &&
+        request.gesture.process_id && request.gesture.thread_id && request.down_qpc;
+}
+
+[[nodiscard]] constexpr bool gesture_shield_consumed_entry_available(
+    const GestureShieldConsumedDownRequest& request,
+    bool exact_adapter_callback_present) noexcept {
+    // Callback presence only admits a queued request. Its real result and the
+    // independent platform checks are still required on the resource thread.
+    return exact_adapter_callback_present && gesture_shield_consumed_down_receipt_valid(request);
+}
+
+[[nodiscard]] constexpr bool gesture_shield_raw_up_retires(
+    GestureShieldEntryMode mode) noexcept {
+    return mode == GestureShieldEntryMode::NativeMoveHandoff;
+}
+
+[[nodiscard]] constexpr bool gesture_shield_consumed_legacy_up_matches(
+    const GestureShieldConsumedDownRequest& request,
+    std::uint64_t current_generation, std::uint64_t overlay_generation,
+    HWND overlay, HWND message_window, bool queued_up_dispatch,
+    bool owns_actual_capture, DWORD message_time,
+    std::uint64_t dispatch_qpc) noexcept {
+    const DWORD elapsed = message_time - request.down_message_time;
+    // Coarse same-millisecond timestamps are ambiguous and fail closed, not
+    // evidence of a new generation's UP. HWND lifetime and actual capture are
+    // independent gates; dispatch-time QPC alone cannot attribute an old UP.
+    return gesture_shield_consumed_down_receipt_valid(request) &&
+        request.gesture.generation == current_generation &&
+        overlay_generation == current_generation && overlay &&
+        message_window == overlay && queued_up_dispatch && owns_actual_capture &&
+        elapsed != 0 && elapsed < 0x80000000u && dispatch_qpc > request.down_qpc;
+}
+
+[[nodiscard]] constexpr bool gesture_shield_normal_up_observed(
+    GestureShieldEntryMode mode, bool raw_up, bool legacy_up) noexcept {
+    return legacy_up && (mode == GestureShieldEntryMode::ConsumedDown || raw_up);
+}
+
 [[nodiscard]] constexpr bool gesture_shield_timeout_valid(
     std::uint32_t timeout_ms) noexcept {
     return timeout_ms >= 1 && timeout_ms <= 30000;
@@ -49,6 +101,7 @@ enum class GestureShieldEventKind {
     // Preparation only: no AttachThreadInput call has entered yet. The
     // callback may revoke this generation before the final native-entry check.
     ThreadAssociationPrepared,
+    LegacyLeftUpRejected,
 };
 
 enum class GestureShieldRemovalReason {
@@ -273,6 +326,10 @@ struct GestureShieldCaptureFacts {
 struct GestureShieldEvent {
     GestureShieldEventKind kind{};
     std::uint64_t generation{};
+    GestureShieldEntryMode entry_mode{GestureShieldEntryMode::NativeMoveHandoff};
+    GestureShieldConsumedDownRequest consumed_down{};
+    bool legacy_up_accepted{};
+    std::uint64_t legacy_up_dispatch_qpc{};
     // Actual request value; zero means no matching isolation request observed.
     std::uint32_t isolation_timeout_ms{};
     std::uint64_t raw_sequence{};
@@ -345,6 +402,10 @@ struct GestureShieldCallbacks {
     // authority only. This is separate from the pre-cancel START authority.
     // Missing/false authorization can never be replaced by the queued request.
     std::function<bool(const GestureShieldRequest&)> capture_authorized;
+    // Candidate-only consumed-DOWN adapter. Exact guest/run guard is still
+    // mandatory. Check the published actual LL receipt and current revoke/UP
+    // facts; never fill native START/END or call COM/placement from here.
+    std::function<bool(const GestureShieldConsumedDownRequest&)> consumed_down_authorized;
 };
 
 struct GestureShieldStopFacts {
@@ -385,6 +446,11 @@ public:
     // CaptureReady, not the queue result or SetCapture return, gates writing.
     [[nodiscard]] bool request_capture_after_native_end(
         GestureShieldRequest request) noexcept;
+    // Explicit alternative to the native START/cancel/END protocol. Queues
+    // overlay readiness -> own association/capture; CaptureReady still gates
+    // use. It does not fabricate END or enable any V1 production input route.
+    [[nodiscard]] bool request_capture_for_consumed_down(
+        GestureShieldConsumedDownRequest request) noexcept;
     [[nodiscard]] bool request_remove(std::uint64_t generation,
                                       GestureShieldRemovalReason reason) noexcept;
     // Stops resources independently of the geometry writer. A false clean()

@@ -2273,3 +2273,39 @@ product remains unobserved. This is not a DACL-permission experiment or a new
 product input mechanism. Existing pinned architecture references are reused;
 Microsoft documentation is linked/paraphrased only. External code copied or
 adapted: **NO**. Runtime outcome must be recorded under its actual RunId.
+
+### V1 second input candidate: consumed-DOWN capture feasibility — 2026-10-16
+
+This is a bounded second architecture hypothesis under guide sections 2/5,
+not a diagnosis of D08 or a claim that capture repairs an unobserved LL UP.
+Reused the pinned AltSnap GPL reference-only and FancyZones MIT architecture,
+worker, input-loss issue/PR/history reviews registered above; re-read their
+local review and the existing Raw/LL feasibility closure. No upstream source
+was copied, adapted, translated or mechanically rewritten.
+
+Actually re-read Microsoft's [SetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture),
+[AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
+and [WM_LBUTTONUP](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-lbuttonup)
+contracts. SetCapture's return is the previous HWND, not success; background
+capture is limited and cannot be presumed desktop-wide. ATI shares input
+state, resets key state and is not a promise of independent cleanup while a
+source is unresponsive. Only actual captured legacy UP can support this new
+candidate's normal completion; key-state changes and unowned Raw counts cannot.
+
+Re-read original owned Run 050736d561fe4b3c941e9f194b3f51aa normal-repeat
+(SHA256 6A85F9ED355D0CBB599134AADEA84BC056293F8826D5A5F1E7A155B40F8B5650)
+and source-pause
+(FEC238A0ADFEA4564FD61ED653CF8F835318E751EC22B0A640BAE9850887C2F4).
+Their native-END route supplies historical release/detach/withdrawal evidence,
+not proof for a consumed DOWN which never entered a native modal loop.
+
+Decision: keep the old START/cancel/END contract unchanged. Add a separate,
+explicit guest-guarded consumed-DOWN resource entry, requiring an actual
+immutable exact-owned LL receipt, fresh idle source/foreground/context and
+generation-specific overlay/capture lifetime. The hook only compares prepared
+snapshot/native packet fields, publishes and returns; no synchronous hit test,
+GUI query, disk IO, COM or geometry in the callback. The feasibility probe does
+not start V1 InputService, so it cannot compete for the stop hotkey or turn a
+second producer into its SPSC queue. First prove actual legacy UP and a next
+gesture; only then evaluate exits and cross-process product integration.
+Implementation, build and old evidence do not grant this new hypothesis PASS.

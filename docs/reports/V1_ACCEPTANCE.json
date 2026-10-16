@@ -14,10 +14,10 @@
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "R2 4d07/458固定；9d74同98fc普通入口/默认与保存后实际Move/真实NormalUp及退出通过，D21定向关闭。M11-F05真实只读写失败/原配置和draft保护/恢复保存/重启与行为及schema负例齐备，独立PASS。M01-F05仍缺模拟登录与手工二启完整实证，D08与022 Edge早期中止仍OPEN。",
+    "note": "R2/458固定；0a8f同98fc实际普通中文二启/唯一实例和损坏恢复完整F01，实际登录开关/--startup保存enabled状态/手工二启完整F05，M11F05/便携F03共4功能通过，B29/B32=5%。配置失败后真实诊断内容已观察、导出自身失败负例仍未测。D08与022 Edge早期中止OPEN。",
     "pending_product_note": "后继仅driver/测试布局/诊断继续复用同R2产品，不将新布局通过预填或重建产品。用户已回复已有Windows ISO/VM但内存不足、无法新建VM；不是缺ISO或待回复。普通完整桌面/多屏仍需可用隔离交互环境与资源，继续当前Sandbox可运行项。",
     "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "latest_observed_run_id": "9d74d68f8a95441fa6344d5f9a73d0b2"
+    "latest_observed_run_id": "0a8f1f0e477a46c1b1160291c3acb53a"
   },
   "scorecard": {
     "denominator": 40,
@@ -56,9 +56,9 @@
       "B31",
       "B32"
     ],
-    "pass_count": 1,
-    "points": 2.5,
-    "coverage_percent": 2.5,
+    "pass_count": 2,
+    "points": 5,
+    "coverage_percent": 5,
     "required_points": 80,
     "formula": "PASS benchmark count / 40 * 100",
     "mandatory_all_pass": false,
@@ -72,14 +72,14 @@
       "B39",
       "B40"
     ],
-    "note": "仅当前R2独立B32完整合同计2.5分，现更新为98fc/9d74真实入口；M11-F05独立PASS不等于含其余合同的B28/B29通过。M12/所有模块、I12、Full及整版未过，历史0c710/2632各原身份保留。"
+    "note": "当前R2仅B29（M01-F05/M11-F05完整独立合同）及B32（原98fc便携独立合同）PASS，共5%；4/60功能PASS不等于模块或整版通过，B33–B40固定DEFERRED。旧包/批次原身份保留。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "当前R2独立M11-F05与M12-F03已过；其余58功能、所有模块及B01–B31完整合同未齐，不能用独立包/配置合同授整版。",
+      "remaining_conditions": "当前R2独立M01-F01/F05、M11-F05、M12-F03/F04共5功能通过，B29/B32共2对标通过；其余55功能/30必选对标、所有模块完整合同仍未齐。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -114,7 +114,7 @@
       "id": "HG06",
       "description": "可复核便携包/SHA/哈希/中文用法/证据/集中缺陷；HUMAN_UAT独立。",
       "status": "BLOCKED",
-      "remaining_conditions": "更新中文说明98fc原ZIP已在9d74完成普通启动、保存设置真实效果、NormalUp与退出，D21定向关闭；最终整版指南/入口/功能、应用/环境硬门槛和独立review仍未完成。",
+      "remaining_conditions": "当前98fc原ZIP真实普通入口/二启/设置效果/UP/正常退出及实际故障包已复核；诊断导出自身失败负例、最终完整指南/入口/功能、应用/环境硬门槛和独立review仍未完成。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     }
   ],
@@ -131,29 +131,33 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M01-F01-DEV",
           "required_observation": "从带空格/中文路径启动两次，只一个行为实例；无额外控制台；不弹 UAC；第二次可退出且不重复注册钩子",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
-            "PO-C01-INDEPENDENT"
+            "PO-C01-INDEPENDENT",
+            "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。 普通GUI子系统/asInvoker/Medium包身份已核，二进程在生产mutex既有分支退出；不宣称全桌面hook实测数量。"
         }
       ],
-      "source_sha": "dd603a79aeba64c816e13ba49265db342c14e7e3",
-      "binary_sha256": "0CEA6E75FE171F472A020290C157EAE5A154D44B0AECC75B1E4AC60A8A7786FE",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "714c69f6feba4a0f81678c314eb1747e",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
@@ -162,11 +166,11 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
       ],
-      "defects": [
-        "V1-D14"
-      ],
+      "defects": [],
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -175,24 +179,36 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "714c seq48/50普通空参在中文空格解压目录启动并实际显示唯一设置；c01设置第二实例/重启子项已执行；97顺序Release激活失败保留。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。",
-      "remaining_conditions": [
-        "当前候选完整第二实例/损坏恢复/重复hooks入口合同未一次齐备，真实托盘仍缺。"
-      ],
-      "next_action": "同一未修改产品EXE补真实普通入口→第二实例→重启与状态对照。",
+      "status_basis": "COMPLETE_INDEPENDENT_ACTUAL_RELEASE_MEDIUM_GUI_SINGLE_INSTANCE_AND_STARTUP_CONTRACT",
+      "observed": "714c seq48/50普通空参在中文空格解压目录启动并实际显示唯一设置；c01设置第二实例/重启子项已执行；97顺序Release激活失败保留。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。",
+      "remaining_conditions": [],
+      "next_action": "本独立合同已实测完成；保留历史97顺序配置失败，不以未测真实登录/托盘/I11或全桌面hook计数新增门槛；其余模块/整版继续。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-        "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-        "run_id": "36fdb23ce23f43e69047976e58b40964",
-        "scope": "same R2 with diagnostic driver: 24 actual safe nonclient candidates on narrow test layouts are not caption"
-      }
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "actual_saved_disabled_startup_simulation_and_ordinary_no_argument_secondary_same_R2_independent_contracts"
+      },
+      "historical_completed_or_partial_observations": [
+        {
+          "dev_status": "BLOCKED",
+          "source_sha": "dd603a79aeba64c816e13ba49265db342c14e7e3",
+          "binary_sha256": "0CEA6E75FE171F472A020290C157EAE5A154D44B0AECC75B1E4AC60A8A7786FE",
+          "run_id": "714c69f6feba4a0f81678c314eb1747e",
+          "observed": "714c seq48/50普通空参在中文空格解压目录启动并实际显示唯一设置；c01设置第二实例/重启子项已执行；97顺序Release激活失败保留。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。"
+        }
+      ],
+      "nonblocking_historical_defects": [
+        "V1-D14"
+      ],
+      "historical_defect_scope_note": "97不同源码顺序Debug→Release测试激活差异保留OPEN；不是当前同R2普通二启合同失败或其根因已关闭。"
     },
     {
       "id": "M01-F02",
@@ -406,29 +422,33 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M01-F05-DEV",
           "required_observation": "在隔离 guest 中启用/禁用并检查真实入口和启动参数；模拟登录启动与手工启动不重复。开发宿主不得启用",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
-            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
-            "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+            "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+            "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。 普通GUI子系统/asInvoker/Medium包身份已核，二进程在生产mutex既有分支退出；不宣称全桌面hook实测数量。"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -436,33 +456,43 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9d74 seq264/267真实启用精确HKCU Run --startup，276/279关闭并移除，284组件PASS。",
-      "remaining_conditions": [
-        "真实启/禁和精确Run参数已齐；尚未实际从已保存的Run命令模拟登录启动，再手工二启核同实例及保存enabled状态恢复。该缺项不依赖I11、托盘或五应用。"
-      ],
-      "next_action": "同一R2 EXE仅补一次已保存暂停/登录开启→执行实际Run命令→读状态→手工二启同实例→关闭自有Run入口；不需要注销或新框架。",
+      "status_basis": "COMPLETE_INDEPENDENT_ACTUAL_RELEASE_MEDIUM_GUI_SINGLE_INSTANCE_AND_STARTUP_CONTRACT",
+      "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9d74 seq264/267真实启用精确HKCU Run --startup，276/279关闭并移除，284组件PASS。；267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。",
+      "remaining_conditions": [],
+      "next_action": "本独立合同已实测完成；保留历史97顺序配置失败，不以未测真实登录/托盘/I11或全桌面hook计数新增门槛；其余模块/整版继续。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-        "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-        "scope": "same_R2_real_export_import_corrupt_backup_and_readonly_write_failure_recovery_not_whole_M11"
-      }
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "actual_saved_disabled_startup_simulation_and_ordinary_no_argument_secondary_same_R2_independent_contracts"
+      },
+      "historical_completed_or_partial_observations": [
+        {
+          "dev_status": "BLOCKED",
+          "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+          "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+          "run_id": "c01ffe67d3004961bd00765312869c8a",
+          "observed": "c01 seq236隔离guest真实登录启动开关与本程序Run值操作通过对应子项。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9d74 seq264/267真实启用精确HKCU Run --startup，276/279关闭并移除，284组件PASS。"
+        }
+      ]
     },
     {
       "id": "M02-F01",
@@ -3747,12 +3777,15 @@
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
             "PO-714C-DIAGNOSTIC-PORTABLE",
-            "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+            "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+            "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
           "observed": "493原生导入导出与实际效果/NormalUp通过；508仅本轮精确配置文件设置readonly，512/513真实中文未更改modal，515原bytes/generation与draft保留；528/533原实时策略保持；516原属性恢复后540同draft保存成功，547/552重启保留新值、564/569实际新行为/NormalUp；645真实损坏备份/默认恢复、741排除/移除后行为通过。 结合当前同R2既有L1 partial/schema0/schema2/unknown字段拒绝与明确portable/user路径；不宣本批实际API错误码或DACL实验。"
@@ -3771,13 +3804,15 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "COMPLETE_INDEPENDENT_SETTINGS_PERSISTENCE_CONTRACT_REAL_SAVE_FAILURE_AND_RECOVERY_PLUS_EXISTING_SAME_R2_SCHEMA_NEGATIVES",
-      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。；493原生导入导出与实际效果/NormalUp通过；508仅本轮精确配置文件设置readonly，512/513真实中文未更改modal，515原bytes/generation与draft保留；528/533原实时策略保持；516原属性恢复后540同draft保存成功，547/552重启保留新值、564/569实际新行为/NormalUp；645真实损坏备份/默认恢复、741排除/移除后行为通过。",
+      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。；493原生导入导出与实际效果/NormalUp通过；508仅本轮精确配置文件设置readonly，512/513真实中文未更改modal，515原bytes/generation与draft保留；528/533原实时策略保持；516原属性恢复后540同draft保存成功，547/552重启保留新值、564/569实际新行为/NormalUp；645真实损坏备份/默认恢复、741排除/移除后行为通过。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
       "remaining_conditions": [],
       "next_action": "本功能独立合同完成；DACL不是新增硬门槛，不重跑同类写失败矩阵；M11其他参数/规则/托盘及I07整链仍各自补齐。",
       "partial_observation_ids": [
@@ -3788,15 +3823,16 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-5017-SETTINGS-REAL-EFFECTS",
-        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-        "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-        "scope": "same_R2_real_export_import_corrupt_backup_and_readonly_write_failure_recovery_not_whole_M11"
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "actual_readonly_config_save_failure_then_real_GUI_export_and_offline_parse"
       },
       "historical_completed_or_partial_observations": [
         {
@@ -3888,7 +3924,7 @@
         "docs/reports/V1_DELIVERY_REPORT.md"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "生产设置窗口底部诊断按钮及导出/解析路径已接通；dd60的97 Debug与干净guest714c Release实际点击、生成本批新final文件、字段/隐私检查和Esc/config不变通过专项。仅覆盖实际owned标题/Run路径不泄露，不声明普遍隐私证明或完整M12 DEV通过，正式dev_status仍NOT_RUN。",
+      "implementation_note": "生产GUI/托盘共用export_diagnostic；0a8f新增真实保存失败后的GUI故障包/实际Recent failure解析，完整DEV仅缺导出自身失败负例，未预填PASS。",
       "dev_status": "BLOCKED",
       "human_status": "NOT_RUN",
       "cases": [
@@ -3899,11 +3935,14 @@
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/97-release-activation-failure.jsonl"
+            "docs/reports/v1-evidence/97-release-activation-failure.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
-            "PO-97-SETTINGS-DIAGNOSTIC"
+            "PO-97-SETTINGS-DIAGNOSTIC",
+            "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3920,11 +3959,11 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
       ],
-      "defects": [
-        "V1-D16"
-      ],
+      "defects": [],
       "partial_observation_ids": [
         "PO-97-SETTINGS-DIAGNOSTIC",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -3932,24 +3971,28 @@
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。",
+      "observed": "dd60 Release714c和Debug97真实GUI导出→final文件→独立解析/脱敏专项通过；590.tmp工具缺陷已复验关闭。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。",
       "remaining_conditions": [
-        "完整失败导出/所有敏感配置、真实托盘及当前整版故障包合同未齐。"
+        "真实人为配置失败后的诊断包生成、版本/OS/DPI/类别/配置/最近错误/终止原因与离线解析已在0a8f验证；仍缺诊断导出自身失败时明确报错且无假完整文件的实际负例。托盘不是本功能额外门槛，不要求普遍隐私矩阵。"
       ],
-      "next_action": "D16三个pin定向已关闭，不重开；只补导出失败/隐私完整合同尚缺部分。",
+      "next_action": "只补诊断导出自身失败的真实明确报错/无假完整文件负例；无需托盘或全局I11作本功能额外门槛。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-        "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-        "run_id": "36fdb23ce23f43e69047976e58b40964",
-        "scope": "same R2 with diagnostic driver: 24 actual safe nonclient candidates on narrow test layouts are not caption"
-      }
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "actual_readonly_config_save_failure_then_real_GUI_export_and_offline_parse"
+      },
+      "resolved_or_nonblocking_historical_defects": [
+        "V1-D16"
+      ]
     },
     {
       "id": "M12-F03",
@@ -3978,19 +4021,22 @@
             "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
             "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
             "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl"
+            "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
           ],
-          "observed": "747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。",
+          "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
           "historical_status": "PASS_R408_2632_9E5",
           "observation_ids": [
-            "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+            "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+            "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
           ]
         }
       ],
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
@@ -3998,7 +4044,9 @@
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -4010,21 +4058,22 @@
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-R2-PORTABLE-CONTRACT",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "COMPLETE_INDEPENDENT_UPDATED_CHINESE_PORTABLE_CONTRACT_SAME_R2_EXE_ACTUAL_NORMAL_ENTRY_SETTINGS_EFFECT_AND_UP",
-      "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。；747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。",
+      "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。；747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
       "remaining_conditions": [],
       "next_action": "当前98fc独立便携及额外普通设置行为子链完成；其余I12/整版入口/应用/环境合同分别推进，不重包或重测未改EXE。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-        "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-        "scope": "same_R2_same_98fc_original_ZIP_actual_normal_entry_default_and_saved_settings_effect_UP_and_exit"
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "unchanged_98fc_ZIP_and_R2_normal_entry_secondary_settings_default_saved_effects_UP_exit"
       },
       "resolved_or_nonblocking_historical_defects": [
         "V1-D03",
@@ -4041,11 +4090,11 @@
       },
       "pending_new_package_validation": {
         "package_id": "98fc5fb109a740aba7c27baa0cd29825",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
         "actual_normal_start_and_shutdown": true,
         "actual_default_Move_exact": true,
         "actual_NormalUp": true,
-        "functional_driver_subchain": "PASS_ACTUAL_DEFAULT_AND_SAVED_SETTING_EFFECTS_NOT_WHOLE_I12",
+        "functional_driver_subchain": "PASS_WITH_ACTUAL_ORDINARY_SECONDARY_SAME_MAIN_NOT_WHOLE_I12",
         "original_5017_assertion": "FAIL_RETAINED_D21_TARGETED_CLOSED_NEW_RUN",
         "previous_package_runs_not_rebound": true
       },
@@ -4057,6 +4106,14 @@
           "run_id": "d85e14904c7f4dbba0b3c08759db478c",
           "package_id": "0c7107367dfa4f48b7466455b0fda8ab",
           "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。"
+        },
+        {
+          "dev_status": "PASS",
+          "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+          "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+          "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+          "package_id": "98fc5fb109a740aba7c27baa0cd29825",
+          "observed": "9d74同98fc原ZIP普通默认/保存效果/UP与退出子链实际通过；不换绑新driver。"
         }
       ]
     },
@@ -4075,42 +4132,42 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "固定60功能/12模块/40B/12I/6E机器表、只读验收校验器及重复ID/虚假分数/无证据PASS反例、源码/包/二进制/RunId绑定和局部观察分流均已交付；新增历史实际增量，原失败不覆盖。IMPLEMENTED不是DEV或最终整版验收通过，缺证据仍计0。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M12-F04-DEV",
           "required_observation": "校验所有 60 IDs 和 B01–B40 只有唯一结果；PASS 行有运行环境/证据；最终分数只从实际 PASS 计算",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/acceptance-metadata-contract-transcript.txt"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
-            "PO-C01-INDEPENDENT"
+            "PO-C01-INDEPENDENT",
+            "PO-METADATA-INDEPENDENT-CONTRACT"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "实际validator valid=true，SelfTest5/5；60F/12M/40B/12I/6E数量和唯一数一致；29原件和29摘录hash各吻合index；当前ZIP/manifest实测hash吻合receipt，产品/driver分别绑定；分数仅B29/B32=5%，未将IMPLEMENTED或未执行当PASS。"
         }
       ],
-      "source_sha": "dd603a79aeba64c816e13ba49265db342c14e7e3",
-      "binary_sha256": "0CEA6E75FE171F472A020290C157EAE5A154D44B0AECC75B1E4AC60A8A7786FE",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "714c69f6feba4a0f81678c314eb1747e",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9e5-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/acceptance-metadata-contract-transcript.txt"
       ],
-      "defects": [
-        "V1-D03",
-        "V1-D05",
-        "V1-D16"
-      ],
+      "defects": [],
       "partial_observation_ids": [
         "PO-DF93-RUNNER",
         "PO-FDFE-INDEPENDENT",
@@ -4122,25 +4179,35 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
-        "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC"
+        "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
+        "PO-METADATA-INDEPENDENT-CONTRACT"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "固定60/12/40/12唯一ID及校验器已执行；本次补历史/当前身份、状态/缺口映射和脱敏可复核摘录。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。",
-      "remaining_conditions": [
-        "当前整版操作链和所有正式PASS证据未齐；校验器不自行授产品PASS。"
-      ],
-      "next_action": "将新运行按各自产品/driver哈希增量登记，历史不换绑。",
+      "status_basis": "COMPLETE_INDEPENDENT_MACHINE_READABLE_IDENTITY_STATUS_AND_SCORE_CONTRACT",
+      "observed": "固定60/12/40/12唯一ID及校验器已执行；本次补历史/当前身份、状态/缺口映射和脱敏可复核摘录。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；实际validator valid=true，SelfTest5/5；60F/12M/40B/12I/6E数量和唯一数一致；29原件和29摘录hash各吻合index；当前ZIP/manifest实测hash吻合receipt，产品/driver分别绑定；分数仅B29/B32=5%，未将IMPLEMENTED或未执行当PASS。",
+      "remaining_conditions": [],
+      "next_action": "本独立元数据合同已通过；继续按真实增量维护，不能把校验器通过当其他产品功能PASS。整版链不作为本项额外门槛。",
       "latest_product_observation": {
-        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-        "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
-        "run_id": "b49deace80fe49899375bf8d36481ea1",
-        "observation_ids": [
-          "PO-B49-ENVIRONMENT-APPLICATIONS"
-        ]
-      }
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "actual_machine_table_unique_ID_PASS_binding_score_and_original_excerpt_package_hash_checks_not_native_behavior"
+      },
+      "historical_completed_or_partial_observations": [
+        {
+          "dev_status": "BLOCKED",
+          "source_sha": "dd603a79aeba64c816e13ba49265db342c14e7e3",
+          "binary_sha256": "0CEA6E75FE171F472A020290C157EAE5A154D44B0AECC75B1E4AC60A8A7786FE",
+          "run_id": "714c69f6feba4a0f81678c314eb1747e",
+          "observed": "固定60/12/40/12唯一ID及校验器已执行；本次补历史/当前身份、状态/缺口映射和脱敏可复核摘录。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。"
+        }
+      ],
+      "nonblocking_historical_defects": [
+        "V1-D03",
+        "V1-D05",
+        "V1-D16"
+      ]
     },
     {
       "id": "M12-F05",
@@ -4166,11 +4233,14 @@
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-714C-DIAGNOSTIC-PORTABLE",
-            "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+            "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+            "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -4185,7 +4255,9 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
       ],
       "defects": [
         "V1-D03"
@@ -4193,7 +4265,7 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "中文使用说明/集中缺陷清单与当前普通ZIP入口子流程可复核，真人仍NOT_RUN。；98fc纠正中文说明的原ZIP在9d74完成真实普通入口、保存后行为及正常退出子链，非Full。",
+      "observed": "中文使用说明/集中缺陷清单与当前普通ZIP入口子流程可复核，真人仍NOT_RUN。；98fc纠正中文说明的原ZIP在9d74完成真实普通入口、保存后行为及正常退出子链，非Full。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
       "remaining_conditions": [
         "当前98fc说明包普通入口及保存效果已实际通过；整版完整指南中的托盘、五应用、显示矩阵、I01–I12及整体review/真人UAT仍未完成。"
       ],
@@ -4202,15 +4274,16 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-        "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-        "scope": "same_R2_same_98fc_original_ZIP_actual_normal_entry_default_and_saved_settings_effect_UP_and_exit"
+        "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+        "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "scope": "unchanged_98fc_ZIP_and_R2_normal_entry_secondary_settings_default_saved_effects_UP_exit"
       }
     }
   ],
@@ -4245,7 +4318,9 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4260,16 +4335,17 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "remaining_conditions": [
-        "M01-F01: 见该功能remaining_conditions及next_action",
         "M01-F02: 见该功能remaining_conditions及next_action",
         "M01-F03: 见该功能remaining_conditions及next_action",
-        "M01-F04: 见该功能remaining_conditions及next_action",
-        "M01-F05: 见该功能remaining_conditions及next_action"
+        "M01-F04: 见该功能remaining_conditions及next_action"
       ],
-      "next_action": "依赖M01-F01、M01-F02、M01-F03、M01-F04、M01-F05的具体下一动作推进；保持同一产品EXE，驱动修改不清空历史证据。"
+      "next_action": "M01-F01/F05完整独立合同已过；仅继续F02托盘、F03暂停恢复、F04异常收尾尚缺事实，不重跑已过普通二启。"
     },
     {
       "id": "M02",
@@ -4818,7 +4894,9 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4832,14 +4910,16 @@
         "PO-5017-SETTINGS-REAL-EFFECTS",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "remaining_conditions": [
         "M11-F01: 见该功能remaining_conditions及next_action",
         "M11-F02: 见该功能remaining_conditions及next_action",
         "M11-F03: 见该功能remaining_conditions及next_action",
-        "M11-F04: 见该功能remaining_conditions及next_action",
-        "M11-F05: 见该功能remaining_conditions及next_action"
+        "M11-F04: 见该功能remaining_conditions及next_action"
       ],
       "next_action": "依赖M11-F01、M11-F02、M11-F03、M11-F04、M11-F05的具体下一动作推进；保持同一产品EXE，驱动修改不清空历史证据。"
     },
@@ -4881,7 +4961,9 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fault-diagnostic.json"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4906,12 +4988,14 @@
         "PO-5017-SETTINGS-REAL-EFFECTS",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "remaining_conditions": [
         "M12-F01: 见对应功能的具体remaining_conditions",
         "M12-F02: 见对应功能的具体remaining_conditions",
-        "M12-F04: 见对应功能的具体remaining_conditions",
         "M12-F05: 见对应功能的具体remaining_conditions"
       ],
       "next_action": "M12-F03已按独立便携合同PASS；其余功能与模块按完整DEV合同继续，不由9e5定向包推整版通过。",
@@ -5851,7 +5935,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -5863,7 +5948,6 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M01-F01: 完整功能合同尚未通过，见功能行具体条件",
         "M01-F02: 完整功能合同尚未通过，见功能行具体条件",
         "M01-F03: 完整功能合同尚未通过，见功能行具体条件",
         "M01-F04: 完整功能合同尚未通过，见功能行具体条件"
@@ -5874,7 +5958,8 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
         "PO-E4-INDEPENDENT",
-        "PO-C01-NATIVE-FAILURES"
+        "PO-C01-NATIVE-FAILURES",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ]
     },
     {
@@ -5895,7 +5980,8 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -5918,7 +6004,8 @@
         "PO-269B-GUI",
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ]
     },
     {
@@ -5928,34 +6015,34 @@
       "mandatory": true,
       "weight": 2.5,
       "implementation_status": "IMPLEMENTED",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "points_awarded": 0,
-      "source_sha": null,
-      "binary_sha256": null,
+      "points_awarded": 2.5,
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": null,
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
-      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
+      "note": "只授B29独立2.5分；B01–B32其余未齐项目不由本项推PASS。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M01-F05",
         "M11-F05"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。；M11-F05已按9d74真实写失败保护/恢复及同R2 schema负例完整独立PASS；本对标仍须其他关联功能。",
-      "remaining_conditions": [
-        "M01-F05: 完整功能合同尚未通过，见功能行具体条件"
-      ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "observed": "当前同R2完整M01-F05登录开关/模拟登录保存状态/手工二启去重与M11-F05默认恢复/写失败保护合同均实际通过，见0a8f和9d74各原身份。",
+      "remaining_conditions": [],
+      "next_action": "本对标完整合同通过，不扩展为托盘或完整M01/M11/整版通过。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY"
+        "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ]
     },
     {
@@ -6011,7 +6098,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -6021,7 +6109,6 @@
       ],
       "observed": "已有具体子项/失败见关联功能，不增加分数。",
       "remaining_conditions": [
-        "M01-F01: 完整功能合同尚未通过，见功能行具体条件",
         "M11-F01: 完整功能合同尚未通过，见功能行具体条件"
       ],
       "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
@@ -6029,7 +6116,8 @@
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
-        "PO-269B-GUI"
+        "PO-269B-GUI",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE"
       ]
     },
     {
@@ -6045,20 +6133,22 @@
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
-      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
       ],
       "note": "仅B32完整独立合同PASS；当前98fc原ZIP经9d74真实普通入口/保存效果/UP与退出，旧0c710/d85历史不改绑；不是整版/I12通过。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M12-F03"
       ],
-      "observed": "747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。",
+      "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
       "remaining_conditions": [],
       "next_action": "独立便携合同完成，不因工具改动重建R2/重包0c710；其余功能、模块、I12/整版仍按各自完整合同。",
       "partial_observation_ids": [
@@ -6067,7 +6157,9 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-R2-PORTABLE-CONTRACT",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "historical_completed_contract": {
         "dev_status": "PASS",
@@ -6233,7 +6325,8 @@
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D10"
@@ -6247,7 +6340,10 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "candidate_identity_ref": "current_package",
       "observed": "714c普通七文件ZIP无参启动/中文设置/保存效果/正常退出/真实poststop通过子流程；托盘未取得。；9e5原2632独立便携功能PASS，但本整链尚缺真实托盘/全部规定入口。",
@@ -6490,7 +6586,8 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -6507,7 +6604,10 @@
         "PO-5017-SETTINGS-REAL-EFFECTS",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN"
     },
@@ -6703,7 +6803,8 @@
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D03"
@@ -6725,7 +6826,10 @@
         "PO-5017-SETTINGS-REAL-EFFECTS",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
-        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY"
+        "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
+        "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+        "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+        "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -8228,25 +8332,67 @@
       },
       "human_uat": "NOT_RUN",
       "note": "同R2 EXE未build；5017修测试布局使import/corrupt/exclusion实际阶段PASS。新98fc普通入口/实际Move/真实NormalUp/退出事实成立而driver详细event断言FAIL，D21修复/新Run待验；非D08新反例，不授Full。"
+    },
+    {
+      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "packaging_head": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "receipt_path": "uat/v1-sandbox/9d74d68f8a95441fa6344d5f9a73d0b2/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/9d74d68f8a95441fa6344d5f9a73d0b2/input/manifest.json",
+      "zip_sha256": "0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102",
+      "manifest_sha256": "38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0",
+      "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
+      "release_fixture_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
+      "debug_fixture_sha256": "23BB63D06BAC28ED28916F4D3445216675C59E4D371EFA3B07EDE94FB78E9AFE",
+      "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
+      "guest_configurations": "Release",
+      "guest_suite": "EntryAndSettings",
+      "guest_function_status": "SETTINGS_AND_PORTABLE_SCOPED_PASS_WHOLE_ENTRY_FAIL_ONLY_TRAY_BLOCKED",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "offline_regression": {
+        "Debug": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 4.07,
+          "label_seconds": 4.03
+        },
+        "Release": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 3.01,
+          "label_seconds": 1.65
+        },
+        "input_route_directed_each_configuration": "252/252_PASS",
+        "evidence_kind": "PARENT_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
+        "tool_chunks": [
+          "505e83",
+          "23335e"
+        ],
+        "not_function_DEV_PASS": true
+      },
+      "human_uat": "NOT_RUN",
+      "note": "R2 EXE未改；9d74原生import/save failure/corrupt/exclusion阶段与98fc普通子链PASS，D21定向关闭。EntryAndSettings整批因tray BLOCKED仍FAIL；无Full/I11/apps复验宣称。"
     }
   ],
   "current_package": {
-    "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+    "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
     "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-    "packaging_head": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-    "receipt_path": "uat/v1-sandbox/9d74d68f8a95441fa6344d5f9a73d0b2/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/9d74d68f8a95441fa6344d5f9a73d0b2/input/manifest.json",
-    "zip_sha256": "0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102",
-    "manifest_sha256": "38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0",
+    "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+    "packaging_head": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+    "receipt_path": "uat/v1-sandbox/0a8f1f0e477a46c1b1160291c3acb53a/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/0a8f1f0e477a46c1b1160291c3acb53a/input/manifest.json",
+    "zip_sha256": "BF85A23E8D4C871B80394F2B7183DF24BD8E552DD29FDCEFAC8D9477FCC6901D",
+    "manifest_sha256": "F9690BA6AEB4515069E18A2CD9ECCAF6F7F1EFB83C9A978F51FDAFA9BE77C4BB",
     "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
     "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
-    "release_fixture_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-    "debug_fixture_sha256": "23BB63D06BAC28ED28916F4D3445216675C59E4D371EFA3B07EDE94FB78E9AFE",
+    "release_fixture_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+    "debug_fixture_sha256": "020EE817D7DD49FFF0F60E2A03D8ACAE131DCECB195E51D381BA63137967D8F0",
     "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
     "guest_configurations": "Release",
     "guest_suite": "EntryAndSettings",
-    "guest_function_status": "SETTINGS_AND_PORTABLE_SCOPED_PASS_WHOLE_ENTRY_FAIL_ONLY_TRAY_BLOCKED",
+    "guest_function_status": "STARTUP_AND_ORDINARY_SECONDARY_SETTINGS_AND_PORTABLE_SCOPED_PASS_WHOLE_ENTRY_ONLY_TRAY_BLOCKED",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "offline_regression": {
       "Debug": {
@@ -8270,7 +8416,7 @@
       "not_function_DEV_PASS": true
     },
     "human_uat": "NOT_RUN",
-    "note": "R2 EXE未改；9d74原生import/save failure/corrupt/exclusion阶段与98fc普通子链PASS，D21定向关闭。EntryAndSettings整批因tray BLOCKED仍FAIL；无Full/I11/apps复验宣称。"
+    "note": "R2 EXE与98fc ZIP不变；0a8f补实际startup/二启及真实配置失败故障包，当前独立F01/F05与B29通过；诊断导出失败负例未跑，整批仅tray BLOCKED仍FAIL，非Full/I11/apps。"
   },
   "portable_candidate": {
     "package_id": "98fc5fb109a740aba7c27baa0cd29825",
@@ -8282,11 +8428,11 @@
     "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
     "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
     "actual_ordinary_no_argument_entry": "PASS_ACTUAL_NORMAL_GUI_DEFAULT_AND_SAVED_SETTING_MOVE_NORMALUP_NORMAL_EXIT_BYTES",
-    "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-    "partial_observation_id": "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
-    "functional_driver_chain": "PASS_SCOPED_PORTABLE_NOT_FULL_I12",
+    "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+    "partial_observation_id": "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+    "functional_driver_chain": "PASS_SCOPED_PORTABLE_WITH_ORDINARY_SECONDARY_NOT_FULL_I12",
     "prior_independent_portable_contract_PASS": "R2_0c710_d85_evidence_retained_not_rebound",
-    "note": "同98fc原ZIP/同R2EXE，9d74真实空参GUI/默认与修改后Move、public status约束实际UP、正常退出与字节/无profile检查完成；5017原FAIL保留，D21仅定向关闭，旧0c710不换绑。"
+    "note": "原98fc ZIP同EXE，0a8f实际无参二启保持原PID/birth/设置HWND，默认与保存后的实际Move/UP、正常退出/原字节/无profile通过；9d74/5017与0c710历史保留，不换绑。"
   },
   "evidence": [
     {
@@ -8947,9 +9093,114 @@
       "sha256": "D113C4884CB3026A73D0CAF4CDDCD9383627E7A3BCB555EDFFD6B515D6395192",
       "repository_excerpt_path": "docs/reports/v1-evidence/9d74-medium-desktop-probe-selected.json",
       "repository_excerpt_sha256": "186B3DF318533D9B56C0960E5AE42C238D419B081A52EED2EBCB6CEEDD5DC960"
+    },
+    {
+      "id": "EV-0A8F-FIXTURE",
+      "path": "uat/v1-control/0a8f1f0e477a46c1b1160291c3acb53a/collection-20261016T113005250Z-a13437d471d94975a302cfc2f946ef53/0a8f1f0e477a46c1b1160291c3acb53a-release-fixture.jsonl",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "sha256": "8CD368E6BC0AEA1C6A4785E8A9EFA93953DC57088F56465654C42F2566C96FDF",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "4B724AEB6A7D28F2093C50364302A98F502C77E7E14DC636DF1FFDD5D8AAD90A"
+    },
+    {
+      "id": "EV-0A8F-PORTABLE-PRODUCT",
+      "path": "uat/v1-control/0a8f1f0e477a46c1b1160291c3acb53a/collection-20261016T113005250Z-a13437d471d94975a302cfc2f946ef53/0a8f1f0e477a46c1b1160291c3acb53a-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "sha256": "985D7F2EE19D7FE57C396C369A55C86C0FB033CED7F66393262768EEFE148A99",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+      "repository_excerpt_sha256": "73950FF4779CCAF8B124B78A466609D54663AD5EFE2342E7A40E8FC8F482ED57"
+    },
+    {
+      "id": "EV-0A8F-FAULT-DIAGNOSTIC",
+      "path": "uat/v1-control/0a8f1f0e477a46c1b1160291c3acb53a/collection-20261016T113005250Z-a13437d471d94975a302cfc2f946ef53/0a8f1f0e477a46c1b1160291c3acb53a-product-Release/diagnostic-57640.txt",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "sha256": "81A9BC6BD06EF212E88B57FC88A9413E731F7929AA3FC49B57A064CA33F180C1",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0a8f-fault-diagnostic.json",
+      "repository_excerpt_sha256": "C5736BC5E814E34B55E05B866466A9568727942FB0B239EBB915A15D95BFF119"
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-METADATA-INDEPENDENT-CONTRACT",
+      "scope": "actual_machine_table_unique_ID_PASS_binding_score_and_original_excerpt_package_hash_checks_not_native_behavior",
+      "status": "PASS_INDEPENDENT_M12F04_CONTRACT",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "evidence_ids": [
+        "EV-ACCEPTANCE-METADATA-TRANSCRIPT"
+      ],
+      "observed": "实际validator valid=true，SelfTest5/5；60F/12M/40B/12I/6E数量和唯一数一致；29原件和29摘录hash各吻合index；当前ZIP/manifest实测hash吻合receipt，产品/driver分别绑定；分数仅B29/B32=5%，未将IMPLEMENTED或未执行当PASS。",
+      "tool_evidence_kind": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+      "full_version_PASS_inferred": false
+    },
+    {
+      "id": "PO-0A8F-STARTUP-AND-ORDINARY-SINGLE-INSTANCE",
+      "scope": "actual_saved_disabled_startup_simulation_and_ordinary_no_argument_secondary_same_R2_independent_contracts",
+      "status": "PASS_INDEPENDENT_M01F01_M01F05_NOT_WHOLE_M01",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "evidence_ids": [
+        "EV-0A8F-FIXTURE",
+        "EV-0A8F-PORTABLE-PRODUCT"
+      ],
+      "observed": "267实际HKCU Run精确本EXE --startup；276/279实际保存enabled=false与startup=true，285原进程正常退出/实际客户恢复；286执行该登录模拟参数，287新身份、288/289实际status enabled=false/无自动设置，290–292空参二启退出0且主PID/birth/唯一owner/状态不变并显示同主设置；313/314移除自有Run值与恢复原设置，320正常退出，324/329范围PASS。中文空格原98fc普通入口808–813另证无参二启同主设置/唯一owner，658–663本R2损坏说明/备份/默认恢复已齐。",
+      "real_Windows_logon": false,
+      "global_hook_count_empirically_measured": false,
+      "resource_duplicate_claim_basis": "actual unique behavior owner and same PID/birth/status; production mutex branch exits before resource creation; no claim of desktop-wide hook enumeration",
+      "whole_M01_I01_or_version_PASS": false
+    },
+    {
+      "id": "PO-0A8F-REAL-FAILURE-DIAGNOSTIC",
+      "scope": "actual_readonly_config_save_failure_then_real_GUI_export_and_offline_parse",
+      "status": "PARTIAL_M12F02_EXPORT_FAILURE_NEGATIVE_NOT_RUN",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "evidence_ids": [
+        "EV-0A8F-FIXTURE",
+        "EV-0A8F-FAULT-DIAGNOSTIC"
+      ],
+      "observed": "553只读故障、557/558真实modal、560原文件/draft保留后，561实际设置底部诊断按钮，567新final文件，568字段/配置解析与实际owned标题/Run路径不在包中，569 Recent failure精确包含先前实际‘无法原子保存配置，原配置未覆盖。’，未seed错误；导出新文件hash81A9BC…180C1独立重算一致。",
+      "diagnostic_export_itself_failed": false,
+      "export_failure_clear_error_and_no_fake_complete_file": "NOT_RUN",
+      "not_universal_privacy_validation": true,
+      "next_action": "只补诊断导出自身失败的真实明确报错/无假完整文件负例；无需托盘或全局I11作本功能额外门槛。"
+    },
+    {
+      "id": "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+      "scope": "unchanged_98fc_ZIP_and_R2_normal_entry_secondary_settings_default_saved_effects_UP_exit",
+      "status": "PASS_INDEPENDENT_PORTABLE_SUBCHAIN_NOT_I12_OR_FULL",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "evidence_ids": [
+        "EV-0A8F-FIXTURE",
+        "EV-0A8F-PORTABLE-PRODUCT"
+      ],
+      "package_id": "98fc5fb109a740aba7c27baa0cd29825",
+      "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
+      "whole_I12_Full_or_human_UAT_PASS": false
+    },
     {
       "id": "PO-9D74-SETTINGS-SAVE-FAILURE-AND-RECOVERY",
       "scope": "same_R2_real_export_import_corrupt_backup_and_readonly_write_failure_recovery_not_whole_M11",
@@ -11813,9 +12064,9 @@
     "latest_runtime_observation": {
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-      "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-      "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
-      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2"
+      "driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+      "driver_binary_sha256": "D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569",
+      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a"
     }
   },
   "pending_product_candidate": {
@@ -11900,8 +12151,8 @@
     "portable_normal_entry": "NEW98FC_ACTUAL_NORMALUP_TRUE_BUT_DRIVER_ASSERTION_FAIL_PENDING_D21_REVALIDATION",
     "latest_portable_validation_run_id": "d85e14904c7f4dbba0b3c08759db478c",
     "latest_portable_attempt_run_id": "5017e5a10bdd47bfae97026f68adee3b",
-    "latest_observed_run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-    "latest_driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
-    "note": "产品R2冻结；9d74补齐配置写失败与原98fc普通入口子链，D21关闭，不是Full或D08关闭。"
+    "latest_observed_run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+    "latest_driver_source_sha": "e81d7bdcd289aa6b18f949757b19f543f914b142",
+    "note": "R2冻结；0a8f补普通二启/模拟登录与真实故障诊断，整批只有trayBLOCKED仍FAIL；无Full/真人PASS。"
   }
 }

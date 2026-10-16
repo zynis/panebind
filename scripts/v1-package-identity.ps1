@@ -1,10 +1,25 @@
 # Shared identity checks for the existing V1 portable and guest packagers.
 # This file does not build, launch the product, or create a package.
 function Test-V1ProductToolOnlyPath([string]$Path) {
+    # Audited against src/platform/windows/CMakeLists.txt: panebind links only
+    # panebind_windows_product -> core + operation_geometry (the latter has
+    # window_translation.cpp only). These exact historical-MVP1 inputs belong
+    # to separate shield/owned-validation/flow targets, not the V1 product EXE.
+    # This is Product-only: the V1 fixture DOES link windows_explorer/shield,
+    # so the separate Driver scope below is deliberately not widened. CMake,
+    # real operation_geometry and all production includes remain protected.
+    $separateMvp1Inputs=@(
+        'src/platform/windows/operations/gesture_input_shield.h',
+        'src/platform/windows/operations/gesture_input_shield.cpp',
+        'src/platform/windows/operations/owned_gesture_shield_validation.cpp',
+        'src/platform/windows/explorer/explorer_mvp_flow_tests.cpp',
+        'scripts/prepare-r1c4b-mvp1-shield-sandbox.ps1',
+        'scripts/r1c4b-mvp1-shield-sandbox-guest.ps1')
     # This existing file is a BUILD_TESTING-only executable, not a source of
     # panebind_windows_product or the product EXE. Keep the exemption exact;
     # nearby production guest_path_scope.h/window_catalog.cpp remain protected.
-    return $Path -ceq 'src/platform/windows/product/guest_path_scope_tests.cpp' -or
+    return $separateMvp1Inputs -ccontains $Path -or
+        $Path -ceq 'src/platform/windows/product/guest_path_scope_tests.cpp' -or
         $Path -cmatch '^(docs/|tests/|scripts/v1-[^/]+\.ps1$|src/platform/windows/product/v1_guest_[^/]+\.(cpp|h)$)'
 }
 function Get-V1IdentityChanges([string]$Repository,[string]$Source,[string]$Head) {

@@ -546,7 +546,113 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
             ",\"cleanup_error\":"+quote(error)+",\"original_failure_preserved\":true,\"unknown_protection_not_removed\":true,\"functional_PASS_inferred\":false");throw;
     }
 }
+// Reuse the existing actual-command/geometry helpers also used by the mouse
+// mapping cases. Their definitions follow this header in the same fixture TU.
+Rect chain_work(HWND h);
+void chain_hotkey_exact(LayoutFixtures& set,WORD code,Rect expected,const char* label);
+
+void settings_guest_mapping_conflict(State& s){
+    namespace v=panebind::core::v1;
+    settings_guest_scope(s);const auto original=settings_guest_configuration(s);
+    auto baseline=v::default_settings();baseline.generation=original.generation;
+    if(original!=baseline||s.left||s.control||s.explorer[0]||s.applications[0])
+        throw std::runtime_error("mapping_conflict_requires_restored_defaults_and_exact_owned_only");
+    constexpr int registration=0x50b1;constexpr WORD test_key=VK_F10;
+    if(std::any_of(original.hotkeys.begin(),original.hotkeys.end(),[](const auto& binding){return binding.modifiers==3&&binding.key==test_key;})||
+       std::none_of(original.hotkeys.begin(),original.hotkeys.end(),[](const auto& binding){return binding.modifiers==3&&binding.key=='C'&&binding.action==v::Action::Center;}))
+        throw std::runtime_error("mapping_conflict_test_key_or_old_center_mapping_unavailable");
+    for(const int code:std::array{VK_CONTROL,VK_MENU,VK_SHIFT,VK_LWIN,VK_RWIN,VK_F10})
+        if(GetAsyncKeyState(code)&0x8000)throw std::runtime_error("mapping_conflict_initial_key_not_released");
+    const auto path=s.product.parent_path()/L"settings.ini";const auto bytes=read(path),original_hash=hash(path);
+    if(bytes.empty()||original_hash.empty())throw std::runtime_error("mapping_original_settings_identity_unavailable");
+    SetLastError(0);bool registered=RegisterHotKey(nullptr,registration,MOD_CONTROL|MOD_ALT|MOD_NOREPEAT,test_key)!=FALSE;
+    const DWORD register_error=registered?0:GetLastError();
+    const auto release=[&]{
+        if(!registered)return true;
+        SetLastError(0);const bool returned=UnregisterHotKey(nullptr,registration)!=FALSE;const DWORD error=returned?0:GetLastError();
+        if(returned)registered=false;
+        s.log.emit("settings_mapping_test_conflict_removal","\"actual_UnregisterHotKey_return\":"+std::string(returned?"true":"false")+
+            ",\"error\":"+std::to_string(error)+",\"registration_id\":"+std::to_string(registration)+
+            ",\"owner_thread\":"+std::to_string(GetCurrentThreadId())+",\"only_successfully_created_registration\":true");
+        return returned;
+    };
+    const auto fragment=[](const v::Settings& config,std::string_view prefix,std::string_view count){
+        std::wstring result;const auto serialized=v::serialize(config);
+        for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with(prefix)||row.starts_with(count)){
+            for(const char c:row){if(static_cast<unsigned char>(c)>=128)throw std::runtime_error("mapping_fragment_not_ASCII");result+=static_cast<wchar_t>(c);}result+=L"\r\n";
+        }if(result.empty()||result.size()>16384)throw std::runtime_error("mapping_fragment_over_existing_bound");return result;
+    };
+    const auto editor=[&](const SettingsGui& gui,std::wstring_view prefix,bool readonly){
+        HWND found{};unsigned count{};
+        for(HWND h=GetWindow(gui_page(s,gui),GW_CHILD);h;h=GetWindow(h,GW_HWNDNEXT)){
+            if(gui_class(h)!=L"Edit"||!gui_identity(s,gui,h))continue;
+            const auto text=settings_guest_text(s,gui,h);const auto style=GetWindowLongPtrW(h,GWL_STYLE);
+            if(text.starts_with(prefix)&&(style&ES_MULTILINE)&&((style&ES_READONLY)!=0)==readonly){found=h;++count;}
+        }if(count!=1)throw std::runtime_error("mapping_exact_unique_public_editor_not_found");return found;
+    };
+    const auto legend=[&](const SettingsGui& gui){const auto h=editor(gui,L"动作标识 → 中文行为：",true);return settings_guest_text(s,gui,h);};
+    bool configuration_changed=false;
+    try{
+        s.log.emit("settings_mapping_test_conflict_registration","\"actual_RegisterHotKey_return\":"+std::string(registered?"true":"false")+
+            ",\"error\":"+std::to_string(register_error)+",\"registration_id\":"+std::to_string(registration)+
+            ",\"owner_thread\":"+std::to_string(GetCurrentThreadId())+",\"modifiers\":3,\"key\":121,\"foreign_registration_touched\":false");
+        if(!registered){s.log.failed=true;s.log.emit("settings_mapping_conflict_result","\"result\":\"BLOCKED\",\"reason\":\"test_could_not_reserve_one_unused_nonreserved_hotkey\",\"no_takeover_or_retry\":true");return;}
+        LayoutFixtures set{s};set.create();const auto work=chain_work(set.frames[0].hwnd);
+        if(work.width()<900||work.height()<650)throw std::runtime_error("mapping_conflict_actual_work_area_too_small");
+        const Rect initial{work.l+120,work.t+110,work.l+600,work.t+430};
+        set.setup({initial},{{120,100,work.width(),work.height()}});
+        const Rect centered{work.l+(work.width()-initial.width())/2,work.t+(work.height()-initial.height())/2,
+            work.l+(work.width()-initial.width())/2+initial.width(),work.t+(work.height()-initial.height())/2+initial.height()};
+        auto wanted=original;wanted.hotkeys.push_back({3,test_key,v::Action::MoveRight});
+        const auto requested_fragment=fragment(wanted,"hotkey.","hotkey_count=");
+        auto gui=gui_open(s);gui_page_select(s,gui,3);const HWND hotkey_edit=editor(gui,L"hotkey_count=",false);
+        const auto public_legend=legend(gui);
+        s.log.check("settings_mapping_actual_help_matches_action_identifiers",public_legend.find(L"Center → 居中\r\n")!=public_legend.npos&&
+            public_legend.find(L"MoveRight → 向右微移\r\n")!=public_legend.npos,
+            "\"actual_readonly_public_legend\":true,\"actions_checked\":[\"Center\",\"MoveRight\"],\"tray_help_claimed\":false");
+        settings_guest_replace(s,gui,hotkey_edit,requested_fragment);
+        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
+        settings_guest_acknowledge(s,gui,L"保存或应用失败，原有效配置应保持不变。",L"PaneBind：设置未更改");
+        const auto notice=record(s,mark,"notice");
+        s.log.check("settings_mapping_real_registration_conflict_preserves_old_snapshot",notice.find("快捷键注册冲突")!=notice.npos&&
+            read(path)==bytes&&hash(path)==original_hash&&settings_guest_configuration(s)==original&&
+            gui_identity(s,gui,hotkey_edit)&&settings_guest_text(s,gui,hotkey_edit)==requested_fragment,
+            "\"actual_product_notice\":"+quote(notice)+",\"original_sha256\":"+quote(original_hash)+
+            ",\"actual_test_registration_held\":true,\"draft_retained\":true,\"generation_unchanged\":true");
+        chain_hotkey_exact(set,'C',centered,"settings_mapping_old_registered_Center_survives_rejected_save");
+        s.log.check("settings_mapping_conflict_owned_registration_released",release());
+        gui=gui_open(s);gui_page_select(s,gui,3);
+        s.log.check("settings_mapping_same_failed_draft_after_old_command",settings_guest_text(s,gui,editor(gui,L"hotkey_count=",false))==requested_fragment&&read(path)==bytes);
+        gui_save_enter(s,gui);const auto saved=settings_guest_configuration(s);wanted.generation=saved.generation;configuration_changed=true;
+        s.log.check("settings_mapping_same_draft_after_release_saved",saved==wanted&&saved.generation>original.generation);
+        const UINT dpi=GetDpiForWindow(set.frames[0].hwnd);if(!dpi)throw std::runtime_error("mapping_actual_source_DPI_unknown");
+        const LONG step=MulDiv(original.step_dip,static_cast<int>(dpi),96);
+        chain_hotkey_exact(set,test_key,translated(centered,step,0),"settings_mapping_new_registered_MoveRight_matches_editor_and_help");
+        gui=gui_open(s);gui_page_select(s,gui,3);gui_click(s,gui,GetDlgItem(gui.root,110));
+        s.log.check("settings_mapping_actual_page_defaults_and_help_consistent",settings_guest_text(s,gui,editor(gui,L"hotkey_count=",false))==
+            fragment(baseline,"hotkey.","hotkey_count=")&&settings_guest_text(s,gui,editor(gui,L"mouse_count=",false))==
+            fragment(baseline,"mouse.","mouse_count=")&&gui_text(s,gui,gui_number(s,gui,L"键盘微移"))==std::to_wstring(baseline.step_dip)&&
+            legend(gui)==public_legend&&settings_guest_configuration(s)==saved,
+            "\"actual_button_id\":110,\"actual_mouse_click\":true,\"not_saved_until_real_Enter\":true");
+        gui_save_enter(s,gui);const auto restored=settings_guest_configuration(s);auto expected=original;expected.generation=restored.generation;
+        s.log.check("settings_mapping_original_options_restored_after_page_defaults",restored==expected&&restored.generation>saved.generation);
+        configuration_changed=false;set.setup({initial},{{120,100,work.width(),work.height()}});
+        chain_hotkey_exact(set,'C',centered,"settings_mapping_default_Center_still_executes_actual_command");
+        s.log.check("settings_mapping_exact_owned_windows_closed",set.close());
+        s.log.emit("settings_mapping_conflict_result","\"result\":\"PASS\",\"real_RegisterHotKey_conflict_and_Chinese_notice\":true,"
+            "\"old_mapping_and_actual_command_preserved\":true,\"own_registration_released\":true,\"same_draft_new_mapping_executed\":true,"
+            "\"actual_page_defaults_and_public_action_help\":true,\"product_EXE_unchanged\":true,\"human_uat\":\"NOT_RUN\"");
+    }catch(...){
+        bool removed=false;try{removed=release();}catch(...){}
+        s.log.emit("settings_mapping_conflict_exception_cleanup","\"own_registration_absent_confirmed\":"+std::string(removed?"true":"false")+
+            ",\"configuration_may_have_changed\":"+(configuration_changed?"true":"false")+
+            ",\"independent_phase_real_GUI_restore_still_required\":true,\"original_failure_preserved\":true");throw;
+    }
+}
 void settings_guest_import_export(State& s){
+    // An independent non-drag settings check; original five-button mappings
+    // keep their existing separate driver and are not rerun by this function.
+    settings_guest_mapping_conflict(s);
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto config_path=s.product.parent_path()/L"settings.ini";const auto bytes=read(config_path);
     const auto suffix=s.configuration=="Debug"?L"debug":L"release";const auto exported=s.output/(s.run+L"-"+suffix+L"-settings-export.conf");
     if(fs::exists(exported))throw std::runtime_error("settings_export_requires_new_RunId_path");

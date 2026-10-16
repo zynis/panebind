@@ -19,6 +19,32 @@ foreach($path in @('src/platform/windows/product/product_app.cpp','src/platform/
 foreach($path in @('docs/reports/V1_ACCEPTANCE.json','scripts/v1-sandbox-guest.ps1','tests/core/v1_input_route_tests.cpp','src/platform/windows/product/v1_guest_settings_cases.h','src/platform/windows/product/guest_path_scope_tests.cpp')){
     Check (Test-V1ProductToolOnlyPath $path) ('tool-only path remains outside product identity: '+$path)
 }
+# Exact separate-target exemptions, not an operations/Explorer directory rule.
+# Current CMake product source/link declarations and their include closure were
+# inspected before adding these. Any future CMake/product/include change still
+# invalidates reuse; the Driver scope is unchanged because it links Explorer.
+foreach($path in @(
+    'src/platform/windows/operations/gesture_input_shield.h',
+    'src/platform/windows/operations/gesture_input_shield.cpp',
+    'src/platform/windows/operations/owned_gesture_shield_validation.cpp',
+    'src/platform/windows/explorer/explorer_mvp_flow_tests.cpp',
+    'scripts/prepare-r1c4b-mvp1-shield-sandbox.ps1',
+    'scripts/r1c4b-mvp1-shield-sandbox-guest.ps1')){
+    Check (Test-V1ProductToolOnlyPath $path) ('exact unlinked MVP1 input permits unchanged V1 product reuse: '+$path)
+}
+foreach($path in @(
+    'src/platform/windows/operations/window_translation.cpp',
+    'src/platform/windows/operations/window_translation.h',
+    'src/platform/windows/operations/window_rect_adjustment.h',
+    'src/core/geometry/geometry.h',
+    'src/platform/windows/product/input_service.cpp',
+    'src/platform/windows/CMakeLists.txt',
+    'src/platform/windows/operations/owned_gesture_overlay_probe.cpp',
+    'src/platform/windows/operations/gesture_input_shield_other.cpp',
+    'scripts/prepare-r1c4b-mvp1-shield-sandbox-other.ps1',
+    'scripts/r1c4b-mvp1-shield-sandbox-guest-other.ps1')){
+    Check (-not (Test-V1ProductToolOnlyPath $path)) ('product dependency or adjacent unreviewed path still rejects reuse: '+$path)
+}
 $product=[pscustomobject]@{product='PaneBind';version='1.0.0-dev';source_commit=$before;subsystem='windows';requires_elevation=$false}
 $driver=[pscustomobject]@{product='PaneBind V1 guest fixture';source_commit=$after;host_synthetic_input='forbidden';requires_medium_guest=$true;
     guest_contract='panebind-v1-guest-contract/2';product_interface='panebind-v1-product-guest-interface/1'}

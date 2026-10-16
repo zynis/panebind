@@ -148,7 +148,7 @@ try {
         $manifest.configuration -cne 'Release-and-Debug-MT-x64' -or
         $manifest.explorer_test_exception -cne 'exact_sandbox_same_sid_session_high' -or
         @('AutomatedValidation','BindOnlyIndependentReview',
-            'CommandStopValidation','CommandDisconnectValidation') -cnotcontains
+            'CommandStopValidation','CommandDisconnectValidation','ConsumedDownFeasibility') -cnotcontains
             [string]$manifest.explorer_guest_mode -or
         $manifest.independent_review_configuration -cne 'release') {
         throw 'Guest manifest does not match the exact package.'
@@ -224,7 +224,13 @@ try {
         @{ configuration = 'debug'; scenario = 'capture-lost'; executable = $debugOwned },
         @{ configuration = 'release'; scenario = 'normal'; executable = $owned }
     )
-    if ($manifest.owned_prerequisite.result -ceq 'REUSED_PRIOR_EVIDENCE') {
+    $consumedDownOnly = $manifest.explorer_guest_mode -ceq 'ConsumedDownFeasibility'
+    if ($consumedDownOnly) {
+        # This is a new platform hypothesis, not a rerun of the old native-END
+        # route and not V1 Move acceptance. Never reuse the historical nine.
+        $cases = @(@{ configuration = 'debug'; scenario = 'consumed-down-normal-repeat'; executable = $debugOwned })
+        $summary.owned_prerequisite = [ordered]@{ result='NEW_CONSUMED_DOWN_ROUTE_NOT_PREVIOUS_NATIVE_END_EVIDENCE' }
+    } elseif ($manifest.owned_prerequisite.result -ceq 'REUSED_PRIOR_EVIDENCE') {
         $prior = $manifest.owned_prerequisite
         if ($prior.run_id -cne '050736d561fe4b3c941e9f194b3f51aa' -or
             $prior.source_commit -cne '3ef009f5e72c5eebdbb64b3c3e0cd6c52c1b2d52' -or
@@ -260,7 +266,10 @@ try {
         $configuration = $testCase.configuration
         $scenario = $testCase.scenario
         $ownedExecutable = $testCase.executable
-        $preflightLog = Join-Path $outputDir "$runId-preflight-$configuration-$scenario.jsonl"
+        # The unchanged exact preflight executable accepts this original
+        # suffix. The summary below records the ACTUAL new probe scenario.
+        $preflightScenario = if ($consumedDownOnly) { 'normal' } else { $scenario }
+        $preflightLog = Join-Path $outputDir "$runId-preflight-$configuration-$preflightScenario.jsonl"
         & $preflight --check-guest-input-state --sandbox-run-id $runId --evidence-log $preflightLog *> (Join-Path $outputDir "$runId-preflight-$configuration-$scenario.console.txt")
         $preflightExit = $LASTEXITCODE
         $preflightResult = $null
@@ -345,6 +354,12 @@ try {
             }
             throw "Owned scenario $configuration/$scenario failed or produced no evidence; remaining scenarios were not run."
         }
+    }
+    if ($consumedDownOnly) {
+        $summary.status = 'CONSUMED_DOWN_FEASIBILITY_PASSED'
+        $summary.explorer_not_run_reason = 'new_owned_input_resource_hypothesis_only_no_V1_product_or_Explorer_PASS'
+        Save-Summary
+        exit 0
     }
     # Always collect a CURRENT guest input/identity observation, including when
     # owned was reused. The historical High result is not launch authority.

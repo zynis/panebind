@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidateSet('AutomatedValidation', 'BindOnlyIndependentReview',
-        'CommandStopValidation', 'CommandDisconnectValidation')]
+        'CommandStopValidation', 'CommandDisconnectValidation', 'ConsumedDownFeasibility')]
     [string]$GuestMode = 'AutomatedValidation'
 )
 
@@ -11,7 +11,9 @@ $branch = (& git -C $repo branch --show-current).Trim()
 if ($LASTEXITCODE -ne 0 -or $branch -cne 'codex/r1c4b-live-magnet') {
     throw 'Expected codex/r1c4b-live-magnet; no package was prepared.'
 }
-$dirty = @(& git -C $repo status --porcelain)
+$dirty = @(& git -C $repo status --porcelain | Where-Object {
+    $_ -cnotmatch '^\?\? docs/PaneBind_V1_Development_Plan/$'
+})
 if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) {
     throw 'Worktree must be clean so every guest binary has one committed source identity.'
 }
@@ -151,7 +153,7 @@ if (-not $cmake) {
     $cmake = 'D:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
 }
 if (-not (Test-Path -LiteralPath $cmake -PathType Leaf)) { throw 'cmake.exe is unavailable.' }
-$build = Join-Path $repo 'out\r1c4b-mvp1-shield-guest-mt'
+$build = Join-Path $repo ('out\mvp1-shield-' + $head.Substring(0,12))
 & $cmake -S $repo -B $build -G 'Visual Studio 18 2026' -A x64 -DBUILD_TESTING=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 if ($LASTEXITCODE -ne 0) { throw 'Guest /MT configure failed.' }
 & $cmake --build $build --config Release --target panebind-owned-shield-validation panebind-explorer-mvp1 panebind-test-input-environment panebind-shield-topmost-contrast --parallel 4

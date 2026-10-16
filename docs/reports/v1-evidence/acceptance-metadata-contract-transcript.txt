@@ -1,0 +1,44 @@
+PaneBind V1 M12-F04 directed metadata validation
+
+Evidence kind: transcript of actual exec_command tool output; not archived
+program stdout, a guest run, or newly granted product functional acceptance.
+Recorded 2026-10-16 after collection of Run 0a8f1f0e477a46c1b1160291c3acb53a.
+
+Product source: 4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62
+Product Release SHA256: 458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C
+Driver source: e81d7bdcd289aa6b18f949757b19f543f914b142
+Driver Release SHA256: D7401664865A586132DF17E9D983F8261B01E452E997C14CDF0948754984E569
+Validator script SHA256: F374A370AB80B5AF03A1C00D0D33935746B3D3EE62D8F6251A03AA800CD78450
+
+Actual commands:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptance.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptance.ps1 -SelfTest
+
+Actual tool output (chunk ce8e00):
+valid=true; errors=[]; benchmark_pass=2; coverage_percent=5;
+native_cases_rerun=false; product_DEV_PASS_granted_by_validator=false.
+SelfTest checks=5; failures=[]; passed=true; actual_report_modified=false.
+The five in-memory checks cover the valid zero-claim baseline, duplicate
+feature ID, invented score, PASS without binding, and a deferred benchmark
+incorrectly earning points. The actual report is not modified by SelfTest.
+
+Independent read-only inventory/hash checks in the same invocation:
+features: 60 rows / 60 unique
+modules: 12 rows / 12 unique
+benchmarks: 40 rows / 40 unique
+integration_chains: 12 rows / 12 unique
+environments: 6 rows / 6 unique
+PASS benchmark IDs: B29, B32
+29 original evidence files and 29 committed excerpt candidates independently
+matched their indexed SHA256 values. This checks identity/integrity, not the
+truth of a native behavior verdict; actual scopes remain in the evidence table.
+
+Actual package checks (chunk eee0a7):
+ZIP BF85A23E8D4C871B80394F2B7183DF24BD8E552DD29FDCEFAC8D9477FCC6901D matches receipt.
+Manifest F9690BA6AEB4515069E18A2CD9ECCAF6F7F1EFB83C9A978F51FDAFA9BE77C4BB matches receipt.
+The product and driver identities are separately bound; historical runs and
+original package bytes are retained, never reassigned to later executables.
+
+Only M12-F04's independent machine-readable evidence/identity/score contract
+is assessed here. No tray, application, I01-I12, whole-version, or human UAT
+PASS follows from the validator or this transcript.
