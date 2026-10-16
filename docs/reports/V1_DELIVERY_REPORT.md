@@ -2,13 +2,19 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。当前已实测产品仍为R3=`37e5ffce1290f3c8e07056083e42666859eebe0d`／Release EXE `658C12…CD067`，866真实可见导出失败及恢复合同通过，D22仅按此定向关闭；现有独立完整合同**7/60功能、B29／B32共2/40=5%**。旧R2整包和六项原实测保持原身份，不换绑新EXE。新候选R4已完成真实输入资源与writer接线及D23源码修复，见下一节；现场仍NOT_RUN，不继承R3功能结论。D08开放；整版最终Release／Medium连续链、应用／托盘／显示矩阵未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新现场产品为R4=`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`，e1fc的Debug／Release Full均因驱动缺口未完成，Debug实际几何及异常UP收尾见下一节，不授完整功能PASS。历史R3=`37e5ffce1290f3c8e07056083e42666859eebe0d`／Release EXE `658C12…CD067`的866真实可见导出失败及恢复合同通过，D22仅按此定向关闭；现有独立完整合同**7/60功能、B29／B32共2/40=5%**保持原实测身份，旧R2／R3日志和包不换绑R4。D23源码修复待R4定向运行复验，D08开放；整版最终Release／Medium连续链、应用／托盘／显示矩阵未齐，不能宿主试用，真人UAT PENDING。
 
-## R4：真实输入资源接入产品，已构建但尚未现场验证
+## R4：真实输入资源接入产品，首批现场被驱动缺口阻断
 
 候选源码`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`已将InputService→GestureInputShield→共用writer实际接通；新路线保留精确guest／RunId／包与二进制身份保护，不在普通宿主启用。D23现为`DEV_FIXED_PENDING_TARGETED_RUNTIME`：匹配UP后不再允许新的continuous placement，已发出调用的完成和明确的release DockCommit保持独立语义；这不证明D08已修复。
 
-专用目录`out/v1-captured-input-r4`实际Debug／Release构建均退出0。Debug的10项V1 offline通过，实际wall 2.87秒；Release的10项V1加explorer-mvp-flow共11项通过，实际wall 6.26秒、offline processor 2.12秒，二者不混用。Release产品SHA-256 `3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF`，Debug产品`EBDD02BE05405D1BD17E429349F5377122FA945D7F4667F5C383801344615F7B`；driver Release `29083D75012005D27EFF423FDEAAEBF7C1AF04937E9DA2F50A181D6090E2F62B`／Debug `776152AD37E6365298E4808891D8911E720AE9C392D131260F1C545B31D14B03`。上述为主执行者实际工具结果转录，不是仓库归档原stdout，不替代现场结果。新包尚未生成；owned／Explorer／整版连续链／普通Medium新路线／真人结果均NOT_RUN，旧R3／R2证据及7项独立合同不改绑此EXE。
+专用目录`out/v1-captured-input-r4`实际Debug／Release构建均退出0。Debug的10项V1 offline通过，实际wall 2.87秒；Release的10项V1加explorer-mvp-flow共11项通过，实际wall 6.26秒、offline processor 2.12秒，二者不混用。Release产品SHA-256 `3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF`，Debug产品`EBDD02BE05405D1BD17E429349F5377122FA945D7F4667F5C383801344615F7B`；driver Release `29083D75012005D27EFF423FDEAAEBF7C1AF04937E9DA2F50A181D6090E2F62B`／Debug `776152AD37E6365298E4808891D8911E720AE9C392D131260F1C545B31D14B03`。上述为主执行者实际工具结果转录，不是仓库归档原stdout，不替代现场结果。新7a0便携包已生成但普通入口尚未运行；首批e1fc的Debug／Release Full均被驱动缺口阻断如下，不授完整功能PASS。Explorer／整版连续链／普通Medium完整新路线／真人结果仍NOT_RUN，旧R3／R2证据及7项独立合同不改绑此EXE。
+
+Run `e1fc79d4e1ca4c63b0572da1b4ef9150`，产品及driver均af0，打包HEAD`8f63bf46d2d1b832ce67a9af215af94985df8f28`；主ZIP `D9F9B3274F0B47EEFA4D83CA7109585B856B2D6DE59F04E3386A8CF2B68F6670`／manifest `52EC5A7B3AE2DDCF3CBFEFB5B50E5E316D9EBE86B1F868249F2C76DBDF8C64BE`，7a0便携ZIP `236FDF61F8529296639286158E28DD890E76EDA429E28A317396BF0E6F4152A5`／manifest `78ED29E69FA4B74E178096555257783B8AED8DB26F1354B2443B3A1E913CF486`。四份原日志均已独立核hash、JSON合法及sequence连续。
+
+- [Debug driver](v1-evidence/e1fc-r4-debug-driver-selected.jsonl)34／36／38／40／42真实free、XY snap、hold、detach、resnap exact；产品4次native成功，hold仅already-exact无调用。43装passive hook后44明确`single_test_UP_attempted=false`，45因旧driver仍要求命中source而不是实际shield抛错，计划Normalcase未完成。
+- 异常46仅一次测试清理UP后，[产品原回执](v1-evidence/e1fc-r4-debug-product-selected.jsonl)23实际RawUP、25accepted legacyUP、28实际capture释放、30解除关联、31 NormalUp Gone、32明确`shield_queued_legacy`、33正常结束；35资源退出。不能把异常路径的真实闭环改成planned场景PASS，亦不据此关闭D08或授D23定向验收。52后续实际客户计数`[0,0]→[1,1]`与guest销毁不同。
+- [Release driver](v1-evidence/e1fc-r4-release-driver-selected.jsonl)28仅SetForegroundWindow返回false就短路，未等实际前台即29失败；产品无DOWN／START／placement。34后续同source实际foreground=true、客户计数`[0,0]→[1,1]`。只支持修正测试观察，不推测产品权限或系统根因。两个Full均FAIL；下一Run只改driver，继续复用af0原产品，不重烘EXE或改绑旧证据。
 
 ## 现有验收表的推进状态与仓库内证据
 

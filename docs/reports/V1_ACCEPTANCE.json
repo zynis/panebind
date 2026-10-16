@@ -15,7 +15,7 @@
     "final_sha": null,
     "implementation_inspected": "CURRENT_R3_REAL_RELEASE_MEDIUM_ENTRY_DIAGNOSTIC_PORTABLE_SCOPED_NOT_WHOLE_VERSION",
     "note": "当前R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
-    "pending_product_note": "R4 af0aa67已实际接通InputService/shield/writer并修复D23源码，D/R构建与offline通过；新包及现场NOT_RUN，精确guest保护不授普通宿主试用。R3 actual866、旧R2与7项独立合同保持原实测身份，未迁绑R4。已有ISO/VM但RAM不足；只读库存未确认可用注册VM，不等于全盘不存在。",
+    "pending_product_note": "R4 af0aa67实际接通InputService/shield/writer并修复D23源码，D/R构建与offline通过；新包e1fc/7a0已生成，首批Full均被driver缺口阻断，Debug五阶段exact和异常单UP真实NormalUp清理只作子范围，不授计划case或完整功能PASS。精确guest保护不授宿主试用；R3 actual866、旧R2与7项完整合同保持原身份。已有ISO/VM但RAM不足，未确认可用注册VM不等于全盘不存在。",
     "pending_candidate": {
       "source_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
       "release_binary_sha256": "3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF",
@@ -36,12 +36,28 @@
       "evidence_kind": "MAIN_EXECUTOR_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
       "input_resource_writer_wiring": "IMPLEMENTED",
       "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
-      "package_generated": false,
-      "runtime_validation": "NOT_RUN",
+      "package_generated": true,
+      "runtime_validation": "FAIL_DRIVER_PRE_UP_GUARD_AND_RELEASE_FOREGROUND_SHORT_CIRCUIT",
+      "latest_run_id": "e1fc79d4e1ca4c63b0572da1b4ef9150",
+      "guest_package_zip_sha256": "D9F9B3274F0B47EEFA4D83CA7109585B856B2D6DE59F04E3386A8CF2B68F6670",
+      "guest_manifest_sha256": "52EC5A7B3AE2DDCF3CBFEFB5B50E5E316D9EBE86B1F868249F2C76DBDF8C64BE",
+      "portable_package_id": "7a0f34aec74a4909bfca27cf567fce6d",
+      "portable_zip_sha256": "236FDF61F8529296639286158E28DD890E76EDA429E28A317396BF0E6F4152A5",
+      "portable_manifest_sha256": "78ED29E69FA4B74E178096555257783B8AED8DB26F1354B2443B3A1E913CF486",
+      "portable_ordinary_entry_runtime": "NOT_RUN",
+      "e1fc_observed": {
+        "Debug": "五阶段free/XY snap/hold/detach/resnap实际exact，4次真实native与1次already-exact noNative；planned UP前driver要求WindowFromPoint命中source而非实际shield，中断未发plannedUP，不能授Normalcase PASS。",
+        "Debug_exception_cleanup": "driver仅一次清理UP后，产品同代实际RawUP/accepted legacyUP、capture release/detach、NormalUp Gone及gesture_end正常；产品退出和客户实际[0,0]到[1,1]独立观察。不是planned case通过或D08根因证明。",
+        "Release": "初始SetForegroundWindow返回false被driver短路，未观察等待即FAIL；无DOWN/START/placement。后继cleanup同source实际foreground=true且客户DOWN/UP[0,0]到[1,1]。不是已证产品权限失效。",
+        "whole_Full_result": "FAIL",
+        "D23_targeted_native_after_UP_verdict": "NOT_GRANTED",
+        "new_feature_PASS_awarded": false,
+        "next_action": "只修driver实际shield命中/同代真实UP回执和一次SetForegroundWindow后实际前台观察；复用未经修改的af0产品EXE，以新driver/Run继续。"
+      },
       "ordinary_host_trial_allowed": false
     },
-    "latest_observed_runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
-    "latest_observed_run_id": "866d2342e2994233a48c8a97106d660f"
+    "latest_observed_runtime_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
+    "latest_observed_run_id": "e1fc79d4e1ca4c63b0572da1b4ef9150"
   },
   "scorecard": {
     "denominator": 40,
