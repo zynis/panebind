@@ -2,7 +2,17 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。最新7019／a27f同R8产品82d／driver59c实际完成视觉及batch组件、Terminal几何与正常UP子链；source-close／grid缺UP、inflight原证据门FAIL及下一Move-UP未运行、Terminal客户门与Edge失败仍保留。历史**7/60功能、B29／B32共2/40=5%**不增加；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。旧82d最新0be2／3fd3取得I08、视觉、在途恢复、grid和batch的具体组件结果，但3fd3恢复Resize仍缺真实本代UP、整批FAIL。新产品R9／2b038生产普通入口资源策略已接线，D/R构建及各10项offline通过，**现场NOT_RUN**；不能继承旧82d实测。历史**7/60功能、B29／B32共2/40=5%**不增加、不换绑新EXE；不能宿主试用，真人UAT PENDING。
+
+## 0be2＋3fd3：旧82d组件定向推进，新R9待实际验证
+
+两批产品仍为`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／`C796DDA…ED0DE`。0be2 driver／包装`0260ce2`／EXE `20BADD9E…DEEB5`；3fd3 driver／包装`f3848e9`／EXE `06C90F6D…B95E8`。每批14条原字节摘录及完整RunId／ZIP／manifest／原件哈希见索引，旧失败不改判。
+
+[0be2原行](v1-evidence/0be2-r8-owned-components-and-retired-grid-up-verdict-selected.jsonl)：1720行合法连续。859 I08组件实际通过（source-close真实UP及恢复、actor默认30秒与后继恢复）；1350视觉、1578在途、1711 batch组件通过。在途1456只认可同代实际LL-UP先于abort的形态，1460真实late exact、1461 alpha173恢复、1474新Move／1481新UP有实测，不伪造NormalUp。grid原1602／1643 FAIL保留：唯一测试UP QPC区间1144310328..1144317458内实际观察到g7/button1回执1144314324，但已退休、未push；1600实际Medium/exact source。旧normalized判定漏接不是缺LL-UP，也不是正常UP通过。
+
+[3fd3原行](v1-evidence/3fd3-r8-grid-scope-and-recovery-resize-up-failure-selected.jsonl)：1475行合法连续。1107视觉／1335在途／1398 grid／1466 batch组件通过；1392仍`original_UP_observed=false`、`whole_I10_PASS=false`。I08 616 FAIL：g13恢复Resize590 exact，593唯一UP QPC506510856..506527585，594未见匹配UP；599最新公开callback仍g12/500993717，不能套前批retired-pair解释。0be2 I08 PASS仅保留原身份。两批实际wrapper均wait0／exit1／desc0／forced=false、`product_cleanup_pass=false`；产品正常资源退出／真实客户恢复与精确guest32164／7024及任务清理分别成立，21:05:29Z／21:20:51Z证据未变，不以guest销毁补PASS。均跳过I11、idle60、设置、便携、Explorer及apps。
+
+新生产候选`2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8`已把普通Medium入口接到实际资源准入策略；资源不是source authority，High拒绝、WDAG原proof与失败不fallback保留，未向宿主发送测试输入。冻结构建`out/v1-product-resource-policy-r9-2b038db`，D/R self-identity均2b038、构建退出0；各10项offline通过，D processor3.12／wall3.18秒，R processor1.50／wall3.35秒。D EXE `422F9C1D8DDD3764E510B500972045347D3602B667D656DE68A8B32CC1767230`、R EXE `F0406FA35EEEA4CAF09C7A662C90002AD845D6BE37F5C5B8D315EFE64F7878F7`；原生CTest output-log哈希D `35357B87C6AB70DA962432F4DA3E2535E9C599778E22D981C81EDA07D0CA7106`／R `2CDEFE48344D91BED98A85B17E0EB4ED62B64ACE8049566ECE04E9781137E4AF`，非逐测试原stdout、非现场功能PASS。新便携／普通桌面／Release整链待新包实际验证，不清空旧证据、不涨功能／B分。
 
 ## 7019＋a27f：有限组件与Terminal实际推进，旧失败不改判
 

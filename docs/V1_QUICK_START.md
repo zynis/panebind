@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前R8产品`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／Release EXE `C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE`未改。最新7019／a27f、driver59c实际完成视觉／batch组件及Terminal五阶段Move、Resize、命令、Escape与正常UP子链；缺失UP、在途完整恢复、Terminal客户输入和Edge仍未通过。Code本批没有指定EXE，不能继承旧GPU失败。两批实际driver退出1，应用批仍有两后代强制测试清理；新0260修订现场NOT_RUN。各原字节摘录和清理范围见交付报告，不增七项功能／B2；**不可宿主试用，真人UAT PENDING**。
+当前新候选R9源码`2b038dbd9f71cf02d27c629a8ed1a9f1c16393e8`／Release EXE `F0406FA35EEEA4CAF09C7A662C90002AD845D6BE37F5C5B8D315EFE64F7878F7`，实际普通Medium入口资源策略已接线，D/R构建及各10项offline通过，**普通桌面及新候选现场NOT_RUN**。资源准入不授予source权限，High仍拒绝；WDAG原proof与失败不fallback保留。旧82d／C796的0be2 I08/视觉/在途/batch和3fd3 grid有实际组件通过，但后者恢复Resize缺本代真实UP，整批仍FAIL；历史七项功能／B2及9281ZIP均保留原身份，不能换绑新EXE。完整原行、构建哈希和剩余条件见交付报告；**不可宿主试用，真人UAT PENDING**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 
