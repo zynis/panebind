@@ -2419,9 +2419,29 @@ void writer_owner() noexcept {
         std::to_string(s.consumed_down_x.load()) + "," + std::to_string(s.consumed_down_y.load()) + "],\"LL_flags\":" +
         std::to_string(s.consumed_down_flags.load()) + ",\"actual_DOWN_consumed\":" + boolean(s.consumed_down_count == 1) +
         ",\"synthetic_marker_used_for_authority\":false");
-    if (!receipt || !s.consumed_down_published || s.consumed_generation != s.generation || s.consumed_post_failed ||
-        s.consumed_down_count != 1 || s.consumed_up_seen || s.retired || !left_high() || !stable_context() ||
-        s.native_downs != 0 || s.native_starts != 0 || s.native_ends != 0 || s.cancel_attempts != 0) return false;
+    // One bounded observation of the existing gates. Keep the raw key result
+    // distinct from an actual UP receipt; this diagnostic cannot grant capture.
+    const SHORT actual_left_state = GetAsyncKeyState(VK_LBUTTON);
+    const bool actual_left_high = (actual_left_state & 0x8000) != 0;
+    std::string_view context_reason;
+    const bool actual_context = stable_context(&context_reason);
+    const bool published = s.consumed_down_published.load(std::memory_order_acquire);
+    const auto actual_generation = s.generation.load(), ll_generation = s.consumed_generation.load();
+    const auto down_count = s.consumed_down_count.load(), up_count = s.consumed_up_count.load();
+    const bool post_failed = s.consumed_post_failed.load(), up_seen = s.consumed_up_seen.load(), retired = s.retired.load();
+    const auto native_downs = s.native_downs.load(), native_starts = s.native_starts.load(), native_ends = s.native_ends.load();
+    const auto cancel_attempts = s.cancel_attempts.load();
+    record("consumed_pre_capture_facts", ",\"receipt\":" + boolean(receipt) + ",\"published\":" + boolean(published) +
+        ",\"generation\":" + std::to_string(actual_generation) + ",\"LL_generation\":" + std::to_string(ll_generation) +
+        ",\"DOWN_count\":" + std::to_string(down_count) + ",\"post_failed\":" + boolean(post_failed) +
+        ",\"UP_seen\":" + boolean(up_seen) + ",\"UP_count\":" + std::to_string(up_count) + ",\"retired\":" + boolean(retired) +
+        ",\"GetAsyncKeyState_LBUTTON_return\":" + std::to_string(actual_left_state) + ",\"left_high\":" + boolean(actual_left_high) +
+        ",\"stable_context\":" + boolean(actual_context) + ",\"context_reason\":\"" + std::string(context_reason) +
+        "\",\"native_DOWN_count\":" + std::to_string(native_downs) + ",\"native_START_count\":" + std::to_string(native_starts) +
+        ",\"native_END_count\":" + std::to_string(native_ends) + ",\"cancel_attempts\":" + std::to_string(cancel_attempts) +
+        ",\"cross_thread_atomic_snapshot\":false,\"actual_UP_inferred_from_key_state\":false");
+    if (!receipt || !published || ll_generation != actual_generation || post_failed || down_count != 1 || up_seen || retired ||
+        !actual_left_high || !actual_context || native_downs != 0 || native_starts != 0 || native_ends != 0 || cancel_attempts != 0) return false;
     const op::GestureShieldConsumedDownRequest request{
         {s.generation, s.source, GetCurrentProcessId(), s.source_thread, shield_deadline_ms},
         {s.consumed_down_x.load(),s.consumed_down_y.load()},s.consumed_down_time.load(),s.consumed_down_qpc.load()};
