@@ -2,7 +2,17 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。最新1acb同R8产品82d／drivere3实际取得应用像素和Code启动日志：Terminal启动cmd报错、Code GPU子进程启动失败、Edge白区且点击无DOM；driver退出1已观察，但4后代仍活且发生强制测试清理，不记cleanup PASS。e5入口组件、128f退出UNKNOWN、34bf两轮owned／900秒均保留原身份。历史**7/60功能、B29／B32共2/40=5%**不增加；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。最新7019／a27f同R8产品82d／driver59c实际完成视觉及batch组件、Terminal几何与正常UP子链；source-close／grid缺UP、inflight原证据门FAIL及下一Move-UP未运行、Terminal客户门与Edge失败仍保留。历史**7/60功能、B29／B32共2/40=5%**不增加；不能宿主试用，真人UAT PENDING。
+
+## 7019＋a27f：有限组件与Terminal实际推进，旧失败不改判
+
+两批产品均`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／Release `C796DDA…ED0DE`，driver`59c39b0adcd4baedd9051fde3b50bd4809c2335d`／`764C7D5A…CCB3A`，包装1444；完整ZIP／manifest／原件及每Run16条字面原行哈希见索引，不重建产品或重跑900秒。
+
+[7019 owned原行](v1-evidence/7019-r8-owned-components-visual-batch-and-retained-up-failures-selected.jsonl)：1704行合法连续，1349视觉、1695第二成员真实native故障组件PASS；495 dock因单屏BLOCKED。730 source-close缺真实UP，760后继Move／Resize／UP和851 actor后恢复已执行。1455旧在途判定FAIL保留；1459迟到native exact／1460实际alpha173恢复通过，**1464下一Move-UP为NOT_RUN**，不拼完整恢复PASS。1584唯一原计划UP点实际High Progman，1586仍无本代UP；不由此猜系统根因。1696产品正常资源退出与1701客户投递独立成立；wrapper wait0／exit1／desc0／forced=false，但整批FAIL、product_cleanup_pass=false。20:49:04Z专用guest33004／任务清理、证据未变。
+
+[a27f应用原行](v1-evidence/a27f-r8-terminal-geometry-and-app-limitations-selected.jsonl)：207行合法连续。Terminal55真实唯一dragbar(730,181)，五阶段Move／native START-END、79真实Raw／legacy NormalUp、88 Resize、命令及119 Escape恢复有实测；122客户点HTCAPTION=2，125拒绝且未发客户输入，124像素仍见cmd启动0xd0000022；136 exact根关闭成立。Code157本批指定EXE缺失，不能称再次复现旧GPU；Edge176暂停native基线NChit1460、未发click，191 root关闭未确认。197产品正常资源退出与202客户恢复独立成立；wrapper wait0／exit1／desc2／forced=true，不能写应用或整批cleanup PASS。20:51:43Z专用guest28368／任务清理、证据未变。
+
+0260 driver仅修before-abort实际UP证据形态和exact清理UP点，现场仍NOT_RUN；85d仅部署前Suite脚本拒绝，无guest／输入，不是产品FAIL。保留1acb等原失败，不新增功能或B项。
 
 ## 1acb：应用真实像素与启动失败，driver退出与清理分别判定
 

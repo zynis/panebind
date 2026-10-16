@@ -202,7 +202,7 @@ bool constraint_existing_fixed_case(State& s){
         ",\"source_geometry_unchanged\":"+(cleanup_geometry_unchanged?"true":"false")+
         ",\"maximum_cleanup_MOVE\":1,\"original_single_UP_called_first\":true,\"extra_UP_sent\":false,\"delivery_or_function_PASS_inferred\":false");
     std::string observed_up,observed_end;GUITHREADINFO source_gui{sizeof(source_gui)};bool source_gui_known{},driver_released{};DWORD source_gui_error{};
-    const bool up_and_context=wait([&]{
+    bool up_and_context=wait([&]{
         // Read EVERY independent fact even when actual UP is still missing.
         // Otherwise && short circuit would turn an absent receipt into an
         // unsupported statement about the native source thread's GUI state.
@@ -212,9 +212,18 @@ bool constraint_existing_fixed_case(State& s){
         return driver_released&&!observed_up.empty()&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize;
     });
     const bool ordinary_abort=observed_end.find("\"normal_up\":false")!=std::string::npos;std::string after_UP_status;bool snapshot_requested{},snapshot_observed{};DWORD snapshot_exit=STILL_ACTIVE;
-    if(!up_and_context||!ordinary_abort||pre_native_focus_lost){const auto failed_up_mark=read_product(s).size();
-        snapshot_requested=launch(s,L"--status",true,&snapshot_exit);
-        snapshot_observed=wait([&]{after_UP_status=record(s,failed_up_mark,"status");return !after_UP_status.empty();},1000);
+    AbortCleanupUpReceipt cleanup_up;
+    if(!up_and_context||!ordinary_abort||pre_native_focus_lost){
+        // The real grid mismatch has already retired this pair. Its later
+        // test UP need not enqueue a normalized gesture UP (0be2's actual LL
+        // callback did arrive). Reuse the unchanged strict abort evidence,
+        // never the NormalUp gate or SendInput's insertion return.
+        cleanup_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+        snapshot_requested=cleanup_up.status_requested;snapshot_observed=cleanup_up.status_observed;
+        snapshot_exit=cleanup_up.status_exit;after_UP_status=cleanup_up.status;
+        source_gui={sizeof(source_gui)};SetLastError(0);source_gui_known=GetGUIThreadInfo(set.thread,&source_gui)!=FALSE;
+        source_gui_error=source_gui_known?0:GetLastError();driver_released=!s.left;
+        up_and_context=cleanup_up.matched&&driver_released&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize;
     }
     const std::string up_fields="\"actual_UP\":"+(observed_up.empty()?"null":quote(observed_up))+",\"driver_left_released_ledger\":"+(driver_released?"true":"false")+
         ",\"source_GUI_known\":"+(source_gui_known?"true":"false")+",\"source_GUI_query_error\":"+std::to_string(source_gui_error)+
@@ -222,7 +231,8 @@ bool constraint_existing_fixed_case(State& s){
         ",\"actual_move_size\":"+(source_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndMoveSize)):"null")+
         ",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+",\"after_UP_status_requested\":"+(snapshot_requested?"true":"false")+
         ",\"after_UP_status_command_exit\":"+std::to_string(snapshot_exit)+",\"after_UP_status_observed\":"+(snapshot_observed?"true":"false")+
-        ",\"after_UP_status_with_mouse_up_callbacks\":"+(after_UP_status.empty()?"null":quote(after_UP_status));
+        ",\"after_UP_status_with_mouse_up_callbacks\":"+(after_UP_status.empty()?"null":quote(after_UP_status))+
+        ",\"abort_cleanup_evidence\":{"+cleanup_up.json()+"},\"normalized_UP_or_NormalUp_inferred\":false";
     if(up_and_context&&ordinary_abort)s.log.check("I10_abort_real_UP_not_NormalUp",true,up_fields);
     else{s.log.failed=true;s.log.emit("case","\"case\":\"I10_abort_real_UP_not_NormalUp\",\"result\":\"FAIL\","+up_fields);}
     const Rect required_actual=pre_native_focus_lost?initial:constrained;const auto recovery_actual=visible(frame.hwnd);

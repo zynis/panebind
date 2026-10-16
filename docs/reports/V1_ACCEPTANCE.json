@@ -13,16 +13,16 @@
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
     "pending_runtime_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
     "final_sha": null,
-    "implementation_inspected": "R8_CURRENT_1ACB_APPLICATION_PIXELS_AND_DRIVER_EXIT1_WITH_FORCED_DESCENDANT_CLEANUP_NOT_FULL",
-    "note": "历史7项功能/B29+B32不加数、不换绑。最新1acb同82d产品/e3 driver：Terminal像素实际显示cmd启动0xd0000022、Code实际日志GPU子进程启动error49、Edge白区且点击无DOM，不能推共同根因。driver实际wait0/exit1，但4后代存活且强制测试清理，产品cleanup_pass=false。128f退出UNKNOWN及e5入口组件原身份保留；整版PARTIAL/真人UAT PENDING。",
-    "pending_product_note": "产品82d EXE保持C796原字节；1acb/e3实际完成同STA Catalog释放边界及driver退出1观察，不宣native Unhook返回或应用清理PASS。59c driver现场待验，不填未记录的构建哈希，不覆盖128f/e5/34bf历史或拼成FullPASS。",
+    "implementation_inspected": "R8_7019_OWNED_COMPONENTS_AND_A27F_TERMINAL_GEOMETRY_ACTUAL_PARTIAL_FAILURES_NOT_FULL",
+    "note": "历史7项功能/B29+B32不加数、不换绑。最新7019/a27f同82d产品、59c driver：视觉和batch组件PASS，Terminal实际Move/Resize/命令/Escape及正常UP有子结果；source-close/grid缺UP、inflight旧证据门FAIL与下一恢复NOT_RUN保留，Terminal客户门及Edge仍FAIL。Code本批未提供指定EXE，不复现旧GPU。两driver实际exit1，7019无强制清理、a27f两后代强制测试清理；整版PARTIAL/真人UAT PENDING。",
+    "pending_product_note": "82d产品EXE保持C796原字节。7019/a27f真实子结果与原FAIL分别登记；0260仅driver修复尚待新批现场，不能改绑旧日志或把产品正常退出、guest销毁当全部cleanup PASS。",
     "next_driver_candidate": {
-      "source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "source_sha": "0260ce2fcf45a8a109a027f35261f4ec21f35f81",
       "product_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
       "product_binary_unchanged": true,
       "runtime_validation": "NOT_RUN",
       "binary_build_identity_not_yet_recorded": true,
-      "scope": "Driver-only follow-up; do not rebind 1acb/e3 observed evidence or infer build completion"
+      "scope": "Driver-only before-abort real-UP shape and exact cleanup point repair; do not relabel7019/a27f original FAIL or infer runtime PASS"
     },
     "observed_driver_22d": {
       "source_sha": "22d6e601a444d4af0ca853459abfb3168b661dd7",
@@ -339,7 +339,7 @@
       "ordinary_host_trial_allowed": false
     },
     "latest_observed_runtime_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
-    "latest_observed_run_id": "1acb8c6bd6184c5bbf615497bf6bb57a",
+    "latest_observed_run_id": "a27f942e8be34cfead9c7a84d5d8397a",
     "historical_R7_candidate": {
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
       "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -10288,6 +10288,36 @@
   },
   "evidence": [
     {
+      "id": "EV-7019-R8-OWNED-COMPONENTS-VISUAL-BATCH-AND-UP-FAILURES",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "driver_binary_sha256": "764C7D5A8BAAA64D8819F4F388C1DDC9C8AE15063B030EF7927BBE25C5ECCB3A",
+      "run_id": "7019b985abca4d95981bb0857cfe101d",
+      "configuration": "Release",
+      "path": "uat/v1-control/7019b985abca4d95981bb0857cfe101d/collection-20261016T204835872Z-ad7fced6f4b048239caf3e806d713ccc/7019b985abca4d95981bb0857cfe101d-release-fixture.jsonl",
+      "sha256": "43BFC73FF4A0A9BCA4C3CBA38A1BF840FD5219F2B9FBC1CCEFA99D623C4F58CB",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7019-r8-owned-components-visual-batch-and-retained-up-failures-selected.jsonl",
+      "repository_excerpt_sha256": "43D1EACB1F6FB362DCB047A24F09C50F0D1434964947464FD9BB75944590CD60",
+      "scope": "VISUAL_AND_BATCH_COMPONENT_PASS_INTERRUPTION_INFLIGHT_GRID_FAIL_SINGLE_MONITOR_DOCK_BLOCKED"
+    },
+    {
+      "id": "EV-A27F-R8-TERMINAL-GEOMETRY-AND-APPLICATION-LIMITATIONS",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "driver_binary_sha256": "764C7D5A8BAAA64D8819F4F388C1DDC9C8AE15063B030EF7927BBE25C5ECCB3A",
+      "run_id": "a27f942e8be34cfead9c7a84d5d8397a",
+      "configuration": "Release",
+      "path": "uat/v1-control/a27f942e8be34cfead9c7a84d5d8397a/collection-20261016T205114228Z-cae6ba524ce6468785d283376d6e6cc4/a27f942e8be34cfead9c7a84d5d8397a-release-fixture.jsonl",
+      "sha256": "08C8B283A0C56A424886B88BF5C31C81F6EA2F8E788A0D6A10BD127A19A7AA36",
+      "repository_excerpt_path": "docs/reports/v1-evidence/a27f-r8-terminal-geometry-and-app-limitations-selected.jsonl",
+      "repository_excerpt_sha256": "6205E4F3005823B272B960B0BB9C0F99772D9DE55F2EC763E30D1CC00AACDE57",
+      "scope": "TERMINAL_GEOMETRY_AND_NORMAL_UP_SCOPED_PASS_CLIENT_FAIL_OTHER_APPS_BLOCKED_OR_FAIL"
+    },
+    {
       "id": "EV-1ACB-R8-APPLICATION-PIXELS-AND-DRIVER-EXIT",
       "kind": "literal_selected_actual_guest_JSONL",
       "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
@@ -11406,6 +11436,106 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-7019-R8-OWNED-COMPONENTS-VISUAL-BATCH-AND-UP-FAILURES",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "driver_binary_sha256": "764C7D5A8BAAA64D8819F4F388C1DDC9C8AE15063B030EF7927BBE25C5ECCB3A",
+      "run_id": "7019b985abca4d95981bb0857cfe101d",
+      "configuration": "Release",
+      "suite": "OwnedComponentsOnly",
+      "packaging_head": "1444a23d9a89d355b97a2a2b01921b5e9383d36e",
+      "package_zip_sha256": "DB5474C5C267FE3A379C8FF28FE79135B363593038781C33E0A3FC27A3761D25",
+      "package_manifest_sha256": "0C33C3CC293DCC5D37B2BA76145B7E3751DBB0593B38242DFCAFA985711EEA2F",
+      "wsb_sha256": "BC9593A81210A45529DC9086476BBB118EA6C8406B7048D50EBA53164FAA5847",
+      "collection_path": "uat/v1-control/7019b985abca4d95981bb0857cfe101d/collection-20261016T204835872Z-ad7fced6f4b048239caf3e806d713ccc",
+      "observation_id": "PO-7019-R8-OWNED-COMPONENTS-VISUAL-BATCH-AND-UP-FAILURES",
+      "scope": "VISUAL_AND_BATCH_COMPONENT_PASS_INTERRUPTION_INFLIGHT_GRID_FAIL_SINGLE_MONITOR_DOCK_BLOCKED",
+      "result": "FAIL",
+      "observed": "Release OwnedComponentsOnly：1349视觉组件、1695第二成员真实native故障组件PASS；495停靠组件因单屏BLOCKED。I08 source-close730缺真实匹配UP，但760后继Move/Resize/UP与851 actor Deadline后恢复已实际完成。1455在途撤权断言原FAIL保留，1459真实迟到native exact、1460实际alpha173恢复成立，1464下一真实Move/UP明确NOT_RUN。1584唯一原计划UP所在点为High Progman，1586仍缺本代真实UP；不据此推系统根因。I11/idle60/设置/便携/Explorer/apps均NOT_RUN。",
+      "next_action": "仅用新driver复验before-abort实际UP形态及exact清理UP命中点，再检查inflight完整后继恢复；保留7019全部FAIL，不重跑900秒或把组件PASS升级功能合同。",
+      "affected_contract_ids": [
+        "M09-F04",
+        "M09-F05",
+        "M10-F04",
+        "I08",
+        "I10"
+      ],
+      "evidence_ids": [
+        "EV-7019-R8-OWNED-COMPONENTS-VISUAL-BATCH-AND-UP-FAILURES"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/7019-r8-owned-components-visual-batch-and-retained-up-failures-selected.jsonl"
+      ],
+      "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+      "descendants_alive_at_fixture_exit": 0,
+      "forced_test_cleanup": false,
+      "product_cleanup_pass": false,
+      "product_normal_resource_shutdown_observed": true,
+      "exact_guest_task_cleanup": {
+        "receipt_path": "uat/v1-control/7019b985abca4d95981bb0857cfe101d/cleanup-receipt.json",
+        "guest_pid": 33004,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "utc": "2026-10-16T20:49:04.9609084Z"
+      },
+      "new_feature_or_B_PASS": false,
+      "human_uat": "NOT_RUN",
+      "historical_evidence_rebound": false
+    },
+    {
+      "id": "PO-A27F-R8-TERMINAL-GEOMETRY-AND-APPLICATION-LIMITATIONS",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "driver_binary_sha256": "764C7D5A8BAAA64D8819F4F388C1DDC9C8AE15063B030EF7927BBE25C5ECCB3A",
+      "run_id": "a27f942e8be34cfead9c7a84d5d8397a",
+      "configuration": "Release",
+      "suite": "ApplicationsOnly",
+      "packaging_head": "1444a23d9a89d355b97a2a2b01921b5e9383d36e",
+      "package_zip_sha256": "B747E0F1267C807AD8FE96AFCE5FC5419E654359DB686D80095AE0FCDE5B5635",
+      "package_manifest_sha256": "9C533E4657F1057944844EA0982119CB0958B38287C55517147AC9C41A4BC782",
+      "wsb_sha256": "B369AF8A346C44D017EFB2DC79ABA6F0FC0A083795C25FC5257DB139E35FCABA",
+      "collection_path": "uat/v1-control/a27f942e8be34cfead9c7a84d5d8397a/collection-20261016T205114228Z-cae6ba524ce6468785d283376d6e6cc4",
+      "observation_id": "PO-A27F-R8-TERMINAL-GEOMETRY-AND-APPLICATION-LIMITATIONS",
+      "scope": "TERMINAL_GEOMETRY_AND_NORMAL_UP_SCOPED_PASS_CLIENT_FAIL_OTHER_APPS_BLOCKED_OR_FAIL",
+      "result": "FAIL",
+      "observed": "Terminal55真实独有dragbar点(730,181)；实际五阶段Move/native START-END、79真实Raw/legacy UP与NormalUp、88 Resize、窗口命令和119 Escape恢复成立。122客户点实际HTCAPTION=2、125拒绝且未发client输入；124截图保留cmd启动0xd0000022的独立查看结果，136 exact根已关闭。Code157本批未提供指定EXE/BLOCKED，不能称再次复现旧GPU错误；Edge176暂停native基线NChit1460且未发click，188增强未运行、191根关闭未确认。整应用矩阵FAIL。",
+      "next_action": "保留Terminal几何范围；客户输入、可用shell、Code官方包与Edge原生客户/精确关闭分别处理，不能把同一次几何通过当五应用或整版PASS。",
+      "affected_contract_ids": [
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "I07"
+      ],
+      "evidence_ids": [
+        "EV-A27F-R8-TERMINAL-GEOMETRY-AND-APPLICATION-LIMITATIONS"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/a27f-r8-terminal-geometry-and-app-limitations-selected.jsonl"
+      ],
+      "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+      "descendants_alive_at_fixture_exit": 2,
+      "forced_test_cleanup": true,
+      "product_cleanup_pass": false,
+      "product_normal_resource_shutdown_observed": true,
+      "exact_guest_task_cleanup": {
+        "receipt_path": "uat/v1-control/a27f942e8be34cfead9c7a84d5d8397a/cleanup-receipt.json",
+        "guest_pid": 28368,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "utc": "2026-10-16T20:51:43.9470201Z"
+      },
+      "new_feature_or_B_PASS": false,
+      "human_uat": "NOT_RUN",
+      "historical_evidence_rebound": false
+    },
     {
       "id": "PO-1ACB-R8-APPLICATION-PIXELS-AND-DRIVER-EXIT",
       "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
@@ -15750,13 +15880,21 @@
     "latest_runtime_observation": {
       "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
       "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
-      "driver_source_sha": "22d6e601a444d4af0ca853459abfb3168b661dd7",
-      "driver_binary_sha256": "26542BC55B723153D15A5AF811FA3D365792CFD37C16B2E456B5471C67C9CE65",
+      "driver_source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+      "driver_binary_sha256": "764C7D5A8BAAA64D8819F4F388C1DDC9C8AE15063B030EF7927BBE25C5ECCB3A",
+      "run_id": "a27f942e8be34cfead9c7a84d5d8397a",
       "configuration": "Release",
-      "packaging_head": "717a1bb0a0cb4686690b780ca6055fb9f5a777a4",
-      "run_id": "e5f5db36888d476cac48b5be9f454a28",
-      "observation_id": "PO-E5F5-R8-ENTRY-STARTUP-PORTABLE-RAPID-REVALIDATION",
-      "scope": "actual startup/ordinary ZIP/rapid native-passthrough scoped evidence; whole tray-blocked FAIL; historical PASS identity unchanged"
+      "packaging_head": "1444a23d9a89d355b97a2a2b01921b5e9383d36e",
+      "package_zip_sha256": "B747E0F1267C807AD8FE96AFCE5FC5419E654359DB686D80095AE0FCDE5B5635",
+      "package_manifest_sha256": "9C533E4657F1057944844EA0982119CB0958B38287C55517147AC9C41A4BC782",
+      "collection_path": "uat/v1-control/a27f942e8be34cfead9c7a84d5d8397a/collection-20261016T205114228Z-cae6ba524ce6468785d283376d6e6cc4",
+      "observation_id": "PO-A27F-R8-TERMINAL-GEOMETRY-AND-APPLICATION-LIMITATIONS",
+      "scope": "TERMINAL_GEOMETRY_AND_NORMAL_UP_SCOPED_PASS_CLIENT_FAIL_OTHER_APPS_BLOCKED_OR_FAIL",
+      "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+      "descendants_alive_at_fixture_exit": 2,
+      "forced_test_cleanup": true,
+      "product_cleanup_pass": false,
+      "new_feature_or_B_PASS": false
     },
     "existing_VM_inventory": {
       "source": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
