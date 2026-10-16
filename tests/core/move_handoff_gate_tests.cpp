@@ -4,6 +4,7 @@
 
 using panebind::core::behavior::MoveHandoffGate;
 using panebind::core::behavior::MoveHandoffEscapeReason;
+using panebind::core::behavior::NativeGeometryOperation;
 
 namespace {
 int checks{}, failures{};
@@ -95,6 +96,32 @@ int main() {
               gate.isolation_removed(5), "deadline escape restores desktop but is not acceptance");
         check(gate.escape_reason() == MoveHandoffEscapeReason::Deadline,
               "escape reason retained without a dangling string view");
+    }
+    {
+        MoveHandoffGate gate;
+        check(gate.begin_native_geometry(6,true,true,NativeGeometryOperation::TitlebarMove),
+              "explicitly classified native titlebar Move enters the same handoff gate");
+        check(!gate.begin_native_geometry(6,true,true,NativeGeometryOperation::Resize) &&
+              !gate.begin(7,true,true,true),"one generation cannot begin twice through either entry");
+        check(gate.isolation_ready(6,true)&&gate.cancel_issued(6)&&!gate.cancel_issued(6)&&
+              gate.native_end_observed(6,true)&&gate.may_write(6,true,true,true),
+              "classified titlebar Move retains one cancel and real END ordering");
+    }
+    {
+        MoveHandoffGate gate;
+        check(!gate.begin_native_geometry(0,true,true,NativeGeometryOperation::Resize)&&
+              !gate.begin_native_geometry(7,false,true,NativeGeometryOperation::Resize)&&
+              !gate.begin_native_geometry(7,true,false,NativeGeometryOperation::Resize)&&
+              !gate.begin_native_geometry(7,true,true,NativeGeometryOperation::Unclassified)&&
+              !gate.begin_native_geometry(7,true,true,static_cast<NativeGeometryOperation>(255))&&
+              !gate.begin(7,true,true,false),
+              "missing generation, identity, held DOWN, explicit classification or legacy plain caption all reject");
+        check(gate.begin_native_geometry(7,true,true,NativeGeometryOperation::Resize)&&
+              gate.isolation_ready(7,true)&&gate.cancel_issued(7)&&!gate.cancel_issued(7),
+              "classified native Resize shares the existing one-cancel ordering without a fake caption claim");
+        check(gate.raw_up_observed(7,true)&&gate.native_end_observed(7,true)&&
+              !gate.may_cancel(7)&&!gate.may_write(7,true,true,true),
+              "matching END after physical UP cannot revive Resize cancel or writer");
     }
     std::cout << "move-handoff-gate checks=" << checks << " failures=" << failures << '\n';
     return failures ? 1 : 0;

@@ -2732,3 +2732,32 @@ out-of-context notifications are asynchronous, while a thread-local null capture
 does not establish another queue's state. No specific WinEvent is inferred as
 this failure's cause. Reuse the previously reviewed event/resource design;
 no new input mechanism or copied/adapted upstream implementation is introduced.
+
+### V1 classified native-first Ctrl/Resize continuation — 2026-10-17
+
+Reuse the same AltSnap/FancyZones pins and inspected START/END history recorded
+in the native-first entry review above, not a new upstream implementation.
+Rechecked Microsoft's [event constants](https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants),
+[WM_NCLBUTTONDOWN](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nclbuttondown)
+and [WM_CANCELMODE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-cancelmode).
+MOVESIZE notifications cover both kinds of native interaction; they do not
+classify Move versus Resize. Keep the actual DOWN hit region/modifiers, actual
+source capture/move-size state and matched native START/END as separate facts.
+
+The consumed-DOWN Ctrl/Resize route can retire its queued motion on a real UP
+before the GUI consumes it, after it has already suppressed the native drag.
+Extend the existing native-first candidate only to classified left single-click
+plain/Ctrl Move/Resize, with unchanged mapped/maximized/bypass semantics and no
+new API. Native Resize may change only its locked active edges; all inactive
+edges, frame offsets, identity and display/state remain independently checked.
+Freeze the original Ctrl group before the native prefix and reject changed
+followers; source END geometry is B for continuity, never the A intent anchor.
+The historical gate's plain-Move begin remains strict; V1 uses an explicit
+platform-neutral operation classification rather than fabricating a titlebar.
+
+Tests must distinguish a genuinely preserved short native drag from enhanced
+Glue/Resize. No UP causes a new continuous call or replay, and an early native
+UP does not establish product NormalUp. This functional replacement does not
+identify or close b1a3's intermittent pre-UP FocusLost; f706 did not reproduce
+that same failure. No external code, injection, polling, foreground recovery or
+foreign-capture operation is added. Runtime acceptance remains pending.

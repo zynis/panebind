@@ -636,7 +636,21 @@ void button(State& s,bool pressed){
     if(pressed)s.left_down_send_qpc=qpc;else s.left_up_send_qpc=qpc;
     receipt();
 }
-product::guest::CapturedReleaseFacts release_capture_facts(State& s,HWND h,HWND hit,std::uint64_t expected){
+product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
+product::GuiContext release_source_gui_context(State& s,HWND h,std::string& why){
+    for(std::size_t index=0;index<s.frames.size();++index)if(source_window(s,index)==h)
+        return fixture_source_gui_context(s,index,why);
+    // LayoutFixtures have their own exact owns() boundary at their caller,
+    // not one of State's three source slots. Preserve ONLY the previous raw
+    // owner query there; never grant a Console/foreground fallback by class.
+    product::GuiContext result;const auto tid=h?GetWindowThreadProcessId(h,nullptr):0;
+    if(tid){SetLastError(ERROR_SUCCESS);result.owner_succeeded=GetGUIThreadInfo(tid,&result.actual)!=FALSE;
+        result.owner_error=result.owner_succeeded?ERROR_SUCCESS:GetLastError();
+        if(result.owner_succeeded)result.mode=product::GuiContextMode::OwnerThread;}
+    why="original_non_slot_owner_thread_query_no_foreground_fallback";return result;
+}
+product::guest::CapturedReleaseFacts release_capture_facts(State& s,HWND h,HWND hit,std::uint64_t expected,
+    product::GuiContext* observed_source=nullptr,std::string* source_reason=nullptr){
     product::guest::CapturedReleaseFacts facts;facts.expected_generation=expected;
     facts.source=reinterpret_cast<std::uintptr_t>(h);DWORD source_pid{};
     facts.source_tid=GetWindowThreadProcessId(h,&source_pid);facts.source_pid=source_pid;facts.hit_root=reinterpret_cast<std::uintptr_t>(hit);
@@ -669,8 +683,10 @@ product::guest::CapturedReleaseFacts release_capture_facts(State& s,HWND h,HWND 
     const HWND overlay=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(facts.overlay));DWORD overlay_pid{};
     facts.overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;facts.overlay_pid=overlay_pid;
     facts.product_identity=facts.product_identity&&IsWindow(overlay)&&GetAncestor(overlay,GA_ROOT)==overlay;
-    GUITHREADINFO source{sizeof(source)},owner{sizeof(owner)};
-    facts.source_gui=facts.source_tid&&GetGUIThreadInfo(static_cast<DWORD>(facts.source_tid),&source)!=FALSE;
+    std::string why;const auto context=release_source_gui_context(s,h,why);
+    if(observed_source)*observed_source=context;if(source_reason)*source_reason=why;
+    const auto& source=context.actual;GUITHREADINFO owner{sizeof(owner)};
+    facts.source_gui=context.known();
     facts.owner_gui=facts.overlay_tid&&GetGUIThreadInfo(static_cast<DWORD>(facts.overlay_tid),&owner)!=FALSE;
     facts.source_capture=reinterpret_cast<std::uintptr_t>(source.hwndCapture);facts.owner_capture=reinterpret_cast<std::uintptr_t>(owner.hwndCapture);
     facts.gui_idle_except_capture=!source.hwndMoveSize&&!source.hwndMenuOwner&&!owner.hwndMoveSize&&!owner.hwndMenuOwner&&
@@ -686,7 +702,8 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
     POINT point{},after{};const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),
         width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
     const bool point_known=GetCursorPos(&point)!=FALSE;const HWND hit=point_known?GetAncestor(WindowFromPoint(point),GA_ROOT):nullptr;
-    const auto capture=release_capture_facts(s,h,hit,generation);const bool shield_hit=product::guest::captured_release_hit_allowed(capture);
+    product::GuiContext source_context;std::string source_context_reason;
+    const auto capture=release_capture_facts(s,h,hit,generation,&source_context,&source_context_reason);const bool shield_hit=product::guest::captured_release_hit_allowed(capture);
     const bool captured_source_hit=hit==h&&product::guest::captured_release_route_allowed(capture);
     const bool captured_route=shield_hit||captured_source_hit;
     const bool source_hit=hit==h&&capture.source_gui&&(!capture.source_capture||capture.source_capture==reinterpret_cast<std::uintptr_t>(h));
@@ -695,6 +712,12 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
         ",\"ready_overlay\":"+std::to_string(capture.overlay)+",\"actual_overlay_pid\":"+std::to_string(capture.overlay_pid)+
         ",\"actual_overlay_tid\":"+std::to_string(capture.overlay_tid)+",\"source_capture\":"+std::to_string(capture.source_capture)+
         ",\"overlay_owner_capture\":"+std::to_string(capture.owner_capture)+",\"ready_not_retired\":"+(capture.not_retired?"true":"false")+
+        ",\"source_GUI_known\":"+(source_context.known()?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(source_context.mode))+
+        ",\"source_GUI_identity_reason\":"+quote(source_context_reason)+",\"source_GUI_owner_succeeded\":"+(source_context.owner_succeeded?"true":"false")+
+        ",\"source_GUI_owner_error\":"+std::to_string(source_context.owner_error)+",\"source_GUI_foreground_succeeded\":"+(source_context.foreground_succeeded?"true":"false")+
+        ",\"source_GUI_foreground_error\":"+std::to_string(source_context.foreground_error)+",\"source_GUI_foreground_before\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(source_context.foreground_before))+",\"source_GUI_foreground_after\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(source_context.foreground_after))+
         ",\"exact_current_product_shield_hit\":"+(shield_hit?"true":"false")+",\"direct_source_hit\":"+(source_hit?"true":"false")+
         ",\"exact_source_spatial_hit_with_current_product_capture\":"+(captured_source_hit?"true":"false")+
         ",\"UP_SendInput_not_yet_called\":true");
@@ -709,10 +732,11 @@ void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
     packets[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;
     // The route-observation log is disk IO, not a lease on its earlier facts.
     // Recheck actual hit/capture/identity once immediately before insertion.
-    POINT fresh_point{};GUITHREADINFO fresh_source{sizeof(fresh_source)},fresh_owner{sizeof(fresh_owner)};DWORD fresh_pid{};
+    POINT fresh_point{};GUITHREADINFO fresh_owner{sizeof(fresh_owner)};DWORD fresh_pid{};
     const HWND expected_hit=hit;const HWND expected_capture=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(capture.overlay));
-    const bool current_source=GetWindowThreadProcessId(h,&fresh_pid)==capture.source_tid&&fresh_pid==capture.source_pid&&
-        GetGUIThreadInfo(static_cast<DWORD>(capture.source_tid),&fresh_source)!=FALSE;
+    std::string fresh_context_reason;
+    const auto fresh_context=release_source_gui_context(s,h,fresh_context_reason);const auto& fresh_source=fresh_context.actual;
+    const bool current_source=GetWindowThreadProcessId(h,&fresh_pid)==capture.source_tid&&fresh_pid==capture.source_pid&&fresh_context.known();
     const bool current_capture=captured_route?current_source&&GetWindowThreadProcessId(expected_capture,&fresh_pid)==capture.overlay_tid&&
         fresh_pid==s.product_pid&&GetGUIThreadInfo(static_cast<DWORD>(capture.overlay_tid),&fresh_owner)&&
         fresh_source.hwndCapture==expected_capture&&fresh_owner.hwndCapture==expected_capture&&
@@ -1053,7 +1077,7 @@ void guest_native_pending_threshold_move(State& s,HWND source,POINT anchor,std::
         (!fact.hwndCapture||fact.hwndCapture==source)&&!fact.hwndMoveSize&&!fact.hwndMenuOwner&&
         !(fact.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
     const bool idle=threshold_context(gui);
-    if(!desktop()||!exact()||!s.left||s.left_up_attempted||s.control||GetForegroundWindow()!=source||
+    if(!desktop()||!exact()||!s.left||s.left_up_attempted||GetForegroundWindow()!=source||
         !idle||!cursor_known||cursor_before.x!=anchor.x||cursor_before.y!=anchor.y){
         if(progressed())return;
         throw std::runtime_error("native_pending_threshold_source_or_idle_context_changed");
@@ -1099,7 +1123,7 @@ Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     bool threshold_attempted=false;std::uint64_t pending_generation{};
     const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");
         if(g.generation)return !pending_generation||g.generation==pending_generation;
-        if(!ctrl&&region==HTCAPTION)guest_native_pending_threshold_move(s,h,g.anchor,g.offset,threshold_attempted,pending_generation,
+        if(region==HTCAPTION)guest_native_pending_threshold_move(s,h,g.anchor,g.offset,threshold_attempted,pending_generation,
             [&]{return source_window(s,source)==h&&authorized_source(s,h);},[&]{std::string why;return fixture_source_gui_context(s,source,why);});
         return false;});
     if(!observed&&s.applications[source])application_down_context(s,h,*point,region,"after_unobserved_DOWN");

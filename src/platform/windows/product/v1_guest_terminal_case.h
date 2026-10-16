@@ -1,20 +1,31 @@
-// Guest driver only: one real, fast MOVE+UP insertion. No product test hook,
+// Guest driver only: one real, fast DOWN/MOVE/UP insertion per distinct route.
+// No product test hook,
 // artificial product stall, solver-derived expectation or synthetic receipt.
-void owned_rapid_terminal_move(State& s){
+void owned_rapid_terminal_case(State& s,bool ctrl,bool resize){
+    const auto route=ctrl?(resize?"ctrl_right_resize":"ctrl_caption_move"):
+        (resize?"plain_right_resize":"plain_caption_move");
+    const auto route_fields=",\"route\":"+quote(route)+",\"locked_Ctrl\":"+(ctrl?"true":"false")+
+        ",\"requested_actual_hit\":"+std::to_string(resize?HTRIGHT:HTCAPTION);
+    if(s.left||s.control)throw std::runtime_error("rapid_terminal_input_ledger_not_idle");
+    // Error cleanup may release only this case's real Ctrl press, never add a
+    // guessed mouse UP after a partially inserted three-packet array.
+    struct ControlCleanup{State& state;bool enabled;~ControlCleanup(){if(enabled&&state.control)try{key(state,VK_CONTROL,false);}catch(...){}}} control_cleanup{s,ctrl};
     std::array<Rect,3> previous{};
     for(std::size_t n=0;n<3;++n){const auto actual=visible(s.frames[n].hwnd);
         if(!actual||!own(s,s.frames[n].hwnd))throw std::runtime_error("rapid_terminal_requires_exact_owned_roots");
         previous[n]=*actual;
     }
     for(std::size_t n=1;n<3;++n)ShowWindow(s.frames[n].hwnd,SW_HIDE);
-    const Rect start{160,240,560,580},expected{195,271,595,611};
+    const Rect start{160,240,560,580};
+    const Rect expected=resize?Rect{160,240,595,580}:Rect{195,271,595,611};
     s.log.check("rapid_terminal_actual_fixture_setup",fixture_rect(s.frames[0].hwnd,start),
-        "\"test_setup_only\":true,\"expected\":"+rect(start));
-    foreground(s,s.frames[0].hwnd);const auto anchor=hit_point(s.frames[0].hwnd,HTCAPTION);
-    s.log.check("rapid_terminal_actual_caption",anchor.has_value());cursor(s,*anchor);Sleep(100);
-    if(s.left||s.control)throw std::runtime_error("rapid_terminal_input_ledger_not_idle");
+        "\"test_setup_only\":true,\"expected\":"+rect(start)+route_fields);
+    foreground(s,s.frames[0].hwnd);
+    if(ctrl)key(s,VK_CONTROL,true); // Locked before actual hover preparation.
+    const auto anchor=hit_point(s.frames[0].hwnd,resize?HTRIGHT:HTCAPTION);
+    s.log.check("rapid_terminal_actual_nonclient_hit",anchor.has_value(),"\"actual_hit_required\":true"+route_fields);cursor(s,*anchor);Sleep(100);
     Gesture g{*anchor,0,read_product(s).size()};
-    const POINT destination{g.anchor.x+35,g.anchor.y+31};
+    const POINT destination{g.anchor.x+35,g.anchor.y+(resize?0:31)};
     const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
     if(!desktop()||!own(s,s.frames[0].hwnd)||GetForegroundWindow()!=s.frames[0].hwnd||
@@ -22,7 +33,7 @@ void owned_rapid_terminal_move(State& s){
         throw std::runtime_error("rapid_terminal_guest_context_changed");
     const auto starts_before=s.frames[0].starts.load(),ends_before=s.frames[0].ends.load();
     const auto native_before=native_move_boundary_json(s.frames[0]);
-    GuestUpHookObservation observer;s.log.check("rapid_terminal_passive_observer_ready",observer.start());
+    GuestUpHookObservation observer;s.log.check("rapid_terminal_passive_observer_ready",observer.start(),"\"test_only\":true"+route_fields);
     std::array<INPUT,3> packets{};for(auto& packet:packets){packet.type=INPUT_MOUSE;packet.mi.dwExtraInfo=0x50425631;}
     packets[0].mi.dwFlags=MOUSEEVENTF_LEFTDOWN;
     packets[1].mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
@@ -36,10 +47,12 @@ void owned_rapid_terminal_move(State& s){
     // preserve that failure and never guess which element permits another UP.
     s.left=inserted!=packets.size();s.left_up_attempted=true;
     s.left_down_send_qpc=s.left_up_send_qpc=before.QuadPart>0?static_cast<std::uint64_t>(before.QuadPart):0;
+    if(ctrl)key(s,VK_CONTROL,false); // Not mouse-UP delivery evidence.
     s.log.check("rapid_terminal_single_DOWN_MOVE_UP_array_inserted",inserted==packets.size(),
         "\"generation\":"+std::to_string(g.generation)+",\"SendInput_return\":"+std::to_string(inserted)+
         ",\"win32_error\":"+std::to_string(error)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
-        ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"wait_for_product_START_before_UP\":false,\"delivery_not_inferred\":true");
+        ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"wait_for_product_START_before_UP\":false,\"delivery_not_inferred\":true"+
+        ",\"partial_packet_delivery\":"+quote(inserted==packets.size()?"not_partial":"UNKNOWN")+route_fields);
     std::string start_receipt,pending,release,end;bool native_only=false;
     const bool ended=wait([&]{start_receipt=record(s,g.offset,"gesture_start");pending=record(s,g.offset,"native_move_pending");
         const auto enhanced_generation=number(start_receipt,"\"generation\":");
@@ -77,16 +90,24 @@ void owned_rapid_terminal_move(State& s){
     GUITHREADINFO gui{sizeof(gui)};const bool gui_known=GetGUIThreadInfo(s.owner,&gui)!=FALSE;
     const bool gui_idle=gui_known&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
         !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+    const auto actual_start=record(s,g.offset,"native_move_start",g.generation);
+    const auto actual_end=record(s,g.offset,"native_move_end",g.generation);
+    const bool actual_native_boundaries=s.frames[0].starts.load()==starts_before+1&&s.frames[0].ends.load()==ends_before+1;
     const bool enhanced_result=!native_only&&end.find("\"normal_up\":true")!=end.npos&&!observed_up.empty()&&
-        ordinary_native>=1&&terminal_native==0&&new_issue_at_or_after_UP==0;
+        start_receipt.find(resize?"\"resize\":true":"\"resize\":false")!=start_receipt.npos&&
+        start_receipt.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=start_receipt.npos&&
+        number(actual_start,"\"source\":")==reinterpret_cast<std::uintptr_t>(s.frames[0].hwnd)&&
+        number(actual_end,"\"source\":")==reinterpret_cast<std::uintptr_t>(s.frames[0].hwnd)&&
+        number(actual_start,"\"event\":")==EVENT_SYSTEM_MOVESIZESTART&&number(actual_end,"\"event\":")==EVENT_SYSTEM_MOVESIZEEND&&
+        actual_native_boundaries&&ordinary_native>=1&&terminal_native==0&&new_issue_at_or_after_UP==0;
     const bool native_result=native_only&&start_receipt.empty()&&record(s,g.offset,"gesture_start").empty()&&
-        record(s,g.offset,"gesture_end",g.generation).empty()&&s.frames[0].starts.load()==starts_before+1&&s.frames[0].ends.load()==ends_before+1&&
+        record(s,g.offset,"gesture_end",g.generation).empty()&&actual_native_boundaries&&
         ordinary_native==0&&terminal_native==0&&cancel_native==0&&capture_ready==0;
     s.log.check("rapid_terminal_real_UP_final_geometry_and_no_late_write",ended&&stopped&&(enhanced_result||native_result)&&
         own(s,s.frames[0].hwnd)&&GetForegroundWindow()==s.frames[0].hwnd&&gui_idle&&
         visible(s.frames[0].hwnd)==expected&&cursor_known&&cursor_after.x==destination.x&&cursor_after.y==destination.y&&
         last==record(s,g.offset,"placement",g.generation),
-        "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+
+        "\"generation\":"+std::to_string(g.generation)+route_fields+",\"expected\":"+rect(expected)+
         ",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null")+
         ",\"ordinary_native_attempts\":"+std::to_string(ordinary_native)+",\"terminal_native_attempts\":"+std::to_string(terminal_native)+
         ",\"product_issues_at_or_after_actual_UP\":"+std::to_string(new_issue_at_or_after_UP)+",\"product_native_cancel_attempts\":"+std::to_string(cancel_native)+
@@ -95,10 +116,18 @@ void owned_rapid_terminal_move(State& s){
         ",\"source_GUI_idle\":"+(gui_idle?"true":"false")+",\"actual_cursor\":"+(cursor_known?"["+std::to_string(cursor_after.x)+","+std::to_string(cursor_after.y)+"]":"null")+
         ",\"path\":"+quote(native_only?"native_only_passthrough_not_enhancement_or_NormalUp":"enhanced_actual_UP_before_retirement")+
         ",\"actual_pending_receipt\":"+quote(pending)+",\"actual_native_passthrough_LL_UP\":"+quote(release)+
+        ",\"actual_product_native_START\":"+quote(actual_start)+",\"actual_product_native_END\":"+quote(actual_end)+
+        ",\"Glue_follower_or_enhanced_Resize_inferred_from_native_only\":false"+
         ",\"actual_UP_qpc\":"+std::to_string(actual_up_qpc)+",\"source_native_before\":"+native_before+
         ",\"source_native_after\":"+native_move_boundary_json(s.frames[0])+
         ",\"product_actual_UP\":"+quote(observed_up)+",\"production_end\":"+quote(end)+
         ",\"passive_hook\":"+observer.json()+",\"GUI_lag_not_inferred_from_test_insertion\":true");
     for(std::size_t n=0;n<3;++n){s.log.check("rapid_terminal_restore_fixture_setup",fixture_rect(s.frames[n].hwnd,previous[n]),
-        "\"member\":"+std::to_string(n)+",\"test_setup_only\":true");ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);}
+        "\"member\":"+std::to_string(n)+",\"test_setup_only\":true"+route_fields);ShowWindow(s.frames[n].hwnd,SW_SHOWNOACTIVATE);}
+}
+void owned_rapid_terminal_move(State& s){
+    owned_rapid_terminal_case(s,false,false);
+    owned_rapid_terminal_case(s,true,false);
+    owned_rapid_terminal_case(s,false,true);
+    owned_rapid_terminal_case(s,true,true);
 }

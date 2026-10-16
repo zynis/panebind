@@ -5,8 +5,10 @@
 #include <array>
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <thread>
+#include <vector>
 
 namespace panebind::platform::windows::product {
 constexpr UINT input_message=WM_APP+41, prepare_message=WM_APP+42, catalog_message=WM_APP+43;
@@ -69,6 +71,10 @@ struct Prepared {
     // GUI-owned layout record verified against the actual DOWN preparation.
     // Only restoration intent; every later native write still needs fresh B.
     std::optional<core::v1::Rect> layout_restore_normal;
+    // GUI-owned original-DOWN group. The LL callback neither enumerates nor
+    // allocates this topology; END geometry is only the later write baseline.
+    std::vector<Snapshot> native_ctrl_members;
+    bool native_ctrl_members_valid{};
 };
 enum class DownRoute { Pass, Gesture, Mapped };
 struct DownDecision { DownRoute route{DownRoute::Pass}; core::v1::Action action{core::v1::Action::None}; };
@@ -171,11 +177,14 @@ struct NativeMoveReceipt {
     HWND source{};
     LONG object{},child{};
 };
-// Only this ordinary, non-maximized titlebar route changes entry mechanism.
-// Ctrl, mapped actions, all resize edges, double-clicks and host operation keep
-// their existing route. A candidate DOWN is passed to Windows, not consumed.
+// Historical plain-Move predicate retained for its existing tests. Production
+// uses the explicitly classified native_geometry_entry below, not this subset.
 inline bool native_plain_move_entry(bool guest,const Prepared& p,int button,int clicks,unsigned mods,DownDecision route){
     return guest&&route.route==DownRoute::Gesture&&button==1&&clicks==1&&mods==0&&p.region==0&&!p.source.maximized;
+}
+inline bool native_geometry_entry(bool resource_enabled,const Prepared& p,int button,int clicks,unsigned mods,DownDecision route){
+    return resource_enabled&&route.route==DownRoute::Gesture&&button==1&&clicks==1&&(mods==0||mods==2)&&
+        p.region>=0&&p.region<=8&&!p.source.maximized&&(p.region==0||p.source.can_resize);
 }
 inline bool native_move_receipt_matches(const NativeMoveReceipt& r,const Prepared& p,
     std::uint64_t generation,DWORD down_stamp,DWORD event){
@@ -199,6 +208,39 @@ inline bool native_move_handoff_compatible(const Snapshot& down,const Snapshot& 
         down.can_resize==end.can_resize&&
         down.visible.left()-down.positioning.left()==end.visible.left()-end.positioning.left()&&
         down.visible.top()-down.positioning.top()==end.visible.top()-end.positioning.top();
+}
+// The real native prefix may already have translated/resized the source. Keep
+// A as intent and accept B only for the exact locked operation: an inactive
+// edge may not move, nor may identity/display/frame/state silently change.
+inline bool native_geometry_handoff_compatible(const Prepared& prepared,const Snapshot& end){
+    const auto& down=prepared.source;
+    const auto native_frame=[](const core::v1::Rect& rect){
+        constexpr auto low=std::numeric_limits<LONG>::min(),high=std::numeric_limits<LONG>::max();
+        for(const auto value:std::array{rect.left(),rect.top(),rect.right(),rect.bottom()})if(value<low||value>high)return false;
+        return rect.right()>rect.left()&&rect.bottom()>rect.top()&&rect.width()<=high&&rect.height()<=high;
+    };
+    if(!native_frame(down.visible)||!native_frame(down.positioning)||!native_frame(end.visible)||!native_frame(end.positioning))return false;
+    if(prepared.region==0)return native_move_handoff_compatible(down,end);
+    if(prepared.region<1||prepared.region>8||!down.can_resize||!Catalog::same(down,end)||
+       down.dpi!=end.dpi||down.monitor!=end.monitor||down.work!=end.work||
+       down.maximized!=end.maximized||down.minimized!=end.minimized||down.feature_mask!=end.feature_mask||down.can_resize!=end.can_resize||
+       down.visible.left()-down.positioning.left()!=end.visible.left()-end.positioning.left()||
+       down.visible.top()-down.positioning.top()!=end.visible.top()-end.positioning.top()||
+       down.positioning.right()-down.visible.right()!=end.positioning.right()-end.visible.right()||
+       down.positioning.bottom()-down.visible.bottom()!=end.positioning.bottom()-end.visible.bottom())return false;
+    const auto& limits=down.limits;
+    if(limits.min_width<=0||limits.min_height<=0||limits.max_width<limits.min_width||limits.max_height<limits.min_height||
+       limits.grid_width<=0||limits.grid_height<=0||end.visible.width()<limits.min_width||end.visible.width()>limits.max_width||
+       end.visible.height()<limits.min_height||end.visible.height()>limits.max_height||
+       end.visible.width()%limits.grid_width||end.visible.height()%limits.grid_height)return false;
+    const bool left=prepared.region==1||prepared.region==5||prepared.region==7;
+    const bool right=prepared.region==2||prepared.region==6||prepared.region==8;
+    const bool top=prepared.region==3||prepared.region==5||prepared.region==6;
+    const bool bottom=prepared.region==4||prepared.region==7||prepared.region==8;
+    return (left||(end.visible.left()==down.visible.left()&&end.positioning.left()==down.positioning.left()))&&
+        (right||(end.visible.right()==down.visible.right()&&end.positioning.right()==down.positioning.right()))&&
+        (top||(end.visible.top()==down.visible.top()&&end.positioning.top()==down.positioning.top()))&&
+        (bottom||(end.visible.bottom()==down.visible.bottom()&&end.positioning.bottom()==down.positioning.bottom()));
 }
 enum class InputKind { Down, Move, Up, Abort, Mapped, Resource, NativeMovePending, NativeMoveStart, NativeMoveEnd, NativeMoveReleased };
 enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource, NativeMoveEvent };

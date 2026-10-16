@@ -33,12 +33,84 @@ int main() {
           !product::native_plain_move_entry(true,native_down,1,1,2,plain)&&
           !product::native_plain_move_entry(true,native_down,1,2,0,plain)&&
           !product::native_plain_move_entry(true,native_down,1,1,0,{product::DownRoute::Mapped,v1::Action::Center}),
-          "enabled resource route uses native-first for ordinary single left Move; disabled route, Ctrl, double-click and mapped gestures do not");
+          "legacy plain-Move predicate excludes disabled, Ctrl, double-click and mapped routes");
     auto native_edge=native_down;native_edge.region=1;
     auto native_max=native_down;native_max.source.maximized=true;
     check(!product::native_plain_move_entry(true,native_edge,1,1,0,plain)&&
           !product::native_plain_move_entry(true,native_max,1,1,0,plain),
-          "native-first does not silently replace Resize or maximized restore entry");
+          "legacy plain-Move predicate remains separate from Resize and maximized restore entry");
+    auto geometry_down=native_down;geometry_down.source.can_resize=true;
+    geometry_down.source.monitor=reinterpret_cast<HMONITOR>(401);
+    check(product::native_geometry_entry(true,geometry_down,1,1,0,product::route_down(geometry_down,1,1,0))&&
+          product::native_geometry_entry(true,geometry_down,1,1,2,product::route_down(geometry_down,1,1,2)),
+          "production geometry entry passes real ordinary and Ctrl single-left Move DOWN to Windows");
+    for(int region=1;region<=8;++region){
+        auto resize_down=geometry_down;resize_down.region=region;
+        product::prepare_mappings(resize_down,v1::default_settings());
+        check(product::native_geometry_entry(true,resize_down,1,1,0,product::route_down(resize_down,1,1,0))&&
+              product::native_geometry_entry(true,resize_down,1,1,2,product::route_down(resize_down,1,1,2)),
+              "each actual edge/corner supports ordinary and Ctrl native Resize entry");
+        const bool left=region==1||region==5||region==7,right=region==2||region==6||region==8;
+        const bool top=region==3||region==5||region==6,bottom=region==4||region==7||region==8;
+        auto end=resize_down.source;
+        end.visible={left?90:100,top?85:100,right?380:360,bottom?485:460};
+        end.positioning={left?83:93,top?85:100,right?387:367,bottom?492:467};
+        check(product::native_geometry_handoff_compatible(resize_down,end),
+              "actual native Resize prefix accepts only its locked active edges while retaining A");
+        // Mutate one inactive edge, preserving its frame offset so this
+        // rejection really exercises the operation's edge contract.
+        auto foreign=end;
+        if(!left){foreign.visible={end.visible.left()+1,end.visible.top(),end.visible.right(),end.visible.bottom()};
+            foreign.positioning={end.positioning.left()+1,end.positioning.top(),end.positioning.right(),end.positioning.bottom()};}
+        else if(!right){foreign.visible={end.visible.left(),end.visible.top(),end.visible.right()+1,end.visible.bottom()};
+            foreign.positioning={end.positioning.left(),end.positioning.top(),end.positioning.right()+1,end.positioning.bottom()};}
+        else if(!top){foreign.visible={end.visible.left(),end.visible.top()+1,end.visible.right(),end.visible.bottom()};
+            foreign.positioning={end.positioning.left(),end.positioning.top()+1,end.positioning.right(),end.positioning.bottom()};}
+        check(!product::native_geometry_handoff_compatible(resize_down,foreign),
+              "native Resize cannot rebaseline an inactive-edge movement");
+        foreign=end;foreign.positioning={end.positioning.left(),end.positioning.top(),end.positioning.right()+1,end.positioning.bottom()};
+        check(!product::native_geometry_handoff_compatible(resize_down,foreign),
+              "native Resize rejects a changed right frame offset on every operation edge");
+    }
+    auto fixed=geometry_down;fixed.region=2;fixed.source.can_resize=false;
+    check(!product::native_geometry_entry(true,fixed,1,1,0,plain)&&
+          !product::native_geometry_handoff_compatible(fixed,fixed.source),"fixed-size source cannot enter native Resize handoff");
+    for(const unsigned mods:{1u,3u,4u,6u,8u,16u})
+        check(!product::native_geometry_entry(true,geometry_down,1,1,mods,plain),"Alt Shift Super and unknown modifier routes are not silently reclassified");
+    check(!product::native_geometry_entry(false,geometry_down,1,1,0,plain)&&
+          !product::native_geometry_entry(true,geometry_down,2,1,0,plain)&&
+          !product::native_geometry_entry(true,geometry_down,1,2,0,plain)&&
+          !product::native_geometry_entry(true,native_max,1,1,0,plain)&&
+          !product::native_geometry_entry(true,geometry_down,1,1,0,{product::DownRoute::Mapped,v1::Action::Center})&&
+          !product::native_geometry_entry(true,geometry_down,1,1,0,{}),
+          "disabled, foreign button, double-click, maximized, mapped and passthrough retain their separate entry semantics");
+    auto right_down=geometry_down;right_down.region=2;
+    product::prepare_mappings(right_down,v1::default_settings());
+    auto right_end=right_down.source;right_end.visible={100,100,380,460};right_end.positioning={93,100,387,467};
+    auto invalid_end=right_end;invalid_end.dpi=144;
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"native Resize cannot accept changed DPI as an active-edge effect");
+    invalid_end=right_end;invalid_end.monitor=reinterpret_cast<HMONITOR>(402);
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"native Resize cannot accept changed monitor context");
+    invalid_end=right_end;invalid_end.work={0,0,1920,1040};
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"native Resize cannot accept changed work area");
+    invalid_end=right_end;++invalid_end.born;
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"native Resize retains exact process birth identity");
+    invalid_end=right_end;invalid_end.maximized=true;
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"native Resize rejects concurrent maximized state change");
+    auto limited_down=right_down;limited_down.source.limits.max_width=270;
+    check(!product::native_geometry_handoff_compatible(limited_down,right_end),"native Resize prefix obeys original maximum width");
+    limited_down=right_down;limited_down.source.limits.min_width=290;
+    check(!product::native_geometry_handoff_compatible(limited_down,right_end),"native Resize prefix obeys original minimum width");
+    limited_down=right_down;limited_down.source.limits.grid_width=3;
+    check(!product::native_geometry_handoff_compatible(limited_down,right_end),"native Resize prefix obeys an explicitly known original size grid");
+    invalid_end=right_end;invalid_end.visible={100,100,100,460};
+    check(!product::native_geometry_handoff_compatible(right_down,invalid_end),"invalid native Resize extent is not a new baseline");
+    auto move_end=geometry_down.source;move_end.visible={120,125,380,485};move_end.positioning={113,125,387,492};
+    check(product::native_geometry_handoff_compatible(geometry_down,move_end),
+          "unified native geometry helper preserves Move translation-only handoff");
+    move_end.visible={120,125,381,485};move_end.positioning={113,125,388,492};
+    check(!product::native_geometry_handoff_compatible(geometry_down,move_end),
+          "unified Move branch cannot accept Resize merely because active Resize branches exist");
     product::NativeMoveReceipt real_start{70,1,EVENT_SYSTEM_MOVESIZESTART,31,110,native_down.source.hwnd,OBJID_WINDOW,CHILDID_SELF};
     check(product::native_move_receipt_matches(real_start,native_down,70,100,EVENT_SYSTEM_MOVESIZESTART),
           "actual native START receipt binds source thread, generation and native DOWN time");
@@ -91,6 +163,13 @@ int main() {
     captured_authority=0;
     check(!product::arm_exact_capture_generation(captured_authority,40)&&captured_authority==0,
           "an early actual UP prevents late CaptureReady from restoring issue authority");
+    for(int region:{0,1,4,8}){
+        auto early=geometry_down;early.region=region;
+        check(product::native_geometry_entry(true,early,1,1,2,product::route_down(early,1,1,2))&&
+              !product::arm_exact_capture_generation(captured_authority,40)&&
+              !product::operation_permission(40,captured_authority,40,true,false),
+              "Ctrl Move/Resize route classification cannot restore new continuous issue permission after actual early UP");
+    }
     captured_authority=41|product::input_pending_capture_mask;
     check(!product::arm_exact_capture_generation(captured_authority,40)&&captured_authority==(41|product::input_pending_capture_mask),
           "a stale resource receipt cannot authorize a later DOWN generation");

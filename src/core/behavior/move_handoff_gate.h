@@ -7,6 +7,7 @@ enum class MoveHandoffEscapeReason {
     None, EarlyUp, SetupFailure, ExplicitStop, ContextLost, ParentExited,
     Deadline, LegacyUpMissing, NativeFailure
 };
+enum class NativeGeometryOperation { Unclassified, TitlebarMove, Resize };
 
 // Ordering gate only. The adapter must independently prove every native fact
 // supplied here, including source identity, DOWN attribution, actual overlay
@@ -16,8 +17,19 @@ class MoveHandoffGate final {
 public:
     [[nodiscard]] bool begin(std::uint64_t gesture, bool exact_source,
                              bool attributed_down_held, bool plain_titlebar_move) noexcept {
+        return plain_titlebar_move && begin_native_geometry(gesture, exact_source,
+            attributed_down_held, NativeGeometryOperation::TitlebarMove);
+    }
+
+    // Explicitly classified native geometry entry for the V1 adapter. The
+    // caller still proves the real operation and every native fact; this gate
+    // shares only the existing single-generation handoff ordering state.
+    [[nodiscard]] bool begin_native_geometry(std::uint64_t gesture, bool exact_source,
+                                             bool attributed_down_held,
+                                             NativeGeometryOperation operation) noexcept {
         if (begun_ || !gesture || !exact_source || !attributed_down_held ||
-            !plain_titlebar_move) return false;
+            (operation != NativeGeometryOperation::TitlebarMove &&
+             operation != NativeGeometryOperation::Resize)) return false;
         begun_ = true;
         gesture_ = gesture;
         return true;

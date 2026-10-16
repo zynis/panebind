@@ -157,7 +157,8 @@ void InputService::prepare(std::shared_ptr<const Prepared> value){
     try{
         auto bundle=std::make_shared<PreparedBundle>();bundle->prepared=std::move(value);
         const auto& p=*bundle->prepared;
-        if(native_plain_move_entry(capture_route_enabled_,p,1,1,0,route_down(p,1,1,0)))
+        if(native_geometry_entry(capture_route_enabled_,p,1,1,0,route_down(p,1,1,0))||
+           native_geometry_entry(capture_route_enabled_,p,1,1,2,route_down(p,1,1,2)))
             bundle->native_pair=std::make_shared<CaptureBridge::Pair>();
         prepared_.store(std::move(bundle));
     }catch(...){
@@ -196,7 +197,7 @@ bool InputService::request_native_move_capture(std::uint64_t generation,const st
     if(!p||!p->native_move||p->down.generation!=generation||!bridge->active(p)||!p->cancel_claimed||!receipt||
        p->native_end.load()!=receipt||!p->native_start.load()||!native_move_end_follows(*p->native_start.load(),*receipt)||
        !native_move_receipt_matches(*receipt,*p->down.prepared,generation,p->down.native_message_time,EVENT_SYSTEM_MOVESIZEEND)||
-       !native_move_handoff_compatible(p->down.prepared->source,actual))return false;
+       !native_geometry_handoff_compatible(*p->down.prepared,actual))return false;
     auto phase=NativeMovePhase::AwaitEnd;
     if(!p->native_phase.compare_exchange_strong(phase,NativeMovePhase::AwaitCapture))return false;
     p->handoff.store(std::make_shared<const Snapshot>(actual));
@@ -479,7 +480,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 bool routed=false;
                 self->generation_=++self->next_generation_;
                 self->capture_pair_=self->capture_route_enabled_&&route.route==DownRoute::Gesture&&b==1;
-                self->native_move_=native_plain_move_entry(self->capture_route_enabled_,*p,b,clicks,mods,route);
+                self->native_move_=native_geometry_entry(self->capture_route_enabled_,*p,b,clicks,mods,route);
                 self->captured_move_.begin(self->generation_,self->capture_pair_,!self->native_move_);
                 *self->authorized_=self->generation_|(self->capture_pair_?pending_capture_mask:0);
                 self->consumed_down_=!self->native_move_;self->aborted_=false;self->button_=b;self->modifiers_=mods;

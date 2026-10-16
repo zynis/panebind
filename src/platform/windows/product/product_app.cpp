@@ -684,6 +684,23 @@ public:
     void begin(const InputEvent&);
     void native_move_event(const InputEvent&);
     void native_move_resource(const InputEvent&);
+    bool native_group_unchanged(const InputEvent& down,const Snapshot& actual_source){
+        if(!down.prepared)return false;const auto& prepared=*down.prepared;
+        if(!(down.modifiers&2u)||!settings.glue||!(prepared.source.feature_mask&2u))return true;
+        if(!prepared.native_ctrl_members_valid||prepared.native_ctrl_members.empty())return false;
+        bool source_found=false;
+        for(const auto& member:prepared.native_ctrl_members){
+            if(member.key==prepared.source.key){
+                source_found=Catalog::same(member,prepared.source)&&native_geometry_handoff_compatible(prepared,actual_source);
+                if(!source_found)return false;
+            }else{
+                const auto actual=catalog.get(member.hwnd,settings,nullptr,false,false);
+                if(!actual||actual->feature_mask!=member.feature_mask||
+                   !WindowWriter::prepare(member,*actual,member.visible).accepted)return false;
+            }
+        }
+        return source_found;
+    }
     bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation) {
         LARGE_INTEGER before{},after{};if(diagnostic)QueryPerformanceCounter(&before);
         const auto gui=observe_gui_context(source);
@@ -965,6 +982,22 @@ void Application::prepare(){
     auto ready=std::make_shared<Prepared>();ready->source=*snapshot;ready->point=point;ready->stamp=GetTickCount();ready->region=region;ready->config_generation=settings.generation;
     if(region==0&&!snapshot->maximized)if(const auto history=owned_layout(*snapshot);history&&history->back().drag_restore)
         ready->layout_restore_normal=history->back().normal;
+    if(!snapshot->maximized&&settings.glue&&(snapshot->feature_mask&2u)){
+        // Freeze original group geometry before Windows can move/resize the
+        // leader. The subsequent native prefix must not dissolve the group or
+        // silently accept a moved follower as a new DOWN baseline. Only the
+        // chosen participants query actual tracking limits in begin().
+        auto members=catalog.all(settings);
+        members.erase(std::remove_if(members.begin(),members.end(),[](const auto& member){return !(member.feature_mask&2u);}),members.end());
+        const auto source=std::find_if(members.begin(),members.end(),[&](const auto& member){return member.key==snapshot->key;});
+        if(source!=members.end()&&Catalog::same(*source,*snapshot)&&source->visible==snapshot->visible&&source->positioning==snapshot->positioning){
+            *source=*snapshot;
+            const auto selected=v::connected(items(members),snapshot->key,dip(settings.adjacency_dip,snapshot->dpi));
+            members.erase(std::remove_if(members.begin(),members.end(),[&](const auto& member){
+                return std::find(selected.begin(),selected.end(),member.key)==selected.end();}),members.end());
+            ready->native_ctrl_members_valid=!members.empty();ready->native_ctrl_members=std::move(members);
+        }
+    }
     prepare_mappings(*ready,settings);
     // A read-only hover preview for the actual configured left double-click.
     // It does not claim that a double-click occurred or authorize any writer.
@@ -1019,6 +1052,8 @@ void Application::native_move_event(const InputEvent& e){
             ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
             ",\"source_pid\":"+std::to_string(e.prepared?e.prepared->source.pid:0)+
             ",\"source_tid\":"+std::to_string(e.prepared?e.prepared->source.tid:0)+
+            ",\"actual_DOWN_region\":"+std::to_string(e.prepared?e.prepared->region:-1)+
+            ",\"locked_modifiers\":"+std::to_string(e.modifiers)+
             ",\"down_point\":["+std::to_string(e.point.x)+","+std::to_string(e.point.y)+"]"+
             ",\"down_native_time\":"+std::to_string(e.native_message_time)+
             ",\"down_hook_qpc\":"+std::to_string(e.hook_observed_qpc)+
@@ -1045,6 +1080,7 @@ void Application::native_move_event(const InputEvent& e){
         ",\"native_time\":"+std::to_string(actual.stamp)+",\"owner_sequence\":"+std::to_string(actual.sequence)+
         ",\"original_DOWN_qpc\":"+std::to_string(e.hook_observed_qpc)+
         ",\"down_native_time\":"+std::to_string(e.native_message_time)+
+        ",\"DOWN_classified_operation\":\""+(e.prepared->region==0?std::string("titlebar_move"):std::string("resize"))+"\""+
         ",\"async_left_return\":"+std::to_string(async_left)+
         ",\"native_physical_button_gate\":"+(buttons_held?"true":"false")+
         ",\"receipt_not_write_authority\":true");
@@ -1052,16 +1088,20 @@ void Application::native_move_event(const InputEvent& e){
        e.prepared->config_generation!=settings.generation||GetForegroundWindow()!=e.prepared->source.hwnd||
        !buttons_held)return reject("up_revoke_or_context_before_native_handoff");
     const auto fresh=catalog.get(e.prepared->source.hwnd,settings,nullptr,false,false);
-    if(!fresh||!native_move_handoff_compatible(e.prepared->source,*fresh))return reject("source_or_geometry_context_changed");
+    if(!fresh||!native_geometry_handoff_compatible(*e.prepared,*fresh))return reject("source_or_geometry_context_changed");
+    if(!native_group_unchanged(e,*fresh))return reject("original_DOWN_group_changed_before_handoff");
     if(e.kind==InputKind::NativeMoveStart){
         if((native_move&&(native_move->down.generation!=generation||native_move->start))||!native_move_gui(*fresh,true)||
            !native_move_receipt_matches(actual,*e.prepared,generation,e.native_message_time,EVENT_SYSTEM_MOVESIZESTART))
             return reject("native_START_or_actual_move_loop_rejected");
         NativeMovePending pending;pending.down=e;pending.down.kind=InputKind::NativeMovePending;
         pending.start=e.native_move_receipt;
-        if(!pending.gate.begin(generation,Catalog::same(e.prepared->source,*fresh),buttons_held,
-            native_plain_move_entry(input.capture_route_enabled(),*e.prepared,e.button,e.clicks,e.modifiers,
-                route_down(*e.prepared,e.button,e.clicks,e.modifiers))))return reject("native_handoff_gate_rejected");
+        const bool classified=native_geometry_entry(input.capture_route_enabled(),*e.prepared,e.button,e.clicks,e.modifiers,
+            route_down(*e.prepared,e.button,e.clicks,e.modifiers));
+        const auto operation=!classified?core::behavior::NativeGeometryOperation::Unclassified:
+            (e.prepared->region==0?core::behavior::NativeGeometryOperation::TitlebarMove:core::behavior::NativeGeometryOperation::Resize);
+        if(!pending.gate.begin_native_geometry(generation,Catalog::same(e.prepared->source,*fresh),buttons_held,operation))
+            return reject("native_handoff_gate_rejected");
         native_move=std::move(pending);
         if(!input.request_native_move_isolation(generation,e.native_move_receipt))return reject("isolation_request_rejected");
         return;
@@ -1087,9 +1127,9 @@ void Application::native_move_resource(const InputEvent& e){
         ",\"native_attempted\":false,\"reason\":\""+why+"\"");input.revoke_generation(g);native_move.reset();};
     const auto& source=pending.down.prepared->source;
     const auto fresh=catalog.get(source.hwnd,settings,nullptr,false,false);
-    if(!input.native_move_pending(g)||!fresh||!native_move_handoff_compatible(source,*fresh)||
+    if(!input.native_move_pending(g)||!fresh||!native_geometry_handoff_compatible(*pending.down.prepared,*fresh)||
        !settings.enabled||stopping||pending.down.prepared->config_generation!=settings.generation||
-       !pending.start||fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff||
+       !native_group_unchanged(pending.down,*fresh)||!pending.start||fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff||
        fact.gesture.generation!=g||fact.gesture.source!=source.hwnd||fact.gesture.process_id!=source.pid||fact.gesture.thread_id!=source.tid||
        GetForegroundWindow()!=source.hwnd||!native_move_buttons_held()||!native_move_gui(*fresh,true)||
        !native_move_overlay_hits(fact.overlay))return reject("fresh_isolation_or_source_rejected");
@@ -1120,14 +1160,14 @@ void Application::begin(const InputEvent& e){
     const auto& baseline=native_handoff?*e.handoff_snapshot:p.source;
     if(!fresh||!Catalog::same(p.source,*fresh)||
        (native_handoff?!WindowWriter::prepare(baseline,*fresh,baseline.visible).accepted:fresh->visible!=p.source.visible)||
-       (native_handoff&&!native_move_handoff_compatible(p.source,*fresh))||p.config_generation!=settings.generation){
+       (native_handoff&&!native_geometry_handoff_compatible(p,*fresh))||p.config_generation!=settings.generation){
         if(diagnostic)log.event("gesture_begin_rejected","\"generation\":"+std::to_string(e.generation)+
             ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+
             ",\"fresh_snapshot\":"+(fresh?"true":"false")+",\"identity_same\":"+(fresh&&Catalog::same(p.source,*fresh)?"true":"false")+
             ",\"geometry_same\":"+(fresh&&fresh->visible==p.source.visible?"true":"false")+
             ",\"configuration_same\":"+(p.config_generation==settings.generation?"true":"false"));
         input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}
-    if(native_handoff&&(!native_move||native_move->down.generation!=e.generation||!native_move->end||
+    if(native_handoff&&(!native_group_unchanged(e,*fresh)||!native_move||native_move->down.generation!=e.generation||!native_move->end||
        native_move->end!=e.native_move_receipt||!native_move->gate.may_write(e.generation,input.allowed(e.generation),true,
             gesture_gui_allowed(*fresh,e.generation)))){
         input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);native_move.reset();return;
@@ -1135,9 +1175,12 @@ void Application::begin(const InputEvent& e){
     Gesture active;active.down=e;active.config=settings;active.original=native_handoff?p.source.visible:fresh->visible;
     active.previous=fresh->visible;active.edges=edges(p.region);
     active.operation_source=*fresh;active.was_maximized=fresh->maximized;active.restore_armed=fresh->maximized;
-    active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;active.members=catalog.all(settings);
+    active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;
+    active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);
     if(active.ctrl)active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[](const auto& member){return !(member.feature_mask&2u);}),active.members.end());
-    auto list=items(active.members);const auto selected=active.ctrl&&!fresh->maximized?v::connected(list,fresh->key,dip(settings.adjacency_dip,fresh->dpi)):std::vector<v::Key>{fresh->key};
+    auto list=items(active.members);std::vector<v::Key> selected;
+    if(native_handoff&&active.ctrl){for(const auto& member:active.members)selected.push_back(member.key);}
+    else selected=active.ctrl&&!fresh->maximized?v::connected(list,fresh->key,dip(settings.adjacency_dip,fresh->dpi)):std::vector<v::Key>{fresh->key};
     active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[&](const auto& s){
         return std::find(selected.begin(),selected.end(),s.key)==selected.end()||(active.ctrl&&!(s.feature_mask&2u));}),active.members.end());
     if(active.members.empty()){input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}
@@ -1146,8 +1189,9 @@ void Application::begin(const InputEvent& e){
     // bounds may become the frozen Ctrl resize contract.
     for(auto& member:active.members){
         const auto actual=catalog.get(member.hwnd,settings);
-        if(!actual||!Catalog::same(member,*actual)||actual->visible!=member.visible||
-            actual->positioning!=member.positioning||actual->dpi!=member.dpi||
+        const auto& expected=native_handoff&&member.key==p.source.key?baseline:member;
+        if(!actual||!Catalog::same(member,*actual)||actual->visible!=expected.visible||
+            actual->positioning!=expected.positioning||actual->dpi!=member.dpi||
             actual->monitor!=member.monitor||actual->work!=member.work||
             actual->maximized!=member.maximized||actual->minimized!=member.minimized||
             actual->can_resize!=member.can_resize||actual->feature_mask!=member.feature_mask){
@@ -1167,7 +1211,10 @@ void Application::begin(const InputEvent& e){
     active.targets=catalog.all(settings);active.targets.erase(std::remove_if(active.targets.begin(),active.targets.end(),[&](const auto& s){
         return std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u);}),active.targets.end());
     for(const auto& s:active.members)active.expected[s.key]=s;
-    if(native_handoff)for(auto& member:active.members)if(member.key==p.source.key)member=p.source;
+    if(native_handoff)for(auto& member:active.members)if(member.key==p.source.key){
+        const auto actual_limits=member.limits;const bool observed_limits=member.declared_track_limits_observed;
+        member=p.source;member.limits=actual_limits;member.declared_track_limits_observed=observed_limits;
+    }
     active.scope_original=active.original;
     if(active.ctrl&&!is_resize(active.edges)){
         for(const auto& s:active.members)active.scope_original={std::min(active.scope_original.left(),s.visible.left()),
@@ -1186,6 +1233,8 @@ void Application::begin(const InputEvent& e){
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+
         ",\"original\":"+rectangle(gesture->original)+",\"native_first_handoff\":"+(native_handoff?"true":"false")+
+        ",\"original_DOWN_group_frozen\":"+(native_handoff&&gesture->ctrl?"true":"false")+
+        ",\"group_members\":"+std::to_string(gesture->members.size())+
         ",\"actual_begin_geometry\":"+rectangle(fresh->visible));
     if(native_handoff)native_move.reset();
     if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
