@@ -13,9 +13,24 @@
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
     "pending_runtime_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
     "final_sha": null,
-    "implementation_inspected": "R8_NATIVE_HANDOFF_DEBUG_ACTUAL_CHAIN_ORIGINAL_TIMESTAMP_ASSERTION_FAIL_RELEASE_ACTIVATION_FAIL_NEXT_FIX_PENDING",
-    "note": "历史七项功能/B29+B32保持原身份。最新R8产品/driver175、Run7149 Debug真实native接管及A_initial五阶段/Raw+legacyUP/NormalUp资源闭环被观察，原driver50因时间戳0仍FAIL；Release客户激活计数0/0、无产品手势，原因UNKNOWN。新82d仅修真实派发时间戳，D/R构建及各9产品offline已通过、现场未跑，旧175不换绑。整版PARTIAL/真人UAT PENDING。",
-    "pending_product_note": "当前实际运行R8源码175/7149范围见run_7149_observed；新时间戳修复82d D/R构建/各9产品offline通过，尚无新包或现场功能PASS。后继Core/settings/apps及新便携普通入口未跑；R7/4e9、cb0b与R6/625保留历史身份。",
+    "implementation_inspected": "R8_82D_BUILD_PASS_RELEASE_SIX_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_PREINPUT_FAIL_NOT_FULL",
+    "note": "历史七项功能/B29+B32保持原身份。最新82d/e138/c17e在同Release PID6408完成六段真实手势及NormalUp/资源闭环，含实际B Resize后A五阶段；真实UP后新native0，7149时间戳缺口定向通过。随后CtrlC修饰键观测失败发生在鼠标DOWN前，全链仍FAIL。后继Core/settings/apps与新便携普通入口未测；整版PARTIAL/真人UAT PENDING。",
+    "pending_product_note": "产品82d当前已实际运行c17e而非NOT_RUN；六手势只是已观察子范围，CtrlC未发鼠标DOWN，Full未过。新9281便携已生成但普通GUI未运行。7149/175与R7各历史仍原身份；后续分组不得合成FullPASS。",
+    "next_driver_candidate": {
+      "source_sha": "d06383562c2d7dc201066a8c5e35a90ebbf37ef5",
+      "scope": "test-only single modifier packet QPC/raw SHORT/first foreground change observation; no extra input or relaxed assertion",
+      "product_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_unchanged": true,
+      "build_dir": "out/v1-driver-key-observation-d063835",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "debug_binary_sha256": "DA5765C42384D6D7AFB6E6AE439B80263EDDE5945F6F65DBE55599452D736B55",
+      "release_binary_sha256": "4DF572DD3E98B57062F2FBC4A9213A2177D53D8392EE0B1D49FAD555A5EA0CFC",
+      "offline_regression": "guest-path Debug1/1 processor0.17/wall0.21; Release1/1 processor0.15/wall0.26",
+      "debug_ctest_output_log_sha256": "7865D9FED29C882A7502D7641532598E24F7DCF75B726DE94BAADFABBB947405",
+      "release_ctest_output_log_sha256": "AB1CFFD4B353AE29192C75A516C9EA6D289B0CA66A770D5333C7AA5DA7A96B13",
+      "runtime_validation": "NOT_RUN"
+    },
     "pending_candidate": {
       "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
       "implementation_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
@@ -32,8 +47,8 @@
       "release_build_result": "PASS_EXIT_0",
       "debug_binary_sha256": "B9862A22A443B75ED4B2304592FE03A24D5C53E2B298C158C09CB8F557BF1EFC",
       "release_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
-      "package_generated": false,
-      "runtime_validation": "NOT_RUN",
+      "package_generated": true,
+      "runtime_validation": "RELEASE_SIX_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_PREINPUT_FAIL_NOT_FULL",
       "ordinary_host_trial_allowed": false,
       "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
       "historical_results_rebound": false,
@@ -48,7 +63,18 @@
       "debug_ctest_output_log_sha256": "70437504B1F8335AF9971C82D3B4B41BA4DDBC73BAD442F580D4413C37B36F60",
       "release_ctest_output_log": "uat/v1-control/r8-82d66a0-release-product-offline-20261017.txt",
       "release_ctest_output_log_sha256": "44C1FEE0D70BE5C6ED1D5C3050539C5105C68207D50607DA06A56A0E2EFE127F",
-      "build_evidence_kind": "MAIN_EXECUTOR_ACTUAL_BUILD_RESULT_WITH_NATIVE_CTEST_OUTPUT_LOG_NOT_PER_TEST_STDOUT"
+      "build_evidence_kind": "MAIN_EXECUTOR_ACTUAL_BUILD_RESULT_WITH_NATIVE_CTEST_OUTPUT_LOG_NOT_PER_TEST_STDOUT",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "packaging_head": "dafed9641746600b8c40f8b7436fee1b4433c191",
+      "package_zip_sha256": "13B43ED386CD3300B3AC9E9DED11BF4652777655CB04D91AE4DBA6757C52116A",
+      "package_manifest_sha256": "E044A336FFB44CC552CB48C01340C1157CA766603DEA282C0B6A80C62998387C",
+      "wsb_sha256": "47D4054DA9AD9397D4633A65C49B9A60BDD9040085F1CE9920511F2B74F8A9BF",
+      "portable_package_id": "9281e84f9cf844e281f91f7d0ca19037",
+      "portable_zip_sha256": "EE1EF02D3E79A601D500706575B03E69514EA98F4EF5C10856AB6F6BC6F31C46",
+      "portable_manifest_sha256": "0143F76B6F77B1EC9AE1DCEED6E17227181FFE5CC74D0C23788A8F8821EBFD9A",
+      "portable_ordinary_entry": "NOT_RUN",
+      "collection_path": "uat/v1-control/c17e1f23d7bb4b9d9f10a0c19c471390/collection-20261016T191755242Z-2c51a23b3913419f8832548fd073eb2f",
+      "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
     },
     "historical_R6_candidate": {
       "source_sha": "baf27b1c08cf3e3d836ff68d880ebd537f0355ce",
@@ -294,8 +320,8 @@
       },
       "ordinary_host_trial_allowed": false
     },
-    "latest_observed_runtime_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-    "latest_observed_run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+    "latest_observed_runtime_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+    "latest_observed_run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
     "historical_R7_candidate": {
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
       "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -334,6 +360,23 @@
       "collection_path": "uat/v1-control/cb0b735bf4cd4ac0b46374df1bff0ab7/collection-20261016T180807661Z-c54ce3e1d4b84a5aa08174a019b82554",
       "observation_id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
       "driver_followup": "本cb0b实际未验证新的retry/batch/Terminalcapture；先核实设置前台/目标可见性与旧live policy预期差异，原因未确定，修订不得预填PASS。"
+    },
+    "run_c17e_observed": {
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+      "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "configuration": "Release",
+      "packaging_head": "dafed9641746600b8c40f8b7436fee1b4433c191",
+      "package_zip_sha256": "13B43ED386CD3300B3AC9E9DED11BF4652777655CB04D91AE4DBA6757C52116A",
+      "package_manifest_sha256": "E044A336FFB44CC552CB48C01340C1157CA766603DEA282C0B6A80C62998387C",
+      "collection_path": "uat/v1-control/c17e1f23d7bb4b9d9f10a0c19c471390/collection-20261016T191755242Z-2c51a23b3913419f8832548fd073eb2f",
+      "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+      "scope": "six actual gestures including postResize A and six NormalUp resource closures; CtrlC test key precondition fails before mouseDOWN; FullFAIL",
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "new_feature_or_B_PASS": false
     },
     "run_7149_observed": {
       "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
@@ -1912,7 +1955,8 @@
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
         "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1945,14 +1989,15 @@
         }
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2228,7 +2273,8 @@
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
         "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -2261,14 +2307,15 @@
         }
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2333,7 +2380,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2353,14 +2401,15 @@
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2417,7 +2466,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2436,14 +2486,15 @@
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2637,7 +2688,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -2648,14 +2700,15 @@
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2779,7 +2832,8 @@
         "PO-408AC52-UP-DISPATCH",
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2797,6 +2851,17 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -2907,7 +2972,8 @@
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
         "PO-C01-NATIVE-FAILURES",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2925,6 +2991,17 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -7441,14 +7518,15 @@
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。",
+      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。；R8/c17e Release samePID6408六段含实际Resize后A五阶段及149NormalUp已完成；六代真实UP后新增native0。CtrlC在鼠标DOWN前修饰键观测失败，后继未执行，不授完整I02。",
       "remaining_conditions": [
-        "正式Explorer+自绘+编辑器混合应用合同没有运行，输入S1也未关闭。"
+        "当前82d六手势已有实际闭环；CtrlC尚未发鼠标DOWN，真实Explorer/跨应用完整I02与当前候选最终链仍缺。"
       ],
-      "next_action": "修输入后在合格普通应用环境一次启动运行规定前置顺序，禁止摆相似几何替代。",
+      "next_action": "复用同产品区分modifier测试前置失败并继续CtrlC/应用；保留六段真实推进，不拼为Full。",
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -7460,14 +7538,15 @@
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-        "configuration": "DebugAndRelease",
-        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+        "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "configuration": "Release",
+        "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+        "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -8866,7 +8945,8 @@
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
         "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
-        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL"
       ],
       "route_replacement_investigation": {
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
@@ -8899,9 +8979,20 @@
         "original_driver50_result": "FAIL",
         "specific_receipt_gap": "legacy_up_dispatch_qpc0 yields normalized resource_observed_qpc0; not actual missing Raw/legacy UP",
         "repair_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
-        "repair_status": "DEV_FIXED_BUILD_PASS_PENDING_TARGETED_RUNTIME",
+        "repair_status": "RECEIPT_TIMESTAMP_GAP_TARGETED_RUNTIME_PASS_NOT_OLD_D08_CLOSED",
         "Release_activation_cause": "UNKNOWN_NO_PRODUCT_GESTURE",
-        "old_D08_closed": false
+        "old_D08_closed": false,
+        "revalidation_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "revalidation_run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+        "actual_Release_normal_generations": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "complete_I02_or_old_D08_closed": false
       }
     },
     {
@@ -9952,6 +10043,36 @@
   },
   "evidence": [
     {
+      "id": "EV-C17E-R8-RELEASE-SIX-GESTURES-AND-CTRLC-PREINPUT-FAIL",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+      "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "configuration": "Release",
+      "path": "uat/v1-control/c17e1f23d7bb4b9d9f10a0c19c471390/collection-20261016T191755242Z-2c51a23b3913419f8832548fd073eb2f/c17e1f23d7bb4b9d9f10a0c19c471390-release-fixture.jsonl",
+      "sha256": "D3D19592564B32C6867AE94FA83F7FD633CD1233F8F819FC348B0A72869B04EA",
+      "repository_excerpt_path": "docs/reports/v1-evidence/c17e-r8-release-six-gestures-and-ctrlc-preinput-failure-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "645273F32E48C3D77D2C719CCDAF8BB287CD48FF29EC2AD6B0530905C26D59D3",
+      "scope": "Release samePID6408 six exact gestures including actual B Resize and postResize A five phases/normalUP; CtrlC modifier observation failure before product DOWN preserves whole FAIL; original normalization timestamp gap repaired only within observed scope"
+    },
+    {
+      "id": "EV-C17E-R8-ACTUAL-UP-TIMESTAMPS-AND-NORMAL-CLEANUP",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+      "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "configuration": "Release",
+      "path": "uat/v1-control/c17e1f23d7bb4b9d9f10a0c19c471390/collection-20261016T191755242Z-2c51a23b3913419f8832548fd073eb2f/c17e1f23d7bb4b9d9f10a0c19c471390-product-Release/panebind.log.jsonl",
+      "sha256": "A4CA7CDF82F8F1A8FEF0A6955A5B93C65D2E83C9CE95520067955297302CD43A",
+      "repository_excerpt_path": "docs/reports/v1-evidence/c17e-r8-real-up-timestamp-and-normal-cleanup-product-selected.jsonl",
+      "repository_excerpt_sha256": "A4AF2E0534222F294BF562764970364670DFDC0BDC13CDFA018386EA1293ABF8",
+      "scope": "Actual same-generation legacy dispatch QPC flows into normalizedUP; release/detach/NormalGone and six NormalUp ends; no new source authority inferred; not whole I02 or application coverage"
+    },
+    {
       "id": "EV-7149-R8-DEBUG-FIVE-STAGE-ORIGINAL-UP-FAIL",
       "kind": "literal_selected_actual_guest_JSONL",
       "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
@@ -10948,6 +11069,131 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+      "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "configuration": "Release",
+      "packaging_head": "dafed9641746600b8c40f8b7436fee1b4433c191",
+      "package_zip_sha256": "13B43ED386CD3300B3AC9E9DED11BF4652777655CB04D91AE4DBA6757C52116A",
+      "package_manifest_sha256": "E044A336FFB44CC552CB48C01340C1157CA766603DEA282C0B6A80C62998387C",
+      "wsb_sha256": "47D4054DA9AD9397D4633A65C49B9A60BDD9040085F1CE9920511F2B74F8A9BF",
+      "evidence_ids": [
+        "EV-C17E-R8-RELEASE-SIX-GESTURES-AND-CTRLC-PREINPUT-FAIL",
+        "EV-C17E-R8-ACTUAL-UP-TIMESTAMPS-AND-NORMAL-CLEANUP"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/c17e-r8-release-six-gestures-and-ctrlc-preinput-failure-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/c17e-r8-real-up-timestamp-and-normal-cleanup-product-selected.jsonl"
+      ],
+      "status": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+      "suite": "Full_stopped_before_Ctrl_C_DOWN",
+      "feature_ids": [
+        "M04-F02",
+        "M04-F05",
+        "M05-F01",
+        "M05-F02",
+        "M05-F05",
+        "M06-F02",
+        "M06-F04"
+      ],
+      "integration_ids": [
+        "I02"
+      ],
+      "actual_product_PID": 6408,
+      "gestures": [
+        {
+          "generation": 1,
+          "scope": "A_initial five phases"
+        },
+        {
+          "generation": 2,
+          "scope": "Ctrl_A actual source and both followers"
+        },
+        {
+          "generation": 3,
+          "scope": "B five phases"
+        },
+        {
+          "generation": 4,
+          "scope": "C five phases"
+        },
+        {
+          "generation": 5,
+          "scope": "B actual frame Resize"
+        },
+        {
+          "generation": 6,
+          "scope": "postResize_A five phases"
+        }
+      ],
+      "actual_native_calls_per_generation": [
+        4,
+        3,
+        4,
+        4,
+        1,
+        4
+      ],
+      "actual_normal_UP_and_resource_cleanup_generations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "actual_legacy_dispatch_QPC_positive_and_normalized": true,
+      "new_native_calls_after_actual_passive_head_UP_per_generation": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "UP_boundary_basis": "same-machine actual passive head QPC versus native_before_qpc; not JSONL ordering",
+      "observed": "同PID6408六代已真实START/geometry exact/本代legacyUP/NormalUp/release/detach/NormalGone。g5实际Resize后g6 A自由/XY吸附/保持/拉开/重吸及149 UP保持通过；new82d真实legacy派发QPC已传至normalizedUP，7149原时间戳0缺口在本范围定向修复。150 C前台与151NC hit通过，152 cursor真实到点；153 test_key_state_not_observed发生在CtrlC鼠标DOWN之前，无g7/产品拒绝或placement，不授完整I02/Full。",
+      "native_legacy_timestamp_gap_targeted_revalidation": "PASS_IN_OBSERVED_SIX_RELEASE_GESTURES_ONLY",
+      "failure_sequence": 153,
+      "failure_cause": "test_key_state_not_observed; underlying cause UNKNOWN",
+      "Ctrl_C_mouse_DOWN_sent": false,
+      "whole_I02_PASS": false,
+      "fixture_rows": 161,
+      "product_rows": 203,
+      "all_JSONL_valid_and_contiguous": true,
+      "product_normal_shutdown_sequence": 203,
+      "actual_poststop_client_DOWN_UP": [
+        1,
+        1
+      ],
+      "portable": {
+        "package_id": "9281e84f9cf844e281f91f7d0ca19037",
+        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "zip_sha256": "EE1EF02D3E79A601D500706575B03E69514EA98F4EF5C10856AB6F6BC6F31C46",
+        "manifest_sha256": "0143F76B6F77B1EC9AE1DCEED6E17227181FFE5CC74D0C23788A8F8821EBFD9A",
+        "ordinary_GUI_entry": "NOT_RUN"
+      },
+      "not_run": [
+        "Ctrl_C actual mouse gesture",
+        "remaining_CoreAndApplications",
+        "IndependentEntry",
+        "portable_ordinary_GUI",
+        "human_UAT"
+      ],
+      "collection_path": "uat/v1-control/c17e1f23d7bb4b9d9f10a0c19c471390/collection-20261016T191755242Z-2c51a23b3913419f8832548fd073eb2f",
+      "exact_guest_and_task_cleaned": true,
+      "cleanup_utc": "2026-10-16T19:18:29.3565702Z",
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false,
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "产品82d/driver e138保持独立身份；区分modifier测试前置缺口，继续同产品可运行Core/设置/应用与普通包入口，不将六段拼成完整I02或B/功能通过。"
+    },
     {
       "id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
       "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
@@ -14773,14 +15019,15 @@
     },
     "historical_binding_lookup": "partial_observation_ids → partial_observations（原source_sha/binary_sha256/run_id/evidence_ids）→ evidence / v1-evidence/index.json；禁止只按candidate_identity_ref改写历史实测身份。",
     "latest_runtime_observation": {
-      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-      "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
-      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
-      "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
-      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
-      "configuration": "DebugAndRelease",
-      "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
-      "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
+      "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
+      "run_id": "c17e1f23d7bb4b9d9f10a0c19c471390",
+      "configuration": "Release",
+      "observation_id": "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
+      "scope": "RELEASE_SIX_REAL_GESTURES_NORMAL_UP_SCOPED_PASS_CTRLC_NOT_DOWN_WHOLE_FULL_FAIL",
+      "not_complete_contract_PASS": true
     },
     "existing_VM_inventory": {
       "source": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",

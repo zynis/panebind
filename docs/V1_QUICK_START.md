@@ -4,11 +4,11 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-最新R8／7149产品和driver175：Debug真实native接管、首次A五阶段及实际正常UP／资源收尾已观察，但原断言因legacy派发时间戳0仍FAIL；Release客户激活计数0/0、无产品手势，原因UNKNOWN。时间戳修复候选`82d66a0821e13d49903b9cfd1cf8186193ea5aba`已D/R构建并各9项产品offline通过，Release EXE `C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE`，新包／现场NOT_RUN。7149便携84ade69d76874b8c975927d0065b8304普通GUI也未运行；不能宿主试用或给功能／B项加分。下述R7及更早结果保持历史身份。
+最新R8产品`82d66a0821e13d49903b9cfd1cf8186193ea5aba`，Release EXE `C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE`；drivere138／c17e已在同一Release进程实际完成六手势与正常UP资源闭环，包括B Resize后A五阶段。随后CtrlC修饰键观测失败发生在鼠标DOWN前，完整I02／Full仍FAIL。便携9281e84f9cf844e281f91f7d0ca19037已生成但普通GUI NOT_RUN；不能宿主试用或给完整功能／B项加分。7149／175原失败及下述R7更早结果保持各自身份。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 
-历史已测ZIP保持原字节；R8／175新包普通入口未验证，82d新构建尚未打包现场。旧/MD拒绝记录与各代现场证据分别保留，不继承为新候选通过。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
+历史已测ZIP保持原字节；R8／82d已有上述c17e实际子结果，当前普通包入口仍未验证。旧/MD拒绝记录与各代现场证据分别保留，不继承为新候选通过。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
 
 ## 1. 正常便携启动与停止
 
