@@ -19,12 +19,12 @@
     "pending_candidate": {
       "next_driver_build_transcription": {
         "kind": "MAIN_EXECUTOR_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT_OR_RUNTIME_PASS",
-        "source_sha": "b90bf4e2bd3af4f2c19779fb54517daca52b9cfc",
+        "source_sha": "e86e5ccb86e0d90401dd669c5ed289e53b23f8c5",
         "Debug_and_Release_build_exit_code": 0,
-        "Debug_driver_sha256": "26F523E891AACB288DA5BFD958C36E9CF2854A2FBA5DBD228A869C9960A01D3D",
-        "Release_driver_sha256": "3691C582A6BA138D93451C63AB51A3262E6C57CE2394C6DB5EF982CBD9870D5D",
-        "Debug_guest_path": "1/1 PASS; process0.23/wall0.27 seconds",
-        "Release_guest_path": "1/1 PASS; process0.11/wall0.22 seconds",
+        "Debug_driver_sha256": "4F39E834436977FFDE92C142797A0530643181BC7DF79B325249B5F20C190544",
+        "Release_driver_sha256": "81FB14311A59EB618D3F30DAE35360479B96B4C7B4E12ABE1C0ECFA86AB105C5",
+        "Debug_guest_path": "1/1 PASS; process0.03/wall0.24 seconds",
+        "Release_guest_path": "1/1 PASS; process0.03/wall0.21 seconds",
         "product_binary_unchanged": true,
         "new_run_result": "NOT_RUN"
       },
@@ -48,13 +48,14 @@
       "input_resource_writer_wiring": "IMPLEMENTED",
       "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
       "package_generated": true,
-      "runtime_validation": "FAIL_RELEASE_CORE_AND_APPLICATIONS_INDEPENDENT_SUBSCOPES_RETAINED",
-      "latest_run_id": "f0726df0530e4735b5fc1d57e4ae070b",
-      "latest_driver_source_sha": "edf4bc45054eec209e9588a3ab9a3e464d2df41d",
-      "latest_driver_debug_sha256": "B0A167704F953E62414928F2BE3868178BC2644B2D277A1B048CEE2B8A072380",
-      "latest_driver_release_sha256": "8609BD877DCB063DE2F3F25A4EA560AAF4B841EC13BF5BB4DC1E6A5AC1B2CD7E",
-      "guest_package_zip_sha256": "80A320C1564C245A45031C349B66E211A0ABBFB23094673B706B2A8903C00AD2",
-      "guest_manifest_sha256": "390DEA13050F231FDE9B92C39EC3C71D73EB519EF2C91DCB41972955C1B2CC4E",
+      "runtime_validation": "FAIL_SETTINGS_GUI_PREFLIGHT_NO_ENHANCED_GESTURE",
+      "latest_run_id": "7ff842bee0154a0c8c0eb1eeabd752ef",
+      "latest_function_run_id": "f0726df0530e4735b5fc1d57e4ae070b",
+      "latest_driver_source_sha": "b90bf4e2bd3af4f2c19779fb54517daca52b9cfc",
+      "latest_driver_debug_sha256": "26F523E891AACB288DA5BFD958C36E9CF2854A2FBA5DBD228A869C9960A01D3D",
+      "latest_driver_release_sha256": "3691C582A6BA138D93451C63AB51A3262E6C57CE2394C6DB5EF982CBD9870D5D",
+      "guest_package_zip_sha256": "3F5BFF5824E402810947191BDC724C72A9CA3D6C0BCA70BB9FFE3D1C87463E09",
+      "guest_manifest_sha256": "9A7C3DA088C0D12C478F0A0C19A37D1BDB5A002BDACBE223557D7C48688F3BED",
       "portable_package_id": "7a0f34aec74a4909bfca27cf567fce6d",
       "portable_zip_sha256": "236FDF61F8529296639286158E28DD890E76EDA429E28A317396BF0E6F4152A5",
       "portable_manifest_sha256": "78ED29E69FA4B74E178096555257783B8AED8DB26F1354B2443B3A1E913CF486",
@@ -143,10 +144,24 @@
         "new_feature_or_benchmark_PASS": false,
         "next_action": "复用af0产品，只修实际driver假设并定向复验；保留真实应用/关闭失败、快速三包UP反例与普通Medium/最终整链缺项，不将独立idle或Terminal部分链拼为完整功能。"
       },
+      "7ff_preflight_failure": {
+        "suite": "CoreAndApplications",
+        "configuration": "Release",
+        "fixture_rows": 46,
+        "product_rows": 12,
+        "sequences_contiguous": true,
+        "actual_failure": "settings_exact_native_modal37 not observed during initial defaults preparation; no enhanced gesture or native placement attempted",
+        "observed_timing": "fixture33 actual settings window visible/foreground tick46078, actual click35/36 tick46093; product settings_open7 tick46125 is logged only after show/AnimateWindow returns. This supports a driver readiness-race hypothesis, not a proven product magnet failure.",
+        "cleanup": "product12 actual input/worker/resources exited; fixture44 actual client DOWN/UP delivered [0,0] to [1,1]; exact guest/task removed and evidence unchanged separately",
+        "normal_enhanced_UP_or_function_PASS": false,
+        "prior_f072_results_relabelled": false,
+        "repair": "driver gui_open must wait fresh same-product settings_open completion and actual control identity/hit; pending directed revalidation with unchanged af0 product",
+        "next_run_result": "NOT_RUN"
+      },
       "ordinary_host_trial_allowed": false
     },
     "latest_observed_runtime_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
-    "latest_observed_run_id": "f0726df0530e4735b5fc1d57e4ae070b"
+    "latest_observed_run_id": "7ff842bee0154a0c8c0eb1eeabd752ef"
   },
   "scorecard": {
     "denominator": 40,
