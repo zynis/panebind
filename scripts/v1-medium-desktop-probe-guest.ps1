@@ -4,8 +4,11 @@ param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$Ru
     [ValidatePattern('^[0-9a-f]{32}$')][string]$ChildNonce,
     [ValidatePattern('^[A-F0-9]{64}$')][string]$BindingSha256)
 $ErrorActionPreference='Stop'
-$inputDir='C:\PaneBindV1\Input'
-$outputDir='C:\PaneBindV1\Output'
+$mappedInputDir='C:\PaneBindV1\Input'
+$mappedOutputDir='C:\PaneBindV1\Output'
+$localRunDir=Join-Path 'C:\PaneBindV1\MediumDesktop' $RunId
+$inputDir=if($Mode -ceq 'Parent'){$mappedInputDir}else{Join-Path $localRunDir 'Input'}
+$outputDir=if($Mode -ceq 'Parent'){$mappedOutputDir}else{Join-Path $localRunDir 'Output'}
 $leaf='v1-medium-desktop-probe-guest.ps1'
 $evidence=$null;$childPhasePath=$null
 # TOKEN_QUERY-only inspection uses actual TokenGroups, not a managed identity
@@ -41,8 +44,10 @@ try {
     # write. There is no bypass switch and this is not a general RunAs tool.
     if(-not [string]::Equals([IO.Path]::GetFullPath($PSScriptRoot),$inputDir,[StringComparison]::OrdinalIgnoreCase) -or
        -not [string]::Equals([IO.Path]::GetFullPath($PSCommandPath),(Join-Path $inputDir $leaf),[StringComparison]::OrdinalIgnoreCase)){
-        throw 'Probe must execute from its exact Sandbox input path.'}
-    foreach($directory in @('C:\PaneBindV1',$inputDir,$outputDir)){
+        throw 'Probe must execute from its exact parent mapped input or bound child local input path.'}
+    $directories=@('C:\PaneBindV1',$inputDir,$outputDir)
+    if($Mode -ceq 'Child'){$directories+=@('C:\PaneBindV1\MediumDesktop',$localRunDir)}
+    foreach($directory in $directories){
         $item=Get-Item -LiteralPath $directory -ErrorAction Stop
         if(-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Exact guest directories must be plain directories.'}
     }
@@ -60,7 +65,7 @@ try {
     $manifest=[IO.File]::ReadAllText($manifestFile.FullName,[Text.Encoding]::UTF8)|ConvertFrom-Json
     if($manifest.schema -cne 'panebind-v1-sandbox/1' -or $manifest.run_id -cne $RunId -or
        $manifest.guest_contract -cne 'panebind-v1-guest-contract/2' -or
-       $manifest.guest_input -cne $inputDir -or $manifest.guest_output -cne $outputDir -or
+       $manifest.guest_input -cne $mappedInputDir -or $manifest.guest_output -cne $mappedOutputDir -or
        $manifest.host_root -cne ('I:\PaneBindMVP1Runs\'+$RunId) -or
        $manifest.packaging_head -cnotmatch '^[0-9a-f]{40}$' -or
        $manifest.driver_source_commit -cnotmatch '^[0-9a-f]{40}$'){
@@ -77,13 +82,18 @@ try {
     if($Mode -ceq 'Child'){
         # The first phase exists only after the real one-time binding, exact
         # script/manifest, local account, paths and RunId have been checked.
-        $bindingPath=Join-Path $outputDir ($RunId+'-medium-desktop-binding.json')
+        # Child reads only this copied, guest-local input. It never opens a
+        # mapped vmsmb input/output file during the contrast.
+        $bindingPath=Join-Path $inputDir ($RunId+'-medium-desktop-binding.json')
         $bindingItem=Get-Item -LiteralPath $bindingPath
         if($bindingItem.PSIsContainer -or ($bindingItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
            $bindingItem.Length -gt 4096 -or (Get-FileHash -LiteralPath $bindingPath).Hash -cne $BindingSha256){throw 'Child one-time binding is not exact.'}
         $binding=[IO.File]::ReadAllText($bindingPath,[Text.Encoding]::UTF8)|ConvertFrom-Json
         if($binding.schema -cne 'panebind-v1-medium-desktop-binding/1' -or $binding.run_id -cne $RunId -or
            $binding.source_commit -cne $manifest.packaging_head -or $binding.probe_sha256 -cne $scriptEntry[0].sha256 -or
+           $binding.io_contract -cne 'panebind-v1-guest-local-io-contrast/1' -or
+           $binding.child_input -cne $inputDir -or $binding.child_output -cne $outputDir -or
+           $binding.manifest_sha256 -cne (Get-FileHash -LiteralPath $manifestFile.FullName -Algorithm SHA256).Hash -or
            $binding.nonce -cne $ChildNonce -or $binding.account_sid_sha256 -cnotmatch '^[A-F0-9]{64}$' -or
            [int]$binding.session_id -le 0){throw 'Child account/script/session binding mismatch.'}
         $childPhasePath=Join-Path $outputDir ($RunId+'-medium-desktop-child-phase.jsonl')
@@ -324,7 +334,63 @@ public static class PaneBindV1MediumDesktopProbe {
         var bytes=new UTF8Encoding(false).GetBytes(text);
         using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.Read))stream.Write(bytes,0,bytes.Length);
     }
-    static string ChildPhasePath(string runId) {return "C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child-phase.jsonl";}
+    static string LocalRun(string runId) {
+        if(runId==null||runId.Length!=32)throw new InvalidOperationException("Exact local RunId required");
+        foreach(char c in runId)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw new InvalidOperationException("Exact local RunId required");
+        return "C:\\PaneBindV1\\MediumDesktop\\"+runId;
+    }
+    static string ChildInput(string runId) {return LocalRun(runId)+"\\Input";}
+    static string ChildOutput(string runId) {return LocalRun(runId)+"\\Output";}
+    static void PlainDirectory(string path) {
+        if(!Directory.Exists(path)||(File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("Exact plain guest-local directory required");
+    }
+    static void NewDirectory(string path) {
+        if(Directory.Exists(path)||File.Exists(path))throw new InvalidOperationException("Guest-local contrast never reuses a RunId directory");
+        Directory.CreateDirectory(path);PlainDirectory(path);
+    }
+    static void NewDirectoryAccess(string path,string account,bool writable) {
+        // Only newly created directories BELOW the fresh exact RunId receive
+        // ACLs. No ancestor, mapped folder, profile or global ACL is changed.
+        var security=new DirectorySecurity();security.SetAccessRuleProtection(true,false);
+        using(var identity=WindowsIdentity.GetCurrent()){
+            security.SetOwner(identity.User);
+            foreach(var sid in new SecurityIdentifier[]{identity.User,new SecurityIdentifier("S-1-5-18"),new SecurityIdentifier("S-1-5-32-544")})
+                security.AddAccessRule(new FileSystemAccessRule(sid,FileSystemRights.FullControl,InheritanceFlags.ContainerInherit|InheritanceFlags.ObjectInherit,PropagationFlags.None,AccessControlType.Allow));
+        }
+        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(account),
+            writable?FileSystemRights.Modify:FileSystemRights.ReadAndExecute,
+            InheritanceFlags.ContainerInherit|InheritanceFlags.ObjectInherit,PropagationFlags.None,AccessControlType.Allow));
+        Directory.SetAccessControl(path,security);
+    }
+    static Dictionary<string,object> CopyPlain(string source,string destination,int maximum) {
+        var file=new FileInfo(source);
+        if(!file.Exists||file.Length>maximum||(file.Attributes&(FileAttributes.Directory|FileAttributes.ReparsePoint))!=0)
+            throw new InvalidOperationException("Exact bounded plain copy source required");
+        var bytes=File.ReadAllBytes(source);if(bytes.Length>maximum)throw new InvalidOperationException("Copy source byte bound exceeded");
+        var hash=ByteHash(bytes);
+        using(var stream=new FileStream(destination,FileMode.CreateNew,FileAccess.Write,FileShare.Read))stream.Write(bytes,0,bytes.Length);
+        var copied=new FileInfo(destination);var after=File.ReadAllBytes(destination);
+        bool exact=copied.Exists&&copied.Length==bytes.Length&&(copied.Attributes&FileAttributes.ReparsePoint)==0&&SameBytes(bytes,after);
+        if(!exact)throw new InvalidOperationException("Guest-local copy hash/size verification failed");
+        return new Dictionary<string,object>{{"source",source},{"destination",destination},{"size",bytes.Length},{"sha256",hash},{"copied_sha256",ByteHash(after)},{"hash_and_size_match",true}};
+    }
+    static Dictionary<string,object> PrepareLocalIo(string runId,string account,string scriptHash) {
+        string parent="C:\\PaneBindV1\\MediumDesktop",root=LocalRun(runId),input=ChildInput(runId),output=ChildOutput(runId);
+        if(!Directory.Exists(parent)){if(File.Exists(parent))throw new InvalidOperationException("Local contrast parent is not a directory");Directory.CreateDirectory(parent);}
+        PlainDirectory(parent);NewDirectory(root);NewDirectoryAccess(root,account,false);
+        NewDirectory(input);NewDirectoryAccess(input,account,false);NewDirectory(output);NewDirectoryAccess(output,account,true);
+        var files=new List<object>();
+        var script=CopyPlain("C:\\PaneBindV1\\Input\\v1-medium-desktop-probe-guest.ps1",input+"\\v1-medium-desktop-probe-guest.ps1",262144);
+        if((string)script["sha256"]!=scriptHash)throw new InvalidOperationException("Local child script changed after original immutable guard");files.Add(script);
+        var manifest=CopyPlain("C:\\PaneBindV1\\Input\\manifest.json",input+"\\manifest.json",1048576);files.Add(manifest);
+        files.Add(CopyPlain("C:\\PaneBindV1\\Input\\panebind-v1-input.marker",input+"\\panebind-v1-input.marker",34));
+        files.Add(CopyPlain("C:\\PaneBindV1\\Output\\panebind-v1-output.marker",output+"\\panebind-v1-output.marker",34));
+        return new Dictionary<string,object>{{"hypothesis","guest_local_IO_contrast_NOT_YET_PROVEN"},{"io_contract","panebind-v1-guest-local-io-contrast/1"},
+            {"child_input",input},{"child_output",output},{"manifest_sha256",manifest["sha256"]},{"copied_files",files},
+            {"only_fresh_RunId_directory_ACLs_changed",true},{"child_input_access","exact_new_account_ReadAndExecute"},
+            {"child_output_access","exact_new_account_Modify"},{"other_SID_actual_file_IO_before_child","NOT_RUN"},{"full_Shell_PASS_inferred",false}};
+    }
+    static string ChildPhasePath(string runId) {return ChildOutput(runId)+"\\"+runId+"-medium-desktop-child-phase.jsonl";}
     static void ChildPhase(Dictionary<string,object> result,string runId,string phase) {
         // Fixed child-only stages, not a general logger. No credentials,
         // binding nonce, document data, callback or product input is recorded.
@@ -349,8 +415,25 @@ public static class PaneBindV1MediumDesktopProbe {
             var bytes=File.ReadAllBytes(file.FullName);var text=Encoding.UTF8.GetString(bytes);var lines=File.ReadAllLines(file.FullName,Encoding.UTF8);
             if(bytes.Length>16384||lines.Length>12)throw new InvalidOperationException("Child phase evidence bound exceeded");
             report["status"]="COLLECTED_AFTER_EXACT_CHILD_EXIT";report["size"]=bytes.Length;report["sha256"]=ByteHash(bytes);report["line_count"]=lines.Length;report["text"]=text;
+            report["mapped_output_copy"]=CopyPlain(file.FullName,"C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child-phase.jsonl",16384);
+            report["mapped_output_copy_confirmed"]=true;
         }catch(Exception e){report["status"]="UNKNOWN";report["error_type"]=e.GetType().Name;}
         return report;
+    }
+    static void CollectChildReceipt(Dictionary<string,object> result,string runId) {
+        // Called once, only after exact child exit (including a bounded test
+        // termination). A failure receipt is retained, never converted to a
+        // successful child/desktop/cleanup result.
+        result["child_receipt_collection_attempted"]=true;
+        try {
+            var path=ChildOutput(runId)+"\\"+runId+"-medium-desktop-child.json";var file=new FileInfo(path);
+            if(!file.Exists){result["child_receipt_collection"]="NOT_PRESENT_AFTER_EXACT_CHILD_EXIT";return;}
+            if(file.Length>65536||(file.Attributes&FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("Bounded plain local child receipt required");
+            result["child_receipt_text"]=File.ReadAllText(path,Encoding.UTF8);
+            result["child_receipt_sha256"]=ByteHash(File.ReadAllBytes(path));
+            result["child_receipt_mapped_output_copy"]=CopyPlain(path,"C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child.json",65536);
+            result["child_receipt_mapped_output_copy_confirmed"]=true;result["child_receipt_collection"]="COLLECTED_AFTER_EXACT_CHILD_EXIT";
+        }catch(Exception e){result["child_receipt_collection"]="UNKNOWN";result["child_receipt_collection_error_type"]=e.GetType().Name;}
     }
     public static Dictionary<string,object> RunParent(string runId,string source,string scriptHash) {
         var desktop=Desktop(true);int session=(int)desktop["session_id"];var name="PBV1D_"+runId.Substring(0,12);
@@ -359,6 +442,7 @@ public static class PaneBindV1MediumDesktopProbe {
             {"CreateProcessWithTokenW_attempts",0},{"lpDesktop","NULL"},{"LOGON_WITH_PROFILE",true},{"product_started",false},
             {"GetProcessTimes_attempted",false},{"GetProcessTimes_succeeded",null},{"GetProcessTimes_error",null},
             {"OpenProcessToken_attempted",false},{"OpenProcessToken_requested_access",8},{"OpenProcessToken_succeeded",null},{"OpenProcessToken_error",null},
+            {"guest_local_root",LocalRun(runId)},{"guest_local_evidence_collected",false},{"guest_local_IO_hypothesis_proven",false},
             {"explorer_started",false},{"synthetic_input_sent",false},{"host_configuration_changed",false}};
         IntPtr password=IntPtr.Zero,nameMemory=IntPtr.Zero,comment=IntPtr.Zero,token=IntPtr.Zero,childToken=IntPtr.Zero;
         IntPtr station=IntPtr.Zero,defaultDesktop=IntPtr.Zero;var child=new ProcessInfo();AclState beforeStation=null,beforeDesktop=null;
@@ -391,19 +475,26 @@ public static class PaneBindV1MediumDesktopProbe {
             stage="credential_token_facts";bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
             result["actual_logon_sid_sha256"]=Hash(logon);
             if(!ordinary||TokenNumber(token,12)!=session){result["reason"]="actual_standard_token_or_session_rejected";return result;}
+            stage="prepare_exact_guest_local_IO";var local=PrepareLocalIo(runId,account,scriptHash);result["guest_local_io"]=local;
+            var childInput=(string)local["child_input"];var childOutput=(string)local["child_output"];
             var nonce=Guid.NewGuid().ToString("N");
             var binding="{\"schema\":\"panebind-v1-medium-desktop-binding/1\",\"run_id\":\""+runId+"\",\"source_commit\":\""+source+
-                "\",\"probe_sha256\":\""+scriptHash+"\",\"account_sid_sha256\":\""+Hash(account)+"\",\"session_id\":"+session+",\"nonce\":\""+nonce+"\"}";
+                "\",\"probe_sha256\":\""+scriptHash+"\",\"account_sid_sha256\":\""+Hash(account)+"\",\"session_id\":"+session+",\"nonce\":\""+nonce+
+                "\",\"io_contract\":\"panebind-v1-guest-local-io-contrast/1\",\"child_input\":\""+childInput.Replace("\\","\\\\")+
+                "\",\"child_output\":\""+childOutput.Replace("\\","\\\\")+"\",\"manifest_sha256\":\""+(string)local["manifest_sha256"]+"\"}";
             var bindingPath="C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-binding.json";NewText(bindingPath,binding);
+            var copiedBinding=CopyPlain(bindingPath,childInput+"\\"+runId+"-medium-desktop-binding.json",4096);
+            ((List<object>)local["copied_files"]).Add(copiedBinding);
             var bindingHash=ByteHash(new UTF8Encoding(false).GetBytes(binding));result["binding_sha256"]=bindingHash;result["binding_nonce"]=nonce;
+            if((string)copiedBinding["sha256"]!=bindingHash)throw new InvalidOperationException("Local one-time binding copy changed");
             var executable="C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
-            var command=new StringBuilder("\""+executable+"\" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\PaneBindV1\\Input\\v1-medium-desktop-probe-guest.ps1 -RunId "+runId+
+            var command=new StringBuilder("\""+executable+"\" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \""+childInput+"\\v1-medium-desktop-probe-guest.ps1\" -RunId "+runId+
                 " -Mode Child -ChildNonce "+nonce+" -BindingSha256 "+bindingHash);
             if(command.Length>1000)throw new InvalidOperationException("Bounded exact child command required");
             var startup=new Startup();startup.size=(uint)Marshal.SizeOf(typeof(Startup));startup.desktop=null;
             stage="CreateProcessWithTokenW";
             result["CreateProcessWithTokenW_attempts"]=1;
-            bool launched=CreateProcessWithTokenW(token,1,executable,command,0x08000004,IntPtr.Zero,"C:\\PaneBindV1\\Input",ref startup,out child);
+            bool launched=CreateProcessWithTokenW(token,1,executable,command,0x08000004,IntPtr.Zero,childInput,ref startup,out child);
             result["CreateProcessWithTokenW_succeeded"]=launched;result["CreateProcessWithTokenW_error"]=launched?0:Marshal.GetLastWin32Error();
             stage="post_launch_dacl_inventory";
             var afterStation=ReadDacl(station);var afterDesktop=ReadDacl(defaultDesktop);bool stationExplained,desktopExplained;List<object> stationDelta,desktopDelta;
@@ -432,11 +523,8 @@ public static class PaneBindV1MediumDesktopProbe {
             if(waited!=0){result["reason"]="bounded_child_exit_not_observed";return result;}
             stage="child_exit_status";uint code;if(!GetExitCodeProcess(child.process,out code))throw new InvalidOperationException("Child exit status unavailable");
             result["child_exit_code"]=code;result["child_process_exited"]=true;
-            stage="child_receipt";var childEvidence="C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child.json";
-            var file=new FileInfo(childEvidence);
-            if(!file.Exists||file.Length>65536||(file.Attributes&FileAttributes.ReparsePoint)!=0){result["reason"]="bounded_child_receipt_missing";return result;}
-            result["child_receipt_text"]=File.ReadAllText(childEvidence,Encoding.UTF8);
-            result["child_receipt_sha256"]=ByteHash(File.ReadAllBytes(childEvidence));
+            stage="child_receipt";CollectChildReceipt(result,runId);
+            if(!result.ContainsKey("child_receipt_mapped_output_copy_confirmed")){result["reason"]="bounded_child_receipt_missing_or_copy_unconfirmed";return result;}
             result["status"]=code==0?"CHILD_EXITED_ZERO_RECEIPT_REQUIRED":"UNKNOWN";result["reason"]="actual_child_receipt_requires_independent_validation";return result;
         }catch(Exception e){result["reason"]="bounded_desktop_probe_exception";result["exception_stage"]=stage;result["error_type"]=e.GetType().Name;result["exception_hresult"]=e.HResult;
             var native=e as System.ComponentModel.Win32Exception;if(native!=null)result["exception_native_error"]=native.NativeErrorCode;return result;}
@@ -450,7 +538,11 @@ public static class PaneBindV1MediumDesktopProbe {
                 result["child_process_exited"]=wait==0;result["child_ever_resumed"]=resumed;CloseHandle(child.process);
             }
             if(child.thread!=IntPtr.Zero)CloseHandle(child.thread);
-            result["child_phase_trace"]=ReadChildPhases(runId,(bool)result["child_process_exited"]);
+            if((bool)result["child_process_exited"]&&!result.ContainsKey("child_receipt_collection_attempted"))CollectChildReceipt(result,runId);
+            var phaseTrace=ReadChildPhases(runId,(bool)result["child_process_exited"]);result["child_phase_trace"]=phaseTrace;
+            result["guest_local_evidence_collected"]=result.ContainsKey("child_receipt_mapped_output_copy_confirmed")&&
+                (bool)result["child_receipt_mapped_output_copy_confirmed"]&&phaseTrace.ContainsKey("mapped_output_copy_confirmed")&&
+                (bool)phaseTrace["mapped_output_copy_confirmed"];
             bool aclClean=beforeStation!=null&&beforeDesktop!=null;
             if(account!=null&&logon!=null&&(int)result["CreateProcessWithTokenW_attempts"]==1){
                 if(beforeStation!=null){var restored=RestoreOwnAddedAces(station,beforeStation,recordedStation,account,logon);result["station_dacl_cleanup"]=restored;aclClean&=(bool)restored["confirmed"];}
@@ -577,7 +669,8 @@ public static class PaneBindV1MediumDesktopProbe {
         Write-ChildPhase 'before_RunChild'
         $result=[PaneBindV1MediumDesktopProbe]::RunChild($RunId,$binding.account_sid_sha256,[int]$binding.session_id)
         $record=[ordered]@{schema='panebind-v1-medium-desktop-child/1';run_id=$RunId;nonce=$ChildNonce;binding_sha256=$BindingSha256;
-            source_commit=$manifest.packaging_head;probe_sha256=$scriptEntry[0].sha256;automated_guest_probe=$true;result=$result}
+            source_commit=$manifest.packaging_head;probe_sha256=$scriptEntry[0].sha256;automated_guest_probe=$true;
+            io_contract=$binding.io_contract;child_input=$inputDir;child_output=$outputDir;manifest_sha256=$binding.manifest_sha256;result=$result}
     }else{
         foreach($suffix in @('-medium-desktop-binding.json','-medium-desktop-child.json','-medium-desktop-child-phase.jsonl')){
             if(Test-Path -LiteralPath (Join-Path $outputDir ($RunId+$suffix))){throw 'Child binding/evidence already exists; preserve the original RunId.'}
@@ -591,6 +684,10 @@ public static class PaneBindV1MediumDesktopProbe {
                 $matched=$child.schema -ceq 'panebind-v1-medium-desktop-child/1' -and $child.run_id -ceq $RunId -and
                     $child.binding_sha256 -ceq $result.binding_sha256 -and $child.nonce -ceq $result.binding_nonce -and
                     $child.source_commit -ceq $manifest.packaging_head -and
+                    $child.io_contract -ceq 'panebind-v1-guest-local-io-contrast/1' -and
+                    $child.child_input -ceq (Join-Path $localRunDir 'Input') -and $child.child_output -ceq (Join-Path $localRunDir 'Output') -and
+                    $child.manifest_sha256 -ceq $result.guest_local_io.manifest_sha256 -and
+                    $result.guest_local_evidence_collected -eq $true -and
                     $child.probe_sha256 -ceq $scriptEntry[0].sha256 -and $child.result.actual_token.sid_sha256 -ceq $result.created_account_sid_sha256 -and
                     [uint32]$child.result.actual_pid -eq [uint32]$result.child_pid -and [uint32]$child.result.actual_tid -eq [uint32]$result.child_tid -and
                     $child.result.status -ceq 'GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL' -and $child.result.window_destroyed -eq $true -and

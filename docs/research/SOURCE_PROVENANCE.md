@@ -2256,3 +2256,20 @@ and actual readback after the tool exits. No host/account policy, language,
 proxy/TLS or security setting changes. Unknown initial/current values or
 unconfirmed tool exit refuse alteration/restoration and retain failure. This
 is bounded environment repair under guide2.1(4), not a functional PASS.
+
+### V1 exact guest configuration-save rejection — 2026-10-16
+
+Read Microsoft's [ReplaceFileW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilew),
+[SetFileAttributesW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileattributesw)
+and [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew)
+contracts for a test-only, reversible READONLY fault on the exact new Run's
+settings.ini. Keep all sharing flags on the metadata identity handle; do not
+manufacture an unrelated sharing violation. Attribute setup alone is not a
+save-failure result. Require actual GUI rejection, unchanged file identity and
+bytes, retained draft/live policy, guarded attribute restoration and subsequent
+save/restart behavior. ReplaceFile failure can have partial effects, so unknown
+identity/bytes prohibit blind restoration; a native error not exported by the
+product remains unobserved. This is not a DACL-permission experiment or a new
+product input mechanism. Existing pinned architecture references are reused;
+Microsoft documentation is linked/paraphrased only. External code copied or
+adapted: **NO**. Runtime outcome must be recorded under its actual RunId.

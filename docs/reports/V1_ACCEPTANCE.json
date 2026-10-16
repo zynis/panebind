@@ -14,10 +14,10 @@
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "当前R2=4d07ef1/458A62固定。d85实际原0c710普通中文入口及独立包合同PASS，36fd窄caption布局前置失败保留；022 Terminal类别PASS，Edge实际caption/DOWN/START后零placement/end3而FAIL。30bf postResize等D08仍OPEN；只计M12-F03/B32 1/60、1/40，不授Full/整版。",
+    "note": "R2 4d07/458固定；5017三设置阶段真实效果/UP通过，D20定向关闭。新98fc普通GUI/实际Move/NormalUp与退出已观察，但D21工具错误使原677 FAIL，待同EXE/原ZIP新Run。D08原缺UP及022 Edge早期end仍OPEN，不将5017归缺UP。当前B32独立PASS仍绑定真实0c710/d85；更新包完整功能子链不预填通过。",
     "pending_product_note": "后继仅driver/测试布局/诊断继续复用同R2产品，不将新布局通过预填或重建产品。用户已回复已有Windows ISO/VM但内存不足、无法新建VM；不是缺ISO或待回复。普通完整桌面/多屏仍需可用隔离交互环境与资源，继续当前Sandbox可运行项。",
     "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "latest_observed_run_id": "0224765c54b548aa8a32c6391ed14fb3"
+    "latest_observed_run_id": "5017e5a10bdd47bfae97026f68adee3b"
   },
   "scorecard": {
     "denominator": 40,
@@ -114,7 +114,7 @@
       "id": "HG06",
       "description": "可复核便携包/SHA/哈希/中文用法/证据/集中缺陷；HUMAN_UAT独立。",
       "status": "BLOCKED",
-      "remaining_conditions": "原0c710中文说明的旧R408/2632身份文案须纠正并新包复验；独立便携运行PASS不授说明/完整规定入口与整版交付PASS。",
+      "remaining_conditions": "更新中文说明的98fc包已实际普通启动；原driver普通UP证据合同D21须修复/新Run完成剩余功能子链与整版指南/入口复核。已有0c710独立合同PASS保留，不能替代最终更新包交付验收。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     }
   ],
@@ -621,13 +621,14 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。",
+      "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。",
       "remaining_conditions": [
         "当前候选应用级即时撤权与下一手势采样完整合同仍缺混合应用实际证据。"
       ],
@@ -637,16 +638,16 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS"
       ],
       "latest_product_observation": {
-        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-        "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
-        "run_id": "b49deace80fe49899375bf8d36481ea1",
-        "observation_ids": [
-          "PO-B49-ENVIRONMENT-APPLICATIONS"
-        ]
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "same R2 after test-layout-only repair: actual import/default-recovery/exclusion effects and matching completion"
       }
     },
     {
@@ -1224,7 +1225,9 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7cd-product-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1248,16 +1251,17 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-        "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
-        "run_id": "30bf79c65e5b421aa1087963787898b2",
-        "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "new 98fc Chinese-document package same R2 EXE: actual normal entry/move/NormalUp/exit observed, original driver detailed-event assertion FAIL"
       }
     },
     {
@@ -3546,13 +3550,14 @@
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "714c attraction从默认10到0真实改变后继Move矩形；c01多功能/视觉设置子项执行。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。",
+      "observed": "714c attraction从默认10到0真实改变后继Move矩形；c01多功能/视觉设置子项执行。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。",
       "remaining_conditions": [
         "当前候选非法输入/活动代旧快照/所有参数的真实行为合同尚缺。"
       ],
@@ -3563,15 +3568,16 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-        "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-        "run_id": "36fdb23ce23f43e69047976e58b40964",
-        "scope": "same R2 with diagnostic driver: 24 actual safe nonclient candidates on narrow test layouts are not caption"
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "same R2 after test-layout-only repair: actual import/default-recovery/exclusion effects and matching completion"
       }
     },
     {
@@ -3673,7 +3679,8 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D12"
@@ -3681,7 +3688,7 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01排除及取消排除后实际恢复子项通过。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。",
+      "observed": "c01排除及取消排除后实际恢复子项通过。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。",
       "remaining_conditions": [
         "当前候选编辑器/同名不同路径/组内即时撤权范围未齐。"
       ],
@@ -3690,8 +3697,17 @@
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
-      ]
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS"
+      ],
+      "latest_product_observation": {
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "same R2 after test-layout-only repair: actual import/default-recovery/exclusion effects and matching completion"
+      }
     },
     {
       "id": "M11-F05",
@@ -3734,32 +3750,34 @@
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。",
+      "observed": "c01真实导入导出/损坏备份恢复，714c仅解压目录settings.ini改变且无profile。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。；d85真实export420、import draft438/456、save459，损坏重启/notice/backup/default493–500通过；实际效果验证464/506因测试caption前置失败未发DOWN。36fd24个真实候选均非caption，未预填新布局修复PASS。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。",
       "remaining_conditions": [
-        "当前候选半写/写权限失败/旧schema/未知字段全部失败保护实际范围未齐。"
+        "常规原生export/import、损坏备份/恢复默认/重启及实际行为已在5017完成；现有L1已拒绝partial/旧新schema/未知字段。仍缺可关联的真实写权限失败下原有效配置不丢、清楚失败反馈及重启保持证据，不能仅以493/546全DEV PASS。"
       ],
-      "next_action": "用留足真实标题空间的新测试布局验证import及损坏恢复后的实际行为，保留此前成功文件/UI事实和原失败，不重建同R2。",
+      "next_action": "优先复用可证明未变的既有写失败证据；若不足仅补一项真实受控写失败/旧配置保护检查，不重跑常规import/corrupt全部或新建框架。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-        "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-        "run_id": "36fdb23ce23f43e69047976e58b40964",
-        "scope": "same R2 with diagnostic driver: 24 actual safe nonclient candidates on narrow test layouts are not caption"
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "same R2 after test-layout-only repair: actual import/default-recovery/exclusion effects and matching completion"
       }
     },
     {
@@ -3943,7 +3961,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/d85-portable-contract-readonly.txt"
+        "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -3953,21 +3973,22 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
-        "PO-D85-R2-PORTABLE-CONTRACT"
+        "PO-D85-R2-PORTABLE-CONTRACT",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "COMPLETE_INDEPENDENT_R2_PORTABLE_CONTRACT_ACTUAL_NORMAL_ENTRY_NOT_FULL_GEOMETRY_CHAIN",
-      "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。",
+      "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。",
       "remaining_conditions": [],
       "next_action": "独立便携合同完成，不因工具改动重建R2/重包0c710；其余功能、模块、I12/整版仍按各自完整合同。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "7e174bf83ae461ed24c0c7c144a9cd8615706285",
-        "driver_binary_sha256": "6B83975D5015A1A2F8408A59A48352E369BED13A6AF252E7F5C1820BC5A00A2A",
-        "run_id": "d85e14904c7f4dbba0b3c08759db478c",
-        "scope": "current R2 original 0c710 ZIP independent package contract, not the failed extra geometry subchain or Full"
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "new 98fc Chinese-document package same R2 EXE: actual normal entry/move/NormalUp/exit observed, original driver detailed-event assertion FAIL"
       },
       "resolved_or_nonblocking_historical_defects": [
         "V1-D03",
@@ -3980,6 +4001,16 @@
         "run_id": "9e5a86c7f7864aa9ad6569b2ce5fbd92",
         "partial_observation_id": "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "package_id": "2632dcb5fa83a1bd44cdf445ad0c8ad5"
+      },
+      "pending_new_package_validation": {
+        "package_id": "98fc5fb109a740aba7c27baa0cd29825",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "actual_normal_start_and_shutdown": true,
+        "actual_default_Move_exact": true,
+        "actual_NormalUp": true,
+        "original_driver_assertion": "FAIL_V1_D21",
+        "full_extra_functional_chain": "PENDING_NEW_DRIVER_RUN",
+        "previous_independent_package_PASS_bound_to": "R2_same_EXE_0c710_d85_not_rebound_to_98fc"
       }
     },
     {
@@ -4102,7 +4133,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl"
       ],
       "defects": [
         "V1-D03"
@@ -4112,22 +4145,22 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "中文使用说明/集中缺陷清单与当前普通ZIP入口子流程可复核，真人仍NOT_RUN。",
       "remaining_conditions": [
-        "原0c710内quickstart含旧R408/2632身份文案，须纠正新说明包并实际按其运行；旧ZIP与历史运行不修改/换绑。",
-        "尚未在最终同候选按中文指南走完全部I01–I12；存在S1不宜宿主试用。"
+        "更新中文说明的98fc包已生成并实际普通启动；D21工具断言阻止其后续保存效果子链，仍待新driver实际重验。",
+        "完整同候选中文指南I01–I12、普通权限应用/显示矩阵及真人体验均未齐，不以包或构建宣整版交付PASS。"
       ],
       "next_action": "整版达到门槛后按实际包复核说明，再交集中review。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
-        "PO-B49-ENVIRONMENT-APPLICATIONS"
+        "PO-B49-ENVIRONMENT-APPLICATIONS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "latest_product_observation": {
-        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-        "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
-        "run_id": "b49deace80fe49899375bf8d36481ea1",
-        "observation_ids": [
-          "PO-B49-ENVIRONMENT-APPLICATIONS"
-        ]
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+        "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+        "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+        "scope": "new 98fc Chinese-document package same R2 EXE: actual normal entry/move/NormalUp/exit observed, original driver detailed-event assertion FAIL"
       }
     }
   ],
@@ -4211,7 +4244,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/022-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/022-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4220,7 +4254,9 @@
         "PO-B49-ENVIRONMENT-APPLICATIONS",
         "PO-C01-NATIVE-FAILURES",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
-        "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER"
+        "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
+        "PO-5017-SETTINGS-REAL-EFFECTS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "remaining_conditions": [
         "M02-F01: 见该功能remaining_conditions及next_action",
@@ -4724,7 +4760,8 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4734,7 +4771,9 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "remaining_conditions": [
         "M11-F01: 见该功能remaining_conditions及next_action",
@@ -4781,7 +4820,8 @@
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/portable-contract-negatives-transcript.txt",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -4802,7 +4842,9 @@
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
-        "PO-D85-R2-PORTABLE-CONTRACT"
+        "PO-D85-R2-PORTABLE-CONTRACT",
+        "PO-5017-SETTINGS-REAL-EFFECTS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "remaining_conditions": [
         "M12-F01: 见对应功能的具体remaining_conditions",
@@ -6376,7 +6418,8 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -6389,7 +6432,9 @@
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN"
     },
@@ -6583,7 +6628,8 @@
         "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl"
       ],
       "defects": [
         "V1-D03"
@@ -6601,7 +6647,9 @@
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
         "PO-9E5-CURRENT-PORTABLE-DIAGNOSTIC",
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS",
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d"
@@ -7461,10 +7509,10 @@
     },
     {
       "id": "V1-D20",
-      "status": "OPEN",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
       "kind": "TEST_FIXTURE_NARROW_LAYOUT_NO_SAFE_CAPTION_CANDIDATE",
       "product_code_changed": false,
-      "description": "d85 import/corrupt/portable前置candidate为空，hit:2仅表示请求HTCAPTION而非实际回读。36fd新增真实事实：positioning[111,80,369,449]，DPI144，DWM按钮[28,0,248,44]，三处24次查询全部返回非caption（样本13/12/3），无超时/外部命中/输入，不是产品拒绝合法DOWN。仅settings/portable自建布局拟修留出标题空间，尚未新Run通过。",
+      "description": "d85 import/corrupt/portable前置candidate为空，hit:2仅表示请求HTCAPTION而非实际回读。36fd新增真实事实：positioning[111,80,369,449]，DPI144，DWM按钮[28,0,248,44]，三处24次查询全部返回非caption（样本13/12/3），无超时/外部命中/输入，不是产品拒绝合法DOWN。仅settings/portable自建布局拟修留出标题空间，尚未新Run通过。 5017只修自建测试布局，import493/corrupt546/exclusion642均取得完整本阶段真实效果/终止通过，D20按精确范围关闭；产品EXE未改。",
       "features": [
         "M11-F02",
         "M11-F05",
@@ -7473,16 +7521,42 @@
       ],
       "partial_observation_ids": [
         "PO-D85-ENTRY-SETTINGS-SCOPED",
-        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY"
+        "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
+        "PO-5017-SETTINGS-REAL-EFFECTS"
       ],
       "evidence_paths": [
         "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
         "docs/reports/v1-evidence/36fd-fixture-selected.jsonl"
       ],
+      "repair_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "repair_status": "ACTUAL_SAME_PRODUCT_NEW_DRIVER_LAYOUT_REVALIDATED",
+      "next_action": "原d85/36fd失败保留；5017三个实际效果及UP已过，D20定向收口，不再无关扩展。",
+      "portable_independent_contract_not_invalidated": true,
+      "targeted_runtime_run_id": "5017e5a10bdd47bfae97026f68adee3b",
+      "targeted_runtime_observation_id": "PO-5017-SETTINGS-REAL-EFFECTS",
+      "targeted_runtime_product_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "targeted_runtime_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C"
+    },
+    {
+      "id": "V1-D21",
+      "status": "OPEN",
+      "kind": "TEST_DRIVER_ORDINARY_MODE_UP_REQUIRES_DIAGNOSTIC_ONLY_BUTTON_LOG",
+      "product_code_changed": false,
+      "description": "5017新98fc普通模式diagnostic=false时，默认Move实际矩形正确；product seq7 normal_up_motion_already_exact/seq8 NormalUp、shutdown seq10实际同g1 UP callback branch/push true及队首UP1都成立。但driver up()仍依赖仅详细诊断输出的input_button_observed，使actual_matching_LL_UP为空并在677断言FAIL。原FAIL保留，不能归D08缺真实UP或误称product未终止。拟改普通入口使用有身份/代际/QPC/branch约束的现有实际status回执；尚待新Run。",
+      "features": [
+        "M12-F03",
+        "M12-F05"
+      ],
+      "partial_observation_ids": [
+        "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl"
+      ],
       "repair_source_sha": null,
-      "repair_status": "IN_PROGRESS_PENDING_NEW_DRIVER_RUN",
-      "next_action": "只调整自建settings/portable测试布局，留出真实标题空间；仍实际验证caption/身份/前台并由真实DOWN进入产品，不放宽产品门槛。",
-      "portable_independent_contract_not_invalidated": true
+      "repair_status": "IN_PROGRESS_PENDING_NEW_DRIVER_AND_RUN",
+      "next_action": "只修普通入口测试证据分支；诊断模式仍须实际详细event，无产品fallback/注入/计数补齐。以同R2 EXE/同98fc原ZIP新Run完成剩余场景，未执行不填PASS。"
     }
   ],
   "evidence_policy": {
@@ -7506,6 +7580,65 @@
     }
   },
   "historical_packages": [
+    {
+      "run_id": "0224765c54b548aa8a32c6391ed14fb3",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
+      "packaging_head": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
+      "receipt_path": "uat/v1-sandbox/0224765c54b548aa8a32c6391ed14fb3/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/0224765c54b548aa8a32c6391ed14fb3/input/manifest.json",
+      "zip_sha256": "15A7AC61DCB9A42C83F612C253A19079CDABA4A0E448FDA359A906D4E2429C4C",
+      "manifest_sha256": "02E0C662E7CA7E477D59C3789E0348CEED76EB01FCD2CA81C3E1D898EFC1870F",
+      "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
+      "release_fixture_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
+      "debug_fixture_sha256": "B274968B601701D02683EBAC16CF218E63AD0222EB0FFE4A82BE645F3F1A3757",
+      "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
+      "guest_configurations": "Release",
+      "guest_suite": "ApplicationsOnly",
+      "guest_function_status": "PARTIAL_TERMINAL_CATEGORY_PASS_EDGE_START_THEN_PREPLACEMENT_END_FAIL",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "offline_regression": {
+        "Debug": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 4.07,
+          "label_seconds": 4.03
+        },
+        "Release": {
+          "passed": 10,
+          "total": 10,
+          "elapsed_seconds": 3.01,
+          "label_seconds": 1.65
+        },
+        "input_route_directed_each_configuration": "252/252_PASS",
+        "evidence_kind": "PARENT_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT",
+        "tool_chunks": [
+          "505e83",
+          "23335e"
+        ],
+        "not_function_DEV_PASS": true
+      },
+      "human_uat": "NOT_RUN",
+      "note": "同R2/458A62未因driver变化重建；d85/D7e174与36fd/D660 EntryAndSettings失败子链保留，d85原0c710独立便携合同PASS。022/D660 ApplicationsOnly Terminal通过，Edge实际START后placement前中止、混合组未齐，非Full。",
+      "portable_candidate": {
+        "package_id": "0c7107367dfa4f48b7466455b0fda8ab",
+        "source_commit": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "packaging_head": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "receipt_path": "uat/v1-portable/0c7107367dfa4f48b7466455b0fda8ab/package-receipt.json",
+        "manifest_path": "uat/v1-portable/0c7107367dfa4f48b7466455b0fda8ab/PaneBindV1/manifest.json",
+        "zip_sha256": "0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F",
+        "manifest_sha256": "25978E28E35AD04CE28C5540BAE49BBEB33B392B70AD74ACF5F4A6A793D56003",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "actual_ordinary_no_argument_entry": "PASS_INDEPENDENT_PORTABLE_CONTRACT_NOT_I12_OR_VERSION",
+        "run_id": "d85e14904c7f4dbba0b3c08759db478c",
+        "preparation_run_id": "30bf79c65e5b421aa1087963787898b2",
+        "partial_observation_id": "PO-D85-R2-PORTABLE-CONTRACT",
+        "note": "同一R2/0c710原ZIP未重包；d85实际空参中文GUI/退出恢复与独立payload/imports/未变工具负例满足便携合同。574额外Move前检失败、36fd同类失败及整个I12/整版未过另记。",
+        "latest_confirmation_run_id": "36fdb23ce23f43e69047976e58b40964",
+        "documentation_limitation": "原0c710内quickstart仍含R408/2632身份文案；本次独立运行/文件/依赖合同PASS不授中文说明准确或最终交付PASS。root准备同R2 EXE的新说明包，旧ZIP不改，待新包实际普通入口验证。"
+      }
+    },
     {
       "run_id": "30bf79c65e5b421aa1087963787898b2",
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -7918,22 +8051,22 @@
     }
   ],
   "current_package": {
-    "run_id": "0224765c54b548aa8a32c6391ed14fb3",
+    "run_id": "5017e5a10bdd47bfae97026f68adee3b",
     "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-    "packaging_head": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-    "receipt_path": "uat/v1-sandbox/0224765c54b548aa8a32c6391ed14fb3/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/0224765c54b548aa8a32c6391ed14fb3/input/manifest.json",
-    "zip_sha256": "15A7AC61DCB9A42C83F612C253A19079CDABA4A0E448FDA359A906D4E2429C4C",
-    "manifest_sha256": "02E0C662E7CA7E477D59C3789E0348CEED76EB01FCD2CA81C3E1D898EFC1870F",
+    "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+    "packaging_head": "ecab19190196365211a1ce22e76cf2316240c899",
+    "receipt_path": "uat/v1-sandbox/5017e5a10bdd47bfae97026f68adee3b/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/5017e5a10bdd47bfae97026f68adee3b/input/manifest.json",
+    "zip_sha256": "E78FD7215730C66F35F3C00A2920FA4965229A09633948519CCF3B300BB6153D",
+    "manifest_sha256": "53A34168907B446D977D5DE2431EF24597C4D2D66104EB60BD3C771D536ADDE3",
     "release_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
     "debug_binary_sha256": "7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E",
-    "release_fixture_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-    "debug_fixture_sha256": "B274968B601701D02683EBAC16CF218E63AD0222EB0FFE4A82BE645F3F1A3757",
+    "release_fixture_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+    "debug_fixture_sha256": "DC7B03B97AB60F9FF0E975BD501DB36A0B2E954D4B4987111C1E555B9C3BAC96",
     "identity_basis": "ACTUAL_MANIFEST_GUARD_BINARY_HASHES_AND_GUEST_OBSERVATIONS_NOT_REBOUND",
     "guest_configurations": "Release",
-    "guest_suite": "ApplicationsOnly",
-    "guest_function_status": "PARTIAL_TERMINAL_CATEGORY_PASS_EDGE_START_THEN_PREPLACEMENT_END_FAIL",
+    "guest_suite": "EntryAndSettings",
+    "guest_function_status": "SETTINGS_COMPONENTS_PASS_ORDINARY_UP_REAL_COMPLETED_DRIVER_ASSERTION_FAIL",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "offline_regression": {
       "Debug": {
@@ -7957,24 +8090,23 @@
       "not_function_DEV_PASS": true
     },
     "human_uat": "NOT_RUN",
-    "note": "同R2/458A62未因driver变化重建；d85/D7e174与36fd/D660 EntryAndSettings失败子链保留，d85原0c710独立便携合同PASS。022/D660 ApplicationsOnly Terminal通过，Edge实际START后placement前中止、混合组未齐，非Full。"
+    "note": "同R2 EXE未build；5017修测试布局使import/corrupt/exclusion实际阶段PASS。新98fc普通入口/实际Move/真实NormalUp/退出事实成立而driver详细event断言FAIL，D21修复/新Run待验；非D08新反例，不授Full。"
   },
   "portable_candidate": {
-    "package_id": "0c7107367dfa4f48b7466455b0fda8ab",
+    "package_id": "98fc5fb109a740aba7c27baa0cd29825",
     "source_commit": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "packaging_head": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-    "receipt_path": "uat/v1-portable/0c7107367dfa4f48b7466455b0fda8ab/package-receipt.json",
-    "manifest_path": "uat/v1-portable/0c7107367dfa4f48b7466455b0fda8ab/PaneBindV1/manifest.json",
-    "zip_sha256": "0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F",
-    "manifest_sha256": "25978E28E35AD04CE28C5540BAE49BBEB33B392B70AD74ACF5F4A6A793D56003",
+    "packaging_head": "ecab19190196365211a1ce22e76cf2316240c899",
+    "receipt_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/package-receipt.json",
+    "manifest_path": "uat/v1-portable/98fc5fb109a740aba7c27baa0cd29825/PaneBindV1/manifest.json",
+    "zip_sha256": "E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236",
+    "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
     "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-    "actual_ordinary_no_argument_entry": "PASS_INDEPENDENT_PORTABLE_CONTRACT_NOT_I12_OR_VERSION",
-    "run_id": "d85e14904c7f4dbba0b3c08759db478c",
-    "preparation_run_id": "30bf79c65e5b421aa1087963787898b2",
-    "partial_observation_id": "PO-D85-R2-PORTABLE-CONTRACT",
-    "note": "同一R2/0c710原ZIP未重包；d85实际空参中文GUI/退出恢复与独立payload/imports/未变工具负例满足便携合同。574额外Move前检失败、36fd同类失败及整个I12/整版未过另记。",
-    "latest_confirmation_run_id": "36fdb23ce23f43e69047976e58b40964",
-    "documentation_limitation": "原0c710内quickstart仍含R408/2632身份文案；本次独立运行/文件/依赖合同PASS不授中文说明准确或最终交付PASS。root准备同R2 EXE的新说明包，旧ZIP不改，待新包实际普通入口验证。"
+    "actual_ordinary_no_argument_entry": "OBSERVED_NORMAL_GUI_MOVE_NORMALUP_AND_EXIT_ORIGINAL_DRIVER_ASSERTION_FAIL",
+    "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+    "partial_observation_id": "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
+    "functional_driver_chain": "PENDING_D21_TOOL_FIX_REVALIDATION",
+    "prior_independent_portable_contract_PASS": "R2_0c710_d85_evidence_retained_not_rebound",
+    "note": "新98fc纠正中文说明，EXE同R2未改；实际事实不抹除，也不把677原FAIL改PASS。原0c710和d85的独立合同PASS保留其原ZIP/Run，不混为新包运行。"
   },
   "evidence": [
     {
@@ -8575,9 +8707,202 @@
       "run_id": "d85e14904c7f4dbba0b3c08759db478c",
       "sha256": "1D4E3DE3B2B3BDE4DBD8C844108D6CC982433BD3047D69F4DB78D64E5F2059C7",
       "kind": "READONLY_TOOL_OUTPUT_TRANSCRIPTION_NOT_ORIGINAL_STDOUT_OR_NEW_GUEST"
+    },
+    {
+      "id": "EV-5017-FIXTURE",
+      "path": "uat/v1-control/5017e5a10bdd47bfae97026f68adee3b/collection-20261016T104140540Z-5d097d364cfd4604a610a9ba82a67f2e/5017e5a10bdd47bfae97026f68adee3b-release-fixture.jsonl",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+      "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+      "sha256": "CB6F42DD4FAB9E06872E93DD9FBC269265B71343B5DCAF31DD22A7207BB73542",
+      "repository_excerpt_path": "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "EA3DB18478C2DC700BD1B286C969822C838F61C0F6F85708BCB4FF545D8C37B2"
+    },
+    {
+      "id": "EV-5017-PORTABLE-PRODUCT",
+      "path": "uat/v1-control/5017e5a10bdd47bfae97026f68adee3b/collection-20261016T104140540Z-5d097d364cfd4604a610a9ba82a67f2e/5017e5a10bdd47bfae97026f68adee3b-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+      "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+      "sha256": "D71C1D509A013E2B2B723B95DA84F9D947694706A48834FC28F6649F92592EFD",
+      "repository_excerpt_path": "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
+      "repository_excerpt_sha256": "9BE80AEA185DEFFB60C5F70D6C7654E170C5D44559A011CA2A4FC165FC203D94"
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-5017-SETTINGS-REAL-EFFECTS",
+      "scope": "same R2 after test-layout-only repair: actual import/default-recovery/exclusion effects and matching completion",
+      "status": "PARTIAL",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+      "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+      "evidence_ids": [
+        "EV-5017-FIXTURE"
+      ],
+      "passed_component_phases": {
+        "GUI": 208,
+        "diagnostic": 232,
+        "rapid": 251,
+        "startup": 284,
+        "five_button": 392,
+        "import_export": 493,
+        "corrupt_restart": 546,
+        "exclusion": 642
+      },
+      "actual_completed_behaviors": {
+        "native_export_draft": 420,
+        "import_draft": [
+          438,
+          456
+        ],
+        "import_save": 459,
+        "imported_zero_attraction_real_Move": 470,
+        "imported_Move_actual_UP_NormalUp": 475,
+        "corrupt_normal_stop": 503,
+        "same_product_restart_notice": [
+          504,
+          505
+        ],
+        "corrupt_backup_exact_bytes": 506,
+        "corrupt_GUI_defaults": 510,
+        "corrupt_default_actual_Move": 522,
+        "default_Move_actual_UP_NormalUp": 527,
+        "real_GUI_restored_original_options": 541,
+        "rule_multiline_Escape_without_save": 577,
+        "rule_exact_class_added": 595,
+        "excluded_real_native_START": 605,
+        "excluded_actual_native_geometry": 607,
+        "excluded_native_END_and_zero_product_writer": 609,
+        "rule_removed": 621,
+        "unexcluded_actual_Move": 632,
+        "unexcluded_actual_UP_NormalUp": 637
+      },
+      "tray": "BLOCKED_phase558",
+      "test_layout_defect_closed": "V1-D20",
+      "M11_F05_full_contract": "BLOCKED_actual_write_failure_preserves_old_configuration_feedback_evidence_still_missing",
+      "L1_existing_settings_tests": "partial_snapshot_old_future_schema_unknown_field_rejection_are_present_in_actual_core_test",
+      "whole_M11_module_I07_or_version_PASS": false,
+      "next_action": "不再扩展D20标题布局专项；保留实际新效果子项，M11-F05还须可关联的真实写失败/旧有效配置保留和失败反馈证据，不用常规import/corrupt阶段PASS代替完整DEV。"
+    },
+    {
+      "id": "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
+      "scope": "new 98fc Chinese-document package same R2 EXE: actual normal entry/move/NormalUp/exit observed, original driver detailed-event assertion FAIL",
+      "status": "PARTIAL",
+      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+      "run_id": "5017e5a10bdd47bfae97026f68adee3b",
+      "evidence_ids": [
+        "EV-5017-FIXTURE",
+        "EV-5017-PORTABLE-PRODUCT"
+      ],
+      "package": {
+        "id": "98fc5fb109a740aba7c27baa0cd29825",
+        "zip_sha256": "E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236",
+        "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
+        "product_EXE_unchanged": true,
+        "documentation_repacked_not_product_rebuilt": true,
+        "seven_files_verified": 648,
+        "normal_empty_argument_launch": 655,
+        "visible_Chinese_GUI_before_settings_command": 657,
+        "PID": 6996,
+        "diagnostic_enabled": false
+      },
+      "actual_default_Move": {
+        "real_START": 670,
+        "independent_actual_geometry": 672,
+        "target": [
+          140,
+          80,
+          540,
+          440
+        ],
+        "actual": [
+          140,
+          80,
+          540,
+          440
+        ],
+        "native_API_receipt_claimed": false
+      },
+      "actual_release_facts": {
+        "generation": 1,
+        "serial_final_MOVE_single_UP": 674,
+        "SendInput_requested": 2,
+        "SendInput_return": 2,
+        "passive_head_UP_callbacks": 1,
+        "passive_CallNext_result": 1,
+        "passive_unhooked": true,
+        "fixture_Raw_UP_before": 49,
+        "fixture_Raw_UP_after": 50,
+        "Raw_source_generation_attribution": "UNKNOWN",
+        "detailed_product_input_button_observed": null,
+        "product_normal_up_motion_already_exact_sequence": 7,
+        "geometry_revalidated": true,
+        "new_native_attempt": false,
+        "product_end_sequence": 8,
+        "normal_up": true,
+        "pending_retired": true,
+        "post_UP_actual_geometry": [
+          140,
+          80,
+          540,
+          440
+        ],
+        "capture_after": 0,
+        "shutdown_sequence": 10,
+        "actual_UP_callback_snapshot": {
+          "callback_count": 1,
+          "button": 1,
+          "generation_at_entry": 1,
+          "hook_observed_qpc": 616598045,
+          "consumed_before": true,
+          "aborted_before": false,
+          "matching_branch_taken": true,
+          "push_attempted": true,
+          "push_succeeded": true
+        },
+        "single_test_UP_send_before_qpc": 616588331
+      },
+      "original_assertion": {
+        "case": "normal_up_and_no_late_geometry",
+        "sequence": 677,
+        "result": "FAIL",
+        "reason": "driver requires diagnostic-only detailed button event in ordinary mode; geometry and real NormalUp are present",
+        "original_driver_failure_sequence": 683,
+        "driver_shutdown_sequence": 686,
+        "result_not_rewritten": true
+      },
+      "product_stop": {
+        "sequence": 678,
+        "resource_flags_true": true,
+        "unknown_native_completion": false,
+        "actual_post_stop_client": 682,
+        "counts_before": [
+          4,
+          4
+        ],
+        "counts_after": [
+          5,
+          5
+        ],
+        "extra684_not_requested_not_failure": true,
+        "own_Raw_removal": 685
+      },
+      "missing_LL_UP_defect_not_reproduced_by_this_failure": "V1-D08",
+      "new_test_tool_defect": "V1-D21",
+      "new_package_full_functional_driver_chain": "PENDING_TOOL_FIX_AND_NEW_RUN_NOT_PASS",
+      "old_0c710_runtime_evidence_not_rebound": true,
+      "whole_I12_Full_or_version_PASS": false
+    },
     {
       "id": "PO-D85-ENTRY-SETTINGS-SCOPED",
       "scope": "unchanged R2 Release Medium actual settings/diagnostic/rapid/startup/five-button scope, later driver caption prerequisites fail",
@@ -11216,9 +11541,9 @@
     "latest_runtime_observation": {
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-      "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-      "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-      "run_id": "0224765c54b548aa8a32c6391ed14fb3"
+      "driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
+      "driver_binary_sha256": "3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6",
+      "run_id": "5017e5a10bdd47bfae97026f68adee3b"
     }
   },
   "pending_product_candidate": {
@@ -11249,7 +11574,7 @@
         "bytes": 839168
       }
     ],
-    "separate_driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
+    "separate_driver_source_sha": "bc5eb9a4396b1aa1de30f1566233be670afd30f6",
     "driver_build_status": "BUILT_AND_ACTUALLY_RUN",
     "product_rebuilt_for_driver_change": false,
     "product_rebuilt_for_product_fix": true,
@@ -11282,6 +11607,8 @@
     "native_guest_status": "TARGETED_D17_AND_TERMINAL_PASS_POSTRESIZE_UP_AND_OTHER_COMPONENT_FAILURES_PRESERVED",
     "human_uat": "NOT_RUN",
     "latest_observation_ids": [
+      "PO-5017-SETTINGS-REAL-EFFECTS",
+      "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
       "PO-D85-ENTRY-SETTINGS-SCOPED",
       "PO-D85-R2-PORTABLE-CONTRACT",
       "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
@@ -11298,7 +11625,8 @@
       "manifest_sha256": "B0A44B1EC8C45B61E36618C6149C9E83F51AB21B6678C3D53CCE48CC17E2C1ED",
       "guest_suite": "CoreAndApplications"
     },
-    "portable_normal_entry": "PASS_ORIGINAL_R2_0C710_INDEPENDENT_PACKAGE_CONTRACT_D85",
-    "latest_portable_validation_run_id": "d85e14904c7f4dbba0b3c08759db478c"
+    "portable_normal_entry": "NEW98FC_ACTUAL_NORMALUP_TRUE_BUT_DRIVER_ASSERTION_FAIL_PENDING_D21_REVALIDATION",
+    "latest_portable_validation_run_id": "d85e14904c7f4dbba0b3c08759db478c",
+    "latest_portable_attempt_run_id": "5017e5a10bdd47bfae97026f68adee3b"
   }
 }

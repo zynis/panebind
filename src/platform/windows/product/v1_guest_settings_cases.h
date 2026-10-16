@@ -100,8 +100,8 @@ void settings_guest_modal_press(State& s,const SettingsGui& gui,const SettingsGu
         throw std::runtime_error("settings_modal_keyboard_target_changed");
     key(s,code,true);key(s,code,false);
 }
-void settings_guest_acknowledge(State& s,const SettingsGui& gui,std::wstring_view body_prefix){
-    const auto modal=settings_guest_modal(s,gui,L"PaneBind");bool body=false;
+void settings_guest_acknowledge(State& s,const SettingsGui& gui,std::wstring_view body_prefix,std::wstring_view title=L"PaneBind"){
+    const auto modal=settings_guest_modal(s,gui,title);bool body=false;
     struct Search {HWND root;std::wstring_view prefix;bool found{};} query{modal.root,body_prefix};
     EnumChildWindows(modal.root,[](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);if(gui_class(h)!=L"Static")return TRUE;
         std::array<wchar_t,1024> value{};DWORD_PTR copied{};
@@ -351,6 +351,106 @@ void settings_guest_exclusion(State& s){
 void settings_guest_attraction(State& s,int value){
     const auto gui=gui_open(s);gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),static_cast<unsigned>(value));gui_save_enter(s,gui);
     s.log.check("settings_actual_attraction_saved",settings_guest_configuration(s).attraction_dip==value);
+}
+[[maybe_unused]] void settings_guest_save_failure(State& s){
+    // TEST ONLY: a reversible attribute fault on this exact Run's portable
+    // settings file. No DACL, host directory, product API or registry mutation.
+    settings_guest_scope(s);const auto original=settings_guest_configuration(s);
+    const auto path=s.product.parent_path()/L"settings.ini";const auto bytes=read(path);const auto original_hash=hash(path);
+    if(!original.enabled||!original.magnet_move||original.attraction_dip<6||bytes.empty()||original_hash.empty()||s.left||s.control||s.explorer[0]||s.applications[0])
+        throw std::runtime_error("save_failure_exact_enabled_owned_baseline_required");
+    const auto attributes=GetFileAttributesW(path.c_str());
+    if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT|FILE_ATTRIBUTE_READONLY)))
+        throw std::runtime_error("save_failure_existing_file_not_plain_writable_owned_input");
+    // Share DELETE as well as READ/WRITE: this identity observation must NOT
+    // turn the intended READONLY fault into an accidental sharing violation.
+    Handle held(CreateFileW(path.c_str(),FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+        nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    BY_HANDLE_FILE_INFORMATION baseline{};
+    if(held.value==INVALID_HANDLE_VALUE||!GetFileInformationByHandle(held.value,&baseline)||baseline.nNumberOfLinks!=1||
+       (baseline.dwFileAttributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||
+       baseline.nFileSizeHigh||baseline.nFileSizeLow!=bytes.size())throw std::runtime_error("save_failure_owned_file_identity_unknown");
+    const auto protected_attributes=(attributes&~FILE_ATTRIBUTE_NORMAL)|FILE_ATTRIBUTE_READONLY;
+    const auto exact_file=[&]{
+        settings_guest_scope(s);
+        Handle current(CreateFileW(path.c_str(),FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+            nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));BY_HANDLE_FILE_INFORMATION actual{};
+        return current.value!=INVALID_HANDLE_VALUE&&GetFileInformationByHandle(current.value,&actual)&&actual.nNumberOfLinks==1&&
+            !(actual.dwFileAttributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))&&
+            actual.dwVolumeSerialNumber==baseline.dwVolumeSerialNumber&&actual.nFileIndexHigh==baseline.nFileIndexHigh&&
+            actual.nFileIndexLow==baseline.nFileIndexLow&&actual.ftCreationTime.dwHighDateTime==baseline.ftCreationTime.dwHighDateTime&&
+            actual.ftCreationTime.dwLowDateTime==baseline.ftCreationTime.dwLowDateTime&&read(path)==bytes&&hash(path)==original_hash;
+    };
+    bool protection_may_exist=false;
+    const auto restore=[&]{
+        if(!protection_may_exist)return true;
+        const bool exact=exact_file();const auto actual=GetFileAttributesW(path.c_str());
+        bool called=false,returned=false;DWORD error{};
+        if(exact&&actual==protected_attributes){called=true;SetLastError(0);returned=SetFileAttributesW(path.c_str(),attributes)!=FALSE;error=returned?0:GetLastError();}
+        const bool confirmed=exact&&(actual==attributes||(returned&&GetFileAttributesW(path.c_str())==attributes))&&exact_file();
+        s.log.emit("settings_save_fault_attribute_cleanup","\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"exact_file_identity_and_original_bytes\":"+
+            std::string(exact?"true":"false")+",\"SetFileAttributes_called\":"+(called?"true":"false")+",\"SetFileAttributes_returned\":"+
+            (called?(returned?"true":"false"):"null")+",\"error\":"+std::to_string(error)+",\"original_attributes_restored\":"+(confirmed?"true":"false")+
+            ",\"unknown_file_or_attributes_not_modified\":true,\"DACL_changed\":false");
+        if(confirmed)protection_may_exist=false;return confirmed;
+    };
+    std::array<Rect,3> before{};for(std::size_t n=0;n<before.size();++n){const auto actual=visible(s.frames[n].hwnd);
+        if(!own(s,s.frames[n].hwnd)||!actual)throw std::runtime_error("save_failure_original_owned_geometry_unknown");before[n]=*actual;}
+    try{
+        const auto gui=gui_open(s);gui_page_select(s,gui,1);const auto edit=gui_number(s,gui,L"吸引距离");gui_edit_number(s,gui,edit,0);
+        if(!exact_file()||GetFileAttributesW(path.c_str())!=attributes)throw std::runtime_error("save_failure_file_changed_before_attribute_fault");
+        protection_may_exist=true;SetLastError(0);const bool protected_set=SetFileAttributesW(path.c_str(),protected_attributes)!=FALSE;
+        const DWORD protection_error=protected_set?0:GetLastError();
+        s.log.check("settings_save_readonly_fault_applied",protected_set&&exact_file()&&GetFileAttributesW(path.c_str())==protected_attributes,
+            "\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"original_sha256\":"+quote(original_hash)+",\"original_attributes\":"+
+            std::to_string(attributes)+",\"protected_attributes\":"+std::to_string(protected_attributes)+",\"SetFileAttributes_error\":"+
+            std::to_string(protection_error)+",\"DACL_permission_experiment\":false,\"save_failure_not_inferred\":true");
+        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
+        settings_guest_acknowledge(s,gui,L"保存或应用失败，原有效配置应保持不变。",L"PaneBind：设置未更改");
+        const auto notice=record(s,mark,"notice");
+        s.log.check("settings_actual_save_rejected_original_file_and_draft_retained",notice.find("无法原子保存配置，原配置未覆盖")!=notice.npos&&
+            exact_file()&&settings_guest_configuration(s)==original&&gui_identity(s,gui,edit)&&gui_text(s,gui,edit)==L"0",
+            "\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"actual_product_failure_notice\":"+quote(notice)+
+            ",\"ReplaceFile_native_error\":null,\"ReplaceFile_native_error_observed\":false,\"original_sha256\":"+quote(original_hash)+
+            ",\"draft_still_open\":true,\"generation_unchanged\":true,\"whole_M11F05_PASS_inferred\":false");
+        s.log.check("settings_save_fault_restored_before_continuation",restore());
+        // Settings is modeless. Exercise the old live policy without saving or
+        // cancelling the failed draft; re-opening brings this same draft back.
+        settings_guest_move_effect(s,true,"save_rejected_old_live_magnet_policy");
+        const auto resumed=gui_open(s);gui_page_select(s,resumed,1);
+        s.log.check("settings_failed_draft_survives_old_policy_operation",resumed.root==gui.root&&gui_text(s,resumed,gui_number(s,resumed,L"吸引距离"))==L"0"&&
+            read(path)==bytes&&settings_guest_configuration(s)==original);
+        gui_save_enter(s,resumed);const auto saved=settings_guest_configuration(s);auto wanted=original;wanted.attraction_dip=0;wanted.generation=saved.generation;
+        s.log.check("settings_after_fault_same_draft_save_succeeds",saved==wanted&&saved.generation>original.generation&&GetFileAttributesW(path.c_str())!=INVALID_FILE_ATTRIBUTES&&
+            !(GetFileAttributesW(path.c_str())&FILE_ATTRIBUTE_READONLY),"\"actual_saved_sha256\":"+quote(hash(path)));
+        const auto saved_bytes=read(path),saved_hash=hash(path);const auto old_pid=s.product_pid;const auto old_birth=process_birth(s.process);
+        const auto stop_mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();cleanup(s);
+        const auto shutdown=record(s,stop_mark,"shutdown");std::string input_recovery;bool forced=false;
+        std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
+            if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)input_recovery=row;}
+        s.log.check("settings_save_failure_recovery_normal_stop_before_restart",!s.process&&!forced&&number(shutdown,"\"process_id\":")==old_pid&&
+            shutdown.find("\"own_hooks_stopped\":true")!=shutdown.npos&&shutdown.find("\"own_overlay_destroyed\":true")!=shutdown.npos&&
+            shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&
+            input_recovery.find("\"actual_down_up_delivered\":true")!=input_recovery.npos,
+            "\"actual_stop_receipt\":"+quote(shutdown)+",\"actual_post_stop_input\":"+quote(input_recovery));
+        const auto start_mark=read(s.product_log).size();s.log.check("settings_save_failure_same_EXE_restart",launch(s,L"--diagnostic",false));
+        s.log.check("settings_save_failure_actual_restart_identity",wait([&]{return !record(s,start_mark,"startup").empty();})&&s.process&&medium(s.process)&&
+            (s.product_pid!=old_pid||process_birth(s.process)!=old_birth)&&read(path)==saved_bytes&&hash(path)==saved_hash);
+        const auto restarted=gui_open(s);gui_page_select(s,restarted,1);
+        s.log.check("settings_recovered_save_actual_restart_keeps_new_value",gui_text(s,restarted,gui_number(s,restarted,L"吸引距离"))==L"0"&&settings_guest_configuration(s)==saved);
+        gui_press(s,restarted,VK_ESCAPE);s.log.check("settings_save_failure_restart_draft_cancel",wait([&]{return !IsWindow(restarted.root);}));
+        settings_guest_move_effect(s,false,"save_recovery_restart_zero_attraction_live_effect");settings_guest_attraction(s,original.attraction_dip);
+        const auto restored=settings_guest_configuration(s);auto expected=original;expected.generation=restored.generation;
+        s.log.check("settings_save_failure_original_options_restored",restored==expected);
+        for(std::size_t n=0;n<before.size();++n)s.log.check("settings_save_failure_original_owned_layout_restored",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,before[n]));
+        s.log.emit("settings_save_failure_result","\"result\":\"PASS\",\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"actual_Chinese_failure_modal\":true,"
+            "\"old_bytes_and_live_policy_retained\":true,\"same_draft_later_saved_and_restart_verified\":true,\"DACL_test\":false,\"complete_M11F05_not_inferred\":true");
+    }catch(...){
+        bool restored=false;std::string error;try{restored=restore();}catch(const std::exception& failure){error=failure.what();}
+        s.log.emit("settings_save_failure_exception_cleanup","\"attribute_cleanup_confirmed\":"+std::string(restored?"true":"false")+
+            ",\"cleanup_error\":"+quote(error)+",\"original_failure_preserved\":true,\"unknown_protection_not_removed\":true,\"functional_PASS_inferred\":false");throw;
+    }
 }
 void settings_guest_import_export(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto config_path=s.product.parent_path()/L"settings.ini";const auto bytes=read(config_path);

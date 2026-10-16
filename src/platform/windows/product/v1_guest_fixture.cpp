@@ -2392,6 +2392,7 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
     phase("settings_startup",settings_guest_startup);
     phase("five_button_mapping",owned_mouse_mapping_cases);
     phase("settings_import_export",settings_guest_import_export);
+    phase("settings_save_failure",settings_guest_save_failure);
     phase("settings_corrupt_restart",settings_guest_corrupt_restart);
     phase("tray",owned_tray_entry_cases);
     // These are independent entry cases, not the Full historical chain.

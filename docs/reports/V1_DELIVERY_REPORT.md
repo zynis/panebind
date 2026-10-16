@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`保持不变，测试driver分别记录自身身份。d85已从原0c710 ZIP空参启动唯一中文GUI，正常退出与实际客户输入恢复、独立文件／依赖及未变工具负例合同齐备，**M12-F03／B32当前候选独立PASS，功能DEV 1/60、对标1/40=2.5%**，不因额外Move前检失败或全局I11取消这项真实能力。d85／36fd的导入、损坏恢复及排除后行为仍被测试窄标题布局前置阻断；022 Terminal类别实际PASS，Edge已通过真实caption／DOWN／START但首个Move在placement前中止，不能再写成最新caption失败。30bf post-Resize等D08 S1仍OPEN，不宜宿主试用；模块／整链仍0通过，完整普通Explorer／其余应用／托盘与显示矩阵未齐，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`保持不变，测试driver分别记录自身身份。d85的原0c710 ZIP普通入口及独立包合同已通过，**M12-F03／B32当前候选独立PASS，功能DEV 1/60、对标1/40=2.5%**；5017进一步完成导入、损坏恢复及排除后的实际行为，D20测试布局缺陷定向关闭。更新中文说明的98fc ZIP已实际普通启动、默认Move、真实NormalUp及退出，但原driver误要求普通模式不存在的诊断事件，D21修复待新Run，不能记成缺真实UP或整条便携功能复验通过。022 Terminal类别实际PASS；Edge实际START后在placement前中止，原因UNKNOWN。30bf post-Resize等D08 S1仍OPEN，不宜宿主试用；模块／整链仍0通过，完整普通Explorer／其余应用／托盘与显示矩阵未齐，真人UAT PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
@@ -24,13 +24,22 @@
 
 新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新Run8189的真实范围另列如下，不能升级正式DEV或关闭D08。
 
+## 5017：设置行为补齐，更新中文便携真实NormalUp与driver错误分开
+
+Run `5017e5a10bdd47bfae97026f68adee3b`，`EntryAndSettings`／Release／Medium，产品仍为同一R2／458A62；driver=`bc5eb9a4396b1aa1de30f1566233be670afd30f6`／`3F20B5E64057175D9D99E3986189E9246508FD0B6789BBF25B21D99121B44EE6`，packaging HEAD=`ecab19190196365211a1ce22e76cf2316240c899`。原件与逐行digest在[fixture摘录](v1-evidence/5017-fixture-selected.jsonl)、[普通产品摘录](v1-evidence/5017-portable-product-selected.jsonl)及[索引](v1-evidence/index.json)，不把新driver绑定旧Run。
+
+- 493导入／导出、546损坏配置恢复、642排除／移除三个阶段实际PASS：原生export420；import draft／取消438–439、save459、吸引0的实际Move470／真实NormalUp475；实际restart／notice504–505、exact损坏备份506、默认Move522／NormalUp527；规则595、原生START／实际几何／END605–609且无产品writer、移除后产品Move632／NormalUp637。窄标题布局D20按原受阻操作定向关闭，不回写d85／36fd。M11-F05仍缺主方案明确要求的实际写失败不假报保存／原配置保留及重启保护证据，不因这三阶段通过便授整个M11／I07 PASS。
+- 新便携`98fc5fb109a740aba7c27baa0cd29825`仅纠正说明、未重建EXE；ZIP `E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236`／manifest `940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3`。648七文件核验，655真正空参启动，657在任何`--settings`前出现唯一中文GUI，662 Esc、670 g1 START、672默认Move实际exact `[140,80,540,440]`成立。旧0c710的独立包PASS保留其原身份，不换绑本包。
+- 674只发送一次最终MOVE＋UP（2/2插入）；675被动队首实际UP=1／CallNext=1／Unhook成功；676已观察真实NormalUp。普通产品seq7几何重新验证、零新增native，seq8 `normal_up=true`／pending退休，shutdown seq10记录同g1实际UP callback一次、consumed／matching branch／push均true。**原677仍FAIL不是缺UP**：普通模式没有diagnostic专属`input_button_observed`，driver把缺该详细事件误判为失败。D21属于测试合同缺口，修复及新Run尚未预填PASS，原683／686失败原样保留；Raw49→50仍无独立source／generation归属，不用它补证据。
+- 678本次普通PID6996正常退出、自有资源flags全true，682真实客户计数`[4,4]→[5,5]`；精确guest／临时任务退出、证据哈希未变、部署保留另有cleanup回执，不以销毁guest替代产品结果。新包保存设置后行为等未走完部分仍待定向复验，不把这次普通Move扩成Full／I11／I12。
+
 ## d85／36fd／022：复用同R2，新便携独立通过，测试前置与应用失败分别保留
 
 这些批次不重建产品R2，不把driver源码当产品源码。d85 driver=`7e174bf83ae461ed24c0c7c144a9cd8615706285`／Release `6B83975D5015A1A2F8408A59A48352E369BED13A6AF252E7F5C1820BC5A00A2A`；36fd和022 driver=`660cf6ffc84761cb1d1f2cec832eb01700811caa`／Release `B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE`。各自原包、manifest、原日志及摘录哈希在[索引](v1-evidence/index.json)，不能拼成Full。
 
 [d85实际摘录](v1-evidence/d85-fixture-selected.jsonl)：GUI208、诊断232、真实快速UP／terminal251、登录开关／实际HKCU284、五键392分别有范围PASS。原生导出420、import draft438／456、save459成立；损坏配置正常stop493、真实restart／notice494／495、exact备份496、GUI默认500成立。导入后行为464、损坏恢复后行为506在caption候选为空时尚未发DOWN，排除543更在规则操作前受阻；这些失败保留，不写成整个阶段从未运行，也不认定为产品规则或输入失败。日志`hit:2`仅为所请求HTCAPTION，非实际回读。
 
-[36fd新增事实](v1-evidence/36fd-fixture-selected.jsonl)将同类前检缩到24次真实查询：positioning `[111,80,369,449]`、DPI144、DWM按钮带`[28,0,248,44]`，464／507／576各24个候选全部非caption，样本返回13／12／3，无查询失败、超时、foreign命中或测试DOWN。只修自建settings／portable测试布局留出标题空间，产品保护不放宽；**新布局修复仍未在新Run通过**，D20 OPEN。不能用此新记录补造d85旧日志的细节。
+[36fd新增事实](v1-evidence/36fd-fixture-selected.jsonl)将同类前检缩到24次真实查询：positioning `[111,80,369,449]`、DPI144、DWM按钮带`[28,0,248,44]`，464／507／576各24个候选全部非caption，样本返回13／12／3，无查询失败、超时、foreign命中或测试DOWN。只修自建settings／portable测试布局留出标题空间，产品保护不放宽；本批当时未通过，后由5017定向关闭D20。不能用新Run补造d85旧日志的细节或覆盖旧失败。
 
 ### 当前0c710便携功能：按其完整独立合同PASS，不宣额外几何链通过
 
@@ -38,7 +47,7 @@ d85的555原七文件核验、562真正空参启动、564在任何`--settings`�
 
 [只读包合同复核转录](v1-evidence/d85-portable-contract-readonly.txt)明确不是新guest或原stdout：收集后七项实际尺寸／SHA全部匹配原manifest；真实dumpbin的11系统imports与manifest一致，无漏带外部CRT。packager／helper／25项工具测试文件哈希与原负例完全相同，实际`Prepare-PortableTestPackage` AST也未变，故复用原生产缺文件／外部依赖拒绝证据，不冒充新执行。结合真实干净guest普通入口，**只授M12-F03／B32 PASS（2.5分）**；M12模块、I01／I12、托盘、完整指南操作链和整版均未因此通过。旧R408／2632／9e5完整保留其历史身份。
 
-原0c710内quickstart仍含旧R408／2632身份文案。以上独立包运行合同PASS**不代表中文说明准确或最终交付通过**；M12-F05／完整交付门槛仍缺纠正后的说明包及按包复验。主执行将用同一R2 EXE生成一次新说明包，旧ZIP／运行身份不修改，不因纯driver变化反复重包。
+原0c710内quickstart仍含旧R408／2632身份文案。以上独立包运行合同PASS**不代表中文说明准确或最终交付通过**；后继98fc说明包已纠正并由5017实际普通启动，但完整说明操作链仍待D21修复后的定向复验。旧ZIP／运行身份不修改，不因纯driver变化反复重包。
 
 ### 022应用：Terminal通过；Edge实际START后零placement失败，原因UNKNOWN
 
@@ -124,7 +133,7 @@ RunId `81896dad13d5423e5de14a8363f7bcc6`，Release／真实Medium RID8192、non-
 | 开发分支 | `codex/r1c4b-live-magnet` |
 | 当前R2实际候选 | `4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release458A62、Debug7D503未改；d85实际新0c710独立便携PASS、022 Terminal类别PASS，D08及Edge早期中止仍OPEN；R408/2632历史原身份保留 |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 当前实测包／入口 | d85／D7e174与36fd／D660的EntryAndSettings、022／D660的ApplicationsOnly，均同R2；独立包／Terminal范围PASS与原失败分开，非Full |
+| 当前实测包／入口 | 最新5017／D_BC5的EntryAndSettings，同R2及更新中文98fc ZIP；设置三阶段实际PASS、普通Move实际NormalUp与原D21工具FAIL分开。原d85／36fd／022及各包保留，非Full |
 | 历史原2632便携 | ZIP `4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2`；manifest `090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C`；产品R／EXE48F96未改；便携原packaging HEAD665b828，9e5 guest包HEAD718d8f5分别记录 |
 | 历史dd60 runtime／build | `dd603a79aeba64c816e13ba49265db342c14e7e3`；Debug／Release fresh构建及各10项offline实际PASS；旧结果原身份保留，不迁移绑定当前R |
 | 历史e2abc打包 HEAD | `dd603a79aeba64c816e13ba49265db342c14e7e3`；旧已测ZIP不重包，整对象已归入historical_packages；当前R/2632另立真实身份 |

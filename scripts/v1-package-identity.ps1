@@ -1,7 +1,11 @@
 # Shared identity checks for the existing V1 portable and guest packagers.
 # This file does not build, launch the product, or create a package.
 function Test-V1ProductToolOnlyPath([string]$Path) {
-    return $Path -cmatch '^(docs/|tests/|scripts/v1-[^/]+\.ps1$|src/platform/windows/product/v1_guest_[^/]+\.(cpp|h)$)'
+    # This existing file is a BUILD_TESTING-only executable, not a source of
+    # panebind_windows_product or the product EXE. Keep the exemption exact;
+    # nearby production guest_path_scope.h/window_catalog.cpp remain protected.
+    return $Path -ceq 'src/platform/windows/product/guest_path_scope_tests.cpp' -or
+        $Path -cmatch '^(docs/|tests/|scripts/v1-[^/]+\.ps1$|src/platform/windows/product/v1_guest_[^/]+\.(cpp|h)$)'
 }
 function Get-V1IdentityChanges([string]$Repository,[string]$Source,[string]$Head) {
     if($Source -cnotmatch '^[0-9a-f]{40}$' -or $Head -cnotmatch '^[0-9a-f]{40}$'){throw 'Full source and packaging commit identities are required.'}
