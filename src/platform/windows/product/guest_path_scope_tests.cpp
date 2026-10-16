@@ -153,6 +153,21 @@ int main() {
     if(!expect(threshold_match(invalid_threshold),false,"threshold command requires exact product hash"))return 1;
     invalid_threshold=threshold;invalid_threshold.anchor_x=std::numeric_limits<std::int64_t>::min();invalid_threshold.destination_x=std::numeric_limits<std::int64_t>::max();
     if(!expect(threshold_match(invalid_threshold),false,"malformed threshold coordinates reject before subtraction"))return 1;
+    const std::string native_begin=R"({"process_id":42,"source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","generation":7,"type":"gesture_start","native_first_handoff":true,"original":[100,60,500,420],"actual_begin_geometry":[105,60,505,420]})";
+    const std::string native_handoff=R"({"process_id":42,"source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","generation":7,"type":"native_move_handoff","accepted":true,"stage":"actual_END_capture_pending","intent_anchor":[100,60,500,420],"continuity_baseline":[105,60,505,420]})";
+    const auto handoff_geometry=[&](std::string_view begin,std::string_view handoff,const std::array<std::int64_t,4>& actual){return
+        guest::actor_native_handoff_geometry_matches(begin,handoff,42,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",7,{100,60,500,420},actual);};
+    if(!expect(handoff_geometry(native_begin,native_handoff,{105,60,505,420}),true,"native prefix A to translated B preserves original intent and binds both actual END and START geometry")||
+       !expect(handoff_geometry(native_begin,native_handoff,{106,60,506,420}),false,"unattributed current translation cannot replace recorded B")||
+       !expect(handoff_geometry(native_begin,native_handoff,{105,60,506,420}),false,"native prefix cannot change source size"))return 1;
+    auto changed_handoff=native_handoff;const std::string original_field="\"intent_anchor\":[100,60,500,420]";
+    changed_handoff.replace(changed_handoff.find(original_field),original_field.size(),"\"intent_anchor\":[105,60,505,420]");
+    if(!expect(handoff_geometry(native_begin,changed_handoff,{105,60,505,420}),false,"handoff cannot re-anchor intent to B"))return 1;
+    auto changed_begin=native_begin;const std::string begin_field="\"actual_begin_geometry\":[105,60,505,420]";
+    changed_begin.replace(changed_begin.find(begin_field),begin_field.size(),"\"actual_begin_geometry\":[100,60,500,420]");
+    if(!expect(handoff_geometry(changed_begin,native_handoff,{105,60,505,420}),false,"actual START geometry must agree with END baseline B"))return 1;
+    changed_handoff=native_handoff;changed_handoff.replace(changed_handoff.find("\"generation\":7"),14,"\"generation\":8");
+    if(!expect(handoff_geometry(native_begin,changed_handoff,{105,60,505,420}),false,"old generation geometry cannot bind a new actor"))return 1;
     old_actor=actor;old_actor.version=1;
     if(!expect(actor_match(old_actor),false,"old receipt without the no-UP observation contract is rejected")||
        !expect(guest::actor_single_move_may_be_sent(1,0,0,true,true),true,"one synthetic DOWN plus actual START READY and fresh context permits one test MOVE, not a physical-held claim")||

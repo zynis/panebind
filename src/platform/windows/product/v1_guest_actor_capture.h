@@ -3,6 +3,7 @@
 #include "platform/windows/product/v1_guest_up_evidence.h"
 #include <algorithm>
 #include <atomic>
+#include <string>
 
 namespace panebind::platform::windows::product::guest {
 
@@ -44,6 +45,31 @@ inline bool actor_native_threshold_command_matches(const ActorNativeThresholdCom
         (displacement==command.drag_x+1||displacement==-(command.drag_x+1))&&command.destination_y==anchor_y&&
         command.original_visible[0]<command.original_visible[2]&&command.original_visible[1]<command.original_visible[3]&&
         command.no_up_start_or_end_observed&&hash_known;
+}
+// Actual END may leave a translated B. Only the product's same-generation
+// records may bind that B; observed window geometry is never a new anchor.
+inline bool actor_native_handoff_geometry_matches(std::string_view start,std::string_view handoff,
+    std::uint64_t product_pid,std::string_view source_sha,std::uint64_t generation,
+    const std::array<std::int64_t,4>& original,const std::array<std::int64_t,4>& actual){
+    const auto bounded=[](const auto& rectangle){return std::all_of(rectangle.begin(),rectangle.end(),[](auto coordinate){return
+        coordinate>=std::numeric_limits<std::int32_t>::min()&&coordinate<=std::numeric_limits<std::int32_t>::max();})&&
+        rectangle[0]<rectangle[2]&&rectangle[1]<rectangle[3];};
+    if(!bounded(original)||!bounded(actual)||original[2]-original[0]!=actual[2]-actual[0]||original[3]-original[1]!=actual[3]-actual[1]||
+        !product_pid||source_sha.size()!=40||!generation)return false;
+    const auto identity=[&](std::string_view row){return up_evidence_detail::number(row,"\"process_id\":")==product_pid&&
+        up_evidence_detail::number(row,"\"generation\":")==generation&&up_evidence_detail::quoted(row,"\"source_sha\":",source_sha);};
+    const auto field=[](std::string_view row,std::string_view key,const auto& rectangle){
+        const auto at=row.find(key);if(at==row.npos||row.find(key,at+key.size())!=row.npos)return false;
+        const std::string expected=std::string(key)+"["+std::to_string(rectangle[0])+","+std::to_string(rectangle[1])+","+
+            std::to_string(rectangle[2])+","+std::to_string(rectangle[3])+"]";
+        const auto end=at+expected.size();return row.substr(at,expected.size())==expected&&end<row.size()&&(row[end]==','||row[end]=='}');};
+    return identity(start)&&identity(handoff)&&up_evidence_detail::quoted(start,"\"type\":","gesture_start")&&
+        up_evidence_detail::quoted(handoff,"\"type\":","native_move_handoff")&&
+        up_evidence_detail::unique_value(start,"\"native_first_handoff\":")=="true"&&
+        up_evidence_detail::unique_value(handoff,"\"accepted\":")=="true"&&
+        up_evidence_detail::quoted(handoff,"\"stage\":","actual_END_capture_pending")&&
+        field(start,"\"original\":",original)&&field(handoff,"\"intent_anchor\":",original)&&
+        field(start,"\"actual_begin_geometry\":",actual)&&field(handoff,"\"continuity_baseline\":",actual);
 }
 
 } // namespace panebind::platform::windows::product::guest

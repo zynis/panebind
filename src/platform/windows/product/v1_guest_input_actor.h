@@ -113,7 +113,7 @@ int input_actor_child(int count,LPWSTR* args){
     SHORT async_left_value{};bool async_left_queried=false;unsigned own_up_calls{};
     product::guest::ActorNativeThresholdCommand threshold_command{};
     bool threshold_received=false,threshold_identity=false,threshold_context=false,threshold_attempted=false,threshold_skipped_native_started=false,threshold_skipped_actual_ready=false;
-    UINT threshold_inserted{};DWORD threshold_error{};POINT threshold_cursor{};bool threshold_cursor_known=false,threshold_cursor_exact=false;
+    UINT threshold_inserted{},threshold_cursor_observations{};DWORD threshold_error{};POINT threshold_cursor{};bool threshold_cursor_known=false,threshold_cursor_exact=false;
     POINT ready_cursor=from;
     product::guest::CapturedReleaseFacts fresh_capture;
     if(down_inserted==1){
@@ -171,8 +171,11 @@ int input_actor_child(int count,LPWSTR* args){
                 threshold.mi.dy=static_cast<LONG>(((threshold_command.destination_y-y)*2+1)*65536/(static_cast<long long>(h)*2));
                 threshold_attempted=true;QueryPerformanceCounter(&threshold_before);SetLastError(0);
                 threshold_inserted=SendInput(1,&threshold,sizeof(threshold));threshold_error=threshold_inserted==1?0:GetLastError();
-                QueryPerformanceCounter(&threshold_after);threshold_cursor_known=GetCursorPos(&threshold_cursor)!=FALSE;
-                threshold_cursor_exact=threshold_cursor_known&&threshold_cursor.x==threshold_command.destination_x&&threshold_cursor.y==threshold_command.destination_y;
+                QueryPerformanceCounter(&threshold_after);const auto observed_at=GetTickCount64();
+                if(threshold_inserted==1&&observed_at<ack_deadline)threshold_cursor_exact=layout_wait_sent([&]{
+                    ++threshold_cursor_observations;threshold_cursor_known=GetCursorPos(&threshold_cursor)!=FALSE;
+                    return threshold_cursor_known&&threshold_cursor.x==threshold_command.destination_x&&threshold_cursor.y==threshold_command.destination_y;
+                },static_cast<DWORD>(std::min<ULONGLONG>(500,ack_deadline-observed_at)));
                 if(threshold_inserted!=1||!threshold_cursor_exact){ack_result=WAIT_FAILED;ack_error=threshold_error?threshold_error:ERROR_INVALID_DATA;break;}
                 ready_cursor={static_cast<LONG>(threshold_command.destination_x),static_cast<LONG>(threshold_command.destination_y)};
             }
@@ -257,6 +260,7 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"threshold_MOVE_SendInput_called\":"+(threshold_attempted?"true":"false")+",\"threshold_MOVE_SendInput_return\":"+std::to_string(threshold_inserted)+
         ",\"threshold_MOVE_SendInput_error\":"+std::to_string(threshold_error)+",\"threshold_MOVE_before_qpc\":"+std::to_string(threshold_before.QuadPart)+
         ",\"threshold_MOVE_after_qpc\":"+std::to_string(threshold_after.QuadPart)+",\"threshold_actual_cursor_exact\":"+(threshold_cursor_exact?"true":"false")+
+        ",\"threshold_cursor_observations\":"+std::to_string(threshold_cursor_observations)+",\"threshold_cursor_wait_within_original_ack_deadline\":true"+
         ",\"threshold_requested_cursor\":["+std::to_string(threshold_command.destination_x)+","+std::to_string(threshold_command.destination_y)+"]"+
         ",\"START_ready_expected_cursor\":["+std::to_string(ready_cursor.x)+","+std::to_string(ready_cursor.y)+"],\"original_DOWN_anchor_preserved\":true"+
         ",\"parent_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
@@ -287,6 +291,8 @@ int input_actor_child(int count,LPWSTR* args){
 void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::uint64_t product_birth){
     namespace v=panebind::core::v1;const HWND source=set.frames[0].hwnd;const auto initial=visible(source);
     if(!set.owns(0)||!initial||s.left||s.control)throw std::runtime_error("I08_actor_initial_exact_source_unavailable");
+    const UINT initial_dpi=GetDpiForWindow(source);const HMONITOR initial_monitor=MonitorFromWindow(source,MONITOR_DEFAULTTONULL);
+    if(!initial_dpi||!initial_monitor)throw std::runtime_error("I08_actor_initial_monitor_or_DPI_unknown");
     chain_check_product(s,product_pid,product_birth);const auto config=chain_settings(s);
     if(config.magnet_move||config.docking||config.shake||config.drag_transparency)throw std::runtime_error("I08_actor_requires_existing_interruption_configuration");
     const auto receipt=s.output/(s.run+(s.configuration=="Debug"?L"-debug-input-actor.json":L"-release-input-actor.json"));
@@ -321,6 +327,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
     };
     Handle start_ack,capture_mapping;InputActorCaptureView capture_view;
     std::string actual_down,actual_start,actual_ready,actual_pending,actual_native_start,actual_native_end,actual_cancel,actual_handoff;Gesture g{*point,0,offset};
+    std::optional<Rect> actual_ready_geometry;
     product::guest::ActorStartCaptureReceipt capture_receipt{};
     product::guest::ActorNativeThresholdCommand threshold_command{};bool threshold_published=false;
     try{
@@ -415,6 +422,9 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 actual_handoff.find("\"accepted\":true")!=actual_handoff.npos&&actual_handoff.find("\"stage\":\"actual_END_capture_pending\"")!=actual_handoff.npos;
             const bool no_up_or_end=actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&
                 record(s,offset,"native_move_passthrough_release",g.generation).empty()&&capture.not_retired;
+            actual_ready_geometry=visible(source);
+            const bool actual_geometry=actual_ready_geometry&&product::guest::actor_native_handoff_geometry_matches(actual_start,actual_handoff,product_pid,s.product_source,g.generation,
+                {initial->l,initial->t,initial->r,initial->b},{actual_ready_geometry->l,actual_ready_geometry->t,actual_ready_geometry->r,actual_ready_geometry->b});
             ack_ready=g.generation&&number(actual_start,"\"process_id\":")==product_pid&&number(actual_start,"\"key\":")==expected_key&&
                 actual_start.find("\"source_sha\":"+quote(s.product_source))!=actual_start.npos&&
                 actual_down.find("\"source_sha\":"+quote(s.product_source))!=actual_down.npos&&
@@ -422,7 +432,8 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 actual_start.find("\"original\":"+rect(*initial))!=actual_start.npos&&number(actual_down,"\"process_id\":")==product_pid&&
                 number(actual_down,"\"source_key\":")==expected_key&&number(actual_down,"\"button\":")==1&&
                 actual_down.find("\"kind\":\"DOWN\"")!=actual_down.npos&&actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=actual_down.npos&&
-                number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
+                number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&actual_geometry&&GetDpiForWindow(source)==initial_dpi&&
+                MonitorFromWindow(source,MONITOR_DEFAULTTONULL)==initial_monitor&&GetForegroundWindow()==source&&
                 no_up_or_end&&real_native_end&&known_cursor&&(!threshold_published||g.generation==threshold_command.generation)&&
                 product::guest::captured_release_route_allowed(capture)&&process_birth(s.process)==product_birth;
             if(ack_ready){
@@ -447,6 +458,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"actual_CaptureReady\":"+quote(actual_ready)+",\"immutable_capture_receipt_written\":"+(capture_written?"true":"false")+
             ",\"actual_native_START\":"+quote(actual_native_start)+",\"actual_native_END\":"+quote(actual_native_end)+
             ",\"actual_native_cancel\":"+quote(actual_cancel)+",\"actual_native_handoff\":"+quote(actual_handoff)+
+            ",\"original_DOWN_intent_geometry\":"+rect(*initial)+",\"actual_ready_geometry\":"+(actual_ready_geometry?rect(*actual_ready_geometry):"null")+
             ",\"threshold_command_published\":"+(threshold_published?"true":"false")+
             ",\"actual_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
             ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_product_sha256\":"+quote(product_hash)+

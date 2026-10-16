@@ -11,49 +11,36 @@
     "runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
+    "pending_runtime_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
     "final_sha": null,
-    "implementation_inspected": "R7_BUILD_PASS_RUNTIME_SCOPED_PASSES_AND_FAILURES_CURRENT_FULL_CONTRACT_INCOMPLETE",
-    "note": "历史R2/R3七项功能/B29+B32保持原构建。最新R7 b045/fc06/cb0b IndependentEntry已实测：诊断/启动/五键/导入导出子PASS；设置激活、快速三包未START及旧live policy预期检查失败，后继corrupt/tray/portable/Core/apps未跑。4e9 Core actor/inflight进展与R6/625900秒均保留原身份。整版PARTIAL/真人UAT PENDING。",
-    "pending_product_note": "产品b045 EXE未修改，最新driverfc06/cb0b实际入口子结果见PO-CB0B；不能用局部保存保护替代M11F05完整当前复验，不能用本批取代4e9 Core或625时长。普通便携入口/宿主试用未获通过。",
+    "implementation_inspected": "R8_NATIVE_HANDOFF_DEBUG_ACTUAL_CHAIN_ORIGINAL_TIMESTAMP_ASSERTION_FAIL_RELEASE_ACTIVATION_FAIL_NEXT_FIX_PENDING",
+    "note": "历史七项功能/B29+B32保持原身份。最新R8产品/driver175、Run7149 Debug真实native接管及A_initial五阶段/Raw+legacyUP/NormalUp资源闭环被观察，原driver50因时间戳0仍FAIL；Release客户激活计数0/0、无产品手势，原因UNKNOWN。新82d仅修真实派发时间戳，D/R构建及各9产品offline已通过、现场未跑，旧175不换绑。整版PARTIAL/真人UAT PENDING。",
+    "pending_product_note": "当前实际运行R8源码175/7149范围见run_7149_observed；新时间戳修复82d D/R构建/各9产品offline通过，尚无新包或现场功能PASS。后继Core/settings/apps及新便携普通入口未跑；R7/4e9、cb0b与R6/625保留历史身份。",
     "pending_candidate": {
-      "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-      "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-      "runtime_library": "MultiThreaded (/MT)",
-      "build_dir": "out/v1-product-idle-catalog-r7-b0450da",
-      "debug_binary_sha256": "C8C3AC1F63178CFAF25ED0C7D42F7B2140111CEAEBB8B28B97765BF082D65A0C",
-      "release_binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
+      "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "implementation_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "repair_scope": "native-move-handoff actual legacy UP dispatch QPC recorded in shared shield; original175 receipts preserved",
       "debug_build_result": "PASS_EXIT_0",
       "release_build_result": "PASS_EXIT_0",
-      "offline_regression": "Debug10/10 PASS; Release10/10 PASS",
-      "debug_offline_processor_seconds": 3.35,
-      "debug_offline_wall_seconds": 3.42,
-      "release_offline_processor_seconds": 1.56,
-      "release_offline_wall_seconds": 2.79,
-      "debug_ctest_output_log_sha256": "C9C99446D72071B9A6C8F2F5374878A409BF97DA50EFD13C3EEAA530A4799B92",
-      "release_ctest_output_log_sha256": "019B122044B0983DE5EC88FC0364F1CD530EFBBE0A8D85BF55716E8719D0C881",
-      "driver_source_sha": "fc06fc9d476073d82eba0372eb37e5353e08e419",
-      "debug_driver_sha256": "7A34FF955CBF043E1B8EE41C98BE3F92F69F5797FA5644C046E66185FD1C8D8B",
-      "release_driver_sha256": "8E1A0EECACECC1E1383C54800503B84400E2E9C32671C3ECAF808A5D48532DF6",
-      "driver_guest_path_offline": "shippingdriverfc06 Debug1/1 processor0.17/wall0.24; Release1/1 processor0.12/wall0.23",
-      "package_generated": true,
-      "run_id": "cb0b735bf4cd4ac0b46374df1bff0ab7",
-      "packaging_head": "fc06fc9d476073d82eba0372eb37e5353e08e419",
-      "package_zip_sha256": "4158155D73B9E96AA767F6DC59C4FE854FE6CA1104893ABEF436D3BFB733E8C8",
-      "package_manifest_sha256": "BBF4752E4165999BB7505D6FCAC712FF6C45A9E3947B24D669D2ED6B2386648F",
-      "wsb_sha256": "23D5C13450A67DAA18B5D93DBB67A608B4E4A89E492FF175CD4DA648C0CB9843",
-      "portable_package_id": "364579589e454eb7a63931f68df49567",
-      "portable_zip_sha256": "046CE03ABB916BF4D114B899E95586AE927270AC1EAAEDC24F3D454BEBE99DC4",
-      "portable_manifest_sha256": "60623F8D2CE7DFFC00F26714AFA81410DA6F743236FACB462B2BC4B1914F777B",
-      "portable_ordinary_entry": "NOT_RUN",
-      "runtime_validation": "INDEPENDENT_ENTRY_PARTIAL_COMPONENT_PASSES_OTHER_FAILURES_REMAINING_PHASES_NOT_RUN",
+      "debug_binary_sha256": "B9862A22A443B75ED4B2304592FE03A24D5C53E2B298C158C09CB8F557BF1EFC",
+      "release_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "package_generated": false,
+      "runtime_validation": "NOT_RUN",
       "ordinary_host_trial_allowed": false,
       "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
-      "repair_scope": "event-driven catalog refresh skips pending native call, resumes after actual completion; actor test driver rechecks capture rather than consumed-DOWN async state",
       "historical_results_rebound": false,
-      "collection_path": "uat/v1-control/cb0b735bf4cd4ac0b46374df1bff0ab7/collection-20261016T180807661Z-c54ce3e1d4b84a5aa08174a019b82554",
-      "observation_id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
-      "driver_followup": "本cb0b实际未验证新的retry/batch/Terminalcapture；先核实设置前台/目标可见性与旧live policy预期差异，原因未确定，修订不得预填PASS。"
+      "build_dir": "out/v1-product-native-move-up-r8-82d66a0",
+      "runtime_library": "MultiThreaded (/MT)",
+      "offline_regression": "Debug9/9 PASS; Release9/9 PASS; product targets only, driver guest-path not included",
+      "debug_offline_processor_seconds": 3.47,
+      "debug_offline_wall_seconds": 3.55,
+      "release_offline_processor_seconds": 1.44,
+      "release_offline_wall_seconds": 2.66,
+      "debug_ctest_output_log": "uat/v1-control/r8-82d66a0-debug-product-offline-20261017.txt",
+      "debug_ctest_output_log_sha256": "70437504B1F8335AF9971C82D3B4B41BA4DDBC73BAD442F580D4413C37B36F60",
+      "release_ctest_output_log": "uat/v1-control/r8-82d66a0-release-product-offline-20261017.txt",
+      "release_ctest_output_log_sha256": "44C1FEE0D70BE5C6ED1D5C3050539C5105C68207D50607DA06A56A0E2EFE127F",
+      "build_evidence_kind": "MAIN_EXECUTOR_ACTUAL_BUILD_RESULT_WITH_NATIVE_CTEST_OUTPUT_LOG_NOT_PER_TEST_STDOUT"
     },
     "historical_R6_candidate": {
       "source_sha": "baf27b1c08cf3e3d836ff68d880ebd537f0355ce",
@@ -299,8 +286,68 @@
       },
       "ordinary_host_trial_allowed": false
     },
-    "latest_observed_runtime_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-    "latest_observed_run_id": "cb0b735bf4cd4ac0b46374df1bff0ab7",
+    "latest_observed_runtime_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+    "latest_observed_run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+    "historical_R7_candidate": {
+      "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
+      "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
+      "runtime_library": "MultiThreaded (/MT)",
+      "build_dir": "out/v1-product-idle-catalog-r7-b0450da",
+      "debug_binary_sha256": "C8C3AC1F63178CFAF25ED0C7D42F7B2140111CEAEBB8B28B97765BF082D65A0C",
+      "release_binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "offline_regression": "Debug10/10 PASS; Release10/10 PASS",
+      "debug_offline_processor_seconds": 3.35,
+      "debug_offline_wall_seconds": 3.42,
+      "release_offline_processor_seconds": 1.56,
+      "release_offline_wall_seconds": 2.79,
+      "debug_ctest_output_log_sha256": "C9C99446D72071B9A6C8F2F5374878A409BF97DA50EFD13C3EEAA530A4799B92",
+      "release_ctest_output_log_sha256": "019B122044B0983DE5EC88FC0364F1CD530EFBBE0A8D85BF55716E8719D0C881",
+      "driver_source_sha": "fc06fc9d476073d82eba0372eb37e5353e08e419",
+      "debug_driver_sha256": "7A34FF955CBF043E1B8EE41C98BE3F92F69F5797FA5644C046E66185FD1C8D8B",
+      "release_driver_sha256": "8E1A0EECACECC1E1383C54800503B84400E2E9C32671C3ECAF808A5D48532DF6",
+      "driver_guest_path_offline": "shippingdriverfc06 Debug1/1 processor0.17/wall0.24; Release1/1 processor0.12/wall0.23",
+      "package_generated": true,
+      "run_id": "cb0b735bf4cd4ac0b46374df1bff0ab7",
+      "packaging_head": "fc06fc9d476073d82eba0372eb37e5353e08e419",
+      "package_zip_sha256": "4158155D73B9E96AA767F6DC59C4FE854FE6CA1104893ABEF436D3BFB733E8C8",
+      "package_manifest_sha256": "BBF4752E4165999BB7505D6FCAC712FF6C45A9E3947B24D669D2ED6B2386648F",
+      "wsb_sha256": "23D5C13450A67DAA18B5D93DBB67A608B4E4A89E492FF175CD4DA648C0CB9843",
+      "portable_package_id": "364579589e454eb7a63931f68df49567",
+      "portable_zip_sha256": "046CE03ABB916BF4D114B899E95586AE927270AC1EAAEDC24F3D454BEBE99DC4",
+      "portable_manifest_sha256": "60623F8D2CE7DFFC00F26714AFA81410DA6F743236FACB462B2BC4B1914F777B",
+      "portable_ordinary_entry": "NOT_RUN",
+      "runtime_validation": "INDEPENDENT_ENTRY_PARTIAL_COMPONENT_PASSES_OTHER_FAILURES_REMAINING_PHASES_NOT_RUN",
+      "ordinary_host_trial_allowed": false,
+      "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
+      "repair_scope": "event-driven catalog refresh skips pending native call, resumes after actual completion; actor test driver rechecks capture rather than consumed-DOWN async state",
+      "historical_results_rebound": false,
+      "collection_path": "uat/v1-control/cb0b735bf4cd4ac0b46374df1bff0ab7/collection-20261016T180807661Z-c54ce3e1d4b84a5aa08174a019b82554",
+      "observation_id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
+      "driver_followup": "本cb0b实际未验证新的retry/batch/Terminalcapture；先核实设置前台/目标可见性与旧live policy预期差异，原因未确定，修订不得预填PASS。"
+    },
+    "run_7149_observed": {
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "debug_binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+      "release_binary_sha256": "60DA1CB5EB5B914D09A92CEAE605CA122121162A4D94AA75CABE11B2C9F3ABB8",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "debug_driver_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+      "release_driver_sha256": "528D9C577A61A0F48D66B1F2CDB8EA349CDFE869A4E131B0BBD7506384734CDE",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "packaging_head": "778f4a421eb4eaa5744d73bd1eaec2deffcd9dd9",
+      "package_zip_sha256": "1EF67570B7DA58B68DD13F8204FEB4413A32ED4D1DE78235E2B24A0E10E0A479",
+      "package_manifest_sha256": "9D851CBD5E6C9365FC9FD59B12428EBFFEDB36C4D6A2442ECD01B90C2A52D210",
+      "wsb_sha256": "4804BBDAF29B0DA0F8CF2BE9BAC156A668D51136EEEB9A2008EE7196070E3183",
+      "collection_path": "uat/v1-control/7149a4d98b1a4a238cfb28956cb80ce4/collection-20261016T185142897Z-0876f791ae70450e8f003cd366065d17",
+      "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+      "Debug": "ACTUAL_NATIVE_HANDOFF_FIVE_PHASES_NORMAL_END_AND_RESOURCES_OBSERVED_ORIGINAL_DRIVER50FAIL_TIMESTAMP_ZERO",
+      "Release": "ACTIVATION_CLIENT_COUNTS_ZERO_NO_PRODUCT_GESTURE_CAUSE_UNKNOWN",
+      "portable_ordinary_entry": "NOT_RUN",
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "new_feature_or_B_PASS": false
+    },
     "run_cb0b_observed": {
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
       "binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
@@ -878,7 +925,8 @@
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
-        "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES"
+        "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -890,14 +938,14 @@
         ]
       },
       "latest_runtime_component_observation": {
-        "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-        "binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
-        "driver_source_sha": "7bec15809c1b6066132dcf411f4672cbd0ee795f",
-        "driver_binary_sha256": "10C90AAFD11C527B3CD8F629A5AF2797BA90E6F410C092C58272B313ED542143",
-        "run_id": "4e9eb4a7e1494054b2791c3797e78a37",
-        "configuration": "Release",
-        "observation_id": "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
-        "not_complete_contract_PASS": true
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -1855,7 +1903,8 @@
         "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL"
+        "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1888,15 +1937,14 @@
         }
       },
       "latest_runtime_component_observation": {
-        "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-        "binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
-        "driver_source_sha": "fc06fc9d476073d82eba0372eb37e5353e08e419",
-        "driver_binary_sha256": "8E1A0EECACECC1E1383C54800503B84400E2E9C32671C3ECAF808A5D48532DF6",
-        "run_id": "cb0b735bf4cd4ac0b46374df1bff0ab7",
-        "configuration": "Release",
-        "observation_id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
-        "not_complete_contract_PASS": true,
-        "scope": "cb0b IndependentEntry components only; actual failures and not-run phases in linked observation; historical complete contract identities unchanged"
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -2036,7 +2084,8 @@
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
         "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
-        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES"
+        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -2070,12 +2119,14 @@
         }
       },
       "latest_runtime_component_observation": {
-        "source_sha": "baf27b1c08cf3e3d836ff68d880ebd537f0355ce",
-        "binary_sha256": "A199FF709F8A19395999D9B0A3F4CEF8F570D19E594E32102A77BC58322A0DFF",
-        "run_id": "62591991e03f406ba66ced2fff997329",
-        "configuration": "Release",
-        "observation_id": "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "not_complete_contract_PASS": true
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -2168,7 +2219,8 @@
         "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
         "PO-90B8-R5-DOCK-STRETCH-SHAKE-AND-DRIVER-ROTATION",
-        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES"
+        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -2201,12 +2253,14 @@
         }
       },
       "latest_runtime_component_observation": {
-        "source_sha": "baf27b1c08cf3e3d836ff68d880ebd537f0355ce",
-        "binary_sha256": "A199FF709F8A19395999D9B0A3F4CEF8F570D19E594E32102A77BC58322A0DFF",
-        "run_id": "62591991e03f406ba66ced2fff997329",
-        "configuration": "Release",
-        "observation_id": "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "not_complete_contract_PASS": true
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -2270,7 +2324,8 @@
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2288,6 +2343,16 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -2343,7 +2408,8 @@
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -2360,6 +2426,16 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -2552,7 +2628,8 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -2561,6 +2638,16 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -7345,10 +7432,11 @@
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
-        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES"
+        "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。",
+      "observed": "bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。",
       "remaining_conditions": [
         "正式Explorer+自绘+编辑器混合应用合同没有运行，输入S1也未关闭。"
       ],
@@ -7364,12 +7452,14 @@
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "baf27b1c08cf3e3d836ff68d880ebd537f0355ce",
-        "binary_sha256": "A199FF709F8A19395999D9B0A3F4CEF8F570D19E594E32102A77BC58322A0DFF",
-        "run_id": "62591991e03f406ba66ced2fff997329",
-        "configuration": "Release",
-        "observation_id": "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
-        "not_complete_contract_PASS": true
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+        "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "configuration": "DebugAndRelease",
+        "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+        "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
       }
     },
     {
@@ -8767,7 +8857,8 @@
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
         "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
-        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS"
+        "PO-F481-CONSUMED-DOWN-OWNED-RESOURCE-EXITS",
+        "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL"
       ],
       "route_replacement_investigation": {
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
@@ -8792,6 +8883,17 @@
           "capture_loss": "NOT_RUN",
           "human_uat": "NOT_RUN"
         }
+      },
+      "R8_native_handoff_targeted_observation": {
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+        "Debug_actual_normal_end_and_resource_cleanup_observed": true,
+        "original_driver50_result": "FAIL",
+        "specific_receipt_gap": "legacy_up_dispatch_qpc0 yields normalized resource_observed_qpc0; not actual missing Raw/legacy UP",
+        "repair_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+        "repair_status": "DEV_FIXED_BUILD_PASS_PENDING_TARGETED_RUNTIME",
+        "Release_activation_cause": "UNKNOWN_NO_PRODUCT_GESTURE",
+        "old_D08_closed": false
       }
     },
     {
@@ -9842,6 +9944,51 @@
   },
   "evidence": [
     {
+      "id": "EV-7149-R8-DEBUG-FIVE-STAGE-ORIGINAL-UP-FAIL",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "product_binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "configuration": "Debug",
+      "path": "uat/v1-control/7149a4d98b1a4a238cfb28956cb80ce4/collection-20261016T185142897Z-0876f791ae70450e8f003cd366065d17/7149a4d98b1a4a238cfb28956cb80ce4-debug-fixture.jsonl",
+      "sha256": "2C7928E97A361AF4BECC9C4FAC7CD4D4EE16377063AC011439A634B9FE89E015",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7149-r8-debug-five-stage-and-original-up-verdict-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "0DE9DA397F9AFBD58C2521097389FA0109503A5D439794FE70CBA0A365F266DD",
+      "scope": "Actual Debug A_initial five phases exact and actual normal handoff cleanup observed; original driver50FAIL retained because native legacy dispatch timestamp was zero; not full owned/I02/featurePASS"
+    },
+    {
+      "id": "EV-7149-R8-RELEASE-PREFLIGHT-NO-GESTURE",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "product_binary_sha256": "60DA1CB5EB5B914D09A92CEAE605CA122121162A4D94AA75CABE11B2C9F3ABB8",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "driver_binary_sha256": "528D9C577A61A0F48D66B1F2CDB8EA349CDFE869A4E131B0BBD7506384734CDE",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "configuration": "Release",
+      "path": "uat/v1-control/7149a4d98b1a4a238cfb28956cb80ce4/collection-20261016T185142897Z-0876f791ae70450e8f003cd366065d17/7149a4d98b1a4a238cfb28956cb80ce4-release-fixture.jsonl",
+      "sha256": "110931477CF4B85E75F7CFDE2032A9820B2A97C4D5E2F2EACA8B4CF62A1F12A8",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7149-r8-release-preflight-no-product-gesture-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "11823A63DF08461A0E3D8C87084B7E5769395FECDCA4A1A525A468660E526FD0",
+      "scope": "Release client activation singlepair attempted but actual counts0/0 and foreground unchanged; no product DOWN/START/placement; causeUNKNOWN; not input delivery inferred from SendInput"
+    },
+    {
+      "id": "EV-7149-R8-DEBUG-NATIVE-HANDOFF-ACTUAL-UP-CLEANUP",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "product_binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "configuration": "Debug",
+      "path": "uat/v1-control/7149a4d98b1a4a238cfb28956cb80ce4/collection-20261016T185142897Z-0876f791ae70450e8f003cd366065d17/7149a4d98b1a4a238cfb28956cb80ce4-product-Debug/panebind.log.jsonl",
+      "sha256": "1B78CDA29EF0E36353EC1574F71139AE66B8AF441F68F1790BDECA71830754E5",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7149-r8-debug-native-handoff-actual-up-and-cleanup-product-selected.jsonl",
+      "repository_excerpt_sha256": "9BFFDB5F70ECC6A21F9F028F5A6FE4365969AF2ECFFB6435A574E84BDCED0A23",
+      "scope": "Actual PID6528 generation1 nativeSTART/shield/cancel/realEND/association/capture/four exactnative+hold no-call/RawUP+acceptedlegacyUP/release/detach/NormalGone/NormalUp; timestamp0 preserved, no whole functionalPASS"
+    },
+    {
       "id": "EV-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
       "kind": "literal_selected_actual_guest_JSONL",
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -10793,6 +10940,113 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "configuration": "DebugAndRelease",
+      "packaging_head": "778f4a421eb4eaa5744d73bd1eaec2deffcd9dd9",
+      "package_zip_sha256": "1EF67570B7DA58B68DD13F8204FEB4413A32ED4D1DE78235E2B24A0E10E0A479",
+      "package_manifest_sha256": "9D851CBD5E6C9365FC9FD59B12428EBFFEDB36C4D6A2442ECD01B90C2A52D210",
+      "wsb_sha256": "4804BBDAF29B0DA0F8CF2BE9BAC156A668D51136EEEB9A2008EE7196070E3183",
+      "release_binary_sha256": "60DA1CB5EB5B914D09A92CEAE605CA122121162A4D94AA75CABE11B2C9F3ABB8",
+      "release_driver_binary_sha256": "528D9C577A61A0F48D66B1F2CDB8EA349CDFE869A4E131B0BBD7506384734CDE",
+      "status": "DEBUG_NATIVE_HANDOFF_FIVE_PHASES_AND_ACTUAL_NORMAL_CLEANUP_OBSERVED_ORIGINAL_ASSERTION_FAIL_RELEASE_ACTIVATION_FAIL",
+      "evidence_ids": [
+        "EV-7149-R8-DEBUG-FIVE-STAGE-ORIGINAL-UP-FAIL",
+        "EV-7149-R8-RELEASE-PREFLIGHT-NO-GESTURE",
+        "EV-7149-R8-DEBUG-NATIVE-HANDOFF-ACTUAL-UP-CLEANUP"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/7149-r8-debug-five-stage-and-original-up-verdict-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/7149-r8-release-preflight-no-product-gesture-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/7149-r8-debug-native-handoff-actual-up-and-cleanup-product-selected.jsonl"
+      ],
+      "feature_ids": [
+        "M01-F04",
+        "M04-F02",
+        "M04-F04",
+        "M04-F05",
+        "M05-F01",
+        "M05-F02",
+        "M05-F05"
+      ],
+      "integration_ids": [
+        "I02"
+      ],
+      "observed": "Debug PID6528/g1实际DOWN→START→isolation_ready→一次100ms bounded cancel→真实native END→ATI/capture→A_initial自由/XY吸附/保持/拉开/重吸五阶段exact；四次native、hold已exact不发native。实际RawUP与本代accepted legacyUP、release/detach/NormalUp Gone及gesture_end normal_up=true均被记录。原driver50FAIL保留：native legacy分支legacy_up_dispatch_qpc=0，使规范化UP resource_observed_qpc=0，被actual_up门拒绝；不是本次实际UP缺失，修复82d未实测。Release实际前台65792未变，客户激活setup单次DOWN/UP虽返回1但计数0/0；产品LLcallback0，无产品DOWN/START/placement，原因UNKNOWN。",
+      "Debug_actual": {
+        "PID": 6528,
+        "generation": 1,
+        "five_exact_phases": true,
+        "native_placement_attempts": 4,
+        "hold_no_native_call": true,
+        "actual_Raw_UP": true,
+        "actual_same_generation_accepted_legacy_UP": true,
+        "actual_release_detach_and_NormalUp_Gone": true,
+        "actual_normal_gesture_end": true,
+        "original_driver_verdict_sequence": 50,
+        "original_driver_verdict": "FAIL",
+        "legacy_up_dispatch_qpc": 0,
+        "normalized_UP_resource_observed_qpc": 0,
+        "function_PASS": false
+      },
+      "Release_actual": {
+        "PID": 5636,
+        "foreground": 65792,
+        "test_client_single_DOWN_UP_attempted": true,
+        "actual_client_counts_before": [
+          0,
+          0
+        ],
+        "actual_client_counts_after": [
+          0,
+          0
+        ],
+        "product_LL_UP_callbacks": 0,
+        "product_DOWN_START_or_placement_observed": false,
+        "failure_sequence": 33,
+        "cause": "UNKNOWN"
+      },
+      "raw_files": {
+        "Debug_fixture_rows": 59,
+        "Release_fixture_rows": 41,
+        "Debug_product_rows": 41,
+        "Release_product_rows": 8,
+        "all_JSONL_valid_and_contiguous": true
+      },
+      "portable": {
+        "package_id": "84ade69d76874b8c975927d0065b8304",
+        "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+        "zip_sha256": "4CD29CE82DD7723E559886A0CDB9F649155BCA36BB769681568B52D2D22E16C5",
+        "manifest_sha256": "6316A4E3C926A5B3B4FFFF9CB1B1BB430FA3C10F14F9DE15BA340BD7EDBE137A",
+        "ordinary_GUI_entry": "NOT_RUN"
+      },
+      "not_run": [
+        "remaining_Core_and_postResize_round",
+        "settings",
+        "applications",
+        "Release_enhanced_gesture",
+        "portable_ordinary_GUI",
+        "human_UAT"
+      ],
+      "collection_path": "uat/v1-control/7149a4d98b1a4a238cfb28956cb80ce4/collection-20261016T185142897Z-0876f791ae70450e8f003cd366065d17",
+      "exact_guest_PID": 26360,
+      "exact_guest_start_ticks": "639277734378876101",
+      "exact_guest_and_task_cleaned": true,
+      "cleanup_utc": "2026-10-16T18:53:10.5520625Z",
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false,
+      "next_fix_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "next_fix_status": "DEV_FIXED_BUILD_PASS_PENDING_TARGETED_RUNTIME",
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "新源码修复真实legacy派发时间戳后以新EXE/Run定向复验；继续Release实际激活原因区分及未执行的Core/Explorer/应用，不能改写175旧FAIL或将Debug首次A通过当完整I02。"
+    },
     {
       "id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -14511,14 +14765,14 @@
     },
     "historical_binding_lookup": "partial_observation_ids → partial_observations（原source_sha/binary_sha256/run_id/evidence_ids）→ evidence / v1-evidence/index.json；禁止只按candidate_identity_ref改写历史实测身份。",
     "latest_runtime_observation": {
-      "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
-      "binary_sha256": "F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22",
-      "driver_source_sha": "fc06fc9d476073d82eba0372eb37e5353e08e419",
-      "driver_binary_sha256": "8E1A0EECACECC1E1383C54800503B84400E2E9C32671C3ECAF808A5D48532DF6",
-      "run_id": "cb0b735bf4cd4ac0b46374df1bff0ab7",
-      "configuration": "Release",
-      "observation_id": "PO-CB0B-R7-INDEPENDENT-ENTRY-SETTINGS-PARTIAL",
-      "not_complete_contract_PASS": true
+      "source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "binary_sha256": "64A111A2584930CB71D5E6B7BBA8D1E98BC461266DA8D411CEAF260A13A65263",
+      "driver_source_sha": "1759637eaabc604f5564801d70c20e837d573b78",
+      "driver_binary_sha256": "7E7E95E09EF663CB85E80B4F8D4F14FA2E5BAF1B80E6BA83210C8F1527D11196",
+      "run_id": "7149a4d98b1a4a238cfb28956cb80ce4",
+      "configuration": "DebugAndRelease",
+      "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
+      "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
     },
     "existing_VM_inventory": {
       "source": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
