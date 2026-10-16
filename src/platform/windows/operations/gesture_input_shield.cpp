@@ -623,9 +623,9 @@ struct GestureInputShield::Impl {
             }
         }
         if (message == WM_LBUTTONUP) {
+            const auto observed_qpc = native_qpc();
             if (self->current_consumed_down) {
                 const auto generation = self->current ? self->current->generation : 0;
-                const auto observed_qpc = native_qpc();
                 const bool accepted = !self->current_legacy_up && !self->capture_revoked &&
                     self->active_identity() && gesture_shield_consumed_legacy_up_matches(
                         *self->current_consumed_down, generation, self->overlay_generation,
@@ -661,6 +661,7 @@ struct GestureInputShield::Impl {
             event.kind = GestureShieldEventKind::LegacyLeftUp;
             event.generation = self->current ? self->current->generation : 0;
             event.legacy_up_accepted = self->current_legacy_up;
+            event.legacy_up_dispatch_qpc = observed_qpc;
             event.overlay = window;
             event.message_point = self->message_point;
             event.message_time = self->message_time;
