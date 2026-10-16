@@ -205,10 +205,16 @@ public static class PaneBindV1MediumDesktopProbe {
     }
     sealed class AddedAce {public byte[] bytes;public string key;public Dictionary<string,object> facts;}
     static List<AddedAce> Delta(AclState before,AclState after,string account,string logon,out bool explained,out List<object> facts) {
-        var remaining=Counts(before.descriptor.DiscretionaryAcl);var added=new List<AddedAce>();facts=new List<object>();explained=true;
+        var remaining=Counts(before.descriptor.DiscretionaryAcl);var added=new List<AddedAce>();facts=new List<object>();explained=true;int originalIndex=0;
         foreach(GenericAce ace in after.descriptor.DiscretionaryAcl) {
             var bytes=AceBytes(ace);var key=Convert.ToBase64String(bytes);
-            if(remaining.ContainsKey(key)&&remaining[key]>0){remaining[key]--;continue;}
+            if(remaining.ContainsKey(key)&&remaining[key]>0){
+                // An identical ACE multiset is insufficient: changing the
+                // original deny/allow order can change effective access.
+                if(originalIndex>=before.descriptor.DiscretionaryAcl.Count||
+                   !SameBytes(bytes,AceBytes(before.descriptor.DiscretionaryAcl[originalIndex])))explained=false;
+                originalIndex++;remaining[key]--;continue;
+            }
             var common=ace as CommonAce;var sid=common==null?null:common.SecurityIdentifier.Value;
             bool exact=ace.AceType==AceType.AccessAllowed&&common!=null&&(sid==account||sid==logon);
             var fact=new Dictionary<string,object>{{"ace_sha256",ByteHash(bytes)},{"ace_type",(int)ace.AceType},{"flags",(int)ace.AceFlags},
