@@ -14,6 +14,24 @@ namespace panebind::platform::windows::product::guest {
 // This is a narrow experimental-run guard, not product window eligibility.
 // File work occurs once on the input owner, never in a hook/resource callback.
 struct CaptureScope { bool enabled{};std::string reason{"ordinary_host_original_input_route"},run_id; };
+// Resource availability is not window authority. Production targets still
+// require Catalog/Prepared/configuration and per-generation native checks;
+// exact automated targets retain their separate guarded-run restrictions.
+enum class ResourceRouteKind {None,ExactGuest,ProductionMedium};
+enum class ResourceOwnerKind {Unknown,ExactSandboxAccount,OrdinaryUser};
+inline constexpr ResourceRouteKind select_resource_route(ResourceOwnerKind owner,
+    bool interactive_medium,bool exact_guest_verified) noexcept {
+    if(!interactive_medium)return ResourceRouteKind::None;
+    if(owner==ResourceOwnerKind::ExactSandboxAccount)
+        return exact_guest_verified?ResourceRouteKind::ExactGuest:ResourceRouteKind::None;
+    if(owner==ResourceOwnerKind::OrdinaryUser)return ResourceRouteKind::ProductionMedium;
+    return ResourceRouteKind::None;
+}
+struct ResourceRoute {
+    ResourceRouteKind kind{ResourceRouteKind::None};
+    std::string reason{"resource_owner_not_verified"},run_id;
+    [[nodiscard]] bool enabled()const noexcept{return kind!=ResourceRouteKind::None;}
+};
 inline std::string capture_read(const std::filesystem::path& path,std::size_t cap=262144){
     const auto attrs=GetFileAttributesW(path.c_str());std::error_code ec;
     if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||
@@ -108,5 +126,27 @@ inline CaptureScope detect_capture_scope(std::string_view source_sha){
         }else if(!capture_read(parent/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return out;
         out.enabled=true;out.run_id=run;out.reason="exact_Medium_disposable_guest_product_run";return out;
     }catch(...){out.reason="guest_scope_query_failed";return out;}
+}
+inline ResourceRoute detect_resource_route(std::string_view source_sha){
+    ResourceRoute out;try{
+        std::array<wchar_t,128> name{};DWORD size=static_cast<DWORD>(name.size());
+        if(!GetUserNameW(name.data(),&size)||!name[0])return out;
+        const auto owner=_wcsicmp(name.data(),L"WDAGUtilityAccount")==0?
+            ResourceOwnerKind::ExactSandboxAccount:ResourceOwnerKind::OrdinaryUser;
+        const bool interactive_medium=capture_interactive_medium();
+        if(owner==ResourceOwnerKind::ExactSandboxAccount){
+            // Failed guest marker/path/hash verification can NEVER fall back
+            // to the ordinary user's production resource route.
+            const auto exact=detect_capture_scope(source_sha);
+            out.kind=select_resource_route(owner,interactive_medium,exact.enabled);
+            out.reason=interactive_medium?exact.reason:"guest_not_interactive_medium";
+            if(out.kind==ResourceRouteKind::ExactGuest)out.run_id=exact.run_id;
+        }else{
+            out.kind=select_resource_route(owner,interactive_medium,false);
+            out.reason=out.enabled()?"production_interactive_Medium_resource_route":
+                "ordinary_user_not_interactive_medium";
+        }
+        return out;
+    }catch(...){out.kind=ResourceRouteKind::None;out.run_id.clear();out.reason="resource_scope_query_failed";return out;}
 }
 } // namespace panebind::platform::windows::product::guest

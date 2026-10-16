@@ -1756,7 +1756,9 @@ void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.s
         std::string(native_writer_exited?"true":"false")+",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false")+
         ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false")+
-        ",\"guest_capture_route_used\":"+(input.capture_route_enabled()?"true":"false")+
+        ",\"guest_capture_route_used\":"+(input.capture_route_is_guest()?"true":"false")+
+        ",\"capture_resource_route_used\":"+(input.capture_route_enabled()?"true":"false")+
+        ",\"capture_resource_route\":\""+escaped(input.capture_route_mode())+"\""+
         ",\"own_input_resources_stopped\":"+(!input.capture_route_enabled()||input.capture_stop_facts().clean()?"true":"false")+
         ",\"own_capture_released\":"+(input.capture_route_enabled()?(input.capture_stop_facts().capture_released?"true":"false"):"null")+
         ",\"own_input_association_detached\":"+(input.capture_route_enabled()?(input.capture_stop_facts().association_detached?"true":"false"):"null")+
@@ -1965,7 +1967,9 @@ int run(HINSTANCE instance,const wchar_t*){
         if(!app.input.start(app.window)){app.settings.enabled=false;app.notify(L"输入资源或紧急热键初始化失败，增强保持暂停。");}
         app.input.pause(!app.settings.enabled);app.register_keys();app.prepare();
         app.log.event("startup","\"entry\":\"production_gui\",\"integrity\":\"medium\",\"elevated\":false,\"initiator\":\"not_collected\"");
-        app.log.event("input_route","\"guest_consumed_down_capture\":"+std::string(app.input.capture_route_enabled()?"true":"false")+
+        app.log.event("input_route","\"guest_consumed_down_capture\":"+std::string(app.input.capture_route_is_guest()?"true":"false")+
+            ",\"capture_resource_route_enabled\":"+(app.input.capture_route_enabled()?"true":"false")+
+            ",\"capture_resource_route\":\""+escaped(app.input.capture_route_mode())+"\""+
             ",\"reason\":\""+escaped(app.input.capture_route_reason())+"\",\"initialization_success_not_function_PASS\":true");
         if(!app.problem.empty())app.notify(app.problem);
         // An explicit ordinary launch must be discoverable even when the

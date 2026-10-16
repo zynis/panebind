@@ -354,6 +354,8 @@ public:
     bool claim_native_move_cancel(std::uint64_t);
     bool request_native_move_capture(std::uint64_t,const std::shared_ptr<const NativeMoveReceipt>&,const Snapshot&);
     bool capture_route_enabled()const{return capture_route_enabled_;}
+    bool capture_route_is_guest()const{return capture_route_is_guest_;}
+    const std::string& capture_route_mode()const{return capture_route_mode_;}
     const std::string& capture_route_reason()const{return capture_route_reason_;}
     operations::GestureShieldStopFacts capture_stop_facts()const{return capture_stop_facts_;}
 private:
@@ -410,8 +412,9 @@ private:
     std::shared_ptr<CaptureBridge> capture_bridge_;
     std::unique_ptr<operations::GestureInputShield> shield_;
     operations::GestureShieldStopFacts capture_stop_facts_{};
-    bool capture_route_enabled_{},capture_pair_{};
+    bool capture_route_enabled_{},capture_route_is_guest_{},capture_pair_{};
     std::optional<InputEvent> capture_pending_down_;
-    std::string capture_route_reason_{"ordinary_host_original_input_route"};
+    std::string capture_route_reason_{"input_resource_route_not_initialized"};
+    std::string capture_route_mode_{"unavailable"};
 };
 }

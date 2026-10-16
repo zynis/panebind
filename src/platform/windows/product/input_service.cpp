@@ -636,14 +636,22 @@ void InputService::run(){
     bool event_ok=true;for(std::size_t i=0;i<ev.size();++i){const auto last=ev[i]==EVENT_SYSTEM_MOVESIZESTART?EVENT_SYSTEM_MOVESIZEEND:ev[i];
         events_[i]=SetWinEventHook(ev[i],last,nullptr,event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);event_ok=event_ok&&events_[i];}
     const bool stop_ok=RegisterHotKey(nullptr,910,MOD_CONTROL|MOD_SHIFT|MOD_NOREPEAT,VK_F11);
-    const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);
-    capture_route_enabled_=scope.enabled;capture_route_reason_=scope.reason;bool shield_ok=true;
+    const auto resource_route=guest::detect_resource_route(PANEBIND_BUILD_SHA);
+    // Resource availability is not source authority. Normal product gestures
+    // still require enabled, fresh Catalog/Prepared identity and per-generation
+    // native/capture receipts. The exact guest contract never falls through
+    // to ordinary production admission when its markers or hashes are invalid.
+    capture_route_enabled_=resource_route.enabled();capture_route_reason_=resource_route.reason;
+    capture_route_is_guest_=resource_route.kind==guest::ResourceRouteKind::ExactGuest;
+    capture_route_mode_=capture_route_is_guest_?"exact_guest":
+        resource_route.kind==guest::ResourceRouteKind::ProductionMedium?"production_Medium":"unavailable";
+    bool shield_ok=true;
     if(capture_route_enabled_&&stop_ok){
         capture_bridge_=std::make_shared<CaptureBridge>();const auto bridge=capture_bridge_;
         bridge->authority=authorized_;bridge->completion=completion_;bridge->available=available_;
         bridge->owner_tid=GetCurrentThreadId();bridge->hotkey_registered=true;
         operations::GestureShieldCallbacks callbacks;
-        callbacks.environment_allowed=[scope]{return scope.enabled&&guest::capture_interactive_medium();};
+        callbacks.environment_allowed=[resource_route]{return resource_route.enabled()&&guest::capture_interactive_medium();};
         callbacks.consumed_down_authorized=[bridge](const auto& request){return bridge->authorized(request);};
         callbacks.gesture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,false);};
         callbacks.capture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,true);};
@@ -657,9 +665,11 @@ void InputService::run(){
         };
         callbacks.on_event=[bridge](const auto& event){bridge->receive(event);};
         shield_=std::make_unique<operations::GestureInputShield>(std::move(callbacks));shield_ok=shield_->start();
-        if(!shield_ok)capture_route_reason_="exact_guest_shield_initialization_failed";
+        if(!shield_ok)capture_route_reason_="selected_input_shield_initialization_failed";
     }
-    healthy_=hook_&&raw_ok&&event_ok&&stop_ok&&shield_ok;*available_=healthy_&&!paused_;SetEvent(ready_);
+    // A failed environment/guest proof must leave native input untouched, not
+    // silently re-enter the superseded consumed-DOWN route without resources.
+    healthy_=hook_&&raw_ok&&event_ok&&stop_ok&&shield_ok&&capture_route_enabled_;*available_=healthy_&&!paused_;SetEvent(ready_);
     if(healthy_&&!stop_requested_)while(GetMessageW(&msg,nullptr,0,0)>0){
         if(msg.message==WM_HOTKEY&&msg.wParam==910&&HIWORD(msg.lParam)==VK_F11&&
            (LOWORD(msg.lParam)&(MOD_CONTROL|MOD_SHIFT|MOD_ALT|MOD_WIN))==(MOD_CONTROL|MOD_SHIFT)){

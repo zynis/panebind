@@ -1,4 +1,5 @@
 #include "platform/windows/product/guest_path_scope.h"
+#include "platform/windows/product/guest_capture_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
 #include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
@@ -45,6 +46,19 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    using ResourceOwner=guest::ResourceOwnerKind;using ResourceRoute=guest::ResourceRouteKind;
+    if(!expect(guest::select_resource_route(ResourceOwner::OrdinaryUser,true,false)==ResourceRoute::ProductionMedium,true,
+           "actual ordinary interactive Medium can use production resources without guest artifacts")||
+       !expect(guest::select_resource_route(ResourceOwner::OrdinaryUser,false,true)==ResourceRoute::None,true,
+           "High or inactive ordinary owner cannot acquire resources even with guest evidence")||
+       !expect(guest::select_resource_route(ResourceOwner::ExactSandboxAccount,true,true)==ResourceRoute::ExactGuest,true,
+           "interactive Medium sandbox account needs exact guest verification")||
+       !expect(guest::select_resource_route(ResourceOwner::ExactSandboxAccount,true,false)==ResourceRoute::None,true,
+           "unverified sandbox account cannot fall back to production")||
+       !expect(guest::select_resource_route(ResourceOwner::ExactSandboxAccount,false,true)==ResourceRoute::None,true,
+           "verified guest artifacts do not override High or inactive environment")||
+       !expect(guest::select_resource_route(ResourceOwner::Unknown,true,true)==ResourceRoute::None,true,
+           "unknown owner never receives resource authority"))return 1;
     // Exact old failure shape: the valid prefix was below the whole-file
     // read cap; the completed finite phase crossed it. The actual production
     // reader must preserve that phase's original verdict, not return empty.

@@ -2630,6 +2630,30 @@ UserData directory. Read only that exact startup file under the existing
 environment change, `--no-sandbox`, token/ACL/policy change or host install.
 An absent file remains UNKNOWN. This is not a repair claim or external code reuse.
 
+### V1 production resource admission versus exact guest guard — 2026-10-17
+
+Reused the pinned AltSnap/FancyZones review records, V1 guide sections 2/4/5,
+and the existing consumed-DOWN/native-first capture research above. This change
+introduces no new input API or external code: it connects the already implemented
+GestureInputShield/native-END/capture lifecycle to the ordinary production
+entry, rather than leaving that entry on the older resource-less LL-UP route.
+Resource admission is separate from Catalog/Prepared target eligibility, enabled
+settings, per-generation authority and the existing real foreground, identity,
+capture, geometry and UP receipts. It grants none of those window facts.
+
+The actual owner query must succeed. An ordinary user must satisfy the existing
+interactive Medium/non-elevated, active session, WinSta0/Default checks; High,
+inactive and unknown owners are rejected. WDAGUtilityAccount continues through
+the unchanged exact RunId/marker/manifest/path/binary-hash guard and cannot fall
+back to production admission after a failed guest proof. Initialization failure
+leaves enhancements paused instead of silently selecting the superseded route.
+The same selector is checked in the existing offline guest-path target. This is
+production wiring, not permission for host automated input or a claim of an
+ordinary full-desktop runtime PASS. Current guest results retain their original
+product binary identity; the changed product requires its own affected runtime
+checks. Ordinary full-desktop and multi-monitor acceptance remain NOT_RUN or
+environment-blocked until actually available. No new attribution is required.
+
 Also inspected the driver's retained Catalog lifetime against its existing
 same-STA contract and Microsoft's [STA rules](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments),
 [CoUninitialize](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-couninitialize)
