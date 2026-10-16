@@ -643,7 +643,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     try{
         s.log.check("guest_passive_UP_observer_ready",hook_ready,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());
-        attempted=true;normal_release_with_final_cursor(s,source);returned=true;if(s.control)key(s,VK_CONTROL,false);
+        normal_release_with_final_cursor(s,source);attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
@@ -660,7 +660,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             ",\"production_end\":"+(end.empty()?"null":quote(end))+",\"fixture_Raw_before_single_UP\":"+raw_before+",\"fixture_Raw_after_normal_wait\":"+raw_after+
             ",\"passive_head_hook\":"+hook_observer.json()+
             ",\"Raw_source_generation_attribution\":\"UNKNOWN\",\"Raw_does_not_change_original_assertion_or_authority\":true");raw_logged=true;
-        s.log.check("normal_up_and_no_late_geometry",observed&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
+        s.log.check("normal_up_and_no_late_geometry",observed&&!actual_LL_UP.empty()&&actual==expected&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&gui_read&&!gui.hwndCapture,
             "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+",\"actual\":"+(actual?rect(*actual):"null")+
             ",\"source_thread_capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
             ",\"source_GUI_known\":"+(gui_read?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
@@ -670,6 +670,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
             std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
             std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+",\"production_end\":"+quote(end));
     }catch(...){
+        attempted=s.left_up_attempted;
         const bool hook_stopped=hook_observer.stop();
         if(!raw_logged)try{s.log.emit("ordinary_gesture_UP_Raw_observation","\"generation\":"+std::to_string(g.generation)+",\"source_member\":"+std::to_string(source)+
             ",\"phase\":\"exception_during_existing_UP_observation\",\"single_test_UP_attempted\":"+(attempted?"true":"false")+

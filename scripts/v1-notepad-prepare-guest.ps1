@@ -5,11 +5,13 @@ param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$Ru
 # https://learn.microsoft.com/windows/package-manager/winget/download
 # https://learn.microsoft.com/powershell/module/appx/add-appxpackage
 # https://learn.microsoft.com/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-faq
+# https://learn.microsoft.com/windows/package-manager/winget/troubleshooting
+# https://raw.githubusercontent.com/microsoft/winget-cli/v1.29.380/src/AppInstallerCommonCore/HttpClientHelper.cpp
 # Fixed Microsoft/winget-cli v1.29.380 packages retain their original signatures
 # and notices. They are internal test tools, not PaneBind product dependencies.
 $ErrorActionPreference='Stop'
 $inputDirectory='C:\PaneBindV1\Input';$outputDirectory='C:\PaneBindV1\Output'
-$receipt=$null;$receiptPath=$null
+$receipt=$null;$receiptPath=$null;$diagnosticDirectory=$null
 function Assert-Plain([string]$Path,[bool]$Directory){
     $item=Get-Item -LiteralPath $Path
     if($item.PSIsContainer -ne $Directory -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Expected ordinary exact guest input/output, not a reparse point.'}
@@ -37,6 +39,37 @@ function Invoke-ExactPreparationProcess([string]$Executable,[string]$Arguments,[
             stdout=$stdout.Substring(0,[Math]::Min(32768,$stdout.Length));stderr=$stderr.Substring(0,[Math]::Min(32768,$stderr.Length));
             application_function_result='NOT_RUN'}
     }finally{$process.Dispose()}
+}
+function Copy-OwnWinGetDiagnostics([string]$Directory,[string]$Output,[string]$ExactRunId){
+    # Read only the newly installed tool's own direct log directory, never a
+    # profile search. Failure collection must not replace the original failure.
+    $facts=[ordered]@{status='NOT_PRESENT';source_directory=$Directory;files=@();error=$null;
+        max_files=8;max_file_bytes=1MB;max_total_bytes=4MB;omitted_by_bound=$false}
+    try{
+        if(-not (Test-Path -LiteralPath $Directory)){return $facts}
+        Assert-Plain $Directory $true
+        $destination=Join-Path $Output ($ExactRunId+'-winget-diagnostics')
+        if(Test-Path -LiteralPath $destination){throw 'Existing diagnostic evidence must not be overwritten.'}
+        [IO.Directory]::CreateDirectory($destination)|Out-Null
+        $logs=@(Get-ChildItem -LiteralPath $Directory -File|Where-Object{$_.Name -cmatch '^WinGet-[A-Za-z0-9_.-]{1,128}\.log$'}|Select-Object -First 9)
+        if($logs.Count -gt 8){$facts.omitted_by_bound=$true}
+        [long]$total=0
+        foreach($log in @($logs|Select-Object -First 8)){
+            Assert-Plain $log.FullName $false
+            if($log.Length -gt 1MB -or $total+$log.Length -gt 4MB){$facts.omitted_by_bound=$true;continue}
+            $target=Join-Path $destination $log.Name
+            [IO.File]::Copy($log.FullName,$target,$false)
+            $copied=Get-Item -LiteralPath $target
+            if($copied.Length -gt 1MB -or $total+$copied.Length -gt 4MB){throw 'Tool log changed beyond the diagnostic bound after process exit.'}
+            $total+=$copied.Length
+            $text=[IO.File]::ReadAllText($target)
+            $facts.files+=,[ordered]@{relative_path=($ExactRunId+'-winget-diagnostics\'+$log.Name);size=$copied.Length;
+                sha256=(Get-FileHash -LiteralPath $target).Hash;tail_chars=[Math]::Min(16384,$text.Length);
+                tail=$text.Substring([Math]::Max(0,$text.Length-16384));raw_log_retained=$true}
+        }
+        $facts['total_bytes']=$total;$facts.status=if($facts.omitted_by_bound){'BOUNDED_WITH_OMISSIONS'}elseif($facts.files.Count){'COLLECTED'}else{'NO_MATCHING_TOOL_LOG'}
+    }catch{$facts.status='FAILED';$facts.error=$_.Exception.Message}
+    return $facts
 }
 try{
     # This is a one-purpose disposable-guest downloader, never a host install
@@ -123,6 +156,7 @@ public static class PaneBindNotepadPreparationFacts {
     $receipt=[ordered]@{schema='panebind-v1-notepad-preparation-result/1';run_id=$RunId;source_commit=$manifest.source_commit;
         asset_id=$manifest.asset_id;status='RUNNING';actual_integrity_rid=$rid;actual_elevated=$elevated;session_id=$session;sid_sha256=$sidHash;
         exact_local_WDAG_account=$true;desktop_facts=$desktop;active_Default_desktop=$desktop['accepted'];package_deployments=@();tools=@();downloaded_files=@();error=$null;
+        locale_facts=$null;winget_diagnostics=$null;
         host_installation='NONE';product_started=$false;synthetic_input_sent=$false;application_function_result='NOT_RUN';
         offline_license_requested=$false;account_login_requested=$false;formal_test_guest_networking='Disable'}
     $work='C:\PaneBindV1\NotepadPreparation\'+$RunId
@@ -151,6 +185,15 @@ public static class PaneBindNotepadPreparationFacts {
     if(Test-Path -LiteralPath $settingsPath){throw 'Unexpected preexisting WinGet guest settings; do not overwrite.'}
     Write-NewJson $settingsPath ([ordered]@{telemetry=[ordered]@{disable=$true};source=[ordered]@{autoUpdateIntervalInMinutes=0}})
     $receipt['guest_tool_telemetry_disabled']=$true
+    $diagnosticDirectory=Join-Path $settingsDirectory 'DiagOutputDir'
+    # Observe the guest's actual region; source-agreement text does not prove
+    # it is valid or invalid. Never change region/language to force a download.
+    try{
+        $geo=Get-WinHomeLocation
+        if($null -eq $geo.GeoId){throw 'Get-WinHomeLocation returned no GeoId fact.'}
+        $receipt.locale_facts=[ordered]@{status='OBSERVED';geo_id=[long]$geo.GeoId;home_location=[string]$geo.HomeLocation;
+            culture=(Get-Culture).Name;ui_culture=(Get-UICulture).Name;region_or_language_modified=$false}
+    }catch{$receipt.locale_facts=[ordered]@{status='UNKNOWN';error=$_.Exception.Message;region_or_language_modified=$false}}
     $winget=Join-Path $installed[0].InstallLocation 'winget.exe';Assert-Plain $winget $false
     $signature=Get-AuthenticodeSignature -LiteralPath $winget
     if($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -cne 'CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'){throw 'Guest WinGet executable signature invalid.'}
@@ -159,7 +202,7 @@ public static class PaneBindNotepadPreparationFacts {
     $download=Join-Path $outputDirectory ($RunId+'-notepad-download')
     if(Test-Path -LiteralPath $download){throw 'Notepad download directory already exists.'}
     New-Item -ItemType Directory -Path $download -ErrorAction Stop|Out-Null
-    $arguments='download --id 9MSMLRH6LZF3 --source msstore --architecture x64 --skip-license --accept-source-agreements --accept-package-agreements --disable-interactivity --no-progress --download-directory "'+$download+'"'
+    $arguments='download --id 9MSMLRH6LZF3 --source msstore --architecture x64 --skip-license --accept-source-agreements --accept-package-agreements --disable-interactivity --no-progress --verbose-logs --download-directory "'+$download+'"'
     $result=Invoke-ExactPreparationProcess $winget $arguments 300;$receipt.tools+=,$result
     $downloadSucceeded=-not $result.timed_out -and $result.exit_code -eq 0
     $pending=New-Object 'System.Collections.Generic.Queue[string]';$pending.Enqueue($download);$files=@();[long]$total=0;$directories=0
@@ -185,6 +228,11 @@ public static class PaneBindNotepadPreparationFacts {
     $receipt.status='OFFICIAL_PACKAGES_DOWNLOADED_NOT_FUNCTION_TESTED'
 }catch{
     if($receipt){$receipt.status='FAILED';$receipt.error=$_.Exception.Message}else{[Console]::Error.WriteLine($_.Exception.Message);exit 78}
-}finally{if($receipt -and $receiptPath -and -not (Test-Path -LiteralPath $receiptPath)){Write-NewJson $receiptPath $receipt}}
+}finally{
+    if($receipt -and $receiptPath -and -not (Test-Path -LiteralPath $receiptPath)){
+        if($diagnosticDirectory){$receipt.winget_diagnostics=Copy-OwnWinGetDiagnostics $diagnosticDirectory $outputDirectory $RunId}
+        Write-NewJson $receiptPath $receipt
+    }
+}
 if($receipt.status -cne 'OFFICIAL_PACKAGES_DOWNLOADED_NOT_FUNCTION_TESTED'){exit 78}
 exit 0

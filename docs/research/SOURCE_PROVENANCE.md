@@ -2221,3 +2221,26 @@ then exactly one UP in one call. No UP replay, delay-based success, product
 change or Raw substitute is introduced; both real head/product UP and normal
 termination remain mandatory. This is an unproven test-input variant, not a
 product fix or claimed root cause. External code copied/adapted: **NO**.
+
+The next ordinary-desktop precheck follows the separately inspected
+[CreateProcessWithTokenW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithtokenw)
+NULL-desktop contract: the API can grant the specified user's inherited
+station/desktop access. This is an explicit disposable-guest environment
+change, not a read-only operation. One exact newly created standard token is
+used, never a re-logon or altered host token; only a short-lived blank Win32
+child is launched. Query/cleanup handles are held before the call. Actual ACL
+deltas and only this new account/logon SID's recorded ACEs are checked and
+removed without restoring an old whole DACL. Failure/unknown cleanup blocks
+further input. A visible GUI with current-VD query is a precheck only, never
+an Explorer/Shell/tray or product functional PASS. No external code copied.
+
+For the c81 official Notepad download's `0x8a15003b`, actually inspected fixed
+WinGet tag v1.29.380
+[HttpClientHelper.cpp](https://raw.githubusercontent.com/microsoft/winget-cli/v1.29.380/src/AppInstallerCommonCore/HttpClientHelper.cpp)
+and Microsoft's [troubleshooting/log contract](https://learn.microsoft.com/en-us/windows/package-manager/winget/troubleshooting).
+That code maps both HTTP400 and some native-code-less HTTP exceptions to this
+value; the agreement's region text alone does not establish a geographic
+cause. One further bounded preparation run records the actual region without
+changing it and retains the new tool's exact verbose logs to distinguish these
+outcomes. No proxy/TLS/signature relaxation, third-party Store downloader or
+application-code reuse is authorized or introduced.

@@ -7,6 +7,7 @@ param(
     [string]$VSCodeAssetDirectory,
     [string]$PortablePackageDirectory,
     [switch]$MediumEnvironmentProbe,
+    [switch]$MediumDesktopProbe,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
@@ -248,11 +249,13 @@ foreach ($binary in $binaries) {
 }
 [IO.File]::Copy((Join-Path $PSScriptRoot 'v1-sandbox-guest.ps1'),(Join-Path $inputDir 'v1-sandbox-guest.ps1'),$false)
 if($MediumEnvironmentProbe){[IO.File]::Copy((Join-Path $PSScriptRoot 'v1-medium-environment-probe-guest.ps1'),(Join-Path $inputDir 'v1-medium-environment-probe-guest.ps1'),$false)}
+if($MediumDesktopProbe){[IO.File]::Copy((Join-Path $PSScriptRoot 'v1-medium-desktop-probe-guest.ps1'),(Join-Path $inputDir 'v1-medium-desktop-probe-guest.ps1'),$false)}
 Write-NewText (Join-Path $inputDir 'panebind-v1-input.marker') $RunId
 Write-NewText (Join-Path $outputDir 'panebind-v1-output.marker') $RunId
 $payloadFiles = @('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
     'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
 if($MediumEnvironmentProbe){$payloadFiles+='v1-medium-environment-probe-guest.ps1'}
+if($MediumDesktopProbe){$payloadFiles+='v1-medium-desktop-probe-guest.ps1'}
 if($vsCodeZip){
     $copied=Join-Path $inputDir 'VSCode-test.zip'
     [IO.File]::Copy($vsCodeZip,$copied,$false)
@@ -285,6 +288,7 @@ $manifest = [ordered]@{
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
+    medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck'};
     portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
     guest_suite=$Suite;
