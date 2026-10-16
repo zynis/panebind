@@ -2,7 +2,17 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新R8产品82d／drivere138／Run c17e已在同一Release进程完成六段真实手势及正常UP资源闭环，包含实际B Resize后的A五阶段；原时间戳缺口在该范围定向修复。随后CtrlC修饰键观测失败发生在鼠标DOWN前，全链仍FAIL，后续未运行。7149、R7及R6结果保持原身份。历史**7/60功能、B29／B32共2/40=5%**不变，未把子范围计为整版通过；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新R8产品82d／drivere138／Run34bf已实际完成9281普通ZIP入口子链，同PID5260两轮owned核心、900.001415秒／20slot与正常退出；不能再把当前R8这些项目写NOT_RUN。启动checkbox、source-close UP观察、actor后继START及尾部driver错误仍保留，应用／环境／托盘和完整I11／I12未齐。历史**7/60功能、B29／B32共2/40=5%**不自动增加，旧结果保留身份；不能宿主试用，真人UAT PENDING。
+
+## 34bf：当前普通ZIP与两轮／15分钟实测推进，尾阻断是driver错误
+
+Run `34bf39f969df4ce7b14cb1ab2d758bcd`仍使用产品82d／`C796DDA…ED0DE`、drivere138／`BA311956…D2CC`、包装dafed。ZIP `8D46E55171DAD98AF48C1C19074DA7E7797F2B9F654FF0CD76AB231ED884FA0D`／manifest `114F96DF52472536DFFF227C7E810CDDDD52F8116B13FE87B019BE8EE18BAE19`。稳定采集`collection-20261016T193948339Z-01f6e0a11ec04ec597b9e4e87a1e5a3b`含4007行合法连续fixture、原SHA `45E897ED5CE56912D72ACDE1AE04A22570E09BA3EF8A0A26557BD4878D40D112`。19:40:58Z确认guest12264／birth639277752443409911及专用任务清理、证据未变；不以guest销毁补产品PASS。
+
+[入口原行](v1-evidence/34bf-r8-entry-and-ordinary-portable-fixture-selected.jsonl)：设置GUI／诊断、rapid组件、五键、导入导出、保存失败、诊断导出失败、损坏恢复与排除有实际子PASS；301启动保存后disabled checkbox仍FAIL、854托盘不可达仍BLOCKED。264实际三包快速普通Move精确完成(35,31)、原生START／END各1及真实LL UP，产品cancel／capture／placement均0；这是native-only保留，不是增强NormalUp或快速Ctrl／Resize通过。9281七文件ZIP逐项核验、空参正常GUI／无参二启、默认Move／真实UP、保存配置后实际Move／UP、正常退出／原字节与无profile均通过，1043仅是普通ZIP入口范围，不能将其内部`I12=PASS`当整版I12。
+
+[有限连续原行](v1-evidence/34bf-r8-owned-two-rounds-15min-and-normal-exit-fixture-selected.jsonl)：同PID5260在2528／3304完成两轮owned核心I02–I06动作，真实postResize A及Ctrl C与UP均包含，未重启；20slot实际混合操作／空闲覆盖900.001415秒。五次handles284→279→286→282→282，GDI23→26→26→26→26、USER33→32→31→30→30，已审有限样本不严格单调增加，不宣无全部泄漏。4000实际正常资源退出、4005真实客户[8,8]→[9,9]独立成立。**3999是`invalid string position`驱动错误，不是I11资源断言失败**；后继视觉／在途／grid／batch／Explorer／apps和独立idle60未运行。bounded产品日志仅保留PID5260的2796–3441连续行；更早关键回执保留在fixture，不伪称原产品日志从1仍全在。
+
+[保留失败](v1-evidence/34bf-r8-sourceclose-actor-and-driver-failures-fixture-selected.jsonl)：source-close1647队首实际UP0、1648产品缺匹配UP，**真实release／detach／Gone已成功，后继g21恢复成立**，不是产品清理失败或必须重启。actor真实30047ms默认Deadline和资源idle通过，但紧随g24仅见nativepending／未见START，1702失败，不把actor资源PASS升级为完整I08恢复PASS。随后以22d6e60修driver整份fixture 2MiB读取为阶段suffix，D/R构建及guest-path各1/1已通过（D processor0.15／wall0.18，R processor0.11／wall0.22秒；原生CTest output-log及哈希已归档，不是逐测试原stdout或现场PASS），修订现场NOT_RUN。继续未运行应用，不重跑900秒，不给功能／B项或整版加分。
 
 ## c17e：Release六段手势闭环，Ctrl C前置失败仍阻断整链
 

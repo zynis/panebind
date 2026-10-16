@@ -2542,3 +2542,31 @@ and is not proven to be GPU-related. No `--no-sandbox`, token/security changes,
 host installation or persistent Code configuration is authorized by this test;
 the next actual run must report its own product/driver identities and cannot
 claim strict single-variable causality across a changed PaneBind binary.
+
+### V1 official Notepad web-installer acquisition — 2026-10-17
+
+Actually inspected the official [Notepad Store page](https://apps.microsoft.com/detail/9msmlrh6lzf3?hl=en-US&gl=US),
+its referenced `constants-B1r-ZMtw.js` and `psi-service-CIANOCrg.js`, and Microsoft's
+[Store Web Installer documentation](https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-use-store-web-installer-for-distribution).
+The page identifies product `9MSMLRH6LZF3` and family
+`Microsoft.WindowsNotepad_8wekyb3d8bbwe`; the actual scripts construct
+`https://get.microsoft.com/installer/download/9MSMLRH6LZF3`. The GET returned
+813,088 bytes, SHA-256 `97C2D2730D66E872CA46507437597AF9EB35B9345870B22D3353980D349BB1AB`,
+with `Windows Notepad Installer.exe` in Content-Disposition. Its Authenticode
+signature is Valid/Microsoft Corporation, certificate thumbprint
+`0F7E3531DB084A3D45759670B7699E53985E8742`, PE version `22609.1501.4.0`.
+The generic binary metadata/plain string inspection does not independently
+prove its internal product binding; the observed official URL/response chain
+is the acquisition evidence, not a claim to have verified an embedded payload.
+
+This proprietary Microsoft test application is not copied/adapted into
+PaneBind or included in its portable product. The downloaded file is an online
+stub, not an offline MSIX; Microsoft describes installation through the Store
+API/backend and prerequisite checks. It has NOT been executed. Current guest
+Networking=Disable cannot supply that route. A separately approved disposable
+networked preparation guest would be required; no host network/account/policy
+change or installation was made. Existing media-registration failures remain
+unchanged. Local original acquisition evidence, page/script hashes and byte
+offsets: `uat/v1-assets/d7b77c31807f42b5827ea50a14ddd095/acquisition-evidence.txt`.
+Applicable subsystem: isolated application compatibility test preparation;
+no external source-code reuse or new product attribution obligation.
