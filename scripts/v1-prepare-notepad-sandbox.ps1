@@ -74,6 +74,8 @@ $manifest=[ordered]@{schema='panebind-v1-notepad-preparation/1';run_id=$RunId;as
     bootstrap_dependencies_zip_sha256='BA875AFE9D190F61218985AC0292A99D1DB710BF93E13C68944CA9D89F0D82D1';
     official_notepad_product_id='9MSMLRH6LZF3';product_started=$false;synthetic_input_sent=$false;host_installation='NONE';
     preparation_result='NOT_RUN';application_function_result='NOT_RUN';formal_test_guest_networking='Disable'}
+$manifest['preparation_location']=[ordered]@{geo_id=244;source='read_only_test_host_configuration';physical_location_asserted=$false;
+    allowed_initial_geo_id=38970;restore_original=$true}
 Write-NewText (Join-Path $input 'manifest.json') ($manifest|ConvertTo-Json -Depth 10)
 $xmlInput=[Security.SecurityElement]::Escape($remote+'\input');$xmlOutput=[Security.SecurityElement]::Escape($remote+'\output')
 $wsb=@"
@@ -116,5 +118,6 @@ $receipt=[ordered]@{schema='panebind-v1-notepad-package-receipt/1';run_id=$RunId
     manifest_sha256=(Get-FileHash -LiteralPath (Join-Path $input 'manifest.json')).Hash;wsb_sha256=(Get-FileHash -LiteralPath (Join-Path $root 'PaneBindV1.wsb')).Hash;
     guest_script_sha256=$scriptHash;files=$archiveFiles;networking='Enable';deployed=$false;guest_started=$false;
     preparation_result='NOT_RUN';application_function_result='NOT_RUN';product_started=$false;synthetic_input_sent=$false;host_installation='NONE'}
+$receipt['preparation_location']=$manifest.preparation_location
 Write-NewText (Join-Path $root 'package-receipt.json') ($receipt|ConvertTo-Json -Depth 10)
 $receipt|ConvertTo-Json -Depth 10

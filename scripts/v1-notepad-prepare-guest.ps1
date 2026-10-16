@@ -7,11 +7,14 @@ param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$Ru
 # https://learn.microsoft.com/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-faq
 # https://learn.microsoft.com/windows/package-manager/winget/troubleshooting
 # https://raw.githubusercontent.com/microsoft/winget-cli/v1.29.380/src/AppInstallerCommonCore/HttpClientHelper.cpp
+# https://learn.microsoft.com/powershell/module/international/set-winhomelocation
 # Fixed Microsoft/winget-cli v1.29.380 packages retain their original signatures
 # and notices. They are internal test tools, not PaneBind product dependencies.
 $ErrorActionPreference='Stop'
 $inputDirectory='C:\PaneBindV1\Input';$outputDirectory='C:\PaneBindV1\Output'
 $receipt=$null;$receiptPath=$null;$diagnosticDirectory=$null
+$originalGeoId=$null;$locationChangeAttempted=$false
+$script:preparationToolRunning=$false;$script:preparationToolPid=$null
 function Assert-Plain([string]$Path,[bool]$Directory){
     $item=Get-Item -LiteralPath $Path
     if($item.PSIsContainer -ne $Directory -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Expected ordinary exact guest input/output, not a reparse point.'}
@@ -22,16 +25,19 @@ function Write-NewJson([string]$Path,$Value){
     try{$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
 }
 function Invoke-ExactPreparationProcess([string]$Executable,[string]$Arguments,[int]$Seconds){
+    if($script:preparationToolRunning){throw 'Previous own preparation tool exit is not confirmed; do not start another tool.'}
     $info=New-Object Diagnostics.ProcessStartInfo
     $info.FileName=$Executable;$info.Arguments=$Arguments;$info.UseShellExecute=$false;$info.CreateNoWindow=$true
     $info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
     $process=New-Object Diagnostics.Process;$process.StartInfo=$info
     try{
         if(-not $process.Start()){throw 'Exact preparation process did not start.'}
+        $script:preparationToolRunning=$true;$script:preparationToolPid=$process.Id
         $out=$process.StandardOutput.ReadToEndAsync();$err=$process.StandardError.ReadToEndAsync()
         $exited=$process.WaitForExit($Seconds*1000);$terminated=$false
         if(-not $exited){$process.Kill();$terminated=$true;$exited=$process.WaitForExit(5000)}
         if(-not $exited){throw 'Own preparation tool did not exit after the bounded deadline; guest disposal is required, not a success.'}
+        $script:preparationToolRunning=$false
         if(-not $out.Wait(5000) -or -not $err.Wait(5000)){throw 'Own tool exited but redirected output did not close within five seconds; no success is inferred.'}
         $stdout=$out.GetAwaiter().GetResult();$stderr=$err.GetAwaiter().GetResult()
         return [ordered]@{executable=$Executable;arguments=$Arguments;pid=$process.Id;exit_code=$process.ExitCode;
@@ -131,6 +137,10 @@ public static class PaneBindNotepadPreparationFacts {
        $manifest.asset_id -cne 'b91fac4c0b9c4d63afdc05bc04ba9813' -or $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
        $manifest.host_root -cne ('I:\PaneBindMVP1Runs\'+$RunId) -or $manifest.guest_input -cne $inputDirectory -or $manifest.guest_output -cne $outputDirectory -or
        $manifest.networking -cne 'Enable' -or $manifest.purpose -cne 'official_Notepad_download_only_no_product_or_input'){throw 'Preparation manifest scope disagrees.'}
+    $location=$manifest.preparation_location
+    if($null -eq $location -or $location.geo_id -ne 244 -or
+       $location.source -cne 'read_only_test_host_configuration' -or $location.physical_location_asserted -ne $false -or
+       $location.allowed_initial_geo_id -ne 38970 -or $location.restore_original -ne $true){throw 'Exact reviewed disposable-guest preparation location configuration required.'}
     $expected=[ordered]@{
         'AppInstaller_x64.msix'='2E05D50B493DB869D98643533A0141C2C75FC15F122BF5723AB4A1B93C48D267'
         'Microsoft.VCLibs.140.00_14.0.33519.0_x64.appx'='9C17B521F9D690A1F504DA5108ED6EEC5669EB3A8FD1331EEF43E40D84E74283'
@@ -157,6 +167,7 @@ public static class PaneBindNotepadPreparationFacts {
         asset_id=$manifest.asset_id;status='RUNNING';actual_integrity_rid=$rid;actual_elevated=$elevated;session_id=$session;sid_sha256=$sidHash;
         exact_local_WDAG_account=$true;desktop_facts=$desktop;active_Default_desktop=$desktop['accepted'];package_deployments=@();tools=@();downloaded_files=@();error=$null;
         locale_facts=$null;winget_diagnostics=$null;
+        preparation_location=$location;location_adjustment=$null;
         host_installation='NONE';product_started=$false;synthetic_input_sent=$false;application_function_result='NOT_RUN';
         offline_license_requested=$false;account_login_requested=$false;formal_test_guest_networking='Disable'}
     $work='C:\PaneBindV1\NotepadPreparation\'+$RunId
@@ -186,14 +197,31 @@ public static class PaneBindNotepadPreparationFacts {
     Write-NewJson $settingsPath ([ordered]@{telemetry=[ordered]@{disable=$true};source=[ordered]@{autoUpdateIntervalInMinutes=0}})
     $receipt['guest_tool_telemetry_disabled']=$true
     $diagnosticDirectory=Join-Path $settingsDirectory 'DiagOutputDir'
-    # Observe the guest's actual region; source-agreement text does not prove
-    # it is valid or invalid. Never change region/language to force a download.
-    try{
-        $geo=Get-WinHomeLocation
-        if($null -eq $geo.GeoId){throw 'Get-WinHomeLocation returned no GeoId fact.'}
-        $receipt.locale_facts=[ordered]@{status='OBSERVED';geo_id=[long]$geo.GeoId;home_location=[string]$geo.HomeLocation;
-            culture=(Get-Culture).Name;ui_culture=(Get-UICulture).Name;region_or_language_modified=$false}
-    }catch{$receipt.locale_facts=[ordered]@{status='UNKNOWN';error=$_.Exception.Message;region_or_language_modified=$false}}
+    # Fixed task-owned guest USER setting, not the host's region or a claim
+    # about anyone's physical location. Only World -> reviewed GeoID 244 is
+    # permitted; no arbitrary region switch, language/security/proxy change.
+    $geo=Get-WinHomeLocation
+    if($null -eq $geo.GeoId){throw 'Get-WinHomeLocation returned no GeoId fact.'}
+    $originalGeoId=[long]$geo.GeoId
+    $receipt.locale_facts=[ordered]@{status='OBSERVED';geo_id=$originalGeoId;home_location=[string]$geo.HomeLocation;
+        culture=(Get-Culture).Name;ui_culture=(Get-UICulture).Name;language_modified=$false;host_modified=$false}
+    $receipt.location_adjustment=[ordered]@{scope='exact_fresh_task_guest_current_WDAG_user';initial_geo_id=$originalGeoId;
+        target_geo_id=244;source='read_only_test_host_configuration';physical_location_asserted=$false;
+        change_attempted=$false;change_cmdlet_completed=$false;after_change_geo_id=$null;change_verified=$false;
+        restore_attempted=$false;restore_cmdlet_completed=$false;after_restore_geo_id=$null;restore_verified=$null;restore_error=$null}
+    if($originalGeoId -eq 38970){
+        $locationChangeAttempted=$true;$receipt.location_adjustment.change_attempted=$true
+        Set-WinHomeLocation -GeoId 244 -ErrorAction Stop
+        $receipt.location_adjustment.change_cmdlet_completed=$true
+        $afterGeo=Get-WinHomeLocation
+        if($null -eq $afterGeo.GeoId){throw 'Guest location change has no readback fact.'}
+        $receipt.location_adjustment.after_change_geo_id=[long]$afterGeo.GeoId
+        $receipt.location_adjustment.change_verified=[long]$afterGeo.GeoId -eq 244
+        if(-not $receipt.location_adjustment.change_verified){throw 'Fixed guest location change was not confirmed; no download.'}
+    }elseif($originalGeoId -eq 244){
+        $receipt.location_adjustment.after_change_geo_id=244
+        $receipt.location_adjustment.change_verified=$true
+    }else{throw 'Guest initial location is neither exact World nor the fixed reviewed test configuration; no change/download.'}
     $winget=Join-Path $installed[0].InstallLocation 'winget.exe';Assert-Plain $winget $false
     $signature=Get-AuthenticodeSignature -LiteralPath $winget
     if($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -cne 'CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'){throw 'Guest WinGet executable signature invalid.'}
@@ -229,7 +257,30 @@ public static class PaneBindNotepadPreparationFacts {
 }catch{
     if($receipt){$receipt.status='FAILED';$receipt.error=$_.Exception.Message}else{[Console]::Error.WriteLine($_.Exception.Message);exit 78}
 }finally{
-    if($receipt -and $receiptPath -and -not (Test-Path -LiteralPath $receiptPath)){
+    if($receipt -and $receiptPath){
+        if($locationChangeAttempted){
+            try{
+                if($script:preparationToolRunning){throw ('Own tool exit not confirmed for PID '+$script:preparationToolPid+'; location restoration not attempted while it may be running.')}
+                $receipt.location_adjustment['own_tools_exit_confirmed_before_restore']=$true
+                $beforeRestore=Get-WinHomeLocation
+                if($null -eq $beforeRestore.GeoId){throw 'Guest location restoration has no current GeoId fact.'}
+                $receipt.location_adjustment['before_restore_geo_id']=[long]$beforeRestore.GeoId
+                if([long]$beforeRestore.GeoId -eq 244 -and $originalGeoId -eq 38970){
+                    $receipt.location_adjustment.restore_attempted=$true
+                    Set-WinHomeLocation -GeoId 38970 -ErrorAction Stop
+                    $receipt.location_adjustment.restore_cmdlet_completed=$true
+                }elseif([long]$beforeRestore.GeoId -ne $originalGeoId){throw 'Guest location changed to an unexpected value; do not overwrite unknown changes.'}
+                $restoredGeo=Get-WinHomeLocation
+                if($null -eq $restoredGeo.GeoId){throw 'Guest location restoration readback missing.'}
+                $receipt.location_adjustment.after_restore_geo_id=[long]$restoredGeo.GeoId
+                $receipt.location_adjustment.restore_verified=[long]$restoredGeo.GeoId -eq $originalGeoId
+                if(-not $receipt.location_adjustment.restore_verified){throw 'Original guest user GeoId was not restored.'}
+            }catch{
+                $receipt.location_adjustment.restore_verified=$false;$receipt.location_adjustment.restore_error=$_.Exception.Message
+                $receipt.status='FAILED';$receipt.error=([string]$receipt.error+'; Guest user location restoration failed: '+$_.Exception.Message).TrimStart(';',' ')
+            }
+        }
+        $receipt['own_preparation_tool_exit_confirmed']=-not $script:preparationToolRunning
         if($diagnosticDirectory){$receipt.winget_diagnostics=Copy-OwnWinGetDiagnostics $diagnosticDirectory $outputDirectory $RunId}
         Write-NewJson $receiptPath $receipt
     }

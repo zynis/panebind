@@ -2244,3 +2244,15 @@ cause. One further bounded preparation run records the actual region without
 changing it and retains the new tool's exact verbose logs to distinguish these
 outcomes. No proxy/TLS/signature relaxation, third-party Store downloader or
 application-code reuse is authorized or introduced.
+
+The e0 preparation's actual verbose trace now shows `Market=ZZ` returning
+HTTP400; its user GeoID is World38970. A separate read-only host query observed
+configured GeoID244, not a claim about physical location. Read Microsoft's
+[Set-WinHomeLocation](https://learn.microsoft.com/en-us/powershell/module/international/set-winhomelocation)
+contract (current-user setting). In one final, newly identified disposable
+preparation guest only, fixed manifest fields permit World38970 to mirror
+that configured244 for the exact official download, followed by restoration
+and actual readback after the tool exits. No host/account policy, language,
+proxy/TLS or security setting changes. Unknown initial/current values or
+unconfirmed tool exit refuse alteration/restoration and retain failure. This
+is bounded environment repair under guide2.1(4), not a functional PASS.
