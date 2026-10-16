@@ -33,7 +33,7 @@ int main() {
           !product::native_plain_move_entry(true,native_down,1,1,2,plain)&&
           !product::native_plain_move_entry(true,native_down,1,2,0,plain)&&
           !product::native_plain_move_entry(true,native_down,1,1,0,{product::DownRoute::Mapped,v1::Action::Center}),
-          "native-first replaces only guest ordinary single left Move, not host/Ctrl/double-click/mapped routes");
+          "enabled resource route uses native-first for ordinary single left Move; disabled route, Ctrl, double-click and mapped gestures do not");
     auto native_edge=native_down;native_edge.region=1;
     auto native_max=native_down;native_max.source.maximized=true;
     check(!product::native_plain_move_entry(true,native_edge,1,1,0,plain)&&
@@ -97,6 +97,58 @@ int main() {
     check(!product::arm_exact_capture_generation(captured_authority,0)&&
           !product::arm_exact_capture_generation(captured_authority,product::input_pending_capture_mask),
           "zero and reserved pending-bit values are not real gesture identities");
+    // Reproduce the former producer ordering: READY armed g while its GUI
+    // DOWN still lived in the resource queue, then a real LL MOVE arrived.
+    // The old direct allowed(g) test would enqueue MOVE ahead of DOWN; the
+    // production slot keeps exactly one actual sample until DOWN is queued.
+    product::CapturedMoveSlot consumed_slot;
+    consumed_slot.begin(40,true,true);
+    const product::CapturedMoveSlot::Sample first_move{{130,145},1100,501,150};
+    const product::CapturedMoveSlot::Sample latest_move{{170,185},1110,502,151};
+    std::atomic<std::uint64_t> ready_authority{40|product::input_pending_capture_mask};
+    check(consumed_slot.observe(40,first_move,false)&&!consumed_slot.direct_move_allowed(40)&&
+          product::arm_exact_capture_generation(ready_authority,40)&&
+          product::operation_permission(40,ready_authority,0,true,false)&&
+          consumed_slot.observe(40,latest_move,true)&&!consumed_slot.direct_move_allowed(40),
+          "actual pending and READY-window LL MOVEs stay behind the not-yet-enqueued DOWN despite active authority");
+    check(consumed_slot.mark_down_enqueued(40)&&consumed_slot.direct_move_allowed(40),
+          "only a successfully queued same-generation DOWN opens direct MOVE publication");
+    const auto flushed=consumed_slot.take_after_down(40,ready_authority==40);
+    check(flushed&&flushed->point.x==170&&flushed->point.y==185&&flushed->tick==1110&&
+          flushed->hook_qpc==502&&flushed->native_message_time==151&&
+          !consumed_slot.take_after_down(40,true),
+          "DOWN then one latest real LL MOVE retains original event time and cannot replay");
+    product::InputEvent continued_move;continued_move.kind=product::InputKind::Move;
+    continued_move.point={190,205};continued_move.generation=40;
+    check(consumed_slot.direct_move_allowed(40)&&
+          product::dispatch_motion_permission(continued_move,false,40,0,true,false),
+          "continued held motion after queued DOWN follows unchanged active MOVE authority");
+    consumed_slot.begin(41,true,true);consumed_slot.observe(41,latest_move,false);
+    check(consumed_slot.mark_down_enqueued(41)&&!consumed_slot.take_after_down(41,false)&&
+          !consumed_slot.take_after_down(41,true),
+          "UP or abort before owner flush discards the pending sample without terminal regrant");
+    consumed_slot.begin(42,true,true);
+    check(!consumed_slot.observe(41,first_move,true)&&!consumed_slot.mark_down_enqueued(41)&&
+          !consumed_slot.take_after_down(41,true)&&!consumed_slot.direct_move_allowed(41),
+          "old-generation LL MOVE and READY cannot cross a new DOWN generation");
+    product::CapturedMoveSlot native_slot;native_slot.begin(43,true,false);
+    check(!native_slot.observe(43,first_move,false)&&!native_slot.direct_move_allowed(43),
+          "native-first pre-END and still-pending capture MOVE is never retained as post-READY motion");
+    check(native_slot.observe(43,latest_move,true)&&!native_slot.direct_move_allowed(43)&&
+          native_slot.may_queue_down(43)&&native_slot.mark_down_enqueued(43),
+          "native-first real post-READY MOVE waits for its actual GUI DOWN publication");
+    const auto native_flushed=native_slot.take_after_down(43,true);
+    check(native_flushed&&native_flushed->point.x==170&&native_flushed->hook_qpc==502&&
+          native_slot.direct_move_allowed(43)&&!native_slot.may_queue_down(43)&&
+          !native_slot.mark_down_enqueued(43)&&!native_slot.take_after_down(43,true),
+          "one native post-READY sample follows one DOWN and duplicate READY cannot enqueue another DOWN or replay MOVE");
+    consumed_slot.begin(44,true,true);consumed_slot.observe(44,first_move,false);consumed_slot.retire();
+    check(consumed_slot.may_queue_down(44)&&consumed_slot.mark_down_enqueued(44)&&
+          !consumed_slot.direct_move_allowed(44)&&!consumed_slot.take_after_down(44,true),
+          "UP after READY but before GUI drain can preserve one historical DOWN, never its pending continuous motion");
+    consumed_slot.begin(45,false,false);
+    check(!consumed_slot.observe(45,first_move,true)&&!consumed_slot.may_queue_down(45),
+          "noncapture mapped or passthrough route cannot borrow the capture MOVE slot");
     check(product::captured_release_can_complete(true,true,false,true,true),
           "actual captured legacy UP with confirmed own cleanup permits only release-dock completion");
     check(!product::captured_release_can_complete(true,false,false,true,true)&&

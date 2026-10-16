@@ -259,17 +259,33 @@ void InputService::drain_capture_events(){
             // owner was dispatching earlier messages. Preserve DOWN→UP order
             // without turning allowed() back on or inventing late movement.
             if(p->ready_authorized&&p->context.load()&&!p->aborted){
-                auto down=p->down;down.kind=InputKind::Down;down.handoff_snapshot=p->handoff.load();
-                down.native_move_receipt=p->native_end.load();push(std::move(down));
+                // Duplicate READY is a receipt, not a second GUI DOWN. An
+                // actual UP may already have retired motion; the historical
+                // first DOWN can still be published once for terminal order.
+                if(captured_move_.may_queue_down(actual.generation)){
+                    auto down=p->down;down.kind=InputKind::Down;down.handoff_snapshot=p->handoff.load();
+                    down.native_move_receipt=p->native_end.load();const bool queued=push(std::move(down));
+                    if(queued&&captured_move_.mark_down_enqueued(actual.generation)){
+                        // The LL owner may see a real MOVE after READY arms g
+                        // but before this historical DOWN is queued. Native
+                        // pre-END movement was never retained in this slot.
+                        const auto sample=captured_move_.take_after_down(actual.generation,
+                            bridge.active(p)&&allowed(actual.generation));
+                        if(sample){auto move=p->down;move.kind=InputKind::Move;move.point=sample->point;
+                            move.tick=sample->tick;move.hook_observed_qpc=sample->hook_qpc;
+                            move.native_message_time=sample->native_message_time;push(std::move(move));}
+                    }else captured_move_.retire();
+                }
             }
             // An early UP is not NormalUp and never permits late re-arming.
-            else request_capture_stop(Removal::ContextLost);
+            else{captured_move_.retire();request_capture_stop(Removal::ContextLost);}
         }
         if(p->aborted&&!aborted_)abort(actual.kind==ShieldKind::Deadline?core::v1::End::Deadline:core::v1::End::SourceLost);
         if(p->native_move&&!p->aborted&&p->raw_up_observed&&p->normal_observed&&
            actual.kind!=ShieldKind::IsolationGone&&shield_)
             (void)shield_->request_remove(actual.generation,Removal::NormalUp);
         if(actual.kind!=ShieldKind::IsolationGone)continue;
+        captured_move_.retire();
         const auto context=p->context.load();const bool strict_clean=actual.overlay_destroyed&&actual.hotkey_unregistered&&
             (!actual.capture.attempted||(actual.capture.release_completed&&actual.capture.release_succeeded&&!actual.capture.release_after))&&
             operations::gesture_shield_association_cleanup_confirmed(actual.capture.association,actual.generation);
@@ -310,6 +326,7 @@ bool InputService::start(HWND owner){
         static_cast<std::uint64_t>(frequency.QuadPart):0;
     paused_=false;healthy_=false;stop_requested_=false;prepare_pending_=false;
     read_=0;write_=0;consumed_down_=false;native_move_=false;aborted_=false;click_candidate_={};
+    captured_move_.retire();
     owner_=owner;ready_=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!ready_)return false;
     try{thread_=std::thread([this]{run();});}catch(...){CloseHandle(ready_);ready_=nullptr;return false;}
     const auto result=WaitForSingleObject(ready_,5000);
@@ -347,6 +364,7 @@ bool InputService::pop(InputEvent& e){const auto r=read_.load(std::memory_order_
     if(r==write_.load(std::memory_order_acquire))return false;e=std::move(queue_[r]);
     read_.store((r+1)%static_cast<unsigned>(queue_.size()),std::memory_order_release);return true;}
 void InputService::abort(core::v1::End end){
+    captured_move_.retire();
     *completion_=0;*authorized_=0;
     if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=end;
         push({InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_});}
@@ -378,6 +396,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     // Any newly observed physical/test DOWN retires an earlier UP's pending
     // discrete dock commit, even if this new click passes through natively.
     if(down(message)){
+        self->captured_move_.retire();
         *self->completion_=0;
         if(self->capture_bridge_)self->capture_bridge_->down_serial.fetch_add(1);
         if(self->capture_pair_){
@@ -408,7 +427,11 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     bool consume=false;
     if(message==WM_MOUSEMOVE){
         if(self->consumed_down_||self->native_move_){
-            if(self->allowed(self->generation_)){
+            if(self->capture_pair_&&!self->captured_move_.direct_move_allowed(self->generation_)){
+                if(!self->aborted_&&self->active_prepared_)
+                    self->captured_move_.observe(self->generation_,{packet.pt,tick,observed_qpc,packet.time},
+                        self->allowed(self->generation_));
+            }else if(self->allowed(self->generation_)){
                 const auto& p=self->active_prepared_;
                 if(!p||(!self->capture_pair_&&GetForegroundWindow()!=p->source.hwnd))self->abort(core::v1::End::FocusLost);
                 else self->push({InputKind::Move,packet.pt,self->generation_,tick,self->modifiers_,self->button_,1,
@@ -456,6 +479,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 self->generation_=++self->next_generation_;
                 self->capture_pair_=self->capture_route_enabled_&&route.route==DownRoute::Gesture&&b==1;
                 self->native_move_=native_plain_move_entry(self->capture_route_enabled_,*p,b,clicks,mods,route);
+                self->captured_move_.begin(self->generation_,self->capture_pair_,!self->native_move_);
                 *self->authorized_=self->generation_|(self->capture_pair_?pending_capture_mask:0);
                 self->consumed_down_=!self->native_move_;self->aborted_=false;self->button_=b;self->modifiers_=mods;
                 self->active_down_stamp_=packet.time;
@@ -490,7 +514,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                 }else if(SetTimer(self->receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr))
                     routed=consume=self->push({route.route==DownRoute::Mapped?InputKind::Mapped:InputKind::Down,
                         packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc});
-                if(!routed){self->consumed_down_=false;self->native_move_=false;self->capture_pair_=false;self->capture_pending_down_.reset();*self->authorized_=0;self->active_prepared_.reset();
+                if(!routed){self->captured_move_.retire();self->consumed_down_=false;self->native_move_=false;self->capture_pair_=false;self->capture_pending_down_.reset();*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
         }else self->click_candidate_={};
@@ -498,6 +522,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         button_up_matches_current_pair(self->consumed_down_,self->button_,
         button(message,packet.mouseData),self->active_down_stamp_,packet.time))){
         up_observation.matching_branch_taken=true;
+        self->captured_move_.retire();
         if(self->capture_pair_){
             // Same-owner actual UP revokes immediately, including coarse-time
             // ambiguity. It passes through to capture; only queued legacy UP

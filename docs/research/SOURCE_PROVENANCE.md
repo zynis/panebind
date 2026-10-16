@@ -2610,6 +2610,16 @@ offsets: `uat/v1-assets/d7b77c31807f42b5827ea50a14ddd095/acquisition-evidence.tx
 Applicable subsystem: isolated application compatibility test preparation;
 no external source-code reuse or new product attribution obligation.
 
+The bounded official offline follow-up inspected Microsoft's
+[winget download contract](https://learn.microsoft.com/en-us/windows/package-manager/winget/download)
+and reread the Web Installer page. The Store-packaged download contract requires
+Entra authentication; `--skip-license` removes the offline-license generation
+requirement, not documented proof that Notepad's package is anonymously available.
+No additional download, installation, account or guest-network change was made.
+The already signed stub still needs Store-backend access; a legal original
+deployable package plus dependencies or a separately approved networked guest
+remains the specific application-preparation gap, not a PaneBind/Home limitation.
+
 ### V1 exact application-input and driver-exit follow-up — 2026-10-17
 
 Run `128f2aeb03494807becac60d68067cbb` retained real application failures with
@@ -2653,6 +2663,19 @@ ordinary full-desktop runtime PASS. Current guest results retain their original
 product binary identity; the changed product requires its own affected runtime
 checks. Ordinary full-desktop and multi-monitor acceptance remain NOT_RUN or
 environment-blocked until actually available. No new attribution is required.
+
+The subsequent bounded source review found an actual queue-publication gap:
+CaptureReady can arm a generation before its input owner queues the historical
+DOWN. A real LL MOVE can then precede DOWN in the GUI queue and be discarded
+without a gesture. The shared product now keeps one input-owner POD sample and
+publishes DOWN before that sample, only under still-live same-generation
+authority. Consumed-DOWN motion may wait for resources; native-first motion is
+retained only after real CaptureReady, never borrowed from before native END.
+UP/abort retires the slot without granting terminal motion permission; an
+issued native completion remains separate. The existing input-route tests use
+this production slot. This is a source-ordering repair, not a proven explanation
+for the retained missing-UP failures or a native runtime PASS. No new input API,
+polling, resource-thread disk IO or upstream code is introduced.
 
 Also inspected the driver's retained Catalog lifetime against its existing
 same-STA contract and Microsoft's [STA rules](https://learn.microsoft.com/en-us/windows/win32/com/single-threaded-apartments),

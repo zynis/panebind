@@ -221,6 +221,34 @@ struct InputEvent {
     std::shared_ptr<const NativeMoveReceipt> native_move_receipt;
     std::shared_ptr<const Snapshot> handoff_snapshot;
 };
+// Input-owner-only, one real LL MOVE observed while CaptureReady/GUI DOWN
+// publication is pending. Consumed DOWN may retain pending-capture motion;
+// native-first may retain only post-READY motion, never pre-END movement.
+// No resource thread writes this slot or turns UP into motion permission.
+struct CapturedMoveSlot {
+    struct Sample {POINT point{};std::uint64_t tick{},hook_qpc{};DWORD native_message_time{};};
+    std::uint64_t generation{};
+    bool down_enqueued{},pending{},retired{},retain_before_ready{};
+    Sample latest{};
+    void begin(std::uint64_t g,bool capture_pair,bool retain_pending)noexcept{
+        generation=capture_pair?g:0;down_enqueued=false;pending=false;retired=false;
+        retain_before_ready=capture_pair&&retain_pending;
+    }
+    void retire()noexcept{retired=true;pending=false;}
+    bool observe(std::uint64_t g,Sample actual,bool actual_authority)noexcept{
+        if(!g||g!=generation||down_enqueued||retired||(!retain_before_ready&&!actual_authority))return false;
+        latest=actual;pending=true;return true;
+    }
+    [[nodiscard]] bool may_queue_down(std::uint64_t g)const noexcept{return g&&g==generation&&!down_enqueued;}
+    bool mark_down_enqueued(std::uint64_t g)noexcept{
+        if(!may_queue_down(g))return false;down_enqueued=true;return true;
+    }
+    [[nodiscard]] bool direct_move_allowed(std::uint64_t g)const noexcept{return g&&g==generation&&down_enqueued&&!retired;}
+    std::optional<Sample> take_after_down(std::uint64_t g,bool active)noexcept{
+        if(!g||g!=generation||!down_enqueued||!pending)return {};
+        pending=false;return active&&!retired?std::optional<Sample>{latest}:std::nullopt;
+    }
+};
 // Same dispatcher predicate as the production motion path. A release-only
 // docking command is not permission to submit continuous motion after UP.
 inline bool dispatch_motion_permission(const InputEvent& event,bool terminal,
@@ -413,6 +441,7 @@ private:
     std::unique_ptr<operations::GestureInputShield> shield_;
     operations::GestureShieldStopFacts capture_stop_facts_{};
     bool capture_route_enabled_{},capture_route_is_guest_{},capture_pair_{};
+    CapturedMoveSlot captured_move_;
     std::optional<InputEvent> capture_pending_down_;
     std::string capture_route_reason_{"input_resource_route_not_initialized"};
     std::string capture_route_mode_{"unavailable"};
