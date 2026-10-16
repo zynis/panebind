@@ -2,13 +2,27 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。当前212 native-first Ctrl／Resize候选已接线，**runtime NOT_RUN**；D/R构建退出0且各11项offline通过。原356/f706 Debug及187/28d7 Release实际失败、两轮／900秒与其他已测范围均保留原身份；历史**7/60功能、B29／B32共2/40=5%**不增、不换绑。不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。212/c1f8 Debug Full与477a Release IndependentEntry均已实际FAIL。Debug核心I02／commands、普通Resize正常UP及Ctrl组三成员保留原scope；Release设置、便携普通入口、视觉／在途／batch及idle60有实际子PASS，但首click、grid与应用门未齐。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 当前212候选：真实native前缀与原DOWN组接线，等待现场
+## 212 Release／477a：普通便携入口与组件已测，整批FAIL
+
+同212产品／driver，Release EXE `E2F93AEC…AC69BE`／driver `ED8FBEBF…A0ABEB`，包装674b94c，fixture3500行合法连续。完整身份、原件哈希和13条[字面原行](v1-evidence/477a-r10-release-entry-components-and-real-grid-handoff-selected.jsonl)见索引。1219实际7635 ZIP普通GUI、保存配置后Move-UP、正常退出及字节检查仅入口scope通过，不等于整I12。设置GUI／诊断、startup、五键、导入、失败保存／诊断失败、损坏、排除与I08、visual3043／inflight3271／batch3365组件通过；tray BLOCKED。2545独立60.0119733秒测得CPU0%、WS27,480,064→27,504,640字节、handles284→278、GDI26／USER31，不授I11时长。
+
+fast CtrlMove306实际最大化且START／END均0；两DOWN间隔437ms只作待验证driver双击线索，不定根因。dock1533／I11 2517首click终止未确认，本批没有完成两轮或900秒。grid3287旧driver报告START失败，但产品轮转原件PID7024的331→333→335→336→337已真实观察pending、START、cancel、END，继而`source_or_geometry_context_changed`拒绝且无新placement；不是平台无START。原始非17-grid合法起点及native前缀实际几何变化由driver修正，产品guard不放宽。Explorer资格FAIL；Terminal production START未观察，Notepad／VSCode无合格新root BLOCKED；Edge暂停native客户基线失败、root关闭未确认。wrapper wait0／exit1／desc2／forced=true／product_cleanup=false，正常资源退出不冒充应用清理。23:15:28Z精确guest32668／任务清理、证据未变、无其他资源改动；不是产品cleanup PASS。产品当前日志仅保留371–520，`.1`为此前多进程保留部分，不声称全部process原日志连续。后继driver-only修订未现场，不改绑本批身份。
+
+## 212 Debug／c1f8：核心子链通过，快速右Resize原FAIL保留
+
+后继仅测试驱动`0f2b949e81ce8013f6f2f5f6656ae487603ebad8`已D/R构建退出0、guest-path各1项通过；不重建产品。D driver `AC99788B52736E67B39EB820EE37C5DAD877FD36F4A5DCEB8A25DB087B02A21D`／R `4B35127B8C413C1EF052DC969D26A3B79AB4CBCE6142F847481DE8F6ADD3C87D`，实际self-identity均0f2。定向修正原生首击证据、独立路由双击间隔及grid合法起点；只在自建窗口线程观察真实queue UP，不改产品NormalUp门或任一旧FAIL。后继driver现场仍NOT_RUN，不能替换下述原driver212。
+
+product／driver源码均`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，Debug产品`8AF5BB9B…C4CBB6`／driver`315FBB1D…AC6C6E`，包装674b94c；原fixture216／产品276行均JSON合法且sequence连续。完整RunId、原hash、ZIP／manifest／WSB见索引。[fixture原行](v1-evidence/c1f8-r10-debug-owned-core-native-only-and-fast-resize-failure-selected.jsonl)178核心scope成立；[产品原行](v1-evidence/c1f8-r10-debug-native-geometry-group-and-up-boundaries-product-selected.jsonl)51／220两次Ctrl Move各3成员frozen，154→171普通Resize真实NormalUp，239另一Ctrl正常UP。快速plain185／Ctrl197仅原生位移与真实LL-UP保留，无产品cancel／capture／writer，**不授Glue或增强Resize PASS**。
+
+207快速右Resize实际矩形exact、native START／END各1，但product270／272物理按键门false，271／273拒绝且零新placement；本次product／被动head UP callbacks均0，269 Raw UP generation0/source0不能归属g10，不补NormalUp或推根因。Full在此结束，Ctrl快速Resize及本Debug后继布局／设置／故障／应用未运行。产品自身资源退出与214客户DOWN／UP[0,0]→[1,1]另有实际证据；wrapper wait0／exit1／desc0／forced=false／product_cleanup=false，不抬整批cleanup PASS。23:08:10Z精确guest3652／任务清理、证据未变，无其他资源改动。后继Release477已完成，实际子范围与失败见上，不改变本Debug结论。
+
+## 212运行前构建记录（后继c1f8／477a均已实测FAIL）
 
 Debug product／driver实际self-identity均212，产品SHA `8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6`、driver SHA `315FBB1D8217774736111EB40927B932F9BA14ED7357B364D47E3C5703AC6C6E`；11/11 offline PASS，processor3.27／wall3.32秒。原生CTest output-log `uat/v1-control/r10-212e197-Debug-offline-20261017.txt`／SHA `55C972BE0F869290DB88C901AE8A05E1F87A5A87C81C4B11E92F589F6F314FA1`。Release product／driver实际self-identity亦为212；产品 `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`／driver `ED8FBEBFE7370E74E4BA16E35D8CBA4F39674E35326E1FDAAAD91F821BA0ABEB`；11/11 offline PASS processor1.69／wall2.99秒，原生CTest output-log `uat/v1-control/r10-212e197-Release-offline-20261017.txt`／SHA `686B310183EC35A1723FBB97CD641E1F48633948F5BA3E25F5BC03547EA363C7`。构建和offline不是现场PASS。
 
-源码／实际product与driver身份`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，构建目录`out/v1-product-native-geometry-r10-212e197`。普通／Ctrl单击Move及边角Resize走真实START→隔离／cancel→实际END／fresh B→共用writer；保留原DOWN意图及Ctrl组，不用B重起算。原DOWN limits仅已有系统/default测量，应用declared tracking limits实际在begin B查询，不能写成DOWN已实测。fast native-only透传只证明原生位移保留，不授Glue／增强Resize PASS。运行NOT_RUN；旧356整对象保留为observed历史，不重绑定。
+源码／实际product与driver身份`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，构建目录`out/v1-product-native-geometry-r10-212e197`。普通／Ctrl单击Move及边角Resize走真实START→隔离／cancel→实际END／fresh B→共用writer；保留原DOWN意图及Ctrl组，不用B重起算。原DOWN limits仅已有系统/default测量，应用declared tracking limits实际在begin B查询，不能写成DOWN已实测。fast native-only透传只证明原生位移保留，不授Glue／增强Resize PASS。后继已实际运行c1f8／477a，均整批FAIL；旧356整对象保留为observed历史，不重绑定。
 
 ## 187 Release／356 Debug最终实际范围
 
