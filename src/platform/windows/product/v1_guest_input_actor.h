@@ -210,13 +210,13 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
     std::wstring command=L"\""+std::wstring(self.data())+L"\" --input-actor-once "+s.run+L" "+std::to_wstring(GetCurrentProcessId())+L" "+
         std::to_wstring(process_birth(GetCurrentProcess()))+L" "+std::to_wstring(reinterpret_cast<std::uintptr_t>(source))+L" "+std::to_wstring(set.thread)+L" "+
         std::to_wstring(point->x)+L" "+std::to_wstring(point->y)+L" "+std::to_wstring(point->x-40)+L" "+std::to_wstring(point->y+35);
-    std::uint64_t expected_key{};std::string prepared;{std::istringstream rows(read(s.product_log));std::string line;
+    std::uint64_t expected_key{};std::string prepared;{std::istringstream rows(product_log_current(s));std::string line;
         while(std::getline(rows,line))if(line.find("\"type\":\"input_preparation\"")!=line.npos&&
             line.find("\"reason\":\"prepared_actual_source_and_hit\"")!=line.npos&&number(line,"\"process_id\":")==product_pid&&
             number(line,"\"root\":")==reinterpret_cast<std::uintptr_t>(source)&&line.find("\"region\":0")!=line.npos){
             expected_key=number(line,"\"key\":");prepared=line;}}
     if(!expected_key)throw std::runtime_error("I08_actor_product_source_key_not_observed");
-    const auto offset=read(s.product_log).size();STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION child{};
+    const auto offset=read_product(s).size();STARTUPINFOW startup{sizeof(startup)};PROCESS_INFORMATION child{};
     if(!CreateProcessW(self.data(),command.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW|CREATE_SUSPENDED,nullptr,s.output.c_str(),&startup,&child))throw std::runtime_error("I08_actor_create_failed");
     Handle child_process(child.hProcess),child_thread(child.hThread);bool test_up=false,actor_stop_attempted=false,actor_send_count_known=false,actor_resumed=false;
     std::uint64_t actor_inserted{};
@@ -257,7 +257,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             if(WaitForSingleObject(child_process.value,0)!=WAIT_TIMEOUT)return true;
             actual_start=record(s,offset,"gesture_start");g.generation=number(actual_start,"\"generation\":");
             actual_down=record(s,offset,"input_button_observed",g.generation);
-            actual_ready.clear();{const auto text=read(s.product_log);std::istringstream rows(offset<text.size()?text.substr(offset):std::string{});std::string line;
+            actual_ready.clear();{const auto text=product_log_since(s,offset);std::istringstream rows(text);std::string line;
                 while(std::getline(rows,line))if(number(line,"\"process_id\":")==product_pid&&number(line,"\"generation\":")==g.generation&&
                     line.find("\"source_sha\":"+quote(s.product_source))!=line.npos&&line.find("\"type\":\"gesture_input_resource\"")!=line.npos&&
                     line.find("\"fact\":\"capture_ready\"")!=line.npos)actual_ready=line;}
@@ -348,7 +348,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             ",\"physical_button_held_not_inferred\":true,\"driver_notification_not_fabricated\":true");
         const auto calls=[&]{const auto rows=constraint_generation_placements(s,offset,g.generation);return std::count_if(rows.begin(),rows.end(),[](const auto& row){return row.find("\"native_callsite_claimed\":true")!=std::string::npos;});};
         const auto baseline=calls();const auto barrier=constraint_last_product_sequence(s);cursor(s,{point->x-11,point->y+47});
-        const auto status_offset=read(s.product_log).size();
+        const auto status_offset=read_product(s).size();
         s.log.check("I08_actor_Deadline_no_new_native_calls",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);})&&
             calls()==baseline&&baseline>0&&visible(source)==moved);
         // This UP is a test cleanup action after actual Deadline, not product

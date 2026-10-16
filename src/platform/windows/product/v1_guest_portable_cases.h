@@ -25,7 +25,7 @@ bool portable_plain_file(const fs::path& path){
         !(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT));
 }
 void portable_stop_current(State& s,std::string_view stage){
-    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read_product(s).size(),driver_mark=read(s.log.path).size();
     if(!s.process||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("portable_expected_live_product_before_normal_stop");
     cleanup(s);const auto receipt=read(s.log.path).substr(driver_mark);const auto end=record(s,mark,"shutdown");
     const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD actual_pid{};if(app)GetWindowThreadProcessId(app,&actual_pid);

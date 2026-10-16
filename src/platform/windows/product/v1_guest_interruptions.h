@@ -22,8 +22,8 @@ std::string interruption_end(State& s,const Gesture& g,panebind::core::v1::End e
         ",\"actual_source_destroyed\":"+(destroyed?"true":"false")+",\"production_end\":"+quote(ended));return ended;
 }
 void interruption_audit_calls(State& s,const Gesture& g,std::uint64_t trigger_qpc,std::optional<Rect> escape_restore){
-    const auto text=read(s.product_log);if(g.offset>=text.size()||!trigger_qpc)throw std::runtime_error("I08_native_audit_evidence_missing");
-    unsigned forbidden{},restorations{},unknown_clock{};std::istringstream rows(text.substr(g.offset));std::string row;
+    const auto text=product_log_since(s,g.offset);if(text.empty()||!trigger_qpc)throw std::runtime_error("I08_native_audit_evidence_missing");
+    unsigned forbidden{},restorations{},unknown_clock{};std::istringstream rows(text);std::string row;
     while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=std::string::npos&&
         row.find("\"native_callsite_claimed\":true")!=std::string::npos){
         const auto before=number(row,"\"native_before_qpc\":");if(!before){++unknown_clock;continue;}
@@ -41,7 +41,7 @@ void interruption_audit_calls(State& s,const Gesture& g,std::uint64_t trigger_qp
         ",\"Escape_cleanup_is_not_renewed_drag_authority\":true");
 }
 void interruption_idle(State& s,LayoutFixtures& set,bool enabled){
-    const auto mark=read(s.product_log).size();std::string status;
+    const auto mark=read_product(s).size();std::string status;
     const bool observed=launch(s,L"--status",true)&&wait([&]{status=record(s,mark,"status");return
         status.find("\"gesture_active\":false")!=std::string::npos&&status.find(enabled?"\"enabled\":true":"\"enabled\":false")!=std::string::npos&&
         status.find("\"hook_owner_running\":true")!=std::string::npos;});
@@ -100,7 +100,7 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
             last_native.find("\"authority_after\":true")!=std::string::npos,
             "\"driver_left_outstanding\":"+std::string(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON))+
             ",\"actual_authorized_native_receipt\":"+quote(last_native)+",\"physical_button_held_not_inferred\":true");
-        const auto mark=read(s.product_log).size();LARGE_INTEGER trigger{};
+        const auto mark=read_product(s).size();LARGE_INTEGER trigger{};
         if(!QueryPerformanceCounter(&trigger)||trigger.QuadPart<=0)throw std::runtime_error("I08_trigger_QPC_unavailable");
         v::End expected=v::End::Escape;bool destroyed=false;HWND focus_target{};
         if(cause==GuestInterruption::Escape){key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);}
@@ -155,7 +155,7 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         interruption_idle(s,set,cause!=GuestInterruption::EmergencyHotkey);
         if(focus_target)s.log.check("I08_status_did_not_retake_foreground",GetForegroundWindow()==focus_target);
         if(cause==GuestInterruption::EmergencyHotkey){
-            const auto resume=read(s.product_log).size();
+            const auto resume=read_product(s).size();
             s.log.check("I08_resume_via_existing_product_command",launch(s,L"--command Pause",true)&&wait([&]{const auto status=record(s,resume,"status");return
                 status.find("\"enabled\":true")!=std::string::npos&&status.find("\"hook_owner_running\":true")!=std::string::npos;}));
         }

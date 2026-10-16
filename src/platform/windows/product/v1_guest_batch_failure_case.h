@@ -5,7 +5,7 @@
 // second actually received sizing operation destroys its own HWND, on its UI
 // thread; the real outer SetWindowPos and postverification classify the result.
 void batch_loss_release(LayoutFixtures& set,const Gesture& g,const std::vector<std::size_t>& live,const std::vector<Rect>& expected){
-    auto& s=set.state;const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
+    auto& s=set.state;const auto mark=read_product(s).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
     s.log.check("I10_recovery_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
     GUITHREADINFO gui{sizeof(gui)};bool exact=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize;
     for(std::size_t n=0;n<live.size();++n)exact=exact&&set.owns(live[n])&&visible(set.frames[live[n]].hwnd)==expected[n];
@@ -16,7 +16,7 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
     const auto selected=std::find(live.begin(),live.end(),source);if(selected==live.end())throw std::runtime_error("I10_recovery_source_not_survivor");
     const auto target=expected[static_cast<std::size_t>(selected-live.begin())];const LONG dx=target.l-before->l,dy=target.t-before->t;
     const auto g=layout_down(set,source,HTCAPTION,ctrl);s.log.check("I10_recovery_fresh_generation",g.generation>retired);
-    Sleep(60);const auto mark=read(s.product_log).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
+    Sleep(60);const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
     const bool exact=wait([&]{for(std::size_t n=0;n<live.size();++n){if(!set.owns(live[n])||visible(set.frames[live[n]].hwnd)!=expected[n])return false;
         if((ctrl||live[n]==source)&&placement(s,mark,g.generation,expected[n],true).empty())return false;}return true;});
     s.log.check(name,exact,"\"generation\":"+std::to_string(g.generation)+",\"same_surviving_HWNDs\":true,\"fresh_actual_snapshots\":true");
@@ -69,7 +69,7 @@ void batch_loss_move(LayoutFixtures& set,const std::vector<std::size_t>& live,st
         s.log.emit("I10_second_native_outcome","\"status\":"+quote(api_false?"ACTUAL_API_FALSE_OBSERVED":"PARTIAL_API_TRUE_IDENTITY_LOST")+
             ",\"SetWindowPos_FALSE_observed\":"+(api_false?"true":"false")+",\"whole_I10_PASS\":false,\"actual_receipt\":"+quote(second_receipt));
         disarm();const auto before=calls().size();const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+91,g.anchor.y+23});
-        const auto status_offset=read(s.product_log).size();
+        const auto status_offset=read_product(s).size();
         s.log.check("I10_failure_status_responsive",launch(s,L"--status",true)&&wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
         button(s,false);key(s,VK_CONTROL,false);
         GUITHREADINFO gui{sizeof(gui)};

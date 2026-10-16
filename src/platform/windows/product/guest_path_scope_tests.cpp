@@ -1,5 +1,6 @@
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include "platform/windows/product/v1_guest_product_log.h"
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -42,6 +43,36 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    const auto log_row=[](std::uint64_t pid,std::uint64_t sequence,std::uint64_t tick,std::string_view type,std::string_view sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"){
+        return "{\"schema\":\"panebind-v1/1\",\"source_sha\":\""+std::string(sha)+"\",\"sequence\":"+std::to_string(sequence)+
+            ",\"process_id\":"+std::to_string(pid)+",\"tick\":"+std::to_string(tick)+",\"type\":\""+std::string(type)+"\"}\n";};
+    guest::ProductLogEvidence log;std::string log_reason;log.begin(42,4200,100,std::string(identity.source_sha));
+    const auto one=log_row(42,1,100,"input_preparation"),two=log_row(42,2,101,"capture_ready"),three=log_row(42,3,102,"gesture_start");
+    if(!expect(log.observe("",one,log_reason),true,"actual complete first product record is accepted"))return 1;
+    const auto before_rotation=log.text().size();
+    if(!expect(log.observe(one+two,three,log_reason),true,"READY in rotated file and START in new current remain one continuous stream")||
+       !expect(log.since(before_rotation)&&*log.since(before_rotation)==two+three,true,"pre-rotation logical byte mark reaches actual READY and START")||
+       !expect(log.observe(one+two,three,log_reason)&&log.text()==one+two+three,true,"unchanged physical pair never duplicates real receipts"))return 1;
+    const auto four=log_row(42,4,103,"status"),prefix=four.substr(0,four.size()-1);
+    if(!expect(log.observe(two+three,prefix,log_reason)&&log.text()==one+two+three,true,"incomplete trailing JSON is not a receipt")||
+       !expect(log.observe(two+three,four,log_reason)&&log.text()==one+two+three+four,true,"completed tail appends once after its actual newline"))return 1;
+    const auto five=log_row(42,5,104,"legacy_left_up"),six=log_row(42,6,105,"isolation_gone");
+    if(!expect(log.observe(three+four,six,log_reason),false,"missing sequence rejects an incomplete rotation snapshot")||
+       !expect(log.text()==one+two+three+four,true,"rejected snapshot never commits partial evidence")||
+       !expect(log.observe(four+five,six,log_reason),true,"one corrected physical snapshot can resolve a concurrent rotation gap")||
+       !expect(log.observe(log_row(42,5,104,"different_original"),six,log_reason),false,"duplicate sequence with changed original text is rejected"))return 1;
+    const auto old_mark=before_rotation,new_start_mark=log.text().size();log.begin(43,4300,200,std::string(identity.source_sha));
+    const auto restarted=log_row(43,1,200,"startup");
+    if(!expect(log.observe(one+two+three+four+five+six,restarted,log_reason),true,"new actual PID birth starts sequence one without accepting old PID rows")||
+       !expect(log.current()==restarted&&log.since(new_start_mark)&&*log.since(new_start_mark)==restarted,true,"pre-launch tail mark observes only the new actual launch")||
+       !expect(log.since(old_mark).has_value(),false,"a prior gesture's byte mark cannot cross a process restart"))return 1;
+    log.begin(42,4201,300,std::string(identity.source_sha));const auto reused=log_row(42,1,300,"startup");
+    if(!expect(log.observe(one+two+three,reused,log_reason)&&log.current()==reused,true,"reused PID cannot import records older than its actual launch boundary")||
+       !expect(log.observe("",log_row(42,2,301,"status","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),log_reason),false,"current launch source SHA mismatch is rejected"))return 1;
+    guest::ProductLogEvidence missing;missing.begin(42,4200,100,std::string(identity.source_sha));
+    if(!expect(missing.observe("",two,log_reason),false,"missing initial segment cannot masquerade as complete product evidence"))return 1;
+    missing.reject();
+    if(!expect(missing.observe("",one+two,log_reason),false,"persistent rejected evidence cannot silently regain acceptance"))return 1;
     const auto snapshot=[&](std::string_view row){return guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,row,identity);};
     guest::CapturedReleaseFacts capture;
     capture.generation=7;capture.expected_generation=7;capture.source=100;capture.ready_source=100;

@@ -13,7 +13,7 @@ void owned_rapid_terminal_move(State& s){
     foreground(s,s.frames[0].hwnd);const auto anchor=hit_point(s.frames[0].hwnd,HTCAPTION);
     s.log.check("rapid_terminal_actual_caption",anchor.has_value());cursor(s,*anchor);Sleep(100);
     if(s.left||s.control)throw std::runtime_error("rapid_terminal_input_ledger_not_idle");
-    Gesture g{*anchor,0,read(s.product_log).size()};
+    Gesture g{*anchor,0,read_product(s).size()};
     const POINT destination{g.anchor.x+35,g.anchor.y+31};
     const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN);
     const int width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
@@ -44,7 +44,7 @@ void owned_rapid_terminal_move(State& s){
         return end.find("\"normal_up\":true")!=end.npos;});
     const bool stopped=observer.stop();const auto observed_up=actual_up(s,g.offset,g.generation);
     unsigned terminal_native{},ordinary_native{};
-    std::istringstream rows(read(s.product_log).substr(g.offset));std::string row;
+    std::istringstream rows(product_log_since(s,g.offset));std::string row;
     while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=row.npos&&
         number(row,"\"generation\":")==g.generation&&row.find("\"native_attempted\":true")!=row.npos){
         if(row.find("\"normal_up_completion\":true")!=row.npos)++terminal_native;else ++ordinary_native;

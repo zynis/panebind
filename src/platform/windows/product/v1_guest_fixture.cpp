@@ -19,6 +19,7 @@
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include "platform/windows/product/v1_guest_product_log.h"
 #include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "core/v1/caption_hit_guard.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
@@ -260,6 +261,7 @@ struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
     std::string configuration,suite{"Full"},product_source;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
     HANDLE process{};DWORD product_pid{},owner{};
+    product::guest::ProductLogEvidence product_evidence;fs::path product_evidence_path;
     // Set only while the exact guest-local diagnostic failure copy is active.
     // Not an argument or a general product-path/permission override.
     bool diagnostic_export_failure_local{};
@@ -272,6 +274,39 @@ struct State{
     std::array<std::shared_ptr<ApplicationTarget>,3> applications;
     std::vector<std::shared_ptr<ApplicationTarget>> created_applications;
 };
+std::uint64_t process_birth(HANDLE);
+const std::string& read_product(State& s){
+    // Only product evidence uses this bounded logical stream. Driver logs,
+    // markers, settings and every other file keep their original read().
+    if(!s.product_evidence.bound()||s.product_evidence_path!=s.product_log)return s.product_evidence.text();
+    if(s.product_evidence.pid()!=s.product_pid||(s.process&&
+       (GetProcessId(s.process)!=s.product_pid||process_birth(s.process)!=s.product_evidence.birth())))
+        throw std::runtime_error("product_log_actual_process_identity_changed");
+    const auto physical=[](const fs::path& path){
+        const auto attributes=GetFileAttributesW(path.c_str());
+        if(attributes==INVALID_FILE_ATTRIBUTES){const auto error=GetLastError();if(error==ERROR_FILE_NOT_FOUND||error==ERROR_PATH_NOT_FOUND)return std::string{};
+            throw std::runtime_error("product_log_physical_attributes_unavailable");}
+        if(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))throw std::runtime_error("product_log_physical_file_not_plain");
+        std::error_code error;const auto bytes=fs::file_size(path,error);
+        if(error||bytes>2*1024*1024)throw std::runtime_error("product_log_physical_size_unavailable_or_unbounded");
+        return read(path);
+    };
+    auto previous=s.product_log;previous+=L".1";std::string why;
+    for(unsigned attempt=0;attempt<2;++attempt){
+        const auto old=physical(previous),current=physical(s.product_log);
+        if(s.product_evidence.observe(old,current,why))return s.product_evidence.text();
+        if(s.product_evidence.rejected())break;
+    }
+    s.product_evidence.reject();throw std::runtime_error("product_log_evidence_rejected_"+why);
+}
+std::string product_log_since(State& s,std::size_t mark){
+    (void)read_product(s);
+    if(s.product_evidence_path!=s.product_log)return {};
+    const auto result=s.product_evidence.since(mark);
+    if(!result)throw std::runtime_error("product_log_mark_not_in_current_launch");
+    return std::string(*result);
+}
+std::string product_log_current(State& s){return product_log_since(s,0);}
 bool own(State&,HWND);
 // IndependentEntry TEST observation only. One existing fixture UI STA writes
 // fixed atomics; the driver reads at most three times. No product authority,
@@ -555,7 +590,7 @@ product::guest::CapturedReleaseFacts release_capture_facts(State& s,HWND h,HWND 
     facts.source_tid=GetWindowThreadProcessId(h,&source_pid);facts.source_pid=source_pid;facts.hit_root=reinterpret_cast<std::uintptr_t>(hit);
     facts.product_pid=s.product_pid;facts.product_identity=s.process&&GetProcessId(s.process)==s.product_pid&&
         WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&process_birth(s.process)!=0;
-    std::istringstream lines(read(s.product_log));std::string row;
+    std::istringstream lines(product_log_current(s));std::string row;
     while(std::getline(lines,row)){
         if(!row.ends_with('}')||number(row,"\"process_id\":")!=s.product_pid||
            row.find("\"source_sha\":"+quote(s.product_source))==row.npos)continue;
@@ -780,7 +815,7 @@ bool owned_client_activation_setup(State& s,HWND h){
         if(found==s.frames.end())throw std::runtime_error("owned_activation_blank_frame_not_registered");frame=&*found;
         if(!s.process||GetProcessId(s.process)!=s.product_pid||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||!process_birth(s.process))
             throw std::runtime_error("owned_activation_product_identity_not_live");
-        const auto mark=read(s.product_log).size();const bool requested=launch(s,L"--status",true,&status_exit);
+        const auto mark=read_product(s).size();const bool requested=launch(s,L"--status",true,&status_exit);
         if(!requested||status_exit||!wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000)||
            !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0}))
             throw std::runtime_error("owned_activation_product_not_fresh_idle");
@@ -828,8 +863,11 @@ void foreground(State& s,HWND h){
 }
 bool launch(State& s,std::wstring args,bool command,DWORD* exit=nullptr){
     std::wstring line=L"\""+s.product.wstring()+L"\""+(args.empty()?L"":L" "+args);STARTUPINFOW si{sizeof(si)};PROCESS_INFORMATION pi{};
+    const auto launch_before_tick=GetTickCount64();
     if(!CreateProcessW(s.product.c_str(),line.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW,nullptr,s.product.parent_path().c_str(),&si,&pi))return false;
-    CloseHandle(pi.hThread);if(!command){s.process=pi.hProcess;s.product_pid=pi.dwProcessId;return medium(pi.hProcess);}
+    CloseHandle(pi.hThread);if(!command){s.process=pi.hProcess;s.product_pid=pi.dwProcessId;
+        s.product_evidence.begin(s.product_pid,process_birth(pi.hProcess),launch_before_tick,s.product_source);s.product_evidence_path=s.product_log;
+        return medium(pi.hProcess);}
     const DWORD waited=WaitForSingleObject(pi.hProcess,5000);DWORD code=STILL_ACTIVE;if(waited==WAIT_OBJECT_0)GetExitCodeProcess(pi.hProcess,&code);
     CloseHandle(pi.hProcess);if(exit)*exit=code;return waited==WAIT_OBJECT_0&&code==0;
 }
@@ -838,13 +876,13 @@ std::uint64_t number(const std::string& line,std::string_view field){
     for(;at<line.size()&&line[at]>='0'&&line[at]<='9';++at)value=value*10+static_cast<unsigned>(line[at]-'0');return value;
 }
 std::string record(State& s,std::size_t offset,std::string_view type,std::uint64_t generation=0){
-    const auto text=read(s.product_log);if(offset>=text.size())return {};std::istringstream stream(text.substr(offset));std::string line,out;
+    const auto text=product_log_since(s,offset);std::istringstream stream(text);std::string line,out;
     while(std::getline(stream,line))if(line.ends_with('}')&&line.find("\"type\":"+quote(type))!=std::string::npos&&(!generation||number(line,"\"generation\":")==generation))out=line;return out;
 }
 std::string actual_up(State& s,std::size_t offset,std::uint64_t generation,int pressed_button=1){
     if(!generation||pressed_button<1||pressed_button>5)return {};
-    const auto text=read(s.product_log);if(offset>=text.size())return {};
-    std::istringstream rows(text.substr(offset));std::string line,observed;
+    const auto text=product_log_since(s,offset);
+    std::istringstream rows(text);std::string line,observed;
     while(std::getline(rows,line))if(line.ends_with('}')&&line.find("\"type\":\"input_button_observed\"")!=line.npos&&
         line.find("\"kind\":\"UP\"")!=line.npos&&
         number(line,"\"generation\":")==generation&&number(line,"\"button\":")==static_cast<unsigned>(pressed_button)&&
@@ -870,14 +908,14 @@ AbortCleanupUpReceipt abort_cleanup_up_receipt(State& s,std::size_t offset,std::
     if(!generation||s.left||!s.left_up_attempted||!s.left_up_send_qpc||!s.process||
        GetProcessId(s.process)!=s.product_pid||WaitForSingleObject(s.process,0)!=WAIT_TIMEOUT||!process_birth(s.process))return out;
     const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,generation,s.left_up_send_qpc};
-    const auto status_mark=read(s.product_log).size();
+    const auto status_mark=read_product(s).size();
     // Exactly one public status command. The bounded wait only reads its
     // actual receipt and resource facts; it never launches a polling process.
     out.status_requested=launch(s,L"--status",true,&out.status_exit);
     out.matched=wait([&]{
         out.status=record(s,status_mark,"status");out.status_observed=!out.status.empty();
         out.ended=record(s,offset,"gesture_end",generation);out.gone.clear();out.released.clear();
-        const auto text=read(s.product_log);std::istringstream rows(offset<text.size()?text.substr(offset):std::string{});std::string row;
+        const auto text=product_log_since(s,offset);std::istringstream rows(text);std::string row;
         while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&number(row,"\"generation\":")==generation){
             if(row.find("\"fact\":\"isolation_gone\"")!=row.npos)out.gone=row;
             if(row.find("\"fact\":\"capture_released\"")!=row.npos)out.released=row;
@@ -888,7 +926,7 @@ AbortCleanupUpReceipt abort_cleanup_up_receipt(State& s,std::size_t offset,std::
     return out;
 }
 std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect expected,bool native){
-    const auto text=read(s.product_log);if(offset>=text.size())return {};std::istringstream stream(text.substr(offset));std::string line,out;
+    const auto text=product_log_since(s,offset);std::istringstream stream(text);std::string line,out;
     while(std::getline(stream,line))if(line.ends_with('}')&&line.find("\"type\":\"placement\"")!=std::string::npos&&
         number(line,"\"generation\":")==generation&&line.find("\"exact\":true")!=std::string::npos&&
         line.find("\"actual\":"+rect(expected))!=std::string::npos&&(!native||line.find("\"native_attempted\":true")!=std::string::npos))out=line;
@@ -904,7 +942,7 @@ Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
     cursor(s,*point);
     if(s.applications[source])application_prepare_barrier(s,h,*point,region);else Sleep(100);
-    if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read(s.product_log).size()};button(s,true);
+    if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read_product(s).size()};button(s,true);
     const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
     if(!observed&&s.applications[source])application_down_context(s,h,*point,region,"after_unobserved_DOWN");
     s.log.check("production_real_down_start",observed,
@@ -914,7 +952,7 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
     // Deliberately paced input trajectory below the configured speed cutoff;
     // this is not a product retry, cursor sampler or authority workaround.
     if(!authorized_source(s,source_window(s,source)))throw std::runtime_error("test_source_identity_revoked");
-    Sleep(60);const auto mark=read(s.product_log).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
+    Sleep(60);const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
     const bool ok=wait([&]{receipt=placement(s,mark,g.generation,expected,native);return visible(source_window(s,source))==expected&&!receipt.empty();});
     const auto actual=visible(source_window(s,source));
     s.log.check(std::move(name),ok,"\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+
@@ -924,7 +962,7 @@ product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
 #include "platform/windows/product/v1_guest_hook_observer.h"
 void up(State& s,std::size_t source,const Gesture& g,Rect expected,
     product::guest::UpEvidenceMode evidence_mode=product::guest::UpEvidenceMode::DiagnosticEvent){
-    const auto mark=read(s.product_log).size();const auto raw_before=raw_mouse_observer_json();
+    const auto mark=read_product(s).size();const auto raw_before=raw_mouse_observer_json();
     // Install after this product instance, so this passive observer is ahead
     // of it for the single planned UP. A missing product callback can now be
     // distinguished from a missing guest hook-chain observation. It is never
@@ -941,7 +979,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected,
         if(observed&&evidence_mode==product::guest::UpEvidenceMode::StatusSnapshot){
             // A new public command AFTER this same-generation NormalUp, not a
             // cached shutdown receipt and not an implicit diagnostic fallback.
-            const auto status_mark=read(s.product_log).size();status_requested=launch(s,L"--status",true,&status_exit);
+            const auto status_mark=read_product(s).size();status_requested=launch(s,L"--status",true,&status_exit);
             status_observed=status_requested&&wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
         }
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
@@ -949,7 +987,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected,
         const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
         const product::guest::UpEvidenceIdentity up_identity{s.product_pid,s.product_source,g.generation,s.left_up_send_qpc};
         std::string captured_legacy,captured_gone;
-        {const auto text=read(s.product_log);std::istringstream rows(mark<text.size()?text.substr(mark):std::string{});std::string row;
+        {const auto text=product_log_since(s,mark);std::istringstream rows(text);std::string row;
             while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&number(row,"\"generation\":")==g.generation){
                 if(row.find("\"fact\":\"legacy_left_up\"")!=row.npos)captured_legacy=row;
                 if(row.find("\"fact\":\"isolation_gone\"")!=row.npos)captured_gone=row;
@@ -1467,7 +1505,7 @@ bool application_down_context(State& s,HWND h,POINT point,int expected_hit,std::
         hit&&GetAncestor(hit,GA_ROOT)==h&&GetForegroundWindow()==h;
 }
 void application_prepare_barrier(State& s,HWND h,POINT point,int expected_hit){
-    const auto mark=read(s.product_log).size();const bool sent=launch(s,L"--status",true);std::string status;
+    const auto mark=read_product(s).size();const bool sent=launch(s,L"--status",true);std::string status;
     const bool observed=sent&&wait([&]{status=record(s,mark,"status");return !status.empty();},2000);
     s.log.check("application_actual_STA_prepare_barrier",observed&&status.find("\"enabled\":true")!=std::string::npos&&
         status.find("\"hook_owner_running\":true")!=std::string::npos&&status.find("\"gesture_active\":false")!=std::string::npos,
@@ -1731,7 +1769,7 @@ void matrix_commands(State& s,const std::string& label){
     for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_hide_target_identity_changed");
     const auto& w=facts[0].work;Rect center{static_cast<LONG>(w.left()+(w.width()-original->width())/2),static_cast<LONG>(w.top()+(w.height()-original->height())/2),0,0};center.r=center.l+original->width();center.b=center.t+original->height();
     const auto command=[&](std::wstring action,Rect expected){
-        foreground(s,h);const auto before=visible(h);const auto mark=read(s.product_log).size();const auto limits=facts[0].limits;
+        foreground(s,h);const auto before=visible(h);const auto mark=read_product(s).size();const auto limits=facts[0].limits;
         const bool legal=expected.width()>=limits.min_width&&expected.width()<=limits.max_width&&expected.height()>=limits.min_height&&expected.height()<=limits.max_height;
         const bool sent=launch(s,L"--command "+action,true);bool observed=false;std::string evidence;
         if(legal)observed=sent&&wait([&]{return visible(h)==expected;});
@@ -1770,7 +1808,7 @@ void edge_paused_native_client_baseline(State& s){
     const HWND h=target->identity->hwnd;const auto before=visible(h);
     bool pause_attempted=false,paused=false,click_attempted=false,dom_observed=false,resumed=false;
     bool hit_read=false;HWND hit{};DWORD_PTR region{};DWORD hit_error{};POINT point{};
-    std::string failure,status,resume_status;const auto pause_mark=read(s.product_log).size();
+    std::string failure,status,resume_status;const auto pause_mark=read_product(s).size();
     try{
         foreground(s,h);pause_attempted=true;
         if(!launch(s,L"--pause",true)||!launch(s,L"--status",true)||!wait([&]{status=record(s,pause_mark,"status");return !status.empty();},1000)||
@@ -1801,14 +1839,14 @@ void edge_paused_native_client_baseline(State& s){
     }catch(const std::exception& error){failure=error.what();}
     if(s.left&&!s.left_up_attempted)try{button(s,false);}catch(const std::exception& error){failure+=';';failure+=error.what();}
     if(pause_attempted){
-        const auto mark=read(s.product_log).size();
+        const auto mark=read_product(s).size();
         const bool known=launch(s,L"--status",true)&&wait([&]{resume_status=record(s,mark,"status");return !resume_status.empty();},1000)&&
             product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0});
         if(known&&resume_status.find("\"enabled\":true")!=resume_status.npos)resumed=true;
         else if(known&&resume_status.find("\"enabled\":false")!=resume_status.npos){
             // Pause is the existing public toggle. An unsupported --resume
             // would open Settings instead; never toggle an unknown state.
-            const auto toggle_mark=read(s.product_log).size();
+            const auto toggle_mark=read_product(s).size();
             resumed=launch(s,L"--command Pause",true)&&launch(s,L"--status",true)&&wait([&]{resume_status=record(s,toggle_mark,"status");return !resume_status.empty();},1000)&&
                 product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0})&&resume_status.find("\"enabled\":true")!=resume_status.npos;
         }
@@ -1828,7 +1866,7 @@ void matrix_escape_and_client(State& s,const std::string& label){
     const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
     for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_Escape_target_hide_identity_failed");
     const auto g=down(s,0);phase(s,0,g,-travel,travel,translated(*original,-travel,travel),label+".Escape_before",true);
-    const auto mark=read(s.product_log).size();key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);std::string end;
+    const auto mark=read_product(s).size();key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);std::string end;
     const bool escaped=wait([&]{end=record(s,mark,"gesture_end",g.generation);return !end.empty()&&visible(h)==original;});
     button(s,false); // Test cleanup after Escape, deliberately not NormalUp.
     s.log.check(label+".Escape_restore",escaped&&end.find("\"normal_up\":false")!=std::string::npos,
@@ -1850,7 +1888,7 @@ void matrix_escape_and_client(State& s,const std::string& label){
         ",\"WM_NCHITTEST_error\":"+(exact_child?std::to_string(hit_error):"null")+",\"input_not_yet_sent\":true");
     const bool actual=exact_child&&hit_read&&region==HTCLIENT;
     if(!actual)throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
-    const auto click_mark=read(s.product_log).size();button(s,true);button(s,false);Sleep(150);
+    const auto click_mark=read_product(s).size();button(s,true);button(s,false);Sleep(150);
     std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
     const bool focused=context.known()&&gui.hwndFocus&&IsWindow(gui.hwndFocus)&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
     s.log.check(label+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
@@ -1898,7 +1936,7 @@ void matrix_escape_and_client(State& s,const std::string& label){
 void matrix_input_idle(State& s){
     if(s.left){button(s,false);s.log.emit("test_cleanup","\"synthetic_release_sent\":true,\"not_product_NormalUp\":true");}
     if(s.control)key(s,VK_CONTROL,false);
-    const auto mark=read(s.product_log).size();const bool sent=launch(s,L"--status",true);std::string status;
+    const auto mark=read_product(s).size();const bool sent=launch(s,L"--status",true);std::string status;
     const bool idle=sent&&wait([&]{status=record(s,mark,"status");return status.find("\"gesture_active\":false")!=std::string::npos;});
     s.log.check("matrix_between_categories_actual_idle",idle&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000),
         "\"production_status\":"+quote(status)+",\"no_new_input_if_unknown\":true");
@@ -2035,7 +2073,7 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
         ",\"actual_flags\":"+std::to_string(stall.flags)+",\"actual_positioning\":["+std::to_string(stall.x)+","+std::to_string(stall.y)+","+
         std::to_string(stall.width)+","+std::to_string(stall.height)+"],\"async_left_state_at_entry\":"+
         std::to_string(stall.async_left_state.load())+",\"async_sample_not_delivery_proof\":true");
-    const auto mark=read(s.product_log).size();LARGE_INTEGER sent{};QueryPerformanceCounter(&sent);
+    const auto mark=read_product(s).size();LARGE_INTEGER sent{};QueryPerformanceCounter(&sent);
     if(exit==BlockedWriterExit::RealUp)button(s,false);
     else{
         key(s,VK_CONTROL,true);key(s,VK_SHIFT,true);key(s,VK_F11,true);key(s,VK_F11,false);key(s,VK_SHIFT,false);key(s,VK_CONTROL,false);
@@ -2070,7 +2108,7 @@ enum class BlockedWriterExit { RealUp, EmergencyHotkey };
     CloseHandle(s.process);s.process=nullptr;
     s.log.check("L2_owned_source_bounded_resume",wait([&]{return stall.finished.load();},1500));
     if(s.left)button(s,false); // TEST cleanup after the measured product exit.
-    std::istringstream rows(read(s.product_log).substr(g.offset));std::string row;unsigned issued{},late_issued{};bool timeout_unknown=false;
+    std::istringstream rows(product_log_since(s,g.offset));std::string row;unsigned issued{},late_issued{};bool timeout_unknown=false;
     while(std::getline(rows,row))if(row.find("\"type\":\"placement\"")!=std::string::npos&&number(row,"\"generation\":")==g.generation){
         // A timed-out issued call is a real callsite claim, not a fabricated
         // successful API return. The target's actual WindowProc entry above
@@ -2086,12 +2124,17 @@ void cleanup(State& s){
     bool current_stop_confirmed=false;
     if(s.left){try{button(s,false);s.log.emit("test_cleanup","\"synthetic_release_sent\":true,\"not_product_cleanup_pass\":true");}catch(...){}}
     if(s.control){try{key(s,VK_CONTROL,false);}catch(...){}}
-    if(s.process){const auto mark=read(s.product_log).size();const auto stopped_pid=s.product_pid;
+    if(s.process){std::size_t mark{};bool evidence_available=true;std::string evidence_error;
+        try{mark=read_product(s).size();}catch(const std::exception& error){evidence_available=false;evidence_error=error.what();s.log.failed=true;}
+        const auto stopped_pid=s.product_pid;
         const bool command=launch(s,L"--quit",true);const bool stopped=WaitForSingleObject(s.process,5000)==WAIT_OBJECT_0;
-        const auto shutdown=record(s,mark,"shutdown");DWORD exit_code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&exit_code);
+        std::string shutdown;if(evidence_available)try{shutdown=record(s,mark,"shutdown");}
+            catch(const std::exception& error){evidence_available=false;evidence_error=error.what();s.log.failed=true;}
+        DWORD exit_code=STILL_ACTIVE;if(stopped)GetExitCodeProcess(s.process,&exit_code);
         s.log.emit("product_stop","\"quit_command_completed\":"+std::string(command?"true":"false")+",\"process_exit_observed\":"+(stopped?"true":"false")+
-            ",\"product_exit_code\":"+std::to_string(exit_code)+",\"shutdown_report\":"+quote(shutdown));
-        current_stop_confirmed=command&&stopped&&exit_code==0&&number(shutdown,"\"process_id\":")==stopped_pid&&
+            ",\"product_exit_code\":"+std::to_string(exit_code)+",\"shutdown_report\":"+quote(shutdown)+
+            ",\"log_evidence_available\":"+(evidence_available?"true":"false")+",\"log_evidence_error\":"+quote(evidence_error));
+        current_stop_confirmed=evidence_available&&command&&stopped&&exit_code==0&&number(shutdown,"\"process_id\":")==stopped_pid&&
             shutdown.find("\"own_hooks_stopped\":true")!=std::string::npos&&shutdown.find("\"own_overlay_destroyed\":true")!=std::string::npos&&
             shutdown.find("\"native_worker_exited\":true")!=std::string::npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=std::string::npos&&
             shutdown.find("\"visual_recovery_stopped\":true")!=std::string::npos&&shutdown.find("\"visual_restore_confirmed\":true")!=std::string::npos&&input_resource_stop_observed(shutdown);
@@ -2267,7 +2310,7 @@ bool gui_activate_exact_settings(State& s,const SettingsGui& gui){
         const auto front=GetForegroundWindow();return front&&idle(GetWindowThreadProcessId(front,nullptr));
     };
     try{
-        const auto mark=read(s.product_log).size();std::string status;DWORD exit=STILL_ACTIVE;
+        const auto mark=read_product(s).size();std::string status;DWORD exit=STILL_ACTIVE;
         if(!fresh()||!launch(s,L"--status",true,&exit)||exit||!wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000)||
            !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0}))
             throw std::runtime_error("settings_activation_not_exact_idle_product");
@@ -2298,7 +2341,7 @@ bool gui_activate_exact_settings(State& s,const SettingsGui& gui){
     return activated;
 }
 SettingsGui gui_open(State& s){
-    const auto mark=read(s.product_log).size();
+    const auto mark=read_product(s).size();
     s.log.check("GUI_production_settings_command",launch(s,L"--settings",true));SettingsGui gui;std::string ready_receipt;bool ready_observed=false;
     const bool created=wait([&]{
         // A visible root can be observed while show() is still animating and
@@ -2428,7 +2471,7 @@ void settings_gui_flow(State& s){
         phase(s,0,g,-6,3,expected,"GUI_attraction_zero_"+std::string(stage),true);up(s,0,g,expected);
     };
     no_snap("next_gesture");
-    cleanup(s);if(s.log.failed)throw std::runtime_error("GUI_restart_normal_stop_failed");const auto restart_mark=read(s.product_log).size();
+    cleanup(s);if(s.log.failed)throw std::runtime_error("GUI_restart_normal_stop_failed");const auto restart_mark=read_product(s).size();
     s.log.check("GUI_restart_same_product",launch(s,L"--diagnostic",false));
     s.log.check("GUI_restart_new_startup",wait([&]{const auto row=record(s,restart_mark,"startup");return number(row,"\"process_id\":")==s.product_pid;}));
     const auto retained=settings::parse(read(path));s.log.check("GUI_restart_persisted_configuration",retained.value&&*retained.value==saved);
@@ -2525,11 +2568,11 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     own_visual_setup(s,h,173,false);visual_gui_save(s,desired);own_visual_setup(s,h,173,true);
     visual_command(s,h,L"OpacityDown",141,true);visual_toggle_hotkey(s,h,141,false);
     visual_command(s,h,L"OpacityDown",109,false);visual_command(s,h,L"OpacityUp",141,false);
-    const auto resume=[&]{const auto mark=read(s.product_log).size();s.log.check("visual_resume_command",launch(s,L"--command Pause",true));
+    const auto resume=[&]{const auto mark=read_product(s).size();s.log.check("visual_resume_command",launch(s,L"--command Pause",true));
         s.log.check("visual_resume_actual_enabled",wait([&]{return record(s,mark,"status").find("\"enabled\":true")!=std::string::npos;}));};
     s.log.check("visual_pause_command",launch(s,L"--pause",true));visual_exact(s,h,173,true,"visual_pause_restores_actual_original_tuple");resume();
     visual_command(s,h,L"OpacityDown",141,true);visual_toggle_hotkey(s,h,141,false);
-    const auto stop_mark=read(s.product_log).size(),driver_stop_mark=read(s.log.path).size();
+    const auto stop_mark=read_product(s).size(),driver_stop_mark=read(s.log.path).size();
     const auto stopped_pid=s.product_pid;cleanup(s);
     // Earlier independent application failures remain in the global verdict,
     // but do not turn this fresh, actually observed stop into a false failure.
@@ -2555,7 +2598,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
         "\"product_stop\":"+quote(stop_receipt)+",\"shutdown\":"+quote(stopped)+",\"previous_global_failures_preserved\":true");
     visual_exact(s,h,173,true,"visual_normal_exit_restores_actual_original_tuple");
     s.log.check("visual_exit_helper_confirmed",record(s,stop_mark,"shutdown").find("\"visual_recovery_stopped\":true")!=std::string::npos);
-    const auto restart=read(s.product_log).size();s.log.check("visual_restart_same_product",launch(s,L"--diagnostic",false));
+    const auto restart=read_product(s).size();s.log.check("visual_restart_same_product",launch(s,L"--diagnostic",false));
     s.log.check("visual_restart_actual_startup",wait([&]{return number(record(s,restart,"startup"),"\"process_id\":")==s.product_pid;}));
     visual_command(s,h,L"OpacityDown",141,true);
     s.log.check("visual_app_changes_alpha_199",SetLayeredWindowAttributes(h,0,199,LWA_ALPHA)!=FALSE);visual_exact(s,h,199,true,"visual_app_actual_alpha_199");
@@ -2579,7 +2622,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
     own_visual_setup(s,h,173,false);desired.drag_transparency=false;desired.shake=true;visual_gui_save(s,desired);
     const UINT dpi=GetDpiForWindow(h);if(!dpi)throw std::runtime_error("visual_shake_DPI_unknown");
     const LONG step=std::max<LONG>(48,MulDiv(24,static_cast<int>(dpi),96)*2);
-    const auto count_mutations=[&](std::size_t offset){std::istringstream rows(read(s.product_log).substr(offset));std::string row;unsigned count{};
+    const auto count_mutations=[&](std::size_t offset){std::istringstream rows(product_log_since(s,offset));std::string row;unsigned count{};
         while(std::getline(rows,row))if(row.find("\"type\":\"visual_mutation\"")!=std::string::npos)++count;return count;};
     for(unsigned gesture=0;gesture<2;++gesture){
         start=*visible(h);g=down(s,0);LONG dx{};
@@ -2587,7 +2630,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
         const BYTE alpha=gesture?173:190;const bool top=gesture==0;
         visual_exact(s,h,alpha,top,gesture?"visual_second_shake_restores_tuple":"visual_first_shake_sets_tuple");
         s.log.check("visual_shake_actual_mutation_receipts",wait([&]{return count_mutations(g.offset)>=2;}));
-        const auto after_trigger=read(s.product_log).size();
+        const auto after_trigger=read_product(s).size();
         for(unsigned point=0;point<4;++point){dx=point%2?step:-step;phase(s,0,g,dx,0,translated(start,dx,0),"visual_same_gesture_extra_reverse",true);}
         up(s,0,g,translated(start,dx,0));visual_exact(s,h,alpha,top,"visual_shake_tuple_after_real_UP");
         s.log.check("visual_at_most_one_toggle_per_real_gesture",count_mutations(after_trigger)==0);
@@ -2677,12 +2720,12 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
         gui_press(s,query.gui,VK_ESCAPE);
         s.log.check("independent_actual_settings_Escape",wait([&]{return !IsWindow(query.gui.root);}));
     }
-    const auto status=[&]{std::string row;const auto mark=read(s.product_log).size();DWORD code=STILL_ACTIVE;
+    const auto status=[&]{std::string row;const auto mark=read_product(s).size();DWORD code=STILL_ACTIVE;
         if(!launch(s,L"--status",true,&code)||code||!wait([&]{row=record(s,mark,"status");return !row.empty();},1000)||
            number(row,"\"process_id\":")!=s.product_pid)throw std::runtime_error("independent_fresh_status_unavailable");return row;};
     auto facts=status();
     if(facts.find("\"gesture_active\":true")!=facts.npos){
-        const auto mark=read(s.product_log).size();
+        const auto mark=read_product(s).size();
         s.log.check("independent_explicit_abort_pause_command",launch(s,L"--pause",true));
         s.log.check("independent_abort_observed_not_NormalUp",wait([&]{const auto end=record(s,mark,"gesture_end");
             return !end.empty()&&number(end,"\"end\":")==static_cast<unsigned>(panebind::core::v1::End::Paused)&&
@@ -2799,7 +2842,7 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             stopped.find("\"result\":\"PASS\"")!=stopped.npos&&s.product==original_product&&s.product_log==original_log&&
             !binary.empty()&&binary==hash(s.input_product),"\"actual_portable_stop_receipt\":"+quote(stopped)+
             ",\"old_chain_PASS_not_inferred\":true,\"restart_is_test_setup\":true");
-        const auto startup_mark=read(s.product_log).size();s.log.check("independent_restart_original_run_copy",launch(s,L"--diagnostic",false));
+        const auto startup_mark=read_product(s).size();s.log.check("independent_restart_original_run_copy",launch(s,L"--diagnostic",false));
         const auto new_birth=process_birth(s.process);HWND owner{};DWORD owner_pid{};
         const bool started=wait([&]{const auto startup=record(s,startup_mark,"startup");owner=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
             owner_pid=0;if(owner)GetWindowThreadProcessId(owner,&owner_pid);
@@ -2892,7 +2935,7 @@ void drive(State& s){
             "\"actual_product_route_receipt\":"+quote(route)+",\"older_route_not_substituted_for_new_resource_validation\":true");
         const HWND app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};if(app)GetWindowThreadProcessId(app,&pid);
         s.log.check("single_exact_product_owner",app&&pid==s.product_pid);
-        const auto mark=read(s.product_log).size();DWORD second{};
+        const auto mark=read_product(s).size();DWORD second{};
         const bool second_ok=launch(s,L"--status",true,&second)&&
             FindWindowW(L"PaneBind.V1.Application",L"PaneBind")==app&&wait([&]{return !record(s,mark,"status").empty();});
         s.log.check("second_instance_status",second_ok,
@@ -2998,7 +3041,7 @@ void drive(State& s){
                 WaitForSingleObject(original_process,0)==WAIT_TIMEOUT;
             std::string status;bool status_requested=false,status_observed=false;DWORD status_exit=STILL_ACTIVE;
             if(driver_released&&layout_idle&&originals_exact&&gui_idle&&product_current){
-                const auto status_mark=read(s.product_log).size();status_requested=launch(s,L"--status",true,&status_exit);
+                const auto status_mark=read_product(s).size();status_requested=launch(s,L"--status",true,&status_exit);
                 if(status_requested)status_observed=wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
             }
             const bool product_idle=status_observed&&status_exit==0&&number(status,"\"process_id\":")==original_pid&&

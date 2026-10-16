@@ -132,13 +132,13 @@ void chain_front(LayoutFixtures& set,std::size_t index){
     set.state.log.check("chain_test_foreground_exact_owned",SetForegroundWindow(h)&&wait([&]{return GetForegroundWindow()==h;}));
 }
 std::string chain_any_placement(State& s,std::size_t offset,Rect expected){
-    const auto text=read(s.product_log);if(offset>=text.size())return {};std::string row,result;std::istringstream rows(text.substr(offset));
+    const auto text=product_log_since(s,offset);std::string row,result;std::istringstream rows(text);
     while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=std::string::npos&&
         row.find("\"native_attempted\":true")!=std::string::npos&&row.find("\"exact\":true")!=std::string::npos&&
         row.find("\"actual\":"+rect(expected))!=std::string::npos)result=row;return result;
 }
 void chain_command(LayoutFixtures& set,std::size_t source,const wchar_t* action,Rect expected){
-    auto& s=set.state;chain_front(set,source);const auto mark=read(s.product_log).size();
+    auto& s=set.state;chain_front(set,source);const auto mark=read_product(s).size();
     const bool sent=launch(s,L"--command "+std::wstring(action),true);std::string receipt;
     const bool completed=sent&&wait([&]{receipt=chain_any_placement(s,mark,expected);
         return set.owns(source)&&visible(set.frames[source].hwnd)==expected&&!receipt.empty();});
@@ -150,7 +150,7 @@ void chain_hotkey(State& s,WORD code){
     catch(...){try{key(s,code,false);key(s,VK_MENU,false);key(s,VK_CONTROL,false);}catch(...){}throw;}
 }
 void chain_hotkey_exact(LayoutFixtures& set,WORD code,Rect expected,const char* label){
-    auto& s=set.state;chain_front(set,0);const auto mark=read(s.product_log).size();chain_hotkey(s,code);std::string receipt;
+    auto& s=set.state;chain_front(set,0);const auto mark=read_product(s).size();chain_hotkey(s,code);std::string receipt;
     const bool completed=wait([&]{receipt=chain_any_placement(s,mark,expected);return set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();});
     s.log.check(label,completed,
         "\"actual_registered_hotkey\":true,\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt));
@@ -163,7 +163,7 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     auto& s=set.state;chain_front(set,0);const auto point=layout_hit(set,0,native_region);
     if(!point)throw std::runtime_error("chain_requested_native_double_click_region_not_observed");
     const auto before=visible(set.frames[0].hwnd);if(!before)throw std::runtime_error("chain_double_click_before_unknown");
-    if(shift)key(s,VK_SHIFT,true);cursor(s,*point);Sleep(100);const auto mark=read(s.product_log).size();
+    if(shift)key(s,VK_SHIFT,true);cursor(s,*point);Sleep(100);const auto mark=read_product(s).size();
     const auto started=GetTickCount64();button(s,true);button(s,false);
     if(!shift){
         std::string failure,gone,status,ended;std::uint64_t generation{};bool normal{},early_click{},status_requested{},status_ok{};
@@ -178,21 +178,21 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
                     ended.find("\"normal_up\":true")!=ended.npos;
                 return normal;
             }
-            failure.clear();gone.clear();const auto text=read(s.product_log);
-            std::istringstream rows(mark<text.size()?text.substr(mark):std::string{});std::string row;
+            failure.clear();gone.clear();const auto text=product_log_since(s,mark);
+            std::istringstream rows(text);std::string row;
             while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
                 row.find("\"fact\":\"resource_failure\"")!=row.npos&&
                 number(row,"\"source\":")==reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd)&&
                 number(row,"\"source_pid\":")==GetCurrentProcessId()&&number(row,"\"source_tid\":")==set.thread)failure=row;
             generation=number(failure,"\"generation\":");if(!generation)return false;
-            rows.clear();rows.str(mark<text.size()?text.substr(mark):std::string{});
+            rows.clear();rows.str(text);
             while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
                 row.find("\"fact\":\"isolation_gone\"")!=row.npos&&number(row,"\"generation\":")==generation)gone=row;
             if(gone.empty())return false;
             if(!status_requested){
                 // One fresh public receipt AFTER actual cleanup. No input is
                 // resent, and secondary exit is not substituted for delivery.
-                status_requested=true;status_mark=read(s.product_log).size();
+                status_requested=true;status_mark=read_product(s).size();
                 status_ok=launch(s,L"--status",true,&status_exit);
             }
             status=record(s,status_mark,"status");
@@ -224,7 +224,7 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     const bool edge=native_region==HTLEFT||native_region==HTRIGHT||native_region==HTTOP||native_region==HTBOTTOM;
     const auto action=shift?(native_region==HTLEFT||native_region==HTRIGHT?"StretchHorizontal":"StretchVertical"):
         native_region==HTLEFT?"StretchLeft":native_region==HTRIGHT?"StretchRight":native_region==HTTOP?"StretchTop":"StretchBottom";
-    const auto second_mark=read(s.product_log).size();button(s,true);std::string receipt,second_down,mapped;
+    const auto second_mark=read_product(s).size();button(s,true);std::string receipt,second_down,mapped;
     const bool changed=wait([&]{
         receipt=chain_any_placement(s,second_mark,expected);second_down=record(s,second_mark,"input_button_observed");
         const auto generation=number(second_down,"\"generation\":");
@@ -462,7 +462,7 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         (void)wait([]{return false;},100);
     };
     const auto client_pair=[&](unsigned which,const char* stage){
-        real_point(false);const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto mark=read(s.product_log).size();const auto starts=frame.starts.load();
+        real_point(false);const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto mark=read_product(s).size();const auto starts=frame.starts.load();
         send_button(which,true);const bool down_observed=wait([&]{return frame.client_down[which-1].load()==before[which-1][0]+1;},1000);
         send_button(which,false);const bool up_observed=wait([&]{return frame.client_up[which-1].load()==before[which-1][1]+1;},1000);
         auto expected=before;++expected[which-1][0];++expected[which-1][1];const auto after=counts();const auto raw_after=raw_mouse_observer_json();GUITHREADINFO info{sizeof(info)};
@@ -489,13 +489,13 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         s.log.check("M09_actual_GUI_mouse_configuration_saved",actual==wanted&&actual.generation>before.generation);
     };
     const auto restore=[&]{
-        const auto mark=read(s.product_log).size();
+        const auto mark=read_product(s).size();
         s.log.check("M09_actual_pause_restores_owned_visual",launch(s,L"--pause",true)&&wait([&]{const auto row=record(s,mark,"status");
             const auto actual=native_visual(h);return row.find("\"enabled\":false")!=std::string::npos&&actual&&*actual==*original_visual;}));
         // Restore the actual topmost tuple BEFORE opening settings, so our
         // own test topmost source cannot obscure the real editor's hit target.
         if(configuration_changed){save_mouse(original.mouse_bindings);configuration_changed=false;}
-        const auto resume=read(s.product_log).size();s.log.check("M09_actual_resume_preserves_original_configuration",launch(s,L"--command Pause",true)&&wait([&]{
+        const auto resume=read_product(s).size();s.log.check("M09_actual_resume_preserves_original_configuration",launch(s,L"--command Pause",true)&&wait([&]{
             return record(s,resume,"status").find("\"enabled\":true")!=std::string::npos;}));
         const auto actual=chain_settings(s);auto expected=original;expected.generation=actual.generation;
         s.log.check("M09_original_full_configuration_and_visual_restored",actual==expected&&set.owns(0)&&visible(h)==initial&&
@@ -506,12 +506,12 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         std::vector<v::MouseBinding> bindings;for(int which=1;which<=5;++which)bindings.push_back({0,which,1,0,v::Action::ToggleTopmost});
         configuration_changed=true;save_mouse(bindings);
         for(unsigned which=1;which<=5;++which){
-            real_point(true);const auto mark=read(s.product_log).size();const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto before_visual=native_visual(h);
+            real_point(true);const auto mark=read_product(s).size();const auto before=counts();const auto raw_before=raw_mouse_observer_json();const auto before_visual=native_visual(h);
             if(!before_visual||!before_visual->known)throw std::runtime_error("M09_before_mapped_native_tuple_unknown");
             auto expected_visual=*before_visual;expected_visual.topmost=!expected_visual.topmost;
             send_button(which,true);std::string mapped,completed;std::uint64_t generation{};
             const bool changed=wait([&]{
-                mapped.clear();std::istringstream rows(read(s.product_log).substr(mark));std::string row;
+                mapped.clear();std::istringstream rows(product_log_since(s,mark));std::string row;
                 while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"input_button_observed\"")!=std::string::npos&&
                     row.find("\"source\":\"WH_MOUSE_LL\"")!=std::string::npos&&row.find("\"kind\":\"DOWN\"")!=std::string::npos&&
                     row.find("\"route\":\"mapped\"")!=std::string::npos&&row.find("\"action\":\"ToggleTopmost\"")!=std::string::npos&&
@@ -558,7 +558,7 @@ void chain_i06_owned_core(State& s){
         visual_exact(s,h,n?173:190,n==0,"I11_I06_actual_shake_tuple");up(s,0,g,translated(*start,dx,0));
     }
     s.log.check("I11_I06_actual_pause",launch(s,L"--pause",true));visual_exact(s,h,173,false,"I11_I06_pause_restores_actual_tuple");
-    const auto mark=read(s.product_log).size();s.log.check("I11_I06_actual_resume",launch(s,L"--command Pause",true)&&
+    const auto mark=read_product(s).size();s.log.check("I11_I06_actual_resume",launch(s,L"--command Pause",true)&&
         wait([&]{return record(s,mark,"status").find("\"enabled\":true")!=std::string::npos;}));
     chain_gui_save(s,original);chain_restore_app_visual(s,h,*old);
     s.log.emit("I11_I06_core","\"actual_drag_UP_shake_on_off_pause_resume\":true,\"product_exit_tested_only_by_final_cleanup\":true");
@@ -605,7 +605,7 @@ void chain_idle_facts(State& s){
     if(!ClientToScreen(h,&point))throw std::runtime_error("I11_idle_client_screen_geometry_unknown");
     cursor(s,point);const HWND hit=WindowFromPoint(point);
     if(!hit||GetAncestor(hit,GA_ROOT)!=h)throw std::runtime_error("I11_idle_exact_client_hit_not_observed");
-    const auto mark=read(s.product_log).size();
+    const auto mark=read_product(s).size();
     s.log.check("I11_actual_product_idle_status",launch(s,L"--status",true)&&wait([&]{const auto row=record(s,mark,"status");
         return row.find("\"gesture_active\":false")!=std::string::npos&&row.find("\"enabled\":true")!=std::string::npos;}));
     chain_preview_hidden(s,"I11_actual_idle_overlay_hidden");GUITHREADINFO info{sizeof(info)};
@@ -652,11 +652,11 @@ void chain_idle_facts(State& s){
             g=down(s,source,false,HTBOTTOM);phase(s,source,g,0,-20,*before,"I11_mixed_actual_Resize_back",true);up(s,source,g,*before);
         }else if(slot%5==2){ctrl_move(s,source,20,10,"I11_mixed_real_Ctrl_Move");ctrl_move(s,source,-20,-10,"I11_mixed_real_Ctrl_Move_back");}
         else{
-            foreground(s,s.frames[source].hwnd);const auto mark=read(s.product_log).size();const Rect center{
+            foreground(s,s.frames[source].hwnd);const auto mark=read_product(s).size();const Rect center{
                 work.l+(work.width()-before->width())/2,work.t+(work.height()-before->height())/2,
                 work.l+(work.width()-before->width())/2+before->width(),work.t+(work.height()-before->height())/2+before->height()};
             s.log.check("I11_mixed_real_Center",launch(s,L"--command Center",true)&&wait([&]{return visible(s.frames[source].hwnd)==center&&!chain_any_placement(s,mark,center).empty();}));
-            const auto undo=read(s.product_log).size();s.log.check("I11_mixed_real_Undo",launch(s,L"--command Undo",true)&&wait([&]{return visible(s.frames[source].hwnd)==before&&!chain_any_placement(s,undo,*before).empty();}));
+            const auto undo=read_product(s).size();s.log.check("I11_mixed_real_Undo",launch(s,L"--command Undo",true)&&wait([&]{return visible(s.frames[source].hwnd)==before&&!chain_any_placement(s,undo,*before).empty();}));
         }
         chain_idle_facts(s);
         const auto deadline=static_cast<std::uint64_t>(started.QuadPart)+static_cast<std::uint64_t>(frequency.QuadPart)*45*(slot+1);

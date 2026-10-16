@@ -263,7 +263,7 @@ std::string settings_guest_single_instance(State& s,DWORD expected_pid,std::uint
         return enumerated&&query.count==1&&query.exact;
     };
     if(!exact_process()||!roots())throw std::runtime_error("single_instance_exact_held_product_or_unique_root_not_confirmed");
-    const auto mark=read(s.product_log).size();DWORD command_exit=STILL_ACTIVE;const bool requested=launch(s,L"--status",true,&command_exit);std::string status;
+    const auto mark=read_product(s).size();DWORD command_exit=STILL_ACTIVE;const bool requested=launch(s,L"--status",true,&command_exit);std::string status;
     const bool observed=requested&&wait([&]{status=record(s,mark,"status");return number(status,"\"process_id\":")==expected_pid;});
     const bool source_matches=s.product_source.size()==40&&status.find("\"source_sha\":"+quote(s.product_source))!=status.npos;
     const bool hook_owner_running=status.find("\"hook_owner_running\":true")!=status.npos;
@@ -282,7 +282,7 @@ void settings_guest_startup(State& s){
     settings_guest_scope(s);const auto original=settings_guest_configuration(s);const auto expected=L"\""+s.product.wstring()+L"\" --startup";
     if(original.startup||settings_guest_run_value().exists)throw std::runtime_error("startup_test_requires_absent_Run_value_no_unknown_overwrite");
     const auto stop_verified=[&](std::string_view stage){
-        const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();
+        const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read_product(s).size(),driver_mark=read(s.log.path).size();
         cleanup(s);const auto shutdown=record(s,mark,"shutdown");std::string stopped,recovery;bool forced=false;
         std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
@@ -309,7 +309,7 @@ void settings_guest_startup(State& s){
                 const auto run_value=settings_guest_run_value();const auto saved_bytes=read(s.product.parent_path()/L"settings.ini");
                 s.log.check("startup_saved_disabled_and_exact_Run_command",saved==disabled&&run_value.exists&&run_value.type==REG_SZ&&run_value.text==expected);
                 const auto prior_pid=s.product_pid;const auto prior_birth=process_birth(s.process);stop_verified("startup_before_simulated_login");
-                const auto start_mark=read(s.product_log).size();s.log.check("startup_simulated_login_exact_stored_command",launch(s,L"--startup",false),
+                const auto start_mark=read_product(s).size();s.log.check("startup_simulated_login_exact_stored_command",launch(s,L"--startup",false),
                     "\"stored_command\":"+quote(utf8(run_value.text))+",\"arguments\":\"--startup\",\"real_Windows_logon\":false");
                 s.log.check("startup_new_actual_process_identity",wait([&]{return number(record(s,start_mark,"startup"),"\"process_id\":")==s.product_pid;})&&
                     s.process&&(s.product_pid!=prior_pid||process_birth(s.process)!=prior_birth)&&read(s.product.parent_path()/L"settings.ini")==saved_bytes);
@@ -343,7 +343,7 @@ void settings_guest_startup(State& s){
         // so later receipt-based cases do not silently lose detailed logging.
         const auto final=settings_guest_configuration(s);auto wanted=original;wanted.generation=final.generation;
         s.log.check("startup_original_options_and_Run_removal",final==wanted&&!settings_guest_run_value().exists);
-        stop_verified("startup_after_simulated_login");const auto mark=read(s.product_log).size();
+        stop_verified("startup_after_simulated_login");const auto mark=read_product(s).size();
         s.log.check("startup_restore_diagnostic_test_setup",launch(s,L"--diagnostic",false));
         s.log.check("startup_diagnostic_test_setup_current_instance",wait([&]{return number(record(s,mark,"startup"),"\"process_id\":")==s.product_pid;})&&settings_guest_configuration(s)==final);
         settings_guest_single_instance(s,s.product_pid,process_birth(s.process),"startup_restored_test_setup");
@@ -394,7 +394,7 @@ void settings_guest_native_move(State& s,LONG requested_dx,LONG dy,std::string_v
     if(drag_x<0||drag_y<0||drag_x>128||drag_y>128||requested_dx<=0)
         throw std::runtime_error("settings_native_Move_drag_metrics_out_of_test_bounds");
     const LONG trigger_dx=drag_x+1,dx=std::max(requested_dx,trigger_dx+1);const auto expected=translated(*before,dx,dy);
-    const auto mark=read(s.product_log).size();const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();
+    const auto mark=read_product(s).size();const auto starts=s.frames[0].starts.load(),ends=s.frames[0].ends.load();
     const auto native_before=native_move_boundary_json(s.frames[0]);
     bool up_attempted=false;
     try{
@@ -518,7 +518,7 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
             "\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"original_sha256\":"+quote(original_hash)+",\"original_attributes\":"+
             std::to_string(attributes)+",\"protected_attributes\":"+std::to_string(protected_attributes)+",\"SetFileAttributes_error\":"+
             std::to_string(protection_error)+",\"DACL_permission_experiment\":false,\"save_failure_not_inferred\":true");
-        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
+        const auto mark=read_product(s).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
         settings_guest_acknowledge(s,gui,L"保存或应用失败，原有效配置应保持不变。",L"PaneBind：设置未更改");
         const auto notice=record(s,mark,"notice");
         s.log.check("settings_actual_save_rejected_original_file_and_draft_retained",notice.find("无法原子保存配置，原配置未覆盖")!=notice.npos&&
@@ -540,7 +540,7 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
         s.log.check("settings_after_fault_same_draft_save_succeeds",saved==wanted&&saved.generation>original.generation&&GetFileAttributesW(path.c_str())!=INVALID_FILE_ATTRIBUTES&&
             !(GetFileAttributesW(path.c_str())&FILE_ATTRIBUTE_READONLY),"\"actual_saved_sha256\":"+quote(hash(path)));
         const auto saved_bytes=read(path),saved_hash=hash(path);const auto old_pid=s.product_pid;const auto old_birth=process_birth(s.process);
-        const auto stop_mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();cleanup(s);
+        const auto stop_mark=read_product(s).size(),driver_mark=read(s.log.path).size();cleanup(s);
         const auto shutdown=record(s,stop_mark,"shutdown");std::string input_recovery;bool forced=false;
         std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
@@ -550,7 +550,7 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
             shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&
             input_recovery.find("\"actual_down_up_delivered\":true")!=input_recovery.npos,
             "\"actual_stop_receipt\":"+quote(shutdown)+",\"actual_post_stop_input\":"+quote(input_recovery));
-        const auto start_mark=read(s.product_log).size();s.log.check("settings_save_failure_same_EXE_restart",launch(s,L"--diagnostic",false));
+        const auto start_mark=read_product(s).size();s.log.check("settings_save_failure_same_EXE_restart",launch(s,L"--diagnostic",false));
         s.log.check("settings_save_failure_actual_restart_identity",wait([&]{return !record(s,start_mark,"startup").empty();})&&s.process&&medium(s.process)&&
             (s.product_pid!=old_pid||process_birth(s.process)!=old_birth)&&read(path)==saved_bytes&&hash(path)==saved_hash);
         const auto restarted=gui_open(s);gui_page_select(s,restarted,1);
@@ -633,7 +633,7 @@ void settings_guest_mapping_conflict(State& s){
             public_legend.find(L"MoveRight → 向右微移\r\n")!=public_legend.npos,
             "\"actual_readonly_public_legend\":true,\"actions_checked\":[\"Center\",\"MoveRight\"],\"tray_help_claimed\":false");
         settings_guest_replace(s,gui,hotkey_edit,requested_fragment);
-        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
+        const auto mark=read_product(s).size();settings_guest_activate(s,gui,GetDlgItem(gui.root,IDOK));
         settings_guest_acknowledge(s,gui,L"保存或应用失败，原有效配置应保持不变。",L"PaneBind：设置未更改");
         const auto notice=record(s,mark,"notice");
         s.log.check("settings_mapping_real_registration_conflict_preserves_old_snapshot",notice.find("快捷键注册冲突")!=notice.npos&&
@@ -875,7 +875,7 @@ void settings_guest_diagnostic_export_failure(State& s){
         if(restored)fault_may_exist=false;return restored;
     };
     const auto normal_stop=[&](std::string_view stage){
-        if(!s.process)return;const auto pid=s.product_pid;const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();cleanup(s);
+        if(!s.process)return;const auto pid=s.product_pid;const auto mark=read_product(s).size(),driver_mark=read(s.log.path).size();cleanup(s);
         const auto shutdown=record(s,mark,"shutdown"),rows=read(s.log.path).substr(driver_mark);
         std::string stopped,client;std::istringstream stop_rows(rows);std::string row;
         while(std::getline(stop_rows,row))if(row.ends_with('}')){
@@ -928,7 +928,7 @@ void settings_guest_diagnostic_export_failure(State& s){
         if(denied!=INVALID_HANDLE_VALUE){CloseHandle(denied);if(!DeleteFileW(probe.c_str()))throw std::runtime_error("diagnostic_failure_unexpected_probe_cleanup_failed");}
         s.log.check("diagnostic_failure_actual_new_file_denied",denied==INVALID_HANDLE_VALUE&&denied_error==ERROR_ACCESS_DENIED,
             "\"CreateFile_error\":"+std::to_string(denied_error)+",\"not_product_export_evidence\":true");
-        const auto mark=read(s.product_log).size();settings_guest_activate(s,gui,button);
+        const auto mark=read_product(s).size();settings_guest_activate(s,gui,button);
         const bool notice_observed=wait([&]{observed_notice=record(s,mark,"notice");return observed_notice.find("诊断写入失败；未声明导出成功。")!=observed_notice.npos;});
         SettingsGuestModal actual_modal;unsigned visible_checked{},text_queries{};
         visible_failure=wait([&]{
@@ -983,7 +983,7 @@ void settings_guest_diagnostic_export_failure(State& s){
     s.product=original_product;s.product_log=original_log;s.diagnostic_export_failure_local=false;
     bool original_restored=!original_stopped;
     if(original_stopped&&!s.process)try{
-        const auto mark=read(s.product_log).size();original_restored=launch(s,L"--diagnostic",false)&&wait([&]{return number(record(s,mark,"startup"),"\"process_id\":")==s.product_pid;})&&
+        const auto mark=read_product(s).size();original_restored=launch(s,L"--diagnostic",false)&&wait([&]{return number(record(s,mark,"startup"),"\"process_id\":")==s.product_pid;})&&
             hash(s.product)==binary_hash&&read(original_product.parent_path()/L"settings.ini")==original_config&&settings_guest_configuration(s)==original_settings;
     }catch(const std::exception& error){failure+=";original_restart:";failure+=error.what();}
     s.log.emit("diagnostic_export_failure_cleanup","\"original_DACL_restored\":"+std::string(acl_restored?"true":"false")+
@@ -996,7 +996,7 @@ void settings_guest_diagnostic_export_failure(State& s){
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
     std::vector<fs::path> old_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt."))old_backups.push_back(entry.path());
-    const auto stop_mark=read(s.log.path).size(),product_stop_mark=read(s.product_log).size();const auto stopped_pid=s.product_pid;
+    const auto stop_mark=read(s.log.path).size(),product_stop_mark=read_product(s).size();const auto stopped_pid=s.product_pid;
     const bool exact_process_before=s.process&&stopped_pid&&GetProcessId(s.process)==stopped_pid&&process_birth(s.process)&&
         WaitForSingleObject(s.process,0)==WAIT_TIMEOUT;cleanup(s);std::string stopped,input_recovery;bool forced=false;
     const auto driver_text=read(s.log.path);
@@ -1024,7 +1024,7 @@ void settings_guest_corrupt_restart(State& s){
     const auto attrs=GetFileAttributesW(path.c_str());if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))throw std::runtime_error("corrupt_config_not_exact_existing_plain_test_file");
     constexpr std::string_view corrupt="schema=1\nschema=1\nINTENTIONALLY_INVALID_PANEBIND_GUEST_CONFIG\n";
     {std::ofstream file(path,std::ios::binary|std::ios::trunc);file.write(corrupt.data(),static_cast<std::streamsize>(corrupt.size()));file.close();if(!file)throw std::runtime_error("corrupt_config_test_write_failed");}
-    const auto start_mark=read(s.product_log).size();s.log.check("corrupt_config_same_product_normal_restart",launch(s,L"--diagnostic",false));
+    const auto start_mark=read_product(s).size();s.log.check("corrupt_config_same_product_normal_restart",launch(s,L"--diagnostic",false));
     s.log.check("corrupt_config_real_restart_and_notice",wait([&]{return !record(s,start_mark,"startup").empty()&&record(s,start_mark,"notice").find("配置损坏")!=std::string::npos;}));
     std::vector<fs::path> new_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt.")&&
         std::find(old_backups.begin(),old_backups.end(),entry.path())==old_backups.end())new_backups.push_back(entry.path());

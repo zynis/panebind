@@ -276,7 +276,7 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
     try{
         // Keep the original 100 ms preparation interval, but actually serve
         // the product's synchronous queries. No Sleep/key/launch gap after it.
-        if(ctrl)key(s,VK_CONTROL,true);g.offset=read(s.product_log).size();
+        if(ctrl)key(s,VK_CONTROL,true);g.offset=read_product(s).size();
         for(unsigned preparation=0;preparation<2;++preparation){
             cursor(s,*point);const auto hover=GetTickCount64();
             (void)layout_wait_sent([&]{return GetTickCount64()-hover>=100;},100);
@@ -365,7 +365,7 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
     auto& s=set.state;if(expected.size()!=set.active)throw std::runtime_error("layout_expected_member_count");
     std::vector<Rect> before;for(std::size_t n=0;n<set.active;++n){const auto actual=visible(set.frames[n].hwnd);
         if(!set.owns(n)||!actual)throw std::runtime_error("layout_member_identity_or_frame_lost");before.push_back(*actual);}
-    Sleep(60);const auto mark=read(s.product_log).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
+    Sleep(60);const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
     const bool exact=wait([&]{
         for(std::size_t n=0;n<set.active;++n){
             if(!set.owns(n)||visible(set.frames[n].hwnd)!=expected[n])return false;
@@ -379,7 +379,7 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
         ",\"actual\":"+rect(*visible(set.frames[n].hwnd)));
 }
 void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& expected){
-    auto& s=set.state;const auto mark=read(s.product_log).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
+    auto& s=set.state;const auto mark=read_product(s).size();button(s,false);if(s.control)key(s,VK_CONTROL,false);
     s.log.check("layout_actual_matching_UP",wait([&]{return !actual_up(s,mark,g.generation).empty()&&record(s,mark,"gesture_end",g.generation).find("\"normal_up\":true")!=std::string::npos;}));
     Sleep(100);GUITHREADINFO gui{sizeof(gui)};bool stable=!s.left&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture;
     for(std::size_t n=0;n<expected.size();++n)stable=stable&&set.owns(n)&&visible(set.frames[n].hwnd)==expected[n];
@@ -476,7 +476,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         // This is ONLY the known eight-window pre-DOWN preparation branch.
         // A failed actual gesture never enters this continuation path.
         if(why!="layout_actual_independent_setup"&&why!="layout_main_UI_configuration_failed"&&!why.starts_with("eight_owned_"))throw;
-        s.log.failed=true;const auto previous_end=record(s,g.offset,"gesture_end",g.generation);const auto mark=read(s.product_log).size();
+        s.log.failed=true;const auto previous_end=record(s,g.offset,"gesture_end",g.generation);const auto mark=read_product(s).size();
         const bool status=launch(s,L"--status",true)&&wait([&]{return record(s,mark,"status").find("\"gesture_active\":false")!=std::string::npos;});
         const bool closed=set.close();GUITHREADINFO gui{sizeof(gui)};
         s.log.check("eight_owned_pre_DOWN_failure_exact_cleanup",closed&&status&&!s.left&&!s.control&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
@@ -566,14 +566,14 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     const Rect late_target=translated(initial,-42,35);
     std::uint64_t call_id{};std::string issued,late;
     const auto find_late=[&]{
-        const auto text=read(s.product_log);if(g.offset>=text.size())return false;
-        std::istringstream rows(text.substr(g.offset));std::string row;
+        const auto text=product_log_since(s,g.offset);if(text.empty())return false;
+        std::istringstream rows(text);std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=std::string::npos&&
             number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=std::string::npos){
             issued=row;call_id=number(row,"\"call_id\":");
         }
         if(!call_id)return false;
-        std::istringstream completions(text.substr(g.offset));
+        std::istringstream completions(text);
         while(std::getline(completions,row))if(row.ends_with('}')&&row.find("\"type\":\"native_completion\"")!=std::string::npos&&
             number(row,"\"call_id\":")==call_id)late=row;
         return !late.empty();
@@ -596,8 +596,8 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     // helper-acknowledged cleanup receipt after the old geometry call finishes.
     visual_exact(s,h,173,false,"temporary_inflight_deferred_cleanup_restores_actual_alpha173");
     std::string restored;
-    const bool cleanup_receipt=wait([&]{const auto text=read(s.product_log);if(g.offset>=text.size())return false;
-        std::istringstream rows(text.substr(g.offset));std::string row;
+    const bool cleanup_receipt=wait([&]{const auto text=product_log_since(s,g.offset);if(text.empty())return false;
+        std::istringstream rows(text);std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"visual_mutation\"")!=std::string::npos&&
             number(row,"\"key\":")==source_key&&row.find("\"cleanup_owned_property\":true")!=std::string::npos&&
             row.find("\"native_completion_known\":true")!=std::string::npos&&row.find("\"visual_exact\":true")!=std::string::npos&&
@@ -606,7 +606,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
             row.find("\"actual\":{\"layered\":true,\"attributes_known\":true,\"alpha\":173,")!=std::string::npos)restored=row;
         return !restored.empty();},1500);
     s.log.check("temporary_inflight_actual_temporary_cleanup_receipt",cleanup_receipt,"\"production_cleanup\":"+quote(restored));
-    unsigned calls{},after_up{};std::istringstream placements(read(s.product_log).substr(g.offset));std::string row;
+    unsigned calls{},after_up{};std::istringstream placements(product_log_since(s,g.offset));std::string row;
     while(std::getline(placements,row))if(row.find("\"type\":\"placement\"")!=std::string::npos&&
         number(row,"\"generation\":")==g.generation&&row.find("\"native_callsite_claimed\":true")!=std::string::npos){
         ++calls;if(number(row,"\"native_before_qpc\":")>=static_cast<std::uint64_t>(up_before.QuadPart))++after_up;
@@ -616,7 +616,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         "\"issued_geometry_calls\":"+std::to_string(calls)+",\"issued_after_test_UP_send_start\":"+std::to_string(after_up)+
         ",\"actual_UP_timing_not_inferred\":true");
     if(missing_UP){
-        const auto status_mark=read(s.product_log).size();std::string status;DWORD status_exit=STILL_ACTIVE;
+        const auto status_mark=read_product(s).size();std::string status;DWORD status_exit=STILL_ACTIVE;
         const bool requested=launch(s,L"--status",true,&status_exit);
         const bool observed=wait([&]{status=record(s,status_mark,"status");return !status.empty();},1000);
         ended=record(s,g.offset,"gesture_end",g.generation);GUITHREADINFO gui{sizeof(gui)};
@@ -649,13 +649,13 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         ShowWindow(s.frames[n].hwnd,original_shown[n]?SW_SHOWNOACTIVATE:SW_HIDE);
         s.log.check("temporary_inflight_original_visibility_restored",own(s,s.frames[n].hwnd)&&(IsWindowVisible(s.frames[n].hwnd)!=FALSE)==original_shown[n]);}
     if(missing_UP){
-        const auto mark=read(s.product_log).size();std::string status;DWORD exit=STILL_ACTIVE;
+        const auto mark=read_product(s).size();std::string status;DWORD exit=STILL_ACTIVE;
         const bool requested=launch(s,L"--status",true,&exit);const bool observed=wait([&]{status=record(s,mark,"status");return !status.empty();},1000);
         GUITHREADINFO gui{sizeof(gui)};const auto restored_config=settings::parse(read(s.product.parent_path()/L"settings.ini"));
         auto expected_config=original_config;if(restored_config.value)expected_config.generation=restored_config.value->generation;
         bool layout_restored=true;for(std::size_t n=0;n<3;++n)layout_restored=layout_restored&&own(s,s.frames[n].hwnd)&&
             visible(s.frames[n].hwnd)==original_rects[n]&&(IsWindowVisible(s.frames[n].hwnd)!=FALSE)==original_shown[n];
-        unsigned final_calls{};std::istringstream rows(read(s.product_log).substr(g.offset));std::string observed_row;
+        unsigned final_calls{};std::istringstream rows(product_log_since(s,g.offset));std::string observed_row;
         while(std::getline(rows,observed_row))if(observed_row.find("\"type\":\"placement\"")!=std::string::npos&&
             number(observed_row,"\"generation\":")==g.generation&&observed_row.find("\"native_callsite_claimed\":true")!=std::string::npos)++final_calls;
         s.log.check("temporary_inflight_failed_case_restored_safe_for_independent_flow",requested&&exit==0&&observed&&

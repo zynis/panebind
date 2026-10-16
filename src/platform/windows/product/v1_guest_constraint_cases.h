@@ -5,14 +5,14 @@
 // Frame.grid is this test application's actual WINDOWPOSCHANGING policy.
 
 std::vector<std::string> constraint_generation_placements(State& s,std::size_t offset,std::uint64_t generation){
-    const auto bytes=read(s.product_log);std::vector<std::string> result;if(offset>=bytes.size())return result;
-    std::istringstream rows(bytes.substr(offset));std::string row;
+    const auto bytes=product_log_since(s,offset);std::vector<std::string> result;
+    std::istringstream rows(bytes);std::string row;
     while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=std::string::npos&&
         number(row,"\"generation\":")==generation)result.push_back(std::move(row));
     return result;
 }
 std::uint64_t constraint_last_product_sequence(State& s){
-    std::istringstream rows(read(s.product_log));std::string row;std::uint64_t sequence{};
+    std::istringstream rows(product_log_current(s));std::string row;std::uint64_t sequence{};
     while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"process_id\":")==s.product_pid)
         sequence=std::max(sequence,number(row,"\"sequence\":"));return sequence;
 }
@@ -103,7 +103,7 @@ bool constraint_existing_fixed_case(State& s){
     // The status sequence is NOT a common native clock/order with mouse input,
     // and does not claim that every native queue was drained.
     const auto barrier=constraint_last_product_sequence(s);cursor(s,{g.anchor.x+travel+53,g.anchor.y+11});
-    const auto status_offset=read(s.product_log).size();
+    const auto status_offset=read_product(s).size();
     DWORD status_exit{};s.log.check("I10_after_abort_status_command",launch(s,L"--status",true,&status_exit)&&status_exit==0);
     s.log.check("I10_after_abort_status_observed",wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
     // Read-only routing facts at the ORIGINAL UP point. Do not move, activate
@@ -143,7 +143,7 @@ bool constraint_existing_fixed_case(State& s){
         return driver_released&&!observed_up.empty()&&source_gui_known&&!source_gui.hwndCapture&&!source_gui.hwndMoveSize;
     });
     const bool ordinary_abort=observed_end.find("\"normal_up\":false")!=std::string::npos;std::string after_UP_status;bool snapshot_requested{},snapshot_observed{};DWORD snapshot_exit=STILL_ACTIVE;
-    if(!up_and_context||!ordinary_abort||pre_native_focus_lost){const auto failed_up_mark=read(s.product_log).size();
+    if(!up_and_context||!ordinary_abort||pre_native_focus_lost){const auto failed_up_mark=read_product(s).size();
         snapshot_requested=launch(s,L"--status",true,&snapshot_exit);
         snapshot_observed=wait([&]{after_UP_status=record(s,failed_up_mark,"status");return !after_UP_status.empty();},1000);
     }
