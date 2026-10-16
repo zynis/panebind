@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-最新R8产品`82d66a0821e13d49903b9cfd1cf8186193ea5aba`，Release EXE `C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE`；drivere138／34bf已实际完成同PID两轮owned核心和900.001415秒／20slot，含postResize A和Ctrl C。便携9281e84f9cf844e281f91f7d0ca19037已从普通空参GUI实际启动、保存改变动作并正常退出，独立入口范围PASS，不是整I12。启动checkbox、source-close UP观察、actor后继START及driver尾错误仍未齐，五应用／显示／托盘完整门槛未过；**不可宿主试用**。旧七项功能／B2与7149、c17e等原失败保持各自身份，不自动加分。
+当前R8产品`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／Release EXE `C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE`未改。最新e5／driver22d已复验启动和同一9281便携普通GUI／保存后实际动作／正常退出子项，托盘仍BLOCKED；128f应用批次Terminal缺START、Code仍无合格根、Edge点击无DOM且关闭未确认。39条关键原行可从交付报告复核。34bf两轮／900秒及旧七项功能／B2保持原身份，不把分组合成整版通过；**不可宿主试用，真人UAT PENDING**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 

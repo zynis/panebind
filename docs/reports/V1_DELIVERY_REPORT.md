@@ -2,7 +2,15 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新R8产品82d／drivere138／Run34bf已实际完成9281普通ZIP入口子链，同PID5260两轮owned核心、900.001415秒／20slot与正常退出；不能再把当前R8这些项目写NOT_RUN。启动checkbox、source-close UP观察、actor后继START及尾部driver错误仍保留，应用／环境／托盘和完整I11／I12未齐。历史**7/60功能、B29／B32共2/40=5%**不自动增加，旧结果保留身份；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。同一R8产品82d／driver22d的新e5批次已实际通过启动、普通9281ZIP及其他入口组件，托盘不可达使整批FAIL；128f应用批次Terminal缺START、Code无合格根、Edge客户点击无DOM且关闭未确认，driver退出UNKNOWN。34bf两轮owned核心／900秒保留原身份。历史**7/60功能、B29／B32共2/40=5%**不增加，不将分组拼成Full；不能宿主试用，真人UAT PENDING。
+
+## 128f＋e5：同一产品的应用失败与入口复验分开
+
+两批产品均`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／EXE `C796DDA…ED0DE`，driver均`22d6e601a444d4af0ca853459abfb3168b661dd7`／`26542BC…9CE65`，包装717a1bb；完整guest ZIP／manifest与原日志哈希在索引，未重建或换绑产品。两份小摘录共39条原行，保留64位原字面量。
+
+[128f应用原行](v1-evidence/128f-r8-applications-and-driver-exit-unknown-selected.jsonl)：Terminal50精确绑定，但61只有nativepending、63无真实START，未到增强五阶段／client截图；75 exact根关闭确认。Code96实际`--disable-gpu`，99实际Medium child退出0x80070005、100–103 hidden、107无合格根，原因UNKNOWN。Edge129已经真实HTCLIENT=1/error0并尝试一次客户click，DOM效果仍false；pause/resume真实，无增强Move；144/148根关闭未确认。150产品正常资源退出及155客户[0,0]→[1,1]独立成立，**158结束日志不是driver退出证明**：原launch／guest-summary均缺，driver进程退出UNKNOWN，跨STA析构仅候选解释。20:08:51Z专用guest20208／任务精确清理、证据未变，不补产品或driver PASS。
+
+[e5入口原行](v1-evidence/e5f5-r8-startup-portable-rapid-scoped-selected.jsonl)：331实际disabled checkbox／334 Run命令／342登录模拟／345保存状态／347同实例／371恢复入口，388启动子项PASS；34bf301旧失败原样保留。294快速短Move是native-only passthrough，非增强或NormalUp。856保存失败、912诊断导出失败、980损坏恢复、1117排除及同一9281ZIP普通GUI／二启／默认和保存后实际Move-UP／退出1208子链通过。994托盘BLOCKED，1223/1225整批FAIL，不算整I12或新功能/B项。与128f不同，本批launch和summary均存在，实际wait0／exit1／无强制清理，driver退出已观察但不是成功退出0；20:14:31Z精确guest10692／任务清理、证据未变。后续仅定向修复退出生命周期和未过应用，不重跑900秒。
 
 ## 34bf：当前普通ZIP与两轮／15分钟实测推进，尾阻断是driver错误
 
