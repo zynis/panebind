@@ -228,15 +228,105 @@ panebind::core::v1::Settings settings_guest_configuration(State& s){
     auto parsed=panebind::core::v1::parse(read(s.product.parent_path()/L"settings.ini"));
     if(!parsed.value)throw std::runtime_error("settings_case_actual_configuration_invalid");return *parsed.value;
 }
+std::string settings_guest_single_instance(State& s,DWORD expected_pid,std::uint64_t expected_birth,std::string_view stage){
+    const auto exact_process=[&]{return desktop()&&expected_pid&&expected_birth&&s.process&&s.product_pid==expected_pid&&
+        GetProcessId(s.process)==expected_pid&&WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&medium(s.process)&&process_birth(s.process)==expected_birth;};
+    const auto roots=[&]{
+        struct Search {DWORD pid;unsigned count{};bool exact{true};} query{expected_pid};
+        const bool enumerated=EnumWindows([](HWND window,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);
+            if(gui_class(window)!=L"PaneBind.V1.Application")return TRUE;
+            DWORD pid{};++q.count;q.exact=q.exact&&GetAncestor(window,GA_ROOT)==window&&GetWindowThreadProcessId(window,&pid)&&pid==q.pid;
+            return q.count<=16;
+        },reinterpret_cast<LPARAM>(&query))!=FALSE;
+        return enumerated&&query.count==1&&query.exact;
+    };
+    if(!exact_process()||!roots())throw std::runtime_error("single_instance_exact_held_product_or_unique_root_not_confirmed");
+    const auto mark=read(s.product_log).size();DWORD command_exit=STILL_ACTIVE;const bool requested=launch(s,L"--status",true,&command_exit);std::string status;
+    const bool observed=requested&&wait([&]{status=record(s,mark,"status");return number(status,"\"process_id\":")==expected_pid;});
+    const bool source_matches=s.product_source.size()==40&&status.find("\"source_sha\":"+quote(s.product_source))!=status.npos;
+    const bool hook_owner_running=status.find("\"hook_owner_running\":true")!=status.npos;
+    const bool native_idle=status.find("\"gesture_active\":false")!=status.npos&&
+        status.find("\"native_operation_pending\":false")!=status.npos&&status.find("\"native_completion_unknown\":false")!=status.npos&&
+        status.find("\"visual_restore_pending\":false")!=status.npos;
+    s.log.check(std::string(stage)+"_single_exact_behavior_instance",observed&&command_exit==0&&source_matches&&hook_owner_running&&native_idle&&exact_process()&&roots(),
+        "\"expected_PID\":"+std::to_string(expected_pid)+",\"expected_birth\":"+std::to_string(expected_birth)+
+        ",\"fresh_status_command_exit\":"+std::to_string(command_exit)+",\"fresh_actual_status\":"+quote(status)+
+        ",\"actual_source_sha_matches_product_identity\":"+(source_matches?"true":"false")+
+        ",\"actual_hook_owner_running_from_status_only\":"+(hook_owner_running?"true":"false")+
+        ",\"actual_native_idle_confirmed\":"+(native_idle?"true":"false")+",\"global_hook_count_not_inferred\":true,\"unknown_roots_not_controlled\":true");
+    return status;
+}
 void settings_guest_startup(State& s){
-    const auto original=settings_guest_configuration(s);const auto expected=L"\""+s.product.wstring()+L"\" --startup";
+    settings_guest_scope(s);const auto original=settings_guest_configuration(s);const auto expected=L"\""+s.product.wstring()+L"\" --startup";
     if(original.startup||settings_guest_run_value().exists)throw std::runtime_error("startup_test_requires_absent_Run_value_no_unknown_overwrite");
+    const auto stop_verified=[&](std::string_view stage){
+        const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read(s.product_log).size(),driver_mark=read(s.log.path).size();
+        cleanup(s);const auto shutdown=record(s,mark,"shutdown");std::string stopped,recovery;bool forced=false;
+        std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
+            if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
+            if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)recovery=row;}
+        s.log.check(std::string(stage)+"_normal_stop_and_actual_input",pid&&birth&&!s.process&&!forced&&number(shutdown,"\"process_id\":")==pid&&
+            stopped.find("\"quit_command_completed\":true")!=stopped.npos&&stopped.find("\"process_exit_observed\":true")!=stopped.npos&&
+            stopped.find("\"product_exit_code\":0")!=stopped.npos&&shutdown.find("\"own_hooks_stopped\":true")!=shutdown.npos&&
+            shutdown.find("\"own_overlay_destroyed\":true")!=shutdown.npos&&shutdown.find("\"native_worker_exited\":true")!=shutdown.npos&&
+            shutdown.find("\"issued_native_completion_unknown\":false")!=shutdown.npos&&recovery.find("\"actual_down_up_delivered\":true")!=recovery.npos,
+            "\"actual_shutdown\":"+quote(shutdown)+",\"actual_post_stop_input\":"+quote(recovery));
+    };
     try{for(const bool enabled:{true,false}){const auto gui=gui_open(s);gui_page_select(s,gui,0);
             const auto checkbox=gui_find(s,gui,L"Button",L"用户登录后启动");gui_click(s,gui,checkbox);
             s.log.check("startup_actual_checkbox",wait([&]{return (gui_read(s,gui,checkbox,BM_GETCHECK)==BST_CHECKED)==enabled;}));gui_save_enter(s,gui);
             const auto config=settings_guest_configuration(s);const auto entry=settings_guest_run_value();auto wanted=original;wanted.startup=enabled;wanted.generation=config.generation;
             s.log.check("startup_GUI_save_actual_Run_value",config==wanted&&(enabled?(entry.exists&&entry.type==REG_SZ&&entry.text==expected):!entry.exists),
-                "\"enabled\":"+std::string(enabled?"true":"false")+",\"exact_current_product_exe\":true,\"actual_HKCU\":true");}
+                "\"enabled\":"+std::string(enabled?"true":"false")+",\"exact_current_product_exe\":true,\"actual_HKCU\":true");
+            if(enabled){
+                const auto paused_gui=gui_open(s);gui_page_select(s,paused_gui,0);const auto toggle=gui_find(s,paused_gui,L"Button",L"启用 PaneBind");
+                if(gui_read(s,paused_gui,toggle,BM_GETCHECK)!=BST_UNCHECKED)gui_click(s,paused_gui,toggle);
+                s.log.check("startup_actual_GUI_saved_disabled_checkbox",gui_read(s,paused_gui,toggle,BM_GETCHECK)==BST_UNCHECKED);gui_save_enter(s,paused_gui);
+                const auto saved=settings_guest_configuration(s);auto disabled=original;disabled.startup=true;disabled.enabled=false;disabled.generation=saved.generation;
+                const auto run_value=settings_guest_run_value();const auto saved_bytes=read(s.product.parent_path()/L"settings.ini");
+                s.log.check("startup_saved_disabled_and_exact_Run_command",saved==disabled&&run_value.exists&&run_value.type==REG_SZ&&run_value.text==expected);
+                const auto prior_pid=s.product_pid;const auto prior_birth=process_birth(s.process);stop_verified("startup_before_simulated_login");
+                const auto start_mark=read(s.product_log).size();s.log.check("startup_simulated_login_exact_stored_command",launch(s,L"--startup",false),
+                    "\"stored_command\":"+quote(utf8(run_value.text))+",\"arguments\":\"--startup\",\"real_Windows_logon\":false");
+                s.log.check("startup_new_actual_process_identity",wait([&]{return number(record(s,start_mark,"startup"),"\"process_id\":")==s.product_pid;})&&
+                    s.process&&(s.product_pid!=prior_pid||process_birth(s.process)!=prior_birth)&&read(s.product.parent_path()/L"settings.ini")==saved_bytes);
+                const auto startup_pid=s.product_pid;const auto startup_birth=process_birth(s.process);
+                const auto status=settings_guest_single_instance(s,startup_pid,startup_birth,"simulated_login");
+                struct SettingsCount {DWORD pid;unsigned count{};} count{startup_pid};
+                const bool enumerated=EnumWindows([](HWND window,LPARAM data)->BOOL{auto& q=*reinterpret_cast<SettingsCount*>(data);DWORD pid{};
+                    if(gui_class(window)==L"PaneBindV1SettingsWindow"&&GetWindowThreadProcessId(window,&pid)&&pid==q.pid)++q.count;return TRUE;
+                },reinterpret_cast<LPARAM>(&count))!=FALSE;
+                s.log.check("startup_saved_disabled_no_automatic_settings",status.find("\"enabled\":false")!=status.npos&&
+                    status.find("\"gesture_active\":false")!=status.npos&&enumerated&&count.count==0&&settings_guest_configuration(s)==saved,
+                    "\"fresh_status\":"+quote(status)+",\"actual_product_settings_window_count\":"+std::to_string(count.count)+",\"real_Windows_logon\":false");
+                DWORD secondary_exit=STILL_ACTIVE;const bool secondary=launch(s,L"",true,&secondary_exit);SettingsGui secondary_gui;
+                s.log.check("startup_ordinary_secondary_command_exits_zero",secondary&&secondary_exit==0,"\"arguments\":\"\",\"secondary_exit\":"+std::to_string(secondary_exit));
+                const bool opened=wait([&]{struct Search {State* s;SettingsGui gui;unsigned count{};} query{&s};
+                    EnumWindows([](HWND window,LPARAM data)->BOOL{auto& q=*reinterpret_cast<Search*>(data);DWORD pid{};const auto tid=GetWindowThreadProcessId(window,&pid);
+                        if(pid==q.s->product_pid&&gui_class(window)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(window)){
+                            SettingsGui candidate{window,GetDlgItem(window,100),tid};if(candidate.tab&&gui_identity(*q.s,candidate,candidate.tab)){q.gui=candidate;++q.count;}}return TRUE;
+                    },reinterpret_cast<LPARAM>(&query));secondary_gui=query.gui;return query.count==1&&GetForegroundWindow()==secondary_gui.root&&gui_identity(s,secondary_gui,gui_focus(secondary_gui));});
+                const auto after_secondary=settings_guest_single_instance(s,startup_pid,startup_birth,"startup_ordinary_secondary");
+                s.log.check("startup_ordinary_secondary_opens_same_main_settings",opened&&after_secondary.find("\"enabled\":false")!=after_secondary.npos&&
+                    settings_guest_configuration(s)==saved,"\"main_PID_unchanged\":true,\"main_birth_unchanged\":true,\"settings_opened_by_no_argument_launch_only\":true");
+                gui_page_select(s,secondary_gui,0);const auto original_enabled=gui_find(s,secondary_gui,L"Button",L"启用 PaneBind");
+                if((gui_read(s,secondary_gui,original_enabled,BM_GETCHECK)==BST_CHECKED)!=original.enabled)gui_click(s,secondary_gui,original_enabled);
+                gui_save_enter(s,secondary_gui);const auto restored=settings_guest_configuration(s);auto resumed=original;resumed.startup=true;resumed.generation=restored.generation;
+                s.log.check("startup_original_enabled_restored_actual_GUI",restored==resumed);
+            }
+        }
+        // --startup is intentionally not --diagnostic. Restore the old test
+        // harness launch mode only AFTER the ordinary secondary-entry proof,
+        // so later receipt-based cases do not silently lose detailed logging.
+        const auto final=settings_guest_configuration(s);auto wanted=original;wanted.generation=final.generation;
+        s.log.check("startup_original_options_and_Run_removal",final==wanted&&!settings_guest_run_value().exists);
+        stop_verified("startup_after_simulated_login");const auto mark=read(s.product_log).size();
+        s.log.check("startup_restore_diagnostic_test_setup",launch(s,L"--diagnostic",false));
+        s.log.check("startup_diagnostic_test_setup_current_instance",wait([&]{return number(record(s,mark,"startup"),"\"process_id\":")==s.product_pid;})&&settings_guest_configuration(s)==final);
+        settings_guest_single_instance(s,s.product_pid,process_birth(s.process),"startup_restored_test_setup");
+        s.log.emit("startup_simulated_login_result","\"result\":\"PASS\",\"actual_HKCU_add_remove\":true,\"saved_disabled_restored_on_startup\":true,"
+            "\"ordinary_secondary_same_behavior_owner\":true,\"real_Windows_logon\":false,\"global_hook_count_not_inferred\":true,\"diagnostic_restart_is_test_setup\":true");
     }catch(...){try{const auto value=settings_guest_run_value();if(value.exists&&value.text==expected){HKEY key{};
                 const auto opened=RegOpenKeyExW(HKEY_CURRENT_USER,L"Software\\Microsoft\\Windows\\CurrentVersion\\Run",0,KEY_SET_VALUE,&key);
                 const auto result=opened==ERROR_SUCCESS?RegDeleteValueW(key,L"PaneBind"):opened;if(opened==ERROR_SUCCESS)RegCloseKey(key);
@@ -352,6 +442,7 @@ void settings_guest_attraction(State& s,int value){
     const auto gui=gui_open(s);gui_page_select(s,gui,1);gui_edit_number(s,gui,gui_number(s,gui,L"吸引距离"),static_cast<unsigned>(value));gui_save_enter(s,gui);
     s.log.check("settings_actual_attraction_saved",settings_guest_configuration(s).attraction_dip==value);
 }
+void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string_view actual_failure);
 [[maybe_unused]] void settings_guest_save_failure(State& s){
     // TEST ONLY: a reversible attribute fault on this exact Run's portable
     // settings file. No DACL, host directory, product API or registry mutation.
@@ -413,6 +504,9 @@ void settings_guest_attraction(State& s,int value){
             "\"fault_kind\":\"FILE_ATTRIBUTE_READONLY\",\"actual_product_failure_notice\":"+quote(notice)+
             ",\"ReplaceFile_native_error\":null,\"ReplaceFile_native_error_observed\":false,\"original_sha256\":"+quote(original_hash)+
             ",\"draft_still_open\":true,\"generation_unchanged\":true,\"whole_M11F05_PASS_inferred\":false");
+        // Export beside, not into, the READONLY settings file. The failure
+        // must be real and already acknowledged; no diagnostic input is seeded.
+        settings_guest_fault_diagnostic(s,gui,"无法原子保存配置，原配置未覆盖。");
         s.log.check("settings_save_fault_restored_before_continuation",restore());
         // Settings is modeless. Exercise the old live policy without saving or
         // cancelling the failed draft; re-opening brings this same draft back.
@@ -516,6 +610,31 @@ void settings_guest_diagnostic_result(State& s,const std::vector<fs::path>& prev
         ",\"new_run_file\":"+quote(utf8(exported.filename().wstring()))+",\"sha256\":"+quote(digest)+
         ",\"actual_owned_titles_and_run_paths_absent\":"+(private_values_absent?"true":"false")+
         ",\"no_real_documents_opened\":true,\"not_universal_privacy_validation\":true,\"tray_or_full_M12_PASS_inferred\":false");
+}
+void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string_view actual_failure){
+    settings_guest_scope(s);const auto previous=settings_guest_diagnostic_inventory(s);HWND diagnostic{};unsigned matches{};
+    for(HWND child=GetWindow(gui.root,GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
+        if(gui_class(child)==L"Button"&&gui_identity(s,gui,child)&&gui_text(s,gui,child)==L"诊断 (&D)"&&IsWindowVisible(child)&&IsWindowEnabled(child)){
+            diagnostic=child;++matches;}
+    s.log.check("settings_save_failure_diagnostic_actual_button_identified",matches==1,
+        "\"actual_entry\":\"settings_footer_after_actual_readonly_save_failure\",\"fault_message_seeded\":false");
+    gui_click(s,gui,diagnostic);
+    // Reuse the real bounded file/header/settings parser and the existing
+    // exact-owned-title, rule-path and Run-path privacy checks.
+    settings_guest_diagnostic_result(s,previous,"settings_footer_after_actual_readonly_save_failure");
+    const auto files=settings_guest_diagnostic_inventory(s);fs::path exported;unsigned fresh{};
+    for(const auto& path:files)if(std::find(previous.begin(),previous.end(),path)==previous.end()){exported=path;++fresh;}
+    if(fresh!=1)throw std::runtime_error("save_failure_diagnostic_new_file_identity_changed");
+    const auto attributes=GetFileAttributesW(exported.c_str());
+    if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))
+        throw std::runtime_error("save_failure_diagnostic_no_longer_plain");
+    const auto text=read(exported,300*1024),digest=hash(exported);
+    const std::string required_tail="\n\nRecent failure: "+std::string(actual_failure)+
+        "\nWindow titles, document contents and full rule paths are not collected.\n";
+    s.log.check("settings_fault_diagnostic_contains_actual_save_failure",!actual_failure.empty()&&text.ends_with(required_tail)&&!digest.empty(),
+        "\"actual_entry\":\"settings_footer_after_actual_readonly_save_failure\",\"new_run_file\":"+quote(utf8(exported.filename().wstring()))+
+        ",\"sha256\":"+quote(digest)+",\"actual_failure_origin\":\"preceding_product_READONLY_save_notice_and_acknowledged_modal\""+
+        ",\"fault_message_seeded\":false,\"not_universal_privacy_validation\":true,\"complete_M12F02_PASS_inferred\":false");
 }
 [[maybe_unused]] void owned_settings_diagnostic_case(State& s){
     settings_guest_scope(s);const auto configuration=s.product.parent_path()/L"settings.ini";const auto original=read(configuration);

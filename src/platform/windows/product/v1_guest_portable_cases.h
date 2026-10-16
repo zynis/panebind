@@ -167,6 +167,19 @@ void owned_portable_zip_entry_case(State& s){
             "\"actual_product_PID\":"+std::to_string(s.product_pid)+",\"settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(ordinary_gui.root))+
             ",\"settings_TID\":"+std::to_string(ordinary_gui.tid)+",\"unique_exact_visible_Chinese_settings\":"+(ordinary_visible?"true":"false")+
             ",\"matching_windows\":"+std::to_string(visible_settings)+",\"settings_command_sent\":false,\"tray_or_full_I12_PASS_inferred\":false");
+        const HANDLE held_main=s.process;const DWORD held_pid=s.product_pid;const auto held_birth=process_birth(held_main);
+        s.log.check("portable_main_identity_before_empty_secondary",held_main&&held_birth&&GetProcessId(held_main)==held_pid&&
+            WaitForSingleObject(held_main,0)==WAIT_TIMEOUT,
+            "\"held_main_PID\":"+std::to_string(held_pid)+",\"held_main_birth\":"+std::to_string(held_birth));
+        DWORD secondary_exit=STILL_ACTIVE;const bool secondary=launch(s,L"",true,&secondary_exit);
+        DWORD settings_pid{};const DWORD settings_tid=GetWindowThreadProcessId(ordinary_gui.root,&settings_pid);
+        s.log.check("portable_actual_empty_argument_secondary_launch",secondary&&secondary_exit==0&&s.process==held_main&&s.product_pid==held_pid&&
+            GetProcessId(held_main)==held_pid&&process_birth(held_main)==held_birth&&WaitForSingleObject(held_main,0)==WAIT_TIMEOUT&&
+            settings_pid==held_pid&&settings_tid==ordinary_gui.tid&&IsWindowVisible(ordinary_gui.root)&&gui_identity(s,ordinary_gui,ordinary_gui.root),
+            "\"actual_executable\":"+quote(utf8(s.product.wstring()))+",\"arguments\":\"\",\"diagnostic_enabled\":false,\"secondary_exit_code\":"+
+            std::to_string(secondary_exit)+",\"held_main_PID\":"+std::to_string(held_pid)+",\"held_main_birth\":"+std::to_string(held_birth)+
+            ",\"same_settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(ordinary_gui.root))+",\"actual_settings_TID\":"+std::to_string(settings_tid));
+        settings_guest_single_instance(s,held_pid,held_birth,"portable_empty_argument_secondary_launch");
         auto gui=gui_open(s);gui_page_select(s,gui,1);
         s.log.check("portable_fresh_default_actual_GUI",gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"10"&&
             !fs::exists(payload/L"settings.ini")&&!fs::exists(profile));gui_press(s,gui,VK_ESCAPE);

@@ -1245,6 +1245,185 @@
       ],
       "scope_result": "NORMAL_MODE_REAL_NORMALUP_EXACT_GEOMETRY_AND_CALLBACK_SNAPSHOT_NOT_MISSING_UP",
       "whole_version_PASS": false
+    },
+    {
+      "evidence_id": "EV-9D74-FIXTURE",
+      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "packaging_head": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "package_zip_sha256": "0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102",
+      "package_manifest_sha256": "38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0",
+      "original_path": "uat/v1-control/9d74d68f8a95441fa6344d5f9a73d0b2/collection-20261016T110335361Z-f00655a63105492d81231e1056a1ebb0/9d74d68f8a95441fa6344d5f9a73d0b2-release-fixture.jsonl",
+      "original_sha256": "8EA454D6D76D65533DA9078D149813B32CB5A45E180EA58F7F6F76FF8FC98CDA",
+      "excerpt_path": "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+      "excerpt_sha256": "441D936683D0DAF5AB82F13C31AB68C79909C312A806E20C80BC680E0C4145E9",
+      "excerpt_bytes": 113948,
+      "excerpt_sequences": [
+        3,
+        4,
+        5,
+        12,
+        13,
+        17,
+        208,
+        226,
+        227,
+        232,
+        243,
+        251,
+        264,
+        267,
+        276,
+        279,
+        284,
+        392,
+        420,
+        438,
+        439,
+        456,
+        459,
+        470,
+        475,
+        493,
+        508,
+        512,
+        513,
+        515,
+        516,
+        517,
+        528,
+        532,
+        533,
+        537,
+        540,
+        541,
+        545,
+        547,
+        548,
+        552,
+        564,
+        568,
+        569,
+        583,
+        587,
+        592,
+        602,
+        603,
+        604,
+        605,
+        609,
+        621,
+        625,
+        626,
+        645,
+        651,
+        657,
+        694,
+        704,
+        706,
+        708,
+        720,
+        731,
+        736,
+        741,
+        747,
+        753,
+        754,
+        755,
+        756,
+        760,
+        769,
+        771,
+        773,
+        774,
+        775,
+        776,
+        788,
+        789,
+        797,
+        799,
+        801,
+        802,
+        803,
+        804,
+        805,
+        809,
+        810,
+        811,
+        812,
+        815,
+        820,
+        824,
+        825,
+        826,
+        827
+      ],
+      "scope_result": "SETTINGS_COMPONENTS_AND_UPDATED_PORTABLE_SCOPED_PASS_WHOLE_ENTRY_FAIL_ONLY_TRAY_BLOCKED",
+      "whole_version_PASS": false
+    },
+    {
+      "evidence_id": "EV-9D74-PORTABLE-PRODUCT",
+      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "packaging_head": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "package_zip_sha256": "0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102",
+      "package_manifest_sha256": "38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0",
+      "original_path": "uat/v1-control/9d74d68f8a95441fa6344d5f9a73d0b2/collection-20261016T110335361Z-f00655a63105492d81231e1056a1ebb0/9d74d68f8a95441fa6344d5f9a73d0b2-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "original_sha256": "86625546DE4BDD7A5E09A863A6378D58E739261141708A6441D129721541D972",
+      "excerpt_path": "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+      "excerpt_sha256": "27F1087E3172A5663EB5327B2DA1DAB603B4A2ADAA68FB472D1B164485113D11",
+      "excerpt_bytes": 14915,
+      "excerpt_sequences": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "scope_result": "ACTUAL_ORDINARY_DEFAULT_AND_SAVED_SETTING_MOVE_NORMALUP_STATUS_AND_EXIT",
+      "whole_version_PASS": false
+    },
+    {
+      "evidence_id": "EV-9D74-MEDIUM-DESKTOP-PROBE",
+      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "driver_source_sha": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
+      "configuration": "Release",
+      "suite": "EntryAndSettings",
+      "packaging_head": "a01eb94db1b92fc28e32bed4b25dd4df7d4a9691",
+      "package_zip_sha256": "0DA05EF7632C78D43C9BE00FAE6818DFFECB1D2F900B30EA89B318D57226A102",
+      "package_manifest_sha256": "38DF97C4002A07DC723B1DE6B09C089444143D043F2B7D3B306877E127AE91D0",
+      "original_path": "uat/v1-control/9d74d68f8a95441fa6344d5f9a73d0b2/collection-20261016T110335361Z-f00655a63105492d81231e1056a1ebb0/9d74d68f8a95441fa6344d5f9a73d0b2-medium-desktop-probe.json",
+      "original_sha256": "D113C4884CB3026A73D0CAF4CDDCD9383627E7A3BCB555EDFFD6B515D6395192",
+      "excerpt_path": "docs/reports/v1-evidence/9d74-medium-desktop-probe-selected.json",
+      "excerpt_sha256": "186B3DF318533D9B56C0960E5AE42C238D419B081A52EED2EBCB6CEEDD5DC960",
+      "excerpt_bytes": 10198,
+      "scope_result": "GUEST_LOCAL_COPY_HYPOTHESIS_NOT_PROVEN_ORDINARY_CHILD_NO_RECEIPT_UNKNOWN_NO_PRODUCT_INPUT",
+      "whole_version_PASS": false
     }
   ],
   "offline_transcripts": [
@@ -1630,55 +1809,61 @@
       },
       "guest_destruction_not_product_cleanup_PASS": true,
       "unconfirmed_Edge_exact_root_cleanup_not_closed": true
+    },
+    {
+      "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
+      "original_path": "uat/v1-control/9d74d68f8a95441fa6344d5f9a73d0b2/cleanup-receipt.json",
+      "original_sha256": "39295E73765423FB16BB5B0397C53FC2B5191AD48D637B90EBCD4983038A9916",
+      "observed_flags": {
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "other_files_or_resources_changed": false
+      },
+      "product_runtime_stop_evidence": {
+        "fixture_sequences": [
+          805,
+          809,
+          810,
+          820,
+          824
+        ],
+        "normal_product_exit_observed": true,
+        "own_resource_flags_true": true,
+        "post_stop_client_counts_before": [
+          5,
+          5
+        ],
+        "post_stop_client_counts_after": [
+          6,
+          6
+        ],
+        "later_run_copy_post_stop_counts_before": [
+          6,
+          6
+        ],
+        "later_run_copy_post_stop_counts_after": [
+          7,
+          7
+        ]
+      },
+      "guest_destruction_not_product_cleanup_PASS": true,
+      "unconfirmed_Edge_exact_root_cleanup_not_closed": true
     }
   ],
-  "new_candidate_scope_note": "Latest 5017 uses unchanged R2 product with separately identified driver BC5 and documentation-only portable 98fc. Actual ordinary-mode NormalUp and exact geometry are observed despite original driver diagnostic-event assertion failure D21; do not classify it as D08 missing UP or award the unfinished functional chain PASS. All historical product/driver/package identities remain bound to their original runs.",
+  "new_candidate_scope_note": "Latest 9d74 same R2/458 EXE, separately identified driverA01, unchanged98fcZIP. Actual ordinary status-bound UP/NormalUp/exact/default and saved-setting behavior passed; D21 targeted closed, D08 remains OPEN. Settings readonly real write rejection and recovery completes independent M11F05. Whole Entry fails only tray BLOCKED, never Full.",
   "portable_contract_evaluation": {
     "feature_id": "M12-F03",
     "benchmark_id": "B32",
     "evaluation": "PASS_FEATURE_ONLY_NOT_M12_MODULE_I12_OR_VERSION",
-    "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-    "product_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-    "package_id": "2632dcb5fa83a1bd44cdf445ad0c8ad5",
-    "zip_sha256": "4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2",
-    "manifest_sha256": "090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C",
-    "actual_independent_ZIP_inventory_and_per_file_size_hash": [
-      {
-        "relative_path": "panebind.exe",
-        "sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "size": 836608
-      },
-      {
-        "relative_path": "portable.flag",
-        "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97",
-        "size": 31
-      },
-      {
-        "relative_path": "LICENSE",
-        "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C",
-        "size": 1099
-      },
-      {
-        "relative_path": "中文快速入门.md",
-        "sha256": "621DD15010765F960EEE15086A52DF28E4A702A75CA4B8DBE443F959F1CE4A51",
-        "size": 11589
-      },
-      {
-        "relative_path": "配置说明.md",
-        "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA",
-        "size": 3063
-      },
-      {
-        "relative_path": "已知问题.md",
-        "sha256": "0FD4D4FDFE97AB0F659E49E139E700B765D0C42AEC70C03AE3F82A4D1A55CEF6",
-        "size": 5128
-      },
-      {
-        "relative_path": "manifest.json",
-        "sha256": "090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C",
-        "size": 8112
-      }
-    ],
+    "product_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+    "product_binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+    "package_id": "98fc5fb109a740aba7c27baa0cd29825",
+    "zip_sha256": "E10AB78556070603432A7979E89EC3CDAEE00C9DD256205D72CBF9C74A80A236",
+    "manifest_sha256": "940B3629E60EE31C895FEDA7302DD2E91090AD0E79B2187D81044878D82A06F3",
+    "actual_independent_ZIP_inventory_and_per_file_size_hash": "9d74 fixture747 actual 7 files; prior sameEXE dependency/negative tests retained under historical evaluations, not rerun or rebound",
     "actual_dumpbin_dependencies": [
       "advapi32.dll",
       "api-ms-win-core-synch-l1-2-0.dll",
@@ -1692,22 +1877,107 @@
       "user32.dll",
       "wtsapi32.dll"
     ],
-    "actual_guest_run_id": "9e5a86c7f7864aa9ad6569b2ce5fbd92",
+    "actual_guest_run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
     "normal_entry_and_effect_sequences": [
-      49,
-      51,
-      66,
-      71,
-      83,
-      84,
-      94,
-      99,
-      100,
-      104,
-      106
+      747,
+      754,
+      756,
+      771,
+      775,
+      776,
+      788,
+      789,
+      799,
+      803,
+      804,
+      805,
+      809,
+      810,
+      811,
+      812
     ],
     "actual_negative_tool_evidence": "EV-PORTABLE-CONTRACT-NEGATIVES",
     "whole_I01_I12_accepted": false,
-    "unrelated_S1_does_not_invalidate_independent_packaging_contract": true
-  }
+    "unrelated_S1_does_not_invalidate_independent_packaging_contract": true,
+    "D21_targeted_closed": true
+  },
+  "historical_portable_contract_evaluations": [
+    {
+      "feature_id": "M12-F03",
+      "benchmark_id": "B32",
+      "evaluation": "PASS_FEATURE_ONLY_NOT_M12_MODULE_I12_OR_VERSION",
+      "product_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+      "product_binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+      "package_id": "2632dcb5fa83a1bd44cdf445ad0c8ad5",
+      "zip_sha256": "4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2",
+      "manifest_sha256": "090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C",
+      "actual_independent_ZIP_inventory_and_per_file_size_hash": [
+        {
+          "relative_path": "panebind.exe",
+          "sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+          "size": 836608
+        },
+        {
+          "relative_path": "portable.flag",
+          "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97",
+          "size": 31
+        },
+        {
+          "relative_path": "LICENSE",
+          "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C",
+          "size": 1099
+        },
+        {
+          "relative_path": "中文快速入门.md",
+          "sha256": "621DD15010765F960EEE15086A52DF28E4A702A75CA4B8DBE443F959F1CE4A51",
+          "size": 11589
+        },
+        {
+          "relative_path": "配置说明.md",
+          "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA",
+          "size": 3063
+        },
+        {
+          "relative_path": "已知问题.md",
+          "sha256": "0FD4D4FDFE97AB0F659E49E139E700B765D0C42AEC70C03AE3F82A4D1A55CEF6",
+          "size": 5128
+        },
+        {
+          "relative_path": "manifest.json",
+          "sha256": "090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C",
+          "size": 8112
+        }
+      ],
+      "actual_dumpbin_dependencies": [
+        "advapi32.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "comctl32.dll",
+        "comdlg32.dll",
+        "dwmapi.dll",
+        "gdi32.dll",
+        "kernel32.dll",
+        "ole32.dll",
+        "shell32.dll",
+        "user32.dll",
+        "wtsapi32.dll"
+      ],
+      "actual_guest_run_id": "9e5a86c7f7864aa9ad6569b2ce5fbd92",
+      "normal_entry_and_effect_sequences": [
+        49,
+        51,
+        66,
+        71,
+        83,
+        84,
+        94,
+        99,
+        100,
+        104,
+        106
+      ],
+      "actual_negative_tool_evidence": "EV-PORTABLE-CONTRACT-NEGATIVES",
+      "whole_I01_I12_accepted": false,
+      "unrelated_S1_does_not_invalidate_independent_packaging_contract": true
+    }
+  ]
 }
