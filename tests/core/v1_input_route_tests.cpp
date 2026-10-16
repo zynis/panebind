@@ -65,9 +65,11 @@ int main() {
           !product::native_move_handoff_compatible(native_down.source,changed_identity),
           "handoff rejects unobserved resize, DPI change and Catalog identity generation replacement");
     const v1::Point full_down_delta{50,40};
-    const auto anchored_plan=v1::move_group({{native_down.source.key,native_down.source.visible,native_down.source.limits}},
+    const std::array<v1::Item,1> down_members{{{native_down.source.key,native_down.source.visible,native_down.source.limits}}};
+    const std::array<v1::Item,1> end_members{{{actual_end.key,actual_end.visible,actual_end.limits}}};
+    const auto anchored_plan=v1::move_group(down_members,
         native_down.source.key,full_down_delta,0);
-    const auto wrongly_reanchored=v1::move_group({{actual_end.key,actual_end.visible,actual_end.limits}},
+    const auto wrongly_reanchored=v1::move_group(end_members,
         actual_end.key,full_down_delta,0);
     check(anchored_plan.accepted&&anchored_plan.placements.size()==1&&
           anchored_plan.placements.front().visible==v1::Rect{150,140,410,500}&&
