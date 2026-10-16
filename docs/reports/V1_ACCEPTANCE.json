@@ -11,11 +11,35 @@
     "runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "main_function_runtime_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
-    "pending_runtime_sha": null,
+    "pending_runtime_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
     "final_sha": null,
     "implementation_inspected": "CURRENT_R3_REAL_RELEASE_MEDIUM_ENTRY_DIAGNOSTIC_PORTABLE_SCOPED_NOT_WHOLE_VERSION",
     "note": "当前R3/658C12 actual866，UI-only导出失败修复实测，M12F02独立PASS/D22定向关闭；旧R2六项完整合同原身份保留且866实际重验相应entry/settings子链，当前7/60、B29/B32共2/40=5%。f481另一owned资源探针四场景范围PASS，无V1会话/writer；D08及UP后新continuous源码风险D23仍开放，不授试用/Full。",
-    "pending_product_note": "R3为新的产品EXE，actual866日志不绑R2；后继正式输入/新资源产品接线还将产生新候选，未生成身份或结果不预填。已有ISO/VM但RAM不足；只读台式机库存未确认可用注册VM，不等于全盘不存在，未启动/改资源。",
+    "pending_product_note": "R4 af0aa67已实际接通InputService/shield/writer并修复D23源码，D/R构建与offline通过；新包及现场NOT_RUN，精确guest保护不授普通宿主试用。R3 actual866、旧R2与7项独立合同保持原实测身份，未迁绑R4。已有ISO/VM但RAM不足；只读库存未确认可用注册VM，不等于全盘不存在。",
+    "pending_candidate": {
+      "source_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
+      "release_binary_sha256": "3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF",
+      "debug_binary_sha256": "EBDD02BE05405D1BD17E429349F5377122FA945D7F4667F5C383801344615F7B",
+      "release_driver_sha256": "29083D75012005D27EFF423FDEAAEBF7C1AF04937E9DA2F50A181D6090E2F62B",
+      "debug_driver_sha256": "776152AD37E6365298E4808891D8911E720AE9C392D131260F1C545B31D14B03",
+      "build_dir": "out/v1-captured-input-r4",
+      "debug_build_exit_code": 0,
+      "release_build_exit_code": 0,
+      "debug_offline_passed": 10,
+      "debug_offline_total": 10,
+      "debug_offline_wall_seconds": 2.87,
+      "release_offline_passed": 11,
+      "release_offline_total": 11,
+      "release_offline_scope": "10 v1 offline plus explorer-mvp-flow",
+      "release_offline_wall_seconds": 6.26,
+      "release_offline_processor_seconds": 2.12,
+      "evidence_kind": "MAIN_EXECUTOR_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+      "input_resource_writer_wiring": "IMPLEMENTED",
+      "new_route_scope": "EXACT_DISPOSABLE_GUEST_ONLY",
+      "package_generated": false,
+      "runtime_validation": "NOT_RUN",
+      "ordinary_host_trial_allowed": false
+    },
     "latest_observed_runtime_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
     "latest_observed_run_id": "866d2342e2994233a48c8a97106d660f"
   },
@@ -8108,7 +8132,7 @@
     },
     {
       "id": "V1-D23",
-      "status": "SOURCE_CONFIRMED_OPEN_PENDING_REPAIR_AND_TARGETED_NATIVE_VALIDATION",
+      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME",
       "severity": "S1",
       "kind": "NEW_CONTINUOUS_TERMINAL_PLACEMENT_AFTER_MATCHED_UP_NOT_ALREADY_ISSUED_COMPLETION",
       "description": "源码复核确认R408引入的NormalUp terminal路径仍可在匹配UP被观察后发起新的continuous native placement，区别于已发出调用的在途完成，违反guide5.2。R3继承该逻辑；旧rapid251和其他NormalUp PASS只证明当时断言，不证明此合同已满足，不重标签旧运行。release DockCommit是guide M08单独明确例外，不能据此放行continuous terminal。主执行者与input代理确认正在收窄修复；尚无新修复身份/现场结果，不预填。",
@@ -8121,7 +8145,9 @@
       "origin_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "evidence_basis": "SOURCE_REVIEW_CONFIRMED_BY_MAIN_AND_INPUT_AGENTS_NOT_NEW_NATIVE_COUNTEREXAMPLE_LOG",
       "runtime_revalidation": "NOT_RUN",
-      "next_action": "仅修复UP后新continuous调用与新资源产品接线的实际缺口，保留已发出调用/精确后验/停止语义及明确DockCommit例外；以新SHA定向及最终整链验证。"
+      "repair_source_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
+      "repair_state": "实际产品调用链已禁止UP后新continuous发起；D/R必要offline通过，不恢复旧代权限，尚无新候选现场结果。旧description保留当时源码确认历史，不是当前修复状态。",
+      "next_action": "以R4新身份定向验证UP后无新增native、资源正常退出及后续连续手势，再完成最终整链；不将offline或旧R3实测改绑为R4通过。"
     }
   ],
   "evidence_policy": {

@@ -10,6 +10,21 @@
     "timing": "各producer原sequence/tick仅在原时间合同内解释；JSONL排列不是跨线程共同原生时序"
   },
   "acceptance_file": "docs/reports/V1_ACCEPTANCE.json",
+  "pending_R4_build_transcription": {
+    "evidence_kind": "MAIN_EXECUTOR_ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+    "source_sha": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
+    "build_dir": "out/v1-captured-input-r4",
+    "debug_and_release_build_exit_code": 0,
+    "debug_offline": "10/10 PASS; wall 2.87 seconds",
+    "release_offline": "10 v1 plus explorer-mvp-flow: 11/11 PASS; wall 6.26 seconds; offline processor 2.12 seconds",
+    "release_product_sha256": "3CDDFF7C70FB6CE0A7DB141A3631B74F665D464ABDF910E7731D6FC44E79C8AF",
+    "debug_product_sha256": "EBDD02BE05405D1BD17E429349F5377122FA945D7F4667F5C383801344615F7B",
+    "package_generated": false,
+    "runtime_validation": "NOT_RUN",
+    "historical_R3_records_rebound": false,
+    "D23_state": "DEV_FIXED_PENDING_TARGETED_RUNTIME",
+    "D08_closed": false
+  },
   "records": [
     {
       "evidence_id": "EV-714C-FIXTURE",
