@@ -236,6 +236,60 @@ inline bool matching_abort_cleanup_up(std::string_view status,std::string_view e
     const bool normalized_abort=consumed&&aborted&&matching&&attempted&&succeeded;
     return observed&&(retired_pair||captured_revoke||normalized_abort);
 }
+// TEST-only in-flight case: the real LL UP reached the active capture pair
+// before its later non-NormalUp abort, so no normalized UP was queued. This
+// proves observation and retirement only; it is neither legacy target delivery
+// nor a NormalUp permit. Keep the generic after-abort matcher unchanged.
+inline bool matching_inflight_up_before_abort(std::string_view status,std::string_view ended,
+    std::string_view gone,std::string_view released,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    if(!receipt(ended,expected,"gesture_end")||!receipt(gone,expected,"gesture_input_resource")||
+       !receipt(released,expected,"gesture_input_resource")||
+       !quoted(gone,"\"fact\":","isolation_gone")||!quoted(released,"\"fact\":","capture_released")||
+       unique_value(ended,"\"normal_up\":")!="false"||unique_value(ended,"\"pending_retired\":")!="true"||
+       !number(ended,"\"end\":")||number(ended,"\"end\":")==0||
+       !number(gone,"\"removal_reason\":")||number(gone,"\"removal_reason\":")==0||
+       number(gone,"\"removal_reason\":")>5||
+       unique_value(gone,"\"actual_legacy_up_accepted\":")!="false"||
+       unique_value(gone,"\"overlay_destroyed\":")!="true"||
+       unique_value(gone,"\"hotkey_unregistered\":")!="true"||
+       unique_value(gone,"\"attach_succeeded\":")!="true"||
+       status.empty()||status.size()>16384||status.front()!='{'||status.back()!='}'||
+       status.find_first_of("\r\n")!=status.npos||!quoted(status,"\"schema\":","panebind-v1/1")||
+       !quoted(status,"\"type\":","status")||!quoted(status,"\"source_sha\":",expected.source_sha)||
+       number(status,"\"process_id\":")!=expected.process_id||
+       unique_value(status,"\"hook_owner_running\":")!="true"||
+       unique_value(status,"\"gesture_active\":")!="false")return false;
+    const auto overlay=number(gone,"\"overlay\":"),source=number(gone,"\"source\":"),
+        source_pid=number(gone,"\"source_pid\":"),source_tid=number(gone,"\"source_tid\":"),
+        owner=number(gone,"\"capture_owner_tid\":"),before=number(gone,"\"capture_release_before_HWND\":"),
+        release_qpc=number(released,"\"resource_observed_qpc\":"),gone_qpc=number(gone,"\"resource_observed_qpc\":");
+    if(!overlay||!*overlay||!source||!*source||!source_pid||!*source_pid||!source_tid||!*source_tid||
+       !owner||!*owner||before!=overlay||number(released,"\"overlay\":")!=overlay||
+       number(released,"\"source\":")!=source||number(released,"\"source_pid\":")!=source_pid||
+       number(released,"\"source_tid\":")!=source_tid||number(released,"\"capture_owner_tid\":")!=owner||
+       number(released,"\"capture_release_before_HWND\":")!=overlay||
+       unique_value(released,"\"capture_owner_observation_known\":")!="true"||
+       !release_qpc||!*release_qpc||!gone_qpc||*gone_qpc<*release_qpc)return false;
+    for(const auto row:{gone,released}){
+        if(unique_value(row,"\"release_attempted\":")!="true"||
+           unique_value(row,"\"release_completed\":")!="true"||
+           unique_value(row,"\"release_succeeded\":")!="true"||
+           number(row,"\"capture_after_release\":")!=0)return false;
+    }
+    if(unique_value(gone,"\"detach_attempted\":")!="true"||
+       unique_value(gone,"\"detach_completed\":")!="true"||
+       unique_value(gone,"\"detach_succeeded\":")!="true")return false;
+    constexpr std::string_view key="\"mouse_up_callbacks\":";const auto at=status.find(key);
+    if(at==status.npos||status.find(key,at+key.size())!=status.npos)return false;
+    Cursor snapshot{status.substr(at+key.size())};std::uint64_t count{},qpc{},generation{};
+    return snapshot.take("{\"snapshot_known\":true,\"callback_count\":")&&snapshot.number(count)&&count>0&&
+        snapshot.take(",\"last\":{\"hook_observed_qpc\":")&&snapshot.number(qpc)&&qpc>=expected.send_before_qpc&&
+        qpc<=*release_qpc&&snapshot.take(",\"button\":1,\"generation_at_entry\":")&&
+        snapshot.number(generation)&&generation==expected.generation&&
+        snapshot.take(",\"consumed_before\":false,\"aborted_before\":false,\"matching_branch_taken\":true,")&&
+        snapshot.take("\"push_attempted\":false,\"push_succeeded\":false}}}")&&snapshot.text.empty();
+}
 inline bool accepted_up_evidence(UpEvidenceMode mode,bool matching_diagnostic_event,
     std::string_view status,const UpEvidenceIdentity& expected,std::string_view legacy={},std::string_view gone={}){
     if(mode==UpEvidenceMode::DiagnosticEvent)return matching_diagnostic_event;

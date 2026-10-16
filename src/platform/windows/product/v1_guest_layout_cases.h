@@ -584,17 +584,28 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
         ",\"async_left_at_native_entry\":"+std::to_string(entry_async)+",\"physical_button_held_not_inferred\":true");
     LARGE_INTEGER up_before{},up_after{};QueryPerformanceCounter(&up_before);
     button(s,false);QueryPerformanceCounter(&up_after); // Exactly one real test UP, never a product cleanup substitute.
+    const bool up_sent_while_inflight=native_entry_valid&&!stall.finished.load()&&entry_qpc&&up_before.QuadPart>0&&
+        static_cast<std::uint64_t>(up_before.QuadPart)>entry_qpc&&up_after.QuadPart>=up_before.QuadPart;
     s.log.emit("temporary_inflight_real_UP_sent","\"generation\":"+std::to_string(g.generation)+
         ",\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+",\"send_after_qpc\":"+std::to_string(up_after.QuadPart)+
-        ",\"source_still_blocked\":"+(stall.finished?"false":"true")+",\"single_test_UP\":true");
-    s.log.check("temporary_inflight_UP_before_source_returns",!stall.finished&&up_before.QuadPart>0&&
-        static_cast<std::uint64_t>(up_before.QuadPart)>stall.before_qpc.load());
+        ",\"source_still_blocked\":"+(up_sent_while_inflight?"true":"false")+",\"single_test_UP\":true");
+    s.log.check("temporary_inflight_UP_before_source_returns",up_sent_while_inflight);
     const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
     std::string ended=abort_up.ended;
-    const bool retired_with_UP=abort_up.matched;
-    const auto initial_UP=actual_up(s,g.offset,g.generation);const bool missing_UP=!retired_with_UP&&initial_UP.empty();
+    const auto initial_UP=actual_up(s,g.offset,g.generation);
+    const product::guest::UpEvidenceIdentity up_identity{s.product_pid,s.product_source,g.generation,s.left_up_send_qpc};
+    // Actual WndProc/QPC observations establish that this one UP was sent
+    // in flight. A later public status may legitimately see completion already;
+    // its transient pending flag cannot erase the real earlier LL receipt.
+    const bool observed_before_abort_inflight=initial_UP.empty()&&up_sent_while_inflight&&
+        product::guest::matching_inflight_up_before_abort(
+        abort_up.status,abort_up.ended,abort_up.gone,abort_up.released,up_identity);
+    const bool retired_with_UP=abort_up.matched||observed_before_abort_inflight;
+    const bool missing_UP=!retired_with_UP&&initial_UP.empty();
     const std::string retirement_fields="\"generation\":"+std::to_string(g.generation)+",\"NormalUp_not_inferred_from_test_UP\":true,\"actual_UP\":"+
-        (initial_UP.empty()?"null":quote(initial_UP))+",\"actual_end\":"+(ended.empty()?"null":quote(ended))+","+abort_up.json();
+        (initial_UP.empty()?"null":quote(initial_UP))+",\"actual_end\":"+(ended.empty()?"null":quote(ended))+
+        ",\"observed_before_abort_inflight\":"+(observed_before_abort_inflight?"true":"false")+
+        ",\"normalized_UP_or_NormalUp_inferred\":false,"+abort_up.json();
     if(missing_UP){s.log.failed=true;s.log.emit("case","\"case\":\"temporary_inflight_generation_actually_retired\",\"result\":\"FAIL\","+retirement_fields);}
     else s.log.check("temporary_inflight_generation_actually_retired",retired_with_UP,retirement_fields);
     s.log.emit("temporary_inflight_actual_end","\"generation\":"+std::to_string(g.generation)+",\"production_end\":"+quote(ended)+

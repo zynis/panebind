@@ -106,8 +106,64 @@ bool constraint_existing_fixed_case(State& s){
     const auto status_offset=read_product(s).size();
     DWORD status_exit{};s.log.check("I10_after_abort_status_command",launch(s,L"--status",true,&status_exit)&&status_exit==0);
     s.log.check("I10_after_abort_status_observed",wait([&]{return constraint_current_status_after(s,status_offset,barrier);}));
-    // Read-only routing facts at the ORIGINAL UP point. Do not move, activate
-    // a window, alter integrity, or insert another UP to improve this result.
+    // One TEST-only cleanup MOVE may put the original, single UP inside this
+    // still-exact blank source. Never activate/capture a window or repeat UP.
+    // A preparation/logging failure must not skip that existing cleanup UP.
+    POINT cleanup_point{};RECT cleanup_client{},cleanup_positioning{};std::optional<Rect> cleanup_visible;
+    bool cleanup_move_called=false,cleanup_ready=false,cleanup_geometry_unchanged=false;
+    HWND cleanup_hit{},cleanup_root{},cleanup_foreground_before{},cleanup_foreground_after{};
+    DWORD cleanup_hit_pid{},cleanup_hit_tid{},cleanup_root_pid{},cleanup_root_tid{};std::string cleanup_reason;
+    try{
+        const HWND source=frame.hwnd;DWORD source_pid{};
+        const DWORD source_tid=GetWindowThreadProcessId(source,&source_pid);
+        GUITHREADINFO gui{sizeof(gui)};cleanup_foreground_before=GetForegroundWindow();
+        cleanup_visible=visible(source);
+        if(!desktop()||!set.owns(0)||source_pid!=GetCurrentProcessId()||source_tid!=set.thread||
+           !s.left||s.left_up_attempted||s.control||cleanup_foreground_before!=source||
+           !IsWindowVisible(source)||IsIconic(source)||!cleanup_visible||
+           !GetWindowRect(source,&cleanup_positioning)||!GetClientRect(source,&cleanup_client)||
+           !GetGUIThreadInfo(set.thread,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)
+            throw std::runtime_error("exact_owned_idle_foreground_source_required");
+        if(cleanup_client.right-cleanup_client.left<3||cleanup_client.bottom-cleanup_client.top<3)
+            throw std::runtime_error("actual_client_area_too_small");
+        cleanup_point={cleanup_client.left+(cleanup_client.right-cleanup_client.left)/2,
+            cleanup_client.top+(cleanup_client.bottom-cleanup_client.top)/2};
+        if(!ClientToScreen(source,&cleanup_point))throw std::runtime_error("actual_client_to_screen_failed");
+        const long long x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN);
+        const long long width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+        const auto exact_hit=[&]{
+            cleanup_hit=WindowFromPoint(cleanup_point);cleanup_root=cleanup_hit?GetAncestor(cleanup_hit,GA_ROOT):nullptr;
+            cleanup_hit_pid=cleanup_root_pid=0;
+            cleanup_hit_tid=cleanup_hit?GetWindowThreadProcessId(cleanup_hit,&cleanup_hit_pid):0;
+            cleanup_root_tid=cleanup_root?GetWindowThreadProcessId(cleanup_root,&cleanup_root_pid):0;
+            GUITHREADINFO current{sizeof(current)};RECT positioning{},client{};
+            POINT current_point{cleanup_client.left+(cleanup_client.right-cleanup_client.left)/2,
+                cleanup_client.top+(cleanup_client.bottom-cleanup_client.top)/2};
+            cleanup_foreground_after=GetForegroundWindow();
+            cleanup_geometry_unchanged=GetWindowRect(source,&positioning)&&EqualRect(&positioning,&cleanup_positioning)&&
+                visible(source)==cleanup_visible;
+            return desktop()&&set.owns(0)&&frame.hwnd==source&&cleanup_hit==source&&cleanup_root==source&&
+                cleanup_hit_pid==source_pid&&cleanup_hit_tid==source_tid&&cleanup_root_pid==source_pid&&cleanup_root_tid==source_tid&&
+                cleanup_foreground_after==source&&IsWindowVisible(source)&&!IsIconic(source)&&cleanup_geometry_unchanged&&
+                GetClientRect(source,&client)&&EqualRect(&client,&cleanup_client)&&ClientToScreen(source,&current_point)&&
+                current_point.x==cleanup_point.x&&current_point.y==cleanup_point.y&&
+                GetGUIThreadInfo(set.thread,&current)&&!current.hwndCapture&&!current.hwndMoveSize&&!current.hwndMenuOwner&&
+                !(current.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
+                s.left&&!s.left_up_attempted&&!s.control;
+        };
+        if(width<2||height<2||cleanup_point.x<x||cleanup_point.y<y||cleanup_point.x>=x+width||cleanup_point.y>=y+height||
+           cleanup_point.x<=cleanup_visible->l||cleanup_point.y<=cleanup_visible->t||
+           cleanup_point.x>=cleanup_visible->r-1||cleanup_point.y>=cleanup_visible->b-1||!exact_hit())
+            throw std::runtime_error("fresh_exact_client_hit_or_screen_boundary_rejected");
+        cleanup_move_called=true;cursor(s,cleanup_point); // At most one real MOVE, never a product placement.
+        POINT actual{};
+        if(!GetCursorPos(&actual)||actual.x!=cleanup_point.x||actual.y!=cleanup_point.y||!exact_hit())
+            throw std::runtime_error("post_MOVE_actual_cursor_or_owned_context_rejected");
+        cleanup_ready=true;cleanup_reason="exact_owned_client_observed_before_unique_UP";
+    }catch(const std::exception& error){cleanup_reason=error.what();}
+    catch(...){cleanup_reason="cleanup_MOVE_preparation_unknown";}
+    // Preserve actual routing facts at the eventual UP point, including a
+    // rejected MOVE. Insertion/hit is not proof that product LL UP was delivered.
     POINT up_cursor{};SetLastError(0);const bool cursor_known=GetCursorPos(&up_cursor)!=FALSE;const DWORD cursor_error=cursor_known?0:GetLastError();
     const HWND up_hit=cursor_known?WindowFromPoint(up_cursor):nullptr,up_root=up_hit?GetAncestor(up_hit,GA_ROOT):nullptr,up_foreground=GetForegroundWindow();
     DWORD up_hit_pid{},up_root_pid{};const DWORD up_hit_tid=up_hit?GetWindowThreadProcessId(up_hit,&up_hit_pid):0,up_root_tid=up_root?GetWindowThreadProcessId(up_root,&up_root_pid):0;
@@ -121,6 +177,9 @@ bool constraint_existing_fixed_case(State& s){
             if(!up_root_identity)up_root_rid=-1;
         }
     }
+    // The routing sample above is pre-UP. Write it only AFTER the existing
+    // single UP so an evidence-write error cannot skip the cleanup packet.
+    button(s,false);
     s.log.emit("I10_before_original_test_UP_routing","\"GetCursorPos_succeeded\":"+std::string(cursor_known?"true":"false")+
         ",\"GetCursorPos_error\":"+std::to_string(cursor_error)+",\"actual_cursor\":"+(cursor_known?"["+std::to_string(up_cursor.x)+","+std::to_string(up_cursor.y)+"]":"null")+
         ",\"hit_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(up_hit))+",\"hit_PID\":"+std::to_string(up_hit_pid)+",\"hit_TID\":"+std::to_string(up_hit_tid)+
@@ -130,8 +189,18 @@ bool constraint_existing_fixed_case(State& s){
         std::to_string(reinterpret_cast<std::uintptr_t>(up_foreground))+",\"foreground_is_exact_source\":"+(set.owns(0)&&up_foreground==frame.hwnd?"true":"false")+
         ",\"root_identity_still_current\":"+(up_root_identity?"true":"false")+",\"root_integrity_rid\":"+(up_root_rid<0?"null":std::to_string(up_root_rid))+
         ",\"root_elevated\":"+(up_root_rid<0?"null":up_root_elevated?"true":"false")+",\"root_medium_non_elevated\":"+(up_root_rid<0?"null":up_root_medium?"true":"false")+
-        ",\"root_token_query_error\":"+std::to_string(up_root_token_error)+",\"original_trajectory_unchanged\":true,\"routing_cause_not_inferred\":true");
-    button(s,false);
+        ",\"root_token_query_error\":"+std::to_string(up_root_token_error)+",\"original_trajectory_unchanged\":"+(cleanup_move_called?"false":"true")+
+        ",\"sampled_before_single_UP\":true,\"logged_after_single_UP_attempt\":true,\"routing_cause_not_inferred\":true");
+    s.log.emit("I10_single_UP_client_cleanup_preparation","\"generation\":"+std::to_string(g.generation)+
+        ",\"status\":"+quote(cleanup_ready?"EXACT_CLIENT_OBSERVED_DELIVERY_UNKNOWN":"REJECTED_OR_UNKNOWN")+",\"reason\":"+quote(cleanup_reason)+
+        ",\"cursor_helper_called_once\":"+(cleanup_move_called?"true":"false")+",\"target_client_screen\":["+std::to_string(cleanup_point.x)+","+std::to_string(cleanup_point.y)+"]"+
+        ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(cleanup_hit))+",\"actual_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(cleanup_root))+
+        ",\"hit_PID\":"+std::to_string(cleanup_hit_pid)+",\"hit_TID\":"+std::to_string(cleanup_hit_tid)+
+        ",\"root_PID\":"+std::to_string(cleanup_root_pid)+",\"root_TID\":"+std::to_string(cleanup_root_tid)+
+        ",\"foreground_before\":"+std::to_string(reinterpret_cast<std::uintptr_t>(cleanup_foreground_before))+
+        ",\"foreground_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(cleanup_foreground_after))+
+        ",\"source_geometry_unchanged\":"+(cleanup_geometry_unchanged?"true":"false")+
+        ",\"maximum_cleanup_MOVE\":1,\"original_single_UP_called_first\":true,\"extra_UP_sent\":false,\"delivery_or_function_PASS_inferred\":false");
     std::string observed_up,observed_end;GUITHREADINFO source_gui{sizeof(source_gui)};bool source_gui_known{},driver_released{};DWORD source_gui_error{};
     const bool up_and_context=wait([&]{
         // Read EVERY independent fact even when actual UP is still missing.

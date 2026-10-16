@@ -138,6 +138,37 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         // movement; otherwise this test would conceal motion-only recovery.
         cursor(s,{g.anchor.x+70,g.anchor.y+80});
         if(focus_target)s.log.check("I08_product_does_not_retake_foreground",GetForegroundWindow()==focus_target);
+        // TEST cleanup only, AFTER actual source destruction and abort/Gone.
+        // Do not send the one planned UP toward the now-absent source or an
+        // unowned/high desktop. Prepare the surviving blank fixture instead.
+        // This is not product focus recovery, NormalUp, or proof of delivery.
+        bool cleanup_target_attempted=false,cleanup_target_ready=false;std::string cleanup_target_error;
+        HWND cleanup_target{};POINT cleanup_point{};std::string cleanup_gone;
+        if(destroyed)try{
+            const bool gone=wait([&]{cleanup_gone=record(s,g.offset,"gesture_input_resource",g.generation);return
+                cleanup_gone.find("\"fact\":\"isolation_gone\"")!=cleanup_gone.npos&&
+                cleanup_gone.find("\"overlay_destroyed\":true")!=cleanup_gone.npos&&
+                cleanup_gone.find("\"hotkey_unregistered\":true")!=cleanup_gone.npos&&
+                cleanup_gone.find("\"release_succeeded\":true")!=cleanup_gone.npos&&
+                cleanup_gone.find("\"detach_succeeded\":true")!=cleanup_gone.npos;},500);
+            if(!gone)throw std::runtime_error("destroyed_source_cleanup_actual_abort_Gone_not_observed");
+            cleanup_target=set.frames[0].hwnd;GUITHREADINFO gui{sizeof(gui)};RECT client{};
+            if(source==0||!set.owns(0)||!GetGUIThreadInfo(set.thread,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||
+                !GetClientRect(cleanup_target,&client)||client.right-client.left<8||client.bottom-client.top<8)
+                throw std::runtime_error("destroyed_source_cleanup_survivor_not_exact_idle_blank");
+            cleanup_point={(client.left+client.right)/2,(client.top+client.bottom)/2};
+            if(!ClientToScreen(cleanup_target,&cleanup_point))throw std::runtime_error("destroyed_source_cleanup_client_point_unknown");
+            cleanup_target_attempted=true;
+            const bool activated=SetForegroundWindow(cleanup_target)!=FALSE;
+            if(!activated||!set.owns(0)||GetForegroundWindow()!=cleanup_target)
+                throw std::runtime_error("destroyed_source_cleanup_exact_TEST_foreground_not_observed");
+            cursor(s,cleanup_point);
+            const auto hit=WindowFromPoint(cleanup_point);DWORD hit_pid{};
+            const auto hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;
+            cleanup_target_ready=set.owns(0)&&GetForegroundWindow()==cleanup_target&&hit==cleanup_target&&
+                GetAncestor(hit,GA_ROOT)==cleanup_target&&hit_pid==GetCurrentProcessId()&&hit_tid==set.thread;
+            if(!cleanup_target_ready)cleanup_target_error="destroyed_source_cleanup_exact_TEST_client_hit_not_observed";
+        }catch(const std::exception& error){cleanup_target_error=error.what();}
         // One short-lived EXISTING passive observer around this already
         // planned cleanup UP, only after the exact source was destroyed. It
         // diagnoses guest-chain delivery, never replaces the product receipt.
@@ -165,6 +196,15 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
         try{button(s,false);abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);}
         catch(...){finish_cleanup_up_head("exception_around_unique_cleanup_UP");throw;}
         finish_cleanup_up_head("after_actual_product_cleanup_UP_observation");
+        if(destroyed){
+            if(!cleanup_target_ready)s.log.failed=true;
+            s.log.emit("I08_destroyed_source_single_UP_TEST_destination","\"exact_survivor\":"+
+                std::to_string(reinterpret_cast<std::uintptr_t>(cleanup_target))+",\"point\":["+
+                std::to_string(cleanup_point.x)+","+std::to_string(cleanup_point.y)+"],\"single_setup_attempted\":"+
+                (cleanup_target_attempted?"true":"false")+",\"actual_exact_client_ready\":"+(cleanup_target_ready?"true":"false")+
+                ",\"reason\":"+quote(cleanup_target_error)+",\"actual_abort_Gone_before_TEST_setup\":"+quote(cleanup_gone)+
+                ",\"product_retake_foreground_or_NormalUp_inferred\":false,\"UP_retried\":false");
+        }
         const bool matching_up=!s.left&&abort_up.matched;
         const std::string up_fields="\"single_test_UP_sent\":true,\"send_before_qpc\":"+std::to_string(up_before.QuadPart)+
             ",\"actual_UP\":"+(actual_up(s,g.offset,g.generation).empty()?"null":quote(actual_up(s,g.offset,g.generation)))+
