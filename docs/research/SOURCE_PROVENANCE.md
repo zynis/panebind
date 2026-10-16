@@ -2209,3 +2209,15 @@ alone does not prove mandatory-integrity or actual child-process access.
 Denied/unknown results remain environment observations, not product failures.
 Existing AltSnap/FancyZones references are reused; no implementation copied,
 adapted, translated or mechanically rewritten and no new attribution required.
+
+Run b49's fresh passive head hook also missed generation26's single UP while
+the independent Raw interval count advanced. Neither proves an OS cause or
+source/generation attribution. The same product passed the rapid, single
+DOWN/MOVE/UP insertion in8189. For one bounded driver comparison, actually read
+[MOUSEINPUT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-mouseinput)
+and reused the serial, non-interleaved SendInput contract above. The guarded
+guest driver sends one final absolute MOVE at its actually read cursor point
+then exactly one UP in one call. No UP replay, delay-based success, product
+change or Raw substitute is introduced; both real head/product UP and normal
+termination remain mandatory. This is an unproven test-input variant, not a
+product fix or claimed root cause. External code copied/adapted: **NO**.

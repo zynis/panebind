@@ -517,6 +517,39 @@ void button(State& s,bool pressed){
     if(pressed)s.left_down_send_qpc=qpc;else s.left_up_send_qpc=qpc;
     receipt();
 }
+bool authorized_source(State&,HWND);
+void normal_release_with_final_cursor(State& s,std::size_t source){
+    // TEST DRIVER ONLY. Compare one serial final-MOVE/UP insertion with the
+    // preserved standalone-UP failures. There is exactly ONE UP, no retry and
+    // no product termination fact follows from SendInput's insertion count.
+    if(!s.left||s.left_up_attempted)throw std::runtime_error("normal_release_pair_missing_or_UP_already_attempted");
+    POINT point{},after{};const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),
+        width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    const HWND h=source_window(s,source);
+    if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&point)||GetAncestor(WindowFromPoint(point),GA_ROOT)!=h||width<=0||height<=0||
+        point.x<x||point.y<y||static_cast<long long>(point.x)>=static_cast<long long>(x)+width||
+        static_cast<long long>(point.y)>=static_cast<long long>(y)+height)
+        throw std::runtime_error("normal_release_actual_cursor_or_context_unavailable");
+    std::array<INPUT,2> packets{};for(auto& packet:packets){packet.type=INPUT_MOUSE;packet.mi.dwExtraInfo=0x50425631;}
+    packets[0].mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
+    packets[0].mi.dx=static_cast<LONG>(((static_cast<long long>(point.x-x)*2+1)*65536)/(static_cast<long long>(width)*2));
+    packets[0].mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(height)*2));
+    packets[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;
+    LARGE_INTEGER before{},finished{};QueryPerformanceCounter(&before);
+    // Even a partial insertion must never result in an automatic second UP.
+    s.left_up_attempted=true;s.left_up_send_qpc=before.QuadPart>0?before.QuadPart:0;
+    SetLastError(0);const UINT inserted=SendInput(static_cast<UINT>(packets.size()),packets.data(),sizeof(INPUT));
+    const DWORD error=inserted==packets.size()?0:GetLastError();QueryPerformanceCounter(&finished);
+    if(inserted==packets.size())s.left=false;
+    const bool after_known=GetCursorPos(&after)!=FALSE;
+    s.log.emit("test_button_send","\"requested\":\"UP\",\"variant\":\"one_serial_final_absolute_MOVE_then_single_UP\",\"UP_packet_count\":1,\"prior_standalone_UP_not_retried\":true,"+
+        std::string("\"send_before_qpc\":")+std::to_string(s.left_up_send_qpc)+",\"send_after_qpc\":"+std::to_string(finished.QuadPart>0?finished.QuadPart:0)+
+        ",\"SendInput_called\":true,\"SendInput_requested\":2,\"SendInput_return\":"+std::to_string(inserted)+",\"SendInput_error_on_failure\":"+std::to_string(error)+
+        ",\"mouse_flags\":["+std::to_string(packets[0].mi.dwFlags)+","+std::to_string(packets[1].mi.dwFlags)+"],\"actual_cursor_before\":["+
+        std::to_string(point.x)+","+std::to_string(point.y)+"],\"actual_cursor_after\":"+(after_known?"["+std::to_string(after.x)+","+std::to_string(after.y)+"]":"null")+
+        ",\"driver_left_outstanding_before\":true,\"driver_left_outstanding_after\":"+(s.left?"true":"false")+",\"delivery_not_inferred\":true,\"physical_button_held_not_inferred\":true");
+    if(inserted!=packets.size())throw std::runtime_error("normal_release_serial_insertion_partial_delivery_UNKNOWN_no_UP_retry");
+}
 std::optional<POINT> hit_point(HWND h,int required){
     RECT p{};DWORD root_pid{};if(!GetWindowRect(h,&p)||!GetWindowThreadProcessId(h,&root_pid))return {};
     const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
@@ -610,7 +643,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     try{
         s.log.check("guest_passive_UP_observer_ready",hook_ready,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());
-        attempted=true;button(s,false);returned=true;if(s.control)key(s,VK_CONTROL,false);
+        attempted=true;normal_release_with_final_cursor(s,source);returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));

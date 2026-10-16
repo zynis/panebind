@@ -64,3 +64,11 @@ function Assert-V1BinaryInterface($Identity,[ValidateSet('Product','Driver')][st
         throw 'Fixture executable lacks the exact split-identity guest contract; rebuild the driver, not the unchanged product.'
     }
 }
+function Assert-V1PortableDependencies([string[]]$Dependencies) {
+    $systemDlls=@('kernel32.dll','user32.dll','gdi32.dll','advapi32.dll','ole32.dll','oleaut32.dll',
+        'shell32.dll','shlwapi.dll','comctl32.dll','comdlg32.dll','dwmapi.dll','wtsapi32.dll',
+        'ntdll.dll','rpcrt4.dll','shcore.dll','imm32.dll','version.dll','uxtheme.dll','winmm.dll')
+    if(-not $Dependencies.Count -or @($Dependencies|Where-Object{$_ -notin $systemDlls -and $_ -cnotmatch '^api-ms-win-core-[a-z0-9-]+\.dll$'}).Count){
+        throw ('Unexpected non-system/static-runtime dependency; do not silently omit DLLs: '+($Dependencies -join ', '))
+    }
+}

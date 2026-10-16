@@ -62,12 +62,7 @@ if (-not (Test-Path -LiteralPath $dumpbin -PathType Leaf)) { throw 'The existing
 $imports = @(& $dumpbin /NOLOGO /DEPENDENTS $executable)
 if ($LASTEXITCODE -ne 0) { throw 'Release dependency inspection failed.' }
 $dependencies = @($imports | ForEach-Object { if ($_ -match '^\s+([a-zA-Z0-9_.-]+\.dll)\s*$') { $Matches[1].ToLowerInvariant() } } | Sort-Object -Unique)
-$systemDlls = @('kernel32.dll','user32.dll','gdi32.dll','advapi32.dll','ole32.dll','oleaut32.dll',
-    'shell32.dll','shlwapi.dll','comctl32.dll','comdlg32.dll','dwmapi.dll','wtsapi32.dll',
-    'ntdll.dll','rpcrt4.dll','shcore.dll','imm32.dll','version.dll','uxtheme.dll','winmm.dll')
-if (-not $dependencies.Count -or @($dependencies | Where-Object { $_ -notin $systemDlls -and $_ -cnotmatch '^api-ms-win-core-[a-z0-9-]+\.dll$' }).Count) {
-    throw ('Unexpected non-system/static-runtime dependency; do not silently omit DLLs: ' + ($dependencies -join ', '))
-}
+Assert-V1PortableDependencies $dependencies
 $beforeHash = (Get-FileHash -LiteralPath $executable -Algorithm SHA256).Hash
 # This documented identity-only entry returns before singleton/UI/hook setup.
 $start = New-Object Diagnostics.ProcessStartInfo
