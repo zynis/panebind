@@ -604,13 +604,20 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
             right=actual_button_band?static_cast<std::int64_t>(p.left)+buttons.left:static_cast<std::int64_t>(p.right)-std::max<std::int64_t>(1,border_x);
         const std::int64_t top=static_cast<std::int64_t>(p.top)+(actual_button_band?buttons.top:border_y),
             bottom=actual_button_band?static_cast<std::int64_t>(p.top)+buttons.bottom:top+(dpi?GetSystemMetricsForDpi(SM_CYCAPTION,dpi):0);
-        candidate_mode=actual_button_band?"actual_DWM_caption_button_vertical_band_8x3":"actual_window_DPI_frame_caption_metrics_8x3";
+        candidate_mode=actual_button_band?"DWM_button_bounds_plus_DPI_border_edge_candidates_8x3":"DPI_frame_caption_edge_candidates_8x3";
         // A single small candidate set, not a raster or a retry. These are
         // proposed points only: the SAME actual child hit and DWM exclusion
         // gates below still have to succeed before any input is sent.
-        if(left<right&&top<bottom)for(const int y_part:std::array{2,1,3})for(const int x_part:std::array{8,12,4,14,2,10,6,15}){
-            const std::int64_t y=top+(bottom-top)*y_part/4;
-            candidate(left+(right-left)*x_part/16,y);
+        if(left<right&&top<bottom){
+            // The earlier all-fraction grid omitted both narrow horizontal
+            // caption gaps and the top border's half-height. Include those
+            // actual metric/boundary points without increasing the 24 budget.
+            const std::int64_t span=right-left;
+            const std::array<std::int64_t,8> xs{left+1,right-1,left+span/2,left+span*3/4,
+                left+span/4,left+span*7/8,left+span/8,left+span*5/8};
+            const std::array<std::int64_t,3> ys{static_cast<std::int64_t>(p.top)+std::max<std::int64_t>(1,border_y/2),
+                top+(bottom-top)/2,top+(bottom-top)*3/4};
+            for(const auto y:ys)for(const auto x:xs)candidate(x,y);
         }
     }else candidate_mode="unsupported_nonclient_region_no_candidate";
     candidate_rows+=']';
@@ -702,8 +709,8 @@ bool application_down_context(State&,HWND,POINT,int,std::string_view);
 void application_prepare_barrier(State&,HWND,POINT,int);
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);std::string hit_failure;
-    const auto point=hit_point(h,region,s.applications[source]?&hit_failure:nullptr);
-    if(!point&&s.applications[source])s.log.emit("application_nonclient_search_failure","\"application\":"+quote(s.applications[source]->kind)+",\"facts\":"+hit_failure);
+    const auto point=hit_point(h,region,&hit_failure);
+    if(!point)s.log.emit("application_nonclient_search_failure","\"application\":"+quote(s.applications[source]?s.applications[source]->kind:own(s,h)?"OwnedFixture":"Explorer")+",\"facts\":"+hit_failure);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
     cursor(s,*point);
     if(s.applications[source])application_prepare_barrier(s,h,*point,region);else Sleep(100);
