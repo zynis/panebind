@@ -2761,3 +2761,26 @@ UP does not establish product NormalUp. This functional replacement does not
 identify or close b1a3's intermittent pre-UP FocusLost; f706 did not reproduce
 that same failure. No external code, injection, polling, foreground recovery or
 foreign-capture operation is added. Runtime acceptance remains pending.
+
+### V1 exact-owned native passthrough evidence — 2026-10-17
+
+The 212/c1f fast Resize reached its exact native geometry and modal END, but
+neither LL observer saw that UP. Retain FAIL: generation-zero Raw input and
+modal END alone are not source-UP delivery. Microsoft's [GetMsgProc](https://learn.microsoft.com/en-us/windows/win32/winmsg/getmsgproc)
+documents observation before a retrieved queue message returns, including the
+PM_REMOVE distinction. [SetWindowsHookExW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowshookexw)
+allows a same-process, nonzero thread hook with a null module; this is not a
+cross-process injection. [GetMessageExtraInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessageextrainfo)
+returns queue-associated information, not a promised preserved input marker.
+
+Add one bounded, test-only observer to the exact owned source UI thread. It
+never changes MSG or the downstream return and never enters the product EXE.
+Only an actually observed, unchanged, removed, marked source UP returning
+before that source's actual modal END may supplement the native-only test.
+Unknown facts remain failure; no queue observation grants writer authority,
+product NormalUp, enhanced Glue/Resize or cross-process compatibility. Retain
+four one-use callback records through driver process lifetime for unhook races.
+Existing LL observation also records its fixed DOWN/MOVE/UP CallNext phases;
+it does not diagnose the missing callback from absence alone. No upstream
+implementation was copied or adapted; existing production prior-art pins and
+license decisions are unchanged.

@@ -38,15 +38,30 @@ bool constraint_existing_fixed_case(State& s){
         ",\"actual_case\":\"shared_fixed_size_neighbour_stops_resize_without_placement\",\"new_fixed_case_executed\":false");
 
     LayoutFixtures set{s};set.create();
-    const Rect initial{140,140,540,540};set.setup({initial},{{120,100,1000,1000}});
+    Rect initial{140,140,540,540};set.setup({initial},{{120,100,1000,1000}});
     auto& frame=set.frames[0];RECT native_before{};const auto visible_before=visible(frame.hwnd);
     if(!set.owns(0)||!visible_before||*visible_before!=initial||!GetWindowRect(frame.hwnd,&native_before))
         throw std::runtime_error("I10_grid_initial_native_frame_unavailable");
     const LONG frame_width=native_before.right-native_before.left-initial.width();
     const LONG frame_height=native_before.bottom-native_before.top-initial.height();
     constexpr LONG grid=17;LONG travel=37;
+    // Start inside this application's actual size grid BEFORE DOWN. Otherwise
+    // entering native right-edge sizing itself quantizes the inactive height,
+    // correctly failing the product's inactive-edge handoff guard before its
+    // writer is tested. Keep the original failure; do not relax that guard.
+    const LONG legal_native_width=((native_before.right-native_before.left+grid-1)/grid)*grid;
+    const LONG legal_native_height=((native_before.bottom-native_before.top+grid-1)/grid)*grid;
+    initial.r=initial.l+legal_native_width-frame_width;initial.b=initial.t+legal_native_height-frame_height;
+    set.setup({initial},{{120,100,1000,1000}});
+    if(!set.owns(0)||visible(frame.hwnd)!=initial||!GetWindowRect(frame.hwnd,&native_before)||
+       native_before.right-native_before.left!=legal_native_width||native_before.bottom-native_before.top!=legal_native_height)
+        throw std::runtime_error("I10_grid_legal_initial_frame_not_observed");
     const LONG initial_native_width=native_before.right-native_before.left;
     const LONG initial_native_height=native_before.bottom-native_before.top;
+    s.log.emit("I10_grid_legal_initial_frame","\"visible\":"+rect(initial)+",\"positioning_size\":["+
+        std::to_string(initial_native_width)+","+std::to_string(initial_native_height)+
+        "],\"native_grid\":17,\"before_DOWN_and_before_grid_enabled\":true,\"inactive_height_already_legal\":true,"+
+        "\"old_failure_not_relabelled\":true,\"product_inactive_edge_guard_unchanged\":true");
     if((initial_native_width+travel)%grid==0)++travel;
     // Independent expected set: the test WndProc quantizes POSITIONING cx/cy,
     // not visible dimensions. Values are fixed before sending the gesture;

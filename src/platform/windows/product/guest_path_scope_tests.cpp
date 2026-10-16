@@ -227,6 +227,53 @@ int main() {
        !expect(early_match(early_status,early_failure,mutate(early_gone,"\"removal_reason\":3","\"removal_reason\":0")),false,"NormalUp cannot masquerade as pre-capture failure")||
        !expect(early_match(early_status,mutate(early_failure,"\"capture_attempted\":false","\"capture_attempted\":true"),early_gone),false,"capture-attempted route requires its real normal or abort contract")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,early_status,identity,"",early_gone),false,"pre-capture click cleanup never satisfies the unchanged NormalUp gate"))return 1;
+    const std::string native_click_pending=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"native_move_pending","generation":7,"source":100,"source_key":3,"source_pid":10,"source_tid":11,"actual_DOWN_region":2,"locked_modifiers":0,"down_point":[500,400],"down_native_time":5000,"down_hook_qpc":950,"down_consumed":false,"write_authority":false})";
+    const std::string native_click_release=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"native_move_passthrough_release","generation":7,"source":100,"actual_LL_UP_qpc":1001,"up_native_time":5010,"normalized_NormalUp":false,"new_native_placement":false})";
+    guest::NativeFirstClickFacts native_click_facts{100,10,11,900,500,2,true,true,true,true};
+    const auto native_click_match=[&](std::string_view pending,std::string_view release,const guest::NativeFirstClickFacts& facts){
+        return guest::matching_native_first_click_release(pending,release,identity,facts);};
+    if(!expect(native_click_match(native_click_pending,native_click_release,native_click_facts),true,
+            "exact native-first first click LL release is observed without NormalUp or writer authority")||
+       !expect(native_click_match(mutate(native_click_pending,"\"generation\":7","\"generation\":8"),native_click_release,native_click_facts),false,
+            "native-first first click cannot inherit another generation's pending DOWN")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"process_id\":42","\"process_id\":43"),native_click_facts),false,
+            "native-first first click requires the actual product PID")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"source_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
+            "\"source_sha\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\""),native_click_facts),false,
+            "native-first first click cannot cross a product SHA")||
+       !expect(native_click_match(mutate(native_click_pending,"\"source\":100","\"source\":101"),native_click_release,native_click_facts),false,
+            "native-first first click binds the exact owned HWND")||
+       !expect(native_click_match(mutate(native_click_pending,"\"source_tid\":11","\"source_tid\":12"),native_click_release,native_click_facts),false,
+            "native-first first click binds the exact fixture source TID")||
+       !expect(native_click_match(mutate(native_click_pending,"\"down_hook_qpc\":950","\"down_hook_qpc\":899"),native_click_release,native_click_facts),false,
+            "native-first first click refuses a DOWN before the one test send")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"actual_LL_UP_qpc\":1001","\"actual_LL_UP_qpc\":999"),native_click_facts),false,
+            "native-first first click refuses an UP before the one test send")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"up_native_time\":5010","\"up_native_time\":4500"),native_click_facts),false,
+            "native-first first click requires bounded native DOWN to UP stamp order")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"up_native_time\":5010","\"up_native_time\":5501"),native_click_facts),false,
+            "native-first first click rejects an UP beyond its one double-click time bound")||
+       !expect(native_click_match(mutate(native_click_pending,"\"down_consumed\":false","\"down_consumed\":true"),native_click_release,native_click_facts),false,
+            "consumed DOWN cannot impersonate native passthrough")||
+       !expect(native_click_match(mutate(native_click_pending,"\"write_authority\":false","\"write_authority\":true"),native_click_release,native_click_facts),false,
+            "native first click cannot carry write authority")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"normalized_NormalUp\":false","\"normalized_NormalUp\":true"),native_click_facts),false,
+            "native passthrough is never normalized NormalUp")||
+       !expect(native_click_match(native_click_pending,mutate(native_click_release,"\"new_native_placement\":false","\"new_native_placement\":true"),native_click_facts),false,
+            "native first click cannot claim a new product placement"))return 1;
+    auto changed_native_click=native_click_facts;changed_native_click.no_enhanced_records=false;
+    if(!expect(native_click_match(native_click_pending,native_click_release,changed_native_click),false,
+            "START placement cancel or CaptureReady prevents native-only first click proof"))return 1;
+    changed_native_click=native_click_facts;changed_native_click.geometry_unchanged=false;
+    if(!expect(native_click_match(native_click_pending,native_click_release,changed_native_click),false,
+            "native first click with changed owned geometry is not a stationary double-click first press"))return 1;
+    changed_native_click=native_click_facts;changed_native_click.gui_idle=false;
+    if(!expect(native_click_match(native_click_pending,native_click_release,changed_native_click),false,
+            "native first click requires observed idle exact source GUI")||
+       !expect(native_click_match(native_click_pending,"",native_click_facts),false,
+            "unattributed Raw UP without a real same-generation product LL release is not first-click proof")||
+       !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,false,early_status,identity),false,
+            "native first click does not alter the unchanged NormalUp status gate"))return 1;
     const auto captured_revoke=mutate(mutate(abort_status,"\"consumed_before\":false","\"consumed_before\":true"),
         "\"matching_branch_taken\":false","\"matching_branch_taken\":true");
     const auto abort_match=[&](std::string_view row,std::string_view end,std::string_view resource){

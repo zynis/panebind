@@ -219,7 +219,8 @@ struct NativeMoveBoundary {
     std::array<std::atomic<bool>,2> positioning_known{},visible{},standard_buttons_possible{};
     std::array<std::array<std::atomic<LONG>,4>,2> positioning{},buttons{};
 };
-struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};std::array<std::atomic<unsigned>,5> client_down{},client_up{};
+struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};std::atomic<std::uint64_t> native_start_qpc{},native_end_qpc{};
+    std::array<std::atomic<unsigned>,5> client_down{},client_up{};
     LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
     std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;NativeMoveBoundary native_move_boundary;};
 std::string native_move_boundary_json(const Frame& frame){
@@ -496,7 +497,9 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
             client_button=x==XBUTTON1?4u:x==XBUTTON2?5u:0u;client_pressed=message==WM_XBUTTONDOWN;}
         if(client_button){if(client_pressed)++frame->client_down[client_button-1];else ++frame->client_up[client_button-1];}
         if(message==WM_LBUTTONDOWN)++frame->down;if(message==WM_LBUTTONUP)++frame->up;
-        if(message==WM_ENTERSIZEMOVE)++frame->starts;if(message==WM_EXITSIZEMOVE)++frame->ends;
+        if(message==WM_ENTERSIZEMOVE||message==WM_EXITSIZEMOVE){LARGE_INTEGER observed{};QueryPerformanceCounter(&observed);
+            const auto qpc=observed.QuadPart>0?static_cast<std::uint64_t>(observed.QuadPart):0;
+            if(message==WM_ENTERSIZEMOVE){frame->native_start_qpc=qpc;++frame->starts;}else{frame->native_end_qpc=qpc;++frame->ends;}}
     }
     if(message==WM_PAINT){PAINTSTRUCT p{};HDC dc=BeginPaint(h,&p);RECT r{};GetClientRect(h,&r);FillRect(dc,&r,GetSysColorBrush(COLOR_WINDOW));
         DrawTextW(dc,L"PaneBind V1 — 自建空白测试窗口",-1,&r,DT_CENTER|DT_VCENTER|DT_SINGLELINE);EndPaint(h,&p);return 0;}

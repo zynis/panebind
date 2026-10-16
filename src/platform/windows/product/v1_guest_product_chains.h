@@ -163,11 +163,16 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     auto& s=set.state;chain_front(set,0);const auto point=layout_hit(set,0,native_region);
     if(!point)throw std::runtime_error("chain_requested_native_double_click_region_not_observed");
     const auto before=visible(set.frames[0].hwnd);if(!before)throw std::runtime_error("chain_double_click_before_unknown");
+    RECT before_positioning{};const bool before_positioning_known=GetWindowRect(set.frames[0].hwnd,&before_positioning)!=FALSE;
     if(shift)key(s,VK_SHIFT,true);cursor(s,*point);Sleep(100);const auto mark=read_product(s).size();
     const auto started=GetTickCount64();button(s,true);button(s,false);
     if(!shift){
-        std::string failure,gone,status,ended;std::uint64_t generation{};bool normal{},early_click{},status_requested{},status_ok{};
+        std::string failure,gone,status,ended,native_pending,native_released;
+        std::uint64_t generation{};bool normal{},early_click{},native_click{},status_requested{},status_ok{};
         std::size_t status_mark{};DWORD status_exit=STILL_ACTIVE;
+        const int classified_region=native_region==HTLEFT?1:native_region==HTRIGHT?2:
+            native_region==HTTOP?3:native_region==HTBOTTOM?4:native_region==HTTOPLEFT?5:
+            native_region==HTTOPRIGHT?6:native_region==HTBOTTOMLEFT?7:native_region==HTBOTTOMRIGHT?8:-1;
         const bool terminated=wait([&]{
             const auto start=record(s,mark,"gesture_start");
             const auto active=number(start,"\"generation\":");
@@ -178,8 +183,46 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
                     ended.find("\"normal_up\":true")!=ended.npos;
                 return normal;
             }
-            failure.clear();gone.clear();const auto text=product_log_since(s,mark);
+            failure.clear();gone.clear();native_pending.clear();native_released.clear();
+            const auto text=product_log_since(s,mark);
             std::istringstream rows(text);std::string row;
+            unsigned pending_count{};
+            while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"native_move_pending\"")!=row.npos&&
+                number(row,"\"source\":")==reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd)&&
+                number(row,"\"source_pid\":")==GetCurrentProcessId()&&number(row,"\"source_tid\":")==set.thread&&
+                number(row,"\"down_hook_qpc\":")>=s.left_down_send_qpc){native_pending=row;++pending_count;}
+            const auto native_generation=number(native_pending,"\"generation\":");
+            if(pending_count==1&&native_generation&&classified_region>0){
+                bool enhanced_record{};unsigned released_count{};
+                rows.clear();rows.str(text);
+                while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"generation\":")==native_generation){
+                    if(row.find("\"type\":\"native_move_passthrough_release\"")!=row.npos){native_released=row;++released_count;}
+                    if(row.find("\"type\":\"gesture_start\"")!=row.npos||
+                       row.find("\"type\":\"placement\"")!=row.npos||
+                       row.find("\"type\":\"native_move_cancel\"")!=row.npos||
+                       row.find("\"type\":\"capture_ready\"")!=row.npos||
+                       (row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
+                        row.find("\"fact\":\"capture_ready\"")!=row.npos)||
+                       (row.find("\"type\":\"native_move_handoff\"")!=row.npos&&
+                        row.find("\"accepted\":true")!=row.npos))enhanced_record=true;
+                }
+                GUITHREADINFO gui{sizeof(gui)};
+                const bool gui_idle=GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+                    !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+                RECT current_positioning{};
+                const bool geometry_unchanged=before_positioning_known&&set.owns(0)&&visible(set.frames[0].hwnd)==before&&
+                    GetWindowRect(set.frames[0].hwnd,&current_positioning)&&EqualRect(&before_positioning,&current_positioning);
+                const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,native_generation,s.left_up_send_qpc};
+                const product::guest::NativeFirstClickFacts facts{
+                    reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd),GetCurrentProcessId(),set.thread,
+                    s.left_down_send_qpc,GetDoubleClickTime(),classified_region,
+                    geometry_unchanged,GetForegroundWindow()==set.frames[0].hwnd,
+                    gui_idle,!enhanced_record};
+                native_click=released_count==1&&product::guest::matching_native_first_click_release(
+                    native_pending,native_released,identity,facts);
+                if(native_click){generation=native_generation;return true;}
+            }
+            rows.clear();rows.str(text);
             while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&
                 row.find("\"fact\":\"resource_failure\"")!=row.npos&&
                 number(row,"\"source\":")==reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd)&&
@@ -207,9 +250,11 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
             return early_click;
         },GetDoubleClickTime());
         s.log.check("chain_first_click_actually_terminated",terminated,
-            "\"termination\":"+quote(normal?"actual_NormalUp":early_click?"actual_LL_UP_before_capture_not_NormalUp":"unconfirmed")+
+            "\"termination\":"+quote(normal?"actual_NormalUp":native_click?"actual_LL_UP_native_passthrough_not_NormalUp":
+                early_click?"actual_LL_UP_before_capture_not_NormalUp":"unconfirmed")+
             ",\"early_release_generation\":"+std::to_string(generation)+",\"public_status_receipt\":"+quote(status)+
             ",\"actual_setup_failure\":"+quote(failure)+",\"actual_resource_cleanup\":"+quote(gone)+
+            ",\"actual_native_pending\":"+quote(native_pending)+",\"actual_native_LL_release\":"+quote(native_released)+
             ",\"NormalUp_inferred_from_early_release\":false,\"fast_drag_PASS_inferred\":false");
     }
     else wait([&]{GUITHREADINFO info{sizeof(info)};return GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize;},200);

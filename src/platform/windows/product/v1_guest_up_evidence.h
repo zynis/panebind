@@ -186,6 +186,41 @@ inline bool matching_pre_capture_click_release(std::string_view status,std::stri
         snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
         snapshot.take(",\"consumed_before\":true,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":false,\"push_succeeded\":false}}}")&&snapshot.text.empty();
 }
+// TEST first-click native passthrough only. The product actually observed this
+// exact LL UP before capture, but it is not a normalized NormalUp receipt or
+// proof that any enhanced Move/Resize path ran. The caller separately observes
+// unchanged owned geometry, exact foreground, idle GUI and no enhanced records.
+struct NativeFirstClickFacts {
+    std::uint64_t source{},source_pid{},source_tid{},down_send_before_qpc{};
+    std::uint32_t max_native_delta_ms{};
+    int region{};
+    bool geometry_unchanged{},foreground_exact{},gui_idle{},no_enhanced_records{};
+};
+inline bool matching_native_first_click_release(std::string_view pending,std::string_view released,
+    const UpEvidenceIdentity& expected,const NativeFirstClickFacts& facts){
+    using namespace up_evidence_detail;
+    if(!facts.source||!facts.source_pid||!facts.source_tid||!facts.down_send_before_qpc||
+       !facts.max_native_delta_ms||facts.max_native_delta_ms>5000||facts.region<1||facts.region>8||
+       !facts.geometry_unchanged||!facts.foreground_exact||!facts.gui_idle||!facts.no_enhanced_records||
+       !receipt(pending,expected,"native_move_pending")||
+       !receipt(released,expected,"native_move_passthrough_release")||
+       number(pending,"\"source\":")!=facts.source||number(released,"\"source\":")!=facts.source||
+       number(pending,"\"source_pid\":")!=facts.source_pid||
+       number(pending,"\"source_tid\":")!=facts.source_tid||
+       !number(pending,"\"source_key\":")||number(pending,"\"source_key\":")==0||
+       number(pending,"\"actual_DOWN_region\":")!=static_cast<std::uint64_t>(facts.region)||
+       number(pending,"\"locked_modifiers\":")!=0||
+       unique_value(pending,"\"down_consumed\":")!="false"||
+       unique_value(pending,"\"write_authority\":")!="false"||
+       unique_value(released,"\"normalized_NormalUp\":")!="false"||
+       unique_value(released,"\"new_native_placement\":")!="false")return false;
+    const auto down_qpc=number(pending,"\"down_hook_qpc\":"),up_qpc=number(released,"\"actual_LL_UP_qpc\":"),
+        down_stamp=number(pending,"\"down_native_time\":"),up_stamp=number(released,"\"up_native_time\":");
+    return down_qpc&&*down_qpc>=facts.down_send_before_qpc&&up_qpc&&*up_qpc>=expected.send_before_qpc&&
+        *up_qpc>=*down_qpc&&down_stamp&&up_stamp&&
+        *down_stamp<=std::numeric_limits<std::uint32_t>::max()&&*up_stamp<=std::numeric_limits<std::uint32_t>::max()&&
+        static_cast<std::uint32_t>(static_cast<std::uint32_t>(*up_stamp)-static_cast<std::uint32_t>(*down_stamp))<=facts.max_native_delta_ms;
+}
 // ABORT cleanup evidence only. A hook receipt after revocation is not a
 // normalized gesture UP, a NormalUp permit, target delivery or idle proof.
 // In-flight native completion and geometry must be verified separately.
