@@ -8,6 +8,11 @@ $inputDir='C:\PaneBindV1\Input'
 $outputDir='C:\PaneBindV1\Output'
 $leaf='v1-medium-desktop-probe-guest.ps1'
 $evidence=$null
+# TOKEN_QUERY-only inspection uses actual TokenGroups, not a managed identity
+# constructor that can require more token rights. Official contracts reviewed:
+# https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-token_groups
+# https://learn.microsoft.com/windows/win32/api/securitybaseapi/nf-securitybaseapi-gettokeninformation
+# https://learn.microsoft.com/dotnet/api/system.security.principal.windowsidentity.-ctor
 function Read-ExactMarker([string]$Path) {
     $item=Get-Item -LiteralPath $Path -ErrorAction Stop
     if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $item.Length -gt 34){throw 'Run marker is not a bounded plain file.'}
@@ -121,9 +126,11 @@ public static class PaneBindV1MediumDesktopProbe {
     }
     static IntPtr TokenInfo(IntPtr token,int kind) {
         uint size;GetTokenInformation(token,kind,IntPtr.Zero,0,out size);
-        if(size==0||size>65536)throw new InvalidOperationException("Token information size unavailable");
+        int sizeError=Marshal.GetLastWin32Error();
+        if(size==0)throw new System.ComponentModel.Win32Exception(sizeError,"Token information size unavailable for class "+kind);
+        if(size>65536)throw new InvalidOperationException("Token information size bound exceeded for class "+kind);
         var data=Marshal.AllocHGlobal((int)size);
-        if(!GetTokenInformation(token,kind,data,size,out size)){Marshal.FreeHGlobal(data);throw new InvalidOperationException("Token information query failed");}
+        if(!GetTokenInformation(token,kind,data,size,out size)){int error=Marshal.GetLastWin32Error();Marshal.FreeHGlobal(data);throw new System.ComponentModel.Win32Exception(error,"Token information query failed for class "+kind);}
         return data;
     }
     static int TokenNumber(IntPtr token,int kind) { var data=TokenInfo(token,kind);try{return Marshal.ReadInt32(data);}finally{Marshal.FreeHGlobal(data);} }
@@ -133,11 +140,14 @@ public static class PaneBindV1MediumDesktopProbe {
         try { var label=new SecurityIdentifier(Marshal.ReadIntPtr(data)).Value;var separator=label.LastIndexOf('-');integrity=Int32.Parse(label.Substring(separator+1)); }finally{Marshal.FreeHGlobal(data);}
         var elevated=TokenNumber(token,20)!=0;var session=TokenNumber(token,12);
         var uiAccess=TokenNumber(token,26)!=0;var appContainer=TokenNumber(token,29)!=0;
-        bool admin;using(var identity=new WindowsIdentity(token))admin=new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+        // This handle deliberately has TOKEN_QUERY only. WindowsIdentity's
+        // token constructor / principal membership path can require additional
+        // rights. Read actual groups without duplicating or changing the token.
+        bool admin;var adminGroup=AdministratorGroup(token,out admin);
         accepted=sid==createdSid&&integrity==8192&&!elevated&&!admin&&!uiAccess&&!appContainer;
         // This is a credential token, NOT a created interactive process. Its
         // real SessionId may differ; no token/session mutation is performed.
-        return new Dictionary<string,object>{{"sid_sha256",Hash(sid)},{"created_account_sid_matches",sid==createdSid},{"integrity_rid",integrity},{"elevated",elevated},{"admin_enabled",admin},{"ui_access",uiAccess},{"app_container",appContainer},{"credential_token_session_id",session},{"current_desktop_session_id",desktopSession},{"token_session_matches_current",session==desktopSession},{"ordinary_security_facts_verified",accepted},{"interactive_child_session_validation","NOT_RUN"}};
+        return new Dictionary<string,object>{{"sid_sha256",Hash(sid)},{"created_account_sid_matches",sid==createdSid},{"integrity_rid",integrity},{"elevated",elevated},{"admin_enabled",admin},{"admin_group",adminGroup},{"ui_access",uiAccess},{"app_container",appContainer},{"credential_token_session_id",session},{"current_desktop_session_id",desktopSession},{"token_session_matches_current",session==desktopSession},{"ordinary_security_facts_verified",accepted},{"interactive_child_session_validation","NOT_RUN"}};
     }
     static string AccountSid(string name,out uint status) {
         IntPtr data;status=NetUserGetInfo(null,name,23,out data);
@@ -147,6 +157,25 @@ public static class PaneBindV1MediumDesktopProbe {
 
     [StructLayout(LayoutKind.Sequential)] struct SidAttributes { public IntPtr sid; public uint attributes; }
     [StructLayout(LayoutKind.Sequential)] struct GroupsOne { public uint count; public SidAttributes first; }
+    static Dictionary<string,object> AdministratorGroup(IntPtr token,out bool enabled) {
+        var data=TokenInfo(token,2);try {
+            var count=Marshal.ReadInt32(data);if(count<0||count>512)throw new InvalidOperationException("Bounded token group inventory required");
+            int offset=(int)Marshal.OffsetOf(typeof(GroupsOne),"first"),stride=Marshal.SizeOf(typeof(SidAttributes));
+            bool present=false;uint attributes=0;
+            for(int n=0;n<count;n++){
+                var group=(SidAttributes)Marshal.PtrToStructure(IntPtr.Add(data,offset+n*stride),typeof(SidAttributes));
+                if(new SecurityIdentifier(group.sid).Value=="S-1-5-32-544"){
+                    if(present)throw new InvalidOperationException("Duplicate administrators group is not an ordinary-token fact");
+                    present=true;attributes=group.attributes;
+                }
+            }
+            bool groupEnabled=present&&(attributes&0x4u)!=0,denyOnly=present&&(attributes&0x10u)!=0;
+            enabled=groupEnabled&&!denyOnly;
+            return new Dictionary<string,object>{{"source","actual_TokenGroups_TOKEN_QUERY"},{"group_count",count},
+                {"administrators_sid_present",present},{"attributes",present?(object)attributes:null},{"SE_GROUP_ENABLED",groupEnabled},
+                {"SE_GROUP_USE_FOR_DENY_ONLY",denyOnly},{"admin_enabled",enabled},{"token_duplicated_or_modified",false}};
+        }finally{Marshal.FreeHGlobal(data);}
+    }
     [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct Startup {
         public uint size;public string reserved,desktop,title;public uint x,y,width,height,countX,countY,fill,flags;
         public ushort show,reservedSize;public IntPtr reservedBytes,input,output,error;
@@ -270,10 +299,12 @@ public static class PaneBindV1MediumDesktopProbe {
         var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"bootstrap_desktop",desktop},{"created_account_name",name},
             {"account_created",false},{"account_cleanup_confirmed",false},{"dacl_cleanup_confirmed",false},{"child_process_exited",false},
             {"CreateProcessWithTokenW_attempts",0},{"lpDesktop","NULL"},{"LOGON_WITH_PROFILE",true},{"product_started",false},
+            {"GetProcessTimes_attempted",false},{"GetProcessTimes_succeeded",null},{"GetProcessTimes_error",null},
+            {"OpenProcessToken_attempted",false},{"OpenProcessToken_requested_access",8},{"OpenProcessToken_succeeded",null},{"OpenProcessToken_error",null},
             {"explorer_started",false},{"synthetic_input_sent",false},{"host_configuration_changed",false}};
         IntPtr password=IntPtr.Zero,nameMemory=IntPtr.Zero,comment=IntPtr.Zero,token=IntPtr.Zero,childToken=IntPtr.Zero;
         IntPtr station=IntPtr.Zero,defaultDesktop=IntPtr.Zero;var child=new ProcessInfo();AclState beforeStation=null,beforeDesktop=null;
-        string account=null,logon=null;bool created=false,resumed=false;
+        string account=null,logon=null;bool created=false,resumed=false;string stage="before_launch_preconditions";
         List<AddedAce> recordedStation=null,recordedDesktop=null;
         const int passwordLength=48;
         try {
@@ -299,7 +330,7 @@ public static class PaneBindV1MediumDesktopProbe {
             if(account==null){result["reason"]="created_account_identity_unknown";return result;}
             result["created_account_sid_sha256"]=Hash(account);
             if(!LogonUserW(name,".",password,2,0,out token)){result["reason"]="standard_logon_failed";result["LogonUser_error"]=Marshal.GetLastWin32Error();return result;}
-            bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
+            stage="credential_token_facts";bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
             result["actual_logon_sid_sha256"]=Hash(logon);
             if(!ordinary||TokenNumber(token,12)!=session){result["reason"]="actual_standard_token_or_session_rejected";return result;}
             var nonce=Guid.NewGuid().ToString("N");
@@ -312,9 +343,11 @@ public static class PaneBindV1MediumDesktopProbe {
                 " -Mode Child -ChildNonce "+nonce+" -BindingSha256 "+bindingHash);
             if(command.Length>1000)throw new InvalidOperationException("Bounded exact child command required");
             var startup=new Startup();startup.size=(uint)Marshal.SizeOf(typeof(Startup));startup.desktop=null;
+            stage="CreateProcessWithTokenW";
             result["CreateProcessWithTokenW_attempts"]=1;
             bool launched=CreateProcessWithTokenW(token,1,executable,command,0x08000004,IntPtr.Zero,"C:\\PaneBindV1\\Input",ref startup,out child);
             result["CreateProcessWithTokenW_succeeded"]=launched;result["CreateProcessWithTokenW_error"]=launched?0:Marshal.GetLastWin32Error();
+            stage="post_launch_dacl_inventory";
             var afterStation=ReadDacl(station);var afterDesktop=ReadDacl(defaultDesktop);bool stationExplained,desktopExplained;List<object> stationDelta,desktopDelta;
             recordedStation=Delta(beforeStation,afterStation,account,logon,out stationExplained,out stationDelta);
             recordedDesktop=Delta(beforeDesktop,afterDesktop,account,logon,out desktopExplained,out desktopDelta);
@@ -323,24 +356,32 @@ public static class PaneBindV1MediumDesktopProbe {
             result["dacl_delta_explained"]=stationExplained&&desktopExplained;
             if(!launched||!stationExplained||!desktopExplained){result["reason"]=!launched?"documented_launch_failed":"unexplained_acl_change_child_not_resumed";return result;}
             result["child_pid"]=child.pid;result["child_tid"]=child.tid;
-            FileTime birth,exit,kernel,user;if(!GetProcessTimes(child.process,out birth,out exit,out kernel,out user))throw new InvalidOperationException("Exact child birth unknown");
+            stage="GetProcessTimes";result["GetProcessTimes_attempted"]=true;
+            FileTime birth,exit,kernel,user;bool birthRead=GetProcessTimes(child.process,out birth,out exit,out kernel,out user);
+            int birthError=birthRead?0:Marshal.GetLastWin32Error();result["GetProcessTimes_succeeded"]=birthRead;result["GetProcessTimes_error"]=birthError;
+            if(!birthRead)throw new InvalidOperationException("Exact child birth unknown");
             result["child_birth_filetime"]=((ulong)birth.high<<32)|birth.low;
-            if(!OpenProcessToken(child.process,8,out childToken))throw new InvalidOperationException("Actual suspended child token unknown");
-            bool actualOrdinary;result["actual_child_token"]=TokenFacts(childToken,account,session,out actualOrdinary);
+            stage="OpenProcessToken";result["OpenProcessToken_attempted"]=true;
+            bool tokenOpened=OpenProcessToken(child.process,8,out childToken);
+            int tokenOpenError=tokenOpened?0:Marshal.GetLastWin32Error();result["OpenProcessToken_succeeded"]=tokenOpened;result["OpenProcessToken_error"]=tokenOpenError;
+            if(!tokenOpened)throw new InvalidOperationException("Actual suspended child token unknown");
+            stage="actual_child_token_facts";bool actualOrdinary;result["actual_child_token"]=TokenFacts(childToken,account,session,out actualOrdinary);
+            stage="actual_child_identity_recheck";
             if(!actualOrdinary||TokenNumber(childToken,12)!=session||LogonSid(childToken)!=logon)throw new InvalidOperationException("Actual suspended child identity rejected");
-            uint resume=ResumeThread(child.thread);result["ResumeThread_return"]=resume;
+            stage="ResumeThread";uint resume=ResumeThread(child.thread);result["ResumeThread_return"]=resume;
             if(resume==UInt32.MaxValue)throw new InvalidOperationException("Exact child resume failed");resumed=true;
-            uint waited=WaitForSingleObject(child.process,20000);result["child_wait_return"]=waited;
+            stage="child_exit_wait";uint waited=WaitForSingleObject(child.process,20000);result["child_wait_return"]=waited;
             if(waited!=0){result["reason"]="bounded_child_exit_not_observed";return result;}
-            uint code;if(!GetExitCodeProcess(child.process,out code))throw new InvalidOperationException("Child exit status unavailable");
+            stage="child_exit_status";uint code;if(!GetExitCodeProcess(child.process,out code))throw new InvalidOperationException("Child exit status unavailable");
             result["child_exit_code"]=code;result["child_process_exited"]=true;
-            var childEvidence="C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child.json";
+            stage="child_receipt";var childEvidence="C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child.json";
             var file=new FileInfo(childEvidence);
             if(!file.Exists||file.Length>65536||(file.Attributes&FileAttributes.ReparsePoint)!=0){result["reason"]="bounded_child_receipt_missing";return result;}
             result["child_receipt_text"]=File.ReadAllText(childEvidence,Encoding.UTF8);
             result["child_receipt_sha256"]=ByteHash(File.ReadAllBytes(childEvidence));
             result["status"]=code==0?"CHILD_EXITED_ZERO_RECEIPT_REQUIRED":"UNKNOWN";result["reason"]="actual_child_receipt_requires_independent_validation";return result;
-        }catch(Exception e){result["reason"]="bounded_desktop_probe_exception";result["error_type"]=e.GetType().Name;return result;}
+        }catch(Exception e){result["reason"]="bounded_desktop_probe_exception";result["exception_stage"]=stage;result["error_type"]=e.GetType().Name;result["exception_hresult"]=e.HResult;
+            var native=e as System.ComponentModel.Win32Exception;if(native!=null)result["exception_native_error"]=native.NativeErrorCode;return result;}
         finally {
             if(childToken!=IntPtr.Zero)CloseHandle(childToken);
             if(child.process!=IntPtr.Zero){

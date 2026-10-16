@@ -488,10 +488,25 @@ void key(State& s,WORD code,bool pressed){
     if(code==VK_CONTROL)s.control=pressed;
     if(!wait([&]{return ((GetAsyncKeyState(code)&0x8000)!=0)==pressed;},500))throw std::runtime_error("test_key_state_not_observed");
 }
+bool authorized_source(State&,HWND);
+void normal_release_with_final_cursor(State&,HWND);
 void button(State& s,bool pressed){
     // A failed insertion remains UNKNOWN and keeps the send ledger pending.
     // Do not let an outer abort attempt a second UP for that same test DOWN.
     if(!pressed&&s.left&&s.left_up_attempted)throw std::runtime_error("same_test_DOWN_UP_already_attempted_no_retransmission");
+    if(!pressed&&s.left){
+        POINT point{};
+        if(GetCursorPos(&point)){
+            const HWND root=GetAncestor(WindowFromPoint(point),GA_ROOT);
+            // Use the actually observed single-release variant consistently
+            // for exact foreground fixture/application roots, including abort
+            // receipt checks. Native/UI/unknown-context cleanup keeps its old
+            // standalone release; never invent a target or move the cursor.
+            if(root&&GetForegroundWindow()==root&&authorized_source(s,root)){
+                normal_release_with_final_cursor(s,root);return;
+            }
+        }
+    }
     INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_LEFTDOWN:MOUSEEVENTF_LEFTUP;
     const bool outstanding_before=s.left;const SHORT async_before=GetAsyncKeyState(VK_LBUTTON);
     LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);UINT delivered=UINT_MAX;DWORD error{};
@@ -517,15 +532,13 @@ void button(State& s,bool pressed){
     if(pressed)s.left_down_send_qpc=qpc;else s.left_up_send_qpc=qpc;
     receipt();
 }
-bool authorized_source(State&,HWND);
-void normal_release_with_final_cursor(State& s,std::size_t source){
+void normal_release_with_final_cursor(State& s,HWND h){
     // TEST DRIVER ONLY. Compare one serial final-MOVE/UP insertion with the
     // preserved standalone-UP failures. There is exactly ONE UP, no retry and
     // no product termination fact follows from SendInput's insertion count.
     if(!s.left||s.left_up_attempted)throw std::runtime_error("normal_release_pair_missing_or_UP_already_attempted");
     POINT point{},after{};const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),
         width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    const HWND h=source_window(s,source);
     if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&point)||GetAncestor(WindowFromPoint(point),GA_ROOT)!=h||width<=0||height<=0||
         point.x<x||point.y<y||static_cast<long long>(point.x)>=static_cast<long long>(x)+width||
         static_cast<long long>(point.y)>=static_cast<long long>(y)+height)
@@ -643,7 +656,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected){
     try{
         s.log.check("guest_passive_UP_observer_ready",hook_ready,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());
-        normal_release_with_final_cursor(s,source);attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
+        normal_release_with_final_cursor(s,source_window(s,source));attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
         Sleep(150);std::string context_reason;const auto context=fixture_source_gui_context(s,source,context_reason);
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
