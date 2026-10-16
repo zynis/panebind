@@ -1,0 +1,36 @@
+{
+  "evidence_id": "EV-E0E4-NOTEPAD-PREPARATION",
+  "kind": "GUEST_OFFICIAL_APPLICATION_PREPARATION_NOT_PRODUCT_TEST",
+  "original_path": "uat/v1-control/e0e4c2a95aeb4dc4b5203c18ffb300c8/collection-20261016T084645960Z-a62db2c7c0374959b5050f3f76ab5298/e0e4c2a95aeb4dc4b5203c18ffb300c8-notepad-preparation.json",
+  "original_sha256": "C929604587C3675894BF2CD915B47FF4F6115DE333688A6E180183F400E725AD",
+  "record": {
+    "schema": "panebind-v1-notepad-preparation-result/1",
+    "run_id": "e0e4c2a95aeb4dc4b5203c18ffb300c8",
+    "source_commit": "209f20222d111b64f99c5330aab157214a8d88c5",
+    "status": "FAILED",
+    "error": "Official Notepad package/dependency download failed; available output inventory retained, no install/credential fallback attempted.",
+    "locale_facts": {
+      "status": "OBSERVED",
+      "geo_id": 39070,
+      "home_location": "World",
+      "culture": "zh-CN",
+      "ui_culture": "en-US",
+      "region_or_language_modified": false
+    },
+    "product_started": false,
+    "synthetic_input_sent": false,
+    "application_function_result": "NOT_RUN"
+  },
+  "download_log": {
+    "relative_to_collection": "e0e4c2a95aeb4dc4b5203c18ffb300c8-winget-diagnostics/WinGet-2026-10-16-16-45-05.158.log",
+    "bytes": 11082,
+    "sha256": "03C69DE2B66CC365F2C64F8EAA0CB51AF2A63BBAC8691FAB94385870CDB8B7C0",
+    "selected_lines": [
+      "2026-10-16 16:45:07.096 <I> [REPO] Response status: 200",
+      "2026-10-16 16:45:07.120 <I> [REPO] Sending http GET request to: https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/9MSMLRH6LZF3?Market=ZZ",
+      "2026-10-16 16:45:07.522 <I> [REPO] Response status: 400",
+      "2026-10-16 16:45:07.523 <E> [CLI ] Caught std::exception: UTF-8 string character can never start with 10xxxxxx"
+    ]
+  },
+  "scope_note": "官方准备命令因guest locale对应Market=ZZ请求400失败；不是产品测试/普通Notepad永久不可用，也不是全局网络不可达。未安装包、未请求凭据或离线许可，未修改区域/语言。精确测试准备market配置修复393e5a2待新批实际重验，原失败保留。"
+}

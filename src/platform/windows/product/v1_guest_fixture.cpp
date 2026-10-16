@@ -242,7 +242,8 @@ struct ApplicationProcess {
 struct ApplicationTarget {
     std::string kind;fs::path executable,root_executable,directory;std::wstring command;
     std::vector<HWND> baseline;std::vector<ApplicationProcess> processes;
-    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{};
+    std::optional<product::Snapshot> identity;bool accepted{},cleanup_confirmed{},matrix_passed{},close_failure_facts_recorded{};
+    std::string last_close_reason;
 };
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
@@ -563,20 +564,60 @@ void normal_release_with_final_cursor(State& s,HWND h){
         ",\"driver_left_outstanding_before\":true,\"driver_left_outstanding_after\":"+(s.left?"true":"false")+",\"delivery_not_inferred\":true,\"physical_button_held_not_inferred\":true");
     if(inserted!=packets.size())throw std::runtime_error("normal_release_serial_insertion_partial_delivery_UNKNOWN_no_UP_retry");
 }
-std::optional<POINT> hit_point(HWND h,int required){
-    RECT p{};DWORD root_pid{};if(!GetWindowRect(h,&p)||!GetWindowThreadProcessId(h,&root_pid))return {};
+std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nullptr){
+    const auto started=GetTickCount64();RECT p{};DWORD root_pid{};
+    SetLastError(0);const bool positioned=GetWindowRect(h,&p)!=FALSE;const DWORD positioning_error=positioned?0:GetLastError();
+    SetLastError(0);const DWORD root_tid=GetWindowThreadProcessId(h,&root_pid),identity_error=root_tid?0:GetLastError();
+    if(!positioned||!root_tid){
+        if(failure_facts)*failure_facts="{\"positioning_known\":"+std::string(positioned?"true":"false")+
+            ",\"positioning_error\":"+std::to_string(positioning_error)+",\"source_tid\":"+std::to_string(root_tid)+
+            ",\"source_identity_error\":"+std::to_string(identity_error)+",\"samples\":[],\"input_sent\":false}";
+        return {};
+    }
     const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
     const LONG left=required==HTBOTTOM?(p.left+p.right)/2:p.left+1,right=required==HTBOTTOM?left+1:p.right-1;
     auto caption=required==HTCAPTION?native_caption_observation(h,{p.left,p.top}):NativeCaptionObservation{};
-    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=2){DWORD_PTR hit{};const POINT point{x,y};const HWND actual=WindowFromPoint(point);DWORD actual_pid{};
-        if(!actual||GetAncestor(actual,GA_ROOT)!=h||!GetWindowThreadProcessId(actual,&actual_pid)||actual_pid!=root_pid)continue;
+    const auto caption_at_start=caption;std::uint64_t points{},foreign_hits{},coordinate_rejections{},guard_rejections{},queries{},query_failures{},wrong_hits{},fresh_guard_rejections{};
+    std::array<std::string,8> sample_kinds{};std::size_t samples{};std::string sample_rows="[";
+    const auto sample=[&](const char* reason,POINT point,HWND actual,HWND root,DWORD pid,DWORD tid,bool attempted,bool read,DWORD_PTR hit,DWORD error,const NativeCaptionObservation& facts){
+        if(!failure_facts||samples>=sample_kinds.size())return;
+        const std::string kind=std::string(reason)+":"+(read?std::to_string(static_cast<LRESULT>(hit)):"unknown");
+        for(std::size_t index=0;index<samples;++index)if(sample_kinds[index]==kind)return;
+        sample_kinds[samples]=kind;if(samples++)sample_rows+=',';
+        sample_rows+="{\"reason\":"+quote(reason)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+
+            "],\"hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual))+",\"hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+            ",\"hit_pid\":"+(tid?std::to_string(pid):"null")+",\"hit_tid\":"+(tid?std::to_string(tid):"null")+
+            ",\"WM_NCHITTEST_attempted\":"+(attempted?"true":"false")+",\"WM_NCHITTEST_returned\":"+(attempted?(read?"true":"false"):"null")+
+            ",\"actual_hit\":"+(read?std::to_string(static_cast<LRESULT>(hit)):"null")+",\"query_error\":"+(attempted?std::to_string(error):"null")+
+            ",\"caption_facts\":"+(required==HTCAPTION?native_caption_json(facts):"null")+"}";
+    };
+    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=2){++points;DWORD_PTR hit{};const POINT point{x,y};const HWND actual=WindowFromPoint(point),actual_root=actual?GetAncestor(actual,GA_ROOT):nullptr;DWORD actual_pid{};
+        const DWORD actual_tid=actual?GetWindowThreadProcessId(actual,&actual_pid):0;caption.point=point;
+        if(!actual||actual_root!=h||!actual_tid||actual_pid!=root_pid){++foreign_hits;sample("hit_not_same_source_root_process",point,actual,actual_root,actual_pid,actual_tid,false,false,0,0,caption);continue;}
         // The production adapter queries the actual hit child, not an idealized
         // root. Chromium/custom title bars can legitimately return HTCAPTION.
         if(x<std::numeric_limits<short>::min()||x>std::numeric_limits<short>::max()||
-           y<std::numeric_limits<short>::min()||y>std::numeric_limits<short>::max())continue;
-        if(required==HTCAPTION){caption.point=point;if(caption.result()!=v1::CaptionHit::Caption)continue;}
-        if(SendMessageTimeoutW(actual,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)&&
-            static_cast<int>(hit)==required&&(required!=HTCAPTION||native_caption_observation(h,point).result()==v1::CaptionHit::Caption))return point;}
+           y<std::numeric_limits<short>::min()||y>std::numeric_limits<short>::max()){++coordinate_rejections;sample("signed_message_coordinates_unavailable",point,actual,actual_root,actual_pid,actual_tid,false,false,0,0,caption);continue;}
+        if(required==HTCAPTION&&caption.result()!=v1::CaptionHit::Caption){++guard_rejections;sample("initial_caption_guard_rejected",point,actual,actual_root,actual_pid,actual_tid,false,false,0,0,caption);continue;}
+        ++queries;SetLastError(0);const bool read=SendMessageTimeoutW(actual,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)!=0;
+        const DWORD error=read?0:GetLastError();
+        if(!read){++query_failures;sample("actual_hit_query_failed",point,actual,actual_root,actual_pid,actual_tid,true,false,hit,error,caption);continue;}
+        if(static_cast<int>(hit)!=required){++wrong_hits;sample("actual_hit_different",point,actual,actual_root,actual_pid,actual_tid,true,true,hit,0,caption);continue;}
+        if(required==HTCAPTION){const auto fresh=native_caption_observation(h,point);if(fresh.result()!=v1::CaptionHit::Caption){++fresh_guard_rejections;sample("fresh_caption_guard_rejected",point,actual,actual_root,actual_pid,actual_tid,true,true,hit,0,fresh);continue;}}
+        return point;
+    }
+    if(failure_facts){
+        std::array<wchar_t,256> title{};const int title_chars=GetWindowTextW(h,title.data(),static_cast<int>(title.size()));
+        *failure_facts="{\"source_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"source_pid\":"+std::to_string(root_pid)+",\"source_tid\":"+std::to_string(root_tid)+
+            ",\"positioning\":"+rect({p.left,p.top,p.right,p.bottom})+",\"required_hit\":"+std::to_string(required)+",\"physical_pixel_search\":["+
+            std::to_string(left)+","+std::to_string(begin)+","+std::to_string(right)+","+std::to_string(end)+"],\"x_step_pixels\":2,\"points_examined\":"+std::to_string(points)+
+            ",\"foreign_or_unknown_hit_count\":"+std::to_string(foreign_hits)+",\"coordinate_rejections\":"+std::to_string(coordinate_rejections)+",\"initial_guard_rejections\":"+std::to_string(guard_rejections)+
+            ",\"actual_hit_query_count\":"+std::to_string(queries)+",\"query_failures\":"+std::to_string(query_failures)+",\"different_hit_results\":"+std::to_string(wrong_hits)+
+            ",\"fresh_guard_rejections\":"+std::to_string(fresh_guard_rejections)+",\"elapsed_ms\":"+std::to_string(GetTickCount64()-started)+
+            ",\"source_title\":"+(title_chars>0?quote(utf8(std::wstring(title.data(),title_chars))):"null")+",\"title_empty_or_unknown\":"+(title_chars>0?"false":"true")+
+            ",\"caption_at_search_start\":"+(required==HTCAPTION?native_caption_json(caption_at_start):"null")+",\"samples\":"+sample_rows+
+            "],\"sample_limit\":8,\"samples_are_distinct_existing_search_outcomes\":true,\"caption_facts_cached_unless_fresh_guard_sample\":true,\"input_sent\":false,\"permission_override\":false}";
+    }
     return {};
 }
 bool own(State&,HWND);
@@ -622,7 +663,9 @@ struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
 bool application_down_context(State&,HWND,POINT,int,std::string_view);
 void application_prepare_barrier(State&,HWND,POINT,int);
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
-    const auto h=source_window(s,source);foreground(s,h);const auto point=hit_point(h,region);
+    const auto h=source_window(s,source);foreground(s,h);std::string hit_failure;
+    const auto point=hit_point(h,region,s.applications[source]?&hit_failure:nullptr);
+    if(!point&&s.applications[source])s.log.emit("application_nonclient_search_failure","\"application\":"+quote(s.applications[source]->kind)+",\"facts\":"+hit_failure);
     s.log.check("actual_nonclient_hit",point.has_value(),"\"source\":"+std::to_string(source)+",\"hit\":"+std::to_string(region));
     cursor(s,*point);
     if(s.applications[source])application_prepare_barrier(s,h,*point,region);else Sleep(100);
@@ -1261,6 +1304,49 @@ bool close_application(State& s,ApplicationTarget& target){
         }else{gone=!IsWindow(target.identity->hwnd);if(gone)why="bound_root_already_gone";}
         if(!gone)s.log.failed=true;
     }
+    if(target.accepted&&target.identity&&!gone&&!target.close_failure_facts_recorded){
+        target.close_failure_facts_recorded=true;
+        // One read-only failure observation of this bound, birth-verified
+        // root. Posting WM_CLOSE is not proof of processing or destruction.
+        // A popup is never activated, closed, messaged or adopted here.
+        const HWND root=target.identity->hwnd;std::optional<product::Snapshot> current;std::string identity_reason;
+        const bool exact=application_fresh(s,target,root,&current,&identity_reason)&&current&&
+            product::Catalog::same(*target.identity,*current)&&test_root_stamp(s,*target.identity);
+        DWORD_PTR response{};bool null_read=false;DWORD null_error{};std::array<wchar_t,256> title{},popup_title{};
+        std::array<wchar_t,128> popup_class{};int title_chars{},popup_title_chars{},popup_class_chars{};
+        HWND popup{},popup_owner{};DWORD popup_pid{},popup_tid{};bool popup_tree=false;
+        const bool root_alive=IsWindow(root)!=FALSE;const auto foreground=GetForegroundWindow();
+        if(exact){
+            title_chars=GetWindowTextW(root,title.data(),static_cast<int>(title.size()));
+            popup=GetLastActivePopup(root);
+            if(popup&&popup!=root){
+                popup_tid=GetWindowThreadProcessId(popup,&popup_pid);popup_owner=GetWindow(popup,GW_OWNER);
+                const auto process=std::find_if(target.processes.begin(),target.processes.end(),[&](const auto& item){return item.pid==popup_pid;});
+                popup_tree=popup_tid&&GetAncestor(popup,GA_ROOT)==popup&&GetAncestor(popup,GA_ROOTOWNER)==root&&
+                    std::find(target.baseline.begin(),target.baseline.end(),popup)==target.baseline.end()&&
+                    process!=target.processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&
+                    process_birth(process->handle->value)==process->born&&medium(process->handle->value);
+                if(popup_tree){popup_title_chars=GetWindowTextW(popup,popup_title.data(),static_cast<int>(popup_title.size()));
+                    popup_class_chars=GetClassNameW(popup,popup_class.data(),static_cast<int>(popup_class.size()));}
+            }
+            SetLastError(0);null_read=SendMessageTimeoutW(root,WM_NULL,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&response)!=0;
+            null_error=null_read?0:GetLastError();
+        }
+        s.log.emit("application_close_unconfirmed_facts","\"application\":"+quote(target.kind)+",\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+            ",\"same_exact_bound_root\":"+(exact?"true":"false")+",\"identity_reason\":"+quote(identity_reason)+",\"root_alive\":"+(root_alive?"true":"false")+
+            ",\"root_enabled\":"+(exact?(IsWindowEnabled(root)?"true":"false"):"null")+",\"root_visible\":"+(exact?(IsWindowVisible(root)?"true":"false"):"null")+
+            ",\"root_title\":"+(exact&&title_chars>0?quote(utf8(std::wstring(title.data(),title_chars))):"null")+
+            ",\"foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+",\"WM_NULL_attempted\":"+(exact?"true":"false")+
+            ",\"WM_NULL_returned\":"+(exact?(null_read?"true":"false"):"null")+",\"WM_NULL_result\":"+(null_read?std::to_string(response):"null")+
+            ",\"WM_NULL_error\":"+(exact?std::to_string(null_error):"null")+",\"WM_NULL_timeout_ms\":100,\"last_active_popup\":"+
+            (exact?std::to_string(reinterpret_cast<std::uintptr_t>(popup)):"null")+",\"popup_owner\":"+(popup&&popup!=root?std::to_string(reinterpret_cast<std::uintptr_t>(popup_owner)):"null")+
+            ",\"popup_pid\":"+(popup_tid?std::to_string(popup_pid):"null")+",\"popup_tid\":"+(popup_tid?std::to_string(popup_tid):"null")+
+            ",\"popup_is_new_owned_Medium_launch_tree_root\":"+(popup_tree?"true":"false")+
+            ",\"popup_class\":"+(popup_tree&&popup_class_chars>0?quote(utf8(std::wstring(popup_class.data(),popup_class_chars))):"null")+
+            ",\"popup_title\":"+(popup_tree&&popup_title_chars>0?quote(utf8(std::wstring(popup_title.data(),popup_title_chars))):"null")+
+            ",\"popup_activated_messaged_or_closed\":false,\"single_post_failure_observation\":true,\"normal_close_or_cleanup_PASS_inferred\":false");
+    }
+    target.last_close_reason=why;
     target.cleanup_confirmed=gone;
     s.log.emit("application_cleanup","\"application\":"+quote(target.kind)+",\"root_confirmed\":"+(target.accepted?"true":"false")+
         ",\"exact_root_close_attempted\":"+(attempted?"true":"false")+",\"actual_root_gone\":"+(gone?"true":"false")+
@@ -1475,6 +1561,7 @@ void cleanup_applications(State& s){
         try{
             if(target->identity&&IsWindow(target->identity->hwnd)&&!matrix_show_source(s,0,true))why="exact_root_show_not_confirmed";
             closed=close_application(s,*target)&&target->cleanup_confirmed;
+            if(!closed&&why.empty())why=target->last_close_reason;
         }catch(const std::exception& error){why=error.what();}
         if(!closed){s.log.failed=true;unconfirmed.push_back(target);}
         s.log.emit("application_cleanup_result","\"application\":"+quote(target->kind)+",\"result\":"+quote(closed?"PASS":"FAIL")+

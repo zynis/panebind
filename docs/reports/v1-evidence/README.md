@@ -37,4 +37,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptan
 
 `9e5-fixture-selected.jsonl`为同R／D129修正pin后的原2632 ZIP及诊断真实定向PASS。`portable-contract-negatives-transcript.txt`独立保留实际生产工具函数缺文件／外部依赖拒绝与25/25结果（工具输出转录非原stdout），并结合七文件逐项哈希及真实system imports，支持**仅M12-F03／B32便携功能合同PASS**。模块M12、I12、Full及整版没有因此通过；旧8189两个错pin原失败保留，D16只作定向关闭，D08仍OPEN。最新9e5和b49资源回执与产品正常stop／客户投递分别在索引记录，不以guest销毁替代。
 
+增量`7cd-fixture-selected.jsonl`／`7cd-product-selected.jsonl`保留同R、D209的真实serial最终MOVE＋单个UP：队首和product都观察到实际UP／NormalUp，但terminal真实调用将已吸附矩形改为偏移自由矩形，I11与Terminal本次仍FAIL（V1-D17），不是D08根因证明。`7cd-medium-desktop-probe-selected.json`保留CreateProcessWithTokenW成功后工具SecurityException／child未resume的UNKNOWN，与旧b49只读DACL DENIED区别；本地QUERY-only工具复现无归档stdout，不补造原文，修复待guest。`e0e4-notepad-market-selected.json`仅保留官方准备Market=ZZ HTTP400及必要locale／未运行边界，不把它算产品FAIL或永久环境缺失。
+
 历史实测经 `partial_observation_ids` 回到原产品身份，不因当前 `candidate_identity_ref`、更新 driver 或更新报告而换绑新 EXE。本轮新增产品修复与现场结果另作增量记录，不覆写这些反例。

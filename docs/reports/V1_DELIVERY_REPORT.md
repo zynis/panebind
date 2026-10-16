@@ -6,7 +6,7 @@
 
 ## 现有验收表的推进状态与仓库内证据
 
-继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。功能当前为1项 `PASS`、9项 `FAIL`、50项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。B32独立通过，其余必做项不凑分；B33–B40继续固定DEFERRED／0分。
+继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。功能当前为1项 `PASS`、12项 `FAIL`、47项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。B32独立通过，其余必做项不凑分；B33–B40继续固定DEFERRED／0分。
 
 每行有 `observed`、`remaining_conditions`、`next_action`，以及 `partial_observation_ids`→原观察的产品SHA／二进制哈希／RunId／证据关联；`candidate_identity_ref`仅指待验当前候选，不把旧观察改绑新EXE。模块／对标条件直接引用功能行，未另建一套任务书。后续产品修复或现场新结果按实际身份增量登记；驱动／文档变更不得清空既有产品证据。
 
@@ -23,6 +23,19 @@
 [before／after小型转录](v1-evidence/input-up-dispatch-directed.txt)明确是`exec_command`输出转录，**不是程序原stdout、真实Windows输入投递或guest功能证据**；原转录与脱敏文件哈希分别入索引。随后8189取得下述真实快速UP点terminal定向结果，V1-D15已按该精确范围关闭，不再扩展专项。原D08缺LL-UP S1及完整连续链门槛保持未关闭，两者不是同一根因；dd60旧已测包也不换绑为新R。
 
 新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新Run8189的真实范围另列如下，不能升级正式DEV或关闭D08。
+
+## 7cd／同R serial MOVE＋单次UP：真实释放闭环，但终端几何失败
+
+Run `7cd4f252d8b942e89cb9b3c3eb10a1b4`仍用产品R408／Release `48F96C…3924E`，driver为`209f20222d111b64f99c5330aab157214a8d88c5`／`2E51C539FF8838BBFC3063280EA58FB9885035637CD40FFA991C9B67C91DEB79`，packaging HEAD `c4dc45f7666aac23c1d030f95cd39691d1c5fd46`。主包ZIP `6DE7BEADFA1041C180FA2649575E772470496781BE3C173A57E7AECEA667CB1B`／manifest `2C46A4AAC7FA7021CB0EFD8DD55CDABE232E32AB59B034566C0801D722C7CD16`。这是`CoreAndApplications`分组，不是Full或重新绑定9e5。
+
+- 747／749／751／753／755的自由／XY／保持／拉开／重吸几何成立。757一次SendInput插入最终绝对MOVE再单个UP（2/2返回，不重复旧UP）；758队首observer实际UP=1、CallNext返回1、Unhook成功；759产品PID2112同g26实际UP seq304与NormalUp seq306成立，Raw49→50仍不自行授归属。
+- 但[产品摘录](v1-evidence/7cd-product-selected.jsonl)显示seq302真实resnap exact `[120,80,380,440]`；303旧排队MOVE因撤权而零native；实际UP后305独立terminal真实调用50却写入`[115,84,375,444]`，对错误自由计划exact，`authority_after=false`。760／767因此仍FAIL，不是“正常UP未到”。Terminal1491同样已有实际UP／NormalUp，1492仍从期望`[150,150,1050,810]`变为`[143,154,1043,814]`，类别未通过。
+- 新缺陷**V1-D17**与D08区分：产品修复`e22cd41f80c52ba5f0311961cbdd38c38e82ff50`已提交，构建HEAD `7385a094852a27f1f8b0c541acc3622b16c0ffec`另含测试probe修复；新产品尚未guest运行，不能用7cd给新EXE授PASS。原7cd没有前一input tick，不能据此宣布equal-tick或旧缺UP根因已查明；D08继续OPEN，D15原定向关闭不回退。
+- [fixture摘录](v1-evidence/7cd-fixture-selected.jsonl)保留独立visual1158／第二成员故障1437子项PASS、60.0001793秒idle／CPU0%／工作集27,185,152字节；临时在途1238、grid1343与Edge命中1549仍FAIL。1568产品正常退出／自有资源全true、1572实际客户计数`[1,1]→[2,2]`；专用guest／任务退出和证据未变单独记账，不关闭Edge原清理未知，1576整批FAIL。
+
+[7cd普通桌面probe](v1-evidence/7cd-medium-desktop-probe-selected.json)中credential确为Medium8192／non-elevated／session1，`CreateProcessWithTokenW`实际成功，但QUERY-only child token的工具查询抛`SecurityException`，child从未resume，原结果为**UNKNOWN，不是环境DENIED**。主执行实际本地工具调用复现（未归档stdout，不补造原文），工具修复7385已提交、guest复验NOT_RUN，记V1-D18；精确child／本次新账号已清理、DACL哈希未变、未启动产品／Explorer或发送输入。b49原只读DACL DENIED保留其历史事实，不能由本工具异常外推必须新VM。
+
+[e0e4官方Notepad准备摘录](v1-evidence/e0e4-notepad-market-selected.json)保留真实WinGet verbose：信息端点200，包manifest请求`Market=ZZ`返回400，随后CLI解码异常。它是官方应用准备失败，产品／应用功能NOT_RUN，不是网络全断、产品FAIL或永久缺Notepad；未改区域／语言，未安装或请求凭据。精确测试market配置修复393e5a2已提交，实际新准备仍待验证。
 
 ## 9e5／同R同2632原ZIP：便携功能PASS，整版门槛独立继续
 
