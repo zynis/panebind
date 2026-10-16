@@ -2,7 +2,7 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。a623当时拒绝项UNKNOWN原样保留；后继f63识别ConsumedDown候选误用异步左键high门，bd53已修而尚未现场复验，无新capture／writer／NormalUp PASS。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`不变。最新f9以同98fc原ZIP/新driver实测热键注册冲突、旧有效命令保护、解除后同draft保存执行、此页默认与动作帮助，M11-F03独立PASS；当前**6/60功能、B29／B32共2/40=5%**。a623／f63原失败保留；后继d546独立Debug候选两代真实capture、legacy UP、释放、解除关联及NormalUp撤罩取得资源范围PASS，但未启动V1 InputService／MoveSession／writer，退出风险、Explorer及Release新路线尚未验证。D08 S1和Edge既有失败保留；所有模块／整链尚未完整通过，普通Explorer／其余应用／托盘与显示矩阵仍缺，宿主不宜试用，真人UAT PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
@@ -34,6 +34,16 @@ Run `f9b6012a43e345648d52c067ff9594f8`，同R2／458A62、原98fc便携ZIP不变
 - startup329、import/export588（含新映射检查）、saveFailure696、corrupt749、exclusion845和portable919均有实际阶段范围结果；仅tray755／761 BLOCKED导致932／934整体FAIL，Core I11／应用矩阵／Full NOT_RUN。912正常产品退出、916客户`[7,7]→[8,8]`，927另一个run-copy退出及931客户`[8,8]→[9,9]`，与精确guest／task已清理／证据未变分开记账。
 - **a623是另一个新输入平台探针，不是当前R2产品**：[原始小摘录](v1-evidence/a623-consumed-down-probe-selected.jsonl)，Run `a623eafefe2a470eb5877f876da37077`，源码9a77、Debug探针 `F7C81FDB88C16CF6BF8AC2DECAFC51B191C9F2C517DFF4F00A482EF2537AC406`；原日志SHA `DBC8F42DBD5BD797152F93406EAB7F389FA7059F6E7F446567C97BE22B106115`。seq15真实exact LL DOWN已consume，随后final_guarded_cleanup；seq24 capture_attempts=0、native_attempts=0、writer_started=false、completed_gestures=0，V1 InputService／MoveSession／writer均未arm。清理单次UP后seq19真实LL UP但未推断legacy投递，不能记新机制NormalUp。scenario_pass=false；未运行capture建立／丢失／独立退出风险或Explorer，不给PASS。当前具体拒绝项尚未细分，不推测系统、权限或根因，也不凭首场就宣布整机制不可能；旧D08不关闭。
 - 用户已确认合法Windows ISO／VM，但RAM不足不能新建VM；不是无介质或未回复，不调整宿主资源／其他任务。所有输入仍限专用guest，未来新Run结果不预填。
+
+## d546：新候选owned资源两代正常抬键闭环，不是V1 Move通过
+
+Run `d546969fd0f649fcb878db5079e05184`，源码`4cd9f269ebf619d11860c506d5c52f15bb37bce8`，Debug owned探针EXE `A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546`，不是冻结R2产品。原JSONL为86行、sequence连续且全部合法，62493字节／SHA-256 `5AAD6BF20595E215AE06181375B1EE77486687E437FB572F6DACC2A1749F093E`；[小型关键摘录](v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl)对重复capture／release／detach仅保留必要字段，值不改，原行digest绑定完整原件。
+
+- 两代`28810927835600/601`均有真实exact消费DOWN（15／54）。16／55实际pair授权成立，async左键0只作诊断；21／60记录AttachThreadInput真实成功、自有SetCapture及回读各本代overlay（66166／66194），前台仍source197216。**该候选没有原生START／END或cancel，不能写成已验证native END交接**。
+- 33／71实际LL UP观察true并透传；35／73同代实际legacy LEFTUP由资源接受，非PostMessage、非重发UP、非Raw计数代填。39／77由所属资源线程释放本代capture、API成功且回读0；41／79本代实际关联解除成功，42／80 reason=NormalUp、真实撤罩／hotkey注销。44／82资源判定接受；45只在旧资源清理后开始下一代，86正常完成两代并销毁receiver／Raw registration／自有UI。每个producer原时间事实独立解释，不以JSONL排序建立跨线程全序。
+- **只授owned资源normal＋repeat范围PASS**。两代均无source placement、native START／END为0，V1 InputService／MoveSession／writer未启动；这不是普通Move磁吸、原D08修复、Explorer跨进程、三窗或Release通过。捕获后实际热键、短Deadline、source线程有界停泵独立退出及其他风险场景仍NOT_RUN；实现中或准备中也不预填。
+- 精确guest／任务已清理、证据前后不变、部署保留且未改其他资源；其销毁与已观察到的资源正常退出分开。当前6/60功能、2/40对标不变。下一步先运行新增关联机制的必要退出检查，满足后才继续共用writer与Explorer功能接线。
+- [4cd构建／offline小转录](v1-evidence/4cd-consumed-down-build-offline-transcript.txt)：真实Debug／Release构建退出0，各4项受影响offline通过，1.37s／2.07s；明确是exec session24215工具输出转录，不是归档原stdout或现场证据。没有为生成转录重跑。
 
 ## f63：明确拒绝在旧异步左键门；修订未预填现场结果
 
@@ -390,7 +400,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 视觉／恢复与边线 | 7cac call44 迟到 exact／alpha 恢复事实保留；e4 owned 视觉组件实际通过，但临时在途组件仍 FAIL | 不能把正常视觉或 helper 恢复推成缺 UP、故障／硬崩溃整链通过 |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
 | 普通 Move 正常收尾 | c01 I11 g26几何正确却无实际LL UP/end；独立Raw97→98仍不能归属。旧8cee／e4等失败保留，其他NormalUp成功不补缺失 | S1 OPEN；没有可靠共享事件身份，不加未证明Raw fallback，也不以无新事实重复运行同路线 |
-| ConsumedDown候选入场门 | f63/6685实录receipt、同代、无UP及上下文成立而异步左键0，具体拒绝在旧物理high门；无capture／关联／writer | bd53按模式修订，现场待验；只定位该候选入场缺口，不是旧D08根因或新NormalUp PASS |
+| ConsumedDown候选入场门 | f63/6685旧async门拒绝原件保留；bd53修订后d546/4cd两代实际capture／legacy UP／释放／解除／NormalUp撤罩通过资源范围 | 原D08仍OPEN；新关联退出风险／V1 writer／Explorer未验，不升级功能分数或宿主试用 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
 | 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
 | 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |

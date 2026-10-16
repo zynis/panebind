@@ -1,0 +1,17 @@
+PaneBind 4cd consumed-DOWN candidate: targeted build/offline tool-output transcription
+Record date: 2026-10-16 Asia/Shanghai
+Provenance: parent agent's actual exec session 24215 tool output; this file is a transcription, NOT preserved original stdout, NOT native/guest input evidence.
+Source/build identity: 4cd9f269ebf619d11860c506d5c52f15bb37bce8
+Build directory: out/mvp1-shield-4cd9f269ebf6
+Separate candidate, not frozen V1 R2/458 product EXE.
+
+Actual Debug command:
+cmake --build out/mvp1-shield-4cd9f269ebf6 --config Debug --target panebind-explorer-mvp-flow-tests panebind-live-move-writer-tests panebind-move-frame-continuity-tests panebind-input-isolation-tests --parallel 4
+ctest --test-dir out/mvp1-shield-4cd9f269ebf6 -C Debug --output-on-failure -R '^(explorer-mvp-flow|windows-live-move-writer|windows-move-frame-continuity|test-product-input-isolation)$'
+Observed result: build exit 0; offline 4/4 PASS, total real time 1.37 seconds.
+
+Actual Release commands: same build directory/targets/parallel/test regex, --config Release and -C Release.
+Observed result: build exit 0; offline 4/4 PASS, total real time 2.07 seconds.
+Four test names: explorer-mvp-flow; windows-live-move-writer; windows-move-frame-continuity; test-product-input-isolation.
+No tests rerun to generate this transcription.
+Separate Debug guest d546 evidence is indexed independently; these offline results grant no Move, Explorer, three-window, Medium desktop or human UAT PASS.

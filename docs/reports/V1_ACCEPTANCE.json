@@ -14,7 +14,7 @@
     "pending_runtime_sha": null,
     "final_sha": null,
     "implementation_inspected": "CURRENT_R2_REAL_RELEASE_MEDIUM_SCOPED_FUNCTION_RESULTS_NOT_WHOLE_VERSION_ACCEPTED",
-    "note": "R2/458冻结；f9同98fc新driver实际完成M11-F03，当前6功能、B29/B32共5%。a623当时拒绝项UNKNOWN原样保留；后继f63按其6685源码识别ConsumedDown候选误用async左键high门，bd53已修但未现场复验，无capture/writer/NormalUp PASS；不关闭D08。",
+    "note": "R2/458冻结；f9同98fc完成M11-F03，当前6功能、B29/B32共5%。a623原UNKNOWN/f63原async门拒绝保留；后继d546以4cd独立Debug探针两代真实关联/capture/legacy UP/释放/解除/NormalUp撤罩通过资源范围；无V1 InputService/MoveSession/writer，退出风险/Explorer/Release新路线未跑，旧D08 OPEN。",
     "pending_product_note": "后继仅driver/测试布局/诊断继续复用同R2产品，不将新布局通过预填或重建产品。用户已回复已有Windows ISO/VM但内存不足、无法新建VM；不是缺ISO或待回复。普通完整桌面/多屏仍需可用隔离交互环境与资源，继续当前Sandbox可运行项。",
     "latest_observed_runtime_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
     "latest_observed_run_id": "f9b6012a43e345648d52c067ff9594f8"
@@ -1190,7 +1190,8 @@
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
-        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
       ],
       "defects": [
         "V1-D09",
@@ -1209,7 +1210,8 @@
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1228,13 +1230,12 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
         "current_product_source_unchanged": true,
-        "not_NormalUp_or_writer_PASS": true
+        "V1_Move_or_Explorer_PASS": false,
+        "exit_risk_scenarios": "NOT_RUN"
       }
     },
     {
@@ -1287,7 +1288,8 @@
         "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
         "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
-        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1314,7 +1316,8 @@
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-5017-UPDATED-PORTABLE-ORDINARY-UP-TOOL-CONTRACT",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1333,13 +1336,12 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
         "current_product_source_unchanged": true,
-        "not_NormalUp_or_writer_PASS": true
+        "V1_Move_or_Explorer_PASS": false,
+        "exit_risk_scenarios": "NOT_RUN"
       }
     },
     {
@@ -1446,7 +1448,8 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
-        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1466,7 +1469,8 @@
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -1486,13 +1490,12 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
         "current_product_source_unchanged": true,
-        "not_NormalUp_or_writer_PASS": true
+        "V1_Move_or_Explorer_PASS": false,
+        "exit_risk_scenarios": "NOT_RUN"
       }
     },
     {
@@ -1543,7 +1546,8 @@
         "docs/reports/v1-evidence/7cd-product-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
-        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl"
+        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1569,7 +1573,8 @@
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -1588,13 +1593,12 @@
         "not_NormalUp_or_writer_PASS": true
       },
       "latest_investigation_candidate_observation": {
-        "observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-        "result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-        "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
         "current_product_source_unchanged": true,
-        "not_NormalUp_or_writer_PASS": true
+        "V1_Move_or_Explorer_PASS": false,
+        "exit_risk_scenarios": "NOT_RUN"
       }
     },
     {
@@ -7637,20 +7641,25 @@
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-30BF-VISUAL-RECOVERY-COMPONENTS",
         "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
-        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE"
+        "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
+        "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT"
       ],
       "route_replacement_investigation": {
         "observation_id": "PO-A623-CONSUMED-DOWN-FIRST-FEASIBILITY",
         "status": "FAIL_BEFORE_CAPTURE_REJECTION_REASON_UNKNOWN",
         "new_candidate_first_LL_DOWN_consumed": true,
-        "new_capture_or_normal_end_proven": false,
+        "new_capture_or_normal_end_proven": true,
         "original_defect_closed": false,
-        "latest_observation_id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-        "latest_status": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-        "latest_candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
+        "latest_observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "latest_status": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "latest_candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
         "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-        "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
-        "old_native_physical_key_gate_changed": false
+        "repair_status": "ASYNC_GATE_FIX_TARGETED_OWNED_RESOURCE_NORMAL_REPEAT_VERIFIED_ONLY",
+        "old_native_physical_key_gate_changed": false,
+        "latest_candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
+        "proof_scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+        "new_V1_Move_or_Explorer_proven": false,
+        "exit_risks": "NOT_RUN"
       }
     },
     {
@@ -9339,6 +9348,18 @@
       "sha256": "E50916B144E1FF8061329A6E9B1952D466F51E620566D63D37F6D32DC7BF4CD4",
       "repository_excerpt_path": "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
       "repository_excerpt_sha256": "2A957737E0E6EF9E72EC5BBEA8B7D9B8C31C33C72BCB8C75259BE1B9B4E59FE1"
+    },
+    {
+      "id": "EV-D546-CONSUMED-DOWN-RESOURCE-NORMAL-REPEAT",
+      "run_id": "d546969fd0f649fcb878db5079e05184",
+      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
+      "configuration": "Debug",
+      "candidate_kind": "separate_guest_consumed_DOWN_resource_probe_NOT_frozen_V1_product_EXE",
+      "path": "uat/r1c4b-mvp1-command-control/d546969fd0f649fcb878db5079e05184/collection-20261016T124005988Z-885e10e7ceed4208ae518a109a0acee9/d546969fd0f649fcb878db5079e05184-debug-consumed-down-normal-repeat.jsonl",
+      "sha256": "5AAD6BF20595E215AE06181375B1EE77486687E437FB572F6DACC2A1749F093E",
+      "repository_excerpt_path": "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+      "repository_excerpt_sha256": "C6F6EA44EC09FE46F4E2AC2E49ACB459B243DF797BD735BC3DDABBF1DD997CC3"
     }
   ],
   "partial_observations": [
@@ -9409,7 +9430,52 @@
       "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
       "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
       "repair_scope": "ConsumedDown按实际receipt/同代/仍active/无UP/未撤权/有限deadline判定，其他鼠标键仍须实际clear；旧native Move物理high门不变。",
-      "next_action": "只复验修订候选同一入场链；未有真实capture、实际Raw/legacy UP、解除关联与独立退出前，不放行该路线Explorer，也不升级完整V1产品或关闭D08。"
+      "next_action": "只复验修订候选同一入场链；未有真实capture、实际Raw/legacy UP、解除关联与独立退出前，不放行该路线Explorer，也不升级完整V1产品或关闭D08。",
+      "follow_up": {
+        "observation_id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+        "run_id": "d546969fd0f649fcb878db5079e05184",
+        "result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+        "original_failure_preserved": true,
+        "not_V1_Move_or_Explorer_PASS": true
+      }
+    },
+    {
+      "id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+      "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+      "status": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+      "run_id": "d546969fd0f649fcb878db5079e05184",
+      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
+      "configuration": "Debug",
+      "evidence_ids": [
+        "EV-D546-CONSUMED-DOWN-RESOURCE-NORMAL-REPEAT"
+      ],
+      "generations": [
+        28810927835600,
+        28810927835601
+      ],
+      "observed": "同一hook/shield/UI两代：seq15/54真实exact LL DOWN消费；16/55异步左键0仅诊断、实际pair授权成立；21/60真实关联成功与capture=本代overlay，前台source不变。33/71实际LL UP观察true且未消费，35/73本代实际legacy UP被资源接受；39/77自有capture释放成功/回读0，41/79仅实际本代关联解除成功，42/80 NormalUp reason=0、overlay销毁及hotkey注销。44/82资源判定接受，45在旧资源清理后新generation；86两代完成/资源退出。",
+      "actual_legacy_UP_required_and_observed": true,
+      "actual_LL_UP_observed_but_not_NormalUp_authority": true,
+      "native_START_count": 0,
+      "native_END_count": 0,
+      "native_placement_count": 0,
+      "V1_InputService_started": false,
+      "MoveSession_armed": false,
+      "writer_started": false,
+      "Move_function_PASS": false,
+      "old_D08_root_cause_proven": false,
+      "original_D08_closed": false,
+      "capture_exit_risk_tests": {
+        "real_hotkey_after_capture": "NOT_RUN",
+        "short_deadline": "NOT_RUN",
+        "source_thread_message_stall_independent_exit": "NOT_RUN",
+        "capture_loss_or_early_UP": "NOT_RUN"
+      },
+      "Explorer_new_route": "NOT_RUN",
+      "Release_new_route": "NOT_RUN",
+      "human_uat": "NOT_RUN",
+      "next_action": "在新候选仅完成直接受关联机制影响的实际hotkey、短Deadline及source线程有界停泵独立退出；这些尚未运行。通过前不接正式Move writer或外推Explorer；继续冻结R2的独立可运行功能，不给60功能加分。"
     },
     {
       "id": "PO-METADATA-INDEPENDENT-CONTRACT",
@@ -12451,26 +12517,42 @@
       "next_action": "仅用新事实分流实际拒绝前提；当前未知具体失败项，不推定系统/权限根因，不把首场失败称整个方案已证伪或放行后续capture风险/Explorer。"
     },
     "latest_route_replacement_probe": {
-      "id": "PO-F63-CONSUMED-DOWN-PRECAPTURE-MODE-GATE",
-      "scope": "new_separate_guest_consumed_DOWN_platform_candidate_not_current_R2_product_gesture",
-      "status": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
-      "run_id": "f63d6bc443534f5c94ca637a60b412ae",
-      "candidate_source_sha": "6685a08d8ff3ade1f6714603eee1edf5beb4f619",
-      "candidate_binary_sha256": "8CE9E00706CB55D01F4A947EF37F7498297E4BEAE9BAF1D1A2C5F33DAD705656",
+      "id": "PO-D546-CONSUMED-DOWN-OWNED-RESOURCE-NORMAL-REPEAT",
+      "scope": "separate_guest_owned_consumed_DOWN_resource_normal_release_and_repeat_ONLY_NOT_frozen_V1_Move_or_Explorer",
+      "status": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+      "run_id": "d546969fd0f649fcb878db5079e05184",
+      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
       "configuration": "Debug",
       "evidence_ids": [
-        "EV-F63-CONSUMED-DOWN-PRECAPTURE-FACTS"
+        "EV-D546-CONSUMED-DOWN-RESOURCE-NORMAL-REPEAT"
       ],
-      "observed": "seq15真实exact LL DOWN已消费；seq16 receipt/published=true、同代、DOWN_count=1、post_failed=false、UP_seen=false、UP_count=0、retired=false、stable_context=true/context_reason=none，而GetAsyncKeyState_LBUTTON_return=0/left_high=false。结合该源码入场谓词，异步左键high是此次唯一拒绝门；这是消费DOWN候选复用旧物理门的具体不匹配，不证明真实UP、系统根因或原D08根因。seq25 capture_attempts=0/native_attempts=0/writer_started=false/completed_gestures=0，未建立capture/关联且无新机制NormalUp。",
-      "sampling_boundary": "seq16明确cross_thread_atomic_snapshot=false；只描述所记录事实与对应生产谓词，不推断未记录的共同原生时序或物理按键状态。",
-      "actual_UP_inferred_from_key_state": false,
-      "new_route_NormalUp_PASS": false,
+      "generations": [
+        28810927835600,
+        28810927835601
+      ],
+      "observed": "同一hook/shield/UI两代：seq15/54真实exact LL DOWN消费；16/55异步左键0仅诊断、实际pair授权成立；21/60真实关联成功与capture=本代overlay，前台source不变。33/71实际LL UP观察true且未消费，35/73本代实际legacy UP被资源接受；39/77自有capture释放成功/回读0，41/79仅实际本代关联解除成功，42/80 NormalUp reason=0、overlay销毁及hotkey注销。44/82资源判定接受，45在旧资源清理后新generation；86两代完成/资源退出。",
+      "actual_legacy_UP_required_and_observed": true,
+      "actual_LL_UP_observed_but_not_NormalUp_authority": true,
+      "native_START_count": 0,
+      "native_END_count": 0,
+      "native_placement_count": 0,
+      "V1_InputService_started": false,
+      "MoveSession_armed": false,
+      "writer_started": false,
+      "Move_function_PASS": false,
       "old_D08_root_cause_proven": false,
-      "capture_setup_loss_or_independent_exit_tests": "NOT_RUN",
-      "repair_source_sha": "bd53b68629abc69e05a088f929b41379fd3fff2b",
-      "repair_status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
-      "repair_scope": "ConsumedDown按实际receipt/同代/仍active/无UP/未撤权/有限deadline判定，其他鼠标键仍须实际clear；旧native Move物理high门不变。",
-      "next_action": "只复验修订候选同一入场链；未有真实capture、实际Raw/legacy UP、解除关联与独立退出前，不放行该路线Explorer，也不升级完整V1产品或关闭D08。"
+      "original_D08_closed": false,
+      "capture_exit_risk_tests": {
+        "real_hotkey_after_capture": "NOT_RUN",
+        "short_deadline": "NOT_RUN",
+        "source_thread_message_stall_independent_exit": "NOT_RUN",
+        "capture_loss_or_early_UP": "NOT_RUN"
+      },
+      "Explorer_new_route": "NOT_RUN",
+      "Release_new_route": "NOT_RUN",
+      "human_uat": "NOT_RUN",
+      "next_action": "在新候选仅完成直接受关联机制影响的实际hotkey、短Deadline及source线程有界停泵独立退出；这些尚未运行。通过前不接正式Move writer或外推Explorer；继续冻结R2的独立可运行功能，不给60功能加分。"
     }
   }
 }

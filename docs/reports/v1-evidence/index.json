@@ -1781,6 +1781,55 @@
       ],
       "scope_result": "FAIL_BEFORE_CAPTURE_MODE_GATE_IDENTIFIED",
       "whole_version_PASS": false
+    },
+    {
+      "evidence_id": "EV-D546-CONSUMED-DOWN-RESOURCE-NORMAL-REPEAT",
+      "run_id": "d546969fd0f649fcb878db5079e05184",
+      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "candidate_binary_sha256": "A2058B6E19570FF0CA9DD7D87B3CD9E17996752F20D09C95F2149727BD414546",
+      "configuration": "Debug",
+      "candidate_kind": "separate_guest_consumed_DOWN_resource_probe_NOT_frozen_V1_product_EXE",
+      "package_zip_sha256": "1AD39FA91284A8DEC5EA26A3A67A6E7043200CB75EF9D9010C44639792D1C956",
+      "package_manifest_sha256": "B7D6819125B5C867C466081495327F5305E3EE5DF7ECD45F5F1849993FF9D89E",
+      "original_path": "uat/r1c4b-mvp1-command-control/d546969fd0f649fcb878db5079e05184/collection-20261016T124005988Z-885e10e7ceed4208ae518a109a0acee9/d546969fd0f649fcb878db5079e05184-debug-consumed-down-normal-repeat.jsonl",
+      "original_sha256": "5AAD6BF20595E215AE06181375B1EE77486687E437FB572F6DACC2A1749F093E",
+      "original_bytes": 62493,
+      "original_JSONL_sequence_contiguous": true,
+      "original_rows": 86,
+      "excerpt_path": "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+      "excerpt_sha256": "C6F6EA44EC09FE46F4E2AC2E49ACB459B243DF797BD735BC3DDABBF1DD997CC3",
+      "excerpt_bytes": 31717,
+      "excerpt_sequences": [
+        1,
+        6,
+        15,
+        16,
+        17,
+        21,
+        31,
+        33,
+        35,
+        39,
+        41,
+        42,
+        44,
+        45,
+        54,
+        55,
+        56,
+        60,
+        69,
+        71,
+        73,
+        77,
+        79,
+        80,
+        82,
+        86
+      ],
+      "projection_policy": "Selected fields for six repeated capture/release/detach records; values unchanged, raw-line digests bind full originals; other selected records complete.",
+      "scope_result": "PASS_SCOPED_OWNED_RESOURCE_NORMAL_AND_NEXT_GENERATION_ONLY",
+      "whole_version_PASS": false
     }
   ],
   "offline_transcripts": [
@@ -1895,6 +1944,27 @@
         "ce8e00",
         "eee0a7"
       ],
+      "native_cases_rerun": false
+    },
+    {
+      "evidence_id": "EV-4CD-CONSUMED-DOWN-BUILD-OFFLINE-TRANSCRIPT",
+      "excerpt_path": "docs/reports/v1-evidence/4cd-consumed-down-build-offline-transcript.txt",
+      "excerpt_sha256": "94EB4CE9E4C3ED793BD2E5D2A06E3FB91A55700A273D9EB474F0D52D9F95669D",
+      "excerpt_bytes": 1464,
+      "kind": "ACTUAL_TOOL_OUTPUT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+      "scope": "four directly affected offline regressions each Debug and Release; not native behavior",
+      "candidate_source_sha": "4cd9f269ebf619d11860c506d5c52f15bb37bce8",
+      "tool_exec_session": 24215,
+      "Debug": {
+        "passed": 4,
+        "total": 4,
+        "elapsed_seconds": 1.37
+      },
+      "Release": {
+        "passed": 4,
+        "total": 4,
+        "elapsed_seconds": 2.07
+      },
       "native_cases_rerun": false
     }
   ],
@@ -2321,9 +2391,35 @@
       },
       "product_runtime_scope": "separate platform feasibility probe rejected before capture/association/writer; shutdown flags not proof of unexercised resource lifecycle",
       "guest_destruction_not_product_cleanup_PASS": true
+    },
+    {
+      "run_id": "d546969fd0f649fcb878db5079e05184",
+      "original_path": "uat/r1c4b-mvp1-command-control/d546969fd0f649fcb878db5079e05184/cleanup-receipt.json",
+      "original_sha256": "6777D2E8A305C3FBD8CF58738270A0FF21FD26585E018BA7A649935C907F5218",
+      "observed_flags": {
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "other_files_or_resources_changed": false
+      },
+      "candidate_runtime_scope": "two owned consumed-DOWN resource generations actually released own capture, detached own association and destroyed overlay before guest destruction; no MoveSession/writer",
+      "actual_resource_sequences": [
+        39,
+        41,
+        42,
+        44,
+        77,
+        79,
+        80,
+        82,
+        86
+      ],
+      "guest_destruction_not_product_cleanup_PASS": true
     }
   ],
-  "new_candidate_scope_note": "Latestf9 same frozenR2/458 and98fc product, new separately pinned9a77 driver: M11F03 real registration conflict/default/help independentPASS; wholeEntry onlytrayBLOCKED remainsFAIL. Separatea623 consumedDOWN feasibility probe realDOWN then fails beforecapture with no InputService/MoveSession/writer, no newNormalUpPASS; reasonUNKNOWN, notrebound toR2.",
+  "new_candidate_scope_note": "Frozen V1R2/458 and98fc unchanged; f9 M11F03 independentPASS. Separatea623/f63 failures retain identities; d546 source4cd Debug consumedDOWN resource-only two-generation actual capture/legacyUP/release/detach/NormalUp scopedPASS, not InputService/MoveSession/writer. Exit-risk, Explorer andRelease new route NOT_RUN; originalD08 OPEN and6/60,2/40 unchanged.",
   "portable_contract_evaluation": {
     "feature_id": "M12-F03",
     "benchmark_id": "B32",
