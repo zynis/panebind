@@ -2,11 +2,11 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。当前产品R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`／Release EXE `48F96C…3924E`保持冻结，driver分别带自身真实身份。原2632便携ZIP在9e5干净Medium guest完成普通无参中文GUI、设置改变实际Move、两次真实NormalUp、正常退出／客户投递恢复、字节及诊断解析；独立清单／依赖／缺文件反例补齐后，**M12-F03与B32便携功能合同PASS，功能DEV 1/60、对标1/40=2.5%**，不再以任意其他S1或全部I01–I12阻断此独立能力。模块和完整整链仍0通过；旧dd60/e2abc、b60/c01原身份全部保留。当前R的b49 I11／grid／sourceclose／Terminal仍有真实UP缺失，**D08 S1未关闭，不宜宿主试用**；托盘、普通Explorer、五类应用和显示矩阵仍未过，真人UAT仍PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。当前产品R2=`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release EXE `458A62…5F14C`已在30bf真实Release／Medium运行：A、Ctrl A、B、C、原生Resize各取得实际UP及几何保持，Terminal类别本次范围实际PASS；D17终端几何缺陷定向关闭。随后post-Resize A五阶段几何虽exact，却仍缺head／product实际UP，I11 FAIL，**D08 S1继续OPEN，不宜宿主试用**。新R2／0c710便携包只有提取及ready，普通无参入口NOT_RUN，所以当前完整功能DEV 0/60、对标0/40；旧R408／2632／9e5独立便携1项PASS原身份保留为历史，绝不换绑新EXE。模块／整链仍0通过；普通Explorer、其余应用、托盘和显示矩阵未齐，真人UAT仍PENDING。
 
 ## 现有验收表的推进状态与仓库内证据
 
-继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。功能当前为1项 `PASS`、12项 `FAIL`、47项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。B32独立通过，其余必做项不凑分；B33–B40继续固定DEFERRED／0分。
+继续整版开发时，已将60个功能、12个模块、B01–B32、I01–I12、环境和应用行的既有实测逐项回填，不再让已经失败／受阻的主状态全停在 `NOT_RUN`。当前R2功能为0项 `PASS`、12项 `FAIL`、48项 `BLOCKED`；`FAIL`表示原身份绑定的实际反例尚未关闭，`BLOCKED`表示该行写明的完整合同／环境／当前候选复验条件尚缺，而不是声称所有子项未运行。原R408的B32独立PASS保留历史；新R2/0c710普通入口未跑而当前B32暂BLOCKED，不因无关S1消除独立结果。B33–B40继续固定DEFERRED／0分。
 
 每行有 `observed`、`remaining_conditions`、`next_action`，以及 `partial_observation_ids`→原观察的产品SHA／二进制哈希／RunId／证据关联；`candidate_identity_ref`仅指待验当前候选，不把旧观察改绑新EXE。模块／对标条件直接引用功能行，未另建一套任务书。后续产品修复或现场新结果按实际身份增量登记；驱动／文档变更不得清空既有产品证据。
 
@@ -24,7 +24,24 @@
 
 新R产品在专用`out/v1-product-408ac52`完成Debug／Release构建及各10项offline实际PASS（4.14s／3.49s）。Release EXE为836608字节、SHA-256 `48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E`；Debug为3287552字节、`BC75138C4E52B215ABA3BAD65643DDF192D0A1B295309C2F280BA9D131A39345`，独立只读哈希与两份`--build-identity`均核实R。另一个driver／脚本提交D=`83bf90362faafdfd431669b2ca545364d3898bcd`只构建测试工具，不重烘R产品。详见[构建与offline转录](v1-evidence/408ac52-build-offline-transcript.txt)；CTest当时未tee，转录不冒充原stdout或现场，当前`LastTest.log`只代表后执行的Debug。新Run8189的真实范围另列如下，不能升级正式DEV或关闭D08。
 
-## 7cd／同R serial MOVE＋单次UP：真实释放闭环，但终端几何失败
+## 30bf／新R2：D17定向关闭，post-Resize释放仍失败，Terminal类别通过
+
+Run `30bf79c65e5b421aa1087963787898b2`，产品／driver源码均`4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`，Release产品 `458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C`、driver `B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4`。主包ZIP `7137540B7B9059A268CC7A4B3E3E878F06709043F73593AC94317BF137C707D5`／manifest `B0A44B1EC8C45B61E36618C6149C9E83F51AB21B6678C3D53CCE48CC17E2C1ED`；实际Medium RID8192 non-elevated／session1／Default／150%。[fixture摘录](v1-evidence/30bf-fixture-selected.jsonl)、[product摘录](v1-evidence/30bf-product-selected.jsonl)绑定原件与行digest，不拼为Full。
+
+- g26 A五阶段及760真实NormalUp／几何保持通过。product PID6980 seq303 resnap exact；304重复点只回读、305实际LL UP、306 `normal_up_motion_already_exact`再次核几何且零新native、307 NormalUp／pending退休。Ctrl A（775）、B（795）、C（815）、真实Resize（822／827）均取得实际UP及正确几何，**D17按原反例定向关闭**，不追加历史专项。
+- 真实Resize后A回环g31的free／XY／hold／detach／resnap（834–842）均exact；844最终MOVE＋单个UP插入2/2成功，但845队首实际UP=0，846产品UP／end为空，Raw54→55仍无source／generation归属。847／868 FAIL，Pause853只是abort；尚无完整两轮／15分钟，D08继续OPEN。不能用前五手势闭环抵消本反例。
+- 视觉永久alpha／置顶、实际注册热键、暂停与退出恢复原tuple173／true（953／967–969），应用改alpha199不被覆盖（977／979）有真实子PASS。拖动alpha190／Move1047 exact后实际UP1052缺失，1073整体FAIL，后续摇动未由本批执行。I08 sourceclose602、临时在途1153、grid1258的原UP失败保留；第二成员真实失败无第三调用、后续新Move／接触／Ctrl及各UP，1352组件PASS。NF01独立60.004483秒／CPU0%／工作集27,435,008字节通过，private commit4,194,304不是驻留，不代替I11。
+- **Terminal本次类别PASS**：1382精确新Medium根绑定；五阶段Move／1407实际UP、Resize1416／1421实际UP、Center／DockLeft／Undo／Stretch／Undo、Esc恢复、终端客户输入／不误触Move均实际通过，1451 exact根关闭确认、1452类别PASS。不是借旧b60结果，也不外推其余四类或混合组。
+- VSCode三个Medium目录RW探针PASS，launcher和一child仍259，另child `0x80070005`；4个hidden根、无合格根或窗口输入。**本批ownlog根已存在、2目录／0文件**，与旧b49无根不同，原因仍UNKNOWN。Edge精确绑定但23,920点搜索／19,410实际hit查询中18,839失败，样本1460超时；1500 caption FAIL、1510／1514／1516 exact关闭未确认，不操作未知popup或强关。
+- 1520产品正常退出、自有资源flags全true、unknown native=false；1524真实客户计数`[1,1]→[2,2]`，1527精确自有Raw注销确认。任务／专用guest清理及证据未变独立记账；不以guest销毁关闭Edge清理未知，1528整批FAIL保留。
+
+[普通桌面probe](v1-evidence/30bf-medium-desktop-probe-selected.json)已实际取得QUERY-only child token的Medium8192／non-elevated／nonAdmin／session1，D18原工具SecurityException定向关闭。但ResumeThread后有界20秒无child退出／回执，仍**UNKNOWN而不是普通GUI成立**；精确测试child终止、账号及DACL清理确认，未启动产品／Explorer或输入，不预判为环境DENIED。
+
+[1b5／99f官方准备摘录](v1-evidence/99f-1b5-notepad-preparation-selected.json)保留两次不同事实：1b5因allowed Geo38970误值保护拒绝、无改变／下载；99f实际39070→244已核，MarketUS manifest200／找到Notepad后官方下载需要Entra交互认证，`-1978335114 / 0x8A150076`，0字节无包、不绕凭据或许可。恢复cmdlet完成但回读仍244／`restore_verified=false`，准备工具恢复**FAIL（D19）**；guest销毁只是隔离影响，不能写配置恢复PASS。产品／Notepad功能仍NOT_RUN。
+
+新R2实际构建目录`out/v1-product-4d07ef1`，Debug EXE `7D503C7CB639698627ADFEE519851757B89BA0A7AE677673FD7247EBE3AC895E`；主执行工具转录（非原stdout归档，chunks `505e83 / 23335e`）记录Debug／Release各10/10 offline（总real4.07s／3.01s，label4.03s／1.65s），各直接input-route252／0。不用这些离线数授功能PASS。新便携`0c7107367dfa4f48b7466455b0fda8ab`的ZIP `0235C5C1C8DAC0E072E51DE2AC99FB7EF7D3A96470BF51CEC17EC6DF8F05946F`／manifest `25978E28E35AD04CE28C5540BAE49BBEB33B392B70AD74ACF5F4A6A793D56003`只已提取/ready，普通无参入口尚待定向运行；旧R408/2632原ZIP及9e5历史PASS整对象保留。
+
+## 历史7cd／R408 serial MOVE＋单次UP：真实释放闭环，但终端几何失败
 
 Run `7cd4f252d8b942e89cb9b3c3eb10a1b4`仍用产品R408／Release `48F96C…3924E`，driver为`209f20222d111b64f99c5330aab157214a8d88c5`／`2E51C539FF8838BBFC3063280EA58FB9885035637CD40FFA991C9B67C91DEB79`，packaging HEAD `c4dc45f7666aac23c1d030f95cd39691d1c5fd46`。主包ZIP `6DE7BEADFA1041C180FA2649575E772470496781BE3C173A57E7AECEA667CB1B`／manifest `2C46A4AAC7FA7021CB0EFD8DD55CDABE232E32AB59B034566C0801D722C7CD16`。这是`CoreAndApplications`分组，不是Full或重新绑定9e5。
 
@@ -79,10 +96,10 @@ RunId `81896dad13d5423e5de14a8363f7bcc6`，Release／真实Medium RID8192、non-
 | 项目 | 当前准确状态 |
 | --- | --- |
 | 开发分支 | `codex/r1c4b-live-magnet` |
-| 新R实际候选 | R=`408ac527a6bfda7b01a5e83249bd5ed0eca2714d`，D/R构建与各10offline通过；8189快速UP点、b49核心／应用原失败、9e5原2632普通ZIP／诊断范围分别保留各driver身份。M12-F03/B32独立PASS，D08仍OPEN。下列dd60为历史普通入口包，不改写其身份 |
+| 当前R2实际候选 | `4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62`／Release458A62、Debug7D503；30bf实际核心与Terminal类别范围，D17定向关闭、D08仍OPEN。R408/2632/9e5独立便携PASS归历史原身份 |
 | 方案入库 | `c1e8f82f8156db7c4778473f6b4689327f771013`；变更限 `AGENTS.md`、`README.md`、`docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md`，主执行者已完成标准推送 |
-| 当前实测包／入口 | 9e5／R408ac52／D129／SettingsDiagnostic，111行范围PASS；b49同R／同D的CoreAndApplications原FAIL独立保留，不拼Full |
-| 当前原2632便携 | ZIP `4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2`；manifest `090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C`；产品R／EXE48F96未改；便携原packaging HEAD665b828，9e5 guest包HEAD718d8f5分别记录 |
+| 当前实测包／入口 | 30bf／R2 4d07／CoreAndApplications，1528行整批FAIL；具体子PASS及原反例分别记录，非Full |
+| 历史原2632便携 | ZIP `4D7CDAEFC22208233716A24DC2DE6B98FAFEF14A83DCB6B450FF2DF20E5602A2`；manifest `090EFBA44ED960CBB9A16DA75A780A14B38A74D4AFDBAB04F3584B189E1B401C`；产品R／EXE48F96未改；便携原packaging HEAD665b828，9e5 guest包HEAD718d8f5分别记录 |
 | 历史dd60 runtime／build | `dd603a79aeba64c816e13ba49265db342c14e7e3`；Debug／Release fresh构建及各10项offline实际PASS；旧结果原身份保留，不迁移绑定当前R |
 | 历史e2abc打包 HEAD | `dd603a79aeba64c816e13ba49265db342c14e7e3`；旧已测ZIP不重包，整对象已归入historical_packages；当前R/2632另立真实身份 |
 | 历史714c现场 | `714c69f6feba4a0f81678c314eb1747e`，干净guest、Release-only／Medium／`SettingsDiagnostic`，106行scoped PASS；97 Debug专项PASS及后继Release失败同时保留，不外推Full／I01／I12／整版 |

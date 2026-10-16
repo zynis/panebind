@@ -39,4 +39,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/v1-validate-acceptan
 
 增量`7cd-fixture-selected.jsonl`／`7cd-product-selected.jsonl`保留同R、D209的真实serial最终MOVE＋单个UP：队首和product都观察到实际UP／NormalUp，但terminal真实调用将已吸附矩形改为偏移自由矩形，I11与Terminal本次仍FAIL（V1-D17），不是D08根因证明。`7cd-medium-desktop-probe-selected.json`保留CreateProcessWithTokenW成功后工具SecurityException／child未resume的UNKNOWN，与旧b49只读DACL DENIED区别；本地QUERY-only工具复现无归档stdout，不补造原文，修复待guest。`e0e4-notepad-market-selected.json`仅保留官方准备Market=ZZ HTTP400及必要locale／未运行边界，不把它算产品FAIL或永久环境缺失。
 
+`30bf-fixture-selected.jsonl`／`30bf-product-selected.jsonl`是新R2 4d07ef1／458A62：D17原反例真实UP后保持吸附、零新native，A/CtrlA/B/C/Resize完成，但postResize A缺队首和product UP、visual等仍FAIL。Terminal类别本批完整实际范围PASS及exact关闭独立保留；VSCode本批ownlog根存在却0文件、Edge超时及未确认关闭不改写旧批。`30bf-medium-desktop-probe-selected.json`证明实际普通child token查询修复，不能把无回执/有界退出未知写成GUI成立。`99f-1b5-notepad-preparation-selected.json`保留保护误值拒绝、官方MarketUS后认证阻断及Geo回读恢复FAIL；销毁guest不算配置恢复PASS。新0c710仅提取/ready，旧R408/2632/9e5便携PASS不换绑新候选。
+
 历史实测经 `partial_observation_ids` 回到原产品身份，不因当前 `candidate_identity_ref`、更新 driver 或更新报告而换绑新 EXE。本轮新增产品修复与现场结果另作增量记录，不覆写这些反例。

@@ -1,0 +1,116 @@
+{
+  "evidence_id": "EV-99F-AND-1B5-NOTEPAD-PREPARATION",
+  "kind": "GUEST_OFFICIAL_APPLICATION_PREPARATION_NOT_PRODUCT_TEST",
+  "runs": [
+    {
+      "run_id": "1b5fb327b7d9467789259ed93d20c633",
+      "preparation_source_sha": "7385a094852a27f1f8b0c541acc3622b16c0ffec",
+      "original_path": "uat/v1-control/1b5fb327b7d9467789259ed93d20c633/collection-20261016T092159613Z-76528ace4b5244e097cbfbb496e9771b/1b5fb327b7d9467789259ed93d20c633-notepad-preparation.json",
+      "original_sha256": "B0F7226DD0CE9B24523AA61134EE44B3D95D23F9BD54E20BD91E3721613B7CC2",
+      "status": "FAILED",
+      "error": "Guest initial location is neither exact World nor the fixed reviewed test configuration; no change/download.",
+      "locale_facts": {
+        "status": "OBSERVED",
+        "geo_id": 39070,
+        "home_location": "World",
+        "culture": "zh-CN",
+        "ui_culture": "en-US",
+        "language_modified": false,
+        "host_modified": false
+      },
+      "preparation_location": {
+        "geo_id": 244,
+        "source": "read_only_test_host_configuration",
+        "physical_location_asserted": false,
+        "allowed_initial_geo_id": 38970,
+        "restore_original": true
+      },
+      "location_adjustment": {
+        "scope": "exact_fresh_task_guest_current_WDAG_user",
+        "initial_geo_id": 39070,
+        "target_geo_id": 244,
+        "source": "read_only_test_host_configuration",
+        "physical_location_asserted": false,
+        "change_attempted": false,
+        "change_cmdlet_completed": false,
+        "after_change_geo_id": null,
+        "change_verified": false,
+        "restore_attempted": false,
+        "restore_cmdlet_completed": false,
+        "after_restore_geo_id": null,
+        "restore_verified": null,
+        "restore_error": null
+      },
+      "tools_count": 0,
+      "downloaded_files": [],
+      "product_started": false,
+      "synthetic_input_sent": false
+    },
+    {
+      "run_id": "99f08ada359044969c16f49ca580f12c",
+      "preparation_source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+      "original_path": "uat/v1-control/99f08ada359044969c16f49ca580f12c/collection-20261016T093443843Z-d2c34de2c4e34185a0c8827ab040dde3/99f08ada359044969c16f49ca580f12c-notepad-preparation.json",
+      "original_sha256": "4D41F55F5CA4BEC01BC59C1993B48933862C46FEC70F15EDDFC0DC2EBA5D2FB3",
+      "status": "FAILED",
+      "error": "Official Notepad package/dependency download failed; available output inventory retained, no install/credential fallback attempted.; Guest user location restoration failed: Original guest user GeoId was not restored.",
+      "locale_facts": {
+        "status": "OBSERVED",
+        "geo_id": 39070,
+        "home_location": "World",
+        "culture": "zh-CN",
+        "ui_culture": "en-US",
+        "language_modified": false,
+        "host_modified": false
+      },
+      "preparation_location": {
+        "geo_id": 244,
+        "source": "read_only_test_host_configuration",
+        "physical_location_asserted": false,
+        "allowed_initial_geo_id": 39070,
+        "restore_original": true
+      },
+      "location_adjustment": {
+        "scope": "exact_fresh_task_guest_current_WDAG_user",
+        "initial_geo_id": 39070,
+        "target_geo_id": 244,
+        "source": "read_only_test_host_configuration",
+        "physical_location_asserted": false,
+        "change_attempted": true,
+        "change_cmdlet_completed": true,
+        "after_change_geo_id": 244,
+        "change_verified": true,
+        "restore_attempted": true,
+        "restore_cmdlet_completed": true,
+        "after_restore_geo_id": 244,
+        "restore_verified": false,
+        "restore_error": "Original guest user GeoId was not restored.",
+        "own_tools_exit_confirmed_before_restore": true,
+        "before_restore_geo_id": 244
+      },
+      "winget_download_exit_code": -1978335114,
+      "winget_download_error_hex": "0x8A150076",
+      "downloaded_files": [],
+      "total_bytes": 0,
+      "product_started": false,
+      "synthetic_input_sent": false,
+      "application_function_result": "NOT_RUN",
+      "offline_license_requested": false,
+      "account_login_requested": false,
+      "own_preparation_tool_exit_confirmed": true,
+      "download_log": {
+        "relative_to_collection": "99f08ada359044969c16f49ca580f12c-winget-diagnostics/WinGet-2026-10-16-17-32-17.772.log",
+        "sha256": "7DFB5E679D7B6F6EEE455CEFB2B3B1A3FE072CA1C8100396F8E61EC02CCCE943",
+        "bytes": 19567,
+        "selected_lines": [
+          "2026-10-16 17:32:19.676 <I> [REPO] Response status: 200",
+          "2026-10-16 17:32:19.711 <I> [REPO] Sending http GET request to: https://storeedgefd.dsx.mp.microsoft.com/v9.0/packageManifests/9MSMLRH6LZF3?Market=US",
+          "2026-10-16 17:32:19.934 <I> [REPO] Response status: 200",
+          "2026-10-16 17:32:20.126 <E> [CORE] Authentication failed. Interactive authentication required.",
+          "2026-10-16 17:32:20.126 <I> [CORE] Finished WebAccountManagerAuthenticator::AuthenticateForToken. Result: -1978335114",
+          "2026-10-16 17:32:20.126 <E> [REPO] Authentication failed. Result: -1978335114"
+        ]
+      }
+    }
+  ],
+  "scope_note": "1b5错误allowed Geo38970导致保护拒绝、无改变/下载；99f实际39070→244核验成功，MarketUS找到Notepad后官方包下载要求Entra认证，未取得包、不绕凭据或许可。恢复cmdlet完成但回读仍244，明确恢复FAIL；销毁专用guest只隔离影响，不算配置恢复PASS。"
+}
