@@ -7,7 +7,7 @@ $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
 $outputDir='C:\PaneBindV1\Output'
 $leaf='v1-medium-desktop-probe-guest.ps1'
-$evidence=$null
+$evidence=$null;$childPhasePath=$null
 # TOKEN_QUERY-only inspection uses actual TokenGroups, not a managed identity
 # constructor that can require more token rights. Official contracts reviewed:
 # https://learn.microsoft.com/windows/win32/api/winnt/ns-winnt-token_groups
@@ -20,6 +20,21 @@ function Read-ExactMarker([string]$Path) {
     if($value.EndsWith("`r`n")){$value=$value.Substring(0,$value.Length-2)}
     if($value -cnotmatch '^[0-9a-f]{32}$'){throw 'Exact run marker is invalid.'}
     return $value
+}
+function Write-ChildPhase([string]$Stage,[bool]$Create=$false) {
+    if(-not $childPhasePath){throw 'Validated exact child phase path is not established.'}
+    $count=0
+    if(-not $Create){
+        $item=Get-Item -LiteralPath $childPhasePath
+        if($item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $item.Length -gt 16KB){throw 'Child phase evidence is not bounded/plain.'}
+        $count=@([IO.File]::ReadAllLines($childPhasePath)).Count
+    }
+    if($count -ge 12){throw 'Child phase line bound reached.'}
+    $row=[ordered]@{schema='panebind-v1-medium-desktop-phase/1';run_id=$RunId;phase=$Stage;pid=$PID;utc=[DateTime]::UtcNow.ToString('o')}
+    $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes(($row|ConvertTo-Json -Compress)+"`n")
+    $mode=if($Create){[IO.FileMode]::CreateNew}else{[IO.FileMode]::Append}
+    $stream=[IO.File]::Open($childPhasePath,$mode,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+    try{if($stream.Length+$bytes.Length -gt 16KB){throw 'Child phase byte bound reached.'};$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
 }
 try {
     # Host misuse protection precedes Add-Type, account APIs or any evidence
@@ -59,6 +74,21 @@ try {
         throw 'Probe itself is not bound to the immutable input manifest.'}
     $evidence=Join-Path $outputDir ($RunId+$(if($Mode -ceq 'Parent'){'-medium-desktop-probe.json'}else{'-medium-desktop-child.json'}))
     if(Test-Path -LiteralPath $evidence){throw 'Probe evidence already exists; use a fresh RunId.'}
+    if($Mode -ceq 'Child'){
+        # The first phase exists only after the real one-time binding, exact
+        # script/manifest, local account, paths and RunId have been checked.
+        $bindingPath=Join-Path $outputDir ($RunId+'-medium-desktop-binding.json')
+        $bindingItem=Get-Item -LiteralPath $bindingPath
+        if($bindingItem.PSIsContainer -or ($bindingItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+           $bindingItem.Length -gt 4096 -or (Get-FileHash -LiteralPath $bindingPath).Hash -cne $BindingSha256){throw 'Child one-time binding is not exact.'}
+        $binding=[IO.File]::ReadAllText($bindingPath,[Text.Encoding]::UTF8)|ConvertFrom-Json
+        if($binding.schema -cne 'panebind-v1-medium-desktop-binding/1' -or $binding.run_id -cne $RunId -or
+           $binding.source_commit -cne $manifest.packaging_head -or $binding.probe_sha256 -cne $scriptEntry[0].sha256 -or
+           $binding.nonce -cne $ChildNonce -or $binding.account_sid_sha256 -cnotmatch '^[A-F0-9]{64}$' -or
+           [int]$binding.session_id -le 0){throw 'Child account/script/session binding mismatch.'}
+        $childPhasePath=Join-Path $outputDir ($RunId+'-medium-desktop-child-phase.jsonl')
+        Write-ChildPhase 'validated_before_AddType' $true
+    }
     # Exact one-purpose guest environment contrast. Child never creates users,
     # grants access, launches other programs, controls Explorer or sends input.
     Add-Type -TypeDefinition @'
@@ -294,6 +324,34 @@ public static class PaneBindV1MediumDesktopProbe {
         var bytes=new UTF8Encoding(false).GetBytes(text);
         using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.Read))stream.Write(bytes,0,bytes.Length);
     }
+    static string ChildPhasePath(string runId) {return "C:\\PaneBindV1\\Output\\"+runId+"-medium-desktop-child-phase.jsonl";}
+    static void ChildPhase(Dictionary<string,object> result,string runId,string phase) {
+        // Fixed child-only stages, not a general logger. No credentials,
+        // binding nonce, document data, callback or product input is recorded.
+        try {
+            string path=ChildPhasePath(runId);var file=new FileInfo(path);
+            if(!file.Exists||file.Length>16384||(file.Attributes&FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("Exact bounded child phase file required");
+            if(File.ReadAllLines(path,Encoding.UTF8).Length>=12)throw new InvalidOperationException("Child phase line bound reached");
+            var row="{\"schema\":\"panebind-v1-medium-desktop-phase/1\",\"run_id\":\""+runId+"\",\"phase\":\""+phase+
+                "\",\"pid\":"+Process.GetCurrentProcess().Id+",\"tid\":"+GetCurrentThreadId()+",\"utc\":\""+DateTime.UtcNow.ToString("o")+"\"}\n";
+            var bytes=new UTF8Encoding(false).GetBytes(row);
+            using(var stream=new FileStream(path,FileMode.Append,FileAccess.Write,FileShare.Read)){
+                if(stream.Length+bytes.Length>16384)throw new InvalidOperationException("Child phase byte bound reached");stream.Write(bytes,0,bytes.Length);
+            }
+        }catch(Exception e){result["child_phase_recording_failed"]=true;result["child_phase_error_type"]=e.GetType().Name;}
+    }
+    static Dictionary<string,object> ReadChildPhases(string runId,bool exited) {
+        var report=new Dictionary<string,object>{{"status","NOT_PRESENT"},{"relative_path",runId+"-medium-desktop-child-phase.jsonl"},{"max_lines",12},{"max_bytes",16384}};
+        if(!exited){report["status"]="CHILD_EXIT_NOT_CONFIRMED_NOT_READ";return report;}
+        try {
+            var file=new FileInfo(ChildPhasePath(runId));if(!file.Exists)return report;
+            if(file.Length>16384||(file.Attributes&FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("Exact bounded child phase file required");
+            var bytes=File.ReadAllBytes(file.FullName);var text=Encoding.UTF8.GetString(bytes);var lines=File.ReadAllLines(file.FullName,Encoding.UTF8);
+            if(bytes.Length>16384||lines.Length>12)throw new InvalidOperationException("Child phase evidence bound exceeded");
+            report["status"]="COLLECTED_AFTER_EXACT_CHILD_EXIT";report["size"]=bytes.Length;report["sha256"]=ByteHash(bytes);report["line_count"]=lines.Length;report["text"]=text;
+        }catch(Exception e){report["status"]="UNKNOWN";report["error_type"]=e.GetType().Name;}
+        return report;
+    }
     public static Dictionary<string,object> RunParent(string runId,string source,string scriptHash) {
         var desktop=Desktop(true);int session=(int)desktop["session_id"];var name="PBV1D_"+runId.Substring(0,12);
         var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"bootstrap_desktop",desktop},{"created_account_name",name},
@@ -392,6 +450,7 @@ public static class PaneBindV1MediumDesktopProbe {
                 result["child_process_exited"]=wait==0;result["child_ever_resumed"]=resumed;CloseHandle(child.process);
             }
             if(child.thread!=IntPtr.Zero)CloseHandle(child.thread);
+            result["child_phase_trace"]=ReadChildPhases(runId,(bool)result["child_process_exited"]);
             bool aclClean=beforeStation!=null&&beforeDesktop!=null;
             if(account!=null&&logon!=null&&(int)result["CreateProcessWithTokenW_attempts"]==1){
                 if(beforeStation!=null){var restored=RestoreOwnAddedAces(station,beforeStation,recordedStation,account,logon);result["station_dacl_cleanup"]=restored;aclClean&=(bool)restored["confirmed"];}
@@ -460,22 +519,27 @@ public static class PaneBindV1MediumDesktopProbe {
         return DefWindowProcW(window,message,wp,lp);
     }
     public static Dictionary<string,object> RunChild(string runId,string expectedSid,int expectedSession) {
-        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"gui_created",false},{"window_destroyed",false},{"product_started",false},{"explorer_started",false},{"synthetic_input_sent",false}};
+        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"gui_created",false},{"window_destroyed",false},{"product_started",false},{"explorer_started",false},{"synthetic_input_sent",false},{"child_phase_recording_failed",false}};
         IntPtr window=IntPtr.Zero;string className="PaneBindMediumDesktopProbe_"+runId;var instance=GetModuleHandleW(null);bool registered=false;int initialized=unchecked((int)0x80004005);
+        string stage="actual_child_token";
         try {
             using(var identity=WindowsIdentity.GetCurrent()){
                 var actualSid=identity.User.Value;bool ordinary;result["actual_token"]=TokenFacts(identity.Token,actualSid,expectedSession,out ordinary);
                 if(!ordinary||Hash(actualSid)!=expectedSid||TokenNumber(identity.Token,12)!=expectedSession)throw new InvalidOperationException("Bound child token mismatch");
             }
+            ChildPhase(result,runId,"token_verified");stage="active_desktop";
             result["desktop"]=Desktop(false);result["actual_pid"]=Process.GetCurrentProcess().Id;result["actual_tid"]=GetCurrentThreadId();
+            ChildPhase(result,runId,"desktop_verified");stage="window_class_registration";
             var foreground=GetForegroundWindow();result["foreground_before"]=foreground.ToInt64();
             var cls=new WindowClass{size=(uint)Marshal.SizeOf(typeof(WindowClass)),procedure=windowProcedure,instance=instance,brush=new IntPtr(6),className=className};
             registered=RegisterClassExW(ref cls)!=0;result["class_registered"]=registered;result["RegisterClassExW_error"]=registered?0:Marshal.GetLastWin32Error();
             if(!registered)throw new InvalidOperationException("Own Win32 class registration failed");
+            ChildPhase(result,runId,"class_registered");stage="window_create_show";
             window=CreateWindowExW(0,className,"PaneBind standard guest desktop probe",0x00CF0000,120,120,420,240,IntPtr.Zero,IntPtr.Zero,instance,IntPtr.Zero);
             result["gui_created"]=window!=IntPtr.Zero;result["CreateWindowExW_error"]=window!=IntPtr.Zero?0:Marshal.GetLastWin32Error();result["window_handle"]=window.ToInt64();
             if(window==IntPtr.Zero)throw new InvalidOperationException("Own blank Win32 window creation failed");
             ShowWindow(window,8);result["window_visible"]=IsWindowVisible(window);
+            ChildPhase(result,runId,"window_created_and_shown");stage="COM_initialize_and_query";ChildPhase(result,runId,"before_COM");
             initialized=CoInitializeEx(IntPtr.Zero,2);result["COM_initialize_hresult"]=initialized;object manager=null;
             try {
                 if(initialized>=0){
@@ -485,42 +549,37 @@ public static class PaneBindV1MediumDesktopProbe {
                 }
             }catch(Exception e){result["virtual_desktop_error_type"]=e.GetType().Name;}
             finally{if(manager!=null&&Marshal.IsComObject(manager))Marshal.ReleaseComObject(manager);if(initialized>=0){CoUninitialize();initialized=unchecked((int)0x80004005);}}
+            ChildPhase(result,runId,"after_COM");stage="own_timer_and_message_pump";
             var timer=SetTimer(window,new UIntPtr(1),300,IntPtr.Zero);result["one_shot_timer_started"]=timer!=UIntPtr.Zero;
             if(timer==UIntPtr.Zero)throw new InvalidOperationException("Own bounded GUI timer failed");
+            ChildPhase(result,runId,"before_message_pump");
             Message message;int received;
             while((received=GetMessageW(out message,IntPtr.Zero,0,0))>0){TranslateMessage(ref message);DispatchMessageW(ref message);}
+            ChildPhase(result,runId,"after_message_pump");stage="actual_GUI_result";
             result["message_pump_return"]=received;result["actual_timer_message"]=timerObserved;result["DestroyWindow_returned"]=destroyReturned;
             result["actual_WM_DESTROY"]=destroyObserved;result["window_destroyed"]=destroyObserved&&!IsWindow(window);
             result["foreground_after"]=GetForegroundWindow().ToInt64();
             bool vd=result.ContainsKey("on_current_virtual_desktop")&&result["on_current_virtual_desktop"] is bool&&(bool)result["on_current_virtual_desktop"];
             bool accepted=(bool)result["window_visible"]&&timerObserved&&destroyReturned&&destroyObserved&&!IsWindow(window)&&received==0&&vd;
-            result["status"]=accepted?"GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL":"UNKNOWN";return result;
-        }catch(Exception e){result["error_type"]=e.GetType().Name;return result;}
+            result["status"]=accepted&&!(bool)result["child_phase_recording_failed"]?"GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL":"UNKNOWN";return result;
+        }catch(Exception e){result["error_type"]=e.GetType().Name;result["exception_stage"]=stage;return result;}
         finally {
             if(window!=IntPtr.Zero&&IsWindow(window)){result["abort_own_window_destroy_attempted"]=true;result["abort_own_window_destroy_returned"]=DestroyWindow(window);}
             if(registered)result["own_class_unregistered"]=UnregisterClassW(className,instance);
             if(initialized>=0)CoUninitialize();
+            ChildPhase(result,runId,"cleanup_calls_returned");if((bool)result["child_phase_recording_failed"])result["status"]="UNKNOWN";
         }
     }
 }
 '@
     if($Mode -ceq 'Child'){
-        $bindingPath=Join-Path $outputDir ($RunId+'-medium-desktop-binding.json')
-        $bindingItem=Get-Item -LiteralPath $bindingPath
-        if($bindingItem.PSIsContainer -or ($bindingItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
-           $bindingItem.Length -gt 4096 -or (Get-FileHash -LiteralPath $bindingPath).Hash -cne $BindingSha256){
-            throw 'Child one-time binding is not exact.'
-        }
-        $binding=[IO.File]::ReadAllText($bindingPath,[Text.Encoding]::UTF8)|ConvertFrom-Json
-        if($binding.schema -cne 'panebind-v1-medium-desktop-binding/1' -or $binding.run_id -cne $RunId -or
-           $binding.source_commit -cne $manifest.packaging_head -or $binding.probe_sha256 -cne $scriptEntry[0].sha256 -or
-           $binding.nonce -cne $ChildNonce -or $binding.account_sid_sha256 -cnotmatch '^[A-F0-9]{64}$' -or
-           [int]$binding.session_id -le 0){throw 'Child account/script/session binding mismatch.'}
+        Write-ChildPhase 'after_AddType'
+        Write-ChildPhase 'before_RunChild'
         $result=[PaneBindV1MediumDesktopProbe]::RunChild($RunId,$binding.account_sid_sha256,[int]$binding.session_id)
         $record=[ordered]@{schema='panebind-v1-medium-desktop-child/1';run_id=$RunId;nonce=$ChildNonce;binding_sha256=$BindingSha256;
             source_commit=$manifest.packaging_head;probe_sha256=$scriptEntry[0].sha256;automated_guest_probe=$true;result=$result}
     }else{
-        foreach($suffix in @('-medium-desktop-binding.json','-medium-desktop-child.json')){
+        foreach($suffix in @('-medium-desktop-binding.json','-medium-desktop-child.json','-medium-desktop-child-phase.jsonl')){
             if(Test-Path -LiteralPath (Join-Path $outputDir ($RunId+$suffix))){throw 'Child binding/evidence already exists; preserve the original RunId.'}
         }
         $result=[PaneBindV1MediumDesktopProbe]::RunParent($RunId,$manifest.packaging_head,$scriptEntry[0].sha256)
@@ -553,6 +612,7 @@ public static class PaneBindV1MediumDesktopProbe {
     if($result.status -ceq 'GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL'){exit 0}
     exit 3
 }catch{
+    if($Mode -ceq 'Child' -and $childPhasePath){try{Write-ChildPhase ('PowerShell_exception_'+$_.Exception.GetType().Name)}catch{}}
     Write-Error ('Guest medium desktop probe stopped: '+$_.Exception.Message)
     exit 78
 }

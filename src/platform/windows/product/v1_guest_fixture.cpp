@@ -574,9 +574,46 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
             ",\"source_identity_error\":"+std::to_string(identity_error)+",\"samples\":[],\"input_sent\":false}";
         return {};
     }
-    const LONG begin=required==HTBOTTOM?p.bottom-8:p.top+3,end=required==HTBOTTOM?p.bottom:p.top+55;
-    const LONG left=required==HTBOTTOM?(p.left+p.right)/2:p.left+1,right=required==HTBOTTOM?left+1:p.right-1;
     auto caption=required==HTCAPTION?native_caption_observation(h,{p.left,p.top}):NativeCaptionObservation{};
+    std::array<POINT,24> candidates{};std::size_t candidate_count{};std::string candidate_rows="[";
+    const auto candidate=[&](std::int64_t x,std::int64_t y){
+        if(x<p.left||x>=p.right||y<p.top||y>=p.bottom||candidate_count>=candidates.size())return;
+        const POINT point{static_cast<LONG>(x),static_cast<LONG>(y)};
+        for(std::size_t n=0;n<candidate_count;++n)if(candidates[n].x==point.x&&candidates[n].y==point.y)return;
+        candidates[candidate_count++]=point;
+        if(candidate_count>1)candidate_rows+=',';candidate_rows+="["+std::to_string(point.x)+","+std::to_string(point.y)+"]";
+    };
+    std::string candidate_mode;bool actual_button_band=false;
+    if(required==HTBOTTOM){
+        candidate_mode="existing_bottom_eight_pixels";
+        for(std::int64_t y=static_cast<std::int64_t>(p.bottom)-8;y<p.bottom;++y)candidate((static_cast<std::int64_t>(p.left)+p.right)/2,y);
+    }else if(required==HTRIGHT){
+        // The existing mixed-application shared-edge case also uses this
+        // helper. Keep its actual right-edge query, not a caption substitute.
+        candidate_mode="right_edge_eight_pixels";
+        for(std::int64_t x=static_cast<std::int64_t>(p.right)-8;x<p.right;++x)candidate(x,(static_cast<std::int64_t>(p.top)+p.bottom)/2);
+    }else if(required==HTCAPTION){
+        const std::int64_t width=static_cast<std::int64_t>(p.right)-p.left,height=static_cast<std::int64_t>(p.bottom)-p.top;
+        const auto& buttons=caption.buttons;
+        actual_button_band=SUCCEEDED(caption.hresult)&&buttons.left>=0&&buttons.top>=0&&buttons.left<buttons.right&&buttons.top<buttons.bottom&&
+            buttons.right<=width&&buttons.bottom<=height;
+        const UINT dpi=caption.dpi;
+        const std::int64_t border_x=dpi?GetSystemMetricsForDpi(SM_CXSIZEFRAME,dpi)+GetSystemMetricsForDpi(SM_CXPADDEDBORDER,dpi):0;
+        const std::int64_t border_y=dpi?GetSystemMetricsForDpi(SM_CYSIZEFRAME,dpi)+GetSystemMetricsForDpi(SM_CXPADDEDBORDER,dpi):0;
+        const std::int64_t left=static_cast<std::int64_t>(p.left)+std::max<std::int64_t>(1,border_x),
+            right=actual_button_band?static_cast<std::int64_t>(p.left)+buttons.left:static_cast<std::int64_t>(p.right)-std::max<std::int64_t>(1,border_x);
+        const std::int64_t top=static_cast<std::int64_t>(p.top)+(actual_button_band?buttons.top:border_y),
+            bottom=actual_button_band?static_cast<std::int64_t>(p.top)+buttons.bottom:top+(dpi?GetSystemMetricsForDpi(SM_CYCAPTION,dpi):0);
+        candidate_mode=actual_button_band?"actual_DWM_caption_button_vertical_band_8x3":"actual_window_DPI_frame_caption_metrics_8x3";
+        // A single small candidate set, not a raster or a retry. These are
+        // proposed points only: the SAME actual child hit and DWM exclusion
+        // gates below still have to succeed before any input is sent.
+        if(left<right&&top<bottom)for(const int y_part:std::array{2,1,3})for(const int x_part:std::array{8,12,4,14,2,10,6,15}){
+            const std::int64_t y=top+(bottom-top)*y_part/4;
+            candidate(left+(right-left)*x_part/16,y);
+        }
+    }else candidate_mode="unsupported_nonclient_region_no_candidate";
+    candidate_rows+=']';
     const auto caption_at_start=caption;std::uint64_t points{},foreign_hits{},coordinate_rejections{},guard_rejections{},queries{},query_failures{},wrong_hits{},fresh_guard_rejections{};
     std::array<std::string,8> sample_kinds{};std::size_t samples{};std::string sample_rows="[";
     const auto sample=[&](const char* reason,POINT point,HWND actual,HWND root,DWORD pid,DWORD tid,bool attempted,bool read,DWORD_PTR hit,DWORD error,const NativeCaptionObservation& facts){
@@ -591,7 +628,7 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
             ",\"actual_hit\":"+(read?std::to_string(static_cast<LRESULT>(hit)):"null")+",\"query_error\":"+(attempted?std::to_string(error):"null")+
             ",\"caption_facts\":"+(required==HTCAPTION?native_caption_json(facts):"null")+"}";
     };
-    for(LONG y=begin;y<end;++y)for(LONG x=left;x<right;x+=2){++points;DWORD_PTR hit{};const POINT point{x,y};const HWND actual=WindowFromPoint(point),actual_root=actual?GetAncestor(actual,GA_ROOT):nullptr;DWORD actual_pid{};
+    for(std::size_t candidate_index=0;candidate_index<candidate_count;++candidate_index){++points;DWORD_PTR hit{};const POINT point=candidates[candidate_index];const LONG x=point.x,y=point.y;const HWND actual=WindowFromPoint(point),actual_root=actual?GetAncestor(actual,GA_ROOT):nullptr;DWORD actual_pid{};
         const DWORD actual_tid=actual?GetWindowThreadProcessId(actual,&actual_pid):0;caption.point=point;
         if(!actual||actual_root!=h||!actual_tid||actual_pid!=root_pid){++foreign_hits;sample("hit_not_same_source_root_process",point,actual,actual_root,actual_pid,actual_tid,false,false,0,0,caption);continue;}
         // The production adapter queries the actual hit child, not an idealized
@@ -609,8 +646,9 @@ std::optional<POINT> hit_point(HWND h,int required,std::string* failure_facts=nu
     if(failure_facts){
         std::array<wchar_t,256> title{};const int title_chars=GetWindowTextW(h,title.data(),static_cast<int>(title.size()));
         *failure_facts="{\"source_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"source_pid\":"+std::to_string(root_pid)+",\"source_tid\":"+std::to_string(root_tid)+
-            ",\"positioning\":"+rect({p.left,p.top,p.right,p.bottom})+",\"required_hit\":"+std::to_string(required)+",\"physical_pixel_search\":["+
-            std::to_string(left)+","+std::to_string(begin)+","+std::to_string(right)+","+std::to_string(end)+"],\"x_step_pixels\":2,\"points_examined\":"+std::to_string(points)+
+            ",\"positioning\":"+rect({p.left,p.top,p.right,p.bottom})+",\"required_hit\":"+std::to_string(required)+",\"candidate_mode\":"+quote(candidate_mode)+
+            ",\"candidate_screen_points\":"+candidate_rows+",\"candidate_count\":"+std::to_string(candidate_count)+",\"actual_query_budget\":"+
+            std::to_string(required==HTCAPTION?24:required==HTBOTTOM||required==HTRIGHT?8:0)+",\"actual_DWM_button_band_used\":"+(actual_button_band?"true":"false")+",\"points_examined\":"+std::to_string(points)+
             ",\"foreign_or_unknown_hit_count\":"+std::to_string(foreign_hits)+",\"coordinate_rejections\":"+std::to_string(coordinate_rejections)+",\"initial_guard_rejections\":"+std::to_string(guard_rejections)+
             ",\"actual_hit_query_count\":"+std::to_string(queries)+",\"query_failures\":"+std::to_string(query_failures)+",\"different_hit_results\":"+std::to_string(wrong_hits)+
             ",\"fresh_guard_rejections\":"+std::to_string(fresh_guard_rejections)+",\"elapsed_ms\":"+std::to_string(GetTickCount64()-started)+
@@ -1575,7 +1613,7 @@ void application_matrix_flow(State& s){
     if(!s.target_catalog)s.target_catalog=std::make_unique<product::Catalog>();
     for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_HIDE);
     std::shared_ptr<ApplicationTarget> browser,editor;
-    const std::array<std::string,4> categories=(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications")?
+    const std::array<std::string,4> categories=(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="ApplicationsOnly")?
         std::array<std::string,4>{"Terminal","Notepad","VSCode","Edge"}:std::array<std::string,4>{"Notepad","Edge","VSCode","Terminal"};
     for(const auto& kind:categories){
         std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
@@ -1593,7 +1631,7 @@ void application_matrix_flow(State& s){
                 matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
             }
         }catch(const std::exception& error){reason=error.what();s.log.failed=true;}
-        if(!passed&&(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications")){
+        if(!passed&&(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="ApplicationsOnly")){
             s.log.emit("application_category_failure_preserved","\"application\":"+quote(kind)+",\"reason\":"+quote(reason)+
                 ",\"result\":"+quote(target&&target->accepted?"FAIL":"BLOCKED")+",\"UP_retransmission\":false");
             const bool pending_left=s.left,pending_control=s.control;bool cleanup_up=false,cleanup_control=false;
@@ -2181,7 +2219,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -2370,6 +2408,12 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
         independent_entry_ready(s,"original_run_copy_restart.after",true);
     }else s.log.emit("independent_entry_phase_result","\"phase\":\"portable_ordinary_entry\",\"result\":\"NOT_RUN\",\"reason\":\"Release_only_actual_package_required\"");
     }else s.log.emit("scoped_prior_components_not_repeated","\"suite\":\"CoreAndApplications\",\"settings_portable_rapid_cases\":\"NOT_RUN_IN_THIS_BATCH\",\"earlier_evidence_not_rebound\":true");
+    if(s.suite=="EntryAndSettings"){
+        cleanup(s);
+        s.log.emit("entry_settings_summary","\"suite\":\"EntryAndSettings\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"existing_entry_settings_and_Release_portable_only\",\"owned_Core_I11\":\"NOT_RUN\",\"application_matrix\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     // Execute existing components with their own actual setup, not the blocked
     // Full eight-window history or a newly invented successful continuation.
     phase("owned_dock_stretch_component",owned_dock_stretch_chains);
@@ -2445,8 +2489,23 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"){
             independent_entry_flow(s,s.suite=="CoreAndApplications");s.result=s.log.failed?1:0;
+        }else if(s.suite=="ApplicationsOnly"){
+            try{
+                independent_entry_ready(s,"application_matrix.before",true);
+                application_matrix_flow(s);
+                independent_entry_ready(s,"application_matrix.after",false);
+            }catch(const std::exception& error){s.log.failed=true;s.log.emit("applications_only_failure","\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
+            const auto finish=[&](const char* stage,void(*run)(State&)){
+                try{run(s);}catch(const std::exception& error){s.log.failed=true;s.log.emit("applications_only_cleanup_failure","\"stage\":"+quote(stage)+",\"reason\":"+quote(error.what()));}
+            };
+            finish("exact_application_roots",cleanup_applications);finish("exact_Explorer_roots",cleanup_explorers);finish("product_stop_and_owned_input_recovery",cleanup);
+            s.result=s.log.failed?1:0;
+            s.log.emit("applications_only_summary","\"suite\":\"ApplicationsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+                ",\"scope\":\"existing_real_application_matrix_only\",\"missing_application_or_mixed_group_is_not_skipped\":true,"+
+                "\"Explorer_provisioning\":\"NOT_RUN\",\"Explorer_chain\":\"NOT_RUN\",\"previous_Explorer_environment_facts_not_rebound\":true,"+
+                "\"owned_Core_I11\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"whole_version_acceptance\":\"NOT_GRANTED\",\"human_uat\":\"NOT_RUN\"");
         }else if(s.suite=="SettingsDiagnostic"){
             owned_settings_diagnostic_case(s);
             if(s.configuration=="Release")owned_portable_zip_entry_case(s);
@@ -2639,7 +2698,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -2711,7 +2770,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
