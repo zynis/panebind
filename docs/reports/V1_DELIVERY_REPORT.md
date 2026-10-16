@@ -2,7 +2,15 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最新实测R7=`b0450da7c4eae68fd0e3646b3625b475a39f6c92`／driver7bec／Run4e9已完成稳定采集：actor默认30秒Deadline及后继Move／Resize、在途call33精确完成与视觉恢复实际子范围通过；source-close／grid真实清理UP、batch判定及I11日志大小读取仍失败。Terminal几何链通过但客户区输入未测，Explorer被资格策略拒绝，五应用／Edge关闭仍未齐。R6／625真实两轮／900秒与D25恢复保留原身份。历史**7/60功能、B29／B32共2/40=5%**不变，未把子范围计为整版通过；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。产品R7=`b0450da7c4eae68fd0e3646b3625b475a39f6c92`未改；最新driverfc06／Run cb0b已实测入口／设置子项，但设置激活、快速三包未START及旧有效磁吸策略预期仍失败，后续流程未运行。4e9的actor／在途恢复、Terminal几何子链和未关闭的source-close／grid／应用失败继续保留原身份，R6／625两轮／900秒不换绑。历史**7/60功能、B29／B32共2/40=5%**不变，未把子范围计为整版通过；不能宿主试用，真人UAT PENDING。
+
+## cb0b：入口与设置保护有实际子结果，后继仍未完成
+
+后续产品修订现已接线、尚待构建／现场：guarded guest 内普通非最大化、无修饰键的单击标题栏 Move 不再先吞 DOWN；短手势原生保留，增强须真实 START→隔离→一次 GUI 有界 cancel→真实 END／新鲜 B→实际 CaptureReady，再走原共用 writer。原 DOWN A 仍是意图锚，B 只校验连续性；停靠拖出描述在原 A 冻结。Ctrl／Resize／映射／最大化旧入口保持，不能推定这些快速操作也已修。真实 UP 撤权、不补连续写入及独立 F11／deadline 保留；callback 预建 pair、同一 START/END hook 和发布顺序已接入，不预填性能或功能 PASS。owned driver 增加真实阈值 MOVE 的有界适配，rapid 仍原三包输入并分别严格判断 native-only／增强；测试准备补齐三窗可见状态。Code 仅 guest 尝试官方软件渲染参数，旧失败原因仍 UNKNOWN。下一次运行使用新的产品／driver 身份，绝不换绑本节旧原件。
+
+Run `cb0b735bf4cd4ac0b46374df1bff0ab7`为Release IndependentEntry，产品b045的EXE保持`F78C5E…BD22`不变；driver／包装为`fc06fc9d476073d82eba0372eb37e5353e08e419`，Release driver `8E1A0EECACECC1E1383C54800503B84400E2E9C32671C3ECAF808A5D48532DF6`。本次driver D/R构建及guest-path各1/1通过（D processor0.17／wall0.24；R processor0.12／wall0.23秒），这是主执行者工具输出转录，不是归档原stdout或现场功能PASS。ZIP `4158155D73B9E96AA767F6DC59C4FE854FE6CA1104893ABEF436D3BFB733E8C8`／manifest `BBF4752E4165999BB7505D6FCAC712FF6C45A9E3947B24D669D2ED6B2386648F`。最终`collection-20261016T180807661Z-c54ce3e1d4b84a5aa08174a019b82554`含697行合法连续fixture；18:09:39Z确认guest23368／专用任务清理、证据未变，部署保留，不代替产品功能或cleanup通过。
+
+[入口／设置原行](v1-evidence/cb0b-r7-entry-settings-partial-fixture-selected.jsonl)：253诊断、358启动、470五键映射、635导入导出子项PASS；201设置exact-idle激活门失败且未发点击，225GUI阶段FAIL。265快速三包为generation0、产品START／native均未形成，独立head实际UP1，不能记作已启动手势缺UP。652–671真实READONLY故障下原文件／草稿／代次保持、实际错误提示与确认、诊断导出及原属性恢复通过；但682旧策略预期snap失败，[产品PID6024原行](v1-evidence/cb0b-r7-old-policy-actual-placement-product-selected.jsonl)191实际free placement exact为`[134,83,534,443]`而非预期`[140,80,540,440]`，原因尚未确定。689随后因设置失前台gate终止。corrupt、tray、普通便携入口、Core／apps及新batch／Terminal capture修订本批NOT_RUN；不授本批完整M11-F05、设置功能或B项PASS，不取代4e9 Core与625时长证据。
 
 ## 新R7／4e9：actor和在途恢复推进，当前整链仍未通过
 

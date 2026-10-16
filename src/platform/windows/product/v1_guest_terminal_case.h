@@ -20,6 +20,8 @@ void owned_rapid_terminal_move(State& s){
     if(!desktop()||!own(s,s.frames[0].hwnd)||GetForegroundWindow()!=s.frames[0].hwnd||
        width<2||height<2||destination.x<x||destination.y<y||destination.x>=x+width||destination.y>=y+height)
         throw std::runtime_error("rapid_terminal_guest_context_changed");
+    const auto starts_before=s.frames[0].starts.load(),ends_before=s.frames[0].ends.load();
+    const auto native_before=native_move_boundary_json(s.frames[0]);
     GuestUpHookObservation observer;s.log.check("rapid_terminal_passive_observer_ready",observer.start());
     std::array<INPUT,3> packets{};for(auto& packet:packets){packet.type=INPUT_MOUSE;packet.mi.dwExtraInfo=0x50425631;}
     packets[0].mi.dwFlags=MOUSEEVENTF_LEFTDOWN;
@@ -38,25 +40,63 @@ void owned_rapid_terminal_move(State& s){
         "\"generation\":"+std::to_string(g.generation)+",\"SendInput_return\":"+std::to_string(inserted)+
         ",\"win32_error\":"+std::to_string(error)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
         ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"wait_for_product_START_before_UP\":false,\"delivery_not_inferred\":true");
-    std::string end;
-    const bool ended=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");
-        if(!g.generation)return false;end=record(s,g.offset,"gesture_end",g.generation);
-        return end.find("\"normal_up\":true")!=end.npos;});
+    std::string start_receipt,pending,release,end;bool native_only=false;
+    const bool ended=wait([&]{start_receipt=record(s,g.offset,"gesture_start");pending=record(s,g.offset,"native_move_pending");
+        const auto enhanced_generation=number(start_receipt,"\"generation\":");
+        g.generation=enhanced_generation?enhanced_generation:number(pending,"\"generation\":");
+        if(!g.generation)return false;
+        if(enhanced_generation){end=record(s,g.offset,"gesture_end",g.generation);native_only=false;
+            return end.find("\"normal_up\":true")!=end.npos;}
+        release=record(s,g.offset,"native_move_passthrough_release",g.generation);
+        const auto pending_point="\"down_point\":["+std::to_string(g.anchor.x)+","+std::to_string(g.anchor.y)+"]";
+        native_only=number(pending,"\"source\":")==reinterpret_cast<std::uintptr_t>(s.frames[0].hwnd)&&
+            number(pending,"\"source_pid\":")==GetCurrentProcessId()&&number(pending,"\"source_tid\":")==s.owner&&
+            number(pending,"\"down_hook_qpc\":")>=s.left_down_send_qpc&&pending.find(pending_point)!=pending.npos&&
+            pending.find("\"down_consumed\":false")!=pending.npos&&pending.find("\"write_authority\":false")!=pending.npos&&
+            number(release,"\"source\":")==reinterpret_cast<std::uintptr_t>(s.frames[0].hwnd)&&
+            number(release,"\"actual_LL_UP_qpc\":")>=s.left_up_send_qpc&&
+            release.find("\"normalized_NormalUp\":false")!=release.npos&&release.find("\"new_native_placement\":false")!=release.npos;
+        return native_only&&s.frames[0].starts.load()==starts_before+1&&s.frames[0].ends.load()==ends_before+1&&visible(s.frames[0].hwnd)==expected;
+    });
     const bool stopped=observer.stop();const auto observed_up=actual_up(s,g.offset,g.generation);
-    unsigned terminal_native{},ordinary_native{};
-    std::istringstream rows(product_log_since(s,g.offset));std::string row;
-    while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=row.npos&&
-        number(row,"\"generation\":")==g.generation&&row.find("\"native_attempted\":true")!=row.npos){
-        if(row.find("\"normal_up_completion\":true")!=row.npos)++terminal_native;else ++ordinary_native;
-    }
+    const auto actual_up_qpc=native_only?number(release,"\"actual_LL_UP_qpc\":"):
+        std::max(number(observed_up,"\"hook_observed_qpc\":"),number(observed_up,"\"resource_observed_qpc\":"));
     const auto last=record(s,g.offset,"placement",g.generation);
     Sleep(150);POINT cursor_after{};const bool cursor_known=GetCursorPos(&cursor_after)!=FALSE;
-    s.log.check("rapid_terminal_real_UP_final_geometry_and_no_late_write",ended&&!observed_up.empty()&&stopped&&
+    unsigned terminal_native{},ordinary_native{},new_issue_at_or_after_UP{},cancel_native{},capture_ready{};
+    std::istringstream rows(product_log_since(s,g.offset));std::string row;
+    while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"generation\":")==g.generation){
+        if(row.find("\"type\":\"placement\"")!=row.npos&&row.find("\"native_attempted\":true")!=row.npos){
+            if(row.find("\"normal_up_completion\":true")!=row.npos)++terminal_native;else ++ordinary_native;
+            const auto issued=number(row,"\"native_before_qpc\":");
+            if(!actual_up_qpc||!issued||issued>=actual_up_qpc)++new_issue_at_or_after_UP;
+        }
+        if(row.find("\"type\":\"native_move_cancel\"")!=row.npos&&row.find("\"native_attempted\":true")!=row.npos)++cancel_native;
+        if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&row.find("\"fact\":\"capture_ready\"")!=row.npos)++capture_ready;
+    }
+    GUITHREADINFO gui{sizeof(gui)};const bool gui_known=GetGUIThreadInfo(s.owner,&gui)!=FALSE;
+    const bool gui_idle=gui_known&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+        !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+    const bool enhanced_result=!native_only&&end.find("\"normal_up\":true")!=end.npos&&!observed_up.empty()&&
+        ordinary_native>=1&&terminal_native==0&&new_issue_at_or_after_UP==0;
+    const bool native_result=native_only&&start_receipt.empty()&&record(s,g.offset,"gesture_start").empty()&&
+        record(s,g.offset,"gesture_end",g.generation).empty()&&s.frames[0].starts.load()==starts_before+1&&s.frames[0].ends.load()==ends_before+1&&
+        ordinary_native==0&&terminal_native==0&&cancel_native==0&&capture_ready==0;
+    s.log.check("rapid_terminal_real_UP_final_geometry_and_no_late_write",ended&&stopped&&(enhanced_result||native_result)&&
+        own(s,s.frames[0].hwnd)&&GetForegroundWindow()==s.frames[0].hwnd&&gui_idle&&
         visible(s.frames[0].hwnd)==expected&&cursor_known&&cursor_after.x==destination.x&&cursor_after.y==destination.y&&
-        terminal_native<=1&&ordinary_native+terminal_native>=1&&last==record(s,g.offset,"placement",g.generation),
+        last==record(s,g.offset,"placement",g.generation),
         "\"generation\":"+std::to_string(g.generation)+",\"expected\":"+rect(expected)+
         ",\"actual\":"+(visible(s.frames[0].hwnd)?rect(*visible(s.frames[0].hwnd)):"null")+
         ",\"ordinary_native_attempts\":"+std::to_string(ordinary_native)+",\"terminal_native_attempts\":"+std::to_string(terminal_native)+
+        ",\"product_issues_at_or_after_actual_UP\":"+std::to_string(new_issue_at_or_after_UP)+",\"product_native_cancel_attempts\":"+std::to_string(cancel_native)+
+        ",\"product_capture_ready_count\":"+std::to_string(capture_ready)+",\"actual_native_START_delta\":"+std::to_string(s.frames[0].starts.load()-starts_before)+
+        ",\"actual_native_END_delta\":"+std::to_string(s.frames[0].ends.load()-ends_before)+",\"source_GUI_known\":"+(gui_known?"true":"false")+
+        ",\"source_GUI_idle\":"+(gui_idle?"true":"false")+",\"actual_cursor\":"+(cursor_known?"["+std::to_string(cursor_after.x)+","+std::to_string(cursor_after.y)+"]":"null")+
+        ",\"path\":"+quote(native_only?"native_only_passthrough_not_enhancement_or_NormalUp":"enhanced_actual_UP_before_retirement")+
+        ",\"actual_pending_receipt\":"+quote(pending)+",\"actual_native_passthrough_LL_UP\":"+quote(release)+
+        ",\"actual_UP_qpc\":"+std::to_string(actual_up_qpc)+",\"source_native_before\":"+native_before+
+        ",\"source_native_after\":"+native_move_boundary_json(s.frames[0])+
         ",\"product_actual_UP\":"+quote(observed_up)+",\"production_end\":"+quote(end)+
         ",\"passive_hook\":"+observer.json()+",\"GUI_lag_not_inferred_from_test_insertion\":true");
     for(std::size_t n=0;n<3;++n){s.log.check("rapid_terminal_restore_fixture_setup",fixture_rect(s.frames[n].hwnd,previous[n]),

@@ -365,6 +365,11 @@ struct GestureInputShield::Impl {
 
     void emit(GestureShieldEvent event) noexcept {
         if (!callbacks.on_event) return;
+        if (current && event.generation == current->generation) {
+            event.gesture = *current;
+            event.external_stop_owner_tid = current->external_stop.thread_id;
+            event.external_stop_hotkey_id = current->external_stop.hotkey_id;
+        }
         if (current_consumed_down &&
             event.generation == current_consumed_down->gesture.generation) {
             event.entry_mode = GestureShieldEntryMode::ConsumedDown;
@@ -888,6 +893,20 @@ struct GestureInputShield::Impl {
                                                foreground_before, diagnostic);
         if (diagnostic.readback != GestureShieldReadbackFailure::None) return false;
         diagnostic.stage = GestureShieldSetupStage::RegisterHotkey;
+        if (!current_consumed_down && request.external_stop.thread_id) {
+            bool registered = false;
+            try { registered = request.external_stop.process_id == GetCurrentProcessId() &&
+                request.external_stop.hotkey_id > 0 && callbacks.native_stop_owner_registered &&
+                callbacks.native_stop_owner_registered(request); }
+            catch (...) { registered = false; }
+            if (!registered) { diagnostic.error = ERROR_INVALID_STATE; return false; }
+            hotkey_registered = false;
+            hotkey_unregistered = true;
+            diagnostic.stage = GestureShieldSetupStage::Deadline;
+            if (GetTickCount64() >= deadline_tick) return false;
+            diagnostic.stage = GestureShieldSetupStage::None;
+            return true;
+        }
         if (current_consumed_down && current_consumed_down->external_stop_owner_tid) {
             const auto& external = *current_consumed_down;
             bool registered = false;
@@ -1307,6 +1326,13 @@ struct GestureInputShield::Impl {
         event.overlay_destroyed = destroyed;
         event.hotkey_unregistered = unregistered;
         event.capture = capture_facts;
+        // Successful cleanup clears current before delivery; preserve the
+        // actual native request identity in this terminal receipt itself.
+        if (current) {
+            event.gesture = *current;
+            event.external_stop_owner_tid = current->external_stop.thread_id;
+            event.external_stop_hotkey_id = current->external_stop.hotkey_id;
+        }
         {
             std::lock_guard lock{command_mutex};
             if (pending_capture && pending_capture->generation == generation)

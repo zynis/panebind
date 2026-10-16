@@ -10,6 +10,7 @@
 #include "core/v1/visual_ownership.h"
 #include "core/geometry/magnet_constraint_solver.h"
 #include "core/movement/translation.h"
+#include "core/behavior/move_handoff_gate.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <commctrl.h>
@@ -208,6 +209,13 @@ struct Gesture {
     UINT_PTR restore_timer{};WINDOWPLACEMENT restore_placement{sizeof(WINDOWPLACEMENT)};
     std::optional<InputEvent> restore_move;
 };
+struct NativeMovePending {
+    InputEvent down;
+    core::behavior::MoveHandoffGate gate;
+    std::shared_ptr<const NativeMoveReceipt> start,end;
+    HWND overlay{};
+    bool cancel_succeeded{};
+};
 class Application {
 public:
     struct BoundKey {int id{};v::Hotkey binding;};
@@ -217,6 +225,7 @@ public:
     SettingsWindow settings_ui;fs::path config_path;std::wstring problem;std::optional<Snapshot> last_target;
     std::vector<BoundKey> bound_keys;
     std::optional<Gesture> gesture;v::GestureEpoch epoch;std::map<v::Key,std::vector<LayoutRecord>> undo;
+    std::optional<NativeMovePending> native_move;
     std::map<v::Key,Visual> visual;std::uint64_t operations{},native_attempts{};bool stopping{},diagnostic{},last_apply_revoked_only{};
     std::optional<v::End> last_termination;std::string last_prepare_diagnostic;
     std::map<v::Key,Snapshot> last_exact_receipts;
@@ -241,6 +250,7 @@ public:
     void log_status(){
         const auto windows=catalog.all(settings);log.event("status","\"enabled\":"+std::string(settings.enabled?"true":"false")+
             ",\"hook_owner_running\":"+(input.healthy()?"true":"false")+",\"gesture_active\":"+(gesture?"true":"false")+
+            ",\"native_move_handoff_pending\":"+(input.native_move_in_progress()?"true":"false")+
             ",\"native_operation_pending\":"+(writer.has_pending_native_operation()?"true":"false")+
             ",\"native_completion_unknown\":"+(writer.has_unconfirmed_native_call()?"true":"false")+
             ",\"visual_restore_pending\":"+(!pending_visual.empty()||deferred_drag_visual?"true":"false")+
@@ -656,7 +666,7 @@ public:
     void command(v::Action action,std::optional<Snapshot> target={});
     void prepare();
     void refresh_idle_catalog(){
-        if(!idle_catalog_observation_allowed(gesture.has_value(),writer.has_pending_native_operation()))return;
+        if(!idle_catalog_observation_allowed(gesture.has_value()||native_move.has_value()||input.native_move_in_progress(),writer.has_pending_native_operation()))return;
         const auto front=GetForegroundWindow();
         // This is a read-only last-target observation, not an operation's
         // declared tracking-limit admission or issued-call postverification.
@@ -664,6 +674,8 @@ public:
         prepare();
     }
     void begin(const InputEvent&);
+    void native_move_event(const InputEvent&);
+    void native_move_resource(const InputEvent&);
     bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation)const {
         return geometry_gui_context_allowed(source,observe_gui_context(source),input.capture_context(generation),
             GeometryContextPhase::BeforeNativeCall);
@@ -735,7 +747,7 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
     if(action==v::Action::Pause){set_paused(settings.enabled);return;}
     if(action==v::Action::Settings){show_settings();return;}if(action==v::Action::Exit){DestroyWindow(window);return;}
     if(!settings.enabled){notify(L"增强已暂停；请先恢复后再执行窗口命令。");return;}
-    if(gesture)finish(v::End::Paused);
+    if(gesture||native_move||input.native_move_in_progress())finish(v::End::Paused);
     // A hotkey may be the first action after startup, without mouse motion.
     // Tray commands may fall back to the last admitted app when our menu owns
     // foreground; never accept an unrelated stale HWND without recapture.
@@ -821,7 +833,7 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
     log.event("command","\"action\":\""+std::string(v::action_name(action))+"\",\"key\":"+std::to_string(s.key));
 }
 void Application::prepare(){
-    input.prepared_point();if(gesture||!settings.enabled)return;
+    input.prepared_point();if(gesture||native_move||input.native_move_in_progress()||!settings.enabled)return;
     const auto point=input.latest();HWND hit=WindowFromPoint(point),root=hit?GetAncestor(hit,GA_ROOT):nullptr;
     // Hover preparation needs identity/physical geometry, not repeated foreign
     // tracking-limit messages. Only the frozen operation members below query
@@ -871,9 +883,9 @@ void Application::prepare(){
             ",\"config_generation\":"+std::to_string(settings.generation));
     };
     if(!snapshot||GetForegroundWindow()!=root){explain(!snapshot?(root?admission:"no_actual_hit_root"):"source_not_actual_foreground");input.prepare({});show_preview({});return;}
-    if(!gesture)owned_layout(*snapshot);
     gui_context=observe_gui_context(*snapshot);gui_read=gui_context.known();
     if(!gui_context.idle()){explain(gui_read?"source_native_GUI_interaction_present":"source_GUI_unreadable");input.prepare({});show_preview({});return;}
+    if(!gesture)owned_layout(*snapshot);
     last_target=snapshot;
     const auto lp=MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y));GetWindowThreadProcessId(hit,&hit_pid);
     // WM_NCHITTEST carries signed 16-bit screen coordinates. Do not query a
@@ -905,6 +917,8 @@ void Application::prepare(){
     }
     if(region>0&&(!snapshot->can_resize||snapshot->maximized))region=-1;if(region<0){explain(hit_read?"actual_hit_not_eligible_titlebar_or_resize":"actual_hit_test_unavailable_or_foreign_child");input.prepare({});show_preview({});return;}
     auto ready=std::make_shared<Prepared>();ready->source=*snapshot;ready->point=point;ready->stamp=GetTickCount();ready->region=region;ready->config_generation=settings.generation;
+    if(region==0&&!snapshot->maximized)if(const auto history=owned_layout(*snapshot);history&&history->back().drag_restore)
+        ready->layout_restore_normal=history->back().normal;
     prepare_mappings(*ready,settings);
     // A read-only hover preview for the actual configured left double-click.
     // It does not claim that a double-click occurred or authorize any writer.
@@ -923,6 +937,132 @@ void Application::prepare(){
     show_preview(stretch_preview);
     input.prepare(std::move(ready));explain("prepared_actual_source_and_hit");
 }
+namespace {
+bool native_move_buttons_held(SHORT* observed_left=nullptr){
+    const SHORT left=GetAsyncKeyState(VK_LBUTTON);if(observed_left)*observed_left=left;
+    return (left&0x8000)!=0&&
+        !(GetAsyncKeyState(VK_RBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_MBUTTON)&0x8000)&&
+        !(GetAsyncKeyState(VK_XBUTTON1)&0x8000)&&!(GetAsyncKeyState(VK_XBUTTON2)&0x8000);
+}
+bool native_move_overlay_hits(HWND overlay){
+    if(!overlay||!IsWindow(overlay)||!IsWindowVisible(overlay))return false;
+    DWORD pid{};if(!GetWindowThreadProcessId(overlay,&pid)||pid!=GetCurrentProcessId())return false;
+    const auto ex=GetWindowLongPtrW(overlay,GWL_EXSTYLE);
+    if((ex&(WS_EX_TOPMOST|WS_EX_NOACTIVATE|WS_EX_LAYERED))!=(WS_EX_TOPMOST|WS_EX_NOACTIVATE|WS_EX_LAYERED)||
+       (ex&WS_EX_TRANSPARENT))return false;
+    POINT cursor{};return GetCursorPos(&cursor)&&WindowFromPoint(cursor)==overlay;
+}
+bool native_move_gui(const Snapshot& source,bool native){
+    const auto gui=observe_gui_context(source);
+    if(!gui.known()||gui.actual.hwndMenuOwner||
+       (gui.actual.flags&(GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE)))return false;
+    return native?(gui.actual.hwndCapture==source.hwnd&&gui.actual.hwndMoveSize==source.hwnd):gui.idle();
+}
+}
+void Application::native_move_event(const InputEvent& e){
+    const auto generation=e.generation;
+    const auto reject=[&](const char* reason){
+        log.event("native_move_handoff","\"generation\":"+std::to_string(generation)+
+            ",\"accepted\":false,\"reason\":\""+reason+"\",\"new_native_placement\":false");
+        input.revoke_generation(generation);
+        if(native_move&&native_move->down.generation==generation)native_move.reset();
+    };
+    if(e.kind==InputKind::NativeMovePending){
+        log.event("native_move_pending","\"generation\":"+std::to_string(generation)+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(e.prepared?e.prepared->source.hwnd:nullptr))+
+            ",\"source_key\":"+std::to_string(e.prepared?e.prepared->source.key:0)+
+            ",\"source_pid\":"+std::to_string(e.prepared?e.prepared->source.pid:0)+
+            ",\"source_tid\":"+std::to_string(e.prepared?e.prepared->source.tid:0)+
+            ",\"down_point\":["+std::to_string(e.point.x)+","+std::to_string(e.point.y)+"]"+
+            ",\"down_native_time\":"+std::to_string(e.native_message_time)+
+            ",\"down_hook_qpc\":"+std::to_string(e.hook_observed_qpc)+
+            ",\"down_consumed\":false,\"write_authority\":false");
+        if(input.native_move_pending(generation)&&(!native_move||native_move->down.generation!=generation)){
+            NativeMovePending pending;pending.down=e;native_move=std::move(pending);
+        }
+        return;
+    }
+    if(e.kind==InputKind::NativeMoveReleased){
+        log.event("native_move_passthrough_release","\"generation\":"+std::to_string(generation)+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(e.prepared?e.prepared->source.hwnd:nullptr))+
+            ",\"actual_LL_UP_qpc\":"+std::to_string(e.hook_observed_qpc)+
+            ",\"up_native_time\":"+std::to_string(e.native_message_time)+
+            ",\"normalized_NormalUp\":false,\"new_native_placement\":false");
+        if(native_move&&native_move->down.generation==generation)native_move.reset();return;
+    }
+    if(!e.prepared||!e.native_move_receipt)return reject("missing_actual_native_receipt");
+    const auto& actual=*e.native_move_receipt;
+    SHORT async_left{};const bool buttons_held=native_move_buttons_held(&async_left);
+    log.event(e.kind==InputKind::NativeMoveStart?"native_move_start":"native_move_end",
+        "\"generation\":"+std::to_string(generation)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual.source))+
+        ",\"event\":"+std::to_string(actual.event)+",\"event_tid\":"+std::to_string(actual.thread_id)+
+        ",\"native_time\":"+std::to_string(actual.stamp)+",\"owner_sequence\":"+std::to_string(actual.sequence)+
+        ",\"original_DOWN_qpc\":"+std::to_string(e.hook_observed_qpc)+
+        ",\"down_native_time\":"+std::to_string(e.native_message_time)+
+        ",\"async_left_return\":"+std::to_string(async_left)+
+        ",\"native_physical_button_gate\":"+(buttons_held?"true":"false")+
+        ",\"receipt_not_write_authority\":true");
+    if(!input.native_move_pending(generation)||!settings.enabled||stopping||gesture||writer.has_pending_native_operation()||
+       e.prepared->config_generation!=settings.generation||GetForegroundWindow()!=e.prepared->source.hwnd||
+       !buttons_held)return reject("up_revoke_or_context_before_native_handoff");
+    const auto fresh=catalog.get(e.prepared->source.hwnd,settings,nullptr,false,false);
+    if(!fresh||!native_move_handoff_compatible(e.prepared->source,*fresh))return reject("source_or_geometry_context_changed");
+    if(e.kind==InputKind::NativeMoveStart){
+        if((native_move&&(native_move->down.generation!=generation||native_move->start))||!native_move_gui(*fresh,true)||
+           !native_move_receipt_matches(actual,*e.prepared,generation,e.native_message_time,EVENT_SYSTEM_MOVESIZESTART))
+            return reject("native_START_or_actual_move_loop_rejected");
+        NativeMovePending pending;pending.down=e;pending.down.kind=InputKind::NativeMovePending;
+        pending.start=e.native_move_receipt;
+        if(!pending.gate.begin(generation,Catalog::same(e.prepared->source,*fresh),buttons_held,
+            native_plain_move_entry(input.capture_route_enabled(),*e.prepared,e.button,e.clicks,e.modifiers,
+                route_down(*e.prepared,e.button,e.clicks,e.modifiers))))return reject("native_handoff_gate_rejected");
+        native_move=std::move(pending);
+        if(!input.request_native_move_isolation(generation,e.native_move_receipt))return reject("isolation_request_rejected");
+        return;
+    }
+    if(!native_move||native_move->down.generation!=generation||!native_move->cancel_succeeded||
+       !native_move->gate.cancel_sent()||!native_move->start||!native_move_end_follows(*native_move->start,actual)||
+       !native_move_receipt_matches(actual,*e.prepared,generation,e.native_message_time,EVENT_SYSTEM_MOVESIZEEND)||
+       !native_move_gui(*fresh,false)||!native_move_overlay_hits(native_move->overlay)||
+       !native_move->gate.native_end_observed(generation,true))return reject("END_without_accepted_cancel_or_fresh_idle");
+    native_move->end=e.native_move_receipt;
+    if(!input.request_native_move_capture(generation,e.native_move_receipt,*fresh))return reject("capture_request_after_actual_END_rejected");
+    log.event("native_move_handoff","\"generation\":"+std::to_string(generation)+
+        ",\"accepted\":true,\"stage\":\"actual_END_capture_pending\",\"intent_anchor\":"+rectangle(e.prepared->source.visible)+
+        ",\"continuity_baseline\":"+rectangle(fresh->visible)+",\"new_native_placement\":false");
+}
+void Application::native_move_resource(const InputEvent& e){
+    if(!e.resource_event||!native_move||native_move->down.generation!=e.generation)return;
+    const auto& fact=*e.resource_event;auto& pending=*native_move;
+    if(fact.kind==o::GestureShieldEventKind::IsolationGone){native_move.reset();return;}
+    if(fact.kind!=o::GestureShieldEventKind::IsolationReady)return;
+    const auto g=e.generation;
+    const auto reject=[&](const char* why){log.event("native_move_cancel","\"generation\":"+std::to_string(g)+
+        ",\"native_attempted\":false,\"reason\":\""+why+"\"");input.revoke_generation(g);native_move.reset();};
+    const auto& source=pending.down.prepared->source;
+    const auto fresh=catalog.get(source.hwnd,settings,nullptr,false,false);
+    if(!input.native_move_pending(g)||!fresh||!native_move_handoff_compatible(source,*fresh)||
+       !settings.enabled||stopping||pending.down.prepared->config_generation!=settings.generation||
+       !pending.start||fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff||
+       fact.gesture.generation!=g||fact.gesture.source!=source.hwnd||fact.gesture.process_id!=source.pid||fact.gesture.thread_id!=source.tid||
+       GetForegroundWindow()!=source.hwnd||!native_move_buttons_held()||!native_move_gui(*fresh,true)||
+       !native_move_overlay_hits(fact.overlay))return reject("fresh_isolation_or_source_rejected");
+    if(!pending.gate.isolation_ready(g,true)||!pending.gate.may_cancel(g)||
+       !input.claim_native_move_cancel(g)||!pending.gate.cancel_issued(g))return reject("cancel_claim_revoked");
+    pending.overlay=fact.overlay;
+    // The input-owner's exact-generation claim is not a successful API call.
+    // It is never held as a mutex across this one bounded foreign call.
+    if(!input.native_move_pending(g))return reject("revoked_after_cancel_claim");
+    DWORD_PTR result{};LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);SetLastError(ERROR_SUCCESS);
+    const bool sent=SendMessageTimeoutW(source.hwnd,WM_CANCELMODE,0,0,
+        SMTO_ABORTIFHUNG|SMTO_ERRORONEXIT|SMTO_BLOCK,100,&result)!=0;
+    const auto error=sent?ERROR_SUCCESS:GetLastError();QueryPerformanceCounter(&after);pending.cancel_succeeded=sent;
+    log.event("native_move_cancel","\"generation\":"+std::to_string(g)+
+        ",\"native_attempted\":true,\"bounded_timeout_ms\":100,\"api_returned_success\":"+(sent?"true":"false")+
+        ",\"before_qpc\":"+std::to_string(before.QuadPart)+",\"after_qpc\":"+std::to_string(after.QuadPart)+
+        ",\"native_END_not_inferred\":true,\"win32_error\":"+std::to_string(error));
+    if(!sent){input.revoke_generation(g);native_move.reset();}
+}
 void Application::begin(const InputEvent& e){
     // A real UP may have reached the hook before the GUI sees this DOWN. Its
     // distinct terminal capability permits building this exact context only;
@@ -930,14 +1070,24 @@ void Application::begin(const InputEvent& e){
     if(!input.context_allowed(e.generation))return;
     if(gesture)finish(v::End::QueueFailure);if(!e.prepared||!epoch.begin(e.generation))return;
     const auto& p=*e.prepared;const auto fresh=catalog.get(p.source.hwnd,settings,nullptr,false,false);
-    if(!fresh||!Catalog::same(p.source,*fresh)||fresh->visible!=p.source.visible||p.config_generation!=settings.generation){
+    const bool native_handoff=e.handoff_snapshot&&e.native_move_receipt;
+    const auto& baseline=native_handoff?*e.handoff_snapshot:p.source;
+    if(!fresh||!Catalog::same(p.source,*fresh)||
+       (native_handoff?!WindowWriter::prepare(baseline,*fresh,baseline.visible).accepted:fresh->visible!=p.source.visible)||
+       (native_handoff&&!native_move_handoff_compatible(p.source,*fresh))||p.config_generation!=settings.generation){
         if(diagnostic)log.event("gesture_begin_rejected","\"generation\":"+std::to_string(e.generation)+
             ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+
             ",\"fresh_snapshot\":"+(fresh?"true":"false")+",\"identity_same\":"+(fresh&&Catalog::same(p.source,*fresh)?"true":"false")+
             ",\"geometry_same\":"+(fresh&&fresh->visible==p.source.visible?"true":"false")+
             ",\"configuration_same\":"+(p.config_generation==settings.generation?"true":"false"));
         input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;}
-    Gesture active;active.down=e;active.config=settings;active.original=fresh->visible;active.previous=fresh->visible;active.edges=edges(p.region);
+    if(native_handoff&&(!native_move||native_move->down.generation!=e.generation||!native_move->end||
+       native_move->end!=e.native_move_receipt||!native_move->gate.may_write(e.generation,input.allowed(e.generation),true,
+            gesture_gui_allowed(*fresh,e.generation)))){
+        input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);native_move.reset();return;
+    }
+    Gesture active;active.down=e;active.config=settings;active.original=native_handoff?p.source.visible:fresh->visible;
+    active.previous=fresh->visible;active.edges=edges(p.region);
     active.operation_source=*fresh;active.was_maximized=fresh->maximized;active.restore_armed=fresh->maximized;
     active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;active.members=catalog.all(settings);
     if(active.ctrl)active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[](const auto& member){return !(member.feature_mask&2u);}),active.members.end());
@@ -971,6 +1121,7 @@ void Application::begin(const InputEvent& e){
     active.targets=catalog.all(settings);active.targets.erase(std::remove_if(active.targets.begin(),active.targets.end(),[&](const auto& s){
         return std::find(selected.begin(),selected.end(),s.key)!=selected.end()||!(s.feature_mask&1u);}),active.targets.end());
     for(const auto& s:active.members)active.expected[s.key]=s;
+    if(native_handoff)for(auto& member:active.members)if(member.key==p.source.key)member=p.source;
     active.scope_original=active.original;
     if(active.ctrl&&!is_resize(active.edges)){
         for(const auto& s:active.members)active.scope_original={std::min(active.scope_original.left(),s.visible.left()),
@@ -979,14 +1130,18 @@ void Application::begin(const InputEvent& e){
     }
     active.previous=active.scope_original;gesture=std::move(active);
     if(!fresh->maximized&&!gesture->ctrl&&!is_resize(gesture->edges)){
-        if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore){
-            const auto anchor=v::restored_move_anchor(fresh->visible,history->back().normal,{e.point.x,e.point.y});
-            if(anchor){gesture->layout_drag_restore=true;gesture->original=*anchor;gesture->scope_original=*anchor;gesture->previous=*anchor;}
+        std::optional<v::Rect> normal=native_handoff?p.layout_restore_normal:std::nullopt;
+        if(!native_handoff)if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
+        if(normal)if(const auto anchor=v::restored_move_anchor(native_handoff?p.source.visible:fresh->visible,*normal,{e.point.x,e.point.y})){
+            gesture->layout_drag_restore=true;gesture->original=*anchor;gesture->scope_original=*anchor;gesture->previous=*anchor;
         }
     }
     if(input.allowed(e.generation)&&!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
-        ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+",\"original\":"+rectangle(fresh->visible));
+        ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+
+        ",\"original\":"+rectangle(gesture->original)+",\"native_first_handoff\":"+(native_handoff?"true":"false")+
+        ",\"actual_begin_geometry\":"+rectangle(fresh->visible));
+    if(native_handoff)native_move.reset();
     if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
         L"Ctrl 临时邻接："+std::to_wstring(gesture->members.size())+(is_resize(gesture->edges)?L" 个窗口；粗线为实际共享边，尚未缩放":L" 个窗口；细框仅表示成员，尚未移动"),{},
         is_resize(gesture->edges)?shared_feedback_edges(items(gesture->members),fresh->key,gesture->edges,
@@ -1301,6 +1456,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     }
 }
 void Application::finish(v::End reason,std::uint64_t observed_qpc){
+    if(native_move){input.revoke_generation(native_move->down.generation,reason);native_move.reset();}
     if(gesture)input.finish_generation(gesture->down.generation,reason);else input.revoke(reason);
     cancel_seam_timer();cancel_restore_wait();show_preview({});if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
     if(reason==v::End::NormalUp&&state.dock_action&&state.dock_rect){
@@ -1350,6 +1506,10 @@ void Application::finish(v::End reason,std::uint64_t observed_qpc){
 void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
     const auto flush=[&]{if(latest_move){motion(*latest_move);latest_move.reset();}};
     while(input.pop(e)){
+    if(e.kind==InputKind::NativeMovePending||e.kind==InputKind::NativeMoveStart||
+       e.kind==InputKind::NativeMoveEnd||e.kind==InputKind::NativeMoveReleased){
+        flush();native_move_event(e);continue;
+    }
     if(e.kind==InputKind::Resource&&e.resource_event){
         flush();const auto& fact=*e.resource_event;const auto& capture=fact.capture;
         const auto& association=capture.association;
@@ -1363,9 +1523,10 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
             log.event("gesture_input_resource","\"generation\":"+std::to_string(fact.generation)+
                 ",\"fact\":\""+shield_event_name(fact.kind)+"\",\"receipt_not_write_authority\":true"+
                 ",\"resource_observed_qpc\":"+std::to_string(e.resource_observed_qpc)+
-                ",\"source\":"+handle(fact.consumed_down.gesture.source)+
-                ",\"source_pid\":"+std::to_string(fact.consumed_down.gesture.process_id)+
-                ",\"source_tid\":"+std::to_string(fact.consumed_down.gesture.thread_id)+
+                ",\"entry_mode\":\""+(fact.entry_mode==o::GestureShieldEntryMode::NativeMoveHandoff?"native_move_handoff":"consumed_down")+"\""+
+                ",\"source\":"+handle(fact.gesture.source)+
+                ",\"source_pid\":"+std::to_string(fact.gesture.process_id)+
+                ",\"source_tid\":"+std::to_string(fact.gesture.thread_id)+
                 ",\"overlay\":"+handle(fact.overlay)+",\"foreground\":"+handle(fact.observed_foreground)+
                 ",\"native_message\":"+std::to_string(fact.route_message)+
                 ",\"native_message_time\":"+std::to_string(fact.message_time)+
@@ -1403,7 +1564,7 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
                 ",\"overlay_destroyed\":"+boolean(fact.overlay_destroyed)+
                 ",\"hotkey_unregistered\":"+boolean(fact.hotkey_unregistered)+
                 ",\"win32_error\":"+std::to_string(fact.win32_error));
-        continue;
+        native_move_resource(e);continue;
     }
     // Receipt of an already-normalized hook observation, not a reconstruction
     // from async key state. Keep a retired generation's real matching UP
@@ -1445,7 +1606,10 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         // writer's existing exact receipt path, not recreated from this UP.
         if(gesture&&gesture->down.generation==e.generation)finish(e.end,e.hook_observed_qpc);
     }}
-    else if(e.kind==InputKind::Abort){if(gesture&&gesture->down.generation==e.generation)finish(e.end);}
+    else if(e.kind==InputKind::Abort){
+        if(native_move&&native_move->down.generation==e.generation)native_move.reset();
+        if(gesture&&gesture->down.generation==e.generation)finish(e.end);
+    }
     }flush();
 }
 void Application::discard_new_keys(const std::vector<BoundKey>& next){
@@ -1486,7 +1650,7 @@ bool set_startup(bool enabled){
     RegCloseKey(key);return result==ERROR_SUCCESS;
 }
 void Application::show_settings(){
-    if(gesture)finish(v::End::Paused);
+    if(gesture||native_move||input.native_move_in_progress())finish(v::End::Paused);
     settings_ui.show(window,settings,[this](const v::Settings& value){
         const auto previous=settings;
         const bool withdraw=!value.enabled||value.rules!=settings.rules;

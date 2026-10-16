@@ -355,13 +355,56 @@ void settings_guest_startup(State& s){
                 s.log.emit("test_cleanup","\"resource\":\"exact_test_created_startup_value\",\"deleted\":"+std::string(result==ERROR_SUCCESS?"true":"false")+",\"product_GUI_PASS_inferred\":false");}}catch(...){}throw;}
 }
 void settings_guest_effect_layout(State& s){
+    settings_guest_scope(s);
+    if(s.left||s.control||std::any_of(s.explorer.begin(),s.explorer.end(),[](const auto& target){return static_cast<bool>(target);})||
+        std::any_of(s.applications.begin(),s.applications.end(),[](const auto& target){return static_cast<bool>(target);}))
+        throw std::runtime_error("settings_effect_requires_released_exact_original_owned_roots");
+    for(const auto& frame:s.frames)if(!own(s,frame.hwnd)||GetAncestor(frame.hwnd,GA_ROOT)!=frame.hwnd)
+        throw std::runtime_error("settings_effect_original_owned_root_identity_changed");
     // Give the standard caption real space at 150% DPI. Only the source width
     // and both targets' X coordinates change: the 20 px gap, +14/+3 intent,
     // 6 px/3 px residual, and vertical alignment oracle remain independent.
     constexpr std::array<Rect,3> layout{{{120,80,520,440},{540,80,800,260},{540,260,800,440}}};
     s.log.emit("test_setup","\"purpose\":\"settings_effect_owned_caption_space\",\"source_visible_width\":400,\"initial_horizontal_gap\":20,\"product_placement_claimed\":false");
-    for(std::size_t n=0;n<3;++n)s.log.check("settings_effect_exact_owned_setup",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,layout[n]),
-        "\"test_setup\":true,\"member\":"+std::to_string(n)+",\"expected_visible\":"+rect(layout[n]));
+    for(std::size_t n=0;n<3;++n){
+        const HWND h=s.frames[n].hwnd;const bool was_visible=IsWindowVisible(h)!=FALSE,was_iconic=IsIconic(h)!=FALSE,was_zoomed=IsZoomed(h)!=FALSE;
+        const auto before=visible(h);bool restore_attempted=false,restore_returned=false,show_attempted=false,show_returned=false;
+        if(was_iconic||was_zoomed){
+            if(!own(s,h))throw std::runtime_error("settings_effect_identity_changed_before_owned_restore");
+            restore_attempted=true;restore_returned=ShowWindowAsync(h,SW_RESTORE)!=FALSE;
+        }
+        if(!IsWindowVisible(h)){
+            if(!own(s,h))throw std::runtime_error("settings_effect_identity_changed_before_owned_show");
+            show_attempted=true;show_returned=ShowWindowAsync(h,SW_SHOWNOACTIVATE)!=FALSE;
+        }
+        const bool ready=(!restore_attempted||restore_returned)&&(!show_attempted||show_returned)&&wait([&]{return own(s,h)&&
+            GetAncestor(h,GA_ROOT)==h&&IsWindowVisible(h)&&IsWindowEnabled(h)&&!IsIconic(h)&&!IsZoomed(h);},1000);
+        const bool positioned=ready&&fixture_rect(h,layout[n]);const auto after=visible(h);
+        const auto monitor=MonitorFromWindow(h,MONITOR_DEFAULTTONULL);const auto dpi=GetDpiForWindow(h);
+        const bool native_ready=positioned&&own(s,h)&&GetAncestor(h,GA_ROOT)==h&&IsWindowVisible(h)&&IsWindowEnabled(h)&&
+            !IsIconic(h)&&!IsZoomed(h)&&after==layout[n]&&monitor&&dpi&&
+            monitor==MonitorFromWindow(s.frames[0].hwnd,MONITOR_DEFAULTTONULL)&&dpi==GetDpiForWindow(s.frames[0].hwnd);
+        s.log.check("settings_effect_exact_owned_setup",native_ready,
+            "\"test_setup\":true,\"member\":"+std::to_string(n)+",\"HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+            ",\"before_visible\":"+(was_visible?"true":"false")+",\"before_iconic\":"+(was_iconic?"true":"false")+
+            ",\"before_zoomed\":"+(was_zoomed?"true":"false")+",\"before_visible_rect\":"+(before?rect(*before):"null")+
+            ",\"owned_restore_attempted\":"+(restore_attempted?"true":"false")+",\"ShowWindowAsync_restore_return\":"+(restore_attempted?(restore_returned?"true":"false"):"null")+
+            ",\"owned_show_attempted\":"+(show_attempted?"true":"false")+",\"ShowWindowAsync_show_return\":"+(show_attempted?(show_returned?"true":"false"):"null")+
+            ",\"after_visible\":"+(IsWindowVisible(h)?"true":"false")+",\"after_iconic\":"+(IsIconic(h)?"true":"false")+
+            ",\"after_zoomed\":"+(IsZoomed(h)?"true":"false")+",\"after_enabled\":"+(IsWindowEnabled(h)?"true":"false")+
+            ",\"expected_visible\":"+rect(layout[n])+",\"actual_visible_rect\":"+(after?rect(*after):"null")+
+            ",\"actual_monitor\":"+std::to_string(reinterpret_cast<std::uintptr_t>(monitor))+",\"actual_DPI\":"+std::to_string(dpi)+
+            ",\"product_admission_or_snap_PASS_inferred\":false");
+    }
+    GUITHREADINFO gui{sizeof(gui)};const bool gui_read=GetGUIThreadInfo(s.owner,&gui)!=FALSE;
+    const bool roots_ready=std::all_of(s.frames.begin(),s.frames.end(),[&](const auto& frame){return own(s,frame.hwnd)&&
+        GetAncestor(frame.hwnd,GA_ROOT)==frame.hwnd&&IsWindowVisible(frame.hwnd)&&IsWindowEnabled(frame.hwnd)&&!IsIconic(frame.hwnd)&&!IsZoomed(frame.hwnd);});
+    s.log.check("settings_effect_owned_roots_ready_before_gesture",roots_ready&&gui_read&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+        !s.left&&!s.control,"\"test_setup_only\":true,\"all_three_original_owned_visible_noniconic\":"+(roots_ready?std::string("true"):std::string("false"))+
+        ",\"source_GUI_known\":"+(gui_read?"true":"false")+",\"capture\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+        ",\"move_size\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+        ",\"menu_owner\":"+(gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMenuOwner)):"null")+
+        ",\"actual_product_DOWN_admission_still_required\":true");
 }
 void settings_guest_move_effect(State& s,bool snap,std::string_view name){
     settings_guest_effect_layout(s);const auto g=down(s,0);const Rect expected=snap?Rect{140,80,540,440}:Rect{134,83,534,443};

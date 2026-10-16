@@ -1,7 +1,9 @@
 #include "platform/windows/product/input_service.h"
 #include "platform/windows/product/window_writer.h"
 #include "core/v1/gesture.h"
+#include "core/v1/layout.h"
 #include "core/geometry/magnet_constraint_solver.h"
+#include "core/behavior/move_handoff_gate.h"
 
 #include <iostream>
 
@@ -18,6 +20,66 @@ void check(bool condition, const char* name) {
 // GUI adapter / low-level callback. It never starts InputService, installs a
 // hook, synthesizes input, queries foreground, or opens a user window.
 int main() {
+    product::Prepared native_down;
+    native_down.source.hwnd=reinterpret_cast<HWND>(101);native_down.source.pid=21;native_down.source.tid=31;
+    native_down.source.key=41;native_down.source.born=51;native_down.source.exe=L"C:\\fixture.exe";
+    native_down.source.window_class=L"fixture";native_down.source.dpi=96;
+    native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
+    native_down.source.work={0,0,1920,1080};native_down.region=0;
+    product::prepare_mappings(native_down,v1::default_settings());
+    const auto plain=product::route_down(native_down,1,1,0);
+    check(product::native_plain_move_entry(true,native_down,1,1,0,plain)&&
+          !product::native_plain_move_entry(false,native_down,1,1,0,plain)&&
+          !product::native_plain_move_entry(true,native_down,1,1,2,plain)&&
+          !product::native_plain_move_entry(true,native_down,1,2,0,plain)&&
+          !product::native_plain_move_entry(true,native_down,1,1,0,{product::DownRoute::Mapped,v1::Action::Center}),
+          "native-first replaces only guest ordinary single left Move, not host/Ctrl/double-click/mapped routes");
+    auto native_edge=native_down;native_edge.region=1;
+    auto native_max=native_down;native_max.source.maximized=true;
+    check(!product::native_plain_move_entry(true,native_edge,1,1,0,plain)&&
+          !product::native_plain_move_entry(true,native_max,1,1,0,plain),
+          "native-first does not silently replace Resize or maximized restore entry");
+    product::NativeMoveReceipt real_start{70,1,EVENT_SYSTEM_MOVESIZESTART,31,110,native_down.source.hwnd,OBJID_WINDOW,CHILDID_SELF};
+    check(product::native_move_receipt_matches(real_start,native_down,70,100,EVENT_SYSTEM_MOVESIZESTART),
+          "actual native START receipt binds source thread, generation and native DOWN time");
+    auto wrong_native=real_start;wrong_native.thread_id=32;
+    auto stale_native=real_start;stale_native.stamp=99;
+    check(!product::native_move_receipt_matches(wrong_native,native_down,70,100,EVENT_SYSTEM_MOVESIZESTART)&&
+          !product::native_move_receipt_matches(stale_native,native_down,70,100,EVENT_SYSTEM_MOVESIZESTART)&&
+          !product::native_move_receipt_matches(real_start,native_down,71,100,EVENT_SYSTEM_MOVESIZESTART)&&
+          !product::native_move_receipt_matches(real_start,native_down,70,100,EVENT_SYSTEM_MOVESIZEEND),
+          "foreign thread, stale native time, wrong generation and START-as-END reject");
+    auto ordered_end=real_start;ordered_end.event=EVENT_SYSTEM_MOVESIZEEND;ordered_end.sequence=2;ordered_end.stamp=120;
+    auto late_old_end=ordered_end;late_old_end.stamp=105;
+    check(product::native_move_end_follows(real_start,ordered_end)&&!product::native_move_end_follows(real_start,late_old_end),
+          "late callback arrival cannot turn an END stamped before the actual START into this handoff END");
+    auto actual_end=native_down.source;
+    actual_end.visible={120,125,380,485};actual_end.positioning={113,125,387,492};
+    check(product::native_move_handoff_compatible(native_down.source,actual_end),
+          "real native translation can provide B continuity while retaining original A intent");
+    auto resized_end=actual_end;resized_end.visible={120,125,381,485};
+    auto changed_context=actual_end;changed_context.dpi=144;
+    auto changed_identity=actual_end;changed_identity.key=42;
+    check(!product::native_move_handoff_compatible(native_down.source,resized_end)&&
+          !product::native_move_handoff_compatible(native_down.source,changed_context)&&
+          !product::native_move_handoff_compatible(native_down.source,changed_identity),
+          "handoff rejects unobserved resize, DPI change and Catalog identity generation replacement");
+    const v1::Point full_down_delta{50,40};
+    const auto anchored_plan=v1::move_group({{native_down.source.key,native_down.source.visible,native_down.source.limits}},
+        native_down.source.key,full_down_delta,0);
+    const auto wrongly_reanchored=v1::move_group({{actual_end.key,actual_end.visible,actual_end.limits}},
+        actual_end.key,full_down_delta,0);
+    check(anchored_plan.accepted&&anchored_plan.placements.size()==1&&
+          anchored_plan.placements.front().visible==v1::Rect{150,140,410,500}&&
+          wrongly_reanchored.placements.front().visible!=anchored_plan.placements.front().visible,
+          "actual production move_group uses A plus full DOWN delta, not B plus the same delta twice");
+    panebind::core::behavior::MoveHandoffGate native_gate;
+    check(native_gate.begin(70,true,true,true)&&!native_gate.may_write(70,true,true,true)&&
+          native_gate.isolation_ready(70,true)&&native_gate.cancel_issued(70)&&
+          !native_gate.may_write(70,true,true,true)&&native_gate.native_end_observed(70,true)&&
+          native_gate.may_write(70,true,true,true)&&native_gate.raw_up_observed(70,true)&&
+          !native_gate.may_write(70,true,true,true),
+          "same GUI production gate requires real isolation/cancel/END and never undoes actual UP revocation");
     std::atomic<std::uint64_t> captured_authority{40|product::input_pending_capture_mask};
     check(!product::operation_permission(40,captured_authority,0,true,false),
           "consumed DOWN pending shield readiness never grants a continuous placement");
@@ -42,6 +104,11 @@ int main() {
           !product::captured_release_can_complete(true,true,false,true,false),
           "Raw-only UP, unknown cleanup, abort, later DOWN and stop cannot mint a normal release token");
     namespace shield=panebind::platform::windows::operations;
+    check(product::native_move_resources_can_retire(shield::GestureShieldEventKind::IsolationGone,true)&&
+          !product::native_move_resources_can_retire(shield::GestureShieldEventKind::IsolationGone,false)&&
+          !product::native_move_resources_can_retire(shield::GestureShieldEventKind::CaptureReleased,true)&&
+          !product::native_move_resources_can_retire(shield::GestureShieldEventKind::CaptureReady,true),
+          "next native generation preparation waits for actual Gone and confirmed cleanup, never a remove request or partial release");
     product::GestureCaptureContext cleanup_context;
     cleanup_context.generation=40;cleanup_context.overlay=reinterpret_cast<HWND>(400);
     cleanup_context.owner_tid=60;cleanup_context.owner_pid=70;

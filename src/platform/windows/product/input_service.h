@@ -19,6 +19,9 @@ inline bool captured_release_can_complete(bool resources_clean,bool actual_norma
                                          bool same_down_serial,bool available){
     return resources_clean&&actual_normal_up&&!aborted&&same_down_serial&&available;
 }
+inline bool native_move_resources_can_retire(operations::GestureShieldEventKind kind,bool actual_cleanup_confirmed){
+    return kind==operations::GestureShieldEventKind::IsolationGone&&actual_cleanup_confirmed;
+}
 // CaptureReleased is emitted by the resource owner only after its actual
 // GetCapture observation. On the no-call branch release_after copies that
 // single observation; neither NULL field alone is evidence of a query.
@@ -33,8 +36,9 @@ inline bool captured_abort_cleanup_confirmed(const GestureCaptureContext* contex
        gone.removal_reason==operations::GestureShieldRemovalReason::NormalUp||
        !gone.overlay_destroyed||!gone.hotkey_unregistered)return false;
     const auto exact=[&](const operations::GestureShieldEvent& event){
-        const auto& request=event.consumed_down.gesture;
-        return event.entry_mode==operations::GestureShieldEntryMode::ConsumedDown&&
+        const auto& request=event.entry_mode==operations::GestureShieldEntryMode::ConsumedDown?
+            event.consumed_down.gesture:event.gesture;
+        return
             event.generation==context->generation&&event.overlay==context->overlay&&
             request.generation==context->generation&&request.source==context->source.hwnd&&
             request.process_id==context->source.pid&&request.thread_id==context->source.tid&&
@@ -62,6 +66,9 @@ struct Prepared {
     // Prepared on the GUI owner, only for this exact hit-test region.
     // Index: (button-1)*32 + (clicks-1)*16 + locked modifiers.
     std::array<core::v1::Action,160> mappings{};
+    // GUI-owned layout record verified against the actual DOWN preparation.
+    // Only restoration intent; every later native write still needs fresh B.
+    std::optional<core::v1::Rect> layout_restore_normal;
 };
 enum class DownRoute { Pass, Gesture, Mapped };
 struct DownDecision { DownRoute route{DownRoute::Pass}; core::v1::Action action{core::v1::Action::None}; };
@@ -157,8 +164,44 @@ inline core::v1::End matching_up_end(bool aborted,core::v1::End observed_end,
     if(!foreground_matches)return core::v1::End::FocusLost;
     return core::v1::End::NormalUp;
 }
-enum class InputKind { Down, Move, Up, Abort, Mapped, Resource };
-enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource };
+enum class NativeMovePhase { AwaitStart,IsolationPending,AwaitEnd,AwaitCapture,Writing,Retired };
+struct NativeMoveReceipt {
+    std::uint64_t generation{},sequence{};
+    DWORD event{},thread_id{},stamp{};
+    HWND source{};
+    LONG object{},child{};
+};
+// Only this ordinary, non-maximized titlebar route changes entry mechanism.
+// Ctrl, mapped actions, all resize edges, double-clicks and host operation keep
+// their existing route. A candidate DOWN is passed to Windows, not consumed.
+inline bool native_plain_move_entry(bool guest,const Prepared& p,int button,int clicks,unsigned mods,DownDecision route){
+    return guest&&route.route==DownRoute::Gesture&&button==1&&clicks==1&&mods==0&&p.region==0&&!p.source.maximized;
+}
+inline bool native_move_receipt_matches(const NativeMoveReceipt& r,const Prepared& p,
+    std::uint64_t generation,DWORD down_stamp,DWORD event){
+    return generation&&r.generation==generation&&r.sequence&&r.event==event&&r.source==p.source.hwnd&&
+        r.thread_id==p.source.tid&&r.object==OBJID_WINDOW&&r.child==CHILDID_SELF&&
+        native_event_is_current(r.stamp,down_stamp);
+}
+inline bool native_move_end_follows(const NativeMoveReceipt& start,const NativeMoveReceipt& end){
+    return start.event==EVENT_SYSTEM_MOVESIZESTART&&end.event==EVENT_SYSTEM_MOVESIZEEND&&
+        start.generation==end.generation&&start.source==end.source&&start.thread_id==end.thread_id&&
+        end.sequence>start.sequence&&native_event_is_current(end.stamp,start.stamp);
+}
+// END geometry is a continuity baseline, never a replacement intent anchor.
+// Native translation may change position only; unobserved resize/context change
+// is not silently accepted as the handoff's new identity.
+inline bool native_move_handoff_compatible(const Snapshot& down,const Snapshot& end){
+    return Catalog::same(down,end)&&down.visible.width()==end.visible.width()&&down.visible.height()==end.visible.height()&&
+        down.positioning.width()==end.positioning.width()&&down.positioning.height()==end.positioning.height()&&
+        down.dpi==end.dpi&&down.monitor==end.monitor&&down.work==end.work&&
+        down.maximized==end.maximized&&down.minimized==end.minimized&&down.feature_mask==end.feature_mask&&
+        down.can_resize==end.can_resize&&
+        down.visible.left()-down.positioning.left()==end.visible.left()-end.positioning.left()&&
+        down.visible.top()-down.positioning.top()==end.visible.top()-end.positioning.top();
+}
+enum class InputKind { Down, Move, Up, Abort, Mapped, Resource, NativeMovePending, NativeMoveStart, NativeMoveEnd, NativeMoveReleased };
+enum class InputOrigin { MouseHook, ShieldLegacy, PlatformAbort, ShieldResource, NativeMoveEvent };
 struct InputEvent {
     InputKind kind{};
     POINT point{};
@@ -175,6 +218,8 @@ struct InputEvent {
     DWORD native_message_time{};
     std::uint64_t resource_observed_qpc{};
     std::shared_ptr<const operations::GestureShieldEvent> resource_event;
+    std::shared_ptr<const NativeMoveReceipt> native_move_receipt;
+    std::shared_ptr<const Snapshot> handoff_snapshot;
 };
 // Same dispatcher predicate as the production motion path. A release-only
 // docking command is not permission to submit continuous motion after UP.
@@ -243,7 +288,7 @@ public:
     bool start(HWND owner);
     void stop();
     ~InputService(){stop();}
-    void prepare(std::shared_ptr<const Prepared> value){prepared_.store(std::move(value));}
+    void prepare(std::shared_ptr<const Prepared> value);
     bool pop(InputEvent&);
     POINT latest()const;
     void prepared_point(){prepare_pending_=false;}
@@ -303,12 +348,18 @@ public:
     std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
     MouseUpCallbackSnapshot mouse_up_callbacks()const{return up_observation_.snapshot();}
     GestureCaptureLease capture_context(std::uint64_t generation)const;
+    bool native_move_pending(std::uint64_t generation)const;
+    bool native_move_in_progress()const;
+    bool request_native_move_isolation(std::uint64_t,const std::shared_ptr<const NativeMoveReceipt>&);
+    bool claim_native_move_cancel(std::uint64_t);
+    bool request_native_move_capture(std::uint64_t,const std::shared_ptr<const NativeMoveReceipt>&,const Snapshot&);
     bool capture_route_enabled()const{return capture_route_enabled_;}
     const std::string& capture_route_reason()const{return capture_route_reason_;}
     operations::GestureShieldStopFacts capture_stop_facts()const{return capture_stop_facts_;}
 private:
     static constexpr std::uint64_t pending_capture_mask=input_pending_capture_mask;
     struct CaptureBridge;
+    struct PreparedBundle;
     static LRESULT CALLBACK mouse(int,WPARAM,LPARAM);
     static void CALLBACK event(HWINEVENTHOOK,DWORD,HWND,LONG,LONG,DWORD,DWORD);
     static LRESULT CALLBACK receiver(HWND,UINT,WPARAM,LPARAM);
@@ -332,10 +383,10 @@ private:
     std::uint64_t counter_frequency_{};
     std::uint64_t up_callback_count_{};MouseUpCallbackObservation up_observation_;
     core::v1::TimingHistogram callback_timing_;
-    std::atomic<std::shared_ptr<const Prepared>> prepared_;
+    std::atomic<std::shared_ptr<const PreparedBundle>> prepared_;
     std::array<InputEvent,256> queue_{};
     std::atomic<unsigned> read_{0},write_{0};
-    bool consumed_down_{};
+    bool consumed_down_{},native_move_{};
     bool aborted_{};
     int button_{};
     std::uint64_t generation_{},next_generation_{};
@@ -354,7 +405,8 @@ private:
     core::v1::Action active_action_{core::v1::Action::None};
     core::v1::End active_end_{core::v1::End::NormalUp};
     HHOOK hook_{};
-    std::array<HWINEVENTHOOK,5> events_{};
+    std::array<HWINEVENTHOOK,6> events_{};
+    std::uint64_t native_receipt_sequence_{};
     std::shared_ptr<CaptureBridge> capture_bridge_;
     std::unique_ptr<operations::GestureInputShield> shield_;
     operations::GestureShieldStopFacts capture_stop_facts_{};

@@ -324,8 +324,14 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
                 "\"SetForegroundWindow_return\":"+std::string(foreground_return?"true":"false")+
                 ",\"actual_foreground_matches\":"+(foreground_observed?"true":"false")+",\"test_DOWN_sent\":false,\"maximum_repreparations\":1");
         }
-        button(s,true);down_sent=true;
-        started=layout_wait_sent([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;},3500);
+        button(s,true);down_sent=true;bool threshold_attempted=false;std::uint64_t pending_generation{};
+        started=layout_wait_sent([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");
+            if(g.generation)return !pending_generation||g.generation==pending_generation;
+            if(!ctrl&&region==HTCAPTION)guest_native_pending_threshold_move(s,h,g.anchor,g.offset,threshold_attempted,pending_generation,
+                [&]{return source<set.active&&set.owns(source)&&set.frames[source].hwnd==h;},[&]{product::GuiContext observed;
+                    observed.owner_succeeded=GetGUIThreadInfo(set.thread,&observed.actual)!=FALSE;
+                    if(observed.owner_succeeded)observed.mode=product::GuiContextMode::OwnerThread;return observed;});
+            return false;},3500);
         start=record(s,g.offset,"gesture_start",g.generation);
     }catch(...){layout_failed_start_release(s,g.generation,down_sent);throw;}
     GUITHREADINFO native{sizeof(native)};const bool native_read=GetGUIThreadInfo(set.thread,&native)!=FALSE;

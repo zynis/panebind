@@ -949,6 +949,75 @@ std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect 
 struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
 bool application_down_context(State&,HWND,POINT,int,std::string_view);
 void application_prepare_barrier(State&,HWND,POINT,int);
+product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
+// TEST-only: one physical threshold displacement may be needed before a
+// passed-through native caption DOWN enters Windows' modal Move loop. It
+// never creates a START/END receipt or changes the original intent anchor.
+void guest_native_pending_threshold_move(State& s,HWND source,POINT anchor,std::size_t offset,
+    bool& attempted,std::uint64_t& pending_generation,const std::function<bool()>& exact,
+    const std::function<product::GuiContext()>& observe){
+    if(attempted)return;
+    const auto pending=record(s,offset,"native_move_pending");if(pending.empty())return;
+    const auto generation=number(pending,"\"generation\":");DWORD pid{};const DWORD tid=GetWindowThreadProcessId(source,&pid);
+    const auto point="\"down_point\":["+std::to_string(anchor.x)+","+std::to_string(anchor.y)+"]";
+    if(!generation||(pending_generation&&pending_generation!=generation)||!exact()||
+        number(pending,"\"source\":")!=reinterpret_cast<std::uintptr_t>(source)||
+        number(pending,"\"source_pid\":")!=pid||number(pending,"\"source_tid\":")!=tid||!pid||!tid||
+        !number(pending,"\"source_key\":")||!s.left_down_send_qpc||
+        number(pending,"\"down_hook_qpc\":")<s.left_down_send_qpc||pending.find(point)==pending.npos||
+        pending.find("\"down_consumed\":false")==pending.npos||pending.find("\"write_authority\":false")==pending.npos)
+        throw std::runtime_error("native_pending_threshold_requires_actual_matching_DOWN_source_receipt");
+    pending_generation=generation;
+    const auto progressed=[&]{const auto rows=product_log_since(s,offset);std::istringstream lines(rows);std::string row;
+        while(std::getline(lines,row))if(row.ends_with('}')&&number(row,"\"generation\":")==generation&&
+            (row.find("\"type\":\"gesture_start\"")!=row.npos||row.find("\"fact\":\"capture_ready\"")!=row.npos||
+             row.find("\"type\":\"native_move_start\"")!=row.npos))return true;return false;};
+    if(progressed())return;
+    if(!record(s,offset,"native_move_passthrough_release",generation).empty()||!record(s,offset,"gesture_end",generation).empty())
+        throw std::runtime_error("native_pending_threshold_generation_already_released");
+    const auto own_native_queue=[&](const product::GuiContext& gui){const auto& actual=gui.actual;return gui.known()&&
+        actual.hwndMoveSize==source&&
+        (!actual.hwndCapture||actual.hwndCapture==source)&&!actual.hwndMenuOwner;};
+    const auto gui=observe();
+    // Only an actual MoveSize owner establishes entry into the native loop.
+    // Source capture alone can precede the threshold and is not a START.
+    if(own_native_queue(gui))return;
+    POINT cursor_before{};const bool cursor_known=GetCursorPos(&cursor_before)!=FALSE;
+    const auto threshold_context=[&](const product::GuiContext& context){const auto& fact=context.actual;return context.known()&&
+        (!fact.hwndCapture||fact.hwndCapture==source)&&!fact.hwndMoveSize&&!fact.hwndMenuOwner&&
+        !(fact.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
+    const bool idle=threshold_context(gui);
+    if(!desktop()||!exact()||!s.left||s.left_up_attempted||s.control||GetForegroundWindow()!=source||
+        !idle||!cursor_known||cursor_before.x!=anchor.x||cursor_before.y!=anchor.y){
+        if(progressed())return;
+        throw std::runtime_error("native_pending_threshold_source_or_idle_context_changed");
+    }
+    const LONG drag_x=GetSystemMetrics(SM_CXDRAG),drag_y=GetSystemMetrics(SM_CYDRAG);
+    const long long left=GetSystemMetrics(SM_XVIRTUALSCREEN),top=GetSystemMetrics(SM_YVIRTUALSCREEN),
+        right=left+GetSystemMetrics(SM_CXVIRTUALSCREEN),bottom=top+GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    if(drag_x<0||drag_y<0||drag_x>128||drag_y>128||anchor.y<top||anchor.y>=bottom)
+        throw std::runtime_error("native_pending_threshold_system_drag_metrics_or_desktop_out_of_bounds");
+    const LONG delta=drag_x+1;const long long x=static_cast<long long>(anchor.x)+delta<right?
+        static_cast<long long>(anchor.x)+delta:static_cast<long long>(anchor.x)-delta;
+    if(x<left||x>=right||x<std::numeric_limits<LONG>::min()||x>std::numeric_limits<LONG>::max())
+        throw std::runtime_error("native_pending_threshold_destination_outside_guest_desktop");
+    const POINT destination{static_cast<LONG>(x),anchor.y};
+    if(progressed())return;
+    const auto before_send=observe();if(own_native_queue(before_send))return;
+    if(!exact()||GetForegroundWindow()!=source||!s.left||s.left_up_attempted)
+        throw std::runtime_error("native_pending_threshold_source_revoked_before_single_MOVE");
+    if(!threshold_context(before_send))
+        throw std::runtime_error("native_pending_threshold_GUI_changed_before_single_MOVE");
+    attempted=true;cursor(s,destination);
+    s.log.emit("native_pending_test_threshold_MOVE","\"generation\":"+std::to_string(generation)+
+        ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+",\"source_pid\":"+std::to_string(pid)+
+        ",\"source_tid\":"+std::to_string(tid)+",\"original_DOWN_anchor\":["+std::to_string(anchor.x)+","+std::to_string(anchor.y)+
+        "],\"destination\":["+std::to_string(destination.x)+","+std::to_string(destination.y)+"],\"system_drag_metrics\":["+
+        std::to_string(drag_x)+","+std::to_string(drag_y)+"],\"actual_native_pending\":"+quote(pending)+
+        ",\"actual_source_capture_before_MOVE\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before_send.actual.hwndCapture))+
+        ",\"actual_source_move_size_before_MOVE\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before_send.actual.hwndMoveSize))+
+        ",\"maximum_extra_MOVE_per_DOWN\":1,\"test_driver_only\":true,\"START_or_cancel_or_write_authority_inferred\":false");
+}
 Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     const auto h=source_window(s,source);foreground(s,h);std::string hit_failure;
     const auto point=hit_point(h,region,&hit_failure);
@@ -957,10 +1026,16 @@ Gesture down(State& s,std::size_t source,bool ctrl=false,int region=HTCAPTION){
     cursor(s,*point);
     if(s.applications[source])application_prepare_barrier(s,h,*point,region);else Sleep(100);
     if(ctrl)key(s,VK_CONTROL,true);Gesture g{*point,0,read_product(s).size()};button(s,true);
-    const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");return g.generation!=0;});
+    bool threshold_attempted=false;std::uint64_t pending_generation{};
+    const bool observed=wait([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");
+        if(g.generation)return !pending_generation||g.generation==pending_generation;
+        if(!ctrl&&region==HTCAPTION)guest_native_pending_threshold_move(s,h,g.anchor,g.offset,threshold_attempted,pending_generation,
+            [&]{return source_window(s,source)==h&&authorized_source(s,h);},[&]{std::string why;return fixture_source_gui_context(s,source,why);});
+        return false;});
     if(!observed&&s.applications[source])application_down_context(s,h,*point,region,"after_unobserved_DOWN");
     s.log.check("production_real_down_start",observed,
-        "\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation));return g;
+        "\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+
+        ",\"native_pending_generation\":"+std::to_string(pending_generation)+",\"single_native_threshold_MOVE_attempted\":"+(threshold_attempted?"true":"false"));return g;
 }
 void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect expected,std::string name,bool native){
     // Deliberately paced input trajectory below the configured speed cutoff;
@@ -1567,7 +1642,7 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         profile_ready=temp_scope&&vscode_own_directory_probe(s,temp,"TEMP")&&profile_ready;
         if(!profile_ready){s.log.emit("application_binding","\"application\":\"VSCode\",\"result\":\"BLOCKED\",\"reason\":\"actual_Medium_profile_or_TEMP_write_read_cleanup_failed\",\"input_sent\":false");return target;}
         std::ofstream empty(blank,std::ios::binary);empty.close();if(!empty)throw std::runtime_error("VSCode_exact_empty_document_create_failed");
-        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\"";
+        target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir \""+(target->directory/L"UserData").wstring()+L"\" --extensions-dir \""+(target->directory/L"Extensions").wstring()+L"\" --disable-extensions --new-window --skip-welcome --skip-release-notes \""+blank.wstring()+L"\" --disable-gpu";
     }else if(target->kind=="Terminal"){
         const bool portable_requested=fs::exists(fs::path(L"C:\\PaneBindV1\\Input")/L"Terminal-test.zip");
         if(portable_requested){
@@ -1613,7 +1688,8 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         ",\"explicit_expected_root_image\":"+quote(utf8(target->root_executable.wstring()))+
         ",\"file_version\":"+quote(application_version(target->executable))+",\"binary_sha256\":"+quote(hash(target->executable))+
         ",\"api_succeeded\":"+(launched?"true":"false")+",\"win32_error\":"+std::to_string(error)+",\"launch_PID\":"+std::to_string(launched?info.dwProcessId:0)+
-        ",\"launch_integrity_rid\":"+(rid<0?"null":std::to_string(rid))+",\"launch_elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"launch_is_not_binding_proof\":true");
+        ",\"launch_integrity_rid\":"+(rid<0?"null":std::to_string(rid))+",\"launch_elevated\":"+(rid<0?"null":(elevated?"true":"false"))+",\"launch_is_not_binding_proof\":true"+
+        (target->kind=="VSCode"?",\"actual_VSCode_launch_flag\":\"--disable-gpu\",\"software_rendering_candidate\":true,\"previous_startup_failure_cause\":\"UNKNOWN\",\"GPU_fix_inferred\":false,\"strict_single_variable_causality_claimed\":false":""));
     std::optional<product::Snapshot> candidate;bool bound=false;
     if(normal&&target->processes.front().born)bound=wait([&]{
         discover_application_children(*target);candidate.reset();unsigned matches{};
@@ -2323,21 +2399,34 @@ bool gui_activate_exact_settings(State& s,const SettingsGui& gui){
     // Test-only normal activation of this exact product UI, not a product
     // foreground repair and never a click on a foreign/unknown window.
     bool down_attempted=false,up_attempted=false,activated=false;POINT point{};HWND hit{};
-    std::string reason="not_started";DWORD_PTR region{};RECT bounds{},client{};
+    std::string reason="not_started",fresh_rejection="not_checked";DWORD_PTR region{};RECT bounds{},client{};
+    bool status_attempted=false,status_launch_succeeded=false,status_received=false,status_idle_matched=false;
+    DWORD status_exit=STILL_ACTIVE;
     const auto idle=[](DWORD tid){GUITHREADINFO info{sizeof(info)};return tid&&GetGUIThreadInfo(tid,&info)&&
         !info.hwndCapture&&!info.hwndMoveSize&&!info.hwndMenuOwner&&
         !(info.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));};
     const auto fresh=[&]{
-        if(!desktop()||s.left||s.control||!gui_identity(s,gui,gui.tab)||!IsWindowEnabled(gui.root)||IsIconic(gui.root)||!idle(gui.tid))return false;
+        fresh_rejection="none";
+        if(!desktop()){fresh_rejection="input_desktop_unknown";return false;}
+        if(s.left||s.control){fresh_rejection="test_input_ledger_outstanding";return false;}
+        if(!gui_identity(s,gui,gui.tab)){fresh_rejection="settings_identity_changed";return false;}
+        if(!IsWindowEnabled(gui.root)||IsIconic(gui.root)){fresh_rejection="settings_disabled_or_iconic";return false;}
+        if(!idle(gui.tid)){fresh_rejection="settings_GUI_not_idle_or_unknown";return false;}
         for(const int vk:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
-            if(GetAsyncKeyState(vk)&0x8000)return false;
-        const auto front=GetForegroundWindow();return front&&idle(GetWindowThreadProcessId(front,nullptr));
+            if(GetAsyncKeyState(vk)&0x8000){fresh_rejection="async_high_bit_VK_"+std::to_string(vk);return false;}
+        const auto front=GetForegroundWindow();
+        if(!front||!idle(GetWindowThreadProcessId(front,nullptr))){fresh_rejection="foreground_GUI_not_idle_or_unknown";return false;}
+        return true;
     };
     try{
-        const auto mark=read_product(s).size();std::string status;DWORD exit=STILL_ACTIVE;
-        if(!fresh()||!launch(s,L"--status",true,&exit)||exit||!wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000)||
-           !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0}))
-            throw std::runtime_error("settings_activation_not_exact_idle_product");
+        const auto mark=read_product(s).size();std::string status;
+        if(!fresh())throw std::runtime_error("settings_activation_initial_"+fresh_rejection);
+        status_attempted=true;status_launch_succeeded=launch(s,L"--status",true,&status_exit);
+        if(!status_launch_succeeded||status_exit)throw std::runtime_error("settings_activation_status_command_failed");
+        status_received=wait([&]{status=record(s,mark,"status",0);return !status.empty();},1000);
+        if(!status_received)throw std::runtime_error("settings_activation_current_status_not_observed");
+        status_idle_matched=product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0});
+        if(!status_idle_matched)throw std::runtime_error("settings_activation_current_status_not_exact_idle");
         if(!GetWindowRect(gui.root,&bounds)||!GetClientRect(gui.root,&client))throw std::runtime_error("settings_activation_geometry_unknown");
         MapWindowPoints(gui.root,nullptr,reinterpret_cast<POINT*>(&client),2);
         if(client.top<=bounds.top)throw std::runtime_error("settings_activation_no_native_caption");
@@ -2356,11 +2445,27 @@ bool gui_activate_exact_settings(State& s,const SettingsGui& gui){
     }catch(const std::exception& error){reason=error.what();
         if(down_attempted&&s.left&&!up_attempted&&!s.left_up_attempted){try{up_attempted=true;button(s,false);}catch(...){}}
     }
+    const HWND observed_foreground=GetForegroundWindow();DWORD observed_foreground_pid{};
+    const DWORD observed_foreground_tid=GetWindowThreadProcessId(observed_foreground,&observed_foreground_pid);
+    GUITHREADINFO observed_gui{sizeof(observed_gui)};
+    const bool observed_gui_known=observed_foreground_tid&&GetGUIThreadInfo(observed_foreground_tid,&observed_gui)!=FALSE;
     s.log.emit("settings_foreground_activation_setup","\"root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
         ",\"product_PID\":"+std::to_string(s.product_pid)+",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
         ",\"actual_region\":"+std::to_string(region)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
         ",\"DOWN_attempted\":"+(down_attempted?"true":"false")+",\"UP_attempted\":"+(up_attempted?"true":"false")+
         ",\"actual_foreground_and_focus\":"+(activated?"true":"false")+",\"reason\":"+quote(reason)+
+        ",\"last_actual_fresh_rejection\":"+quote(fresh_rejection)+",\"status_command_attempted\":"+(status_attempted?"true":"false")+
+        ",\"status_command_launch_succeeded\":"+(status_attempted?(status_launch_succeeded?"true":"false"):"null")+
+        ",\"status_command_exit\":"+(status_attempted?std::to_string(status_exit):"null")+
+        ",\"status_receipt_observed\":"+(status_received?"true":"false")+",\"status_exact_idle_matched\":"+(status_idle_matched?"true":"false")+
+        ",\"observed_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(observed_foreground))+
+        ",\"observed_foreground_pid\":"+std::to_string(observed_foreground_pid)+",\"observed_foreground_tid\":"+std::to_string(observed_foreground_tid)+
+        ",\"observed_foreground_class\":"+(observed_foreground?quote(utf8(gui_class(observed_foreground))):"null")+
+        ",\"observed_foreground_GUI_known\":"+(observed_gui_known?"true":"false")+
+        ",\"observed_foreground_capture\":"+(observed_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(observed_gui.hwndCapture)):"null")+
+        ",\"observed_foreground_move_size\":"+(observed_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(observed_gui.hwndMoveSize)):"null")+
+        ",\"observed_foreground_menu_owner\":"+(observed_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(observed_gui.hwndMenuOwner)):"null")+
+        ",\"observed_foreground_GUI_flags\":"+(observed_gui_known?std::to_string(observed_gui.flags):"null")+
         ",\"setup_not_product_gesture\":true,\"attempt_limit\":1,\"SetForegroundWindow_used\":false,\"AttachThreadInput_used\":false");
     return activated;
 }
@@ -2534,8 +2639,15 @@ void own_visual_setup(State& s,HWND h,BYTE alpha,bool top){
         "\"actor\":\"fixture_app_not_product\",\"alpha\":"+std::to_string(alpha)+",\"topmost\":"+(top?"true":"false"));
 }
 void visual_exact(State& s,HWND h,BYTE alpha,bool top,std::string name){
-    s.log.check(std::move(name),wait([&]{return own(s,h)&&native_visual_is(h,alpha,top);}),
-        "\"actual_native_layered_alpha\":"+std::to_string(alpha)+",\"actual_topmost\":"+(top?"true":"false")+
+    const bool observed=wait([&]{return own(s,h)&&native_visual_is(h,alpha,top);});
+    const auto actual=own(s,h)?native_visual(h):std::optional<NativeVisual>{};
+    const bool exact=actual&&actual->layered&&actual->known&&actual->alpha==alpha&&actual->color==0&&actual->flags==LWA_ALPHA&&actual->topmost==top;
+    s.log.check(std::move(name),observed&&exact,
+        "\"expected_native_layered_alpha\":"+std::to_string(alpha)+",\"expected_topmost\":"+(top?"true":"false")+
+        ",\"actual_native_layered_alpha\":"+(actual&&actual->layered&&actual->known?std::to_string(actual->alpha):"null")+
+        ",\"actual_topmost\":"+(actual?(actual->topmost?"true":"false"):"null")+
+        ",\"actual_layered\":"+(actual?(actual->layered?"true":"false"):"null")+
+        ",\"actual_layered_tuple_known\":"+(actual&&actual->layered&&actual->known?"true":"false")+
         ",\"readback\":\"GetLayeredWindowAttributes_and_GWL_EXSTYLE\"");
 }
 void visual_command(State& s,HWND h,std::wstring_view name,BYTE alpha,bool top){
@@ -2740,7 +2852,17 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
         return TRUE;},reinterpret_cast<LPARAM>(&query));
     if(query.count>1)throw std::runtime_error("independent_multiple_settings_windows");
     if(query.count){
-        if(GetForegroundWindow()!=query.gui.root)throw std::runtime_error("independent_settings_has_unknown_modal_or_foreground");
+        // A failed modeless-settings live-policy case can legitimately leave
+        // its exact test-owned source foreground. Revisit our exact settings
+        // with the existing one-click/actual-idle guard, never activate an
+        // unknown foreground or treat this cleanup as the failed case PASS.
+        if(GetForegroundWindow()!=query.gui.root){
+            const auto front=GetForegroundWindow();
+            if(!own(s,front)||!gui_activate_exact_settings(s,query.gui))
+                throw std::runtime_error("independent_settings_has_unknown_modal_or_foreground");
+            s.log.emit("independent_modeless_settings_cleanup_revisit",
+                "\"stage\":"+quote(stage)+",\"previous_foreground_exact_test_owned_source\":true,\"failed_case_PASS_inferred\":false");
+        }
         gui_press(s,query.gui,VK_ESCAPE);
         s.log.check("independent_actual_settings_Escape",wait([&]{return !IsWindow(query.gui.root);}));
     }

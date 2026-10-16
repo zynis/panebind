@@ -41,6 +41,12 @@ struct InputService::CaptureBridge {
     struct Pair {
         InputEvent down;
         operations::GestureShieldConsumedDownRequest request;
+        bool native_move{};
+        std::atomic<NativeMovePhase> native_phase{NativeMovePhase::AwaitStart};
+        std::atomic<std::shared_ptr<const NativeMoveReceipt>> native_start,native_end;
+        std::atomic<std::shared_ptr<const Snapshot>> handoff;
+        std::atomic<bool> isolation_ready{},cancel_claimed{},raw_up_observed{},resource_requested{};
+        std::atomic<bool> down_assigned{};
         std::atomic<bool> up_observed{},aborted{},normal_observed{},ready_authorized{};
         std::atomic<std::shared_ptr<const GestureCaptureContext>> context;
         std::uint64_t deadline{},down_serial{};
@@ -52,14 +58,35 @@ struct InputService::CaptureBridge {
     std::shared_ptr<std::atomic<std::uint64_t>> authority,completion;
     std::shared_ptr<std::atomic<bool>> available;
     std::atomic<std::shared_ptr<Pair>> pair;
+    // One deferred old-generation reference, consumed only on the input owner
+    // outside callbacks. A busy slot rejects a new candidate instead of making
+    // the LL publisher release an old Pair's last reference/heap allocation.
+    std::atomic<std::shared_ptr<Pair>> retired_pair;
     std::atomic<DWORD> owner_tid{};
     std::atomic<bool> hotkey_registered{},failed{};
     std::atomic<std::uint64_t> down_serial{};
     std::array<Receipt,64> events;
     std::atomic<unsigned> read{},write{};
+    bool active(const std::shared_ptr<Pair>& p)const {
+        const auto a=authority->load();
+        return p&&p->down.prepared&&!p->up_observed&&!p->aborted&&!failed&&available->load()&&
+            (a==p->down.generation||a==(p->down.generation|pending_capture_mask))&&
+            p->down_serial==down_serial.load()&&GetTickCount64()<p->deadline;
+    }
+    bool native_authorized(const operations::GestureShieldRequest& request,bool capture)const {
+        const auto p=pair.load();if(!p||!p->native_move||!active(p))return false;
+        const auto& actual=p->request.gesture;
+        if(request.generation!=actual.generation||request.source!=actual.source||
+           request.process_id!=actual.process_id||request.thread_id!=actual.thread_id)return false;
+        const auto phase=p->native_phase.load();
+        if(capture)return p->cancel_claimed&&p->native_end.load()&&p->handoff.load()&&
+            (phase==NativeMovePhase::AwaitCapture||phase==NativeMovePhase::Writing);
+        return p->native_start.load()&&!p->native_end.load()&&
+            (phase==NativeMovePhase::IsolationPending||phase==NativeMovePhase::AwaitEnd);
+    }
     bool authorized(const operations::GestureShieldConsumedDownRequest& request)const {
         const auto p=pair.load();const auto a=authority->load();
-        return p&&p->down.prepared&&request.gesture.generation==p->down.generation&&
+        return p&&!p->native_move&&p->down.prepared&&request.gesture.generation==p->down.generation&&
             request.gesture.source==p->down.prepared->source.hwnd&&request.gesture.process_id==p->down.prepared->source.pid&&
             request.gesture.thread_id==p->down.prepared->source.tid&&request.down_message_time==p->request.down_message_time&&
             request.down_qpc==p->request.down_qpc&&!p->up_observed&&!p->aborted&&!failed&&available->load()&&
@@ -72,8 +99,12 @@ struct InputService::CaptureBridge {
         if(current){
             const auto retire=[&]{auto a=p->down.generation;authority->compare_exchange_strong(a,0);
                 a=p->down.generation|pending_capture_mask;authority->compare_exchange_strong(a,0);};
+            if(event.kind==ShieldKind::IsolationReady&&p->native_move&&
+               event.entry_mode==operations::GestureShieldEntryMode::NativeMoveHandoff&&
+               event.gesture.generation==p->down.generation&&event.gesture.source==p->down.prepared->source.hwnd)
+                p->isolation_ready=true; // publish BEFORE this receipt can reach the GUI
             if(event.kind==ShieldKind::RawMouse&&(event.raw_button_flags&RI_MOUSE_LEFT_BUTTON_UP)){
-                p->up_observed=true;retire();
+                p->raw_up_observed=true;p->up_observed=true;retire();
             }
             if(event.kind==ShieldKind::LegacyLeftUp&&event.legacy_up_accepted){
                 p->up_observed=true;retire();p->normal_observed=true;
@@ -81,13 +112,16 @@ struct InputService::CaptureBridge {
                 p->actual_legacy_up=std::make_shared<const ShieldEvent>(event);
             }
             if(event.kind==ShieldKind::CaptureReady){
-                if(authorized(p->request)&&event.overlay&&event.capture.actual_after==event.overlay&&
+                if((p->native_move?native_authorized(p->request.gesture,true):authorized(p->request))&&
+                   event.overlay&&event.capture.actual_after==event.overlay&&
                    event.capture.owner_thread_id&&event.capture.association.attach_succeeded){
                     auto context=std::make_shared<GestureCaptureContext>();context->generation=event.generation;
-                    context->source=p->down.prepared->source;context->overlay=event.overlay;
+                    context->source=p->native_move?*p->handoff.load():p->down.prepared->source;context->overlay=event.overlay;
                     context->owner_tid=event.capture.owner_thread_id;context->owner_pid=GetCurrentProcessId();
                     p->context.store(context);
-                    if(arm_exact_capture_generation(*authority,event.generation))p->ready_authorized=true;
+                    if(arm_exact_capture_generation(*authority,event.generation)){
+                        p->ready_authorized=true;if(p->native_move)p->native_phase=NativeMovePhase::Writing;
+                    }
                     else p->up_observed=true;
                 }
             }
@@ -114,6 +148,61 @@ struct InputService::CaptureBridge {
             throw std::runtime_error("product_capture_receipt_post_failed");}
     }
 };
+struct InputService::PreparedBundle {
+    std::shared_ptr<const Prepared> prepared;
+    std::shared_ptr<CaptureBridge::Pair> native_pair;
+};
+void InputService::prepare(std::shared_ptr<const Prepared> value){
+    if(!value){prepared_.store({});return;}
+    try{
+        auto bundle=std::make_shared<PreparedBundle>();bundle->prepared=std::move(value);
+        const auto& p=*bundle->prepared;
+        if(native_plain_move_entry(capture_route_enabled_,p,1,1,0,route_down(p,1,1,0)))
+            bundle->native_pair=std::make_shared<CaptureBridge::Pair>();
+        prepared_.store(std::move(bundle));
+    }catch(...){
+        prepared_.store({});*available_=false;healthy_=false;
+        PostMessageW(owner_,catalog_message,1,0);
+    }
+}
+bool InputService::native_move_pending(std::uint64_t generation)const {
+    const auto bridge=capture_bridge_;if(!bridge)return false;const auto p=bridge->pair.load();
+    return p&&p->native_move&&p->down.generation==generation&&bridge->active(p);
+}
+bool InputService::native_move_in_progress()const {
+    const auto bridge=capture_bridge_;if(!bridge)return false;const auto p=bridge->pair.load();
+    return p&&p->native_move&&(bridge->active(p)||p->resource_requested.load());
+}
+bool InputService::request_native_move_isolation(std::uint64_t generation,const std::shared_ptr<const NativeMoveReceipt>& receipt){
+    const auto bridge=capture_bridge_;if(!bridge||!shield_)return false;const auto p=bridge->pair.load();
+    if(!p||!p->native_move||p->down.generation!=generation||!bridge->active(p)||!receipt||
+       p->native_start.load()!=receipt||p->native_end.load()||
+       !native_move_receipt_matches(*receipt,*p->down.prepared,generation,p->down.native_message_time,EVENT_SYSTEM_MOVESIZESTART))return false;
+    auto phase=NativeMovePhase::AwaitStart;
+    if(!p->native_phase.compare_exchange_strong(phase,NativeMovePhase::IsolationPending))return false;
+    p->resource_requested=true;
+    if(shield_->request_isolation(p->request.gesture))return true;
+    p->resource_requested=false;p->aborted=true;p->native_phase=NativeMovePhase::Retired;revoke_generation(generation);return false;
+}
+bool InputService::claim_native_move_cancel(std::uint64_t generation){
+    const auto bridge=capture_bridge_;if(!bridge)return false;const auto p=bridge->pair.load();
+    if(!p||!p->native_move||p->down.generation!=generation||!bridge->active(p)||!p->isolation_ready||p->native_end.load())return false;
+    auto phase=NativeMovePhase::IsolationPending;
+    if(!p->native_phase.compare_exchange_strong(phase,NativeMovePhase::AwaitEnd))return false;
+    bool claimed=false;return p->cancel_claimed.compare_exchange_strong(claimed,true)&&bridge->active(p);
+}
+bool InputService::request_native_move_capture(std::uint64_t generation,const std::shared_ptr<const NativeMoveReceipt>& receipt,const Snapshot& actual){
+    const auto bridge=capture_bridge_;if(!bridge||!shield_)return false;const auto p=bridge->pair.load();
+    if(!p||!p->native_move||p->down.generation!=generation||!bridge->active(p)||!p->cancel_claimed||!receipt||
+       p->native_end.load()!=receipt||!p->native_start.load()||!native_move_end_follows(*p->native_start.load(),*receipt)||
+       !native_move_receipt_matches(*receipt,*p->down.prepared,generation,p->down.native_message_time,EVENT_SYSTEM_MOVESIZEEND)||
+       !native_move_handoff_compatible(p->down.prepared->source,actual))return false;
+    auto phase=NativeMovePhase::AwaitEnd;
+    if(!p->native_phase.compare_exchange_strong(phase,NativeMovePhase::AwaitCapture))return false;
+    p->handoff.store(std::make_shared<const Snapshot>(actual));
+    if(bridge->active(p)&&shield_->request_capture_after_native_end(p->request.gesture))return true;
+    p->aborted=true;revoke_generation(generation);return false;
+}
 GestureCaptureLease InputService::capture_context(std::uint64_t generation)const {
     const auto bridge=capture_bridge_;if(!bridge)return {};const auto pair=bridge->pair.load();
     return pair&&pair->down.generation==generation?pair->context.load():GestureCaptureLease{};
@@ -138,6 +227,11 @@ bool InputService::begin_capture(const InputEvent& event){
     if(!capture_bridge_||!shield_||!event.prepared||!capture_source_current(event.prepared->source)||
        authorized_->load()!=(event.generation|pending_capture_mask)||
        !guest::capture_interactive_medium()||GetForegroundWindow()!=event.prepared->source.hwnd)return false;
+    if(event.kind==InputKind::NativeMovePending){
+        const auto p=capture_bridge_->pair.load();
+        return p&&p->native_move&&p->down.generation==event.generation&&capture_bridge_->active(p)&&
+            SetTimer(receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr);
+    }
     auto p=std::make_shared<CaptureBridge::Pair>();p->down=event;p->down_serial=capture_bridge_->down_serial.load();
     p->deadline=event.tick+gesture_deadline_ms;
     p->request.gesture={event.generation,event.prepared->source.hwnd,event.prepared->source.pid,event.prepared->source.tid,gesture_deadline_ms};
@@ -157,17 +251,24 @@ void InputService::drain_capture_events(){
         resource.native_message_time=receipt.event->message_time;resource.resource_event=receipt.event;push(std::move(resource));
         const auto p=bridge.pair.load();if(!p||p->down.generation!=receipt.event->generation)continue;
         const auto& actual=*receipt.event;
+        if(actual.kind==ShieldKind::IsolationReady)p->isolation_ready=true;
         if(actual.kind==ShieldKind::CaptureReleased)p->capture_cleanup_observation=receipt.event;
         if(actual.kind==ShieldKind::CaptureReady){
             // This is the historical READY receipt, not a fresh regrant. A
             // real UP may already have revoked issue permission while this
             // owner was dispatching earlier messages. Preserve DOWN→UP order
             // without turning allowed() back on or inventing late movement.
-            if(p->ready_authorized&&p->context.load()&&!p->aborted)push(p->down);
+            if(p->ready_authorized&&p->context.load()&&!p->aborted){
+                auto down=p->down;down.kind=InputKind::Down;down.handoff_snapshot=p->handoff.load();
+                down.native_move_receipt=p->native_end.load();push(std::move(down));
+            }
             // An early UP is not NormalUp and never permits late re-arming.
             else request_capture_stop(Removal::ContextLost);
         }
         if(p->aborted&&!aborted_)abort(actual.kind==ShieldKind::Deadline?core::v1::End::Deadline:core::v1::End::SourceLost);
+        if(p->native_move&&!p->aborted&&p->raw_up_observed&&p->normal_observed&&
+           actual.kind!=ShieldKind::IsolationGone&&shield_)
+            (void)shield_->request_remove(actual.generation,Removal::NormalUp);
         if(actual.kind!=ShieldKind::IsolationGone)continue;
         const auto context=p->context.load();const bool strict_clean=actual.overlay_destroyed&&actual.hotkey_unregistered&&
             (!actual.capture.attempted||(actual.capture.release_completed&&actual.capture.release_succeeded&&!actual.capture.release_after))&&
@@ -178,6 +279,7 @@ void InputService::drain_capture_events(){
         const bool clean=strict_clean||captured_abort_cleanup_confirmed(context.get(),
             p->capture_cleanup_observation.get(),actual,p->aborted.load());
         const bool actual_normal=p->normal_observed&&p->actual_legacy_up&&context&&
+            (!p->native_move||p->raw_up_observed)&&
             actual.removal_reason==Removal::NormalUp&&context->normal_up_observed&&context->own_release_confirmed&&context->association_detached&&
             p->ready_authorized;
         const bool normal=captured_release_can_complete(clean,actual_normal,p->aborted,
@@ -193,8 +295,10 @@ void InputService::drain_capture_events(){
                 auto generation=p->down.generation;completion_->compare_exchange_strong(generation,0);abort(core::v1::End::SourceLost);
             }else push(std::move(e));
         }else if(!aborted_)abort(core::v1::End::SourceLost);
-        if(!clean){healthy_=false;*available_=false;}
-        KillTimer(receiver_,gesture_deadline_timer);consumed_down_=false;capture_pair_=false;active_prepared_.reset();prepared_.store({});
+        if(native_move_resources_can_retire(actual.kind,clean)){
+            p->resource_requested=false;if(p->native_move)p->native_phase=NativeMovePhase::Retired;
+        }else {healthy_=false;*available_=false;}
+        KillTimer(receiver_,gesture_deadline_timer);consumed_down_=false;native_move_=false;capture_pair_=false;active_prepared_.reset();prepared_.store({});
         if(!prepare_pending_.exchange(true))PostMessageW(owner_,prepare_message,0,0);
     }
 }
@@ -205,7 +309,7 @@ bool InputService::start(HWND owner){
     LARGE_INTEGER frequency{};counter_frequency_=QueryPerformanceFrequency(&frequency)&&frequency.QuadPart>0?
         static_cast<std::uint64_t>(frequency.QuadPart):0;
     paused_=false;healthy_=false;stop_requested_=false;prepare_pending_=false;
-    read_=0;write_=0;consumed_down_=false;aborted_=false;click_candidate_={};
+    read_=0;write_=0;consumed_down_=false;native_move_=false;aborted_=false;click_candidate_={};
     owner_=owner;ready_=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!ready_)return false;
     try{thread_=std::thread([this]{run();});}catch(...){CloseHandle(ready_);ready_=nullptr;return false;}
     const auto result=WaitForSingleObject(ready_,5000);
@@ -230,12 +334,12 @@ bool InputService::push(InputEvent e){
     const auto w=write_.load(std::memory_order_relaxed);
     const auto next=(w+1)%static_cast<unsigned>(queue_.size());
     if(next==read_.load(std::memory_order_acquire)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
-        if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
+        if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         request_capture_stop(Removal::ContextLost);
         PostMessageW(owner_,catalog_message,1,0);return false;}
     queue_[w]=std::move(e);write_.store(static_cast<unsigned>(next),std::memory_order_release);
     if(!PostMessageW(owner_,input_message,0,0)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
-        if(consumed_down_&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
+        if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         request_capture_stop(Removal::ContextLost);
         return false;}return true;
 }
@@ -244,8 +348,16 @@ bool InputService::pop(InputEvent& e){const auto r=read_.load(std::memory_order_
     read_.store((r+1)%static_cast<unsigned>(queue_.size()),std::memory_order_release);return true;}
 void InputService::abort(core::v1::End end){
     *completion_=0;*authorized_=0;
-    if(consumed_down_&&!aborted_){aborted_=true;active_end_=end;
+    if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=end;
         push({InputKind::Abort,latest(),generation_,GetTickCount64(),modifiers_,button_,1,end,active_prepared_,active_action_});}
+    if(capture_bridge_)if(auto p=capture_bridge_->pair.load();p&&p->down.generation==generation_){
+        p->aborted=true;if(p->native_move)p->native_phase=NativeMovePhase::Retired;
+        if(p->native_move&&!p->resource_requested){
+            KillTimer(receiver_,gesture_deadline_timer);native_move_=false;capture_pair_=false;
+            active_prepared_.reset();prepared_.store({});
+            if(!prepare_pending_.exchange(true))PostMessageW(owner_,prepare_message,0,0);
+        }
+    }
     request_capture_stop(end==core::v1::End::Deadline?Removal::Deadline:
         (end==core::v1::End::Exit?Removal::Shutdown:(end==core::v1::End::Paused?Removal::ExplicitStop:Removal::ContextLost)));
     // Retain the consumed-button pair until the actual matching UP; no synthetic
@@ -290,12 +402,12 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     if(up(message)&&native_event_is_current(packet.time,self->last_down_))
         self->click_candidate_.release(button(message,packet.mouseData));
     self->point_=(static_cast<std::uint64_t>(static_cast<std::uint32_t>(packet.pt.x))<<32)|static_cast<std::uint32_t>(packet.pt.y);
-    if(self->consumed_down_&&!self->aborted_&&self->stop_requested_)self->abort(core::v1::End::Exit);
-    else if(self->consumed_down_&&!self->aborted_&&self->paused_)self->abort(core::v1::End::Paused);
-    if(self->consumed_down_&&!self->aborted_&&tick>=self->deadline_)self->abort(core::v1::End::Deadline);
+    if((self->consumed_down_||self->native_move_)&&!self->aborted_&&self->stop_requested_)self->abort(core::v1::End::Exit);
+    else if((self->consumed_down_||self->native_move_)&&!self->aborted_&&self->paused_)self->abort(core::v1::End::Paused);
+    if((self->consumed_down_||self->native_move_)&&!self->aborted_&&tick>=self->deadline_)self->abort(core::v1::End::Deadline);
     bool consume=false;
     if(message==WM_MOUSEMOVE){
-        if(self->consumed_down_){
+        if(self->consumed_down_||self->native_move_){
             if(self->allowed(self->generation_)){
                 const auto& p=self->active_prepared_;
                 if(!p||(!self->capture_pair_&&GetForegroundWindow()!=p->source.hwnd))self->abort(core::v1::End::FocusLost);
@@ -303,8 +415,9 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                     self->active_end_,p,self->active_action_,observed_qpc});
             }
             // Observe motion, but let Windows update/route the real cursor.
-            // The matching DOWN was already consumed, so it did not start a
-            // native nonclient Move/Resize loop. Filtering every MOVE can
+            // A consumed DOWN did not start native Move/Resize. Native-first
+            // leaves every early MOVE to Windows and publishes motion only
+            // after real END and CaptureReady. Filtering every MOVE can
             // suppress the system cursor itself; it is not needed to prevent
             // a second native geometry writer. The consumed button's actual
             // UP is still paired below, with the existing finite deadline.
@@ -313,10 +426,11 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         // Waiting for a revoked pair's UP must not freeze hover preparation.
         // The GUI still refuses to prepare while its gesture is active; this
         // event-driven request grants no write authority and starts no timer.
-        if(motion_requests_preparation(self->consumed_down_,self->authorized_->load())&&
+        if(motion_requests_preparation(self->consumed_down_||self->native_move_,self->authorized_->load())&&
             !self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);
-    }else if(down(message)&&!self->consumed_down_&&!self->paused_&&self->healthy_&&self->available_->load()){
-        auto p=self->prepared_.load();const auto mods=modifiers();const auto b=button(message,packet.mouseData);
+    }else if(down(message)&&!self->consumed_down_&&!self->native_move_&&!self->paused_&&self->healthy_&&self->available_->load()){
+        const auto bundle=self->prepared_.load();const auto p=bundle?bundle->prepared:nullptr;
+        const auto mods=modifiers();const auto b=button(message,packet.mouseData);
         // Incomplete/stale preparation passes through. Never hit-test/COM/wait in
         // this callback, and never turn an inactive-window click into activation.
         // This exact-point preparation is invalidated/rebuilt by native
@@ -338,25 +452,49 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             const int clicks=double_click?2:1;
             const auto route=route_down(*p,b,clicks,mods);
             if(route.route!=DownRoute::Pass&&self->next_generation_<(pending_capture_mask-1)){
+                bool routed=false;
                 self->generation_=++self->next_generation_;
                 self->capture_pair_=self->capture_route_enabled_&&route.route==DownRoute::Gesture&&b==1;
+                self->native_move_=native_plain_move_entry(self->capture_route_enabled_,*p,b,clicks,mods,route);
                 *self->authorized_=self->generation_|(self->capture_pair_?pending_capture_mask:0);
-                self->consumed_down_=true;self->aborted_=false;self->button_=b;self->modifiers_=mods;
+                self->consumed_down_=!self->native_move_;self->aborted_=false;self->button_=b;self->modifiers_=mods;
                 self->active_down_stamp_=packet.time;
                 self->active_prepared_=p;self->active_action_=route.action;self->active_end_=core::v1::End::NormalUp;
                 self->deadline_=tick+gesture_deadline_ms;
                 if(self->capture_pair_){
                     InputEvent e{InputKind::Down,packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc};
-                    e.native_message_time=packet.time;self->capture_pending_down_=std::move(e);
-                    consume=PostThreadMessageW(self->thread_id_,capture_request_message,static_cast<WPARAM>(self->generation_),0)!=FALSE;
+                    e.native_message_time=packet.time;
+                    bool pair_prepared=true;
+                    if(self->native_move_){
+                        e.kind=InputKind::NativeMovePending;
+                        const auto pair=bundle->native_pair;bool unassigned=false;
+                        pair_prepared=pair&&!self->capture_bridge_->retired_pair.load()&&
+                            pair->down_assigned.compare_exchange_strong(unassigned,true);
+                        if(pair_prepared){
+                            // Allocated with this exact immutable Prepared on
+                            // the GUI owner. The LL callback only fills/publishes
+                            // this once; it does not allocate a Pair or wait.
+                            pair->native_move=true;pair->down=e;
+                            pair->down_serial=self->capture_bridge_->down_serial.load();pair->deadline=self->deadline_;
+                            pair->request.gesture={e.generation,p->source.hwnd,p->source.pid,p->source.tid,gesture_deadline_ms};
+                            pair->request.gesture.external_stop={GetCurrentProcessId(),self->thread_id_.load(),910};
+                            auto previous=self->capture_bridge_->pair.exchange(pair);
+                            if(previous)self->capture_bridge_->retired_pair.store(std::move(previous));
+                        }
+                    }
+                    const bool published=pair_prepared&&(!self->native_move_||self->push(e));
+                    self->capture_pending_down_=std::move(e);
+                    const bool posted=published&&PostThreadMessageW(self->thread_id_,capture_request_message,static_cast<WPARAM>(self->generation_),0)!=FALSE;
+                    routed=posted;
+                    consume=posted&&!self->native_move_;
                 }else if(SetTimer(self->receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr))
-                    consume=self->push({route.route==DownRoute::Mapped?InputKind::Mapped:InputKind::Down,
+                    routed=consume=self->push({route.route==DownRoute::Mapped?InputKind::Mapped:InputKind::Down,
                         packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc});
-                if(!consume){self->consumed_down_=false;self->capture_pair_=false;self->capture_pending_down_.reset();*self->authorized_=0;self->active_prepared_.reset();
+                if(!routed){self->consumed_down_=false;self->native_move_=false;self->capture_pair_=false;self->capture_pending_down_.reset();*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
             }
         }else self->click_candidate_={};
-    }else if(up(message)&&((self->capture_pair_&&self->consumed_down_&&button(message,packet.mouseData)==self->button_)||
+    }else if(up(message)&&((self->capture_pair_&&(self->consumed_down_||self->native_move_)&&button(message,packet.mouseData)==self->button_)||
         button_up_matches_current_pair(self->consumed_down_,self->button_,
         button(message,packet.mouseData),self->active_down_stamp_,packet.time))){
         up_observation.matching_branch_taken=true;
@@ -365,7 +503,21 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             // ambiguity. It passes through to capture; only queued legacy UP
             // can later establish NormalUp. No native query or fake UP here.
             *self->authorized_=0;
-            if(auto p=self->capture_bridge_->pair.load();p&&p->down.generation==self->generation_)p->up_observed=true;
+            if(auto p=self->capture_bridge_->pair.load();p&&p->down.generation==self->generation_){
+                p->up_observed=true;
+                if(p->native_move&&!p->ready_authorized){
+                    p->aborted=true;p->native_phase=NativeMovePhase::Retired;
+                    auto released=p->down;released.kind=InputKind::NativeMoveReleased;released.point=packet.pt;
+                    released.native_message_time=packet.time;released.hook_observed_qpc=observed_qpc;
+                    // This actual native UP grants no normalized NormalUp or
+                    // late writer permission. A short native drag stays native.
+                    self->push(std::move(released));
+                    if(p->resource_requested)self->abort(core::v1::End::SourceLost);
+                    else {KillTimer(self->receiver_,gesture_deadline_timer);self->native_move_=false;
+                        self->capture_pair_=false;self->active_prepared_.reset();self->prepared_.store({});
+                        if(!self->prepare_pending_.exchange(true))PostMessageW(self->owner_,prepare_message,0,0);}
+                }
+            }
         }else{
         const auto& prepared=self->active_prepared_;DWORD source_pid{};
         const DWORD source_tid=prepared?GetWindowThreadProcessId(prepared->source.hwnd,&source_pid):0;
@@ -397,16 +549,49 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     }
     return consume?1:CallNextHookEx(nullptr,code,message,param);
 }
-void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,LONG child,DWORD,DWORD stamp){
+void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,LONG child,DWORD event_tid,DWORD stamp){
     auto* s=instance_;if(!s)return;
-    if(s->consumed_down_&&native_event_is_current(stamp,s->active_down_stamp_)){const auto& p=s->active_prepared_;
+    if(s->native_move_&&s->capture_bridge_&&s->active_prepared_&&
+       (ev==EVENT_SYSTEM_MOVESIZESTART||ev==EVENT_SYSTEM_MOVESIZEEND)){
+        const auto pair=s->capture_bridge_->pair.load();
+        NativeMoveReceipt receipt{s->generation_,++s->native_receipt_sequence_,ev,event_tid,stamp,hwnd,object,child};
+        if(pair&&pair->native_move&&native_move_receipt_matches(receipt,*s->active_prepared_,s->generation_,s->active_down_stamp_,ev)){
+            try{
+            auto actual=std::make_shared<const NativeMoveReceipt>(receipt);bool accepted=false;
+            if(ev==EVENT_SYSTEM_MOVESIZESTART){
+                std::shared_ptr<const NativeMoveReceipt> absent;
+                accepted=pair->native_start.compare_exchange_strong(absent,actual);
+            }else if(const auto start=pair->native_start.load();start&&native_move_end_follows(*start,receipt)){
+                std::shared_ptr<const NativeMoveReceipt> absent;
+                accepted=pair->native_end.compare_exchange_strong(absent,actual);
+            }
+            if(accepted){auto e=pair->down;e.kind=ev==EVENT_SYSTEM_MOVESIZESTART?InputKind::NativeMoveStart:InputKind::NativeMoveEnd;
+                e.origin=InputOrigin::NativeMoveEvent;e.native_move_receipt=std::move(actual);e.resource_observed_qpc=qpc_now();
+                s->push(std::move(e));}
+            else s->abort(core::v1::End::SourceLost); // duplicate/mismatched lifecycle is not another cancel permit
+            }catch(...){
+                // No exception may escape this Win32 ABI. Do not call a
+                // potentially allocating notification path from the catch.
+                *s->authorized_=0;*s->completion_=0;*s->available_=false;s->healthy_=false;
+                pair->aborted=true;pair->native_phase=NativeMovePhase::Retired;s->capture_bridge_->failed=true;
+                PostThreadMessageW(s->thread_id_,WM_APP+2,static_cast<WPARAM>(s->generation_),static_cast<LPARAM>(core::v1::End::QueueFailure));
+                PostThreadMessageW(s->thread_id_,capture_stop_message,static_cast<WPARAM>(s->generation_),static_cast<LPARAM>(Removal::ContextLost));
+                PostMessageW(s->owner_,catalog_message,1,0);
+            }
+        }
+    }
+    if((s->consumed_down_||s->native_move_)&&native_event_is_current(stamp,s->active_down_stamp_)){const auto& p=s->active_prepared_;
         if(ev==EVENT_SYSTEM_FOREGROUND&&p&&hwnd!=p->source.hwnd&&GetForegroundWindow()!=p->source.hwnd)s->abort(core::v1::End::FocusLost);
         if(ev==EVENT_OBJECT_DESTROY&&p&&hwnd==p->source.hwnd&&object==OBJID_WINDOW&&child==CHILDID_SELF)s->abort(core::v1::End::SourceLost);
         // This production route never takes capture. An observed new capture
         // is an invalidating native interaction, not permission to reclaim it.
         const auto lease=s->capture_context(s->generation_);
         const bool own_capture=lease&&hwnd==lease->overlay;
+        const auto pair=s->capture_bridge_?s->capture_bridge_->pair.load():nullptr;
+        const bool native_source_capture=s->native_move_&&pair&&pair->native_move&&!pair->native_end.load()&&
+            p&&hwnd==p->source.hwnd;
         if(ev==EVENT_SYSTEM_CAPTURESTART&&p&&hwnd&&!own_capture&&
+            !native_source_capture&&
             (GetWindowThreadProcessId(hwnd,nullptr)==p->source.tid||GetAncestor(hwnd,GA_ROOT)==p->source.hwnd))
             s->abort(core::v1::End::FocusLost);
     }
@@ -415,11 +600,11 @@ void CALLBACK InputService::event(HWINEVENTHOOK,DWORD ev,HWND hwnd,LONG object,L
 LRESULT CALLBACK InputService::receiver(HWND w,UINT m,WPARAM wp,LPARAM lp){
     if(m==WM_TIMER&&wp==gesture_deadline_timer&&instance_){
         // A previously queued timer message cannot terminate a newer gesture.
-        if(instance_->consumed_down_&&GetTickCount64()>=instance_->deadline_){
+        if((instance_->consumed_down_||instance_->native_move_)&&GetTickCount64()>=instance_->deadline_){
             KillTimer(w,gesture_deadline_timer);instance_->abort(core::v1::End::Deadline);
-            instance_->consumed_down_=false;instance_->active_prepared_.reset();
+            if(!instance_->capture_pair_){instance_->consumed_down_=false;instance_->native_move_=false;instance_->active_prepared_.reset();}
             instance_->prepared_.store({});}
-        else if(!instance_->consumed_down_)KillTimer(w,gesture_deadline_timer);
+        else if(!instance_->consumed_down_&&!instance_->native_move_)KillTimer(w,gesture_deadline_timer);
         return 0;
     }
     if(m==WM_INPUT&&instance_){RAWINPUT raw{};UINT size=sizeof(raw);
@@ -444,8 +629,12 @@ void InputService::run(){
     RAWINPUTDEVICE key{1,6,RIDEV_INPUTSINK,receiver_};
     const bool raw_ok=receiver_&&RegisterRawInputDevices(&key,1,sizeof(key));
     hook_=SetWindowsHookExW(WH_MOUSE_LL,mouse,wc.hInstance,0);
-    const std::array<DWORD,5> ev{EVENT_SYSTEM_FOREGROUND,EVENT_OBJECT_DESTROY,EVENT_OBJECT_SHOW,EVENT_OBJECT_LOCATIONCHANGE,EVENT_SYSTEM_CAPTURESTART};
-    bool event_ok=true;for(std::size_t i=0;i<ev.size();++i){events_[i]=SetWinEventHook(ev[i],ev[i],nullptr,event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);event_ok=event_ok&&events_[i];}
+    const std::array<DWORD,6> ev{EVENT_SYSTEM_FOREGROUND,EVENT_OBJECT_DESTROY,EVENT_OBJECT_SHOW,EVENT_OBJECT_LOCATIONCHANGE,EVENT_SYSTEM_CAPTURESTART,
+        EVENT_SYSTEM_MOVESIZESTART};
+    // The adjacent START/END pair shares ONE out-of-context hook's sequential
+    // ordering guarantee. This does not invent order with LL/Raw/other hooks.
+    bool event_ok=true;for(std::size_t i=0;i<ev.size();++i){const auto last=ev[i]==EVENT_SYSTEM_MOVESIZESTART?EVENT_SYSTEM_MOVESIZEEND:ev[i];
+        events_[i]=SetWinEventHook(ev[i],last,nullptr,event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);event_ok=event_ok&&events_[i];}
     const bool stop_ok=RegisterHotKey(nullptr,910,MOD_CONTROL|MOD_SHIFT|MOD_NOREPEAT,VK_F11);
     const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);
     capture_route_enabled_=scope.enabled;capture_route_reason_=scope.reason;bool shield_ok=true;
@@ -456,6 +645,12 @@ void InputService::run(){
         operations::GestureShieldCallbacks callbacks;
         callbacks.environment_allowed=[scope]{return scope.enabled&&guest::capture_interactive_medium();};
         callbacks.consumed_down_authorized=[bridge](const auto& request){return bridge->authorized(request);};
+        callbacks.gesture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,false);};
+        callbacks.capture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,true);};
+        callbacks.native_stop_owner_registered=[bridge](const auto& request){
+            return bridge->hotkey_registered&&request.external_stop.process_id==GetCurrentProcessId()&&
+                request.external_stop.thread_id==bridge->owner_tid.load()&&request.external_stop.hotkey_id==910;
+        };
         callbacks.external_stop_owner_registered=[bridge](const auto& request){
             return bridge->hotkey_registered&&request.external_stop_owner_pid==GetCurrentProcessId()&&
                 request.external_stop_owner_tid==bridge->owner_tid.load()&&request.external_stop_hotkey_id==910;
@@ -469,13 +664,16 @@ void InputService::run(){
         if(msg.message==WM_HOTKEY&&msg.wParam==910&&HIWORD(msg.lParam)==VK_F11&&
            (LOWORD(msg.lParam)&(MOD_CONTROL|MOD_SHIFT|MOD_ALT|MOD_WIN))==(MOD_CONTROL|MOD_SHIFT)){
             ++emergency_hotkey_messages_;*available_=false;paused_=true;abort(core::v1::End::Paused);PostMessageW(owner_,catalog_message,2,0);}
-        else if(msg.message==WM_APP+1&&msg.wParam&&consumed_down_&&msg.wParam==generation_)abort(core::v1::End::Paused);
-        else if(msg.message==WM_APP+2&&msg.wParam&&consumed_down_&&msg.wParam==generation_)abort(static_cast<core::v1::End>(msg.lParam));
+        else if(msg.message==WM_APP+1&&msg.wParam&&(consumed_down_||native_move_)&&msg.wParam==generation_)abort(core::v1::End::Paused);
+        else if(msg.message==WM_APP+2&&msg.wParam&&(consumed_down_||native_move_)&&msg.wParam==generation_)abort(static_cast<core::v1::End>(msg.lParam));
         else if(msg.message==capture_request_message){
+            // Native publication retained the previous generation here. The
+            // potentially final shared reference is retired outside the LL ABI.
+            if(capture_bridge_)capture_bridge_->retired_pair.exchange({});
             if(capture_pending_down_&&capture_pending_down_->generation==msg.wParam){
                 const auto pending=std::move(*capture_pending_down_);capture_pending_down_.reset();
                 if(!begin_capture(pending)){
-                    abort(core::v1::End::SourceLost);consumed_down_=false;capture_pair_=false;active_prepared_.reset();prepared_.store({});
+                    abort(core::v1::End::SourceLost);consumed_down_=false;native_move_=false;capture_pair_=false;active_prepared_.reset();prepared_.store({});
                     if(!prepare_pending_.exchange(true))PostMessageW(owner_,prepare_message,0,0);
                 }
             }
@@ -494,6 +692,6 @@ void InputService::run(){
     for(auto h:events_)if(h)UnhookWinEvent(h);
     if(raw_ok){key.dwFlags=RIDEV_REMOVE;key.hwndTarget=nullptr;RegisterRawInputDevices(&key,1,sizeof(key));}
     if(receiver_)DestroyWindow(receiver_);receiver_=nullptr;if(atom)UnregisterClassW(wc.lpszClassName,wc.hInstance);instance_=nullptr;
-    active_prepared_.reset();consumed_down_=false;thread_id_=0;
+    active_prepared_.reset();consumed_down_=false;native_move_=false;thread_id_=0;
 }
 }

@@ -12,6 +12,10 @@ namespace panebind::platform::windows::operations {
 // This owns input-observation/isolation resources, not gesture attribution or
 // authority to cancel or move a foreign window. A queued request is never an
 // isolation-ready fact; callers must wait for the observed IsolationReady event.
+struct GestureShieldExternalStopOwner {
+    DWORD process_id{},thread_id{};
+    int hotkey_id{};
+};
 struct GestureShieldRequest {
     std::uint64_t generation{};
     HWND source{};
@@ -20,6 +24,10 @@ struct GestureShieldRequest {
     // Internal per-gesture bounded escape deadline, not a user performance SLA.
     // The default and maximum remain 30 s; no caller may disable or extend it.
     std::uint32_t isolation_timeout_ms{30000};
+    // Optional already-registered emergency owner for a native handoff. The
+    // resource verifies the typed receipt; a conflicting registration is not
+    // treated as success. Empty preserves the historical private owner.
+    GestureShieldExternalStopOwner external_stop{};
 };
 
 enum class GestureShieldEntryMode { NativeMoveHandoff, ConsumedDown };
@@ -414,6 +422,9 @@ struct GestureShieldEvent {
     bool hotkey_unregistered{};
     DWORD external_stop_owner_tid{};
     int external_stop_hotkey_id{};
+    // Actual current request, also for NativeMoveHandoff events. The
+    // consumed-DOWN receipt remains separate and is never fabricated.
+    GestureShieldRequest gesture{};
 };
 
 struct GestureShieldCallbacks {
@@ -438,6 +449,7 @@ struct GestureShieldCallbacks {
     // facts; never fill native START/END or call COM/placement from here.
     std::function<bool(const GestureShieldConsumedDownRequest&)> consumed_down_authorized;
     std::function<bool(const GestureShieldConsumedDownRequest&)> external_stop_owner_registered;
+    std::function<bool(const GestureShieldRequest&)> native_stop_owner_registered;
 };
 
 struct GestureShieldStopFacts {

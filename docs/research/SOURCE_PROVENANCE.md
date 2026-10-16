@@ -2503,3 +2503,42 @@ and [EnumChildWindows](https://learn.microsoft.com/en-us/windows/win32/api/winus
 The implementation reuses PaneBind's own Settings capture pattern, not the
 documentation sample code; it records actual pixels only and grants no input
 authority or application PASS. No additional external code or dependency.
+
+### V1 ordinary-Move entry replacement and bounded application follow-up — 2026-10-17
+
+The real fast-DOWN/MOVE/UP failures in Runs `39443acd23034e8fb7bd4eb8d1b2071a`
+and `cb0b735bf4cd4ac0b46374df1bff0ab7` invalidate the assumption that consuming
+ordinary DOWN before asynchronous capture readiness always preserves a short
+native drag. Do not resume after-UP continuous writing to conceal that loss.
+Replace that plain, non-maximized, unmodified Move entry inside the guarded
+guest candidate with the already-researched native START/isolation/one cancel/
+actual END entry. This is a replacement of the failed entry, not a simultaneous
+writer or a new fallback experiment tree. The shared shield, capture lifecycle,
+single input owner and writer remain; other mapped/Ctrl/Resize/maximized entry
+paths are not silently declared repaired. Short input that ends before takeover
+must remain native-only, and still needs actual geometry/UP evidence.
+
+Reused the exact AltSnap and FancyZones source/history records above
+(`5c86416ad21e4b72844a998a746bd3bb0bee5f5d`, GPL reference-only;
+`19c4d805321db86f3634e6968e14dbf25cbba14a`, MIT reference-only), including
+FancyZones' posted START/END handling and its non-START edge cases. Reread the
+existing native-handoff implementation and Microsoft's
+[event constants](https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants),
+[WM_CANCELMODE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-cancelmode)
+and [SendMessageTimeoutW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw).
+A successful cancel call is not an END receipt; WinEvents and mouse packets are
+separate observations. Keep bounded native messaging on the GUI adapter, never
+the LL owner, and keep original DOWN intent separate from actual END geometry.
+No new platform API, external code reuse or license obligation is introduced.
+At this record the replacement is under implementation, not a runtime PASS.
+
+For the unchanged official Code 1.142.0 test asset, inspected the official
+[CLI](https://code.visualstudio.com/docs/configure/command-line#_advanced-cli-options),
+[1.40 software-renderer note](https://code.visualstudio.com/updates/v1_40#_disable-gpu-acceleration)
+and [blank-UI FAQ](https://code.visualstudio.com/docs/supporting/faq#_vs-code-is-blank).
+The guest driver may append the supported `--disable-gpu` option for one bounded
+startup candidate. Existing `0x80070005` child exit has no recorded process type
+and is not proven to be GPU-related. No `--no-sandbox`, token/security changes,
+host installation or persistent Code configuration is authorized by this test;
+the next actual run must report its own product/driver identities and cannot
+claim strict single-variable causality across a changed PaneBind binary.
