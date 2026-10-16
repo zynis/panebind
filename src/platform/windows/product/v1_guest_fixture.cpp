@@ -504,7 +504,9 @@ void key(State& s,WORD code,bool pressed){
     if(!wait([&]{return ((GetAsyncKeyState(code)&0x8000)!=0)==pressed;},500))throw std::runtime_error("test_key_state_not_observed");
 }
 bool authorized_source(State&,HWND);
-void normal_release_with_final_cursor(State&,HWND);
+std::uint64_t number(const std::string&,std::string_view);
+std::uint64_t process_birth(HANDLE);
+void normal_release_with_final_cursor(State&,HWND,std::uint64_t generation=0);
 void button(State& s,bool pressed){
     // A failed insertion remains UNKNOWN and keeps the send ledger pending.
     // Do not let an outer abort attempt a second UP for that same test DOWN.
@@ -547,14 +549,66 @@ void button(State& s,bool pressed){
     if(pressed)s.left_down_send_qpc=qpc;else s.left_up_send_qpc=qpc;
     receipt();
 }
-void normal_release_with_final_cursor(State& s,HWND h){
+product::guest::CapturedReleaseFacts release_capture_facts(State& s,HWND h,HWND hit,std::uint64_t expected){
+    product::guest::CapturedReleaseFacts facts;facts.expected_generation=expected;
+    facts.source=reinterpret_cast<std::uintptr_t>(h);DWORD source_pid{};
+    facts.source_tid=GetWindowThreadProcessId(h,&source_pid);facts.source_pid=source_pid;facts.hit_root=reinterpret_cast<std::uintptr_t>(hit);
+    facts.product_pid=s.product_pid;facts.product_identity=s.process&&GetProcessId(s.process)==s.product_pid&&
+        WaitForSingleObject(s.process,0)==WAIT_TIMEOUT&&process_birth(s.process)!=0;
+    std::istringstream lines(read(s.product_log));std::string row;
+    while(std::getline(lines,row)){
+        if(!row.ends_with('}')||number(row,"\"process_id\":")!=s.product_pid||
+           row.find("\"source_sha\":"+quote(s.product_source))==row.npos)continue;
+        if(row.find("\"type\":\"gesture_input_resource\"")==row.npos)continue;
+        const auto generation=number(row,"\"generation\":");
+        if(row.find("\"fact\":\"capture_ready\"")!=row.npos){
+            // Any later READY supersedes the earlier generation, even when
+            // its source differs. Do not resurrect an old matching window.
+            facts.generation=generation;facts.ready_source=number(row,"\"source\":");
+            facts.ready_source_pid=number(row,"\"source_pid\":");facts.ready_source_tid=number(row,"\"source_tid\":");
+            facts.overlay=number(row,"\"overlay\":");facts.ready_actual_capture=number(row,"\"capture_actual_after\":");
+            facts.ready_identity=number(row,"\"resource_observed_qpc\":")>=s.left_down_send_qpc&&s.left_down_send_qpc;
+            facts.ready_attempt_succeeded=row.find("\"capture_attempted\":true")!=row.npos&&
+                row.find("\"capture_failure\":0,")!=row.npos&&row.find("\"attach_succeeded\":true")!=row.npos;
+            facts.not_retired=true;
+        }else if(generation&&generation==facts.generation&&
+            (row.find("\"fact\":\"isolation_gone\"")!=row.npos||row.find("\"fact\":\"capture_lost\"")!=row.npos||
+             row.find("\"fact\":\"capture_failure\"")!=row.npos||row.find("\"fact\":\"context_lost\"")!=row.npos||
+             row.find("\"fact\":\"resource_failure\"")!=row.npos||row.find("\"fact\":\"deadline\"")!=row.npos||
+             row.find("\"fact\":\"legacy_left_up\"")!=row.npos||row.find("\"fact\":\"capture_released\"")!=row.npos||
+             row.find("\"fact\":\"thread_detached\"")!=row.npos||
+             (row.find("\"fact\":\"raw_mouse\"")!=row.npos&&(number(row,"\"raw_button_flags\":")&RI_MOUSE_LEFT_BUTTON_UP))))facts.not_retired=false;
+    }
+    const HWND overlay=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(facts.overlay));DWORD overlay_pid{};
+    facts.overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;facts.overlay_pid=overlay_pid;
+    facts.product_identity=facts.product_identity&&IsWindow(overlay)&&GetAncestor(overlay,GA_ROOT)==overlay;
+    GUITHREADINFO source{sizeof(source)},owner{sizeof(owner)};
+    facts.source_gui=facts.source_tid&&GetGUIThreadInfo(static_cast<DWORD>(facts.source_tid),&source)!=FALSE;
+    facts.owner_gui=facts.overlay_tid&&GetGUIThreadInfo(static_cast<DWORD>(facts.overlay_tid),&owner)!=FALSE;
+    facts.source_capture=reinterpret_cast<std::uintptr_t>(source.hwndCapture);facts.owner_capture=reinterpret_cast<std::uintptr_t>(owner.hwndCapture);
+    facts.gui_idle_except_capture=!source.hwndMoveSize&&!source.hwndMenuOwner&&!owner.hwndMoveSize&&!owner.hwndMenuOwner&&
+        !(source.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE))&&
+        !(owner.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE));
+    return facts;
+}
+void normal_release_with_final_cursor(State& s,HWND h,std::uint64_t generation){
     // TEST DRIVER ONLY. Compare one serial final-MOVE/UP insertion with the
     // preserved standalone-UP failures. There is exactly ONE UP, no retry and
     // no product termination fact follows from SendInput's insertion count.
     if(!s.left||s.left_up_attempted)throw std::runtime_error("normal_release_pair_missing_or_UP_already_attempted");
     POINT point{},after{};const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN),
         width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&point)||GetAncestor(WindowFromPoint(point),GA_ROOT)!=h||width<=0||height<=0||
+    const bool point_known=GetCursorPos(&point)!=FALSE;const HWND hit=point_known?GetAncestor(WindowFromPoint(point),GA_ROOT):nullptr;
+    const auto capture=release_capture_facts(s,h,hit,generation);const bool shield_hit=product::guest::captured_release_hit_allowed(capture);
+    const bool source_hit=hit==h&&capture.source_gui&&(!capture.source_capture||capture.source_capture==reinterpret_cast<std::uintptr_t>(h));
+    s.log.emit("normal_release_route_observation","\"expected_generation\":"+std::to_string(generation)+",\"ready_generation\":"+std::to_string(capture.generation)+
+        ",\"source\":"+std::to_string(capture.source)+",\"actual_hit_root\":"+std::to_string(capture.hit_root)+
+        ",\"ready_overlay\":"+std::to_string(capture.overlay)+",\"actual_overlay_pid\":"+std::to_string(capture.overlay_pid)+
+        ",\"actual_overlay_tid\":"+std::to_string(capture.overlay_tid)+",\"source_capture\":"+std::to_string(capture.source_capture)+
+        ",\"overlay_owner_capture\":"+std::to_string(capture.owner_capture)+",\"ready_not_retired\":"+(capture.not_retired?"true":"false")+
+        ",\"exact_current_product_shield_hit\":"+(shield_hit?"true":"false")+",\"direct_source_hit\":"+(source_hit?"true":"false")+
+        ",\"UP_SendInput_not_yet_called\":true");
+    if(!desktop()||!authorized_source(s,h)||GetForegroundWindow()!=h||!point_known||(!source_hit&&!shield_hit)||width<=0||height<=0||
         point.x<x||point.y<y||static_cast<long long>(point.x)>=static_cast<long long>(x)+width||
         static_cast<long long>(point.y)>=static_cast<long long>(y)+height)
         throw std::runtime_error("normal_release_actual_cursor_or_context_unavailable");
@@ -563,6 +617,20 @@ void normal_release_with_final_cursor(State& s,HWND h){
     packets[0].mi.dx=static_cast<LONG>(((static_cast<long long>(point.x-x)*2+1)*65536)/(static_cast<long long>(width)*2));
     packets[0].mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(height)*2));
     packets[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;
+    // The route-observation log is disk IO, not a lease on its earlier facts.
+    // Recheck actual hit/capture/identity once immediately before insertion.
+    POINT fresh_point{};GUITHREADINFO fresh_source{sizeof(fresh_source)},fresh_owner{sizeof(fresh_owner)};DWORD fresh_pid{};
+    const HWND expected_hit=shield_hit?reinterpret_cast<HWND>(static_cast<std::uintptr_t>(capture.overlay)):h;
+    const bool current_source=GetWindowThreadProcessId(h,&fresh_pid)==capture.source_tid&&fresh_pid==capture.source_pid&&
+        GetGUIThreadInfo(static_cast<DWORD>(capture.source_tid),&fresh_source)!=FALSE;
+    const bool current_capture=shield_hit?current_source&&GetWindowThreadProcessId(expected_hit,&fresh_pid)==capture.overlay_tid&&
+        fresh_pid==s.product_pid&&GetGUIThreadInfo(static_cast<DWORD>(capture.overlay_tid),&fresh_owner)&&
+        fresh_source.hwndCapture==expected_hit&&fresh_owner.hwndCapture==expected_hit&&
+        !fresh_source.hwndMoveSize&&!fresh_source.hwndMenuOwner&&!fresh_owner.hwndMoveSize&&!fresh_owner.hwndMenuOwner:
+        current_source&&(!fresh_source.hwndCapture||fresh_source.hwndCapture==h);
+    if(!current_capture||!authorized_source(s,h)||GetForegroundWindow()!=h||!GetCursorPos(&fresh_point)||
+       fresh_point.x!=point.x||fresh_point.y!=point.y||GetAncestor(WindowFromPoint(fresh_point),GA_ROOT)!=expected_hit)
+        throw std::runtime_error("normal_release_route_changed_after_observation_before_UP");
     LARGE_INTEGER before{},finished{};QueryPerformanceCounter(&before);
     // Even a partial insertion must never result in an automatic second UP.
     s.left_up_attempted=true;s.left_up_send_qpc=before.QuadPart>0?before.QuadPart:0;
@@ -684,7 +752,9 @@ bool authorized_source(State&,HWND);
 void foreground(State& s,HWND h){
     if(!authorized_source(s,h))throw std::runtime_error("not_exact_test_created_source");
     const bool result=SetForegroundWindow(h)!=FALSE;
-    s.log.check("foreground_exact_owned_source",result&&wait([&]{return GetForegroundWindow()==h;},1000),"\"api_return\":"+std::string(result?"true":"false"));
+    const bool observed=wait([&]{return GetForegroundWindow()==h;},1000);
+    s.log.check("foreground_exact_owned_source",observed&&authorized_source(s,h),"\"api_return\":"+std::string(result?"true":"false")+
+        ",\"actual_foreground_matches\":"+(observed?"true":"false")+",\"SetForegroundWindow_calls\":1,\"automatic_retry\":false");
 }
 bool launch(State& s,std::wstring args,bool command,DWORD* exit=nullptr){
     std::wstring line=L"\""+s.product.wstring()+L"\""+(args.empty()?L"":L" "+args);STARTUPINFOW si{sizeof(si)};PROCESS_INFORMATION pi{};
@@ -761,7 +831,7 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected,
     try{
         s.log.check("guest_passive_UP_observer_ready",hook_ready,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());
-        normal_release_with_final_cursor(s,source_window(s,source));attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
+        normal_release_with_final_cursor(s,source_window(s,source),g.generation);attempted=s.left_up_attempted;returned=true;if(s.control)key(s,VK_CONTROL,false);
         const bool observed=wait([&]{end=record(s,mark,"gesture_end",g.generation);return end.find("\"normal_up\":true")!=std::string::npos;});
         std::string status;bool status_requested=false,status_observed=false;DWORD status_exit=STILL_ACTIVE;
         if(observed&&evidence_mode==product::guest::UpEvidenceMode::StatusSnapshot){
@@ -774,12 +844,20 @@ void up(State& s,std::size_t source,const Gesture& g,Rect expected,
         const auto& gui=context.actual;const bool gui_read=context.known();const auto actual=visible(source_window(s,source));
         const auto raw_after=raw_mouse_observer_json();const auto actual_LL_UP=actual_up(s,mark,g.generation);
         const product::guest::UpEvidenceIdentity up_identity{s.product_pid,s.product_source,g.generation,s.left_up_send_qpc};
+        std::string captured_legacy,captured_gone;
+        {const auto text=read(s.product_log);std::istringstream rows(mark<text.size()?text.substr(mark):std::string{});std::string row;
+            while(std::getline(rows,row))if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos&&number(row,"\"generation\":")==g.generation){
+                if(row.find("\"fact\":\"legacy_left_up\"")!=row.npos)captured_legacy=row;
+                if(row.find("\"fact\":\"isolation_gone\"")!=row.npos)captured_gone=row;
+            }}
         const bool matching_product_UP=product::guest::accepted_up_evidence(evidence_mode,!actual_LL_UP.empty(),
-            status_requested&&status_observed&&status_exit==0?std::string_view(status):std::string_view{},up_identity);
+            status_requested&&status_observed&&status_exit==0?std::string_view(status):std::string_view{},up_identity,captured_legacy,captured_gone);
         const std::string up_evidence_fields="\"UP_evidence_mode\":"+quote(evidence_mode==product::guest::UpEvidenceMode::StatusSnapshot?"public_status_snapshot":"diagnostic_event")+
             ",\"public_status_requested\":"+(status_requested?"true":"false")+",\"public_status_command_exit\":"+std::to_string(status_exit)+
             ",\"public_status_observed\":"+(status_observed?"true":"false")+",\"single_UP_send_before_qpc\":"+std::to_string(s.left_up_send_qpc)+
-            ",\"matching_product_UP_evidence\":"+(matching_product_UP?"true":"false")+",\"public_status_receipt\":"+(status.empty()?"null":quote(status));
+            ",\"matching_product_UP_evidence\":"+(matching_product_UP?"true":"false")+",\"public_status_receipt\":"+(status.empty()?"null":quote(status))+
+            ",\"actual_captured_legacy_UP_receipt\":"+(captured_legacy.empty()?"null":quote(captured_legacy))+
+            ",\"actual_capture_cleanup_receipt\":"+(captured_gone.empty()?"null":quote(captured_gone));
         const bool hook_stopped=hook_observer.stop();
         s.log.check("guest_passive_UP_observer_removed",hook_stopped,"\"generation\":"+std::to_string(g.generation)+
             ",\"observation\":"+hook_observer.json());

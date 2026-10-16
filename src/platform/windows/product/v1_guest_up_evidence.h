@@ -15,6 +15,21 @@ struct UpEvidenceIdentity {
     std::string_view source_sha;
     std::uint64_t generation{}, send_before_qpc{};
 };
+// TEST-only admission for delivering the single planned UP to an actual
+// current product shield. No HWND/class-name or global capture exemption.
+struct CapturedReleaseFacts {
+    std::uint64_t generation{},expected_generation{},source{},ready_source{},source_pid{},ready_source_pid{},source_tid{},ready_source_tid{};
+    std::uint64_t overlay{},ready_actual_capture{},hit_root{},overlay_pid{},product_pid{},overlay_tid{},source_capture{},owner_capture{};
+    bool product_identity{},ready_identity{},ready_attempt_succeeded{},source_gui{},owner_gui{},gui_idle_except_capture{},not_retired{};
+};
+inline bool captured_release_hit_allowed(const CapturedReleaseFacts& f){
+    return f.generation&&(!f.expected_generation||f.expected_generation==f.generation)&&
+        f.source&&f.source==f.ready_source&&f.source_pid&&f.source_pid==f.ready_source_pid&&
+        f.source_tid&&f.source_tid==f.ready_source_tid&&f.overlay&&f.overlay==f.ready_actual_capture&&
+        f.hit_root==f.overlay&&f.product_pid&&f.overlay_pid==f.product_pid&&f.overlay_tid&&
+        f.source_capture==f.overlay&&f.owner_capture==f.overlay&&f.product_identity&&f.ready_identity&&
+        f.ready_attempt_succeeded&&f.source_gui&&f.owner_gui&&f.gui_idle_except_capture&&f.not_retired;
+}
 namespace up_evidence_detail {
 // Read only the product's bounded, canonical status serialization. Ambiguous
 // fields and changed/missing snapshot structure fail closed; this is not a
@@ -48,6 +63,38 @@ struct Cursor {
         text.remove_prefix(size);return true;
     }
 };
+inline std::optional<std::uint64_t> number(std::string_view row,std::string_view key){
+    const auto value=unique_value(row,key);if(!value)return {};Cursor cursor{*value};std::uint64_t out{};
+    return cursor.number(out)&&cursor.text.empty()?std::optional<std::uint64_t>(out):std::nullopt;
+}
+inline bool receipt(std::string_view row,const UpEvidenceIdentity& expected,std::string_view type){
+    const auto pid=number(row,"\"process_id\":"),generation=number(row,"\"generation\":");
+    return row.size()<=16384&&!row.empty()&&row.front()=='{'&&row.back()=='}'&&row.find_first_of("\r\n")==row.npos&&
+        expected.process_id&&expected.generation&&expected.send_before_qpc&&expected.source_sha.size()==40&&
+        quoted(row,"\"schema\":","panebind-v1/1")&&quoted(row,"\"type\":",type)&&
+        quoted(row,"\"source_sha\":",expected.source_sha)&&pid&&*pid==expected.process_id&&generation&&*generation==expected.generation;
+}
+}
+inline bool matching_clean_captured_up(std::string_view legacy,std::string_view gone,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    const auto qpc=number(legacy,"\"legacy_up_dispatch_qpc\":"),overlay=number(legacy,"\"overlay\":");
+    return receipt(legacy,expected,"gesture_input_resource")&&receipt(gone,expected,"gesture_input_resource")&&
+        quoted(legacy,"\"fact\":","legacy_left_up")&&unique_value(legacy,"\"actual_legacy_up_accepted\":")=="true"&&
+        qpc&&*qpc>=expected.send_before_qpc&&overlay&&*overlay&&number(gone,"\"overlay\":")==overlay&&
+        quoted(gone,"\"fact\":","isolation_gone")&&number(gone,"\"removal_reason\":")==0&&
+        unique_value(gone,"\"overlay_destroyed\":")=="true"&&unique_value(gone,"\"release_attempted\":")=="true"&&
+        unique_value(gone,"\"release_completed\":")=="true"&&unique_value(gone,"\"release_succeeded\":")=="true"&&
+        number(gone,"\"capture_after_release\":")==0&&unique_value(gone,"\"detach_attempted\":")=="true"&&
+        unique_value(gone,"\"detach_completed\":")=="true"&&unique_value(gone,"\"detach_succeeded\":")=="true";
+}
+inline bool matching_idle_status(std::string_view row,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    return row.size()<=16384&&!row.empty()&&row.front()=='{'&&row.back()=='}'&&row.find_first_of("\r\n")==row.npos&&
+        quoted(row,"\"schema\":","panebind-v1/1")&&quoted(row,"\"type\":","status")&&
+        quoted(row,"\"source_sha\":",expected.source_sha)&&number(row,"\"process_id\":")==expected.process_id&&
+        unique_value(row,"\"hook_owner_running\":")=="true"&&unique_value(row,"\"gesture_active\":")=="false"&&
+        unique_value(row,"\"native_operation_pending\":")=="false"&&unique_value(row,"\"native_completion_unknown\":")=="false"&&
+        unique_value(row,"\"visual_restore_pending\":")=="false";
 }
 inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIdentity& expected){
     using namespace up_evidence_detail;
@@ -69,9 +116,10 @@ inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIde
         snapshot.text.empty();
 }
 inline bool accepted_up_evidence(UpEvidenceMode mode,bool matching_diagnostic_event,
-    std::string_view status,const UpEvidenceIdentity& expected){
+    std::string_view status,const UpEvidenceIdentity& expected,std::string_view legacy={},std::string_view gone={}){
     if(mode==UpEvidenceMode::DiagnosticEvent)return matching_diagnostic_event;
-    if(mode==UpEvidenceMode::StatusSnapshot)return matching_status_up_snapshot(status,expected);
+    if(mode==UpEvidenceMode::StatusSnapshot)return matching_status_up_snapshot(status,expected)||
+        (matching_idle_status(status,expected)&&matching_clean_captured_up(legacy,gone,expected));
     return false;
 }
 }
