@@ -139,6 +139,12 @@ bool fixture_rect(HWND h,Rect target){
 }
 struct Log{
     fs::path path;std::uint64_t sequence{};bool failed{};
+    [[nodiscard]] std::uint64_t mark()const{
+        std::ifstream stream(path,std::ios::binary);return product::guest::driver_log_mark(stream);
+    }
+    [[nodiscard]] std::string since(std::uint64_t mark)const{
+        std::ifstream stream(path,std::ios::binary);return product::guest::driver_log_suffix(stream,mark);
+    }
     void emit(std::string_view type,std::string fields){
         std::ofstream out(path,std::ios::app|std::ios::binary);
         out<<"{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"" PANEBIND_BUILD_SHA "\",\"sequence\":"<<++sequence
@@ -2292,7 +2298,7 @@ void cleanup(State& s){
     bool show_requested=false,show_previous=false,visible_after=false,front_called=false,front_return=false,front_observed=false;
     bool client_read=false,converted=false,hit_read=false,down_invoked=false,up_invoked=false,counts_known=false;
     RECT client{};POINT point{};HWND actual_foreground{},hit{};unsigned downs_before{},ups_before{},downs_after{},ups_after{};
-    const auto click_offset=read(s.log.path).size();const auto prior_down_send=s.left_down_send_qpc;
+    const auto click_offset=s.log.mark();const auto prior_down_send=s.left_down_send_qpc;
     if(check_delivery&&selected){auto& f=*selected;
         try{
             // Only a window CREATED by this exact fixture may be shown. This
@@ -2321,8 +2327,8 @@ void cleanup(State& s){
     // button() logs whether SendInput was actually reached, including failure.
     // Entering the branch or a successful product shutdown is NOT execution.
     bool down_record=false,up_record=false,down_called=false,up_called=false;
-    const auto click_bytes=read(s.log.path);if(click_offset<click_bytes.size()){
-        std::istringstream rows(click_bytes.substr(click_offset));std::string line;
+    const auto click_bytes=s.log.since(click_offset);if(!click_bytes.empty()){
+        std::istringstream rows(click_bytes);std::string line;
         while(std::getline(rows,line))if(line.ends_with('}')&&line.find("\"type\":\"test_button_send\"")!=std::string::npos){
             if(line.find("\"requested\":\"DOWN\"")!=std::string::npos){down_record=true;down_called=line.find("\"SendInput_called\":true")!=std::string::npos;}
             if(line.find("\"requested\":\"UP\"")!=std::string::npos){up_record=true;up_called=line.find("\"SendInput_called\":true")!=std::string::npos;}
@@ -2745,15 +2751,15 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
         s.log.check("visual_resume_actual_enabled",wait([&]{return record(s,mark,"status").find("\"enabled\":true")!=std::string::npos;}));};
     s.log.check("visual_pause_command",launch(s,L"--pause",true));visual_exact(s,h,173,true,"visual_pause_restores_actual_original_tuple");resume();
     visual_command(s,h,L"OpacityDown",141,true);visual_toggle_hotkey(s,h,141,false);
-    const auto stop_mark=read_product(s).size(),driver_stop_mark=read(s.log.path).size();
+    const auto stop_mark=read_product(s).size();const auto driver_stop_mark=s.log.mark();
     const auto stopped_pid=s.product_pid;cleanup(s);
     // Earlier independent application failures remain in the global verdict,
     // but do not turn this fresh, actually observed stop into a false failure.
     // Conversely, a forced termination or an older instance's shutdown cannot
     // satisfy this visual-restoration check.
-    std::string stop_receipt;const auto driver_text=read(s.log.path);
-    if(driver_stop_mark<driver_text.size()){
-        std::istringstream rows(driver_text.substr(driver_stop_mark));std::string row;
+    std::string stop_receipt;const auto driver_text=s.log.since(driver_stop_mark);
+    if(!driver_text.empty()){
+        std::istringstream rows(driver_text);std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"product_stop\"")!=std::string::npos)stop_receipt=row;
     }
     const auto stopped=record(s,stop_mark,"shutdown");
@@ -2961,11 +2967,12 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
 #include "platform/windows/product/v1_guest_terminal_case.h"
 void independent_entry_flow(State& s,bool core_and_applications=false){
     const auto phase=[&](const char* name,void(*run)(State&)){
-        independent_entry_ready(s,std::string(name)+".before",true);const auto mark=read(s.log.path).size();bool exception=false;
+        independent_entry_ready(s,std::string(name)+".before",true);const auto mark=s.log.mark();bool exception=false;
         const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         try{run(s);}catch(const std::exception& error){exception=true;s.log.failed=true;
             s.log.emit("independent_entry_phase_failure","\"phase\":"+quote(name)+",\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
-        const auto rows=read(s.log.path).substr(mark);
+        std::string rows,evidence_error;
+        try{rows=s.log.since(mark);}catch(const std::exception& error){exception=true;s.log.failed=true;evidence_error=error.what();}
         const bool failed=exception||rows.find("\"result\":\"FAIL\"")!=rows.npos;
         const bool blocked=rows.find("\"result\":\"BLOCKED")!=rows.npos||rows.find("\"result\":\"ENVIRONMENT_BLOCKED\"")!=rows.npos;
         const bool not_run=rows.find("\"result\":\"NOT_RUN\"")!=rows.npos;
@@ -2986,6 +2993,8 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
                 ",\"phase_Ctrl_was_outstanding\":"+(pending_control?"true":"false")+",\"own_Ctrl_release_sent\":"+(control_sent?"true":"false")+
                 ",\"cleanup_error\":"+quote(cleanup_error)+",\"not_NormalUp_or_delivery_PASS\":true,\"failed_scenario_not_retried\":true");
         }
+        if(!evidence_error.empty())s.log.emit("independent_phase_evidence_unavailable","\"phase\":"+quote(name)+
+            ",\"reason\":"+quote(evidence_error)+",\"failed_scenario_preserved\":true,\"existing_input_cleanup_attempted_first\":true,\"PASS_inferred\":false");
         independent_entry_ready(s,std::string(name)+".after",true);
         s.log.emit("independent_entry_phase_result","\"phase\":"+quote(name)+",\"result\":"+
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
@@ -3009,11 +3018,11 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
     if(s.configuration=="Release"){
         independent_entry_ready(s,"portable.before",true);
         const auto original_pid=s.product_pid;const auto original_birth=process_birth(s.process);const auto original_product=s.product,original_log=s.product_log;
-        const auto portable_mark=read(s.log.path).size();owned_portable_zip_entry_case(s);
+        const auto portable_mark=s.log.mark();owned_portable_zip_entry_case(s);
         // A returned portable case has passed its own normal-stop assertion,
         // even when a separately retained Move failure makes I12 FAIL. Verify
         // that exact current-scope receipt before starting another instance.
-        std::string stopped;std::istringstream rows(read(s.log.path).substr(portable_mark));std::string row;
+        std::string stopped;std::istringstream rows(s.log.since(portable_mark));std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"case\":\"portable_normal_exit_and_actual_input_recovery\"")!=row.npos&&
             row.find("\"stage\":\"normal_no_argument_ZIP_instance\"")!=row.npos)stopped=row;
         const auto portable_pid=number(stopped,"\"exact_product_pid\":"),portable_birth=number(stopped,"\"exact_product_birth\":");GUITHREADINFO gui{sizeof(gui)};

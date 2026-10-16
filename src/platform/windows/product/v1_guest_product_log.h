@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include <istream>
 #include <string>
 #include <string_view>
 #include <stdexcept>
@@ -9,6 +10,27 @@
 #include <vector>
 
 namespace panebind::platform::windows::product::guest {
+
+// TEST driver evidence is append-only, unlike the rotating product log.
+// Bound the requested suffix, not the whole file: a long but finite I11
+// phase must not turn an earlier valid byte mark into substr(empty, mark).
+inline std::uint64_t driver_log_mark(std::istream& stream){
+    stream.seekg(0,std::ios::end);const auto end=stream.tellg();
+    if(!stream||end<std::streampos{})throw std::runtime_error("driver_log_size_unavailable");
+    return static_cast<std::uint64_t>(static_cast<std::streamoff>(end));
+}
+inline std::string driver_log_suffix(std::istream& stream,std::uint64_t mark,std::size_t cap=2*1024*1024){
+    const auto end=driver_log_mark(stream);
+    if(mark>end)throw std::runtime_error("driver_log_mark_after_actual_end");
+    const auto bytes=end-mark;
+    if(bytes>cap)throw std::runtime_error("driver_log_suffix_limit");
+    stream.seekg(static_cast<std::streamoff>(mark),std::ios::beg);
+    std::string result(static_cast<std::size_t>(bytes),'\0');
+    if(bytes)stream.read(result.data(),static_cast<std::streamsize>(bytes));
+    if(!stream||(bytes&&static_cast<std::uint64_t>(stream.gcount())!=bytes))
+        throw std::runtime_error("driver_log_suffix_read_incomplete");
+    return result;
+}
 
 // Only a known ordinary file disappearing between attributes and file_size
 // can consume the existing pair's one retry. Permission and size failures

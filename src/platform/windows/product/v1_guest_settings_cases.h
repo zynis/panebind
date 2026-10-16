@@ -282,9 +282,9 @@ void settings_guest_startup(State& s){
     settings_guest_scope(s);const auto original=settings_guest_configuration(s);const auto expected=L"\""+s.product.wstring()+L"\" --startup";
     if(original.startup||settings_guest_run_value().exists)throw std::runtime_error("startup_test_requires_absent_Run_value_no_unknown_overwrite");
     const auto stop_verified=[&](std::string_view stage){
-        const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read_product(s).size(),driver_mark=read(s.log.path).size();
+        const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto mark=read_product(s).size();const auto driver_mark=s.log.mark();
         cleanup(s);const auto shutdown=record(s,mark,"shutdown");std::string stopped,recovery;bool forced=false;
-        std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
+        std::istringstream rows(s.log.since(driver_mark));std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
             if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
             if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)recovery=row;}
@@ -304,7 +304,10 @@ void settings_guest_startup(State& s){
             if(enabled){
                 const auto paused_gui=gui_open(s);gui_page_select(s,paused_gui,0);const auto toggle=gui_find(s,paused_gui,L"Button",L"启用 PaneBind");
                 if(gui_read(s,paused_gui,toggle,BM_GETCHECK)!=BST_UNCHECKED)gui_click(s,paused_gui,toggle);
-                s.log.check("startup_actual_GUI_saved_disabled_checkbox",gui_read(s,paused_gui,toggle,BM_GETCHECK)==BST_UNCHECKED);gui_save_enter(s,paused_gui);
+                // Focus can already be on this checkbox before its queued UP
+                // toggles BS_AUTOCHECKBOX. Observe the result of that ONE
+                // actual click; never click again or save an old state.
+                s.log.check("startup_actual_GUI_saved_disabled_checkbox",wait([&]{return gui_read(s,paused_gui,toggle,BM_GETCHECK)==BST_UNCHECKED;}));gui_save_enter(s,paused_gui);
                 const auto saved=settings_guest_configuration(s);auto disabled=original;disabled.startup=true;disabled.enabled=false;disabled.generation=saved.generation;
                 const auto run_value=settings_guest_run_value();const auto saved_bytes=read(s.product.parent_path()/L"settings.ini");
                 s.log.check("startup_saved_disabled_and_exact_Run_command",saved==disabled&&run_value.exists&&run_value.type==REG_SZ&&run_value.text==expected);
@@ -583,9 +586,9 @@ void settings_guest_fault_diagnostic(State& s,const SettingsGui& gui,std::string
         s.log.check("settings_after_fault_same_draft_save_succeeds",saved==wanted&&saved.generation>original.generation&&GetFileAttributesW(path.c_str())!=INVALID_FILE_ATTRIBUTES&&
             !(GetFileAttributesW(path.c_str())&FILE_ATTRIBUTE_READONLY),"\"actual_saved_sha256\":"+quote(hash(path)));
         const auto saved_bytes=read(path),saved_hash=hash(path);const auto old_pid=s.product_pid;const auto old_birth=process_birth(s.process);
-        const auto stop_mark=read_product(s).size(),driver_mark=read(s.log.path).size();cleanup(s);
+        const auto stop_mark=read_product(s).size();const auto driver_mark=s.log.mark();cleanup(s);
         const auto shutdown=record(s,stop_mark,"shutdown");std::string input_recovery;bool forced=false;
-        std::istringstream rows(read(s.log.path).substr(driver_mark));std::string row;
+        std::istringstream rows(s.log.since(driver_mark));std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){forced=forced||row.find("\"own_product_forced_termination\":true")!=row.npos;
             if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)input_recovery=row;}
         s.log.check("settings_save_failure_recovery_normal_stop_before_restart",!s.process&&!forced&&number(shutdown,"\"process_id\":")==old_pid&&
@@ -918,8 +921,8 @@ void settings_guest_diagnostic_export_failure(State& s){
         if(restored)fault_may_exist=false;return restored;
     };
     const auto normal_stop=[&](std::string_view stage){
-        if(!s.process)return;const auto pid=s.product_pid;const auto mark=read_product(s).size(),driver_mark=read(s.log.path).size();cleanup(s);
-        const auto shutdown=record(s,mark,"shutdown"),rows=read(s.log.path).substr(driver_mark);
+        if(!s.process)return;const auto pid=s.product_pid;const auto mark=read_product(s).size();const auto driver_mark=s.log.mark();cleanup(s);
+        const auto shutdown=record(s,mark,"shutdown"),rows=s.log.since(driver_mark);
         std::string stopped,client;std::istringstream stop_rows(rows);std::string row;
         while(std::getline(stop_rows,row))if(row.ends_with('}')){
             if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
@@ -1039,12 +1042,12 @@ void settings_guest_diagnostic_export_failure(State& s){
 void settings_guest_corrupt_restart(State& s){
     namespace v=panebind::core::v1;const auto original=settings_guest_configuration(s);const auto path=s.product.parent_path()/L"settings.ini";
     std::vector<fs::path> old_backups;for(const auto& entry:fs::directory_iterator(path.parent_path()))if(entry.path().filename().wstring().starts_with(L"settings.ini.corrupt."))old_backups.push_back(entry.path());
-    const auto stop_mark=read(s.log.path).size(),product_stop_mark=read_product(s).size();const auto stopped_pid=s.product_pid;
+    const auto stop_mark=s.log.mark();const auto product_stop_mark=read_product(s).size();const auto stopped_pid=s.product_pid;
     const bool exact_process_before=s.process&&stopped_pid&&GetProcessId(s.process)==stopped_pid&&process_birth(s.process)&&
         WaitForSingleObject(s.process,0)==WAIT_TIMEOUT;cleanup(s);std::string stopped,input_recovery;bool forced=false;
-    const auto driver_text=read(s.log.path);
-    if(stop_mark<driver_text.size()){
-        std::istringstream rows(driver_text.substr(stop_mark));std::string row;
+    const auto driver_text=s.log.since(stop_mark);
+    if(!driver_text.empty()){
+        std::istringstream rows(driver_text);std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){
             if(row.find("\"type\":\"product_stop\"")!=row.npos)stopped=row;
             if(row.find("\"type\":\"post_stop_actual_client_click\"")!=row.npos)input_recovery=row;

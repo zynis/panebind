@@ -272,7 +272,7 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
     const auto point=layout_hit(set,source,region);if(!point)throw std::runtime_error("layout_real_requested_HT_region_unavailable");
     const auto original_visible=visible(h);RECT original_positioning{};
     if(!original_visible||!GetWindowRect(h,&original_positioning))throw std::runtime_error("layout_pre_DOWN_geometry_unknown");
-    Gesture g{*point,0,0};bool down_sent=false,started=false;std::string start;
+    Gesture g{*point,0,0};bool down_sent=false,started=false,threshold_attempted=false;std::uint64_t pending_generation{};std::string start;
     try{
         // Keep the original 100 ms preparation interval, but actually serve
         // the product's synchronous queries. No Sleep/key/launch gap after it.
@@ -324,7 +324,7 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
                 "\"SetForegroundWindow_return\":"+std::string(foreground_return?"true":"false")+
                 ",\"actual_foreground_matches\":"+(foreground_observed?"true":"false")+",\"test_DOWN_sent\":false,\"maximum_repreparations\":1");
         }
-        button(s,true);down_sent=true;bool threshold_attempted=false;std::uint64_t pending_generation{};
+        button(s,true);down_sent=true;
         started=layout_wait_sent([&]{g.generation=number(record(s,g.offset,"gesture_start"),"\"generation\":");
             if(g.generation)return !pending_generation||g.generation==pending_generation;
             if(!ctrl&&region==HTCAPTION)guest_native_pending_threshold_move(s,h,g.anchor,g.offset,threshold_attempted,pending_generation,
@@ -351,7 +351,41 @@ Gesture layout_down(LayoutFixtures& set,std::size_t source,int region,bool ctrl)
         !native.hwndMoveSize&&!native.hwndMenuOwner&&
         start.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=std::string::npos&&
         start.find(region==HTCAPTION?"\"resize\":false":"\"resize\":true")!=std::string::npos;
-    if(!accepted)layout_failed_start_release(s,g.generation,down_sent);
+    if(!accepted){
+        // Inspect only the already-verified in-memory log cache before cleanup
+        // UP can itself end a native loop. Do not add physical IO while held.
+        std::string facts;bool cached_snapshot_available=false,cached_snapshot_parsed=false;
+        try{
+            // The exact DOWN's native pending receipt wins over an unrelated
+            // gesture_start that might have appeared during the failed wait.
+            const auto actual_generation=pending_generation?pending_generation:g.generation;
+            facts="\"native_pending_generation\":"+std::to_string(pending_generation)+
+                ",\"threshold_MOVE_attempted\":"+(threshold_attempted?"true":"false");
+            constexpr std::array<std::string_view,5> types{
+                "native_move_pending","native_move_start","native_move_cancel","native_move_end","native_move_handoff"};
+            std::array<std::string,types.size()> actuals{};
+            if(actual_generation&&s.product_evidence_path==s.product_log&&s.product_evidence.bound()&&!s.product_evidence.rejected()){
+                if(const auto snapshot=s.product_evidence.since(g.offset)){
+                    cached_snapshot_available=true;
+                    std::istringstream rows{std::string(*snapshot)};std::string row;
+                    while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"generation\":")==actual_generation){
+                        for(std::size_t i=0;i<types.size();++i)
+                            if(row.find("\"type\":"+quote(types[i]))!=row.npos)actuals[i]=row;
+                    }
+                }
+            }
+            for(std::size_t i=0;i<types.size();++i){
+                facts+=",\"actual_"+std::string(types[i])+"\":"+(actuals[i].empty()?"null":quote(actuals[i]));
+            }
+            cached_snapshot_parsed=cached_snapshot_available;
+        }catch(...){/* Evidence read failure must not bypass the one real cleanup UP. */}
+        layout_failed_start_release(s,g.generation,down_sent);
+        if(facts.empty())facts="\"receipt_fields_unavailable\":true";
+        s.log.emit("layout_start_failure_actual_native_receipts",facts+
+            ",\"cached_snapshot_available\":"+(cached_snapshot_available?"true":"false")+
+            ",\"cached_snapshot_parse_complete\":"+(cached_snapshot_parsed?"true":"false")+
+            ",\"pre_UP_physical_log_read\":false,\"emit_after_cleanup_attempt\":true,\"missing_later_receipts_remain_unknown\":true");
+    }
     s.log.check("layout_real_DOWN_production_start",accepted,
         "\"source\":"+std::to_string(source)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
         ",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(set.thread)+

@@ -4,6 +4,7 @@
 #include "platform/windows/product/v1_guest_product_log.h"
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 int main() {
@@ -44,6 +45,20 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    // Exact old failure shape: the valid prefix was below the whole-file
+    // read cap; the completed finite phase crossed it. The actual production
+    // reader must preserve that phase's original verdict, not return empty.
+    const std::string driver_prefix(1900000,'p');
+    const std::string driver_phase=std::string(300000,'q')+"\n{\"result\":\"FAIL\"}\n";
+    std::istringstream driver_stream(driver_prefix);
+    const auto driver_mark=guest::driver_log_mark(driver_stream);
+    driver_stream.str(driver_prefix+driver_phase);driver_stream.clear();
+    if(!expect(guest::driver_log_suffix(driver_stream,driver_mark)==driver_phase,true,"a bounded phase suffix survives a whole driver log over 2 MiB"))return 1;
+    driver_stream.clear();const auto driver_end=guest::driver_log_mark(driver_stream);
+    if(!expect(guest::driver_log_suffix(driver_stream,driver_end).empty(),true,"an actually empty suffix stays empty"))return 1;
+    const auto suffix_rejected=[&](std::uint64_t mark,std::size_t cap){driver_stream.clear();try{(void)guest::driver_log_suffix(driver_stream,mark,cap);return false;}catch(const std::runtime_error&){return true;}};
+    if(!expect(suffix_rejected(driver_end+1,2*1024*1024),true,"truncated or invalid marks fail rather than erase old evidence")||
+       !expect(suffix_rejected(driver_mark,100),true,"requested suffix keeps its own fixed bound"))return 1;
     if(!expect(guest::product_log_metadata_pair_retry_allowed(0,true,{2,std::system_category()},false),true,"plain file then actual Windows file-not-found may recollect one whole pair")||
        !expect(guest::product_log_metadata_pair_retry_allowed(0,true,{3,std::system_category()},false),true,"plain file then actual Windows path-not-found uses the same bounded opportunity")||
        !expect(guest::product_log_metadata_pair_retry_allowed(1,true,{2,std::system_category()},false),false,"persistent metadata not-found cannot gain a third read")||
