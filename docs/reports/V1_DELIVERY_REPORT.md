@@ -2,7 +2,13 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。同一R8产品82d／driver22d的新e5批次已实际通过启动、普通9281ZIP及其他入口组件，托盘不可达使整批FAIL；128f应用批次Terminal缺START、Code无合格根、Edge客户点击无DOM且关闭未确认，driver退出UNKNOWN。34bf两轮owned核心／900秒保留原身份。历史**7/60功能、B29／B32共2/40=5%**不增加，不将分组拼成Full；不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。最新1acb同R8产品82d／drivere3实际取得应用像素和Code启动日志：Terminal启动cmd报错、Code GPU子进程启动失败、Edge白区且点击无DOM；driver退出1已观察，但4后代仍活且发生强制测试清理，不记cleanup PASS。e5入口组件、128f退出UNKNOWN、34bf两轮owned／900秒均保留原身份。历史**7/60功能、B29／B32共2/40=5%**不增加；不能宿主试用，真人UAT PENDING。
+
+## 1acb：应用真实像素与启动失败，driver退出与清理分别判定
+
+[13条关键原行](v1-evidence/1acb-r8-applications-pixels-and-driver-exit-selected.jsonl)绑定产品`82d66a0821e13d49903b9cfd1cf8186193ea5aba`／`C796DDA…ED0DE`、driver`e3b8c826aee27aae0c65b857cf0d3a8097a82b4f`／`37BDEF79…72927`，包装47df；Run `1acb8c6bd6184c5bbf615497bf6bb57a`的完整ZIP／manifest、原件及像素哈希见索引。63仍缺真实START；67单次测试清理UP后69记录精确Terminal子窗、70采集实际矩形像素，已用view_image读取：终端内显示启动`cmd.exe /d /q /k`失败，错误`3489660962 (0xd0000022)`，不是可输入终端通过。Code109真实electron-debug.log有六次`GPU process launch failed: error_code=49`及FATAL，实际命令已有`--disable-gpu`；不由该号猜UIPI或GPU驱动根因。Edge133真实HTCLIENT点击无DOM效果，138实际像素为白区；不能认定与Terminal或Code同因，146正常关闭仍未确认。
+
+156产品退出0及其自身资源回执独立成立。163／164同driver STA的Catalog释放调用边界完成，不声称WinEvent native Unhook返回成功；166只是结束marker，**不是退出证明**。本批另有Release-launch／guest-summary：实际wait0、fixture exit1，退出时仍有4个后代，`forced_test_cleanup=true`、`product_cleanup_pass=false`，不能写成成功退出或以guest销毁补清理PASS。20:33:53Z精确guest12240／任务清理且证据未变。后继driver`59c39b0adcd4baedd9051fde3b50bd4809c2335d`现场仍NOT_RUN，此处不填新构建哈希；产品82d字节不变，不增加功能或B项。
 
 ## 128f＋e5：同一产品的应用失败与入口复验分开
 

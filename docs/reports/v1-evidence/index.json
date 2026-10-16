@@ -197,7 +197,34 @@
     "portable_ordinary_entry": "NOT_RUN",
     "old_af0_results_rebound": false
   },
+  "next_driver_runtime_candidate": {
+    "source_sha": "59c39b0adcd4baedd9051fde3b50bd4809c2335d",
+    "product_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+    "product_binary_unchanged": true,
+    "runtime_validation": "NOT_RUN",
+    "binary_build_identity_not_yet_recorded": true,
+    "scope": "Driver-only follow-up; do not rebind 1acb/e3 observed evidence or infer build completion"
+  },
   "latest_runtime_observation": {
+    "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+    "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+    "driver_source_sha": "e3b8c826aee27aae0c65b857cf0d3a8097a82b4f",
+    "driver_binary_sha256": "37BDEF7903032181F719B4897801BC26F0106A84A9C2A862C22061054DA72927",
+    "run_id": "1acb8c6bd6184c5bbf615497bf6bb57a",
+    "configuration": "Release",
+    "packaging_head": "47df9de96fe13131136a88fedc7b52da7f46707f",
+    "package_zip_sha256": "319EE39B98159BB9F49DFC0A78CB50723207D063E9C29F4769A1B62A4F431960",
+    "package_manifest_sha256": "D56DB4212B28B08483F9013CF12E1034EACF84710D6B93EAF9B73F61FFC62678",
+    "collection_path": "uat/v1-control/1acb8c6bd6184c5bbf615497bf6bb57a/collection-20261016T203107451Z-13461cefb9f34bb6b5afc58f1d28a3bd",
+    "observation_id": "PO-1ACB-R8-APPLICATION-PIXELS-AND-DRIVER-EXIT",
+    "scope": "APPLICATIONS_FAIL_DRIVER_EXIT1_OBSERVED_FOUR_DESCENDANTS_FORCED_TEST_CLEANUP",
+    "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+    "descendants_alive_at_fixture_exit": 4,
+    "forced_test_cleanup": true,
+    "product_cleanup_pass": false,
+    "new_feature_or_B_PASS": false
+  },
+  "latest_entry_runtime_observation": {
     "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
     "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
     "driver_source_sha": "22d6e601a444d4af0ca853459abfb3168b661dd7",
@@ -261,6 +288,72 @@
     "D08_closed": false
   },
   "records": [
+    {
+      "evidence_id": "EV-1ACB-R8-APPLICATION-PIXELS-AND-DRIVER-EXIT",
+      "run_id": "1acb8c6bd6184c5bbf615497bf6bb57a",
+      "configuration": "Release",
+      "suite": "ApplicationsOnly",
+      "product_source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
+      "product_binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
+      "driver_source_sha": "e3b8c826aee27aae0c65b857cf0d3a8097a82b4f",
+      "driver_binary_sha256": "37BDEF7903032181F719B4897801BC26F0106A84A9C2A862C22061054DA72927",
+      "packaging_head": "47df9de96fe13131136a88fedc7b52da7f46707f",
+      "package_zip_sha256": "319EE39B98159BB9F49DFC0A78CB50723207D063E9C29F4769A1B62A4F431960",
+      "package_manifest_sha256": "D56DB4212B28B08483F9013CF12E1034EACF84710D6B93EAF9B73F61FFC62678",
+      "original_path": "uat/v1-control/1acb8c6bd6184c5bbf615497bf6bb57a/collection-20261016T203107451Z-13461cefb9f34bb6b5afc58f1d28a3bd/1acb8c6bd6184c5bbf615497bf6bb57a-release-fixture.jsonl",
+      "original_sha256": "B7CDC4BA8A46DD66A068F36A2FD45BE09BB9346FA59D71EB583577401A084DA2",
+      "original_bytes": 88635,
+      "original_rows": 166,
+      "excerpt_path": "docs/reports/v1-evidence/1acb-r8-applications-pixels-and-driver-exit-selected.jsonl",
+      "excerpt_sha256": "FE37E225C409FA8831A02C9FB4B8A3D8342FC9B5A4687845FE73F5B24F9C6AF6",
+      "excerpt_bytes": 14347,
+      "excerpt_sequences": [
+        13,
+        63,
+        67,
+        69,
+        70,
+        109,
+        133,
+        138,
+        146,
+        156,
+        163,
+        164,
+        166
+      ],
+      "excerpt_contains_identity_header": true,
+      "projection_policy": "Literal original JSON records and64-bit integer tokens preserved; per-original-line SHA256 without newline; only repository wrapper added",
+      "scope_result": "APPLICATIONS_FAIL_DRIVER_EXIT1_OBSERVED_FOUR_DESCENDANTS_FORCED_TEST_CLEANUP",
+      "launch_receipt": {
+        "path": "uat/v1-control/1acb8c6bd6184c5bbf615497bf6bb57a/collection-20261016T203107451Z-13461cefb9f34bb6b5afc58f1d28a3bd/1acb8c6bd6184c5bbf615497bf6bb57a-Release-launch.json",
+        "sha256": "BD4122887D9FFEF02977C939431B606A16249208EF5305CDE395D779F3134BB2",
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 4,
+        "forced_test_cleanup": true,
+        "product_cleanup_pass": false
+      },
+      "pixel_inspection": {
+        "method": "ACTUAL_LOCAL_view_image_OF_HASH_BOUND_BMP",
+        "Terminal": {
+          "sha256": "2081C3B55CEC30362CD48BA99AA4AB7B1440A738E7FFB4988EB971530630F5A3",
+          "visible_text": "启动cmd.exe时错误3489660962(0xd0000022)",
+          "function_PASS_inferred": false
+        },
+        "Edge": {
+          "sha256": "DFFAEB41CE97A44AB087B9E7951CDC39CAC832EA56C8A009C5B9D143FB4314F2",
+          "observed": "captured visible rectangle is white",
+          "function_PASS_inferred": false
+        },
+        "common_cause_inferred": false
+      },
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "exact_guest_task_cleaned": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
     {
       "evidence_id": "EV-128F-R8-APPLICATION-FAILURES-AND-DRIVER-EXIT-UNKNOWN",
       "run_id": "128f2aeb03494807becac60d68067cbb",
