@@ -655,6 +655,14 @@ public:
     }
     void command(v::Action action,std::optional<Snapshot> target={});
     void prepare();
+    void refresh_idle_catalog(){
+        if(!idle_catalog_observation_allowed(gesture.has_value(),writer.has_pending_native_operation()))return;
+        const auto front=GetForegroundWindow();
+        // This is a read-only last-target observation, not an operation's
+        // declared tracking-limit admission or issued-call postverification.
+        if(auto target=catalog.get(front,settings,nullptr,false,false))last_target=*target;
+        prepare();
+    }
     void begin(const InputEvent&);
     bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation)const {
         return geometry_gui_context_allowed(source,observe_gui_context(source),input.capture_context(generation),
@@ -1654,7 +1662,11 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
         switch(message){
         case prepare_message:a->prepare();return 0;
         case input_message:a->consume();return 0;
-        case native_completion_message:a->log_delayed_completions();return 0;
+        case native_completion_message:
+            a->log_delayed_completions();
+            // A skipped catalog notification is resumed only by the actual
+            // completion event; another still-pending call keeps it deferred.
+            a->refresh_idle_catalog();return 0;
         case WM_TIMER:if(a->gesture&&a->gesture->restore_timer==static_cast<UINT_PTR>(wp))a->restore_timeout(static_cast<UINT_PTR>(wp));
             else a->seam_timeout(static_cast<UINT_PTR>(wp));return 0;
         case catalog_message:{
@@ -1663,7 +1675,7 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                     std::to_string(a->input.emergency_hotkey_messages()));}
             else if(wp==1){a->input.revoke();a->finish(v::End::QueueFailure);a->notify(L"输入队列故障，已停止增强；请暂停后恢复。");}
             if(a->gesture&&a->gesture->restore_pending)a->restore_progress();
-            if(!a->gesture){const auto front=GetForegroundWindow();if(auto target=a->catalog.get(front,a->settings))a->last_target=*target;a->prepare();}
+            a->refresh_idle_catalog();
             return 0;}
         case tray_message:
             if(LOWORD(lp)==WM_CONTEXTMENU||LOWORD(lp)==WM_RBUTTONUP)a->menu();

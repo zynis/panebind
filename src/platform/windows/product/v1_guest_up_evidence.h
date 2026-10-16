@@ -48,17 +48,25 @@ struct ActorStartCaptureReceipt {
     std::uint64_t version{},parent_pid{},parent_birth{},child_pid{},child_birth{},product_birth{},down_qpc{},ready_qpc{};
     CapturedReleaseFacts capture;
     std::array<char,65> product_image_sha256{};
+    bool no_up_or_end_observed_before_ack{};
 };
 inline bool actor_start_capture_receipt_matches(const ActorStartCaptureReceipt& receipt,
     std::uint64_t parent_pid,std::uint64_t parent_birth,std::uint64_t child_pid,std::uint64_t child_birth){
     bool hash_known=receipt.product_image_sha256[64]=='\0';
     for(std::size_t i=0;i<64;++i){const char c=receipt.product_image_sha256[i];
         hash_known=hash_known&&((c>='0'&&c<='9')||(c>='A'&&c<='F'));}
-    return receipt.version==1&&parent_pid&&parent_birth&&child_pid&&child_birth&&
+    return receipt.version==2&&parent_pid&&parent_birth&&child_pid&&child_birth&&
         receipt.parent_pid==parent_pid&&receipt.parent_birth==parent_birth&&
         receipt.child_pid==child_pid&&receipt.child_birth==child_birth&&receipt.product_birth&&
-        receipt.down_qpc&&receipt.ready_qpc>=receipt.down_qpc&&hash_known&&
+        receipt.down_qpc&&receipt.ready_qpc>=receipt.down_qpc&&hash_known&&receipt.no_up_or_end_observed_before_ack&&
         receipt.capture.expected_generation==receipt.capture.generation&&captured_release_route_allowed(receipt.capture);
+}
+// This is the bounded TEST producer's insertion ledger, not a physical-held
+// claim or product authority. An independent thread's asynchronous key-state
+// query cannot substitute for a matching actual UP receipt (or mint one).
+inline bool actor_single_move_may_be_sent(unsigned down_inserted,unsigned move_calls,unsigned up_calls,
+    bool matching_start_ready,bool exact_actual_context){
+    return down_inserted==1&&move_calls==0&&up_calls==0&&matching_start_ready&&exact_actual_context;
 }
 namespace up_evidence_detail {
 // Read only the product's bounded, canonical status serialization. Ambiguous

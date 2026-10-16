@@ -110,6 +110,7 @@ int input_actor_child(int count,LPWSTR* args){
     DWORD cursor_error{},move_error{};UINT move_inserted{},cursor_observations{};POINT actual_after{};
     product::guest::ActorStartCaptureReceipt capture_receipt{};bool receipt_identity=false,product_live=false,source_exact=false,
         foreground_exact=false,source_gui_known=false,owner_gui_known=false,cursor_unchanged=false,modifiers_released=false,left_still_down=false,capture_context=false;
+    SHORT async_left_value{};bool async_left_queried=false;unsigned own_up_calls{};
     product::guest::CapturedReleaseFacts fresh_capture;
     if(down_inserted==1){
         QueryPerformanceCounter(&ack_before);const std::array<HANDLE,2> waits{start_ack.value,parent.value};
@@ -149,10 +150,15 @@ int input_actor_child(int count,LPWSTR* args){
             fresh_capture.hit_root=cursor_unchanged?reinterpret_cast<std::uintptr_t>(GetAncestor(WindowFromPoint(actual),GA_ROOT)):0;
             modifiers_released=!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&!(GetAsyncKeyState(VK_SHIFT)&0x8000)&&
                 !(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000);
-            left_still_down=(GetAsyncKeyState(VK_LBUTTON)&0x8000)!=0;
+            async_left_value=GetAsyncKeyState(VK_LBUTTON);async_left_queried=true;left_still_down=(async_left_value&0x8000)!=0;
             capture_context=receipt_identity&&product::guest::captured_release_route_allowed(fresh_capture)&&
                 fresh_capture.overlay_tid==capture_receipt.capture.overlay_tid&&input_actor_desktop(static_cast<DWORD>(fresh_capture.overlay_tid),parent_pid);
-            pre_move_context=receipt_identity&&product_live&&source_exact&&foreground_exact&&cursor_unchanged&&modifiers_released&&left_still_down&&capture_context;
+            // Preserve the actual Async result, including a clear high bit.
+            // This actor emits synthetic input, not a physical press, and an
+            // independent queue may also receive zero on query failure. Do
+            // not convert either reading into an actual UP or a held claim.
+            pre_move_context=product::guest::actor_single_move_may_be_sent(down_inserted,move_attempted?1u:0u,own_up_calls,
+                receipt_identity,product_live&&source_exact&&foreground_exact&&cursor_unchanged&&modifiers_released&&capture_context);
             if(pre_move_context){
                 move_attempted=true;QueryPerformanceCounter(&before_move);
                 move_inserted=SendInput(1,&packets[1],sizeof(INPUT));move_error=move_inserted==1?0:GetLastError();QueryPerformanceCounter(&after);
@@ -177,10 +183,15 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"capture_receipt_generation\":"+std::to_string(capture_receipt.capture.generation)+",\"capture_receipt_product_PID\":"+std::to_string(capture_receipt.capture.product_pid)+
         ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_ready_qpc\":"+std::to_string(capture_receipt.ready_qpc)+
         ",\"capture_receipt_DOWN_qpc\":"+std::to_string(capture_receipt.down_qpc)+",\"actual_product_live_image_birth_Medium\":"+(product_live?"true":"false")+
+        ",\"parent_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
         ",\"actual_source_identity\":"+(source_exact?"true":"false")+",\"actual_foreground_is_source\":"+(foreground_exact?"true":"false")+
         ",\"actual_source_GUI_known\":"+(source_gui_known?"true":"false")+",\"actual_owner_GUI_known\":"+(owner_gui_known?"true":"false")+
         ",\"actual_cursor_unchanged\":"+(cursor_unchanged?"true":"false")+",\"actual_modifiers_released\":"+(modifiers_released?"true":"false")+
         ",\"actual_left_still_down\":"+(left_still_down?"true":"false")+
+        ",\"GetAsyncKeyState_left_raw_SHORT\":"+(async_left_queried?std::to_string(async_left_value):"null")+
+        ",\"GetAsyncKeyState_left_high_bit\":"+(async_left_queried?(left_still_down?"true":"false"):"null")+
+        ",\"Async_failure_or_physical_state_distinguished\":false,\"Async_used_as_held_or_UP_proof\":false"+
+        ",\"own_DOWN_calls\":1,\"own_MOVE_calls\":"+(move_attempted?"1":"0")+",\"own_UP_calls\":"+std::to_string(own_up_calls)+
         ",\"actual_hit_root\":"+std::to_string(fresh_capture.hit_root)+",\"actual_overlay\":"+std::to_string(fresh_capture.overlay)+
         ",\"actual_overlay_PID\":"+std::to_string(fresh_capture.overlay_pid)+",\"actual_overlay_TID\":"+std::to_string(fresh_capture.overlay_tid)+
         ",\"actual_source_capture\":"+std::to_string(fresh_capture.source_capture)+",\"actual_owner_capture\":"+std::to_string(fresh_capture.owner_capture)+
@@ -264,6 +275,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             auto capture=release_capture_facts(s,source,GetAncestor(WindowFromPoint(*point),GA_ROOT),g.generation);
             const auto down_qpc=number(actual_down,"\"hook_observed_qpc\":"),ready_qpc=number(actual_ready,"\"resource_observed_qpc\":");
             capture.ready_identity=capture.ready_identity&&down_qpc&&ready_qpc>=down_qpc;
+            const bool no_up_or_end=actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&capture.not_retired;
             ack_ready=g.generation&&number(actual_start,"\"process_id\":")==product_pid&&number(actual_start,"\"key\":")==expected_key&&
                 actual_start.find("\"source_sha\":"+quote(s.product_source))!=actual_start.npos&&
                 actual_down.find("\"source_sha\":"+quote(s.product_source))!=actual_down.npos&&
@@ -272,12 +284,13 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
                 number(actual_down,"\"source_key\":")==expected_key&&number(actual_down,"\"button\":")==1&&
                 actual_down.find("\"kind\":\"DOWN\"")!=actual_down.npos&&actual_down.find("\"source\":\"WH_MOUSE_LL\"")!=actual_down.npos&&
                 number(actual_down,"\"hook_observed_qpc\":")&&set.owns(0)&&visible(source)==initial&&GetForegroundWindow()==source&&
-                actual_up(s,offset,g.generation).empty()&&record(s,offset,"gesture_end",g.generation).empty()&&
+                no_up_or_end&&
                 product::guest::captured_release_route_allowed(capture)&&process_birth(s.process)==product_birth;
             if(ack_ready){
-                capture_receipt.version=1;capture_receipt.parent_pid=GetCurrentProcessId();capture_receipt.parent_birth=process_birth(GetCurrentProcess());
+                capture_receipt.version=2;capture_receipt.parent_pid=GetCurrentProcessId();capture_receipt.parent_birth=process_birth(GetCurrentProcess());
                 capture_receipt.child_pid=child.dwProcessId;capture_receipt.child_birth=child_birth;capture_receipt.product_birth=product_birth;
                 capture_receipt.down_qpc=down_qpc;capture_receipt.ready_qpc=ready_qpc;capture_receipt.capture=capture;
+                capture_receipt.no_up_or_end_observed_before_ack=no_up_or_end;
             }
             return ack_ready;
         },5000);
@@ -292,6 +305,7 @@ void owned_input_actor_exit(State& s,LayoutFixtures& set,DWORD product_pid,std::
             "\"generation\":"+std::to_string(g.generation)+",\"expected_source_key\":"+std::to_string(expected_key)+
             ",\"current_product_PID\":"+std::to_string(product_pid)+",\"actual_DOWN\":"+quote(actual_down)+",\"actual_START\":"+quote(actual_start)+
             ",\"actual_CaptureReady\":"+quote(actual_ready)+",\"immutable_capture_receipt_written\":"+(capture_written?"true":"false")+
+            ",\"actual_no_UP_or_END_observed_before_ack\":"+(capture_receipt.no_up_or_end_observed_before_ack?"true":"false")+
             ",\"capture_receipt_product_birth\":"+std::to_string(capture_receipt.product_birth)+",\"capture_receipt_product_sha256\":"+quote(product_hash)+
             ",\"capture_receipt_overlay\":"+std::to_string(capture_receipt.capture.overlay)+",\"capture_receipt_owner_tid\":"+std::to_string(capture_receipt.capture.overlay_tid)+
             ",\"capture_receipt_source_capture\":"+std::to_string(capture_receipt.capture.source_capture)+",\"capture_receipt_owner_capture\":"+std::to_string(capture_receipt.capture.owner_capture)+

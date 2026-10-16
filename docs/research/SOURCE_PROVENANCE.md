@@ -2447,3 +2447,24 @@ not product input or window authority. Original copyright/license/NOTICE are
 retained with the internal asset; it is not included in PaneBind's source or
 portable product distribution. Guest activation and functional validation for
 this new asset are **NOT_RUN**, not inferred from the signature or ZIP checks.
+
+### V1 one-shot test actor asynchronous-key-state contract — 2026-10-17
+
+Rechecked Microsoft's official
+[GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate),
+[AttachThreadInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-attachthreadinput)
+and [GetKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getkeystate)
+contracts for Run `62591991e03f406ba66ced2fff997329`'s independent guest test
+actor. Async high-bit state is not a matching UP receipt: zero can also result
+from documented desktop/UIPI/foreground-thread access failures. The association
+documentation explicitly identifies resets of GetKeyState/GetKeyboardState;
+it does not establish that association caused this observed Async result.
+The driver retains the actual SHORT/high-bit diagnostic, without claiming a
+physical press or release. Its one TEST MOVE instead requires its single DOWN
+insertion ledger, actual matching START/Ready and parent no-UP/no-END snapshot,
+plus fresh exact process/window/capture/foreground facts. Native movement,
+actual termination and cleanup remain separate required observations. This
+changes neither product input authority nor NormalUp evidence. Revision/commit:
+N/A (official API documentation, not inspected implementation code); no
+external code was downloaded, copied or adapted, and no new attribution or
+software redistribution right is implied.

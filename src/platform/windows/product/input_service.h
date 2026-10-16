@@ -117,6 +117,12 @@ inline bool retire_revoked_pair_for_down(bool consumed,std::uint64_t authority,
         incoming_button==paired_button&&native_event_is_current(new_down,old_down);
 }
 inline bool motion_requests_preparation(bool consumed,std::uint64_t authority){return !consumed||authority==0;}
+// Catalog notifications may outlive the gesture which issued a native call.
+// Observation must wait for that real completion, not probe a still-blocked
+// source merely because the GUI has already retired its gesture state.
+inline bool idle_catalog_observation_allowed(bool gesture_active,bool native_pending){
+    return !gesture_active&&!native_pending;
+}
 inline bool button_up_matches_current_pair(bool consumed,int paired_button,int incoming_button,DWORD down_stamp,DWORD up_stamp){
     return consumed&&paired_button>=1&&paired_button<=5&&incoming_button==paired_button&&
         native_event_is_current(up_stamp,down_stamp);

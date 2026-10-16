@@ -244,6 +244,14 @@ int main() {
     check(product::motion_requests_preparation(true,0)&&product::motion_requests_preparation(false,0)&&
           !product::motion_requests_preparation(true,17),
           "actual revoked waiting-pair MOVE refreshes preparation while an authorized gesture does not");
+    check(!product::idle_catalog_observation_allowed(false,true),
+          "a retired GUI gesture cannot probe its source while the issued native call is still pending");
+    check(product::idle_catalog_observation_allowed(false,false),
+          "actual completion permits the same idle catalog refresh skipped during the issued call");
+    check(!product::idle_catalog_observation_allowed(true,false),
+          "an unrelated completion does not replace the active gesture's prepared source");
+    check(!product::idle_catalog_observation_allowed(true,true),
+          "an active gesture with pending native work remains outside idle observation");
     // This is the production guard predicate, including the formerly unsafe
     // normal-UP completion route. Follow the actual receive/dispatch order.
     std::uint64_t active=1,completion=0;

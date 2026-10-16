@@ -103,9 +103,10 @@ int main() {
     if(!expect(guest::captured_release_route_allowed(rejected),false,"source spatial hit does not revive an old generation"))return 1;
     rejected=source_spatial;rejected.hit_root=201;
     if(!expect(guest::captured_release_route_allowed(rejected),false,"foreign spatial hit remains rejected even while own capture is held"))return 1;
-    guest::ActorStartCaptureReceipt actor;actor.version=1;actor.parent_pid=10;actor.parent_birth=101;
+    guest::ActorStartCaptureReceipt actor;actor.version=2;actor.parent_pid=10;actor.parent_birth=101;
     actor.child_pid=20;actor.child_birth=201;actor.product_birth=421;actor.down_qpc=1000;actor.ready_qpc=1001;actor.capture=source_spatial;
     actor.product_image_sha256.fill('A');actor.product_image_sha256[64]='\0';
+    actor.no_up_or_end_observed_before_ack=true;
     const auto actor_match=[&](const guest::ActorStartCaptureReceipt& actual){return guest::actor_start_capture_receipt_matches(actual,10,101,20,201);};
     if(!expect(actor_match(actor),true,"one immutable exact parent child START capture receipt is structurally bound"))return 1;
     auto old_actor=actor;old_actor.child_birth=202;
@@ -118,6 +119,16 @@ int main() {
     if(!expect(actor_match(old_actor),false,"actor START ack cannot waive actual foreign capture"))return 1;
     old_actor=actor;old_actor.product_image_sha256[0]='\0';
     if(!expect(actor_match(old_actor),false,"incomplete product hash cannot bind an actor capture receipt"))return 1;
+    old_actor=actor;old_actor.no_up_or_end_observed_before_ack=false;
+    if(!expect(actor_match(old_actor),false,"missing actual parent no-UP no-END fact refuses a MOVE acknowledgement"))return 1;
+    old_actor=actor;old_actor.version=1;
+    if(!expect(actor_match(old_actor),false,"old receipt without the no-UP observation contract is rejected")||
+       !expect(guest::actor_single_move_may_be_sent(1,0,0,true,true),true,"one synthetic DOWN plus actual START READY and fresh context permits one test MOVE, not a physical-held claim")||
+       !expect(guest::actor_single_move_may_be_sent(0,0,0,true,true),false,"an unknown or failed synthetic DOWN cannot issue MOVE")||
+       !expect(guest::actor_single_move_may_be_sent(1,1,0,true,true),false,"the one-shot actor cannot replay MOVE")||
+       !expect(guest::actor_single_move_may_be_sent(1,0,1,true,true),false,"an actor that already attempted UP cannot issue MOVE")||
+       !expect(guest::actor_single_move_may_be_sent(1,0,0,false,true),false,"the send ledger cannot replace actual START READY evidence")||
+       !expect(guest::actor_single_move_may_be_sent(1,0,0,true,false),false,"the send ledger cannot waive changed foreground identity or capture"))return 1;
     const std::string legacy=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"legacy_left_up","overlay":200,"actual_legacy_up_accepted":true,"legacy_up_dispatch_qpc":1001})";
     const std::string gone=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"gesture_input_resource","generation":7,"fact":"isolation_gone","overlay":200,"removal_reason":0,"overlay_destroyed":true,"release_attempted":true,"release_completed":true,"release_succeeded":true,"capture_after_release":0,"detach_attempted":true,"detach_completed":true,"detach_succeeded":true})";
     const std::string idle=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","process_id":42,"type":"status","hook_owner_running":true,"gesture_active":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false})";
