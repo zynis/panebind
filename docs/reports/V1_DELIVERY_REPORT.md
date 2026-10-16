@@ -2,9 +2,17 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。最近实际功能现场为同R4=`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`／f072 Release CoreAndApplications，独立idle60实际通过，布局／abort的旧driver假设报错待定向复验，应用矩阵及关闭仍有真实失败，整批FAIL而非Full。此前39443 Debug七代owned闭环保留，快速三包UP几何仍FAIL；不授完整I02或功能PASS。历史R3／866及旧R2的**7/60功能、B29／B32共2/40=5%**保持原实测身份，不换绑R4。D08／完整D23和整版Release／Medium连续链、应用／托盘／显示矩阵未齐，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**，不是 COMPLETE，也不以此主动收口。新产品R5=`afbca181ea9864eae197677b499cd29472465956`已提交abort清理健康判定修复，Debug／Release构建及相关offline通过；新EXE哈希已登记，现场结果尚未知，不复用af0旧EXE或换绑旧日志。最新实际仍是af0／BBB：GUI-ready定向通过，capture-loss abort触发错误healthfalse，后继START／应用准备受同一失效影响；两应用核心对照未执行。历史**7/60功能、B29／B32共2/40=5%**不变；D08／完整D23及D24修复复验、整版连续／应用／托盘／显示门槛仍未齐，不能宿主试用，真人UAT PENDING。
 
-## R4：Release独立组件已运行，驱动假设与真实应用失败分开保留
+## 新R5：abort清理健康修复，构建通过、现场待核验
+
+源码`afbca181ea9864eae197677b499cd29472465956`仅把真实资源owner的no-own-capture观察与实际detach／Gone用于abort清理，未把release=false伪装成API成功，NormalUp仍要求原严格事实。构建目录`out/v1-product-abort-cleanup-afbca18`，Debug／Release product、fixture及10offline目标构建退出0、CTest各10/10通过（D processor3.09／wall3.15秒；R processor1.88／wall3.20秒）。原生CTest output-log为该目录`Debug-offline.log`／`Release-offline.log`，不是各测试程序原stdout；实际产品／driver SHA-256见验收表，新Release产品`F4CE805ED64D2F3DEBC0BB9C532D5C39298001A02D90CAFF9CC9C3894BBD4A51`。新包尚未生成、现场NOT_RUN。旧af0包和下述记录保持原身份。
+
+BBB `bbb795de85e643eca132c3575666c3bf`（af0／e86／Release CoreAndApplications）：[fixture原行](v1-evidence/bbb-r4-ready-and-shared-health-failure-fixture-selected.jsonl)33／36／39／43／45／46真实GUI-ready、命中、modal确认及保存通过；134预览actual矩形和alpha正确，但旧pointer-hit要求FAIL。随后[产品](v1-evidence/bbb-r4-capture-loss-abort-health-product-selected.jsonl)72实际capture_lost早于测试cleanup UP，75 no-own分支未调用ReleaseCapture、77真实detach、78撤罩，80起health字段false；源码确认旧strict清理误判，登记D24待新候选复验，不声称所有hook实际退出。后继START／应用准备不是各自独立根因。
+
+BBB Terminal525仅精确绑定，532因healthfalse准备失败，没有客户命中／Move尝试；Edge584绑定、589进入暂停对照但healthy前置不成立，没有hit查询或客户点击／DOM结果，不能形成Edge原生客户可用性结论。603／616应用关闭未证仍FAIL，不用guest销毁替代。274的真实60.006秒／CPU0.0521%在healthfalse状态下测得，仅保留降级状态测量，不授正常idle或I11 PASS。619fixture／274product各合法连续，精确guest／task清理且证据未变；新产品尚未运行，旧7项及B2不变。
+
+## 历史R4：Release独立组件已运行，驱动假设与真实应用失败分开保留
 
 候选源码`af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6`已将InputService→GestureInputShield→共用writer实际接通；新路线保留精确guest／RunId／包与二进制身份保护，不在普通宿主启用。D23现为`DEV_FIXED_PENDING_TARGETED_RUNTIME`：匹配UP后不再允许新的continuous placement，已发出调用的完成和明确的release DockCommit保持独立语义；这不证明D08已修复。
 

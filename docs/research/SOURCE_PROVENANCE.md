@@ -2398,6 +2398,19 @@ requires the associated deployment log. Notepad remains blocked on obtaining
 an original, normally deployable signed package; no fake-signature repacking,
 Developer Mode change or classic-Notepad substitution was performed.
 
+Official acquisition follow-up reviewed 2026-10-16: Microsoft's
+[Store Web Installer documentation](https://learn.microsoft.com/en-us/windows/apps/distribute-through-store/how-to-use-store-web-installer-for-distribution)
+and [Notepad Store listing, product ID 9MSMLRH6LZF3](https://apps.microsoft.com/detail/9msmlrh6lzf3)
+describe an anonymously obtainable online bootstrap installer, not a complete
+offline MSIX and dependency set. The inspected listing did not supply an
+original deployable package URL. Software revision/commit: **N/A**; no original
+installer binary was obtained or version verified. Only the official
+documentation/listing was inspected; no new installer or implementation code
+was downloaded, copied, adapted or run. This inspection grants no Microsoft
+software redistribution license and does not resolve the missing original
+signed deployable Notepad test package. Applicable subsystem: isolated test
+asset acquisition; no product behavior or acceptance result changes.
+
 ### V1 official Windows Terminal portable test asset — 2026-10-16
 
 Inspected Microsoft's official, mature production application distribution,
