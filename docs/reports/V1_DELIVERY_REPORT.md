@@ -2,9 +2,13 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。当前新候选187已接生产资源准入、实际captured MOVE／DOWN队列及目的display proof，D/R构建和各10项offline通过，**现场NOT_RUN**。中间2b产品／4c驱动已构建但未部署，不能当受测产品。旧82d最新0be2／3fd3的组件结果与失败保持原身份；历史**7/60功能、B29／B32共2/40=5%**不增加、不换绑新EXE。多屏现场仍BLOCKED，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。当前356候选仅补既有早终止三分支诊断，D/R构建和各10offline通过，**runtime NOT_RUN**，不叫修复UP。187/b1a3 Debug Full已实际FAIL：核心I02子scope与g6 Ctrl T Resize exact成立，但UP前已FocusLost；真实LL-UP到达不能当NormalUp。187/28d7 Release仍实际进行中，尚无最终结论。历史**7/60功能、B29／B32共2/40=5%**不变、原身份不换绑；不能宿主试用，真人UAT PENDING。
 
-## 当前187候选：构建完成，等待新包实际运行
+## 当前356诊断候选：构建完成，尚未现场运行
+
+product／driver两配置实际self-identity均`356d9e1b844c3f6d3efba41dd6ed39ca8f118996`，冻结`out/v1-product-termination-origin-r9-356d9e1`；D/R combined构建退出0、各10offline通过，D processor3.28／wall3.34秒，R processor1.44／wall2.63秒。D产品`5034AFD5E3672C7EE632DEBDA1880A18C76C2939ED1732139C09E0153FF37071`／driver`641DD0CD5FFFC31F7BAB01C59FA9C51469A2EA8F00FBEE07408EF812E868F5BD`；R产品`49D92161FB72179DBFE9B47236DE3CB1E8759B87E5BA427EFB8C57E8DAB94EBE`／driver`F898D300EADEDBAC324444A85A29CB7012C8766FB775DC06B76B9611A8AEDD1F`。原生CTest output-log SHA D `B9C964FB85AD64FF80D6F874FBCD3F36611BA4D74E5CBE5E6C416CF535054741`／R `646991EF391406CD0BA44054F67DA0F50F13FA2AD4E26311F3B6393F8D2FD4B7`。仅诊断、撤权先于观察／GUI日志，不改原三分支判定；不是逐测试原stdout或现场PASS。187/b1a3关键原行已入索引，FocusLost后实际LL-UP不补成NormalUp；28d7仍进行中，原现场身份不换绑。
+
+## 187运行前构建记录（后继b1a3已实测，Release进行中）
 
 源码／product与driver self-identity均为`187616742a1b7195ce46dce6d9df881b413975e6`，冻结目录`out/v1-product-input-display-r9-1876167`；D/R构建退出0、各10offline PASS，D processor2.98／wall3.04秒、R processor1.58／wall2.83秒。D产品`47C6B5ED47E7A469BF446F4BD006A34A2AAF3C92F39A05B14A51FCD01D7FDDB0`／driver`3EB70587CD05E7D735AB0A4BC9F0C6179FEAD5B65429BD9DA9C9640E0C231BCE`；R产品`D4E0EA86219FF2AC48A3F91C45A77A726622A7CF6576DA8584F4ECE5C075BE64`／driver`8FB159A6D264360275FB5EEFA80B4A6A20BFD2F81AF1117FF3D9EA901689B029`。原生CTest output-log SHA D `DF5436F78B79584C1CB898BBB4AB4A39971D258C52D3F884AE9D8A3AE84060CB`／R `722C2200CF0527853A66BADE82082FAEBC1E440B2610C96820D4754A0491CE58`；不是逐测试原stdout或现场功能证据。
 
