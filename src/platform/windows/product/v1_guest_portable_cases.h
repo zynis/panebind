@@ -74,7 +74,7 @@ void owned_portable_zip_entry_case(State& s){
     const auto ready=read(s.output/(s.run+L"-portable-ready.marker"),512);std::istringstream lines(ready);std::array<std::string,6> identity;
     for(auto& line:identity)if(!std::getline(lines,line)||line.find('\r')!=line.npos)throw std::runtime_error("portable_ready_identity_incomplete");
     std::string extra;if(std::getline(lines,extra)||ready.empty()||ready.back()!='\n'||identity[0]!=utf8(s.run)||
-        !portable_hex(identity[1],32,false)||identity[2]!=PANEBIND_BUILD_SHA||!portable_hex(identity[2],40,false)||
+        !portable_hex(identity[1],32,false)||identity[2]!=s.product_source||!portable_hex(identity[2],40,false)||
         !portable_hex(identity[3],64,true)||!portable_hex(identity[4],64,true)||!portable_hex(identity[5],64,true))
         throw std::runtime_error("portable_ready_identity_not_this_build");
     const auto manifest=read(input/L"manifest.json",256*1024);const auto at=manifest.find("\"portable_test\"");

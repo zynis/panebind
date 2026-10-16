@@ -246,7 +246,7 @@ struct ApplicationTarget {
 };
 struct State{
     HINSTANCE instance{};std::wstring run,class_name;fs::path output,input_product,product,product_log;
-    std::string configuration,suite{"Full"};std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
+    std::string configuration,suite{"Full"},product_source;std::array<Frame,3> frames;Log log;std::thread driver;std::atomic<int> result{1};
     HANDLE process{};DWORD product_pid{},owner{};
     // Driver send ledger only: successful insertion is not native delivery or
     // physical button state. A separate product hook receipt proves receipt.
@@ -1441,7 +1441,7 @@ void application_matrix_flow(State& s){
     if(!s.target_catalog)s.target_catalog=std::make_unique<product::Catalog>();
     for(auto& frame:s.frames)if(own(s,frame.hwnd))ShowWindow(frame.hwnd,SW_HIDE);
     std::shared_ptr<ApplicationTarget> browser,editor;
-    const std::array<std::string,4> categories=s.suite=="IndependentEntry"?
+    const std::array<std::string,4> categories=(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications")?
         std::array<std::string,4>{"Terminal","Notepad","VSCode","Edge"}:std::array<std::string,4>{"Notepad","Edge","VSCode","Terminal"};
     for(const auto& kind:categories){
         std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
@@ -1459,7 +1459,7 @@ void application_matrix_flow(State& s){
                 matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
             }
         }catch(const std::exception& error){reason=error.what();s.log.failed=true;}
-        if(!passed&&s.suite=="IndependentEntry"){
+        if(!passed&&(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications")){
             s.log.emit("application_category_failure_preserved","\"application\":"+quote(kind)+",\"reason\":"+quote(reason)+
                 ",\"result\":"+quote(target&&target->accepted?"FAIL":"BLOCKED")+",\"UP_retransmission\":false");
             const bool pending_left=s.left,pending_control=s.control;bool cleanup_up=false,cleanup_control=false;
@@ -2047,7 +2047,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -2158,7 +2158,7 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
     }
 }
 #include "platform/windows/product/v1_guest_terminal_case.h"
-void independent_entry_flow(State& s){
+void independent_entry_flow(State& s,bool core_and_applications=false){
     const auto phase=[&](const char* name,void(*run)(State&)){
         independent_entry_ready(s,std::string(name)+".before",true);const auto mark=read(s.log.path).size();bool exception=false;
         const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
@@ -2190,6 +2190,7 @@ void independent_entry_flow(State& s){
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
+    if(!core_and_applications){
     phase("settings_GUI",settings_gui_flow);
     phase("settings_GUI_diagnostic",owned_settings_diagnostic_case);
     phase("rapid_terminal_motion",owned_rapid_terminal_move);
@@ -2234,6 +2235,7 @@ void independent_entry_flow(State& s){
             ",\"test_setup_not_old_chain_PASS\":true,\"failed_portable_Move_not_retried\":true");
         independent_entry_ready(s,"original_run_copy_restart.after",true);
     }else s.log.emit("independent_entry_phase_result","\"phase\":\"portable_ordinary_entry\",\"result\":\"NOT_RUN\",\"reason\":\"Release_only_actual_package_required\"");
+    }else s.log.emit("scoped_prior_components_not_repeated","\"suite\":\"CoreAndApplications\",\"settings_portable_rapid_cases\":\"NOT_RUN_IN_THIS_BATCH\",\"earlier_evidence_not_rebound\":true");
     // Execute existing components with their own actual setup, not the blocked
     // Full eight-window history or a newly invented successful continuation.
     phase("owned_dock_stretch_component",owned_dock_stretch_chains);
@@ -2262,7 +2264,7 @@ void independent_entry_flow(State& s){
         cleanup_applications(state);cleanup_explorers(state);};
     phase("application_matrix",applications);
     cleanup(s);
-    s.log.emit("independent_entry_summary","\"suite\":\"IndependentEntry\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+    s.log.emit("independent_entry_summary","\"suite\":"+quote(s.suite)+",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
         ",\"owned_I02_acceptance\":\"NOT_GRANTED\",\"I11_acceptance\":\"NOT_GRANTED\",\"Full_suite\":\"NOT_RUN\","+
         "\"component_results_do_not_infer_whole_chain_PASS\":true,\"Explorer_result_requires_own_phase_evidence\":true,\"human_uat\":\"NOT_RUN\"");
 }
@@ -2309,8 +2311,8 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"){
-            independent_entry_flow(s);s.result=s.log.failed?1:0;
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"){
+            independent_entry_flow(s,s.suite=="CoreAndApplications");s.result=s.log.failed?1:0;
         }else if(s.suite=="SettingsDiagnostic"){
             owned_settings_diagnostic_case(s);
             if(s.configuration=="Release")owned_portable_zip_entry_case(s);
@@ -2503,7 +2505,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -2553,7 +2555,7 @@ int guard(State& s){
         ",\"guest_contract\":\"panebind-v1-guest-contract/2\",\"input_sent\":false");
     if(!read(actual.parent_path()/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return guard_reject(s,98,"portable_run_marker_missing");
     if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))return guard_reject(s,99,"preexisting_product_instance_present");
-    s.input_product=source;s.product=actual;s.output=output;return 0;
+    s.product_source=product_source;s.input_product=source;s.product=actual;s.output=output;return 0;
 }
 #include "platform/windows/product/v1_guest_input_actor.h"
 } // namespace
@@ -2574,7 +2576,8 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         if(name==L"--run-id"){field=1;s.run=args[n+1];}else if(name==L"--output"){field=2;s.output=args[n+1];}
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
-            else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";else parsed=false;}
+            else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;

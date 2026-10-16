@@ -388,11 +388,11 @@ void settings_guest_diagnostic_result(State& s,const std::vector<fs::path>& prev
     // rather than the diagnostic header whitelist. Both UI routes share it.
     constexpr std::string_view config_header="\n# PaneBind configuration v1; UTF-8; modifiers Alt=1 Ctrl=2 Shift=4 Super=8\n";
     const auto text=read(exported,300*1024);const auto config=text.find(config_header),tail=text.find("\n\nRecent failure: ");
-    if(config==text.npos||tail==text.npos||tail<=config||!text.starts_with("PaneBind V1\nSOURCE_SHA=" PANEBIND_BUILD_SHA "\nHUMAN_UAT=PENDING\n")||
+    if(config==text.npos||tail==text.npos||tail<=config||s.product_source.empty()||!text.starts_with("PaneBind V1\nSOURCE_SHA="+s.product_source+"\nHUMAN_UAT=PENDING\n")||
        !text.ends_with("\nWindow titles, document contents and full rule paths are not collected.\n"))throw std::runtime_error("guest_diagnostic_structure_or_source_invalid");
     std::istringstream header(text.substr(0,config+1));std::string line;bool known_headers=true;
     while(std::getline(header,line)){
-        const bool known=line=="PaneBind V1"||line=="SOURCE_SHA=" PANEBIND_BUILD_SHA||line=="HUMAN_UAT=PENDING"||
+        const bool known=line=="PaneBind V1"||line=="SOURCE_SHA="+s.product_source||line=="HUMAN_UAT=PENDING"||
             line.starts_with("OS_BUILD=")||line.starts_with("OS_UBR=")||line.starts_with("LAST_GESTURE_END=")||
             line.starts_with("HOOK_OWNER_RUNNING=")||line.starts_with("DISPLAY_DPI=")||line.starts_with("LAST_WINDOW_CLASS=");
         known_headers=known_headers&&known;
