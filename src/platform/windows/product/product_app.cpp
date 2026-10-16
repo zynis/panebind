@@ -1395,8 +1395,20 @@ void Application::show_settings(){
         ",\"own_focus_present\":"+(GetFocus()?"true":"false"));
 }
 void Application::export_diagnostic(){
+    const auto failure=[this](const wchar_t* message){
+        notify(message);
+        // This is feedback to an explicit settings/tray export request. Own
+        // the dialog with our settings window when present, never a target
+        // application, and do not force foreground or a system-modal/topmost UI.
+        const HWND settings_owner=settings_ui.handle(),owner=settings_owner?settings_owner:window;
+        SetLastError(0);const int result=MessageBoxW(owner,message,L"PaneBind：诊断导出失败",MB_OK|MB_ICONERROR);
+        const DWORD error=result?0:GetLastError();
+        log.event("diagnostic_export_failure_dialog","\"MessageBoxW_return\":"+std::to_string(result)+
+            ",\"native_error\":"+std::to_string(error)+",\"owner_is_settings\":"+(settings_owner?"true":"false")+
+            ",\"native_return_is_not_visible_observation\":true");
+    };
     const auto name=config_path.parent_path()/(L"diagnostic-"+std::to_wstring(GetTickCount64())+L".txt");
-    if(fs::exists(name)){notify(L"诊断目标已存在，未覆盖。");return;}
+    if(fs::exists(name)){failure(L"诊断目标已存在，未覆盖；未导出新文件。");return;}
     auto redacted=settings;std::size_t rule_index{};
     // A basename can collide after redaction although the full-path rules
     // were distinct. Unique opaque names preserve a valid serializable copy.
@@ -1412,7 +1424,7 @@ void Application::export_diagnostic(){
     if(last_target)text<<"LAST_WINDOW_CLASS="<<utf8(last_target->window_class)<<" DPI="<<last_target->dpi<<"\n";
     text<<v::serialize(redacted)<<"\nRecent failure: "<<utf8(problem)
         <<"\nWindow titles, document contents and full rule paths are not collected.\n";
-    if(!atomic_save(name,text.str())){notify(L"诊断写入失败；未声明导出成功。");return;}
+    if(!atomic_save(name,text.str())){failure(L"诊断写入失败；未声明导出成功。");return;}
     notify(L"诊断已导出："+name.filename().wstring());
 }
 void Application::menu(){POINT pt{};GetCursorPos(&pt);HMENU popup=CreatePopupMenu();
