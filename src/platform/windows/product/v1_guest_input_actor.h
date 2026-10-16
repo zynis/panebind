@@ -187,7 +187,7 @@ int input_actor_child(int count,LPWSTR* args){
         ",\"actual_source_identity\":"+(source_exact?"true":"false")+",\"actual_foreground_is_source\":"+(foreground_exact?"true":"false")+
         ",\"actual_source_GUI_known\":"+(source_gui_known?"true":"false")+",\"actual_owner_GUI_known\":"+(owner_gui_known?"true":"false")+
         ",\"actual_cursor_unchanged\":"+(cursor_unchanged?"true":"false")+",\"actual_modifiers_released\":"+(modifiers_released?"true":"false")+
-        ",\"actual_left_still_down\":"+(left_still_down?"true":"false")+
+        ",\"actual_left_still_down\":null"+
         ",\"GetAsyncKeyState_left_raw_SHORT\":"+(async_left_queried?std::to_string(async_left_value):"null")+
         ",\"GetAsyncKeyState_left_high_bit\":"+(async_left_queried?(left_still_down?"true":"false"):"null")+
         ",\"Async_failure_or_physical_state_distinguished\":false,\"Async_used_as_held_or_UP_proof\":false"+
