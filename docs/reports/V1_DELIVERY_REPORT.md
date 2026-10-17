@@ -2,7 +2,17 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。最新212产品／0f2 driver的f54 Release实际FAIL：四条快速路径仅native-only通过，同PID两轮owned核心已完成；mixed slot14后读取`.1`的file_size报system5／AccessDenied，I11未完成且不授900秒。设置／便携、idle60、视觉／在途／grid／batch有实测组件范围，应用和环境门仍未齐。旧失败保持身份。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。产品212字节未变：dedc／63 Debug核心及四native-only快速路径有实际子PASS，随后水平共享边因实际foreground变化安全拒绝；e7／63 Release两轮／20slot完成但严格900秒门未过。现代Terminal几何、正常UP与命令有实测，客户未发送，类别仍FAIL。e21／89仅配置准备失败；048／d2真实Hotkey通过，actor在8890ms因实际FocusLost撤权，起因UNKNOWN。9724已实际通过两轮owned核心、20slot、900.037841秒及逐项正常退出范围；同候选Full Release继续执行，不预授整版。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+
+## 212产品不重建：dedc／e7／e21／048当前实际范围
+
+四批均使用原212产品，driver分别63／63／89／d2，完整源码、EXE／包／manifest与精确guest清理身份见索引。现有具体功能case及B行已追加对应PO／摘录引用，保留旧source／RunId和主状态，不仅在global history留结论。
+
+- [dedc原行](v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl)：533行合法连续，178 I02／commands、四快速native-only与485／489／505竖共享边子项通过。521水平g4失败；实际PID5272 source call8 exact后，follower因foreground变化拒绝且未attempt，P135记录FG1049458。根因UNKNOWN，不放宽权限门。后继未运行。
+- [e7原行](v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl)：4374行合法连续，同PID7156两轮和20slot完成，原资源QPC间隔899.9940725秒，end比最终deadline早7.4593ms，严格900秒门FAIL；不是旧file_size错误。idle、视觉／在途／grid／batch组件通过。现代WindowsTerminal.exe官方1.25.2733.0资产实际绑定，五阶段free／XYsnap／hold无新调用／detach／resnap、实际legacy NormalUp与释放detach、Resize、命令、Esc、精确根关闭有实测；Raw代际未知不补归属。root实际HTCAPTION，枚举ContentBridge的HTCLIENT不等于真实投递路径，客户输入未发，类别仍FAIL。BMP实际显示cmd.exe启动0xd0000022，原因UNKNOWN，不能据此归因权限或改guard。
+- [e21原行](v1-evidence/e21b-r10-interruption-preparation-failure-selected.jsonl)：37行合法连续，28配置未bootstrap导致准备失败，I08未运行，不是新Hotkey产品反例。[048原行](v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl)：338行合法连续，222实际WM_HOTKEY id910/count1在按下期观察；actor g13在8890ms实际FocusLost/end2，P418记录FG131910/source197416/shield786670但无新FG身份／起因，不能叫Deadline或NormalUp。失败后测试cleanupUP不补产品结束证据，整I08未过。
+
+四批产品实际资源stop及自建client恢复分别有原始回执；wrapper依次wait0／exit1，desc0／1／0／0，forced=false／true／false／false，product_cleanup均false，不能由guest销毁补PASS。e7 Edge root关闭未确认；Explorer资格拒绝，Notepad／Code本包无合格root的BLOCKED不写永久环境缺失。精确guest／任务清理与证据未变另计。d2工具D/R构建及guest-path实际通过，048已部分实测；9724 FiniteSessionOnly已结束有限owned范围PASS：严格900.037841秒、资源无持续递增、实际产品资源停止及客户投递恢复有原件；wrapper的cleanup常量false不改写，单独按实际回执审查，不授整版。
 
 ## 212／0f2 Release／f54：两轮核心与组件已运行，I11读证据失败
 
@@ -631,7 +641,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | --- | --- | --- |
 | 设置与生命周期 | 269b／88e等旧失败保留；当前212／f54设置GUI、诊断、登录启动、五键、导入、失败保存／导出反馈、损坏和排除均有实际子PASS | 完整M11／I07及所有设置项／高DPI走查未齐；不把子流程拼成整模块PASS |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
-| Edge／Terminal adapter | 945c／e4为历史身份；当前212／f54 classic conhost绑定后DOWN／阈值MOVE已发但无真实START，根已关闭；Edge暂停客户基线hit超时，未click／增强且root未关闭 | 不将classic Console当现代Terminal或五应用通过；保留Edge失败，不控制未知根 |
+| Edge／Terminal adapter | 旧classic conhost事实保留；当前212／e7官方现代Terminal五阶段／Resize／NormalUp／命令／Esc及精确关闭有实测，客户真实hit不足而未发；BMP有cmd启动0xd0000022，原因UNKNOWN。Edge暂停基线失败、根未closed | 不以枚举child HTCLIENT替代实际投递、不放宽guard；完整类别与五应用仍未齐 |
 | grid 与成员失败 | 当前212／f54 grid5348与第二成员故障5418组件PASS；477a严格geometry拒绝、c01旧g6UP缺失等原FAIL保持身份 | 整I10合同仍未齐，组件PASS不补旧NormalUp；不把identity loss改叫API FALSE |
 | 视觉／恢复与边线 | 当前212／f54 visual5051与temporary inflight5279组件PASS；7cac／e4原失败及迟到exact保留历史身份 | 不再写当前在途从未通过；组件结果不推普遍隐私／硬崩溃或全应用恢复PASS |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
@@ -654,7 +664,7 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | Notepad | 当前f54指定官方EXE缺失且无应用输入，BLOCKED；旧官方准备／认证阻断保持原记录，不能补PASS，不在宿主改账户或UAC。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | 当前f54 I08／visual／inflight／grid／batch组件有PASS，3046／3966同PID两轮owned核心已完成；mixed slot14后file_size system5阻断，I11 FAIL且900秒未验完。旧187／82d时长保持原身份，idle60不替代I11；完整应用／跨屏／整链仍未齐。 |
+| I08／I10／I11 | f54旧file_size FAIL保留；e7两轮／20slot已完成但实际资源间隔899.9940725秒，严格900门FAIL。048真实F11观察通过，actor被实际失焦提前撤权，不算Deadline；I08未整体验收。9724严格900.037841秒及有限owned退出通过，视觉／在途／grid／batch子PASS不授整I10／I11或全应用／跨屏。 |
 | 顺序配置输入差异 | 97 Debug专项成功后，同guest的Release实际客户激活失败，未到GUI/parser/ZIP；原因UNKNOWN。714c独立Release-only成功不证明根因，也不抹去原失败；不操作未知前台或追加无依据API。 |
 | 本阶段便携交付 | 当前212／7635 ZIP已由477a1219及f54 1250实际验证普通GUI、保存后Move-UP、正常退出与字节，仅入口scope；e2abc／dd60等原ZIP和历史结论保留不换绑。整I12、说明完整走查及整版未通过。 |
 
