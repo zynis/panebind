@@ -40,6 +40,21 @@ inline bool product_log_metadata_pair_retry_allowed(unsigned pair_attempt,bool p
     return pair_attempt==0&&plain_attributes&&!size_over_limit&&size_error.category()==std::system_category()&&
         (size_error.value()==2||size_error.value()==3);
 }
+// The product logs this GUI-owner fact after finishing the Paused gesture.
+// It carries no gesture generation: callers must read only the validated
+// current-product suffix marked before the one real test hotkey.
+inline bool matching_emergency_hotkey_receipt(std::string_view row,std::uint64_t product_pid,
+    std::string_view product_sha){
+    using namespace up_evidence_detail;
+    const auto count=number(row,"\"received_count\":");
+    return row.size()<=16384&&!row.empty()&&row.front()=='{'&&row.back()=='}'&&
+        row.find_first_of("\r\n")==row.npos&&product_pid&&product_sha.size()==40&&
+        quoted(row,"\"schema\":","panebind-v1/1")&&quoted(row,"\"source_sha\":",product_sha)&&
+        number(row,"\"process_id\":")==product_pid&&number(row,"\"sequence\":")>0&&
+        number(row,"\"tick\":")>0&&quoted(row,"\"type\":","emergency_hotkey")&&
+        quoted(row,"\"native_message\":","WM_HOTKEY")&&
+        number(row,"\"registration_id\":")==910&&count&&*count>0;
+}
 
 // TEST reader only. Physical .1/current rotation must not change an already
 // issued logical byte mark. Actual launch identity starts a new segment;

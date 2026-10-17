@@ -126,9 +126,12 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
             ",\"product_handler_directly_called\":false");
         const auto ended=interruption_end(s,g,expected,destroyed,h);
         if(cause==GuestInterruption::EmergencyHotkey){
-            const auto hotkey=record(s,mark,"emergency_hotkey");
-            s.log.check("I08_actual_WM_HOTKEY_while_pressed",hotkey.find("\"native_message\":\"WM_HOTKEY\"")!=std::string::npos&&
-                number(hotkey,"\"registration_id\":")==910&&s.left&&actual_up(s,g.offset,g.generation).empty(),"\"production_hotkey\":"+quote(hotkey)+
+            std::string hotkey;
+            const bool observed=wait([&]{hotkey=record(s,mark,"emergency_hotkey");return
+                product::guest::matching_emergency_hotkey_receipt(hotkey,s.product_pid,s.product_source)&&
+                s.left&&actual_up(s,g.offset,g.generation).empty();},1500);
+            s.log.check("I08_actual_WM_HOTKEY_while_pressed",observed&&s.left&&actual_up(s,g.offset,g.generation).empty(),
+                "\"production_hotkey\":"+quote(hotkey)+
                 ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"async_left_state\":"+std::to_string(GetAsyncKeyState(VK_LBUTTON)));
         }
         const Rect expected_source=cause==GuestInterruption::Escape?initial[source]:moved[source];

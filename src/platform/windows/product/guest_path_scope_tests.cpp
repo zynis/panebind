@@ -113,6 +113,29 @@ int main() {
     if(!expect(missing.observe("",two,log_reason),false,"missing initial segment cannot masquerade as complete product evidence"))return 1;
     missing.reject();
     if(!expect(missing.observe("",one+two,log_reason),false,"persistent rejected evidence cannot silently regain acceptance"))return 1;
+    guest::ProductLogEvidence hotkey_log;hotkey_log.begin(42,4200,100,std::string(identity.source_sha));
+    const std::string paused_end=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":1,"process_id":42,"tick":100,"type":"gesture_end","generation":7,"end":4,"normal_up":false,"pending_retired":true})" "\n";
+    const std::string hotkey_row=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":2,"process_id":42,"tick":101,"type":"emergency_hotkey","native_message":"WM_HOTKEY","registration_id":910,"received_count":1})";
+    if(!expect(hotkey_log.observe("",paused_end,log_reason),true,"actual Paused END is a validated product prefix"))return 1;
+    const auto hotkey_mark=hotkey_log.text().size();const auto only_end=hotkey_log.since(hotkey_mark);
+    if(!expect(only_end&&only_end->empty()&&!guest::matching_emergency_hotkey_receipt(*only_end,42,identity.source_sha),true,
+            "Paused END alone cannot award later GUI WM_HOTKEY receipt"))return 1;
+    if(!expect(hotkey_log.observe(paused_end,hotkey_row+"\n",log_reason),true,
+            "actual later WM_HOTKEY row appends after the already validated END"))return 1;
+    const auto hotkey_suffix=hotkey_log.since(hotkey_mark);
+    const auto actual_hotkey=hotkey_suffix&&hotkey_suffix->ends_with('\n')?
+        hotkey_suffix->substr(0,hotkey_suffix->size()-1):std::string_view{};
+    if(!expect(hotkey_suffix&&*hotkey_suffix==hotkey_row+"\n"&&
+            guest::matching_emergency_hotkey_receipt(actual_hotkey,42,identity.source_sha),true,
+            "one real current-product GUI WM_HOTKEY receipt is distinct from its earlier Paused END"))return 1;
+    auto wrong_hotkey=hotkey_row;
+    wrong_hotkey.replace(wrong_hotkey.find("\"registration_id\":910"),21,"\"registration_id\":911");
+    if(!expect(!guest::matching_emergency_hotkey_receipt(wrong_hotkey,42,identity.source_sha),true,
+            "different registered hotkey cannot satisfy I08")||
+       !expect(!guest::matching_emergency_hotkey_receipt(hotkey_row,43,identity.source_sha),true,
+            "other product PID cannot satisfy I08")||
+       !expect(!guest::matching_emergency_hotkey_receipt(hotkey_row,42,"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),true,
+            "other product SHA cannot satisfy I08"))return 1;
     // Real Win32 file handles, in this test's uniquely created build-working
     // directory only. No test opens or deletes a user/product log.
     namespace fs=std::filesystem;
