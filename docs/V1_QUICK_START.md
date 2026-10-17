@@ -4,7 +4,7 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`／Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`；最新0f2 driver／97a8 Debug Full因下一Ctrl输入前间隔门FAIL，快速plain Move实际LL及source队列UP均已观察，但仅native-only子PASS；不授增强NormalUp／Glue，也不证明缺LL根因。旧c1f8／477a失败及7635普通入口等子PASS保留原身份；Release f54d仍进行中无结论，0fc后继driver未现场。整版仍PARTIAL，七项功能／B2不增。完整证据与未完成条件见交付报告；**不可宿主试用，真人UAT PENDING**。
+当前候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`／Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`；最新0f2 driver／f54 Release已结束FAIL。四快速路径仅native-only通过，同PID两轮owned核心完成；slot14后读取产品日志file_size报system5，I11未完成、不授900秒。设置／7635普通入口、idle60、视觉／在途／grid／batch有实际子PASS，应用与环境门未齐。旧失败保留原身份，产品字节未变；0fc后继部署包未运行，新reader工具未填结果。整版仍PARTIAL，七项功能／B2不增。完整证据与未完成条件见交付报告；**不可宿主试用，真人UAT PENDING**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 

@@ -2,9 +2,15 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。最新212产品／0f2 driver的97a8 Debug Full在下一Ctrl手势输入前被独立间隔检查阻断；快速plain Move真实LL与source queue UP均已观察，仅native-only子PASS。旧c1f8／477a失败及核心、设置、便携、视觉／在途／batch和idle60的原scope保留。Release f54d仍IN_PROGRESS无结论。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。最新212产品／0f2 driver的f54 Release实际FAIL：四条快速路径仅native-only通过，同PID两轮owned核心已完成；mixed slot14后读取`.1`的file_size报system5／AccessDenied，I11未完成且不授900秒。设置／便携、idle60、视觉／在途／grid／batch有实测组件范围，应用和环境门仍未齐。旧失败保持身份。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 212／0f2 Debug／97a8：真实队列UP已观察，下一输入前置FAIL
+## 212／0f2 Release／f54：两轮核心与组件已运行，I11读证据失败
+
+包装3ea，fixture5553行JSON合法连续，原件SHA `F34BC988…6F36C6F8DA`；完整身份与11条[字面原行](v1-evidence/f54d-r10-release-two-core-rounds-reader-failure-and-components-selected.jsonl)见索引。296／310／322／336普通／Ctrl Move与右Resize四例均exact、native START／END各1并有实际LL-UP，零产品cancel／capture／placement，**仅native-only，不授Glue、增强Resize或NormalUp**。3046／3966同PID5292、未重启完成两轮owned核心；mixed slot14后4524记录attrs32、file_size system5／AccessDenied，4525／4547 I11 FAIL。实际错误原因UNKNOWN，不归结为rotation、不授900秒。4553独立60.0000332秒、CPU0%、WS30,949,376字节、handles282、GDI26／USER31前后相同，仅idle测量。2088 interruption、5051 visual／5279 inflight／5348 grid／5418 batch组件通过；设置与1250同7635 ZIP普通入口／保存后Move-UP／退出及字节子PASS，tray BLOCKED。
+
+Explorer实际root RID8192但elevated=true，资格拒绝且未发输入，root清理未确认；不套用旧High例外。classic conhost／cmd实际Medium绑定，发送DOWN和阈值MOVE但未见真实START，单次清理UP后精确根关闭；不是现代Terminal全功能通过。Notepad／Code本批指定EXE缺失、未发应用输入而BLOCKED。Edge已绑定，仅发光标MOVE；暂停native基线hit-test超时1460，未发客户click或增强手势，根关闭未确认。5541产品实际退出0、资源stop与5546自建客户DOWN-UP恢复独立成立；wrapper wait0／exit1／desc2／forced=true／product_cleanup=false不改成整批cleanup PASS。23:55:48Z精确guest23940／任务清理、证据未变且无其他改动，guest销毁不替代产品清理。产品212未重建；0fc部署包NOT_RUN。后继driver `63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64`实际以同一share-delete句柄核验并读取2MiB以内物理日志，不将权限错误认作rotation；D/R构建和guest-path定向文件检查通过（0.16/0.20、0.12/0.24秒），symlink因1314明确SKIP，哈希见验收表。新driver现场仍NOT_RUN，不预填I11或根因修复结果。
+
+## 212／0f2 Debug／97a8：真实队列UP已观察，下一输入前置FAIL（历史时点，后继f54见上）
 
 product212字节未改，driver0f2，包装3ea；fixture200行JSON合法连续。[两条字面原行](v1-evidence/97a8-r10-debug-native-only-real-queue-up-and-preinput-interval-selected.jsonl)187快速plain Move exact、native START／END各1、零产品cancel／capture／placement。独立source线程WH_GETMESSAGE观察到单个PM_REMOVE WM_LBUTTONUP，MSG前后相同、extra=PBV1，CallNext返回389142770早于source END389163043；LL也实际观察到UP，不能声称已证明“缺LL分支”，更不授增强NormalUp／Glue。191下一Ctrl例system500／request501／actual500ms，间隔门FAIL时尚未发送该手势输入，不是新增产品反例。后继未运行，原Full FAIL保留。193实际产品退出0、输入／capture／关联／writer资源停止，198实际客户DOWN-UP[0,0]→[1,1]；wrapper wait0／exit1／desc0／forced=false／product_cleanup=false，各自判定。23:34:48Z精确guest33468／任务清理且证据未变，无其他资源改动。Release f54d采用同212／0f2／包装3ea仍进行中。新0fc driver仅在三包快速手势之外增加32ms粗时钟余量，仍要求实测间隔超过系统双击时间；D/R构建及各1项guest-path通过（0.14/0.19、0.12/0.25秒），EXE哈希见验收表，现场NOT_RUN，不重建产品或换绑旧运行。
 
@@ -623,17 +629,17 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 
 | 项目 | 证据与现状 | 下一项明确验证 |
 | --- | --- | --- |
-| 设置与生命周期 | 269b／88e 旧命中失败保留；e4 实际六页、登录启动、导入导出、损坏恢复、排除及原配置恢复通过对应子流程 | 完整 M11／I07、所有设置项与高 DPI 走查仍未通过，不重开已关闭 checkbox 专项 |
+| 设置与生命周期 | 269b／88e等旧失败保留；当前212／f54设置GUI、诊断、登录启动、五键、导入、失败保存／导出反馈、损坏和排除均有实际子PASS | 完整M11／I07及所有设置项／高DPI走查未齐；不把子流程拼成整模块PASS |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
-| Edge／Terminal adapter | 945c Terminal 实际 NormalUp 后旧 fixture 查询误拒；e4 对齐严格 Console fallback 后该类别实际 Move／Resize／命令／Esc／客户输入通过 | Terminal 不外推其他类别；Edge 命中与 exact 根清理仍有失败，保留登记且不控制身份未知窗 |
-| grid 与成员失败 | c01真实grid非exact拒绝与后继新Move／Ctrl成立，但原g6UP缺失；第二成员API TRUE后identityloss／停止第三及存活两窗恢复子流程通过 | grid原失败保留，整个I10不升PASS；不把身份丢失叫API FALSE，也不为此增加新的矩阵门槛 |
-| 视觉／恢复与边线 | 7cac call44 迟到 exact／alpha 恢复事实保留；e4 owned 视觉组件实际通过，但临时在途组件仍 FAIL | 不能把正常视觉或 helper 恢复推成缺 UP、故障／硬崩溃整链通过 |
+| Edge／Terminal adapter | 945c／e4为历史身份；当前212／f54 classic conhost绑定后DOWN／阈值MOVE已发但无真实START，根已关闭；Edge暂停客户基线hit超时，未click／增强且root未关闭 | 不将classic Console当现代Terminal或五应用通过；保留Edge失败，不控制未知根 |
+| grid 与成员失败 | 当前212／f54 grid5348与第二成员故障5418组件PASS；477a严格geometry拒绝、c01旧g6UP缺失等原FAIL保持身份 | 整I10合同仍未齐，组件PASS不补旧NormalUp；不把identity loss改叫API FALSE |
+| 视觉／恢复与边线 | 当前212／f54 visual5051与temporary inflight5279组件PASS；7cac／e4原失败及迟到exact保留历史身份 | 不再写当前在途从未通过；组件结果不推普遍隐私／硬崩溃或全应用恢复PASS |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
-| 普通 Move 正常收尾 | c01 I11 g26几何正确却无实际LL UP/end；独立Raw97→98仍不能归属。旧8cee／e4等失败保留，其他NormalUp成功不补缺失 | S1 OPEN；没有可靠共享事件身份，不加未证明Raw fallback，也不以无新事实重复运行同路线 |
-| ConsumedDown候选入场门 | f63/6685旧async门拒绝原件保留；bd53修订后d546/4cd两代实际capture／legacy UP／释放／解除／NormalUp撤罩通过资源范围 | 原D08仍OPEN；新关联退出风险／V1 writer／Explorer未验，不升级功能分数或宿主试用 |
+| 普通 Move 正常收尾 | 当前212／f54两轮owned核心已完成；四快速case实际LL-UP但仅native-only。c01、8cee／e4与c1f8原缺UP失败保留，成功不能补旧缺失 | D08仍OPEN；不由队列UP或Raw计数授增强NormalUp、不推已查明缺失根因 |
+| ConsumedDown候选入场门 | f63旧门拒绝保留；d546及f481为历史资源可行性和退出风险实测，后继V1已接实际writer并有owned手势结果 | 旧owned可行性不外推Explorer；当前正式Explorer资格及五应用未齐，不升级宿主试用 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
 | 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
-| 在途日志与实际异常 | 7cac payload 求值顺序缺陷已修；e4 已到真实临时在途，保留1694失败及后续安全分流 | 不再记成完全未运行，也不凭迟到完成／已恢复属性关闭实际 UP 或全部 I10 失败 |
+| 在途日志与实际异常 | 7cac／e4原失败保留；当前212／f54在途组件5279及batch5418已实测通过各自判定 | 不再以旧在途FAIL概括当前；仍不授整个I10或抹去历史UP失败 |
 | GUI诊断与driver临时文件 | 590误纳`.tmp`的确定driver问题已由dd60 Debug97／Release714c真实final导出及parser专项复验关闭 | 设置底部“诊断”入口已实测，不因此授托盘／普遍隐私／完整M12通过 |
 | 导出失败可见反馈 | 86a原R2缺实际modal的FAIL保留；866新R3真实modal/ack、0假包、恢复与重导出实际通过 | D22仅定向关闭／M12F02独立PASS，不抬M12模块或整版，不换绑旧R2 |
 
@@ -643,14 +649,14 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 
 | 项目 | 准确边界 |
 | --- | --- |
-| 正式 Medium Explorer | 本批根窗 elevated=true，不满足正式资格；本地目录身份已恢复，不再误报为 file ID 未实现。不得套用旧 High guest 例外。 |
-| Code | 历史隐藏根／子根拒绝尚未定因；e4 本包未带指定官方 EXE，明确 BLOCKED，不能沿用旧资产准备为本批已运行。 |
-| Notepad | 当前 guest 的指定系统 EXE／Appx 缺失；未运行的应用路径不能记 PASS，不在宿主安装或修改账户／UAC来补分。 |
+| 正式 Medium Explorer | 当前f54实际root RID8192但elevated=true，medium=false，正式资格拒绝且未输入；root清理未确认。不套旧High例外，不改token事实。 |
+| Code | 当前f54指定EXE缺失、未发应用输入，BLOCKED；历史hidden／0x80070005仍UNKNOWN。既有官方资产准备不等于本包已携带或已测，不认定永久环境缺失。 |
+| Notepad | 当前f54指定官方EXE缺失且无应用输入，BLOCKED；旧官方准备／认证阻断保持原记录，不能补PASS，不在宿主改账户或UAC。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
-| I08／I10／I11 | c01 actor真实默认Deadline及后续同PIDMove／Resize、第二成员失败后恢复、status实际响应已通过对应子项；sourceclose／grid匹配UP、I11正常UP、完整两轮／15分钟仍未闭环。独立idle60不替代I11，历史失败保留。 |
+| I08／I10／I11 | 当前f54 I08／visual／inflight／grid／batch组件有PASS，3046／3966同PID两轮owned核心已完成；mixed slot14后file_size system5阻断，I11 FAIL且900秒未验完。旧187／82d时长保持原身份，idle60不替代I11；完整应用／跨屏／整链仍未齐。 |
 | 顺序配置输入差异 | 97 Debug专项成功后，同guest的Release实际客户激活失败，未到GUI/parser/ZIP；原因UNKNOWN。714c独立Release-only成功不证明根因，也不抹去原失败；不操作未知前台或追加无依据API。 |
-| 本阶段便携交付 | 已测e2abc／dd60在714c完成普通无参可见GUI、真实保存前后两Move／NormalUp及退出／字节检查子流程，原ZIP字节不变；最新版指南独立附交付。b5a15／b60、458849／593及所有旧包保留，整版验收与完整说明走查未通过，不重绑证据。 |
+| 本阶段便携交付 | 当前212／7635 ZIP已由477a1219及f54 1250实际验证普通GUI、保存后Move-UP、正常退出与字节，仅入口scope；e2abc／dd60等原ZIP和历史结论保留不换绑。整I12、说明完整走查及整版未通过。 |
 
 ## 持续验证与交付边界
 
