@@ -624,14 +624,38 @@ void chain_wait_until(State& s,std::uint64_t target,std::uint64_t frequency){
     Handle timer(CreateWaitableTimerW(nullptr,TRUE,nullptr));
     if(!timer.value||!SetWaitableTimer(timer.value,&due,0,nullptr,nullptr,FALSE))throw std::runtime_error("I11_one_shot_timer_failed");
     const HANDLE events[]{s.process,timer.value};
-    for(;;){const auto result=MsgWaitForMultipleObjectsEx(2,events,INFINITE,QS_ALLINPUT,MWMO_INPUTAVAILABLE);
-        if(result==WAIT_OBJECT_0)throw std::runtime_error("I11_product_exited_during_idle");
-        if(result==WAIT_OBJECT_0+1)break;
-        if(result!=WAIT_OBJECT_0+2)throw std::runtime_error("I11_event_wait_failed");
-        MSG message{};unsigned budget=256;
-        while(budget--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
-            if(message.message==WM_QUIT)throw std::runtime_error("I11_driver_quit");TranslateMessage(&message);DispatchMessageW(&message);}
-    }
+    const auto await_signal=[&]{for(;;){const auto result=MsgWaitForMultipleObjectsEx(2,events,INFINITE,QS_ALLINPUT,MWMO_INPUTAVAILABLE);
+            if(result==WAIT_OBJECT_0)throw std::runtime_error("I11_product_exited_during_idle");
+            if(result==WAIT_OBJECT_0+1)return;
+            if(result!=WAIT_OBJECT_0+2)throw std::runtime_error("I11_event_wait_failed");
+            MSG message{};unsigned budget=256;
+            while(budget--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
+                if(message.message==WM_QUIT)throw std::runtime_error("I11_driver_quit");TranslateMessage(&message);DispatchMessageW(&message);}
+        }};
+    await_signal();
+    LARGE_INTEGER first{};if(!QueryPerformanceCounter(&first)||first.QuadPart<=0)throw std::runtime_error("I11_first_signal_clock_unavailable");
+    namespace test=panebind::platform::windows::product::guest_test;
+    const auto decision=test::deadline_after_signal(target,static_cast<std::uint64_t>(first.QuadPart),frequency,false);
+    if(decision.decision==test::DeadlineSignal::Reached)return;
+    s.log.emit("I11_one_shot_deadline_early_signal","\"target_qpc\":"+std::to_string(target)+
+        ",\"first_actual_qpc\":"+std::to_string(first.QuadPart)+
+        ",\"remaining_qpc\":"+std::to_string(decision.remaining_qpc)+
+        ",\"one_rearm_allowed\":"+(decision.decision==test::DeadlineSignal::RearmOnce?"true":"false")+
+        ",\"requested_rearm_100ns\":"+std::to_string(decision.rearm_due_100ns)+
+        ",\"signal_not_elapsed_proof\":true");
+    if(decision.decision!=test::DeadlineSignal::RearmOnce)throw std::runtime_error("I11_one_shot_timer_signalled_too_early");
+    due.QuadPart=-static_cast<LONGLONG>(decision.rearm_due_100ns);
+    if(!SetWaitableTimer(timer.value,&due,0,nullptr,nullptr,FALSE))throw std::runtime_error("I11_one_shot_rearm_failed");
+    await_signal();
+    LARGE_INTEGER final{};if(!QueryPerformanceCounter(&final)||final.QuadPart<=0)throw std::runtime_error("I11_second_signal_clock_unavailable");
+    const auto after=test::deadline_after_signal(target,static_cast<std::uint64_t>(final.QuadPart),frequency,true);
+    s.log.emit("I11_one_shot_deadline_rearm_result","\"target_qpc\":"+std::to_string(target)+
+        ",\"first_actual_qpc\":"+std::to_string(first.QuadPart)+
+        ",\"second_actual_qpc\":"+std::to_string(final.QuadPart)+
+        ",\"requested_rearm_100ns\":"+std::to_string(decision.rearm_due_100ns)+
+        ",\"actual_deadline_reached\":"+(after.decision==test::DeadlineSignal::Reached?"true":"false")+
+        ",\"no_third_arm\":true");
+    if(after.decision!=test::DeadlineSignal::Reached)throw std::runtime_error("I11_one_shot_rearm_still_early");
 }
 panebind::platform::windows::product::guest_test::IdleCounters chain_resource_sample(State& s,DWORD pid,std::uint64_t birth,const char* stage){
     namespace measure=panebind::platform::windows::product::guest_test;
@@ -717,7 +741,10 @@ void chain_idle_facts(State& s){
         if(slot==6||slot==13||slot==19)samples.push_back(chain_resource_sample(s,pid,birth,slot==6?"mixed_5min15s":slot==13?"mixed_10min30s":"mixed_15min_end"));
     }
     LARGE_INTEGER ended{};QueryPerformanceCounter(&ended);const double seconds=static_cast<double>(ended.QuadPart-started.QuadPart)/frequency.QuadPart;
-    chain_idle_facts(s);s.log.check("I11_actual_same_process_15_minutes_elapsed",seconds>=900&&samples.size()==4);
+    chain_idle_facts(s);s.log.check("I11_actual_same_process_15_minutes_elapsed",seconds>=900&&samples.size()==4,
+        "\"actual_elapsed_seconds\":"+std::to_string(seconds)+",\"start_qpc\":"+std::to_string(started.QuadPart)+
+        ",\"end_qpc\":"+std::to_string(ended.QuadPart)+",\"qpc_frequency\":"+std::to_string(frequency.QuadPart)+
+        ",\"actual_resource_samples\":"+std::to_string(samples.size())+",\"required_seconds\":900");
     const auto increasing=[&](auto member){for(std::size_t n=1;n<samples.size();++n)if(samples[n].*member<=samples[n-1].*member)return false;return true;};
     const bool handles_increasing=increasing(&Counters::handles),gdi_increasing=increasing(&Counters::gdi),user_increasing=increasing(&Counters::user);
     chain_gui_save(s,original);chain_restore_app_visual(s,s.frames[0].hwnd,*original_visual);

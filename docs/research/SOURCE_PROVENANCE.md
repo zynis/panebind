@@ -1,5 +1,26 @@
 # Source Provenance Register
 
+## V1 finite guest schedule: timer signal is not a QPC deadline — 2026-10-17
+
+Actual `e7e07758db0e4a3a9f3f32be28aa0a8c` completed 20 mixed action slots,
+but its final timer returned before the recorded QPC target: row3275 target
+10194506397, row3276 end-resource sample10194431804 at frequency10000000.
+The original I11 elapsed check failed; it is not relabelled as 900 seconds.
+The old TEST scheduler did not recheck QPC after a timer signal. This is the
+observed clock discrepancy, not proof of a particular hypervisor or OS defect.
+
+Inspected official [SetWaitableTimer](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer)
+and [QueryPerformanceCounter](https://learn.microsoft.com/en-us/windows/win32/api/profileapi/nf-profileapi-queryperformancecounter):
+timer precision depends on the hardware clock, period0 is one-shot and setting
+a manual-reset timer resets its signaled state. An interval measured in QPC
+must be checked with QPC, rather than inferred from another clock's signal.
+The minimal TEST change retains event waits and STA dispatch, permits only one
+bounded rearm for at most32ms measured early return (additional wait at most64ms),
+then requires a real fresh QPC at/after the original target. It does not alter
+the strict 900-second assertion, product timers, input handling or any authority.
+Official live documentation; no invented revision, external code copied or
+adapted, dependency, licensing or attribution change. New runtime is pending.
+
 ## V1 guest evidence reader: handle-scoped rotating log snapshot — 2026-10-17
 
 Actual Release Run `f54dccc34fbe47ad9fa296c11bb11880` reached two owned core

@@ -4,6 +4,7 @@
 #include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
 #include "platform/windows/product/v1_guest_physical_log.h"
+#include "platform/windows/product/v1_guest_deadline.h"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -48,6 +49,24 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    namespace deadline=panebind::platform::windows::product::guest_test;
+    constexpr std::uint64_t qpc_frequency=10000000,target_qpc=900*qpc_frequency;
+    const auto reached=deadline::deadline_after_signal(target_qpc,target_qpc,qpc_frequency,false);
+    const auto late=deadline::deadline_after_signal(target_qpc,target_qpc+1,qpc_frequency,false);
+    const auto early=deadline::deadline_after_signal(target_qpc,target_qpc-74600,qpc_frequency,false);
+    const auto too_early=deadline::deadline_after_signal(target_qpc,target_qpc-330000,qpc_frequency,false);
+    const auto second_early=deadline::deadline_after_signal(target_qpc,target_qpc-1000,qpc_frequency,true);
+    if(!expect(reached.decision==deadline::DeadlineSignal::Reached&&late.decision==deadline::DeadlineSignal::Reached,true,
+            "fresh QPC at or after target, not timer signal alone, proves deadline")||
+       !expect(early.decision==deadline::DeadlineSignal::RearmOnce&&early.remaining_qpc==74600&&
+            early.rearm_due_100ns==394600&&early.rearm_due_100ns<=640000,true,
+            "actual 7.46 ms early signal permits only one bounded remaining-plus-margin rearm")||
+       !expect(too_early.decision==deadline::DeadlineSignal::TooEarly&&too_early.rearm_due_100ns==0,true,
+            "signal over 32 ms early cannot become a 900-second PASS or a rearm")||
+       !expect(second_early.decision==deadline::DeadlineSignal::SecondEarly&&second_early.rearm_due_100ns==0,true,
+            "second early signal cannot request a third timer arm")||
+       !expect(deadline::deadline_after_signal(target_qpc,target_qpc,0,false).decision==deadline::DeadlineSignal::Invalid,true,
+            "unknown QPC frequency cannot prove deadline"))return 1;
     using ResourceOwner=guest::ResourceOwnerKind;using ResourceRoute=guest::ResourceRouteKind;
     if(!expect(guest::select_resource_route(ResourceOwner::OrdinaryUser,true,false)==ResourceRoute::ProductionMedium,true,
            "actual ordinary interactive Medium can use production resources without guest artifacts")||
@@ -457,5 +476,5 @@ int main() {
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,false,status,identity),false,"diagnostic missing event cannot use status")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::DiagnosticEvent,true,"",identity),true,"diagnostic retains actual event contract")||
        !expect(guest::accepted_up_evidence(guest::UpEvidenceMode::StatusSnapshot,true,"",identity),false,"snapshot mode cannot substitute event"))return 1;
-    std::cout << checked << " guest-directory, UP-evidence and physical-log cases passed; bounded test-owned filesystem operations; no UI or input\n";
+    std::cout << checked << " guest-directory, UP-evidence, deadline and physical-log cases passed; bounded test-owned filesystem operations; no UI or input\n";
 }
