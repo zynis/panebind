@@ -13,6 +13,23 @@
     "main_function_run_id": "c01ffe67d3004961bd00765312869c8a",
     "pending_runtime_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
     "final_sha": null,
+      "full_release_deployment": {
+        "run_id": "7944a5a704f94112870483b88c62a0c9",
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "driver_source_sha": "d2fbd1969417b56dcdbfbfb353611abc235e3065",
+        "packaging_head": "c910ec7d4bf2b0af0f3a4be58698c16b88e3b5f4",
+        "guest_configurations": "Release",
+        "guest_suite": "Full",
+        "zip_sha256": "3BBA97CD533AD4E068510CF720824D405661AD9E5B1DF97DB1AF5CFF588FECCB",
+        "manifest_sha256": "778850A50164928859FA84E06030FD68A62D08EC5C1F85775DE1500B37121129",
+        "wsb_sha256": "990CF65555F7BD9C51F20704DFDB18A32E3409A800D60726CDC15BC4E74B3BD6",
+        "receipt_path": "uat/v1-sandbox/7944a5a704f94112870483b88c62a0c9/package-receipt.json",
+        "status": "BLOCKED_BEFORE_GUEST_START_BY_EXISTING_REMOTE_SSH_CONNECT_TIMEOUT",
+        "remote_directory_creation": "NOT_CONFIRMED_NO_REMOTE_CREATED_RECEIPT",
+        "guest_started": false,
+        "actual_function_result": "NOT_RUN",
+        "next_action": "恢复原可信crossrec-desktop SSH通道。保留7944失败状态与包；恢复后只读核归属并用新RunId复用当前冻结EXE/资产自动部署、启动Full，不重建产品或重跑独立900秒。"
+      },
     "implementation_inspected": "R10_212_9724_FINITE_OWNED_SCOPE_PASS_FULL_RELEASE_PENDING_PRIOR_PARTIAL_FAILURES_RETAINED",
     "note": "当前212产品/d2 driver已实际完成9724两owned核心轮/20slot/strict900.037841秒和逐项正常退出scope；整I11、同212 Full Release、混合应用及显示门未齐。dedc/e7/e21/048原失败分别保留，旧main_function字段为历史参考；7/60与B2原身份不换绑、不增分，整版PARTIAL/真人UAT PENDING。",
     "pending_product_note": "当前product212/portable7635字节未变，driver d2实际048部分FAIL、9724有限scopePASS；下一步一次Full Release，不单独重跑该900秒（Full内实际执行另记）或重建产品。63已归observed历史，R3旧包整对象移入history，不把历史7项通过重绑当前212。",
@@ -163,7 +180,7 @@
       "release_run_id": "9724d8562beb480a8278d0607f0e700a",
       "run_id": "9724d8562beb480a8278d0607f0e700a",
       "configuration": "Release",
-      "observation_id": "PO-9724-R10-RELEASE-OWNED-TWO-ROUNDS-STRICT-900S-AND-CLEANUP",
+      "observation_id": "PO-9724-R10-RELEASE-STRICT-900S-OWNED-FINITE-CLEANUP",
       "packaging_head": "d2fbd1969417b56dcdbfbfb353611abc235e3065",
       "package_zip_sha256": "6269D2CC61C1A8C3440933492EA2D031B417687E5FF9661F8421396C6A110AC9",
       "package_manifest_sha256": "6FEFD1FD8D1EBC8766FE0D5F9AEC84B27A8E637A86C2EB75E0DF48AC17899643",
@@ -12110,6 +12127,36 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-7944-R10-FULL-RELEASE-DEPLOYMENT-TRANSPORT-BLOCKED",
+      "run_id": "7944a5a704f94112870483b88c62a0c9",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "driver_source_sha": "d2fbd1969417b56dcdbfbfb353611abc235e3065",
+      "packaging_head": "c910ec7d4bf2b0af0f3a4be58698c16b88e3b5f4",
+      "guest_configurations": "Release",
+      "guest_suite": "Full",
+      "zip_sha256": "3BBA97CD533AD4E068510CF720824D405661AD9E5B1DF97DB1AF5CFF588FECCB",
+      "manifest_sha256": "778850A50164928859FA84E06030FD68A62D08EC5C1F85775DE1500B37121129",
+      "wsb_sha256": "990CF65555F7BD9C51F20704DFDB18A32E3409A800D60726CDC15BC4E74B3BD6",
+      "receipt_path": "uat/v1-sandbox/7944a5a704f94112870483b88c62a0c9/package-receipt.json",
+      "status": "BLOCKED_BEFORE_GUEST_START_BY_EXISTING_REMOTE_SSH_CONNECT_TIMEOUT",
+      "remote_directory_creation": "NOT_CONFIRMED_NO_REMOTE_CREATED_RECEIPT",
+      "guest_started": false,
+      "actual_function_result": "NOT_RUN",
+      "next_action": "恢复原可信crossrec-desktop SSH通道。保留7944失败状态与包；恢复后只读核归属并用新RunId复用当前冻结EXE/资产自动部署、启动Full，不重建产品或重跑独立900秒。",
+      "record_kind": "ADMINISTRATIVE_TRANSPORT_NOT_NATIVE_FUNCTION_EVIDENCE",
+      "result": "BLOCKED",
+      "observed": "标准既有SSH别名crossrec-desktop→192.168.1.6:22的部署连接超时exit255；随后两次ConnectTimeout10的只读身份连接均超时exit255。原因UNKNOWN，不推断关机/休眠/网络故障，不扫描、不改宿主或CrossRec。完整包已生成，但未调用Launch，完整Release本批NOT_RUN。原先9724的实际有限scope及清理结果不变。",
+      "evidence_ids": [
+        "EV-7944-R10-FULL-RELEASE-DEPLOYMENT-TRANSPORT-BLOCKED"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/7944-r10-full-release-deploy-blocked.json"
+      ],
+      "followup_checks_evidence": "Two actual main-agent tool stdout observations, not archived native log files.",
+      "human_uat": "NOT_RUN",
+      "new_feature_or_B_PASS": false
+    },
     {
       "id": "PO-9724-R10-RELEASE-STRICT-900S-OWNED-FINITE-CLEANUP",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
