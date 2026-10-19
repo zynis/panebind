@@ -375,9 +375,10 @@ Check $true 'static F04 input scope retains strict actual UP, named actions/Undo
 function Assert-V1StretchPreparationBeforeDown([string]$Chain){
     $mark=$Chain.IndexOf('const auto preparation_mark=require_actual_up?read_product(s).size():0;')
     if($mark -lt 0){throw 'F04 first DOWN requires the actual exact-point preparation receipt, not a fixed delay.'}
+    $call=$Chain.IndexOf('chain_stretch_preparation(set,*point,native_region,*before,preparation_mark,3500,preparation)',$mark)
     $receipt=$Chain.IndexOf('F04_actual_product_preparation_before_first_DOWN',$mark)
     $down=$Chain.IndexOf('const DWORD first_down_stamp=GetTickCount();button(s,true);button(s,false);',$mark)
-    if($mark -lt 0 -or $receipt -le $mark -or $down -le $receipt){throw 'F04 first DOWN requires the actual exact-point preparation receipt, not a fixed delay.'}
+    if($call -le $mark -or $receipt -le $call -or $down -le $receipt){throw 'F04 first DOWN requires the actual exact-point preparation receipt, not a fixed delay.'}
     foreach($value in @('prepared_actual_source_and_hit','exact_number("\"config_generation\":",config_generation)',
         'exact_number("\"actual_hit_test\":",static_cast<unsigned>(native_region))',
         'exact_number("\"process_id\":",s.product_pid)','receipt_is_write_authority\":false',
@@ -387,11 +388,47 @@ function Assert-V1StretchPreparationBeforeDown([string]$Chain){
 }
 Assert-V1StretchPreparationBeforeDown $chainSource
 Check $true 'static F04 strict path observes exact product preparation before its single first DOWN; no write authority inferred'
+Reject {Assert-V1StretchPreparationBeforeDown ($chainSource.Replace('chain_stretch_preparation(set,*point,native_region,*before,preparation_mark,3500,preparation)','true'))} 'static F04 first DOWN rejects bypassing the shared actual preparation observer'
 $oldF04Chain=@(& git -C $repository show 'a430607507f4980787296fa259a35ef4a97eb8f4:src/platform/windows/product/v1_guest_product_chains.h') -join "`n"
 Check ($LASTEXITCODE -eq 0) 'static F04 regression loads actual e12 driver source'
 Reject {Assert-V1StretchPreparationBeforeDown $oldF04Chain} 'actual e12 driver source fails missing preparation receipt guard (static regression, not native proof)'
 Reject {Assert-V1StretchInputWiring $fixtureSource $chainSource ($stretchInput.Replace('chain_double_click(set,item.region,item.shift,item.expected,item.label,true);','chain_double_click(set,item.region,item.shift,item.expected,item.label,false);'))} 'static F04 scope rejects disabling actual UP receipts'
 Reject {Assert-V1StretchInputWiring ($fixtureSource.Replace('scope_incomplete?"PARTIAL":','scope_incomplete?"PASS":')) $chainSource $stretchInput} 'static F04 scope rejects turning incomplete timing into PASS'
+function Assert-V1StretchNativeBoundaryWiring([string]$Fixture,[string]$Stretch){
+    foreach($value in @('message==WM_NCLBUTTONDOWN||message==WM_NCLBUTTONDBLCLK',
+        'fact.time=GetMessageTime();fact.extra=GetMessageExtraInfo();','NativeClickDownBoundary native_click_down;')){
+        if(-not $Fixture.Contains($value)){throw 'F04 movement boundary needs unchanged actual NC DOWN/DBLCLK observations.'}
+    }
+    foreach($value in @('chain_stretch_preparation(set,*point,HTRIGHT,source,preparation_mark,',
+        'second_actual_exact_product_preparation_not_observed_within_time_window',
+        'down2.matches(set,*point,click_downs+2,down2_sent,stamp2)',
+        'second_loop?frame.native_end_qpc.load():0','second_preparation_checked_before_DOWN\":true')){
+        if(-not $Stretch.Contains($value)){throw 'F04 second native press requires real preparation, actual DOWN and contextual UP; modal END is not invented.'}
+    }
+}
+Assert-V1StretchNativeBoundaryWiring $fixtureSource $stretchInput
+Check $true 'static F04 movement gate binds actual NC press, exact preparation and contextual UP without requiring a second modal loop'
+Reject {Assert-V1StretchNativeBoundaryWiring $fixtureSource ($stretchInput.Replace('down2.matches(set,*point,click_downs+2,down2_sent,stamp2)','true'))} 'static F04 movement rejects missing actual second source press'
+Reject {Assert-V1StretchNativeBoundaryWiring $fixtureSource ($stretchInput.Replace('chain_stretch_preparation(set,*point,HTRIGHT,source,preparation_mark,','true; /* removed actual preparation */ ('))} 'static F04 movement rejects missing second exact preparation'
+function Assert-V1ExitRecoveryWiring([string]$Fixture,[string]$Exit){
+    if(-not $Fixture.Contains('phase("owned_active_exit_and_controlled_kill_recovery",owned_exit_recovery_case);')){throw 'Exit recovery must call the real bounded guest component.'}
+    foreach($value in @('for(const bool forced:std::array{false,true})','command=launch(s,L"--quit",true,&command_exit)',
+        'GetProcessId(s.process)!=pid||process_birth(s.process)!=birth','killed=TerminateProcess(s.process,test_exit)',
+        'exit_recovery_resources_after_exit(set,capture,helper,moved);','exit_recovery_cleanup_up_and_client(set,',
+        'exit_recovery_restart(s,pid,birth,binary);','exit_recovery_restarted_same_EXE_actual_Move',
+        'exit_recovery_restarted_same_EXE_actual_Resize','code==2','helper_exit==0',
+        'source_read&&!source.hwndCapture','\"natural_crash\":\"NOT_RUN\"')){
+        if(-not $Exit.Contains($value)){throw 'Exit recovery needs held exact identity, real exit/resource/visual/UP facts and same-EXE restart.'}
+    }
+    $measure=$Exit.IndexOf('const bool stopped=WaitForSingleObject(s.process,5000)==WAIT_OBJECT_0;')
+    $cleanup=$Exit.IndexOf('exit_recovery_cleanup_up_and_client(set,',$measure)
+    if($measure -lt 0 -or $cleanup -le $measure){throw 'Test cleanup UP must follow measured product exit.'}
+}
+$exitSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_exit_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1ExitRecoveryWiring $fixtureSource $exitSource
+Check $true 'static exit recovery calls actual guest-only active Quit and controlled termination, then cleanup UP and new Move/Resize'
+Reject {Assert-V1ExitRecoveryWiring $fixtureSource ($exitSource.Replace('GetProcessId(s.process)!=pid||process_birth(s.process)!=birth','false'))} 'static exit recovery rejects removing held process PID/birth recheck'
+Reject {Assert-V1ExitRecoveryWiring $fixtureSource ($exitSource.Replace('exit_recovery_resources_after_exit(set,capture,helper,moved);',''))} 'static exit recovery rejects exit-code-only cleanup inference'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or

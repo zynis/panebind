@@ -4,11 +4,13 @@
 
 本轮新增的实际用户行为证明：同一212 Release产品已在0e815完成活动Ctrl中暂停、暂停时原生操作和Resume后普通Move／Resize完整独立合同，M01-F03可计PASS；6dba智能拉伸与034真实GUI精确类名排除／恢复互补，M08-F05及B19也可计PASS。此前cea四窗双轴共享Resize、后继普通Move和八窗末成员Ctrl Move保留。不授整个M01／M08、鼠标四边四角F04、整链、五应用或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03与M08-F05后为**9/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03、M08-F05及依据同212/e7原件闭合的M03-F05后为**10/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
 2026-10-19后续两批：`e12ed711f73441c3bc1cf6491771e299`（产品212／驱动a430）实际完成右、上边双击、同代mapped UP、exact几何及Undo；Bottom首click未取得终止回执，后续方向与负例NOT_RUN，整批FAIL。驱动原来只等固定100ms，未在DOWN前核实本位置准备；产品P64日志不能确定内部缓存发布时间或唯一根因。修复`83846770b1f8bfbe4e0ffda5cdb4bbcd94980469`只在严格F04测试等待真实exact准备并保留fresh检查，不改变产品或把准备当写入权限；后续新Run复验，不回写e12为PASS。
+
+后继`d7e71d93c1ea449aa90e49dbd0ac6868`已实际运行Release（产品212／驱动838／包装b6d37af）。九项剩余方向／Shift动作、actual UP与各次Undo均通过；四角为离散操作后的真实abort清理UP及capture／关联／遮罩回收，不伪称NormalUp。实际双击超时负例间隔594ms大于系统500ms且零增强。移动阈值负例第一原生Resize、超过阈值、返回原几何及真实UP／END成立；第二源UP已观察，但驱动还要求第二modal START／END和第二WM_NCLBUTTONDOWN，实际事实不足，因此整批仍FAIL，按钮负例NOT_RUN。不能由此判产品阈值失败或将未记录的第二DOWN类型当根因；下一修复只补实际DOWN类型、准备与有界时间判据。guest24996／任务于`2026-10-19T14:24:21.9781638Z`精确清理，证据未变、其他资源未改，不以销毁guest补功能／清理PASS。
 
 `43c7c45cacf1460e846d86f4a35cc4b6`（脚本／驱动a430，原产品未启动）先实际完成WDAG原token的`CreateProcessAsUserW`基线：同一fixture真实身份输出、High/session1子token与正常exit0。新建标准账户的凭据token实际为Medium8192／non-elevated／nonAdmin／session1，但该API创建标准child返回false／1314，子进程未创建。具体缺少哪个privilege未测；NativeClients、GUI、Explorer及输入均NOT_RUN，不能判为应用不兼容或Sandbox只能High。该路线停止叠加启动API或权限补救；现有可运行Medium-owned分支继续。账户按实际SID删除成功、DACL前后不变；本批guest17104／任务于`2026-10-19T14:07:44.9787084Z`精确清理，证据／部署保留、其他资源未改。详见既有验收表及索引；当前完整功能与对标计数不因此增加。
 

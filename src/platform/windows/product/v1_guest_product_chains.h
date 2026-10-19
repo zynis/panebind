@@ -410,6 +410,35 @@ void owned_ctrl_shift_bypass_reselect_case(State& s){
     s.log.emit("pause_routing_bypass_component","\"result\":\"PASS\",\"Ctrl_Shift_native_START_UP_END\":true,\"actual_relation_reselected_next_Ctrl\":true,\"whole_M04_M06_or_version_PASS\":false");
     }catch(...){pause_routing_failed_case_input(s);throw;}
 }
+bool chain_stretch_preparation(LayoutFixtures& set,POINT point,int native_region,Rect expected,
+    std::size_t preparation_mark,DWORD duration,std::string& preparation,std::uint64_t expected_key=0){
+    // One test readiness receipt, not write authority or a cache timestamp.
+    auto& s=set.state;
+    namespace evidence=product::guest::up_evidence_detail;
+    const int classified=native_region==HTLEFT?1:native_region==HTRIGHT?2:
+        native_region==HTTOP?3:native_region==HTBOTTOM?4:native_region==HTTOPLEFT?5:
+        native_region==HTTOPRIGHT?6:native_region==HTBOTTOMLEFT?7:native_region==HTBOTTOMRIGHT?8:-1;
+    const auto config_generation=chain_settings(s).generation;
+    return wait([&]{
+        preparation=record(s,preparation_mark,"input_preparation");
+        const auto exact_number=[&](std::string_view field,std::uint64_t wanted){
+            const auto value=evidence::number(preparation,field);return value&&*value==wanted;
+        };
+        const auto actual_key=evidence::number(preparation,"\"key\":");
+        const auto hwnd=reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd);
+        return classified>0&&evidence::quoted(preparation,"\"schema\":","panebind-v1/1")&&
+            exact_number("\"process_id\":",s.product_pid)&&evidence::quoted(preparation,"\"source_sha\":",s.product_source)&&
+            evidence::quoted(preparation,"\"reason\":","prepared_actual_source_and_hit")&&
+            exact_number("\"root\":",hwnd)&&exact_number("\"hit\":",hwnd)&&
+            exact_number("\"hit_pid\":",GetCurrentProcessId())&&actual_key&&*actual_key&&(!expected_key||*actual_key==expected_key)&&
+            exact_number("\"foreground\":",hwnd)&&exact_number("\"region\":",static_cast<unsigned>(classified))&&
+            exact_number("\"actual_hit_test\":",static_cast<unsigned>(native_region))&&
+            preparation.find("\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]")!=preparation.npos&&
+            evidence::unique_value(preparation,"\"source_GUI_read\":")==std::optional<std::string_view>("true")&&
+            exact_number("\"capture\":",0)&&exact_number("\"move_size\":",0)&&exact_number("\"menu_owner\":",0)&&
+            exact_number("\"config_generation\":",config_generation)&&set.owns(0)&&visible(set.frames[0].hwnd)==expected;
+    },duration);
+}
 void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect expected,const char* label,bool require_actual_up=false){
     auto& s=set.state;chain_front(set,0);const auto point=layout_hit(set,0,native_region);
     if(!point)throw std::runtime_error("chain_requested_native_double_click_region_not_observed");
@@ -428,30 +457,7 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
         // A fixed sleep is not acknowledgement of the product's exact-point
         // preparation. Observe its real receipt BEFORE the sole first DOWN.
         // This is a test readiness fact, not a native/write authority token.
-        namespace evidence=product::guest::up_evidence_detail;
-        const int classified=native_region==HTLEFT?1:native_region==HTRIGHT?2:
-            native_region==HTTOP?3:native_region==HTBOTTOM?4:native_region==HTTOPLEFT?5:
-            native_region==HTTOPRIGHT?6:native_region==HTBOTTOMLEFT?7:native_region==HTBOTTOMRIGHT?8:-1;
-        const auto config_generation=chain_settings(s).generation;std::string preparation;
-        const bool prepared=wait([&]{
-            preparation=record(s,preparation_mark,"input_preparation");
-            const auto exact_number=[&](std::string_view field,std::uint64_t wanted){
-                const auto value=evidence::number(preparation,field);return value&&*value==wanted;
-            };
-            const auto actual_key=evidence::number(preparation,"\"key\":");
-            const auto hwnd=reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd);
-            return classified>0&&evidence::quoted(preparation,"\"schema\":","panebind-v1/1")&&
-                exact_number("\"process_id\":",s.product_pid)&&evidence::quoted(preparation,"\"source_sha\":",s.product_source)&&
-                evidence::quoted(preparation,"\"reason\":","prepared_actual_source_and_hit")&&
-                exact_number("\"root\":",hwnd)&&exact_number("\"hit\":",hwnd)&&
-                exact_number("\"hit_pid\":",GetCurrentProcessId())&&actual_key&&*actual_key&&
-                exact_number("\"foreground\":",hwnd)&&exact_number("\"region\":",static_cast<unsigned>(classified))&&
-                exact_number("\"actual_hit_test\":",static_cast<unsigned>(native_region))&&
-                preparation.find("\"point\":["+std::to_string(point->x)+","+std::to_string(point->y)+"]")!=preparation.npos&&
-                evidence::unique_value(preparation,"\"source_GUI_read\":")==std::optional<std::string_view>("true")&&
-                exact_number("\"capture\":",0)&&exact_number("\"move_size\":",0)&&exact_number("\"menu_owner\":",0)&&
-                exact_number("\"config_generation\":",config_generation)&&set.owns(0)&&visible(set.frames[0].hwnd)==before;
-        });
+        std::string preparation;const bool prepared=chain_stretch_preparation(set,*point,native_region,*before,preparation_mark,3500,preparation);
         s.log.check("F04_actual_product_preparation_before_first_DOWN",prepared,
             "\"product_log_cutoff\":"+std::to_string(preparation_mark)+",\"actual_preparation\":"+quote(preparation)+
             ",\"input_not_sent_before_readiness\":true,\"receipt_is_write_authority\":false,\"preparation_publish_time_inferred\":false");

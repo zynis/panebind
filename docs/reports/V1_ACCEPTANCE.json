@@ -42,7 +42,7 @@
         "next_action": "保留7944部署失败与9724有限900秒PASS。be94真实Full在B Resize因外来前台撤权，原因UNKNOWN；不放宽保护、不无证重跑Full或独立900秒。继续当前冻结212/eec的EntryAndSettings及ApplicationsOnly独立可运行链，先核实真实应用原生启动与客户交互。"
       },
     "implementation_inspected": "R10_212_9724_FINITE_OWNED_SCOPE_PASS_FULL_RELEASE_PENDING_PRIOR_PARTIAL_FAILURES_RETAINED",
-    "note": "产品212/原portable7635字节未改。e12右/上实际mapped-UP/exact/Undo通过；Bottom首击缺当前prepared回执而driver失败，后续F04未跑，不凭P64认缓存发布或唯一根因。43c WDAG同镜像High identity成功、标准Medium凭据token取得但CPASUSER标准child false1314未创建，GUI/input未跑。0e81 F03、034/6dba F05/B19及全部原身份保留，9/60、B3/40=7.5%不变；整版PARTIAL/真人PENDING。",
+    "note": "产品212/原portable7635字节未改。e12右/上实际mapped-UP/exact/Undo通过；Bottom首击缺当前prepared回执而driver失败，后续F04未跑，不凭P64认缓存发布或唯一根因。43c WDAG同镜像High identity成功、标准Medium凭据token取得但CPASUSER标准child false1314未创建，GUI/input未跑。0e81 F03、034/6dba F05/B19及全部原身份保留，M03-F05按既有e7原件独立闭合后10/60、B3/40=7.5%不变；整版PARTIAL/真人PENDING。",
     "pending_product_note": "可信crossrec-desktop已用原配置恢复连接并核实ZS-WORKSTATION，无宿主配置变更。新Full Release Run be94复用product212/portable7635及已准备资产，driver eec补原生应用启动/交互前置检查；未运行或未通过的现场项目不按构建或连接恢复授PASS。原d2的048/9724实际身份原样保留，不单独重跑900秒或重建未改产品。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
@@ -412,7 +412,7 @@
       "portable_zip_sha256": "576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6",
       "portable_manifest_sha256": "9A206411EE28BD8167EA2417CECE9B9CAA848F773F038E05658CF7D2DAA0194D",
       "portable_runtime": "ACTUAL_477A_ORDINARY_GUI_SAVED_MOVE_UP_NORMAL_EXIT_BYTES_SCOPED_PASS_NOT_WHOLE_I12",
-      "runtime_note": "未改产品212/原portable7635。0e81实际活动三成员Ctrl写入→Paused非NormalUp/零新增writer/实际abort UP与capture-release/detach/gone→member1真实客户输入→暂停native START/源队列UP/END/单源exact且0active资源、idleRaw单列→同PID/birth恢复新g2普通Move/g3 Resize单源各一次exact及真实NormalUp/UP/无残留，完整M01-F03合同独立通过。第二phase Ctrl+Shift原生透传和新Ctrl实际单成员重选、旧邻窗0native仅其scope，不授M04/M06整feature。D28仅按旧两失败对应严格分类实际复验关闭，4da原FAIL保留。034+6dba F05/B19完整证据维持；实际9/60、B3/40=7.5%，模块/Full/REA/真人未过。",
+      "runtime_note": "未改产品212/原portable7635。0e81实际活动三成员Ctrl写入→Paused非NormalUp/零新增writer/实际abort UP与capture-release/detach/gone→member1真实客户输入→暂停native START/源队列UP/END/单源exact且0active资源、idleRaw单列→同PID/birth恢复新g2普通Move/g3 Resize单源各一次exact及真实NormalUp/UP/无残留，完整M01-F03合同独立通过。第二phase Ctrl+Shift原生透传和新Ctrl实际单成员重选、旧邻窗0native仅其scope，不授M04/M06整feature。D28仅按旧两失败对应严格分类实际复验关闭，4da原FAIL保留。034+6dba F05/B19完整证据维持；按既有e7原件补记M03-F05独立PASS后为10/60、B3/40=7.5%，模块/Full/REA/真人未过。",
       "debug_run_id": "c1f89e3f96034b0a83d6ace04295aacf",
       "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
       "pending_native_clients_run_id": null,
@@ -1181,14 +1181,14 @@
       "B39",
       "B40"
     ],
-    "note": "实际PASS列表：9/60独立功能，新增0e81完整M01-F03；034+6dba同产品212的M08-F05及原R2/R3七项身份保留。B19/B29/B32仍3/40=7.5%，无新增B项；不等于模块/Full/REA/真人，B33–B40固定DEFERRED。"
+    "note": "实际PASS列表：10/60独立功能，当前包括0e81完整M01-F03和按既有212/e7原件复核闭合的M03-F05；034+6dba同产品212的M08-F05及原R2/R3七项身份保留。B19/B29/B32仍3/40=7.5%，无新增B项；不等于模块/Full/REA/真人，B33–B40固定DEFERRED。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际9/60独立功能及B19/B29/B32三项对标通过；其余51功能、29个必选对标及模块/整版硬门未齐。0e81仅新增M01-F03，第二bypass/reselect仅其scope，不授M04/M06、M01模块或I08。",
+      "remaining_conditions": "实际10/60独立功能及B19/B29/B32三项对标通过；其余50功能、29个必选对标及模块/整版硬门未齐。M03-F05按既有e7实际证据独立闭合；0e81新增M01-F03，第二bypass/reselect仅其scope，不授M04/M06、M01模块或I08。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -2350,50 +2350,50 @@
         "src/platform/windows/product/product_app.cpp"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "统一native executor、250ms有界回执、实际部分前缀、撤权及迟到完成处理已提交构建；不把未完成调用当作已取消，当前完整故障链仍待现场验证。",
-      "dev_status": "FAIL",
+      "implementation_note": "统一native executor、250ms有界回执及实际部分前缀/撤权处理已接入生产。当前212/e7实际第二成员身份失效、停止第三、实际状态重建与新代恢复，以及Esc实际恢复，完整满足本独立功能合同；不把在途调用宣称已取消。",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M03-F05-DEV",
           "required_observation": "故障发生在第二成员时，第三成员不继续盲写；实际状态可见；下一手势用新快照，不能继续旧 generation",
-          "status": "FAIL",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
-            "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+            "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+            "docs/reports/v1-evidence/e7-r13-m03f05-batch-and-fresh-recovery-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/e7-r13-m03f05-escape-and-partial-batch-rotated-product-selected.jsonl",
+            "docs/reports/v1-evidence/e7-r13-m03f05-fresh-generations-current-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-NATIVE-FAILURES",
             "PO-C01-INDEPENDENT",
-            "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+            "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+            "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/e7-r13-m03f05-batch-and-fresh-recovery-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/e7-r13-m03f05-escape-and-partial-batch-rotated-product-selected.jsonl",
+        "docs/reports/v1-evidence/e7-r13-m03f05-fresh-generations-current-product-selected.jsonl"
       ],
-      "defects": [
-        "V1-D02",
-        "V1-D08",
-        "V1-D11",
-        "V1-D23"
-      ],
+      "defects": [],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
-      "observed": "当前212/e7 batch4175第二成员真实故障、停止第三、状态后验和后继新代组件通过；grid4105也有实际拒绝与恢复范围。旧R7失败不是本候选尚未运行的结论。 【历史观察保留】R7/4e9 actor默认Deadline及后继Move/Resize、在途完成后实际状态恢复通过；batch实际两次native/第三0保留，1636因normalizedUP空仍FAIL，实际status417有同代LL观察待driver定向修订；grid1576真实清理UP仍缺。",
-      "remaining_conditions": [
-        "owned故障/后继已测；真实应用组的原生失败、用户可见失败状态与fresh恢复组合仍缺同候选证据，不能仅用组件总PASS判完整功能。"
-      ],
-      "next_action": "复用212和已通过owned故障组件，补具体未覆盖的真实应用失败/状态/下一手势合同；不再部署旧R7或重开已修retired-UP计数。",
+      "status_basis": "FULL_INDEPENDENT_FEATURE_CONTRACT_ACTUAL_RELEASE_MEDIUM_E7_EVIDENCE_READONLY_REASSESSMENT_NOT_NEW_RUNTIME",
+      "observed": "同212/e7 Release Medium：D4119真实三成员Ctrl Resize g10；D4121实际第二成员于原生sizing回调销毁，产品seq445首成员exact、446 API TRUE但身份失效、447非NormalUp/pending退休。D4127/4130实际状态可见、第三0且不补偿、真实abort-UP与capture/release/detach/Gone；D4139/4151/4164从实际部分布局经新g11/12/13 Move、重连、Ctrl，两幸存窗及真实UP均成立。产品seq78/81与658/659另证Esc有效源exact恢复。按指南290行独立合同完整PASS；真实应用组/可视反馈/模块/Full另门，不作为本功能新增要求。 【历史观察原文保留】当前212/e7 batch4175第二成员真实故障、停止第三、状态后验和后继新代组件通过；grid4105也有实际拒绝与恢复范围。旧R7失败不是本候选尚未运行的结论。 【历史观察保留】R7/4e9 actor默认Deadline及后继Move/Resize、在途完成后实际状态恢复通过；batch实际两次native/第三0保留，1636因normalizedUP空仍FAIL，实际status417有同代LL观察待driver定向修订；grid1576真实清理UP仍缺。",
+      "remaining_conditions": [],
+      "next_action": "本M03-F05独立合同已由同212/e7原始实际证据完整闭合，不重复第二成员故障/恢复专项。仅后续产品或相关writer/收尾实现有实质变化时按影响复验；M03其余功能、可视反馈、应用模块与最终Full/环境硬门独立继续，历史全批FAIL不改写。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-C01-INDEPENDENT",
@@ -2401,17 +2401,20 @@
         "PO-B49-UP-OBSERVATION-BOUNDARY",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
-        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+        "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT"
       ],
       "latest_product_observation": {
-        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-        "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
-        "run_id": "b49deace80fe49899375bf8d36481ea1",
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+        "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+        "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
         "observation_ids": [
-          "PO-B49-CORE-RECOVERY-VISUAL",
-          "PO-B49-UP-OBSERVATION-BOUNDARY"
-        ]
+          "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+          "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        ],
+        "scope": "M03-F05 independent contract re-evaluated from original actual evidence; no new runtime"
       },
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -2419,11 +2422,55 @@
         "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
         "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
         "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+        "observation_ids": [
+          "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+          "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        ],
+        "scope": "M03-F05 independent contract re-evaluated from original actual evidence; no new runtime",
         "configuration": "Release",
-        "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
-        "scope": "当前212/e7 batch4175第二成员真实故障、停止第三、状态后验和后继新代组件通过；grid4105也有实际拒绝与恢复范围。旧R7失败不是本候选尚未运行的结论。",
-        "not_complete_contract_PASS": true
-      }
+        "observation_id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+        "independent_feature_contract_PASS": true,
+        "whole_version_PASS": false,
+        "human_uat": "NOT_RUN"
+      },
+      "nonblocking_historical_defects": [
+        "V1-D02",
+        "V1-D08",
+        "V1-D11",
+        "V1-D23"
+      ],
+      "historical_defect_scope_note": "历史D02/D08/D11/D23与原批次FAIL保留原身份；本次仅按指南290行重新核对同212/e7的完整M03-F05独立事实，不关闭其他功能、模块、整链或应用/环境门。",
+      "historical_completed_or_partial_observations": [
+        {
+          "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+          "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+          "run_id": "c01ffe67d3004961bd00765312869c8a",
+          "dev_status": "FAIL",
+          "case_status": "FAIL",
+          "scope": "Original feature FAIL and historical latest/component pointers retained; no source/binary/runtime relabelling",
+          "latest_product_observation": {
+            "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
+            "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
+            "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
+            "run_id": "b49deace80fe49899375bf8d36481ea1",
+            "observation_ids": [
+              "PO-B49-CORE-RECOVERY-VISUAL",
+              "PO-B49-UP-OBSERVATION-BOUNDARY"
+            ]
+          },
+          "latest_runtime_component_observation": {
+            "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+            "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+            "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+            "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+            "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+            "configuration": "Release",
+            "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+            "scope": "当前212/e7 batch4175第二成员真实故障、停止第三、状态后验和后继新代组件通过；grid4105也有实际拒绝与恢复范围。旧R7失败不是本候选尚未运行的结论。",
+            "not_complete_contract_PASS": true
+          }
+        }
+      ]
     },
     {
       "id": "M04-F01",
@@ -6727,10 +6774,9 @@
         "M03-F01: 见该功能remaining_conditions及next_action",
         "M03-F02: 见该功能remaining_conditions及next_action",
         "M03-F03: 见该功能remaining_conditions及next_action",
-        "M03-F04: 见该功能remaining_conditions及next_action",
-        "M03-F05: 见该功能remaining_conditions及next_action"
+        "M03-F04: 见该功能remaining_conditions及next_action"
       ],
-      "next_action": "依赖M03-F01、M03-F02、M03-F03、M03-F04、M03-F05的具体下一动作推进；保持同一产品EXE，驱动修改不清空历史证据。",
+      "next_action": "继续M03-F01、M03-F02、M03-F03、M03-F04的具体未齐合同；M03-F05独立PASS保留而不重复专项，M03模块/整链硬门不由该单项自动通过。保持同一产品EXE，驱动修改不清空历史证据。",
       "defects": [
         "V1-D17"
       ],
@@ -11787,7 +11833,7 @@
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "human_uat": "NOT_RUN",
     "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
-    "note": "最新实际产品观测e12，不覆盖0e81 F03或034/6dba F05/B19已通过scope。右/上mapped-UP/Undo已测；Bottom首击当前prepared证据不足，后续未跑，不凭P64认缓存发布时间或产品唯一根因。产品212/portable7635不变，9/60、B3/40不变；43c为独立probe未启动产品。"
+    "note": "最新实际产品观测e12，不覆盖0e81 F03或034/6dba F05/B19已通过scope。右/上mapped-UP/Undo已测；Bottom首击当前prepared证据不足，后续未跑，不凭P64认缓存发布时间或产品唯一根因。产品212/portable7635不变，M03-F05按既有e7原件独立闭合后10/60、B3/40不变；43c为独立probe未启动产品。"
   },
   "portable_candidate": {
     "package_id": "7635dc7b0c03416e95401a3eed8b262a",
@@ -11805,6 +11851,69 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-E7-R13-M03F05-FIXTURE-BATCH-FRESH-RECOVERY",
+      "kind": "literal_original_existing_runtime_readonly_contract_reassessment",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6016,
+      "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+      "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+      "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+      "configuration": "Release",
+      "packaging_head": "2cca6cf525ac94b5df60eb8ac5e86e1c65110530",
+      "package_zip_sha256": "6DE7D2E672654F3F96EA73F66ED540FC8AA32B524863E6CA6F11247FB00802D0",
+      "package_manifest_sha256": "AAB0FEAACF45BAF71B15A7EDA3761F993B6006F9E15E46D4D5261B371D74AB5D",
+      "observation_id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+      "scope": "FULL_INDEPENDENT_M03_F05_CONTRACT_REASSESSED_FROM_EXISTING_RELEASE_MEDIUM_PRODUCT212_E7_ACTUAL_EVIDENCE_NOT_NEW_RUNTIME_OR_MODULE_FULL_PASS",
+      "path": "uat/v1-control/e7e07758db0e4a3a9f3f32be28aa0a8c/collection-20261017T002921964Z-73a61f96560546e79a2445538baed8b7/e7e07758db0e4a3a9f3f32be28aa0a8c-release-fixture.jsonl",
+      "sha256": "5E42A6F185A1BA253D9BAE5B9447693976E4CF32D33925D5B809C3643FF238AB",
+      "repository_excerpt_path": "docs/reports/v1-evidence/e7-r13-m03f05-batch-and-fresh-recovery-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "5AD2BE91AA9BE48F40290C48AE51DC2412CB76EFAED7B25582E75846B8D96E61"
+    },
+    {
+      "id": "EV-E7-R13-M03F05-ROTATED-PARTIAL-NATIVE-AND-ESCAPE",
+      "kind": "literal_original_existing_runtime_readonly_contract_reassessment",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6016,
+      "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+      "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+      "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+      "configuration": "Release",
+      "packaging_head": "2cca6cf525ac94b5df60eb8ac5e86e1c65110530",
+      "package_zip_sha256": "6DE7D2E672654F3F96EA73F66ED540FC8AA32B524863E6CA6F11247FB00802D0",
+      "package_manifest_sha256": "AAB0FEAACF45BAF71B15A7EDA3761F993B6006F9E15E46D4D5261B371D74AB5D",
+      "observation_id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+      "scope": "FULL_INDEPENDENT_M03_F05_CONTRACT_REASSESSED_FROM_EXISTING_RELEASE_MEDIUM_PRODUCT212_E7_ACTUAL_EVIDENCE_NOT_NEW_RUNTIME_OR_MODULE_FULL_PASS",
+      "path": "uat/v1-control/e7e07758db0e4a3a9f3f32be28aa0a8c/collection-20261017T002921964Z-73a61f96560546e79a2445538baed8b7/e7e07758db0e4a3a9f3f32be28aa0a8c-product-Release/panebind.log.jsonl.1",
+      "sha256": "EF25DDB4AC8A4175A4579FF01128A7DE2D4562B593CB9F93B60941347A4A3638",
+      "repository_excerpt_path": "docs/reports/v1-evidence/e7-r13-m03f05-escape-and-partial-batch-rotated-product-selected.jsonl",
+      "repository_excerpt_sha256": "C97ED1E9AFA3964091B474846F30864394C4B3876B240D49316C3BE8937A0695"
+    },
+    {
+      "id": "EV-E7-R13-M03F05-CURRENT-FRESH-NATIVE-AND-UP",
+      "kind": "literal_original_existing_runtime_readonly_contract_reassessment",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6016,
+      "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+      "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+      "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+      "configuration": "Release",
+      "packaging_head": "2cca6cf525ac94b5df60eb8ac5e86e1c65110530",
+      "package_zip_sha256": "6DE7D2E672654F3F96EA73F66ED540FC8AA32B524863E6CA6F11247FB00802D0",
+      "package_manifest_sha256": "AAB0FEAACF45BAF71B15A7EDA3761F993B6006F9E15E46D4D5261B371D74AB5D",
+      "observation_id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+      "scope": "FULL_INDEPENDENT_M03_F05_CONTRACT_REASSESSED_FROM_EXISTING_RELEASE_MEDIUM_PRODUCT212_E7_ACTUAL_EVIDENCE_NOT_NEW_RUNTIME_OR_MODULE_FULL_PASS",
+      "path": "uat/v1-control/e7e07758db0e4a3a9f3f32be28aa0a8c/collection-20261017T002921964Z-73a61f96560546e79a2445538baed8b7/e7e07758db0e4a3a9f3f32be28aa0a8c-product-Release/panebind.log.jsonl",
+      "sha256": "A52150915662F76819AE901C0918ECE4CC488098F0691E75410E0485997D9840",
+      "repository_excerpt_path": "docs/reports/v1-evidence/e7-r13-m03f05-fresh-generations-current-product-selected.jsonl",
+      "repository_excerpt_sha256": "2792C70B596236F2208A62095CE680DA2111F4E66AA89726308A2FE7F4DDA743"
+    },
     {
       "id": "EV-E12-R13-EDGE-UP-FIRST-CLICK-FIXTURE",
       "kind": "literal_selected_actual_JSONL",
@@ -13619,6 +13728,64 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6016,
+      "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+      "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+      "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+      "configuration": "Release",
+      "packaging_head": "2cca6cf525ac94b5df60eb8ac5e86e1c65110530",
+      "package_zip_sha256": "6DE7D2E672654F3F96EA73F66ED540FC8AA32B524863E6CA6F11247FB00802D0",
+      "package_manifest_sha256": "AAB0FEAACF45BAF71B15A7EDA3761F993B6006F9E15E46D4D5261B371D74AB5D",
+      "observation_id": "PO-E7-R13-M03F05-INDEPENDENT-CONTRACT-REASSESSMENT",
+      "scope": "FULL_INDEPENDENT_M03_F05_CONTRACT_REASSESSED_FROM_EXISTING_RELEASE_MEDIUM_PRODUCT212_E7_ACTUAL_EVIDENCE_NOT_NEW_RUNTIME_OR_MODULE_FULL_PASS",
+      "result": "PASS_FULL_INDEPENDENT_M03_F05_CONTRACT_EXISTING_ACTUAL_RUNTIME_READONLY_REVIEW",
+      "record_kind": "READONLY_REASSESSMENT_OF_ALREADY_EXECUTED_ORIGINAL_RUNTIME_NOT_NEW_RUN",
+      "assessment_recorded_date": "2026-10-19",
+      "assessment_not_new_runtime": true,
+      "observed": "指南290行：第二成员故障停止第三、实际部分几何可见/重建、新代不得续用旧generation，Esc可恢复有效源而身份失效仅停止。e7 D4119/g10三成员Ctrl Resize，D4121第二成员真实sizing回调销毁；独立rotated产品物理539/540/541=seq445/446/447分别首exact、第二API TRUE但身份失效、非NormalUp/pending退休。D4127及产品seq460响应真实status，D4130第三0/不补偿/实际abort-UP与自有capture释放/detach/Gone。D4139/4151/4164从实际部分布局新g11/12/13真正Move、重连、Ctrl两幸存成员；D4142/4154/4168匹配真实UP与实际几何。产品rotated物理172/175=seq78 exact escape_restore/g2 Escape；current物理198/199=seq658 exact Terminal escape_restore/g16 Escape。组合覆盖完整独立合同，不追加五应用、可视提示或模块/Full门；非新运行、不改原e7全批FAIL及其900秒/应用失败。",
+      "affected_features": [
+        "M03-F05"
+      ],
+      "affected_benchmarks": [],
+      "feature_contract_PASS": [
+        "M03-F05"
+      ],
+      "new_benchmark_PASS": false,
+      "evidence_ids": [
+        "EV-E7-R13-M03F05-FIXTURE-BATCH-FRESH-RECOVERY",
+        "EV-E7-R13-M03F05-ROTATED-PARTIAL-NATIVE-AND-ESCAPE",
+        "EV-E7-R13-M03F05-CURRENT-FRESH-NATIVE-AND-UP"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/e7-r13-m03f05-batch-and-fresh-recovery-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/e7-r13-m03f05-escape-and-partial-batch-rotated-product-selected.jsonl",
+        "docs/reports/v1-evidence/e7-r13-m03f05-fresh-generations-current-product-selected.jsonl"
+      ],
+      "historical_observation_ids_preserved": [
+        "PO-C01-NATIVE-FAILURES",
+        "PO-C01-INDEPENDENT",
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-B49-UP-OBSERVATION-BOUNDARY",
+        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+      ],
+      "historical_whole_run_result": "FAIL_UNCHANGED",
+      "not_claimed": [
+        "M03 module PASS",
+        "M01-F04 exit/crash contract PASS",
+        "I08/I10/Full PASS",
+        "application matrix PASS",
+        "ordinary full desktop or display matrix PASS",
+        "human UAT PASS"
+      ],
+      "next_action": "M03-F05独立合同已闭合，不重复本专项。保留旧原始失败和模块/整链/app硬门，继续M01-F04实际活动退出/受控硬终止后的输入恢复及其他未完成产品功能。",
+      "human_uat": "NOT_RUN",
+      "whole_version_PASS": false
+    },
     {
       "id": "PO-43C-R13-STANDARD-TOKEN-NATIVE-CHILD-ERROR1314",
       "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
