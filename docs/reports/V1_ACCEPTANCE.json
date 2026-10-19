@@ -2278,9 +2278,9 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 seq2017真实API TRUE但身份丢失明确失败、没有第三调用；grid单次non-exact被拒，非事务成功。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。",
       "remaining_conditions": [
-        "当前候选完整重复同目标/no-op与全部身份/部分完成合同尚缺整链。"
+        "同212已测真实writer、身份失效与部分完成证据保留；尚缺重复同目标的实际no-op回执、命令消费及零新增原生调用核验。新GeometryHistoryOnly已接线，内存条件已恢复，继续构建与现场，不授未运行项PASS。"
       ],
-      "next_action": "D17定向已关闭；复用当前212/e7与477已测writer/grid/batch/在途子项及9724严格900.037841秒范围，不将旧缺UP或已闭专项再列待跑。继续本功能尚缺no-op/身份/部分完成合同与最终Full操作链，be94未知前台撤权另判。",
+      "next_action": "已观测开发机内存恢复，继续构建新driver，以新RunId执行GeometryHistoryOnly的Center/StretchBottom重复目标：真实command/placement后有序status、visible/positioning不变、already_exact_no_native_call/call_id0、native计数不增。只补缺口并结合原同212/e7/477实际证据评本功能；不重跑900/旧UP或为独立功能另附Full门，be94未知前台及最终Full硬门独立保留。",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -2403,9 +2403,9 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01停靠拖离/Undo/恢复及视觉原值子结果已实际执行，不只模型。",
       "remaining_conditions": [
-        "当前候选有限历史、身份复用、手工新布局不复旧坐标及在途边界全合同未齐。"
+        "同212已测停靠/拖离、离散操作与两层Undo保留；尚缺原生Max/Restore不消费离散历史、真实手工移动后拒绝Undo、新根窗口不继承旧身份历史的现场结果。新GeometryHistoryOnly已接线但尚未构建/运行，不授PASS。"
       ],
-      "next_action": "同候选组合停靠→拉伸→恢复/关闭重建与迟到完成。",
+      "next_action": "开发机内存已恢复，继续以同产品212/新driver/新RunId运行GeometryHistoryOnly。按实际Max/Restore与后续Undo、真实Ctrl+Shift原生平移、旧窗销毁/新root新key验证；拒绝必须先有本次真实notice，再有序status证明零写入/几何不变。保留旧两层Undo/在途证据，不重跑历史批次，不将新接线或退出0计作功能通过。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL"

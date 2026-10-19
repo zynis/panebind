@@ -8,6 +8,12 @@
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
+托盘后续接线`c2b579c01d3ef350a1875c848a5342d5750c2a2f`新增`TrayReadinessOnly`：先在实际同Medium guest创建精确自有通知图标，记录一次ADD／版本／GetRect并删除自有图标、窗口和类；仅实际可达且清理成功后，才继续产品精确UID1的单次TaskbarCreated对照与真实菜单、退出、客户输入恢复。回执绑定schema／产品源码／PID／HWND／UID，等待保留STA泵且有界；不重启Shell或操作未知图标。89项静态包装／接线检查通过，包含删除探针清理、绕过回执身份的反例；它们不是托盘现场通过。初次Debug编译暴露旧单参数phase与新可选参数函数签名不兼容，`29f94aca7aca749b239e6bcdce1b88be67a8001a`已用单参数适配修正，但该修正版尚未取得完整构建结果。
+
+本次曾遇开发机资源阻断：只读查询返回FreePhysicalMemory=20288 KiB、FreeVirtualMemory=172052 KiB。Debug出现C1060，Debug／Release的MSBuild先后出现OutOfMemoryException；单并发／x64及仅本次调用关闭结构化诊断未解除当时阻断，后续PowerShell亦退出`-2146232797`。没有停止用户应用、改系统内存／页面文件或宿主设置，已停止重复构建。后续一次只读复查已恢复为FreePhysicalMemory=17200996 KiB、FreeVirtualMemory=25556888 KiB，故直接继续，不再要求外部系统操作，也不推定内存由谁释放。92项静态包装／接线检查已通过；当前新driver的完整构建、打包和guest现场仍待完成。原冻结产品212与原包字节不变，不复用旧driver581冒充本次验证，也不重跑已闭合的拉伸／UP／900秒专项。
+
+不依赖现场的剩余接线已继续：`GeometryHistoryOnly`调用同一真实产品命令服务，补Center／StretchBottom重复目标的独立visible／positioning、实际no-op回执和零新增native计数；补离散历史与原生Max／Restore分离、真实原生手工移动后拒绝旧历史、关闭旧根后新身份不继承历史。异步命令先观察本次准确command／placement再请求更晚status；拒绝Undo先观察实际notice再建status屏障，不能由第二进程exit0或提前status推定消费。保留既有实际UP与guest护栏，不新增产品API或测试框架。该入口的编译、定向回归与现场均尚未完成，M03-F02／F04保持BLOCKED，验收表下一动作已改为这次具体缺口；旧同212故障／两层Undo证据不变，不为整版门槛提前授PASS。
+
 `9e331148f16b47cba595f0bb2b827129`的Release `StretchBoundaryOnly`已实测（产品212／驱动581124e／包装1456ed9）。D108真实原生Resize位移12px超过系统4px，原生回到原几何后真实源UP／END；第二DOWN前P31重新Prepared，D114实际消息163（WM_NCLBUTTONDBLCLK）、两次DOWN间隔94ms小于系统500ms，第二实际源UP成立而没有第二modal循环，产品增强／写入／cancel为0。D124原生最大化按钮与UP、D125零Stretch及P38 Restore／实际几何还原通过。方向和超时本批明确NOT_RUN；结合原d7e九方向／九Undo／594ms超时负例及6dba左边真实mapped UP，同一212产品的M08-F04独立合同与B16–B18闭合，不授整个M08／I05／Full／应用或显示门。真实shutdown、客户输入恢复、Raw注销／自窗销毁与wrapper0／descendants0／forced=false分别有证据；guest12360／任务于`2026-10-19T15:02:43.6656516Z`精确清理，证据未变、部署保留、其他资源未改。
 
 `bf5c127bde7442c0bb243e60d8618985`已实际完成Release `ExitRecoveryOnly`（原产品212／驱动ac4635b／包装f3276a3）。D123–125在真实活动Move、alpha190且未发送UP时直接退出，产品Exit8／非NormalUp、pending退休，helper6500自行exit0、alpha还原173、capture为0、遮罩消失；随后D132单次测试清理UP与D138客户点击成立。D156–158仅受控终止精确产品6836／birth，不终止helper；helper3696自行恢复并退出0。D165／171真实清理UP与新点击、D173同EXE新PID5856启动，后续exact Move／Resize均真实NormalUp并恢复173；无实例重复quit返回2。最终实际idle正常退出与客户输入、Raw注销／自建窗关闭各有回执。结合已登记同212紧急暂停证据，M01-F04独立合同通过；不要求它替代托盘／M01模块／Full，不冒称自然发生的崩溃或真人UAT。专属guest180／任务于`2026-10-19T14:48:07.2152285Z`精确清理，原件保留、其他资源未改。

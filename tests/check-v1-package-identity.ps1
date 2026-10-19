@@ -503,6 +503,30 @@ Assert-V1TrayReadinessWiring $fixtureSource $traySettings $traySource
 Check $true 'static tray readiness wires exact same-Medium probe cleanup, bounded receipt, one simulation and real menu Exit/client observations'
 Reject {Assert-V1TrayReadinessWiring $fixtureSource $traySettings ($traySource.Replace('const auto actual_window=probe.window;probe.cleanup();','const auto actual_window=probe.window;'))} 'static tray readiness rejects deferring exact probe cleanup past its pre-menu observation'
 Reject {Assert-V1TrayReadinessWiring $fixtureSource $traySettings ($traySource.Replace('receipt_identity(registration,"tray_registration")','true'))} 'static tray readiness rejects accepting an unbound registration receipt before menu input'
+function Assert-V1GeometryHistoryWiring([string]$Fixture,[string]$History){
+    if(-not $Fixture.Contains('phase("owned_geometry_noop_and_history_boundaries",owned_geometry_history_case);') -or
+       -not $History.Contains('s.suite!="GeometryHistoryOnly"') -or
+       -not $History.Contains('geometry_history_command(set,key,L"Center",center,true);') -or
+       -not $History.Contains('geometry_history_command(set,key,L"StretchBottom",bottom,true);')){
+        throw 'Geometry history must use its guarded real command route, including repeated targets.'
+    }
+    foreach($value in @('geometry_history_receipt(s,command,"command")',
+        'geometry_history_receipt(s,placement,"placement")','*sequence>*placed',
+        'geometry_history_status(s,*e::number(command,"\"sequence\":"))',
+        'already_exact_no_native_call','e::number(placement,"\"call_id\":")==0',
+        '*after_calls==*before_calls+(no_native?0:1)',
+        'geometry_history_receipt(s,notice,"notice")&&sequence&&*sequence',
+        'geometry_history_status(s,*e::number(notice,"\"sequence\":"))',
+        'pause_routing_native_drag(set,0,60,40,true,','LayoutFixtures fresh{s};fresh.create();',
+        'fresh_key!=key','actual_positioning==positioning')){
+        if(-not $History.Contains($value)){throw ('Geometry history lost actual consumption, zero-write or identity evidence: '+$value)}
+    }
+}
+$geometryHistory=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_geometry_history_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1GeometryHistoryWiring $fixtureSource $geometryHistory
+Check $true 'static geometry history retains real command and notice barriers, no-op native counter and new-root identity checks'
+Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('*after_calls==*before_calls+(no_native?0:1)','true'))} 'static geometry history rejects dropping the actual no-op native-call counter'
+Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('geometry_history_receipt(s,notice,"notice")&&sequence&&*sequence','true'))} 'static geometry history rejects accepting an unbound Undo rejection receipt'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
