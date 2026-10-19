@@ -86,6 +86,39 @@
       "finite_session_run_id": "9724d8562beb480a8278d0607f0e700a",
       "scope": "Current d2 split-identity test driver; actual product212 bytes unchanged. Strict finite owned900.037841s and two rounds/cleanup scope observed; I08 actor remains unknown-FG early abort, Full Release next."
     },
+    "observed_driver_df8_packaging_failure": {
+      "source_sha": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_unchanged": true,
+      "debug_binary_sha256": "0BF4428B3F285D27307A4176E9C42BAB8D34B9A0E3E3C78CFDCB889286095B91",
+      "release_binary_sha256": "CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "debug_offline_guest_path": "PASS_208_CASES",
+      "release_offline_guest_path": "PASS_208_CASES",
+      "guest_entry_result": "FAIL_LOADER_EXIT_3221225781_C0000135_NO_FIRST_FIXTURE_LOG",
+      "product_runtime": "NOT_RUN",
+      "observation_id": "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+      "run_id": "0f6090205d574e1dacce95ceeb558f1d",
+      "defect_id": "V1-D27",
+      "dependency_observation": {
+        "evidence_kind": "MAIN_AGENT_ACTUAL_DUMPBIN_AND_CACHE_TOOL_OUTPUT_SUMMARY_NOT_ARCHIVED_STDOUT",
+        "old_31f_cache": "CMAKE_MSVC_RUNTIME_LIBRARY:UNINITIALIZED=MultiThreaded",
+        "df8_cache_runtime_entry_present": false,
+        "df8_dynamic_imports": [
+          "MSVCP140.dll",
+          "MSVCP140_ATOMIC_WAIT.dll",
+          "VCRUNTIME140.dll",
+          "VCRUNTIME140_1.dll",
+          "api-ms-win-crt-* family"
+        ],
+        "specific_missing_DLL": "UNKNOWN",
+        "prepack_dependency_gate_bad_df8_directory": "REJECTED",
+        "prepack_dependency_gate_old_31f_and_product212": "STATIC_POSITIVE_NOT_GUEST_FUNCTION_EVIDENCE"
+      },
+      "revalidation": "FRESH_MT_CANDIDATE_GUEST_ENTRY_AND_PAUSE_ROUTING_PHASES_PENDING",
+      "historical_build_offline_passes_preserved": true
+    },
     "next_driver_candidate": {
       "source_sha": "31f94b64f346de0c5542e5f378006702d6c1be7d",
       "implementation_source_sha": "31f94b64f346de0c5542e5f378006702d6c1be7d",
@@ -1347,24 +1380,27 @@
         "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
         "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
+        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
+        "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json"
       ],
       "defects": [
         "V1-D08",
-        "V1-D11"
+        "V1-D11",
+        "V1-D27"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01显式Pause真实终止及部分新手势恢复已有结果；未把Pause当NormalUp。",
       "remaining_conditions": [
-        "活动Ctrl暂停、透传和同候选恢复Move/Resize完整组合仍缺。"
+        "活动Ctrl暂停、透传和同候选恢复Move/Resize组合在0f6未运行；V1-D27工具依赖门已实现，仍须新MT候选实际进入guest并取得该独立功能全部收据，不能用构建/offline208或退出码替代。"
       ],
-      "next_action": "仅补活动Ctrl暂停、原生透传及恢复Move/Resize的未覆盖组合；复用已有暂停/设置范围，不再把普通UP闭环修复作为所有后续工作的统一前置。",
+      "next_action": "0f6 PauseRoutingOnly因driver动态runtime依赖在首log前退出，两phase均NOT_RUN、不是产品暂停FAIL。先以显式MultiThreaded且依赖门通过的新候选SHA/RunId重验活动Ctrl暂停→零新写入/资源释放→其他窗实际点击→原生透传→同PID/birth新代Move/Resize；逐项实际通过即可裁定本独立合同，不叠托盘/真实应用/整M01/I08/Full门。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION"
+        "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -2542,9 +2578,12 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json"
       ],
-      "defects": [],
+      "defects": [
+        "V1-D27"
+      ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
@@ -2552,11 +2591,12 @@
       "remaining_conditions": [
         "当前候选全部优先级/Shift与设置并发组合和五应用范围未齐。"
       ],
-      "next_action": "复用生产分发，在真实同进程操作链补受影响互斥场景。",
+      "next_action": "0f6的Ctrl_Shift_bypass_reselect未进入fixture，两phase NOT_RUN而非产品路由FAIL；用依赖门通过的新MT driver实际重验既有互斥/原生透传与实际关系重选，保留真正未覆盖的仲裁组合，不增加矩阵或重跑已闭历史批次。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -4457,11 +4497,9 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "历史c01的smartStretch开启范围原身份保留；当前冻结产品212的6dba已实际GUI关闭智能邻窗→StretchLeft到work.left→Undo、GUI开启且无正交交叠→work.left、近/远选最近、隐藏近窗过滤后取远窗、max600对width700明确零native拒绝及恢复后合法命令；另一次实际HTLEFT双击映射/真实第二次UP、邻窗不动与Undo通过，配置和资源恢复已观察。隐藏资格过滤不等于应用规则排除；mapped UP不等于普通Move NormalUp。",
       "remaining_conditions": [
-        "应用规则排除候选尚未实测；本次仅覆盖hidden exact owned target不合格。",
-        "鼠标/四方向完整功能范围尚缺；本次只有StretchLeft命令及一次严格HTLEFT双击映射，不能授完整M08-F05/B19/I05 PASS。",
-        "真实应用矩阵、普通Medium完整隔离桌面与整版显示/连续操作硬门仍未齐；保留原始失败身份。"
+        "应用规则明确排除的邻窗尚缺实际生产资格/求解证据；6dba的hidden目标不合格不等于应用rule排除。最近/近远/无交叠/忽略邻窗/max优先的已测子项复用。"
       ],
-      "next_action": "保留6dba当前候选真实子项，不重复已通过的智能拉伸分支；补应用规则排除和四向鼠标合同。5b0已实际尝试WDAG baseline CPWT并返回error5/未创建child，标准账号与标准child均未运行，不授普通完整Medium桌面或应用PASS；停止无新依据的同路重试，其他不受阻子合同继续。",
+      "next_action": "使用显式MultiThreaded、通过新依赖门并实际进入guest的新driver候选，补exact owned异class目标的真实GUI应用规则排除→生产StretchLeft→独立目标/邻窗/Undo收据；有证据后裁定F05独立合同。四边/四角、Shift、双击阈值与按钮防误触属于F04，真实应用矩阵/模块/整版环境另判，不叠为F05新增门。保留0f6工具失败及5b0 UNKNOWN，不无依据重试旧路线。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -7728,9 +7766,9 @@
       ],
       "observed": "6dba冻结产品212实际StretchLeft：忽略邻窗、无正交交叠、近远选最近、隐藏资格过滤、尺寸上限优先明确拒绝与恢复后合法操作、一次HTLEFT双击映射真实UP/Undo通过；均为M08-F05有限子项，不改变B19 BLOCKED/0分。",
       "remaining_conditions": [
-        "M08-F05仍缺应用规则排除及四方向/鼠标完整范围，并未满足当前整版应用/环境硬门；仅隐藏目标过滤不等于规则排除。"
+        "关联M08-F05目前真正未覆盖的是应用rule排除邻窗；hidden过滤不是该项。已测最近/远窗/无交叠/忽略邻窗/尺寸限制优先继续复用；F04鼠标枚举和整M08/应用/Full门另判，不增设到B19本功能合同。"
       ],
-      "next_action": "复用6dba已测子项，补关联功能仍缺合同和必要真实应用/普通Medium完整桌面验证；不为已有子项增分或重跑历史批次。",
+      "next_action": "新MT driver通过依赖门并实际进入guest后，补应用rule排除的精确生产路径/独立几何证据，再据M08-F05完整独立合同裁定B19；未实测前保持BLOCKED/0分。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-6DBA-R11-SMART-STRETCH-NEIGHBOUR-MODES-SCOPED-PASS"
@@ -9963,6 +10001,30 @@
   ],
   "defects": [
     {
+      "id": "V1-D27",
+      "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+      "kind": "TEST_DRIVER_DYNAMIC_MSVC_RUNTIME_DEPENDENCY_NOT_INCLUDED_IN_GUEST_PACKAGE",
+      "component": "GUEST_TEST_DRIVER_PACKAGING_NOT_PRODUCT",
+      "description": "0f6的df8 driver在guest实际创建Medium child PID7060后退出3221225781/0xC0000135；fixture首log和product log均不存在，两个PauseRoutingOnly phase未运行。这是普通构建/打包工具缺陷，不能记产品功能FAIL。新driver配置遗漏旧31f的MultiThreaded项，主执行者实际dumpbin读到MSVCP140/MSVCP140_ATOMIC_WAIT/VCRUNTIME140/_1及CRT动态依赖；具体哪一DLL缺失UNKNOWN。D/R构建0与offline各208 PASS原结论保留，不等于guest入口可运行。",
+      "features": [
+        "M01-F03",
+        "M04-F03"
+      ],
+      "driver_source_sha": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "driver_binary_sha256": "CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_unchanged": true,
+      "run_id": "0f6090205d574e1dacce95ceeb558f1d",
+      "observation_id": "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json"
+      ],
+      "repair_state": "DEPENDENCY_PREPACK_GUARD_IMPLEMENTED_BAD_DYNAMIC_DIRECTORY_REJECTED_STATIC_POSITIVES_PASS_FRESH_MT_RUNTIME_PENDING",
+      "repair_evidence_scope": "主执行者实际工具调用摘要，尚无归档stdout，不补造路径或原文；新MT候选未现场重验，缺陷不关闭。",
+      "runtime_revalidation": "NOT_RUN_FRESH_MT_CANDIDATE_REQUIRED",
+      "next_action": "新候选显式使用MultiThreaded并通过PE依赖门后，以新SHA/RunId实际运行PauseRoutingOnly入口及两phase；检查原始日志再裁定M01-F03独立合同，未运行项目保持NOT_RUN。产品212原字节及6dba产品运行指针不变，不重建不变产品。"
+    },
+    {
       "id": "V1-D26",
       "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME",
       "kind": "SOURCE_CONFIRMED_CAPTURED_MOVE_AND_DOWN_PUBLICATION_QUEUE_GAP",
@@ -11371,6 +11433,30 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-0F6-R12-DRIVER-LOAD-FAILURE-LAUNCH",
+      "kind": "metadata_and_literal_selected_actual_driver_loader_launch_JSON_fields",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "driver_binary_sha256": "CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C",
+      "run_id": "0f6090205d574e1dacce95ceeb558f1d",
+      "configuration": "Release",
+      "packaging_head": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "package_zip_sha256": "BA67766420C38C80C0896B76AC3A4A91258C3E27B548AAF5865100AB425F6DF4",
+      "package_manifest_sha256": "6018760618A619EB2FF1522D7852E76D5D9C9082A99BABE3EA3209532450A080",
+      "wsb_sha256": "832931B76FEEAA60BDF1C10F7447BA5099384DDD0D605CCD5A00F790D97D0204",
+      "observation_id": "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+      "scope": "ACTUAL_TEST_DRIVER_LOADER_EXIT_C0000135_BEFORE_FIRST_FIXTURE_OR_PRODUCT_LOG_NOT_PRODUCT_FUNCTION_FAILURE",
+      "path": "uat/v1-control/0f6090205d574e1dacce95ceeb558f1d/collection-20261019T122750658Z-1556e4fd612540a5864c55fa96a2a99e/0f6090205d574e1dacce95ceeb558f1d-Release-launch.json",
+      "sha256": "3F49327CC91CBBF15989718A6DEA38E8BF2B2F12D94C19C63B0D297EAD4AEB9B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json",
+      "repository_excerpt_sha256": "37711D851FFF5D8C8B791EF99D46C86BAA04B54233D581F18C91C9DD4E11EEDD"
+    },
     {
       "id": "EV-5B0-R11-WDAG-NATIVE-BASELINE-FIELD-PROJECTION",
       "kind": "metadata_and_literal_selected_actual_native_identity_probe_JSON_fields_not_complete_original",
@@ -12965,6 +13051,75 @@
   ],
   "partial_observations": [
     {
+      "id": "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "driver_binary_sha256": "CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C",
+      "run_id": "0f6090205d574e1dacce95ceeb558f1d",
+      "configuration": "Release",
+      "packaging_head": "df8cbdd119653964f528b209f2bf9f202bdc5987",
+      "package_zip_sha256": "BA67766420C38C80C0896B76AC3A4A91258C3E27B548AAF5865100AB425F6DF4",
+      "package_manifest_sha256": "6018760618A619EB2FF1522D7852E76D5D9C9082A99BABE3EA3209532450A080",
+      "wsb_sha256": "832931B76FEEAA60BDF1C10F7447BA5099384DDD0D605CCD5A00F790D97D0204",
+      "observation_id": "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+      "scope": "ACTUAL_TEST_DRIVER_LOADER_EXIT_C0000135_BEFORE_FIRST_FIXTURE_OR_PRODUCT_LOG_NOT_PRODUCT_FUNCTION_FAILURE",
+      "result": "TEST_DRIVER_PACKAGING_FAIL_PRODUCT_AND_BOTH_PHASES_NOT_RUN",
+      "record_kind": "ACTUAL_GUEST_FIXTURE_LOADER_FAILURE_NOT_PRODUCT_FUNCTION_COUNTEREXAMPLE",
+      "observed": "0f6实际launch中CPWT返回error5后，CPAU成功创建同候选Medium8192/nonElev/session1 child PID7060/TID7064；wait0，exit3221225781/0xC0000135，descendants0、forcedfalse。采集/清理清单只有launch、summary、marker及复制的产品EXE/portable.flag，没有fixture首log或product log，没有现场手势。两个phase均NOT_RUN，产品cleanup N_A，不由wrapper初始化false推PASS/FAIL。新df8动态runtime imports与旧31f静态MultiThreaded缓存形成明确普通打包缺口；单个缺失DLL未定。新依赖门已用坏目录实际拒绝、旧31f/产品212静态正例通过，仅为构建工具检查，尚待新MT guest重验；原始失败包/证据保留。",
+      "actual_fixture_exit": {
+        "fixture_created": true,
+        "fixture_pid": 7060,
+        "fixture_tid": 7064,
+        "integrity_rid": 8192,
+        "elevated": false,
+        "session_id": 1,
+        "wait_result": 0,
+        "fixture_exit_code": 3221225781,
+        "fixture_exit_hex": "0xC0000135",
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass_original_unevaluated": false
+      },
+      "phase_results": {
+        "active_ctrl_pause_native_resume": "NOT_RUN",
+        "ctrl_shift_bypass_reselect": "NOT_RUN"
+      },
+      "evidence_ids": [
+        "EV-0F6-R12-DRIVER-LOAD-FAILURE-LAUNCH"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json"
+      ],
+      "defect_ids": [
+        "V1-D27"
+      ],
+      "affected_features": [
+        "M01-F03",
+        "M04-F03"
+      ],
+      "product_runtime_pointer_unchanged": "6dbae80a02b74cd882df53293a439a02",
+      "cleanup": {
+        "guest_pid": 17148,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T12:31:22.7506681Z",
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "new_feature_or_B_PASS": false,
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "新候选显式使用MultiThreaded并通过PE依赖门后，以新SHA/RunId实际运行PauseRoutingOnly入口及两phase；检查原始日志再裁定M01-F03独立合同，未运行项目保持NOT_RUN。产品212原字节及6dba产品运行指针不变，不重建不变产品。"
+    },
+    {
       "id": "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
@@ -13193,7 +13348,7 @@
       "whole_feature_PASS": false,
       "whole_version_PASS": false,
       "human_uat": "NOT_RUN",
-      "next_action": "复用本次明确智能拉伸子项；仍补应用规则排除与四方向鼠标完整范围、真实应用矩阵、普通Medium完整隔离桌面与最终整版操作链。不重复本专项或旧Fix H/900；5b0已实测WDAG baseline CPWT/error5且child未创建，标准账号/标准child未试，不授环境PASS或唯一根因，停止无新依据的同路重试。"
+      "next_action": "复用本次明确智能拉伸子项；F05独立合同仅补应用rule排除的实际生产资格/几何证据，四边四角及双击交互属于F04，真实应用/整M08/Full和环境门另判。0f6两phase因工具动态runtime依赖未运行，先以新MT driver过依赖门后重验，不用构建或历史子项冒充现场；5b0 UNKNOWN与旧失败保留，不重复旧Fix H/900或无依据baseline重试。"
     },
     {
       "id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",

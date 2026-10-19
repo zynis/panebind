@@ -1,0 +1,78 @@
+{
+  "repository_evidence_identity": {
+    "record_kind": "REPOSITORY_METADATA_AND_LITERAL_LAUNCH_FIELD_PROJECTION_NOT_COMPLETE_ORIGINAL",
+    "run_id": "0f6090205d574e1dacce95ceeb558f1d",
+    "original_path": "uat/v1-control/0f6090205d574e1dacce95ceeb558f1d/collection-20261019T122750658Z-1556e4fd612540a5864c55fa96a2a99e/0f6090205d574e1dacce95ceeb558f1d-Release-launch.json",
+    "original_sha256": "3F49327CC91CBBF15989718A6DEA38E8BF2B2F12D94C19C63B0D297EAD4AEB9B",
+    "original_bytes": 9873,
+    "projection_policy": "Selected original property/value text copied literally; omitted bootstrap and duplicate token context. Added metadata/envelope is not a complete original or native event stream. No credentials included.",
+    "fixture_exit_code_hex": "0xC0000135",
+    "fixture_first_log_observed": false,
+    "product_log_observed": false,
+    "product_function_result": "NOT_RUN",
+    "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+    "original_product_cleanup_pass_false_basis": "Initialized unevaluated wrapper field preserved below; not an actual product cleanup FAIL or PASS.",
+    "phase_results": {
+      "active_ctrl_pause_native_resume": "NOT_RUN",
+      "ctrl_shift_bypass_reselect": "NOT_RUN"
+    },
+    "whole_feature_PASS": false,
+    "whole_version_PASS": false
+  },
+  "literal_source_projection": {
+    "configuration":  "Release",
+    "product_source_commit":  "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+    "driver_source_commit":  "df8cbdd119653964f528b209f2bf9f202bdc5987",
+    "packaging_head":  "df8cbdd119653964f528b209f2bf9f202bdc5987",
+    "source_input_sha256":  "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+    "actual_exe_sha256":  "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+    "hash_equal":  true,
+    "fixture_sha256":  "CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C",
+    "arguments":  "--run-id 0f6090205d574e1dacce95ceeb558f1d --output \"C:\\PaneBindV1\\Output\" --product \"C:\\PaneBindV1\\Output\\0f6090205d574e1dacce95ceeb558f1d-product-Release\\panebind.exe\" --suite PauseRoutingOnly",
+    "actual_suite":  "PauseRoutingOnly",
+    "feature_result":  "NOT_EVALUATED",
+    "human_uat":  "NOT_RUN",
+    "actual_result": {
+                          "status":  "FIXTURE_FAILED",
+                          "fixture_started":  true,
+                          "product_cleanup_pass":  false,
+                          "process_creation_attempts":  [
+                                                            {
+                                                                "api":  "CreateProcessWithTokenW",
+                                                                "succeeded":  false,
+                                                                "win32_error":  5,
+                                                                "same_candidate_token":  true,
+                                                                "executable":  "C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe",
+                                                                "desktop":  "winsta0\\default"
+                                                            },
+                                                            {
+                                                                "api":  "CreateProcessAsUserW",
+                                                                "succeeded":  true,
+                                                                "win32_error":  0,
+                                                                "same_candidate_token":  true,
+                                                                "executable":  "C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe",
+                                                                "desktop":  "winsta0\\default"
+                                                            }
+                                                        ],
+                          "fixture_pid":  7060,
+                          "fixture_tid":  7064,
+                          "actual_process_session":  1,
+                          "actual_child_token":  {
+                                                     "sid_sha256":  "ECF966DE0EC28B246CD31C7C8C738A01D00188B63B3CBD978D18C0FAF6021523",
+                                                     "integrity_rid":  8192,
+                                                     "session_id":  1,
+                                                     "elevated":  false,
+                                                     "elevation_type":  1,
+                                                     "admin_sid_enabled":  false,
+                                                     "uiaccess":  false,
+                                                     "app_container":  false,
+                                                     "restricted":  false
+                                                 },
+                          "creation_flags":  "CREATE_SUSPENDED|CREATE_NO_WINDOW",
+                          "wait_result":  0,
+                          "fixture_exit_code":  3221225781,
+                          "descendants_alive_at_fixture_exit":  0,
+                          "forced_test_cleanup":  false
+    }
+  }
+}

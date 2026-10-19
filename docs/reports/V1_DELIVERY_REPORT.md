@@ -84,6 +84,16 @@ D255完整原配置恢复、D256测试布局资源关闭、D263阶段PASS；D264
 
 基线未成立，因此没有创建标准账号、没有执行标准用户子进程，也未启动产品／GUI／Explorer或发送合成输入；这些均为NOT_RUN。前后桌面DACL哈希一致，账户回执NOT_CREATED，子进程清理无遗留；不能把无子进程叫作正常native exit。该路线上不追加无依据重试。原件在`uat/v1-control/5b0b482b4f7544f5bdf2463963242f87/collection-20261019T120544161Z-9d0447617e0e48f0a7f98df29ea324ee/`，专属guest23440／任务于`2026-10-19T12:06:48.0854185Z`精确清理，证据和部署保留、其他资源未改；guest销毁不提供产品cleanup PASS。
 
+### 0f6：新驱动的运行时打包缺口，功能尚未进入
+
+`0f6090205d574e1dacce95ceeb558f1d`／`PauseRoutingOnly`绑定产品212原EXE，driver／包装源码`df8cbdd119653964f528b209f2bf9f202bdc5987`。驱动Debug／Release构建退出0，guest-path各1/1通过（各208个离线case，symlink子项SKIP1314；D processor0.15／wall0.20秒，R processor0.15／wall0.36秒），62项工具守卫也通过；这些均未证明干净guest入口可运行。
+
+实际创建的Medium fixture PID7060以`3221225781 / 0xC0000135`退出，未产生fixture首日志或产品日志，两项功能均NOT_RUN。Release driver SHA为`CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C`。主执行实际检查发现新build cache漏了旧构建的`CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded`；`dumpbin /DEPENDENTS`实际列出MSVCP140、MSVCP140_ATOMIC_WAIT、VCRUNTIME140及CRT动态依赖，包未携带它们。具体缺失DLL未在guest逐个确认，不从退出码猜名称。这是已确定的静态运行时打包合同缺口，不是产品输入／权限失败；上述检查目前为真实工具调用摘要，不补造归档stdout。
+
+修复在既有打包入口检查实际`/MT` cache及产品／fixture的PE依赖，身份读取前即拒绝动态runtime，既有portable产品白名单不放宽；只给fixture保留其实际使用的系统bcrypt／propsys。修复后主执行只读检查已拒绝实际df8动态build，原31f和产品212静态正例通过。仍须新`/MT`候选实际进入guest并运行，才关闭此工具缺陷，不把源码守卫或本机可启动当作复验PASS。
+
+失败ZIP `BA67766420C38C80C0896B76AC3A4A91258C3E27B548AAF5865100AB425F6DF4`、manifest `6018760618A619EB2FF1522D7852E76D5D9C9082A99BABE3EA3209532450A080`、WSB `832931B76FEEAA60BDF1C10F7447BA5099384DDD0D605CCD5A00F790D97D0204`均保留。原件在`uat/v1-control/0f6090205d574e1dacce95ceeb558f1d/collection-20261019T122750658Z-1556e4fd612540a5864c55fa96a2a99e/`；guest17148／任务于`2026-10-19T12:31:22.7506681Z`精确清理，证据未变／其他资源未改。未启动产品，因此产品cleanup为N_A，不能由wrapper常量false或guest销毁推断。
+
 ### 三项最重要的剩余缺口与下一动作
 
 | 缺口 | 当前事实与最小下一步 |
@@ -92,7 +102,7 @@ D255完整原配置恢复、D256测试布局资源关闭、D263阶段PASS；D264
 | 当前Release完整连续链 | be94的真实未知前台变化使B Resize撤权，触发者及起因仍UNKNOWN；cea局部PASS不关闭该Full失败。应在具备条件的上述会话复验同一候选完整操作链；若形成具体产品反例则按影响修复，不靠增加检查或放宽foreground／capture门凑通过。 |
 | 显示与会话矩阵 | 当前单屏144DPI guest不满足普通完整桌面、双屏负坐标、混合100%／150%、200% UI及真实会话变化门。需要可用的相应隔离显示／会话条件；纯几何模拟和本轮截图不能代替。 |
 
-恢复SSH、入口子范围、组组件或本次拉伸分支通过不等于整版即将通过。现无用户搬包、再次恢复SSH或重复跑900秒的待办；忽略邻窗及本次有限分支已实测，不再列为NOT_RUN或重复专项。5b0环境对照不放行后，继续未覆盖的活动Ctrl暂停→原生操作→恢复，以及Ctrl+Shift原生绕过后按新关系联动；这两项不依赖完整真实应用环境，当前尚未实测，不预填PASS。剩余工程缺口不全归环境，不进入REA，不自签整版DEV或真人UAT。
+恢复SSH、入口子范围、组组件或本次拉伸分支通过不等于整版即将通过。现无用户搬包、再次恢复SSH或重复跑900秒的待办；忽略邻窗及本次有限分支已实测，不再列为NOT_RUN或重复专项。活动Ctrl暂停→原生操作→恢复、Ctrl+Shift绕过后新关系联动，以及可见target的GUI应用规则排除，均已补测试接线；0f6驱动加载前失败后，使用修复的静态runtime包继续这些未进入的实际功能，不把普通构建问题当成环境停止理由。四边／四角完整鼠标门属于F04，不能重复叠到F05；F05还缺真实rule排除，不以hidden代替。剩余工程缺口不全归环境，不进入REA，不自签整版DEV或真人UAT。
 
 ### 7944：保留原部署失败，不再作为当前SSH阻断
 
