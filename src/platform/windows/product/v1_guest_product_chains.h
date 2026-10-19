@@ -189,6 +189,39 @@ void pause_routing_client_pair(LayoutFixtures& set,const char* label,std::size_t
         ",\"actual_client_DOWN_after\":"+std::to_string(set.frames[source].client_down[0].load())+
         ",\"actual_client_UP_after\":"+std::to_string(set.frames[source].client_up[0].load())+",\"SendInput_return_is_not_delivery_proof\":true");
 }
+bool pause_routing_idle_raw_observation(std::string_view row,DWORD product_pid,std::string_view source_sha){
+    // Only the complete known canonical idle receiver observation is exempt.
+    // Missing/duplicate fields are UNKNOWN, never numeric zero by default.
+    namespace evidence=product::guest::up_evidence_detail;
+    const auto exact=[&](std::string_view field,std::string_view expected){
+        const auto value=evidence::unique_value(row,field);return value&&*value==expected;
+    };
+    const auto pid=evidence::number(row,"\"process_id\":");
+    if(!product_pid||source_sha.size()!=40||row.empty()||row.size()>16384||row.front()!='{'||row.back()!='}'||
+       !evidence::quoted(row,"\"schema\":","panebind-v1/1")||!pid||*pid!=product_pid||
+       !evidence::quoted(row,"\"source_sha\":",source_sha)||
+       !evidence::quoted(row,"\"type\":","gesture_input_resource")||!evidence::quoted(row,"\"fact\":","raw_mouse")||
+       !evidence::quoted(row,"\"entry_mode\":","native_move_handoff")||!exact("\"receipt_not_write_authority\":","true")||
+       !exact("\"removal_reason\":","5"))return false;
+    constexpr std::string_view zero_fields[]{
+        "\"generation\":","\"source\":","\"source_pid\":","\"source_tid\":","\"overlay\":","\"native_message\":",
+        "\"legacy_up_dispatch_qpc\":","\"SetCapture_previous_HWND\":","\"capture_actual_after\":","\"capture_failure\":",
+        "\"capture_owner_tid\":","\"capture_release_before_HWND\":","\"capture_after_release\":",
+        "\"release_before_qpc\":","\"release_after_qpc\":","\"attach_before_qpc\":","\"attach_after_qpc\":",
+        "\"detach_before_qpc\":","\"detach_after_qpc\":","\"setup_stage\":","\"native_failure\":","\"win32_error\":"};
+    for(const auto field:zero_fields)if(!exact(field,"0"))return false;
+    constexpr std::string_view false_fields[]{
+        "\"actual_legacy_up_accepted\":","\"capture_attempted\":","\"release_attempted\":","\"release_completed\":",
+        "\"release_succeeded\":","\"capture_owner_observation_known\":","\"capture_release_after_is_copied_no_call\":",
+        "\"attach_attempted\":","\"attach_completed\":","\"attach_succeeded\":","\"detach_attempted\":",
+        "\"detach_completed\":","\"detach_succeeded\":","\"overlay_destroyed\":","\"hotkey_unregistered\":"};
+    for(const auto field:false_fields)if(!exact(field,"false"))return false;
+    // Non-resource observation metadata may vary, but still must be present
+    // and well formed. It grants no target, UP or geometry-writer authority.
+    const auto observed=evidence::number(row,"\"resource_observed_qpc\":"),sequence=evidence::number(row,"\"raw_sequence\":");
+    return observed&&*observed&&sequence&&*sequence&&evidence::number(row,"\"foreground\":")&&
+        evidence::number(row,"\"native_message_time\":")&&evidence::number(row,"\"raw_button_flags\":");
+}
 std::vector<Rect> pause_routing_native_drag(LayoutFixtures& set,std::size_t source,LONG dx,LONG dy,bool ctrl_shift,const char* label){
     auto& s=set.state;if(source>=set.active||s.left||s.control||(GetAsyncKeyState(VK_SHIFT)&0x8000))
         throw std::runtime_error("pause_routing_native_drag_requires_released_owned_input");
@@ -242,12 +275,15 @@ std::vector<Rect> pause_routing_native_drag(LayoutFixtures& set,std::size_t sour
         actual_up_qpc=queue_stopped?queue.exact_source_up_qpc(h,set.thread,s.left_up_send_qpc,down_stamp,destination,
             set.frames[source].native_end_qpc.load()):0;
         const auto actual=pause_routing_actual(set);
-        const auto text=product_log_since(s,mark);unsigned starts_claimed{},placements{},resources{},cancels{};
+        const auto text=product_log_since(s,mark);unsigned starts_claimed{},placements{},resources{},idle_raw_observations{},cancels{};
         std::istringstream rows(text);std::string row;
         while(std::getline(rows,row))if(row.ends_with('}')){
             if(row.find("\"type\":\"gesture_start\"")!=row.npos)++starts_claimed;
             if(row.find("\"type\":\"placement\"")!=row.npos)++placements;
-            if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos)++resources;
+            if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos){
+                if(pause_routing_idle_raw_observation(row,s.product_pid,s.product_source))++idle_raw_observations;
+                else ++resources;
+            }
             if(row.find("\"type\":\"native_move_cancel\"")!=row.npos)++cancels;
         }
         const bool idle=GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
@@ -260,7 +296,8 @@ std::vector<Rect> pause_routing_native_drag(LayoutFixtures& set,std::size_t sour
             ",\"actual_source_END_qpc\":"+std::to_string(set.frames[source].native_end_qpc.load())+
             ",\"test_DOWN_send_qpc\":"+std::to_string(s.left_down_send_qpc)+",\"test_UP_send_qpc\":"+std::to_string(s.left_up_send_qpc)+
             ",\"product_enhanced_STARTs\":"+std::to_string(starts_claimed)+",\"product_placements\":"+std::to_string(placements)+
-            ",\"product_input_resources\":"+std::to_string(resources)+",\"product_native_cancels\":"+std::to_string(cancels)+
+            ",\"product_input_resources\":"+std::to_string(resources)+",\"idle_raw_observations\":"+std::to_string(idle_raw_observations)+
+            ",\"idle_raw_is_UP_or_write_authority\":false,\"product_native_cancels\":"+std::to_string(cancels)+
             ",\"actual_source_queue_UP\":"+queue.json()+",\"expected_source\":"+rect(expected[source])+
             ",\"actual_source\":"+rect(actual[source])+",\"native_passthrough_is_product_NormalUp\":false");
         for(std::size_t n=0;n<actual.size();++n)s.log.emit("pause_routing_native_actual_member",

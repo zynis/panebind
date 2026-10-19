@@ -247,6 +247,30 @@ function Assert-V1PauseRoutingScopeWiring([string]$Source,[string]$Chains){
        -not $native.Contains('try{if(shift_attempted&&!shift_release_attempted){shift_release_attempted=true;key(s,VK_SHIFT,false);}}')){
         throw 'Native pause/bypass input must preserve exact source UP evidence, no product operations, and independent bounded input cleanup.'
     }
+    $raw=Get-V1FixtureFunctionText $Chains 'pause_routing_idle_raw_observation'
+    $zero=[regex]::Match($raw,'(?s)zero_fields\[\]\s*\{(?<fields>.*?)\};').Groups['fields'].Value
+    $falseFields=[regex]::Match($raw,'(?s)false_fields\[\]\s*\{(?<fields>.*?)\};').Groups['fields'].Value
+    if(-not $raw.Contains('const auto value=evidence::unique_value(row,field);return value&&*value==expected;') -or
+       -not $raw.Contains('!evidence::quoted(row,"\"fact\":","raw_mouse")') -or
+       -not $raw.Contains('!pid||*pid!=product_pid') -or
+       -not $raw.Contains('!evidence::quoted(row,"\"source_sha\":",source_sha)') -or
+       -not $raw.Contains('for(const auto field:zero_fields)if(!exact(field,"0"))return false;') -or
+       -not $raw.Contains('for(const auto field:false_fields)if(!exact(field,"false"))return false;') -or
+       -not $native.Contains('if(pause_routing_idle_raw_observation(row,s.product_pid,s.product_source))++idle_raw_observations;') -or
+       -not $native.Contains('else ++resources;')){
+        throw 'Only complete known idle Raw observations may be counted separately; UNKNOWN resource fields must still block native routing.'
+    }
+    foreach($field in @('generation','source','source_pid','source_tid','overlay','native_message','legacy_up_dispatch_qpc',
+        'SetCapture_previous_HWND','capture_actual_after','capture_failure','capture_owner_tid','capture_release_before_HWND',
+        'capture_after_release','release_before_qpc','release_after_qpc','attach_before_qpc','attach_after_qpc',
+        'detach_before_qpc','detach_after_qpc','setup_stage','native_failure','win32_error')){
+        if(-not $zero.Contains(('\"'+$field+'\":'))){throw 'Nonzero Raw resource identity or API facts must not be ignored.'}
+    }
+    foreach($field in @('actual_legacy_up_accepted','capture_attempted','release_attempted','release_completed','release_succeeded',
+        'capture_owner_observation_known','capture_release_after_is_copied_no_call','attach_attempted','attach_completed',
+        'attach_succeeded','detach_attempted','detach_completed','detach_succeeded','overlay_destroyed','hotkey_unregistered')){
+        if(-not $falseFields.Contains(('\"'+$field+'\":'))){throw 'Actual or unknown capture, association and cleanup facts must remain blocking resource evidence.'}
+    }
     $nativeCall=$bypass.IndexOf('pause_routing_native_drag(set,0,-100,60,true,',[StringComparison]::Ordinal)
     $nextCtrl=$bypass.IndexOf('const auto next=layout_down(set,0,HTCAPTION,true);',[StringComparison]::Ordinal)
     if($nativeCall -lt 0 -or $nextCtrl -le $nativeCall -or
@@ -328,6 +352,8 @@ Reject {Assert-V1StretchModesScopeWiring $fixtureSource ($chainSource.Replace('c
 Assert-V1PauseRoutingScopeWiring $fixtureSource $chainSource
 Check $true 'static pause routing: actual Pause/UP/native/Resume and bypass/new-relation components are wired without unrelated suites'
 Reject {Assert-V1PauseRoutingScopeWiring $fixtureSource ($chainSource.Replace('!starts_claimed&&!placements&&!resources&&!cancels','!starts_claimed&&!resources&&!cancels'))} 'static pause routing rejects native bypass without the zero-product-placement gate'
+Reject {Assert-V1PauseRoutingScopeWiring $fixtureSource ($chainSource.Replace('return value&&*value==expected;','return !value||*value==expected;'))} 'static idle Raw guard rejects treating missing or ambiguous resource fields as known zero/false'
+Reject {Assert-V1PauseRoutingScopeWiring $fixtureSource ($chainSource.Replace('"\"source\":",',''))} 'static idle Raw guard rejects omitting the zero-source identity gate'
 $ruleSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_rule_cases.h'),[Text.Encoding]::UTF8)
 Assert-V1OwnedRuleTargetWiring $fixtureSource $layoutSource $ruleSource
 Check $true 'static owned rule scope: exact target alias, real GUI rule, baseline/exclusion/restoration commands and resource cleanup are wired'
