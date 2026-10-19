@@ -12,6 +12,8 @@
 
 后继`d7e71d93c1ea449aa90e49dbd0ac6868`已实际运行Release（产品212／驱动838／包装b6d37af）。九项剩余方向／Shift动作、actual UP与各次Undo均通过；四角为离散操作后的真实abort清理UP及capture／关联／遮罩回收，不伪称NormalUp。实际双击超时负例间隔594ms大于系统500ms且零增强。移动阈值负例第一原生Resize、超过阈值、返回原几何及真实UP／END成立；第二源UP已观察，但驱动还要求第二modal START／END和第二WM_NCLBUTTONDOWN，实际事实不足，因此整批仍FAIL，按钮负例NOT_RUN。不能由此判产品阈值失败或将未记录的第二DOWN类型当根因；下一修复只补实际DOWN类型、准备与有界时间判据。guest24996／任务于`2026-10-19T14:24:21.9781638Z`精确清理，证据未变、其他资源未改，不以销毁guest补功能／清理PASS。
 
+后续测试驱动`ac4635bc83e01b451afea04f86c944874e124bf7`已完成Debug／Release静态运行库构建与受影响offline各1/1（内部208项；D 0.07／wall0.12秒，R 0.03／wall0.05秒），保留三个C4456警告。复用缓存`out/v1-driver-stretch-ready-8384677`但两EXE实际自报ac4635b，不由目录名绑定身份；D SHA `85E75F4AB697DF7473AE9BF1B1DED49F07B4A97B1AC2425008C491BB11F54972`，R `243210AEC46E3F67AF33BC5DD4C44B32AA2E617F45C81856E70591AD8E0FF61C`。首次f0d07fc Debug的测试日志拼接编译失败由ac修复，f0没有现场包；产品212未重建。新NC DOWN／DBLCLK事实、第二DOWN准备门，以及直接active Quit／仅精确产品进程受控终止／helper实际恢复／真实清理UP／同EXE重启Move-Resize，均为待新Run实测的测试接线，不预授功能或cleanup PASS。
+
 `43c7c45cacf1460e846d86f4a35cc4b6`（脚本／驱动a430，原产品未启动）先实际完成WDAG原token的`CreateProcessAsUserW`基线：同一fixture真实身份输出、High/session1子token与正常exit0。新建标准账户的凭据token实际为Medium8192／non-elevated／nonAdmin／session1，但该API创建标准child返回false／1314，子进程未创建。具体缺少哪个privilege未测；NativeClients、GUI、Explorer及输入均NOT_RUN，不能判为应用不兼容或Sandbox只能High。该路线停止叠加启动API或权限补救；现有可运行Medium-owned分支继续。账户按实际SID删除成功、DACL前后不变；本批guest17104／任务于`2026-10-19T14:07:44.9787084Z`精确清理，证据／部署保留、其他资源未改。详见既有验收表及索引；当前完整功能与对标计数不因此增加。
 
 2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
