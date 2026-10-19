@@ -69,9 +69,12 @@ struct GestureCaptureContext {
     Snapshot source;
     HWND overlay{};
     DWORD owner_tid{},owner_pid{};
-    mutable std::atomic<bool> normal_up_observed{},own_release_confirmed{},association_detached{};
+    // A matched real LL/Raw UP revokes issue permission, but is not proof of
+    // queued legacy UP or successful resource cleanup / NormalUp completion.
+    mutable std::atomic<bool> matching_up_observed{},normal_up_observed{},own_release_confirmed{},association_detached{};
 };
 using GestureCaptureLease=std::shared_ptr<const GestureCaptureContext>;
+inline constexpr char capture_matching_up_retired_reason[]="capture_matching_UP_retired_before_native_call";
 enum class GeometryContextPhase { BeforeNativeCall,IssuedCompletion };
 // Without a lease this retains the existing idle-only policy. With a lease,
 // every new call needs ACTUAL own capture; idle is not a fallback. A target on

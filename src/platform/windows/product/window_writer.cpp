@@ -333,7 +333,8 @@ struct WindowWriter::NativeExecutor {
                 {
                     std::lock_guard lock(work->mutex);
                     if(work->cancelled||shared->stopping)work->reason="native_worker_admission_cancelled";
-                    else if(!context)work->reason=std::string("native_worker_context_changed:GUI_context=")+gui_context_mode_name(gui_mode)+":"+context_reason;
+                    else if(!context)work->reason=context_reason==capture_matching_up_retired_reason?context_reason:
+                        std::string("native_worker_context_changed:GUI_context=")+gui_context_mode_name(gui_mode)+":"+context_reason;
                     else if(!work->cleanup_owned&&!allowed_by_guard(work->guard,work->reason)){}
                     else issue=true;
                 }
@@ -614,6 +615,20 @@ WindowWriter::Receipt WindowWriter::place(const Snapshot& expected,
     return place_with_destination(expected,desired,settings,std::move(guard),std::move(capture),nullptr);
 }
 
+bool WindowWriter::preserves_terminal_receipt(const Receipt& receipt,std::uint64_t generation,
+    const GestureCaptureLease& capture,bool generation_allowed)noexcept{
+    if(receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact)return true;
+    if(receipt.native_attempted)return receipt.native_succeeded&&receipt.completion_known&&
+        receipt.identity_valid&&receipt.geometry_exact&&
+        receipt.post_context_reason=="post_native_capture_cleanup_not_yet_confirmed";
+    if(!receipt.completion_known)return false;
+    if(receipt.reason=="operation_revoked_before_native_attempt")return true;
+    return (receipt.reason==capture_matching_up_retired_reason||
+        receipt.reason=="batch_preflight_capture_matching_UP_retired_before_native_call")&&
+        generation&&capture&&capture->generation==generation&&!generation_allowed&&
+        capture->matching_up_observed.load(std::memory_order_acquire);
+}
+
 WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expected,
     const Rect& desired,const core::v1::Settings& settings,Guard guard,GestureCaptureLease capture,
     const std::optional<DestinationDisplay>* frozen){
@@ -629,10 +644,10 @@ WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expec
         return result;
     }
     result.before = *before;
-    if(capture&&!geometry_gui_context_allowed(*before,observe_gui_context(*before),capture,GeometryContextPhase::BeforeNativeCall,&result.reason))return result;
     const auto prepared = prepare(expected, *before, desired);
     result.identity_valid = prepared.identity_valid;
     if (!prepared.accepted || !prepared.positioning) { result.reason = prepared.reason; return result; }
+    if(capture&&!geometry_gui_context_allowed(*before,observe_gui_context(*before),capture,GeometryContextPhase::BeforeNativeCall,&result.reason))return result;
     if (prepared.noop) {
         // This permission check does not create an API attempt. Even an exact
         // no-op may not be credited after the caller has revoked its operation.
@@ -718,16 +733,17 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
     // Fresh geometry cannot silently become a new baseline for a frozen plan.
     for (const auto& expected : identities) {
         std::string reason;
+        const auto placement = std::find_if(placements.begin(), placements.end(),
+            [&](const auto& target) { return target.id == expected.key; });
+        const auto requested=placement!=placements.end()?placement->visible:expected.visible;
         const auto current = catalog_.get(expected.hwnd, settings, &reason);
         if (!current || !consistent(expected, *current, reason)) {
-            result.push_back(rejected(expected, expected.visible, "batch_preflight_" + reason));
+            result.push_back(rejected(expected, requested, "batch_preflight_" + reason));
             return result;
         }
         if(capture&&!geometry_gui_context_allowed(*current,observe_gui_context(*current),capture,GeometryContextPhase::BeforeNativeCall,&reason)){
-            result.push_back(rejected(expected,expected.visible,"batch_preflight_"+reason));return result;
+            result.push_back(rejected(expected,requested,"batch_preflight_"+reason));return result;
         }
-        const auto placement = std::find_if(placements.begin(), placements.end(),
-            [&](const auto& target) { return target.id == expected.key; });
         if (placement != placements.end()) {
             const auto prepared = prepare(expected, *current, placement->visible);
             if (!prepared.accepted) {

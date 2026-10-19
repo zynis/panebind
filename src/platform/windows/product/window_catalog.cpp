@@ -253,7 +253,7 @@ GuiContext observe_gui_context(const Snapshot& expected) {
 
 namespace {
 struct CaptureGuiObservation {
-    bool source_identity{},overlay_identity{},source_known{},owner_known{};
+    bool source_identity{},overlay_identity{},overlay_absent{},source_known{},owner_known{};
     GUITHREADINFO source{sizeof(GUITHREADINFO)},owner{sizeof(GUITHREADINFO)};
     HWND foreground_before{},foreground_after{};
 };
@@ -274,6 +274,9 @@ bool capture_context_facts_allowed(const Snapshot& target,const GuiContext& targ
     const bool detached=lease->association_detached.load(std::memory_order_acquire);
     const bool released=lease->own_release_confirmed.load(std::memory_order_acquire);
     const bool normal=lease->normal_up_observed.load(std::memory_order_acquire);
+    const bool matching_up=lease->matching_up_observed.load(std::memory_order_acquire);
+    const bool retired_before_call=phase==GeometryContextPhase::BeforeNativeCall&&matching_up;
+    const auto own_or_empty=[&](HWND capture){return !capture||capture==lease->overlay;};
     const bool same_queue=target.pid==source.pid&&target.tid==source.tid;
     if(target.hwnd==source.hwnd&&!Catalog::same(target,source))return reject("capture_source_catalog_identity_changed");
     if(same_queue){
@@ -284,9 +287,22 @@ bool capture_context_facts_allowed(const Snapshot& target,const GuiContext& targ
                ((target_gui.actual.hwndCapture==lease->overlay&&!actual.source.hwndCapture)||
                 (!target_gui.actual.hwndCapture&&actual.source.hwndCapture==lease->overlay)))
                 return reject("post_native_capture_cleanup_not_yet_confirmed");
-            return reject("capture_same_queue_context_inconsistent");
+            if(!retired_before_call||!own_or_empty(target_gui.actual.hwndCapture)||
+               !own_or_empty(actual.source.hwndCapture))return reject("capture_same_queue_context_inconsistent");
         }
     }else if(!target_gui.idle())return reject("capture_unassociated_target_not_idle");
+    if(retired_before_call){
+        if(!own_or_empty(actual.source.hwndCapture))return reject("capture_foreign_window_present");
+        if(actual.overlay_identity&&actual.owner_known){
+            if(!own_or_empty(actual.owner.hwndCapture)||actual.owner.hwndMoveSize||
+               actual.owner.hwndMenuOwner||(actual.owner.flags&busy))return reject("capture_owner_identity_or_actual_capture_changed");
+        }else if(!(actual.overlay_absent&&normal&&released&&detached))
+            return reject("capture_owner_identity_or_GUI_unknown_after_matching_UP");
+        // A real UP may retire the generation while independent native reads
+        // cross our own release. This remains a rejected new call, not native
+        // success or NormalUp. Unknown / foreign context is never swallowed.
+        return reject(capture_matching_up_retired_reason);
+    }
     if(actual.source.hwndCapture==lease->overlay){
         if(!actual.overlay_identity||!actual.owner_known||actual.owner.hwndCapture!=lease->overlay||
            actual.owner.hwndMoveSize||actual.owner.hwndMenuOwner||(actual.owner.flags&busy))return reject("capture_owner_identity_or_actual_capture_changed");
@@ -315,8 +331,9 @@ bool geometry_gui_context_allowed(const Snapshot& target,const GuiContext& gui,
             GetProcessTimes(process.get(),&born,&exit,&kernel,&user)&&ticks(born)==source.born;
     }
     actual.source_known=actual.source_identity&&GetGUIThreadInfo(source.tid,&actual.source)!=FALSE;
-    pid=0;actual.overlay_identity=lease->owner_pid==GetCurrentProcessId()&&lease->owner_tid&&lease->overlay&&
-        IsWindow(lease->overlay)&&GetWindowThreadProcessId(lease->overlay,&pid)==lease->owner_tid&&pid==lease->owner_pid;
+    pid=0;const bool overlay_window=IsWindow(lease->overlay)!=FALSE;actual.overlay_absent=!overlay_window;
+    actual.overlay_identity=lease->owner_pid==GetCurrentProcessId()&&lease->owner_tid&&lease->overlay&&
+        overlay_window&&GetWindowThreadProcessId(lease->overlay,&pid)==lease->owner_tid&&pid==lease->owner_pid;
     actual.owner_known=actual.overlay_identity&&GetGUIThreadInfo(lease->owner_tid,&actual.owner)!=FALSE;
     actual.foreground_after=GetForegroundWindow();
     return capture_context_facts_allowed(target,gui,lease,phase,actual,why);
@@ -658,6 +675,43 @@ int main(){
     observed.owner.hwndCapture=capture->overlay;observed.source.hwndCapture=nullptr;
     check(!allowed(capture->source,idle,Phase::BeforeNativeCall),"idle after actual capture loss never admits a new native call before Lost delivery");
     capture->normal_up_observed=true;
+    capture->matching_up_observed=true;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why=="capture_matching_UP_retired_before_native_call",
+        "matching normal UP during capture sampling retires an unissued call rather than reporting source loss");
+    check(!allowed(capture->source,captured,Phase::BeforeNativeCall)&&why=="capture_matching_UP_retired_before_native_call",
+        "pre-native capture reads crossing the same matching UP remain cancellation, never new-call authority");
+    observed.source.hwndCapture=capture->overlay;
+    check(!allowed(capture->source,captured,Phase::BeforeNativeCall)&&why=="capture_matching_UP_retired_before_native_call",
+        "matching UP with own capture still present retires the unissued call before cleanup");
+    observed.source.hwndCapture=nullptr;
+    capture->normal_up_observed=false;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why==p::capture_matching_up_retired_reason&&
+          !allowed(capture->source,idle,Phase::IssuedCompletion)&&why=="post_native_capture_lost_without_matching_normal_UP",
+        "actual matched LL or Raw UP retires admission but cannot invent legacy UP or issued completion");
+    observed.owner_known=false;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why=="capture_owner_identity_or_GUI_unknown_after_matching_UP",
+        "matching UP never swallows an unknown live owner GUI observation");
+    observed.overlay_identity=false;observed.overlay_absent=true;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why!="capture_matching_UP_retired_before_native_call",
+        "missing overlay without confirmed normal release and detach is not known own cleanup");
+    capture->normal_up_observed=true;capture->own_release_confirmed=true;capture->association_detached=true;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why==p::capture_matching_up_retired_reason,
+        "actually absent own overlay after real normal release and detach is retired, never renewed authority");
+    capture->own_release_confirmed=false;capture->association_detached=false;
+    observed.overlay_absent=false;observed.overlay_identity=observed.owner_known=true;
+    observed.owner.hwndCapture=reinterpret_cast<HWND>(std::uintptr_t{99});
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why!="capture_matching_UP_retired_before_native_call",
+        "matching UP cannot hide a known foreign owner capture");
+    observed.owner.hwndCapture=capture->overlay;observed.source_identity=false;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why=="capture_source_identity_or_GUI_unknown",
+        "matching UP does not suppress an actual source identity failure");
+    observed.source_identity=true;observed.foreground_after=nullptr;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why=="capture_source_foreground_changed",
+        "matching UP does not suppress a real foreground change");
+    observed.foreground_after=capture->source.hwnd;observed.source.hwndMoveSize=capture->source.hwnd;
+    check(!allowed(capture->source,idle,Phase::BeforeNativeCall)&&why=="capture_source_native_interaction_present",
+        "matching UP does not suppress a new native modal interaction");
+    observed.source.hwndMoveSize=nullptr;
     check(!allowed(capture->source,idle,Phase::IssuedCompletion)&&why=="post_native_capture_cleanup_not_yet_confirmed",
         "actual normal UP without confirmed release and detach is explicit post-native unknown, not completion PASS");
     capture->own_release_confirmed=true;

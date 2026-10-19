@@ -105,6 +105,7 @@ struct InputService::CaptureBridge {
                 p->isolation_ready=true; // publish BEFORE this receipt can reach the GUI
             if(event.kind==ShieldKind::RawMouse&&(event.raw_button_flags&RI_MOUSE_LEFT_BUTTON_UP)){
                 p->raw_up_observed=true;p->up_observed=true;retire();
+                if(auto context=p->context.load())context->matching_up_observed.store(true,std::memory_order_release);
             }
             if(event.kind==ShieldKind::LegacyLeftUp&&event.legacy_up_accepted){
                 p->up_observed=true;retire();p->normal_observed=true;
@@ -531,6 +532,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             // can later establish NormalUp. No native query or fake UP here.
             *self->authorized_=0;
             if(auto p=self->capture_bridge_->pair.load();p&&p->down.generation==self->generation_){
+                if(auto context=p->context.load())context->matching_up_observed.store(true,std::memory_order_release);
                 p->up_observed=true;
                 if(p->native_move&&!p->ready_authorized){
                     p->aborted=true;p->native_phase=NativeMovePhase::Retired;

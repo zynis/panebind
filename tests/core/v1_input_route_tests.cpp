@@ -658,6 +658,43 @@ int main() {
     check(!product::finish_exact_generation(finish_active,finish_completion,30,v1::End::FocusLost)&&
           finish_active==0&&finish_completion==0,
           "actual context loss retires terminal permission instead of ignoring an authority failure");
+    // Actual apply() uses this exact receipt classifier with the lease it kept
+    // before batch(). No test-only adapter can redefine the retirement result.
+    auto sampled_capture=std::make_shared<product::GestureCaptureContext>();sampled_capture->generation=30;
+    product::WindowWriter::Receipt withdrawn;
+    withdrawn.reason="batch_preflight_capture_matching_UP_retired_before_native_call";
+    check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+          "unissued capture rejection alone is not actual matching UP evidence");
+    sampled_capture->matching_up_observed=true;
+    check(product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false)&&
+          !product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,true)&&
+          !product::WindowWriter::preserves_terminal_receipt(withdrawn,31,sampled_capture,false)&&
+          !product::WindowWriter::preserves_terminal_receipt(withdrawn,30,{},false),
+          "only matching retired generation and its retained lease wait for actual terminal receipts");
+    check(!product::captured_release_can_complete(true,false,false,true,true),
+          "waiting after matching UP withdrawal still cannot complete without actual Raw plus legacy UP facts");
+    withdrawn.completion_known=false;
+    check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+          "unknown native completion cannot be relabeled as an unissued matching-UP withdrawal");
+    withdrawn.completion_known=true;withdrawn.native_attempted=true;
+    check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+          "an attempted native failure cannot be relabeled as an unissued matching-UP withdrawal");
+    withdrawn.native_attempted=false;
+    for(const auto* actual_failure:{"batch_preflight_capture_foreign_window_present",
+            "batch_preflight_capture_source_identity_or_GUI_unknown","batch_preflight_geometry_context_changed",
+            "batch_preflight_unattributed_geometry_change","batch_preflight_capture_source_foreground_changed"}){
+        withdrawn.reason=actual_failure;
+        check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+              "actual identity, geometry, DPI/monitor, foreground or foreign-capture failure still rejects after matching UP");
+    }
+    withdrawn.native_attempted=withdrawn.native_succeeded=withdrawn.identity_valid=withdrawn.geometry_exact=true;
+    withdrawn.reason="post_native_capture_cleanup_not_yet_confirmed";
+    withdrawn.post_context_reason=withdrawn.reason;
+    check(product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+          "already issued successful exact geometry retains the existing narrow cleanup transition semantics");
+    withdrawn.post_context_reason="capture_foreign_window_present";
+    check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
+          "an issued call with actual foreign capture is not a normal cleanup transition");
     std::cout<<checks<<" checks, "<<failures<<" failures\n";
     return failures==0?0:1;
 }

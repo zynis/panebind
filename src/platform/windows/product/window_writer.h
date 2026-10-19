@@ -92,6 +92,12 @@ public:
     // Actual stop-time decision. A claimed/issued call must keep its real
     // completion unknown; only never-issued admission can finish immediately.
     [[nodiscard]] static bool complete_unissued_on_stop(bool native_attempted,bool completion_known)noexcept;
+    // The exact apply() classification: an unissued matching-UP withdrawal
+    // waits for real terminal receipts, never manufactures NormalUp or makes
+    // a failed identity/context/native result successful. Retain the lease
+    // captured before batch(), not whichever pair a later DOWN publishes.
+    [[nodiscard]] static bool preserves_terminal_receipt(const Receipt&,
+        std::uint64_t generation,const GestureCaptureLease&,bool generation_allowed)noexcept;
 
     explicit WindowWriter(Catalog& catalog);
     ~WindowWriter();

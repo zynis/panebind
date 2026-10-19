@@ -293,18 +293,15 @@ public:
             !gesture&&epoch.generation()==generation&&epoch.last_end()==v::End::NormalUp;
         if(completion&&!completed_normal_up)return false;
         const HWND authority_source=gesture?gesture->down.prepared->source.hwnd:completed_normal_up&&!identities.empty()?identities.front().hwnd:nullptr;
+        const auto capture=completed_normal_up?GestureCaptureLease{}:input.capture_context(generation);
         const auto receipts=writer.batch(identities,plan.placements,settings,
             input.operation_guard(generation,completed_normal_up,authority_source),
-            completed_normal_up?GestureCaptureLease{}:input.capture_context(generation));
+            capture);
         bool ok=receipts.size()==plan.placements.size();
         bool only_terminal_withdrawal=!receipts.empty();
         for(const auto& receipt:receipts){
-            const bool cleanup_transition=receipt.native_attempted&&receipt.native_succeeded&&receipt.completion_known&&
-                receipt.identity_valid&&receipt.geometry_exact&&
-                receipt.post_context_reason=="post_native_capture_cleanup_not_yet_confirmed";
-            only_terminal_withdrawal=only_terminal_withdrawal&&(
-                (receipt.accepted&&receipt.identity_valid&&receipt.geometry_exact)||
-                receipt.reason=="operation_revoked_before_native_attempt"||cleanup_transition);
+            only_terminal_withdrawal=only_terminal_withdrawal&&WindowWriter::preserves_terminal_receipt(
+                receipt,generation,capture,input.allowed(generation));
             if(receipt.native_attempted)++native_attempts;
             if(receipt.native_attempted){
                 if(receipt.completion_known)input_post_timing.observe_qpc(observed_qpc,receipt.post_observed_qpc,input.counter_frequency());
