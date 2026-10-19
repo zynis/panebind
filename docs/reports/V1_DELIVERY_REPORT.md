@@ -4,9 +4,15 @@
 
 本轮新增的实际用户行为证明：同一212 Release产品已在0e815完成活动Ctrl中暂停、暂停时原生操作和Resume后普通Move／Resize完整独立合同，M01-F03可计PASS；6dba智能拉伸与034真实GUI精确类名排除／恢复互补，M08-F05及B19也可计PASS。此前cea四窗双轴共享Resize、后继普通Move和八窗末成员Ctrl Move保留。不授整个M01／M08、鼠标四边四角F04、整链、五应用或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03、M08-F05及依据同212/e7原件闭合的M03-F05后为**10/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03／F04、M08-F05及依据同212/e7原件闭合的M03-F05后为**11/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
+
+`bf5c127bde7442c0bb243e60d8618985`已实际完成Release `ExitRecoveryOnly`（原产品212／驱动ac4635b／包装f3276a3）。D123–125在真实活动Move、alpha190且未发送UP时直接退出，产品Exit8／非NormalUp、pending退休，helper6500自行exit0、alpha还原173、capture为0、遮罩消失；随后D132单次测试清理UP与D138客户点击成立。D156–158仅受控终止精确产品6836／birth，不终止helper；helper3696自行恢复并退出0。D165／171真实清理UP与新点击、D173同EXE新PID5856启动，后续exact Move／Resize均真实NormalUp并恢复173；无实例重复quit返回2。最终实际idle正常退出与客户输入、Raw注销／自建窗关闭各有回执。结合已登记同212紧急暂停证据，M01-F04独立合同通过；不要求它替代托盘／M01模块／Full，不冒称自然发生的崩溃或真人UAT。专属guest180／任务于`2026-10-19T14:48:07.2152285Z`精确清理，原件保留、其他资源未改。
+
+`a1ee474983d54a1bba0d08b16517338f`同ac驱动的拉伸批仍FAIL：Bottom首DOWN前Prepared真实成立，最终P65–69有native pending／START、UP先撤权导致交接安全拒绝及真实LL-UP，无cancel/capture/placement；driver500ms观察先超时，而相关持久日志稍后才可见。具体GUI／日志延迟原因UNKNOWN，不将空的当时回执断言为真实UP缺失。movement与caption尚未运行，d7e旧方向证据不换绑。guest25244／任务于`2026-10-19T14:44:56.3048000Z`精确清理。后续`StretchBoundaryOnly`只复用同一组件的movement／caption，明确方向及timeout NOT_RUN，避免以重复旧动作取代剩余功能验证。
+
+边界入口源码`581124e1ce4782bbd678130b5bbcc4bb909e449c`已完成Debug／Release构建和受影响offline各1/1（内部208项；D 0.22／wall0.27秒，R 0.58／wall0.60秒），86项工具源码守卫通过；这些不是现场功能证据。两driver实际自报581124e，D SHA `90F9904C8F891DC0B8BFC046B3CD988437F5E388091CF1086980660949E554B3`，R `036224BB03286191F62CA5BF85CD5C792B096FD995E80AA84B5062F8876F4BD0`，仍复用同一缓存和原212产品EXE。
 
 2026-10-19后续两批：`e12ed711f73441c3bc1cf6491771e299`（产品212／驱动a430）实际完成右、上边双击、同代mapped UP、exact几何及Undo；Bottom首click未取得终止回执，后续方向与负例NOT_RUN，整批FAIL。驱动原来只等固定100ms，未在DOWN前核实本位置准备；产品P64日志不能确定内部缓存发布时间或唯一根因。修复`83846770b1f8bfbe4e0ffda5cdb4bbcd94980469`只在严格F04测试等待真实exact准备并保留fresh检查，不改变产品或把准备当写入权限；后续新Run复验，不回写e12为PASS。
 
