@@ -87,31 +87,52 @@
       "scope": "Current d2 split-identity test driver; actual product212 bytes unchanged. Strict finite owned900.037841s and two rounds/cleanup scope observed; I08 actor remains unknown-FG early abort, Full Release next."
     },
     "next_driver_candidate": {
-      "source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+      "source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "source_identity_basis": "ACTUAL_DEBUG_AND_RELEASE_BINARY_SELF_REPORT_F9FC72B_AFTER_CMAKE_REGEN_DOCS_ONLY_DESCENDANT_OF_F1F2508_IMPLEMENTATION",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "product_binary_unchanged": true,
-      "build_dir": "out/v1-driver-client-source-01ab9ec",
+      "build_dir": "out/v1-driver-group-native-f1f2508",
       "debug_build_result": "PASS_EXIT_0",
       "release_build_result": "PASS_EXIT_0",
-      "debug_binary_sha256": "E1F2D8FA1DE9466D0B18A5649A17AEC9DC8D938E03F1AF8D4F137F1F2D7D46EA",
-      "release_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+      "debug_binary_sha256": "D8E46A2623D31284DAAB1343201AE4A920338BA022F6EB8B1BC94F1A89810528",
+      "release_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
       "offline_evidence_kind": "ACTUAL_NATIVE_OFFLINE_AND_STATIC_TOOL_CHECKS_NOT_PRODUCT_FUNCTION_PASS",
-      "debug_guest_path": "1/1 PASS;208 cases; symlink SKIP1314; processor0.17/wall0.21",
-      "release_guest_path": "1/1 PASS;208 cases; symlink SKIP1314; processor0.11/wall0.26",
-      "debug_ctest_output_log": "uat/v1-control/r11-01ab9ec-Debug-offline-20261019.txt",
-      "debug_ctest_output_log_sha256": "670A830EF529247B09112C07387E1F910FEBABA6A8C188239B58D4F822EF0428",
-      "release_ctest_output_log": "uat/v1-control/r11-01ab9ec-Release-offline-20261019.txt",
-      "release_ctest_output_log_sha256": "85A94D09B6326FA601D7088F5388CE67A553CDBE259ACAB2606655B5ADC2D802",
-      "debug_native_ctest_sha256": "F827D854F6834F173ADE2CE8FEBBC800AAE0AB6BC68F8193A281572C1C990ACD",
-      "release_native_ctest_sha256": "FBB6969EA0FFF2F10107BA1E56AEDB0FCF69BC962E6CFBAFEA85A6F64FD200A3",
-      "static_tool_checks": 53,
-      "static_tool_log": "uat/v1-control/r11-01ab9ec-identity-static-20261019.txt",
-      "static_tool_log_sha256": "565ED1C525BDE47AD407719D756FEE459CF72F979693710C9DBFA3DDE83A8012",
-      "runtime_validation": "ACTUAL_744_SOURCE_ONLY_PREFLIGHT_NATIVE_HIT_REACHED_APPLICATIONS_BLOCKED_EDGE_NORMAL_CLOSE_UNCONFIRMED",
+      "debug_guest_path": "1/1 PASS;208 cases; symlink SKIP1314; processor0.23/wall0.24",
+      "release_guest_path": "1/1 PASS;208 cases; symlink SKIP1314; processor0.12/wall0.27",
+      "debug_ctest_output_log": "uat/v1-control/r11-f9fc72b-Debug-offline-20261019.txt",
+      "debug_ctest_output_log_sha256": "DE384C3E9342EE03735BEACB3ECF730681B186936F598BE66D8850443152050E",
+      "release_ctest_output_log": "uat/v1-control/r11-f9fc72b-Release-offline-20261019.txt",
+      "release_ctest_output_log_sha256": "04CB255794146B01D0DBE4B0CAD64135AD86F15A10981F17252F05A07357488F",
+      "debug_native_ctest_sha256": "214808B823BB72FFAB01EAEAE08651630E5ADB28AB601971E950DF9C5DE24CD7",
+      "release_native_ctest_sha256": "388F743EB4B535F6A551AC12D355C2092788B66184947097B14DF635FD4A14A9",
+      "static_tool_checks": 58,
+      "static_tool_log": "uat/v1-control/r11-f1f2508-identity-static-20261019.txt",
+      "static_tool_log_sha256": "DDA5334AAE1DBE0D4CC4394FD698E40B948D77ED1BC2573ADA989748DFE5CC7D",
+      "runtime_validation": "ACTUAL_CEA_GROUP_COMPONENTS_PASS_FE0_WITHOUT_PRODUCT_NATIVE_CLIENTS_FAIL",
       "prepared_run_ids": [
-        "744fff40a030404ebafe9e2879190179"
+        "cea534853e6049c8b88cefc3b35c188e",
+        "fe0e2b7191134dc7a3dad634b8b0c983"
       ],
-      "scope": "Test-only native-client helper uses the already-fresh same-Catalog source Snapshot instead of re-reading all matrix sources and emits actual rejection reasons. Fresh identity/context, actual hit and semantic interaction gates retained. Product212/portable7635 bytes unchanged. Old eec be94/dd02/7c6 actual results retain original driver identity; new driver runtime is not yet observed."
+      "run_states": [
+        {
+          "run_id": "cea534853e6049c8b88cefc3b35c188e",
+          "suite": "GroupBoundsOnly",
+          "state": "ACTUAL_COMPLETED_SCOPED_PASS_COLLECTED_EXACT_GUEST_TASK_CLEANED",
+          "guest_pid": 3280,
+          "started_utc": "2026-10-19T11:04:52Z",
+          "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
+        },
+        {
+          "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
+          "suite": "NativeClientsOnly",
+          "state": "ACTUAL_COMPLETED_NATIVE_CLIENT_DIAGNOSTIC_FAIL_PRODUCT_NOT_STARTED_EXACT_GUEST_TASK_CLEANED",
+          "guest_pid": 23344,
+          "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+          "actual_function_result": "PRODUCT_NOT_RUN_NATIVE_CLIENTS_FAIL"
+        }
+      ],
+      "scope": "Driver-only existing group phase reuse and native-client helper before first product launch. D/R actual self-reported SHA f9fc72b differs from implementation commit f1f2508 only by descendant documentation; exact binary hashes/manifest driver source remain actual f9fc72b. Frozen product212/portable7635 unchanged. 58 static checks and guest-path do not prove current native group/client function PASS; completed 01ab/744 observations retain original identities."
     },
     "unrun_driver_0fc": {
       "source_sha": "0fc9b2a8ffa75b013b0b79444b21f97d7c376cf3",
@@ -181,7 +202,7 @@
     "pending_candidate": {
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "implementation_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-      "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
       "build_dir": "out/v1-product-native-geometry-r10-212e197",
       "implementation_status": "IMPLEMENTED_RUNTIME_SCOPED_FAILURES",
       "build_status": "PASS_DEBUG_RELEASE_EXIT_0",
@@ -189,14 +210,14 @@
       "release_build_result": "PASS_EXIT_0",
       "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
       "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-      "debug_driver_sha256": "E1F2D8FA1DE9466D0B18A5649A17AEC9DC8D938E03F1AF8D4F137F1F2D7D46EA",
-      "release_driver_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+      "debug_driver_sha256": "D8E46A2623D31284DAAB1343201AE4A920338BA022F6EB8B1BC94F1A89810528",
+      "release_driver_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
       "offline_regression": "Debug11/11 PASS processor3.27/wall3.32; Release11/11 PASS processor1.69/wall2.99 seconds",
       "debug_ctest_output_log": "uat/v1-control/r10-212e197-Debug-offline-20261017.txt",
       "debug_ctest_output_log_sha256": "55C972BE0F869290DB88C901AE8A05E1F87A5A87C81C4B11E92F589F6F314FA1",
       "release_ctest_output_log": "uat/v1-control/r10-212e197-Release-offline-20261017.txt",
       "release_ctest_output_log_sha256": "686B310183EC35A1723FBB97CD641E1F48633948F5BA3E25F5BC03547EA363C7",
-      "runtime_validation": "ACTUAL_BE94_FULL_RELEASE_FOREGROUND_ABORT_WITH_PRIOR_9724_FINITE_SCOPE_PASS_RETAINED",
+      "runtime_validation": "ACTUAL_CEA_GROUP_SCOPES_PASS_FULL_BE94_FAIL_AND_NATIVE_FE0_DIAGNOSTIC_REMAIN_SEPARATE",
       "ordinary_desktop_runtime": "NOT_RUN",
       "repair_scope": "Native-first single-left titlebar/edge/corner geometry with locked ordinary/Ctrl route; original-DOWN Ctrl group frozen before native prefix, real START/END and fresh-B checks feed the shared gate and writer",
       "limits_scope": "Original-DOWN limits are existing system/default measurements only; actual application-declared tracking limits are queried at begin B and must not be relabelled as measured at DOWN.",
@@ -210,25 +231,29 @@
       "latest_debug_run_id": "dedc680b48734f99987771019dec010d",
       "latest_debug_driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "latest_debug_driver_sha256": "1F59F8E17E0449ECA067A568D4DBAD707AF4CDFF67356E78F709B7776CF90621",
-      "release_runtime_validation": "ACTUAL_BE94_FULL_RELEASE_FAIL_FIRST_B_RESIZE",
-      "latest_release_run_id": "be94eba2a078403ca5db1b961c0f2aae",
-      "latest_release_driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-      "latest_release_driver_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
+      "release_runtime_validation": "ACTUAL_CEA_GROUP_COMPONENT_SCOPE_PASS_NOT_FULL",
+      "latest_release_run_id": "cea534853e6049c8b88cefc3b35c188e",
+      "latest_release_driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "latest_release_driver_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
       "in_progress_release_run_id": null,
-      "release_run_id": "be94eba2a078403ca5db1b961c0f2aae",
-      "run_id": "be94eba2a078403ca5db1b961c0f2aae",
+      "release_run_id": "cea534853e6049c8b88cefc3b35c188e",
+      "run_id": "cea534853e6049c8b88cefc3b35c188e",
       "configuration": "Release",
-      "observation_id": "PO-BE94-R11-FULL-RELEASE-RESIZE-FOREGROUND-ABORT",
-      "packaging_head": "eec93e22d66d148f2611dfd59291208c66114aa1",
-      "package_zip_sha256": "CF11C869F607DAFD11D3DF06AD41AEA2E5B66A150B87C8DD7F121A0FBA5E775D",
-      "package_manifest_sha256": "DD8BE83F8758D1D82F32FD29A2C52BD1D24507BD0684FAE702E40E95C62D2C91",
-      "wsb_sha256": "7C1AC2D0482F4790AECEF495947D22CECD0FF56097433AA89E06CB7DBC7C99C8",
+      "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+      "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "package_zip_sha256": "B22A5C9893E69AB1AECA3D7550E9DEA8A614F489907EC6C029AFAFAFA1C4C475",
+      "package_manifest_sha256": "F0C09F8CACB5B7E90F114611312A6E8963895AE351ED43AB6055B936FE83D826",
+      "wsb_sha256": "2EF3E732B0833A21E4CC74620915A51C619FB7014AF2F6C908D528F7F48A6657",
       "portable_package_id": "7635dc7b0c03416e95401a3eed8b262a",
       "portable_zip_sha256": "576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6",
       "portable_manifest_sha256": "9A206411EE28BD8167EA2417CECE9B9CAA848F773F038E05658CF7D2DAA0194D",
       "portable_runtime": "ACTUAL_477A_ORDINARY_GUI_SAVED_MOVE_UP_NORMAL_EXIT_BYTES_SCOPED_PASS_NOT_WHOLE_I12",
-      "runtime_note": "产品212/portable7635字节不变，仅driver eec增加原生应用客户交互前置检查。be94 FullRelease在A/CtrlA/B/C及真实NormalUp子项通过后，D123首个B真实Resize FAIL，实际[414,80,674,260]与预期[414,80,674,288]不符且g5 placement=0。产品已真实START/END/交接/capture/start，P156实际前台1180380非source327754而FocusLost2撤权，P157 normal_up=false；新前台PID/类/触发来源UNKNOWN，不断言系统/控制台或缺UP根因。失败后D125仅测试清理UP。D127正常退出/P170清理及D132真实客户DOWN/UP恢复成立；wrapperexit1无残留后代或强制清理。EntryAndSettings/ApplicationsOnly随后独立执行；本批未到应用矩阵，不把新driver静态检查或原9724范围换绑成Full PASS。",
-      "debug_run_id": "c1f89e3f96034b0a83d6ace04295aacf"
+      "runtime_note": "产品212/便携7635字节未改。最新实际产品运行cea的G07四格双轴/后普通Move/八窗末成员Ctrl和正常UP、退出恢复通过有限组件；不补be94 Full失败或完整功能/模块/B门。另fe0在首次产品启动前确认本候选name/root/handle/log缺席，Terminal客户命中/Code与Notepad启动、Edge DOM语义/正常关闭仍有实际失败，产品功能NOT_RUN/cleanup N_A。Edge已真实HTCLIENT/点击/focus，不同于744超时；无产品失败不证明唯一系统根因。历史9724 strict900 PASS与048 actor提前FocusLost、e7/477原结论保留，不盲重复900/整OwnedComponents。",
+      "debug_run_id": "c1f89e3f96034b0a83d6ace04295aacf",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "pending_native_clients_run_id": null,
+      "latest_group_component_observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+      "latest_native_client_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
     },
     "observed_R9_356_candidate": {
       "source_sha": "356d9e1b844c3f6d3efba41dd6ed39ca8f118996",
@@ -3182,11 +3207,14 @@
           "status": "BLOCKED",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/bdab-release-owned.jsonl"
+            "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-BDAB-OWNED-FULL",
-            "PO-8453-EIGHT-GRID"
+            "PO-8453-EIGHT-GRID",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3199,7 +3227,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [
         "V1-D02"
@@ -3211,12 +3241,13 @@
       "remaining_conditions": [
         "当前同候选8窗完整图/操作与混合应用矩阵未齐，不能用旧子项换绑。"
       ],
-      "next_action": "D17定向已关闭，不再扩展已关闭专项；保留D08真实postResize/visual等缺UP失败，按有限路线区分driver/guest与产品，最终同候选完整链和15分钟另验。",
+      "next_action": "当前212/cea八窗末成员实际Ctrl source及全部八窗矩形已实测；不重开同数量专项，继续未齐真实混合应用与图/生命周期合同，不授完整M06/B08。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-8453-EIGHT-GRID",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -3225,6 +3256,33 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
+        "configuration": "Release",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Eight-owned actual group/member geometry and cleanup only; not full graph/topology or real mixed-application contract.",
+        "fixture_component_sequences": [
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          136,
+          137,
+          138,
+          145
+        ],
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3250,14 +3308,17 @@
             "docs/reports/v1-evidence/bdab-release-owned.jsonl",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-            "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+            "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-BDAB-OWNED-FULL",
             "PO-C01-NATIVE-FAILURES",
             "PO-408AC52-UP-DISPATCH",
             "PO-DEDC-R10-DEBUG-CORE-RAPID-AND-G06-FOREGROUND-FAILURE",
-            "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+            "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3276,7 +3337,9 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [
         "V1-D12",
@@ -3293,7 +3356,8 @@
         "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
         "PO-34BF-R8-INDEPENDENT-ENTRY-OWNED-TWO-ROUNDS-15MIN-AND-FAILURES",
         "PO-DEDC-R10-DEBUG-CORE-RAPID-AND-G06-FOREGROUND-FAILURE",
-        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -3315,12 +3379,25 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
-        "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
-        "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
         "configuration": "Release",
-        "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
-        "scope": "当前212/dedc真实Ctrl组及e7两轮owned核心的三窗Ctrl、原DOWN组冻结和换leader后两成员L移动有实测；快速Ctrl native-only不代表Glue。",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Real last-member Ctrl source translated eight owned windows with exact native receipts; not all real-application group paths.",
+        "fixture_component_sequences": [
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          145
+        ],
         "not_complete_contract_PASS": true
       }
     },
@@ -3344,10 +3421,13 @@
           "status": "BLOCKED",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/bdab-release-owned.jsonl"
+            "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
-            "PO-BDAB-OWNED-FULL"
+            "PO-BDAB-OWNED-FULL",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3361,13 +3441,16 @@
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-BDAB-OWNED-FULL",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -3385,6 +3468,25 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
+        "configuration": "Release",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Eight-owned last member was actual source; not whole arbitrary-source/group-outline magnet contract.",
+        "fixture_component_sequences": [
+          124,
+          136,
+          137,
+          138,
+          145
+        ],
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3408,11 +3510,14 @@
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-BDAB-OWNED-FULL",
-            "PO-C01-NATIVE-FAILURES"
+            "PO-C01-NATIVE-FAILURES",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3425,7 +3530,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [
         "V1-D12"
@@ -3436,7 +3543,8 @@
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-C17E-R8-RELEASE-SIX-GESTURES-CTRLC-PREINPUT-FAIL",
-        "PO-34BF-R8-INDEPENDENT-ENTRY-OWNED-TWO-ROUNDS-15MIN-AND-FAILURES"
+        "PO-34BF-R8-INDEPENDENT-ENTRY-OWNED-TWO-ROUNDS-15MIN-AND-FAILURES",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
@@ -3456,14 +3564,30 @@
         ]
       },
       "latest_runtime_component_observation": {
-        "source_sha": "82d66a0821e13d49903b9cfd1cf8186193ea5aba",
-        "binary_sha256": "C796DDA39CF86370911FA0CD7A4FAEE876C2E87F221C798318FA0EAB8CAED0DE",
-        "driver_source_sha": "e138b6d5e837f510468a48c60b5338540738d5f1",
-        "driver_binary_sha256": "BA3119560664110E26A020E0F31B47211BC2379395BACBE0BC4B189A1619D2CC",
-        "run_id": "34bf39f969df4ce7b14cb1ab2d758bcd",
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
         "configuration": "Release",
-        "observation_id": "PO-34BF-R8-INDEPENDENT-ENTRY-OWNED-TWO-ROUNDS-15MIN-AND-FAILURES",
-        "scope": "CURRENT_ORDINARY_PORTABLE_AND_OWNED_TWO_ROUNDS_900S_SCOPED_PASS_STARTUP_I08_AND_DRIVER_FAILURES_RETAINED_NOT_FULL",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Actual four-grid shared corner Resize followed by ordinary Move without restart; not complete post-Resize I02 or changed real-app group.",
+        "fixture_component_sequences": [
+          58,
+          59,
+          60,
+          61,
+          62,
+          75,
+          76,
+          77,
+          78,
+          79,
+          82,
+          83,
+          91
+        ],
         "not_complete_contract_PASS": true
       }
     },
@@ -3784,10 +3908,13 @@
           "status": "BLOCKED",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/bdab-release-owned.jsonl"
+            "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
-            "PO-BDAB-OWNED-FULL"
+            "PO-BDAB-OWNED-FULL",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3799,7 +3926,9 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
@@ -3809,10 +3938,11 @@
       "remaining_conditions": [
         "当前候选不同min/max/轴独立钳制及歧义拒绝实际范围未齐。"
       ],
-      "next_action": "补受影响四格约束和拒绝，无需新矩阵。",
+      "next_action": "当前212/cea四格共享双轴+后继普通Move已实测，不重复同G07专项；保留独立预期数值，继续尚缺的L/约束及真实应用范围，不抬完整M07/B11。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3822,6 +3952,28 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
+        "configuration": "Release",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "G07 actual four-grid shared X/Y axes exact at x540/y330, followed by Move; L-corner/all app/constraint contract not complete.",
+        "fixture_component_sequences": [
+          58,
+          59,
+          60,
+          61,
+          62,
+          66,
+          67,
+          91
+        ],
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -3845,11 +3997,14 @@
           "status": "FAIL",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-NATIVE-FAILURES",
-            "PO-408AC52-UP-DISPATCH"
+            "PO-408AC52-UP-DISPATCH",
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -3865,7 +4020,9 @@
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
         "docs/reports/v1-evidence/8189-product-selected.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [
         "V1-D01",
@@ -3886,7 +4043,8 @@
         "PO-8189-RAPID-TERMINAL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-B49-UP-OBSERVATION-BOUNDARY",
-        "PO-30BF-CORE-UP-AND-POSTRESIZE"
+        "PO-30BF-CORE-UP-AND-POSTRESIZE",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -3896,6 +4054,28 @@
         "driver_binary_sha256": "B2195564DDD10EA22F5915EA1C0669B2B34FCDEE3CCF9C39FF00D7664B44B4A4",
         "run_id": "30bf79c65e5b421aa1087963787898b2",
         "scope": "R2 Release Medium owned A/Ctrl_A/B/C/Resize real completion followed by postResize A actual missing LL UP"
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
+        "configuration": "Release",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Four-grid Resize postverify, matching UP, following Move and cleanup; not all min/grid/member-failure and real-app combinations.",
+        "fixture_component_sequences": [
+          58,
+          66,
+          67,
+          75,
+          82,
+          83,
+          84,
+          91
+        ],
+        "not_complete_contract_PASS": true
       }
     },
     {
@@ -8320,7 +8500,9 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
       ],
       "defects": [
         "V1-D12"
@@ -8330,7 +8512,7 @@
       "remaining_conditions": [
         "L形共享Resize、四格共享角、八成员实际操作及混合应用完整组合尚未验证；dedc水平失败保留。"
       ],
-      "next_action": "同212 Full Release继续真实G06/G07前置及剩余组合，不省略已达状态；遇具体FG/资源门停止受影响步骤，不盲重试或放宽检查。",
+      "next_action": "保留当前212/cea四格双轴及后继Move、八窗末成员Ctrl的真实子项，不重复Full或同数量专项。整I03仍须对应T/L/最小约束/真实应用完整顺序，不能由独立G07/八窗拼成PASS。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-408AC52-UP-DISPATCH",
@@ -8339,7 +8521,8 @@
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES",
         "PO-DEDC-R10-DEBUG-CORE-RAPID-AND-G06-FOREGROUND-FAILURE",
-        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+        "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "status_basis": "PARTIAL_OBSERVATIONS_NOT_COMPLETE_REQUIRED_CHAIN",
       "pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -8354,12 +8537,26 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
-        "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
-        "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "cea534853e6049c8b88cefc3b35c188e",
         "configuration": "Release",
-        "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
-        "scope": "当前212/e7两轮实际三窗T竖/横共享Resize、min夹制/原DOWN回拉、普通Move分离及真实形成两成员L后换leader移动；dedc另一水平场景被未知起因FG变化安全拒绝。未把创建8窗当八窗组操作。",
+        "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+        "scope": "Current G07 four-grid and eight-owned independent components pass; required T/L/min/real-app complete chain not replaced.",
+        "fixture_component_sequences": [
+          58,
+          66,
+          67,
+          75,
+          82,
+          83,
+          91,
+          124,
+          136,
+          137,
+          145
+        ],
         "not_complete_contract_PASS": true
       }
     },
@@ -9297,13 +9494,14 @@
         "docs/reports/v1-evidence/99f-1b5-notepad-preparation-selected.json",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
-        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
       ],
       "observed": "c01本批指定Notepad EXE缺失，未执行该类别动作。；e0e4已实际尝试官方Notepad准备，manifest请求Market=ZZ返回400；未安装/未运行产品，不是永久缺程序。；99f官方MarketUS manifest200/找到Notepad后需Entra交互认证，0字节无包；Geo恢复失败另记工具，产品NOT_RUN。；022序117仍无已取得的指定官方EXE，无Notepad窗口输入。",
       "remaining_conditions": [
         "本批未带EXE不是永久环境阻断；需准备官方Notepad并核实实际根/权限。"
       ],
-      "next_action": "744本批Notepad未启动/未输入，增强NOT_RUN；保留官方payload缺口，不用driver修复或其他app结果关闭此条件。",
+      "next_action": "fe0首次产品启动前Notepad仍无合格新root/未输入，产品增强NOT_RUN；保留官方payload与许可条件，不把此无产品启动结果写成产品不兼容或唯一环境根因。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9314,7 +9512,8 @@
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9324,17 +9523,24 @@
         "run_id": "30bf79c65e5b421aa1087963787898b2"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
-        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
-        "run_id": "744fff40a030404ebafe9e2879190179",
+        "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_started": false,
+        "product_function_result": "NOT_RUN",
+        "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
         "configuration": "Release",
-        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
-        "scope": "BLOCKED_STARTUP_NO_EXPLICIT_OFFICIAL_NOTEPAD_PAYLOAD",
+        "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+        "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+        "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+        "scope": "NATIVE_WITHOUT_CANDIDATE_PRODUCT_STARTUP_BLOCKED_NOTEPAD",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "BLOCKED_STARTUP_NO_EXPLICIT_OFFICIAL_NOTEPAD_PAYLOAD"
+      "current_candidate_state": "NATIVE_WITHOUT_CANDIDATE_PRODUCT_STARTUP_BLOCKED_NOTEPAD"
     },
     {
       "id": "A04",
@@ -9350,13 +9556,14 @@
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-product-selected.jsonl",
         "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
-        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
       ],
       "observed": "c01 Edge实际已绑定根但实际NC hit2184失败，exact关闭未确认且登记保留；原因UNKNOWN。；R2/30bf已绑定Medium精确根，caption扫描23920点/19410实际查询中18839失败，样本超时1460；1500命中FAIL、1510/1514/1516关闭未确认，根存活，不控制未知popup/强关。；最新022/D660已实际通过caption162、165真实WM_NCHITTEST2/前台exact/capture0，167真实g4 START；169 first-free未动、无placement回执，product78DOWN/79START/80end3正常false，原因UNKNOWN。此后不再把最新失败写成caption/19k查询风暴；旧30bf原事实保留。179根存活/WM_NULL返回false，180/184/188 exact关闭仍未确认。",
       "remaining_conditions": [
         "浏览器全部操作/透传/正常关闭矩阵未通过。"
       ],
-      "next_action": "744 source-only driver已实际触达真实WM_NCHITTEST并超时1460，不再把旧全组资格/身份矛盾作为本批失败。pause不等于hooks absent，下一NativeClientsOnly须在首次产品launch之前复用同helper作有区分度观察；Edge正常根关闭仍FAIL，不强关未知身份或以guest销毁补PASS。",
+      "next_action": "fe0无候选产品时Edge真实HTCLIENT并唯一点击、focus通过，但DOM标题效果未发生且仍非测试页标题，正常关闭未确认。此与744命中查询超时不同；先有限核实本轮新Edge离线页实际ready/导航/语义条件及driver区别，不做未经前置通过的增强手势，不宣称唯一系统根因或严格单变量因果。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9366,7 +9573,8 @@
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
         "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9376,17 +9584,24 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
-        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
-        "run_id": "744fff40a030404ebafe9e2879190179",
+        "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_started": false,
+        "product_function_result": "NOT_RUN",
+        "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
         "configuration": "Release",
-        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
-        "scope": "NATIVE_PREFLIGHT_ACTUAL_HIT_TIMEOUT1460_EDGE_NORMAL_CLOSE_STILL_UNCONFIRMED",
+        "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+        "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+        "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+        "scope": "NATIVE_WITHOUT_PRODUCT_HTCLIENT_CLICK_FOCUS_PASS_DOM_EFFECT_FAIL_NORMAL_CLOSE_UNCONFIRMED",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "NATIVE_PREFLIGHT_ACTUAL_HIT_TIMEOUT1460_EDGE_NORMAL_CLOSE_STILL_UNCONFIRMED"
+      "current_candidate_state": "NATIVE_WITHOUT_PRODUCT_HTCLIENT_CLICK_FOCUS_PASS_DOM_EFFECT_FAIL_NORMAL_CLOSE_UNCONFIRMED"
     },
     {
       "id": "A05",
@@ -9401,13 +9616,14 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
-        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
       ],
       "observed": "b49已携官方VSCode且UserData/Extensions/TEMP实际Medium读写删除均PASS；launcher仍259，一个held child退出0x80070005，仅hidden根、own profile log目录不可用；未绑定合格根、未发窗口输入。；R2/30bf三个Medium目录RW探针PASS；launcher/一child仍259，另child0x80070005、4个hidden根，无合格根/输入；本批ownlog根存在、2目录/0文件（不同于旧无log根事实），原因UNKNOWN。；最新022同R2官方Code再次只得4个hidden根/无合格窗；launcher/一child仍259、另child0x80070005；144本次ownlog不可用/0目录0文件，不将30bf的已有log目录回填本批。",
       "remaining_conditions": [
         "实际可运行普通Electron根仍缺，原因UNKNOWN；不是本批未携EXE或已证明profile目录无写权限。"
       ],
-      "next_action": "744 Code仍无唯一合格root/未attempt增强，启动层BLOCKED，不把它计产品Move失败。下一无产品进程原生客户端场景分别核启动事实，旧官方GPU错误仅保留历史身份，不无证推成本次唯一原因。",
+      "next_action": "fe0候选产品尚未启动时Code仍无唯一合格新root，产品增强NOT_RUN；保留具体官方启动证据，不以“产品已暂停”解释此新结果，也不推定所有启动异常均同一系统或GPU原因。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9417,7 +9633,8 @@
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
         "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9427,17 +9644,24 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
-        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
-        "run_id": "744fff40a030404ebafe9e2879190179",
+        "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_started": false,
+        "product_function_result": "NOT_RUN",
+        "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
         "configuration": "Release",
-        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
-        "scope": "BLOCKED_NATIVE_STARTUP_NO_ELIGIBLE_CODE_ROOT_ENHANCED_NOT_RUN",
+        "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+        "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+        "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+        "scope": "NATIVE_WITHOUT_CANDIDATE_PRODUCT_STARTUP_BLOCKED_CODE_NO_ROOT",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "BLOCKED_NATIVE_STARTUP_NO_ELIGIBLE_CODE_ROOT_ENHANCED_NOT_RUN"
+      "current_candidate_state": "NATIVE_WITHOUT_CANDIDATE_PRODUCT_STARTUP_BLOCKED_CODE_NO_ROOT"
     },
     {
       "id": "A06",
@@ -9453,13 +9677,14 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
-        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
       ],
       "observed": "R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，客户输入未验证；1753 exact根关闭确认，1754类别仍FAIL。",
       "remaining_conditions": [
         "当前R7实际客户区输入/透传未完成；历史R2/022类别PASS保留原身份，不替代本R7。"
       ],
-      "next_action": "744 Terminal真实root命中HTCAPTION2，pause/resume成立但原生客户交互未成立；不放宽HTCLIENT门或把枚举child当实际路由。下一首次产品launch之前同helper对照仅区分产品presence，不先写环境根因。",
+      "next_action": "fe0无候选产品时Terminal真实root仍HTCAPTION2，客户语义未发、但本次exact root正常关闭确认。保留旧e7几何子项；先区分实际终端初始化/测试点与原生命中条件，不用枚举child放宽gate，不把它直接归为系统唯一原因或产品Move失败。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9470,7 +9695,8 @@
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
         "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9485,14 +9711,21 @@
       "environment_id": "E02",
       "run_id": "0224765c54b548aa8a32c6391ed14fb3",
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
-        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
-        "run_id": "744fff40a030404ebafe9e2879190179",
+        "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_started": false,
+        "product_function_result": "NOT_RUN",
+        "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+        "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+        "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+        "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
         "configuration": "Release",
-        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
-        "scope": "NATIVE_PREFLIGHT_ACTUAL_ROOT_HTCAPTION_ENHANCED_NOT_RUN",
+        "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+        "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+        "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+        "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+        "scope": "NATIVE_WITHOUT_PRODUCT_ACTUAL_ROOT_HTCAPTION_CLIENT_FAIL_EXACT_CLOSE_CONFIRMED",
         "not_complete_contract_PASS": true
       },
       "historical_complete_contract_observation": {
@@ -9502,7 +9735,7 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3",
         "observed": "同R2/022真实Terminal五阶段Move、实际UP/NormalUp保持、Resize/UP、Center/Dock/Undo/Stretch/Undo、Esc恢复及终端客户输入通过；114 exact根关闭、115本类别范围PASS。30bf同R2原通过与b49/7cd历史失败各留身份，不授其余四类/混合组。"
       },
-      "current_candidate_state": "NATIVE_PREFLIGHT_ACTUAL_ROOT_HTCAPTION_ENHANCED_NOT_RUN"
+      "current_candidate_state": "NATIVE_WITHOUT_PRODUCT_ACTUAL_ROOT_HTCAPTION_CLIENT_FAIL_EXACT_CLOSE_CONFIRMED"
     }
   ],
   "nonfunctional": [
@@ -9956,9 +10189,9 @@
       "id": "V1-D12",
       "status": "OPEN",
       "kind": "APPLICATION_MATRIX_AND_EXACT_CREATED_ROOT_CLEANUP_INCOMPLETE",
-      "latest_observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
-      "runtime_revalidation": "ACTUAL_744_SOURCE_ONLY_PREFLIGHT_REACHED_REAL_NATIVE_HIT_APPLICATIONS_BLOCKED_ENHANCED_NOT_RUN_EDGE_CLOSE_FAIL",
-      "next_action": "保留本次真实拒绝，不重复Full或900。使用现有GroupBoundsOnly未触达组布局用例继续不受阻产品验证；用首次产品launch之前的NativeClientsOnly复用相同原生客户helper，明确无产品进程后缩小guest/driver/产品presence范围。新driver尚待提交/运行，不预填SHA或通过。",
+      "latest_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "runtime_revalidation": "ACTUAL_FE0_WITHOUT_CANDIDATE_PRODUCT_NATIVE_CLIENT_FAILURES_PRODUCT_NOT_RUN_EDGE_CLOSE_FAIL",
+      "next_action": "保留cea真实组布局组件和dd02设置/便携范围。fe0已在本候选产品缺席时观察到原生应用/语义失败：不是744相同失败点，也非严格单变量根因证明；只围绕实际离线页ready/终端客户命中/官方程序启动有限区分，保持Edge正常关闭FAIL与产品cleanup N_A。完整Full回环、真实应用、tray/Shell及普通桌面/显示门继续分别补齐，不宣称仅剩外部环境或所有不受阻工作已完成。",
       "description": "e4 Terminal实际本次类别范围通过并exact关闭；正式Explorer实际RID8192/elevated=true被正确拒绝，Notepad/VSCode本批指定EXE缺失。Edge1958实际hit失败，exact根关闭未确认且登记保留，不控制身份失效窗；产品自身正常退出与post-stop客户输入通过不等于该根已清理或整个矩阵通过。 b49当前R：Terminal五阶段几何成立但真实UP缺失；VSCode已携官方1.142.0.0且profile/extensions/TEMP读写删除成功，主launcher仍259、一个held child退出0x80070005、仅hidden根、ownlog目录不可用，不再笼统称未携EXE。Edge命中/精确关闭失败仍保留；普通新账号DACL拒绝是环境事实非产品FAIL。",
       "features": [
         "M02-F01",
@@ -9970,10 +10203,12 @@
         "PO-945C-TERMINAL-UP",
         "PO-E4-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
-        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
       ],
       "evidence_paths": [
-        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
       ]
     },
     {
@@ -10252,6 +10487,27 @@
     }
   },
   "historical_packages": [
+    {
+      "run_id": "be94eba2a078403ca5db1b961c0f2aae",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
+      "packaging_head": "eec93e22d66d148f2611dfd59291208c66114aa1",
+      "receipt_path": "uat/v1-sandbox/be94eba2a078403ca5db1b961c0f2aae/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/be94eba2a078403ca5db1b961c0f2aae/input/manifest.json",
+      "zip_sha256": "CF11C869F607DAFD11D3DF06AD41AEA2E5B66A150B87C8DD7F121A0FBA5E775D",
+      "manifest_sha256": "DD8BE83F8758D1D82F32FD29A2C52BD1D24507BD0684FAE702E40E95C62D2C91",
+      "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
+      "release_fixture_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
+      "debug_fixture_sha256": "F636CC562F31240946064A7A4CFBD684EA2704D902AFC9E0E025C59354A037F9",
+      "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_DRIVER_EEC_HASHES_AND_BE94_GUEST_OBSERVATIONS",
+      "guest_configurations": "Release",
+      "guest_suite": "Full",
+      "guest_function_status": "FAIL_FIRST_B_RESIZE_FOREGROUND_ABORT_AFTER_COMPONENT_PASSES",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "human_uat": "NOT_RUN",
+      "note": "产品/便携字节不变；be94实际Full在初始四段后B Resize因前台变化安全终止，未到post-Resize A/CtrlC或后续应用矩阵。原9724 finite范围完整保留历史，不增功能或B项PASS。"
+    },
     {
       "run_id": "9724d8562beb480a8278d0607f0e700a",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -10983,25 +11239,27 @@
     }
   ],
   "current_package": {
-    "run_id": "be94eba2a078403ca5db1b961c0f2aae",
+    "run_id": "cea534853e6049c8b88cefc3b35c188e",
     "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-    "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-    "packaging_head": "eec93e22d66d148f2611dfd59291208c66114aa1",
-    "receipt_path": "uat/v1-sandbox/be94eba2a078403ca5db1b961c0f2aae/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/be94eba2a078403ca5db1b961c0f2aae/input/manifest.json",
-    "zip_sha256": "CF11C869F607DAFD11D3DF06AD41AEA2E5B66A150B87C8DD7F121A0FBA5E775D",
-    "manifest_sha256": "DD8BE83F8758D1D82F32FD29A2C52BD1D24507BD0684FAE702E40E95C62D2C91",
+    "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+    "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+    "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+    "receipt_path": "uat/v1-sandbox/cea534853e6049c8b88cefc3b35c188e/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/cea534853e6049c8b88cefc3b35c188e/input/manifest.json",
+    "zip_sha256": "B22A5C9893E69AB1AECA3D7550E9DEA8A614F489907EC6C029AFAFAFA1C4C475",
+    "manifest_sha256": "F0C09F8CACB5B7E90F114611312A6E8963895AE351ED43AB6055B936FE83D826",
     "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
     "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
-    "release_fixture_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-    "debug_fixture_sha256": "F636CC562F31240946064A7A4CFBD684EA2704D902AFC9E0E025C59354A037F9",
-    "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_DRIVER_EEC_HASHES_AND_BE94_GUEST_OBSERVATIONS",
+    "release_fixture_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+    "debug_fixture_sha256": "D8E46A2623D31284DAAB1343201AE4A920338BA022F6EB8B1BC94F1A89810528",
+    "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_DRIVER_F9FC72B_SELF_REPORT_F1F2508_IMPLEMENTATION_AND_CEA_GROUP_RECEIPTS",
     "guest_configurations": "Release",
-    "guest_suite": "Full",
-    "guest_function_status": "FAIL_FIRST_B_RESIZE_FOREGROUND_ABORT_AFTER_COMPONENT_PASSES",
+    "guest_suite": "GroupBoundsOnly",
+    "guest_function_status": "PASS_SCOPED_G07_FOUR_GRID_AND_EIGHT_OWNED_NOT_COMPLETE_FEATURE_OR_VERSION",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "human_uat": "NOT_RUN",
-    "note": "产品/便携字节不变；be94实际Full在初始四段后B Resize因前台变化安全终止，未到post-Resize A/CtrlC或后续应用矩阵。原9724 finite范围完整保留历史，不增功能或B项PASS。"
+    "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+    "note": "此当前实际产品运行仅组布局组件范围；独立便携7635字节不变，fe0仅为产品未启动的原生应用对照，不能把它标为产品运行PASS或宿主可试用。完整Full/真实应用/托盘/普通桌面和显示门仍未齐。"
   },
   "portable_candidate": {
     "package_id": "7635dc7b0c03416e95401a3eed8b262a",
@@ -11019,6 +11277,63 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "kind": "literal_selected_actual_guest_JSONL_without_candidate_product_execution",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_started": false,
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
+      "configuration": "Release",
+      "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+      "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+      "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "scope": "NO_CANDIDATE_PRODUCT_NATIVE_APPLICATION_INTERACTION_FAILURES_NOT_SOLE_ENVIRONMENT_CAUSE_OR_PRODUCT_FUNCTION_PASS",
+      "path": "uat/v1-control/fe0e2b7191134dc7a3dad634b8b0c983/collection-20261019T110858257Z-37da6f908cb34721b4c982b5edc32652/fe0e2b7191134dc7a3dad634b8b0c983-release-fixture.jsonl",
+      "sha256": "A2D5B7E177DEC92C67E988D5D687C8CB28E513F66EECB6B1C52545EC4F3DDE93",
+      "repository_excerpt_path": "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl",
+      "repository_excerpt_sha256": "68A43919FC7A552392CE0844D72C53419EFD34C018C41674048C609283325EB0"
+    },
+    {
+      "id": "EV-CEA-R11-FOUR-GRID-EIGHT-GROUP",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "cea534853e6049c8b88cefc3b35c188e",
+      "configuration": "Release",
+      "path": "uat/v1-control/cea534853e6049c8b88cefc3b35c188e/collection-20261019T110531451Z-97560be4f23240dc98fe510325759108/cea534853e6049c8b88cefc3b35c188e-release-fixture.jsonl",
+      "sha256": "693560F8AAEB93E225B5D49E013953F0F44D2C0641C577481273AF45759FBF8B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+      "repository_excerpt_sha256": "F240037B045B6B92FC555437C383BF486E9D9E80BF8091071384C14324CF195F",
+      "scope": "PASS_SCOPED_G07_FOUR_GRID_TWO_AXES_FOLLOWING_MOVE_AND_EIGHT_OWNED_LAST_MEMBER_CTRL_SOURCE_NOT_COMPLETE_FEATURE_OR_VERSION"
+    },
+    {
+      "id": "EV-CEA-R11-GROUP-ACTUAL-NATIVE-RECEIPTS",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "cea534853e6049c8b88cefc3b35c188e",
+      "configuration": "Release",
+      "path": "uat/v1-control/cea534853e6049c8b88cefc3b35c188e/collection-20261019T110531451Z-97560be4f23240dc98fe510325759108/cea534853e6049c8b88cefc3b35c188e-product-Release/panebind.log.jsonl",
+      "sha256": "DBBD6760F7B14586BE951E1FA9158157D1C696423E6ABADDB00D9D589A8DB63A",
+      "repository_excerpt_path": "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl",
+      "repository_excerpt_sha256": "2B4564190464CBF59A06AE74C1CFAD1425E0804BE6623E1BA06DC0F174722B02",
+      "scope": "PASS_SCOPED_G07_FOUR_GRID_TWO_AXES_FOLLOWING_MOVE_AND_EIGHT_OWNED_LAST_MEMBER_CTRL_SOURCE_NOT_COMPLETE_FEATURE_OR_VERSION"
+    },
     {
       "id": "EV-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT",
       "kind": "literal_selected_actual_guest_JSONL",
@@ -12486,6 +12801,178 @@
   ],
   "partial_observations": [
     {
+      "id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_started": false,
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "fe0e2b7191134dc7a3dad634b8b0c983",
+      "configuration": "Release",
+      "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "package_zip_sha256": "EF666E2195869C52BC3308D41A962553905D7B2BAD1A10496B6657101096D244",
+      "package_manifest_sha256": "11D3CDD5564D888BF84E91880FD48ADBEA9E6846EA22B4BE9E7274F0718D239E",
+      "observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "scope": "NO_CANDIDATE_PRODUCT_NATIVE_APPLICATION_INTERACTION_FAILURES_NOT_SOLE_ENVIRONMENT_CAUSE_OR_PRODUCT_FUNCTION_PASS",
+      "result": "FAIL_NATIVE_CLIENTS_WITHOUT_CANDIDATE_PRODUCT_NOT_PRODUCT_FUNCTION_FAIL",
+      "record_kind": "ACTUAL_GUEST_NATIVE_CLIENTS_BEFORE_FIRST_PRODUCT_LAUNCH",
+      "observed": "91行原JSONL合法连续。D20/22至72/78多处实际absence：driver产品handle空/PID0/root0、候选panebind.exe匹配进程0、候选当前/旧productlog不存在；只覆盖该候选name/root/handle/log，不扩成所有重命名进程或输入观察者均无。Terminal D30真实root命中HTCAPTION2，D34原生客户FAIL且本次exact root正常关闭确认。Notepad D40及Code D65无合格root/BLOCKED。Edge D75真实HTCLIENT1；D76/77唯一真实测试DOWN/UP，D79实际focus成立，但D80 DOM标题效果FAIL，D81标题仍为默认无标题页面而非预期离线页，WM_NULL未返回；D81/82正常根关闭未确认，D83 FAIL/产品NOT_RUN，D84依赖门停止后续输入，D91 driverFAIL、产品cleanup NOT_APPLICABLE_NOT_STARTED。此已出现无本候选产品也不能完成正常应用交互的反例，但与744真实hit超时并非同一失败点，不能声称严格单变量或唯一系统/环境根因。wrapperwait0/exit1/desc4/forcedtrue，未知/未确认应用根不强制操作；guest销毁不补应用正常cleanup PASS。",
+      "applications": {
+        "Terminal": {
+          "native_client": "FAIL_ACTUAL_ROOT_HTCAPTION",
+          "normal_exact_root_close": "CONFIRMED"
+        },
+        "Notepad": {
+          "startup": "BLOCKED_NO_ELIGIBLE_ROOT"
+        },
+        "VSCode": {
+          "startup": "BLOCKED_NO_ELIGIBLE_ROOT"
+        },
+        "Edge": {
+          "actual_HTCLIENT": 1,
+          "single_test_click_sent": true,
+          "actual_focus": "PASS",
+          "DOM_title_effect": "FAIL_NOT_EXPECTED_OFFLINE_PAGE_TITLE",
+          "normal_exact_root_close": "UNCONFIRMED"
+        }
+      },
+      "evidence_ids": [
+        "EV-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/fe0-r11-native-clients-without-product-selected.jsonl"
+      ],
+      "affected_application_ids": [
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 1,
+        "descendants_alive_at_fixture_exit": 4,
+        "forced_test_cleanup": true,
+        "product_cleanup_pass": false
+      },
+      "cleanup": {
+        "guest_pid": 23344,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T11:10:36.3036490Z",
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "new_feature_or_B_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "保留此诊断与产品212不执行的边界；围绕实际Edge离线页ready/driver语义目标、Terminal实际客户命中、Code/Notepad官方启动条件有限区分，不重复Full/900，不将全部问题归外部环境，不放宽产品门。完整Full、真实应用、tray/Shell及普通桌面/显示硬门继续按具体依赖推进。"
+    },
+    {
+      "id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "cea534853e6049c8b88cefc3b35c188e",
+      "configuration": "Release",
+      "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "package_zip_sha256": "B22A5C9893E69AB1AECA3D7550E9DEA8A614F489907EC6C029AFAFAFA1C4C475",
+      "package_manifest_sha256": "F0C09F8CACB5B7E90F114611312A6E8963895AE351ED43AB6055B936FE83D826",
+      "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+      "scope": "PASS_SCOPED_G07_FOUR_GRID_TWO_AXES_FOLLOWING_MOVE_AND_EIGHT_OWNED_LAST_MEMBER_CTRL_SOURCE_NOT_COMPLETE_FEATURE_OR_VERSION",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "result": "PASS_SCOPED_OWNED_GROUP_COMPONENTS_NOT_COMPLETE_FEATURE_MODULE_BENCHMARK_OR_VERSION",
+      "record_kind": "ACTUAL_GUEST_GROUP_BOUNDS_ONLY_CURRENT_FROZEN_PRODUCT",
+      "observed": "fixture154行、product133行JSONL各自合法连续。D58 g1四格Ctrl共享角双轴Resize(+40,+30)，D59–62独立actual矩形与主方案G07 x540/y330精确相等；产品g1真实call1–4全部native_attempted/succeeded/exact/identity/completion/postcontext true。D75 g2随后普通Move(+40,+35)，产品call5 exact；D66/82及product对应gesture_end确认真实NormalUp，D67/83实际几何与无capture，D84四窗资源销毁，D91该组件PASS。D124 g3八窗最后成员实际Ctrl source，D125–132八窗独立矩形精确，产品call6–13全部真实exact成功；D136/137真实UP/几何/无capture，138资源销毁，145阶段PASS。D146 quit/exit0及product133自身hooks/overlay/writer/capture/association/visual资源逐项清理，D151客户[0,0]→[1,1]实际DOWN/UP，153 Raw注销、154自窗销毁/产品关闭且suitePASS。wrapperwait0/exit0/desc0/forcedfalse；其product_cleanup_pass=false保持原未评估常量，不用guest销毁补清理。",
+      "fixture_component_cases": [
+        {
+          "case": "G07_four_grid_two_shared_axes",
+          "sequence": 58,
+          "generation": 1,
+          "actual_native_calls": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "result": "PASS_COMPONENT"
+        },
+        {
+          "case": "G07_four_grid_following_ordinary_Move",
+          "sequence": 75,
+          "generation": 2,
+          "actual_native_calls": [
+            5
+          ],
+          "result": "PASS_COMPONENT"
+        },
+        {
+          "case": "eight_owned_last_member_real_Ctrl_source",
+          "sequence": 124,
+          "generation": 3,
+          "actual_native_calls": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "result": "PASS_COMPONENT"
+        }
+      ],
+      "evidence_ids": [
+        "EV-CEA-R11-FOUR-GRID-EIGHT-GROUP",
+        "EV-CEA-R11-GROUP-ACTUAL-NATIVE-RECEIPTS"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
+      ],
+      "affected_features": [
+        "M06-F01",
+        "M06-F02",
+        "M06-F03",
+        "M06-F04",
+        "M07-F04",
+        "M07-F05"
+      ],
+      "affected_integration_chains": [
+        "I03"
+      ],
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_basis": "Unevaluated initialized wrapper field; actual product/fixture shutdown and client evidence determine measured cleanup."
+      },
+      "cleanup": {
+        "guest_pid": 3280,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T11:07:03.2054958Z",
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "new_feature_or_B_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "保留当前产品212真实G07四格和八窗子项；不重复同专项、不抬完整M06/M07/I03或B项。继续NativeClientsOnly已授权应用区分观察及尚缺真实应用/普通完整桌面/显示门。"
+    },
+    {
       "id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -12832,7 +13319,7 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl"
       ],
-      "next_action": "真实Hotkey观察已定向通过，不重复即时读取错误；actor测试被实际失焦提前终止，保持原因UNKNOWN及资源安全退出证据，不将其记为30秒Deadline PASS。完成9724独立严格900门后按实际合并，整I08仍需对应证据。",
+      "next_action": "保留本批实际Hotkey PASS和actor提前FocusLost/未知前台事实，不授30秒Deadline或整I08。9724已在同product212/d2真实通过严格900秒有限scope，原时长待办已完成；不重复900/整OwnedComponents。当前按be94完整回环失败、fe0真实应用前提、tray/Shell与普通桌面/显示的具体缺项继续，不能由无关时长替代I08恢复合同。",
       "product_normal_resource_shutdown_observed": true,
       "post_stop_actual_client_recovery_observed": true,
       "exact_guest_task_cleanup": {
@@ -12918,7 +13405,7 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
       ],
-      "next_action": "严格900门保留，既有waitable timer信号后作QPC复核的有界修订待定向FiniteSessionOnly；I08以InterruptionOnly重验，不重复设置/apps。",
+      "next_action": "e7原严格899.9940725秒FAIL及观察正文/身份保持；其严格900门已由9724同product212/d2实际900.037841秒限域通过，不再待计时修订或重复专项。e7视觉/在途/grid/batch等同212组件继续复用，048实际Hotkey与actor早FocusLost分开。当前补be94 Full回环、fe0应用前提、tray/Shell与普通桌面/显示，不能由组件拼整I08/I10/I11。",
       "product_normal_resource_shutdown_observed": true,
       "post_stop_actual_client_recovery_observed": true,
       "exact_guest_task_cleanup": {
@@ -13181,7 +13668,7 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/477a-r10-release-entry-components-and-real-grid-handoff-selected.jsonl"
       ],
-      "next_action": "仅修复受影响driver：native-passthrough首click终止判定、合法native grid起点和缓存诊断；同212产品字节继续定向复验。0f2b后继driver未现场；保持High拒绝，不把原生快速透传授为增强。",
+      "next_action": "0f2b已由后继f54等实际运行，旧未现场待办不再执行；477a原FAIL/观察/身份保留。当前212的477a视觉/在途/第二成员组件及e7 grid等已有子PASS继续复用，9724严格900已限域通过，不因新套件缺席清空或重跑整OwnedComponents。保留原High拒绝/native-only边界，继续当前完整Full回环、真实应用前提、tray/Shell和普通桌面/显示缺口。",
       "exact_guest_task_cleanup": {
         "receipt_path": "uat/v1-control/477a2298fbcd4452b36259b5d6b02edb/cleanup-receipt.json",
         "guest_pid": 32668,
@@ -17881,21 +18368,22 @@
     "latest_runtime_observation": {
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-      "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-      "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-      "run_id": "be94eba2a078403ca5db1b961c0f2aae",
+      "driver_source_sha": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "driver_implementation_source_sha": "f1f2508b6bd25e13297d8b465ff67bb36ddba53f",
+      "driver_binary_sha256": "11E72B72847B7AA5866DA8C30F29A8D92C5884A2DB448EF2AC395F5E9A809F3E",
+      "run_id": "cea534853e6049c8b88cefc3b35c188e",
       "configuration": "Release",
-      "packaging_head": "eec93e22d66d148f2611dfd59291208c66114aa1",
-      "package_zip_sha256": "CF11C869F607DAFD11D3DF06AD41AEA2E5B66A150B87C8DD7F121A0FBA5E775D",
-      "package_manifest_sha256": "DD8BE83F8758D1D82F32FD29A2C52BD1D24507BD0684FAE702E40E95C62D2C91",
-      "collection_path": "uat/v1-control/be94eba2a078403ca5db1b961c0f2aae/collection-20261019T100537352Z-6d636cb1e7e2435db170032082c97a5f",
-      "observation_id": "PO-BE94-R11-FULL-RELEASE-RESIZE-FOREGROUND-ABORT",
-      "scope": "FULL_RELEASE_FAIL_AT_FIRST_B_RESIZE_FOREGROUND_ABORT_AFTER_A_CTRL_A_B_C_SCOPED_PASSES",
-      "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+      "packaging_head": "f9fc72b1692250531525103a4b5d5aa352116aa0",
+      "package_zip_sha256": "B22A5C9893E69AB1AECA3D7550E9DEA8A614F489907EC6C029AFAFAFA1C4C475",
+      "package_manifest_sha256": "F0C09F8CACB5B7E90F114611312A6E8963895AE351ED43AB6055B936FE83D826",
+      "observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+      "scope": "PASS_SCOPED_G07_FOUR_GRID_TWO_AXES_FOLLOWING_MOVE_AND_EIGHT_OWNED_LAST_MEMBER_CTRL_SOURCE_NOT_COMPLETE_FEATURE_OR_VERSION",
+      "collection_path": "uat/v1-control/cea534853e6049c8b88cefc3b35c188e/collection-20261019T110531451Z-97560be4f23240dc98fe510325759108",
+      "driver_process_exit": "OBSERVED_WAIT0_EXIT0",
       "descendants_alive_at_fixture_exit": 0,
       "forced_test_cleanup": false,
       "product_cleanup_pass": false,
-      "product_cleanup_pass_basis": "Original wrapper field is initialized false and not an evaluation. Actual product170 shutdown, fixture127/132/133/134 separately establish measured normal stop and post-stop client recovery.",
+      "product_cleanup_pass_basis": "Original wrapper field is initialized false and unevaluated; actual product133 and fixture146/151/153/154 establish measured normal cleanup scope.",
       "new_feature_or_B_PASS": false
     },
     "existing_VM_inventory": {

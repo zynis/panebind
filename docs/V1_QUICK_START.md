@@ -4,13 +4,17 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`／Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`字节保持不变。历史9724有限owned范围及be94 Full失败保留原身份。dd02 Release已实际完成十个设置／生命周期阶段与同7635 ZIP普通入口范围；托盘UID1图标不可达，EntryAndSettings仍FAIL，原 `I12=PASS` 只支持普通便携入口子范围。driver `01ab9ec48f10ff338b550d9ae8c41c6b050a17d7` 的744 AppsOnly已经实际运行：修复后的Edge预检到达真实命中查询但超时1460，Terminal真实root命中HTCAPTION2，Notepad／Code没有合格新root；增强产品手势均NOT_RUN，Edge正常关闭仍未确认。产品自身正常退出／自建客户输入恢复不等于该应用已清理；暂停增强也不等于hooks不存在，原因仍需区分。七项功能／B2不增，不把旧7c6c结果换绑744。详见交付报告；**不可宿主试用，真人UAT PENDING**。
+现在新增的实际可操作范围仍限隔离guest自建窗口：cea Release完成四窗双轴共享Resize、随后的普通Move，以及八窗末成员发起的Ctrl整组Move；三代均有真实NormalUp，实际几何与正常资源退出已核验。它不是五类真实应用、完整I03或Full验收通过。
 
-当前无需用户搬文件、新建VM或重复恢复SSH；产品EXE不因测试driver／文档变化重建。下一步复用现有组布局用例的 `GroupBoundsOnly`，并在首次产品启动之前用 `NativeClientsOnly` 核实真实应用客户交互，区分guest／driver／产品presence影响；这两个后继入口此时尚未现场运行，不预填新driver身份或通过。不重复Full或已通过的900秒专项。普通完整桌面、真实托盘、多屏／混合DPI仍分别保留缺口，连接恢复或入口子范围通过不等于整版即将通过。
+产品仍为`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`；[原7635候选ZIP](../uat/v1-portable/7635dc7b0c03416e95401a3eed8b262a/PaneBindV1-Release-7635dc7b0c03416e95401a3eed8b262a.zip)保持原字节，ZIP SHA `576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6`。dd02已验证该包普通无参GUI、保存后Move-UP和正常退出子范围，但精确托盘图标不可达，不能提升为整I01／I12。9724有限owned证据及be94未知前台切换导致的Full失败保留原身份；不为驱动或文档变化重建产品。
+
+实际driver／打包身份为`f9fc72b1692250531525103a4b5d5aa352116aa0`；cea `GroupBoundsOnly`已运行通过其限定范围，fe0 `NativeClientsOnly`也已运行，不再是待跑项。fe0未启动PaneBind产品，核对了实际产品名进程／根窗口／日志不存在：Terminal仍真实命中HTCAPTION且本批截图显示cmd启动错误；Notepad无可运行的指定官方EXE；Code无合格新root；Edge虽真实HTCLIENT、一次点击和焦点检查通过，页面标题仍无标题、DOM效果未观察、正常关闭未确认。四类原生客户前置均未完整通过，产品功能均`NOT_RUN`、产品cleanup为`NOT_APPLICABLE_NOT_STARTED`。这缩小了可用性范围，不证明严格单变量或唯一系统根因，也不声称没有fixture Raw观察等其他输入观察。
+
+现阶段具体缺项是：可运行官方五类应用、真实托盘可达的普通Medium完整隔离桌面；完整Release操作链中的未知前台中断；真实双屏／混合DPI等显示条件。现有资源内存不足，不要求用户新建VM、购买设备或放宽宿主安全设置；需要具备这些条件的已授权测试会话才能补齐对应现场门。无需用户搬包或再次恢复SSH，不重复已通过的900秒专项或同212已测组件。本guest仍可继续验证M08-F05忽略邻窗（`smart_stretch=false`），当前NOT_RUN，不把剩余工作全部归为环境阻断。生产接线60/60、历史完整功能7/60与对标2/40保持原身份；**整版PARTIAL，不可宿主试用，真人UAT PENDING，暂不进入REA分析**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 
-历史已测ZIP保持原字节；当前R8／82d的9281普通包入口已有上述实测，完整矩阵／整版验收尚未完成。旧/MD拒绝记录与各代现场证据分别保留，不继承为新候选通过。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
+历史已测ZIP保持原字节；当时R8／82d的9281普通包入口已有对应实测，完整矩阵／整版验收尚未完成。旧/MD拒绝记录与各代现场证据分别保留，不继承为新候选通过。完整身份、旧失败和剩余条件见交付报告；以下描述候选操作方法，不是整版完成声明。
 
 ## 1. 正常便携启动与停止
 
