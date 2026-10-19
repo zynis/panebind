@@ -501,6 +501,92 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     }catch(...){const bool stopped=head.stop();if(!observation_logged)try{emit_observation(stopped,true);}catch(...){}throw;}
 }
 
+Gesture layout_four_grid_case(LayoutFixtures& set){
+    set.setup({{100,100,500,300},{500,100,900,300},{100,300,500,500},{500,300,900,500}},
+        {{250,150,500,350},{300,100,500,350},{220,140,500,350},{280,130,500,350}});
+    auto g=layout_down(set,0,HTBOTTOMRIGHT,true);
+    const std::vector<Rect> four{{100,100,540,330},{540,100,900,330},{100,330,540,500},{540,330,900,500}};
+    layout_phase(set,0,g,40,30,four,"G07_four_grid_two_shared_axes");layout_up(set,g,four);
+    g=layout_down(set,3,HTCAPTION,false);
+    layout_phase(set,3,g,40,35,{four[0],four[1],four[2],{580,365,940,535}},"G07_four_grid_following_ordinary_Move");
+    layout_up(set,g,{four[0],four[1],four[2],{580,365,940,535}});return g;
+}
+bool layout_eight_case(LayoutFixtures& set,std::optional<Gesture> previous){
+    auto& s=set.state;std::string initial_status;bool initial_idle=false;
+    if(!previous){
+        const auto mark=read_product(s).size();
+        const bool requested=launch(s,L"--status",true)&&wait([&]{initial_status=record(s,mark,"status");return !initial_status.empty();});
+        GUITHREADINFO gui{sizeof(gui)};
+        initial_idle=requested&&product::guest::matching_idle_status(initial_status,{s.product_pid,s.product_source,0,0})&&
+            initial_status.find("\"enabled\":true")!=initial_status.npos&&initial_status.find("\"hook_owner_running\":true")!=initial_status.npos&&
+            !s.left&&!s.control&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+        s.log.check("eight_owned_standalone_initial_actual_idle",initial_idle,"\"actual_status\":"+quote(initial_status)+
+            ",\"prior_generation\":null,\"prior_NormalUp_inferred\":false,\"eight_window_DOWN_sent\":false");
+    }
+    std::vector<Rect> eight,moved;std::vector<LayoutLimit> eight_limits;
+    try{
+        MONITORINFO display{sizeof(display)};const auto monitor=MonitorFromWindow(set.frames[0].hwnd,MONITOR_DEFAULTTONULL);
+        if(!monitor||!GetMonitorInfoW(monitor,&display))throw std::runtime_error("eight_owned_actual_monitor_unknown");
+        const LONG work_width=display.rcWork.right-display.rcWork.left,work_height=display.rcWork.bottom-display.rcWork.top;
+        LONG width=250,height=180,margin=0;
+        for(std::size_t n=0;n<8;++n){const auto frame=visible(set.frames[n].hwnd);RECT native{};const auto dpi=GetDpiForWindow(set.frames[n].hwnd);
+            if(!set.owns(n)||!frame||!GetWindowRect(set.frames[n].hwnd,&native)||!dpi||MonitorFromWindow(set.frames[n].hwnd,MONITOR_DEFAULTTONULL)!=monitor)
+                throw std::runtime_error("eight_owned_actual_frame_or_DPI_unknown");
+            const LONG dx=native.right-native.left-frame->width(),dy=native.bottom-native.top-frame->height();
+            const LONG padding=MulDiv(32,static_cast<int>(dpi),96);
+            const LONG min_w=std::max(GetSystemMetricsForDpi(SM_CXMIN,dpi),GetSystemMetricsForDpi(SM_CXMINTRACK,dpi));
+            const LONG min_h=std::max(GetSystemMetricsForDpi(SM_CYMIN,dpi),GetSystemMetricsForDpi(SM_CYMINTRACK,dpi));
+            if(padding<=0||min_w<=0||min_h<=0||dx<0||dy<0)throw std::runtime_error("eight_owned_native_minimum_unknown");
+            width=std::max(width,min_w-dx+padding);height=std::max(height,min_h-dy+padding);margin=std::max(margin,padding);
+            s.log.emit("eight_owned_actual_native_minimum","\"member\":"+std::to_string(n)+",\"dpi\":"+std::to_string(dpi)+
+                ",\"native_minimum\":["+std::to_string(min_w)+","+std::to_string(min_h)+"],\"actual_frame_delta\":["+
+                std::to_string(dx)+","+std::to_string(dy)+"],\"safety_margin_pixels\":"+std::to_string(padding));
+        }
+        LONG columns=4,rows=2;
+        const auto fits=[&](LONG cols,LONG count){return static_cast<long long>(cols)*width+margin*2+40<=work_width&&static_cast<long long>(count)*height+margin*2+30<=work_height;};
+        if(!fits(columns,rows)){columns=2;rows=4;if(!fits(columns,rows))throw std::runtime_error("eight_owned_actual_work_area_too_small");}
+        for(LONG n=0;n<8;++n){const LONG x=display.rcWork.left+margin+(n%columns)*width,y=display.rcWork.top+margin+(n/columns)*height;
+            const Rect initial{x,y,x+width,y+height};eight.push_back(initial);moved.push_back(translated(initial,40,30));eight_limits.push_back({100,100,work_width,work_height});}
+        s.log.emit("eight_owned_independent_geometry","\"columns\":"+std::to_string(columns)+",\"rows\":"+std::to_string(rows)+
+            ",\"visible_cell\":["+std::to_string(width)+","+std::to_string(height)+"],\"actual_work_area\":"+
+            rect({display.rcWork.left,display.rcWork.top,display.rcWork.right,display.rcWork.bottom})+",\"product_target_not_used_as_oracle\":true");
+        set.setup(eight,eight_limits);
+    }catch(const std::exception& failure){
+        const std::string why=failure.what();
+        // This is ONLY the known eight-window pre-DOWN preparation branch.
+        // Full still requires its real preceding four-window NormalUp. An
+        // independent entry instead has an observed initial idle, not a
+        // fabricated previous gesture or a substituted NormalUp receipt.
+        if(why!="layout_actual_independent_setup"&&why!="layout_main_UI_configuration_failed"&&!why.starts_with("eight_owned_"))throw;
+        s.log.failed=true;const auto previous_end=previous?record(s,previous->offset,"gesture_end",previous->generation):std::string{};
+        const auto mark=read_product(s).size();std::string actual_status;
+        const bool status=launch(s,L"--status",true)&&wait([&]{actual_status=record(s,mark,"status");return actual_status.find("\"gesture_active\":false")!=std::string::npos;});
+        const bool prior_retired=previous?previous_end.find("\"normal_up\":true")!=std::string::npos&&
+            previous_end.find("\"pending_retired\":true")!=std::string::npos:initial_idle&&
+            product::guest::matching_idle_status(actual_status,{s.product_pid,s.product_source,0,0});
+        const bool closed=set.close();GUITHREADINFO gui{sizeof(gui)};
+        s.log.check("eight_owned_pre_DOWN_failure_exact_cleanup",closed&&status&&!s.left&&!s.control&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
+            !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&prior_retired,
+            "\"original_failure\":"+quote(why)+",\"last_four_window_generation\":"+(previous?std::to_string(previous->generation):"null")+
+            ",\"initial_actual_idle\":"+(initial_idle?"true":"false")+",\"prior_NormalUp_required\":"+(previous?"true":"false")+
+            ",\"eight_window_DOWN_sent\":false,\"eight_window_functional_PASS\":false,\"original_FAIL_preserved\":true");return false;
+    }
+    const auto g=layout_down(set,7,HTCAPTION,true);
+    layout_phase(set,7,g,40,30,moved,"eight_owned_last_member_real_Ctrl_source");layout_up(set,g,moved);
+    s.log.check("layout_eight_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_product_cleanup\":true");return true;
+}
+void owned_four_grid_only(State& s){
+    LayoutFixtures set{s};set.create();(void)layout_four_grid_case(set);
+    s.log.check("layout_four_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_product_cleanup\":true");
+    s.log.emit("owned_four_grid_component","\"result\":\"PASS\",\"same_product_G07_case\":true,\"full_layout_sequence_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
+}
+void owned_eight_group_only(State& s){
+    LayoutFixtures set{s};set.create();if(!layout_eight_case(set,std::nullopt)){
+        s.log.emit("owned_eight_group_component","\"result\":\"FAIL\",\"reason\":\"pre_DOWN_preparation_failed\",\"eight_window_DOWN_sent\":false,\"original_failure_preserved\":true,\"NormalUp_inferred\":false");return;
+    }
+    s.log.emit("owned_eight_group_component","\"result\":\"PASS\",\"same_product_eight_case\":true,\"prior_four_window_generation\":null,\"full_layout_sequence_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
+}
+
 [[maybe_unused]] void owned_layout_cases(State& s){
     LayoutFixtures set{s};set.create();
     // G06 vertical, independent visible min widths 250 / 300. Both sides
@@ -549,60 +635,7 @@ void layout_up(LayoutFixtures& set,const Gesture& g,const std::vector<Rect>& exp
     g=layout_down(set,1,HTCAPTION,true);layout_phase(set,1,g,40,30,{{140,130,600,530},{600,130,940,360}},"I03_L_changed_leader_Ctrl_Move");
     layout_up(set,g,{{140,130,600,530},{600,130,940,360}});
 
-    set.setup({{100,100,500,300},{500,100,900,300},{100,300,500,500},{500,300,900,500}},
-        {{250,150,500,350},{300,100,500,350},{220,140,500,350},{280,130,500,350}});
-    g=layout_down(set,0,HTBOTTOMRIGHT,true);
-    const std::vector<Rect> four{{100,100,540,330},{540,100,900,330},{100,330,540,500},{540,330,900,500}};
-    layout_phase(set,0,g,40,30,four,"G07_four_grid_two_shared_axes");layout_up(set,g,four);
-    g=layout_down(set,3,HTCAPTION,false);
-    layout_phase(set,3,g,40,35,{four[0],four[1],four[2],{580,365,940,535}},"G07_four_grid_following_ordinary_Move");
-    layout_up(set,g,{four[0],four[1],four[2],{580,365,940,535}});
-
-    std::vector<Rect> eight,moved;std::vector<LayoutLimit> eight_limits;
-    try{
-        MONITORINFO display{sizeof(display)};const auto monitor=MonitorFromWindow(set.frames[0].hwnd,MONITOR_DEFAULTTONULL);
-        if(!monitor||!GetMonitorInfoW(monitor,&display))throw std::runtime_error("eight_owned_actual_monitor_unknown");
-        const LONG work_width=display.rcWork.right-display.rcWork.left,work_height=display.rcWork.bottom-display.rcWork.top;
-        LONG width=250,height=180,margin=0;
-        for(std::size_t n=0;n<8;++n){const auto frame=visible(set.frames[n].hwnd);RECT native{};const auto dpi=GetDpiForWindow(set.frames[n].hwnd);
-            if(!set.owns(n)||!frame||!GetWindowRect(set.frames[n].hwnd,&native)||!dpi||MonitorFromWindow(set.frames[n].hwnd,MONITOR_DEFAULTTONULL)!=monitor)
-                throw std::runtime_error("eight_owned_actual_frame_or_DPI_unknown");
-            const LONG dx=native.right-native.left-frame->width(),dy=native.bottom-native.top-frame->height();
-            const LONG padding=MulDiv(32,static_cast<int>(dpi),96);
-            const LONG min_w=std::max(GetSystemMetricsForDpi(SM_CXMIN,dpi),GetSystemMetricsForDpi(SM_CXMINTRACK,dpi));
-            const LONG min_h=std::max(GetSystemMetricsForDpi(SM_CYMIN,dpi),GetSystemMetricsForDpi(SM_CYMINTRACK,dpi));
-            if(padding<=0||min_w<=0||min_h<=0||dx<0||dy<0)throw std::runtime_error("eight_owned_native_minimum_unknown");
-            width=std::max(width,min_w-dx+padding);height=std::max(height,min_h-dy+padding);margin=std::max(margin,padding);
-            s.log.emit("eight_owned_actual_native_minimum","\"member\":"+std::to_string(n)+",\"dpi\":"+std::to_string(dpi)+
-                ",\"native_minimum\":["+std::to_string(min_w)+","+std::to_string(min_h)+"],\"actual_frame_delta\":["+
-                std::to_string(dx)+","+std::to_string(dy)+"],\"safety_margin_pixels\":"+std::to_string(padding));
-        }
-        LONG columns=4,rows=2;
-        const auto fits=[&](LONG cols,LONG count){return static_cast<long long>(cols)*width+margin*2+40<=work_width&&static_cast<long long>(count)*height+margin*2+30<=work_height;};
-        if(!fits(columns,rows)){columns=2;rows=4;if(!fits(columns,rows))throw std::runtime_error("eight_owned_actual_work_area_too_small");}
-        for(LONG n=0;n<8;++n){const LONG x=display.rcWork.left+margin+(n%columns)*width,y=display.rcWork.top+margin+(n/columns)*height;
-            const Rect initial{x,y,x+width,y+height};eight.push_back(initial);moved.push_back(translated(initial,40,30));eight_limits.push_back({100,100,work_width,work_height});}
-        s.log.emit("eight_owned_independent_geometry","\"columns\":"+std::to_string(columns)+",\"rows\":"+std::to_string(rows)+
-            ",\"visible_cell\":["+std::to_string(width)+","+std::to_string(height)+"],\"actual_work_area\":"+
-            rect({display.rcWork.left,display.rcWork.top,display.rcWork.right,display.rcWork.bottom})+",\"product_target_not_used_as_oracle\":true");
-        set.setup(eight,eight_limits);
-    }catch(const std::exception& failure){
-        const std::string why=failure.what();
-        // This is ONLY the known eight-window pre-DOWN preparation branch.
-        // A failed actual gesture never enters this continuation path.
-        if(why!="layout_actual_independent_setup"&&why!="layout_main_UI_configuration_failed"&&!why.starts_with("eight_owned_"))throw;
-        s.log.failed=true;const auto previous_end=record(s,g.offset,"gesture_end",g.generation);const auto mark=read_product(s).size();
-        const bool status=launch(s,L"--status",true)&&wait([&]{return record(s,mark,"status").find("\"gesture_active\":false")!=std::string::npos;});
-        const bool closed=set.close();GUITHREADINFO gui{sizeof(gui)};
-        s.log.check("eight_owned_pre_DOWN_failure_exact_cleanup",closed&&status&&!s.left&&!s.control&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&
-            !(GetAsyncKeyState(VK_CONTROL)&0x8000)&&GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&
-            previous_end.find("\"normal_up\":true")!=std::string::npos&&previous_end.find("\"pending_retired\":true")!=std::string::npos,
-            "\"original_failure\":"+quote(why)+",\"last_four_window_generation\":"+std::to_string(g.generation)+
-            ",\"eight_window_DOWN_sent\":false,\"eight_window_functional_PASS\":false,\"original_FAIL_preserved\":true");return;
-    }
-    g=layout_down(set,7,HTCAPTION,true);
-    layout_phase(set,7,g,40,30,moved,"eight_owned_last_member_real_Ctrl_source");layout_up(set,g,moved);
-    s.log.check("layout_eight_owned_resources_destroyed",set.close(),"\"guest_destruction_is_not_product_cleanup\":true");
+    g=layout_four_grid_case(set);if(!layout_eight_case(set,g))return;
     s.log.emit("owned_layout_sequence","\"G06_vertical_horizontal\":true,\"I03_T_to_L_continuous\":true,\"G07_four_grid\":true,\"eight_actual_owned\":true,\"app_grid\":1,\"human_uat\":\"NOT_RUN\"");
 }
 

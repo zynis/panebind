@@ -601,7 +601,7 @@ void button(State& s,bool pressed){
     // A failed insertion remains UNKNOWN and keeps the send ledger pending.
     // Do not let an outer abort attempt a second UP for that same test DOWN.
     if(!pressed&&s.left&&s.left_up_attempted)throw std::runtime_error("same_test_DOWN_UP_already_attempted_no_retransmission");
-    if(!pressed&&s.left){
+    if(!pressed&&s.left&&s.suite!="NativeClientsOnly"){
         POINT point{};
         if(GetCursorPos(&point)){
             const HWND root=GetAncestor(WindowFromPoint(point),GA_ROOT);
@@ -2000,8 +2000,34 @@ bool matrix_client_child(State& s,const product::Snapshot& source,HWND child){
     return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&process_birth(process->handle->value)==process->born;
 }
 #include "platform/windows/product/v1_guest_terminal_capture.h"
+bool native_clients_product_absent(State& s,std::string_view stage){
+    const HWND root=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
+    Handle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0));PROCESSENTRY32W item{sizeof(item)};
+    unsigned visited{},matching{};bool complete=false;DWORD error{};
+    if(snapshot.value!=INVALID_HANDLE_VALUE){
+        BOOL more=Process32FirstW(snapshot.value,&item);if(!more)error=GetLastError();
+        while(more){if(++visited>4096)break;
+            if(equal(item.szExeFile,s.product.filename().wstring())||equal(item.szExeFile,s.input_product.filename().wstring()))++matching;
+            more=Process32NextW(snapshot.value,&item);if(!more){error=GetLastError();complete=error==ERROR_NO_MORE_FILES;}
+        }
+    }else error=GetLastError();
+    std::error_code log_error,previous_error;auto previous=s.product_log;previous+=L".1";
+    const bool log_exists=fs::exists(s.product_log,log_error),previous_exists=fs::exists(previous,previous_error);
+    const bool absent=s.suite=="NativeClientsOnly"&&!s.process&&!s.product_pid&&!root&&complete&&!matching&&
+        !log_error&&!previous_error&&!log_exists&&!previous_exists;
+    s.log.emit("native_clients_product_absence","\"stage\":"+quote(stage)+",\"observed_absent\":"+(absent?"true":"false")+
+        ",\"driver_product_handle_null\":"+(!s.process?"true":"false")+",\"driver_product_pid\":"+std::to_string(s.product_pid)+
+        ",\"actual_product_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+        ",\"process_snapshot_complete\":"+(complete?"true":"false")+",\"process_snapshot_error\":"+std::to_string(error)+
+        ",\"exact_candidate_executable_name\":"+quote(utf8(s.product.filename().wstring()))+",\"matching_named_processes\":"+std::to_string(matching)+
+        ",\"candidate_product_log_present\":"+(log_exists?"true":"false")+",\"previous_product_log_present\":"+(previous_exists?"true":"false")+
+        ",\"product_log_presence_known\":"+(!log_error&&!previous_error?"true":"false")+
+        ",\"scope\":\"this_candidate_name_and_root_not_all_renamed_processes_or_input_observers\",\"product_cleanup_PASS_inferred\":false");return absent;
+}
 void matrix_client_action(State& s,const std::string& label,std::string_view scope){
-    if(scope!="native_preflight"&&scope!="after_product")throw std::runtime_error("matrix_client_scope_invalid");
+    if(scope!="native_preflight"&&scope!="after_product"&&scope!="without_product")throw std::runtime_error("matrix_client_scope_invalid");
+    const bool without_product=scope=="without_product";
+    if(without_product&&!native_clients_product_absent(s,label+".client.before"))throw std::runtime_error("native_client_product_absence_not_confirmed");
     const auto target=s.applications[0];
     const HWND h=source_window(s,0);const auto original=visible(h);
     std::optional<product::Snapshot> identity;std::string identity_reason;
@@ -2013,7 +2039,7 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
     }
     // The client action needs only this freshly admitted source identity, not
     // a second constraint query or snapshots of the other matrix members.
-    const auto& source=*identity;const std::string case_prefix=label+(scope=="native_preflight"?".native_preflight":"");
+    const auto& source=*identity;const std::string case_prefix=label+(scope=="after_product"?std::string{}:"."+std::string(scope));
     foreground(s,h);RECT client{};if(!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top)
         throw std::runtime_error("matrix_client_geometry_unknown");
     POINT point{(client.right-client.left)/2,(client.bottom-client.top)/2};if(!ClientToScreen(h,&point))throw std::runtime_error("matrix_client_screen_unknown");cursor(s,point);
@@ -2050,14 +2076,15 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
     if(GetForegroundWindow()!=h||!product::observe_gui_context(*before_click).idle()||WindowFromPoint(point)!=hit||visible(h)!=original)
         throw std::runtime_error("matrix_client_fresh_exact_context_changed_before_click");
     if(target->kind=="Edge"){
-        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="native_preflight"?L"-1":L"-2");std::array<wchar_t,1024> title{};
+        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="after_product"?L"-2":L"-1");std::array<wchar_t,1024> title{};
         if(GetWindowTextW(h,title.data(),static_cast<int>(title.size()))<=0||std::wstring(title.data()).find(expected)!=std::wstring::npos)
             throw std::runtime_error("matrix_browser_client_title_not_new_for_this_scope");
     }
-    const auto click_mark=read_product(s).size();button(s,true);button(s,false);Sleep(150);
+    const auto click_mark=without_product?std::size_t{}:read_product(s).size();button(s,true);button(s,false);Sleep(150);
     std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
     const bool focused=context.known()&&gui.hwndFocus&&IsWindow(gui.hwndFocus)&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
-    s.log.check(case_prefix+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
+    const bool click_scope_valid=without_product?native_clients_product_absent(s,label+".client.after_click"):record(s,click_mark,"gesture_start").empty();
+    s.log.check(case_prefix+(without_product?".native_client_click_exact_and_focused":".client_click_not_routed_to_Move"),click_scope_valid&&visible(h)==original&&focused,
         "\"actual_hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"focus_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndFocus))+
         ",\"source_GUI_known\":"+(context.known()?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
         ",\"source_GUI_identity_reason\":"+quote(context_reason)+",\"source_GUI_owner_succeeded\":"+(context.owner_succeeded?"true":"false")+
@@ -2068,11 +2095,11 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
         ",\"document_mutation\":false,\"semantic_text_delivery_not_proven_by_focus\":true");
     const std::wstring wide_scope(scope.begin(),scope.end());const auto nonce=L"PaneBind-Client-"+s.run+L"-"+wide_scope;
     if(target->kind=="Edge"){
-        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="native_preflight"?L"-1":L"-2");std::array<wchar_t,1024> title{};
+        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="after_product"?L"-2":L"-1");std::array<wchar_t,1024> title{};
         const bool delivered=wait([&]{return application_fresh(s,*target,h)&&GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&
             std::wstring(title.data()).find(expected)!=std::wstring::npos;});
         s.log.check(case_prefix+".actual_offline_page_client_click",delivered,"\"DOM_click_effect_observed_in_native_title\":"+std::string(delivered?"true":"false")+
-            ",\"expected_click_count\":"+(scope=="native_preflight"?"1":"2")+",\"offline_test_page_only\":true,\"prior_click_title_not_sufficient\":true");
+            ",\"expected_click_count\":"+(scope=="after_product"?"2":"1")+",\"offline_test_page_only\":true,\"prior_click_title_not_sufficient\":true");
     }else if(target->kind=="Notepad"||target->kind=="VSCode"){
         const auto blank=target->directory/L"PaneBind-empty.txt";
         const auto empty_content=[](const std::string& bytes){return bytes.empty()||bytes==std::string("\xef\xbb\xbf")||bytes==std::string("\xff\xfe");};
@@ -2121,7 +2148,8 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
             ",\"requested_shell\":\"exact_guest_system_cmd\",\"guest_new_output_file_only\":true,\"client_scope\":"+quote(scope)+
             ",\"actual_receipt_sha256\":"+quote(receipt_hash));
     }
-    s.log.check(case_prefix+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
+    const bool final_scope_valid=without_product?native_clients_product_absent(s,label+".client.after_semantic"):record(s,click_mark,"gesture_start").empty();
+    s.log.check(case_prefix+(without_product?".native_client_actions_without_product":".client_actions_did_not_start_geometry_gesture"),final_scope_valid&&visible(h)==original);
 }
 void matrix_paused_native_client_preflight(State& s,const std::string& label,bool& restored){
     restored=false;bool pause_attempted=false,paused=false,client_ready=false;
@@ -2226,6 +2254,62 @@ void cleanup_applications(State& s){
             ",\"reason\":"+quote(why)+",\"identity_invalid_windows_not_controlled\":true");
         s.applications[0].reset();}
     s.created_applications=std::move(unconfirmed);
+}
+void native_clients_ready(State& s,std::string_view stage){
+    GUITHREADINFO gui{sizeof(gui)};const bool gui_known=GetGUIThreadInfo(s.owner,&gui)!=FALSE;
+    const bool input_clear=!s.left&&!s.control&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
+        !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000);
+    const bool no_pending_root=std::none_of(s.created_applications.begin(),s.created_applications.end(),
+        [](const auto& target){return target&&target->accepted&&!target->cleanup_confirmed;});
+    const bool absent=native_clients_product_absent(s,stage);
+    s.log.check("native_clients_actual_idle_and_no_product",input_clear&&gui_known&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner&&no_pending_root&&absent,
+        "\"stage\":"+quote(stage)+",\"button_ledger_and_actual_key_states_clear\":"+(input_clear?"true":"false")+
+        ",\"fixture_GUI_known\":"+(gui_known?"true":"false")+",\"no_unclosed_bound_root\":"+(no_pending_root?"true":"false")+
+        ",\"product_function_or_cleanup_PASS_inferred\":false");
+}
+void native_clients_only_flow(State& s){
+    if(s.suite!="NativeClientsOnly")throw std::runtime_error("native_clients_wrong_suite");
+    native_clients_ready(s,"suite.before");s.target_catalog=std::make_unique<product::Catalog>();
+    for(auto& frame:s.frames){if(!own(s,frame.hwnd))throw std::runtime_error("native_clients_original_fixture_identity_changed");ShowWindow(frame.hwnd,SW_HIDE);}
+    for(const auto& kind:std::array<std::string,4>{"Terminal","Notepad","VSCode","Edge"}){
+        native_clients_ready(s,kind+".before");const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
+        std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
+        try{
+            target=provision_application(s,kind);
+            if(target->accepted){s.applications[0]=target;matrix_client_action(s,kind,"without_product");passed=true;}
+            else reason="no_exact_eligible_new_root";
+        }catch(const std::exception& error){reason=error.what();}
+        if(!passed)s.log.failed=true;
+        bool cleanup_up=false,cleanup_control=false;std::string cleanup_error;
+        if(s.left&&!s.left_up_attempted){
+            if(!s.left_down_send_qpc||s.left_down_send_qpc==down_before)cleanup_error="native_pending_DOWN_not_from_this_category";
+            else try{button(s,false);cleanup_up=true;}catch(const std::exception& error){cleanup_error=error.what();}
+        }
+        if(s.control){
+            if(control_before)cleanup_error+=";native_pending_Ctrl_not_from_this_category";
+            else try{key(s,VK_CONTROL,false);cleanup_control=true;}catch(const std::exception& error){cleanup_error+=';';cleanup_error+=error.what();}
+        }
+        bool source_idle=true,closed=true;
+        if(target&&target->accepted){
+            std::string why;const auto context=fixture_source_gui_context(s,0,why);
+            source_idle=target->identity&&(!IsWindow(target->identity->hwnd)||context.idle());
+            try{closed=close_application(s,*target)&&target->cleanup_confirmed;}
+            catch(const std::exception& error){closed=false;if(!cleanup_error.empty())cleanup_error+=';';cleanup_error+=error.what();}
+        }
+        s.log.emit("native_clients_application_result","\"application\":"+quote(kind)+",\"result\":"+quote(passed?"PASS":target&&target->accepted?"FAIL":"BLOCKED")+
+            ",\"stage\":\"without_product_native_client\",\"reason\":"+quote(reason)+",\"failure_cause\":"+quote(passed?"NONE":"UNKNOWN")+
+            ",\"product_started\":false,\"product_function_result\":\"NOT_RUN\",\"product_cleanup_result\":\"NOT_APPLICABLE_NOT_STARTED\""+
+            ",\"single_pending_test_UP_sent\":"+(cleanup_up?"true":"false")+",\"own_Ctrl_release_sent\":"+(cleanup_control?"true":"false")+
+            ",\"cleanup_error\":"+quote(cleanup_error)+",\"exact_bound_root_close_confirmed\":"+(target&&target->accepted?(closed?"true":"false"):"null")+
+            ",\"bound_source_GUI_idle_or_root_gone\":"+(target&&target->accepted?(source_idle?"true":"false"):"null")+",\"human_uat\":\"NOT_RUN\"");
+        if(!source_idle||!closed||!cleanup_error.empty()||s.left||s.control)throw std::runtime_error("native_clients_cleanup_or_GUI_unknown_no_dependent_input");
+        s.applications[0].reset();native_clients_ready(s,kind+".after");
+    }
+    for(auto& frame:s.frames){if(!own(s,frame.hwnd))throw std::runtime_error("native_clients_fixture_identity_lost_before_exit");ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);}
+    native_clients_ready(s,"suite.after");
+    s.log.emit("native_clients_only_summary","\"suite\":\"NativeClientsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+        ",\"scope\":\"new_exact_application_native_client_only\",\"product_started\":false,\"product_function_result\":\"NOT_RUN\""+
+        ",\"product_cleanup_result\":\"NOT_APPLICABLE_NOT_STARTED\",\"fixture_Raw_observer_may_be_present\":true,\"other_input_observers_absent_claimed\":false,\"human_uat\":\"NOT_RUN\"");
 }
 void independent_entry_ready(State&,std::string_view,bool);
 void application_matrix_flow(State& s){
@@ -2971,7 +3055,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -3133,6 +3217,15 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
+    if(s.suite=="GroupBoundsOnly"){
+        phase("G07_four_grid",owned_four_grid_only);
+        phase("eight_owned_group",owned_eight_group_only);
+        cleanup(s);
+        s.log.emit("group_bounds_only_summary","\"suite\":\"GroupBoundsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"existing_G07_four_grid_and_eight_member_group_only\",\"G06\":\"NOT_RUN\",\"T_L_history\":\"NOT_RUN\""+
+            ",\"settings\":\"NOT_RUN\",\"I11\":\"NOT_RUN\",\"Explorer\":\"NOT_RUN\",\"applications\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     if(!core_and_applications){
     phase("settings_GUI",settings_gui_flow);
     phase("settings_GUI_diagnostic",owned_settings_diagnostic_case);
@@ -3256,6 +3349,10 @@ void drive(State& s){
         record_guest_environment(s);
         s.log.check("guest_input_baseline_clear",!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
             !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000));
+        if(s.suite=="NativeClientsOnly"){
+            s.log.emit("actual_suite","\"suite\":\"NativeClientsOnly\",\"product_launch_not_requested\":true,\"product_function_result\":\"NOT_RUN\"");
+            native_clients_only_flow(s);s.result=s.log.failed?1:0;
+        }else{
         const std::array<Rect,3> layout{{{120,80,380,440},{380,80,640,260},{380,260,640,440}}};
         for(std::size_t n=0;n<3;++n)s.log.check("initial_owned_visible_layout",fixture_rect(s.frames[n].hwnd,layout[n]),
             "\"member\":"+std::to_string(n)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(s.frames[n].hwnd))+
@@ -3275,7 +3372,7 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="GroupBoundsOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="InterruptionOnly"){
             bool completed=false;
@@ -3428,8 +3525,11 @@ void drive(State& s){
         if(!s.log.failed)s.log.emit("functional_summary","\"owned_I02\":\"PASS\",\"production_commands\":\"PASS\",\"normal_stop_and_client_delivery\":\"PASS\",\"Explorer_I02\":\"PASS\",\"human_uat\":\"NOT_RUN\"");
         s.result=s.log.failed?1:0;
         }
+        }
     }catch(const std::exception& error){
-        try{s.log.emit("failure","\"reason\":"+quote(error.what()));cleanup(s);cleanup_applications(s);cleanup_explorers(s);}catch(...){}s.result=1;
+        try{s.log.emit("failure","\"reason\":"+quote(error.what()));
+            if(s.suite!="NativeClientsOnly")cleanup(s);
+            cleanup_applications(s);cleanup_explorers(s);}catch(...){}s.result=1;
     }
     // This read-only Catalog owns a WinEvent hook and a COM interface created
     // on THIS driver STA. An unconfirmed application close may retain its
@@ -3517,7 +3617,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3589,7 +3689,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
@@ -3619,7 +3719,9 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         if(guest_raw_mouse.target.load()&&!raw_mouse_observer_stop(s))s.log.failed=true;
         bool destroyed=true;for(auto& f:s.frames)if(f.hwnd&&IsWindow(f.hwnd)){if(!own(s,f.hwnd)){destroyed=false;continue;}destroyed=DestroyWindow(f.hwnd)&&destroyed;}UnregisterClassW(s.class_name.c_str(),instance);
         s.log.emit("driver_shutdown","\"result\":"+quote(s.result==0&&!s.log.failed&&destroyed?"PASS":"FAIL")+",\"suite\":"+quote(s.suite)+",\"owned_windows_destroyed\":"+std::string(destroyed?"true":"false")+
-            ",\"product_process_closed\":"+std::string(!s.process?"true":"false")+",\"scope\":\"exact_guest_targets_not_full_acceptance\",\"human_uat\":\"NOT_RUN\"");
+            ",\"product_process_closed\":"+(s.suite=="NativeClientsOnly"?"null":std::string(!s.process?"true":"false"))+
+            (s.suite=="NativeClientsOnly"?",\"product_cleanup_result\":\"NOT_APPLICABLE_NOT_STARTED\"":"")+
+            ",\"scope\":\"exact_guest_targets_not_full_acceptance\",\"human_uat\":\"NOT_RUN\"");
         return s.result==0&&!s.log.failed&&destroyed?0:1;
     }catch(...){if(s.driver.joinable())s.driver.join();
         if(guest_raw_mouse.target.load())try{raw_mouse_observer_stop(s);}catch(...){}

@@ -49,10 +49,11 @@ foreach($path in @(
 # that its client can receive input in a guest. The real driver must prove that
 # native interaction before it starts the application's product geometry cases.
 function Get-V1FixtureFunctionText([string]$Source,[string]$Name){
-    $start=[regex]::Match($Source,('(?m)^void '+[regex]::Escape($Name)+'\s*\('))
+    $functionPrefix='(?m)^(?:\[\[maybe_unused\]\]\s*)?(?:void|bool|Gesture) '
+    $start=[regex]::Match($Source,($functionPrefix+[regex]::Escape($Name)+'\s*\('))
     if(-not $start.Success){throw ('Fixture function missing: '+$Name)}
     $rest=$Source.Substring($start.Index+$start.Length)
-    $next=[regex]::Match($rest,'(?m)^void \w+\s*\(')
+    $next=[regex]::Match($rest,($functionPrefix+'\w+\s*\('))
     if($next.Success){return $Source.Substring($start.Index,$start.Length+$next.Index)}
     return $Source.Substring($start.Index)
 }
@@ -98,10 +99,86 @@ function Assert-V1NativeClientPreflightWiring([string]$Source){
         throw 'Client input requires the exact authorized application and fresh actual hit before clicking.'
     }
 }
+function Assert-V1GroupBoundsScopeWiring([string]$Source,[string]$Layouts){
+    $entry=Get-V1FixtureFunctionText $Source 'independent_entry_flow'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="GroupBoundsOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $scope.Success -or
+       [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 2 -or
+       -not $scope.Value.Contains('phase("G07_four_grid",owned_four_grid_only);') -or
+       -not $scope.Value.Contains('phase("eight_owned_group",owned_eight_group_only);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or
+       -not $scope.Value.Contains('group_bounds_only_summary') -or
+       $scope.Index -ge $entry.IndexOf('phase("settings_GUI",',[StringComparison]::Ordinal) -or
+       $scope.Index -ge $entry.IndexOf('phase("owned_finite_I11_component",',[StringComparison]::Ordinal)){
+        throw 'GroupBoundsOnly must return after its two real group cases and cleanup, before settings or I11.'
+    }
+    $drive=Get-V1FixtureFunctionText $Source 'drive'
+    if($drive -notmatch '(?s)if\([^\r\n]*s\.suite=="GroupBoundsOnly"\)\{\s*independent_entry_flow\(s,'){
+        throw 'GroupBoundsOnly must reach the actual independent entry flow.'
+    }
+    $full=Get-V1FixtureFunctionText $Layouts 'owned_layout_cases'
+    $fourOnly=Get-V1FixtureFunctionText $Layouts 'owned_four_grid_only'
+    $eightOnly=Get-V1FixtureFunctionText $Layouts 'owned_eight_group_only'
+    $four=Get-V1FixtureFunctionText $Layouts 'layout_four_grid_case'
+    $eight=Get-V1FixtureFunctionText $Layouts 'layout_eight_case'
+    if(-not $full.Contains('g=layout_four_grid_case(set);if(!layout_eight_case(set,g))return;') -or
+       -not $fourOnly.Contains('set.create();(void)layout_four_grid_case(set);') -or
+       -not $fourOnly.Contains('set.close()') -or
+       -not $four.Contains('layout_up(set,g,four);') -or
+       -not $four.Contains('layout_up(set,g,{four[0],four[1],four[2],{580,365,940,535}});return g;') -or
+       -not $eightOnly.Contains('layout_eight_case(set,std::nullopt)') -or
+       -not $eight.Contains('previous?record(s,previous->offset,"gesture_end",previous->generation):std::string{}') -or
+       -not $eight.Contains('const bool prior_retired=previous?previous_end.find("\"normal_up\":true")') -or
+       $eight -notmatch '(?s)initial_idle=requested&&product::guest::matching_idle_status.*?GetGUIThreadInfo\(set.thread,&gui\)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner' -or
+       -not $eight.Contains('\"prior_generation\":null,\"prior_NormalUp_inferred\":false')){
+        throw 'Full and scoped entries must reuse the actual group cases without inventing a prior NormalUp.'
+    }
+}
+function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
+    $drive=Get-V1FixtureFunctionText $Source 'drive'
+    $branch=[regex]::Match($drive,'(?s)if\(s\.suite=="NativeClientsOnly"\)\{(?<native>.*?)\}else\{')
+    if(-not $branch.Success -or -not $branch.Value.Contains('native_clients_only_flow(s);') -or
+       $branch.Index+$branch.Length -gt $drive.IndexOf('launch(s,',[StringComparison]::Ordinal) -or
+       $branch.Groups['native'].Value -match '\b(?:launch|fixture_rect|read_product|record)\s*\(' -or
+       -not $drive.Contains('if(s.suite!="NativeClientsOnly")cleanup(s);')){
+        throw 'Native client baseline must bypass the product launch branch, including product stop on failure.'
+    }
+    $flow=Get-V1FixtureFunctionText $Source 'native_clients_only_flow'
+    $ready=Get-V1FixtureFunctionText $Source 'native_clients_ready'
+    $absent=Get-V1FixtureFunctionText $Source 'native_clients_product_absent'
+    $client=Get-V1FixtureFunctionText $Source 'matrix_client_action'
+    $forbidden='\b(?:launch|read_product|record|independent_entry_ready|matrix_input_idle|matrix_layout|matrix_five|down|phase|layout_phase|fixture_rect|SetWindowPos|DeferWindowPos)\s*\('
+    if(($flow+$ready) -match $forbidden -or
+       -not $flow.Contains('target=provision_application(s,kind);') -or
+       -not $flow.Contains('matrix_client_action(s,kind,"without_product")') -or
+       -not $absent.Contains('FindWindowW(L"PaneBind.V1.Application",L"PaneBind")') -or
+       -not $absent.Contains('!s.process&&!s.product_pid&&!root&&complete&&!matching') -or
+       -not $flow.Contains('\"product_function_result\":\"NOT_RUN\"')){
+        throw 'Native client baseline requires real product absence and exact native application interaction, not product operations.'
+    }
+    $button=Get-V1FixtureFunctionText $Source 'button'
+    if($client -match '\b(?:matrix_layout|matrix_five|down|phase|layout_phase|fixture_rect|SetWindowPos|DeferWindowPos)\s*\(' -or
+       [regex]::Matches($client,'\bread_product\s*\(').Count -ne 1 -or
+       -not $client.Contains('without_product?std::size_t{}:read_product(s).size()') -or
+       [regex]::Matches($client,'\brecord\s*\(').Count -ne 2 -or
+       -not $client.Contains('without_product?native_clients_product_absent(s,label+".client.after_click"):record(s,click_mark,"gesture_start").empty()') -or
+       -not $client.Contains('without_product?native_clients_product_absent(s,label+".client.after_semantic"):record(s,click_mark,"gesture_start").empty()') -or
+       -not $button.Contains('if(!pressed&&s.left&&s.suite!="NativeClientsOnly")')){
+        throw 'Without-product client input must not read a nonexistent product log or use product release receipts.'
+    }
+}
 $fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
 $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
 Assert-V1NativeClientPreflightWiring $fixtureSource
 Check $true 'static driver wiring: every application native preflight precedes product cases and preserves exact HTCLIENT gates'
+$layoutSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_layout_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1GroupBoundsScopeWiring $fixtureSource $layoutSource
+Check $true 'static group scope: two shared actual cases return before unrelated suites; Full retains the shared cases and real prior evidence'
+Reject {Assert-V1GroupBoundsScopeWiring ($fixtureSource.Replace('phase("eight_owned_group",owned_eight_group_only);','phase("owned_finite_I11_component",owned_finite_I11_chain);')) $layoutSource} 'static group scope rejects adding unrelated I11 work to the two-case entry'
+Reject {Assert-V1GroupBoundsScopeWiring $fixtureSource ($layoutSource.Replace('layout_eight_case(set,std::nullopt)','layout_eight_case(set,Gesture{})'))} 'static group scope rejects a fabricated previous gesture for standalone eight-window validation'
+Assert-V1NativeClientsWithoutProductWiring $fixtureSource
+Check $true 'static native baseline: product launch is bypassed; exact client actions neither read product receipts nor run geometry cases'
+Reject {Assert-V1NativeClientsWithoutProductWiring ($fixtureSource.Replace('without_product?std::size_t{}:read_product(s).size()','read_product(s).size()'))} 'static native baseline rejects reading product log before native input'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
