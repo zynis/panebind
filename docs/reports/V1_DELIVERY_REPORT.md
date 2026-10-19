@@ -2,13 +2,19 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。产品212字节未变：dedc／63 Debug核心及四native-only快速路径有实际子PASS，随后水平共享边因实际foreground变化安全拒绝；e7／63 Release两轮／20slot完成但严格900秒门未过。现代Terminal几何、正常UP与命令有实测，客户未发送，类别仍FAIL。e21／89仅配置准备失败；048／d2真实Hotkey通过，actor在8890ms因实际FocusLost撤权，起因UNKNOWN。9724已实际通过两轮owned核心、20slot、900.037841秒及逐项正常退出范围；7944的SSH超时保留为历史，2026-10-19首次既有可信连接已成功。新d76 Full／Release包已生成但未运行；运行前发现其他应用缺少与Edge相同的原生客户交互前置检查，当前先作最小driver-only修复，产品212及7635便携包不变，不预授整版。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；历史9724的两轮owned核心、20slot、900.037841秒及逐项正常退出范围保留原身份。2026-10-19可信SSH已恢复，7944超时不再是当前阻断。最小driver-only应用原生交互前置检查已修复；新be94 Full／Release实际运行到B原生Resize时，g5因实际未知前台切换而FocusLost撤权，目标未完成，整批FAIL。此前g1–g4少量Move／Ctrl子链与正常UP有实测，不抬整I02；应用、托盘及后续Full阶段未到达。下一步以既有独立入口继续未阻断项，不重复Full或900秒专项。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 当前推进：可信连接已恢复，先补应用原生交互前置检查
+## 当前推进：be94 Full 实际中断，继续独立入口与应用验证
 
 2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
 
-新RunId `d76be229715b4d5cb777cb0cc9e76088` 已按冻结product212／driverd2、包装829682生成Full／Release包，复用现有官方Terminal、Code及原7635便携资产；尚未部署或运行。源码检查发现现有driver仅为Edge设置了暂停产品后的原生客户交互前置门，其余应用未先确认能交互就进入产品测试。当前下一动作是补齐这一最小driver-only门，明确区分环境／驱动／产品结果，再以新驱动身份和新RunId继续Full流程；不在此预填修复提交、运行结论或900秒专项结果。
+新RunId `d76be229715b4d5cb777cb0cc9e76088` 按冻结product212／driverd2、包装829682生成后保持未部署／未运行，原包保留。运行前确认其他应用缺少与Edge相同的原生客户交互前置门；最小driver-only修复已提交为 `eec93e22d66d148f2611dfd59291208c66114aa1`，Debug／Release构建及受影响guest-path各1/1、内部208项通过，51项静态身份guard通过。产品EXE、权限条件及7635便携包均未改；这些检查不是应用实际可交互的证据。
+
+后继 `be94eba2a078403ca5db1b961c0f2aae` 使用product212／drivereec93e／包装eec93e，Full／Release已实际部署、启动、收集和精确清理。fixture134行；g1–g4的Move／Ctrl子链和正常UP有实测，但123行 `B_real_frame_resize` g5目标 `[414,80,674,288]`、实际 `[414,80,674,260]`，未完成Resize。产品156行实际WinEvent foreground为HWND1180380、不同于source327754，随后157行为FocusLost／normal_up=false／pending_retired=true；165行拒绝该root非Medium／non-elevated，166行记录该root已不live。新前台PID、类名及起因UNKNOWN，不认定系统、Console或具体产品根因，不放宽前台／capture检查，也不补成正常UP。
+
+失败后的测试清理UP不计产品正常收尾。fixture127／产品170实际正常退出0并记录自身资源回收；fixture132自建客户实际DOWN／UP计数 `[0,0]→[1,1]`，133真实Raw注销，134自建窗口销毁。wrapper退出1、descendants0、forced=false、product_cleanup_pass=false仍保留各自语义；guest22052与本轮任务于 `2026-10-19T10:07:48.9534764Z` 精确清理，证据未变、其他资源未改。原件保留在 `uat/v1-control/be94eba2a078403ca5db1b961c0f2aae/collection-20261019T100537352Z-6d636cb1e7e2435db170032082c97a5f/`，未以guest销毁替代产品清理。
+
+当前下一动作是使用既有 `EntryAndSettings` 与 `ApplicationsOnly` 分开推进真实入口、托盘和应用未阻断项；先核实目标应用原生启动／交互，再执行产品测试，分别记录环境、驱动和产品结果。be94未到应用、托盘或后续有限运行阶段，不能由包或旧结果继承；不重复Full或9724已通过的900秒专项。
 
 ### 7944：保留原部署失败，不再作为当前SSH阻断
 
