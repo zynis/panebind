@@ -4,9 +4,9 @@
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
 
-当前候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`／Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`字节保持不变。历史9724的同进程两轮owned核心、20slot、严格900.037841秒与资源退出范围不换绑。2026-10-19可信SSH已恢复；新driver `eec93e22d66d148f2611dfd59291208c66114aa1` 仅补应用原生交互前置检查。be94 Full／Release实际运行到B Resize时发生未知前台切换，产品FocusLost撤权，目标Resize未完成，整批FAIL；此前少量Move／Ctrl及正常UP子链不等于整I02。正常产品退出、自身资源回收和退出后自建客户输入恢复有实测；应用、托盘及Full后续未到达，下一步用既有独立入口继续，不能据此开放试用。7635 ZIP原字节及已有普通入口scope不换绑；七项功能／B2不增。详见交付报告；**不可宿主试用，真人UAT PENDING**。
+当前候选源码`212e1979f9bf711569d63f0e371c6e7ff8375f2c`／Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`字节保持不变。历史9724的两轮owned核心及严格900.037841秒不换绑；be94 Full的未知前台切换／B Resize失败保留。driver `eec93e22d66d148f2611dfd59291208c66114aa1` 的dd02 Release独立入口已实际完成十个设置／生命周期子阶段及同7635 ZIP普通入口范围；托盘UID1图标不可达、菜单未发送，EntryAndSettings仍FAIL，局部 `I12=PASS` 不提升为整I12。7c6c应用前置已运行：Terminal未取得真实客户命中，Notepad／Code未取得合格新root，Edge在额外全组采样处拒绝且关闭未确认；应用产品手势均未执行。后继driver `01ab9ec48f10ff338b550d9ae8c41c6b050a17d7` 仅修客户区采样，D/R构建、受影响offline及53项静态检查通过，但不是原生复验；新744f AppsOnly待打包／未运行。产品212、7635 ZIP及7c6c旧身份不换绑；七项功能／B2不增。详见交付报告；**不可宿主试用，真人UAT PENDING**。
 
-当前无需用户搬文件、新建VM或重复恢复SSH；产品EXE不因测试driver／文档变化重建。后续用 `EntryAndSettings`、`ApplicationsOnly` 分开推进入口与应用，不重复已通过的900秒专项。普通桌面、真实托盘、多屏／混合DPI等尚缺证据仍分别保留，连接恢复或少量子链通过不等于整版即将通过。
+当前无需用户搬文件、新建VM或重复恢复SSH；产品EXE不因测试driver／文档变化重建。独立入口已运行，继续 `ApplicationsOnly` 和其他未阻断项，不重复已通过的900秒专项。普通桌面、真实托盘、多屏／混合DPI等尚缺证据仍分别保留，连接恢复或入口子范围通过不等于整版即将通过。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 

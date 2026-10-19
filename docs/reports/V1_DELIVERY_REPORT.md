@@ -2,9 +2,9 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；历史9724的两轮owned核心、20slot、900.037841秒及逐项正常退出范围保留原身份。2026-10-19可信SSH已恢复，7944超时不再是当前阻断。最小driver-only应用原生交互前置检查已修复；新be94 Full／Release实际运行到B原生Resize时，g5因实际未知前台切换而FocusLost撤权，目标未完成，整批FAIL。此前g1–g4少量Move／Ctrl子链与正常UP有实测，不抬整I02；应用、托盘及后续Full阶段未到达。下一步以既有独立入口继续未阻断项，不重复Full或900秒专项。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；历史9724的两轮owned核心、20slot、900.037841秒及逐项正常退出范围保留原身份。2026-10-19可信SSH已恢复；be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL保留。随后dd02独立入口实际完成十个设置／生命周期子阶段与同7635 ZIP普通入口范围；精确托盘UID1图标不可达，菜单未发送，EntryAndSettings仍FAIL，不抬整I01／I12。7c6c ApplicationsOnly已实际收集；应用启动／客户区前置均未通过，产品手势未执行，Edge关闭未确认。现继续最小driver-only修正后定向复验，不预填新结果。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 当前推进：be94 Full 实际中断，继续独立入口与应用验证
+## 当前推进：应用前置已运行，修正独立driver采样后定向复验
 
 2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
 
@@ -14,7 +14,15 @@
 
 失败后的测试清理UP不计产品正常收尾。fixture127／产品170实际正常退出0并记录自身资源回收；fixture132自建客户实际DOWN／UP计数 `[0,0]→[1,1]`，133真实Raw注销，134自建窗口销毁。wrapper退出1、descendants0、forced=false、product_cleanup_pass=false仍保留各自语义；guest22052与本轮任务于 `2026-10-19T10:07:48.9534764Z` 精确清理，证据未变、其他资源未改。原件保留在 `uat/v1-control/be94eba2a078403ca5db1b961c0f2aae/collection-20261019T100537352Z-6d636cb1e7e2435db170032082c97a5f/`，未以guest销毁替代产品清理。
 
-当前下一动作是使用既有 `EntryAndSettings` 与 `ApplicationsOnly` 分开推进真实入口、托盘和应用未阻断项；先核实目标应用原生启动／交互，再执行产品测试，分别记录环境、驱动和产品结果。be94未到应用、托盘或后续有限运行阶段，不能由包或旧结果继承；不重复Full或9724已通过的900秒专项。
+后继 `dd021c0b0fd64f6a98126945dc8da48f` 为product212／drivereec93e／包装 `92117d05328a28ff934e61c42f14bdd9f1d8e363` 的Release `EntryAndSettings`，fixture1267行。十个独立阶段分别PASS：settings_GUI、GUI_diagnostic、rapid_terminal_motion、startup、five_button_mapping、import_export、save_failure、diagnostic_export_failure、corrupt_restart、exclusion；其中rapid_terminal_motion仅native-only，不授Glue或增强Resize。1029行精确当前产品UID1托盘图标不可达，`menu_input_sent=false`，tray为BLOCKED，不能用命令入口补托盘PASS。
+
+1250行原 `portable_normal_entry_result` 写有 `I12=PASS`；实际证据支持同7635普通无参GUI、配置效果／Move、正常退出及交付字节的入口子范围。按主方案整I12还要求全部入口等门槛，当前托盘未过，故不将该driver标签提升为整I12。产品实际停止、退出后客户投递恢复（1264计数 `[10,10]→[11,11]`）、Raw注销及自建窗销毁分别有回执；EntryAndSettings整体FAIL／driver退出1，descendants0、forced=false。guest9612与专属任务于 `2026-10-19T10:18:45.6190737Z` 精确清理，证据未变、无其他资源改动。原件在 `uat/v1-control/dd021c0b0fd64f6a98126945dc8da48f/collection-20261019T101721305Z-159479434b854ab6b5f422ec1aa81b50/`。
+
+`ApplicationsOnly` 批 `7c6c3d233155473ea2a3b08c57d58d3e` 已实际运行并收集139行：Terminal实际BOUND，但真实root命中为HTCAPTION，不满足原生客户区前置，未发客户输入／未运行产品手势；Notepad本包／guest无明确官方EXE，Code官方启动后无合格新root，均为startup BLOCKED且未发应用输入。Edge实际BOUND、布局成功，但暂停产品后的客户区helper额外查询整组三窗 `matrix_sources` 时被拒绝，后续Catalog代际不同，客户区／产品输入均未发送；具体native查询拒绝原因UNKNOWN，不推断为WM_GETMINMAXINFO、应用挂起或产品失败。
+
+7c6c的fresh／same-identity关闭前提未满足，Edge appclose未确认，cleanup FAIL；wrapper descendants4／forced=true，不能由产品自身exit0／资源回收及自建客户输入恢复抵消。guest21528与专属任务于 `2026-10-19T10:24:01.0382700Z` 精确清理、证据未变，不补产品cleanup PASS；原件在 `uat/v1-control/7c6c3d233155473ea2a3b08c57d58d3e/collection-20261019T102043892Z-cddf0986e50742ebb7f60147901de602/`。
+
+测试driver客户区helper修复已提交为 `01ab9ec48f10ff338b550d9ae8c41c6b050a17d7`：复用已有fresh／Catalog同一source快照，不在此重读全组或尺寸限制，仍保留fresh命中、GUI上下文及客户语义门。Debug／Release构建均exit0、受影响offline通过，53项静态检查通过；源码反例检查不是原生交互证据。新 `ApplicationsOnly` RunId `744fff40a030404ebafe9e2879190179` 待打包／未运行，未实际attempt的产品手势保持NOT_RUN。产品212与portable7635不变，7c6c仍绑定原drivereec93e，be94／dd02／9724及旧失败不换绑，不重复Full或900秒专项。
 
 ### 7944：保留原部署失败，不再作为当前SSH阻断
 
