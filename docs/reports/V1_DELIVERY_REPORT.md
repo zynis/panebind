@@ -2,9 +2,9 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-本轮新增的实际用户行为证明：同一212 Release产品在6dba隔离guest中，实际通过GUI切换智能拉伸，完成忽略邻窗、无正交交叠、最近阻挡、隐藏目标过滤、尺寸超限明确拒绝及恢复后继续操作，并验证一次左边框真实双击入口及匹配UP。此前cea的四窗两轴共享Resize、后继普通Move和八窗任意末成员Ctrl Move证据保留。这些是当前产品新增的owned分支证明，不等于完整M08-F05／B19／I05、真实应用混合组或Full通过。
+本轮新增的实际用户行为证明：同一212 Release产品的6dba智能拉伸分支，与034真实GUI精确类名规则排除／移除恢复互补，已覆盖M08-F05完整独立功能合同，B19可计PASS。忽略邻窗、无正交交叠、最近阻挡、过滤被排除目标及尺寸优先均有实际回执；此前cea四窗两轴共享Resize、后继普通Move和八窗末成员Ctrl Move证据保留。不授整个M08、鼠标四边四角F04、I05、真实应用混合组或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M08-F05后为**8/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
@@ -84,15 +84,33 @@ D255完整原配置恢复、D256测试布局资源关闭、D263阶段PASS；D264
 
 基线未成立，因此没有创建标准账号、没有执行标准用户子进程，也未启动产品／GUI／Explorer或发送合成输入；这些均为NOT_RUN。前后桌面DACL哈希一致，账户回执NOT_CREATED，子进程清理无遗留；不能把无子进程叫作正常native exit。该路线上不追加无依据重试。原件在`uat/v1-control/5b0b482b4f7544f5bdf2463963242f87/collection-20261019T120544161Z-9d0447617e0e48f0a7f98df29ea324ee/`，专属guest23440／任务于`2026-10-19T12:06:48.0854185Z`精确清理，证据和部署保留、其他资源未改；guest销毁不提供产品cleanup PASS。
 
-### 0f6：新驱动的运行时打包缺口，功能尚未进入
+### 4da：静态依赖修复已进入现场；暂停原生操作被驱动错误计数阻断
+
+`4da1d0848b4449a8a4ea303ab4986009` 使用原产品212及静态链接的driver／包装 `4e30fcd38c00294e97fc1b238cac513deaa9815e`，实际进入Release／Medium产品入口并完成写入、终止和退出，故下述0f6的loader缺口只在这一影响范围关闭。旧0f6与本批FAIL均保留，不以入口成功代替功能通过。
+
+本批[D135／D213原行](v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl)分别观察暂停中与Ctrl+Shift绕过的原生拖动：源矩形独立预期和实际均精确，真实source队列UP、START／END均匹配，产品增强START、placement和cancel均为0。但驱动把[产品P59／P60／P76](v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl)的generation=0只读`raw_mouse`观察计作活动输入资源，分别以2／1条判FAIL。这些记录的source／PID／TID／overlay／capture均为0，关联及capture调用事实均false；不是隔离创建，也不是正常UP或写入权限证据。
+
+修正仅将字段完整、唯一、身份匹配且所有活动资源字段确认为0／false的已知只读观察另计；缺失、重复、未知fact或任何非零资源状态仍拒绝。真实UP、几何及零新增写入门不变。该修正尚待新driver／RunId复验；本批Resume后Move／Resize及绕过后的新Ctrl未执行，不能先授M01-F03或整链PASS。产品自身退出、capture／关联／遮罩回收与退出后实际客户DOWN／UP均有独立记录；guest20884及本轮任务于`2026-10-19T12:57:31.8591611Z`精确清理，原件保留且未修改其他资源。
+
+### 0f6：历史新驱动运行时打包缺口，原失败保留
 
 `0f6090205d574e1dacce95ceeb558f1d`／`PauseRoutingOnly`绑定产品212原EXE，driver／包装源码`df8cbdd119653964f528b209f2bf9f202bdc5987`。驱动Debug／Release构建退出0，guest-path各1/1通过（各208个离线case，symlink子项SKIP1314；D processor0.15／wall0.20秒，R processor0.15／wall0.36秒），62项工具守卫也通过；这些均未证明干净guest入口可运行。
 
 实际创建的Medium fixture PID7060以`3221225781 / 0xC0000135`退出，未产生fixture首日志或产品日志，两项功能均NOT_RUN。Release driver SHA为`CC501A0AA894FEBAD0435DDE1017FB2F341207D324D5F4C0925077A16706F10C`。主执行实际检查发现新build cache漏了旧构建的`CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded`；`dumpbin /DEPENDENTS`实际列出MSVCP140、MSVCP140_ATOMIC_WAIT、VCRUNTIME140及CRT动态依赖，包未携带它们。具体缺失DLL未在guest逐个确认，不从退出码猜名称。这是已确定的静态运行时打包合同缺口，不是产品输入／权限失败；上述检查目前为真实工具调用摘要，不补造归档stdout。
 
-修复在既有打包入口检查实际`/MT` cache及产品／fixture的PE依赖，身份读取前即拒绝动态runtime，既有portable产品白名单不放宽；只给fixture保留其实际使用的系统bcrypt／propsys。修复后主执行只读检查已拒绝实际df8动态build，原31f和产品212静态正例通过。仍须新`/MT`候选实际进入guest并运行，才关闭此工具缺陷，不把源码守卫或本机可启动当作复验PASS。
+修复在既有打包入口检查实际`/MT` cache及产品／fixture的PE依赖，身份读取前即拒绝动态runtime，既有portable产品白名单不放宽；只给fixture保留其实际使用的系统bcrypt／propsys。修复后主执行只读检查已拒绝实际df8动态build，原31f和产品212静态正例通过。当时待新候选进入guest；后继4da与034已实际进入并产生日志，D27仅据此关闭loader影响，不由源码守卫或本机可启动授功能PASS。
 
 失败ZIP `BA67766420C38C80C0896B76AC3A4A91258C3E27B548AAF5865100AB425F6DF4`、manifest `6018760618A619EB2FF1522D7852E76D5D9C9082A99BABE3EA3209532450A080`、WSB `832931B76FEEAA60BDF1C10F7447BA5099384DDD0D605CCD5A00F790D97D0204`均保留。原件在`uat/v1-control/0f6090205d574e1dacce95ceeb558f1d/collection-20261019T122750658Z-1556e4fd612540a5864c55fa96a2a99e/`；guest17148／任务于`2026-10-19T12:31:22.7506681Z`精确清理，证据未变／其他资源未改。未启动产品，因此产品cleanup为N_A，不能由wrapper常量false或guest销毁推断。
+
+### 034：可见目标的真实GUI规则排除／恢复，补齐智能拉伸合同
+
+`034acef4344d47f6b7cac78fc122ad41`／`OwnedRulesOnly`，产品212原Release EXE，driver／打包4e30fcd，Release driver SHA `A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1`。D103–119实际在应用规则页勾选精确类名、添加当前目标、确认并保存；规则绑定实际程序路径及本Run自建目标类，不按整个进程放行。目标始终可见、未重建且几何`[300,120,600,560]`不变。
+
+D85／P20拉伸source至最近边`[600,180,1100,500]`；排除后D122／P33到工作区边`[0,180,1100,500]`；真实GUI移除该规则后D152／P42恢复最近边。每步均由生产writer实际exact回读，并由P22／P35／P44实际Undo回到`[700,180,1100,500]`。D156核验同source HWND／PID／TID／Frame；不要求配置代际变化后私有key永久不变。D188原配置恢复，D189同UI线程实际注销本Run窗口类；P52产品实际退出并逐项回收，D203退出后客户真实DOWN／UP`[0,0]→[1,1]`，D205自有Raw注销，D206自建窗／driver退出。wrapper wait0／exit0／descendants0／forced=false，原常量cleanup=false未冒充结论。
+
+fixture206行／SHA `105191AAF8B19E8078321ED923814DEDB8A7341941FD66457BB47D4F582106CE`；产品52行／SHA `CC28D4404D1202ED6FF81ADF4951F0E8FE6A2F331D3889FA2C92CE8D3456DFAC`。原件位于`uat/v1-control/034acef4344d47f6b7cac78fc122ad41/collection-20261019T130407177Z-080758e4afd141389e69acfcdcee3291/`。ZIP SHA `6552DE3804962844D3B255BB9C38A64105FDC9D5025FE476583612827ACB79CF`；manifest `C03F2A38F02F395304ED539B209BA60223C0A6E0B26C1F5A0E6B227CD39E1592`；WSB `C58515BF45701C94CF8264E38E258784AE3584ADEA3203C78770A1E9DC133E7D`。guest19556与专属任务于`2026-10-19T13:05:44.1902068Z`精确清理，证据未变／其他资源未改，部署保留。
+
+与6dba同一未变产品的最近／远邻／无交叠／忽略模式及尺寸约束优先证据合并，M08-F05与B19完整独立合同PASS；不为其附加F04四边四角、其他模块或整版门，也不由此提升M08模块、五应用、整I05或整版。普通宿主试用与真人UAT仍未放行。
 
 ### 三项最重要的剩余缺口与下一动作
 
