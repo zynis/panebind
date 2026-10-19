@@ -527,6 +527,28 @@ Assert-V1GeometryHistoryWiring $fixtureSource $geometryHistory
 Check $true 'static geometry history retains real command and notice barriers, no-op native counter and new-root identity checks'
 Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('*after_calls==*before_calls+(no_native?0:1)','true'))} 'static geometry history rejects dropping the actual no-op native-call counter'
 Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('geometry_history_receipt(s,notice,"notice")&&sequence&&*sequence','true'))} 'static geometry history rejects accepting an unbound Undo rejection receipt'
+function Assert-V1VisualOwnershipWiring([string]$Fixture,[string]$Visual){
+    if(-not $Fixture.Contains('owned_visual_ownership_case(s);') -or -not $Visual.Contains('s.suite!="VisualOwnershipOnly"')){
+        throw 'Visual ownership must reach its guarded real product component.'
+    }
+    foreach($value in @('pid!=GetCurrentProcessId()||tid!=set.thread',
+        'SetLayeredWindowAttributes(h,0,*alpha,LWA_ALPHA)',
+        'e::unique_value(row,"\"alpha_native_attempted\":")== (restore_alpha?"true":"false")',
+        'e::unique_value(row,"\"zorder_native_attempted\":")== (restore_top?"true":"false")',
+        'visual_ownership_app_change(set,BYTE{201},std::nullopt,',
+        'visual_ownership_app_change(set,std::nullopt,false,',
+        'visual_ownership_shake_negatives(set);','layout_up(set,g,',
+        'new_key!=key','helper_stopped&&helper_exit==0&&',
+        'native_visual_is(fresh.frames[0].hwnd,141,true)',
+        'pause_routing_client_pair(fresh,','fresh.close()')){
+        if(-not $Visual.Contains($value)){throw ('Visual ownership lost actual attribute, identity or cleanup evidence: '+$value)}
+    }
+}
+$visualOwnership=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_visual_ownership_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1VisualOwnershipWiring $fixtureSource $visualOwnership
+Check $true 'static visual ownership uses same-app native changes, independent property masks, actual UP and helper exit with new-root preservation'
+Reject {Assert-V1VisualOwnershipWiring $fixtureSource ($visualOwnership.Replace('e::unique_value(row,"\"alpha_native_attempted\":")== (restore_alpha?"true":"false")','true'))} 'static visual ownership rejects dropping the independent alpha restoration mask'
+Reject {Assert-V1VisualOwnershipWiring $fixtureSource ($visualOwnership.Replace('helper_stopped&&helper_exit==0&&','true&&'))} 'static visual ownership rejects exit-code-only product cleanup without the actual held-helper exit'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or

@@ -1,0 +1,99 @@
+{
+  "evidence_id": "EV-E1FC-R16-APPX-REGISTRATION-ROOT-DIAGNOSTIC",
+  "kind": "HISTORICAL_STRUCTURED_FIELD_PROJECTION",
+  "new_execution": false,
+  "literal_JSONL_excerpt": false,
+  "original_raw_preserved": true,
+  "run_id": "e1fc79d4e1ca4c63b0572da1b4ef9150",
+  "product_source_commit": "af0aa67ba3b4cb62d3ac2bece2c31533c8ba4ff6",
+  "sources": {
+    "deployment_diagnostic": {
+      "path": "uat/v1-control/e1fc79d4e1ca4c63b0572da1b4ef9150/collection-20261016T141425147Z-3e875047d38341d08984e332f8aa007b/e1fc79d4e1ca4c63b0572da1b4ef9150-product-Debug/diagnostic-16001410.txt",
+      "bytes": 6932,
+      "sha256": "D203006497C4F674037F9876DC597CFA461A993243767331124BB0688110A555",
+      "schema": "panebind-v1-guest-appx-diagnostic/1",
+      "test_tool_only": true,
+      "product_generated": false,
+      "no_install_or_input": true
+    },
+    "registration_receipt": {
+      "path": "uat/v1-control/e1fc79d4e1ca4c63b0572da1b4ef9150/collection-20261016T141425147Z-3e875047d38341d08984e332f8aa007b/e1fc79d4e1ca4c63b0572da1b4ef9150-official-apps.json",
+      "sha256": "B8852ABC204D897771AAF9A89D24B7D1F6A6222CD4702A485335E711BAB620C8",
+      "status": "REGISTRATION_FAILED_APPLICATION_ITEM_ONLY",
+      "activation": "NOT_RUN"
+    },
+    "package_manifest": {
+      "path": "uat/v1-sandbox/e1fc79d4e1ca4c63b0572da1b4ef9150/input/manifest.json",
+      "sha256": "52EC5A7B3AE2DDCF3CBFEFB5B50E5E316D9EBE86B1F868249F2C76DBDF8C64BE",
+      "official_asset_id": "f08fc54e44cf43eb811bc317c4249158"
+    }
+  },
+  "selected_records": [
+    {
+      "package": "Microsoft.VCLibs.140.00_14.0.30704.0_x64__8wekyb3d8bbwe",
+      "activity_id": "6fa7b853-5bc2-0007-06ee-a86fc25bdd01",
+      "registration_attempted": true,
+      "registration_succeeded": false,
+      "install_location_observed": false,
+      "activation": "NOT_RUN",
+      "events": [
+        {
+          "time": null,
+          "id": 709,
+          "message": "Rejecting a request to register from AppxManifest.xml because the manifest is not in the package root."
+        },
+        {
+          "time": null,
+          "id": 404,
+          "message": "AppX Deployment operation failed for package  with error 0x80070057. The specific error text for this failure is: Deployment operation failed."
+        }
+      ]
+    },
+    {
+      "package": "Microsoft.WindowsNotepad_11.2312.18.0_x64__8wekyb3d8bbwe",
+      "activity_id": "6fa7b853-5bc2-0007-eff7-a86fc25bdd01",
+      "registration_attempted": true,
+      "registration_succeeded": false,
+      "install_location_observed": false,
+      "activation": "NOT_RUN",
+      "events": [
+        {
+          "time": null,
+          "id": 709,
+          "message": "Rejecting a request to register from AppxManifest.xml because the manifest is not in the package root."
+        },
+        {
+          "time": null,
+          "id": 404,
+          "message": "AppX Deployment operation failed for package  with error 0x80070057. The specific error text for this failure is: Deployment operation failed."
+        }
+      ]
+    }
+  ],
+  "error_layers": {
+    "outer_deployment_error": {
+      "code": "0x80073CF9",
+      "basis": "Both selected packages' registration_receipt.registrations[].error begin with Deployment failed with HRESULT: 0x80073CF9; this is not substituted for Event 404's internal error."
+    },
+    "internal_deployment_error": {
+      "code": "0x80070057",
+      "basis": "The original Event 404 message for each exact ActivityId, copied above."
+    },
+    "exception_wrapper_hresult": {
+      "decimal": -2146232800,
+      "hexadecimal": "0x80131620",
+      "basis": "Both selected registration receipt rows record hresult=-2146232800. The historical guest script assigns $_.Exception.HResult; the hexadecimal value is its 32-bit representation, not a separately observed Win32 or deployment API error."
+    }
+  },
+  "bounded_interpretation": {
+    "full_payload_exists": true,
+    "payload_basis": "The existing official-apps-inspection.json under uat/v1-assets/f08fc54e44cf43eb811bc317c4249158 records the Notepad x64 package's 232 files / 11850868 bytes, Notepad\\Notepad.exe and Windows.FullTrustApplication manifest. This is not only the System32 stub and is not proof of successful registration or execution.",
+    "registration_and_activation_success": false,
+    "staging_root_cause": "UNKNOWN",
+    "path_basis": "The historical input/v1-sandbox-guest.ps1 creates and extracts into guest-local C:\\PaneBindV1\\OfficialApps\\<RunId>, rechecks extracted file hashes, and passes its full manifestPath to Add-AppxPackage. Only the source ZIP is read from the read-only Input mapping.",
+    "ACL_or_read_only_input_cause_proven": false,
+    "event_times_filled_or_inferred": false,
+    "product_or_application_function_PASS_inferred": false,
+    "scope_note": "本文件仅整理同一旧 RunId 的已有证据；保留原始失败与身份。Event 709 明确记录 package-root 拒绝，但现有记录未证明其更深层原因，也不能推出 Sandbox 永久不支持该应用。"
+  }
+}
