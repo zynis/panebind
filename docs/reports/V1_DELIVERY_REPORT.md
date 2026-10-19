@@ -2,13 +2,19 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。产品212字节未变：dedc／63 Debug核心及四native-only快速路径有实际子PASS，随后水平共享边因实际foreground变化安全拒绝；e7／63 Release两轮／20slot完成但严格900秒门未过。现代Terminal几何、正常UP与命令有实测，客户未发送，类别仍FAIL。e21／89仅配置准备失败；048／d2真实Hotkey通过，actor在8890ms因实际FocusLost撤权，起因UNKNOWN。9724已实际通过两轮owned核心、20slot、900.037841秒及逐项正常退出范围；完整Release新包7944因既有SSH三次超时而尚未启动，不预授整版。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。产品212字节未变：dedc／63 Debug核心及四native-only快速路径有实际子PASS，随后水平共享边因实际foreground变化安全拒绝；e7／63 Release两轮／20slot完成但严格900秒门未过。现代Terminal几何、正常UP与命令有实测，客户未发送，类别仍FAIL。e21／89仅配置准备失败；048／d2真实Hotkey通过，actor在8890ms因实际FocusLost撤权，起因UNKNOWN。9724已实际通过两轮owned核心、20slot、900.037841秒及逐项正常退出范围；7944的SSH超时保留为历史，2026-10-19首次既有可信连接已成功。新d76 Full／Release包已生成但未运行；运行前发现其他应用缺少与Edge相同的原生客户交互前置检查，当前先作最小driver-only修复，产品212及7635便携包不变，不预授整版。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 完整 Release 当前阻断：7944 尚未启动 guest
+## 当前推进：可信连接已恢复，先补应用原生交互前置检查
+
+2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
+
+新RunId `d76be229715b4d5cb777cb0cc9e76088` 已按冻结product212／driverd2、包装829682生成Full／Release包，复用现有官方Terminal、Code及原7635便携资产；尚未部署或运行。源码检查发现现有driver仅为Edge设置了暂停产品后的原生客户交互前置门，其余应用未先确认能交互就进入产品测试。当前下一动作是补齐这一最小driver-only门，明确区分环境／驱动／产品结果，再以新驱动身份和新RunId继续Full流程；不在此预填修复提交、运行结论或900秒专项结果。
+
+### 7944：保留原部署失败，不再作为当前SSH阻断
 
 已生成 `7944a5a704f94112870483b88c62a0c9` 的 Full／Release 包（product212／driverd2／包装c910），包含现有官方 Terminal、Code 资产和原7635便携包。部署及随后两次有界只读连接均在原可信 `crossrec-desktop`／`192.168.1.6:22` 超时，exit255；原因UNKNOWN，不推断关机、休眠或系统故障。[首次失败原始回执](v1-evidence/7944-r10-full-release-deploy-blocked.json)及包哈希见索引，后两次为主执行者实际工具输出，未伪称原生功能日志。未调用Launch、未取得remote-created回执，本批Full功能为NOT_RUN；不以包生成替代完整Release验收。
 
-最小外部条件是恢复既有可信SSH通道可达，不需新建VM、不要求购买升级，不改宿主、CrossRec或远程配置。恢复后保留7944失败状态，由执行者只读核实归属并以新RunId复用冻结EXE／资产自动部署、运行现有Full流程；无需用户搬文件。不单独重跑已通过的9724时长；Full内部实际执行另记。此前本轮guest／任务均已精确清理，原证据和包保留。
+7944保持原失败状态，不重试或覆盖本批目录；本轮连接已恢复，原先“恢复SSH”的外部动作不再待办。后续由执行者核实任务目录归属，复用冻结产品EXE／资产并自动部署新的候选driver，无需用户搬文件或新建VM。不单独重跑已通过的9724时长；Full内部实际执行另记。此前guest／任务清理及原证据、包保留各自身份。
 
 ## 212产品不重建：dedc／e7／e21／048当前实际范围
 

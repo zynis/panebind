@@ -1726,7 +1726,7 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         for(const fs::path candidate:{fs::path(L"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"),fs::path(L"C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe")})
             if(fs::is_regular_file(candidate)){target->executable=candidate;break;}
         const auto html=target->directory/L"PaneBind-empty.html";
-        std::ofstream page(html,std::ios::binary);page<<"<!doctype html><meta charset=utf-8><title>PaneBind blank</title><body style='margin:0;height:100vh' onclick=\"document.title='PaneBind-Mouse-"<<utf8(s.run)<<"'\"></body>";page.close();
+        std::ofstream page(html,std::ios::binary);page<<"<!doctype html><meta charset=utf-8><title>PaneBind blank</title><body style='margin:0;height:100vh' onclick=\"window.pbClicks=(window.pbClicks||0)+1;document.title='PaneBind-Mouse-"<<utf8(s.run)<<"-'+window.pbClicks\"></body>";page.close();
         if(!page)throw std::runtime_error("guest_offline_browser_fixture_write_failed");
         auto url=html.wstring();std::replace(url.begin(),url.end(),L'\\',L'/');
         target->command=L"\""+target->executable.wstring()+L"\" --user-data-dir=\""+(target->directory/L"Profile").wstring()+L"\" --no-first-run --no-default-browser-check --disable-background-mode --new-window \"file:///"+url+L"\"";
@@ -1999,81 +1999,18 @@ bool matrix_client_child(State& s,const product::Snapshot& source,HWND child){
     const auto process=std::find_if(target->processes.begin(),target->processes.end(),[&](const auto& p){return p.pid==pid;});
     return process!=target->processes.end()&&process->handle&&WaitForSingleObject(process->handle->value,0)==WAIT_TIMEOUT&&process_birth(process->handle->value)==process->born;
 }
-void edge_paused_native_client_baseline(State& s){
-    // One discriminating baseline for the retained Edge hang. Only this
-    // exact new offline page is clicked, with product enhancements really
-    // paused. This is not proof that hooks or all input observers are absent.
-    const auto target=s.applications[0];
-    if(!target||target->kind!="Edge"||!target->accepted||!target->identity||s.left||s.control)
-        throw std::runtime_error("Edge_native_baseline_exact_idle_binding_required");
-    const HWND h=target->identity->hwnd;const auto before=visible(h);
-    bool pause_attempted=false,paused=false,click_attempted=false,dom_observed=false,resumed=false;
-    bool hit_read=false;HWND hit{};DWORD_PTR region{};DWORD hit_error{};POINT point{};
-    std::string failure,status,resume_status;const auto pause_mark=read_product(s).size();
-    try{
-        foreground(s,h);pause_attempted=true;
-        if(!launch(s,L"--pause",true)||!launch(s,L"--status",true)||!wait([&]{status=record(s,pause_mark,"status");return !status.empty();},1000)||
-           !product::guest::matching_idle_status(status,{s.product_pid,s.product_source,0,0})||status.find("\"enabled\":false")==status.npos)
-            throw std::runtime_error("Edge_native_baseline_product_pause_not_confirmed");
-        paused=true;std::optional<product::Snapshot> fresh;
-        if(!before||!application_fresh(s,*target,h,&fresh)||!fresh||GetForegroundWindow()!=h)
-            throw std::runtime_error("Edge_native_baseline_identity_or_foreground_changed");
-        const auto gui=product::observe_gui_context(*fresh);
-        RECT client{};
-        if(!gui.idle()||!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top)
-            throw std::runtime_error("Edge_native_baseline_client_or_GUI_unknown");
-        point={(client.left+client.right)/2,(client.top+client.bottom)/2};
-        if(!ClientToScreen(h,&point))throw std::runtime_error("Edge_native_baseline_client_screen_unknown");
-        cursor(s,point);hit=WindowFromPoint(point);const bool exact_child=matrix_client_child(s,*fresh,hit);
-        SetLastError(ERROR_SUCCESS);
-        hit_read=exact_child&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
-            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
-        hit_error=hit_read?ERROR_SUCCESS:exact_child?GetLastError():ERROR_SUCCESS;
-        if(!hit_read||region!=HTCLIENT||!application_fresh(s,*target,h)||GetForegroundWindow()!=h||
-           !product::observe_gui_context(*fresh).idle()||WindowFromPoint(point)!=hit)
-            throw std::runtime_error("Edge_native_baseline_fresh_exact_client_not_confirmed");
-        click_attempted=true;button(s,true);button(s,false);
-        const auto expected=L"PaneBind-Mouse-"+s.run;std::array<wchar_t,1024> title{};
-        dom_observed=wait([&]{return application_fresh(s,*target,h)&&GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&
-            std::wstring(title.data()).find(expected)!=std::wstring::npos&&visible(h)==before;},2000);
-        if(!dom_observed)failure="Edge_paused_native_client_DOM_delivery_not_observed";
-    }catch(const std::exception& error){failure=error.what();}
-    if(s.left&&!s.left_up_attempted)try{button(s,false);}catch(const std::exception& error){failure+=';';failure+=error.what();}
-    if(pause_attempted){
-        const auto mark=read_product(s).size();
-        const bool known=launch(s,L"--status",true)&&wait([&]{resume_status=record(s,mark,"status");return !resume_status.empty();},1000)&&
-            product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0});
-        if(known&&resume_status.find("\"enabled\":true")!=resume_status.npos)resumed=true;
-        else if(known&&resume_status.find("\"enabled\":false")!=resume_status.npos){
-            // Pause is the existing public toggle. An unsupported --resume
-            // would open Settings instead; never toggle an unknown state.
-            const auto toggle_mark=read_product(s).size();
-            resumed=launch(s,L"--command Pause",true)&&launch(s,L"--status",true)&&wait([&]{resume_status=record(s,toggle_mark,"status");return !resume_status.empty();},1000)&&
-                product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0})&&resume_status.find("\"enabled\":true")!=resume_status.npos;
-        }
-    }
-    s.log.emit("Edge_paused_native_client_baseline","\"scope\":\"one_exact_new_offline_page_enhancements_paused_not_hooks_absent\",\"attempt_limit\":1"+
-        std::string(",\"product_pause_confirmed\":")+(paused?"true":"false")+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
-        ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"WM_NCHITTEST_returned\":"+(hit_read?"true":"false")+
-        ",\"WM_NCHITTEST\":"+(hit_read?std::to_string(region):"null")+",\"WM_NCHITTEST_error\":"+std::to_string(hit_error)+
-        ",\"single_client_click_attempted\":"+(click_attempted?"true":"false")+",\"actual_DOM_click_effect\":"+(dom_observed?"true":"false")+
-        ",\"product_resume_confirmed\":"+(resumed?"true":"false")+",\"failure\":"+quote(failure)+
-        ",\"pause_status\":"+quote(status)+",\"resume_status\":"+quote(resume_status)+",\"enhanced_Move_or_architecture_PASS_inferred\":false");
-    if(!failure.empty()||!paused||!dom_observed||!resumed||s.left||s.control)
-        throw std::runtime_error("Edge_paused_native_client_baseline_failed_enhancement_not_attempted");
-}
 #include "platform/windows/product/v1_guest_terminal_capture.h"
-void matrix_escape_and_client(State& s,const std::string& label){
-    const HWND h=source_window(s,0);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_escape_geometry_unknown");
-    const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
-    for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_Escape_target_hide_identity_failed");
-    const auto g=down(s,0);phase(s,0,g,-travel,travel,translated(*original,-travel,travel),label+".Escape_before",true);
-    const auto mark=read_product(s).size();key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);std::string end;
-    const bool escaped=wait([&]{end=record(s,mark,"gesture_end",g.generation);return !end.empty()&&visible(h)==original;});
-    button(s,false); // Test cleanup after Escape, deliberately not NormalUp.
-    s.log.check(label+".Escape_restore",escaped&&end.find("\"normal_up\":false")!=std::string::npos,
-        "\"production_end\":"+quote(end)+",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
-    foreground(s,h);RECT client{};if(!GetClientRect(h,&client))throw std::runtime_error("matrix_client_geometry_unknown");
+void matrix_client_action(State& s,const std::string& label,std::string_view scope){
+    if(scope!="native_preflight"&&scope!="after_product")throw std::runtime_error("matrix_client_scope_invalid");
+    const auto target=s.applications[0];
+    const HWND h=source_window(s,0);const auto original=visible(h);
+    std::optional<product::Snapshot> identity;std::string identity_reason;
+    if(!target||!target->accepted||!target->identity||s.left||s.control||!original||
+       !application_fresh(s,*target,h,&identity,&identity_reason)||!identity||!product::Catalog::same(*target->identity,*identity))
+        throw std::runtime_error("matrix_client_exact_idle_application_required");
+    const auto facts=matrix_sources(s);const std::string case_prefix=label+(scope=="native_preflight"?".native_preflight":"");
+    foreground(s,h);RECT client{};if(!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top)
+        throw std::runtime_error("matrix_client_geometry_unknown");
     POINT point{(client.right-client.left)/2,(client.bottom-client.top)/2};if(!ClientToScreen(h,&point))throw std::runtime_error("matrix_client_screen_unknown");cursor(s,point);
     const HWND hit=WindowFromPoint(point);DWORD_PTR region{};DWORD hit_pid{};
     const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;const HWND hit_root=hit?GetAncestor(hit,GA_ROOT):nullptr;
@@ -2081,7 +2018,7 @@ void matrix_escape_and_client(State& s,const std::string& label){
     const bool hit_read=exact_child&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,
         MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
     const DWORD hit_error=hit_read?ERROR_SUCCESS:exact_child?GetLastError():ERROR_SUCCESS;
-    s.log.emit("application_actual_client_hit","\"application\":"+quote(label)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+    s.log.emit("application_actual_client_hit","\"application\":"+quote(label)+",\"client_scope\":"+quote(scope)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
         ",\"source_pid\":"+std::to_string(facts[0].pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
         ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"actual_hit_pid\":"+std::to_string(hit_pid)+
         ",\"actual_hit_tid\":"+std::to_string(hit_tid)+",\"actual_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit_root))+
@@ -2099,10 +2036,19 @@ void matrix_escape_and_client(State& s,const std::string& label){
         }
         throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
     }
+    std::optional<product::Snapshot> before_click;
+    if(!application_fresh(s,*target,h,&before_click)||!before_click||!product::Catalog::same(*target->identity,*before_click)||
+       GetForegroundWindow()!=h||!product::observe_gui_context(*before_click).idle()||WindowFromPoint(point)!=hit||visible(h)!=original)
+        throw std::runtime_error("matrix_client_fresh_exact_context_changed_before_click");
+    if(target->kind=="Edge"){
+        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="native_preflight"?L"-1":L"-2");std::array<wchar_t,1024> title{};
+        if(GetWindowTextW(h,title.data(),static_cast<int>(title.size()))<=0||std::wstring(title.data()).find(expected)!=std::wstring::npos)
+            throw std::runtime_error("matrix_browser_client_title_not_new_for_this_scope");
+    }
     const auto click_mark=read_product(s).size();button(s,true);button(s,false);Sleep(150);
     std::string context_reason;const auto context=fixture_source_gui_context(s,0,context_reason);const auto& gui=context.actual;
     const bool focused=context.known()&&gui.hwndFocus&&IsWindow(gui.hwndFocus)&&GetAncestor(gui.hwndFocus,GA_ROOT)==h;
-    s.log.check(label+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
+    s.log.check(case_prefix+".client_click_not_routed_to_Move",record(s,click_mark,"gesture_start").empty()&&visible(h)==original&&focused,
         "\"actual_hit_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"focus_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndFocus))+
         ",\"source_GUI_known\":"+(context.known()?"true":"false")+",\"source_GUI_mode\":"+quote(product::gui_context_mode_name(context.mode))+
         ",\"source_GUI_identity_reason\":"+quote(context_reason)+",\"source_GUI_owner_succeeded\":"+(context.owner_succeeded?"true":"false")+
@@ -2111,37 +2057,119 @@ void matrix_escape_and_client(State& s,const std::string& label){
         std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_before))+",\"source_GUI_foreground_after\":"+
         std::to_string(reinterpret_cast<std::uintptr_t>(context.foreground_after))+
         ",\"document_mutation\":false,\"semantic_text_delivery_not_proven_by_focus\":true");
-    const auto target=s.applications[0];if(!target)throw std::runtime_error("matrix_client_application_binding_missing");
-    const auto nonce=L"PaneBind-Client-"+s.run;
+    const std::wstring wide_scope(scope.begin(),scope.end());const auto nonce=L"PaneBind-Client-"+s.run+L"-"+wide_scope;
     if(target->kind=="Edge"){
-        const auto expected=L"PaneBind-Mouse-"+s.run;std::array<wchar_t,1024> title{};
-        const bool delivered=wait([&]{return GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&std::wstring(title.data()).find(expected)!=std::wstring::npos;});
-        s.log.check(label+".actual_offline_page_client_click",delivered,"\"DOM_click_effect_observed_in_native_title\":"+std::string(delivered?"true":"false")+",\"offline_test_page_only\":true");
+        const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="native_preflight"?L"-1":L"-2");std::array<wchar_t,1024> title{};
+        const bool delivered=wait([&]{return application_fresh(s,*target,h)&&GetWindowTextW(h,title.data(),static_cast<int>(title.size()))>0&&
+            std::wstring(title.data()).find(expected)!=std::wstring::npos;});
+        s.log.check(case_prefix+".actual_offline_page_client_click",delivered,"\"DOM_click_effect_observed_in_native_title\":"+std::string(delivered?"true":"false")+
+            ",\"expected_click_count\":"+(scope=="native_preflight"?"1":"2")+",\"offline_test_page_only\":true,\"prior_click_title_not_sufficient\":true");
     }else if(target->kind=="Notepad"||target->kind=="VSCode"){
         const auto blank=target->directory/L"PaneBind-empty.txt";
-        if(!read(blank,4096).empty()||fs::file_size(blank)!=0)throw std::runtime_error("matrix_editor_blank_input_changed_before_test");
-        matrix_chord(s,VK_END);matrix_text(s,nonce);matrix_chord(s,'S');
+        const auto empty_content=[](const std::string& bytes){return bytes.empty()||bytes==std::string("\xef\xbb\xbf")||bytes==std::string("\xff\xfe");};
+        const auto empty_document=[&]{
+            std::error_code error;const auto length=fs::file_size(blank,error);
+            if(error||(length!=0&&length!=2&&length!=3))return false;
+            std::ifstream file(blank,std::ios::binary);if(!file)return false;
+            std::array<char,4> bytes{};file.read(bytes.data(),static_cast<std::streamsize>(bytes.size()));
+            return !file.bad()&&file.eof()&&file.gcount()==static_cast<std::streamsize>(length)&&
+                empty_content(std::string(bytes.data(),static_cast<std::size_t>(file.gcount())));
+        };
+        if(!empty_document())throw std::runtime_error("matrix_editor_blank_input_changed_before_test");
         const auto plain=utf8(nonce);std::string utf16;
         for(const wchar_t c:nonce){utf16.push_back(static_cast<char>(c&255));utf16.push_back(static_cast<char>((c>>8)&255));}
         const auto content_matches=[&]{const auto bytes=read(blank,4096);return bytes==plain||bytes==std::string("\xef\xbb\xbf")+plain||bytes==std::string("\xff\xfe")+utf16;};
-        const bool saved=wait(content_matches);const auto saved_hash=hash(blank);
-        s.log.check(label+".actual_client_text_and_native_save",saved&&!saved_hash.empty(),"\"guest_new_file_only\":true,\"expected_text_bytes\":"+std::to_string(plain.size())+
+        bool text_attempted=false,saved=false,blank_restored=false;std::string edit_failure,saved_hash;
+        try{matrix_chord(s,VK_END);text_attempted=true;matrix_text(s,nonce);matrix_chord(s,'S');saved=wait(content_matches);saved_hash=hash(blank);}
+        catch(const std::exception& error){edit_failure=error.what();}
+        // Restore this exact new empty document through its real editor even
+        // when the preceding save failed. Never truncate it with a private
+        // file API, reclaim lost focus, or operate a different document.
+        if(text_attempted)try{
+            std::string why;const auto gui=fixture_source_gui_context(s,0,why);
+            if(!authorized_source(s,h)||GetForegroundWindow()!=h||!gui.known()||!gui.actual.hwndFocus||
+               GetAncestor(gui.actual.hwndFocus,GA_ROOT)!=h)throw std::runtime_error("matrix_editor_cleanup_exact_focus_unavailable");
+            if(s.control)key(s,VK_CONTROL,false);
+            matrix_chord(s,'A');key(s,VK_BACK,true);key(s,VK_BACK,false);matrix_chord(s,'S');
+            blank_restored=wait(empty_document);
+        }catch(const std::exception& error){if(!edit_failure.empty())edit_failure+=';';edit_failure+=error.what();}
+        s.log.emit("application_editor_client_result","\"application\":"+quote(label)+",\"client_scope\":"+quote(scope)+
+            ",\"native_save_observed\":"+(saved?"true":"false")+",\"blank_restored_through_editor\":"+(blank_restored?"true":"false")+
+            ",\"failure\":"+quote(edit_failure)+",\"file_truncated_by_driver\":false");
+        s.log.check(case_prefix+".blank_document_restored_before_close",blank_restored);
+        s.log.check(case_prefix+".actual_client_text_and_native_save",saved&&!saved_hash.empty()&&edit_failure.empty(),
+            "\"guest_new_file_only\":true,\"expected_text_bytes\":"+std::to_string(plain.size())+
             ",\"actual_saved_sha256\":"+quote(saved_hash)+",\"clipboard_or_private_API_used\":false");
-        matrix_chord(s,'A');key(s,VK_BACK,true);key(s,VK_BACK,false);matrix_chord(s,'S');
-        s.log.check(label+".blank_document_restored_before_close",wait([&]{if(!fs::is_regular_file(blank))return false;const auto bytes=read(blank,4096);return
-            (bytes.empty()&&fs::file_size(blank)==0)||bytes==std::string("\xef\xbb\xbf")||bytes==std::string("\xff\xfe");}));
     }else if(target->kind=="Terminal"){
-        const auto receipt=target->directory/L"client-input-receipt.txt";if(fs::exists(receipt))throw std::runtime_error("matrix_terminal_receipt_must_be_new");
+        const auto receipt=target->directory/(L"client-input-"+wide_scope+L"-receipt.txt");if(fs::exists(receipt))throw std::runtime_error("matrix_terminal_receipt_must_be_new");
         key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);matrix_text(s,L"echo "+nonce+L">\""+receipt.wstring()+L"\"");key(s,VK_RETURN,true);key(s,VK_RETURN,false);
         const bool delivered=wait([&]{auto text=read(receipt,4096);while(!text.empty()&&(text.back()=='\r'||text.back()=='\n'||text.back()==' '))text.pop_back();return text==utf8(nonce);});
         const auto receipt_hash=hash(receipt);
         const bool modern=equal(target->executable.filename().wstring(),L"WindowsTerminal.exe");
-        s.log.check(label+".actual_terminal_client_input",delivered&&!receipt_hash.empty(),
+        s.log.check(case_prefix+".actual_terminal_client_input",delivered&&!receipt_hash.empty(),
             "\"terminal_distribution\":"+quote(modern?"official_modern_portable_ZIP":"Windows_Console_host")+
             ",\"known_cmd_child_in_new_conhost_only\":"+(modern?"false":"true")+
-            ",\"requested_shell\":\"exact_guest_system_cmd\",\"guest_new_output_file_only\":true,\"actual_receipt_sha256\":"+quote(receipt_hash));
+            ",\"requested_shell\":\"exact_guest_system_cmd\",\"guest_new_output_file_only\":true,\"client_scope\":"+quote(scope)+
+            ",\"actual_receipt_sha256\":"+quote(receipt_hash));
     }
-    s.log.check(label+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
+    s.log.check(case_prefix+".client_actions_did_not_start_geometry_gesture",record(s,click_mark,"gesture_start").empty()&&visible(h)==original);
+}
+void matrix_paused_native_client_preflight(State& s,const std::string& label,bool& restored){
+    restored=false;bool pause_attempted=false,paused=false,client_ready=false;
+    std::string failure,initial_status,pause_status,resume_status;
+    try{
+        const auto initial_mark=read_product(s).size();
+        if(s.left||s.control||!launch(s,L"--status",true)||!wait([&]{initial_status=record(s,initial_mark,"status");return !initial_status.empty();},1000)||
+           !product::guest::matching_idle_status(initial_status,{s.product_pid,s.product_source,0,0})||initial_status.find("\"enabled\":true")==initial_status.npos)
+            throw std::runtime_error("native_client_preflight_initial_enabled_idle_not_confirmed");
+        restored=true;const auto pause_mark=read_product(s).size();pause_attempted=true;restored=false;
+        if(!launch(s,L"--pause",true)||!launch(s,L"--status",true)||!wait([&]{pause_status=record(s,pause_mark,"status");return !pause_status.empty();},1000)||
+           !product::guest::matching_idle_status(pause_status,{s.product_pid,s.product_source,0,0})||pause_status.find("\"enabled\":false")==pause_status.npos)
+            throw std::runtime_error("native_client_preflight_actual_pause_not_confirmed");
+        paused=true;
+        for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,false))throw std::runtime_error("native_client_preflight_exact_target_hide_failed");
+        matrix_client_action(s,label,"native_preflight");client_ready=true;
+    }catch(const std::exception& error){failure=error.what();}
+    // One cleanup release for this driver's outstanding click, never a second
+    // UP for an already-attempted release and never product NormalUp evidence.
+    if(s.left&&!s.left_up_attempted)try{button(s,false);}catch(const std::exception& error){if(!failure.empty())failure+=';';failure+=error.what();}
+    if(s.control)try{key(s,VK_CONTROL,false);}catch(const std::exception& error){if(!failure.empty())failure+=';';failure+=error.what();}
+    try{
+        for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("native_client_preflight_exact_target_restore_failed");
+    }catch(const std::exception& error){if(!failure.empty())failure+=';';failure+=error.what();}
+    if(pause_attempted)try{
+        const auto mark=read_product(s).size();
+        const bool known=launch(s,L"--status",true)&&wait([&]{resume_status=record(s,mark,"status");return !resume_status.empty();},1000)&&
+            product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0});
+        if(known&&resume_status.find("\"enabled\":true")!=resume_status.npos)restored=true;
+        else if(known&&resume_status.find("\"enabled\":false")!=resume_status.npos){
+            // Toggle only an observed paused state; never toggle an unknown
+            // state or pretend that a command exit proves runtime recovery.
+            const auto toggle_mark=read_product(s).size();
+            restored=launch(s,L"--command Pause",true)&&launch(s,L"--status",true)&&wait([&]{resume_status=record(s,toggle_mark,"status");return !resume_status.empty();},1000)&&
+                product::guest::matching_idle_status(resume_status,{s.product_pid,s.product_source,0,0})&&resume_status.find("\"enabled\":true")!=resume_status.npos;
+        }
+    }catch(const std::exception& error){if(!failure.empty())failure+=';';failure+=error.what();restored=false;}
+    const bool passed=paused&&client_ready&&restored&&failure.empty()&&!s.left&&!s.control;
+    s.log.emit("application_native_client_preflight","\"application\":"+quote(label)+",\"stage\":\"native_client_preflight\",\"result\":"+quote(passed?"PASS":"FAIL")+
+        ",\"scope\":\"exact_new_application_enhancements_paused_not_hooks_absent\",\"attempt_limit\":1,\"product_gesture_attempted\":false"+
+        std::string(",\"product_pause_confirmed\":")+(paused?"true":"false")+",\"actual_native_client_ready\":"+(client_ready?"true":"false")+
+        ",\"product_enabled_idle_restored\":"+(restored?"true":"false")+",\"failure\":"+quote(failure)+
+        ",\"failure_cause\":"+quote(passed?"NONE":"UNKNOWN")+",\"enhanced_function_result\":\"NOT_RUN\",\"initial_status\":"+quote(initial_status)+
+        ",\"pause_status\":"+quote(pause_status)+",\"resume_status\":"+quote(resume_status)+",\"product_architecture_PASS_inferred\":false");
+    if(!passed)throw std::runtime_error("application_native_client_preflight_failed:"+failure);
+}
+void matrix_escape_and_client(State& s,const std::string& label){
+    const HWND h=source_window(s,0);const auto original=visible(h);if(!original)throw std::runtime_error("matrix_escape_geometry_unknown");
+    const auto facts=matrix_sources(s);const auto config=matrix_settings(s);const LONG travel=matrix_pixels(std::max(config.release_dip+24,40),facts[0].dpi);
+    for(std::size_t n=1;n<3;++n)if(!authorized_source(s,source_window(s,n))||!matrix_show_source(s,n,false))throw std::runtime_error("matrix_Escape_target_hide_identity_failed");
+    const auto g=down(s,0);phase(s,0,g,-travel,travel,translated(*original,-travel,travel),label+".Escape_before",true);
+    const auto mark=read_product(s).size();key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);std::string end;
+    const bool escaped=wait([&]{end=record(s,mark,"gesture_end",g.generation);return !end.empty()&&visible(h)==original;});
+    button(s,false); // Test cleanup after Escape, deliberately not NormalUp.
+    s.log.check(label+".Escape_restore",escaped&&end.find("\"normal_up\":false")!=std::string::npos,
+        "\"production_end\":"+quote(end)+",\"actual\":"+(visible(h)?rect(*visible(h)):"null"));
+    matrix_client_action(s,label,"after_product");
     for(std::size_t n=1;n<3;++n)if(!matrix_show_source(s,n,true))throw std::runtime_error("matrix_Escape_hidden_target_identity_changed");
 }
 void matrix_input_idle(State& s){
@@ -2198,15 +2226,19 @@ void application_matrix_flow(State& s){
     const std::array<std::string,4> categories=(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="ApplicationsOnly")?
         std::array<std::string,4>{"Terminal","Notepad","VSCode","Edge"}:std::array<std::string,4>{"Notepad","Edge","VSCode","Terminal"};
     for(const auto& kind:categories){
-        std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
+        std::shared_ptr<ApplicationTarget> target;bool passed=false,preflight_started=false,preflight_restored=false,product_suite_started=false;
+        std::string reason,stage="application_startup";std::uint64_t product_down_before{};
         const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         try{
             matrix_input_idle(s);target=provision_application(s,kind);
             if(!target->accepted){reason="no_exact_eligible_new_root";s.log.failed=true;}
             else{
+                stage="fixture_layout";
                 if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_unused_exact_source_hide_failed");
                 s.applications[0]=target;matrix_layout(s,kind+"_independent_actual_constraints_setup");
-                if(kind=="Edge")edge_paused_native_client_baseline(s);
+                stage="native_client_preflight";preflight_started=true;
+                matrix_paused_native_client_preflight(s,kind,preflight_restored);
+                stage="product_function";product_down_before=s.left_down_send_qpc;product_suite_started=true;
                 matrix_five(s,0,kind+".Move");
                 const auto before=visible(source_window(s,0));if(!before)throw std::runtime_error("matrix_Resize_before_geometry_unknown");
                 const auto identity=s.target_catalog->get(source_window(s,0),{},nullptr,false,false);if(!identity)throw std::runtime_error("matrix_Resize_actual_identity_changed");
@@ -2215,9 +2247,18 @@ void application_matrix_flow(State& s){
                 matrix_commands(s,kind);matrix_escape_and_client(s,kind);target->matrix_passed=true;passed=true;
             }
         }catch(const std::exception& error){reason=error.what();s.log.failed=true;}
+        const bool product_gesture_attempted=product_suite_started&&s.left_down_send_qpc!=product_down_before;
+        const std::string category_result=passed?"PASS":stage=="native_client_preflight"?"BLOCKED":target&&target->accepted?"FAIL":"BLOCKED";
+        if(preflight_started&&!preflight_restored){
+            s.log.emit("application_matrix_result","\"application\":"+quote(kind)+",\"result\":\"BLOCKED\",\"stage\":\"native_client_preflight\""+
+                std::string(",\"reason\":")+quote(reason)+",\"failure_cause\":\"UNKNOWN\",\"product_gesture_attempted\":false"+
+                ",\"enhanced_function_result\":\"NOT_RUN\",\"enabled_idle_recovery_confirmed\":false,\"dependent_categories_stopped\":true,\"human_uat\":\"NOT_RUN\"");
+            throw std::runtime_error("application_native_client_preflight_recovery_unknown_no_dependent_input");
+        }
         if(!passed&&(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="ApplicationsOnly")){
             s.log.emit("application_category_failure_preserved","\"application\":"+quote(kind)+",\"reason\":"+quote(reason)+
-                ",\"result\":"+quote(target&&target->accepted?"FAIL":"BLOCKED")+",\"UP_retransmission\":false");
+                ",\"result\":"+quote(category_result)+",\"stage\":"+quote(stage)+",\"failure_cause\":\"UNKNOWN\",\"product_gesture_attempted\":"+
+                (product_gesture_attempted?"true":"false")+",\"UP_retransmission\":false");
             const bool pending_left=s.left,pending_control=s.control;bool cleanup_up=false,cleanup_control=false;
             if(s.left){
                 if(!s.left_down_send_qpc||s.left_down_send_qpc==down_before)throw std::runtime_error("application_pending_DOWN_not_this_category");
@@ -2269,8 +2310,10 @@ void application_matrix_flow(State& s){
             if(!matrix_show_source(s,0,false))throw std::runtime_error("matrix_confirmed_application_hide_failed");
         }else if(target)close_application(s,*target);
         s.applications[0].reset();
-        s.log.emit("application_matrix_result","\"application\":"+quote(kind)+",\"result\":"+quote(passed?"PASS":target&&target->accepted?"FAIL":"BLOCKED")+
-            ",\"reason\":"+quote(reason)+",\"scope\":\"actual_Medium_Move_Resize_commands_Escape_client\",\"human_uat\":\"NOT_RUN\"");
+        s.log.emit("application_matrix_result","\"application\":"+quote(kind)+",\"result\":"+quote(category_result)+",\"stage\":"+quote(stage)+
+            ",\"reason\":"+quote(reason)+",\"failure_cause\":"+quote(passed?"NONE":"UNKNOWN")+",\"product_gesture_attempted\":"+(product_gesture_attempted?"true":"false")+
+            ",\"enhanced_function_result\":"+quote(stage=="native_client_preflight"?"NOT_RUN":passed?"PASS":"NOT_CONFIRMED")+
+            ",\"scope\":\"actual_Medium_native_client_before_Move_Resize_commands_Escape_client\",\"human_uat\":\"NOT_RUN\"");
     }
     try{matrix_mixed_group(s,browser,editor);}
     catch(const std::exception& error){s.log.failed=true;s.log.emit("mixed_application_group","\"result\":\"FAIL\",\"reason\":"+quote(error.what()));matrix_input_idle(s);}

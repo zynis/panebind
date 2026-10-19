@@ -45,6 +45,59 @@ foreach($path in @(
     'scripts/r1c4b-mvp1-shield-sandbox-guest-other.ps1')){
     Check (-not (Test-V1ProductToolOnlyPath $path)) ('product dependency or adjacent unreviewed path still rejects reuse: '+$path)
 }
+# Static wiring only: these checks neither start an application nor establish
+# that its client can receive input in a guest. The real driver must prove that
+# native interaction before it starts the application's product geometry cases.
+function Get-V1FixtureFunctionText([string]$Source,[string]$Name){
+    $start=[regex]::Match($Source,('(?m)^void '+[regex]::Escape($Name)+'\s*\('))
+    if(-not $start.Success){throw ('Fixture function missing: '+$Name)}
+    $rest=$Source.Substring($start.Index+$start.Length)
+    $next=[regex]::Match($rest,'(?m)^void \w+\s*\(')
+    if($next.Success){return $Source.Substring($start.Index,$start.Length+$next.Index)}
+    return $Source.Substring($start.Index)
+}
+function Assert-V1NativeClientPreflightWiring([string]$Source){
+    $flow=Get-V1FixtureFunctionText $Source 'application_matrix_flow'
+    $preflight=[regex]::Match($flow,'matrix_paused_native_client_preflight\s*\(\s*s\s*,\s*kind\s*,\s*preflight_restored\s*\)')
+    $product=[regex]::Match($flow,'matrix_five\s*\(\s*s\s*,\s*0\s*,\s*kind\s*\+\s*"\.Move"\s*\)')
+    if(-not $preflight.Success -or -not $product.Success -or $preflight.Index -ge $product.Index){
+        throw 'Native client preflight must precede application product cases.'
+    }
+    $productStarted=$flow.IndexOf('product_suite_started=true;',[StringComparison]::Ordinal)
+    if($productStarted -le $preflight.Index -or
+       -not $flow.Contains('const bool product_gesture_attempted=product_suite_started&&s.left_down_send_qpc!=product_down_before;') -or
+       -not $flow.Contains('const std::string category_result=passed?"PASS":stage=="native_client_preflight"?"BLOCKED":target&&target->accepted?"FAIL":"BLOCKED";') -or
+       -not $flow.Contains('quote(stage=="native_client_preflight"?"NOT_RUN":passed?"PASS":"NOT_CONFIRMED")')){
+        throw 'A failed native preflight must not become an attempted or passed enhanced application case.'
+    }
+    $native=Get-V1FixtureFunctionText $Source 'matrix_paused_native_client_preflight'
+    if(-not $native.Contains('matrix_client_action(s,label,"native_preflight")') -or
+       -not $native.Contains('const bool passed=paused&&client_ready&&restored&&failure.empty()&&!s.left&&!s.control;') -or
+       -not $native.Contains('if(!passed)throw std::runtime_error("application_native_client_preflight_failed:"+failure);')){
+        throw 'Native client preflight must require the actual shared client action and restored product state.'
+    }
+    $client=Get-V1FixtureFunctionText $Source 'matrix_client_action'
+    if($client -notmatch 'const bool actual\s*=\s*exact_child\s*&&\s*hit_read\s*&&\s*region\s*==\s*HTCLIENT\s*;' -or
+       $client -notmatch '(?s)if\s*\(\s*!actual\s*\)\s*\{.*?throw std::runtime_error\("matrix_actual_same_process_client_hit_unavailable"\);'){
+        throw 'Client input must reject a non-exact or non-HTCLIENT actual hit.'
+    }
+    if($client -notmatch '(?s)if\(!target\|\|!target->accepted\|\|!target->identity.*?application_fresh\(s,\*target,h.*?product::Catalog::same\(\*target->identity,\*identity\)' -or
+       $client -notmatch '(?s)application_fresh\(s,\*target,h,&before_click\).*?product::Catalog::same\(\*target->identity,\*before_click\).*?GetForegroundWindow\(\)!=h.*?WindowFromPoint\(point\)!=hit.*?matrix_client_fresh_exact_context_changed_before_click'){
+        throw 'Client input requires the exact authorized application and fresh actual hit before clicking.'
+    }
+}
+$fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
+$fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
+Assert-V1NativeClientPreflightWiring $fixtureSource
+Check $true 'static driver wiring: every application native preflight precedes product cases and preserves exact HTCLIENT gates'
+$frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
+$frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
+Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
+$frozenReason='';try{Assert-V1NativeClientPreflightWiring $frozenFixture}catch{$frozenReason=$_.Exception.Message}
+Check ($frozenReason -ceq 'Native client preflight must precede application product cases.') 'actual frozen d2 source fails the missing pre-product native client preflight guard'
+Reject {Assert-V1NativeClientPreflightWiring ($fixtureSource.Replace('exact_child&&hit_read&&region==HTCLIENT','hit_read&&region==HTCLIENT'))} 'static guard rejects dropping exact-bound hit eligibility'
+Reject {Assert-V1NativeClientPreflightWiring ($fixtureSource.Replace('exact_child&&hit_read&&region==HTCLIENT','exact_child&&hit_read'))} 'static guard rejects dropping actual HTCLIENT eligibility'
+Reject {Assert-V1NativeClientPreflightWiring ($fixtureSource.Replace('quote(stage=="native_client_preflight"?"NOT_RUN":passed?"PASS":"NOT_CONFIRMED")','quote(stage=="native_client_preflight"?"PASS":passed?"PASS":"NOT_CONFIRMED")'))} 'static guard rejects relabeling failed native preflight as enhanced PASS'
 $product=[pscustomobject]@{product='PaneBind';version='1.0.0-dev';source_commit=$before;subsystem='windows';requires_elevation=$false}
 $driver=[pscustomobject]@{product='PaneBind V1 guest fixture';source_commit=$after;host_synthetic_input='forbidden';requires_medium_guest=$true;
     guest_contract='panebind-v1-guest-contract/2';product_interface='panebind-v1-product-guest-interface/1'}
