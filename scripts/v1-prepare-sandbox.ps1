@@ -12,18 +12,27 @@ param(
     [switch]$MediumDesktopProbe,
     [switch]$MediumNativeIdentityOnly,
     [switch]$StandardGuestNativeClients,
+    [switch]$StandardLogonNativeIdentity,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
-    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly')][string]$Suite='Full',
+    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
 )
 $ErrorActionPreference = 'Stop'
+if($StandardLogonNativeIdentity){
+    if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or
+       $StandardGuestNativeClients -or $MediumNativeIdentityOnly -or $MediumEnvironmentProbe -or
+       $VSCodeAssetDirectory -or $TerminalAssetDirectory -or $OfficialAppAssetDirectory -or $PortablePackageDirectory){
+        throw 'Standard logon identity requires Release/NativeClientsOnly without assets, other probes or product input.'
+    }
+    $MediumDesktopProbe=$true
+}
 if($StandardGuestNativeClients){
     if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or
-       $MediumNativeIdentityOnly -or $MediumEnvironmentProbe -or $PortablePackageDirectory){
+       $MediumNativeIdentityOnly -or $StandardLogonNativeIdentity -or $MediumEnvironmentProbe -or $PortablePackageDirectory){
         throw 'Standard guest native clients require Release/NativeClientsOnly without another probe or portable suite.'
     }
     $MediumDesktopProbe=$true
@@ -434,9 +443,9 @@ $manifest = [ordered]@{
     product_unchanged_across_tool_changes=$packagingIdentity.product_unchanged_across_tool_changes;
     driver_unchanged_across_packaging_changes=$packagingIdentity.driver_unchanged_across_packaging_changes;
     source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
-    guest_account_mode=$(if($StandardGuestNativeClients){'RunBoundStandardNativeClients'}else{'WDAGDefault'});
-    guest_standard_account=$(if($StandardGuestNativeClients){'PBV1D_'+$RunId.Substring(0,12)}else{$null});
-    guest_standard_run_id=$(if($StandardGuestNativeClients){$RunId}else{$null});
+    guest_account_mode=$(if($StandardLogonNativeIdentity){'RunBoundStandardLogonNativeIdentity'}elseif($StandardGuestNativeClients){'RunBoundStandardNativeClients'}else{'WDAGDefault'});
+    guest_standard_account=$(if($StandardGuestNativeClients -or $StandardLogonNativeIdentity){'PBV1D_'+$RunId.Substring(0,12)}else{$null});
+    guest_standard_run_id=$(if($StandardGuestNativeClients -or $StandardLogonNativeIdentity){$RunId}else{$null});
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
     terminal_test_asset=$terminalAsset;
@@ -444,12 +453,13 @@ $manifest = [ordered]@{
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
     # The legacy kind is the existing controller envelope, not a GUI result.
     medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck';
-        native_identity_only=[bool]$MediumNativeIdentityOnly;stop_after_probe=[bool]($MediumNativeIdentityOnly -or $StandardGuestNativeClients);
+        native_identity_only=[bool]$MediumNativeIdentityOnly;stop_after_probe=[bool]($MediumNativeIdentityOnly -or $StandardGuestNativeClients -or $StandardLogonNativeIdentity);
         standard_native_clients=[bool]$StandardGuestNativeClients;
-        standard_native_api=$(if($StandardGuestNativeClients){'CreateProcessAsUserW'}else{$null});
+        standard_logon_identity=[bool]$StandardLogonNativeIdentity;
+        standard_native_api=$(if($StandardLogonNativeIdentity){'CreateProcessWithLogonW'}elseif($StandardGuestNativeClients){'CreateProcessAsUserW'}else{$null});
         followup_suite=$(if($StandardGuestNativeClients){'NativeClientsOnly'}else{$null});
-        actual_suite=$(if($MediumNativeIdentityOnly){'MediumNativeIdentityOnly'}elseif($StandardGuestNativeClients){'StandardGuestNativeClients'}else{$null});
-        native_identity_image=$(if($MediumNativeIdentityOnly -or $StandardGuestNativeClients){'panebind-v1-guest-fixture.exe'}else{$null})};
+        actual_suite=$(if($StandardLogonNativeIdentity){'StandardLogonNativeIdentity'}elseif($MediumNativeIdentityOnly){'MediumNativeIdentityOnly'}elseif($StandardGuestNativeClients){'StandardGuestNativeClients'}else{$null});
+        native_identity_image=$(if($MediumNativeIdentityOnly -or $StandardGuestNativeClients -or $StandardLogonNativeIdentity){'panebind-v1-guest-fixture.exe'}else{$null})};
     portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
     guest_suite=$Suite;

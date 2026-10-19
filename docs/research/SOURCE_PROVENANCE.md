@@ -2907,3 +2907,20 @@ or attribution obligation was created, and the existing archive notices remain
 intact. No repository source, guest, token, ACL, sandbox setting or host setting
 was changed by this review; functional compatibility and ordinary Medium
 full-desktop acceptance still require their own actual evidence.
+
+### V1 guest native logon identity alternative — 2026-10-20 (Asia/Shanghai)
+
+Primary Win32 documentation inspected: [CreateProcessAsUserW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessasuserw)
+and [CreateProcessWithLogonW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw).
+These are official API contract pages, not an inspected implementation or an
+immutable upstream commit. The first explicitly recommends CPWL after error1314;
+the second retains interactive-logon/desktop permissions, new credential logon,
+profile and environment semantics. No permission, DACL, privilege or service
+change is implied by that recommendation. This justifies one explicitly selected
+Run-bound guest native `--build-identity` contrast, not an automatic fallback,
+application input or proof of a complete Medium desktop. New LogonSID, profile,
+exact image and actual output must be observed separately from the old CPAS
+baseline. Documentation examples were not copied or adapted; the existing
+PaneBind test launcher is extended with original P/Invoke declarations. No
+external dependency/source code entered the product. Actual guest result remains
+NOT_RUN until separately recorded.

@@ -610,6 +610,81 @@ Assert-V1StandardNativeWiring $fixtureSource $standardProbe $standardGuest
 Check $true 'static standard native route keeps exact Run account/parent, old CPWT path and original credential-token follow-up'
 Reject {Assert-V1StandardNativeWiring ($fixtureSource.Replace('!exact_standard_native_guest_account(username.data())','false')) $standardProbe $standardGuest} 'static standard route rejects removing the actual local account identity gate'
 Reject {Assert-V1StandardNativeWiring ($fixtureSource.Replace('if(!found||actual_parent!=expected_pid)','if(found&&actual_parent!=expected_pid)')) $standardProbe $standardGuest} 'static standard route rejects unknown parent identity admission'
+function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[string]$Chains){
+    # Reachability and evidence predicates only; no native delivery is inferred.
+    $entry=Get-V1FixtureFunctionText $Fixture 'independent_entry_flow'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="MappingRemainderOnly"\)\{(?<body>.*?)return;\s*\}')
+    if(-not $scope.Success -or [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 3 -or
+       -not $scope.Value.Contains('phase("owned_custom_eight_region_mouse_mappings",owned_mapping_regions_case);') -or
+       -not $scope.Value.Contains('phase("owned_custom_modifier_single_and_double_mapping",owned_mapping_modifier_double_case);') -or
+       -not $scope.Value.Contains('phase("owned_hotkey_change_delete_and_duplicate_rejection",owned_mapping_hotkey_edits_case);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains('mapping_remainder_only_summary')){
+        throw 'Mapping remainder must reach its three actual finite GUI/input components and cleanup.'
+    }
+    foreach($value in @('s.suite!="MappingRemainderOnly"','set.owns(0)&&visible(h)==geometry&&GetForegroundWindow()==h',
+        'chain_stretch_preparation(set,*point,native_region,*geometry,preparation_mark,max_prepare,preparation)',
+        'result.up=actual_up(s,mark,result.generation,3)',
+        'e::number(result.up,"\"source_key\":")==key',
+        'mapped&&released&&mapped_downs==1&&commands==1&&set.owns(0)',
+        'chain_gui_save_mouse(s,bindings);','chain_gui_save_mouse(s,{{8,3,1,4,v::Action::ToggleTopmost},{8,3,2,4,v::Action::OpacityDown}})',
+        'mapping_remaining_actual_resume_restores_original_enabled','launch(s,L"--command Pause",true)',
+        'configured.hotkeys.back().action=v::Action::MoveDown','configured.hotkeys.pop_back()',
+        'registered=RegisterHotKey(nullptr,registration,MOD_CONTROL|MOD_ALT|MOD_NOREPEAT,test_key)',
+        'settings_guest_acknowledge(s,gui,mouse?','chain_settings(s)==before&&read(path)==saved&&hash(path)==saved_hash',
+        'chain_check_product(s,pid,birth)')){
+        if(-not $Mapping.Contains($value)){throw ('Mapping remainder lost an actual GUI, identity or paired-input gate: '+$value)}
+    }
+    if(-not $Chains.Contains('chain_type_fragment(s,gui,edit,fragment);gui_save_enter(s,gui);') -or
+       -not $Chains.Contains('actual==wanted&&actual.generation>before.generation')){
+        throw 'Custom mouse mappings must still be saved and read back through the actual public GUI.'
+    }
+}
+$mappingRemaining=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_mapping_remaining_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1MappingRemainderWiring $fixtureSource $mappingRemaining $chainSource
+Check $true 'static mapping remainder wires three real GUI components, exact source, matching actual UP and hotkey edits'
+Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('result.up=actual_up(s,mark,result.generation,3)','result.up=""')) $chainSource} 'static custom mapping rejects replacing the actual matched UP receipt with an empty observation'
+Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('chain_settings(s)==before&&read(path)==saved&&hash(path)==saved_hash','true')) $chainSource} 'static mapping duplicate rejection cannot omit actual runtime and saved-configuration preservation'
+function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
+    $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
+    $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start){throw 'Explicit logon identity terminal branch missing.'}
+    $branch=$Guest.Substring($start,$end-$start)
+    foreach($value in @('$record.run_id -cne $RunId','$record.actual_suite -cne ''StandardLogonNativeIdentity''',
+        '$record.result.account_cleanup_confirmed -ne $true','$record.result.dacl_cleanup_confirmed -ne $true',
+        '$record.result.all_probe_children_stopped -ne $true','$record.result.product_started -ne $false',
+        '$record.result.synthetic_input_sent -ne $false','$record.result.standard_native_child.identity_observed -eq $true',
+        'if($known){exit 0}else{exit 3}')){
+        if(-not $branch.Contains($value)){throw ('Logon identity must terminate with exact identity/cleanup, not fall through: '+$value)}
+    }
+    if($end -ge $Guest.IndexOf('$summary[''application_availability'']=Read-TestApplicationAvailability',[StringComparison]::Ordinal) -or
+       $branch -match '\b(?:Prepare-VSCodeTestAsset|Prepare-TerminalTestAsset|Prepare-OfficialMediaApps)\b'){
+        throw 'Identity-only mode must finish before application/product/input preparation.'
+    }
+    foreach($value in @('$manifest.guest_standard_run_id -cne $RunId',
+        '$manifest.guest_standard_account -cne (''PBV1D_''+$RunId.Substring(0,12))',
+        '$manifest.guest_suite -cne ''NativeClientsOnly'' -or $manifest.guest_configurations -cne ''Release''',
+        '$manifest.medium_desktop_probe.native_identity_only -isnot [bool]',
+        '$manifest.medium_desktop_probe.standard_native_clients -isnot [bool]',
+        'return RunNativeParent(runId,scriptHash,driverSource,imageHash,imageSize,true,null,30,true);',
+        'CreateProcessWithLogonW(logonName,".",logonPassword,1,executable,new StringBuilder("\""+executable+"\" --build-identity")',
+        '0x08000004,IntPtr.Zero,"C:\\PaneBindV1\\Input",ref startup,out child)',
+        'WaitForSingleObject(child.process,20000)',
+        'stdout.ContainsKey("text")&&(string)stdout["text"]==expected',
+        'actual_child_identity_matches_created_account','actual_child_new_logon_sid_sha256',
+        'if(asUserClients&&!logonIdentity&&(bool)child["identity_observed"]',
+        'result["followup_native_clients_allowed"]=false',
+        'if(account!=null&&actual==account&&(bool)result["all_probe_children_stopped"])')){
+        if(-not $Probe.Contains($value)){throw ('Logon native identity lost its exact single-route or actual output/cleanup gate: '+$value)}
+    }
+    $baseline=$Probe.IndexOf('var baseline=RunNativeIdentity(',[StringComparison]::Ordinal)
+    if($baseline -lt 0 -or $baseline -ge $Probe.IndexOf('uint added=NetUserAdd(null,1,ref info,out parameter)',[StringComparison]::Ordinal)){
+        throw 'Actual WDAG native baseline must precede creation of the unique guest account.'
+    }
+}
+Assert-V1StandardLogonIdentityWiring $standardProbe $standardGuest
+Check $true 'static CPWL identity-only route binds exact Run/Release, actual native output, cleanup and terminal no-fallback scope'
+Reject {Assert-V1StandardLogonIdentityWiring ($standardProbe.Replace('if(asUserClients&&!logonIdentity&&(bool)child["identity_observed"]','if(asUserClients&&(bool)child["identity_observed"]')) $standardGuest} 'static CPWL identity-only route rejects enabling native-client follow-up after identity'
+Reject {Assert-V1StandardLogonIdentityWiring ($standardProbe.Replace('stdout.ContainsKey("text")&&(string)stdout["text"]==expected','true')) $standardGuest} 'static CPWL identity-only route rejects granting identity success without the exact actual stdout'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
@@ -651,7 +726,7 @@ $missingSpec=[pscustomobject]@{kind='PaneBindReleasePortable';relative_path='Pan
     files=@(1..6|ForEach-Object{[pscustomobject]@{relative_path=('file'+$_);size=1;sha256=('D'*64)}})}
 $missingReason='';try{Prepare-PortableTestPackage $missingSpec $before ('A'*64)|Out-Null}catch{$missingReason=$_.Exception.Message}
 Check ($missingReason -ceq 'Portable package must have exactly seven payload files.' -and -not(Test-Path -LiteralPath $outputDir)) 'actual guest rejects missing payload file before extraction; no directory or product was created'
-foreach($relative in @('scripts/v1-package-identity.ps1','scripts/v1-prepare-portable.ps1','scripts/v1-prepare-sandbox.ps1','scripts/v1-sandbox-guest.ps1')){
+foreach($relative in @('scripts/v1-package-identity.ps1','scripts/v1-prepare-portable.ps1','scripts/v1-prepare-sandbox.ps1','scripts/v1-sandbox-guest.ps1','scripts/v1-medium-desktop-probe-guest.ps1')){
     $tokens=$null;$errors=$null
     [Management.Automation.Language.Parser]::ParseFile((Join-Path $repository $relative),[ref]$tokens,[ref]$errors)|Out-Null
     Check ($errors.Count -eq 0) ('PowerShell parser: '+$relative)

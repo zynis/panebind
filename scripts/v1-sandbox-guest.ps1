@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly')][string]$Suite='Full',
+      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -457,10 +457,25 @@ try {
     $probeDesktop=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.enabled -eq $true
     $nativeIdentityOnly=$false
     $standardNativeClients=$false
+    $standardLogonIdentity=$false
     if($probeDesktop){
         if($manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck'){throw 'Unknown guest desktop probe.'}
         $nativeIdentityOnly=$manifest.medium_desktop_probe.native_identity_only -eq $true
         $standardNativeClients=$manifest.medium_desktop_probe.standard_native_clients -eq $true
+        $standardLogonIdentity=$manifest.medium_desktop_probe.standard_logon_identity -eq $true
+        if($standardLogonIdentity -and ($manifest.medium_desktop_probe.standard_logon_identity -isnot [bool] -or
+           $manifest.medium_desktop_probe.native_identity_only -isnot [bool] -or $nativeIdentityOnly -or
+           $manifest.medium_desktop_probe.standard_native_clients -isnot [bool] -or $standardNativeClients -or
+           $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'StandardLogonNativeIdentity' -or
+           $manifest.medium_desktop_probe.standard_native_api -cne 'CreateProcessWithLogonW' -or
+           $null -ne $manifest.medium_desktop_probe.followup_suite -or
+           $manifest.medium_desktop_probe.native_identity_image -cne 'panebind-v1-guest-fixture.exe' -or
+           $manifest.guest_account_mode -cne 'RunBoundStandardLogonNativeIdentity' -or $manifest.guest_standard_run_id -cne $RunId -or
+           $manifest.guest_standard_account -cne ('PBV1D_'+$RunId.Substring(0,12)) -or
+           $Suite -cne 'NativeClientsOnly' -or $Configurations -cne 'Release' -or $probeMedium -or
+           @($manifest.test_assets).Count -or $null -ne $manifest.terminal_test_asset -or
+           $null -ne $manifest.official_app_assets -or $null -ne $manifest.portable_test)){
+            throw 'Logon identity requires its exact stop-only Run/account/API selection without assets or input.'}
         if($standardNativeClients -and ($manifest.medium_desktop_probe.standard_native_clients -isnot [bool] -or $nativeIdentityOnly -or
            $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'StandardGuestNativeClients' -or
            $manifest.medium_desktop_probe.standard_native_api -cne 'CreateProcessAsUserW' -or $manifest.medium_desktop_probe.followup_suite -cne 'NativeClientsOnly' -or
@@ -554,7 +569,42 @@ try {
             $summary['medium_environment_probe']=$probeRecord
         }finally{$probe.Dispose()}
     }
-    if($probeDesktop -and -not $standardNativeClients){
+    if($standardLogonIdentity){
+        # Officially documented alternative for the retained CPAS 1314.
+        # This one native identity experiment never falls through to apps,
+        # product GUI, a fixture suite, synthetic input, or another login API.
+        $probeInfo=New-Object Diagnostics.ProcessStartInfo
+        $probeInfo.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $probeInfo.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-medium-desktop-probe-guest.ps1 -RunId '+$RunId+' -StandardLogonNativeIdentity'
+        $probeInfo.UseShellExecute=$false;$probeInfo.CreateNoWindow=$true
+        $probe=New-Object Diagnostics.Process;$probe.StartInfo=$probeInfo
+        try{
+            if(-not $probe.Start()){throw 'Exact logon identity bootstrap did not start.'}
+            if(-not $probe.WaitForExit(120000)){
+                $probe.Kill();[void]$probe.WaitForExit(5000)
+                throw 'Logon identity bootstrap timed out; cleanup UNKNOWN, no product/input permitted.'}
+            $probePath=Join-Path $outputDir ($RunId+'-medium-desktop-probe.json');$probeFile=Get-Item -LiteralPath $probePath
+            if($probeFile.PSIsContainer -or ($probeFile.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $probeFile.Length -gt 256KB){throw 'Bounded exact logon identity receipt missing.'}
+            $record=[IO.File]::ReadAllText($probePath,[Text.Encoding]::UTF8)|ConvertFrom-Json
+            $entry=@($manifest.files|Where-Object relative_path -ceq 'v1-medium-desktop-probe-guest.ps1')
+            if($record.schema -cne 'panebind-v1-medium-desktop-probe/1' -or $record.run_id -cne $RunId -or
+               $record.actual_suite -cne 'StandardLogonNativeIdentity' -or $record.probe_source_commit -cne $manifest.packaging_head -or
+               $record.driver_source_commit -cne $manifest.driver_source_commit -or $entry.Count -ne 1 -or $record.probe_sha256 -cne $entry[0].sha256 -or
+               $record.result.account_cleanup_confirmed -ne $true -or $record.result.dacl_cleanup_confirmed -ne $true -or
+               $record.result.all_probe_children_stopped -ne $true -or $record.result.product_started -ne $false -or
+               $record.result.synthetic_input_sent -ne $false){throw 'Logon identity or exact cleanup unconfirmed; no follow-up permitted.'}
+            $known=$probe.ExitCode -eq 0 -and $record.result.status -ceq 'STANDARD_LOGON_NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL' -and
+                $record.result.wdag_baseline.identity_observed -eq $true -and $record.result.standard_native_child.identity_observed -eq $true
+            if(-not $known -and -not($probe.ExitCode -eq 3 -and $record.result.status -ceq 'UNKNOWN')){throw 'Unexpected logon identity result; no follow-up permitted.'}
+            $summary.actual_suite='StandardLogonNativeIdentity';$summary['medium_desktop_probe']=$record
+            $summary['compatibility_envelope_is_GUI_evidence']=$false
+            $summary['product_GUI']='NOT_RUN';$summary['applications']='NOT_RUN';$summary['fixture_suite']='NOT_RUN'
+            $summary['finite_900_second_session']='NOT_RUN';$summary['profile_cleanup_PASS_claimed']=$false
+            $summary.status=if($known){'STANDARD_LOGON_NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL'}else{'STANDARD_LOGON_NATIVE_IDENTITY_UNKNOWN'}
+            if($known){exit 0}else{exit 3}
+        }finally{$probe.Dispose()}
+    }
+    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){
         # One official alternate-user GUI precheck in this disposable guest.
         # It grants no product/Shell authority and never sends input.
         $probeInfo=New-Object Diagnostics.ProcessStartInfo

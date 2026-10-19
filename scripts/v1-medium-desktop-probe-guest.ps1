@@ -5,6 +5,7 @@ param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$Ru
     [ValidatePattern('^[A-F0-9]{64}$')][string]$BindingSha256,
     [switch]$NativeIdentityOnly,
     [switch]$StandardGuestNativeClients,
+    [switch]$StandardLogonNativeIdentity,
     [ValidateRange(30,1800)][int]$NativeClientsTimeoutSeconds=900)
 $ErrorActionPreference='Stop'
 $mappedInputDir='C:\PaneBindV1\Input'
@@ -61,7 +62,7 @@ try {
     }finally{$identity.Dispose()}
     if($Mode -ceq 'Parent' -and ($ChildNonce -or $BindingSha256)){throw 'Parent mode does not accept child binding arguments.'}
     if($Mode -ceq 'Child' -and (-not $ChildNonce -or -not $BindingSha256)){throw 'Child requires its exact one-time binding.'}
-    if($Mode -ceq 'Child' -and ($NativeIdentityOnly -or $StandardGuestNativeClients)){throw 'Native modes have no PowerShell child entry.'}
+    if($Mode -ceq 'Child' -and ($NativeIdentityOnly -or $StandardGuestNativeClients -or $StandardLogonNativeIdentity)){throw 'Native modes have no PowerShell child entry.'}
     if((Read-ExactMarker (Join-Path $inputDir 'panebind-v1-input.marker')) -cne $RunId -or
        (Read-ExactMarker (Join-Path $outputDir 'panebind-v1-output.marker')) -cne $RunId){throw 'Input/output run markers disagree.'}
     $manifestFile=Get-Item -LiteralPath (Join-Path $inputDir 'manifest.json') -ErrorAction Stop
@@ -86,6 +87,20 @@ try {
     $standardRequested=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.standard_native_clients -eq $true
     if([bool]$StandardGuestNativeClients -ne $standardRequested -or ($NativeIdentityOnly -and $StandardGuestNativeClients)){
         throw 'Standard native-client mode must match its separate immutable package selection.'}
+    $logonRequested=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.standard_logon_identity -eq $true
+    if([bool]$StandardLogonNativeIdentity -ne $logonRequested -or ($StandardLogonNativeIdentity -and ($NativeIdentityOnly -or $StandardGuestNativeClients))){
+        throw 'Standard logon identity mode must match its separate immutable package selection.'}
+    if($StandardLogonNativeIdentity -and ($Mode -cne 'Parent' -or
+       $manifest.medium_desktop_probe.enabled -ne $true -or $manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck' -or
+       $manifest.medium_desktop_probe.standard_logon_identity -isnot [bool] -or
+       $manifest.medium_desktop_probe.native_identity_only -isnot [bool] -or $manifest.medium_desktop_probe.native_identity_only -ne $false -or
+       $manifest.medium_desktop_probe.standard_native_clients -isnot [bool] -or $manifest.medium_desktop_probe.standard_native_clients -ne $false -or
+       $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'StandardLogonNativeIdentity' -or
+       $manifest.medium_desktop_probe.standard_native_api -cne 'CreateProcessWithLogonW' -or
+       $manifest.guest_account_mode -cne 'RunBoundStandardLogonNativeIdentity' -or $manifest.guest_standard_run_id -cne $RunId -or
+       $manifest.guest_standard_account -cne ('PBV1D_'+$RunId.Substring(0,12)) -or
+       $manifest.guest_suite -cne 'NativeClientsOnly' -or $manifest.guest_configurations -cne 'Release')){
+        throw 'Standard logon identity requires its exact Run-bound account, single API and stop-only contract.'}
     if($StandardGuestNativeClients -and ($Mode -cne 'Parent' -or
        $manifest.medium_desktop_probe.enabled -ne $true -or $manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck' -or
        $manifest.medium_desktop_probe.standard_native_clients -isnot [bool] -or $manifest.medium_desktop_probe.native_identity_only -ne $false -or
@@ -96,7 +111,7 @@ try {
        $manifest.guest_suite -cne 'NativeClientsOnly' -or $manifest.guest_configurations -cne 'Release')){
         throw 'Standard native clients require the exact Run-bound account, API, follow-up and guest contract.'}
     $nativeImage=$null
-    if($NativeIdentityOnly -or $StandardGuestNativeClients){
+    if($NativeIdentityOnly -or $StandardGuestNativeClients -or $StandardLogonNativeIdentity){
         if($NativeIdentityOnly -and ($manifest.medium_desktop_probe.enabled -ne $true -or $manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck' -or
            $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'MediumNativeIdentityOnly' -or
            $manifest.medium_desktop_probe.native_identity_image -cne 'panebind-v1-guest-fixture.exe' -or
@@ -263,6 +278,15 @@ public static class PaneBindV1MediumDesktopProbe {
     [DllImport("user32.dll",SetLastError=true)] static extern bool SetUserObjectSecurity(IntPtr value,ref uint information,IntPtr descriptor);
     [DllImport("advapi32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool CreateProcessWithTokenW(IntPtr token,uint logon,string application,StringBuilder command,uint flags,IntPtr environment,string directory,ref Startup startup,out ProcessInfo process);
     [DllImport("advapi32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool CreateProcessAsUserW(IntPtr token,string application,StringBuilder command,IntPtr processSecurity,IntPtr threadSecurity,bool inherit,uint flags,IntPtr environment,string directory,ref Startup startup,out ProcessInfo process);
+    [DllImport("advapi32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool CreateProcessWithLogonW(string user,string domain,IntPtr password,uint logon,string application,StringBuilder command,uint flags,IntPtr environment,string directory,ref Startup startup,out ProcessInfo process);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool QueryFullProcessImageNameW(IntPtr process,uint flags,StringBuilder path,ref uint size);
+    [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr CreateToolhelp32Snapshot(uint flags,uint process);
+    [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct ProcessEntry {
+        public uint size,usage,pid;public UIntPtr heap;public uint module,threads,parent;public int priority;public uint flags;
+        [MarshalAs(UnmanagedType.ByValTStr,SizeConst=260)] public string image;
+    }
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool Process32FirstW(IntPtr snapshot,ref ProcessEntry entry);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool Process32NextW(IntPtr snapshot,ref ProcessEntry entry);
     [DllImport("advapi32.dll",SetLastError=true)] static extern bool OpenProcessToken(IntPtr process,uint access,out IntPtr token);
     [DllImport("kernel32.dll",SetLastError=true)] static extern uint ResumeThread(IntPtr thread);
     [DllImport("kernel32.dll",SetLastError=true)] static extern uint WaitForSingleObject(IntPtr value,uint milliseconds);
@@ -494,12 +518,62 @@ public static class PaneBindV1MediumDesktopProbe {
         report["size"]=bytes.Length;report["sha256"]=ByteHash(bytes);report["text"]=new UTF8Encoding(false,true).GetString(bytes);
         report["status"]=bytes.Length==0?"EMPTY_ENTRY_UNKNOWN":"CAPTURED_NOT_YET_VALIDATED";return report;
     }
+    static Dictionary<string,object> NativeParentFacts(uint pid) {
+        var result=new Dictionary<string,object>{{"known",false},{"actual_child_pid",pid},{"actual_parent_pid",null},
+            {"parent_matches_bootstrap",null},{"parent_identity_or_GUI_permission_inferred",false}};
+        var snapshot=CreateToolhelp32Snapshot(2,0);
+        if(snapshot==new IntPtr(-1)){result["snapshot_error"]=Marshal.GetLastWin32Error();return result;}
+        try {
+            var entry=new ProcessEntry{size=(uint)Marshal.SizeOf(typeof(ProcessEntry))};bool found=Process32FirstW(snapshot,ref entry);
+            for(int count=0;found&&count<4096;count++,found=Process32NextW(snapshot,ref entry))if(entry.pid==pid){
+                result["known"]=true;result["actual_parent_pid"]=entry.parent;
+                result["parent_matches_bootstrap"]=entry.parent==(uint)Process.GetCurrentProcess().Id;return result;
+            }
+            result["reason"]="exact_child_not_found_in_bounded_snapshot";return result;
+        }finally{CloseHandle(snapshot);}
+    }
+    static Dictionary<string,object> ExactCreatedProfile(string sid) {
+        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"lookup_exact_created_sid",true},{"created_sid_sha256",Hash(sid)},
+            {"profile_list_present",null},{"hive_loaded",null},{"profile_directory_present",null},
+            {"profile_deletion_attempted",false},{"profile_cleanup_PASS_claimed",false}};
+        try {
+            // Only this freshly created account SID, never profile enumeration
+            // or deletion. Retained guest profile data is reported separately.
+            new SecurityIdentifier(sid);
+            using(var hive=Microsoft.Win32.Registry.Users.OpenSubKey(sid,false))result["hive_loaded"]=hive!=null;
+            using(var profile=Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\"+sid,false)){
+                result["profile_list_present"]=profile!=null;
+                if(profile!=null){
+                    var raw=profile.GetValue("ProfileImagePath",null,Microsoft.Win32.RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+                    if(String.IsNullOrEmpty(raw)||raw.Length>1024)throw new InvalidOperationException("Exact SID profile path unavailable or over bound");
+                    result["profile_image_path_raw"]=raw;var path=Path.GetFullPath(Environment.ExpandEnvironmentVariables(raw));
+                    result["profile_image_path"]=path;
+                    if(!Path.IsPathRooted(path)||path.StartsWith("\\\\",StringComparison.Ordinal)||
+                        !String.Equals(Path.GetPathRoot(path),Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Exact SID profile path not on this guest system drive");
+                    var directory=new DirectoryInfo(path);result["profile_directory_present"]=directory.Exists;
+                    if(directory.Exists){
+                        bool plain=(directory.Attributes&FileAttributes.ReparsePoint)==0;result["profile_directory_plain"]=plain;
+                        if(!plain)throw new InvalidOperationException("Exact SID profile directory is not plain");
+                        var owner=(SecurityIdentifier)Directory.GetAccessControl(path,AccessControlSections.Owner).GetOwner(typeof(SecurityIdentifier));
+                        result["profile_directory_owner_sid_sha256"]=Hash(owner.Value);result["profile_directory_owner_is_created_sid"]=owner.Value==sid;
+                    }
+                }
+            }
+            result["status"]="EXACT_CREATED_SID_PROFILE_INVENTORY_ONLY";
+        }catch(Exception e){result["error_type"]=e.GetType().Name;result["exception_hresult"]=e.HResult;}
+        return result;
+    }
     static Dictionary<string,object> RunNativeIdentity(IntPtr token,string expectedSid,string expectedLogon,int session,bool standard,
         string runId,string driverSource,string imageHash,long imageSize,string phase,IntPtr station,IntPtr desktop,
-        AclState beforeStation,AclState beforeDesktop,out List<AddedAce> recordedStation,out List<AddedAce> recordedDesktop,bool asUser=false) {
-        // Exactly two callers: current WDAG token baseline, then the freshly
-        // credentialed standard account. Both use the same image/API/stdio.
-        recordedStation=null;recordedDesktop=null;
+        AclState beforeStation,AclState beforeDesktop,out List<AddedAce> recordedStation,out List<AddedAce> recordedDesktop,bool asUser=false,
+        string logonName=null,IntPtr logonPassword=default(IntPtr)) {
+        // The retained CPWT/CPAS routes compare their own same-API baseline.
+        // The explicit CPWL identity-only contrast uses a new logon/profile;
+        // it retains the exact image/stdout checks, not a same-token/API claim.
+        recordedStation=null;recordedDesktop=null;bool withLogon=logonName!=null;
+        if(withLogon&&(!asUser||!standard||logonName!="PBV1D_"+runId.Substring(0,12)||logonPassword==IntPtr.Zero))
+            throw new InvalidOperationException("Exact Run-bound standard logon identity credentials required");
         var result=new Dictionary<string,object>{{"phase",phase},{"identity_observed",false},{"status","UNKNOWN"},
             {"child_created",false},{"child_process_exited",false},{"child_cleanup_confirmed",true},
             {"test_child_force_termination_attempted",false},{"CreateProcessWithTokenW_attempted",false},
@@ -507,14 +581,23 @@ public static class PaneBindV1MediumDesktopProbe {
             {"stdout_empty_means_native_entry_not_reached",false},{"GUI_or_Shell_tested",false}};
         if(asUser){result["CreateProcessAsUserW_attempted"]=false;result["launch_api"]="CreateProcessAsUserW";
             result["lpDesktop"]="winsta0\\default";result["LOGON_WITH_PROFILE"]=false;}
+        if(withLogon){result["launch_api"]="CreateProcessWithLogonW";result["LOGON_WITH_PROFILE"]=true;
+            result["CreateProcessWithLogonW_attempted"]=false;result["lpEnvironment"]="NULL_target_user_profile";
+            result["same_LogonUser_token_claimed"]=false;result["GUI_Input_Product_App_launch_allowed"]=false;}
         var child=new ProcessInfo();IntPtr childToken=IntPtr.Zero;
         FileStream input=null,output=null,error=null;bool resumed=false;string stage="exact_image_recheck";
         string executable=asUser?"C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe":ChildInput(runId)+"\\panebind-v1-guest-fixture.exe";
-        string prefix=(asUser?LocalRun(runId)+"\\AsUserIO":ChildOutput(runId))+"\\"+phase;
+        string prefix=(withLogon?LocalRun(runId)+"\\LogonIO":asUser?LocalRun(runId)+"\\AsUserIO":ChildOutput(runId))+"\\"+phase;
         try {
             var file=new FileInfo(executable);
             if(!file.Exists||file.Length!=imageSize||file.Length>16777216||(file.Attributes&FileAttributes.ReparsePoint)!=0||
                 ByteHash(File.ReadAllBytes(executable))!=imageHash)throw new InvalidOperationException("Exact native image changed");
+            if(withLogon){
+                result["actual_prelaunch_bootstrap_desktop"]=Desktop(true);uint accountStatus;
+                if(AccountSid(logonName,out accountStatus)!=expectedSid||accountStatus!=0||
+                    !SameBytes(ReadDacl(station).bytes,beforeStation.bytes)||!SameBytes(ReadDacl(desktop).bytes,beforeDesktop.bytes))
+                    throw new InvalidOperationException("Exact created account or desktop DACL changed before logon identity");
+            }
             result["image_sha256"]=imageHash;result["image_size"]=imageSize;
             input=new FileStream(prefix+"-stdin.bin",FileMode.CreateNew,FileAccess.ReadWrite,FileShare.Read|FileShare.Inheritable);
             output=new FileStream(prefix+"-stdout.txt",FileMode.CreateNew,FileAccess.ReadWrite,FileShare.Read|FileShare.Inheritable);
@@ -525,11 +608,13 @@ public static class PaneBindV1MediumDesktopProbe {
             result["stdio_handle_validity_in_child"]="UNKNOWN_UNTIL_ACTUAL_IDENTITY_OUTPUT";
             // The old CPWT observation is unchanged. The new explicit route
             // uses only AsUser, with a real inheritable stdio baseline first.
-            string api=asUser?"CreateProcessAsUserW":"CreateProcessWithTokenW";
+            string api=withLogon?"CreateProcessWithLogonW":asUser?"CreateProcessAsUserW":"CreateProcessWithTokenW";
             stage=api;result[api+"_attempted"]=true;result["launch_api"]=api;
-            result["lpDesktop"]=asUser?"winsta0\\default":"NULL";result["LOGON_WITH_PROFILE"]=!asUser;
-            result["bInheritHandles"]=asUser;
-            bool launched=asUser?
+            result["lpDesktop"]=asUser?"winsta0\\default":"NULL";result["LOGON_WITH_PROFILE"]=withLogon||!asUser;
+            result["bInheritHandles"]=withLogon?(object)null:asUser;
+            bool launched=withLogon?
+                CreateProcessWithLogonW(logonName,".",logonPassword,1,executable,new StringBuilder("\""+executable+"\" --build-identity"),
+                    0x08000004,IntPtr.Zero,"C:\\PaneBindV1\\Input",ref startup,out child):asUser?
                 CreateProcessAsUserW(token,executable,new StringBuilder("\""+executable+"\" --build-identity"),IntPtr.Zero,IntPtr.Zero,true,
                     0x08000004,IntPtr.Zero,"C:\\PaneBindV1\\Input",ref startup,out child):
                 CreateProcessWithTokenW(token,1,executable,new StringBuilder("\""+executable+"\" --build-identity"),
@@ -564,7 +649,8 @@ public static class PaneBindV1MediumDesktopProbe {
             result["OpenProcessToken_requested_access"]=8;result["OpenProcessToken_error"]=opened?0:Marshal.GetLastWin32Error();
             if(!opened)throw new InvalidOperationException("Actual native child token unavailable");
             bool ordinary;var actualFacts=TokenFacts(childToken,expectedSid,session,out ordinary);result["actual_child_token"]=actualFacts;
-            bool match=TokenSid(childToken)==expectedSid&&TokenNumber(childToken,12)==session&&LogonSid(childToken)==expectedLogon;
+            var actualLogon=LogonSid(childToken);
+            bool match=TokenSid(childToken)==expectedSid&&TokenNumber(childToken,12)==session&&(withLogon||actualLogon==expectedLogon);
             if(standard)match&=ordinary;
             else {
                 bool ignored;var requestedFacts=TokenFacts(token,expectedSid,session,out ignored);
@@ -574,7 +660,18 @@ public static class PaneBindV1MediumDesktopProbe {
                     (bool)actualFacts["ui_access"]==(bool)requestedFacts["ui_access"]&&
                     (bool)actualFacts["app_container"]==(bool)requestedFacts["app_container"];
             }
-            result["actual_child_identity_matches_requested_token"]=match;
+            if(withLogon){
+                result["actual_child_new_logon_sid_sha256"]=Hash(actualLogon);result["new_logon_sid_not_assumed_equal_to_LogonUser"]=true;
+                result["actual_parent"]=NativeParentFacts(child.pid);
+                var path=new StringBuilder(32768);uint size=(uint)path.Capacity;bool pathRead=QueryFullProcessImageNameW(child.process,0,path,ref size);
+                result["actual_image_query_succeeded"]=pathRead;result["actual_image_query_error"]=pathRead?0:Marshal.GetLastWin32Error();
+                result["actual_image_path"]=pathRead?(object)path.ToString():null;
+                bool imageMatches=pathRead&&String.Equals(Path.GetFullPath(path.ToString()),executable,StringComparison.OrdinalIgnoreCase);
+                if(imageMatches){var actualImage=new FileInfo(path.ToString());imageMatches=actualImage.Exists&&actualImage.Length==imageSize&&
+                    (actualImage.Attributes&FileAttributes.ReparsePoint)==0&&ByteHash(File.ReadAllBytes(actualImage.FullName))==imageHash;}
+                result["actual_image_matches_manifest"]=imageMatches;match&=imageMatches;
+                result["actual_child_identity_matches_created_account"]=match;
+            }else result["actual_child_identity_matches_requested_token"]=match;
             if(!match)throw new InvalidOperationException("Actual native child identity rejected");
             stage="child_desktop_before_resume";
             try{result["actual_child_thread_desktop_before_resume"]=ObjectName(GetThreadDesktop(child.tid));}
@@ -606,9 +703,10 @@ public static class PaneBindV1MediumDesktopProbe {
                     result["stdout"]=stdout;result["stderr"]=stderr;
                     string expected="{\"product\":\"PaneBind V1 guest fixture\",\"source_commit\":\""+driverSource+
                         "\",\"host_synthetic_input\":\"forbidden\",\"requires_medium_guest\":true,\"guest_contract\":\"panebind-v1-guest-contract/2\",\"product_interface\":\"panebind-v1-product-guest-interface/1\"}\n";
+                    string identityField=withLogon?"actual_child_identity_matches_created_account":"actual_child_identity_matches_requested_token";
                     bool observed=resumed&&result.ContainsKey("child_exit_code")&&(uint)result["child_exit_code"]==0&&
-                        !(bool)result["test_child_force_termination_attempted"]&&result.ContainsKey("actual_child_identity_matches_requested_token")&&
-                        (bool)result["actual_child_identity_matches_requested_token"]&&stdout.ContainsKey("text")&&(string)stdout["text"]==expected;
+                        !(bool)result["test_child_force_termination_attempted"]&&result.ContainsKey(identityField)&&
+                        (bool)result[identityField]&&stdout.ContainsKey("text")&&(string)stdout["text"]==expected;
                     result["identity_observed"]=observed;result["status"]=observed?"NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL":"UNKNOWN";
                     if(observed)result["reason"]="exact_native_identity_stdout_and_actual_token_exit_observed";
                     else if(!result.ContainsKey("reason")||(string)result["reason"]=="native_stdout_identity_requires_validation")
@@ -726,16 +824,22 @@ public static class PaneBindV1MediumDesktopProbe {
     public static Dictionary<string,object> RunNativeParent(string runId,string scriptHash,string driverSource,string imageHash,long imageSize) {
         return RunNativeParent(runId,scriptHash,driverSource,imageHash,imageSize,false,null,900);
     }
+    public static Dictionary<string,object> RunStandardLogonNativeIdentity(string runId,string scriptHash,string driverSource,string imageHash,long imageSize) {
+        return RunNativeParent(runId,scriptHash,driverSource,imageHash,imageSize,true,null,30,true);
+    }
     public static Dictionary<string,object> RunNativeParent(string runId,string scriptHash,string driverSource,string imageHash,long imageSize,
-        bool asUserClients,string productHash,uint nativeTimeout) {
-        if(asUserClients&&(nativeTimeout<30||nativeTimeout>1800||productHash==null||productHash.Length!=64))
+        bool asUserClients,string productHash,uint nativeTimeout,bool logonIdentity=false) {
+        if(logonIdentity&&!asUserClients)throw new InvalidOperationException("Logon identity requires its explicit no-DACL native branch");
+        if(asUserClients&&!logonIdentity&&(nativeTimeout<30||nativeTimeout>1800||productHash==null||productHash.Length!=64))
             throw new InvalidOperationException("Bounded exact standard native-client contract required");
         var desktop=Desktop(true);int session=(int)desktop["session_id"];string name="PBV1D_"+runId.Substring(0,12);
-        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"probe_mode",asUserClients?"StandardGuestNativeClients":"MediumNativeIdentityOnly"},{"bootstrap_desktop",desktop},
+        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"probe_mode",logonIdentity?"StandardLogonNativeIdentity":asUserClients?"StandardGuestNativeClients":"MediumNativeIdentityOnly"},{"bootstrap_desktop",desktop},
             {"account_created",false},{"account_cleanup_confirmed",false},{"dacl_cleanup_confirmed",false},{"all_probe_children_stopped",true},
             {"product_started",false},{"product_GUI_started",false},{"explorer_started",false},{"synthetic_input_sent",false},
             {"host_configuration_changed",false},{"GUI_or_Shell_result","NOT_RUN"},{"baseline_required_before_account",true},
-            {"standard_native_clients_requested",asUserClients},{"native_clients_fixture_started",false}};
+            {"standard_native_clients_requested",asUserClients&&!logonIdentity},{"native_clients_fixture_started",false}};
+        if(logonIdentity){result["standard_logon_identity_requested"]=true;result["launch_policy"]="one_CPAS_WDAG_baseline_then_one_CPWL_build_identity_no_fallback";
+            result["profile_cleanup_PASS_claimed"]=false;result["profile_deletion_allowed"]=false;}
         IntPtr station=IntPtr.Zero,defaultDesktop=IntPtr.Zero,bootstrapToken=IntPtr.Zero,token=IntPtr.Zero;
         IntPtr password=IntPtr.Zero,nameMemory=IntPtr.Zero,comment=IntPtr.Zero;
         AclState beforeStation=null,beforeDesktop=null;List<AddedAce> recordedStation=null,recordedDesktop=null;
@@ -757,8 +861,11 @@ public static class PaneBindV1MediumDesktopProbe {
             if(asUserClients){
                 string parent="C:\\PaneBindV1\\MediumDesktop";if(!Directory.Exists(parent))Directory.CreateDirectory(parent);
                 PlainDirectory(parent);NewDirectory(LocalRun(runId));NewDirectory(LocalRun(runId)+"\\AsUserIO");
+                if(logonIdentity)NewDirectory(LocalRun(runId)+"\\LogonIO");
                 local=new Dictionary<string,object>{{"child_input","C:\\PaneBindV1\\Input"},{"stdout_parent",LocalRun(runId)+"\\AsUserIO"},
                     {"directory_DACLs_modified",false},{"stdio_inherited_not_child_file_open",true},{"full_Shell_PASS_inferred",false}};
+                if(logonIdentity){local["logon_stdout_parent"]=LocalRun(runId)+"\\LogonIO";
+                    local["CPWL_stdio_inheritance"]="UNKNOWN_until_actual_exact_stdout";}
                 result["no_station_desktop_or_directory_DACL_changes_attempted"]=true;
             }else{
                 local=PrepareLocalIo(runId,bootstrapSid,scriptHash);
@@ -775,6 +882,8 @@ public static class PaneBindV1MediumDesktopProbe {
                 "wdag-baseline",station,defaultDesktop,beforeStation,beforeDesktop,out unusedStation,out unusedDesktop,asUserClients);
             result["wdag_baseline"]=baseline;result["all_probe_children_stopped"]=(bool)baseline["child_cleanup_confirmed"];
             if(!(bool)baseline["identity_observed"]||!(bool)baseline["child_cleanup_confirmed"]){result["reason"]="WDAG_stdio_or_native_entry_UNKNOWN_no_account_created";return result;}
+            if(logonIdentity){result["baseline_launch_api"]="CreateProcessAsUserW";result["candidate_launch_api"]="CreateProcessWithLogonW";
+                result["same_API_stdio_baseline_claimed"]=false;}
             // Baseline success alone never authorizes GUI or ordinary apps.
             // Only now create the one fresh credentialed standard account.
             stage="create_unique_standard_guest_account";
@@ -788,25 +897,33 @@ public static class PaneBindV1MediumDesktopProbe {
             if(added!=0){result["reason"]="unique_standard_account_not_created_or_reused";return result;}
             created=true;result["account_created"]=true;uint sidStatus;account=AccountSid(name,out sidStatus);result["created_sid_query_status"]=sidStatus;
             if(account==null)throw new InvalidOperationException("Fresh standard account SID unknown");result["created_account_sid_sha256"]=Hash(account);
-            stage="credential_token";
-            bool loggedOn=LogonUserW(name,".",password,2,0,out token);result["LogonUser_succeeded"]=loggedOn;result["LogonUser_error"]=loggedOn?0:Marshal.GetLastWin32Error();
-            if(!loggedOn){result["reason"]="standard_credential_logon_failed";return result;}
-            bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
-            result["actual_logon_sid_sha256"]=Hash(logon);
-            if(!ordinary||TokenNumber(token,12)!=session){result["reason"]="actual_standard_token_or_session_rejected";return result;}
+            if(logonIdentity){
+                result["LogonUser_called"]=false;result["credential_token_not_created"]=true;
+                result["profile_before_native_logon"]=ExactCreatedProfile(account);
+            }else{
+                stage="credential_token";
+                bool loggedOn=LogonUserW(name,".",password,2,0,out token);result["LogonUser_succeeded"]=loggedOn;result["LogonUser_error"]=loggedOn?0:Marshal.GetLastWin32Error();
+                if(!loggedOn){result["reason"]="standard_credential_logon_failed";return result;}
+                bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
+                result["actual_logon_sid_sha256"]=Hash(logon);
+                if(!ordinary||TokenNumber(token,12)!=session){result["reason"]="actual_standard_token_or_session_rejected";return result;}
+            }
             stage="exact_fresh_local_account_access";
             if(!asUserClients){
                 NewDirectoryAccess(LocalRun(runId),account,false);NewDirectoryAccess(ChildInput(runId),account,false);NewDirectoryAccess(ChildOutput(runId),account,true);
                 local["child_input_access"]="exact_new_account_ReadAndExecute";local["child_output_access"]="exact_new_account_Modify";
             }
-            stage="standard_same_API_stdio_native_identity";
+            stage=logonIdentity?"standard_CPWL_native_identity_only":"standard_same_API_stdio_native_identity";
             var child=RunNativeIdentity(token,account,logon,session,true,runId,driverSource,imageHash,imageSize,
-                "standard-native",station,defaultDesktop,beforeStation,beforeDesktop,out recordedStation,out recordedDesktop,asUserClients);
-            standardAttempted=(bool)child[asUserClients?"CreateProcessAsUserW_attempted":"CreateProcessWithTokenW_attempted"];
+                logonIdentity?"standard-logon-native":"standard-native",station,defaultDesktop,beforeStation,beforeDesktop,out recordedStation,out recordedDesktop,
+                asUserClients,logonIdentity?name:null,logonIdentity?password:IntPtr.Zero);
+            standardAttempted=(bool)child[logonIdentity?"CreateProcessWithLogonW_attempted":asUserClients?"CreateProcessAsUserW_attempted":"CreateProcessWithTokenW_attempted"];
             result["standard_native_child"]=child;result["all_probe_children_stopped"]=(bool)baseline["child_cleanup_confirmed"]&&(bool)child["child_cleanup_confirmed"];
-            result["status"]=(bool)child["identity_observed"]?"NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL":"UNKNOWN";
+            result["status"]=(bool)child["identity_observed"]?(logonIdentity?"STANDARD_LOGON_NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL":"NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL"):"UNKNOWN";
             result["reason"]=(bool)child["identity_observed"]?"actual_native_entry_only_GUI_and_Shell_NOT_RUN":"standard_native_entry_or_stdout_UNKNOWN";
-            if(asUserClients&&(bool)child["identity_observed"]&&(bool)result["all_probe_children_stopped"]){
+            if(logonIdentity){result["profile_after_native_identity"]=ExactCreatedProfile(account);
+                result["followup_native_clients_allowed"]=false;result["native_exit_timeout_ms"]=20000;}
+            if(asUserClients&&!logonIdentity&&(bool)child["identity_observed"]&&(bool)result["all_probe_children_stopped"]){
                 // Same account and ORIGINAL credential token remain alive.
                 // Do not return to the WDAG restricted-token launcher.
                 stage="same_standard_token_native_clients_followup";
@@ -844,6 +961,12 @@ public static class PaneBindV1MediumDesktopProbe {
                     result["account_cleanup_confirmed"]=removed==0&&after==2221;
                 }else cleanup["result"]="IDENTITY_OR_CHILD_CLEANUP_UNKNOWN_NOT_DELETED";
             }catch(Exception e){cleanup["error_type"]=e.GetType().Name;}
+            if(logonIdentity&&account!=null){
+                var profile=ExactCreatedProfile(account);result["profile_after_account_cleanup"]=profile;
+                result["retained_profile_policy"]="exact_created_SID_inventory_only_no_profile_deleted_guest_disposal_not_product_cleanup";
+                if((string)profile["status"]!="EXACT_CREATED_SID_PROFILE_INVENTORY_ONLY"){
+                    result["status"]="UNKNOWN";result["reason"]="exact_created_profile_inventory_UNKNOWN";}
+            }
             if(!clean||!(bool)result["account_cleanup_confirmed"]||!(bool)result["all_probe_children_stopped"]){result["status"]="UNKNOWN";result["reason"]="cleanup_not_confirmed";}
         }
     }
@@ -1087,7 +1210,10 @@ public static class PaneBindV1MediumDesktopProbe {
         foreach($suffix in @('-medium-desktop-binding.json','-medium-desktop-child.json','-medium-desktop-child-phase.jsonl')){
             if(Test-Path -LiteralPath (Join-Path $outputDir ($RunId+$suffix))){throw 'Child binding/evidence already exists; preserve the original RunId.'}
         }
-        if($StandardGuestNativeClients){
+        if($StandardLogonNativeIdentity){
+            $result=[PaneBindV1MediumDesktopProbe]::RunStandardLogonNativeIdentity($RunId,$scriptEntry[0].sha256,
+                $manifest.driver_source_commit,$nativeEntry[0].sha256,[long]$nativeEntry[0].size)
+        }elseif($StandardGuestNativeClients){
             if($manifest.product_release_sha256 -cnotmatch '^[A-F0-9]{64}$'){throw 'Exact unchanged Release product hash required.'}
             $result=[PaneBindV1MediumDesktopProbe]::RunNativeParent($RunId,$scriptEntry[0].sha256,
                 $manifest.driver_source_commit,$nativeEntry[0].sha256,[long]$nativeEntry[0].size,
@@ -1123,14 +1249,14 @@ public static class PaneBindV1MediumDesktopProbe {
         }
         $record=[ordered]@{schema='panebind-v1-medium-desktop-probe/1';utc=[DateTime]::UtcNow.ToString('o');run_id=$RunId;
             probe_source_commit=$manifest.packaging_head;driver_source_commit=$manifest.driver_source_commit;probe_sha256=$scriptEntry[0].sha256;
-            requested_suite=$manifest.guest_suite;actual_suite=$(if($NativeIdentityOnly){'MediumNativeIdentityOnly'}elseif($StandardGuestNativeClients){'StandardGuestNativeClients'}else{'MediumDesktopGuiPrecheck'});
+            requested_suite=$manifest.guest_suite;actual_suite=$(if($StandardLogonNativeIdentity){'StandardLogonNativeIdentity'}elseif($NativeIdentityOnly){'MediumNativeIdentityOnly'}elseif($StandardGuestNativeClients){'StandardGuestNativeClients'}else{'MediumDesktopGuiPrecheck'});
             compatibility_envelope_kind=$manifest.medium_desktop_probe.kind;compatibility_envelope_is_GUI_evidence=$false;
             automated_guest_probe=$true;human_uat='NOT_RUN';result=$result}
     }
     $text=$record|ConvertTo-Json -Depth 18
     $stream=[IO.File]::Open($evidence,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$bytes=(New-Object Text.UTF8Encoding($false)).GetBytes($text);$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
-    if($result.status -cin @('GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL','NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL','STANDARD_NATIVE_CLIENTS_EXITED_REVIEW_EVIDENCE')){exit 0}
+    if($result.status -cin @('GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL','NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL','STANDARD_NATIVE_CLIENTS_EXITED_REVIEW_EVIDENCE','STANDARD_LOGON_NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL')){exit 0}
     exit 3
 }catch{
     if($Mode -ceq 'Child' -and $childPhasePath){try{Write-ChildPhase ('PowerShell_exception_'+$_.Exception.GetType().Name)}catch{}}

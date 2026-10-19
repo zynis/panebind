@@ -1,5 +1,7 @@
 # PaneBind V1 候选版中文快速入门
 
+新修复候选源码为`7450db1fad2651ef4e8c6521c44414d75aed3743`，已构建但现场尚待复验；下文212及7635包的已测结论保持历史身份，不换绑新候选。新产品仅用于既定隔离验证，尚不交付普通宿主试用。
+
 这是开发候选的操作说明，整版验收尚未完成。源码版本、Release EXE 与文件哈希以随包 `manifest.json` 为准；实际通过、失败及未运行项目见[验收表](reports/V1_ACCEPTANCE.json)与[交付报告](reports/V1_DELIVERY_REPORT.md)。本文描述当前产品接线，不把设置、应用兼容或显示器矩阵的未运行项算作通过。
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
@@ -8,7 +10,9 @@
 
 Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub；旧e1fc实际失败在包／依赖注册（外层0x80073CF9，既有扩展事件709为package-root拒绝、404内部0x80070057），尚无已确认InstallLocation／启动身份。扩展日志已经复核，实际使用guest本地完整绝对manifest路径，更深staging原因仍UNKNOWN；不重复同路线诊断、搬包、挂ISO或旧Store下载。
 
-最新fcf／`ResizeMagnetOnly`已在同212 Release实际完成八方向普通Resize磁吸，固定visible／positioning边及旁窗不动；max450限制优先于456吸附候选，原始DOWN回拉到430，真实UP后新一代普通Move成立。它没有覆盖固定尺寸或真实应用Resize，完整M05-F04／B05仍不计PASS。
+fcf／`ResizeMagnetOnly`已在同212 Release实际完成八方向普通Resize磁吸，固定visible／positioning边及旁窗不动；max450限制优先于456吸附候选，原始DOWN回拉到430，真实UP后新一代普通Move成立。后继5d45又完成固定400×300的真实Resize尝试、零写入、NormalUp及新代Move；真实应用Resize仍缺，完整M05-F04／B05不计PASS。
+
+5d45的已接管MOVE→UP burst实际失败：UP及资源清理均被观察，但无native调用的capture预检拒绝先把手势记成SourceLost。这是正在修复的产品终止分类问题，不是“缺UP”；具体NULL查询成因仍UNKNOWN。当前候选继续仅供隔离复核，未放行宿主或真人试用。
 
 7060／`VisualOwnershipOnly`已实际完成Release验证，产品仍212，driver／包装`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。应用自行改变alpha或topmost后，产品分别只恢复仍归自己所有的另一属性；新建root不继承旧恢复权，实际helper正常退出、客户输入恢复，M09-F04／B20独立合同通过。慢速交替和单次反向均零摇动切换；同一212的477a保留真实摇动两次切换／还原及各次正常UP的局部证明，但系统Shake共存未测，故完整M09-F05／B21仍不计PASS，不代表整个M09、五类应用或真人通过。
 
@@ -18,7 +22,7 @@ Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub
 
 现在新增的实际可操作范围仍限隔离guest自建窗口：6dba Release实际通过忽略邻窗、无正交交叠／最近阻挡和尺寸优先；034再通过真实GUI精确类名排除可见目标、拉伸改到工作区边缘、移除规则恢复最近邻及各次Undo。两批同产品212已补齐M08-F05／B19独立合同；整个M08、五类真实应用、整I05和Full仍未通过。此前cea四窗双轴共享Resize、后继普通Move、八窗末成员Ctrl Move的实测保留。
 
-产品仍为`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`；[原7635候选ZIP](../uat/v1-portable/7635dc7b0c03416e95401a3eed8b262a/PaneBindV1-Release-7635dc7b0c03416e95401a3eed8b262a.zip)保持原字节，ZIP SHA `576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6`。dd02已验证该包普通无参GUI、保存后Move-UP和正常退出子范围，但精确托盘图标不可达，不能提升为整I01／I12。9724有限owned证据及be94未知前台切换导致的Full失败保留原身份；不为驱动或文档变化重建产品。
+旧已测产品为`212e1979f9bf711569d63f0e371c6e7ff8375f2c`，Release EXE SHA `E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE`；[原7635候选ZIP](../uat/v1-portable/7635dc7b0c03416e95401a3eed8b262a/PaneBindV1-Release-7635dc7b0c03416e95401a3eed8b262a.zip)保持原字节，ZIP SHA `576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6`。dd02已验证该包普通无参GUI、保存后Move-UP和正常退出子范围，但精确托盘图标不可达，不能提升为整I01／I12。9724有限owned证据及be94未知前台切换导致的Full失败保留原身份；仅驱动或文档变化不重建产品，7450db1是真实产品修复，须按影响复验。
 
 已通过的智能拉伸窄批为`6dbae80a02b74cd882df53293a439a02`／`StretchModesOnly`，driver与打包源码`31f94b64f346de0c5542e5f378006702d6c1be7d`，Release driver SHA `096DCCA22672343C24BCB914863F11E94778CCCA3CD73BF888D81F721446F699`。测试ZIP SHA `6520106B5A460B2B7470CA9B91C34FF8CDF04B1367EF6C9FFC2B45E195CB22A9`，是带guest保护的自动验证包，不替换原7635便携包或授予宿主试用。Debug只完成构建／offline，本批实际功能为Release；原始记录与准确范围见交付报告。鼠标证据包括首click实际LL-UP及第二click同g2 mapped UP；不把映射双击叫作普通Move的NormalUp，也不由退出码或guest销毁推定清理。
 

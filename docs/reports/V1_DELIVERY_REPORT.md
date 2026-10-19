@@ -16,6 +16,18 @@
 
 `76e433d5db05436c8b72d40a2a49abc5`已实际运行Release `TrayReadinessOnly`（同212／db114ea）：D47精确自有探针PID7116／TID6200／HWND197422实际Medium8192、non-elevated；同session的Progman与Shell_TrayWnd所属PID4932实际High12288／elevated。一次探针ADD=false、GetRect=E_FAIL，原始GLE5只作原值记录，不能据它断言唯一系统根因；探针DELETE=false，自有窗口／类实际销毁已核D48。D49按合同BLOCKED，未发TaskbarCreated或菜单输入；产品P1的ADD亦false。P18真实完整shutdown、D55客户输入0→1、D57 Raw注销、D58自窗关闭有独立证据，wrapper fixture1／descendants0／forced=false。guest14380／任务于`2026-10-19T15:47:02.8627421Z`精确清理，证据不变、部署保留；没有控制High Shell、放宽权限或换用High产品来凑PASS。
 
+### 5d45：固定尺寸子项通过，增强末burst暴露实际产品缺陷
+
+`5d45b75bd5ff4b6f9acec46c51aeb18a`／Release `FixedAndTerminalOnly`使用原212产品、driver `a09e9778e2885466b1ee1285981ffef368ea7a15`、包装`07c90361c61716b6e488f9721db4dbb86dbef8fd`。D108实际厚框及min=max400×300，D114真实plain Resize，D116实际一次BR外拉；D121匹配NormalUp后有序status，D123 source／target两种rect不变、零placement／native／operations，D139同限制新一代Move和真实UP成立。仅作实际黑盒Resize尝试，不由零写入推断特定MOVE被solver消费；真实应用仍缺，完整M05-F04／B05保持BLOCKED。
+
+D279确认真实START→一次cancel→END→新鲜交接／capture ready，D280被动observer已安装，D281单次MOVE＋唯一UP数组插入。D282未通过：P137本代g3 `native_callsite_claimed=false/native_attempted=false`，reason为`batch_preflight_capture_actual_ownership_lost_before_native_call`；P138先以SourceLost／end3、normal_up=false退休。P139实际Raw UP、P142 accepted legacy LEFTUP、P148真实release／detach／撤罩及P149队列UP随后均到达，不能把这条失败写成缺UP，也不能将后来的实际UP反写为已结束手势NormalUp。P137的target原矩形来自batch拒绝时填expected.visible，不能据此判断MOVE coalescing；原件未记录当次GTI查询QPC／UP原子状态，NULL的具体成因仍UNKNOWN。
+
+源码已确认实际缺口：batch平台capture预检在operation guard之前，跨UP清理的拒绝绕过仅识别`operation_revoked_before_native_attempt`的实际apply分流，过早SourceLost继而阻止正常终止。`7450db1fad2651ef4e8c6521c44414d75aed3743`已按本代实际LL／Raw UP、尚未调用的专属退休收据修复，实际apply保留batch前的同代lease；身份、foreground、foreign capture、monitor／DPI及外部几何失败仍拒绝，不恢复权限、不凭UP标记自行NormalUp，待新候选复验才关闭。原生产catalog事实判定红测40项／3失败保留，修复后D/R的catalog48、writer64、input-route366项分别通过；这不是现场PASS。
+
+新产品已在独立`out/v1-product-up-preflight-7450db1`完成Debug／Release构建exit0，实际`--build-identity`均为7450db1；EXE SHA256分别`92BC08FD1944F94824D5828A61C8B81DD924C332B60EBC6843F793D7C39B7E20`／`A511BDD3668DE200721847A99CCF92B582058A2CD9C14DAB2C01E21122C114CC`。旧212 EXE、7635便携包及历史运行记录保持原字节／原身份，不能直接换绑新产品；当前新候选现场尚待复验，未授普通宿主试用。日志位于`uat/v1-control/r19-5d45-up-preflight-*`与`r19-7450db1-*-product-build.txt`，历史失败仍FAIL。
+
+原始材料在`uat/v1-control/5d45b75bd5ff4b6f9acec46c51aeb18a/collection-20261019T170321690Z-efe8e34464354bfc8efa966cbd4af5f6/`。ZIP `3980C628CBAC26E85D47DE29131617794DE4C76EF7036F6B839745DB365940CE`、manifest `37D3414C60BF63105AE5FBE6256E8BAF19A9B5BB822B5C56050C2D5D05385E61`、WSB `31CC606880D93312285A771FA34B9D981C0B8FA99E6EAD25FA88D880B972C772`。D/R构建与各208项offline通过（symlink SKIP1314）、101项工具检查通过均不抵消现场FAIL；driver SHA D `4710BEB72CD1956D4539D1135B8B74BA55C46AFAE4BA9A70B1D710856877CC7C`／R `21059B5BE0DCC18484F7E863BF8F450B0DD7598C70B3AB5C5864214B7BEC1CF3`。guest4484／本轮任务于`2026-10-19T17:05:18.3669509Z`精确清理，原件不变、部署保留、其他资源未改；不以销毁guest计产品cleanup PASS，不扩大稳定性批次或停止其他开发。
+
 ### fcf：八方向活动边磁吸与尺寸约束优先已实际执行
 
 `fcf531eeb0dd4847b735d2473f72f0a1`／Release `ResizeMagnetOnly`使用冻结产品212、driver `e30abfe50ff6169e5d903a31a72ba58abaa05508`、包装`629064e19c008baafb1b4376825bb1759d2a187b`。八个不同方向各有一个真实plain Resize、独立原始DOWN意图±56与实际吸附±60，固定边的visible／positioning及目标窗口不变，每quantum只有一次实际native调用。D120／140／160／180／203／226／249／272与P45／75／105／135／168／195／225／255逐项exact；D293／P285尺寸上限450优先于候选456，D300／P288按同一原始DOWN回拉到430，D305本代仅两次native且无递归／迟到调用。P58／88／118／148／179／208／238／268／300为g1–9正常UP；P313／318／329新g10实际普通Move及正常UP完成，不用固定轨迹充当实际输入事实。
