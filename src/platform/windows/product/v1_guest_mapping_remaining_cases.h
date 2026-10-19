@@ -4,7 +4,7 @@
 // production input/command handlers; custom mappings are not contextual F04.
 void mapping_remaining_scope(State& s){
     settings_guest_scope(s);
-    if(s.suite!="MappingRemainderOnly"||s.left||s.control||!chain_settings(s).enabled)
+    if((s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly")||s.left||s.control||!chain_settings(s).enabled)
         throw std::runtime_error("mapping_remaining_exact_enabled_released_guest_required");
     for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
         if(GetAsyncKeyState(code)&0x8000)throw std::runtime_error("mapping_remaining_initial_input_not_released");
@@ -219,14 +219,41 @@ void owned_mapping_hotkey_edits_case(State& s){
         s.log.check("mapping_deleted_tuple_really_released_OS_registration",registered,
             "\"key\":"+std::to_string(test_key)+",\"modifiers\":3,\"actual_RegisterHotKey_return\":"+(registered?"true":"false")+",\"error\":"+std::to_string(register_error)+",\"registration_id\":"+std::to_string(registration));
         s.log.check("mapping_test_registration_removed",release());
-        const auto fragment=[](const v::Settings& value,bool mouse){if(mouse)return chain_mouse_mapping_fragment(value);std::wstring out;const auto serialized=v::serialize(value);
-            for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with("hotkey_count=")||row.starts_with("hotkey.")){
-                for(const char c:row)out+=static_cast<wchar_t>(c);out+=L"\r\n";}return out;};
+        const auto fragment=[](const v::Settings& value,bool mouse){
+            if(value.hotkeys.size()>v::settings_detail::max_hotkeys||value.mouse_bindings.size()>v::settings_detail::max_mouse)
+                throw std::runtime_error("mapping_duplicate_draft_entry_bound_invalid");
+            const auto action=[](v::Action mapped_action){std::wstring out;
+                for(const char c:v::action_name(mapped_action)){if(static_cast<unsigned char>(c)>=128)
+                    throw std::runtime_error("mapping_duplicate_draft_action_not_ASCII");out+=static_cast<wchar_t>(c);}return out;};
+            // Deliberately invalid GUI drafts must not use serialize(Settings),
+            // which correctly refuses duplicate tuples. Construct only these
+            // bounded, public editor lines, never a product config/file write.
+            std::wstring out;
+            if(mouse){out=L"mouse_count="+std::to_wstring(value.mouse_bindings.size())+L"\r\n";
+                for(std::size_t i=0;i<value.mouse_bindings.size();++i){const auto& m=value.mouse_bindings[i];
+                    out+=L"mouse."+std::to_wstring(i)+L"="+std::to_wstring(m.region)+L","+std::to_wstring(m.button)+L","+
+                        std::to_wstring(m.clicks)+L","+std::to_wstring(m.modifiers)+L","+action(m.action)+L"\r\n";}}
+            else{out=L"hotkey_count="+std::to_wstring(value.hotkeys.size())+L"\r\n";
+                for(std::size_t i=0;i<value.hotkeys.size();++i){const auto& h=value.hotkeys[i];
+                    out+=L"hotkey."+std::to_wstring(i)+L"="+std::to_wstring(h.modifiers)+L","+std::to_wstring(h.key)+L","+action(h.action)+L"\r\n";}}
+            if(out.empty()||out.size()>16384)throw std::runtime_error("mapping_duplicate_draft_character_bound_invalid");return out;
+        };
         for(const bool mouse:{false,true}){
             const auto before=chain_settings(s);const auto path=s.product.parent_path()/L"settings.ini";const auto saved=read(path),saved_hash=hash(path);
             auto duplicate=before;if(mouse){duplicate.mouse_bindings={{8,3,1,4,v::Action::ToggleTopmost},{8,3,1,4,v::Action::OpacityDown}};}
             else{duplicate.hotkeys.push_back({3,test_key,v::Action::MoveRight});duplicate.hotkeys.push_back({3,test_key,v::Action::MoveDown});}
-            const auto draft=fragment(duplicate,mouse);auto gui=gui_open(s);gui_page_select(s,gui,3);HWND edit{};unsigned editors{};
+            const auto draft=fragment(duplicate,mouse);const auto serialized_before=v::serialize(before);std::string combined;
+            for(const auto row:v::settings_detail::split(serialized_before,'\n'))
+                if(!(mouse?(row.starts_with("mouse_count=")||row.starts_with("mouse.")):
+                    (row.starts_with("hotkey_count=")||row.starts_with("hotkey.")))){combined+=row;combined+='\n';}
+            for(const wchar_t c:draft){if(c>127)throw std::runtime_error("mapping_duplicate_draft_not_ASCII");combined+=static_cast<char>(c);}
+            const auto parsed_draft=v::parse(combined);const std::string expected_error=mouse?"鼠标映射冲突":"快捷键映射冲突";
+            s.log.check("mapping_duplicate_public_draft_is_bounded_and_rejected_by_parser",!draft.empty()&&draft.size()<=16384&&
+                combined.size()<=v::settings_detail::max_file_bytes&&!parsed_draft.value&&parsed_draft.error==expected_error,
+                "\"tuple\":"+quote(mouse?"mouse_region_button_click_modifiers":"hotkey_modifiers_key")+
+                ",\"actual_draft_characters\":"+std::to_string(draft.size())+",\"parser_error\":"+quote(parsed_draft.error)+
+                ",\"GUI_submission_still_required\":true");
+            auto gui=gui_open(s);gui_page_select(s,gui,3);HWND edit{};unsigned editors{};
             for(HWND child=GetWindow(gui_page(s,gui),GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
                 if(gui_identity(s,gui,child)&&gui_class(child)==L"Edit"&&chain_edit_text(s,gui,child).starts_with(mouse?L"mouse_count=":L"hotkey_count=")){edit=child;++editors;}
             if(editors!=1)throw std::runtime_error("mapping_duplicate_exact_public_editor_missing");

@@ -621,6 +621,37 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
        -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains('mapping_remainder_only_summary')){
         throw 'Mapping remainder must reach its three actual finite GUI/input components and cleanup.'
     }
+    $hotkeyScope=[regex]::Match($entry,'(?s)if\(s\.suite=="HotkeyRemainderOnly"\)\{(?<body>.*?)return;\s*\}')
+    $drive=Get-V1FixtureFunctionText $Fixture 'drive'
+    $gateAt=$Fixture.IndexOf('void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){',[StringComparison]::Ordinal)
+    if($gateAt -lt 0){throw 'Actual independent input-gate definition missing.'}
+    $gate=Get-V1FixtureFunctionText $Fixture.Substring($gateAt) 'independent_entry_ready'
+    if(-not $hotkeyScope.Success -or [regex]::Matches($hotkeyScope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $hotkeyScope.Value.Contains('phase("owned_hotkey_change_delete_and_duplicate_rejection",owned_mapping_hotkey_edits_case);') -or
+       -not $hotkeyScope.Value.Contains('cleanup(s);') -or -not $hotkeyScope.Value.Contains('hotkey_remainder_only_summary') -or
+       $hotkeyScope.Value.Contains('owned_mapping_regions_case') -or $hotkeyScope.Value.Contains('owned_mapping_modifier_double_case') -or
+       -not $drive.Contains('s.suite=="HotkeyRemainderOnly"') -or -not $gate.Contains('s.suite!="HotkeyRemainderOnly"') -or
+       -not $gate.Contains('if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})') -or
+       -not $Mapping.Contains('s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"')){
+        throw 'Hotkey-only continuation must reach only its actual remaining phase with the same released-input guest gate and cleanup.'
+    }
+    $hotkeys=Get-V1FixtureFunctionText $Mapping 'owned_mapping_hotkey_edits_case'
+    $draftStart=$hotkeys.IndexOf('const auto fragment=[](const v::Settings& value,bool mouse){',[StringComparison]::Ordinal)
+    $draftEnd=$hotkeys.IndexOf('for(const bool mouse:{false,true}){',[StringComparison]::Ordinal)
+    if($draftStart -lt 0 -or $draftEnd -le $draftStart){throw 'Bounded public invalid-draft construction missing.'}
+    $draft=$hotkeys.Substring($draftStart,$draftEnd-$draftStart)
+    if($draft.Contains('v::serialize(value)') -or $draft.Contains('chain_mouse_mapping_fragment(value)')){
+        throw 'Deliberately duplicate GUI drafts cannot pass through the valid-Settings serializer.'
+    }
+    foreach($value in @('value.hotkeys.size()>v::settings_detail::max_hotkeys','value.mouse_bindings.size()>v::settings_detail::max_mouse',
+        'out=L"mouse_count="','out=L"hotkey_count="','out.size()>16384')){
+        if(-not $draft.Contains($value)){throw ('Invalid mapping draft lost its bounded public format: '+$value)}
+    }
+    if(-not $hotkeys.Contains('const auto serialized_before=v::serialize(before)') -or
+       -not $hotkeys.Contains('!parsed_draft.value&&parsed_draft.error==expected_error') -or
+       -not $hotkeys.Contains('GUI_submission_still_required')){
+        throw 'The exact public duplicate draft must fail the real parser before its still-required actual GUI rejection.'
+    }
     foreach($value in @('s.suite!="MappingRemainderOnly"','set.owns(0)&&visible(h)==geometry&&GetForegroundWindow()==h',
         'chain_stretch_preparation(set,*point,native_region,*geometry,preparation_mark,max_prepare,preparation)',
         'result.up=actual_up(s,mark,result.generation,3)',
@@ -641,9 +672,9 @@ function Assert-V1MappingRemainderWiring([string]$Fixture,[string]$Mapping,[stri
 }
 $mappingRemaining=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_mapping_remaining_cases.h'),[Text.Encoding]::UTF8)
 Assert-V1MappingRemainderWiring $fixtureSource $mappingRemaining $chainSource
-Check $true 'static mapping remainder wires three real GUI components, exact source, matching actual UP and hotkey edits'
-Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('result.up=actual_up(s,mark,result.generation,3)','result.up=""')) $chainSource} 'static custom mapping rejects replacing the actual matched UP receipt with an empty observation'
-Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('chain_settings(s)==before&&read(path)==saved&&hash(path)==saved_hash','true')) $chainSource} 'static mapping duplicate rejection cannot omit actual runtime and saved-configuration preservation'
+Check $true 'static mapping remainder and narrow hotkey continuation retain actual GUI/input gates and bounded invalid public drafts'
+Reject {Assert-V1MappingRemainderWiring ($fixtureSource.Replace('if(s.suite=="HotkeyRemainderOnly"){','if(s.suite=="HotkeyRemainderOnly_DISABLED"){')) $mappingRemaining $chainSource} 'static hotkey-only continuation rejects an unreachable remaining phase'
+Reject {Assert-V1MappingRemainderWiring $fixtureSource ($mappingRemaining.Replace('const auto fragment=[](const v::Settings& value,bool mouse){','const auto fragment=[](const v::Settings& value,bool mouse){const auto invalid=v::serialize(value);')) $chainSource} 'static duplicate-draft guard rejects serializing an invalid Settings snapshot instead of its bounded public fragment'
 function Assert-V1StandardLogonIdentityWiring([string]$Probe,[string]$Guest){
     $start=$Guest.IndexOf('    if($standardLogonIdentity){',[StringComparison]::Ordinal)
     $end=$Guest.IndexOf('    if($probeDesktop -and -not $standardNativeClients -and -not $standardLogonIdentity){',$start,[StringComparison]::Ordinal)

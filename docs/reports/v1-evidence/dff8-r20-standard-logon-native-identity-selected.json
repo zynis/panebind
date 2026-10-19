@@ -1,0 +1,174 @@
+{
+  "evidence_id": "EV-DFF8-R20-STANDARD-LOGON-NATIVE-IDENTITY",
+  "kind": "HISTORICAL_STRUCTURED_FIELD_PROJECTION",
+  "new_execution": false,
+  "literal_JSONL_excerpt": false,
+  "original_raw_preserved": true,
+  "run_id": "dff87a3e4e9c449da187a9b6c4ad9141",
+  "product_source_commit": "7450db1fad2651ef4e8c6521c44414d75aed3743",
+  "driver_source_commit": "67db545d7e8c022a4a6c8993dc56d2162c9e5d9a",
+  "packaging_head": "634ce237fc43bd6b0badb5ce600b519a12b8e87b",
+  "sources": {
+    "probe": {
+      "path": "uat/v1-control/dff87a3e4e9c449da187a9b6c4ad9141/collection-20261019T173611252Z-c08f140189d843ecabed23bd3776fcae/dff87a3e4e9c449da187a9b6c4ad9141-medium-desktop-probe.json",
+      "bytes": 29767,
+      "sha256": "7A9E5F835184F8B0E2B07A936409C2CF1F6E9C4DE26B8D6039635A5EDB8DC883"
+    },
+    "guest_summary": {
+      "path": "uat/v1-control/dff87a3e4e9c449da187a9b6c4ad9141/collection-20261019T173611252Z-c08f140189d843ecabed23bd3776fcae/dff87a3e4e9c449da187a9b6c4ad9141-guest-summary.json",
+      "bytes": 40643,
+      "sha256": "A69ACD2BB57E8CA153C743966CDD6C96930D2B2B1ADDC3F0B03DC3B37DED6F45"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/dff87a3e4e9c449da187a9b6c4ad9141/input/manifest.json",
+      "sha256": "CF278A60B8C39E5DD1366347757B2F80F41CE4188BD7F2EC9BF9FCAE5F7346C0"
+    },
+    "guest_wrapper_source": {
+      "path": "uat/v1-sandbox/dff87a3e4e9c449da187a9b6c4ad9141/input/v1-sandbox-guest.ps1",
+      "sha256": "749ED6746D5E728919539FBF73D984CBFA3A9654E46E440638A54006B11A33F4",
+      "source_is_not_runtime_stdout": true
+    },
+    "collection_receipt": {
+      "path": "uat/v1-control/dff87a3e4e9c449da187a9b6c4ad9141/collection-20261019T173611252Z-c08f140189d843ecabed23bd3776fcae/collection-receipt.json",
+      "sha256": "BF21214DFC3404E4E6892D4E2E83D54DFA13496CBCC7E3509D71C38FA5020AD5"
+    },
+    "launch_receipt": {
+      "path": "uat/v1-control/dff87a3e4e9c449da187a9b6c4ad9141/launch-receipt.json",
+      "sha256": "73B704D0637BA71B20502ADFB82299E426A31DFB40D12C9419379DF681809979"
+    },
+    "cleanup_receipt": {
+      "path": "uat/v1-control/dff87a3e4e9c449da187a9b6c4ad9141/cleanup-receipt.json",
+      "sha256": "2F1B08728755EB518E8EF72D0CBB5C3E6E0B69DCB84D1BDAFE57998EB264CF06"
+    }
+  },
+  "selected_probe_fields": {
+    "status": "UNKNOWN",
+    "actual_suite": "StandardLogonNativeIdentity",
+    "launch_policy": "one_CPAS_WDAG_baseline_then_one_CPWL_build_identity_no_fallback",
+    "native_exit_timeout_ms": 20000,
+    "wdag_baseline": {
+      "launch_api": "CreateProcessAsUserW",
+      "identity_observed": true,
+      "child_created": true,
+      "child_pid": 3260,
+      "child_exit_code": 0,
+      "test_child_force_termination_attempted": false,
+      "integrity_rid": 12288,
+      "elevated": true,
+      "admin_enabled": true,
+      "stdout_size": 271,
+      "stdout_sha256": "A6494148857B750C3FBA1FA72C7FC21E23EFB45219A8D500B2D2E472ACC90C8F",
+      "status": "NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL"
+    },
+    "standard_native_child": {
+      "launch_api": "CreateProcessWithLogonW",
+      "CreateProcessWithLogonW_attempted": true,
+      "CreateProcessWithLogonW_succeeded": true,
+      "CreateProcessWithLogonW_error": 0,
+      "LOGON_WITH_PROFILE": true,
+      "lpDesktop": "winsta0\\default",
+      "lpEnvironment": "NULL_target_user_profile",
+      "requested_command": "--build-identity",
+      "child_created": true,
+      "child_pid": 6964,
+      "child_tid": 6752,
+      "child_birth_filetime": 134369049291845563,
+      "actual_image_path": "C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe",
+      "image_size": 2643456,
+      "image_sha256": "424FD078AB0870CE05B79D2F81D8A2DB6D19BD7169D8D85F0CB689004697A27D",
+      "actual_image_matches_manifest": true,
+      "actual_child_identity_matches_created_account": true,
+      "actual_child_token": {
+        "integrity_rid": 8192,
+        "elevated": false,
+        "admin_enabled": false,
+        "administrators_sid_present": false,
+        "ui_access": false,
+        "app_container": false,
+        "credential_token_session_id": 1,
+        "token_session_matches_current": true,
+        "ordinary_security_facts_verified": true,
+        "interactive_child_session_validation": "NOT_RUN"
+      },
+      "actual_child_thread_desktop_before_resume": "UNKNOWN",
+      "child_desktop_query_error_type": "InvalidOperationException",
+      "ResumeThread_return": 1,
+      "child_wait_return": 258,
+      "identity_observed": false,
+      "reason": "bounded_native_exit_not_observed_entry_UNKNOWN",
+      "stdout_size": 0,
+      "stderr_size": 0,
+      "empty_stream_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "stdout_empty_means_native_entry_not_reached": false,
+      "stdio_handle_validity_in_child": "UNKNOWN_UNTIL_ACTUAL_IDENTITY_OUTPUT",
+      "test_child_force_termination_attempted": true,
+      "test_child_force_termination_returned": true,
+      "test_child_force_termination_error": 0,
+      "child_exit_code": 78,
+      "child_process_exited": true,
+      "child_cleanup_confirmed": true
+    },
+    "same_API_stdio_baseline_claimed": false,
+    "LogonUser_called": false,
+    "credential_token_not_created": true,
+    "profile_before_native_logon": {
+      "profile_list_present": false,
+      "hive_loaded": false,
+      "profile_directory_present": null
+    },
+    "profile_after_account_cleanup": {
+      "profile_list_present": true,
+      "hive_loaded": true,
+      "profile_directory_present": true,
+      "profile_directory_plain": true,
+      "profile_directory_owner_is_created_sid": false,
+      "profile_deletion_attempted": false,
+      "profile_cleanup_PASS_claimed": false
+    },
+    "account_cleanup": {
+      "sid_matches_created_account": true,
+      "NetUserDel_status": 0,
+      "after_query_status": 2221,
+      "account_cleanup_confirmed": true
+    },
+    "no_station_desktop_or_directory_DACL_changes_attempted": true,
+    "dacl_cleanup_confirmed": true,
+    "all_probe_children_stopped": true,
+    "followup_native_clients_allowed": false
+  },
+  "selected_wrapper_summary": {
+    "status": "STANDARD_LOGON_NATIVE_IDENTITY_UNKNOWN",
+    "stages": [],
+    "error": null,
+    "product_GUI": "NOT_RUN",
+    "applications": "NOT_RUN",
+    "fixture_suite": "NOT_RUN",
+    "finite_900_second_session": "NOT_RUN",
+    "independent_fixture_wrapper_stdout_or_exit_receipt": "NOT_PRESENT_IN_COLLECTED_FILES",
+    "exit_78_is_forced_test_child_not_wrapper_exit": true
+  },
+  "selected_cleanup_fields": {
+    "owned_guest_pid": 13260,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "utc": "2026-10-19T17:37:11.7990300Z"
+  },
+  "bounded_interpretation": {
+    "actual_Medium_nonAdmin_nonElevated_exact_child_created": true,
+    "normal_native_entry_or_identity_stdout_observed": false,
+    "normal_child_exit_observed": false,
+    "CPAS_High_baseline_is_same_API_CPWL_Medium_stdio_proof": false,
+    "child_creation_or_token_facts_are_GUI_or_Shell_permission": false,
+    "profile_retained_until_guest_disposal_is_product_cleanup_PASS": false,
+    "product_GUI_Explorer_applications_input": "NOT_RUN",
+    "native_entry_stdout_or_blocking_root_cause": "UNKNOWN",
+    "Sandbox_Medium_impossible_proven": false,
+    "evidence_supported_next_launch_API_route": "NONE_ESTABLISHED",
+    "next_action": "停止无新证据的同路线或叠加启动 API 重试。本次证实了 exact Medium 子进程创建，不曾证实其入口、stdio 句柄或 GUI 可用；若再研究，须先限定一个能区分入口/stdio/阻塞位置的具体诊断问题，否则继续其余可运行产品合同并保留普通完整隔离桌面缺口。",
+    "scope_note": "本文件仅投影同一已完成 Run 的已有原件。保留强制终止及 profile 未删除事实；不把空 stdout 判为未进入 main，不把 78 判为自然退出，不把不同 API 的 WDAG 基线外推为候选成功，也不宣称 Sandbox 不支持 Medium。"
+  }
+}

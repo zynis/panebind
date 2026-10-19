@@ -16,6 +16,20 @@
 
 `76e433d5db05436c8b72d40a2a49abc5`已实际运行Release `TrayReadinessOnly`（同212／db114ea）：D47精确自有探针PID7116／TID6200／HWND197422实际Medium8192、non-elevated；同session的Progman与Shell_TrayWnd所属PID4932实际High12288／elevated。一次探针ADD=false、GetRect=E_FAIL，原始GLE5只作原值记录，不能据它断言唯一系统根因；探针DELETE=false，自有窗口／类实际销毁已核D48。D49按合同BLOCKED，未发TaskbarCreated或菜单输入；产品P1的ADD亦false。P18真实完整shutdown、D55客户输入0→1、D57 Raw注销、D58自窗关闭有独立证据，wrapper fixture1／descendants0／forced=false。guest14380／任务于`2026-10-19T15:47:02.8627421Z`精确清理，证据不变、部署保留；没有控制High Shell、放宽权限或换用High产品来凑PASS。
 
+### 当前后继：真实 UP 分流与键鼠映射继续复验
+
+`fafa83a851694388a04ac98df7c728cd`实际使用7450db1产品／67db545驱动／634ce23包装。固定尺寸Resize及后继Move子范围再次通过；增强burst仍FAIL：P137在writer之前的`gesture_GUI_context_rejected`已经给出专属`capture_matching_UP_retired_before_native_call`，但活动motion把它当作FocusLost，P138 end2／normal_up=false；Raw139、legacy142、资源Gone148及队列UP149实际到达，未发native写入。原件及失败保持，与5d45的batch拒绝／SourceLost不是同一调用位置，不以源码修复关闭现场缺陷。
+
+`247501a6d7e00a276e9e3aa63e38247e348ca854`把motion、seam timeout、restore request/progress接到共用三态：MatchingUpRetired只停止推进等待实际终止，不启动写入／restore／preview；真正身份、前台、foreign／未知capture等仍原样拒绝。Debug／Release产品和driver构建exit0，受影响offline各4/4通过（catalog48、writer64、input-route373、guest-path208，symlink子项SKIP1314）；这不是现场PASS。产品EXE SHA D `9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26`／R `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`，下一轮仅修driver应复用这些字节；旧745与212仍保留原身份。
+
+`e6605c686cb644b3bb9ee5d39fd781df`／同745产品的Release映射实测已完成：八边角各真实mapped中键DOWN／匹配UP及完整visual tuple；Shift单击ToggleTopmost与双击OpacityDown区分；同一Ctrl+Alt+F9从MoveRight改为MoveDown各单command／placement，删除后真实RegisterHotKey及Unregister成功。整体仍FAIL：重复tuple草稿被driver交给正式serializer先行校验而生成空串，D469在真实冲突Save前退出；未授重复冲突／完整M09、M11通过。新driver将按公开格式生成有限的故意冲突草稿，并只复验受影响热键／冲突子套，不重放已过八区和Shift。
+
+`dff87a3e4e9c449da187a9b6c4ad9141`为明确的`StandardLogonNativeIdentity`，不是外层NativeClientsOnly应用通过：一次官方CPWL实际成功创建同session1的精确Medium8192／non-elevated／nonAdmin子进程，镜像／哈希匹配，但20秒未退出、stdout为空，测试终止后exit78，入口／stdio／阻塞原因仍UNKNOWN。WDAG的CPAS成功基线不是同API证明。精确新账户已删除、station／desktop DACL未变、所有测试子进程已停；新profile仍存在／loaded且owner不是created SID，未删除且不宣profile cleanup PASS。无产品GUI、应用或合成输入；没有证据支持继续叠加启动API，也不推导Sandbox不能Medium。见[身份-only摘录](v1-evidence/dff8-r20-standard-logon-native-identity-selected.json)。
+
+fafa／dff8／e660各自guest与本轮任务分别于`2026-10-19T17:34:41.8091268Z`／`17:37:11.7990300Z`／`17:41:18.5343538Z`精确清理，原始证据不变、部署保留，其他资源未改；均不由guest销毁推断产品PASS。当前仍15/60、7/40，D29待新候选真实复验，普通完整Medium桌面／五类应用、托盘与多屏混合DPI缺口保留；不重复恢复SSH、不重跑900秒，不进入REA。
+
+本次后段发生新的实际开发机资源阻断：独立验收进程抛`System.OutOfMemoryException`，一次只读核对得到FreePhysicalMemory=647332 KiB、FreeVirtualMemory=23332 KiB（总物理33018684 KiB、总提交72340280 KiB），独立64位PowerShell继而报`Starting the CLR failed with HRESULT 80004005`。未关闭用户进程、改页面文件或任何宿主设置。247产品／driver的D/R构建和4/4离线结果在此之前已完成；后继HotkeyRemainderOnly入口、公开格式重复草稿及108项静态检查已完成，但该新driver尚未D/R构建，247正常UP现场复验及Full尚未运行，不能混写PASS。恢复后复用247产品EXE，构建新driver，以新RunId先复验FixedAndTerminalOnly，再只跑HotkeyRemainderOnly及受共享输入改动影响的当前整链；不要求用户搬包，不重放已过八区／Shift，不单独重跑900秒。
+
 ### 5d45：固定尺寸子项通过，增强末burst暴露实际产品缺陷
 
 `5d45b75bd5ff4b6f9acec46c51aeb18a`／Release `FixedAndTerminalOnly`使用原212产品、driver `a09e9778e2885466b1ee1285981ffef368ea7a15`、包装`07c90361c61716b6e488f9721db4dbb86dbef8fd`。D108实际厚框及min=max400×300，D114真实plain Resize，D116实际一次BR外拉；D121匹配NormalUp后有序status，D123 source／target两种rect不变、零placement／native／operations，D139同限制新一代Move和真实UP成立。仅作实际黑盒Resize尝试，不由零写入推断特定MOVE被solver消费；真实应用仍缺，完整M05-F04／B05保持BLOCKED。
