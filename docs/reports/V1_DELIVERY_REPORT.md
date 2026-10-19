@@ -2,9 +2,9 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；历史9724的两轮owned核心、20slot、900.037841秒及逐项正常退出范围保留原身份。2026-10-19可信SSH已恢复；be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL保留。随后dd02独立入口实际完成十个设置／生命周期子阶段与同7635 ZIP普通入口范围；精确托盘UID1图标不可达，菜单未发送，EntryAndSettings仍FAIL，不抬整I01／I12。7c6c ApplicationsOnly已实际收集；应用启动／客户区前置均未通过，产品手势未执行，Edge关闭未确认。现继续最小driver-only修正后定向复验，不预填新结果。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；历史9724的两轮owned核心、20slot、900.037841秒及逐项正常退出范围保留原身份。2026-10-19可信SSH已恢复；be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL保留。随后dd02独立入口实际完成十个设置／生命周期子阶段与同7635 ZIP普通入口范围；精确托盘UID1图标不可达，菜单未发送，EntryAndSettings仍FAIL，不抬整I01／I12。7c6c应用前置失败后，01ab driver的744复验已实际触达Edge原生命中查询，未再走旧额外全组采样拒绝路径；但Edge查询超时1460、Terminal真实root命中HTCAPTION，Notepad／Code启动条件未成立，增强产品手势均NOT_RUN，Edge正常关闭仍未确认。现继续未触达组布局与首次产品启动前的原生客户对照，不预填后续结果，也不把问题全归环境。历史**7/60功能、B29／B32共2/40=5%**不增、不换绑，不能宿主试用，真人UAT PENDING。
 
-## 当前推进：应用前置已运行，修正独立driver采样后定向复验
+## 当前推进：744应用前置复验已运行，继续组布局与无产品进程原生客户对照
 
 2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
 
@@ -22,7 +22,13 @@
 
 7c6c的fresh／same-identity关闭前提未满足，Edge appclose未确认，cleanup FAIL；wrapper descendants4／forced=true，不能由产品自身exit0／资源回收及自建客户输入恢复抵消。guest21528与专属任务于 `2026-10-19T10:24:01.0382700Z` 精确清理、证据未变，不补产品cleanup PASS；原件在 `uat/v1-control/7c6c3d233155473ea2a3b08c57d58d3e/collection-20261019T102043892Z-cddf0986e50742ebb7f60147901de602/`。
 
-测试driver客户区helper修复已提交为 `01ab9ec48f10ff338b550d9ae8c41c6b050a17d7`：复用已有fresh／Catalog同一source快照，不在此重读全组或尺寸限制，仍保留fresh命中、GUI上下文及客户语义门。Debug／Release构建均exit0、受影响offline通过，53项静态检查通过；源码反例检查不是原生交互证据。新 `ApplicationsOnly` RunId `744fff40a030404ebafe9e2879190179` 待打包／未运行，未实际attempt的产品手势保持NOT_RUN。产品212与portable7635不变，7c6c仍绑定原drivereec93e，be94／dd02／9724及旧失败不换绑，不重复Full或900秒专项。
+测试driver客户区helper修复提交为 `01ab9ec48f10ff338b550d9ae8c41c6b050a17d7`：复用已有fresh／Catalog同一source快照，不在此重读全组或尺寸限制，仍保留fresh命中、GUI上下文及客户语义门。Debug／Release构建均exit0、受影响offline与53项静态检查通过；随后 `ApplicationsOnly` RunId `744fff40a030404ebafe9e2879190179` 已实际运行，包装身份为 `0e05846bc5fed22020be2ca39d202c63337478be`，不是待跑批次。
+
+744的154行原JSONL合法连续。[关键原行](v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl)56行Terminal真实root131804命中HTCAPTION2，59行实际pause／resume成立但原生客户未就绪，70行增强NOT_RUN；Notepad82行、Code113行均startup BLOCKED且没有产品手势。Edge122行已实际对root131936执行WM_NCHITTEST，返回失败／error1460；123行pause／resume成立、客户未就绪，135行BLOCKED且客户输入未发送。本次已触达修复后的source-only调用链，不证明旧查询拒绝的根因；暂停增强不等于产品进程或hooks不存在，也不能据此判唯一环境原因。
+
+Edge138／142行仍为 `exact_root_close_not_observed_in_bound`，139行依赖清理门拒绝继续，不强制控制身份失效窗口。产品自身144行quit／exit0及hooks、overlay、writer、capture、关联和视觉资源正常清理；149行自建客户实际计数 `[0,0]→[1,1]`，153行Raw实际注销，154行自建窗口销毁／产品关闭。这不抵消Edge正常关闭未确认：wrapper wait0／exit1／descendants4／forced=true。guest21076与专属任务于 `2026-10-19T10:45:01.5458315Z` 精确清理、证据未变、其他资源未改，guest销毁不补应用cleanup PASS。原件在 `uat/v1-control/744fff40a030404ebafe9e2879190179/collection-20261019T103905106Z-fda709d9331344d49903db84929b1347/`。
+
+下一步复用既有用例接入 `GroupBoundsOnly`，补本次Full未触达的G07／四窗／八窗范围；另以 `NativeClientsOnly` 在首次产品launch之前确认无产品进程，再复用同一原生客户helper作有区分度对照，不写产品几何或读取不存在的产品日志。两入口此时尚未现场运行，新driver身份与PASS均不预填；不另建通用框架或重跑Full／900秒专项。产品212与portable7635不变，7c6c仍绑定原drivereec93e，744绑定01ab，be94／dd02／9724及旧失败不换绑。
 
 ### 7944：保留原部署失败，不再作为当前SSH阻断
 
@@ -665,16 +671,16 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 
 | 项目 | 证据与现状 | 下一项明确验证 |
 | --- | --- | --- |
-| 设置与生命周期 | 269b／88e等旧失败保留；当前212／f54设置GUI、诊断、登录启动、五键、导入、失败保存／导出反馈、损坏和排除均有实际子PASS | 完整M11／I07及所有设置项／高DPI走查未齐；不把子流程拼成整模块PASS |
+| 设置与生命周期 | 269b／88e等旧失败保留；当前212／dd02十个设置／生命周期阶段及7635便携普通入口有实际子PASS；托盘BLOCKED | 完整M11／I07及所有设置项／高DPI走查未齐；不把子流程拼成整模块PASS |
 | 布局 START／click 候选 | aae 原失败保留；cb807／8453 已完成 T→L、四格，8453 八窗末成员联动通过子场景 | 继续当前后续功能，不重开同一 T 专项；完整拓扑／应用／环境不能由局部结果替代 |
-| Edge／Terminal adapter | 旧classic conhost事实保留；当前212／e7官方现代Terminal五阶段／Resize／NormalUp／命令／Esc及精确关闭有实测，客户真实hit不足而未发；BMP有cmd启动0xd0000022，原因UNKNOWN。Edge暂停基线失败、根未closed | 不以枚举child HTCLIENT替代实际投递、不放宽guard；完整类别与五应用仍未齐 |
+| Edge／Terminal adapter | e7现代Terminal几何／NormalUp／命令子项保留原身份；744 Terminal实际root命中HTCAPTION2，Edge真实WM_NCHITTEST超时1460，暂停／恢复成立但无客户或增强输入，Edge正常关闭未确认 | source-only helper已真实触达，不证明根因；首次产品launch前作NativeClientsOnly对照。暂停不等于hooks absent，不以枚举child替代实际命中 |
 | grid 与成员失败 | 当前212／f54 grid5348与第二成员故障5418组件PASS；477a严格geometry拒绝、c01旧g6UP缺失等原FAIL保持身份 | 整I10合同仍未齐，组件PASS不补旧NormalUp；不把identity loss改叫API FALSE |
 | 视觉／恢复与边线 | 当前212／f54 visual5051与temporary inflight5279组件PASS；7cac／e4原失败及迟到exact保留历史身份 | 不再写当前在途从未通过；组件结果不推普遍隐私／硬崩溃或全应用恢复PASS |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
 | 普通 Move 正常收尾 | 当前212／f54两轮owned核心已完成；四快速case实际LL-UP但仅native-only。c01、8cee／e4与c1f8原缺UP失败保留，成功不能补旧缺失 | D08仍OPEN；不由队列UP或Raw计数授增强NormalUp、不推已查明缺失根因 |
 | ConsumedDown候选入场门 | f63旧门拒绝保留；d546及f481为历史资源可行性和退出风险实测，后继V1已接实际writer并有owned手势结果 | 旧owned可行性不外推Explorer；当前正式Explorer资格及五应用未齐，不升级宿主试用 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
-| 托盘与五键入口 | fdfe／e4 五键实际客户区和映射检查通过子流程；e4 托盘 UID1 图标不可达，BLOCKED | 五键不等于整个 M09 或托盘菜单通过；仍需真实托盘入口 |
+| 托盘与五键入口 | dd02当前212五键实际阶段PASS；1029行精确当前UID1图标不可达、菜单输入未发送，托盘仍BLOCKED，旧批次原身份保留 | 五键不等于整个M09或托盘菜单通过；仍需可达的真实精确托盘入口，不向未知对象点击 |
 | 在途日志与实际异常 | 7cac／e4原失败保留；当前212／f54在途组件5279及batch5418已实测通过各自判定 | 不再以旧在途FAIL概括当前；仍不授整个I10或抹去历史UP失败 |
 | GUI诊断与driver临时文件 | 590误纳`.tmp`的确定driver问题已由dd60 Debug97／Release714c真实final导出及parser专项复验关闭 | 设置底部“诊断”入口已实测，不因此授托盘／普遍隐私／完整M12通过 |
 | 导出失败可见反馈 | 86a原R2缺实际modal的FAIL保留；866新R3真实modal/ack、0假包、恢复与重导出实际通过 | D22仅定向关闭／M12F02独立PASS，不抬M12模块或整版，不换绑旧R2 |
@@ -686,13 +692,13 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 项目 | 准确边界 |
 | --- | --- |
 | 正式 Medium Explorer | 当前f54实际root RID8192但elevated=true，medium=false，正式资格拒绝且未输入；root清理未确认。不套旧High例外，不改token事实。 |
-| Code | 当前f54指定EXE缺失、未发应用输入，BLOCKED；历史hidden／0x80070005仍UNKNOWN。既有官方资产准备不等于本包已携带或已测，不认定永久环境缺失。 |
-| Notepad | 当前f54指定官方EXE缺失且无应用输入，BLOCKED；旧官方准备／认证阻断保持原记录，不能补PASS，不在宿主改账户或UAC。 |
+| Code | 7c6c／744已携官方Code并实际尝试Medium启动，但未取得唯一合格新root，startup BLOCKED、增强NOT_RUN；不再称本批未带EXE，也不把历史GPU／hidden子进程错误直接当本次唯一原因。 |
+| Notepad | 744仍无明确可运行的官方EXE／合格新root，无应用输入、增强NOT_RUN；旧官方准备／认证和payload限制保留，不在宿主改账户或UAC，不将软件缺口当产品不兼容。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
 | I08／I10／I11 | f54旧file_size FAIL保留；e7两轮／20slot已完成但实际资源间隔899.9940725秒，严格900门FAIL。048真实F11观察通过，actor被实际失焦提前撤权，不算Deadline；I08未整体验收。9724严格900.037841秒及有限owned退出通过，视觉／在途／grid／batch子PASS不授整I10／I11或全应用／跨屏。 |
 | 顺序配置输入差异 | 97 Debug专项成功后，同guest的Release实际客户激活失败，未到GUI/parser/ZIP；原因UNKNOWN。714c独立Release-only成功不证明根因，也不抹去原失败；不操作未知前台或追加无依据API。 |
-| 本阶段便携交付 | 当前212／7635 ZIP已由477a1219及f54 1250实际验证普通GUI、保存后Move-UP、正常退出与字节，仅入口scope；e2abc／dd60等原ZIP和历史结论保留不换绑。整I12、说明完整走查及整版未通过。 |
+| 本阶段便携交付 | 当前212／7635 ZIP由dd02再次实际验证普通GUI、保存后Move-UP、正常退出与字节；1250行原I12=PASS仅按入口scope评价，全部入口未齐，整I12仍BLOCKED。旧包和历史结果不换绑。 |
 
 ## 持续验证与交付边界
 

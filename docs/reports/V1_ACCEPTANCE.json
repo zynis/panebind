@@ -107,7 +107,7 @@
       "static_tool_checks": 53,
       "static_tool_log": "uat/v1-control/r11-01ab9ec-identity-static-20261019.txt",
       "static_tool_log_sha256": "565ED1C525BDE47AD407719D756FEE459CF72F979693710C9DBFA3DDE83A8012",
-      "runtime_validation": "NOT_RUN_PREPARED_APPLICATIONS_ONLY_REVALIDATION",
+      "runtime_validation": "ACTUAL_744_SOURCE_ONLY_PREFLIGHT_NATIVE_HIT_REACHED_APPLICATIONS_BLOCKED_EDGE_NORMAL_CLOSE_UNCONFIRMED",
       "prepared_run_ids": [
         "744fff40a030404ebafe9e2879190179"
       ],
@@ -214,7 +214,7 @@
       "latest_release_run_id": "be94eba2a078403ca5db1b961c0f2aae",
       "latest_release_driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
       "latest_release_driver_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-      "in_progress_release_run_id": "744fff40a030404ebafe9e2879190179",
+      "in_progress_release_run_id": null,
       "release_run_id": "be94eba2a078403ca5db1b961c0f2aae",
       "run_id": "be94eba2a078403ca5db1b961c0f2aae",
       "configuration": "Release",
@@ -9296,13 +9296,14 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/99f-1b5-notepad-preparation-selected.json",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl"
+        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
       ],
       "observed": "c01本批指定Notepad EXE缺失，未执行该类别动作。；e0e4已实际尝试官方Notepad准备，manifest请求Market=ZZ返回400；未安装/未运行产品，不是永久缺程序。；99f官方MarketUS manifest200/找到Notepad后需Entra交互认证，0字节无包；Geo恢复失败另记工具，产品NOT_RUN。；022序117仍无已取得的指定官方EXE，无Notepad窗口输入。",
       "remaining_conditions": [
         "本批未带EXE不是永久环境阻断；需准备官方Notepad并核实实际根/权限。"
       ],
-      "next_action": "7c6当前官方指定Notepad EXE不可用且没有输入；保留既有官方获取/ISO payload证据，补可合法运行的真实Notepad条件，不以缺EXE证明产品不兼容，不重开无新条件的获取尝试。",
+      "next_action": "744本批Notepad未启动/未输入，增强NOT_RUN；保留官方payload缺口，不用driver修复或其他app结果关闭此条件。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9312,7 +9313,8 @@
         "PO-99F-1B5-OFFICIAL-NOTEPAD-PREPARATION",
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
-        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP"
+        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9324,15 +9326,15 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-        "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-        "run_id": "7c6c3d233155473ea2a3b08c57d58d3e",
+        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+        "run_id": "744fff40a030404ebafe9e2879190179",
         "configuration": "Release",
-        "observation_id": "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "scope": "BLOCKED_STARTUP_OFFICIAL_PAYLOAD_UNAVAILABLE",
+        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "scope": "BLOCKED_STARTUP_NO_EXPLICIT_OFFICIAL_NOTEPAD_PAYLOAD",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "BLOCKED_STARTUP_OFFICIAL_PAYLOAD_UNAVAILABLE"
+      "current_candidate_state": "BLOCKED_STARTUP_NO_EXPLICIT_OFFICIAL_NOTEPAD_PAYLOAD"
     },
     {
       "id": "A04",
@@ -9347,13 +9349,14 @@
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-product-selected.jsonl",
-        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl"
+        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
       ],
       "observed": "c01 Edge实际已绑定根但实际NC hit2184失败，exact关闭未确认且登记保留；原因UNKNOWN。；R2/30bf已绑定Medium精确根，caption扫描23920点/19410实际查询中18839失败，样本超时1460；1500命中FAIL、1510/1514/1516关闭未确认，根存活，不控制未知popup/强关。；最新022/D660已实际通过caption162、165真实WM_NCHITTEST2/前台exact/capture0，167真实g4 START；169 first-free未动、无placement回执，product78DOWN/79START/80end3正常false，原因UNKNOWN。此后不再把最新失败写成caption/19k查询风暴；旧30bf原事实保留。179根存活/WM_NULL返回false，180/184/188 exact关闭仍未确认。",
       "remaining_conditions": [
         "浏览器全部操作/透传/正常关闭矩阵未通过。"
       ],
-      "next_action": "7c6实际Edge bound/layout成立，但单source preflight额外全组资格读取拒绝且why未知；修driver复用同Catalog fresh source并输出拒绝原因，保留真实权限/命中门后新Run复验。根正常关闭未确认继续FAIL，不操作失效identity或把guest销毁当cleanup。",
+      "next_action": "744 source-only driver已实际触达真实WM_NCHITTEST并超时1460，不再把旧全组资格/身份矛盾作为本批失败。pause不等于hooks absent，下一NativeClientsOnly须在首次产品launch之前复用同helper作有区分度观察；Edge正常根关闭仍FAIL，不强关未知身份或以guest销毁补PASS。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9362,7 +9365,8 @@
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
-        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP"
+        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9374,15 +9378,15 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-        "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-        "run_id": "7c6c3d233155473ea2a3b08c57d58d3e",
+        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+        "run_id": "744fff40a030404ebafe9e2879190179",
         "configuration": "Release",
-        "observation_id": "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "scope": "DRIVER_PREFLIGHT_REPAIR_PENDING_EDGE_NORMAL_ROOT_CLEANUP_FAIL_RETAINED",
+        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "scope": "NATIVE_PREFLIGHT_ACTUAL_HIT_TIMEOUT1460_EDGE_NORMAL_CLOSE_STILL_UNCONFIRMED",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "DRIVER_PREFLIGHT_REPAIR_PENDING_EDGE_NORMAL_ROOT_CLEANUP_FAIL_RETAINED"
+      "current_candidate_state": "NATIVE_PREFLIGHT_ACTUAL_HIT_TIMEOUT1460_EDGE_NORMAL_CLOSE_STILL_UNCONFIRMED"
     },
     {
       "id": "A05",
@@ -9396,13 +9400,14 @@
         "docs/reports/v1-evidence/b49-medium-probe-selected.json",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl"
+        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
       ],
       "observed": "b49已携官方VSCode且UserData/Extensions/TEMP实际Medium读写删除均PASS；launcher仍259，一个held child退出0x80070005，仅hidden根、own profile log目录不可用；未绑定合格根、未发窗口输入。；R2/30bf三个Medium目录RW探针PASS；launcher/一child仍259，另child0x80070005、4个hidden根，无合格根/输入；本批ownlog根存在、2目录/0文件（不同于旧无log根事实），原因UNKNOWN。；最新022同R2官方Code再次只得4个hidden根/无合格窗；launcher/一child仍259、另child0x80070005；144本次ownlog不可用/0目录0文件，不将30bf的已有log目录回填本批。",
       "remaining_conditions": [
         "实际可运行普通Electron根仍缺，原因UNKNOWN；不是本批未携EXE或已证明profile目录无写权限。"
       ],
-      "next_action": "7c6官方Code asset实际启动成功/Medium但无唯一合格root、未发产品手势。保留前批官方GPU子进程49证据为历史，不推定本次同根因；仅用可区分事实定位官方程序原生启动，不能关闭安全沙箱或把目录RW PASS当可交互。",
+      "next_action": "744 Code仍无唯一合格root/未attempt增强，启动层BLOCKED，不把它计产品Move失败。下一无产品进程原生客户端场景分别核启动事实，旧官方GPU错误仅保留历史身份，不无证推成本次唯一原因。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9411,7 +9416,8 @@
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
-        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP"
+        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9423,15 +9429,15 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-        "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-        "run_id": "7c6c3d233155473ea2a3b08c57d58d3e",
+        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+        "run_id": "744fff40a030404ebafe9e2879190179",
         "configuration": "Release",
-        "observation_id": "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "scope": "BLOCKED_NATIVE_APPLICATION_STARTUP_NO_ELIGIBLE_ROOT",
+        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "scope": "BLOCKED_NATIVE_STARTUP_NO_ELIGIBLE_CODE_ROOT_ENHANCED_NOT_RUN",
         "not_complete_contract_PASS": true
       },
-      "current_candidate_state": "BLOCKED_NATIVE_APPLICATION_STARTUP_NO_ELIGIBLE_ROOT"
+      "current_candidate_state": "BLOCKED_NATIVE_STARTUP_NO_ELIGIBLE_CODE_ROOT_ENHANCED_NOT_RUN"
     },
     {
       "id": "A06",
@@ -9446,13 +9452,14 @@
         "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
         "docs/reports/v1-evidence/022-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl"
+        "docs/reports/v1-evidence/7c6-r11-application-native-preflight-and-cleanup-selected.jsonl",
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
       ],
       "observed": "R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，客户输入未验证；1753 exact根关闭确认，1754类别仍FAIL。",
       "remaining_conditions": [
         "当前R7实际客户区输入/透传未完成；历史R2/022类别PASS保留原身份，不替代本R7。"
       ],
-      "next_action": "7c6当前Terminal实际root命中HTCAPTION且没有原生客户语义交互、没有产品手势；枚举子HTCLIENT不替代实际路由。保留e7几何/UP历史子项，先解决或明确原生终端客户端条件，不放宽门槛或外推为产品能力失败。",
+      "next_action": "744 Terminal真实root命中HTCAPTION2，pause/resume成立但原生客户交互未成立；不放宽HTCLIENT门或把枚举child当实际路由。下一首次产品launch之前同helper对照仅区分产品presence，不先写环境根因。",
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -9462,7 +9469,8 @@
         "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-128F-R8-APPLICATIONS-FAILURES-DRIVER-EXIT-UNKNOWN",
-        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP"
+        "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -9479,12 +9487,12 @@
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-        "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-        "run_id": "7c6c3d233155473ea2a3b08c57d58d3e",
+        "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+        "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+        "run_id": "744fff40a030404ebafe9e2879190179",
         "configuration": "Release",
-        "observation_id": "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
-        "scope": "BLOCKED_NATIVE_CLIENT_ACTUAL_HTCAPTION_BEFORE_PRODUCT_TESTS",
+        "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+        "scope": "NATIVE_PREFLIGHT_ACTUAL_ROOT_HTCAPTION_ENHANCED_NOT_RUN",
         "not_complete_contract_PASS": true
       },
       "historical_complete_contract_observation": {
@@ -9494,7 +9502,7 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3",
         "observed": "同R2/022真实Terminal五阶段Move、实际UP/NormalUp保持、Resize/UP、Center/Dock/Undo/Stretch/Undo、Esc恢复及终端客户输入通过；114 exact根关闭、115本类别范围PASS。30bf同R2原通过与b49/7cd历史失败各留身份，不授其余四类/混合组。"
       },
-      "current_candidate_state": "BLOCKED_NATIVE_CLIENT_ACTUAL_HTCAPTION_BEFORE_PRODUCT_TESTS"
+      "current_candidate_state": "NATIVE_PREFLIGHT_ACTUAL_ROOT_HTCAPTION_ENHANCED_NOT_RUN"
     }
   ],
   "nonfunctional": [
@@ -9948,9 +9956,9 @@
       "id": "V1-D12",
       "status": "OPEN",
       "kind": "APPLICATION_MATRIX_AND_EXACT_CREATED_ROOT_CLEANUP_INCOMPLETE",
-      "latest_observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
-      "runtime_revalidation": "ACTUAL_212_MODERN_TERMINAL_GEOMETRY_AND_NORMAL_UP_SCOPED_PASS_CLIENT_NOT_SENT_CATEGORY_FAIL",
-      "next_action": "e7官方现代Terminal已实测五阶段/Resize/UP/命令/Esc及根关闭；仍缺实际HTCLIENT投递，不授类别PASS。正式Explorer elevated被拒、Code/Notepad本包缺EXE、Edge基线/关闭FAIL各自保留；复用已准备官方资产推进具体缺项，不笼统归为未携EXE或权限根因。",
+      "latest_observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+      "runtime_revalidation": "ACTUAL_744_SOURCE_ONLY_PREFLIGHT_REACHED_REAL_NATIVE_HIT_APPLICATIONS_BLOCKED_ENHANCED_NOT_RUN_EDGE_CLOSE_FAIL",
+      "next_action": "保留本次真实拒绝，不重复Full或900。使用现有GroupBoundsOnly未触达组布局用例继续不受阻产品验证；用首次产品launch之前的NativeClientsOnly复用相同原生客户helper，明确无产品进程后缩小guest/driver/产品presence范围。新driver尚待提交/运行，不预填SHA或通过。",
       "description": "e4 Terminal实际本次类别范围通过并exact关闭；正式Explorer实际RID8192/elevated=true被正确拒绝，Notepad/VSCode本批指定EXE缺失。Edge1958实际hit失败，exact根关闭未确认且登记保留，不控制身份失效窗；产品自身正常退出与post-stop客户输入通过不等于该根已清理或整个矩阵通过。 b49当前R：Terminal五阶段几何成立但真实UP缺失；VSCode已携官方1.142.0.0且profile/extensions/TEMP读写删除成功，主launcher仍259、一个held child退出0x80070005、仅hidden根、ownlog目录不可用，不再笼统称未携EXE。Edge命中/精确关闭失败仍保留；普通新账号DACL拒绝是环境事实非产品FAIL。",
       "features": [
         "M02-F01",
@@ -9961,7 +9969,11 @@
         "PO-FDFE-INDEPENDENT",
         "PO-945C-TERMINAL-UP",
         "PO-E4-INDEPENDENT",
-        "PO-B49-ENVIRONMENT-APPLICATIONS"
+        "PO-B49-ENVIRONMENT-APPLICATIONS",
+        "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
       ]
     },
     {
@@ -11007,6 +11019,21 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+      "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+      "run_id": "744fff40a030404ebafe9e2879190179",
+      "configuration": "Release",
+      "path": "uat/v1-control/744fff40a030404ebafe9e2879190179/collection-20261019T103905106Z-fda709d9331344d49903db84929b1347/744fff40a030404ebafe9e2879190179-release-fixture.jsonl",
+      "sha256": "C1259A29247CAE9211BFACA94E5ECDEFD080030DED2F79A5A599463CAF75448D",
+      "repository_excerpt_path": "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl",
+      "repository_excerpt_sha256": "61BC898C6E6B2883C2B59BE138E2D2FA563088A8FB23653E5FAD0CA8D70544E8",
+      "scope": "SOURCE_SNAPSHOT_DRIVER_PATH_REACHED_ACTUAL_NATIVE_HIT_APPLICATIONS_STILL_BLOCKED_EDGE_NORMAL_CLOSE_UNCONFIRMED"
+    },
     {
       "id": "EV-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS",
       "kind": "literal_selected_actual_guest_JSONL",
@@ -12458,6 +12485,54 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "driver_source_sha": "01ab9ec48f10ff338b550d9ae8c41c6b050a17d7",
+      "driver_binary_sha256": "7D9932EE22D62E85CE88114900A5052DDE3DAADD76BB87537E91A89B8B837CB2",
+      "run_id": "744fff40a030404ebafe9e2879190179",
+      "configuration": "Release",
+      "packaging_head": "0e05846bc5fed22020be2ca39d202c63337478be",
+      "package_zip_sha256": "A7C88E728DDF70FCBF97041AB5A6ADED6BECFCCB68D4B3AADDEA9AD366F2EC3C",
+      "package_manifest_sha256": "373308A3D90350C08FFE868FEC8D18489E0235167F5B28C2511610EC12243B15",
+      "observation_id": "PO-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT-REVALIDATION",
+      "scope": "SOURCE_SNAPSHOT_DRIVER_PATH_REACHED_ACTUAL_NATIVE_HIT_APPLICATIONS_STILL_BLOCKED_EDGE_NORMAL_CLOSE_UNCONFIRMED",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "result": "FAIL_NATIVE_APPLICATION_PREFLIGHT_OR_STARTUP_BLOCKED_EDGE_ROOT_CLEANUP_UNCONFIRMED",
+      "record_kind": "ACTUAL_GUEST_APPLICATIONS_ONLY_SOURCE_SNAPSHOT_DRIVER_REVALIDATION",
+      "observed": "154行原JSONL合法且sequence连续。产品212/便携7635字节不变，driver01ab仅修单source客户预检误读全组资格的接线。Terminal D56真实WindowFromPoint=root131804/PID6988/TID6352、WM_NCHITTEST返回HTCAPTION2；D59实际产品pause/resume成立但native_client=false，D70增强NOT_RUN。Notepad D82启动BLOCKED、Code D113无唯一合格root，均无产品手势/增强NOT_RUN。Edge D122现在实际到达同root131936/PID3956/TID3848的WM_NCHITTEST，native_return=false/error1460，未再走旧全组资格读取/身份代际矛盾错误；D123 pause/resume成立/nativeclient=false，D135仍BLOCKED且输入尚未发送。此证明driver修复路径触达，不证明旧资格拒绝根因，也不证明产品hooks不存在或sole环境原因。D138/D142 exact_root_close_not_observed_in_bound，D139 cleanup门拒绝继续，Edge根正常关闭未确认保持FAIL。D144产品quit/exit0，自身hooks/overlay/native/input/capture/association/visual真实清理true且completionunknownfalse；D149客户[0,0]→[1,1]，D153 Raw实际注销，D154自窗销毁/产品关闭。wrapperwait0/exit1/desc4/forcedtrue与Edge正常关闭FAIL分别保留；guest销毁不补cleanup PASS。",
+      "driver_repair_assessment": "ACTUAL_SOURCE_ONLY_PREFLIGHT_REACHED_NATIVE_HIT_PREVIOUS_EXTRA_GROUP_PATH_NOT_REPEATED_NOT_ROOT_CAUSE_PROOF",
+      "product_gesture_attempted": false,
+      "enhanced_function_result": "NOT_RUN",
+      "paused_product_is_not_hooks_absent": true,
+      "failure_cause": "UNKNOWN",
+      "evidence_ids": [
+        "EV-744-R11-SOURCE-SNAPSHOT-APPLICATION-PREFLIGHT"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/744-r11-source-snapshot-preflight-revalidation-selected.jsonl"
+      ],
+      "affected_application_ids": [
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "cleanup": {
+        "guest_pid": 21076,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T10:45:01.5458315Z",
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "new_feature_or_B_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "保留本次真实拒绝，不重复Full或900。使用现有GroupBoundsOnly未触达组布局用例继续不受阻产品验证；用首次产品launch之前的NativeClientsOnly复用相同原生客户helper，明确无产品进程后缩小guest/driver/产品presence范围。新driver尚待提交/运行，不预填SHA或通过。"
+    },
     {
       "id": "PO-7C6-R11-APPLICATION-NATIVE-PREFLIGHT-BLOCKS-AND-EDGE-CLEANUP",
       "run_id": "7c6c3d233155473ea2a3b08c57d58d3e",
