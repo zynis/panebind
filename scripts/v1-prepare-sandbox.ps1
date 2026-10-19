@@ -14,7 +14,7 @@ param(
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
-    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly')][string]$Suite='Full',
+    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
@@ -262,9 +262,15 @@ $binaries = @()
 foreach ($configuration in @('Debug','Release')) {
     $product = Find-Binary $configuration 'panebind.exe' $productBuild
     $fixture = Find-Binary $configuration 'panebind-v1-guest-fixture.exe' $build
+    $productDependencies=Get-V1SandboxBinaryDependencies $productBuild $product Product
+    $fixtureDependencies=Get-V1SandboxBinaryDependencies $build $fixture Driver
+    $productIdentity=Read-BuildIdentity $product Product $SourceCommit
+    $fixtureIdentity=Read-BuildIdentity $fixture Driver $DriverSourceCommit
+    if($productDependencies.binary_sha256 -cne $productIdentity.verified_binary_sha256 -or
+       $fixtureDependencies.binary_sha256 -cne $fixtureIdentity.verified_binary_sha256){throw 'Binary changed between dependency and identity checks.'}
     $binaries += [ordered]@{ configuration=$configuration; product=$product; fixture=$fixture;
-        product_identity=(Read-BuildIdentity $product Product $SourceCommit);
-        fixture_identity=(Read-BuildIdentity $fixture Driver $DriverSourceCommit);
+        product_identity=$productIdentity;fixture_identity=$fixtureIdentity;
+        product_dependencies=$productDependencies;fixture_dependencies=$fixtureDependencies;
         fixture_identity_kind='binary_self_reported' }
 }
 $portableTest=$null
@@ -434,6 +440,7 @@ $manifest = [ordered]@{
     guest_configurations=$GuestConfigurations;
     guest_suite=$Suite;
     configurations=@($binaries | ForEach-Object { [ordered]@{ name=$_.configuration; product_identity=$_.product_identity;
+        product_dependencies=$_.product_dependencies;fixture_dependencies=$_.fixture_dependencies;
         fixture_identity=$_.fixture_identity; fixture_identity_kind=$_.fixture_identity_kind;
         manifest_expected_source=$head;manifest_expected_driver_source=$DriverSourceCommit } });
     tracked_non_source_changes=$trackedChanges;

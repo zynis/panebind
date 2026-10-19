@@ -258,6 +258,57 @@ function Assert-V1PauseRoutingScopeWiring([string]$Source,[string]$Chains){
         throw 'The new Ctrl gesture must use the actual separated layout, a fresh one-member group and no old-member native calls.'
     }
 }
+function Assert-V1OwnedRuleTargetWiring([string]$Source,[string]$Layouts,[string]$Rules){
+    # This verifies the real guest component's wiring, not native rule or GUI
+    # behavior. The three command/Undo observations require actual guest runs.
+    $entry=Get-V1FixtureFunctionText $Source 'independent_entry_flow'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="OwnedRulesOnly"\)\{(?<body>.*?)return;\s*\}')
+    $drive=Get-V1FixtureFunctionText $Source 'drive'
+    if(-not $scope.Success -or [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $scope.Value.Contains('phase("owned_rule_target_stretch",owned_rule_target_stretch_case);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains('owned_rules_only_summary') -or
+       $scope.Index -ge $entry.IndexOf('phase("settings_GUI",',[StringComparison]::Ordinal) -or
+       $scope.Index -ge $entry.IndexOf('phase("owned_finite_I11_component",',[StringComparison]::Ordinal) -or
+       $drive -notmatch '(?s)if\([^\r\n]*s\.suite=="OwnedRulesOnly"[^\r\n]*\)\{\s*independent_entry_flow\(s,' -or
+       -not $Source.Contains('#include "platform/windows/product/v1_guest_rule_cases.h"')){
+        throw 'OwnedRulesOnly must execute its actual rule target component and cleanup, then return before unrelated suites.'
+    }
+    $owns=Get-V1FixtureFunctionText $Layouts 'layout_ui_owns'
+    $cleanup=Get-V1FixtureFunctionText $Layouts 'layout_ui_cleanup'
+    if(-not $owns.Contains('index==1&&!storage.target1_alias.empty()?storage.target1_alias:storage.class_name') -or
+       -not $owns.Contains('pid==GetCurrentProcessId()') -or
+       -not $owns.Contains('GetWindowLongPtrW(frame.hwnd,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&frame)') -or
+       -not $Layouts.Contains('state.suite!="OwnedRulesOnly"||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run') -or
+       -not $Layouts.Contains('storage->target1_alias=storage->class_name+L".StretchRuleTarget";') -or
+       -not $Layouts.Contains('original.lpfnWndProc!=procedure||original.hInstance!=storage->instance') -or
+       -not $Layouts.Contains('storage->alias_registered=RegisterClassExW(&original)!=0;') -or
+       -not $cleanup.Contains('gone&&storage->alias_registered&&!storage->alias_unregister_attempted') -or
+       -not $cleanup.Contains('UnregisterClassW(storage->target1_alias.c_str(),storage->instance)!=FALSE') -or
+       -not $cleanup.Contains('storage->cleaned=exact&&gone&&alias_clean;')){
+        throw 'The rule target alias must remain exact to member one and this Run, with actual registration and destruction/unregistration cleanup.'
+    }
+    $case=Get-V1FixtureFunctionText $Rules 'owned_rule_target_stretch_case'
+    $baseline=$case.IndexOf('owned_rule_stretch_and_Undo(set,source,target,near_edge,"owned_rule_baseline_near_target_edge")',[StringComparison]::Ordinal)
+    $add=$case.IndexOf('settings_guest_activate(s,gui,GetDlgItem(gui_page(s,gui),115));',[StringComparison]::Ordinal)
+    $excluded=$case.IndexOf('owned_rule_stretch_and_Undo(set,source,target,work_edge,"owned_rule_excluded_visible_target_uses_work_edge")',[StringComparison]::Ordinal)
+    $remove=$case.IndexOf('owned_rule_restore_rules_GUI(s,original);',[StringComparison]::Ordinal)
+    $restored=$case.IndexOf('owned_rule_stretch_and_Undo(set,source,target,near_edge,"owned_rule_removed_target_returns_same_near_edge")',[StringComparison]::Ordinal)
+    if($baseline -lt 0 -or $baseline -ge $add -or $add -ge $excluded -or $excluded -ge $remove -or $remove -ge $restored -or
+       -not $case.Contains('set.create(true);') -or
+       -not $case.Contains('gui_read(s,gui,class_filter,BM_GETCHECK)==BST_CHECKED') -or
+       $case -notmatch 'settings_guest_acknowledge\(s,gui,L"[^"\r\n]+"\);gui_save_enter\(s,gui\);' -or
+       -not $case.Contains('excluded.rules.back().excluded&&excluded.rules.back().window_class==utf8(alias)') -or
+       -not $case.Contains('v::settings_detail::ascii_fold(excluded.rules.back().exe)==v::settings_detail::ascii_fold(actual_image)') -or
+       -not $case.Contains('baseline_key&&excluded_key&&restored_key') -or
+       $case.Substring($baseline,$restored-$baseline) -match '\bset\.setup\s*\(' -or
+       -not $case.Contains('set.storage->alias_unregister_attempted&&set.storage->alias_unregistered') -or
+       -not $Rules.Contains('chain_command(set,0,L"Undo",source);') -or
+       -not $Rules.Contains('source_calls>=2&&!other_calls&&set.owns(0)&&set.owns(1)') -or
+       $Rules -notmatch 'settings_guest_replace\(s,gui,gui_number\(s,gui,L"rule\.[^"\r\n]+"\),owned_rule_utf8\(fragment\)\);gui_save_enter\(s,gui\);' -or
+       -not $Rules.Contains('MB_ERR_INVALID_CHARS')){
+        throw 'The actual GUI must exclude only the exact target class between near-edge baseline and restored near-edge commands, preserving source identity and Undo.'
+    }
+}
 $fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
 $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
 Assert-V1NativeClientPreflightWiring $fixtureSource
@@ -277,6 +328,10 @@ Reject {Assert-V1StretchModesScopeWiring $fixtureSource ($chainSource.Replace('c
 Assert-V1PauseRoutingScopeWiring $fixtureSource $chainSource
 Check $true 'static pause routing: actual Pause/UP/native/Resume and bypass/new-relation components are wired without unrelated suites'
 Reject {Assert-V1PauseRoutingScopeWiring $fixtureSource ($chainSource.Replace('!starts_claimed&&!placements&&!resources&&!cancels','!starts_claimed&&!resources&&!cancels'))} 'static pause routing rejects native bypass without the zero-product-placement gate'
+$ruleSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_rule_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1OwnedRuleTargetWiring $fixtureSource $layoutSource $ruleSource
+Check $true 'static owned rule scope: exact target alias, real GUI rule, baseline/exclusion/restoration commands and resource cleanup are wired'
+Reject {Assert-V1OwnedRuleTargetWiring $fixtureSource $layoutSource ($ruleSource.Replace('excluded.rules.back().excluded&&excluded.rules.back().window_class==utf8(alias)','excluded.rules.back().excluded'))} 'static owned rule scope rejects accepting a rule without the exact target class'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
@@ -303,6 +358,9 @@ Reject {Assert-V1BinaryInterface $product Product $before} 'elevated product doe
 Assert-V1PortableDependencies @('kernel32.dll','user32.dll','api-ms-win-core-synch-l1-2-0.dll')
 Check $true 'actual portable packager accepts reviewed system-only imports'
 Reject {Assert-V1PortableDependencies @('kernel32.dll','msvcp140.dll')} 'actual portable packager rejects an omitted external/versioned runtime dependency'
+Assert-V1FixtureDependencies @('kernel32.dll','user32.dll','bcrypt.dll','propsys.dll','api-ms-win-core-synch-l1-2-0.dll')
+Check $true 'actual fixture dependency validator permits its reviewed system-only crypto/property imports'
+Reject {Assert-V1FixtureDependencies @('kernel32.dll','bcrypt.dll','propsys.dll','msvcp140.dll','vcruntime140.dll','vcruntime140_1.dll')} 'actual fixture dependency validator rejects the MD runtime import list rather than relying on developer-installed DLLs'
 # Load ONLY the real validation function definition, not the guest entry body.
 # A missing-file spec is rejected before extraction, process creation or input.
 $guestAst=[Management.Automation.Language.Parser]::ParseFile((Join-Path $repository 'scripts/v1-sandbox-guest.ps1'),[ref]$null,[ref]$null)

@@ -90,3 +90,32 @@ function Assert-V1PortableDependencies([string[]]$Dependencies) {
         throw ('Unexpected non-system/static-runtime dependency; do not silently omit DLLs: '+($Dependencies -join ', '))
     }
 }
+function Assert-V1FixtureDependencies([string[]]$Dependencies) {
+    # The guest fixture additionally uses the system crypto/property APIs.
+    # This does not widen the portable product's dependency contract.
+    $base=@($Dependencies|Where-Object{$_ -cnotin @('bcrypt.dll','propsys.dll')})
+    Assert-V1PortableDependencies $base
+}
+function Get-V1SandboxBinaryDependencies([string]$BuildDirectory,[string]$Executable,
+    [ValidateSet('Product','Driver')][string]$Kind) {
+    # Identity-only execution on the developer machine can succeed using its
+    # installed VC runtime while the same EXE cannot enter a clean guest.
+    # Check both the actual /MT build contract and PE imports before packaging.
+    $cache=Get-Item -LiteralPath (Join-Path $BuildDirectory 'CMakeCache.txt') -ErrorAction Stop
+    if($cache.PSIsContainer -or ($cache.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $cache.Length -gt 1MB){
+        throw 'Sandbox runtime cache must be an ordinary bounded file.'}
+    $text=[IO.File]::ReadAllText($cache.FullName)
+    if($text -cnotmatch '(?m)^CMAKE_MSVC_RUNTIME_LIBRARY:[^=\r\n]+=MultiThreaded\r?$'){
+        throw 'Sandbox product and fixture require the existing /MT (MultiThreaded) build contract; no runtime is installed or built by packaging.'}
+    $linker=[regex]::Match($text,'(?m)^CMAKE_LINKER:FILEPATH=([^\r\n]+)\r?$')
+    if(-not $linker.Success){throw 'Cannot locate the actual sandbox binary linker toolchain.'}
+    $dumpbin=Join-Path ([IO.Path]::GetDirectoryName($linker.Groups[1].Value)) 'dumpbin.exe'
+    if(-not(Test-Path -LiteralPath $dumpbin -PathType Leaf)){throw 'Existing toolchain dumpbin.exe is required; packaging installs nothing.'}
+    $before=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash
+    $rows=@(& $dumpbin /NOLOGO /DEPENDENTS $Executable)
+    if($LASTEXITCODE -ne 0){throw 'Sandbox binary dependency inspection failed.'}
+    $imports=@($rows|ForEach-Object{if($_ -match '^\s+([a-zA-Z0-9_.-]+\.dll)\s*$'){$Matches[1].ToLowerInvariant()}}|Sort-Object -Unique)
+    if($Kind -ceq 'Driver'){Assert-V1FixtureDependencies $imports}else{Assert-V1PortableDependencies $imports}
+    if((Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash -cne $before){throw 'Sandbox binary changed during dependency inspection.'}
+    return [ordered]@{runtime_contract='CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded';binary_sha256=$before;system_imports=$imports}
+}

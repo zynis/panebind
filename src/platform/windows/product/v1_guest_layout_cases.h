@@ -15,6 +15,10 @@ struct LayoutUiStorage {
     std::array<Frame,8> frames;std::array<HWND,3> originals{};
     std::array<LONG_PTR,3> original_data{};std::array<bool,3> old_visible{},visibility_saved{};
     HINSTANCE instance{};std::wstring class_name;DWORD owner{};HWND anchor{};
+    // Only OwnedRulesOnly may request a distinct, Run-bound class for member
+    // 1. Originals and every default/other member retain the old exact class.
+    std::wstring target1_alias;bool alias_registered{},alias_ever_registered{},alias_unregister_attempted{},alias_unregistered{};
+    DWORD alias_register_error{},alias_unregister_error{},alias_registration_tid{},alias_unregistration_tid{};
     std::atomic<bool> abandoned{};bool cleaned{};
     // Windows retain pointers to Frame. Keep that storage alive even when a
     // driver request times out; only the owner may release it after destruction.
@@ -36,7 +40,8 @@ std::atomic<std::shared_ptr<LayoutUiRequest>> layout_ui_pending;
 bool layout_ui_owns(const LayoutUiStorage& storage,std::size_t index){
     if(index>=storage.frames.size())return false;const auto& frame=storage.frames[index];DWORD pid{};
     return frame.hwnd&&IsWindow(frame.hwnd)&&GetWindowThreadProcessId(frame.hwnd,&pid)==storage.owner&&pid==GetCurrentProcessId()&&
-        GetAncestor(frame.hwnd,GA_ROOT)==frame.hwnd&&gui_class(frame.hwnd)==storage.class_name&&
+        GetAncestor(frame.hwnd,GA_ROOT)==frame.hwnd&&
+        gui_class(frame.hwnd)==(index==1&&!storage.target1_alias.empty()?storage.target1_alias:storage.class_name)&&
         GetWindowLongPtrW(frame.hwnd,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&frame);
 }
 bool layout_ui_original(const LayoutUiStorage& storage,std::size_t index){
@@ -57,7 +62,14 @@ bool layout_ui_cleanup(const std::shared_ptr<LayoutUiStorage>& storage){
         if((IsWindowVisible(storage->originals[n])!=FALSE)!=storage->old_visible[n])exact=false;
     }
     const bool gone=std::all_of(storage->frames.begin(),storage->frames.end(),[](const Frame& f){return !f.hwnd;});
-    storage->cleaned=exact&&gone;if(gone)storage->window_lifetime.reset();return storage->cleaned;
+    if(gone&&storage->alias_registered&&!storage->alias_unregister_attempted){
+        storage->alias_unregister_attempted=true;storage->alias_unregistration_tid=GetCurrentThreadId();SetLastError(0);
+        storage->alias_unregistered=UnregisterClassW(storage->target1_alias.c_str(),storage->instance)!=FALSE;
+        storage->alias_unregister_error=storage->alias_unregistered?0:GetLastError();
+        if(storage->alias_unregistered)storage->alias_registered=false;
+    }
+    const bool alias_clean=!storage->alias_ever_registered||(storage->alias_unregister_attempted&&storage->alias_unregistered&&!storage->alias_registered);
+    storage->cleaned=exact&&gone&&alias_clean;if(gone)storage->window_lifetime.reset();return storage->cleaned;
 }
 bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
     if(message!=layout_ui_command)return false;auto request=layout_ui_pending.load(std::memory_order_acquire);
@@ -75,11 +87,25 @@ bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
         const auto check_cancel=[&]{if(request->cancelled.load()||storage->abandoned.load())throw std::runtime_error("layout_UI_request_cancelled");};
         if(request->operation==LayoutUiOperation::Create){
             storage->window_lifetime=storage;
+            if(!storage->target1_alias.empty()){
+                WNDCLASSEXW original{sizeof(original)},unknown{sizeof(unknown)};
+                if(!GetClassInfoExW(storage->instance,storage->class_name.c_str(),&original)||
+                    original.lpfnWndProc!=procedure||original.hInstance!=storage->instance)
+                    throw std::runtime_error("layout_alias_original_class_not_exact");
+                SetLastError(0);const bool exists=GetClassInfoExW(storage->instance,storage->target1_alias.c_str(),&unknown)!=FALSE;
+                const DWORD lookup_error=GetLastError();
+                if(exists||lookup_error!=ERROR_CLASS_DOES_NOT_EXIST)throw std::runtime_error("layout_alias_class_unknown_or_already_registered_not_reused");
+                original.lpszClassName=storage->target1_alias.c_str();storage->alias_registration_tid=GetCurrentThreadId();SetLastError(0);
+                storage->alias_registered=RegisterClassExW(&original)!=0;storage->alias_ever_registered=storage->alias_registered;
+                storage->alias_register_error=storage->alias_registered?0:GetLastError();
+                if(!storage->alias_registered)throw std::runtime_error("layout_exact_rule_target_alias_registration_failed");
+            }
             for(std::size_t n=0;n<storage->originals.size();++n){check_cancel();if(!layout_ui_original(*storage,n))throw std::runtime_error("layout_original_identity_changed");
                 storage->old_visible[n]=IsWindowVisible(storage->originals[n])!=FALSE;storage->visibility_saved[n]=true;ShowWindow(storage->originals[n],SW_HIDE);}
             for(std::size_t n=0;n<storage->frames.size();++n){check_cancel();auto& frame=storage->frames[n];
                 const auto title=L"PaneBind V1 layout — "+std::to_wstring(n+1);
-                frame.hwnd=CreateWindowExW(0,storage->class_name.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,
+                const auto& expected_class=n==1&&!storage->target1_alias.empty()?storage->target1_alias:storage->class_name;
+                frame.hwnd=CreateWindowExW(0,expected_class.c_str(),title.c_str(),WS_OVERLAPPEDWINDOW,
                     100+static_cast<int>(n)*20,100,400,400,nullptr,nullptr,storage->instance,&frame);
                 if(!frame.hwnd||!layout_ui_owns(*storage,n))throw std::runtime_error("layout_test_window_creation_failed");
                 ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);UpdateWindow(frame.hwnd);
@@ -130,13 +156,14 @@ bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
 }
 struct LayoutFixtures {
     State& state;std::shared_ptr<LayoutUiStorage> storage;std::array<Frame,8>& frames;
-    DWORD thread{};std::size_t active{};bool closed{},cleanup_exact{},configuration_observed{};std::array<LayoutNativeSetup,8> configured_native;
+    DWORD thread{};std::size_t active{};bool closed{},cleanup_exact{},configuration_observed{},ui_state_observed{};std::array<LayoutNativeSetup,8> configured_native;
     explicit LayoutFixtures(State& s):state(s),storage(std::make_shared<LayoutUiStorage>()),frames(storage->frames),thread(s.owner){
         storage->instance=s.instance;storage->class_name=s.class_name;storage->owner=s.owner;storage->anchor=s.frames[0].hwnd;
         for(std::size_t n=0;n<s.frames.size();++n){storage->originals[n]=s.frames[n].hwnd;storage->original_data[n]=reinterpret_cast<LONG_PTR>(&s.frames[n]);}
     }
     bool owns(std::size_t index)const{return layout_ui_owns(*storage,index);}
     bool run(LayoutUiOperation operation,const std::vector<Rect>& expected={},const std::vector<LayoutLimit>& limits={},std::size_t member=0,LONG grid=1){
+        ui_state_observed=false;
         if(operation==LayoutUiOperation::Configure)configuration_observed=false;
         auto request=std::make_shared<LayoutUiRequest>();request->storage=storage;request->operation=operation;request->expected=expected;
         request->limits=limits;request->member=member;request->grid=grid;std::shared_ptr<LayoutUiRequest> empty;
@@ -150,17 +177,24 @@ struct LayoutFixtures {
             // persists if the UI is still unavailable; that is never PASS.
             (void)PostMessageW(storage->anchor,layout_ui_command,0,reinterpret_cast<LPARAM>(request.get()));
             const bool cleanup_observed=wait([&]{return request->cleanup_done.load(std::memory_order_acquire);},1000);
+            ui_state_observed=cleanup_observed;
             state.log.emit("layout_UI_timeout","\"owner_tid\":"+std::to_string(thread)+",\"operation\":"+
                 std::to_string(static_cast<unsigned>(operation))+",\"cleanup_completed\":"+(cleanup_observed?"true":"false")+
                 ",\"cleanup_exact\":"+(cleanup_observed?(request->cleanup_success?"true":"false"):"null")+",\"request_PASS\":false");return false;
         }
+        ui_state_observed=true;
         if(operation==LayoutUiOperation::Configure){configured_native=request->native_setup;configuration_observed=true;}
         auto same=request;layout_ui_pending.compare_exchange_strong(same,{});
         if(!request->success&&!request->error.empty())state.log.emit("layout_UI_failure","\"reason\":"+quote(request->error)+",\"owner_tid\":"+std::to_string(thread));
         return request->success;
     }
-    void create(){
+    void create(bool target1_rule_alias=false){
         if(!state.process||WaitForSingleObject(state.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("layout_product_not_running");
+        if(target1_rule_alias){
+            if(state.suite!="OwnedRulesOnly"||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run||!storage->target1_alias.empty())
+                throw std::runtime_error("layout_rule_alias_requires_exact_new_Run_and_suite");
+            storage->target1_alias=storage->class_name+L".StretchRuleTarget";
+        }
         for(std::size_t n=0;n<3;++n){
             if(state.explorer[n]||state.applications[n]||!own(state,state.frames[n].hwnd))throw std::runtime_error("layout_other_targets_must_be_released_first");
         }
@@ -169,6 +203,12 @@ struct LayoutFixtures {
         state.log.emit("layout_owned_scope","\"windows\":8,\"pid\":"+std::to_string(GetCurrentProcessId())+
             ",\"tid\":"+std::to_string(thread)+",\"driver_tid\":"+std::to_string(GetCurrentThreadId())+
             ",\"existing_main_UI_STA\":true,\"original_driver_frames_hidden\":true,\"app_grid\":1,\"automatic_guest_driver\":true");
+        if(target1_rule_alias)state.log.check("layout_rule_target_alias_registered_on_own_UI_STA",storage->alias_registered&&
+            storage->alias_ever_registered&&storage->alias_registration_tid==thread&&owns(0)&&owns(1)&&
+            gui_class(frames[0].hwnd)==storage->class_name&&gui_class(frames[1].hwnd)==storage->target1_alias,
+            "\"source_class\":"+quote(utf8(storage->class_name))+",\"target1_class\":"+quote(utf8(storage->target1_alias))+
+            ",\"RegisterClassEx_returned\":"+(storage->alias_registered?"true":"false")+
+            ",\"RegisterClassEx_error\":"+std::to_string(storage->alias_register_error)+",\"actual_registration_TID\":"+std::to_string(storage->alias_registration_tid));
     }
     void setup(const std::vector<Rect>& expected,const std::vector<LayoutLimit>& limits={}){
         if(expected.empty()||expected.size()>frames.size()||(!limits.empty()&&limits.size()!=expected.size()))throw std::runtime_error("layout_case_bound_invalid");
@@ -208,7 +248,18 @@ struct LayoutFixtures {
     bool destroy(std::size_t member){return member<frames.size()&&run(LayoutUiOperation::DestroyOne,{}, {},member);}
     bool set_grid(std::size_t member,LONG grid){return member<frames.size()&&grid>0&&run(LayoutUiOperation::Grid,{}, {},member,grid);}
     bool close(){
-        if(closed)return cleanup_exact;closed=true;cleanup_exact=run(LayoutUiOperation::Destroy);if(!cleanup_exact)state.log.failed=true;return cleanup_exact;
+        if(closed)return cleanup_exact;closed=true;cleanup_exact=run(LayoutUiOperation::Destroy);if(!cleanup_exact)state.log.failed=true;
+        if(!storage->target1_alias.empty()&&!ui_state_observed)state.log.emit("layout_rule_alias_cleanup",
+            "\"target_class\":"+quote(utf8(storage->target1_alias))+",\"cleanup_state_known\":false,\"cleanup_exact\":false");
+        else if(!storage->target1_alias.empty())state.log.emit("layout_rule_alias_cleanup",
+            "\"target_class\":"+quote(utf8(storage->target1_alias))+",\"all_exact_windows_destroyed\":"+
+            (std::all_of(frames.begin(),frames.end(),[](const Frame& f){return !f.hwnd;})?"true":"false")+
+            ",\"registered_by_this_Run\":"+(storage->alias_ever_registered?"true":"false")+
+            ",\"UnregisterClass_attempted\":"+(storage->alias_unregister_attempted?"true":"false")+
+            ",\"UnregisterClass_returned\":"+(storage->alias_unregister_attempted?(storage->alias_unregistered?"true":"false"):"null")+
+            ",\"UnregisterClass_error\":"+std::to_string(storage->alias_unregister_error)+",\"actual_unregistration_TID\":"+
+            std::to_string(storage->alias_unregistration_tid)+",\"cleanup_exact\":"+(cleanup_exact?"true":"false"));
+        return cleanup_exact;
     }
     ~LayoutFixtures(){try{if(!closed)close();}catch(...){state.log.failed=true;}} // test-owned windows only, not product cleanup PASS
 };
