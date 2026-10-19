@@ -8,6 +8,10 @@
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
+2026-10-19后续两批：`e12ed711f73441c3bc1cf6491771e299`（产品212／驱动a430）实际完成右、上边双击、同代mapped UP、exact几何及Undo；Bottom首click未取得终止回执，后续方向与负例NOT_RUN，整批FAIL。驱动原来只等固定100ms，未在DOWN前核实本位置准备；产品P64日志不能确定内部缓存发布时间或唯一根因。修复`83846770b1f8bfbe4e0ffda5cdb4bbcd94980469`只在严格F04测试等待真实exact准备并保留fresh检查，不改变产品或把准备当写入权限；后续新Run复验，不回写e12为PASS。
+
+`43c7c45cacf1460e846d86f4a35cc4b6`（脚本／驱动a430，原产品未启动）先实际完成WDAG原token的`CreateProcessAsUserW`基线：同一fixture真实身份输出、High/session1子token与正常exit0。新建标准账户的凭据token实际为Medium8192／non-elevated／nonAdmin／session1，但该API创建标准child返回false／1314，子进程未创建。具体缺少哪个privilege未测；NativeClients、GUI、Explorer及输入均NOT_RUN，不能判为应用不兼容或Sandbox只能High。该路线停止叠加启动API或权限补救；现有可运行Medium-owned分支继续。账户按实际SID删除成功、DACL前后不变；本批guest17104／任务于`2026-10-19T14:07:44.9787084Z`精确清理，证据／部署保留、其他资源未改。详见既有验收表及索引；当前完整功能与对标计数不因此增加。
+
 2026-10-19本轮首次使用原配置连接 `crossrec-desktop`／`192.168.1.6:22` 实际exit0，目标核实为 `ZS-WORKSTATION`；没有修改SSH、安全设置或重启宿主。标准 `origin` fetch成功，本轮核验HEAD为 `829682b9935563e1d9d6aaaf0664fb40ad9e6d8d`，与 `origin/codex/r1c4b-live-magnet` 差异0/0。恢复连接仅解除该传输阻断，不代表普通桌面、多屏或整版验收已具备。
 
 新RunId `d76be229715b4d5cb777cb0cc9e76088` 按冻结product212／driverd2、包装829682生成后保持未部署／未运行，原包保留。运行前确认其他应用缺少与Edge相同的原生客户交互前置门；最小driver-only修复已提交为 `eec93e22d66d148f2611dfd59291208c66114aa1`，Debug／Release构建及受影响guest-path各1/1、内部208项通过，51项静态身份guard通过。产品EXE、权限条件及7635便携包均未改；这些检查不是应用实际可交互的证据。

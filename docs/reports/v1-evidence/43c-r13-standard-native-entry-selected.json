@@ -1,0 +1,311 @@
+{
+  "repository_evidence_identity": {
+    "record_kind": "REPOSITORY_METADATA_AND_LITERAL_ORIGINAL_PROPERTY_LINES_NOT_COMPLETE_ORIGINAL",
+    "original_path": "uat/v1-control/43c7c45cacf1460e846d86f4a35cc4b6/collection-20261019T140146104Z-f20ee81e4b134005847e8b5b55e6741d/43c7c45cacf1460e846d86f4a35cc4b6-medium-desktop-probe.json",
+    "original_sha256": "316B758ECBEDF23EECDDFEDF0F1A5A6B0C2A095DF682AD5C3614962A32D0B263",
+    "original_bytes": 18723,
+    "original_rows": 230,
+    "projection_policy": "Grouped [source_line, literal original property text] pairs; only enclosing labels are repository metadata. Other source fields, SID hashes and guest-local path inventories omitted. No credentials included.",
+    "scope": "Actual same-image WDAG High native identity baseline; real standard non-admin Medium credential token; standard CreateProcessAsUserW failed1314 before child creation. GUI/client/product/input NOT_RUN, exact missing privilege/cause UNKNOWN.",
+    "whole_feature_PASS": false,
+    "whole_version_PASS": false
+  },
+  "literal_source_property_lines": {
+    "document": [
+      [
+        2,
+        "    \"schema\":  \"panebind-v1-medium-desktop-probe/1\","
+      ],
+      [
+        3,
+        "    \"utc\":  \"2026-10-19T13:59:03.8777634Z\","
+      ],
+      [
+        4,
+        "    \"run_id\":  \"43c7c45cacf1460e846d86f4a35cc4b6\","
+      ],
+      [
+        5,
+        "    \"probe_source_commit\":  \"a430607507f4980787296fa259a35ef4a97eb8f4\","
+      ],
+      [
+        6,
+        "    \"driver_source_commit\":  \"a430607507f4980787296fa259a35ef4a97eb8f4\","
+      ],
+      [
+        7,
+        "    \"probe_sha256\":  \"C51A5B03D7E79FE7072A72E559C89CC17CBF4E19E392F022358B97DDD5281F7C\","
+      ],
+      [
+        8,
+        "    \"requested_suite\":  \"NativeClientsOnly\","
+      ],
+      [
+        9,
+        "    \"actual_suite\":  \"StandardGuestNativeClients\","
+      ],
+      [
+        10,
+        "    \"compatibility_envelope_kind\":  \"OneStandardGuestGuiPrecheck\","
+      ],
+      [
+        11,
+        "    \"compatibility_envelope_is_GUI_evidence\":  false,"
+      ],
+      [
+        12,
+        "    \"automated_guest_probe\":  true,"
+      ]
+    ],
+    "result": [
+      [
+        15,
+        "                   \"status\":  \"UNKNOWN\","
+      ],
+      [
+        16,
+        "                   \"probe_mode\":  \"StandardGuestNativeClients\","
+      ],
+      [
+        26,
+        "                   \"account_created\":  true,"
+      ],
+      [
+        27,
+        "                   \"account_cleanup_confirmed\":  true,"
+      ],
+      [
+        28,
+        "                   \"dacl_cleanup_confirmed\":  true,"
+      ],
+      [
+        29,
+        "                   \"all_probe_children_stopped\":  true,"
+      ],
+      [
+        30,
+        "                   \"product_started\":  false,"
+      ],
+      [
+        31,
+        "                   \"product_GUI_started\":  false,"
+      ],
+      [
+        32,
+        "                   \"explorer_started\":  false,"
+      ],
+      [
+        33,
+        "                   \"synthetic_input_sent\":  false,"
+      ],
+      [
+        34,
+        "                   \"host_configuration_changed\":  false,"
+      ],
+      [
+        46,
+        "                                                  \"integrity_rid\":  12288,"
+      ],
+      [
+        47,
+        "                                                  \"elevated\":  true,"
+      ],
+      [
+        48,
+        "                                                  \"admin_enabled\":  true,"
+      ],
+      [
+        67,
+        "                   \"no_station_desktop_or_directory_DACL_changes_attempted\":  true,"
+      ],
+      [
+        159,
+        "                   \"NetUserAdd_status\":  0,"
+      ],
+      [
+        163,
+        "                   \"LogonUser_succeeded\":  true,"
+      ],
+      [
+        164,
+        "                   \"LogonUser_error\":  0,"
+      ]
+    ],
+    "result.wdag_baseline": [
+      [
+        77,
+        "                                         \"identity_observed\":  true,"
+      ],
+      [
+        78,
+        "                                         \"status\":  \"NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL\","
+      ],
+      [
+        79,
+        "                                         \"child_created\":  true,"
+      ],
+      [
+        80,
+        "                                         \"child_process_exited\":  true,"
+      ],
+      [
+        81,
+        "                                         \"child_cleanup_confirmed\":  true,"
+      ],
+      [
+        89,
+        "                                         \"CreateProcessAsUserW_attempted\":  true,"
+      ],
+      [
+        90,
+        "                                         \"launch_api\":  \"CreateProcessAsUserW\","
+      ],
+      [
+        91,
+        "                                         \"image_sha256\":  \"BC611DDCBF7CB165908C182B901BE1EAEA8479497848F9FF11B87BC09E367895\","
+      ],
+      [
+        97,
+        "                                         \"CreateProcessAsUserW_succeeded\":  true,"
+      ],
+      [
+        98,
+        "                                         \"CreateProcessAsUserW_error\":  0,"
+      ],
+      [
+        101,
+        "                                         \"baseline_dacls_unchanged\":  true,"
+      ],
+      [
+        114,
+        "                                                                    \"integrity_rid\":  12288,"
+      ],
+      [
+        115,
+        "                                                                    \"elevated\":  true,"
+      ],
+      [
+        116,
+        "                                                                    \"admin_enabled\":  true,"
+      ],
+      [
+        133,
+        "                                                                    \"interactive_child_session_validation\":  \"NOT_RUN\""
+      ],
+      [
+        135,
+        "                                         \"actual_child_identity_matches_requested_token\":  true,"
+      ],
+      [
+        136,
+        "                                         \"actual_child_thread_desktop_before_resume\":  \"UNKNOWN\","
+      ],
+      [
+        137,
+        "                                         \"child_desktop_query_error_type\":  \"InvalidOperationException\","
+      ],
+      [
+        140,
+        "                                         \"GetExitCodeProcess_succeeded\":  true,"
+      ],
+      [
+        141,
+        "                                         \"child_exit_code\":  0,"
+      ]
+    ],
+    "result.credential_token": [
+      [
+        168,
+        "                                            \"integrity_rid\":  8192,"
+      ],
+      [
+        169,
+        "                                            \"elevated\":  false,"
+      ],
+      [
+        170,
+        "                                            \"admin_enabled\":  false,"
+      ],
+      [
+        179,
+        "                                                                \"token_duplicated_or_modified\":  false"
+      ],
+      [
+        183,
+        "                                            \"credential_token_session_id\":  1,"
+      ],
+      [
+        186,
+        "                                            \"ordinary_security_facts_verified\":  true,"
+      ]
+    ],
+    "result.standard_native_child": [
+      [
+        192,
+        "                                                 \"identity_observed\":  false,"
+      ],
+      [
+        193,
+        "                                                 \"status\":  \"UNKNOWN\","
+      ],
+      [
+        194,
+        "                                                 \"child_created\":  false,"
+      ],
+      [
+        195,
+        "                                                 \"child_process_exited\":  false,"
+      ],
+      [
+        196,
+        "                                                 \"child_cleanup_confirmed\":  true,"
+      ],
+      [
+        204,
+        "                                                 \"CreateProcessAsUserW_attempted\":  true,"
+      ],
+      [
+        205,
+        "                                                 \"launch_api\":  \"CreateProcessAsUserW\","
+      ],
+      [
+        206,
+        "                                                 \"image_sha256\":  \"BC611DDCBF7CB165908C182B901BE1EAEA8479497848F9FF11B87BC09E367895\","
+      ],
+      [
+        212,
+        "                                                 \"CreateProcessAsUserW_succeeded\":  false,"
+      ],
+      [
+        213,
+        "                                                 \"CreateProcessAsUserW_error\":  1314,"
+      ],
+      [
+        216,
+        "                                                 \"baseline_dacls_unchanged\":  true,"
+      ]
+    ],
+    "result.account_cleanup": [
+      [
+        222,
+        "                                           \"delete_attempted\":  true,"
+      ],
+      [
+        223,
+        "                                           \"profile_deletion_attempted\":  false,"
+      ],
+      [
+        225,
+        "                                           \"sid_matches_created_account\":  true,"
+      ],
+      [
+        226,
+        "                                           \"NetUserDel_status\":  0,"
+      ],
+      [
+        227,
+        "                                           \"after_query_status\":  2221"
+      ]
+    ]
+  }
+}
