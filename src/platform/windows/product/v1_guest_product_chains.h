@@ -295,6 +295,135 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
         ",\"corner_contextual_route_not_falsely_reported_as_mapped\":"+(edge?"false":"true"));
 }
 
+// These previously unmeasured modes use the production command path, not a
+// repeat of the smart-enabled mouse chain or its screen-edge Move gestures.
+void owned_stretch_ignore_neighbour_case(State& s){
+    const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    if(!original.enabled||s.left||s.control)throw std::runtime_error("stretch_disabled_exact_enabled_idle_precondition_required");
+    chain_check_product(s,pid,birth);LayoutFixtures set{s};set.create();
+    const Rect work=chain_work(set.frames[0].hwnd);
+    if(work.width()<1600||work.height()<650)throw std::runtime_error("stretch_disabled_actual_work_area_too_small_for_independent_fixture");
+    const LONG line=work.l+work.width()*2/5;
+    const Rect neighbour{work.l,work.t,line,work.b},source{line+80,work.t+180,line+480,work.t+480};
+    const Rect expected{work.l,source.t,source.r,source.b};
+    const LayoutLimit limits{100,100,work.width(),work.height()};
+    set.setup({source,neighbour},{limits,limits});
+    auto config=original;config.stretch=true;config.smart_stretch=false;
+    const auto applied=chain_gui_save(s,config);
+    s.log.check("smart_stretch_disabled_actual_GUI_configuration",applied.stretch&&!applied.smart_stretch,
+        "\"saved_configuration_generation\":"+std::to_string(applied.generation)+",\"product_settings_file_not_written_by_driver\":true");
+    chain_check_product(s,pid,birth);chain_command(set,0,L"StretchLeft",expected);
+    const auto actual_source=visible(set.frames[0].hwnd),actual_neighbour=visible(set.frames[1].hwnd);
+    s.log.check("smart_stretch_disabled_ignores_neighbour_exact",set.owns(0)&&set.owns(1)&&
+        actual_source==expected&&actual_neighbour==neighbour&&expected.l!=neighbour.r,
+        "\"independent_work_area\":"+rect(work)+",\"original_source\":"+rect(source)+",\"expected_source\":"+rect(expected)+
+        ",\"actual_source\":"+(actual_source?rect(*actual_source):"null")+
+        ",\"expected_untouched_neighbour\":"+rect(neighbour)+",\"actual_neighbour\":"+
+        (actual_neighbour?rect(*actual_neighbour):"null")+",\"smart_enabled_oracle_not_substituted\":true");
+    chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_disabled_Undo_and_neighbour_exact",set.owns(0)&&set.owns(1)&&
+        visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==neighbour);
+    // Preserve the real Undo source. Move only this same exact test neighbour
+    // outside its vertical interval, so its right edge is not a blocker.
+    const Rect nonoverlap{neighbour.l,work.t+520,neighbour.r,work.t+620};
+    if(!set.owns(0)||!set.owns(1)||s.left||s.control||visible(set.frames[0].hwnd)!=source)
+        throw std::runtime_error("smart_stretch_nonoverlap_exact_released_fixture_required");
+    const bool neighbour_moved=fixture_rect(set.frames[1].hwnd,nonoverlap);
+    s.log.check("smart_stretch_nonoverlap_only_neighbour_setup",neighbour_moved&&set.owns(0)&&set.owns(1)&&
+        visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==nonoverlap&&source.b<nonoverlap.t,
+        "\"source_not_repositioned\":true,\"original_source\":"+rect(source)+",\"new_neighbour\":"+rect(nonoverlap));
+    config.smart_stretch=true;const auto enabled=chain_gui_save(s,config);
+    s.log.check("smart_stretch_nonoverlap_actual_GUI_configuration",enabled.stretch&&enabled.smart_stretch);
+    chain_check_product(s,pid,birth);chain_command(set,0,L"StretchLeft",expected);
+    const auto nonoverlap_actual_source=visible(set.frames[0].hwnd),nonoverlap_actual_neighbour=visible(set.frames[1].hwnd);
+    s.log.check("smart_stretch_enabled_nonoverlap_does_not_block_exact",set.owns(0)&&set.owns(1)&&
+        nonoverlap_actual_source==expected&&nonoverlap_actual_neighbour==nonoverlap&&expected.l!=nonoverlap.r,
+        "\"expected_source\":"+rect(expected)+",\"actual_source\":"+(nonoverlap_actual_source?rect(*nonoverlap_actual_source):"null")+
+        ",\"expected_untouched_neighbour\":"+rect(nonoverlap)+",\"actual_neighbour\":"+
+        (nonoverlap_actual_neighbour?rect(*nonoverlap_actual_neighbour):"null")+",\"independent_nonoverlap_oracle\":true");
+    chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_nonoverlap_Undo_and_neighbour_exact",set.owns(0)&&set.owns(1)&&
+        visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==nonoverlap);
+    const Rect nearest{source.l-500,source.t,source.l-300,source.b};
+    const Rect farther{nearest.r-400,source.t,nearest.r-200,source.b};
+    const Rect nearest_expected{nearest.r,source.t,source.r,source.b},farther_expected{farther.r,source.t,source.r,source.b};
+    set.setup({source,nearest,farther},{limits,limits,limits});
+    chain_check_product(s,pid,birth);chain_command(set,0,L"StretchLeft",nearest_expected);
+    s.log.check("smart_stretch_nearest_before_farther_exact",set.owns(0)&&set.owns(1)&&set.owns(2)&&
+        nearest.r>farther.r&&nearest.r<source.l&&visible(set.frames[0].hwnd)==nearest_expected&&
+        visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther,
+        "\"independent_nearest_expected\":"+rect(nearest_expected)+",\"nearest_target\":"+rect(nearest)+",\"farther_target\":"+rect(farther));
+    chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_nearest_Undo_targets_unchanged",visible(set.frames[0].hwnd)==source&&
+        visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther);
+    if(!set.owns(1)||s.left||s.control)throw std::runtime_error("smart_stretch_hidden_target_exact_idle_required");
+    ShowWindow(set.frames[1].hwnd,SW_HIDE);
+    s.log.check("smart_stretch_exact_nearest_hidden_only",!IsWindowVisible(set.frames[1].hwnd)&&
+        set.owns(0)&&set.owns(1)&&set.owns(2)&&visible(set.frames[0].hwnd)==source&&visible(set.frames[2].hwnd)==farther,
+        "\"qualification_scope\":\"hidden_exact_owned_target_only_not_application_rules\",\"source_and_farther_not_repositioned\":true");
+    chain_command(set,0,L"StretchLeft",farther_expected);
+    s.log.check("smart_stretch_hidden_nearest_filters_to_farther_exact",set.owns(0)&&set.owns(1)&&set.owns(2)&&
+        !IsWindowVisible(set.frames[1].hwnd)&&visible(set.frames[0].hwnd)==farther_expected&&
+        visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther,
+        "\"independent_farther_expected\":"+rect(farther_expected)+",\"application_rule_exclusion_tested\":false");
+    const auto source_key_mark=read_product(s).size();chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_hidden_target_Undo_exact",visible(set.frames[0].hwnd)==source&&
+        !IsWindowVisible(set.frames[1].hwnd)&&visible(set.frames[2].hwnd)==farther);
+    const auto source_key_receipt=chain_any_placement(s,source_key_mark,source);const auto source_key=number(source_key_receipt,"\"key\":");
+    s.log.check("smart_stretch_source_key_from_actual_Undo",source_key&&number(source_key_receipt,"\"process_id\":")==pid&&
+        source_key_receipt.find("\"source_sha\":"+quote(s.product_source))!=source_key_receipt.npos,
+        "\"exact_owned_source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd))+",\"actual_source_key\":"+std::to_string(source_key));
+    const LayoutLimit limited{100,100,600,work.height()};
+    set.setup({source,nearest,farther},{limited,limits,limits});
+    s.log.check("smart_stretch_declared_maximum_rejection_precondition",source.width()==400&&nearest_expected.width()==700&&
+        limited.max_width==600&&IsWindowVisible(set.frames[1].hwnd),
+        "\"expected_policy\":\"explicit_pre_native_rejection_no_new_history\",\"declared_source_max_visible_width\":600"+
+        std::string(",\"independent_oversize_request\":")+rect(nearest_expected));
+    chain_front(set,0);const auto reject_mark=read_product(s).size();
+    const bool sent=launch(s,L"--command StretchLeft",true);std::string rejection,command;unsigned placements{},native_attempts{};
+    const bool rejected=sent&&wait([&]{
+        rejection.clear();command.clear();placements=0;native_attempts=0;std::istringstream rows(product_log_since(s,reject_mark));std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')){
+            const bool current=number(row,"\"process_id\":")==pid&&row.find("\"source_sha\":"+quote(s.product_source))!=row.npos;
+            if(row.find("\"type\":\"placement\"")!=row.npos){++placements;
+                if(row.find("\"native_callsite_claimed\":true")!=row.npos||row.find("\"native_attempted\":true")!=row.npos)++native_attempts;
+                if(current&&number(row,"\"key\":")==source_key&&number(row,"\"generation\":")==0&&
+                   row.find("\"intent_reason\":\"command\"")!=row.npos&&row.find("\"target\":"+rect(nearest_expected))!=row.npos&&
+                   row.find("\"reason\":\"batch_preflight_target_violates_size_constraints\"")!=row.npos&&
+                   row.find("\"declared_track_limits_observed\":true")!=row.npos&&row.find("\"native_callsite_claimed\":false")!=row.npos&&
+                   row.find("\"native_attempted\":false")!=row.npos)rejection=row;
+            }else if(current&&row.find("\"type\":\"command\"")!=row.npos&&row.find("\"action\":\"StretchLeft\"")!=row.npos&&
+                         number(row,"\"key\":")==source_key)command=row;
+        }
+        return !rejection.empty()&&!command.empty();
+    });
+    s.log.check("smart_stretch_maximum_explicit_rejection_no_native",rejected&&placements==1&&native_attempts==0&&set.owns(0)&&set.owns(1)&&set.owns(2)&&
+        visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther,
+        "\"expected_policy\":\"explicit_pre_native_rejection\",\"new_placement_rows\":"+std::to_string(placements)+
+        ",\"new_native_callsite_claims\":"+std::to_string(native_attempts)+",\"actual_rejection\":"+quote(rejection)+",\"actual_command\":"+quote(command));
+    // A rejected operation adds no successful history. Do not Undo it. Restore
+    // the limit and prove that a new legal command and its real Undo can run.
+    set.setup({source,nearest,farther},{limits,limits,limits});chain_command(set,0,L"StretchLeft",nearest_expected);
+    s.log.check("smart_stretch_after_rejection_new_legal_command_exact",visible(set.frames[0].hwnd)==nearest_expected&&
+        visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther);
+    chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_after_rejection_legal_Undo_exact",visible(set.frames[0].hwnd)==source&&
+        visible(set.frames[1].hwnd)==nearest&&visible(set.frames[2].hwnd)==farther);
+    // Restore the wide source limit and original overlapping neighbour for one
+    // existing real mouse entry, retaining its actual first-click/UP guards.
+    set.setup({source,neighbour},{limits,limits});config.smart_stretch=false;chain_gui_save(s,config);
+    chain_double_click(set,HTLEFT,false,expected,"smart_stretch_disabled_actual_left_edge_double_click");
+    s.log.check("smart_stretch_disabled_mouse_neighbour_unchanged",set.owns(0)&&set.owns(1)&&
+        visible(set.frames[0].hwnd)==expected&&visible(set.frames[1].hwnd)==neighbour);
+    chain_command(set,0,L"Undo",source);
+    s.log.check("smart_stretch_disabled_mouse_Undo_exact",visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==neighbour);
+    const auto restored=chain_gui_save(s,original);auto expected_config=original;expected_config.generation=restored.generation;
+    s.log.check("smart_stretch_disabled_original_configuration_restored",restored==expected_config);
+    chain_check_product(s,pid,birth);s.log.check("smart_stretch_disabled_exact_test_windows_closed",set.close());
+    s.log.emit("smart_stretch_modes_component","\"result\":\"PASS\",\"scope\":\"production_smart_stretch_disabled_nonoverlap_nearest_hidden_maximum_and_one_HTLEFT_mouse_entry\""+
+        std::string(",\"same_product_process\":true,\"historical_overlapping_single_target_chain_repeated\":false,\"application_rule_exclusion\":\"NOT_RUN\",\"mouse_double_click\":\"PASS_SCOPED_HTLEFT_SMART_DISABLED\",\"Full_I05\":\"NOT_GRANTED\",\"human_uat\":\"NOT_RUN\""));
+}
+
 [[maybe_unused]] void owned_dock_stretch_chains(State& s){
     namespace v=panebind::core::v1;
     const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);

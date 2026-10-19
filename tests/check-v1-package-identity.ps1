@@ -167,6 +167,43 @@ function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
         throw 'Without-product client input must not read a nonexistent product log or use product release receipts.'
     }
 }
+function Assert-V1StretchModesScopeWiring([string]$Source,[string]$Chains){
+    # Source wiring only. Native GUI settings, command results and restoration
+    # still need the guarded guest run; this does not award that evidence.
+    $entry=Get-V1FixtureFunctionText $Source 'independent_entry_flow'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="StretchModesOnly"\)\{(?<body>.*?)return;\s*\}')
+    $drive=Get-V1FixtureFunctionText $Source 'drive'
+    if(-not $scope.Success -or
+       [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 1 -or
+       -not $scope.Value.Contains('phase("smart_stretch_neighbour_modes",owned_stretch_ignore_neighbour_case);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains('stretch_modes_only_summary') -or
+       $scope.Index -ge $entry.IndexOf('phase("settings_GUI",',[StringComparison]::Ordinal) -or
+       $scope.Index -ge $entry.IndexOf('phase("owned_finite_I11_component",',[StringComparison]::Ordinal) -or
+       $drive -notmatch '(?s)if\([^\r\n]*s\.suite=="StretchModesOnly"[^\r\n]*\)\{\s*independent_entry_flow\(s,'){
+        throw 'StretchModesOnly must run only its actual component and cleanup, then return before unrelated suites.'
+    }
+    $component=Get-V1FixtureFunctionText $Chains 'owned_stretch_ignore_neighbour_case'
+    if(-not $component.Contains('const Rect work=chain_work(set.frames[0].hwnd);') -or
+       -not $component.Contains('config.stretch=true;config.smart_stretch=false;') -or
+       -not $component.Contains('const auto applied=chain_gui_save(s,config);') -or
+       -not $component.Contains('applied.stretch&&!applied.smart_stretch') -or
+       -not $component.Contains('const Rect expected{work.l,source.t,source.r,source.b};') -or
+       -not $component.Contains('chain_command(set,0,L"StretchLeft",expected);') -or
+       -not $component.Contains('actual_source==expected&&actual_neighbour==neighbour&&expected.l!=neighbour.r') -or
+       -not $component.Contains('chain_command(set,0,L"Undo",source);') -or
+       -not $component.Contains('visible(set.frames[0].hwnd)==source&&visible(set.frames[1].hwnd)==neighbour') -or
+       -not $component.Contains('const auto restored=chain_gui_save(s,original);') -or
+       -not $component.Contains('restored==expected_config') -or -not $component.Contains('set.close()')){
+        throw 'Disabled smart stretch must use actual GUI settings and the work-area oracle, preserve its neighbour, then Undo and restore configuration.'
+    }
+    $saved=$component.IndexOf('const auto applied=chain_gui_save(s,config);',[StringComparison]::Ordinal)
+    $stretched=$component.IndexOf('chain_command(set,0,L"StretchLeft",expected);',[StringComparison]::Ordinal)
+    $undone=$component.IndexOf('chain_command(set,0,L"Undo",source);',[StringComparison]::Ordinal)
+    $restored=$component.IndexOf('const auto restored=chain_gui_save(s,original);',[StringComparison]::Ordinal)
+    if($saved -ge $stretched -or $stretched -ge $undone -or $undone -ge $restored){
+        throw 'Actual settings, stretch, Undo and configuration restoration must remain in that order.'
+    }
+}
 $fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
 $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
 Assert-V1NativeClientPreflightWiring $fixtureSource
@@ -179,6 +216,10 @@ Reject {Assert-V1GroupBoundsScopeWiring $fixtureSource ($layoutSource.Replace('l
 Assert-V1NativeClientsWithoutProductWiring $fixtureSource
 Check $true 'static native baseline: product launch is bypassed; exact client actions neither read product receipts nor run geometry cases'
 Reject {Assert-V1NativeClientsWithoutProductWiring ($fixtureSource.Replace('without_product?std::size_t{}:read_product(s).size()','read_product(s).size()'))} 'static native baseline rejects reading product log before native input'
+$chainSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_product_chains.h'),[Text.Encoding]::UTF8)
+Assert-V1StretchModesScopeWiring $fixtureSource $chainSource
+Check $true 'static stretch scope: actual disabled GUI setting, work-area oracle, unchanged neighbour, Undo and restoration are wired without unrelated suites'
+Reject {Assert-V1StretchModesScopeWiring $fixtureSource ($chainSource.Replace('const Rect expected{work.l,source.t,source.r,source.b};','const Rect expected{neighbour.r,source.t,source.r,source.b};'))} 'static stretch scope rejects substituting the smart-enabled neighbour boundary oracle'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
