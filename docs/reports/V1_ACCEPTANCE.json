@@ -42,7 +42,7 @@
         "next_action": "保留7944部署失败与9724有限900秒PASS。be94真实Full在B Resize因外来前台撤权，原因UNKNOWN；不放宽保护、不无证重跑Full或独立900秒。继续当前冻结212/eec的EntryAndSettings及ApplicationsOnly独立可运行链，先核实真实应用原生启动与客户交互。"
       },
     "implementation_inspected": "R10_212_9724_FINITE_OWNED_SCOPE_PASS_FULL_RELEASE_PENDING_PRIOR_PARTIAL_FAILURES_RETAINED",
-    "note": "最新7060同212/Release/Medium闭合独立M09-F04/B20属性所有权与失效清理；F05真实慢移/单反向负例及同212旧477a正摇两次/实际UP/单手势限额保留SCOPED PASS，但guide376明确系统Shake共存仍NOT_RUN，故F05/B21完整合同保持BLOCKED/0分。DEV15/60、B7/40=17.5%；此前14功能/6B及旧失败身份保留。76e Tray、完整M09/I06/Full/apps/普通桌面/显示/真人仍未通过，产品212/portable7635未改。Code旧GPU49已按exact-version源码定位restricted primary token准备失败，底层GLE/held-child角色仍UNKNOWN，非新guest或功能PASS。",
+    "note": "最新fcf复用同212 Release产品、e30abfe driver/629064e包实际通过8不同普通Resize边角磁吸/固定边与定位框、max450优先于456候选、原DOWN回宽430、每量子1native/本代2调用及真实UP后新Move。固定尺寸fixture/真实应用缺项仍NOT_RUN，M05-F04/B05保持BLOCKED，DEV15/60、B7/40=17.5%不增加。旧7060 F04/B20完整PASS、F05/B21系统Shake未测及所有历史身份/失败原样保留。Tray、完整模块/Full/apps/普通桌面/显示/真人未过；产品212/portable7635不改。",
     "pending_product_note": "可信crossrec-desktop已用原配置恢复连接并核实ZS-WORKSTATION，无宿主配置变更。新Full Release Run be94复用product212/portable7635及已准备资产，driver eec补原生应用启动/交互前置检查；未运行或未通过的现场项目不按构建或连接恢复授PASS。原d2的048/9724实际身份原样保留，不单独重跑900秒或重建未改产品。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
@@ -124,28 +124,30 @@
       "revalidation_does_not_grant_feature_PASS": true
     },
     "next_driver_candidate": {
-      "source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
+      "source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "product_binary_unchanged": true,
-      "implementation_status": "DD1FF5D_ACTUAL_DEBUG_RELEASE_BUILT_AND_7060_RELEASE_OBSERVED",
-      "runtime_validation": "7060_M09_F04_B20_COMPLETE_PASS_M09_F05_ACTIONS_SCOPED_SYSTEM_SHAKE_COEXISTENCE_NOT_RUN",
+      "implementation_status": "E30ABFE_DEBUG_RELEASE_BUILT_FCF_RELEASE_SCOPED_RESIZE_OBSERVED",
+      "runtime_validation": "FCF_8_DIRECTIONS_LIMIT_PULLBACK_REAL_UP_NEW_MOVE_SCOPE_PASS_M05_F04_B05_STILL_BLOCKED",
       "debug_build_result": "PASS_EXIT_0_MAIN_EXECUTOR_RECORDED",
       "release_build_result": "PASS_EXIT_0_MAIN_EXECUTOR_RECORDED",
-      "build_warnings": "3 existingC4456, no product change",
-      "debug_binary_sha256": "E530E47D5C30027714F4B400E3945F142A5D8421270763F6CBE866C90365C5F7",
-      "release_binary_sha256": "3EE0F3C343CD59ED259D0163BDBD601963BBC767D73D4019FF108FF3526DC065",
-      "identity_basis": "Actual package binary selfreport/hash and /MT dependency guard; no product rebuild.",
-      "debug_ctest_output_log": "uat/v1-control/r17-dd1ff5d-Debug-offline-94a6f469b7d144ca8d872c62676b96a3.txt",
+      "debug_binary_sha256": "B728A4C959B7364F8604B3607CDBF2C64EF5B47AA2323E57DBCBF7F6F5DEFF8E",
+      "release_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+      "debug_build_log": "uat/v1-control/r18-e30abfe-Debug-build-bf5ea83e80264f23962a2cbaf804059d.txt",
+      "debug_build_log_sha256": "149BBE248C6B9590898938509E5F5B42F6F80D39C389F37BEA429109C986EC4E",
+      "release_build_log": "uat/v1-control/r18-e30abfe-Release-build-d3e62410f2cc408e8f11861d482c62ad.txt",
+      "release_build_log_sha256": "9B3030E9C0B713BC5584C53F6840446E47CD71BDB1E1CEBBA28A8F4D50C27F33",
+      "debug_ctest_output_log": "uat/v1-control/r18-e30abfe-Debug-offline-f19b0e7e468e40d397c576b023d12092.txt",
       "debug_ctest_output_log_sha256": "90BD21688F1F4285D17D2CD08E264F63950D2FBE1A14AF2C9C814C262A1F7FD1",
-      "release_ctest_output_log": "uat/v1-control/r17-dd1ff5d-Release-offline-88c66ec0540649e392554ab0b728c31f.txt",
+      "release_ctest_output_log": "uat/v1-control/r18-e30abfe-Release-offline-e9bc0fc3eb9e472984ff71de98f993cb.txt",
       "release_ctest_output_log_sha256": "F3F66CA2A1DF1545D552D04576F31FFEAC8AAD7A0186ECD208F0D3329F0D68BE",
       "debug_offline": "1/1PASS;208actualcases;symlinkSKIP1314;processor0.03/wall0.07",
       "release_offline": "1/1PASS;208actualcases;symlinkSKIP1314;processor0.03/wall0.04",
-      "static_tool_checks": 95,
-      "build_and_offline_scope": "Driver tooling regression not product function acceptance.",
-      "latest_actual_runtime_driver_source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
-      "latest_actual_runtime_run_id": "7060c71c0a994737bdc759d81aa66dbb",
-      "required_revalidation": "M09-F04/B20 closed; M09-F05/B21 still require actualsystemShakecoexistence. Retain actualsameproductactionpositives/negatives; module/Full/apps/Tray/display unchanged."
+      "static_tool_checks": 98,
+      "build_and_offline_scope": "Existing driver tooling regression; not product function PASS or product rebuild.",
+      "latest_actual_runtime_driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+      "latest_actual_runtime_run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+      "required_revalidation": "M05-F04/B05 still require fixed-sizefixture and actualapplicationResize→Move. Prior real8directions and scopedlimit/UP reused; preserve7060F05systemShakegap, othermodule/Full/apps/Tray/displaygates."
     },
     "observed_driver_a430": {
       "source_sha": "a430607507f4980787296fa259a35ef4a97eb8f4",
@@ -3573,13 +3575,17 @@
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-BDAB-OWNED-FULL",
-            "PO-C01-INDEPENDENT"
+            "PO-C01-INDEPENDENT",
+            "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "scope_note": "8方向、固定边及max约束回拉和owned后继Move实际通过；固定尺寸与真实应用未测，完整case仍BLOCKED。"
         }
       ],
       "source_sha": "50dfdaa69352ad86f3b8da73c05badd3f361f73e",
@@ -3590,7 +3596,9 @@
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl"
       ],
       "defects": [
         "V1-D12"
@@ -3598,15 +3606,17 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "bdab原生B Resize和共享边，c01 Terminal Resize实际回读；未把关系刷新冒充磁吸Resize。",
+      "observed": "bdab原生B Resize和共享边，c01 Terminal Resize实际回读；未把关系刷新冒充磁吸Resize。 fcf同产品212/Release/Medium、driver e30abfe/pack629064e：D120/140/160/180/203/226/249/272在8个不同活动边/角、独立generation真实Resize中，原始DOWN意图±56实际吸至邻窗±60；visible及由原frameInsets独立推算的positioning精确、固定/非参与边不动、候选窗几何不变；每量子仅1次真实single_resize native placement，并核native前后/identity/postcontext/exact。D286候选宽456只是明确测试oracle、不冒充内部proposal回执；D293实际max450约束优先得到宽450，D300从原DOWN+30回宽430，D305同代实际2次native且无递归/迟到新增调用。P58/88/118/148/179/208/238/268/300/329 g1–10均真实NormalUp/pending_retired，分别有实际legacy_left_up与release/detach/overlayGone回执。D311/314后继新g10普通Move实际[445,235,875,535]、P318 exact；D320实际UP后无capture。D377配置恢复/D378精确自窗关闭，P347正常shutdown逐自有资源true；D391真实客户[0,0]→[1,1]、D393Raw注销、D394自窗/产品关闭。wrapper0/exit0/desc0/forcedfalse；初始化product_cleanup_pass=false不推清理失败或PASS，产品清理据上述实际事实。固定尺寸fixture与真实应用Resize后Move仍NOT_RUN，M05-F04/B05不授完整PASS。",
       "remaining_conditions": [
-        "八方向活动边、固定尺寸和三类应用完整实际磁吸Resize未齐。"
+        "固定尺寸fixture尚未运行；不能由max450的可Resize源推定固定尺寸对象零非法写入。",
+        "真实应用原生Resize后仍可Move的合同证据未齐，owned不得替代应用矩阵。"
       ],
-      "next_action": "同候选补八方向及固定边独立断言，再回Move。",
+      "next_action": "保留fcf已通过8方向/固定边/约束优先/原DOWN回拉/真实UP/后继Move子项，不重复这些方向或扩稳定性批次。下一步仅补固定尺寸fixture的实际安全行为；真实应用条件具备后补原生Resize→Move，不抬M05-F04/B05。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-C01-INDEPENDENT",
-        "PO-B49-CORE-RECOVERY-VISUAL"
+        "PO-B49-CORE-RECOVERY-VISUAL",
+        "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3616,6 +3626,31 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_process_id": 6464,
+        "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+        "driver_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+        "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+        "configuration": "Release",
+        "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+        "package_zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+        "package_manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
+        "observation_id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+        "scope": "SCOPED_ACTUAL_8_PLAIN_RESIZE_DIRECTIONS_FIXED_EDGES_MAX450_VS456_ORIGINAL_DOWN_PULLBACK430_NORMAL_UP_NEW_MOVE_NOT_COMPLETE_M05_F04_B05",
+        "not_complete_contract_PASS": true,
+        "scoped_component_result": "PASS",
+        "fixed_size_fixture": "NOT_RUN",
+        "real_application_matrix": "NOT_RUN"
+      },
+      "current_candidate_review": {
+        "status": "PARTIAL_ACTUAL_PLATFORM_EVIDENCE",
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+        "complete_feature_contract_PASS": false
       }
     },
     {
@@ -7318,7 +7353,9 @@
         "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
         "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/022-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/022-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "模块完整DEV合同；功能已接线/子项实测不替代模块通过",
@@ -7332,7 +7369,8 @@
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-7CD-SERIAL-UP-TERMINAL-GEOMETRY",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER"
+        "PO-022-REAL-APPLICATIONS-BOUNDED-DRIVER",
+        "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED"
       ],
       "remaining_conditions": [
         "M05-F01: 见该功能remaining_conditions及next_action",
@@ -7341,7 +7379,7 @@
         "M05-F04: 见该功能remaining_conditions及next_action",
         "M05-F05: 见该功能remaining_conditions及next_action"
       ],
-      "next_action": "依赖M05-F01、M05-F02、M05-F03、M05-F04、M05-F05的具体下一动作推进；保持同一产品EXE，驱动修改不清空历史证据。",
+      "next_action": "M05-F04的8方向/固定边/尺寸优先/真实UP与owned后继Move已在fcf通过范围验证，仅续固定尺寸及真实应用缺项；其余M05-F01/F02/F03/F05按各自未齐合同推进，不重跑已过方向或历史矩阵。",
       "defects": [
         "V1-D17"
       ],
@@ -7967,22 +8005,42 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl"
       ],
-      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
+      "note": "本次实际部分合同通过，完整M05-F04尚未齐，B05保持BLOCKED/0分；固定40项分母及已有7项身份不改。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M05-F04"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。",
+      "observed": "已有具体子项/失败见关联功能，不增加分数。 fcf同产品212/Release/Medium、driver e30abfe/pack629064e：D120/140/160/180/203/226/249/272在8个不同活动边/角、独立generation真实Resize中，原始DOWN意图±56实际吸至邻窗±60；visible及由原frameInsets独立推算的positioning精确、固定/非参与边不动、候选窗几何不变；每量子仅1次真实single_resize native placement，并核native前后/identity/postcontext/exact。D286候选宽456只是明确测试oracle、不冒充内部proposal回执；D293实际max450约束优先得到宽450，D300从原DOWN+30回宽430，D305同代实际2次native且无递归/迟到新增调用。P58/88/118/148/179/208/238/268/300/329 g1–10均真实NormalUp/pending_retired，分别有实际legacy_left_up与release/detach/overlayGone回执。D311/314后继新g10普通Move实际[445,235,875,535]、P318 exact；D320实际UP后无capture。D377配置恢复/D378精确自窗关闭，P347正常shutdown逐自有资源true；D391真实客户[0,0]→[1,1]、D393Raw注销、D394自窗/产品关闭。wrapper0/exit0/desc0/forcedfalse；初始化product_cleanup_pass=false不推清理失败或PASS，产品清理据上述实际事实。固定尺寸fixture与真实应用Resize后Move仍NOT_RUN，M05-F04/B05不授完整PASS。",
       "remaining_conditions": [
-        "M05-F04: 完整功能合同尚未通过，见功能行具体条件"
+        "M05-F04完整合同仍缺固定尺寸fixture与真实应用Resize后Move；本次8方向scope通过不计B05 PASS/分数。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "仅补关联功能确切未测合同，保留fcf真实子项，不重跑已过方向；完整合同齐后再判B05。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
-        "PO-C01-INDEPENDENT"
-      ]
+        "PO-C01-INDEPENDENT",
+        "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED"
+      ],
+      "latest_runtime_component_observation": {
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "product_process_id": 6464,
+        "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+        "driver_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+        "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+        "configuration": "Release",
+        "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+        "package_zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+        "package_manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
+        "observation_id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+        "scope": "SCOPED_ACTUAL_8_PLAIN_RESIZE_DIRECTIONS_FIXED_EDGES_MAX450_VS456_ORIGINAL_DOWN_PULLBACK430_NORMAL_UP_NEW_MOVE_NOT_COMPLETE_M05_F04_B05",
+        "not_complete_contract_PASS": true,
+        "scoped_component_result": "PASS"
+      }
     },
     {
       "id": "B06",
@@ -11510,6 +11568,30 @@
   },
   "historical_packages": [
     {
+      "run_id": "7060c71c0a994737bdc759d81aa66dbb",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "driver_source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
+      "driver_implementation_source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
+      "packaging_head": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
+      "receipt_path": "uat/v1-sandbox/7060c71c0a994737bdc759d81aa66dbb/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/7060c71c0a994737bdc759d81aa66dbb/input/manifest.json",
+      "zip_sha256": "28CB7CE967C75A47788D483DD53327A31CF6BE2F1EB7D3146A8766D608E3C90D",
+      "manifest_sha256": "FE7B4BC98A827C9318029227998522C7CB489E8665CC1C313CC7CC8AB8888238",
+      "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
+      "release_fixture_sha256": "3EE0F3C343CD59ED259D0163BDBD601963BBC767D73D4019FF108FF3526DC065",
+      "debug_fixture_sha256": "E530E47D5C30027714F4B400E3945F142A5D8421270763F6CBE866C90365C5F7",
+      "identity_basis": "ACTUAL_UNCHANGED_PRODUCT212_DD1FF5D_BINARY_SELF_REPORT_HASH_AND_7060_RUNTIME",
+      "guest_configurations": "Release",
+      "guest_suite": "VisualOwnershipOnly",
+      "guest_function_status": "M09_F04_B20_COMPLETE_PASS_M09_F05_B21_ACTIONS_SCOPED_SYSTEM_SHAKE_NOT_RUN",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "human_uat": "NOT_RUN",
+      "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "note": "最新7060同212/Release/Medium闭合独立M09-F04/B20属性所有权与失效清理；F05真实慢移/单反向负例及同212旧477a正摇两次/实际UP/单手势限额保留SCOPED PASS，但guide376明确系统Shake共存仍NOT_RUN，故F05/B21完整合同保持BLOCKED/0分。DEV15/60、B7/40=17.5%；此前14功能/6B及旧失败身份保留。76e Tray、完整M09/I06/Full/apps/普通桌面/显示/真人仍未通过，产品212/portable7635未改。Code旧GPU49已按exact-version源码定位restricted primary token准备失败，底层GLE/held-child角色仍UNKNOWN，非新guest或功能PASS。",
+      "wsb_sha256": "9E05B7DD2C8215251FAE428177B85E1F51576FC9A778A76DF44CF7887CB1756A"
+    },
+    {
       "run_id": "c656195fb6004f2aa18a9fcee68134ab",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "driver_source_sha": "db114eaa55f3bd44667e43f9ed9268b4468ee15f",
@@ -12514,28 +12596,28 @@
     }
   ],
   "current_package": {
-    "run_id": "7060c71c0a994737bdc759d81aa66dbb",
+    "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
     "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-    "driver_source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
-    "driver_implementation_source_sha": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
-    "packaging_head": "dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5",
-    "receipt_path": "uat/v1-sandbox/7060c71c0a994737bdc759d81aa66dbb/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/7060c71c0a994737bdc759d81aa66dbb/input/manifest.json",
-    "zip_sha256": "28CB7CE967C75A47788D483DD53327A31CF6BE2F1EB7D3146A8766D608E3C90D",
-    "manifest_sha256": "FE7B4BC98A827C9318029227998522C7CB489E8665CC1C313CC7CC8AB8888238",
+    "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+    "driver_implementation_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+    "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+    "receipt_path": "uat/v1-sandbox/fcf531eeb0dd4847b735d2473f72f0a1/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/fcf531eeb0dd4847b735d2473f72f0a1/input/manifest.json",
+    "zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+    "manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
     "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
     "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
-    "release_fixture_sha256": "3EE0F3C343CD59ED259D0163BDBD601963BBC767D73D4019FF108FF3526DC065",
-    "debug_fixture_sha256": "E530E47D5C30027714F4B400E3945F142A5D8421270763F6CBE866C90365C5F7",
-    "identity_basis": "ACTUAL_UNCHANGED_PRODUCT212_DD1FF5D_BINARY_SELF_REPORT_HASH_AND_7060_RUNTIME",
+    "release_fixture_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+    "debug_fixture_sha256": "B728A4C959B7364F8604B3607CDBF2C64EF5B47AA2323E57DBCBF7F6F5DEFF8E",
+    "identity_basis": "ACTUAL_UNCHANGED_PRODUCT212_E30ABFE_DRIVER_BINARY_SELF_REPORT_HASH_AND_FCF_SCOPED_RUNTIME",
     "guest_configurations": "Release",
-    "guest_suite": "VisualOwnershipOnly",
-    "guest_function_status": "M09_F04_B20_COMPLETE_PASS_M09_F05_B21_ACTIONS_SCOPED_SYSTEM_SHAKE_NOT_RUN",
+    "guest_suite": "ResizeMagnetOnly",
+    "guest_function_status": "SCOPED_RESIZE_COMPONENT_PASS_NOT_COMPLETE_M05_F04_OR_B05",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "human_uat": "NOT_RUN",
     "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
-    "note": "最新7060同212/Release/Medium闭合独立M09-F04/B20属性所有权与失效清理；F05真实慢移/单反向负例及同212旧477a正摇两次/实际UP/单手势限额保留SCOPED PASS，但guide376明确系统Shake共存仍NOT_RUN，故F05/B21完整合同保持BLOCKED/0分。DEV15/60、B7/40=17.5%；此前14功能/6B及旧失败身份保留。76e Tray、完整M09/I06/Full/apps/普通桌面/显示/真人仍未通过，产品212/portable7635未改。Code旧GPU49已按exact-version源码定位restricted primary token准备失败，底层GLE/held-child角色仍UNKNOWN，非新guest或功能PASS。",
-    "wsb_sha256": "9E05B7DD2C8215251FAE428177B85E1F51576FC9A778A76DF44CF7887CB1756A"
+    "note": "最新fcf复用同212 Release产品、e30abfe driver/629064e包实际通过8不同普通Resize边角磁吸/固定边与定位框、max450优先于456候选、原DOWN回宽430、每量子1native/本代2调用及真实UP后新Move。固定尺寸fixture/真实应用缺项仍NOT_RUN，M05-F04/B05保持BLOCKED，DEV15/60、B7/40=17.5%不增加。旧7060 F04/B20完整PASS、F05/B21系统Shake未测及所有历史身份/失败原样保留。Tray、完整模块/Full/apps/普通桌面/显示/真人未过；产品212/portable7635不改。",
+    "wsb_sha256": "D0912A18084E31C8120BFC6B9F68DE512A3510444A7B32DED1E0A89A95923E07"
   },
   "portable_candidate": {
     "package_id": "7635dc7b0c03416e95401a3eed8b262a",
@@ -12553,6 +12635,174 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-FCF-R18-RESIZE-MAGNET-DIRECTIONS-LIMIT-FIXTURE",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6464,
+      "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+      "driver_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+      "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+      "configuration": "Release",
+      "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+      "package_zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+      "package_manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
+      "observation_id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+      "scope": "SCOPED_ACTUAL_8_PLAIN_RESIZE_DIRECTIONS_FIXED_EDGES_MAX450_VS456_ORIGINAL_DOWN_PULLBACK430_NORMAL_UP_NEW_MOVE_NOT_COMPLETE_M05_F04_B05",
+      "path": "uat/v1-control/fcf531eeb0dd4847b735d2473f72f0a1/collection-20261019T163834061Z-44e8c3c925a34a3290d66ae440621ec9/fcf531eeb0dd4847b735d2473f72f0a1-release-fixture.jsonl",
+      "sha256": "0FEDCFE3695CE17F4E9347D14EEE26A26563FBF086AFB4AF00C4BC1BB0F62F24",
+      "original_bytes": 201425,
+      "original_rows": 394,
+      "source_sequence_continuous": true,
+      "repository_excerpt_path": "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "9A5A11FB60EB6C844566F04EAB589C7E07601A68931B296C3C4D60DD6EFEF7C8",
+      "excerpt_bytes": 24677,
+      "selected_physical_rows_1_based": [
+        3,
+        7,
+        13,
+        120,
+        140,
+        160,
+        180,
+        203,
+        226,
+        249,
+        272,
+        286,
+        293,
+        300,
+        305,
+        311,
+        314,
+        320,
+        377,
+        378,
+        391,
+        393,
+        394
+      ],
+      "selected_sequences": [
+        3,
+        7,
+        13,
+        120,
+        140,
+        160,
+        180,
+        203,
+        226,
+        249,
+        272,
+        286,
+        293,
+        300,
+        305,
+        311,
+        314,
+        320,
+        377,
+        378,
+        391,
+        393,
+        394
+      ],
+      "projection_policy": "Metadata then literal original producer rows; full QPC/integer tokens retained. Test oracle/native authority/actualattempt distinct; no common Raw and WinEvent timeline inferred.",
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN"
+    },
+    {
+      "id": "EV-FCF-R18-ACTUAL-RESIZE-PLACEMENTS-UP-CLEANUP-PRODUCT",
+      "kind": "literal_selected_actual_guest_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6464,
+      "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+      "driver_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+      "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+      "configuration": "Release",
+      "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+      "package_zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+      "package_manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
+      "observation_id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+      "scope": "SCOPED_ACTUAL_8_PLAIN_RESIZE_DIRECTIONS_FIXED_EDGES_MAX450_VS456_ORIGINAL_DOWN_PULLBACK430_NORMAL_UP_NEW_MOVE_NOT_COMPLETE_M05_F04_B05",
+      "path": "uat/v1-control/fcf531eeb0dd4847b735d2473f72f0a1/collection-20261019T163834061Z-44e8c3c925a34a3290d66ae440621ec9/fcf531eeb0dd4847b735d2473f72f0a1-product-Release/panebind.log.jsonl",
+      "sha256": "0EE0F27707B7A94CDCCB1FFC8416751CB0261298BBC9A498260DE193A480CB6B",
+      "original_bytes": 336188,
+      "original_rows": 347,
+      "source_sequence_continuous": true,
+      "repository_excerpt_path": "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl",
+      "repository_excerpt_sha256": "E33982748040DF94AA609D0D928F185F3BCAB6F5D40335B17A87A6ECF9EC4D0D",
+      "excerpt_bytes": 22369,
+      "selected_physical_rows_1_based": [
+        3,
+        45,
+        50,
+        56,
+        58,
+        75,
+        88,
+        105,
+        118,
+        135,
+        148,
+        168,
+        179,
+        195,
+        208,
+        225,
+        238,
+        255,
+        268,
+        285,
+        288,
+        292,
+        298,
+        300,
+        318,
+        321,
+        327,
+        329,
+        347
+      ],
+      "selected_sequences": [
+        3,
+        45,
+        50,
+        56,
+        58,
+        75,
+        88,
+        105,
+        118,
+        135,
+        148,
+        168,
+        179,
+        195,
+        208,
+        225,
+        238,
+        255,
+        268,
+        285,
+        288,
+        292,
+        298,
+        300,
+        318,
+        321,
+        327,
+        329,
+        347
+      ],
+      "projection_policy": "Metadata then literal original producer rows; full QPC/integer tokens retained. Test oracle/native authority/actualattempt distinct; no common Raw and WinEvent timeline inferred.",
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN"
+    },
     {
       "id": "EV-7060-R17-VISUAL-OWNERSHIP-PRIOR-SHAKE-FIXTURE",
       "kind": "literal_selected_actual_guest_JSONL_multiple_explicit_source_segments",
@@ -15573,6 +15823,84 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 6464,
+      "driver_source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
+      "driver_binary_sha256": "9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43",
+      "run_id": "fcf531eeb0dd4847b735d2473f72f0a1",
+      "configuration": "Release",
+      "packaging_head": "629064e19c008baafb1b4376825bb1759d2a187b",
+      "package_zip_sha256": "927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B",
+      "package_manifest_sha256": "923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D",
+      "observation_id": "PO-FCF-R18-RESIZE-MAGNET-EIGHT-DIRECTIONS-LIMIT-AND-UP-SCOPED",
+      "scope": "SCOPED_ACTUAL_8_PLAIN_RESIZE_DIRECTIONS_FIXED_EDGES_MAX450_VS456_ORIGINAL_DOWN_PULLBACK430_NORMAL_UP_NEW_MOVE_NOT_COMPLETE_M05_F04_B05",
+      "result": "PASS_ACTUAL_SCOPED_RESIZE_COMPONENT_NOT_COMPLETE_M05_F04_OR_B05",
+      "observed": "fcf同产品212/Release/Medium、driver e30abfe/pack629064e：D120/140/160/180/203/226/249/272在8个不同活动边/角、独立generation真实Resize中，原始DOWN意图±56实际吸至邻窗±60；visible及由原frameInsets独立推算的positioning精确、固定/非参与边不动、候选窗几何不变；每量子仅1次真实single_resize native placement，并核native前后/identity/postcontext/exact。D286候选宽456只是明确测试oracle、不冒充内部proposal回执；D293实际max450约束优先得到宽450，D300从原DOWN+30回宽430，D305同代实际2次native且无递归/迟到新增调用。P58/88/118/148/179/208/238/268/300/329 g1–10均真实NormalUp/pending_retired，分别有实际legacy_left_up与release/detach/overlayGone回执。D311/314后继新g10普通Move实际[445,235,875,535]、P318 exact；D320实际UP后无capture。D377配置恢复/D378精确自窗关闭，P347正常shutdown逐自有资源true；D391真实客户[0,0]→[1,1]、D393Raw注销、D394自窗/产品关闭。wrapper0/exit0/desc0/forcedfalse；初始化product_cleanup_pass=false不推清理失败或PASS，产品清理据上述实际事实。固定尺寸fixture与真实应用Resize后Move仍NOT_RUN，M05-F04/B05不授完整PASS。",
+      "affected_features": [
+        "M05-F04"
+      ],
+      "affected_benchmarks": [
+        "B05"
+      ],
+      "feature_contract_PASS": [],
+      "benchmark_contract_PASS": [],
+      "fixed_size_fixture": "NOT_RUN",
+      "real_application_resize_then_Move": "NOT_RUN",
+      "internal_rejected_magnet_proposal_directly_observed": false,
+      "evidence_ids": [
+        "EV-FCF-R18-RESIZE-MAGNET-DIRECTIONS-LIMIT-FIXTURE",
+        "EV-FCF-R18-ACTUAL-RESIZE-PLACEMENTS-UP-CLEANUP-PRODUCT"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-active-edges-limit-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/fcf-r18-resize-magnet-native-up-cleanup-product-selected.jsonl"
+      ],
+      "normal_up_generations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "actual_generation9_native_calls": 2,
+      "actual_plain_Move_after_resize": true,
+      "driver_process_exit": "OBSERVED_WAIT0_EXIT0",
+      "descendants_alive_at_fixture_exit": 0,
+      "forced_test_cleanup": false,
+      "product_cleanup_pass": false,
+      "product_cleanup_pass_basis": "Unevaluated wrapper false retained; actual P347 shutdown resource facts, D391 client delivery, D393/394 own cleanup independently observed.",
+      "cleanup": {
+        "guest_pid": 6788,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "other_files_or_resources_changed": false,
+        "utc": "2026-10-19T16:40:29.1784660Z",
+        "original_path": "uat/v1-control/fcf531eeb0dd4847b735d2473f72f0a1/cleanup-receipt.json",
+        "original_sha256": "66436CAF3B7CF6FA251B1E62D333CC363A7C13692A308D07EB235AED42AB2848"
+      },
+      "next_action": "保留fcf已通过8方向/固定边/约束优先/原DOWN回拉/真实UP/后继Move子项，不重复这些方向或扩稳定性批次。下一步仅补固定尺寸fixture的实际安全行为；真实应用条件具备后补原生Resize→Move，不抬M05-F04/B05。",
+      "not_claimed": [
+        "FullM05-F04/B05PASS",
+        "fixed-sizefixturetested",
+        "realapplicationmatrixPASS",
+        "internalrejectedproposalAPIexecution",
+        "Full/ordinarydesktop/display/humanPASS"
+      ],
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN"
+    },
     {
       "id": "PO-7060-R17-VISUAL-OWNERSHIP-PASS-SHAKE-ACTIONS-SCOPED",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",

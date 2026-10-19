@@ -16,6 +16,14 @@
 
 `76e433d5db05436c8b72d40a2a49abc5`已实际运行Release `TrayReadinessOnly`（同212／db114ea）：D47精确自有探针PID7116／TID6200／HWND197422实际Medium8192、non-elevated；同session的Progman与Shell_TrayWnd所属PID4932实际High12288／elevated。一次探针ADD=false、GetRect=E_FAIL，原始GLE5只作原值记录，不能据它断言唯一系统根因；探针DELETE=false，自有窗口／类实际销毁已核D48。D49按合同BLOCKED，未发TaskbarCreated或菜单输入；产品P1的ADD亦false。P18真实完整shutdown、D55客户输入0→1、D57 Raw注销、D58自窗关闭有独立证据，wrapper fixture1／descendants0／forced=false。guest14380／任务于`2026-10-19T15:47:02.8627421Z`精确清理，证据不变、部署保留；没有控制High Shell、放宽权限或换用High产品来凑PASS。
 
+### fcf：八方向活动边磁吸与尺寸约束优先已实际执行
+
+`fcf531eeb0dd4847b735d2473f72f0a1`／Release `ResizeMagnetOnly`使用冻结产品212、driver `e30abfe50ff6169e5d903a31a72ba58abaa05508`、包装`629064e19c008baafb1b4376825bb1759d2a187b`。八个不同方向各有一个真实plain Resize、独立原始DOWN意图±56与实际吸附±60，固定边的visible／positioning及目标窗口不变，每quantum只有一次实际native调用。D120／140／160／180／203／226／249／272与P45／75／105／135／168／195／225／255逐项exact；D293／P285尺寸上限450优先于候选456，D300／P288按同一原始DOWN回拉到430，D305本代仅两次native且无递归／迟到调用。P58／88／118／148／179／208／238／268／300为g1–9正常UP；P313／318／329新g10实际普通Move及正常UP完成，不用固定轨迹充当实际输入事实。
+
+394条fixture／347条product全部合法连续，原件在`uat/v1-control/fcf531eeb0dd4847b735d2473f72f0a1/collection-20261019T163834061Z-44e8c3c925a34a3290d66ae440621ec9/`；SHA分别`0FEDCFE3695CE17F4E9347D14EEE26A26563FBF086AFB4AF00C4BC1BB0F62F24`／`0EE0F27707B7A94CDCCB1FFC8416751CB0261298BBC9A498260DE193A480CB6B`。P347实际所有自身资源shutdown、D391客户DOWN／UP由0到1、D393 Raw注销、D394自窗销毁各自有证据；wrapper0／descendants0／forced=false。guest6788／本轮任务于`2026-10-19T16:40:29.1784660Z`精确清理，证据不变、部署保留、其他资源未改；guest销毁不计产品cleanup PASS。
+
+本批ZIP `927AC3EB8E85BCC943DA576B2276093A06AADAE0D7203CF86C4A3583DF17AB6B`、manifest `923D753CA2887E7AF1DCB0367B538637273DA0DF9C15F3042FC7041034E2878D`、WSB `D0912A18084E31C8120BFC6B9F68DE512A3510444A7B32DED1E0A89A95923E07`。D/R驱动构建成功，受影响offline各208项通过（symlink SKIP1314），98项工具守卫通过；driver SHA D `B728A4C959B7364F8604B3607CDBF2C64EF5B47AA2323E57DBCBF7F6F5DEFF8E`／R `9EF09F66C7A0C84D8EFFAB9CF98F17648773CA77FF9B46BC7A5CFD9DDFC0FA43`。Debug本批现场、固定尺寸、真实应用Resize及整版均未授PASS；M05-F04／B05和DEV15／B7总数保持不变。下一步只补缺失的固定尺寸及增强会话末MOVE→UP边界，不重跑八方向、历史FixH或900秒。
+
 ### 7060：独立视觉恢复权、摇动负例与实际退出已验证
 
 `7060c71c0a994737bdc759d81aa66dbb`／`VisualOwnershipOnly`已实际完成Release；产品212原EXE未变，driver／包装为`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。D/R驱动均构建成功，受影响offline各208项通过（symlink SKIP1314），95项静态包装检查通过，Debug本批现场NOT_RUN。Release driver SHA `3EE0F3C343CD59ED259D0163BDBD601963BBC767D73D4019FF108FF3526DC065`，Debug `E530E47D5C30027714F4B400E3945F142A5D8421270763F6CBE866C90365C5F7`。

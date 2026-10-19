@@ -8,7 +8,9 @@
 
 Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub；旧e1fc实际失败在包／依赖注册（外层0x80073CF9，既有扩展事件709为package-root拒绝、404内部0x80070057），尚无已确认InstallLocation／启动身份。扩展日志已经复核，实际使用guest本地完整绝对manifest路径，更深staging原因仍UNKNOWN；不重复同路线诊断、搬包、挂ISO或旧Store下载。
 
-最新7060／`VisualOwnershipOnly`已实际完成Release验证，产品仍212，driver／包装`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。应用自行改变alpha或topmost后，产品分别只恢复仍归自己所有的另一属性；新建root不继承旧恢复权，实际helper正常退出、客户输入恢复，M09-F04／B20独立合同通过。慢速交替和单次反向均零摇动切换；同一212的477a保留真实摇动两次切换／还原及各次正常UP的局部证明，但系统Shake共存未测，故完整M09-F05／B21仍不计PASS，不代表整个M09、五类应用或真人通过。
+最新fcf／`ResizeMagnetOnly`已在同212 Release实际完成八方向普通Resize磁吸，固定visible／positioning边及旁窗不动；max450限制优先于456吸附候选，原始DOWN回拉到430，真实UP后新一代普通Move成立。它没有覆盖固定尺寸或真实应用Resize，完整M05-F04／B05仍不计PASS。
+
+7060／`VisualOwnershipOnly`已实际完成Release验证，产品仍212，driver／包装`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。应用自行改变alpha或topmost后，产品分别只恢复仍归自己所有的另一属性；新建root不继承旧恢复权，实际helper正常退出、客户输入恢复，M09-F04／B20独立合同通过。慢速交替和单次反向均零摇动切换；同一212的477a保留真实摇动两次切换／还原及各次正常UP的局部证明，但系统Shake共存未测，故完整M09-F05／B21仍不计PASS，不代表整个M09、五类应用或真人通过。
 
 最新同产品212的实际范围：d7e九方向／Shift与Undo、6dba左边及9e移动阈值／系统按钮负例已闭合M08-F04与B16–B18；bf5c证明活动退出、精确产品进程受控终止后视觉／输入恢复，以及同EXE重启Move／Resize。不是自然崩溃或整版UAT通过，也不改变普通宿主试用边界。
 
