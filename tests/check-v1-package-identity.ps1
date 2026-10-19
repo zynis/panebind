@@ -372,6 +372,24 @@ function Assert-V1StretchInputWiring([string]$Fixture,[string]$Chain,[string]$St
 $stretchInput=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_stretch_cases.h'),[Text.Encoding]::UTF8)
 Assert-V1StretchInputWiring $fixtureSource $chainSource $stretchInput
 Check $true 'static F04 input scope retains strict actual UP, named actions/Undo, timing negative and PARTIAL summary'
+function Assert-V1StretchPreparationBeforeDown([string]$Chain){
+    $mark=$Chain.IndexOf('const auto preparation_mark=require_actual_up?read_product(s).size():0;')
+    if($mark -lt 0){throw 'F04 first DOWN requires the actual exact-point preparation receipt, not a fixed delay.'}
+    $receipt=$Chain.IndexOf('F04_actual_product_preparation_before_first_DOWN',$mark)
+    $down=$Chain.IndexOf('const DWORD first_down_stamp=GetTickCount();button(s,true);button(s,false);',$mark)
+    if($mark -lt 0 -or $receipt -le $mark -or $down -le $receipt){throw 'F04 first DOWN requires the actual exact-point preparation receipt, not a fixed delay.'}
+    foreach($value in @('prepared_actual_source_and_hit','exact_number("\"config_generation\":",config_generation)',
+        'exact_number("\"actual_hit_test\":",static_cast<unsigned>(native_region))',
+        'exact_number("\"process_id\":",s.product_pid)','receipt_is_write_authority\":false',
+        'preparation_publish_time_inferred\":false')){
+        if(-not $Chain.Contains($value)){throw 'F04 preparation must match current product/source/configuration/hit and must not grant write authority.'}
+    }
+}
+Assert-V1StretchPreparationBeforeDown $chainSource
+Check $true 'static F04 strict path observes exact product preparation before its single first DOWN; no write authority inferred'
+$oldF04Chain=@(& git -C $repository show 'a430607507f4980787296fa259a35ef4a97eb8f4:src/platform/windows/product/v1_guest_product_chains.h') -join "`n"
+Check ($LASTEXITCODE -eq 0) 'static F04 regression loads actual e12 driver source'
+Reject {Assert-V1StretchPreparationBeforeDown $oldF04Chain} 'actual e12 driver source fails missing preparation receipt guard (static regression, not native proof)'
 Reject {Assert-V1StretchInputWiring $fixtureSource $chainSource ($stretchInput.Replace('chain_double_click(set,item.region,item.shift,item.expected,item.label,true);','chain_double_click(set,item.region,item.shift,item.expected,item.label,false);'))} 'static F04 scope rejects disabling actual UP receipts'
 Reject {Assert-V1StretchInputWiring ($fixtureSource.Replace('scope_incomplete?"PARTIAL":','scope_incomplete?"PASS":')) $chainSource $stretchInput} 'static F04 scope rejects turning incomplete timing into PASS'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
