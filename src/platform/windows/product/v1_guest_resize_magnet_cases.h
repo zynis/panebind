@@ -77,6 +77,82 @@ void resize_magnet_quantum(LayoutFixtures& set,const Gesture& g,int region,LONG 
         ",\"actual_source_native_calls_this_quantum\":"+std::to_string(native_calls)+",\"actual_placement\":"+quote(placement)+
         ",\"fixed_edges_and_candidate_rectangles_exact\":"+(fixed&&candidates_unchanged?"true":"false")+",\"internal_proposal_is_native_attempt\":false");
 }
+void resize_magnet_fixed_size_blackbox(LayoutFixtures& set,Rect source,Rect neighbour,LayoutLimit target_limit,std::uint64_t previous){
+    namespace e=product::guest::up_evidence_detail;auto& s=set.state;
+    const std::vector<Rect> initial{source,neighbour};const LayoutLimit fixed{400,300,400,300};
+    set.setup(initial,{fixed,target_limit});const auto native=resize_magnet_native_baseline(set,initial);
+    const auto h=set.frames[0].hwnd;MINMAXINFO limits{};DWORD_PTR answered{};SetLastError(0);
+    const bool limits_read=SendMessageTimeoutW(h,WM_GETMINMAXINFO,0,reinterpret_cast<LPARAM>(&limits),
+        SMTO_ABORTIFHUNG|SMTO_BLOCK|SMTO_ERRORONEXIT,100,&answered)!=0;const auto limits_error=limits_read?0:GetLastError();
+    SetLastError(0);const auto style=GetWindowLongPtrW(h,GWL_STYLE);const bool style_known=style!=0||GetLastError()==0;
+    const auto border_width=native[0].width()-source.width(),border_height=native[0].height()-source.height();
+    s.log.check("resize_magnet_fixed_size_actual_thickframe_and_declared_limits",set.owns(0)&&source.width()==400&&source.height()==300&&
+        limits_read&&style_known&&(style&WS_THICKFRAME)&&limits.ptMinTrackSize.x-border_width==400&&
+        limits.ptMaxTrackSize.x-border_width==400&&limits.ptMinTrackSize.y-border_height==300&&limits.ptMaxTrackSize.y-border_height==300,
+        "\"actual_style\":"+std::to_string(style)+",\"WM_GETMINMAXINFO_returned\":"+(limits_read?"true":"false")+
+        ",\"WM_GETMINMAXINFO_error\":"+std::to_string(limits_error)+",\"actual_native_min\":["+std::to_string(limits.ptMinTrackSize.x)+","+std::to_string(limits.ptMinTrackSize.y)+
+        "],\"actual_native_max\":["+std::to_string(limits.ptMaxTrackSize.x)+","+std::to_string(limits.ptMaxTrackSize.y)+"],\"visible_limits\":[400,300,400,300]");
+    const auto prior=geometry_history_status(s);const auto mark=read_product(s).size();const auto g=layout_down(set,0,HTBOTTOMRIGHT,false);
+    const auto started=record(s,g.offset,"gesture_start",g.generation);const auto key=e::number(started,"\"key\":");
+    s.log.check("resize_magnet_fixed_size_actual_new_plain_Resize",g.generation>previous&&key&&*key&&
+        geometry_history_receipt(s,started,"gesture_start")&&e::unique_value(started,"\"resize\":")=="true"&&e::unique_value(started,"\"ctrl\":")=="false",
+        "\"generation\":"+std::to_string(g.generation)+",\"actual_start\":"+quote(started));
+    const POINT attempted{g.anchor.x+30,g.anchor.y+25};POINT actual_cursor{};cursor(s,attempted);
+    const bool cursor_seen=GetCursorPos(&actual_cursor)&&actual_cursor.x==attempted.x&&actual_cursor.y==attempted.y;
+    const auto unchanged=[&]{for(std::size_t n=0;n<initial.size();++n)if(!set.owns(n)||visible(set.frames[n].hwnd)!=initial[n]||
+        geometry_history_positioning(set.frames[n].hwnd)!=native[n])return false;return true;};
+    s.log.check("resize_magnet_fixed_size_actual_cursor_attempt_without_geometry_change",cursor_seen&&s.left&&unchanged(),
+        "\"generation\":"+std::to_string(g.generation)+",\"original_DOWN_visible\":"+rect(source)+",\"original_DOWN_positioning\":"+rect(native[0])+
+        ",\"requested_cursor\":["+std::to_string(attempted.x)+","+std::to_string(attempted.y)+"],\"actual_cursor\":["+std::to_string(actual_cursor.x)+","+std::to_string(actual_cursor.y)+
+        "],\"single_cursor_packet_requested\":true,\"scope\":\"fixed_size_blackbox_Resize_attempt\",\"solver_motion_consumption_observed\":false");
+    // Empty legal Resize plans have no placement receipt. Do not call
+    // layout_phase(), which correctly requires a placement for its own scope.
+    // The existing UP path independently requires this generation's actual UP,
+    // NormalUp and cleanup; zero calls never substitutes for those facts.
+    layout_up(set,g,initial);const auto ended=record(s,g.offset,"gesture_end",g.generation);const auto end_sequence=e::number(ended,"\"sequence\":");
+    s.log.check("resize_magnet_fixed_size_actual_NormalUp_before_status",geometry_history_receipt(s,ended,"gesture_end")&&
+        end_sequence&&*end_sequence&&e::unique_value(ended,"\"normal_up\":")=="true", "\"actual_end\":"+quote(ended));
+    const auto after=geometry_history_status(s,*end_sequence);unsigned placements{};std::istringstream rows(product_log_since(s,mark));std::string row;
+    while(std::getline(rows,row))if(e::quoted(row,"\"type\":","placement"))++placements;
+    const auto prior_operations=e::number(prior,"\"operations\":"),after_operations=e::number(after,"\"operations\":");
+    const auto prior_calls=e::number(prior,"\"native_callsite_claims\":"),after_calls=e::number(after,"\"native_callsite_claims\":");
+    const auto actual=visible(h),positioning=geometry_history_positioning(h);
+    s.log.check("resize_magnet_fixed_size_blackbox_zero_placement_and_native",unchanged()&&!placements&&prior_operations&&after_operations&&
+        prior_calls&&after_calls&&*prior_operations==*after_operations&&*prior_calls==*after_calls,
+        "\"generation\":"+std::to_string(g.generation)+",\"source_key\":"+std::to_string(*key)+",\"actual_visible\":"+(actual?rect(*actual):"null")+
+        ",\"actual_positioning\":"+(positioning?rect(*positioning):"null")+",\"new_placement_records\":"+std::to_string(placements)+
+        ",\"prior_status\":"+quote(prior)+",\"after_NormalUp_status\":"+quote(after)+
+        ",\"scope\":\"actual_Resize_attempt_NormalUp_and_unchanged_geometry\",\"zero_calls_prove_solver_consumption\":false");
+    const auto move=layout_down(set,0,HTCAPTION,false);const auto move_start=record(s,move.offset,"gesture_start",move.generation);
+    s.log.check("resize_magnet_fixed_size_following_actual_plain_Move_generation",move.generation>g.generation&&
+        geometry_history_receipt(s,move_start,"gesture_start")&&e::unique_value(move_start,"\"resize\":")=="false"&&e::unique_value(move_start,"\"ctrl\":")=="false");
+    const auto moved=translated(source,25,15);layout_phase(set,0,move,25,15,{moved,neighbour},"resize_magnet_fixed_size_following_actual_Move");
+    layout_up(set,move,{moved,neighbour});const auto moved_actual=visible(h),moved_positioning=geometry_history_positioning(h);
+    s.log.check("resize_magnet_fixed_size_Move_keeps_size_and_other_positioning",set.owns(0)&&set.owns(1)&&moved_actual==moved&&
+        moved_positioning==translated(native[0],25,15)&&visible(set.frames[1].hwnd)==neighbour&&geometry_history_positioning(set.frames[1].hwnd)==native[1],
+        "\"generation\":"+std::to_string(move.generation)+",\"configured_visible_limits_unchanged\":[400,300,400,300],\"actual_visible\":"+(moved_actual?rect(*moved_actual):"null")+
+        ",\"actual_positioning\":"+(moved_positioning?rect(*moved_positioning):"null"));
+}
+void owned_fixed_size_resize_case(State& s){
+    settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    if(s.suite!="FixedAndTerminalOnly"||!original.enabled||!original.rules.empty()||s.left||s.control)
+        throw std::runtime_error("fixed_size_Resize_exact_released_guest_with_unexcluded_fixtures_required");
+    auto config=original;config.magnet_resize=true;config.magnet_move=false;config.glue=false;config.docking=false;config.preview=false;config.feedback=false;
+    config.drag_transparency=false;config.shake=false;const auto applied=chain_gui_save(s,config);LayoutFixtures set{s};
+    try{
+        set.create();const auto work=chain_work(set.frames[0].hwnd);
+        if(work.width()<1200||work.height()<740)throw std::runtime_error("fixed_size_Resize_work_area_below_exact_fixture_requirement");
+        const Rect source{work.l+420,work.t+220,work.l+820,work.t+520};
+        const Rect neighbour{source.l+456,source.t+40,source.l+676,source.b-40};
+        resize_magnet_fixed_size_blackbox(set,source,neighbour,{120,100,work.width(),work.height()},0);
+        chain_check_product(s,pid,birth);const auto restored=chain_gui_save(s,original);auto expected_config=original;expected_config.generation=restored.generation;
+        s.log.check("fixed_size_Resize_original_configuration_restored",restored==expected_config);
+        s.log.check("fixed_size_Resize_exact_test_roots_closed",set.close());
+        s.log.emit("fixed_size_Resize_component","\"result\":\"PASS\",\"scope\":\"one_fixed_size_blackbox_Resize_attempt_NormalUp_then_actual_Move\",\"Resize_placement_records\":0,"+
+            std::string("\"source_visible_limits\":[400,300,400,300],\"solver_motion_consumption_observed\":false,\"prior_eight_directions_repeated\":false,\"application_matrix\":\"NOT_RUN\",\"whole_M05_F04_or_version_PASS\":false,\"human_uat\":\"NOT_RUN\""));
+    }catch(...){pause_routing_failed_case_input(s);try{if(!set.closed)set.close();}catch(...){}
+        try{if(s.process&&chain_settings(s)==applied&&!s.left&&!s.control)chain_gui_save(s,original);}catch(...){}throw;}
+}
 void owned_resize_magnet_case(State& s){
     settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
     if(s.suite!="ResizeMagnetOnly"||!original.enabled||!original.rules.empty()||s.left||s.control)throw std::runtime_error("resize_magnet_exact_released_guest_with_unexcluded_fixtures_required");

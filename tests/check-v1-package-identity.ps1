@@ -569,6 +569,30 @@ Assert-V1ResizeMagnetWiring $fixtureSource $resizeMagnet
 Check $true 'static Resize magnet reaches eight actual edge/corner geometries, one native call, limits and original DOWN pullback'
 Reject {Assert-V1ResizeMagnetWiring $fixtureSource ($resizeMagnet.Replace('native_calls==1','native_calls>=0'))} 'static Resize magnet rejects dropping the actual single-call quantum gate'
 Reject {Assert-V1ResizeMagnetWiring $fixtureSource ($resizeMagnet.Replace('layout_up(set,g,{pulled,neighbour});',''))} 'static Resize magnet rejects omitting the actual matching UP before subsequent Move'
+function Assert-V1FixedTerminalWiring([string]$Fixture,[string]$Resize,[string]$Burst){
+    foreach($value in @('phase("owned_fixed_size_Resize_no_write_then_Move",owned_fixed_size_resize_case);',
+        'phase("owned_active_Move_UP_burst_then_fresh_Move",owned_active_terminal_burst_case);')){
+        if(-not $Fixture.Contains($value)){throw 'Fixed/terminal suite must call both actual guarded product test paths.'}
+    }
+    foreach($value in @('s.suite!="FixedAndTerminalOnly"','const LayoutLimit fixed{400,300,400,300}',
+        'layout_up(set,g,initial);','geometry_history_status(s,*end_sequence)',
+        '*prior_operations==*after_operations&&*prior_calls==*after_calls')){
+        if(-not $Resize.Contains($value)){throw ('Fixed-size test lost actual constraints, UP or ordered zero-write evidence: '+$value)}
+    }
+    foreach($value in @('s.suite!="FixedAndTerminalOnly"','std::array<INPUT,2> packets{}',
+        'packets[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;',
+        'product::guest::matching_clean_captured_up(legacy,gone,up_identity)',
+        'const auto barrier=std::min(up_qpc,*raw_qpc);',
+        '*native_before<barrier','const Rect expected=claims?target:held;',
+        'after_old==old_placements')){
+        if(-not $Burst.Contains($value)){throw ('Enhanced terminal test lost exact guest, single UP, actual resource or native-order evidence: '+$value)}
+    }
+}
+$activeTerminal=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_active_terminal_case.h'),[Text.Encoding]::UTF8)
+Assert-V1FixedTerminalWiring $fixtureSource $resizeMagnet $activeTerminal
+Check $true 'static fixed/terminal paths preserve real UP, ordered zero calls and UP-before-issue retirement semantics'
+Reject {Assert-V1FixedTerminalWiring $fixtureSource ($resizeMagnet.Replace('layout_up(set,g,initial);','')) $activeTerminal} 'static fixed-size path cannot omit its actual matching UP'
+Reject {Assert-V1FixedTerminalWiring $fixtureSource $resizeMagnet ($activeTerminal.Replace('*native_before<barrier','true'))} 'static active terminal path cannot accept a new native call after the actual UP barrier'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
