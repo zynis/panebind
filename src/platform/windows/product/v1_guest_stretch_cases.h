@@ -232,7 +232,8 @@ void stretch_input_caption_button_case(LayoutFixtures& set,Rect source){
         stretch_input_idle(set)&&!record(s,restore_mark,"command").empty();}),"\"actual_command\":"+quote(record(s,restore_mark,"command")));
 }
 void owned_stretch_input_case(State& s){
-    if(s.suite!="StretchInputOnly"||s.left||s.control||(GetAsyncKeyState(VK_SHIFT)&0x8000))
+    const bool boundary_only=s.suite=="StretchBoundaryOnly";
+    if((s.suite!="StretchInputOnly"&&!boundary_only)||s.left||s.control||(GetAsyncKeyState(VK_SHIFT)&0x8000))
         throw std::runtime_error("F04_exact_guest_suite_released_input_required");
     const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
     if(!original.enabled)throw std::runtime_error("F04_enabled_product_required");
@@ -245,6 +246,7 @@ void owned_stretch_input_case(State& s){
     bool timing_established{};
     try{
         const auto applied=chain_gui_save(s,config);s.log.check("F04_actual_GUI_stretch_enabled_smart_disabled",applied.stretch&&!applied.smart_stretch);
+        if(!boundary_only){
         struct Direction{int region;bool shift;Rect expected;const char* label;};
         const std::array<Direction,9> cases{{
             {HTRIGHT,false,{source.l,source.t,work.r,source.b},"F04_Right_actual_UP_fixed_left_top_bottom"},
@@ -267,13 +269,18 @@ void owned_stretch_input_case(State& s){
                 "\"action\":"+quote(item.label)+",\"independent_original\":"+rect(source));
         }
         set.setup({source},{limit});stretch_input_timeout_case(set,source);
+        }else s.log.emit("stretch_boundary_omitted_historical_scope",
+            "\"named_directions\":\"NOT_RUN\",\"timeout_negative\":\"NOT_RUN\",\"prior_product212_run_id\":\"d7e71d93c1ea449aa90e49dbd0ac6868\",\"historical_results_not_rebound\":true");
         set.setup({source},{limit});timing_established=stretch_input_movement_case(set,source);
         set.setup({source},{limit});stretch_input_caption_button_case(set,source);
         chain_check_product(s,pid,birth);const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
         s.log.check("F04_original_actual_GUI_configuration_restored",restored==expected);
         s.log.check("F04_exact_owned_resources_closed",set.close());
         s.log.emit("stretch_input_component","\"result\":"+quote(timing_established?"PASS":"PARTIAL")+
-            ",\"named_direction_Shift_actions\":9,\"movement_time_condition\":"+quote(timing_established?"ESTABLISHED":"NOT_RUN")+
+            ",\"suite\":"+quote(s.suite)+",\"named_direction_Shift_actions\":"+std::to_string(boundary_only?0:9)+
+            ",\"named_directions\":"+quote(boundary_only?"NOT_RUN":"PASS_SCOPED")+
+            ",\"timeout_negative\":"+quote(boundary_only?"NOT_RUN":"PASS_SCOPED")+
+            ",\"movement_time_condition\":"+quote(timing_established?"ESTABLISHED":"NOT_RUN")+
             ",\"old_left_6dba_evidence_not_rebound\":true,\"Full_I05_or_version_PASS\":false,\"human_uat\":\"NOT_RUN\"");
     }catch(...){
         // Cleanup only this driver's unique outstanding input while the exact

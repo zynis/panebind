@@ -410,6 +410,19 @@ Assert-V1StretchNativeBoundaryWiring $fixtureSource $stretchInput
 Check $true 'static F04 movement gate binds actual NC press, exact preparation and contextual UP without requiring a second modal loop'
 Reject {Assert-V1StretchNativeBoundaryWiring $fixtureSource ($stretchInput.Replace('down2.matches(set,*point,click_downs+2,down2_sent,stamp2)','true'))} 'static F04 movement rejects missing actual second source press'
 Reject {Assert-V1StretchNativeBoundaryWiring $fixtureSource ($stretchInput.Replace('chain_stretch_preparation(set,*point,HTRIGHT,source,preparation_mark,','true; /* removed actual preparation */ ('))} 'static F04 movement rejects missing second exact preparation'
+function Assert-V1StretchBoundaryScope([string]$Fixture,[string]$Stretch){
+    if(-not $Fixture.Contains('if(s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly")') -or
+       -not $Fixture.Contains('phase("owned_stretch_input",owned_stretch_input_case);') -or
+       -not $Stretch.Contains('if(!boundary_only){') -or
+       -not $Stretch.Contains('"named_directions\":\"NOT_RUN\",\"timeout_negative\":\"NOT_RUN\"') -or
+       -not $Stretch.Contains('set.setup({source},{limit});timing_established=stretch_input_movement_case(set,source);') -or
+       -not $Stretch.Contains('set.setup({source},{limit});stretch_input_caption_button_case(set,source);')){
+        throw 'Boundary scope must reuse real movement/caption cases and explicitly not rerun or rebind positive directions.'
+    }
+}
+Assert-V1StretchBoundaryScope $fixtureSource $stretchInput
+Check $true 'static boundary-only route reuses actual movement/caption checks and reports direction/timeout evidence not rerun'
+Reject {Assert-V1StretchBoundaryScope $fixtureSource ($stretchInput.Replace('set.setup({source},{limit});stretch_input_caption_button_case(set,source);',''))} 'static boundary-only route rejects omitting the real caption-button negative'
 function Assert-V1ExitRecoveryWiring([string]$Fixture,[string]$Exit){
     if(-not $Fixture.Contains('phase("owned_active_exit_and_controlled_kill_recovery",owned_exit_recovery_case);')){throw 'Exit recovery must call the real bounded guest component.'}
     foreach($value in @('for(const bool forced:std::array{false,true})','command=launch(s,L"--quit",true,&command_exit)',
