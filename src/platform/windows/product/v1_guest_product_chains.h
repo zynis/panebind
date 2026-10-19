@@ -159,6 +159,220 @@ Rect chain_work(HWND h){MONITORINFO info{sizeof(info)};
     if(!GetMonitorInfoW(MonitorFromWindow(h,MONITOR_DEFAULTTONULL),&info))throw std::runtime_error("chain_actual_work_area_unavailable");
     return {info.rcWork.left,info.rcWork.top,info.rcWork.right,info.rcWork.bottom};
 }
+// Implemented by the existing interruption component included below this
+// header. Reuse its actual abort/idle/recovery audit, not a second product path.
+void interruption_idle(State&,LayoutFixtures&,bool);
+void interruption_audit_calls(State&,const Gesture&,std::uint64_t,std::optional<Rect>);
+std::vector<Rect> pause_routing_actual(LayoutFixtures& set){
+    std::vector<Rect> actual;
+    for(std::size_t n=0;n<set.active;++n){const auto value=visible(set.frames[n].hwnd);
+        if(!set.owns(n)||!value)throw std::runtime_error("pause_routing_actual_member_identity_or_geometry_unknown");actual.push_back(*value);}
+    return actual;
+}
+void pause_routing_client_pair(LayoutFixtures& set,const char* label,std::size_t source=0){
+    auto& s=set.state;chain_front(set,source);const HWND h=set.frames[source].hwnd;RECT client{};POINT point{};
+    if(!GetClientRect(h,&client))throw std::runtime_error("pause_routing_client_rect_unknown");
+    point={(client.left+client.right)/2,(client.top+client.bottom)/2};
+    if(!ClientToScreen(h,&point))throw std::runtime_error("pause_routing_client_point_unknown");cursor(s,point);
+    DWORD_PTR region{};GUITHREADINFO gui{sizeof(gui)};
+    const bool ready=set.owns(source)&&GetForegroundWindow()==h&&WindowFromPoint(point)==h&&
+        SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&region==HTCLIENT&&GetGUIThreadInfo(set.thread,&gui)&&
+        !gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+    s.log.check("pause_routing_exact_client_input_ready",ready);
+    const auto before_down=set.frames[source].client_down[0].load(),before_up=set.frames[source].client_up[0].load();
+    button(s,true);const bool down=wait([&]{return set.frames[source].client_down[0].load()==before_down+1;},1000);
+    button(s,false);const bool up=wait([&]{return set.frames[source].client_up[0].load()==before_up+1;},1000);
+    s.log.check(label,down&&up&&set.owns(source)&&!s.left,
+        "\"actual_member\":"+std::to_string(source)+",\"actual_client_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"actual_client_DOWN_before\":"+std::to_string(before_down)+",\"actual_client_UP_before\":"+std::to_string(before_up)+
+        ",\"actual_client_DOWN_after\":"+std::to_string(set.frames[source].client_down[0].load())+
+        ",\"actual_client_UP_after\":"+std::to_string(set.frames[source].client_up[0].load())+",\"SendInput_return_is_not_delivery_proof\":true");
+}
+std::vector<Rect> pause_routing_native_drag(LayoutFixtures& set,std::size_t source,LONG dx,LONG dy,bool ctrl_shift,const char* label){
+    auto& s=set.state;if(source>=set.active||s.left||s.control||(GetAsyncKeyState(VK_SHIFT)&0x8000))
+        throw std::runtime_error("pause_routing_native_drag_requires_released_owned_input");
+    chain_front(set,source);const HWND h=set.frames[source].hwnd;const auto point=layout_hit(set,source,HTCAPTION);
+    if(!point)throw std::runtime_error("pause_routing_actual_native_caption_missing");
+    const auto before=pause_routing_actual(set);auto expected=before;expected[source]=translated(before[source],dx,dy);
+    cursor(s,*point);(void)layout_wait_sent([]{return false;},100);
+    GUITHREADINFO gui{sizeof(gui)};DWORD_PTR region{};
+    const bool ready=set.owns(source)&&GetForegroundWindow()==h&&WindowFromPoint(*point)==h&&
+        SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point->x),static_cast<short>(point->y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)&&region==HTCAPTION&&GetGUIThreadInfo(set.thread,&gui)&&
+        !gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+    s.log.check("pause_routing_native_exact_DOWN_anchor",ready,
+        "\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"source_TID\":"+std::to_string(set.thread)+
+        ",\"original_cursor\":["+std::to_string(point->x)+","+std::to_string(point->y)+"],\"original_visible\":"+rect(before[source])+
+        ",\"Ctrl_Shift_start\":"+(ctrl_shift?"true":"false"));
+    GuestOwnedQueueUpObservation queue;
+    s.log.check("pause_routing_native_exact_source_queue_observer",queue.start(h,set.thread));
+    const auto mark=read_product(s).size();const auto starts=set.frames[source].starts.load(),ends=set.frames[source].ends.load();
+    bool shift_attempted=false,shift_release_attempted=false;std::string cleanup_error;
+    try{
+        if(ctrl_shift){key(s,VK_CONTROL,true);shift_attempted=true;key(s,VK_SHIFT,true);}
+        s.log.check("pause_routing_native_actual_locked_modifiers",
+            ((GetAsyncKeyState(VK_CONTROL)&0x8000)!=0)==ctrl_shift&&((GetAsyncKeyState(VK_SHIFT)&0x8000)!=0)==ctrl_shift);
+        POINT fresh_cursor{};gui={sizeof(gui)};
+        if(!set.owns(source)||pause_routing_actual(set)!=before||GetForegroundWindow()!=h||!GetCursorPos(&fresh_cursor)||
+            fresh_cursor.x!=point->x||fresh_cursor.y!=point->y||WindowFromPoint(fresh_cursor)!=h||
+            !SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point->x),static_cast<short>(point->y)),
+                SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)||region!=HTCAPTION||
+            !GetGUIThreadInfo(set.thread,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)
+            throw std::runtime_error("pause_routing_native_fresh_exact_context_changed_before_DOWN");
+        const DWORD down_stamp=GetTickCount();button(s,true);
+        // A native pass-through must NOT wait for product gesture_start.
+        // The source's actual default modal loop supplies START/END instead.
+        cursor(s,{point->x+dx/2,point->y+dy/2});
+        s.log.check("pause_routing_native_actual_START",layout_wait_sent([&]{return set.owns(source)&&
+            set.frames[source].starts.load()==starts+1&&set.frames[source].native_start_qpc.load()>=s.left_down_send_qpc;},1500));
+        cursor(s,{point->x+dx,point->y+dy});
+        const bool moved=layout_wait_sent([&]{return pause_routing_actual(set)==expected;},1500);
+        // One planned UP while the same exact native source still owns its
+        // modal loop. The queue observer proves actual delivery, not insertion.
+        button(s,false);
+        if(shift_attempted){shift_release_attempted=true;key(s,VK_SHIFT,false);}if(s.control)key(s,VK_CONTROL,false);
+        const POINT destination{point->x+dx,point->y+dy};std::uint64_t actual_up_qpc{};
+        const bool ended=layout_wait_sent([&]{
+            actual_up_qpc=queue.exact_source_up_qpc(h,set.thread,s.left_up_send_qpc,down_stamp,destination,
+                set.frames[source].native_end_qpc.load());
+            return set.owns(source)&&set.frames[source].ends.load()==ends+1&&actual_up_qpc;
+        },1500);
+        const bool queue_stopped=queue.stop();
+        actual_up_qpc=queue_stopped?queue.exact_source_up_qpc(h,set.thread,s.left_up_send_qpc,down_stamp,destination,
+            set.frames[source].native_end_qpc.load()):0;
+        const auto actual=pause_routing_actual(set);
+        const auto text=product_log_since(s,mark);unsigned starts_claimed{},placements{},resources{},cancels{};
+        std::istringstream rows(text);std::string row;
+        while(std::getline(rows,row))if(row.ends_with('}')){
+            if(row.find("\"type\":\"gesture_start\"")!=row.npos)++starts_claimed;
+            if(row.find("\"type\":\"placement\"")!=row.npos)++placements;
+            if(row.find("\"type\":\"gesture_input_resource\"")!=row.npos)++resources;
+            if(row.find("\"type\":\"native_move_cancel\"")!=row.npos)++cancels;
+        }
+        const bool idle=GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+        s.log.check(label,moved&&ended&&queue_stopped&&actual_up_qpc&&actual==expected&&idle&&!s.left&&!s.control&&
+            !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!starts_claimed&&!placements&&!resources&&!cancels,
+            "\"actual_native_START_delta\":"+std::to_string(set.frames[source].starts.load()-starts)+
+            ",\"actual_native_END_delta\":"+std::to_string(set.frames[source].ends.load()-ends)+
+            ",\"actual_source_START_qpc\":"+std::to_string(set.frames[source].native_start_qpc.load())+
+            ",\"actual_source_UP_qpc\":"+std::to_string(actual_up_qpc)+
+            ",\"actual_source_END_qpc\":"+std::to_string(set.frames[source].native_end_qpc.load())+
+            ",\"test_DOWN_send_qpc\":"+std::to_string(s.left_down_send_qpc)+",\"test_UP_send_qpc\":"+std::to_string(s.left_up_send_qpc)+
+            ",\"product_enhanced_STARTs\":"+std::to_string(starts_claimed)+",\"product_placements\":"+std::to_string(placements)+
+            ",\"product_input_resources\":"+std::to_string(resources)+",\"product_native_cancels\":"+std::to_string(cancels)+
+            ",\"actual_source_queue_UP\":"+queue.json()+",\"expected_source\":"+rect(expected[source])+
+            ",\"actual_source\":"+rect(actual[source])+",\"native_passthrough_is_product_NormalUp\":false");
+        for(std::size_t n=0;n<actual.size();++n)s.log.emit("pause_routing_native_actual_member",
+            "\"member\":"+std::to_string(n)+",\"expected\":"+rect(expected[n])+",\"actual\":"+rect(actual[n])+
+            ",\"source\":"+(n==source?"true":"false"));
+        return actual;
+    }catch(...){
+        // Only this test's still-outstanding input; never retry an UP whose
+        // insertion was already attempted, and never claim cleanup delivery.
+        try{if(s.left&&!s.left_up_attempted)button(s,false);}
+        catch(const std::exception& error){cleanup_error="mouse_UP:"+std::string(error.what());}
+        try{if(shift_attempted&&!shift_release_attempted){shift_release_attempted=true;key(s,VK_SHIFT,false);}}
+        catch(const std::exception& error){cleanup_error+=";Shift_UP:"+std::string(error.what());}
+        try{if(s.control)key(s,VK_CONTROL,false);}
+        catch(const std::exception& error){cleanup_error+=";Ctrl_UP:"+std::string(error.what());}
+        const bool stopped=queue.stop();s.log.emit("pause_routing_native_failure_cleanup",
+            "\"observer_stopped\":"+std::string(stopped?"true":"false")+",\"reason\":"+quote(cleanup_error)+
+            ",\"original_failure_preserved\":true,\"product_NormalUp_inferred\":false");throw;
+    }
+}
+std::vector<Rect> pause_routing_initial(Rect work){
+    if(work.width()<1000||work.height()<700)throw std::runtime_error("pause_routing_actual_work_area_too_small");
+    return {{work.l+200,work.t+160,work.l+500,work.t+480},
+        {work.l+500,work.t+160,work.l+780,work.t+320},{work.l+500,work.t+320,work.l+780,work.t+480}};
+}
+void pause_routing_failed_case_input(State& s)noexcept{
+    // Run while exact fixture storage/windows are still alive, before their
+    // destructor. This is test input cleanup only, never a successful receipt.
+    std::string error;
+    try{if(s.left&&!s.left_up_attempted)button(s,false);}catch(const std::exception& failure){error="mouse_UP:"+std::string(failure.what());}
+    try{if(s.control)key(s,VK_CONTROL,false);}catch(const std::exception& failure){error+=";Ctrl_UP:"+std::string(failure.what());}
+    try{s.log.emit("pause_routing_failed_case_input_cleanup","\"reason\":"+quote(error)+
+        ",\"UP_already_attempted_not_repeated\":"+(s.left_up_attempted?"true":"false")+",\"function_or_cleanup_PASS_inferred\":false");}catch(...){}
+}
+void owned_active_ctrl_pause_native_resume_case(State& s){
+    namespace v=panebind::core::v1;const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    auto config=original;config.glue=true;config.magnet_move=false;config.magnet_resize=false;config.docking=false;
+    config.drag_transparency=false;config.shake=false;chain_gui_save(s,config);
+    LayoutFixtures set{s};set.create();try{
+    const auto work=chain_work(set.frames[0].hwnd);const auto initial=pause_routing_initial(work);
+    const LayoutLimit limit{120,100,work.width(),work.height()};set.setup(initial,{limit,limit,limit});chain_check_product(s,pid,birth);
+    const auto g=layout_down(set,0,HTCAPTION,true);auto moved=initial;for(auto& member:moved)member=translated(member,40,25);
+    layout_phase(set,0,g,40,25,moved,"pause_routing_active_Ctrl_all_three_actual_writes");
+    const auto start=record(s,g.offset,"gesture_start",g.generation);
+    s.log.check("pause_routing_actual_active_Ctrl_before_pause",s.left&&s.control&&actual_up(s,g.offset,g.generation).empty()&&
+        start.find("\"ctrl\":true")!=start.npos&&number(start,"\"group_members\":")==3,"\"actual_START\":"+quote(start));
+    LARGE_INTEGER trigger{};if(!QueryPerformanceCounter(&trigger)||trigger.QuadPart<=0)throw std::runtime_error("pause_routing_pause_trigger_clock_unknown");
+    const auto pause_mark=read_product(s).size();std::string ended,status;
+    const bool paused=launch(s,L"--pause",true)&&wait([&]{
+        ended=record(s,g.offset,"gesture_end",g.generation);status=record(s,pause_mark,"status");return
+        number(ended,"\"end\":")==static_cast<unsigned>(v::End::Paused)&&ended.find("\"normal_up\":false")!=ended.npos&&
+        ended.find("\"pending_retired\":true")!=ended.npos&&status.find("\"enabled\":false")!=status.npos&&
+        status.find("\"gesture_active\":false")!=status.npos;});
+    s.log.check("pause_routing_product_Pause_retires_active_Ctrl",paused,
+        "\"Pause_is_not_NormalUp\":true,\"actual_Paused_end\":"+quote(ended)+",\"actual_paused_status\":"+quote(status));
+    cursor(s,{g.anchor.x+70,g.anchor.y+65});
+    s.log.check("pause_routing_no_movement_after_Pause",pause_routing_actual(set)==moved);
+    button(s,false);if(s.control)key(s,VK_CONTROL,false);
+    const auto aborted=abort_cleanup_up_receipt(s,g.offset,g.generation);
+    s.log.check("pause_routing_aborted_original_UP_and_resources",aborted.matched,aborted.json());
+    interruption_audit_calls(s,g,static_cast<std::uint64_t>(trigger.QuadPart),std::nullopt);interruption_idle(s,set,false);
+    pause_routing_client_pair(set,"pause_routing_paused_real_client_DOWN_UP",1);
+    auto actual=pause_routing_native_drag(set,0,-100,60,false,"pause_routing_paused_real_native_Move_and_UP");
+    const auto resume_mark=read_product(s).size();std::string resumed;
+    const bool enabled=launch(s,L"--command Pause",true)&&wait([&]{
+        resumed=record(s,resume_mark,"status");return resumed.find("\"enabled\":true")!=resumed.npos&&
+            resumed.find("\"gesture_active\":false")!=resumed.npos&&resumed.find("\"hook_owner_running\":true")!=resumed.npos;});
+    s.log.check("pause_routing_actual_Resume_rebuilds_input",enabled,
+        "\"actual_resume_status\":"+quote(resumed));
+    auto next=layout_down(set,0,HTCAPTION,false);s.log.check("pause_routing_resume_new_generation",next.generation>g.generation);
+    actual[0]=translated(actual[0],35,25);layout_phase(set,0,next,35,25,actual,"pause_routing_resumed_actual_Move");layout_up(set,next,actual);
+    const auto move_generation=next.generation;next=layout_down(set,0,HTBOTTOM,false);
+    s.log.check("pause_routing_resume_Resize_new_generation",next.generation>move_generation);actual[0].b+=24;
+    layout_phase(set,0,next,0,24,actual,"pause_routing_resumed_actual_Resize");layout_up(set,next,actual);
+    pause_routing_client_pair(set,"pause_routing_after_resume_real_client_DOWN_UP");interruption_idle(s,set,true);chain_check_product(s,pid,birth);
+    const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
+    s.log.check("pause_routing_original_configuration_restored",restored==expected);s.log.check("pause_routing_exact_test_windows_closed",set.close());
+    s.log.emit("pause_routing_pause_resume_component","\"result\":\"PASS\",\"same_product_process\":true,\"active_Ctrl_then_pause_native_resume_Move_Resize\":true,\"whole_M01_I08_or_version_PASS\":false");
+    }catch(...){pause_routing_failed_case_input(s);throw;}
+}
+void owned_ctrl_shift_bypass_reselect_case(State& s){
+    const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    auto config=original;config.glue=true;config.magnet_move=true;config.magnet_resize=true;config.docking=true;
+    config.drag_transparency=false;config.shake=false;chain_gui_save(s,config);
+    LayoutFixtures set{s};set.create();try{
+    const auto work=chain_work(set.frames[0].hwnd);const auto initial=pause_routing_initial(work);
+    const LayoutLimit limit{120,100,work.width(),work.height()};set.setup(initial,{limit,limit,limit});chain_check_product(s,pid,birth);
+    s.log.check("pause_routing_before_bypass_actual_adjacent_group",initial[0].r==initial[1].l&&initial[0].r==initial[2].l&&
+        initial[0].t<initial[1].b&&initial[0].b>initial[2].t&&pause_routing_actual(set)==initial);
+    auto actual=pause_routing_native_drag(set,0,-100,60,true,"pause_routing_Ctrl_Shift_native_bypass_only_source");
+    s.log.check("pause_routing_bypass_really_separated_old_neighbours",actual[1]==initial[1]&&actual[2]==initial[2]&&
+        actual[0].r+50<actual[1].l&&actual[0].r+50<actual[2].l,"\"no_layout_reset_before_next_Ctrl\":true");
+    // No set.setup, fixed expected graph or direct geometry change here.
+    // The next product DOWN must freshly discover the actual isolated source.
+    const auto next=layout_down(set,0,HTCAPTION,true);const auto start=record(s,next.offset,"gesture_start",next.generation);
+    s.log.check("pause_routing_new_Ctrl_uses_actual_single_member",start.find("\"ctrl\":true")!=start.npos&&
+        number(start,"\"group_members\":")==1,"\"actual_START\":"+quote(start)+",\"old_neighbours_not_rebound\":true");
+    actual[0]=translated(actual[0],35,25);layout_phase(set,0,next,35,25,actual,"pause_routing_new_Ctrl_only_actual_isolated_source");layout_up(set,next,actual);
+    unsigned source_calls{},other_calls{};const auto source_key=number(start,"\"key\":");std::istringstream rows(product_log_since(s,next.offset));std::string row;
+    while(std::getline(rows,row))if(row.ends_with('}')&&row.find("\"type\":\"placement\"")!=row.npos&&
+        number(row,"\"generation\":")==next.generation&&row.find("\"native_callsite_claimed\":true")!=row.npos){
+        if(number(row,"\"key\":")==source_key)++source_calls;else ++other_calls;
+    }
+    s.log.check("pause_routing_no_native_calls_to_old_group",source_key&&source_calls&&!other_calls&&
+        visible(set.frames[1].hwnd)==initial[1]&&visible(set.frames[2].hwnd)==initial[2],
+        "\"actual_source_native_calls\":"+std::to_string(source_calls)+",\"other_member_native_calls\":"+std::to_string(other_calls));
+    pause_routing_client_pair(set,"pause_routing_after_bypass_Ctrl_real_client_DOWN_UP");interruption_idle(s,set,true);chain_check_product(s,pid,birth);
+    const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
+    s.log.check("pause_routing_bypass_original_configuration_restored",restored==expected);s.log.check("pause_routing_bypass_exact_windows_closed",set.close());
+    s.log.emit("pause_routing_bypass_component","\"result\":\"PASS\",\"Ctrl_Shift_native_START_UP_END\":true,\"actual_relation_reselected_next_Ctrl\":true,\"whole_M04_M06_or_version_PASS\":false");
+    }catch(...){pause_routing_failed_case_input(s);throw;}
+}
 void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect expected,const char* label){
     auto& s=set.state;chain_front(set,0);const auto point=layout_hit(set,0,native_region);
     if(!point)throw std::runtime_error("chain_requested_native_double_click_region_not_observed");

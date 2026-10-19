@@ -113,7 +113,7 @@ function Assert-V1GroupBoundsScopeWiring([string]$Source,[string]$Layouts){
         throw 'GroupBoundsOnly must return after its two real group cases and cleanup, before settings or I11.'
     }
     $drive=Get-V1FixtureFunctionText $Source 'drive'
-    if($drive -notmatch '(?s)if\([^\r\n]*s\.suite=="GroupBoundsOnly"\)\{\s*independent_entry_flow\(s,'){
+    if($drive -notmatch '(?s)if\([^\r\n]*s\.suite=="GroupBoundsOnly"[^\r\n]*\)\{\s*independent_entry_flow\(s,'){
         throw 'GroupBoundsOnly must reach the actual independent entry flow.'
     }
     $full=Get-V1FixtureFunctionText $Layouts 'owned_layout_cases'
@@ -204,6 +204,60 @@ function Assert-V1StretchModesScopeWiring([string]$Source,[string]$Chains){
         throw 'Actual settings, stretch, Undo and configuration restoration must remain in that order.'
     }
 }
+function Assert-V1PauseRoutingScopeWiring([string]$Source,[string]$Chains){
+    # Static reachability/oracle guards only. Actual Paused/UP/native delivery,
+    # resource cleanup and resumed movement still require the guarded guest.
+    $entry=Get-V1FixtureFunctionText $Source 'independent_entry_flow'
+    $scope=[regex]::Match($entry,'(?s)if\(s\.suite=="PauseRoutingOnly"\)\{(?<body>.*?)return;\s*\}')
+    $drive=Get-V1FixtureFunctionText $Source 'drive'
+    if(-not $scope.Success -or
+       [regex]::Matches($scope.Groups['body'].Value,'\bphase\s*\(').Count -ne 2 -or
+       -not $scope.Value.Contains('phase("active_ctrl_pause_native_resume",owned_active_ctrl_pause_native_resume_case);') -or
+       -not $scope.Value.Contains('phase("ctrl_shift_bypass_reselect",owned_ctrl_shift_bypass_reselect_case);') -or
+       -not $scope.Value.Contains('cleanup(s);') -or -not $scope.Value.Contains('pause_routing_only_summary') -or
+       $scope.Index -ge $entry.IndexOf('phase("settings_GUI",',[StringComparison]::Ordinal) -or
+       $scope.Index -ge $entry.IndexOf('phase("owned_finite_I11_component",',[StringComparison]::Ordinal) -or
+       $drive -notmatch '(?s)if\([^\r\n]*s\.suite=="PauseRoutingOnly"[^\r\n]*\)\{\s*independent_entry_flow\(s,'){
+        throw 'PauseRoutingOnly must reach its two actual components and return after cleanup, before unrelated suites.'
+    }
+    $pause=Get-V1FixtureFunctionText $Chains 'owned_active_ctrl_pause_native_resume_case'
+    $bypass=Get-V1FixtureFunctionText $Chains 'owned_ctrl_shift_bypass_reselect_case'
+    $native=[regex]::Match($Chains,'(?ms)^std::vector<Rect> pause_routing_native_drag\(.*?(?=^std::vector<Rect> pause_routing_initial\()').Value
+    if(-not $pause.Contains('const bool paused=launch(s,L"--pause",true)&&wait(') -or
+       -not $pause.Contains('static_cast<unsigned>(v::End::Paused)') -or
+       -not $pause.Contains('ended.find("\"pending_retired\":true")') -or
+       -not $pause.Contains('abort_cleanup_up_receipt(s,g.offset,g.generation)') -or
+       -not $pause.Contains('aborted.matched,aborted.json()') -or
+       -not $pause.Contains('interruption_audit_calls(s,g,static_cast<std::uint64_t>(trigger.QuadPart),std::nullopt)') -or
+       -not $pause.Contains('pause_routing_client_pair(set,"pause_routing_paused_real_client_DOWN_UP",1);') -or
+       -not $pause.Contains('pause_routing_native_drag(set,0,-100,60,false,') -or
+       -not $pause.Contains('const bool enabled=launch(s,L"--command Pause",true)&&wait(') -or
+       -not $pause.Contains('layout_down(set,0,HTCAPTION,false)') -or
+       -not $pause.Contains('layout_down(set,0,HTBOTTOM,false)') -or
+       [regex]::Matches($pause,'\blayout_up\(set,next,actual\)').Count -ne 2 -or
+       -not $pause.Contains('chain_gui_save(s,original)') -or -not $pause.Contains('set.close()')){
+        throw 'Pause routing needs the real Pause/abort-UP audit, paused native input, actual Resume and new Move/Resize completions.'
+    }
+    if(-not $native.Contains('pause_routing_native_fresh_exact_context_changed_before_DOWN') -or
+       -not $native.Contains('queue.exact_source_up_qpc(h,set.thread,s.left_up_send_qpc,down_stamp,destination,') -or
+       -not $native.Contains('moved&&ended&&queue_stopped&&actual_up_qpc&&actual==expected&&idle&&!s.left&&!s.control&&') -or
+       -not $native.Contains('!starts_claimed&&!placements&&!resources&&!cancels') -or
+       $native -match '\b(?:layout_down|SetWindowPos|DeferWindowPos)\s*\(' -or
+       -not $native.Contains('try{if(s.left&&!s.left_up_attempted)button(s,false);}') -or
+       -not $native.Contains('try{if(shift_attempted&&!shift_release_attempted){shift_release_attempted=true;key(s,VK_SHIFT,false);}}')){
+        throw 'Native pause/bypass input must preserve exact source UP evidence, no product operations, and independent bounded input cleanup.'
+    }
+    $nativeCall=$bypass.IndexOf('pause_routing_native_drag(set,0,-100,60,true,',[StringComparison]::Ordinal)
+    $nextCtrl=$bypass.IndexOf('const auto next=layout_down(set,0,HTCAPTION,true);',[StringComparison]::Ordinal)
+    if($nativeCall -lt 0 -or $nextCtrl -le $nativeCall -or
+       $bypass.Substring($nativeCall,$nextCtrl-$nativeCall) -match '\bset\.setup\s*\(' -or
+       -not $bypass.Contains('number(start,"\"group_members\":")==1') -or
+       -not $bypass.Contains('source_key&&source_calls&&!other_calls&&') -or
+       -not $bypass.Contains('visible(set.frames[1].hwnd)==initial[1]&&visible(set.frames[2].hwnd)==initial[2]') -or
+       -not $bypass.Contains('chain_gui_save(s,original)') -or -not $bypass.Contains('set.close()')){
+        throw 'The new Ctrl gesture must use the actual separated layout, a fresh one-member group and no old-member native calls.'
+    }
+}
 $fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
 $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
 Assert-V1NativeClientPreflightWiring $fixtureSource
@@ -220,6 +274,9 @@ $chainSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows
 Assert-V1StretchModesScopeWiring $fixtureSource $chainSource
 Check $true 'static stretch scope: actual disabled GUI setting, work-area oracle, unchanged neighbour, Undo and restoration are wired without unrelated suites'
 Reject {Assert-V1StretchModesScopeWiring $fixtureSource ($chainSource.Replace('const Rect expected{work.l,source.t,source.r,source.b};','const Rect expected{neighbour.r,source.t,source.r,source.b};'))} 'static stretch scope rejects substituting the smart-enabled neighbour boundary oracle'
+Assert-V1PauseRoutingScopeWiring $fixtureSource $chainSource
+Check $true 'static pause routing: actual Pause/UP/native/Resume and bypass/new-relation components are wired without unrelated suites'
+Reject {Assert-V1PauseRoutingScopeWiring $fixtureSource ($chainSource.Replace('!starts_claimed&&!placements&&!resources&&!cancels','!starts_claimed&&!resources&&!cancels'))} 'static pause routing rejects native bypass without the zero-product-placement gate'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'
