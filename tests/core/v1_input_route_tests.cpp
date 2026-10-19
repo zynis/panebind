@@ -666,6 +666,21 @@ int main() {
     check(!product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false),
           "unissued capture rejection alone is not actual matching UP evidence");
     sampled_capture->matching_up_observed=true;
+    using GuiDisposition=product::GestureGuiDisposition;
+    check(product::gesture_gui_disposition(false,product::capture_matching_up_retired_reason,30,sampled_capture,false)==
+              GuiDisposition::MatchingUpRetired&&
+          !sampled_capture->normal_up_observed.load()&&
+          !product::captured_release_can_complete(true,false,false,true,true),
+          "actual GUI pre-writer rejection after matched Raw UP waits without FocusLost, native permission or synthetic NormalUp");
+    check(product::gesture_gui_disposition(false,product::capture_matching_up_retired_reason,30,sampled_capture,true)==GuiDisposition::Rejected&&
+          product::gesture_gui_disposition(false,product::capture_matching_up_retired_reason,31,sampled_capture,false)==GuiDisposition::Rejected&&
+          product::gesture_gui_disposition(false,product::capture_matching_up_retired_reason,30,{},false)==GuiDisposition::Rejected,
+          "GUI retirement requires revoked same generation and the original capture lease, never newer or unknown context");
+    for(const auto* actual_context_failure:{"capture_foreign_window_present","capture_source_foreground_changed",
+            "capture_source_identity_or_GUI_unknown","capture_owner_identity_or_GUI_unknown_after_matching_UP",
+            "capture_source_native_interaction_present"})
+        check(product::gesture_gui_disposition(false,actual_context_failure,30,sampled_capture,false)==GuiDisposition::Rejected,
+              "GUI pre-writer terminal split preserves actual foreground, identity, foreign and unknown context rejection");
     check(product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,false)&&
           !product::WindowWriter::preserves_terminal_receipt(withdrawn,30,sampled_capture,true)&&
           !product::WindowWriter::preserves_terminal_receipt(withdrawn,31,sampled_capture,false)&&

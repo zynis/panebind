@@ -698,13 +698,14 @@ public:
         }
         return source_found;
     }
-    bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation) {
+    GestureGuiDisposition gesture_gui_context(const Snapshot& source,std::uint64_t generation) {
         LARGE_INTEGER before{},after{};if(diagnostic)QueryPerformanceCounter(&before);
         const auto gui=observe_gui_context(source);
         const auto capture=input.capture_context(generation);
         std::string reason;
         const bool accepted=geometry_gui_context_allowed(source,gui,capture,
             GeometryContextPhase::BeforeNativeCall,&reason);
+        const auto disposition=gesture_gui_disposition(accepted,reason,generation,capture,input.allowed(generation));
         if(!accepted&&diagnostic){
             const auto foreground_after_predicate=GetForegroundWindow();
             QueryPerformanceCounter(&after);
@@ -726,12 +727,19 @@ public:
                 ",\"foreground_after_predicate\":"+hwnd(foreground_after_predicate)+
                 ",\"capture_lease_present\":"+(capture?"true":"false")+
                 ",\"lease_overlay\":"+hwnd(capture?capture->overlay:nullptr)+
+                ",\"lease_matching_UP_observed\":"+(capture&&capture->matching_up_observed.load()?"true":"false")+
+                ",\"await_actual_terminal_receipt\":"+(disposition==GestureGuiDisposition::MatchingUpRetired?"true":"false")+
                 ",\"lease_normal_UP_observed\":"+(capture&&capture->normal_up_observed.load()?"true":"false")+
                 ",\"lease_own_release_confirmed\":"+(capture&&capture->own_release_confirmed.load()?"true":"false")+
                 ",\"lease_association_detached\":"+(capture&&capture->association_detached.load()?"true":"false")+
                 ",\"new_native_attempt\":false");
         }
-        return accepted;
+        return disposition;
+    }
+    bool gesture_gui_allowed(const Snapshot& source,std::uint64_t generation) {
+        // The native-handoff begin gate still requires actual admission; a
+        // retired observation can never be used as a true may_write input.
+        return gesture_gui_context(source,generation)==GestureGuiDisposition::Allowed;
     }
     void motion(const InputEvent&,bool normal_up_completion=false);
     void refresh_targets(){
@@ -1321,7 +1329,10 @@ void Application::seam_timeout(UINT_PTR timer){
     const auto source=gesture->operation_source;
     const auto current=catalog.get(source.hwnd,settings);
     if(!current||!Catalog::same(source,*current)||GetForegroundWindow()!=source.hwnd){finish(v::End::FocusLost);return;}
-    if(!gesture_gui_allowed(source,generation)){finish(v::End::FocusLost);return;}
+    const auto gui_context=gesture_gui_context(source,generation);
+    if(gui_context!=GestureGuiDisposition::Allowed){
+        if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::FocusLost);return;
+    }
     for(const auto& [key,expected]:gesture->expected){
         (void)key;const auto actual=catalog.get(expected.hwnd,settings);
         if(!actual||!Catalog::same(expected,*actual)||actual->visible!=expected.visible||actual->positioning!=expected.positioning||
@@ -1346,9 +1357,14 @@ void Application::request_native_restore(const InputEvent& move){
     const auto fresh=catalog.get(original.hwnd,settings);
     WINDOWPLACEMENT placement{sizeof(placement)};
     if(!fresh||!Catalog::same(original,*fresh)||!fresh->maximized||fresh->visible!=original.visible||
-        fresh->positioning!=original.positioning||GetForegroundWindow()!=original.hwnd||
-        !gesture_gui_allowed(original,move.generation)||
-        !GetWindowPlacement(original.hwnd,&placement)||placement.showCmd!=SW_SHOWMAXIMIZED||
+        fresh->positioning!=original.positioning||GetForegroundWindow()!=original.hwnd){
+        finish(v::End::SourceLost);return;
+    }
+    const auto gui_context=gesture_gui_context(original,move.generation);
+    if(gui_context!=GestureGuiDisposition::Allowed){
+        if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::SourceLost);return;
+    }
+    if(!GetWindowPlacement(original.hwnd,&placement)||placement.showCmd!=SW_SHOWMAXIMIZED||
         placement.rcNormalPosition.right<=placement.rcNormalPosition.left||placement.rcNormalPosition.bottom<=placement.rcNormalPosition.top){
         finish(v::End::SourceLost);return;
     }
@@ -1376,7 +1392,10 @@ void Application::restore_progress(){
     const auto fresh=catalog.get(original.hwnd,settings);
     if(!fresh||!Catalog::same(original,*fresh)||GetForegroundWindow()!=original.hwnd){finish(v::End::SourceLost);return;}
     if(fresh->maximized||fresh->minimized)return;
-    if(!gesture_gui_allowed(*fresh,gesture->down.generation)){finish(v::End::FocusLost);return;}
+    const auto gui_context=gesture_gui_context(*fresh,gesture->down.generation);
+    if(gui_context!=GestureGuiDisposition::Allowed){
+        if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::FocusLost);return;
+    }
     auto normal=fresh->visible;
     if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
     const auto anchor=v::restored_move_anchor(original.visible,normal,{gesture->down.point.x,gesture->down.point.y});
@@ -1427,7 +1446,10 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     }
     auto& state=*gesture;const auto& config=state.config;const auto source=state.operation_source;const auto fresh=catalog.get(source.hwnd,settings);
     if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd){finish(v::End::SourceLost);return;}
-    if(!gesture_gui_allowed(source,e.generation)){finish(v::End::FocusLost);return;}
+    const auto gui_context=gesture_gui_context(source,e.generation);
+    if(gui_context!=GestureGuiDisposition::Allowed){
+        if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::FocusLost);return;
+    }
     refresh_targets();
     if(motion_point_already_exact(e,normal_up_completion,state.exact_motion)){
         // A duplicate physical cursor is not a new motion quantum. Re-solving

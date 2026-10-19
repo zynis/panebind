@@ -623,10 +623,9 @@ bool WindowWriter::preserves_terminal_receipt(const Receipt& receipt,std::uint64
         receipt.post_context_reason=="post_native_capture_cleanup_not_yet_confirmed";
     if(!receipt.completion_known)return false;
     if(receipt.reason=="operation_revoked_before_native_attempt")return true;
-    return (receipt.reason==capture_matching_up_retired_reason||
-        receipt.reason=="batch_preflight_capture_matching_UP_retired_before_native_call")&&
-        generation&&capture&&capture->generation==generation&&!generation_allowed&&
-        capture->matching_up_observed.load(std::memory_order_acquire);
+    const std::string_view context_reason=receipt.reason=="batch_preflight_capture_matching_UP_retired_before_native_call"?
+        capture_matching_up_retired_reason:std::string_view(receipt.reason);
+    return gesture_gui_disposition(false,context_reason,generation,capture,generation_allowed)==GestureGuiDisposition::MatchingUpRetired;
 }
 
 WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expected,

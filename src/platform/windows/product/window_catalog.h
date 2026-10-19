@@ -15,6 +15,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace panebind::platform::windows::product {
@@ -75,6 +76,17 @@ struct GestureCaptureContext {
 };
 using GestureCaptureLease=std::shared_ptr<const GestureCaptureContext>;
 inline constexpr char capture_matching_up_retired_reason[]="capture_matching_UP_retired_before_native_call";
+enum class GestureGuiDisposition { Allowed,MatchingUpRetired,Rejected };
+// A rejected admission is not failed completion. Use the exact same lease
+// which produced the context decision; a newer pair cannot explain old input.
+inline GestureGuiDisposition gesture_gui_disposition(bool context_allowed,std::string_view reason,
+    std::uint64_t generation,const GestureCaptureLease& capture,bool generation_allowed)noexcept{
+    if(context_allowed)return GestureGuiDisposition::Allowed;
+    if(reason==capture_matching_up_retired_reason&&generation&&capture&&capture->generation==generation&&
+       !generation_allowed&&capture->matching_up_observed.load(std::memory_order_acquire))
+        return GestureGuiDisposition::MatchingUpRetired;
+    return GestureGuiDisposition::Rejected;
+}
 enum class GeometryContextPhase { BeforeNativeCall,IssuedCompletion };
 // Without a lease this retains the existing idle-only policy. With a lease,
 // every new call needs ACTUAL own capture; idle is not a fallback. A target on
