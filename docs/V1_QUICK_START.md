@@ -12,7 +12,7 @@
 
 cea／fe0继续保留原driver／打包身份`f9fc72b1692250531525103a4b5d5aa352116aa0`：cea `GroupBoundsOnly`已通过限定范围；fe0 `NativeClientsOnly`也已运行，不再待跑。fe0未启动PaneBind产品，核对了实际产品名进程／根窗口／日志不存在：Terminal真实命中HTCAPTION且本批截图显示cmd启动错误；Notepad无可运行的指定官方EXE，Code无合格新root；Edge真实HTCLIENT、一次点击与焦点检查通过，但DOM效果未观察、正常关闭未确认。四类原生客户前置均未完整通过，产品功能均`NOT_RUN`、产品cleanup为`NOT_APPLICABLE_NOT_STARTED`。该结果不证明严格单变量或唯一系统根因，也不声称没有fixture Raw等其他输入观察。
 
-现阶段具体缺项是：官方五类应用的完整客户交互、真实托盘可达的普通Medium完整隔离桌面；完整Release链中的未知前台中断；真实双屏／混合DPI等条件。继续只读评估现有guest中native标准用户首入口及应用条件；既有Medium凭据／子进程不等于普通完整桌面，也不说明Sandbox只能High。现有资源内存不足，不要求用户新建VM、购买设备或放宽宿主安全设置。无需用户搬包、再次恢复SSH、重跑900秒或已过组件；忽略邻窗等本次分支已实测，不再记NOT_RUN。其余工程合同按具体缺项继续，不全部归为环境阻断。生产接线60/60、历史完整功能7/60与对标2/40保持原身份；**整版PARTIAL，不可宿主试用，真人UAT PENDING，暂不进入REA分析**。
+现阶段具体缺项是：官方五类应用的完整客户交互、真实托盘可达的普通Medium完整隔离桌面；完整Release链中的未知前台中断；真实双屏／混合DPI等条件。5b0原生入口对照已运行：WDAG基线的进程创建返回error5、没有子进程，因此没有创建标准账号或执行其GUI／应用步骤；原因仍UNKNOWN，不能反推Sandbox只能High。现有资源内存不足，不要求用户新建VM、购买设备或放宽宿主安全设置。无需用户搬包、再次恢复SSH、重跑900秒或已过组件；忽略邻窗等本次分支已实测，不再记NOT_RUN。继续补可运行的活动Ctrl暂停／恢复及Ctrl+Shift绕过子合同，不全部归为环境阻断。生产接线60/60、历史完整功能7/60与对标2/40保持原身份；**整版PARTIAL，不可宿主试用，真人UAT PENDING，暂不进入REA分析**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 

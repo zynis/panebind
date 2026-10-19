@@ -4461,7 +4461,7 @@
         "鼠标/四方向完整功能范围尚缺；本次只有StretchLeft命令及一次严格HTLEFT双击映射，不能授完整M08-F05/B19/I05 PASS。",
         "真实应用矩阵、普通Medium完整隔离桌面与整版显示/连续操作硬门仍未齐；保留原始失败身份。"
       ],
-      "next_action": "保留6dba当前候选真实子项，不重复已通过的智能拉伸分支；补应用规则排除和四向鼠标合同，并在可正常启动/交互官方应用的普通Medium完整隔离桌面完成相应应用与最终操作链。标准账号原生probe仍仅计划/未运行，不预授环境PASS。",
+      "next_action": "保留6dba当前候选真实子项，不重复已通过的智能拉伸分支；补应用规则排除和四向鼠标合同。5b0已实际尝试WDAG baseline CPWT并返回error5/未创建child，标准账号与标准child均未运行，不授普通完整Medium桌面或应用PASS；停止无新依据的同路重试，其他不受阻子合同继续。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -9211,14 +9211,16 @@
         "docs/reports/v1-evidence/9e5-fixture-selected.jsonl",
         "docs/reports/v1-evidence/7cd-medium-desktop-probe-selected.json",
         "docs/reports/v1-evidence/30bf-medium-desktop-probe-selected.json",
-        "docs/reports/v1-evidence/9d74-medium-desktop-probe-selected.json"
+        "docs/reports/v1-evidence/9d74-medium-desktop-probe-selected.json",
+        "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json"
       ],
-      "note": "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。",
+      "note": "已有历史真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。5b0独立native identity probe的WDAG bootstrap实际High12288/elevated；本次CPWT baseline未创建child，不能覆盖历史Medium事实，也不能推定Sandbox仅有High。",
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。"
+        "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。",
+        "5b0实际WDAG native baseline的CreateProcessWithTokenW返回false/Win32 error5，child_created=false；未进入标准账号创建或标准child，普通完整Medium桌面/原生应用GUI能力仍未获得本轮证据，确切原因UNKNOWN。"
       ],
-      "next_action": "当前R2 Medium/150%可运行项继续；guest本地副本对照仍20秒无child phase/receipt，普通Shell GUI UNKNOWN；停止同路API/timeout追加，等待具体可用隔离桌面/显示资源。",
+      "next_action": "5b0已实际运行有限native identity precheck但WDAG baseline CPWT/error5、Native入口UNKNOWN，未创建标准账号；停止无新依据的同路API重试。复用6dba等当前候选已测子项，继续不依赖普通完整桌面的产品合同；缺项集中为可正常运行官方应用的普通Medium完整隔离桌面及显示资源。现有RAM不足不要求新建VM或购买，不改宿主/其他项目。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -9228,18 +9230,34 @@
         "PO-7CD-MEDIUM-DESKTOP-TOOL-EXCEPTION",
         "PO-30BF-MEDIUM-DESKTOP-CHILD-BOUND",
         "PO-30BF-CORE-UP-AND-POSTRESIZE",
-        "PO-9D74-MEDIUM-DESKTOP-LOCAL-COPY-CONTRAST"
+        "PO-9D74-MEDIUM-DESKTOP-LOCAL-COPY-CONTRAST",
+        "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT"
       ],
       "actual_observed_environment_ref": "evidence_mapping.actual_observed_environment",
       "required_environment_met": "PARTIAL_150percent_NOT_200percent_OR_FULL_CHAINS",
       "ordinary_desktop_latest_probe": {
         "status": "UNKNOWN",
-        "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
-        "observation_id": "PO-9D74-MEDIUM-DESKTOP-LOCAL-COPY-CONTRAST",
-        "guest_local_hash_copy_verified": true,
-        "actual_Medium_nonElev_nonAdmin_session1": true,
-        "child_phase_or_receipt_observed": false,
-        "same_route_further_attempts": "STOPPED_FINITE_INVESTIGATION_BUDGET"
+        "run_id": "5b0b482b4f7544f5bdf2463963242f87",
+        "observation_id": "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT",
+        "actual_probe_mode": "MediumNativeIdentityOnly",
+        "bootstrap_actual_integrity_rid": 12288,
+        "bootstrap_actual_elevated": true,
+        "CreateProcessWithTokenW_attempted": true,
+        "CreateProcessWithTokenW_succeeded": false,
+        "CreateProcessWithTokenW_error": 5,
+        "child_created": false,
+        "identity_observed": false,
+        "standard_account_result": "NOT_CREATED",
+        "standard_child_result": "NOT_RUN",
+        "product_GUI": "NOT_RUN",
+        "explorer": "NOT_RUN",
+        "synthetic_input_sent": false,
+        "DACL_before_after_hashes_equal": true,
+        "account_cleanup_confirmed": true,
+        "all_probe_children_stopped": true,
+        "same_route_further_attempts": "STOPPED_NO_EVIDENCE_FOR_UNBOUNDED_RETRY",
+        "cause": "UNKNOWN_NOT_PROOF_SANDBOX_ONLY_HIGH_OR_UNIQUE_SYSTEM_ROOT_CAUSE",
+        "previous_observation_id": "PO-9D74-MEDIUM-DESKTOP-LOCAL-COPY-CONTRAST"
       }
     },
     {
@@ -11354,6 +11372,34 @@
   },
   "evidence": [
     {
+      "id": "EV-5B0-R11-WDAG-NATIVE-BASELINE-FIELD-PROJECTION",
+      "kind": "metadata_and_literal_selected_actual_native_identity_probe_JSON_fields_not_complete_original",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_started": false,
+      "product_GUI_started": false,
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "31f94b64f346de0c5542e5f378006702d6c1be7d",
+      "driver_binary_sha256": "096DCCA22672343C24BCB914863F11E94778CCCA3CD73BF888D81F721446F699",
+      "probe_source_sha": "70eacb313fce55ff7b1e48ca6d832e4bba78b11b",
+      "probe_sha256": "A4277F9129D23441449FFEEA5D1818E7C512A2CA1073FC585B6B83F29B4B013A",
+      "run_id": "5b0b482b4f7544f5bdf2463963242f87",
+      "configuration": "Release",
+      "packaging_head": "70eacb313fce55ff7b1e48ca6d832e4bba78b11b",
+      "package_zip_sha256": "698CA62A8B787B460DEEEB81294D76F61A169CE74D4D7559D4162FDB7DD47ACD",
+      "package_manifest_sha256": "82D8FC8368F280123FD1EEF9544729F5958F8163486B10382485D9BB65B23FD6",
+      "wsb_sha256": "06BF0374DB8A13656BFC16666277B477A03334CCE422F567D8F491915F65F1C7",
+      "observation_id": "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT",
+      "scope": "ACTUAL_WDAG_NATIVE_IDENTITY_BASELINE_CPWT_ERROR5_NO_CHILD_NO_STANDARD_ACCOUNT_NO_PRODUCT_GUI_OR_INPUT_NOT_UNIQUE_CAUSE",
+      "path": "uat/v1-control/5b0b482b4f7544f5bdf2463963242f87/collection-20261019T120544161Z-9d0447617e0e48f0a7f98df29ea324ee/5b0b482b4f7544f5bdf2463963242f87-medium-desktop-probe.json",
+      "sha256": "3C9BC3F123F0D4B09502A235BBFED693FBA8E8ED0880A43ED2884C8AE644ACBE",
+      "repository_excerpt_path": "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json",
+      "repository_excerpt_sha256": "185A58E528151C542DE7179810AD18E7744340C6F170BDAACEA97C7457C51C39"
+    },
+    {
       "id": "EV-6DBA-R11-STRETCH-MODES-FIXTURE",
       "kind": "literal_selected_actual_guest_stretch_modes_JSONL",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -12919,6 +12965,78 @@
   ],
   "partial_observations": [
     {
+      "id": "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "source_identity_scope": "PACKAGED_PRODUCT_ARTIFACT_NOT_EXECUTED",
+      "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_started": false,
+      "product_GUI_started": false,
+      "product_function_result": "NOT_RUN",
+      "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+      "driver_source_sha": "31f94b64f346de0c5542e5f378006702d6c1be7d",
+      "driver_binary_sha256": "096DCCA22672343C24BCB914863F11E94778CCCA3CD73BF888D81F721446F699",
+      "probe_source_sha": "70eacb313fce55ff7b1e48ca6d832e4bba78b11b",
+      "probe_sha256": "A4277F9129D23441449FFEEA5D1818E7C512A2CA1073FC585B6B83F29B4B013A",
+      "run_id": "5b0b482b4f7544f5bdf2463963242f87",
+      "configuration": "Release",
+      "packaging_head": "70eacb313fce55ff7b1e48ca6d832e4bba78b11b",
+      "package_zip_sha256": "698CA62A8B787B460DEEEB81294D76F61A169CE74D4D7559D4162FDB7DD47ACD",
+      "package_manifest_sha256": "82D8FC8368F280123FD1EEF9544729F5958F8163486B10382485D9BB65B23FD6",
+      "wsb_sha256": "06BF0374DB8A13656BFC16666277B477A03334CCE422F567D8F491915F65F1C7",
+      "observation_id": "PO-5B0-R11-WDAG-NATIVE-BASELINE-UNKNOWN-NO-STANDARD-ACCOUNT",
+      "scope": "ACTUAL_WDAG_NATIVE_IDENTITY_BASELINE_CPWT_ERROR5_NO_CHILD_NO_STANDARD_ACCOUNT_NO_PRODUCT_GUI_OR_INPUT_NOT_UNIQUE_CAUSE",
+      "result": "UNKNOWN_WDAG_BASELINE_LAUNCH_ERROR5_STANDARD_ACCOUNT_NOT_CREATED",
+      "record_kind": "ACTUAL_GUEST_NATIVE_IDENTITY_PROBE_NOT_PRODUCT_RUNTIME_OR_GUI_TEST",
+      "observed": "5b0原件bootstrap桌面为WinSta0/Default、session1，WDAG当前token实际High RID12288/elevated=true。已用原冻结31f Release driver/hash096D...请求CreateProcessWithTokenW --build-identity，实际返回false/Win32 error5、child_created=false、identity_observed=false，Native入口UNKNOWN。因此标准账号严格NOT_CREATED，标准child严格NOT_RUN，产品/GUI/Explorer/合成输入均未运行；不能称标准Medium应用对照失败或产品失败。station/desktop DACL前后sha分别1BDD71.../897B23...一致，account_cleanup_confirmed和all_probe_children_stopped为true。exact guest23440/task已清理且证据不变；没有以guest销毁代替产品cleanup。API5本次原因UNKNOWN，不证明Sandbox只有High或某唯一系统根因。",
+      "actual_probe_facts": {
+        "requested_suite": "NativeClientsOnly",
+        "actual_suite": "MediumNativeIdentityOnly",
+        "bootstrap_integrity_rid": 12288,
+        "bootstrap_elevated": true,
+        "bootstrap_session_id": 1,
+        "CreateProcessWithTokenW_attempted": true,
+        "CreateProcessWithTokenW_succeeded": false,
+        "CreateProcessWithTokenW_error": 5,
+        "child_created": false,
+        "identity_observed": false,
+        "standard_account": "NOT_CREATED",
+        "standard_child": "NOT_RUN",
+        "GUI_or_Shell_result": "NOT_RUN",
+        "explorer_started": false,
+        "synthetic_input_sent": false,
+        "baseline_dacls_unchanged": true,
+        "account_cleanup_confirmed": true,
+        "all_probe_children_stopped": true
+      },
+      "evidence_ids": [
+        "EV-5B0-R11-WDAG-NATIVE-BASELINE-FIELD-PROJECTION"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json"
+      ],
+      "affected_environments": [
+        "E02"
+      ],
+      "product_runtime_pointer_unchanged": "6dbae80a02b74cd882df53293a439a02",
+      "cleanup": {
+        "guest_pid": 23440,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T12:06:48.0854185Z",
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "original_path": "uat/v1-control/5b0b482b4f7544f5bdf2463963242f87/cleanup-receipt.json",
+        "original_sha256": "7D66994FDBE8C3DCE0D22E1D0784E7830B2F0218B82CEF138CC51238D6088029"
+      },
+      "new_feature_or_B_PASS": false,
+      "whole_feature_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "停止无新事实的同baseline API重试，不把error5定根因。保留6dba产品实测、CEA/FE0/BE94等原身份，继续可用隔离条件下不受阻产品子合同；普通完整Medium桌面/可运行官方应用与多屏混合DPI的具体外部条件仍待满足，不要求因当前RAM不足新建VM或购买设备。"
+    },
+    {
       "id": "PO-6DBA-R11-SMART-STRETCH-NEIGHBOUR-MODES-SCOPED-PASS",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -13075,7 +13193,7 @@
       "whole_feature_PASS": false,
       "whole_version_PASS": false,
       "human_uat": "NOT_RUN",
-      "next_action": "复用本次明确智能拉伸子项；仍补应用规则排除与四方向鼠标完整范围、真实应用矩阵、普通Medium完整隔离桌面与最终整版操作链。不重复本专项或旧Fix H/900；标准账号原生probe仅计划/未运行，不预授环境。"
+      "next_action": "复用本次明确智能拉伸子项；仍补应用规则排除与四方向鼠标完整范围、真实应用矩阵、普通Medium完整隔离桌面与最终整版操作链。不重复本专项或旧Fix H/900；5b0已实测WDAG baseline CPWT/error5且child未创建，标准账号/标准child未试，不授环境PASS或唯一根因，停止无新依据的同路重试。"
     },
     {
       "id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
