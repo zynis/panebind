@@ -10,6 +10,7 @@ param(
     [string]$PortablePackageDirectory,
     [switch]$MediumEnvironmentProbe,
     [switch]$MediumDesktopProbe,
+    [switch]$MediumNativeIdentityOnly,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
@@ -19,6 +20,13 @@ param(
     [switch]$FixtureBuildIdentity
 )
 $ErrorActionPreference = 'Stop'
+if($MediumNativeIdentityOnly){
+    if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or $MediumEnvironmentProbe -or
+       $VSCodeAssetDirectory -or $TerminalAssetDirectory -or $OfficialAppAssetDirectory -or $PortablePackageDirectory){
+        throw 'Native identity contrast requires Release/NativeClientsOnly without application assets or other probes.'
+    }
+    $MediumDesktopProbe=$true
+}
 . (Join-Path $PSScriptRoot 'v1-package-identity.ps1')
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $BuildDirectory) { $BuildDirectory = Join-Path $repo 'out\v1-dev' }
@@ -417,7 +425,11 @@ $manifest = [ordered]@{
     terminal_test_asset=$terminalAsset;
     official_app_assets=$officialApps;
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
-    medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck'};
+    # The legacy kind is the existing controller envelope, not a GUI result.
+    medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck';
+        native_identity_only=[bool]$MediumNativeIdentityOnly;stop_after_probe=[bool]$MediumNativeIdentityOnly;
+        actual_suite=$(if($MediumNativeIdentityOnly){'MediumNativeIdentityOnly'}else{$null});
+        native_identity_image=$(if($MediumNativeIdentityOnly){'panebind-v1-guest-fixture.exe'}else{$null})};
     portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
     guest_suite=$Suite;

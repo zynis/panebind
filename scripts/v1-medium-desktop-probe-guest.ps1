@@ -2,7 +2,8 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
     [ValidateSet('Parent','Child')][string]$Mode='Parent',
     [ValidatePattern('^[0-9a-f]{32}$')][string]$ChildNonce,
-    [ValidatePattern('^[A-F0-9]{64}$')][string]$BindingSha256)
+    [ValidatePattern('^[A-F0-9]{64}$')][string]$BindingSha256,
+    [switch]$NativeIdentityOnly)
 $ErrorActionPreference='Stop'
 $mappedInputDir='C:\PaneBindV1\Input'
 $mappedOutputDir='C:\PaneBindV1\Output'
@@ -58,6 +59,7 @@ try {
     }finally{$identity.Dispose()}
     if($Mode -ceq 'Parent' -and ($ChildNonce -or $BindingSha256)){throw 'Parent mode does not accept child binding arguments.'}
     if($Mode -ceq 'Child' -and (-not $ChildNonce -or -not $BindingSha256)){throw 'Child requires its exact one-time binding.'}
+    if($Mode -ceq 'Child' -and $NativeIdentityOnly){throw 'Native identity mode has no PowerShell child entry.'}
     if((Read-ExactMarker (Join-Path $inputDir 'panebind-v1-input.marker')) -cne $RunId -or
        (Read-ExactMarker (Join-Path $outputDir 'panebind-v1-output.marker')) -cne $RunId){throw 'Input/output run markers disagree.'}
     $manifestFile=Get-Item -LiteralPath (Join-Path $inputDir 'manifest.json') -ErrorAction Stop
@@ -77,6 +79,24 @@ try {
        $scriptEntry[0].sha256 -cnotmatch '^[A-F0-9]{64}$' -or
        (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash -cne $scriptEntry[0].sha256){
         throw 'Probe itself is not bound to the immutable input manifest.'}
+    $nativeRequested=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.native_identity_only -eq $true
+    if([bool]$NativeIdentityOnly -ne $nativeRequested){throw 'Native-only mode must match the immutable package selection.'}
+    $nativeImage=$null
+    if($NativeIdentityOnly){
+        if($manifest.medium_desktop_probe.enabled -ne $true -or $manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck' -or
+           $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'MediumNativeIdentityOnly' -or
+           $manifest.medium_desktop_probe.native_identity_image -cne 'panebind-v1-guest-fixture.exe' -or
+           $manifest.guest_suite -cne 'NativeClientsOnly' -or $manifest.guest_configurations -cne 'Release'){
+            throw 'Native identity entry requires its exact probe-only contract.'}
+        $nativeEntry=@($manifest.files|Where-Object relative_path -ceq 'panebind-v1-guest-fixture.exe')
+        $nativeImage=Get-Item -LiteralPath (Join-Path $inputDir 'panebind-v1-guest-fixture.exe')
+        if($nativeEntry.Count -ne 1 -or $nativeImage.PSIsContainer -or ($nativeImage.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+           $nativeImage.Length -le 0 -or $nativeImage.Length -gt 16MB -or $nativeImage.Length -ne [long]$nativeEntry[0].size -or
+           $nativeEntry[0].sha256 -cnotmatch '^[A-F0-9]{64}$' -or
+           $nativeEntry[0].sha256 -cne $manifest.driver_release_sha256 -or
+           (Get-FileHash -LiteralPath $nativeImage.FullName -Algorithm SHA256).Hash -cne $nativeEntry[0].sha256){
+            throw 'Native identity image is not the exact frozen Release fixture.'}
+    }
     $evidence=Join-Path $outputDir ($RunId+$(if($Mode -ceq 'Parent'){'-medium-desktop-probe.json'}else{'-medium-desktop-child.json'}))
     if(Test-Path -LiteralPath $evidence){throw 'Probe evidence already exists; use a fresh RunId.'}
     if($Mode -ceq 'Child'){
@@ -435,6 +455,218 @@ public static class PaneBindV1MediumDesktopProbe {
             result["child_receipt_mapped_output_copy_confirmed"]=true;result["child_receipt_collection"]="COLLECTED_AFTER_EXACT_CHILD_EXIT";
         }catch(Exception e){result["child_receipt_collection"]="UNKNOWN";result["child_receipt_collection_error_type"]=e.GetType().Name;}
     }
+    static Dictionary<string,object> ReadNativeOutput(string path) {
+        // The frozen identity entry emits one small JSON line. Only read after
+        // exact process exit; an empty file is not evidence that entry failed.
+        var report=new Dictionary<string,object>{{"status","UNKNOWN"},{"maximum_bytes",4096}};
+        var file=new FileInfo(path);
+        if(!file.Exists||(file.Attributes&FileAttributes.ReparsePoint)!=0||file.Length>4096){report["reason"]="missing_nonplain_or_over_bound";return report;}
+        var bytes=File.ReadAllBytes(path);if(bytes.Length>4096)throw new InvalidOperationException("Native output bound changed");
+        report["size"]=bytes.Length;report["sha256"]=ByteHash(bytes);report["text"]=new UTF8Encoding(false,true).GetString(bytes);
+        report["status"]=bytes.Length==0?"EMPTY_ENTRY_UNKNOWN":"CAPTURED_NOT_YET_VALIDATED";return report;
+    }
+    static Dictionary<string,object> RunNativeIdentity(IntPtr token,string expectedSid,string expectedLogon,int session,bool standard,
+        string runId,string driverSource,string imageHash,long imageSize,string phase,IntPtr station,IntPtr desktop,
+        AclState beforeStation,AclState beforeDesktop,out List<AddedAce> recordedStation,out List<AddedAce> recordedDesktop) {
+        // Exactly two callers: current WDAG token baseline, then the freshly
+        // credentialed standard account. Both use the same image/API/stdio.
+        recordedStation=null;recordedDesktop=null;
+        var result=new Dictionary<string,object>{{"phase",phase},{"identity_observed",false},{"status","UNKNOWN"},
+            {"child_created",false},{"child_process_exited",false},{"child_cleanup_confirmed",true},
+            {"test_child_force_termination_attempted",false},{"CreateProcessWithTokenW_attempted",false},
+            {"lpDesktop","NULL"},{"LOGON_WITH_PROFILE",true},{"requested_command","--build-identity"},
+            {"stdout_empty_means_native_entry_not_reached",false},{"GUI_or_Shell_tested",false}};
+        var child=new ProcessInfo();IntPtr childToken=IntPtr.Zero;
+        FileStream input=null,output=null,error=null;bool resumed=false;string stage="exact_image_recheck";
+        string executable=ChildInput(runId)+"\\panebind-v1-guest-fixture.exe";
+        string prefix=ChildOutput(runId)+"\\"+phase;
+        try {
+            var file=new FileInfo(executable);
+            if(!file.Exists||file.Length!=imageSize||file.Length>16777216||(file.Attributes&FileAttributes.ReparsePoint)!=0||
+                ByteHash(File.ReadAllBytes(executable))!=imageHash)throw new InvalidOperationException("Exact native image changed");
+            result["image_sha256"]=imageHash;result["image_size"]=imageSize;
+            input=new FileStream(prefix+"-stdin.bin",FileMode.CreateNew,FileAccess.ReadWrite,FileShare.Read|FileShare.Inheritable);
+            output=new FileStream(prefix+"-stdout.txt",FileMode.CreateNew,FileAccess.ReadWrite,FileShare.Read|FileShare.Inheritable);
+            error=new FileStream(prefix+"-stderr.txt",FileMode.CreateNew,FileAccess.ReadWrite,FileShare.Read|FileShare.Inheritable);
+            var startup=new Startup{size=(uint)Marshal.SizeOf(typeof(Startup)),desktop=null,flags=0x100,
+                input=input.SafeFileHandle.DangerousGetHandle(),output=output.SafeFileHandle.DangerousGetHandle(),error=error.SafeFileHandle.DangerousGetHandle()};
+            result["STARTF_USESTDHANDLES"]=true;result["stdio_kind"]="fresh_local_CreateNew_inheritable_FileStream";
+            result["stdio_handle_validity_in_child"]="UNKNOWN_UNTIL_ACTUAL_IDENTITY_OUTPUT";
+            stage="CreateProcessWithTokenW";result["CreateProcessWithTokenW_attempted"]=true;
+            bool launched=CreateProcessWithTokenW(token,1,executable,new StringBuilder("\""+executable+"\" --build-identity"),
+                0x08000004,IntPtr.Zero,ChildInput(runId),ref startup,out child);
+            result["CreateProcessWithTokenW_succeeded"]=launched;result["CreateProcessWithTokenW_error"]=launched?0:Marshal.GetLastWin32Error();
+            result["child_created"]=launched;result["child_cleanup_confirmed"]=!launched;
+            stage="post_launch_dacl_inventory";
+            var afterStation=ReadDacl(station);var afterDesktop=ReadDacl(desktop);
+            result["station_dacl_after_sha256"]=afterStation.hash;result["desktop_dacl_after_sha256"]=afterDesktop.hash;
+            bool explained;
+            if(standard){
+                bool stationExplained,desktopExplained;List<object> stationDelta,desktopDelta;
+                recordedStation=Delta(beforeStation,afterStation,expectedSid,expectedLogon,out stationExplained,out stationDelta);
+                recordedDesktop=Delta(beforeDesktop,afterDesktop,expectedSid,expectedLogon,out desktopExplained,out desktopDelta);
+                result["station_added_aces"]=stationDelta;result["desktop_added_aces"]=desktopDelta;explained=stationExplained&&desktopExplained;
+            }else{
+                // A baseline uses an existing account: never guess ownership
+                // of same-SID ACL changes or remove somebody else's ACE.
+                explained=SameBytes(beforeStation.bytes,afterStation.bytes)&&SameBytes(beforeDesktop.bytes,afterDesktop.bytes);
+                result["baseline_dacls_unchanged"]=explained;
+            }
+            result["dacl_delta_explained"]=explained;
+            if(!launched||!explained){result["reason"]=!launched?"native_launch_failed":"unexplained_dacl_change_not_resumed";return result;}
+            result["child_pid"]=child.pid;result["child_tid"]=child.tid;
+            stage="actual_child_birth";FileTime birth,exit,kernel,user;
+            bool birthRead=GetProcessTimes(child.process,out birth,out exit,out kernel,out user);
+            result["GetProcessTimes_succeeded"]=birthRead;result["GetProcessTimes_error"]=birthRead?0:Marshal.GetLastWin32Error();
+            if(!birthRead)throw new InvalidOperationException("Actual native child birth unavailable");
+            result["child_birth_filetime"]=((ulong)birth.high<<32)|birth.low;
+            stage="actual_child_token";
+            bool opened=OpenProcessToken(child.process,8,out childToken);result["OpenProcessToken_succeeded"]=opened;
+            result["OpenProcessToken_requested_access"]=8;result["OpenProcessToken_error"]=opened?0:Marshal.GetLastWin32Error();
+            if(!opened)throw new InvalidOperationException("Actual native child token unavailable");
+            bool ordinary;var actualFacts=TokenFacts(childToken,expectedSid,session,out ordinary);result["actual_child_token"]=actualFacts;
+            bool match=TokenSid(childToken)==expectedSid&&TokenNumber(childToken,12)==session&&LogonSid(childToken)==expectedLogon;
+            if(standard)match&=ordinary;
+            else {
+                bool ignored;var requestedFacts=TokenFacts(token,expectedSid,session,out ignored);
+                match&=(int)actualFacts["integrity_rid"]==(int)requestedFacts["integrity_rid"]&&
+                    (bool)actualFacts["elevated"]==(bool)requestedFacts["elevated"]&&
+                    (bool)actualFacts["admin_enabled"]==(bool)requestedFacts["admin_enabled"]&&
+                    (bool)actualFacts["ui_access"]==(bool)requestedFacts["ui_access"]&&
+                    (bool)actualFacts["app_container"]==(bool)requestedFacts["app_container"];
+            }
+            result["actual_child_identity_matches_requested_token"]=match;
+            if(!match)throw new InvalidOperationException("Actual native child identity rejected");
+            stage="child_desktop_before_resume";
+            try{result["actual_child_thread_desktop_before_resume"]=ObjectName(GetThreadDesktop(child.tid));}
+            catch(Exception e){result["actual_child_thread_desktop_before_resume"]="UNKNOWN";result["child_desktop_query_error_type"]=e.GetType().Name;}
+            stage="ResumeThread";uint resume=ResumeThread(child.thread);result["ResumeThread_return"]=resume;
+            if(resume!=1)throw new InvalidOperationException("Exact suspended native child resume not confirmed");resumed=true;
+            stage="bounded_native_child_exit";uint waited=WaitForSingleObject(child.process,20000);result["child_wait_return"]=waited;
+            if(waited!=0){result["reason"]="bounded_native_exit_not_observed_entry_UNKNOWN";return result;}
+            uint code;bool codeRead=GetExitCodeProcess(child.process,out code);result["GetExitCodeProcess_succeeded"]=codeRead;
+            if(!codeRead)throw new InvalidOperationException("Actual native exit code unavailable");
+            result["child_exit_code"]=code;result["child_process_exited"]=true;
+            result["reason"]="native_stdout_identity_requires_validation";return result;
+        }catch(Exception e){result["reason"]="native_identity_stage_UNKNOWN";result["exception_stage"]=stage;result["error_type"]=e.GetType().Name;
+            result["exception_hresult"]=e.HResult;return result;}
+        finally {
+            if(child.process!=IntPtr.Zero){
+                uint waited=WaitForSingleObject(child.process,0);result["test_child_force_termination_attempted"]=waited==258;
+                if(waited==258){bool killed=TerminateProcess(child.process,78);result["test_child_force_termination_returned"]=killed;
+                    result["test_child_force_termination_error"]=killed?0:Marshal.GetLastWin32Error();waited=WaitForSingleObject(child.process,5000);}
+                result["child_process_exited"]=waited==0;result["child_cleanup_confirmed"]=waited==0;result["child_ever_resumed"]=resumed;
+                if(waited==0&&!result.ContainsKey("child_exit_code")){uint code;if(GetExitCodeProcess(child.process,out code))result["child_exit_code"]=code;}
+                CloseHandle(child.process);
+            }
+            if(child.thread!=IntPtr.Zero)CloseHandle(child.thread);if(childToken!=IntPtr.Zero)CloseHandle(childToken);
+            if(input!=null)input.Dispose();if(output!=null)output.Dispose();if(error!=null)error.Dispose();
+            if((bool)result["child_process_exited"]){
+                try {
+                    var stdout=ReadNativeOutput(prefix+"-stdout.txt");var stderr=ReadNativeOutput(prefix+"-stderr.txt");
+                    result["stdout"]=stdout;result["stderr"]=stderr;
+                    string expected="{\"product\":\"PaneBind V1 guest fixture\",\"source_commit\":\""+driverSource+
+                        "\",\"host_synthetic_input\":\"forbidden\",\"requires_medium_guest\":true,\"guest_contract\":\"panebind-v1-guest-contract/2\",\"product_interface\":\"panebind-v1-product-guest-interface/1\"}\n";
+                    bool observed=resumed&&result.ContainsKey("child_exit_code")&&(uint)result["child_exit_code"]==0&&
+                        !(bool)result["test_child_force_termination_attempted"]&&result.ContainsKey("actual_child_identity_matches_requested_token")&&
+                        (bool)result["actual_child_identity_matches_requested_token"]&&stdout.ContainsKey("text")&&(string)stdout["text"]==expected;
+                    result["identity_observed"]=observed;result["status"]=observed?"NATIVE_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL":"UNKNOWN";
+                    if(observed)result["reason"]="exact_native_identity_stdout_and_actual_token_exit_observed";
+                    else if(!result.ContainsKey("reason")||(string)result["reason"]=="native_stdout_identity_requires_validation")
+                        result["reason"]="native_identity_output_or_exit_UNKNOWN";
+                }catch(Exception e){result["output_collection_error_type"]=e.GetType().Name;}
+            }
+        }
+    }
+    public static Dictionary<string,object> RunNativeParent(string runId,string scriptHash,string driverSource,string imageHash,long imageSize) {
+        var desktop=Desktop(true);int session=(int)desktop["session_id"];string name="PBV1D_"+runId.Substring(0,12);
+        var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"probe_mode","MediumNativeIdentityOnly"},{"bootstrap_desktop",desktop},
+            {"account_created",false},{"account_cleanup_confirmed",false},{"dacl_cleanup_confirmed",false},{"all_probe_children_stopped",true},
+            {"product_started",false},{"product_GUI_started",false},{"explorer_started",false},{"synthetic_input_sent",false},
+            {"host_configuration_changed",false},{"GUI_or_Shell_result","NOT_RUN"},{"baseline_required_before_account",true}};
+        IntPtr station=IntPtr.Zero,defaultDesktop=IntPtr.Zero,bootstrapToken=IntPtr.Zero,token=IntPtr.Zero;
+        IntPtr password=IntPtr.Zero,nameMemory=IntPtr.Zero,comment=IntPtr.Zero;
+        AclState beforeStation=null,beforeDesktop=null;List<AddedAce> recordedStation=null,recordedDesktop=null;
+        string account=null,logon=null;bool created=false,standardAttempted=false;const int passwordLength=48;
+        string stage="bootstrap_query_cleanup_rights";
+        try {
+            station=OpenWindowStationW("WinSta0",false,0x60000);defaultDesktop=OpenDesktopW("Default",0,false,0x60081);
+            result["station_open_for_query_cleanup"]=station!=IntPtr.Zero;result["desktop_open_for_query_cleanup"]=defaultDesktop!=IntPtr.Zero;
+            if(station==IntPtr.Zero||defaultDesktop==IntPtr.Zero){result["reason"]="query_cleanup_rights_unavailable_no_account_or_launch";return result;}
+            beforeStation=ReadDacl(station);beforeDesktop=ReadDacl(defaultDesktop);
+            result["station_dacl_before_sha256"]=beforeStation.hash;result["desktop_dacl_before_sha256"]=beforeDesktop.hash;
+            using(var current=Process.GetCurrentProcess()){
+                if(!OpenProcessToken(current.Handle,0xB,out bootstrapToken))throw new InvalidOperationException("Unmodified current primary token unavailable");
+            }
+            var bootstrapSid=TokenSid(bootstrapToken);var bootstrapLogon=LogonSid(bootstrapToken);
+            bool ignored;result["bootstrap_actual_token"]=TokenFacts(bootstrapToken,bootstrapSid,session,out ignored);
+            stage="fresh_guest_local_payload";var local=PrepareLocalIo(runId,bootstrapSid,scriptHash);
+            local["child_input_access"]="current_WDAG_only_before_native_baseline";local["child_output_access"]="current_WDAG_only_before_native_baseline";
+            result["guest_local_io"]=local;
+            var image=CopyPlain("C:\\PaneBindV1\\Input\\panebind-v1-guest-fixture.exe",ChildInput(runId)+"\\panebind-v1-guest-fixture.exe",16777216);
+            if((string)image["sha256"]!=imageHash||(int)image["size"]!=imageSize)throw new InvalidOperationException("Frozen native fixture copy differs");
+            ((List<object>)local["copied_files"]).Add(image);
+            stage="WDAG_same_API_stdio_native_baseline";List<AddedAce> unusedStation,unusedDesktop;
+            var baseline=RunNativeIdentity(bootstrapToken,bootstrapSid,bootstrapLogon,session,false,runId,driverSource,imageHash,imageSize,
+                "wdag-baseline",station,defaultDesktop,beforeStation,beforeDesktop,out unusedStation,out unusedDesktop);
+            result["wdag_baseline"]=baseline;result["all_probe_children_stopped"]=(bool)baseline["child_cleanup_confirmed"];
+            if(!(bool)baseline["identity_observed"]||!(bool)baseline["child_cleanup_confirmed"]){result["reason"]="WDAG_stdio_or_native_entry_UNKNOWN_no_account_created";return result;}
+            // Baseline success alone never authorizes GUI or ordinary apps.
+            // Only now create the one fresh credentialed standard account.
+            stage="create_unique_standard_guest_account";
+            var random=new byte[passwordLength];using(var rng=RandomNumberGenerator.Create())rng.GetBytes(random);
+            password=Marshal.AllocHGlobal((passwordLength+1)*2);const string alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+            for(int n=0;n<passwordLength;n++)Marshal.WriteInt16(password,n*2,(short)alphabet[random[n]&63]);Array.Clear(random,0,random.Length);
+            Marshal.WriteInt16(password,0,(short)'a');Marshal.WriteInt16(password,2,(short)'A');Marshal.WriteInt16(password,4,(short)'7');Marshal.WriteInt16(password,6,(short)'!');Marshal.WriteInt16(password,passwordLength*2,0);
+            nameMemory=Marshal.StringToHGlobalUni(name);comment=Marshal.StringToHGlobalUni("PaneBind disposable native identity probe "+runId);
+            var info=new UserInfo1{name=nameMemory,password=password,privilege=1,comment=comment,flags=0x201};uint parameter;
+            uint added=NetUserAdd(null,1,ref info,out parameter);result["NetUserAdd_status"]=added;result["NetUserAdd_parameter_error"]=parameter;
+            if(added!=0){result["reason"]="unique_standard_account_not_created_or_reused";return result;}
+            created=true;result["account_created"]=true;uint sidStatus;account=AccountSid(name,out sidStatus);result["created_sid_query_status"]=sidStatus;
+            if(account==null)throw new InvalidOperationException("Fresh standard account SID unknown");result["created_account_sid_sha256"]=Hash(account);
+            stage="credential_token";
+            bool loggedOn=LogonUserW(name,".",password,2,0,out token);result["LogonUser_succeeded"]=loggedOn;result["LogonUser_error"]=loggedOn?0:Marshal.GetLastWin32Error();
+            if(!loggedOn){result["reason"]="standard_credential_logon_failed";return result;}
+            bool ordinary;result["credential_token"]=TokenFacts(token,account,session,out ordinary);logon=LogonSid(token);
+            result["actual_logon_sid_sha256"]=Hash(logon);
+            if(!ordinary||TokenNumber(token,12)!=session){result["reason"]="actual_standard_token_or_session_rejected";return result;}
+            stage="exact_fresh_local_account_access";
+            NewDirectoryAccess(LocalRun(runId),account,false);NewDirectoryAccess(ChildInput(runId),account,false);NewDirectoryAccess(ChildOutput(runId),account,true);
+            local["child_input_access"]="exact_new_account_ReadAndExecute";local["child_output_access"]="exact_new_account_Modify";
+            stage="standard_same_API_stdio_native_identity";
+            var child=RunNativeIdentity(token,account,logon,session,true,runId,driverSource,imageHash,imageSize,
+                "standard-native",station,defaultDesktop,beforeStation,beforeDesktop,out recordedStation,out recordedDesktop);
+            standardAttempted=(bool)child["CreateProcessWithTokenW_attempted"];
+            result["standard_native_child"]=child;result["all_probe_children_stopped"]=(bool)baseline["child_cleanup_confirmed"]&&(bool)child["child_cleanup_confirmed"];
+            result["status"]=(bool)child["identity_observed"]?"NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL":"UNKNOWN";
+            result["reason"]=(bool)child["identity_observed"]?"actual_native_entry_only_GUI_and_Shell_NOT_RUN":"standard_native_entry_or_stdout_UNKNOWN";
+            return result;
+        }catch(Exception e){result["reason"]="native_parent_stage_UNKNOWN";result["exception_stage"]=stage;result["error_type"]=e.GetType().Name;
+            result["exception_hresult"]=e.HResult;return result;}
+        finally {
+            bool clean=beforeStation!=null&&beforeDesktop!=null;
+            if(standardAttempted&&account!=null&&logon!=null){
+                if(beforeStation!=null){var report=RestoreOwnAddedAces(station,beforeStation,recordedStation,account,logon);result["station_dacl_cleanup"]=report;clean&=(bool)report["confirmed"];}
+                if(beforeDesktop!=null){var report=RestoreOwnAddedAces(defaultDesktop,beforeDesktop,recordedDesktop,account,logon);result["desktop_dacl_cleanup"]=report;clean&=(bool)report["confirmed"];}
+            }else try{clean&=beforeStation!=null&&beforeDesktop!=null&&SameBytes(ReadDacl(station).bytes,beforeStation.bytes)&&SameBytes(ReadDacl(defaultDesktop).bytes,beforeDesktop.bytes);}catch{clean=false;}
+            result["dacl_cleanup_confirmed"]=clean;
+            if(defaultDesktop!=IntPtr.Zero)CloseDesktop(defaultDesktop);if(station!=IntPtr.Zero)CloseWindowStation(station);
+            if(bootstrapToken!=IntPtr.Zero)CloseHandle(bootstrapToken);if(token!=IntPtr.Zero)CloseHandle(token);
+            if(password!=IntPtr.Zero){for(int n=0;n<=passwordLength;n++)Marshal.WriteInt16(password,n*2,0);Marshal.FreeHGlobal(password);}
+            if(nameMemory!=IntPtr.Zero)Marshal.FreeHGlobal(nameMemory);if(comment!=IntPtr.Zero)Marshal.FreeHGlobal(comment);
+            var cleanup=new Dictionary<string,object>{{"delete_attempted",false},{"profile_deletion_attempted",false}};result["account_cleanup"]=cleanup;
+            if(!created){cleanup["result"]="NOT_CREATED";result["account_cleanup_confirmed"]=true;}
+            else try {
+                uint status;var actual=AccountSid(name,out status);cleanup["sid_query_status"]=status;
+                if(account!=null&&actual==account&&(bool)result["all_probe_children_stopped"]){
+                    cleanup["sid_matches_created_account"]=true;cleanup["delete_attempted"]=true;uint removed=NetUserDel(null,name);
+                    cleanup["NetUserDel_status"]=removed;uint after;AccountSid(name,out after);cleanup["after_query_status"]=after;
+                    result["account_cleanup_confirmed"]=removed==0&&after==2221;
+                }else cleanup["result"]="IDENTITY_OR_CHILD_CLEANUP_UNKNOWN_NOT_DELETED";
+            }catch(Exception e){cleanup["error_type"]=e.GetType().Name;}
+            if(!clean||!(bool)result["account_cleanup_confirmed"]||!(bool)result["all_probe_children_stopped"]){result["status"]="UNKNOWN";result["reason"]="cleanup_not_confirmed";}
+        }
+    }
     public static Dictionary<string,object> RunParent(string runId,string source,string scriptHash) {
         var desktop=Desktop(true);int session=(int)desktop["session_id"];var name="PBV1D_"+runId.Substring(0,12);
         var result=new Dictionary<string,object>{{"status","UNKNOWN"},{"bootstrap_desktop",desktop},{"created_account_name",name},
@@ -675,7 +907,12 @@ public static class PaneBindV1MediumDesktopProbe {
         foreach($suffix in @('-medium-desktop-binding.json','-medium-desktop-child.json','-medium-desktop-child-phase.jsonl')){
             if(Test-Path -LiteralPath (Join-Path $outputDir ($RunId+$suffix))){throw 'Child binding/evidence already exists; preserve the original RunId.'}
         }
-        $result=[PaneBindV1MediumDesktopProbe]::RunParent($RunId,$manifest.packaging_head,$scriptEntry[0].sha256)
+        if($NativeIdentityOnly){
+            $result=[PaneBindV1MediumDesktopProbe]::RunNativeParent($RunId,$scriptEntry[0].sha256,
+                $manifest.driver_source_commit,$nativeEntry[0].sha256,[long]$nativeEntry[0].size)
+        }else{
+            $result=[PaneBindV1MediumDesktopProbe]::RunParent($RunId,$manifest.packaging_head,$scriptEntry[0].sha256)
+        }
         if($result.ContainsKey('child_receipt_text')){
             try {
                 $child=$result.child_receipt_text|ConvertFrom-Json
@@ -701,12 +938,14 @@ public static class PaneBindV1MediumDesktopProbe {
         }
         $record=[ordered]@{schema='panebind-v1-medium-desktop-probe/1';utc=[DateTime]::UtcNow.ToString('o');run_id=$RunId;
             probe_source_commit=$manifest.packaging_head;driver_source_commit=$manifest.driver_source_commit;probe_sha256=$scriptEntry[0].sha256;
+            requested_suite=$manifest.guest_suite;actual_suite=$(if($NativeIdentityOnly){'MediumNativeIdentityOnly'}else{'MediumDesktopGuiPrecheck'});
+            compatibility_envelope_kind=$manifest.medium_desktop_probe.kind;compatibility_envelope_is_GUI_evidence=$false;
             automated_guest_probe=$true;human_uat='NOT_RUN';result=$result}
     }
     $text=$record|ConvertTo-Json -Depth 18
     $stream=[IO.File]::Open($evidence,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$bytes=(New-Object Text.UTF8Encoding($false)).GetBytes($text);$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
-    if($result.status -ceq 'GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL'){exit 0}
+    if($result.status -cin @('GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL','NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL')){exit 0}
     exit 3
 }catch{
     if($Mode -ceq 'Child' -and $childPhasePath){try{Write-ChildPhase ('PowerShell_exception_'+$_.Exception.GetType().Name)}catch{}}

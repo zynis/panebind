@@ -455,8 +455,17 @@ try {
         $allowed+='v1-medium-environment-probe-guest.ps1'
     }
     $probeDesktop=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.enabled -eq $true
+    $nativeIdentityOnly=$false
     if($probeDesktop){
         if($manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck'){throw 'Unknown guest desktop probe.'}
+        $nativeIdentityOnly=$manifest.medium_desktop_probe.native_identity_only -eq $true
+        if($nativeIdentityOnly -and ($manifest.medium_desktop_probe.native_identity_only -isnot [bool] -or
+           $manifest.medium_desktop_probe.stop_after_probe -ne $true -or
+           $manifest.medium_desktop_probe.actual_suite -cne 'MediumNativeIdentityOnly' -or
+           $manifest.medium_desktop_probe.native_identity_image -cne 'panebind-v1-guest-fixture.exe' -or
+           $Suite -cne 'NativeClientsOnly' -or $Configurations -cne 'Release' -or $probeMedium)){
+            throw 'Native identity probe selection must match the exact probe-only contract.'}
+        if($nativeIdentityOnly){$summary.actual_suite='MediumNativeIdentityOnly'}
         $allowed+='v1-medium-desktop-probe-guest.ps1'
     }
     $assets=@()
@@ -541,6 +550,7 @@ try {
         $probeInfo=New-Object Diagnostics.ProcessStartInfo
         $probeInfo.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
         $probeInfo.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-medium-desktop-probe-guest.ps1 -RunId '+$RunId
+        if($nativeIdentityOnly){$probeInfo.Arguments+=' -NativeIdentityOnly'}
         $probeInfo.UseShellExecute=$false;$probeInfo.CreateNoWindow=$true
         $probe=New-Object Diagnostics.Process;$probe.StartInfo=$probeInfo
         try{
@@ -557,11 +567,32 @@ try {
             if($probeRecord.schema -cne 'panebind-v1-medium-desktop-probe/1' -or $probeRecord.run_id -cne $RunId -or
                $probeRecord.probe_source_commit -cne $manifest.packaging_head -or $probeRecord.driver_source_commit -cne $manifest.driver_source_commit -or
                $probeRecord.probe_sha256 -cne $probeEntry[0].sha256 -or $probeRecord.result.account_cleanup_confirmed -ne $true -or
-               $probeRecord.result.dacl_cleanup_confirmed -ne $true -or $probeRecord.result.child_process_exited -ne $true -or
+               $probeRecord.result.dacl_cleanup_confirmed -ne $true){throw 'Guest desktop cleanup not confirmed; product/input not started.'}
+            if($nativeIdentityOnly){
+                if($probeRecord.actual_suite -cne 'MediumNativeIdentityOnly' -or $probeRecord.result.all_probe_children_stopped -ne $true -or
+                   $probeRecord.result.product_started -ne $false -or $probeRecord.result.synthetic_input_sent -ne $false -or
+                   -not (($probe.ExitCode -eq 0 -and $probeRecord.result.status -ceq 'NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL' -and
+                          $probeRecord.result.wdag_baseline.identity_observed -eq $true -and
+                          $probeRecord.result.standard_native_child.identity_observed -eq $true) -or
+                         ($probe.ExitCode -eq 3 -and $probeRecord.result.status -ceq 'UNKNOWN'))){
+                    throw 'Exact native identity observation or cleanup is UNKNOWN; no fixture suite is permitted.'}
+            }elseif($probeRecord.result.child_process_exited -ne $true -or
                -not (($probe.ExitCode -eq 0 -and $probeRecord.result.status -ceq 'GUI_PRECHECK_OBSERVED_NOT_FULL_SHELL') -or
                      ($probe.ExitCode -eq 3 -and $probeRecord.result.status -ceq 'UNKNOWN'))){throw 'Guest desktop cleanup not confirmed; product/input not started.'}
             $summary['medium_desktop_probe']=$probeRecord
         }finally{$probe.Dispose()}
+        if($nativeIdentityOnly){
+            # Deliberate probe-only terminal path: no app preparation, fixture
+            # suite, product GUI, synthetic input or fabricated driver log.
+            $summary.actual_suite='MediumNativeIdentityOnly'
+            $summary['compatibility_envelope_kind']=$manifest.medium_desktop_probe.kind
+            $summary['compatibility_envelope_is_GUI_evidence']=$false
+            $summary['product_GUI']='NOT_RUN';$summary['applications']='NOT_RUN'
+            $summary['fixture_suite']='NOT_RUN';$summary['finite_900_second_session']='NOT_RUN'
+            $summary.status=if($probeRecord.result.status -ceq 'NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL'){
+                'NATIVE_IDENTITY_ONLY_OBSERVED_NOT_GUI_OR_SHELL'}else{'NATIVE_IDENTITY_ONLY_UNKNOWN'}
+            if($probeRecord.result.status -ceq 'NATIVE_ENTRY_IDENTITY_OBSERVED_NOT_GUI_OR_SHELL'){exit 0}else{exit 3}
+        }
     }
     $summary['application_availability']=Read-TestApplicationAvailability
     $summary['test_assets']=@()
