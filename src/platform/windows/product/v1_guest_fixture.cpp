@@ -3076,6 +3076,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_stretch_cases.h"
 #include "platform/windows/product/v1_guest_interruptions.h"
 #include "platform/windows/product/v1_guest_exit_cases.h"
+#include "platform/windows/product/v1_guest_tray_cases.h"
 #include "platform/windows/product/v1_guest_constraint_cases.h"
 #include "platform/windows/product/v1_guest_batch_failure_case.h"
 #include "platform/windows/product/v1_guest_portable_cases.h"
@@ -3084,7 +3085,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -3447,6 +3448,18 @@ void drive(State& s){
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
         if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
+        }else if(s.suite=="TrayReadinessOnly"){
+            bool completed=false,blocked=false;
+            try{
+                independent_entry_ready(s,"tray_readiness_only.before",true);
+                completed=owned_tray_readiness_case(s);blocked=!completed;
+            }catch(const std::exception& error){s.log.failed=true;
+                s.log.emit("tray_readiness_only_failure","\"reason\":"+quote(error.what())+",\"original_failure_preserved\":true");}
+            if(s.process)cleanup(s);
+            const bool failed=s.log.failed;if(blocked)s.log.failed=true;s.result=s.log.failed?1:0;
+            s.log.emit("tray_readiness_only_summary","\"suite\":\"TrayReadinessOnly\",\"result\":"+quote(failed?"FAIL":completed?"PASS":"BLOCKED")+
+                ",\"probe_or_menu_blocked\":"+(blocked?"true":"false")+
+                ",\"scope\":\"same_Medium_owned_notification_probe_then_exact_product_menu_and_Exit\",\"Full_suite\":\"NOT_RUN\",\"actual_Shell_restart\":\"NOT_RUN\",\"whole_version_PASS\":false,\"human_uat\":\"NOT_RUN\"");
         }else if(s.suite=="InterruptionOnly"){
             bool completed=false;
             try{independent_entry_ready(s,"interruption_only.before",true);owned_interruption_cases(s);completed=true;}
@@ -3744,7 +3757,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3828,7 +3841,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;

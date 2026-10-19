@@ -1181,7 +1181,7 @@ void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu)
     if(!tray_guest_menu(s,owner,menu))throw std::runtime_error("tray_Escape_not_exact_product_menu");key(s,VK_ESCAPE,true);key(s,VK_ESCAPE,false);
     s.log.check("tray_actual_Escape_closes_menu",wait([&]{GUITHREADINFO g{sizeof(g)};return tray_guest_owner(s,owner)&&GetGUIThreadInfo(owner.tid,&g)&&!g.hwndMenuOwner;}));
 }
-[[maybe_unused]] void owned_tray_entry_cases(State& s){
+[[maybe_unused]] void owned_tray_entry_cases(State& s,bool simulate_taskbar_recreation=true){
     settings_guest_scope(s);const auto original=settings_guest_configuration(s);
     if(!original.enabled||s.left||s.control||s.explorer[0]||s.applications[0])throw std::runtime_error("tray_cases_require_enabled_exact_owned_baseline");
     const auto app=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};const auto tid=GetWindowThreadProcessId(app,&pid);
@@ -1228,10 +1228,12 @@ void tray_guest_dismiss(State& s,const TrayGuestOwner& owner,TrayGuestMenu menu)
         key(s,VK_RETURN,true);key(s,VK_RETURN,false);s.log.check("tray_actual_Enter_closes_help",wait([&]{return !IsWindow(help);}));
         const auto previous=settings_guest_diagnostic_inventory(s);
         tray_guest_choose(s,owner,open(),504,L"导出诊断");settings_guest_diagnostic_result(s,previous,"tray_menu");
-        const UINT taskbar=RegisterWindowMessageW(L"TaskbarCreated");DWORD_PTR response{};const bool delivered=taskbar&&tray_guest_owner(s,owner)&&
-            SendMessageTimeoutW(owner.app,taskbar,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,1000,&response)!=FALSE;
-        s.log.check("tray_own_TaskbarCreated_simulation_delivered",delivered,"\"only_exact_product_app_not_broadcast\":true,\"actual_Shell_restart\":false");
-        const auto recreated=open();tray_guest_items(s,owner,recreated);tray_guest_dismiss(s,owner,recreated);
+        if(simulate_taskbar_recreation){
+            const UINT taskbar=RegisterWindowMessageW(L"TaskbarCreated");DWORD_PTR response{};const bool delivered=taskbar&&tray_guest_owner(s,owner)&&
+                SendMessageTimeoutW(owner.app,taskbar,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,1000,&response)!=FALSE;
+            s.log.check("tray_own_TaskbarCreated_simulation_delivered",delivered,"\"only_exact_product_app_not_broadcast\":true,\"actual_Shell_restart\":false");
+            const auto recreated=open();tray_guest_items(s,owner,recreated);tray_guest_dismiss(s,owner,recreated);
+        }
         const auto final=settings_guest_configuration(s);auto expected=original;expected.generation=final.generation;
         s.log.check("tray_options_restored_except_saved_generation",final==expected);
         for(std::size_t n=0;n<3;++n)s.log.check("tray_owned_original_layout_restored",own(s,s.frames[n].hwnd)&&fixture_rect(s.frames[n].hwnd,before[n]));

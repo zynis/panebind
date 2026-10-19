@@ -2,11 +2,13 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-本轮新增的实际用户行为证明：同一212 Release产品已在0e815完成活动Ctrl中暂停、暂停时原生操作和Resume后普通Move／Resize完整独立合同，M01-F03可计PASS；6dba智能拉伸与034真实GUI精确类名排除／恢复互补，M08-F05及B19也可计PASS。此前cea四窗双轴共享Resize、后继普通Move和八窗末成员Ctrl Move保留。不授整个M01／M08、鼠标四边四角F04、整链、五应用或Full通过。
+本轮新增的实际用户行为证明：同一212 Release产品已在0e815完成活动Ctrl中暂停、暂停时原生操作和Resume后普通Move／Resize完整独立合同，M01-F03可计PASS；bf5c补齐活动退出与受控终止后的恢复，M01-F04通过。6dba智能拉伸与034真实GUI精确类名排除／恢复互补，M08-F05及B19可计PASS；6dba／d7e／9e补齐M08-F04及B16–B18。此前cea四窗双轴共享Resize、后继普通Move和八窗末成员Ctrl Move保留。不授整个M01／M08、整链、五应用或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03／F04、M08-F05及依据同212/e7原件闭合的M03-F05后为**11/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03／F04、M08-F04／F05及依据同212/e7原件闭合的M03-F05后为**12/60功能、B16–B19／B29／B32共6/40=15%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
+
+`9e331148f16b47cba595f0bb2b827129`的Release `StretchBoundaryOnly`已实测（产品212／驱动581124e／包装1456ed9）。D108真实原生Resize位移12px超过系统4px，原生回到原几何后真实源UP／END；第二DOWN前P31重新Prepared，D114实际消息163（WM_NCLBUTTONDBLCLK）、两次DOWN间隔94ms小于系统500ms，第二实际源UP成立而没有第二modal循环，产品增强／写入／cancel为0。D124原生最大化按钮与UP、D125零Stretch及P38 Restore／实际几何还原通过。方向和超时本批明确NOT_RUN；结合原d7e九方向／九Undo／594ms超时负例及6dba左边真实mapped UP，同一212产品的M08-F04独立合同与B16–B18闭合，不授整个M08／I05／Full／应用或显示门。真实shutdown、客户输入恢复、Raw注销／自窗销毁与wrapper0／descendants0／forced=false分别有证据；guest12360／任务于`2026-10-19T15:02:43.6656516Z`精确清理，证据未变、部署保留、其他资源未改。
 
 `bf5c127bde7442c0bb243e60d8618985`已实际完成Release `ExitRecoveryOnly`（原产品212／驱动ac4635b／包装f3276a3）。D123–125在真实活动Move、alpha190且未发送UP时直接退出，产品Exit8／非NormalUp、pending退休，helper6500自行exit0、alpha还原173、capture为0、遮罩消失；随后D132单次测试清理UP与D138客户点击成立。D156–158仅受控终止精确产品6836／birth，不终止helper；helper3696自行恢复并退出0。D165／171真实清理UP与新点击、D173同EXE新PID5856启动，后续exact Move／Resize均真实NormalUp并恢复173；无实例重复quit返回2。最终实际idle正常退出与客户输入、Raw注销／自建窗关闭各有回执。结合已登记同212紧急暂停证据，M01-F04独立合同通过；不要求它替代托盘／M01模块／Full，不冒称自然发生的崩溃或真人UAT。专属guest180／任务于`2026-10-19T14:48:07.2152285Z`精确清理，原件保留、其他资源未改。
 

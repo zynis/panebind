@@ -442,6 +442,67 @@ Assert-V1ExitRecoveryWiring $fixtureSource $exitSource
 Check $true 'static exit recovery calls actual guest-only active Quit and controlled termination, then cleanup UP and new Move/Resize'
 Reject {Assert-V1ExitRecoveryWiring $fixtureSource ($exitSource.Replace('GetProcessId(s.process)!=pid||process_birth(s.process)!=birth','false'))} 'static exit recovery rejects removing held process PID/birth recheck'
 Reject {Assert-V1ExitRecoveryWiring $fixtureSource ($exitSource.Replace('exit_recovery_resources_after_exit(set,capture,helper,moved);',''))} 'static exit recovery rejects exit-code-only cleanup inference'
+function Assert-V1TrayReadinessWiring([string]$Fixture,[string]$Settings,[string]$Tray){
+    # Reachability and evidence-binding only, never a native tray or Shell PASS.
+    $drive=Get-V1FixtureFunctionText $Fixture 'drive'
+    $branch=[regex]::Match($drive,'(?s)else if\(s\.suite=="TrayReadinessOnly"\)\{(?<body>.*?)\}else if\(s\.suite=="InterruptionOnly"\)')
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_tray_cases.h"') -or -not $branch.Success -or
+       -not $branch.Value.Contains('independent_entry_ready(s,"tray_readiness_only.before",true);') -or
+       -not $branch.Value.Contains('completed=owned_tray_readiness_case(s);blocked=!completed;') -or
+       -not $branch.Value.Contains('if(s.process)cleanup(s);') -or
+       -not $branch.Value.Contains('failed?"FAIL":completed?"PASS":"BLOCKED"')){
+        throw 'Tray readiness must reach its guarded actual component and preserve BLOCKED/failure cleanup.'
+    }
+    $probe=Get-V1FixtureFunctionText $Tray 'tray_readiness_same_medium_probe'
+    $flow=Get-V1FixtureFunctionText $Tray 'owned_tray_readiness_case'
+    $add=$probe.IndexOf('probe.added=Shell_NotifyIconW(NIM_ADD,&data);')
+    $lookup=$probe.IndexOf('probe.lookup=Shell_NotifyIconGetRect(&id,&probe.area);')
+    $cleanup=$probe.IndexOf('const auto actual_window=probe.window;probe.cleanup();')
+    if($add -lt 0 -or $lookup -le $add -or $cleanup -le $lookup -or
+       -not $probe.Contains('if(!probe.added||!rectangle||!not_activated){') -or
+       -not $probe.Contains('probe.delete_attempted&&probe.deleted&&probe.lookup_after_delete!=S_OK') -or
+       -not $probe.Contains('probe.destroyed&&!IsWindow(actual_window)&&probe.unregister_attempted&&probe.unregistered') -or
+       -not $Tray.Contains('if(window_identity()&&(!add_attempted||owns())){') -or
+       -not $Tray.Contains('Shell_NotifyIconW(NIM_DELETE,&data)') -or
+       -not $Tray.Contains('GetWindowLongPtrW(window,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(this)') -or
+       -not $Tray.Contains('static constexpr UINT uid=0x5042') -or
+       -not $probe.Contains('if(probe.added){') -or -not $probe.Contains('data.uVersion=NOTIFYICON_VERSION_4;') -or
+       -not $probe.Contains('probe.versioned=Shell_NotifyIconW(NIM_SETVERSION,&data);') -or
+       -not $flow.Contains('if(!tray_readiness_same_medium_probe(s))return false;')){
+        throw 'Same-Medium probe must observe actual ADD/rectangle, remove only its exact icon/window/class before product menus, and fail closed.'
+    }
+    foreach($value in @('evidence::quoted(row,"\"schema\":","panebind-v1/1")',
+        'evidence::quoted(row,"\"source_sha\":",s.product_source)',
+        'evidence::quoted(row,"\"type\":",type)&&actual_pid&&*actual_pid==s.product_pid',
+        'std::string registration;const bool registration_bound=sent&&wait([&]{',
+        'registration=record(s,mark,"tray_registration")',
+        'tray_guest_owner(s,owner)&&receipt_identity(registration,"tray_registration")&&actual_owner&&',
+        '*actual_owner==reinterpret_cast<std::uintptr_t>(owner.app)&&actual_uid&&*actual_uid==1;',
+        '},1500);','if(!sent||!registration_bound||!rectangle||!tray_guest_owner(s,owner)){',
+        'owned_tray_entry_cases(s,false);','const auto exit_menu=tray_guest_open(s,owner);',
+        'tray_guest_choose(s,owner,*exit_menu,505,L"',
+        'receipt_identity(shutdown,"shutdown")','input_resource_stop_observed(shutdown)',
+        'icon_after_exit!=S_OK','tray_actual_post_menu_Exit_client_DOWN_UP',
+        's.frames[0].client_down[0].load()==downs+1','s.frames[0].client_up[0].load()==ups+1')){
+        if(-not $flow.Contains($value)){throw ('Tray menus require a bounded exact current receipt, real menu Exit and actual post-exit client delivery: '+$value)}
+    }
+    $oldMenu=Get-V1FixtureFunctionText $Settings 'owned_tray_entry_cases'
+    $choose=Get-V1FixtureFunctionText $Settings 'tray_guest_choose'
+    if(-not $oldMenu.Contains('bool simulate_taskbar_recreation=true') -or
+       -not $oldMenu.Contains('if(simulate_taskbar_recreation){') -or
+       -not $choose.Contains('button(s,true);button(s,false);') -or
+       [regex]::Matches($flow,'SendMessageTimeoutW\(owner\.app,taskbar,').Count -ne 1 -or
+       $Tray -match '\b(?:SetForegroundWindow|SetFocus|SetCapture)\s*\(' -or
+       $Tray -match '(?:SendMessage|PostMessage)\w*\([^;]*WM_COMMAND'){
+        throw 'Tray control must retain old default behavior, suppress the second simulation and use actual menu input without Shell control.'
+    }
+}
+$traySource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_tray_cases.h'),[Text.Encoding]::UTF8)
+$traySettings=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_settings_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1TrayReadinessWiring $fixtureSource $traySettings $traySource
+Check $true 'static tray readiness wires exact same-Medium probe cleanup, bounded receipt, one simulation and real menu Exit/client observations'
+Reject {Assert-V1TrayReadinessWiring $fixtureSource $traySettings ($traySource.Replace('const auto actual_window=probe.window;probe.cleanup();','const auto actual_window=probe.window;'))} 'static tray readiness rejects deferring exact probe cleanup past its pre-menu observation'
+Reject {Assert-V1TrayReadinessWiring $fixtureSource $traySettings ($traySource.Replace('receipt_identity(registration,"tray_registration")','true'))} 'static tray readiness rejects accepting an unbound registration receipt before menu input'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
