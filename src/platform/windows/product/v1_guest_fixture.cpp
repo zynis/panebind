@@ -2006,20 +2006,25 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
     const HWND h=source_window(s,0);const auto original=visible(h);
     std::optional<product::Snapshot> identity;std::string identity_reason;
     if(!target||!target->accepted||!target->identity||s.left||s.control||!original||
-       !application_fresh(s,*target,h,&identity,&identity_reason)||!identity||!product::Catalog::same(*target->identity,*identity))
+       !application_fresh(s,*target,h,&identity,&identity_reason)||!identity||!product::Catalog::same(*target->identity,*identity)){
+        s.log.emit("application_client_identity_rejected","\"application\":"+quote(label)+",\"client_scope\":"+quote(scope)+
+            ",\"phase\":\"entry\",\"fresh_identity_reason\":"+quote(identity_reason)+",\"client_input_sent\":false");
         throw std::runtime_error("matrix_client_exact_idle_application_required");
-    const auto facts=matrix_sources(s);const std::string case_prefix=label+(scope=="native_preflight"?".native_preflight":"");
+    }
+    // The client action needs only this freshly admitted source identity, not
+    // a second constraint query or snapshots of the other matrix members.
+    const auto& source=*identity;const std::string case_prefix=label+(scope=="native_preflight"?".native_preflight":"");
     foreground(s,h);RECT client{};if(!GetClientRect(h,&client)||client.right<=client.left||client.bottom<=client.top)
         throw std::runtime_error("matrix_client_geometry_unknown");
     POINT point{(client.right-client.left)/2,(client.bottom-client.top)/2};if(!ClientToScreen(h,&point))throw std::runtime_error("matrix_client_screen_unknown");cursor(s,point);
     const HWND hit=WindowFromPoint(point);DWORD_PTR region{};DWORD hit_pid{};
     const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;const HWND hit_root=hit?GetAncestor(hit,GA_ROOT):nullptr;
-    const bool exact_child=matrix_client_child(s,facts[0],hit);SetLastError(ERROR_SUCCESS);
+    const bool exact_child=matrix_client_child(s,source,hit);SetLastError(ERROR_SUCCESS);
     const bool hit_read=exact_child&&SendMessageTimeoutW(hit,WM_NCHITTEST,0,
         MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
     const DWORD hit_error=hit_read?ERROR_SUCCESS:exact_child?GetLastError():ERROR_SUCCESS;
     s.log.emit("application_actual_client_hit","\"application\":"+quote(label)+",\"client_scope\":"+quote(scope)+",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
-        ",\"source_pid\":"+std::to_string(facts[0].pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+        ",\"source_pid\":"+std::to_string(source.pid)+",\"point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
         ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+",\"actual_hit_pid\":"+std::to_string(hit_pid)+
         ",\"actual_hit_tid\":"+std::to_string(hit_tid)+",\"actual_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit_root))+
         ",\"exact_bound_root_and_process_tree\":"+(exact_child?"true":"false")+",\"WM_NCHITTEST_attempted\":"+(exact_child?"true":"false")+
@@ -2030,15 +2035,19 @@ void matrix_client_action(State& s,const std::string& label,std::string_view sco
         const auto target=s.applications[0];
         if(target&&target->kind=="Terminal"&&!target->terminal_client_rejection_recorded){
             target->terminal_client_rejection_recorded=true;
-            try{guest_observe_terminal_client_rejection(s,*target,facts[0],point);}
+            try{guest_observe_terminal_client_rejection(s,*target,source,point);}
             catch(const std::exception& error){s.log.emit("Terminal_client_rejection_observation_failed",
                 "\"reason\":"+quote(error.what())+",\"original_HTCLIENT_rejection_preserved\":true,\"client_input_sent\":false,\"visual_review\":\"NOT_RUN\"");}
         }
         throw std::runtime_error("matrix_actual_same_process_client_hit_unavailable");
     }
     std::optional<product::Snapshot> before_click;
-    if(!application_fresh(s,*target,h,&before_click)||!before_click||!product::Catalog::same(*target->identity,*before_click)||
-       GetForegroundWindow()!=h||!product::observe_gui_context(*before_click).idle()||WindowFromPoint(point)!=hit||visible(h)!=original)
+    if(!application_fresh(s,*target,h,&before_click,&identity_reason)||!before_click||!product::Catalog::same(*target->identity,*before_click)){
+        s.log.emit("application_client_identity_rejected","\"application\":"+quote(label)+",\"client_scope\":"+quote(scope)+
+            ",\"phase\":\"before_click\",\"fresh_identity_reason\":"+quote(identity_reason)+",\"client_input_sent\":false");
+        throw std::runtime_error("matrix_client_fresh_exact_context_changed_before_click");
+    }
+    if(GetForegroundWindow()!=h||!product::observe_gui_context(*before_click).idle()||WindowFromPoint(point)!=hit||visible(h)!=original)
         throw std::runtime_error("matrix_client_fresh_exact_context_changed_before_click");
     if(target->kind=="Edge"){
         const auto expected=L"PaneBind-Mouse-"+s.run+(scope=="native_preflight"?L"-1":L"-2");std::array<wchar_t,1024> title{};
@@ -2312,7 +2321,7 @@ void application_matrix_flow(State& s){
         s.applications[0].reset();
         s.log.emit("application_matrix_result","\"application\":"+quote(kind)+",\"result\":"+quote(category_result)+",\"stage\":"+quote(stage)+
             ",\"reason\":"+quote(reason)+",\"failure_cause\":"+quote(passed?"NONE":"UNKNOWN")+",\"product_gesture_attempted\":"+(product_gesture_attempted?"true":"false")+
-            ",\"enhanced_function_result\":"+quote(stage=="native_client_preflight"?"NOT_RUN":passed?"PASS":"NOT_CONFIRMED")+
+            ",\"enhanced_function_result\":"+quote(!product_gesture_attempted?"NOT_RUN":passed?"PASS":"NOT_CONFIRMED")+
             ",\"scope\":\"actual_Medium_native_client_before_Move_Resize_commands_Escape_client\",\"human_uat\":\"NOT_RUN\"");
     }
     try{matrix_mixed_group(s,browser,editor);}
