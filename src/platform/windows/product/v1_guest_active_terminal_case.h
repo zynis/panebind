@@ -170,7 +170,10 @@ void owned_active_terminal_burst_case(State& s){
             if(e::unique_value(row,"\"native_callsite_claimed\":")=="true"){
                 ++claims;issued=row;issued_id=e::number(row,"\"call_id\":").value_or(0);valid=valid&&issued_id!=0;
             }else valid=valid&&e::unique_value(row,"\"native_callsite_claimed\":")=="false"&&
-                e::unique_value(row,"\"native_attempted\":")=="false"&&e::quoted(row,"\"reason\":","operation_revoked_before_native_attempt");
+                e::unique_value(row,"\"native_attempted\":")=="false"&&
+                (e::quoted(row,"\"reason\":","operation_revoked_before_native_attempt")||
+                 e::quoted(row,"\"reason\":",product::capture_matching_up_retired_reason)||
+                 e::quoted(row,"\"reason\":","batch_preflight_capture_matching_UP_retired_before_native_call"));
         }
         if(claims==1){
             completion=issued;

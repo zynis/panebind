@@ -956,6 +956,23 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
         throw std::runtime_error("chain_original_app_visual_restore_failed");
     s.log.check("chain_original_app_visual_exact",wait([&]{const auto now=native_visual(h);return now&&*now==original;}));
 }
+std::wstring chain_mouse_mapping_fragment(const panebind::core::v1::Settings& value){
+    namespace v=panebind::core::v1;std::wstring fragment;const auto serialized=v::serialize(value);
+    for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with("mouse_count=")||row.starts_with("mouse.")){
+        for(const char c:row){if(static_cast<unsigned char>(c)>=128)throw std::runtime_error("M09_mouse_fragment_non_ASCII");fragment+=static_cast<wchar_t>(c);}fragment+=L"\r\n";
+    }if(fragment.empty()||fragment.size()>16384)throw std::runtime_error("M09_original_mouse_fragment_exceeds_existing_GUI_test_bound");return fragment;
+}
+panebind::core::v1::Settings chain_gui_save_mouse(State& s,const std::vector<panebind::core::v1::MouseBinding>& bindings){
+    const auto before=chain_settings(s);auto wanted=before;wanted.mouse_bindings=bindings;const auto fragment=chain_mouse_mapping_fragment(wanted);
+    auto gui=gui_open(s);gui_page_select(s,gui,3);HWND edit{};
+    for(HWND child=GetWindow(gui_page(s,gui),GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
+        if(gui_class(child)==L"Edit"&&chain_edit_text(s,gui,child).starts_with(L"mouse_count=")){edit=child;break;}
+    if(!edit)throw std::runtime_error("M09_actual_mouse_not_hotkey_editor_missing");
+    s.log.emit("M09_actual_mouse_editor","\"production_page\":3,\"control_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(edit))+
+        ",\"actual_control_ID\":"+std::to_string(GetDlgCtrlID(edit))+",\"class\":\"Edit\",\"actual_prefix\":\"mouse_count=\",\"hotkey_editor_used\":false");
+    chain_type_fragment(s,gui,edit,fragment);gui_save_enter(s,gui);const auto actual=chain_settings(s);wanted.generation=actual.generation;
+    s.log.check("M09_actual_GUI_mouse_configuration_saved",actual==wanted&&actual.generation>before.generation);return actual;
+}
 // M09-F02: one real client pair and one real mapped caption pair per button.
 // This is a guest-only input driver, not another product routing path.
 [[maybe_unused]] void owned_mouse_mapping_cases(State& s){
@@ -1024,22 +1041,8 @@ void chain_restore_app_visual(State& s,HWND h,const NativeVisual& original){
             ",\"actual_client_DOWN_UP_counts_after\":"+count_json(after)+",\"native_client_message_delivery_observed\":"+(down_observed&&up_observed?"true":"false")+",\"fixture_Raw_before\":"+
             raw_before+",\"fixture_Raw_after\":"+raw_after+",\"Raw_zero_does_not_fail_product_case\":true");
     };
-    const auto mouse_fragment=[](const v::Settings& value){std::wstring fragment;const auto serialized=v::serialize(value);
-        for(const auto row:v::settings_detail::split(serialized,'\n'))if(row.starts_with("mouse_count=")||row.starts_with("mouse.")){
-            for(const char c:row){if(static_cast<unsigned char>(c)>=128)throw std::runtime_error("M09_mouse_fragment_non_ASCII");fragment+=static_cast<wchar_t>(c);}fragment+=L"\r\n";
-        }if(fragment.empty()||fragment.size()>16384)throw std::runtime_error("M09_original_mouse_fragment_exceeds_existing_GUI_test_bound");return fragment;};
-    const auto original_fragment=mouse_fragment(original);
-    const auto save_mouse=[&](const std::vector<v::MouseBinding>& bindings){
-        const auto before=chain_settings(s);auto wanted=before;wanted.mouse_bindings=bindings;const auto fragment=mouse_fragment(wanted);
-        auto gui=gui_open(s);gui_page_select(s,gui,3);HWND edit{};
-        for(HWND child=GetWindow(gui_page(s,gui),GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT))
-            if(gui_class(child)==L"Edit"&&chain_edit_text(s,gui,child).starts_with(L"mouse_count=")){edit=child;break;}
-        if(!edit)throw std::runtime_error("M09_actual_mouse_not_hotkey_editor_missing");
-        s.log.emit("M09_actual_mouse_editor","\"production_page\":3,\"control_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(edit))+
-            ",\"actual_control_ID\":"+std::to_string(GetDlgCtrlID(edit))+",\"class\":\"Edit\",\"actual_prefix\":\"mouse_count=\",\"hotkey_editor_used\":false");
-        chain_type_fragment(s,gui,edit,fragment);gui_save_enter(s,gui);const auto actual=chain_settings(s);wanted.generation=actual.generation;
-        s.log.check("M09_actual_GUI_mouse_configuration_saved",actual==wanted&&actual.generation>before.generation);
-    };
+    const auto original_fragment=chain_mouse_mapping_fragment(original);
+    const auto save_mouse=[&](const std::vector<v::MouseBinding>& bindings){(void)chain_gui_save_mouse(s,bindings);};
     const auto restore=[&]{
         const auto mark=read_product(s).size();
         s.log.check("M09_actual_pause_restores_owned_visual",launch(s,L"--pause",true)&&wait([&]{const auto row=record(s,mark,"status");
