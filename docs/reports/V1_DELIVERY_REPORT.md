@@ -2,9 +2,9 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-本轮新增的实际用户行为证明：同一212 Release产品已在c656验证重复Center／拉伸不再调用原生写入，及Max／Restore、手工移动和窗口重建后的布局历史边界；结合原同产品writer／部分操作失败证据，M03-F02／F04独立合同通过。0e815活动Ctrl暂停／原生操作／Resume后普通Move／Resize闭合M01-F03，bf5c退出与受控终止后恢复闭合M01-F04；6dba／034闭合M08-F05及B19，6dba／d7e／9e闭合M08-F04及B16–B18。不授整个模块、整链、五应用或Full通过。
+本轮新增的实际用户行为证明：同一212 Release产品在7060验证应用后来改变alpha／topmost时的独立恢复权、新root不继承和正常退出，M09-F04／B20独立合同通过。慢速／单次反向摇动负例与同一212的477a实际两次切换还原及正常UP仅补齐摇动子范围；系统Shake共存仍NOT_RUN，M09-F05／B21完整合同不计PASS。c656闭合M03-F02／F04、0e815闭合M01-F03、bf5c闭合M01-F04、6dba／034闭合M08-F05、6dba／d7e／9e闭合M08-F04。不授整个模块、整链、五应用或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，76e托盘真实对照仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03／F04、M03-F02／F04／F05及M08-F04／F05后为**14/60功能、B16–B19／B29／B32共6/40=15%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，76e托盘真实对照仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03／F04、M03-F02／F04／F05、M08-F04／F05及M09-F04后为**15/60功能、B16–B20／B29／B32共7/40=17.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
@@ -16,11 +16,21 @@
 
 `76e433d5db05436c8b72d40a2a49abc5`已实际运行Release `TrayReadinessOnly`（同212／db114ea）：D47精确自有探针PID7116／TID6200／HWND197422实际Medium8192、non-elevated；同session的Progman与Shell_TrayWnd所属PID4932实际High12288／elevated。一次探针ADD=false、GetRect=E_FAIL，原始GLE5只作原值记录，不能据它断言唯一系统根因；探针DELETE=false，自有窗口／类实际销毁已核D48。D49按合同BLOCKED，未发TaskbarCreated或菜单输入；产品P1的ADD亦false。P18真实完整shutdown、D55客户输入0→1、D57 Raw注销、D58自窗关闭有独立证据，wrapper fixture1／descendants0／forced=false。guest14380／任务于`2026-10-19T15:47:02.8627421Z`精确清理，证据不变、部署保留；没有控制High Shell、放宽权限或换用High产品来凑PASS。
 
-下一窄入口`VisualOwnershipOnly`已接线：复用实际产品命令、同测试应用对自有窗口的真实属性修改与独立回读，分别核对alpha／topmost恢复权；保留新根直到正常退出，核对实际helper退出后不继承旧恢复权，并补慢速交替／单次反向的实际Move负例。没有新增UI请求框架或产品路径；目前仅95项静态包装／接线检查通过，尚未构建／现场运行，不据此提高M09或整版状态。
+### 7060：独立视觉恢复权、摇动负例与实际退出已验证
+
+`7060c71c0a994737bdc759d81aa66dbb`／`VisualOwnershipOnly`已实际完成Release；产品212原EXE未变，driver／包装为`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。D/R驱动均构建成功，受影响offline各208项通过（symlink SKIP1314），95项静态包装检查通过，Debug本批现场NOT_RUN。Release driver SHA `3EE0F3C343CD59ED259D0163BDBD601963BBC767D73D4019FF108FF3526DC065`，Debug `E530E47D5C30027714F4B400E3945F142A5D8421270763F6CBE866C90365C5F7`。
+
+D117／P37：应用自行将alpha改为201，产品仅执行z-order恢复到非topmost，alpha仍201；D128／P46：应用自行取消topmost，产品仅将alpha恢复173，不覆盖应用的新topmost值。两次均有真实逐属性native attempt、exact、helper ACK和后序idle status，不用许可布尔冒充调用。D196慢速五次交替、D216单次反向均零视觉变更；P87／117为两个实际NormalUp。D268旧root131442销毁、新root262782同PID但key4→5，明确未观察数值HWND复用；D270暂停零视觉cleanup，新root141／topmost保留。D336／P148产品正常Quit，精确持有的helper6932真实exit0，新root属性与几何不变；D342客户DOWN／UP由0到1、D343精确新root关闭、D346 Raw注销、D347自窗销毁分别成立。wrapper0／descendants0／forced=false不代替这些证据。
+
+原件在`uat/v1-control/7060c71c0a994737bdc759d81aa66dbb/collection-20261019T161038570Z-ae927e7b033d44dcb6c8bde6d8e49a6a/`，347条fixture／148条product合法连续；SHA分别`7F07CDAC6A5FE04EEDF71AFC6510FEF96523FAAE946DC9F1E0A500B49136ED0F`／`E5960C8C2B07503E0B440223D707DCF65F68D41D37EEF6517701E4EA411FFFE6`。ZIP `28CB7CE967C75A47788D483DD53327A31CF6BE2F1EB7D3146A8766D608E3C90D`，manifest `FE7B4BC98A827C9318029227998522C7CB489E8665CC1C313CC7CC8AB8888238`，WSB `9E05B7DD2C8215251FAE428177B85E1F51576FC9A778A76DF44CF7887CB1756A`。guest14672／专属任务于`2026-10-19T16:12:01.6290882Z`精确清理，原件不变、部署保留、其他资源未改。
+
+[fixture摘录](v1-evidence/7060-r17-visual-ownership-and-prior-shake-fixture-selected.jsonl)与[产品摘录](v1-evidence/7060-r17-visual-native-and-prior-shake-product-selected.jsonl)按原件明确分段，66条原行逐字及哈希复核。旧477a同一212的P132／133实际173／非topmost→190／topmost，P171／172第二手势还原173／非topmost，D2900／2935独立回读、两代正常UP及每代最多一次切换；e7同212保留原nonlayered恢复事实。它们仍是旧RunId／driver证据，不是7060新运行或625旧产品换绑。M09-F04和B20合同据此闭合；M09-F05明文要求的系统Shake共存仍NOT_RUN，故摇动局部通过不升级完整F05／B21，整个M09／I06／Full、应用／显示及真人仍未通过。
 
 官方Notepad准备状态纠正：f08资产中已有完整`Microsoft.WindowsNotepad_11.2312.18.0_x64`（232文件，约11.85MB），实际`Notepad\\Notepad.exe`与manifest、依赖及签名blockmap检查已有记录，不能再称“ISO只有stub／永久缺官方EXE”。历史e1fc同一Run的两份快照均记录Notepad及依赖共8项注册失败（错误文本0x80073CF9；异常包装hresult另列），query为空、无确认InstallLocation，激活NOT_RUN。它们不是两次实验，也不能以文件齐备称可运行。当前缺项是准确的guest注册／激活条件与后续精确入口核验；不重挂ISO、不重复旧Store下载、不把System32 stub直接当完整应用通过。
 
 既有扩展日志已进一步核实：Notepad与VCLibs的精确ActivityId均出现Event709的package-root拒绝、Event404内部`0x80070057`，不同于外层`0x80073CF9`和异常包装`0x80131620`；原事件时间为空，未补造。实际路径是guest本地解包并校验后的完整绝对manifest路径，不是从只读映射注册；没有ACL原因的实测证据。[必要历史字段投影](v1-evidence/e1fc-r16-appx-registration-root-diagnostic-selected.json)保留原件路径／哈希／旧af0身份及四条原message。更深的staging判定原因仍UNKNOWN，已有日志足够，不再为同一问题增加同类诊断或无改动尝试。
+
+Code现有744／7c6c／无产品fe0的完整1875字节electron日志回执均有6次`GPU process launch failed: error_code=49`和最终unusable-GPU fatal；已传`--disable-gpu`，UserData／Extensions／TEMP写入前置已通过。不能继续只写“没有root、全因UNKNOWN”。现有ZIP版本1.142.0／commit6d62b1d5的官方构建配置绑定Electron43.7.7／Chromium150.0.7871.250；该版源码将49定位为restricted primary token创建失败，非显卡错误码。`--disable-gpu`仍保留软件显示合成进程，不承诺无GPU子进程。这是[精确版本上游解释](../research/SOURCE_PROVENANCE.md)，不是新guest运行或运行时版本取样；独立持有child的0x80070005不证明其角色或49底层API错误。未找到保持既有安全边界的有依据启动修正，不启用`--no-sandbox`等降安全开关、不修改token／宿主设置或重复原启动；更深token失败原因仍UNKNOWN，应用兼容仍BLOCKED，其余可运行功能继续。
 
 `9e331148f16b47cba595f0bb2b827129`的Release `StretchBoundaryOnly`已实测（产品212／驱动581124e／包装1456ed9）。D108真实原生Resize位移12px超过系统4px，原生回到原几何后真实源UP／END；第二DOWN前P31重新Prepared，D114实际消息163（WM_NCLBUTTONDBLCLK）、两次DOWN间隔94ms小于系统500ms，第二实际源UP成立而没有第二modal循环，产品增强／写入／cancel为0。D124原生最大化按钮与UP、D125零Stretch及P38 Restore／实际几何还原通过。方向和超时本批明确NOT_RUN；结合原d7e九方向／九Undo／594ms超时负例及6dba左边真实mapped UP，同一212产品的M08-F04独立合同与B16–B18闭合，不授整个M08／I05／Full／应用或显示门。真实shutdown、客户输入恢复、Raw注销／自窗销毁与wrapper0／descendants0／forced=false分别有证据；guest12360／任务于`2026-10-19T15:02:43.6656516Z`精确清理，证据未变、部署保留、其他资源未改。
 
@@ -164,7 +174,7 @@ fixture206行／SHA `105191AAF8B19E8078321ED923814DEDB8A7341941FD66457BB47D4F582
 | 当前Release完整连续链 | be94的真实未知前台变化使B Resize撤权，触发者及起因仍UNKNOWN；cea局部PASS不关闭该Full失败。应在具备条件的上述会话复验同一候选完整操作链；若形成具体产品反例则按影响修复，不靠增加检查或放宽foreground／capture门凑通过。 |
 | 显示与会话矩阵 | 当前单屏144DPI guest不满足普通完整桌面、双屏负坐标、混合100%／150%、200% UI及真实会话变化门。需要可用的相应隔离显示／会话条件；纯几何模拟和本轮截图不能代替。 |
 
-恢复SSH、入口子范围、组组件或本次拉伸分支通过不等于整版即将通过。现无用户搬包、再次恢复SSH或重复跑900秒的待办；忽略邻窗及本次有限分支已实测，不再列为NOT_RUN或重复专项。活动Ctrl暂停→原生操作→恢复、Ctrl+Shift绕过后新关系联动，以及可见target的GUI应用规则排除，均已补测试接线；0f6驱动加载前失败后，使用修复的静态runtime包继续这些未进入的实际功能，不把普通构建问题当成环境停止理由。四边／四角完整鼠标门属于F04，不能重复叠到F05；F05还缺真实rule排除，不以hidden代替。剩余工程缺口不全归环境，不进入REA，不自签整版DEV或真人UAT。
+恢复SSH、入口子范围、组组件或本次拉伸分支通过不等于整版即将通过。现无用户搬包、再次恢复SSH或重复跑900秒的待办。活动Ctrl暂停→原生操作→恢复、Ctrl+Shift绕过后新关系联动，以及可见target的GUI应用规则排除，已分别由0e815／034实际复验，不再列为待进入。0f6保留历史loader失败，后继入口影响已关闭；四边／四角和输入边界已闭合F04，真实rule排除已闭合F05，不再重复专项。下一步推进尚未覆盖的普通Resize磁吸及尺寸约束等可运行合同，真实应用、托盘、整链和显示环境仍分别保留缺口，不进入REA或自签整版DEV／真人UAT。
 
 ### 7944：保留原部署失败，不再作为当前SSH阻断
 

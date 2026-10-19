@@ -6,7 +6,9 @@
 
 后继托盘与几何历史入口已以driver `db114ea`完成Debug／Release构建及Release guest实测，冻结产品仍是212。c656证明重复目标零新增原生写入、Max／Restore与布局历史分离、手工移动和新窗口不继承旧历史；M03-F02／F04独立合同通过。76e同Medium自有通知图标对照失败且实际Shell为High，托盘仍BLOCKED，未发送菜单输入；不据此断言唯一系统根因。开发机先前的内存中断已恢复，无需额外系统操作；不能把这次限定证据当普通完整桌面或整版通过。
 
-Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub；旧e1fc实际失败在包／依赖注册（0x80073CF9），尚无已确认InstallLocation／启动身份。下一步核对注册扩展错误与精确包入口，不要求用户重新搬包、挂ISO或重复旧Store下载。
+Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub；旧e1fc实际失败在包／依赖注册（外层0x80073CF9，既有扩展事件709为package-root拒绝、404内部0x80070057），尚无已确认InstallLocation／启动身份。扩展日志已经复核，实际使用guest本地完整绝对manifest路径，更深staging原因仍UNKNOWN；不重复同路线诊断、搬包、挂ISO或旧Store下载。
+
+最新7060／`VisualOwnershipOnly`已实际完成Release验证，产品仍212，driver／包装`dd1ff5d5cfa3e765f9e0b2370f1d20fe408e35e5`。应用自行改变alpha或topmost后，产品分别只恢复仍归自己所有的另一属性；新建root不继承旧恢复权，实际helper正常退出、客户输入恢复，M09-F04／B20独立合同通过。慢速交替和单次反向均零摇动切换；同一212的477a保留真实摇动两次切换／还原及各次正常UP的局部证明，但系统Shake共存未测，故完整M09-F05／B21仍不计PASS，不代表整个M09、五类应用或真人通过。
 
 最新同产品212的实际范围：d7e九方向／Shift与Undo、6dba左边及9e移动阈值／系统按钮负例已闭合M08-F04与B16–B18；bf5c证明活动退出、精确产品进程受控终止后视觉／输入恢复，以及同EXE重启Move／Resize。不是自然崩溃或整版UAT通过，也不改变普通宿主试用边界。
 
@@ -22,7 +24,7 @@ Notepad状态已纠正：现有f08资产包含完整官方包，不是只有stub
 
 cea／fe0继续保留原driver／打包身份`f9fc72b1692250531525103a4b5d5aa352116aa0`：cea `GroupBoundsOnly`已通过限定范围；fe0 `NativeClientsOnly`也已运行，不再待跑。fe0未启动PaneBind产品，核对了实际产品名进程／根窗口／日志不存在：Terminal真实命中HTCAPTION且本批截图显示cmd启动错误；Notepad无可运行的指定官方EXE，Code无合格新root；Edge真实HTCLIENT、一次点击与焦点检查通过，但DOM效果未观察、正常关闭未确认。四类原生客户前置均未完整通过，产品功能均`NOT_RUN`、产品cleanup为`NOT_APPLICABLE_NOT_STARTED`。该结果不证明严格单变量或唯一系统根因，也不声称没有fixture Raw等其他输入观察。
 
-现阶段具体缺项是：五类真实应用的完整客户交互、托盘可达的普通Medium完整隔离桌面；完整Release链中的未知前台中断；真实双屏／混合DPI等条件。5b0旧error5与43c标准child创建error1314分别保留，不反推Sandbox只能High。没有已确认可用的完整隔离桌面，不要求用户新建VM、购买设备或放宽宿主安全设置。无需用户搬包、再次恢复SSH、重跑900秒或已过组件。M01-F03已由0e815复验，M03-F02／F04由c656及同212既有writer证据闭合，M03-F05按同212/e7原件闭合；均不附加无关模块门，其他未阻断功能继续推进。生产接线60/60，历史完整功能保留后当前为14/60、对标6/40；**整版PARTIAL，不可宿主试用，真人UAT PENDING，暂不进入REA分析**。
+现阶段具体缺项是：五类真实应用的完整客户交互、托盘可达的普通Medium完整隔离桌面；完整Release链中的未知前台中断；真实双屏／混合DPI等条件。5b0旧error5与43c标准child创建error1314分别保留，不反推Sandbox只能High。没有已确认可用的完整隔离桌面，不要求用户新建VM、购买设备或放宽宿主安全设置。无需用户搬包、再次恢复SSH、重跑900秒或已过组件。M01-F03已由0e815复验，M03-F02／F04由c656及同212既有writer证据闭合，M03-F05按同212/e7原件闭合；均不附加无关模块门，其他未阻断功能继续推进。生产接线60/60，历史完整功能保留后当前为15/60、对标7/40=17.5%；**整版PARTIAL，不可宿主试用，真人UAT PENDING，暂不进入REA分析**。
 
 历史R7产品源码为`b0450da7c4eae68fd0e3646b3625b475a39f6c92`，/MT Release EXE `F78C5E95C6F9BC77993217AC6D5023878A210C75D7C27632B757704A060ABD22`；D/R各10项offline通过。driver7bec／Run4e9已实测actor默认30秒退出后恢复、在途call33精确完成／视觉恢复及Terminal几何子链；source-close／grid真实UP仍失败，batch判定和I11日志读取待定向修复，Terminal客户输入未测，Explorer拒绝、五应用／Edge清理未齐。便携包364579589e454eb7a63931f68df49567普通入口仍NOT_RUN，**不宜宿主试用**。历史R6／625两轮／900.001661秒及D25通过保持原身份；旧七项完整合同／B2不换绑新R8。完整应用／显示／托盘和当前整版门槛未齐；**PARTIAL，真人UAT PENDING**，Raw计数不能补成NormalUp。
 

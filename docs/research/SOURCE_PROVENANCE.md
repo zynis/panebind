@@ -2829,3 +2829,81 @@ Existing LL observation also records its fixed DOWN/MOVE/UP CallNext phases;
 it does not diagnose the missing callback from absence alone. No upstream
 implementation was copied or adapted; existing production prior-art pins and
 license decisions are unchanged.
+
+### V1 Code GPU launch error49: exact-source follow-up — 2026-10-20 (Asia/Shanghai)
+
+Finite, read-only follow-up to the earlier Chromium-startup entry above. This
+review interprets retained `744fff40a030404ebafe9e2879190179`,
+`7c6c3d233155473ea2a3b08c57d58d3e` and
+`fe0e2b7191134dc7a3dad634b8b0c983` evidence; it is not a new application run,
+input experiment, runtime-version probe or repair. All three exact-profile
+startup-log receipts contain GPU launch error49 and the fatal unusable-GPU
+message despite `--disable-gpu`. The fe0 case recorded this without a running
+PaneBind product. Original failures, driver identities and verdicts are kept.
+
+Inspected primary sources and license/provenance boundaries:
+
+- **Microsoft VS Code / mature production source**, exact commit
+  `6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1`, version `1.142.0`:
+  [`.npmrc`](https://raw.githubusercontent.com/microsoft/vscode/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/.npmrc)
+  pins Electron `43.7.7` and Microsoft build ID `15553055`.
+  [`src/main.ts`](https://raw.githubusercontent.com/microsoft/vscode/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/src/main.ts)
+  carries the MIT source notice. Also read the existing official ZIP's exact
+  `6d62b1d5da/resources/app/package.json` and `product.json` without extraction
+  or execution; they identify version 1.142.0 and the same product commit.
+  The official [FAQ](https://code.visualstudio.com/docs/supporting/faq)
+  documents `--disable-gpu` for hardware-acceleration problems; it is live
+  documentation, not an immutable source revision or proof of this failure's
+  cause. The Microsoft-distributed test binary remains under the separately
+  reviewed Microsoft product terms, not the Code-OSS source license.
+- **Electron / mature production**, exact tag `v43.7.7`:
+  [`DEPS`](https://raw.githubusercontent.com/electron/electron/v43.7.7/DEPS)
+  and the [official release record](https://releases.electronjs.org/release/v43.7.7)
+  bind Chromium `150.0.7871.250`.
+  [`docs/api/command-line-switches.md`](https://raw.githubusercontent.com/electron/electron/v43.7.7/docs/api/command-line-switches.md)
+  documents file logging, Windows child-process stderr limitations, supported
+  logging controls and the explicit security effect of `--no-sandbox`.
+  [License](https://raw.githubusercontent.com/electron/electron/v43.7.7/LICENSE): MIT.
+  These are the matched build-configuration versions, not a new empirical
+  observation of the tested process's `process.versions`.
+- **Chromium / mature production**, exact tag `150.0.7871.250`,
+  [BSD-3-Clause license](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/LICENSE):
+  inspected [`sandbox/win/src/sandbox_types.h`](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/sandbox/win/src/sandbox_types.h),
+  [`sandbox_policy_base.cc`](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/sandbox/win/src/sandbox_policy_base.cc)
+  and `restricted_token_utils.cc`; `content/browser/child_process_launcher_helper_win.cc`
+  and `child_process_launcher.cc`; [`content/browser/gpu/gpu_process_host.cc`](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/content/browser/gpu/gpu_process_host.cc),
+  `gpu_data_manager_impl_private.cc`; [`content/browser/compositor/viz_process_transport_factory.cc`](https://raw.githubusercontent.com/chromium/chromium/150.0.7871.250/content/browser/compositor/viz_process_transport_factory.cc);
+  `content/public/common/content_switches.cc` and `gpu/config/gpu_switches.cc`.
+  Initial main-branch `content/public/common/result_codes.h` and sandbox-enum
+  navigation did not bind the tested version; the error interpretation uses
+  the pinned sandbox/launcher sources above.
+
+At the pinned Chromium tag, result49 is
+`SBOX_ERROR_CANNOT_CREATE_RESTRICTED_TOKEN`. `PolicyBase::MakeTokens` returns it
+when preparing the restricted primary token fails; the Windows launcher passes
+the sandbox launch result through to `GpuProcessHost::OnProcessLaunchFailed`.
+It is not a Win32 error49 or a graphics-driver error code. The separate retained
+child exit `0x80070005` does not by itself identify that child's role or prove
+the lower-level API/GetLastError responsible for result49. Those facts remain
+UNKNOWN; no specific privilege, High Shell, UIPI, ACL or host-setting cause is
+inferred.
+
+The matched GPU-mode code permits software GL/display composition after hardware
+acceleration is disabled. The Viz transport still needs a GPU process for its
+compositor thread, so `--disable-gpu` does not promise absence of a sandboxed
+GPU/Viz child. No evidence-backed functional startup option was found in this
+bounded review that avoids the observed token failure while preserving process
+sandboxing, the existing token/permissions and host settings. The inspected
+`--in-process-gpu` switch instead runs GPU work in a browser-process thread and
+changes isolation; it is not a security-neutral candidate. Neither it nor
+`--no-sandbox`/`--disable-gpu-sandbox` was enabled or proposed as an accepted
+compatibility result. This is not proof that every possible supported route is
+impossible, nor a reason to retry unchanged profiles or stack graphics flags.
+
+Applicable subsystem: isolated official-application readiness and test-driver
+failure classification only. Reference-only; external code copied, translated
+or adapted **NO/NO/NO**. No upstream source entered PaneBind, no new dependency
+or attribution obligation was created, and the existing archive notices remain
+intact. No repository source, guest, token, ACL, sandbox setting or host setting
+was changed by this review; functional compatibility and ordinary Medium
+full-desktop acceptance still require their own actual evidence.
