@@ -549,6 +549,26 @@ Assert-V1VisualOwnershipWiring $fixtureSource $visualOwnership
 Check $true 'static visual ownership uses same-app native changes, independent property masks, actual UP and helper exit with new-root preservation'
 Reject {Assert-V1VisualOwnershipWiring $fixtureSource ($visualOwnership.Replace('e::unique_value(row,"\"alpha_native_attempted\":")== (restore_alpha?"true":"false")','true'))} 'static visual ownership rejects dropping the independent alpha restoration mask'
 Reject {Assert-V1VisualOwnershipWiring $fixtureSource ($visualOwnership.Replace('helper_stopped&&helper_exit==0&&','true&&'))} 'static visual ownership rejects exit-code-only product cleanup without the actual held-helper exit'
+function Assert-V1ResizeMagnetWiring([string]$Fixture,[string]$Resize){
+    if(-not $Fixture.Contains('phase("owned_plain_Resize_magnet_active_edges_and_limit",owned_resize_magnet_case);') -or
+       -not $Resize.Contains('s.suite!="ResizeMagnetOnly"')){throw 'Resize magnet must reach its guarded real product component.'}
+    foreach($value in @('HTLEFT,HTRIGHT,HTTOP,HTBOTTOM,HTTOPLEFT,HTTOPRIGHT,HTBOTTOMLEFT,HTBOTTOMRIGHT',
+        'geometry_history_positioning(set.frames[index].hwnd)==native[index]',
+        'receipts&&native_calls==1&&set.owns(0)&&actual==expected[0]&&positioning==expected_native&&fixed&&candidates_unchanged',
+        'e::unique_value(row,"\"native_attempted\":")=="true"',
+        'const LayoutLimit bounded{120,100,450,work.height()}',
+        'resize_magnet_quantum(set,g,HTRIGHT,30,0,initial,native,{pulled,neighbour}',
+        'layout_up(set,g,{pulled,neighbour});',
+        'constraint_calls==2&&set.owns(0)&&set.owns(1)',
+        'move.generation>g.generation')){
+        if(-not $Resize.Contains($value)){throw ('Resize magnet lost actual geometry, fixed-edge, limit, native or UP evidence: '+$value)}
+    }
+}
+$resizeMagnet=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_resize_magnet_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1ResizeMagnetWiring $fixtureSource $resizeMagnet
+Check $true 'static Resize magnet reaches eight actual edge/corner geometries, one native call, limits and original DOWN pullback'
+Reject {Assert-V1ResizeMagnetWiring $fixtureSource ($resizeMagnet.Replace('native_calls==1','native_calls>=0'))} 'static Resize magnet rejects dropping the actual single-call quantum gate'
+Reject {Assert-V1ResizeMagnetWiring $fixtureSource ($resizeMagnet.Replace('layout_up(set,g,{pulled,neighbour});',''))} 'static Resize magnet rejects omitting the actual matching UP before subsequent Move'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
