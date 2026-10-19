@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly')][string]$Suite='Full',
+      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -456,9 +456,19 @@ try {
     }
     $probeDesktop=$null -ne $manifest.medium_desktop_probe -and $manifest.medium_desktop_probe.enabled -eq $true
     $nativeIdentityOnly=$false
+    $standardNativeClients=$false
     if($probeDesktop){
         if($manifest.medium_desktop_probe.kind -cne 'OneStandardGuestGuiPrecheck'){throw 'Unknown guest desktop probe.'}
         $nativeIdentityOnly=$manifest.medium_desktop_probe.native_identity_only -eq $true
+        $standardNativeClients=$manifest.medium_desktop_probe.standard_native_clients -eq $true
+        if($standardNativeClients -and ($manifest.medium_desktop_probe.standard_native_clients -isnot [bool] -or $nativeIdentityOnly -or
+           $manifest.medium_desktop_probe.stop_after_probe -ne $true -or $manifest.medium_desktop_probe.actual_suite -cne 'StandardGuestNativeClients' -or
+           $manifest.medium_desktop_probe.standard_native_api -cne 'CreateProcessAsUserW' -or $manifest.medium_desktop_probe.followup_suite -cne 'NativeClientsOnly' -or
+           $manifest.medium_desktop_probe.native_identity_image -cne 'panebind-v1-guest-fixture.exe' -or
+           $manifest.guest_account_mode -cne 'RunBoundStandardNativeClients' -or $manifest.guest_standard_run_id -cne $RunId -or
+           $manifest.guest_standard_account -cne ('PBV1D_'+$RunId.Substring(0,12)) -or
+           $Suite -cne 'NativeClientsOnly' -or $Configurations -cne 'Release' -or $probeMedium)){
+            throw 'Standard native clients require an exact immutable Run/account/API/suite selection.'}
         if($nativeIdentityOnly -and ($manifest.medium_desktop_probe.native_identity_only -isnot [bool] -or
            $manifest.medium_desktop_probe.stop_after_probe -ne $true -or
            $manifest.medium_desktop_probe.actual_suite -cne 'MediumNativeIdentityOnly' -or
@@ -544,7 +554,7 @@ try {
             $summary['medium_environment_probe']=$probeRecord
         }finally{$probe.Dispose()}
     }
-    if($probeDesktop){
+    if($probeDesktop -and -not $standardNativeClients){
         # One official alternate-user GUI precheck in this disposable guest.
         # It grants no product/Shell authority and never sends input.
         $probeInfo=New-Object Diagnostics.ProcessStartInfo
@@ -603,6 +613,57 @@ try {
         $release=@($manifest.files | Where-Object relative_path -ceq 'panebind.exe')
         if($release.Count -ne 1){throw 'Portable source Release identity missing.'}
         $summary['portable_test']=Prepare-PortableTestPackage $manifest.portable_test $manifest.source_commit $release[0].sha256
+    }
+    if($standardNativeClients){
+        # Prepared official assets are shared read-only input, not proof of an
+        # application root. The probe owns the original credential token until
+        # NativeClientsOnly and its exact cleanup finish; NEVER use Run() below.
+        $summary.actual_suite='StandardGuestNativeClients'
+        $probeInfo=New-Object Diagnostics.ProcessStartInfo
+        $probeInfo.FileName=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        $probeInfo.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\PaneBindV1\Input\v1-medium-desktop-probe-guest.ps1 -RunId '+
+            $RunId+' -StandardGuestNativeClients -NativeClientsTimeoutSeconds '+$StageTimeoutSeconds
+        $probeInfo.UseShellExecute=$false;$probeInfo.CreateNoWindow=$true
+        $probe=New-Object Diagnostics.Process;$probe.StartInfo=$probeInfo
+        try{
+            if(-not $probe.Start()){throw 'Exact standard native-client bootstrap did not start.'}
+            if(-not $probe.WaitForExit(($StageTimeoutSeconds+90)*1000)){
+                $probe.Kill();[void]$probe.WaitForExit(5000)
+                throw 'Standard native-client bootstrap timed out; cleanup UNKNOWN, no other suite permitted.'}
+            $path=Join-Path $outputDir ($RunId+'-medium-desktop-probe.json');$file=Get-Item -LiteralPath $path
+            if($file.PSIsContainer -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $file.Length -gt 256KB){throw 'Bounded standard native-client receipt missing.'}
+            $record=[IO.File]::ReadAllText($path,[Text.Encoding]::UTF8)|ConvertFrom-Json
+            $entry=@($manifest.files|Where-Object relative_path -ceq 'v1-medium-desktop-probe-guest.ps1')
+            if($record.schema -cne 'panebind-v1-medium-desktop-probe/1' -or $record.run_id -cne $RunId -or
+               $record.actual_suite -cne 'StandardGuestNativeClients' -or $record.probe_source_commit -cne $manifest.packaging_head -or
+               $record.driver_source_commit -cne $manifest.driver_source_commit -or $entry.Count -ne 1 -or $record.probe_sha256 -cne $entry[0].sha256){
+                throw 'Standard native-client receipt identity mismatch.'}
+            $summary['medium_desktop_probe']=$record
+            $summary['product_GUI']='NOT_RUN';$summary['finite_900_second_session']='NOT_RUN'
+            $summary['compatibility_envelope_is_GUI_evidence']=$false
+            if($null -ne $record.result.native_clients_launch){
+                $stage=[ordered]@{configuration='Release';source_input=(Join-Path $inputDir 'panebind.exe');
+                    actual_exe=(Join-Path $outputDir ($RunId+'-product-Release\panebind.exe'));
+                    product_source_commit=$manifest.product_source_commit;driver_source_commit=$manifest.driver_source_commit;
+                    packaging_head=$manifest.packaging_head;guest_contract=$manifest.guest_contract;product_interface=$manifest.product_interface;
+                    fixture=(Join-Path $inputDir 'panebind-v1-guest-fixture.exe');fixture_sha256=$manifest.driver_release_sha256;
+                    source_input_sha256=$manifest.product_release_sha256;actual_exe_sha256=$record.result.native_clients_launch.product_copy.copied_sha256;
+                    hash_equal=($record.result.native_clients_launch.product_copy.copied_sha256 -ceq $manifest.product_release_sha256);
+                    arguments=$record.result.native_clients_launch.arguments;actual_suite='NativeClientsOnly';
+                    actual_guest_account_mode='RunBoundStandardNativeClients';actual_result=$record.result.native_clients_launch;
+                    feature_result='NOT_EVALUATED';product_function_result='NOT_RUN';human_uat='NOT_RUN';safe_to_continue_independent_release=$false}
+                if($null -ne $stage.actual_result.fixture_exit_code){$stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result.fixture_exit_code)}
+                New-Evidence (Join-Path $outputDir ($RunId+'-Release-launch.json')) ($stage|ConvertTo-Json -Depth 18)
+                $summary.stages+=,$stage
+            }
+            $clean=$record.result.account_cleanup_confirmed -eq $true -and $record.result.dacl_cleanup_confirmed -eq $true -and
+                $record.result.all_probe_children_stopped -eq $true
+            $completed=$clean -and $probe.ExitCode -eq 0 -and $record.result.status -ceq 'STANDARD_NATIVE_CLIENTS_EXITED_REVIEW_EVIDENCE' -and
+                $record.result.wdag_baseline.identity_observed -eq $true -and $record.result.standard_native_child.identity_observed -eq $true -and
+                $record.result.native_clients_launch.fixture_exit_code -eq 0 -and $record.result.native_clients_launch.forced_test_cleanup -eq $false
+            $summary.status=if($completed){'STANDARD_NATIVE_CLIENTS_EXITED_REVIEW_EVIDENCE'}else{'STANDARD_NATIVE_CLIENTS_FAILED_OR_UNKNOWN'}
+            if($completed){exit 0}else{exit 3}
+        }finally{$probe.Dispose()}
     }
     # Official API references inspected 2026-10-15. Original orchestration code:
     # /windows/win32/api/winnt/ne-winnt-token_information_class (TokenLinkedToken)

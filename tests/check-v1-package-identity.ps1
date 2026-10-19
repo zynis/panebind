@@ -358,6 +358,39 @@ $ruleSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/
 Assert-V1OwnedRuleTargetWiring $fixtureSource $layoutSource $ruleSource
 Check $true 'static owned rule scope: exact target alias, real GUI rule, baseline/exclusion/restoration commands and resource cleanup are wired'
 Reject {Assert-V1OwnedRuleTargetWiring $fixtureSource $layoutSource ($ruleSource.Replace('excluded.rules.back().excluded&&excluded.rules.back().window_class==utf8(alias)','excluded.rules.back().excluded'))} 'static owned rule scope rejects accepting a rule without the exact target class'
+function Assert-V1StretchInputWiring([string]$Fixture,[string]$Chain,[string]$Stretch){
+    foreach($value in @('chain_double_click(set,item.region,item.shift,item.expected,item.label,true);',
+        'const std::array<Direction,9> cases','chain_command(set,0,L"Undo",source);',
+        'stretch_input_timeout_case(set,source);','stretch_input_movement_case(set,source);',
+        'stretch_input_caption_button_case(set,source);','interval<=GetDoubleClickTime()',
+        'actual_double_click_time_window_not_established')){
+        if(-not $Stretch.Contains($value)){throw 'F04 input scope must retain strict UP, independent actions/Undo and explicit incomplete timing.'}
+    }
+    if(-not $Chain.Contains('bool require_actual_up=false') -or -not $Chain.Contains('actual_up_matched') -or
+       -not $Fixture.Contains('scope_incomplete?"PARTIAL":')){throw 'F04 input observations must not be promoted from a missing UP or incomplete case.'}
+}
+$stretchInput=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_stretch_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1StretchInputWiring $fixtureSource $chainSource $stretchInput
+Check $true 'static F04 input scope retains strict actual UP, named actions/Undo, timing negative and PARTIAL summary'
+Reject {Assert-V1StretchInputWiring $fixtureSource $chainSource ($stretchInput.Replace('chain_double_click(set,item.region,item.shift,item.expected,item.label,true);','chain_double_click(set,item.region,item.shift,item.expected,item.label,false);'))} 'static F04 scope rejects disabling actual UP receipts'
+Reject {Assert-V1StretchInputWiring ($fixtureSource.Replace('scope_incomplete?"PARTIAL":','scope_incomplete?"PASS":')) $chainSource $stretchInput} 'static F04 scope rejects turning incomplete timing into PASS'
+function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
+    if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
+       -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
+       -not $Fixture.Contains('s.suite!="NativeClientsOnly"||debug||') -or
+       -not $Probe.Contains('return RunNativeParent(runId,scriptHash,driverSource,imageHash,imageSize,false,null,900);') -or
+       -not $Probe.Contains('RunStandardNativeFixture(token,account,logon,session,bootstrapSid,bootstrapLogon,runId,productHash,nativeTimeout,') -or
+       -not $Guest.Contains('if($standardNativeClients){') -or
+       -not $Guest.Contains('if($completed){exit 0}else{exit 3}')){
+        throw 'Standard native route must retain exact account/parent/suite guards, old CPWT and same original-token follow-up.'
+    }
+}
+$standardProbe=[IO.File]::ReadAllText((Join-Path $repository 'scripts/v1-medium-desktop-probe-guest.ps1'),[Text.Encoding]::UTF8)
+$standardGuest=[IO.File]::ReadAllText((Join-Path $repository 'scripts/v1-sandbox-guest.ps1'),[Text.Encoding]::UTF8)
+Assert-V1StandardNativeWiring $fixtureSource $standardProbe $standardGuest
+Check $true 'static standard native route keeps exact Run account/parent, old CPWT path and original credential-token follow-up'
+Reject {Assert-V1StandardNativeWiring ($fixtureSource.Replace('!exact_standard_native_guest_account(username.data())','false')) $standardProbe $standardGuest} 'static standard route rejects removing the actual local account identity gate'
+Reject {Assert-V1StandardNativeWiring ($fixtureSource.Replace('if(!found||actual_parent!=expected_pid)','if(found&&actual_parent!=expected_pid)')) $standardProbe $standardGuest} 'static standard route rejects unknown parent identity admission'
 $frozenDriver='d2fbd1969417b56dcdbfbfb353611abc235e3065'
 $frozenFixture=@(& git -C $repository show ($frozenDriver+':'+$fixturePath)) -join "`n"
 Check ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($frozenFixture)) 'static regression loads the actual frozen d2 driver source'

@@ -158,6 +158,25 @@ public:
         facts_->unhook_error=facts_->unhooked?0:GetLastError();hook_=nullptr;return facts_->unhooked;
     }
     ~GuestOwnedQueueUpObservation(){stop();}
+    // F04 native clicks need actual source-queue UP, but a caption button
+    // need not enter a Move/Resize loop. Do not invent END for that route.
+    // The caller supplies one of the existing two records and the exact
+    // finite count; this neither recycles a hook slot nor expands storage.
+    std::uint64_t exact_source_click_up_qpc(HWND source,DWORD owner_tid,std::uint64_t send_before,
+        DWORD down_stamp,POINT destination,unsigned index,unsigned expected_count,std::uint64_t native_end_qpc=0)const{
+        const auto& f=*facts_;
+        if(!f.installed||f.source!=source||f.owner_tid!=owner_tid||!source||!owner_tid||!send_before||
+            index>=f.records.size()||!expected_count||expected_count>f.records.size()||index>=expected_count||
+            f.count!=expected_count||f.active_callbacks!=0)return 0;
+        const auto& r=f.records[index];const auto entered=r.entry_qpc.load(),returned=r.return_qpc.load();
+        const auto message=r.before.message.load();
+        if(!r.returned||!r.unchanged||entered<send_before||returned<entered||(native_end_qpc&&native_end_qpc<=returned)||r.extra!=0x50425631||
+            r.before.hwnd!=reinterpret_cast<std::uintptr_t>(source)||
+            (message!=WM_LBUTTONUP&&message!=WM_NCLBUTTONUP)||
+            static_cast<LONG>(r.before.time.load()-down_stamp)<0||r.before.x!=destination.x||r.before.y!=destination.y||
+            f.count!=expected_count||f.active_callbacks!=0)return 0;
+        return entered;
+    }
     // A second native-only TEST observation, never product NormalUp. Require
     // the exact source queue's unchanged, removed, marked UP to return before
     // this source's real modal END. Missing marker/queue facts stay UNKNOWN.

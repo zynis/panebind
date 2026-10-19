@@ -410,13 +410,39 @@ void owned_ctrl_shift_bypass_reselect_case(State& s){
     s.log.emit("pause_routing_bypass_component","\"result\":\"PASS\",\"Ctrl_Shift_native_START_UP_END\":true,\"actual_relation_reselected_next_Ctrl\":true,\"whole_M04_M06_or_version_PASS\":false");
     }catch(...){pause_routing_failed_case_input(s);throw;}
 }
-void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect expected,const char* label){
+void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect expected,const char* label,bool require_actual_up=false){
     auto& s=set.state;chain_front(set,0);const auto point=layout_hit(set,0,native_region);
     if(!point)throw std::runtime_error("chain_requested_native_double_click_region_not_observed");
     const auto before=visible(set.frames[0].hwnd);if(!before)throw std::runtime_error("chain_double_click_before_unknown");
+    if(require_actual_up&&(s.suite!="StretchInputOnly"||set.active!=1||s.left||s.control||(GetAsyncKeyState(VK_SHIFT)&0x8000)))
+        throw std::runtime_error("chain_strict_double_click_exact_released_F04_scope_required");
+    struct ShiftCleanup{State& s;bool owns{},released{};void release(){if(owns&&!released){released=true;key(s,VK_SHIFT,false);}}
+        ~ShiftCleanup(){try{release();}catch(...){}}} shift_cleanup{s,shift};
+    GuestOwnedQueueUpObservation first_queue;
+    if(require_actual_up&&shift)s.log.check("stretch_Shift_first_source_queue_observer",first_queue.start(set.frames[0].hwnd,set.thread));
     RECT before_positioning{};const bool before_positioning_known=GetWindowRect(set.frames[0].hwnd,&before_positioning)!=FALSE;
     if(shift)key(s,VK_SHIFT,true);cursor(s,*point);Sleep(100);const auto mark=read_product(s).size();
-    const auto started=GetTickCount64();button(s,true);button(s,false);
+    if(require_actual_up){
+        DWORD_PTR hit{};GUITHREADINFO gui{sizeof(gui)};POINT actual{};
+        if(!set.owns(0)||visible(set.frames[0].hwnd)!=before||GetForegroundWindow()!=set.frames[0].hwnd||
+            !GetCursorPos(&actual)||actual.x!=point->x||actual.y!=point->y||WindowFromPoint(actual)!=set.frames[0].hwnd||
+            !SendMessageTimeoutW(set.frames[0].hwnd,WM_NCHITTEST,0,
+                MAKELPARAM(static_cast<short>(actual.x),static_cast<short>(actual.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)||
+            static_cast<int>(hit)!=native_region||!GetGUIThreadInfo(set.thread,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner)
+            throw std::runtime_error("stretch_first_DOWN_actual_exact_context_changed");
+    }
+    const auto started=GetTickCount64();const DWORD first_down_stamp=GetTickCount();button(s,true);button(s,false);
+    if(require_actual_up&&shift){
+        std::uint64_t first_up{};GUITHREADINFO gui{sizeof(gui)};
+        const bool observed=layout_wait_sent([&]{first_up=first_queue.exact_source_click_up_qpc(set.frames[0].hwnd,set.thread,
+            s.left_up_send_qpc,first_down_stamp,*point,0,1);return first_up&&set.owns(0)&&visible(set.frames[0].hwnd)==before&&
+            GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;},GetDoubleClickTime());
+        const bool stopped=first_queue.stop();first_up=stopped?first_queue.exact_source_click_up_qpc(set.frames[0].hwnd,set.thread,
+            s.left_up_send_qpc,first_down_stamp,*point,0,1):0;
+        s.log.check("stretch_Shift_first_actual_source_queue_UP",observed&&stopped&&first_up,
+            "\"actual_source_UP_qpc\":"+std::to_string(first_up)+",\"source_queue\":"+first_queue.json()+
+            ",\"native_END_or_NormalUp_inferred\":false");
+    }
     if(!shift){
         std::string failure,gone,status,ended,native_pending,native_released;
         std::uint64_t generation{};bool normal{},early_click{},native_click{},status_requested{},status_ok{};
@@ -510,13 +536,13 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
     }
     else wait([&]{GUITHREADINFO info{sizeof(info)};return GetGUIThreadInfo(set.thread,&info)&&!info.hwndCapture&&!info.hwndMoveSize;},200);
     if(GetTickCount64()-started>=GetDoubleClickTime()||visible(set.frames[0].hwnd)!=before){
-        if(shift)key(s,VK_SHIFT,false);throw std::runtime_error("chain_real_first_click_changed_geometry_or_double_click_timed_out");}
+        shift_cleanup.release();throw std::runtime_error("chain_real_first_click_changed_geometry_or_double_click_timed_out");}
     DWORD_PTR fresh_region{};
     if(!set.owns(0)||GetForegroundWindow()!=set.frames[0].hwnd||WindowFromPoint(*point)!=set.frames[0].hwnd||
        !SendMessageTimeoutW(set.frames[0].hwnd,WM_NCHITTEST,0,
            MAKELPARAM(static_cast<short>(point->x),static_cast<short>(point->y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&fresh_region)||
        static_cast<int>(fresh_region)!=native_region||GetTickCount64()-started>=GetDoubleClickTime()){
-        if(shift)key(s,VK_SHIFT,false);throw std::runtime_error("chain_second_click_actual_region_or_time_changed");}
+        shift_cleanup.release();throw std::runtime_error("chain_second_click_actual_region_or_time_changed");}
     const bool edge=native_region==HTLEFT||native_region==HTRIGHT||native_region==HTTOP||native_region==HTBOTTOM;
     const auto action=shift?(native_region==HTLEFT||native_region==HTRIGHT?"StretchHorizontal":"StretchVertical"):
         native_region==HTLEFT?"StretchLeft":native_region==HTRIGHT?"StretchRight":native_region==HTTOP?"StretchTop":"StretchBottom";
@@ -539,10 +565,66 @@ void chain_double_click(LayoutFixtures& set,int native_region,bool shift,Rect ex
              receipt.find("\"intent_reason\":\"double_click_stretch\"")!=receipt.npos);
         return observed&&actual_route&&set.owns(0)&&visible(set.frames[0].hwnd)==expected&&!receipt.empty();
     });
-    button(s,false);if(shift)key(s,VK_SHIFT,false);
-    s.log.check(label,changed&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"actual_native_hit\":"+std::to_string(native_region)+
+    button(s,false);shift_cleanup.release();
+    std::string matching_up,normal_end,legacy,gone;AbortCleanupUpReceipt corner_up;
+    unsigned corner_native_calls{},corner_late_calls{},corner_unknown_clocks{};bool actual_up_matched=!require_actual_up;
+    if(require_actual_up){
+        const auto generation=number(second_down,"\"generation\":"),source_key=number(second_down,"\"source_key\":");
+        if(edge)actual_up_matched=wait([&]{
+            matching_up=actual_up(s,second_mark,generation);
+            const bool exact_up=!matching_up.empty()&&number(matching_up,"\"process_id\":")==s.product_pid&&
+                matching_up.find("\"source_sha\":"+quote(s.product_source))!=matching_up.npos&&
+                number(matching_up,"\"source_key\":")==source_key&&source_key;
+            if(!exact_up)return false;
+            return matching_up.find("\"source\":\"WH_MOUSE_LL\"")!=matching_up.npos&&
+                matching_up.find("\"route\":\"mapped\"")!=matching_up.npos&&
+                matching_up.find("\"action\":"+quote(action))!=matching_up.npos&&
+                number(matching_up,"\"hook_observed_qpc\":")>=s.left_up_send_qpc;
+        });
+        else{
+            // The actual contextual corner path applies once, revokes its
+            // generation and ends Paused before this planned UP. Its real
+            // cleanup UP need not produce an input_button_observed event and
+            // must never be relabelled as captured legacy UP or NormalUp.
+            corner_up=abort_cleanup_up_receipt(s,second_mark,generation);
+            normal_end=corner_up.ended;gone=corner_up.gone;
+            matching_up=actual_up(s,second_mark,generation); // optional diagnostic, not required evidence
+            const product::guest::UpEvidenceIdentity identity{s.product_pid,s.product_source,generation,s.left_up_send_qpc};
+            std::istringstream rows(product_log_since(s,second_mark));std::string row;
+            while(std::getline(rows,row))if(row.ends_with('}')&&number(row,"\"process_id\":")==s.product_pid&&
+                row.find("\"source_sha\":"+quote(s.product_source))!=row.npos&&number(row,"\"generation\":")==generation&&
+                row.find("\"native_callsite_claimed\":true")!=row.npos){
+                ++corner_native_calls;const auto before=number(row,"\"native_before_qpc\":");
+                if(!before)++corner_unknown_clocks;else if(before>=s.left_up_send_qpc)++corner_late_calls;
+            }
+            const auto overlay=number(gone,"\"overlay\":");
+            actual_up_matched=source_key&&corner_up.matched&&
+                product::guest::matching_idle_status(corner_up.status,identity)&&
+                corner_up.status.find("\"enabled\":true")!=corner_up.status.npos&&
+                corner_up.status.find("\"native_move_handoff_pending\":false")!=corner_up.status.npos&&
+                number(normal_end,"\"end\":")==static_cast<unsigned>(v1::End::Paused)&&
+                normal_end.find("\"normal_up\":false")!=normal_end.npos&&
+                number(gone,"\"source\":")==reinterpret_cast<std::uintptr_t>(set.frames[0].hwnd)&&
+                number(gone,"\"source_pid\":")==GetCurrentProcessId()&&number(gone,"\"source_tid\":")==set.thread&&
+                overlay&&!IsWindow(reinterpret_cast<HWND>(static_cast<std::uintptr_t>(overlay)))&&
+                corner_native_calls==1&&!corner_late_calls&&!corner_unknown_clocks&&
+                number(receipt,"\"native_after_qpc\":")>0&&number(receipt,"\"native_after_qpc\":")<s.left_up_send_qpc;
+        }
+        GUITHREADINFO gui{sizeof(gui)};
+        actual_up_matched=actual_up_matched&&set.owns(0)&&visible(set.frames[0].hwnd)==expected&&
+            GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&!gui.hwndMenuOwner;
+    }
+    s.log.check(label,changed&&actual_up_matched&&!(GetAsyncKeyState(VK_LBUTTON)&0x8000),"\"actual_native_hit\":"+std::to_string(native_region)+
         ",\"Shift\":"+(shift?"true":"false")+",\"real_DOWN_UP_DOWN_UP\":true,\"expected\":"+rect(expected)+",\"receipt\":"+quote(receipt)+
         ",\"actual_second_DOWN\":"+quote(second_down)+",\"actual_mapped_completion\":"+quote(mapped)+
+        ",\"actual_matching_second_UP\":"+quote(matching_up)+",\"actual_terminal_end\":"+quote(normal_end)+
+        ",\"actual_legacy_UP\":"+quote(legacy)+",\"actual_resource_cleanup\":"+quote(gone)+
+        ",\"corner_cleanup_UP_not_NormalUp\":"+std::string(require_actual_up&&!edge?"true":"false")+
+        ",\"corner_cleanup_UP_receipt\":"+(require_actual_up&&!edge?"{"+corner_up.json()+"}":"null")+
+        ",\"corner_native_callsite_claims\":"+std::to_string(corner_native_calls)+
+        ",\"corner_native_claims_at_or_after_test_UP\":"+std::to_string(corner_late_calls)+
+        ",\"corner_native_unknown_clocks\":"+std::to_string(corner_unknown_clocks)+
+        ",\"strict_UP_required\":"+(require_actual_up?"true":"false")+
         ",\"corner_contextual_route_not_falsely_reported_as_mapped\":"+(edge?"false":"true"));
 }
 

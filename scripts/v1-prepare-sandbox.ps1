@@ -11,15 +11,23 @@ param(
     [switch]$MediumEnvironmentProbe,
     [switch]$MediumDesktopProbe,
     [switch]$MediumNativeIdentityOnly,
+    [switch]$StandardGuestNativeClients,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
-    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly')][string]$Suite='Full',
+    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
 )
 $ErrorActionPreference = 'Stop'
+if($StandardGuestNativeClients){
+    if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or
+       $MediumNativeIdentityOnly -or $MediumEnvironmentProbe -or $PortablePackageDirectory){
+        throw 'Standard guest native clients require Release/NativeClientsOnly without another probe or portable suite.'
+    }
+    $MediumDesktopProbe=$true
+}
 if($MediumNativeIdentityOnly){
     if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or $MediumEnvironmentProbe -or
        $VSCodeAssetDirectory -or $TerminalAssetDirectory -or $OfficialAppAssetDirectory -or $PortablePackageDirectory){
@@ -426,6 +434,9 @@ $manifest = [ordered]@{
     product_unchanged_across_tool_changes=$packagingIdentity.product_unchanged_across_tool_changes;
     driver_unchanged_across_packaging_changes=$packagingIdentity.driver_unchanged_across_packaging_changes;
     source_scope_equivalent=$true;docs_only_changes=$packagingIdentity.docs_only_changes;documentation_inputs=$packagingIdentity.documentation_inputs;
+    guest_account_mode=$(if($StandardGuestNativeClients){'RunBoundStandardNativeClients'}else{'WDAGDefault'});
+    guest_standard_account=$(if($StandardGuestNativeClients){'PBV1D_'+$RunId.Substring(0,12)}else{$null});
+    guest_standard_run_id=$(if($StandardGuestNativeClients){$RunId}else{$null});
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
     terminal_test_asset=$terminalAsset;
@@ -433,9 +444,12 @@ $manifest = [ordered]@{
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
     # The legacy kind is the existing controller envelope, not a GUI result.
     medium_desktop_probe=[ordered]@{enabled=[bool]$MediumDesktopProbe;kind='OneStandardGuestGuiPrecheck';
-        native_identity_only=[bool]$MediumNativeIdentityOnly;stop_after_probe=[bool]$MediumNativeIdentityOnly;
-        actual_suite=$(if($MediumNativeIdentityOnly){'MediumNativeIdentityOnly'}else{$null});
-        native_identity_image=$(if($MediumNativeIdentityOnly){'panebind-v1-guest-fixture.exe'}else{$null})};
+        native_identity_only=[bool]$MediumNativeIdentityOnly;stop_after_probe=[bool]($MediumNativeIdentityOnly -or $StandardGuestNativeClients);
+        standard_native_clients=[bool]$StandardGuestNativeClients;
+        standard_native_api=$(if($StandardGuestNativeClients){'CreateProcessAsUserW'}else{$null});
+        followup_suite=$(if($StandardGuestNativeClients){'NativeClientsOnly'}else{$null});
+        actual_suite=$(if($MediumNativeIdentityOnly){'MediumNativeIdentityOnly'}elseif($StandardGuestNativeClients){'StandardGuestNativeClients'}else{$null});
+        native_identity_image=$(if($MediumNativeIdentityOnly -or $StandardGuestNativeClients){'panebind-v1-guest-fixture.exe'}else{$null})};
     portable_test=$portableTest;
     guest_configurations=$GuestConfigurations;
     guest_suite=$Suite;

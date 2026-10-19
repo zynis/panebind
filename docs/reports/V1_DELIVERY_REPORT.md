@@ -2,9 +2,9 @@
 
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
-本轮新增的实际用户行为证明：同一212 Release产品的6dba智能拉伸分支，与034真实GUI精确类名规则排除／移除恢复互补，已覆盖M08-F05完整独立功能合同，B19可计PASS。忽略邻窗、无正交交叠、最近阻挡、过滤被排除目标及尺寸优先均有实际回执；此前cea四窗两轴共享Resize、后继普通Move和八窗末成员Ctrl Move证据保留。不授整个M08、鼠标四边四角F04、I05、真实应用混合组或Full通过。
+本轮新增的实际用户行为证明：同一212 Release产品已在0e815完成活动Ctrl中暂停、暂停时原生操作和Resume后普通Move／Resize完整独立合同，M01-F03可计PASS；6dba智能拉伸与034真实GUI精确类名排除／恢复互补，M08-F05及B19也可计PASS。此前cea四窗双轴共享Resize、后继普通Move和八窗末成员Ctrl Move保留。不授整个M01／M08、鼠标四边四角F04、整链、五应用或Full通过。
 
-当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M08-F05后为**8/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
+当前整版开发仍为 **PARTIAL**。产品212与7635便携字节未变；9724有限owned证据、dd02十个设置／生命周期与普通包入口子范围继续复用，托盘仍BLOCKED。be94 Full的B Resize因未知前台切换而FocusLost中断，原FAIL与原因UNKNOWN保留。7c6c→744已复验客户helper的source-only接线，但744应用前置仍失败。后继fe0在PaneBind产品从未启动的条件下完成有界原生客户对照：Terminal、Notepad、Code、Edge均未取得完整客户交互通过，Edge正常关闭未确认；它限制了当前guest可验证范围，不把所有问题归于环境或宣布唯一系统根因。历史7项完整功能不换绑，新增M01-F03与M08-F05后为**9/60功能、B19／B29／B32共3/40=7.5%**；生产接线60/60不等于验收完成。不能宿主试用，真人UAT PENDING，暂不进入REA分析。
 
 ## 当前结果：组布局与智能拉伸分支已实测，真实应用前置仍未齐
 
@@ -90,7 +90,21 @@ D255完整原配置恢复、D256测试布局资源关闭、D263阶段PASS；D264
 
 本批[D135／D213原行](v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl)分别观察暂停中与Ctrl+Shift绕过的原生拖动：源矩形独立预期和实际均精确，真实source队列UP、START／END均匹配，产品增强START、placement和cancel均为0。但驱动把[产品P59／P60／P76](v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl)的generation=0只读`raw_mouse`观察计作活动输入资源，分别以2／1条判FAIL。这些记录的source／PID／TID／overlay／capture均为0，关联及capture调用事实均false；不是隔离创建，也不是正常UP或写入权限证据。
 
-修正仅将字段完整、唯一、身份匹配且所有活动资源字段确认为0／false的已知只读观察另计；缺失、重复、未知fact或任何非零资源状态仍拒绝。真实UP、几何及零新增写入门不变。该修正尚待新driver／RunId复验；本批Resume后Move／Resize及绕过后的新Ctrl未执行，不能先授M01-F03或整链PASS。产品自身退出、capture／关联／遮罩回收与退出后实际客户DOWN／UP均有独立记录；guest20884及本轮任务于`2026-10-19T12:57:31.8591611Z`精确清理，原件保留且未修改其他资源。
+修正仅将字段完整、唯一、身份匹配且所有活动资源字段确认为0／false的已知只读观察另计；缺失、重复、未知fact或任何非零资源状态仍拒绝。真实UP、几何及零新增写入门不变。本批当时未执行Resume后Move／Resize及后继Ctrl；后继0e815的真实复验见下，不把新结果回写成4da PASS。产品自身退出、capture／关联／遮罩回收与退出后实际客户DOWN／UP均有独立记录；guest20884及本轮任务于`2026-10-19T12:57:31.8591611Z`精确清理，原件保留且未修改其他资源。
+
+### 0e815：活动暂停、真实原生操作、恢复新手势及关系重选已执行
+
+`0e815641b27b4df4957f09abdc74483a`／`PauseRoutingOnly`继续使用产品212原Release EXE；driver源码`e758223ffad19eceb6bb98fd5d24b14d060eaa7a`，包装`3819139f8432ce798ef9614565a215de930a2608`。Debug／Release均显式`/MT`构建成功、受影响guest-path各1/1（内部208项，D processor0.59／wall0.66秒，R 0.17／0.40秒）通过，68项工具守卫通过；实际现场仅Release，不将offline计为现场功能。
+
+D105／P38–44：g1 Ctrl三成员真实写入；D110／P46：活动中Pause，`normal_up=false`且pending退休。D115对应实际abort清理UP、capture释放、关联解除及遮罩销毁，D116依据实际QPC审计撤权后新增native调用0。D124其他成员真实客户DOWN／UP由0／0至1／1；D135暂停期间原生拖动source的START／队列UP／END匹配、独立目标与实际均`[140,245,440,565]`，增强START／placement／cancel／活动资源全0，只读idle Raw另计2，不授UP或写入权限。
+
+D139实际Resume并重建输入；同一产品PID3864／出生身份下，P73的g2是ctrl=false／resize=false／group_members=1，P75实际source Move至`[175,270,475,590]`，P88为真实NormalUp。P101的g3为ctrl=false／resize=true／group_members=1，P103实际Resize至`[175,270,475,614]`，P116 NormalUp；D155／169及产品资源回执分别核验释放／撤罩与实际几何。通用driver日志`participants=3`在此指读取三成员列表，不表示普通手势写入三窗；其余成员实际不动。
+
+D286 Ctrl+Shift原生绕过同样有真实source START／单次队列UP／END、exact目标`[100,220,400,540]`，产品增强与writer／cancel／活动资源0，只读Raw另计1。拉开旧组后P154新g4 Ctrl只选实际孤立source（group_members=1），P157实际写入，P170 NormalUp；D309旧成员native调用0。不是把旧布局或永久Leader沿用到下一代。
+
+D224／349各阶段恢复原配置，D225／350关闭精确自建布局；P185产品正常退出并逐项确认自身hook、writer、capture、关联及遮罩退出，未知在途完成=false。D363停止后实际客户DOWN／UP`[0,0]→[1,1]`，D365 Raw注销，D366自建窗及driver退出。M01-F03完整独立合同据这些实际事实授PASS，D28工具误计数也据对应D135／286复验关闭；不由summary PASS或guest销毁替代。guest19976和专属任务于`2026-10-19T13:24:53.8142639Z`精确清理，证据未变、部署保留、其他资源未改。
+
+Debug driver SHA `D0BFD61F05350BD11207FE0660007CE36FE4E2282DB558781C40C17DD41C77DE`，Release driver `B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB`。ZIP `384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7`、manifest `BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7`、WSB `8FDC6CD3FCE2E1D084ACB5401CA651549C671E5DD26631B79423691BB0DE67B6`。原件在`uat/v1-control/0e815641b27b4df4957f09abdc74483a/collection-20261019T132300283Z-84906dd54a374db7b1ec2fcfd77cd647/`，fixture366行／SHA `EFE6ACCEA98E6CE0C6D7E051E6AD4621EE8A2F4B6E4209D05D7EC42799E25548`，产品185行／SHA `2CDE671021744F1C347B231B0E4DDCFE22903741E5159F3826E3266835E77517`。4da旧FAIL保留；当前Scope不是整个M01／M04／M06、I08、Full或真人通过。
 
 ### 0f6：历史新驱动运行时打包缺口，原失败保留
 

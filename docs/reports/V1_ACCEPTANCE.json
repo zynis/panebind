@@ -42,7 +42,7 @@
         "next_action": "保留7944部署失败与9724有限900秒PASS。be94真实Full在B Resize因外来前台撤权，原因UNKNOWN；不放宽保护、不无证重跑Full或独立900秒。继续当前冻结212/eec的EntryAndSettings及ApplicationsOnly独立可运行链，先核实真实应用原生启动与客户交互。"
       },
     "implementation_inspected": "R10_212_9724_FINITE_OWNED_SCOPE_PASS_FULL_RELEASE_PENDING_PRIOR_PARTIAL_FAILURES_RETAINED",
-    "note": "产品212/便携7635未改。034真实GUI rule排除与6dba同Release二进制既有智能拉伸证据经限定独立复核完成M08-F05/B19，实际8/60与3/40=7.5%；原R2/R3七项身份不变。4da原FAIL/D28 OPEN及Resume/nextCtrl NOT_RUN、BE94未知前台/其他历史失败保留；整M08、Full、真实应用/显示、REA及真人未授PASS。",
+    "note": "产品212/原portable7635字节未改。0e81完整活动Ctrl暂停/零新增writer/资源释放/其他窗点击/原生透传/同PID新代单source Move与Resize合同实际通过M01-F03；D28只按两旧oracle失败对应实测关闭，4da原FAIL保留。034+6dba F05/B19及原R2/R3七项保持原身份，实际9/60、B3/40=7.5%；M01模块、M04/M06整feature及模块、Full/REA/真人均不由此授PASS。",
     "pending_product_note": "可信crossrec-desktop已用原配置恢复连接并核实ZS-WORKSTATION，无宿主配置变更。新Full Release Run be94复用product212/portable7635及已准备资产，driver eec补原生应用启动/交互前置检查；未运行或未通过的现场项目不按构建或连接恢复授PASS。原d2的048/9724实际身份原样保留，不单独重跑900秒或重建未改产品。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
@@ -124,6 +124,42 @@
       "revalidation_does_not_grant_feature_PASS": true
     },
     "next_driver_candidate": {
+      "source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "source_identity_basis": "ACTUAL_DEBUG_RELEASE_BINARY_SELF_REPORT_E758_AND_MATCHING_MT_DEPENDENCY_RECEIPT",
+      "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_unchanged": true,
+      "build_dir": "out/v1-driver-pause-idle-e758223",
+      "debug_build_result": "PASS_EXIT_0",
+      "release_build_result": "PASS_EXIT_0",
+      "debug_binary_sha256": "D0BFD61F05350BD11207FE0660007CE36FE4E2282DB558781C40C17DD41C77DE",
+      "release_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "runtime_contract": "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+      "debug_and_release_PE_dependency_gate": "PASS_ACTUAL_RECEIPT_SYSTEM_IMPORTS",
+      "debug_guest_path": "1/1 PASS;208 internal checks;processor0.59/wall0.66",
+      "release_guest_path": "1/1 PASS;208 internal checks;processor0.17/wall0.40",
+      "debug_ctest_output_log": "uat/v1-control/r11-e758223-Debug-offline-20261019.txt",
+      "debug_ctest_output_log_sha256": "56F6C01EEF6C4ECA82194C1FCF68291BF92D68E3AF337B0C16A0FA4B7BF8C9A1",
+      "release_ctest_output_log": "uat/v1-control/r11-e758223-Release-offline-20261019.txt",
+      "release_ctest_output_log_sha256": "1AC6E145EA491A0B2455EC54B700120C74F2205DF0C0CF675A8AEEDFD90A1823",
+      "static_tool_checks": 68,
+      "offline_static_scope": "ACTUAL_TOOL_CHECKS_NOT_NATIVE_FUNCTION_PASS; internal208 count supplied by main actual execution, ctest transcripts retain1/1 and elapsed times",
+      "runtime_validation": "ACTUAL_0E81_COMPLETE_M01_F03_PASS_AND_CTRL_SHIFT_SINGLE_MEMBER_RESELECT_SCOPED_PASS_D28_ORACLE_CLOSED",
+      "prepared_run_ids": [
+        "0e815641b27b4df4957f09abdc74483a"
+      ],
+      "run_states": [
+        {
+          "run_id": "0e815641b27b4df4957f09abdc74483a",
+          "suite": "PauseRoutingOnly",
+          "state": "ACTUAL_F03_CONTRACT_PASS_AND_BYPASS_SCOPE_COLLECTED_EXACT_GUEST_TASK_CLEANED",
+          "guest_pid": 19976,
+          "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
+        }
+      ],
+      "scope": "Test-only strict known-idle Raw classification; unknown or active resource observations still fail. Actual F03 facts reviewed independently of suite PASS. Restore ordinary Move/Resize uses single source (group_members1), not fixture participants3 follower writes. No M01 module/I08/M04/M06/Full or human PASS; product212/portable7635 unchanged."
+    },
+    "observed_driver_4e30fcd": {
       "source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
       "implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
       "source_identity_basis": "ACTUAL_DEBUG_RELEASE_BINARY_SELF_REPORT_AND_MT_DEPENDENCY_RECEIPT_4E30FCD",
@@ -315,7 +351,7 @@
     "pending_candidate": {
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "implementation_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-      "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
       "build_dir": "out/v1-product-native-geometry-r10-212e197",
       "implementation_status": "IMPLEMENTED_RUNTIME_SCOPED_FAILURES",
       "build_status": "PASS_DEBUG_RELEASE_EXIT_0",
@@ -323,14 +359,14 @@
       "release_build_result": "PASS_EXIT_0",
       "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
       "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-      "debug_driver_sha256": "88C959432305B3E9BD09EF3F0AA08307097222E4FABF25980274691B689A055F",
-      "release_driver_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
+      "debug_driver_sha256": "D0BFD61F05350BD11207FE0660007CE36FE4E2282DB558781C40C17DD41C77DE",
+      "release_driver_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
       "offline_regression": "Debug11/11 PASS processor3.27/wall3.32; Release11/11 PASS processor1.69/wall2.99 seconds",
       "debug_ctest_output_log": "uat/v1-control/r10-212e197-Debug-offline-20261017.txt",
       "debug_ctest_output_log_sha256": "55C972BE0F869290DB88C901AE8A05E1F87A5A87C81C4B11E92F589F6F314FA1",
       "release_ctest_output_log": "uat/v1-control/r10-212e197-Release-offline-20261017.txt",
       "release_ctest_output_log_sha256": "686B310183EC35A1723FBB97CD641E1F48633948F5BA3E25F5BC03547EA363C7",
-      "runtime_validation": "ACTUAL_034_PLUS_6DBA_SAME_BINARY_FULL_F05_B19_PASS_4DA_ORACLE_FAILURE_RETAINED_NOT_MODULE_OR_VERSION",
+      "runtime_validation": "ACTUAL_0E81_F03_FULL_INDEPENDENT_PASS_RULE_F05_PASS_RETAINED_NOT_MODULE_FULL",
       "ordinary_desktop_runtime": "NOT_RUN",
       "repair_scope": "Native-first single-left titlebar/edge/corner geometry with locked ordinary/Ctrl route; original-DOWN Ctrl group frozen before native prefix, real START/END and fresh-B checks feed the shared gate and writer",
       "limits_scope": "Original-DOWN limits are existing system/default measurements only; actual application-declared tracking limits are queried at begin B and must not be relabelled as measured at DOWN.",
@@ -344,31 +380,31 @@
       "latest_debug_run_id": "dedc680b48734f99987771019dec010d",
       "latest_debug_driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "latest_debug_driver_sha256": "1F59F8E17E0449ECA067A568D4DBAD707AF4CDFF67356E78F709B7776CF90621",
-      "release_runtime_validation": "ACTUAL_034_RULE_EXCLUSION_PASS_COMPLETES_F05_WITH_6DBA_NOT_FULL",
-      "latest_release_run_id": "034acef4344d47f6b7cac78fc122ad41",
-      "latest_release_driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-      "latest_release_driver_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
+      "release_runtime_validation": "ACTUAL_0E81_ACTIVE_CTRL_PAUSE_RESUME_F03_PASS_BYPASS_SCOPE_ONLY",
+      "latest_release_run_id": "0e815641b27b4df4957f09abdc74483a",
+      "latest_release_driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "latest_release_driver_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
       "in_progress_release_run_id": null,
-      "release_run_id": "034acef4344d47f6b7cac78fc122ad41",
-      "run_id": "034acef4344d47f6b7cac78fc122ad41",
+      "release_run_id": "0e815641b27b4df4957f09abdc74483a",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
       "configuration": "Release",
-      "observation_id": "PO-034-R12-EXACT-GUI-RULE-EXCLUSION-COMPLETES-SMART-STRETCH-F05",
-      "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-      "package_zip_sha256": "6552DE3804962844D3B255BB9C38A64105FDC9D5025FE476583612827ACB79CF",
-      "package_manifest_sha256": "C03F2A38F02F395304ED539B209BA60223C0A6E0B26C1F5A0E6B227CD39E1592",
-      "wsb_sha256": "C58515BF45701C94CF8264E38E258784AE3584ADEA3203C78770A1E9DC133E7D",
+      "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+      "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+      "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+      "wsb_sha256": "8FDC6CD3FCE2E1D084ACB5401CA651549C671E5DD26631B79423691BB0DE67B6",
       "portable_package_id": "7635dc7b0c03416e95401a3eed8b262a",
       "portable_zip_sha256": "576E730C7CD1C132662EF83BE82B97588473510B8B7507C861C55448ADEEA2F6",
       "portable_manifest_sha256": "9A206411EE28BD8167EA2417CECE9B9CAA848F773F038E05658CF7D2DAA0194D",
       "portable_runtime": "ACTUAL_477A_ORDINARY_GUI_SAVED_MOVE_UP_NORMAL_EXIT_BYTES_SCOPED_PASS_NOT_WHOLE_I12",
-      "runtime_note": "产品212/便携7635未改。034同4e MT driver真实GUI仅排除exact异class邻窗，生产StretchLeft从near600→work0→移除rule后near600，六次native(含Undo)全部exact，source Frame身份与target可见几何保持、原配置/alias/资源/客户输入实际恢复。与同一product212/E2F93...的6dba最近/远窗/无交叠/hidden/忽略邻窗/max优先组合，经限定独立复核完成M08-F05与B19；实际列表8/60、3/40=7.5%，不授M08模块/Full/REA/真人。4da原FAIL/D28 OPEN及Resume/nextCtrl NOT_RUN完整保留，0f6/5b0及其他历史身份不改。",
+      "runtime_note": "未改产品212/原portable7635。0e81实际活动三成员Ctrl写入→Paused非NormalUp/零新增writer/实际abort UP与capture-release/detach/gone→member1真实客户输入→暂停native START/源队列UP/END/单源exact且0active资源、idleRaw单列→同PID/birth恢复新g2普通Move/g3 Resize单源各一次exact及真实NormalUp/UP/无残留，完整M01-F03合同独立通过。第二phase Ctrl+Shift原生透传和新Ctrl实际单成员重选、旧邻窗0native仅其scope，不授M04/M06整feature。D28仅按旧两失败对应严格分类实际复验关闭，4da原FAIL保留。034+6dba F05/B19完整证据维持；实际9/60、B3/40=7.5%，模块/Full/REA/真人未过。",
       "debug_run_id": "c1f89e3f96034b0a83d6ace04295aacf",
-      "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
       "pending_native_clients_run_id": null,
       "latest_group_component_observation_id": "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
       "latest_native_client_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
       "latest_stretch_component_observation_id": "PO-6DBA-R11-SMART-STRETCH-NEIGHBOUR-MODES-SCOPED-PASS",
-      "latest_pause_routing_observation_id": "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
+      "latest_pause_routing_observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
       "latest_rule_component_observation_id": "PO-034-R12-EXACT-GUI-RULE-EXCLUSION-COMPLETES-SMART-STRETCH-F05"
     },
     "observed_R9_356_candidate": {
@@ -1130,14 +1166,14 @@
       "B39",
       "B40"
     ],
-    "note": "实际PASS列表重算：B19/B29/B32共3/40=7.5%；8/60独立功能完成，新增同产品212的034+6dba M08-F05。原R2/R3七项保持原身份，不等于M08模块/Full/REA/真人通过；B33–B40固定DEFERRED。"
+    "note": "实际PASS列表：9/60独立功能，新增0e81完整M01-F03；034+6dba同产品212的M08-F05及原R2/R3七项身份保留。B19/B29/B32仍3/40=7.5%，无新增B项；不等于模块/Full/REA/真人，B33–B40固定DEFERRED。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际8/60独立功能及B19/B29/B32三项对标通过；其余52功能、29个必选对标及模块/当前Release整版硬门未齐。034+6dba仅补M08-F05/B19，不覆盖4da暂停后段或D28。",
+      "remaining_conditions": "实际9/60独立功能及B19/B29/B32三项对标通过；其余51功能、29个必选对标及模块/整版硬门未齐。0e81仅新增M01-F03，第二bypass/reselect仅其scope，不授M04/M06、M01模块或I08。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -1395,30 +1431,33 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M01-F03-DEV",
           "required_observation": "活动 Ctrl Move 中暂停；停止新增写入，其他窗口可点击；恢复后新 Move/Resize 各一次成功",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl"
+            "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl",
+            "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
-            "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE"
+            "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
+            "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -1429,7 +1468,9 @@
         "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
         "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json",
         "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl"
+        "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl",
+        "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -1439,46 +1480,68 @@
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前212/4da活动三成员Ctrl→Paused撤权/资源释放→另窗真实客户点击→暂停native Move的START/队列UP/END/expected source已观察；原FAIL为readonly Raw计数driver oracle，Resume新Move/Resize未执行。 【历史观察保留】c01显式Pause真实终止及部分新手势恢复已有结果；未把Pause当NormalUp。",
-      "remaining_conditions": [
-        "修V1-D28严格只读Raw分类后，以真实前置完整重验同PID/birth Resume新代Move/Resize及匹配UP；本批这些项NOT_RUN，不能由活动暂停/透传前段外推。D27仅按新MT真实入口影响关闭，不是功能PASS。"
-      ],
-      "next_action": "新MT在4da真实进入/启动产品/写入，D27入口影响已复验。仅修driver V1-D28保持unknown与真实资源检查，以新SHA/RunId重验完整活动Ctrl暂停→其他窗点击/原生透传→同PID新代Move/Resize；逐项通过可裁定F03，不叠托盘/真实应用/M01/I08/Full门。",
+      "status_basis": "FULL_INDEPENDENT_M01_F03_ACTUAL_PLATFORM_RECEIPTS_REVIEWED_NOT_SUITE_LABEL",
+      "observed": "0e81同产品212/PID3864：活动g1 Ctrl确实移动三成员后Pause，实际Paused非NormalUp/pending退休；触发后新增native0/未知时钟0，实际abort LL-UP、capture释放/detach/isolation gone、另member1客户DOWN/UP各+1。暂停source真实native START/源队列UP/END各1、exact且无product增强START/placement/cancel/active资源，仅严格只读idleRaw2另计。Resume后同PID/birth新g2普通Move与g3 Resize均ctrl=false/group_members1，仅source key4各一次exact，从暂停后实际几何重新采样；实际匹配UP/NormalUp、无capture/稳定几何及原配置/精确窗/资源收尾完成，完整满足F03。fixture participants3只是读取三窗，不代表恢复后Follower写入。",
+      "remaining_conditions": [],
+      "next_action": "本独立F03合同已实际完成，仅后续产品或相关输入/暂停路径有实际改动时按影响复验。M01托盘/退出其余功能、完整模块/I08/真实应用/Full继续独立推进，不作为本功能额外门，也不由本项补PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
         "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
-        "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE"
+        "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
+        "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
       ],
       "latest_product_observation": {
-        "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
-        "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
-        "driver_source_sha": "12968acf512cd24e5dbd53853ab578e468f168a9",
-        "run_id": "b49deace80fe49899375bf8d36481ea1",
+        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+        "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+        "run_id": "0e815641b27b4df4957f09abdc74483a",
         "observation_ids": [
-          "PO-B49-CORE-RECOVERY-VISUAL"
+          "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
         ]
       },
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
         "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "product_process_id": 3908,
-        "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "driver_binary_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
-        "run_id": "4da1d0848b4449a8a4ea303ab4986009",
+        "product_process_id": 3864,
+        "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+        "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+        "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+        "run_id": "0e815641b27b4df4957f09abdc74483a",
         "configuration": "Release",
-        "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "package_zip_sha256": "458C2B288B343CB3EBCD528A341114B11E1E08E691462305F46BE7F88F38BA2E",
-        "package_manifest_sha256": "3314B679A8FA6C1DC720301072FF090AC5FC03D69C535BD4F451FD51D749099F",
-        "observation_id": "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
-        "scope": "PARTIAL_ACTUAL_ACTIVE_CTRL_PAUSE_NATIVE_MOVE_UP_AND_CTRL_SHIFT_PASSTHROUGH_DRIVER_ORACLE_FAIL_RESUME_AND_NEXT_CTRL_NOT_RUN",
-        "original_case_results_preserved": "FAIL_DRIVER_ORACLE",
-        "not_complete_contract_PASS": true
-      }
+        "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+        "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+        "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+        "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+        "scope": "COMPLETE_M01_F03_ACTUAL_ACTIVE_CTRL_PAUSE_RESOURCE_RETIREMENT_NATIVE_PASSTHROUGH_AND_SAME_PROCESS_SOURCE_ONLY_RESUME_MOVE_RESIZE_PLUS_SCOPED_BYPASS_NOT_MODULE_OR_VERSION",
+        "complete_M01_F03_contract_PASS": true,
+        "resumed_Move_group_members": 1,
+        "resumed_Resize_group_members": 1
+      },
+      "acceptance_basis": "读取原始D110/115/116/124/135/139、P73/75/87/88与P101/103/115/116及资源回执，结合冻结e758双端PID/birth guard实际执行，非suite PASS推定。",
+      "historical_assessments": [
+        {
+          "dev_status": "BLOCKED",
+          "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+          "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+          "environment_id": "E02",
+          "run_id": "c01ffe67d3004961bd00765312869c8a",
+          "observed": "当前212/4da活动三成员Ctrl→Paused撤权/资源释放→另窗真实客户点击→暂停native Move的START/队列UP/END/expected source已观察；原FAIL为readonly Raw计数driver oracle，Resume新Move/Resize未执行。 【历史观察保留】c01显式Pause真实终止及部分新手势恢复已有结果；未把Pause当NormalUp。",
+          "remaining_conditions": [
+            "修V1-D28严格只读Raw分类后，以真实前置完整重验同PID/birth Resume新代Move/Resize及匹配UP；本批这些项NOT_RUN，不能由活动暂停/透传前段外推。D27仅按新MT真实入口影响关闭，不是功能PASS。"
+          ],
+          "partial_observation_ids": [
+            "PO-C01-INDEPENDENT",
+            "PO-B49-CORE-RECOVERY-VISUAL",
+            "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+            "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
+            "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE"
+          ]
+        }
+      ],
+      "defect_scope_note": "历史开放D08/D11的其他场景不由本合同关闭；本轮只关闭D28测试oracle对应复验，4da原FAIL保留。"
     },
     {
       "id": "M01-F04",
@@ -2623,12 +2686,15 @@
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/bdab-release-owned.jsonl",
             "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl"
+            "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl",
+            "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
             "PO-BDAB-OWNED-FULL",
-            "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE"
+            "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
+            "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -2644,7 +2710,9 @@
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0f6-r12-driver-runtime-dependency-launch-selected.json",
         "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl"
+        "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl",
+        "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
       ],
       "defects": [
         "V1-D27",
@@ -2653,18 +2721,18 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "现有owned Ctrl/普通/Resize、smartDock开关及实际快捷键有子结果。 当前212/4da D213真实Ctrl+Shift native START/队列UP/END与目标正确，product增强START/placement/cancel全0；原FAIL为readonly Raw计数oracle，nextCtrl关系重选未执行。",
+      "observed": "现有owned Ctrl/普通/Resize、smartDock开关及实际快捷键有子结果。 当前212/4da D213真实Ctrl+Shift native START/队列UP/END与目标正确，product增强START/placement/cancel全0；原FAIL为readonly Raw计数oracle，nextCtrl关系重选未执行。 当前0e81实际Ctrl+Shift native START/队列UP/END、source exact且0active资源/1idleRaw，随后实际分离几何重选新Ctrl group_members1、仅source一次native/旧邻窗0，通过各自scope；活动Ctrl Pause/Resume另完整满足F03，不授M04/M06整feature。",
       "remaining_conditions": [
-        "当前候选全部优先级/Shift与设置并发组合和五应用范围未齐。",
-        "4da native bypass前段已有实际事实，nextCtrl关系重选NOT_RUN；修严格readonly Raw oracle后按同一真实链复验，不授完整路由PASS。"
+        "当前候选全部优先级/Shift与设置并发组合和五应用范围未齐。"
       ],
-      "next_action": "4da新MT入口已运行并限域关闭D27；修V1-D28严格readonly Raw分类、保留旧FAIL，重验Ctrl+Shift原生透传→实际关系重选→新Ctrl；不修改产品或放宽真实资源/unknown拒绝。",
+      "next_action": "0e81已实际补齐旧4da oracle对应native bypass及nextCtrl单成员关系重选；不重跑该专项。继续原功能尚缺的其他Ctrl/磁吸/停靠/快捷命令/设置变化仲裁组合，不把这两scope当完整M04或M06功能PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
-        "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE"
+        "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
+        "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -2679,18 +2747,17 @@
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
         "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "product_process_id": 3908,
-        "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "driver_binary_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
-        "run_id": "4da1d0848b4449a8a4ea303ab4986009",
+        "product_process_id": 3864,
+        "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+        "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+        "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+        "run_id": "0e815641b27b4df4957f09abdc74483a",
         "configuration": "Release",
-        "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-        "package_zip_sha256": "458C2B288B343CB3EBCD528A341114B11E1E08E691462305F46BE7F88F38BA2E",
-        "package_manifest_sha256": "3314B679A8FA6C1DC720301072FF090AC5FC03D69C535BD4F451FD51D749099F",
-        "observation_id": "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
-        "scope": "PARTIAL_ACTUAL_ACTIVE_CTRL_PAUSE_NATIVE_MOVE_UP_AND_CTRL_SHIFT_PASSTHROUGH_DRIVER_ORACLE_FAIL_RESUME_AND_NEXT_CTRL_NOT_RUN",
-        "original_case_results_preserved": "FAIL_DRIVER_ORACLE",
+        "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+        "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+        "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+        "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+        "scope": "Actual CtrlShift native and next Ctrl single-member reselect only",
         "not_complete_contract_PASS": true
       }
     },
@@ -10147,7 +10214,7 @@
   "defects": [
     {
       "id": "V1-D28",
-      "status": "OPEN",
+      "status": "CLOSED_BY_TARGETED_RUNTIME_REVALIDATION",
       "kind": "TEST_DRIVER_READONLY_RAW_RECEIPTS_MISCOUNTED_AS_ACTIVE_GESTURE_RESOURCES",
       "component": "PAUSE_ROUTING_TEST_ORACLE_NOT_PRODUCT",
       "description": "4da旧driver把所有gesture_input_resource行计为active resources；P59/P60/P76实际均gen0/raw_mouse/sourcePIDTID0/overlay0且无capture/attach/release/detach尝试或结果，只是只读Raw观察。D135/D213实际START/队列UP/END和expected source正确、product增强START/placement/cancel全0，却因resources2/1报FAIL。保留旧FAIL；不能忽略unknown或真实资源行为，也不能改产品保护。",
@@ -10165,9 +10232,15 @@
         "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
         "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl"
       ],
-      "repair_state": "STRICT_KNOWN_READONLY_RAW_CLASSIFICATION_REPAIR_IN_PROGRESS_RUNTIME_PENDING",
-      "runtime_revalidation": "NOT_RUN_REPAIRED_DRIVER_REQUIRED",
-      "next_action": "仅排除严格已知gen0/source身份0/overlay0且资源尝试与结果全false的只读Raw行；unknown及真实resource仍拒绝。以新driver SHA/RunId重验完整PauseRoutingOnly；本批Resume后Move/Resize及nextCtrl未执行，不能由前段PASS外推。"
+      "repair_state": "STRICT_KNOWN_READONLY_RAW_CLASSIFIER_FIXED_AND_BOTH_PRIOR_FAILURE_SCENARIOS_ACTUALLY_REVALIDATED",
+      "runtime_revalidation": "ACTUAL_0E81_D135_ACTIVE0_IDLE2_AND_D286_ACTIVE0_IDLE1_WITH_NATIVE_START_QUEUE_UP_END_EXACT",
+      "next_action": "对应两旧失败已用新e758/0e81真实复验关闭，不重复该专项或修改旧FAIL。后续classifier实际变化仅按影响回归；本次F03完整合同可通过，CtrlShift/reselect只授其scope，不授M04/M06或整版。",
+      "repair_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "revalidation_run_id": "0e815641b27b4df4957f09abdc74483a",
+      "revalidation_driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "revalidation_driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "revalidation_observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "closure_scope": "Test-driver oracle only; known idle Raw is neither UP proof nor write authority, unknown/active resource facts still reject. Original4da FAIL remains unchanged."
     },
     {
       "id": "V1-D27",
@@ -10794,6 +10867,29 @@
     }
   },
   "historical_packages": [
+    {
+      "run_id": "034acef4344d47f6b7cac78fc122ad41",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "receipt_path": "uat/v1-sandbox/034acef4344d47f6b7cac78fc122ad41/package-receipt.json",
+      "manifest_path": "uat/v1-sandbox/034acef4344d47f6b7cac78fc122ad41/input/manifest.json",
+      "zip_sha256": "6552DE3804962844D3B255BB9C38A64105FDC9D5025FE476583612827ACB79CF",
+      "manifest_sha256": "C03F2A38F02F395304ED539B209BA60223C0A6E0B26C1F5A0E6B227CD39E1592",
+      "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
+      "release_fixture_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
+      "debug_fixture_sha256": "88C959432305B3E9BD09EF3F0AA08307097222E4FABF25980274691B689A055F",
+      "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_MT_DRIVER_4E30FCD_AND_034_GUI_RULE_RUNTIME_RECEIPTS",
+      "guest_configurations": "Release",
+      "guest_suite": "OwnedRulesOnly",
+      "guest_function_status": "PASS_RULE_COMPONENT_COMPLETES_M08_F05_B19_WITH_6DBA_SAME_PRODUCT_BINARY_NOT_MODULE_FULL_OR_HUMAN",
+      "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
+      "human_uat": "NOT_RUN",
+      "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
+      "note": "034实际GUI rule排除与移除、六次native exact及清理通过；与6dba同产品/同EXE组合完成F05/B19独立合同。旧4da driver oracle FAIL/D28 OPEN、Resume/nextCtrl NOT_RUN不被覆盖。产品212/原portable7635字节不变，M08模块/Full/REA/真人仍未授PASS。"
+    },
     {
       "run_id": "4da1d0848b4449a8a4ea303ab4986009",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -11615,27 +11711,27 @@
     }
   ],
   "current_package": {
-    "run_id": "034acef4344d47f6b7cac78fc122ad41",
+    "run_id": "0e815641b27b4df4957f09abdc74483a",
     "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-    "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-    "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-    "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-    "receipt_path": "uat/v1-sandbox/034acef4344d47f6b7cac78fc122ad41/package-receipt.json",
-    "manifest_path": "uat/v1-sandbox/034acef4344d47f6b7cac78fc122ad41/input/manifest.json",
-    "zip_sha256": "6552DE3804962844D3B255BB9C38A64105FDC9D5025FE476583612827ACB79CF",
-    "manifest_sha256": "C03F2A38F02F395304ED539B209BA60223C0A6E0B26C1F5A0E6B227CD39E1592",
+    "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+    "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+    "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+    "receipt_path": "uat/v1-sandbox/0e815641b27b4df4957f09abdc74483a/package-receipt.json",
+    "manifest_path": "uat/v1-sandbox/0e815641b27b4df4957f09abdc74483a/input/manifest.json",
+    "zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+    "manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
     "release_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
     "debug_binary_sha256": "8AF5BB9BDF0555EB070E40E902D8DC951D122C8010AB0783DF9B28A878C4CBB6",
-    "release_fixture_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
-    "debug_fixture_sha256": "88C959432305B3E9BD09EF3F0AA08307097222E4FABF25980274691B689A055F",
-    "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_MT_DRIVER_4E30FCD_AND_034_GUI_RULE_RUNTIME_RECEIPTS",
+    "release_fixture_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+    "debug_fixture_sha256": "D0BFD61F05350BD11207FE0660007CE36FE4E2282DB558781C40C17DD41C77DE",
+    "identity_basis": "ACTUAL_FROZEN_PRODUCT_212_MT_DRIVER_E758_BINARY_RECEIPTS_AND_0E81_F03_RUNTIME",
     "guest_configurations": "Release",
-    "guest_suite": "OwnedRulesOnly",
-    "guest_function_status": "PASS_RULE_COMPONENT_COMPLETES_M08_F05_B19_WITH_6DBA_SAME_PRODUCT_BINARY_NOT_MODULE_FULL_OR_HUMAN",
+    "guest_suite": "PauseRoutingOnly",
+    "guest_function_status": "PASS_COMPLETE_M01_F03_AND_BYPASS_RESELECT_SCOPE_NOT_M01_M04_M06_MODULE_I08_FULL_OR_HUMAN",
     "deployment_status": "DEPLOYED_COLLECTED_EXACT_GUEST_AND_TASK_CLEANED_EVIDENCE_RETAINED",
     "human_uat": "NOT_RUN",
     "native_client_diagnostic_observation_id": "PO-FE0-R11-NATIVE-CLIENTS-WITHOUT-CANDIDATE-PRODUCT",
-    "note": "034实际GUI rule排除与移除、六次native exact及清理通过；与6dba同产品/同EXE组合完成F05/B19独立合同。旧4da driver oracle FAIL/D28 OPEN、Resume/nextCtrl NOT_RUN不被覆盖。产品212/原portable7635字节不变，M08模块/Full/REA/真人仍未授PASS。"
+    "note": "0e81完整M01-F03独立合同真实通过，不依赖suite标签。恢复Move/Resize为source单成员、其他成员保持，不把观察列表participants3当Follower写入。D28仅oracle对应两旧失败复验关闭，4da原FAIL原样保留。034/6dba F05/B19及全部历史身份不改；产品212/portable7635字节未变，9/60、B3/40，不授整版或真人。"
   },
   "portable_candidate": {
     "package_id": "7635dc7b0c03416e95401a3eed8b262a",
@@ -11653,6 +11749,50 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-0E81-R12-F03-ACTIVE-PAUSE-NATIVE-RESUME",
+      "kind": "literal_selected_actual_F03_pause_resume_and_native_resource_UP_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 3864,
+      "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
+      "configuration": "Release",
+      "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+      "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+      "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+      "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "scope": "COMPLETE_M01_F03_ACTUAL_ACTIVE_CTRL_PAUSE_RESOURCE_RETIREMENT_NATIVE_PASSTHROUGH_AND_SAME_PROCESS_SOURCE_ONLY_RESUME_MOVE_RESIZE_PLUS_SCOPED_BYPASS_NOT_MODULE_OR_VERSION",
+      "path": "uat/v1-control/0e815641b27b4df4957f09abdc74483a/collection-20261019T132300283Z-84906dd54a374db7b1ec2fcfd77cd647/0e815641b27b4df4957f09abdc74483a-release-fixture.jsonl",
+      "sha256": "EFE6ACCEA98E6CE0C6D7E051E6AD4621EE8A2F4B6E4209D05D7EC42799E25548",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "4DDC68847E566A03F06232611CE9F284F7339A13E5BABA0841507DB3BEAB1D81"
+    },
+    {
+      "id": "EV-0E81-R12-PAUSE-RESUME-ACTUAL-NATIVE-UP",
+      "kind": "literal_selected_actual_F03_pause_resume_and_native_resource_UP_JSONL",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 3864,
+      "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
+      "configuration": "Release",
+      "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+      "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+      "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+      "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "scope": "COMPLETE_M01_F03_ACTUAL_ACTIVE_CTRL_PAUSE_RESOURCE_RETIREMENT_NATIVE_PASSTHROUGH_AND_SAME_PROCESS_SOURCE_ONLY_RESUME_MOVE_RESIZE_PLUS_SCOPED_BYPASS_NOT_MODULE_OR_VERSION",
+      "path": "uat/v1-control/0e815641b27b4df4957f09abdc74483a/collection-20261019T132300283Z-84906dd54a374db7b1ec2fcfd77cd647/0e815641b27b4df4957f09abdc74483a-product-Release/panebind.log.jsonl",
+      "sha256": "2CDE671021744F1C347B231B0E4DDCFE22903741E5159F3826E3266835E77517",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl",
+      "repository_excerpt_sha256": "C89F187F5B600F6098CC8C268609493EE4E513DE760D4994DBD89C7F5A7A2A86"
+    },
     {
       "id": "EV-034-R12-EXACT-GUI-RULE-TARGET",
       "kind": "literal_selected_actual_GUI_rule_and_native_placement_JSONL",
@@ -13358,6 +13498,117 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "product_process_id": 3864,
+      "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
+      "configuration": "Release",
+      "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+      "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+      "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+      "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "scope": "COMPLETE_M01_F03_ACTUAL_ACTIVE_CTRL_PAUSE_RESOURCE_RETIREMENT_NATIVE_PASSTHROUGH_AND_SAME_PROCESS_SOURCE_ONLY_RESUME_MOVE_RESIZE_PLUS_SCOPED_BYPASS_NOT_MODULE_OR_VERSION",
+      "result": "PASS_COMPLETE_M01_F03_INDEPENDENT_CONTRACT_BYPASS_RESELECT_ONLY_THEIR_SCOPE",
+      "record_kind": "ACTUAL_RELEASE_MEDIUM_ACTIVE_CTRL_PAUSE_AND_SAME_PROCESS_RESUME",
+      "observed": "独立检查原件而非suite标签：g1 Ctrl实际三成员写入P42–44；D110/P46 Paused非NormalUp/待写退休，D115真实abort LL-UP及capture-release/detach/isolationGone；D116触发后新native0/未知时钟0，D124 member1实际客户DOWN/UP由0/0到1/1。D135 paused native START/源队列UP/END各1、source exact且product增强START/placement/cancel/active资源均0，严格idleRaw2不作UP或写权。D139恢复实收；同PID3864/birth guard两端实际执行，P73 g2普通Move与P101 g3 Resize均ctrl=false/group_members1，P75/P103仅source key4各1次exact，其余成员保持；新几何140,245..→175,270..→bottom614证明重新采样。P78/80/86/87/88及106/108/114/115/116实际Raw/legacyUP、资源退出、匹配UP/NormalUp，与D155/169无capture/几何稳定对应；D224/225原配置及精确窗关闭。F03独立合同齐，不叠托盘/整M01/I08/apps。第二D286 native active0/idle1与D298新Ctrl实际group_members1、D309 source native1/旧邻窗0只授其scope。P185/D358正常shutdown、D363实际客户恢复/D365自Raw移除/D366自窗及产品关闭，wrapper0/0/desc0/forcedfalse；未用guest销毁补PASS。",
+      "resumed_native_calls": [
+        {
+          "generation": 2,
+          "ctrl": false,
+          "resize": false,
+          "group_members": 1,
+          "key": 4,
+          "product_start_sequence": 73,
+          "placement_sequence": 75,
+          "actual": [
+            175,
+            270,
+            475,
+            590
+          ],
+          "actual_UP_sequence": 87,
+          "NormalUp_sequence": 88
+        },
+        {
+          "generation": 3,
+          "ctrl": false,
+          "resize": true,
+          "group_members": 1,
+          "key": 4,
+          "product_start_sequence": 101,
+          "placement_sequence": 103,
+          "actual": [
+            175,
+            270,
+            475,
+            614
+          ],
+          "actual_UP_sequence": 115,
+          "NormalUp_sequence": 116
+        }
+      ],
+      "tool_oracle_revalidation": {
+        "old_run_id": "4da1d0848b4449a8a4ea303ab4986009",
+        "old_FAIL_preserved": true,
+        "paused_native_fixture_sequence": 135,
+        "paused_native_active_resources": 0,
+        "paused_native_idle_raw": 2,
+        "bypass_fixture_sequence": 286,
+        "bypass_active_resources": 0,
+        "bypass_idle_raw": 1,
+        "idle_raw_grants_UP_or_write_authority": false,
+        "unknown_and_active_resources_still_rejected": true,
+        "closed_defect": "V1-D28",
+        "closure_scope": "TEST_ORACLE_ONLY"
+      },
+      "evidence_ids": [
+        "EV-0E81-R12-F03-ACTIVE-PAUSE-NATIVE-RESUME",
+        "EV-0E81-R12-PAUSE-RESUME-ACTUAL-NATIVE-UP"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
+      ],
+      "complete_feature_contract_PASS": [
+        "M01-F03"
+      ],
+      "partial_only_feature_observations": [
+        "M04-F03",
+        "M06-F03"
+      ],
+      "wrapper": {
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "product_cleanup_pass_basis": "Initialized unevaluated wrapper false; actual P185/D358/D363/D365/D366 determine measured scoped cleanup."
+      },
+      "cleanup": {
+        "guest_pid": 19976,
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "utc": "2026-10-19T13:24:53.8142639Z",
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "new_feature_or_B_PASS": true,
+      "new_benchmark_PASS": false,
+      "whole_feature_PASS": true,
+      "whole_feature_PASS_basis": "M01_F03_ONLY_ALL_GUIDE_ACTIONS_AND_REQUIRED_PLATFORM_FACTS_ACTUALLY_OBSERVED",
+      "module_PASS": false,
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "F03与D28对应oracle已定向闭合，不重复本专项。继续M01托盘/其他功能、M04/M06完整合同、真实应用/显示/Full；保留4da原FAIL及0f6/5b0等历史，不能把这些新scope授模块、I08或真人。"
+    },
     {
       "id": "PO-034-R12-EXACT-GUI-RULE-EXCLUSION-COMPLETES-SMART-STRETCH-F05",
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -19429,30 +19680,29 @@
       "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
       "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
       "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-      "product_process_id": 3880,
-      "driver_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-      "driver_implementation_source_sha": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-      "driver_binary_sha256": "A78B9970F043603509B891ED99106F1335952AA0CB3C2040B9DC19D68BEDA6A1",
-      "run_id": "034acef4344d47f6b7cac78fc122ad41",
+      "product_process_id": 3864,
+      "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+      "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+      "run_id": "0e815641b27b4df4957f09abdc74483a",
       "configuration": "Release",
-      "packaging_head": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
-      "package_zip_sha256": "6552DE3804962844D3B255BB9C38A64105FDC9D5025FE476583612827ACB79CF",
-      "package_manifest_sha256": "C03F2A38F02F395304ED539B209BA60223C0A6E0B26C1F5A0E6B227CD39E1592",
-      "observation_id": "PO-034-R12-EXACT-GUI-RULE-EXCLUSION-COMPLETES-SMART-STRETCH-F05",
-      "scope": "ACTUAL_GUI_RULE_TARGET_EXCLUSION_AND_REMOVAL_SIX_EXACT_NATIVE_PLACEMENTS_COMPLETES_F05_B19_WITH_6DBA_SAME_PRODUCT_BINARY_NOT_MODULE_OR_VERSION",
-      "collection_path": "uat/v1-control/034acef4344d47f6b7cac78fc122ad41/collection-20261019T130407177Z-080758e4afd141389e69acfcdcee3291",
+      "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+      "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+      "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+      "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+      "scope": "COMPLETE_M01_F03_ACTUAL_ACTIVE_CTRL_PAUSE_RESOURCE_RETIREMENT_NATIVE_PASSTHROUGH_AND_SAME_PROCESS_SOURCE_ONLY_RESUME_MOVE_RESIZE_PLUS_SCOPED_BYPASS_NOT_MODULE_OR_VERSION",
+      "collection_path": "uat/v1-control/0e815641b27b4df4957f09abdc74483a/collection-20261019T132300283Z-84906dd54a374db7b1ec2fcfd77cd647",
       "driver_process_exit": "OBSERVED_WAIT_0_EXIT_0",
       "descendants_alive_at_fixture_exit": 0,
       "forced_test_cleanup": false,
       "product_cleanup_pass": false,
-      "product_cleanup_pass_basis": "Original initialized unevaluated wrapper false retained; actual P52 shutdown flags, D198 exit, D203 client[0,0] to[1,1], D205 Raw removal/D206 own-window/product close confirm scoped cleanup, not guest destruction.",
-      "combined_feature_contract_PASS": [
-        "M08-F05",
-        "B19"
+      "product_cleanup_pass_basis": "Original initialized unevaluated wrapper false retained; actual P185/D358 resources shutdown, D363 client[0,0] to[1,1], D365 Raw removal/D366 self-window/process close determine scoped cleanup, not guest destruction.",
+      "complete_feature_contract_PASS": [
+        "M01-F03"
       ],
-      "combined_product_run_ids": [
-        "6dbae80a02b74cd882df53293a439a02",
-        "034acef4344d47f6b7cac78fc122ad41"
+      "partial_only_feature_observations": [
+        "M04-F03",
+        "M06-F03"
       ],
       "new_feature_or_B_PASS": true,
       "whole_version_PASS": false

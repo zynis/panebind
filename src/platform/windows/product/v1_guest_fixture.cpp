@@ -1744,10 +1744,18 @@ std::shared_ptr<ApplicationTarget> provision_application(State& s,std::string ki
         std::array<wchar_t,32768> temporary{};const DWORD temporary_length=GetTempPathW(static_cast<DWORD>(temporary.size()),temporary.data());
         const DWORD temp_error=temporary_length&&temporary_length<temporary.size()?0:GetLastError();
         const fs::path temp=temporary_length&&temporary_length<temporary.size()?fs::path(temporary.data()).lexically_normal():fs::path{};
-        const bool temp_scope=product::guest::same_exact_directory(temp,L"C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Temp")||
-            product::guest::same_exact_directory(temp,L"C:\\Windows\\Temp");
+        std::array<wchar_t,128> temp_username{};DWORD temp_username_size=static_cast<DWORD>(temp_username.size());
+        const bool standard_temp_account=s.suite=="NativeClientsOnly"&&GetUserNameW(temp_username.data(),&temp_username_size)&&
+            equal(temp_username.data(),L"PBV1D_"+s.run.substr(0,12));
+        const bool standard_run_temp=standard_temp_account&&
+            product::guest::same_exact_directory(temp,fs::path(L"C:\\Windows\\Temp")/(L"PaneBindV1-"+s.run));
+        const bool temp_scope=standard_temp_account?standard_run_temp:
+            (product::guest::same_exact_directory(temp,L"C:\\Users\\WDAGUtilityAccount\\AppData\\Local\\Temp")||
+             product::guest::same_exact_directory(temp,L"C:\\Windows\\Temp"));
         s.log.emit("VSCode_actual_TEMP","\"GetTempPath_length\":"+std::to_string(temporary_length)+",\"win32_error\":"+std::to_string(temp_error)+
-            ",\"path\":"+quote(utf8(temp.wstring()))+",\"exact_guest_local_TEMP_scope\":"+(temp_scope?"true":"false")+",\"environment_changed\":false");
+            ",\"path\":"+quote(utf8(temp.wstring()))+",\"exact_guest_local_TEMP_scope\":"+(temp_scope?"true":"false")+
+            ",\"Run_bound_standard_TEMP\":"+(standard_run_temp?"true":"false")+",\"driver_changed_environment\":false,\"environment_changed\":"+
+            (standard_temp_account?"true":"false")+",\"environment_change_scope\":"+quote(standard_temp_account?"child_only_Run_TEMP_TMP":"none"));
         profile_ready=temp_scope&&vscode_own_directory_probe(s,temp,"TEMP")&&profile_ready;
         if(!profile_ready){s.log.emit("application_binding","\"application\":\"VSCode\",\"result\":\"BLOCKED\",\"reason\":\"actual_Medium_profile_or_TEMP_write_read_cleanup_failed\",\"input_sent\":false");return target;}
         std::ofstream empty(blank,std::ios::binary);empty.close();if(!empty)throw std::runtime_error("VSCode_exact_empty_document_create_failed");
@@ -3047,6 +3055,7 @@ panebind::core::v1::Settings visual_gui_save(State& s,const panebind::core::v1::
 #include "platform/windows/product/v1_guest_settings_cases.h"
 #include "platform/windows/product/v1_guest_product_chains.h"
 #include "platform/windows/product/v1_guest_rule_cases.h"
+#include "platform/windows/product/v1_guest_stretch_cases.h"
 #include "platform/windows/product/v1_guest_interruptions.h"
 #include "platform/windows/product/v1_guest_constraint_cases.h"
 #include "platform/windows/product/v1_guest_batch_failure_case.h"
@@ -3056,7 +3065,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly")throw std::runtime_error("independent_gate_wrong_suite");
     if(stage=="application_matrix.after"||stage.starts_with("portable.")){
         const auto pending=std::count_if(s.created_applications.begin(),s.created_applications.end(),[](const auto& target){
             return target&&target->accepted&&!target->cleanup_confirmed;});
@@ -3218,6 +3227,17 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
+    if(s.suite=="StretchInputOnly"){
+        const auto scope_mark=s.log.mark();
+        phase("owned_stretch_input",owned_stretch_input_case);
+        const auto scope=s.log.since(scope_mark);
+        const bool scope_failed=scope.find("\"result\":\"FAIL\"")!=scope.npos;
+        const bool scope_incomplete=scope.find("\"result\":\"NOT_RUN\"")!=scope.npos||scope.find("\"result\":\"PARTIAL\"")!=scope.npos;
+        cleanup(s);
+        s.log.emit("stretch_input_only_summary","\"suite\":\"StretchInputOnly\",\"result\":"+quote(scope_failed?"FAIL":scope_incomplete?"PARTIAL":s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"owned_remaining_edge_corner_Shift_and_double_click_boundaries_only\",\"Full_suite\":\"NOT_RUN\",\"applications\":\"NOT_RUN\",\"whole_version_PASS\":false,\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     if(s.suite=="OwnedRulesOnly"){
         phase("owned_rule_target_stretch",owned_rule_target_stretch_case);
         cleanup(s);
@@ -3395,7 +3415,7 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="InterruptionOnly"){
             bool completed=false;
@@ -3600,12 +3620,39 @@ bool guard_desktop(State& s){
     return input&&input_named&&owner_named&&station_named&&input_queried&&owner_queried&&input_io&&owner_io&&closed&&
         equal(input_name.data(),L"Default")&&equal(owner_name.data(),L"Default")&&equal(station_name.data(),L"WinSta0");
 }
+bool exact_standard_native_guest_account(const std::wstring& expected){
+    // Resolve this complete Run-bound LOCAL account, not an arbitrary prefix,
+    // and compare the actual token user/groups without changing that token.
+    std::array<wchar_t,128> computer{},domain{};DWORD computer_size=static_cast<DWORD>(computer.size());
+    if(!GetComputerNameW(computer.data(),&computer_size))return false;
+    alignas(DWORD) std::array<unsigned char,SECURITY_MAX_SID_SIZE> wanted{};DWORD wanted_size=static_cast<DWORD>(wanted.size()),domain_size=static_cast<DWORD>(domain.size());SID_NAME_USE use{};
+    const auto qualified=std::wstring(computer.data())+L"\\"+expected;
+    if(!LookupAccountNameW(nullptr,qualified.c_str(),wanted.data(),&wanted_size,domain.data(),&domain_size,&use)||
+       use!=SidTypeUser||!equal(domain.data(),computer.data())||!IsValidSid(wanted.data()))return false;
+    HANDLE raw{};if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&raw))return false;Handle token(raw);
+    alignas(TOKEN_USER) std::array<unsigned char,512> user{};DWORD size{};
+    if(!GetTokenInformation(token.value,TokenUser,user.data(),static_cast<DWORD>(user.size()),&size)||
+       !EqualSid(reinterpret_cast<TOKEN_USER*>(user.data())->User.Sid,wanted.data()))return false;
+    DWORD ui_access{},app_container{};
+    if(!GetTokenInformation(token.value,TokenUIAccess,&ui_access,sizeof(ui_access),&size)||ui_access||
+       !GetTokenInformation(token.value,TokenIsAppContainer,&app_container,sizeof(app_container),&size)||app_container)return false;
+    GetTokenInformation(token.value,TokenGroups,nullptr,0,&size);if(!size||size>65536)return false;
+    std::vector<unsigned char> storage(size);if(!GetTokenInformation(token.value,TokenGroups,storage.data(),size,&size))return false;
+    alignas(DWORD) std::array<unsigned char,SECURITY_MAX_SID_SIZE> administrators{};DWORD admin_size=static_cast<DWORD>(administrators.size());
+    if(!CreateWellKnownSid(WinBuiltinAdministratorsSid,nullptr,administrators.data(),&admin_size))return false;
+    const auto groups=reinterpret_cast<TOKEN_GROUPS*>(storage.data());
+    for(DWORD n=0;n<groups->GroupCount;++n)if(EqualSid(groups->Groups[n].Sid,administrators.data())&&
+        (groups->Groups[n].Attributes&SE_GROUP_ENABLED)&&!(groups->Groups[n].Attributes&SE_GROUP_USE_FOR_DENY_ONLY))return false;
+    return true;
+}
 int guard(State& s){
     // Before the exact guest + lexical scope + markers, never write evidence
     // or resolve arbitrary caller-supplied filesystem paths.
     if(s.run.size()!=32||!std::all_of(s.run.begin(),s.run.end(),[](wchar_t c){return(c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f');}))return 78;
     std::array<wchar_t,128> username{};DWORD length=static_cast<DWORD>(username.size()),session{};
-    if(!GetUserNameW(username.data(),&length)||!equal(username.data(),L"WDAGUtilityAccount"))return 78;
+    if(!GetUserNameW(username.data(),&length))return 78;
+    const bool standard_account=equal(username.data(),L"PBV1D_"+s.run.substr(0,12));
+    if(!equal(username.data(),L"WDAGUtilityAccount")&&!standard_account)return 78;
     const fs::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";
     if(!product::guest::same_exact_directory(s.output.lexically_normal(),output))return 82;
     const auto requested=s.input_product.lexically_normal();
@@ -3614,15 +3661,42 @@ int guard(State& s){
     if(!requested.is_absolute()||(!debug&&!equal(requested.wstring(),(release_dir/L"panebind.exe").wstring())))return 83;
     if(!marker(input/L"panebind-v1-input.marker",s.run))return 80;
     if(!marker(output/L"panebind-v1-output.marker",s.run))return 81;
+    // The standard branch is an immutable native-app-only package selection.
+    // No switch grants it; all ordinary WDAG/default suites remain unchanged.
+    if(standard_account){
+        if(!plain_directory(input))return 78;
+        const auto account_package=read(input/L"manifest.json",256*1024);const auto inventory=account_package.find("\"files\"");
+        if(inventory==std::string::npos)return 78;
+        const std::string_view identity(account_package.data(),inventory);
+        if(s.suite!="NativeClientsOnly"||debug||portable_field(identity,"guest_account_mode")!="RunBoundStandardNativeClients"||
+           portable_field(identity,"guest_standard_account")!=utf8(username.data())||portable_field(identity,"guest_standard_run_id")!=utf8(s.run)||
+           portable_field(identity,"run_id")!=utf8(s.run)||!exact_standard_native_guest_account(username.data()))return 78;
+    }
     const DWORD output_attrs=GetFileAttributesW(output.c_str());const DWORD output_error=output_attrs==INVALID_FILE_ATTRIBUTES?GetLastError():0;
     if(output_attrs==INVALID_FILE_ATTRIBUTES||!(output_attrs&FILE_ATTRIBUTE_DIRECTORY)||(output_attrs&FILE_ATTRIBUTE_REPARSE_POINT))return 84;
     s.configuration=debug?"Debug":"Release";const std::wstring suffix=debug?L"debug":L"release";
     s.log.path=output/(s.run+L"-"+suffix+L"-fixture.jsonl");
     {Handle file(CreateFileW(s.log.path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));if(file.value==INVALID_HANDLE_VALUE){s.log.path.clear();return 85;}}
     s.log.emit("guard_scope","\"run_id\":"+quote(utf8(s.run))+",\"configuration\":"+quote(s.configuration)+
-        ",\"exact_guest_account\":true,\"exact_run_markers\":true,\"requested_output\":"+quote(utf8(s.output.wstring()))+
+        ",\"exact_guest_account\":true,\"guest_account_mode\":"+quote(standard_account?"RunBoundStandardNativeClients":"WDAGDefault")+
+        ",\"actual_local_account_SID_and_nonAdmin_verified\":"+(standard_account?"true":"null")+",\"exact_run_markers\":true,\"requested_output\":"+quote(utf8(s.output.wstring()))+
         ",\"requested_product\":"+quote(utf8(requested.wstring()))+",\"output_attributes\":"+std::to_string(output_attrs)+",\"output_attributes_error\":"+std::to_string(output_error)+
         ",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"tid\":"+std::to_string(GetCurrentThreadId())+",\"input_sent\":false");
+    if(standard_account){
+        std::array<wchar_t,16> expected_text{};const auto count=GetEnvironmentVariableW(L"PBV1_STANDARD_BOOTSTRAP_PID",expected_text.data(),static_cast<DWORD>(expected_text.size()));
+        std::uint64_t expected_pid{};bool expected_known=count&&count<expected_text.size();
+        for(DWORD n=0;expected_known&&n<count;++n){if(expected_text[n]<L'0'||expected_text[n]>L'9')expected_known=false;
+            else{expected_pid=expected_pid*10+static_cast<unsigned>(expected_text[n]-L'0');if(expected_pid>MAXDWORD)expected_known=false;}}
+        if(!expected_known||!expected_pid)return guard_reject(s,107,"exact_bootstrap_PID_binding_missing");
+        Handle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0));PROCESSENTRY32W entry{};entry.dwSize=sizeof(entry);bool found=false;DWORD actual_parent{};
+        if(snapshot.value!=INVALID_HANDLE_VALUE&&Process32FirstW(snapshot.value,&entry))do{if(entry.th32ProcessID==GetCurrentProcessId()){
+            found=true;actual_parent=entry.th32ParentProcessID;break;}}while(Process32NextW(snapshot.value,&entry));
+        s.log.emit("guard_standard_guest_parent_chain","\"expected_bootstrap_PID\":"+std::to_string(expected_pid)+
+            ",\"actual_parent_query_known\":"+(found?"true":"false")+",\"actual_parent_PID\":"+(found?std::to_string(actual_parent):"null")+
+            ",\"actual_parent_matches\":"+(found?(actual_parent==expected_pid?"true":"false"):"null")+
+            ",\"parent_WDAG_token_desktop_birth_evidence\":\"launcher_actual_recheck_not_inferred_from_environment\",\"input_sent\":false");
+        if(!found||actual_parent!=expected_pid)return guard_reject(s,107,"actual_bootstrap_parent_PID_unknown_or_mismatch");
+    }
     const DWORD input_attrs=GetFileAttributesW(input.c_str());const DWORD input_error=input_attrs==INVALID_FILE_ATTRIBUTES?GetLastError():0;
     s.log.emit("guard_input_directory","\"path\":"+quote(utf8(input.wstring()))+",\"attributes\":"+std::to_string(input_attrs)+",\"win32_error\":"+std::to_string(input_error));
     if(input_attrs==INVALID_FILE_ATTRIBUTES||!(input_attrs&FILE_ATTRIBUTE_DIRECTORY)||(input_attrs&FILE_ATTRIBUTE_REPARSE_POINT))return guard_reject(s,86,"input_directory_not_plain");
@@ -3640,7 +3714,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3650,6 +3724,8 @@ int guard(State& s){
     const auto file_inventory=package.find("\"files\"");
     if(file_inventory==std::string::npos)return guard_reject(s,105,"split_binary_identity_missing");
     const std::string_view package_identity(package.data(),file_inventory);
+    if((portable_field(package_identity,"guest_account_mode")=="RunBoundStandardNativeClients")!=standard_account)
+        return guard_reject(s,105,"exact_guest_account_mode_manifest_mismatch");
     const auto product_source=portable_field(package_identity,"product_source_commit");
     const auto driver_source=portable_field(package_identity,"driver_source_commit");
     if(!portable_hex(product_source,40,false)||driver_source!=PANEBIND_BUILD_SHA||
@@ -3690,6 +3766,16 @@ int guard(State& s){
         ",\"guest_contract\":\"panebind-v1-guest-contract/2\",\"input_sent\":false");
     if(!read(actual.parent_path()/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return guard_reject(s,98,"portable_run_marker_missing");
     if(FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))return guard_reject(s,99,"preexisting_product_instance_present");
+    if(standard_account){
+        const auto expected_temp=fs::path(L"C:\\Windows\\Temp")/(L"PaneBindV1-"+s.run);
+        std::array<wchar_t,32768> temporary{};const auto count=GetTempPathW(static_cast<DWORD>(temporary.size()),temporary.data());
+        if(!count||count>=temporary.size()||!product::guest::same_exact_directory(temporary.data(),expected_temp))
+            return guard_reject(s,107,"standard_guest_exact_Run_TEMP_mismatch");
+        const bool created=CreateDirectoryW(expected_temp.c_str(),nullptr)!=FALSE;const DWORD create_error=created?0:GetLastError();
+        s.log.emit("guard_standard_guest_TEMP","\"path\":"+quote(utf8(expected_temp.wstring()))+",\"created_new\":"+(created?"true":"false")+
+            ",\"win32_error\":"+std::to_string(create_error)+",\"existing_directory_not_reused\":true,\"DACL_modified\":false");
+        if(!created||!plain_directory(expected_temp))return guard_reject(s,107,"standard_guest_exact_Run_TEMP_create_failed");
+    }
     s.product_source=product_source;s.input_product=source;s.product=actual;s.output=output;return 0;
 }
 #include "platform/windows/product/v1_guest_input_actor.h"
@@ -3712,7 +3798,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
