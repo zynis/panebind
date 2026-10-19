@@ -95,7 +95,7 @@ void exit_recovery_resources_after_exit(LayoutFixtures& set,const ExitRecoveryCa
     s.log.check("exit_recovery_actual_resources_and_visual_restore",product_stopped&&helper_stopped&&helper_code&&helper_exit==0&&
         restored&&!IsWindow(capture.overlay)&&source_read&&!source.hwndCapture&&!source.hwndMoveSize&&!source.hwndMenuOwner&&
         !FindWindowW(L"PaneBind.V1.Application",L"PaneBind"),
-        "\"product_process_exit_observed\":"+(product_stopped?"true":"false")+",\"helper_PID\":"+std::to_string(helper.pid)+
+        std::string("\"product_process_exit_observed\":")+(product_stopped?"true":"false")+",\"helper_PID\":"+std::to_string(helper.pid)+
         ",\"helper_birth\":"+std::to_string(helper.birth)+",\"helper_exit_observed\":"+(helper_stopped?"true":"false")+
         ",\"helper_exit_code\":"+(helper_code?std::to_string(helper_exit):"null")+
         ",\"actual_overlay_gone\":"+(!IsWindow(capture.overlay)?"true":"false")+
