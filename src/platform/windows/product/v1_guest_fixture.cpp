@@ -1058,6 +1058,18 @@ std::string placement(State& s,std::size_t offset,std::uint64_t generation,Rect 
     return out;
 }
 struct Gesture{POINT anchor{};std::uint64_t generation{};std::size_t offset{};};
+void refuse_observed_terminal_motion(State& s,const Gesture& gesture){
+    // TEST-only: refresh the bound producer log after the trajectory wait.
+    // An observed abort is not permission to send the next synthetic MOVE.
+    // This cannot make the original interrupted user chain pass, nor make
+    // this cross-process check atomic with a later native event.
+    const auto ended=record(s,gesture.offset,"gesture_end",gesture.generation);
+    if(ended.empty())return;
+    s.log.emit("test_motion_not_sent","\"generation\":"+std::to_string(gesture.generation)+
+        ",\"reason\":\"actual_product_generation_already_terminated\",\"production_end\":"+quote(ended)+
+        ",\"SendInput_called\":false,\"interrupted_chain_PASS_inferred\":false");
+    throw std::runtime_error("test_motion_after_observed_termination_refused");
+}
 bool application_down_context(State&,HWND,POINT,int,std::string_view);
 void application_prepare_barrier(State&,HWND,POINT,int);
 product::GuiContext fixture_source_gui_context(State&,std::size_t,std::string&);
@@ -1156,7 +1168,8 @@ void phase(State& s,std::size_t source,const Gesture& g,LONG dx,LONG dy,Rect exp
     // Deliberately paced input trajectory below the configured speed cutoff;
     // this is not a product retry, cursor sampler or authority workaround.
     if(!authorized_source(s,source_window(s,source)))throw std::runtime_error("test_source_identity_revoked");
-    Sleep(60);const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
+    Sleep(60);refuse_observed_terminal_motion(s,g);
+    const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});std::string receipt;
     const bool ok=wait([&]{receipt=placement(s,mark,g.generation,expected,native);return visible(source_window(s,source))==expected&&!receipt.empty();});
     const auto actual=visible(source_window(s,source));
     s.log.check(std::move(name),ok,"\"source\":"+std::to_string(source)+",\"generation\":"+std::to_string(g.generation)+

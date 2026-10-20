@@ -456,7 +456,8 @@ void layout_phase(LayoutFixtures& set,std::size_t source,const Gesture& g,LONG d
     auto& s=set.state;if(expected.size()!=set.active)throw std::runtime_error("layout_expected_member_count");
     std::vector<Rect> before;for(std::size_t n=0;n<set.active;++n){const auto actual=visible(set.frames[n].hwnd);
         if(!set.owns(n)||!actual)throw std::runtime_error("layout_member_identity_or_frame_lost");before.push_back(*actual);}
-    Sleep(60);const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
+    Sleep(60);refuse_observed_terminal_motion(s,g);
+    const auto mark=read_product(s).size();cursor(s,{g.anchor.x+dx,g.anchor.y+dy});
     const bool exact=wait([&]{
         for(std::size_t n=0;n<set.active;++n){
             if(!set.owns(n)||visible(set.frames[n].hwnd)!=expected[n])return false;

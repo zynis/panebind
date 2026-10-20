@@ -338,6 +338,12 @@ $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text
 Assert-V1NativeClientPreflightWiring $fixtureSource
 Check $true 'static driver wiring: every application native preflight precedes product cases and preserves exact HTCLIENT gates'
 $layoutSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_layout_cases.h'),[Text.Encoding]::UTF8)
+$terminalMotionGuard='Sleep(60);refuse_observed_terminal_motion(s,g);'
+Check ($fixtureSource.Contains($terminalMotionGuard) -and $layoutSource.Contains($terminalMotionGuard) -and
+    $fixtureSource.Contains('const auto ended=record(s,gesture.offset,"gesture_end",gesture.generation);') -and
+    $fixtureSource.Contains('throw std::runtime_error("test_motion_after_observed_termination_refused")')) 'static actual fixture and layout paths refuse a bound observed terminal after pacing and before cursor input'
+$priorMotionSource=@(& git -C $repository show '5cb36bbd3e7707152dec1d5f5343b59e7d09af22:src/platform/windows/product/v1_guest_fixture.cpp') -join "`n"
+Check ($LASTEXITCODE -eq 0 -and -not $priorMotionSource.Contains($terminalMotionGuard)) 'actual previously tested 5cb source lacks the observed-terminal motion guard; static check is not a native revalidation'
 Assert-V1GroupBoundsScopeWiring $fixtureSource $layoutSource
 Check $true 'static group scope: two shared actual cases return before unrelated suites; Full retains the shared cases and real prior evidence'
 Reject {Assert-V1GroupBoundsScopeWiring ($fixtureSource.Replace('phase("eight_owned_group",owned_eight_group_only);','phase("owned_finite_I11_component",owned_finite_I11_chain);')) $layoutSource} 'static group scope rejects adding unrelated I11 work to the two-case entry'
