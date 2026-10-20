@@ -1,6 +1,24 @@
 # PaneBind V1 集中交付进展
 
-## 本轮继续检查：内存已恢复，现场被既有 SSH 超时阻断
+## 当前继续结果（2026-10-20）：连接恢复，快速 UP 与热键补验通过
+
+本次从 `23d80d2417c727fd835ed16a7f6e3704e343de44` 接续。用户确认台式机已开机后，原 `crossrec-desktop` 严格主机校验连接已实际恢复，目标为 ZS-Workstation；没有更改 SSH、安全设置、CrossRec 或宿主输入。下列 SSH 超时和内存不足均为历史记录，不是当前阻断。
+
+继续使用未修改的产品 `247501a6d7e00a276e9e3aa63e38247e348ca854`（Release EXE `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`）及驱动 `5cb36bbd3e7707152dec1d5f5343b59e7d09af22`（Release EXE `1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070`），未为脚本或文档改动重建、换绑 EXE。
+
+- `e86a9a9d4f3346faa6b2b4f126c30aed`／Release `FixedAndTerminalOnly`：固定尺寸 Resize 零产品 placement 后新 Move 成立；增强快速 MOVE→UP 实际命中原 GUI 拒绝位置，但改为等待实际终止，Raw/legacy UP、释放 capture、解除关联、撤罩后真实 NormalUp。该代未发 native call，后继新代 exact Move 成立，旧代无迟到写入。**D29 的匹配 UP 误分类问题关闭**；不把此 unissued 分支称为在途完成验证，也不宣称查明旧 capture=NULL 系统原因。
+- `c44270c32dc045bc9ca23d07db10f386`／Release `HotkeyRemainderOnly`：同组合改动作各一次实际 exact 写入；删除后真实 RegisterHotKey／Unregister 成立。热键及鼠标重复草稿均经实际 GUI 保存触发中文拒绝，原配置保持，修正草稿后可保存。未重放已通过八区和 Shift，不提升为整个 M09/M11 通过。
+- `4d3200085048418bb51911e80b2ecc66`／Release `PauseRoutingOnly`：活动三成员 Ctrl Move 中暂停、撤权后零新增调用、输入资源退出、客户输入和暂停期间原生 Move 成立；同 PID 恢复后新单窗 Move／Resize exact、真实 NormalUp。Ctrl+Shift 拉开后下一 Ctrl 仅选当前孤立 source，不沿用旧组。
+
+三批均已检查原始合法连续 JSONL、实际几何和资源回执，并精确清理本批 guest／临时任务，保留部署与原始证据；没有用退出零或销毁 guest 推定产品 cleanup PASS。历史 15/60 完整功能、7/40 对标仍保留原构建，不因这些限定复验增加计分。
+
+Full 新包 `22b2f43bc9bf4c26bdd74a72a16c43a2` 已携带既有官方测试应用资产、完成新目录传输及核验，并实际运行 Release：A 首个手势的 free／XY snap 各有 exact native call，但随后实际前台切到另一 HWND，产品 P25／26 正确 FocusLost 撤权。hold 阶段 D39 的单次合成 cursor 请求 `[150,107]` 在 500ms 有界观察内仍为 `[152,105]`，D40 `test_cursor_not_exact`，整条 Full **FAIL**。前台切换对象的归属及 cursor 未到原因仍 UNKNOWN；不猜成控制台、ClipCursor 或产品必然吞 MOVE，不抢前台／capture 绕过。后续三窗链、该批 I11、应用矩阵均未运行，不能由初始两次 exact 推定通过。P38 实际 shutdown、D49 客户 DOWN/UP 恢复、D50 Raw 注销及 D51 自窗销毁成立；本批 guest／任务于 `2026-10-20T10:30:47.5155612Z` 精确退出，证据不变、部署保留。
+
+包装源码 `f682b86b8818feb9e4b9b76302f2d794c0522cff`，ZIP SHA-256 `2C7F04EA80EE2B2509A13F133E99E670C8291857C739B27AB3923A31B66D436A`。此前 `515be417098d4476b835bd3fc1949e2c` 在新 PowerShell 中缺少 Compression enum 程序集而打包失败，原目录保留；最小显式加载修复及实际生产归档分支的独立 PS5.1 ZIP 回读回归通过，属于工具修复，不是产品功能通过。下一动作是复验仍可独立运行的受影响组件及准备当前候选便携包，不重复未变 Full 失败或独立 900 秒批次。
+
+整版仍 PARTIAL；普通完整 Medium 桌面、五类真实应用、托盘、多屏／混合 DPI 与真人 UAT 的缺口分别保留，暂不进入 REA。
+
+## 历史继续检查：内存恢复后曾被 SSH 超时阻断（现已恢复）
 
 2026-10-20（Asia/Shanghai）从`5cb36bbd3e7707152dec1d5f5343b59e7d09af22`继续，标准`origin`fetch成功／0 behind、0 ahead，未知方案输入目录保持不动。只读内存检查已恢复：FreePhysicalMemory=4410340 KiB、FreeVirtualMemory=19864940 KiB；性能计数器实际AvailableBytes=4565762048、CommittedBytes=47502835712、CommitLimit=67622264832。独立64位PowerShell 5.1正常启动，因此没有等待再次确认，也无需结束用户应用或清理进程；未改页面文件、系统设置或当前会话。下文的低内存失败是保留的历史，不再作为当前阻断。
 

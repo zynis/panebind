@@ -1,0 +1,93 @@
+{
+  "evidence_id": "EV-4D32-CURRENT-SHARED-INPUT-PAUSE-ROUTING",
+  "kind": "METADATA_AND_LITERAL_EXISTING_GUEST_LOGS",
+  "run_id": "4d3200085048418bb51911e80b2ecc66",
+  "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+  "product_binary_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+  "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+  "driver_binary_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+  "packaging_head": "23d80d2417c727fd835ed16a7f6e3704e343de44",
+  "configuration": "Release",
+  "actual_product_PID": 4000,
+  "actual_fixture_PID": 6188,
+  "actual_fixture_TID": 6160,
+  "scope": "Current shared-input impact revalidation only: active Ctrl Pause/abort cleanup, native input while paused, same-PID Resume new Move/Resize, Ctrl+Shift native separation and fresh isolated Ctrl selection.",
+  "sources": {
+    "fixture": {
+      "path": "uat/v1-control/4d3200085048418bb51911e80b2ecc66/collection-20261020T102115529Z-cd52cabea8dd4104a73d317ad43a7da0/4d3200085048418bb51911e80b2ecc66-release-fixture.jsonl",
+      "bytes": 180861,
+      "sha256": "97424F58E7F6146C8B2C7EA55E928FE65305D07F5E5BA9FAAE292BA3F7432A8D",
+      "rows": 366,
+      "JSONL_legal": true,
+      "sequence_continuous": true,
+      "selected_original_rows": [
+        110,
+        124,
+        135,
+        286,
+        298,
+        363,
+        365,
+        366
+      ]
+    },
+    "product": {
+      "path": "uat/v1-control/4d3200085048418bb51911e80b2ecc66/collection-20261020T102115529Z-cd52cabea8dd4104a73d317ad43a7da0/4d3200085048418bb51911e80b2ecc66-product-Release/panebind.log.jsonl",
+      "bytes": 174691,
+      "sha256": "DC284A088821791445873F88D9ABAC4B4A3AD050AB78C588A7A6EAB26ACAEAB1",
+      "rows": 186,
+      "JSONL_legal": true,
+      "sequence_continuous": true,
+      "selected_original_rows": [
+        53,
+        76,
+        81,
+        89,
+        104,
+        109,
+        117,
+        163,
+        171,
+        186
+      ]
+    }
+  },
+  "literal_file": "docs/reports/v1-evidence/4d32-current-input-pause-routing-selected.jsonl",
+  "literal_policy": "Header is metadata, subsequent lines are verbatim source rows; fixture then product grouping is not a shared native timeline.",
+  "verified_receipt_references": {
+    "active_Ctrl_and_three_exact_calls": "P38/43-45; D103/105",
+    "Pause": "P46 end4/nonNormalUp/pending_retired; P47 disabled; D110",
+    "abort_cleanup": "P50 release/P53 detach+gone; D115 matching LL cleanup UP, not NormalUp",
+    "post_Pause_no_new_native": "D116 zero forbidden/unknown clocks",
+    "paused_client": "D124 member1 real DOWN+UP",
+    "paused_native": "D135 actual own-source queue UP+START+END; zero enhanced writes/resources, idleRaw2 separate",
+    "Resume": "P61/D139 same PID enabled",
+    "new_Move": "P73/76; actual Raw79/acceptedlegacy81/release84/gone87/queuedUP88/NormalUp89",
+    "new_Resize": "P102/104; actual Raw107/acceptedlegacy109/release112/gone115/queuedUP116/NormalUp117",
+    "bypass_and_fresh_Ctrl": "D286 native queue UP+START+END; D290 no layout reset; P155 one-member Ctrl/P159 one source exact; D309 old members zero",
+    "fresh_Ctrl_UP": "Raw161/acceptedlegacy163/release166/gone169/queuedUP170/NormalUp171",
+    "shutdown_and_client": "P186/D358; D363 actual client[0,0]->[1,1]; D365 Raw removed; D366 exact roots/product closed"
+  },
+  "wrapper": {
+    "wait": 0,
+    "fixture_exit": 0,
+    "descendants_alive": 0,
+    "forced_test_cleanup": false,
+    "initial_product_cleanup_pass": false,
+    "cleanup_inferred_from_exit_or_guest_destruction": false
+  },
+  "host_owned_resource_cleanup": {
+    "receipt_path": "uat/v1-control/4d3200085048418bb51911e80b2ecc66/cleanup-receipt.json",
+    "sha256": "6EAD69865E5A156BAD98AEDDF5CAC5F25C5F60EA36743436CD2D60C5994D055A",
+    "utc": "2026-10-20T10:23:15.2633855Z",
+    "guest_PID": 22472,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false
+  },
+  "whole_M01_or_Full_PASS": false,
+  "historical_contracts_rebound": false,
+  "human_uat": "NOT_RUN"
+}

@@ -1,8 +1,8 @@
 # PaneBind V1 候选版中文快速入门
 
-新修复候选源码为`247501a6d7e00a276e9e3aa63e38247e348ca854`，已构建但现场尚待复验；前代745的快速burst仍因writer前分流误FocusLost，原FAIL保留。下文212及7635包的已测结论保持历史身份，不换绑新候选。新产品仅用于既定隔离验证，尚不交付普通宿主试用。
+当前候选源码为`247501a6d7e00a276e9e3aa63e38247e348ca854`，Release EXE SHA-256 `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`。新 e86a、c442、4d32 已在 guest 分别验证快速 MOVE→UP 与后继手势、热键及重复映射 GUI 拒绝、暂停／恢复与路由重选。前代745的误FocusLost原FAIL保留；D29已由新实际证据关闭其具体缺陷，不代表全部连续操作或整版通过。下文212及7635包保持历史身份，不换绑新候选。仍不交付普通宿主试用。
 
-2026-10-20继续检查已确认开发机内存及PowerShell恢复，新驱动5cb的Debug／Release构建和离线验证已完成，247产品EXE保持原哈希。当前FixedAndTerminalOnly部署遇到既有`crossrec-desktop`／`192.168.1.6:22` TCP超时，未启动guest；HotkeyRemainderOnly亦未现场执行。D29仍OPEN；恢复可信连接后由自动流程接续，无需用户搬文件、手工实验或新建VM，不以包生成声称可试用。
+2026-10-20台式机开机后，原可信SSH已实际恢复。新驱动5cb的Debug／Release构建和离线验证完成，产品字节不变；Full Release 新批次22b2在 A 的 free／XY snap exact 后因实际前台切换撤权、hold cursor 未达到而 FAIL，后续三窗链未完成，原因仍 UNKNOWN。旧 b46 TCP 部署失败保留历史，不再当作当前阻断。无需用户搬文件、逐项实验或新建VM；包生成及局部通过不等于可试用。
 
 这是开发候选的操作说明，整版验收尚未完成。源码版本、Release EXE 与文件哈希以随包 `manifest.json` 为准；实际通过、失败及未运行项目见[验收表](reports/V1_ACCEPTANCE.json)与[交付报告](reports/V1_DELIVERY_REPORT.md)。本文描述当前产品接线，不把设置、应用兼容或显示器矩阵的未运行项算作通过。
 

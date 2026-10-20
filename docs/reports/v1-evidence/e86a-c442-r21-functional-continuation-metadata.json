@@ -1,0 +1,308 @@
+{
+  "evidence_id": "EV-R21-E86A-C442-RELEASE-CONTINUATION",
+  "kind": "LITERAL_SELECTED_ROWS_WITH_SCOPE_METADATA",
+  "new_execution": false,
+  "original_raw_preserved": true,
+  "product_source_commit": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+  "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+  "driver_source_commit": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+  "driver_release_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+  "artifacts": [
+    {
+      "path": "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-fixture-selected.jsonl",
+      "bytes": 5234,
+      "sha256": "0B569EC89E0D42B79314241232B388D8F5CB9322678B33FE674BD2C5D38C910F",
+      "literal_original_rows": true,
+      "source": {
+        "path": "uat/v1-control/e86a9a9d4f3346faa6b2b4f126c30aed/collection-20261020T100749596Z-c4333e61366c41868e29d408af756829/e86a9a9d4f3346faa6b2b4f126c30aed-release-fixture.jsonl",
+        "bytes": 197739,
+        "sha256": "40655C3D3BA07458656F09C64D1D0A2B04F21A3E272C938F591EF577EEE44BBC",
+        "rows": 381
+      },
+      "source_physical_lines_and_sequences": [
+        13,
+        281,
+        284,
+        286,
+        293,
+        295,
+        302,
+        378,
+        381
+      ]
+    },
+    {
+      "path": "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-product-selected.jsonl",
+      "bytes": 11875,
+      "sha256": "B9B9F57EDC55868BA39BE15E9FD2DA615A689F9823A1ED8E6DF63B4331502D36",
+      "literal_original_rows": true,
+      "source": {
+        "path": "uat/v1-control/e86a9a9d4f3346faa6b2b4f126c30aed/collection-20261020T100749596Z-c4333e61366c41868e29d408af756829/e86a9a9d4f3346faa6b2b4f126c30aed-product-Release/panebind.log.jsonl",
+        "bytes": 195503,
+        "sha256": "6FB17A110F487EB533C5F38729785A81E619BD78307949DFBD0FABCD7E537317",
+        "rows": 200
+      },
+      "source_physical_lines_and_sequences": [
+        128,
+        134,
+        137,
+        138,
+        141,
+        147,
+        149,
+        163,
+        166,
+        169,
+        171,
+        177,
+        179,
+        200
+      ]
+    },
+    {
+      "path": "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+      "bytes": 9269,
+      "sha256": "BD16E0F9E38F947D3EEF75D3A4080D628E8A5ED5615E5FF941C46B9C6868CAC1",
+      "literal_original_rows": true,
+      "source": {
+        "path": "uat/v1-control/c44270c32dc045bc9ca23d07db10f386/collection-20261020T101221905Z-2373446278f84177be75261ae38ec305/c44270c32dc045bc9ca23d07db10f386-release-fixture.jsonl",
+        "bytes": 149840,
+        "sha256": "BEB215127CB7A02212098B3A94328C584D10087E77FD3A8429EF7635FCDCAE8D",
+        "rows": 304
+      },
+      "source_physical_lines_and_sequences": [
+        87,
+        93,
+        132,
+        138,
+        177,
+        178,
+        179,
+        180,
+        203,
+        204,
+        206,
+        217,
+        218,
+        241,
+        242,
+        244,
+        255,
+        287,
+        288,
+        301,
+        304
+      ]
+    },
+    {
+      "path": "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl",
+      "bytes": 2896,
+      "sha256": "A7F9FF544424581BE470EB1F244D3447E4EB6D96B0A4731B51C1B6CA14966F9B",
+      "literal_original_rows": true,
+      "source": {
+        "path": "uat/v1-control/c44270c32dc045bc9ca23d07db10f386/collection-20261020T101221905Z-2373446278f84177be75261ae38ec305/c44270c32dc045bc9ca23d07db10f386-product-Release/panebind.log.jsonl",
+        "bytes": 51637,
+        "sha256": "0F201E5330555B0410020408E5970C0110CFB8A85F166F9AB7A99CC2365FE435",
+        "rows": 62
+      },
+      "source_physical_lines_and_sequences": [
+        22,
+        23,
+        30,
+        31,
+        62
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "e86a9a9d4f3346faa6b2b4f126c30aed",
+      "suite": "FixedAndTerminalOnly",
+      "product_pid": 3624,
+      "wrapper": {
+        "path": "uat/v1-control/e86a9a9d4f3346faa6b2b4f126c30aed/collection-20261020T100749596Z-c4333e61366c41868e29d408af756829/e86a9a9d4f3346faa6b2b4f126c30aed-Release-launch.json",
+        "sha256": "44105A3C71140750C30C599AD02B39600A3B7D101F4BD8B74C9070271757F90D",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "cleanup_boolean_is_not_function_or_cleanup_verdict": true
+      },
+      "guest_cleanup": {
+        "path": "uat/v1-control/e86a9a9d4f3346faa6b2b4f126c30aed/cleanup-receipt.json",
+        "sha256": "2ADD1EB93505F9245EA40F3049757C502DE56794FB5AE31A3920BF117F20656D",
+        "owned_guest_pid": 7068,
+        "utc": "2026-10-20T10:09:38.7672566Z",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    },
+    {
+      "run_id": "c44270c32dc045bc9ca23d07db10f386",
+      "suite": "HotkeyRemainderOnly",
+      "product_pid": 6156,
+      "wrapper": {
+        "path": "uat/v1-control/c44270c32dc045bc9ca23d07db10f386/collection-20261020T101221905Z-2373446278f84177be75261ae38ec305/c44270c32dc045bc9ca23d07db10f386-Release-launch.json",
+        "sha256": "AEE97024BD7F728D66715E018E23BB7A7889B6DF97553E07488C384EB17C20F2",
+        "wait_result": 0,
+        "fixture_exit_code": 0,
+        "descendants_alive_at_fixture_exit": 0,
+        "forced_test_cleanup": false,
+        "product_cleanup_pass": false,
+        "cleanup_boolean_is_not_function_or_cleanup_verdict": true
+      },
+      "guest_cleanup": {
+        "path": "uat/v1-control/c44270c32dc045bc9ca23d07db10f386/cleanup-receipt.json",
+        "sha256": "80EBFDFB32B828E1A15347F0B7D02BA79CE90B159613B0C741AFD1C3E79E4F08",
+        "owned_guest_pid": 24096,
+        "utc": "2026-10-20T10:17:55.5039011Z",
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    }
+  ],
+  "bounded_findings": [
+    {
+      "evidence_id": "EV-E86A-R21-NORMAL-UP-RETIREMENT",
+      "run_id": "e86a9a9d4f3346faa6b2b4f126c30aed",
+      "scope": "Observed GUI-admission matching-UP retirement plus real NormalUp and following same-source generation, not every possible worker/batch race.",
+      "original_finding": "V1-D29 observed GUI-context misclassification path",
+      "observed": {
+        "retired_generation": 3,
+        "source_hwnd": 328376,
+        "source_key": 9,
+        "product_LL_UP_qpc": 389382129,
+        "GUI_query_before_qpc": 389391980,
+        "GUI_query_after_qpc": 389392150,
+        "GUI_reason": "capture_matching_UP_retired_before_native_call",
+        "await_actual_terminal_receipt": true,
+        "new_native_attempt": false,
+        "Raw_UP_qpc": 389395428,
+        "actual_legacy_UP_dispatch_qpc": 389405810,
+        "actual_NormalUp_sequence": 149,
+        "actual_isolation_gone_sequence": 147,
+        "g3_placements": 0,
+        "g3_native_claims": 0,
+        "original_and_handoff_rect": [
+          240,
+          180,
+          640,
+          480
+        ],
+        "unissued_target": [
+          307,
+          209,
+          707,
+          509
+        ],
+        "actual_preserved_rect": [
+          240,
+          180,
+          640,
+          480
+        ],
+        "following_generation": 4,
+        "following_exact_placement_sequence": 166,
+        "following_target_and_actual": [
+          271,
+          197,
+          671,
+          497
+        ],
+        "following_NormalUp_sequence": 179,
+        "retired_generation_no_late_placement_check": "fixture D302"
+      },
+      "proof_limits": {
+        "GUI_lag_forced_or_measured": false,
+        "batch_worker_retirement_branch_empirically_exercised": false,
+        "issued_completion_after_UP_branch_empirically_exercised": false,
+        "full_fixed_size_feature_contract_from_this_excerpt": false
+      },
+      "cleanup_basis": "Actual resource receipts P147/P177, native worker/hook/input shutdown P200 and real post-stop client delivery D378; guest disposal is not the product-cleanup oracle."
+    },
+    {
+      "evidence_id": "EV-C442-R21-HOTKEY-EDITS",
+      "run_id": "c44270c32dc045bc9ca23d07db10f386",
+      "scope": "Same Ctrl+Alt+F9 tuple changed between two actual commands, deleted OS registration, duplicate hotkey/mouse editor drafts and exact recovery.",
+      "observed": {
+        "test_key": 120,
+        "modifiers": 3,
+        "source_hwnd": 197420,
+        "source_key": 4,
+        "MoveRight": {
+          "fixture": 93,
+          "placement": 22,
+          "command": 23,
+          "target_and_actual": [
+            235,
+            180,
+            715,
+            500
+          ]
+        },
+        "MoveDown": {
+          "fixture": 138,
+          "placement": 30,
+          "command": 31,
+          "target_and_actual": [
+            235,
+            195,
+            715,
+            515
+          ]
+        },
+        "total_native_placements": 2,
+        "actual_test_RegisterHotKey": {
+          "fixture": 178,
+          "returned": true,
+          "error": 0,
+          "registration_id": 20658
+        },
+        "actual_test_UnregisterHotKey": {
+          "fixture": 179,
+          "returned_true_check": true,
+          "basis": "D178 leaves the local registration held; D179 checks release(), whose active branch calls UnregisterHotKey for that exact registration."
+        },
+        "hotkey_duplicate": {
+          "public_draft_characters": 289,
+          "parser": 180,
+          "actual_modal": 203,
+          "actual_Chinese_body": 204,
+          "file_and_generation_preservation_check": 206,
+          "repaired_draft_GUI_saved": 217
+        },
+        "mouse_duplicate": {
+          "public_draft_characters": 75,
+          "parser": 218,
+          "actual_modal": 241,
+          "actual_Chinese_body": 242,
+          "file_and_generation_preservation_check": 244,
+          "repaired_draft_GUI_saved": 255
+        },
+        "original_configuration_restored": 287,
+        "exact_fixture_resources_closed": 288
+      },
+      "proof_limits": {
+        "duplicate_checks_read_actual_config_bytes_hash_and_generation": true,
+        "numeric_pre_rejection_hash_values_printed_in_raw": false,
+        "in_memory_configuration_snapshot_claimed": false,
+        "all_M09_M11_or_benchmark_items_PASS_granted": false,
+        "eight_regions_or_Shift_double_repeated": false
+      },
+      "cleanup_basis": "Actual product shutdown P62 and post-stop exact-owned client delivery D301 plus driver Raw removal/destruction in the preserved original; wrapper product_cleanup_pass=false is not relabeled as failure."
+    }
+  ],
+  "human_uat": "NOT_RUN",
+  "host_or_full_Medium_desktop_compatibility_PASS": false,
+  "whole_version_PASS": false,
+  "scope_note": "仅将两批已执行原件的必要行逐字入库。JSONL 行序不冒充跨线程共同原生时序；QPC与具体回执各按其实际来源解释。既有失败和不同构建身份不重绑；功能/模块/整版计数及现有验收JSON不在本文件修改。"
+}
