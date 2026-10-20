@@ -1,0 +1,46 @@
+{
+  "schema": "panebind-v1-existing-evidence-metadata/1",
+  "run_id": "c89928918b104d409711458c9189ba69",
+  "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+  "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+  "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+  "driver_release_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+  "packaging_head": "7df3b165bb795e6af9170f1ba742d591665ba5b8",
+  "suite": "OwnedComponentsOnly",
+  "configuration": "Release",
+  "automated_guest_driver": true,
+  "actual_medium_non_elevated": true,
+  "collection": "uat/v1-control/c89928918b104d409711458c9189ba69/collection-20261020T103901653Z-3fe60a63e9464a5282c66a6632b3c149",
+  "raw_files": [
+    {"file":"c89928918b104d409711458c9189ba69-release-fixture.jsonl","rows":1367,"sha256":"052E0048AE07040B2C64D3C7A7C3D67603FAE89A5ED8B75A6DB50F6CF0CDF5AF"},
+    {"file":"c89928918b104d409711458c9189ba69-product-Release/panebind.log.jsonl.1","rows":573,"sha256":"ACD61376AE173CBED13AF3F313D744597F8C44F440D8A4A4ADD6D6C1D198CFDF"},
+    {"file":"c89928918b104d409711458c9189ba69-product-Release/panebind.log.jsonl","rows":343,"sha256":"40CF7361E86F751570C90C44C1089219E8611599E8CEEEB493EFD67F8DDAF130"}
+  ],
+  "actual_product_launches": [
+    {"pid":1516,"sequence_first":1,"sequence_last":370,"rows":370,"continuous":true},
+    {"pid":616,"sequence_first":1,"sequence_last":546,"rows":546,"continuous":true}
+  ],
+  "sequence_scope": "原件轮转并包含独立场景安全边界重启；分别按真实PID/launch核验，不将两次启动拼成一条连续操作通过。JSONL排列不证明跨producer原生时序。",
+  "phase_results": [
+    {"driver_sequence":393,"phase":"owned_dock_stretch_component","result":"FAIL","failure_sequence":371,"reason":"I05_actual_corner_double_click_two_active_edges","scope":"首击原生短Resize与真实UP成立；第二次DOWN后没有生产normalized DOWN/placement。第二击前当前Prepared未被独立确认，缺失原因UNKNOWN，不认定几何算法错误。"},
+    {"driver_sequence":500,"phase":"owned_interruption_component","result":"FAIL","failure_sequence":477,"reason":"I08_recovery_actual_Move_exact","scope":"PID1516/g10已真实START，但P308收到未知前台393232并由P309 FocusLost撤权，随后driver才发continuation；本代无placement。前台归属及触发原因UNKNOWN，不抢回前台或capture。"},
+    {"driver_sequence":991,"phase":"owned_visual_mapping_component","result":"PASS_SCOPED"},
+    {"driver_sequence":1219,"phase":"owned_temporary_visual_inflight_component","result":"PASS_SCOPED"},
+    {"driver_sequence":1288,"phase":"owned_native_grid_constraint_component","result":"PASS_SCOPED"},
+    {"driver_sequence":1358,"phase":"owned_second_member_native_failure_component","result":"PASS_SCOPED","actual_followup":"D1347幸存双窗新Ctrl实际写入，D1350匹配UP、D1351实际幸存几何、D1352测试资源销毁成立。"}
+  ],
+  "functional_result": "FAIL",
+  "actual_cleanup": {
+    "product_shutdown_pid":616,"product_shutdown_sequence":546,
+    "shutdown_resource_fields_all_true":true,"issued_native_completion_unknown":false,
+    "driver_client_click_sequence":1364,"actual_client_counts_before":[1,2],"actual_client_counts_after":[2,3],
+    "raw_unregister_sequence":1366,"own_windows_destroyed_sequence":1367,
+    "guest_pid":16452,"guest_and_task_cleaned_utc":"2026-10-20T10:40:59.2998059Z",
+    "evidence_unchanged":true,"deployment_retained":true,"other_resources_changed":false,
+    "product_cleanup_inferred_from_guest_destruction":false
+  },
+  "full_I02_I11_apps_portable_and_whole_contract_PASS": false,
+  "standalone_900_second_batch_rerun": false,
+  "feature_or_benchmark_PASS_added": false,
+  "human_uat": "NOT_RUN"
+}

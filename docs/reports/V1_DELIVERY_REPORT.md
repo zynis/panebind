@@ -16,7 +16,15 @@ Full 新包 `22b2f43bc9bf4c26bdd74a72a16c43a2` 已携带既有官方测试应用
 
 包装源码 `f682b86b8818feb9e4b9b76302f2d794c0522cff`，ZIP SHA-256 `2C7F04EA80EE2B2509A13F133E99E670C8291857C739B27AB3923A31B66D436A`。此前 `515be417098d4476b835bd3fc1949e2c` 在新 PowerShell 中缺少 Compression enum 程序集而打包失败，原目录保留；最小显式加载修复及实际生产归档分支的独立 PS5.1 ZIP 回读回归通过，属于工具修复，不是产品功能通过。下一动作是复验仍可独立运行的受影响组件及准备当前候选便携包，不重复未变 Full 失败或独立 900 秒批次。
 
-整版仍 PARTIAL；普通完整 Medium 桌面、五类真实应用、托盘、多屏／混合 DPI 与真人 UAT 的缺口分别保留，暂不进入 REA。
+后继 `c89928918b104d409711458c9189ba69`／Release `OwnedComponentsOnly` 已继续完成独立受影响组件：视觉属性映射、在途视觉恢复、原生尺寸栅格、第二成员失败及幸存窗口新 Ctrl 恢复的限定检查通过；dock/stretch 组件在角双击第二次 DOWN 后未观察到生产路由／目标 placement，中断恢复组件在新 g10 START 后因另一未知前台实际撤权而失败。驱动第二击前未确认当前 Prepared，不能直接定为产品几何错误；中断后 MOVE 发出前也缺少当前代仍有效的检查，不能把本次安全撤权叫作几何计算错误。保留两项失败，不盲重试或宣称机制根因已明。1367 条驱动记录合法连续；产品轮转原件分别包含 PID1516 的 1–370 与 PID616 的 1–546，均连续，不能合称一次未重启整链通过。该批 P546 真实 shutdown、D1364 客户输入恢复、Raw 注销／自窗销毁成立；guest16452／任务于 `2026-10-20T10:40:59.2998059Z` 精确清理，部署和原件保留。见[组件证据](v1-evidence/c899-r21-affected-components-metadata.json)。
+
+已准备[当前 247 Release 便携候选](../../uat/v1-portable/6e9bfaa19acd4fc6b1b0d3524a2ff63b/PaneBindV1-Release-6e9bfaa19acd4fc6b1b0d3524a2ff63b.zip)，ZIP SHA-256 `6E6AE1BCF5A966C7EA58BD10C14039FAAF279F2C9983B85E2E0E5B0BAB683EDA`，manifest `153E819D9442FC25E397FC5CB234DE40138721DF0F500C749F16D5A9CBC0F781`，产品 EXE 字节仍相同，七个归档文件大小与 SHA-256 逐一核验。普通包 GUI／干净 guest 普通入口 **NOT_RUN**，不把测试 driver 的通过套给它；旧 7635 包不变。
+
+驱动后继 `a8f3331018e48be948f3ef036fb0379cff8094f6` 已对本次确定的工具缺口作最小修正：普通 `phase` 与 `layout_phase` 都在轨迹等待后、发送下一段 MOVE 前刷新精确绑定的产品日志；若本代已有实际 `gesture_end`，记录 `test_motion_not_sent` 并拒绝发送，交给既有有界异常收尾，不把原链改成 PASS。这不是原子跨进程检查，也不证明终止前或未观察到的竞态不存在；第二击的当前 Prepared 可观测门仍未补齐。该驱动只做构建／离线接线验证，不与5cb已运行的日志换绑，也未声称未知前台根因已修。
+
+a8 驱动 Debug／Release 构建均 exit0，受影响 `v1-guest-path` 各1/1／208项通过（symlink SKIP1314），现有包装／接线静态检查112项通过；独立新PS5.1还实际执行官方资产归档生产分支并回读ZIP，但没有运行产品UI／合成输入。新驱动实际自报a8／原接口2+1已核，D SHA `807431189A9BB56AE4B3EF25BF4C46C839DECE70AA3FFE8F9C626D829D3A2165`、R SHA `A6BA708A47BF58459744B3337EABCBCD92A47134015A438A588B3834BC1E82D3`。日志 `uat/v1-control/r22-a8f3331-{Debug,Release}-{driver-build,offline}.txt`；构建日志 SHA 分别 `09A7F4C3CC6008C74EB5FFA64D1C5A0DC39EA40EB3B0E3AC6B011906A9ED2978`／`FF27C1930F98DDD90BDAD8124C8D210DDEB84FF6581931FEDE04753D987EAA18`，测试日志分别 `DC6518183BE1CACFDD8D967BED69DB8A0840CE3ADD6D40C513A65F9B6A7D29F7`／`4E79175EC74D9258A7E085B039D0297034EEEADA61D2F1CEBE2FD2E4B51F9B40`。三个原有C4456警告保留，产品D/R哈希复核不变，新guard现场仍NOT_RUN。
+
+整版仍 PARTIAL；普通完整 Medium 桌面、五类真实应用、托盘、多屏／混合 DPI 与真人 UAT 的缺口分别保留，暂不进入 REA。当前未知前台／双击准备问题没有已确定的普通产品修复依据，不以更多未变重试消除失败；后继应补足当前 Prepared 的可核对事实，再取得可区分的正常交互证据。
 
 ## 历史继续检查：内存恢复后曾被 SSH 超时阻断（现已恢复）
 
@@ -884,13 +892,13 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 | 设置与生命周期 | 269b／88e等旧失败保留；当前212／dd02十个设置／生命周期阶段及7635便携普通入口有实际子PASS；托盘BLOCKED | 完整M11／I07及所有设置项／高DPI走查未齐；不把子流程拼成整模块PASS |
 | 布局 START／click 候选 | aae／cb807／8453保留历史身份；当前212／cea真实四窗双轴Resize及后继Move、八窗末成员Ctrl Move和三代NormalUp通过 | 不重跑G06／T-L旧专项；组件不关闭Full未知前台失败，不替代真实混合应用或整I03 |
 | Edge／Terminal adapter | 744源快照修补已实际触达；fe0无PaneBind产品时Terminal仍HTCAPTION及shell启动失败，Edge实际HTCLIENT／单击／焦点通过但DOM无响应、根未closed | 不再把Native对照列待跑，也不判唯一系统根因；应用实际原生可用后再测产品，不以枚举child或放宽安全门取代 |
-| grid 与成员失败 | 当前212／f54 grid5348与第二成员故障5418组件PASS；477a严格geometry拒绝、c01旧g6UP缺失等原FAIL保持身份 | 整I10合同仍未齐，组件PASS不补旧NormalUp；不把identity loss改叫API FALSE |
-| 视觉／恢复与边线 | 当前212／f54 visual5051与temporary inflight5279组件PASS；7cac／e4原失败及迟到exact保留历史身份 | 不再写当前在途从未通过；组件结果不推普遍隐私／硬崩溃或全应用恢复PASS |
+| grid 与成员失败 | 当前247／c899的原生grid及第二成员失败后幸存双窗新Ctrl与匹配UP组件PASS；212／f54原结果保留身份 | 整I10合同仍未齐，组件PASS不补旧NormalUp；不把identity loss改叫API FALSE |
+| 视觉／恢复与边线 | 当前247／c899视觉映射与temporary inflight组件PASS；212／f54及7cac／e4原结果保留身份 | 仅已执行scope，不推普遍隐私／硬崩溃或全应用恢复PASS |
 | post-stop 实际输入恢复 | 8cee 真实计数0→1、7cac／1bee／eae 真实计数1→2通过；d49 未执行到发送，不能判投递失败 | post-stop 投递不能关闭普通手势本代 UP 缺失，也不能推成整版 cleanup 验收 |
-| 普通 Move 正常收尾 | 当前212／f54两轮owned核心已完成；四快速case实际LL-UP但仅native-only。c01、8cee／e4与c1f8原缺UP失败保留，成功不能补旧缺失 | D08仍OPEN；不由队列UP或Raw计数授增强NormalUp、不推已查明缺失根因 |
+| 普通 Move 正常收尾 | 当前247／e86a真实快速匹配UP、NormalUp、零新调用与后继exact闭合D29具体GUI误分；22b2及c899真实失焦仍中断整链，旧缺UP失败保留身份 | 不将D29限域关闭扩大为整M04／I02／D08关闭，不用Raw计数补NormalUp，不无证重跑Full |
 | ConsumedDown候选入场门 | f63旧门拒绝保留；d546及f481为历史资源可行性和退出风险实测，后继V1已接实际writer并有owned手势结果 | 旧owned可行性不外推Explorer；当前正式Explorer资格及五应用未齐，不升级宿主试用 |
 | aborted／mapped 配对与准备 | 85c／b092 已修旧配对、authority=0 新配对与 hover 准备，2c 已接 mapped 精确 generation CAS | 历史实际 UP 缺失原因 UNKNOWN；1bee 未发本次 DOWN，不作为配对现场复验 PASS |
-| 托盘与五键入口 | dd02当前212五键实际阶段PASS；1029行精确当前UID1图标不可达、菜单输入未发送，托盘仍BLOCKED，旧批次原身份保留 | 五键不等于整个M09或托盘菜单通过；仍需可达的真实精确托盘入口，不向未知对象点击 |
+| 托盘与键鼠入口 | 旧212／dd02五键PASS，745／e660八区及Shift局部PASS保持原身份；当前247／c442改热键／删除／真实重复映射GUI拒绝通过。76e Medium自有通知探针ADD=false且Shell High，产品UID1不可达 | 不重复已过映射；托盘仍需合适普通完整Medium隔离桌面，不向未知对象点击，不调整High Shell或账户 |
 | 在途日志与实际异常 | 7cac／e4原失败保留；当前212／f54在途组件5279及batch5418已实测通过各自判定 | 不再以旧在途FAIL概括当前；仍不授整个I10或抹去历史UP失败 |
 | GUI诊断与driver临时文件 | 590误纳`.tmp`的确定driver问题已由dd60 Debug97／Release714c真实final导出及parser专项复验关闭 | 设置底部“诊断”入口已实测，不因此授托盘／普遍隐私／完整M12通过 |
 | 导出失败可见反馈 | 86a原R2缺实际modal的FAIL保留；866新R3真实modal/ack、0假包、恢复与重导出实际通过 | D22仅定向关闭／M12F02独立PASS，不抬M12模块或整版，不换绑旧R2 |
@@ -901,18 +909,19 @@ ff 以来的七文件便携 ZIP、精确源身份／哈希、普通无参入口�
 
 | 项目 | 准确边界 |
 | --- | --- |
-| 正式 Medium Explorer | 当前f54实际root RID8192但elevated=true，medium=false，正式资格拒绝且未输入；root清理未确认。不套旧High例外，不改token事实。 |
-| Code | 7c6c／744已携官方Code并实际尝试Medium启动，但未取得唯一合格新root，startup BLOCKED、增强NOT_RUN；不再称本批未带EXE，也不把历史GPU／hidden子进程错误直接当本次唯一原因。 |
-| Notepad | 744仍无明确可运行的官方EXE／合格新root，无应用输入、增强NOT_RUN；旧官方准备／认证和payload限制保留，不在宿主改账户或UAC，不将软件缺口当产品不兼容。 |
+| 正式 Medium Explorer | 已测Sandbox Shell／Explorer未满足正式Medium/non-elevated资格；不套旧High例外、不改token事实。当前247 Full早期失败未进入Explorer，不外推owned结果。 |
+| Code | 官方完整便携资产已准备；现有原生前置未取得合格root，错误49的restricted primary token创建链已核，不能直接定为GPU硬件根因。不无改动重复启动或降低隔离。 |
+| Notepad | f08为完整官方包与依赖，不再缺EXE。e1fc注册实际失败，外层0x80073CF9、既有709 package-root拒绝／内部0x80070057；更深原因UNKNOWN，未获得可交互root。保留前置失败，不重复旧下载／搬包／挂ISO。 |
+| Terminal／Edge | Terminal原生客户前置出现cmd启动失败；Edge实际HTCLIENT／点击／焦点局部成立但DOM效果和正常关闭未确认。未冒充五类应用通过，不把存在窗口等同可交互。 |
 | E03／E04 | 当前没有真实双屏／负坐标与混合 DPI 环境证据，属于具体环境缺项；纯模拟坐标不代替。 |
 | 200% UI、虚拟桌面、普通用户真机 | 尚未执行，分别保留 `NOT_RUN`；当前截图或 guest 局部结果不外推。 |
 | I08／I10／I11 | f54旧file_size FAIL保留；e7两轮／20slot已完成但实际资源间隔899.9940725秒，严格900门FAIL。048真实F11观察通过，actor被实际失焦提前撤权，不算Deadline；I08未整体验收。9724严格900.037841秒及有限owned退出通过，视觉／在途／grid／batch子PASS不授整I10／I11或全应用／跨屏。 |
 | 顺序配置输入差异 | 97 Debug专项成功后，同guest的Release实际客户激活失败，未到GUI/parser/ZIP；原因UNKNOWN。714c独立Release-only成功不证明根因，也不抹去原失败；不操作未知前台或追加无依据API。 |
-| 本阶段便携交付 | 当前212／7635 ZIP由dd02再次实际验证普通GUI、保存后Move-UP、正常退出与字节；1250行原I12=PASS仅按入口scope评价，全部入口未齐，整I12仍BLOCKED。旧包和历史结果不换绑。 |
+| 本阶段便携交付 | 当前247／6e9新ZIP已生成且七文件实际字节核验，普通包GUI NOT_RUN；旧212／7635由dd02验证过普通GUI、Move-UP及退出子范围，不换绑新EXE。整I12未过。 |
 
 ## 持续验证与交付边界
 
-验收全集见 [V1_ACCEPTANCE.json](V1_ACCEPTANCE.json)，产品操作见[中文快速入门](../V1_QUICK_START.md)。当前为 **2/40（5%）**：独立登录启动／默认恢复B29及便携B32通过，不能称整版80%；B01–B32 全部必过，B33–B40 固定延后但保留在分母中。整版 DEV 门槛尚未满足，真人 UAT 为 `PENDING`。文档、机器表与后续证据更新应继续区分源码接通、局部实际结果和完整门槛，不能用测试数或旧 High 局部证据凑分。
+验收全集见 [V1_ACCEPTANCE.json](V1_ACCEPTANCE.json)，产品操作见[中文快速入门](../V1_QUICK_START.md)。保留原构建身份的完整合同为 **15/60、7/40（17.5%）**，不是当前247整版已通过；新限域复验不增加计分。B01–B32 全部必过，B33–B40 固定延后但保留在分母中。整版 DEV 门槛尚未满足，真人 UAT 为 `PENDING`。区分源码接通、局部实际结果和完整门槛，不能用测试数或旧 High 局部证据凑分。
 
 本稿集中交付已测原ZIP、独立最新版中文指南、机器表与历史证据索引，供整体review；它是PARTIAL阶段交付，不代表满足B01–B32或整版完成。缺可靠共享事件身份时不增加RawNormalUp，不无新证据重复同一缺UP路线。最终文档commit／push及远端SHA由主执行者实际核验后交接，本文不预填自引用FinalSHA。原失败与历史包保留，`uat/`、EXE、ZIP 不入Git；不创建PR、merge、tag或公开release。
 

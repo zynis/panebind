@@ -4,6 +4,8 @@
 
 2026-10-20台式机开机后，原可信SSH已实际恢复。新驱动5cb的Debug／Release构建和离线验证完成，产品字节不变；Full Release 新批次22b2在 A 的 free／XY snap exact 后因实际前台切换撤权、hold cursor 未达到而 FAIL，后续三窗链未完成，原因仍 UNKNOWN。旧 b46 TCP 部署失败保留历史，不再当作当前阻断。无需用户搬文件、逐项实验或新建VM；包生成及局部通过不等于可试用。
 
+[当前247 Release便携候选](../uat/v1-portable/6e9bfaa19acd4fc6b1b0d3524a2ff63b/PaneBindV1-Release-6e9bfaa19acd4fc6b1b0d3524a2ff63b.zip) ZIP SHA-256 `6E6AE1BCF5A966C7EA58BD10C14039FAAF279F2C9983B85E2E0E5B0BAB683EDA`；七个实际归档文件均核验，普通包GUI尚未实测。后继c899在同产品上补充视觉、在途恢复、尺寸栅格及第二成员失败后的限定恢复；角双击第二击未路由和中断恢复时未知前台撤权保留FAIL，不能交付为已通过整版候选。包内说明是包装HEAD7df的快照，最新结果以本仓库验收表与报告为准，旧包不原地覆盖。
+
 这是开发候选的操作说明，整版验收尚未完成。源码版本、Release EXE 与文件哈希以随包 `manifest.json` 为准；实际通过、失败及未运行项目见[验收表](reports/V1_ACCEPTANCE.json)与[交付报告](reports/V1_DELIVERY_REPORT.md)。本文描述当前产品接线，不把设置、应用兼容或显示器矩阵的未运行项算作通过。
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。
