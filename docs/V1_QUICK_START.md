@@ -2,6 +2,8 @@
 
 新修复候选源码为`247501a6d7e00a276e9e3aa63e38247e348ca854`，已构建但现场尚待复验；前代745的快速burst仍因writer前分流误FocusLost，原FAIL保留。下文212及7635包的已测结论保持历史身份，不换绑新候选。新产品仅用于既定隔离验证，尚不交付普通宿主试用。
 
+2026-10-20继续检查已确认开发机内存及PowerShell恢复，新驱动5cb的Debug／Release构建和离线验证已完成，247产品EXE保持原哈希。当前FixedAndTerminalOnly部署遇到既有`crossrec-desktop`／`192.168.1.6:22` TCP超时，未启动guest；HotkeyRemainderOnly亦未现场执行。D29仍OPEN；恢复可信连接后由自动流程接续，无需用户搬文件、手工实验或新建VM，不以包生成声称可试用。
+
 这是开发候选的操作说明，整版验收尚未完成。源码版本、Release EXE 与文件哈希以随包 `manifest.json` 为准；实际通过、失败及未运行项目见[验收表](reports/V1_ACCEPTANCE.json)与[交付报告](reports/V1_DELIVERY_REPORT.md)。本文描述当前产品接线，不把设置、应用兼容或显示器矩阵的未运行项算作通过。
 
 当前复核操作限已授权的可丢弃测试 guest，不构成普通宿主试用授权；自动 driver 不是日常使用的必要入口，也不是真人 UAT。

@@ -42,8 +42,8 @@
         "next_action": "保留7944部署失败与9724有限900秒PASS。be94真实Full在B Resize因外来前台撤权，原因UNKNOWN；不放宽保护、不无证重跑Full或独立900秒。继续当前冻结212/eec的EntryAndSettings及ApplicationsOnly独立可运行链，先核实真实应用原生启动与客户交互。"
       },
     "implementation_inspected": "R10_212_9724_FINITE_OWNED_SCOPE_PASS_FULL_RELEASE_PENDING_PRIOR_PARTIAL_FAILURES_RETAINED",
-    "note": "当前候选7450db1已实际fafa定向复验：fixed黑盒/NormalUp/新Move范围PASS；已增强MOVE+唯一UP burst被motion前置matching-UP退休条件误结束为FocusLost，D29仍OPEN，后继Move未运行。历史212/5d45等证据全部保留原SHA/EXE，不能作为745整版复验；DEV15/60、B7/40仅既有历史合同计数，不由此新增，portable7635仍旧212制品。Full/真实应用/普通桌面/显示/真人未通过。",
-    "pending_product_note": "当前7450db1/67db545已在fafa定向实测；fixed scoped PASS、增强burst仍FocusLost FAIL，D29保持OPEN。生产后续motion分流修复正在进行，未构建/未运行者不授PASS。212/旧portable7635及全部历史证据保留原身份，不能改绑745。",
+    "note": "最近实际运行仍是745/fafa，D29保持OPEN；247已构建/offline但现场NOT_RUN，本轮复用其相同哈希EXE。5cb driver D/R构建/guestpath208通过，两包已核；开发机内存和64位PowerShell已恢复。3次192.168.1.6:22 TCP连接超时阻断部署/现场，未到认证或远端执行，不是功能结果；保留212/5d45/745历史原身份、DEV15/60和B7/40不增。",
+    "pending_product_note": "247修复已实现/构建/offline通过，5cb工具已构建；b46在TCP阶段部署失败，c442尚未部署，两者guest均NOT_RUN。开发机内存已恢复，唯一当前现场外部条件是恢复既有可信192.168.1.6:22 SSH；不修改其配置、不新增重试。保留b46失败state，以新Fixed RunId复用EXE续验；c442 immutable包可复用，旧212/745现场不换绑247。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -150,7 +150,7 @@
       "latest_actual_runtime_run_id": "5d45b75bd5ff4b6f9acec46c51aeb18a",
       "required_revalidation": "D29 new product correction and enhanced burst/next gesture require targeted runtime. Fixed-size blackbox and prior8 directions retained. RealapplicationResize→Move, SystemShake, remaining modules/Full/desktop/display/human remain distinct."
     },
-    "next_driver_candidate": {
+    "observed_driver67_fafa_e660": {
       "source_sha": "67db545d7e8c022a4a6c8993dc56d2162c9e5d9a",
       "product_source_sha": "7450db1fad2651ef4e8c6521c44414d75aed3743",
       "product_binary_unchanged": false,
@@ -160,6 +160,72 @@
       "runtime_validation": "ACTUAL_FAFA_FIXED_COMPONENT_PASS_ENHANCED_BURST_PRODUCT_D29_FAIL",
       "latest_actual_runtime_run_id": "fafa83a851694388a04ac98df7c728cd",
       "required_revalidation": "保留745真实fafa失败与fixed scoped PASS；修正motion在匹配UP已退休时的终止分流，使用新产品身份定向复验增强burst/后继Move。普通/跨应用连续操作与最终整版链仍须独立验证；不重复旧fixed/8方向/900批次。"
+    },
+    "next_driver_candidate": {
+      "source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+      "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "product_binary_unchanged": true,
+      "implementation_status": "DEBUG_RELEASE_BUILT_OFFLINE208_PASS_PREPARED_SSH_DEPLOYMENT_BLOCKED",
+      "runtime_validation": "NOT_RUN",
+      "debug_binary_sha256": "F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760",
+      "release_binary_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+      "debug_build_result": "PASS_EXIT0",
+      "release_build_result": "PASS_EXIT0",
+      "debug_offline": "guestpath208_PASS_1of1_symlinkSKIP1314",
+      "release_offline": "guestpath208_PASS_1of1_symlinkSKIP1314",
+      "logs": [
+        {
+          "path": "uat/v1-control/r21-5cb36bb-Debug-driver-build.txt",
+          "sha256": "E519C2DF64DF512352F978E9724FE0C963184704D7F40A84E2A42B9890A0740F",
+          "bytes": 6148,
+          "kind": "DRIVER_BUILD_TRANSCRIPT",
+          "actual_command_exit_code": 0,
+          "configuration": "Debug",
+          "only_existing_C4456_warnings": true,
+          "not_native_function_evidence": true
+        },
+        {
+          "path": "uat/v1-control/r21-5cb36bb-Release-driver-build.txt",
+          "sha256": "9B3030E9C0B713BC5584C53F6840446E47CD71BDB1E1CEBBA28A8F4D50C27F33",
+          "bytes": 4968,
+          "kind": "DRIVER_BUILD_TRANSCRIPT",
+          "actual_command_exit_code": 0,
+          "configuration": "Release",
+          "only_existing_C4456_warnings": true,
+          "not_native_function_evidence": true
+        },
+        {
+          "path": "uat/v1-control/r21-5cb36bb-Debug-offline.txt",
+          "sha256": "754F7830EA7F2C3BEAF5A3DED0649376AA35655BA28D7283F4988D8B8A213C92",
+          "bytes": 2600,
+          "kind": "OFFLINE_GUESTPATH_TRANSCRIPT",
+          "actual_command_exit_code": 0,
+          "actual_cases_passed": 208,
+          "ctest_passed": 1,
+          "ctest_total": 1,
+          "symlink_test": "SKIP_1314",
+          "not_native_function_evidence": true
+        },
+        {
+          "path": "uat/v1-control/r21-5cb36bb-Release-offline.txt",
+          "sha256": "C5A6E2B3B16D0AB53364671C900DF4382E7EE609E709AAA3179BCDFD5A3524AD",
+          "bytes": 2604,
+          "kind": "OFFLINE_GUESTPATH_TRANSCRIPT",
+          "actual_command_exit_code": 0,
+          "actual_cases_passed": 208,
+          "ctest_passed": 1,
+          "ctest_total": 1,
+          "symlink_test": "SKIP_1314",
+          "not_native_function_evidence": true
+        }
+      ],
+      "prepared_run_ids": [
+        "b46bd14d92c8407bb5e46a42a2d849dd",
+        "c44270c32dc045bc9ca23d07db10f386"
+      ],
+      "latest_tool_observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
+      "metadata_evidence_path": "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json",
+      "required_revalidation": "恢复既有192.168.1.6:22可信SSH通道后，保留b46失败包/remote-failure/local_control_state，以新Fixed RunId复用247产品与5cb驱动续测D29，不删除失败state覆盖重试；c442尚未部署且无controlstate，可继续使用已核immutable HotkeyRemainderOnly包。无需重建未改EXE或重复八区/900批次；当前仅SSH阻断现场，不再要求释放开发机内存。"
     },
     "observed_driver_e30_fcf": {
       "source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
@@ -518,16 +584,73 @@
       "implementation_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
       "implementation_status": "IMPLEMENTED_MATCHED_UP_MOTION_PREFLIGHT_CLASSIFICATION_REPAIR_PENDING_RUNTIME",
       "build_status": "MAIN_EXECUTOR_ACTUAL_DEBUG_RELEASE_EXIT0",
-      "debug_binary_sha256": "D9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26",
+      "debug_binary_sha256": "9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26",
       "release_binary_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
       "offline_regression": "MAIN_EXECUTOR_ACTUAL_D_R_AFFECTED_4_OF_4_PASS_catalog48_writer64_input373_guestpath208_symlinkSKIP1314",
-      "runtime_validation": "NOT_RUN",
+      "runtime_validation": "NOT_RUN_BLOCKED_BY_TRUSTED_SSH_TCP22_TIMEOUT",
       "run_id": null,
       "new_feature_or_B_PASS": false,
       "historical_runtime_results_rebound": false,
       "ordinary_host_trial_allowed": false,
       "human_uat": "NOT_RUN",
-      "next_action": "冻结247产品EXE，完成仅工具影响的driver修复后以新Run定向复验D29；fafa745真实失败与212历史证据保持原身份，构建/offline不授现场PASS。"
+      "next_action": "恢复既有192.168.1.6:22可信SSH通道后，保留b46失败包/remote-failure/local_control_state，以新Fixed RunId复用247产品与5cb驱动续测D29，不删除失败state覆盖重试；c442尚未部署且无controlstate，可继续使用已核immutable HotkeyRemainderOnly包。无需重建未改EXE或重复八区/900批次；当前仅SSH阻断现场，不再要求释放开发机内存。",
+      "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+      "debug_driver_sha256": "F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760",
+      "release_driver_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+      "driver_build_status": "DEBUG_RELEASE_EXIT0_GUESTPATH208_PASS",
+      "product_rebuilt_this_round": false,
+      "product_binary_hashes_reverified_unchanged": true,
+      "development_host_memory_blocker": "RECOVERED",
+      "prepared_packages": [
+        {
+          "run_id": "b46bd14d92c8407bb5e46a42a2d849dd",
+          "guest_suite": "FixedAndTerminalOnly",
+          "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+          "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+          "packaging_head": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+          "package_receipt_path": "uat/v1-sandbox/b46bd14d92c8407bb5e46a42a2d849dd/package-receipt.json",
+          "package_receipt_sha256": "45A5344E29734B96C40C85205C6796C9B7C3FA9599623EC352797D5CDD2DBA55",
+          "zip_sha256": "5043791A49720AFF9BE01F1A99252E8CBF449E80F2BC0A5FB62AFC2F3A47945F",
+          "manifest_sha256": "CFF86247A1F9FC17742DAA959F07E397A0C551FA930F5E7CEA56E7B5A82A84EA",
+          "wsb_sha256": "E6A6A459B7E600608F5E0EFBDB992C74AC02C57EBA4D619C758C7185F113040F",
+          "product_debug_sha256": "9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26",
+          "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+          "driver_debug_sha256": "F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760",
+          "driver_release_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+          "all_package_receipt_payload_hashes_match": true,
+          "deployment": "LOCAL_DEPLOY_ATTEMPT_TCP_TIMEOUT_REMOTE_NOT_EXECUTED",
+          "guest_runtime": "NOT_RUN"
+        },
+        {
+          "run_id": "c44270c32dc045bc9ca23d07db10f386",
+          "guest_suite": "HotkeyRemainderOnly",
+          "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+          "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+          "packaging_head": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+          "package_receipt_path": "uat/v1-sandbox/c44270c32dc045bc9ca23d07db10f386/package-receipt.json",
+          "package_receipt_sha256": "DB65D416263AF5F555E36C8E4DBA32ADD6EDE0F0FEB4339D67C6B32D391549C5",
+          "zip_sha256": "6BAF74050C1CFCB4CA6EF10FB776154380773FC2FBF13A8E11D51413F411857B",
+          "manifest_sha256": "42D6564AF9B106734BB4BF0D1A910F7FEEE2F039F5447F97EB53861D993F03FD",
+          "wsb_sha256": "4CACB8CC1B1ACD5BDDB59D9416517448EA048309E6A63ADEE0C0146921824499",
+          "product_debug_sha256": "9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26",
+          "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+          "driver_debug_sha256": "F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760",
+          "driver_release_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+          "all_package_receipt_payload_hashes_match": true,
+          "deployment": "PREPARED_IMMUTABLE_NOT_DEPLOYED",
+          "guest_runtime": "NOT_RUN"
+        }
+      ],
+      "latest_tool_observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED"
+    },
+    "latest_local_preflight": {
+      "observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
+      "metadata_evidence_path": "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json",
+      "sha256": "ECAA259F9B899ACBAAFFF872F7C422ED88BF520A9D244CFB51F337CDB9057F8B",
+      "local_memory_blocker": "RECOVERED",
+      "driver_build": "D_R_PASS",
+      "runtime": "NOT_RUN_SSH_TCP_TIMEOUT",
+      "next_action": "恢复既有192.168.1.6:22可信SSH通道后，保留b46失败包/remote-failure/local_control_state，以新Fixed RunId复用247产品与5cb驱动续测D29，不删除失败state覆盖重试；c442尚未部署且无controlstate，可继续使用已核immutable HotkeyRemainderOnly包。无需重建未改EXE或重复八区/900批次；当前仅SSH阻断现场，不再要求释放开发机内存。"
     },
     "observed_R9_356_candidate": {
       "source_sha": "356d9e1b844c3f6d3efba41dd6ed39ca8f118996",
@@ -5530,7 +5653,7 @@
       "remaining_conditions": [
         "当前候选全部标题/边角+修饰组合与实体五键硬件观察未齐。"
       ],
-      "next_action": "在guest补必要边角映射；物理五键仍单列硬件未覆盖。",
+      "next_action": "保留745/e660八区和Shift单双局部实测，不换绑247；5cb HotkeyRemainderOnly已备c442包，恢复既有SSH后仅续验第三phase重复tuple/热键剩余；物理五键及完整跨应用合同未覆盖。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -11300,15 +11423,18 @@
         "docs/reports/v1-evidence/fafa-r20-fixed-size-and-enhanced-terminal-fixture-selected.jsonl",
         "docs/reports/v1-evidence/fafa-r20-fixed-size-and-enhanced-terminal-product-selected.jsonl"
       ],
-      "repair_status": "7450DB1_TARGETED_RUNTIME_REVALIDATION_FAILED_MOTION_PREFLIGHT_REPAIR_PENDING",
+      "repair_status": "247501A_IMPLEMENTED_BUILT_OFFLINE_TESTED_PENDING_GUEST_SSH_TCP_TIMEOUT",
       "system_NULL_capture_root_cause": "UNKNOWN_NOT_PROVEN",
-      "next_action": "保留745真实fafa失败与fixed scoped PASS；修正motion在匹配UP已退休时的终止分流，使用新产品身份定向复验增强burst/后继Move。普通/跨应用连续操作与最终整版链仍须独立验证；不重复旧fixed/8方向/900批次。",
+      "next_action": "恢复既有192.168.1.6:22可信SSH通道后，保留b46失败包/remote-failure/local_control_state，以新Fixed RunId复用247产品与5cb驱动续测D29，不删除失败state覆盖重试；c442尚未部署且无controlstate，可继续使用已核immutable HotkeyRemainderOnly包。无需重建未改EXE或重复八区/900批次；当前仅SSH阻断现场，不再要求释放开发机内存。",
       "latest_failed_product_source_sha": "7450db1fad2651ef4e8c6521c44414d75aed3743",
       "latest_failed_product_binary_sha256": "A511BDD3668DE200721847A99CCF92B582058A2CD9C14DAB2C01E21122C114CC",
       "latest_failed_run_id": "fafa83a851694388a04ac98df7c728cd",
       "latest_actual_end": "FocusLost",
       "latest_actual_rejection": "capture_matching_UP_retired_before_native_call",
-      "latest_product_native_attempts_in_burst": 0
+      "latest_product_native_attempts_in_burst": 0,
+      "pending_fix_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "pending_product_binary_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+      "pending_runtime_result": "NOT_RUN"
     },
     {
       "id": "V1-D28",
@@ -13082,6 +13208,20 @@
     "note": "原ZIP及EXE字节不变，477/f54为该包实际普通入口子范围；9724不是便携入口复测。随包旧说明保持包装时身份，最新使用说明见docs/V1_QUICK_START.md。非宿主试用或完整产品验收。"
   },
   "evidence": [
+    {
+      "id": "EV-R21-LOCAL-PREFLIGHT-BUILD-DEPLOYMENT-METADATA",
+      "kind": "metadata_only_local_tool_output_projection_not_native_log",
+      "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+      "observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
+      "path": "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json",
+      "sha256": "ECAA259F9B899ACBAAFFF872F7C422ED88BF520A9D244CFB51F337CDB9057F8B",
+      "bytes": 9098,
+      "native_events": false,
+      "guest_runtime": "NOT_RUN",
+      "tool_facts_without_independent_raw_file_explicitly_labelled": true,
+      "human_uat": "NOT_RUN"
+    },
     {
       "id": "EV-DFF8-R20-STANDARD-LOGON-NATIVE-IDENTITY",
       "kind": "structured_field_projection_of_actual_guest_receipts",
@@ -16701,6 +16841,40 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
+      "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "binary_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+      "driver_source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+      "driver_binary_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+      "run_id": null,
+      "configuration": "LOCAL_DEBUG_RELEASE_BUILDS_NO_GUEST_RUN",
+      "scope": "METADATA_ONLY_LOCAL_MEMORY_BUILD_PREPARED_PACKAGES_TCP_CONNECT_BLOCKED",
+      "result": "LOCAL_PREPARATION_PASS_REMOTE_TCP_CONNECT_BLOCKED_RUNTIME_NOT_RUN",
+      "observed": "最近实际运行仍是745/fafa，D29保持OPEN；247已构建/offline但现场NOT_RUN，本轮复用其相同哈希EXE。5cb driver D/R构建/guestpath208通过，两包已核；开发机内存和64位PowerShell已恢复。3次192.168.1.6:22 TCP连接超时阻断部署/现场，未到认证或远端执行，不是功能结果；保留212/5d45/745历史原身份、DEV15/60和B7/40不增。",
+      "evidence_ids": [
+        "EV-R21-LOCAL-PREFLIGHT-BUILD-DEPLOYMENT-METADATA"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json"
+      ],
+      "prepared_run_ids": [
+        "b46bd14d92c8407bb5e46a42a2d849dd",
+        "c44270c32dc045bc9ca23d07db10f386"
+      ],
+      "product_rebuilt": false,
+      "local_memory_blocker": "RECOVERED",
+      "remote_failure_phase": "TCP_CONNECT_BEFORE_AUTHENTICATION",
+      "remote_attempts": 3,
+      "remote_commands_executed": false,
+      "guest_started": false,
+      "D29_status": "OPEN",
+      "feature_contract_PASS": [],
+      "benchmark_contract_PASS": [],
+      "whole_version_PASS": false,
+      "human_uat": "NOT_RUN",
+      "next_action": "恢复既有192.168.1.6:22可信SSH通道后，保留b46失败包/remote-failure/local_control_state，以新Fixed RunId复用247产品与5cb驱动续测D29，不删除失败state覆盖重试；c442尚未部署且无controlstate，可继续使用已核immutable HotkeyRemainderOnly包。无需重建未改EXE或重复八区/900批次；当前仅SSH阻断现场，不再要求释放开发机内存。"
+    },
     {
       "id": "PO-E660-R20-CUSTOM-MAPPING-PARTIAL-HOTKEY-DUPLICATE-DRIVER-BLOCKER",
       "source_sha": "7450db1fad2651ef4e8c6521c44414d75aed3743",

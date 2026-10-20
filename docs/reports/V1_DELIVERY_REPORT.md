@@ -1,5 +1,17 @@
 # PaneBind V1 集中交付进展
 
+## 本轮继续检查：内存已恢复，现场被既有 SSH 超时阻断
+
+2026-10-20（Asia/Shanghai）从`5cb36bbd3e7707152dec1d5f5343b59e7d09af22`继续，标准`origin`fetch成功／0 behind、0 ahead，未知方案输入目录保持不动。只读内存检查已恢复：FreePhysicalMemory=4410340 KiB、FreeVirtualMemory=19864940 KiB；性能计数器实际AvailableBytes=4565762048、CommittedBytes=47502835712、CommitLimit=67622264832。独立64位PowerShell 5.1正常启动，因此没有等待再次确认，也无需结束用户应用或清理进程；未改页面文件、系统设置或当前会话。下文的低内存失败是保留的历史，不再作为当前阻断。
+
+已完成当前5cb驱动Debug／Release构建exit0及各208项guest-path离线回归（symlink子项SKIP1314），日志为`uat/v1-control/r21-5cb36bb-{Debug,Release}-{driver-build,offline}.txt`。驱动EXE SHA D `F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760`／R `1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070`；实际自报来源与产品／guest接口由打包器核验。复用产品仍为247501a，D `9FE5F058DCCC3151444172843A2C8DC42C6334DFA1576BD68936EC125859DE26`／R `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`前后不变，未重新链接产品EXE。
+
+本地已准备Release `FixedAndTerminalOnly`包`b46bd14d92c8407bb5e46a42a2d849dd`（ZIP `5043791A49720AFF9BE01F1A99252E8CBF449E80F2BC0A5FB62AFC2F3A47945F`）及`HotkeyRemainderOnly`包`c44270c32dc045bc9ca23d07db10f386`（ZIP `6BAF74050C1CFCB4CA6EF10FB776154380773FC2FBF13A8E11D51413F411857B`）；各manifest、二进制、只读输入／独立输出映射已本地核验，不等于部署或功能通过。
+
+b46部署在TCP连接阶段失败，尚未认证、上传或启动guest。仍使用`C:\Users\zhang\.ssh\config`中的可信`crossrec-desktop`→`zs@192.168.1.6:22`及严格主机校验；原始错误为`ssh: connect to host 192.168.1.6 port 22: Connection timed out`、exit255。部署失败回执时间`2026-10-20T03:04:29.7904412Z`保留；随后仅两次8秒有界检查（开始于`03:05:35.3362512Z`／`03:05:48.6620372Z`）均同样超时。首失败JSON保存exit/stdout空数组，错误文本来自实际工具stderr；后两次为工具stdout结果，不伪称存在未保存的原始SSH日志。三次之后停止远端重试，不猜测关机、地址变化、防火墙或认证根因，不改SSH、安全配置、不重启宿主。当前没有本轮新guest需要销毁，也未触碰CrossRec。
+
+D29仍OPEN，247快速UP、后继手势及HotkeyRemainderOnly现场均NOT_RUN；不得用构建／包生成关闭缺陷。恢复已有`192.168.1.6:22`可信SSH可达性后，保留b46失败state并使用新Fixed RunId接续，无需重建产品；c442未部署的精确包可直接复用。然后推进受共享输入改动影响的暂停／恢复与当前三窗整链。已通过八区、Shift与独立900秒不重放。普通完整Medium桌面、真实应用、托盘、多屏／混合DPI仍分别保留缺口；保留原身份的历史合同通过仍15/60、7/40，本轮未新增PASS，不换绑成247现场结果。整版PARTIAL、真人UAT PENDING，不进入REA。
+
 当前用户功能接线：正式 Medium GUI／托盘入口已接通普通窗口资格、Move／Resize 磁吸、Ctrl 邻接组移动／共享边缩放、停靠／拉伸、窗口命令、中文六页设置与应用规则；离散布局恢复、最大化起手恢复、独立 native writer、视觉属性恢复及实际吸附／共享边反馈均为生产调用链，不只是 helper 或测试模型。
 
 本轮新增的实际用户行为证明：同一212 Release产品在7060验证应用后来改变alpha／topmost时的独立恢复权、新root不继承和正常退出，M09-F04／B20独立合同通过。慢速／单次反向摇动负例与同一212的477a实际两次切换还原及正常UP仅补齐摇动子范围；系统Shake共存仍NOT_RUN，M09-F05／B21完整合同不计PASS。c656闭合M03-F02／F04、0e815闭合M01-F03、bf5c闭合M01-F04、6dba／034闭合M08-F05、6dba／d7e／9e闭合M08-F04。不授整个模块、整链、五应用或Full通过。
