@@ -757,6 +757,35 @@ $missingSpec=[pscustomobject]@{kind='PaneBindReleasePortable';relative_path='Pan
     files=@(1..6|ForEach-Object{[pscustomobject]@{relative_path=('file'+$_);size=1;sha256=('D'*64)}})}
 $missingReason='';try{Prepare-PortableTestPackage $missingSpec $before ('A'*64)|Out-Null}catch{$missingReason=$_.Exception.Message}
 Check ($missingReason -ceq 'Portable package must have exactly seven payload files.' -and -not(Test-Path -LiteralPath $outputDir)) 'actual guest rejects missing payload file before extraction; no directory or product was created'
+# Execute the actual official-assets archive branch in a fresh Windows
+# PowerShell process: assemblies loaded by this test cannot mask a missing
+# dependency in the packaging process. This only archives the repo license.
+$preparePath=Join-Path $repository 'scripts/v1-prepare-sandbox.ps1'
+$prepareAst=[Management.Automation.Language.Parser]::ParseFile($preparePath,[ref]$null,[ref]$null)
+$archiveBranch=@($prepareAst.FindAll({param($node)
+    $node -is [Management.Automation.Language.IfStatementAst] -and
+    $node.Clauses[0].Item1.Extent.Text -ceq '$officialApps' -and
+    $node.Extent.Text.Contains('$archivePath=Join-Path $inputDir $officialApps.relative_path')
+},$false))
+Check ($archiveBranch.Count -eq 1) 'locates the actual official asset archive branch'
+$archiveTestDir=Join-Path $repository ('uat/v1-package-archive-check/'+[Guid]::NewGuid().ToString('N'))
+$archiveSetup=@'
+$ErrorActionPreference='Stop'
+$inputDir=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__DIRECTORY__'))
+$license=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__LICENSE__'))
+[IO.Directory]::CreateDirectory($inputDir)|Out-Null
+$officialApps=[pscustomobject]@{relative_path='official-test.zip';zip_sha256='';zip_size=0}
+$officialFiles=@([pscustomobject]@{path='LICENSE';source=$license;sha256=(Get-FileHash -LiteralPath $license -Algorithm SHA256).Hash})
+$payloadFiles=@()
+__BRANCH__
+$read=[IO.Compression.ZipFile]::OpenRead($archivePath)
+try{if($read.Entries.Count -ne 1 -or $read.Entries[0].FullName -cne 'LICENSE' -or $read.Entries[0].Length -ne (Get-Item -LiteralPath $license).Length){throw 'Actual archive contents mismatch'}}finally{$read.Dispose()}
+if($officialApps.zip_size -le 0 -or $officialApps.zip_sha256.Length -ne 64 -or $payloadFiles -cnotcontains 'official-test.zip'){throw 'Actual archive manifest fields missing'}
+'actual_official_archive_pass'
+'@
+$archiveCommand=$archiveSetup.Replace('__DIRECTORY__',[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($archiveTestDir))).Replace('__LICENSE__',[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((Join-Path $repository 'LICENSE')))).Replace('__BRANCH__',$archiveBranch[0].Extent.Text)
+$archiveResult=@(& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ([Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($archiveCommand))))
+Check ($LASTEXITCODE -eq 0 -and $archiveResult -ccontains 'actual_official_archive_pass') 'fresh PS5.1 executes the production archive branch and verifies its real ZIP and manifest fields'
 foreach($relative in @('scripts/v1-package-identity.ps1','scripts/v1-prepare-portable.ps1','scripts/v1-prepare-sandbox.ps1','scripts/v1-sandbox-guest.ps1','scripts/v1-medium-desktop-probe-guest.ps1')){
     $tokens=$null;$errors=$null
     [Management.Automation.Language.Parser]::ParseFile((Join-Path $repository $relative),[ref]$tokens,[ref]$errors)|Out-Null

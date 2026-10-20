@@ -409,6 +409,9 @@ if($portableZip){
     $payloadFiles+='PaneBindV1-portable-test.zip'
 }
 if($officialApps){
+    # Windows PowerShell 5.1 does not load the enum's assembly merely by
+    # loading ZipFile's FileSystem assembly in a fresh packaging process.
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archivePath=Join-Path $inputDir $officialApps.relative_path
     $archive=[IO.Compression.ZipFile]::Open($archivePath,[IO.Compression.ZipArchiveMode]::Create)
