@@ -59,11 +59,53 @@ void transparency_owned_visual_exact(LayoutFixtures& set,std::size_t index,BYTE 
 }
 Rect transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
     auto& s=set.state;if(!set.owns(index))throw std::runtime_error("transparency_per_pixel_not_exact_owned_source");
-    const HWND h=set.frames[index].hwnd;RECT before{};const auto visible_before=visible(h);
+    const HWND h=set.frames[index].hwnd;RECT before{};auto visible_before=visible(h);
     SetLastError(ERROR_SUCCESS);const auto class_style=GetClassLongPtrW(h,GCL_STYLE);
     const DWORD class_error=class_style?0:GetLastError();
     if(class_error||(class_style&(CS_OWNDC|CS_CLASSDC))||!visible_before||!GetWindowRect(h,&before))
         throw std::runtime_error("transparency_per_pixel_requires_actual_ordinary_class_geometry");
+    // ULW supplies the entire opaque image, including its caption. This TEST
+    // image does not draw system buttons, so remove those actual capabilities
+    // on this exact self-owned source, rather than inventing DWM bounds or
+    // weakening the product's fail-closed caption-button exclusion.
+    const auto visible_before_buttons=visible_before;
+    SetLastError(ERROR_SUCCESS);const auto original_style=GetWindowLongPtrW(h,GWL_STYLE);
+    const DWORD original_style_error=original_style?0:GetLastError();
+    constexpr LONG_PTR buttons=WS_SYSMENU|WS_MINIMIZEBOX|WS_MAXIMIZEBOX;
+    if(original_style_error||(original_style&WS_CAPTION)!=WS_CAPTION||!(original_style&WS_THICKFRAME))
+        throw std::runtime_error("transparency_per_pixel_requires_actual_caption_resize_style");
+    const auto requested_style=original_style&~buttons;
+    bool buttons_style_attempted{},frame_attempted{};LONG_PTR buttons_style_previous{};
+    DWORD buttons_style_error{},frame_error{};BOOL frame_return{};
+    if(set.owns(index)){buttons_style_attempted=true;SetLastError(ERROR_SUCCESS);
+        buttons_style_previous=SetWindowLongPtrW(h,GWL_STYLE,requested_style);
+        buttons_style_error=buttons_style_previous?0:GetLastError();}
+    if(buttons_style_attempted&&!buttons_style_error&&set.owns(index)){
+        frame_attempted=true;SetLastError(ERROR_SUCCESS);
+        frame_return=SetWindowPos(h,nullptr,0,0,0,0,SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE);
+        frame_error=frame_return?0:GetLastError();
+    }
+    const bool prepared_owned=set.owns(index);
+    SetLastError(ERROR_SUCCESS);const auto prepared_style=prepared_owned?GetWindowLongPtrW(h,GWL_STYLE):0;
+    const DWORD prepared_style_error=prepared_style?0:GetLastError();RECT after_buttons{};
+    const bool prepared_style_known=prepared_owned&&!prepared_style_error;
+    const bool buttons_positioning_same=set.owns(index)&&GetWindowRect(h,&after_buttons)&&EqualRect(&before,&after_buttons);
+    const bool no_standard_buttons=buttons_style_attempted&&!buttons_style_error&&frame_attempted&&frame_return&&
+        prepared_style_known&&prepared_style==requested_style&&!(prepared_style&buttons)&&
+        (prepared_style&WS_CAPTION)==WS_CAPTION&&(prepared_style&WS_THICKFRAME)&&buttons_positioning_same;
+    s.log.check("transparency_per_pixel_exact_owned_caption_without_unrendered_system_buttons",no_standard_buttons,
+        "\"actor\":\"exact_fixture_app_not_product\",\"member\":"+std::to_string(index)+
+        ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+
+        ",\"original_style\":"+std::to_string(original_style)+",\"requested_style\":"+std::to_string(requested_style)+
+        ",\"actual_style\":"+std::to_string(prepared_style)+",\"SetWindowLong_STYLE_attempted\":"+(buttons_style_attempted?"true":"false")+
+        ",\"SetWindowLong_STYLE_previous\":"+std::to_string(buttons_style_previous)+",\"style_error\":"+std::to_string(buttons_style_error)+
+        ",\"frame_change_attempted\":"+(frame_attempted?"true":"false")+",\"frame_change_return\":"+(frame_return?"true":"false")+
+        ",\"frame_change_error\":"+std::to_string(frame_error)+",\"actual_style_query_error\":"+std::to_string(prepared_style_error)+
+        ",\"actual_standard_buttons_absent\":"+(prepared_style_known?(!(prepared_style&buttons)?"true":"false"):"null")+
+        ",\"caption_and_resize_style_preserved\":"+(prepared_style_known?((prepared_style&WS_CAPTION)==WS_CAPTION&&(prepared_style&WS_THICKFRAME)?"true":"false"):"null")+
+        ",\"actual_positioning_unchanged\":"+(buttons_positioning_same?"true":"false")+",\"DWM_button_bounds_fabricated\":false");
+    visible_before=visible(h);
+    if(!visible_before)throw std::runtime_error("transparency_per_pixel_actual_post_button_visible_baseline_unknown");
     const LONG width=before.right-before.left,height=before.bottom-before.top;
     if(width<=0||height<=0||width>2048||height>2048)
         throw std::runtime_error("transparency_per_pixel_DIB_size_out_of_bounded_scope");
@@ -120,10 +162,19 @@ Rect transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
         visible_after->l>=after.left&&visible_after->t>=after.top&&visible_after->r<=after.right&&visible_after->b<=after.bottom&&
         visible(h)==visible_after;
     const bool layered=set.owns(index)&&(GetWindowLongPtrW(h,GWL_EXSTYLE)&WS_EX_LAYERED)!=0;
+    const auto caption=layered?layout_hit(set,index,HTCAPTION):std::optional<POINT>{};DWORD_PTR caption_hit{};
+    const bool caption_hit_known=caption&&set.owns(index)&&WindowFromPoint(*caption)==h&&
+        SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(caption->x),static_cast<short>(caption->y)),
+            SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&caption_hit)!=FALSE;
+    const bool final_owned=set.owns(index);
+    SetLastError(ERROR_SUCCESS);const auto final_style=final_owned?GetWindowLongPtrW(h,GWL_STYLE):0;
+    const DWORD final_style_error=final_style?0:GetLastError();
+    const bool final_style_known=final_owned&&!final_style_error;
+    const bool caption_ready=caption_hit_known&&static_cast<LRESULT>(caption_hit)==HTCAPTION&&final_style_known&&final_style==prepared_style;
     gdi.close();
     s.log.check("transparency_actual_per_pixel_unreadable_alpha_precondition",selected&&pixels&&style_attempted&&!style_error&&
         update_attempted&&updated&&opaque_hit&&actual_baseline&&layered&&!read_alpha&&foreground_exact&&
-        gdi.selection_restored&&gdi.memory_deleted&&gdi.bitmap_deleted&&gdi.screen_released,
+        no_standard_buttons&&caption_ready&&gdi.selection_restored&&gdi.memory_deleted&&gdi.bitmap_deleted&&gdi.screen_released,
         "\"actor\":\"exact_fixture_app_not_product\",\"member\":"+std::to_string(index)+
         ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"actual_class_style\":"+std::to_string(class_style)+
         ",\"class_style_query_error\":"+std::to_string(class_error)+
@@ -136,6 +187,10 @@ Rect transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
         ",\"TEST_SetForegroundWindow_attempted\":"+(foreground_attempted?"true":"false")+
         ",\"TEST_SetForegroundWindow_return\":"+(foreground_requested?"true":"false")+
         ",\"actual_foreground_is_exact_owned_source\":"+(foreground_exact?"true":"false")+
+        ",\"actual_final_style\":"+std::to_string(final_style)+",\"actual_standard_buttons_absent\":"+(final_style_known?(!(final_style&buttons)?"true":"false"):"null")+
+        ",\"actual_caption_hit_known\":"+(caption_hit_known?"true":"false")+",\"actual_caption_hit\":"+std::to_string(static_cast<LRESULT>(caption_hit))+
+        ",\"actual_caption_point\":"+(caption?"["+std::to_string(caption->x)+","+std::to_string(caption->y)+"]":"null")+
+        ",\"visible_before_button_style_change\":"+rect(*visible_before_buttons)+
         ",\"positioning_before\":"+rect({before.left,before.top,before.right,before.bottom})+
         ",\"positioning_after\":"+(positioning_same?rect({after.left,after.top,after.right,after.bottom}):"null")+
         ",\"visible_before_layering\":"+rect(*visible_before)+
