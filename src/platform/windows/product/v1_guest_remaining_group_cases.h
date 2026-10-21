@@ -125,8 +125,92 @@ void owned_remaining_group_membership_case(State& s){
                     gui_class(source)==s.class_name&&gui_class(target)==alias);
                 auto g=layout_down(set,0,HTCAPTION,true);remaining_group_start(s,g,2,"remaining_group_rule_baseline_actual_pair");
                 auto actual=initial;for(auto& r:actual)r=translated(r,35,25);
-                layout_phase(set,0,g,35,25,actual,"remaining_group_rule_baseline_actual_pair_Move");layout_up(set,g,actual);
+                layout_phase(set,0,g,35,25,actual,"remaining_group_rule_baseline_actual_pair_Move");
                 const auto baseline_generation=g.generation;const auto before_rule=actual;
+                // Exercise the reachable user path while the group is still
+                // active. show_settings() conservatively retires the gesture
+                // before creating/activating its UI; saving a rule is later.
+                std::string active_capture;std::istringstream capture_rows(product_log_since(s,g.offset));std::string capture_row;
+                while(std::getline(capture_rows,capture_row))if(remaining_group_receipt(s,capture_row,"gesture_input_resource")&&
+                    e::number(capture_row,"\"generation\":")==g.generation&&e::quoted(capture_row,"\"fact\":","capture_ready"))active_capture=capture_row;
+                const auto overlay_value=e::number(active_capture,"\"overlay\":");
+                const HWND overlay=overlay_value?reinterpret_cast<HWND>(static_cast<std::uintptr_t>(*overlay_value)):nullptr;
+                DWORD overlay_pid{},source_pid{};const auto overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;
+                const auto source_tid=GetWindowThreadProcessId(source,&source_pid);
+                GUITHREADINFO source_gui{sizeof(source_gui)},owner_gui{sizeof(owner_gui)};
+                const bool source_gui_known=GetGUIThreadInfo(source_tid,&source_gui)!=FALSE;
+                const bool owner_gui_known=overlay_tid&&GetGUIThreadInfo(overlay_tid,&owner_gui)!=FALSE;
+                const SHORT left_before_settings=GetAsyncKeyState(VK_LBUTTON),ctrl_before_settings=GetAsyncKeyState(VK_CONTROL);
+                s.log.check("remaining_group_rule_active_exact_capture_before_settings",set.owns(0)&&set.owns(1)&&
+                    source_pid==GetCurrentProcessId()&&source_tid==set.thread&&overlay&&IsWindow(overlay)&&overlay_pid==pid&&
+                    e::number(active_capture,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                    e::number(active_capture,"\"source_pid\":")==source_pid&&e::number(active_capture,"\"source_tid\":")==source_tid&&
+                    e::number(active_capture,"\"capture_actual_after\":")==overlay_value&&
+                    e::unique_value(active_capture,"\"attach_succeeded\":")=="true"&&source_gui_known&&owner_gui_known&&
+                    source_gui.hwndCapture==overlay&&owner_gui.hwndCapture==overlay&&GetForegroundWindow()==source&&
+                    s.left&&s.control&&(left_before_settings&0x8000)&&(ctrl_before_settings&0x8000)&&
+                    !s.left_up_attempted&&actual_up(s,g.offset,g.generation).empty()&&pause_routing_actual(set)==actual,
+                    "\"generation\":"+std::to_string(g.generation)+",\"actual_capture_ready\":"+quote(active_capture)+
+                    ",\"source_GUI_known\":"+(source_gui_known?"true":"false")+",\"owner_GUI_known\":"+(owner_gui_known?"true":"false")+
+                    ",\"actual_source_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source_gui.hwndCapture))+
+                    ",\"actual_owner_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(owner_gui.hwndCapture))+
+                    ",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+                    ",\"async_left_SHORT\":"+std::to_string(left_before_settings)+",\"async_Ctrl_SHORT\":"+std::to_string(ctrl_before_settings)+
+                    ",\"driver_left_outstanding\":"+(s.left?"true":"false")+",\"single_cleanup_UP_not_yet_attempted\":"+(!s.left_up_attempted?"true":"false"));
+                const auto open_mark=read_product(s).size();LARGE_INTEGER settings_trigger{};
+                if(!QueryPerformanceCounter(&settings_trigger)||settings_trigger.QuadPart<=0)
+                    throw std::runtime_error("remaining_group_active_settings_trigger_clock_unknown");
+                const bool requested=launch(s,L"--settings",true);std::string settings_open,settings_end,settings_gone;
+                const bool settings_consumed=requested&&wait([&]{
+                    settings_end=record(s,g.offset,"gesture_end",g.generation);settings_open=record(s,open_mark,"settings_open");
+                    const auto end_sequence=e::number(settings_end,"\"sequence\":");const auto open_sequence=e::number(settings_open,"\"sequence\":");
+                    return remaining_group_receipt(s,settings_end,"gesture_end")&&e::number(settings_end,"\"generation\":")==g.generation&&
+                        e::number(settings_end,"\"end\":")==static_cast<unsigned>(v::End::Paused)&&
+                        e::unique_value(settings_end,"\"normal_up\":")=="false"&&e::unique_value(settings_end,"\"pending_retired\":")=="true"&&
+                        remaining_group_receipt(s,settings_open,"settings_open")&&e::unique_value(settings_open,"\"created\":")=="true"&&
+                        end_sequence&&*end_sequence&&open_sequence&&*open_sequence>*end_sequence;},1500);
+                s.log.check("remaining_group_active_settings_entry_actual_Paused_before_UI",settings_consumed&&s.left&&!s.left_up_attempted,
+                    "\"generation\":"+std::to_string(g.generation)+",\"public_settings_command_requested\":"+(requested?"true":"false")+
+                    ",\"actual_end\":"+quote(settings_end)+",\"actual_settings_open\":"+quote(settings_open)+
+                    ",\"settings_entry_termination_not_rule_save_causality\":true,\"NormalUp_inferred\":false");
+                const bool settings_resources_gone=wait([&]{std::istringstream rows(product_log_since(s,g.offset));std::string row;
+                    while(std::getline(rows,row))if(remaining_group_receipt(s,row,"gesture_input_resource")&&
+                        e::number(row,"\"generation\":")==g.generation&&e::quoted(row,"\"fact\":","isolation_gone"))settings_gone=row;
+                    GUITHREADINFO now{sizeof(now)};return remaining_group_receipt(s,settings_gone,"gesture_input_resource")&&
+                        e::number(settings_gone,"\"source\":")==reinterpret_cast<std::uintptr_t>(source)&&
+                        e::number(settings_gone,"\"overlay\":")==overlay_value&&overlay&&!IsWindow(overlay)&&
+                        e::unique_value(settings_gone,"\"overlay_destroyed\":")=="true"&&e::unique_value(settings_gone,"\"hotkey_unregistered\":")=="true"&&
+                        e::unique_value(settings_gone,"\"detach_succeeded\":")=="true"&&GetGUIThreadInfo(set.thread,&now)&&
+                        !now.hwndCapture&&!now.hwndMoveSize&&!now.hwndMenuOwner;},1500);
+                POINT cleanup_cursor{};const bool cleanup_cursor_known=GetCursorPos(&cleanup_cursor)!=FALSE;
+                s.log.check("remaining_group_active_settings_resources_gone_before_single_cleanup_UP",settings_resources_gone&&
+                    s.left&&!s.left_up_attempted&&set.owns(0)&&set.owns(1)&&pause_routing_actual(set)==actual,
+                    "\"actual_resource_gone\":"+quote(settings_gone)+",\"cleanup_cursor_known\":"+(cleanup_cursor_known?"true":"false")+
+                    ",\"actual_cleanup_cursor\":"+(cleanup_cursor_known?"["+std::to_string(cleanup_cursor.x)+","+std::to_string(cleanup_cursor.y)+"]":"null")+
+                    ",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
+                    ",\"extra_cursor_or_UP_used\":false,\"actual_legacy_UP_or_NormalUp_not_inferred\":true");
+                button(s,false);if(s.control)key(s,VK_CONTROL,false);
+                const auto settings_cleanup=abort_cleanup_up_receipt(s,g.offset,g.generation);
+                s.log.check("remaining_group_active_settings_actual_unique_abort_cleanup_UP",settings_cleanup.matched&&!s.left,settings_cleanup.json());
+                interruption_audit_calls(s,g,static_cast<std::uint64_t>(settings_trigger.QuadPart),std::nullopt);interruption_idle(s,set,true);
+                // Do not activate a window or send a second --settings while
+                // held. Attach read-only to the exact UI just opened. Cancel
+                // its unchanged draft before selecting the alias target for
+                // the existing Add Revalidated Foreground/Class workflow.
+                struct SettingsSearch{DWORD pid{};HWND root{};DWORD tid{};unsigned count{};} search{pid};
+                EnumWindows([](HWND h,LPARAM data)->BOOL{auto& q=*reinterpret_cast<SettingsSearch*>(data);DWORD p{};
+                    const auto tid=GetWindowThreadProcessId(h,&p);if(p==q.pid&&gui_class(h)==L"PaneBindV1SettingsWindow"&&IsWindowVisible(h)){
+                        q.root=h;q.tid=tid;++q.count;}return TRUE;},reinterpret_cast<LPARAM>(&search));
+                SettingsGui opened{search.root,search.root?GetDlgItem(search.root,100):nullptr,search.tid};
+                s.log.check("remaining_group_active_settings_exact_UI_after_abort",search.count==1&&opened.root&&opened.tab&&
+                    gui_identity(s,opened,opened.tab)&&GetForegroundWindow()==opened.root&&chain_settings(s)==baseline_config&&
+                    pause_routing_actual(set)==before_rule,
+                    "\"actual_settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(opened.root))+
+                    ",\"actual_settings_TID\":"+std::to_string(opened.tid)+",\"driver_activation_fallback_used\":false");
+                gui_press(s,opened,VK_ESCAPE);
+                s.log.check("remaining_group_active_settings_unchanged_draft_cancelled",wait([&]{return !IsWindow(opened.root);})&&
+                    chain_settings(s)==baseline_config&&pause_routing_actual(set)==before_rule,
+                    "\"actual_Escape_input\":true,\"configuration_saved_by_first_settings_entry\":false");
                 chain_front(set,1);const auto caption=layout_hit(set,1,HTCAPTION);
                 if(!caption)throw std::runtime_error("remaining_group_rule_target_caption_unknown");
                 cursor(s,*caption);(void)layout_wait_sent([]{return false;},100);
@@ -175,8 +259,8 @@ void owned_remaining_group_membership_case(State& s){
         }
         const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
         chain_check_product(s,pid,birth);s.log.check("remaining_group_original_configuration_and_binary_retained",restored==expected&&hash(s.product)==binary);
-        s.log.emit("remaining_group_membership_component","\"result\":\"PASS\",\"scope\":\"active_follower_close_and_GUI_class_rule_next_group_selection\","
-            "\"same_product_process\":true,\"close_abort_cleanup_UP_is_NormalUp\":false,\"GUI_focus_loss_is_rule_causality\":false,"
+        s.log.emit("remaining_group_membership_component","\"result\":\"PASS\",\"scope\":\"active_follower_close_and_active_group_settings_entry_then_GUI_class_rule_next_group_selection\","
+            "\"same_product_process\":true,\"active_group_settings_entry_aborts_before_rule_save\":true,\"close_abort_cleanup_UP_is_NormalUp\":false,\"GUI_focus_loss_is_rule_causality\":false,"
             "\"old_failed_evidence_preserved\":true,\"whole_M06_or_version_PASS\":false,\"real_applications\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
     }catch(...){
         pause_routing_failed_case_input(s);bool restored=false;std::string reason;
