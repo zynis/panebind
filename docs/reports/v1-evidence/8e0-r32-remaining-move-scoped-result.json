@@ -1,0 +1,350 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "kind": "metadata_projection_not_native_event",
+  "run_id": "8e0bd71b8c3847579ff7e9f862c7a542",
+  "actual_suite": "RemainingMoveContractsOnly",
+  "actual_configuration": "Release",
+  "scope": "Two actual owned dynamic-group cases; finite magnet boundary progress and its failed phase retained separately.",
+  "identity": {
+    "product_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_source": "46c1afc50cb9ce73fe8ccf26891bf26869805090",
+    "packaging_head": "46c1afc50cb9ce73fe8ccf26891bf26869805090",
+    "zip_sha256": "0EB941CE082BA851E552F1CD5ACDF64D4B4AC85D09AC11D19F5925A104BFB282",
+    "manifest_sha256": "E69EE9A69F8BE8B7366E53E9AC064D6C7D54CDDAE5E46F0B5EA65329CD5BDAD6",
+    "Release_product_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "Release_driver_sha256": "121A0D9EB48EA4C56DA55E5BD4639CEF2020FB6AA3EEFCA2214FA49986F66F19",
+    "product_pid": 2928,
+    "fixture_pid": 3864,
+    "fixture_tid": 6244,
+    "actual_guest_child": {
+      "integrity_rid": 8192,
+      "session_id": 1,
+      "elevated": false,
+      "admin_sid_enabled": false
+    }
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/8e0bd71b8c3847579ff7e9f862c7a542-release-fixture.jsonl",
+      "sha256": "EA5FCA1D4C4CE128B72E1E8354708E7D0A8B8C79D83B0C8FFE2C72F1345CDFD4"
+    },
+    {
+      "path": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/8e0bd71b8c3847579ff7e9f862c7a542-product-Release/panebind.log.jsonl",
+      "sha256": "CCC581AF94752393D6676190F019A307C1A05A8E61B584B58113A8A67939996E"
+    },
+    {
+      "path": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/cleanup-receipt.json",
+      "sha256": "03F1EFD4039BFD7D7AC86A1C114607DAA54697D128BBAB9292A0F903E94853BD"
+    },
+    {
+      "path": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/8e0bd71b8c3847579ff7e9f862c7a542-Release-launch.json",
+      "sha256": "72814A2A6109CB751D0355CE2405B4BB1A1E972C7DA55146D6989C9897B74FAE"
+    },
+    {
+      "path": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/collection-receipt.json",
+      "sha256": "BC958060BADCEFC43538833A82F3B3267CD05F762EEEAD13691E4E6BCBFB8457"
+    },
+    {
+      "path": "uat/v1-sandbox/8e0bd71b8c3847579ff7e9f862c7a542/package-receipt.json",
+      "sha256": "40D515C3D9122F35CE8768C9E5EEC9FF320B8127512D66A442125C0E4C0A4E87"
+    },
+    {
+      "path": "uat/v1-sandbox/8e0bd71b8c3847579ff7e9f862c7a542/input/manifest.json",
+      "sha256": "E69EE9A69F8BE8B7366E53E9AC064D6C7D54CDDAE5E46F0B5EA65329CD5BDAD6"
+    },
+    {
+      "path": "uat/v1-sandbox/8e0bd71b8c3847579ff7e9f862c7a542/8e0bd71b8c3847579ff7e9f862c7a542.zip",
+      "sha256": "0EB941CE082BA851E552F1CD5ACDF64D4B4AC85D09AC11D19F5925A104BFB282"
+    }
+  ],
+  "validation": {
+    "driver": {
+      "schema": "panebind-v1-owned-driver/1",
+      "legal_jsonl": true,
+      "lines": 628,
+      "first_sequence": 1,
+      "last_sequence": 628,
+      "continuous": true,
+      "source_sha": "46c1afc50cb9ce73fe8ccf26891bf26869805090"
+    },
+    "product": {
+      "schema": "panebind-v1/1",
+      "legal_jsonl": true,
+      "lines": 367,
+      "first_sequence": 1,
+      "last_sequence": 367,
+      "continuous": true,
+      "process_id": 2928,
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86"
+    },
+    "collected_product_binary_matches_package_and_wrapper": true,
+    "selected_rows": "Unmodified full source lines, newline-normalized only. Original source sequence/line numbers retained below; selected sequence gaps are intentional.",
+    "privacy": "Rows containing full executable paths or window titles were omitted, not rewritten. D244 exact-class/path assertion was inspected in the hash-bound local source but is not copied."
+  },
+  "literal_files": [
+    {
+      "file": "8e0-r32-remaining-group-driver-selected.jsonl",
+      "source": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/8e0bd71b8c3847579ff7e9f862c7a542-release-fixture.jsonl",
+      "source_sha256": "EA5FCA1D4C4CE128B72E1E8354708E7D0A8B8C79D83B0C8FFE2C72F1345CDFD4",
+      "original_source_lines": [
+        138,
+        139,
+        140,
+        141,
+        143,
+        145,
+        148,
+        152,
+        174,
+        178,
+        196,
+        197,
+        228,
+        243,
+        254,
+        257,
+        258,
+        259,
+        261,
+        269,
+        270,
+        298,
+        299,
+        307,
+        310,
+        318,
+        326,
+        388,
+        389,
+        397,
+        482,
+        493,
+        498,
+        503,
+        508,
+        513,
+        518,
+        614,
+        624,
+        628
+      ]
+    },
+    {
+      "file": "8e0-r32-remaining-group-product-selected.jsonl",
+      "source": "uat/v1-control/8e0bd71b8c3847579ff7e9f862c7a542/collection-20261021T050352112Z-3332ad7dea6e458881853d84ec0fe0d2/8e0bd71b8c3847579ff7e9f862c7a542-product-Release/panebind.log.jsonl",
+      "source_sha256": "CCC581AF94752393D6676190F019A307C1A05A8E61B584B58113A8A67939996E",
+      "original_source_lines": [
+        57,
+        63,
+        65,
+        66,
+        69,
+        72,
+        75,
+        89,
+        92,
+        93,
+        97,
+        99,
+        107,
+        179,
+        181,
+        184,
+        197,
+        219,
+        222,
+        236,
+        367
+      ]
+    }
+  ],
+  "dynamic_group": {
+    "result": "PASS",
+    "active_follower_close": {
+      "generation": 1,
+      "source_hwnd": 197416,
+      "source_key": 4,
+      "surviving_follower_hwnd": 197434,
+      "surviving_follower_key": 6,
+      "closed_member": 2,
+      "closed_hwnd": 197436,
+      "closed_key": 5,
+      "actual_owned_pid": 3864,
+      "actual_owned_tid": 6244,
+      "trigger_before_qpc": 337669422,
+      "last_prior_native_entry_qpc": 337335651,
+      "source_lines": {
+        "actual_three_member_start": "P57",
+        "actual_three_member_writes": "P62-P64/D138-D141",
+        "DestroyWindow": "D143",
+        "single_test_cursor_continuation": "D145",
+        "preflight_rejection": "P65",
+        "SourceLost_end": "P66",
+        "release": "P69",
+        "detach_and_overlay_gone": "P72",
+        "unique_cleanup_UP_send": "D148",
+        "actual_LL_cleanup_UP_observation": "P75",
+        "zero_new_native_calls": "D152"
+      },
+      "preflight_reason": "batch_preflight_not_live_root_window",
+      "preflight_native_attempted": false,
+      "end": 3,
+      "normal_up": false,
+      "pending_retired": true,
+      "forbidden_new_calls_after_trigger": 0,
+      "unknown_native_call_clocks": 0,
+      "cleanup_UP_scope": "Actual LL cleanup UP after abort, not legacy delivery or NormalUp. P75 callback generation1/aborted_before=true; no UP was fabricated or retransmitted.",
+      "successor": {
+        "generation": 2,
+        "actual_group_members": 2,
+        "actual_member_keys": [
+          4,
+          6
+        ],
+        "placements": "P92-P93",
+        "raw_UP": "P97",
+        "actual_legacy_UP": "P99",
+        "input_UP": "P106",
+        "NormalUp": "P107",
+        "normal_up": true,
+        "foreign_native_claims": 0,
+        "driver_audit": "D174"
+      }
+    },
+    "exact_class_rule": {
+      "result": "PASS",
+      "same_source_hwnd": 262782,
+      "same_target_hwnd": 262780,
+      "source_key": 7,
+      "target_class": "PaneBind.V1.OwnedFixture.8e0bd71b8c3847579ff7e9f862c7a542.StretchRuleTarget",
+      "actual_GUI_class_filter": "D228",
+      "actual_GUI_Save": "D243",
+      "exact_added_rule_assertion": "D244 (inspected; omitted from literal because it contains the full guest executable path)",
+      "excluded_rule_matches": "Exact test-driver image and Run-bound target class, excluded=true/full feature mask; source has the distinct original class.",
+      "baseline": {
+        "generation": 3,
+        "members": 2,
+        "member_keys": [
+          7,
+          15
+        ],
+        "actual_member_rectangles": "D196-D197",
+        "placements": "P136-P137",
+        "NormalUp": "P151"
+      },
+      "excluded": {
+        "generation": 4,
+        "members": 1,
+        "source_key": 7,
+        "source_placements": "P181/P184",
+        "actual_target_unchanged": "D259/D270",
+        "source_returned_by_original_DOWN_intent": "D261",
+        "foreign_native_claims": 0,
+        "audit": "D269",
+        "raw_UP": "P187",
+        "actual_legacy_UP": "P189",
+        "resources_gone": "P195",
+        "input_UP": "P196",
+        "NormalUp": "P197"
+      },
+      "restored": {
+        "actual_GUI_original_rules_restored": "D298",
+        "same_exact_roots_and_geometry": "D299",
+        "generation": 5,
+        "members": 2,
+        "member_keys": [
+          7,
+          16
+        ],
+        "placements": "P221-P222",
+        "raw_UP": "P226",
+        "actual_legacy_UP": "P228",
+        "resources_gone": "P234",
+        "input_UP": "P235",
+        "NormalUp": "P236",
+        "foreign_native_claims": 0,
+        "audit": "D318"
+      },
+      "catalog_key_persistence_claimed": false,
+      "GUI_foreground_change_attributed_to_rule_revocation": false,
+      "target_hidden_or_recreated": false,
+      "cleanup": {
+        "owned_windows_and_alias_unregistered": "D326",
+        "original_configuration_and_binary_retained": "D388",
+        "phase_PASS": "D397"
+      }
+    }
+  },
+  "magnet_partial": {
+    "phase_result": "FAIL",
+    "whole_suite_result": "FAIL",
+    "whole_suite_result_source": "D624",
+    "actual_DPI": 144,
+    "attraction_DIP": 10,
+    "release_DIP": 16,
+    "entry_pixels": 15,
+    "release_pixels": 24,
+    "GUI_saved_speed_DIP_per_second": 20000,
+    "actual_passed_six_quanta": [
+      "D493 entry+1px free",
+      "D498 exact entry snaps",
+      "D503 held beyond entry",
+      "D508 exact release held",
+      "D513 release+1px detaches",
+      "D518 original-anchor reentry snaps"
+    ],
+    "generation": 6,
+    "source_key": 21,
+    "failed_subcase": "D528 remaining_magnet_actual_NormalUp_no_late_snap_or_new_placement",
+    "phase_failure": "D614",
+    "actual_product_NormalUp_receipt": "P331 (normal_up=true); this does not erase the failed driver subcase or establish its cause.",
+    "cause": "UNKNOWN in this scoped record; investigate separately against unchanged raw failure.",
+    "high_speed_and_following_slow_snap": "NOT_RUN",
+    "solver_Suppressed_receipt_claimed": false,
+    "raw_or_WinEvent_common_native_order_inferred_from_JSONL_order": false
+  },
+  "actual_shutdown": {
+    "source": "P367",
+    "own_hooks_stopped": true,
+    "own_overlay_destroyed": true,
+    "native_worker_exited": true,
+    "issued_native_completion_unknown": false,
+    "own_input_resources_stopped": true,
+    "own_capture_released": true,
+    "own_input_association_detached": true,
+    "driver_source": "D628",
+    "owned_windows_destroyed": true,
+    "product_process_closed": true
+  },
+  "wrapper": {
+    "fixture_pid": 3864,
+    "fixture_tid": 6244,
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "status": "FIXTURE_FAILED",
+    "product_cleanup_pass": false
+  },
+  "remote_cleanup": {
+    "utc": "2026-10-21T05:04:46.5289840Z",
+    "guest_pid": 23880,
+    "guest_native_identity_confirmed": true,
+    "dedicated_guest_exited": true,
+    "task_removed": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false
+  },
+  "limits": {
+    "group_subcases_only": true,
+    "whole_M06_or_version_PASS": false,
+    "Full": "NOT_RUN",
+    "G08_new_specialty": "NOT_RUN",
+    "I11_900_seconds": "NOT_RUN",
+    "real_application_compatibility": "NOT_RUN",
+    "host_trial": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "guest_destruction_is_product_cleanup_evidence": false
+  }
+}

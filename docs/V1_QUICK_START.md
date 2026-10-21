@@ -1,6 +1,6 @@
 # PaneBind V1 候选版中文快速入门
 
-当前候选已更新为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`。[528a便携候选](../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip) ZIP SHA-256 `1CB448B8DF8A717657FD769E90977A6E6058A99A38964AFFBE91282B502E31F1`。2432已在干净隔离guest实际验证该包无参数可见GUI、同实例二启、设置保存并改变Move吸附、真实UP和正常退出；它不是仅由测试driver入口推定的结果。双击第二DOWN丢失Prepared的具体缺陷已经实测修复，但当前 Full仍因真实未知前台撤权中断，尚不能宿主试用、宣称三窗整链或真人验收通过。
+当前候选已更新为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`。[528a便携候选](../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip) ZIP SHA-256 `1CB448B8DF8A717657FD769E90977A6E6058A99A38964AFFBE91282B502E31F1`。2432已在干净隔离guest实际验证该包无参数可见GUI、同实例二启、设置保存并改变Move吸附、真实UP和正常退出；它不是仅由测试driver入口推定的结果。双击第二DOWN丢失Prepared的具体缺陷已经实测修复。后继dfdd Full已实际完成自建原生三窗核心回环、正常抬键、两轮组合及规定连续运行，但真实应用／托盘与Edge退出仍未完整通过，Full保留FAIL；不把owned结果称为Explorer／混合应用整链、普通宿主或真人验收通过。
 
 以下247／6e9及更旧结果按原身份保留；其中旧候选和“尚未运行”描述为历史，不是当前11ae包状态。普通操作方法仍见本文第1节；自动测试及入口复验只在已授权隔离guest完成，不邀请用户在宿主承担架构实验。证据范围与剩余条件以[集中报告](reports/V1_DELIVERY_REPORT.md)和[验收表](reports/V1_ACCEPTANCE.json)为准。
 

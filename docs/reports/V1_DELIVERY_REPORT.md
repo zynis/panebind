@@ -1,5 +1,22 @@
 # PaneBind V1 集中交付进展
 
+## 最新实际结果（2026-10-21）：完整 Release 已运行，保留应用边界失败
+
+当前产品仍为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`／Release SHA-256 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；下面 Full 使用同源码的原驱动 `4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7`。后继仅驱动修改不重建产品，也不换绑原运行身份。
+
+`dfdde5b3a08b43d9b7cbe068f4de0d22` 已实际完成 Full 的可运行阶段，不再是“包已准备／待运行”。[原文摘录及身份](v1-evidence/dfdd-release-full-metadata.json)绑定最终6396条合法连续驱动记录；早期收集中因文件仍追加而哈希不一致的部分副本保留为无效中间收集，不冒充最终证据。
+
+- **三窗自建原生窗口的实际核心链成立**：同一产品PID6280，A自由／XY吸附／保持／拉开／重吸附→Ctrl A带B/C→B Move→C Move→B原生Resize→A五阶段回环→Ctrl C，七代各有exact写入、真实匹配LL与legacy UP、NormalUp、释放capture／解除关联／撤罩回执。它不是跨进程Explorer或三种应用的通过证明，完整I02的应用门仍未满足。
+- **连续操作不再停在初次A**：Full内置I11阶段在同PID5264实际完成两轮核心组合和20个混合动作，计时900.035872秒；随后空闲60.0156957秒，实测单逻辑核CPU均值0%、工作集约29.4MB，handle/GDI/USER未单调增长。此为本次Full中的规定阶段，未另跑独立900秒专项；整次Full包含设置等场景的正常重启，不能称全部6396条是同PID整链。各产品PID均有自己的真实资源退出回执，不代替应用退出检查。
+- **设置、布局与异常恢复实际推进**：GUI修改生效／持久化、配置规则、角及Shift角和Undo、热键后缀、30.015秒Deadline及后继操作、在途旧调用完成后的撤权／视觉恢复、尺寸栅格与第二成员失效恢复均取得限定记录。普通角双击的非strict-UP汇总不补成NormalUp；在途旧调用exact完成不恢复新写入权限。跨屏子项因本批实际单显示器仍BLOCKED。
+- **Full仍FAIL**：本批新建Explorer的RID实际8192但`elevated=true/medium=false`，资格门正确拒绝、未发产品手势，不能套用旧批12288的身份。Code／Terminal／Edge原生客户前置没有完整通过；此处产品处于暂停但hooks仍安装，不称严格“无产品对照”。本批未携带Notepad资产不等于既有官方资产不存在。Edge精确窗口的正常关闭未确认，最终wrapper仍记录3个descendant和测试强制清理；普通包尾段因此NOT_RUN，不能用guest销毁或产品自身资源退出改成整体cleanup PASS。真实托盘GetRect为E_FAIL，未发菜单输入。
+
+未知前台的早期`a8a7`失败原样保留；本批不再因WMI启动／停止trace配对UNKNOWN而授予或撤销产品权限：保留原诊断，一次末尾实际查询为空及自有订阅清理后，仍由原fixture与逐手势身份／前台／capture门判定。本批前台只读缓冲最终overflow=1，意味着该诊断不完整，不推断全程无外来前台，也不当作产品输入丢包或唯一系统根因。没有抢前台、操纵未知capture或读取窗口内容。
+
+当前可直接复核的普通包仍为[528a便携候选](../../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip)，其独立无参入口实测仍准确绑定`2432`，不是Full尾段通过。普通完整Medium桌面／五类应用／真实托盘及多屏混合DPI是具体剩余环境与兼容门；不能用本批owned核心闭环代替。真人UAT仍PENDING，当前不进入REA，也不邀请宿主试用。
+
+后继仅更新driver的`8e0bd71b8c3847579ff7e9f862c7a542`已实际验证[组成员关闭及GUI精确规则排除／恢复](v1-evidence/8e0-r32-remaining-move-scoped-result.json)：关闭follower后本代以SourceLost停止、零关闭后新增native调用，真实清理UP与资源退出成立；同一产品PID2928的幸存双窗Ctrl、规则排除后的单成员及移除后双成员组均exact／NormalUp。磁吸10/16 DIP的六个实际量子也已通过（四次native调用、两次真实noop），但收尾检查D528误将“没有独立normalized LL-UP日志”当成缺实际UP，阶段及整批原FAIL保留。P333实际同代LL回调matching=true／push=false、P323真实legacy accepted、P330 `shield_queued_legacy`及P331 NormalUp、P329释放／解除／销毁均有原件，未发现UP后新增placement。最小驱动修复`05f897e`保留这些事实及严格身份／时序／清理门，增加其实际字段形状的离线正反例；不改产品、既有UP helper语义或把SendInput当接收证据。该批速度后缀未运行，需用新批实测后再记结果。
+
 ## 当前候选增量（2026-10-21）：双击准备修复与普通便携入口复验
 
 产品仅在取得实际反例后更新：当前产品／驱动源码均为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256 分别为 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`／`4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7`。后继启动观察脚本和文档提交不重建、换绑这两份 EXE；原247产品、原6e9包和下面历史结果保持原身份。
@@ -14,7 +31,7 @@ Debug／Release 产品、驱动及受影响目标构建通过；各自 `v1-input
 
 未知前台后续采用有界、只读启动观察，不给产品增加环境放权。`392700232e524e5fbe78d6b86913dac5` 的脚本数组优先级错误及原始失败保留；`50f5e31a93ee4054b4826cd8b92db17b` 拒绝的下一条trace未保存，不能补造其字段。补齐实际拒绝记录后的 `e5c6b4a0cc5a43288cf6d866c68e6f82` 确认Start为session1／parent1160，Stop同PID5652却为session0／parent0，观察者自身始终PID5740／session1；该配对不能授同会话退出成功，也不能反推50f5或早期Full的唯一原因。三批产品／driver／输入均未启动，不计产品Full失败或通过。随后停止依赖WMI配对判定环境就绪：保留诊断UNKNOWN，只在一次真正末尾查询成功且当前无该进程、两个自有订阅和队列清理实证后继续原fixture；原guest、Medium、桌面及逐手势身份／前台／capture门仍须全部实际成立。末尾瞬时不存在不保证未来前台、不授写入权。各批只退出本代guest／临时任务，保留包与证据，未修改宿主、CrossRec或未知资源，产品仍冻结11ae。
 
-整版仍 **PARTIAL**，生产接线60/60，保留原身份的完整功能合同15/60、对标7/40；本轮限定结果不追加整项计分。普通完整Medium桌面、真实应用／托盘、多屏／混合DPI和当前连续整链尚未齐，真人UAT PENDING，暂不进入REA。以下内容为历史记录，不用旧“待运行”覆盖上面的实际结果。
+整版仍 **PARTIAL**，生产接线60/60，保留原身份的完整功能合同15/60、对标7/40；本轮限定结果不追加整项计分。上方新Full已补当前owned核心连续链；普通完整Medium桌面、真实应用／托盘、多屏／混合DPI和完整应用整链仍未齐，真人UAT PENDING，暂不进入REA。以下内容为历史记录，不用旧“待运行”覆盖上面的实际结果。
 
 ## 当前继续结果（2026-10-21）：实际守卫与原便携包入口
 
