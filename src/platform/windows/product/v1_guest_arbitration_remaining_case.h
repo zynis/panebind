@@ -1,13 +1,14 @@
 #pragma once
 
 // TEST ONLY. Include after the existing layout, product-chain, interruption,
-// geometry-history and remaining-group helpers. Exactly three previously
-// unobserved competing-mode cases, not another modifier/pause/settings matrix.
+// geometry-history and remaining-group helpers. The recovery-only entry reuses
+// the two observed competing-mode cases without replaying their gestures.
 void owned_arbitration_remaining_case(State& s){
     namespace v=panebind::core::v1;namespace e=product::guest::up_evidence_detail;
+    const bool recovery_only=s.suite=="ArbitrationRecoveryOnly";
     settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;
     const auto birth=process_birth(s.process);const auto binary=hash(s.product);
-    if(s.suite!="ArbitrationRemainderOnly"||!original.enabled||!original.rules.empty()||s.left||s.control||
+    if((s.suite!="ArbitrationRemainderOnly"&&!recovery_only)||!original.enabled||!original.rules.empty()||s.left||s.control||
        binary.empty()||binary!=hash(s.input_product))throw std::runtime_error("arbitration_remaining_exact_guest_required");
     for(const int code:std::array<int,7>{VK_LBUTTON,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,'C'})
         if(GetAsyncKeyState(code)&0x8000)throw std::runtime_error("arbitration_remaining_initial_keys_not_released");
@@ -83,9 +84,11 @@ void owned_arbitration_remaining_case(State& s){
                 ",\"raw_gap_pixels\":"+std::to_string(gap)+",\"oracle_uses_product_solver\":false");
             return expected;
         };
+        Gesture g;std::uint64_t plain_generation{};
+        if(!recovery_only){
         // 1. Ctrl group magnet is active at a REAL docking cursor zone. Ctrl
         // wins through the real UP; no source-only or release-dock write.
-        auto g=layout_down(set,0,HTCAPTION,true);const auto first_generation=g.generation;
+        g=layout_down(set,0,HTCAPTION,true);const auto first_generation=g.generation;
         const auto source_key=remaining_group_start(s,g,2,"arbitration_remaining_actual_Ctrl_two_member_route");
         const Rect left=edge_expected(g);
         const std::vector<Rect> expected_group{left,{left.r,left.t,left.r+b.width(),left.b}};
@@ -126,7 +129,13 @@ void owned_arbitration_remaining_case(State& s){
             gone_valid(actual_gone(g))&&!IsZoomed(set.frames[0].hwnd),
             std::string("\"generation\":")+std::to_string(g.generation)+",\"actual_continuous_native_calls\":"+std::to_string(continuous)+
             ",\"actual_release_dock_native_calls\":"+std::to_string(commits)+",\"actual_release_receipt\":"+quote(commit));
-        chain_check_product(s,pid,birth);const auto plain_generation=g.generation;
+        chain_check_product(s,pid,birth);plain_generation=g.generation;
+        }else{
+            s.log.emit("arbitration_recovery_prior_competing_scopes_not_replayed",
+                "\"Ctrl_magnet_dock_zone\":\"REUSED_ORIGINAL_9B60_69AB_IDENTITY\","
+                "\"plain_magnet_unique_dock_UP\":\"REUSED_ORIGINAL_9B60_69AB_IDENTITY\","
+                "\"actual_gestures_replayed\":0,\"new_PASS_awarded\":false");
+        }
 
         // 3. Existing public Ctrl+Alt+C mapping, delivered as real keys while
         // the original Ctrl gesture still holds LEFT. No IPC command or fake
@@ -188,6 +197,60 @@ void owned_arbitration_remaining_case(State& s){
         // one already-planned TEST UP at a passive guest hook as well. Keep
         // the product's stricter LL/status result literally separate: after
         // abort/Gone, idle Raw or a guest-hook UP never becomes old NormalUp.
+        // Center moved the still-held source away from the last cursor. In
+        // the original69ab run the UP hit/IL was unknown, not proved UIPI.
+        // This is TEST cleanup routing after actual abort/Gone, not product
+        // focus recovery, capture manipulation or an old-generation NormalUp.
+        if(recovery_only){
+            const bool abort_gone=wait([&]{return gone_valid(actual_gone(g));},500);
+            const HWND source=set.frames[0].hwnd;POINT original_cursor{};
+            const bool original_cursor_known=GetCursorPos(&original_cursor)!=FALSE;
+            const HWND original_hit=original_cursor_known?WindowFromPoint(original_cursor):nullptr;
+            const HWND original_root=original_hit?GetAncestor(original_hit,GA_ROOT):nullptr;
+            DWORD original_hit_pid{};const DWORD original_hit_tid=original_hit?GetWindowThreadProcessId(original_hit,&original_hit_pid):0;
+            GUITHREADINFO before_gui{sizeof(before_gui)};RECT client{};
+            const bool source_ready=abort_gone&&set.owns(0)&&set.owns(1)&&GetForegroundWindow()==source&&
+                visible(source)==centered&&visible(set.frames[1].hwnd)==moved[1]&&
+                GetGUIThreadInfo(set.thread,&before_gui)&&!before_gui.hwndCapture&&!before_gui.hwndMoveSize&&!before_gui.hwndMenuOwner&&
+                GetClientRect(source,&client)&&client.right-client.left>=8&&client.bottom-client.top>=8&&
+                s.left&&!s.left_up_attempted&&(GetAsyncKeyState(VK_LBUTTON)&0x8000);
+            s.log.check("arbitration_recovery_abort_Gone_exact_foreground_before_cleanup_cursor",source_ready,
+                "\"actual_abort_Gone\":"+quote(actual_gone(g))+",\"original_cursor_known\":"+(original_cursor_known?"true":"false")+
+                ",\"original_cursor\":"+(original_cursor_known?"["+std::to_string(original_cursor.x)+","+std::to_string(original_cursor.y)+"]":"null")+
+                ",\"original_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(original_hit))+
+                ",\"original_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(original_root))+
+                ",\"original_hit_PID\":"+std::to_string(original_hit_pid)+",\"original_hit_TID\":"+std::to_string(original_hit_tid)+
+                ",\"original_hit_exact_source\":"+(original_hit==source?"true":"false")+
+                ",\"original_hit_integrity\":\"UNKNOWN_NOT_QUERIED\",\"UIPI_root_cause_inferred\":false,\"test_cleanup_only\":true");
+            POINT destination{(client.left+client.right)/2,(client.top+client.bottom)/2};
+            if(!ClientToScreen(source,&destination))throw std::runtime_error("arbitration_recovery_cleanup_client_point_unknown");
+            cursor(s,destination);
+            POINT actual_cursor{};const bool cursor_known=GetCursorPos(&actual_cursor)!=FALSE;
+            const HWND hit=cursor_known?WindowFromPoint(actual_cursor):nullptr,root=hit?GetAncestor(hit,GA_ROOT):nullptr;
+            DWORD hit_pid{},source_pid{};const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;
+            const DWORD source_tid=GetWindowThreadProcessId(source,&source_pid);
+            DWORD_PTR region{};const bool region_known=hit==source&&SendMessageTimeoutW(source,WM_NCHITTEST,0,
+                MAKELPARAM(static_cast<short>(actual_cursor.x),static_cast<short>(actual_cursor.y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&region)!=FALSE;
+            GUITHREADINFO after_gui{sizeof(after_gui)};const bool gui_known=GetGUIThreadInfo(set.thread,&after_gui)!=FALSE;
+            const bool destination_ready=set.owns(0)&&set.owns(1)&&GetForegroundWindow()==source&&
+                cursor_known&&actual_cursor.x==destination.x&&actual_cursor.y==destination.y&&hit==source&&root==source&&
+                source_pid==GetCurrentProcessId()&&hit_pid==source_pid&&hit_tid==set.thread&&source_tid==set.thread&&
+                region_known&&static_cast<int>(region)==HTCLIENT&&gui_known&&!after_gui.hwndCapture&&!after_gui.hwndMoveSize&&!after_gui.hwndMenuOwner&&
+                visible(source)==centered&&visible(set.frames[1].hwnd)==moved[1]&&gone_valid(actual_gone(g))&&
+                s.left&&!s.left_up_attempted&&(GetAsyncKeyState(VK_LBUTTON)&0x8000);
+            s.log.check("arbitration_recovery_unique_cleanup_destination_exact_client",destination_ready,
+                "\"exact_source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(source))+
+                ",\"actual_cursor\":"+(cursor_known?"["+std::to_string(actual_cursor.x)+","+std::to_string(actual_cursor.y)+"]":"null")+
+                ",\"actual_hit\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+                ",\"actual_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+                ",\"source_PID\":"+std::to_string(source_pid)+",\"source_TID\":"+std::to_string(source_tid)+
+                ",\"hit_PID\":"+std::to_string(hit_pid)+",\"hit_TID\":"+std::to_string(hit_tid)+
+                ",\"HTCLIENT_known\":"+(region_known?"true":"false")+",\"actual_hit_test\":"+std::to_string(region)+
+                ",\"source_GUI_known\":"+(gui_known?"true":"false")+
+                ",\"actual_capture\":"+std::to_string(reinterpret_cast<std::uintptr_t>(after_gui.hwndCapture))+
+                ",\"SetForegroundWindow_called\":false,\"capture_modified_by_TEST\":false,\"UP_sent\":false,"
+                "\"only_original_UP_follows\":true,\"test_cleanup_not_product_NormalUp\":true");
+        }
         GuestUpHookObservation cleanup_head;
         s.log.check("arbitration_remaining_single_cleanup_UP_guest_observer_ready",cleanup_head.start(),
             "\"old_generation\":"+std::to_string(g.generation)+",\"product_authority_or_UP_receipt\":false");
@@ -248,8 +311,11 @@ void owned_arbitration_remaining_case(State& s){
         chain_check_product(s,pid,birth);const auto saved=chain_gui_save(s,original);auto expected_config=original;
         expected_config.generation=saved.generation;s.log.check("arbitration_remaining_original_GUI_and_product_bytes_restored",saved==expected_config&&hash(s.product)==binary);
         s.log.check("arbitration_remaining_exact_test_windows_closed",set.close());chain_check_product(s,pid,birth);
-        s.log.emit("arbitration_remaining_component",std::string("\"result\":\"PASS_SCOPED_THREE_COMPETING_MODE_CASES\",")+
-            "\"Ctrl_magnet_docking_edge\":\"PASS\",\"plain_magnet_dock_unique_UP\":\"PASS\",\"active_Ctrl_nonstop_hotkey\":\"PASS\","+
+        s.log.emit("arbitration_remaining_component",std::string("\"result\":")+
+            quote(recovery_only?"PASS_SCOPED_SINGLE_COMMAND_ABORT_AND_RECOVERY":"PASS_SCOPED_THREE_COMPETING_MODE_CASES")+
+            ",\"Ctrl_magnet_docking_edge\":"+quote(recovery_only?"REUSED_ORIGINAL_IDENTITY_NOT_RUN_THIS_SUITE":"PASS")+
+            ",\"plain_magnet_dock_unique_UP\":"+quote(recovery_only?"REUSED_ORIGINAL_IDENTITY_NOT_RUN_THIS_SUITE":"PASS")+
+            ",\"active_Ctrl_nonstop_hotkey\":\"PASS\","+
             "\"aborted_generation_UP_scope\":\"actual_test_guest_hook_not_product_or_NormalUp\",\"following_plain_Move_and_native_client_pair\":true,"+
             "\"prior_modifier_pause_settings_cases_replayed\":false,\"real_applications\":\"NOT_RUN\",\"human_UAT\":\"NOT_RUN\",\"whole_version_PASS\":false");
     }catch(...){

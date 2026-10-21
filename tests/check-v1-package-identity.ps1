@@ -606,10 +606,39 @@ Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide $lifecyclePrepare $li
 Check $true 'static hide/show route retains exact guest guards, public observed ineligibility, fresh key and one real Move/UP'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource ($lifecycleHide.Replace('const auto hidden_status=geometry_history_status(s);','const auto hidden_status=before_status;')) $lifecyclePrepare $lifecycleGuest} 'static hide/show rejects substituting old status for actual product observation'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide ($lifecyclePrepare.Replace("'LifecycleRemainderOnly'","'DisabledLifecycle'")) $lifecycleGuest} 'static hide/show rejects a missing exact packager suite'
+function Assert-V1ArbitrationRecoveryWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
+    if([regex]::Matches($Fixture,'ArbitrationRecoveryOnly').Count -ne 7 -or
+       -not $Fixture.Contains('phase("single_nonstop_command_abort_and_fresh_recovery",owned_arbitration_remaining_case);') -or
+       -not $Prepare.Contains("'ArbitrationRecoveryOnly'") -or -not $Guest.Contains("'ArbitrationRecoveryOnly'")){
+        throw 'Arbitration recovery requires exact independent/parser/manifest/script dispatch, not a force switch.'
+    }
+    foreach($value in @('settings_guest_scope(s);','const bool recovery_only=s.suite=="ArbitrationRecoveryOnly";',
+        'if(!recovery_only){','plain_generation=g.generation;','REUSED_ORIGINAL_IDENTITY_NOT_RUN_THIS_SUITE',
+        'const bool abort_gone=wait([&]{return gone_valid(actual_gone(g));},500);',
+        'GetForegroundWindow()==source','GetClientRect(source,&client)',
+        'cursor(s,destination);','GetCursorPos(&actual_cursor)','WindowFromPoint(actual_cursor)',
+        'hit==source&&root==source','hit_pid==source_pid&&hit_tid==set.thread&&source_tid==set.thread',
+        'static_cast<int>(region)==HTCLIENT','!after_gui.hwndCapture&&!after_gui.hwndMoveSize&&!after_gui.hwndMenuOwner',
+        'GuestUpHookObservation cleanup_head;','head_stopped&&s.left_up_attempted&&s.left_up_send_qpc',
+        'guest_hook_is_not_product_or_window_UP_receipt','old_generation_NormalUp_inferred',
+        'const auto following=layout_down(set,0,HTCAPTION,false);')){
+        if(-not $Cases.Contains($value)){throw ('Arbitration recovery lost exact original-UP routing or following operation: '+$value)}
+    }
+    if([regex]::Matches($Cases,'\bbutton\(s,false\)').Count -ne 1 -or
+       $Cases.Contains('SetForegroundWindow(') -or $Cases.Contains('SetCapture(') -or
+       $Cases.Contains('ReleaseCapture(') -or $Cases.Contains('PostMessage(')){
+        throw 'Recovery may route the one original TEST UP to its already-foreground exact client, never refocus/capture/replay.'
+    }
+}
+$arbitrationRecovery=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_arbitration_remaining_case.h'),[Text.Encoding]::UTF8)
+Assert-V1ArbitrationRecoveryWiring $fixtureSource $arbitrationRecovery $lifecyclePrepare $lifecycleGuest
+Check $true 'static arbitration recovery has one exact-client cleanup UP, guest-only scope and same-instance following operation'
+Reject {Assert-V1ArbitrationRecoveryWiring $fixtureSource ($arbitrationRecovery.Replace('hit==source&&root==source','true')) $lifecyclePrepare $lifecycleGuest} 'static arbitration recovery rejects removal of the actual client root check'
+Reject {Assert-V1ArbitrationRecoveryWiring $fixtureSource $arbitrationRecovery ($lifecyclePrepare.Replace("'ArbitrationRecoveryOnly'","'DisabledRecovery'")) $lifecycleGuest} 'static arbitration recovery rejects missing packager scope'
 function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[string]$Layout,[string]$Prepare,[string]$Guest){
     foreach($value in @('#include "platform/windows/product/v1_guest_transparency_remaining_case.h"',
         'phase("temporary_alpha_real_FocusLost_and_successor",owned_transparency_focus_remaining_case);',
-        'phase("temporary_alpha_actual_OWNDC_rejection_and_limitation",owned_transparency_unsupported_remaining_case);',
+        'phase("temporary_alpha_actual_per_pixel_limitation",owned_transparency_unsupported_remaining_case);',
         's.suite!="TransparencyRemainderOnly"','s.suite=="TransparencyRemainderOnly"',
         'else if(value==L"TransparencyRemainderOnly")s.suite="TransparencyRemainderOnly";')){
         if(-not $Fixture.Contains($value)){throw ('Transparency remainder suite lost actual wiring: '+$value)}
@@ -618,28 +647,49 @@ function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[s
         throw 'Transparency remainder requires both exact packager and guest suite declarations.'
     }
     foreach($value in @('settings_guest_scope(s);','s.suite!="TransparencyRemainderOnly"','config.drag_alpha=190;',
-        'own_visual_setup(s,source,173,true);','SetForegroundWindow(other)',
+        'transparency_owned_visual_setup(set,0,173,true);','SetForegroundWindow(other)',
         'interruption_end(s,g,v::End::FocusLost,false,source)','transparency_gone(s,set,g);',
         'abort_cleanup_up_receipt(s,g.offset,g.generation)','next.generation>g.generation',
-        'set.create(false,true);','GetClassLongPtrW(source,GCL_STYLE)',
-        'e::unique_value(mutation,"\"native_sequence_returned_success\":")=="false"',
-        'original_native_tuple_preserved','NOT_PROVEN_BY_NOTICE_LOG','visible_limitation_feedback\":\"NOT_RUN')){
+        'transparency_owned_per_pixel_setup(set,0);','GetClassLongPtrW(h,GCL_STYLE)',
+        'transparency_actual_unreadable_alpha_not_overwritten','!visual_requests',
+        'NOT_PROVEN_BY_NOTICE_LOG','visible_limitation_feedback\":\"NOT_RUN')){
         if(-not $Cases.Contains($value)){throw ('Transparency remainder lost actual observation/limit: '+$value)}
     }
     foreach($value in @('state.suite!="TransparencyRemainderOnly"','original.style|=CS_OWNDC;',
         'L".NoLayeredOwnDC"','storage->alias_unregistered','GetClassLongPtrW(frames[1].hwnd,GCL_STYLE)&CS_OWNDC')){
         if(-not $Layout.Contains($value)){throw ('Transparency CS_OWNDC alias lost exact ownership: '+$value)}
     }
-    if($Cases.Contains('PostMessageW(') -or $Cases.Contains('SetWindowLongPtrW(') -or $Cases.Contains('SetLayeredWindowAttributes(')){
-        throw 'Transparency remainder must use real product native requests, not pre-mutate source or inject fake messages.'
+    $visualSetup=[regex]::Match($Cases,'(?s)void transparency_owned_visual_setup\(.*?(?=void transparency_owned_visual_exact\()').Value
+    $pixelSetup=[regex]::Match($Cases,'(?s)void transparency_owned_per_pixel_setup\(.*?(?=void transparency_restore\()').Value
+    if([string]::IsNullOrWhiteSpace($visualSetup) -or [string]::IsNullOrWhiteSpace($pixelSetup)){
+        throw 'Actual fixture visual setup must have narrow named boundaries, not an unbounded source mutation exemption.'
+    }
+    foreach($value in @('if(!set.owns(index))throw','if(set.owns(index)){style_attempted=true',
+        'if(style_attempted&&!style_error&&set.owns(index))','if(alpha_return&&set.owns(index))')){
+        if(-not $visualSetup.Contains($value)){throw ('Owned visual setup lost an exact identity recheck: '+$value)}
+    }
+    foreach($value in @('if(!set.owns(index))throw','class_error||(class_style&(CS_OWNDC|CS_CLASSDC))',
+        'width>2048||height>2048','if(set.owns(index)){style_attempted=true',
+        'if(style_attempted&&!style_error&&set.owns(index))','0xff80a0c0u',
+        'UpdateLayeredWindow(h,screen,&destination,&size,memory,&origin,0,&blend,ULW_ALPHA)',
+        'update_attempted&&updated&&opaque_hit&&geometry_same&&layered&&!read_alpha',
+        '~OwnGdi(){close();}','gdi.close();','SelectObject(memory,previous)',
+        'DeleteDC(memory)','DeleteObject(bitmap)','ReleaseDC(nullptr,screen)')){
+        if(-not $pixelSetup.Contains($value)){throw ('Per-pixel precondition lost real ownership, API/readback or GDI cleanup: '+$value)}
+    }
+    $productCases=$Cases.Replace($visualSetup,'').Replace($pixelSetup,'')
+    if($Cases.Contains('PostMessageW(') -or $productCases.Contains('SetWindowLongPtrW(') -or
+       $productCases.Contains('SetLayeredWindowAttributes(') -or $productCases.Contains('UpdateLayeredWindow(') -or
+       $productCases.Contains('SetWindowPos(')){
+        throw 'Only two exact owned TEST setup functions may set fixture visual state; real product cases cannot pre-mutate or fake messages.'
     }
 }
 $transparencyRemainder=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_transparency_remaining_case.h'),[Text.Encoding]::UTF8)
 $transparencyLayout=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_layout_cases.h'),[Text.Encoding]::UTF8)
 Assert-V1TransparencyRemainderWiring $fixtureSource $transparencyRemainder $transparencyLayout $lifecyclePrepare $lifecycleGuest
-Check $true 'static transparency remainder uses real FocusLost and exact newly registered unsupported-class scope with independent phases'
+Check $true 'static transparency remainder uses real FocusLost and actual bounded owned per-pixel unreadable-alpha precondition'
 Reject {Assert-V1TransparencyRemainderWiring $fixtureSource ($transparencyRemainder.Replace('next.generation>g.generation','true')) $transparencyLayout $lifecyclePrepare $lifecycleGuest} 'static transparency rejects losing the fresh successor generation'
-Reject {Assert-V1TransparencyRemainderWiring $fixtureSource $transparencyRemainder ($transparencyLayout.Replace('state.suite!="TransparencyRemainderOnly"','false')) $lifecyclePrepare $lifecycleGuest} 'static transparency rejects extending CS_OWNDC alias registration outside its exact guest suite'
+Reject {Assert-V1TransparencyRemainderWiring $fixtureSource ($transparencyRemainder.Replace('if(!set.owns(index))throw','if(false)throw')) $transparencyLayout $lifecyclePrepare $lifecycleGuest} 'static transparency rejects visual setup without exact fixture ownership'
 function Assert-V1VisualOwnershipWiring([string]$Fixture,[string]$Visual){
     if(-not $Fixture.Contains('owned_visual_ownership_case(s);') -or -not $Visual.Contains('s.suite!="VisualOwnershipOnly"')){
         throw 'Visual ownership must reach its guarded real product component.'

@@ -32,6 +32,20 @@ or translated; no new external code or attribution obligation. Applicable
 subsystems: production native-restore state, drag visual ownership/feedback,
 and only the exact disposable-guest tests for those existing V1 contracts.
 
+The actual `e1a2` CS_OWNDC source nevertheless accepted the candidate's alpha
+mutation and restored it after Move/UP; that recorded positive native result
+is not overwritten by the documentation or relabelled an unsupported failure.
+For the remaining real unreadable-alpha case, actually checked Microsoft's
+[GetLayeredWindowAttributes](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getlayeredwindowattributes)
+remarks and [UpdateLayeredWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-updatelayeredwindow).
+The former explicitly excludes attributes set by the latter. The guest fixture
+therefore uses one ordinary self-owned per-pixel opaque surface, with bounded
+self-owned GDI resources, and requires actual upload, unreadable attributes,
+geometry and hit observations before testing the product fallback. It never
+fills a failed API result or unknown alpha tuple, nor mistakes a notice log
+for an actually visible limitation. This test's runtime outcome remains pending
+until its new run; the earlier expectation-of-failure remains historical FAIL.
+
 ## V1 maximized-entry repair and one Lower contrast — 2026-10-22
 
 Reused the existing mature/reference-only AltSnap GPL-3.0-or-later pin
