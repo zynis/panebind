@@ -754,6 +754,23 @@ Reject {Assert-V1FixtureDependencies @('kernel32.dll','bcrypt.dll','propsys.dll'
 # Load ONLY the real validation function definition, not the guest entry body.
 # A missing-file spec is rejected before extraction, process creation or input.
 $guestAst=[Management.Automation.Language.Parser]::ParseFile((Join-Path $repository 'scripts/v1-sandbox-guest.ps1'),[ref]$null,[ref]$null)
+# Evaluate only the real source-array expression, never the guest function or
+# WMI. PowerShell comma/addition precedence made actual Run 3927 produce one
+# concatenated source instead of two; parser success alone cannot catch it.
+function Assert-V1FullStartupSourceExpression([string]$Expression){
+    $values=@(& ([scriptblock]::Create('param([string]$prefix) '+$Expression)) 'PaneBindV1.test.sample')
+    if($values.Count -ne 2 -or $values[0] -isnot [string] -or $values[1] -isnot [string] -or
+       $values[0] -cne 'PaneBindV1.test.sample.start' -or $values[1] -cne 'PaneBindV1.test.sample.stop'){
+        throw 'Startup observation must construct two distinct exact source strings.'
+    }
+}
+$startupFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Start-FullGuestStartupObservation'},$false))
+if($startupFunction.Count -ne 1){throw 'Actual Full startup observation function is missing or ambiguous.'}
+$sourceExpression=[regex]::Matches($startupFunction[0].Extent.Text,'\bsources\s*=\s*(?<expression>@\([^;\r\n]*\))\s*;owned=')
+if($sourceExpression.Count -ne 1){throw 'Actual startup source expression is missing or ambiguous.'}
+Assert-V1FullStartupSourceExpression $sourceExpression[0].Groups['expression'].Value
+Check $true 'actual guest startup expression creates two exact event source strings without subscribing to WMI'
+Reject {Assert-V1FullStartupSourceExpression '@($prefix+''.start'',$prefix+''.stop'')'} 'actual old Run 3927 source expression fails the two-source value check despite parsing successfully'
 $portableFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Prepare-PortableTestPackage'},$false))
 Check ($portableFunction.Count -eq 1) 'test locates the actual guest portable validation function'
 . ([scriptblock]::Create($portableFunction[0].Extent.Text))

@@ -17,7 +17,7 @@ function Start-FullGuestStartupObservation {
     # Called only after the exact disposable-guest/Run/manifest guards. These
     # extrinsic kernel-provider events do not use WITHIN or process polling.
     $prefix='PaneBindV1.'+$RunId+'.rgnupdt.'+[guid]::NewGuid().ToString('N')
-    $context=@{clock=[Diagnostics.Stopwatch]::StartNew();sources=@($prefix+'.start',$prefix+'.stop');owned=@();completed=$false;
+    $context=@{clock=[Diagnostics.Stopwatch]::StartNew();sources=@(($prefix+'.start'),($prefix+'.stop'));owned=@();completed=$false;
         record=[ordered]@{schema='panebind-v1-full-startup-observation/1';run_id=$RunId;suite='Full';
             status='OBSERVING';deadline_seconds=60;deadline_includes_asset_preparation=$true;subscription_utc=[DateTime]::UtcNow.ToString('o');
             subscription_filetime_utc=[DateTime]::UtcNow.ToFileTimeUtc();initial_processes=@();events=@();current_processes=@();
