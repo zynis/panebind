@@ -175,8 +175,8 @@ void owned_remaining_group_membership_case(State& s){
         }
         const auto restored=chain_gui_save(s,original);auto expected=original;expected.generation=restored.generation;
         chain_check_product(s,pid,birth);s.log.check("remaining_group_original_configuration_and_binary_retained",restored==expected&&hash(s.product)==binary);
-        s.log.emit("remaining_group_membership_component","\"result\":\"PASS\",\"scope\":\"active_follower_close_and_GUI_class_rule_next_group_selection\","+
-            "\"same_product_process\":true,\"close_abort_cleanup_UP_is_NormalUp\":false,\"GUI_focus_loss_is_rule_causality\":false,"+
+        s.log.emit("remaining_group_membership_component","\"result\":\"PASS\",\"scope\":\"active_follower_close_and_GUI_class_rule_next_group_selection\","
+            "\"same_product_process\":true,\"close_abort_cleanup_UP_is_NormalUp\":false,\"GUI_focus_loss_is_rule_causality\":false,"
             "\"old_failed_evidence_preserved\":true,\"whole_M06_or_version_PASS\":false,\"real_applications\":\"NOT_RUN\",\"human_uat\":\"NOT_RUN\"");
     }catch(...){
         pause_routing_failed_case_input(s);bool restored=false;std::string reason;
