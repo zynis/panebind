@@ -1,0 +1,194 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-AA2E-HC-NONCALLER-GET-POINTER-HEAP-EXIT",
+  "review_date": "2026-10-22",
+  "run_id": "aa2e413d48eb4baabe7ec8c035a24c8e",
+  "suite": "HighContrastOnly",
+  "configuration": "Release",
+  "actual_result": "FAIL_TEST_FIXTURE_HEAP_CORRUPTION_STATUS_EXIT_NOT_TIMEOUT",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+  "product_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+  "driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+  "driver_binary_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84",
+  "packaging_head": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+  "package_zip_sha256": "42DD5B4FD49F612AC562FCFB25F81BF05ECB2579B415B9FF0D7FD40932B2EB2C",
+  "input_manifest_sha256": "06FC6F33B7492C82CC0D1038A555B481E1A85E2C9B1837BD128D79B486B2DDAF",
+  "fixture_PID": 6268,
+  "fixture_birth_filetime_decimal_string": "134370989647626795",
+  "product_PID": 6340,
+  "product_birth_filetime_decimal_string": "134370989649755020",
+  "identity_precision": "Birth identities above are literal decimal strings copied from D17/D24. Original JSONL is copied verbatim, not JSON-reserialized.",
+  "original_files": [
+    {
+      "path": "uat/v1-control/aa2e413d48eb4baabe7ec8c035a24c8e/collection-20261021T233039646Z-175cb260cd0b4c0b8464ef1f59b05e78/aa2e413d48eb4baabe7ec8c035a24c8e-release-fixture.jsonl",
+      "bytes": 35276,
+      "sha256": "63634CF4A71B77C6447E231366A382E63D3EC136CC3DAA98EBE838930BBB6977"
+    },
+    {
+      "path": "uat/v1-control/aa2e413d48eb4baabe7ec8c035a24c8e/collection-20261021T233039646Z-175cb260cd0b4c0b8464ef1f59b05e78/aa2e413d48eb4baabe7ec8c035a24c8e-product-Release/panebind.log.jsonl",
+      "bytes": 20293,
+      "sha256": "A920B49B32A8EF2D2FF7370A9C73CA91C687F06C51D7B1B31BFEE48CD7FBAC6B"
+    },
+    {
+      "path": "uat/v1-control/aa2e413d48eb4baabe7ec8c035a24c8e/collection-20261021T233039646Z-175cb260cd0b4c0b8464ef1f59b05e78/aa2e413d48eb4baabe7ec8c035a24c8e-guest-summary.json",
+      "bytes": 20890,
+      "sha256": "231773A8BE7CED841020FD7F92505B1D6B4B81905EF1CA9D5A5091205EDEEF14"
+    },
+    {
+      "path": "uat/v1-control/aa2e413d48eb4baabe7ec8c035a24c8e/collection-20261021T233039646Z-175cb260cd0b4c0b8464ef1f59b05e78/aa2e413d48eb4baabe7ec8c035a24c8e-Release-launch.json",
+      "bytes": 9909,
+      "sha256": "48289FA886B8DBFD49400CC90B4D3B11F7F278098AACBDC2F81E252A925AFD30"
+    },
+    {
+      "path": "uat/v1-control/aa2e413d48eb4baabe7ec8c035a24c8e/cleanup-receipt.json",
+      "bytes": 10010,
+      "sha256": "55656302976979F54082069A103E3A895F8BD8297D7D392A5D75C3027810B0A8"
+    },
+    {
+      "path": "uat/v1-sandbox/aa2e413d48eb4baabe7ec8c035a24c8e/input/manifest.json",
+      "bytes": 17330,
+      "sha256": "06FC6F33B7492C82CC0D1038A555B481E1A85E2C9B1837BD128D79B486B2DDAF"
+    },
+    {
+      "path": "uat/v1-sandbox/aa2e413d48eb4baabe7ec8c035a24c8e/aa2e413d48eb4baabe7ec8c035a24c8e.zip",
+      "bytes": 5181329,
+      "sha256": "42DD5B4FD49F612AC562FCFB25F81BF05ECB2579B415B9FF0D7FD40932B2EB2C"
+    }
+  ],
+  "raw_audit": {
+    "driver_rows": 73,
+    "driver_sequences_contiguous": true,
+    "product_rows": 21,
+    "product_sequences_contiguous": true,
+    "every_line_parsed": true,
+    "driver_shutdown_rows": 0,
+    "product_shutdown_rows": 0,
+    "whole_run_complete": false
+  },
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/aa2e-HC-noncaller-pointer-heap-exit-excerpt.jsonl",
+    "sha256": "CBBA2FB2EB5A5E6181126096E43B05EE663BCC94C6B18D53C3DCE4FC2563705E",
+    "literal_rows": 21,
+    "driver_sequences": [
+      1,
+      3,
+      13,
+      17,
+      24,
+      59,
+      61,
+      62,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73
+    ],
+    "product_sequences": [
+      3,
+      20,
+      21
+    ],
+    "selected_driver_then_product_not_common_native_timeline": true
+  },
+  "observed": {
+    "before_SET": {
+      "source": "D65",
+      "GET_return": true,
+      "GET_error": 0,
+      "actual_flags": 126,
+      "HC_ON": false,
+      "scheme": "",
+      "GET_returned_scheme_pointer": 1580095982400,
+      "LocalFree_attempted": true,
+      "system_scheme_allocation_freed": true,
+      "meaning": "Original code reports successful immediate LocalFree of this returned system pointer before SET."
+    },
+    "SET": {
+      "source": "D66/D67/D68",
+      "serial": 1,
+      "purpose": "enable",
+      "actual_scheme_parameter": 454656256848,
+      "live_caller_string_base": 454656256848,
+      "live_caller_string_length": 0,
+      "caller_storage_still_exact": true,
+      "completed": true,
+      "native_return": true,
+      "native_error": 0,
+      "requested_flags": 127,
+      "fWinIni": 2,
+      "profile_update_requested": false
+    },
+    "after_SET": {
+      "source": "D72",
+      "GET_return": true,
+      "GET_error": 0,
+      "actual_flags": 127,
+      "GET_returned_scheme_pointer": 1580095982400,
+      "known_borrowed_caller_storage": false,
+      "GET_exact_alias_live_SET_caller_buffer": false,
+      "meaning": "The actual GET pointer is not the still-live SET caller-buffer pointer. The caller-buffer-alias hypothesis does not explain this run."
+    },
+    "last_breadcrumb": {
+      "source": "D73",
+      "stage": "scheme_copied_before_LocalFree",
+      "later_LocalFree_return_observed": false,
+      "colors_done_observed": false,
+      "crash_stack_observed": false
+    },
+    "stage_result": {
+      "fixture_exit_code_unsigned": 3221226356,
+      "fixture_exit_code_hex": "0xC0000374",
+      "exception_status_meaning": "STATUS_HEAP_CORRUPTION",
+      "wait_result": 0,
+      "configured_timeout_seconds": 120,
+      "actual_timeout_observed": false,
+      "forced_test_cleanup": true,
+      "descendants_alive_at_fixture_exit": 1,
+      "product_cleanup_pass": false,
+      "feature_result": "NOT_EVALUATED"
+    },
+    "product_scope": "P3 real Medium/non-elevated startup; P20/P21 idle status, operations0/native geometry claims0; no HC product keyboard/UI phase or normal shutdown is observed.",
+    "actual_host_cleanup": {
+      "dedicated_guest_exited": true,
+      "task_removed": true,
+      "evidence_unchanged": true,
+      "product_cleanup_inferred_from_guest_destruction": false
+    }
+  },
+  "conclusions": {
+    "caller_alias": "DISPROVED_FOR_THIS_RUN: GET1580095982400 != live caller454656256848, exact alias guard stayed false.",
+    "same_address": "D65 and D72 return the same numeric address across an intervening successful free. Normal allocator address reuse is still possible; address equality after retirement does not prove one allocation lifetime, double free, API caching, use-after-free or Windows defect.",
+    "heap_exit": "Actual signalled process exited with heap-corruption status, not a 120-second hang. The final breadcrumb brackets an interval; a prior memory corruption could be detected there. Product/fixture/platform root cause remains UNKNOWN.",
+    "historical_failure": "aa2e remains original FAIL; neither 34f1 nor aa2e is rewritten by a later TEST lifecycle change.",
+    "scoped_ordinary_notice": "Not rerun here. 34f1 remains the original ordinary-notice passing evidence, not HC mode proof."
+  },
+  "subsequent_TEST_repair": {
+    "status": "IMPLEMENTED_OFFLINE_STATIC_ONLY_NATIVE_NOT_RUN",
+    "files": [
+      "src/platform/windows/product/v1_guest_high_contrast_case.h",
+      "tests/check-v1-package-identity.ps1"
+    ],
+    "scope": "One TEST lease retains at most8 distinct outstanding system pointers until after actual restore readback; repeated pointers still retained merge to one final release; caller aliases remain borrowed and excluded. Original GET/SET/restore API parameters stay unchanged.",
+    "evidence_semantics": "Pending buffers are not recorded as freed. Each final distinct LocalFree attempt/result is logged; actual flags/scheme/colors restoration and allocation release are separate requirements. Only a future run can validate this change.",
+    "not_proved": "This bounded lifetime adjustment is not yet an established aa2e root-cause fix. No new UI/native PASS, packet identity or ordinary-host claim is assigned to the repaired helper."
+  },
+  "official_references": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-highcontrastw",
+      "supports": "GET supplies the system-allocated scheme buffer; use LocalFree. SET specifies the structure members."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-localfree",
+      "supports": "NULL native return means successful free; allocator ownership and lifetime must be respected."
+    }
+  ],
+  "acceptance_limit": "HC normal functional UI, original HC-state restoration and product cleanup are NOT_PASSED in this run. Guest destruction bounds test impact only. New retained-buffer helper NOT_RUN; whole M10-F05/V1/ordinary desktop/200%DPI/human UAT not accepted."
+}

@@ -618,10 +618,16 @@ function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Pr
     foreach($value in @('settings_guest_scope(s);','s.suite!="HighContrastOnly"',
         'high_contrast_SET_requires_actual_idle_product','GuestHighContrastLease lease{s};',
         'SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(actual),&actual,0)',
-        'LocalFree(allocation.value)','original.flags|HCF_HIGHCONTRASTON',
+        'LocalFree(entry.pointer)','original.flags|HCF_HIGHCONTRASTON',
         'live_string->data()==string_base&&live_string->size()==string_length&&candidate==actual_parameter',
-        'allocation{out.scheme_borrowed?nullptr:actual.lpszDefaultScheme}',
-        'out.scheme_freed=!out.scheme_borrowed&&',
+        'out.scheme_retained=!out.scheme_borrowed&&buffers.retain(actual.lpszDefaultScheme,out.retained_pointer_reused);',
+        'std::array<Entry,8> entries_',
+        'if(entries_[i].pointer==pointer){reused=true;return true;}',
+        'if(!buffers.may_read()){','GET_not_attempted_retained_buffer_bound',
+        'const bool all_released=buffers_.release_all();',
+        'actual.scheme_freed=actual.GET_attempted&&!actual.scheme_borrowed&&buffers_.pointer_freed(actual.returned_scheme_pointer);',
+        'actual.scheme_free_attempted=buffers_.pointer_release_attempted(actual.returned_scheme_pointer);',
+        'all_released&&actual.scheme_freed&&!actual.scheme_borrowed',
         'observe_SET_enter(request,"enable");','observe_SET_enter(request,"restore");',
         'active=lease.read(trace?&s:nullptr);','if(active.scheme_borrowed){',
         'blocked("GET_exact_alias_live_SET_caller_buffer_not_system_allocation");s.log.failed=true;',
@@ -655,8 +661,9 @@ Assert-V1HighContrastWiring $fixtureSource $highContrast $lifecyclePrepare $life
 Check $true 'static high contrast is exact-guest-only, actual bounded GET/SET/restore, real Tab focus and separately unreviewed BMP evidence'
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('settings_guest_scope(s);','')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects system setup without the exact disposable guest gate'
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('actual.colors==original.colors','true')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects restoring only a flag while leaving the actual original colors unchecked'
-Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('allocation{out.scheme_borrowed?nullptr:actual.lpszDefaultScheme}','allocation{actual.lpszDefaultScheme}')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects RAII ownership of an exact live caller-buffer alias'
-Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('out.scheme_freed=!out.scheme_borrowed&&','out.scheme_freed=')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects reporting borrowed caller storage as system allocation freed'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('out.scheme_retained=!out.scheme_borrowed&&buffers.retain(actual.lpszDefaultScheme,out.retained_pointer_reused);','out.scheme_retained=buffers.retain(actual.lpszDefaultScheme,out.retained_pointer_reused);')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects ownership of an exact live caller-buffer alias'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('actual.GET_attempted&&!actual.scheme_borrowed&&buffers_.pointer_freed(actual.returned_scheme_pointer)','true')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects reporting pending, borrowed or unobserved storage as actually freed'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('if(entries_[i].pointer==pointer){reused=true;return true;}','if(false){reused=true;return true;}')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects registering the same still-retained pointer for duplicate release'
 Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('return exact&&ownership_complete;','return exact;')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects turning state restoration into allocation-ownership or HC PASS'
 function Assert-V1NativeTopDropWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
     if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_native_top_drop_case.h"') -or
@@ -1298,4 +1305,98 @@ foreach($relative in @('scripts/v1-package-identity.ps1','scripts/v1-prepare-por
     [Management.Automation.Language.Parser]::ParseFile((Join-Path $repository $relative),[ref]$tokens,[ref]$errors)|Out-Null
     Check ($errors.Count -eq 0) ('PowerShell parser: '+$relative)
 }
+function Assert-V1SystemShakeWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Remote){
+    foreach($value in @('#include "platform/windows/product/v1_guest_system_shake_case.h"',
+        'else if(s.suite=="SystemShakeCoexistenceOnly"){','system_shake_coexistence_flow(s);',
+        'else if(value==L"SystemShakeCoexistenceOnly")s.suite="SystemShakeCoexistenceOnly";',
+        's.suite!="TransparencyRemainderOnly"&&s.suite!="SystemShakeCoexistenceOnly"')){
+        if(-not $Fixture.Contains($value)){throw ('System Shake lost guarded standalone production-independent wiring: '+$value)}
+    }
+    foreach($script in @($Prepare,$Guest,$Remote)){
+        if(-not $script.Contains("'SystemShakeCoexistenceOnly'")){throw 'System Shake requires exact preparation, guest and remote manifest suite whitelists.'}
+    }
+    foreach($value in @('s.suite!="SystemShakeCoexistenceOnly"','!medium(GetCurrentProcess())',
+        'marker(s.output/L"panebind-v1-output.marker",s.run)',
+        'else if(s.process||s.product_pid||FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))',
+        'complete&&matches==0','this_flow_product_create_requests',
+        'NoWindowMinimizingShortcuts','DisallowShaking','RRF_RT_REG_DWORD',
+        'missing_value_implies_enabled','raw_preference_is_not_Settings_UI_proof',
+        'BLOCKED_DISABLED','BLOCKED_NOT_OBSERVED_UNKNOWN','AVAILABLE_ACTUAL_NATIVE_EFFECT',
+        'actual_minimization=actual_minimization||(iconic[0]&&iconic[1]);',
+        's.frames[0].starts.load()==starts+1','gui.hwndMoveSize==h&&gui.hwndCapture==h',
+        'GuestUpHookObservation observer;','number(hook,"\"last_extra_information\":")==0x50425631',
+        's.frames[0].native_end_qpc.load()>=s.left_up_send_qpc',
+        'phase(s,0,g,offsets[n],0,translated(*start,offsets[n],0)',
+        'visual_exact(s,h,alpha,top','up(s,0,g,translated(*start,offsets.back(),0));',
+        'system_shake_no_native_minimizing_side_effect','system_shake_no_extra_visual_mutation_after_NormalUp',
+        'visual_gui_save(s,original_settings);','owned_system_shake_coexistence_case(s,native_configuration);cleanup(s);',
+        'positive_shake_offsets(h)','settings_before==native_configuration')){
+        if(-not $Cases.Contains($value)){throw ('System Shake lost actual native control, unknown/config or product UP facts: '+$value)}
+    }
+    $native=$Cases.IndexOf('const bool available=system_shake_native_control(s,native_configuration);')
+    $start=$Cases.IndexOf('launch(s,L"--diagnostic",false)')
+    if($native -lt 0 -or $start -le $native -or $Cases -match '\b(RegSetValue\w*|RegDelete\w*|SystemParametersInfo\w*|SetCapture|ReleaseCapture|AttachThreadInput|PostMessage\w*|SendMessage\w*)\s*\('){
+        throw 'System Shake cannot replace genuine product-absent control with a paused/hooked product or write settings/input authority.'
+    }
+}
+$systemShake=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_system_shake_case.h'),[Text.Encoding]::UTF8)
+Assert-V1SystemShakeWiring $fixtureSource $systemShake $lifecyclePrepare $lifecycleGuest $queueFailureRemote
+Check $true 'static system Shake keeps actual product-absent control, explicit unknown policy state and real product gesture cleanup'
+Reject {Assert-V1SystemShakeWiring $fixtureSource ($systemShake.Replace('actual_minimization=actual_minimization||(iconic[0]&&iconic[1]);','actual_minimization=true;')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static system Shake rejects fabricated native capability'
+Reject {Assert-V1SystemShakeWiring $fixtureSource ($systemShake.Replace('else if(s.process||s.product_pid||FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))','else if(false)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static system Shake rejects native control with a product still installed or paused'
+function Assert-V1RulesPathWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Remote){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_rules_path_case.h"') -or
+       -not $Fixture.Contains('phase("actual_public_rules_same_basename_distinct_image_paths",owned_rules_path_case);') -or
+       [regex]::Matches($Fixture,'RulesPathOnly').Count -ne 7){throw 'Path rules must be an exact independent suite through parser, admission and production dispatch.'}
+    foreach($script in @($Prepare,$Guest,$Remote)){
+        if(-not $script.Contains("'RulesPathOnly'")){throw 'Path rules require exact preparation, guest and deployment suite whitelists.'}
+    }
+    $child=$Fixture.IndexOf('if(count>=2&&std::wstring_view(args[1])==L"--rule-test-window")')
+    if($child -lt 0 -or $child -ge $Fixture.IndexOf('if(count==2&&std::wstring_view(args[1])==L"--build-identity")') -or
+       -not $Fixture.Contains('int result=78;try{result=rules_path_child(count,args);}catch(...){}LocalFree(args);return result;')){
+        throw 'Copied TEST target must reject the ordinary host before normal driver/window/identity entry.'
+    }
+    foreach($value in @('if(count!=7)return 78;','!equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())',
+        'input_actor_parent_pid()!=pid','GetProcessIdOfThread(parent_thread.value)!=pid','process_birth(parent.value)!=birth',
+        '!medium(parent.value)||!input_actor_same_user(parent.value)||!input_actor_desktop(tid,pid)',
+        'marker(input/L"panebind-v1-input.marker",run)','marker(output/L"panebind-v1-output.marker",run)',
+        'portable_field(package,"guest_suite")!="RulesPathOnly"','portable_field(identity,"driver_source_commit")!=PANEBIND_BUILD_SHA',
+        'image_hash!=hash(parent_name.data())','debug?"driver_debug_sha256":"driver_release_sha256"',
+        'base/L"RuleTargets"/slot','rules_path_plain_image(self)','MsgWaitForMultipleObjectsEx(1,handles',
+        'GetTickCount64()+180000','WM_CLOSE','process_handle_signaled','forced_termination')){
+        if(-not $Cases.Contains($value)){throw ('Path rule child lost exact immutable identity or bounded lifecycle: '+$value)}
+    }
+    $create=$Cases.IndexOf('const HWND window=CreateWindowExW(')
+    $proof=$Cases.IndexOf('image_hash!=portable_field(identity,debug?"driver_debug_sha256":"driver_release_sha256")')
+    if($proof -lt 0 -or $create -le $proof -or $Cases.Contains('TerminateProcess(') -or $Cases.Contains('std::ofstream') -or
+       $Cases -match '\b(SendInput|WriteFile|SetWindowPos|SetWindowLongPtr\w*|SetLayeredWindowAttributes)\s*\('){
+        throw 'Path rule TEST cannot mutate settings directly, inject child input or replace exact ordinary application identity.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="RulesPathOnly"','a.image.filename()==b.image.filename()',
+        '!equal(a.image.wstring(),b.image.wstring())','settings_guest_activate(s,gui,GetDlgItem(gui_page(s,gui),115))',
+        'settings_guest_acknowledge(s,gui,','gui_save_enter(s,gui);',
+        'excluded==expected','e::number(placement,"\"key\":")==source_key','e::number(receipt,"\"key\":")==source_key',
+        '*after_calls==*before_calls+(allowed?1:0)','visible(other.hwnd)==other_before',
+        'geometry_history_positioning(other.hwnd)==other_position','!claims&&!placements&&actual==before&&after_position==before_position',
+        'rules_path_same_name_B_other_path_still_actual_Move','rules_path_basename_rule_A_real_rejection',
+        'rules_path_basename_rule_B_real_rejection','rules_path_per_app_command_mask_A_zero_calls',
+        'rules_path_A_final_public_rule_removal_recovery','a.close(),b_closed=b.close()','rules_path_original_configuration_restored')){
+        if(-not $Cases.Contains($value)){throw ('Path rules lost actual GUI, independent target, rejection or recovery facts: '+$value)}
+    }
+    foreach($value in @("if(`$Suite -ceq 'RulesPathOnly')",'[IO.File]::Copy($binary.fixture,$copy,$false)',
+        '$ruleTargetPayloads+=$relative','$payloadFiles+=$ruleTargetPayloads')){
+        if(-not $Prepare.Contains($value)){throw ('Path rules require exact current D/R driver copies in the readonly package: '+$value)}
+    }
+    foreach($value in @('RuleTargets\A\panebind-rule-app.exe','RuleTargets\B\panebind-rule-app.exe',
+        'Debug\RuleTargets\A\panebind-rule-app.exe','Debug\RuleTargets\B\panebind-rule-app.exe',
+        '$ruleImage[0].sha256 -cne $driverFile[0].sha256','[long]$ruleImage[0].size -ne [long]$driverFile[0].size')){
+        if(-not $Guest.Contains($value)){throw ('Path rules require four exact readonly files bound to corresponding driver bytes: '+$value)}
+    }
+}
+$rulesPath=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_rules_path_case.h'),[Text.Encoding]::UTF8)
+Assert-V1RulesPathWiring $fixtureSource $rulesPath $lifecyclePrepare $lifecycleGuest $queueFailureRemote
+Check $true 'static path rules retain exact guest child images, public GUI edits and same-name different-path actual command contrasts'
+Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('image_hash!=hash(parent_name.data())','false')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject mismatched controller and child image bytes'
+Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('visible(other.hwnd)==other_before','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject ignoring operations on the nonselected sibling'
+Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('e::number(placement,"\"key\":")==source_key','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject unbound positive placement identity'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

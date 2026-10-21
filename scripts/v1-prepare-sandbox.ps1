@@ -16,7 +16,7 @@ param(
     [ValidatePattern('^[0-9a-f]{40}$')][string]$SourceCommit,
     [ValidatePattern('^[0-9a-f]{40}$')][string]$DriverSourceCommit,
     [ValidateSet('DebugAndRelease','Debug','Release')][string]$GuestConfigurations='DebugAndRelease',
-    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly')][string]$Suite='Full',
+    [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly','SystemShakeCoexistenceOnly','RulesPathOnly')][string]$Suite='Full',
     # Retained for callers of the first draft. Fixture identity is now always
     # verified because the committed fixture has an identity-only entry.
     [switch]$FixtureBuildIdentity
@@ -376,6 +376,7 @@ if($PortablePackageDirectory){
 [IO.Directory]::CreateDirectory($inputDir) | Out-Null
 [IO.Directory]::CreateDirectory($outputDir) | Out-Null
 [IO.Directory]::CreateDirectory((Join-Path $inputDir 'Debug')) | Out-Null
+$ruleTargetPayloads=@()
 foreach ($binary in $binaries) {
     $target = if ($binary.configuration -ceq 'Release') { $inputDir } else { Join-Path $inputDir 'Debug' }
     [IO.File]::Copy($binary.product,(Join-Path $target 'panebind.exe'),$false)
@@ -383,6 +384,19 @@ foreach ($binary in $binaries) {
     if((Get-FileHash -LiteralPath (Join-Path $target 'panebind.exe') -Algorithm SHA256).Hash -cne $binary.product_identity.verified_binary_sha256 -or
        (Get-FileHash -LiteralPath (Join-Path $target 'panebind-v1-guest-fixture.exe') -Algorithm SHA256).Hash -cne $binary.fixture_identity.verified_binary_sha256){
         throw 'Copied binary changed after the source-identity check; this incomplete RunId is preserved.'
+    }
+    if($Suite -ceq 'RulesPathOnly'){
+        foreach($slot in @('A','B')){
+            $rulePrefix=if($binary.configuration -ceq 'Debug'){'Debug\'}else{''}
+            $relative=$rulePrefix+'RuleTargets\'+$slot+'\panebind-rule-app.exe'
+            $copy=Join-Path $inputDir $relative
+            [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($copy)) | Out-Null
+            [IO.File]::Copy($binary.fixture,$copy,$false)
+            if((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -cne $binary.fixture_identity.verified_binary_sha256){
+                throw 'Exact A/B rule target must retain the current driver bytes; incomplete RunId preserved.'
+            }
+            $ruleTargetPayloads+=$relative
+        }
     }
 }
 [IO.File]::Copy((Join-Path $PSScriptRoot 'v1-sandbox-guest.ps1'),(Join-Path $inputDir 'v1-sandbox-guest.ps1'),$false)
@@ -392,6 +406,7 @@ Write-NewText (Join-Path $inputDir 'panebind-v1-input.marker') $RunId
 Write-NewText (Join-Path $outputDir 'panebind-v1-output.marker') $RunId
 $payloadFiles = @('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
     'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
+$payloadFiles+=$ruleTargetPayloads
 if($MediumEnvironmentProbe){$payloadFiles+='v1-medium-environment-probe-guest.ps1'}
 if($MediumDesktopProbe){$payloadFiles+='v1-medium-desktop-probe-guest.ps1'}
 if($vsCodeZip){

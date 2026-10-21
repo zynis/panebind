@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly')][string]$Suite='Full',
+      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly','FeedbackRemainderOnly','GroupRemainderOnly','GroupHeightOnly','LCornerOnly','DockRemainderOnly','RestoreRemainderOnly','CommandsRemainderOnly','ArbitrationRemainderOnly','ArbitrationRecoveryOnly','CommandsGeometryOnly','LowerFactsOnly','LifecycleRemainderOnly','HighContrastOnly','NativeTopDropOnly','SessionInterruptionOnly','QueueFailureOnly','CallbackOwnerStopOnly','TransparencyRemainderOnly','SystemShakeCoexistenceOnly','RulesPathOnly')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'
@@ -623,6 +623,10 @@ try {
     if($Suite -ceq 'Full'){$fullStartupObservation=Start-FullGuestStartupObservation}
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
+    if($Suite -ceq 'RulesPathOnly'){
+        $allowed+=@('RuleTargets\A\panebind-rule-app.exe','RuleTargets\B\panebind-rule-app.exe',
+            'Debug\RuleTargets\A\panebind-rule-app.exe','Debug\RuleTargets\B\panebind-rule-app.exe')
+    }
     $probeMedium=$null -ne $manifest.medium_environment_probe -and $manifest.medium_environment_probe.enabled -eq $true
     if($probeMedium){
         if($manifest.medium_environment_probe.kind -cne 'ReadOnlyStandardGuestAcl'){throw 'Unknown guest environment probe.'}
@@ -701,6 +705,15 @@ try {
         $prefix=if($name -ceq 'Debug'){'Debug\'}else{''}
         $productFile=@($manifest.files|Where-Object relative_path -ceq ($prefix+'panebind.exe'))
         $driverFile=@($manifest.files|Where-Object relative_path -ceq ($prefix+'panebind-v1-guest-fixture.exe'))
+        if($Suite -ceq 'RulesPathOnly'){
+            foreach($slot in @('A','B')){
+                $ruleImage=@($manifest.files|Where-Object relative_path -ceq ($prefix+'RuleTargets\'+$slot+'\panebind-rule-app.exe'))
+                if($driverFile.Count -ne 1 -or $ruleImage.Count -ne 1 -or
+                   $ruleImage[0].sha256 -cne $driverFile[0].sha256 -or [long]$ruleImage[0].size -ne [long]$driverFile[0].size){
+                    throw 'Exact same-name A/B rule target differs from the corresponding immutable driver image.'
+                }
+            }
+        }
         $suffix=$name.ToLowerInvariant()
         if($productFile.Count -ne 1 -or $driverFile.Count -ne 1 -or
            $pair.product_identity.product -cne 'PaneBind' -or $pair.product_identity.version -cne '1.0.0-dev' -or
