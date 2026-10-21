@@ -234,11 +234,24 @@ struct NativeClickDownBoundary {
     std::atomic<UINT> message{};std::atomic<WPARAM> hit{};
     std::atomic<LPARAM> point{};std::atomic<LONG> time{};std::atomic<LPARAM> extra{};
 };
+// TEST ONLY: enabled only around one exact owned Lower command. One owning
+// window thread writes each fixed slot once; published makes the driver read
+// safe without a lock, allocation, disk IO or changes to WINDOWPOS/DefWindowProc.
+struct NativeWindowPosReceipt {
+    std::atomic<bool> published{};
+    UINT message{};DWORD tid{};HWND hwnd{};WINDOWPOS position{};
+    std::uint64_t before_qpc{},after_qpc{};bool live_before{},live_after{};
+    HWND previous_before{},next_before{},previous_after{},next_after{};
+};
+struct NativeWindowPosBuffer {
+    std::atomic<bool> enabled{};std::atomic<unsigned> claimed{};
+    std::array<NativeWindowPosReceipt,16> receipts;
+};
 struct Frame{HWND hwnd{};std::atomic<unsigned> down{},up{},starts{},ends{};std::atomic<std::uint64_t> native_start_qpc{},native_end_qpc{};
     std::array<std::atomic<unsigned>,5> client_down{},client_up{};
     LONG min_width{120},min_height{100},grid{1},max_width{},max_height{};WriterStall stall;
     std::atomic<std::shared_ptr<NativeBatchLoss>> native_batch_loss;NativeMoveBoundary native_move_boundary;
-    NativeClickDownBoundary native_click_down;};
+    NativeClickDownBoundary native_click_down;NativeWindowPosBuffer window_positions;};
 std::string native_move_boundary_json(const Frame& frame){
     const auto& fact=frame.native_move_boundary;
     for(unsigned attempt=0;attempt<3;++attempt){const auto version=fact.version.load();if(version&1u)continue;
@@ -451,6 +464,16 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     raw_mouse_observer_message(h,message,lp);
     auto* frame=reinterpret_cast<Frame*>(GetWindowLongPtrW(h,GWLP_USERDATA));
     if(message==WM_NCCREATE){frame=static_cast<Frame*>(reinterpret_cast<CREATESTRUCTW*>(lp)->lpCreateParams);SetWindowLongPtrW(h,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(frame));}
+    NativeWindowPosReceipt* position_receipt{};
+    if(frame&&lp&&(message==WM_WINDOWPOSCHANGING||message==WM_WINDOWPOSCHANGED)&&frame->window_positions.enabled.load(std::memory_order_acquire)){
+        auto& buffer=frame->window_positions;const auto slot=buffer.claimed.fetch_add(1,std::memory_order_relaxed);
+        if(slot<buffer.receipts.size()){
+            position_receipt=&buffer.receipts[slot];auto& fact=*position_receipt;LARGE_INTEGER clock{};QueryPerformanceCounter(&clock);
+            fact.message=message;fact.tid=GetCurrentThreadId();fact.hwnd=h;fact.position=*reinterpret_cast<const WINDOWPOS*>(lp);
+            fact.before_qpc=clock.QuadPart>0?static_cast<std::uint64_t>(clock.QuadPart):0;
+            fact.live_before=IsWindow(h)!=FALSE;fact.previous_before=GetWindow(h,GW_HWNDPREV);fact.next_before=GetWindow(h,GW_HWNDNEXT);
+        }
+    }
     if(frame){
         if(message==WM_NCLBUTTONDOWN||message==WM_NCLBUTTONDBLCLK){
             // Fixed passive facts before the unchanged DefWindowProc below.
@@ -531,7 +554,12 @@ LRESULT CALLBACK procedure(HWND h,UINT message,WPARAM wp,LPARAM lp){
     }
     if(message==WM_PAINT){PAINTSTRUCT p{};HDC dc=BeginPaint(h,&p);RECT r{};GetClientRect(h,&r);FillRect(dc,&r,GetSysColorBrush(COLOR_WINDOW));
         DrawTextW(dc,L"PaneBind V1 — 自建空白测试窗口",-1,&r,DT_CENTER|DT_VCENTER|DT_SINGLELINE);EndPaint(h,&p);return 0;}
-    return DefWindowProcW(h,message,wp,lp);
+    const auto result=DefWindowProcW(h,message,wp,lp);
+    if(position_receipt){auto& fact=*position_receipt;LARGE_INTEGER clock{};
+        fact.live_after=IsWindow(h)!=FALSE;fact.previous_after=GetWindow(h,GW_HWNDPREV);fact.next_after=GetWindow(h,GW_HWNDNEXT);
+        QueryPerformanceCounter(&clock);fact.after_qpc=clock.QuadPart>0?static_cast<std::uint64_t>(clock.QuadPart):0;
+        fact.published.store(true,std::memory_order_release);}
+    return result;
 }
 void inject(INPUT packet,UINT* delivered=nullptr,DWORD* failure_error=nullptr){
     if(!desktop())throw std::runtime_error("guest_input_desktop_became_inactive");packet.mi.dwExtraInfo=0x50425631;
@@ -3163,7 +3191,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly"&&s.suite!="RemainingNativeContractsOnly"&&s.suite!="ModifierLockOnly"&&s.suite!="SettingsValidationOnly"&&s.suite!="FeedbackRemainderOnly"&&s.suite!="GroupRemainderOnly"&&s.suite!="GroupHeightOnly"&&s.suite!="LCornerOnly"&&s.suite!="DockRemainderOnly"&&s.suite!="RestoreRemainderOnly"&&s.suite!="CommandsRemainderOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly"&&s.suite!="RemainingNativeContractsOnly"&&s.suite!="ModifierLockOnly"&&s.suite!="SettingsValidationOnly"&&s.suite!="FeedbackRemainderOnly"&&s.suite!="GroupRemainderOnly"&&s.suite!="GroupHeightOnly"&&s.suite!="LCornerOnly"&&s.suite!="DockRemainderOnly"&&s.suite!="RestoreRemainderOnly"&&s.suite!="CommandsRemainderOnly"&&s.suite!="ArbitrationRemainderOnly"&&s.suite!="CommandsGeometryOnly"&&s.suite!="LowerFactsOnly")throw std::runtime_error("independent_gate_wrong_suite");
     // The custom-mapping driver also uses middle and Shift/Alt packets.
     // An unknown release must stop continuation before any GUI cleanup input.
     if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
@@ -3300,6 +3328,8 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
 #include "platform/windows/product/v1_guest_dock_remaining_cases.h"
 #include "platform/windows/product/v1_guest_restore_remaining_case.h"
 #include "platform/windows/product/v1_guest_command_remaining_case.h"
+#include "platform/windows/product/v1_guest_arbitration_remaining_case.h"
+#include "platform/windows/product/v1_guest_lower_facts_case.h"
 #include "platform/windows/product/v1_guest_remaining_magnet_cases.h"
 void independent_entry_flow(State& s,bool core_and_applications=false){
     const bool owned_components_only=s.suite=="OwnedComponentsOnly";
@@ -3364,6 +3394,15 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
     if(s.suite=="RestoreRemainderOnly"||s.suite=="CommandsRemainderOnly"){
         if(s.suite=="RestoreRemainderOnly")phase("maximized_and_native_Snap_drag_out",owned_restore_remaining_case);
         else phase("remaining_actual_window_commands",owned_command_remaining_case);
+        cleanup(s);
+        s.log.emit("remaining_contract_summary","\"suite\":"+quote(s.suite)+",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"Full_suite\":\"NOT_RUN\",\"whole_version_PASS\":false");
+        return;
+    }
+    if(s.suite=="ArbitrationRemainderOnly"||s.suite=="CommandsGeometryOnly"||s.suite=="LowerFactsOnly"){
+        if(s.suite=="ArbitrationRemainderOnly")phase("remaining_actual_mode_arbitration",owned_arbitration_remaining_case);
+        else if(s.suite=="CommandsGeometryOnly")phase("remaining_actual_geometry_commands",owned_command_remaining_case);
+        else phase("one_frozen_candidate_Lower_native_facts",owned_lower_facts_case);
         cleanup(s);
         s.log.emit("remaining_contract_summary","\"suite\":"+quote(s.suite)+",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
             ",\"Full_suite\":\"NOT_RUN\",\"whole_version_PASS\":false");
@@ -3672,7 +3711,7 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="MotionGuardOnly"||s.suite=="CornerInputOnly"||s.suite=="PortableEntryOnly"||s.suite=="RemainingMoveContractsOnly"||s.suite=="RecoveryContractsOnly"||s.suite=="RemainingNativeContractsOnly"||s.suite=="ModifierLockOnly"||s.suite=="SettingsValidationOnly"||s.suite=="FeedbackRemainderOnly"||s.suite=="GroupRemainderOnly"||s.suite=="GroupHeightOnly"||s.suite=="LCornerOnly"||s.suite=="DockRemainderOnly"||s.suite=="RestoreRemainderOnly"||s.suite=="CommandsRemainderOnly"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="MotionGuardOnly"||s.suite=="CornerInputOnly"||s.suite=="PortableEntryOnly"||s.suite=="RemainingMoveContractsOnly"||s.suite=="RecoveryContractsOnly"||s.suite=="RemainingNativeContractsOnly"||s.suite=="ModifierLockOnly"||s.suite=="SettingsValidationOnly"||s.suite=="FeedbackRemainderOnly"||s.suite=="GroupRemainderOnly"||s.suite=="GroupHeightOnly"||s.suite=="LCornerOnly"||s.suite=="DockRemainderOnly"||s.suite=="RestoreRemainderOnly"||s.suite=="CommandsRemainderOnly"||s.suite=="ArbitrationRemainderOnly"||s.suite=="CommandsGeometryOnly"||s.suite=="LowerFactsOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="VisualOwnershipOnly"){
             bool completed=false;
@@ -3991,7 +4030,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly"&&s.suite!="RemainingNativeContractsOnly"&&s.suite!="ModifierLockOnly"&&s.suite!="SettingsValidationOnly"&&s.suite!="FeedbackRemainderOnly"&&s.suite!="GroupRemainderOnly"&&s.suite!="GroupHeightOnly"&&s.suite!="LCornerOnly"&&s.suite!="DockRemainderOnly"&&s.suite!="RestoreRemainderOnly"&&s.suite!="CommandsRemainderOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly"&&s.suite!="RemainingNativeContractsOnly"&&s.suite!="ModifierLockOnly"&&s.suite!="SettingsValidationOnly"&&s.suite!="FeedbackRemainderOnly"&&s.suite!="GroupRemainderOnly"&&s.suite!="GroupHeightOnly"&&s.suite!="LCornerOnly"&&s.suite!="DockRemainderOnly"&&s.suite!="RestoreRemainderOnly"&&s.suite!="CommandsRemainderOnly"&&s.suite!="ArbitrationRemainderOnly"&&s.suite!="CommandsGeometryOnly"&&s.suite!="LowerFactsOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -4075,7 +4114,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else if(value==L"MotionGuardOnly")s.suite="MotionGuardOnly";else if(value==L"CornerInputOnly")s.suite="CornerInputOnly";else if(value==L"PortableEntryOnly")s.suite="PortableEntryOnly";else if(value==L"RemainingMoveContractsOnly")s.suite="RemainingMoveContractsOnly";else if(value==L"RecoveryContractsOnly")s.suite="RecoveryContractsOnly";else if(value==L"RemainingNativeContractsOnly")s.suite="RemainingNativeContractsOnly";else if(value==L"ModifierLockOnly")s.suite="ModifierLockOnly";else if(value==L"SettingsValidationOnly")s.suite="SettingsValidationOnly";else if(value==L"FeedbackRemainderOnly")s.suite="FeedbackRemainderOnly";else if(value==L"GroupRemainderOnly")s.suite="GroupRemainderOnly";else if(value==L"GroupHeightOnly")s.suite="GroupHeightOnly";else if(value==L"LCornerOnly")s.suite="LCornerOnly";else if(value==L"DockRemainderOnly")s.suite="DockRemainderOnly";else if(value==L"RestoreRemainderOnly")s.suite="RestoreRemainderOnly";else if(value==L"CommandsRemainderOnly")s.suite="CommandsRemainderOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else if(value==L"MotionGuardOnly")s.suite="MotionGuardOnly";else if(value==L"CornerInputOnly")s.suite="CornerInputOnly";else if(value==L"PortableEntryOnly")s.suite="PortableEntryOnly";else if(value==L"RemainingMoveContractsOnly")s.suite="RemainingMoveContractsOnly";else if(value==L"RecoveryContractsOnly")s.suite="RecoveryContractsOnly";else if(value==L"RemainingNativeContractsOnly")s.suite="RemainingNativeContractsOnly";else if(value==L"ModifierLockOnly")s.suite="ModifierLockOnly";else if(value==L"SettingsValidationOnly")s.suite="SettingsValidationOnly";else if(value==L"FeedbackRemainderOnly")s.suite="FeedbackRemainderOnly";else if(value==L"GroupRemainderOnly")s.suite="GroupRemainderOnly";else if(value==L"GroupHeightOnly")s.suite="GroupHeightOnly";else if(value==L"LCornerOnly")s.suite="LCornerOnly";else if(value==L"DockRemainderOnly")s.suite="DockRemainderOnly";else if(value==L"RestoreRemainderOnly")s.suite="RestoreRemainderOnly";else if(value==L"CommandsRemainderOnly")s.suite="CommandsRemainderOnly";else if(value==L"ArbitrationRemainderOnly")s.suite="ArbitrationRemainderOnly";else if(value==L"CommandsGeometryOnly")s.suite="CommandsGeometryOnly";else if(value==L"LowerFactsOnly")s.suite="LowerFactsOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;

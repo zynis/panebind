@@ -8,7 +8,8 @@
     settings_guest_scope(s);const auto original=chain_settings(s);
     const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
     const auto settings_path=s.product.parent_path()/L"settings.ini";const auto saved_bytes=read(settings_path);
-    if(s.suite!="CommandsRemainderOnly"||!original.enabled||!original.rules.empty()||original.step_dip!=10||
+    const bool geometry_only=s.suite=="CommandsGeometryOnly";
+    if((s.suite!="CommandsRemainderOnly"&&!geometry_only)||!original.enabled||!original.rules.empty()||original.step_dip!=10||
        s.left||s.control||(GetAsyncKeyState(VK_LBUTTON)&0x8000)||(GetAsyncKeyState(VK_CONTROL)&0x8000)||
        (GetAsyncKeyState(VK_SHIFT)&0x8000)||(GetAsyncKeyState(VK_MENU)&0x8000)||
        binary.empty()||binary!=hash(s.input_product)||saved_bytes.empty())
@@ -28,6 +29,7 @@
         if(!native||!GetWindowPlacement(source,&normal)||IsZoomed(source)||IsIconic(source))
             throw std::runtime_error("command_remaining_actual_normal_placement_unknown");
 
+        if(!geometry_only){
         const auto placement_json=[&]{
             WINDOWPLACEMENT value{sizeof(value)};const bool known=set.owns(0)&&GetWindowPlacement(source,&value);
             const auto current=visible(source),positioning=geometry_history_positioning(source);
@@ -153,6 +155,7 @@
             ",\"actual_relative_owned_order_reversed\":"+(below(source,set.frames[1].hwnd)?"true":"false")+
             ",\"geometry_and_other_window_unchanged\":true");
         chain_check_product(s,pid,birth);
+        }
 
         // The existing actual-command helper distinguishes a real clamp call
         // from an already-exact no-op and checks before/after native counters.
@@ -188,8 +191,9 @@
         s.log.check("command_remaining_original_configuration_and_binary_unchanged",chain_settings(s)==original&&
             read(settings_path)==saved_bytes&&hash(s.product)==binary&&binary==hash(s.input_product));
         s.log.check("command_remaining_exact_test_roots_closed",set.close());
-        s.log.emit("command_remaining_component","\"result\":\"PASS_SCOPED_SINGLE_DISPLAY_COMMANDS\","
-            "\"Maximize_Minimize_Restore_same_identity\":true,\"Lower_actual_native_zorder\":true,"
+        s.log.emit("command_remaining_component","\"result\":\"PASS_SCOPED_SINGLE_DISPLAY_COMMANDS\",\"suite\":"+quote(s.suite)+
+            ",\"Maximize_Minimize_Restore_same_identity\":"+std::string(geometry_only?"\"NOT_RUN_IN_THIS_SUITE\"":"true")+
+            ",\"Lower_actual_native_zorder\":"+std::string(geometry_only?"\"NOT_RUN_IN_THIS_SUITE\"":"true")+","+
             "\"Width_Height_minimum_and_noop\":true,\"microMove_same_display_work_edge\":true,"
             "\"tray_menu\":\"NOT_RUN\",\"NextDisplay\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\","
             "\"human_UAT\":\"NOT_RUN\",\"whole_M09_F03_or_version_PASS_inferred\":false");
