@@ -1,5 +1,37 @@
 # Source Provenance Register
 
+## V1 native-arranged restore and unsupported drag alpha — 2026-10-22
+
+Actually re-read the existing AltSnap review's native-restore section at the
+same GPL reference-only pin recorded below, and [issue7](https://github.com/RamonUnch/AltSnap/issues/7).
+Its current-vs-normal-placement heuristic is not adopted. Re-read the existing
+FancyZones review's owner-thread event handoff and keyboard snap/restore test
+history at the same recorded MIT pin; no new upstream implementation or code
+reuse is claimed. Native OS arrangement and product-owned layout history are
+different facts, as the actual `8b55` native-WinLeft failure demonstrates.
+
+Actually checked Microsoft's [IsWindowArranged](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindowarranged),
+[GetWindowPlacement](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowplacement)
+and [WINDOWPLACEMENT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-windowplacement).
+The documented arranged state may coexist with SW_SHOWNORMAL, but not minimized
+or maximized. The page directs dynamic lookup in User32 and carries a
+prerelease caveat; absent lookup/contradictory observations remain unknown,
+not evidence of ordinary or arranged state. Workspace normal-position data
+must not be substituted for screen geometry. Reuse the existing bounded
+restore request, real normal-state observation and original-DOWN intent;
+new platform/state behavior is not empirically PASS from these documents.
+
+For the two remaining drag-alpha scopes, actually checked [Extended Window Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles)
+and [Window Class Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/window-class-styles).
+WS_EX_LAYERED is not supported for CS_OWNDC/CS_CLASSDC. The new guest-only alias
+is registered as an exact new self-owned class, not by altering another class.
+Documentation does not establish a particular API error/result or safe product
+fallback: actual native receipts, unchanged attributes, Move/UP and visible
+limitation feedback still need observation. No GPL/MIT source copied, adapted
+or translated; no new external code or attribution obligation. Applicable
+subsystems: production native-restore state, drag visual ownership/feedback,
+and only the exact disposable-guest tests for those existing V1 contracts.
+
 ## V1 maximized-entry repair and one Lower contrast — 2026-10-22
 
 Reused the existing mature/reference-only AltSnap GPL-3.0-or-later pin

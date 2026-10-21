@@ -1,0 +1,145 @@
+{
+  "evidence_id": "EV-8E5A-LOWER-EXACT-SHELL-TAIL",
+  "run_id": "8e5a3a3501984b7496501ff31f4ebe62",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/8e5a3a3501984b7496501ff31f4ebe62/collection-20261021T204034174Z-44175df39d084554b548f99cac2c5cef",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "configuration": "Release",
+  "suite": "LowerFactsOnly",
+  "actual_result": "PASS_SCOPED_ACTUAL_LOWER_WITH_EXACT_SHELL_TAIL",
+  "human_UAT": "NOT_RUN",
+  "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+  "product_binary_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+  "driver_source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
+  "driver_binary_sha256": "6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20",
+  "packaging_head": "e85340db4a0e61ea367058874a97ec569d869029",
+  "product_PID": 6844,
+  "product_birth_filetime_decimal_string": "134370887786705746",
+  "fixture_PID": 6424,
+  "fixture_owner_TID": 6464,
+  "source_HWND": 197412,
+  "source_product_key": 4,
+  "other_owned_HWND": 131874,
+  "environment": {
+    "integrity": "Actual Medium RID8192/non-elevated guard and P3 medium",
+    "os_build": "26100.9711",
+    "DPI": 144,
+    "display_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "host_or_full_desktop_PASS_inferred": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/8e5a3a3501984b7496501ff31f4ebe62/collection-20261021T204034174Z-44175df39d084554b548f99cac2c5cef/8e5a3a3501984b7496501ff31f4ebe62-release-fixture.jsonl",
+      "sha256": "5E0F16F6311A522E1AB50A048DAF0F723AC3B60DF57BF62C0701D247D9B8D03D",
+      "rows": 173,
+      "sequence_first": 1,
+      "sequence_last": 173,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/8e5a3a3501984b7496501ff31f4ebe62/collection-20261021T204034174Z-44175df39d084554b548f99cac2c5cef/8e5a3a3501984b7496501ff31f4ebe62-product-Release/panebind.log.jsonl",
+      "sha256": "6D6FEAC2A4B591E073718B8F59FD816C5EDF07B1406B38258EF9E8A9C91D7EBE",
+      "rows": 31,
+      "sequence_first": 1,
+      "sequence_last": 31,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/8e5a-lower-shell-tail-excerpt.jsonl",
+    "sha256": "83C1942CE91917C8CFB44202D89FC893AF66E3F354A690D3EE70FE6429BC587E",
+    "bytes": 17726,
+    "rows": 28,
+    "driver_sequences": [
+      3,
+      13,
+      19,
+      24,
+      63,
+      64,
+      70,
+      77,
+      134,
+      135,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      149,
+      150,
+      158,
+      169,
+      173
+    ],
+    "product_sequences": [
+      3,
+      22,
+      23,
+      31
+    ],
+    "policy": "Complete original rows, no JSON value reserialization or 64-bit conversion; newline normalization only. Original order within each stream; D/P are not a common native total order."
+  },
+  "actual_facts": {
+    "identity": "D13 self-reported product c355/hash04CB and driver0f4b/hash6D00 match new package and actual collected product EXE hash; D24 exact product PID6844/birth, distinct from prior11ae runs. D135 exactsource197412/key4, other131874, fixturePID6424/TID6464, two visible owned roots and six hidden roots. This is not arbitrary HWND authority.",
+    "native_attempt_and_completion": "P22 actual Lower receipt call_id1/key4: native_attempted=true, native_completion_known=true, native_succeeded=true. P23 records exactly one Lower command; D144 one dispatch/result and no added attempt. SetWindowPos BOOL completion is kept separate from semantic postverification and actual messages.",
+    "raw_and_semantic_postconditions": "P22 retains literal bottom_observed=false and actual_next65798. Separate lower_observed=true/shell_desktop_tail_observed=true with reason lower_native_shell_desktop_tail_observed; raw-Z bottom is not rewritten to true.",
+    "product_bounded_samples": {
+      "begin_qpc": "318358047",
+      "end_qpc": "318358094",
+      "samples": 2,
+      "stable_source": "197412/PID6424/TID6464/previous262238/next65798",
+      "stable_shell": "Actual current GetShellWindow65798/PID4928/TID4932/previous197412/next0",
+      "global_atomic_Z_snapshot": false,
+      "scope": "Both actual samples are known and equal; source/shell identity and reciprocal links recorded. No unrelated root is skipped; class Progman alone is not the authority."
+    },
+    "independent_driver_tail": "D137..139 subsequently read exact source197412 -> actual current GetShellWindow65798 -> NULL in two rows. Identity and links stable within each entry; actual shell before/after65798, desktop65548 distinct, reached_raw_NULL=true/no cycle. This is separate later finite evidence, not an atomic global or retroactive same-instant snapshot. D134 pre-tail was capped at64 and did not reach NULL; not called a full baseline.",
+    "native_messages": "D140 WM_WINDOWPOSCHANGING70 flags19/received insertAfter262238 then D141 WM_WINDOWPOSCHANGED71 flags6163/received insertAfter262238. Exact source197412 and owner6464 remain live. DefWindowProc retained, parameters_modified=false; recorder did not force parameters. Source published2 without overflow, other0. Received actual predecessor is not re-labelled the caller's HWND_BOTTOM pseudo-handle and messages do not replace the separate actual API completion.",
+    "geometry": "D144 actual source/other visible and positioning geometry unchanged, production semantic contract passed. No ordinary placement or extra Lower is invented to obtain the postcondition.",
+    "cleanup": "D145 original configuration and binary unchanged; D149 exactowned roots closed; D150 actual call/passive-message scopePASS. P31 confirms own hooks/overlay/native worker/recovery/input resources/capture/association stopped and issued_native_completion_unknown=false. D169 suitePASS and D173 driverPASS. Neither process exit0 nor guest destruction substitutes for these actual product receipts.",
+    "historical_comparison": "Prior4362/761a original FAILs retain their original11ae/driver identities and raw bottom=false. This new c355 run validates the repaired limited Lower semantic and corrected TEST message oracle; it does not relabel the old runs."
+  },
+  "source_contract_boundary": {
+    "implementation": "src/platform/windows/product/window_writer.cpp c355 Lower native branch uses SetWindowPos(expected HWND, HWND_BOTTOM,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE); P22 is the actual completion receipt, not interception of raw API arguments.",
+    "postcondition": "Only raw terminal NULL or separately observed exact current Shell terminal chain can satisfy the named Lower postcondition. Any additional/unstable/unknown root remains outside this successful actual case."
+  },
+  "package": {
+    "zip_sha256": "05B1F425825B5EAE7D3D7D26E302D6F71A378A3DE499CF8FEAD0C1752962199E",
+    "manifest_sha256": "D075DD3E6977C87B1EA75AB2855285DD9C092C55D24FD497E21069A5A60E83C2",
+    "wsb_sha256": "E58088D301B287CC942D62608CCE456B5BD318E75C5D1CD60AA4CB7E15F20FDF",
+    "receipt_sha256": "5FC46DF56F8634ED81E185EC01E0D32AED888EC08332508C4D111511E140A392"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/8e5a3a3501984b7496501ff31f4ebe62/cleanup-receipt.json",
+    "sha256": "4FF8150B511DFB24B46321EA3D30F62DE5B8B5BDB44448F8645C9013C3FD71CE",
+    "task_removed": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "not_awarded": [
+    "Whole M09-F03/B24 PASS",
+    "Tray menu/NextDisplay or multiple-display PASS",
+    "NativeSnap restore PASS",
+    "Ordinary full Medium desktop PASS",
+    "Whole version or human UAT PASS"
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "evidence_id": "EV-8B55-RESTORE-MAXIMIZED-AND-NATIVE-SNAP",
+  "run_id": "8b5562ea12e34b17b2fe8175788958bd",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_NATIVE_AND_SOURCE_REVIEW",
+  "source_collection": "uat/v1-control/8b5562ea12e34b17b2fe8175788958bd/collection-20261021T203744285Z-ae1b9e3d0bd144718ed3e2b86af49211",
+  "actual_result": "FAIL",
+  "suite": "RestoreRemainderOnly",
+  "configuration": "Release",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+  "product_binary_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+  "driver_source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
+  "driver_binary_sha256": "6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20",
+  "packaging_head": "e85340db4a0e61ea367058874a97ec569d869029",
+  "product_PID": 3964,
+  "product_birth_filetime_decimal_string": "134370886000539642",
+  "fixture_PID": 960,
+  "fixture_owner_TID": 6432,
+  "source_HWND": 197416,
+  "source_key": 4,
+  "identity_boundary": "This is actual c355/04CB evidence, not reassigned frozen11ae runtime evidence. Historical11ae results retain original identities.",
+  "environment": {
+    "os_build": "26100.9711",
+    "DPI": 144,
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "monitors": 1,
+    "permission": "Original exact Medium/non-elevated guest guards retained",
+    "qpc_frequency": 10000000,
+    "normal_host_or_human_result_inferred": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/8b5562ea12e34b17b2fe8175788958bd/collection-20261021T203744285Z-ae1b9e3d0bd144718ed3e2b86af49211/8b5562ea12e34b17b2fe8175788958bd-release-fixture.jsonl",
+      "sha256": "AFA00F05F822C940AFB54E3DBFE64A63B919EB1AD4F880FF49EEC1D997E504CD",
+      "bytes": 154538,
+      "rows": 280,
+      "sequence_first": 1,
+      "sequence_last": 280,
+      "continuous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/8b5562ea12e34b17b2fe8175788958bd/collection-20261021T203744285Z-ae1b9e3d0bd144718ed3e2b86af49211/8b5562ea12e34b17b2fe8175788958bd-product-Release/panebind.log.jsonl",
+      "sha256": "9844FD8DAEE80EF0153B66325A1E2264ADCDC1070FE8CF9C8769525C2F00F1EC",
+      "bytes": 199913,
+      "rows": 163,
+      "sequence_first": 1,
+      "sequence_last": 163,
+      "continuous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/8b55-restore-remainder-excerpt.jsonl",
+    "rows": 51,
+    "driver_sequences": [
+      13,
+      19,
+      24,
+      141,
+      146,
+      150,
+      151,
+      153,
+      154,
+      156,
+      161,
+      162,
+      167,
+      172,
+      173,
+      174,
+      175,
+      176,
+      177,
+      178,
+      254,
+      257,
+      259,
+      280
+    ],
+    "product_sequences": [
+      64,
+      66,
+      69,
+      71,
+      72,
+      75,
+      77,
+      80,
+      82,
+      83,
+      85,
+      91,
+      94,
+      96,
+      97,
+      98,
+      101,
+      103,
+      107,
+      109,
+      110,
+      111,
+      113,
+      118,
+      119,
+      121,
+      163
+    ],
+    "policy": "Whole original lines, no JSON or 64-bit identity reserialization. Line-ending normalization only; intentional gaps. D/P order is not a native total order."
+  },
+  "actual_maximized_subcase": {
+    "result": "PASS_SCOPED_ACTUAL_MAXIMIZED_DRAGOUT_AND_NORMAL_UP",
+    "before": "Original visible[200,160,600,460], positioning[191,160,609,469]. D146 real public Maximize command/P56 yields visible[0,0,3050,1596], positioning[-11,-11,3061,1607], actual showCmd3 and unchanged normal-position record.",
+    "input_and_capture": "D150/P66 consumes a real caption DOWN at[27,0] into g1/key4 from actual maximized geometry. P64 real exact own capture/association established on overlay459562/ownerTID6632. This path is consumed_down/native_first_handoff=false; no fictitious native START/END is asserted for maximized input.",
+    "independent_anchor": "D151 independently computes proportional X offset floor(27*400/3050)=3, anchor[24,0,424,300], cursor delta40,45 -> expected[64,45,464,345]. It does not call the production restore solver.",
+    "actual_restore": "P69 real native_restore_request, native_attempted=true/request_started=true with showCmd3/normal-position raw[191,160,609,469]. P71 actual normal observed[200,160,600,460]/positioning[191,160,609,469], original_down_preserved=true, intent_anchor[24,0,424,300]. P72 one actual exact native placement to[64,45,464,345], valid identity/context. D153/154 confirm actual geometry; D156 actual positioning[55,45,473,354], DPI preserved.",
+    "UP_and_cleanup": "P75 actual matching g1 RawUP, P77 accepted queued legacy UP; P80 actual release, P82 actual association detach, P83 overlay destroyed/hotkey unregistered/Gone, P85 actualNormalUp. D161 confirms placements unchanged after unique UP and D162 scopedPASS. This is not exit-code or guest-destruction inference."
+  },
+  "actual_native_Snap_subcase": {
+    "result": "FAIL_ACTUAL_SIZE_AND_ORIGINAL_DOWN_RESTORE_INTENT",
+    "precondition": "D141 read-only SPI queries confirm arranging/dock-moving/drag-from-maximize enabled; no SPI_SET/registry writes. D167 one real WinDown/LeftDown/LeftUp/WinUp sequence causes source visible[0,0,1525,1596], source remains foreground, nonmaximized showCmd1, WINDOWPLACEMENT normal record remains[55,45,473,354] from pre-Snap normal400x300. Product native claims remain1->1 with no command/gesture/new product native call in that interval. Native Snap occurred; it is not an environment-precondition failure.",
+    "native_handoff": "D170/P91 original DOWN[10,9], g2/key4/source197416. D172 one bounded test native threshold MOVE[15,9] supplies no authority. P94 actual START sequence1, P96 one bounded100ms cancel API-success, P97 actual END sequence2, P98 fresh handoff baseline still[0,0,1525,1596], P101 real own capture/association ready, P103 actual product gesture_start uses half-screen original[0,0,1525,1596].",
+    "independent_expected": "D174 pre-Snap normal[64,45,464,345] size400x300 and real DOWN[10,9] over snapped[0,0,1525,1596] imply anchor[8,0,408,300]; delta40,45 yields[48,45,448,345]. D175 actual cursor[50,54] is measured, not inferred from SendInput.",
+    "actual_wrong_result": "P107 native exact/identity/context success to target and actual[40,45,1565,1641], size1525x1596. P109 actual-motion-exact dedup observes the same wrong large frame, no additional call. Thus the writer correctly executes the wrong plain-Move intent: the snapped size is translated rather than restored. D176 finite actual equality fails. This is not a postverify/no-call/UP-cleanup failure.",
+    "failed_case_cleanup": "D177 one unique cleanup UP, D178 no repeated UP. P110 actual product LL UP matches g2 and revokes authority; P111 RawUP, P113 accepted legacy, P118 actual detach/P119 release+detach+overlay destroyed/Gone, P121 actualNormalUp. Actual NormalUp does not repair the failed geometry contract. D254 real public GUI saves original configuration; D259 exact fixture roots closed; P163 real complete product shutdown; D280 originaldriverFAIL retained.",
+    "unexecuted_after_failure": "Native-Snap normal-size/frame assertion and final snap_pass/setting-preservation assertion after failed layout_phase were not reached. They are not counted as executed PASS; no complete RestoreRemainderOnly or M08-F02 PASS."
+  },
+  "source_gap": {
+    "paths": [
+      "src/platform/windows/product/input_service.h Prepared::layout_restore_normal and native_move_handoff_compatible",
+      "src/platform/windows/product/product_app.cpp prepare()/begin()/request_native_restore()/restore_progress()"
+    ],
+    "facts": "prepare() only fills layout_restore_normal from product-owned layout history; begin() only uses that saved own history for nonmaximized restored intent. The maximized restore arm is based on fresh.maximized. External native-Snap windows are nonmaximized in actual capture and have no native-arranged state or normal-intent path, so this g2 is accepted as an ordinary large Move. Cancellation/END happened before any native restoration, and the current handoff predicate also disallows unexplained size changes.",
+    "minimum_missing_capability": "Reliably observe native arranged state and carry a verified restoration intent through the existing bounded restore observation path while keeping the true original DOWN anchor. Native/Shell identity, unknown-state rejection, capture/UP revocation and geometry continuity remain required. Do not simply accept arbitrary DOWN/END size changes or infer arranged from half-screen geometry/old normal-position differences."
+  },
+  "official_next_variable": {
+    "API": "IsWindowArranged(HWND)",
+    "URL": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindowarranged",
+    "actually_read": "Official documentation was retrieved during this review. It identifies Snap as arranged, notes that arranged/maximized/minimized are distinct and showCmd may remain SW_SHOWNORMAL, gives minimum Windows10 1903, and describes dynamic User32 GetProcAddress availability with a prerelease notice.",
+    "empirical_limit": "The API export/return/state transitions were NOT observed in this run. Missing export or contradictory identity/state must remain UNKNOWN. This is a concrete official candidate, not a new PASS or an AltSnap heuristic implementation.",
+    "other_references": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowplacement",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-windowplacement"
+    ]
+  },
+  "prior_art_boundary": "Existing AltSnap pinned reference-only review may guide questions; its geometry heuristic is not a trustworthy native arranged-state observation. No external code was copied/adapted, no new pinned-source review is invented, and no native heuristic was implemented by this evidence review.",
+  "package": {
+    "zip_sha256": "0E6E69AC8474BA4F9682734E8EB2C59696659161468B4714F3F2EDE20A03B475",
+    "manifest_sha256": "997247B7C1F33543A75CA5218BB89D65CD5C259C5DA65CC0C9048DAE2C3A3AE1",
+    "wsb_sha256": "BE5E1748596582CB1C526DEAF5500FFFB61D7967DF38A45DB0F96B60D333C503",
+    "receipt_sha256": "D7CB5B241B5F4F7D3FD0F5A7FB16C49A5D2CBF8E4022EA251EDC3F0BCFA60801"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/8b5562ea12e34b17b2fe8175788958bd/cleanup-receipt.json",
+    "sha256": "8EBC196F9D94BB059F3063E88121ED304EFB08628B707C25C937A81ED9F25365",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "not_awarded": [
+    "Native Snap drag-out PASS",
+    "RestoreRemainderOnly PASS",
+    "Whole M08-F02/module/version PASS",
+    "Host trial or Human UAT PASS"
+  ]
+}
