@@ -2,10 +2,32 @@
 
 // TEST ONLY. A one-use configuration lease in the exact disposable guest.
 // Neither the product nor an ordinary host entry includes a system setter.
+struct GuestHighContrastLastSet {
+    const std::wstring* live_string{};LPWSTR actual_parameter{};const wchar_t* string_base{};
+    std::size_t string_length{};unsigned serial{};const char* purpose="none";
+    bool attempted{},completed{},returned{};
+    bool exact_live_alias(LPWSTR candidate)const{
+        return attempted&&candidate&&live_string&&actual_parameter==string_base&&
+            live_string->data()==string_base&&live_string->size()==string_length&&candidate==actual_parameter;
+    }
+    std::string json(LPWSTR GET_pointer=nullptr)const{
+        return "\"SET_serial\":"+std::to_string(serial)+",\"SET_purpose\":"+quote(purpose)+
+            ",\"SET_attempted\":"+(attempted?"true":"false")+",\"SET_completed\":"+(completed?"true":"false")+
+            ",\"SET_return\":"+(completed?(returned?"true":"false"):"null")+
+            ",\"SET_actual_scheme_pointer\":"+std::to_string(reinterpret_cast<std::uintptr_t>(actual_parameter))+
+            ",\"SET_caller_string_base\":"+std::to_string(reinterpret_cast<std::uintptr_t>(string_base))+
+            ",\"SET_caller_string_length\":"+std::to_string(string_length)+
+            ",\"SET_caller_storage_still_exact\":"+((live_string&&live_string->data()==string_base&&
+                live_string->size()==string_length)?"true":"false")+
+            ",\"GET_scheme_pointer_compared_with_SET\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GET_pointer))+
+            ",\"GET_exact_alias_live_SET_caller_buffer\":"+(exact_live_alias(GET_pointer)?"true":"false");
+    }
+};
 struct GuestHighContrastState {
-    bool known{},scheme_known{},scheme_freed{};DWORD flags{},error{};
+    bool known{},scheme_known{},scheme_freed{},scheme_borrowed{},scheme_free_attempted{};DWORD flags{},error{};
+    std::uintptr_t returned_scheme_pointer{};
     std::wstring scheme;std::array<COLORREF,6> colors{};
-    static GuestHighContrastState read(State* first_post_SET_trace=nullptr){
+    static GuestHighContrastState read(State* first_post_SET_trace=nullptr,const GuestHighContrastLastSet* last_SET=nullptr){
         const auto stage=[&](const char* name){if(first_post_SET_trace)
             first_post_SET_trace->log.emit("high_contrast_post_SET_probe",std::string("\"stage\":")+quote(name)+
                 ",\"first_read_only\":true,\"native_parameters_and_wait_order_unchanged\":true");};
@@ -13,19 +35,26 @@ struct GuestHighContrastState {
         stage("GET_enter");
         SetLastError(ERROR_SUCCESS);out.known=SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(actual),&actual,0)!=FALSE;
         out.error=out.known?0:GetLastError();out.flags=actual.dwFlags;
-        // Own the returned allocation before diagnostic formatting can throw.
-        struct Scheme {LPWSTR value{};~Scheme(){if(value)LocalFree(value);}} allocation{actual.lpszDefaultScheme};
+        out.returned_scheme_pointer=reinterpret_cast<std::uintptr_t>(actual.lpszDefaultScheme);
+        out.scheme_borrowed=last_SET&&last_SET->exact_live_alias(actual.lpszDefaultScheme);
+        // A pointer exactly identifying this live TEST caller buffer is not a
+        // system allocation. Never give it to either explicit or RAII LocalFree.
+        struct Scheme {LPWSTR value{};~Scheme(){if(value)LocalFree(value);}}
+            allocation{out.scheme_borrowed?nullptr:actual.lpszDefaultScheme};
         if(first_post_SET_trace)first_post_SET_trace->log.emit("high_contrast_post_SET_probe",
             "\"stage\":\"GET_return\",\"first_read_only\":true,\"native_return\":"+std::string(out.known?"true":"false")+
-            ",\"native_error\":"+std::to_string(out.error)+",\"actual_flags\":"+std::to_string(out.flags));
-        // SPI_GET owns this allocation. Do not retain its pointer through SET.
-        if(out.known&&allocation.value){const auto size=wcsnlen_s(allocation.value,4096);
-            out.scheme_known=size<4096;if(out.scheme_known)out.scheme.assign(allocation.value,size);}
+            ",\"native_error\":"+std::to_string(out.error)+",\"actual_flags\":"+std::to_string(out.flags)+
+            ",\"GET_returned_scheme_pointer\":"+std::to_string(out.returned_scheme_pointer)+
+            ",\"known_borrowed_caller_storage\":"+(out.scheme_borrowed?"true":"false")+
+            (last_SET?","+last_SET->json(actual.lpszDefaultScheme):",\"SET_observation\":null"));
+        if(out.known&&actual.lpszDefaultScheme){const auto size=wcsnlen_s(actual.lpszDefaultScheme,4096);
+            out.scheme_known=size<4096;if(out.scheme_known)out.scheme.assign(actual.lpszDefaultScheme,size);}
         stage("scheme_copied_before_LocalFree");
-        const bool free_attempted=allocation.value!=nullptr;
-        out.scheme_freed=!allocation.value||LocalFree(allocation.value)==nullptr;allocation.value=nullptr;
+        out.scheme_free_attempted=allocation.value!=nullptr;
+        out.scheme_freed=!out.scheme_borrowed&&(!allocation.value||LocalFree(allocation.value)==nullptr);allocation.value=nullptr;
         if(first_post_SET_trace)first_post_SET_trace->log.emit("high_contrast_post_SET_probe",
-            "\"stage\":\"LocalFree_return\",\"first_read_only\":true,\"native_attempted\":"+std::string(free_attempted?"true":"false")+
+            "\"stage\":\"LocalFree_return_or_known_borrowed_skip\",\"first_read_only\":true,\"native_attempted\":"+std::string(out.scheme_free_attempted?"true":"false")+
+            ",\"known_borrowed_caller_storage\":"+(out.scheme_borrowed?"true":"false")+
             ",\"system_scheme_allocation_freed\":"+(out.scheme_freed?"true":"false"));
         constexpr std::array<int,6> indices{COLOR_WINDOW,COLOR_WINDOWTEXT,COLOR_BTNFACE,COLOR_BTNTEXT,COLOR_INFOBK,COLOR_INFOTEXT};
         for(std::size_t i=0;i<indices.size();++i)out.colors[i]=GetSysColor(indices[i]);
@@ -38,25 +67,43 @@ struct GuestHighContrastState {
             ",\"flags\":"+std::to_string(flags)+",\"HC_ON\":"+((flags&HCF_HIGHCONTRASTON)?"true":"false")+
             ",\"available\":"+((flags&HCF_AVAILABLE)?"true":"false")+",\"scheme_known\":"+(scheme_known?"true":"false")+
             ",\"scheme\":"+(scheme_known?quote(utf8(scheme)):"null")+",\"system_scheme_allocation_freed\":"+(scheme_freed?"true":"false")+
+            ",\"GET_returned_scheme_pointer\":"+std::to_string(returned_scheme_pointer)+
+            ",\"known_borrowed_caller_storage\":"+(scheme_borrowed?"true":"false")+
+            ",\"LocalFree_attempted\":"+(scheme_free_attempted?"true":"false")+
             ",\"colors_WINDOW_WINDOWTEXT_BTNFACE_BTNTEXT_INFOBK_INFOTEXT\":"+palette+"}";
     }
 };
 class GuestHighContrastLease {
     State& state_;bool attempted_{},finished_{};
+    GuestHighContrastLastSet last_SET_;
+    void observe_SET_enter(HIGHCONTRASTW& request,const char* purpose){
+        ++last_SET_.serial;last_SET_.purpose=purpose;last_SET_.live_string=&original.scheme;
+        last_SET_.actual_parameter=request.lpszDefaultScheme;last_SET_.string_base=original.scheme.data();
+        last_SET_.string_length=original.scheme.size();last_SET_.attempted=true;last_SET_.completed=false;last_SET_.returned=false;
+        state_.log.emit("high_contrast_SET_pointer_observation","\"stage\":\"before_native_SET\","+last_SET_.json()+
+            ",\"native_parameters_unchanged\":true,\"observation_scope\":\"this_live_TEST_lease_only\"");
+    }
+    void observe_SET_return(bool returned){
+        last_SET_.completed=true;last_SET_.returned=returned;
+        state_.log.emit("high_contrast_SET_pointer_observation","\"stage\":\"after_native_SET\","+last_SET_.json());
+    }
 public:
     const GuestHighContrastState original=GuestHighContrastState::read();
     explicit GuestHighContrastLease(State& state):state_(state){}
     bool enable(){
         if(original.flags&HCF_HIGHCONTRASTON)return true;
         HIGHCONTRASTW request{sizeof(request),original.flags|HCF_HIGHCONTRASTON,const_cast<LPWSTR>(original.scheme.c_str())};
+        observe_SET_enter(request,"enable");
         attempted_=true;SetLastError(ERROR_SUCCESS);
         const bool returned=SystemParametersInfoW(SPI_SETHIGHCONTRAST,sizeof(request),&request,SPIF_SENDCHANGE)!=FALSE;
         const DWORD error=returned?0:GetLastError();
+        observe_SET_return(returned);
         state_.log.emit("high_contrast_guest_SET","\"requested_ON\":true,\"native_return\":"+std::string(returned?"true":"false")+
             ",\"native_error\":"+std::to_string(error)+",\"requested_flags\":"+std::to_string(request.dwFlags)+
             ",\"fWinIni\":"+std::to_string(SPIF_SENDCHANGE)+",\"profile_update_requested\":false,\"host_API_called\":false");
         return returned;
     }
+    GuestHighContrastState read(State* trace=nullptr)const{return GuestHighContrastState::read(trace,&last_SET_);}
     bool restore(){
         if(finished_)return false;finished_=true;
         if(!attempted_&&(!original.known||!original.scheme_known||!original.scheme_freed)){
@@ -66,16 +113,23 @@ public:
         }
         bool returned=true;DWORD error{};
         if(attempted_){HIGHCONTRASTW request{sizeof(request),original.flags,const_cast<LPWSTR>(original.scheme.c_str())};
+            observe_SET_enter(request,"restore");
             SetLastError(ERROR_SUCCESS);returned=SystemParametersInfoW(SPI_SETHIGHCONTRAST,sizeof(request),&request,SPIF_SENDCHANGE)!=FALSE;
-            error=returned?0:GetLastError();}
+            error=returned?0:GetLastError();observe_SET_return(returned);}
         GuestHighContrastState actual;
-        const bool exact=returned&&wait([&]{actual=GuestHighContrastState::read();return actual.known&&actual.scheme_known&&actual.scheme_freed&&
-            actual.flags==original.flags&&actual.scheme==original.scheme&&actual.colors==original.colors;},1000);
+        bool first_read=true;
+        const bool observed=returned&&wait([&]{const bool trace=first_read;first_read=false;actual=read(trace?&state_:nullptr);
+            return actual.scheme_borrowed||(actual.known&&actual.scheme_known&&
+                actual.flags==original.flags&&actual.scheme==original.scheme&&actual.colors==original.colors);},1000);
+        const bool exact=observed&&actual.known&&actual.scheme_known&&
+            actual.flags==original.flags&&actual.scheme==original.scheme&&actual.colors==original.colors;
+        const bool ownership_complete=actual.scheme_freed&&!actual.scheme_borrowed;
         state_.log.emit("high_contrast_guest_actual_restore","\"SET_attempted\":"+std::string(attempted_?"true":"false")+
             ",\"native_return\":"+(attempted_?(returned?"true":"false"):"null")+",\"native_error\":"+std::to_string(error)+
             ",\"original\":"+original.json()+",\"actual_after\":"+actual.json()+",\"exact_original_flags_scheme_colors\":"+(exact?"true":"false")+
+            ",\"GET_allocation_ownership_contract_complete\":"+(ownership_complete?"true":"false")+
             ",\"profile_update_requested\":false,\"guest_destruction_used_as_restore\":false,\"not_product_resource_cleanup_receipt\":true");
-        if(!exact)state_.log.failed=true;return exact;
+        if(!exact||!ownership_complete)state_.log.failed=true;return exact&&ownership_complete;
     }
     ~GuestHighContrastLease(){if(!finished_)try{restore();}catch(...){state_.log.failed=true;}}
 };
@@ -133,8 +187,14 @@ void owned_high_contrast_case(State& s){
         bool first_read=true;
         const bool enabled=wait([&]{const bool trace=first_read;first_read=false;
             if(trace)s.log.emit("high_contrast_post_SET_probe","\"stage\":\"predicate_enter\",\"first_read_only\":true");
-            active=GuestHighContrastState::read(trace?&s:nullptr);return active.known&&active.scheme_known&&active.scheme_freed&&
-            (active.flags&HCF_HIGHCONTRASTON);},1000);
+            active=lease.read(trace?&s:nullptr);return active.scheme_borrowed||(active.known&&active.scheme_known&&active.scheme_freed&&
+            (active.flags&HCF_HIGHCONTRASTON));},1000);
+        if(active.scheme_borrowed){
+            s.log.emit("high_contrast_caller_buffer_alias_diagnostic","\"actual\":"+active.json()+
+                ",\"HC_UI_phase\":\"NOT_RUN\",\"LocalFree_of_caller_storage_attempted\":false,\"HC_PASS\":false");
+            blocked("GET_exact_alias_live_SET_caller_buffer_not_system_allocation");s.log.failed=true;
+            (void)lease.restore();return;
+        }
         s.log.check("high_contrast_actual_GET_ON",enabled&&active.colors[0]!=active.colors[1]&&active.colors[2]!=active.colors[3],
             "\"actual\":"+active.json()+",\"palette_changed\":"+(active.colors!=lease.original.colors?"true":"false")+
             ",\"mode_and_color_scheme_are_distinct\":true,\"visual_readability_inferred\":false");
