@@ -15,9 +15,10 @@ struct LayoutUiStorage {
     std::array<Frame,8> frames;std::array<HWND,3> originals{};
     std::array<LONG_PTR,3> original_data{};std::array<bool,3> old_visible{},visibility_saved{};
     HINSTANCE instance{};std::wstring class_name;DWORD owner{};HWND anchor{};
-    // Only OwnedRulesOnly may request a distinct, Run-bound class for member
-    // 1. Originals and every default/other member retain the old exact class.
-    std::wstring target1_alias;bool alias_registered{},alias_ever_registered{},alias_unregister_attempted{},alias_unregistered{};
+    // Only the named rule suites or TransparencyRemainderOnly may request a
+    // distinct Run-bound member-1 class. The latter adds real CS_OWNDC at
+    // registration; originals/default members retain their exact old class.
+    std::wstring target1_alias;bool target1_own_dc{},alias_registered{},alias_ever_registered{},alias_unregister_attempted{},alias_unregistered{};
     DWORD alias_register_error{},alias_unregister_error{},alias_registration_tid{},alias_unregistration_tid{};
     std::atomic<bool> abandoned{};bool cleaned{};
     // Windows retain pointers to Frame. Keep that storage alive even when a
@@ -95,6 +96,7 @@ bool layout_ui_message(HWND h,UINT message,WPARAM,LPARAM lp){
                 SetLastError(0);const bool exists=GetClassInfoExW(storage->instance,storage->target1_alias.c_str(),&unknown)!=FALSE;
                 const DWORD lookup_error=GetLastError();
                 if(exists||lookup_error!=ERROR_CLASS_DOES_NOT_EXIST)throw std::runtime_error("layout_alias_class_unknown_or_already_registered_not_reused");
+                if(storage->target1_own_dc)original.style|=CS_OWNDC;
                 original.lpszClassName=storage->target1_alias.c_str();storage->alias_registration_tid=GetCurrentThreadId();SetLastError(0);
                 storage->alias_registered=RegisterClassExW(&original)!=0;storage->alias_ever_registered=storage->alias_registered;
                 storage->alias_register_error=storage->alias_registered?0:GetLastError();
@@ -188,12 +190,18 @@ struct LayoutFixtures {
         if(!request->success&&!request->error.empty())state.log.emit("layout_UI_failure","\"reason\":"+quote(request->error)+",\"owner_tid\":"+std::to_string(thread));
         return request->success;
     }
-    void create(bool target1_rule_alias=false){
+    void create(bool target1_rule_alias=false,bool target1_own_dc=false){
         if(!state.process||WaitForSingleObject(state.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("layout_product_not_running");
         if(target1_rule_alias){
             if((state.suite!="OwnedRulesOnly"&&state.suite!="RemainingMoveContractsOnly")||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run||!storage->target1_alias.empty())
                 throw std::runtime_error("layout_rule_alias_requires_exact_new_Run_and_suite");
             storage->target1_alias=storage->class_name+L".StretchRuleTarget";
+        }
+        if(target1_own_dc){
+            if(target1_rule_alias||state.suite!="TransparencyRemainderOnly"||
+               storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run||!storage->target1_alias.empty())
+                throw std::runtime_error("layout_own_dc_requires_exact_transparency_Run_and_suite");
+            storage->target1_alias=storage->class_name+L".NoLayeredOwnDC";storage->target1_own_dc=true;
         }
         for(std::size_t n=0;n<3;++n){
             if(state.explorer[n]||state.applications[n]||!own(state,state.frames[n].hwnd))throw std::runtime_error("layout_other_targets_must_be_released_first");
@@ -209,6 +217,11 @@ struct LayoutFixtures {
             "\"source_class\":"+quote(utf8(storage->class_name))+",\"target1_class\":"+quote(utf8(storage->target1_alias))+
             ",\"RegisterClassEx_returned\":"+(storage->alias_registered?"true":"false")+
             ",\"RegisterClassEx_error\":"+std::to_string(storage->alias_register_error)+",\"actual_registration_TID\":"+std::to_string(storage->alias_registration_tid));
+        if(target1_own_dc)state.log.check("transparency_exact_CS_OWNDC_alias_registered_on_own_UI_STA",storage->alias_registered&&
+            storage->alias_registration_tid==thread&&owns(1)&&gui_class(frames[1].hwnd)==storage->target1_alias&&
+            (GetClassLongPtrW(frames[1].hwnd,GCL_STYLE)&CS_OWNDC)!=0,
+            "\"actual_class_style\":"+std::to_string(GetClassLongPtrW(frames[1].hwnd,GCL_STYLE))+
+            ",\"only_new_Run_owned_class\":true,\"original_class_or_user_windows_modified\":false");
     }
     void setup(const std::vector<Rect>& expected,const std::vector<LayoutLimit>& limits={}){
         if(expected.empty()||expected.size()>frames.size()||(!limits.empty()&&limits.size()!=expected.size()))throw std::runtime_error("layout_case_bound_invalid");

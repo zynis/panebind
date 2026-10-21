@@ -606,6 +606,40 @@ Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide $lifecyclePrepare $li
 Check $true 'static hide/show route retains exact guest guards, public observed ineligibility, fresh key and one real Move/UP'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource ($lifecycleHide.Replace('const auto hidden_status=geometry_history_status(s);','const auto hidden_status=before_status;')) $lifecyclePrepare $lifecycleGuest} 'static hide/show rejects substituting old status for actual product observation'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide ($lifecyclePrepare.Replace("'LifecycleRemainderOnly'","'DisabledLifecycle'")) $lifecycleGuest} 'static hide/show rejects a missing exact packager suite'
+function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[string]$Layout,[string]$Prepare,[string]$Guest){
+    foreach($value in @('#include "platform/windows/product/v1_guest_transparency_remaining_case.h"',
+        'phase("temporary_alpha_real_FocusLost_and_successor",owned_transparency_focus_remaining_case);',
+        'phase("temporary_alpha_actual_OWNDC_rejection_and_limitation",owned_transparency_unsupported_remaining_case);',
+        's.suite!="TransparencyRemainderOnly"','s.suite=="TransparencyRemainderOnly"',
+        'else if(value==L"TransparencyRemainderOnly")s.suite="TransparencyRemainderOnly";')){
+        if(-not $Fixture.Contains($value)){throw ('Transparency remainder suite lost actual wiring: '+$value)}
+    }
+    if(-not $Prepare.Contains("'TransparencyRemainderOnly'") -or -not $Guest.Contains("'TransparencyRemainderOnly'")){
+        throw 'Transparency remainder requires both exact packager and guest suite declarations.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="TransparencyRemainderOnly"','config.drag_alpha=190;',
+        'own_visual_setup(s,source,173,true);','SetForegroundWindow(other)',
+        'interruption_end(s,g,v::End::FocusLost,false,source)','transparency_gone(s,set,g);',
+        'abort_cleanup_up_receipt(s,g.offset,g.generation)','next.generation>g.generation',
+        'set.create(false,true);','GetClassLongPtrW(source,GCL_STYLE)',
+        'e::unique_value(mutation,"\"native_sequence_returned_success\":")=="false"',
+        'original_native_tuple_preserved','NOT_PROVEN_BY_NOTICE_LOG','visible_limitation_feedback\":\"NOT_RUN')){
+        if(-not $Cases.Contains($value)){throw ('Transparency remainder lost actual observation/limit: '+$value)}
+    }
+    foreach($value in @('state.suite!="TransparencyRemainderOnly"','original.style|=CS_OWNDC;',
+        'L".NoLayeredOwnDC"','storage->alias_unregistered','GetClassLongPtrW(frames[1].hwnd,GCL_STYLE)&CS_OWNDC')){
+        if(-not $Layout.Contains($value)){throw ('Transparency CS_OWNDC alias lost exact ownership: '+$value)}
+    }
+    if($Cases.Contains('PostMessageW(') -or $Cases.Contains('SetWindowLongPtrW(') -or $Cases.Contains('SetLayeredWindowAttributes(')){
+        throw 'Transparency remainder must use real product native requests, not pre-mutate source or inject fake messages.'
+    }
+}
+$transparencyRemainder=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_transparency_remaining_case.h'),[Text.Encoding]::UTF8)
+$transparencyLayout=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_layout_cases.h'),[Text.Encoding]::UTF8)
+Assert-V1TransparencyRemainderWiring $fixtureSource $transparencyRemainder $transparencyLayout $lifecyclePrepare $lifecycleGuest
+Check $true 'static transparency remainder uses real FocusLost and exact newly registered unsupported-class scope with independent phases'
+Reject {Assert-V1TransparencyRemainderWiring $fixtureSource ($transparencyRemainder.Replace('next.generation>g.generation','true')) $transparencyLayout $lifecyclePrepare $lifecycleGuest} 'static transparency rejects losing the fresh successor generation'
+Reject {Assert-V1TransparencyRemainderWiring $fixtureSource $transparencyRemainder ($transparencyLayout.Replace('state.suite!="TransparencyRemainderOnly"','false')) $lifecyclePrepare $lifecycleGuest} 'static transparency rejects extending CS_OWNDC alias registration outside its exact guest suite'
 function Assert-V1VisualOwnershipWiring([string]$Fixture,[string]$Visual){
     if(-not $Fixture.Contains('owned_visual_ownership_case(s);') -or -not $Visual.Contains('s.suite!="VisualOwnershipOnly"')){
         throw 'Visual ownership must reach its guarded real product component.'
