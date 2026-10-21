@@ -771,6 +771,30 @@ if($sourceExpression.Count -ne 1){throw 'Actual startup source expression is mis
 Assert-V1FullStartupSourceExpression $sourceExpression[0].Groups['expression'].Value
 Check $true 'actual guest startup expression creates two exact event source strings without subscribing to WMI'
 Reject {Assert-V1FullStartupSourceExpression '@($prefix+''.start'',$prefix+''.stop'')'} 'actual old Run 3927 source expression fails the two-source value check despite parsing successfully'
+# Invoke the exact production row conversion/predicate without WMI. The
+# retained 50f5 start is real; its rejected second row was not saved and must
+# not be invented as a native StopTrace or attributed to a session-0 cause.
+$traceFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Convert-FullStartupTraceRow'},$false))
+$completeFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Complete-FullGuestStartupObservation'},$false))
+if($traceFunction.Count -ne 1 -or $completeFunction.Count -ne 1 -or
+   -not $completeFunction[0].Extent.Text.Contains('$row=Convert-FullStartupTraceRow $native') -or
+   -not $completeFunction[0].Extent.Text.Contains('if($row.identity_error){$record.rejected_trace=$row;throw')){
+    throw 'Actual startup handling must use the tested predicate and retain its rejected native row before throwing.'}
+. ([scriptblock]::Create($traceFunction[0].Extent.Text))
+$traceObserver=[ordered]@{pid=1234;session=1;managed_thread_id=9;session_source='test_parameter_not_native_observation'}
+$retainedStart=[pscustomobject]@{ProcessID=[uint32]6960;ParentProcessID=[uint32]1160;SessionID=[uint32]1;
+    ProcessName='rgnupdt.exe';TIME_CREATED=[uint64]134370283804911787;Sid=$null;ExitStatus=$null}
+$traceRow=Convert-FullStartupTraceRow $retainedStart 'start' ([DateTime]'2026-10-21T03:53:00.4911787Z') $traceObserver
+Check (-not $traceRow.identity_error -and $traceRow.pid -eq 6960 -and $traceRow.session -eq 1 -and
+    $traceRow.raw_wmi_fields.event_time_created -eq [uint64]134370283804911787 -and
+    $traceRow.observer_at_delivery.session -eq 1) 'actual startup predicate accepts the retained 50f5 start fields and records the separately supplied observer session'
+$differentSession=$retainedStart.PSObject.Copy();$differentSession.SessionID=[uint32]0
+$rejectedSession=Convert-FullStartupTraceRow $differentSession 'stop' ([DateTime]'2026-10-21T03:53:00.5Z') $traceObserver
+$missingSession=[pscustomobject]@{ProcessID=[uint32]6960;ParentProcessID=[uint32]1160;ProcessName='rgnupdt.exe';TIME_CREATED=[uint64]134370283804911788;Sid=$null;ExitStatus=[uint32]0}
+$rejectedMissing=Convert-FullStartupTraceRow $missingSession 'stop' ([DateTime]'2026-10-21T03:53:00.5Z') $traceObserver
+Check ($rejectedSession.identity_error -ceq 'trace_session_mismatch' -and $rejectedSession.raw_wmi_fields.session -eq 0 -and
+    $rejectedSession.observer_at_delivery.session -eq 1 -and $rejectedMissing.identity_error -ceq 'trace_session_missing' -and
+    $null -eq $rejectedMissing.session -and $null -eq $rejectedMissing.raw_wmi_fields.session) 'actual startup predicate rejects a foreign session and distinguishes a missing raw session from numeric zero; neither is a claimed 50f5 native stop'
 $portableFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Prepare-PortableTestPackage'},$false))
 Check ($portableFunction.Count -eq 1) 'test locates the actual guest portable validation function'
 . ([scriptblock]::Create($portableFunction[0].Extent.Text))

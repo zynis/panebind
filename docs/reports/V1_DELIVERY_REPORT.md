@@ -1,5 +1,19 @@
 # PaneBind V1 集中交付进展
 
+## 当前候选增量（2026-10-21）：双击准备修复与普通便携入口复验
+
+产品仅在取得实际反例后更新：当前产品／驱动源码均为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256 分别为 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`／`4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7`。后继启动观察脚本和文档提交不重建、换绑这两份 EXE；原247产品、原6e9包和下面历史结果保持原身份。
+
+- **双击的真实产品缺陷已修复并定向复验**。`5810b757ede148448d74156fe58ea404` 在实际首击 DOWN／UP 后，第二次 DOWN 间隔62ms、同位置且候选资格有效，但实际 Prepared cache为空，未进入路由。实际 NativeMoveReleased 到达前 GUI reject 已清掉 pending，旧 handler 因此漏掉准备刷新。修复为在无更新手势、输入已空闲且产品启用时调用原完整 fresh `prepare()`；不重用旧缓存、不等待内部就绪、不补点击或改间隔。`fdf2208ed81145a5b98095865a5578a6` 第二击63ms、实际新 Prepared stamp、clicks=2／routeGesture及一次 exact 右下角拉伸、Undo与资源退出成立。该离散动作按既有语义先以 Paused 退休，随后才观察到第二次物理UP，**不是第二击 NormalUp，也不授完整 I05／整版通过**。
+- **未知前台已取得有限归属，未查明激活发起者**。`a8a7d84b6a044a04984a5ad061acc65d` 的 A 五段与 Ctrl A 三成员有实际 exact 及正常UP；B g3 接管后、首 placement 前发生 FocusLost，驱动正确拒发后继 MOVE，Full仍FAIL。只读前台回调识别同一 HWND262332／PID7048／TID7056／出生时间 `134370267796265999`，类 `ConsoleWindowClass`，映像basename `rgnupdt.exe`；它不是登记的任务进程身份。不能由basename断言用途、激活者或旧22b2／c899为同因；没有抢前台、操作未知capture或读取窗口内容。
+- **新候选普通包入口已独立运行**。`2432640250344564b4f2ba89287bea81` 使用[528a Release便携包](../../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip)，ZIP SHA-256 `1CB448B8DF8A717657FD769E90977A6E6058A99A38964AFFBE91282B502E31F1`。干净 guest 中无参数可见GUI、同实例二启、GUI保存磁吸10→0后的实际Move差异、真实LL／legacy UP及两次 NormalUp、正常退出和客户输入恢复均有独立回执。不是诊断入口，未重写旧包；不授真实托盘、五类应用、完整 I12或普通宿主试用。
+
+Debug／Release 产品、驱动及受影响目标构建通过；各自 `v1-input-route` 386、`v1-writer` 64、`v1-guest-path` 208 项通过（symlink子项明确SKIP1314）。现场证据均来自实际 Release guest；离线数量不替代功能验收，已关闭 D29、八区／Shift和独立900秒专项没有重跑。
+
+未知前台的后续仅为一次有界、只读启动生命周期对照，不给产品增加环境放权。`392700232e524e5fbe78d6b86913dac5` 的脚本数组优先级错误及其原始失败保留；修正实际表达式并补独立回归后，`50f5e31a93ee4054b4826cd8b92db17b` 收到真实启动trace，但在后续身份／session核对拒绝，产品／driver／输入均未启动。两个批次不能计 Full失败或通过；只退出各自 guest／临时任务，保留包与证据，未修改宿主、CrossRec或未知资源。当前正在核对后者实际拒绝事实，产品仍冻结11ae。
+
+整版仍 **PARTIAL**，生产接线60/60，保留原身份的完整功能合同15/60、对标7/40；本轮限定结果不追加整项计分。普通完整Medium桌面、真实应用／托盘、多屏／混合DPI和当前连续整链尚未齐，真人UAT PENDING，暂不进入REA。以下内容为历史记录，不用旧“待运行”覆盖上面的实际结果。
+
 ## 当前继续结果（2026-10-21）：实际守卫与原便携包入口
 
 本次起点 `9689aac85abb5e5b69268a6b4162a64dcd9286ae`，原可信 SSH、内存及标准 origin fetch 均实际正常。产品仍为未修改的 `247501a`／Release SHA-256 `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`；本轮驱动 `da237b662d33f0d3ca0fce2ce94a1eb5504f01fc`，Release SHA-256 `0F2EFEE8C2C27EA327BB293639C692417A5C0772F91DDBC97F0931354C50AE59`。a8 守卫逻辑保留，由实际运行 da 驱动验证，不把 da 的运行冒称为原 a8 二进制运行。

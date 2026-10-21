@@ -1,5 +1,9 @@
 # PaneBind V1 候选版中文快速入门
 
+当前候选已更新为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`。[528a便携候选](../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip) ZIP SHA-256 `1CB448B8DF8A717657FD769E90977A6E6058A99A38964AFFBE91282B502E31F1`。2432已在干净隔离guest实际验证该包无参数可见GUI、同实例二启、设置保存并改变Move吸附、真实UP和正常退出；它不是仅由测试driver入口推定的结果。双击第二DOWN丢失Prepared的具体缺陷已经实测修复，但当前 Full仍因真实未知前台撤权中断，尚不能宿主试用、宣称三窗整链或真人验收通过。
+
+以下247／6e9及更旧结果按原身份保留；其中旧候选和“尚未运行”描述为历史，不是当前11ae包状态。普通操作方法仍见本文第1节；自动测试及入口复验只在已授权隔离guest完成，不邀请用户在宿主承担架构实验。证据范围与剩余条件以[集中报告](reports/V1_DELIVERY_REPORT.md)和[验收表](reports/V1_ACCEPTANCE.json)为准。
+
 当前候选源码为`247501a6d7e00a276e9e3aa63e38247e348ca854`，Release EXE SHA-256 `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`。新 e86a、c442、4d32 已在 guest 分别验证快速 MOVE→UP 与后继手势、热键及重复映射 GUI 拒绝、暂停／恢复与路由重选。前代745的误FocusLost原FAIL保留；D29已由新实际证据关闭其具体缺陷，不代表全部连续操作或整版通过。下文212及7635包保持历史身份，不换绑新候选。仍不交付普通宿主试用。
 
 2026-10-20台式机开机后，原可信SSH已实际恢复。新驱动5cb的Debug／Release构建和离线验证完成，产品字节不变；Full Release 新批次22b2在 A 的 free／XY snap exact 后因实际前台切换撤权、hold cursor 未达到而 FAIL，后续三窗链未完成，原因仍 UNKNOWN。旧 b46 TCP 部署失败保留历史，不再当作当前阻断。无需用户搬文件、逐项实验或新建VM；包生成及局部通过不等于可试用。

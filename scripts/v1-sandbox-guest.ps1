@@ -21,10 +21,15 @@ function Start-FullGuestStartupObservation {
         record=[ordered]@{schema='panebind-v1-full-startup-observation/1';run_id=$RunId;suite='Full';
             status='OBSERVING';deadline_seconds=60;deadline_includes_asset_preparation=$true;subscription_utc=[DateTime]::UtcNow.ToString('o');
             subscription_filetime_utc=[DateTime]::UtcNow.ToFileTimeUtc();initial_processes=@();events=@();current_processes=@();
+            initial_snapshot_collected=$false;current_snapshot_collected=$false;
+            observer_at_subscription=$null;rejected_trace=$null;
             error=$null;subscription_cleanup_confirmed=$false;event_cleanup_confirmed=$false;
             product_or_input_started_by_observer=$false;process_control_performed=$false;
             process_purpose='UNKNOWN';termination_initiator='UNKNOWN';environment_foreground_guarantee=$false}}
     try {
+        $observer=[Diagnostics.Process]::GetCurrentProcess()
+        try{$context.record.observer_at_subscription=[ordered]@{pid=$observer.Id;session=$observer.SessionId;
+            managed_thread_id=[Threading.Thread]::CurrentThread.ManagedThreadId;session_source='Process.GetCurrentProcess.SessionId'}}finally{$observer.Dispose()}
         for($index=0;$index -lt 2;$index++){
             $source=$context.sources[$index]
             if(@(Get-EventSubscriber -SourceIdentifier $source -ErrorAction SilentlyContinue).Count -or
@@ -39,9 +44,37 @@ function Start-FullGuestStartupObservation {
             ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name;
                 creation_date_utc=$(if($null -ne $_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{$null});
                 creation_date_filetime_utc=$(if($null -ne $_.CreationDate){$_.CreationDate.ToFileTimeUtc()}else{$null})}})
+        $context.record.initial_snapshot_collected=$true
         if($context.record.initial_processes.Count -gt 1){throw 'More than one matching startup process; this observation covers only one lifecycle.'}
     }catch{$context.record.status='ENVIRONMENT_READY_UNKNOWN';$context.record.error=$_.Exception.Message}
     return $context
+}
+function Convert-FullStartupTraceRow($Native,[string]$Kind,[DateTime]$DeliveredUtc,$Observer) {
+    # Pure conversion/predicate shared with the targeted PS regression. A
+    # missing WMI value must not be cast into a seemingly observed numeric 0.
+    $raw=[ordered]@{pid=$Native.ProcessID;parent_pid=$Native.ParentProcessID;session=$Native.SessionID;
+        name=$Native.ProcessName;event_time_created=$Native.TIME_CREATED;exit_status=$Native.ExitStatus}
+    $row=[ordered]@{kind=$Kind;pid=$null;parent_pid=$null;session=$null;name=$null;event_time_created=$null;
+        event_time_is_process_birth=$false;process_birth='UNKNOWN';image_path='UNKNOWN';sid_base64=$null;
+        delivered_utc=$DeliveredUtc.ToUniversalTime().ToString('o');exit_status=$null;raw_wmi_fields=$raw;
+        raw_session_type=$(if($null -ne $raw.session){$raw.session.GetType().FullName}else{$null});
+        observer_at_delivery=$Observer;identity_error=$null}
+    try {
+        if($null -ne $raw.pid){$row.pid=[uint32]$raw.pid};if($null -ne $raw.parent_pid){$row.parent_pid=[uint32]$raw.parent_pid}
+        if($null -ne $raw.session){$row.session=[uint32]$raw.session};if($null -ne $raw.name){$row.name=[string]$raw.name}
+        if($null -ne $raw.event_time_created){$row.event_time_created=[uint64]$raw.event_time_created}
+        if($null -ne $Native.Sid){$row.sid_base64=[Convert]::ToBase64String([byte[]]$Native.Sid)}
+        if($Kind -ceq 'stop' -and $null -ne $raw.exit_status){$row.exit_status=[uint32]$raw.exit_status}
+        $row.identity_error=if($Kind -cnotin @('start','stop')){'unexpected_trace_kind'}
+            elseif($null -eq $row.pid -or -not $row.pid){'trace_process_id_unknown'}
+            elseif($null -eq $row.parent_pid){'trace_parent_process_id_missing'}
+            elseif($row.name -ine 'rgnupdt.exe'){'trace_process_name_mismatch'}
+            elseif($null -eq $row.event_time_created -or -not $row.event_time_created){'trace_time_created_unknown'}
+            elseif($null -eq $row.session){'trace_session_missing'}
+            elseif($null -eq $Observer -or -not $Observer.pid -or $null -eq $Observer.session){'observer_identity_or_session_unknown'}
+            elseif($row.session -ne $Observer.session){'trace_session_mismatch'}else{$null}
+    }catch{$row.identity_error='trace_field_conversion_failed';$row['conversion_error']=$_.Exception.Message}
+    return $row
 }
 function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
     if($Context.completed){return $Context.record};$Context.completed=$true
@@ -57,15 +90,14 @@ function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
                     try {
                         if($record.events.Count -ge 2){throw 'More than one lifecycle or duplicate/ambiguous startup traces.'}
                         $native=$event.SourceEventArgs.NewEvent
-                        $row=[ordered]@{kind=$(if($subscription.class -ceq 'Win32_ProcessStartTrace'){'start'}else{'stop'});
-                            pid=[uint32]$native.ProcessID;parent_pid=[uint32]$native.ParentProcessID;session=[uint32]$native.SessionID;
-                            name=[string]$native.ProcessName;event_time_created=[uint64]$native.TIME_CREATED;
-                            event_time_is_process_birth=$false;process_birth='UNKNOWN';image_path='UNKNOWN';
-                            sid_base64=$(if($null -ne $native.Sid){[Convert]::ToBase64String([byte[]]$native.Sid)}else{$null});
-                            delivered_utc=$event.TimeGenerated.ToUniversalTime().ToString('o');
-                            exit_status=$(if($subscription.class -ceq 'Win32_ProcessStopTrace'){[uint32]$native.ExitStatus}else{$null})}
-                        if(-not $row.pid -or $row.name -ine 'rgnupdt.exe' -or -not $row.event_time_created -or
-                           $row.session -ne [Diagnostics.Process]::GetCurrentProcess().SessionId){throw 'Startup trace identity/session is unknown or contradictory.'}
+                        $observer=[Diagnostics.Process]::GetCurrentProcess()
+                        try{$observerFacts=[ordered]@{pid=$observer.Id;session=$observer.SessionId;
+                            managed_thread_id=[Threading.Thread]::CurrentThread.ManagedThreadId;session_source='Process.GetCurrentProcess.SessionId'}}finally{$observer.Dispose()}
+                        $row=Convert-FullStartupTraceRow $native $(if($subscription.class -ceq 'Win32_ProcessStartTrace'){'start'}else{'stop'}) $event.TimeGenerated $observerFacts
+                        if($row.identity_error){$record.rejected_trace=$row;throw ('Startup trace rejected: '+$row.identity_error)}
+                        if($observerFacts.pid -ne $record.observer_at_subscription.pid -or $observerFacts.session -ne $record.observer_at_subscription.session){
+                            $row.identity_error='observer_process_or_session_changed';$record.rejected_trace=$row
+                            throw 'Startup observer process/session changed between subscription and trace handling.'}
                         $record.events+=,$row
                         if($row.event_time_created -gt ([uint64]$record.subscription_filetime_utc+600000000)){
                             throw 'Target trace was observed outside the one 60-second startup deadline.'}
@@ -101,6 +133,7 @@ function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
         # that no future process/foreground change can occur.
         $record.current_processes=@(Get-CimInstance -Namespace 'root\cimv2' -Query "SELECT ProcessId,ParentProcessId,SessionId,Name,CreationDate FROM Win32_Process WHERE Name = 'rgnupdt.exe'" -OperationTimeoutSec 3 -ErrorAction Stop |
             ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name}})
+        $record.current_snapshot_collected=$true
         if($record.current_processes.Count){throw 'Matching startup process is still present at the final snapshot; no input permitted.'}
         if($stops.Count){$record.status='TARGET_LIFECYCLE_EXIT_OBSERVED';$record['start_observation']=if($starts.Count){'actual_start_trace'}else{'initial_live_snapshot_not_start_trace'}}
         elseif(-not $record.events.Count -and -not $record.initial_processes.Count){$record.status='NOT_OBSERVED'}
