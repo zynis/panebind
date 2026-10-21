@@ -1,0 +1,118 @@
+{
+  "evidence_id": "EV-3927-FULL-STARTUP-TOOL-DEFECT",
+  "kind": "SELECTED_ORIGINAL_JSON_FIELD_PROJECTION_AND_LOCAL_EXPRESSION_CHECK",
+  "original_raw_preserved": true,
+  "new_guest_execution_by_metadata_generation": false,
+  "actual_recorded_guest_started": true,
+  "fixture_started": false,
+  "run_id": "392700232e524e5fbe78d6b86913dac5",
+  "source_collection": "uat/v1-control/392700232e524e5fbe78d6b86913dac5/collection-20261021T034601505Z-e5c33008e90a47dba4e65d32dfc0a3f6",
+  "original_summary": {
+    "path": "392700232e524e5fbe78d6b86913dac5-guest-summary.json",
+    "bytes": 14326,
+    "sha256": "069D44E8D93D7420888E7A121D85971179220ECF3E0700277F86A5EC6AB7F5BD",
+    "projection_is_not_complete_original_JSON": true,
+    "selected_original_fields": {
+      "schema": "panebind-v1-guest/1",
+      "run_id": "392700232e524e5fbe78d6b86913dac5",
+      "status": "BLOCKED_OR_FAILED",
+      "source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "packaging_head": "8c9a7a0b20777c8347c287bb3581e9331933a85a",
+      "requested_configurations": "Release",
+      "requested_suite": "Full",
+      "actual_suite": "Full",
+      "automated_driver": true,
+      "human_uat": "NOT_RUN",
+      "stages": [],
+      "error": "Full startup lifecycle observation is unknown; fixture/product/input not started.",
+      "full_startup_observation": {
+        "schema": "panebind-v1-full-startup-observation/1",
+        "run_id": "392700232e524e5fbe78d6b86913dac5",
+        "suite": "Full",
+        "status": "ENVIRONMENT_READY_UNKNOWN",
+        "deadline_seconds": 60,
+        "deadline_includes_asset_preparation": true,
+        "subscription_utc": "2026-10-21T03:45:35.7850322Z",
+        "subscription_filetime_utc": 134370279357850322,
+        "initial_processes": [],
+        "events": [],
+        "current_processes": [],
+        "error": "Run-specific event source unexpectedly exists; not adopted.",
+        "subscription_cleanup_confirmed": false,
+        "event_cleanup_confirmed": true,
+        "product_or_input_started_by_observer": false,
+        "process_control_performed": false,
+        "process_purpose": "UNKNOWN",
+        "termination_initiator": "UNKNOWN",
+        "environment_foreground_guarantee": false,
+        "cleanup_errors": [],
+        "additional_queued_traces_at_cleanup": 0,
+        "actual_elapsed_seconds": 16.5902645
+      }
+    }
+  },
+  "deployed_script": {
+    "path": "uat/v1-sandbox/392700232e524e5fbe78d6b86913dac5/input/v1-sandbox-guest.ps1",
+    "bytes": 103746,
+    "sha256": "3D69BA5E927133C126A18BC380947ABB50C5AB1A4D44FC01C0E0C801D5F61F92",
+    "expression_line": 20,
+    "source_identifier_expression": "@($prefix+'.start',$prefix+'.stop')"
+  },
+  "input_manifest": {
+    "path": "uat/v1-sandbox/392700232e524e5fbe78d6b86913dac5/input/manifest.json",
+    "sha256": "CA78E2E7A13B7690913BC53A22044816F23039F29BC041E133A98793F309A6ED"
+  },
+  "local_expression_check": {
+    "executed": true,
+    "scope": "local PowerShell expression evaluation only; no WMI/subscription/process query",
+    "prefix": "PaneBind.LocalParseOnly",
+    "old_expression": "@($probePrefix+'.start',$probePrefix+'.stop')",
+    "old_actual_count": 1,
+    "old_actual_values": [
+      "PaneBind.LocalParseOnly.start PaneBind.LocalParseOnly.stop"
+    ],
+    "old_index_1_is_null": true,
+    "corrected_expression": "@(($probePrefix+'.start'),($probePrefix+'.stop'))",
+    "corrected_actual_count": 2,
+    "corrected_actual_values": [
+      "PaneBind.LocalParseOnly.start",
+      "PaneBind.LocalParseOnly.stop"
+    ],
+    "output_basis": "Actual local tool result during evidence selection; no separate stdout file archived.",
+    "root_reported_subscriber_reproducer": "The null second SourceIdentifier queried all subscribers and found the first subscription created by this observer.",
+    "subscriber_reproducer_basis": "Root's actual local tool observation; this evidence selection did not repeat any subscriber query."
+  },
+  "verdict": {
+    "classification": "TOOL_SCRIPT_CONTROL_FLOW_DEFECT",
+    "original_startup_status_is_not_a_product_or_environment_verdict": true,
+    "fixture": "NOT_RUN",
+    "product": "NOT_RUN",
+    "input": "NOT_RUN",
+    "Full_functional_chain": "NOT_RUN",
+    "product_cleanup": "N_A_NO_PRODUCT_STARTED",
+    "collection_fixture_log_present": false,
+    "collection_product_output_directory_present": false,
+    "collection_Release_launch_present": false,
+    "stages_empty": true,
+    "raw_subscription_cleanup_confirmed": false,
+    "raw_event_cleanup_confirmed": true,
+    "guest_destruction_not_product_cleanup_PASS": true,
+    "prior_Full_failures_unchanged": true,
+    "next_action": "Use corrected run-specific source identifier array; retain frozen 11ae product/driver identity and rerun the bounded startup control."
+  },
+  "exact_host_cleanup": {
+    "path": "uat/v1-control/392700232e524e5fbe78d6b86913dac5/cleanup-receipt.json",
+    "sha256": "449D50A4D3CE373FA970D312063E3D81FFFB12537B3A5A6A2423590449E336ED",
+    "guest_pid": 3256,
+    "exact_guest_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false,
+    "utc": "2026-10-21T03:47:36.2890908Z"
+  }
+}

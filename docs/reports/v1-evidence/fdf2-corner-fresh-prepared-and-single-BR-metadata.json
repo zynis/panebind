@@ -1,0 +1,296 @@
+{
+  "schema": "panebind-v1-existing-evidence-metadata/1",
+  "record_kind": "metadata_not_literal_JSONL",
+  "evidence_id": "EV-FDF2-FRESH-PREPARED-SINGLE-BR-SCOPE",
+  "run_id": "fdf2208ed81145a5b98095865a5578a6",
+  "suite": "CornerInputOnly",
+  "configuration": "Release",
+  "functional_result": "PASS_SCOPED_CACHE_REPREPARATION_AND_SINGLE_BR_GEOMETRY",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "driver_release_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+  "packaging_head": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "automated_guest_driver": true,
+  "human_uat": "NOT_RUN",
+  "manifest_and_actual_payload_hash_check": {
+    "path": "uat/v1-sandbox/fdf2208ed81145a5b98095865a5578a6/input/manifest.json",
+    "sha256": "D32212D6591EA8A9902F32411A74AB5C29D6EA11093694666AFDBDFE1F430D49",
+    "actual_product_hash": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "actual_driver_hash": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7"
+  },
+  "package": {
+    "receipt_path": "uat/v1-sandbox/fdf2208ed81145a5b98095865a5578a6/package-receipt.json",
+    "receipt_sha256": "131CCF0F580CAC560B622C2BA966441545D561FF0C9FA042A3369EDAC6E8AFC9",
+    "zip_sha256": "7A81F7150E2ADB4277BDC933155942E589AF06E230868E4D69E5DB023D8E121A",
+    "manifest_sha256": "D32212D6591EA8A9902F32411A74AB5C29D6EA11093694666AFDBDFE1F430D49",
+    "wsb_sha256": "D84B4A09B80B38B2DCF30F83AA68D050F1175DB27A47411651537C2BF9207155"
+  },
+  "raw_files": [
+    {
+      "producer": "fixture",
+      "path": "uat/v1-control/fdf2208ed81145a5b98095865a5578a6/collection-20261021T032312522Z-8dead0a12e0e4fc496efb14abdc387e3/fdf2208ed81145a5b98095865a5578a6-release-fixture.jsonl",
+      "sha256": "5C778F92BED89E11DD1AA199314947B80641123BA61365D5AA6D65529FA5B39C",
+      "bytes": 133069,
+      "rows": 212,
+      "sequence_first": 1,
+      "sequence_last": 212,
+      "sequence_contiguous": true,
+      "process_ids": [],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/fdf2-corner-fresh-prepared-and-single-BR-fixture-selected.jsonl",
+        "sha256": "E1BBB114C10D9966BA90327031E8B56662141CDCBA8AB44FB2F55EEBC06BBBBD",
+        "bytes": 12880,
+        "rows": 19,
+        "source_physical_lines": [
+          13,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          127,
+          133,
+          188,
+          189,
+          200,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212
+        ],
+        "source_sequences": [
+          13,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          127,
+          133,
+          188,
+          189,
+          200,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212
+        ],
+        "literal_original_rows": true
+      }
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/fdf2208ed81145a5b98095865a5578a6/collection-20261021T032312522Z-8dead0a12e0e4fc496efb14abdc387e3/fdf2208ed81145a5b98095865a5578a6-product-Release/panebind.log.jsonl",
+      "sha256": "331B9FF01BA8591439C753777DAA77AA4CF0E5915483E8442B4ACDE33C052F8F",
+      "bytes": 103170,
+      "rows": 91,
+      "sequence_first": 1,
+      "sequence_last": 91,
+      "sequence_contiguous": true,
+      "process_ids": [
+        3464
+      ],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/fdf2-corner-fresh-prepared-and-single-BR-product-selected.jsonl",
+        "sha256": "1E6FDC2C14219050C2EA5A149E6BA31E3C90856C99DFF50F79C508D2CC5177D9",
+        "bytes": 18990,
+        "rows": 19,
+        "source_physical_lines": [
+          37,
+          38,
+          41,
+          42,
+          44,
+          45,
+          46,
+          54,
+          55,
+          60,
+          62,
+          63,
+          64,
+          65,
+          67,
+          68,
+          69,
+          89,
+          91
+        ],
+        "source_sequences": [
+          37,
+          38,
+          41,
+          42,
+          44,
+          45,
+          46,
+          54,
+          55,
+          60,
+          62,
+          63,
+          64,
+          65,
+          67,
+          68,
+          69,
+          89,
+          91
+        ],
+        "literal_original_rows": true
+      }
+    }
+  ],
+  "observed": [
+    {
+      "driver_sequences": [
+        119,
+        120,
+        121,
+        122
+      ],
+      "product_sequences": [
+        37,
+        38,
+        41,
+        42,
+        44,
+        45
+      ],
+      "fact": "第一实际DOWN native_time33218/QPC332534364，root197412/key5/PID6356/TID3860、点[1689,478]、cache present=true。匹配LL UP QPC332561494/native_time33218实际投递原生passthrough release，非NormalUp。原I05 helper时序不变，没有增加第二击前等待或补点击。"
+    },
+    {
+      "driver_sequences": [
+        123,
+        124,
+        125,
+        127
+      ],
+      "product_sequences": [
+        46,
+        54
+      ],
+      "fact": "第二实际DOWN native_time33281/QPC333135962，同点距前DOWN63ms，系统双击时间500ms。真实cache present=true、新stamp33234、key5/region8/config3及candidate eligible=true，Prepared门通过；实际route=gesture、clicks=2、dispatch_routed=true/consume=true，不预设Mapped。P54 generation2/call1真实native attempt/success/known/exact至[1300,180,3050,1596]，独立实际source回读相同，target保持[0,0,1220,1596]。"
+    },
+    {
+      "driver_sequences": [
+        124
+      ],
+      "product_sequences": [
+        55,
+        60,
+        62,
+        63,
+        64,
+        65
+      ],
+      "fact": "离散角拉伸成功后，P55已明确end4 Paused/pending retired/normal_up=false。P60实际释放capture、P62解除关联、P63撤罩/注销hotkey，资源gone QPC334378665；随后唯一第二测试UP在P65真实LL观察QPC334637942/native_time33421，matching_UP_branch=false。P64 Raw为generation0/seq26/flags2，不授本代匹配或legacy UP接受。此分支没有第二NormalUp，也没有shield接受legacy UP的证据。"
+    },
+    {
+      "driver_sequences": [
+        133,
+        188,
+        189,
+        200,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212
+      ],
+      "product_sequences": [
+        67,
+        68,
+        69,
+        89,
+        91
+      ],
+      "fact": "P67真实有序status为enabled/idle且无native/视觉pending；P68 call2实际Undo exact回[1300,180,1700,480]，P69命令Undo。原target保留，配置实际恢复、精确窗关闭及产品身份保持。P91自身资源shutdown全true，D207客户0→1、Raw注销、observer同线程卸载/12of12/overflow0、自窗和产品关闭分别成立。"
+    }
+  ],
+  "native_clock_facts": {
+    "first_DOWN_native_time_u32": 33218,
+    "first_DOWN_hook_qpc": 332534364,
+    "first_UP_native_time_u32": 33218,
+    "first_UP_hook_qpc": 332561494,
+    "second_DOWN_native_time_u32": 33281,
+    "second_DOWN_hook_qpc": 333135962,
+    "second_DOWN_prepared_stamp": 33234,
+    "double_click_elapsed_native_ms": 63,
+    "system_double_click_time_ms": 500,
+    "stretch_native_before_qpc": 334167003,
+    "stretch_native_after_qpc": 334293221,
+    "resource_gone_observed_qpc": 334378665,
+    "second_test_UP_native_time_u32": 33421,
+    "second_test_UP_hook_qpc": 334637942,
+    "JSONL_order_is_not_cross_producer_native_order": true
+  },
+  "actual_route_and_terminal_scope": {
+    "route": "gesture",
+    "action": "None",
+    "clicks": 2,
+    "prepared_gate_passed": true,
+    "dispatch_routed": true,
+    "native_exact_stretch": true,
+    "retirement_end": 4,
+    "retirement_name": "Paused_after_successful_discrete_corner_action",
+    "second_actual_test_UP_observed": true,
+    "second_matching_UP_branch": false,
+    "second_NormalUp_observed": false,
+    "second_shield_legacy_UP_acceptance_observed": false,
+    "normal_termination_not_inferred_from_Raw_or_exit": true
+  },
+  "prior_failure_reference": {
+    "run_id": "5810b757ede148448d74156fe58ea404",
+    "product_source_sha": "2c5d92f431f02767ae532e18444e3e113ef5b5c2",
+    "metadata_path": "docs/reports/v1-evidence/5810-corner-second-down-cache-miss-metadata.json",
+    "original_FAIL_retained": true,
+    "defect_closed_only_in_reproduced_cache_loss_and_single_BR_scope": true,
+    "not_whole_F04_I05_or_Full_closure": true
+  },
+  "wrapper": {
+    "path": "uat/v1-control/fdf2208ed81145a5b98095865a5578a6/collection-20261021T032312522Z-8dead0a12e0e4fc496efb14abdc387e3/fdf2208ed81145a5b98095865a5578a6-guest-summary.json",
+    "sha256": "53E585ED7ECF47A90D6CDFEA565BCA0798CDC796FFEAFCFB9C3D283E31A51453",
+    "actual_suite": "CornerInputOnly",
+    "wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "product_cleanup_pass_unevaluated": false,
+    "product_pid": 3464,
+    "fixture_pid": 6356,
+    "fixture_tid": 3860,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1
+  },
+  "actual_cleanup": {
+    "path": "uat/v1-control/fdf2208ed81145a5b98095865a5578a6/cleanup-receipt.json",
+    "sha256": "603B3141C2E8421C75F174858871F25DFB8E9019DCCA5EA83B1BD19D1EA27346",
+    "utc": "2026-10-21T03:23:49.3126644Z",
+    "guest_pid": 13328,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "scope_exclusions": [
+    "同原driver输入节奏的第二DOWN新鲜cache与单BR实际几何通过，不代表所有双击/连续操作均通过。",
+    "第二UP确实到达，但离散行为此前已显式退休；绝不把Paused或Raw观察改成NormalUp/legacy接受。",
+    "旧5810、22b2、c899原FAIL与原构建/日志均保留，不回写或换绑。",
+    "本批不是完整M08-F04、I05、Full、普通完整桌面、五应用、显示矩阵或真人UAT通过。"
+  ],
+  "feature_or_benchmark_PASS_added": false
+}

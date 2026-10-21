@@ -1,0 +1,265 @@
+{
+  "schema": "panebind-v1-existing-evidence-metadata/1",
+  "record_kind": "metadata_not_literal_JSONL",
+  "run_id": "2432640250344564b4f2ba89287bea81",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "driver_release_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+  "packaging_head": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "suite": "PortableEntryOnly",
+  "configuration": "Release",
+  "automated_guest_driver": true,
+  "human_uat": "NOT_RUN",
+  "actual_environment": {
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "window_station": "WinSta0",
+    "thread_desktop": "Default",
+    "input_desktop": "Default",
+    "os_build": "26100",
+    "ubr": 9711,
+    "source_dpi": 144,
+    "not_full_ordinary_Shell_evidence": true
+  },
+  "raw_files": [
+    {
+      "producer": "fixture",
+      "path": "uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-release-fixture.jsonl",
+      "sha256": "E8C8B58C433C50D7063C3EF4A72F7108185BEA16046B8F6EC93F30E89B080C16",
+      "bytes": 115789,
+      "rows": 172,
+      "sequence_first": 1,
+      "sequence_last": 172,
+      "sequence_contiguous": true,
+      "process_ids": [],
+      "source_shas": [
+        "11ae76a3976ffba62facc127fcb411ebabfeaf86"
+      ],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+        "sha256": "1901A1C82C1669652C672D56698A74D47ECD5CA8C363B34F55DE978A90FC8C9F",
+        "bytes": 10154,
+        "rows": 21,
+        "source_physical_lines": [
+          3,
+          13,
+          19,
+          63,
+          75,
+          79,
+          82,
+          84,
+          92,
+          107,
+          131,
+          137,
+          149,
+          163,
+          164,
+          165,
+          168,
+          169,
+          170,
+          171,
+          172
+        ],
+        "source_sequences": [
+          3,
+          13,
+          19,
+          63,
+          75,
+          79,
+          82,
+          84,
+          92,
+          107,
+          131,
+          137,
+          149,
+          163,
+          164,
+          165,
+          168,
+          169,
+          170,
+          171,
+          172
+        ],
+        "literal_original_rows": true
+      }
+    },
+    {
+      "producer": "ordinary_portable_product",
+      "path": "uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "sha256": "AFCB4E96D7F90E9430F1C086C603314EE8BAFB8F635B77A47484485B7F7AA39C",
+      "bytes": 55794,
+      "rows": 61,
+      "sequence_first": 1,
+      "sequence_last": 61,
+      "sequence_contiguous": true,
+      "process_ids": [
+        6124
+      ],
+      "source_shas": [
+        "11ae76a3976ffba62facc127fcb411ebabfeaf86"
+      ],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl",
+        "sha256": "BFA12F101B16E6738C57BD8DD36742C91798BDA76FDE652FC3D02B524304B1AD",
+        "bytes": 11287,
+        "rows": 14,
+        "source_physical_lines": [
+          2,
+          4,
+          6,
+          22,
+          24,
+          30,
+          31,
+          32,
+          49,
+          51,
+          57,
+          58,
+          59,
+          61
+        ],
+        "source_sequences": [
+          2,
+          4,
+          6,
+          22,
+          24,
+          30,
+          31,
+          32,
+          49,
+          51,
+          57,
+          58,
+          59,
+          61
+        ],
+        "literal_original_rows": true
+      }
+    }
+  ],
+  "package": {
+    "receipt_path": "uat/v1-sandbox/2432640250344564b4f2ba89287bea81/package-receipt.json",
+    "receipt_sha256": "9FB4A545485625E81CF52AF78A267CBC628DE5416A9A4FE3F232D5CE9D0F7240",
+    "zip_sha256": "5DC53BBBB395DC461C257DA443772D1031BC7A4299FBAB29F73753D03CFEAC31",
+    "manifest_sha256": "EB85CEE7B412DC46F7D60B351B8E3F723FE91CCF4FEC6A5B8A69A569392C354F",
+    "wsb_sha256": "AF9462EE54EBD13EA381E26C82D438A6DA35887F06859DF4773A0E1B3BD524D1"
+  },
+  "wrapper": {
+    "wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "product_cleanup_pass_unevaluated": false,
+    "feature_result": "NOT_EVALUATED",
+    "summary_path": "uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-guest-summary.json",
+    "summary_sha256": "C99A415C3EA26C2D2106A5CA10A97E8990D1684C9AAA3BF095CF3ED67AEF7320",
+    "bootstrap_portable_status": "EXTRACTED_NOT_RUN",
+    "bootstrap_portable_normal_GUI_started": false,
+    "bootstrap_portable_function_result": "NOT_RUN",
+    "bootstrap_only_fields_not_a_driver_verdict": true
+  },
+  "actual_cleanup": {
+    "path": "uat/v1-control/2432640250344564b4f2ba89287bea81/cleanup-receipt.json",
+    "sha256": "FAED7E2CEFB6D1940E25EC3ACB95A362D86317859BC0938E37EC642A159F5D70",
+    "utc": "2026-10-21T03:36:30.7901732Z",
+    "guest_pid": 10160,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "functional_result": "PASS_SCOPED_11AE_ORDINARY_PORTABLE_ZIP_GUI_SETTINGS_EFFECT_MOVE_UP_AND_EXIT",
+  "functional_scope_pass_not_whole_version": true,
+  "feature_or_benchmark_PASS_added": false,
+  "portable_package": {
+    "receipt_path": "uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/package-receipt.json",
+    "receipt_sha256": "4EDF9FEC4DC9655380B9C7BF61EC3802F9FAF03C29B39E888BFD6C3F9A06F0FD",
+    "package_id": "528a659b89224e5dadcfbda8c11f5ed7",
+    "zip_sha256": "1CB448B8DF8A717657FD769E90977A6E6058A99A38964AFFBE91282B502E31F1",
+    "manifest_sha256": "AD7AD7F139B0330DDEE0452C40CE78DA5AAB9295F802F812D6109B45B872B611",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "seven_archived_files_verified_at_driver_sequence": 63,
+    "configuration_preseeded": false
+  },
+  "observed": [
+    {
+      "driver_sequences": [
+        63,
+        75,
+        79,
+        82,
+        84
+      ],
+      "product_sequences": [
+        2,
+        4,
+        6
+      ],
+      "fact": "七文件ZIP逐项验证后，在本Run独立中文/空格目录空参数启动普通产品PID6124。首个唯一可见中文设置GUI出现前未发送--settings；第二次空参数启动退出0，持有主PID/birth134370272036122943/设置HWND131894不变。随后真实status确认idle/单行为实例，不推全局hook数量。"
+    },
+    {
+      "driver_sequences": [
+        92,
+        107,
+        131,
+        137,
+        149
+      ],
+      "fact": "默认吸引10DIP时，144DPI下Move实际[140,80,540,440]；真实GUI键盘编辑0并保存至解压目录settings.ini后，下一代Move实际[134,83,534,443]。两次以独立实际几何、真实START/UP验证效果，普通无诊断参数模式不冒称存在逐placement API回执。未创建用户profile。"
+    },
+    {
+      "product_sequences": [
+        22,
+        24,
+        30,
+        31,
+        32,
+        49,
+        51,
+        57,
+        58,
+        59
+      ],
+      "fact": "两代各有真实匹配LLUP快照、Raw flags2、accepted legacy LEFTUP、自有capture释放/线程解除关联/罩销毁和NormalUp pending_retired。原始QPC字段逐字保留，不以JSONL跨生产者行顺序冒充原生共同时间线。"
+    },
+    {
+      "driver_sequences": [
+        163,
+        164,
+        165,
+        168
+      ],
+      "product_sequences": [
+        61
+      ],
+      "fact": "普通PID6124正常退出；P61确认自身hooks/输入/罩/capture/线程关联/native worker和visual recovery退出。D163在原精确自有客户区实际DOWNUP计数[1,1]→[2,2]；未用guest销毁代替产品清理。交付字节保留且无profile创建。"
+    },
+    {
+      "driver_sequences": [
+        169,
+        170,
+        171,
+        172
+      ],
+      "fact": "Raw实际注销；前台observer同一UI线程真实卸载，9条全部flushed且overflow0；产品进程关闭、自有测试窗销毁。精确guest/task随后另行清理，证据不变。"
+    }
+  ],
+  "exclusions": [
+    "仅本11ae产品/driver及528a便携ZIP实测；0db8旧247产品/6e9包原身份与结果保留，未换绑或覆盖。",
+    "bootstrap portable_test的EXTRACTED_NOT_RUN/normal_GUI_started=false/function_result=NOT_RUN只记录该bootstrap提取阶段；driver随后实际执行的普通入口由本批D/P原件证明。wrapper unevaluated product_cleanup_pass=false也不否定真实资源回执。",
+    "原guarded产品PID6348先正常退出；普通便携PID6124有独立日志，不拼接为同一实例连续链。",
+    "仅普通便携入口、设置生效、两次基本Move/抬键和退出子范围；不授托盘、全I12所有入口、完整Full、五应用、普通完整Shell、显示矩阵或真人UAT通过。"
+  ]
+}

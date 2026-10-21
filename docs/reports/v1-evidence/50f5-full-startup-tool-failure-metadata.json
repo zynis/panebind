@@ -1,0 +1,117 @@
+{
+  "evidence_id": "EV-50F5-FULL-STARTUP-OBSERVATION-TOOL-FAILURE",
+  "kind": "SELECTED_ORIGINAL_JSON_FIELD_PROJECTION_AND_DEPLOYED_SCRIPT_REVIEW",
+  "projection_is_not_complete_original_JSON": true,
+  "original_raw_preserved": true,
+  "new_guest_execution_by_metadata_generation": false,
+  "actual_recorded_guest_started": true,
+  "fixture_started": false,
+  "run_id": "50f5e31a93ee4054b4826cd8b92db17b",
+  "source_collection": "uat/v1-control/50f5e31a93ee4054b4826cd8b92db17b/collection-20261021T035653344Z-c99fd6e353f24646b0f2aff1d160a8c5",
+  "original_summary": {
+    "path": "50f5e31a93ee4054b4826cd8b92db17b-guest-summary.json",
+    "bytes": 15476,
+    "sha256": "2B591DCCA398BD54CD81D71583906863892CF59141F0CD23013ECD716C97A4AE",
+    "selected_original_fields": {
+      "schema": "panebind-v1-guest/1",
+      "status": "BLOCKED_OR_FAILED",
+      "source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "packaging_head": "ca4c4bcdd3e02c2a481ed12b994acd27d6a53ca0",
+      "requested_configurations": "Release",
+      "requested_suite": "Full",
+      "actual_suite": "Full",
+      "automated_driver": true,
+      "human_uat": "NOT_RUN",
+      "stages": [],
+      "error": "Full startup lifecycle observation is unknown; fixture/product/input not started."
+    }
+  },
+  "selected_startup_observation": {
+    "schema": "panebind-v1-full-startup-observation/1",
+    "status": "ENVIRONMENT_READY_UNKNOWN",
+    "deadline_seconds": 60,
+    "deadline_includes_asset_preparation": true,
+    "subscription_utc": "2026-10-21T03:52:36.2394248Z",
+    "subscription_filetime_utc_decimal_string": "134370283562394248",
+    "int64_projection_policy": "Original 64-bit clock integers are represented as exact decimal strings, not floating-point numbers.",
+    "initial_processes": [],
+    "events": [
+      {
+        "kind": "start",
+        "pid": 6960,
+        "parent_pid": 1160,
+        "session": 1,
+        "name": "rgnupdt.exe",
+        "event_time_created_decimal_string": "134370283804911787",
+        "event_time_is_process_birth": false,
+        "process_birth": "UNKNOWN",
+        "image_path": "UNKNOWN",
+        "delivered_utc": "2026-10-21T03:53:00.4911787Z",
+        "exit_status": null
+      }
+    ],
+    "raw_current_processes": [],
+    "raw_current_processes_basis": "Initializer only: the observation threw at the identity/session check before reaching the final Get-CimInstance assignment. This empty array does not confirm process absence.",
+    "error": "Startup trace identity/session is unknown or contradictory.",
+    "subscription_cleanup_confirmed": true,
+    "event_cleanup_confirmed": true,
+    "cleanup_errors": [],
+    "additional_queued_traces_at_cleanup": 0,
+    "actual_elapsed_seconds": 24.3376067,
+    "product_or_input_started_by_observer": false,
+    "process_control_performed": false,
+    "process_purpose": "UNKNOWN",
+    "termination_initiator": "UNKNOWN",
+    "environment_foreground_guarantee": false,
+    "sid_field_omitted_from_this_projection": true
+  },
+  "deployed_script": {
+    "path": "uat/v1-sandbox/50f5e31a93ee4054b4826cd8b92db17b/input/v1-sandbox-guest.ps1",
+    "bytes": 103750,
+    "sha256": "4DD948D08E4D4C71BBDCC3A1C9C5BB0CE6BBEF2E31168A2D6D0B843B9D481D8C",
+    "reviewed_lines": [20, 23, 60, 67, 68, 69, 102, 108],
+    "findings": [
+      "The two source identifiers use the corrected parenthesized array; this is not the earlier 3927 expression failure.",
+      "A trace failing the identity/session predicate throws before its row is appended to record.events. The rejected payload and the particular failing field were not retained.",
+      "The summary contains one retained start row. It does not contain the rejected row, so its event kind, raw session/PID/name/time and specific rejection cause remain UNKNOWN.",
+      "The final current-process query occurs after successful event processing; it was not reached on this error path. No process-absence result may be inferred from its default empty field."
+    ]
+  },
+  "input_manifest": {
+    "path": "uat/v1-sandbox/50f5e31a93ee4054b4826cd8b92db17b/input/manifest.json",
+    "sha256": "7A3B0A03EC756B2F6F5A13CB7C2DEFFAA2A1730854085358DE9466231ECB60BE",
+    "frozen_Release_product_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "frozen_Release_driver_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+    "identities_are_prepared_artifacts_not_executed_product_results": true
+  },
+  "verdict": {
+    "classification": "STARTUP_OBSERVATION_TOOL_BRANCH_FAILURE",
+    "specific_rejected_trace_field_or_provider_cause": "UNKNOWN",
+    "raw_environment_ready_status_is_not_product_or_architecture_failure": true,
+    "fixture": "NOT_RUN",
+    "product": "NOT_RUN",
+    "input": "NOT_RUN",
+    "Full_functional_chain": "NOT_RUN",
+    "product_cleanup": "N_A_NO_PRODUCT_STARTED",
+    "stop_trace_session_zero_cause_established": false,
+    "rgnupdt_purpose_or_activation_initiator_established": false,
+    "prior_Full_failure_verdicts_and_identities_unchanged": true,
+    "next_action": "Correct the bounded startup observer using the actual rejected-field evidence when available; retain the frozen 11ae product/driver. Continue already runnable independent owned components without waiting for this observer. No process, foreground or operating-system control is implied."
+  },
+  "exact_host_cleanup": {
+    "path": "uat/v1-control/50f5e31a93ee4054b4826cd8b92db17b/cleanup-receipt.json",
+    "sha256": "F93F567257D1EA7E9178529C07321E1DC7B76A49C4C9A3E90F75842285B1438A",
+    "guest_pid": 10932,
+    "guest_start_ticks_decimal_string": "639281515448838572",
+    "native_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false,
+    "utc": "2026-10-21T03:58:24.8987619Z"
+  }
+}
