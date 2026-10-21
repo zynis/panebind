@@ -580,6 +580,32 @@ Assert-V1GeometryHistoryWiring $fixtureSource $geometryHistory
 Check $true 'static geometry history retains real command and notice barriers, no-op native counter and new-root identity checks'
 Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('*after_calls==*before_calls+(no_native?0:1)','true'))} 'static geometry history rejects dropping the actual no-op native-call counter'
 Reject {Assert-V1GeometryHistoryWiring $fixtureSource ($geometryHistory.Replace('geometry_history_receipt(s,notice,"notice")&&sequence&&*sequence','true'))} 'static geometry history rejects accepting an unbound Undo rejection receipt'
+function Assert-V1LifecycleHideWiring([string]$Fixture,[string]$Lifecycle,[string]$Prepare,[string]$Guest){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_lifecycle_remaining_case.h"') -or
+       -not $Fixture.Contains('phase("observed_hide_show_new_admission_one_fresh_Move",owned_lifecycle_remaining_case);') -or
+       [regex]::Matches($Fixture,'LifecycleRemainderOnly').Count -ne 6 -or
+       -not $Prepare.Contains("'LifecycleRemainderOnly'") -or -not $Guest.Contains("'LifecycleRemainderOnly'")){
+        throw 'Hide/show remainder requires its exact independent, parser, manifest and two-script suite wiring.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="LifecycleRemainderOnly"',
+        'set.run(LayoutUiOperation::Configure,{})','const auto hidden_status=geometry_history_status(s);',
+        '*hidden_eligible+1==*eligible','new_key&&new_key!=old_key','placements(mark).empty()',
+        'e::number(start,"\"key\":")==new_key','layout_up(set,g,{expected});')){
+        if(-not $Lifecycle.Contains($value)){throw ('Hide/show lost actual admission, public observation or UP: '+$value)}
+    }
+    if([regex]::Matches($Lifecycle,'\blayout_down\s*\(').Count -ne 1 -or
+       $Lifecycle.Contains('geometry_history_rejected_undo(') -or $Lifecycle.Contains('DestroyOne') -or
+       $Lifecycle.Contains('fresh.create(')){
+        throw 'Hide/show must not replay the independently observed close/recreate/history sequence.'
+    }
+}
+$lifecycleHide=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_lifecycle_remaining_case.h'),[Text.Encoding]::UTF8)
+$lifecyclePrepare=[IO.File]::ReadAllText((Join-Path $repository 'scripts/v1-prepare-sandbox.ps1'),[Text.Encoding]::UTF8)
+$lifecycleGuest=[IO.File]::ReadAllText((Join-Path $repository 'scripts/v1-sandbox-guest.ps1'),[Text.Encoding]::UTF8)
+Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide $lifecyclePrepare $lifecycleGuest
+Check $true 'static hide/show route retains exact guest guards, public observed ineligibility, fresh key and one real Move/UP'
+Reject {Assert-V1LifecycleHideWiring $fixtureSource ($lifecycleHide.Replace('const auto hidden_status=geometry_history_status(s);','const auto hidden_status=before_status;')) $lifecyclePrepare $lifecycleGuest} 'static hide/show rejects substituting old status for actual product observation'
+Reject {Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide ($lifecyclePrepare.Replace("'LifecycleRemainderOnly'","'DisabledLifecycle'")) $lifecycleGuest} 'static hide/show rejects a missing exact packager suite'
 function Assert-V1VisualOwnershipWiring([string]$Fixture,[string]$Visual){
     if(-not $Fixture.Contains('owned_visual_ownership_case(s);') -or -not $Visual.Contains('s.suite!="VisualOwnershipOnly"')){
         throw 'Visual ownership must reach its guarded real product component.'
