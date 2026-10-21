@@ -32,10 +32,14 @@ void portable_stop_current(State& s,std::string_view stage){
     // The current ordinary product emits its own lifecycle records without
     // --diagnostic. Do not enable detailed logging to manufacture this fact.
     const bool known_shutdown=!end.empty()&&
-        (number(end,"\"process_id\":")==pid&&end.find("\"own_hooks_stopped\":true")!=end.npos&&
+        (number(end,"\"process_id\":")==pid&&end.find("\"source_sha\":"+quote(s.product_source))!=end.npos&&
+         end.find("\"own_hooks_stopped\":true")!=end.npos&&
          end.find("\"own_overlay_destroyed\":true")!=end.npos&&end.find("\"native_worker_exited\":true")!=end.npos&&
          end.find("\"issued_native_completion_unknown\":false")!=end.npos&&end.find("\"visual_recovery_stopped\":true")!=end.npos&&
-         end.find("\"visual_restore_confirmed\":true")!=end.npos);
+         end.find("\"visual_restore_confirmed\":true")!=end.npos&&
+         end.find("\"own_input_resources_stopped\":true")!=end.npos&&
+         end.find("\"own_capture_released\":true")!=end.npos&&
+         end.find("\"own_input_association_detached\":true")!=end.npos);
     s.log.check("portable_normal_exit_and_actual_input_recovery",birth&&!s.process&&actual_pid!=pid&&known_shutdown&&
         receipt.find("\"quit_command_completed\":true")!=receipt.npos&&receipt.find("\"process_exit_observed\":true")!=receipt.npos&&
         receipt.find("\"product_exit_code\":0")!=receipt.npos&&receipt.find("\"actual_down_up_delivered\":true")!=receipt.npos&&
@@ -128,7 +132,7 @@ void owned_portable_zip_entry_case(State& s){
         const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         try{portable_actual_move(s,magnetic,stage);}
         catch(const std::exception& error){
-            if(s.suite!="IndependentEntry")throw;
+            if(s.suite!="IndependentEntry"&&s.suite!="PortableEntryOnly")throw;
             move_failed=true;s.log.failed=true;
             s.log.emit("portable_Move_failure_preserved","\"stage\":"+quote(stage)+",\"reason\":"+quote(error.what())+
                 ",\"actual_Move\":\"FAIL\",\"I12_PASS_inferred\":false,\"no_UP_retransmission\":true");

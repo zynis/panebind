@@ -24,6 +24,7 @@
 #include "platform/windows/product/v1_guest_physical_log.h"
 #include "platform/windows/product/v1_guest_idle_measurement.h"
 #include "platform/windows/product/v1_guest_deadline.h"
+#include "platform/windows/product/v1_guest_foreground_observer.h"
 #include "core/v1/caption_hit_guard.h"
 #include "platform/windows/explorer/explorer_shell_inventory.h"
 #include <algorithm>
@@ -58,6 +59,8 @@ bool input_resource_stop_observed(std::string_view shutdown){
 }
 namespace fs=std::filesystem;
 namespace product=panebind::platform::windows::product;
+product::guest::ForegroundObserver foreground_observer;
+void drain_foreground_observer();
 namespace shell=panebind::platform::windows::explorer;
 namespace v1=panebind::core::v1;
 struct Rect {
@@ -127,6 +130,7 @@ bool wait(const std::function<bool()>& predicate,DWORD duration=3500){
             if(message.message==WM_QUIT)throw std::runtime_error("test_driver_quit");
             TranslateMessage(&message);DispatchMessageW(&message);
         }
+        drain_foreground_observer();
         if(predicate())return true;Sleep(20);
     }while(GetTickCount64()<end);return predicate();
 } // Bounded TEST observation, never a product event source.
@@ -293,6 +297,11 @@ struct State{
     std::array<std::shared_ptr<ApplicationTarget>,3> applications;
     std::vector<std::shared_ptr<ApplicationTarget>> created_applications;
 };
+State* foreground_evidence_state{};
+void drain_foreground_observer(){
+    if(foreground_evidence_state)foreground_observer.drain([](std::string_view type,std::string fields){
+        foreground_evidence_state->log.emit(std::string(type),std::move(fields));});
+}
 std::uint64_t process_birth(HANDLE);
 const std::string& read_product(State& s){
     // Only product evidence uses this bounded logical stream. Driver logs,
@@ -990,6 +999,8 @@ bool launch(State& s,std::wstring args,bool command,DWORD* exit=nullptr){
     std::wstring line=L"\""+s.product.wstring()+L"\""+(args.empty()?L"":L" "+args);STARTUPINFOW si{sizeof(si)};PROCESS_INFORMATION pi{};
     const auto launch_before_tick=GetTickCount64();
     if(!CreateProcessW(s.product.c_str(),line.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW,nullptr,s.product.parent_path().c_str(),&si,&pi))return false;
+    foreground_observer.register_process(pi.hProcess,command?product::guest::ForegroundTaskProcessRole::ProductCommand:
+        product::guest::ForegroundTaskProcessRole::MainProduct,[&](std::string_view type,std::string fields){s.log.emit(std::string(type),std::move(fields));});
     CloseHandle(pi.hThread);if(!command){s.process=pi.hProcess;s.product_pid=pi.dwProcessId;
         s.product_evidence.begin(s.product_pid,process_birth(pi.hProcess),launch_before_tick,s.product_source);s.product_evidence_path=s.product_log;
         return medium(pi.hProcess);}
@@ -3103,7 +3114,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="PortableEntryOnly")throw std::runtime_error("independent_gate_wrong_suite");
     // The custom-mapping driver also uses middle and Shift/Alt packets.
     // An unknown release must stop continuation before any GUI cleanup input.
     if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
@@ -3233,6 +3244,7 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
         "\"stage\":"+quote(stage)+",\"enabled_and_idle_not_health_proof\":true,\"silent_hook_health_query_claimed\":false");
 }
 #include "platform/windows/product/v1_guest_terminal_case.h"
+#include "platform/windows/product/v1_guest_motion_guard_case.h"
 void independent_entry_flow(State& s,bool core_and_applications=false){
     const bool owned_components_only=s.suite=="OwnedComponentsOnly";
     const auto phase=[&](const char* name,void(*run)(State&)){
@@ -3269,6 +3281,23 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
+    if(s.suite=="MotionGuardOnly"){
+        phase("observed_terminal_motion_guard",owned_observed_motion_guard_case);
+        cleanup(s);
+        s.log.emit("motion_guard_only_summary","\"suite\":\"MotionGuardOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"actual_terminated_generation_no_further_test_MOVE_cleanup_and_fresh_gesture\",\"Full_suite\":\"NOT_RUN\",\"interrupted_Full_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
+    if(s.suite=="PortableEntryOnly"){
+        independent_entry_ready(s,"portable.before",true);
+        owned_portable_zip_entry_case(s);
+        // The actual no-argument ZIP instance has already stopped. Do not
+        // require a dead product to pass an unrelated live-instance gate.
+        cleanup(s);
+        s.log.emit("portable_entry_only_summary","\"suite\":\"PortableEntryOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"actual_Release_ZIP_no_argument_visible_GUI_settings_effect_basic_operation_and_normal_exit\",\"tray_and_Full_PASS_inferred\":false,\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     if(s.suite=="ExitRecoveryOnly"){
         phase("owned_active_exit_and_controlled_kill_recovery",owned_exit_recovery_case);
         cleanup(s);
@@ -3480,6 +3509,9 @@ void drive(State& s){
     const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);
     try{
         if(FAILED(apartment))throw std::runtime_error("fixture_driver_COM_STA_initialization_failed");
+        foreground_observer.register_process(GetCurrentProcess(),product::guest::ForegroundTaskProcessRole::Fixture,
+            [&](std::string_view type,std::string fields){s.log.emit(std::string(type),std::move(fields));});
+        drain_foreground_observer();
         record_guest_environment(s);
         s.log.check("guest_input_baseline_clear",!(GetAsyncKeyState(VK_LBUTTON)&0x8000)&&!(GetAsyncKeyState(VK_CONTROL)&0x8000)&&
             !(GetAsyncKeyState(VK_SHIFT)&0x8000)&&!(GetAsyncKeyState(VK_MENU)&0x8000)&&!(GetAsyncKeyState(VK_LWIN)&0x8000)&&!(GetAsyncKeyState(VK_RWIN)&0x8000));
@@ -3506,7 +3538,7 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="MotionGuardOnly"||s.suite=="PortableEntryOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="VisualOwnershipOnly"){
             bool completed=false;
@@ -3825,7 +3857,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="PortableEntryOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3909,7 +3941,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else if(value==L"MotionGuardOnly")s.suite="MotionGuardOnly";else if(value==L"PortableEntryOnly")s.suite="PortableEntryOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;
@@ -3934,9 +3966,13 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         // Observe the existing Full gestures too, so an actual missing hook
         // UP can be compared with Raw delivery without changing termination.
         raw_mouse_observer_start(s,s.frames[0].hwnd);
+        foreground_evidence_state=&s;
+        if(!foreground_observer.start())throw std::runtime_error("guest_foreground_observer_start_failed");
         MSG message{};PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE);s.driver=std::thread([&]{drive(s);});
         while(GetMessageW(&message,nullptr,0,0)>0){TranslateMessage(&message);DispatchMessageW(&message);}if(s.driver.joinable())s.driver.join();
+        if(!foreground_observer.stop())s.log.failed=true;
         if(guest_raw_mouse.target.load()&&!raw_mouse_observer_stop(s))s.log.failed=true;
+        drain_foreground_observer();
         bool destroyed=true;for(auto& f:s.frames)if(f.hwnd&&IsWindow(f.hwnd)){if(!own(s,f.hwnd)){destroyed=false;continue;}destroyed=DestroyWindow(f.hwnd)&&destroyed;}UnregisterClassW(s.class_name.c_str(),instance);
         s.log.emit("driver_shutdown","\"result\":"+quote(s.result==0&&!s.log.failed&&destroyed?"PASS":"FAIL")+",\"suite\":"+quote(s.suite)+",\"owned_windows_destroyed\":"+std::string(destroyed?"true":"false")+
             ",\"product_process_closed\":"+(s.suite=="NativeClientsOnly"?"null":std::string(!s.process?"true":"false"))+
@@ -3944,6 +3980,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
             ",\"scope\":\"exact_guest_targets_not_full_acceptance\",\"human_uat\":\"NOT_RUN\"");
         return s.result==0&&!s.log.failed&&destroyed?0:1;
     }catch(...){if(s.driver.joinable())s.driver.join();
+        foreground_observer.stop();drain_foreground_observer();
         if(guest_raw_mouse.target.load())try{raw_mouse_observer_stop(s);}catch(...){}
         for(auto& f:s.frames)if(own(s,f.hwnd))DestroyWindow(f.hwnd);return 1;}
 }
