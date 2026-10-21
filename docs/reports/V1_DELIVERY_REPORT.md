@@ -1,5 +1,17 @@
 # PaneBind V1 集中交付进展
 
+## 当前实证：固定高度、L角与五个停靠目标（2026-10-22）
+
+当前**生产接线60/60，独立DEV通过37/60，对标19/40＝47.5%**；产品11ae／528a便携包字节未改，整版仍PARTIAL、真人UAT PENDING。
+
+- [f426固定高度](v1-evidence/f426-group-height-review.json)：实际邻窗高度固定400但宽可变，Ctrl共享横边真实held MOVE+80后两窗实际visible／positioning保持、placement和nativeclaims均0；真实Raw／legacy UP、释放capture、解绑、Gone／NormalUp及正常退出／客户投递恢复。消息投递不直接证明solver消费；结合同生产已执行L1约束与dfdd上source／0718下source实证，独立M07-F02／B10闭合。
+- [6243真实L角](v1-evidence/6243-l-corner-review.json)：B的HTBOTTOMLEFT实际delta80,30，X因Amax420／Bmin370夹制到520，而B.bottom独立到330；两次native identity／exact／后验一致、无外窗写入，真实UP后零新写及资源退出。结合当前四格与已执行同生产L1，独立M07-F04／B11闭合，不授整个M07或I10。
+- [d8a3五个停靠方向](v1-evidence/d8a3-dock-five-targets-review.json)：通过公开Tab／组合框真实键入将Top从Maximize改DockTop并恢复；五代实际补Top／Bottom／TR／BL／BR，独立work半／四分预览、UP前无离散提交、真实UP后唯一exact normal_up_dock，再公开Undo恢复UP前raw矩形而非原DOWN矩形。配置恢复、正常退出和客户投递恢复均有原件。结合既有Left／TopLeft／Right，单屏八方向已齐，未重跑旧三项。**M08-F01仍BLOCKED**：明文负work-origin条件未具备；源矩形负坐标不冒充副屏负原点。
+
+三批256／236／398条driver、111／105／284条product均合法连续；入库摘录共204条逐字核对，分别保持各自PID、RunId及原时基，不用JSONL顺序宣称跨线程共同原生时序。清理判断依实际产品回执，不以退出码或guest销毁替代。旧0718整批FAIL保留原身份。
+
+新工具`83bb8636090e01287353583e80a005d68e28363a`已D/R构建、包装124检查通过，Release驱动SHA-256`1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A`；maximized／nativeSnap拖离和remainingcommands两新场景在此记录时仍NOT_RUN，不授预先PASS。普通真实应用、托盘、完整Medium桌面、显示矩阵、模块／整链和真人门继续独立待齐，不进入REA。以下35／32及更早段落保留封存时状态，旧待跑描述不覆盖本节。
+
 ## 当前接续：组外磁吸、共享边约束与精确剩余补件（2026-10-22）
 
 当前为**生产接线60/60，独立DEV通过35/60，对标17/40＝42.5%**，整版仍`PARTIAL`。产品11ae／Release `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`与528a便携包未重建或换绑。

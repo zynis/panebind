@@ -52,6 +52,51 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-F426-HORIZONTAL-FIXED-HEIGHT-CONSTRAINT",
+      "kind": "ACTUAL_RELEASE_NARROW_REMAINDER_LITERAL_REVIEW",
+      "run_id": "f4269123b797416d95e06a06a828b4d5",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+      "driver_binary_sha256": "A72BF669D11B5EECE3E4AF36688F4EB4AF0DA9FA6E287337416FBDB49FA79D9B",
+      "path": "docs/reports/v1-evidence/f426-group-height-review.json",
+      "sha256": "2DBA745F14E9E83EF18B1FC7D3041D1E7BFBF140B0458B9195461EB6D97A3317",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f426-group-height-excerpt.jsonl",
+      "repository_excerpt_sha256": "672A995760C97C083036D7381AC811DD8EBA64BFD9EF354C7D351DFEAD1E0B56",
+      "result": "PASS_INDEPENDENT_M07_F02_B10_WITH_EXISTING_UPPER_LOWER_AND_L1",
+      "scope": "Actualfixedheight400/widthvariable, heldcapturedMOVE+80, actualtwogeometryunchanged/native0, realUP/resources/exit/clientrecovery; no direct solver-consumption claim. Existing same-productionL1+upper/loweractual completes independentcontract."
+    },
+    {
+      "id": "EV-6243-L-CORNER-INDEPENDENT-AXES",
+      "kind": "ACTUAL_RELEASE_NARROW_REMAINDER_LITERAL_REVIEW",
+      "run_id": "624356811ad148ba9250f795c07f8990",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+      "driver_binary_sha256": "A72BF669D11B5EECE3E4AF36688F4EB4AF0DA9FA6E287337416FBDB49FA79D9B",
+      "path": "docs/reports/v1-evidence/6243-l-corner-review.json",
+      "sha256": "329F33D607F6B6F403B62C3CA9CFA976B9686739FC33F39770F36FDEB30D8BD6",
+      "repository_excerpt_path": "docs/reports/v1-evidence/6243-l-corner-excerpt.jsonl",
+      "repository_excerpt_sha256": "C674CE358F2BD883508FCC137A863CB0FC0ED387383B2D03ACFA13A620A22035",
+      "result": "PASS_INDEPENDENT_M07_F04_B11_WITH_EXISTING_FOUR_GRID_AND_L1",
+      "scope": "ActualBHTBOTTOMLEFT, Xclamped520/Y330 independent, exact2calls/no foreignattempt, realRawlegacyUP/Gone/NormalUp/exit; not wholeM07/I10/apps/displays."
+    },
+    {
+      "id": "EV-D8A3-FIVE-REMAINING-DOCK-TARGETS",
+      "kind": "ACTUAL_RELEASE_NARROW_REMAINDER_LITERAL_REVIEW",
+      "run_id": "d8a3c4d076e34f10a2cd39ef10258c47",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+      "driver_binary_sha256": "A72BF669D11B5EECE3E4AF36688F4EB4AF0DA9FA6E287337416FBDB49FA79D9B",
+      "path": "docs/reports/v1-evidence/d8a3-dock-five-targets-review.json",
+      "sha256": "B34220E8851484FB270A7FC77B30A585ADD63CECCBB60F7ACF1F3EA2090B5E79",
+      "repository_excerpt_path": "docs/reports/v1-evidence/d8a3-dock-five-targets-excerpt.jsonl",
+      "repository_excerpt_sha256": "760B71456F55EECFADE726C801AD59EAAFEAE844074FF0771F2F490A6E171CB9",
+      "result": "PASS_SCOPED_FIVE_TARGETS_M08_F01_REMAINS_BLOCKED_NEGATIVE_WORK_ORIGIN",
+      "scope": "ActualpublicTop DockTop/restore; fivefreshgenerations independent physicalworkpreview/noearlycommit/realUP/uniqueexactnormal_up_dock/UndoUP-before raw; existing3notreplayed. Single-screen8complete, negativeworkoriginNOT_RUN; nofeaturePASS."
+    },
+    {
       "id": "EV-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
       "kind": "ACTUAL_RELEASE_BATCH_FAIL_WITH_INDEPENDENT_SCOPED_PASS",
       "run_id": "07181defc2e64ea0b205a7cd12078ca5",
@@ -225,17 +270,16 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
-  "next_driver_validation": "Current35/60,17/40=42.5%: actual0718 batchFAIL retained, g1 group hull plus existing source/reselection closesM06F03/B08; currentdfdd+existingL1 closesM07F03/F05. M12F03/B32 identity-only11ae/528a/2432 correction adds no score. TEST0c244d6 D/R build/guest-path1of1/package124/coreLcorner66PASS, but GroupHeightOnly/DockRemainderOnly/LCornerOnly native NOT_RUN. Product unchanged; modules/apps/displays/Full/human not closed.",
+  "next_driver_source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+  "next_driver_validation": "Current37/60,19/40=47.5%: actualf426 fixed-height+existingupper/lower/L1 closesF02/B10; actual6243 Lcorner+fourgrid/L1 closesF04/B11. Actuald8a3 fiveDocktargetsPASS but negativeworkorigin absent, M08F01BLOCKED; current-single-screen8targets complete. Product11ae unchanged. New83 toolD/Rbuild/package124PASS, maximized/nativeSnapdragout andremainingcommands NOT_RUN at recording; modules/apps/displays/Full/human not closed.",
   "next_driver_binary_identity": {
-    "source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
-    "debug_sha256": "136FDE148CCAD32B6C8BF2AFEAD93171E256FFECB8B7F0DE0AE0C8481E61790B",
-    "release_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
-    "next_run_ids": [],
-    "last_actual_run_id": "07181defc2e64ea0b205a7cd12078ca5",
-    "native_runtime": "ACTUAL_0718_BATCH_FAIL_G1_G2_SCOPED_PASS_G3_ORACLE_INCOMPLETE",
-    "superseding_test_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
-    "superseding_suites_runtime": "HEIGHT_DOCK5_LCORNER_NOT_RUN"
+    "source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+    "debug_build": "PASS_ROOT_ACTUAL",
+    "release_build": "PASS_ROOT_ACTUAL",
+    "release_sha256": "1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A",
+    "native_runtime": "NEW_DRAGOUT_AND_REMAINING_COMMANDS_NOT_RUN_AT_RECORDING",
+    "last_actual_driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+    "last_actual_run_ids": ["f4269123b797416d95e06a06a828b4d5", "624356811ad148ba9250f795c07f8990", "d8a3c4d076e34f10a2cd39ef10258c47"]
   },
   "remaining_native_contracts_prepared": {
     "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",

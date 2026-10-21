@@ -1,0 +1,133 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-6243-L-CORNER-INDEPENDENT-AXES",
+  "review_date": "2026-10-22",
+  "run_id": "624356811ad148ba9250f795c07f8990",
+  "suite": "LCornerOnly",
+  "configuration": "Release",
+  "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+  "driver_binary_sha256": "A72BF669D11B5EECE3E4AF36688F4EB4AF0DA9FA6E287337416FBDB49FA79D9B",
+  "packaging_head": "248d2cd3a4a57c1babe1f0e55a398a9c399b4588",
+  "zip_sha256": "B38BA6CED9F3F2A8DAA6BD4D0CDE47DC585D51BC22CA3372B66288A78206F92E",
+  "manifest_sha256": "31DBF7638713B58BE29117F3C27B3DB8423704AFC198586DD3C569A6E12CEAD6",
+  "wsb_sha256": "09E71F3F77E84D355B72991AF294D0AC390382BE06328756898AB6B23F35AC20",
+  "raw": {
+    "collection": "uat/v1-control/624356811ad148ba9250f795c07f8990/collection-20261021T192140827Z-af484d5711f84f298e11c77590ab3cf6",
+    "driver_file": "624356811ad148ba9250f795c07f8990-release-fixture.jsonl",
+    "driver_rows": 236,
+    "driver_sha256": "D281B33800F03A3464A150DC9A796B77B2B78B8DE8574ED931896C48AC4E1B93",
+    "product_file": "624356811ad148ba9250f795c07f8990-product-Release/panebind.log.jsonl",
+    "product_rows": 105,
+    "product_sha256": "B8B1F4018F30B75E9B29714127B33B46DB8BCB32DB8BB083E34EBEF8136580B3",
+    "JSONL_all_valid": true,
+    "producer_sequences_contiguous": true,
+    "excerpt": "docs/reports/v1-evidence/6243-l-corner-excerpt.jsonl",
+    "excerpt_sha256": "C674CE358F2BD883508FCC137A863CB0FC0ED387383B2D03ACFA13A620A22035",
+    "driver_original_sequences": [
+      1,
+      3,
+      124,
+      125,
+      126,
+      127,
+      128,
+      135,
+      136,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      145,
+      146,
+      147,
+      148,
+      210,
+      213,
+      214,
+      218,
+      221,
+      224,
+      231,
+      232,
+      236
+    ],
+    "product_original_sequences": [
+      3,
+      49,
+      50,
+      51,
+      52,
+      54,
+      55,
+      57,
+      60,
+      61,
+      64,
+      65,
+      67,
+      70,
+      72,
+      73,
+      75,
+      101,
+      102,
+      105
+    ],
+    "literal_lines_not_reserialized": true,
+    "excerpt_layout": "Driver original rows followed by product original rows; not a cross-producer native timeline",
+    "raw_unchanged": true
+  },
+  "environment": {
+    "environment_id": "E02",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "fixture_pid": 6296,
+    "source_tid": 6288,
+    "product_pid": 4028,
+    "shield_tid": 3992,
+    "DPI": 144,
+    "screen": [
+      0,
+      0,
+      3050,
+      1668
+    ]
+  },
+  "facts": {
+    "independent_oracle": "D124-128 actual A[100,100,500,500],B[500,100,900,300]. SourceB nativeHTBOTTOMLEFT16; real delta[80,30], X feasible[350,520] from Amax420/Bmin370, requested580 clamps520; independent B.bottom330, no invented missingC. Expected A[100,100,520,500],B[520,100,900,330].",
+    "start": "D135/136,P57 actualCtrlResize g1/sourceB/key4/originalDOWNgroup2, native-first handoff. P49ready/P50boundedcancel/P51realEND/P54attach/P55capture precede writing.",
+    "native": "D138-142 actual two independent memberrects equal oracle; foreignclaims0/invalidreceipts0. P60 nativeattempt1 key4 target=actual[520,100,900,330], P61 attempt2 key5 target=actual[100,100,520,500], identity/exact/postcontexttrue. Eachouteredge remains as required; sharedX same520, Y330 unaffected by Xclamp. Bothnative completions precede actualUPQPC329188118.",
+    "up_cleanup": "D143singleUP;P64matchingLLUP;P65RawUP;P67actualacceptedlegacyUP dispatch329202673. P70actualcaptureRelease→0,P72actualdetach,P73Gone/destroy/hotkeyunregistered,P75NormalUp/pendingretired. D146-148actualUP/geometry/noCapture/no newplacement. D210configrestored,D213exacttestwindowsclosed,D218samePIDIdle,D224quit/exit0,P105allresources/workerstopped,D231actualpoststopclientDOWNUP[0,0]→[1,1]."
+  },
+  "contract_review": {
+    "assessment": "PASS_INDEPENDENT_M07_F04_AND_B11_WITH_EXISTING_CURRENT_FOUR_GRID_AND_L1",
+    "combination": [
+      "This real Lcorner single gesture proves both axes with only Xclamped and exactly two matching native completions.",
+      "Existing current11ae dfdd four-grid shared node bothaxes/realUP, preserved original receipts, not rerun.",
+      "Same production layout.h Lcorner independent fixednumeric oracle in0c244d6 tests/core/v1_layout_tests.cpp; D/R v1-layout66checksPASS already executed by root/recovery (not a new reviewer run). Existing G07/disconnected-line/constraint L1 covers ambiguity refusal."
+    ],
+    "not_claimed": [
+      "No wholeM07/application/display/Full or humanUAT PASS; separate modules/hard gates still apply.",
+      "Actual appgrid known remainsfalse in receipts; only explicitowneddeclaredconstraints tested.",
+      "Guest destruction is not product cleanup evidence; cleanup claims rely on actual P105/D224/231.",
+      "Earlier0718wholeFAIL/f426own scope remain separate actual runs, no PID or identity rebinding."
+    ]
+  },
+  "wrapper": {
+    "fixture_exit_code": 0,
+    "descendants_alive_at_exit": 0,
+    "forced_test_cleanup": false,
+    "wrapper_feature_result_NOT_EVALUATED_preserved": true
+  },
+  "executor_cleanup": {
+    "reported_by_root": "exact own guest/task removed after collection; raw evidence unchanged",
+    "reexecuted_by_reviewer": false
+  },
+  "human_UAT": "NOT_RUN"
+}

@@ -1,0 +1,334 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-D8A3-FIVE-REMAINING-DOCK-TARGETS",
+  "review_date": "2026-10-22",
+  "run_id": "d8a3c4d076e34f10a2cd39ef10258c47",
+  "suite": "DockRemainderOnly",
+  "configuration": "Release",
+  "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+  "driver_binary_sha256": "A72BF669D11B5EECE3E4AF36688F4EB4AF0DA9FA6E287337416FBDB49FA79D9B",
+  "packaging_head": "248d2cd3a4a57c1babe1f0e55a398a9c399b4588",
+  "zip_sha256": "E818904A6FCFCAD87E74EBDA48F1D4EE76002498CA9C1F16A7117DE99595411B",
+  "manifest_sha256": "D556674DE7AF37B7D873302F6F38E9D9CAA4E04FF1A42C8F6CDC7A85B4FC8A65",
+  "wsb_sha256": "3BC45626A79D8231466D0A29A9E9F788799FF7BEA50F0C0640D353DE3587DAC1",
+  "raw": {
+    "collection": "uat/v1-control/d8a3c4d076e34f10a2cd39ef10258c47/collection-20261021T192401287Z-e800381787344e98b1147caea8519f9f",
+    "driver_file": "d8a3c4d076e34f10a2cd39ef10258c47-release-fixture.jsonl",
+    "driver_rows": 398,
+    "driver_sha256": "D322BC234F1259FE31C1FC2D56100597515BD55A4327B9C1BC0B97E311AACC8E",
+    "product_file": "d8a3c4d076e34f10a2cd39ef10258c47-product-Release/panebind.log.jsonl",
+    "product_rows": 284,
+    "product_sha256": "817327A097DC7A3D8CA38B6981A2A63C55BBA6311E11C6060479B2750D81C876",
+    "JSONL_all_valid": true,
+    "producer_sequences_contiguous": true,
+    "excerpt": "docs/reports/v1-evidence/d8a3-dock-five-targets-excerpt.jsonl",
+    "excerpt_sha256": "760B71456F55EECFADE726C801AD59EAAFEAE844074FF0771F2F490A6E171CB9",
+    "driver_original_sequences": [
+      1,
+      3,
+      145,
+      146,
+      147,
+      152,
+      157,
+      167,
+      168,
+      172,
+      173,
+      176,
+      177,
+      178,
+      179,
+      183,
+      192,
+      196,
+      197,
+      200,
+      201,
+      202,
+      203,
+      207,
+      216,
+      220,
+      221,
+      224,
+      225,
+      226,
+      227,
+      231,
+      240,
+      244,
+      245,
+      248,
+      249,
+      250,
+      251,
+      255,
+      264,
+      268,
+      269,
+      272,
+      273,
+      274,
+      275,
+      279,
+      295,
+      300,
+      372,
+      375,
+      376,
+      380,
+      383,
+      386,
+      393,
+      394,
+      398
+    ],
+    "product_original_sequences": [
+      3,
+      68,
+      73,
+      76,
+      78,
+      84,
+      86,
+      87,
+      89,
+      106,
+      109,
+      114,
+      116,
+      122,
+      124,
+      125,
+      127,
+      145,
+      148,
+      153,
+      155,
+      161,
+      163,
+      164,
+      166,
+      183,
+      186,
+      191,
+      193,
+      199,
+      201,
+      202,
+      204,
+      221,
+      224,
+      229,
+      231,
+      237,
+      239,
+      240,
+      242,
+      284
+    ],
+    "literal_lines_not_reserialized": true,
+    "excerpt_layout": "Driver original rows then product original rows, not a common native timeline",
+    "raw_unchanged": true
+  },
+  "environment": {
+    "environment_id": "E02",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "product_pid": 6316,
+    "fixture_pid": 964,
+    "source_tid": 4004,
+    "DPI": 144,
+    "physical_work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "screen": [
+      0,
+      0,
+      3050,
+      1668
+    ]
+  },
+  "public_configuration": {
+    "actual_TOP_Maximize_to_DockTop": "D145-152 realTab18/F4/Home/Down/Enter, readbackindex4/actualactionDockTop; noCB_SETCURSEL/WM_COMMAND writes. D157 fullconfigcompare onlyrequestedtop+generation4.",
+    "actual_restore": "D295 samepublicinput readbackindex1/Maximize, D300 onlydirection+generation5; D372 alloriginalGUIconfigrestored.",
+    "product_settings_file_not_directly_edited": true
+  },
+  "target_audit": [
+    {
+      "g": 1,
+      "target": "DockTop",
+      "expected": [
+        0,
+        0,
+        3050,
+        798
+      ],
+      "raw": [
+        1515,
+        -8,
+        1915,
+        292
+      ],
+      "commit_seq": [
+        86
+      ],
+      "commit_unique_exact": true,
+      "no_early_commit": true,
+      "raw_seq": 76,
+      "legacy_seq": 78,
+      "gone_seq": 84,
+      "end_seq": 87,
+      "actualRawLegacy": true,
+      "gone_release_detach": true,
+      "normalup": true,
+      "undo_actual_matches_raw": true
+    },
+    {
+      "g": 2,
+      "target": "DockBottom",
+      "expected": [
+        0,
+        798,
+        3050,
+        1596
+      ],
+      "raw": [
+        1515,
+        1586,
+        1915,
+        1886
+      ],
+      "commit_seq": [
+        124
+      ],
+      "commit_unique_exact": true,
+      "no_early_commit": true,
+      "raw_seq": 114,
+      "legacy_seq": 116,
+      "gone_seq": 122,
+      "end_seq": 125,
+      "actualRawLegacy": true,
+      "gone_release_detach": true,
+      "normalup": true,
+      "undo_actual_matches_raw": true
+    },
+    {
+      "g": 3,
+      "target": "DockTopRight",
+      "expected": [
+        1525,
+        0,
+        3050,
+        798
+      ],
+      "raw": [
+        3039,
+        -8,
+        3439,
+        292
+      ],
+      "commit_seq": [
+        163
+      ],
+      "commit_unique_exact": true,
+      "no_early_commit": true,
+      "raw_seq": 153,
+      "legacy_seq": 155,
+      "gone_seq": 161,
+      "end_seq": 164,
+      "actualRawLegacy": true,
+      "gone_release_detach": true,
+      "normalup": true,
+      "undo_actual_matches_raw": true
+    },
+    {
+      "g": 4,
+      "target": "DockBottomLeft",
+      "expected": [
+        0,
+        798,
+        1525,
+        1596
+      ],
+      "raw": [
+        -9,
+        1586,
+        391,
+        1886
+      ],
+      "commit_seq": [
+        201
+      ],
+      "commit_unique_exact": true,
+      "no_early_commit": true,
+      "raw_seq": 191,
+      "legacy_seq": 193,
+      "gone_seq": 199,
+      "end_seq": 202,
+      "actualRawLegacy": true,
+      "gone_release_detach": true,
+      "normalup": true,
+      "undo_actual_matches_raw": true
+    },
+    {
+      "g": 5,
+      "target": "DockBottomRight",
+      "expected": [
+        1525,
+        798,
+        3050,
+        1596
+      ],
+      "raw": [
+        3039,
+        1586,
+        3439,
+        1886
+      ],
+      "commit_seq": [
+        239
+      ],
+      "commit_unique_exact": true,
+      "no_early_commit": true,
+      "raw_seq": 229,
+      "legacy_seq": 231,
+      "gone_seq": 237,
+      "end_seq": 240,
+      "actualRawLegacy": true,
+      "gone_release_detach": true,
+      "normalup": true,
+      "undo_actual_matches_raw": true
+    }
+  ],
+  "review": {
+    "result": "PASS_SCOPED_SINGLE_SCREEN_FIVE_NEW_TARGETS_M08_F01_REMAINS_BLOCKED",
+    "actual_scope": "Five new generations, realordinaryMove/freeactualrect→independent physicalwork half/quarter preview→no preUP normal_up_dock→single actualRaw+legacyUP→exact unique normal_up_dock→previewhidden/NormalUp→publicUndo exact UP-before rawRect. OriginalDOWNrect is not incorrectly used as Undo expectation.",
+    "preview": "D172/196/220/244/268 actualpreviewrect=independentexpected,alpha100,nonactivatingexstyle/readback, pointer exactcurrentproductshield rather than preview. Driver visualclarityreview remainsNOT_RUN.",
+    "normal_up_completion_semantics": "normal_up_dock actual receipts intentionally report authority_after=false/post_context_checked=false while normal_up_completion=true. They are actual terminal discrete calls afterUP, not revived continuous writer authority. Do not rewrite these raw fields as true.",
+    "cleanup": "Eachgone receipt records release actualsuccess/to0,detach actualsuccess,overlaydestroyed. D380/P280samePIDIdle withnative15, D386/P284actualquit/hooks/resources/worker/capture/association allstopped, D393realpoststop clientDOWNUP[0,0]→[1,1]. No forcedwrappercleanup/guestdestruction used as productPASS.",
+    "remaining": [
+      "M08-F01 independentDEV explicitly requires negative work-origin actualcase, not available here; feature remainsBLOCKED even though current-single-screen eightdirections are covered when combined with existingleft/topLeft/right.",
+      "A free source rect extending to negative x/y in this origin0 display is NOT a negative-origin monitor/workarea test.",
+      "No additionalmonitors,realapplications,wholeFull,humanUAT orhosttrial PASS. Existingleft/topLeft/right were not rerun."
+    ]
+  },
+  "wrapper": {
+    "fixture_exit_code": 0,
+    "descendants_alive_at_exit": 0,
+    "forced_test_cleanup": false,
+    "feature_result_NOT_EVALUATED_preserved": true
+  },
+  "executor_cleanup": {
+    "reported_by_root": "exact own guest/task removed after collection, evidence unchanged",
+    "reexecuted_by_reviewer": false
+  },
+  "human_UAT": "NOT_RUN"
+}
