@@ -167,6 +167,28 @@ function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
         throw 'Without-product client input must not read a nonexistent product log or use product release receipts.'
     }
 }
+function Assert-V1FocusedNativeReadinessWiring([string]$Source,[string]$Preflight){
+    # Static reachability only. These tests do not run cmd, a browser or input.
+    Assert-V1NativeClientsWithoutProductWiring $Source
+    $flow=Get-V1FixtureFunctionText $Source 'native_clients_only_flow'
+    $ready=Get-V1FixtureFunctionText $Preflight 'guest_native_application_ready'
+    $shell=Get-V1FixtureFunctionText $Preflight 'guest_native_shell_control'
+    if(-not $Source.Contains('#include "platform/windows/product/v1_guest_application_preflight.h"') -or
+       -not $flow.Contains('std::array<std::string,2>{"Terminal","Edge"}') -or
+       -not $flow.Contains('if(kind=="Terminal")guest_native_shell_control(s,*target);') -or
+       -not $flow.Contains('if(!guest_native_application_ready(s,*target))throw std::runtime_error("native_initial_offline_document_not_ready");') -or
+       $flow.IndexOf('guest_native_application_ready(s,*target)',[StringComparison]::Ordinal) -ge
+           $flow.IndexOf('matrix_client_action(s,kind,"without_product")',[StringComparison]::Ordinal) -or
+       -not $ready.Contains('native_clients_product_absent(s,target.kind+".initialization.before")') -or
+       -not $ready.Contains('return same&&document_ready;') -or
+       -not $shell.Contains('s.suite!="NativeClientsOnly"') -or
+       -not $shell.Contains('!product::guest::same_exact_directory(target.directory,expected)') -or
+       -not $shell.Contains('!native_clients_product_absent(s,"Terminal.direct_shell.before")') -or
+       -not $shell.Contains('launched&&identity&&exited&&exit_known&&exit==0&&exact_receipt') -or
+       ($ready+$shell) -match '\b(?:launch|SetForegroundWindow|SetFocus|SendInput|button|key|TerminateProcess)\s*\('){
+        throw 'Focused native readiness must stay product-absent, exact guest scoped, and reject missing document initialization before client input.'
+    }
+}
 function Assert-V1StretchModesScopeWiring([string]$Source,[string]$Chains){
     # Source wiring only. Native GUI settings, command results and restoration
     # still need the guarded guest run; this does not award that evidence.
@@ -365,6 +387,11 @@ Reject {Assert-V1GroupBoundsScopeWiring $fixtureSource ($layoutSource.Replace('l
 Assert-V1NativeClientsWithoutProductWiring $fixtureSource
 Check $true 'static native baseline: product launch is bypassed; exact client actions neither read product receipts nor run geometry cases'
 Reject {Assert-V1NativeClientsWithoutProductWiring ($fixtureSource.Replace('without_product?std::size_t{}:read_product(s).size()','read_product(s).size()'))} 'static native baseline rejects reading product log before native input'
+$nativePreflight=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_application_preflight.h'),[Text.Encoding]::UTF8)
+Assert-V1FocusedNativeReadinessWiring $fixtureSource $nativePreflight
+Check $true 'static focused native readiness checks only Terminal/Edge with actual product absence and document initialization before client input'
+Reject {Assert-V1FocusedNativeReadinessWiring ($fixtureSource.Replace('if(!guest_native_application_ready(s,*target))throw std::runtime_error("native_initial_offline_document_not_ready");','')) $nativePreflight} 'static focused native readiness rejects removing the actual pre-input initialization gate'
+Reject {Assert-V1FocusedNativeReadinessWiring $fixtureSource ($nativePreflight.Replace('!native_clients_product_absent(s,"Terminal.direct_shell.before")','false'))} 'static direct shell control rejects removing its exact product-absent guest gate'
 $chainSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_product_chains.h'),[Text.Encoding]::UTF8)
 Assert-V1StretchModesScopeWiring $fixtureSource $chainSource
 Check $true 'static stretch scope: actual disabled GUI setting, work-area oracle, unchanged neighbour, Undo and restoration are wired without unrelated suites'

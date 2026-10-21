@@ -11510,11 +11510,19 @@
         "PO-30BF-REAL-APPLICATIONS",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES"
       ],
-      "observed": "owned min/max/grid和三窗/T/L/四格/8窗均有实际子项；grid/sourceclose/I11实际匹配UP仍失败。",
+      "observed": "当前11ae产品的dfdd已实际完成自建三窗核心回环、两轮及900.035872秒阶段；源关闭、grid和batch均取得实际中止/恢复子项，不再把旧缺UP作为当前总原因。2432普通包入口、0a66磁吸参数和2c8活动设置/规则恢复分别有当前同EXE证据。原grid original_UP_observed=false仍保留，异常清理不冒充NormalUp；完整fixture合同仍有D09/D24特定恢复分支及其他逐项缺口，不自动提升A01 PASS。",
+      "historical_failure_summary": "R7/4e9当时grid/source-close真实UP失败、batch判定待修和I11读取工具失败保留原身份，见下方历史component及原始证据；不是当前11ae全部子项的判定。",
       "remaining_conditions": [
-        "当前候选完整fixture合同与释放修复待复验。"
+        "核对D09中止后新DOWN/UP配对、D24特定no-own capture-loss后同实例恢复的最小缺口；保持各原始UP/中止分类，不为无变化Full或900秒重跑。"
       ],
-      "next_action": "按输入修复影响跑实际异常恢复与整链。",
+      "next_action": "复用dfdd/2432/0a66/2c8有效范围，只验证尚无实际证据的精确恢复分支；真实应用、完整Medium及显示矩阵另外判定。",
+      "current_candidate_observation": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_ids": ["dfdde5b3a08b43d9b7cbe068f4de0d22", "2432640250344564b4f2ba89287bea81", "0a66091821bf48af9075991b4f41ccf4", "2c8dfd707f414d5394913c5f52a8c997"],
+        "evidence_paths": ["docs/reports/v1-evidence/dfdd-release-full-metadata.json", "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json", "docs/reports/v1-evidence/0a66-remaining-move-metadata.json", "docs/reports/v1-evidence/2c8d-active-settings-metadata.json"],
+        "not_complete_contract_PASS": true
+      },
       "candidate_identity_ref": "current_package",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -11849,7 +11857,7 @@
       "id": "NF01",
       "requirement": "Release空闲60秒：CPU折合单逻辑核平均<1%，工作集目标<=80MiB，记录真实值。",
       "dev_status": "PASS",
-      "observed": "当前R2/30bf独立60.004483秒，单逻辑核CPU0%，末工作集27,435,008字节、private commit4,194,304字节（不是驻留）；scope满足本机NF01预算，不授I11/跨机性能。",
+      "observed": "当前11ae/dfdd的同PID5264独立空闲60.0156957秒，单逻辑核CPU0%，工作集29,392,896→29,413,376字节、private commit4,849,664→4,882,432字节；满足本机NF01预算，不授跨机性能。下方R2/R6身份和数值保留历史。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
@@ -11857,7 +11865,21 @@
       ],
       "candidate_identity_ref": "pending_product_candidate",
       "remaining_conditions": [],
-      "next_action": "本机本候选独立60秒预算已实测，不追加无关性能批次；I11两轮/15分钟仍独立未过。",
+      "next_action": "复用dfdd同产品预算与连续阶段，不追加空闲或900秒重跑；应用/托盘和显示条件独立验收。",
+      "current_candidate_observation": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "process_id": 5264,
+        "evidence_path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "fixture_sequence": 5379,
+        "elapsed_seconds": 60.0156957,
+        "one_logical_core_cpu_percent": 0,
+        "working_bytes_before": 29392896,
+        "working_bytes_after": 29413376,
+        "private_commit_before": 4849664,
+        "private_commit_after": 4882432
+      },
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -11891,17 +11913,21 @@
     {
       "id": "NF02",
       "requirement": "hook回调p99目标<1ms；输入到回读p95目标<50ms，不称为物理显示延迟。",
-      "dev_status": "BLOCKED",
-      "observed": "日志包含callback/native各自时间点；尚未生成当前完整p99/p95独立分布，非物理显示延迟。",
+      "dev_status": "FAIL",
+      "observed": "已从同11ae冻结EXE既有日志核算，不再缺统计：0a66/2c8各17次实际调用的hook到回读p95为10.5895/25.2265ms，均低于50ms。2c8和dfdd末尾独立producer的callback p99落在(1000,2000]us，未达<1ms目标；2432普通包有限16 callback最大331us，不能抵消其他运行。dfdd最大1017.4899ms明确对应自有测试线程1000ms阻塞，不写成正常持续卡顿。所有数值不是物理显示延迟，callback尾时延原因UNKNOWN。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/c01-release-components.jsonl",
+        "docs/reports/v1-evidence/11ae-existing-timing-review.json",
+        "docs/reports/v1-evidence/11ae-existing-timing-summary.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "当前候选回调/输入到回读分位数与持续停顿缺陷复核。"
+        "callback p99预算未达，现有汇总不能区分调度抢占与具体分支；无已确认同步I/O或等待缺陷，不据此推测性重建产品。"
       ],
-      "next_action": "从实际同候选轨迹按可比时间基计算必要分布，不扩统计框架。",
+      "next_action": "复用本次同构建统计，先推进真实应用与操作链；若后续可比运行出现明确产品分支停顿再做有界定位，不扩统计框架、压力或独立900秒批次。",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT"
       ]
@@ -11909,17 +11935,31 @@
     {
       "id": "NF03",
       "requirement": "I11两轮核心链与15分钟混合运行，无残留和无界资源增长。",
-      "dev_status": "FAIL",
-      "observed": "c01 I11普通UP反例使两轮及15分钟未完成；60秒idle不能替代。；625实际两owned核心轮/900.001661秒20slot与资源采样、同PID正常退出已观察，后续独立inflight失败保留；不等于所有应用/整版无残留。",
+      "dev_status": "BLOCKED",
+      "observed": "当前11ae/dfdd在同PID5264实际完成两轮owned核心组合和20个混合slot，900.035872秒；handle/GDI/USER无严格单调增长，P4204实际正常退出及自有资源清理已留嵌入回执。旧c01抬键失败和625/34bf结果保持各自身份，不再写作当前连续阶段待跑。完整真实应用/整版无残留仍未证明，dfdd应用关闭门FAIL和wrapper强制清理不能抹去。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl"
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "先关闭普通释放S1，再在同一启动完成规定连续运行并核对资源。"
+        "真实应用客户区前置及正常关闭尚未齐，普通完整Medium桌面与混合应用整链未满足；owned规定连续阶段已运行，不要求无变化重复900秒。"
       ],
-      "next_action": "修复后执行原I11，不新增20/20或100/100矩阵。",
+      "next_action": "先完成Edge/Terminal真实初始化、客户输入及正常退出等可推进项；仅在相关产品缺陷修复后按影响补整链，不复跑已通过且未变的owned连续阶段。",
+      "current_candidate_observation": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "process_id": 5264,
+        "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
+        "evidence_path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "fixture_round_end_sequences": [3482, 4500],
+        "fixture_continuous_sequence": 5378,
+        "elapsed_seconds": 900.035872,
+        "mixed_slots": 20,
+        "own_resources_shutdown_receipt": "fixture5497 embeds product4204 for this PID",
+        "not_complete_contract_PASS": true
+      },
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-625-R6-RELEASE-OWNED-FINITE-VISUAL-AND-REMAINING-FAILURES"

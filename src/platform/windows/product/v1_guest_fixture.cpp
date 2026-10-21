@@ -2074,6 +2074,7 @@ bool native_clients_product_absent(State& s,std::string_view stage){
         ",\"product_log_presence_known\":"+(!log_error&&!previous_error?"true":"false")+
         ",\"scope\":\"this_candidate_name_and_root_not_all_renamed_processes_or_input_observers\",\"product_cleanup_PASS_inferred\":false");return absent;
 }
+#include "platform/windows/product/v1_guest_application_preflight.h"
 void matrix_client_action(State& s,const std::string& label,std::string_view scope){
     if(scope!="native_preflight"&&scope!="after_product"&&scope!="without_product")throw std::runtime_error("matrix_client_scope_invalid");
     const bool without_product=scope=="without_product";
@@ -2321,12 +2322,18 @@ void native_clients_only_flow(State& s){
     if(s.suite!="NativeClientsOnly")throw std::runtime_error("native_clients_wrong_suite");
     native_clients_ready(s,"suite.before");s.target_catalog=std::make_unique<product::Catalog>();
     for(auto& frame:s.frames){if(!own(s,frame.hwnd))throw std::runtime_error("native_clients_original_fixture_identity_changed");ShowWindow(frame.hwnd,SW_HIDE);}
-    for(const auto& kind:std::array<std::string,4>{"Terminal","Notepad","VSCode","Edge"}){
+    // Native-only diagnostic is deliberately focused on the two applications
+    // whose initialization/normal-close facts need a new discriminating check.
+    // Full's mandatory application matrix remains unchanged.
+    for(const auto& kind:std::array<std::string,2>{"Terminal","Edge"}){
         native_clients_ready(s,kind+".before");const auto down_before=s.left_down_send_qpc;const bool control_before=s.control;
         std::shared_ptr<ApplicationTarget> target;bool passed=false;std::string reason;
         try{
             target=provision_application(s,kind);
-            if(target->accepted){s.applications[0]=target;matrix_client_action(s,kind,"without_product");passed=true;}
+            if(kind=="Terminal")guest_native_shell_control(s,*target);
+            if(target->accepted){s.applications[0]=target;
+                if(!guest_native_application_ready(s,*target))throw std::runtime_error("native_initial_offline_document_not_ready");
+                matrix_client_action(s,kind,"without_product");passed=true;}
             else reason="no_exact_eligible_new_root";
         }catch(const std::exception& error){reason=error.what();}
         if(!passed)s.log.failed=true;
@@ -2352,13 +2359,15 @@ void native_clients_only_flow(State& s){
             ",\"single_pending_test_UP_sent\":"+(cleanup_up?"true":"false")+",\"own_Ctrl_release_sent\":"+(cleanup_control?"true":"false")+
             ",\"cleanup_error\":"+quote(cleanup_error)+",\"exact_bound_root_close_confirmed\":"+(target&&target->accepted?(closed?"true":"false"):"null")+
             ",\"bound_source_GUI_idle_or_root_gone\":"+(target&&target->accepted?(source_idle?"true":"false"):"null")+",\"human_uat\":\"NOT_RUN\"");
-        if(!source_idle||!closed||!cleanup_error.empty()||s.left||s.control)throw std::runtime_error("native_clients_cleanup_or_GUI_unknown_no_dependent_input");
+        if(!source_idle||!closed||!cleanup_error.empty()||s.left||s.control||
+           reason=="native_shell_control_child_exit_unconfirmed_no_dependent_input")
+            throw std::runtime_error("native_clients_cleanup_or_GUI_unknown_no_dependent_input");
         s.applications[0].reset();native_clients_ready(s,kind+".after");
     }
     for(auto& frame:s.frames){if(!own(s,frame.hwnd))throw std::runtime_error("native_clients_fixture_identity_lost_before_exit");ShowWindow(frame.hwnd,SW_SHOWNOACTIVATE);}
     native_clients_ready(s,"suite.after");
     s.log.emit("native_clients_only_summary","\"suite\":\"NativeClientsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
-        ",\"scope\":\"new_exact_application_native_client_only\",\"product_started\":false,\"product_function_result\":\"NOT_RUN\""+
+        ",\"scope\":\"new_exact_Terminal_and_Edge_native_initialization_client_and_close_only\",\"applications\":[\"Terminal\",\"Edge\"],\"Notepad_and_VSCode_this_run\":\"NOT_RUN\",\"product_started\":false,\"product_function_result\":\"NOT_RUN\""+
         ",\"product_cleanup_result\":\"NOT_APPLICABLE_NOT_STARTED\",\"fixture_Raw_observer_may_be_present\":true,\"other_input_observers_absent_claimed\":false,\"human_uat\":\"NOT_RUN\"");
 }
 void independent_entry_ready(State&,std::string_view,bool);
@@ -3114,7 +3123,7 @@ bool activation_layout_idle(){return !layout_ui_pending.load(std::memory_order_a
 // gesture's actual UP or cleanup. It neither injects a release nor resets a
 // window's geometry. All input below targets this exact product's own UI.
 void independent_entry_ready(State& s,std::string_view stage,bool restore_defaults){
-    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly")throw std::runtime_error("independent_gate_wrong_suite");
+    if(s.suite!="IndependentEntry"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly")throw std::runtime_error("independent_gate_wrong_suite");
     // The custom-mapping driver also uses middle and Shift/Alt packets.
     // An unknown release must stop continuation before any GUI cleanup input.
     if(s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly")for(const int code:std::array{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
@@ -3284,6 +3293,14 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
             quote(failed?"FAIL":blocked?"BLOCKED":not_run?"NOT_RUN":"PASS")+
             ",\"independent_only\":true,\"component_result_not_full_I02_I11_or_version_PASS\":true");
     };
+    if(s.suite=="RecoveryContractsOnly"){
+        phase("revoked_button_pair_recovery",owned_revoked_pair_recovery_case);
+        phase("no_own_capture_loss_recovery",owned_capture_loss_recovery_case);
+        cleanup(s);
+        s.log.emit("recovery_contracts_summary","\"suite\":\"RecoveryContractsOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
+            ",\"scope\":\"revoked_middle_pair_and_exact_no_own_capture_loss_same_instance_recovery\",\"Full_suite\":\"NOT_RUN\",\"whole_version_PASS\":false,\"human_uat\":\"NOT_RUN\"");
+        return;
+    }
     if(s.suite=="RemainingMoveContractsOnly"){
         phase("remaining_group_membership",owned_remaining_group_membership_case);
         phase("remaining_magnet_policy",owned_remaining_magnet_policy_case);
@@ -3556,7 +3573,7 @@ void drive(State& s){
         s.log.check("second_instance_status",second_ok,
             "\"secondary_exit\":"+std::to_string(second));
         s.log.emit("actual_suite","\"suite\":"+quote(s.suite)+",\"Full_is_default\":true,\"partial_suite_is_not_Full_PASS\":true");
-        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="MotionGuardOnly"||s.suite=="CornerInputOnly"||s.suite=="PortableEntryOnly"||s.suite=="RemainingMoveContractsOnly"){
+        if(s.suite=="IndependentEntry"||s.suite=="CoreAndApplications"||s.suite=="EntryAndSettings"||s.suite=="OwnedComponentsOnly"||s.suite=="StretchModesOnly"||s.suite=="GroupBoundsOnly"||s.suite=="PauseRoutingOnly"||s.suite=="OwnedRulesOnly"||s.suite=="StretchInputOnly"||s.suite=="StretchBoundaryOnly"||s.suite=="ExitRecoveryOnly"||s.suite=="GeometryHistoryOnly"||s.suite=="ResizeMagnetOnly"||s.suite=="FixedAndTerminalOnly"||s.suite=="MappingRemainderOnly"||s.suite=="HotkeyRemainderOnly"||s.suite=="MotionGuardOnly"||s.suite=="CornerInputOnly"||s.suite=="PortableEntryOnly"||s.suite=="RemainingMoveContractsOnly"||s.suite=="RecoveryContractsOnly"){
             independent_entry_flow(s,s.suite=="CoreAndApplications"||s.suite=="OwnedComponentsOnly");s.result=s.log.failed?1:0;
         }else if(s.suite=="VisualOwnershipOnly"){
             bool completed=false;
@@ -3875,7 +3892,7 @@ int guard(State& s){
     s.log.emit("guard_WTS","\"query_succeeded\":"+std::string(queried?"true":"false")+",\"bytes\":"+std::to_string(bytes)+",\"state\":"+std::to_string(state)+",\"win32_error\":"+std::to_string(wts_error));
     if(state!=WTSActive)return guard_reject(s,90,"own_WTS_session_not_active");
     const auto package=read(input/L"manifest.json",256*1024);
-    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly")||portable_field(package,"guest_suite")!=s.suite)
+    if((s.suite!="Full"&&s.suite!="IndependentEntry"&&s.suite!="SettingsDiagnostic"&&s.suite!="CoreAndApplications"&&s.suite!="ApplicationsOnly"&&s.suite!="EntryAndSettings"&&s.suite!="OwnedComponentsOnly"&&s.suite!="InterruptionOnly"&&s.suite!="FiniteSessionOnly"&&s.suite!="GroupBoundsOnly"&&s.suite!="NativeClientsOnly"&&s.suite!="StretchModesOnly"&&s.suite!="PauseRoutingOnly"&&s.suite!="OwnedRulesOnly"&&s.suite!="StretchInputOnly"&&s.suite!="StretchBoundaryOnly"&&s.suite!="ExitRecoveryOnly"&&s.suite!="TrayReadinessOnly"&&s.suite!="GeometryHistoryOnly"&&s.suite!="VisualOwnershipOnly"&&s.suite!="ResizeMagnetOnly"&&s.suite!="FixedAndTerminalOnly"&&s.suite!="MappingRemainderOnly"&&s.suite!="HotkeyRemainderOnly"&&s.suite!="MotionGuardOnly"&&s.suite!="CornerInputOnly"&&s.suite!="PortableEntryOnly"&&s.suite!="RemainingMoveContractsOnly"&&s.suite!="RecoveryContractsOnly")||portable_field(package,"guest_suite")!=s.suite)
         return guard_reject(s,104,"fixture_suite_manifest_mismatch");
     s.log.emit("guard_suite","\"requested_suite\":"+quote(s.suite)+",\"readonly_manifest_exact_match\":true,\"input_sent\":false");
     // The bootstrap verifies immutable per-file hashes before creating this
@@ -3959,7 +3976,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int){
         else if(name==L"--product"){field=4;s.input_product=args[n+1];}else if(name==L"--suite"){field=8;
             const std::wstring_view value(args[n+1]);if(value==L"Full")s.suite="Full";else if(value==L"IndependentEntry")s.suite="IndependentEntry";
             else if(value==L"SettingsDiagnostic")s.suite="SettingsDiagnostic";
-            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else if(value==L"MotionGuardOnly")s.suite="MotionGuardOnly";else if(value==L"CornerInputOnly")s.suite="CornerInputOnly";else if(value==L"PortableEntryOnly")s.suite="PortableEntryOnly";else if(value==L"RemainingMoveContractsOnly")s.suite="RemainingMoveContractsOnly";else parsed=false;}
+            else if(value==L"CoreAndApplications")s.suite="CoreAndApplications";else if(value==L"ApplicationsOnly")s.suite="ApplicationsOnly";else if(value==L"EntryAndSettings")s.suite="EntryAndSettings";else if(value==L"OwnedComponentsOnly")s.suite="OwnedComponentsOnly";else if(value==L"InterruptionOnly")s.suite="InterruptionOnly";else if(value==L"FiniteSessionOnly")s.suite="FiniteSessionOnly";else if(value==L"GroupBoundsOnly")s.suite="GroupBoundsOnly";else if(value==L"NativeClientsOnly")s.suite="NativeClientsOnly";else if(value==L"StretchModesOnly")s.suite="StretchModesOnly";else if(value==L"PauseRoutingOnly")s.suite="PauseRoutingOnly";else if(value==L"OwnedRulesOnly")s.suite="OwnedRulesOnly";else if(value==L"StretchInputOnly")s.suite="StretchInputOnly";else if(value==L"StretchBoundaryOnly")s.suite="StretchBoundaryOnly";else if(value==L"ExitRecoveryOnly")s.suite="ExitRecoveryOnly";else if(value==L"TrayReadinessOnly")s.suite="TrayReadinessOnly";else if(value==L"GeometryHistoryOnly")s.suite="GeometryHistoryOnly";else if(value==L"VisualOwnershipOnly")s.suite="VisualOwnershipOnly";else if(value==L"ResizeMagnetOnly")s.suite="ResizeMagnetOnly";else if(value==L"FixedAndTerminalOnly")s.suite="FixedAndTerminalOnly";else if(value==L"MappingRemainderOnly")s.suite="MappingRemainderOnly";else if(value==L"HotkeyRemainderOnly")s.suite="HotkeyRemainderOnly";else if(value==L"MotionGuardOnly")s.suite="MotionGuardOnly";else if(value==L"CornerInputOnly")s.suite="CornerInputOnly";else if(value==L"PortableEntryOnly")s.suite="PortableEntryOnly";else if(value==L"RemainingMoveContractsOnly")s.suite="RemainingMoveContractsOnly";else if(value==L"RecoveryContractsOnly")s.suite="RecoveryContractsOnly";else parsed=false;}
         else parsed=false;if(field&&(seen&field))parsed=false;seen|=field;}
     parsed=parsed&&(seen&7)==7&&(count==7?seen==7:seen==15);
     LocalFree(args);if(!parsed)return 78;

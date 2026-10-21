@@ -1,5 +1,43 @@
 # Source Provenance Register
 
+## V1 native application initialization contrast — 2026-10-21
+
+Actual `fe0e2b7191134dc7a3dad634b8b0c983` ran with the PaneBind product
+not started: Terminal's screen showed launch status `0xd0000022`, its exact
+root closed, while Edge's click focus succeeded without the offline page's
+DOM effect and its normal root close was not confirmed. Later `dfdd` paused
+enhancements but retained hooks; it is not a product-absent control. Neither
+record proves a unique system cause. Existing Terminal drag-band/issue8795 /
+PR11680 research is reused; no new movement or product input mechanism enters.
+
+Inspected mature official Microsoft Terminal tag `v1.25.2733.0`:
+[ConptyConnection.cpp](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/src/cascadia/TerminalConnection/ConptyConnection.cpp),
+[winconpty.cpp](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/src/winconpty/winconpty.cpp)
+and [LICENSE](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/LICENSE)
+(MIT). The connection creates a pseudoconsole before launching the client; its
+catch formats failures from multiple initialization stages into the same launch
+message. The displayed status alone does not identify the failing API or prove
+that cmd ran. A direct no-console cmd receipt therefore distinguishes a narrower
+launch path, not a strict all-variables-equal Terminal or pseudoconsole control.
+No upstream implementation copied, adapted, translated or redistributed; no new
+dependency, license or attribution obligation. A failed attempt to fetch another
+source file is not counted as an inspected source.
+
+Rechecked official live [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw),
+[creation flags](https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags),
+[GetWindowTextW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowtextw)
+and [SendMessageTimeoutW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagetimeoutw).
+The child uses the caller's security context and an explicitly supplied working
+directory; `CREATE_NO_WINDOW` supplies no console handle. A cross-process caption
+read is not remote edit-control text. A zero timed-message result with unchanged
+zero LastError is generic failure, not proof of a specific timeout cause. The
+minimal TEST-only addition retains the actual API results, child SID/session /
+Medium observations and a new RunId receipt. Edge must first expose the known
+local page title before an actual client click is attempted. It changes no Edge
+startup/security switches, product code, token, environment or host settings.
+Native initialization/client/close results still require the guarded guest run;
+static wiring checks and a shell receipt do not award an application PASS.
+
 ## V1 finite guest schedule: timer signal is not a QPC deadline — 2026-10-17
 
 Actual `e7e07758db0e4a3a9f3f32be28aa0a8c` completed 20 mixed action slots,

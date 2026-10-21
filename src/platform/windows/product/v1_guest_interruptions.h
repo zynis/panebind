@@ -73,6 +73,181 @@ void interruption_recovery(State& s,LayoutFixtures& set,std::uint64_t retired){
     const auto hit=WindowFromPoint(point);if(!hit||GetAncestor(hit,GA_ROOT)!=h)throw std::runtime_error("I08_recovery_exact_client_hit_not_observed");
     interruption_idle(s,set,true);
 }
+// Two finite, guest-only checks for the remaining concrete recovery branches.
+// They reuse this product instance, its public commands and real input. Neither
+// a successful message send nor an async button bit is a delivery receipt.
+void recovery_contract_scope(State& s){
+    if(s.suite!="RecoveryContractsOnly"||!desktop()||s.left||s.control||
+        (GetAsyncKeyState(VK_LBUTTON)&0x8000)||(GetAsyncKeyState(VK_MBUTTON)&0x8000)||
+        !chain_settings(s).enabled)throw std::runtime_error("recovery_exact_released_enabled_guest_required");
+}
+std::string recovery_button_admission(State& s,std::size_t mark,std::uint64_t qpc,
+    unsigned button_value,std::string_view kind){
+    namespace e=product::guest::up_evidence_detail;
+    std::istringstream rows(product_log_since(s,mark));std::string row;
+    while(std::getline(rows,row))if(e::quoted(row,"\"type\":","button_admission")&&
+        e::quoted(row,"\"source_sha\":",s.product_source)&&e::number(row,"\"process_id\":")==s.product_pid&&
+        e::number(row,"\"button\":")==button_value&&e::quoted(row,"\"kind\":",kind)&&
+        e::number(row,"\"hook_observed_qpc\":").value_or(0)>=qpc)return row;
+    return {};
+}
+std::string_view recovery_admission_state(const std::string& row,std::string_view name){
+    const auto at=row.find(name);if(at==row.npos||row.find(name,at+name.size())!=row.npos)return {};
+    const auto begin=at+name.size(),end=row.find('}',begin);
+    if(begin>=row.size()||row[begin]!='{'||end==row.npos)return {};
+    return std::string_view(row).substr(begin,end-begin+1);
+}
+void owned_revoked_pair_recovery_case(State& s){
+    namespace v=panebind::core::v1;namespace e=product::guest::up_evidence_detail;
+    recovery_contract_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    LayoutFixtures set{s};set.create();const auto work=chain_work(set.frames[0].hwnd);
+    if(work.width()<900||work.height()<650)throw std::runtime_error("revoked_pair_work_area_too_small");
+    set.setup({{work.l+220,work.t+180,work.l+700,work.t+500}});const HWND h=set.frames[0].hwnd;
+    bool middle_pending=false,up_attempted=false;
+    const auto send_middle=[&](bool pressed){
+        if(!desktop()||!set.owns(0)||GetForegroundWindow()!=h||(!pressed&&(!middle_pending||up_attempted)))
+            throw std::runtime_error("revoked_pair_single_TEST_input_context_invalid");
+        INPUT packet{};packet.type=INPUT_MOUSE;packet.mi.dwFlags=pressed?MOUSEEVENTF_MIDDLEDOWN:MOUSEEVENTF_MIDDLEUP;
+        LARGE_INTEGER before{},after{};QueryPerformanceCounter(&before);if(before.QuadPart<=0)throw std::runtime_error("revoked_pair_QPC_missing");
+        if(!pressed)up_attempted=true;UINT inserted=UINT_MAX;DWORD error{};
+        try{inject(packet,&inserted,&error);}catch(...){s.log.emit("revoked_pair_TEST_send_failure","\"requested_down\":"+
+            std::string(pressed?"true":"false")+",\"SendInput_return\":"+(inserted==UINT_MAX?"null":std::to_string(inserted))+
+            ",\"error\":"+std::to_string(error)+",\"delivery_inferred\":false");throw;}
+        QueryPerformanceCounter(&after);middle_pending=pressed;
+        s.log.emit("revoked_pair_TEST_send","\"button\":3,\"requested_down\":"+std::string(pressed?"true":"false")+
+            ",\"send_before_qpc\":"+std::to_string(before.QuadPart)+",\"send_after_qpc\":"+std::to_string(after.QuadPart)+
+            ",\"SendInput_return\":"+std::to_string(inserted)+",\"delivery_inferred\":false,\"intentional_second_DOWN_without_old_UP\":true");
+        return static_cast<std::uint64_t>(before.QuadPart);
+    };
+    try{
+        // A real mapped non-left press exercises the production non-capture
+        // pair. Its public Pause revokes authority while that old UP is absent.
+        chain_gui_save_mouse(s,{{0,3,1,0,v::Action::MoveRight}});chain_front(set,0);
+        const auto point=layout_hit(set,0,HTCAPTION);if(!point)throw std::runtime_error("revoked_pair_caption_unknown");
+        const auto geometry=visible(h);if(!geometry)throw std::runtime_error("revoked_pair_initial_geometry_unknown");
+        const auto mark=read_product(s).size();cursor(s,*point);std::string prepared;
+        // The existing stretch readiness helper deliberately accepts only
+        // edges/corners. Read this real caption preparation directly instead.
+        const bool caption_prepared=wait([&]{prepared=record(s,mark,"input_preparation");return
+            e::quoted(prepared,"\"schema\":","panebind-v1/1")&&e::quoted(prepared,"\"source_sha\":",s.product_source)&&
+            e::number(prepared,"\"process_id\":")==pid&&e::quoted(prepared,"\"reason\":","prepared_actual_source_and_hit")&&
+            e::number(prepared,"\"root\":")==reinterpret_cast<std::uintptr_t>(h)&&
+            e::number(prepared,"\"hit\":")==reinterpret_cast<std::uintptr_t>(h)&&e::number(prepared,"\"hit_pid\":")==GetCurrentProcessId()&&
+            e::number(prepared,"\"region\":")==0&&e::number(prepared,"\"actual_hit_test\":")==HTCAPTION&&
+            prepared.find("\"point\":["+std::to_string(point->x)+","+std::to_string(point->y)+"]")!=prepared.npos&&
+            set.owns(0)&&visible(h)==geometry;},3500);
+        if(!caption_prepared)
+            throw std::runtime_error("revoked_pair_actual_preparation_missing");
+        const auto old_down_qpc=send_middle(true);std::string old_down,command;
+        const bool old_observed=wait([&]{old_down=recovery_button_admission(s,mark,old_down_qpc,3,"DOWN");
+            command=record(s,mark,"mapped_command_completed");return !old_down.empty()&&!command.empty()&&
+                e::unique_value(old_down,"\"own_consume_decision\":")=="true"&&e::quoted(old_down,"\"route\":","mapped")&&
+                e::unique_value(recovery_admission_state(old_down,"\"exit_state\":"),"\"consumed\":")=="true"&&
+                e::unique_value(recovery_admission_state(old_down,"\"exit_state\":"),"\"capture_pair\":")=="false"&&
+                e::number(recovery_admission_state(old_down,"\"exit_state\":"),"\"generation\":")==number(command,"\"generation\":")&&
+                e::unique_value(command,"\"active_generation_revoke_CAS_succeeded\":")=="true";},1500);
+        s.log.check("D09_actual_old_mapped_consumed_DOWN",old_observed,
+            "\"actual_DOWN\":"+quote(old_down)+",\"actual_command\":"+quote(command)+",\"old_UP_not_sent\":true");
+        const auto old_generation=number(command,"\"generation\":");const auto pause_mark=read_product(s).size();std::string paused;
+        const bool pause_observed=launch(s,L"--pause",true)&&wait([&]{paused=record(s,pause_mark,"status");
+            return paused.find("\"enabled\":false")!=paused.npos&&paused.find("\"hook_owner_running\":true")!=paused.npos;});
+        s.log.check("D09_public_Pause_before_new_pair",pause_observed,
+            "\"actual_status\":"+quote(paused)+",\"old_UP_not_sent\":true");
+        RECT client{};if(!GetClientRect(h,&client))throw std::runtime_error("revoked_pair_client_unknown");
+        POINT center{(client.left+client.right)/2,(client.top+client.bottom)/2};
+        if(!ClientToScreen(h,&center))throw std::runtime_error("revoked_pair_client_screen_unknown");cursor(s,center);
+        if(!set.owns(0)||WindowFromPoint(center)!=h||GetForegroundWindow()!=h)throw std::runtime_error("revoked_pair_exact_client_hit_missing");
+        const auto down_count=set.frames[0].client_down[2].load(),up_count=set.frames[0].client_up[2].load();
+        const auto second_qpc=send_middle(true);std::string new_down;
+        const bool new_down_observed=wait([&]{new_down=recovery_button_admission(s,pause_mark,second_qpc,3,"DOWN");
+            const auto before=recovery_admission_state(new_down,"\"entry_state\":"),after=recovery_admission_state(new_down,"\"exit_state\":");
+            return !new_down.empty()&&e::number(before,"\"generation\":")==old_generation&&e::number(before,"\"authority\":")==0&&
+                e::unique_value(before,"\"consumed\":")=="true"&&e::unique_value(before,"\"capture_pair\":")=="false"&&
+                e::unique_value(before,"\"paused\":")=="true"&&e::unique_value(after,"\"consumed\":")=="false"&&
+                e::unique_value(new_down,"\"own_consume_decision\":")=="false"&&set.frames[0].client_down[2].load()==down_count+1;},1500);
+        s.log.check("D09_actual_new_DOWN_retires_revoked_old_pair",new_down_observed,
+            "\"actual_new_DOWN\":"+quote(new_down)+",\"client_DOWN_before\":"+std::to_string(down_count)+
+            ",\"client_DOWN_after\":"+std::to_string(set.frames[0].client_down[2].load())+",\"old_UP_still_absent\":true");
+        const auto up_qpc=send_middle(false);std::string new_up;
+        const bool new_up_observed=wait([&]{new_up=recovery_button_admission(s,pause_mark,up_qpc,3,"UP");return
+            !new_up.empty()&&e::unique_value(new_up,"\"matching_UP_branch\":")=="false"&&
+            e::unique_value(new_up,"\"own_consume_decision\":")=="false"&&
+            e::unique_value(new_up,"\"normalized_UP_push_attempted\":")=="false"&&set.frames[0].client_up[2].load()==up_count+1;},1500);
+        s.log.check("D09_actual_new_UP_not_stolen_by_retired_pair",new_up_observed,
+            "\"actual_new_UP\":"+quote(new_up)+",\"client_UP_before\":"+std::to_string(up_count)+
+            ",\"client_UP_after\":"+std::to_string(set.frames[0].client_up[2].load())+",\"one_actual_UP_after_two_test_DOWNs\":true,\"NormalUp_not_inferred\":true");
+        chain_gui_save_mouse(s,original.mouse_bindings);const auto resume_mark=read_product(s).size();
+        s.log.check("D09_resume_same_product",launch(s,L"--command Pause",true)&&wait([&]{const auto status=record(s,resume_mark,"status");
+            return status.find("\"enabled\":true")!=status.npos&&status.find("\"hook_owner_running\":true")!=status.npos;}));
+        chain_check_product(s,pid,birth);interruption_recovery(s,set,old_generation);chain_check_product(s,pid,birth);
+        chain_gui_save(s,original);s.log.check("D09_exact_fixture_cleanup",set.close());
+        s.log.emit("revoked_pair_recovery_component","\"result\":\"PASS\",\"same_product_instance\":true,\"test_button\":3,\"new_client_DOWN_UP_delivered\":true,\"following_Move_Resize_NormalUp\":true");
+    }catch(...){if(middle_pending&&!up_attempted)try{send_middle(false);}catch(...){}
+        s.log.emit("revoked_pair_failure_cleanup","\"middle_test_input_outstanding\":"+std::string(middle_pending?"true":"false")+
+            ",\"UP_already_attempted\":"+(up_attempted?"true":"false")+",\"cleanup_or_PASS_inferred\":false");throw;}
+}
+void owned_capture_loss_recovery_case(State& s){
+    namespace v=panebind::core::v1;namespace e=product::guest::up_evidence_detail;
+    recovery_contract_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
+    auto config=original;config.magnet_move=false;config.magnet_resize=false;config.docking=false;config.drag_transparency=false;config.shake=false;
+    chain_gui_save(s,config);LayoutFixtures set{s};set.create();const auto work=chain_work(set.frames[0].hwnd);
+    set.setup({{work.l+220,work.t+180,work.l+700,work.t+500}});const auto h=set.frames[0].hwnd;
+    const auto initial=visible(h);if(!initial)throw std::runtime_error("capture_loss_initial_geometry_unknown");
+    const auto g=layout_down(set,0,HTCAPTION,false);std::vector<Rect> actual{translated(*initial,35,25)};
+    layout_phase(set,0,g,35,25,actual,"D24_real_active_Move_before_capture_loss");
+    // Scan for this exact READY, not merely the latest resource fact.
+    std::string capture_ready;{std::istringstream rows(product_log_since(s,g.offset));std::string row;while(std::getline(rows,row))
+        if(e::quoted(row,"\"type\":","gesture_input_resource")&&e::quoted(row,"\"fact\":","capture_ready")&&
+           e::number(row,"\"generation\":")==g.generation&&e::number(row,"\"process_id\":")==pid&&
+           e::quoted(row,"\"source_sha\":",s.product_source))capture_ready=row;}
+    const auto overlay_value=number(capture_ready,"\"overlay\":");const HWND overlay=reinterpret_cast<HWND>(static_cast<std::uintptr_t>(overlay_value));
+    DWORD overlay_pid{};const auto overlay_tid=overlay?GetWindowThreadProcessId(overlay,&overlay_pid):0;
+    GUITHREADINFO owner{sizeof(owner)},source{sizeof(source)};
+    const bool exact=desktop()&&set.owns(0)&&GetForegroundWindow()==h&&s.left&&!s.left_up_attempted&&
+        actual_up(s,g.offset,g.generation).empty()&&IsWindow(overlay)&&overlay_pid==pid&&overlay_tid&&
+        number(capture_ready,"\"capture_owner_tid\":")==overlay_tid&&number(capture_ready,"\"source\":")==reinterpret_cast<std::uintptr_t>(h)&&
+        number(capture_ready,"\"source_pid\":")==GetCurrentProcessId()&&number(capture_ready,"\"source_tid\":")==set.thread&&
+        record(s,g.offset,"native_move_end",g.generation).empty()==false&&
+        GetGUIThreadInfo(overlay_tid,&owner)&&owner.hwndCapture==overlay&&!owner.hwndMoveSize&&!owner.hwndMenuOwner&&
+        GetGUIThreadInfo(set.thread,&source)&&source.hwndCapture==overlay&&!source.hwndMoveSize&&!source.hwndMenuOwner;
+    s.log.check("D24_exact_current_product_overlay_capture_loss_fault_scope",exact,"\"generation\":"+std::to_string(g.generation)+
+        ",\"actual_capture_ready\":"+quote(capture_ready)+",\"overlay\":"+std::to_string(overlay_value)+",\"overlay_pid\":"+
+        std::to_string(overlay_pid)+",\"overlay_tid\":"+std::to_string(overlay_tid)+",\"source_capture\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(source.hwndCapture))+",\"owner_capture\":"+
+        std::to_string(reinterpret_cast<std::uintptr_t>(owner.hwndCapture))+",\"message_sent\":false");
+    LARGE_INTEGER trigger{};if(!QueryPerformanceCounter(&trigger)||trigger.QuadPart<=0)throw std::runtime_error("capture_loss_trigger_clock_missing");
+    DWORD_PTR result{};SetLastError(0);const bool sent=SendMessageTimeoutW(overlay,WM_CANCELMODE,0,0,
+        SMTO_ABORTIFHUNG|SMTO_ERRORONEXIT,1000,&result)!=0;const auto error=sent?0:GetLastError();
+    s.log.emit("D24_exact_overlay_TEST_WM_CANCELMODE","\"generation\":"+std::to_string(g.generation)+",\"overlay\":"+
+        std::to_string(overlay_value)+",\"trigger_before_qpc\":"+std::to_string(trigger.QuadPart)+",\"send_returned\":"+(sent?"true":"false")+
+        ",\"message_result\":"+std::to_string(result)+",\"error\":"+std::to_string(error)+
+        ",\"test_called_ReleaseCapture\":false,\"capture_loss_or_cleanup_from_send_inferred\":false");
+    if(!sent)throw std::runtime_error("capture_loss_exact_overlay_fault_send_failed");
+    std::string lost,released,gone;
+    const bool observed=wait([&]{std::istringstream rows(product_log_since(s,g.offset));std::string row;
+        while(std::getline(rows,row))if(e::quoted(row,"\"type\":","gesture_input_resource")&&e::number(row,"\"generation\":")==g.generation&&
+            e::number(row,"\"process_id\":")==pid&&e::quoted(row,"\"source_sha\":",s.product_source)&&e::number(row,"\"overlay\":")==overlay_value){
+            if(e::quoted(row,"\"fact\":","capture_lost"))lost=row;
+            if(e::quoted(row,"\"fact\":","capture_released"))released=row;
+            if(e::quoted(row,"\"fact\":","isolation_gone"))gone=row;}
+        return !lost.empty()&&!released.empty()&&!gone.empty()&&e::number(lost,"\"resource_observed_qpc\":").value_or(0)>=static_cast<std::uint64_t>(trigger.QuadPart)&&
+            e::unique_value(released,"\"capture_owner_observation_known\":")=="true"&&
+            e::number(released,"\"capture_release_before_HWND\":")==0&&e::unique_value(released,"\"release_attempted\":")=="false"&&
+            e::unique_value(released,"\"capture_release_after_is_copied_no_call\":")=="true"&&e::number(released,"\"capture_after_release\":")==0&&
+            e::unique_value(gone,"\"overlay_destroyed\":")=="true"&&e::unique_value(gone,"\"hotkey_unregistered\":")=="true"&&
+            e::unique_value(gone,"\"detach_succeeded\":")=="true"&&e::number(gone,"\"removal_reason\":").value_or(0)!=0;},2000);
+    s.log.check("D24_actual_capture_loss_no_own_release_detach_Gone",observed,"\"generation\":"+std::to_string(g.generation)+
+        ",\"actual_capture_lost\":"+quote(lost)+",\"actual_no_own_capture_observation\":"+quote(released)+",\"actual_Gone\":"+quote(gone)+
+        ",\"Raw_or_legacy_UP_not_inferred\":true");
+    interruption_end(s,g,v::End::SourceLost,false,h);cursor(s,{g.anchor.x+70,g.anchor.y+80});
+    button(s,false);const auto abort_up=abort_cleanup_up_receipt(s,g.offset,g.generation);
+    s.log.check("D24_matching_actual_single_abort_UP",abort_up.matched,abort_up.json()+",\"NormalUp_inferred\":false");
+    interruption_audit_calls(s,g,static_cast<std::uint64_t>(trigger.QuadPart),std::nullopt);
+    s.log.check("D24_no_post_loss_geometry_overwrite",set.owns(0)&&visible(h)==actual[0]);interruption_idle(s,set,true);
+    chain_check_product(s,pid,birth);interruption_recovery(s,set,g.generation);chain_check_product(s,pid,birth);
+    chain_gui_save(s,original);s.log.check("D24_exact_fixture_cleanup",set.close());
+    s.log.emit("capture_loss_recovery_component","\"result\":\"PASS\",\"actual_no_own_abort_cleanup\":true,\"same_product_instance\":true,\"following_Move_Resize_NormalUp\":true,\"capture_reacquired_by_test\":false");
+}
 [[maybe_unused]] void owned_interruption_cases(State& s){
     namespace v=panebind::core::v1;
     const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);

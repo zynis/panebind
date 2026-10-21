@@ -1,0 +1,156 @@
+{
+  "evidence_id": "EV-11AE-EXISTING-QPC-TIMING",
+  "kind": "READ_ONLY_REVIEW_OF_EXISTING_RUNTIME_EVIDENCE",
+  "review_date": "2026-10-21",
+  "new_runtime_execution": false,
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "configuration": "Release",
+  "scope": "Existing dedicated Sandbox runs; different guest instances/PIDs are reported separately, never treated as a common process or ordered by JSONL position across producers.",
+  "NF02_current_verdict": "FAIL_OBSERVED_CALLBACK_P99_BUDGET_NOT_MET_IN_TWO_DIAGNOSTIC_RUNS",
+  "measurement_contract": {
+    "frequency_hz": 10000000,
+    "qpc_tick_us": 0.1,
+    "callback": "InputService::mouse QPC after code<0/instance guard through its final QPC, excluding downstream CallNextHookEx and excluding recording overhead after that final QPC. Elapsed wall-clock time includes possible thread scheduling/preemption; these summaries cannot attribute a slow sample to a branch or prove its cause.",
+    "callback_distribution_limit": "Only p99 bucket and maximum were serialized. Exact callback min/median/p95/p99 and per-event sample identities are unavailable; none are invented.",
+    "callback_bucket_basis": "Frozen source src/core/v1/timing_histogram.h uses inclusive microsecond upper bounds [...,999,1000,2000,...], ceil(QPC delta * 1e6/frequency), and returns the FIRST bucket whose cumulative count reaches ceil(n*p/100). With saturation=false and a final joined producer, p99 bucket2000 therefore places the rank in (1000,2000] rounded microseconds, not merely under an uninformative upper bound. This proves failure of the <1000us target in those measured runs; it does not establish a system/root cause or a host usability verdict.",
+    "placement": "(post_observed_qpc - hook_observed_qpc)/10000 milliseconds, one sample per actual native placement. Multiple group members may share one hook timestamp and remain distinct placement samples. This is software-observed input-to-postverify, not physical input-to-display latency or the duration of every motion quantum.",
+    "native_API": "(native_after_qpc - native_before_qpc)/10000 milliseconds. API elapsed time is distinct from queue/admission/postverify time and does not prove compositor presentation.",
+    "statistics": "Arithmetic median (average of two middle values for even n); p95 uses sorted element ceil(0.95*n), 1-based. Raw QPC deltas are used for exact derived placement metrics; the existing in-product histogram rounds UP to integer microseconds and reports conservative bucket upper bounds.",
+    "excluded_from_exact_placement_distribution": "No-op/no-native receipts; unknown completion until an actual correlated completion is observed; missing/zero/reversed endpoints. Delayed completion is correlated only by the same process and call_id. No final successful sample is silently substituted for an unknown one.",
+    "timing_source_paths": [
+      "src/platform/windows/product/input_service.cpp",
+      "src/platform/windows/product/product_app.cpp",
+      "src/core/v1/timing_histogram.h"
+    ]
+  },
+  "literal_summaries": "docs/reports/v1-evidence/11ae-existing-timing-summary.jsonl",
+  "runs": [
+    {
+      "run_id": "0a66091821bf48af9075991b4f41ccf4",
+      "driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+      "existing_identity_evidence": "docs/reports/v1-evidence/0a66-remaining-move-metadata.json",
+      "raw_log": "uat/v1-control/0a66091821bf48af9075991b4f41ccf4/collection-20261021T052115748Z-d7f84e2308584677ad6ce0540eb9285f/0a66091821bf48af9075991b4f41ccf4-product-Release/panebind.log.jsonl",
+      "raw_log_sha256": "376109B82C87517ECADD423AC17D0C427D68EC3622E6EF2F4FF665C4475E2A7C",
+      "raw_log_bytes": 499407,
+      "process_id": 6336,
+      "continuous_raw_sequences": [1,443],
+      "timing_summary_sequence": 442,
+      "literal_summary_line": 1,
+      "callback": {"samples":159,"p99_rank":158,"p99_bucket_upper_us":999,"maximum_us":864,"discarded":0,"target":"PASS_MEASURED_SCOPE"},
+      "hook_to_postverify_ms": {"samples":17,"min":5.3674,"median":6.9017,"p95":10.5895,"max":10.5895,"native_fault_stall_in_these_samples":false},
+      "native_API_ms": {"samples":17,"min":0.3777,"median":0.4729,"p95":0.5950,"max":0.5950},
+      "sample_columns": ["sequence","generation","call_id","hook_observed_qpc","native_before_qpc","native_after_qpc","post_observed_qpc"],
+      "all_17_valid_native_placement_QPC_samples": [
+        [61,1,1,331262056,331311039,331315701,331323675],
+        [62,1,2,331262056,331330312,331334218,331339803],
+        [63,1,3,331262056,331346523,331350300,331355982],
+        [92,2,4,339033133,339085870,339090885,339098345],
+        [93,2,5,339033133,339105449,339110516,339117919],
+        [135,3,6,347474721,347542136,347547587,347555207],
+        [136,3,7,347474721,347564217,347569819,347580616],
+        [180,4,8,367577528,367622718,367627065,367634290],
+        [183,4,9,368834130,368882245,368887134,368893693],
+        [221,5,10,384087154,384139431,384143686,384149103],
+        [222,5,11,384087154,384155719,384160175,384165883],
+        [312,6,12,422856886,422908427,422912626,422918829],
+        [315,6,13,423978713,424022240,424026488,424032387],
+        [318,6,14,427820650,427883472,427888201,427895624],
+        [319,6,15,428933145,428990137,428996087,429003536],
+        [358,7,16,445922112,445978241,445983719,445991129],
+        [398,8,17,463214141,463265221,463270326,463276759]
+      ]
+    },
+    {
+      "run_id": "2c8dfd707f414d5394913c5f52a8c997",
+      "driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
+      "existing_identity_evidence": "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+      "raw_log": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-product-Release/panebind.log.jsonl",
+      "raw_log_sha256": "D8B82C578B4876A1901E1766F58564E363188AD16F9B8D817B9E0D0484E9D470",
+      "raw_log_bytes": 498692,
+      "process_id": 6336,
+      "same_numeric_PID_as_0a66_is_not_same_process": true,
+      "continuous_raw_sequences": [1,444],
+      "timing_summary_sequence": 443,
+      "literal_summary_line": 2,
+      "callback": {"samples":158,"p99_rank":157,"p99_rounded_us_lower_bound_exclusive":1000,"p99_bucket_upper_us":2000,"maximum_us":1139,"discarded":0,"target":"FAIL_MEASURED_SCOPE"},
+      "hook_to_postverify_ms": {"samples":17,"min":5.5744,"median":7.7735,"p95":25.2265,"max":25.2265,"native_fault_stall_in_these_samples":false},
+      "native_API_ms": {"samples":17,"min":0.4114,"median":0.4518,"p95":4.6547,"max":4.6547},
+      "sample_columns": ["sequence","generation","call_id","hook_observed_qpc","native_before_qpc","native_after_qpc","post_observed_qpc"],
+      "all_17_valid_native_placement_QPC_samples": [
+        [61,1,1,331606169,331657813,331662230,331667613],
+        [62,1,2,331606169,331673479,331677716,331683904],
+        [63,1,3,331606169,331690290,331694404,331699667],
+        [92,2,4,339935271,340069586,340081243,340096924],
+        [93,2,5,339935271,340113684,340125184,340143209],
+        [137,3,6,349744383,349900917,349947464,349974007],
+        [138,3,7,349744383,349984720,349989790,349996648],
+        [182,4,8,372837523,372915482,372919777,372926784],
+        [185,4,9,373923000,373970872,373975390,373983374],
+        [222,5,10,388336277,388393384,388397794,388404491],
+        [223,5,11,388336277,388410839,388415232,388421008],
+        [312,6,12,426832519,426889660,426894798,426901161],
+        [315,6,13,428006638,428053752,428058264,428063917],
+        [319,6,14,431454656,431504338,431509035,431515148],
+        [320,6,15,432560901,432626606,432633041,432642918],
+        [359,7,16,451770927,451829789,451834722,451841295],
+        [399,8,17,469581572,469626281,469630580,469637316]
+      ]
+    },
+    {
+      "run_id": "2432640250344564b4f2ba89287bea81",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "existing_identity_evidence": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+      "ordinary_package": {
+        "raw_log": "uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+        "raw_log_sha256": "AFCB4E96D7F90E9430F1C086C603314EE8BAFB8F635B77A47484485B7F7AA39C",
+        "raw_log_bytes": 55794,
+        "process_id":6124,"continuous_raw_sequences":[1,61],"timing_summary_sequence":60,"literal_summary_line":3,
+        "callback":{"samples":16,"p99_rank":16,"p99_bucket_upper_us":500,"maximum_us":331,"target":"PASS_SMALL_MEASURED_SCOPE"},
+        "hook_to_postverify":{"samples":2,"p95_bucket_upper_us":10000,"maximum_us":8052,"discarded":0,"min_median_exact_p95":"UNAVAILABLE_successful_placement_detail_not_logged_without_diagnostic_mode"}
+      },
+      "separate_guard_product": {
+        "raw_log":"uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-product-Release/panebind.log.jsonl",
+        "raw_log_sha256":"89220B3B6076CE64A2B9433A902238B9AC3CEA10ED79F66F980068C0F327E3BB",
+        "raw_log_bytes":21528,"process_id":6348,"timing_summary_sequence":22,"literal_summary_line":4,
+        "callback_samples":8,"callback_maximum_us":134,"placement_samples":0,
+        "scope_limit":"Not the ordinary package process; no placement latency result exists for this producer."
+      }
+    },
+    {
+      "run_id":"dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "driver_source_sha":"11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "existing_identity_evidence":"docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+      "process_id":1840,
+      "scope_limit":"Only the last Full suffix product process is retained in standalone logs (sequences143–662). This is NOT the earlier PID5264 integrated 900-second process; do not relabel it or pool the producers.",
+      "raw_logs":[
+        {"path":"uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-product-Release/panebind.log.jsonl.1","sha256":"5620346C6C0A5EF1A2B522238E164C361D17F41855CE33CED9DB86E777DCA328","bytes":524556},
+        {"path":"uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-product-Release/panebind.log.jsonl","sha256":"92967804BC05E05E60B81ECEBCCF658928D8A5C2D3CC3B87E8FC9ACE5EF1DA2C","bytes":41003}
+      ],
+      "timing_summary_sequence":661,"literal_summary_line":5,
+      "callback":{"samples":232,"p99_rank":230,"p99_rounded_us_lower_bound_exclusive":1000,"p99_bucket_upper_us":2000,"maximum_us":1660,"discarded":0,"target":"FAIL_MEASURED_SCOPE_fault_test_suffix_not_pure_normal_path"},
+      "producer_placement_summary":{"samples":32,"discarded":1,"missing_clock":1,"p95_bucket_upper_us":49999,"maximum_us":1017490,"unfinished_calls":0},
+      "recomputed_retained_placement_subset_ms":{"samples":30,"min":5.8708,"median":7.3963,"p95":30.3258,"max":1017.4899,"not_all_32_summary_samples":true},
+      "retained_sample_sequences":[161,164,165,166,167,170,171,172,173,201,204,206,207,208,211,212,213,214,317,343,423,454,486,487,523,524,556,584,615,616],
+      "explicit_fault_injection":{
+        "driver_sequence":5994,"generation":5,"test_owned_pause_ms":1000,"actual_message":"WM_WINDOWPOSCHANGING",
+        "initial_placement_sequence":310,"actual_delayed_completion_sequence":317,"call_id":33,
+        "QPC":{"hook_observed":12034346792,"native_before":12034412199,"native_after":12044455922,"post_observed":12044521691},
+        "hook_to_postverify_ms":1017.4899,"native_API_ms":1004.3723,
+        "interpretation":"The existing driver deliberately held its OWN source WndProc for1000ms. Retain this maximum as measured, but do not mislabel it an unexplained normal-path performance stall. No new write authority was granted by completion."
+      },
+      "remaining_29_retained_immediate_samples_ms":{"samples":29,"min":5.8708,"median":7.3080,"p95":11.5564,"max":30.3258,"scope_limit":"Still includes actual grid/identity-loss failure tests; not a fabricated all-normal population. This separate descriptive subset does not replace the full histogram or erase its maximum."},
+      "missing_clock_limit":"The summary reports one discarded sample. Its original endpoint is not recoverable from retained rows143–662; do not assign a cause or turn it into zero latency."
+    }
+  ],
+  "source_inspection":{
+    "no_change_to_frozen_product":true,
+    "mouse_callback_found_synchronous_disk_COM_SendMessage_or_Wait":false,
+    "actual_work":"Prepared/identity reads, bounded admission/UP snapshot publication, atomics, existing platform queries, timer cancellation and asynchronous message wake/abort requests. Final QPC excludes CallNextHookEx. Diagnostic mode also records bounded admission facts; full per-sample callback durations were not logged.",
+    "root_cause":"UNKNOWN_scheduling_preemption_and_branch_cost_not_separable_from_existing_summaries",
+    "next_action":"Keep NF02's measured callback-budget failure visible. Reuse these timing results while completing actual application/normal-exit work; in the required final current-candidate operation chain, read existing final timing_summary under the actual supported Medium environment and investigate only a sustained or reproducible budget/experience defect. No extra standalone900s, random pressure matrix, new timing framework or speculative product optimization is justified by this read-only review."
+  },
+  "whole_version_or_real_application_PASS_awarded":false,
+  "physical_display_latency":"NOT_MEASURED",
+  "human_UAT":"NOT_RUN"
+}
