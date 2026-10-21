@@ -320,9 +320,10 @@ void InputService::drain_capture_events(){
         if(!prepare_pending_.exchange(true))PostMessageW(owner_,prepare_message,0,0);
     }
 }
-bool InputService::start(HWND owner){
+bool InputService::start(HWND owner,bool diagnostic){
     if(thread_.joinable())return healthy_;
     if(!IsWindow(owner))return false;
+    button_diagnostic_=diagnostic;
     static_assert(std::atomic<std::uint64_t>::is_always_lock_free,"hook timing counters must not hide a lock");
     LARGE_INTEGER frequency{};counter_frequency_=QueryPerformanceFrequency(&frequency)&&frequency.QuadPart>0?
         static_cast<std::uint64_t>(frequency.QuadPart):0;
@@ -391,6 +392,23 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     const auto& packet=*reinterpret_cast<MSLLHOOKSTRUCT*>(param);
     const auto tick=GetTickCount64();
     const bool observed_up=up(message);MouseUpCallbackSnapshot up_observation;
+    std::optional<ButtonAdmission> admission;
+    const auto admission_state=[&]()->ButtonAdmissionState{
+        return {self->generation_,self->authorized_->load(),self->completion_->load(),
+            self->consumed_down_,self->native_move_,self->capture_pair_,self->paused_.load(),
+            self->healthy_.load(),self->available_->load(),self->aborted_,self->stop_requested_.load()};
+    };
+    if(self->button_diagnostic_&&(down(message)||observed_up)){
+        auto& facts=admission.emplace();facts.sequence=++self->button_admission_sequence_;
+        facts.hook_qpc=observed_qpc;facts.tick=tick;facts.message=static_cast<UINT>(message);
+        facts.native_time=packet.time;facts.flags=packet.flags;facts.mouse_data=packet.mouseData;
+        facts.point=packet.pt;facts.button=button(message,packet.mouseData);facts.down=down(message);
+        facts.before=admission_state();facts.active_prepared=button_prepared_facts(self->active_prepared_.get());
+    }
+    // Called only in the original short-circuit positions below. A missing
+    // foreground sample means that branch did not query it, not NULL/allowed.
+    const auto observed_foreground=[&]{const auto actual=GetForegroundWindow();
+        if(admission){admission->foreground_read=true;admission->foreground=actual;}return actual;};
     if(observed_up){
         up_observation.callback_count=++self->up_callback_count_;up_observation.hook_observed_qpc=observed_qpc;
         up_observation.button=button(message,packet.mouseData);up_observation.generation_at_entry=self->generation_;
@@ -457,13 +475,21 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
     }else if(down(message)&&!self->consumed_down_&&!self->native_move_&&!self->paused_&&self->healthy_&&self->available_->load()){
         const auto bundle=self->prepared_.load();const auto p=bundle?bundle->prepared:nullptr;
         const auto mods=modifiers();const auto b=button(message,packet.mouseData);
+        if(admission){auto& facts=*admission;facts.down_branch_entered=true;facts.cache_read=true;
+            facts.prepared=button_prepared_facts(p.get());facts.modifiers=mods;
+            facts.candidate_eligible=self->click_candidate_.eligible;facts.candidate_pressing=self->click_candidate_.pressing;
+            facts.candidate_anchor=self->click_candidate_.anchor;facts.previous_down_time=self->last_down_;
+            facts.previous_region=self->last_region_;facts.previous_button=self->last_button_;
+            facts.previous_modifiers=self->last_modifiers_;facts.previous_source_key=self->last_source_key_;
+            facts.double_click_time=self->double_click_time_;}
         // Incomplete/stale preparation passes through. Never hit-test/COM/wait in
         // this callback, and never turn an inactive-window click into activation.
         // This exact-point preparation is invalidated/rebuilt by native
         // geometry/lifecycle/foreground events, not an arbitrary hover timeout.
         // The GUI still revalidates identity and geometry before ANY write.
         if(p&&p->region>=0&&p->point.x==packet.pt.x&&p->point.y==packet.pt.y&&
-            GetForegroundWindow()==p->source.hwnd){
+            observed_foreground()==p->source.hwnd){
+            if(admission)admission->prepared_gate_passed=true;
             const auto difference_x=static_cast<std::int64_t>(packet.pt.x)-self->click_candidate_.anchor.x;
             const auto difference_y=static_cast<std::int64_t>(packet.pt.y)-self->click_candidate_.anchor.y;
             const bool double_click=self->click_candidate_.eligible&&
@@ -477,6 +503,8 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             self->click_candidate_.begin(packet.pt,b,!double_click);
             const int clicks=double_click?2:1;
             const auto route=route_down(*p,b,clicks,mods);
+            if(admission){admission->route_evaluated=true;admission->route=route.route;
+                admission->action=route.action;admission->clicks=static_cast<unsigned>(clicks);}
             if(route.route!=DownRoute::Pass&&self->next_generation_<(pending_capture_mask-1)){
                 bool routed=false;
                 self->generation_=++self->next_generation_;
@@ -519,6 +547,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                         packet.pt,self->generation_,tick,mods,b,clicks,core::v1::End::NormalUp,p,route.action,observed_qpc});
                 if(!routed){self->captured_move_.retire();self->consumed_down_=false;self->native_move_=false;self->capture_pair_=false;self->capture_pending_down_.reset();*self->authorized_=0;self->active_prepared_.reset();
                     KillTimer(self->receiver_,gesture_deadline_timer);}
+                if(admission)admission->routed=routed;
             }
         }else self->click_candidate_={};
     }else if(up(message)&&((self->capture_pair_&&(self->consumed_down_||self->native_move_)&&button(message,packet.mouseData)==self->button_)||
@@ -540,7 +569,8 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                     released.native_message_time=packet.time;released.hook_observed_qpc=observed_qpc;
                     // This actual native UP grants no normalized NormalUp or
                     // late writer permission. A short native drag stays native.
-                    self->push(std::move(released));
+                    const bool release_pushed=self->push(std::move(released));
+                    if(admission){admission->native_release_push_attempted=true;admission->native_release_push_succeeded=release_pushed;}
                     if(p->resource_requested)self->abort(core::v1::End::SourceLost);
                     else {KillTimer(self->receiver_,gesture_deadline_timer);self->native_move_=false;
                         self->capture_pair_=false;self->active_prepared_.reset();self->prepared_.store({});
@@ -555,7 +585,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
             GetAncestor(prepared->source.hwnd,GA_ROOT)==prepared->source.hwnd&&
             source_tid==prepared->source.tid&&source_pid==prepared->source.pid;
         self->active_end_=matching_up_end(self->aborted_,self->active_end_,source_current,
-            prepared&&GetForegroundWindow()==prepared->source.hwnd);
+            prepared&&observed_foreground()==prepared->source.hwnd);
         if(self->active_end_!=core::v1::End::NormalUp)self->aborted_=true;
         *self->completion_=!self->aborted_&&self->active_end_==core::v1::End::NormalUp?self->generation_:0;
         *self->authorized_=0;consume=true;KillTimer(self->receiver_,gesture_deadline_timer);
@@ -567,6 +597,12 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
         }
     }
     if(observed_up)self->up_observation_.publish(up_observation);
+    if(admission){auto& facts=*admission;facts.after=admission_state();facts.consume=consume;
+        facts.matching_up=up_observation.matching_branch_taken;facts.up_push_attempted=up_observation.push_attempted;
+        facts.up_push_succeeded=up_observation.push_succeeded;
+        if(self->button_admissions_.push(true,facts)&&!PostMessageW(self->owner_,input_message,0,0))
+            self->button_admission_wake_failures_.fetch_add(1,std::memory_order_relaxed);
+    }
     QueryPerformanceCounter(&after);
     const auto finished_qpc=after.QuadPart>0?static_cast<std::uint64_t>(after.QuadPart):0;
     self->callback_timing_.observe_qpc(observed_qpc,finished_qpc,self->counter_frequency_);

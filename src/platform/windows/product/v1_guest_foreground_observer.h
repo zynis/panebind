@@ -95,8 +95,9 @@ public:
                 const auto& known=registrations_[n];if(known.pid!=f.pid_before||known.birth!=f.birth)continue;
                 if(roles.size()>1)roles+=',';roles+=quoted(role_name(known.role));
             }
-            const bool registered=roles.size()>1;roles+=']';bool class_utf8_known{};
+            const bool registered=roles.size()>1;roles+=']';bool class_utf8_known{},image_basename_known{};
             const auto class_utf8=utf8_class(f,class_utf8_known);
+            const auto image_basename=utf8_image_basename(f,image_basename_known);
             emit("guest_foreground_observed","\"observer_slot\":"+std::to_string(drained_)+
                 ",\"event\":"+std::to_string(f.event)+",\"hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(f.hwnd))+
                 ",\"object_id\":"+std::to_string(f.object)+",\"child_id\":"+std::to_string(f.child)+
@@ -107,6 +108,11 @@ public:
                 ",\"callback_window_tid_after\":"+std::to_string(f.tid_after)+",\"callback_window_identity_stable\":"+boolean(f.window_identity_stable)+
                 ",\"callback_process_birth_known\":"+boolean(f.birth_known)+",\"callback_process_birth_filetime\":"+(f.birth_known?std::to_string(f.birth):"null")+
                 ",\"process_open_error\":"+std::to_string(f.open_error)+",\"process_birth_error\":"+std::to_string(f.birth_error)+
+                ",\"process_image_query_attempted\":"+boolean(f.image_attempted)+",\"process_image_query_return\":"+boolean(f.image_returned)+
+                ",\"process_image_query_error\":"+std::to_string(f.image_error)+",\"process_image_size_returned\":"+std::to_string(f.image_length)+
+                ",\"callback_process_image_basename_known\":"+boolean(image_basename_known)+
+                ",\"callback_process_image_basename\":"+(image_basename_known?quoted(image_basename):"null")+
+                ",\"process_full_path_logged\":false,\"basename_is_not_role_or_activation_authority\":true"+
                 ",\"process_handle_closed\":"+boolean(f.process_closed)+",\"class_query_return\":"+std::to_string(f.class_length)+
                 ",\"class_query_error\":"+std::to_string(f.class_error)+",\"class_may_be_truncated\":"+boolean(f.class_truncated)+
                 ",\"class_utf8_known\":"+boolean(class_utf8_known)+",\"callback_class\":"+(class_utf8_known?quoted(class_utf8):"null")+
@@ -135,6 +141,9 @@ private:
         HWND hwnd{},foreground_before{},foreground_after{};DWORD event{},event_tid{},native_time{},callback_tid{};LONG object{},child{};
         std::uint64_t before{},after{},birth{};DWORD pid_before{},tid_before{},pid_after{},tid_after{},open_error{},birth_error{},class_error{};
         std::array<wchar_t,256> class_name{};int class_length{};bool class_truncated{},birth_known{},window_identity_stable{},process_closed{};
+        // Private callback POD only. Never serialize this path: the driver
+        // emits just its basename, and failure remains UNKNOWN without retry.
+        std::array<wchar_t,1024> process_image{};DWORD image_length{},image_error{};bool image_attempted{},image_returned{};
     };
     struct Slot {Fact fact;std::atomic<bool> ready{};};
     struct Lifecycle {bool start{},attempted{},returned{},existing_observer{},frequency_known{};DWORD owner_tid{},call_tid{},raw_last_error{};
@@ -154,6 +163,14 @@ private:
     static std::string utf8_class(const Fact& fact,bool& known){known=false;if(fact.class_length<=0||fact.class_truncated)return {};
         std::array<char,1024> bytes{};const auto count=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,fact.class_name.data(),fact.class_length,
             bytes.data(),static_cast<int>(bytes.size()),nullptr,nullptr);known=count>0;return known?std::string(bytes.data(),static_cast<std::size_t>(count)):std::string{};}
+    static std::string utf8_image_basename(const Fact& fact,bool& known){
+        known=false;if(!fact.image_returned||!fact.image_length||fact.image_length>=fact.process_image.size())return {};
+        const std::wstring_view path(fact.process_image.data(),fact.image_length);const auto separator=path.find_last_of(L"\\/");
+        const auto name=separator==path.npos?path:path.substr(separator+1);if(name.empty())return {};
+        std::array<char,4096> bytes{};const auto count=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,name.data(),static_cast<int>(name.size()),
+            bytes.data(),static_cast<int>(bytes.size()),nullptr,nullptr);known=count>0;
+        return known?std::string(bytes.data(),static_cast<std::size_t>(count)):std::string{};
+    }
     static void CALLBACK callback(HWINEVENTHOOK hook,DWORD event,HWND hwnd,LONG object,LONG child,DWORD event_tid,DWORD native_time) noexcept {
         const DWORD saved_error=GetLastError();auto* self=active_.load(std::memory_order_acquire);
         if(!self||self->hook_!=hook||event!=EVENT_SYSTEM_FOREGROUND){SetLastError(saved_error);return;}
@@ -167,6 +184,9 @@ private:
             fact.class_error=fact.class_length?0:GetLastError();fact.class_truncated=fact.class_length>=static_cast<int>(fact.class_name.size()-1);
             if(fact.pid_before&&fact.tid_before){SetLastError(0);HANDLE process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,fact.pid_before);
                 fact.open_error=process?0:GetLastError();if(process){fact.birth_known=birth(process,fact.birth,fact.birth_error);
+                    fact.image_attempted=true;fact.image_length=static_cast<DWORD>(fact.process_image.size());SetLastError(0);
+                    fact.image_returned=QueryFullProcessImageNameW(process,0,fact.process_image.data(),&fact.image_length)!=FALSE;
+                    fact.image_error=fact.image_returned?0:GetLastError();
                     fact.process_closed=CloseHandle(process)!=FALSE;}}
             fact.tid_after=GetWindowThreadProcessId(hwnd,&fact.pid_after);
             fact.window_identity_stable=fact.pid_before&&fact.tid_before&&fact.pid_before==fact.pid_after&&fact.tid_before==fact.tid_after;

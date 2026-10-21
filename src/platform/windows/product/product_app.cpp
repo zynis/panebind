@@ -228,6 +228,7 @@ public:
     std::optional<NativeMovePending> native_move;
     std::map<v::Key,Visual> visual;std::uint64_t operations{},native_attempts{};bool stopping{},diagnostic{},last_apply_revoked_only{};
     std::optional<v::End> last_termination;std::string last_prepare_diagnostic;
+    std::uint64_t admission_dropped_reported{},admission_wake_failures_reported{};
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
     // Keep the gesture's own original tuple, not the helper journal's older
@@ -587,7 +588,7 @@ public:
     }
     void set_paused(bool paused){
         input.pause(true);finish(v::End::Paused);
-        if(!paused){input.stop();if(!input.start(window)){notify(L"无法恢复输入资源，保持暂停。");settings.enabled=false;tray();return;}}
+        if(!paused){input.stop();if(!input.start(window,diagnostic)){notify(L"无法恢复输入资源，保持暂停。");settings.enabled=false;tray();return;}}
         input.pause(paused);auto next=settings;next.enabled=!paused;if(!save(next))settings.enabled=!paused;
         if(paused){for(auto& [key,value]:visual){(void)key;visual_restore(value);}visual.clear();}
         tray();if(!paused)prepare();log_status();
@@ -762,6 +763,7 @@ public:
     void cancel_restore_wait();
     void finish(v::End,std::uint64_t observed_qpc=0);
     void consume();
+    void drain_button_admissions(bool final=false);
     void show_settings();
     void register_keys();
     std::optional<std::vector<BoundKey>> prepare_keys(const v::Settings&);
@@ -1752,7 +1754,71 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
         if(native_move&&native_move->down.generation==e.generation)native_move.reset();
         if(gesture&&gesture->down.generation==e.generation)finish(e.end);
     }
-    }flush();
+    }flush();drain_button_admissions();
+}
+void Application::drain_button_admissions(bool final){
+    if(!diagnostic)return;
+    const auto boolean=[](bool value){return value?"true":"false";};
+    const auto handle=[](HWND value){return std::to_string(reinterpret_cast<std::uintptr_t>(value));};
+    const auto prepared=[&](const ButtonPreparedFacts& p){
+        return std::string("{\"present\":")+boolean(p.present)+",\"root\":"+handle(p.root)+
+            ",\"pid\":"+std::to_string(p.pid)+",\"tid\":"+std::to_string(p.tid)+",\"born\":"+std::to_string(p.born)+
+            ",\"key\":"+std::to_string(p.key)+",\"config_generation\":"+std::to_string(p.config_generation)+
+            ",\"point\":["+std::to_string(p.point.x)+","+std::to_string(p.point.y)+"],\"stamp\":"+std::to_string(p.stamp)+
+            ",\"region\":"+std::to_string(p.region)+",\"feature_mask\":"+std::to_string(p.feature_mask)+
+            ",\"maximized\":"+boolean(p.maximized)+",\"minimized\":"+boolean(p.minimized)+",\"can_resize\":"+boolean(p.can_resize)+"}";
+    };
+    const auto state=[&](const ButtonAdmissionState& p){
+        return std::string("{\"generation\":")+std::to_string(p.generation)+",\"authority\":"+std::to_string(p.authority)+
+            ",\"completion\":"+std::to_string(p.completion)+",\"consumed\":"+boolean(p.consumed)+
+            ",\"native_move\":"+boolean(p.native_move)+",\"capture_pair\":"+boolean(p.capture_pair)+
+            ",\"paused\":"+boolean(p.paused)+",\"healthy\":"+boolean(p.healthy)+",\"available\":"+boolean(p.available)+
+            ",\"aborted\":"+boolean(p.aborted)+",\"stop_requested\":"+boolean(p.stop_requested)+"}";
+    };
+    ButtonAdmission row;
+    for(unsigned n=0;n<ButtonAdmissionQueue::capacity&&input.pop_button_admission(row);++n){
+        const char* route=!row.route_evaluated?"not_evaluated":row.route==DownRoute::Gesture?"gesture":row.route==DownRoute::Mapped?"mapped":"pass";
+        log.event("button_admission","\"callback_sequence\":"+std::to_string(row.sequence)+
+            ",\"kind\":\""+(row.down?"DOWN":"UP")+"\",\"native_message\":"+std::to_string(row.message)+
+            ",\"native_time\":"+std::to_string(row.native_time)+",\"hook_observed_qpc\":"+std::to_string(row.hook_qpc)+
+            ",\"callback_tick\":"+std::to_string(row.tick)+",\"point\":["+std::to_string(row.point.x)+","+std::to_string(row.point.y)+"]"+
+            ",\"button\":"+std::to_string(row.button)+",\"packet_flags\":"+std::to_string(row.flags)+",\"mouse_data\":"+std::to_string(row.mouse_data)+
+            ",\"entry_state\":"+state(row.before)+",\"exit_state\":"+state(row.after)+
+            ",\"down_branch_entered\":"+boolean(row.down_branch_entered)+",\"cache_read_by_DOWN_branch\":"+boolean(row.cache_read)+
+            ",\"DOWN_branch_prepared\":"+(row.cache_read?prepared(row.prepared):"null")+
+            ",\"entry_active_pair_prepared\":"+prepared(row.active_prepared)+
+            ",\"prepared_gate_passed\":"+(row.down_branch_entered?boolean(row.prepared_gate_passed):"null")+
+            ",\"foreground_read_by_existing_branch\":"+boolean(row.foreground_read)+
+            ",\"foreground\":"+(row.foreground_read?handle(row.foreground):"null")+
+            ",\"route\":\""+route+"\",\"route_evaluated\":"+boolean(row.route_evaluated)+
+            ",\"action\":"+(row.route_evaluated?"\""+std::string(v::action_name(row.action))+"\"":"null")+
+            ",\"modifiers\":"+(row.down_branch_entered?std::to_string(row.modifiers):"null")+
+            ",\"clicks\":"+(row.route_evaluated?std::to_string(row.clicks):"null")+
+            ",\"dispatch_routed\":"+(row.route_evaluated?boolean(row.routed):"null")+",\"own_consume_decision\":"+boolean(row.consume)+
+            ",\"click_candidate_sampled_at_DOWN_gate\":"+boolean(row.down_branch_entered)+
+            ",\"candidate_eligible\":"+(row.down_branch_entered?boolean(row.candidate_eligible):"null")+
+            ",\"candidate_pressing\":"+(row.down_branch_entered?boolean(row.candidate_pressing):"null")+
+            ",\"candidate_anchor\":"+(row.down_branch_entered?"["+std::to_string(row.candidate_anchor.x)+","+std::to_string(row.candidate_anchor.y)+"]":"null")+
+            ",\"previous_DOWN_native_time\":"+(row.down_branch_entered?std::to_string(row.previous_down_time):"null")+
+            ",\"previous_source_key\":"+(row.down_branch_entered?std::to_string(row.previous_source_key):"null")+
+            ",\"previous_region\":"+(row.down_branch_entered?std::to_string(row.previous_region):"null")+
+            ",\"previous_button\":"+(row.down_branch_entered?std::to_string(row.previous_button):"null")+
+            ",\"previous_modifiers\":"+(row.down_branch_entered?std::to_string(row.previous_modifiers):"null")+
+            ",\"system_double_click_time_ms\":"+(row.down_branch_entered?std::to_string(row.double_click_time):"null")+
+            ",\"matching_UP_branch\":"+(row.down?"null":boolean(row.matching_up))+
+            ",\"normalized_UP_push_attempted\":"+(row.down?"null":boolean(row.up_push_attempted))+
+            ",\"normalized_UP_push_succeeded\":"+(row.up_push_attempted?boolean(row.up_push_succeeded):"null")+
+            ",\"native_release_push_attempted\":"+(row.down?"null":boolean(row.native_release_push_attempted))+
+            ",\"native_release_push_succeeded\":"+(row.native_release_push_attempted?boolean(row.native_release_push_succeeded):"null")+
+            ",\"observation_not_atomic_or_write_authority\":true,\"unobserved_rejection_reason\":\"UNKNOWN\",\"GUI_log_order_not_native_total_order\":true");
+    }
+    const auto dropped=input.button_admission_dropped(),wake_failed=input.button_admission_wake_failures();
+    if(final||dropped!=admission_dropped_reported||wake_failed!=admission_wake_failures_reported){
+        log.event("button_admission_queue","\"capacity\":64,\"dropped\":"+std::to_string(dropped)+
+            ",\"wake_failures\":"+std::to_string(wake_failed)+",\"producer_joined\":"+boolean(final)+
+            ",\"diagnostic_loss_does_not_revoke_input\":true,\"missing_facts_are_UNKNOWN\":true");
+        admission_dropped_reported=dropped;admission_wake_failures_reported=wake_failed;
+    }
 }
 void Application::discard_new_keys(const std::vector<BoundKey>& next){
     for(const auto& item:next)if(std::none_of(bound_keys.begin(),bound_keys.end(),[&](const auto& old){return old.id==item.id;}))
@@ -1804,7 +1870,7 @@ void Application::show_settings(){
         if(!save(value)){discard_new_keys(*keys);if(value.startup!=previous.startup)set_startup(previous.startup);return false;}
         commit_keys(std::move(*keys));
         if(value.enabled&&!previous.enabled){
-            input.stop();if(!input.start(window)){settings.enabled=false;input.pause(true);notify(L"配置已保存，但输入资源恢复失败；当前保持暂停。");tray();return true;}
+            input.stop();if(!input.start(window,diagnostic)){settings.enabled=false;input.pause(true);notify(L"配置已保存，但输入资源恢复失败；当前保持暂停。");tray();return true;}
         }
         if(withdraw||value.enabled!=previous.enabled)input.pause(!settings.enabled);
         tray();prepare();return true;
@@ -1863,6 +1929,7 @@ void Application::menu(){POINT pt{};GetCursorPos(&pt);HMENU popup=CreatePopupMen
     SetForegroundWindow(window);TrackPopupMenu(popup,TPM_RIGHTBUTTON,pt.x,pt.y,0,window,nullptr);PostMessageW(window,WM_NULL,0,0);DestroyMenu(popup);
 }
 void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
+    drain_button_admissions(true);
     log_delayed_completions();
     const auto timing_fields=[](const v::TimingSnapshot& value,unsigned percentile){
         const auto upper=value.percentile_upper_us(percentile);
@@ -2106,7 +2173,7 @@ int run(HINSTANCE instance,const wchar_t*){
         app.writer.notify_on_completion(app.window);
         app.overlay=CreateWindowExW(WS_EX_LAYERED|WS_EX_TRANSPARENT|WS_EX_NOACTIVATE|WS_EX_TOOLWINDOW,ow.lpszClassName,L"",WS_POPUP,0,0,0,0,nullptr,nullptr,instance,nullptr);
         app.taskbar_created=RegisterWindowMessageW(L"TaskbarCreated");create_tray(app);WTSRegisterSessionNotification(app.window,NOTIFY_FOR_THIS_SESSION);
-        if(!app.input.start(app.window)){app.settings.enabled=false;app.notify(L"输入资源或紧急热键初始化失败，增强保持暂停。");}
+        if(!app.input.start(app.window,app.diagnostic)){app.settings.enabled=false;app.notify(L"输入资源或紧急热键初始化失败，增强保持暂停。");}
         app.input.pause(!app.settings.enabled);app.register_keys();app.prepare();
         app.log.event("startup","\"entry\":\"production_gui\",\"integrity\":\"medium\",\"elevated\":false,\"initiator\":\"not_collected\"");
         app.log.event("input_route","\"guest_consumed_down_capture\":"+std::string(app.input.capture_route_is_guest()?"true":"false")+

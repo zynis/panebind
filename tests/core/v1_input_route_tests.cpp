@@ -27,6 +27,47 @@ int main() {
     native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
     native_down.source.work={0,0,1920,1080};native_down.region=0;
     product::prepare_mappings(native_down,v1::default_settings());
+    auto diagnostic_prepared=native_down;diagnostic_prepared.point={19,23};diagnostic_prepared.stamp=29;
+    diagnostic_prepared.config_generation=37;diagnostic_prepared.region=8;
+    diagnostic_prepared.source.feature_mask=13;diagnostic_prepared.source.can_resize=true;
+    const auto copied=product::button_prepared_facts(&diagnostic_prepared);
+    check(copied.present&&copied.root==diagnostic_prepared.source.hwnd&&copied.pid==21&&copied.tid==31&&
+          copied.key==41&&copied.born==51&&copied.point.x==19&&copied.point.y==23&&copied.stamp==29&&
+          copied.config_generation==37&&copied.region==8&&copied.feature_mask==13&&copied.can_resize,
+          "button admission copies the actual cache identity and qualification fields without native queries");
+    const auto absent=product::button_prepared_facts(nullptr);
+    check(!absent.present&&!absent.root&&!absent.key&&absent.region==-1,
+          "an actually read null Prepared is distinct from a qualified source");
+    product::ButtonAdmissionQueue admission_queue;product::ButtonAdmission admission,received;
+    admission.prepared=copied;admission.cache_read=true;admission.before.generation=7;admission.before.authority=7;
+    check(!admission_queue.push(false,admission)&&!admission_queue.pop(received)&&admission_queue.dropped()==0,
+          "ordinary-mode disabled admission recording publishes nothing and records no false loss");
+    bool filled=true;for(unsigned n=0;n<product::ButtonAdmissionQueue::capacity;++n){
+        admission.sequence=n+1;filled=admission_queue.push(true,admission)&&filled;
+    }
+    admission.sequence=65;admission.before.authority=0;
+    check(filled&&!admission_queue.push(true,admission)&&admission_queue.dropped()==1,
+          "all 64 diagnostic slots are usable and overflow is counted independently");
+    bool ordered=true;for(unsigned n=0;n<product::ButtonAdmissionQueue::capacity;++n){
+        const bool read=admission_queue.pop(received);ordered=read&&received.sequence==n+1&&
+            received.before.authority==7&&received.prepared.key==41&&ordered;
+    }
+    check(ordered&&!admission_queue.pop(received),
+          "diagnostic overflow does not overwrite queued identity, authority observations or callback order");
+    filled=true;ordered=true;for(unsigned n=0;n<product::ButtonAdmissionQueue::capacity;++n){
+        admission.sequence=101+n;filled=admission_queue.push(true,admission)&&filled;
+    }
+    for(unsigned n=0;n<product::ButtonAdmissionQueue::capacity;++n)
+        ordered=admission_queue.pop(received)&&received.sequence==101+n&&ordered;
+    check(filled&&ordered&&admission_queue.dropped()==1&&!admission_queue.pop(received),
+          "the same production diagnostic queue wraps without losing or duplicating accepted facts");
+    const product::ButtonAdmission unexamined;
+    check(!unexamined.cache_read&&!unexamined.route_evaluated&&!unexamined.foreground_read&&
+          !unexamined.matching_up&&!unexamined.up_push_attempted,
+          "default route and zero values remain explicitly unexamined rather than admission evidence");
+    check(product::route_down(native_down,1,1,0).route==product::DownRoute::Gesture&&native_down.region==0&&
+          diagnostic_prepared.source.key==copied.key&&diagnostic_prepared.region==copied.region,
+          "diagnostic copy and queue operations do not mutate the existing production route inputs");
     const auto plain=product::route_down(native_down,1,1,0);
     check(product::native_plain_move_entry(true,native_down,1,1,0,plain)&&
           !product::native_plain_move_entry(false,native_down,1,1,0,plain)&&

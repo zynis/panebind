@@ -8,6 +8,7 @@
 #include <limits>
 #include <memory>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 namespace panebind::platform::windows::product {
@@ -367,11 +368,63 @@ private:
     // sequence and payload words; a relaxed multiword read is not substituted.
     std::atomic<std::uint64_t> sequence_{},count_{},qpc_{},generation_{},details_{};
 };
+// Diagnostic-only copies of the immutable cache actually read by the DOWN
+// branch. No native identity query, qualification or write permission is added.
+struct ButtonPreparedFacts {
+    bool present{};HWND root{};DWORD pid{},tid{},stamp{};
+    std::uint64_t born{},key{},config_generation{};POINT point{};int region{-1};
+    std::uint32_t feature_mask{};bool maximized{},minimized{},can_resize{};
+};
+inline ButtonPreparedFacts button_prepared_facts(const Prepared* p)noexcept{
+    if(!p)return {};
+    return {true,p->source.hwnd,p->source.pid,p->source.tid,p->stamp,p->source.born,p->source.key,
+        p->config_generation,p->point,p->region,p->source.feature_mask,
+        p->source.maximized,p->source.minimized,p->source.can_resize};
+}
+struct ButtonAdmissionState {
+    std::uint64_t generation{},authority{},completion{};
+    bool consumed{},native_move{},capture_pair{},paused{},healthy{},available{},aborted{},stop_requested{};
+};
+struct ButtonAdmission {
+    std::uint64_t sequence{},hook_qpc{},tick{};UINT message{};DWORD native_time{},flags{},mouse_data{};
+    POINT point{};int button{};bool down{};
+    ButtonAdmissionState before,after;ButtonPreparedFacts prepared,active_prepared;
+    bool cache_read{},down_branch_entered{},prepared_gate_passed{},foreground_read{},route_evaluated{};
+    HWND foreground{};DownRoute route{DownRoute::Pass};core::v1::Action action{core::v1::Action::None};
+    unsigned modifiers{},clicks{};bool routed{},consume{};
+    bool candidate_eligible{},candidate_pressing{};POINT candidate_anchor{};
+    DWORD previous_down_time{};std::uint64_t previous_source_key{};
+    int previous_region{-1},previous_button{};unsigned previous_modifiers{},double_click_time{};
+    bool matching_up{},up_push_attempted{},up_push_succeeded{};
+    bool native_release_push_attempted{},native_release_push_succeeded{};
+};
+static_assert(std::is_trivially_copyable_v<ButtonAdmission>);
+// Separate 64-slot SPSC: a diagnostic loss must never fail the input queue,
+// revoke authority or overwrite unread facts. Only the hook owner publishes.
+class ButtonAdmissionQueue {
+public:
+    static constexpr unsigned capacity=64;
+    bool push(bool enabled,const ButtonAdmission& value)noexcept{
+        if(!enabled)return false;
+        const auto w=write_.load(std::memory_order_relaxed);
+        if(w-read_.load(std::memory_order_acquire)>=capacity){dropped_.fetch_add(1,std::memory_order_relaxed);return false;}
+        rows_[w%capacity]=value;write_.store(w+1,std::memory_order_release);return true;
+    }
+    bool pop(ButtonAdmission& value)noexcept{
+        const auto r=read_.load(std::memory_order_relaxed);
+        if(r==write_.load(std::memory_order_acquire))return false;
+        value=rows_[r%capacity];read_.store(r+1,std::memory_order_release);return true;
+    }
+    std::uint64_t dropped()const noexcept{return dropped_.load(std::memory_order_relaxed);}
+private:
+    std::array<ButtonAdmission,capacity> rows_{};
+    std::atomic<unsigned> read_{},write_{};std::atomic<std::uint64_t> dropped_{};
+};
 // Dedicated message owner. No COM, file IO, cross-process messaging or geometry
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
 class InputService {
 public:
-    bool start(HWND owner);
+    bool start(HWND owner,bool diagnostic=false);
     void stop();
     ~InputService(){stop();}
     void prepare(std::shared_ptr<const Prepared> value);
@@ -433,6 +486,9 @@ public:
     std::uint64_t counter_frequency()const{return counter_frequency_;}
     std::uint64_t emergency_hotkey_messages()const{return emergency_hotkey_messages_;}
     MouseUpCallbackSnapshot mouse_up_callbacks()const{return up_observation_.snapshot();}
+    bool pop_button_admission(ButtonAdmission& value){return button_admissions_.pop(value);}
+    std::uint64_t button_admission_dropped()const{return button_admissions_.dropped();}
+    std::uint64_t button_admission_wake_failures()const{return button_admission_wake_failures_.load();}
     GestureCaptureLease capture_context(std::uint64_t generation)const;
     bool native_move_pending(std::uint64_t generation)const;
     bool native_move_in_progress()const;
@@ -470,6 +526,8 @@ private:
     std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
     std::uint64_t counter_frequency_{};
     std::uint64_t up_callback_count_{};MouseUpCallbackObservation up_observation_;
+    bool button_diagnostic_{};std::uint64_t button_admission_sequence_{};
+    ButtonAdmissionQueue button_admissions_;std::atomic<std::uint64_t> button_admission_wake_failures_{};
     core::v1::TimingHistogram callback_timing_;
     std::atomic<std::shared_ptr<const PreparedBundle>> prepared_;
     std::array<InputEvent,256> queue_{};
