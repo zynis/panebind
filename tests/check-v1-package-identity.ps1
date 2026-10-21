@@ -302,7 +302,7 @@ function Assert-V1OwnedRuleTargetWiring([string]$Source,[string]$Layouts,[string
     if(-not $owns.Contains('index==1&&!storage.target1_alias.empty()?storage.target1_alias:storage.class_name') -or
        -not $owns.Contains('pid==GetCurrentProcessId()') -or
        -not $owns.Contains('GetWindowLongPtrW(frame.hwnd,GWLP_USERDATA)==reinterpret_cast<LONG_PTR>(&frame)') -or
-       -not $Layouts.Contains('state.suite!="OwnedRulesOnly"||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run') -or
+       -not $Layouts.Contains('(state.suite!="OwnedRulesOnly"&&state.suite!="RemainingMoveContractsOnly")||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run') -or
        -not $Layouts.Contains('storage->target1_alias=storage->class_name+L".StretchRuleTarget";') -or
        -not $Layouts.Contains('original.lpfnWndProc!=procedure||original.hInstance!=storage->instance') -or
        -not $Layouts.Contains('storage->alias_registered=RegisterClassExW(&original)!=0;') -or
@@ -335,6 +335,20 @@ function Assert-V1OwnedRuleTargetWiring([string]$Source,[string]$Layouts,[string
 }
 $fixturePath='src/platform/windows/product/v1_guest_fixture.cpp'
 $fixtureSource=[IO.File]::ReadAllText((Join-Path $repository $fixturePath),[Text.Encoding]::UTF8)
+function Assert-V1RemainingMoveScope([string]$Source) {
+    $route=[regex]::Match($Source,'(?s)if\(s\.suite=="RemainingMoveContractsOnly"\)\{(?<body>.*?)\n    \}')
+    if(-not $route.Success){throw 'Remaining move-contract entry is missing.'}
+    $body=$route.Groups['body'].Value
+    if(-not $body.Contains('phase("remaining_group_membership",owned_remaining_group_membership_case);') -or
+       -not $body.Contains('phase("remaining_magnet_policy",owned_remaining_magnet_policy_case);') -or
+       -not $body.Contains('cleanup(s);') -or -not $body.Contains('return;') -or
+       $body -match 'owned_finite_I11|owned_mouse_mapping|owned_settings|explorer_flow|applications_flow'){
+        throw 'The remaining move-contract route must execute both real components and cleanup without unrelated suites.'
+    }
+}
+Assert-V1RemainingMoveScope $fixtureSource
+Check $true 'static remaining move entry calls both actual components, cleans up and returns without repeating old suites'
+Reject {Assert-V1RemainingMoveScope ($fixtureSource.Replace('phase("remaining_group_membership",owned_remaining_group_membership_case);',''))} 'remaining move entry cannot silently omit dynamic-member functionality'
 Assert-V1NativeClientPreflightWiring $fixtureSource
 Check $true 'static driver wiring: every application native preflight precedes product cases and preserves exact HTCLIENT gates'
 $layoutSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_layout_cases.h'),[Text.Encoding]::UTF8)

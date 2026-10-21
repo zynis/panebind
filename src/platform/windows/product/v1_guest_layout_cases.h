@@ -191,7 +191,7 @@ struct LayoutFixtures {
     void create(bool target1_rule_alias=false){
         if(!state.process||WaitForSingleObject(state.process,0)!=WAIT_TIMEOUT)throw std::runtime_error("layout_product_not_running");
         if(target1_rule_alias){
-            if(state.suite!="OwnedRulesOnly"||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run||!storage->target1_alias.empty())
+            if((state.suite!="OwnedRulesOnly"&&state.suite!="RemainingMoveContractsOnly")||storage->class_name!=L"PaneBind.V1.OwnedFixture."+state.run||!storage->target1_alias.empty())
                 throw std::runtime_error("layout_rule_alias_requires_exact_new_Run_and_suite");
             storage->target1_alias=storage->class_name+L".StretchRuleTarget";
         }
