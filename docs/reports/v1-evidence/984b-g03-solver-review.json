@@ -1,0 +1,222 @@
+{
+  "schema": "panebind-v1-offline-contract-review/1",
+  "evidence_id": "EV-984B-G03-SOLVER-ORACLES",
+  "kind": "actual_offline_execution_and_reused_native_evidence_not_new_guest_run",
+  "test_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+  "test_file": "tests/core/magnet_tests.cpp",
+  "test_file_sha256": "54BBD5394F80BF45E92A46FB2B7744FDD75912B74B4507BF33C17B04B8CB304B",
+  "source_binding": "Initial subagent builds ran at HEAD47e8563862f3b3ae6949d7bbe863d78b3206f53b with this exact pending test-file content; it was then committed unchanged at984b3c29f63c7d10d968c939de21c4d30de4e6bb. After commit, file hash and test binaries were rechecked unchanged. Do not relabel the product EXE as984b.",
+  "execution": {
+    "build_directory": "out\\v1-driver-stretch-ready-8384677",
+    "target": "panebind-magnet-tests",
+    "CTest": "magnet-constraint-solver",
+    "scope": "Only the existing offline solver target; no product target, interactive CTest, guest input, framework or stability matrix.",
+    "Debug": {
+      "build_command": "& 'D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe' --build out\\v1-driver-stretch-ready-8384677 --config Debug --target panebind-magnet-tests --parallel 1",
+      "build_exit_code": 0,
+      "test_command": "& 'D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe' --test-dir out\\v1-driver-stretch-ready-8384677 -C Debug -R '^magnet-constraint-solver$' --output-on-failure",
+      "test_exit_code": 0,
+      "tests_passed": "1/1",
+      "executable": "out/v1-driver-stretch-ready-8384677/Debug/panebind-magnet-tests.exe",
+      "executable_sha256": "A007800FAFFA40B50FD62C544D647D96AEB60B7799C67453B27CB6C971CFD1AD",
+      "direct_executable_command": "& .\\out\\v1-driver-stretch-ready-8384677\\Debug\\panebind-magnet-tests.exe",
+      "actual_output": "magnet checks=2706 failures=0"
+    },
+    "Release": {
+      "build_command": "& 'D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe' --build out\\v1-driver-stretch-ready-8384677 --config Release --target panebind-magnet-tests --parallel 1",
+      "build_exit_code": 0,
+      "test_command": "& 'D:\\Program Files\\Microsoft Visual Studio\\18\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ctest.exe' --test-dir out\\v1-driver-stretch-ready-8384677 -C Release -R '^magnet-constraint-solver$' --output-on-failure -V",
+      "test_exit_code": 0,
+      "tests_passed": "1/1",
+      "executable": "out/v1-driver-stretch-ready-8384677/Release/panebind-magnet-tests.exe",
+      "executable_sha256": "C722D164903C67FD8ABC5246691C5CE4653B7842A8EDD2927C79A7D9C007B110",
+      "actual_output": "magnet checks=2706 failures=0"
+    },
+    "root_cross_check": {
+      "source": "Parent execution confirmation, not a newly executed subagent test",
+      "after_commit_source": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "Debug": "2/2 PASS, existing guest-path and magnet tests",
+      "Release": "2/2 PASS, existing guest-path and magnet tests",
+      "exact_command": "Not reconstructed here; retained in root execution record."
+    }
+  },
+  "independent_numeric_oracles": {
+    "configuration_combined": "Existing default MagnetOptions, attraction_distance10; both selected_x and selected_y must exist.",
+    "configuration_outer_only": "Existing inner_edges=false/corners=false/parallel_edges=false with outer_edges retained. A lone inner_edges=false does NOT disable independently enabled corner/parallel same-side alignment. No nonexistent per-axis product setting is claimed.",
+    "cases": [
+      {
+        "name": "guide_G03_exact",
+        "target": [
+          600,
+          100,
+          1000,
+          500
+        ],
+        "raw": [
+          207,
+          103,
+          597,
+          403
+        ],
+        "combined_expected": [
+          210,
+          100,
+          600,
+          400
+        ],
+        "outer_only_expected": [
+          210,
+          103,
+          600,
+          403
+        ]
+      },
+      {
+        "name": "legal_negative_translation",
+        "target": [
+          -600,
+          -600,
+          -200,
+          -200
+        ],
+        "raw": [
+          -993,
+          -597,
+          -603,
+          -297
+        ],
+        "combined_expected": [
+          -990,
+          -600,
+          -600,
+          -300
+        ],
+        "outer_only_expected": [
+          -990,
+          -597,
+          -600,
+          -297
+        ]
+      },
+      {
+        "name": "quarter_turn90",
+        "target": [
+          -500,
+          600,
+          -100,
+          1000
+        ],
+        "raw": [
+          -403,
+          207,
+          -103,
+          597
+        ],
+        "combined_expected": [
+          -400,
+          210,
+          -100,
+          600
+        ],
+        "outer_only_expected": [
+          -403,
+          210,
+          -103,
+          600
+        ]
+      },
+      {
+        "name": "quarter_turn180",
+        "target": [
+          -1000,
+          -500,
+          -600,
+          -100
+        ],
+        "raw": [
+          -597,
+          -403,
+          -207,
+          -103
+        ],
+        "combined_expected": [
+          -600,
+          -400,
+          -210,
+          -100
+        ],
+        "outer_only_expected": [
+          -600,
+          -403,
+          -210,
+          -103
+        ]
+      },
+      {
+        "name": "quarter_turn270",
+        "target": [
+          100,
+          -1000,
+          500,
+          -600
+        ],
+        "raw": [
+          103,
+          -597,
+          403,
+          -207
+        ],
+        "combined_expected": [
+          100,
+          -600,
+          400,
+          -210
+        ],
+        "outer_only_expected": [
+          103,
+          -600,
+          403,
+          -210
+        ]
+      }
+    ],
+    "invariants": "Expected rectangles are written independent constants, never solver-derived. Both modes preserve raw Move width/height. Outer-only must select exactly one axis and an actual WindowOuterEdge constraint. Legal signed coordinates are not merely negative gaps or overflow rejection.",
+    "result": "PASS"
+  },
+  "shared_production_path": {
+    "solver": "src/core/geometry/magnet_constraint_solver.h::MagnetConstraintSolver::solve",
+    "actual_product_call": "src/platform/windows/product/product_app.cpp:1493-1507 builds actual target snapshots/options/intent then calls the SAME MagnetConstraintSolver::solve(request).",
+    "existing_L1_reused": "Current magnet_tests includes L inner same-side(line95), N adjacent corner-only(line98), O equal-distance stable logical-ID tie(line102), target permutation invariance(line104), overlap-priority ordering and combined XY. These existing assertions ran in the same passing executable.",
+    "no_new_production_implementation": true
+  },
+  "native_evidence_reused": [
+    {
+      "reference": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+      "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "scope": "Actual multiple-source free/XYsnap/hold/detach/resnap, exact visible geometry and matching terminal/resource receipts; historical Full/application failures retained.",
+      "source_binding": "Original11ae76a source/EXE only; no rebinding to984b test source."
+    },
+    {
+      "reference": "docs/reports/v1-evidence/0a66-remaining-move-metadata.json",
+      "evidence_id": "EV-0A66-REMAINING-MOVE-CONTRACTS",
+      "run_id": "0a66091821bf48af9075991b4f41ccf4",
+      "scope": "Actual rigid-size and stationary-target checks; original DOWN anchor, six quanta, attraction/hold/release/reentry, real matching UP/no new late placement. Not a new equal-target/corner/negative-coordinate guest run.",
+      "source_binding": "Original11ae76a product and05f897e driver remain unchanged."
+    }
+  ],
+  "product_identity_unchanged": {
+    "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "Release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "product_rebuild": false,
+    "no_new_guest_run": true
+  },
+  "independent_contract_assessment": {
+    "M05-F01": "PASS: existing actual rigid external-edge Move chain and0a66 qualification/target-stability/terminal checks plus actual shared-solver G03/signed/rotated numeric oracles. Does not award whole M05/app/display matrix.",
+    "M05-F02": "PASS: shared production solver's actual G03 combined/disabled-alignment, existing inner/corner/equal-target/permutation/different-size L1 plus frozen-candidate actual multi-source XY behavior. No module five-app prerequisite appended.",
+    "B01": "PASS, dependent on M05-F01.",
+    "B02": "PASS, dependent on M05-F02.",
+    "B03": "PASS, dependent on M05-F02.",
+    "not_awarded": "Whole V1, whole M05 module, ordinary complete Medium desktop, five real application classes, multimonitor/mixed DPI and human UAT remain governed by their own actual evidence."
+  }
+}

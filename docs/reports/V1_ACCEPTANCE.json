@@ -10,28 +10,28 @@
   "source_identity": {
     "runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "next_driver": {
-      "source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
       "product_exe_unchanged": true,
       "debug_build": "PASS",
       "release_build": "PASS",
-      "debug_sha256": "8F7B2F3F59192EFC2CD3794352AFC03FBCF6D27CDB77CC03C7E88778FB7CF59E",
-      "release_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+      "debug_sha256": "95CD3371311337235F907A297661C9E4D201B5BC54987902E68F73E1F91839EE",
+      "release_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
       "binary_self_reported_source_verified": true,
-      "native_guard_validation": "SETTINGS_VALIDATION_ONLY_AND_MODIFIER_LOCK_ONLY_NOT_RUN_AT_RECORDING",
-      "offline_regression": "Debug/Release231cases PASS; processor0.15/0.21s; symlink subcase SKIP1314; packaging124checks PASS",
-      "prepared_run_ids": ["9e56f9f350554cbdaef96a0ff867a7bc", "0a766eeb122e45969e92e6c084f64cf0"],
+      "native_guard_validation": "NEW_TAB_SETTINGS_AND_REMAINING_FEEDBACK_SCENES_NOT_RUN_AT_RECORDING",
+      "offline_regression": "Debug/Release affected ctest guest-path and magnet2/2PASS;231guest-path and2706magnet checks; symlink subcase SKIP1314; packaging124checks PASS",
+      "next_run_ids": "TO_BE_ASSIGNED_BY_PACKAGER_NOT_RUNTIME_EVIDENCE",
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
-      "source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
-      "change": "a9ee actual RemainingNativeContractsOnly: settings phase FAIL, smart docking and actual feedback scoped PASS; earlier 382/a575 recovery and382/8ffa native-client failure retain their actual identities",
+      "source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "change": "Actual9e56 SettingsValidationOnly FAIL with known unchanged settings foreground but target Edit not focused; actual0a76 ModifierLockOnly PASS closes independent M04-F02. Earlier5e6/a9ee batchFAIL/componentPASS and382/a575/8ffa retain their actual identities",
       "product_exe_unchanged": true,
-      "debug_build": "PASS_ACTUAL_BUILD_AND_222_OFFLINE_CASES_SYMLINK_SKIP1314",
-      "release_build": "PASS_ACTUAL_BUILD_AND_222_OFFLINE_CASES_SYMLINK_SKIP1314",
-      "debug_sha256": "C23437155FB20DDE8449D50388B8132DBCC220998FB54214539337A82286853F",
-      "release_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+      "debug_build": "PASS_ACTUAL_BUILD_AND_231_OFFLINE_CASES_SYMLINK_SKIP1314",
+      "release_build": "PASS_ACTUAL_BUILD_AND_231_OFFLINE_CASES_SYMLINK_SKIP1314",
+      "debug_sha256": "8F7B2F3F59192EFC2CD3794352AFC03FBCF6D27CDB77CC03C7E88778FB7CF59E",
+      "release_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
       "binary_self_reported_source_verified": true,
-      "native_guard_validation": "A9EE_ACTUAL_BATCH_FAIL_SMART_DOCK_AND_FEEDBACK_SCOPED_PASS_NOT_FULL",
+      "native_guard_validation": "9E56_SETTINGS_FOCUS_ACTUAL_FAIL_0A76_MODIFIER_LOCK_ACTUAL_PASS_NOT_FULL",
       "old_runtime_rebound": false,
       "foreground_cause_or_all_Full_gates_fixed": false
     },
@@ -59,8 +59,8 @@
         "next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。"
       },
     "implementation_inspected": "11AE_PRODUCT_DFDD_FULL_BOUNDARIES_FAIL_05F_TEST_DRIVER_0A66_REMAINING_MOVE_SCOPED_PASS",
-    "note": "产品冻结11ae/便携528a不变。a575实际补齐D09撤权配对、D24特定no-own清理后同实例Move/Resize，结合dfdd/3f8/4d32闭合独立M04-F05；a9ee结合dfdd实际smart on/off闭合M08-F03/B15，实际feedback闭合M10-F02。当前20/60、9/40=22.5%；a9ee整批设置阶段FAIL保持，M10-F03共享Resize粗线/Shift视觉仍缺。8ffa产品真正未启动，Terminal/Edge原生前置实际FAIL，不再写为未运行或仅Edge未执行。旧身份、失败及D29范围保留；普通完整Medium桌面/真实应用/托盘/显示/真人硬门未齐，整版PARTIAL且不REA。",
-    "pending_product_note": "仅工具47e更新，不重建11ae产品；SettingsValidationOnly和ModifierLockOnly新窄suite当前NOT_RUN。复用已闭独立资源/磁吸/组规则/smart/feedback合同，不重开D29、固定八区、Shift或独立900专项。继续真实应用原生前置、普通完整Medium桌面、托盘、显示及未齐整版合同；不能由guest销毁或局部PASS抹去8ffa/a9ee实际失败。",
+    "note": "产品冻结11ae/便携528a不变。a575闭合D09/D24及独立M04-F05；a9ee结合dfdd闭合M08-F03/B15、真实feedback闭合M10-F02。TEST984b固定G03/旋转/负坐标及既有共享solver/实际dfdd/0a66闭合M05-F01/F02与B01-B03；0a76真实中途修饰变化、下一代普通/Shift路由加既有G08闭合M04-F02。当前23/60、12/40=30%；a9ee及9e56设置阶段原FAIL保留，M10-F03共享Resize粗线/Shift视觉仍缺。8ffa产品真正未启动，Terminal/Edge原生前置实际FAIL；普通完整Medium/应用/托盘/显示/真人硬门未齐，整版PARTIAL且不REA。",
+    "pending_product_note": "仅工具/测试984更新且D/R构建PASS，不重建11ae产品；新Tab设置和剩余feedback现场场景仍NOT_RUN。原mousefocus失败根因UNKNOWN，P44/45未consume不等于已定位环境或已修生产。复用已闭独立合同，不重开D29、八区或独立900；继续真实应用/普通完整Medium、托盘、显示和未齐整版门。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1336,9 +1336,9 @@
       "B31",
       "B32"
     ],
-    "pass_count": 9,
-    "points": 22.5,
-    "coverage_percent": 22.5,
+    "pass_count": 12,
+    "points": 30,
+    "coverage_percent": 30,
     "required_points": 80,
     "formula": "PASS benchmark count / 40 * 100",
     "mandatory_all_pass": false,
@@ -1352,7 +1352,7 @@
       "B39",
       "B40"
     ],
-    "note": "实际20/60完整独立功能，9/40=22.5%。在原17功能/8对标上，a575具体异常分支及同实例恢复闭合M04-F05；dfdd实际smart开关和a9ee最近候选/fallback/min前置拒绝、邻居不动闭合M08-F03/B15；a9ee真实生产feedback边线/非激活透传/撤销闭合M10-F02。M10-F03实际共享Resize粗线/Shift视觉仍缺；模块、真实应用、普通完整Medium、托盘、显示、整版和真人另判。a9ee整批仍FAIL；B33-B40仍0分，整版PARTIAL且不REA。"
+    "note": "实际23/60完整独立功能，12/40=30%。当前同产品dfdd/0a66实际磁吸及生产共享solver的TEST984b固定G03/旋转/负坐标与既有角点/稳定排序闭合M05-F01/F02、B01-B03；0a76真实修饰键冻结/新代路由和既有G08闭合M04-F02。新L1不冒充native旋转/多屏，产品不重建或换绑。M10-F03共享Resize粗线/Shift视觉、模块、真实应用、普通完整Medium、托盘、显示、整版和真人另判；a9ee/9e56实际FAIL保留，B33-B40仍0分，整版PARTIAL且不REA。"
   },
   "hard_gates": [
     {
@@ -3083,28 +3083,19 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M04-F02-DEV",
           "required_observation": "连续手势、重复 UP、迟到事件、按键中途变化；无跨代写入和粘滞状态，G08 通过",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl",
-            "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-            "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-            "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
-            "docs/reports/v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl",
-            "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-product-selected.jsonl",
-            "docs/reports/v1-evidence/4d32-current-input-pause-routing-metadata.json",
-            "docs/reports/v1-evidence/4d32-current-input-pause-routing-selected.jsonl",
-            "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-metadata.json",
-            "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-product-selected.jsonl",
+            "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+            "docs/reports/v1-evidence/0a76-modifier-lock-excerpt.jsonl",
+            "docs/reports/v1-evidence/a575-recovery-metadata.json",
             "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-            "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+            "docs/reports/v1-evidence/2c8d-active-settings-metadata.json"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
@@ -3117,52 +3108,22 @@
             "PO-4D32-R21-PAUSE-ROUTING-SHARED-INPUT-REVALIDATION",
             "PO-22B2-R21-FULL-EARLY-FOREGROUND-ABORT",
             "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-            "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED"
+            "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
+            "PO-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_current_contract_revalidation"
         }
       ],
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
       "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "run_id": "0a766eeb122e45969e92e6c084f64cf0",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
-        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/8189-product-selected.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/7cd-product-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
-        "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
-        "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
-        "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
-        "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
-        "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
-        "docs/reports/v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl",
-        "docs/reports/v1-evidence/5d45-r19-fixed-size-and-enhanced-terminal-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/5d45-r19-fixed-size-and-enhanced-terminal-product-selected.jsonl",
-        "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-product-selected.jsonl",
-        "docs/reports/v1-evidence/4d32-current-input-pause-routing-metadata.json",
-        "docs/reports/v1-evidence/4d32-current-input-pause-routing-selected.jsonl",
-        "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-metadata.json",
-        "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-product-selected.jsonl",
+        "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+        "docs/reports/v1-evidence/0a76-modifier-lock-excerpt.jsonl",
+        "docs/reports/v1-evidence/a575-recovery-metadata.json",
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-        "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+        "docs/reports/v1-evidence/2c8d-active-settings-metadata.json"
       ],
       "defects": [
         "V1-D08",
@@ -3173,13 +3134,11 @@
         "V1-D29"
       ],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
-      "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "当前212/e7同PID两轮owned连续手势、正常UP、Resize后继续及无UP后新continuous已有实测；dedc四快速路径均native-only，有真实LL/queue UP但不授增强final-intent。048真实Hotkey通过，actor未知起因失焦正确撤权。D23正常UP/在途范围已测，不再写新修复未运行。 【历史观察保留】c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 同Run增强burst g3/key9：D279真实START→cancel→END→capture_ready，D280被动observer就绪，D281仅一包MOVE+唯一UP插入2，明确不从SendInput推投递。P137实际batch预检拒绝native_callsite_claimed=false/native_attempted=false/call_id0，reason=batch_preflight_capture_actual_ownership_lost_before_native_call；P138先结束SourceLost/end3/normal_up=false/pending_retired。其后P139真实Raw UP、P142实际legacy UP、P145/148释放/解除关联/撤罩、P149实际UP在GUI收到时原手势已不活动；不能改写为该代NormalUp。D282原FAIL与P137请求原矩形保留：该target是拒绝日志字段，不证明运动coalescing。D29登记UP撤权跨preflight先被分类SourceLost的具体产品反例；NULL/系统根因未证实，不合并未知前台历史失败。 【本轮限定复验】247/e86a真实UP退休→NormalUp及新代exact闭合D29已观察链；4d32 Pause/原生/Resume MoveResize/Ctrl重选限域通过。22b2 Full前两量子exact后外来前台撤权与cursor未达而FAIL，根因UNKNOWN，后续整链未跑。 【当前11ae】dfdd初始历史7代以及同PID两轮/20slot和3f8中断→恢复实际完成；17f5真实终止后拒发MOVE、247/e86匹配UP退休与后继exact保持其原身份。epoch/inputroute共用离线已覆盖代际/迟到/重复；3f8/dfdd真实旧call晚完成无新授权与后继UP组合已测，不能仍把整个G08写NOT_RUN。",
-      "remaining_conditions": [
-        "已测共用离线代际/重复/迟到、真实FocusLost→guard拒发→新手势、真实UP/在途旧call零新写入等各范围；未实际注入的迟到native LOCATION等平台事件顺序仍是具体缺口，不虚构其原生证明。"
-      ],
-      "next_action": "保留已批准e86 D29指针和不同身份的组合证据；不重开普通UP/G08大专项，仅按未实际观察的具体平台事件合同推进。",
+      "assessment_scope": "CURRENT_CANDIDATE_INDEPENDENT_GESTURE_STATE_AND_MATCHED_PAIR_CONTRACT_L1_PLUS_L2",
+      "status_basis": "ACTUAL_0A76_MODIFIER_FREEZE_AND_FRESH_ROUTES_WITH_EXISTING_G08_ISOLATION",
+      "observed": "当前212/e7同PID两轮owned连续手势、正常UP、Resize后继续及无UP后新continuous已有实测；dedc四快速路径均native-only，有真实LL/queue UP但不授增强final-intent。048真实Hotkey通过，actor未知起因失焦正确撤权。D23正常UP/在途范围已测，不再写新修复未运行。 【历史观察保留】c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 同Run增强burst g3/key9：D279真实START→cancel→END→capture_ready，D280被动observer就绪，D281仅一包MOVE+唯一UP插入2，明确不从SendInput推投递。P137实际batch预检拒绝native_callsite_claimed=false/native_attempted=false/call_id0，reason=batch_preflight_capture_actual_ownership_lost_before_native_call；P138先结束SourceLost/end3/normal_up=false/pending_retired。其后P139真实Raw UP、P142实际legacy UP、P145/148释放/解除关联/撤罩、P149实际UP在GUI收到时原手势已不活动；不能改写为该代NormalUp。D282原FAIL与P137请求原矩形保留：该target是拒绝日志字段，不证明运动coalescing。D29登记UP撤权跨preflight先被分类SourceLost的具体产品反例；NULL/系统根因未证实，不合并未知前台历史失败。 【本轮限定复验】247/e86a真实UP退休→NormalUp及新代exact闭合D29已观察链；4d32 Pause/原生/Resume MoveResize/Ctrl重选限域通过。22b2 Full前两量子exact后外来前台撤权与cursor未达而FAIL，根因UNKNOWN，后续整链未跑。 【当前11ae】dfdd初始历史7代以及同PID两轮/20slot和3f8中断→恢复实际完成；17f5真实终止后拒发MOVE、247/e86匹配UP退休与后继exact保持其原身份。epoch/inputroute共用离线已覆盖代际/迟到/重复；3f8/dfdd真实旧call晚完成无新授权与后继UP组合已测，不能仍把整个G08写NOT_RUN。 【0a76当前独立合同闭合】同产品PID6404/g1在真实Ctrl起手双成员后，实际CtrlUP/ShiftDOWN且LEFT仍按下，后继两成员exact写入仍维持原冻结Ctrl组，无新START；本代真实Raw/legacy UP、NormalUp、release/detach/Gone及UP零新写入。随后旧follower作为新普通source仅一成员写入、旧source不动，新代真实UP清理；再新Ctrl+Shift实际原生passthrough，有自有source真实native START/END/WM_LBUTTONUP且零增强START/placement/resource/cancel。结合既有共用L1迟到/重复/代际隔离与当前中断恢复，独立M04-F02 PASS；没有伪造迟到native LOCATION或idle Raw归因。",
+      "remaining_conditions": [],
+      "next_action": "复用当前候选真实修饰键冻结/新代路由及既有G08共用离线代际/重复/迟到和a575/dfdd/2c8实际恢复证据；不重开D29、普通UP或完整G08大专项，未注入的native LOCATION不冒充已测，模块/应用/环境和整版另判。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -3208,7 +3167,8 @@
         "PO-4D32-R21-PAUSE-ROUTING-SHARED-INPUT-REVALIDATION",
         "PO-22B2-R21-FULL-EARLY-FOREGROUND-ABORT",
         "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED"
+        "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
+        "PO-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES"
       ],
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "historical_product_observation": {
@@ -3270,6 +3230,64 @@
         "defect_id": "V1-D29",
         "scoped_component_result": "FAIL",
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_contract_closure": {
+        "dev_status": "BLOCKED",
+        "remaining_conditions": [
+          "已测共用离线代际/重复/迟到、真实FocusLost→guard拒发→新手势、真实UP/在途旧call零新写入等各范围；未实际注入的迟到native LOCATION等平台事件顺序仍是具体缺口，不虚构其原生证明。"
+        ],
+        "next_action": "保留已批准e86 D29指针和不同身份的组合证据；不重开普通UP/G08大专项，仅按未实际观察的具体平台事件合同推进。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+          "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+          "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/8189-product-selected.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/7cd-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/7cd-product-selected.jsonl",
+          "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
+          "docs/reports/v1-evidence/a623-consumed-down-probe-selected.jsonl",
+          "docs/reports/v1-evidence/f63-consumed-down-pre-capture-selected.jsonl",
+          "docs/reports/v1-evidence/d546-consumed-down-resource-normal-repeat-selected.jsonl",
+          "docs/reports/v1-evidence/f481-consumed-down-normal-repeat-selected.jsonl",
+          "docs/reports/v1-evidence/f481-consumed-down-early-up-selected.jsonl",
+          "docs/reports/v1-evidence/f481-consumed-down-stop-selected.jsonl",
+          "docs/reports/v1-evidence/f481-consumed-down-source-pause-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl",
+          "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
+          "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+          "docs/reports/v1-evidence/048a-r10-interruption-hotkey-and-actor-foreground-abort-selected.jsonl",
+          "docs/reports/v1-evidence/5d45-r19-fixed-size-and-enhanced-terminal-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/5d45-r19-fixed-size-and-enhanced-terminal-product-selected.jsonl",
+          "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/e86a-r21-normal-up-retirement-product-selected.jsonl",
+          "docs/reports/v1-evidence/4d32-current-input-pause-routing-metadata.json",
+          "docs/reports/v1-evidence/4d32-current-input-pause-routing-selected.jsonl",
+          "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-metadata.json",
+          "docs/reports/v1-evidence/22b2-r21-full-foreground-abort-product-selected.jsonl",
+          "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+          "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+        ]
+      },
+      "current_contract_revalidation": {
+        "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+        "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+        "configuration": "Release",
+        "actual_product_pid": 6404,
+        "actual_guest_integrity_rid": 8192,
+        "independent_contract_result": "PASS",
+        "native_old_LOCATION_injection": "NOT_RUN_NOT_NEEDED_AS_FORGED_EVENT_PROOF",
+        "whole_module_or_version_PASS": false,
+        "human_UAT": "NOT_RUN"
       }
     },
     {
@@ -14619,6 +14637,36 @@
   },
   "current_round_observations": [
     {
+      "run_id": null,
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": null,
+      "test_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "result": "PASS_INDEPENDENT_M05_F01_F02_B01_B02_B03_WITH_EXISTING_CURRENT_NATIVE",
+      "evidence_id": "EV-984B-G03-SOLVER-ORACLES",
+      "evidence_path": "docs/reports/v1-evidence/984b-g03-solver-review.json",
+      "new_feature_or_B_PASS": true
+    },
+    {
+      "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "test_source_sha": null,
+      "result": "PASS_SCOPED_ACTUAL_MODIFIER_LOCK_AND_SUBSEQUENT_ROUTES",
+      "evidence_id": "EV-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
+      "evidence_path": "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+      "new_feature_or_B_PASS": true
+    },
+    {
+      "run_id": "9e56f9f350554cbdaef96a0ff867a7bc",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "test_source_sha": null,
+      "result": "FAIL_ORIGINAL_SETTINGS_MOUSE_FOCUS_PRESERVED",
+      "evidence_id": "EV-9E56-SETTINGS-MOUSE-FOCUS-FAILURE",
+      "evidence_path": "docs/reports/v1-evidence/9e56-settings-mouse-focus-metadata.json",
+      "new_feature_or_B_PASS": false
+    },
+    {
       "run_id": "a57559cc776f4fe98405c892a39554c0",
       "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
       "driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
@@ -14761,6 +14809,53 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-984B-G03-SOLVER-ORACLES",
+      "kind": "ACTUAL_L1_WITH_EXISTING_NATIVE_NOT_NEW_GUEST",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "test_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "path": "docs/reports/v1-evidence/984b-g03-solver-review.json",
+      "sha256": "AD68BD7287CBDA09C72356A4A452E6E1C87FDA8115175BAF9F9568A86EEA5E9D",
+      "result": "PASS_INDEPENDENT_M05_F01_F02_B01_B02_B03_WITH_EXISTING_CURRENT_NATIVE",
+      "scope": "Fixed G03/outer-only/negative coordinates/axis rotations and existing same production solver corner/stable-order tests; combined with actual11ae dfdd/0a66. No new native display/app claim."
+    },
+    {
+      "id": "EV-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
+      "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "driver_binary_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+      "path": "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+      "sha256": "19DD662990B8C06E0612E58FCA6B82D99AFF0DA7099BFAEE6EF35DD0E07ED794",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0a76-modifier-lock-excerpt.jsonl",
+      "repository_excerpt_sha256": "C6967509471FFD78B5918489E1E99F9B69A6FAB682A29D60A7E366389818C3E3",
+      "result": "PASS_SCOPED_ACTUAL_MODIFIER_LOCK_AND_SUBSEQUENT_ROUTES",
+      "scope": "Actual g1 Ctrl frozen after CtrlUP/ShiftDOWN, real Raw/legacy UP and cleanup, same-PID former follower fresh plain g2, fresh CtrlShift native bypass; independent M04-F02 with existing G08. Not full M04/apps/display."
+    },
+    {
+      "id": "EV-9E56-SETTINGS-MOUSE-FOCUS-FAILURE",
+      "run_id": "9e56f9f350554cbdaef96a0ff867a7bc",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "driver_binary_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+      "path": "docs/reports/v1-evidence/9e56-settings-mouse-focus-metadata.json",
+      "sha256": "BFFDD6D8CD99ECB49857F7EBE406111E67EA520F38A731506E16451403DD1120",
+      "repository_excerpt_paths": [
+        "docs/reports/v1-evidence/9e56-settings-mouse-focus-driver-selected.jsonl",
+        "docs/reports/v1-evidence/9e56-settings-mouse-focus-product-selected.jsonl"
+      ],
+      "repository_excerpt_sha256": [
+        "B7F81365A09321F98E9234878BCF740279A0D4BCB878C8AB8A80A8412FE085B8",
+        "5E7BC762E0088E3823B21E1A077189A2A3E511258AE8032448A2AD1EC2D14B09"
+      ],
+      "result": "FAIL_ORIGINAL_SETTINGS_MOUSE_FOCUS_PRESERVED",
+      "scope": "Negative validation subset PASS; known settings foreground and target hit but focus remained another Edit, product own consume false; root cause UNKNOWN. Next public Tab driver route NOT_RUN, not product fix."
+    },
     {
       "id": "EV-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY",
       "run_id": "a57559cc776f4fe98405c892a39554c0",
@@ -18825,6 +18920,48 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-984B-G03-SOLVER-WITH-CURRENT-NATIVE-MAGNET",
+      "status": "PASS_INDEPENDENT_M05_F01_F02_B01_B02_B03_WITH_EXISTING_CURRENT_NATIVE",
+      "run_id": null,
+      "test_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-984B-G03-SOLVER-ORACLES"
+      ],
+      "observed": "Fixed G03/outer-only/negative coordinates/axis rotations and existing same production solver corner/stable-order tests; combined with actual11ae dfdd/0a66. No new native display/app claim.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
+      "status": "PASS_SCOPED_ACTUAL_MODIFIER_LOCK_AND_SUBSEQUENT_ROUTES",
+      "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+      "test_source_sha": null,
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES"
+      ],
+      "observed": "Actual g1 Ctrl frozen after CtrlUP/ShiftDOWN, real Raw/legacy UP and cleanup, same-PID former follower fresh plain g2, fresh CtrlShift native bypass; independent M04-F02 with existing G08. Not full M04/apps/display.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-9E56-SETTINGS-MOUSE-FOCUS-FAILURE",
+      "status": "FAIL_ORIGINAL_SETTINGS_MOUSE_FOCUS_PRESERVED",
+      "run_id": "9e56f9f350554cbdaef96a0ff867a7bc",
+      "test_source_sha": null,
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-9E56-SETTINGS-MOUSE-FOCUS-FAILURE"
+      ],
+      "observed": "Negative validation subset PASS; known settings foreground and target hit but focus remained another Edit, product own consume false; root cause UNKNOWN. Next public Tab driver route NOT_RUN, not product fix.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY",
       "status": "PASS_SCOPED_REVOKED_PAIR_AND_EXACT_NO_OWN_CAPTURE_LOSS_SAME_INSTANCE_RECOVERY",

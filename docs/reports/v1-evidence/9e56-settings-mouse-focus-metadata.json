@@ -1,0 +1,126 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-9E56-SETTINGS-MOUSE-FOCUS-FAILURE",
+  "kind": "METADATA_NOT_NATIVE_EVENT",
+  "run_id": "9e56f9f350554cbdaef96a0ff867a7bc",
+  "suite": "SettingsValidationOnly",
+  "configuration": "Release",
+  "result": "FAIL_ORIGINAL_PRESERVED",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+  "driver_binary_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+  "packaging_head": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+  "product_pid": 3768,
+  "product_birth_filetime_decimal": "134370799498578522",
+  "fixture_pid": 6328,
+  "actual_guest": {
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "os_build": "26100.9711",
+    "dpi": 144,
+    "actual_monitors": 1,
+    "not_ordinary_complete_Medium_Shell": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/9e56f9f350554cbdaef96a0ff867a7bc/collection-20261021T181236745Z-2628cca1f1274e45b3235b2353a88bd8/9e56f9f350554cbdaef96a0ff867a7bc-release-fixture.jsonl",
+      "sha256": "BA829CA1875094564B32807474B00016F353BAF80466AFD907D02009A962B0B4",
+      "legal_jsonl_rows": 200,
+      "sequence_contiguous": true
+    },
+    {
+      "path": "uat/v1-control/9e56f9f350554cbdaef96a0ff867a7bc/collection-20261021T181236745Z-2628cca1f1274e45b3235b2353a88bd8/9e56f9f350554cbdaef96a0ff867a7bc-product-Release/panebind.log.jsonl",
+      "sha256": "A648A68968262F93CDC2D2FA1C4038B133A6BE2E503DA60E11CAC06E5765766F",
+      "legal_jsonl_rows": 64,
+      "sequence_contiguous": true
+    }
+  ],
+  "literal_files": [
+    {
+      "path": "docs/reports/v1-evidence/9e56-settings-mouse-focus-driver-selected.jsonl",
+      "sha256": "B7F81365A09321F98E9234878BCF740279A0D4BCB878C8AB8A80A8412FE085B8",
+      "literal_lines_verified_ordinal": true,
+      "sequences": [
+        3,
+        7,
+        13,
+        19,
+        24,
+        112,
+        117,
+        120,
+        123,
+        130,
+        131,
+        135,
+        140,
+        144,
+        145,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        159,
+        188,
+        195,
+        196,
+        197,
+        199,
+        200
+      ]
+    },
+    {
+      "path": "docs/reports/v1-evidence/9e56-settings-mouse-focus-product-selected.jsonl",
+      "sha256": "5E7BC762E0088E3823B21E1A077189A2A3E511258AE8032448A2AD1EC2D14B09",
+      "literal_lines_verified_ordinal": true,
+      "sequences": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        64
+      ]
+    }
+  ],
+  "observed": {
+    "negative_attraction": "D123 actual single-line keys -1, D130/131 exact native Chinese range modal, D135 rejected value and preserved original saved bytes/draft PASS.",
+    "first_edit_and_repair": "D140 actual mouse focus reached target197256; D143 actual edit10, D144 real Tab to next control, D145 repaired value still unsaved.",
+    "failed_next_mouse_focus": "D147 actual cursor/hit target197256 confirmed; D148/149 one DOWN/UP sent. D150 FAIL after bounded observation: before and after foreground root197456/PID3768/TID3772 exact; requested Edit197256 but before/after actual_focus197402 another Edit, capture0, actual_active197456, GUI query succeeded. Not an external foreground transition.",
+    "product_observation": "P44/P45 actual DOWN/UP at1499,606/native_time32562, own_consume_decision=false, authority0/consumedfalse/healthytrue; P46 self-identity preparation. Product not consuming these inputs does not identify why native Edit failed to focus.",
+    "remaining_values": "Overflow/release-relation and same-draft valid-save/following-Move sequence did not complete; no whole M11-F02 PASS.",
+    "cleanup": "D151 original independent phase failure retained; D152 test ledger no pendingUP/Ctrl. D159 actual same-product Idle/no operations, D188 product quit/exit0 and P64 all own resources stopped, D195 post-product actual client DOWN/UP delivered, D196 andD200 original FAIL. Raw observer removed and foreground observer unhooked; product cleanup scoped receipts are distinct from function failure."
+  },
+  "diagnosis": {
+    "mouse_focus_root_cause": "UNKNOWN",
+    "product_bug_fixed": false,
+    "framework_or_environment_unique_cause_proven": false,
+    "next_distinguishing_change": "Public real Tab navigation to exact Edit from known control, with actual focus verification. No extra click, delay, SetFocus, synthetic window message or weakened gui_click assertion; existing mouse failure kept separately.",
+    "next_changed_driver_result": "NOT_RUN_AT_THIS_RECORDING"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/9e56f9f350554cbdaef96a0ff867a7bc/cleanup-receipt.json",
+    "owned_guest_pid": 3572,
+    "native_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false,
+    "utc": "2026-10-21T18:13:38.7612122Z"
+  },
+  "limitations": [
+    "Literal lines preserve original native numbers as text; no raw-file rewrite. Only test-created settings text/identities, no user document content.",
+    "JSONL order is not a common native chronology across Raw/hook/GUI/WinEvent producers.",
+    "Wrapper product_cleanup_pass=false is an unevaluated field, not a substitute for actual shutdown/client recovery observations.",
+    "Guest disposal is not app or product NormalUp/cleanup PASS; no benchmark or whole-version PASS."
+  ]
+}

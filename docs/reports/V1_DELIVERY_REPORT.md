@@ -2,6 +2,12 @@
 
 ## 当前接续：精确恢复、原生应用前置与反馈实证（2026-10-22）
 
+本节后继同日增量：TEST`984b3c29f63c7d10d968c939de21c4d30de4e6bb`的[固定G03及坐标对称L1](v1-evidence/984b-g03-solver-review.json)实际D/R通过，结合同产品dfdd／0a66原生磁吸链，独立M05-F01/F02与B01–03闭合；[0a76修饰键冻结及新代路由](v1-evidence/0a76-modifier-lock-review.json)实际通过，结合既有G08代际／重复／迟到L1及当前恢复证据闭合M04-F02，**当前23/60、12/40＝30%**。下文20/60是前三批封存检查点，未覆盖本增量。0a76是同PID6404真实Ctrl起手后释放Ctrl／按Shift仍保持原组，真实Raw／legacy UP与资源退出，然后旧follower新普通手势仅单窗、再新Ctrl+Shift原生绕过；没有伪造迟到native LOCATION或idle Raw归因。
+
+[9e56原GUI点击focus失败](v1-evidence/9e56-settings-mouse-focus-metadata.json)保持原FAIL：实际负值`-1`中文拒绝、原文件字节／草稿保留通过；修回10后下一次目标Edit197256的cursor／hit已确认，但前台始终精确设置root197456、actualfocus仍另一Edit197402、capture0。P44／45实际DOWN／UP的`own_consume_decision=false`不等于查明原生focus原因。后续overflow／释放关系／完整合法Save-Move链未完成，不授M11-F02 PASS；新公共真实Tab导航只用于补其余非法值合同，不关闭或掩盖鼠标失败，不增加点击／延时／SetFocus，也不放宽原鼠标断言。产品自己正常退出和客户输入恢复已有回执，与功能FAIL分开；销毁guest不是cleanup证明。
+
+当前新工具／测试源码为`984b3c29f63c7d10d968c939de21c4d30de4e6bb`，D/R构建及受影响guest-path／magnet各2/2通过（231／2706 checks，symlink子项SKIP1314），包装124项通过。Debug驱动SHA-256`95CD3371311337235F907A297661C9E4D201B5BC54987902E68F73E1F91839EE`、Release驱动`3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3`；产品11ae两配置EXE未改，新Tab设置和剩余feedback场景尚NOT_RUN，待下一RunId实际结果，不拿旧47e运行改绑新984工具。普通真实应用、模块／整链／显示硬门仍未齐，真人UAT待验，整版PARTIAL、不REA。下面47e“准备／NOT_RUN”等为封存时状态，由本节0a76／9e56事实更新。
+
 产品仍为`11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；[528a便携候选](../../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip)及其2432普通无参入口实证不变。当前可复核的是已验证范围内的普通GUI/设置、owned三窗核心操作和资源恢复，不是五类真实应用或普通宿主可试用的整版完成宣告。
 
 现场占用已解除后，三个既有包已按其原驱动身份实际执行；此前“其他项目Sandbox占用／NOT_RUN”仅是保留的历史前置记录，不能继续作为当前下一动作。原其他项目guest未被控制、清理或复用。

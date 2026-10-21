@@ -1,6 +1,55 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-22",
+  "latest_contract_evidence": [
+    {
+      "id": "EV-984B-G03-SOLVER-ORACLES",
+      "kind": "ACTUAL_L1_WITH_EXISTING_NATIVE_NOT_NEW_GUEST",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "test_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "path": "docs/reports/v1-evidence/984b-g03-solver-review.json",
+      "sha256": "AD68BD7287CBDA09C72356A4A452E6E1C87FDA8115175BAF9F9568A86EEA5E9D",
+      "result": "PASS_INDEPENDENT_M05_F01_F02_B01_B02_B03_WITH_EXISTING_CURRENT_NATIVE",
+      "scope": "Fixed G03/outer-only/negative coordinates/axis rotations and existing same production solver corner/stable-order tests; combined with actual11ae dfdd/0a66. No new native display/app claim."
+    },
+    {
+      "id": "EV-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
+      "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "driver_binary_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+      "path": "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+      "sha256": "19DD662990B8C06E0612E58FCA6B82D99AFF0DA7099BFAEE6EF35DD0E07ED794",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0a76-modifier-lock-excerpt.jsonl",
+      "repository_excerpt_sha256": "C6967509471FFD78B5918489E1E99F9B69A6FAB682A29D60A7E366389818C3E3",
+      "result": "PASS_SCOPED_ACTUAL_MODIFIER_LOCK_AND_SUBSEQUENT_ROUTES",
+      "scope": "Actual g1 Ctrl frozen after CtrlUP/ShiftDOWN, real Raw/legacy UP and cleanup, same-PID former follower fresh plain g2, fresh CtrlShift native bypass; independent M04-F02 with existing G08. Not full M04/apps/display."
+    },
+    {
+      "id": "EV-9E56-SETTINGS-MOUSE-FOCUS-FAILURE",
+      "run_id": "9e56f9f350554cbdaef96a0ff867a7bc",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+      "driver_binary_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+      "path": "docs/reports/v1-evidence/9e56-settings-mouse-focus-metadata.json",
+      "sha256": "BFFDD6D8CD99ECB49857F7EBE406111E67EA520F38A731506E16451403DD1120",
+      "repository_excerpt_paths": [
+        "docs/reports/v1-evidence/9e56-settings-mouse-focus-driver-selected.jsonl",
+        "docs/reports/v1-evidence/9e56-settings-mouse-focus-product-selected.jsonl"
+      ],
+      "repository_excerpt_sha256": [
+        "B7F81365A09321F98E9234878BCF740279A0D4BCB878C8AB8A80A8412FE085B8",
+        "5E7BC762E0088E3823B21E1A077189A2A3E511258AE8032448A2AD1EC2D14B09"
+      ],
+      "result": "FAIL_ORIGINAL_SETTINGS_MOUSE_FOCUS_PRESERVED",
+      "scope": "Negative validation subset PASS; known settings foreground and target hit but focus remained another Edit, product own consume false; root cause UNKNOWN. Next public Tab driver route NOT_RUN, not product fix."
+    }
+  ],
   "current_targeted_runtime": [
     {
       "id": "EV-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY",
@@ -71,13 +120,13 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
-  "next_driver_validation": "47e test-only driver Debug/Release builds and231offline cases each PASS (symlink SKIP1314), packaging124checks PASS. Product11ae/portable528a unchanged. SettingsValidationOnly9e56 andModifierLockOnly0a76 prepared, native results NOT_RUN at this checkpoint. Actual382/a575 recovery PASS,382/8ffa native prerequisites FAIL with product never started, and5e6/a9ee overall FAIL with independently passing smart-dock/feedback components keep their own identities. Historical other-project Sandbox refusal remains preparation history, not current runtime state. No whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+  "next_driver_validation": "984b test-only driver Debug/Release builds PASS; affected guest-path and magnet CTest2/2PASS each (231guest-path/2706magnet checks, symlink SKIP1314); packaging124checks PASS. Product11ae/portable528a unchanged. New public-Tab settings and remaining-feedback scenes NOT_RUN at this checkpoint; RunIds assigned by subsequent packager. Prior47e actual9e56 settings mouse-focus FAIL retained/root cause UNKNOWN,0a76 modifier lock and fresh routes PASS closes independent M04-F02; TEST984b G03 plus current native evidence closes M05-F01/F02/B01-B03. Current23/60,12/40=30%. Earlier382/a575,382/8ffa,5e6/a9ee retain actual identities; historical Sandbox refusal is not current runtime state. No whole-version PASS or old-binary rebinding.",
   "next_driver_binary_identity": {
-    "source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
-    "debug_sha256": "8F7B2F3F59192EFC2CD3794352AFC03FBCF6D27CDB77CC03C7E88778FB7CF59E",
-    "release_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
-    "prepared_run_ids": ["9e56f9f350554cbdaef96a0ff867a7bc", "0a766eeb122e45969e92e6c084f64cf0"],
+    "source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+    "debug_sha256": "95CD3371311337235F907A297661C9E4D201B5BC54987902E68F73E1F91839EE",
+    "release_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+    "next_run_ids": "TO_BE_ASSIGNED_BY_PACKAGER_NOT_RUNTIME_EVIDENCE",
     "native_runtime": "NOT_RUN_AT_CHECKPOINT_NOT_BUILD_PASS"
   },
   "remaining_native_contracts_prepared": {

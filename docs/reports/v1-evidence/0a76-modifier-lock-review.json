@@ -1,0 +1,136 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
+  "kind": "independent_readonly_review_of_actual_guest_logs",
+  "run_id": "0a766eeb122e45969e92e6c084f64cf0",
+  "configuration": "Release",
+  "suite": "ModifierLockOnly",
+  "verdict": "PASS_SCOPED_ACTUAL_MODIFIER_LOCK_AND_SUBSEQUENT_ROUTES",
+  "identity": {
+    "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+    "driver_release_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+    "packaging_head": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+    "zip_sha256": "83AE76B75EA7C5716BE3F2EB71E540FAC9D25598247C3B7ECF531E48037C2CE6",
+    "manifest_sha256": "3F4181B0AEBDC7F66FB074EC0569B01763E1D45A9E09EA9EC219DAAC905BE073",
+    "wsb_sha256": "B27933CB64E0AAB890A04A8BC6C8EE57DB5AF6E5C76430BFC400F4B1E1B27CC9",
+    "actual_product_pid": 6404,
+    "actual_product_birth_filetime_decimal": "134370800832706606",
+    "fixture_pid": 6284,
+    "source_thread_id": 6288,
+    "shield_owner_thread_id": 3976,
+    "actual_guest_integrity_rid": 8192,
+    "actual_guest_session_id": 1,
+    "elevated": false,
+    "environment": "Windows Sandbox; OS26100.9711; single display3050x1668/work3050x1596; DPI144; WinSta0/Default. This is not ordinary complete Medium Shell, application or display-matrix evidence.",
+    "same_instance_basis": "D24 registers exact product PID/birth. P1-P144 use one PID6404. Fixture validates the product process identity and binary before and after the component; D248 restores original settings and verifies unchanged binary. No product restart occurs between g1, g2 and the native bypass."
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/0a766eeb122e45969e92e6c084f64cf0/collection-20261021T181509117Z-611d253d60ef49e887fb992beb2ec093/0a766eeb122e45969e92e6c084f64cf0-release-fixture.jsonl",
+      "sha256": "0B830FAA8C0E0806EED23564795D80E1A0F035DC5D1B75A836451DF2D9B0E1A9",
+      "bytes": 152256,
+      "legal_jsonl_rows": 275,
+      "sequence_range": [1, 275],
+      "sequence_contiguous": true,
+      "FAIL_rows": 0
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/0a766eeb122e45969e92e6c084f64cf0/collection-20261021T181509117Z-611d253d60ef49e887fb992beb2ec093/0a766eeb122e45969e92e6c084f64cf0-product-Release/panebind.log.jsonl",
+      "sha256": "A216D639BCF98F6AEA1761DCA1D94529FA8A01562E2450779E6A7BB3AC4B2B4D",
+      "bytes": 169091,
+      "legal_jsonl_rows": 144,
+      "sequence_range": [1, 144],
+      "sequence_contiguous": true,
+      "single_process_id": 6404
+    },
+    {
+      "producer": "launcher",
+      "path": "uat/v1-control/0a766eeb122e45969e92e6c084f64cf0/collection-20261021T181509117Z-611d253d60ef49e887fb992beb2ec093/0a766eeb122e45969e92e6c084f64cf0-Release-launch.json",
+      "sha256": "E7A7DED3B948DA9D25AA67B311404392363883CA3195BD7E15FA0C1B316FBF41",
+      "facts": "Actual suite ModifierLockOnly; Medium/non-elevated/session1 fixture. Input and actual product EXE hashes match the frozen Release. CREATE_NO_WINDOW fixture exit0, descendants0 and forced_test_cleanup=false are not alone functional or cleanup PASS."
+    },
+    {
+      "producer": "collector",
+      "path": "uat/v1-control/0a766eeb122e45969e92e6c084f64cf0/collection-20261021T181509117Z-611d253d60ef49e887fb992beb2ec093/collection-receipt.json",
+      "sha256": "91BA049F0CFB2064B2D51567031ED73ED2EAE589FE78A47C70F42DD88774288D",
+      "facts": "output_unchanged=true; before/after inventories agree and collected EXE hash was independently recomputed. This is collection integrity, not a function verdict."
+    },
+    {
+      "producer": "packager",
+      "path": "uat/v1-sandbox/0a766eeb122e45969e92e6c084f64cf0/package-receipt.json",
+      "facts": "Separate product, driver and packaging identities plus ZIP/manifest/WSB hashes. Its predeployment NOT_RUN fields remain historical preparation facts."
+    }
+  ],
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/0a76-modifier-lock-excerpt.jsonl",
+    "sha256": "C6967509471FFD78B5918489E1E99F9B69A6FAB682A29D60A7E366389818C3E3",
+    "bytes": 37445,
+    "rows": 53,
+    "driver_source_sequences": [1, 3, 4, 19, 24, 140, 141, 143, 144, 145, 146, 147, 150, 160, 162, 163, 164, 165, 166, 169, 174, 184, 248, 253, 261, 263, 271, 275],
+    "product_source_sequences": [45, 57, 62, 63, 64, 65, 67, 69, 72, 74, 75, 77, 80, 92, 95, 99, 101, 104, 106, 107, 109, 112, 115, 142, 144],
+    "policy": "Complete original lines, newline normalization only; no raw-line reserialization or 64-bit identity conversion. Driver lines precede product lines as two explicitly separate producer excerpts. Their concatenation and original JSONL order do not establish common native event order. Gaps are intentional."
+  },
+  "actual_contracts": {
+    "Ctrl_lock_through_actual_key_change": {
+      "result": "PASS",
+      "start": "P45 actual DOWN source197414/key4, locked_modifiers2; P57 g1 ctrl=true, original_DOWN_group_frozen=true, two actual members, original source[220,180,700,500]. P62/P63 first exact group motion translates both windows by25,15.",
+      "key_change": "D140 one actual guest CtrlUP packet, observed async state0; D141 while LEFT remains down(-32768), Ctrl0 and Shift down(-32768), same foreground/source and no mouse UP sent. This is actual GetAsyncKeyState observation plus test input, not direct product state mutation or a claim of physical-human input.",
+      "continuation": "D143-D145 actual second geometry translates both original members by55,35. P64/P65 are exact native attempts for key4/key5 in original g1; no new START or generation change (D146). These native calls occur after the actual key change; no frozen group was replaced by a new Shift route.",
+      "after_key_change_native_calls": 2,
+      "new_STARTs_after_key_change": 0
+    },
+    "first_NormalUp_and_cleanup": {
+      "result": "PASS",
+      "test_UP": "D147 one guest LEFTUP, sendQPC330929542..330941503; SendInput return alone is not used as delivery evidence.",
+      "actual_UP": "P67 g1 Raw flags2/resourceQPC330936056; P69 actual legacy LEFTUP accepted, dispatchQPC330952179. P77 actual end0/normal_up=true/pending_retired=true. Shift remained held through this UP, then the test-owned modifiers were released.",
+      "cleanup": "P72 release_attempted/completed/succeededtrue, before capture262778, owner observation knowntrue and actual after0; P74 actual detach_succeededtrue; P75 overlay_destroyed/hotkey_unregisteredtrue. D150 checks actual geometry and no capture.",
+      "zero_late_native_calls": "The complete product log contains only g1 calls1..4, with last native_afterQPC330594665, earlier than actual RawUP330936056. No g1 native entry after UP or during the following gestures is recorded."
+    },
+    "fresh_plain_DOWN_on_former_follower": {
+      "result": "PASS",
+      "start": "P80/D160/P92 newg2 source197432/key5 (old follower), locked_modifiers0, ctrlfalse and exactly one member. It does not reuse g1 key4's anchor or frozen group.",
+      "geometry": "P95 actual one exact call5 moves only key5 to[790,245,1190,565]; D163/D164 keep old source at[275,215,755,535]. D165 confirms one new native call and zero foreign/old source calls.",
+      "UP_cleanup": "D166 one test LEFTUP; P99 actual RawUP flags2, P101 actual legacy accepted; P104 own ReleaseCapture succeeds with after0/owner observation known, P106 detach succeeds, P107 actual overlay destruction/hotkey unregistration, P109 normal_uptrue/pending_retired. D169 checks final geometry/no capture.",
+      "zero_late_native_calls": "g2 has only call5, native_after337907122 earlier than RawUP338231256; no later g2 call is recorded."
+    },
+    "fresh_Ctrl_Shift_native_bypass": {
+      "result": "PASS_NATIVE_PASSTHROUGH_NOT_PRODUCT_NORMALUP",
+      "route": "D174 anchors exact own source197414; P112 actual product DOWN callback sees modifiers6, prepared current exact source, routepass/dispatch_routedfalse/own_consume_decisionfalse. P115 actual unmatched UP passes; no new product gesture is fabricated.",
+      "actual_native_input": "D184 exact source native START delta1 and END delta1; source queue PM_REMOVE actual WM_LBUTTONUP514 observes hwnd197414/ownerTID6288 and unchanged MSG fields, callbackQPC343550999 between actual source START343478424 and END343560768. Actual source[295,240,775,560] matches expected20,25 translation.",
+      "zero_enhanced_path": "D184 product enhanced STARTs0, placements0, input resources0 and native cancels0. Its one idle Raw observation is explicitly NOT attributed UP or write authority and is not used as pass evidence. Native passthrough completion is not relabeled product NormalUp."
+    },
+    "final_resource_exit": {
+      "result": "PASS_SCOPED",
+      "facts": "D248 original configuration and frozen binary restored; D252 exact component roots closed; D253/D261 component and phase PASS. P144 actual hooks/overlay/native worker/visual recovery/input resources/capture/association stopped, unknown issued completionfalse; D263 actual process exit observed. P142 diagnostics dropped0/wake_failures0, not proof of all system input. D275 owned windows destroyed/product process closed; guest disposal not used as product cleanup proof."
+    }
+  },
+  "M04_F02_assessment": {
+    "independent_function_contract": "Continuous/repeated/late event isolation and normal in-flight modifier changes, with real DOWN/UP pairing and G08 real-input plus offline portions; not the whole M04 module, compatibility matrix or version gates.",
+    "new_gap_closed": "This run directly closes the previously unobserved normal mid-gesture Ctrl release/Shift press continuation, then a fresh plain source and a fresh Shift-priority native route. It is not inferred from a defect status or from helper source alone.",
+    "recommendation": "M04-F02-DEV may be marked PASS by combining this actual same-candidate evidence with the already recorded production-predicate offline G08/duplicate/late isolation and same-candidate dfdd/a575/2c8 actual interruption, normal-UP and successor-gesture evidence. No additional unchanged Full or 900-second run is required for this independent functional contract.",
+    "existing_evidence_refs": [
+      "docs/reports/v1-evidence/a575-recovery-metadata.json",
+      "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+      "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+      "tests/core/v1_gesture_tests.cpp: GestureEpoch late-UP/old-motion/destroy/duplicate retirement cases",
+      "tests/core/v1_input_route_tests.cpp: native timestamp fence, revoked pair, old-UP/new-DOWN and finish_exact_generation predicates"
+    ],
+    "offline_review_boundary": "No tests are rerun by this read-only review. Existing recorded L1 execution supplies the offline result; reading its test source is not a new execution. Historical 17f5/e86 evidence retains its old product identity and is not relabeled current11ae.",
+    "native_unknown_boundary": "No actual old-generation native LOCATION was injected in this run, and no native producer is inferred from an idle Raw count. The named G08 requires a real-input test and an offline-event test, not a forged native LOCATION delivery. Source-side platform behaviors not actually observed remain NOT_RUN; no common Raw/WinEvent native order is inferred."
+  },
+  "limits": {
+    "Full_suite": "NOT_RUN",
+    "real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "tray": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "whole_M04_module_or_version_PASS_inferred": false,
+    "history": "All previous failures and their original verdicts/build identities remain unchanged. This adds scoped current candidate evidence only.",
+    "clock_semantics": "Explicit send/native/resource/source-queue QPC values share the same guest timebase. JSONL order is producer/drain order, not a common native timeline. No physical display latency is claimed."
+  }
+}
