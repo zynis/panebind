@@ -3421,6 +3421,7 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
         return;
     }
     if(s.suite=="HighContrastOnly"){
+        phase("ordinary_notice_before_HC_transition",owned_idle_notice_before_HC_case);
         const auto scope=s.log.mark();phase("actual_guest_HC_mode_and_keyboard_subset",owned_high_contrast_case);
         const bool blocked=s.log.since(scope).find("\"environment_blocked\":true")!=std::string::npos;
         cleanup(s);if(blocked)s.log.failed=true;

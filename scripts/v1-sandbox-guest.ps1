@@ -1148,7 +1148,12 @@ public static class PaneBindV1MediumGuest {
             source_input_sha256=$sourceHash;actual_exe_sha256=$actualHash;hash_equal=$true;
             fixture=$fixture;fixture_sha256=(Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash;
             arguments=$arguments;actual_suite=$Suite;actual_result=$null;feature_result='NOT_EVALUATED';human_uat='NOT_RUN'}
-        $stage.actual_result=[PaneBindV1MediumGuest]::Run($fixture,$arguments,[uint32]$StageTimeoutSeconds)
+        # This one-use system-theme observation must not occupy the shared
+        # disposable Sandbox for the Full suite's 30-minute budget. A forced
+        # job cleanup is still failure/unknown, never product cleanup PASS.
+        $actualStageTimeout=if($Suite -ceq 'HighContrastOnly'){[Math]::Min($StageTimeoutSeconds,120)}else{$StageTimeoutSeconds}
+        $stage['actual_timeout_seconds']=$actualStageTimeout
+        $stage.actual_result=[PaneBindV1MediumGuest]::Run($fixture,$arguments,[uint32]$actualStageTimeout)
         if($stage.actual_result.ContainsKey('fixture_exit_code')){
             $stage['fixture_exit_reason']=Fixture-ExitReason ([uint32]$stage.actual_result['fixture_exit_code'])
         }

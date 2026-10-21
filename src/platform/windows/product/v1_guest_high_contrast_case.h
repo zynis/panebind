@@ -5,17 +5,31 @@
 struct GuestHighContrastState {
     bool known{},scheme_known{},scheme_freed{};DWORD flags{},error{};
     std::wstring scheme;std::array<COLORREF,6> colors{};
-    static GuestHighContrastState read(){
+    static GuestHighContrastState read(State* first_post_SET_trace=nullptr){
+        const auto stage=[&](const char* name){if(first_post_SET_trace)
+            first_post_SET_trace->log.emit("high_contrast_post_SET_probe",std::string("\"stage\":")+quote(name)+
+                ",\"first_read_only\":true,\"native_parameters_and_wait_order_unchanged\":true");};
         GuestHighContrastState out;HIGHCONTRASTW actual{sizeof(actual)};
+        stage("GET_enter");
         SetLastError(ERROR_SUCCESS);out.known=SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(actual),&actual,0)!=FALSE;
         out.error=out.known?0:GetLastError();out.flags=actual.dwFlags;
-        // SPI_GET owns this allocation. Do not retain its pointer through SET.
+        // Own the returned allocation before diagnostic formatting can throw.
         struct Scheme {LPWSTR value{};~Scheme(){if(value)LocalFree(value);}} allocation{actual.lpszDefaultScheme};
+        if(first_post_SET_trace)first_post_SET_trace->log.emit("high_contrast_post_SET_probe",
+            "\"stage\":\"GET_return\",\"first_read_only\":true,\"native_return\":"+std::string(out.known?"true":"false")+
+            ",\"native_error\":"+std::to_string(out.error)+",\"actual_flags\":"+std::to_string(out.flags));
+        // SPI_GET owns this allocation. Do not retain its pointer through SET.
         if(out.known&&allocation.value){const auto size=wcsnlen_s(allocation.value,4096);
             out.scheme_known=size<4096;if(out.scheme_known)out.scheme.assign(allocation.value,size);}
+        stage("scheme_copied_before_LocalFree");
+        const bool free_attempted=allocation.value!=nullptr;
         out.scheme_freed=!allocation.value||LocalFree(allocation.value)==nullptr;allocation.value=nullptr;
+        if(first_post_SET_trace)first_post_SET_trace->log.emit("high_contrast_post_SET_probe",
+            "\"stage\":\"LocalFree_return\",\"first_read_only\":true,\"native_attempted\":"+std::string(free_attempted?"true":"false")+
+            ",\"system_scheme_allocation_freed\":"+(out.scheme_freed?"true":"false"));
         constexpr std::array<int,6> indices{COLOR_WINDOW,COLOR_WINDOWTEXT,COLOR_BTNFACE,COLOR_BTNTEXT,COLOR_INFOBK,COLOR_INFOTEXT};
         for(std::size_t i=0;i<indices.size();++i)out.colors[i]=GetSysColor(indices[i]);
+        stage("colors_done");
         return out;
     }
     std::string json()const{
@@ -109,12 +123,17 @@ void owned_high_contrast_case(State& s){
        !(lease.original.flags&HCF_AVAILABLE)||(lease.original.flags&HCF_OPTION_NOTHEMECHANGE)){
         blocked("actual_HC_availability_scheme_or_safe_restore_unknown");return;
     }
-    SettingsGui gui;std::unique_ptr<LayoutFixtures> source;
+    SettingsGui gui;
     try{
         if(!lease.enable()){blocked("SPI_SETHIGHCONTRAST_failed_no_alternate_theme_route");
             if(!lease.restore())throw std::runtime_error("high_contrast_restore_after_SET_failure_failed");return;}
         GuestHighContrastState active;
-        const bool enabled=wait([&]{active=GuestHighContrastState::read();return active.known&&active.scheme_known&&active.scheme_freed&&
+        s.log.emit("high_contrast_post_SET_probe","\"stage\":\"before_first_wait\",\"first_read_only\":true,"
+            "\"driver_loop_deadline_does_not_interrupt_native_calls_or_message_dispatch\":true");
+        bool first_read=true;
+        const bool enabled=wait([&]{const bool trace=first_read;first_read=false;
+            if(trace)s.log.emit("high_contrast_post_SET_probe","\"stage\":\"predicate_enter\",\"first_read_only\":true");
+            active=GuestHighContrastState::read(trace?&s:nullptr);return active.known&&active.scheme_known&&active.scheme_freed&&
             (active.flags&HCF_HIGHCONTRASTON);},1000);
         s.log.check("high_contrast_actual_GET_ON",enabled&&active.colors[0]!=active.colors[1]&&active.colors[2]!=active.colors[3],
             "\"actual\":"+active.json()+",\"palette_changed\":"+(active.colors!=lease.original.colors?"true":"false")+
@@ -131,7 +150,36 @@ void owned_high_contrast_case(State& s){
         const auto before_cancel=read(s.product.parent_path()/L"settings.ini");gui=gui_open(s);gui_press(s,gui,VK_ESCAPE);
         s.log.check("high_contrast_real_Esc_closes_without_write",wait([&]{return !IsWindow(gui.root);})&&
             read(s.product.parent_path()/L"settings.ini")==before_cancel);
+        chain_check_product(s,pid,birth);s.log.check("high_contrast_same_product_EXE",hash(s.product)==binary);
+        s.log.check("high_contrast_original_system_state_restored",lease.restore());
+        s.log.emit("high_contrast_component","\"result\":\"PASS_AUTOMATED_HC_MODE_AND_KEYBOARD_SUBSET\","
+            "\"screen_BMP_visual_review\":\"NOT_RUN\",\"real_DPI\":\"ACTUAL_GUEST_NOT_FORCED\","
+            "\"200_percent_DPI\":\"NOT_RUN\",\"notice_in_HC_mode\":\"NOT_RUN_SEPARATE_ORDINARY_PHASE_ONLY\","
+            "\"animation_native_API_trace\":\"NOT_RUN_SOURCE_BRANCH_ONLY\",\"whole_M10_F05_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
+    }catch(...){
+        if(gui.root&&IsWindow(gui.root)&&gui_identity(s,gui,gui_focus(gui))&&GetForegroundWindow()==gui.root)
+            try{gui_press(s,gui,VK_ESCAPE);}catch(...){}
+        try{lease.restore();}catch(...){s.log.failed=true;}throw;
+    }
+}
 
+// An independent ordinary-palette product-notice phase, before any HC query
+// or SET. A blocked theme transition must not erase these own-PID facts.
+void owned_idle_notice_before_HC_case(State& s){
+    namespace e=product::guest::up_evidence_detail;
+    settings_guest_scope(s);
+    if(s.suite!="HighContrastOnly"||s.left||s.control||!chain_settings(s).enabled)
+        throw std::runtime_error("ordinary_notice_exact_released_enabled_guest_required");
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
+    const auto idle=geometry_history_status(s);
+    if(e::unique_value(idle,"\"gesture_active\":")!="false"||
+       e::unique_value(idle,"\"native_move_handoff_pending\":")!="false"||
+       e::unique_value(idle,"\"native_operation_pending\":")!="false")
+        throw std::runtime_error("ordinary_notice_requires_actual_idle_product");
+    std::unique_ptr<LayoutFixtures> source;
+    s.log.emit("ordinary_notice_before_HC_scope","\"HC_query_or_SET_called_by_this_phase\":false,"
+        "\"HC_mode_or_readability_inferred\":false,\"same_product_PID\":"+std::to_string(pid));
+    try{
         // A public no-history Undo produces a real rejection, not a fake fault.
         source=std::make_unique<LayoutFixtures>(s);source->create();const auto work=chain_work(source->frames[0].hwnd);
         if(work.width()<600||work.height()<500)throw std::runtime_error("high_contrast_notice_owned_work_area_too_small");
@@ -190,16 +238,14 @@ void owned_high_contrast_case(State& s){
             e::unique_value(retired,"\"timer_cancelled\":")=="true"&&e::unique_value(retired,"\"title_cleared\":")=="true",
             "\"actual_notice_retirement\":"+quote(retired));
         s.log.check("high_contrast_notice_exact_owned_window_closed",source->close());
-        chain_check_product(s,pid,birth);s.log.check("high_contrast_same_product_EXE",hash(s.product)==binary);
-        s.log.check("high_contrast_original_system_state_restored",lease.restore());
-        s.log.emit("high_contrast_component","\"result\":\"PASS_AUTOMATED_HC_MODE_AND_KEYBOARD_SUBSET\","
-            "\"screen_BMP_visual_review\":\"NOT_RUN\",\"real_DPI\":\"ACTUAL_GUEST_NOT_FORCED\","
-            "\"200_percent_DPI\":\"NOT_RUN\",\"specific_notice_visible_exit\":\"ACTUAL_WINDOW_PIXELS_AND_HIDE_REQUIRE_VISUAL_REVIEW\","
-            "\"animation_native_API_trace\":\"NOT_RUN_SOURCE_BRANCH_ONLY\",\"whole_M10_F05_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
+        chain_check_product(s,pid,birth);s.log.check("ordinary_notice_same_product_EXE",hash(s.product)==binary);
+        s.log.emit("ordinary_notice_before_HC_component","\"result\":\"PASS_AUTOMATED_NOTICE_WINDOW_EXPIRY_AND_SUCCESSOR\","
+            "\"screen_BMP_visual_review\":\"NOT_RUN\",\"HC_query_or_SET_called_by_this_phase\":false,"
+            "\"BMP_suffix_high_contrast_notice_is_suite_context_not_HC_mode_proof\":true,"
+            "\"specific_notice_visible_exit\":\"ACTUAL_WINDOW_PIXELS_AND_HIDE_REQUIRE_VISUAL_REVIEW\","
+            "\"whole_M10_F05_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
     }catch(...){
-        if(gui.root&&IsWindow(gui.root)&&gui_identity(s,gui,gui_focus(gui))&&GetForegroundWindow()==gui.root)
-            try{gui_press(s,gui,VK_ESCAPE);}catch(...){}
         if(source&&!source->closed)try{source->close();}catch(...){}
-        try{lease.restore();}catch(...){s.log.failed=true;}throw;
+        throw;
     }
 }
