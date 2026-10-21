@@ -73,6 +73,14 @@ int main() {
     const auto fault_request=guest::parse_guest_queue_failure(fault);
     if(!expect(fault_request&&fault_request->run==std::string(32,'a')&&fault_request->generation==7&&fault_request->source==12345,
                true,"actual guest fault command parser retains exact identity values"))return 1;
+    const auto callback_stop=guest::parse_guest_callback_owner_stop("callback-owner-stop aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345");
+    if(!expect(callback_stop&&callback_stop->run==std::string(32,'a')&&callback_stop->generation==7&&callback_stop->source==12345,true,
+           "actual callback stop parser retains the same narrow exact identity tuple")||
+       !expect(guest::parse_guest_callback_owner_stop(fault).has_value(),false,"queue command is not a callback stop")||
+       !expect(guest::parse_guest_callback_owner_stop("callback-owner-stop aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 12345").has_value(),false,
+           "callback stop rejects a zero generation")||
+       !expect(guest::parse_guest_callback_owner_stop("callback-owner-stop aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345 extra").has_value(),false,
+           "callback stop rejects trailing command text"))return 1;
     for(const auto& invalid:std::array<std::string,7>{
         "queue-failure Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345",
         "queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345",

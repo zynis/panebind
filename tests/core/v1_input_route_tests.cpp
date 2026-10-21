@@ -36,6 +36,37 @@ int main() {
                               const product::Snapshot* actual,std::uint64_t authority=61,bool ready=true,bool up=false){
         return product::guest_queue_failure_matches(permit,event,actual,authority,true,true,false,true,ready,up);};
     check(fault_match(fault_permit,fault_move,&native_down.source),"actual push fault predicate accepts only the armed active Move identity");
+    const auto callback_stop_match=[&](const product::GuestQueueFailurePermit& permit,const product::Snapshot* actual,
+                                     std::uint64_t generation=61,std::uint64_t authority=61,bool up=false){
+        return product::guest_callback_owner_stop_matches(permit,actual,generation,authority,true,true,false,true,true,up);};
+    check(callback_stop_match(fault_permit,&native_down.source),"real callback owner handler accepts only the exact still-active stop tuple");
+    auto callback_unproved=fault_permit;callback_unproved.exact_guest_verified=false;
+    check(!callback_stop_match(callback_unproved,&native_down.source),"unproved host cannot stop the callback owner");
+    check(!callback_stop_match(fault_permit,&native_down.source,62),"callback stop cannot follow a later source generation");
+    check(!callback_stop_match(fault_permit,&native_down.source,61,0),"UP-revoked callback authority cannot be stopped by an old request");
+    check(!callback_stop_match(fault_permit,&native_down.source,61,61,true),"matching UP before owner handling rejects callback stop");
+    auto callback_other=native_down.source;++callback_other.key;
+    check(!callback_stop_match(fault_permit,&callback_other),"same HWND without exact current key cannot stop the owner");
+    check(static_cast<int>(v1::End::Exit)==8&&static_cast<int>(v1::End::InputUnavailable)==9,"new input-owner end preserves every existing terminal numeric value");
+    const auto stopped_current=product::guest_callback_stop_dispatch(true,61,61,0);
+    check(stopped_current.revoke_exact_generation&&stopped_current.finish_gui_gesture&&!stopped_current.clear_native_pending,
+          "actual stop notification may finish only the still-current fault generation");
+    const auto late_exit=product::guest_callback_stop_dispatch(true,61,62,0);
+    check(late_exit.revoke_exact_generation&&!late_exit.finish_gui_gesture&&!late_exit.clear_native_pending,
+          "late owner exit retains old facts without finishing the recovered next gesture");
+    const auto old_gui_new_native=product::guest_callback_stop_dispatch(true,61,61,62);
+    check(!old_gui_new_native.finish_gui_gesture&&!old_gui_new_native.clear_native_pending,
+          "old GUI gesture cannot make callback notification finish a newer pending native handoff");
+    const auto exit_before_stop=product::guest_callback_stop_dispatch(true,61,0,0);
+    check(exit_before_stop.revoke_exact_generation&&!exit_before_stop.finish_gui_gesture,
+          "wp4-first retirement leaves subsequent wp3 factual only and never invokes global no-gesture finish");
+    const auto old_native=product::guest_callback_stop_dispatch(true,61,0,61);
+    check(old_native.clear_native_pending&&!old_native.finish_gui_gesture,"old native pending is cleared without global gesture finish");
+    check(!product::guest_callback_stop_dispatch(false,61,61,0).revoke_exact_generation,
+          "untriggered callback request cannot revoke any generation");
+    std::atomic<std::uint64_t> recovered_authority{62},recovered_completion{63};
+    check(!product::revoke_exact_generation(recovered_authority,recovered_completion,61)&&recovered_authority==62&&recovered_completion==63,
+          "actual old-generation revocation CAS leaves successor authority and terminal token unchanged");
     auto unproved=fault_permit;unproved.exact_guest_verified=false;
     check(!fault_match(unproved,fault_move,&native_down.source),"ordinary or unproved guest cannot use the fault predicate");
     auto other_fault_move=fault_move;other_fault_move.generation=62;

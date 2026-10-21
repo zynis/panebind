@@ -527,6 +527,36 @@ struct GuestQueueFailureObservation {
     std::uint64_t generation{},qpc{};HWND source{};DWORD pid{},tid{};
     unsigned read{},write{},next{};bool actual_full{};
 };
+// Written once by the real input owner after the explicit guest-only stop.
+// Publication is separate from the GUI's later observation of a signaled
+// thread HANDLE; neither a posted message nor healthy=false proves exit.
+struct GuestCallbackOwnerStopObservation {
+    std::uint64_t generation{},trigger_qpc{},exit_record_qpc{},unhook_before_qpc{},unhook_after_qpc{};
+    DWORD owner_tid{},unhook_error{},hotkey_error{},raw_error{},receiver_error{};
+    std::uintptr_t hook{};
+    bool unhook_attempted{},unhook_return{},hotkey_attempted{},hotkey_return{},raw_attempted{},raw_return{};
+    bool receiver_attempted{},receiver_return{},shield_stop_clean{};
+    std::array<bool,6> event_attempted{},event_return{};
+    std::array<DWORD,6> event_error{};
+};
+struct GuestCallbackStopDispatch {
+    bool revoke_exact_generation{},finish_gui_gesture{},clear_native_pending{};
+};
+inline GuestCallbackStopDispatch guest_callback_stop_dispatch(bool triggered,std::uint64_t fault_generation,
+    std::uint64_t gui_generation,std::uint64_t native_generation)noexcept{
+    const bool exact=triggered&&fault_generation;
+    return {exact,exact&&gui_generation==fault_generation&&(!native_generation||native_generation==fault_generation),
+        exact&&native_generation==fault_generation};
+}
+inline bool guest_callback_owner_stop_matches(const GuestQueueFailurePermit& permit,const Snapshot* actual,
+    std::uint64_t generation,std::uint64_t authority,bool healthy,bool available,bool paused,
+    bool active_pair,bool capture_ready,bool up_or_abort)noexcept{
+    return permit.exact_guest_verified&&permit.generation&&generation==permit.generation&&authority==permit.generation&&
+        healthy&&available&&!paused&&active_pair&&capture_ready&&!up_or_abort&&actual&&
+        actual->hwnd&&actual->hwnd==permit.source.hwnd&&actual->key&&actual->key==permit.source.key&&
+        actual->pid&&actual->pid==permit.source.pid&&actual->tid&&actual->tid==permit.source.tid&&
+        actual->born&&actual->born==permit.source.born&&actual->exe==permit.source.exe&&actual->window_class==permit.source.window_class;
+}
 
 // Dedicated message owner. No COM, file IO, cross-process messaging or geometry
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
@@ -592,6 +622,13 @@ public:
     // of normal Catalog eligibility. Failed proof does not fall back to it.
     bool arm_guest_queue_failure(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why);
     std::string guest_queue_failure_json()const;
+    bool request_guest_callback_owner_stop(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why);
+    std::string guest_callback_owner_stop_json();
+    bool guest_callback_owner_stop_clean()const;
+    bool guest_callback_owner_stop_triggered()const{return guest_callback_stop_triggered_.load(std::memory_order_acquire);}
+    std::uint64_t guest_callback_owner_stop_generation()const{
+        return guest_callback_stop_state_.load(std::memory_order_acquire)>=2?guest_callback_stop_permit_.generation:0;
+    }
     std::uint64_t max_callback_ticks()const{return max_ticks_;}
     // Join stop() before final reporting. A live relaxed snapshot is bounded
     // and race-free but not an atomic view of simultaneous callback updates.
@@ -631,6 +668,12 @@ private:
     void drain_capture_events();
     void request_capture_stop(operations::GestureShieldRemovalReason);
     void retire_capture_pair(std::uint64_t generation=0,core::v1::End reason=core::v1::End::SourceLost);
+    bool arm_guest_input_failure(std::string_view,std::uint64_t,HWND,bool callback_owner_stop,std::string&);
+    static VOID CALLBACK guest_callback_owner_exited(PVOID,BOOLEAN);
+    struct GuestCallbackWaitContext {
+        std::atomic<HWND> owner{};
+        std::atomic<bool> signaled{},notified{};
+    };
     static InputService* instance_;
     HWND owner_{},receiver_{};
     std::atomic<DWORD> thread_id_{};
@@ -657,6 +700,22 @@ private:
     GuestQueueFailurePermit guest_queue_failure_permit_;
     GuestQueueFailureObservation guest_queue_failure_observation_;
     std::atomic<bool> guest_queue_failure_observation_ready_{};
+    // A second narrowly scoped one-shot. Neither permit resets on recovery.
+    std::atomic<unsigned> guest_callback_stop_state_{};
+    GuestQueueFailurePermit guest_callback_stop_permit_;
+    GuestCallbackOwnerStopObservation guest_callback_stop_observation_;
+    std::atomic<bool> guest_callback_stop_triggered_{},guest_callback_stop_exit_ready_{};
+    std::atomic<bool> guest_callback_stop_posted_{},guest_callback_wait_signaled_{},guest_callback_wait_notified_{};
+    std::atomic<DWORD> guest_callback_stop_post_error_{};
+    std::atomic<unsigned> guest_callback_stop_rejection_{};
+    HANDLE guest_callback_wait_{},guest_callback_wait_thread_{};
+    std::unique_ptr<GuestCallbackWaitContext> guest_callback_wait_context_;
+    bool guest_callback_wait_registered_{},guest_callback_gui_exit_observed_{};
+    DWORD guest_callback_wait_register_error_{},guest_callback_gui_exit_query_error_{};
+    bool guest_callback_gui_exit_query_attempted_{},guest_callback_gui_exit_query_return_{};
+    bool guest_callback_wait_unregister_attempted_{},guest_callback_wait_unregister_return_{};
+    DWORD guest_callback_wait_unregister_error_{};
+    DWORD guest_callback_gui_wait_result_{WAIT_FAILED},guest_callback_gui_wait_error_{},guest_callback_gui_exit_code_{STILL_ACTIVE};
     bool consumed_down_{},native_move_{};
     bool aborted_{};
     int button_{};

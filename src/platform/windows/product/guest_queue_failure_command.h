@@ -26,4 +26,9 @@ inline std::optional<GuestQueueFailureRequest> parse_guest_queue_failure(std::st
        h.ec!=std::errc{}||h.ptr!=source.data()+source.size()||!request.source)return {};
     return request;
 }
+inline std::optional<GuestQueueFailureRequest> parse_guest_callback_owner_stop(std::string_view text){
+    constexpr std::string_view prefix="callback-owner-stop ";
+    if(!text.starts_with(prefix)||text.size()>126)return {};
+    return parse_guest_queue_failure("queue-failure "+std::string(text.substr(prefix.size())));
+}
 } // namespace panebind::platform::windows::product::guest

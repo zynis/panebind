@@ -3130,3 +3130,50 @@ not an inference of visual readability, animation behavior, 200% DPI or full
 M10-F05 acceptance. Existing notice logs do not prove a visible notice. No HC
 API, synthetic input or native experiment was executed on the developer host;
 guest execution and screenshot review remain NOT_RUN at implementation time.
+
+### V1 explicit guest callback-owner stop — 2026-10-22
+
+Scope: one exact disposable-guest/RunId/Medium, already-active owned source;
+complete the guide 5.2 callback-stop fault injection independently of the
+successful injected queue-failure run `28e3f8ddc91f4c8da1328df09a75017d`.
+Reuse the already-inspected AltSnap `5c86416ad21e4b72844a998a746bd3bb0bee5f5d`
+(GPL-3.0-or-later, reference only) and FancyZones/PowerToys
+`19c4d805321db86f3634e6968e14dbf25cbba14a` (MIT, reference only) lifecycle,
+bounded callback and failure/rebuild lessons recorded above. No new upstream
+implementation inspection, code copy, adaptation or license change is claimed.
+In particular, do not adopt periodic rehooking or infer OS hook presence from
+the public service-health Boolean.
+
+Official platform contracts actually read for this small addition:
+
+- [PostThreadMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-postthreadmessagew):
+  successful posting does not prove the owner processed the message; the queue
+  must exist and thread messages require explicit handling in its message pump.
+- [UnhookWindowsHookEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-unhookwindowshookex):
+  preserve actual BOOL/error and handle identity. A returned success alone does
+  not prove another concurrently running callback or the owner thread exited.
+- [Terminating a Thread](https://learn.microsoft.com/en-us/windows/win32/procthread/terminating-a-thread)
+  and [WaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject):
+  let the existing owner return normally, never use TerminateThread. Observe the
+  actual thread object's signaled state/exit code separately, with a zero-time
+  GUI observation after a one-shot wait notification, not a resident poll.
+- [RegisterWaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-registerwaitforsingleobject)
+  and [UnregisterWaitEx](https://learn.microsoft.com/en-us/windows/win32/api/threadpoollegacyapiset/nf-threadpoollegacyapiset-unregisterwaitex):
+  WT_EXECUTEONLYONCE still requires explicit cancellation; cancel on the GUI,
+  never blocking from the same wait callback, before closing its thread handle.
+- [GetExitCodeThread](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getexitcodethread):
+  query only after the real thread wait is signaled; preserve BOOL/error/code,
+  rather than treating STILL_ACTIVE or a posted completion as actual exit.
+
+The GUI reuses the full immutable guest proof before sending one owner-stop
+request. The owner rechecks generation/source/UP/current capture, retires
+authority and exits its real loop with InputUnavailable (new value 9, old
+values unchanged). The independent shield thread performs existing bounded
+cleanup. Record actual mouse/WinEvent/hotkey/Raw/receiver teardown and actual
+thread exit; failed unhook is not resources-stopped. The short-lived wait
+callback only notifies the GUI; stop cancels the wait before joining/closing
+its handle. The TEST driver must prove one original cleanup UP in the guest
+and exact client, then public Pause/Resume and same-instance Move/Resize.
+This is explicit injected owner shutdown, not natural queue exhaustion,
+OS-silent hook removal, human UAT or host execution. Native results remain
+NOT_RUN until matching guest evidence is collected. No external code reused.

@@ -38,8 +38,10 @@ namespace {
 constexpr wchar_t app_class[]=L"PaneBind.V1.Application";
 constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31, queued_command_message=WM_APP+32;
 constexpr UINT guest_queue_failure_message=WM_APP+33;
+constexpr UINT guest_callback_owner_stop_message=WM_APP+34;
 using guest::GuestQueueFailureRequest;
 using guest::parse_guest_queue_failure;
+using guest::parse_guest_callback_owner_stop;
 constexpr UINT menu_pause=500,menu_settings=501,menu_exclude=502,menu_help=503,menu_diagnostic=504,menu_exit=505;
 const char* shield_event_name(o::GestureShieldEventKind kind){
     using K=o::GestureShieldEventKind;
@@ -263,8 +265,23 @@ public:
     std::uint64_t overlay_limit_generation{};v::Key overlay_limit_key{};
     UINT_PTR idle_notice_timer{};
     std::optional<GuestQueueFailureRequest> guest_queue_failure_pending;
+    std::optional<GuestQueueFailureRequest> guest_callback_owner_stop_pending;
     explicit Application(HINSTANCE h):instance(h){}
     ~Application(){stop();}
+    void callback_owner_stop_fact(bool exit_fact){
+        const auto generation=input.guest_callback_owner_stop_generation();if(!generation)return;
+        const auto dispatch=guest_callback_stop_dispatch(input.guest_callback_owner_stop_triggered(),generation,
+            gesture?gesture->down.generation:0,native_move?native_move->down.generation:0);
+        log.event(exit_fact?"input_callback_owner_exit":"input_callback_owner_stop","\"generation\":"+
+            std::to_string(generation)+","+input.guest_callback_owner_stop_json());
+        if(!dispatch.revoke_exact_generation)return;
+        // A one-shot wait notification may arrive after public recovery. Its
+        // original permit is never global revocation authority for a new pair.
+        input.revoke_generation(generation,v::End::InputUnavailable);
+        if(dispatch.finish_gui_gesture){finish(v::End::InputUnavailable);
+            if(!input.healthy())notify(L"输入回调资源不可用，增强已中止；请暂停后恢复。");}
+        else if(dispatch.clear_native_pending)native_move.reset();
+    }
     void notify(std::wstring text){problem=std::move(text);log.event("notice","\"reason\":\""+escaped(utf8(problem))+"\"");tray();show_idle_notice();}
     void tray(){NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;n.uFlags=NIF_MESSAGE|NIF_ICON|NIF_TIP;
         n.uCallbackMessage=tray_message;n.hIcon=LoadIconW(nullptr,settings.enabled&&input.healthy()?IDI_APPLICATION:IDI_WARNING);
@@ -1336,17 +1353,37 @@ void Application::native_move_resource(const InputEvent& e){
     if(fact.kind==o::GestureShieldEventKind::IsolationGone){native_move.reset();return;}
     if(fact.kind!=o::GestureShieldEventKind::IsolationReady)return;
     const auto g=e.generation;
-    const auto reject=[&](const char* why){log.event("native_move_cancel","\"generation\":"+std::to_string(g)+
-        ",\"native_attempted\":false,\"reason\":\""+why+"\"");input.revoke_generation(g);native_move.reset();};
+    const auto reject=[&](const char* why,const char* first_failed_gate=nullptr){
+        log.event("native_move_cancel","\"generation\":"+std::to_string(g)+
+            ",\"native_attempted\":false,\"reason\":\""+why+"\""+
+            (first_failed_gate?",\"first_failed_gate\":\""+std::string(first_failed_gate)+"\"":""));
+        input.revoke_generation(g);native_move.reset();};
     const auto& source=pending.down.prepared->source;
     const auto fresh=catalog.get(source.hwnd,settings,nullptr,false,false);
-    if(!input.native_move_pending(g)||!fresh||!native_geometry_handoff_compatible(*pending.down.prepared,*fresh)||
-       !native_arranged_handoff_compatible(*pending.down.prepared,*fresh,pending.down.button,pending.down.clicks,pending.down.modifiers)||
-       !settings.enabled||stopping||pending.down.prepared->config_generation!=settings.generation||
-       !native_group_unchanged(pending.down,*fresh)||!pending.start||fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff||
-       fact.gesture.generation!=g||fact.gesture.source!=source.hwnd||fact.gesture.process_id!=source.pid||fact.gesture.thread_id!=source.tid||
-       GetForegroundWindow()!=source.hwnd||!native_move_buttons_held()||!native_move_gui(*fresh,true)||
-       !native_move_overlay_hits(fact.overlay))return reject("fresh_isolation_or_source_rejected");
+    // Preserve the former OR's exact order/short circuit, including the fresh
+    // capture above the pending check. Never eagerly sample native helpers for
+    // logging: UP/foreground/context can change, and later gates must not run
+    // after an earlier rejection. This names one observed first failure only.
+    const char* first_failed_gate=nullptr;
+    if(!input.native_move_pending(g))first_failed_gate="pending_generation";
+    else if(!fresh)first_failed_gate="fresh_source_snapshot";
+    else if(!native_geometry_handoff_compatible(*pending.down.prepared,*fresh))first_failed_gate="geometry_handoff";
+    else if(!native_arranged_handoff_compatible(*pending.down.prepared,*fresh,pending.down.button,pending.down.clicks,pending.down.modifiers))first_failed_gate="arranged_handoff";
+    else if(!settings.enabled)first_failed_gate="product_enabled";
+    else if(stopping)first_failed_gate="product_not_stopping";
+    else if(pending.down.prepared->config_generation!=settings.generation)first_failed_gate="configuration_generation";
+    else if(!native_group_unchanged(pending.down,*fresh))first_failed_gate="original_DOWN_group";
+    else if(!pending.start)first_failed_gate="native_START_receipt";
+    else if(fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff)first_failed_gate="isolation_entry_mode";
+    else if(fact.gesture.generation!=g)first_failed_gate="isolation_generation";
+    else if(fact.gesture.source!=source.hwnd)first_failed_gate="isolation_source_HWND";
+    else if(fact.gesture.process_id!=source.pid)first_failed_gate="isolation_source_PID";
+    else if(fact.gesture.thread_id!=source.tid)first_failed_gate="isolation_source_TID";
+    else if(GetForegroundWindow()!=source.hwnd)first_failed_gate="source_foreground";
+    else if(!native_move_buttons_held())first_failed_gate="native_buttons_held";
+    else if(!native_move_gui(*fresh,true))first_failed_gate="native_GUI_move_context";
+    else if(!native_move_overlay_hits(fact.overlay))first_failed_gate="own_isolation_hit";
+    if(first_failed_gate)return reject("fresh_isolation_or_source_rejected",first_failed_gate);
     if(!pending.gate.isolation_ready(g,true)||!pending.gate.may_cancel(g)||
        !input.claim_native_move_cancel(g)||!pending.gate.cancel_issued(g))return reject("cancel_claim_revoked");
     pending.overlay=fact.overlay;
@@ -2195,14 +2232,15 @@ void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");i
     for(const auto& key:bound_keys)UnregisterHotKey(window,key.id);bound_keys.clear();
     NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;Shell_NotifyIconW(NIM_DELETE,&n);
     if(overlay)DestroyWindow(overlay);overlay=nullptr;WTSUnRegisterSessionNotification(window);
-    log.event("shutdown","\"own_hooks_stopped\":true,\"own_overlay_destroyed\":true,\"native_worker_exited\":"+
+    log.event("shutdown","\"own_hooks_stopped\":"+std::string(input.guest_callback_owner_stop_clean()?"true":"false")+
+        ",\"own_overlay_destroyed\":true,\"native_worker_exited\":"+
         std::string(native_writer_exited?"true":"false")+",\"issued_native_completion_unknown\":"+(issued_completion_unknown?"true":"false")+
         ",\"visual_recovery_stopped\":"+(recovery_stopped?"true":"false")+
         ",\"visual_restore_confirmed\":"+(visual_restore_confirmed?"true":"false")+
         ",\"guest_capture_route_used\":"+(input.capture_route_is_guest()?"true":"false")+
         ",\"capture_resource_route_used\":"+(input.capture_route_enabled()?"true":"false")+
         ",\"capture_resource_route\":\""+escaped(input.capture_route_mode())+"\""+
-        ",\"own_input_resources_stopped\":"+(!input.capture_route_enabled()||input.capture_stop_facts().clean()?"true":"false")+
+        ",\"own_input_resources_stopped\":"+((!input.capture_route_enabled()||input.capture_stop_facts().clean())&&input.guest_callback_owner_stop_clean()?"true":"false")+
         ",\"own_capture_released\":"+(input.capture_route_enabled()?(input.capture_stop_facts().capture_released?"true":"false"):"null")+
         ",\"own_input_association_detached\":"+(input.capture_route_enabled()?(input.capture_stop_facts().association_detached?"true":"false"):"null")+
         ",\"mouse_up_callbacks\":"+mouse_up_callback_json(input.mouse_up_callbacks()));
@@ -2287,6 +2325,8 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                     std::to_string(a->input.emergency_hotkey_messages()));}
             else if(wp==1){a->log.event("input_queue_failure",a->input.guest_queue_failure_json());
                 a->input.revoke();a->finish(v::End::QueueFailure);a->notify(L"输入队列故障，已停止增强；请暂停后恢复。");}
+            else if(wp==3)a->callback_owner_stop_fact(false);
+            else if(wp==4)a->callback_owner_stop_fact(true);
             if(a->gesture&&a->gesture->restore_pending)a->restore_progress();
             a->refresh_idle_catalog();
             return 0;}
@@ -2324,6 +2364,14 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             if(wp==1)DestroyWindow(w);else if(wp==2)a->set_paused(true);else if(wp==3)a->log_status();else a->show_settings();return 0;
         case WM_COPYDATA:{
             const auto* data=reinterpret_cast<COPYDATASTRUCT*>(lp);
+            if(data&&data->dwData==0x50424331&&data->cbData>=1&&data->cbData<=128&&data->lpData){
+                const auto bytes=static_cast<const char*>(data->lpData);
+                if(bytes[data->cbData-1]!='\0'||a->guest_callback_owner_stop_pending)return FALSE;
+                const auto request=parse_guest_callback_owner_stop(std::string_view(bytes,data->cbData-1));
+                if(!request)return FALSE;a->guest_callback_owner_stop_pending=*request;
+                if(PostMessageW(w,guest_callback_owner_stop_message,0,0))return TRUE;
+                a->guest_callback_owner_stop_pending.reset();return FALSE;
+            }
             if(data&&data->dwData==0x50425131&&data->cbData>=1&&data->cbData<=128&&data->lpData){
                 const auto bytes=static_cast<const char*>(data->lpData);
                 if(bytes[data->cbData-1]!='\0'||a->guest_queue_failure_pending)return FALSE;
@@ -2360,6 +2408,25 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                 ",\"reason\":\""+escaped(why)+"\",\"run_id\":\""+request.run+"\",\"generation\":"+
                 std::to_string(request.generation)+",\"source_HWND\":"+std::to_string(request.source)+","+
                 a->input.guest_queue_failure_json());return 0;}
+        case guest_callback_owner_stop_message:{
+            if(!a->guest_callback_owner_stop_pending)return 0;
+            const auto request=std::move(*a->guest_callback_owner_stop_pending);a->guest_callback_owner_stop_pending.reset();
+            std::string why="no_current_exact_plain_Move";bool requested=false;
+            if(!a->stopping&&a->settings.enabled&&!a->writer.has_pending_native_operation()&&a->gesture&&!a->gesture->ctrl&&!is_resize(a->gesture->edges)&&
+               a->gesture->down.generation==request.generation&&a->input.allowed(request.generation)&&
+               reinterpret_cast<std::uintptr_t>(a->gesture->operation_source.hwnd)==request.source&&a->gesture->exact_motion&&
+               a->gesture->exact_motion->generation==request.generation){
+                const auto& source=a->gesture->operation_source;const auto actual=a->catalog.get(source.hwnd,a->settings);
+                const auto exact=a->last_exact_receipts.find(source.key);
+                if(actual&&exact!=a->last_exact_receipts.end()&&Catalog::same(source,*actual)&&
+                   WindowWriter::prepare(exact->second,*actual,exact->second.visible).accepted)
+                    requested=a->input.request_guest_callback_owner_stop(request.run,request.generation,source.hwnd,why);
+                else why="fresh_geometry_has_no_current_exact_writer_receipt";
+            }
+            a->log.event("guest_callback_owner_stop_arm","\"requested\":"+std::string(requested?"true":"false")+
+                ",\"reason\":\""+escaped(why)+"\",\"run_id\":\""+request.run+"\",\"generation\":"+
+                std::to_string(request.generation)+",\"source_HWND\":"+std::to_string(request.source)+","+
+                a->input.guest_callback_owner_stop_json());return 0;}
         case queued_command_message:
             if(wp<v::settings_detail::action_names.size())a->command(static_cast<v::Action>(wp));return 0;
         case WM_DISPLAYCHANGE:case WM_DPICHANGED:case WM_SETTINGCHANGE:
@@ -2401,7 +2468,15 @@ int run(HINSTANCE instance,const wchar_t*){
     int count{};LPWSTR* args=CommandLineToArgvW(GetCommandLineW(),&count);if(!args)return 1;
     std::vector<std::wstring> argv;for(int i=1;i<count;++i)argv.emplace_back(args[i]);LocalFree(args);
     const bool fault_switch=std::find(argv.begin(),argv.end(),L"--guest-queue-failure")!=argv.end();
+    const bool callback_stop_switch=std::find(argv.begin(),argv.end(),L"--guest-callback-owner-stop")!=argv.end();
     std::optional<GuestQueueFailureRequest> queue_failure_command;
+    std::optional<GuestQueueFailureRequest> callback_stop_command;
+    if(callback_stop_switch){
+        const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);if(!scope.enabled)return 78;
+        if(argv.size()!=4||argv[0]!=L"--guest-callback-owner-stop")return 2;
+        callback_stop_command=parse_guest_callback_owner_stop("callback-owner-stop "+utf8(argv[1])+" "+utf8(argv[2])+" "+utf8(argv[3]));
+        if(!callback_stop_command||callback_stop_command->run!=scope.run_id)return 78;
+    }
     if(fault_switch){
         // A test fault request must not silently become an ordinary launch,
         // nor may --build-identity bypass its exact disposable-guest guard.
@@ -2429,7 +2504,11 @@ int run(HINSTANCE instance,const wchar_t*){
             (argv.size()==2&&argv[0]==L"--command"&&argv[1]==L"Settings");
         if(target&&opens_settings){DWORD target_pid{};
             if(GetWindowThreadProcessId(target,&target_pid)&&target_pid)AllowSetForegroundWindow(target_pid);}
-        if(target){if(queue_failure_command){
+        if(target){if(callback_stop_command){
+                const auto name="callback-owner-stop "+callback_stop_command->run+" "+std::to_string(callback_stop_command->generation)+" "+std::to_string(callback_stop_command->source);
+                COPYDATASTRUCT data{0x50424331,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
+                delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;
+            }else if(queue_failure_command){
                 const auto name="queue-failure "+queue_failure_command->run+" "+std::to_string(queue_failure_command->generation)+" "+std::to_string(queue_failure_command->source);
                 COPYDATASTRUCT data{0x50425131,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
                 delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;
@@ -2440,7 +2519,7 @@ int run(HINSTANCE instance,const wchar_t*){
                 (!argv.empty()&&argv[0]==L"--status")?3:0,0)?0:2;}
         CloseHandle(mutex);CoUninitialize();return delivered;
     }
-    if(queue_failure_command||(!argv.empty()&&(argv[0]==L"--quit"||argv[0]==L"--pause"||argv[0]==L"--status"||argv[0]==L"--command"))){
+    if(callback_stop_command||queue_failure_command||(!argv.empty()&&(argv[0]==L"--quit"||argv[0]==L"--pause"||argv[0]==L"--status"||argv[0]==L"--command"))){
         CloseHandle(mutex);CoUninitialize();return 2;}
     int result=1;
     try{

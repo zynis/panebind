@@ -13,6 +13,7 @@ namespace {
 constexpr UINT_PTR gesture_deadline_timer=1;
 constexpr UINT gesture_deadline_ms=30000;
 constexpr UINT capture_request_message=WM_APP+44,capture_events_message=WM_APP+45,capture_stop_message=WM_APP+46;
+constexpr UINT guest_callback_stop_message=WM_APP+47;
 using ShieldEvent=operations::GestureShieldEvent;
 using ShieldKind=operations::GestureShieldEventKind;
 using Removal=operations::GestureShieldRemovalReason;
@@ -344,10 +345,25 @@ bool InputService::start(HWND owner,bool diagnostic){
     return started;
 }
 void InputService::stop(){
+    // The one-shot wait callback never waits on this GUI thread. Cancel/join
+    // it before closing the std::thread HANDLE or destroying its this/HWND.
+    if(guest_callback_wait_){
+        if(guest_callback_wait_context_)guest_callback_wait_context_->owner=nullptr;
+        guest_callback_wait_unregister_attempted_=true;SetLastError(0);
+        guest_callback_wait_unregister_return_=UnregisterWaitEx(guest_callback_wait_,INVALID_HANDLE_VALUE)!=FALSE;
+        guest_callback_wait_unregister_error_=guest_callback_wait_unregister_return_?0:GetLastError();
+        if(guest_callback_wait_context_){
+            guest_callback_wait_signaled_=guest_callback_wait_context_->signaled.load();
+            guest_callback_wait_notified_=guest_callback_wait_context_->notified.load();
+            if(guest_callback_wait_unregister_return_)guest_callback_wait_context_.reset();
+            else (void)guest_callback_wait_context_.release(); // one bounded failed-wait context; inert owner, no dangling this
+        }
+        guest_callback_wait_=nullptr;
+    }
     retire_capture_pair(0,core::v1::End::Exit);
     *completion_=0;*available_=false;*authorized_=0;paused_=true;stop_requested_=true;
     if(thread_.joinable()){const auto id=thread_id_.load();if(id)PostThreadMessageW(id,WM_QUIT,0,0);thread_.join();}
-    prepared_.store({});
+    prepared_.store({});guest_callback_wait_thread_=nullptr;
 }
 void InputService::pause(bool value){if(value)retire_capture_pair(0,core::v1::End::Paused);*completion_=0;paused_=value;*available_=!value&&healthy_;const auto retired=authorized_->exchange(0);
     auto generation=retired&~pending_capture_mask;
@@ -355,17 +371,23 @@ void InputService::pause(bool value){if(value)retire_capture_pair(0,core::v1::En
     const auto id=thread_id_.load();if(value&&id&&generation)PostThreadMessageW(id,WM_APP+1,static_cast<WPARAM>(generation),0);}
 POINT InputService::latest()const{auto p=point_.load();return {static_cast<LONG>(p>>32),static_cast<LONG>(p&0xffffffffu)};}
 bool InputService::arm_guest_queue_failure(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why){
+    return arm_guest_input_failure(run_id,generation,source,false,why);
+}
+bool InputService::arm_guest_input_failure(std::string_view run_id,std::uint64_t generation,HWND source,bool callback_owner_stop,std::string& why){
     // Called only by the normal GUI pump, never WM_COPYDATA's borrowed buffer
     // or a hook/resource callback. No ordinary product admission is a fallback.
     const auto reject=[&](const char* reason){why=reason;return false;};
-    if(guest_queue_failure_state_.load()!=0)return reject("one_process_lifetime_permit_already_used_or_armed");
+    auto& state=callback_owner_stop?guest_callback_stop_state_:guest_queue_failure_state_;
+    auto& permit=callback_owner_stop?guest_callback_stop_permit_:guest_queue_failure_permit_;
+    if(state.load()!=0)return reject("one_process_lifetime_permit_already_used_or_armed");
     const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);
     if(!scope.enabled||scope.run_id!=run_id||!generation||!source)
         return reject("exact_Medium_disposable_Run_product_proof_required");
     const std::filesystem::path input=L"C:\\PaneBindV1\\Input";
     const auto manifest=guest::capture_read(input/L"manifest.json");const auto files=manifest.find("\"files\"");
-    if(files==manifest.npos||!guest::capture_manifest_suite(manifest,"QueueFailureOnly"))
-        return reject("exact_queue_failure_suite_required");
+    if(files==manifest.npos||!(callback_owner_stop?guest::capture_manifest_suite(manifest,"CallbackOwnerStopOnly"):
+         guest::capture_manifest_suite(manifest,"QueueFailureOnly")))
+        return reject(callback_owner_stop?"exact_callback_owner_stop_suite_required":"exact_queue_failure_suite_required");
     const auto pair=capture_bridge_?capture_bridge_->pair.load():nullptr;
     const auto context=pair?pair->context.load():GestureCaptureLease{};
     if(!pair||!context||!pair->down.prepared||!capture_bridge_->active(pair)||!pair->ready_authorized||
@@ -431,11 +453,95 @@ bool InputService::arm_guest_queue_failure(std::string_view run_id,std::uint64_t
        pair->up_observed||pair->aborted||context->matching_up_observed||
        !operations::gesture_shield_exact_capture(context->overlay,context->owner_tid))
         return reject("source_or_generation_revoked_during_proof");
-    unsigned empty=0;if(!guest_queue_failure_state_.compare_exchange_strong(empty,1))
+    unsigned empty=0;if(!state.compare_exchange_strong(empty,1))
         return reject("one_process_lifetime_permit_already_used_or_armed");
-    try{guest_queue_failure_permit_={true,generation,identity,std::string(run_id),driver_hash};}
+    try{permit={true,generation,identity,std::string(run_id),driver_hash};}
     catch(...){why="immutable_permit_publication_failed";return false;}
-    guest_queue_failure_state_.store(2,std::memory_order_release);why="exact_guest_one_shot_armed_not_yet_triggered";return true;
+    state.store(2,std::memory_order_release);why="exact_guest_one_shot_armed_not_yet_triggered";return true;
+}
+bool InputService::request_guest_callback_owner_stop(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why){
+    if(!arm_guest_input_failure(run_id,generation,source,true,why))return false;
+    if(!thread_.joinable()||!thread_id_.load()){why="actual_input_owner_handle_unavailable";return false;}
+    guest_callback_wait_thread_=thread_.native_handle();guest_callback_wait_context_=std::make_unique<GuestCallbackWaitContext>();
+    guest_callback_wait_context_->owner=owner_;
+    SetLastError(0);if(!RegisterWaitForSingleObject(&guest_callback_wait_,guest_callback_wait_thread_,guest_callback_owner_exited,
+        guest_callback_wait_context_.get(),INFINITE,WT_EXECUTEONLYONCE)){why="one_shot_thread_wait_registration_failed";
+        guest_callback_wait_register_error_=GetLastError();guest_callback_wait_thread_=nullptr;guest_callback_wait_context_.reset();return false;}
+    guest_callback_wait_registered_=true;SetLastError(0);
+    const bool posted=PostThreadMessageW(thread_id_.load(),guest_callback_stop_message,static_cast<WPARAM>(generation),0)!=FALSE;
+    guest_callback_stop_post_error_=posted?0:GetLastError();guest_callback_stop_posted_=posted;
+    why=posted?"exact_guest_callback_owner_stop_posted":"callback_owner_stop_PostThreadMessage_failed";return posted;
+}
+VOID CALLBACK InputService::guest_callback_owner_exited(PVOID value,BOOLEAN timed_out){
+    auto* context=static_cast<GuestCallbackWaitContext*>(value);if(!context||timed_out)return;
+    context->signaled.store(true,std::memory_order_release);
+    if(const auto owner=context->owner.load())context->notified=PostMessageW(owner,catalog_message,4,0)!=FALSE;
+}
+bool InputService::guest_callback_owner_stop_clean()const{
+    if(!guest_callback_stop_triggered_.load())return true;
+    if(!guest_callback_stop_exit_ready_.load(std::memory_order_acquire)||!guest_callback_gui_exit_observed_||
+       (guest_callback_wait_unregister_attempted_&&!guest_callback_wait_unregister_return_))return false;
+    const auto& f=guest_callback_stop_observation_;
+    if(!f.unhook_attempted||!f.unhook_return||!f.hotkey_attempted||!f.hotkey_return||!f.raw_attempted||!f.raw_return||
+       !f.receiver_attempted||!f.receiver_return||!f.shield_stop_clean)return false;
+    for(std::size_t i=0;i<f.event_attempted.size();++i)if(!f.event_attempted[i]||!f.event_return[i])return false;
+    return true;
+}
+std::string InputService::guest_callback_owner_stop_json(){
+    const auto state=guest_callback_stop_state_.load(std::memory_order_acquire);
+    const bool complete=guest_callback_stop_exit_ready_.load(std::memory_order_acquire);
+    if(guest_callback_wait_context_){guest_callback_wait_signaled_=guest_callback_wait_context_->signaled.load();
+        guest_callback_wait_notified_=guest_callback_wait_context_->notified.load();}
+    if(complete&&guest_callback_wait_signaled_.load(std::memory_order_acquire)&&!guest_callback_gui_exit_observed_&&guest_callback_wait_thread_){
+        SetLastError(0);guest_callback_gui_wait_result_=WaitForSingleObject(guest_callback_wait_thread_,0);
+        guest_callback_gui_wait_error_=guest_callback_gui_wait_result_==WAIT_FAILED?GetLastError():0;
+        DWORD code=STILL_ACTIVE;bool known=false;
+        if(guest_callback_gui_wait_result_==WAIT_OBJECT_0){guest_callback_gui_exit_query_attempted_=true;SetLastError(0);
+            known=GetExitCodeThread(guest_callback_wait_thread_,&code)!=FALSE;guest_callback_gui_exit_query_return_=known;
+            guest_callback_gui_exit_query_error_=known?0:GetLastError();}
+        guest_callback_gui_exit_code_=known?code:STILL_ACTIVE;
+        guest_callback_gui_exit_observed_=guest_callback_gui_wait_result_==WAIT_OBJECT_0&&known&&code!=STILL_ACTIVE;
+    }
+    std::string out="\"stop_request_posted\":"+std::string(guest_callback_stop_posted_.load()?"true":"false")+
+        ",\"stop_post_error\":"+std::to_string(guest_callback_stop_post_error_.load())+
+        ",\"callback_stop_permit_armed\":"+(state==2?"true":"false")+",\"callback_stop_permit_consumed\":"+(state==3?"true":"false")+
+        ",\"owner_stop_triggered\":"+(guest_callback_stop_triggered_.load()?"true":"false")+
+        ",\"owner_stop_rejection_code\":"+std::to_string(guest_callback_stop_rejection_.load())+
+        ",\"actual_owner_exit_recorded\":"+(complete?"true":"false")+
+        ",\"thread_wait_registered\":"+(guest_callback_wait_registered_?"true":"false")+
+        ",\"thread_wait_register_error\":"+std::to_string(guest_callback_wait_register_error_)+
+        ",\"thread_object_signaled\":"+(guest_callback_wait_signaled_.load()?"true":"false")+
+        ",\"thread_wait_result\":"+std::to_string(guest_callback_gui_wait_result_)+
+        ",\"thread_wait_error\":"+std::to_string(guest_callback_gui_wait_error_)+
+        ",\"thread_exit_code\":"+std::to_string(guest_callback_gui_exit_code_)+
+        ",\"thread_exit_query_attempted\":"+(guest_callback_gui_exit_query_attempted_?"true":"false")+
+        ",\"thread_exit_query_return\":"+(guest_callback_gui_exit_query_return_?"true":"false")+
+        ",\"thread_exit_query_error\":"+std::to_string(guest_callback_gui_exit_query_error_)+
+        ",\"thread_exit_observed\":"+(guest_callback_gui_exit_observed_?"true":"false")+
+        ",\"thread_wait_unregister_attempted\":"+(guest_callback_wait_unregister_attempted_?"true":"false")+
+        ",\"thread_wait_unregister_return\":"+(guest_callback_wait_unregister_return_?"true":"false")+
+        ",\"thread_wait_unregister_error\":"+std::to_string(guest_callback_wait_unregister_error_)+
+        ",\"origin\":\"guest_injected_callback_owner_stop\",\"OS_silent_hook_removal_proven\":false"+
+        ",\"current_healthy\":"+(healthy_.load()?"true":"false")+",\"current_available\":"+(available_->load()?"true":"false")+
+        ",\"current_authorized_generation\":"+std::to_string(authorized_->load())+",\"current_completion_generation\":"+std::to_string(completion_->load())+
+        ",\"current_input_owner_tid\":"+std::to_string(thread_id_.load())+",\"actual_input_owner_start_serial\":"+std::to_string(input_owner_start_serial_.load());
+    if(state>=2){const auto& p=guest_callback_stop_permit_;out+=",\"fault_run_id\":\""+p.run_id+"\",\"fault_generation\":"+std::to_string(p.generation)+
+        ",\"fault_source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+",\"fault_source_key\":"+std::to_string(p.source.key)+
+        ",\"fault_source_pid\":"+std::to_string(p.source.pid)+",\"fault_source_tid\":"+std::to_string(p.source.tid)+",\"fault_source_birth\":"+std::to_string(p.source.born)+
+        ",\"fault_driver_sha256\":\""+p.driver_sha256+"\"";}
+    if(guest_callback_stop_triggered_.load())out+=",\"callback_stop_trigger_qpc\":"+std::to_string(guest_callback_stop_observation_.trigger_qpc);
+    if(complete){const auto& f=guest_callback_stop_observation_;out+=",\"actual_stopped_owner_tid\":"+std::to_string(f.owner_tid)+
+        ",\"owner_exit_record_qpc\":"+std::to_string(f.exit_record_qpc)+",\"mouse_hook_HWND_not_claimed\":true,\"mouse_hook_handle\":"+std::to_string(f.hook)+
+        ",\"mouse_unhook_attempted\":"+(f.unhook_attempted?"true":"false")+",\"mouse_unhook_return\":"+(f.unhook_return?"true":"false")+
+        ",\"mouse_unhook_error\":"+std::to_string(f.unhook_error)+",\"mouse_unhook_before_qpc\":"+std::to_string(f.unhook_before_qpc)+
+        ",\"mouse_unhook_after_qpc\":"+std::to_string(f.unhook_after_qpc)+
+        ",\"hotkey_unregister_return\":"+(f.hotkey_return?"true":"false")+",\"hotkey_unregister_error\":"+std::to_string(f.hotkey_error)+
+        ",\"raw_unregister_return\":"+(f.raw_return?"true":"false")+",\"raw_unregister_error\":"+std::to_string(f.raw_error)+
+        ",\"receiver_destroy_return\":"+(f.receiver_return?"true":"false")+",\"receiver_destroy_error\":"+std::to_string(f.receiver_error)+
+        ",\"shield_stop_clean\":"+(f.shield_stop_clean?"true":"false")+",\"event_unhook\":[";
+        for(std::size_t i=0;i<f.event_attempted.size();++i){if(i)out+=',';out+="{\"index\":"+std::to_string(i)+",\"attempted\":"+(f.event_attempted[i]?"true":"false")+
+            ",\"native_return\":"+(f.event_return[i]?"true":"false")+",\"error\":"+std::to_string(f.event_error[i])+"}";}out+=']';}
+    out+=",\"callback_stop_cleanup_confirmed\":"+std::string(guest_callback_stop_triggered_.load()&&guest_callback_owner_stop_clean()?"true":"false");return out;
 }
 std::string InputService::guest_queue_failure_json()const{
     const auto state=guest_queue_failure_state_.load(std::memory_order_acquire);
@@ -831,6 +937,7 @@ LRESULT CALLBACK InputService::receiver(HWND w,UINT m,WPARAM wp,LPARAM lp){
     return DefWindowProcW(w,m,wp,lp);
 }
 void InputService::run(){
+    bool injected_owner_stop=false;
     instance_=this;MSG msg{};PeekMessageW(&msg,nullptr,0,0,PM_NOREMOVE);thread_id_=GetCurrentThreadId();
     double_click_time_=GetDoubleClickTime();double_click_x_=std::max(1,GetSystemMetrics(SM_CXDOUBLECLK)/2);
     double_click_y_=std::max(1,GetSystemMetrics(SM_CYDOUBLECLK)/2);
@@ -887,7 +994,31 @@ void InputService::run(){
     // silently re-enter the superseded consumed-DOWN route without resources.
     healthy_=hook_&&raw_ok&&event_ok&&stop_ok&&shield_ok&&capture_route_enabled_;*available_=healthy_&&!paused_;SetEvent(ready_);
     if(healthy_&&!stop_requested_)while(GetMessageW(&msg,nullptr,0,0)>0){
-        if(msg.message==WM_HOTKEY&&msg.wParam==910&&HIWORD(msg.lParam)==VK_F11&&
+        if(msg.message==guest_callback_stop_message){
+            // Explicit TEST request, not a forged queue failure/OS hook loss.
+            // All expensive Run/token/hash proof ran on the GUI. Recheck this
+            // still-active generation and actual source before retiring it.
+            const auto pair=capture_bridge_?capture_bridge_->pair.load():nullptr;
+            const auto context=pair?pair->context.load():GestureCaptureLease{};
+            const auto g=static_cast<std::uint64_t>(msg.wParam);
+            if(guest_callback_stop_state_.load(std::memory_order_acquire)!=2||
+               !guest_callback_owner_stop_matches(guest_callback_stop_permit_,context?&context->source:nullptr,g,authorized_->load(),
+                healthy_.load(),available_->load(),paused_.load(),pair&&capture_bridge_->active(pair),pair&&pair->ready_authorized&&context,
+                !pair||pair->up_observed||pair->aborted||(context&&context->matching_up_observed))||
+               !context||!capture_source_current(context->source)||GetForegroundWindow()!=context->source.hwnd||
+               !operations::gesture_shield_exact_capture(context->overlay,context->owner_tid)){
+                guest_callback_stop_rejection_=1;PostMessageW(owner_,catalog_message,3,0);continue;
+            }
+            auto authority=g;unsigned armed=2;
+            if(!guest_callback_stop_state_.compare_exchange_strong(armed,3)||!authorized_->compare_exchange_strong(authority,0)){
+                guest_callback_stop_rejection_=2;PostMessageW(owner_,catalog_message,3,0);continue;
+            }
+            auto& facts=guest_callback_stop_observation_;facts.generation=g;facts.owner_tid=GetCurrentThreadId();facts.trigger_qpc=qpc_now();
+            *completion_=0;*available_=false;healthy_=false;aborted_=true;active_end_=core::v1::End::InputUnavailable;
+            captured_move_.retire();pair->aborted=true;guest_callback_stop_triggered_.store(true,std::memory_order_release);
+            PostMessageW(owner_,catalog_message,3,0);injected_owner_stop=true;break;
+        }
+        else if(msg.message==WM_HOTKEY&&msg.wParam==910&&HIWORD(msg.lParam)==VK_F11&&
            (LOWORD(msg.lParam)&(MOD_CONTROL|MOD_SHIFT|MOD_ALT|MOD_WIN))==(MOD_CONTROL|MOD_SHIFT)){
             ++emergency_hotkey_messages_;*available_=false;paused_=true;abort(core::v1::End::Paused);PostMessageW(owner_,catalog_message,2,0);}
         else if(msg.message==WM_APP+1&&msg.wParam&&(consumed_down_||native_move_)&&msg.wParam==generation_)abort(core::v1::End::Paused);
@@ -914,10 +1045,22 @@ void InputService::run(){
     if(capture_bridge_){if(auto p=capture_bridge_->pair.load())p->aborted=true;}
     if(shield_){capture_stop_facts_=shield_->stop();drain_capture_events();shield_.reset();}
     if(capture_bridge_){capture_bridge_->owner_tid=0;capture_bridge_->hotkey_registered=false;}
-    if(stop_ok)UnregisterHotKey(nullptr,910);if(hook_)UnhookWindowsHookEx(hook_);hook_=nullptr;
-    for(auto h:events_)if(h)UnhookWinEvent(h);
-    if(raw_ok){key.dwFlags=RIDEV_REMOVE;key.hwndTarget=nullptr;RegisterRawInputDevices(&key,1,sizeof(key));}
-    if(receiver_)DestroyWindow(receiver_);receiver_=nullptr;if(atom)UnregisterClassW(wc.lpszClassName,wc.hInstance);instance_=nullptr;
+    auto& stop_facts=guest_callback_stop_observation_;
+    if(injected_owner_stop)stop_facts.shield_stop_clean=capture_stop_facts_.clean();
+    if(stop_ok){SetLastError(0);const bool returned=UnregisterHotKey(nullptr,910)!=FALSE;
+        if(injected_owner_stop){stop_facts.hotkey_attempted=true;stop_facts.hotkey_return=returned;stop_facts.hotkey_error=returned?0:GetLastError();}}
+    if(hook_){if(injected_owner_stop){stop_facts.hook=reinterpret_cast<std::uintptr_t>(hook_);stop_facts.unhook_attempted=true;stop_facts.unhook_before_qpc=qpc_now();}
+        SetLastError(0);const bool returned=UnhookWindowsHookEx(hook_)!=FALSE;
+        if(injected_owner_stop){stop_facts.unhook_error=returned?0:GetLastError();stop_facts.unhook_return=returned;stop_facts.unhook_after_qpc=qpc_now();}}
+    hook_=nullptr;
+    for(std::size_t i=0;i<events_.size();++i)if(events_[i]){SetLastError(0);const bool returned=UnhookWinEvent(events_[i])!=FALSE;
+        if(injected_owner_stop){stop_facts.event_attempted[i]=true;stop_facts.event_return[i]=returned;stop_facts.event_error[i]=returned?0:GetLastError();}events_[i]=nullptr;}
+    if(raw_ok){key.dwFlags=RIDEV_REMOVE;key.hwndTarget=nullptr;SetLastError(0);const bool returned=RegisterRawInputDevices(&key,1,sizeof(key))!=FALSE;
+        if(injected_owner_stop){stop_facts.raw_attempted=true;stop_facts.raw_return=returned;stop_facts.raw_error=returned?0:GetLastError();}}
+    if(receiver_){SetLastError(0);const bool returned=DestroyWindow(receiver_)!=FALSE;
+        if(injected_owner_stop){stop_facts.receiver_attempted=true;stop_facts.receiver_return=returned;stop_facts.receiver_error=returned?0:GetLastError();}}
+    receiver_=nullptr;if(atom)UnregisterClassW(wc.lpszClassName,wc.hInstance);instance_=nullptr;
     active_prepared_.reset();consumed_down_=false;native_move_=false;thread_id_=0;
+    if(injected_owner_stop){stop_facts.exit_record_qpc=qpc_now();guest_callback_stop_exit_ready_.store(true,std::memory_order_release);}
 }
 }

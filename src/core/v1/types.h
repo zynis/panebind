@@ -30,5 +30,5 @@ enum class Action {
     StretchLeft, StretchRight, StretchTop, StretchBottom, StretchHorizontal, StretchVertical, StretchAll,
     Undo, Pause, Settings, Exit
 };
-enum class End { NormalUp, Escape, FocusLost, SourceLost, Paused, SessionLost, QueueFailure, Deadline, Exit };
+enum class End { NormalUp, Escape, FocusLost, SourceLost, Paused, SessionLost, QueueFailure, Deadline, Exit, InputUnavailable };
 } // namespace panebind::core::v1
