@@ -57,7 +57,7 @@ void transparency_owned_visual_exact(LayoutFixtures& set,std::size_t index,BYTE 
         ",\"actual_tuple_known\":"+(actual?(actual->known?"true":"false"):"null")+
         ",\"readback\":\"GetLayeredWindowAttributes_and_GWL_EXSTYLE_exact_LayoutFixtures_identity\"");
 }
-void transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
+Rect transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
     auto& s=set.state;if(!set.owns(index))throw std::runtime_error("transparency_per_pixel_not_exact_owned_source");
     const HWND h=set.frames[index].hwnd;RECT before{};const auto visible_before=visible(h);
     SetLastError(ERROR_SUCCESS);const auto class_style=GetClassLongPtrW(h,GCL_STYLE);
@@ -100,17 +100,29 @@ void transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
             update_error=updated?0:GetLastError();
         }
     }
+    // This is a TEST preparation, not a product foreground rescue. The normal
+    // layout DOWN helper independently rechecks foreground before input.
+    const bool foreground_attempted=updated&&set.owns(index);
+    const bool foreground_requested=foreground_attempted&&SetForegroundWindow(h)!=FALSE;
+    const bool foreground_exact=foreground_requested&&wait([&]{return set.owns(index)&&GetForegroundWindow()==h;},1000);
     const POINT center{before.left+width/2,before.top+height/2};COLORREF pixel=CLR_INVALID;
     const bool opaque_hit=updated&&wait([&]{if(!set.owns(index)||WindowFromPoint(center)!=h)return false;
         pixel=GetPixel(screen,center.x,center.y);return pixel==RGB(0x80,0xa0,0xc0);},1000);
     COLORREF color{};BYTE alpha{};DWORD flags{};SetLastError(ERROR_SUCCESS);
     const BOOL read_alpha=set.owns(index)?GetLayeredWindowAttributes(h,&color,&alpha,&flags):FALSE;
     const DWORD alpha_error=read_alpha?0:GetLastError();
-    RECT after{};const bool geometry_same=set.owns(index)&&GetWindowRect(h,&after)&&EqualRect(&before,&after)&&visible(h)==visible_before;
+    RECT after{};const auto visible_after=visible(h);
+    const bool positioning_same=set.owns(index)&&GetWindowRect(h,&after)&&EqualRect(&before,&after);
+    // ULW can change DWM's non-client frame bounds without moving the HWND.
+    // Establish this TEST setup's actual visible baseline BEFORE any DOWN;
+    // never reuse pre-layered margins or accept geometry during a gesture.
+    const bool actual_baseline=positioning_same&&visible_after&&visible_after->width()>0&&visible_after->height()>0&&
+        visible_after->l>=after.left&&visible_after->t>=after.top&&visible_after->r<=after.right&&visible_after->b<=after.bottom&&
+        visible(h)==visible_after;
     const bool layered=set.owns(index)&&(GetWindowLongPtrW(h,GWL_EXSTYLE)&WS_EX_LAYERED)!=0;
     gdi.close();
     s.log.check("transparency_actual_per_pixel_unreadable_alpha_precondition",selected&&pixels&&style_attempted&&!style_error&&
-        update_attempted&&updated&&opaque_hit&&geometry_same&&layered&&!read_alpha&&GetForegroundWindow()==h&&
+        update_attempted&&updated&&opaque_hit&&actual_baseline&&layered&&!read_alpha&&foreground_exact&&
         gdi.selection_restored&&gdi.memory_deleted&&gdi.bitmap_deleted&&gdi.screen_released,
         "\"actor\":\"exact_fixture_app_not_product\",\"member\":"+std::to_string(index)+
         ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(h))+",\"actual_class_style\":"+std::to_string(class_style)+
@@ -121,10 +133,20 @@ void transparency_owned_per_pixel_setup(LayoutFixtures& set,std::size_t index){
         ",\"GetLayeredWindowAttributes_return\":"+(read_alpha?"true":"false")+",\"GetLayeredWindowAttributes_error\":"+std::to_string(alpha_error)+
         ",\"original_window_alpha_tuple\":\"UNKNOWN_NOT_FABRICATED\",\"all_TEST_DIB_pixel_alpha\":255"+
         ",\"opaque_center_exact_hit\":"+(opaque_hit?"true":"false")+",\"actual_center_RGB\":"+std::to_string(pixel)+
-        ",\"actual_positioning_and_visible_unchanged\":"+(geometry_same?"true":"false")+
+        ",\"TEST_SetForegroundWindow_attempted\":"+(foreground_attempted?"true":"false")+
+        ",\"TEST_SetForegroundWindow_return\":"+(foreground_requested?"true":"false")+
+        ",\"actual_foreground_is_exact_owned_source\":"+(foreground_exact?"true":"false")+
+        ",\"positioning_before\":"+rect({before.left,before.top,before.right,before.bottom})+
+        ",\"positioning_after\":"+(positioning_same?rect({after.left,after.top,after.right,after.bottom}):"null")+
+        ",\"visible_before_layering\":"+rect(*visible_before)+
+        ",\"visible_after_layering\":"+(visible_after?rect(*visible_after):"null")+
+        ",\"actual_positioning_unchanged\":"+(positioning_same?"true":"false")+
+        ",\"actual_visible_baseline_stable_before_DOWN\":"+(actual_baseline?"true":"false")+
+        ",\"pre_layered_DWM_margins_assumed_unchanged\":false"+
         ",\"original_GDI_selection_restored\":"+(gdi.selection_restored?"true":"false")+",\"memory_DC_deleted\":"+(gdi.memory_deleted?"true":"false")+
         ",\"DIB_deleted\":"+(gdi.bitmap_deleted?"true":"false")+",\"screen_DC_released\":"+(gdi.screen_released?"true":"false")+
         ",\"mock_API_failure_used\":false,\"SetLayeredWindowAttributes_called_by_TEST\":false");
+    return *visible_after;
 }
 void transparency_restore(State& s,LayoutFixtures& set,const panebind::core::v1::Settings& original){
     const auto actual=chain_gui_save(s,original);auto expected=original;expected.generation=actual.generation;
@@ -154,6 +176,64 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
         !actual.hwndCapture&&!actual.hwndMoveSize&&!actual.hwndMenuOwner,
         "\"generation\":"+std::to_string(g.generation)+",\"actual_Gone\":"+quote(gone)+
         ",\"ReleaseCapture_call_not_inferred_when_no_own_capture\":true,\"guest_destruction_used\":false");
+}
+// Two narrow callers observe the existing product caption: active drag-alpha
+// limitation and idle no-history Undo. No hidden/offscreen render is accepted.
+void guest_actual_product_notice_strip(LayoutFixtures& set,std::uint64_t generation,Rect source,
+    const std::wstring& expected,const std::wstring& suffix){
+    auto& s=set.state;const HWND h=set.frames[0].hwnd;HWND overlay{};RECT bounds{};DWORD pid{};
+    LONG_PTR style{};DWORD_PTR hit{};wchar_t text[160]{};const UINT dpi=GetDpiForWindow(h);
+    const bool observed=wait([&]{
+        overlay=chain_preview(s);if(!overlay||!IsWindowVisible(overlay)||!GetWindowRect(overlay,&bounds)||
+            !GetWindowThreadProcessId(overlay,&pid)||pid!=s.product_pid||GetUpdateRect(overlay,nullptr,FALSE))return false;
+        style=GetWindowLongPtrW(overlay,GWL_EXSTYLE);GetWindowTextW(overlay,text,static_cast<int>(std::size(text)));
+        if(!SendMessageTimeoutW(overlay,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(bounds.left+4),
+            static_cast<short>(bounds.top+4)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit))return false;
+        return dpi&&(generation?s.left:!s.left)&&set.owns(0)&&visible(h)==source&&GetForegroundWindow()==h&&
+            (style&(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT|WS_EX_LAYERED))==(WS_EX_NOACTIVATE|WS_EX_TRANSPARENT|WS_EX_LAYERED)&&
+            static_cast<LRESULT>(hit)==HTTRANSPARENT&&std::wstring(text)==expected&&
+            bounds.right>bounds.left&&bounds.right-bounds.left<=2048&&bounds.bottom>bounds.top&&
+            bounds.bottom-bounds.top<=static_cast<LONG>((50LL*dpi+95)/96);
+    },1500);
+    s.log.check("actual_product_notice_nonactivating_visible_Chinese_strip",observed,
+        "\"generation\":"+std::to_string(generation)+",\"context\":"+quote(utf8(suffix))+",\"actual_overlay\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+
+        ",\"actual_PID\":"+std::to_string(pid)+",\"actual_style\":"+std::to_string(style)+
+        ",\"actual_text\":"+quote(utf8(text))+",\"actual_NCHITTEST\":"+std::to_string(static_cast<LRESULT>(hit))+
+        ",\"actual_bounds\":"+rect({bounds.left,bounds.top,bounds.right,bounds.bottom})+
+        ",\"feedback_setting\":"+(chain_settings(s).feedback?"true":"false")+",\"paint_readability_not_inferred_from_text\":true");
+    struct Pixels{HDC screen{},memory{};HBITMAP bitmap{};HGDIOBJ previous{};
+        ~Pixels(){if(memory&&previous&&previous!=HGDI_ERROR)SelectObject(memory,previous);
+            if(bitmap)DeleteObject(bitmap);if(memory)DeleteDC(memory);if(screen)ReleaseDC(nullptr,screen);}} pixels;
+    const LONG width=bounds.right-bounds.left,height=bounds.bottom-bounds.top;void* data{};
+    pixels.screen=GetDC(nullptr);pixels.memory=pixels.screen?CreateCompatibleDC(pixels.screen):nullptr;
+    BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=width;
+    info.bmiHeader.biHeight=-height;info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;info.bmiHeader.biCompression=BI_RGB;
+    const DWORD bytes=static_cast<DWORD>(width*height*4);info.bmiHeader.biSizeImage=bytes;
+    pixels.bitmap=pixels.memory?CreateDIBSection(pixels.screen,&info,DIB_RGB_COLORS,&data,nullptr,0):nullptr;
+    pixels.previous=pixels.bitmap?SelectObject(pixels.memory,pixels.bitmap):nullptr;RECT confirmed{};
+    if(!data||!pixels.previous||pixels.previous==HGDI_ERROR||chain_preview(s)!=overlay||!IsWindowVisible(overlay)||
+        GetForegroundWindow()!=h||!set.owns(0)||!GetWindowRect(overlay,&confirmed)||!EqualRect(&bounds,&confirmed)||
+        !BitBlt(pixels.memory,0,0,width,height,pixels.screen,bounds.left,bounds.top,SRCCOPY|CAPTUREBLT)||!GdiFlush())
+        throw std::runtime_error("transparency_exact_hint_screen_capture_failed");
+    if(suffix!=L"drag-alpha-limitation"&&suffix!=L"high-contrast-notice")
+        throw std::runtime_error("actual_notice_capture_exact_context_required");
+    const auto name=s.run+L"-"+std::wstring(s.configuration.begin(),s.configuration.end())+L"-"+suffix+L".bmp";
+    const auto target=s.output/name;if(!plain_directory(s.output)||fs::exists(target))
+        throw std::runtime_error("transparency_hint_new_output_required");
+    BITMAPFILEHEADER header{};header.bfType=0x4d42;header.bfOffBits=sizeof(header)+sizeof(BITMAPINFOHEADER);header.bfSize=header.bfOffBits+bytes;
+    Handle output(CreateFileW(target.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
+    if(output.value==INVALID_HANDLE_VALUE)throw std::runtime_error("transparency_hint_CREATE_NEW_failed");
+    const auto write=[&](const void* p,DWORD n){DWORD written{};return WriteFile(output.value,p,n,&written,nullptr)&&written==n;};
+    const bool written=write(&header,sizeof(header))&&write(&info.bmiHeader,sizeof(info.bmiHeader))&&write(data,bytes)&&FlushFileBuffers(output.value);
+    const bool closed=CloseHandle(output.value)!=FALSE;output.value=nullptr;const auto digest=hash(target);
+    if(!written||!closed||digest.empty())throw std::runtime_error("transparency_hint_BMP_write_or_hash_failed");
+    s.log.emit("actual_product_notice_screen_pixels","\"generation\":"+std::to_string(generation)+
+        ",\"file\":"+quote(utf8(name))+",\"sha256\":"+quote(digest)+",\"width\":"+std::to_string(width)+
+        ",\"height\":"+std::to_string(height)+",\"actual_screen_region_only\":true,\"visual_readability_review\":\"NOT_RUN\"");
+}
+void transparency_actual_limitation_hint(LayoutFixtures& set,const Gesture& g,Rect source){
+    guest_actual_product_notice_strip(set,g.generation,source,
+        L"无法读取原透明状态，本次不应用拖动透明",L"drag-alpha-limitation");
 }
 [[maybe_unused]] void owned_transparency_focus_remaining_case(State& s){
     namespace v=panebind::core::v1;
@@ -213,15 +293,15 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
     namespace e=product::guest::up_evidence_detail;
     transparency_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;
     const auto birth=process_birth(s.process);auto config=original;
-    config.magnet_move=false;config.magnet_resize=false;config.docking=false;config.shake=false;
+    config.magnet_move=false;config.magnet_resize=false;config.docking=false;config.shake=false;config.feedback=false;config.preview=false;
     config.drag_transparency=true;config.drag_alpha=190;chain_gui_save(s,config);
     LayoutFixtures set{s};set.create();
     try{
         const auto work=chain_work(set.frames[0].hwnd);if(work.width()<800||work.height()<650)
             throw std::runtime_error("transparency_per_pixel_actual_work_area_too_small");
-        const std::vector<Rect> initial{{work.l+220,work.t+180,work.l+620,work.t+480}};
+        std::vector<Rect> initial{{work.l+220,work.t+180,work.l+620,work.t+480}};
         set.setup(initial);const HWND source=set.frames[0].hwnd;
-        transparency_owned_per_pixel_setup(set,0);
+        initial[0]=transparency_owned_per_pixel_setup(set,0);
         const auto before=native_visual(source);
         if(!before||!before->layered||before->known)
             throw std::runtime_error("transparency_actual_per_pixel_alpha_must_really_be_unreadable");
@@ -229,7 +309,9 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
         const auto start=record(s,g.offset,"gesture_start",g.generation);const auto source_key=number(start,"\"key\":");
         if(!source_key)throw std::runtime_error("transparency_per_pixel_exact_source_key_unknown");
         auto moved=initial;moved[0]=translated(initial[0],35,25);
-        layout_phase(set,0,g,35,25,moved,"transparency_unreadable_alpha_free_Move_still_exact");layout_up(set,g,moved);
+        layout_phase(set,0,g,35,25,moved,"transparency_unreadable_alpha_free_Move_still_exact");
+        transparency_actual_limitation_hint(set,g,moved[0]);layout_up(set,g,moved);
+        chain_preview_hidden(s,"transparency_real_UP_hides_limitation_hint");
         transparency_gone(s,set,g);
         const auto after=native_visual(source);COLORREF color{};BYTE alpha{};DWORD flags{};SetLastError(ERROR_SUCCESS);
         const BOOL read_alpha=set.owns(0)?GetLayeredWindowAttributes(source,&color,&alpha,&flags):FALSE;
@@ -237,7 +319,7 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
         {std::istringstream rows(product_log_since(s,g.offset));std::string row;
             while(std::getline(rows,row))if(e::number(row,"\"process_id\":")==pid&&e::quoted(row,"\"source_sha\":",s.product_source)){
                 if(e::quoted(row,"\"type\":","visual_mutation")&&e::number(row,"\"key\":")==source_key)++visual_requests;
-                if(e::quoted(row,"\"type\":","notice"))notice=row;
+                if(e::quoted(row,"\"type\":","notice")||e::quoted(row,"\"type\":","drag_transparency_limited"))notice=row;
             }}
         const bool limitation=notice.find("透明")!=notice.npos&&
             (notice.find("不支持")!=notice.npos||notice.find("未应用")!=notice.npos||notice.find("无法")!=notice.npos);
@@ -249,7 +331,7 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
             ",\"unknown_alpha_not_overwritten\":"+(protected_unknown?"true":"false")+
             ",\"original_unknown_alpha_not_reconstructed\":true,\"native_visual_API_rejection_not_invented\":true"+
             ",\"actual_notice\":"+(notice.empty()?"null":quote(notice))+",\"limitation_diagnostic_observed\":"+(limitation?"true":"false")+
-            ",\"visible_limitation_feedback\":\"NOT_PROVEN_BY_NOTICE_LOG\",\"ordinary_Move_and_actual_UP_checked_separately\":true");
+            ",\"visible_limitation_feedback\":\"ACTUAL_WINDOW_AND_PIXELS_CAPTURED_NOT_PROVEN_BY_NOTICE_LOG\",\"ordinary_Move_and_actual_UP_checked_separately\":true");
         chain_check_product(s,pid,birth);transparency_restore(s,set,original);
         s.log.check("transparency_actual_unreadable_alpha_not_overwritten",protected_unknown,
             "\"product_visual_requests_for_source\":"+std::to_string(visual_requests)+
@@ -257,7 +339,7 @@ void transparency_gone(State& s,LayoutFixtures& set,const Gesture& g){
         // A silent safe decline is not the required visible limitation feedback.
         s.log.check("transparency_unsupported_drag_has_explicit_limitation_diagnostic",limitation,
             "\"actual_notice\":"+(notice.empty()?"null":quote(notice))+",\"visible_UI_still_requires_actual_observation\":true");
-        s.log.emit("transparency_unsupported_remaining_component","\"result\":\"PARTIAL\",\"safety_and_Move_checked\":true,"+
-            std::string("\"visible_limitation_feedback\":\"NOT_RUN\",\"whole_M10_F04_PASS\":false,\"human_uat\":\"NOT_RUN\""));
+        s.log.emit("transparency_unsupported_remaining_component","\"result\":\"PASS_SCOPED_FACTS\",\"safety_and_Move_checked\":true,"+
+            std::string("\"visible_limitation_feedback\":\"ACTUAL_WINDOW_AND_SCREEN_PIXELS_REQUIRE_VISUAL_REVIEW\",\"whole_M10_F04_PASS\":false,\"human_uat\":\"NOT_RUN\""));
     }catch(...){if(!set.closed)transparency_failure_cleanup(s,set,original);throw;}
 }

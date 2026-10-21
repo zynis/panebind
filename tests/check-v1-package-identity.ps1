@@ -606,6 +606,183 @@ Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide $lifecyclePrepare $li
 Check $true 'static hide/show route retains exact guest guards, public observed ineligibility, fresh key and one real Move/UP'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource ($lifecycleHide.Replace('const auto hidden_status=geometry_history_status(s);','const auto hidden_status=before_status;')) $lifecyclePrepare $lifecycleGuest} 'static hide/show rejects substituting old status for actual product observation'
 Reject {Assert-V1LifecycleHideWiring $fixtureSource $lifecycleHide ($lifecyclePrepare.Replace("'LifecycleRemainderOnly'","'DisabledLifecycle'")) $lifecycleGuest} 'static hide/show rejects a missing exact packager suite'
+function Assert-V1HighContrastWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_high_contrast_case.h"') -or
+       -not $Fixture.Contains('phase("actual_guest_HC_mode_and_keyboard_subset",owned_high_contrast_case);') -or
+       [regex]::Matches($Fixture,'HighContrastOnly').Count -ne 6 -or
+       -not $Prepare.Contains("'HighContrastOnly'") -or -not $Guest.Contains("'HighContrastOnly'")){
+        throw 'High contrast needs exact independent/parser/manifest and guest-only script dispatch.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="HighContrastOnly"',
+        'high_contrast_SET_requires_actual_idle_product','GuestHighContrastLease lease{s};',
+        'SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(actual),&actual,0)',
+        'LocalFree(allocation.value)','original.flags|HCF_HIGHCONTRASTON',
+        'HIGHCONTRASTW request{sizeof(request),original.flags,',
+        'actual.flags==original.flags&&actual.scheme==original.scheme&&actual.colors==original.colors',
+        'high_contrast_environment_blocked','profile_update_requested\":false',
+        'gui_press(s,gui,VK_TAB)','GetGUIThreadInfo(gui.tid,&info)',
+        'info.hwndFocus==wanted','WM_QUERYUISTATE','UISF_HIDEFOCUS',
+        'info.hwndCaret==wanted','guest_capture_settings_page(s,gui,0);',
+        'guest_capture_settings_page(s,gui,3);','gui_save_enter(s,gui);','gui_press(s,gui,VK_ESCAPE)',
+        'live==expected','read(s.product.parent_path()/L"settings.ini")==before_cancel',
+        'foreground_before==source->frames[0].hwnd&&foreground_after==foreground_before',
+        'record(s,mark,"placement").empty()','chain_check_product(s,pid,birth);',
+        'high_contrast_original_system_state_restored','lease.restore()',
+        'whole_M10_F05_PASS\":false','screen_BMP_visual_review\":\"NOT_RUN',
+        '200_percent_DPI\":\"NOT_RUN','specific_notice_visible_exit\":\"ACTUAL_WINDOW_PIXELS_AND_HIDE_REQUIRE_VISUAL_REVIEW',
+        'guest_actual_product_notice_strip(*source,0,actual,','high_contrast_notice_real_one_shot_expiry_hides',
+        'high_contrast_new_gesture_retires_actual_notice_timer')){
+        if(-not $Cases.Contains($value)){throw ('High contrast lost actual GET/SET, keyboard, restoration or scope fact: '+$value)}
+    }
+    if($Cases.IndexOf('settings_guest_scope(s);') -gt $Cases.IndexOf('GuestHighContrastLease lease{s};') -or
+       [regex]::Matches($Cases,'SystemParametersInfoW\(SPI_SETHIGHCONTRAST,sizeof\(request\),&request,SPIF_SENDCHANGE\)').Count -ne 2 -or
+       $Cases -match 'SPIF_UPDATEINIFILE|SetSysColors|SetTheme|RegSet|ChangeDisplaySettings|SetProcessDpi|SetThreadDpi|PostMessage|SendMessage\(' -or
+       -not $Fixture.Contains('quote(blocked?"BLOCKED":s.log.failed?"FAIL":"AUTOMATED_PASS_VISUAL_REVIEW_NOT_RUN")')){
+        throw 'Only an exact idle guest may GET/SET/restore HC, without persistent theme/DPI edits or an inferred full PASS.'
+    }
+}
+$highContrast=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_high_contrast_case.h'),[Text.Encoding]::UTF8)
+Assert-V1HighContrastWiring $fixtureSource $highContrast $lifecyclePrepare $lifecycleGuest
+Check $true 'static high contrast is exact-guest-only, actual bounded GET/SET/restore, real Tab focus and separately unreviewed BMP evidence'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('settings_guest_scope(s);','')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects system setup without the exact disposable guest gate'
+Reject {Assert-V1HighContrastWiring $fixtureSource ($highContrast.Replace('actual.colors==original.colors','true')) $lifecyclePrepare $lifecycleGuest} 'static high contrast rejects restoring only a flag while leaving the actual original colors unchecked'
+function Assert-V1NativeTopDropWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_native_top_drop_case.h"') -or
+       -not $Fixture.Contains('phase("default_top_preview_single_real_UP_actual_Maximize",owned_native_top_drop_case);') -or
+       [regex]::Matches($Fixture,'NativeTopDropOnly').Count -ne 6 -or
+       -not $Prepare.Contains("'NativeTopDropOnly'") -or -not $Guest.Contains("'NativeTopDropOnly'")){
+        throw 'Default Top drop needs exact guest/parser/manifest and independent single-gesture dispatch.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="NativeTopDropOnly"',
+        'original.dock_actions[2]!=v::Action::Maximize','config.preview=true;',
+        'layout_phase(set,0,g,dx,dy,{raw},','chain_preview_exact(s,source,work);',
+        'rows(g,"normal_up_maximize").empty()','actual_up(s,g.offset,g.generation).empty()',
+        'layout_up(set,g,{});','IsZoomed(source)&&!IsIconic(source)&&GetWindowPlacement(source,&maximized)',
+        'maximized.showCmd==SW_SHOWMAXIMIZED&&visible(source)==work',
+        'remaining_group_receipt(s,maximize,"normal_up_maximize")',
+        'e::unique_value(maximize,"\"native_attempted\":")=="true"',
+        'e::unique_value(maximize,"\"request_started\":")=="true"',
+        'rows(g,"normal_up_maximize").size()==1','dock_remaining_commit_receipts(s,g).empty()',
+        'RI_MOUSE_LEFT_BUTTON_UP','\"actual_legacy_up_accepted\"','\"release_succeeded\"','\"detach_succeeded\"',
+        'placements_before==rows(g,"placement")','chain_check_product(s,pid,birth);',
+        'hash(s.product)==binary','const bool closed=set.close();')){
+        if(-not $Cases.Contains($value)){throw ('Top drop lost actual preview, release, native state or cleanup: '+$value)}
+    }
+    if([regex]::Matches($Cases,'\blayout_down\s*\(').Count -ne 1 -or
+       [regex]::Matches($Cases,'\blayout_up\s*\(').Count -ne 1 -or
+       $Cases -match 'chain_command\(|geometry_history_command\(|ShowWindow\(|ShowWindowAsync\(|SetWindowPos\(|PostMessage|SendMessage\('){
+        throw 'Default Top must observe its one real release, not force Maximize/placement or replay restore/Full.'
+    }
+}
+$nativeTopDrop=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_native_top_drop_case.h'),[Text.Encoding]::UTF8)
+Assert-V1NativeTopDropWiring $fixtureSource $nativeTopDrop $lifecyclePrepare $lifecycleGuest
+Check $true 'static default Top uses real preview, one UP, actual maximized state and independent resource/late-write evidence'
+Reject {Assert-V1NativeTopDropWiring $fixtureSource ($nativeTopDrop.Replace('chain_preview_exact(s,source,work);','')) $lifecyclePrepare $lifecycleGuest} 'static Top drop rejects substituting command Maximize for actual preview'
+Reject {Assert-V1NativeTopDropWiring $fixtureSource ($nativeTopDrop.Replace('maximized.showCmd==SW_SHOWMAXIMIZED&&visible(source)==work','true')) $lifecyclePrepare $lifecycleGuest} 'static Top drop rejects request-return as actual native state completion'
+function Assert-V1SessionInterruptionWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Remote){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_session_interruption_case.h"') -or
+       -not $Fixture.Contains('phase("TEST_session_LOCK_abort_and_UNLOCK_same_PID_Move_Resize",owned_session_interruption_case);') -or
+       [regex]::Matches($Fixture,'SessionInterruptionOnly').Count -ne 6 -or
+       -not $Prepare.Contains("'SessionInterruptionOnly'") -or -not $Guest.Contains("'SessionInterruptionOnly'") -or
+       -not $Remote.Contains("'SessionInterruptionOnly'")){
+        throw 'Session interruption requires exact guest, owner, parser, manifest and finite independent dispatch.'
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="SessionInterruptionOnly"',
+        'tray_guest_owner(s,owner)','GetAncestor(owner.app,GA_ROOT)==owner.app',
+        'current_session==session','product_session==session','session_interruption_desktop(owner.tid)==desktop_name',
+        'wrong.birth^=1','session^1u','session_interruption_exact_active_source_capture_and_product_owner',
+        'SendMessageTimeoutW(owner.app,WM_WTSSESSION_CHANGE,','locked?WTS_SESSION_LOCK:WTS_SESSION_UNLOCK',
+        'static_cast<LPARAM>(session)','SMTO_ABORTIFHUNG|SMTO_ERRORONEXIT,1000,&result)',
+        'interruption_end(s,g,v::End::SessionLost,false,source)',
+        'e::number(ended,"\"end\":")==static_cast<unsigned>(v::End::SessionLost)',
+        'e::unique_value(ended,"\"normal_up\":")=="false"','!IsWindow(overlay)',
+        'transparency_resource(s,g,"thread_detached")','e::unique_value(gone,"\"detach_succeeded\":")=="true"',
+        's.left&&!s.left_up_attempted&&actual_up(s,g.offset,g.generation).empty()',
+        'GuestUpHookObservation observer;','e::number(head,"\"actual_left_UP_callbacks\":")==1',
+        'e::number(head,"\"last_extra_information\":")==0x50425631',
+        'set.frames[0].up.load()==client_ups+1','cleanup.json()',
+        'inject(false,"released_TEST_UNLOCK_before_fresh_gestures")',
+        'interruption_recovery(s,set,g.generation)','chain_check_product(s,pid,birth);',
+        'if(*qpc>=trigger)++late','actual_OS_lock_unlock\":\"NOT_RUN',
+        'old_generation_NormalUp\":false','hash(s.product)==binary','saved==expected')){
+        if(-not $Cases.Contains($value)){throw ('Session injection lost actual scope, retirement, unique UP or recovery: '+$value)}
+    }
+    if([regex]::Matches($Cases,'\blayout_down\s*\(').Count -ne 1 -or
+       [regex]::Matches($Cases,'\bbutton\(s,false\)').Count -ne 2 -or
+       $Cases -match '\b(LockWorkStation|ExitWindowsEx|WTSDisconnectSession|WTSLogoffSession|SetCapture|ReleaseCapture|SetForegroundWindow|SetFocus|PostMessageW?)\s*\('){
+        throw 'Session TEST may inject two exact owner notifications and one original UP, not lock Windows, forge UP or reclaim context.'
+    }
+    $down=$Cases.IndexOf('const auto g=layout_down(set,0,HTCAPTION,false);')
+    $lock=$Cases.IndexOf('const auto trigger=inject(true,"held_Move_TEST_LOCK");')
+    $gone=$Cases.IndexOf('session_interruption_real_End5_nonNormal_Gone_before_cleanup_UP')
+    $up=$Cases.IndexOf('button(s,false);const auto cleanup=abort_cleanup_up_receipt')
+    $unlock=$Cases.IndexOf('inject(false,"released_TEST_UNLOCK_before_fresh_gestures")')
+    $recovery=$Cases.IndexOf('interruption_recovery(s,set,g.generation)')
+    if($down -lt 0 -or $down -ge $lock -or $lock -ge $gone -or $gone -ge $up -or $up -ge $unlock -or $unlock -ge $recovery){
+        throw 'Session TEST must preserve held Move, actual abort/Gone, original cleanup UP, unlock notification and fresh recovery order.'
+    }
+}
+$sessionInterruption=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_session_interruption_case.h'),[Text.Encoding]::UTF8)
+$sessionRemote=[IO.File]::ReadAllText((Join-Path $repository 'uat/v1-control/remote-control.ps1'),[Text.Encoding]::UTF8)
+Assert-V1SessionInterruptionWiring $fixtureSource $sessionInterruption $lifecyclePrepare $lifecycleGuest $sessionRemote
+Check $true 'static session TEST preserves exact owner/session, real non-NormalUp/Gone, one tagged cleanup UP and same-process Move/Resize recovery'
+Reject {Assert-V1SessionInterruptionWiring $fixtureSource ($sessionInterruption.Replace('product_session==session','true')) $lifecyclePrepare $lifecycleGuest $sessionRemote} 'static session TEST rejects loss of exact product session identity'
+Reject {Assert-V1SessionInterruptionWiring $fixtureSource ($sessionInterruption.Replace('interruption_end(s,g,v::End::SessionLost,false,source)','record(s,g.offset,"gesture_end",g.generation)')) $lifecyclePrepare $lifecycleGuest $sessionRemote} 'static session TEST rejects message completion substituted for actual SessionLost termination'
+function Assert-V1QueueFailureWiring([string]$Fixture,[string]$Cases,[string]$Service,[string]$Header,[string]$Prepare,[string]$Guest,[string]$Remote){
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_queue_failure_case.h"') -or
+       -not $Fixture.Contains('phase("one_shot_injected_production_queue_failure_and_public_recovery",owned_queue_failure_case);') -or
+       [regex]::Matches($Fixture,'QueueFailureOnly').Count -ne 6 -or
+       -not $Prepare.Contains("'QueueFailureOnly'") -or -not $Guest.Contains("'QueueFailureOnly'") -or
+       -not $Remote.Contains("'QueueFailureOnly'")){throw 'Queue failure requires an exact guarded standalone suite through preparation and deployment.'}
+    foreach($value in @('guest::detect_capture_scope(PANEBIND_BUILD_SHA)','scope.run_id!=run_id',
+        '"guest_suite")!="QueueFailureOnly"','pair->ready_authorized','context->matching_up_observed',
+        'capture_source_current(identity)','L"PaneBind.V1.OwnedFixture."+wrun','SECURITY_MANDATORY_MEDIUM_RID',
+        'EqualSid(','session!=own_session','driver_debug_sha256','driver_release_sha256',
+        'guest_queue_failure_state_.store(2,std::memory_order_release)',
+        'guest_queue_failure_observation_ready_.store(true,std::memory_order_release)',
+        'origin\":\"guest_injected_failure','natural_queue_full_proven\":false',
+        'const bool actual_full=next==r;','if(actual_full||injected)',
+        'request_capture_stop(Removal::ContextLost);','PostMessageW(owner_,catalog_message,1,0)',
+        'input_owner_start_serial_.fetch_add(1,std::memory_order_release)')){
+        if(-not $Service.Contains($value)){throw ('Production one-shot lost exact proof, actual failure branch or fact: '+$value)}
+    }
+    $push=[regex]::Match($Service,'(?s)bool InputService::push\(.*?(?=bool InputService::pop\()').Value
+    foreach($value in @('guest_queue_failure_matches(','guest_queue_failure_state_.compare_exchange_strong(armed,3)',
+        'authorized_->compare_exchange_strong(authority,0)','injected=!pair->up_observed&&!pair->aborted&&!context->matching_up_observed')){
+        if(-not $push.Contains($value)){throw ('Actual push must atomically consume the immutable authorized generation: '+$value)}
+    }
+    if($push -match 'capture_hash|detect_capture_scope|OpenProcess|GetTokenInformation|std::mutex|lock_guard|Sleep\(|WaitForSingleObject'){
+        throw 'No guest proof IO, new lock, wait or polling belongs in push/hook execution.'
+    }
+    foreach($value in @('event.generation==permit.generation&&authority==permit.generation',
+        'active_pair&&capture_ready&&!up_or_abort','same(permit.source,event.prepared->source)')){
+        if(-not $Header.Contains($value)){throw ('Common actual fault predicate lost identity or UP rejection: '+$value)}
+    }
+    foreach($value in @('settings_guest_scope(s);','s.suite!="QueueFailureOnly"',
+        'queue_failure_actual_exact_Move_before_arm','L"--guest-queue-failure "',
+        'guest_queue_failure_arm','input_queue_failure','v::End::QueueFailure',
+        'queue_failure_actual_independent_input_resources_gone_before_UP','interruption_audit_calls(s,g,trigger,std::nullopt)',
+        'GuestUpHookObservation head;','button(s,false);','launch(s,L"--pause",true)',
+        'launch(s,L"--command Pause",true)','actual_input_owner_start_serial',
+        'queue_failure_recovery_actual_Move_exact','queue_failure_recovery_actual_Resize_exact',
+        'layout_up(set,next,{moved});','layout_up(set,resize,{resized});',
+        'one_process_lifetime_permit_already_used_or_armed','OS_silent_hook_removal\":\"NOT_RUN')){
+        if(-not $Cases.Contains($value)){throw ('Queue scene lost actual first Move, failure evidence or public recovery: '+$value)}
+    }
+    if($Cases.Contains('PostMessageW(') -or $Cases.Contains('SendMessageW(') -or
+       $Cases.Contains('SetCapture(') -or $Cases.Contains('ReleaseCapture(') -or
+       [regex]::Matches($Cases,'\bbutton\(s,false\)').Count -ne 1){
+        throw 'The queue scene may request one guarded failure and send only the original cleanup UP, never fake an abort or capture receipt.'
+    }
+}
+$queueFailure=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_queue_failure_case.h'),[Text.Encoding]::UTF8)
+$queueFailureService=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/input_service.cpp'),[Text.Encoding]::UTF8)
+$queueFailureHeader=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/input_service.h'),[Text.Encoding]::UTF8)
+$queueFailureRemote=[IO.File]::ReadAllText((Join-Path $repository 'uat/v1-control/remote-control.ps1'),[Text.Encoding]::UTF8)
+Assert-V1QueueFailureWiring $fixtureSource $queueFailure $queueFailureService $queueFailureHeader $lifecyclePrepare $lifecycleGuest $queueFailureRemote
+Check $true 'static exact guest one-shot uses the actual push failure branch, original UP and same-process public recovery'
+Reject {Assert-V1QueueFailureWiring $fixtureSource $queueFailure $queueFailureService ($queueFailureHeader.Replace('event.generation==permit.generation&&authority==permit.generation','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static injected failure rejects unbound or UP-revoked generation'
+Reject {Assert-V1QueueFailureWiring $fixtureSource $queueFailure ($queueFailureService.Replace('guest::detect_capture_scope(PANEBIND_BUILD_SHA)','guest::CaptureScope{true}')) $queueFailureHeader $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static injected failure rejects substituting an unverified guest proof'
 function Assert-V1ArbitrationRecoveryWiring([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest){
     if([regex]::Matches($Fixture,'ArbitrationRecoveryOnly').Count -ne 7 -or
        -not $Fixture.Contains('phase("single_nonstop_command_abort_and_fresh_recovery",owned_arbitration_remaining_case);') -or
@@ -652,7 +829,8 @@ function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[s
         'abort_cleanup_up_receipt(s,g.offset,g.generation)','next.generation>g.generation',
         'transparency_owned_per_pixel_setup(set,0);','GetClassLongPtrW(h,GCL_STYLE)',
         'transparency_actual_unreadable_alpha_not_overwritten','!visual_requests',
-        'NOT_PROVEN_BY_NOTICE_LOG','visible_limitation_feedback\":\"NOT_RUN')){
+        'NOT_PROVEN_BY_NOTICE_LOG','transparency_actual_limitation_hint(set,g,moved[0]);',
+        'transparency_real_UP_hides_limitation_hint','visible_limitation_feedback\":\"ACTUAL_WINDOW_AND_SCREEN_PIXELS_REQUIRE_VISUAL_REVIEW')){
         if(-not $Cases.Contains($value)){throw ('Transparency remainder lost actual observation/limit: '+$value)}
     }
     foreach($value in @('state.suite!="TransparencyRemainderOnly"','original.style|=CS_OWNDC;',
@@ -660,7 +838,7 @@ function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[s
         if(-not $Layout.Contains($value)){throw ('Transparency CS_OWNDC alias lost exact ownership: '+$value)}
     }
     $visualSetup=[regex]::Match($Cases,'(?s)void transparency_owned_visual_setup\(.*?(?=void transparency_owned_visual_exact\()').Value
-    $pixelSetup=[regex]::Match($Cases,'(?s)void transparency_owned_per_pixel_setup\(.*?(?=void transparency_restore\()').Value
+    $pixelSetup=[regex]::Match($Cases,'(?s)Rect transparency_owned_per_pixel_setup\(.*?(?=void transparency_restore\()').Value
     if([string]::IsNullOrWhiteSpace($visualSetup) -or [string]::IsNullOrWhiteSpace($pixelSetup)){
         throw 'Actual fixture visual setup must have narrow named boundaries, not an unbounded source mutation exemption.'
     }
@@ -672,10 +850,16 @@ function Assert-V1TransparencyRemainderWiring([string]$Fixture,[string]$Cases,[s
         'width>2048||height>2048','if(set.owns(index)){style_attempted=true',
         'if(style_attempted&&!style_error&&set.owns(index))','0xff80a0c0u',
         'UpdateLayeredWindow(h,screen,&destination,&size,memory,&origin,0,&blend,ULW_ALPHA)',
-        'update_attempted&&updated&&opaque_hit&&geometry_same&&layered&&!read_alpha',
+        'update_attempted&&updated&&opaque_hit&&actual_baseline&&layered&&!read_alpha&&foreground_exact',
+        'EqualRect(&before,&after)','visible(h)==visible_after;',
+        'return *visible_after;',
         '~OwnGdi(){close();}','gdi.close();','SelectObject(memory,previous)',
         'DeleteDC(memory)','DeleteObject(bitmap)','ReleaseDC(nullptr,screen)')){
         if(-not $pixelSetup.Contains($value)){throw ('Per-pixel precondition lost real ownership, API/readback or GDI cleanup: '+$value)}
+    }
+    if(-not $Cases.Contains('initial[0]=transparency_owned_per_pixel_setup(set,0);') -or
+       $pixelSetup.Contains('visible(h)==visible_before')){
+        throw 'Per-pixel TEST must freeze its actual post-layering geometry before DOWN, not assume pre-layered DWM margins.'
     }
     $productCases=$Cases.Replace($visualSetup,'').Replace($pixelSetup,'')
     if($Cases.Contains('PostMessageW(') -or $productCases.Contains('SetWindowLongPtrW(') -or
