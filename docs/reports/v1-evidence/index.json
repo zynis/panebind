@@ -1,8 +1,8 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-21",
-  "next_driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
-  "next_driver_validation": "05f D/R builds and 222 guest-path checks passed (symlink SKIP1314); actual 0a66 Release remaining Move scopes PASS on unchanged 11ae product. dfdd Full remains original11ae driver/FAIL, 8e0 remains original46c driver/tool verdict FAIL. 120 packaging checks passed; no whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
+  "next_driver_validation": "fd50 D/R builds and unchanged guest-path regression passed (222 cases, symlink SKIP1314); actual 2c8 Release active group settings-entry retirement and next-rule groups PASS on unchanged11ae product. 0a66 remains05f, dfdd Full remains original11ae/FAIL and8e0 original46c/tool verdict FAIL. Existing120 packaging checks have unchanged inputs; no whole-version PASS or old-binary rebinding.",
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
   "redaction": {
     "paths": "guest绝对部署路径与任何检测到的绝对用户路径已替换",
@@ -1260,14 +1260,14 @@
     }
   },
   "latest_local_preflight": {
-    "driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+    "driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
     "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "product_EXE_unchanged_since_11ae": true,
     "driver_D_R_build": "PASS",
     "guest_path_D_R": "222_PASS_SYMLINK_SUBCASE_SKIP1314",
     "packaging_checks": "120_PASS",
     "trusted_SSH_and_standard_origin_transport": "PASS_ACTUAL_CURRENT_ROUND",
-    "latest_scoped_runtime_run": "0a66091821bf48af9075991b4f41ccf4",
+    "latest_scoped_runtime_run": "2c8dfd707f414d5394913c5f52a8c997",
     "latest_full_run": "dfdde5b3a08b43d9b7cbe068f4de0d22",
     "Full_status": "FAIL_APPLICATION_AND_CLOSE_BOUNDARIES",
     "old_full_and_tool_verdicts_preserved": true
@@ -1282,6 +1282,19 @@
     "next_action": "保留247/17f5与0db8、2c5/5810及全部历史原结论/原身份。11ae/fdf2仅cache刷新与单BR exact/Undo通过，结束为Paused且第二UP matching=false，不授完整I05；2432/528a普通ZIP首/二启、GUI/设置效果、Move-UP及退出限域通过。最新真正产品Full仍a8a7：A五阶段及三成员CtrlA通过，B g3实际FocusLost后0placement/拒发MOVE；采样rgnupdt.exe不是已证激活发起者。3927为启动工具缺陷，产品/输入未跑；后继工具对照另待封存，不盲重旧Full或900。继续未齐Full/托盘/真实应用/普通完整桌面/显示/真人合同，DEV15/B7不增。"
   },
   "records": [
+    {
+      "id": "EV-2C8D-ACTIVE-SETTINGS-GROUP-RETIREMENT",
+      "kind": "native_guest_scope_metadata_and_literal_original_rows",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
+      "run_id": "2c8dfd707f414d5394913c5f52a8c997",
+      "excerpt_path": "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+      "excerpt_sha256": "F175B6A905A40C89DE0AA35E8003BAB7C325A704B922D8574171BA0B4521ADBD",
+      "literal_excerpt_paths": ["docs/reports/v1-evidence/2c8d-active-settings-driver-selected.jsonl", "docs/reports/v1-evidence/2c8d-active-settings-product-selected.jsonl"],
+      "literal_excerpt_sha256": ["0F6EC3EC8199D2BE17F7D2998473DCDA693FB0C8A5C4632E7E7C22C870A1A6FA", "8D78CBD27B30E1EAC5DAD383E50E52D9586E420765632DE61C4E2E7C5BEE4B97"],
+      "scope": "活动设置入口先真实Paused撤权，再真实GUI规则编辑与下代重选；不是规则保存原因、不是NormalUp或托盘通过。",
+      "independent_feature_contract_evaluation": "M06-F05 user-path contract only; no new benchmark or whole-version PASS"
+    },
     {
       "id": "EV-8E0-REMAINING-GROUP-AND-MAGNET-TOOL-FAILURE",
       "kind": "native_guest_scope_metadata_and_literal_original_rows",

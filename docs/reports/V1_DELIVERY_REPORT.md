@@ -1,5 +1,13 @@
 # PaneBind V1 集中交付进展
 
+## 最新增量：活动组设置入口与规则用户路径已闭合
+
+`2c8dfd707f414d5394913c5f52a8c997`／[必要原文证据](v1-evidence/2c8d-active-settings-metadata.json)已实际通过：真实双成员Ctrl Move仍按下且自有capture就绪时，一次普通`--settings`请求使P139明确以Paused撤权／退休，之后才有同产品P140 settings_open；并非先失焦后冒称规则撤权。P143真实释放capture、P146解绑／撤罩，唯一测试清理UP由实际LL callback记录，触发后零新增native。再经真实GUI精确类规则保存，下一代仅source；移除规则后双成员恢复。此中止不称NormalUp，也不伪称规则保存回调本身是原因。
+
+这是产品真实可达的保守规则编辑路径：进入设置先退旧组，不需要另造一个绕过该屏障、无前台变化直接修改活动规则的硬门。结合既有成员关闭后幸存组恢复、Shift解除及新组重选，**独立M06-F05闭合**；孤立active rule callback原生实验仍NOT_RUN，真实托盘及整个M06模块仍未通过。原8e0/0a66/4d32证据保留身份，不换绑或重跑Shift专项。
+
+当前生产接线60/60、独立DEV通过**17/60**、对标**8/40＝20%**；整版仍PARTIAL，未满足B01–B32、普通完整Medium应用／托盘、双屏混合DPI等硬门，真人UAT PENDING，暂不REA。本节后的16/60是前一封存阶段，不覆盖当前结果。产品EXE仍为11ae／`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；仅driver更新`fd50e83298486482730e8868241f529fc6711372`，Release哈希`979DF463924895B5044A0DE1C0664858B286AF1F0A2E7FB9A0889841A598A114`，D/R构建及未改guest-path回归均通过。本批768D/444P合法连续；本批产品PID6336与0a66的同数字PID是不同guest身份，不合并生命周期。只清理本批guest19852／启动任务，证据与部署保留，无宿主／CrossRec／其他用户文件变更。
+
 ## 当前收口（2026-10-21）：受影响功能已实跑，不以驱动构建代替结果
 
 `0a66091821bf48af9075991b4f41ccf4`已在新guest实际完成两项受影响场景；[关键原文及构建身份](v1-evidence/0a66-remaining-move-metadata.json)绑定产品`11ae76a3976ffba62facc127fcb411ebabfeaf86`（Release哈希`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`）与新驱动`05f897eb486677f5c2743525c087c50eeb2f8626`（`09F818BBB9263F2E311153BFBA8E1CFBFCE2330B9BA59653430EA29D58820A11`）；包装HEAD`372891a758d7f0b6a14d279410f21cd52ca057a5`。755条driver和443条product合法连续，同一产品PID6336，不重建产品、不把新结果改绑旧驱动。

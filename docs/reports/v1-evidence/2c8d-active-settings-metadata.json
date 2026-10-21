@@ -1,0 +1,265 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-2C8D-ACTIVE-SETTINGS-GROUP-RETIREMENT",
+  "kind": "metadata_projection_not_native_event",
+  "run_id": "2c8dfd707f414d5394913c5f52a8c997",
+  "suite": {
+    "summary": "D764 PASS_SCOPED",
+    "driver_shutdown": "D768 PASS; owned_windows_destroyed=true/product_process_closed=true",
+    "product_shutdown": "P444; actual shutdown receipt, not guest destruction",
+    "whole_version_PASS": false,
+    "real_applications": "NOT_RUN",
+    "human_UAT": "NOT_RUN"
+  },
+  "configuration": "Release",
+  "identity": {
+    "product_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_source": "fd50e83298486482730e8868241f529fc6711372",
+    "packaging_head": "fd50e83298486482730e8868241f529fc6711372",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_release_sha256": "979DF463924895B5044A0DE1C0664858B286AF1F0A2E7FB9A0889841A598A114",
+    "zip_sha256": "A2C92EC29CF4DB030B50A8CD8FF85CC30C9F477E3F9CAD02061732EAA74CE4F8",
+    "manifest_sha256": "E2C45537651A38B2845B408540D8BFEB2D0883B9EAD5B2FDFE79E76BE4E66E2C",
+    "product_pid": 6336,
+    "fixture_pid": 6288,
+    "fixture_tid": 6292,
+    "actual_guest_integrity_rid": 8192,
+    "actual_guest_session": 1,
+    "elevated": false,
+    "admin_sid_enabled": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-release-fixture.jsonl",
+      "sha256": "4D868A9C1B7894C33D68D7B91AD8603243FF02C2E2093512D86EA7ABA86EF7F4"
+    },
+    {
+      "path": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-product-Release/panebind.log.jsonl",
+      "sha256": "D8B82C578B4876A1901E1766F58564E363188AD16F9B8D817B9E0D0484E9D470"
+    },
+    {
+      "path": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/cleanup-receipt.json",
+      "sha256": "CB7B74720B310DC72C14435A126E13E5823F985C089B8143474311EA55058F75"
+    },
+    {
+      "path": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-Release-launch.json",
+      "sha256": "39A5730057C28AC1AB41D5C9D2783AE53D7063A64A384B44E41D1A312BA9583C"
+    },
+    {
+      "path": "uat/v1-sandbox/2c8dfd707f414d5394913c5f52a8c997/package-receipt.json",
+      "sha256": "A7BEF86E5AE9D8089B814A4EDD64457B4AE2AB375E914CD03F71B027E2FCE0D3"
+    },
+    {
+      "path": "uat/v1-sandbox/2c8dfd707f414d5394913c5f52a8c997/input/manifest.json",
+      "sha256": "E2C45537651A38B2845B408540D8BFEB2D0883B9EAD5B2FDFE79E76BE4E66E2C"
+    },
+    {
+      "path": "uat/v1-sandbox/2c8dfd707f414d5394913c5f52a8c997/2c8dfd707f414d5394913c5f52a8c997.zip",
+      "sha256": "A2C92EC29CF4DB030B50A8CD8FF85CC30C9F477E3F9CAD02061732EAA74CE4F8"
+    }
+  ],
+  "source_validation": {
+    "driver": {
+      "schema": "panebind-v1-owned-driver/1",
+      "legal_jsonl": true,
+      "lines": 768,
+      "sequence_range": [
+        1,
+        768
+      ],
+      "continuous": true
+    },
+    "product": {
+      "schema": "panebind-v1/1",
+      "legal_jsonl": true,
+      "lines": 444,
+      "sequence_range": [
+        1,
+        444
+      ],
+      "continuous": true,
+      "single_process_id": 6336
+    },
+    "collected_product_hash_matches_package": true
+  },
+  "literals": [
+    {
+      "file": "2c8d-active-settings-driver-selected.jsonl",
+      "raw_source": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-release-fixture.jsonl",
+      "raw_source_sha256": "4D868A9C1B7894C33D68D7B91AD8603243FF02C2E2093512D86EA7ABA86EF7F4",
+      "source_lines": [
+        198,
+        202,
+        204,
+        208,
+        212,
+        215,
+        256,
+        267,
+        270,
+        274,
+        282,
+        311,
+        312,
+        320,
+        323,
+        331,
+        339,
+        401,
+        410,
+        754,
+        764,
+        768
+      ]
+    },
+    {
+      "file": "2c8d-active-settings-product-selected.jsonl",
+      "raw_source": "uat/v1-control/2c8dfd707f414d5394913c5f52a8c997/collection-20261021T054801581Z-0693f357cbf34537a8b003d804f5c110/2c8dfd707f414d5394913c5f52a8c997-product-Release/panebind.log.jsonl",
+      "raw_source_sha256": "D8B82C578B4876A1901E1766F58564E363188AD16F9B8D817B9E0D0484E9D470",
+      "source_lines": [
+        132,
+        137,
+        138,
+        139,
+        140,
+        143,
+        146,
+        151,
+        180,
+        220,
+        444
+      ]
+    }
+  ],
+  "literal_policy": "Complete original lines; newline normalization only. Selected gaps intentional. Full guest executable-path row D257 inspected but omitted, not redacted.",
+  "active_settings_group": {
+    "result": "PASS_SCOPED_USER_REACHABLE_GUI_PATH",
+    "actual_source": {
+      "hwnd": 262798,
+      "pid": 6288,
+      "tid": 6292,
+      "key": 7
+    },
+    "generation": 3,
+    "original_group_members": 2,
+    "active_source_and_capture": "D198/P130: exact source foreground; source and shield-owner GUI actual capture both overlay197402; outstanding DOWN and Ctrl observed; no cleanup UP yet.",
+    "exact_group_placements": {
+      "source": "P137",
+      "follower": "P138",
+      "last_native_entry_qpc": 349984720
+    },
+    "public_settings_trigger_qpc": 350485452,
+    "actual_end": {
+      "source": "P139/D202",
+      "end": 4,
+      "name": "Paused",
+      "normal_up": false,
+      "pending_retired": true
+    },
+    "actual_settings_open": {
+      "source": "P140/D202",
+      "created": true,
+      "foreground_is_settings": true,
+      "own_focus_present": true
+    },
+    "same_product_sequence_order": "P139 Paused precedes P140 settings_open in product PID6336/source11ae. This is not a reconstructed Raw/WinEvent common native ordering.",
+    "resources": {
+      "capture_released": "P143",
+      "detach_overlay_gone": "P146",
+      "release_succeeded": true,
+      "detach_succeeded": true,
+      "overlay_destroyed": true,
+      "hotkey_unregistered": true
+    },
+    "unique_test_cleanup_UP": {
+      "send": "D204",
+      "send_before_qpc": 353751914,
+      "actual_LL_observation": "P151 callback generation3/aborted_before=true, hook_observed_qpc353756382",
+      "matching_abort_receipt": "D207 PASS",
+      "normal_up_or_legacy_delivery_claimed": false,
+      "UP_replayed": false
+    },
+    "post_trigger_g3_native_calls": 0,
+    "post_trigger_audit": "D208 forbidden_new_calls=0/unknown_call_clocks=0",
+    "settings_UI_after_abort": {
+      "source": "D212",
+      "hwnd": 262940,
+      "tid": 6320,
+      "driver_activation_fallback_used": false
+    },
+    "unchanged_draft_cancel": "D215 actual Escape; first settings entry saved no configuration.",
+    "rule_change": {
+      "actual_GUI_save": "D256",
+      "exact_rule_assertion": "D257 PASS: exact test-driver executable and Run-bound target alias, not the whole executable",
+      "class_name": "PaneBind.V1.OwnedFixture.2c8dfd707f414d5394913c5f52a8c997.StretchRuleTarget",
+      "excluded_next_group": {
+        "generation": 4,
+        "group_members": 1,
+        "source_key": 7,
+        "source_native_placements": [
+          "P182",
+          "P185"
+        ],
+        "source_only_move_and_original_DOWN_return": [
+          "D270",
+          "D274"
+        ],
+        "excluded_target_native_claims": 0,
+        "audit": "D282"
+      },
+      "actual_GUI_rule_removal": [
+        "D311",
+        "D312"
+      ],
+      "restored_next_group": {
+        "generation": 5,
+        "group_members": 2,
+        "actual_member_keys": [
+          7,
+          14
+        ],
+        "actual_native_placements": [
+          "P222",
+          "P223"
+        ],
+        "actual_scope_audit": "D331"
+      },
+      "source_and_target_recreated": false,
+      "Catalog_key_persistence_required": false,
+      "direct_causality_claim": "Public settings entry retires the active group before UI/rule save; GUI foreground change is not mislabeled as the rule callback causing that retirement.",
+      "isolated_active_rule_callback": "NOT_RUN; no alternate route bypassing the production settings-entry retirement barrier was invented."
+    },
+    "exact_alias_and_windows_closed": "D339",
+    "original_configuration_and_binary_retained": "D401",
+    "actual_phase": "D410 PASS"
+  },
+  "magnet": {
+    "actual_phase": "D754 PASS",
+    "result_scope": "Existing threshold/hysteresis/speed-setting blackbox suffix; no new behavior attributed to this settings-entry change.",
+    "prior_detailed_evidence": "docs/reports/v1-evidence/0a66-remaining-move-metadata.json",
+    "production_MotionState_Suppressed_receipt_claimed": false
+  },
+  "wrapper": {
+    "fixture_pid": 6288,
+    "fixture_tid": 6292,
+    "status": "FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED",
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "actual_child_integrity_rid": 8192,
+    "actual_child_session": 1,
+    "actual_child_elevated": false,
+    "actual_child_admin_enabled": false
+  },
+  "remote_cleanup": {
+    "utc": "2026-10-21T05:48:37.7374674Z",
+    "guest_pid": 19852,
+    "exact_native_identity": true,
+    "dedicated_guest_exited": true,
+    "task_removed": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false
+  }
+}
