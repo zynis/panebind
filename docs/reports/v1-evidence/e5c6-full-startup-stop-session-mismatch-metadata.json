@@ -1,0 +1,168 @@
+{
+  "evidence_id": "EV-E5C6-FULL-STARTUP-STOP-SESSION-MISMATCH",
+  "kind": "SELECTED_ORIGINAL_JSON_FIELD_PROJECTION_NOT_LITERAL_JSONL",
+  "original_raw_preserved": true,
+  "new_guest_execution_by_metadata_generation": false,
+  "actual_recorded_guest_started": true,
+  "fixture_started": false,
+  "run_id": "e5c6b4a0cc5a43288cf6d866c68e6f82",
+  "planned_source_identity": {
+    "product_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "packaging_head": "36e9acf7095a8233692c834011521a84d4d022df",
+    "fixture_and_product_execution": "NOT_RUN"
+  },
+  "original_summary": {
+    "path": "uat/v1-control/e5c6b4a0cc5a43288cf6d866c68e6f82/collection-20261021T041342157Z-5b5ae3eb492c489ba00a68586fed207d/e5c6b4a0cc5a43288cf6d866c68e6f82-guest-summary.json",
+    "bytes": 20584,
+    "sha256": "75F3E2FA0DB76ECAB10DA079B5FA6D97E0AF9BC59247B78BD5F74B7B77936A05",
+    "projection_is_not_complete_original_JSON": true,
+    "requested_suite": "Full",
+    "actual_suite": "Full",
+    "stages_count": 0,
+    "error": "Full startup lifecycle observation is unknown; fixture/product/input not started."
+  },
+  "input_manifest": {
+    "path": "uat/v1-sandbox/e5c6b4a0cc5a43288cf6d866c68e6f82/input/manifest.json",
+    "sha256": "88149B66976A49714719B2692F6191EA1C2FFA5D4EC47D0824F36C4C9EB754DA"
+  },
+  "observation": {
+    "schema": "panebind-v1-full-startup-observation/1",
+    "status": "ENVIRONMENT_READY_UNKNOWN",
+    "deadline_seconds": 60,
+    "subscription_utc": "2026-10-21T04:12:51.2236928Z",
+    "subscription_filetime_utc": "134370295712393761",
+    "initial_snapshot_collected": true,
+    "initial_matching_name_count": 0,
+    "current_snapshot_collected": false,
+    "current_processes_default_count_not_absence_evidence": 0,
+    "observer_at_subscription": {
+      "pid": 5740,
+      "session": 1,
+      "managed_thread_id": 13,
+      "session_source": "Process.GetCurrentProcess.SessionId"
+    },
+    "start_trace": {
+      "kind": "start",
+      "pid": 5652,
+      "parent_pid": 1160,
+      "session": 1,
+      "name": "rgnupdt.exe",
+      "event_time_created": "134370295956000631",
+      "event_time_storage_type": "System.Int64",
+      "event_time_is_process_birth": false,
+      "process_birth": "UNKNOWN",
+      "image_path": "UNKNOWN",
+      "delivered_utc": "2026-10-21T04:13:15.6000631Z",
+      "exit_status": null,
+      "raw_session_type": "System.UInt32",
+      "identity_error": null,
+      "observer_at_delivery": {
+        "pid": 5740,
+        "session": 1,
+        "managed_thread_id": 13,
+        "session_source": "Process.GetCurrentProcess.SessionId"
+      },
+      "raw_wmi_fields": {
+        "pid": 5652,
+        "parent_pid": 1160,
+        "session": 1,
+        "name": "rgnupdt.exe",
+        "event_time_created": "134370295956000631",
+        "exit_status": null
+      }
+    },
+    "rejected_stop_trace": {
+      "kind": "stop",
+      "pid": 5652,
+      "parent_pid": 0,
+      "session": 0,
+      "name": "rgnupdt.exe",
+      "event_time_created": "134370295956000632",
+      "event_time_storage_type": "System.Int64",
+      "event_time_is_process_birth": false,
+      "process_birth": "UNKNOWN",
+      "image_path": "UNKNOWN",
+      "delivered_utc": "2026-10-21T04:13:15.6000631Z",
+      "exit_status": 0,
+      "raw_session_type": "System.UInt32",
+      "identity_error": "trace_session_mismatch",
+      "observer_at_delivery": {
+        "pid": 5740,
+        "session": 1,
+        "managed_thread_id": 13,
+        "session_source": "Process.GetCurrentProcess.SessionId"
+      },
+      "raw_wmi_fields": {
+        "pid": 5652,
+        "parent_pid": 0,
+        "session": 0,
+        "name": "rgnupdt.exe",
+        "event_time_created": "134370295956000632",
+        "exit_status": 0
+      }
+    },
+    "sid_comparison_only": {
+      "start_sid_present": true,
+      "stop_sid_present": true,
+      "encoded_sid_equal": true,
+      "sid_value_recorded": false
+    },
+    "start_and_stop_same_pid": true,
+    "start_and_stop_same_name": true,
+    "raw_time_created_difference": "1",
+    "raw_64_bit_times_preserved_as_decimal_strings": true,
+    "raw_times_not_process_birth": true,
+    "observer_pid_session_managed_thread_equal_at_subscription_and_both_deliveries": true,
+    "trace_identity_or_same_session_exit_proven": false,
+    "stop_session_mismatch_technical_cause": "UNKNOWN",
+    "product_or_input_started_by_observer": false,
+    "process_control_performed": false,
+    "process_purpose": "UNKNOWN",
+    "termination_initiator": "UNKNOWN",
+    "environment_foreground_guarantee": false,
+    "error": "Startup trace rejected: trace_session_mismatch",
+    "subscription_cleanup_confirmed": true,
+    "event_cleanup_confirmed": true,
+    "cleanup_errors": [],
+    "additional_queued_traces_at_cleanup": 0,
+    "actual_elapsed_seconds": 24.5141183
+  },
+  "verdict": {
+    "classification": "STARTUP_DIAGNOSTIC_TRACE_IDENTITY_SESSION_MISMATCH_NOT_PRODUCT_FAILURE",
+    "fixture": "NOT_RUN",
+    "product": "NOT_RUN",
+    "input": "NOT_RUN",
+    "Full_functional_chain": "NOT_RUN",
+    "product_cleanup": "N_A_NO_PRODUCT_STARTED",
+    "collection_fixture_log_absent": true,
+    "collection_product_output_absent": true,
+    "collection_Release_launch_absent": true,
+    "same_pid_name_and_encoded_sid_not_sufficient_to_prove_same_process_identity": true,
+    "stop_session_zero_not_same_session_exit_confirmation": true,
+    "current_processes_default_empty_not_a_final_process_snapshot": true,
+    "prior_50f5_same_cause": "UNKNOWN",
+    "prior_product_Full_failures_unchanged": true,
+    "feature_or_benchmark_PASS_added": false,
+    "next_action": "本Run不能用WMI退出配对给环境就绪授权。后续仅把该通路作为只读诊断，未知字段保持UNKNOWN；按主执行者选定的真实末尾快照及观察器自身清理后，继续原完整产品guard。该变更尚不属于本文件的已运行结果，不扩大权限。"
+  },
+  "exact_host_cleanup": {
+    "path": "uat/v1-control/e5c6b4a0cc5a43288cf6d866c68e6f82/cleanup-receipt.json",
+    "sha256": "B506B20F521D130D87CAB736EF000FFD8A6112D9A1F3A78E15299A9D2D2F2642",
+    "guest_pid": 13188,
+    "exact_guest_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "other_files_or_resources_changed": false,
+    "utc": "2026-10-21T04:14:21.4285250Z"
+  },
+  "redaction": {
+    "SID_values_written": false,
+    "only_actual_encoded_SID_presence_and_equality_booleans_recorded": true,
+    "same_identity_not_inferred_from_SID_equality": true,
+    "window_titles_or_application_contents_collected": false
+  }
+}

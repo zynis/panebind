@@ -795,6 +795,38 @@ $rejectedMissing=Convert-FullStartupTraceRow $missingSession 'stop' ([DateTime]'
 Check ($rejectedSession.identity_error -ceq 'trace_session_mismatch' -and $rejectedSession.raw_wmi_fields.session -eq 0 -and
     $rejectedSession.observer_at_delivery.session -eq 1 -and $rejectedMissing.identity_error -ceq 'trace_session_missing' -and
     $null -eq $rejectedMissing.session -and $null -eq $rejectedMissing.raw_wmi_fields.session) 'actual startup predicate rejects a foreign session and distinguishes a missing raw session from numeric zero; neither is a claimed 50f5 native stop'
+# The diagnostic verdict is not input authority. Execute ONLY the actual
+# frontend if-branch and its real pure continuation predicate, not WMI/guest.
+$continuation=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Test-FullStartupFixtureContinuation'},$false))
+$startupFrontend=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.IfStatementAst] -and
+    $node.Clauses[0].Item1.Extent.Text -ceq '-not (Test-FullStartupFixtureContinuation $summary.full_startup_observation)'},$false))
+$finalQuery=@($completeFunction[0].Body.FindAll({param($node) $node -is [Management.Automation.Language.CommandAst] -and $node.GetCommandName() -ceq 'Get-CimInstance'},$false))
+$completeTry=@($completeFunction[0].Body.EndBlock.Statements|Where-Object {$_ -is [Management.Automation.Language.TryStatementAst]})
+if($continuation.Count -ne 1 -or $startupFrontend.Count -ne 1 -or $finalQuery.Count -ne 1 -or $completeTry.Count -ne 1 -or
+   -not $completeTry[0].Finally.Extent.Text.Contains($finalQuery[0].Extent.Text)){
+    throw 'Actual startup must make its one final query after success/rejection and gate the frontend only on current snapshot plus owned cleanup.'}
+. ([scriptblock]::Create($continuation[0].Extent.Text))
+$frontend=[scriptblock]::Create($startupFrontend[0].Extent.Text)
+$diagnostic=[pscustomobject]@{status='ENVIRONMENT_READY_UNKNOWN';rejected_trace=[pscustomobject]@{session=[uint32]0};
+    current_snapshot_collected=$true;current_processes=@();subscription_cleanup_confirmed=$true;event_cleanup_confirmed=$true}
+$summary=[pscustomobject]@{full_startup_observation=$diagnostic}
+& $frontend
+Check ((Test-FullStartupFixtureContinuation $diagnostic) -and $diagnostic.status -ceq 'ENVIRONMENT_READY_UNKNOWN' -and
+    $diagnostic.rejected_trace.session -eq 0) 'actual frontend may reach original fixture guards after one empty final snapshot and exact observer cleanup without converting an unknown/session-0 trace into PASS'
+$frontendRejected=0
+foreach($failure in @('missing_snapshot','current_process','subscriber_not_removed','events_not_removed')){
+    $candidate=[pscustomobject]@{status='TARGET_LIFECYCLE_EXIT_OBSERVED';current_snapshot_collected=$true;current_processes=@();
+        subscription_cleanup_confirmed=$true;event_cleanup_confirmed=$true}
+    switch($failure){
+        'missing_snapshot' {$candidate.current_snapshot_collected=$false}
+        'current_process' {$candidate.current_processes=@([pscustomobject]@{pid=5652})}
+        'subscriber_not_removed' {$candidate.subscription_cleanup_confirmed=$false}
+        'events_not_removed' {$candidate.event_cleanup_confirmed=$false}
+    }
+    $summary=[pscustomobject]@{full_startup_observation=$candidate}
+    try{& $frontend}catch{$frontendRejected++}
+}
+Check ($frontendRejected -eq 4) 'actual frontend rejects missing/nonempty current snapshot or either unconfirmed cleanup even if the diagnostic verdict claims an observed exit'
 $portableFunction=@($guestAst.FindAll({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Prepare-PortableTestPackage'},$false))
 Check ($portableFunction.Count -eq 1) 'test locates the actual guest portable validation function'
 . ([scriptblock]::Create($portableFunction[0].Extent.Text))

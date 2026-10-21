@@ -21,7 +21,7 @@ function Start-FullGuestStartupObservation {
         record=[ordered]@{schema='panebind-v1-full-startup-observation/1';run_id=$RunId;suite='Full';
             status='OBSERVING';deadline_seconds=60;deadline_includes_asset_preparation=$true;subscription_utc=[DateTime]::UtcNow.ToString('o');
             subscription_filetime_utc=[DateTime]::UtcNow.ToFileTimeUtc();initial_processes=@();events=@();current_processes=@();
-            initial_snapshot_collected=$false;current_snapshot_collected=$false;
+            initial_snapshot_collected=$false;current_snapshot_collected=$false;current_snapshot_attempted=$false;current_snapshot_error=$null;
             observer_at_subscription=$null;rejected_trace=$null;
             error=$null;subscription_cleanup_confirmed=$false;event_cleanup_confirmed=$false;
             product_or_input_started_by_observer=$false;process_control_performed=$false;
@@ -129,17 +129,19 @@ function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
             $needed=if($null -eq $identity){$Context.sources[0]}else{$Context.sources[1]}
             [void](Wait-Event -SourceIdentifier $needed -Timeout ([int][Math]::Ceiling($remaining)))
         }while($true)
-        # One final current snapshot, not a quiet-period poll or an assertion
-        # that no future process/foreground change can occur.
-        $record.current_processes=@(Get-CimInstance -Namespace 'root\cimv2' -Query "SELECT ProcessId,ParentProcessId,SessionId,Name,CreationDate FROM Win32_Process WHERE Name = 'rgnupdt.exe'" -OperationTimeoutSec 3 -ErrorAction Stop |
-            ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name}})
-        $record.current_snapshot_collected=$true
-        if($record.current_processes.Count){throw 'Matching startup process is still present at the final snapshot; no input permitted.'}
         if($stops.Count){$record.status='TARGET_LIFECYCLE_EXIT_OBSERVED';$record['start_observation']=if($starts.Count){'actual_start_trace'}else{'initial_live_snapshot_not_start_trace'}}
         elseif(-not $record.events.Count -and -not $record.initial_processes.Count){$record.status='NOT_OBSERVED'}
         else{throw 'A matching startup process was observed but its exit was not confirmed before the deadline.'}
     }catch{$record.status='ENVIRONMENT_READY_UNKNOWN';$record.error=$_.Exception.Message}
     finally {
+        # Exactly one final query also after a rejected trace. Its separate
+        # result is not repaired/paired WMI evidence or future foreground proof.
+        $record.current_snapshot_attempted=$true
+        try {
+            $record.current_processes=@(Get-CimInstance -Namespace 'root\cimv2' -Query "SELECT ProcessId,ParentProcessId,SessionId,Name,CreationDate FROM Win32_Process WHERE Name = 'rgnupdt.exe'" -OperationTimeoutSec 3 -ErrorAction Stop |
+                ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name}})
+            $record.current_snapshot_collected=$true
+        }catch{$record.current_snapshot_error=$_.Exception.Message}
         $cleanupErrors=@();$lateEvents=0
         foreach($subscription in $Context.owned){
             try {
@@ -169,7 +171,19 @@ function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
         if($cleanupErrors.Count){$record.status='ENVIRONMENT_READY_UNKNOWN';$record.error='Run-owned event cleanup was not confirmed.'}
         $Context.clock.Stop()
     }
+    $record['diagnostic_result_is_input_authority']=$false
+    $record['original_fixture_eligibility_still_required']=$true
+    $record['fixture_prerequisites_confirmed']=Test-FullStartupFixtureContinuation $record
     return $record
+}
+function Test-FullStartupFixtureContinuation($Record) {
+    # This is only a test-orchestration prerequisite. Unknown/contradictory
+    # traces stay Unknown; Medium/desktop/each gesture's actual foreground,
+    # identity and capture checks remain exclusively in the original fixture.
+    return $null -ne $Record -and $Record.current_snapshot_collected -is [bool] -and $Record.current_snapshot_collected -eq $true -and
+        $Record.current_processes -is [array] -and @($Record.current_processes).Count -eq 0 -and
+        $Record.subscription_cleanup_confirmed -is [bool] -and $Record.subscription_cleanup_confirmed -eq $true -and
+        $Record.event_cleanup_confirmed -is [bool] -and $Record.event_cleanup_confirmed -eq $true
 }
 function New-Evidence([string]$Path,[string]$Text) {
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -828,8 +842,8 @@ try {
     }
     if($null -ne $fullStartupObservation){
         $summary['full_startup_observation']=Complete-FullGuestStartupObservation $fullStartupObservation
-        if($summary.full_startup_observation.status -ceq 'ENVIRONMENT_READY_UNKNOWN'){
-            throw 'Full startup lifecycle observation is unknown; fixture/product/input not started.'}
+        if(-not (Test-FullStartupFixtureContinuation $summary.full_startup_observation)){
+            throw 'Final startup snapshot is unavailable/nonempty or own observer cleanup unconfirmed; fixture/product/input not started.'}
     }
     if($standardNativeClients){
         # Prepared official assets are shared read-only input, not proof of an

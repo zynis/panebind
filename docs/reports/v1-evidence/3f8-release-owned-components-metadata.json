@@ -1,0 +1,154 @@
+{
+  "evidence_id": "EV-3F8-RELEASE-OWNED-COMPONENTS-ACTUAL",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_BOUNDED_EVIDENCE_REVIEW",
+  "run_id": "3f8d12c648744763a38b58c1e94cd62f",
+  "source_collection": "uat/v1-control/3f8d12c648744763a38b58c1e94cd62f/collection-20261021T041116422Z-62595c41f1474e87b7c9befd27b4938d",
+  "original_raw_preserved": true,
+  "new_execution_by_evidence_selection": false,
+  "automated_guest_driver": true,
+  "human_uat": "NOT_RUN",
+  "identity": {
+    "product_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+    "packaging_head": "36e9acf7095a8233692c834011521a84d4d022df",
+    "configuration": "Release",
+    "suite": "OwnedComponentsOnly",
+    "zip_sha256": "A59DC294D351BC6AF5A003B35F36513A61CD6011C47E0B352B7DBE8F953755A9",
+    "manifest_sha256": "BB7F12F2F3950D0793F96A600D5938E91DC1858A9C7686C9FFBBB8DF2193D49C",
+    "wsb_sha256": "25EFE726B9E0B486F0A58AEACB3718CFFE9963021C64F41FFCA6D6D046B1AA93",
+    "old_c899_or_other_run_rebound": false
+  },
+  "raw_sources": [
+    {
+      "path": "3f8d12c648744763a38b58c1e94cd62f-release-fixture.jsonl",
+      "bytes": 1178049,
+      "sha256": "59EB4D7C46ED3A4F8DFFD11FD9F282F9D14A1E78ADFBD1AEC964D1FD7917E517",
+      "producer": "driver",
+      "valid_JSONL_lines": 1946,
+      "sequence_range": [1, 1946],
+      "sequence_gaps": 0
+    },
+    {
+      "path": "3f8d12c648744763a38b58c1e94cd62f-product-Release/panebind.log.jsonl.1",
+      "bytes": 524397,
+      "sha256": "25B1E3B8BB7533240313F6E01EF13C2321F46C218D0F9CD3DFDA6EBBBEAD8C74",
+      "producer_PID": 5588,
+      "valid_JSONL_lines": 462,
+      "sequence_range": [56, 517]
+    },
+    {
+      "path": "3f8d12c648744763a38b58c1e94cd62f-product-Release/panebind.log.jsonl",
+      "bytes": 135813,
+      "sha256": "623051FDAF1CCCB5B7A636DA0AFB10673D0F6137D7F9F29DB9B6EFC0C0EF70A7",
+      "producer_PID": 5588,
+      "valid_JSONL_lines": 131,
+      "sequence_range": [518, 648]
+    },
+    {
+      "path": "3f8d12c648744763a38b58c1e94cd62f-guest-summary.json",
+      "bytes": 20813,
+      "sha256": "0150CFC47C3DA40DB8012A98E7280C3E7CF44FFABF6079E7105CE445F8B86F21"
+    },
+    {
+      "path": "3f8d12c648744763a38b58c1e94cd62f-Release-launch.json",
+      "bytes": 9845,
+      "sha256": "005BB7FA5C0E63A0EC97E1CEDDF9940A4810BCB106670F8372FB76BF26969949"
+    }
+  ],
+  "literal_selections": [
+    {
+      "path": "docs/reports/v1-evidence/3f8-release-owned-components-fixture-selected.jsonl",
+      "sha256": "9A88FD14CB16BCF7FD68D64711B4322A504F39FA7B76203F20B77A16EDA71F92",
+      "lines": 53,
+      "original_sequences": [13, 225, 420, 430, 436, 439, 442, 445, 493, 496, 497, 557, 558, 566, 570, 690, 757, 775, 819, 844, 846, 880, 889, 890, 928, 983, 991, 1116, 1125, 1126, 1127, 1505, 1510, 1518, 1637, 1638, 1640, 1755, 1763, 1787, 1839, 1847, 1872, 1873, 1880, 1924, 1932, 1934, 1941, 1942, 1943, 1945, 1946]
+    },
+    {
+      "path": "docs/reports/v1-evidence/3f8-release-owned-components-product-selected.jsonl",
+      "sha256": "70F08F20BD53A153C5CA2030575D5CB266D4327EE8D46575D18F79A64A5BC69F",
+      "lines": 21,
+      "producer_PID": 5588,
+      "original_sequences": [314, 320, 326, 327, 328, 352, 358, 362, 432, 440, 475, 509, 533, 534, 535, 544, 550, 581, 611, 642, 648]
+    }
+  ],
+  "producer_boundaries": {
+    "fixture_PID": 7120,
+    "fixture_birth_filetime_decimal_string": "134370293322924007",
+    "initial_product_PID": 6236,
+    "initial_product_birth_filetime_decimal_string": "134370293325032806",
+    "initial_product_scope": "dock/stretch, interruption and first part of visual_mapping",
+    "initial_product_shutdown": "D1116 embeds exact original PID6236 P936 shutdown; hooks/native worker/input resources/capture/association/visual restoration confirmed, unknown issued completion false.",
+    "actual_visual_component_restart": "D1125-D1127: existing visual_mapping intentionally starts the same EXE again, now PID5588.",
+    "second_product_PID": 5588,
+    "second_product_birth_filetime_decimal_string": "134370293972871212",
+    "retained_second_product_sequence": "P56-P648 is continuous across .1 and current files; earlier P1-P55 and the initial PID6236 complete producer stream are not present in the final rotated product files.",
+    "initial_product_receipt_basis": "Exact original product JSON strings embedded in the preserved driver JSONL, with original PID/source/sequence. These are not synthesized into a continuous producer log.",
+    "six_components_single_PID_or_uninterrupted_product_lifetime_claimed": false,
+    "JSONL_order_is_not_cross_producer_native_order": true
+  },
+  "assessment": {
+    "case_FAIL_count": 0,
+    "phase_exception_count": 0,
+    "dock_stretch": {
+      "raw_phase_result": "BLOCKED",
+      "blocking_fact": "D225 I04_cross_display = ENVIRONMENT_BLOCKED, reason one_actual_guest_monitor; phase scanning propagates this to D570 and the final FAIL/exit1.",
+      "actual_local_suffix": "D420 ordinary BR corner exact; D430 Shift BR both axes exact; D436 MoveRight, D439 HeightMore and D442/D445 two Undo exact; D493 real GUI changed hotkey exact and D496 Undo; D497 neighbour unchanged; D557 exact fixture close; D558 original component returned; D566 current original PID6236 idle, no native/visual pending.",
+      "not_a_local_product_failure": true,
+      "corner_UP_scope": "D420/D430 use the original non-strict helper: actual second DOWN and exact placement are retained, but actual_matching_second_UP/terminal/legacy/cleanup fields are empty and strict_UP_required=false. Do not infer two actual UPs or NormalUp from real_DOWN_UP_DOWN_UP. The separate strict fdf2 observation retains its own Run identity.",
+      "cross_display": "NOT_RUN_ENVIRONMENT_BLOCKED"
+    },
+    "interruption": {
+      "raw_phase_result": "PASS",
+      "product_PID": 6236,
+      "actual_scope": "Escape g11, real test-owned foreground g14, actual WM_HOTKEY while held g17, and exact blank source destruction g20 each terminated and was followed by new Move and Resize. D690/D757/D819/D880 preserve these individual results; D775 retains the hotkey receipt.",
+      "source_destroyed_terminal": "Actual g20 end is FocusLost after the source was destroyed, an explicitly accepted event-order race; not relabeled SourceLost.",
+      "abort_UP": "Per-cause LL cleanup-UP/status evidence is not NormalUp. D844 retains one tagged passive-head observation; D846 embeds original PID6236 P713 actual last-UP g20/QPC569138202 and P708 actual release/detach/isolationGone, plus no target-UP delivery claim.",
+      "actor": "D889 actual START/placement; D890 g23 default 30000ms Deadline observed after 30046ms, normal_up=false. D893 no new calls; D895 single cleanup-UP plus native idle, not actual matching-product-UP or NormalUp. Subsequent g24 Move/g25 Resize and actual matching-UP/no-capture checks completed before D928/D982/D983/D991.",
+      "whole_I08_or_version_PASS_inferred": false
+    },
+    "visual_mapping": {
+      "raw_phase_result": "PASS",
+      "scope": "D1510 real property readbacks/hotkey/GUI, NormalUp/Escape and two actual shake gestures; D1505 original configuration restored. Includes the explicit PID6236-to-PID5588 restart described above, not a same-PID entire-suite claim."
+    },
+    "temporary_visual_inflight": {
+      "raw_phase_result": "PASS",
+      "product_PID": 5588,
+      "scope": "g5 real UP observed while call33 was in flight; actual terminal SourceLost, not NormalUp. P327 delayed completion has identity_valid=true, exact delayed geometry and new_write_authority_granted=false. D1638 alpha173 restored; D1640 one issued geometry call and zero calls beginning after test-UP send. g6 subsequent actual Move/legacy UP/Gone/NormalUp completed (P352/P358/P362); D1755 returned PASS."
+    },
+    "native_grid_constraint": {
+      "raw_phase_result": "PASS",
+      "product_PID": 5588,
+      "scope": "D1787 actual API TRUE with nonexact grid result was rejected, not invented API FALSE. g7 aborted; matching LL cleanup-UP and real resources exited, not NormalUp. New ordinary Move g8 and Ctrl source/follower g9 completed with actual UP/legacy/Gone/NormalUp (P475/P509). D1839 remains PARTIAL and whole_I10_PASS=false."
+    },
+    "second_member_native_failure": {
+      "raw_phase_result": "PASS",
+      "product_PID": 5588,
+      "scope": "D1872/P533 first exact, P534 second API TRUE followed by lost identity; no third native attempt. D1873 explicitly PARTIAL_API_TRUE_IDENTITY_LOST and SetWindowPos_FALSE_observed=false. D1880 matching abort cleanup-UP and resources, then three new survivor Move/contact/Ctrl gestures g11/g12/g13 with NormalUp P581/P611/P642; D1924 exact component resources closed."
+    },
+    "actual_suite_exit": "OBSERVED_WAIT0_EXIT1",
+    "raw_summary_and_driver_result": "FAIL_RETAINED",
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "wrapper_product_cleanup_pass": false,
+    "wrapper_product_cleanup_pass_basis": "Unevaluated original initializer; not a separate failure or PASS. Actual shutdown/UP/resource/client receipts determine the measured cleanup.",
+    "final_cleanup": "D1934 embeds PID5588 P648 shutdown all resource fields true and issued_native_completion_unknown=false; D1941 actual post-stop client counts [1,2] to [2,3]; D1943 Raw observer removed, D1944 foreground hook unhooked, D1945 overflow0, D1946 product closed and owned windows destroyed.",
+    "unexecuted_scopes": ["Full", "settings suite", "portable entry", "real Explorer chain", "real application matrix", "I11 900-second chain", "cross-display"],
+    "new_confirmed_product_defect": "NONE_IDENTIFIED_IN_THIS_SCOPE",
+    "whole_feature_module_or_version_PASS_awarded_by_this_metadata": false
+  },
+  "exact_host_cleanup": {
+    "path": "uat/v1-control/3f8d12c648744763a38b58c1e94cd62f/cleanup-receipt.json",
+    "sha256": "2DAFE74500293E19DA6EFD4F1ABEBD697EADAE45F0443E978D84CF1BAE462EB2",
+    "guest_pid": 16884,
+    "guest_start_ticks_decimal_string": "639281525194571433",
+    "native_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "utc": "2026-10-21T04:11:54.3868066Z"
+  }
+}
