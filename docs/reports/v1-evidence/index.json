@@ -3,6 +3,36 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+      "id": "EV-6E1F-EXPLICIT-CALLBACK-OWNER-EXIT-AND-RECOVERY",
+      "run_id": "6e1fbca4c575433f8ee3b839dd6b5254",
+      "configuration": "Release",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "product_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+      "driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+      "driver_binary_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84",
+      "path": "docs/reports/v1-evidence/6e1f-callback-owner-stop-review.json",
+      "sha256": "16B2B2DB8AA5EB9EB9C788058E0EB752E63A1232728866214A0D7CA7A3E2B768",
+      "repository_excerpt_path": "docs/reports/v1-evidence/6e1f-callback-owner-stop-excerpt.jsonl",
+      "repository_excerpt_sha256": "F7F2A0998534264C7123128A109B3D35F0EF050FED93CCAA35DCC4064DFFEC5B",
+      "result": "PASS_SCOPED_EXPLICIT_INPUT_OWNER_EXIT_AND_SAME_PROCESS_PUBLIC_RECOVERY",
+      "scope": "Actual native API teardown plus signaled owner HANDLE, independent shield cleanup, unique original guest/client UP, public Pause/Resume and same-instance fresh Move/Resize/NormalUp; with recorded original termination/queue/session evidence closes independent M04F04, not OS silent hook removal or whole module."
+    },
+    {
+      "id": "EV-830A-FOCUS-LOSS-AND-SAME-INSTANCE-SUCCESSOR",
+      "run_id": "830a9b3c98ca4132beeb5c5077c4a2ab",
+      "configuration": "Release",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "product_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+      "driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+      "driver_binary_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84",
+      "path": "docs/reports/v1-evidence/830a-focus-successor-review.json",
+      "sha256": "0AC4246D3C4710040A75DEB60E16F81D3F059CBAD939AF5202BF70DB0173F9F7",
+      "repository_excerpt_path": "docs/reports/v1-evidence/830a-focus-successor-excerpt.jsonl",
+      "repository_excerpt_sha256": "3C38D455C47D93DA6E825DB0B563C1EBB6554C3E08AFA2F69AE753BFBC96D0ED",
+      "result": "PASS_SCOPED_ACTUAL_FOCUS_LOSS_AND_SUCCESSOR_NOT_OLD_CAUSE_PROOF",
+      "scope": "Current same-PID FocusLost restores173/independent cleanup/nonNormal original UP, next real END/capture/exact Move/normal Raw-legacy UP; b6 old first-failed gate not reproduced or diagnosed, no fresh-gate predicate change, no new per-pixel or whole-function PASS inferred."
+    },
+    {
       "id": "EV-984B-G03-SOLVER-ORACLES",
       "kind": "ACTUAL_L1_WITH_EXISTING_NATIVE_NOT_NEW_GUEST",
       "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",

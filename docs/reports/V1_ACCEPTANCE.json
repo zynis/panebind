@@ -9,6 +9,16 @@
   "human_uat": "PENDING",
   "source_identity": {
     "runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "current_targeted_runtime": {
+      "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "release_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+      "driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+      "driver_release_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84",
+      "run_ids": ["6e1fbca4c575433f8ee3b839dd6b5254", "830a9b3c98ca4132beeb5c5077c4a2ab", "aa2e413d48eb4baabe7ec8c035a24c8e"],
+      "scope": "Actual callback owner exit/recovery PASS and Focus successor PASS; HC TEST heap-exit FAIL; original Full runtime above remains historical11ae, never rebound",
+      "product_builds": "Debug/Release PASS; affected offline six each PASS; actual host fault-switch and mixed identity switch both Exit78 in each configuration",
+      "whole_version_PASS": false
+    },
     "observed_driver0f_targeted_actual": {
       "source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
       "candidate_product_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
@@ -1483,14 +1493,14 @@
       "B39",
       "B40"
     ],
-    "note": "独立DEV40/60、20/40=50%保持；3c21闭合M08F02/B14的原身份不变。bbc/28e3真实Queue恢复子PASS，M04F04仍缺callback owner停止；b6 per-pixel可见/正常UP子PASS但Focus后继fresh拒绝，34f普通提示子PASS但HC heap-exit，均不增功能或B分。模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门未齐，B33-B40仍0，PARTIAL不REA。"
+    "note": "独立DEV41/60、20/40=50%。6e1f实际callback owner退出/逐API注销/独立撤罩/原UP/同PID公开恢复及新MoveResize，与28e3、7117及既有终止证据闭合M04F04独立DEV；不授自然queue/OS静默hook移除/真实OS锁/整模块。830a当前Focus后继通过，不宣称查明旧b6拒绝原因；aa2e HC工具失败保留。B分、模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门不变，PARTIAL不REA。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际独立DEV40/60、对标20/40；尚缺20项独立功能、12项必选对标及模块/适用整版硬门。3c21仅闭合M08F02/B14，7117不替代Queue/callback退出；五应用/托盘/显示/整版未自动通过。",
+      "remaining_conditions": "实际独立DEV41/60、对标20/40；尚缺19项独立功能、12项必选对标及模块/适用整版硬门。6e1f补足M04F04所缺callback实际退出；五应用/托盘/显示/整版不自动通过。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -3647,18 +3657,23 @@
         "src/core/v1/gesture.h",
         "src/platform/windows/product/product_app.cpp",
         "docs/reports/v1-evidence/7117-session-interruption-review.json",
-        "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl"
+        "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl",
+        "docs/reports/v1-evidence/6e1f-callback-owner-stop-review.json"
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M04-F04-DEV",
           "required_observation": "分别注入相关事件/制造合法失焦；终止原因真实，撤权后新增写入为零；原生输入可继续",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
+            "docs/reports/v1-evidence/6e1f-callback-owner-stop-review.json",
+            "docs/reports/v1-evidence/6e1f-callback-owner-stop-excerpt.jsonl",
+            "docs/reports/v1-evidence/28e3-queue-failure-recovery-review.json",
+            "docs/reports/v1-evidence/7117-session-interruption-review.json",
             "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
@@ -3673,11 +3688,15 @@
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
       "environment_id": "E02",
-      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "run_id": "6e1fbca4c575433f8ee3b839dd6b5254",
       "evidence_paths": [
+        "docs/reports/v1-evidence/6e1f-callback-owner-stop-review.json",
+        "docs/reports/v1-evidence/6e1f-callback-owner-stop-excerpt.jsonl",
+        "docs/reports/v1-evidence/28e3-queue-failure-recovery-review.json",
+        "docs/reports/v1-evidence/7117-session-interruption-review.json",
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
@@ -3700,15 +3719,12 @@
         "V1-D11"
       ],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
-      "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "dfdd/3f8四真实终止/默认Deadline及a575实际END/capture后no-own capture-loss/同实例恢复保留原11ae身份，不重跑。04ff/935的7117在精确主owner HWND/PID/TID/birth/session1上一次TEST LOCK通知，实际SessionLost/end5/nonNormal/pendingretired，真实own ReleaseCapture→0/解绑/Gone在唯一清理UP前完成；实际hook及客户UP回执与旧代零迟写成立。一次TEST UNLOCK通知后同PID6568新key5/g2 Move、g3 Resize均exact/真实LL-Raw-legacy NormalUp，完整退出/客户恢复通过。不是实际OS锁屏/解锁。",
-      "remaining_conditions": [
-        "guide5.2明确的callback owner停止注入及其真实退出/恢复尚未实际通过；28e3真实Queue故障/独立清理/同实例公开恢复已限定通过，不能把healthy=false当callback owner已退出。",
-        "7117为DEV明确允许的session通知注入，不授真实锁屏/休眠/虚拟桌面系统变化PASS；这些环境范围仍按各独立合同登记。"
-      ],
-      "next_action": "复用28e3真实Queue恢复、7117会话通知及既有四终止/Deadline/capture-loss；仅补callback owner实际停止、线程退出/卸hook/Raw退出、独立输入资源收尾和同实例公开恢复。原ecdf arm拒绝及af8f TEST barrier整FAIL保留，06045修复仅由28e3新证据验证；不授M04F04整体PASS。",
-      "current_scope_evidence_ids": ["EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY", "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE"],
+      "assessment_scope": "INDEPENDENT_FEATURE_DEV_WITH_ACTUAL_INJECTED_QUEUE_CALLBACK_SESSION_AND_EXISTING_TERMINATIONS_NOT_WHOLE_MODULE",
+      "status_basis": "ACTUAL_NATIVE_OWNER_EXIT_AND_SAME_INSTANCE_PUBLIC_RECOVERY_CLOSE_FINAL_FEATURE_GAP_HISTORY_RETAINED",
+      "observed": "6e1f(4f7产品/5b驱动)298D/186P：真实owner触发InputUnavailable/end9，实际HANDLE Wait0/GetExitCodeThread code0、mouse及6WinEvent卸载/Raw/hotkey/receiver退出均成功；shield release/detach/Gone在唯一guest/client UP前自主完成。旧代非NormalUp/0迟写；公开PauseResume同PID6688/startserial1→2，新Move/Resize均exact+真实NormalUp，自主退出。与原28e3真实Queue、7117TEST会话通知和11ae/dfdd/3f8四终止/默认Deadline、a575实际no-own capture-loss恢复闭合本独立功能。各原身份及失败保留，未授自然队列满/OS静默卸hook查询/真实OS锁/模块整版PASS。",
+      "remaining_conditions": [],
+      "next_action": "M04F04独立DEV已闭合，不重跑此专项。继续未齐功能、真实应用/普通完整Medium/托盘/显示及最终同候选整版链；生态环境条件不回写成该独立功能未执行。",
+      "current_scope_evidence_ids": ["EV-6E1F-EXPLICIT-CALLBACK-OWNER-EXIT-AND-RECOVERY", "EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY", "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE"],
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",

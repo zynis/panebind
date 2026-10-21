@@ -1,0 +1,283 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-830A-FOCUSLOST-ALPHA173-AND-SAME-INSTANCE-SUCCESSOR",
+  "review_date": "2026-10-22",
+  "run_id": "830a9b3c98ca4132beeb5c5077c4a2ab",
+  "suite": "TransparencyRemainderOnly",
+  "configuration": "Release",
+  "actual_result": "PASS_SCOPED_FOCUSLOST_RESTORE_ABORT_UP_AND_FRESH_NORMAL_MOVE",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+  "product_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+  "driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+  "driver_binary_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84",
+  "packaging_head": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+  "zip_sha256": "9A34672EE6451CE913E703F5BBDE4F598701FF678CE7C87A8B0E7126944C0EF9",
+  "manifest_sha256": "D25D4D120EC28DCBF91BAB5D20EA31C640F5A57FD191133041FC15983935290E",
+  "product_PID": 4100,
+  "product_birth_filetime_decimal_string": "134370988336392849",
+  "fixture_PID": 1096,
+  "fixture_owner_TID": 6508,
+  "fixture_birth_filetime_decimal_string": "134370988332845288",
+  "source_HWND": 197416,
+  "other_exact_owned_HWND": 197434,
+  "source_key": 4,
+  "first_shield_HWND": 328490,
+  "successor_shield_HWND": 262948,
+  "shield_owner_TID": 6808,
+  "identity_precision": "D17/D24 FILETIMEs copied as decimal strings. Literal original lines are never reserialized or converted through floating-point identity values.",
+  "environment": {
+    "integrity": "actual Medium/non-elevated; not old High exception",
+    "desktop": "existing disposable Sandbox WinSta0/Default interactive",
+    "actual_window_DPI": 144,
+    "actual_PMV2": true,
+    "multi_monitor_tested": false,
+    "ordinary_host_tested": false,
+    "human_UAT": "NOT_RUN"
+  },
+  "original_files": [
+    {
+      "path": "uat/v1-control/830a9b3c98ca4132beeb5c5077c4a2ab/collection-20261021T232740620Z-b52e740099ad48bb8378bfb99b204c14/830a9b3c98ca4132beeb5c5077c4a2ab-release-fixture.jsonl",
+      "bytes": 145744,
+      "sha256": "B37E1D87006E2C032B844F46688251194B6EAF94DE632B7EB9D6EE8B26989142"
+    },
+    {
+      "path": "uat/v1-control/830a9b3c98ca4132beeb5c5077c4a2ab/collection-20261021T232740620Z-b52e740099ad48bb8378bfb99b204c14/830a9b3c98ca4132beeb5c5077c4a2ab-product-Release/panebind.log.jsonl",
+      "bytes": 145734,
+      "sha256": "A004B387219771C4E8F3BF2DB2FB72F759FFA80C13498E6126CD6DB2CFDBFA60"
+    },
+    {
+      "path": "uat/v1-control/830a9b3c98ca4132beeb5c5077c4a2ab/collection-20261021T232740620Z-b52e740099ad48bb8378bfb99b204c14/830a9b3c98ca4132beeb5c5077c4a2ab-guest-summary.json",
+      "bytes": 20852,
+      "sha256": "DB306C8A30EF87247528359BDA56E9DC96010BFDAF6DC8070C45E57097D40648"
+    },
+    {
+      "path": "uat/v1-control/830a9b3c98ca4132beeb5c5077c4a2ab/collection-20261021T232740620Z-b52e740099ad48bb8378bfb99b204c14/830a9b3c98ca4132beeb5c5077c4a2ab-Release-launch.json",
+      "bytes": 9936,
+      "sha256": "FEBA4EB7FAE35E4EF63808F7E62D8FBB44974A574F5145315D9E6B22AF9B72F7"
+    },
+    {
+      "path": "uat/v1-control/830a9b3c98ca4132beeb5c5077c4a2ab/cleanup-receipt.json",
+      "bytes": 10014,
+      "sha256": "E4A65BF2025533E8CF809A97C421283B43DFC80507490955AF15F7CB85CAC339"
+    },
+    {
+      "path": "uat/v1-sandbox/830a9b3c98ca4132beeb5c5077c4a2ab/input/manifest.json",
+      "bytes": 17339,
+      "sha256": "D25D4D120EC28DCBF91BAB5D20EA31C640F5A57FD191133041FC15983935290E"
+    },
+    {
+      "path": "uat/v1-sandbox/830a9b3c98ca4132beeb5c5077c4a2ab/input/panebind.exe",
+      "bytes": 1180160,
+      "sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3"
+    },
+    {
+      "path": "uat/v1-sandbox/830a9b3c98ca4132beeb5c5077c4a2ab/input/panebind-v1-guest-fixture.exe",
+      "bytes": 3499520,
+      "sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84"
+    },
+    {
+      "path": "uat/v1-sandbox/830a9b3c98ca4132beeb5c5077c4a2ab/830a9b3c98ca4132beeb5c5077c4a2ab.zip",
+      "bytes": 5181349,
+      "sha256": "9A34672EE6451CE913E703F5BBDE4F598701FF678CE7C87A8B0E7126944C0EF9"
+    }
+  ],
+  "raw_audit": {
+    "driver_rows": 252,
+    "product_rows": 131,
+    "driver_contiguous": true,
+    "product_contiguous": true,
+    "all_lines_valid_JSON": true,
+    "driver_FAIL_result_rows": 0,
+    "product_PIDs": [
+      4100
+    ],
+    "driver_shutdown": "D252 PASS",
+    "product_shutdown": "P131 native_worker/input/resources/visual restore facts true; not inferred from exit code"
+  },
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/830a-focus-successor-excerpt.jsonl",
+    "sha256": "3C38D455C47D93DA6E825DB0B563C1EBB6554C3E08AFA2F69AE753BFBC96D0ED",
+    "literal_rows": 59,
+    "driver_sequences": [
+      13,
+      17,
+      24,
+      126,
+      130,
+      137,
+      140,
+      142,
+      144,
+      148,
+      152,
+      153,
+      154,
+      156,
+      159,
+      162,
+      163,
+      165,
+      166,
+      167,
+      228,
+      229,
+      237,
+      238,
+      247,
+      248,
+      252
+    ],
+    "product_sequences": [
+      3,
+      46,
+      47,
+      48,
+      53,
+      54,
+      59,
+      61,
+      63,
+      69,
+      72,
+      73,
+      75,
+      76,
+      81,
+      82,
+      83,
+      86,
+      88,
+      89,
+      91,
+      93,
+      94,
+      96,
+      99,
+      101,
+      102,
+      103,
+      104,
+      106,
+      129,
+      131
+    ],
+    "ordering": "Selected driver rows then selected product rows. This is a literal reference set, not one combined native timeline."
+  },
+  "observed_contract": {
+    "held_and_FocusLost": {
+      "generation": 1,
+      "source_key": 4,
+      "native_entry": "D126 actual test DOWN; P46 one bounded cancel returned success; P47 actual native END; P48 accepted capture-pending handoff; P53/P54 actual alpha190 and gesture START",
+      "before_visible": [
+        180,
+        150,
+        580,
+        450
+      ],
+      "actual_held_after_Move": [
+        215,
+        175,
+        615,
+        475
+      ],
+      "actual_geometry": "P59 native call2 attempted/succeeded/known/exact identity/context true; D132 independent member geometry",
+      "original_visual": "P53 before tuple alpha173/layered/topmost true; held actual190; D130 actual native readback190",
+      "trigger": "D137 TEST changes foreground to the other exact owned root197434; trigger_before_QPC334148095; product itself does not acquire foreground or call an abort helper for the TEST",
+      "actual_termination": "P63 End2 FocusLost, normal_up=false, pending_retired=true before original TEST UP",
+      "restoration": "P61 native alpha cleanup190->173 actual exact/topmost remains true, P62 restore_confirmed; D140 independently reads173, not255",
+      "resource_exit": "P69 actual release_succeeded/detach_succeeded, capture_after_release0, overlay_destroyed/hotkey_unregistered true; D139 explicitly not guest destruction",
+      "original_abort_UP": "D142 one planned TEST UP called/returned1; P72 actual product LL UP QPC334944180 on generation1, aborted=true, authority0, matching_UP_branch=false; D144 actual fresh status/cleanup match true. This is abort cleanup, never NormalUp and never a claim of target-client legacy delivery.",
+      "no_late": "D148 no new geometry native call at/after trigger; D167 retained generation1 late0/unknown_clock0 after the successor. Owned alpha restoration is not classified as renewed drag geometry permission."
+    },
+    "successor": {
+      "generation": 2,
+      "same_PID": 4100,
+      "same_source_key": 4,
+      "fresh_entry": "D152 actual cursor225,184; D153 single DOWN; D154 threshold MOVE230,184 occurs after DOWN. P75 actual Prepared point225,184 matches P76 original DOWN point225,184, not the later threshold.",
+      "entry_and_anchor": "P81 one cancel actual native success; P82 actual native END same source/TID and original_DOWN_qpc340014861; P83 accepts handoff with original intent anchor[215,175,615,475], P86 real associated shield capture262948, P89 new START same original",
+      "target_and_actual": [
+        240,
+        195,
+        640,
+        495
+      ],
+      "original_DOWN_total_delta": [
+        25,
+        20
+      ],
+      "native_writer": "P91 one real native call5, exact target==actual, identity/postcontext valid; D159/D160 independent actual geometry, not permission bool",
+      "unique_original_UP": "D162 one TEST UP; D163 passive head counts one tagged injected UP with CallNext returned/unhooked; this TEST observer is not product receipt",
+      "product_UP": "P93 real matching LL UP changes authority2->0; P94 actual Raw UP; P96 actual legacy UP accepted; P103 queued legacy UP",
+      "normal_completion": "P99 actual ReleaseCapture success, P101 actual detach, P102 Gone with destroyed overlay/hotkey unregister, P104 alpha190->173 actual exact/topmost remains true, P105 restore_confirmed, P106 End0 NormalUp pending retired; D165/D166 independently observe geometry/no capture/alpha173",
+      "no_late": "All actual geometry placements audited: exactly P59 g1 and P91 g2. P91 post_observed_QPC343148117 precedes g2 matched_LL_UP_QPC343396693; no later placement through P131 shutdown. No in-flight-crossing-UP case is inferred.",
+      "production_route_not_test_adapter": "Real native-first DOWN/START/cancel/END/capture and WindowWriter receipts are read from product PID4100; the TEST driver sends input and checks independent owned frame geometry."
+    },
+    "exit": {
+      "exact_test_resources": "D228 exact owned roots closed, no unknown/user resources; D229 component PASS, D237 scoped phase PASS",
+      "product": "P131 actual own_hooks_stopped/input resources/capture released/association detached/worker exited/visual confirmed",
+      "input_after_stop": "D247 actual exact-owned native client DOWN/UP delta[0,0]->[1,1], no ShowWindow recovery, not guest destruction",
+      "observer": "D249 own Raw observer removed; D250 foreground observer actual unhook; D251 overflow0; D252 driver closed exact windows/product",
+      "launcher": "wait_result0, fixture_exit0, descendants_alive_at_fixture_exit0, forced_test_cleanup=false; launcher product_cleanup_pass=false is preserved as 'evidence required', not overridden to true by exit code",
+      "host_cleanup": {
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    }
+  },
+  "placement_audit": [
+    {
+      "generation": 1,
+      "native_before_qpc": 333814342,
+      "native_after_qpc": 333818207,
+      "post_observed_qpc": 333824952,
+      "target": [
+        215,
+        175,
+        615,
+        475
+      ],
+      "actual": [
+        215,
+        175,
+        615,
+        475
+      ],
+      "exact": true
+    },
+    {
+      "generation": 2,
+      "native_before_qpc": 343134879,
+      "native_after_qpc": 343140158,
+      "post_observed_qpc": 343148117,
+      "target": [
+        240,
+        195,
+        640,
+        495
+      ],
+      "actual": [
+        240,
+        195,
+        640,
+        495
+      ],
+      "exact": true
+    }
+  ],
+  "historical_scope": {
+    "b6c8_batch_FAIL_preserved": true,
+    "original_review": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-review.json",
+    "current_run_reuse_line": "D238 explicitly NOT_RUN_HERE_REUSED_B6C8_ORIGINAL_IDENTITY; per-pixel original bbc5b1e/c696 and binary hashes retained",
+    "per_pixel_this_product_run": "NOT_RUN",
+    "new_product_per_pixel_PASS_inferred": false,
+    "failure_root_cause": "UNKNOWN. b6c8 P81 fresh composite gate failure remains a genuine original observation.",
+    "source_diff_checked": "bbc5b1e->4f7 product_app native fresh gate was expanded from the same short-circuit OR to a first_failed_gate diagnostic chain in identical order. This run does not exercise a changed permissive gate or prove which old operand failed. Separate callback TEST path and late-owner notification protection are not an established fix for b6c8 Focus successor.",
+    "conclusion": "This run establishes a real passing FocusLost+successor on its own identity, not a proved root-cause repair or a transfer of old raw evidence."
+  },
+  "timebase": "QPC frequency10000000 serialized in P130. Only same-machine actual endpoints are compared (geometry native_before/postverify vs trigger or matching LL_UP). Driver SendInput completion is not delivery. Raw/WinEvent/GUI JSONL order is not a common native total order; no physical display latency claim.",
+  "acceptance_limit": "Supports the scoped M10-F04 FocusLost alpha restoration and same-instance recovery subcontracts. Per-pixel remains historical original identity only; no automatic full-feature/module, compatibility, ordinary-host, multi-DPI or whole-V1 PASS. Human UAT NOT_RUN."
+}

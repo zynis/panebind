@@ -1,5 +1,15 @@
 # PaneBind V1 集中交付进展
 
+## 当前接续：真实 callback-owner 退出与公开恢复，41/60（2026-10-22）
+
+**独立DEV41/60；对标仍20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 本次产品`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`，Release EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`；独立驱动`5b785a1442499624c1bfe94a8e5db602b1ae1eee`／`D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84`。产品Debug/Release及受影响offline各6/6通过；宿主callback命令和混合identity参数在两配置均真实Exit78，仅作保护支撑。
+
+- [6e1f](v1-evidence/6e1f-callback-owner-stop-review.json)：298D/186P、70行字面摘录。实际owner HANDLE已signaled、退出code0，mouse/6WinEvent/hotkey/Raw/receiver均有成功原生回执；独立shield释放/解绑/Gone先于唯一guest/client清理UP。旧代end9非NormalUp，零迟写；同PID6688公开Pause/Resume后新owner serial2，后继Move/Resize真实exact和正常UP。结合原28e3、7117及四终止/Deadline/capture-loss，闭合**M04-F04独立DEV**；不外推自然queue满、OS静默卸hook、真实OS锁或整模块。
+- [830a](v1-evidence/830a-focus-successor-review.json)：252D/131P，当前FocusLost恢复173、原UP非Normal、自主清理及同实例后继真实END/capture/exact/正常UP通过。生产fresh复合门只增加保序诊断，并未放宽或修正判定；因此本批PASS不等于查明或修复b6c8旧拒绝根因。旧FAIL仍保留，per-pixel本批NOT_RUN。
+- aa2e新HC仍在GET复制后、LocalFree窗口异常退出；实际GET指针不等于仍存活的SET caller-buffer，否定该别名假设。同址被再次返回也可能是分配器正常复用，不能仅凭地址认定二次free或Windows根因。下一步只修TEST缓冲区租约寿命并复验原HC链，不重跑已过普通提示，产品EXE保持不变。
+
+普通包以新标识`5f87dc1c56704592a164a4d8c4c3a6b4`准备；未封包/未验入口不称可试用。另补当前guest内系统Shake能力的产品未启动原生对照和实际规则路径区分；托盘、五类应用、普通完整Medium桌面、多屏/混合DPI等具体条件仍独立登记，不做无变量重试或新的900秒批次。以下是历史检查点，旧40/60与旧“尚未callback实测”只代表当时，不覆盖本节。
+
 ## 当前接续：bbc队列恢复与可见提示实证，40/60、20/40不变（2026-10-22）
 
 **生产接线60/60，独立DEV40/60，对标20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 本次新增均为合同子范围，不增加功能或对标PASS。当前实际产品为`bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6`／Release SHA-256 `9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66`；28e3驱动`06045bfb2327a2f875ff5ed289434a87914dca44`／`326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7`，af8f／b6c8／34f1驱动`c69620feb0ceaecb37f1900e69621e9fc47c815c`／`27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B`。不把旧04ff或11ae结果改绑这些EXE。
