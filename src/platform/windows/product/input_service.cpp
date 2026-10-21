@@ -364,7 +364,7 @@ bool InputService::arm_guest_queue_failure(std::string_view run_id,std::uint64_t
         return reject("exact_Medium_disposable_Run_product_proof_required");
     const std::filesystem::path input=L"C:\\PaneBindV1\\Input";
     const auto manifest=guest::capture_read(input/L"manifest.json");const auto files=manifest.find("\"files\"");
-    if(files==manifest.npos||guest::capture_field(std::string_view(manifest.data(),files),"guest_suite")!="QueueFailureOnly")
+    if(files==manifest.npos||!guest::capture_manifest_suite(manifest,"QueueFailureOnly"))
         return reject("exact_queue_failure_suite_required");
     const auto pair=capture_bridge_?capture_bridge_->pair.load():nullptr;
     const auto context=pair?pair->context.load():GestureCaptureLease{};

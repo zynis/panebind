@@ -116,6 +116,20 @@ int main() {
             "second early signal cannot request a third timer arm")||
        !expect(deadline::deadline_after_signal(target_qpc,target_qpc,0,false).decision==deadline::DeadlineSignal::Invalid,true,
             "unknown QPC frequency cannot prove deadline"))return 1;
+    // Same full-manifest predicate used by the real InputService arm gate.
+    // The actual packager emits guest_suite after files; the old identity-only
+    // prefix therefore rejected a correctly scoped current guest.
+    const std::string suite_after_files=R"({"product_source_commit":"unchanged","files":[{"relative_path":"panebind.exe"}],"guest_suite":"QueueFailureOnly","configurations":[]})";
+    const std::string suite_before_files=R"({"guest_suite":"QueueFailureOnly","files":[]})";
+    if(!expect(guest::capture_manifest_suite(suite_after_files,"QueueFailureOnly"),true,"actual post-files suite order is accepted")||
+       !expect(guest::capture_field(std::string_view(suite_after_files).substr(0,suite_after_files.find("\"files\"")),"guest_suite").empty(),true,
+           "old pre-files identity lookup reproduces the observed valid-suite rejection")||
+       !expect(guest::capture_manifest_suite(suite_before_files,"QueueFailureOnly"),true,"unique pre-files suite remains accepted")||
+       !expect(guest::capture_manifest_suite(R"({"files":[],"guest_suite":"SessionInterruptionOnly"})","QueueFailureOnly"),false,"a different exact suite cannot arm the fault")||
+       !expect(guest::capture_manifest_suite(R"({"guest_suite":"QueueFailureOnly","files":[],"guest_suite":"QueueFailureOnly"})","QueueFailureOnly"),false,
+           "duplicate suite is unknown even when both values agree")||
+       !expect(guest::capture_manifest_suite(R"({"files":[]})","QueueFailureOnly"),false,"missing suite cannot arm the fault")||
+       !expect(guest::capture_manifest_suite(R"({"files":[],"guest_suite":""})",""),false,"empty expected suite is never a bypass"))return 1;
     using ResourceOwner=guest::ResourceOwnerKind;using ResourceRoute=guest::ResourceRouteKind;
     if(!expect(guest::select_resource_route(ResourceOwner::OrdinaryUser,true,false)==ResourceRoute::ProductionMedium,true,
            "actual ordinary interactive Medium can use production resources without guest artifacts")||

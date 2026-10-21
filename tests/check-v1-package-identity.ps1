@@ -735,7 +735,7 @@ function Assert-V1QueueFailureWiring([string]$Fixture,[string]$Cases,[string]$Se
        -not $Prepare.Contains("'QueueFailureOnly'") -or -not $Guest.Contains("'QueueFailureOnly'") -or
        -not $Remote.Contains("'QueueFailureOnly'")){throw 'Queue failure requires an exact guarded standalone suite through preparation and deployment.'}
     foreach($value in @('guest::detect_capture_scope(PANEBIND_BUILD_SHA)','scope.run_id!=run_id',
-        '"guest_suite")!="QueueFailureOnly"','pair->ready_authorized','context->matching_up_observed',
+        'guest::capture_manifest_suite(manifest,"QueueFailureOnly")','pair->ready_authorized','context->matching_up_observed',
         'capture_source_current(identity)','L"PaneBind.V1.OwnedFixture."+wrun','SECURITY_MANDATORY_MEDIUM_RID',
         'EqualSid(','session!=own_session','driver_debug_sha256','driver_release_sha256',
         'guest_queue_failure_state_.store(2,std::memory_order_release)',

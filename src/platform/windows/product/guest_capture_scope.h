@@ -64,6 +64,11 @@ inline std::string capture_hash(const std::filesystem::path& path){
     CryptDestroyHash(h);CryptReleaseContext(provider,0);if(!ok)return {};
     constexpr char digits[]="0123456789ABCDEF";std::string out;for(auto b:digest){out+=digits[b>>4];out+=digits[b&15];}return out;
 }
+// Exact suite is a unique manifest field, not part of the pre-files product
+// identity prefix. The packager legitimately emits it after the files array.
+inline bool capture_manifest_suite(std::string_view manifest,std::string_view expected){
+    return !expected.empty()&&capture_field(manifest,"guest_suite")==expected;
+}
 inline bool capture_interactive_medium(){
     HANDLE token{};if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&token))return false;
     alignas(TOKEN_MANDATORY_LABEL) std::array<BYTE,512> data{};DWORD size{};TOKEN_ELEVATION elevation{};
