@@ -1,0 +1,73 @@
+{
+  "evidence_id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",
+  "review_date": "2026-10-21",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+  "driver_release_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+  "driver_debug_sha256": "C23437155FB20DDE8449D50388B8132DBCC220998FB54214539337A82286853F",
+  "packaging_head": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+  "run_id": "a9ee4238aa1947a893c28d452a781437",
+  "suite": "RemainingNativeContractsOnly",
+  "build_result": {
+    "Debug": "PASS",
+    "Release": "PASS",
+    "targets": [
+      "panebind-v1-guest-fixture",
+      "panebind-v1-guest-path-tests"
+    ],
+    "product_executable_rebuilt_or_relinked": false,
+    "guest_path_ctest_Debug": "1/1 PASS",
+    "guest_path_ctest_Release": "1/1 PASS",
+    "guest_path_scope": "222 cases, symlink privilege subcase SKIP1314; offline/NO_UI",
+    "packaging_static_tests": "123 PASS; no UI or synthetic input"
+  },
+  "source_routes": [
+    {
+      "function": "owned_settings_invalid_values_case",
+      "source": "src/platform/windows/product/v1_guest_settings_invalid_cases.h",
+      "contracts": [
+        "M11-F02"
+      ],
+      "prepared_scope": "Actual public GUI numeric edits/Save: negative/int-overflow/release equality and below; real modal dismissal, original bytes/generation and draft preserved; valid same-draft Save plus actual Move/UP."
+    },
+    {
+      "function": "owned_smart_dock_remaining_case",
+      "source": "src/platform/windows/product/v1_guest_smart_dock_cases.h",
+      "contracts": [
+        "M08-F03"
+      ],
+      "prepared_scope": "Actual public DockRight/Undo and production writer: nearest declared candidate; obstructed remainder ordinary-half fallback; source min-width preflight reject/no native/no neighbor movement; same-instance valid recovery."
+    },
+    {
+      "function": "owned_feedback_case",
+      "source": "src/platform/windows/product/v1_guest_feedback_cases.h",
+      "contracts": [
+        "M10-F02",
+        "M10-F03"
+      ],
+      "prepared_scope": "Actual accepted edge and Ctrl-member overlay, detach/UP/Esc/native nonexact failure hides it; real B Resize then C relation; GUI disable. Distinct from dock preview, exact foreground/identity/layered/hit semantics and two fixed source pixels. Pixel observation UNKNOWN cannot grant visual PASS."
+    }
+  ],
+  "deployment": {
+    "host": "ZS-WORKSTATION",
+    "remote_root": "I:\\PaneBindMVP1Runs\\a9ee4238aa1947a893c28d452a781437",
+    "deploy_utc": "2026-10-21T07:38:13.1146916Z",
+    "zip_sha256": "F989673F263660C5CC84746DBBC0204714E4367FCDA1E4815AA30232D277C4FE",
+    "manifest_sha256": "5EC24EAC7366CB2028A7031D455AB0B1DBE5A45345CF323B80F89C524BBCB187",
+    "wsb_sha256": "62A8822343F58DAC613CB0E1B22F658DBE3A6C5F6A375CDA51073D47DCE0D65D",
+    "input_readonly": true,
+    "only_output_writable": true,
+    "receipt": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/deploy-receipt.json",
+    "receipt_sha256": "42A399A2DE402CAE08FD3CDC2E17866F293769ECB1244B99B491911DE9D26090",
+    "package_receipt": "uat/v1-sandbox/a9ee4238aa1947a893c28d452a781437/package-receipt.json",
+    "package_receipt_sha256": "CAE57B918F27C05B7CED055D113D1FF24F86DBF3D0D76B84A8E5CA92B5CCBFB4",
+    "guest_started": false
+  },
+  "runtime_result": "NOT_RUN",
+  "blocking_condition_ref": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json",
+  "launch_attempted_after_other_project_guest_guard": false,
+  "whole_feature_or_version_PASS": false,
+  "human_uat": "NOT_RUN",
+  "next_action": "After the owner normally closes the other project's guest, finish a575 recovery and8ffa application preflight, then launch this exact package once, inspect actual per-component receipts, collect immutable evidence and clean only the exact own guest/task. No unchanged Full or standalone900-second repeat."
+}

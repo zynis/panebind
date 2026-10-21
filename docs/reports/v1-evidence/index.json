@@ -10,8 +10,15 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
-  "next_driver_validation": "38256cc D/R builds and guest-path regressions PASS; packaging123 checks PASS. Product11ae unchanged. RecoveryContractsOnly a575 and focused native Terminal/Edge8ffa deployed with exact hashes. a575 launch refused before task registration because another project's Sandbox exists; both new runtime scopes NOT_RUN. Historical fd50/2c8,05f/0a66, original11ae/dfdd FAIL and46c/8e0 tool FAIL retain original identities; no whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+  "next_driver_validation": "5e6d65f D/R driver builds and guest-path regressions PASS; packaging123 checks PASS. Product11ae unchanged. RemainingNativeContractsOnly/a9ee deployed, NOT_RUN. Earlier prepared a575 recovery and8ffa focused Terminal/Edge retain actual38256cc binaries; a575 launch guard refused another project's existing Sandbox. Historical fd50/2c8,05f/0a66, original11ae/dfdd FAIL and46c/8e0 tool FAIL retain original identities. No whole-version PASS or old-binary rebinding.",
+  "remaining_native_contracts_prepared": {
+    "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",
+    "metadata": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
+    "source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+    "runtime": "NOT_RUN",
+    "scope": "Real settings numeric rejection, smart dock fallback/min, actual feedback; code/build/deployment only until dedicated guest is available"
+  },
   "pending_guest_validation": {
     "id": "EV-A575-8FFA-DEPLOYED-GUEST-LAUNCH-BLOCKED",
     "metadata": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json",

@@ -10,6 +10,18 @@
   "source_identity": {
     "runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "next_driver": {
+      "source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+      "product_exe_unchanged": true,
+      "debug_build": "PASS",
+      "release_build": "PASS",
+      "debug_sha256": "C23437155FB20DDE8449D50388B8132DBCC220998FB54214539337A82286853F",
+      "release_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+      "binary_self_reported_source_verified": true,
+      "native_guard_validation": "NOT_RUN_OTHER_PROJECT_GUEST_OCCUPIES_SANDBOX_SLOT",
+      "evidence_path": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
+      "old_runtime_rebound": false
+    },
+    "last_runtime_tested_driver": {
       "source_sha": "fd50e83298486482730e8868241f529fc6711372",
       "change": "Test-only active group public settings entry retirement before rule editing; original 11ae/Full, 46c/8e0 and 05f/0a66 identities preserved",
       "product_exe_unchanged": true,
@@ -5616,7 +5628,8 @@
       "remaining_conditions": [
         "当前候选歧义/太窄/稳定候选及实际三应用组合未齐。"
       ],
-      "next_action": "补最小歧义/尺寸限制并保留真实邻居不动断言。",
+      "next_action": "a9ee已构建并部署实际public DockRight/Undo的多候选、障碍fallback与源min拒绝测试，保留真实邻居不动；待其他项目guest正常退出后现场运行，当前NOT_RUN，不复跑旧正常smart on/off。",
+      "queued_native_validation_ref": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL"
@@ -6567,7 +6580,8 @@
       "remaining_conditions": [
         "当前候选失败不画成功/标识拉开取消/无残留的实际视觉观察未齐。"
       ],
-      "next_action": "在目标失败场景捕获实际反馈并与receipt核对。",
+      "next_action": "a9ee已接入实际成功吸附边、拉开/UP/Esc及native非exact后隐藏的反馈观察，独立于dock preview；待guest可用实测，像素不明记UNKNOWN不授视觉PASS。",
+      "queued_native_validation_ref": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
@@ -6630,7 +6644,8 @@
       "remaining_conditions": [
         "实际共享边/成员提示和Shift反馈随关系变化的视觉/焦点合同未齐。"
       ],
-      "next_action": "同候选操作真实组并独立观察提示，不由组模型推UI。",
+      "next_action": "a9ee已接实际Ctrl成员轮廓、B真实Resize后C起手新几何及GUI关闭反例；待guest可用实测，不由组模型推UI；Shift/视觉清晰度等未覆盖部分继续单列。",
+      "queued_native_validation_ref": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL"
@@ -6958,7 +6973,8 @@
       "remaining_conditions": [
         "当前候选非法输入/活动代旧快照/所有参数的真实行为合同尚缺。"
       ],
-      "next_action": "保留dd02当前设置效果/保存恢复子项；仍补完整参数边界和活动代配置快照的缺项，不重复已过import/corrupt专项。",
+      "next_action": "复用2432/0a66/2c8当前同产品设置效果；a9ee已接真实GUI负值/溢出/释放等于或小于吸引拒绝、原配置/草稿保留与合法Save后Move/UP，待guest现场；其他参数/活动代合同仍保留，不重跑已过import/corrupt。",
+      "queued_native_validation_ref": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",

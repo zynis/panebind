@@ -12,6 +12,10 @@ D09和D24当前可比证据各缺一个确切分支，已接入最小`RecoveryCo
 
 驱动`38256ccf27efef4e550d24b6ded60aaf704fb723`已完成D/R构建，Release哈希`38B99B084E79617255E6698B7DAC8217CE9A9092FE8E0974B7DC257EFFAA7459`、Debug哈希`3980CA68901F90B24B565C0E52B744BE748A5EF4AD3204F410DCCA3572604A86`；受影响D/R guest-path均通过，包装123项检查通过。两个新RunId已在I盘新建目录传输核验：[a575恢复／8ffa原生应用部署记录](v1-evidence/a575-8ffa-deployment-and-guest-precondition.json)。a575启动实际被`existing_sandbox_not_touched_launch_refused`拒绝；一次只读核对发现PID6820/session1的其他项目XiangFlow.wsb实例，不是PaneBind资源，未读取其文件、关闭、复用或发输入。8ffa未再尝试启动，两个新场景均NOT_RUN，不以部署成功授功能PASS。无需改SSH、购买VM或再启用系统功能；当前最小现场条件是其他项目完成后由其所有者正常关闭占用guest。未开启定时重试，旧证据和已部署包保留。
 
+在现场占用时继续补齐不受阻的实际验证接线，而非只加报告：`RemainingNativeContractsOnly`已接真实GUI非法数字/释放关系拒绝及草稿保留、public智能停靠多候选/障碍fallback/源min拒绝及Undo、生产磁吸边与Ctrl成员反馈的非激活/透传/真实像素和清理。驱动源码`5e6d65f3802b1981ef8960df10d330042a347d5f`，D/R构建及各222项guest-path通过（symlink子项SKIP1314）；Release驱动`9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810`、Debug驱动`C23437155FB20DDE8449D50388B8132DBCC220998FB54214539337A82286853F`。[a9ee身份与部署](v1-evidence/a9ee-remaining-native-contracts-prepared.json)已经I盘新目录核验，未再尝试占用guest，运行仍NOT_RUN，M11-F02/M08-F03/M10-F02/F03不加分。它不替换已部署的382驱动两包，也不重建11ae产品或528a便携包。
+
+当前现场接续顺序为a575精确恢复→8ffa两应用原生前置→a9ee三项实际合同；先核对实际逐项结果再继续相应产品手势。其余普通完整Medium Shell、真实托盘、五类应用、双屏同DPI/混合DPI与真实会话变化分别留门；NF02回调预算未达也继续保留，不宣布所有剩余产品问题已解决或整版即将通过。未改系统功能、重启、CrossRec或其他项目；仅创建这三个I盘RunId目录，无自有guest/启动任务需要清理，部署与原始记录均保留。
+
 ## 最新增量：活动组设置入口与规则用户路径已闭合
 
 `2c8dfd707f414d5394913c5f52a8c997`／[必要原文证据](v1-evidence/2c8d-active-settings-metadata.json)已实际通过：真实双成员Ctrl Move仍按下且自有capture就绪时，一次普通`--settings`请求使P139明确以Paused撤权／退休，之后才有同产品P140 settings_open；并非先失焦后冒称规则撤权。P143真实释放capture、P146解绑／撤罩，唯一测试清理UP由实际LL callback记录，触发后零新增native。再经真实GUI精确类规则保存，下一代仅source；移除规则后双成员恢复。此中止不称NormalUp，也不伪称规则保存回调本身是原因。
