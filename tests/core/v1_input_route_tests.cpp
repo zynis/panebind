@@ -27,6 +27,79 @@ int main() {
     native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
     native_down.source.work={0,0,1920,1080};native_down.region=0;
     product::prepare_mappings(native_down,v1::default_settings());
+    // The actual consumed-DOWN adapter and shield source-state gate used by
+    // production. No window/API/input is mocked into a successful capture.
+    namespace max_shield=panebind::platform::windows::operations;
+    product::InputEvent max_down;max_down.kind=product::InputKind::Down;max_down.generation=61;
+    max_down.point={27,0};max_down.native_message_time=73;max_down.hook_observed_qpc=1013;
+    auto max_prepared=std::make_shared<product::Prepared>(native_down);
+    max_prepared->source.maximized=true;max_prepared->source.can_resize=true;max_prepared->source.visible={0,0,1920,1040};
+    max_prepared->source.positioning={-7,-7,1927,1047};max_down.prepared=max_prepared;
+    max_shield::GestureShieldConsumedDownRequest max_request;
+    max_request.gesture={61,max_prepared->source.hwnd,21,31,30000};
+    max_request.down_point=max_down.point;max_request.down_message_time=max_down.native_message_time;
+    max_request.down_qpc=max_down.hook_observed_qpc;max_request.source_was_maximized=true;
+    check(product::consumed_capture_request_matches_down(max_request,max_down)&&
+          max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::ConsumedDown,true,true),
+          "actual plain maximized caption consumed-DOWN fact reaches the authorized shield source-state path");
+    check(!max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::NativeMoveHandoff,true,false)&&
+          !max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::NativeMoveHandoff,true,true)&&
+          !max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::ConsumedDown,true,false),
+          "native/MVP entry and a default false consumed fact still reject a maximized source");
+    check(max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::NativeMoveHandoff,false,false)&&
+          max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::ConsumedDown,false,false)&&
+          max_shield::gesture_shield_source_state_allowed(max_shield::GestureShieldEntryMode::ConsumedDown,false,true),
+          "ordinary source remains admitted and actual later normal state preserves the historical maximized DOWN fact");
+    auto altered_request=max_request;altered_request.source_was_maximized=false;
+    check(!product::consumed_capture_request_matches_down(altered_request,max_down),
+          "adapter cannot drop the actual maximized source fact to borrow the ordinary contract");
+    auto altered_down=max_down;auto ordinary_prepared=std::make_shared<product::Prepared>(native_down);
+    altered_down.prepared=ordinary_prepared;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "a request cannot invent maximized source authority for an ordinary immutable Prepared");
+    altered_request.source_was_maximized=false;
+    check(product::consumed_capture_request_matches_down(altered_request,altered_down),
+          "unchanged ordinary consumed-DOWN request still matches its actual immutable source");
+    auto resize_prepared=std::make_shared<product::Prepared>(*max_prepared);resize_prepared->region=2;
+    altered_down=max_down;altered_down.prepared=resize_prepared;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "maximized Resize is not admitted by the plain-caption repair");
+    auto mapped_prepared=std::make_shared<product::Prepared>(*max_prepared);
+    mapped_prepared->mappings[0]=v1::Action::Center;altered_down.prepared=mapped_prepared;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "an explicit mapped action cannot borrow maximized gesture capture");
+    altered_down=max_down;altered_down.modifiers=4;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "Shift bypass is not converted to maximized consumed capture");
+    altered_down.modifiers=2;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "the plain-maximized repair does not expand Ctrl entry");
+    altered_down=max_down;altered_down.clicks=2;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "maximized double-click remains its distinct route");
+    altered_down=max_down;altered_down.kind=product::InputKind::NativeMovePending;
+    check(!product::consumed_capture_request_matches_down(max_request,altered_down),
+          "a real native pending entry cannot borrow the consumed-DOWN maximum-state exception");
+    bool wrong_identity_rejected=true;
+    altered_request=max_request;++altered_request.gesture.generation;wrong_identity_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    altered_request=max_request;altered_request.gesture.source=reinterpret_cast<HWND>(102);wrong_identity_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    altered_request=max_request;++altered_request.gesture.process_id;wrong_identity_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    altered_request=max_request;++altered_request.gesture.thread_id;wrong_identity_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    check(wrong_identity_rejected,"consumed max source exception stays bound to exact generation HWND PID TID");
+    bool wrong_down_rejected=true;
+    altered_request=max_request;++altered_request.down_point.x;wrong_down_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    altered_request=max_request;++altered_request.down_message_time;wrong_down_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    altered_request=max_request;++altered_request.down_qpc;wrong_down_rejected&=!product::consumed_capture_request_matches_down(altered_request,max_down);
+    check(wrong_down_rejected,"consumed max source exception stays bound to actual DOWN point message-time and QPC");
+    auto corner_prepared=std::make_shared<product::Prepared>(native_down);corner_prepared->region=8;corner_prepared->source.can_resize=true;
+    altered_down=max_down;altered_down.prepared=corner_prepared;altered_down.clicks=2;altered_down.modifiers=4;
+    altered_request=max_request;altered_request.source_was_maximized=false;
+    check(product::consumed_capture_request_matches_down(altered_request,altered_down),
+          "existing nonmaximized Shift corner double-click consumed route is not narrowed");
+    check(!max_shield::gesture_shield_consumed_down_active(max_request,61,true,true,true,false,100,200)&&
+          !max_shield::gesture_shield_consumed_down_active(max_request,61,true,true,false,true,100,200)&&
+          !product::operation_permission(61,0,0,true,false),
+          "valid maximum-state facts never undo actual UP revocation abort or create placement permission");
     auto diagnostic_prepared=native_down;diagnostic_prepared.point={19,23};diagnostic_prepared.stamp=29;
     diagnostic_prepared.config_generation=37;diagnostic_prepared.region=8;
     diagnostic_prepared.source.feature_mask=13;diagnostic_prepared.source.can_resize=true;

@@ -43,7 +43,20 @@ struct GestureShieldConsumedDownRequest {
     // use this; a separate callback must verify its ACTUAL live registration.
     DWORD external_stop_owner_pid{},external_stop_owner_tid{};
     int external_stop_hotkey_id{};
+    // Immutable actual DOWN state, not native START/END or write authority.
+    // Default false preserves every existing native/MVP caller's boundary.
+    bool source_was_maximized{};
 };
+
+[[nodiscard]] constexpr bool gesture_shield_source_state_allowed(
+    GestureShieldEntryMode mode, bool source_maximized,
+    bool consumed_maximized_source) noexcept {
+    // Only an adapter-authorized consumed-DOWN entry may start maximized.
+    // A later real SW_RESTORE may make this same source normal; the historical
+    // flag is not rewritten and never re-arms input or native writer rights.
+    return !source_maximized ||
+        (mode == GestureShieldEntryMode::ConsumedDown && consumed_maximized_source);
+}
 
 [[nodiscard]] constexpr bool gesture_shield_consumed_down_receipt_valid(
     const GestureShieldConsumedDownRequest& request) noexcept {

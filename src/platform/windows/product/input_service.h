@@ -280,6 +280,25 @@ struct InputEvent {
     std::shared_ptr<const Snapshot> handoff_snapshot;
     std::optional<InputAbortObservation> abort_observation;
 };
+// The resource adapter calls this exact immutable-DOWN matching predicate.
+// It does not query a window or grant live authority: CaptureBridge separately
+// checks current generation, DOWN serial, actual UP/revocation and deadline.
+inline bool consumed_capture_request_matches_down(
+    const operations::GestureShieldConsumedDownRequest& request,const InputEvent& down)noexcept{
+    if(down.kind!=InputKind::Down||!down.prepared||
+       !operations::gesture_shield_consumed_down_receipt_valid(request))return false;
+    const auto& prepared=*down.prepared;const auto& source=prepared.source;
+    if(request.gesture.generation!=down.generation||request.gesture.source!=source.hwnd||
+       request.gesture.process_id!=source.pid||request.gesture.thread_id!=source.tid||
+       request.down_point.x!=down.point.x||request.down_point.y!=down.point.y||
+       request.down_message_time!=down.native_message_time||request.down_qpc!=down.hook_observed_qpc||
+       request.source_was_maximized!=source.maximized||source.minimized||
+       route_down(prepared,down.button,down.clicks,down.modifiers).route!=DownRoute::Gesture)return false;
+    // This repair only opens the already-implemented plain maximized
+    // titlebar-restore path, not Ctrl, Resize, mapped or double-click entry.
+    return !source.maximized ||
+        (prepared.region==0&&down.button==1&&down.clicks==1&&down.modifiers==0);
+}
 // A real early native UP may arrive after START rejection already cleared the
 // GUI pending slot. Refresh the current hover after either retirement order,
 // never by reviving the released Prepared or touching a newer active gesture.

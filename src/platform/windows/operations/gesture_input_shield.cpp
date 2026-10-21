@@ -75,14 +75,17 @@ bool interactive_default_desktop() noexcept {
     return active;
 }
 
-bool exact_source(const GestureShieldRequest& request) noexcept {
+bool exact_source(const GestureShieldRequest& request,
+                  GestureShieldEntryMode mode = GestureShieldEntryMode::NativeMoveHandoff,
+                  bool consumed_maximized_source = false) noexcept {
     DWORD actual_pid{};
     if (!request.generation || !request.source || !request.process_id || !request.thread_id ||
         !IsWindow(request.source) || GetAncestor(request.source, GA_ROOT) != request.source ||
         GetWindowThreadProcessId(request.source, &actual_pid) != request.thread_id ||
         actual_pid != request.process_id || !IsWindowVisible(request.source) ||
-        IsIconic(request.source) || IsZoomed(request.source)) return false;
-    return true;
+        IsIconic(request.source)) return false;
+    return gesture_shield_source_state_allowed(mode,IsZoomed(request.source)!=FALSE,
+        consumed_maximized_source);
 }
 
 GestureShieldNativeFailure native_plain_move_failure(
@@ -398,8 +401,20 @@ struct GestureInputShield::Impl {
         emit(event);
     }
 
+    [[nodiscard]] bool entry_source(const GestureShieldRequest& request) noexcept {
+        const bool consumed = current_consumed_down &&
+            gesture_shield_consumed_down_receipt_valid(*current_consumed_down) &&
+            current_consumed_down->gesture.generation == request.generation &&
+            current_consumed_down->gesture.source == request.source &&
+            current_consumed_down->gesture.process_id == request.process_id &&
+            current_consumed_down->gesture.thread_id == request.thread_id;
+        return exact_source(request,consumed?GestureShieldEntryMode::ConsumedDown:
+            GestureShieldEntryMode::NativeMoveHandoff,
+            consumed && current_consumed_down->source_was_maximized);
+    }
+
     [[nodiscard]] bool active_identity() noexcept {
-        return current && exact_source(*current) && interactive_default_desktop() &&
+        return current && entry_source(*current) && interactive_default_desktop() &&
             GetForegroundWindow() == current->source;
     }
 
@@ -426,7 +441,7 @@ struct GestureInputShield::Impl {
         // A consumed DOWN never entered native Move. Require actual idle GUI
         // facts instead of manufacturing START/capture/END for the old route.
         if (!gesture_shield_consumed_down_receipt_valid(*current_consumed_down) ||
-            !exact_source(request)) return GestureShieldNativeFailure::SourceIdentity;
+            !entry_source(request)) return GestureShieldNativeFailure::SourceIdentity;
         if (!interactive_default_desktop()) return GestureShieldNativeFailure::InputDesktop;
         if (GetForegroundWindow() != request.source) return GestureShieldNativeFailure::Foreground;
         if (!entry_move_buttons_allowed(request)) return GestureShieldNativeFailure::PhysicalButtons;
@@ -461,7 +476,7 @@ struct GestureInputShield::Impl {
             facts.foreground_after_gui : gui_facts(current->thread_id);
         facts.owner_after = gui_facts(thread_id);
         facts.failure = GestureShieldCaptureFailure::None;
-        if (!exact_source(*current)) facts.failure = GestureShieldCaptureFailure::SourceIdentity;
+        if (!entry_source(*current)) facts.failure = GestureShieldCaptureFailure::SourceIdentity;
         else if (raw.observed_foreground != current->source)
             facts.failure = GestureShieldCaptureFailure::Foreground;
         else if (raw.foreground_process_id != current->process_id ||
@@ -984,7 +999,7 @@ struct GestureInputShield::Impl {
         GestureShieldCaptureFacts& facts) noexcept {
         if (capture_command_revoked(request))
             return GestureShieldCaptureFailure::Revoked;
-        if (!exact_source(request)) return GestureShieldCaptureFailure::SourceIdentity;
+        if (!entry_source(request)) return GestureShieldCaptureFailure::SourceIdentity;
         if (!interactive_default_desktop()) return GestureShieldCaptureFailure::InputDesktop;
         if (GetForegroundWindow() != request.source)
             return GestureShieldCaptureFailure::Foreground;
@@ -1012,7 +1027,7 @@ struct GestureInputShield::Impl {
         const GestureShieldRequest& request) noexcept {
         // These real queries run without command_mutex. Sample the atomic /
         // queued revocation last, after the identity/button/foreground reads.
-        const bool source_matches = exact_source(request);
+        const bool source_matches = entry_source(request);
         const bool foreground_matches = GetForegroundWindow() == request.source;
         const bool held = entry_move_buttons_allowed(request);
         const bool revoked = capture_command_revoked(request);
@@ -1087,7 +1102,7 @@ struct GestureInputShield::Impl {
             GetThreadId(association_source_thread) != request.thread_id ||
             GetProcessIdOfThread(association_source_thread) != request.process_id ||
             WaitForSingleObject(association_source_thread, 0) != WAIT_TIMEOUT ||
-            !exact_source(request)) {
+            !entry_source(request)) {
             if (association_source_thread) CloseHandle(association_source_thread);
             association_source_thread = nullptr;
             return GestureShieldCaptureFailure::SourceIdentity;
@@ -1255,7 +1270,7 @@ struct GestureInputShield::Impl {
                 gesture_shield_exact_capture(overlay, thread_id);
             if (facts.actual_after == overlay) capture_release_clean = false;
             if (facts.previous || !capture_acquired ||
-                facts.foreground_after != request.source || !exact_source(request)) {
+                facts.foreground_after != request.source || !entry_source(request)) {
                 facts.failure = GestureShieldCaptureFailure::Readback;
             } else if (!interactive_default_desktop()) {
                 facts.failure = GestureShieldCaptureFailure::InputDesktop;
@@ -1693,8 +1708,16 @@ bool GestureInputShield::request_capture_for_consumed_down(
     if (!self || !self->ready || self->stopping ||
         !gesture_shield_consumed_entry_available(request,
             static_cast<bool>(self->callbacks.consumed_down_authorized)) ||
-        !gesture_shield_timeout_valid(request.gesture.isolation_timeout_ms) ||
-        !exact_source(request.gesture)) return false;
+        !gesture_shield_timeout_valid(request.gesture.isolation_timeout_ms)) return false;
+    // A true maximum-state flag alone is not authority. Recheck the actual
+    // adapter before admitting that exceptional state; resource-thread setup
+    // and native capture still perform their original live authorization.
+    if(request.source_was_maximized){
+        try { if(!self->callbacks.consumed_down_authorized(request))return false; }
+        catch (...) { return false; }
+    }
+    if(!exact_source(request.gesture,GestureShieldEntryMode::ConsumedDown,
+        request.source_was_maximized))return false;
     std::lock_guard lock{self->command_mutex};
     if (self->phase != Impl::Phase::Idle || self->pending_start || self->current)
         return false;

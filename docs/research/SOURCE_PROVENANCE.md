@@ -1,5 +1,38 @@
 # Source Provenance Register
 
+## V1 maximized-entry repair and one Lower contrast — 2026-10-22
+
+Reused the existing mature/reference-only AltSnap GPL-3.0-or-later pin
+`5c86416ad21e4b72844a998a746bd3bb0bee5f5d` and FancyZones MIT pin
+`19c4d805321db86f3634e6968e14dbf25cbba14a` reviews and their recorded history.
+Actually re-read `ALTSNAP_REVIEW.md` and
+[AltSnap issue681](https://github.com/RamonUnch/AltSnap/issues/681): visible
+application geometry and unfiltered native window order are different facts.
+The pinned hooks.c GitHub HTML opened, but its Lower implementation was not
+available in the parsed view; no new claim of reading/adapting ActionLower.
+No upstream code copied, translated or adapted; no new attribution obligation.
+
+Official Microsoft references actually rechecked: [IsZoomed](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iszoomed),
+[SetCapture](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture),
+[ShowWindowAsync](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindowasync),
+[SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos),
+[GetWindow](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindow)
+and [Window Features](https://learn.microsoft.com/en-us/windows/win32/winmsg/window-features).
+IsZoomed is a state observation, not an identity test; ShowWindowAsync starts
+work rather than proving normal-state completion. The existing consumed-DOWN
+path must preserve its exact callback/UP/foreground/capture checks while making
+the already-designed plain maximized restoration reachable. Native-first and
+historical default requests continue to reject maximized entry.
+
+The `9197` actual consumed maximized DOWN was rejected before shield admission;
+the unchanged `11ae` failure remains under its original identity. The separate
+`4362` Lower API actually completed but raw-next was non-null. Unfiltered Z-order
+can contain hidden/system windows; neither that handle nor a later observation
+proves the earlier semantic outcome. One exact-owned passive WINDOWPOS and
+bounded read-only tail contrast is prepared; it is not a new z-order writer,
+permission grant or functional PASS. Applicable subsystems: V1 input adapter,
+shared shield admission, restore integration and window-command postverification.
+
 ## V1 native application initialization contrast — 2026-10-21
 
 Actual `fe0e2b7191134dc7a3dad634b8b0c983` ran with the PaneBind product

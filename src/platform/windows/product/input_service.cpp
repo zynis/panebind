@@ -86,9 +86,8 @@ struct InputService::CaptureBridge {
     }
     bool authorized(const operations::GestureShieldConsumedDownRequest& request)const {
         const auto p=pair.load();const auto a=authority->load();
-        return p&&!p->native_move&&p->down.prepared&&request.gesture.generation==p->down.generation&&
-            request.gesture.source==p->down.prepared->source.hwnd&&request.gesture.process_id==p->down.prepared->source.pid&&
-            request.gesture.thread_id==p->down.prepared->source.tid&&request.down_message_time==p->request.down_message_time&&
+        return p&&!p->native_move&&consumed_capture_request_matches_down(request,p->down)&&
+            request.source_was_maximized==p->request.source_was_maximized&&request.down_message_time==p->request.down_message_time&&
             request.down_qpc==p->request.down_qpc&&!p->up_observed&&!p->aborted&&!failed&&available->load()&&
             (a==p->down.generation||a==(p->down.generation|pending_capture_mask))&&
             p->down_serial==down_serial.load()&&GetTickCount64()<p->deadline;
@@ -234,10 +233,13 @@ bool InputService::begin_capture(const InputEvent& event){
         return p&&p->native_move&&p->down.generation==event.generation&&capture_bridge_->active(p)&&
             SetTimer(receiver_,gesture_deadline_timer,gesture_deadline_ms,nullptr);
     }
+    if(event.kind!=InputKind::Down||!consumed_down_||native_move_||!capture_pair_)return false;
     auto p=std::make_shared<CaptureBridge::Pair>();p->down=event;p->down_serial=capture_bridge_->down_serial.load();
     p->deadline=event.tick+gesture_deadline_ms;
     p->request.gesture={event.generation,event.prepared->source.hwnd,event.prepared->source.pid,event.prepared->source.tid,gesture_deadline_ms};
     p->request.down_point=event.point;p->request.down_message_time=event.native_message_time;p->request.down_qpc=event.hook_observed_qpc;
+    p->request.source_was_maximized=event.prepared->source.maximized;
+    if(!consumed_capture_request_matches_down(p->request,event))return false;
     p->request.external_stop_owner_pid=GetCurrentProcessId();p->request.external_stop_owner_tid=thread_id_;
     p->request.external_stop_hotkey_id=910;capture_bridge_->pair.store(p);
     return shield_->request_capture_for_consumed_down(p->request);
