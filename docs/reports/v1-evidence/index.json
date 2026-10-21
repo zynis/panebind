@@ -52,6 +52,21 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-ECDF-QUEUE-SUITE-PRECONDITION-FAILURE",
+      "run_id": "ecdf58274b9d437385262b5efc05f072",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "path": "docs/reports/v1-evidence/ecdf-queue-suite-precondition-review.json",
+      "sha256": "E6F2CB6B50912348A745DFE98CB5133F2968C915F028FFD6AF13653B889C2FA6",
+      "repository_excerpt_path": "docs/reports/v1-evidence/ecdf-queue-suite-precondition-excerpt.jsonl",
+      "repository_excerpt_sha256": "817223C8B0481B41377A65F58C0A351305B4B5A3813583CE2421809022CCD185",
+      "result": "FAIL_ACTUAL_ARM_PRECONDITION_REJECTED_BEFORE_INJECTED_QUEUE_FAILURE",
+      "scope": "Original04ff/935 actual arm precondition rejection before queue injection; guest_suite exists after files but old InputService searched only the pre-files prefix. bbc exact-suite order predicate repair built/offline PASS, native NOT_RUN. Queue failure, callback exit and following recovery not reached; original FAIL/source preserved."
+    },
+    {
       "id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
       "run_id": "3c21a4936a0543459b1aa46432d04525",
       "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
