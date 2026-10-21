@@ -1,6 +1,22 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：验收状态纠正与精确缺口验证（2026-10-21）
+## 当前接续：精确恢复、原生应用前置与反馈实证（2026-10-22）
+
+产品仍为`11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；[528a便携候选](../../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip)及其2432普通无参入口实证不变。当前可复核的是已验证范围内的普通GUI/设置、owned三窗核心操作和资源恢复，不是五类真实应用或普通宿主可试用的整版完成宣告。
+
+现场占用已解除后，三个既有包已按其原驱动身份实际执行；此前“其他项目Sandbox占用／NOT_RUN”仅是保留的历史前置记录，不能继续作为当前下一动作。原其他项目guest未被控制、清理或复用。
+
+- [a575精确恢复](v1-evidence/a575-recovery-metadata.json)，产品11ae／驱动38256cc，`RecoveryContractsOnly`实际通过：撤权旧mapped中键配对未UP时，新客户DOWN/UP各一次透传，无新native；END/capture后实际capture-loss、capture已无归属且不调用ReleaseCapture、真实detach/Gone，随后同产品PID3852的新Move和Resize均exact／NormalUp，最终Idle／正常退出及客户输入恢复。D09与D24按此实际范围关闭；失败代仍是SourceLost，不改成NormalUp。结合同候选dfdd／3f8及未改路径的4d32恢复证据，**独立M04-F05 PASS**，不附加整个M04／五应用模块门。
+- [8ffa真无产品前置](v1-evidence/8ffa-native-preflight-metadata.json)，驱动38256cc，**实际FAIL**，不是未运行：产品EXE从未启动。Terminal的直接cmd CreateProcess成功且实际身份Known Medium，但退出`0xC0000142`、nonce文件缺失；Terminal实际客户点为HTCAPTION，未发送客户点击／文本，截图另报`0xD0000022`，不能将两码合成已知API根因。Terminal精确根正常关闭通过，仅属关闭子项。**Edge也实际执行了**：任务离线页未就绪，WM_NULL记录error1460，客户操作因前置未满足而NOT_RUN，精确根正常关闭失败；没有Edge截图不等于没启动。未知前台归属查询error5，未读其内容，激活原因仍UNKNOWN。测试wrapper强制清理／销毁guest不算应用正常关闭PASS，不以这些原生失败归咎产品或认定唯一环境根因；没有新变量不再堆启动flag或无变化重跑。
+- [a9ee smart Dock及真实反馈](v1-evidence/a9ee-native-contracts-metadata.json)，产品11ae／驱动5e6d65f，**整批FAIL保留**（D150／D186设置阶段、D753及D757原文不改）。同批实际public smart Dock最近候选、重叠fallback、min限制native前拒绝、邻居visible／positioning不动及Undo通过；结合当前11ae／dfdd真实smart开关对比，**独立M08-F03／B15 PASS**。实际生产吸附反馈的已知坐标屏像素、非激活／透传及无约束、拉开、正常UP、Esc、nonexact拒绝后隐藏闭合**M10-F02 PASS**，不拿dockpreview代替。M10-F03只取得Ctrl成员外框、真实B Resize后C新几何及关闭反馈GUI后Ctrl可用的子集；Ctrl Resize共享边粗线与Shift帮助／视觉仍缺，保留BLOCKED。
+
+当前**生产接线60/60，独立DEV通过20/60，对标9/40＝22.5%**；新增恰为M04-F05、M08-F03、M10-F02及B15，未自动提升模块、整链、应用或环境。NF02回调预算FAIL、普通完整Medium桌面、五类真实应用、真实托盘、双屏／混合DPI和真实会话变化等门仍未齐，整版`PARTIAL`、真人UAT `PENDING`，不进入REA、不恢复定时检查。所有旧失败保留其原身份。
+
+仅工具的新驱动`47e8563862f3b3ae6949d7bbe863d78b3206f53b`已Debug／Release构建通过，各231项必要offline通过（symlink子项SKIP1314），包装身份124项通过；Debug驱动SHA-256`8F7B2F3F59192EFC2CD3794352AFC03FBCF6D27CDB77CC03C7E88778FB7CF59E`、Release驱动`ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43`。它修正测试工具client／normal-close／overall结果分离、设置定位及冻结修饰键验证，不重建或换绑产品。新`SettingsValidationOnly`／RunId`9e56f9f350554cbdaef96a0ff867a7bc`和`ModifierLockOnly`／RunId`0a766eeb122e45969e92e6c084f64cf0`已准备，**此检查点现场仍NOT_RUN**，构建不授功能PASS。
+
+本次运行只使用各自`I:\PaneBindMVP1Runs\<RunId>`目录和精确本轮guest／启动任务；各批原始日志、大包及历史证据保留，必要literal和哈希索引入库。未修改CrossRec、其他项目／用户文件或宿主设置，不向宿主发测试输入；guest销毁与产品资源自行清理始终分别记录。下面各节是封存历史，其中17/60、16/60或“待guest”不覆盖本节当前结果。
+
+## 历史接续：验收状态纠正与精确缺口验证（2026-10-21）
 
 接续起点`19690e8da8a7433100cd33352227d8552b52843a`，分支未变，origin标准fetch成功且接续时0/0。产品继续冻结`11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256仍为`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；仅测试驱动、脚本及证据更新，不把新工具SHA当产品源码。未知方案输入目录保留。
 

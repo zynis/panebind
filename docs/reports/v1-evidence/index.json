@@ -1,6 +1,67 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
-  "record_date": "2026-10-21",
+  "record_date": "2026-10-22",
+  "current_targeted_runtime": [
+    {
+      "id": "EV-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY",
+      "run_id": "a57559cc776f4fe98405c892a39554c0",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
+      "driver_binary_sha256": "38B99B084E79617255E6698B7DAC8217CE9A9092FE8E0974B7DC257EFFAA7459",
+      "path": "docs/reports/v1-evidence/a575-recovery-metadata.json",
+      "sha256": "512E3AC16E4E2E30092342563643D38E529C8371D5640EBB3CE926637197D00A",
+      "repository_excerpt_paths": [
+        "docs/reports/v1-evidence/a575-recovery-driver-selected.jsonl",
+        "docs/reports/v1-evidence/a575-recovery-product-selected.jsonl"
+      ],
+      "repository_excerpt_sha256": [
+        "320FD14426EBDBE244D42FB7ED02D7A6332F0AEA66AD7CB957ECDBCA9CA8EDEB",
+        "64D4A68987EFDD8193C7F799580074939F5F9A462FF68F189F84C33E99E24810"
+      ],
+      "result": "PASS_SCOPED_REVOKED_PAIR_AND_EXACT_NO_OWN_CAPTURE_LOSS_SAME_INSTANCE_RECOVERY",
+      "scope": "D09/D24 actual branch facts, independent M04-F05 with existing compatible recovery evidence; not complete module/application environment"
+    },
+    {
+      "id": "EV-8FFA-NATIVE-APPLICATION-PREFLIGHT-NO-PRODUCT",
+      "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "product_started": false,
+      "product_function_result": "NOT_RUN",
+      "driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
+      "driver_binary_sha256": "38B99B084E79617255E6698B7DAC8217CE9A9092FE8E0974B7DC257EFFAA7459",
+      "path": "docs/reports/v1-evidence/8ffa-native-preflight-metadata.json",
+      "sha256": "83ECA4F45948037E4F92F3559C384886B3C1073F65482EB9D5B8E3CAAA9B73A7",
+      "repository_excerpt_path": "docs/reports/v1-evidence/8ffa-native-preflight-fixture-selected.jsonl",
+      "repository_excerpt_sha256": "9BA8A60F6467BA38B3FE2C01AFF1AC62565752363DC5C4683FC4A77C5F3780B2",
+      "result": "FAIL_NATIVE_INITIALIZATION_AND_CLIENT_PREREQUISITES_WITH_PRODUCT_NEVER_STARTED",
+      "scope": "Terminal direct cmd actual exitC0000142/no receipt, root close confirmed; Edge actually executed offline-page initialization FAIL/client NOT_RUN/root close FAIL. Guest disposal not normal app cleanup"
+    },
+    {
+      "id": "EV-A9EE-SMART-DOCK-AND-ACTUAL-FEEDBACK",
+      "run_id": "a9ee4238aa1947a893c28d452a781437",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+      "driver_binary_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+      "path": "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+      "sha256": "CF9009A873622BCB415C2578C87CC502ACA6C88EB7AD64366472B1060B9F70DF",
+      "repository_excerpt_paths": [
+        "docs/reports/v1-evidence/a9ee-native-contracts-driver-selected.jsonl",
+        "docs/reports/v1-evidence/a9ee-native-contracts-product-selected.jsonl"
+      ],
+      "repository_excerpt_sha256": [
+        "68A92237B30D04635F28303A09899F1A3A665E9A0B859D0A8BF2EE0B1AE2E36E",
+        "659F3FA947B397060FDF05899900FDB53BAD66848389A115BBE7E87D6021E539"
+      ],
+      "result": "BATCH_FAIL_SETTINGS_PHASE_WITH_SMART_DOCK_AND_FEEDBACK_COMPONENT_PASS",
+      "scope": "M08-F03/B15 with existing same-product dfdd smart on/off and M10-F02 independently PASS; M10-F03 shared-resize/Shift visual incomplete; raw D150/D186/D753/D757 failures retained"
+    }
+  ],
   "existing_11ae_timing_review": {
     "id": "EV-11AE-EXISTING-QPC-TIMING",
     "review_only_no_new_runtime": true,
@@ -10,23 +71,34 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
-  "next_driver_validation": "5e6d65f D/R driver builds and guest-path regressions PASS; packaging123 checks PASS. Product11ae unchanged. RemainingNativeContractsOnly/a9ee deployed, NOT_RUN. Earlier prepared a575 recovery and8ffa focused Terminal/Edge retain actual38256cc binaries; a575 launch guard refused another project's existing Sandbox. Historical fd50/2c8,05f/0a66, original11ae/dfdd FAIL and46c/8e0 tool FAIL retain original identities. No whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+  "next_driver_validation": "47e test-only driver Debug/Release builds and231offline cases each PASS (symlink SKIP1314), packaging124checks PASS. Product11ae/portable528a unchanged. SettingsValidationOnly9e56 andModifierLockOnly0a76 prepared, native results NOT_RUN at this checkpoint. Actual382/a575 recovery PASS,382/8ffa native prerequisites FAIL with product never started, and5e6/a9ee overall FAIL with independently passing smart-dock/feedback components keep their own identities. Historical other-project Sandbox refusal remains preparation history, not current runtime state. No whole-version PASS or old-binary rebinding.",
+  "next_driver_binary_identity": {
+    "source_sha": "47e8563862f3b3ae6949d7bbe863d78b3206f53b",
+    "debug_sha256": "8F7B2F3F59192EFC2CD3794352AFC03FBCF6D27CDB77CC03C7E88778FB7CF59E",
+    "release_sha256": "ED594BA4F9FA6283889BA2189BC6C762BFDEFF4B605DE4DC430B1634328FCD43",
+    "prepared_run_ids": ["9e56f9f350554cbdaef96a0ff867a7bc", "0a766eeb122e45969e92e6c084f64cf0"],
+    "native_runtime": "NOT_RUN_AT_CHECKPOINT_NOT_BUILD_PASS"
+  },
   "remaining_native_contracts_prepared": {
     "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",
     "metadata": "docs/reports/v1-evidence/a9ee-remaining-native-contracts-prepared.json",
     "source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
-    "runtime": "NOT_RUN",
-    "scope": "Real settings numeric rejection, smart dock fallback/min, actual feedback; code/build/deployment only until dedicated guest is available"
+    "historical_runtime_at_preparation": "NOT_RUN",
+    "runtime": "ACTUAL_A9EE_BATCH_FAIL_SMART_DOCK_AND_FEEDBACK_COMPONENT_PASS",
+    "current_metadata": "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+    "scope": "Actual settings phase FAIL retained; independently closed M08-F03/B15 andM10-F02. M10-F03 shared Resize/Shift visual still incomplete. Not full-version PASS."
   },
   "pending_guest_validation": {
     "id": "EV-A575-8FFA-DEPLOYED-GUEST-LAUNCH-BLOCKED",
     "metadata": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json",
-    "runtime": "NOT_RUN",
-    "blocking_condition": "Other-project guest must finish and be normally closed by its owner. No unknown guest was touched; no periodic checks."
+    "historical_runtime_at_preparation": "NOT_RUN",
+    "runtime": "HISTORICAL_LAUNCH_PROTECTION_RETAINED_SUBSEQUENT_A575_AND_8FFA_ACTUAL_RUNS_RECORDED",
+    "historical_blocking_condition": "Other-project guest was not touched or periodically retried. User later reported Sandbox available; a575/8ffa subsequently ran under separate exact owned guest lifecycles."
   },
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
   "redaction": {
+    "new_literal_excerpts": "a575/a9ee and8ffa selected rows preserve literal original bytes; native sequence retained, metadata separately identified. 8ffa titles/paths are only known task-created offline blank-page/fixture identities, not user document content; unknown-window title/content not read. Original raw large files remain local.",
     "paths": "guest绝对部署路径与任何检测到的绝对用户路径已替换",
     "sid_account_titles": "身份字符串及标题不入库；保留相关已观察布尔事实",
     "structured_embedded_JSON": "原日志内JSON字符串解析为对象后脱敏",

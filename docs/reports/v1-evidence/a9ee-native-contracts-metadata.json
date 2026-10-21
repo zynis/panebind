@@ -1,0 +1,322 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-A9EE-SMART-DOCK-AND-ACTUAL-FEEDBACK",
+  "kind": "metadata_projection_not_native_event",
+  "run_id": "a9ee4238aa1947a893c28d452a781437",
+  "configuration": "Release",
+  "suite": "RemainingNativeContractsOnly",
+  "overall_run_result": "FAIL_PRESERVED",
+  "components": {
+    "settings_invalid_values": "D150 actual GUI click FAIL/D186 phase FAIL; diagnosis/fix/revalidation not claimed here",
+    "smart_dock_boundaries": "D389 component PASS/D397 phase PASS",
+    "actual_feedback": "D733 PASS_SCOPED_OBSERVATIONS/D743 phase PASS",
+    "summary": "D753 FAIL; driver_shutdownD757 FAIL because global earlier failure retained; windows destroyed/product closed true"
+  },
+  "identity": {
+    "product_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_source": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+    "packaging_head": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_release_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+    "zip_sha256": "F989673F263660C5CC84746DBBC0204714E4367FCDA1E4815AA30232D277C4FE",
+    "manifest_sha256": "5EC24EAC7366CB2028A7031D455AB0B1DBE5A45345CF323B80F89C524BBCB187",
+    "wsb_sha256": "62A8822343F58DAC613CB0E1B22F658DBE3A6C5F6A375CDA51073D47DCE0D65D",
+    "product_pid": 3936,
+    "product_birth_filetime_decimal": "134370789291396031",
+    "actual_guest_integrity_rid": 8192,
+    "actual_guest_session": 1,
+    "elevated": false,
+    "admin_sid_enabled": false,
+    "environment": "Sandbox OS26100.9711; DPI144; one actual monitor bounds[0,0,3050,1668]/work[0,0,3050,1596]. This is not a complete ordinary Medium Shell desktop."
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-release-fixture.jsonl",
+      "sha256": "16EF652DEAB995611C61B2F15399203FBF624EC981A01AB8BCF60364FF962020"
+    },
+    {
+      "path": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-product-Release/panebind.log.jsonl",
+      "sha256": "5D3EA7218918D41DCB36F1146CBCEE8B2C103AA9D2090E3D37E1F27EFBD47D6A"
+    },
+    {
+      "path": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-Release-launch.json",
+      "sha256": "47A44011ECA56BC3A062FB56E96E2FDE6F5764F571B35650A38BBD57D4FFEBCD"
+    },
+    {
+      "path": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/collection-receipt.json",
+      "sha256": "7D23FC3BCF2CF09F960FAB6218BAFAAB0E0616A121FE79FBFFC9547B1471752A"
+    },
+    {
+      "path": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/cleanup-receipt.json",
+      "evidence": "own guest13460 and own task disposed 2026-10-21T17:58:40.8099763Z; evidence_unchanged=true; deployment_retained=true; other_files_or_resources_changed=false; not product cleanup proof"
+    }
+  ],
+  "source_validation": {
+    "driver": {
+      "legal_jsonl": true,
+      "lines": 757,
+      "continuous": true,
+      "sequence_range": [
+        1,
+        757
+      ]
+    },
+    "product": {
+      "legal_jsonl": true,
+      "lines": 425,
+      "continuous": true,
+      "sequence_range": [
+        1,
+        425
+      ],
+      "single_process_id": 3936
+    },
+    "output_unchanged": true,
+    "collected_product_hash_matches_frozen_candidate": true
+  },
+  "literals": [
+    {
+      "file": "a9ee-native-contracts-driver-selected.jsonl",
+      "sha256": "68A92237B30D04635F28303A09899F1A3A665E9A0B859D0A8BF2EE0B1AE2E36E",
+      "raw_source": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-release-fixture.jsonl",
+      "source_lines": [
+        19,
+        24,
+        150,
+        186,
+        266,
+        267,
+        276,
+        287,
+        288,
+        297,
+        304,
+        307,
+        308,
+        327,
+        384,
+        388,
+        389,
+        397,
+        479,
+        482,
+        484,
+        487,
+        488,
+        490,
+        493,
+        498,
+        508,
+        511,
+        512,
+        513,
+        514,
+        515,
+        516,
+        528,
+        531,
+        532,
+        534,
+        535,
+        536,
+        551,
+        552,
+        554,
+        558,
+        559,
+        565,
+        573,
+        590,
+        591,
+        593,
+        602,
+        733,
+        743,
+        752,
+        753,
+        757
+      ]
+    },
+    {
+      "file": "a9ee-native-contracts-product-selected.jsonl",
+      "sha256": "659F3FA947B397060FDF05899900FDB53BAD66848389A115BBE7E87D6021E539",
+      "raw_source": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-product-Release/panebind.log.jsonl",
+      "source_lines": [
+        85,
+        90,
+        95,
+        100,
+        105,
+        110,
+        115,
+        175,
+        180,
+        181,
+        182,
+        184,
+        186,
+        192,
+        194,
+        209,
+        211,
+        214,
+        215,
+        221,
+        239,
+        241,
+        245,
+        246,
+        252,
+        270,
+        273,
+        274,
+        275,
+        281,
+        287,
+        289,
+        304,
+        307,
+        312,
+        319,
+        321,
+        336,
+        340,
+        341,
+        342,
+        346,
+        352,
+        354,
+        377,
+        380,
+        381,
+        382,
+        388,
+        394,
+        396,
+        425
+      ]
+    }
+  ],
+  "literal_policy": "Complete original selected lines, newline normalization only; no raw payload reserialization or 64-bit identity conversion. Intentional gaps. No user paths/titles/SID included. Two supporting prior raw lines below are stored as exact literal text strings, not parsed event projections.",
+  "smart_dock": {
+    "independent_expected_geometry": {
+      "work": [
+        0,
+        0,
+        3050,
+        1596
+      ],
+      "initial_source": [
+        120,
+        140,
+        520,
+        440
+      ],
+      "near_anchored_neighbor": [
+        0,
+        0,
+        1220,
+        1596
+      ],
+      "far_anchored_neighbor": [
+        0,
+        0,
+        1016,
+        1596
+      ],
+      "smart_remaining": [
+        1220,
+        0,
+        3050,
+        1596
+      ],
+      "ordinary_half": [
+        1525,
+        0,
+        3050,
+        1596
+      ],
+      "overlap_obstacle": [
+        2730,
+        100,
+        3030,
+        400
+      ]
+    },
+    "actual_nearest": "D266/P85 exact real DockRight to[1220,0,3050,1596]; D267 verifies both neighbors' visible AND positioning unchanged. D275/P90 real Undo to initial; D276 neighbors unchanged.",
+    "actual_ambiguity_fallback": "D287/P95 actual ordinary[1525,0,3050,1596] when an obstacle intersects smart remainder; D288/297 verify both neighbors unchanged; P100 real Undo. No empty-space search or obstacle relocation.",
+    "actual_min_rejection": "D304/P105 target[2970,0,3050,1596], width80 vs declared source min200. reason=batch_preflight_target_violates_size_constraints, native_callsite_claimed=false/native_attempted=false. D307 one rejected placement record, zero new native claims; source visible AND positioning unchanged. D308 neighbor unchanged. This is not a native API failure.",
+    "recovery": "D318/P110 fresh legal DockRight exact; D326/P115 Undo exact; D327 neighbor unchanged; D384 original GUI config restored; D388 exact test windows closed; same PID/birth kept.",
+    "current_candidate_on_off_support": {
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "same_product_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "same_product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "raw_source": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-release-fixture.jsonl",
+      "raw_source_sha256": "4877F35BE5DAC0464D781C4ECC83DE7CDCC124665B749873CB08015C934C0010",
+      "supporting_source_lines": [
+        1802,
+        1849
+      ],
+      "supporting_source_line_literal_text": [
+        "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"11ae76a3976ffba62facc127fcb411ebabfeaf86\",\"sequence\":1802,\"tick\":112812,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"chain_real_command_DockRight\",\"result\":\"PASS\",\"expected\":[1220,0,3050,1596],\"receipt\":\"{\\\"schema\\\":\\\"panebind-v1/1\\\",\\\"source_sha\\\":\\\"11ae76a3976ffba62facc127fcb411ebabfeaf86\\\",\\\"sequence\\\":330,\\\"process_id\\\":5264,\\\"tick\\\":112781,\\\"type\\\":\\\"placement\\\",\\\"generation\\\":0,\\\"operation\\\":13,\\\"intent_reason\\\":\\\"command\\\",\\\"key\\\":7,\\\"native_callsite_claimed\\\":true,\\\"native_attempted\\\":true,\\\"call_id\\\":19,\\\"native_succeeded\\\":true,\\\"error\\\":0,\\\"native_completion_known\\\":true,\\\"target\\\":[1220,0,3050,1596],\\\"actual\\\":[1220,0,3050,1596],\\\"identity_valid\\\":true,\\\"exact\\\":true,\\\"declared_track_limits_observed\\\":true,\\\"application_grid_known\\\":false,\\\"reason\\\":\\\"exact_native_completion\\\",\\\"native_before_qpc\\\":1128038832,\\\"native_after_qpc\\\":1128125056,\\\"authority_after\\\":false,\\\"post_observed_qpc\\\":1128137250,\\\"post_context_checked\\\":false,\\\"post_context_valid\\\":false,\\\"post_context_reason\\\":\\\"\\\",\\\"explicit_destination_display_bound\\\":false,\\\"destination_monitor\\\":0,\\\"destination_window_dpi\\\":0,\\\"hook_observed_qpc\\\":0,\\\"normal_up_completion\\\":false}\"}",
+        "{\"schema\":\"panebind-v1-owned-driver/1\",\"source_sha\":\"11ae76a3976ffba62facc127fcb411ebabfeaf86\",\"sequence\":1849,\"tick\":113671,\"automated_guest_driver\":true,\"type\":\"case\",\"case\":\"chain_real_command_DockRight\",\"result\":\"PASS\",\"expected\":[1525,0,3050,1596],\"receipt\":\"{\\\"schema\\\":\\\"panebind-v1/1\\\",\\\"source_sha\\\":\\\"11ae76a3976ffba62facc127fcb411ebabfeaf86\\\",\\\"sequence\\\":343,\\\"process_id\\\":5264,\\\"tick\\\":113656,\\\"type\\\":\\\"placement\\\",\\\"generation\\\":0,\\\"operation\\\":15,\\\"intent_reason\\\":\\\"command\\\",\\\"key\\\":7,\\\"native_callsite_claimed\\\":true,\\\"native_attempted\\\":true,\\\"call_id\\\":21,\\\"native_succeeded\\\":true,\\\"error\\\":0,\\\"native_completion_known\\\":true,\\\"target\\\":[1525,0,3050,1596],\\\"actual\\\":[1525,0,3050,1596],\\\"identity_valid\\\":true,\\\"exact\\\":true,\\\"declared_track_limits_observed\\\":true,\\\"application_grid_known\\\":false,\\\"reason\\\":\\\"exact_native_completion\\\",\\\"native_before_qpc\\\":1136763309,\\\"native_after_qpc\\\":1136840702,\\\"authority_after\\\":false,\\\"post_observed_qpc\\\":1136852623,\\\"post_context_checked\\\":false,\\\"post_context_valid\\\":false,\\\"post_context_reason\\\":\\\"\\\",\\\"explicit_destination_display_bound\\\":false,\\\"destination_monitor\\\":0,\\\"destination_window_dpi\\\":0,\\\"hook_observed_qpc\\\":0,\\\"normal_up_completion\\\":false}\"}"
+      ],
+      "assessment": "Actual public GUI smart=true -> D1802/P330 native exact[1220,0,3050,1596]; GUI smart=false -> D1849/P343 exact[1525,0,3050,1596]. Existing actual on/off scope reused, not rerun or rebound to a new binary. dfdd Full remains FAIL for unrelated actual boundaries."
+    },
+    "reusable_core_basis": "tests/core/v1_layout_tests.cpp130-133 cover G10 expected700 remainder/ordinary960/no-overlap; unchanged smart_dock algorithm at src/core/v1/layout.h386+ checks anchored full orthogonal cover, nearest distance then stable key, ordinary fallback on overlap. a9ee actual examples supplement rather than replace existing L1."
+  },
+  "feedback": {
+    "configuration": "GUI feedback=true, preview=false, docking=false, stretch=false; actual feedback window is not a docking preview. Both normal Move/Resize and Ctrl cases run in the same PID3936.",
+    "actual_window": "D487/511/531/551/558/590: exact current product overlay197208, actual bounds match independent source/group geometry; exstyle134742184 includes WS_EX_NOACTIVATE/TRANSPARENT/LAYERED, flags3 LWA_COLORKEY|LWA_ALPHA, alpha255/key197121. Actual pointer hits exact current shield, not feedback overlay. WM_NCHITTEST=-1/HTTRANSPARENT. Driver also samples source foreground before/after and rejects any mismatch; no claim of proving every intervening focus event.",
+    "pixels": "D488/512/532: screen GetPixel edge14120960 equals requested preview_color at actual adopted edge; blank client16645629 vs COLOR_WINDOW16777215, difference2 in each RGB channel, not a filled success box. D552/559/591 actual member border7171437 equals COLOR_GRAYTEXT. Each sample uses exactly two fixed points, releases screen DC; not a whole-screen visual clarity or human review claim.",
+    "selected_edge": "g1 P180 free actual[270,200,670,500] and D482 feedback hidden; P181 snap[500,200,900,500], D487/488 actual edge observation; P182 detach[475,200,875,500], D493 hidden. P184 real RawUP/P186 accepted legacy/P192 release+detach+Gone/P194 NormalUp; D498 hidden after UP.",
+    "Escape": "g2 P211 exact snapped geometry, D511/512 actual edge; real Esc -> P214 exact escape_restore[240,200,640,500], P215 end1/Escape, D514 actual source restored, P221 release/detach/Gone, D516 feedback hidden. Subsequent TEST cleanup UP is abort cleanup, not NormalUp.",
+    "writer_rejection": "g3 P241 exact Resize[240,200,900,500] and D531/532 actual edge first; P245 native API succeeds but actual[240,200,953,497] != requested[240,200,965,500] under test-owned grid; reason=native_geometry_not_exact_constraints_unattributed, not API false. P246 SourceLost; P252 release/detach/Gone; D535/536 actual resource exit/feedback hidden. No success-hint persistence inferred from native API bool.",
+    "Ctrl_and_refresh": "g4 Ctrl A/P270 members3; D551/552 initial bounds[240,162,1040,600]/member border, exact P273-275 move group30,20 -> D558/559 bounds[270,182,1070,620]. P281 acceptedlegacy/P287 Gone/P289 NormalUp and D565 hidden. g5 actual B Resize P307[670,220,1110,420], P312legacy/P319Gone/P321NormalUp. g6 Ctrl C/P336 fresh members3 with bounds[270,182,1110,620], D590/591 border sample; exact P340-342 movement18,10; P346legacy/P352Gone/P354NormalUp; D602 hidden.",
+    "GUI_disable": "D733 scope summary plus actual GUI false and g7 Ctrl B P380-382 exact group placement; feedback-hidden assertion while motion active; P388legacy/P394Gone/P396NormalUp. No need to replay unrelated Shift geometry evidence.",
+    "genuinely_uncovered": "No actual Shift bypass help/feedback visual review; no Ctrl Resize shared-edge coarse-line pixel observation. Ctrl member borders/union bounds are not evidence of those missing displays."
+  },
+  "contract_assessment": {
+    "M08-F03": {
+      "recommended_dev_status": "PASS",
+      "basis": "Current unchanged11ae actual on/off(dfdd), nearest multi-candidate/overlap fallback/min-width preflight rejection/no neighbor movement/Undo and recovery(a9ee), existing unchanged G10 pure-core behavior. Do not append whole-module five-app matrix as a new independent-feature condition.",
+      "still_separate": "M08 module/application matrix/ordinary complete Medium/display/integration gates and Human UAT unchanged."
+    },
+    "B15": {
+      "recommended_dev_status": "PASS",
+      "points": 2.5,
+      "basis": "Bound to independently completed M08-F03 for this frozen Release candidate; not Full or V1 PASS."
+    },
+    "M10-F02": {
+      "recommended_dev_status": "PASS",
+      "basis": "Actual adopted-edge pixels/window/nonactivation/hit transparency, free/detached no hint, NormalUp hidden, Esc restore/hidden, real nonexact writer result hidden. Relevant independent feature contract is covered; no fake inference from receipt alone.",
+      "still_separate": "Broader module UI clarity/accessibility/DPI/application matrix and Human UAT not awarded."
+    },
+    "M10-F03": {
+      "recommended_dev_status": "BLOCKED",
+      "status_basis": "ACTUAL_CTRL_MEMBER_FEEDBACK_SUBSET_WITH_CONCRETE_REMAINING_VISUAL_CONTRACT",
+      "completed": "Actual Ctrl A/C group members and moved bounds; real B Resize changes next-C hint extent; ordinary NormalUp hides; GUI false suppresses feedback while Ctrl operation still works.",
+      "remaining": [
+        "Actual visible Shift bypass explanation/feedback not reviewed in this run.",
+        "Actual Ctrl Resize shared-edge emphasis not sampled; member outer-border pixels cannot replace shared-edge evidence."
+      ],
+      "not_required_as_new_feature_gate": "No new five-app module matrix or unrelated stability repetition added."
+    }
+  },
+  "cleanup": {
+    "actual_product": "P425 own_hooks_stopped/own_overlay_destroyed/native_worker_exited/visual_restore_confirmed/own_input_resources_stopped/own_capture_released/own_input_association_detached=true, issued_native_completion_unknown=false.",
+    "actual_client": "D752 exact owned post-product client click counts[0,0]->[1,1], not merely SendInput or process exit.",
+    "wrapper": "fixture_exit1/descendants0/forced_test_cleanupfalse. Failure is retained despite safe cleanup; guest destruction not counted as product cleanup.",
+    "guest": "Own task/guest13460 disposed; raw output unchanged and deployment retained per root's cleanup receipt."
+  },
+  "limitations": {
+    "Full_suite": "NOT_RUN",
+    "five_real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "tray": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "whole_version_PASS": false,
+    "clocks": "JSONL GUI drain order is not a common native total order; no additional timing claims made."
+  }
+}
