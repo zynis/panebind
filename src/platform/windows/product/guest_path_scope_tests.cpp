@@ -1,6 +1,7 @@
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/guest_capture_scope.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
+#include "platform/windows/product/v1_guest_native_result.h"
 #include "platform/windows/product/v1_guest_actor_capture.h"
 #include "platform/windows/product/v1_guest_product_log.h"
 #include "platform/windows/product/v1_guest_physical_log.h"
@@ -49,6 +50,40 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    const guest::NativeClientCompletionFacts native_complete{true,true,true,true,true,true,true};
+    const auto native_result=guest::native_client_completion(native_complete);
+    if(!expect(native_result.client==guest::NativeClientVerdict::Pass&&
+            native_result.normal_close==guest::NativeClientVerdict::Pass&&native_result.overall==guest::NativeClientVerdict::Pass,true,
+            "native overall PASS requires real client and exact normal-close completion"))return 1;
+    auto native_incomplete=native_complete;native_incomplete.normal_close_confirmed=false;
+    const auto native_close_failed=guest::native_client_completion(native_incomplete);
+    if(!expect(native_close_failed.client==guest::NativeClientVerdict::Pass&&
+            native_close_failed.normal_close==guest::NativeClientVerdict::Fail&&native_close_failed.overall==guest::NativeClientVerdict::Fail,true,
+            "client success cannot hide unconfirmed native root close"))return 1;
+    native_incomplete=native_complete;native_incomplete.source_idle=false;
+    if(!expect(guest::native_client_completion(native_incomplete).overall==guest::NativeClientVerdict::Fail,true,
+            "native source GUI idle UNKNOWN cannot pass overall"))return 1;
+    native_incomplete=native_complete;native_incomplete.cleanup_error_free=false;
+    if(!expect(guest::native_client_completion(native_incomplete).overall==guest::NativeClientVerdict::Fail,true,
+            "native cleanup failure cannot pass overall"))return 1;
+    native_incomplete=native_complete;native_incomplete.input_clear=false;
+    if(!expect(guest::native_client_completion(native_incomplete).overall==guest::NativeClientVerdict::Fail,true,
+            "native pending input cannot pass overall"))return 1;
+    native_incomplete=native_complete;native_incomplete.client_passed=false;
+    if(!expect(guest::native_client_completion(native_incomplete).overall==guest::NativeClientVerdict::Fail,true,
+            "normal close alone cannot turn failed client operation into PASS"))return 1;
+    native_incomplete=native_complete;native_incomplete.client_attempted=false;native_incomplete.client_passed=false;
+    const auto native_not_started=guest::native_client_completion(native_incomplete);
+    if(!expect(native_not_started.client==guest::NativeClientVerdict::NotRun&&native_not_started.overall==guest::NativeClientVerdict::Fail,true,
+            "initialization gate refusal keeps client NOT_RUN and cannot award overall PASS"))return 1;
+    native_incomplete=native_complete;native_incomplete.root_bound=false;native_incomplete.client_passed=false;
+    const auto native_unbound=guest::native_client_completion(native_incomplete);
+    if(!expect(native_unbound.client==guest::NativeClientVerdict::Blocked&&
+            native_unbound.normal_close==guest::NativeClientVerdict::NotRun&&native_unbound.overall==guest::NativeClientVerdict::Blocked,true,
+            "unknown native binding is BLOCKED and close NOT_RUN, not fabricated startup or close failure"))return 1;
+    native_incomplete.client_passed=true;
+    if(!expect(guest::native_client_completion(native_incomplete).overall!=guest::NativeClientVerdict::Pass,true,
+            "a success flag without exact root binding cannot pass native completion"))return 1;
     namespace deadline=panebind::platform::windows::product::guest_test;
     constexpr std::uint64_t qpc_frequency=10000000,target_qpc=900*qpc_frequency;
     const auto reached=deadline::deadline_after_signal(target_qpc,target_qpc,qpc_frequency,false);

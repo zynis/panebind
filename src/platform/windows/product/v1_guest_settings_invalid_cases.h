@@ -25,7 +25,7 @@ void settings_invalid_number_input(State& s,const SettingsGui& gui,HWND edit,std
 [[maybe_unused]] void owned_settings_invalid_values_case(State& s){
     settings_guest_scope(s);const auto original=chain_settings(s);
     const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
-    if(s.suite!="RemainingNativeContractsOnly"||!original.enabled||!original.rules.empty()||
+    if((s.suite!="RemainingNativeContractsOnly"&&s.suite!="SettingsValidationOnly")||!original.enabled||!original.rules.empty()||
        s.left||s.control||binary.empty()||binary!=hash(s.input_product)||s.explorer[0]||s.applications[0])
         throw std::runtime_error("settings_invalid_values_exact_idle_owned_guest_required");
     std::array<Rect,3> original_rects{};

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-f]{32}$')][string]$RunId,
       [ValidateSet('DebugAndRelease','Debug','Release')][string]$Configurations='DebugAndRelease',
-      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly')][string]$Suite='Full',
+      [ValidateSet('Full','IndependentEntry','SettingsDiagnostic','CoreAndApplications','ApplicationsOnly','EntryAndSettings','OwnedComponentsOnly','InterruptionOnly','FiniteSessionOnly','GroupBoundsOnly','NativeClientsOnly','StretchModesOnly','PauseRoutingOnly','OwnedRulesOnly','StretchInputOnly','StretchBoundaryOnly','ExitRecoveryOnly','TrayReadinessOnly','GeometryHistoryOnly','VisualOwnershipOnly','ResizeMagnetOnly','FixedAndTerminalOnly','MappingRemainderOnly','HotkeyRemainderOnly','MotionGuardOnly','CornerInputOnly','PortableEntryOnly','RemainingMoveContractsOnly','RecoveryContractsOnly','RemainingNativeContractsOnly','ModifierLockOnly','SettingsValidationOnly')][string]$Suite='Full',
       [ValidateRange(30,1800)][int]$StageTimeoutSeconds=1800)
 $ErrorActionPreference='Stop'
 $inputDir='C:\PaneBindV1\Input'

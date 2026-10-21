@@ -55,7 +55,7 @@ void guest_native_shell_control(State& s,const ApplicationTarget& target){
     const bool identity=actual_medium&&sid_known&&same_sid&&session_known&&own_session&&own_session==child_session&&born;
     const bool passed=launched&&identity&&exited&&exit_known&&exit==0&&exact_receipt;
     s.log.emit("native_shell_direct_control","\"application\":\"Terminal\",\"result\":"+quote(passed?"PASS":"FAIL")+
-        ",\"actual_executable\":"+quote(utf8(image.wstring()))+",\"actual_working_directory\":"+quote(utf8(target.directory.wstring()))+
+        ",\"actual_executable\":"+quote(utf8(image.wstring()))+",\"explicit_process_launch_working_directory\":"+quote(utf8(target.directory.wstring()))+
         ",\"command\":"+quote(utf8(command))+",\"CreateProcessW_succeeded\":"+(launched?"true":"false")+
         ",\"CreateProcessW_error\":"+std::to_string(launch_error)+",\"pid\":"+std::to_string(launched?info.dwProcessId:0)+
         ",\"birth\":"+std::to_string(born)+",\"integrity_rid\":"+(rid<0?"null":std::to_string(rid))+
@@ -66,7 +66,8 @@ void guest_native_shell_control(State& s,const ApplicationTarget& target){
         ",\"process_exit_observed\":"+(exited?"true":"false")+",\"exit_code\":"+(exit_known?std::to_string(exit):"null")+
         ",\"exact_receipt\":"+(exact_receipt?"true":"false")+",\"receipt_file\":"+quote(utf8(name))+
         ",\"receipt_sha256\":"+quote(hash(receipt))+",\"wait_bound_ms\":5000,\"creation_flags\":\"CREATE_NO_WINDOW\""+
-        ",\"same_current_token_and_Terminal_working_directory\":true,\"environment_or_token_modified\":false"+
+        ",\"same_current_token_as_driver\":true,\"working_directory_scope\":\"explicit_Terminal_process_launch_directory_only\""+
+        ",\"Terminal_internal_shell_working_directory_verified\":false,\"environment_or_token_modified\":false"+
         ",\"console_mode_is_not_pseudoconsole\":true,\"product_started\":false,\"client_input_sent\":false"+
         ",\"Terminal_client_PASS_inferred\":false,\"unique_failure_cause_inferred\":false");
     if(launched&&!exited)throw std::runtime_error("native_shell_control_child_exit_unconfirmed_no_dependent_input");

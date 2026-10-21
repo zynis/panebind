@@ -185,6 +185,11 @@ function Assert-V1FocusedNativeReadinessWiring([string]$Source,[string]$Prefligh
        -not $shell.Contains('!product::guest::same_exact_directory(target.directory,expected)') -or
        -not $shell.Contains('!native_clients_product_absent(s,"Terminal.direct_shell.before")') -or
        -not $shell.Contains('launched&&identity&&exited&&exit_known&&exit==0&&exact_receipt') -or
+       -not $flow.Contains('native_client_completion({bound,client_attempted,passed,source_idle,closed,cleanup_error.empty(),input_clear})') -or
+       -not $flow.Contains('quote(product::guest::native_client_verdict_name(completion.overall))') -or
+       -not $flow.Contains('quote(product::guest::native_client_verdict_name(completion.client))') -or
+       -not $flow.Contains('quote(product::guest::native_client_verdict_name(completion.normal_close))') -or
+       -not $shell.Contains('"Terminal_internal_shell_working_directory_verified\":false') -or
        ($ready+$shell) -match '\b(?:launch|SetForegroundWindow|SetFocus|SendInput|button|key|TerminateProcess)\s*\('){
         throw 'Focused native readiness must stay product-absent, exact guest scoped, and reject missing document initialization before client input.'
     }
@@ -392,6 +397,7 @@ Assert-V1FocusedNativeReadinessWiring $fixtureSource $nativePreflight
 Check $true 'static focused native readiness checks only Terminal/Edge with actual product absence and document initialization before client input'
 Reject {Assert-V1FocusedNativeReadinessWiring ($fixtureSource.Replace('if(!guest_native_application_ready(s,*target))throw std::runtime_error("native_initial_offline_document_not_ready");','')) $nativePreflight} 'static focused native readiness rejects removing the actual pre-input initialization gate'
 Reject {Assert-V1FocusedNativeReadinessWiring $fixtureSource ($nativePreflight.Replace('!native_clients_product_absent(s,"Terminal.direct_shell.before")','false'))} 'static direct shell control rejects removing its exact product-absent guest gate'
+Reject {Assert-V1FocusedNativeReadinessWiring ($fixtureSource.Replace('source_idle,closed,cleanup_error.empty(),input_clear','source_idle,true,cleanup_error.empty(),input_clear')) $nativePreflight} 'static native completion rejects replacing real normal-close confirmation with true'
 $chainSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_product_chains.h'),[Text.Encoding]::UTF8)
 Assert-V1StretchModesScopeWiring $fixtureSource $chainSource
 Check $true 'static stretch scope: actual disabled GUI setting, work-area oracle, unchanged neighbour, Undo and restoration are wired without unrelated suites'
