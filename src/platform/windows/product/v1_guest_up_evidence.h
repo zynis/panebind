@@ -157,6 +157,25 @@ inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIde
         snapshot.take(",\"consumed_before\":true,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":true,\"push_succeeded\":true}}}")&&
         snapshot.text.empty();
 }
+// TEST-only captured route. A real LL callback may retire the native pair
+// without queueing a normalized LL UP; the real captured legacy event then
+// completes NormalUp. This does not change either older UP-evidence mode and
+// never grants operation authority. The caller still checks actual NormalUp.
+inline bool matching_captured_up_with_LL_snapshot(std::string_view status,std::string_view legacy,
+    std::string_view gone,const UpEvidenceIdentity& expected){
+    using namespace up_evidence_detail;
+    if(!matching_idle_status(status,expected)||unique_value(status,"\"enabled\":")!="true"||
+       unique_value(status,"\"native_move_handoff_pending\":")!="false"||
+       !matching_clean_captured_up(legacy,gone,expected))return false;
+    constexpr std::string_view key="\"mouse_up_callbacks\":";const auto at=status.find(key);
+    if(at==status.npos||status.find(key,at+key.size())!=status.npos)return false;
+    Cursor snapshot{status.substr(at+key.size())};std::uint64_t count{},qpc{},generation{};
+    return snapshot.take("{\"snapshot_known\":true,\"callback_count\":")&&snapshot.number(count)&&count>0&&
+        snapshot.take(",\"last\":{\"hook_observed_qpc\":")&&snapshot.number(qpc)&&qpc>=expected.send_before_qpc&&
+        snapshot.take(",\"button\":1,\"generation_at_entry\":")&&snapshot.number(generation)&&generation==expected.generation&&
+        snapshot.take(",\"consumed_before\":false,\"aborted_before\":false,\"matching_branch_taken\":true,\"push_attempted\":false,\"push_succeeded\":false}}}")&&
+        snapshot.text.empty();
+}
 // TEST first-click evidence only: an actual UP may finish before resource
 // capture is ready. This narrow pre-capture physical-button rejection is not
 // a NormalUp receipt or permission to continue a failed active gesture.

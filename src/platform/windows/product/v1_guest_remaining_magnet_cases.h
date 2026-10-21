@@ -90,15 +90,31 @@ void owned_remaining_magnet_policy_case(State& s){
             }
             const auto ended=record(s,g.offset,"gesture_end",g.generation);
             const auto status=geometry_history_status(s,e::number(ended,"\"sequence\":").value_or(0));POINT after{};
+            const product::guest::UpEvidenceIdentity up_identity{s.product_pid,s.product_source,g.generation,s.left_up_send_qpc};
+            const auto normalized_up=actual_up(s,g.offset,g.generation);
+            const bool direct_LL=!ll.empty()&&e::number(ll,"\"hook_observed_qpc\":").value_or(0)>=s.left_up_send_qpc;
+            // The capture route can observe the real LL UP without queueing a
+            // second normalized LL event: its actual legacy event completes
+            // this generation. Require both that event and the fresh callback
+            // snapshot; neither a send ledger nor an idle flag substitutes.
+            const bool captured_LL_snapshot=product::guest::matching_captured_up_with_LL_snapshot(status,legacy,gone,up_identity);
+            const bool captured_UP=e::receipt(normalized_up,up_identity,"input_button_observed")&&
+                e::quoted(normalized_up,"\"source\":","shield_queued_legacy")&&e::quoted(normalized_up,"\"kind\":","UP")&&
+                e::number(normalized_up,"\"button\":")==1&&e::number(normalized_up,"\"native_message_time\":").value_or(0)>0&&
+                e::number(normalized_up,"\"resource_observed_qpc\":").value_or(0)>=s.left_up_send_qpc&&captured_LL_snapshot;
+            const bool no_new_placement=placements(g)==before;
             const bool exact=geometry_history_receipt(s,ended,"gesture_end")&&e::unique_value(ended,"\"normal_up\":")=="true"&&
-                !ll.empty()&&e::number(ll,"\"hook_observed_qpc\":").value_or(0)>=s.left_up_send_qpc&&
+                (direct_LL||captured_UP)&&
                 e::unique_value(legacy,"\"actual_legacy_up_accepted\":")=="true"&&
                 e::unique_value(gone,"\"release_succeeded\":")=="true"&&e::unique_value(gone,"\"detach_succeeded\":")=="true"&&
                 e::unique_value(gone,"\"overlay_destroyed\":")=="true"&&e::unique_value(gone,"\"hotkey_unregistered\":")=="true"&&
-                GetCursorPos(&after)&&point.x==after.x&&point.y==after.y&&placements(g)==before&&
+                GetCursorPos(&after)&&point.x==after.x&&point.y==after.y&&no_new_placement&&
                 set.owns(0)&&set.owns(1)&&visible(set.frames[0].hwnd)==expected&&visible(set.frames[1].hwnd)==target;
             s.log.check("remaining_magnet_actual_NormalUp_no_late_snap_or_new_placement",exact,
                 "\"generation\":"+std::to_string(g.generation)+",\"actual_LL_UP\":"+quote(ll)+",\"actual_legacy_UP\":"+quote(legacy)+
+                ",\"actual_normalized_UP\":"+quote(normalized_up)+",\"matching_captured_LL_snapshot\":"+(captured_LL_snapshot?"true":"false")+
+                ",\"actual_UP_evidence_mode\":"+quote(direct_LL?"normalized_LL_event":captured_UP?"captured_legacy_with_actual_LL_snapshot":"UNKNOWN")+
+                ",\"placement_records_unchanged_after_UP\":"+(no_new_placement?"true":"false")+
                 ",\"actual_resource_gone\":"+quote(gone)+",\"actual_end\":"+quote(ended)+",\"idle_status\":"+quote(status)+
                 ",\"same_cursor_UP\":true,\"terminal_resolve_or_additional_UP_used\":false");chain_check_product(s,pid,birth);
         };
