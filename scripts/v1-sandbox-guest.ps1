@@ -12,6 +12,132 @@ $summary=[ordered]@{schema='panebind-v1-guest/1';run_id=$RunId;status='NOT_READY
     source_commit=$null;product_source_commit=$null;driver_source_commit=$null;packaging_head=$null;
     requested_configurations=$Configurations;requested_suite=$Suite;actual_suite=$null;
     automated_driver=$true;human_uat='NOT_RUN';stages=@();error=$null}
+$fullStartupObservation=$null
+function Start-FullGuestStartupObservation {
+    # Called only after the exact disposable-guest/Run/manifest guards. These
+    # extrinsic kernel-provider events do not use WITHIN or process polling.
+    $prefix='PaneBindV1.'+$RunId+'.rgnupdt.'+[guid]::NewGuid().ToString('N')
+    $context=@{clock=[Diagnostics.Stopwatch]::StartNew();sources=@($prefix+'.start',$prefix+'.stop');owned=@();completed=$false;
+        record=[ordered]@{schema='panebind-v1-full-startup-observation/1';run_id=$RunId;suite='Full';
+            status='OBSERVING';deadline_seconds=60;deadline_includes_asset_preparation=$true;subscription_utc=[DateTime]::UtcNow.ToString('o');
+            subscription_filetime_utc=[DateTime]::UtcNow.ToFileTimeUtc();initial_processes=@();events=@();current_processes=@();
+            error=$null;subscription_cleanup_confirmed=$false;event_cleanup_confirmed=$false;
+            product_or_input_started_by_observer=$false;process_control_performed=$false;
+            process_purpose='UNKNOWN';termination_initiator='UNKNOWN';environment_foreground_guarantee=$false}}
+    try {
+        for($index=0;$index -lt 2;$index++){
+            $source=$context.sources[$index]
+            if(@(Get-EventSubscriber -SourceIdentifier $source -ErrorAction SilentlyContinue).Count -or
+               @(Get-Event -SourceIdentifier $source -ErrorAction SilentlyContinue).Count){throw 'Run-specific event source unexpectedly exists; not adopted.'}
+            $class=if($index -eq 0){'Win32_ProcessStartTrace'}else{'Win32_ProcessStopTrace'}
+            [void](Register-WmiEvent -Namespace 'root\cimv2' -Query ("SELECT * FROM "+$class+" WHERE ProcessName = 'rgnupdt.exe'") -SourceIdentifier $source -Timeout 5000)
+            $registered=@(Get-EventSubscriber -SourceIdentifier $source -ErrorAction Stop)
+            if($registered.Count -ne 1){throw 'Exact startup event subscription could not be identified.'}
+            $context.owned+=,[ordered]@{source=$source;subscription_id=$registered[0].SubscriptionId;class=$class}
+        }
+        $context.record.initial_processes=@(Get-CimInstance -Namespace 'root\cimv2' -Query "SELECT ProcessId,ParentProcessId,SessionId,Name,CreationDate FROM Win32_Process WHERE Name = 'rgnupdt.exe'" -OperationTimeoutSec 3 -ErrorAction Stop |
+            ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name;
+                creation_date_utc=$(if($null -ne $_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{$null});
+                creation_date_filetime_utc=$(if($null -ne $_.CreationDate){$_.CreationDate.ToFileTimeUtc()}else{$null})}})
+        if($context.record.initial_processes.Count -gt 1){throw 'More than one matching startup process; this observation covers only one lifecycle.'}
+    }catch{$context.record.status='ENVIRONMENT_READY_UNKNOWN';$context.record.error=$_.Exception.Message}
+    return $context
+}
+function Complete-FullGuestStartupObservation($Context,[switch]$Abort) {
+    if($Context.completed){return $Context.record};$Context.completed=$true
+    $record=$Context.record
+    try {
+        if($Abort){throw 'Guest preparation aborted before the one startup observation completed.'}
+        if($record.status -ceq 'ENVIRONMENT_READY_UNKNOWN'){throw $record.error}
+        do {
+            # Event queues retain early starts/stops while assets are prepared.
+            # Only our two exact Run-specific sources are read or removed.
+            foreach($subscription in $Context.owned){
+                foreach($event in @(Get-Event -SourceIdentifier $subscription.source -ErrorAction SilentlyContinue)){
+                    try {
+                        if($record.events.Count -ge 2){throw 'More than one lifecycle or duplicate/ambiguous startup traces.'}
+                        $native=$event.SourceEventArgs.NewEvent
+                        $row=[ordered]@{kind=$(if($subscription.class -ceq 'Win32_ProcessStartTrace'){'start'}else{'stop'});
+                            pid=[uint32]$native.ProcessID;parent_pid=[uint32]$native.ParentProcessID;session=[uint32]$native.SessionID;
+                            name=[string]$native.ProcessName;event_time_created=[uint64]$native.TIME_CREATED;
+                            event_time_is_process_birth=$false;process_birth='UNKNOWN';image_path='UNKNOWN';
+                            sid_base64=$(if($null -ne $native.Sid){[Convert]::ToBase64String([byte[]]$native.Sid)}else{$null});
+                            delivered_utc=$event.TimeGenerated.ToUniversalTime().ToString('o');
+                            exit_status=$(if($subscription.class -ceq 'Win32_ProcessStopTrace'){[uint32]$native.ExitStatus}else{$null})}
+                        if(-not $row.pid -or $row.name -ine 'rgnupdt.exe' -or -not $row.event_time_created -or
+                           $row.session -ne [Diagnostics.Process]::GetCurrentProcess().SessionId){throw 'Startup trace identity/session is unknown or contradictory.'}
+                        $record.events+=,$row
+                        if($row.event_time_created -gt ([uint64]$record.subscription_filetime_utc+600000000)){
+                            throw 'Target trace was observed outside the one 60-second startup deadline.'}
+                    }finally{Remove-Event -EventIdentifier $event.EventIdentifier -ErrorAction Stop}
+                }
+            }
+            $starts=@($record.events|Where-Object kind -ceq 'start');$stops=@($record.events|Where-Object kind -ceq 'stop')
+            if($starts.Count -gt 1 -or $stops.Count -gt 1){throw 'Multiple matching startup traces are outside this single-lifecycle observation.'}
+            $baseline=if($record.initial_processes.Count){$record.initial_processes[0]}else{$null}
+            $identity=if($starts.Count){$starts[0]}else{$baseline}
+            if($baseline -and ($baseline.name -ine 'rgnupdt.exe' -or -not $baseline.pid -or -not $baseline.creation_date_utc -or
+               $baseline.session -ne [Diagnostics.Process]::GetCurrentProcess().SessionId)){throw 'Existing startup process identity is incomplete.'}
+            if($baseline -and $starts.Count -and ($baseline.pid -ne $identity.pid -or $baseline.parent_pid -ne $identity.parent_pid -or
+               $baseline.session -ne $identity.session -or $baseline.name -ine $identity.name -or
+               $identity.event_time_created -lt [uint64]$baseline.creation_date_filetime_utc)){
+                throw 'Current baseline and observed start identify different processes or creation order.'}
+            if($stops.Count){
+                $stop=$stops[0]
+                if(-not $identity -or $stop.pid -ne $identity.pid -or $stop.parent_pid -ne $identity.parent_pid -or
+                   $stop.session -ne $identity.session -or $stop.name -ine $identity.name -or
+                   ($baseline -and $stop.event_time_created -lt [uint64]$baseline.creation_date_filetime_utc) -or
+                   ($starts.Count -and ($stop.event_time_created -lt $identity.event_time_created -or
+                     ($identity.sid_base64 -and $stop.sid_base64 -and $identity.sid_base64 -cne $stop.sid_base64)))){
+                    throw 'Actual stop trace cannot be paired unambiguously with the observed start or live baseline.'}
+                break
+            }
+            $remaining=60-$Context.clock.Elapsed.TotalSeconds
+            if($remaining -le 0){break}
+            $needed=if($null -eq $identity){$Context.sources[0]}else{$Context.sources[1]}
+            [void](Wait-Event -SourceIdentifier $needed -Timeout ([int][Math]::Ceiling($remaining)))
+        }while($true)
+        # One final current snapshot, not a quiet-period poll or an assertion
+        # that no future process/foreground change can occur.
+        $record.current_processes=@(Get-CimInstance -Namespace 'root\cimv2' -Query "SELECT ProcessId,ParentProcessId,SessionId,Name,CreationDate FROM Win32_Process WHERE Name = 'rgnupdt.exe'" -OperationTimeoutSec 3 -ErrorAction Stop |
+            ForEach-Object {[ordered]@{pid=[uint32]$_.ProcessId;parent_pid=[uint32]$_.ParentProcessId;session=[uint32]$_.SessionId;name=[string]$_.Name}})
+        if($record.current_processes.Count){throw 'Matching startup process is still present at the final snapshot; no input permitted.'}
+        if($stops.Count){$record.status='TARGET_LIFECYCLE_EXIT_OBSERVED';$record['start_observation']=if($starts.Count){'actual_start_trace'}else{'initial_live_snapshot_not_start_trace'}}
+        elseif(-not $record.events.Count -and -not $record.initial_processes.Count){$record.status='NOT_OBSERVED'}
+        else{throw 'A matching startup process was observed but its exit was not confirmed before the deadline.'}
+    }catch{$record.status='ENVIRONMENT_READY_UNKNOWN';$record.error=$_.Exception.Message}
+    finally {
+        $cleanupErrors=@();$lateEvents=0
+        foreach($subscription in $Context.owned){
+            try {
+                $current=@(Get-EventSubscriber -SourceIdentifier $subscription.source -ErrorAction SilentlyContinue)
+                if($current.Count -ne 1 -or $current[0].SubscriptionId -ne $subscription.subscription_id){throw 'Owned subscription identity changed; not removing an unknown subscriber.'}
+                Unregister-Event -SubscriptionId $subscription.subscription_id -ErrorAction Stop
+                $absenceErrors=@()
+                $remaining=@(Get-EventSubscriber -SourceIdentifier $subscription.source -ErrorAction SilentlyContinue -ErrorVariable absenceErrors)
+                if($remaining.Count -or @($absenceErrors|Where-Object FullyQualifiedErrorId -cne 'INVALID_SOURCE_IDENTIFIER,Microsoft.PowerShell.Commands.GetEventSubscriberCommand').Count){
+                    throw 'Own source subscriber absence was not confirmed after unregister.'}
+            }catch{$cleanupErrors+=,$_.Exception.Message}
+            foreach($event in @(Get-Event -SourceIdentifier $subscription.source -ErrorAction SilentlyContinue)){
+                # A late or extra trace cannot silently disappear at cleanup.
+                ++$lateEvents
+                if(-not $Abort){$record.status='ENVIRONMENT_READY_UNKNOWN';$record.error='Additional target trace arrived at the final boundary.'}
+                try{Remove-Event -EventIdentifier $event.EventIdentifier -ErrorAction Stop}catch{$cleanupErrors+=,$_.Exception.Message}
+            }
+            $absenceErrors=@()
+            $remaining=@(Get-Event -SourceIdentifier $subscription.source -ErrorAction SilentlyContinue -ErrorVariable absenceErrors)
+            if($remaining.Count -or @($absenceErrors|Where-Object FullyQualifiedErrorId -cne 'INVALID_SOURCE_IDENTIFIER,Microsoft.PowerShell.Commands.GetEventCommand').Count){
+                $cleanupErrors+=,'Own source event-queue absence was not confirmed after removal.'}
+        }
+        $record.subscription_cleanup_confirmed=$cleanupErrors.Count -eq 0 -and $Context.owned.Count -eq 2
+        $record.event_cleanup_confirmed=$cleanupErrors.Count -eq 0
+        $record['cleanup_errors']=$cleanupErrors;$record['additional_queued_traces_at_cleanup']=$lateEvents
+        $record['actual_elapsed_seconds']=$Context.clock.Elapsed.TotalSeconds
+        if($cleanupErrors.Count){$record.status='ENVIRONMENT_READY_UNKNOWN';$record.error='Run-owned event cleanup was not confirmed.'}
+        $Context.clock.Stop()
+    }
+    return $record
+}
 function New-Evidence([string]$Path,[string]$Text) {
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$bytes=$script:utf8.GetBytes($Text);$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
@@ -447,6 +573,7 @@ try {
     $summary['guest_contract']=$manifest.guest_contract
     $summary['product_interface']=$manifest.product_interface
     $summary.actual_suite=$Suite
+    if($Suite -ceq 'Full'){$fullStartupObservation=Start-FullGuestStartupObservation}
     $allowed=@('panebind.exe','panebind-v1-guest-fixture.exe','Debug\panebind.exe',
         'Debug\panebind-v1-guest-fixture.exe','v1-sandbox-guest.ps1','panebind-v1-input.marker')
     $probeMedium=$null -ne $manifest.medium_environment_probe -and $manifest.medium_environment_probe.enabled -eq $true
@@ -542,6 +669,8 @@ try {
            $pair.fixture_identity.verified_binary_sha256 -cne $driverFile[0].sha256 -or
            $manifest.('driver_'+$suffix+'_sha256') -cne $driverFile[0].sha256){throw 'Product/driver identities, interface contract and actual payload hashes disagree.'}
     }
+    if($Suite -ceq 'Full' -and ($probeMedium -or $probeDesktop)){
+        throw 'Full startup observation must complete after asset preparation and before input; run optional environment probes in their separate suites.'}
     if($probeMedium){
         # Isolated environment preparation only, before any product or input.
         # DENIED is a useful environment observation, not a product failure.
@@ -663,6 +792,11 @@ try {
         $release=@($manifest.files | Where-Object relative_path -ceq 'panebind.exe')
         if($release.Count -ne 1){throw 'Portable source Release identity missing.'}
         $summary['portable_test']=Prepare-PortableTestPackage $manifest.portable_test $manifest.source_commit $release[0].sha256
+    }
+    if($null -ne $fullStartupObservation){
+        $summary['full_startup_observation']=Complete-FullGuestStartupObservation $fullStartupObservation
+        if($summary.full_startup_observation.status -ceq 'ENVIRONMENT_READY_UNKNOWN'){
+            throw 'Full startup lifecycle observation is unknown; fixture/product/input not started.'}
     }
     if($standardNativeClients){
         # Prepared official assets are shared read-only input, not proof of an
@@ -1013,6 +1147,9 @@ public static class PaneBindV1MediumGuest {
     $summary.status='BLOCKED_OR_FAILED'
     $summary.error=$_.Exception.Message
 } finally {
+    if($null -ne $fullStartupObservation -and -not $fullStartupObservation.completed){
+        $summary['full_startup_observation']=Complete-FullGuestStartupObservation $fullStartupObservation -Abort
+    }
     if($summaryPath -and -not (Test-Path -LiteralPath $summaryPath)){
         New-Evidence $summaryPath ($summary|ConvertTo-Json -Depth 18)
     }
