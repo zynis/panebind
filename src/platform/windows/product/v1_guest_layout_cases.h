@@ -275,6 +275,16 @@ std::optional<POINT> layout_hit(LayoutFixtures& set,std::size_t source,int requi
     LONG y0=top?p.top:bottom?p.bottom-20:(p.top+p.bottom)/2-8;
     LONG y1=top?p.top+20:bottom?p.bottom:(p.top+p.bottom)/2+9;
     if(required==HTCAPTION){x0=p.left+16;x1=p.right-16;y0=p.top+3;y1=std::min<LONG>(p.bottom,p.top+64);}
+    // Maximized native positioning bounds extend outside the virtual desktop.
+    // WindowFromPoint/WM_NCHITTEST can still report a caption for such a point;
+    // that is not a physical cursor location our guarded driver may inject.
+    const LONG screen_x=GetSystemMetrics(SM_XVIRTUALSCREEN),screen_y=GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const LONG screen_w=GetSystemMetrics(SM_CXVIRTUALSCREEN),screen_h=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    const auto screen_right=static_cast<std::int64_t>(screen_x)+screen_w;
+    const auto screen_bottom=static_cast<std::int64_t>(screen_y)+screen_h;
+    if(screen_w<=0||screen_h<=0||screen_right>MAXLONG||screen_bottom>MAXLONG)return {};
+    x0=std::max(x0,screen_x);x1=std::min(x1,static_cast<LONG>(screen_right));
+    y0=std::max(y0,screen_y);y1=std::min(y1,static_cast<LONG>(screen_bottom));
     for(LONG y=y0;y<y1;++y)for(LONG x=x0;x<x1;++x){
         const POINT point{x,y};if(WindowFromPoint(point)!=h)continue;DWORD_PTR hit{};
         if(SendMessageTimeoutW(h,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(x),static_cast<short>(y)),SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&hit)&&
