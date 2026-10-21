@@ -3,6 +3,16 @@
 // TEST ONLY: one explicit exact-guest injected failure at the production
 // InputService::push full-queue failure branch, never a claim of natural queue
 // exhaustion, OS PostMessage failure or a silently removed low-level hook.
+std::string queue_failure_status(State& s,bool enabled,bool healthy,std::uint64_t after_sequence){
+    const auto mark=read_product(s).size();std::string status;const bool requested=launch(s,L"--status",true);
+    const bool observed=requested&&wait([&]{status=record(s,mark,"status");return
+        product::guest::matching_queue_failure_status(status,{s.product_pid,s.product_source,0,0},enabled,healthy,after_sequence);
+    });
+    s.log.check("queue_failure_actual_state_specific_status_barrier",observed,
+        "\"expected_enabled\":"+std::string(enabled?"true":"false")+",\"expected_service_healthy\":"+(healthy?"true":"false")+
+        ",\"after_sequence\":"+std::to_string(after_sequence)+",\"actual_status\":"+quote(status)+
+        ",\"service_health_is_not_actual_hook_presence_query\":true");return status;
+}
 [[maybe_unused]] void owned_queue_failure_case(State& s){
     namespace v=panebind::core::v1;namespace e=product::guest::up_evidence_detail;
     settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;
@@ -78,7 +88,7 @@
             set.owns(0)&&GetForegroundWindow()==source&&visible(source)==held&&s.left&&!s.left_up_attempted&&
             actual_up(s,g.offset,g.generation).empty(),"\"actual_end\":"+quote(ended)+",\"actual_gone\":"+quote(gone));
         interruption_audit_calls(s,g,trigger,std::nullopt);
-        const auto unhealthy=geometry_history_status(s);
+        const auto unhealthy=queue_failure_status(s,true,false,e::number(fault,"\"sequence\":").value_or(0));
         s.log.check("queue_failure_actual_reported_unhealthy_idle_without_product_restart",
             e::unique_value(unhealthy,"\"hook_owner_running\":")=="false"&&
             e::unique_value(unhealthy,"\"gesture_active\":")=="false"&&
@@ -117,11 +127,11 @@
             ",\"client_UP_before\":"+std::to_string(client_ups)+",\"client_UP_after\":"+std::to_string(set.frames[0].client_up[0].load())+
             ",\"old_generation_NormalUp_inferred\":false,\"extra_UP_sent\":false");
         chain_check_product(s,pid,birth);s.log.check("queue_failure_public_pause_requested",launch(s,L"--pause",true));
-        const auto paused=geometry_history_status(s);
+        const auto paused=queue_failure_status(s,false,false,e::number(unhealthy,"\"sequence\":").value_or(0));
         s.log.check("queue_failure_public_pause_actual",e::unique_value(paused,"\"enabled\":")=="false",
             "\"actual_status\":"+quote(paused));
         s.log.check("queue_failure_public_resume_rebuild_requested",launch(s,L"--command Pause",true));
-        const auto recovered=geometry_history_status(s);
+        const auto recovered=queue_failure_status(s,true,true,e::number(paused,"\"sequence\":").value_or(0));
         s.log.check("queue_failure_public_resume_actual_input_owner_healthy",e::unique_value(recovered,"\"enabled\":")=="true"&&
             e::unique_value(recovered,"\"hook_owner_running\":")=="true","\"actual_status\":"+quote(recovered));
         chain_check_product(s,pid,birth);const auto next=layout_down(set,0,HTCAPTION,false);

@@ -51,6 +51,24 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    const std::string fault_status=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":78,"process_id":42,"type":"status","enabled":true,"hook_owner_running":false,"gesture_active":false,"native_move_handoff_pending":false,"native_operation_pending":false,"native_completion_unknown":false,"visual_restore_pending":false,"operations":1,"native_callsite_claims":1})";
+    const auto fault_changed=[&](std::string_view from,std::string_view to){auto row=fault_status;const auto at=row.find(from);
+        if(at==row.npos){std::cerr<<"queue status mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
+    if(!expect(guest::matching_idle_status(fault_status,identity),false,"observed fault status reproduces old healthy-idle barrier rejection")||
+       !expect(guest::matching_queue_failure_status(fault_status,identity,true,false,68),true,"actual faulted enabled idle is accepted only as unhealthy")||
+       !expect(guest::matching_queue_failure_status(fault_status,identity,true,true,68),false,"fault status cannot prove healthy recovery")||
+       !expect(guest::matching_queue_failure_status(fault_changed("\"enabled\":true","\"enabled\":false"),identity,false,false,77),true,
+           "public pause after fault explicitly remains disabled and unhealthy")||
+       !expect(guest::matching_queue_failure_status(fault_changed("\"hook_owner_running\":false","\"hook_owner_running\":true"),identity,true,true,77),true,
+           "public resume requires enabled actual healthy idle")||
+       !expect(guest::matching_queue_failure_status(fault_status,identity,false,false,68),false,"wrong enabled state cannot pass pause barrier")||
+       !expect(guest::matching_queue_failure_status(fault_status,identity,true,false,78),false,"old sequence cannot prove a new public status response")||
+       !expect(guest::matching_queue_failure_status(fault_changed("\"process_id\":42","\"process_id\":43"),identity,true,false,68),false,
+           "another process cannot satisfy the queue status barrier")||
+       !expect(guest::matching_queue_failure_status(fault_changed("\"native_operation_pending\":false","\"native_operation_pending\":true"),identity,true,false,68),false,
+           "faulted service with a pending native call is not clean idle")||
+       !expect(guest::matching_queue_failure_status(fault_changed("\"native_completion_unknown\":false","\"native_completion_unknown\":true"),identity,true,false,68),false,
+           "unknown native completion cannot satisfy the fault status barrier"))return 1;
     const std::string fault="queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345";
     const auto fault_request=guest::parse_guest_queue_failure(fault);
     if(!expect(fault_request&&fault_request->run==std::string(32,'a')&&fault_request->generation==7&&fault_request->source==12345,

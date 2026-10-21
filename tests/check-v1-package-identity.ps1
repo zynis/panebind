@@ -762,6 +762,8 @@ function Assert-V1QueueFailureWiring([string]$Fixture,[string]$Cases,[string]$Se
         'queue_failure_actual_exact_Move_before_arm','L"--guest-queue-failure "',
         'guest_queue_failure_arm','input_queue_failure','v::End::QueueFailure',
         'queue_failure_actual_independent_input_resources_gone_before_UP','interruption_audit_calls(s,g,trigger,std::nullopt)',
+        'product::guest::matching_queue_failure_status(',
+        'queue_failure_status(s,true,false,','queue_failure_status(s,false,false,','queue_failure_status(s,true,true,',
         'GuestUpHookObservation head;','button(s,false);','launch(s,L"--pause",true)',
         'launch(s,L"--command Pause",true)','actual_input_owner_start_serial',
         'queue_failure_recovery_actual_Move_exact','queue_failure_recovery_actual_Resize_exact',
@@ -770,6 +772,7 @@ function Assert-V1QueueFailureWiring([string]$Fixture,[string]$Cases,[string]$Se
         if(-not $Cases.Contains($value)){throw ('Queue scene lost actual first Move, failure evidence or public recovery: '+$value)}
     }
     if($Cases.Contains('PostMessageW(') -or $Cases.Contains('SendMessageW(') -or
+       $Cases.Contains('geometry_history_status(s)') -or
        $Cases.Contains('SetCapture(') -or $Cases.Contains('ReleaseCapture(') -or
        [regex]::Matches($Cases,'\bbutton\(s,false\)').Count -ne 1){
         throw 'The queue scene may request one guarded failure and send only the original cleanup UP, never fake an abort or capture receipt.'

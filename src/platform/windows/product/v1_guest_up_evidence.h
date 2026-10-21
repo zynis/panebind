@@ -138,6 +138,24 @@ inline bool matching_idle_status(std::string_view row,const UpEvidenceIdentity& 
         unique_value(row,"\"native_operation_pending\":")=="false"&&unique_value(row,"\"native_completion_unknown\":")=="false"&&
         unique_value(row,"\"visual_restore_pending\":")=="false";
 }
+// TEST-only queue recovery barrier. The injected failure intentionally makes
+// the service unhealthy; that state must not satisfy the ordinary healthy-idle
+// predicate above, nor may a paused state be mistaken for enabled recovery.
+inline bool matching_queue_failure_status(std::string_view row,const UpEvidenceIdentity& expected,
+    bool enabled,bool healthy,std::uint64_t after_sequence){
+    using namespace up_evidence_detail;
+    const auto sequence=number(row,"\"sequence\":");
+    return expected.process_id&&expected.source_sha.size()==40&&row.size()<=16384&&!row.empty()&&
+        row.front()=='{'&&row.back()=='}'&&row.find_first_of("\r\n")==row.npos&&
+        quoted(row,"\"schema\":","panebind-v1/1")&&quoted(row,"\"type\":","status")&&
+        quoted(row,"\"source_sha\":",expected.source_sha)&&number(row,"\"process_id\":")==expected.process_id&&
+        sequence&&*sequence>after_sequence&&unique_value(row,"\"enabled\":")== (enabled?"true":"false")&&
+        unique_value(row,"\"hook_owner_running\":")== (healthy?"true":"false")&&
+        unique_value(row,"\"gesture_active\":")=="false"&&unique_value(row,"\"native_move_handoff_pending\":")=="false"&&
+        unique_value(row,"\"native_operation_pending\":")=="false"&&unique_value(row,"\"native_completion_unknown\":")=="false"&&
+        unique_value(row,"\"visual_restore_pending\":")=="false"&&number(row,"\"operations\":")&&
+        number(row,"\"native_callsite_claims\":");
+}
 inline bool matching_status_up_snapshot(std::string_view row,const UpEvidenceIdentity& expected){
     using namespace up_evidence_detail;
     if(row.empty()||row.size()>16384||row.front()!='{'||row.back()!='}'||
