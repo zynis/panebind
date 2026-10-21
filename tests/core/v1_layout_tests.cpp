@@ -74,6 +74,13 @@ void shared_resize() {
     p=v::resize_group(ell,1,right,{60,0},0);
     expect(p.accepted && p.placements.size()==2 && actual(p,1)==Rect{100,100,560,500} &&
            actual(p,2)==Rect{560,100,900,300},"G07 L no invented member or fill-hole");
+    auto corner=ell;
+    corner[0].limits.max_width=420; corner[1].limits.min_width=370;
+    p=v::resize_group(corner,2,{true,false,false,true},{80,30},0);
+    // X intersection [350,520] clamps requested580; Y remains requested330.
+    // These independent constants do not use the returned solver plan.
+    expect(p.accepted && p.placements.size()==2 && actual(p,1)==Rect{100,100,520,500} &&
+           actual(p,2)==Rect{520,100,900,330},"G07 L sourceB bottom-left X max420 clamp520 preserves independent Y330 and missing C");
     const std::array four{item(1,{100,100,500,300}),item(2,{500,100,900,300}),
                           item(3,{100,300,500,500}),item(4,{500,300,900,500})};
     p=v::resize_group(four,1,{false,false,true,true},{40,30},0);
