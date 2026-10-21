@@ -1,5 +1,15 @@
 # PaneBind V1 集中交付进展
 
+## 当前接续：验收状态纠正与精确缺口验证（2026-10-21）
+
+接续起点`19690e8da8a7433100cd33352227d8552b52843a`，分支未变，origin标准fetch成功且接续时0/0。产品继续冻结`11ae76a3976ffba62facc127fcb411ebabfeaf86`，Release EXE SHA-256仍为`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；仅测试驱动、脚本及证据更新，不把新工具SHA当产品源码。未知方案输入目录保留。
+
+A01、NF01和NF03已按dfdd／2432／0a66／2c8纠正当前描述：当前owned正常释放、三窗核心链、规定两轮／900.035872秒及资源回执已经实际运行，不再要求无变化重跑。旧UP失败保留原构建及原文；完整应用与整版门未齐，不自动授A01／NF03整项PASS。[快速入门](../V1_QUICK_START.md)现在只保留一个当前候选及操作说明，历史进展留在本报告。
+
+[现有同构建延迟证据](v1-evidence/11ae-existing-timing-review.json)已核算：0a66／2c8实际17次native的输入到回读p95分别10.5895／25.2265ms；callback的2c8及dfdd末producer p99落在(1,2]ms，NF02据实由“缺统计BLOCKED”改为预算FAIL。dfdd的1017.4899ms最大样本对应明确注入的1000ms自有线程阻塞，不写成正常持续卡顿；2432普通包有限样本和不同guest／PID不混池。没有物理显示延迟宣称，也没有因统计而重建产品或新增压力／900秒批次。
+
+D09和D24当前可比证据各缺一个确切分支，已接入最小`RecoveryContractsOnly`：旧mapped中键配对撤权而旧UP未发时的新客户DOWN／UP；真实END／capture后丢失capture、no-own清理和同实例后继Move／Resize。新`NativeClientsOnly`仅聚焦Terminal／Edge的初始化、客户交互及正常关闭，保留真实“产品未启动”检查，并以同token直接cmd启动与离线页面就绪记录区分前置。Full矩阵未缩小，其他应用无变量试错不重放。构建不等于现场通过；后续实际记录补在本节，原结果不覆盖。整版仍PARTIAL，当前17/60、8/40；不进入REA、不恢复定时检查。
+
 ## 最新增量：活动组设置入口与规则用户路径已闭合
 
 `2c8dfd707f414d5394913c5f52a8c997`／[必要原文证据](v1-evidence/2c8d-active-settings-metadata.json)已实际通过：真实双成员Ctrl Move仍按下且自有capture就绪时，一次普通`--settings`请求使P139明确以Paused撤权／退休，之后才有同产品P140 settings_open；并非先失焦后冒称规则撤权。P143真实释放capture、P146解绑／撤罩，唯一测试清理UP由实际LL callback记录，触发后零新增native。再经真实GUI精确类规则保存，下一代仅source；移除规则后双成员恢复。此中止不称NormalUp，也不伪称规则保存回调本身是原因。

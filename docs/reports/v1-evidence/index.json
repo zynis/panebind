@@ -1,6 +1,15 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-21",
+  "existing_11ae_timing_review": {
+    "id": "EV-11AE-EXISTING-QPC-TIMING",
+    "review_only_no_new_runtime": true,
+    "metadata": "docs/reports/v1-evidence/11ae-existing-timing-review.json",
+    "metadata_sha256": "14D2281072E8DB7FF3833F4B13BB861E266C76D0DECE0B036B75048D247E899E",
+    "literal_summaries": "docs/reports/v1-evidence/11ae-existing-timing-summary.jsonl",
+    "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
+    "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
+  },
   "next_driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
   "next_driver_validation": "fd50 D/R builds and unchanged guest-path regression passed (222 cases, symlink SKIP1314); actual 2c8 Release active group settings-entry retirement and next-rule groups PASS on unchanged11ae product. 0a66 remains05f, dfdd Full remains original11ae/FAIL and8e0 original46c/tool verdict FAIL. Existing120 packaging checks have unchanged inputs; no whole-version PASS or old-binary rebinding.",
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
