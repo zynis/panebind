@@ -1,0 +1,255 @@
+{
+  "schema": "panebind-v1-existing-evidence-metadata/1",
+  "record_kind": "metadata_not_literal_JSONL",
+  "run_id": "17f5dc9bd7bf42ef9c64050453ff8c79",
+  "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+  "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+  "driver_source_sha": "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc",
+  "driver_release_sha256": "0F2EFEE8C2C27EA327BB293639C692417A5C0772F91DDBC97F0931354C50AE59",
+  "packaging_head": "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc",
+  "suite": "MotionGuardOnly",
+  "configuration": "Release",
+  "automated_guest_driver": true,
+  "human_uat": "NOT_RUN",
+  "actual_environment": {
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "window_station": "WinSta0",
+    "thread_desktop": "Default",
+    "input_desktop": "Default",
+    "not_full_ordinary_Shell_evidence": true
+  },
+  "raw_files": [
+    {
+      "producer": "fixture",
+      "path": "uat/v1-control/17f5dc9bd7bf42ef9c64050453ff8c79/collection-20261021T025051480Z-a58108594b1c4524a4789348cc1cafa8/17f5dc9bd7bf42ef9c64050453ff8c79-release-fixture.jsonl",
+      "sha256": "B20E391D24C5D82AECFD66ACA2EBED9B7C8623176859E59E5EE4313CF33E6AC1",
+      "bytes": 197912,
+      "rows": 310,
+      "sequence_first": 1,
+      "sequence_last": 310,
+      "sequence_contiguous": true,
+      "process_ids": [],
+      "source_shas": [
+        "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc"
+      ],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-fixture-selected.jsonl",
+        "sha256": "220D3B530050FE2D1746F8F8C3C2E4688B8A667C5790CD010005758A62B78699",
+        "bytes": 25028,
+        "rows": 22,
+        "source_physical_lines": [
+          13,
+          125,
+          128,
+          133,
+          134,
+          138,
+          139,
+          191,
+          192,
+          197,
+          198,
+          202,
+          203,
+          218,
+          231,
+          289,
+          290,
+          305,
+          307,
+          308,
+          309,
+          310
+        ],
+        "source_sequences": [
+          13,
+          125,
+          128,
+          133,
+          134,
+          138,
+          139,
+          191,
+          192,
+          197,
+          198,
+          202,
+          203,
+          218,
+          231,
+          289,
+          290,
+          305,
+          307,
+          308,
+          309,
+          310
+        ],
+        "literal_original_rows": true
+      }
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/17f5dc9bd7bf42ef9c64050453ff8c79/collection-20261021T025051480Z-a58108594b1c4524a4789348cc1cafa8/17f5dc9bd7bf42ef9c64050453ff8c79-product-Release/panebind.log.jsonl",
+      "sha256": "CA7B8DD7D8F440E653FA802CABC06FD6522B391BC0A86E6F63D96AA9F4ED78EE",
+      "bytes": 207846,
+      "rows": 220,
+      "sequence_first": 1,
+      "sequence_last": 220,
+      "sequence_contiguous": true,
+      "process_ids": [
+        6528
+      ],
+      "source_shas": [
+        "247501a6d7e00a276e9e3aa63e38247e348ca854"
+      ],
+      "literal_excerpt": {
+        "path": "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-product-selected.jsonl",
+        "sha256": "BC3D7F0DE421E0437B21136F44A5B9D3C3E73097CF882ACD77419DB231A9D411",
+        "bytes": 8856,
+        "rows": 15,
+        "source_physical_lines": [
+          43,
+          44,
+          45,
+          71,
+          84,
+          99,
+          112,
+          136,
+          137,
+          138,
+          163,
+          177,
+          192,
+          206,
+          220
+        ],
+        "source_sequences": [
+          43,
+          44,
+          45,
+          71,
+          84,
+          99,
+          112,
+          136,
+          137,
+          138,
+          163,
+          177,
+          192,
+          206,
+          220
+        ],
+        "literal_original_rows": true
+      }
+    }
+  ],
+  "package": {
+    "receipt_path": "uat/v1-sandbox/17f5dc9bd7bf42ef9c64050453ff8c79/package-receipt.json",
+    "receipt_sha256": "D2323326128AA1773608782ED365ACEF0ABE208EF98C33D155452549D0E6086E",
+    "zip_sha256": "F52CE610682C287A3144470042921E5488E1E0CD358A1A5C7A072C04273C1946",
+    "manifest_sha256": "28597538940B098BA24FEF0E44C2941EB03B0D235633583529B4A3817439D72E",
+    "wsb_sha256": "C22963AD03CB8A293A889EB015519A243A5368411CD3D8837043652C13E1DC59"
+  },
+  "wrapper": {
+    "wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "product_cleanup_pass_unevaluated": false,
+    "feature_result": "NOT_EVALUATED",
+    "summary_path": "uat/v1-control/17f5dc9bd7bf42ef9c64050453ff8c79/collection-20261021T025051480Z-a58108594b1c4524a4789348cc1cafa8/17f5dc9bd7bf42ef9c64050453ff8c79-guest-summary.json",
+    "summary_sha256": "BED3E24352B7F3B72EE537367164B3DAD66E036AC611E8013D5BE52C5D137875",
+    "bootstrap_portable_normal_GUI_started_not_a_driver_verdict": true
+  },
+  "actual_cleanup": {
+    "path": "uat/v1-control/17f5dc9bd7bf42ef9c64050453ff8c79/cleanup-receipt.json",
+    "sha256": "69D43C1AF8F45ABCC7770E028FE184B3BDD7BA8F65755AD8B285B92611CA2868",
+    "utc": "2026-10-21T02:51:57.9039381Z",
+    "guest_pid": 22632,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "functional_scope_pass_not_whole_version": true,
+  "feature_or_benchmark_PASS_added": false,
+  "dev_feature_PASS_count_unchanged": 15,
+  "benchmark_PASS_count_unchanged": 7,
+  "functional_result": "PASS_SCOPED_TWO_DRIVER_GUARDED_CALLERS_AND_OWNED_RECOVERY",
+  "observed": [
+    {
+      "driver_sequences": [
+        125,
+        133,
+        134,
+        138,
+        139
+      ],
+      "product_sequences": [
+        43,
+        44,
+        45
+      ],
+      "fact": "真实Layout g1 exact Move后，刻意切换到另一精确测试窗口触发FocusLost；layout_phase实际拒绝后续MOVE，只有一条test_motion_not_sent/SendInput_called=false且cursor/发送账本不变。唯一清理UP由实际LL快照匹配，非NormalUp；触发后新增native调用0。"
+    },
+    {
+      "driver_sequences": [
+        191,
+        197,
+        198,
+        202,
+        203
+      ],
+      "product_sequences": [
+        136,
+        137,
+        138
+      ],
+      "fact": "原State源 g4同样实际exact→FocusLost；phase实际拒发，唯一清理UP、释放capture/解除关联/撤罩及0新增调用均有实际回执。没有用SendInput返回或guest销毁当作产品UP/cleanup通过。"
+    },
+    {
+      "driver_sequences": [
+        218,
+        231,
+        289,
+        290
+      ],
+      "product_sequences": [
+        71,
+        84,
+        99,
+        112,
+        163,
+        177,
+        192,
+        206
+      ],
+      "fact": "同产品PID6528未重启：两类失焦后新Move/Resize实际exact完成与真实NormalUp。恢复原配置，未把两项工具调用域混成同一个窗口身份。"
+    },
+    {
+      "driver_sequences": [
+        128,
+        192,
+        308,
+        309,
+        310
+      ],
+      "product_sequences": [
+        220
+      ],
+      "fact": "前台观察16/16、overflow0，UI原线程实际卸载；两受控切换回调快照精确PID6200+birth/class匹配fixture。P220实际自身资源全停止，D305客户0→1、Raw注销和自窗销毁各自成立。"
+    }
+  ],
+  "exclusions": [
+    "这是刻意控制的owned失焦，不证明历史393958或393232的归属/激活发起者。",
+    "不是原子未来权限保证；未发生的竞态和旧c899/22b2 FAIL不被关闭。",
+    "完整M04/I08/Full、真实应用、普通完整桌面、显示矩阵与真人UAT均未授PASS。"
+  ]
+}

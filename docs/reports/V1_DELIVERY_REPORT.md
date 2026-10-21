@@ -1,5 +1,16 @@
 # PaneBind V1 集中交付进展
 
+## 当前继续结果（2026-10-21）：实际守卫与原便携包入口
+
+本次起点 `9689aac85abb5e5b69268a6b4162a64dcd9286ae`，原可信 SSH、内存及标准 origin fetch 均实际正常。产品仍为未修改的 `247501a`／Release SHA-256 `77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25`；本轮驱动 `da237b662d33f0d3ca0fce2ce94a1eb5504f01fc`，Release SHA-256 `0F2EFEE8C2C27EA327BB293639C692417A5C0772F91DDBC97F0931354C50AE59`。a8 守卫逻辑保留，由实际运行 da 驱动验证，不把 da 的运行冒称为原 a8 二进制运行。
+
+- `17f5dc9bd7bf42ef9c64050453ff8c79`：310 条 driver／220 条 product 原始 JSONL 合法且各自连续。同一产品 PID6528，真实 FocusLost 后 `layout_phase`／`phase` 各只产生一条 `test_motion_not_sent`，输入发送账本及 cursor 不变；分别观察撤罩、唯一测试清理 UP 和零新增调用。随后 g2/g3、g5/g6 的 Move/Resize exact 与 NormalUp 成立，没有重启产品。仅证明两个工具调用域的拒发与同实例恢复，旧 22b2／c899 Full、I08 失败不改判。
+- `0db8629309204af79067f119888f314d`：172 条 driver 与普通便携实例61条 product 合法连续。原 `6e9bfaa19acd4fc6b1b0d3524a2ff63b` ZIP 未重建或替换：在干净 guest 的中文／空格目录无参数启动，实际可见 GUI、同实例二启、默认10 DIP吸附、GUI保存0后自由移动、匹配实际 LL/legacy UP及 NormalUp、正常退出和无 profile 污染均成立。无 `--diagnostic`，独立实际几何不冒称 native API 回执；不授托盘、跨应用、完整 I12 或整版通过。
+
+两批在证据保存后仅退出本代 guest／删除本代启动任务，部署与原件不变。首个 `d24ccb6c7bf44fd6b9dcb55e058b2bd5` 部署因本地编排场景白名单未同步而拒绝、guest未启动，原失败保留；修正编排后换新RunId，不是产品失败。D/R 驱动构建、各208项受影响离线（symlink SKIP1314）和112项包装检查通过，产品 D/R 哈希不变。接续工作是实际第二击的 Prepared／路由事实与带最小前台归属观察的连续链；不重开已关闭 D29 或独立900秒专项。
+
+以下各节保留原历史身份和当时结论；其中“尚未运行”的旧描述不覆盖上述本轮限定复验。整版仍 PARTIAL，普通完整 Medium 桌面、五类真实应用、真实托盘、多屏／混合 DPI、整版链及真人验收门未齐，暂不进入 REA。
+
 ## 当前继续结果（2026-10-20）：连接恢复，快速 UP 与热键补验通过
 
 本次从 `23d80d2417c727fd835ed16a7f6e3704e343de44` 接续。用户确认台式机已开机后，原 `crossrec-desktop` 严格主机校验连接已实际恢复，目标为 ZS-Workstation；没有更改 SSH、安全设置、CrossRec 或宿主输入。下列 SSH 超时和内存不足均为历史记录，不是当前阻断。

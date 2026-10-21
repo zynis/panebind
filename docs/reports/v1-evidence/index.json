@@ -1,6 +1,6 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
-  "record_date": "2026-10-20",
+  "record_date": "2026-10-21",
   "next_driver_source_sha": "a8f3331018e48be948f3ef036fb0379cff8094f6",
   "next_driver_validation": "D/R build and offline208 each plus static112 PASS; actual binary self-report verified. Observed-terminal-motion guard native NOT_RUN; all r21 original runs retain tested5cb driver. See V1_ACCEPTANCE.json source_identity.next_driver; product247 EXE unchanged.",
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
@@ -130,73 +130,60 @@
     "required_revalidation": "保留745真实fafa失败与fixed scoped PASS；修正motion在匹配UP已退休时的终止分流，使用新产品身份定向复验增强burst/后继Move。普通/跨应用连续操作与最终整版链仍须独立验证；不重复旧fixed/8方向/900批次。"
   },
   "next_driver_candidate": {
-    "source_sha": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+    "source_sha": "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc",
     "product_source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
     "product_binary_unchanged": true,
-    "implementation_status": "DEBUG_RELEASE_BUILT_OFFLINE208_PASS_SCOPED_RUNTIME_OBSERVED",
-    "runtime_validation": "ACTUAL_E86A_NORMALUP_UNISSUED_AND_NEXT_MOVE_C442_HOTKEY_4D32_PAUSE_SCOPED_PASS_FULL22B2_EARLY_FAIL",
-    "debug_binary_sha256": "F66816856ACB967B5F5C66EEAEDCDF1BEC8AC89E158E4D147D24E1C7AC924760",
-    "release_binary_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
-    "debug_build_result": "PASS_EXIT0",
-    "release_build_result": "PASS_EXIT0",
+    "implementation_status": "DEBUG_RELEASE_BUILT_RELEASE_SCOPED_NATIVE_OBSERVED",
+    "runtime_validation": "PASS_SCOPED_17F5_MOTION_GUARD_AND_0DB8_PORTABLE_ENTRY_NOT_FULL",
+    "debug_binary_sha256": "2EC44B7F03D15C0AC3C2EC99075874E7A7CA523A47AD58AAC245964698B6D916",
+    "release_binary_sha256": "0F2EFEE8C2C27EA327BB293639C692417A5C0772F91DDBC97F0931354C50AE59",
+    "debug_runtime_this_driver": "NOT_RUN",
+    "release_runtime_this_driver": "TWO_SCOPED_RUNS_OBSERVED",
     "debug_offline": "guestpath208_PASS_1of1_symlinkSKIP1314",
     "release_offline": "guestpath208_PASS_1of1_symlinkSKIP1314",
     "logs": [
       {
-        "path": "uat/v1-control/r21-5cb36bb-Debug-driver-build.txt",
-        "sha256": "E519C2DF64DF512352F978E9724FE0C963184704D7F40A84E2A42B9890A0740F",
+        "path": "uat/v1-control/r23-da237b6-Debug-driver-build.txt",
+        "sha256": "031B53A0E01A621B0D8AAD51886529A90F486E1CCA8118D005430EABD1E1AE6F",
         "bytes": 6148,
-        "kind": "DRIVER_BUILD_TRANSCRIPT",
-        "actual_command_exit_code": 0,
         "configuration": "Debug",
-        "only_existing_C4456_warnings": true,
-        "not_native_function_evidence": true
+        "kind": "driver-build"
       },
       {
-        "path": "uat/v1-control/r21-5cb36bb-Release-driver-build.txt",
-        "sha256": "9B3030E9C0B713BC5584C53F6840446E47CD71BDB1E1CEBBA28A8F4D50C27F33",
-        "bytes": 4968,
-        "kind": "DRIVER_BUILD_TRANSCRIPT",
-        "actual_command_exit_code": 0,
-        "configuration": "Release",
-        "only_existing_C4456_warnings": true,
-        "not_native_function_evidence": true
-      },
-      {
-        "path": "uat/v1-control/r21-5cb36bb-Debug-offline.txt",
-        "sha256": "754F7830EA7F2C3BEAF5A3DED0649376AA35655BA28D7283F4988D8B8A213C92",
+        "path": "uat/v1-control/r23-da237b6-Debug-offline.txt",
+        "sha256": "2F2F770A566C711C5022A9A4470DBE24CAF1179E011C48AB31C8A997E532F822",
         "bytes": 2600,
-        "kind": "OFFLINE_GUESTPATH_TRANSCRIPT",
-        "actual_command_exit_code": 0,
-        "actual_cases_passed": 208,
-        "ctest_passed": 1,
-        "ctest_total": 1,
-        "symlink_test": "SKIP_1314",
-        "not_native_function_evidence": true
+        "configuration": "Debug",
+        "kind": "offline"
       },
       {
-        "path": "uat/v1-control/r21-5cb36bb-Release-offline.txt",
-        "sha256": "C5A6E2B3B16D0AB53364671C900DF4382E7EE609E709AAA3179BCDFD5A3524AD",
+        "path": "uat/v1-control/r23-da237b6-Release-driver-build.txt",
+        "sha256": "1DC4DFAC9D798E1F8AD55473C8BF406796A6FBA34419AFEC2382F20147E9D355",
+        "bytes": 4968,
+        "configuration": "Release",
+        "kind": "driver-build"
+      },
+      {
+        "path": "uat/v1-control/r23-da237b6-Release-offline.txt",
+        "sha256": "3319A91A496ED2AC3BA0158BCB51BC14C4745A0A311F8FAD5A7778E69B767745",
         "bytes": 2604,
-        "kind": "OFFLINE_GUESTPATH_TRANSCRIPT",
-        "actual_command_exit_code": 0,
-        "actual_cases_passed": 208,
-        "ctest_passed": 1,
-        "ctest_total": 1,
-        "symlink_test": "SKIP_1314",
-        "not_native_function_evidence": true
+        "configuration": "Release",
+        "kind": "offline"
       }
     ],
-    "prepared_run_ids": [
-      "b46bd14d92c8407bb5e46a42a2d849dd",
-      "c44270c32dc045bc9ca23d07db10f386",
-      "e86a9a9d4f3346faa6b2b4f126c30aed",
-      "4d3200085048418bb51911e80b2ecc66",
-      "22b2f43bc9bf4c26bdd74a72a16c43a2"
+    "actual_guest_run_ids": [
+      "17f5dc9bd7bf42ef9c64050453ff8c79",
+      "0db8629309204af79067f119888f314d"
     ],
-    "latest_tool_observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
-    "metadata_evidence_path": "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json",
-    "required_revalidation": "原strict SSH已恢复PASS；保留b46及全部历史失败。e86a匹配UP退休/后继Move、c442热键补验及4d32暂停路由已限定复验，不重跑专项或独立900秒。22b2 Full首A两量子exact后实际外来前台撤权、cursor有界不达，根因UNKNOWN，不无证重跑同Full。c899既有OwnedComponentsOnly已完成：visual/inflight/grid/batch子项限定通过；dock角双击与interruption失败，分别缺第二击前实际Prepared及未知前台393232导致撤权，不认定几何根因、不盲重同Full/组件；新便携6e9普通包GUI仍NOT_RUN。Full/真实应用/完整普通桌面/显示/真人门未齐。"
+    "failed_deployment_run_ids": [
+      "d24ccb6c7bf44fd6b9dcb55e058b2bd5"
+    ],
+    "failed_deployment_scope": "Remote suite whitelist incomplete; no guest started. Original attempt retained.",
+    "metadata_evidence_paths": [
+      "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-metadata.json",
+      "docs/reports/v1-evidence/0db8-portable-normal-entry-metadata.json"
+    ],
+    "required_revalidation": "产品247/Release原字节继续复用：da237驱动17f5已实测两调用域终止后拒发MOVE、真实abort清理UP及同PID新Move/Resize；0db8已实测6e9普通ZIP空参数首/二启、中文GUI、设置实际Move效果、NormalUp和正常退出的限定范围。旧22b2/c899 FAIL与未知前台原因不改，不盲重同路线或独立900秒。Full/托盘/全部I12入口/真实应用/普通完整桌面/显示/真人仍未过。2c5诊断通路新产品是另一个待现场候选，不把旧247记录改绑。"
   },
   "observed_driver_e30_fcf": {
     "source_sha": "e30abfe50ff6169e5d903a31a72ba58abaa05508",
@@ -1168,6 +1155,44 @@
     "next_action": "原strict SSH已恢复PASS；保留b46及全部历史失败。e86a匹配UP退休/后继Move、c442热键补验及4d32暂停路由已限定复验，不重跑专项或独立900秒。22b2 Full首A两量子exact后实际外来前台撤权、cursor有界不达，根因UNKNOWN，不无证重跑同Full。c899既有OwnedComponentsOnly已完成：visual/inflight/grid/batch子项限定通过；dock角双击与interruption失败，分别缺第二击前实际Prepared及未知前台393232导致撤权，不认定几何根因、不盲重同Full/组件；新便携6e9普通包GUI仍NOT_RUN。Full/真实应用/完整普通桌面/显示/真人门未齐。"
   },
   "records": [
+    {
+      "id": "EV-17F5-OBSERVED-TERMINATION-MOTION-GUARD",
+      "kind": "native_guest_scope_metadata_and_literal_original_rows",
+      "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "driver_source_sha": "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc",
+      "run_id": "17f5dc9bd7bf42ef9c64050453ff8c79",
+      "excerpt_path": "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-metadata.json",
+      "excerpt_sha256": "FB9F3FBAFEEA2199E0E1E6F1C6FE44B93D8053F4066CFBB03555699C7E5137BB",
+      "literal_excerpt_paths": [
+        "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/17f5-observed-terminal-motion-guard-product-selected.jsonl"
+      ],
+      "literal_excerpt_sha256": [
+        "220D3B530050FE2D1746F8F8C3C2E4688B8A667C5790CD010005758A62B78699",
+        "BC3D7F0DE421E0437B21136F44A5B9D3C3E73097CF882ACD77419DB231A9D411"
+      ],
+      "scope": "实际layout_phase/phase已终止本代拒发后续测试MOVE；真实非NormalUp清理UP及同PID新Move/Resize恢复。工具限定通过，不关闭旧c899/22b2或授整M04/I08。",
+      "feature_or_benchmark_PASS_added": false
+    },
+    {
+      "id": "EV-0DB8-PORTABLE-NORMAL-ENTRY",
+      "kind": "native_guest_scope_metadata_and_literal_original_rows",
+      "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "driver_source_sha": "da237b662d33f0d3ca0fce2ce94a1eb5504f01fc",
+      "run_id": "0db8629309204af79067f119888f314d",
+      "excerpt_path": "docs/reports/v1-evidence/0db8-portable-normal-entry-metadata.json",
+      "excerpt_sha256": "40038B30209AA6E27C95232D9D00FF93FAA7CC144E1ADD2362A12D46F54B653E",
+      "literal_excerpt_paths": [
+        "docs/reports/v1-evidence/0db8-portable-normal-entry-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/0db8-portable-normal-entry-product-selected.jsonl"
+      ],
+      "literal_excerpt_sha256": [
+        "110012D847CCEC271CFA370327E6E11F56D92753C909C14E2AFD8481A5832745",
+        "FB60E92AD1A8D1398860D868246B11AE3D29F1A7EE5FB9177114F4A31ACE5D34"
+      ],
+      "scope": "6e9普通ZIP空参数首启/二启、真实中文GUI、默认与保存后Move效果、两代实际NormalUp及正常退出限定通过；不是托盘/全I12/Full或宿主试用。",
+      "feature_or_benchmark_PASS_added": false
+    },
     {
       "id": "EV-C899-R21-AFFECTED-COMPONENTS",
       "kind": "existing_evidence_metadata_not_literal_JSONL",
@@ -10944,7 +10969,7 @@
       "guest_destruction_not_product_cleanup_PASS": true
     }
   ],
-  "new_candidate_scope_note": "247/5cb同哈希EXE已完成e86a/c442/4d32限定复验。D29已观察GUI误分链闭合：真实NormalUp、零新增调用、g4 exact；未实测在途调用UP后完成，原capture NULL系统原因UNKNOWN。原strict SSH恢复，b46历史部署失败保留。22b2 Full首A两量子exact后外来前台撤权/cursor不达而FAIL，后续Full/900/apps未运行。所有212/745旧身份不换绑，DEV15/60、B7/40不增；c899四项组件限定通过、dock/interruption失败，未增加整功能或B；新便携6e9普通GUI仍NOT_RUN。",
+  "new_candidate_scope_note": "2026-10-21继续复用产品247原EXE，driver da237仅工具改动。17f5已实际通过两调用域终止后拒发MOVE、真实清理UP和同PID后继Move/Resize；0db8已实际通过6e9普通ZIP空参数首/二启、真实中文GUI/设置效果/Move-UP/退出的限定合同。observer分别16/16与9/9且overflow0，未知身份保持UNKNOWN；旧22b2/c899原FAIL与未知前台原因保留，D29仅已观察误分类链关闭。DEV15/B7不增；托盘/完整Full/I12全部入口/真实应用/普通完整桌面/显示/真人未通过。",
   "portable_contract_evaluation": {
     "feature_id": "M12-F03",
     "benchmark_id": "B32",
