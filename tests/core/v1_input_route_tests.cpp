@@ -68,6 +68,22 @@ int main() {
     check(product::route_down(native_down,1,1,0).route==product::DownRoute::Gesture&&native_down.region==0&&
           diagnostic_prepared.source.key==copied.key&&diagnostic_prepared.region==copied.region,
           "diagnostic copy and queue operations do not mutate the existing production route inputs");
+    product::InputEvent native_release;native_release.kind=product::InputKind::NativeMoveReleased;native_release.generation=40;
+    check(product::native_release_requests_preparation(native_release,40,false,true,true),
+          "real early native UP requests fresh preparation after its matching GUI pending slot retires");
+    check(product::native_release_requests_preparation(native_release,0,false,true,true),
+          "START rejection clearing GUI pending before actual release does not lose the fresh preparation request");
+    check(!product::native_release_requests_preparation(native_release,41,false,true,true)&&
+          !product::native_release_requests_preparation(native_release,0,true,true,true)&&
+          !product::native_release_requests_preparation(native_release,0,false,false,true)&&
+          !product::native_release_requests_preparation(native_release,0,false,true,false),
+          "a late release cannot refresh over a newer native/active generation, pending input resources or pause");
+    native_release.kind=product::InputKind::NativeMoveStart;
+    check(!product::native_release_requests_preparation(native_release,0,false,true,true),
+          "native START alone cannot request the early-UP cache retirement repair");
+    native_release.kind=product::InputKind::NativeMoveReleased;native_release.generation=0;
+    check(!product::native_release_requests_preparation(native_release,0,false,true,true),
+          "unknown release generation cannot request this fresh preparation path");
     const auto plain=product::route_down(native_down,1,1,0);
     check(product::native_plain_move_entry(true,native_down,1,1,0,plain)&&
           !product::native_plain_move_entry(false,native_down,1,1,0,plain)&&

@@ -1076,7 +1076,13 @@ void Application::native_move_event(const InputEvent& e){
             ",\"actual_LL_UP_qpc\":"+std::to_string(e.hook_observed_qpc)+
             ",\"up_native_time\":"+std::to_string(e.native_message_time)+
             ",\"normalized_NormalUp\":false,\"new_native_placement\":false");
-        if(native_move&&native_move->down.generation==generation)native_move.reset();return;
+        const bool refresh=native_release_requests_preparation(e,native_move?native_move->down.generation:0,
+            gesture.has_value(),input.native_release_preparation_idle(),settings.enabled);
+        if(native_move&&native_move->down.generation==generation)native_move.reset();
+        // reject() may already have retired this GUI slot. In both orders the
+        // actual UP cleared the hook cache; honor it with one fresh GUI sample.
+        // prepare() keeps every current identity/geometry/foreground/hit gate.
+        if(refresh)prepare();return;
     }
     if(!e.prepared||!e.native_move_receipt)return reject("missing_actual_native_receipt");
     const auto& actual=*e.native_move_receipt;

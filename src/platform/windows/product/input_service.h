@@ -280,6 +280,15 @@ struct InputEvent {
     std::shared_ptr<const Snapshot> handoff_snapshot;
     std::optional<InputAbortObservation> abort_observation;
 };
+// A real early native UP may arrive after START rejection already cleared the
+// GUI pending slot. Refresh the current hover after either retirement order,
+// never by reviving the released Prepared or touching a newer active gesture.
+inline bool native_release_requests_preparation(const InputEvent& event,std::uint64_t gui_pending_generation,
+    bool gui_gesture_active,bool input_idle,bool enabled)noexcept{
+    return event.kind==InputKind::NativeMoveReleased&&event.generation&&
+        (!gui_pending_generation||gui_pending_generation==event.generation)&&
+        !gui_gesture_active&&input_idle&&enabled;
+}
 // Input-owner-only, one real LL MOVE observed while CaptureReady/GUI DOWN
 // publication is pending. Consumed DOWN may retain pending-capture motion;
 // native-first may retain only post-READY motion, never pre-END movement.
@@ -492,6 +501,10 @@ public:
     GestureCaptureLease capture_context(std::uint64_t generation)const;
     bool native_move_pending(std::uint64_t generation)const;
     bool native_move_in_progress()const;
+    bool native_release_preparation_idle()const{
+        return !paused_.load()&&!stop_requested_.load()&&available_->load()&&
+            !authorized_->load()&&!completion_->load()&&!native_move_in_progress();
+    }
     bool request_native_move_isolation(std::uint64_t,const std::shared_ptr<const NativeMoveReceipt>&);
     bool claim_native_move_cancel(std::uint64_t);
     bool request_native_move_capture(std::uint64_t,const std::shared_ptr<const NativeMoveReceipt>&,const Snapshot&);
