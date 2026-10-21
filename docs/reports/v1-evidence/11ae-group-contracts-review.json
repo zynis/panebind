@@ -1,0 +1,184 @@
+{
+  "schema": "panebind-v1-independent-contract-review/1",
+  "evidence_id": "EV-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
+  "kind": "EXISTING_NATIVE_LITERAL_REVIEW_PLUS_ACTUAL_BOUNDED_OFFLINE",
+  "record_date": "2026-10-22",
+  "review_checkout_sha": "9af160311f596a7ce7ef4d1611b43ad601c05438",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "product_EXE_rebuilt": false,
+  "native_identity": {
+    "dfdd": {
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_release_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+      "core_PID": 6280,
+      "layout_PID": 4924,
+      "warning": "Separate original product lifecycles; not retained tail PID1840 and not one-PID Full."
+    },
+    "a9ee": {
+      "run_id": "a9ee4238aa1947a893c28d452a781437",
+      "driver_source_sha": "5e6d65f3802b1981ef8960df10d330042a347d5f",
+      "driver_release_sha256": "9FBADCC7A7D5DFDE7A77EB20BD7AA9630951CE4E4C491485631CEA6E2B1E1810",
+      "product_PID": 3936
+    },
+    "environment": "Medium8192/non-elevated/session1 Sandbox; OS26100.9711/one3050x1668 screen/work3050x1596/DPI144. Not complete ordinary Medium Shell/app/display matrix."
+  },
+  "literals": [
+    {
+      "path": "docs/reports/v1-evidence/11ae-group-contracts-dfdd-selected.jsonl",
+      "sha256": "A1313BFD98906A28B896BCFE37DB492CB6994406DAB19A7F9E99A5E962259282",
+      "raw_source": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-release-fixture.jsonl",
+      "raw_sha256": "4877F35BE5DAC0464D781C4ECC83DE7CDCC124665B749873CB08015C934C0010",
+      "sequences": [
+        66,
+        67,
+        68,
+        69,
+        135,
+        153,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        167,
+        179,
+        180,
+        181,
+        182,
+        189,
+        540,
+        542,
+        543,
+        544,
+        546,
+        547,
+        548,
+        551,
+        552,
+        553,
+        562,
+        564,
+        565,
+        566,
+        569,
+        570,
+        571,
+        792,
+        794,
+        795,
+        796,
+        797,
+        798,
+        799,
+        800,
+        801,
+        802,
+        805,
+        806,
+        807
+      ],
+      "literal_original_lines_verified_ordinal": true
+    },
+    {
+      "path": "docs/reports/v1-evidence/11ae-group-contracts-a9ee-selected.jsonl",
+      "sha256": "08DFFBA99C3187F5297D0D52C25B90B6FAB5201514A266EECC8F92C230CDF9A8",
+      "raw_source": "uat/v1-control/a9ee4238aa1947a893c28d452a781437/collection-20261021T175730251Z-46bc81f2a4854e0a8d9b152d741e98a8/a9ee4238aa1947a893c28d452a781437-product-Release/panebind.log.jsonl",
+      "raw_sha256": "5D3EA7218918D41DCB36F1146CBCEE8B2C103AA9D2090E3D37E1F27EFBD47D6A",
+      "sequences": [
+        377,
+        380,
+        381,
+        382,
+        396
+      ],
+      "literal_original_lines_verified_ordinal": true
+    }
+  ],
+  "contracts": {
+    "M06_F01": {
+      "verdict": "PASS_INDEPENDENT",
+      "L1": "v1_layout_tests.cpp29-42 G05 exact AB/AC/BC, corner-only D exclusion, allsource1/2/3 immutable-origin translation, eight-member negative-coordinate chain; topology_tests.cpp155-226 positive-gap/shallow intrusion tolerance, no inflated corner/near-touch, deep-overlap rejection.",
+      "L2": "Current11ae dfdd D792 actual source7/g15/PID4924/group8; D794 actual Ctrl40,30; D795-802 each actual==independentexpected. D805 one-UP observation is not SendInput-based delivery proof; D806 actual matching-UP andD807 geometry/no-capture checks. Existing2c8 actual GUI exclusion/restoration proves qualification membership changes."
+    },
+    "M06_F02": {
+      "verdict": "PASS_INDEPENDENT",
+      "L1": "Same G05 production solver all A/B/C sources, immutable equal total delta and excluded corner member.",
+      "L2": "Current11ae dfdd PID6280 CtrlA D66-69 andCtrlC D179-182 actual source and member expected-equality checks; a9ee PID3936 P377 g7 B/key11 original[688,230,1128,430], frozen3. P380-382 actual==target keys10/11/12 at same+14,0; P396 actualNormalUp. Whole application matrix is separate."
+    },
+    "M06_F04": {
+      "verdict": "PASS_INDEPENDENT",
+      "L2": "Current11ae dfdd PID6280 D135 actualBResize[414,80,674,288]→A g6 D153/155/157/159/161 actualfree/XY/hold/detach/resnap→D167 actualNormalUp/no-late-geometry→CtrlC g7 D179-182 actual resizedB/current contact group andD189 NormalUp. Existinga9ee BResize/newC hint bounds and2c8 close/exclusion/restore support actual relationship refresh; three-app I02 is not an extra standaloneF04 gate."
+    },
+    "M07_F01": {
+      "verdict": "PASS_INDEPENDENT",
+      "L1": "v1_layout_tests.cpp54-68 fixedG06+80→580, +180 clamp600, opposite source lower350, fixed-size neighbor no-plan and empty min/max interval rejection.",
+      "L2": "Current11ae dfdd PID4924 D540 leftsourceHTRIGHT/g2; D542-544 +80 yields[100,100,580,500]/[580,100,900,500], D546-548 min clamp600 with outer edges fixed; D551-553 oneUP plus matching-UP/geometry/noCapture. D562 rightsourceHTLEFT/g3; D564-566 same split580 andfixedouteredges, D569-571 matching-UP/geometry/noCapture. Earlierdedc failure retains old identity, does not negate currentG06."
+    }
+  },
+  "offline": {
+    "source_files": [
+      {
+        "path": "tests/core/v1_layout_tests.cpp",
+        "sha256": "5776E533DD9F2763B5B0A00AA50DF97DAFDEA27EA8FE29E73BEA88106F951736"
+      },
+      {
+        "path": "tests/core/topology_tests.cpp",
+        "sha256": "D26A675530F7533E66A0C9814E5711C4579A2FB65AD649D156520F02CC282BC1"
+      },
+      {
+        "path": "src/core/v1/layout.h",
+        "sha256": "F0E183643C1174845DF7B22DA14A1FCAB02D127EF68233D6BFEB2BA713862A21"
+      },
+      {
+        "path": "src/core/topology/window_adjacency.h",
+        "sha256": "3E3245FA1D4A38AA2D9BBBF6F90EE0A854BEA86B0C2DE6F95DAB3193B863D11C"
+      }
+    ],
+    "source_diff_basis": "git diff --quiet 11ae..HEAD over these four files returned0; existing shared test/product code unchanged.",
+    "initial_preparation": "First precise D/R CTest: both targets Not Run because EXEs absent in fixture-focused build directory; not assertion failures.",
+    "minimal_build": "cmake --build out/v1-driver-stretch-ready-8384677 --config <Debug|Release> --target panebind-v1-layout-tests panebind-topology-tests --parallel 1",
+    "build_observation": "Concurrent D/R attempts both triggered CMake regeneration in same directory; Debug configure_file reported No such file or directory, Release completed. Serial Debug retry completed. Record observed tool sequence, not a proven product mechanism cause.",
+    "test_command": "ctest --test-dir out/v1-driver-stretch-ready-8384677 -C <Debug|Release> -R '^(v1-layout|topology)$' --output-on-failure",
+    "cmake_ctest_directory": "D:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin",
+    "Debug": {
+      "build_exit0": true,
+      "CTest_exit0": true,
+      "tests": "2/2",
+      "processor_seconds": 0.87,
+      "wall_seconds": 0.9,
+      "layout_sha256": "812BE9B9CC93808D96D6B40B994B9914169A7D630F8E1F36B7D4263B95908717",
+      "topology_sha256": "41FDEB4398E27590A09E0C693A4FEF2868EE10126B516F71330DD9636150988D"
+    },
+    "Release": {
+      "build_exit0": true,
+      "CTest_exit0": true,
+      "tests": "2/2",
+      "processor_seconds": 0.16,
+      "wall_seconds": 0.27,
+      "layout_sha256": "B145AB651D045F43CE0DA676F860F7F951793E628171524861669EB936ED1BE8",
+      "topology_sha256": "AB2FEC2475F94A2C284DA6139D3E9E3410D86ACD6475B554AD834E5D989FAE73"
+    },
+    "scope": "Only these two existing pure offline targets, no product rebuild/source edit/native input/whole CTest/interactive/FixH/stability matrix."
+  },
+  "additional_existing_evidence": [
+    "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+    "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+    "docs/reports/v1-evidence/2c8d-active-settings-metadata.json"
+  ],
+  "limits": {
+    "M06_F03": "NOT_CLOSED_GROUP_OUTER_MAGNET_NATIVE_GAP_NEW_TEST_PENDING",
+    "M07_F02": "NOT_CLOSED_LOWER_HORIZONTAL_SOURCE_AND_FIXED_HEIGHT_NEW_TEST_PENDING",
+    "B08": "NOT_PASS_REQUIRES_M06_F03",
+    "B07": "PASS_FROM_M06_F02",
+    "B09": "PASS_FROM_M07_F01",
+    "whole_modules_and_Full": "NOT_PASS",
+    "ordinary_complete_Medium_Shell_real_apps_displays": "NOT_COMPLETE",
+    "human_UAT": "NOT_RUN",
+    "timing": "Producer/drain order is not common native chronology; separate PIDs/runs never pooled.",
+    "historical_failures": "All original dfdd/a9ee and older verdicts/build identities retained. Expected-only PASS rows are actual equality checks, not fabricated explicit native rectangle fields."
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-CA0E-PUBLIC-SETTINGS-INVALID-DRAFT-AND-VALID-SAVE",
+  "kind": "independent_readonly_review_of_actual_guest_logs",
+  "run_id": "ca0e9355a1be46bdbb2e55fb3db928c7",
+  "suite": "SettingsValidationOnly",
+  "configuration": "Release",
+  "verdict": "PASS_SCOPED_FOUR_GUI_REJECTIONS_AND_SAME_DRAFT_VALID_MOVE",
+  "identity": {
+    "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+    "driver_release_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+    "packaging_head": "9af160311f596a7ce7ef4d1611b43ad601c05438",
+    "zip_sha256": "E31B515A21D63FB0600BAF9487106D7E7E88EA68B9BA8FDA1C3A205EFDC7ECC6",
+    "manifest_sha256": "2628CCEEBDB049A5DA958497243E6342E19A80E05A1C32B3E994119A22A16558",
+    "wsb_sha256": "D75B89DF64916D11F1754BFE82FEFE803CE8E8B12B6E1ABE70741E4BBBD56528",
+    "product_pid": 3904,
+    "product_birth_filetime_decimal": "134370810954341792",
+    "fixture_pid": 3900,
+    "source_thread_id": 6400,
+    "shield_owner_thread_id": 3940,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "environment": "Windows Sandbox; OS26100.9711; single display3050x1668/work3050x1596/DPI144; WinSta0/Default. Not an ordinary complete Shell or application/display-matrix result.",
+    "unchanged_candidate": "Input and collected product EXE hashes independently equal frozen11ae/D389. Product logs are continuous P1..P115, single PID3904. No product restart during the settings component."
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/ca0e9355a1be46bdbb2e55fb3db928c7/collection-20261021T183203517Z-46daa05583f84a498bacb2db7b0a7fa7/ca0e9355a1be46bdbb2e55fb3db928c7-release-fixture.jsonl",
+      "sha256": "0B72F4BE91438DE48F2D4D3E92207D7F4B50FCFDF787B04FA49FE9B6095413AE",
+      "bytes": 193043,
+      "legal_jsonl_rows": 334,
+      "sequence_range": [
+        1,
+        334
+      ],
+      "continuous": true,
+      "FAIL_rows": 0
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/ca0e9355a1be46bdbb2e55fb3db928c7/collection-20261021T183203517Z-46daa05583f84a498bacb2db7b0a7fa7/ca0e9355a1be46bdbb2e55fb3db928c7-product-Release/panebind.log.jsonl",
+      "sha256": "7B2DD7928698D3E29789A8874D79BC57A79BA92A6A68C700EB188A7D40DCD107",
+      "bytes": 140305,
+      "legal_jsonl_rows": 115,
+      "sequence_range": [
+        1,
+        115
+      ],
+      "continuous": true,
+      "single_process_id": 3904
+    },
+    {
+      "producer": "launcher",
+      "path": "uat/v1-control/ca0e9355a1be46bdbb2e55fb3db928c7/collection-20261021T183203517Z-46daa05583f84a498bacb2db7b0a7fa7/ca0e9355a1be46bdbb2e55fb3db928c7-Release-launch.json",
+      "sha256": "24174F09B47DA21EC198F1DF310B69B4A054704F68787873E6052033E912A544",
+      "facts": "Actual suite SettingsValidationOnly; input/actual product hashes equal. Actual Medium/non-elevated fixture/session1. Exit0, descendants0 and forced_test_cleanupfalse alone do not award function or cleanup PASS."
+    },
+    {
+      "producer": "collector",
+      "path": "uat/v1-control/ca0e9355a1be46bdbb2e55fb3db928c7/collection-20261021T183203517Z-46daa05583f84a498bacb2db7b0a7fa7/collection-receipt.json",
+      "sha256": "969269C7B48B02F6F693C5DF95C8EF00675A868CF6ECAC7126CD988026F7013F",
+      "facts": "output_unchanged=true and before/after file inventories agree; collection integrity is not functional PASS."
+    },
+    {
+      "producer": "packager",
+      "path": "uat/v1-sandbox/ca0e9355a1be46bdbb2e55fb3db928c7/package-receipt.json",
+      "facts": "Separate product/driver/packaging identities above; preparation NOT_RUN fields remain historical preparation facts."
+    }
+  ],
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/ca0e-settings-validation-excerpt.jsonl",
+    "sha256": "16A29F652B8EACF4451DC03030A03DF5EA01724B945982C8075501F678993D05",
+    "bytes": 29637,
+    "rows": 48,
+    "driver_source_sequences": [
+      3,
+      4,
+      19,
+      24,
+      116,
+      119,
+      126,
+      127,
+      131,
+      142,
+      145,
+      152,
+      153,
+      157,
+      168,
+      171,
+      178,
+      179,
+      183,
+      194,
+      197,
+      204,
+      205,
+      209,
+      219,
+      233,
+      249,
+      252,
+      255,
+      310,
+      314,
+      322,
+      330,
+      334
+    ],
+    "product_source_sequences": [
+      68,
+      80,
+      85,
+      86,
+      87,
+      88,
+      90,
+      93,
+      95,
+      96,
+      97,
+      98,
+      113,
+      115
+    ],
+    "policy": "Complete original lines, newline normalization only, no reserialization or 64-bit identity conversion. Driver then product are explicitly separate excerpts, not a native common timeline. Selected gaps intentional."
+  },
+  "actual_rejections": {
+    "common": "Same settings HWND197438; public Tab reaches actual Edit (11/14/0/14 real Tab pairs, D116/142/168/194), paired Unicode key input, actual Save activation, exact same-product native modal title PaneBind：设置未更改. No WM_SETTEXT, clipboard, SetFocus or private product parser call substitutes for actual input. Each actual modal is acknowledged through Enter before independent saved-file/draft checks.",
+    "saved_baseline_generation": 3,
+    "saved_baseline_sha256": "06BE6AA93A81F230F3B3B64DEAC01C41D7C5907897605B719D4F3C431784D2C9",
+    "cases": [
+      {
+        "case": "negative_attraction",
+        "value": "-1",
+        "actual_text": "D119",
+        "actual_modal": "D126/D127: 参数超出范围：attraction_dip",
+        "preserved_file_bytes_hash_generation_and_draft": "D131"
+      },
+      {
+        "case": "integer_overflow",
+        "value": "2147483648",
+        "actual_text": "D145",
+        "actual_modal": "D152/D153: 数字格式无效",
+        "preserved_file_bytes_hash_generation_and_draft": "D157"
+      },
+      {
+        "case": "release_equal_attraction",
+        "value": "10",
+        "actual_text": "D171",
+        "actual_modal": "D178/D179: 释放距离必须严格大于吸引距离",
+        "preserved_file_bytes_hash_generation_and_draft": "D183"
+      },
+      {
+        "case": "release_below_attraction",
+        "value": "9",
+        "actual_text": "D197",
+        "actual_modal": "D204/D205: 释放距离必须严格大于吸引距离",
+        "preserved_file_bytes_hash_generation_and_draft": "D209"
+      }
+    ],
+    "repair": "After each rejection the actual draft is repaired to attraction10/release16 but not saved (D141/167/193/219). Original saved bytes/hash/generation3 remain unchanged throughout all four invalid attempts."
+  },
+  "subsequent_valid_user_path": {
+    "same_draft_save": "D233: from the same still-open draft attraction becomes0, actual GUI Save closes it, saved generation advances3->4. The complete parsed settings equals the expected baseline with only attraction/generation changed, and the saved file changes.",
+    "actual_effect": "D249/P85: next actual g1 source key3/sourceHWND262686, original DOWN-based free Move exact[134,83,534,443], not the old attraction10 snapped[140,80,540,440]. P85 records one actual native attempt/success/exact identity and geometry.",
+    "terminal": "D252 only one serial final absolute MOVE plus single UP packet, no standalone-UP replay. P87 actual matching LL UP; P88 actual Raw flags2/QPC358181038; P90 accepted legacy LEFTUP/QPC358188653; P93 actual successful own ReleaseCapture with owner observation known and after0; P95 actual successful detach; P96 actual overlay destruction/hotkey unregister; P98 end0/NormalUp/pending_retired. D255 independently verifies final exact geometry and actual source capture0.",
+    "no_late_write": "Only one g1 native call exists, P85 nativeQPC357851333..357854752 before actual matching UP. P86 queryQPC358179430..358179555 correctly rejects new motion because matching UP already retired authority, await_actual_terminal_receipt=true/new_native_attempt=false, not a false writer failure or synthetic NormalUp. No further placement is recorded.",
+    "restore": "D310 actual original options restored via GUI (generation may advance), frozen product bytes unchanged; D311-313 original exact owned geometry restored. Do not claim settings.ini byte-for-byte restoration across a valid generation increment.",
+    "exit": "D314/D322 component/phase pass, D330 scoped summary, D334 exact owned windows destroyed/product closed. P115 actually reports own hooks/overlay/native worker/visual recovery/input resources/capture/association stopped and no unknown issued completion. Product cleanup is not inferred from driver exit0 or guest destruction."
+  },
+  "M11_F02_contract_mapping": {
+    "exact_contract": "功能开关、磁吸/释放/速度、分区动作、视觉参数及摇动参数验证范围；活动手势固定旧配置。非法负值/溢出/释放小于吸引拒绝并说明；修改后下次手势采用新值；禁用行为即停止新动作。",
+    "bounds_and_explanation": "Current source settings_window.cpp::gather reads every real numeric/check/combo control into a candidate, uses strict number conversion then the same core validate. src/core/v1/settings.h::int_fields covers distance/speed, preview alpha/color, drag/shake alpha and amplitude/reversal/time bounds; validate also constrains eight dock actions and release>attraction. Existing executed L1 v1_settings_tests covers all integer lower/upper boundaries, negative/overflow/release, color overflow, invisible alpha and shake duration rejection. This review reads the implementation/tests; it does not invent a fresh execution or claim every invalid GUI field was entered. ca0e supplies actual native GUI rejection evidence for the four required representative counterexamples.",
+    "next_gesture_parameters": "Same candidate 2432 proves ordinary ZIP/public GUI attraction10->0 and subsequent actual Move+UP, persisted across actual restart; 0a66 D482 actualDPI144 attraction10/release16->15/24px entry/hold/release/reentry, D599 GUI speed1 actual free within attraction and following speed2000 D659 actual snap+UP. ca0e independently proves valid same-rejected-draft next-gesture effect. No unlogged MotionState enum is inferred.",
+    "switches_and_partition_actions": "Use existing actual public GUI/owned routing receipts, including a9ee feedbackfalse suppressing the real overlay while Ctrl motion remains functional; a9ee smart_docking true/ordinary fallback and existing smart on/off, eight-direction action mapping evidence retain their original identities. Disabling global operation/public pause retires authority and no new native operation follows; next accepted gestures use the current enabled policy. This is parameter/routing coverage, not automatic whole docking/glue module or Windows Snap-coexistence PASS.",
+    "visual_and_shake": "Same frozen11ae dfdd actual GUI D5606 saves drag alpha190/shake parameters; D5615 reads actual alpha190 and D5624 NormalUp restores173. D5731 actual GUI saves shake enabled, amplitude24DIP/reversals3/window2000ms/alpha190; D5749 actual first shake tuple190/toptrue and D5784 second173/topfalse; D5766/5801 verify at most one toggle per actual gesture. D5885 restores prior visual options. Existing core common field validation supplies the safe ranges; these positive GUI/native observations supply actual parameter use, not every possible setting combination. System Shake coexistence belongs to the separate M09-F05 contract and remains unclaimed.",
+    "active_old_configuration": "SOURCE_INSPECTED: product_app.cpp::begin copies Settings by value into active.config; motion and finish use state.config. No live reference to the mutable settings object replaces the active snapshot. ACTUAL_PUBLIC_LIFECYCLE: 2c8 P139 retires the current group as Paused before P140 public settings opens; P143/P146 release/detach/Gone; no further old-generation call; save/remove rule affects only subsequent g4/g5. This is the real reachable settings path, not a fabricated active-edit interface. It demonstrates old work is not reinterpreted by new settings, while a new DOWN gets the new policy. A simultaneous in-flight edit that bypasses public retirement is NOT_RUN and is not introduced as a new requirement.",
+    "recommendation": "M11-F02 independent functional DEV may be PASS with this four-invalid-value closure plus the enumerated existing L1/public-settings/same-candidate distance-speed/visual-shake/public-retirement evidence. Do not award it solely because component PASS; do not append tray, all-app or whole-M11 module gates to this independent contract. Whole module/version and matrix gates remain separate.",
+    "evidence_refs": [
+      "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+      "docs/reports/v1-evidence/0a66-remaining-move-metadata.json",
+      "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+      "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+      "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+      "tests/core/v1_settings_tests.cpp",
+      "src/core/v1/settings.h",
+      "src/platform/windows/product/settings_window.cpp",
+      "src/platform/windows/product/product_app.cpp"
+    ]
+  },
+  "history_and_limits": {
+    "mouse_focus": "a9ee and9e56 actual repeated mouse-focus failures remain unchanged/UNKNOWN. ca0e uses independently observed public Tab navigation; it does not locate their root cause or establish a mouse-focus product repair.",
+    "new_product_code": false,
+    "new_runtime_by_this_review": false,
+    "full_suite": "NOT_RUN",
+    "real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "tray": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "whole_version_PASS_inferred": false,
+    "clocks": "Actual native/UP comparisons use explicit QPC from the same guest; JSONL drain/producer order is not native common ordering. No physical display latency is claimed."
+  }
+}

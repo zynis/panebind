@@ -1,0 +1,83 @@
+{
+  "schema": "panebind-v1-independent-contract-review/1",
+  "evidence_id": "EV-11AE-BOUNDED-LOCAL-LOG-AND-DIAGNOSTIC-GATE",
+  "kind": "READONLY_EXISTING_RUNTIME_AND_UNCHANGED_SOURCE_REVIEW_NO_NEW_GUEST",
+  "record_date": "2026-10-22",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "independent_contract": "M12-F01",
+  "verdict": "PASS_INDEPENDENT_NOT_M12_OR_I12",
+  "rotation": {
+    "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+    "directory": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-product-Release",
+    "files": [
+      {
+        "name": "panebind.log.jsonl.1",
+        "bytes": 524556,
+        "sha256": "5620346C6C0A5EF1A2B522238E164C361D17F41855CE33CED9DB86E777DCA328"
+      },
+      {
+        "name": "panebind.log.jsonl",
+        "bytes": 41003,
+        "sha256": "92967804BC05E05E60B81ECEBCCF658928D8A5C2D3CC3B87E8FC9ACE5EF1DA2C"
+      }
+    ],
+    "semantics": "Actual product Log checks size>512*1024 before writing the next complete event, replaces one .1 rotation and continues current file. Actual .1 exceeds512KiB by268 bytes (one event). Not a strict per-file<=512KiB claim; bounded event-boundary rotation, not a driver-reader rotation test."
+  },
+  "ordinary_non_diagnostic": {
+    "run_id": "2432640250344564b4f2ba89287bea81",
+    "metadata": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+    "raw_product": "uat/v1-control/2432640250344564b4f2ba89287bea81/collection-20261021T033539628Z-3f0f92e1531e494b9638e602853645f4/2432640250344564b4f2ba89287bea81-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+    "raw_sha256": "AFCB4E96D7F90E9430F1C086C603314EE8BAFB8F635B77A47484485B7F7AA39C",
+    "rows": 61,
+    "actual_empty_arguments": true,
+    "diagnostic": false,
+    "input_preparation_button_admission_input_button_observed_rows": 0,
+    "raw_mouse_samples": [
+      {
+        "sequence": 22,
+        "generation": 1,
+        "raw_button_flags": 2
+      },
+      {
+        "sequence": 34,
+        "generation": 0,
+        "raw_button_flags": 2
+      },
+      {
+        "sequence": 49,
+        "generation": 2,
+        "raw_button_flags": 2
+      }
+    ],
+    "interpretation": "Three retained raw_mouse rows are actualUP boundary observations only, not persistent cursor trajectory. Existing61-row output has no default window title/document text or full user-path fields; callbacks/readback were not inferred from packet insertion alone."
+  },
+  "default_failure_visibility_reuse": {
+    "original_product_source_sha": "37e5ffce1290f3c8e07056083e42666859eebe0d",
+    "original_product_release_sha256": "658C12B9550F6F699E2A349F36E6560A897530FEA81DF598DA1E3267244CD067",
+    "run_id": "866d2342e2994233a48c8a97106d660f",
+    "evidence": [
+      "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+      "docs/reports/v1-evidence/866-r3-local-export-failure-product-selected.jsonl",
+      "docs/reports/v1-evidence/866-r3-actual-fault-diagnostic.txt"
+    ],
+    "actual": "D711 explicitly no diagnostic flag. P5 actual Chinese failure notice (no fake export success), D719 actual visible native Chinese modal/zero fake package; D728 later recovery export and redaction observed. P6 MessageBoxW return alone is not the visible observation. Preserve the original37e identities; reuse only unchanged local log/notice/export mechanism, not relabel the old EXE as11ae.",
+    "scope": "M12-F02 export failure itself was already closed; not a new requirement/re-run forF01."
+  },
+  "source_review": {
+    "current_product_app_sha256": "6D5443A73792F4DFF4391DC4131BE63689B50FA3B6D423D41A641547C7471B81",
+    "Log_class": "src/platform/windows/product/product_app.cpp145-158: exact current Log class text equals37e Log class; local fs/append only, bounded .1 overwrite; not a network sender.",
+    "callback_boundary": "src/platform/windows/product/input_service.cpp387+ mouse callback and button_diagnostic_ guard: bounded snapshots/queue/posting, not Log::event/ofstream. Application GUI consume drains records later; diagnostic gate is not forcedtrue by this review.",
+    "privacy": "Production default serializers omit title/document contents/full rule paths; existing866 diagnostic file explicitly documents omissions. This is the named contract/source/output review, not a comprehensive privacy/security audit.",
+    "no_source_edits_or_reruns": true
+  },
+  "limits": {
+    "human_UAT": "NOT_RUN",
+    "module_M12": "NOT_PASS",
+    "integration_I12": "NOT_PASS",
+    "ordinary_desktop_and_app_matrix": "NOT_COMPLETE",
+    "not_strict_512KiB": true,
+    "not_core_network_or_telemetry_test": "No product core network API is introduced by Log; no packet capture/network experiment run in this review.",
+    "history": "Original failure/notification/export observations retain original builds and verdicts; current product/portable candidate unchanged."
+  }
+}

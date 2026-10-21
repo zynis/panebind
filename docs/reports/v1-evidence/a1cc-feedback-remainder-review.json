@@ -1,0 +1,195 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-A1CC-SHARED-RESIZE-STROKE-AND-SHIFT-EXPLANATION",
+  "kind": "actual_guest_execution_with_root_readonly_visual_review",
+  "run_id": "a1cc89d6be284368ace910d2195cb567",
+  "configuration": "Release",
+  "suite": "FeedbackRemainderOnly",
+  "verdict": "PASS_SCOPED_SHARED_RESIZE_AND_PUBLIC_SHIFT_EXPLANATION",
+  "identity": {
+    "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+    "driver_release_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+    "packaging_head": "9af160311f596a7ce7ef4d1611b43ad601c05438",
+    "zip_sha256": "140C02490C129FF17E3AEEBE0EE4A520642C15A527939ECDEFDCDBF25FAB3676",
+    "manifest_sha256": "C113DE48B75D9805DBBBDE3C0610BF50578D44F1C7636BE56CD6FC71975EBD0B",
+    "wsb_sha256": "9E9B58F1C9265B505FA0A767C2C9096F21BD1B231D5AC560204166056E539150",
+    "product_pid": 2796,
+    "actual_DPI": 144,
+    "environment": "Dedicated Sandbox; ordinary guarded Medium test product; not a complete ordinary Medium Shell desktop"
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/a1cc89d6be284368ace910d2195cb567/collection-20261021T183412765Z-0d59b2f7ab634bf3b55d71f38e297075/a1cc89d6be284368ace910d2195cb567-release-fixture.jsonl",
+      "sha256": "7549962DD3F6A59DEB479336A2B0FC116E0B0A6423981B3F40717D646B078EDE",
+      "continuous": true,
+      "legal_jsonl": true,
+      "lines": 252,
+      "selected_sequences": [
+        71,
+        72,
+        73,
+        75,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        225,
+        229,
+        230,
+        238,
+        248,
+        252
+      ]
+    },
+    {
+      "path": "uat/v1-control/a1cc89d6be284368ace910d2195cb567/collection-20261021T183412765Z-0d59b2f7ab634bf3b55d71f38e297075/a1cc89d6be284368ace910d2195cb567-product-Release/panebind.log.jsonl",
+      "sha256": "222A5607AE465585B398B86F2E5C4B51B0E496C13BD3FB27FCF9A3D4C8A30E82",
+      "continuous": true,
+      "legal_jsonl": true,
+      "lines": 107,
+      "selected_sequences": [
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        107
+      ]
+    }
+  ],
+  "repository_excerpt": {
+    "path": "docs/reports/v1-evidence/a1cc-feedback-remainder-excerpt.jsonl",
+    "sha256": "FEE3B09BA38625FFB56893A40035B05C7371FA4BBD460A7B5B6874A098CE662D",
+    "literal": true,
+    "rows": 51,
+    "ordering": "Driver selected rows followed by product selected rows. Neither JSONL order nor cross-producer timestamps are a native total order."
+  },
+  "findings": [
+    {
+      "contract": "public Shift explanation",
+      "driver_rows": [
+        71,
+        72,
+        73,
+        75
+      ],
+      "actual": "Exact production page1 Static text includes Shift bypass of magnet/dock/glue and old-configuration gesture semantics; note bounds[977,801,2046,897] inside actual visible page. Escape closes without changing saved configuration.",
+      "screenshot": {
+        "path": "uat/v1-control/a1cc89d6be284368ace910d2195cb567/collection-20261021T183412765Z-0d59b2f7ab634bf3b55d71f38e297075/a1cc89d6be284368ace910d2195cb567-Release-settings-page-1.bmp",
+        "sha256": "F16EE652956E84A709D993628B0F8E7C882296D2E6ECEEC4F3AA975AA2BF14C5",
+        "root_review": "Actually opened with view_image: Chinese Shift explanation fully legible, within page, normal line wrap, no clipped last line. This is an AI screenshot review, not human UAT. Original driver readability_review=NOT_RUN remains unchanged."
+      }
+    },
+    {
+      "contract": "actual shared Resize emphasis",
+      "driver_rows": [
+        147,
+        148,
+        149,
+        150,
+        152,
+        155,
+        156,
+        157
+      ],
+      "product_rows": [
+        60,
+        64,
+        65
+      ],
+      "actual": "g1 Ctrl Resize freezes2 members. Start rectangles A[240,200,700,600]/B[700,200,1100,600]; exact native completions produce A[240,200,740,600]/B[740,200,1100,600]. Actual colored stroke follows x700->740, 5 pixels at DPI144. Neighboring samples differ from ink14120960. Feedback HWND131672 PID2796 has NOACTIVATE/TRANSPARENT/LAYERED, alpha255+color key, HTTRANSPARENT; foreground stays exact source. Own input shield is independently identified; feedback is not inferred from preview."
+    },
+    {
+      "contract": "actual UP and resource exit",
+      "driver_rows": [
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        225,
+        229,
+        230,
+        238,
+        248,
+        252
+      ],
+      "product_rows": [
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        107
+      ],
+      "actual": "Actual matching UP evidence and resource release/detach/Gone precede NormalUp. Shared-line/member hint actually hidden after UP. Original configuration and product bytes restored; exact owned roots closed; product shutdown confirms hooks/overlay/worker/input/capture/association stopped, no unknown native completion."
+    }
+  ],
+  "contract_combination": {
+    "M10_F03": "Independent feature contract can close with prior current11ae/a9ee member A/C source changes, real B Resize relation refresh and public GUI feedback-off observations. No whole-M10/app/display/version PASS is inferred.",
+    "prior_evidence_path": "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+    "unchanged_product": true
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/a1cc89d6be284368ace910d2195cb567/cleanup-receipt.json",
+    "own_guest_pid": 15528,
+    "own_guest_birth_utc": "2026-10-21T18:33:32.7752375Z",
+    "completed_utc": "2026-10-21T18:35:29.6092326Z",
+    "dedicated_guest_exited": true,
+    "task_removed": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "guest_destruction_not_product_cleanup": true
+  },
+  "not_inferred": [
+    "Full Release chain",
+    "real application compatibility",
+    "complete ordinary Medium Shell desktop",
+    "tray",
+    "multiple monitors/mixed DPI",
+    "host trial",
+    "human UAT"
+  ]
+}

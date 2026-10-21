@@ -2,6 +2,17 @@
 
 ## 当前接续：精确恢复、原生应用前置与反馈实证（2026-10-22）
 
+当前集中判定为**生产接线60/60，独立DEV通过30/60，对标14/40＝35%**；产品仍是冻结11ae／528a便携候选，没有为重审证据或工具改动重建产品。以下23/60、20/60是同日较早封存检查点，不覆盖本段。模块、完整整链、五类真实应用、普通完整Medium桌面、真实托盘、多屏／混合DPI及真人门仍未齐，`PARTIAL`，不进入REA。
+
+- [当前原件的四项组合同核对](v1-evidence/11ae-group-contracts-review.json)补入dfdd八窗末成员source、A/C及a9ee真实B source、实际B Resize→A五段→Ctrl C和左右任一source的G06共享竖边／min夹制；结合未改的生产共用G05／topology／G06独立预期，M06-F01/F02/F04、M07-F01及B07/B09闭合。49条dfdd和5条a9ee新literal逐行匹配原件；两批不同PID不拼成单生命周期。仅现有layout／topology离线目标作最小构建与D/R各2/2验证，第一次缺EXE的Not Run和一次并发生成错误／串行恢复如实记录，不当产品失败或新增现场。B08仍依赖尚缺的组外磁吸合同，未抬PASS。
+- [a1cc实际反馈补件](v1-evidence/a1cc-feedback-remainder-review.json)加a9ee已有成员轮廓／关系刷新／可关闭子集，闭合M10-F03：真实Ctrl共享边Resize的5px粗线随x700→740、透传／不激活、两窗exact、实际Raw／legacy UP和正常收尾后隐藏。公开Shift说明的原BMP由root实际打开审阅完整可读；这不是真人UAT，也不改原driver的readability=NOT_RUN。
+- [ca0e实际公开设置](v1-evidence/ca0e-settings-validation-review.json)以真实Tab进入Edit，完成负值、溢出、释放等于／小于吸引的四个中文拒绝、文件／草稿保持，以及同一草稿合法Save后下一代实际Move／UP／资源退出。结合已执行共用字段边界L1及同候选距离／速度／视觉／摇动参数、公开设置先退休旧代的事实，闭合独立M11-F02，不由组件PASS直接推整个模块。旧a9ee／9e56鼠标focus原因仍UNKNOWN，Tab成功不算其根因查明或生产修复。
+- [本地低噪声日志合同](v1-evidence/11ae-local-log-contract-review.json)独立闭合M12-F01：当前dfdd实际`.1=524556B`、current=41003B，写前轮转语义允许一条事件268B超出512KiB，不宣称严格每文件≤512KiB。2432普通无参非诊断实际61行，无详细输入轨迹；原37e／866默认关键失败可见及恢复沿未改机制保留原身份复用。回调不落盘、默认标题／文档／完整路径省略和本地无核心网络发送为所列源码／输出核对，不冒充全面隐私审计或整个M12／I12通过。
+
+新工具源码`bcc8ea8695b91e77e563a61449fd11052d03ee9d`仅补`GroupRemainderOnly`的三个精确手势，D/R构建及guest-path各1/1（231 cases，0.05／0.06秒，symlink子项SKIP1314）、包装124项通过；Debug驱动SHA-256`136FDE148CCAD32B6C8BF2AFEAD93171E256FFECB8B7F0DE0AE0C8481E61790B`、Release驱动`64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A`。当前M06-F03组外磁吸、M07-F02下窗横边source及固定高度邻窗的新增现场补件均**NOT_RUN**；不把入口或构建计成完成。现场待新RunId，不重复八窗／旧G06／Full或900秒专项。实际受测产品11ae／Release `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`始终不换绑。
+
+以下保留同日23/60及更早结果的封存说明。
+
 本节后继同日增量：TEST`984b3c29f63c7d10d968c939de21c4d30de4e6bb`的[固定G03及坐标对称L1](v1-evidence/984b-g03-solver-review.json)实际D/R通过，结合同产品dfdd／0a66原生磁吸链，独立M05-F01/F02与B01–03闭合；[0a76修饰键冻结及新代路由](v1-evidence/0a76-modifier-lock-review.json)实际通过，结合既有G08代际／重复／迟到L1及当前恢复证据闭合M04-F02，**当前23/60、12/40＝30%**。下文20/60是前三批封存检查点，未覆盖本增量。0a76是同PID6404真实Ctrl起手后释放Ctrl／按Shift仍保持原组，真实Raw／legacy UP与资源退出，然后旧follower新普通手势仅单窗、再新Ctrl+Shift原生绕过；没有伪造迟到native LOCATION或idle Raw归因。
 
 [9e56原GUI点击focus失败](v1-evidence/9e56-settings-mouse-focus-metadata.json)保持原FAIL：实际负值`-1`中文拒绝、原文件字节／草稿保留通过；修回10后下一次目标Edit197256的cursor／hit已确认，但前台始终精确设置root197456、actualfocus仍另一Edit197402、capture0。P44／45实际DOWN／UP的`own_consume_decision=false`不等于查明原生focus原因。后续overflow／释放关系／完整合法Save-Move链未完成，不授M11-F02 PASS；新公共真实Tab导航只用于补其余非法值合同，不关闭或掩盖鼠标失败，不增加点击／延时／SetFocus，也不放宽原鼠标断言。产品自己正常退出和客户输入恢复已有回执，与功能FAIL分开；销毁guest不是cleanup证明。

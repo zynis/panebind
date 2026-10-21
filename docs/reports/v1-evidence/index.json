@@ -52,6 +52,66 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
+      "kind": "EXISTING_NATIVE_REVIEW_PLUS_ACTUAL_MINIMAL_OFFLINE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "path": "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+      "sha256": "104AAA2F5B6959F2C221FC378012E0DD15F185774FF6E279ECBCF6797CA86190",
+      "repository_excerpt_paths": [
+        "docs/reports/v1-evidence/11ae-group-contracts-dfdd-selected.jsonl",
+        "docs/reports/v1-evidence/11ae-group-contracts-a9ee-selected.jsonl"
+      ],
+      "repository_excerpt_sha256": [
+        "A1313BFD98906A28B896BCFE37DB492CB6994406DAB19A7F9E99A5E962259282",
+        "08DFFBA99C3187F5297D0D52C25B90B6FAB5201514A266EECC8F92C230CDF9A8"
+      ],
+      "result": "PASS_INDEPENDENT_M06_F01_F02_F04_M07_F01_B07_B09",
+      "scope": "Currentdfdd eight-member exact/source7, A/C group, actual Resize-A-CtrlC and both-source verticalG06, a9ee B-group actual; G05/topology/G06 existing shared L1 D/R2/2 actual. B08/F03/F02-horizontal still incomplete; not whole modules/apps/displays."
+    },
+    {
+      "id": "EV-A1CC-SHARED-RESIZE-STROKE-AND-SHIFT-EXPLANATION",
+      "run_id": "a1cc89d6be284368ace910d2195cb567",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "driver_binary_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+      "path": "docs/reports/v1-evidence/a1cc-feedback-remainder-review.json",
+      "sha256": "D5DDC045423B5AD8778BBD57A121A36E3FB909787249BF198029F0F2826D4ECF",
+      "repository_excerpt_path": "docs/reports/v1-evidence/a1cc-feedback-remainder-excerpt.jsonl",
+      "repository_excerpt_sha256": "FEE3B09BA38625FFB56893A40035B05C7371FA4BBD460A7B5B6874A098CE662D",
+      "result": "PASS_INDEPENDENT_M10_F03_WITH_EXISTING_A9EE",
+      "scope": "Actual shared Resize5px stroke x700->740/passthrough/noactivate/exacttwo/realUP/cleanup and visible publicShift note; root AI openedBMP legibility review is not humanUAT, driver readabilityNOT_RUN retained."
+    },
+    {
+      "id": "EV-CA0E-PUBLIC-SETTINGS-INVALID-DRAFT-AND-VALID-SAVE",
+      "run_id": "ca0e9355a1be46bdbb2e55fb3db928c7",
+      "configuration": "Release",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
+      "driver_binary_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+      "path": "docs/reports/v1-evidence/ca0e-settings-validation-review.json",
+      "sha256": "E8141968E8719BC2951016F4F56AC1DCECFE3C062D315402D230D334A59C72E7",
+      "repository_excerpt_path": "docs/reports/v1-evidence/ca0e-settings-validation-excerpt.jsonl",
+      "repository_excerpt_sha256": "16A29F652B8EACF4451DC03030A03DF5EA01724B945982C8075501F678993D05",
+      "result": "PASS_INDEPENDENT_M11_F02_WITH_ENUMERATED_L1_AND_CURRENT_PARAMETER_EVIDENCE",
+      "scope": "Actual publicTab fourChinese invalid-value modals preserving savedfile/draft, same-draft validSave and subsequentexactfreeMove/actualUP/cleanup; sharedL1allbounds/currentdistance-speed/visual-shake/publicPause oldconfig retirement. OriginalmousefocusfailureUNKNOWN notfixed."
+    },
+    {
+      "id": "EV-11AE-BOUNDED-LOCAL-LOG-AND-DIAGNOSTIC-GATE",
+      "kind": "READONLY_EXISTING_CURRENT_AND_UNCHANGED_HISTORICAL_PATH_REVIEW",
+      "run_id": "2432640250344564b4f2ba89287bea81",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "path": "docs/reports/v1-evidence/11ae-local-log-contract-review.json",
+      "sha256": "E02FD3CCE4C2C8AF0897CEA3E9E5875133F086BF09E8C507E14ADE8C772556AF",
+      "result": "PASS_INDEPENDENT_M12_F01",
+      "scope": "Actualdfdd rotation .1=524556/current41003 (oneevent268B over512KiB, notstrict cap), ordinary2432 diagnosticfalse61rows, unchanged37e/866 defaultChinese failure notice/visiblemodal/recovery with oldidentity retained; localonly/sourcecallbackIOseparation/defaultomissions, notcomprehensiveprivacy audit."
+    },
+    {
       "id": "EV-A575-REVOKED-PAIR-AND-CAPTURE-LOSS-RECOVERY",
       "run_id": "a57559cc776f4fe98405c892a39554c0",
       "configuration": "Release",
@@ -120,12 +180,12 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
-  "next_driver_validation": "984b test-only driver Debug/Release builds PASS; affected guest-path and magnet CTest2/2PASS each (231guest-path/2706magnet checks, symlink SKIP1314); packaging124checks PASS. Product11ae/portable528a unchanged. New public-Tab settings and remaining-feedback scenes NOT_RUN at this checkpoint; RunIds assigned by subsequent packager. Prior47e actual9e56 settings mouse-focus FAIL retained/root cause UNKNOWN,0a76 modifier lock and fresh routes PASS closes independent M04-F02; TEST984b G03 plus current native evidence closes M05-F01/F02/B01-B03. Current23/60,12/40=30%. Earlier382/a575,382/8ffa,5e6/a9ee retain actual identities; historical Sandbox refusal is not current runtime state. No whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
+  "next_driver_validation": "bcc8 test-only GroupRemainderOnly three gestures: D/R buildPASS, guest-path1/1PASS each231cases/0.05-0.06s, symlinkSKIP1314, packaging124PASS; native scene NOT_RUN. Current30/60,14/40=35%. Actual984/ca0e invalid draft/publicTab and984/a1cc sharedResizeStroke/Shift explanation close independent M11-F02/M10-F03 with enumerated existing evidence; old9e56/a9ee mousefocus failures UNKNOWN retained. Currentdfdd/a9ee plus actual unchanged sharedlayout/topology L1 close fourgroup contracts/B07/B09; M12F01 localLog closes independently. Product11ae/portable528a unchanged; not modules/Full/apps/displays/human PASS. All older runtime/binary identities retained.",
   "next_driver_binary_identity": {
-    "source_sha": "984b3c29f63c7d10d968c939de21c4d30de4e6bb",
-    "debug_sha256": "95CD3371311337235F907A297661C9E4D201B5BC54987902E68F73E1F91839EE",
-    "release_sha256": "3E446A92C50B6FDC1E5117C1036CBBC5EB26768BD62445FAA97DEC63F2AE3DE3",
+    "source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
+    "debug_sha256": "136FDE148CCAD32B6C8BF2AFEAD93171E256FFECB8B7F0DE0AE0C8481E61790B",
+    "release_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
     "next_run_ids": "TO_BE_ASSIGNED_BY_PACKAGER_NOT_RUNTIME_EVIDENCE",
     "native_runtime": "NOT_RUN_AT_CHECKPOINT_NOT_BUILD_PASS"
   },
