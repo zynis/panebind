@@ -81,7 +81,11 @@ LowerMessageFacts lower_facts_window_messages(State& s,Frame& frame,const char* 
     for(unsigned n=0;n<count;++n){const auto& fact=buffer.receipts[n];if(!fact.published.load(std::memory_order_acquire))continue;
         ++result.published;const auto& position=fact.position;
         const bool exact=fact.hwnd==frame.hwnd&&position.hwnd==frame.hwnd&&fact.tid==owner;
-        const bool lower=exact&&position.hwndInsertAfter==HWND_BOTTOM&&(position.flags&(SWP_NOMOVE|SWP_NOSIZE))==(SWP_NOMOVE|SWP_NOSIZE)&&
+        // Windows may normalize the API's HWND_BOTTOM pseudo-handle to the
+        // actual predecessor before delivering WINDOWPOS. These messages only
+        // prove an exact owned z-order notification, never the API argument or
+        // successful Lower; the independent native receipt remains required.
+        const bool lower=exact&&(position.flags&(SWP_NOMOVE|SWP_NOSIZE))==(SWP_NOMOVE|SWP_NOSIZE)&&
             !(position.flags&SWP_NOZORDER);
         if(lower&&fact.message==WM_WINDOWPOSCHANGING)++result.lower_changing;
         if(lower&&fact.message==WM_WINDOWPOSCHANGED)++result.lower_changed;
@@ -95,7 +99,7 @@ LowerMessageFacts lower_facts_window_messages(State& s,Frame& frame,const char* 
             ",\"live_after\":"+(fact.live_after?"true":"false")+",\"previous_before\":"+lower_facts_hwnd(fact.previous_before)+
             ",\"next_before\":"+lower_facts_hwnd(fact.next_before)+",\"previous_after\":"+lower_facts_hwnd(fact.previous_after)+
             ",\"next_after\":"+lower_facts_hwnd(fact.next_after)+",\"exact_fixture_owner\":"+(exact?"true":"false")+
-            ",\"lower_parameter_observed\":"+(lower?"true":"false")+",\"parameters_modified_by_observer\":false,\"DefWindowProc_preserved\":true");
+            ",\"z_order_notification_observed\":"+(lower?"true":"false")+",\"API_insertAfter_not_inferred_from_message\":true,\"parameters_modified_by_observer\":false,\"DefWindowProc_preserved\":true");
     }
     s.log.emit("lower_facts_owned_WINDOWPOS_summary","\"role\":"+quote(role)+",\"slot_limit\":16,\"claimed\":"+std::to_string(claimed)+
         ",\"published\":"+std::to_string(result.published)+",\"complete_without_overflow\":"+(result.complete?"true":"false")+
@@ -149,10 +153,19 @@ LowerMessageFacts lower_facts_window_messages(State& s,Frame& frame,const char* 
             e::unique_value(receipt,"\"native_attempted\":")=="true"&&e::unique_value(receipt,"\"native_completion_known\":")=="true"&&
             e::unique_value(receipt,"\"native_succeeded\":")=="true";
         const bool bottom=e::unique_value(receipt,"\"bottom_observed\":")=="true";
+        const bool lower_observed=e::unique_value(receipt,"\"lower_observed\":")=="true";
+        const HWND actual_next=GetWindow(source,GW_HWNDNEXT),actual_shell=GetShellWindow();
+        const bool raw_tail=bottom&&!actual_next&&after.rows==1&&
+            e::quoted(receipt,"\"reason\":","lower_native_bottom_observed");
+        const bool shell_tail=!bottom&&actual_shell&&actual_next==actual_shell&&actual_shell!=source&&
+            IsWindow(actual_shell)&&GetAncestor(actual_shell,GA_ROOT)==actual_shell&&
+            GetWindow(actual_shell,GW_HWNDPREV)==source&&!GetWindow(actual_shell,GW_HWNDNEXT)&&after.rows==2&&
+            e::unique_value(receipt,"\"shell_desktop_tail_observed\":")=="true"&&
+            e::quoted(receipt,"\"reason\":","lower_native_shell_desktop_tail_observed");
         const bool unchanged=set.owns(0)&&set.owns(1)&&visible(source)==initial&&visible(other_hwnd)==other&&
             geometry_history_positioning(source)==source_position&&geometry_history_positioning(other_hwnd)==other_position;
-        const bool semantic=native_completed&&bottom&&e::quoted(receipt,"\"reason\":","lower_native_bottom_observed")&&
-            after.complete&&after.links_stable&&after.source_seen&&!after.other_seen&&GetWindow(source,GW_HWNDNEXT)==nullptr&&unchanged;
+        const bool semantic=native_completed&&lower_observed&&(raw_tail||shell_tail)&&
+            after.complete&&after.links_stable&&after.source_seen&&!after.other_seen&&unchanged;
         s.log.emit("lower_facts_one_command_outcome","\"actual_lower_result\":"+quote(receipt)+",\"actual_command\":"+quote(command)+
             ",\"command_before_qpc\":"+std::to_string(before_command_qpc)+",\"command_observed_after_qpc\":"+std::to_string(after_command_qpc)+
             ",\"actual_Lower_dispatches\":"+std::to_string(commands)+",\"actual_Lower_results\":"+std::to_string(lower_results)+
@@ -165,10 +178,10 @@ LowerMessageFacts lower_facts_window_messages(State& s,Frame& frame,const char* 
         s.log.check("lower_facts_actual_native_call_and_passive_message_evidence",native_completed&&commands==1&&lower_results==1&&
             source_messages.complete&&other_messages.complete&&source_messages.lower_changing&&source_messages.lower_changed,
             "\"actual_lower_result\":"+quote(receipt)+",\"window_message_does_not_replace_API_completion\":true");
-        // Deliberately nonzero on the original semantic rejection. Gathering
-        // better facts cannot turn bottom=false into a successful tool run.
+        // Require the corrected product postcondition and an independent
+        // actual tail observation; collecting facts alone is not a PASS.
         s.log.check("lower_facts_existing_production_semantic_contract",semantic,"\"actual_lower_result\":"+quote(receipt)+
-            ",\"production_bottom_false_retained_as_failure\":true,\"human_UAT\":\"NOT_RUN\"");
+            ",\"raw_bottom_not_rewritten\":true,\"no_intervening_node_filtered\":true,\"human_UAT\":\"NOT_RUN\"");
     }catch(...){set.frames[0].window_positions.enabled=false;set.frames[1].window_positions.enabled=false;
         try{if(!set.closed)set.close();}catch(...){}throw;}
 }

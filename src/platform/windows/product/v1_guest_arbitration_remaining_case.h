@@ -168,9 +168,9 @@ void owned_arbitration_remaining_case(State& s){
             "\"actual_TEST_key_chord_helper_returned\":true,\"IPC_or_WM_HOTKEY_injection\":false,\"direct_WM_HOTKEY_receipt_not_claimed\":true,"+
             "\"chord_before_QPC\":"+std::to_string(trigger.QuadPart)+",\"expected_center\":"+rect(centered)+
             ",\"actual_old_end\":"+quote(ended)+",\"actual_command\":"+quote(command)+",\"actual_native_receipt\":"+quote(receipt));
-        unsigned command_calls{},command_rows{},late{},unknown{};
+        unsigned command_calls{},command_rows{},late{},unknown{},recovery_calls{};std::uint64_t recovery_generation{};
         const auto audit=[&]{
-            command_calls=command_rows=late=unknown=0;std::string row;std::istringstream rows(product_log_since(s,command_mark));
+            command_calls=command_rows=late=unknown=recovery_calls=0;std::string row;std::istringstream rows(product_log_since(s,command_mark));
             while(std::getline(rows,row)){
                 if(remaining_group_receipt(s,row,"command"))++command_rows;
                 if(!remaining_group_receipt(s,row,"placement")||e::unique_value(row,"\"native_callsite_claimed\":")!="true")continue;
@@ -178,26 +178,79 @@ void owned_arbitration_remaining_case(State& s){
                 if(generation==0){++command_calls;if(e::number(row,"\"key\":")!=key_id||!e::quoted(row,"\"intent_reason\":","command"))++unknown;}
                 else if(generation==g.generation){const auto clock=e::number(row,"\"native_before_qpc\":");
                     if(!clock||!*clock)++unknown;else if(*clock>=static_cast<std::uint64_t>(trigger.QuadPart))++late;}
+                else if(recovery_generation&&generation==recovery_generation){++recovery_calls;
+                    if(e::number(row,"\"key\":")!=key_id||!e::quoted(row,"\"intent_reason\":","group_translation")||
+                       e::unique_value(row,"\"identity_valid\":")!="true"||e::unique_value(row,"\"exact\":")!="true")++unknown;}
                 else ++unknown;
             }
         };
         // A real terminal key command does not imply mouse UP. Observe the
-        // unique TEST cleanup UP in the aborted-generation LL/status contract.
+        // one already-planned TEST UP at a passive guest hook as well. Keep
+        // the product's stricter LL/status result literally separate: after
+        // abort/Gone, idle Raw or a guest-hook UP never becomes old NormalUp.
+        GuestUpHookObservation cleanup_head;
+        s.log.check("arbitration_remaining_single_cleanup_UP_guest_observer_ready",cleanup_head.start(),
+            "\"old_generation\":"+std::to_string(g.generation)+",\"product_authority_or_UP_receipt\":false");
         button(s,false);key(s,VK_CONTROL,false);const auto cleanup=abort_cleanup_up_receipt(s,g.offset,g.generation);
+        const bool head_stopped=cleanup_head.stop();const auto head=cleanup_head.json();
+        const bool guest_up=head_stopped&&s.left_up_attempted&&s.left_up_send_qpc&&
+            e::unique_value(head,"\"snapshot_coherent\":")=="true"&&e::unique_value(head,"\"observation_final\":")=="true"&&
+            e::unique_value(head,"\"installed\":")=="true"&&e::unique_value(head,"\"CallNext_returned\":")=="true"&&
+            e::number(head,"\"actual_left_UP_callbacks\":")==1&&e::number(head,"\"last_qpc\":").value_or(0)>=s.left_up_send_qpc&&
+            e::number(head,"\"last_extra_information\":")==0x50425631&&
+            (e::number(head,"\"last_flags\":").value_or(0)&LLMHF_INJECTED);
+        s.log.emit("arbitration_remaining_unique_abort_UP_observations",
+            std::string("\"old_generation\":")+std::to_string(g.generation)+",\"single_planned_UP_send_before_qpc\":"+
+            std::to_string(s.left_up_send_qpc)+",\"actual_guest_head\":"+head+
+            ",\"single_tagged_guest_hook_UP_observed\":"+(guest_up?"true":"false")+
+            ",\"observer_stop_confirmed\":"+(head_stopped?"true":"false")+
+            ",\"product_LL_cleanup_UP_observed\":"+(cleanup.matched?"true":"false")+","+cleanup.json()+
+            ",\"guest_hook_is_not_product_or_window_UP_receipt\":true,\"old_generation_NormalUp_inferred\":false,\"extra_cleanup_UP_sent\":false");
         const auto status=geometry_history_status(s);audit();GUITHREADINFO gui{sizeof(gui)};
-        s.log.check("arbitration_remaining_single_command_old_generation_retired_real_abort_UP",cleanup.matched&&
+        s.log.check("arbitration_remaining_single_command_retired_actual_guest_abort_UP",guest_up&&
             command_calls==1&&command_rows==1&&!late&&!unknown&&gone_valid(actual_gone(g))&&
             GetGUIThreadInfo(set.thread,&gui)&&!gui.hwndCapture&&!gui.hwndMoveSize&&
             set.owns(0)&&set.owns(1)&&visible(set.frames[0].hwnd)==centered&&visible(set.frames[1].hwnd)==moved[1]&&!s.left&&!s.control,
             std::string("\"old_generation\":")+std::to_string(g.generation)+",\"command_native_calls\":"+std::to_string(command_calls)+
             ",\"command_rows\":"+std::to_string(command_rows)+",\"new_old_generation_native_calls\":"+std::to_string(late)+
             ",\"unknown_calls\":"+std::to_string(unknown)+",\"cleanup_UP_is_NormalUp\":false,\"actual_status\":"+quote(status)+","+
-            cleanup.json()+",\"actual_gone\":"+quote(actual_gone(g)));
+            cleanup.json()+",\"actual_gone\":"+quote(actual_gone(g))+
+            ",\"actual_guest_hook_UP_observed\":"+(guest_up?"true":"false")+",\"product_LL_observation_gap_not_relabelled\":true");
+        // No reset, product restart, extra old UP or preparation-delay retry.
+        // The normal subsequent operation must start from actual Center output
+        // and prove new authority, actual NormalUp and ordinary client pairing.
+        chain_check_product(s,pid,birth);const auto following=layout_down(set,0,HTCAPTION,false);
+        recovery_generation=following.generation;const auto following_start=record(s,following.offset,"gesture_start",following.generation);
+        s.log.check("arbitration_remaining_after_command_actual_fresh_plain_route",following.generation>g.generation&&
+            remaining_group_receipt(s,following_start,"gesture_start")&&e::number(following_start,"\"key\":")==key_id&&
+            e::unique_value(following_start,"\"ctrl\":")=="false"&&e::unique_value(following_start,"\"resize\":")=="false"&&
+            e::number(following_start,"\"group_members\":")==1&&
+            following_start.find("\"original\":"+rect(centered)+",")!=following_start.npos,
+            "\"old_generation\":"+std::to_string(g.generation)+",\"actual_new_START\":"+quote(following_start)+
+            ",\"product_restarted_or_layout_reset\":false");
+        const std::vector<Rect> recovered{translated(centered,24,17),moved[1]};
+        layout_phase(set,0,following,24,17,recovered,"arbitration_remaining_after_command_fresh_Move_exact");
+        exact_native_count(following,1);layout_up(set,following,recovered);
+        const auto following_end=record(s,following.offset,"gesture_end",following.generation);
+        s.log.check("arbitration_remaining_following_actual_NormalUp_and_resources",remaining_group_receipt(s,following_end,"gesture_end")&&
+            e::number(following_end,"\"end\":")==static_cast<unsigned>(v::End::NormalUp)&&
+            e::unique_value(following_end,"\"normal_up\":")=="true"&&gone_valid(actual_gone(following))&&no_discrete(following),
+            "\"actual_new_end\":"+quote(following_end)+",\"actual_new_gone\":"+quote(actual_gone(following))+
+            ",\"old_aborted_generation_NormalUp_inferred\":false");
+        pause_routing_client_pair(set,"arbitration_remaining_after_command_fresh_native_client_DOWN_UP");
+        audit();s.log.check("arbitration_remaining_after_recovery_no_old_generation_or_extra_command",command_calls==1&&
+            command_rows==1&&recovery_calls==1&&!late&&!unknown&&set.owns(0)&&set.owns(1)&&
+            visible(set.frames[0].hwnd)==recovered[0]&&visible(set.frames[1].hwnd)==recovered[1],
+            "\"old_generation\":"+std::to_string(g.generation)+",\"recovery_generation\":"+std::to_string(recovery_generation)+
+            ",\"command_native_calls\":"+std::to_string(command_calls)+",\"command_rows\":"+std::to_string(command_rows)+
+            ",\"recovery_native_calls\":"+std::to_string(recovery_calls)+",\"new_old_generation_calls\":"+std::to_string(late)+
+            ",\"unknown_calls\":"+std::to_string(unknown));
         chain_check_product(s,pid,birth);const auto saved=chain_gui_save(s,original);auto expected_config=original;
         expected_config.generation=saved.generation;s.log.check("arbitration_remaining_original_GUI_and_product_bytes_restored",saved==expected_config&&hash(s.product)==binary);
         s.log.check("arbitration_remaining_exact_test_windows_closed",set.close());chain_check_product(s,pid,birth);
         s.log.emit("arbitration_remaining_component",std::string("\"result\":\"PASS_SCOPED_THREE_COMPETING_MODE_CASES\",")+
             "\"Ctrl_magnet_docking_edge\":\"PASS\",\"plain_magnet_dock_unique_UP\":\"PASS\",\"active_Ctrl_nonstop_hotkey\":\"PASS\","+
+            "\"aborted_generation_UP_scope\":\"actual_test_guest_hook_not_product_or_NormalUp\",\"following_plain_Move_and_native_client_pair\":true,"+
             "\"prior_modifier_pause_settings_cases_replayed\":false,\"real_applications\":\"NOT_RUN\",\"human_UAT\":\"NOT_RUN\",\"whole_version_PASS\":false");
     }catch(...){
         pause_routing_failed_case_input(s);
