@@ -52,6 +52,36 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "path": "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+      "sha256": "335D7AAAC9E28F9AAF22ECE66CBADB93613126E4D630AABE443919BD30B08A8B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl",
+      "repository_excerpt_sha256": "FACD30C9DDCE606DB1EBCCE8F4B845C971EFEAD43AADEF4A4A094A15C8BDBD0B",
+      "result": "PASS_INDEPENDENT_M08_F02_AND_B14_WITH_ORIGINAL_SCOPED_EVIDENCE",
+      "scope": "Actual04ff defaultTop preview/held-notmax/unique realUP/actualIsZoomed showCmd3/release-detach-Gone/NormalUP and zero late continuous placement. Combine original dfdd/d8a3/3141 and existing M11F02 for independent M08F02/B14, not whole M08/V1 or new ordinary package."
+    },
+    {
+      "id": "EV-7117-SESSION-NOTIFICATION-INTERRUPTION-RECOVERY",
+      "run_id": "71177bf53f0248c0a15647de93700761",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "path": "docs/reports/v1-evidence/7117-session-interruption-review.json",
+      "sha256": "E95CDB67B015B4B59647AA92D378EC7657C61536BB37C8BC15A9368E2E07BF04",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl",
+      "repository_excerpt_sha256": "8FB38725923B0DC29F5751F37E6EE9180AAED725EA86001223F57DBE3069FD37",
+      "result": "PASS_SCOPED_TEST_SESSION_NOTIFICATION_AND_SAME_INSTANCE_RECOVERY",
+      "scope": "Actual04ff exact product owner/session TEST LOCK notification causes End5/nonNormal/retirement/real independent release-detach-Gone/zero late old writes; unique cleanupUP and one TEST UNLOCK followed by samePID actual fresh Move/Resize/NormalUP and normal shutdown. Not actual OS lock/unlock; Queue/callback exits still NOT_RUN, no complete M04F04."
+    },
+    {
       "id": "EV-3141-RESTORE-MAXIMIZED-AND-REAL-NATIVE-SNAP",
       "run_id": "31411e84c6f34c27b66a6da2a0135d79",
       "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",

@@ -1,0 +1,314 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+  "review_date": "2026-10-22",
+  "run_id": "3c21a4936a0543459b1aa46432d04525",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_INDEPENDENT_NATIVE_CONTRACT_REVIEW",
+  "suite": "NativeTopDropOnly",
+  "configuration": "Release",
+  "actual_result": "PASS_SCOPED_DEFAULT_TOP_PREVIEW_UNIQUE_REAL_UP_ACTUAL_MAXIMIZE_AND_CLEANUP",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+  "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+  "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+  "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+  "packaging_head": "882b0c4c3f0950c9fb5187998c197b71bf60082b",
+  "product_PID": 3676,
+  "product_birth_filetime_decimal_string": "134370950242148379",
+  "fixture_PID": 6340,
+  "fixture_owner_TID": 6344,
+  "fixture_driver_TID": 3668,
+  "fixture_birth_filetime_decimal_string": "134370950239858307",
+  "source_HWND": 197420,
+  "source_key": 4,
+  "shield_HWND": 524904,
+  "shield_owner_TID": 3944,
+  "identity_precision": "Raw JSONL is literal, never reserialized; 64-bit FILETIME identities above are decimal strings copied from D17/D24, not floating-point values.",
+  "environment": {
+    "environment_id": "E02",
+    "actual_integrity": "Medium RID8192/non-elevated",
+    "actual_session": 1,
+    "input_desktop": "WinSta0/Default; input/owner UOI_IO true",
+    "WTS_state": 0,
+    "driver_actual_thread_PMV2": true,
+    "DPI_set_attempt": "D14 Set failed/error5 but independently queried actual PMV2=true; not a failed DPI-context claim",
+    "numeric_DPI": "NOT_SERIALIZED_IN_SELECTED_ENDPOINT_FACTS",
+    "virtual_screen": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "physical_host_or_ordinary_full_desktop_or_real_application_inferred": false
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/collection-20261021T222429361Z-abf04fa5228d45a8b5def25e11426931/3c21a4936a0543459b1aa46432d04525-release-fixture.jsonl",
+      "sha256": "4503CAF214A06DC036F1FFD24907EC81E32FE00254BE4153CC1DB79D227A8E06",
+      "bytes": 142425,
+      "rows": 253,
+      "sequence_first": 1,
+      "sequence_last": 253,
+      "all_rows_legal_JSON": true,
+      "sequence_contiguous": true,
+      "source_SHA_set": [
+        "935c9aa7e8ce7d26bb4e55abe59be115280f57e0"
+      ],
+      "product_PID_set": [],
+      "FAIL_rows": 0
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/collection-20261021T222429361Z-abf04fa5228d45a8b5def25e11426931/3c21a4936a0543459b1aa46432d04525-product-Release/panebind.log.jsonl",
+      "sha256": "EBDD18E07FD2C9CE8EE66B5FB377367C080408677E0C2AE50BA71BF04CECD40C",
+      "bytes": 152189,
+      "rows": 122,
+      "sequence_first": 1,
+      "sequence_last": 122,
+      "all_rows_legal_JSON": true,
+      "sequence_contiguous": true,
+      "source_SHA_set": [
+        "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96"
+      ],
+      "product_PID_set": [
+        "3676"
+      ],
+      "FAIL_rows": 0
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl",
+    "sha256": "FACD30C9DDCE606DB1EBCCE8F4B845C971EFEAD43AADEF4A4A094A15C8BDBD0B",
+    "bytes": 46728,
+    "rows": 68,
+    "driver_sequences": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+      24,
+      132,
+      133,
+      134,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      227,
+      230,
+      231,
+      241,
+      248,
+      249,
+      250,
+      252,
+      253
+    ],
+    "product_sequences": [
+      3,
+      53,
+      56,
+      57,
+      58,
+      59,
+      60,
+      62,
+      63,
+      64,
+      65,
+      70,
+      71,
+      72,
+      73,
+      75,
+      78,
+      80,
+      81,
+      82,
+      83,
+      84,
+      121,
+      122
+    ],
+    "literal_lines_not_reserialized": true,
+    "layout": "Driver original rows then product original rows. This is an excerpt layout, not a common native timeline."
+  },
+  "scoped_configuration": "Actual guarded TEST public GUI config disables magnet_move/magnet_resize/glue/stretch/feedback/drag transparency/shake and enables docking/preview. Top action is never changed by this case; actual driver935 checks both original settings Top and default_settings Top are Maximize. D132 actual GUI save; D143/D148 bind default_top_action Maximize; D227 actual original GUI and frozen EXE restoration.",
+  "native_review": {
+    "actual_plain_entry": "D134 independent source visible[200,160,600,460]. D137 exact source foreground. D139 one real LEFTDOWN, P53 original point[210,169]/single left/mods0 with no writer authority. D140/141 only one TEST threshold MOVE[215,169] starts native loop; not a manufactured START.",
+    "handoff": "P56 actual native START(owner_seq1/native33515); P57 actual isolationready; P58 one actual100ms bounded cancel APItrue; P59 actual END(owner_seq2/native33546); P60 actual END accepted with no placement; P62 real association/P63 actual capture524904. D142 source PID6340/TID6344 and exact product capture binding. P65 plain nonResize/nonCtrl g1/key4/original[200,160,600,460], no native restore/arranged state.",
+    "held_move_and_preview": "D144 actual cursor[1525,1], independent total delta1315,-168 from originalDOWN[210,169] requires[1515,-8,1915,292]. P70 single native placement/call1 actualTRUE/known/exact/identity/postcontextvalid agrees; D145/D146 independent actual geometry. P71 revalidation is already exact/no new native. D147 preview actual[0,0,3050,1596] equals independent physical work, alpha100/nonactivating/hit-transparent preview, current shield capture/hit. D148 before-UP readback remains nonmaximized SW_SHOWNORMAL with raw rect, no normal_up_maximize/dock commit or actual product UP, and command_Maximize_used=false.",
+    "unique_actual_UP": "D149 the one planned UP send interval QPC338251639..338264976; D150 passive guest head actually observes one injected/tag0x50425631 UP, CallNext returned/unhooked and exact source/current capture before send. P72 actual matching LL UP atQPC338257573 retires authority1->0. P73 actual g1 Raw flags2 at338259072; P75 actual accepted legacy LEFTUP at338273189; P82 queued real legacy UP consumed by GUI for g1. Guest receipt, Raw and product/window receipts are kept distinct; no extra UP, no synthesized message.",
+    "normal_up_native_state_request_and_observation": "P83 exactly one normal_up_maximize for g1 reports native_attempted/request_started=true and explicitly actual_state_completion=not_observed_by_request_return. D153 independently reads actual IsZoomed=true/showCmd3, visible[0,0,3050,1596], positioning[-11,-11,3061,1607] on the same source/key. Actual state, not the asynchronous request return or exit0, establishes maximize completion.",
+    "normal_cleanup": "P78 actual own capture ReleaseCapture before524904 -> after0 succeeds; P80 real detach succeeds; P81 overlaydestroyed/hotkeyunregistered/removalNormalUp0/release+detach true. P84 actual NormalUp/end0/pendingretired. D151 actual matching product UP; D152 actual no capture/move-size/menu; D154 resource receipts and unchanged continuous placement ledger; D155 preview actually hidden.",
+    "final_exit": "D227 original GUI config and same product hash restored; D230 exact task windows closed; D241 public quit actually exits0 with P122 real hooks/overlay/nativeworker/visualrecovery/inputresources/capture/association stopped, no unknown issued completion. D248 separate post-exit client DOWN0->1/UP0->1 proves delivery recovery, not another enhanced gesture. D250 real observer Raw removal, D252 final foreground observer overflow0, D253 exact fixture roots destroyed/product closed."
+  },
+  "full_log_audit": {
+    "driver_rows": 253,
+    "product_rows": 122,
+    "single_product_PID": 3676,
+    "positive_gesture_generations": [
+      1
+    ],
+    "all_continuous_placements": 1,
+    "placement_sequences": [
+      70
+    ],
+    "continuous_native_calls_after_matching_UP_QPC_338257573": 0,
+    "normal_up_maximize_requests": 1,
+    "normal_up_maximize_sequences": [
+      83
+    ],
+    "normal_up_dock_commits": 0,
+    "product_Maximize_commands_used": 0,
+    "no_new_continuous_geometry_after_UP": true,
+    "discrete_Maximize_after_actual_UP_is_not_continuous_writer_rearming": true
+  },
+  "time_basis": {
+    "qpc_frequency": 10000000,
+    "actual_frequency_sources": [
+      "D18",
+      "P121"
+    ],
+    "placement_native_before_qpc": 337695743,
+    "placement_native_after_qpc": 337702301,
+    "placement_post_observed_qpc": 337711951,
+    "matching_LL_UP_qpc": 338257573,
+    "raw_UP_observed_qpc": 338259072,
+    "legacy_UP_resource_observed_qpc": 338273189,
+    "limits": "Native WinEvent owner_sequence/native time, hook/resource QPC, GUI consumer records and driver sequence each keep their own semantics. P82->P83 is serialized GUI processing, not a claimed global Raw/WinEvent native order. Maximize request has no native completion-QPC; D153 actual state readback supplies completion evidence. No physical display-latency claim."
+  },
+  "inherited_contract_evidence": {
+    "guide": "M08-F02/DEV359; B14 requires M08-F02 and M11-F02, not the full M08 module or M08-F01 negative-origin monitor case.",
+    "ordinary_and_product_dock": {
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+      "literal_original_driver_sequences": [
+        1588,
+        1592,
+        1665,
+        1671,
+        1673,
+        1674,
+        1676,
+        1678,
+        1682,
+        1736,
+        1740
+      ],
+      "scope": "Actual normal free/resnap; unique UP corner exact; product-docked actual native DOWN/capture and originalDOWN restore[48,45,448,345]/realUP; command dock/Undo and post-dock free/resnap. Original product/PID5264 evidence is not rebound to04ff."
+    },
+    "custom_eight_actions": {
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "run_id": "d8a3c4d076e34f10a2cd39ef10258c47",
+      "path": "docs/reports/v1-evidence/d8a3-dock-five-targets-review.json",
+      "scope": "Actual public GUI Top Maximize->DockTop/save/five remaining half/quarter preview+singleUP+exact commit+Undo and original Top restore; combine prior Left/TopLeft/Right actual scope. 11ae->04ff core layout/settings/settings_window source diff is empty in these unchanged components; does not assert all production input code is unchanged."
+    },
+    "maximized_and_native_Snap": {
+      "product_source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
+      "run_id": "31411e84c6f34c27b66a6da2a0135d79",
+      "path": "docs/reports/v1-evidence/3141-restore-maximized-native-snap-review.json",
+      "scope": "Actual max consumed-DOWN and native WinLeft arranged originalDOWN/freshnormal/exact/realUP; native Snap enabled and unchanged. magnet_move=false is not new attraction evidence; g1->g2 is a real successor but no third enhanced Move afterg2."
+    },
+    "settings_M11_F02": {
+      "path": "docs/reports/v1-evidence/ca0e-settings-validation-review.json",
+      "scope": "Already independently closed with actual public GUI invalid drafts, valid save/nextMove plus applicable same-production settings L1 and original scope; not reexecuted here."
+    },
+    "assessment": "The exact remaining default Top real release behavior is satisfied by3c21. Combined with each original contract-scoped native record and unchanged applicable layout/settings components, recommend independent M08-F02 PASS and B14 PASS (existing M11-F02 prerequisite), not a new same-binary whole-version chain. No need to add the M08 module five-application or M08-F01 negative-origin gates to this independent feature."
+  },
+  "package_files": [
+    {
+      "path": "uat/v1-sandbox/3c21a4936a0543459b1aa46432d04525/3c21a4936a0543459b1aa46432d04525.zip",
+      "sha256": "BDF25229FD77A9040F533C630312E832369D05A921A476CC34B086517B1DC75D",
+      "bytes": 5144774
+    },
+    {
+      "path": "uat/v1-sandbox/3c21a4936a0543459b1aa46432d04525/input/manifest.json",
+      "sha256": "84C3BE910946959925BB5537851A5CDC750378B28C3B3E67B762A8C197E49740",
+      "bytes": 20870
+    },
+    {
+      "path": "uat/v1-sandbox/3c21a4936a0543459b1aa46432d04525/PaneBindV1.wsb",
+      "sha256": "EAED2CD4D3D18B11E8F4D8EC79BB9A338184D07A514501F67A1D9E73A0D19BB9",
+      "bytes": 974
+    },
+    {
+      "path": "uat/v1-sandbox/3c21a4936a0543459b1aa46432d04525/package-receipt.json",
+      "sha256": "8D81E873ECCD1CD54E40087559C3E6E98905ABA89C6CFEDCDCE442C3DDA9F919",
+      "bytes": 13295
+    },
+    {
+      "path": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/deploy-receipt.json",
+      "sha256": "1E21D6DBC9BCF2A73C9ED9329E0AE51A21FADA312FC6C9578CC291238DBD48AB",
+      "bytes": 2663
+    },
+    {
+      "path": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/cleanup-receipt.json",
+      "sha256": "9392693AACBB102EA2E62FB984DA3EDF8D767F9E190FA5BA67756302AE2E0D13",
+      "bytes": 10011
+    },
+    {
+      "path": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/collection-20261021T222429361Z-abf04fa5228d45a8b5def25e11426931/3c21a4936a0543459b1aa46432d04525-product-Release/panebind.exe",
+      "sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "bytes": 1152512
+    },
+    {
+      "path": "uat/v1-sandbox/3c21a4936a0543459b1aa46432d04525/input/panebind-v1-guest-fixture.exe",
+      "sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "bytes": 3492864
+    }
+  ],
+  "package_verification": "Actual ZIP/manifest/WSB hashes match local original package receipt; actual collected product EXE and exact input fixture EXE hashes match manifest and D12/D13. WSB maps only this RunId I:/.../input readonly and output writable; network/clipboard/devices disabled; Release NativeTopDropOnly exact. No deployment or guest was rerun by this reviewer.",
+  "cleanup": {
+    "receipt": "uat/v1-control/3c21a4936a0543459b1aa46432d04525/cleanup-receipt.json",
+    "sha256": "9392693AACBB102EA2E62FB984DA3EDF8D767F9E190FA5BA67756302AE2E0D13",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "recommendation": "PASS_INDEPENDENT_M08_F02_AND_B14_WITH_EXPLICIT_ORIGINAL_IDENTITY_SUBCONTRACT_REUSE",
+  "not_awarded": [
+    "Whole M08 or V1",
+    "Ordinary host/full desktop or real application compatibility",
+    "Negative-origin or multi-monitor/mixed-DPI coverage",
+    "Preview visual-clarity review",
+    "New portable normal entry",
+    "Human UAT"
+  ],
+  "human_UAT": "NOT_RUN",
+  "whole_version_PASS": false
+}

@@ -1,0 +1,161 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-ECDF-QUEUE-SUITE-PRECONDITION-FAILURE",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "ecdf58274b9d437385262b5efc05f072",
+  "suite": "QueueFailureOnly",
+  "configuration": "Release",
+  "result": "FAIL_ACTUAL_ARM_PRECONDITION_REJECTED_BEFORE_INJECTED_QUEUE_FAILURE",
+  "original_failure_preserved": true,
+  "identity": {
+    "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+    "product_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+    "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+    "driver_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+    "packaging_head": "882b0c4c3f0950c9fb5187998c197b71bf60082b",
+    "product_pid": 3640,
+    "product_birth_filetime_decimal": "134370952260989283",
+    "fixture_pid": 6296,
+    "fixture_tid": 6304,
+    "source_hwnd": 197428,
+    "source_key": 4,
+    "source_birth_filetime_decimal": "134370952258795511",
+    "overlay_hwnd": 328502,
+    "resource_owner_tid": 1096,
+    "input_owner_tid": 3964,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Windows Sandbox OS26100.9711; actual one display3050x1668/work3050x1596, DPI144; Medium processes, not ordinary complete Medium Shell desktop"
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/ecdf58274b9d437385262b5efc05f072/package-receipt.json",
+    "zip_sha256": "3785C7311BE3EBC0C5948F802F96D826D9CE186B9D7974B58F7279AFF2F3548B",
+    "manifest_sha256": "02A813228A0CA02DC5618DE8C15978B3592D230ED4A04C13CB1D4EF8EA8C6257",
+    "wsb_sha256": "D84BF4A23488DFFB9B0400FE5249272CE6CD4BAFAA43642AF3E813933C9CD95A",
+    "preparation_NOT_RUN_fields_not_rewritten_as_runtime": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/ecdf58274b9d437385262b5efc05f072/collection-20261021T222729883Z-85c3974135634b5a944866d422a651da/ecdf58274b9d437385262b5efc05f072-release-fixture.jsonl",
+      "sha256": "6694424B06E5730EE08230A98388F60F99765DFD1515C4887F46EB30F1FD76AB",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        237
+      ],
+      "lines": 237
+    },
+    {
+      "path": "uat/v1-control/ecdf58274b9d437385262b5efc05f072/collection-20261021T222729883Z-85c3974135634b5a944866d422a651da/ecdf58274b9d437385262b5efc05f072-product-Release/panebind.log.jsonl",
+      "sha256": "5A7BD52DE68923BC5DF40268FCBCCA8A12B23BB13A143DFA9E10157A7CDA7660",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        112
+      ],
+      "lines": 112,
+      "single_product_pid": 3640
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/ecdf-queue-suite-precondition-excerpt.jsonl",
+    "sha256": "817223C8B0481B41377A65F58C0A351305B4B5A3813583CE2421809022CCD185",
+    "literal_validation": "37 of37 exact original source-line string comparisons PASS; legal selected JSON; original64-bit spelling preserved",
+    "driver_source_lines": [
+      3,
+      4,
+      19,
+      24,
+      139,
+      140,
+      143,
+      144,
+      145,
+      211,
+      214,
+      215,
+      216,
+      223,
+      232,
+      233,
+      234,
+      235,
+      236,
+      237
+    ],
+    "product_source_lines": [
+      3,
+      4,
+      55,
+      59,
+      61,
+      66,
+      67,
+      68,
+      69,
+      71,
+      74,
+      76,
+      77,
+      78,
+      79,
+      108,
+      112
+    ],
+    "policy": "Complete original literal lines, selected driver then selected product in their own source order. Intentional gaps; no native line reserialization, identifier rounding or relabeling. JSONL presentation is not common native chronology."
+  },
+  "observed": {
+    "real_first_Move": "D139/140/P61/P66 generation1 plain Move, source197428/key4, native-first handoff and P55 actual END/P59 actual capture overlay328502. P66 actual native call1 succeeds exactly target=actual[241,194,641,514] with identity/post-context valid; not merely a Boolean permission.",
+    "failure": "D143 retains original FAIL. P67 actual guest_queue_failure_arm armedfalse/reason exact_queue_failure_suite_required; permit_armedfalse, permit_consumedfalse, failure_firedfalse. At rejection current_healthy/current_availabletrue, current_authorized_generation1, completion0, actual startserial1. Entire112-row P stream contains zero input_queue_failure and only the one P66 placement. Thus the one-shot fault never armed/fired; no natural queue or failure cleanup behavior is established.",
+    "original_UP_after_TEST_failure": "D144 sends the one outstanding planned LEFTUP once; D145 says UP already attempted/not repeated. P68 actual matched LLUP(QPC369004723) revokes authority1->0; P69 RawUPflags2, P71 actual accepted legacyUP QPC369033355. P74 actual ReleaseCapture328502->0 succeeds, P76 actual detach succeeds, P77 actual isolationGone(removal NormalUp)/overlaydestroyed/hotkeyunregistered; P78 actual shield_queued_legacy UP, P79 generation1 NormalUp. This is the still-valid ordinary gesture ending during TEST failure cleanup, NOT QueueFailure recovery or an abort-UP relabeled NormalUp.",
+    "cleanup_and_verdict": "D211 public GUI restores configuration; D216 actual owned-class enumeration contains only original three roots197202/262250/197200, no unexpected source197428, with completed enumeration. D214/223 phase FAIL and D233 scoped suite FAIL/D237 driver FAIL remain. P108 actual idle, nativeclaims1, no native/visual pending. P112 actual hooks/overlay/native worker/input/capture/association/visual recovery stopped and no unknown issued completion. D232 actual post-exit owned client DOWN/UP0,0->1,1. D234 Raw registration removed, D235 WinEvent unhook succeeds, D236 foreground11/11 overflow0. None of this changes the original failed arm verdict."
+  },
+  "cause_and_source_repair": {
+    "confirmed": "At the original04ff InputService::arm_guest_queue_failure, guest_suite was looked up only in manifest[0:first_files). Actual manifest emits this unique field after files. The suite was correctly QueueFailureOnly in the immutable package; actual runtime rejection is therefore a production TEST admission lookup defect, not guest absence, natural queue failure or invalid architecture.",
+    "actual_manifest": "uat/v1-sandbox/ecdf58274b9d437385262b5efc05f072/input/manifest.json",
+    "actual_unique_lookup_scopes": "Each required Run/source/contract/interface/product-driver hash key occurs once in the original pre-files identity prefix. guest_suite occurs once in the full manifest. Nested configuration source_commit copies exist after files and do not invalidate the deliberately retained prefix scope.",
+    "actual_manifest_field_positions_zero_based_characters": {
+      "first_files": 6427,
+      "run_id": 48,
+      "source_commit": 100,
+      "product_source_commit": 278,
+      "guest_contract": 427,
+      "product_interface": 483,
+      "product_release_sha256": 746,
+      "driver_release_sha256": 846,
+      "guest_suite": 9071
+    },
+    "same_chain_order_review": "The unchanged pre-files identity lookups for Run, product sources/contracts/interface, product hash and later driver_release_sha256 are actually before6427 in this manifest. The fixed suite predicate reads its unique field over the whole manifest without removing exact-suite rejection. The output path is the non-portable Release product directory, so the separate portable_test sub-inventory branch was not entered. No second same-chain schema-order mismatch was found; no future runtime result is inferred.",
+    "source_fix_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+    "fix": "Shared guest::capture_manifest_suite(full_manifest, exact_expected) rejects missing/wrong/duplicate/empty suites while accepting either legal field order; InputService still requires files and exactly QueueFailureOnly. Existing guest-path suite includes seven targeted actual-predicate order/negative checks, including the old prefix rejection counterexample. No other product/UI/input mechanism changed.",
+    "root_reported_offline": "New shared predicate seven checks plus affected Debug/Release three-target offline regression PASS; not rerun by this evidence reviewer. Existing packaging static145checks independently passed during the source repair.",
+    "repaired_candidate_native_runtime": "NOT_RUN_AT_REVIEW_TIME",
+    "old_evidence_rebound": false
+  },
+  "collection": {
+    "receipt": "uat/v1-control/ecdf58274b9d437385262b5efc05f072/collection-20261021T222729883Z-85c3974135634b5a944866d422a651da/collection-receipt.json",
+    "output_unchanged": true,
+    "launch_receipt": "uat/v1-control/ecdf58274b9d437385262b5efc05f072/collection-20261021T222729883Z-85c3974135634b5a944866d422a651da/ecdf58274b9d437385262b5efc05f072-Release-launch.json",
+    "collected_product_sha256_matches_package": true,
+    "launch_fixture_sha256_matches_package": true,
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "root_reported_exclusive_run_cleanup": true,
+    "guest_destruction_not_used_as_product_cleanup_PASS": true
+  },
+  "limits": {
+    "injected_queue_failure": "NOT_REACHED",
+    "natural_queue_full": "NOT_RUN",
+    "OS_PostMessage_failure": "NOT_RUN",
+    "OS_silent_hook_removal": "NOT_RUN",
+    "public_Pause_Resume_failure_recovery": "NOT_REACHED",
+    "following_post_failure_Move_Resize": "NOT_RUN",
+    "whole_M04_F04_or_version_PASS": false,
+    "real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN"
+  }
+}

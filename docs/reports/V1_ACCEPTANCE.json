@@ -21,13 +21,26 @@
       "old_runtime_rebound": false
     },
     "pending_product_candidate": {
+      "source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "debug_build": "PASS_ROOT_ACTUAL",
+      "release_build": "PASS_ROOT_ACTUAL",
+      "debug_sha256": "4B36B915539500F43AFFC4C647639C3E7C0BBC836CA4FC5CDCC9D6D50E664ED3",
+      "release_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "offline": "Root actual Debug/Release builds and affected offline each3/3 PASS; not native evidence",
+      "native_runtime": "NOT_RUN_AT_RECORDING",
+      "repair_scope": "Exact disposable guest one-shot queue command suite-field order only; actual04ff/ecdf arm incorrectly rejected, current fix not yet natively exercised",
+      "old_runtime_rebound": false,
+      "portable528a_unchanged": true
+    },
+    "observed_product_04ff": {
       "source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
       "debug_build": "PASS_ROOT_ACTUAL",
       "release_build": "PASS_ROOT_ACTUAL",
       "debug_sha256": "9EE09278AEB88FD0F0C3FC42F792DDBAFCAC28E0654141A3828F5C5372C4A122",
       "release_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
       "offline": "Root actual Debug/Release product builds and input-route/recovery/writer/catalog-rules/guest-path/visual each6/6 PASS; not native function evidence",
-      "native_runtime": "NOT_RUN_AT_RECORDING",
+      "native_runtime": "ACTUAL_3C21_TOP_PASS_7117_TEST_SESSION_RECOVERY_PASS_98D6_FOCUS_SUBPASS_CAPTION_GATE_DECLINE_F198_HC_STALL_ECDF_ARM_REJECTED",
+      "run_ids": ["3c21a4936a0543459b1aa46432d04525", "71177bf53f0248c0a15647de93700761", "98d61acc56e04ff78a3fa92ecc26ab8f", "f19897b664c4476a93ac4b83620cacf9", "ecdf58274b9d437385262b5efc05f072"],
       "repair_scope": "Gesture-scoped visible drag-alpha limitation and bounded nonactivating idle notice; strict exact disposable guest one-shot queue-failure TEST endpoint; normal host fault commands actual D/R two negative Exit78 each PASS",
       "host_fault_command_guard": "PASS_ACTUAL_FOUR_WAITED_EXIT78_NEGATIVES; initial PowerShell LASTEXITCODE without waited process was a tool observation error, not product failure",
       "old_runtime_rebound": false,
@@ -69,6 +82,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "release_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "run_ids": ["3c21a4936a0543459b1aa46432d04525", "71177bf53f0248c0a15647de93700761", "98d61acc56e04ff78a3fa92ecc26ab8f", "f19897b664c4476a93ac4b83620cacf9", "ecdf58274b9d437385262b5efc05f072"],
+      "native_guard_validation": "ACTUAL_TOP_AND_TEST_SESSION_SCOPED_PASS; HC_STALL_AND_TRANSPARENCY_PRECONDITION_AND_QUEUE_ARM_FAILURES_SEPARATE",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "observed_driverf2_targeted_actual": {
       "source_sha": "f2b38e0a04177e70326f49b9a3b1b835cb2e444d",
       "product_source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
       "release_sha256": "8C7B428FE49751BE1EE0BDF6001931BE5F086B8C6F76C2EC27021D949B0972D3",
@@ -77,14 +99,14 @@
       "old_runtime_rebound": false,
       "whole_version_PASS": false
     },
-    "pending_driver_candidate": {
+    "observed_driver935_targeted_actual": {
       "source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
       "build": "DEBUG_RELEASE_BUILD_PASS_ROOT_ACTUAL_EXISTING_C4456_WARNINGS_ONLY",
       "debug_sha256": "FC9A0A36817960D608AB0A8F9A164624FAD36BB76EAEA650725D47C756E6A65A",
       "release_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
       "build_identity": "ACTUAL_FULL_935_SOURCE_SHA_VERIFIED_ROOT",
       "packaging_static_checks": "145_PASS_ROOT_ACTUAL",
-      "native_runtime": "NOT_RUN",
+      "native_runtime": "ACTUAL_3C21_7117_SCOPED_PASS_OTHER_THREE_PARTIAL_OR_BLOCKED",
       "scope": "HC/Top/session/strict queue-failure and revised transparency TEST wiring; two queue TEST logs evaluate observations before serialization; implementation is not native evidence",
       "intermediate_06fe": "06fe28b2436f1c3dd87d39f56f66a40c1a267b9c actual Debug/Release builds PASS with existing C4456 warnings, native NOT_RUN; superseded only as next TEST identity, product unchanged"
     },
@@ -128,7 +150,7 @@
     },
     "main_function_runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
-    "pending_runtime_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+    "pending_runtime_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -147,11 +169,11 @@
         "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
         "previous_failed_run_id": "a8a7d84b6a044a04984a5ad061acc65d",
         "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "next_action": "保留11ae Full/2432普通包及c355原FAIL身份；92d/f2的3141原生Snap恢复、d9e1仲裁中止恢复已实际通过，6274 FocusLost/后继子PASS而per-pixel TEST前置FAIL。新04ff/935仅按受影响Top/HC/Session/Queue/透明场景继续，未测不授PASS；应用、托盘、显示及最终整版链仍分别推进，不无变化重跑Full/独立900。"
+        "next_action": "保留11ae Full/2432普通包、c355原FAIL与92d三批原身份。04ff/935的3c21 Top及7117 TEST会话中断恢复已实测，不重复；98d6透明前置保守拒绝、f198 HC停滞和ecdf guest arm错拒分别处理。bbc仅修suite字段顺序、尚native NOT_RUN；继续真实Queue及callback退出与透明/HC缺口，不无变化重跑Full/900。"
       },
     "implementation_inspected": "11AE_PRODUCT_DFDD_FULL_BOUNDARIES_FAIL_05F_TEST_DRIVER_0A66_REMAINING_MOVE_SCOPED_PASS",
-    "note": "当前独立DEV39/60、19/40=47.5%，模块/整版PARTIAL。新92d/f2的3141真实最大化与native arranged恢复、d9e1唯一命令中止/真实清理UP/同实例后继已实际通过；结合原身份Ctrl/磁吸/dock、Shift/暂停/设置证据独立闭合M04F03，不拼称新整链。6274 FocusLost原alpha173及后继NormalUp子PASS，per-pixel TEST前置FAIL、unsupported反馈未到达。c355的8b55/69ab/e1a2等原FAIL保持，11ae主整链/528a便携不换绑新候选。",
-    "pending_product_note": "新04ff生产候选实际D/R构建及六个受影响offline目标各6/6 PASS；普通host fault命令D/R各两次等待真实Exit78拒绝，初次未等待LASTEXITCODE是工具观察错误。935驱动实际D/R构建和full build-identity核实、145包装静态检查通过；06fe为已构建未运行的中间工具身份。新drag-alpha/idle可见notice、严格guest one-shot fault及Top正常UP、HC、Session/Queue注入与透明限制反馈全部现场NOT_RUN，待新Run；92d三批实测不换绑04ff。ExitRecovery旧bf5c按原身份继承，不重跑；应用/托盘/普通桌面/显示缺口分别保留。",
+    "note": "当前独立DEV40/60、20/40=50%，模块/整版PARTIAL。04ff/935的3c21补默认Top真实preview/唯一UP/actual最大化/正常清理，结合原dfdd/d8a3/3141独立闭合M08F02及已有M11F02所依赖B14。7117精确owner/session TEST通知→SessionLost→真实撤权/退出→唯一清理UP→同PID Move/Resize恢复PASS，但非真实OS锁屏；M04F04仍缺Queue及callback退出。所有旧FAIL/构建身份不改写；11ae主整链/528a普通便携不换绑。",
+    "pending_product_note": "新bbc仅修exact guest命令suite字段顺序（04ff/ecdf实际arm错拒），已实际D/R构建及受影响offline各3/3 PASS，native NOT_RUN；不把04ff/3c21或7117通过改绑bbc。04ff/98d6 Focus子PASS，但自绘TEST仍声明标准caption按钮，P160 exclusion_unknown保守拒绝，不是产品误放行或已测限制提示；待TEST真实无button修正。f198 HC约4分钟停在SPISET返回后D65、无GET/正常shutdown，已收集并清理自有guest，环境/工具待区分，绝非产品cleanup PASS。后继TEST修正身份未封定，不编造SHA；Queue及callback退出仍未验。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1427,9 +1449,9 @@
       "B31",
       "B32"
     ],
-    "pass_count": 19,
-    "points": 47.5,
-    "coverage_percent": 47.5,
+    "pass_count": 20,
+    "points": 50,
+    "coverage_percent": 50,
     "required_points": 80,
     "formula": "PASS benchmark count / 40 * 100",
     "mandatory_all_pass": false,
@@ -1443,14 +1465,14 @@
       "B39",
       "B40"
     ],
-    "note": "独立DEV39/60、19/40=47.5%；M04F03结合同原身份优先级子证据与92d/d9e1真实命令中止后恢复闭合，固定B无直接依赖变化。3141原native Snap恢复已限定通过，M08F02仍缺默认Top真实UP提交；6274透明FocusLost子PASS不补unsupported。新04ff仍待现场；模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门未齐，B33-B40仍0，PARTIAL不REA。"
+    "note": "独立DEV40/60、20/40=50%；仅新增M08F02及B14（已有M11F02前置）依据3c21真实默认Top UP和各原身份恢复/自定义动作证据闭合。7117仅会话通知注入/同实例恢复子PASS，不授M04F04全部；Queue/callback退出、HC及透明未齐。bbc为新未现场候选，模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门未齐，B33-B40仍0，PARTIAL不REA。"
   },
   "hard_gates": [
     {
       "id": "HG01",
       "description": "60功能/12模块DEV通过，B01-B32全部PASS。",
       "status": "BLOCKED",
-      "remaining_conditions": "实际独立DEV39/60、对标19/40；尚缺21项独立功能、13项必选对标及模块/适用整版硬门。M04F03依各原身份实际仲裁/恢复闭合，不使五应用/托盘/显示或整版自动通过。",
+      "remaining_conditions": "实际独立DEV40/60、对标20/40；尚缺20项独立功能、12项必选对标及模块/适用整版硬门。3c21仅闭合M08F02/B14，7117不替代Queue/callback退出；五应用/托盘/显示/整版未自动通过。",
       "next_action": "按既有V1_ACCEPTANCE具体功能/整链下一动作连续推进，不另起任务书。"
     },
     {
@@ -2405,7 +2427,9 @@
             "PO-C01-INDEPENDENT"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
-        }
+        },
+        "docs/reports/v1-evidence/7117-session-interruption-review.json",
+        "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl"
       ],
       "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
       "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
@@ -2422,11 +2446,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前实际在Default交互桌面运行，未执行第二虚拟桌面/锁定恢复；不由模型推现场通过。",
+      "observed": "原虚拟桌面/锁屏/休眠实测边界保留。04ff/935的7117新增真实精确产品owner/PID/birth/session上的TEST WM_WTSSESSION_CHANGE LOCK/UNLOCK通知注入：held Move后真实SessionLost/end5、退休pending、零迟写、独立释放capture/解绑/Gone、唯一真实清理UP；注入UNLOCK后同PID新key/新代Move和Resize exact/真实NormalUp与正常退出。此为实际生产handler执行，不是实际OS锁屏/解锁或第二虚拟桌面切换。",
       "remaining_conditions": [
-        "真实虚拟桌面、session失活及返回后首手势链尚缺。"
+        "7117只闭合DEV允许的session-change注入/实际后继恢复子项；实际第二桌面隔离、OS锁屏/解锁与sleep/resume尚未取得对应真实环境事实。"
       ],
-      "next_action": "在已授权隔离桌面执行I09及恢复，不能在宿主代跑。",
+      "next_action": "复用7117会话通知注入证据，不重复该专项；仅在已授权且实际具备条件时验证真实第二桌面/锁屏/休眠对应合同，其他功能继续。不得把TEST消息写成操作系统状态变化。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -3603,7 +3627,9 @@
         "src/platform/windows/product/input_service.cpp",
         "src/platform/windows/product/input_service.h",
         "src/core/v1/gesture.h",
-        "src/platform/windows/product/product_app.cpp"
+        "src/platform/windows/product/product_app.cpp",
+        "docs/reports/v1-evidence/7117-session-interruption-review.json",
+        "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl"
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
@@ -3658,11 +3684,12 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "c01真实actor DOWN/START/exact后默认Deadline30031ms终止，后继Move/Resize成功；sourceclose原代匹配UP1217失败。 【当前11ae】dfdd四真实终止(含实际WM_HOTKEY/源关闭)各后继Move/Resize，actor退出后默认Deadline30015ms及恢复已实测；3f8同类成功保留，不再用048旧提前失焦描述当前actor未到Deadline。 a575当前11ae实际END/capture后no-own capture-loss，未ReleaseCapture，实际detach/Gone，同PID后继Move/Resize正常；该确切缺口已闭合。",
+      "observed": "dfdd/3f8四真实终止/默认Deadline及a575实际END/capture后no-own capture-loss/同实例恢复保留原11ae身份，不重跑。04ff/935的7117在精确主owner HWND/PID/TID/birth/session1上一次TEST LOCK通知，实际SessionLost/end5/nonNormal/pendingretired，真实own ReleaseCapture→0/解绑/Gone在唯一清理UP前完成；实际hook及客户UP回执与旧代零迟写成立。一次TEST UNLOCK通知后同PID6568新key5/g2 Move、g3 Resize均exact/真实LL-Raw-legacy NormalUp，完整退出/客户恢复通过。不是实际OS锁屏/解锁。",
       "remaining_conditions": [
-        "no-own capture-loss已由a575实际闭合；queue/hook故障、会话失活/锁定等尚未在对应隔离条件实际覆盖，不能以其他终止原因代替。"
+        "严格Queue故障和callback退出/恢复合同仍未实际通过；04ff/ecdf尚在arm阶段因suite字段顺序错拒，bbc仅修生产解析且native NOT_RUN，不能用session或其他终止替代。",
+        "7117为DEV明确允许的session通知注入，不授真实锁屏/休眠/虚拟桌面系统变化PASS；这些环境范围仍按各独立合同登记。"
       ],
-      "next_action": "复用dfdd/3f8四原因/默认Deadline及a575真实no-own capture-loss恢复；仅补尚未实际提供的queue/hook/session具体合同，环境不具备者分别列明，不重跑已关闭原因。",
+      "next_action": "不重复已闭四终止/Deadline/capture-loss或7117通知恢复；仅用新bbc及后继精确guest工具复验Queue真实触发/撤权/独立退出/同实例恢复及callback退出对应缺口。原ecdf arm拒绝与所有历史FAIL保留，不以构建或注入命令入参授PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
@@ -6108,17 +6135,19 @@
         "src/core/v1/settings.h"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "92d真实IsWindowArranged与native-first交接/SW_RESTORE/freshnormal已在3141实际通过原DOWN恢复、exact写入及真实UP；最大化分支同批再次通过。默认Top真实Move预览→UP提交最大化仍缺，NativeTopDropOnly代码已接未运行。新04ff尚无现场结果。",
-      "dev_status": "BLOCKED",
+      "implementation_note": "04ff/935的3c21已实际补齐默认Top预览/唯一正常UP/actual最大化/正常收尾。结合同原身份dfdd普通及产品停靠恢复、d8a3公开八方向配置/提交及92d/3141最大化/native Snap恢复，闭合独立M08-F02；不声明新同候选整版链或整M08。",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M08-F02-DEV",
           "required_observation": "最大化/普通/已停靠三起点；启用 Windows 原生 Snap 时实测共存；本方案不通过修改宿主系统设置解决冲突",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
             "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl"
+            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+            "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT"
@@ -6126,12 +6155,16 @@
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         },
         "docs/reports/v1-evidence/3141-restore-maximized-native-snap-review.json",
-        "docs/reports/v1-evidence/3141-restore-maximized-native-snap-excerpt.jsonl"
+        "docs/reports/v1-evidence/3141-restore-maximized-native-snap-excerpt.jsonl",
+        "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+        "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl",
+        "docs/reports/v1-evidence/d8a3-dock-five-targets-review.json",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -6145,15 +6178,15 @@
         "V1-D02",
         "V1-D11"
       ],
-      "candidate_identity_ref": "current_package",
+      "candidate_identity_ref": "source_identity.observed_product_04ff",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c355/8b55真实native Snap半屏尺寸错误原FAIL保留，不把后继改绑旧EXE。新92d/f2的3141在同PID6232分别完成最大化g1和真实WinLeft arranged g2：原始DOWN→真实native START/隔离/一次cancel/真实END→自有capture，actual arranged=true→SW_RESTORE请求→actual arranged=false及freshnormal native418×309，按原DOWN独立意图写成[48,45,448,345]而非半屏；每代唯一exact native及真实LL/Raw/legacy UP、正常释放capture/解绑/Gone/NormalUp。g1→g2为实际连续后继，无第三次产品Move，退出后客户点击不冒充增强手势。config.magnet_move=false只证明恢复writer，不称新吸附。原11ae/dfdd产品停靠拖离/普通free-resnap、d8a3 GUI Top自定义DockTop与其余八目标保留原身份，生产layout/settings在适用范围未变。",
+      "status_basis": "INDEPENDENT_CONTRACT_PASS_WITH_EXPLICIT_ORIGINAL_IDENTITY_SUBCONTRACT_REUSE",
+      "observed": "3c21实际04ff/935、253D/122P：普通source/key4真实native START/隔离/单cancel/END/owncapture后，唯一连续writer exact[1515,-8,1915,292]；默认Top Maximize的preview实际[0,0,3050,1596]且UP前仍非最大化/零离散提交。唯一真实UP由独立tagged hook与产品matching LL退权、Raw和accepted legacy观察；P83仅一次normal_up_maximize请求，D153独立actual IsZoomed=true/showCmd3/visible=work及native[-11,-11,3061,1607]才证明完成。实际release→0/detach/Gone/NormalUp、UP后continuous0、公开Max命令0，原GUI/EXE和退出/客户配对恢复成立。dfdd的普通/产品停靠拖离/重吸附、d8a3公开Top自定义DockTop及其余八目标、3141 max及真实native arranged原DOWN还原保留各原身份；适用layout/settings未变，不把magnet_move=false恢复叫新吸附，不把不同批次拼单生命周期。",
       "remaining_conditions": [
-        "尚缺默认Top=Maximize的真实普通Move至顶部→实际preview→唯一真实UP→normal_up_maximize请求→实际IsZoomed/showCmd3/资源退出及零迟写；公开Maximize命令或自定义DockTop不是该合同。",
-        "NativeTopDropOnly已完成TEST接线与静态检查，尚NOT_RUN；先完成该最小缺口再评独立M08-F02。普通/产品停靠、最大化/native Snap已测子项不重复列待验；模块应用/显示门另列。"
+        "本独立M08-F02合同已齐；负work-origin是M08-F01明确要求、五应用是模块/整版门，均不额外塞入本项。普通桌面/多屏/模块链/真人范围仍分别未齐。",
+        "新bbc只修guest命令字段顺序，尚无native结果；原04ff/3c21及92d/3141不改绑bbc。"
       ],
-      "next_action": "用新04ff候选及新935工具的NativeTopDropOnly只补默认顶部预览/正常单UP/actual最大化与清理；尚未执行不得授PASS。不无变化重跑3141已过恢复、旧失败Full或整Dock，不改系统Snap设置；原92d与11ae证据不换绑。",
+      "next_action": "独立M08-F02及所依赖B14收口；不无变化重跑Top/3141/全Dock或Full，原失败保留原身份。继续Queue/callback退出、透明/HC及真实应用/显示/最终整版链，尚未测范围不授PASS。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -6169,6 +6202,16 @@
         ]
       },
       "latest_runtime_component_observation": {
+        "source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+        "binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+        "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+        "run_id": "3c21a4936a0543459b1aa46432d04525",
+        "evidence_id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+        "runtime_result": "PASS_SCOPED_DEFAULT_TOP_WITH_INDEPENDENT_ACTUAL_STATE_NORMAL_UP_AND_CLEANUP",
+        "independent_contract_assessment": "PASS_WITH_ORIGINAL_DFDD_D8A3_3141_SCOPED_EVIDENCE",
+        "whole_version_PASS": false
+      },
+      "historical_3141_runtime_component_observation": {
         "source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
         "binary_sha256": "8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725",
         "driver_source_sha": "f2b38e0a04177e70326f49b9a3b1b835cb2e444d",
@@ -7553,10 +7596,10 @@
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
       "observed": "原e1a2 TEST guard/错误预期FAIL及CS_OWNDC实际alpha成功保留，不能称unsupported产品失败。92d/f2的6274同PID3880实际FocusLost子链通过：源原layered173/toptrue→拖动190及exact Move→真实另一owned前台→FocusLost/end2/nonNormal→恢复173而非255、零旧代新增writer及释放/解绑/Gone；唯一真实cleanupUP后同实例g2再次190/exact Move/真实LL/Raw/legacy UP/NormalUp并恢复173。原bf5c退出/异常helper证据按其原身份继承不重跑。per-pixel源虽UpdateLayeredWindow=true、GLA=false及opaque hit，但D305组合positioning/visible unchanged=false且缺独立FG字段，TEST前置拒绝，未到实际unsupported手势/限制提示，不是生产silent-decline FAIL。",
       "remaining_conditions": [
-        "尚缺已确认真实per-pixel/unknown-alpha前置下的实际Move、中文可见限制提示、真实UP与原未知alpha不被覆盖；6274未到达该产品场景，保留整批FAIL。",
-        "新04ff的手势期限制条及idle提示、修后的TEST几何/FG观察尚NOT_RUN，需新RunId；原FocusLost/后继及bf5c退出不再重复列待验，也不将CS_OWNDC强行当不支持。"
+        "真实unknown-alpha源必须先通过实际标题操作归因：98d6自绘TEST的标准按钮声明导致P160正确保守拒绝，限制条/真实UP及未知alpha不覆盖仍未到达；不是产品unsupported反馈FAIL。",
+        "后继TEST将真实取消标准按钮样式，需新driver/RunId；不冒称现有未知alpha入口可试用，不把04ff或旧92d实证改绑新bbc。"
       ],
-      "next_action": "仅用新04ff/935按修后TEST真实native/DWM前后、稳定post-layering preDOWN矩形及exact前台建立未知alpha前置，再验限制条实际窗口/屏像素/UP隐藏及不覆盖。现场未运行保持NOT_RUN，视觉读图单列；复用6274 FocusLost与原bf5c退出，不重跑无关旧矩阵。",
+      "next_action": "98d6实际Focus子PASS；per-pixel新源在P160被system_caption_button_exclusion_unknown保守拒绝，因为自绘TEST仍声明标准按钮，尚未进入限制提示合同，不改产品门强迫通过。仅修TEST为真实无caption-buttons后新身份定向验证；bf5c退出及6274 Focus后继沿原身份复用，不重跑无关矩阵。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-7CAC-INFLIGHT-UP",
@@ -7665,7 +7708,7 @@
       "remaining_conditions": [
         "200%UI/高对比/主要控件可见及故障提示独立视觉观察未齐。"
       ],
-      "next_action": "新04ff/935的HighContrastOnly已实际构建、尚NOT_RUN：在精确guest保存/开启/恢复真实HC，验证Tab/Enter/Esc、真实中文idle拒绝条/屏像素/4秒有限到期和下一手势退休。截图可读性另评，不把TEST接线或系统API返回授PASS；200%显示条件缺口单列。",
+      "next_action": "原04ff/935的f198 HC已实际执行但约4分钟停在SPISET返回后D65，未有后续GET/正常shutdown；已保留Collect并清理自有guest。先有界区分环境/工具停滞再选受影响复验，不写产品cleanup或HC PASS、不无变量重跑；200%与读图可读性仍单列。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -10465,30 +10508,35 @@
       "mandatory": true,
       "weight": 2.5,
       "implementation_status": "IMPLEMENTED",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "points_awarded": 0,
-      "source_sha": null,
-      "binary_sha256": null,
+      "points_awarded": 2.5,
+      "source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
       "environment_id": "E02",
-      "run_id": null,
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+        "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl",
+        "docs/reports/v1-evidence/3141-restore-maximized-native-snap-review.json",
+        "docs/reports/v1-evidence/d8a3-dock-five-targets-review.json",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/ca0e-settings-validation-review.json"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
-      "candidate_identity_ref": "current_package",
+      "candidate_identity_ref": "source_identity.observed_product_04ff",
       "feature_ids": [
         "M08-F02",
         "M11-F02"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。",
+      "observed": "M08-F02已由04ff/3c21默认Top真实preview→唯一UP→actual最大化/资源/零连续迟写补齐，结合原dfdd/d8a3/3141各独立恢复/配置合同。M11-F02已有ca0e真实GUI非法值/草稿保留/合法Save-Move与适用L1及同候选参数证据独立PASS。按固定B14依赖现可计2.5分，不要求整个M08/M11模块或新整版链先过。",
       "remaining_conditions": [
-        "M08-F02: 完整功能合同尚未通过，见功能行具体条件",
-        "M11-F02: 完整功能合同尚未通过，见功能行具体条件"
+        "本B14独立依赖已齐；未获模块/普通完整Medium/应用/多屏或真人验收PASS，新bbc尚待现场，不将旧运行换绑。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "B14按各原身份独立合同收口；保留历史FAIL和未齐全版门，不重复已过Top/全Dock，也不提前提升整版。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE"
@@ -15671,6 +15719,26 @@
   },
   "current_round_observations": [
     {
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "result": "PASS_INDEPENDENT_M08_F02_AND_B14_WITH_ORIGINAL_SCOPED_EVIDENCE",
+      "evidence_id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+      "evidence_path": "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+      "new_feature_or_B_PASS": true,
+      "scope": "Actual04ff defaultTop preview/held-notmax/unique realUP/actualIsZoomed showCmd3/release-detach-Gone/NormalUP and zero late continuous placement. Combine original dfdd/d8a3/3141 and existing M11F02 for independent M08F02/B14, not whole M08/V1 or new ordinary package."
+    },
+    {
+      "run_id": "71177bf53f0248c0a15647de93700761",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "result": "PASS_SCOPED_TEST_SESSION_NOTIFICATION_AND_SAME_INSTANCE_RECOVERY",
+      "evidence_id": "EV-7117-SESSION-NOTIFICATION-INTERRUPTION-RECOVERY",
+      "evidence_path": "docs/reports/v1-evidence/7117-session-interruption-review.json",
+      "new_feature_or_B_PASS": false,
+      "scope": "Actual04ff exact product owner/session TEST LOCK notification causes End5/nonNormal/retirement/real independent release-detach-Gone/zero late old writes; unique cleanupUP and one TEST UNLOCK followed by samePID actual fresh Move/Resize/NormalUP and normal shutdown. Not actual OS lock/unlock; Queue/callback exits still NOT_RUN, no complete M04F04."
+    },
+    {
       "run_id": "31411e84c6f34c27b66a6da2a0135d79",
       "product_source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
       "driver_source_sha": "f2b38e0a04177e70326f49b9a3b1b835cb2e444d",
@@ -15968,6 +16036,36 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "path": "docs/reports/v1-evidence/3c21-native-top-drop-review.json",
+      "sha256": "335D7AAAC9E28F9AAF22ECE66CBADB93613126E4D630AABE443919BD30B08A8B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/3c21-native-top-drop-excerpt.jsonl",
+      "repository_excerpt_sha256": "FACD30C9DDCE606DB1EBCCE8F4B845C971EFEAD43AADEF4A4A094A15C8BDBD0B",
+      "result": "PASS_INDEPENDENT_M08_F02_AND_B14_WITH_ORIGINAL_SCOPED_EVIDENCE",
+      "scope": "Actual04ff defaultTop preview/held-notmax/unique realUP/actualIsZoomed showCmd3/release-detach-Gone/NormalUP and zero late continuous placement. Combine original dfdd/d8a3/3141 and existing M11F02 for independent M08F02/B14, not whole M08/V1 or new ordinary package."
+    },
+    {
+      "id": "EV-7117-SESSION-NOTIFICATION-INTERRUPTION-RECOVERY",
+      "run_id": "71177bf53f0248c0a15647de93700761",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "product_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "driver_source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
+      "driver_binary_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
+      "path": "docs/reports/v1-evidence/7117-session-interruption-review.json",
+      "sha256": "E95CDB67B015B4B59647AA92D378EC7657C61536BB37C8BC15A9368E2E07BF04",
+      "repository_excerpt_path": "docs/reports/v1-evidence/7117-session-interruption-excerpt.jsonl",
+      "repository_excerpt_sha256": "8FB38725923B0DC29F5751F37E6EE9180AAED725EA86001223F57DBE3069FD37",
+      "result": "PASS_SCOPED_TEST_SESSION_NOTIFICATION_AND_SAME_INSTANCE_RECOVERY",
+      "scope": "Actual04ff exact product owner/session TEST LOCK notification causes End5/nonNormal/retirement/real independent release-detach-Gone/zero late old writes; unique cleanupUP and one TEST UNLOCK followed by samePID actual fresh Move/Resize/NormalUP and normal shutdown. Not actual OS lock/unlock; Queue/callback exits still NOT_RUN, no complete M04F04."
+    },
     {
       "id": "EV-3141-RESTORE-MAXIMIZED-AND-REAL-NATIVE-SNAP",
       "run_id": "31411e84c6f34c27b66a6da2a0135d79",
@@ -20434,6 +20532,32 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE",
+      "status": "PASS_INDEPENDENT_M08_F02_AND_B14_WITH_ORIGINAL_SCOPED_EVIDENCE",
+      "run_id": "3c21a4936a0543459b1aa46432d04525",
+      "candidate_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "candidate_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "evidence_ids": [
+        "EV-3C21-DEFAULT-TOP-PREVIEW-REAL-UP-ACTUAL-MAXIMIZE"
+      ],
+      "observed": "Actual04ff defaultTop preview/held-notmax/unique realUP/actualIsZoomed showCmd3/release-detach-Gone/NormalUP and zero late continuous placement. Combine original dfdd/d8a3/3141 and existing M11F02 for independent M08F02/B14, not whole M08/V1 or new ordinary package.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-7117-SESSION-NOTIFICATION-INTERRUPTION-RECOVERY",
+      "status": "PASS_SCOPED_TEST_SESSION_NOTIFICATION_AND_SAME_INSTANCE_RECOVERY",
+      "run_id": "71177bf53f0248c0a15647de93700761",
+      "candidate_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
+      "candidate_binary_sha256": "41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8",
+      "evidence_ids": [
+        "EV-7117-SESSION-NOTIFICATION-INTERRUPTION-RECOVERY"
+      ],
+      "observed": "Actual04ff exact product owner/session TEST LOCK notification causes End5/nonNormal/retirement/real independent release-detach-Gone/zero late old writes; unique cleanupUP and one TEST UNLOCK followed by samePID actual fresh Move/Resize/NormalUP and normal shutdown. Not actual OS lock/unlock; Queue/callback exits still NOT_RUN, no complete M04F04.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-3141-RESTORE-MAXIMIZED-AND-REAL-NATIVE-SNAP",
       "status": "PASS_SCOPED_MAXIMIZED_AND_REAL_NATIVE_SNAP_RESTORE_ORIGINAL_DOWN_NORMAL_UP",

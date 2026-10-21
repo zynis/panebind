@@ -1,6 +1,19 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：92d三批实证、仲裁合同闭合与04ff候选（2026-10-22）
+## 当前接续：Top与Session实证、40/60及bbc字段顺序候选（2026-10-22）
+
+**生产接线60/60，独立DEV40/60，对标20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 新增仅M08-F02／B14；M04-F04仍缺Queue故障及callback退出对应实证，不能由Session子项提升全部。以下通过均真实绑定产品`04ff585df6b5f17b5a3cc7c2f0bc500787d65f96`／Release SHA-256 `41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8`、驱动`935c9aa7e8ce7d26bb4e55abe59be115280f57e0`／`B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4`，不换绑新bbc，也不替换11ae／528a普通包。
+
+- [3c21默认Top真实UP最大化](v1-evidence/3c21-native-top-drop-review.json)：253D/122P合法连续、68/68字面摘录。真实普通Move/native START→隔离→单cancel→实际END→owncapture，原DOWN自由rect exact；UP前preview等于实际工作区、未最大化且无离散提交。唯一真实UP由guest hook、产品matching LL退权、Raw和accepted legacy分别观察；P83唯一请求不等于状态完成，D153独立回读`IsZoomed=true/showCmd3/visible=work`才闭合。真实release→0/detach/Gone/NormalUp、UP后continuous0及正常退出/客户配对恢复成立。结合原dfdd普通与产品停靠恢复、d8a3公开自定义动作、3141 max/native Snap恢复和已有M11-F02，**独立M08-F02及B14闭合**，不附加五应用模块或M08-F01负工作区门，不拼作新整链。
+- [7117会话通知注入／同实例恢复](v1-evidence/7117-session-interruption-review.json)：291D/184P，61/61字面原行。精确产品owner/PID/TID/birth/session上的一次TEST LOCK通知实际触发`SessionLost/end5/nonNormal`，退休pending、独立释放capture/解绑/Gone在唯一清理UP前完成、旧代零新写入；真实唯一guest及客户UP不冒充旧代NormalUp。一次TEST UNLOCK后，同PID6568新key5/g2 Move及g3 Resize均exact、真实NormalUp及完整清理/正常退出。**不是实际Windows锁屏／解锁、虚拟桌面或休眠验证，M04-F04未全过。**
+
+本轮其余中间状态保留原失败与原始日志：`98d61acc56e04ff78a3fa92ecc26ab8f`的透明Focus子项实际通过，但per-pixel源P160报`system_caption_button_exclusion_unknown`；自绘TEST仍声明标准caption按钮，产品正确保守拒绝，限制提示场景未到达，后继仅修TEST为真实无按钮，不放宽产品门。`f19897b664c4476a93ac4b83620cacf9`的HC约4分钟停在SPISET返回后D65，没有后续GET或正常shutdown；已Collect并清理精确自有guest，环境／工具仍待区分，**不能授HC或产品cleanup PASS**。`ecdf58274b9d437385262b5efc05f072`的Queue测试在arm被suite字段顺序错误拒绝，未实际触发Queue故障或callback退出，不能以该拒绝当恢复通过。
+
+新产品`bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6`仅修上述exact guest命令suite字段顺序，实际Debug／Release构建及受影响offline各3/3通过；Debug SHA-256 `4B36B915539500F43AFFC4C647639C3E7C0BBC836CA4FC5CDCC9D6D50E664ED3`，Release `9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66`。**新SHA native NOT_RUN**；后继无caption-buttons TEST正在准备，尚未封定驱动身份，不编造SHA/哈希/现场结果。04ff的Top／Session通过不改绑bbc，旧HC/透明/Queue失败不覆盖、不补造清理。
+
+下一步只补Queue真实触发／callback退出及同实例恢复、修后的透明前置/限制提示、HC具体停滞原因与受影响复验。已过Top／Session、3141／d9e1／6274子项、旧bf5c退出不无变化重跑；原Full／独立900秒不新增。五类真实应用、托盘、普通完整Medium桌面、负work-origin／多屏混合DPI及最终同候选整版链继续单列，真人UAT PENDING，不进入REA。下面保留历史身份与当时状态，旧“NOT_RUN”不覆盖本节。
+
+## 前一检查点：92d三批实证、仲裁合同闭合与04ff候选（2026-10-22）
 
 **生产接线60/60，独立DEV39/60，对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 本次仅独立M04-F03闭合，无固定B直接依赖变化；不是新整版链PASS。以下三批均真实使用产品`92d0011c282455f54fddc282b8c434c870fc4ad2`／Release SHA-256 `8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725`、驱动`f2b38e0a04177e70326f49b9a3b1b835cb2e444d`／`8C7B428FE49751BE1EE0BDF6001931BE5F086B8C6F76C2EC27021D949B0972D3`、打包`5d9c2ae60d3e880aef409e12f32594b8a2d48b3e`；不换绑后继04ff或历史11ae／528a。
 
