@@ -1,0 +1,128 @@
+{
+  "schema": "panebind-v1-combined-contract-review/1",
+  "evidence_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+  "record_kind": "readonly_combination_of_actual_current_and_reusable_historical_scopes",
+  "current_product_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "current_product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "recommendation": {
+    "M09-F01-DEV": "PASS",
+    "M09-F02-DEV": "PASS"
+  },
+  "scope": "Only the two independent functional DEV contracts; not M09 module, B23/B25 automatic score changes, complete Release matrix, real hardware or human UAT.",
+  "checkpoint_boundary": "Evidence review/documentation increment after the current30checkpoint package was frozen. No product, driver or package change, rebuild or additional runtime; must not block or rebind GroupRemainderOnly packaging.",
+  "current_actual": {
+    "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+    "configuration": "Release",
+    "driver_source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "driver_release_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+    "raw_path": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee/dfdde5b3a08b43d9b7cbe068f4de0d22-release-fixture.jsonl",
+    "raw_sha256": "4877F35BE5DAC0464D781C4ECC83DE7CDCC124665B749873CB08015C934C0010",
+    "parent_index": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+    "environment": "Medium/non-elevated disposable Sandbox/session1, one display/DPI144. This is not ordinary complete Shell or application/display-matrix evidence.",
+    "instances": "Hotkey conflict/edit scope uses productPID6660; five-button scope uses later productPID5264. Both binaries are frozen11ae. They are not concatenated into one-instance continuity; dfdd later retained product files only cover PID1840, so earlier product facts here use original complete driver lines embedding exact original receipts.",
+    "literal_excerpt": {
+      "path": "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+      "sha256": "F72C0FBA80FC600DDA5E821D8351FA9F4BBE7DEE0BCEBC889893B9C47F919D47",
+      "bytes": 30857,
+      "rows": 22,
+      "source_sequences": [
+        1046,
+        1085,
+        1091,
+        1092,
+        1093,
+        1106,
+        1110,
+        1139,
+        1143,
+        1312,
+        1399,
+        1405,
+        1411,
+        1417,
+        1423,
+        1456,
+        1462,
+        1468,
+        1474,
+        1480,
+        1518,
+        1522
+      ],
+      "policy": "Complete original lines; newline normalization only, no raw-line reserialization or identity conversion. Intentional gaps. Original driver/embedded-product sequences retain separate producer meanings; JSONL order is not a common native timeline."
+    },
+    "F01": "D1046 actual task-owned RegisterHotKey conflict; D1085 real Chinese conflict notice, old saved bytes/generation and failed draft retained; D1091 old registered Center still executes actual exact placement. D1092/1093 remove only the successfully created test registration; D1106 same draft saved after release; D1110 new registered MoveRight exact; D1139 default Center exact after page defaults, D1143 scoped summary. No claim of physically testing every action x key x application.",
+    "F02": "D1399/1405/1411/1417/1423 deliver one actual native client DOWN/UP for each of buttons1..5. Actual GUI mouse mappings then produce D1456/1462/1468/1474/1480 exact same-source/key/generation mapped DOWN and matching UP, one actual ToggleTopmost effect and unchanged native client counters. No mapped handler bool is mistaken for native success: complete actual visual tuple is independently checked. D1518 restores original mapping and verifies native client pair again; D1522 summary. Raw counts are supplemental, not pair-authority or NormalUp proof.",
+    "exit": "D1312 observes exact hotkey-scope PID6660 shutdown and process exit0. Source stop traverses bound_keys with UnregisterHotKey, clears bindings, then the actual message-window/process lifecycle ends. This supports existing exit cleanup; no exit-then-reRegister same-tuple probe was run or newly required. Deletion-release has its own direct OS registration evidence in c442 below."
+  },
+  "inherited_actual": [
+    {
+      "run_id": "e6605c686cb644b3bb9ee5d39fd781df",
+      "product_source": "7450db1fad2651ef4e8c6521c44414d75aed3743",
+      "product_release_sha256": "A511BDD3668DE200721847A99CCF92B582058A2CD9C14DAB2C01E21122C114CC",
+      "driver_source": "67db545d7e8c022a4a6c8993dc56d2162c9e5d9a",
+      "driver_release_sha256": "424FD078AB0870CE05B79D2F81D8A2DB6D19BD7169D8D85F0CB689004697A27D",
+      "references": [
+        {
+          "path": "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
+          "sha256": "AA4E95CD2F3DCD2E21962A121CD1B550A3C48B4606D3ADA1D43565CCFCEBEB86"
+        }
+      ],
+      "scope": "D75..110 actual custom mappings on four edges/four corners; D168 confirms all eight. D208/213/218/219 and277 actual Shift+middle single vs double with separate production generations, actual matching UP and complete visual tuples. Original product745 identity and overall e660 hotkey-phase driver failure remain unchanged, not relabeled a current11ae run."
+    },
+    {
+      "run_id": "c44270c32dc045bc9ca23d07db10f386",
+      "product_source": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+      "product_release_sha256": "77B728D533C5CD688E5950E45A6D2AE5304A537CC69847EB6BE3CDE501B30B25",
+      "driver_source": "5cb36bbd3e7707152dec1d5f5343b59e7d09af22",
+      "driver_release_sha256": "1E6E0585BEC06DC7B4E2F416D0C9F34EDB706DB797498BF672648F137BFAB070",
+      "references": [
+        {
+          "path": "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+          "sha256": "BD16E0F9E38F947D3EEF75D3A4080D628E8A5ED5615E5FF941C46B9C6868CAC1"
+        },
+        {
+          "path": "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl",
+          "sha256": "A7F9FF544424581BE470EB1F244D3447E4EB6D96B0A4731B51C1B6CA14966F9B"
+        }
+      ],
+      "scope": "D93/138 change the action on the same actual registered tuple and execute exactly one actual command per press; D178 RegisterHotKey succeeds only after GUI deletion of the tuple, then D179 releases only that test registration. D206/244 real Chinese rejection of duplicate hotkey and mouse tuples preserves live configuration; D287 restores original options. This closes the e660 driver-fragment remainder under its own247 identity, not by changing e660's failed verdict."
+    }
+  ],
+  "unchanged_production_scope": {
+    "verified_revisions": [
+      {
+        "source": "7450db1fad2651ef4e8c6521c44414d75aed3743",
+        "settings_blob": "8dc5ea9d01d536eb06846e3ed5f4067b16297f5b",
+        "prepare_mappings_and_route_down_sha256": "8E069AC00084408AC1289A31FC395BA9FE5AF164D9F512B7B13A09DF9CD22221",
+        "hotkey_prepare_commit_registration_sha256": "8297CBA82A5B3B0D7BE3165C5BBA95395217ACB0A27A7CD3A9FA0026BD12E115"
+      },
+      {
+        "source": "247501a6d7e00a276e9e3aa63e38247e348ca854",
+        "settings_blob": "8dc5ea9d01d536eb06846e3ed5f4067b16297f5b",
+        "prepare_mappings_and_route_down_sha256": "8E069AC00084408AC1289A31FC395BA9FE5AF164D9F512B7B13A09DF9CD22221",
+        "hotkey_prepare_commit_registration_sha256": "8297CBA82A5B3B0D7BE3165C5BBA95395217ACB0A27A7CD3A9FA0026BD12E115"
+      },
+      {
+        "source": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "settings_blob": "8dc5ea9d01d536eb06846e3ed5f4067b16297f5b",
+        "prepare_mappings_and_route_down_sha256": "8E069AC00084408AC1289A31FC395BA9FE5AF164D9F512B7B13A09DF9CD22221",
+        "hotkey_prepare_commit_registration_sha256": "8297CBA82A5B3B0D7BE3165C5BBA95395217ACB0A27A7CD3A9FA0026BD12E115"
+      }
+    ],
+    "hash_method": "git show exact revision:path, join logical lines with LF, take the named contiguous source range and SHA256 UTF-8. settings_blob is the exact Git blob object ID. Both ranges and complete settings blob compare equal across all three revisions.",
+    "ranges": [
+      "input_service.h: inline void prepare_mappings through route_down and following comments, ending immediately before struct ClickCandidate",
+      "product_app.cpp: discard_new_keys/prepare_keys/commit_keys/register_keys, ending immediately before bool set_startup"
+    ],
+    "consequence": "Region/button/click/modifier lookup, bounded same-source precomputed routing, action validation/defaults, RegisterHotKey conflict preservation, binding replacement/deletion and MOD_NOREPEAT semantics are unchanged. Therefore the historical actual edge/corner/Shift and same-tuple edit/delete scopes can be reused without unchanged reruns.",
+    "boundary": "Not a claim that the complete InputService/product is unchanged: later diagnostic admission records and native short-release preparation exist. Current11ae actual five-button pair and conflict observations plus separately reviewed current retirement/recovery cover the affected input boundaries; no old EXE is relabeled new."
+  },
+  "contract_judgment": {
+    "F01": "Guide372 requires actual registration conflicts, duplicate mapping, update/clear, one command per press, valid foreground target and exit release. Generic production AppCommand/Action table plus existing L1 action/tuple validation establishes all in-scope discrete actions can be mapped; their native operation/multiscreen behavior remains M09-F03 or the owning feature. Do not demand every action x hotkey x application Cartesian rerun to close F01.",
+    "F02": "Guide373 explicitly permits fixture validation of all five buttons and separately labels missing physical five-button hardware. Eight nonclient regions and Shift single/double are already actual reusable scopes; current five-button title mapping and unmapped native pairs plus default protected-region routing/L1 cover this independent input contract. Do not attach physical hardware or whole application matrix as an added independent DEV prerequisite.",
+    "real_hardware_five_button_mouse": "NOT_RUN; separately reported hardware coverage, not a falsified PASS",
+    "full_application_display_module_and_version_gates": "Remain independent and incomplete. These two closure recommendations do not close M09-F03, tray, M09 module, all benchmark gates, ordinary full Medium desktop, real applications, multi/mixed-DPI or human UAT.",
+    "historical_failures": "All prior failures, partial runs and original candidate identities retained. No fresh runtime by this review and no previous raw evidence rewritten."
+  }
+}

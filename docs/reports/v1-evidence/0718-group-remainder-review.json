@@ -1,0 +1,241 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+  "kind": "independent_readonly_actual_guest_review",
+  "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+  "configuration": "Release",
+  "suite": "GroupRemainderOnly",
+  "overall_verdict": "FAIL_RETAINED_FIXED_HEIGHT_ORACLE_DID_NOT_COMPLETE",
+  "independent_results": {
+    "group_outer_hull_snap": "PASS_SCOPED",
+    "lower_source_horizontal_shared_resize": "PASS_SCOPED",
+    "fixed_height_complete_geometry_and_claim_postcheck": "NOT_COMPLETED"
+  },
+  "identity": {
+    "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+    "driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
+    "driver_release_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
+    "packaging_head": "f221d13d176ff6fb64b8bd779ee373ff4ed0e611",
+    "zip_sha256": "167F99CD6156B9D33812A68B3FD375808EE1EF081B349036915CA9A795FC9291",
+    "manifest_sha256": "4C9C6AAA0FBB4A0CD32E04006514FD57F015A3E65F40A2524B7A7C5CBCFD0092",
+    "wsb_sha256": "85DB850CC634734464418CA402CAA266B660E8A6ABB75CBE3AB4B029966FE917",
+    "product_pid": 6720,
+    "product_birth_filetime_decimal": "134370821139837067",
+    "fixture_pid": 6428,
+    "source_thread_id": 6412,
+    "shield_owner_thread_id": 6748,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "environment": "Windows Sandbox; OS26100.9711; single3050x1668/work3050x1596/DPI144. Not ordinary complete Medium Shell, third-party application or multiscreen/mixed-DPI proof.",
+    "unchanged_product": "Collected product EXE independently hashes to frozen11ae/D389. P1..186 remain one PID6720; no product restart across the three gestures."
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/07181defc2e64ea0b205a7cd12078ca5/collection-20261021T184958242Z-e241de77c4dd44cab1160910c7318ee3/07181defc2e64ea0b205a7cd12078ca5-release-fixture.jsonl",
+      "sha256": "A6B3832D6DD596C8EEE8F3373F19E78E5EC32C516FF86EF54DF6EF72931277FA",
+      "bytes": 188558,
+      "legal_jsonl_rows": 345,
+      "sequence_range": [
+        1,
+        345
+      ],
+      "continuous": true
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/07181defc2e64ea0b205a7cd12078ca5/collection-20261021T184958242Z-e241de77c4dd44cab1160910c7318ee3/07181defc2e64ea0b205a7cd12078ca5-product-Release/panebind.log.jsonl",
+      "sha256": "B9D8923A41B65D54E9367A13116718D35170303FA49F33056595CC7384114EDE",
+      "bytes": 212471,
+      "legal_jsonl_rows": 186,
+      "sequence_range": [
+        1,
+        186
+      ],
+      "continuous": true,
+      "single_process_id": 6720
+    },
+    {
+      "producer": "launcher",
+      "path": "uat/v1-control/07181defc2e64ea0b205a7cd12078ca5/collection-20261021T184958242Z-e241de77c4dd44cab1160910c7318ee3/07181defc2e64ea0b205a7cd12078ca5-Release-launch.json",
+      "sha256": "C309D42E69D5AC9BB55D2431A4BC4C47F1944A0B359D1F173476F63D63B55D12",
+      "fixture_exit_code": 1,
+      "descendants_alive_at_fixture_exit": 0,
+      "forced_test_cleanup": false,
+      "status": "FIXTURE_FAILED",
+      "note": "Fixture exit1 is preserved; zero descendants/no forced cleanup do not change the failed function verdict."
+    },
+    {
+      "producer": "collector",
+      "path": "uat/v1-control/07181defc2e64ea0b205a7cd12078ca5/collection-20261021T184958242Z-e241de77c4dd44cab1160910c7318ee3/collection-receipt.json",
+      "sha256": "F8C85EA594B5E9DC3096AC42CDFDE5937554ED136BAB7C747FE755FCF8608C6D",
+      "note": "Before/after output inventories agree. Collection integrity is not functional PASS."
+    },
+    {
+      "producer": "packager",
+      "path": "uat/v1-sandbox/07181defc2e64ea0b205a7cd12078ca5/package-receipt.json",
+      "note": "Original separate product/driver/packaging and package hashes above; no history or build identity rebound."
+    }
+  ],
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+    "sha256": "7A0ABA3DCADDF6C0B4EF5C95FC9B54588872857AA03523B6F23FCBF6276D9DB1",
+    "bytes": 35197,
+    "rows": 50,
+    "driver_source_sequences": [
+      3,
+      19,
+      24,
+      136,
+      146,
+      148,
+      152,
+      153,
+      154,
+      160,
+      213,
+      216,
+      220,
+      228,
+      234,
+      242,
+      244,
+      245,
+      246,
+      248,
+      331,
+      341,
+      345
+    ],
+    "product_source_sequences": [
+      58,
+      62,
+      63,
+      64,
+      67,
+      69,
+      75,
+      77,
+      101,
+      103,
+      104,
+      107,
+      108,
+      110,
+      112,
+      118,
+      120,
+      138,
+      141,
+      143,
+      145,
+      148,
+      150,
+      151,
+      153,
+      182,
+      186
+    ],
+    "policy": "Whole original lines, newline normalization only; no truncation, reserialization or 64-bit identity conversion. Driver then product are separate producer excerpts. Intentional gaps, not a common native ordering."
+  },
+  "g1_group_hull": {
+    "result": "PASS_SCOPED_ACTUAL_EXTERNAL_WINDOW_HULL_SNAP",
+    "original_geometry": {
+      "A": [
+        240,
+        200,
+        640,
+        600
+      ],
+      "B": [
+        640,
+        200,
+        1040,
+        400
+      ],
+      "C": [
+        640,
+        400,
+        1040,
+        600
+      ],
+      "nonmemberD": [
+        1300,
+        300,
+        1620,
+        700
+      ]
+    },
+    "oracle": "D136 independently records actualDPI144/GUI10DIP attraction=>15px, release16DIP=>24px. Raw total dx245 gives leader[485,200,885,600] and hull[485,200,1285,600]. Hull-D gap15 is attractable while leader-D gap415 exceeds release24: leader-only snapping cannot explain the result.",
+    "actual_start": "D146/P58 real native-first CtrlMove g1/key5, frozen original three members. D is not selected.",
+    "actual_writer": "P62/63/64 are three actual successful identity-valid exact native attempts, one for each key5/6/7. Every member gets the same original-anchored total dx260; resulting A[500,200,900,600], B[900,200,1300,400], C[900,400,1300,600]. No free placement followed by a second corrective batch occurs.",
+    "nonmember": "D152 actual D unchanged; D153 verifies visible AND positioning offsets for each group member and D, fixed sizes/DPI; D154 foreign native claims0/invalid receipts0. No D placement or newly acquired group membership inferred.",
+    "actual_UP": "P67 actual Raw flags2/QPC331782554, P69 accepted legacy/QPC331794073, P75 release+detach+overlay destruction/hotkey unregister, P77 NormalUp/pending_retired. D160 complete same-generation placement rows unchanged after UP. Last g1 native_after331432354 precedes actual UP."
+  },
+  "g2_lower_horizontal_source": {
+    "result": "PASS_SCOPED_LOWER_HTTOP_AND_SHARED_MIN_INTERSECTION",
+    "original_geometry": {
+      "upper": [
+        100,
+        100,
+        500,
+        500
+      ],
+      "lower": [
+        100,
+        500,
+        500,
+        900
+      ]
+    },
+    "actual_start": "D213/P101 real g2 CtrlResize from LOWER HWND197430/key7 HTTOP, two frozen members, new generation after g1. Config move magnetfalse/resize magnetfalse avoids ordinary snapping being confused with shared resize.",
+    "first_actual_quantum": "D216/P103/P104 raw totaldy80 => upper[100,100,500,580], lower[100,580,500,900]. Two real exact native calls4/5, external top100/bottom900/x100..500 unchanged.",
+    "min_intersection": "D220/P107/P108 raw totaldy180 => common y600, upper[100,100,500,600], lower[100,600,500,900]; lower minheight300 enforces the whole line, not independent drift. Two real exact calls6/7.",
+    "actual_UP": "P110 actual Raw flags2/QPC345378820; P112 accepted legacy; P118 actual release/detach/Gone; P120 actual NormalUp. D228 no placement-row change after UP. Last g2 native_after345134812 precedes its actual UP.",
+    "boundary": "This does not itself complete the fixed-height-neighbor subcase or replace its failed/unexecuted assertions."
+  },
+  "g3_fixed_height_failure": {
+    "result": "FAIL_DRIVER_OBSERVABILITY_PREDICATE_COMPLETE_FUNCTION_POSTCHECK_NOT_EXECUTED",
+    "actual_setup": "Lower neighbor declared min/max visible height400 with width NOT fixed; D242/P138 actually starts g3 CtrlResize from upper HTBOTTOM with two members. D243 is a fresh generation. D234 pre-status has native claims7.",
+    "actual_motion": "D244 one test cursor move observes actual system cursor[292,578] from[292,498]. D245 times out after1000ms waiting for a production raw_mouse/flags0 receipt; no UP had been sent until D246. This is a real failed assertion, not a corrected retrospective PASS.",
+    "source_explanation": "The tested helper explicitly requires gesture_input_resource/fact raw_mouse/raw_button_flags0. Production InputService capture route explicitly returns before queuing RawMouse with no button flags (input_service.cpp: Raw motion is not an audit stream). Thus this predicate asks for a deliberately absent audit record. P141 does contain actual same-generation/source/overlay262940 WM_MOUSEMOVE512, message_time35281/resourceQPC353169964. Its presence is observed routing, not an inferred solver-consumption or window-geometry result.",
+    "subsequent_cleanup": "D246 one TEST cleanup LEFTUP (not replay), P143 actual RawUP flags2, P145 actual accepted legacy LEFTUP, P148 actual own capture release succeeds, P150 actual detach succeeds, P151 actual overlay destruction/hotkey unregister, P153 actual NormalUp/pending_retired. Calling it test cleanup does not erase those actual product receipts; neither do they complete the interrupted fixed-height oracle.",
+    "unavailable_assertions": "The helper throws at D245 before finish_up, exact visible/positioning postchecks and the before/after native-claim barrier assertion. No fixed_height_neighbour_clamps_whole_line_zero_native PASS row exists. Full product log has no g3 placement and P182 later status reports native claims7, but these observations alone do not supply the omitted full actual geometry postcheck or prove which solver branch consumed the motion.",
+    "failure_propagation": "D331 phaseFAIL, D341 summaryFAIL, D345 driver_shutdownFAIL and launcher exit1 remain unchanged. Product resources subsequently exit normally at P186; guest destruction is not used as product cleanup or fixed-height success.",
+    "next_action": "Repair only the guest driver's observation predicate to use existing exact same-generation overlay WM_MOUSEMOVE and appropriate original watermark, retain real geometry/native-claim postchecks, then rerun ONLY the affected fixed-height case with new driver/RunId and the unchanged frozen product. No repeat of g1/g2, historical FixH or stability matrix required."
+  },
+  "independent_contract_assessment": {
+    "M06_F03": {
+      "recommendation": "PASS_INDEPENDENT_DEV_WITH_EXISTING_COMPONENTS",
+      "basis": "0718 closes the explicit previously missing group-outer-hull native magnet behavior without changing internal offsets. Same-product a9ee PID3936 observes actual Ctrl A g4 then fresh Ctrl C g6 then Ctrl B g7, each actual geometry/UP and rebuilt membership rather than a permanent leader; ordinary B Resize between them is preserved. Existing4d32 actual Ctrl+Shift native separation followed by fresh one-member Ctrl proves broken contact is not a permanent group. Its original247 build identity remains historical and only unchanged group/routing scope is reused.",
+      "references": [
+        "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+        "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+        "docs/reports/v1-evidence/4d32-current-input-pause-routing-metadata.json",
+        "docs/reports/v1-evidence/m09-mapping-current-combined-review.json"
+      ],
+      "scope": "Current external-window group hull snap is directly observed. This run does not invent a new group-screen-edge, third-party mixed-app or real display-matrix observation. Common group/solver and screen-edge scopes retain their separate existing evidence. The three-real-application module gate is not appended to standalone M06-F03.",
+      "history": "Original failures and all source/binary/run identities remain. Do not convert the failed0718 whole suite into PASS merely because this independent feature can close."
+    },
+    "M07_F02": {
+      "recommendation": "PENDING_FIXED_HEIGHT_REVALIDATION",
+      "observed": "The lower-source horizontal two-quantum/minintersection/NormalUp case now supplements the already recorded upper-source transposed G06; do not repeat it unchanged.",
+      "missing": "The direct fixed-height-neighbor full native geometry and zero-claim postcheck must finish under the repaired driver before this independent contract closes. The guide requires an owned fixed-height neighbor; an extra fixed-height third-party app or complete Full is not an additional F02 gate."
+    }
+  },
+  "final_limits": {
+    "whole_suite": "FAIL",
+    "fixed_height_complete_result": "NOT_COMPLETED",
+    "whole_M06_M07_modules_or_version_PASS": false,
+    "Full_suite": "NOT_RUN",
+    "real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "clocks": "Comparisons named above use explicit same-guest QPC, not JSONL row order or a reconstructed common Raw/WinEvent time. Resource receipts alone do not grant writer permission.",
+    "product_or_shared_file_changes_by_review": false,
+    "live_input_by_review": false
+  }
+}

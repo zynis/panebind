@@ -52,6 +52,51 @@
   ],
   "current_targeted_runtime": [
     {
+      "id": "EV-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+      "kind": "ACTUAL_RELEASE_BATCH_FAIL_WITH_INDEPENDENT_SCOPED_PASS",
+      "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
+      "driver_binary_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
+      "path": "docs/reports/v1-evidence/0718-group-remainder-review.json",
+      "sha256": "B0785AAC8C85C12D651511B07B7068D3DC9360C34477285BB9221A4142EB5B43",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+      "repository_excerpt_sha256": "7A0ABA3DCADDF6C0B4EF5C95FC9B54588872857AA03523B6F23FCBF6276D9DB1",
+      "result": "BATCH_FAIL_RETAINED_M06_F03_B08_INDEPENDENT_PASS_WITH_EXISTING_SOURCE_RESELECTION",
+      "scope": "g1 actual hull magnet/three rigid exact/D unchanged/real UP zero-late-write; g2 real lower HTTOP/min. g3 fixed-height tool oracle incomplete; new height runtime NOT_RUN, not whole module/Full PASS."
+    },
+    {
+      "id": "EV-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY",
+      "kind": "EXISTING_ACTUAL_RELEASE_LITERAL_AND_EXISTING_L1_NO_NEW_NATIVE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+      "path": "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+      "sha256": "9C48038A344D415C501760B3791AE396E9FEA8F68C28ABD7221960A57ADC6E45",
+      "repository_excerpt_path": "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+      "repository_excerpt_sha256": "DBAA8CF851583CEA7E4E7F84399537597C3BAEBA02E96B4A9EA23B2B7FBD44DB",
+      "result": "PASS_INDEPENDENT_M07_F03_F05_NOT_I10_OR_MODULE",
+      "scope": "Actual T/L shared edges, member constraint intersection/pullback, grid nonexact rejection/zero late native, second-member identity loss/zero third attempt and same-instance survivor recovery. Native TRUE not API_FALSE; L HTLEFT not L corner."
+    },
+    {
+      "id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+      "kind": "READONLY_CURRENT_AND_PROVEN_UNCHANGED_NARROW_HISTORICAL_MAPPING_REUSE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+      "path": "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+      "sha256": "9C6839647BC41115A1C8CC2F19EE737C8B2545AED00DE727477B1C240F5E0BB5",
+      "repository_excerpt_path": "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+      "repository_excerpt_sha256": "F72C0FBA80FC600DDA5E821D8351FA9F4BBE7DEE0BCEBC889893B9C47F919D47",
+      "result": "PASS_INDEPENDENT_M09_F01_F02_B23_B25_WITH_EXISTING_M11_F03",
+      "scope": "Currentdfdd actualOS conflict/oldCenter/newMoveRight/default/exit andfivebuttonmapped/nativepairs, exact745/247/11ae settingsblob+namedmapping/hotkey code equality allows historicaleightregion/Shift/update/delete/duplicate reuse with original identities. Not entireInputService unchanged, no hardware or allapps/exit-reregister/native rerun claim."
+    },
+    {
       "id": "EV-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
       "kind": "EXISTING_NATIVE_REVIEW_PLUS_ACTUAL_MINIMAL_OFFLINE",
       "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -181,13 +226,16 @@
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
   "next_driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
-  "next_driver_validation": "bcc8 test-only GroupRemainderOnly three gestures: D/R buildPASS, guest-path1/1PASS each231cases/0.05-0.06s, symlinkSKIP1314, packaging124PASS; native scene NOT_RUN. Current30/60,14/40=35%. Actual984/ca0e invalid draft/publicTab and984/a1cc sharedResizeStroke/Shift explanation close independent M11-F02/M10-F03 with enumerated existing evidence; old9e56/a9ee mousefocus failures UNKNOWN retained. Currentdfdd/a9ee plus actual unchanged sharedlayout/topology L1 close fourgroup contracts/B07/B09; M12F01 localLog closes independently. Product11ae/portable528a unchanged; not modules/Full/apps/displays/human PASS. All older runtime/binary identities retained.",
+  "next_driver_validation": "Current35/60,17/40=42.5%: actual0718 batchFAIL retained, g1 group hull plus existing source/reselection closesM06F03/B08; currentdfdd+existingL1 closesM07F03/F05. M12F03/B32 identity-only11ae/528a/2432 correction adds no score. TEST0c244d6 D/R build/guest-path1of1/package124/coreLcorner66PASS, but GroupHeightOnly/DockRemainderOnly/LCornerOnly native NOT_RUN. Product unchanged; modules/apps/displays/Full/human not closed.",
   "next_driver_binary_identity": {
     "source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
     "debug_sha256": "136FDE148CCAD32B6C8BF2AFEAD93171E256FFECB8B7F0DE0AE0C8481E61790B",
     "release_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
-    "next_run_ids": "TO_BE_ASSIGNED_BY_PACKAGER_NOT_RUNTIME_EVIDENCE",
-    "native_runtime": "NOT_RUN_AT_CHECKPOINT_NOT_BUILD_PASS"
+    "next_run_ids": [],
+    "last_actual_run_id": "07181defc2e64ea0b205a7cd12078ca5",
+    "native_runtime": "ACTUAL_0718_BATCH_FAIL_G1_G2_SCOPED_PASS_G3_ORACLE_INCOMPLETE",
+    "superseding_test_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+    "superseding_suites_runtime": "HEIGHT_DOCK5_LCORNER_NOT_RUN"
   },
   "remaining_native_contracts_prepared": {
     "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",

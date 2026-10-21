@@ -1,8 +1,22 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：精确恢复、原生应用前置与反馈实证（2026-10-22）
+## 当前接续：组外磁吸、共享边约束与精确剩余补件（2026-10-22）
 
-当前集中判定为**生产接线60/60，独立DEV通过30/60，对标14/40＝35%**；产品仍是冻结11ae／528a便携候选，没有为重审证据或工具改动重建产品。以下23/60、20/60是同日较早封存检查点，不覆盖本段。模块、完整整链、五类真实应用、普通完整Medium桌面、真实托盘、多屏／混合DPI及真人门仍未齐，`PARTIAL`，不进入REA。
+当前为**生产接线60/60，独立DEV通过35/60，对标17/40＝42.5%**，整版仍`PARTIAL`。产品11ae／Release `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`与528a便携包未重建或换绑。
+
+- [0718真实组外磁吸](v1-evidence/0718-group-remainder-review.json)已执行，**整批FAIL保留**：g1组外轮廓距独立D15px而leader距D415px，三窗一致dx260 exact、内部偏移保持、D不动；真实Raw/legacy UP及自主清理后无迟写。结合当前A/C/B source与历史原身份断组重选，独立M06-F03/B08闭合。g2下窗HTTOP共享横线及min夹制也实际通过；第三固定高度场景的driver误等过滤Raw审计行，结果断言未完成，不能把NormalUp/Gone改成其功能PASS。
+- [当前dfdd共享Resize精确核对](v1-evidence/11ae-shared-resize-remainder-review.json)以32条原文字面和既有同生产L1闭合M07-F03/F05：真T三参与边、真L两窗不填空洞、多成员统一min/拉回、grid非exact拒绝、第二成员关闭后零第三写入及同实例Move→接触→Ctrl恢复。实际L的bottom330不改写为固定G07的300；API TRUE但身份/几何失败不冒充API_FALSE，失败代不称NormalUp，不授I10或整个M07。
+- M12-F03/B32保留既有PASS，仅把当前身份纠正为11ae／528a／2432普通无参入口原件：七文件hash、可见中文GUI、普通二启同PID、公开Save后的实际MoveUP及退出。没有再次计分、重包或运行。
+
+TEST `0c244d622f84f7dc7048efb8e9989dc49a93cc8d`仅接三项缺口：`GroupHeightOnly`、`DockRemainderOnly`（其余五停靠目标）、`LCornerOnly`。root已完成D/R fixture构建、guest-path各1/1及包装124检查，core L角D/R各66checks通过；**这三项现场仍NOT_RUN**。不以构建或数值模型提升固定高度、L角或完整Dock合同。普通真实应用/托盘/完整Medium桌面/多屏混合DPI、模块与完整整链仍缺，真人UAT PENDING，暂不REA。
+
+以下32/16及更早段落保留各封存时身份与状态；其中0718“NOT_RUN”由上述实际FAIL及限定通过更新，不作为当前下一动作。
+
+### 前一32/16检查点（保留历史）
+
+当前集中判定为**生产接线60/60，独立DEV通过32/60，对标16/40＝40%**；产品仍是冻结11ae／528a便携候选。30检查点打包后，[两项独立映射合同核对](v1-evidence/m09-mapping-current-combined-review.json)依据当前dfdd真实OS注册冲突／旧Center保留／新MoveRight及恢复默认／原PID退出、当前五键客户与mapped配对，结合原745八边角／Shift单双及247同tuple改删／重复拒绝的实际证据，闭合M09-F01/F02。完整settings blob及明确mapping／热键区间精确等价才复用这些原身份范围，不声称整个输入实现未改，也不重跑已闭专项。原M11-F03已有独立PASS，固定依赖满足B23/B25，完整15区仍是DEFERRED B33。实体五键硬件、整应用／显示矩阵及退出后同tuple重Register未跑分别据实列出，不新增为本独立功能门。
+
+未为这些核对重建产品或换绑原运行。模块、完整整链、五类真实应用、普通完整Medium桌面、真实托盘、多屏／混合DPI及真人门仍未齐，`PARTIAL`，不进入REA。下面30/60、23/60及20/60保留各自同日封存检查点；新bcc8三手势包RunId`07181defc2e64ea0b205a7cd12078ca5`已准备，当前结果仍**NOT_RUN**，不以包生成或入口接线预授M06-F03／M07-F02。
 
 - [当前原件的四项组合同核对](v1-evidence/11ae-group-contracts-review.json)补入dfdd八窗末成员source、A/C及a9ee真实B source、实际B Resize→A五段→Ctrl C和左右任一source的G06共享竖边／min夹制；结合未改的生产共用G05／topology／G06独立预期，M06-F01/F02/F04、M07-F01及B07/B09闭合。49条dfdd和5条a9ee新literal逐行匹配原件；两批不同PID不拼成单生命周期。仅现有layout／topology离线目标作最小构建与D/R各2/2验证，第一次缺EXE的Not Run和一次并发生成错误／串行恢复如实记录，不当产品失败或新增现场。B08仍依赖尚缺的组外磁吸合同，未抬PASS。
 - [a1cc实际反馈补件](v1-evidence/a1cc-feedback-remainder-review.json)加a9ee已有成员轮廓／关系刷新／可关闭子集，闭合M10-F03：真实Ctrl共享边Resize的5px粗线随x700→740、透传／不激活、两窗exact、实际Raw／legacy UP和正常收尾后隐藏。公开Shift说明的原BMP由root实际打开审阅完整可读；这不是真人UAT，也不改原driver的readability=NOT_RUN。

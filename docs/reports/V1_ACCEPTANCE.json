@@ -17,9 +17,13 @@
       "debug_sha256": "136FDE148CCAD32B6C8BF2AFEAD93171E256FFECB8B7F0DE0AE0C8481E61790B",
       "release_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
       "binary_self_reported_source_verified": true,
-      "native_guard_validation": "GROUP_REMAINDER_ONLY_THREE_TARGETED_GESTURES_NOT_RUN_AT_RECORDING",
+      "native_guard_validation": "ACTUAL_0718_BATCH_FAIL_GROUP_HULL_AND_LOWER_SOURCE_SCOPED_PASS_FIXED_HEIGHT_ORACLE_INCOMPLETE",
       "offline_regression": "Debug/Release fixture buildPASS and guest-path1/1PASS each (231cases;0.05/0.06s; symlink subcase SKIP1314); packaging124checks PASS; product EXE unchanged",
-      "next_run_ids": "TO_BE_ASSIGNED_BY_PACKAGER_NOT_RUNTIME_EVIDENCE",
+      "next_run_ids": [],
+      "last_actual_run_id": "07181defc2e64ea0b205a7cd12078ca5",
+      "superseding_test_source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
+      "superseding_suites": ["GroupHeightOnly", "DockRemainderOnly", "LCornerOnly"],
+      "superseding_native_runtime": "NOT_RUN",
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
@@ -59,8 +63,8 @@
         "next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。"
       },
     "implementation_inspected": "11AE_PRODUCT_DFDD_FULL_BOUNDARIES_FAIL_05F_TEST_DRIVER_0A66_REMAINING_MOVE_SCOPED_PASS",
-    "note": "产品冻结11ae/便携528a不变，当前30/60、14/40=35%。在23/12检查点上，当前dfdd/a9ee及未改共享layout/topology L1闭合M06-F01/F02/F04、M07-F01和B07/B09；a1cc结合a9ee闭合M10-F03；ca0e四类非法GUI/同草稿合法后继及既有参数/公开代际合同闭合M11-F02；当前实际轮转/普通低噪声与原身份未改关键失败机制闭合M12-F01。B08仍缺M06-F03，M07-F02横边确切子项尚NOT_RUN；模块/应用/普通Medium/托盘/显示/完整整链/真人门仍未齐。旧失败不删除，整版PARTIAL不REA。",
-    "pending_product_note": "仅工具bcc8三手势入口D/R构建PASS，GroupRemainderOnly尚NOT_RUN，产品不重建或换绑。原a9ee/9e56 mousefocus失败仍UNKNOWN，ca0e公共Tab通过不是其根因或生产修复；8ffa真实无产品原生应用前置FAIL仍存。不重开D29/八区/独立900，继续可运行合同和具体外部门。",
+    "note": "产品冻结11ae/便携528a不变，当前35/60、17/40=42.5%。在32/16点后，0718真实组外轮廓吸附结合原source/重选范围闭合M06-F03/B08，当前dfdd真实T/L共享边与多成员约束/grid非exact/成员关闭及同实例恢复结合同生产既有L1闭合M07-F03/F05。0718整批FAIL保留，第三固定高度工具断言未完成，不能由正常清理推PASS；M07-F04真实L角及Dock五缺目标仍待新0c244d6工具现场。M12-F03/B32原PASS只更新11ae/528a/2432绑定，不重复加分。模块/应用/普通Medium/托盘/显示/完整整链/真人门仍未齐，PARTIAL不REA。",
+    "pending_product_note": "新TEST0c244d6合并仅GroupHeightOnly/DockRemainderOnly/LCornerOnly，root已实际D/R构建、guest-path各1/1及包装124PASS，L角core各66checks通过；三suite现场仍NOT_RUN。产品11ae不重建/换绑。旧0718整批FAIL及a9ee/9e56mousefocusUNKNOWN/8ffa无产品原生应用FAIL保留，不重复已关闭专项。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1336,9 +1340,9 @@
       "B31",
       "B32"
     ],
-    "pass_count": 14,
-    "points": 35,
-    "coverage_percent": 35,
+    "pass_count": 17,
+    "points": 42.5,
+    "coverage_percent": 42.5,
     "required_points": 80,
     "formula": "PASS benchmark count / 40 * 100",
     "mandatory_all_pass": false,
@@ -1352,7 +1356,7 @@
       "B39",
       "B40"
     ],
-    "note": "实际30/60完整独立功能，14/40=35%。在原23功能/12对标上，重审当前dfdd/a9ee原件及未改生产共用layout/topology L1闭合M06-F01/F02/F04、M07-F01和B07/B09；a1cc结合a9ee闭合M10-F03；ca0e公共Tab四类非法拒绝/同草稿合法后继操作及既有参数/公开代际合同闭合M11-F02；实际轮转/普通低噪声及原身份未改关键失败机制闭合M12-F01。B08仍缺M06-F03，M07-F02确切横边缺口尚NOT_RUN。模块、完整整链、应用/普通Medium/托盘/显示和真人另判；原a9ee/9e56FAIL保持，B33-B40仍0分，整版PARTIAL不REA。"
+    "note": "实际35/60完整独立功能，17/40=42.5%。M09F01/F02及B23/B25原32点保留；0718g1加既有source/重选闭合M06F03/B08，当前dfdd加既有L1闭合M07F03/F05。0718整批仍FAIL，M07F02固定高度/M07F04真L角及Dock五目标新工具尚NOT_RUN；M12F03/B32仅纠正当前已测身份，无重复分数。模块/整链/应用/普通Medium/托盘/显示/真人另判，B33-B40仍0分，整版PARTIAL不REA。"
   },
   "hard_gates": [
     {
@@ -2165,9 +2169,9 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。；9d74按原SHA继续实际import/save-failure/corrupt/exclusion及正常UP子项，见PO-9D74。",
       "remaining_conditions": [
-        "当前候选应用级即时撤权与下一手势采样完整合同仍缺混合应用实际证据。"
+        "当前11ae/2c8公开设置进入先退休活动旧组、下一代排除/恢复已经实际验证；混合真实应用资格/状态变化矩阵仍未齐，独立合同不自动PASS。"
       ],
-      "next_action": "仅修自建测试布局留出真实标题空间，再以新driver/Run完成排除前后实际行为；产品EXE与权限门槛不变。",
+      "next_action": "不再修已解决的测试标题空间或重跑5017。复用当前2c8活动设置与规则实际排除/移除恢复，继续真实应用前置与相应资格/失效矩阵；无新条件不重复原Sandbox应用启动。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -2184,6 +2188,13 @@
         "driver_binary_sha256": "5B1170A2BEE1BD3EE71ADE03539504A0B349714C98CDE418FF4FB74AD9C86327",
         "run_id": "9d74d68f8a95441fa6344d5f9a73d0b2",
         "scope": "same_R2_real_export_import_corrupt_backup_and_readonly_write_failure_recovery_not_whole_M11"
+      },
+      "historical_pre_20261022_next_action": {
+        "remaining_conditions": [
+          "当前候选应用级即时撤权与下一手势采样完整合同仍缺混合应用实际证据。"
+        ],
+        "next_action": "仅修自建测试布局留出真实标题空间，再以新driver/Run完成排除前后实际行为；产品EXE与权限门槛不变。",
+        "history_retained": true
       }
     },
     {
@@ -3480,11 +3491,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "c01真实actor DOWN/START/exact后默认Deadline30031ms终止，后继Move/Resize成功；sourceclose原代匹配UP1217失败。 【当前11ae】dfdd四真实终止(含实际WM_HOTKEY/源关闭)各后继Move/Resize，actor退出后默认Deadline30015ms及恢复已实测；3f8同类成功保留，不再用048旧提前失焦描述当前actor未到Deadline。",
+      "observed": "c01真实actor DOWN/START/exact后默认Deadline30031ms终止，后继Move/Resize成功；sourceclose原代匹配UP1217失败。 【当前11ae】dfdd四真实终止(含实际WM_HOTKEY/源关闭)各后继Move/Resize，actor退出后默认Deadline30015ms及恢复已实测；3f8同类成功保留，不再用048旧提前失焦描述当前actor未到Deadline。 a575当前11ae实际END/capture后no-own capture-loss，未ReleaseCapture，实际detach/Gone，同PID后继Move/Resize正常；该确切缺口已闭合。",
       "remaining_conditions": [
-        "实际no-own capture-loss后同实例恢复尚未直接证实；queue/hook故障、会话失活/锁定等尚未在对应当前隔离条件实际覆盖。"
+        "no-own capture-loss已由a575实际闭合；queue/hook故障、会话失活/锁定等尚未在对应隔离条件实际覆盖，不能以其他终止原因代替。"
       ],
-      "next_action": "复用dfdd/3f8四原因及默认Deadline恢复，不再重复这些已闭组件；只保留no-own capture-loss与queue/hook/session等具体尚未齐的合同。",
+      "next_action": "复用dfdd/3f8四原因/默认Deadline及a575真实no-own capture-loss恢复；仅补尚未实际提供的queue/hook/session具体合同，环境不具备者分别列明，不重跑已关闭原因。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
@@ -3540,6 +3551,13 @@
         "configuration": "DebugAndRelease",
         "observation_id": "PO-7149-R8-NATIVE-HANDOFF-DEBUG-NORMAL-OBSERVED-ORIGINAL-DRIVER-FAIL",
         "scope": "Debug first A native handoff/actual normal cleanup observed but original verdictFAIL; Release no product gesture; not complete contractPASS"
+      },
+      "historical_pre_20261022_next_action": {
+        "remaining_conditions": [
+          "实际no-own capture-loss后同实例恢复尚未直接证实；queue/hook故障、会话失活/锁定等尚未在对应当前隔离条件实际覆盖。"
+        ],
+        "next_action": "复用dfdd/3f8四原因及默认Deadline恢复，不再重复这些已闭组件；只保留no-own capture-loss与queue/hook/session等具体尚未齐的合同。",
+        "history_retained": true
       }
     },
     {
@@ -4821,38 +4839,38 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M06-F03-DEV",
           "required_observation": "A→C→B 连续发起；组吸附屏边/外部窗口后内部间距保持；断开再 Ctrl 仅移动新组",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
-            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
+            "docs/reports/v1-evidence/0718-group-remainder-review.json",
+            "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+            "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+            "docs/reports/v1-evidence/11ae-group-contracts-review.json"
           ],
           "observation_ids": [
             "PO-BDAB-OWNED-FULL",
-            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
+            "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
+            "PO-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+            "PO-A9EE-SMART-DOCK-AND-ACTUAL-FEEDBACK"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "0718 g1真实组外轮廓距独立D为15px而leader距D415px，三窗单次一致dx260 exact、内部偏移保持且D不动，实际Raw/legacy UP后零新写；结合当前a9ee A→C→B及原4d32断组重选的原身份事实，闭合无永久leader/新代重新选组/组外轮廓磁吸独立合同。0718整批因第三场景工具断言未完成仍FAIL，不将其改成整链PASS。"
         }
       ],
-      "source_sha": "50dfdaa69352ad86f3b8da73c05badd3f361f73e",
-      "binary_sha256": "5EF2E96267E6AD46AFFCA46DF8BD4A95523BE3F1ECC21DBA30C69A4C5A12E242",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "bdab2e5e8aa648caa7bfe50124caa89d",
+      "run_id": "07181defc2e64ea0b205a7cd12078ca5",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
-        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
-        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
+        "docs/reports/v1-evidence/0718-group-remainder-review.json",
+        "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+        "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+        "docs/reports/v1-evidence/11ae-group-contracts-review.json"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -4862,13 +4880,11 @@
         "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS"
       ],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "bdab真实source切换、L改Leader及NormalUp子项通过。",
-      "remaining_conditions": [
-        "完整A→C→B、外轮廓磁吸、断开后重新选组与当前混合应用证据未齐。"
-      ],
-      "next_action": "同候选补真实断开/重连与source循环，不固定leader。",
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "observed": "0718 g1真实组外轮廓距独立D为15px而leader距D415px，三窗单次一致dx260 exact、内部偏移保持且D不动，实际Raw/legacy UP后零新写；结合当前a9ee A→C→B及原4d32断组重选的原身份事实，闭合无永久leader/新代重新选组/组外轮廓磁吸独立合同。0718整批因第三场景工具断言未完成仍FAIL，不将其改成整链PASS。",
+      "remaining_conditions": [],
+      "next_action": "复用本独立合同证据，不重跑既有八窗/source矩阵；继续模块真实应用和整版门。新增Height/Dock5/L角测试仍待新候选现场，不影响此已闭合合同。",
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
         "binary_sha256": "48F96C2A46A259979D484E0585C471C3FC8F9880EA1239B99C7A83D89CE3924E",
@@ -4896,6 +4912,44 @@
           145
         ],
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": "50dfdaa69352ad86f3b8da73c05badd3f361f73e",
+        "binary_sha256": "5EF2E96267E6AD46AFFCA46DF8BD4A95523BE3F1ECC21DBA30C69A4C5A12E242",
+        "run_id": "bdab2e5e8aa648caa7bfe50124caa89d",
+        "observed": "bdab真实source切换、L改Leader及NormalUp子项通过。",
+        "remaining_conditions": [
+          "完整A→C→B、外轮廓磁吸、断开后重新选组与当前混合应用证据未齐。"
+        ],
+        "next_action": "同候选补真实断开/重连与source循环，不固定leader。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
+          "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl",
+          "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+          "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl"
+        ],
+        "original_history_retained": true
+      },
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/0718-group-remainder-review.json",
+          "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+          "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+          "docs/reports/v1-evidence/11ae-group-contracts-review.json"
+        ],
+        "observation_ids": [
+          "PO-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+          "PO-A9EE-SMART-DOCK-AND-ACTUAL-FEEDBACK"
+        ],
+        "history_not_rebound": true
       }
     },
     {
@@ -5309,11 +5363,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前212/e7两轮三窗T横共享Resize +30/min回拉有实测；dedc G06水平g4另因实际FG变化导致follower未attempt，原FAIL保留且原因UNKNOWN，不以另一子场景覆盖。 【历史观察保留】bdab seq350/354/358真实横边及min交集/匹配UP，370固定尺寸邻居拒绝无placement。",
+      "observed": "当前11ae dfdd已实测上窗共享横边；0718 g2下窗HTTOP source实际+80及统一min300夹至y600、两窗exact和真实UP/资源清理通过。0718 g3在固定高度结果断言前误等生产过滤的Raw审计行而FAIL；保留原整批FAIL，不能由NormalUp/Gone推断固定高度后验。",
       "remaining_conditions": [
-        "dedc独立水平场景未闭合；上下source切换、固定高度真实应用和完整G06组合仍未齐。"
+        "仅固定高度邻窗的真实拒绝/夹制后验尚未完成；新GroupHeightOnly已修工具等待依据，现场NOT_RUN。真实应用/模块另判，不再把已闭合上/下source列待验。"
       ],
-      "next_action": "Full Release保留真实G06前置核对水平场景与后续操作；具体FG反例按有限事实定位，不放宽fresh authority，T横通过不关闭独立失败。",
+      "next_action": "运行新候选仅GroupHeightOnly固定高度补件；复用dfdd上窗及0718真实下窗/min/UP，不重跑dedc或Full，不追加旧G06稳定性批次。",
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -5339,6 +5393,13 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "historical_pre_20261022_next_action": {
+        "remaining_conditions": [
+          "dedc独立水平场景未闭合；上下source切换、固定高度真实应用和完整G06组合仍未齐。"
+        ],
+        "next_action": "Full Release保留真实G06前置核对水平场景与后续操作；具体FG反例按有限事实定位，不放宽fresh authority，T横通过不关闭独立失败。",
+        "history_retained": true
       }
     },
     {
@@ -5353,42 +5414,44 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M07-F03-DEV",
           "required_observation": "G07 T/L 数值案例；非参与外边不动，邻窗不重叠；断开的同坐标边不得被误带",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/bdab-release-owned.jsonl"
+            "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+            "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+            "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+            "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
           ],
           "observation_ids": [
-            "PO-BDAB-OWNED-FULL"
+            "PO-BDAB-OWNED-FULL",
+            "PO-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "当前11ae dfdd PID4924真实T三窗共享竖线x560及两窗L HTLEFT共享线x560，各独立actual矩形、非参与边保持与真实UP/noCapture均通过；actual L的B.bottom330保留真实前序Resize，固定G07 B.bottom300及断开同坐标边不误带由同生产layout已有L1独立数值核验。HTLEFT不冒充L角；本独立F03通过，不授整个M07或应用矩阵。"
         }
       ],
-      "source_sha": "50dfdaa69352ad86f3b8da73c05badd3f361f73e",
-      "binary_sha256": "5EF2E96267E6AD46AFFCA46DF8BD4A95523BE3F1ECC21DBA30C69A4C5A12E242",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "bdab2e5e8aa648caa7bfe50124caa89d",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+        "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+        "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前212/e7两轮实际三窗T竖/横共享Resize、min夹制、同一DOWN回拉，随后普通Move分离并真实Move形成两成员L、换leader Ctrl移动均有实测，不仅scope标签。 【历史观察保留】bdab seq379/391/403/408 T共享线/min/拉回、444 L缺角不补窗及实际UP子项通过。 当前212/cea另实际完成G07四格共享角双轴Resize、随后普通Move及八窗末成员Ctrl source、全部八窗exact与真实UP/资源退出；只授组件范围。",
-      "remaining_conditions": [
-        "四格/八窗上述当前候选组件已实测；L形共享Resize及混合真实应用完整组合、最终Full链仍缺，不授完整M07合同。"
-      ],
-      "next_action": "当前212/cea已实际完成G07四格双轴共享Resize及后继普通Move、八窗末成员Ctrl源与全部成员exact/真实UP；复用这些组件，不再待跑四格/八窗。仅补未覆盖L形共享Resize、混合真实应用完整组合及最终Full链，G06历史独立失败不由CEA组件关闭。",
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "observed": "当前11ae dfdd PID4924真实T三窗共享竖线x560及两窗L HTLEFT共享线x560，各独立actual矩形、非参与边保持与真实UP/noCapture均通过；actual L的B.bottom330保留真实前序Resize，固定G07 B.bottom300及断开同坐标边不误带由同生产layout已有L1独立数值核验。HTLEFT不冒充L角；本独立F03通过，不授整个M07或应用矩阵。",
+      "remaining_conditions": [],
+      "next_action": "独立T/L共享边合同完成；M07-F04的L角单次双轴/单轴约束补件仍按新候选实际验证，不重复已有T/L边拖动。",
       "latest_runtime_component_observation": {
         "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -5413,6 +5476,40 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": "50dfdaa69352ad86f3b8da73c05badd3f361f73e",
+        "binary_sha256": "5EF2E96267E6AD46AFFCA46DF8BD4A95523BE3F1ECC21DBA30C69A4C5A12E242",
+        "run_id": "bdab2e5e8aa648caa7bfe50124caa89d",
+        "observed": "当前212/e7两轮实际三窗T竖/横共享Resize、min夹制、同一DOWN回拉，随后普通Move分离并真实Move形成两成员L、换leader Ctrl移动均有实测，不仅scope标签。 【历史观察保留】bdab seq379/391/403/408 T共享线/min/拉回、444 L缺角不补窗及实际UP子项通过。 当前212/cea另实际完成G07四格共享角双轴Resize、随后普通Move及八窗末成员Ctrl source、全部八窗exact与真实UP/资源退出；只授组件范围。",
+        "remaining_conditions": [
+          "四格/八窗上述当前候选组件已实测；L形共享Resize及混合真实应用完整组合、最终Full链仍缺，不授完整M07合同。"
+        ],
+        "next_action": "当前212/cea已实际完成G07四格双轴共享Resize及后继普通Move、八窗末成员Ctrl源与全部成员exact/真实UP；复用这些组件，不再待跑四格/八窗。仅补未覆盖L形共享Resize、混合真实应用完整组合及最终Full链，G06历史独立失败不由CEA组件关闭。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        ],
+        "original_history_retained": true
+      },
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+          "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+          "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+          "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
+        ],
+        "observation_ids": [
+          "PO-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY"
+        ],
+        "history_not_rebound": true
       }
     },
     {
@@ -5462,11 +5559,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "bdab seq470/476/483真实四格两轴/实际UP与后继Move通过子项。",
+      "observed": "当前11ae dfdd真实四格共享角双轴及UP已具原件；T/L共享边由独立F03闭合但HTLEFT不能代替L角。新增L角固定独立L1 oracle已有D/R定向通过；LCornerOnly单真实手势仍NOT_RUN。",
       "remaining_conditions": [
-        "当前候选不同min/max/轴独立钳制及歧义拒绝实际范围未齐。"
+        "仅实际L形角双轴与某轴约束不破坏另一轴的原生回执尚未齐；新增LCornerOnly未运行，不因L1或入口接线提升PASS。"
       ],
-      "next_action": "当前212/cea四格共享双轴+后继普通Move已实测，不重复同G07专项；保留独立预期数值，继续尚缺的L/约束及真实应用范围，不抬完整M07/B11。",
+      "next_action": "新候选仅运行LCornerOnly真实B角一手势/独立期望/实际UP；复用已有四格/T/L边，保留歧义规则L1，不重跑Full或历史共享边专项。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -5502,6 +5599,13 @@
           91
         ],
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_20261022_next_action": {
+        "remaining_conditions": [
+          "当前候选不同min/max/轴独立钳制及歧义拒绝实际范围未齐。"
+        ],
+        "next_action": "当前212/cea四格共享双轴+后继普通Move已实测，不重复同G07专项；保留独立预期数值，继续尚缺的L/约束及真实应用范围，不抬完整M07/B11。",
+        "history_retained": true
       }
     },
     {
@@ -5544,29 +5648,29 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "共享边全参与min/max交集、统一钳制及实际回读/失败停止已接线；cb807/8453已完成owned T到L、四格和8453八窗子场景。原aae T START失败保留但不是最新阻点；grid及部分失败恢复/应用矩阵尚未完整通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M07-F05-DEV",
           "required_observation": "任一成员自定义 min/grid/关闭；失败后恢复可操作；完成后立即普通 Move 和 Ctrl Move 通过",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl",
-            "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
-            "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl",
-            "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-            "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+            "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+            "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+            "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+            "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
           ],
           "observation_ids": [
             "PO-C01-NATIVE-FAILURES",
             "PO-408AC52-UP-DISPATCH",
             "PO-CEA-R11-FOUR-GRID-AND-EIGHT-OWNED-GROUP-SCOPED-PASS",
             "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-            "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED"
+            "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
+            "PO-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_remaining_conditions_and_next_action",
+          "observed": "dfdd PID4924真实多成员min交集统一钳x600并同DOWN拉回540；另一PID1840实际grid非exact拒绝且零迟写、后继Move/Ctrl通过。第二成员真实关闭时第一native exact、第二API TRUE但身份失效→退休→第三attempt0/无补偿，实际abort释放/解绑/撤罩后同实例幸存Move、形成接触及新Ctrl/真实UP恢复；结合同生产layout既有约束/grid L1闭合独立F05。API TRUE不改作API_FALSE，失败代不记NormalUp，也不授整个I10。"
         }
       ],
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
@@ -5574,17 +5678,10 @@
       "environment_id": "E02",
       "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
-        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/8189-product-selected.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
-        "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl",
-        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-        "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+        "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+        "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+        "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
       ],
       "defects": [
         "V1-D01",
@@ -5592,13 +5689,11 @@
         "V1-D15"
       ],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "CURRENT_11AE_SCOPED_OBSERVATIONS_NOT_COMPLETE_FEATURE_PASS",
-      "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
-      "observed": "c01真实第二成员postverify失效→无第三调用→新Move/形成接触/Ctrl与实际UP子链通过；grid原代UP失败。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 【当前11ae】dfdd G06竖横/T→L/四格及组Resize，grid非exact拒绝、第二成员API TRUE后identity失效/第三0及幸存新Move/Ctrl实际通过对应子项；不把旧c01UP失败冒作新候选FAIL。",
-      "remaining_conditions": [
-        "所有参与成员不同min/max/G07可行交集及声明约束的完整组合仍需按实际范围核定；现有grid/批次与恢复不自动证明所有约束边界或真实应用尺寸合同。"
-      ],
-      "next_action": "复用dfdd/3f8当前grid/batch/后继操作与既有共享线范围，不重复旧约束恢复专项；仅补真实未齐的多成员声明限制/可行区间合同。",
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "observed": "dfdd PID4924真实多成员min交集统一钳x600并同DOWN拉回540；另一PID1840实际grid非exact拒绝且零迟写、后继Move/Ctrl通过。第二成员真实关闭时第一native exact、第二API TRUE但身份失效→退休→第三attempt0/无补偿，实际abort释放/解绑/撤罩后同实例幸存Move、形成接触及新Ctrl/真实UP恢复；结合同生产layout既有约束/grid L1闭合独立F05。API TRUE不改作API_FALSE，失败代不记NormalUp，也不授整个I10。",
+      "remaining_conditions": [],
+      "next_action": "本独立约束/实际后验/部分失败停止与恢复合同完成，不重跑旧grid/第二成员专项；I10完整故障组合、真实应用尺寸与整模块另判。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-408AC52-UP-DISPATCH",
@@ -5640,6 +5735,47 @@
           91
         ],
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "observed": "c01真实第二成员postverify失效→无第三调用→新Move/形成接触/Ctrl与实际UP子链通过；grid原代UP失败。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 【当前11ae】dfdd G06竖横/T→L/四格及组Resize，grid非exact拒绝、第二成员API TRUE后identity失效/第三0及幸存新Move/Ctrl实际通过对应子项；不把旧c01UP失败冒作新候选FAIL。",
+        "remaining_conditions": [
+          "所有参与成员不同min/max/G07可行交集及声明约束的完整组合仍需按实际范围核定；现有grid/批次与恢复不自动证明所有约束边界或真实应用尺寸合同。"
+        ],
+        "next_action": "复用dfdd/3f8当前grid/batch/后继操作与既有共享线范围，不重复旧约束恢复专项；仅补真实未齐的多成员声明限制/可行区间合同。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/input-up-dispatch-directed.txt",
+          "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/8189-product-selected.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/30bf-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/cea-r11-four-grid-and-eight-owned-group-selected.jsonl",
+          "docs/reports/v1-evidence/cea-r11-shared-resize-and-group-native-receipts-product-selected.jsonl",
+          "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+          "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
+        ],
+        "original_history_retained": true
+      },
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+          "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+          "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+          "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
+        ],
+        "observation_ids": [
+          "PO-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY"
+        ],
+        "history_not_rebound": true
       }
     },
     {
@@ -6177,7 +6313,7 @@
     },
     {
       "id": "M09-F01",
-      "latest_mapping_runtime_observation": {
+      "historical_e660_mapping_runtime_observation": {
         "observation_id": "PO-E660-R20-CUSTOM-MAPPING-PARTIAL-HOTKEY-DUPLICATE-DRIVER-BLOCKER",
         "source_sha": "7450db1fad2651ef4e8c6521c44414d75aed3743",
         "run_id": "e6605c686cb644b3bb9ee5d39fd781df",
@@ -6202,52 +6338,54 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M09-F01-DEV",
           "required_observation": "真注册冲突、重复映射、配置热更新、退出释放；动作命中最后有效前台窗；每按一次执行一次",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+            "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+            "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+            "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
             "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
             "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
-            "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
+            "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS",
+            "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_current_contract_revalidation"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+        "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
         "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
         "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq959 GUI更改热键影响实际几何，真实注册及恢复均有子项。；f9当前同R2实际注册冲突/旧Center保留、新MoveRight执行、默认恢复通过对应子项；不外推全部键鼠映射合同。 【本轮限定复验】247/c442同热键改动作、删除后OS注册释放、重复hotkey/mouse中文拒绝及完整恢复实际通过；745/e660八区/Shift单双原身份保留，本批不重复。",
-      "remaining_conditions": [
-        "当前候选全部离散映射、真实注册冲突/热更新/退出释放范围未齐。"
-      ],
-      "next_action": "c442改删/重复拒绝已限定通过，不重复专项；保留历史OS注册冲突证据，当前完整动作/退出释放及真实应用组合按未齐合同继续，不授整个M09/B23。",
+      "assessment_scope": "INDEPENDENT_MAPPING_CONTRACT_NOT_WHOLE_M09_HARDWARE_OR_APPLICATION_MATRIX",
+      "status_basis": "ACTUAL_CURRENT_DFDD_PLUS_PROVEN_UNCHANGED_NARROW_MAPPING_SCOPE_HISTORICAL_REUSE",
+      "observed": "c01 seq959 GUI更改热键影响实际几何，真实注册及恢复均有子项。；f9当前同R2实际注册冲突/旧Center保留、新MoveRight执行、默认恢复通过对应子项；不外推全部键鼠映射合同。 【本轮限定复验】247/c442同热键改动作、删除后OS注册释放、重复hotkey/mouse中文拒绝及完整恢复实际通过；745/e660八区/Shift单双原身份保留，本批不重复。 【独立合同闭合】当前11ae/dfdd真实OS注册冲突、旧配置/草稿保持、旧Center实际exact、新MoveRight实际exact、恢复默认和原PID6660实际退出；当前另PID5264真实五键无映射客户DOWN/UP与mapped单次实际ToggleTopmost/匹配UP及恢复。原745/e660八边角/Shift单双、247/c442同tuple改动作/删除后的OS释放/重复键鼠中文拒绝均留原身份；exact git比对完整settings blob和两个明确mapping/hotkey代码区间一致，可复用而非宣称整个输入实现没变。M11-F03原GUI编辑/帮助同源合同PASS不变，B23/B25按固定依赖计分。实体五键硬件及完整应用/显示矩阵仍未验证，15区仍DEFERREDB33，未增加退出后重Register新门。",
+      "remaining_conditions": [],
+      "next_action": "复用当前实证与已证明未改窄mapping路径的原身份回归，不重跑已闭八区/Shift/五键专项；硬件覆盖/真实应用、M09-F03及模块/整版门另列，不再把这些附加为独立F01/F02门。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-F9-MAPPING-CONFLICT-DEFAULTS",
-        "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
+        "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS",
+        "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
       ],
       "latest_product_observation": {
         "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
@@ -6259,11 +6397,45 @@
           "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
         ],
         "scope": "SCOPED_HOTKEY_EDIT_DELETE_AND_DUPLICATE_GUI_PASS"
+      },
+      "historical_pre_combined_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "remaining_conditions": [
+          "当前候选全部离散映射、真实注册冲突/热更新/退出释放范围未齐。"
+        ],
+        "next_action": "c442改删/重复拒绝已限定通过，不重复专项；保留历史OS注册冲突证据，当前完整动作/退出释放及真实应用组合按未齐合同继续，不授整个M09/B23。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
+        ]
+      },
+      "current_contract_revalidation": {
+        "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "current_native_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "review_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+        "independent_contract_result": "PASS",
+        "preserved_historical_sources": [
+          "7450db1fad2651ef4e8c6521c44414d75aed3743",
+          "247501a6d7e00a276e9e3aa63e38247e348ca854"
+        ],
+        "whole_InputService_unchanged_claim": false,
+        "exit_then_same_tuple_reregister": "NOT_RUN_NOT_ADDED_AS_REQUIREMENT",
+        "physical_five_button_hardware": "NOT_RUN_SEPARATE_COVERAGE",
+        "whole_module_or_version_PASS": false,
+        "human_UAT": "NOT_RUN"
       }
     },
     {
       "id": "M09-F02",
-      "latest_mapping_runtime_observation": {
+      "historical_e660_mapping_runtime_observation": {
         "observation_id": "PO-E660-R20-CUSTOM-MAPPING-PARTIAL-HOTKEY-DUPLICATE-DRIVER-BLOCKER",
         "source_sha": "7450db1fad2651ef4e8c6521c44414d75aed3743",
         "run_id": "e6605c686cb644b3bb9ee5d39fd781df",
@@ -6288,50 +6460,48 @@
       ],
       "implementation_status": "IMPLEMENTED",
       "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
         {
           "id": "M09-F02-DEV",
           "required_observation": "修改映射后真实触发；无映射透传；按下抬起配对；fixture 验证五键，实鼠未具备五键需单独标硬件覆盖",
-          "status": "BLOCKED",
+          "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/c01-release-components.jsonl",
+            "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+            "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+            "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+            "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
             "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
             "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
-            "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
+            "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS",
+            "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
           ],
-          "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
+          "assessment_ref": "parent_feature_current_contract_revalidation"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+        "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
         "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
         "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
       ],
       "defects": [],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq344五键映射同代UP、置顶反转及客户区透传通过子项，非拖动NormalUp。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；f9当前同R2实际注册冲突/旧Center保留、新MoveRight执行、默认恢复通过对应子项；不外推全部键鼠映射合同。 【本轮限定复验】247/c442同热键改动作、删除后OS注册释放、重复hotkey/mouse中文拒绝及完整恢复实际通过；745/e660八区/Shift单双原身份保留，本批不重复。",
-      "remaining_conditions": [
-        "当前候选全部标题/边角+修饰组合与实体五键硬件观察未齐。"
-      ],
-      "next_action": "保留745/e660八区/Shift单双原身份及247/c442实际重复tuple拒绝；不重复已过动作。实体五键硬件与完整跨应用合同未覆盖，不授完整M09-F02/B25。",
+      "assessment_scope": "INDEPENDENT_MAPPING_CONTRACT_NOT_WHOLE_M09_HARDWARE_OR_APPLICATION_MATRIX",
+      "status_basis": "ACTUAL_CURRENT_DFDD_PLUS_PROVEN_UNCHANGED_NARROW_MAPPING_SCOPE_HISTORICAL_REUSE",
+      "observed": "c01 seq344五键映射同代UP、置顶反转及客户区透传通过子项，非拖动NormalUp。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；f9当前同R2实际注册冲突/旧Center保留、新MoveRight执行、默认恢复通过对应子项；不外推全部键鼠映射合同。 【本轮限定复验】247/c442同热键改动作、删除后OS注册释放、重复hotkey/mouse中文拒绝及完整恢复实际通过；745/e660八区/Shift单双原身份保留，本批不重复。 【独立合同闭合】当前11ae/dfdd真实OS注册冲突、旧配置/草稿保持、旧Center实际exact、新MoveRight实际exact、恢复默认和原PID6660实际退出；当前另PID5264真实五键无映射客户DOWN/UP与mapped单次实际ToggleTopmost/匹配UP及恢复。原745/e660八边角/Shift单双、247/c442同tuple改动作/删除后的OS释放/重复键鼠中文拒绝均留原身份；exact git比对完整settings blob和两个明确mapping/hotkey代码区间一致，可复用而非宣称整个输入实现没变。M11-F03原GUI编辑/帮助同源合同PASS不变，B23/B25按固定依赖计分。实体五键硬件及完整应用/显示矩阵仍未验证，15区仍DEFERREDB33，未增加退出后重Register新门。",
+      "remaining_conditions": [],
+      "next_action": "复用当前实证与已证明未改窄mapping路径的原身份回归，不重跑已闭八区/Shift/五键专项；硬件覆盖/真实应用、M09-F03及模块/整版门另列，不再把这些附加为独立F01/F02门。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -6339,7 +6509,8 @@
         "PO-D85-ENTRY-SETTINGS-SCOPED",
         "PO-36FD-OWNED-CAPTION-CANDIDATE-BOUNDARY",
         "PO-F9-MAPPING-CONFLICT-DEFAULTS",
-        "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
+        "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS",
+        "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
       ],
       "latest_product_observation": {
         "source_sha": "247501a6d7e00a276e9e3aa63e38247e348ca854",
@@ -6351,6 +6522,43 @@
           "PO-C442-R21-HOTKEY-EDIT-DELETE-AND-DUPLICATE-GUI-PASS"
         ],
         "scope": "SCOPED_HOTKEY_EDIT_DELETE_AND_DUPLICATE_GUI_PASS"
+      },
+      "historical_pre_combined_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "remaining_conditions": [
+          "当前候选全部标题/边角+修饰组合与实体五键硬件观察未齐。"
+        ],
+        "next_action": "保留745/e660八区/Shift单双原身份及247/c442实际重复tuple拒绝；不重复已过动作。实体五键硬件与完整跨应用合同未覆盖，不授完整M09-F02/B25。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/36fd-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
+        ]
+      },
+      "current_contract_revalidation": {
+        "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "current_native_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "review_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+        "independent_contract_result": "PASS",
+        "preserved_historical_sources": [
+          "7450db1fad2651ef4e8c6521c44414d75aed3743",
+          "247501a6d7e00a276e9e3aa63e38247e348ca854"
+        ],
+        "whole_InputService_unchanged_claim": false,
+        "exit_then_same_tuple_reregister": "NOT_RUN_NOT_ADDED_AS_REQUIREMENT",
+        "physical_five_button_hardware": "NOT_RUN_SEPARATE_COVERAGE",
+        "whole_module_or_version_PASS": false,
+        "human_UAT": "NOT_RUN"
       }
     },
     {
@@ -7989,7 +8197,7 @@
         "scripts/v1-prepare-portable.ps1"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "真实七文件Release便携ZIP、许可证/中文说明/manifest和源码/二进制SHA绑定、精确身份打包guard及普通无参入口均已交付。dd60的e2abc在714c实际空参数可见GUI、保存前后两次Move/NormalUp、正常退出/字节与无profile检查通过；593/e4和b60/c01原包结果分别保留。已测ZIP不因最终三文档更新重包；新指南/报告单独附交付，不能称更新后的ZIP已测。完整功能DEV/整版/真人UAT不升PASS。",
+      "implementation_note": "当前11ae/528a真实七文件Release便携包与2432普通无参入口、公开Save后的实际Move/UP及正常退出已复核。保留旧4d07/98fc等包身份与原证据，不重包、不重跑、不将产品EXE换绑driver SHA；本项一直PASS，此次仅修正当前绑定。",
       "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "cases": [
@@ -7998,38 +8206,27 @@
           "required_observation": "Release 便携 ZIP，包含唯一用户主 EXE、必要依赖/许可证、中文快速入门、配置说明、已知问题、SHA256",
           "status": "PASS",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
-            "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
-            "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
-            "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-            "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+            "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+            "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+            "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl"
           ],
-          "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
+          "observed": "当前528a七文件便携ZIP/唯一EXE/中文说明/配置/MIT/manifest逐项size/hash核对，产品11ae D389及ZIP1CB448B8保留原字节；2432 D63/75/79/82/84/149/P61/D163实际无参可见中文GUI、普通第二启动同PID、真实Save后Move/UP、正常退出及客户输入恢复。当前EXE仅系统依赖/静态运行库核对，无新现场重跑或重包；不是整个V1/I12/真人PASS。",
           "historical_status": "PASS_R408_2632_9E5",
           "observation_ids": [
             "PO-9D74-UPDATED-PORTABLE-NORMAL-ENTRY",
-            "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE"
+            "PO-0A8F-SAME-PORTABLE-SECONDARY-AND-MOVE",
+            "PO-2432-11AE-PORTABLE-NORMAL-ENTRY"
           ]
         }
       ],
-      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "run_id": "2432640250344564b4f2ba89287bea81",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
-        "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
-        "docs/reports/v1-evidence/dd02-r11-release-entry-settings-tray-and-portable-selected.jsonl"
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl"
       ],
       "defects": [],
       "partial_observation_ids": [
@@ -8049,11 +8246,11 @@
         "PO-DD02-R11-ENTRY-SETTINGS-PORTABLE-SCOPES-TRAY-BLOCKED"
       ],
       "candidate_identity_ref": "current_package",
-      "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
-      "status_basis": "COMPLETE_INDEPENDENT_UPDATED_CHINESE_PORTABLE_CONTRACT_SAME_R2_EXE_ACTUAL_NORMAL_ENTRY_SETTINGS_EFFECT_AND_UP",
-      "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。；747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "observed": "当前528a七文件便携ZIP/唯一EXE/中文说明/配置/MIT/manifest逐项size/hash核对，产品11ae D389及ZIP1CB448B8保留原字节；2432 D63/75/79/82/84/149/P61/D163实际无参可见中文GUI、普通第二启动同PID、真实Save后Move/UP、正常退出及客户输入恢复。当前EXE仅系统依赖/静态运行库核对，无新现场重跑或重包；不是整个V1/I12/真人PASS。",
       "remaining_conditions": [],
-      "next_action": "7635原ZIP/212 EXE保持原字节，dd02普通入口/保存效果/NormalUp/退出/文件核验已实际复验；完整I12全入口和环境另判，不因修改测试工具重包或重建产品。",
+      "next_action": "复用当前11ae/528a/2432已测便携独立合同；工具/报告改动不重包或换绑旧EXE。后续整版及真实应用/显示/真人门按各自合同。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -8133,6 +8330,44 @@
         "evidence_unchanged": true,
         "new_feature_or_B_PASS": false,
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "PASS",
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "observed": "R2原0c710 ZIP在d85干净Medium guest空参启动，任何--settings前唯一中文GUI成立；actual正常退出/资源和客户投递恢复、七文件尺寸/hash、实际11系统imports均核。真实工具文件/函数未变，复用原缺文件/外部依赖拒绝。额外Move前检失败原样保留，不授I12/整版。；新98fc/5017实际空参中文GUI、默认Move、几何保持、NormalUp及退出/输入恢复均有回执，677仅工具详细event依赖FAIL（D21）；新包剩余功能子链待修工具重验，不把原0c710 Run改绑新包。；747原七文件身份核验；754空参启动/756唯一中文GUI；771默认attraction10 actual[140,80,540,440]，775/776 samePID/source/g1 public status真实UP+NormalUp+capture0+exact；788/789真实保存只改变解压目录配置；799 attraction0 actual[134,83,534,443]，803/804 g2实际UP/NormalUp/exact；805/810正常退出/资源、809客户[5,5]→[6,6]，811原交付bytes及无profile通过；812仅本子链PASS。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
+        "remaining_conditions": [],
+        "next_action": "7635原ZIP/212 EXE保持原字节，dd02普通入口/保存效果/NormalUp/退出/文件核验已实际复验；完整I12全入口和环境另判，不因修改测试工具重包或重建产品。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
+          "docs/reports/v1-evidence/5017-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/5017-portable-product-selected.jsonl",
+          "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+          "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl",
+          "docs/reports/v1-evidence/866-r3-entry-diagnostic-portable-selected.jsonl",
+          "docs/reports/v1-evidence/dd02-r11-release-entry-settings-tray-and-portable-selected.jsonl"
+        ],
+        "original_history_retained": true
+      },
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "2432640250344564b4f2ba89287bea81",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl"
+        ],
+        "observation_ids": [
+          "PO-2432-11AE-PORTABLE-NORMAL-ENTRY"
+        ],
+        "history_not_rebound": true
       }
     },
     {
@@ -8294,11 +8529,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "中文使用说明/集中缺陷清单与当前普通ZIP入口子流程可复核，真人仍NOT_RUN。；98fc纠正中文说明的原ZIP在9d74完成真实普通入口、保存后行为及正常退出子链，非Full。；0a8f同产品/同98fc新driver复验saveFailure646、corrupt699、portable869及真实普通二启，原结果各身份保留。",
+      "observed": "当前11ae产品/528a七文件便携包/2432普通无参可见GUI、二启同实例、公开Save实际MoveUP及退出可直接复核，中文说明及集中缺陷表已提供；历史dd02/7635/212与更早结果保留原身份，不继续作当前候选。",
       "remaining_conditions": [
-        "dd02已实际验证当前7635/212普通便携入口及保存行为；托盘、五应用、完整显示矩阵、I01–I12及整体review/真人UAT仍未完成。"
+        "当前11ae/528a/2432普通便携入口及保存效果已实测；托盘、五类真实应用、完整显示矩阵、I01–I12整体review及真人UAT仍未完成。"
       ],
-      "next_action": "dd02当前7635便携普通入口及保存效果已实际验证；按真实缺项补托盘、五应用和整版链，不将该scope或raw I12=PASS当整版指南已验收。",
+      "next_action": "保持当前11ae/528a说明与可复核证据，继续精确缺少的真实应用/托盘/显示及整版链；不把独立便携PASS、局部owned或raw I12=PASS当完整交付验收。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
@@ -8316,27 +8551,46 @@
         "scope": "unchanged_98fc_ZIP_and_R2_normal_entry_secondary_settings_default_saved_effects_UP_exit"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
-        "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
-        "run_id": "dd021c0b0fd64f6a98126945dc8da48f",
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "2432640250344564b4f2ba89287bea81",
         "configuration": "Release",
-        "packaging_head": "92117d05328a28ff934e61c42f14bdd9f1d8e363",
-        "package_zip_sha256": "A7EBBFDDF2F922971B6C0396CF1C256C6A20F0D4B76C59B08011E155712900B1",
-        "package_manifest_sha256": "AF603301A3944F4949C21309E0AF4671AD432A015A98185657155510EB6781D1",
-        "collection_path": "uat/v1-control/dd021c0b0fd64f6a98126945dc8da48f/collection-20261019T101721305Z-159479434b854ab6b5f422ec1aa81b50",
-        "observation_id": "PO-DD02-R11-ENTRY-SETTINGS-PORTABLE-SCOPES-TRAY-BLOCKED",
-        "scope": "Actual portable ordinary-entry command/GUI/saved behavior/exit scope only; all-entry guide/real applications/environments not complete.",
-        "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
-        "descendants_alive_at_fixture_exit": 0,
-        "forced_test_cleanup": false,
-        "product_cleanup_pass": false,
-        "product_cleanup_pass_basis": "Wrapper field remains its unevaluated false initializer. Actual product_stop/shutdown and post-stop client/Raw/windows records determine the measured cleanup scope.",
-        "exact_guest_task_cleaned": true,
-        "evidence_unchanged": true,
-        "new_feature_or_B_PASS": false,
+        "observation_id": "PO-2432-11AE-PORTABLE-NORMAL-ENTRY",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
+        ],
+        "scope": "Actual ordinary noargs visible GUI, secondary same instance, Save/effect/UP/quit of unchanged528a portable; not whole all-entry guide/app/display/human contract.",
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_20261022_next_action": {
+        "remaining_conditions": [
+          "dd02已实际验证当前7635/212普通便携入口及保存行为；托盘、五应用、完整显示矩阵、I01–I12及整体review/真人UAT仍未完成。"
+        ],
+        "next_action": "dd02当前7635便携普通入口及保存效果已实际验证；按真实缺项补托盘、五应用和整版链，不将该scope或raw I12=PASS当整版指南已验收。",
+        "latest_runtime_component_observation": {
+          "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+          "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+          "driver_source_sha": "eec93e22d66d148f2611dfd59291208c66114aa1",
+          "driver_binary_sha256": "4BB43536685040A7274665AD4480BA08DC912B5C1AAA43BD4D6D929E661DB59C",
+          "run_id": "dd021c0b0fd64f6a98126945dc8da48f",
+          "configuration": "Release",
+          "packaging_head": "92117d05328a28ff934e61c42f14bdd9f1d8e363",
+          "package_zip_sha256": "A7EBBFDDF2F922971B6C0396CF1C256C6A20F0D4B76C59B08011E155712900B1",
+          "package_manifest_sha256": "AF603301A3944F4949C21309E0AF4671AD432A015A98185657155510EB6781D1",
+          "collection_path": "uat/v1-control/dd021c0b0fd64f6a98126945dc8da48f/collection-20261019T101721305Z-159479434b854ab6b5f422ec1aa81b50",
+          "observation_id": "PO-DD02-R11-ENTRY-SETTINGS-PORTABLE-SCOPES-TRAY-BLOCKED",
+          "scope": "Actual portable ordinary-entry command/GUI/saved behavior/exit scope only; all-entry guide/real applications/environments not complete.",
+          "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
+          "descendants_alive_at_fixture_exit": 0,
+          "forced_test_cleanup": false,
+          "product_cleanup_pass": false,
+          "product_cleanup_pass_basis": "Wrapper field remains its unevaluated false initializer. Actual product_stop/shutdown and post-stop client/Raw/windows records determine the measured cleanup scope.",
+          "exact_guest_task_cleaned": true,
+          "evidence_unchanged": true,
+          "new_feature_or_B_PASS": false,
+          "not_complete_contract_PASS": true
+        },
+        "history_retained": true
       }
     }
   ],
@@ -9568,35 +9822,30 @@
       "feature_contract": "M06-F01～F03",
       "mandatory": true,
       "weight": 2.5,
-      "implementation_status": "IN_PROGRESS",
-      "dev_status": "BLOCKED",
+      "implementation_status": "IMPLEMENTED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "points_awarded": 0,
-      "source_sha": null,
-      "binary_sha256": null,
+      "points_awarded": 2.5,
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": null,
+      "run_id": "07181defc2e64ea0b205a7cd12078ca5",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/bdab-release-owned.jsonl",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
-        "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        "docs/reports/v1-evidence/0718-group-remainder-review.json",
+        "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+        "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+        "docs/reports/v1-evidence/11ae-group-contracts-review.json"
       ],
-      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
+      "note": "独立M06-F01/F02已由当前dfdd/a9ee实际八窗/任意source等闭合；0718 g1真实组外轮廓吸附、内部刚性/目标不动、真实UP无迟写结合原断组重选闭合F03，满足固定B08；不是整M06/Full或真实应用矩阵PASS。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M06-F01",
         "M06-F02",
         "M06-F03"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。",
-      "remaining_conditions": [
-        "M06-F01: 完整功能合同尚未通过，见功能行具体条件",
-        "M06-F02: 完整功能合同尚未通过，见功能行具体条件",
-        "M06-F03: 完整功能合同尚未通过，见功能行具体条件"
-      ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "observed": "独立M06-F01/F02已由当前dfdd/a9ee实际八窗/任意source等闭合；0718 g1真实组外轮廓吸附、内部刚性/目标不动、真实UP无迟写结合原断组重选闭合F03，满足固定B08；不是整M06/Full或真实应用矩阵PASS。",
+      "remaining_conditions": [],
+      "next_action": "固定B08独立合同完成；保留0718整批FAIL和其余模块/整版待验项，不追加无关source稳定性批次。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-8453-EIGHT-GRID",
@@ -9604,7 +9853,46 @@
         "PO-C01-NATIVE-FAILURES",
         "PO-DEDC-R10-DEBUG-CORE-RAPID-AND-G06-FOREGROUND-FAILURE",
         "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
-      ]
+      ],
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": null,
+        "binary_sha256": null,
+        "run_id": null,
+        "observed": "已有具体子项/失败见关联功能，不增加分数。",
+        "remaining_conditions": [
+          "M06-F01: 完整功能合同尚未通过，见功能行具体条件",
+          "M06-F02: 完整功能合同尚未通过，见功能行具体条件",
+          "M06-F03: 完整功能合同尚未通过，见功能行具体条件"
+        ],
+        "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/bdab-release-owned.jsonl",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/dedc-r10-debug-core-and-horizontal-follower-rejection-selected.jsonl",
+          "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
+        ],
+        "original_history_retained": true
+      },
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/0718-group-remainder-review.json",
+          "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+          "docs/reports/v1-evidence/a9ee-native-contracts-metadata.json",
+          "docs/reports/v1-evidence/11ae-group-contracts-review.json"
+        ],
+        "observation_ids": [
+          "PO-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL"
+        ],
+        "history_not_rebound": true
+      }
     },
     {
       "id": "B09",
@@ -10270,30 +10558,65 @@
       "mandatory": true,
       "weight": 2.5,
       "implementation_status": "IMPLEMENTED",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "points_awarded": 0,
-      "source_sha": null,
-      "binary_sha256": null,
+      "points_awarded": 2.5,
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": null,
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl"
+        "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+        "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
       ],
-      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
+      "note": "M09-F01独立映射合同满足B23；不抬整个M09动作运行/应用矩阵。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M09-F01"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。",
-      "remaining_conditions": [
-        "M09-F01: 完整功能合同尚未通过，见功能行具体条件"
-      ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "observed": "已有具体子项/失败见关联功能，不增加分数。 【独立合同闭合】当前11ae/dfdd真实OS注册冲突、旧配置/草稿保持、旧Center实际exact、新MoveRight实际exact、恢复默认和原PID6660实际退出；当前另PID5264真实五键无映射客户DOWN/UP与mapped单次实际ToggleTopmost/匹配UP及恢复。原745/e660八边角/Shift单双、247/c442同tuple改动作/删除后的OS释放/重复键鼠中文拒绝均留原身份；exact git比对完整settings blob和两个明确mapping/hotkey代码区间一致，可复用而非宣称整个输入实现没变。M11-F03原GUI编辑/帮助同源合同PASS不变，B23/B25按固定依赖计分。实体五键硬件及完整应用/显示矩阵仍未验证，15区仍DEFERREDB33，未增加退出后重Register新门。",
+      "remaining_conditions": [],
+      "next_action": "复用当前实证与已证明未改窄mapping路径的原身份回归，不重跑已闭八区/Shift/五键专项；硬件覆盖/真实应用、M09-F03及模块/整版门另列，不再把这些附加为独立F01/F02门。",
       "partial_observation_ids": [
-        "PO-C01-INDEPENDENT"
-      ]
+        "PO-C01-INDEPENDENT",
+        "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
+      ],
+      "historical_pre_combined_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": null,
+        "binary_sha256": null,
+        "run_id": null,
+        "remaining_conditions": [
+          "M09-F01: 完整功能合同尚未通过，见功能行具体条件"
+        ],
+        "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl"
+        ]
+      },
+      "assessment_scope": "INDEPENDENT_MAPPING_CONTRACT_NOT_WHOLE_M09_HARDWARE_OR_APPLICATION_MATRIX",
+      "status_basis": "ACTUAL_CURRENT_DFDD_PLUS_PROVEN_UNCHANGED_NARROW_MAPPING_SCOPE_HISTORICAL_REUSE",
+      "current_contract_revalidation": {
+        "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "current_native_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "review_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+        "independent_contract_result": "PASS",
+        "preserved_historical_sources": [
+          "7450db1fad2651ef4e8c6521c44414d75aed3743",
+          "247501a6d7e00a276e9e3aa63e38247e348ca854"
+        ],
+        "whole_InputService_unchanged_claim": false,
+        "exit_then_same_tuple_reregister": "NOT_RUN_NOT_ADDED_AS_REQUIREMENT",
+        "physical_five_button_hardware": "NOT_RUN_SEPARATE_COVERAGE",
+        "whole_module_or_version_PASS": false,
+        "human_UAT": "NOT_RUN"
+      }
     },
     {
       "id": "B24",
@@ -10337,33 +10660,68 @@
       "mandatory": true,
       "weight": 2.5,
       "implementation_status": "IMPLEMENTED",
-      "dev_status": "BLOCKED",
+      "dev_status": "PASS",
       "human_status": "NOT_RUN",
-      "points_awarded": 0,
-      "source_sha": null,
-      "binary_sha256": null,
+      "points_awarded": 2.5,
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": null,
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+        "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+        "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "docs/reports/v1-evidence/e660-r20-mapping-remainder-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/c442-r21-hotkey-edits-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/c442-r21-hotkey-edits-product-selected.jsonl"
       ],
-      "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
+      "note": "M09-F02当前独立合同与原M11-F03独立PASS共同满足B25；实体硬件单列，完整15区仍B33 DEFERRED。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M09-F02",
         "M11-F03"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。；M11-F03已按f9真实冲突保护/新映射执行/此页默认/公开动作帮助完整独立通过，其他关联设置合同仍缺。",
-      "remaining_conditions": [
-        "M09-F02: 完整功能合同尚未通过，见功能行具体条件"
-      ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "observed": "已有具体子项/失败见关联功能，不增加分数。；M11-F03已按f9真实冲突保护/新映射执行/此页默认/公开动作帮助完整独立通过，其他关联设置合同仍缺。 【独立合同闭合】当前11ae/dfdd真实OS注册冲突、旧配置/草稿保持、旧Center实际exact、新MoveRight实际exact、恢复默认和原PID6660实际退出；当前另PID5264真实五键无映射客户DOWN/UP与mapped单次实际ToggleTopmost/匹配UP及恢复。原745/e660八边角/Shift单双、247/c442同tuple改动作/删除后的OS释放/重复键鼠中文拒绝均留原身份；exact git比对完整settings blob和两个明确mapping/hotkey代码区间一致，可复用而非宣称整个输入实现没变。M11-F03原GUI编辑/帮助同源合同PASS不变，B23/B25按固定依赖计分。实体五键硬件及完整应用/显示矩阵仍未验证，15区仍DEFERREDB33，未增加退出后重Register新门。",
+      "remaining_conditions": [],
+      "next_action": "复用当前实证与已证明未改窄mapping路径的原身份回归，不重跑已闭八区/Shift/五键专项；硬件覆盖/真实应用、M09-F03及模块/整版门另列，不再把这些附加为独立F01/F02门。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
-        "PO-F9-MAPPING-CONFLICT-DEFAULTS"
-      ]
+        "PO-F9-MAPPING-CONFLICT-DEFAULTS",
+        "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
+      ],
+      "historical_pre_combined_contract_assessment": {
+        "dev_status": "BLOCKED",
+        "source_sha": null,
+        "binary_sha256": null,
+        "run_id": null,
+        "remaining_conditions": [
+          "M09-F02: 完整功能合同尚未通过，见功能行具体条件"
+        ],
+        "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl"
+        ]
+      },
+      "assessment_scope": "INDEPENDENT_MAPPING_CONTRACT_NOT_WHOLE_M09_HARDWARE_OR_APPLICATION_MATRIX",
+      "status_basis": "ACTUAL_CURRENT_DFDD_PLUS_PROVEN_UNCHANGED_NARROW_MAPPING_SCOPE_HISTORICAL_REUSE",
+      "current_contract_revalidation": {
+        "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "current_native_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "review_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+        "independent_contract_result": "PASS",
+        "preserved_historical_sources": [
+          "7450db1fad2651ef4e8c6521c44414d75aed3743",
+          "247501a6d7e00a276e9e3aa63e38247e348ca854"
+        ],
+        "whole_InputService_unchanged_claim": false,
+        "exit_then_same_tuple_reregister": "NOT_RUN_NOT_ADDED_AS_REQUIREMENT",
+        "physical_five_button_hardware": "NOT_RUN_SEPARATE_COVERAGE",
+        "whole_module_or_version_PASS": false,
+        "human_UAT": "NOT_RUN"
+      }
     },
     {
       "id": "B26",
@@ -10622,31 +10980,27 @@
       "feature_contract": "M12-F03",
       "mandatory": true,
       "weight": 2.5,
-      "implementation_status": "IN_PROGRESS",
+      "implementation_status": "IMPLEMENTED",
       "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "points_awarded": 2.5,
-      "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-      "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
       "environment_id": "E02",
-      "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+      "run_id": "2432640250344564b4f2ba89287bea81",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
-        "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
-        "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl"
       ],
-      "note": "仅B32完整独立合同PASS；当前98fc原ZIP经9d74真实普通入口/保存效果/UP与退出，旧0c710/d85历史不改绑；不是整版/I12通过。",
+      "note": "M12-F03当前身份纠正为11ae/528a/2432：真正普通无参可见GUI、第二启动同PID、公开Save实际Move/UP、退出及客户输入恢复和七载荷hash均已有原件，保持原PASS/2.5分，不重复计分。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M12-F03"
       ],
-      "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
+      "observed": "M12-F03当前身份纠正为11ae/528a/2432：真正普通无参可见GUI、第二启动同PID、公开Save实际Move/UP、退出及客户输入恢复和七载荷hash均已有原件，保持原PASS/2.5分，不重复计分。",
       "remaining_conditions": [],
-      "next_action": "独立便携合同完成，不因工具改动重建R2/重包0c710；其余功能、模块、I12/整版仍按各自完整合同。",
+      "next_action": "独立B32已完成，复用同一已测528a包；其余整版硬门另判，不因driver/docs更新无意义重包。",
       "partial_observation_ids": [
         "PO-E4-PORTABLE",
         "PO-C01-PORTABLE",
@@ -10675,6 +11029,42 @@
         "run_id": "e5f5db36888d476cac48b5be9f454a28",
         "observation_id": "PO-E5F5-R8-ENTRY-STARTUP-PORTABLE-RAPID-REVALIDATION",
         "scope": "actual startup/ordinary ZIP/rapid native-passthrough scoped evidence; whole tray-blocked FAIL; historical PASS identity unchanged"
+      },
+      "historical_pre_20261022_contract_assessment": {
+        "dev_status": "PASS",
+        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
+        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
+        "run_id": "0a8f1f0e477a46c1b1160291c3acb53a",
+        "observed": "801七文件核验，808/810真正空参中文GUI，812/813第二空参进程退出0、原PID5688/birth/设置HWND不变且唯一行为owner；828默认Move[140,80,540,440]/833真实NormalUp，845/846实际保存只改解压目录；856 attraction0 Move[134,83,534,443]/861真实NormalUp，862/867正常退出/资源、866客户[7,7]→[8,8]、868原字节/无profile，869本子链PASS。",
+        "remaining_conditions": [],
+        "next_action": "独立便携合同完成，不因工具改动重建R2/重包0c710；其余功能、模块、I12/整版仍按各自完整合同。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/d85-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/d85-portable-contract-readonly.txt",
+          "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/9d74-portable-product-selected.jsonl",
+          "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/0a8f-portable-product-selected.jsonl"
+        ],
+        "original_history_retained": true
+      },
+      "assessment_scope": "PASS_INDEPENDENT_FEATURE_CONTRACT_NOT_MODULE_OR_WHOLE_VERSION",
+      "status_basis": "CURRENT_ACTUAL_RELEASE_AND_COMPATIBLE_EXISTING_L1_OR_HISTORY_REVIEW",
+      "current_contract_binding": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "run_id": "2432640250344564b4f2ba89287bea81",
+        "environment_id": "E02",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json",
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-product-selected.jsonl"
+        ],
+        "observation_ids": [
+          "PO-2432-11AE-PORTABLE-NORMAL-ENTRY"
+        ],
+        "history_not_rebound": true
       }
     },
     {
@@ -14920,6 +15310,15 @@
     {
       "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
       "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "result": "PASS_INDEPENDENT_M09_F01_F02_B23_B25_WITH_EXISTING_M11_F03",
+      "evidence_id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+      "evidence_path": "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+      "new_feature_or_B_PASS": true
+    },
+    {
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
       "driver_source_sha": null,
       "result": "PASS_INDEPENDENT_M06_F01_F02_F04_M07_F01_B07_B09",
       "evidence_id": "EV-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
@@ -15126,6 +15525,51 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+      "kind": "ACTUAL_RELEASE_BATCH_FAIL_WITH_INDEPENDENT_SCOPED_PASS",
+      "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "bcc8ea8695b91e77e563a61449fd11052d03ee9d",
+      "driver_binary_sha256": "64ADA516C54969DEF5FD338229EBA6B906A9BA397BE195FB3C9104118AB9441A",
+      "path": "docs/reports/v1-evidence/0718-group-remainder-review.json",
+      "sha256": "B0785AAC8C85C12D651511B07B7068D3DC9360C34477285BB9221A4142EB5B43",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0718-group-remainder-excerpt.jsonl",
+      "repository_excerpt_sha256": "7A0ABA3DCADDF6C0B4EF5C95FC9B54588872857AA03523B6F23FCBF6276D9DB1",
+      "result": "BATCH_FAIL_RETAINED_M06_F03_B08_INDEPENDENT_PASS_WITH_EXISTING_SOURCE_RESELECTION",
+      "scope": "g1 actual hull magnet/three rigid exact/D unchanged/real UP zero-late-write; g2 real lower HTTOP/min. g3 fixed-height tool oracle incomplete; new height runtime NOT_RUN, not whole module/Full PASS."
+    },
+    {
+      "id": "EV-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY",
+      "kind": "EXISTING_ACTUAL_RELEASE_LITERAL_AND_EXISTING_L1_NO_NEW_NATIVE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+      "path": "docs/reports/v1-evidence/11ae-shared-resize-remainder-review.json",
+      "sha256": "9C48038A344D415C501760B3791AE396E9FEA8F68C28ABD7221960A57ADC6E45",
+      "repository_excerpt_path": "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+      "repository_excerpt_sha256": "DBAA8CF851583CEA7E4E7F84399537597C3BAEBA02E96B4A9EA23B2B7FBD44DB",
+      "result": "PASS_INDEPENDENT_M07_F03_F05_NOT_I10_OR_MODULE",
+      "scope": "Actual T/L shared edges, member constraint intersection/pullback, grid nonexact rejection/zero late native, second-member identity loss/zero third attempt and same-instance survivor recovery. Native TRUE not API_FALSE; L HTLEFT not L corner."
+    },
+    {
+      "id": "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+      "kind": "READONLY_CURRENT_AND_PROVEN_UNCHANGED_NARROW_HISTORICAL_MAPPING_REUSE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
+      "path": "docs/reports/v1-evidence/m09-mapping-current-combined-review.json",
+      "sha256": "9C6839647BC41115A1C8CC2F19EE737C8B2545AED00DE727477B1C240F5E0BB5",
+      "repository_excerpt_path": "docs/reports/v1-evidence/dfdd-m09-mapping-selected.jsonl",
+      "repository_excerpt_sha256": "F72C0FBA80FC600DDA5E821D8351FA9F4BBE7DEE0BCEBC889893B9C47F919D47",
+      "result": "PASS_INDEPENDENT_M09_F01_F02_B23_B25_WITH_EXISTING_M11_F03",
+      "scope": "Currentdfdd actualOS conflict/oldCenter/newMoveRight/default/exit andfivebuttonmapped/nativepairs, exact745/247/11ae settingsblob+namedmapping/hotkey code equality allows historicaleightregion/Shift/update/delete/duplicate reuse with original identities. Not entireInputService unchanged, no hardware or allapps/exit-reregister/native rerun claim."
+    },
     {
       "id": "EV-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
       "kind": "EXISTING_NATIVE_REVIEW_PLUS_ACTUAL_MINIMAL_OFFLINE",
@@ -19297,6 +19741,45 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL",
+      "status": "BATCH_FAIL_RETAINED_M06_F03_B08_INDEPENDENT_PASS_WITH_EXISTING_SOURCE_RESELECTION",
+      "run_id": "07181defc2e64ea0b205a7cd12078ca5",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-0718-GROUP-HULL-AND-LOWER-HORIZONTAL-SOURCE-PARTIAL"
+      ],
+      "observed": "g1 actual hull magnet/three rigid exact/D unchanged/real UP zero-late-write; g2 real lower HTTOP/min. g3 fixed-height tool oracle incomplete; new height runtime NOT_RUN, not whole module/Full PASS.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY",
+      "status": "PASS_INDEPENDENT_M07_F03_F05_NOT_I10_OR_MODULE",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY"
+      ],
+      "observed": "Actual T/L shared edges, member constraint intersection/pullback, grid nonexact rejection/zero late native, second-member identity loss/zero third attempt and same-instance survivor recovery. Native TRUE not API_FALSE; L HTLEFT not L corner.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE",
+      "status": "PASS_INDEPENDENT_M09_F01_F02_B23_B25_WITH_EXISTING_M11_F03",
+      "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-M09-F01-F02-INDEPENDENT-CONTRACT-CLOSURE"
+      ],
+      "observed": "Currentdfdd actualOS conflict/oldCenter/newMoveRight/default/exit andfivebuttonmapped/nativepairs, exact745/247/11ae settingsblob+namedmapping/hotkey code equality allows historicaleightregion/Shift/update/delete/duplicate reuse with original identities. Not entireInputService unchanged, no hardware or allapps/exit-reregister/native rerun claim.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-11AE-GROUP-TOPOLOGY-MOVE-REFRESH-AND-VERTICAL-RESIZE",
       "status": "PASS_INDEPENDENT_M06_F01_F02_F04_M07_F01_B07_B09",

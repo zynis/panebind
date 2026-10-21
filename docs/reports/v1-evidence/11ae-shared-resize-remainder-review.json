@@ -1,0 +1,90 @@
+{
+  "schema": "panebind.v1.independent-contract-review.v1",
+  "evidence_id": "EV-11AE-SHARED-RESIZE-T-L-CONSTRAINTS-RECOVERY",
+  "review_date": "2026-10-22",
+  "evidence_kind": "EXISTING_ACTUAL_RELEASE_LITERAL_AND_EXISTING_L1_REVIEW_NO_NEW_NATIVE_RUN",
+  "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+  "environment_id": "E02",
+  "configuration": "Release",
+  "raw": {
+    "source_collection": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee",
+    "driver_file": "dfdde5b3a08b43d9b7cbe068f4de0d22-release-fixture.jsonl",
+    "driver_sha256": "4877F35BE5DAC0464D781C4ECC83DE7CDCC124665B749873CB08015C934C0010",
+    "driver_rows": 6396,
+    "literal_path": "docs/reports/v1-evidence/dfdd-shared-resize-remainder-selected.jsonl",
+    "literal_sha256": "DBAA8CF851583CEA7E4E7F84399537597C3BAEBA02E96B4A9EA23B2B7FBD44DB",
+    "literal_rows": 32,
+    "original_sequences": [
+      617,
+      618,
+      619,
+      620,
+      624,
+      625,
+      649,
+      650,
+      651,
+      652,
+      654,
+      655,
+      656,
+      657,
+      701,
+      703,
+      704,
+      705,
+      709,
+      710,
+      6141,
+      6153,
+      6163,
+      6182,
+      6210,
+      6213,
+      6221,
+      6232,
+      6244,
+      6257,
+      6260,
+      6261
+    ],
+    "ordinal_literal_match": true,
+    "raw_files_unchanged": true
+  },
+  "existing_l1": {
+    "review_path": "docs/reports/v1-evidence/11ae-group-contracts-review.json",
+    "review_sha256": "104AAA2F5B6959F2C221FC378012E0DD15F185774FF6E279ECBCF6797CA86190",
+    "actual_result": "Debug/Release v1-layout and topology 2/2 PASS as recorded in existing review; not rerun for this excerpt",
+    "scope": "Production shares layout.h. Fixed G07 L A[100,100,500,500],B[500,100,900,300],+60 -> A[100,100,560,500],B[560,100,900,300]; disconnected same-coordinate contact excluded; member constraint intersection/grid rules."
+  },
+  "contracts": [
+    {
+      "id": "M07-F03",
+      "assessment": "PASS_INDEPENDENT_DEV_CONTRACT",
+      "facts": [
+        "PID4924 D617-620 real T shared vertical line -> x560 with exactly three independent actual rects; D624/625 actual UP and capture-free postcheck.",
+        "D701 real B source HTLEFT/g11/two-member CtrlResize; D703-705 actual L changes only two participating windows to A[100,100,560,500],B[560,100,900,330]. D709/710 real UP and capture-free postcheck.",
+        "Actual L bottom330 came from preceding real Resize and is not relabelled fixed G07 bottom300; existing fixed-numeric L1 supplies that separate oracle. This HTLEFT case does not prove L corner Resize."
+      ]
+    },
+    {
+      "id": "M07-F05",
+      "assessment": "PASS_INDEPENDENT_DEV_CONTRACT",
+      "facts": [
+        "PID4924 D649-652 actual T members uniformly clamp shared line to x600 under lower member minimum; D654-657 same DOWN pulls back to x540 with exact independent actual rects.",
+        "Separate lifecycle PID1840 D6141 grid nonexact rejected after native TRUE; D6153 stable/zero subsequent calls, D6163 fresh ordinary Move and D6182 fresh two-member Ctrl.",
+        "D6210 actual second-member DestroyWindow; embedded P523 first native exact, P524 second native TRUE but root identity lost/actual null, P525 SourceLost retirement. Not API_FALSE.",
+        "D6221 zero third attempt/no compensating move and actual abort release/detach/Gone; test cleanup UP is not NormalUp. D6232/6244/6257 same-instance fresh survivor Move/contact/new Ctrl; D6260/6261 real UP and exact survivor postcheck."
+      ]
+    }
+  ],
+  "limits": [
+    "Independent M07-F03/F05 only; not whole M07, I10, real-application matrix or complete Full PASS.",
+    "No native API_FALSE scenario inferred from API TRUE/nonexact or identity-loss receipts.",
+    "The two actual product PIDs are distinct lifecycles, not one merged timeline.",
+    "M07-F04 L-corner remains unexecuted for the new targeted candidate; M07-F02 fixed-height result remains pending.",
+    "No product rebuild or old run rebound; owned/Medium guest evidence is not host/manual UAT."
+  ]
+}
