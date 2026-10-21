@@ -1,0 +1,146 @@
+{
+  "evidence_id": "EV-69AB-ARBITRATION-GUEST-UP-OBSERVATION-FAILURE",
+  "run_id": "69aba33f665049fdabb3c8f4ed4853e7",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/69aba33f665049fdabb3c8f4ed4853e7/collection-20261021T204747265Z-3234e46ecf90463aa1d5246059642597",
+  "configuration": "Release",
+  "suite": "ArbitrationRemainderOnly",
+  "actual_result": "FAIL_ACTUAL_GUEST_UP_CALLBACK_NOT_OBSERVED",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+  "product_binary_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+  "driver_source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
+  "driver_binary_sha256": "6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20",
+  "packaging_head": "e85340db4a0e61ea367058874a97ec569d869029",
+  "product_PID": 3452,
+  "product_birth_filetime_decimal_string": "134370891362553393",
+  "environment": {
+    "Medium_non_elevated": true,
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "physical_host_or_real_app_result_inferred": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/69aba33f665049fdabb3c8f4ed4853e7/collection-20261021T204747265Z-3234e46ecf90463aa1d5246059642597/69aba33f665049fdabb3c8f4ed4853e7-release-fixture.jsonl",
+      "sha256": "673BEEE098B7EF21756442F8236A0C79BC9C9C070CDE0BDC1F7D7DB6926ACDAB",
+      "rows": 309,
+      "sequence_first": 1,
+      "sequence_last": 309,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/69aba33f665049fdabb3c8f4ed4853e7/collection-20261021T204747265Z-3234e46ecf90463aa1d5246059642597/69aba33f665049fdabb3c8f4ed4853e7-product-Release/panebind.log.jsonl",
+      "sha256": "C8F5F8661D090CA0C37651F541650A0EEB8B6A2C03414DD2919998F963D95529",
+      "rows": 180,
+      "sequence_first": 1,
+      "sequence_last": 180,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/69ab-arbitration-guest-up-failure-excerpt.jsonl",
+    "sha256": "6EB748BD9195D8CCB1C60526E7C2FDF88540CF83CAF350C6984A281D32DC0C6E",
+    "bytes": 35180,
+    "rows": 35,
+    "driver_sequences": [
+      3,
+      13,
+      19,
+      24,
+      186,
+      187,
+      192,
+      196,
+      199,
+      200,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      208,
+      210,
+      211,
+      212,
+      297,
+      304,
+      309
+    ],
+    "product_sequences": [
+      3,
+      129,
+      136,
+      137,
+      138,
+      141,
+      143,
+      144,
+      146,
+      147,
+      148,
+      180
+    ],
+    "policy": "Complete original rows, no JSON value reserialization or 64-bit identity conversion. Per-producer order retained, not a common native ordering."
+  },
+  "package": {
+    "zip_sha256": "3F7A63209ACC22BD25B2DB4815A8C21A35A74CB248B150D311BA669283B926C9",
+    "manifest_sha256": "C844B9AFE7FB1E67D6BD8021A4DC5FC21A44956999B26DCF6FCBC9DB6CFCE33F",
+    "wsb_sha256": "6069F88B323BFFDC9E57CC534C71C597FC5A833CF981A97FB33B0AF50FF8EE5B",
+    "receipt_sha256": "694248A48D5BCE659A98388DE6A0DED3EBE0634057249C4C0163ED536B07AB38"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/69aba33f665049fdabb3c8f4ed4853e7/cleanup-receipt.json",
+    "sha256": "968C92C51E7F00A4E4913798EC589CA7723A3F7FC8C60740AAE4A0D9F4B3CCC2",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "human_UAT": "NOT_RUN",
+  "whole_version_PASS": false,
+  "actual_facts": {
+    "original_gate": "D211 actual FAIL arbitration_remaining_single_command_retired_actual_guest_abort_UP; original309D/180P and existing9b60 failure remain unmodified. Following same-instance Move/UP/client recovery was not reached.",
+    "passed_arbitration_subset": "D196/P129 actual Ctrl g3/key4/two frozen members/capture current own overlay; D200 exact Ctrl translation30,25. D203/P136 actual nonStop CtrlAltC causes Paused end4/nonNormal/pending_retired, followed by one exact generation0 Center P137/call7, actual[1325,648,1725,948]. D211 command_native_calls1/command_rows1/old-generation calls after trigger0/unknown0. Earlierg1/g2 individual passes do not grant this complete scene.",
+    "actual_cleanup": "P141 own capture released, P143 successful detach, P144 overlay destroyed/hotkey unregistered/isolationGone. Cleanup precedes unique test UP; this is explicit abort cleanup, not NormalUp.",
+    "one_test_UP": "D204 passive guest observer start returns ready. D205 exactly one planned SendInput LEFTUP, beforeQPC352706538/after352713378, return1/async_left_after0; no additional cleanup UP is sent (D212). Return and async state are not target delivery.",
+    "actual_guest_observer": "D208 observer final coherent/installed true/error0, hookthread4212, GetMessage_loop_entered=true, stop_confirmed=true, unhooked=true/error0. Fixed DOWN/MOVE/UP counts are all0, no counted callback in CallNext. actual_left_UP_callbacks0 and last_qpc/flags/tag/CallNext fields are null. Thus rejection occurs because no actionable UP callback was recorded, not a wrong tag/time comparison, snapshot not final, failure to stop, or a recorded CallNext still blocked. Unrecorded negative-code hook callbacks/installer pump timing are not proved by these counters.",
+    "actual_product_observations": "P146 actual generation0/source0 RawUP flags2 atQPC352713877. P147/P148 public status LL count10 still points to priorg2 QPC341504056. Raw receipt is not product LL/window UP or oldg3 NormalUp. Later actual GUI cleanup produces further product callbacks, shutdownP180 has count16; this does not establish permanent hook failure.",
+    "test_destination_gap": "D199 last actual cursor[280,234]. Before Center D201 sourceactual[270,225,670,525], D202 otheractual[670,225,970,525]. Center moves source to[1325,648,1725,948], outside that last cursor; other remains away. D205 records no fresh GetCursorPos/WindowFromPoint/root/PID/TID/integrity for the cleanup UP. Foreground source fromD206/P146 is not a hit-test. The actual receiving target and its IL are UNKNOWN, not proved to be High Shell.",
+    "conclusion": "Current actual UP-observation gate correctly rejects its missing evidence. A TEST destination precondition is incomplete; UIPI is a plausible hypothesis, not a proved cause. No extra input, hook repair, changed product mechanism, modified verdict, or new runtime is performed by this review.",
+    "cleanup_after_failure": "Original catch restores config and closes exactowned fixtures. P180 actual own hooks/overlay/worker/recovery/input/capture/association cleanup; D304 product-exited actual client DOWN/UP counts0,0→1,1. Neither this post-exit pairing nor guest destruction closes unexecuted same-instance recovery."
+  },
+  "official_scope": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput",
+      "review_date": "2026-10-22",
+      "fact": "SendInput is integrity-constrained; returned count describes insertion into the input stream and does not identify UIPI cause. No guarantee of the specific intended window receipt is inferred.",
+      "not_proof": "Actual cleanup target/integrity was not observed, so no UIPI root cause assigned."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelmouseproc",
+      "review_date": "2026-10-22",
+      "fact": "LL callback occurs before event posting to a thread input queue and uses installing thread's message loop. Raw Input, actual LL callback and target-window UP are separate observations.",
+      "not_proof": "Documentation does not turn RawUP into a missing LL or window receipt."
+    }
+  ],
+  "next_minimum_decision": "Reuse existing I08 TEST-only exact-survivor client destination verification for the one original cleanup UP, then actual same-instance recovery. No extra UP, product focus/capture intervention or changing old FAIL; root separately owns implementation/any new run.",
+  "not_awarded": [
+    "Whole arbitration/M04-F03 PASS",
+    "Old g3 NormalUp",
+    "UP target delivery or High Shell target proven",
+    "UIPI/system/hook-loss root cause",
+    "Same-instance recovery PASS"
+  ]
+}

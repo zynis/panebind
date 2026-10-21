@@ -1,0 +1,131 @@
+{
+  "evidence_id": "EV-E1A2-TRANSPARENCY-DRIVER-GUARD-AND-OWNDC-SUPPORTED-FACTS",
+  "run_id": "e1a2cf76d69a4b1492f37ab20ec6d048",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_SOURCE_REVIEW",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "source_collection": "uat/v1-control/e1a2cf76d69a4b1492f37ab20ec6d048/collection-20261021T205318951Z-676ac57d9b8f424abd1b0afe0216762b",
+  "configuration": "Release",
+  "suite": "TransparencyRemainderOnly",
+  "actual_result": "FAIL",
+  "function_PASS_inferred": false,
+  "human_UAT": "NOT_RUN",
+  "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+  "product_binary_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+  "driver_source_sha": "99e07b7ae9174aaaa5fa129a34f767986bd5d0e9",
+  "driver_binary_sha256": "8BF1C02C67E2AEFEAFE867FE7A6815D16CE3711453F01A05ADEB524474886215",
+  "packaging_head": "d8d9ecd2a735f2ead87cfdef7f1387ef81c0daf5",
+  "product_PID": 4080,
+  "fixture_PID": 7156,
+  "fixture_owner_TID": 7160,
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/e1a2cf76d69a4b1492f37ab20ec6d048/collection-20261021T205318951Z-676ac57d9b8f424abd1b0afe0216762b/e1a2cf76d69a4b1492f37ab20ec6d048-release-fixture.jsonl",
+      "sha256": "38EC7BAA0EE0EE7DA51576628AFA33273752D5302D9226A50457EE8678AF12EA",
+      "rows": 365
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/e1a2cf76d69a4b1492f37ab20ec6d048/collection-20261021T205318951Z-676ac57d9b8f424abd1b0afe0216762b/e1a2cf76d69a4b1492f37ab20ec6d048-product-Release/panebind.log.jsonl",
+      "sha256": "98F2D0A367799388BF28AFA49DCB9DD7D2F8140AA31BB8E0BF5383370BF08147",
+      "rows": 140
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/e1a2-transparency-driver-failures-excerpt.jsonl",
+    "sha256": "1BAE8451BECC8A06324B8F359E217CAA1093A211524867608A2DC7729EE4EE8F",
+    "bytes": 20312,
+    "rows": 26,
+    "exact_original_line_matches": 26,
+    "driver_sequences": [
+      181,
+      190,
+      257,
+      260,
+      269,
+      271,
+      278,
+      279,
+      339,
+      340,
+      341,
+      351,
+      361,
+      365
+    ],
+    "product_sequences": [
+      95,
+      96,
+      101,
+      102,
+      103,
+      105,
+      108,
+      110,
+      111,
+      113,
+      114,
+      115
+    ],
+    "JSON_values_not_reserialized": true,
+    "ordering": "Original sequence per producer, driver block then product block; not a combined Raw/WinEvent/native total order.",
+    "privacy": "No user path, SID, title or application content in selected lines."
+  },
+  "phases": [
+    {
+      "name": "temporary_alpha_real_FocusLost_and_successor",
+      "actual_result": "FAIL",
+      "classification": "DRIVER_IDENTITY_GUARD_MISMATCH_BEFORE_GESTURE",
+      "evidence": [
+        "D181",
+        "D190"
+      ],
+      "actual": "The old own_visual_setup accepts only State's original three frames. The new LayoutFixtures source was exact-owned by LayoutFixtures but correctly failed the old helper's own(s,h) guard. No actual transparency/FousLost/successor behavior was proved in this phase.",
+      "repair_scope": "Use header-local real setup and readback with LayoutFixtures::owns(index); preserve the old helper and own(s,h) unchanged.",
+      "product_FAILURE_inferred": false,
+      "runtime_revalidation": "NOT_RUN_BY_THIS_REVIEW"
+    },
+    {
+      "name": "temporary_alpha_actual_OWNDC_rejection_and_limitation",
+      "actual_result": "FAIL",
+      "classification": "EXPECTED_NATIVE_REJECTION_NOT_REPRODUCED_REAL_REQUEST_SUCCEEDED",
+      "evidence": [
+        "D257",
+        "D260",
+        "D269",
+        "P95",
+        "P96",
+        "D271",
+        "P101",
+        "P102",
+        "P103",
+        "P105",
+        "P108",
+        "P110",
+        "P111",
+        "D278",
+        "P113",
+        "P114",
+        "P115",
+        "D279",
+        "D340",
+        "D341",
+        "D351"
+      ],
+      "actual": "Actual class style32 (CS_OWNDC), exact source328334/key5, generation1. P95 is the correct matching mutation, not a stale/wrong receipt: real style+alpha attempts, native sequence success, exact actual nonlayered255 -> layered190 and helper ACK. Actual Move(35,25) and Raw/legacy UP occurred; actual capture release/detach/Gone, original nonlayered255 restoration and NormalUp are separately recorded. The final rejection-required driver assertion therefore failed.",
+      "actual_supported_scope": "This candidate and this guest accepted the controlled CS_OWNDC source's visual request. It does not prove other systems/apps support it, nor establish an unsupported-app precondition.",
+      "no_notice_assessment": "No notice after a successful request is not evidence of the unsupported-feedback product defect. Do not synthesize a native failure or award the untested unsupported contract PASS.",
+      "specific_API_return_or_error": "UNKNOWN_NOT_RECORDED_SEPARATELY; the observed native-sequence success and exact readbacks remain actual facts.",
+      "runtime_revalidation_of_changed_header": "NOT_RUN_BY_THIS_REVIEW"
+    }
+  ],
+  "evidence_ordering_issue": {
+    "evidence": "D339",
+    "actual": "CASE PASS but alias_actually_unregistered=false is retained literally.",
+    "source_review": "The old call assembled log arguments in the same expression as set.close(); argument evaluation could sample alias flags before close. This explains the logging-order risk, not a rewritten native receipt.",
+    "repair": "Evaluate const bool closed=set.close() first, then build assertion/log fields. New actual unregister observation remains to be run."
+  },
+  "remaining": "Run the corrected exact-owned FocusLost phase. CS_OWNDC is not a proven unsupported source here and must not be repeated unchanged merely to force rejection. A separate actual unsupported per-pixel/unknown-alpha source requires verified setup and platform facts before testing limitation feedback.",
+  "whole_M10_F04_PASS": false
+}

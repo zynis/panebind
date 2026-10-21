@@ -1,6 +1,20 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：最大化入口、Lower 与命令仲裁（2026-10-22）
+## 当前接续：生命周期闭合、c355现场结果与92d恢复候选（2026-10-22）
+
+**生产接线60/60，独立DEV38/60，对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 本节区分三种身份：11ae仍是既有主整链及528a普通便携包；以下五批实际产品为`c355967a6e21e93c8f3a142dac30340aaeaa5091`／Release SHA-256 `04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C`；新`92d0011c282455f54fddc282b8c434c870fc4ad2`仅是已构建、尚待现场的native Snap恢复候选。旧结果不换绑，原FAIL与原始日志全部保留。
+
+- [8b55最大化子PASS／native Snap FAIL](v1-evidence/8b55-restore-remainder-review.json)：g1真实最大化DOWN后建立自有capture，实际`SW_RESTORE`请求→fresh normal 400×300→原DOWN比例锚点→exact磁吸写入，真实Raw/legacy UP、NormalUp及自主清理通过。g2实际Win+Left已使窗口半屏，但交接后仍以半屏尺寸写成`[40,45,1565,1641]`，与独立原DOWN/normal尺寸意图`[48,45,448,345]`不符；真实抬键/清理不补几何PASS。不是未准备原生Snap，也不是驱动DPI推断失败。
+- [8e5a Lower PASS](v1-evidence/8e5a-lower-shell-tail-review.json)：一次公开Lower实际native TRUE且完成已知；raw bottom=false原值保留，生产两次有限稳定`source→当时exact GetShellWindow→NULL`获得semantic lower=true。独立Z-tail、原始WINDOWPOS前驱和未修改的DefWindowProc处理、几何不变及P31实际资源退出支持该子合同；不把所有隐藏窗剔除或授托盘／NextDisplay／整个M09-F03。
+- [1e65 hide/show PASS](v1-evidence/1e65-hide-show-new-key-review.json)：同HWND/key4的eligible1→真实hide且公开status eligible0→show后新key5/eligible1，过程无写入；随后fresh Move仅一次exact native、真实LL/Raw/legacy UP、NormalUp及资源退出。结合原212/c656 close→同PID/TID/class新root/newkey→旧Undo拒绝、现有生命周期/L1及未选同进程窗口零写入证据，按主方案DEV273闭合独立**M02-F02**。自然数值HWND复用没有实测，不强逼OS复用，也不将五应用模块门附加到该独立项；固定B依赖无变化。
+- [69ab仲裁仍FAIL](v1-evidence/69ab-arbitration-guest-up-failure-review.json)：唯一测试cleanup UP的独立guest hook已实际安装/退出，但UP callback0、flags/tag未知；产品RawUP g0不是旧代产品UP或NormalUp。后继fresh Move/UP及客户配对未运行。cursor已在Center后source/other之外，但唯一UP前没有新命中/IL观察，不能据此宣布High shell、UIPI或CallNext根因。前两仲裁子PASS与旧代已退休/零迟写/释放解绑撤罩事实保留，完整F03仍未齐。
+- [e1a2透明TEST FAIL](v1-evidence/e1a2-transparency-driver-failures-review.json)：FocusLost阶段先被旧工具仅识State三窗的ownership guard拒绝，尚未证明该产品行为；窄LayoutFixtures真实setup/readback已修、未复验。CS_OWNDC源在该guest实际接受alpha190，并完成Move、真实UP、NormalUp和原nonlayered255恢复；因此“必须native拒绝”的TEST预期失败，不能登记为产品unsupported反馈FAIL。注销字段求值顺序风险已修，旧字面保留。退出/异常恢复仍继承原bf5c证据，不重复该专项。
+
+92d新生产接入真实、可未知的`IsWindowArranged`采样，保留原生START→隔离→一次cancel→真实END→capture；plain原DOWN/END状态未知或矛盾时拒绝，绝不落普通大矩形writer。复用现有`SW_RESTORE`和1秒事件驱动等待，只有实际normal native尺寸成立才按原DOWN重新计算意图；不把`WINDOWPLACEMENT`工作区坐标当屏幕坐标。Ctrl／Resize／Max原路由独立。root实际Debug/Release产品构建及input-route／recovery／writer／catalog各4/4离线通过；Debug SHA-256 `91855E7193BE0C1644237F1EBC6E5909C7C6A83AF5BE753C429C0C2479AF3F56`，Release `8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725`。**92d native NOT_RUN；并非已交付新的普通便携包。**
+
+下一步仅复验92d受影响的native Snap原DOWN恢复／真实UP／后继、修正工具后的仲裁最后中止恢复及透明FocusLost／真实unsupported前置；已闭生命周期、最大化子项、Lower和原bf5c退出范围不无变化重跑。真实应用、真实托盘、普通完整Medium桌面、负work-origin／多屏混合DPI与最终同候选整链仍分别缺证；不进入REA、不恢复定时检查、不增加历史百次或独立900秒批次。各JSONL只保留生产者自身时基/sequence，不声称共同原生全序。以下为历史检查点，其旧NOT_RUN或下一动作不覆盖本节。
+
+## 前一检查点：最大化入口、Lower 与命令仲裁（2026-10-22）
 
 **独立DEV仍37/60、对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 以下六批均为旧产品11ae／Release `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`实际证据；528a普通便携包未改绑新候选，子PASS不自动提升整项或模块。
 

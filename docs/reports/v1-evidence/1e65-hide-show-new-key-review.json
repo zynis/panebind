@@ -1,0 +1,152 @@
+{
+  "evidence_id": "EV-1E65-HIDE-SHOW-NEW-KEY",
+  "run_id": "1e65ad5f9d51422885dda2780a9a9db4",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/1e65ad5f9d51422885dda2780a9a9db4/collection-20261021T204406802Z-ade8d38ca42e4c21b68fbeeafda82a55",
+  "configuration": "Release",
+  "suite": "LifecycleRemainderOnly",
+  "actual_result": "PASS_SCOPED_OBSERVED_HIDE_SHOW_NEW_ADMISSION",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+  "product_binary_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+  "driver_source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
+  "driver_binary_sha256": "6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20",
+  "packaging_head": "e85340db4a0e61ea367058874a97ec569d869029",
+  "product_PID": 4008,
+  "product_birth_filetime_decimal_string": "134370889808831630",
+  "environment": {
+    "Medium_non_elevated": true,
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "physical_host_or_real_app_result_inferred": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/1e65ad5f9d51422885dda2780a9a9db4/collection-20261021T204406802Z-ade8d38ca42e4c21b68fbeeafda82a55/1e65ad5f9d51422885dda2780a9a9db4-release-fixture.jsonl",
+      "sha256": "08D6BAAADB183FEFFC21D14BF5242A9D551B894F067A3878A5DFC1456768AEB5",
+      "rows": 252,
+      "sequence_first": 1,
+      "sequence_last": 252,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/1e65ad5f9d51422885dda2780a9a9db4/collection-20261021T204406802Z-ade8d38ca42e4c21b68fbeeafda82a55/1e65ad5f9d51422885dda2780a9a9db4-product-Release/panebind.log.jsonl",
+      "sha256": "D9AA30BBBEC934440BD4BC1C0DC27E572F5632FCEAE6A2D8E7F50C7797448CC5",
+      "rows": 113,
+      "sequence_first": 1,
+      "sequence_last": 113,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/1e65-hide-show-new-key-excerpt.jsonl",
+    "sha256": "E314ABC1F1D460881851E0A5490ED6E469561B6A13799FC551BD20671DB0D949",
+    "bytes": 30738,
+    "rows": 40,
+    "driver_sequences": [
+      3,
+      13,
+      19,
+      24,
+      132,
+      135,
+      138,
+      147,
+      154,
+      156,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163,
+      164,
+      167,
+      229,
+      230,
+      249,
+      252
+    ],
+    "product_sequences": [
+      3,
+      47,
+      50,
+      64,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      113
+    ],
+    "policy": "Complete original rows, no JSON value reserialization or 64-bit identity conversion. Per-producer order retained, not a common native ordering."
+  },
+  "package": {
+    "zip_sha256": "E75C3A04B267EC4C0EA35234CA1561A7CB0AC13EB5719D03F25CFA3B49BF9018",
+    "manifest_sha256": "D7D1DF9C51C67C537485B9D8FDED17A8650F7C1753C5145F1098E62838F562D5",
+    "wsb_sha256": "F137DEC48591485DE85FDF6A09E974F2891A5E0F46CA0337AAEC9F808306184A",
+    "receipt_sha256": "B01377284B5DD29B62BD96BBE7802799B7B4BC0CE77E831C53FF3BA4DB35A9E8"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/1e65ad5f9d51422885dda2780a9a9db4/cleanup-receipt.json",
+    "sha256": "F2036B838943F2A1F40F9D203CDB65ECCB5715062897455A4275A0F670E4FFEE",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "human_UAT": "NOT_RUN",
+  "whole_version_PASS": false,
+  "actual_facts": {
+    "before": "D132 exactsame source197414/PID6404/TID4028/key4, visible[220,180,620,540], productPID4008/statuseligible1/nativeclaims0/operations0; no testDOWN.",
+    "hide_observed": "D135 source owner executes Configure_empty_expected, actual hidden. D138 separately calls public status and reads eligible0/nativeclaims0/operations0; neither ShowWindow return nor a local flag is used as product observation.",
+    "show_observed": "D147 sameHWND197414 is shown at actual priorlayout but admitted with new key5≠4; status eligible1/nativeclaims0/operations0, no testDOWN. Re-admission does not itself grant a writer.",
+    "fresh_gesture": "D154/P64 one actual ordinary g1 START uses newkey5/source197414/group1. D156/P69 one nativeattempt call1 target=actual[241,194,641,554] independently computed from original[220,180,620,540]+21,14; nativeTRUE/known/exact/identity/postcontextvalid. D158 explicitly confirms one native attempt only on newkey.",
+    "UP_and_cleanup": "D159 one testUP. D160 current exact source/ownshield/capture hit verified beforeUP and actual passive guestUP callbackCount1/marker1346524721/CallNext returned, separately from product evidence. P70 matched LLUP, P71 actualRawUP, P73 actualacceptedlegacyUP, P76 capture release success, P78 detach success, P79 overlaygone, P80 queuedlegacyUP, P81 NormalUp. D161/162 matchingUP/no capture, D163 zero new calls afterUP.",
+    "final": "D164 same binary, D167 own fixtures closed, D229 original config restored, D230 onlyone gesture and close/new scope reused not replayed; P113 actual own resources/capture/association stopped. D252 scopedPASS, not inferred from exit0 or guest destruction."
+  },
+  "independent_contract_review": {
+    "contract": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md:273 M02-F02",
+    "actual_native_scope": "Create/show/hide/destroy/min/max/process identity changes must update eligibility/generation. The explicit DEV exercise closes a group member and creates a new root, rejects old token/queue and does not move an unselected same-PID window. It does not mandate forcing Windows to recycle a numeric HWND.",
+    "prior_close_new_identity": {
+      "run_id": "c656195fb6004f2aa18a9fcee68134ab",
+      "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "evidence": "docs/reports/v1-evidence/c656-r16-noop-history-and-new-root-fixture-selected.jsonl",
+      "sequences": [
+        208,
+        214,
+        219
+      ],
+      "scope": "Actual close then samePID7108/TID7112/class newroot with key4→5 and rejected oldUndo/zero native, natural numeric HWND reuse=false. Retain this original product/run identity; not c355 native replay."
+    },
+    "source_inheritance": "Actual git diff212→c355 window_catalog.cpp/.h changes only capture-context matching-UP handling/tests and its declarations, not Impl lifecycle invalidation, Catalog::same or Catalog::get identity-key assignment. Actual11ae→c355 diff for these Catalog files is empty. This is scoped lifecycle-code equivalence, not the claim that whole catalog or product never changed.",
+    "L1_ABA_scope": "Existing window_writer_tests.cpp:122–125 passes the same HWND with changed opaque key into the actual WindowWriter::prepare and requires !accepted && !identity_valid (recycled HWND generation rejected). It is a controlled generation/identity predicate, not actual OS HWND recycling. Root actual c355 D/R writer regression passed; review does not rerun it.",
+    "remaining_natural_reuse": "Whether Windows naturally reuses a numeric HWND is reported as observed/NOT_OBSERVED; no forced reuse or test-only authority is added. It is not an extra mandatory repeated-native matrix.",
+    "recommendation": "The specific missing hide/show/public-observation/newkey/freshwriter/actualUP contract is now actually satisfied. Combined with previously accepted close/new, existing min/max/process-lifetime evidence and actual L1 stale-key rejection, M02-F02 may be adjudicated independently without adding a five-application/module gate. Canonical status is not changed by this review.",
+    "not_inferred": [
+      "Whole M02/module PASS",
+      "Real application matrix PASS",
+      "Actual OS numeric HWND recycling PASS",
+      "Current product whole integration PASS"
+    ]
+  }
+}
