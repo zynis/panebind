@@ -22,6 +22,45 @@ bool relation(const t::WindowAdjacencyGraph& g,const char* a,const char* b){retu
 bool kind(const m::MagnetResult& r,m::ConstraintKind k){return r.proposal&&std::any_of(r.proposal->satisfied.begin(),r.proposal->satisfied.end(),[&](const auto& c){return c.kind==k;});}
 }
 int main(){
+    {
+        // V1 guide G03: fixed independent numeric oracles, including the
+        // signed translations/quarter turns of the SAME geometry. These are
+        // not desktop/monitor observations and are not solver-derived oracles.
+        struct G03Case { Rect target,raw,combined,outer_only;const char* name; };
+        const std::array cases{
+            G03Case{{600,100,1000,500},{207,103,597,403},{210,100,600,400},{210,103,600,403},
+                "G03 exact baseline combined XY"},
+            G03Case{{-600,-600,-200,-200},{-993,-597,-603,-297},{-990,-600,-600,-300},{-990,-597,-600,-297},
+                "G03 legal negative-coordinate translation"},
+            G03Case{{-500,600,-100,1000},{-403,207,-103,597},{-400,210,-100,600},{-403,210,-103,600},
+                "G03 quarter-turn90 same geometry"},
+            G03Case{{-1000,-500,-600,-100},{-597,-403,-207,-103},{-600,-400,-210,-100},{-600,-403,-210,-103},
+                "G03 quarter-turn180 same geometry"},
+            G03Case{{100,-1000,500,-600},{103,-597,403,-207},{100,-600,400,-210},{103,-600,403,-210},
+                "G03 quarter-turn270 same geometry"}};
+        m::MagnetOptions outer_only;
+        // Inner, corner and parallel alignment can each legitimately align
+        // the original top edge. Disable all three non-outer categories for
+        // the guide's outer-only counterexample; inner=false ALONE would not
+        // mean that the still-enabled corner/parallel alignment is disabled.
+        outer_only.inner_edges=false;outer_only.corners=false;outer_only.parallel_edges=false;
+        for(const auto& fixture:cases){
+            const std::array neighbor{target("G03-neighbor",fixture.target)};
+            const auto combined=move(fixture.raw,neighbor);
+            check(is(combined,fixture.combined)&&combined.proposal->selected_x&&combined.proposal->selected_y,
+                fixture.name);
+            const auto outer=move(fixture.raw,neighbor,outer_only);
+            check(is(outer,fixture.outer_only)&&kind(outer,m::ConstraintKind::WindowOuterEdge)&&
+                (outer.proposal->selected_x.has_value()!=outer.proposal->selected_y.has_value()),
+                "G03 disabled same-side/corner/parallel alignment preserves the orthogonal raw edge");
+            check(combined.proposal&&outer.proposal&&
+                combined.proposal->corrected.width()==fixture.raw.width()&&
+                combined.proposal->corrected.height()==fixture.raw.height()&&
+                outer.proposal->corrected.width()==fixture.raw.width()&&
+                outer.proposal->corrected.height()==fixture.raw.height(),
+                "G03 both modes preserve Move dimensions without competing corrections");
+        }
+    }
     const Rect a{0,0,120,180},b{120,40,220,180},c{20,180,260,270};
     auto three=graph(a,b,c);
     check(relation(three,"A","B"),"A unequal A/B");check(relation(three,"A","C"),"B unequal A/C");

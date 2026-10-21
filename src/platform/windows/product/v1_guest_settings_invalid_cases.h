@@ -7,7 +7,23 @@
 void settings_invalid_number_input(State& s,const SettingsGui& gui,HWND edit,std::wstring_view wanted){
     if(wanted.empty()||wanted.size()>20||wanted.find_first_not_of(L"-0123456789")!=wanted.npos)
         throw std::runtime_error("settings_invalid_number_test_text_out_of_scope");
-    gui_click(s,gui,edit);gui_require_input(s,gui);
+    // This oracle tests invalid drafts, not repeated same-point mouse focus.
+    // a9ee/9e56 retain the separate real-click failure: the exact hit stayed
+    // foreground but focus remained on another Edit after the prior Tab.
+    // Use the public keyboard tab order, with no extra click, delay, SetFocus
+    // or private message to manufacture focus. The mouse-focus issue is not
+    // claimed fixed by this independent interaction.
+    unsigned tabs{};
+    for(;tabs<64&&gui_focus(gui)!=edit;++tabs){
+        gui_require_input(s,gui);const auto before=gui_focus(gui);gui_press(s,gui,VK_TAB);
+        if(!wait([&]{return gui_focus(gui)&&gui_focus(gui)!=before;}))
+            throw std::runtime_error("settings_invalid_public_Tab_did_not_advance");
+    }
+    s.log.check("settings_invalid_actual_keyboard_target",gui_identity(s,gui,edit)&&
+        GetForegroundWindow()==gui.root&&gui_focus(gui)==edit,
+        "\"actual_Tab_pairs\":"+std::to_string(tabs)+",\"target\":"+std::to_string(reinterpret_cast<std::uintptr_t>(edit))+
+        ",\"mouse_focus_failure_fixed_inferred\":false,\"SetFocus_or_private_messages\":false");
+    gui_require_input(s,gui);
     key(s,VK_CONTROL,true);gui_press(s,gui,'A');key(s,VK_CONTROL,false);
     const auto exact=[&]{
         return gui_identity(s,gui,edit)&&gui_class(edit)==L"Edit"&&

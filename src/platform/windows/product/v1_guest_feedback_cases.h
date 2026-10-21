@@ -6,7 +6,7 @@
 void feedback_actual_overlay(LayoutFixtures& set,const Gesture& gesture,std::size_t source,
     const std::vector<Rect>& actual,bool group,POINT ink,COLORREF expected_ink,const char* label){
     auto& s=set.state;const auto config=chain_settings(s);
-    if(s.suite!="RemainingNativeContractsOnly"||!config.feedback||config.preview||config.docking||
+    if((s.suite!="RemainingNativeContractsOnly"&&s.suite!="FeedbackRemainderOnly")||!config.feedback||config.preview||config.docking||
        source>=set.active||actual.size()!=set.active||!s.left||!set.owns(source))
         throw std::runtime_error("feedback_exact_active_guest_and_distinct_feedback_configuration_required");
     const HWND h=set.frames[source].hwnd;const auto dpi=GetDpiForWindow(h);
