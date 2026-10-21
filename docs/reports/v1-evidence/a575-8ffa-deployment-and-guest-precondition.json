@@ -1,0 +1,81 @@
+{
+  "evidence_id": "EV-A575-8FFA-DEPLOYED-GUEST-LAUNCH-BLOCKED",
+  "review_date": "2026-10-21",
+  "kind": "DEPLOYMENT_AND_LAUNCH_PRECONDITION_NOT_FUNCTIONAL_TEST",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_release_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
+  "driver_release_sha256": "38B99B084E79617255E6698B7DAC8217CE9A9092FE8E0974B7DC257EFFAA7459",
+  "driver_debug_sha256": "3980CA68901F90B24B565C0E52B744BE748A5EF4AD3204F410DCCA3572604A86",
+  "packaging_head": "8adafbfb21719d14c816dbe44b244e0adec84cfb",
+  "build": "Debug and Release guest-fixture + guest-path targets PASS; D/R v1-guest-path 1/1 each. Packaging static checks123 PASS. No panebind executable rebuild/relink; product hash unchanged.",
+  "runs": [
+    {
+      "run_id": "a57559cc776f4fe98405c892a39554c0",
+      "suite": "RecoveryContractsOnly",
+      "remote_root": "I:\\PaneBindMVP1Runs\\a57559cc776f4fe98405c892a39554c0",
+      "deploy_utc": "2026-10-21T07:21:39.4101732Z",
+      "zip_sha256": "6D2E3E4EEEE20327EC87546D614DC7DA053B51FBDBBB5DA2CC0526372DC6F794",
+      "manifest_sha256": "EDC2E80E1DCDE339BCD95A8ED4878EC5DB5CF3D2C654909C2E00DEE235AC8900",
+      "wsb_sha256": "34FC14A5AF9C7A29320230D02D5842DDDD6F9E20C6655A73977A124A16AA9993",
+      "deploy_result": "PASS_HASH_VERIFIED",
+      "launch_result": "BLOCKED_BEFORE_TASK_REGISTRATION",
+      "observed_launch_error": "existing_sandbox_not_touched_launch_refused",
+      "launch_error_source": "actual remote stderr in tool transcript; local remote-failure receipt stdout is empty and is NOT claimed to contain this error text",
+      "runtime": "NOT_RUN",
+      "D09": "NOT_RUN",
+      "D24": "NOT_RUN"
+    },
+    {
+      "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
+      "suite": "NativeClientsOnly",
+      "remote_root": "I:\\PaneBindMVP1Runs\\8ffa75dfc70548eb8f88df1a55c6679e",
+      "deploy_utc": "2026-10-21T07:25:14.7916051Z",
+      "zip_sha256": "30FFCF58DDF90EB8D2E949F77F7F4122795FD797181372050E77B199F8413956",
+      "manifest_sha256": "1CF5035A49AEA9ABF039763FB65728FF04FF371529B6C74170FD0514BB890ACF",
+      "wsb_sha256": "6BBAFE5FF54C77F52D13C62B13BD951AFB718A047154497694CA5B50D5FE816D",
+      "deploy_result": "PASS_HASH_VERIFIED",
+      "launch_result": "NOT_ATTEMPTED_AFTER_EXISTING_GUEST_GUARD",
+      "runtime": "NOT_RUN",
+      "Terminal": "NOT_RUN",
+      "Edge": "NOT_RUN"
+    }
+  ],
+  "existing_instance": {
+    "observation": "Single read-only Win32_Process query of Sandbox process names only after the launch guard refusal; no inspection of other project's files or guest.",
+    "name": "WindowsSandboxRemoteSession.exe",
+    "pid": 6820,
+    "parent_pid": 9340,
+    "session_id": 1,
+    "creation_date_cim": "/Date(1792567230807)/",
+    "configuration_basename": "XiangFlow.wsb",
+    "configuration_parent": "OTHER_PROJECT_OUTSIDE_PANEBIND_SCOPE_REDACTED",
+    "PaneBind_ownership_confirmed": false,
+    "closed_or_reused": false,
+    "host_or_other_guest_input_sent": false
+  },
+  "preserved_raw_receipts": [
+    {
+      "path": "uat/v1-control/a57559cc776f4fe98405c892a39554c0/deploy-receipt.json",
+      "sha256": "E83EB3A89CA65F15F0457FCA0A38E7DDE0D56B0242FEB50677975E60F3FC7DDF"
+    },
+    {
+      "path": "uat/v1-control/a57559cc776f4fe98405c892a39554c0/remote-failure-b487f4f9f4c846d58e442916e46369a7.json",
+      "sha256": "7A2D59D0A585450174BF41D141BB6B97BB085C0A1856FF60291CC0C9CBDB9C20"
+    },
+    {
+      "path": "uat/v1-control/8ffa75dfc70548eb8f88df1a55c6679e/deploy-receipt.json",
+      "sha256": "C56DBE699ABDB7D514B7F93389E7E42619F12C516814860B1C3FE44E8C61933D"
+    }
+  ],
+  "source_guards": [
+    "scripts/v1-prepare-sandbox.ps1",
+    "scripts/v1-sandbox-guest.ps1",
+    "uat/v1-control/run-control.ps1",
+    "uat/v1-control/remote-control.ps1"
+  ],
+  "cleanup": "No own guest was created by this launch; no own launch task registration was reached. Deployment and evidence retained. No foreign cleanup attempted.",
+  "next_action": "Once the other project normally finishes and its guest is closed by its owner, run Launch/Collect/Cleanup for a575, then Launch/Collect/Cleanup for 8ffa. No permission broadening, no fixed-time retries or scheduled check.",
+  "not_product_PASS": true,
+  "human_uat": "NOT_RUN"
+}

@@ -10,8 +10,14 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "fd50e83298486482730e8868241f529fc6711372",
-  "next_driver_validation": "fd50 D/R builds and unchanged guest-path regression passed (222 cases, symlink SKIP1314); actual 2c8 Release active group settings-entry retirement and next-rule groups PASS on unchanged11ae product. 0a66 remains05f, dfdd Full remains original11ae/FAIL and8e0 original46c/tool verdict FAIL. Existing120 packaging checks have unchanged inputs; no whole-version PASS or old-binary rebinding.",
+  "next_driver_source_sha": "38256ccf27efef4e550d24b6ded60aaf704fb723",
+  "next_driver_validation": "38256cc D/R builds and guest-path regressions PASS; packaging123 checks PASS. Product11ae unchanged. RecoveryContractsOnly a575 and focused native Terminal/Edge8ffa deployed with exact hashes. a575 launch refused before task registration because another project's Sandbox exists; both new runtime scopes NOT_RUN. Historical fd50/2c8,05f/0a66, original11ae/dfdd FAIL and46c/8e0 tool FAIL retain original identities; no whole-version PASS or old-binary rebinding.",
+  "pending_guest_validation": {
+    "id": "EV-A575-8FFA-DEPLOYED-GUEST-LAUNCH-BLOCKED",
+    "metadata": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json",
+    "runtime": "NOT_RUN",
+    "blocking_condition": "Other-project guest must finish and be normally closed by its owner. No unknown guest was touched; no periodic checks."
+  },
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
   "redaction": {
     "paths": "guest绝对部署路径与任何检测到的绝对用户路径已替换",

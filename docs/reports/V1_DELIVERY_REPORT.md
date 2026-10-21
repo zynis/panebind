@@ -8,7 +8,9 @@ A01、NF01和NF03已按dfdd／2432／0a66／2c8纠正当前描述：当前owned�
 
 [现有同构建延迟证据](v1-evidence/11ae-existing-timing-review.json)已核算：0a66／2c8实际17次native的输入到回读p95分别10.5895／25.2265ms；callback的2c8及dfdd末producer p99落在(1,2]ms，NF02据实由“缺统计BLOCKED”改为预算FAIL。dfdd的1017.4899ms最大样本对应明确注入的1000ms自有线程阻塞，不写成正常持续卡顿；2432普通包有限样本和不同guest／PID不混池。没有物理显示延迟宣称，也没有因统计而重建产品或新增压力／900秒批次。
 
-D09和D24当前可比证据各缺一个确切分支，已接入最小`RecoveryContractsOnly`：旧mapped中键配对撤权而旧UP未发时的新客户DOWN／UP；真实END／capture后丢失capture、no-own清理和同实例后继Move／Resize。新`NativeClientsOnly`仅聚焦Terminal／Edge的初始化、客户交互及正常关闭，保留真实“产品未启动”检查，并以同token直接cmd启动与离线页面就绪记录区分前置。Full矩阵未缩小，其他应用无变量试错不重放。构建不等于现场通过；后续实际记录补在本节，原结果不覆盖。整版仍PARTIAL，当前17/60、8/40；不进入REA、不恢复定时检查。
+D09和D24当前可比证据各缺一个确切分支，已接入最小`RecoveryContractsOnly`：旧mapped中键配对撤权而旧UP未发时的新客户DOWN／UP；真实END／capture后丢失capture、no-own清理和同实例后继Move／Resize。新`NativeClientsOnly`仅聚焦Terminal／Edge的初始化、客户交互及正常关闭，保留真实“产品未启动”检查，并以同token直接cmd启动与离线页面就绪记录区分前置。Full矩阵未缩小，其他应用无变量试错不重放。整版仍PARTIAL，当前17/60、8/40；不进入REA、不恢复定时检查。
+
+驱动`38256ccf27efef4e550d24b6ded60aaf704fb723`已完成D/R构建，Release哈希`38B99B084E79617255E6698B7DAC8217CE9A9092FE8E0974B7DC257EFFAA7459`、Debug哈希`3980CA68901F90B24B565C0E52B744BE748A5EF4AD3204F410DCCA3572604A86`；受影响D/R guest-path均通过，包装123项检查通过。两个新RunId已在I盘新建目录传输核验：[a575恢复／8ffa原生应用部署记录](v1-evidence/a575-8ffa-deployment-and-guest-precondition.json)。a575启动实际被`existing_sandbox_not_touched_launch_refused`拒绝；一次只读核对发现PID6820/session1的其他项目XiangFlow.wsb实例，不是PaneBind资源，未读取其文件、关闭、复用或发输入。8ffa未再尝试启动，两个新场景均NOT_RUN，不以部署成功授功能PASS。无需改SSH、购买VM或再启用系统功能；当前最小现场条件是其他项目完成后由其所有者正常关闭占用guest。未开启定时重试，旧证据和已部署包保留。
 
 ## 最新增量：活动组设置入口与规则用户路径已闭合
 

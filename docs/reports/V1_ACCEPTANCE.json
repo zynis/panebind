@@ -11561,7 +11561,18 @@
       "remaining_conditions": [
         "需要真实non-elevated普通Explorer的已授权隔离桌面；不是普通产品已支持或永久不支持。"
       ],
-      "next_action": "TokenFacts工具错误定向关闭；下一最小观察是child启动/首条回执为何20秒未出现。未取得真实桌面/GUI回执前不启动普通Shell产品场景，不把它预判成环境DENIED或必须新VM。",
+      "next_action": "复用后续43c标准child创建1314及dfdd Explorer RID8192/elevated=true的具体结果，不再追查已过时的20秒无回执路线。需要具备真实non-elevated Explorer/普通Shell的已授权隔离桌面；不改账户/token/ACL、不在宿主自动输入、不进行无依据启动重试。",
+      "current_candidate_observation": {
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "evidence_path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+        "fixture_sequence": 6283,
+        "integrity_rid": 8192,
+        "elevated": true,
+        "medium_non_elevated_eligibility": false,
+        "product_gesture_sent": false,
+        "result": "BLOCKED_TARGET_NOT_MEDIUM_NON_ELEVATED"
+      },
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -11676,7 +11687,13 @@
       "remaining_conditions": [
         "浏览器全部操作/透传/正常关闭矩阵未通过。"
       ],
-      "next_action": "fe0无候选产品时Edge真实HTCLIENT并唯一点击、focus通过，但DOM标题效果未发生且仍非测试页标题，正常关闭未确认。此与744命中查询超时不同；先有限核实本轮新Edge离线页实际ready/导航/语义条件及driver区别，不做未经前置通过的增强手势，不宣称唯一系统根因或严格单变量因果。",
+      "next_action": "8ffa新包已部署核验，待其他项目guest正常退出后运行NativeClientsOnly：先确认本次离线页真实标题、exact root响应，再允许一次原客户动作和正常关闭。真实产品未启动，不能用paused代替；不抢前台或改应用隔离。历史fe0与dfdd失败不覆盖，当前新场景NOT_RUN。",
+      "queued_native_preflight": {
+        "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
+        "runtime": "NOT_RUN",
+        "precondition": "DEDICATED_SANDBOX_SLOT_OCCUPIED_BY_OTHER_PROJECT",
+        "evidence_path": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json"
+      },
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -11798,7 +11815,13 @@
       "remaining_conditions": [
         "当前R7实际客户区输入/透传未完成；历史R2/022类别PASS保留原身份，不替代本R7。"
       ],
-      "next_action": "fe0无候选产品时Terminal真实root仍HTCAPTION2，客户语义未发、但本次exact root正常关闭确认。保留旧e7几何子项；先区分实际终端初始化/测试点与原生命中条件，不用枚举child放宽gate，不把它直接归为系统唯一原因或产品Move失败。",
+      "next_action": "8ffa新包已部署核验，待独占guest条件恢复后执行同Medium token/同工作目录的exact cmd无console启动receipt，再查实际Terminal客户区与正常关闭，区分普通shell启动和Terminal/pseudoconsole链。直接cmd成功不授Terminal PASS，不放宽命中/权限或改sandbox；当前场景NOT_RUN。",
+      "queued_native_preflight": {
+        "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
+        "runtime": "NOT_RUN",
+        "precondition": "DEDICATED_SANDBOX_SLOT_OCCUPIED_BY_OTHER_PROJECT",
+        "evidence_path": "docs/reports/v1-evidence/a575-8ffa-deployment-and-guest-precondition.json"
+      },
       "candidate_identity_ref": "current_package",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
@@ -12257,7 +12280,7 @@
         "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json"
       ],
-      "next_action": "只保留exact capture-loss/no-own分支→同实例后继手势的直接证据缺口；不再把通用abort清理全写未测，也不把guest销毁当产品恢复。"
+        "next_action": "a575新包已部署，精确故障注入及后继同实例Move/Resize已接实际产品路径；启动因其他项目guest占用被保护门拒绝，场景NOT_RUN。待该guest正常退出后运行原包，不重跑通用中断或900秒，不把guest销毁当产品恢复。"
     },
     {
       "id": "V1-D01",
@@ -12466,6 +12489,7 @@
     {
       "id": "V1-D09",
       "status": "DEV_FIXED_PENDING_TARGETED_RUNTIME_REVALIDATION",
+        "next_action": "a575 RecoveryContractsOnly已部署，覆盖真实mapped中键撤权、旧UP未发时新DOWN/UP实际配对及后继Move/Resize；当前因其他项目Sandbox占用未运行，不用一般NormalUp或已发送输入冒充通过。",
       "kind": "ABORTED_PAIR_NEW_DOWN_UP_ASYMMETRY",
       "description": "确定性源码反例：旧aborted pair未完成时，新DOWN透传而对应新UP被旧pair消费。85c1599172f946ef86b9e84838e0a068fcda3341已修旧pair退休；b092f01ab18ba9624b4d483c9e2404a844ac6309已修authority=0新配对及hover准备；2c37573ae7afc160b00094474eabef411c03949c接mapped精确generation CAS。cf已构建/运行但1bee在本次DOWN前中止，不判此定向现场PASS；历史实际UP缺失原因仍UNKNOWN。",
       "features": [
