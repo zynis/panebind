@@ -1,8 +1,21 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：Top与Session实证、40/60及bbc字段顺序候选（2026-10-22）
+## 当前接续：bbc队列恢复与可见提示实证，40/60、20/40不变（2026-10-22）
 
-**生产接线60/60，独立DEV40/60，对标20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 新增仅M08-F02／B14；M04-F04仍缺Queue故障及callback退出对应实证，不能由Session子项提升全部。以下通过均真实绑定产品`04ff585df6b5f17b5a3cc7c2f0bc500787d65f96`／Release SHA-256 `41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8`、驱动`935c9aa7e8ce7d26bb4e55abe59be115280f57e0`／`B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4`，不换绑新bbc，也不替换11ae／528a普通包。
+**生产接线60/60，独立DEV40/60，对标20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 本次新增均为合同子范围，不增加功能或对标PASS。当前实际产品为`bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6`／Release SHA-256 `9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66`；28e3驱动`06045bfb2327a2f875ff5ed289434a87914dca44`／`326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7`，af8f／b6c8／34f1驱动`c69620feb0ceaecb37f1900e69621e9fc47c815c`／`27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B`。不把旧04ff或11ae结果改绑这些EXE。
+
+- [28e3真实队列故障与公开恢复](v1-evidence/28e3-queue-failure-recovery-review.json)：299D/189P合法连续，73行字面摘录。g1一次真实写入后，P68实际进入一次注入队列失败分支（`actual_full=false`），P69 QueueFailure/end6，撤权后零新native；实际release→0、detach、Gone在唯一测试清理UP前完成。原UP由独立guest hook及exact客户回执确认，不冒充旧代NormalUp。公开Pause／Resume后同PID3460、同birth且input owner start serial1→2；后继g2 Move与g3 Resize均exact、真实LL／Raw／legacy UP／NormalUp及自主清理，正常退出。**M04-F04仍缺真实callback owner停止注入，不能以队列healthy=false等价替代；自然队列满、OS静默卸hook和实际锁屏亦未据此通过。**
+- [af8f历史TEST barrier失败](v1-evidence/af8f-queue-fault-status-barrier-review.json)：244D/114P；故障确已触发、独立清理及旧代零迟写子PASS，但D151错误要求故障后的public status healthy=true而FAIL，公开恢复和后继未到达。原整批FAIL及唯一计划UP保留；06045修复该TEST判定后的28e3是独立新证据，不改写af8f。
+- [b6c8透明限制可见与后继失败](v1-evidence/b6c8-transparency-visible-and-successor-review.json)：425D/204P，52行字面摘录。per-pixel源实际ULW=true、GLA=false、opaque命中，g3真实交接后一次exact自由Move；中文“无法读取原透明状态，本次不应用拖动透明”小条在feedback=false时真实可见、HTTRANSPARENT、source前台不变，原BMP哈希`01F81F4FA226DF73A1106EF272EFFC0DDC76912A3BBE879067F3875AA7C74382`已实际读图，全文清晰。唯一真实UP→matching LL撤权→Raw／legacy UP→release／detach／Gone／NormalUp，小条隐藏且未知alpha未被覆盖。**同批FocusLost恢复173／独立清理通过，但后继g2已真实通过Prepared与DOWN、收到native START，P81在cancel调用前以fresh复合门拒绝；具体失败子门仍UNKNOWN，整批FAIL，不关闭M10-F04。**225,184为真实DOWN，230,184是其后阈值MOVE，不当作准备点失配根因。
+- [34f1普通提示子PASS／HC heap-exit FAIL](v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-review.json)：126D/69P。普通无历史Undo中文条实际读图清晰，生产同serial显示32109→隐藏36109（4000ms），第二提示被下一Move退休，后继exact及真实NormalUp/Gone通过。HC实际SET后GET返回true/flags127，复制scheme后、LocalFree前标记之后fixture以`C0000374`退出；不是120秒超时，尚不能认定Windows或Sandbox根因。无产品正常shutdown，随后是强制TEST收尾，**不授HC、整批或产品cleanup PASS**；TEST别名／内存生命周期诊断待验。
+
+当前唯一便携候选为`2b418e7198af4e429af080b763ff3406`：实际封包成功，产品bbc、打包`bd48151d777de1e4033342b1c34e73e471e31b77`；ZIP SHA-256 `34905FCBA6141C0F47BCEE16F82821B41F963E3EF723E2E44A78CF74D3B9238D`，manifest `BCFCAAB94E53A3884C199ECF82BE5B3D767629632103BEEC174801BF741D9646`。路径及普通启动方法见[快速入门](../V1_QUICK_START.md)；**该包普通无参入口NOT_RUN，不继承2432／528a入口PASS**。原包和证据保留。bbc Debug／Release及受影响offline各3/3通过只是支撑，不代替现场结果；未来生产代码变化须新源码身份和候选包。
+
+下一步只完成callback owner真实停止／公开恢复、b6c8 fresh拒绝的单一失败门定位及受影响Focus后继复验、HC具体TEST生命周期诊断；不无变化重跑已过Queue／per-pixel／普通提示、Top／Session、旧bf5c退出或独立900秒。五类真实应用、托盘、普通完整Medium桌面、负work-origin／多屏混合DPI及最终同候选整版链仍分别缺证，不进入REA。下面是原04ff及更早检查点，保留原身份和当时状态；旧NOT_RUN不覆盖本节。
+
+### 前一检查点：04ff的Top／Session与bbc修复前状态
+
+以下两项原始通过仍绑定产品`04ff585df6b5f17b5a3cc7c2f0bc500787d65f96`／`41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8`及驱动`935c9aa7e8ce7d26bb4e55abe59be115280f57e0`／`B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4`，不换绑bbc。
 
 - [3c21默认Top真实UP最大化](v1-evidence/3c21-native-top-drop-review.json)：253D/122P合法连续、68/68字面摘录。真实普通Move/native START→隔离→单cancel→实际END→owncapture，原DOWN自由rect exact；UP前preview等于实际工作区、未最大化且无离散提交。唯一真实UP由guest hook、产品matching LL退权、Raw和accepted legacy分别观察；P83唯一请求不等于状态完成，D153独立回读`IsZoomed=true/showCmd3/visible=work`才闭合。真实release→0/detach/Gone/NormalUp、UP后continuous0及正常退出/客户配对恢复成立。结合原dfdd普通与产品停靠恢复、d8a3公开自定义动作、3141 max/native Snap恢复和已有M11-F02，**独立M08-F02及B14闭合**，不附加五应用模块或M08-F01负工作区门，不拼作新整链。
 - [7117会话通知注入／同实例恢复](v1-evidence/7117-session-interruption-review.json)：291D/184P，61/61字面原行。精确产品owner/PID/TID/birth/session上的一次TEST LOCK通知实际触发`SessionLost/end5/nonNormal`，退休pending、独立释放capture/解绑/Gone在唯一清理UP前完成、旧代零新写入；真实唯一guest及客户UP不冒充旧代NormalUp。一次TEST UNLOCK后，同PID6568新key5/g2 Move及g3 Resize均exact、真实NormalUp及完整清理/正常退出。**不是实际Windows锁屏／解锁、虚拟桌面或休眠验证，M04-F04未全过。**

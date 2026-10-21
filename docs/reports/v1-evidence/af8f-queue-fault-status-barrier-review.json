@@ -1,0 +1,159 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "af8f84d956b64d699d420d6b55ec4eed",
+  "suite": "QueueFailureOnly",
+  "configuration": "Release",
+  "result": "FAIL_TEST_HEALTHY_ONLY_STATUS_BARRIER_AFTER_ACTUAL_INJECTED_FAILURE",
+  "original_failure_preserved": true,
+  "identity": {
+    "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+    "product_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+    "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+    "driver_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+    "packaging_head": "20a46e2e832bde010de6a9f4ef9d3e2654caf6ae",
+    "product_pid": 6420,
+    "product_birth_filetime_decimal": "134370962110404275",
+    "fixture_pid": 6364,
+    "fixture_tid": 6356,
+    "source_hwnd": 197424,
+    "source_key": 4,
+    "source_birth_filetime_decimal": "134370962108095794",
+    "overlay_hwnd": 328498,
+    "resource_owner_tid": 3880,
+    "input_owner_tid": 3892,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Windows Sandbox; exact Medium owned fixture on active WinSta0/Default; not ordinary complete Medium desktop/human UAT"
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/af8f84d956b64d699d420d6b55ec4eed/package-receipt.json",
+    "zip_sha256": "4677B3614ADC6295A922C88512F1A96DA921147C53DD93A0579F6DA505D54669",
+    "manifest_sha256": "F099B093DA700AA31139076DCC5788F6B912C2B389BF4847FDD4F59BBB1260FB",
+    "wsb_sha256": "3811EE8B98AA9B01E9CE1C875A8AD6E3B74BAD94A44ADE5482DC0AAB7D408777",
+    "preparation_NOT_RUN_fields_not_rewritten_as_runtime": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/af8f84d956b64d699d420d6b55ec4eed/collection-20261021T224410061Z-b5117a46771a46d6bc05ad753e6984c8/af8f84d956b64d699d420d6b55ec4eed-release-fixture.jsonl",
+      "sha256": "6BEADBFAD7C571441EC80AAAE75588A7DC9E845FD4F119A0A1CBEB33E1538461",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        244
+      ],
+      "lines": 244
+    },
+    {
+      "path": "uat/v1-control/af8f84d956b64d699d420d6b55ec4eed/collection-20261021T224410061Z-b5117a46771a46d6bc05ad753e6984c8/af8f84d956b64d699d420d6b55ec4eed-product-Release/panebind.log.jsonl",
+      "sha256": "C046186D22B406D79563C813FA23D3764DC340A6304CCF253E75673B1F3FA202",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        114
+      ],
+      "lines": 114,
+      "single_product_pid": 6420
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/af8f-queue-fault-status-barrier-excerpt.jsonl",
+    "sha256": "B1A622D070316F9EC7BB633EE9E7E9A34C312F8C7817C99F9662655864D51284",
+    "literal_validation": "46 of46 exact original source-line string comparisons PASS; legal selected JSON; original64-bit spelling preserved",
+    "driver_source_lines": [
+      3,
+      4,
+      24,
+      139,
+      140,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      151,
+      152,
+      153,
+      219,
+      222,
+      223,
+      224,
+      227,
+      229,
+      230,
+      233,
+      240,
+      241,
+      242,
+      243,
+      244
+    ],
+    "product_source_lines": [
+      3,
+      4,
+      55,
+      59,
+      61,
+      66,
+      67,
+      68,
+      69,
+      74,
+      76,
+      77,
+      78,
+      79,
+      80,
+      110,
+      111,
+      114
+    ],
+    "policy": "Complete original literal lines, selected driver then product in their own source order, intentional gaps. No source JSONL reserialization or64-bit identifier rounding. Presentation order is not common native chronology."
+  },
+  "observed": {
+    "first_exact_and_arm": "D139/140/P61/P66 real plain Move generation1/source197424/key4, actual target=after[241,194,641,514], native_succeeded/identity/postcontext/exact true. D143/P67 actual arm accepted with Run/generation/source/PID/TID/birth/driverhash, permit_armedtrue and failure_firedfalse; input owner actual start serial1.",
+    "actual_injected_failure": "D145 is the next real cursor quantum. D146/P68 reports origin guest_injected_failure, kind Move, triggerQPC338152947, actual_full=false/read30/write30/next31 and same_production_full_failure_branch=true. Permit consumed, failure_firedtrue; actual health/availabilityfalse, authority/completion0. This is the explicit one-shot injection into the real full-failure branch, not naturally exhausted capacity, actual OS PostMessage failure or silent hook removal.",
+    "independent_cleanup_before_UP": "D147/P69 actual end6 QueueFailure/nonNormalUp/pendingretired. P74 ReleaseCapture328498->0 succeeds QPC338160355..338175464, P76 detach succeeds338179907..338183689, P77 actual isolationGone338229692 with overlaydestroyed/hotkeyunregistered. D148 verifies source still exact/foreground/held and no UP yet. D149 audits0 forbidden new native calls/0unknown clocks after trigger. Only the one first actual placement exists in the product stream.",
+    "test_failure_not_product_hang": "P78 actual public status arrives sequence78 at tick33984 from live productPID6420: enabledtrue, hook_owner_runningfalse, gesture_activefalse, native_move_handoff_pendingfalse, native_operation_pendingfalse, native_completion_unknownfalse, visual_restore_pendingfalse, operations1/nativeclaims1. D151 at tick37468 retains geometry_history_actual_status_barrier FAIL because the TEST helper demands hook_owner_runningtrue. P110/P111 continue responding later; P114 performs actual shutdown. This batch does not support a product-dead or status-hang explanation.",
+    "original_UP_after_test_failure": "D152 sends the one outstanding planned UP once; D153/D223 explicitly record no duplicate. P79 actual LL callback sees abortedtrue/healthyfalse/availablefalse/authority0 and matchingUPfalse, P80 separately records idle Raw UPflags2 generation0. Neither is old-generation NormalUp or the scene's unexecuted strict passive guest-UP/client delivery proof.",
+    "later_cleanup_preserves_failure": "D219 actual public configuration restore succeeds; D224 actual completed root enumeration finds only the original three, no extra source197424. D222 original phase failure/D230 still-unhealthy global guard/D244 final FAIL remain. P110/P111 still idle withclaims1; P114 actual ownhooks/overlay/input/capture/association/nativeworker/visual recovery stopped, no unknown issued completion. D233 product exit0 is only supporting; D240 actual postexit test-owned client DOWNUP0,0->1,1. D241 Raw observer removal/D242 WinEvent unhook/D24311of11overflow0 are real. None converts failed recovery into PASS."
+  },
+  "cause_and_test_repair": {
+    "confirmed": "Queue TEST calls geometry_history_status after intentionally making InputService unhealthy. That helper requires matching_idle_status, whose existing invariant hook_owner_running=true must remain for ordinary healthy-idle use. The later public Pause call also incorrectly uses a helper requiring enabled=true, although pause must be disabled and remains unhealthy until public resume rebuilds input. Product status accurately reports service health, not actual OS hook presence.",
+    "repair": "Only TEST paths: new matching_queue_failure_status pure predicate retains exact productPID/SHA/schema, strictly fresh sequence, explicit expected enabled and service-health values, no gesture/handoff/native/unknown/visual pending, and actual operation/claim counters. Queue wrapper requests public --status and uses (enabledtrue,healthyfalse) after fault, (false,false) after Pause, (true,true) after Resume. Ordinary matching_idle_status and all product code remain unchanged.",
+    "test_scope": "Existing guest_path_scope_tests adds10 direct actual-predicate cases including old barrier rejection, exact fault/pause/recovered states, wrong enable/health/PID/sequence and pending/unknown native rejection. Packaging static145 checks independently PASS, including Queue wiring and prohibition of the wrong ordinary helper. Compilation and native repair validation were not executed by this reviewer.",
+    "repair_source_sha": "PENDING_ROOT_COMMIT_AT_REVIEW_TIME",
+    "repaired_native_runtime": "NOT_RUN_AT_REVIEW_TIME",
+    "old_evidence_rebound": false
+  },
+  "collection": {
+    "receipt": "uat/v1-control/af8f84d956b64d699d420d6b55ec4eed/collection-20261021T224410061Z-b5117a46771a46d6bc05ad753e6984c8/collection-receipt.json",
+    "output_unchanged": true,
+    "launch_receipt": "uat/v1-control/af8f84d956b64d699d420d6b55ec4eed/collection-20261021T224410061Z-b5117a46771a46d6bc05ad753e6984c8/af8f84d956b64d699d420d6b55ec4eed-Release-launch.json",
+    "collected_product_sha256_matches_package": true,
+    "launch_fixture_sha256_matches_package": true,
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "root_reported_exclusive_run_cleanup": true,
+    "guest_destruction_not_used_as_product_cleanup_PASS": true
+  },
+  "limits": {
+    "injected_failure_and_pre_UP_independent_resource_cleanup": "OBSERVED_SCOPED_PASS_ONLY",
+    "strict_original_abort_UP_client_receipt": "NOT_REACHED_BEFORE_TEST_FAILURE",
+    "public_Pause_Resume_failure_recovery": "NOT_REACHED",
+    "following_post_failure_Move_Resize": "NOT_RUN",
+    "natural_queue_full": "NOT_RUN",
+    "OS_PostMessage_failure": "NOT_RUN",
+    "OS_silent_hook_removal": "NOT_RUN",
+    "whole_M04_F04_or_version_PASS": false,
+    "real_applications": "NOT_RUN",
+    "ordinary_complete_Medium_desktop": "NOT_RUN",
+    "multiple_displays_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN"
+  }
+}

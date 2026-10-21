@@ -1,0 +1,248 @@
+{
+  "schema": "panebind-v1-scoped-runtime-review/1",
+  "review_date": "2026-10-22",
+  "run_id": "b6c832c8651e4c24a729b5a868b67d40",
+  "suite": "TransparencyRemainderOnly",
+  "configuration": "Release",
+  "verdict": "PARTIAL_SCOPED_PASS_ORIGINAL_BATCH_FAIL_RETAINED",
+  "identity": {
+    "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+    "product_exe_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+    "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+    "driver_exe_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+    "packaging_sha": "20a46e2e832bde010de6a9f4ef9d3e2654caf6ae",
+    "zip_sha256": "04C0EDFE9ED22728EA4C55BDB08BD1B9ADBB1EB0F609468F8874D3CE8C522C54",
+    "manifest_sha256": "034BD564E370CF64184AC19EA33573D49B144A23DCCB01F56CD82C61CECE6C8A",
+    "product_pid": 3652,
+    "product_birth_filetime": "134370963077151920",
+    "fixture_pid": 6368,
+    "fixture_tid": 3896,
+    "fixture_birth_filetime": "134370963075262176",
+    "actual_environment": "disposable_Sandbox_Medium_Default_interactive_desktop_not_ordinary_host_compatibility"
+  },
+  "originals": {
+    "driver": {
+      "path": "uat/v1-control/b6c832c8651e4c24a729b5a868b67d40/collection-20261021T224835492Z-a4d49b263bde488db845d930c3d21933/b6c832c8651e4c24a729b5a868b67d40-release-fixture.jsonl",
+      "sha256": "F004257EEE7868E0235C573C4301EF675CFFD7CFFF06B7464987F1390D623A3F",
+      "bytes": 245195,
+      "rows": 425
+    },
+    "product": {
+      "path": "uat/v1-control/b6c832c8651e4c24a729b5a868b67d40/collection-20261021T224835492Z-a4d49b263bde488db845d930c3d21933/b6c832c8651e4c24a729b5a868b67d40-product-Release/panebind.log.jsonl",
+      "sha256": "26A54AAE98DCEC9BF3BDE627D0F1C1BCE9E761537BBF93299633D8213F66960D",
+      "bytes": 245141,
+      "rows": 204
+    },
+    "sequence_check": {
+      "driver_and_product_contiguous": true,
+      "mismatches": 0,
+      "raw_files_unmodified": true
+    },
+    "original_batch_verdict": {
+      "summary": "BLOCKED_OR_FAILED",
+      "driver_summary_sequence": 421,
+      "driver_result": "FAIL",
+      "focus_and_successor_phase_sequence": 231,
+      "focus_and_successor_phase_result": "FAIL",
+      "per_pixel_phase_sequence": 411,
+      "per_pixel_phase_result": "PASS"
+    },
+    "excerpt": {
+      "path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-excerpt.jsonl",
+      "sha256": "BA92D51FF4FBA794E546CA391D571269A3D173660F7BA58434846E49281B540F",
+      "bytes": 47928,
+      "literal_rows": 52,
+      "exact_original_line_matches": 52,
+      "driver_sequences": [
+        139,
+        140,
+        144,
+        148,
+        152,
+        153,
+        154,
+        155,
+        158,
+        159,
+        220,
+        309,
+        312,
+        318,
+        320,
+        321,
+        322,
+        323,
+        324,
+        325,
+        328,
+        329,
+        330,
+        403,
+        411,
+        421
+      ],
+      "product_sequences": [
+        53,
+        61,
+        62,
+        75,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        144,
+        145,
+        149,
+        151,
+        152,
+        153,
+        157,
+        159,
+        160,
+        162,
+        165,
+        167,
+        168,
+        170,
+        171,
+        204
+      ],
+      "raw_JSON_rows_or_64_bit_identities_reserialized": false,
+      "line_order": "driver_then_product_preserving_each_stream_order_not_a_joint_native_timeline"
+    }
+  },
+  "scopes": {
+    "focus_loss": {
+      "verdict": "RESTORATION_AND_ABORT_CLEANUP_PASS_SUCCESSOR_HANDOFF_FAIL",
+      "generation": 1,
+      "source_hwnd": 197424,
+      "source_key": 4,
+      "actual_evidence": [
+        "D129/P54 actual START; D130 actual held alpha190 from original173/topmost",
+        "D137 actual other exact-owned foreground trigger QPC333209072, not a product foreground rescue",
+        "D138/P63 actual FocusLost end2, normal_up=false",
+        "D139/P69 actual own capture released, thread detached and overlay destroyed",
+        "D140 original alpha173/topmost restored; P61 actual cleanup-owned visual mutation, P62 held attributes retired",
+        "D142 one TEST cleanup UP; D144/P72 actual old-g1 LL callback with authority0 and aborted=true, explicitly not NormalUp or target delivery",
+        "D148 audit zero new g1 native placements at/after trigger; P59 only g1 native placement began QPC332885140"
+      ],
+      "existing_historical_passes_not_rebound": [
+        "docs/reports/v1-evidence/6274-transparency-focus-and-per-pixel-precondition-review.json",
+        "98d61acc56e04ff78a3fa92ecc26ab8f FocusLost and successor observations remain bound to product04ff/driver935; they are not this run's successor PASS"
+      ]
+    },
+    "successor_rejection": {
+      "verdict": "ACTUAL_FRESH_ISOLATION_OR_SOURCE_GATE_REJECTION_OPERAND_UNRESOLVED",
+      "generation": 2,
+      "source_hwnd": 197424,
+      "actual_evidence": [
+        "P75 Prepared actual point[225,184], foreground/source exact, native GUI idle",
+        "D152 actual cursor[225,184]; D153 one actual DOWN",
+        "P78 LL DOWN point equals Prepared[225,184], prepared_gate_passed=true, route=gesture, clicks1, dispatch_routed=true",
+        "P76 native pending; P79 actual native START",
+        "D154 actual cursor[230,184] is the one post-DOWN threshold MOVE, not a different DOWN; D155 records original anchor[225,184], system drag[4,4] and +5 test continuation",
+        "P80 IsolationReady exists; P81 declines before WM_CANCELMODE with native_attempted=false and composite fresh_isolation_or_source_rejected",
+        "P82 generation2 overlay destroyed without acquiring capture or issuing cancel",
+        "P83 source's native capture/move-size remains active after rejection; it does not identify which earlier predicate failed",
+        "D156/157 one failed-START TEST cleanup UP; D159 fails actual production START; D220 original phase failure retained"
+      ],
+      "excluded_misdiagnoses": [
+        "Not a Prepared-vs-DOWN point mismatch",
+        "Not a double-click: P78 actual clicks=1",
+        "Not proof that P83 native loop presence caused the earlier rejection",
+        "Not enough evidence to name overlay hit-testing, foreground, fresh geometry, buttons or source GUI as the unique cause"
+      ],
+      "minimum_next_action": "One bounded read-only receipt at the existing production fresh-isolation rejection, preserving its guard/ordering, to expose which already-required predicate and actual overlay/source/cursor/GUI/context facts failed. No delay/retry/foreground rescue or gate relaxation is justified by this run."
+    },
+    "per_pixel_alpha_limit": {
+      "verdict": "PASS_SCOPED_ACTUAL_MOVE_SAFE_DECLINE_VISIBLE_CHINESE_NORMAL_UP_AND_RESOURCE_EXIT",
+      "generation": 3,
+      "source_hwnd": 328320,
+      "source_key": 9,
+      "shield_hwnd": 656002,
+      "preview_hwnd": 131652,
+      "actual_evidence": [
+        "D309 actual TEST removal of unrendered system-button capabilities, preserving actual caption/thickframe and positioning; no fabricated DWM bounds",
+        "D312 ordinary class0, UpdateLayeredWindow=true, GetLayeredWindowAttributes=false/error0, opaque exact hit, foreground exact, actual pre-DOWN visible baseline[211,180,629,489], GDI resources actually retired",
+        "P144 real bounded native cancel, P145 actual END, P149 actual capture-ready; D318 production START g3, not owned synthetic authority",
+        "P151 actual alpha_attributes_unknown safe decline; no visual mutation for source key9",
+        "P152 real nonactivating preview show and matching source foreground, independent of feedback=false",
+        "P157 exact native placement from original DOWN intent +[35,25] to[246,205,664,514], real API completed, identity/geometry/postcontext exact; D320/321 independent rectangle check",
+        "D322 actual product PID preview, full Chinese text, style134742184, HTTRANSPARENT=-1, moved bounds[246,167,966,205], feedback=false",
+        "D323 actual screen-region BMP, independently viewed by reviewer; whole text clear and unclipped",
+        "D324 single TEST UP; D325 one tagged passive-head UP with actual unhook; P159 matching product LL-UP authority3->0, P160 Raw UP, P162 actual accepted legacy UP",
+        "P165 actual own capture release, P167 actual detach, P168 actual Gone; D329 resources exited, not inferred from guest destruction",
+        "P170 preview actually hidden/title cleared; D328 independently checks hidden; P171 actual NormalUp",
+        "D330/401 after real UP remains layered with unreadable tuple, zero product visual requests and unchanged topmost; unknown alpha not reconstructed",
+        "D403 scoped component and D411 phase PASS are not the whole-run FAIL"
+      ]
+    }
+  },
+  "bitmap_review": {
+    "path": "uat/v1-control/b6c832c8651e4c24a729b5a868b67d40/b6c832c8651e4c24a729b5a868b67d40-Release-drag-alpha-limitation.bmp",
+    "sha256": "01F81F4FA226DF73A1106EF272EFFC0DDC76912A3BBE879067F3875AA7C74382",
+    "bytes": 109494,
+    "width": 720,
+    "height": 38,
+    "actual_view_image_performed": true,
+    "visible_text": "无法读取原透明状态，本次不应用拖动透明",
+    "verdict": "READABLE_FULL_CHINESE_SYSTEM_COLOUR_STRIP_NO_CLIPPING_IN_THIS_CAPTURE",
+    "not_proven_by_title_or_notice_log": true,
+    "human_UAT": "NOT_RUN",
+    "other_apps_screens_or_HC_readability": "NOT_RUN",
+    "retention": {
+      "receipt_path": "uat/v1-control/b6c832c8651e4c24a729b5a868b67d40/retention-receipt.json",
+      "receipt_sha256": "A34E1541C61F15CD807418338F24895D2EFF4FE197BE7646E645600F44C74AFC",
+      "reason": "Original controller omitted the two new exact notice BMP names from its collection allowlist",
+      "actual_BMP_hash_matches_original_D323": true,
+      "raw_bytes_unchanged": true,
+      "original_logs_unmodified": true,
+      "archive_move_recoverable": true,
+      "retained_remote_relative_location": "same_Run/notice-capture-retained/",
+      "guest_destruction_not_product_cleanup": true
+    }
+  },
+  "actual_native_call_audit": {
+    "full_product_log_placement_native_callsite_claims": 2,
+    "placement_sequences": [
+      59,
+      157
+    ],
+    "all_before_QPC_known": true,
+    "generation1_calls_after_focus_trigger333209072": 0,
+    "generation2_new_placements": 0,
+    "generation3_placements": 1,
+    "generation3_new_placements_after_matching_LL_UP410845405": 0,
+    "native_call_already_issued_not_claimed_cancellable": true,
+    "raw_LL_legacy_times_are_observation_clocks_not_JSONL_joint_native_order": true
+  },
+  "cleanup": {
+    "product_actual_shutdown_sequence": 204,
+    "own_hooks_stopped": true,
+    "own_overlay_destroyed": true,
+    "native_worker_exited": true,
+    "issued_native_completion_unknown": false,
+    "visual_recovery_stopped": true,
+    "visual_restore_confirmed": true,
+    "own_input_resources_stopped": true,
+    "controller_receipt": "uat/v1-control/b6c832c8651e4c24a729b5a868b67d40/cleanup-receipt.json",
+    "controller_receipt_sha256": "D8B87884FB38349A540B3ADF51545C5F63F8B81ECE406A373E88BB5167EEA628",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "original_evidence_unchanged": true,
+    "other_resources_changed": false,
+    "guest_destruction_used_as_product_cleanup_PASS": false,
+    "failed_successor_or_whole_batch_not_relabelled": true
+  },
+  "acceptance_boundary": {
+    "unsupported_alpha_visible_feedback_subcontract_evidence": "READY_FOR_CANONICAL_REVIEW_SCOPED_PASS",
+    "new_full_M10_F04_or_M10_F05_PASS_awarded": false,
+    "current_continuous_operation_successor": "FAIL_UNRESOLVED_GATED_HANDOFF",
+    "ordinary_move_magnet_hold_detach_or_other_apps_inferred_from_this_free_Move": false,
+    "ordinary_Medium_complete_desktop_multiscreen_mixed_DPI": "NOT_RUN_BY_THIS_REVIEW",
+    "human_UAT": "NOT_RUN",
+    "whole_V1": "NOT_PASS"
+  }
+}

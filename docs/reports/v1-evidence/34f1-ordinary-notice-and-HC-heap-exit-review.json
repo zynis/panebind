@@ -1,0 +1,252 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT",
+  "review_date": "2026-10-22",
+  "run_id": "34f13a68036744c095ff323d9c1182b2",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_INDEPENDENT_NATIVE_CONTRACT_REVIEW",
+  "suite": "HighContrastOnly",
+  "configuration": "Release",
+  "actual_result": "FAIL_TEST_FIXTURE_EXIT_STATUS_HEAP_CORRUPTION_AFTER_SCOPED_ORDINARY_NOTICE_PASS",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+  "product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+  "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+  "driver_binary_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+  "packaging_head": "20a46e2e832bde010de6a9f4ef9d3e2654caf6ae",
+  "package_zip_path": "uat/v1-sandbox/34f13a68036744c095ff323d9c1182b2/34f13a68036744c095ff323d9c1182b2.zip",
+  "package_zip_sha256": "03C5665A51B10CF9432A631B3F51DA4994273E5FA79B40B7B68403C53FB398B5",
+  "input_manifest_sha256": "7C38694F702508105B75F621E07E83675BA432F45BE0BC460CB62DC3E80096D7",
+  "wsb_sha256": "3B96E704627673CF20EE1A6FDF640965DB8220B4B62F03FD8858C899A6040747",
+  "product_PID": 6292,
+  "product_birth_filetime_decimal_string": "134370965743596368",
+  "fixture_PID": 6300,
+  "fixture_owner_TID": 6304,
+  "fixture_birth_filetime_decimal_string": "134370965741439778",
+  "source_HWND": 262956,
+  "source_key": 4,
+  "notice_HWND": 131668,
+  "shield_HWND": 262866,
+  "identity_precision": "Literal lines are never reserialized. FILETIME identities are decimal strings copied from original D17/D24, not floating-point values.",
+  "environment": {
+    "actual_integrity": "Medium RID8192/non-elevated",
+    "session": 1,
+    "desktop": "WinSta0/Default; actual input desktop and UOI_IO checked by original guest launcher",
+    "host_input_sent_by_review": false,
+    "OS_HC_or_DPI_mutated_by_review": false
+  },
+  "raw_files": [
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-release-fixture.jsonl",
+      "bytes": 65664,
+      "sha256": "3AE1FF3DC1C9BD854120B3DB5293F0A34288441CB3C6F97293C609E8E1D21913"
+    },
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-product-Release/panebind.log.jsonl",
+      "bytes": 63558,
+      "sha256": "CA1ABB91D22F189C0FDBA3DF95505514C1365797F4E0518902E40E83E60C622F"
+    },
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-guest-summary.json",
+      "bytes": 20890,
+      "sha256": "797D95303EBE86776E16D36C955C2A70904EE8E36F68B7FF3942035F68DBBE22"
+    },
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-Release-launch.json",
+      "bytes": 9909,
+      "sha256": "B2999CD2AF67C485A7A3D0C29DCF640B81A513A58FC73A92E04FA4F5AA1BF3AF"
+    },
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-Release-high-contrast-notice.bmp",
+      "bytes": 127734,
+      "sha256": "1116913AFEA6B30632C29DDF75CD55616B715DD2E455DEB20A84B10302543FD5"
+    },
+    {
+      "path": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/cleanup-receipt.json",
+      "bytes": 10890,
+      "sha256": "129265068729593EE764E88CC77B8B6F6F19949C0C9BBA8F381409B6A7DB0C71"
+    }
+  ],
+  "full_raw_audit": {
+    "driver_rows": 126,
+    "driver_sequences": "1..126 contiguous; every row parsed",
+    "product_rows": 69,
+    "product_sequences": "1..69 contiguous; every row parsed",
+    "driver_shutdown_rows": 0,
+    "product_shutdown_rows": 0,
+    "whole_run_complete": false
+  },
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-excerpt.jsonl",
+    "sha256": "ED983ED6894432DEC177F2384FB3C989F617E4553B788F9AF2180503829B7C66",
+    "literal_rows": 50,
+    "driver_sequences": [
+      1,
+      3,
+      13,
+      17,
+      24,
+      64,
+      66,
+      69,
+      71,
+      72,
+      73,
+      74,
+      78,
+      79,
+      82,
+      88,
+      90,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      100,
+      102,
+      110,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126
+    ],
+    "product_sequences": [
+      3,
+      22,
+      23,
+      26,
+      27,
+      28,
+      30,
+      43,
+      48,
+      49,
+      50,
+      52,
+      55,
+      57,
+      58,
+      59,
+      60
+    ],
+    "policy": "Driver selected rows followed by product selected rows. Selection order is not a joint native event timeline; every output line must match its original source line verbatim."
+  },
+  "ordinary_notice_component": {
+    "verdict": "PASS_SCOPED_ORDINARY_NOTICE_VISIBLE_EXPIRY_AND_SUCCESSOR_WITH_TRUE_UP",
+    "source": "D64..D110 before any HC query or SET by this phase; ordinary palette, not HC",
+    "first_notice": {
+      "show": "P22/P23",
+      "serial": 1346502657,
+      "show_tick": 32109,
+      "hide": "P26/D79",
+      "hide_tick": 36109,
+      "producer_tick_delta_ms": 4000,
+      "reason": "notice_deadline",
+      "timer_cancelled": true,
+      "title_cleared": true,
+      "actual_hidden": true,
+      "foreground_evidence": "D69/D71/D73 before/after exact owned HWND262956; continuous foreground is not inferred"
+    },
+    "pixels": {
+      "file": "uat/v1-control/34f13a68036744c095ff323d9c1182b2/collection-20261021T225202923Z-cf74d76162024b7b887a67a94d629b90/34f13a68036744c095ff323d9c1182b2-Release-high-contrast-notice.bmp",
+      "sha256": "1116913AFEA6B30632C29DDF75CD55616B715DD2E455DEB20A84B10302543FD5",
+      "width": 840,
+      "height": 38,
+      "retained_original_bytes": true,
+      "independent_review": "view_image: pale yellow strip with full legible black Chinese sentence, no observed clipping; assistant visual inspection, not human UAT",
+      "visible_text": "当前窗口已改变，或没有仍归属本窗口的布局可撤销。",
+      "original_driver_visual_review_field": "NOT_RUN preserved; this independent review does not alter raw"
+    },
+    "second_notice": {
+      "serial": 1346502658,
+      "show": "P27/P28,D82",
+      "retired": "P30/D97",
+      "retire_reason": "new_native_handoff",
+      "timer_cancelled": true,
+      "title_cleared": true,
+      "actual_hidden": true
+    },
+    "successor": {
+      "generation": 1,
+      "key": 4,
+      "original_visible": [
+        100,
+        100,
+        460,
+        400
+      ],
+      "target_and_actual": [
+        124,
+        117,
+        484,
+        417
+      ],
+      "native_placement": "P48 single call1, actual native attempted/succeeded/known/exact/identity/post-context true",
+      "single_test_UP": "D92 SendInput called once and returned1; not delivery proof by itself",
+      "independent_guest_UP": "D93 actual passive head observed one tagged UP and CallNext return; distinct from product receipts",
+      "product_UP": "P49 actual LL matching UP/authority1->0; P50 actual Raw UP; P52 actual accepted legacy UP; P59 queued legacy UP",
+      "cleanup": "P55 capture released; P57 actual detach; P58 destroyed/hotkey unregistered; P60 End0 NormalUp pending retired",
+      "own_window_closed": "D100",
+      "not_full_product_exit": "Product continued into HC; later process shutdown is not observed"
+    },
+    "result_lines": "D102 component PASS_AUTOMATED_NOTICE_WINDOW_EXPIRY_AND_SUCCESSOR and D110 scoped phase PASS; neither is HC mode or whole-run PASS"
+  },
+  "HC_failure": {
+    "verdict": "FAIL_TEST_HEAP_CORRUPTION_STATUS_EXIT_NOT_TIMEOUT",
+    "before_SET": "D120 actual GET true/error0, flags126, HC off/available, copied empty scheme, initial allocation free returned success",
+    "SET": "D121 SPI_SETHIGHCONTRAST requested flags127, actual true/error0, fWinIni2/SPIF_SENDCHANGE; no profile write",
+    "last_observed_sequence": "D122 first wait; D123 predicate; D124 GET enter; D125 actual GET returned true/error0/flags127; D126 scheme copied before LocalFree; file ends",
+    "not_observed": [
+      "LocalFree return",
+      "complete post-SET getter/colors",
+      "actual HC keyboard/UI phase",
+      "original state restoration readback",
+      "driver normal shutdown",
+      "product normal shutdown"
+    ],
+    "launch_facts": {
+      "status": "FIXTURE_FAILED",
+      "wait_result": 0,
+      "configured_timeout_seconds": 120,
+      "actual_timeout_observed": false,
+      "fixture_exit_code_unsigned": 3221226356,
+      "fixture_exit_code_hex": "0xC0000374",
+      "exception_status_meaning": "STATUS_HEAP_CORRUPTION",
+      "descendants_alive_at_fixture_exit": 1,
+      "forced_test_cleanup": true,
+      "product_cleanup_pass": false,
+      "feature_result": "NOT_EVALUATED",
+      "safe_to_continue_independent_release": false
+    },
+    "distinction": "Process was signalled (wait_result0); configured120s is not evidence of a timeout. Last breadcrumb brackets an interval, not a crash stack. Heap error may be detected after earlier corruption. No attribution to product, Windows or Sandbox is established.",
+    "cleanup": "Root's exact owned guest/task cleanup preserves evidence and bounds test impact; guest destruction is not product cleanup or HC-state restoration PASS."
+  },
+  "code_review": {
+    "actual_inspected_header": "src/platform/windows/product/v1_guest_high_contrast_case.h at c696",
+    "normal_path": "HIGHCONTRASTW zero/null pointer initialized; returned pointer RAII owned then explicit LocalFree followed by null; no obvious normal-path double-free in inspected source",
+    "hypothesis_not_fact": "SET passes live original.scheme.c_str() (empty stdwstring in this run). A later GET aliasing this same caller buffer would make current LocalFree invalid; raw logs lack pointer values, so alias is not proved. Prior corruption elsewhere remains possible.",
+    "minimum_next_observation": "Within this TEST lease log exact actual SET pointer, live stdwstring base and length, GET returned pointer and exact same-live-buffer alias before assigning ownership. Preserve native parameters/order; do not free known caller-owned storage. Non-alias continues documented LocalFree policy.",
+    "HC_feature_PASS": false
+  },
+  "clock_scope": "Only same product producer tick show32109->hide36109 is compared for4000ms. QPC fields in each receipt describe their own endpoints; JSONL GUI-log order is not a Raw/WinEvent shared native total order. No physical presentation latency or real user time is inferred.",
+  "official_references": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-highcontrastw",
+      "supports": "GET fills system-allocated lpszDefaultScheme; docs direct LocalFree. SET supplies all members."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-localfree",
+      "supports": "Free ownership must match native allocation contract; NULL means successful free."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-application-service-crashing-behavior",
+      "supports": "0xc0000374 is STATUS_HEAP_CORRUPTION; a detected fault is not by itself root-cause attribution."
+    }
+  ],
+  "acceptance_limit": "Scoped ordinary notice real PASS can be reused. HC UI/200%DPI/M10-F05/whole V1 remain unaccepted. No human UAT, host usability or native system restore PASS inferred."
+}

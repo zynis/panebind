@@ -27,8 +27,8 @@
       "debug_sha256": "4B36B915539500F43AFFC4C647639C3E7C0BBC836CA4FC5CDCC9D6D50E664ED3",
       "release_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
       "offline": "Root actual Debug/Release builds and affected offline each3/3 PASS; not native evidence",
-      "native_runtime": "NOT_RUN_AT_RECORDING",
-      "repair_scope": "Exact disposable guest one-shot queue command suite-field order only; actual04ff/ecdf arm incorrectly rejected, current fix not yet natively exercised",
+      "native_runtime": "ACTUAL_28E3_QUEUE_RECOVERY_PASS_B6_PER_PIXEL_SUBPASS_FOCUS_SUCCESSOR_FAIL_34F_ORDINARY_NOTICE_SUBPASS_HC_HEAP_EXIT_FAIL",
+      "repair_scope": "Exact disposable guest one-shot queue command suite-field order repair; actual04ff/ecdf failure retained, BBC actual28e3 scoped queue recovery PASS and b6/34f scoped visible evidence do not close whole contracts",
       "old_runtime_rebound": false,
       "portable528a_unchanged": true
     },
@@ -38,8 +38,8 @@
       "build": "DEBUG_RELEASE_BUILD_PASS_ROOT_ACTUAL",
       "debug_sha256": "211FF2742C83D13850BEE8E09FD336294038F9A47FA0D09606F37F5842D1E510",
       "release_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
-      "native_runtime": "NOT_RUN_AT_RECORDING",
-      "scope": "TEST-only real no-standard-caption-buttons transparency source; independent ordinary idle-notice prephase and bounded HC breadcrumbs/120s job deadline. No new product bytes or native PASS inferred."
+      "native_runtime": "ACTUAL_AF8F_STATUS_BARRIER_FAIL_B6_PER_PIXEL_SUBPASS_FOCUS_SUCCESSOR_FAIL_34F_ORDINARY_NOTICE_SUBPASS_HC_HEAP_EXIT_FAIL",
+      "scope": "Actual c696 runs retain original whole FAILs and separate scoped passes. Queue TEST barrier repaired in06045 and independently validated28e3. No new product bytes or full function PASS inferred."
     },
     "observed_product_04ff": {
       "source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
@@ -91,6 +91,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "release_sha256": "326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7",
+      "run_ids": ["28e3f8ddc91f4c8da1328df09a75017d"],
+      "native_guard_validation": "ACTUAL_QUEUE_FAILURE_INDEPENDENT_CLEANUP_AND_PUBLIC_RECOVERY_SCOPED_PASS",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_935": {
       "source_sha": "935c9aa7e8ce7d26bb4e55abe59be115280f57e0",
       "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
       "release_sha256": "B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4",
@@ -1474,7 +1483,7 @@
       "B39",
       "B40"
     ],
-    "note": "独立DEV40/60、20/40=50%；仅新增M08F02及B14（已有M11F02前置）依据3c21真实默认Top UP和各原身份恢复/自定义动作证据闭合。7117仅会话通知注入/同实例恢复子PASS，不授M04F04全部；Queue/callback退出、HC及透明未齐。bbc为新未现场候选，模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门未齐，B33-B40仍0，PARTIAL不REA。"
+    "note": "独立DEV40/60、20/40=50%保持；3c21闭合M08F02/B14的原身份不变。bbc/28e3真实Queue恢复子PASS，M04F04仍缺callback owner停止；b6 per-pixel可见/正常UP子PASS但Focus后继fresh拒绝，34f普通提示子PASS但HC heap-exit，均不增功能或B分。模块/应用/普通完整Medium/托盘/负work-origin/多屏/真人门未齐，B33-B40仍0，PARTIAL不REA。"
   },
   "hard_gates": [
     {
@@ -3695,10 +3704,11 @@
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
       "observed": "dfdd/3f8四真实终止/默认Deadline及a575实际END/capture后no-own capture-loss/同实例恢复保留原11ae身份，不重跑。04ff/935的7117在精确主owner HWND/PID/TID/birth/session1上一次TEST LOCK通知，实际SessionLost/end5/nonNormal/pendingretired，真实own ReleaseCapture→0/解绑/Gone在唯一清理UP前完成；实际hook及客户UP回执与旧代零迟写成立。一次TEST UNLOCK通知后同PID6568新key5/g2 Move、g3 Resize均exact/真实LL-Raw-legacy NormalUp，完整退出/客户恢复通过。不是实际OS锁屏/解锁。",
       "remaining_conditions": [
-        "严格Queue故障和callback退出/恢复合同仍未实际通过；04ff/ecdf尚在arm阶段因suite字段顺序错拒，bbc仅修生产解析且native NOT_RUN，不能用session或其他终止替代。",
+        "guide5.2明确的callback owner停止注入及其真实退出/恢复尚未实际通过；28e3真实Queue故障/独立清理/同实例公开恢复已限定通过，不能把healthy=false当callback owner已退出。",
         "7117为DEV明确允许的session通知注入，不授真实锁屏/休眠/虚拟桌面系统变化PASS；这些环境范围仍按各独立合同登记。"
       ],
-      "next_action": "不重复已闭四终止/Deadline/capture-loss或7117通知恢复；仅用新bbc及后继精确guest工具复验Queue真实触发/撤权/独立退出/同实例恢复及callback退出对应缺口。原ecdf arm拒绝与所有历史FAIL保留，不以构建或注入命令入参授PASS。",
+      "next_action": "复用28e3真实Queue恢复、7117会话通知及既有四终止/Deadline/capture-loss；仅补callback owner实际停止、线程退出/卸hook/Raw退出、独立输入资源收尾和同实例公开恢复。原ecdf arm拒绝及af8f TEST barrier整FAIL保留，06045修复仅由28e3新证据验证；不授M04F04整体PASS。",
+      "current_scope_evidence_ids": ["EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY", "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE"],
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-C01-NATIVE-FAILURES",
@@ -7559,7 +7569,7 @@
         "src/platform/windows/product/visual_recovery.cpp"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "临时/永久属性独立所有权及原bf5c退出/helper恢复保留；92d/6274已实际补FocusLost恢复原alpha173和后继NormalUp。per-pixel前置仍工具FAIL；04ff新增实际限制条与原生失败反馈尚未现场。",
+      "implementation_note": "临时/永久属性独立所有权和原bf5c退出/helper恢复保留；6274原Focus后继通过保留原身份。bbc/b6 per-pixel限制中文条、真实NormalUp及清理已现场通过，但同批Focus后继fresh门拒绝未闭，不能以旧PASS覆盖新失败。",
       "dev_status": "BLOCKED",
       "human_status": "NOT_RUN",
       "cases": [
@@ -7603,12 +7613,13 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OPEN_OBSERVED_FAILURE_PENDING_REPAIR_AND_IMPACT_REVALIDATION",
-      "observed": "原e1a2 TEST guard/错误预期FAIL及CS_OWNDC实际alpha成功保留，不能称unsupported产品失败。92d/f2的6274同PID3880实际FocusLost子链通过：源原layered173/toptrue→拖动190及exact Move→真实另一owned前台→FocusLost/end2/nonNormal→恢复173而非255、零旧代新增writer及释放/解绑/Gone；唯一真实cleanupUP后同实例g2再次190/exact Move/真实LL/Raw/legacy UP/NormalUp并恢复173。原bf5c退出/异常helper证据按其原身份继承不重跑。per-pixel源虽UpdateLayeredWindow=true、GLA=false及opaque hit，但D305组合positioning/visible unchanged=false且缺独立FG字段，TEST前置拒绝，未到实际unsupported手势/限制提示，不是生产silent-decline FAIL。",
+      "observed": "历史e1a2/6274/98d6 TEST前置FAIL保留，不倒填现场PASS。bbc/c696的b6c8：g1原alpha173/topmost→190/exact→真实FocusLost→173及release/detach/Gone、唯一cleanupUP和零旧代新写入成立；后继g2 Prepared及真实DOWN已匹配、native START已到，P81在cancel前fresh复合门拒绝，具体子门UNKNOWN。独立g3 per-pixel真实ULW成功/GLA未知/opaque命中，交接后exact自由Move；feedback=false时中文限制条实际可见、HTTRANSPARENT、前台不变，BMP01F81F4F…已读图清晰；唯一真实LL/Raw/legacy UP、NormalUp、自主清理、提示隐藏和未知alpha不覆盖通过。整批仍FAIL。旧6274后继及bf5c退出/helper证据不改绑bbc，不重跑无关专项。",
       "remaining_conditions": [
-        "真实unknown-alpha源必须先通过实际标题操作归因：98d6自绘TEST的标准按钮声明导致P160正确保守拒绝，限制条/真实UP及未知alpha不覆盖仍未到达；不是产品unsupported反馈FAIL。",
-        "后继TEST将真实取消标准按钮样式，需新driver/RunId；不冒称现有未知alpha入口可试用，不把04ff或旧92d实证改绑新bbc。"
+        "b6c8最新Focus后继真实fresh权限拒绝尚未闭合；不能用旧6274或98d6子PASS覆盖本次失败，不能由P83后续native状态反推P81具体失败项。",
+        "per-pixel限制条/正常UP子范围已闭，当前候选异常后连续操作仍须受影响复验；普通完整Medium桌面和真人等环境门单列，不宣称可试用。"
       ],
-      "next_action": "98d6实际Focus子PASS；per-pixel新源在P160被system_caption_button_exclusion_unknown保守拒绝，因为自绘TEST仍声明标准按钮，尚未进入限制提示合同，不改产品门强迫通过。仅修TEST为真实无caption-buttons后新身份定向验证；bf5c退出及6274 Focus后继沿原身份复用，不重跑无关矩阵。",
+      "next_action": "复用b6c8 per-pixel可见/正常UP、自主清理及旧bf5c退出原身份；仅对b6c8实际fresh复合门保序记录唯一first_failed_gate，按具体失败原因修复/复验Focus后继，不猜Prepared点或Windows根因，不重复已过per-pixel矩阵。",
+      "current_scope_evidence_ids": ["EV-B6C8-TRANSPARENCY-VISIBLE-AND-SUCCESSOR"],
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-7CAC-INFLIGHT-UP",
@@ -7713,11 +7724,13 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "真实中文六页/Tab/Enter/Esc及144DPI设置有子结果，714c实际Enter保存。",
+      "observed": "真实中文六页/Tab/Enter/Esc及144DPI设置、714c Enter保存保留原身份。bbc/c696的34f1普通提示独立子PASS：真实Undo中文条读图清晰、非激活、同serial显示32109→隐藏36109（4000ms），第二提示被fresh Move退休，后继exact及真实NormalUp/Gone。该phase在HC切换前。随后HC实际GET=true/flags127，scheme复制后LocalFree前marker之后fixture以C0000374退出，无正常shutdown，强制TEST收尾不算产品cleanupPASS。",
       "remaining_conditions": [
-        "200%UI/高对比/主要控件可见及故障提示独立视觉观察未齐。"
+        "普通故障条可读/有限隐藏/新手势退休子范围已实测；200% UI、HC及主要控件完整可见合同仍未齐。",
+        "34f1 HC fixture堆异常退出待TEST内存/别名诊断，不是120秒超时，也未确定Windows/Sandbox根因或产品故障。"
       ],
-      "next_action": "原04ff/935的f198 HC已实际执行但约4分钟停在SPISET返回后D65，未有后续GET/正常shutdown；已保留Collect并清理自有guest。先有界区分环境/工具停滞再选受影响复验，不写产品cleanup或HC PASS、不无变量重跑；200%与读图可读性仍单列。",
+      "next_action": "复用34f1普通可见提示/4秒隐藏/新手势隔离，保留f198历史停滞；只查34f1实际GET后LocalFree相关TEST内存生命周期并按影响复验。HC/200%完整UI仍单列，不把强制guest收尾、普通提示或构建当高对比与完整M10F05 PASS。",
+      "current_scope_evidence_ids": ["EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT"],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -15709,6 +15722,21 @@
     "note": "当前11ae冻结产品/driver：fdf2修复Prepared cache并限定单BR exact/Undo（Paused早于第二UP，非NormalUp）；2432/528a普通无参GUI/设置效果/Move-UP/退出限定PASS。最新真正Full为dfdd：owned七代回环、配置布局/中断恢复、同PID两轮及20slot900.035872s/idle60.0156957s实际执行，但托盘/应用资格或原生客户前置及Edge正常关闭未确认，Full仍FAIL；六产品PID不拼成一个生命周期，前台observer overflow1。50f5/e5c6为启动诊断失败未运行产品，3f8五组件通过/dock单屏BLOCKED保留原结果。D29/e86批准范围不变，15/60与7/40不增；真实应用/普通完整桌面/显示/真人硬门继续。"
   },
   "portable_candidate": {
+    "package_id": "2b418e7198af4e429af080b763ff3406",
+    "source_commit": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+    "packaging_head": "bd48151d777de1e4033342b1c34e73e471e31b77",
+    "receipt_path": "uat/v1-portable/2b418e7198af4e429af080b763ff3406/package-receipt.json",
+    "manifest_path": "uat/v1-portable/2b418e7198af4e429af080b763ff3406/PaneBindV1/manifest.json",
+    "zip_sha256": "34905FCBA6141C0F47BCEE16F82821B41F963E3EF723E2E44A78CF74D3B9238D",
+    "manifest_sha256": "BCFCAAB94E53A3884C199ECF82BE5B3D767629632103BEEC174801BF741D9646",
+    "binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+    "status": "SEALED_ACTUAL_PACKAGE_BYTES_VERIFIED_ORDINARY_ENTRY_NOT_RUN",
+    "actual_ordinary_no_argument_entry": "NOT_RUN",
+    "functional_driver_chain": "SCOPED_BBC_NATIVE_RESULTS_DO_NOT_REPLACE_ORDINARY_PACKAGE_ENTRY_OR_FULL_I12",
+    "human_uat": "NOT_RUN",
+    "note": "当前唯一便携候选已封包。原528a/2432普通入口PASS保留在historical_portable_528a_candidate，不改绑bbc。新产品代码变更必须生成新候选，现包不代表宿主可试用或整版完成。"
+  },
+  "historical_portable_528a_candidate": {
     "package_id": "528a659b89224e5dadcfbda8c11f5ed7",
     "source_commit": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "packaging_head": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
@@ -15727,6 +15755,46 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+      "run_id": "28e3f8ddc91f4c8da1328df09a75017d",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "driver_source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
+      "result": "PASS_SCOPED_QUEUE_FAILURE_INDEPENDENT_CLEANUP_AND_PUBLIC_RECOVERY",
+      "evidence_id": "EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY",
+      "evidence_path": "docs/reports/v1-evidence/28e3-queue-failure-recovery-review.json",
+      "new_feature_or_B_PASS": false,
+      "scope": "299D/189P; actual one-shot injected queue branch, actual_full=false, End6/retirement/zero late native; independent release-detach-Gone before unique guest/client cleanupUP. Same PID/birth public Pause/Resume, owner start serial1->2, exact fresh Move/Resize and real NormalUp, clean shutdown. Callback-owner stop injection remains NOT_RUN; not complete M04F04, natural queue full or whole V1."
+    },
+    {
+      "run_id": "af8f84d956b64d699d420d6b55ec4eed",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "result": "BATCH_FAIL_TEST_STATUS_BARRIER_WITH_FAULT_AND_CLEANUP_SUBPASS",
+      "evidence_id": "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE",
+      "evidence_path": "docs/reports/v1-evidence/af8f-queue-fault-status-barrier-review.json",
+      "new_feature_or_B_PASS": false,
+      "scope": "244D/114P; actual injected fault/retirement/zero late writes and independent release-detach-Gone subPASS. D151 wrongly required healthy=true after failure; public recovery/following gestures not reached. Original FAIL retained; repaired TEST independently validated only by28e3."
+    },
+    {
+      "run_id": "b6c832c8651e4c24a729b5a868b67d40",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "result": "BATCH_FAIL_FOCUS_SUCCESSOR_FRESH_GATE_WITH_PER_PIXEL_VISIBLE_NORMAL_UP_SUBPASS",
+      "evidence_id": "EV-B6C8-TRANSPARENCY-VISIBLE-AND-SUCCESSOR",
+      "evidence_path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-review.json",
+      "new_feature_or_B_PASS": false,
+      "scope": "425D/204P; actual per-pixel ULW success/GLA unknown, exact free Move, readable Chinese limit BMP/nonactivation/hit-transparent, unique matching LL/Raw/legacy UP/NormalUp/Gone/hidden and no alpha overwrite. FocusLost restores173 and cleans, but real successor Prepared/DOWN/native START rejected by composite fresh gate before cancel; operand UNKNOWN. Whole FAIL and M10F04 gap retained; retained BMP original bytes hash01F81F4FA226DF73A1106EF272EFFC0DDC76912A3BBE879067F3875AA7C74382, not recaptured."
+    },
+    {
+      "run_id": "34f13a68036744c095ff323d9c1182b2",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "result": "BATCH_FAIL_TEST_HEAP_EXIT_WITH_ORDINARY_VISIBLE_NOTICE_SUBPASS",
+      "evidence_id": "EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT",
+      "evidence_path": "docs/reports/v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-review.json",
+      "new_feature_or_B_PASS": false,
+      "scope": "126D/69P; readable Chinese ordinary Undo notice, same serial actual4000ms hide and next Move retirement/exact/real NormalUp/Gone scoped PASS. HC GET true flags127; after copy/before LocalFree marker fixture exited C0000374, not timeout; Windows/Sandbox root cause unproven. No product normal shutdown; forced TEST cleanup not product cleanup PASS, HC and M10F05 incomplete."
+    },
     {
       "run_id": "ecdf58274b9d437385262b5efc05f072",
       "product_source_sha": "04ff585df6b5f17b5a3cc7c2f0bc500787d65f96",
@@ -16055,6 +16123,66 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY",
+      "run_id": "28e3f8ddc91f4c8da1328df09a75017d",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "driver_source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
+      "driver_binary_sha256": "326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7",
+      "path": "docs/reports/v1-evidence/28e3-queue-failure-recovery-review.json",
+      "sha256": "AACC50325A8E7C9332807831CB182E4C3CA84B1980CCC02E89A92FACFD8F263B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/28e3-queue-failure-recovery-excerpt.jsonl",
+      "repository_excerpt_sha256": "9E211F9B235331C9A566A50BFABAE0FD6496B637CE4FF0FCCA6A4BF9BFCAEAC1",
+      "result": "PASS_SCOPED_QUEUE_FAILURE_INDEPENDENT_CLEANUP_AND_PUBLIC_RECOVERY",
+      "scope": "299D/189P; actual one-shot injected queue branch, actual_full=false, End6/retirement/zero late native; independent release-detach-Gone before unique guest/client cleanupUP. Same PID/birth public Pause/Resume, owner start serial1->2, exact fresh Move/Resize and real NormalUp, clean shutdown. Callback-owner stop injection remains NOT_RUN; not complete M04F04, natural queue full or whole V1."
+    },
+    {
+      "id": "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE",
+      "run_id": "af8f84d956b64d699d420d6b55ec4eed",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "driver_binary_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+      "path": "docs/reports/v1-evidence/af8f-queue-fault-status-barrier-review.json",
+      "sha256": "6F019DD9572424B0D9D6BDED762A210521B832D5FE59B915994433F400EE6ECE",
+      "repository_excerpt_path": "docs/reports/v1-evidence/af8f-queue-fault-status-barrier-excerpt.jsonl",
+      "repository_excerpt_sha256": "B1A622D070316F9EC7BB633EE9E7E9A34C312F8C7817C99F9662655864D51284",
+      "result": "BATCH_FAIL_TEST_STATUS_BARRIER_WITH_FAULT_AND_CLEANUP_SUBPASS",
+      "scope": "244D/114P; actual injected fault/retirement/zero late writes and independent release-detach-Gone subPASS. D151 wrongly required healthy=true after failure; public recovery/following gestures not reached. Original FAIL retained; repaired TEST independently validated only by28e3."
+    },
+    {
+      "id": "EV-B6C8-TRANSPARENCY-VISIBLE-AND-SUCCESSOR",
+      "run_id": "b6c832c8651e4c24a729b5a868b67d40",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "driver_binary_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+      "path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-review.json",
+      "sha256": "F126299BB4D81010D59A500A01BCA75BE85BC416195658E5E40318775EB6FA6A",
+      "repository_excerpt_path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-excerpt.jsonl",
+      "repository_excerpt_sha256": "BA92D51FF4FBA794E546CA391D571269A3D173660F7BA58434846E49281B540F",
+      "result": "BATCH_FAIL_FOCUS_SUCCESSOR_FRESH_GATE_WITH_PER_PIXEL_VISIBLE_NORMAL_UP_SUBPASS",
+      "scope": "425D/204P; actual per-pixel ULW success/GLA unknown, exact free Move, readable Chinese limit BMP/nonactivation/hit-transparent, unique matching LL/Raw/legacy UP/NormalUp/Gone/hidden and no alpha overwrite. FocusLost restores173 and cleans, but real successor Prepared/DOWN/native START rejected by composite fresh gate before cancel; operand UNKNOWN. Whole FAIL and M10F04 gap retained; retained BMP original bytes hash01F81F4FA226DF73A1106EF272EFFC0DDC76912A3BBE879067F3875AA7C74382, not recaptured."
+    },
+    {
+      "id": "EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT",
+      "run_id": "34f13a68036744c095ff323d9c1182b2",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "driver_binary_sha256": "27CA26001537B82460BA654F64367C8D551787342F86CA5B221B8B550B2D7B7B",
+      "path": "docs/reports/v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-review.json",
+      "sha256": "378E9DCE9CD4885A4040EFB9F25A61D322BFD08B28C5E19C67D16DE129E477C8",
+      "repository_excerpt_path": "docs/reports/v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-excerpt.jsonl",
+      "repository_excerpt_sha256": "ED983ED6894432DEC177F2384FB3C989F617E4553B788F9AF2180503829B7C66",
+      "result": "BATCH_FAIL_TEST_HEAP_EXIT_WITH_ORDINARY_VISIBLE_NOTICE_SUBPASS",
+      "scope": "126D/69P; readable Chinese ordinary Undo notice, same serial actual4000ms hide and next Move retirement/exact/real NormalUp/Gone scoped PASS. HC GET true flags127; after copy/before LocalFree marker fixture exited C0000374, not timeout; Windows/Sandbox root cause unproven. No product normal shutdown; forced TEST cleanup not product cleanup PASS, HC and M10F05 incomplete."
+    },
     {
       "id": "EV-ECDF-QUEUE-SUITE-PRECONDITION-FAILURE",
       "run_id": "ecdf58274b9d437385262b5efc05f072",
@@ -20566,6 +20694,58 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY",
+      "status": "PASS_SCOPED_QUEUE_FAILURE_INDEPENDENT_CLEANUP_AND_PUBLIC_RECOVERY",
+      "run_id": "28e3f8ddc91f4c8da1328df09a75017d",
+      "candidate_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "candidate_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "evidence_ids": [
+        "EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY"
+      ],
+      "observed": "299D/189P; actual one-shot injected queue branch, actual_full=false, End6/retirement/zero late native; independent release-detach-Gone before unique guest/client cleanupUP. Same PID/birth public Pause/Resume, owner start serial1->2, exact fresh Move/Resize and real NormalUp, clean shutdown. Callback-owner stop injection remains NOT_RUN; not complete M04F04, natural queue full or whole V1.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE",
+      "status": "BATCH_FAIL_TEST_STATUS_BARRIER_WITH_FAULT_AND_CLEANUP_SUBPASS",
+      "run_id": "af8f84d956b64d699d420d6b55ec4eed",
+      "candidate_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "candidate_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "evidence_ids": [
+        "EV-AF8F-QUEUE-FAULT-STATUS-BARRIER-FAILURE"
+      ],
+      "observed": "244D/114P; actual injected fault/retirement/zero late writes and independent release-detach-Gone subPASS. D151 wrongly required healthy=true after failure; public recovery/following gestures not reached. Original FAIL retained; repaired TEST independently validated only by28e3.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-B6C8-TRANSPARENCY-VISIBLE-AND-SUCCESSOR",
+      "status": "BATCH_FAIL_FOCUS_SUCCESSOR_FRESH_GATE_WITH_PER_PIXEL_VISIBLE_NORMAL_UP_SUBPASS",
+      "run_id": "b6c832c8651e4c24a729b5a868b67d40",
+      "candidate_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "candidate_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "evidence_ids": [
+        "EV-B6C8-TRANSPARENCY-VISIBLE-AND-SUCCESSOR"
+      ],
+      "observed": "425D/204P; actual per-pixel ULW success/GLA unknown, exact free Move, readable Chinese limit BMP/nonactivation/hit-transparent, unique matching LL/Raw/legacy UP/NormalUp/Gone/hidden and no alpha overwrite. FocusLost restores173 and cleans, but real successor Prepared/DOWN/native START rejected by composite fresh gate before cancel; operand UNKNOWN. Whole FAIL and M10F04 gap retained; retained BMP original bytes hash01F81F4FA226DF73A1106EF272EFFC0DDC76912A3BBE879067F3875AA7C74382, not recaptured.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT",
+      "status": "BATCH_FAIL_TEST_HEAP_EXIT_WITH_ORDINARY_VISIBLE_NOTICE_SUBPASS",
+      "run_id": "34f13a68036744c095ff323d9c1182b2",
+      "candidate_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "candidate_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "evidence_ids": [
+        "EV-34F1-ORDINARY-NOTICE-AND-TEST-HC-HEAP-EXIT"
+      ],
+      "observed": "126D/69P; readable Chinese ordinary Undo notice, same serial actual4000ms hide and next Move retirement/exact/real NormalUp/Gone scoped PASS. HC GET true flags127; after copy/before LocalFree marker fixture exited C0000374, not timeout; Windows/Sandbox root cause unproven. No product normal shutdown; forced TEST cleanup not product cleanup PASS, HC and M10F05 incomplete.",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-ECDF-QUEUE-SUITE-PRECONDITION-FAILURE",
       "status": "FAIL_ACTUAL_ARM_PRECONDITION_REJECTED_BEFORE_INJECTED_QUEUE_FAILURE",
