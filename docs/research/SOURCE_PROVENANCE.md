@@ -28,9 +28,15 @@ The `9197` actual consumed maximized DOWN was rejected before shield admission;
 the unchanged `11ae` failure remains under its original identity. The separate
 `4362` Lower API actually completed but raw-next was non-null. Unfiltered Z-order
 can contain hidden/system windows; neither that handle nor a later observation
-proves the earlier semantic outcome. One exact-owned passive WINDOWPOS and
-bounded read-only tail contrast is prepared; it is not a new z-order writer,
-permission grant or functional PASS. Applicable subsystems: V1 input adapter,
+proves the earlier semantic outcome. The single `761a` exact-owned passive
+WINDOWPOS/bounded-tail contrast actually observed source -> current exact
+GetShellWindow -> raw NULL with reciprocal links. It also showed that delivered
+WINDOWPOS insertAfter need not retain the API's HWND_BOTTOM pseudo-handle.
+Its original overall FAIL remains. The production correction only accepts two
+stable finite observations of raw NULL or that immediate exact Shell terminal;
+it skips no hidden/system/ordinary node and makes no global atomicity claim.
+This is not a new z-order writer, permission grant or empirical PASS for the
+new candidate. Applicable subsystems: V1 input adapter,
 shared shield admission, restore integration and window-command postverification.
 
 ## V1 native application initialization contrast — 2026-10-21

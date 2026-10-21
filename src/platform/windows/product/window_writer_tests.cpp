@@ -40,6 +40,62 @@ int main() {
     check(!p::WindowWriter::complete_unissued_on_stop(true,false),"stop cannot signal or claim completion of an issued unknown native call");
     check(!p::WindowWriter::complete_unissued_on_stop(false,true)&&!p::WindowWriter::complete_unissued_on_stop(true,true),
         "stop does not invent another completion for an already finished call");
+    using Lower=p::WindowWriter::LowerZOrderKind;
+    p::WindowWriter::LowerZOrderSample z;z.known=true;z.source=initial.hwnd;z.source_pid=initial.pid;z.source_tid=initial.tid;
+    z.previous=reinterpret_cast<HWND>(std::uintptr_t{0x2345});z.shell=reinterpret_cast<HWND>(std::uintptr_t{0x3456});
+    check(p::WindowWriter::lower_z_order_completion(initial,z,z)==Lower::RawBottom,
+        "stable complete raw NULL tail retains the original Lower completion policy");
+    z.next=z.shell;z.shell_known=true;z.shell_pid=60;z.shell_tid=70;z.shell_previous=z.source;
+    check(p::WindowWriter::lower_z_order_completion(initial,z,z)==Lower::ShellDesktopTail,
+        "actual shared Lower postverify accepts only source then exact current shell then raw NULL");
+    auto bad_z=z;bad_z.known=false;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "unknown source observation is not a successful native Lower completion");
+    bad_z=z;bad_z.shell_known=false;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "unknown shell identity cannot grant the desktop-tail exception");
+    bad_z=z;bad_z.shell=nullptr;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "unavailable GetShellWindow cannot authorize a non-NULL ordinary tail");
+    bad_z=z;bad_z.next=reinterpret_cast<HWND>(std::uintptr_t{0x4567});
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "an ordinary or hidden root after source is never skipped toward the shell");
+    bad_z=z;bad_z.shell_next=reinterpret_cast<HWND>(std::uintptr_t{0x4567});
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "an additional node after the actual shell is not an exact terminal desktop tail");
+    bad_z=z;bad_z.shell_next=z.source;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "a source-shell cycle cannot manufacture complete tail evidence");
+    bad_z=z;bad_z.next=z.source;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "a source self-cycle cannot manufacture raw bottom evidence");
+    bad_z=z;bad_z.shell_previous=z.previous;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "shell reciprocal previous must identify this exact source");
+    bad_z=z;++bad_z.source_pid;
+    check(p::WindowWriter::lower_z_order_completion(initial,bad_z,bad_z)==Lower::Unconfirmed,
+        "lower Z-order proof does not replace exact source identity checks");
+    bad_z=z;++bad_z.shell_tid;
+    check(p::WindowWriter::lower_z_order_completion(initial,z,bad_z)==Lower::Unconfirmed,
+        "shell identity changed across the two bounded samples rejects completion");
+    bad_z=z;bad_z.previous=nullptr;
+    check(p::WindowWriter::lower_z_order_completion(initial,z,bad_z)==Lower::Unconfirmed,
+        "source link changes across observations are not a stable global Z snapshot");
+    bad_z=z;bad_z.shell=reinterpret_cast<HWND>(std::uintptr_t{0x4567});bad_z.next=bad_z.shell;
+    check(p::WindowWriter::lower_z_order_completion(initial,z,bad_z)==Lower::Unconfirmed,
+        "a replacement actual shell is not silently accepted as the original observation");
+    p::WindowWriter::Receipt lower_notice;lower_notice.operation=p::WindowWriter::Operation::Lower;
+    lower_notice.native_attempted=true;lower_notice.native_succeeded=true;lower_notice.completion_known=true;
+    check(std::wstring_view(p::WindowWriter::lower_failure_notice(lower_notice))==
+          L"置后原生调用已结束，但窗口后验未确认；请查看诊断记录。",
+        "completed API success with failed postverify never claims it is still waiting for the call");
+    lower_notice.native_succeeded=false;
+    check(std::wstring_view(p::WindowWriter::lower_failure_notice(lower_notice))==L"置后原生调用已失败；请查看诊断记录。",
+        "known native failure is reported separately from unknown completion");
+    lower_notice.completion_known=false;
+    check(std::wstring_view(p::WindowWriter::lower_failure_notice(lower_notice))==
+          L"置后操作尚未取得真实完成回执；后续操作等待该操作结束。",
+        "only genuinely unknown completion retains the wait-for-operation notice");
     const Rect desired{180, 130, 730, 570};
     auto prepared = p::WindowWriter::prepare(initial, initial, desired);
     check(prepared.accepted && prepared.identity_valid && !prepared.noop, "G01 admission");

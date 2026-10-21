@@ -840,15 +840,29 @@ void Application::command(v::Action action,std::optional<Snapshot> target){
             desired=history->back().before.visible;keep_history=false;}
         break;
     case v::Action::Lower:{const auto receipt=writer.lower(s,settings,input.operation_guard(0));
+        const auto z_sample=[](const WindowWriter::LowerZOrderSample& z){return
+            "{\"known\":"+std::string(z.known?"true":"false")+",\"shell_known\":"+(z.shell_known?"true":"false")+
+            ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.source))+
+            ",\"source_pid\":"+std::to_string(z.source_pid)+",\"source_tid\":"+std::to_string(z.source_tid)+
+            ",\"previous\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.previous))+",\"next\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.next))+
+            ",\"shell\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.shell))+
+            ",\"shell_pid\":"+std::to_string(z.shell_pid)+",\"shell_tid\":"+std::to_string(z.shell_tid)+
+            ",\"shell_previous\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.shell_previous))+
+            ",\"shell_next\":"+std::to_string(reinterpret_cast<std::uintptr_t>(z.shell_next))+"}";};
         log.event("lower_result","\"key\":"+std::to_string(s.key)+",\"call_id\":"+std::to_string(receipt.call_id)+
             ",\"native_attempted\":"+(receipt.native_attempted?(receipt.completion_known?"true":"null"):"false")+
             ",\"native_completion_known\":"+(receipt.completion_known?"true":"false")+
             ",\"native_succeeded\":"+(receipt.native_succeeded?"true":"false")+
             ",\"bottom_observed\":"+(receipt.z_bottom_observed?"true":"false")+
+            ",\"lower_observed\":"+(receipt.z_lower_observed?"true":"false")+
+            ",\"shell_desktop_tail_observed\":"+(receipt.z_lower_kind==WindowWriter::LowerZOrderKind::ShellDesktopTail?"true":"false")+
             ",\"actual_previous\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receipt.z_previous))+
             ",\"actual_next\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receipt.z_next))+
+            ",\"z_observation_begin_qpc\":"+std::to_string(receipt.z_lower_begin_qpc)+",\"z_observation_end_qpc\":"+std::to_string(receipt.z_lower_end_qpc)+
+            ",\"z_samples\":["+z_sample(receipt.z_lower_samples[0])+","+z_sample(receipt.z_lower_samples[1])+
+            "],\"global_atomic_Z_snapshot\":false"+
             ",\"reason\":\""+escaped(receipt.reason)+"\"");
-        if(!receipt.accepted)notify(L"置后未确认完成；后续操作等待真实原生调用结束。");geometry=false;break;}
+        if(!receipt.accepted)notify(WindowWriter::lower_failure_notice(receipt));geometry=false;break;}
     case v::Action::Center:{const auto l=s.work.left()+(s.work.width()-s.visible.width())/2,t=s.work.top()+(s.work.height()-s.visible.height())/2;
         desired={l,t,l+s.visible.width(),t+s.visible.height()};break;}
     case v::Action::MoveLeft:case v::Action::MoveRight:case v::Action::MoveUp:case v::Action::MoveDown:{

@@ -74,6 +74,42 @@ std::uint64_t now() noexcept {
         static_cast<std::uint64_t>(value.QuadPart) : 0;
 }
 
+HWND read_z_neighbor(HWND window,UINT relation,bool& known)noexcept{
+    SetLastError(ERROR_SUCCESS);const HWND value=GetWindow(window,relation);
+    if(!value&&GetLastError()!=ERROR_SUCCESS)known=false;
+    return value;
+}
+
+WindowWriter::LowerZOrderSample observe_lower_z_order(const Snapshot& expected)noexcept{
+    WindowWriter::LowerZOrderSample sample;sample.source=expected.hwnd;sample.shell=GetShellWindow();
+    sample.source_tid=GetWindowThreadProcessId(sample.source,&sample.source_pid);
+    sample.known=sample.source&&IsWindow(sample.source)&&GetAncestor(sample.source,GA_ROOT)==sample.source&&
+        sample.source_tid==expected.tid&&sample.source_pid==expected.pid&&expected.tid&&expected.pid;
+    if(!sample.known)return sample;
+    sample.previous=read_z_neighbor(sample.source,GW_HWNDPREV,sample.known);
+    sample.next=read_z_neighbor(sample.source,GW_HWNDNEXT,sample.known);
+    if(sample.shell&&sample.shell!=sample.source&&sample.next==sample.shell){
+        sample.shell_tid=GetWindowThreadProcessId(sample.shell,&sample.shell_pid);
+        sample.shell_known=sample.shell_pid&&sample.shell_tid&&IsWindow(sample.shell)&&
+            GetAncestor(sample.shell,GA_ROOT)==sample.shell;
+        sample.shell_previous=read_z_neighbor(sample.shell,GW_HWNDPREV,sample.shell_known);
+        sample.shell_next=read_z_neighbor(sample.shell,GW_HWNDNEXT,sample.shell_known);
+        DWORD pid{};const DWORD tid=GetWindowThreadProcessId(sample.shell,&pid);
+        const HWND previous=read_z_neighbor(sample.shell,GW_HWNDPREV,sample.shell_known);
+        const HWND next=read_z_neighbor(sample.shell,GW_HWNDNEXT,sample.shell_known);
+        sample.shell_known=sample.shell_known&&IsWindow(sample.shell)&&GetAncestor(sample.shell,GA_ROOT)==sample.shell&&
+            pid==sample.shell_pid&&tid==sample.shell_tid&&
+            previous==sample.shell_previous&&next==sample.shell_next;
+    }
+    DWORD pid{};const DWORD tid=GetWindowThreadProcessId(sample.source,&pid);
+    const HWND previous=read_z_neighbor(sample.source,GW_HWNDPREV,sample.known);
+    const HWND next=read_z_neighbor(sample.source,GW_HWNDNEXT,sample.known);
+    sample.known=sample.known&&IsWindow(sample.source)&&GetAncestor(sample.source,GA_ROOT)==sample.source&&
+        pid==sample.source_pid&&tid==sample.source_tid&&
+        previous==sample.previous&&next==sample.next&&GetShellWindow()==sample.shell;
+    return sample;
+}
+
 bool native_rect(const Rect& value) noexcept {
     using core::geometry::checked_difference;
     const auto width = checked_difference(value.right(), value.left());
@@ -436,6 +472,27 @@ struct WindowWriter::NativeExecutor {
 WindowWriter::WindowWriter(Catalog& catalog) : catalog_(catalog),executor_(std::make_unique<NativeExecutor>()) {}
 WindowWriter::~WindowWriter()=default;
 bool WindowWriter::complete_unissued_on_stop(bool attempted,bool known)noexcept{return !attempted&&!known;}
+
+WindowWriter::LowerZOrderKind WindowWriter::lower_z_order_completion(const Snapshot& expected,
+    const LowerZOrderSample& first,const LowerZOrderSample& second)noexcept{
+    if(!first.known||!second.known||first!=second||!expected.hwnd||!expected.pid||!expected.tid||
+       first.source!=expected.hwnd||first.source_pid!=expected.pid||first.source_tid!=expected.tid||
+       first.previous==first.source||first.next==first.source||first.source==first.shell)
+        return LowerZOrderKind::Unconfirmed;
+    if(!first.next)return LowerZOrderKind::RawBottom;
+    if(first.shell&&first.next==first.shell&&first.shell_known&&first.shell_pid&&first.shell_tid&&
+       first.previous!=first.shell&&first.shell_previous==first.source&&!first.shell_next)
+        return LowerZOrderKind::ShellDesktopTail;
+    return LowerZOrderKind::Unconfirmed;
+}
+
+const wchar_t* WindowWriter::lower_failure_notice(const Receipt& receipt)noexcept{
+    if(receipt.accepted)return L"";
+    if(!receipt.completion_known)return L"置后操作尚未取得真实完成回执；后续操作等待该操作结束。";
+    if(!receipt.native_attempted)return L"置后未发出原生调用；请查看拒绝原因记录。";
+    if(!receipt.native_succeeded)return L"置后原生调用已失败；请查看诊断记录。";
+    return L"置后原生调用已结束，但窗口后验未确认；请查看诊断记录。";
+}
 bool WindowWriter::stop(){return executor_->stop();}
 bool WindowWriter::has_unconfirmed_native_call()const{
     std::lock_guard lock(executor_->state->mutex);const auto work=executor_->state->pending;if(!work)return false;
@@ -557,7 +614,24 @@ void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings
     result.identity_valid=result.after&&Catalog::same(result.before,*result.after);
     if(result.identity_valid)result.visual_after=read_visual(result.before.hwnd);
     result.geometry_exact=result.identity_valid&&result.after->visible==result.before.visible&&result.after->positioning==result.before.positioning;
-    if(result.identity_valid){result.z_previous=GetWindow(result.before.hwnd,GW_HWNDPREV);result.z_next=GetWindow(result.before.hwnd,GW_HWNDNEXT);result.z_bottom_observed=result.z_next==nullptr;}
+    if(result.identity_valid){
+        if(result.operation==Operation::Lower){
+            // Exactly two finite observations, never a traversal/retry/poll.
+            // Equality is a bounded stability check, not an atomic Z snapshot.
+            result.z_lower_begin_qpc=now();
+            result.z_lower_samples[0]=observe_lower_z_order(result.before);
+            result.z_lower_samples[1]=observe_lower_z_order(result.before);
+            result.z_lower_end_qpc=now();
+            const auto& actual=result.z_lower_samples[1];
+            result.z_previous=actual.previous;result.z_next=actual.next;
+            result.z_bottom_observed=actual.known&&!actual.next;
+            result.z_lower_kind=lower_z_order_completion(result.before,result.z_lower_samples[0],actual);
+            result.z_lower_observed=result.z_lower_kind!=LowerZOrderKind::Unconfirmed;
+        }else{
+            result.z_previous=GetWindow(result.before.hwnd,GW_HWNDPREV);result.z_next=GetWindow(result.before.hwnd,GW_HWNDNEXT);
+            result.z_bottom_observed=result.z_next==nullptr;
+        }
+    }
     result.visual_exact=result.visual_after&&same_changed_visual(*result.visual_after,result.visual_target,result.alpha_change,result.top_change);
     const bool context=observe_capture_completion(result,capture);
     if(!result.identity_valid){result.reason="visual_postverify_"+capture_reason;return;}
@@ -565,8 +639,9 @@ void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings
     if(!result.geometry_exact){result.reason="visual_native_changed_or_unattributed_geometry";return;}
     if(!context){result.reason=result.post_context_reason;return;}
     if(result.operation==Operation::Lower){
-        result.accepted=result.native_attempted&&result.native_succeeded&&!result.visual_after->topmost&&result.z_bottom_observed;
-        result.reason=result.accepted?"lower_native_bottom_observed":"lower_native_completion_requires_zorder_review";return;
+        result.accepted=result.native_attempted&&result.native_succeeded&&!result.visual_after->topmost&&result.z_lower_observed;
+        result.reason=!result.accepted?"lower_native_completion_requires_zorder_review":
+            result.z_lower_kind==LowerZOrderKind::ShellDesktopTail?"lower_native_shell_desktop_tail_observed":"lower_native_bottom_observed";return;
     }
     if(!result.native_attempted&&result.reason!="visual_already_exact_worker_no_native_call"&&result.reason!="visual_already_exact_no_native_call")return;
     result.accepted=result.visual_exact&&(!result.native_attempted||result.native_succeeded)&&result.after_qpc!=0;

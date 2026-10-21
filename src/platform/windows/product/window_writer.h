@@ -3,6 +3,7 @@
 #include "platform/windows/product/window_catalog.h"
 #include "core/v1/visual_ownership.h"
 
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -22,6 +23,16 @@ public:
         LONG_PTR style_previous{};
         DWORD style_error{},alpha_error{},zorder_error{};
     };
+    // Two bounded, read-only observations. A desktop-tail exception is only
+    // the exact current GetShellWindow immediately after this source, then
+    // raw NULL; no hidden/system/class-name filtering or skipped node.
+    struct LowerZOrderSample {
+        bool known{},shell_known{};
+        HWND source{},previous{},next{},shell{},shell_previous{},shell_next{};
+        DWORD source_pid{},source_tid{},shell_pid{},shell_tid{};
+        bool operator==(const LowerZOrderSample&)const=default;
+    };
+    enum class LowerZOrderKind { Unconfirmed,RawBottom,ShellDesktopTail };
     // Frozen before an explicitly cross-display placement, not selected from
     // its result. Window DPI follows the target window's actual awareness;
     // the PMv2 display probe is not a substitute for GetDpiForWindow.
@@ -54,6 +65,12 @@ public:
         std::optional<core::v1::VisualState> visual_after;
         bool alpha_change{},top_change{},visual_exact{},z_bottom_observed{};
         HWND z_previous{},z_next{};
+        // z_bottom_observed retains the literal raw-next-is-NULL fact.
+        // z_lower_observed additionally accepts the exact stable shell tail.
+        bool z_lower_observed{};
+        LowerZOrderKind z_lower_kind{LowerZOrderKind::Unconfirmed};
+        std::array<LowerZOrderSample,2> z_lower_samples{};
+        std::uint64_t z_lower_begin_qpc{},z_lower_end_qpc{};
         VisualNativeFacts visual_native;
         std::optional<DestinationDisplay> destination;
     };
@@ -92,6 +109,9 @@ public:
     // Actual stop-time decision. A claimed/issued call must keep its real
     // completion unknown; only never-issued admission can finish immediately.
     [[nodiscard]] static bool complete_unissued_on_stop(bool native_attempted,bool completion_known)noexcept;
+    [[nodiscard]] static LowerZOrderKind lower_z_order_completion(const Snapshot&,
+        const LowerZOrderSample&,const LowerZOrderSample&)noexcept;
+    [[nodiscard]] static const wchar_t* lower_failure_notice(const Receipt&)noexcept;
     // The exact apply() classification: an unissued matching-UP withdrawal
     // waits for real terminal receipts, never manufactures NormalUp or makes
     // a failed identity/context/native result successful. Retain the lease
