@@ -1,5 +1,17 @@
 # PaneBind V1 集中交付进展
 
+## 当前收口（2026-10-21）：受影响功能已实跑，不以驱动构建代替结果
+
+`0a66091821bf48af9075991b4f41ccf4`已在新guest实际完成两项受影响场景；[关键原文及构建身份](v1-evidence/0a66-remaining-move-metadata.json)绑定产品`11ae76a3976ffba62facc127fcb411ebabfeaf86`（Release哈希`D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`）与新驱动`05f897eb486677f5c2743525c087c50eeb2f8626`（`09F818BBB9263F2E311153BFBA8E1CFBFCE2330B9BA59653430EA29D58820A11`）；包装HEAD`372891a758d7f0b6a14d279410f21cd52ca057a5`。755条driver和443条product合法连续，同一产品PID6336，不重建产品、不把新结果改绑旧驱动。
+
+- 真实144DPI的10/16 DIP边界分别为15/24px，六步自由→吸附→保持→释放边界保持→超出释放→重吸附均exact，仅4次native与2次noop。GUI速度设为1时实际大位移仍自由；同点UP无晚吸、无新placement，恢复默认2000后的下一代慢1px重新吸附。三代各有本代真实LL快照／accepted legacy UP、NormalUp、释放capture／解除关联／销毁和UP后零新写入。没有伪造时间戳、补UP或靠SendInput返回值证明投递。
+- 活动组关闭follower后退休及幸存组恢复、GUI精确排除后的下代仅source、移除后双成员恢复再次成立。旧`8e0`的磁吸工具FAIL及原记录保持不变；新run修复的是工具漏认真实captured UP分流，不是放宽产品权限。**M06-F05仍欠活动规则变更即时撤权的直接事实**，未把先行GUI失焦归因成规则撤权。
+- 对照本方案独立M05-F05/B06合同，结合真实窗口结果和生产共用solver／输入路由的零位移、相同tick、异常elapsed／溢出离线反例，现可闭合此独立合同。Debug/Release磁吸与生产路由定向回归实际通过；原生异常timestamp仍NOT_RUN。原driver的局部summary不授整项PASS，这里是L1＋L2的逐合同评估，不提升模块、真实应用矩阵或整版。
+
+当前为**生产接线60/60，独立DEV通过16/60，对标8/40＝20%**；新增只含M05-F05/B06，原15功能和7项对标保留原身份。`V1_DEV_STATUS=PARTIAL`，Full仍为下面dfdd的应用／关闭边界FAIL；普通完整Medium桌面、五类真实应用、真实托盘及多屏／混合DPI仍未齐，真人UAT PENDING，暂不进入REA。待验活动规则撤权等具体子项在原验收表中保留，不以环境理由改成PASS。没有再跑D29专项、Fix H或独立900秒批次。
+
+新驱动Debug/Release构建、各222项guest-path离线（symlink子项SKIP1314）及120项包装身份检查通过；另定向构建并执行D/R `magnet-constraint-solver|v1-input-route`，均2/2通过。产品EXE字节仍等于11ae，无需重打或替换已实际验证普通入口的528a便携包。各批只创建`I:\PaneBindMVP1Runs\<RunId>`内专属文件，保存证据后精确退出guest／删除本批启动任务；部署、历史包和证据保留，未改宿主系统、CrossRec或未知用户文件，未向宿主发测试输入。以下各节保留其封存时身份与计分，旧“15/7”和“待运行”不覆盖本节。
+
 ## 最新实际结果（2026-10-21）：完整 Release 已运行，保留应用边界失败
 
 当前产品仍为 `11ae76a3976ffba62facc127fcb411ebabfeaf86`／Release SHA-256 `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`；下面 Full 使用同源码的原驱动 `4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7`。后继仅驱动修改不重建产品，也不换绑原运行身份。
@@ -15,7 +27,7 @@
 
 当前可直接复核的普通包仍为[528a便携候选](../../uat/v1-portable/528a659b89224e5dadcfbda8c11f5ed7/PaneBindV1-Release-528a659b89224e5dadcfbda8c11f5ed7.zip)，其独立无参入口实测仍准确绑定`2432`，不是Full尾段通过。普通完整Medium桌面／五类应用／真实托盘及多屏混合DPI是具体剩余环境与兼容门；不能用本批owned核心闭环代替。真人UAT仍PENDING，当前不进入REA，也不邀请宿主试用。
 
-后继仅更新driver的`8e0bd71b8c3847579ff7e9f862c7a542`已实际验证[组成员关闭及GUI精确规则排除／恢复](v1-evidence/8e0-r32-remaining-move-scoped-result.json)：关闭follower后本代以SourceLost停止、零关闭后新增native调用，真实清理UP与资源退出成立；同一产品PID2928的幸存双窗Ctrl、规则排除后的单成员及移除后双成员组均exact／NormalUp。磁吸10/16 DIP的六个实际量子也已通过（四次native调用、两次真实noop），但收尾检查D528误将“没有独立normalized LL-UP日志”当成缺实际UP，阶段及整批原FAIL保留。P333实际同代LL回调matching=true／push=false、P323真实legacy accepted、P330 `shield_queued_legacy`及P331 NormalUp、P329释放／解除／销毁均有原件，未发现UP后新增placement。最小驱动修复`05f897e`保留这些事实及严格身份／时序／清理门，增加其实际字段形状的离线正反例；不改产品、既有UP helper语义或把SendInput当接收证据。该批速度后缀未运行，需用新批实测后再记结果。
+后继仅更新driver的`8e0bd71b8c3847579ff7e9f862c7a542`已实际验证[组成员关闭及GUI精确规则排除／恢复](v1-evidence/8e0-r32-remaining-move-scoped-result.json)：关闭follower后本代以SourceLost停止、零关闭后新增native调用，真实清理UP与资源退出成立；同一产品PID2928的幸存双窗Ctrl、规则排除后的单成员及移除后双成员组均exact／NormalUp。磁吸10/16 DIP的六个实际量子也已通过（四次native调用、两次真实noop），但收尾检查D528误将“没有独立normalized LL-UP日志”当成缺实际UP，阶段及整批原FAIL保留。P333实际同代LL回调matching=true／push=false、P323真实legacy accepted、P330 `shield_queued_legacy`及P331 NormalUp、P329释放／解除／销毁均有原件，未发现UP后新增placement。最小驱动修复`05f897e`保留这些事实及严格身份／时序／清理门，增加其实际字段形状的离线正反例；不改产品、既有UP helper语义或把SendInput当接收证据。该旧批速度后缀未运行；后继0a66实际结果见上方，不回写8e0为PASS。
 
 ## 当前候选增量（2026-10-21）：双击准备修复与普通便携入口复验
 

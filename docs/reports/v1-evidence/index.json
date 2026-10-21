@@ -1,8 +1,8 @@
 {
   "schema": "panebind-v1-repository-evidence/1",
   "record_date": "2026-10-21",
-  "next_driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-  "next_driver_validation": "11ae D/R binary self-reported identities verified by immutable package receipt. Actual Release fdf2 single-BR/2432 portable scopes PASS; a8a7 Full FAIL. 5810 remains original2c5 failure and3927 is tool failure without fixture/product/input. Prior247/da237 and all r21 runs keep original identities; no whole-version PASS.",
+  "next_driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+  "next_driver_validation": "05f D/R builds and 222 guest-path checks passed (symlink SKIP1314); actual 0a66 Release remaining Move scopes PASS on unchanged 11ae product. dfdd Full remains original11ae driver/FAIL, 8e0 remains original46c driver/tool verdict FAIL. 120 packaging checks passed; no whole-version PASS or old-binary rebinding.",
   "purpose": "既有验收表的可复核脱敏摘录，不是新任务书、原始日志替代品或PASS授予器",
   "redaction": {
     "paths": "guest绝对部署路径与任何检测到的绝对用户路径已替换",
@@ -1260,6 +1260,19 @@
     }
   },
   "latest_local_preflight": {
+    "driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+    "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+    "product_EXE_unchanged_since_11ae": true,
+    "driver_D_R_build": "PASS",
+    "guest_path_D_R": "222_PASS_SYMLINK_SUBCASE_SKIP1314",
+    "packaging_checks": "120_PASS",
+    "trusted_SSH_and_standard_origin_transport": "PASS_ACTUAL_CURRENT_ROUND",
+    "latest_scoped_runtime_run": "0a66091821bf48af9075991b4f41ccf4",
+    "latest_full_run": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+    "Full_status": "FAIL_APPLICATION_AND_CLOSE_BOUNDARIES",
+    "old_full_and_tool_verdicts_preserved": true
+  },
+  "historical_local_preflight_r21": {
     "observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
     "metadata_evidence_path": "docs/reports/v1-evidence/r21-local-preflight-build-deployment-metadata.json",
     "sha256": "ECAA259F9B899ACBAAFFF872F7C422ED88BF520A9D244CFB51F337CDB9057F8B",
@@ -1269,6 +1282,32 @@
     "next_action": "保留247/17f5与0db8、2c5/5810及全部历史原结论/原身份。11ae/fdf2仅cache刷新与单BR exact/Undo通过，结束为Paused且第二UP matching=false，不授完整I05；2432/528a普通ZIP首/二启、GUI/设置效果、Move-UP及退出限域通过。最新真正产品Full仍a8a7：A五阶段及三成员CtrlA通过，B g3实际FocusLost后0placement/拒发MOVE；采样rgnupdt.exe不是已证激活发起者。3927为启动工具缺陷，产品/输入未跑；后继工具对照另待封存，不盲重旧Full或900。继续未齐Full/托盘/真实应用/普通完整桌面/显示/真人合同，DEV15/B7不增。"
   },
   "records": [
+    {
+      "id": "EV-8E0-REMAINING-GROUP-AND-MAGNET-TOOL-FAILURE",
+      "kind": "native_guest_scope_metadata_and_literal_original_rows",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "46c1afc50cb9ce73fe8ccf26891bf26869805090",
+      "run_id": "8e0bd71b8c3847579ff7e9f862c7a542",
+      "excerpt_path": "docs/reports/v1-evidence/8e0-r32-remaining-move-scoped-result.json",
+      "excerpt_sha256": "8BAC3C2CCC470E9B9F297B4C3364B85696DBDA620963F2E520D71AF116526C26",
+      "literal_excerpt_paths": ["docs/reports/v1-evidence/8e0-r32-remaining-group-driver-selected.jsonl", "docs/reports/v1-evidence/8e0-r32-remaining-group-product-selected.jsonl"],
+      "literal_excerpt_sha256": ["A6D4120F3BEC9DA06F90D4CDD3EC496E4EB71696AC5FE9C813DBCBB6E7DBC924", "7374AEF444DA7006181D97C29D3EF54304A886EA1BA464FC1681098B31944C03"],
+      "scope": "组两case及六边界量子实测；旧工具对真实captured UP误门导致magnet/summary原FAIL保留。",
+      "feature_or_benchmark_PASS_added": false
+    },
+    {
+      "id": "EV-0A66-REMAINING-MOVE-CONTRACTS",
+      "kind": "native_guest_scope_metadata_and_literal_original_rows",
+      "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+      "run_id": "0a66091821bf48af9075991b4f41ccf4",
+      "excerpt_path": "docs/reports/v1-evidence/0a66-remaining-move-metadata.json",
+      "excerpt_sha256": "9D039C88303EFAA326AC43425A7DF669C54CC0CE4318B3B7B1486E4B31519492",
+      "literal_excerpt_paths": ["docs/reports/v1-evidence/0a66-remaining-move-driver-selected.jsonl", "docs/reports/v1-evidence/0a66-remaining-move-product-selected.jsonl"],
+      "literal_excerpt_sha256": ["F4A71285A06C60D0255D5795CD3358B3760E70B6990C5FF7A41369AEFFC497DF", "CADCE87AD16EF84822F83F1464E2442D16FAEE788C5E740D557156EB6766ED72"],
+      "scope": "组/磁吸两phase实际PASS，真实UP和资源闭环。M05-F05/B06独立评估结合生产共用solver离线，非driver直接授整功能/整版PASS；原生异常timestamp NOT_RUN。",
+      "independent_feature_contract_evaluation": "M05-F05 and B06 only; no other PASS added"
+    },
     {
       "id": "EV-50F5-FULL-STARTUP-OBSERVATION-TOOL-FAILURE",
       "kind": "existing_tool_diagnostic_metadata_not_literal_JSONL",

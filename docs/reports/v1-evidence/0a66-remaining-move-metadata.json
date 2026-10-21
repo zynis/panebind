@@ -1,0 +1,103 @@
+{
+  "evidence_id": "EV-0A66-REMAINING-MOVE-CONTRACTS",
+  "run_id": "0a66091821bf48af9075991b4f41ccf4",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/0a66091821bf48af9075991b4f41ccf4/collection-20261021T052115748Z-d7f84e2308584677ad6ce0540eb9285f",
+  "original_raw_preserved": true,
+  "new_execution_by_selection": false,
+  "configuration": "Release",
+  "suite": "RemainingMoveContractsOnly",
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "05f897eb486677f5c2743525c087c50eeb2f8626",
+  "driver_binary_sha256": "09F818BBB9263F2E311153BFBA8E1CFBFCE2330B9BA59653430EA29D58820A11",
+  "packaging_head": "372891a758d7f0b6a14d279410f21cd52ca057a5",
+  "package_zip_sha256": "114DE76608A82E2F84D299B747C3CE65C211FD304FB52EB242D448F4B4CA2592",
+  "manifest_sha256": "6AE46C53BF8F3B961465AF5C96D699FA4D1195D7AB5226B455702061859ADCF0",
+  "wsb_sha256": "1D5FF9EC4A7ABDF4837711CB93C6AAF2918CB200F100685EC7D4C3516FB45612",
+  "actual_product_PID": 6336,
+  "actual_product_birth_filetime_decimal_string": "134370336268203363",
+  "same_product_PID_all_recorded_product_rows": true,
+  "raw_sources": [
+    {
+      "path": "0a66091821bf48af9075991b4f41ccf4-release-fixture.jsonl",
+      "sha256": "EC47D94B3D0EC18F40B4C146601914A0A54A984381C768F4CFA18B8E910C8AFC",
+      "bytes": 442286,
+      "valid_continuous_sequences": [1, 755]
+    },
+    {
+      "path": "0a66091821bf48af9075991b4f41ccf4-product-Release/panebind.log.jsonl",
+      "sha256": "376109B82C87517ECADD423AC17D0C427D68EC3622E6EF2F4FF665C4475E2A7C",
+      "bytes": 499407,
+      "valid_continuous_sequences": [1, 443],
+      "producer_PID": 6336
+    },
+    {
+      "path": "0a66091821bf48af9075991b4f41ccf4-guest-summary.json",
+      "sha256": "84E1126D568B24921569D4734E49B006017850751348C7863C4D51B279A7B5DB"
+    },
+    {
+      "path": "0a66091821bf48af9075991b4f41ccf4-Release-launch.json",
+      "sha256": "9F3B27758B8D1608271A37B891F37BC9D21DC628D40C92739BC9C10F1C290464"
+    }
+  ],
+  "literal_selections": [
+    {
+      "path": "docs/reports/v1-evidence/0a66-remaining-move-driver-selected.jsonl",
+      "sha256": "F4A71285A06C60D0255D5795CD3358B3760E70B6990C5FF7A41369AEFFC497DF",
+      "original_sequences": [13, 24, 397, 482, 491, 496, 501, 506, 511, 516, 521, 522, 528, 584, 590, 591, 592, 598, 599, 653, 659, 660, 666, 728, 732, 733, 741, 743, 750, 751, 752, 753, 754, 755]
+    },
+    {
+      "path": "docs/reports/v1-evidence/0a66-remaining-move-product-selected.jsonl",
+      "sha256": "CADCE87AD16EF84822F83F1464E2442D16FAEE788C5E740D557156EB6766ED72",
+      "original_sequences": [297, 312, 315, 316, 317, 318, 319, 330, 331, 333, 343, 358, 371, 372, 373, 383, 398, 411, 412, 414, 443]
+    }
+  ],
+  "actual_scope": {
+    "DPI": 144,
+    "GUI_distance_settings": "10 DIP attraction / 16 DIP release; actual rounded fields 15 / 24 pixels (D482).",
+    "original_DOWN_source_rect": [240, 200, 640, 500],
+    "stationary_target_rect": [900, 350, 1220, 650],
+    "boundary_generation": 6,
+    "boundary_six_quanta": "P312 entry+1px remains free [484,200,884,500]; P315 exact 15px entry snaps [500,200,900,500]; P316 beyond entry held; P317 exact 24px release held; P318 25px releases [475,200,875,500]; P319 original-anchor reentry snaps. D496/501/506/511/516/521 independently check actual visible/positioning, fixed size and stationary target.",
+    "boundary_single_writer": "Exactly six source placement receipts: four real exact native calls and two already_exact_no_native_call receipts; no free placement followed by a second correction in any tested quantum.",
+    "speed_blackbox_generation": 7,
+    "speed_blackbox": "Actual GUI setting 1 DIP/s; P358 one exact free placement [486,200,886,500] at a raw 14px candidate gap, inside the 15px attraction field. D591 retains the real free result through the bounded hold. D598 confirms the same-point UP did not create a late snap.",
+    "actual_DOWN_QPC_decimal_string": "443759546",
+    "actual_motion_hook_QPC_decimal_string": "445922112",
+    "QPC_frequency": 10000000,
+    "speed_evidence_limit": "D599 proves only the configured-policy black-box behaviour and actual DOWN-to-motion input average. Production MotionState and millisecond sample ticks were not logged; Suppressed enum classification is not claimed. Invalid/zero timestamp native scenarios remain NOT_RUN; existing solver/InputRoute offline evidence remains separate.",
+    "following_generation": 8,
+    "following_default_speed": "Actual GUI setting 2000 DIP/s, fresh g8 with original [486,200,886,500]; one real 1px input and P398 exact snap [500,200,900,500], then actual NormalUp. No product restart.",
+    "three_UP_closures": [
+      {"generation": 6, "driver_sequence": 528, "NormalUp_sequence": 331, "legacy_sequence": 323, "gone_sequence": 329, "fresh_status_sequence": 333, "actual_LL_callback_QPC": 429331220},
+      {"generation": 7, "driver_sequence": 598, "NormalUp_sequence": 372, "legacy_sequence": 364, "gone_sequence": 370, "fresh_status_sequence": 373, "actual_LL_callback_QPC": 447731616},
+      {"generation": 8, "driver_sequence": 666, "NormalUp_sequence": 412, "legacy_sequence": 404, "gone_sequence": 410, "fresh_status_sequence": 414, "actual_LL_callback_QPC": 463621284}
+    ],
+    "UP_evidence_semantics": "Each actual LL callback snapshot is matching=true, nonaborted, same PID/source/generation, and after its unique test UP attempt. push_attempted=false is retained as observed; actual normalized UP is shield_queued_legacy, not an invented independent LL event. Each actual legacy was accepted, then NormalUp/release/detach/overlay destruction/hotkey removal and idle were confirmed.",
+    "no_new_write_after_UP": "For each of g6/g7/g8, its placement rows remain exactly unchanged after UP; no native_before_qpc is at/after that generation's actual LL UP callback. All target/native geometry checks passed.",
+    "configuration_and_owned_resources": "D728 restores the complete original configuration and verifies unchanged product bytes; D732 exact fixture close; D741 magnet phase PASS.",
+    "group_scope": "Actual D397 group phase PASS and D751 suite summary preserved; detailed group evidence is already covered by the separate 8e0 Run. No new group contract is inferred here.",
+    "product_exit": "P443 / D743 actual normal exit with hooks/native worker/input resources/capture/association/overlay/visual cleanup confirmed and no unknown issued completion. D750 actual client [0,0] to [1,1]; D752 Raw removed, D753 foreground observer unhooked, D754 overflow0, D755 exact owned windows destroyed/product closed.",
+    "wrapper": {"wait_result": 0, "fixture_exit_code": 0, "descendants_alive_at_fixture_exit": 0, "forced_test_cleanup": false, "raw_product_cleanup_pass": false},
+    "wrapper_cleanup_field_basis": "The original false field is an unevaluated initializer, not a cleanup FAIL; actual product/resource/client receipts supply the measured result.",
+    "result": "PASS_SCOPED_ACTUAL_BOUNDARIES_SPEED_POLICY_BLACKBOX_AND_RECOVERY",
+    "prior_8e0_FAILURE_unchanged": true,
+    "whole_M05_F05_or_version_PASS_awarded_here": false,
+    "real_applications_Full_and_human_UAT": "NOT_RUN_IN_THIS_SUITE"
+  },
+  "host_cleanup": {
+    "path": "uat/v1-control/0a66091821bf48af9075991b4f41ccf4/cleanup-receipt.json",
+    "sha256": "C7FA3BD9E983F3FFB7BA0E6E41381554EB76EA8AA0D3E83A0425A67C1823120B",
+    "guest_pid": 20072,
+    "guest_start_ticks_decimal_string": "639281568139924959",
+    "native_identity_confirmed": true,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "utc": "2026-10-21T05:21:52.3018402Z"
+  }
+}
