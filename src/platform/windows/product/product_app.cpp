@@ -3,6 +3,8 @@
 #include "settings_window.h"
 #include "visual_recovery.h"
 #include "window_writer.h"
+#include "guest_capture_scope.h"
+#include "guest_queue_failure_command.h"
 #include "core/v1/layout.h"
 #include "core/v1/settings.h"
 #include "core/v1/gesture.h"
@@ -35,6 +37,9 @@ namespace fs=std::filesystem;
 namespace {
 constexpr wchar_t app_class[]=L"PaneBind.V1.Application";
 constexpr UINT tray_message=WM_APP+30, external_message=WM_APP+31, queued_command_message=WM_APP+32;
+constexpr UINT guest_queue_failure_message=WM_APP+33;
+using guest::GuestQueueFailureRequest;
+using guest::parse_guest_queue_failure;
 constexpr UINT menu_pause=500,menu_settings=501,menu_exclude=502,menu_help=503,menu_diagnostic=504,menu_exit=505;
 const char* shield_event_name(o::GestureShieldEventKind kind){
     using K=o::GestureShieldEventKind;
@@ -75,6 +80,15 @@ std::wstring exe_path(){std::wstring p(32768,L' ');p.resize(GetModuleFileNameW(n
 std::string rectangle(const v::Rect& r){return "["+std::to_string(r.left())+","+std::to_string(r.top())+","+std::to_string(r.right())+","+std::to_string(r.bottom())+"]";}
 std::string escaped(std::string_view s){std::string out;for(const unsigned char c:s){if(c=='"'||c=='\\'){out+='\\';out+=static_cast<char>(c);}else if(c<32)out+=' ';else out+=static_cast<char>(c);}return out;}
 std::int64_t dip(int n,UINT dpi){return (static_cast<std::int64_t>(n)*dpi+48)/96;}
+constexpr bool drag_alpha_completion_failed(bool issued,bool known,bool succeeded,bool exact){
+    return issued&&known&&(!succeeded||!exact);
+}
+static_assert(drag_alpha_completion_failed(true,true,false,false));
+static_assert(drag_alpha_completion_failed(true,true,true,false));
+static_assert(!drag_alpha_completion_failed(true,true,true,true));
+static_assert(!drag_alpha_completion_failed(false,true,false,false));
+static_assert(!drag_alpha_completion_failed(true,false,false,false));
+static_assert(!drag_alpha_completion_failed(false,false,false,false));
 v::Edges edges(int region){switch(region){case 1:return {true,false,false,false};case 2:return {false,false,true,false};
 case 3:return {false,true,false,false};case 4:return {false,false,false,true};case 5:return {true,true,false,false};
 case 6:return {false,true,true,false};case 7:return {true,false,false,true};case 8:return {false,false,true,true};default:return {};}}
@@ -199,7 +213,11 @@ struct Gesture {
     v::Rect original,previous,scope_original;v::Edges edges;bool ctrl{};std::uint64_t last_tick{};
     std::optional<m::MagnetAxisPreference> x,y;v::ShakeDetector shake;
     std::optional<v::Action> dock_action;std::optional<v::Rect> dock_rect;
-    std::optional<Visual> drag_visual;std::uint64_t seam_since{};HMONITOR preview_monitor{};
+    std::optional<Visual> drag_visual;
+    // A limitation belongs to this gesture, not to a global notification or
+    // the next gesture's authority. It does not imply any geometry result.
+    std::string drag_visual_limit_reason;std::wstring drag_visual_limit;
+    std::uint64_t seam_since{};HMONITOR preview_monitor{};
     UINT_PTR seam_timer{};int seam_zone{-1};POINT seam_point{};bool seam_timer_failed{};
     bool layout_drag_restore{};
     bool normal_up_motion_consumed{};
@@ -235,16 +253,19 @@ public:
     // Keep the gesture's own original tuple, not the helper journal's older
     // permanent-visual baseline, while an already-issued native call finishes.
     std::optional<Visual> deferred_drag_visual;
-    struct PendingVisual {Snapshot identity;v::VisualOwnership planned;};
+    struct PendingVisual {Snapshot identity;v::VisualOwnership planned;std::uint64_t generation{};bool temporary_alpha{};};
     std::map<std::uint64_t,PendingVisual> pending_visual;
     v::TimingHistogram input_post_timing;std::map<std::uint64_t,std::uint64_t> delayed_input_qpc;
     UINT_PTR seam_timer_serial{0x50420000};
     bool overlay_outline{};v::Rect overlay_bounds;std::vector<v::Rect> overlay_members;
     std::vector<FeedbackLine> overlay_magnet_edges,overlay_shared_edges;
     std::wstring overlay_hint;UINT overlay_dpi{96};COLORREF overlay_color{},overlay_key{};
+    std::uint64_t overlay_limit_generation{};v::Key overlay_limit_key{};
+    UINT_PTR idle_notice_timer{};
+    std::optional<GuestQueueFailureRequest> guest_queue_failure_pending;
     explicit Application(HINSTANCE h):instance(h){}
     ~Application(){stop();}
-    void notify(std::wstring text){problem=std::move(text);log.event("notice","\"reason\":\""+escaped(utf8(problem))+"\"");tray();}
+    void notify(std::wstring text){problem=std::move(text);log.event("notice","\"reason\":\""+escaped(utf8(problem))+"\"");tray();show_idle_notice();}
     void tray(){NOTIFYICONDATAW n{};n.cbSize=sizeof(n);n.hWnd=window;n.uID=1;n.uFlags=NIF_MESSAGE|NIF_ICON|NIF_TIP;
         n.uCallbackMessage=tray_message;n.hIcon=LoadIconW(nullptr,settings.enabled&&input.healthy()?IDI_APPLICATION:IDI_WARNING);
         const auto tip=std::wstring(L"PaneBind — ")+(settings.enabled?(input.healthy()?L"运行中；Shift 起手为原生操作":L"输入故障"):L"已暂停");
@@ -379,7 +400,8 @@ public:
         return true;
     }
     bool mutate_visual(const Snapshot& identity,const v::VisualState& before,const v::VisualState& target,
-                       bool alpha_change,bool top_change,std::optional<v::VisualOwnership> cleanup_owned={}){
+                       bool alpha_change,bool top_change,std::optional<v::VisualOwnership> cleanup_owned={},
+                       WindowWriter::Receipt* actual_receipt=nullptr,bool temporary_alpha=false){
         const bool cleanup=cleanup_owned.has_value();
         // No property operation may overtake a geometry/property native call
         // whose completion is unknown. In particular never collapse helper
@@ -409,11 +431,12 @@ public:
             // active gesture still needs its exact actual capture context.
             // The writer independently rejects stale/foreign/retired capture.
             input.capture_context(generation));
+        if(actual_receipt)*actual_receipt=receipt;
         *cleanup_claim=false;
         bool acknowledged=false;
-        if(!receipt.completion_known&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
+        if(!receipt.completion_known&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned,generation,temporary_alpha});
         else if(receipt.identity_valid&&receipt.visual_after)acknowledged=commit_visual(identity,planned,*receipt.visual_after);
-        if(receipt.completion_known&&!acknowledged&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned});
+        if(receipt.completion_known&&!acknowledged&&receipt.call_id)pending_visual.emplace(receipt.call_id,PendingVisual{identity,planned,generation,temporary_alpha});
         log.event("visual_mutation","\"key\":"+std::to_string(identity.key)+",\"generation\":"+std::to_string(generation)+
             ",\"mutation_started\":"+(receipt.native_attempted?"true":"false")+
             ",\"call_id\":"+std::to_string(receipt.call_id)+
@@ -497,7 +520,11 @@ public:
     std::optional<Visual> visual_begin(const Snapshot& s,bool top,BYTE alpha,bool temporary){
         if(temporary){retry_deferred_drag_visual();if(deferred_drag_visual)return {};}
         const auto now=catalog.get(s.hwnd,settings);if(!now||!Catalog::same(s,*now))return {};
-        const auto before=Visual::read(s.hwnd);if(!before||(before->layered&&!before->attributes_known))return {};
+        const auto before=Visual::read(s.hwnd);if(!before)return {};
+        if(before->layered&&!before->attributes_known){
+            if(temporary)drag_visual_limited(s,"alpha_attributes_unknown",L"无法读取原透明状态，本次不应用拖动透明");
+            return {};
+        }
         Visual record;record.identity=s;record.ownership.original=record.ownership.applied=*before;
         const auto valid=[&]{const auto current=catalog.get(s.hwnd,settings);return current&&Catalog::same(s,*current);};
         if(!temporary&&top!=before->topmost){
@@ -509,13 +536,18 @@ public:
         }
         const auto current=Visual::read(s.hwnd);
         if(!current){visual_restore(record);return {};}
+        if(current->layered&&!current->attributes_known){
+            if(temporary)drag_visual_limited(s,"alpha_attributes_unknown",L"无法读取原透明状态，本次不应用拖动透明");
+            visual_restore(record);return {};
+        }
         if(!v::same_alpha(*current,record.ownership.original)){
             v::copy_alpha(record.ownership.original,*current);v::copy_alpha(record.ownership.applied,*current);
         }
         if(alpha!=v::effective_alpha(*current,LWA_ALPHA)){
             auto target=*current;target.layered=true;target.attributes_known=true;target.alpha=alpha;target.flags|=LWA_ALPHA;
             const bool mutation_admitted=!writer.has_pending_native_operation()&&pending_visual.empty();
-            const bool assigned=mutate_visual(s,*current,target,true,false);
+            WindowWriter::Receipt receipt;
+            const bool assigned=mutate_visual(s,*current,target,true,false,{},&receipt,temporary);
             const auto after=Visual::read(s.hwnd);
             if(after&&valid()&&v::same_alpha(*after,target))v::record_alpha(record.ownership,*after);
             if(!assigned){
@@ -527,14 +559,27 @@ public:
                     // This is a pending tuple, not an observed success. Once
                     // the actual call completes, cleanup may restore it ONLY
                     // if the actual tuple still matches this exact target.
+                    const auto original=record.ownership.original;
                     v::copy_alpha(record.ownership.applied,target);record.ownership.changed_alpha=true;
-                    restore_drag_visual(std::move(record));return {};
+                    restore_drag_visual(std::move(record));
+                    if(drag_alpha_completion_failed(receipt.native_attempted,receipt.completion_known,receipt.native_succeeded,receipt.visual_exact)){
+                        const auto final=Visual::read(s.hwnd);
+                        const bool rollback_exact=!deferred_drag_visual&&valid()&&final&&v::same_alpha(*final,original)&&final->topmost==original.topmost;
+                        drag_visual_limited(s,"issued_alpha_not_exact",rollback_exact?
+                            L"本次拖动透明未完成，原透明状态已确认保留":L"本次拖动透明未完成，原状态恢复尚未确认");
+                    }
+                    return {};
                 }
                 const bool restored=visual_restore(record);
                 const auto final=Visual::read(s.hwnd);
                 const bool rollback_exact=restored&&valid()&&final&&
                     v::same_alpha(*final,record.ownership.original)&&final->topmost==record.ownership.original.topmost;
                 log.event("visual_failure","\"reason\":\"temporary_or_shake_alpha_not_exact\",\"owned_rollback_exact\":"+std::string(rollback_exact?"true":"false"));
+                // Busy/unissued admission, a pending call, or an ownership
+                // journal failure is not proof of a failed native alpha API.
+                if(temporary&&drag_alpha_completion_failed(receipt.native_attempted,receipt.completion_known,receipt.native_succeeded,receipt.visual_exact))
+                    drag_visual_limited(s,"issued_alpha_not_exact",rollback_exact?
+                        L"本次拖动透明未完成，原透明状态已确认保留":L"本次拖动透明未完成，原状态恢复尚未确认");
                 return {};
             }
         }return record;
@@ -588,35 +633,160 @@ public:
         return success;
     }
     void set_paused(bool paused){
+        hide_preview("pause_or_resume");
         input.pause(true);finish(v::End::Paused);
         if(!paused){input.stop();if(!input.start(window,diagnostic)){notify(L"无法恢复输入资源，保持暂停。");settings.enabled=false;tray();return;}}
         input.pause(paused);auto next=settings;next.enabled=!paused;if(!save(next))settings.enabled=!paused;
         if(paused){for(auto& [key,value]:visual){(void)key;visual_restore(value);}visual.clear();}
         tray();if(!paused)prepare();log_status();
     }
+    void hide_preview(const char* reason="preview_hidden"){
+        // SetTimer is retired on its first matching message. A queued message
+        // with an older serial cannot hide a later notice or gesture overlay.
+        const auto notice=idle_notice_timer;idle_notice_timer=0;
+        const bool timer_cancelled=notice&&KillTimer(window,notice)!=FALSE;
+        overlay_outline=false;overlay_members.clear();overlay_magnet_edges.clear();overlay_shared_edges.clear();overlay_hint.clear();overlay_bounds={};
+        if(!overlay)return;
+        ShowWindow(overlay,SW_HIDE);const bool title_cleared=SetWindowTextW(overlay,L"")!=FALSE;
+        if(overlay_limit_generation){
+            log.event("drag_transparency_limit_presentation","\"phase\":\"hidden\",\"generation\":"+std::to_string(overlay_limit_generation)+
+                ",\"key\":"+std::to_string(overlay_limit_key)+",\"overlay_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+
+                ",\"actual_visible\":"+(IsWindowVisible(overlay)?"true":"false")+",\"title_cleared\":"+(title_cleared?"true":"false"));
+            overlay_limit_generation=0;overlay_limit_key=0;
+        }
+        if(notice)log.event("notice_presentation","\"phase\":\"hidden\",\"serial\":"+std::to_string(notice)+
+            ",\"reason\":\""+escaped(reason)+"\",\"timer_cancelled\":"+(timer_cancelled?"true":"false")+
+            ",\"overlay_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+
+            ",\"actual_visible\":"+(IsWindowVisible(overlay)?"true":"false")+",\"title_cleared\":"+(title_cleared?"true":"false"));
+    }
+    void show_idle_notice(){
+        const auto skipped=[&](const char* reason){log.event("notice_presentation","\"phase\":\"not_shown\",\"reason\":\""+
+            escaped(reason)+"\",\"queued\":false,\"new_write_authority_granted\":false");};
+        // This is presentation, never deferred command/input authority. Busy
+        // notices stay in the existing log only; no queue or retry is created.
+        if(stopping||!overlay||!window||problem.empty()){skipped("presentation_unavailable");return;}
+        if(gesture||native_move||input.native_move_in_progress()||writer.has_pending_native_operation()||
+            !pending_visual.empty()||deferred_drag_visual){skipped("operation_or_gesture_busy");return;}
+        const auto foreground=GetForegroundWindow();
+        if(!foreground){skipped("foreground_unknown");return;}
+        const auto monitor=MonitorFromWindow(foreground,MONITOR_DEFAULTTOPRIMARY);
+        const auto displays=catalog.displays();
+        const auto display=std::find_if(displays.begin(),displays.end(),[&](const auto& value){return value.monitor==monitor;});
+        if(display==displays.end()||!display->dpi||display->work.empty()){skipped("current_monitor_work_unknown");return;}
+        const auto& work=display->work;const auto height=dip(25,display->dpi);
+        const auto width=std::min(work.width(),dip(560,display->dpi));
+        if(height<=0||work.height()<height||width<=0){skipped("current_work_too_small");return;}
+        const auto left=work.left()+(work.width()-width)/2;
+        const auto top=std::max(work.top(),work.bottom()-height-dip(32,display->dpi));
+        const v::Rect bounds{left,top,left+width,top+height};
+        constexpr auto lo=std::numeric_limits<int>::min(),hi=std::numeric_limits<int>::max();
+        if(width>hi||height>hi||bounds.left()<lo||bounds.top()<lo||bounds.right()>hi||bounds.bottom()>hi){skipped("notice_native_bounds_unrepresentable");return;}
+        if(seam_timer_serial==std::numeric_limits<UINT_PTR>::max()){skipped("notice_timer_serial_exhausted");return;}
+        if(idle_notice_timer)hide_preview("replaced_by_new_notice");
+        overlay_outline=true;overlay_members.clear();overlay_magnet_edges.clear();overlay_shared_edges.clear();
+        overlay_bounds=bounds;overlay_dpi=display->dpi;overlay_hint=problem.substr(0,160);
+        if(problem.size()>overlay_hint.size())overlay_hint+=L"…";
+        overlay_color=GetSysColor(COLOR_INFOTEXT);
+        for(const auto candidate:{RGB(1,2,3),RGB(4,5,6),RGB(7,8,9),RGB(10,11,12)})
+            if(candidate!=GetSysColor(COLOR_INFOBK)&&candidate!=overlay_color){overlay_key=candidate;break;}
+        const bool styled=SetLayeredWindowAttributes(overlay,overlay_key,255,LWA_COLORKEY|LWA_ALPHA)!=FALSE;
+        const bool title_set=styled&&SetWindowTextW(overlay,overlay_hint.c_str())!=FALSE;
+        const auto serial=++seam_timer_serial;
+        const auto timer_return=styled?SetTimer(window,serial,4000,nullptr):0;
+        const bool armed=timer_return!=0;
+        if(armed)idle_notice_timer=serial;
+        const bool positioned=armed&&SetWindowPos(overlay,HWND_TOPMOST,static_cast<int>(left),static_cast<int>(top),
+            static_cast<int>(width),static_cast<int>(height),SWP_NOACTIVATE|SWP_SHOWWINDOW)!=FALSE;
+        const bool visible=IsWindowVisible(overlay)!=FALSE;
+        log.event("notice_presentation","\"phase\":\"show\",\"serial\":"+std::to_string(serial)+
+            ",\"overlay_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+",\"text\":\""+escaped(utf8(overlay_hint))+
+            "\",\"requested_bounds\":"+rectangle(bounds)+",\"SetLayeredWindowAttributes_succeeded\":"+(styled?"true":"false")+
+            ",\"SetWindowText_attempted\":"+(styled?"true":"false")+",\"SetWindowText_succeeded\":"+(title_set?"true":"false")+
+            ",\"SetTimer_attempted\":"+(styled?"true":"false")+",\"SetTimer_return\":"+std::to_string(timer_return)+
+            ",\"SetTimer_succeeded\":"+(armed?"true":"false")+",\"deadline_ms\":4000,\"SetWindowPos_attempted\":"+(armed?"true":"false")+
+            ",\"SetWindowPos_succeeded\":"+(positioned?"true":"false")+",\"actual_visible\":"+(visible?"true":"false")+
+            ",\"foreground_unchanged\":"+(GetForegroundWindow()==foreground?"true":"false")+
+            ",\"queued\":false,\"new_write_authority_granted\":false,\"text_property_not_rendering_proof\":true");
+        if(!positioned||!visible){hide_preview("notice_show_failed");return;}
+        InvalidateRect(overlay,nullptr,FALSE);
+    }
+    void idle_notice_timeout(UINT_PTR serial){
+        if(!serial||idle_notice_timer!=serial)return;
+        hide_preview("notice_deadline");
+    }
+    std::optional<Snapshot> drag_visual_limit_source(){
+        if(!gesture||gesture->drag_visual_limit.empty()||stopping||!input.allowed(gesture->down.generation))return {};
+        const auto& source=gesture->down.prepared->source;
+        if(GetForegroundWindow()!=source.hwnd)return {};
+        const auto actual=catalog.get(source.hwnd,settings);
+        if(!actual||!Catalog::same(source,*actual))return {};
+        return actual;
+    }
+    bool position_overlay(const v::Rect& bounds,const char* mode,bool limited=false){
+        if(limited&&(!gesture||!input.allowed(gesture->down.generation)||
+            GetForegroundWindow()!=gesture->down.prepared->source.hwnd)){hide_preview();return false;}
+        const bool title_set=SetWindowTextW(overlay,overlay_hint.c_str())!=FALSE;
+        const bool positioned=SetWindowPos(overlay,HWND_TOPMOST,static_cast<int>(bounds.left()),static_cast<int>(bounds.top()),
+            static_cast<int>(bounds.width()),static_cast<int>(bounds.height()),SWP_NOACTIVATE|SWP_SHOWWINDOW)!=FALSE;
+        const bool visible=IsWindowVisible(overlay)!=FALSE;
+        if(limited&&(!overlay_limit_generation||!positioned||!visible)){
+            const auto& source=gesture->down.prepared->source;
+            log.event("drag_transparency_limit_presentation","\"phase\":\"show\",\"generation\":"+std::to_string(gesture->down.generation)+
+                ",\"key\":"+std::to_string(source.key)+",\"reason\":\""+escaped(gesture->drag_visual_limit_reason)+"\",\"mode\":\""+mode+
+                "\",\"text\":\""+escaped(utf8(overlay_hint))+"\",\"overlay_hwnd\":"+std::to_string(reinterpret_cast<std::uintptr_t>(overlay))+
+                ",\"requested_bounds\":"+rectangle(bounds)+",\"SetWindowText_succeeded\":"+(title_set?"true":"false")+
+                ",\"SetWindowPos_attempted\":true,\"SetWindowPos_succeeded\":"+(positioned?"true":"false")+
+                ",\"actual_visible\":"+(visible?"true":"false")+",\"source_is_foreground\":"+(GetForegroundWindow()==source.hwnd?"true":"false")+
+                ",\"text_property_not_rendering_proof\":true");
+            if(positioned&&visible){overlay_limit_generation=gesture->down.generation;overlay_limit_key=source.key;}
+        }
+        if(!positioned||!visible){hide_preview();return false;}
+        InvalidateRect(overlay,nullptr,FALSE);return true;
+    }
+    bool show_drag_visual_limit(){
+        const auto source=drag_visual_limit_source();if(!source)return false;
+        show_feedback({*source},L"");return IsWindowVisible(overlay)!=FALSE;
+    }
+    void drag_visual_limited(const Snapshot& source,const char* reason,std::wstring text){
+        if(!gesture||gesture->down.prepared->source.key!=source.key||!Catalog::same(gesture->down.prepared->source,source)||
+            !input.allowed(gesture->down.generation))return;
+        gesture->drag_visual_limit_reason=reason;gesture->drag_visual_limit=std::move(text);
+        log.event("drag_transparency_limited","\"generation\":"+std::to_string(gesture->down.generation)+
+            ",\"key\":"+std::to_string(source.key)+",\"reason\":\""+escaped(reason)+"\",\"text\":\""+
+            escaped(utf8(gesture->drag_visual_limit))+"\",\"new_write_authority_granted\":false");
+        // The existing preview window is non-activating and hit-transparent.
+        // Unlike the tray tooltip/log, this paints during the actual gesture.
+        show_drag_visual_limit();
+    }
     void show_preview(std::optional<v::Rect> rect){
+        // Idle preparation/hover is not a new gesture and must not immediately
+        // erase a user-visible rejection. New DOWN/handoff retires it below.
+        if(idle_notice_timer&&!gesture&&!native_move&&!input.native_move_in_progress())return;
         overlay_outline=false;overlay_members.clear();overlay_magnet_edges.clear();overlay_shared_edges.clear();overlay_hint.clear();overlay_bounds={};
         if(!overlay)return;
         const auto& config=gesture?gesture->config:settings;
-        if(!rect||!config.preview){ShowWindow(overlay,SW_HIDE);return;}
+        if(!rect||!config.preview){if(!show_drag_visual_limit())hide_preview();return;}
         overlay_color=static_cast<COLORREF>(config.preview_color);
-        if(!SetLayeredWindowAttributes(overlay,0,static_cast<BYTE>(config.preview_alpha),LWA_ALPHA)){ShowWindow(overlay,SW_HIDE);return;}
+        if(!SetLayeredWindowAttributes(overlay,0,static_cast<BYTE>(config.preview_alpha),LWA_ALPHA)){hide_preview();return;}
         const auto& r=*rect;
         constexpr auto low=std::numeric_limits<int>::min(),high=std::numeric_limits<int>::max();
         const auto width=g::checked_difference(r.right(),r.left()),height=g::checked_difference(r.bottom(),r.top());
         if(!width||!height||*width<=0||*height<=0||*width>high||*height>high||
-            r.left()<low||r.top()<low||r.right()>high||r.bottom()>high){ShowWindow(overlay,SW_HIDE);return;}
-        if(!SetWindowPos(overlay,HWND_TOPMOST,static_cast<int>(r.left()),static_cast<int>(r.top()),static_cast<int>(r.width()),static_cast<int>(r.height()),SWP_NOACTIVATE|SWP_SHOWWINDOW)){
-            ShowWindow(overlay,SW_HIDE);return;}
-        InvalidateRect(overlay,nullptr,FALSE);
+            r.left()<low||r.top()<low||r.right()>high||r.bottom()>high){hide_preview();return;}
+        const auto limited_source=drag_visual_limit_source();
+        if(limited_source){overlay_hint=gesture->drag_visual_limit;overlay_dpi=limited_source->dpi;}
+        overlay_bounds=r;position_overlay(r,"preview",limited_source.has_value());
     }
     void show_feedback(const std::vector<Snapshot>& actual,std::wstring hint,
         std::vector<FeedbackLine> magnet_edges={},std::vector<FeedbackLine> shared_edges={}){
-        if(!overlay||!gesture||!gesture->config.feedback||!input.allowed(gesture->down.generation)||actual.empty()){
-            show_preview({});return;
+        const bool limited=drag_visual_limit_source().has_value();
+        if(!overlay||!gesture||(!gesture->config.feedback&&!limited)||!input.allowed(gesture->down.generation)||actual.empty()){
+            hide_preview();return;
         }
-        if(!gesture->ctrl&&magnet_edges.empty()){show_preview({});return;}
-        const auto displays=catalog.displays();if(displays.empty()){show_preview({});return;}
+        const bool only_limitation=limited&&(!gesture->config.feedback||(!gesture->ctrl&&magnet_edges.empty()));
+        if(!gesture->ctrl&&magnet_edges.empty()&&!limited){hide_preview();return;}
+        if(limited){if(!hint.empty())hint+=L"；";hint+=gesture->drag_visual_limit;}
+        const auto displays=catalog.displays();if(displays.empty()){hide_preview();return;}
         constexpr auto lo=std::numeric_limits<std::int32_t>::min(),hi=std::numeric_limits<std::int32_t>::max();
         const auto native=[](const v::Rect& r){
             const auto width=g::checked_difference(r.right(),r.left()),height=g::checked_difference(r.bottom(),r.top());
@@ -626,24 +796,34 @@ public:
         };
         auto desktop=displays.front().bounds;
         for(const auto& display:displays){
-            if(!display.dpi){show_preview({});return;}
+            if(!display.dpi){hide_preview();return;}
             desktop={std::min(desktop.left(),display.bounds.left()),std::min(desktop.top(),display.bounds.top()),
                 std::max(desktop.right(),display.bounds.right()),std::max(desktop.bottom(),display.bounds.bottom())};
         }
         std::vector<v::Rect> clipped;
         for(const auto& snapshot:actual){
-            if(!snapshot.dpi||!native(snapshot.visible)){show_preview({});return;}
+            if(!snapshot.dpi||!native(snapshot.visible)){hide_preview();return;}
             const auto visible=g::intersection(snapshot.visible,desktop);
-            if(!visible){show_preview({});return;}clipped.push_back(*visible);
+            if(!visible){hide_preview();return;}clipped.push_back(*visible);
         }
         auto bounds=clipped.front();
         for(const auto& member:clipped)bounds={std::min(bounds.left(),member.left()),std::min(bounds.top(),member.top()),
             std::max(bounds.right(),member.right()),std::max(bounds.bottom(),member.bottom())};
         const auto caption=hint.empty()?0:dip(25,actual.front().dpi);
         const auto top=g::checked_add(bounds.top(),-caption);
-        if(!top){show_preview({});return;}
+        if(!top){hide_preview();return;}
         bounds={bounds.left(),std::max(desktop.top(),*top),bounds.right(),bounds.bottom()};
-        if(!native(bounds)||!input.allowed(gesture->down.generation)){show_preview({});return;}
+        if(only_limitation){
+            // A small opaque system-colour strip remains available even with
+            // optional magnet/group feedback disabled or no adopted edge.
+            const auto work=g::intersection(actual.front().work,desktop);
+            if(!work||work->height()<caption){hide_preview();return;}
+            const auto width=std::min(work->width(),std::max(clipped.front().width(),dip(480,actual.front().dpi)));
+            const auto left=std::clamp(clipped.front().left(),work->left(),work->right()-width);
+            const auto y=std::clamp(*top,work->top(),work->bottom()-caption);
+            bounds={left,y,left+width,y+caption};
+        }
+        if(!native(bounds)||!input.allowed(gesture->down.generation)){hide_preview();return;}
         const auto clip_lines=[&](std::vector<FeedbackLine>& lines){
             std::vector<FeedbackLine> result;
             for(auto line:lines){
@@ -656,19 +836,17 @@ public:
                 }
             }return result;
         };
-        overlay_outline=true;overlay_bounds=bounds;overlay_members=gesture->ctrl?std::move(clipped):std::vector<v::Rect>{};overlay_hint=std::move(hint);
-        overlay_magnet_edges=clip_lines(magnet_edges);overlay_shared_edges=clip_lines(shared_edges);
+        overlay_outline=true;overlay_bounds=bounds;overlay_members=gesture->ctrl&&!only_limitation?std::move(clipped):std::vector<v::Rect>{};overlay_hint=std::move(hint);
+        overlay_magnet_edges=only_limitation?std::vector<FeedbackLine>{}:clip_lines(magnet_edges);
+        overlay_shared_edges=only_limitation?std::vector<FeedbackLine>{}:clip_lines(shared_edges);
         overlay_dpi=actual.front().dpi;overlay_color=static_cast<COLORREF>(gesture->config.preview_color);
         for(const auto candidate:{RGB(1,2,3),RGB(4,5,6),RGB(7,8,9),RGB(10,11,12)}){
             if(candidate!=overlay_color&&candidate!=GetSysColor(COLOR_GRAYTEXT)&&candidate!=GetSysColor(COLOR_INFOBK)&&candidate!=GetSysColor(COLOR_INFOTEXT)){overlay_key=candidate;break;}
         }
         // The background is truly color-keyed out. Unlike a filled rectangle,
         // group feedback leaves the applications between the outlines visible.
-        if(!SetLayeredWindowAttributes(overlay,overlay_key,255,LWA_COLORKEY|LWA_ALPHA)||
-            !SetWindowPos(overlay,HWND_TOPMOST,static_cast<int>(bounds.left()),static_cast<int>(bounds.top()),
-                static_cast<int>(bounds.width()),static_cast<int>(bounds.height()),SWP_NOACTIVATE|SWP_SHOWWINDOW)){
-            show_preview({});return;}
-        InvalidateRect(overlay,nullptr,FALSE);
+        if(!SetLayeredWindowAttributes(overlay,overlay_key,255,LWA_COLORKEY|LWA_ALPHA)){hide_preview();return;}
+        position_overlay(bounds,only_limitation?"limitation_strip":"feedback",limited);
     }
     void command(v::Action action,std::optional<Snapshot> target={});
     void prepare();
@@ -780,6 +958,10 @@ public:
                 if(const auto pending=pending_visual.find(r.call_id);pending!=pending_visual.end()){
                     if(r.completion_known&&r.identity_valid&&r.visual_after)
                         acknowledged=commit_visual(pending->second.identity,pending->second.planned,*r.visual_after);
+                    if(pending->second.temporary_alpha&&gesture&&gesture->down.generation==pending->second.generation&&
+                        drag_alpha_completion_failed(r.native_attempted,r.completion_known,r.native_succeeded,r.visual_exact))
+                        drag_visual_limited(pending->second.identity,"issued_alpha_completion_not_exact",
+                            L"本次拖动透明未完成，原状态恢复尚待确认");
                     // A failed commit leaves the helper's pending tuple intact.
                     // No new authority is granted by this late observation.
                     if(acknowledged)pending_visual.erase(pending);
@@ -1061,6 +1243,7 @@ bool native_move_gui(const Snapshot& source,bool native){
 }
 }
 void Application::native_move_event(const InputEvent& e){
+    if(idle_notice_timer&&(e.kind==InputKind::NativeMovePending||e.kind==InputKind::NativeMoveStart))hide_preview("new_native_handoff");
     const auto generation=e.generation;
     const auto reject=[&](const char* reason){
         log.event("native_move_handoff","\"generation\":"+std::to_string(generation)+
@@ -1181,6 +1364,7 @@ void Application::native_move_resource(const InputEvent& e){
     if(!sent){input.revoke_generation(g);native_move.reset();}
 }
 void Application::begin(const InputEvent& e){
+    if(idle_notice_timer)hide_preview("new_gesture");
     // A real UP may have reached the hook before the GUI sees this DOWN. Its
     // distinct terminal capability permits building this exact context only;
     // it does not restore active input or authorize any queued MOVE.
@@ -1571,12 +1755,12 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
         // hook-side revocation is not itself evidence of which terminator won.
         if(!last_apply_revoked_only){state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);}return;}
     state.exact_motion=ExactMotionPoint{e.generation,e.point};
-    if(config.feedback&&!dock_shown){
+    if((config.feedback||!state.drag_visual_limit.empty())&&!dock_shown){
         std::vector<Snapshot> actual;
         if(state.ctrl){for(const auto& member:state.members){
             const auto found=state.expected.find(member.key);if(found==state.expected.end()){actual.clear();break;}
             actual.push_back(found->second);
-        }}else if(state.x||state.y){
+        }}else if(state.x||state.y||!state.drag_visual_limit.empty()){
             if(const auto found=state.expected.find(source.key);found!=state.expected.end())actual.push_back(found->second);
         }
         std::vector<FeedbackLine> adopted_edges,shared_edges;
@@ -1624,7 +1808,7 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
 void Application::finish(v::End reason,std::uint64_t observed_qpc){
     if(native_move){input.revoke_generation(native_move->down.generation,reason);native_move.reset();}
     if(gesture)input.finish_generation(gesture->down.generation,reason);else input.revoke(reason);
-    cancel_seam_timer();cancel_restore_wait();show_preview({});if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
+    cancel_seam_timer();cancel_restore_wait();hide_preview();if(!gesture)return;auto state=std::move(*gesture);gesture.reset();epoch.finish(state.down.generation,reason);last_termination=reason;
     if(reason==v::End::NormalUp&&state.dock_action&&state.dock_rect){
         const auto current=catalog.get(state.down.prepared->source.hwnd,settings);
         if(current&&Catalog::same(state.down.prepared->source,*current)&&
@@ -1978,7 +2162,7 @@ void Application::menu(){POINT pt{};GetCursorPos(&pt);HMENU popup=CreatePopupMen
     // foreground recovery. No third-party window is activated by the product.
     SetForegroundWindow(window);TrackPopupMenu(popup,TPM_RIGHTBUTTON,pt.x,pt.y,0,window,nullptr);PostMessageW(window,WM_NULL,0,0);DestroyMenu(popup);
 }
-void Application::stop(){if(stopping)return;stopping=true;input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
+void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
     drain_button_admissions(true);
     log_delayed_completions();
     const auto timing_fields=[](const v::TimingSnapshot& value,unsigned percentile){
@@ -2058,7 +2242,10 @@ LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             // Member membership is a thin neutral outline. Thick coloured
             // strokes identify only actual selected magnet/shared-edge facts.
             draw_edges(app->overlay_shared_edges,3);draw_edges(app->overlay_magnet_edges,4);
-            if(!app->overlay_hint.empty()){
+        }
+        // A drag-alpha limitation is also painted over an ordinary docking
+        // preview, not only when optional outlined feedback is enabled.
+        if(app&&!app->overlay_hint.empty()){
                 RECT caption=r;caption.bottom=std::min<LONG>(caption.bottom,MulDiv(25,static_cast<int>(app->overlay_dpi),96));
                 HBRUSH background=CreateSolidBrush(GetSysColor(COLOR_INFOBK));FillRect(dc,&caption,background);DeleteObject(background);
                 const auto font=CreateFontW(-MulDiv(9,static_cast<int>(app->overlay_dpi),72),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,
@@ -2068,7 +2255,6 @@ LRESULT CALLBACK overlay_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                 caption.left+=MulDiv(4,static_cast<int>(app->overlay_dpi),96);
                 DrawTextW(dc,app->overlay_hint.c_str(),static_cast<int>(app->overlay_hint.size()),&caption,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS|DT_NOPREFIX);
                 SetTextColor(dc,previous_color);SetBkMode(dc,previous_mode);if(font){SelectObject(dc,old);DeleteObject(font);}
-            }
         }
         EndPaint(w,&paint);return 0;}
     return DefWindowProcW(w,message,wp,lp);
@@ -2092,13 +2278,15 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             // A skipped catalog notification is resumed only by the actual
             // completion event; another still-pending call keeps it deferred.
             a->refresh_idle_catalog();return 0;
-        case WM_TIMER:if(a->gesture&&a->gesture->restore_timer==static_cast<UINT_PTR>(wp))a->restore_timeout(static_cast<UINT_PTR>(wp));
+        case WM_TIMER:if(a->idle_notice_timer==static_cast<UINT_PTR>(wp))a->idle_notice_timeout(static_cast<UINT_PTR>(wp));
+            else if(a->gesture&&a->gesture->restore_timer==static_cast<UINT_PTR>(wp))a->restore_timeout(static_cast<UINT_PTR>(wp));
             else a->seam_timeout(static_cast<UINT_PTR>(wp));return 0;
         case catalog_message:{
             if(wp==2){a->settings.enabled=false;a->finish(v::End::Paused);a->tray();
                 a->log.event("emergency_hotkey","\"native_message\":\"WM_HOTKEY\",\"registration_id\":910,\"received_count\":"+
                     std::to_string(a->input.emergency_hotkey_messages()));}
-            else if(wp==1){a->input.revoke();a->finish(v::End::QueueFailure);a->notify(L"输入队列故障，已停止增强；请暂停后恢复。");}
+            else if(wp==1){a->log.event("input_queue_failure",a->input.guest_queue_failure_json());
+                a->input.revoke();a->finish(v::End::QueueFailure);a->notify(L"输入队列故障，已停止增强；请暂停后恢复。");}
             if(a->gesture&&a->gesture->restore_pending)a->restore_progress();
             a->refresh_idle_catalog();
             return 0;}
@@ -2136,6 +2324,14 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             if(wp==1)DestroyWindow(w);else if(wp==2)a->set_paused(true);else if(wp==3)a->log_status();else a->show_settings();return 0;
         case WM_COPYDATA:{
             const auto* data=reinterpret_cast<COPYDATASTRUCT*>(lp);
+            if(data&&data->dwData==0x50425131&&data->cbData>=1&&data->cbData<=128&&data->lpData){
+                const auto bytes=static_cast<const char*>(data->lpData);
+                if(bytes[data->cbData-1]!='\0'||a->guest_queue_failure_pending)return FALSE;
+                const auto request=parse_guest_queue_failure(std::string_view(bytes,data->cbData-1));
+                if(!request)return FALSE;a->guest_queue_failure_pending=*request;
+                if(PostMessageW(w,guest_queue_failure_message,0,0))return TRUE;
+                a->guest_queue_failure_pending.reset();return FALSE;
+            }
             if(data&&data->dwData==0x50425631&&data->cbData>=1&&data->cbData<80&&data->lpData){
                 const auto name=std::string_view(static_cast<const char*>(data->lpData),data->cbData-1);
                 const auto command=v::action_from_name(name);
@@ -2144,6 +2340,26 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
                 // in the normal STA pump, not a cross-process SendMessage.
                 if(command)return PostMessageW(w,queued_command_message,static_cast<WPARAM>(*command),0)?TRUE:FALSE;}
             return FALSE;}
+        case guest_queue_failure_message:{
+            if(!a->guest_queue_failure_pending)return 0;
+            const auto request=std::move(*a->guest_queue_failure_pending);a->guest_queue_failure_pending.reset();
+            std::string why="no_current_exact_plain_Move";bool armed=false;
+            if(!a->stopping&&a->settings.enabled&&!a->writer.has_pending_native_operation()&&a->gesture&&!a->gesture->ctrl&&!is_resize(a->gesture->edges)&&
+               a->gesture->down.generation==request.generation&&a->input.allowed(request.generation)&&
+               reinterpret_cast<std::uintptr_t>(a->gesture->operation_source.hwnd)==request.source&&a->gesture->exact_motion&&
+               a->gesture->exact_motion->generation==request.generation){
+                const auto& source=a->gesture->operation_source;
+                const auto actual=a->catalog.get(source.hwnd,a->settings);
+                const auto exact=a->last_exact_receipts.find(source.key);
+                if(actual&&exact!=a->last_exact_receipts.end()&&Catalog::same(source,*actual)&&
+                   WindowWriter::prepare(exact->second,*actual,exact->second.visible).accepted)
+                    armed=a->input.arm_guest_queue_failure(request.run,request.generation,source.hwnd,why);
+                else why="fresh_geometry_has_no_current_exact_writer_receipt";
+            }
+            a->log.event("guest_queue_failure_arm","\"armed\":"+std::string(armed?"true":"false")+
+                ",\"reason\":\""+escaped(why)+"\",\"run_id\":\""+request.run+"\",\"generation\":"+
+                std::to_string(request.generation)+",\"source_HWND\":"+std::to_string(request.source)+","+
+                a->input.guest_queue_failure_json());return 0;}
         case queued_command_message:
             if(wp<v::settings_detail::action_names.size())a->command(static_cast<v::Action>(wp));return 0;
         case WM_DISPLAYCHANGE:case WM_DPICHANGED:case WM_SETTINGCHANGE:
@@ -2184,6 +2400,17 @@ void output(std::string_view text){DWORD written{};auto h=GetStdHandle(STD_OUTPU
 int run(HINSTANCE instance,const wchar_t*){
     int count{};LPWSTR* args=CommandLineToArgvW(GetCommandLineW(),&count);if(!args)return 1;
     std::vector<std::wstring> argv;for(int i=1;i<count;++i)argv.emplace_back(args[i]);LocalFree(args);
+    const bool fault_switch=std::find(argv.begin(),argv.end(),L"--guest-queue-failure")!=argv.end();
+    std::optional<GuestQueueFailureRequest> queue_failure_command;
+    if(fault_switch){
+        // A test fault request must not silently become an ordinary launch,
+        // nor may --build-identity bypass its exact disposable-guest guard.
+        const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);
+        if(!scope.enabled)return 78;
+        if(argv.size()!=4||argv[0]!=L"--guest-queue-failure")return 2;
+        queue_failure_command=parse_guest_queue_failure("queue-failure "+utf8(argv[1])+" "+utf8(argv[2])+" "+utf8(argv[3]));
+        if(!queue_failure_command||queue_failure_command->run!=scope.run_id)return 78;
+    }
     if(const auto helper=VisualRecovery::helper_entry(argv))return *helper;
     if(std::find(argv.begin(),argv.end(),L"--build-identity")!=argv.end()){
         output("{\"product\":\"PaneBind\",\"version\":\"1.0.0-dev\",\"source_commit\":\"" PANEBIND_BUILD_SHA "\",\"subsystem\":\"windows\",\"requires_elevation\":false}\n");return 0;}
@@ -2202,14 +2429,18 @@ int run(HINSTANCE instance,const wchar_t*){
             (argv.size()==2&&argv[0]==L"--command"&&argv[1]==L"Settings");
         if(target&&opens_settings){DWORD target_pid{};
             if(GetWindowThreadProcessId(target,&target_pid)&&target_pid)AllowSetForegroundWindow(target_pid);}
-        if(target){if(argv.size()==2&&argv[0]==L"--command"){
+        if(target){if(queue_failure_command){
+                const auto name="queue-failure "+queue_failure_command->run+" "+std::to_string(queue_failure_command->generation)+" "+std::to_string(queue_failure_command->source);
+                COPYDATASTRUCT data{0x50425131,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
+                delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;
+            }else if(argv.size()==2&&argv[0]==L"--command"){
                 const auto name=utf8(argv[1]);COPYDATASTRUCT data{0x50425631,static_cast<DWORD>(name.size()+1),const_cast<char*>(name.c_str())};DWORD_PTR result{};
                 delivered=SendMessageTimeoutW(target,WM_COPYDATA,0,reinterpret_cast<LPARAM>(&data),SMTO_ABORTIFHUNG,1000,&result)&&result?0:2;
             }else delivered=PostMessageW(target,external_message,(!argv.empty()&&argv[0]==L"--quit")?1:(!argv.empty()&&argv[0]==L"--pause")?2:
                 (!argv.empty()&&argv[0]==L"--status")?3:0,0)?0:2;}
         CloseHandle(mutex);CoUninitialize();return delivered;
     }
-    if(!argv.empty()&&(argv[0]==L"--quit"||argv[0]==L"--pause"||argv[0]==L"--status"||argv[0]==L"--command")){
+    if(queue_failure_command||(!argv.empty()&&(argv[0]==L"--quit"||argv[0]==L"--pause"||argv[0]==L"--status"||argv[0]==L"--command"))){
         CloseHandle(mutex);CoUninitialize();return 2;}
     int result=1;
     try{

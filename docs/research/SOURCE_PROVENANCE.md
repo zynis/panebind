@@ -1,5 +1,54 @@
 # Source Provenance Register
 
+## V1 readable drag-alpha limitation — 2026-10-22
+
+Re-read this repository's exact-edge feedback review and the pinned AltSnap
+reference-only hollow-preview / FancyZones overlay-ownership and teardown
+history (same pins below, including PR48473/48569). Reuse PaneBind's existing
+nonactivating hit-transparent preview window rather than adding another input
+route or a copied upstream notification implementation. No external code was
+copied, adapted or translated; existing license/attribution decisions stand.
+
+Actually rechecked Microsoft's [GetLayeredWindowAttributes](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getlayeredwindowattributes),
+[extended styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles)
+and [SetWindowPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos).
+Unreadable original per-window alpha is not permission to overwrite it;
+nonactivation style/NOACTIVATE and text properties do not prove actual visible
+pixels, foreground preservation or input transparency. The product therefore
+keeps a generation-bound limitation distinct from write authority, uses the
+existing small system-colour caption, and clears it with actual termination.
+Pending/unissued mutations are not reported as completed native failures.
+
+The `6274` guest really uploaded an opaque per-pixel surface and read unknown
+constant alpha, but failed the TEST's combined geometry/foreground preparation
+before product input. Its pre-layered DWM margins must not become a new false
+oracle: the corrected fixture separately checks unchanged HWND positioning,
+actual post-layering visible bounds, exact foreground/hit, and freezes that
+baseline before DOWN. The raw failure remains FAIL; no product fallback or
+visible-hint native PASS is inferred. New tests require a real Move/UP plus
+actual nonactivating hint geometry, text, screen-region BMP and termination
+hide. BMP creation is not by itself a readability or human-UAT verdict.
+
+The same existing caption also supplies an idle notice: no operation/gesture
+is active, NOACTIVATE positioning preserves the foreground, and one serial-
+checked four-second timer hides it without becoming a polling input source.
+Busy notices are explicitly not shown/queued; a new gesture retires the old
+notice. The public no-history Undo is the real rejection used for guest
+window/pixel/expiry and subsequent-gesture validation, still pending at design.
+
+For the remaining explicit session/queue fault contract, reused the existing
+pinned owner-dispatch/termination research above and actually checked
+[WM_COPYDATA](https://learn.microsoft.com/en-us/windows/win32/dataxchg/wm-copydata),
+[PostMessageW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-postmessagew)
+and [WM_WTSSESSION_CHANGE](https://learn.microsoft.com/en-us/windows/win32/termserv/wm-wtssession-change).
+Borrowed COPYDATA bytes must be copied; deferred processing does not inherit
+native completion or authority from message delivery. A narrow guest Run/
+source/generation-bound one-shot fault enters the existing push failure branch
+only after real Move progress, labelled injected rather than a naturally full
+queue or a silently removed OS hook. TEST session notifications carry the
+actual session ID but do not prove actual OS lock/unlock. Neither test fabricates
+UP, changes host security/queue quotas, or replaces real recovery observations.
+
 ## V1 native-arranged restore and unsupported drag alpha — 2026-10-22
 
 Actually re-read the existing AltSnap review's native-restore section at the
@@ -3047,3 +3096,37 @@ baseline. Documentation examples were not copied or adapted; the existing
 PaneBind test launcher is extended with original P/Invoke declarations. No
 external dependency/source code entered the product. Actual guest result remains
 NOT_RUN until separately recorded.
+
+### V1 disposable-guest High Contrast preparation — 2026-10-22 (Asia/Shanghai)
+
+Applicable subsystem: the TEST-only `HighContrastOnly` fixture, not a product
+theme setter or a host configuration route. Existing AltSnap reference-only
+pin `5c86416ad21e4b72844a998a746bd3bb0bee5f5d` (GPL-3.0-or-later) and FancyZones
+pin `19c4d805321db86f3634e6968e14dbf25cbba14a` (MIT) were reviewed through the
+existing repository research for the UI/event boundary; no additional upstream
+High Contrast implementation, issue or commit was inspected in this change.
+No code was copied, translated or adapted, and no attribution obligation or
+dependency is added. Existing native keyboard-navigation research is reused.
+
+Primary API contracts actually read on this date:
+
+- [HIGHCONTRASTW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-highcontrastw):
+  GET fills the structure; copy the system-owned scheme and release its buffer
+  with `LocalFree`. SET supplies all members. Do not combine the no-theme-change
+  option with toggling High Contrast.
+- [SystemParametersInfoW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow):
+  use the real API result/error and structure size. Sending a change notification
+  is distinct from updating the profile; mode and color scheme are also distinct.
+- [High contrast parameter](https://learn.microsoft.com/en-us/windows/win32/winauto/high-contrast-parameter):
+  query at initialization/system-color change and use paired system text and
+  background colors rather than assuming configured colors stay readable.
+
+The fixture first requires its exact disposable-guest/RunId scope and an idle
+product, saves actual flags/scheme/colors, uses `SPIF_SENDCHANGE` without profile
+updates, and verifies exact restoration on success or failure. Unavailable or
+unknown original state blocks this scene; there is no registry/theme fallback.
+Native Tab/caret observations and two bounded GUI BMPs support later review,
+not an inference of visual readability, animation behavior, 200% DPI or full
+M10-F05 acceptance. Existing notice logs do not prove a visible notice. No HC
+API, synthetic input or native experiment was executed on the developer host;
+guest execution and screenshot review remain NOT_RUN at implementation time.

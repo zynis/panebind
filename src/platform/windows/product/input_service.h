@@ -503,6 +503,31 @@ private:
     std::array<ButtonAdmission,capacity> rows_{};
     std::atomic<unsigned> read_{},write_{};std::atomic<std::uint64_t> dropped_{};
 };
+// One process-lifetime TEST permit. Only the GUI's expensive exact disposable
+// guest proof may publish it. The input callback reads immutable identity, not
+// markers/files/tokens, and never grants operation authority from this permit.
+struct GuestQueueFailurePermit {
+    bool exact_guest_verified{};
+    std::uint64_t generation{};
+    Snapshot source;
+    std::string run_id,driver_sha256;
+};
+inline bool guest_queue_failure_matches(const GuestQueueFailurePermit& permit,
+    const InputEvent& event,const Snapshot* active_source,std::uint64_t authority,
+    bool healthy,bool available,bool paused,bool active_pair,bool capture_ready,bool up_or_abort) noexcept {
+    const auto same=[](const Snapshot& a,const Snapshot& b){return a.hwnd&&a.key&&a.born&&
+        a.hwnd==b.hwnd&&a.key==b.key&&a.pid&&a.pid==b.pid&&a.tid&&a.tid==b.tid&&a.born==b.born&&
+        a.exe==b.exe&&a.window_class==b.window_class;};
+    return permit.exact_guest_verified&&permit.generation&&event.kind==InputKind::Move&&
+        event.generation==permit.generation&&authority==permit.generation&&healthy&&available&&!paused&&
+        active_pair&&capture_ready&&!up_or_abort&&active_source&&event.prepared&&
+        same(permit.source,*active_source)&&same(permit.source,event.prepared->source);
+}
+struct GuestQueueFailureObservation {
+    std::uint64_t generation{},qpc{};HWND source{};DWORD pid{},tid{};
+    unsigned read{},write{},next{};bool actual_full{};
+};
+
 // Dedicated message owner. No COM, file IO, cross-process messaging or geometry
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
 class InputService {
@@ -562,6 +587,11 @@ public:
         };
     }
     bool healthy()const {return healthy_;}
+    // GUI only. An ordinary host/unknown guest can never arm this operation.
+    // The Run and exact already-active owned source are checked independently
+    // of normal Catalog eligibility. Failed proof does not fall back to it.
+    bool arm_guest_queue_failure(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why);
+    std::string guest_queue_failure_json()const;
     std::uint64_t max_callback_ticks()const{return max_ticks_;}
     // Join stop() before final reporting. A live relaxed snapshot is bounded
     // and race-free but not an atomic view of simultaneous callback updates.
@@ -612,6 +642,7 @@ private:
     std::shared_ptr<std::atomic<bool>> available_{std::make_shared<std::atomic<bool>>(false)};
     std::atomic<std::uint64_t> point_{0},max_ticks_{0},emergency_hotkey_messages_{0};
     std::uint64_t counter_frequency_{};
+    std::atomic<std::uint64_t> input_owner_start_serial_{};
     std::uint64_t up_callback_count_{};MouseUpCallbackObservation up_observation_;
     bool button_diagnostic_{};std::uint64_t button_admission_sequence_{};
     ButtonAdmissionQueue button_admissions_;std::atomic<std::uint64_t> button_admission_wake_failures_{};
@@ -619,6 +650,13 @@ private:
     std::atomic<std::shared_ptr<const PreparedBundle>> prepared_;
     std::array<InputEvent,256> queue_{};
     std::atomic<unsigned> read_{0},write_{0};
+    // 0 empty, 1 publishing, 2 armed, 3 consumed. Never reset by Pause/Resume.
+    // The permit and fired observation are each immutable after release
+    // publication, so GUI and input callbacks never race a rewritten tuple.
+    std::atomic<unsigned> guest_queue_failure_state_{};
+    GuestQueueFailurePermit guest_queue_failure_permit_;
+    GuestQueueFailureObservation guest_queue_failure_observation_;
+    std::atomic<bool> guest_queue_failure_observation_ready_{};
     bool consumed_down_{},native_move_{};
     bool aborted_{};
     int button_{};

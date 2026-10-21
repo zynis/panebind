@@ -27,6 +27,32 @@ int main() {
     native_down.source.visible={100,100,360,460};native_down.source.positioning={93,100,367,467};
     native_down.source.work={0,0,1920,1080};native_down.region=0;
     product::prepare_mappings(native_down,v1::default_settings());
+    // Same pure match that InputService::push uses after the real GUI-only
+    // guest proof. This does not assert that a native guest ran or a queue filled.
+    product::GuestQueueFailurePermit fault_permit{true,61,native_down.source,"0123456789abcdef0123456789abcdef","hash"};
+    product::InputEvent fault_move;fault_move.kind=product::InputKind::Move;fault_move.generation=61;
+    fault_move.prepared=std::make_shared<product::Prepared>(native_down);
+    const auto fault_match=[&](const product::GuestQueueFailurePermit& permit,const product::InputEvent& event,
+                              const product::Snapshot* actual,std::uint64_t authority=61,bool ready=true,bool up=false){
+        return product::guest_queue_failure_matches(permit,event,actual,authority,true,true,false,true,ready,up);};
+    check(fault_match(fault_permit,fault_move,&native_down.source),"actual push fault predicate accepts only the armed active Move identity");
+    auto unproved=fault_permit;unproved.exact_guest_verified=false;
+    check(!fault_match(unproved,fault_move,&native_down.source),"ordinary or unproved guest cannot use the fault predicate");
+    auto other_fault_move=fault_move;other_fault_move.generation=62;
+    check(!fault_match(fault_permit,other_fault_move,&native_down.source),"fault permit does not follow the next gesture generation");
+    for(const auto kind:{product::InputKind::Down,product::InputKind::Up,product::InputKind::Abort,product::InputKind::Resource}){
+        other_fault_move=fault_move;other_fault_move.kind=kind;
+        check(!fault_match(fault_permit,other_fault_move,&native_down.source),"fault injection cannot consume DOWN UP abort or resource observations");}
+    auto other_fault_source=native_down.source;other_fault_source.key++;
+    check(!fault_match(fault_permit,fault_move,&other_fault_source)&&!fault_match(fault_permit,fault_move,nullptr),
+          "old or missing active source cannot trigger a queued fault");
+    auto other_fault_prepared=std::make_shared<product::Prepared>(native_down);other_fault_prepared->source.tid++;
+    other_fault_move=fault_move;other_fault_move.prepared=other_fault_prepared;
+    check(!fault_match(fault_permit,other_fault_move,&native_down.source),"actual MOVE must carry the same source HWND PID TID birth class and key");
+    check(!fault_match(fault_permit,fault_move,&native_down.source,0)&&
+          !fault_match(fault_permit,fault_move,&native_down.source,61,true,true)&&
+          !fault_match(fault_permit,fault_move,&native_down.source,61,false),
+          "UP revocation missing CaptureReady or abort cannot fire or reauthorize a fault permit");
     // The actual consumed-DOWN adapter and shield source-state gate used by
     // production. No window/API/input is mocked into a successful capture.
     namespace max_shield=panebind::platform::windows::operations;

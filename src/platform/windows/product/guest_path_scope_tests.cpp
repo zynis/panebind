@@ -1,5 +1,6 @@
 #include "platform/windows/product/guest_path_scope.h"
 #include "platform/windows/product/guest_capture_scope.h"
+#include "platform/windows/product/guest_queue_failure_command.h"
 #include "platform/windows/product/v1_guest_up_evidence.h"
 #include "platform/windows/product/v1_guest_native_result.h"
 #include "platform/windows/product/v1_guest_actor_capture.h"
@@ -50,6 +51,19 @@ int main() {
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);
         if(at==row.npos){std::cerr<<"UP test mutation not present\n";std::exit(2);}row.replace(at,from.size(),to);return row;};
     const auto expect=[&](bool actual,bool wanted,const char* name){++checked;if(actual!=wanted){std::cerr<<"guest UP evidence case failed: "<<name<<'\n';return false;}return true;};
+    const std::string fault="queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345";
+    const auto fault_request=guest::parse_guest_queue_failure(fault);
+    if(!expect(fault_request&&fault_request->run==std::string(32,'a')&&fault_request->generation==7&&fault_request->source==12345,
+               true,"actual guest fault command parser retains exact identity values"))return 1;
+    for(const auto& invalid:std::array<std::string,7>{
+        "queue-failure Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345",
+        "queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 12345",
+        "queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 12345",
+        "queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 18446744073709551616 12345",
+        "queue-failure aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 7 0",
+        fault+" extra",fault+std::string(1,'\0')})
+        if(!expect(guest::parse_guest_queue_failure(invalid).has_value(),false,
+                   "actual guest fault command parser rejects malformed, overflowed or trailing input"))return 1;
     const guest::NativeClientCompletionFacts native_complete{true,true,true,true,true,true,true};
     const auto native_result=guest::native_client_completion(native_complete);
     if(!expect(native_result.client==guest::NativeClientVerdict::Pass&&

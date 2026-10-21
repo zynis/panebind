@@ -339,7 +339,9 @@ bool InputService::start(HWND owner,bool diagnostic){
     // including the timeout path. Closing first races the worker's SetEvent.
     if(result!=WAIT_OBJECT_0||!healthy_)stop();
     CloseHandle(ready_);ready_=nullptr;
-    return result==WAIT_OBJECT_0&&healthy_;
+    const bool started=result==WAIT_OBJECT_0&&healthy_;
+    if(started)input_owner_start_serial_.fetch_add(1,std::memory_order_release);
+    return started;
 }
 void InputService::stop(){
     retire_capture_pair(0,core::v1::End::Exit);
@@ -352,12 +354,128 @@ void InputService::pause(bool value){if(value)retire_capture_pair(0,core::v1::En
     if(!generation&&capture_bridge_)if(const auto pair=capture_bridge_->pair.load())generation=pair->down.generation;
     const auto id=thread_id_.load();if(value&&id&&generation)PostThreadMessageW(id,WM_APP+1,static_cast<WPARAM>(generation),0);}
 POINT InputService::latest()const{auto p=point_.load();return {static_cast<LONG>(p>>32),static_cast<LONG>(p&0xffffffffu)};}
+bool InputService::arm_guest_queue_failure(std::string_view run_id,std::uint64_t generation,HWND source,std::string& why){
+    // Called only by the normal GUI pump, never WM_COPYDATA's borrowed buffer
+    // or a hook/resource callback. No ordinary product admission is a fallback.
+    const auto reject=[&](const char* reason){why=reason;return false;};
+    if(guest_queue_failure_state_.load()!=0)return reject("one_process_lifetime_permit_already_used_or_armed");
+    const auto scope=guest::detect_capture_scope(PANEBIND_BUILD_SHA);
+    if(!scope.enabled||scope.run_id!=run_id||!generation||!source)
+        return reject("exact_Medium_disposable_Run_product_proof_required");
+    const std::filesystem::path input=L"C:\\PaneBindV1\\Input";
+    const auto manifest=guest::capture_read(input/L"manifest.json");const auto files=manifest.find("\"files\"");
+    if(files==manifest.npos||guest::capture_field(std::string_view(manifest.data(),files),"guest_suite")!="QueueFailureOnly")
+        return reject("exact_queue_failure_suite_required");
+    const auto pair=capture_bridge_?capture_bridge_->pair.load():nullptr;
+    const auto context=pair?pair->context.load():GestureCaptureLease{};
+    if(!pair||!context||!pair->down.prepared||!capture_bridge_->active(pair)||!pair->ready_authorized||
+       !allowed(generation)||!healthy_||paused_||pair->down.generation!=generation||context->generation!=generation||
+       pair->down.prepared->source.hwnd!=source||context->source.hwnd!=source||
+       pair->up_observed||pair->aborted||context->matching_up_observed||
+       (pair->native_move&&pair->native_phase!=NativeMovePhase::Writing)||
+       !Catalog::same(pair->down.prepared->source,context->source)||GetForegroundWindow()!=source||
+       !operations::gesture_shield_exact_capture(context->overlay,context->owner_tid))
+        return reject("actual_current_active_CaptureReady_source_required");
+    const auto& identity=context->source;
+    const std::wstring wrun(run_id.begin(),run_id.end());std::array<wchar_t,256> cls{};
+    if(!capture_source_current(identity)||identity.pid==GetCurrentProcessId()||
+       !GetClassNameW(source,cls.data(),static_cast<int>(cls.size()))||
+       std::wstring_view(cls.data())!=L"PaneBind.V1.OwnedFixture."+wrun||
+       identity.window_class!=cls.data())return reject("exact_new_Run_owned_fixture_root_required");
+    struct Owned {HANDLE value{};~Owned(){if(value)CloseHandle(value);}} process{OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,identity.pid)};
+    if(!process.value||WaitForSingleObject(process.value,0)!=WAIT_TIMEOUT)
+        return reject("fixture_process_not_live");
+    Owned token,own_token;
+    if(!OpenProcessToken(process.value,TOKEN_QUERY,&token.value)||!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&own_token.value))
+        return reject("fixture_token_unknown");
+    alignas(TOKEN_USER) std::array<BYTE,512> user{},own_user{};
+    alignas(TOKEN_MANDATORY_LABEL) std::array<BYTE,512> label{};
+    DWORD bytes{},session{},own_session{},ui{},app{};TOKEN_ELEVATION elevation{};
+    if(!GetTokenInformation(token.value,TokenUser,user.data(),static_cast<DWORD>(user.size()),&bytes)||
+       !GetTokenInformation(own_token.value,TokenUser,own_user.data(),static_cast<DWORD>(own_user.size()),&bytes)||
+       !IsValidSid(reinterpret_cast<TOKEN_USER*>(user.data())->User.Sid)||
+       !IsValidSid(reinterpret_cast<TOKEN_USER*>(own_user.data())->User.Sid)||
+       !EqualSid(reinterpret_cast<TOKEN_USER*>(user.data())->User.Sid,reinterpret_cast<TOKEN_USER*>(own_user.data())->User.Sid)||
+       !GetTokenInformation(token.value,TokenIntegrityLevel,label.data(),static_cast<DWORD>(label.size()),&bytes)||
+       !GetTokenInformation(token.value,TokenElevation,&elevation,sizeof(elevation),&bytes)||elevation.TokenIsElevated||
+       !GetTokenInformation(token.value,TokenSessionId,&session,sizeof(session),&bytes)||!session||
+       !ProcessIdToSessionId(GetCurrentProcessId(),&own_session)||session!=own_session||
+       !GetTokenInformation(token.value,TokenUIAccess,&ui,sizeof(ui),&bytes)||ui||
+       !GetTokenInformation(token.value,TokenIsAppContainer,&app,sizeof(app),&bytes)||app)
+        return reject("fixture_same_SID_session_nonElevated_security_required");
+    const auto sid=reinterpret_cast<TOKEN_MANDATORY_LABEL*>(label.data())->Label.Sid;
+    if(!IsValidSid(sid)||!*GetSidSubAuthorityCount(sid)||
+       *GetSidSubAuthority(sid,*GetSidSubAuthorityCount(sid)-1)!=SECURITY_MANDATORY_MEDIUM_RID)
+        return reject("fixture_exact_Medium_required");
+    std::array<wchar_t,128> desktop{};DWORD needed{};
+    if(!GetUserObjectInformationW(GetThreadDesktop(identity.tid),UOI_NAME,desktop.data(),sizeof(desktop),&needed)||
+       std::wstring_view(desktop.data())!=L"Default")return reject("fixture_actual_Default_thread_desktop_required");
+    std::array<wchar_t,32768> image{};DWORD length=static_cast<DWORD>(image.size());
+    if(!QueryFullProcessImageNameW(process.value,0,image.data(),&length)||!length||length>=image.size())
+        return reject("fixture_actual_image_unknown");
+    const std::filesystem::path actual=image.data();
+    const bool debug=guest::same_exact_directory(actual.parent_path(),input/L"Debug");
+    if((!debug&&!guest::same_exact_directory(actual.parent_path(),input))||
+       actual.filename()!=L"panebind-v1-guest-fixture.exe"||_wcsicmp(identity.exe.c_str(),actual.c_str())||
+       !guest::capture_plain_directory(actual.parent_path()))return reject("fixture_image_outside_exact_Input_configuration");
+    const auto attrs=GetFileAttributesW(actual.c_str());std::error_code ec;
+    if(attrs==INVALID_FILE_ATTRIBUTES||(attrs&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))||
+       std::filesystem::canonical(actual,ec)!=actual||ec)return reject("fixture_image_not_plain_exact_file");
+    const auto driver_hash=guest::capture_hash(actual);
+    if(driver_hash.empty()||driver_hash!=guest::capture_field(std::string_view(manifest.data(),files),debug?"driver_debug_sha256":"driver_release_sha256"))
+        return reject("fixture_actual_driver_manifest_hash_mismatch");
+    // Re-read actual lifetime/context after all expensive proof, before the
+    // immutable permit is published. A real UP during hashing cannot arm it.
+    if(!capture_source_current(identity)||GetForegroundWindow()!=source||!guest::capture_interactive_medium()||
+       !capture_bridge_->active(pair)||pair!=capture_bridge_->pair.load()||!allowed(generation)||
+       pair->up_observed||pair->aborted||context->matching_up_observed||
+       !operations::gesture_shield_exact_capture(context->overlay,context->owner_tid))
+        return reject("source_or_generation_revoked_during_proof");
+    unsigned empty=0;if(!guest_queue_failure_state_.compare_exchange_strong(empty,1))
+        return reject("one_process_lifetime_permit_already_used_or_armed");
+    try{guest_queue_failure_permit_={true,generation,identity,std::string(run_id),driver_hash};}
+    catch(...){why="immutable_permit_publication_failed";return false;}
+    guest_queue_failure_state_.store(2,std::memory_order_release);why="exact_guest_one_shot_armed_not_yet_triggered";return true;
+}
+std::string InputService::guest_queue_failure_json()const{
+    const auto state=guest_queue_failure_state_.load(std::memory_order_acquire);
+    const bool fired=guest_queue_failure_observation_ready_.load(std::memory_order_acquire);
+    std::string fields="\"permit_armed\":"+std::string(state==2?"true":"false")+",\"permit_consumed\":"+(state==3?"true":"false")+
+        ",\"failure_fired\":"+(fired?"true":"false")+",\"scope\":\"exact_disposable_guest_owned_only\",\"natural_queue_full_proven\":false,\"OS_silent_hook_removal_proven\":false";
+    fields+=",\"current_healthy\":"+std::string(healthy_.load()?"true":"false")+",\"current_available\":"+(available_->load()?"true":"false")+
+        ",\"current_authorized_generation\":"+std::to_string(authorized_->load())+",\"current_completion_generation\":"+std::to_string(completion_->load())+
+        ",\"current_input_owner_tid\":"+std::to_string(thread_id_.load())+",\"actual_input_owner_start_serial\":"+std::to_string(input_owner_start_serial_.load(std::memory_order_acquire))+
+        ",\"health_fields_not_OS_hook_presence_query\":true";
+    if(state>=2){const auto& p=guest_queue_failure_permit_;fields+=",\"fault_run_id\":\""+p.run_id+"\",\"fault_generation\":"+std::to_string(p.generation)+
+        ",\"fault_source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+",\"fault_source_key\":"+std::to_string(p.source.key)+
+        ",\"fault_source_pid\":"+std::to_string(p.source.pid)+",\"fault_source_tid\":"+std::to_string(p.source.tid)+",\"fault_source_birth\":"+std::to_string(p.source.born)+
+        ",\"fault_driver_sha256\":\""+p.driver_sha256+"\"";}
+    if(fired){const auto& f=guest_queue_failure_observation_;fields+=",\"origin\":\"guest_injected_failure\",\"kind\":\"Move\",\"trigger_qpc\":"+
+        std::to_string(f.qpc)+",\"actual_full\":"+(f.actual_full?"true":"false")+",\"read_index\":"+std::to_string(f.read)+
+        ",\"write_index\":"+std::to_string(f.write)+",\"next_index\":"+std::to_string(f.next)+",\"same_production_full_failure_branch\":true";}
+    return fields;
+}
 bool InputService::push(InputEvent e){
     const auto w=write_.load(std::memory_order_relaxed);
     const auto next=(w+1)%static_cast<unsigned>(queue_.size());
-    if(next==read_.load(std::memory_order_acquire)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
+    const auto r=read_.load(std::memory_order_acquire);const bool actual_full=next==r;bool injected=false;std::uint64_t injected_qpc{};
+    if(guest_queue_failure_state_.load(std::memory_order_acquire)==2){
+        const auto pair=capture_bridge_?capture_bridge_->pair.load():nullptr;
+        const auto context=pair?pair->context.load():GestureCaptureLease{};
+        if(guest_queue_failure_matches(guest_queue_failure_permit_,e,context?&context->source:nullptr,authorized_->load(),
+            healthy_.load(),available_->load(),paused_.load(),pair&&capture_bridge_->active(pair),
+            pair&&pair->ready_authorized&&context, !pair||pair->up_observed||pair->aborted||(context&&context->matching_up_observed))){
+            injected_qpc=qpc_now();unsigned armed=2;auto authority=e.generation;
+            if(injected_qpc&&guest_queue_failure_state_.compare_exchange_strong(armed,3)&&authorized_->compare_exchange_strong(authority,0))
+                injected=!pair->up_observed&&!pair->aborted&&!context->matching_up_observed;
+        }
+    }
+    if(actual_full||injected){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
         if((consumed_down_||native_move_)&&!aborted_){aborted_=true;active_end_=core::v1::End::QueueFailure;}
         request_capture_stop(Removal::ContextLost);
+        if(injected){const auto& source=guest_queue_failure_permit_.source;
+            guest_queue_failure_observation_={e.generation,injected_qpc,source.hwnd,source.pid,source.tid,r,w,static_cast<unsigned>(next),actual_full};
+            guest_queue_failure_observation_ready_.store(true,std::memory_order_release);}
         PostMessageW(owner_,catalog_message,1,0);return false;}
     queue_[w]=std::move(e);write_.store(static_cast<unsigned>(next),std::memory_order_release);
     if(!PostMessageW(owner_,input_message,0,0)){*completion_=0;*available_=false;*authorized_=0;healthy_=false;
