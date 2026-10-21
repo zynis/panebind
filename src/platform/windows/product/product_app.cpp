@@ -206,6 +206,7 @@ struct Gesture {
     std::optional<ExactMotionPoint> exact_motion;
     Snapshot operation_source;
     bool restore_armed{},restore_pending{},restore_requested{},was_maximized{};
+    NativeRestoreKind restore_kind{NativeRestoreKind::None};
     UINT_PTR restore_timer{};WINDOWPLACEMENT restore_placement{sizeof(WINDOWPLACEMENT)};
     std::optional<InputEvent> restore_move;
 };
@@ -1116,6 +1117,8 @@ void Application::native_move_event(const InputEvent& e){
        !buttons_held)return reject("up_revoke_or_context_before_native_handoff");
     const auto fresh=catalog.get(e.prepared->source.hwnd,settings,nullptr,false,false);
     if(!fresh||!native_geometry_handoff_compatible(*e.prepared,*fresh))return reject("source_or_geometry_context_changed");
+    if(!native_arranged_handoff_compatible(*e.prepared,*fresh,e.button,e.clicks,e.modifiers))
+        return reject("plain_move_arranged_state_unknown_or_changed");
     if(!native_group_unchanged(e,*fresh))return reject("original_DOWN_group_changed_before_handoff");
     if(e.kind==InputKind::NativeMoveStart){
         if((native_move&&(native_move->down.generation!=generation||native_move->start))||!native_move_gui(*fresh,true)||
@@ -1155,6 +1158,7 @@ void Application::native_move_resource(const InputEvent& e){
     const auto& source=pending.down.prepared->source;
     const auto fresh=catalog.get(source.hwnd,settings,nullptr,false,false);
     if(!input.native_move_pending(g)||!fresh||!native_geometry_handoff_compatible(*pending.down.prepared,*fresh)||
+       !native_arranged_handoff_compatible(*pending.down.prepared,*fresh,pending.down.button,pending.down.clicks,pending.down.modifiers)||
        !settings.enabled||stopping||pending.down.prepared->config_generation!=settings.generation||
        !native_group_unchanged(pending.down,*fresh)||!pending.start||fact.entry_mode!=o::GestureShieldEntryMode::NativeMoveHandoff||
        fact.gesture.generation!=g||fact.gesture.source!=source.hwnd||fact.gesture.process_id!=source.pid||fact.gesture.thread_id!=source.tid||
@@ -1187,7 +1191,8 @@ void Application::begin(const InputEvent& e){
     const auto& baseline=native_handoff?*e.handoff_snapshot:p.source;
     if(!fresh||!Catalog::same(p.source,*fresh)||
        (native_handoff?!WindowWriter::prepare(baseline,*fresh,baseline.visible).accepted:fresh->visible!=p.source.visible)||
-       (native_handoff&&!native_geometry_handoff_compatible(p,*fresh))||p.config_generation!=settings.generation){
+       (native_handoff&&(!native_geometry_handoff_compatible(p,*fresh)||
+           !native_arranged_handoff_compatible(p,*fresh,e.button,e.clicks,e.modifiers)))||p.config_generation!=settings.generation){
         if(diagnostic)log.event("gesture_begin_rejected","\"generation\":"+std::to_string(e.generation)+
             ",\"source\":"+std::to_string(reinterpret_cast<std::uintptr_t>(p.source.hwnd))+
             ",\"fresh_snapshot\":"+(fresh?"true":"false")+",\"identity_same\":"+(fresh&&Catalog::same(p.source,*fresh)?"true":"false")+
@@ -1201,7 +1206,9 @@ void Application::begin(const InputEvent& e){
     }
     Gesture active;active.down=e;active.config=settings;active.original=native_handoff?p.source.visible:fresh->visible;
     active.previous=fresh->visible;active.edges=edges(p.region);
-    active.operation_source=*fresh;active.was_maximized=fresh->maximized;active.restore_armed=fresh->maximized;
+    active.operation_source=*fresh;active.was_maximized=fresh->maximized;
+    active.restore_kind=native_restore_entry_kind(p,*fresh,native_handoff,e.button,e.clicks,e.modifiers);
+    active.restore_armed=active.restore_kind!=NativeRestoreKind::None;
     active.ctrl=(e.modifiers&2u)&&settings.glue&&(fresh->feature_mask&2u);active.last_tick=e.tick;
     active.members=native_handoff&&active.ctrl?p.native_ctrl_members:catalog.all(settings);
     if(active.ctrl)active.members.erase(std::remove_if(active.members.begin(),active.members.end(),[](const auto& member){return !(member.feature_mask&2u);}),active.members.end());
@@ -1226,7 +1233,8 @@ void Application::begin(const InputEvent& e){
         }
         if(member.key==fresh->key&&(actual->visible!=fresh->visible||actual->positioning!=fresh->positioning||
             actual->dpi!=fresh->dpi||actual->monitor!=fresh->monitor||actual->work!=fresh->work||
-            actual->maximized!=fresh->maximized||actual->minimized!=fresh->minimized)){
+            actual->maximized!=fresh->maximized||actual->minimized!=fresh->minimized||
+            (native_handoff&&!native_arranged_handoff_compatible(p,*actual,e.button,e.clicks,e.modifiers)))){
             input.revoke_generation(e.generation);epoch.finish(e.generation,v::End::SourceLost);return;
         }
         member=*actual;
@@ -1249,19 +1257,22 @@ void Application::begin(const InputEvent& e){
             std::max(active.scope_original.bottom(),s.visible.bottom())};
     }
     active.previous=active.scope_original;gesture=std::move(active);
-    if(!fresh->maximized&&!gesture->ctrl&&!is_resize(gesture->edges)){
+    if(!gesture->restore_armed&&!fresh->maximized&&!gesture->ctrl&&!is_resize(gesture->edges)){
         std::optional<v::Rect> normal=native_handoff?p.layout_restore_normal:std::nullopt;
         if(!native_handoff)if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
         if(normal)if(const auto anchor=v::restored_move_anchor(native_handoff?p.source.visible:fresh->visible,*normal,{e.point.x,e.point.y})){
             gesture->layout_drag_restore=true;gesture->original=*anchor;gesture->scope_original=*anchor;gesture->previous=*anchor;
         }
     }
-    if(input.allowed(e.generation)&&!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
+    if(input.allowed(e.generation)&&!gesture->restore_armed&&!fresh->maximized&&settings.drag_transparency&&(fresh->feature_mask&32u))gesture->drag_visual=visual_begin(*fresh,false,static_cast<BYTE>(settings.drag_alpha),true);
     log.event("gesture_start","\"generation\":"+std::to_string(e.generation)+",\"key\":"+std::to_string(fresh->key)+
         ",\"resize\":"+std::string(is_resize(gesture->edges)?"true":"false")+",\"ctrl\":"+(gesture->ctrl?"true":"false")+
         ",\"original\":"+rectangle(gesture->original)+",\"native_first_handoff\":"+(native_handoff?"true":"false")+
         ",\"original_DOWN_group_frozen\":"+(native_handoff&&gesture->ctrl?"true":"false")+
         ",\"group_members\":"+std::to_string(gesture->members.size())+
+        ",\"native_restore_kind\":\""+native_restore_kind_name(gesture->restore_kind)+"\""+
+        ",\"original_DOWN_arranged\":"+(p.source.native_arranged?(*p.source.native_arranged?"true":"false"):"null")+
+        ",\"actual_begin_arranged\":"+(fresh->native_arranged?(*fresh->native_arranged?"true":"false"):"null")+
         ",\"actual_begin_geometry\":"+rectangle(fresh->visible));
     if(native_handoff)native_move.reset();
     if(gesture->ctrl&&input.allowed(e.generation))show_feedback(gesture->members,
@@ -1378,16 +1389,21 @@ void Application::request_native_restore(const InputEvent& move){
     if(dx>-threshold_x&&dx<threshold_x&&dy>-threshold_y&&dy<threshold_y)return;
     const auto fresh=catalog.get(original.hwnd,settings);
     WINDOWPLACEMENT placement{sizeof(placement)};
-    if(!fresh||!Catalog::same(original,*fresh)||!fresh->maximized||fresh->visible!=original.visible||
-        fresh->positioning!=original.positioning||GetForegroundWindow()!=original.hwnd){
+    if(!fresh||!Catalog::same(original,*fresh)||GetForegroundWindow()!=original.hwnd){
         finish(v::End::SourceLost);return;
     }
     const auto gui_context=gesture_gui_context(original,move.generation);
     if(gui_context!=GestureGuiDisposition::Allowed){
         if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::SourceLost);return;
     }
-    if(!GetWindowPlacement(original.hwnd,&placement)||placement.showCmd!=SW_SHOWMAXIMIZED||
+    if(!GetWindowPlacement(original.hwnd,&placement)||
+        !native_restore_request_ready(gesture->restore_kind,original,gesture->operation_source,*fresh,
+            placement.showCmd,input.allowed(move.generation))||
         placement.rcNormalPosition.right<=placement.rcNormalPosition.left||placement.rcNormalPosition.bottom<=placement.rcNormalPosition.top){
+        // Matching real UP may have revoked admission during the read-only
+        // capture. Preserve its queued terminal receipt, never relabel that
+        // normal withdrawal as a failed native restore or rearm permission.
+        if(!input.allowed(move.generation))return;
         finish(v::End::SourceLost);return;
     }
     if(!input.allowed(move.generation))return;
@@ -1401,6 +1417,9 @@ void Application::request_native_restore(const InputEvent& move){
     gesture->restore_requested=true;gesture->restore_pending=true;gesture->restore_armed=false;
     const bool started=ShowWindowAsync(original.hwnd,SW_RESTORE)!=FALSE;
     log.event("native_restore_request","\"generation\":"+std::to_string(move.generation)+
+        ",\"restore_kind\":\""+native_restore_kind_name(gesture->restore_kind)+"\""+
+        ",\"original_DOWN_arranged\":"+(original.native_arranged?(*original.native_arranged?"true":"false"):"null")+
+        ",\"before_arranged\":"+(fresh->native_arranged?(*fresh->native_arranged?"true":"false"):"null")+
         ",\"native_attempted\":true,\"request_started\":"+(started?"true":"false")+
         ",\"actual_normal_observed\":false,\"placement_show_cmd\":"+std::to_string(placement.showCmd)+
         ",\"normal_position_raw\":["+std::to_string(placement.rcNormalPosition.left)+","+
@@ -1413,13 +1432,22 @@ void Application::restore_progress(){
     const auto original=gesture->down.prepared->source;
     const auto fresh=catalog.get(original.hwnd,settings);
     if(!fresh||!Catalog::same(original,*fresh)||GetForegroundWindow()!=original.hwnd){finish(v::End::SourceLost);return;}
-    if(fresh->maximized||fresh->minimized)return;
+    const auto readiness=native_restore_progress(gesture->restore_kind,original,*fresh,
+        static_cast<std::int64_t>(gesture->restore_placement.rcNormalPosition.right)-gesture->restore_placement.rcNormalPosition.left,
+        static_cast<std::int64_t>(gesture->restore_placement.rcNormalPosition.bottom)-gesture->restore_placement.rcNormalPosition.top,
+        input.allowed(gesture->down.generation));
+    if(readiness==NativeRestoreProgress::Rejected){
+        if(!input.allowed(gesture->down.generation))return;
+        finish(v::End::SourceLost);return;
+    }
+    if(readiness==NativeRestoreProgress::Pending)return;
     const auto gui_context=gesture_gui_context(*fresh,gesture->down.generation);
     if(gui_context!=GestureGuiDisposition::Allowed){
         if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::FocusLost);return;
     }
     auto normal=fresh->visible;
-    if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
+    if(gesture->restore_kind!=NativeRestoreKind::Arranged)
+        if(const auto history=owned_layout(*fresh);history&&history->back().drag_restore)normal=history->back().normal;
     const auto anchor=v::restored_move_anchor(original.visible,normal,{gesture->down.point.x,gesture->down.point.y});
     if(!anchor){finish(v::End::SourceLost);return;}
     const auto latest=gesture->restore_move;const auto generation=gesture->down.generation;
@@ -1430,6 +1458,8 @@ void Application::restore_progress(){
     gesture->targets=catalog.all(settings);
     gesture->targets.erase(std::remove_if(gesture->targets.begin(),gesture->targets.end(),[&](const auto& item){return item.key==fresh->key||!(item.feature_mask&1u);}),gesture->targets.end());
     log.event("native_restore_observed","\"generation\":"+std::to_string(generation)+
+        ",\"restore_kind\":\""+native_restore_kind_name(gesture->restore_kind)+"\""+
+        ",\"actual_arranged\":"+(fresh->native_arranged?(*fresh->native_arranged?"true":"false"):"null")+
         ",\"wake\":\"catalog_event\",\"actual_normal_observed\":true,\"actual\":"+rectangle(fresh->visible)+
         ",\"positioning\":"+rectangle(fresh->positioning)+",\"intent_anchor\":"+rectangle(*anchor)+
         ",\"original_down_preserved\":true");

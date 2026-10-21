@@ -187,6 +187,61 @@ inline bool native_geometry_entry(bool resource_enabled,const Prepared& p,int bu
     return resource_enabled&&route.route==DownRoute::Gesture&&button==1&&clicks==1&&(mods==0||mods==2)&&
         p.region>=0&&p.region<=8&&!p.source.maximized&&(p.region==0||p.source.can_resize);
 }
+enum class NativeRestoreKind { None,Maximized,Arranged };
+[[nodiscard]] constexpr const char* native_restore_kind_name(NativeRestoreKind kind)noexcept{
+    switch(kind){case NativeRestoreKind::Maximized:return "maximized";
+        case NativeRestoreKind::Arranged:return "native_arranged";default:return "none";}
+}
+inline bool plain_caption_gesture(const Prepared& p,int button,int clicks,unsigned mods){
+    return p.region==0&&button==1&&clicks==1&&mods==0&&route_down(p,button,clicks,mods).route==DownRoute::Gesture;
+}
+// A native-arranged plain Move keeps the real START/cancel/END route. A true
+// state on only one side of that handoff cannot silently become a large normal
+// Move. Ctrl and Resize retain their existing, separately classified contracts.
+inline bool native_arranged_handoff_compatible(const Prepared& down,const Snapshot& fresh,
+                                               int button,int clicks,unsigned mods){
+    if(!plain_caption_gesture(down,button,clicks,mods))return true;
+    if(!down.source.native_arranged||!fresh.native_arranged||down.source.native_arranged!=fresh.native_arranged)return false;
+    return !*fresh.native_arranged||
+        (!down.source.maximized&&!down.source.minimized&&!fresh.maximized&&!fresh.minimized);
+}
+inline NativeRestoreKind native_restore_entry_kind(const Prepared& down,const Snapshot& fresh,
+    bool native_handoff,int button,int clicks,unsigned mods){
+    if(!plain_caption_gesture(down,button,clicks,mods))return NativeRestoreKind::None;
+    if(!native_handoff&&down.source.maximized&&fresh.maximized&&!down.source.minimized&&!fresh.minimized)
+        return NativeRestoreKind::Maximized;
+    if(native_handoff&&native_arranged_handoff_compatible(down,fresh,button,clicks,mods)&&
+       down.source.native_arranged==true&&fresh.native_arranged==true)return NativeRestoreKind::Arranged;
+    return NativeRestoreKind::None;
+}
+inline bool native_restore_same_context(const Snapshot& original,const Snapshot& fresh){
+    return Catalog::same(original,fresh)&&original.dpi==fresh.dpi&&original.monitor==fresh.monitor&&
+        original.work==fresh.work&&original.feature_mask==fresh.feature_mask&&original.can_resize==fresh.can_resize;
+}
+// Baseline is the actual post-END/Capture geometry B. The immutable DOWN A is
+// only the restoration-intent/state anchor, never a substitute continuity B.
+inline bool native_restore_request_ready(NativeRestoreKind kind,const Snapshot& original,
+    const Snapshot& baseline,const Snapshot& fresh,UINT placement_show_cmd,bool active){
+    if(!active||!native_restore_same_context(original,fresh)||!native_restore_same_context(baseline,fresh)||
+       baseline.visible!=fresh.visible||baseline.positioning!=fresh.positioning||fresh.minimized)return false;
+    if(kind==NativeRestoreKind::Maximized)return original.maximized&&fresh.maximized&&placement_show_cmd==SW_SHOWMAXIMIZED;
+    return kind==NativeRestoreKind::Arranged&&!original.maximized&&!original.minimized&&!fresh.maximized&&
+        original.native_arranged==true&&baseline.native_arranged==true&&fresh.native_arranged==true&&placement_show_cmd==SW_SHOWNORMAL;
+}
+enum class NativeRestoreProgress { Pending,Ready,Rejected };
+inline NativeRestoreProgress native_restore_progress(NativeRestoreKind kind,const Snapshot& original,const Snapshot& fresh,
+    std::int64_t normal_native_width,std::int64_t normal_native_height,bool active){
+    if(!active||kind==NativeRestoreKind::None||!native_restore_same_context(original,fresh))return NativeRestoreProgress::Rejected;
+    if(fresh.maximized||fresh.minimized)return NativeRestoreProgress::Pending;
+    if(kind==NativeRestoreKind::Arranged){
+        // A false arranged bit alone can race its actual restored geometry.
+        // Compare sizes only: rcNormalPosition may be WORKSPACE coordinates.
+        if(fresh.native_arranged!=false||normal_native_width<=0||normal_native_height<=0||
+           fresh.positioning.width()!=normal_native_width||fresh.positioning.height()!=normal_native_height)
+            return NativeRestoreProgress::Pending;
+    }
+    return NativeRestoreProgress::Ready;
+}
 inline bool native_move_receipt_matches(const NativeMoveReceipt& r,const Prepared& p,
     std::uint64_t generation,DWORD down_stamp,DWORD event){
     return generation&&r.generation==generation&&r.sequence&&r.event==event&&r.source==p.source.hwnd&&

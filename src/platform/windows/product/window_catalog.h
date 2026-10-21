@@ -30,6 +30,10 @@ struct Snapshot {
     std::wstring exe, window_class;
     core::v1::Limits limits;
     bool maximized{}, can_resize{}, minimized{};
+    // Actual User32 IsWindowArranged observation, not a rectangle heuristic.
+    // Missing export or a changing/contradictory sample remains unknown; this
+    // transient state never defines or invalidates the HWND lifetime key.
+    std::optional<bool> native_arranged;
     std::uint32_t feature_mask{0xffffffffU};
     // A WM_GETMINMAXINFO response does not reveal an arbitrary app grid.
     // Unknown grid is never relabelled as a measured one-pixel size policy.

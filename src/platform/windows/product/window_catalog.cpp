@@ -21,6 +21,17 @@ namespace {
 
 using core::v1::Rect;
 
+std::optional<bool> native_arranged(HWND window) noexcept {
+    // The documented API is not declared by all supported Windows SDKs.
+    // Resolve only the named export of the already-loaded system module;
+    // absence is not evidence that a window is in the normal state.
+    using Query = BOOL (WINAPI*)(HWND);
+    static const auto query = reinterpret_cast<Query>(
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "IsWindowArranged"));
+    if (!query) return std::nullopt;
+    return query(window) != FALSE;
+}
+
 class Handle final {
 public:
     explicit Handle(HANDLE value = nullptr) noexcept : value_(value) {}
@@ -474,6 +485,7 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     std::string rule_reason;
     if (!rules_allow(settings, result, rule_reason)) return reject(std::move(rule_reason));
 
+    const auto arranged_before = native_arranged(window);
     RECT positioning{}, visible{};
     if (!GetWindowRect(window, &positioning) ||
         FAILED(DwmGetWindowAttribute(window, DWMWA_EXTENDED_FRAME_BOUNDS, &visible, sizeof(visible))))
@@ -532,6 +544,10 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     if (GetWindowThreadProcessId(window, &final_pid) != result.tid || final_pid != result.pid ||
         !IsWindow(window) || WaitForSingleObject(process.get(), 0) != WAIT_TIMEOUT)
         return reject("identity_changed_during_capture");
+    const auto arranged_after = native_arranged(window);
+    if (arranged_before && arranged_after && *arranged_before == *arranged_after &&
+        !(*arranged_after && (result.maximized || result.minimized)))
+        result.native_arranged = arranged_after;
     auto previous = impl_->identities.find(window);
     // Compare the native identity before assigning/reusing the opaque key.
     if (previous != impl_->identities.end() && previous->second.pid == result.pid &&

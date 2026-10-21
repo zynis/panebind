@@ -241,6 +241,114 @@ int main() {
     move_end.visible={120,125,381,485};move_end.positioning={113,125,388,492};
     check(!product::native_geometry_handoff_compatible(geometry_down,move_end),
           "unified Move branch cannot accept Resize merely because active Resize branches exist");
+    // Production's native-arranged branch must pass the same real native
+    // START/cancel/END geometry gate before it can arm a restore request. The
+    // API bit is explicit: neither half-screen dimensions nor a missing export
+    // can manufacture it, and a rejected handoff must not fall into the large
+    // ordinary writer branch.
+    using RestoreKind=product::NativeRestoreKind;
+    using RestoreProgress=product::NativeRestoreProgress;
+    auto arranged_down=geometry_down;arranged_down.source.native_arranged=true;
+    arranged_down.source.visible={0,0,960,1040};arranged_down.source.positioning={-7,0,967,1047};
+    auto arranged_end=arranged_down.source;
+    check(product::native_geometry_entry(true,arranged_down,1,1,0,product::route_down(arranged_down,1,1,0))&&
+          product::native_geometry_handoff_compatible(arranged_down,arranged_end)&&
+          product::native_arranged_handoff_compatible(arranged_down,arranged_end,1,1,0)&&
+          product::native_restore_entry_kind(arranged_down,arranged_end,true,1,1,0)==RestoreKind::Arranged,
+          "actual plain arranged DOWN and fresh END retain native-first handoff then arm native restore instead of large Move");
+    auto unknown_arranged=arranged_end;unknown_arranged.native_arranged.reset();
+    auto normal_arranged=arranged_end;normal_arranged.native_arranged=false;
+    check(product::Catalog::same(arranged_end,unknown_arranged)&&product::Catalog::same(arranged_end,normal_arranged),
+          "unknown or changed arranged state is not a new window lifetime identity");
+    check(!product::native_arranged_handoff_compatible(arranged_down,unknown_arranged,1,1,0)&&
+          !product::native_arranged_handoff_compatible(arranged_down,normal_arranged,1,1,0)&&
+          product::native_restore_entry_kind(arranged_down,unknown_arranged,true,1,1,0)==RestoreKind::None,
+          "original arranged true plus unknown or false END is rejected before production can select ordinary writing");
+    auto unknown_down=arranged_down;unknown_down.source.native_arranged.reset();
+    auto normal_down=arranged_down;normal_down.source.native_arranged=false;
+    check(!product::native_arranged_handoff_compatible(unknown_down,arranged_end,1,1,0)&&
+          !product::native_arranged_handoff_compatible(normal_down,arranged_end,1,1,0)&&
+          !product::native_arranged_handoff_compatible(unknown_down,unknown_arranged,1,1,0)&&
+          !product::native_arranged_handoff_compatible(normal_down,unknown_arranged,1,1,0),
+          "unknown DOWN true END disagreement and unavailable export fail closed for plain native-first Move rather than relabel normal");
+    unsigned arranged_restore_branches{},ordinary_large_writer_branches{},arranged_handoff_rejections{};
+    for(const auto& actual_end:std::array{arranged_end,unknown_arranged,normal_arranged}){
+        // This is the same reject-before-begin then locked restore dispatch
+        // used by Application, not an adapter which returns permission true.
+        if(!product::native_geometry_handoff_compatible(arranged_down,actual_end)||
+           !product::native_arranged_handoff_compatible(arranged_down,actual_end,1,1,0)){
+            ++arranged_handoff_rejections;continue;
+        }
+        const auto kind=product::native_restore_entry_kind(arranged_down,actual_end,true,1,1,0);
+        if(kind!=RestoreKind::None)++arranged_restore_branches;else ++ordinary_large_writer_branches;
+    }
+    check(arranged_restore_branches==1&&arranged_handoff_rejections==2&&ordinary_large_writer_branches==0,
+          "production combined handoff and restore dispatch cannot use rejected arranged snapshots as ordinary placement authority");
+    check(product::native_arranged_handoff_compatible(normal_down,normal_arranged,1,1,0)&&
+          product::native_restore_entry_kind(normal_down,normal_arranged,true,1,1,0)==RestoreKind::None&&
+          product::native_restore_entry_kind(arranged_down,arranged_end,false,1,1,0)==RestoreKind::None,
+          "known ordinary remains ordinary and arranged state cannot borrow consumed-DOWN capture without real native handoff");
+    auto contradictory=arranged_end;contradictory.maximized=true;
+    check(!product::native_arranged_handoff_compatible(arranged_down,contradictory,1,1,0)&&
+          product::native_restore_entry_kind(arranged_down,contradictory,true,1,1,0)==RestoreKind::None,
+          "contradictory arranged and maximized facts cannot authorize native-arranged restore");
+    auto arranged_resize=arranged_down;arranged_resize.region=2;
+    check(product::native_arranged_handoff_compatible(arranged_down,unknown_arranged,1,1,2)&&
+          product::native_arranged_handoff_compatible(arranged_resize,unknown_arranged,1,1,0)&&
+          product::native_restore_entry_kind(arranged_down,arranged_end,true,1,1,2)==RestoreKind::None&&
+          product::native_restore_entry_kind(arranged_resize,arranged_end,true,1,1,0)==RestoreKind::None&&
+          product::native_restore_entry_kind(arranged_down,arranged_end,true,1,2,0)==RestoreKind::None&&
+          product::native_restore_entry_kind(arranged_down,arranged_end,true,2,1,0)==RestoreKind::None,
+          "Ctrl Resize double-click and other buttons retain old routes and never gain arranged restore");
+    auto mapped_arranged=arranged_down;mapped_arranged.mappings[0]=v1::Action::Center;
+    check(product::native_restore_entry_kind(mapped_arranged,arranged_end,true,1,1,0)==RestoreKind::None&&
+          product::native_restore_entry_kind(*max_prepared,max_prepared->source,false,1,1,0)==RestoreKind::Maximized&&
+          product::native_restore_entry_kind(*max_prepared,max_prepared->source,true,1,1,0)==RestoreKind::None,
+          "mapped action cannot borrow restoration and existing real maximized consumed-DOWN route remains distinct");
+    // The accepted native prefix can translate A to B. Restore admission
+    // checks actual B while original A/cursor still defines the eventual intent.
+    auto arranged_baseline=arranged_end;
+    arranged_baseline.visible={5,0,965,1040};arranged_baseline.positioning={-2,0,972,1047};
+    check(product::native_restore_request_ready(RestoreKind::Arranged,arranged_down.source,arranged_baseline,
+              arranged_baseline,SW_SHOWNORMAL,true),
+          "arranged restore preflight uses confirmed post-END B without changing original DOWN A");
+    check(!product::native_restore_request_ready(RestoreKind::Arranged,arranged_down.source,arranged_baseline,
+              arranged_baseline,SW_SHOWNORMAL,false)&&
+          !product::native_restore_request_ready(RestoreKind::Arranged,arranged_down.source,arranged_baseline,
+              arranged_end,SW_SHOWNORMAL,true)&&
+          !product::native_restore_request_ready(RestoreKind::Arranged,arranged_down.source,arranged_baseline,
+              unknown_arranged,SW_SHOWNORMAL,true)&&
+          !product::native_restore_request_ready(RestoreKind::Arranged,arranged_down.source,arranged_baseline,
+              arranged_baseline,SW_SHOWMAXIMIZED,true),
+          "UP stop external geometry unknown arranged or contradictory placement state cannot issue a restore request");
+    check(product::native_restore_request_ready(RestoreKind::Maximized,max_prepared->source,max_prepared->source,
+              max_prepared->source,SW_SHOWMAXIMIZED,true)&&
+          !product::native_restore_request_ready(RestoreKind::Maximized,max_prepared->source,max_prepared->source,
+              max_prepared->source,SW_SHOWNORMAL,true),
+          "maximized restore request still requires its real maximum show state");
+    auto actual_normal=arranged_down.source;actual_normal.native_arranged=false;
+    actual_normal.visible={55,45,455,345};actual_normal.positioning={48,45,462,352};
+    check(product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,arranged_end,414,307,true)==RestoreProgress::Pending&&
+          product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,unknown_arranged,414,307,true)==RestoreProgress::Pending&&
+          product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,normal_arranged,414,307,true)==RestoreProgress::Pending&&
+          product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,actual_normal,414,307,true)==RestoreProgress::Ready,
+          "actual arranged false and actual normal native size are both required before common writer resumes; unknown stays bounded pending");
+    auto wrong_restore_context=actual_normal;wrong_restore_context.dpi=144;
+    auto wrong_restore_identity=actual_normal;++wrong_restore_identity.key;
+    check(product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,actual_normal,414,307,false)==RestoreProgress::Rejected&&
+          product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,wrong_restore_context,414,307,true)==RestoreProgress::Rejected&&
+          product::native_restore_progress(RestoreKind::Arranged,arranged_down.source,wrong_restore_identity,414,307,true)==RestoreProgress::Rejected,
+          "pending restore never reinstates UP or stop authority and rejects real DPI or lifetime changes");
+    auto restored_max=max_prepared->source;restored_max.maximized=false;
+    restored_max.visible={200,160,600,460};restored_max.positioning={193,160,607,467};
+    check(product::native_restore_progress(RestoreKind::Maximized,max_prepared->source,max_prepared->source,414,307,true)==RestoreProgress::Pending&&
+          product::native_restore_progress(RestoreKind::Maximized,max_prepared->source,restored_max,414,307,true)==RestoreProgress::Ready&&
+          product::native_restore_progress(RestoreKind::Maximized,max_prepared->source,restored_max,414,307,false)==RestoreProgress::Rejected,
+          "maximum restoration retains actual normal observation without borrowing arranged facts or post-UP permission");
+    const auto snap_anchor=v1::restored_move_anchor(arranged_down.source.visible,actual_normal.visible,{10,9});
+    const auto snap_intent=snap_anchor?std::optional{v1::intent(*snap_anchor,{10,9},{50,54},{})}:std::nullopt;
+    check(snap_anchor&&*snap_anchor==v1::Rect{6,0,406,300}&&snap_intent&&*snap_intent==v1::Rect{46,45,446,345},
+          "fresh native normal size computes original DOWN proportional anchor, never END or rcNormalPosition screen coordinates");
     product::NativeMoveReceipt real_start{70,1,EVENT_SYSTEM_MOVESIZESTART,31,110,native_down.source.hwnd,OBJID_WINDOW,CHILDID_SELF};
     check(product::native_move_receipt_matches(real_start,native_down,70,100,EVENT_SYSTEM_MOVESIZESTART),
           "actual native START receipt binds source thread, generation and native DOWN time");
