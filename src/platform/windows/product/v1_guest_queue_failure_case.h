@@ -73,7 +73,8 @@
             "\"actual_failure\":"+quote(fault)+",\"natural_full_or_OS_post_failure_inferred\":false");
         const auto trigger=e::number(fault,"\"trigger_qpc\":").value_or(0);
         const auto ended=interruption_end(s,g,v::End::QueueFailure,false,source);std::string gone;
-        s.log.check("queue_failure_actual_independent_input_resources_gone_before_UP",wait([&]{gone=gone_for(g);return clean_gone(gone);},1500)&&
+        const bool resources_gone=wait([&]{gone=gone_for(g);return clean_gone(gone);},1500);
+        s.log.check("queue_failure_actual_independent_input_resources_gone_before_UP",resources_gone&&
             set.owns(0)&&GetForegroundWindow()==source&&visible(source)==held&&s.left&&!s.left_up_attempted&&
             actual_up(s,g.offset,g.generation).empty(),"\"actual_end\":"+quote(ended)+",\"actual_gone\":"+quote(gone));
         interruption_audit_calls(s,g,trigger,std::nullopt);
@@ -110,8 +111,8 @@
             e::number(up,"\"actual_left_UP_callbacks\":")==1&&e::number(up,"\"last_qpc\":").value_or(0)>=s.left_up_send_qpc&&
             e::number(up,"\"last_extra_information\":")==0x50425631&&
             (e::number(up,"\"last_flags\":").value_or(0)&LLMHF_INJECTED);
-        s.log.check("queue_failure_unique_original_abort_UP_and_native_client_delivery",unique_up&&
-            wait([&]{return set.frames[0].client_up[0].load()==client_ups+1;}),
+        const bool client_up=wait([&]{return set.frames[0].client_up[0].load()==client_ups+1;});
+        s.log.check("queue_failure_unique_original_abort_UP_and_native_client_delivery",unique_up&&client_up,
             "\"actual_guest_UP\":"+up+","+cleanup.json()+
             ",\"client_UP_before\":"+std::to_string(client_ups)+",\"client_UP_after\":"+std::to_string(set.frames[0].client_up[0].load())+
             ",\"old_generation_NormalUp_inferred\":false,\"extra_UP_sent\":false");
