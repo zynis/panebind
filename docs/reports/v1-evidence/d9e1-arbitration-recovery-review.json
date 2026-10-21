@@ -1,0 +1,226 @@
+{
+  "evidence_id": "EV-D9E1-ARBITRATION-COMMAND-ABORT-AND-SAME-INSTANCE-RECOVERY",
+  "run_id": "d9e1baa0094247dba7d6af698dbd596f",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_INDEPENDENT_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/d9e1baa0094247dba7d6af698dbd596f/collection-20261021T212656398Z-ca4b543784f742c391aa64316d2c49dc",
+  "configuration": "Release",
+  "suite": "ArbitrationRecoveryOnly",
+  "actual_result": "PASS_SCOPED",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "whole_version_PASS": false,
+  "human_UAT": "NOT_RUN",
+  "product_source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
+  "product_binary_sha256": "8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725",
+  "driver_source_sha": "f2b38e0a04177e70326f49b9a3b1b835cb2e444d",
+  "driver_binary_sha256": "8C7B428FE49751BE1EE0BDF6001931BE5F086B8C6F76C2EC27021D949B0972D3",
+  "packaging_head": "5d9c2ae60d3e880aef409e12f32594b8a2d48b3e",
+  "product_PID": 3820,
+  "product_birth_filetime_decimal_string": "134370915905268581",
+  "fixture_PID": 6260,
+  "fixture_owner_TID": 6392,
+  "source_HWND": 197412,
+  "source_key": 4,
+  "follower_HWND": 197430,
+  "actual_generations": {
+    "command_aborted": 1,
+    "fresh_plain_Move": 2,
+    "old_full_suite_generation_3_not_relabelled": true
+  },
+  "environment": {
+    "Medium_non_elevated": true,
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "display_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "host_or_real_app_or_human_result_inferred": false
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/d9e1baa0094247dba7d6af698dbd596f/collection-20261021T212656398Z-ca4b543784f742c391aa64316d2c49dc/d9e1baa0094247dba7d6af698dbd596f-release-fixture.jsonl",
+      "sha256": "E09ACE17FAB77F8529B04E0C8F22011D3C839E570AE6353EFE1392E83C78A499",
+      "rows": 291,
+      "sequence_contiguous": true
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/d9e1baa0094247dba7d6af698dbd596f/collection-20261021T212656398Z-ca4b543784f742c391aa64316d2c49dc/d9e1baa0094247dba7d6af698dbd596f-product-Release/panebind.log.jsonl",
+      "sha256": "A61616E0628A14BC03145796E3A12F446144637DCD7A706CFF2A080F4E32F1F3",
+      "rows": 149,
+      "sequence_contiguous": true
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/d9e1-arbitration-recovery-excerpt.jsonl",
+    "sha256": "0DBE57C8210C2499641851DDD7B2DC274C8D098F60102456BC79F9265FE9C4A9",
+    "bytes": 40715,
+    "rows": 40,
+    "exact_original_line_matches": 40,
+    "JSON_values_not_reserialized": true,
+    "driver_sequences": [
+      3,
+      13,
+      19,
+      24,
+      140,
+      158,
+      161,
+      163,
+      166,
+      176,
+      181,
+      183,
+      192,
+      193,
+      264,
+      268,
+      269,
+      291
+    ],
+    "product_sequences": [
+      61,
+      66,
+      67,
+      68,
+      69,
+      70,
+      73,
+      75,
+      76,
+      79,
+      96,
+      98,
+      101,
+      102,
+      104,
+      107,
+      109,
+      110,
+      112,
+      116,
+      117,
+      149
+    ],
+    "ordering": "Original rows retain sequence per producer. Driver block and product block are not a common native total order.",
+    "privacy": "No user path, title, SID or application content in selected rows."
+  },
+  "actual_scopes": [
+    {
+      "scope": "real_active_Ctrl_and_single_nonstop_hotkey",
+      "evidence": [
+        "P61",
+        "P66",
+        "P67",
+        "D158",
+        "P68",
+        "P69",
+        "P70"
+      ],
+      "facts": "Actual g1 Ctrl/key4/two members with native exact +30,+25. Real registered Ctrl+Alt+C helper, not IPC/fake WM_HOTKEY, causes Paused/end4/nonNormal/pending retired. One independent generation0 Center native call3/operation2 reaches [1325,648,1725,948]; follower remains [670,225,970,525]. Direct WM_HOTKEY receipt is not claimed.",
+      "timing": "Actual old g1 native-before QPC335328363 and335364603 precede the single chord trigger335652874. Center native-before335941759 follows it. P68 has no QPC; no fabricated cross-stream timestamp is assigned."
+    },
+    {
+      "scope": "retired_resources_then_unique_real_cleanup_UP",
+      "evidence": [
+        "P73",
+        "P75",
+        "P76",
+        "D161",
+        "D163",
+        "D166",
+        "P79"
+      ],
+      "facts": "Actual g1 own capture release attempt succeeds, detach succeeds, overlay destroyed/hotkey unregistered/Gone. The command had moved source away from old cursor; one TEST-only cursor move after Gone places the original unique UP on the same exact source HTCLIENT, capture0, same foreground, no TEST SetForegroundWindow or capture manipulation. One planned UP is observed by an exact tagged passive guest hook and separately by the product LL callback; no extra UP and no old NormalUp.",
+      "timing": "Gone resource QPC335727224 precedes planned UP send336548431. Guest hook observes one LEFTUP at336552692 with tag1346524721, CallNext returned/unhook confirmed. Product P79 sees real UP at336554175, generation-at-entry1/authority0/aborted=true/consumed=false/matching=false/push=false. Guest-hook evidence is not window delivery or product authority."
+    },
+    {
+      "scope": "same_instance_fresh_Move_NormalUp_and_client_pair",
+      "evidence": [
+        "D176",
+        "P96",
+        "P98",
+        "D181",
+        "D183",
+        "P101",
+        "P102",
+        "P104",
+        "P107",
+        "P109",
+        "P110",
+        "P112",
+        "D192",
+        "P116",
+        "P117"
+      ],
+      "facts": "Same product PID3820/birth, no restart or layout reset. New g2 is plain one-member Move from actual centered [1325,648,1725,948] to independently +24,+17 [1349,665,1749,965], one exact native call4/operation3; follower unchanged. Actual matched product LL UP revokes authority, actual Raw UP and accepted legacy UP occur, release/detach/Gone and NormalUp/end0 follow. Then actual native client counts DOWN0->1, UP1->2 establish a new complete client pair, not SendInput-return inference.",
+      "timing": "Fresh native call-before344022514/after344026757 precede real matched LL UP344331135. Raw observed344333735 and legacy dispatch344347098 are separate actual receipts, not deduced from JSONL ordering."
+    }
+  ],
+  "independent_full_log_audit": {
+    "source": "All149 original product rows, not only selected excerpt",
+    "product_PID_set": [
+      3820
+    ],
+    "native_placement_calls": 4,
+    "old_g1_calls": 2,
+    "explicit_generation0_Center_calls": 1,
+    "fresh_g2_calls": 1,
+    "Center_command_rows": 1,
+    "missing_native_before_QPC": 0,
+    "old_g1_calls_at_or_after_chord_trigger_QPC_335652874": 0,
+    "fresh_g2_calls_at_or_after_matching_LL_UP_QPC_344331135": 0,
+    "unique_aborted_product_LL_UP_in_planned_send_interval": 1
+  },
+  "historical_scope_reuse": {
+    "not_run_this_suite": [
+      "Ctrl/magnet/dock-zone competition",
+      "plain work-area magnet plus unique UP docking",
+      "Shift/lock",
+      "pause/settings arbitration"
+    ],
+    "first_two_scopes": "docs/reports/v1-evidence/9b60-arbitration-remainder-review.json",
+    "retained_followup_failure": "docs/reports/v1-evidence/69ab-arbitration-guest-up-failure-review.json",
+    "modifier_scope": "docs/reports/v1-evidence/0a76-modifier-lock-review.json",
+    "active_settings_scope": "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+    "assessment": "Earlier actual scopes keep their 11ae/c355/older product, driver, RunId and timing identities. d9e1 adds only the remaining command-abort/real-cleanup/fresh-usability scope; it does not rewrite old failed runs or establish their unknown system root cause."
+  },
+  "contract_assessment": {
+    "contract": "M04-F03 / guide4.4 independent behavior priority",
+    "recommendation": "INDEPENDENT_FEATURE_PASS_WITH_EXPLICIT_HISTORICAL_SCOPE_REUSE",
+    "basis": "Actual Ctrl versus magnet/dock and plain magnet versus UP dock are already separately evidenced; Shift/lock, pause and active settings have their original specific evidence. The missing non-emergency command versus active Ctrl now has exact single-command, zero late old writer, real unique abort cleanup UP and same-instance fresh normal Move/client usability evidence. Source priority/core gesture/settings paths retain their applicable semantics; pure core/v1/gesture.h and settings.h have no change between11ae and92d.",
+    "not_awarded": [
+      "M04 five-application module gate",
+      "ordinary full desktop/display matrix",
+      "whole current-candidate integration chain",
+      "Full suite",
+      "Human UAT"
+    ]
+  },
+  "package": {
+    "zip_sha256": "DF2BF822198D1AD6538079D00BCE6611E1AF3B5ED226AF046CD7A5A1E4B9FCEC",
+    "manifest_sha256": "3C6FF1AB61666D1E033DE079D296196A28674EF7D3DF662C19BBED675EEFA9EE",
+    "wsb_sha256": "378B7ECE350C8CBF7BA8A8DDE8ACE7D81BD44BE1E3DD44BF34BCC80EA4F497C5",
+    "deploy_receipt_sha256": "6DFDC0012AC05C6D91916DF9164E8D25BE46A611430D442D9467BAC9FB083B89"
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/d9e1baa0094247dba7d6af698dbd596f/cleanup-receipt.json",
+    "sha256": "174305703E863BBF3716B1BF9763370AF83A5E50FAAF7B89B6B71213025D7687",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "actual_product_shutdown": "P149 actual hooks/overlay/native/recovery/capture/association stopped with no unknown issued completion."
+  }
+}

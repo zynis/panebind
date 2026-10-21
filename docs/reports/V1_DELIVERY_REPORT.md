@@ -1,6 +1,20 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：生命周期闭合、c355现场结果与92d恢复候选（2026-10-22）
+## 当前接续：92d三批实证、仲裁合同闭合与04ff候选（2026-10-22）
+
+**生产接线60/60，独立DEV39/60，对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 本次仅独立M04-F03闭合，无固定B直接依赖变化；不是新整版链PASS。以下三批均真实使用产品`92d0011c282455f54fddc282b8c434c870fc4ad2`／Release SHA-256 `8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725`、驱动`f2b38e0a04177e70326f49b9a3b1b835cb2e444d`／`8C7B428FE49751BE1EE0BDF6001931BE5F086B8C6F76C2EC27021D949B0972D3`、打包`5d9c2ae60d3e880aef409e12f32594b8a2d48b3e`；不换绑后继04ff或历史11ae／528a。
+
+- [3141最大化及真实native Snap恢复](v1-evidence/3141-restore-maximized-native-snap-review.json)：289D/166P原件独立核验。g1实际最大化→自有capture→SW_RESTORE→fresh normal→原DOWN比例锚点→exact；随后同PID g2真实Win+Left／arranged=true→原native-first START／隔离／一次cancel／实际END／capture→实际SW_RESTORE／arranged=false及normal native尺寸→原DOWN目标`[48,45,448,345]`的一次exact写入。两代真实LL／Raw／legacy UP、NormalUp、释放capture／解绑／撤罩与UP后零新调用成立。c355/8b55原FAIL不改写。`magnet_move=false`只证明恢复writer，不称新增吸附；g1→g2为真实后继，无第三次增强手势。M08-F02仍缺默认Top预览→单次正常UP→实际最大化，不能用公开Maximize或自定义DockTop替代。
+- [d9e1命令中止与同实例恢复](v1-evidence/d9e1-arbitration-recovery-review.json)：291D/149P。同PID3820中真实Ctrl+Alt+C先退休g1，再唯一g0 Center；旧代触发后零新native，实际release／detach／Gone。唯一测试cleanup UP由独立guest hook及产品P79 LL真实观察，仍非旧代NormalUp；同实例g2普通Move一次exact、真实LL／Raw／legacy UP／NormalUp及资源退出，客户DOWN0→1／UP1→2恢复。完整placement仅4次（旧2、命令1、新1），新g匹配UP后也零新增。结合原9b60/69ab前两仲裁、0a76/0e81 Shift／暂停及2c8活动设置证据，按其各原身份闭合**独立M04-F03**，不拼作新整链、不关闭旧UP原因UNKNOWN或改写其FAIL。
+- [6274透明FocusLost子PASS／per-pixel工具前置FAIL](v1-evidence/6274-transparency-focus-and-per-pixel-precondition-review.json)：389D/174P，整批FAIL保留。原alpha173/topmost源在Move时190，真实另一owned前台触发FocusLost/end2，恢复173而非255、零旧代迟写及实际释放／解绑／Gone；真实唯一清理UP后，同PID下一Move／真实NormalUp及恢复173通过。原bf5c退出／异常helper证据保留原身份，不重跑。per-pixel源实际ULW成功、GLA失败、opaque hit成立，但D305组合几何不变=false且未独立记录FG，TEST前置已拒绝，产品unsupported手势／可见反馈**NOT_RUN**，不是生产silent-decline失败。
+
+新产品`04ff585df6b5f17b5a3cc7c2f0bc500787d65f96`已实际Debug／Release构建，input-route／recovery／writer／catalog-rules／guest-path／visual六个受影响offline目标各6/6通过。Debug SHA-256 `9EE09278AEB88FD0F0C3FC42F792DDBAFCAC28E0654141A3828F5C5372C4A122`；Release `41F75A2EBA0B984D8F8EE53ED5ECF62BAFF2D432125669A7F21CE9717291CBA8`。它补手势期drag-alpha限制条、有限且非激活的idle提示与严格guest one-shot故障测试接点；普通host D/R各两次真实等待退出78的负例通过，初次PowerShell未等待进程就读LASTEXITCODE属工具观察错误。**这些不是native功能PASS，新产品现场仍NOT_RUN，未提供替代528a的普通便携包。**
+
+新驱动`935c9aa7e8ce7d26bb4e55abe59be115280f57e0`实际D/R构建通过（仅既有C4456 warnings），完整build-identity已核；Debug驱动SHA-256 `FC9A0A36817960D608AB0A8F9A164624FAD36BB76EAEA650725D47C756E6A65A`，Release `B6D429DE315BF1FDEC00BAE5DB2D19CD461E783188A1CA88F6C816699608A9A4`，包装静态145检查通过。中间06fe仅构建未现场，935两处先观察再序列化修正没有替换04ff产品EXE。**HC、默认Top正常UP、Session通知注入／恢复、严格Queue注入／恢复及新透明提示场景全部NOT_RUN**；锁屏通知注入不能冒充真实OS锁屏／解锁。
+
+下一步只执行上述五个已接通的定向场景，并按真实结果推进；不重复3141恢复、d9e1仲裁、6274 FocusLost、原bf5c退出或无变量Full／独立900秒。普通完整Medium桌面、五类真实应用、托盘、负work-origin／多屏混合DPI、最终同候选整版链与真人门分别保留。每批原始日志、RunId、ZIP／二进制／manifest及清理回执可从索引追溯，各producer时间基分开，不把JSONL顺序当共同原生全序；不进入REA、不恢复定时检查。以下检查点保留其历史身份和当时结论，不覆盖本节。
+
+## 前一检查点：生命周期闭合、c355现场结果与92d恢复候选（2026-10-22）
 
 **生产接线60/60，独立DEV38/60，对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 本节区分三种身份：11ae仍是既有主整链及528a普通便携包；以下五批实际产品为`c355967a6e21e93c8f3a142dac30340aaeaa5091`／Release SHA-256 `04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C`；新`92d0011c282455f54fddc282b8c434c870fc4ad2`仅是已构建、尚待现场的native Snap恢复候选。旧结果不换绑，原FAIL与原始日志全部保留。
 

@@ -1,0 +1,223 @@
+{
+  "evidence_id": "EV-3141-RESTORE-MAXIMIZED-AND-REAL-NATIVE-SNAP",
+  "run_id": "31411e84c6f34c27b66a6da2a0135d79",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_INDEPENDENT_SCOPED_NATIVE_REVIEW",
+  "source_collection": "uat/v1-control/31411e84c6f34c27b66a6da2a0135d79/collection-20261021T212504453Z-469453cb7f3e4712b6fe1d36c378a458",
+  "configuration": "Release",
+  "suite": "RestoreRemainderOnly",
+  "actual_result": "PASS_SCOPED_MAXIMIZED_AND_REAL_NATIVE_SNAP_RESTORE_ORIGINAL_DOWN_NORMAL_UP",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "92d0011c282455f54fddc282b8c434c870fc4ad2",
+  "product_binary_sha256": "8CC3D0FF47DDF808F60125A381DF2D7AA2EFF067721CCBBC2038238CE84C9725",
+  "driver_source_sha": "f2b38e0a04177e70326f49b9a3b1b835cb2e444d",
+  "driver_binary_sha256": "8C7B428FE49751BE1EE0BDF6001931BE5F086B8C6F76C2EC27021D949B0972D3",
+  "packaging_head": "5d9c2ae60d3e880aef409e12f32594b8a2d48b3e",
+  "product_PID": 6232,
+  "product_birth_filetime_decimal_string": "134370914478718409",
+  "fixture_PID": 6420,
+  "fixture_owner_TID": 6412,
+  "fixture_birth_filetime_decimal_string": "134370914476718929",
+  "source_HWND": 197406,
+  "source_product_key": 4,
+  "shield_owner_TID": 6648,
+  "environment": {
+    "actual_integrity": "Medium RID8192/non-elevated",
+    "actual_session": 1,
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "display_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "physical_host_or_real_app_result_inferred": false
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/31411e84c6f34c27b66a6da2a0135d79/collection-20261021T212504453Z-469453cb7f3e4712b6fe1d36c378a458/31411e84c6f34c27b66a6da2a0135d79-release-fixture.jsonl",
+      "sha256": "4A4E2DD492F7EB800573FE79F5C76B21A9285720B10F7C65804940DC7E6DED65",
+      "rows": 289,
+      "sequence_first": 1,
+      "sequence_last": 289,
+      "all_rows_legal_JSON": true,
+      "sequence_contiguous": true
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/31411e84c6f34c27b66a6da2a0135d79/collection-20261021T212504453Z-469453cb7f3e4712b6fe1d36c378a458/31411e84c6f34c27b66a6da2a0135d79-product-Release/panebind.log.jsonl",
+      "sha256": "1C034D4F60152FEAFEA2C934EB35462CE5455BA6EB77B53F28283ED912635EFC",
+      "rows": 166,
+      "sequence_first": 1,
+      "sequence_last": 166,
+      "all_rows_legal_JSON": true,
+      "sequence_contiguous": true
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/3141-restore-maximized-native-snap-excerpt.jsonl",
+    "sha256": "E25B96CB3EAC9EB0CC82EBD643DC200C9196D36B1ED1DA1E9CA9302288FBCAF4",
+    "bytes": 53252,
+    "rows": 63,
+    "driver_sequences": [
+      3,
+      4,
+      13,
+      15,
+      18,
+      19,
+      24,
+      141,
+      146,
+      150,
+      151,
+      154,
+      156,
+      158,
+      161,
+      167,
+      172,
+      173,
+      174,
+      177,
+      179,
+      181,
+      184,
+      186,
+      263,
+      266,
+      277,
+      284,
+      289
+    ],
+    "product_sequences": [
+      3,
+      56,
+      60,
+      64,
+      69,
+      71,
+      72,
+      75,
+      76,
+      78,
+      81,
+      83,
+      84,
+      86,
+      92,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      102,
+      104,
+      108,
+      109,
+      110,
+      113,
+      114,
+      116,
+      119,
+      121,
+      122,
+      124,
+      166
+    ],
+    "policy": "Complete original rows, no JSON value reserialization or 64-bit identity conversion; each producer retains its own order. Selected driver rows are followed by selected product rows, not a combined native chronology."
+  },
+  "package": {
+    "zip_sha256": "F4A116C43ACABCDDD3F47CE9A701F9C0E7F1681F6B5EACE5AA9C9AD9801148C5",
+    "manifest_sha256": "EA8F9DC0B6F687EB0FB5A26DEE3B607120977CF2C32BCDDE3EA6C53F850D9C6E",
+    "wsb_sha256": "48BD8037C163F2199DB355F81DB98885880A069167663B39EA4DB7D62CF81E68",
+    "receipt_sha256": "A3938DB810404C81BEC4CD5F7404421F2B326A6360673BCE13A115224FA893D5",
+    "actual_payload_EXE_hash_matches": true,
+    "ZIP_manifest_WSB_hashes_independently_rechecked": true
+  },
+  "timebase": {
+    "QPC_frequency_known": true,
+    "QPC_frequency": 10000000,
+    "frequency_receipt": "D18 actual QueryPerformanceFrequency installation receipt; unhook D287 explicitly has no new frequency query",
+    "driver_tick": "GetTickCount64 observations; not input/native event occurrence timestamps",
+    "product_tick": "GUI log emission ticks, not hook/native timestamps",
+    "native_move_receipts": "P95/P98 own input-owner sequence1/2 and native DWORD event times35234/35281 are matched to original DOWN native35218; no ordering inferred from mixed JSONL line position",
+    "QPC_receipts": "Keep hook/native-call/resource/driver observation QPC endpoints distinct; no physical presentation latency claim"
+  },
+  "scoped_config": "Public GUI config disables magnet_move/magnet_resize/glue/preview/feedback/stretch/transparency/shake while retaining docking for this restore-only test. Exact placements prove restored Move/writer operation, not fresh magnet attraction/hold/detach coverage.",
+  "actual_facts": {
+    "maximized": {
+      "generation": 1,
+      "scoped_result": "PASS",
+      "actual_precondition": "D146/P56 actual public Maximize showCmd3, visible[0,0,3050,1596], positioning[-11,-11,3061,1607], saved normal WP unchanged.",
+      "down_and_capture": "P60 actual single-left/mods0 DOWN[27,0] on exact key4 with maximized=true. P64 actual own capture459552 after real association; D150 independent owner/source GUI/capture/hit checks. P66 native_restore_kind=maximized, consumed-DOWN/native_first_handoff=false. No native START/END invented for this branch.",
+      "native_restore_and_original_anchor": "P69 one actual started SW_RESTORE request showCmd3/raw normal[191,160,609,469]; P71 actual normal visible[200,160,600,460]/positioning[191,160,609,469]. D151 independent floor(27*400/3050)=3 gives original-DOWN anchor[24,0,424,300], not a returned solver plan.",
+      "actual_writer": "P72 one native attempt/call1 identity/exact/postcontextvalid target=actual[64,45,464,345]; D154 independent actual visible agrees and D156 actual native positioning[55,45,473,354].",
+      "UP_and_cleanup": "D158 passive exact tagged unique test UP observation has one real callback and CallNext returned, distinct from product receipts. P75 matching LL UP retires authority1->0; P76 actual Raw UP g1; P78 actual accepted legacy UP; P81 actual own ReleaseCapture success/capture_after_release0; P83 successful detach; P84 overlaydestroyed/hotkeyunregistered/NormalUp removal; P86 NormalUp. D161 no new same-generation placement.",
+      "issued_vs_UP_QPC": {
+        "placement_native_before": 340379032,
+        "placement_native_after": 340385203,
+        "actual_matching_LL_UP": 340602259
+      },
+      "caveat": "D157 async_left_before0 is not substituted for physical-UP evidence; actual uniquely observed LL/Raw/legacy receipts and independent capture facts establish the tested terminal path."
+    },
+    "native_Snap": {
+      "generation": 2,
+      "scoped_result": "PASS",
+      "actual_precondition": "D141 read-only SPI queries report arranging/dockmoving/dragfrommax enabled. D167 one WinDOWN/LeftDOWN/LeftUP/WinUP has actual same-source half[0,0,1525,1596]/foregroundsame/showCmd1, unchanged rcNormalPosition[55,45,473,354], product native claims1->1 and no intercepted product command/write. Snap effect is not inferred merely from SendInput success.",
+      "native_handoff": "P92/P94 actual original DOWN[10,9], button1/click1/mods0/native_first. D172 only one bounded TEST threshold cursor MOVE[15,9]; P95 actual START(owner seq1/native35234), P96 isolationready, P97 one bounded100ms cancel actualAPItrue, P98 real END(owner seq2/native35281), P99 accepted real END no placement. P102 actual own capture656160. D173 independently checks source197406/PID6420/TID6412 and exact product-owned capture/hit.",
+      "actual_arranged_restore": "P104 actual original_DOWN_arranged=true/actual_begin_arranged=true locks native_arranged kind. P108 actual started SW_RESTORE request, original/before arranged=true, showCmd1. P109 actual_arranged=false with actual normal visible[64,45,464,345]/positioning[55,45,473,354] (418x309 native); neither half-screen geometry nor workspace-coordinate inference substitutes for actual arranged state/fresh normal.",
+      "original_DOWN_oracle": "D174 independently derives original DOWN[10,9]/halfwidth1525 and prior normal width400: anchor[8,0,408,300]. Total cursor delta[40,45] requires[48,45,448,345]. The native-prefix threshold movement and END do not reset DOWN.",
+      "actual_writer": "P110 sole g2 nativeattempt/call2 completes TRUE/known/identity/exact/postcontextvalid with target=actual[48,45,448,345]. D177 independent visible equals oracle; D179 actual native positioning[39,45,457,354] agrees with pre-Snap normal frame offsets. The old c355 large half-screen target is not accepted as a new oracle.",
+      "UP_and_cleanup": "D181 passive hook observes exactly one actual tagged UP on exact source/current shield capture with CallNext returned, no extra input. P113 matching LL UP retires active2->0; P114 actual Raw UP g2; P116 actual accepted legacy UP; P119 actual ReleaseCapture before656160->after0 success; P121 successful exact detach; P122 overlaygone/hotkeyunregistered/removalNormalUp; P124 NormalUp. D184 unchanged placement ledger after UP; D186 actual Snap settings remain enabled.",
+      "issued_vs_UP_QPC": {
+        "placement_native_before": 355748324,
+        "placement_native_after": 355752284,
+        "actual_matching_LL_UP": 356076898
+      }
+    },
+    "successor_and_final": {
+      "actual_successor": "Same product PID6232/birth and same exact source/key4: g1 actual NormalUp/own release/detach/Gone, followed by fresh actual g2 DOWN/native START/cancel/END/capture/restore/exact/NormalUp with distinct overlay656160. This is an observed successor generation without product restart.",
+      "not_executed": "No third product Move after native-Snap g2 is present; do not relabel the post-exit client click as another enhanced gesture.",
+      "restored_configuration": "D263 public GUI restores original settings and frozen EXE identity; D266 actual exact test roots closed.",
+      "actual_exit_and_input": "P166 actual shutdown reports ownhooks/overlay/nativeworker/inputresources/capture/association stopped, issued completion unknown=false. D277 actually observes process exit after public quit. D284 separate actual post-exit client counts[0,0]->[1,1] proves normal client DOWN/UP operation; not product Move or guest-disposal evidence.",
+      "entire_product_placement_ledger": "Exactly2 placements in complete166-row product log, call1/g1 and call2/g2, both nativeTRUE/known/exact/identity/postcontextvalid; no third/late/new source placement after either matching UP. Exactly2 restore requests and1 native cancel attempt. Complete289-row driver has0 FAIL rows, but these counts alone do not grant function PASS."
+    }
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/31411e84c6f34c27b66a6da2a0135d79/cleanup-receipt.json",
+    "sha256": "A3D02140D169ADFD244BBC6AF50E817802A8699F993A321882DBE6F956842FBC",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "historical_failure": {
+    "run_id": "8b5562ea12e34b17b2fe8175788958bd",
+    "product_source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+    "review_path": "docs/reports/v1-evidence/8b55-restore-remainder-review.json",
+    "result": "ORIGINAL_NATIVE_SNAP_FAIL_RETAINED_NOT_REBOUND_TO_92D"
+  },
+  "recommendation": "The actual 92d maximized/plain native-arranged restore/original DOWN/exact normal UP gap is now scoped PASS and closes the specific c355 native-Snap geometry counterexample in this Medium owned guest. Combine prior unchanged ordinary/product-dock and eight-action evidence only with original identities for independent M08-F02 adjudication; this review does not edit canonical status or award whole module/version.",
+  "not_inferred": [
+    "Third enhanced product successor after g2",
+    "Real Explorer or five-application compatibility",
+    "Normal host/full desktop/tray/multi-monitor/mixed-DPI coverage",
+    "Full Release operation chain",
+    "New portable package normal entry",
+    "Physical presentation latency",
+    "Human UAT"
+  ],
+  "human_UAT": "NOT_RUN",
+  "whole_version_PASS": false
+}
