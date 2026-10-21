@@ -1,0 +1,121 @@
+{
+  "schema": "panebind.v1.native-failure-review.v1",
+  "evidence_id": "EV-4362-STATE-COMMAND-SUBPASSES-LOWER-OBSERVATION-FAILURE",
+  "review_date": "2026-10-22",
+  "run_id": "4362493f9c3844af89d5d06a17c1f9ad",
+  "suite": "CommandsRemainderOnly",
+  "configuration": "Release",
+  "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+  "driver_binary_sha256": "1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A",
+  "packaging_head": "83bb8636090e01287353583e80a005d68e28363a",
+  "zip_sha256": "CE980C84A5D516F0455E4196B06C32A122404CACE5AC2B73EA1B67557C2ED544",
+  "manifest_sha256": "0A031969267D5DE8D14F0E5653EE20FB71C929B61D6149F5D7EA57B589BDC997",
+  "wsb_sha256": "A32FDFEF3325F110F28338B1EE29183E696C51CA405AC44445BC3ADB147E4285",
+  "raw": {
+    "collection": "uat/v1-control/4362493f9c3844af89d5d06a17c1f9ad/collection-20261021T194210013Z-64bb153d755e4c32bc346e4f60b065fa",
+    "driver_file": "4362493f9c3844af89d5d06a17c1f9ad-release-fixture.jsonl",
+    "driver_rows": 137,
+    "driver_sha256": "8EF82C87D3054F6A70FF58969A04B98E80E9603E033F65BE58816CB2E4EF1450",
+    "product_file": "4362493f9c3844af89d5d06a17c1f9ad-product-Release/panebind.log.jsonl",
+    "product_rows": 48,
+    "product_sha256": "B3B297660AC3A0738B607FF935DA008D0CC98F4F3D60EF6B1B3ADC256E79DC96",
+    "JSONL_all_valid": true,
+    "producer_sequences_contiguous": true,
+    "excerpt": "docs/reports/v1-evidence/4362-state-commands-and-lower-failure-excerpt.jsonl",
+    "excerpt_sha256": "E7FA785E6B0E346C3654A009D04843C8A69BEAACADFC72EE9B1D2EEDE4F12352",
+    "driver_original_sequences": [
+      1,
+      3,
+      71,
+      74,
+      76,
+      79,
+      82,
+      85,
+      89,
+      90,
+      94,
+      97,
+      101,
+      104,
+      108,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      119,
+      122,
+      125,
+      132,
+      133,
+      137
+    ],
+    "product_original_sequences": [
+      3,
+      22,
+      25,
+      28,
+      31,
+      32,
+      35,
+      38,
+      40,
+      44,
+      48
+    ],
+    "literal_lines_not_reserialized": true,
+    "excerpt_layout": "Driver original rows then product original rows, not common native ordering",
+    "raw_unchanged": true
+  },
+  "environment": {
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "product_pid": 1524,
+    "fixture_pid": 7160,
+    "source_tid": 7164,
+    "source_HWND": 197418,
+    "source_key": 4,
+    "DPI": 144
+  },
+  "review": {
+    "result": "BATCH_FAIL_RETAINED_WITH_ACTUAL_MAXIMIZE_RESTORE_MINIMIZE_RESTORE_SUBPASSES",
+    "state_subpasses": [
+      "D71/P22 publicMaximize samekey4 actualIsZoomed/showCmd3/visible[0,0,3050,1596]/positioning[-11,-11,3061,1607]; D74 exactlyonecommand and0WindowWriter placements. APIrequestreturn not used as statecompletion.",
+      "D76/P25 publicRestore sameHWND/key normalvisible[200,180,660,520],positioning[191,180,669,529],normalplacementunchanged; D79 exactlyonecommand/0placement.",
+      "D82/P28 publicMinimize actualIsIconic/showCmd2; D85 singlecommand/0placement. D89/90 publicsettings naturallyforeground while originaltarget stillminimized, no testactivationrestore.",
+      "D94/P32 actualRestore via ownUI/last_target originalsamekey/normalrect; D97 onecommand/0placement. D101/104 secondpublicsettingsEsc leavesconfigunchanged."
+    ],
+    "lower_failure": [
+      "D108 exactnon-topmosttwo-owned beforeorderPASS. D110 FAIL preserved: productionP38 nativeattempted/completionknown/succeededtrue, bottom_observed=false, actualprevious131462/actualnext65786, reasonlower_native_completion_requires_zorder_review.",
+      "D110 later actualrelativeownedorderreversed=true, geometry/otherwindowunchanged=true; actual_source_next_HWND131906. Those later facts do not turn originalP38 bottom_observed into true or prove whole z-order.",
+      "D111 callbackfor131880 thenactualPID/TID0,classquery1400, unknowngonewindow; do not infer its role or activationinitiator.",
+      "D112 later actualwindow65786 stablePID4932/TID4936/explorer.exe/Progman, callbackforegroundbefore/after65786 atQPC366824455..366826589. This identifies that later snapshot only; cannot backfill nativeP38 tick33109, infer continuous foreground, or assertsystemrootcause.",
+      "D114 independentphasefailure, D133summaryFAIL andD137shutdownFAIL retainactualverdict. Remainingcommands afterLower were not executed/accepted by this run."
+    ],
+    "cleanup": "D119/P44 samePIDIdle and no pending/nativeunknown; D125/P48 actualpublicquit/exit0/hooks/resources/worker/capture/associationstopped; D132 actualpoststopclientDOWNUP[0,0]→[1,1]. Cleanupsubset does not turn commandbatchPASS.",
+    "limits": [
+      "Subpasses do not close wholeM09-F03/B24 or completecommandmatrix.",
+      "ShowWindowAsync native return not observed; originaltest explicitly recordsfalse, do not relabel its state commands as WindowWriter placement.",
+      "No product code change or new driver acceptance inferred from this failed run; no foregroundrescue/foreignwindowcontrol used in review."
+    ]
+  },
+  "collection_history": {
+    "reported_by_root": [
+      "FirstcollectfailedbecauseSCPclosed.",
+      "Secondcollectfailedbecause localOOM.",
+      "Thirdcollectionsuccess at recordedpath; cleanup of exactownedguest/task alreadycompleted beforefinalcollect; outputunchanged."
+    ],
+    "reviewer_did_not_reexecute_remote_cleanup": true
+  },
+  "wrapper": {
+    "fixture_exit_code": 1,
+    "descendants_alive_at_exit": 0,
+    "forced_test_cleanup": false
+  },
+  "human_UAT": "NOT_RUN"
+}

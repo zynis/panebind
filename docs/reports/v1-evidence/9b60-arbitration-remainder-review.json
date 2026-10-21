@@ -1,0 +1,166 @@
+{
+  "evidence_id": "EV-9B60-ARBITRATION-REMAINDER",
+  "run_id": "9b607f09d88646599ee2c57d4e41f166",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/9b607f09d88646599ee2c57d4e41f166/collection-20261021T201557926Z-24816e10dd984f28bfbf60c232d145e2",
+  "configuration": "Release",
+  "actual_result": "FAIL",
+  "new_execution_by_review": false,
+  "original_raw_preserved": true,
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+  "packaging_head": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/9b607f09d88646599ee2c57d4e41f166/collection-20261021T201557926Z-24816e10dd984f28bfbf60c232d145e2/9b607f09d88646599ee2c57d4e41f166-release-fixture.jsonl",
+      "sha256": "CFE9B8439ACA8516932FAF76D304DC88C09831DF1F6DA6A56E9F005A9A602764",
+      "rows": 307,
+      "sequence_first": 1,
+      "sequence_last": 307,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/9b607f09d88646599ee2c57d4e41f166/collection-20261021T201557926Z-24816e10dd984f28bfbf60c232d145e2/9b607f09d88646599ee2c57d4e41f166-product-Release/panebind.log.jsonl",
+      "sha256": "F8094104C03379E3A0BA8DD0592AC017971426C53C50C5896463036CA624A238",
+      "rows": 180,
+      "sequence_first": 1,
+      "sequence_last": 180,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/9b60-arbitration-remainder-excerpt.jsonl",
+    "driver_sequences": [
+      13,
+      19,
+      24,
+      148,
+      150,
+      153,
+      154,
+      155,
+      163,
+      173,
+      175,
+      177,
+      178,
+      185,
+      197,
+      200,
+      203,
+      204,
+      209,
+      284,
+      307
+    ],
+    "product_sequences": [
+      61,
+      66,
+      67,
+      70,
+      72,
+      78,
+      80,
+      96,
+      99,
+      103,
+      105,
+      111,
+      113,
+      114,
+      130,
+      132,
+      133,
+      136,
+      137,
+      138,
+      141,
+      143,
+      144,
+      146,
+      147,
+      148,
+      180
+    ],
+    "rows": 48,
+    "policy": "Complete original rows, no JSON reserialization or 64-bit identity conversion; newline normalization only. Intentional gaps; D/P are independent producers, not a native total order.",
+    "sha256": "787513CBA889D98D85D008FA1910B76E741509893D6B2C6AFE237D23C28EE758"
+  },
+  "product_PID": 6364,
+  "product_birth_filetime_decimal_string": "134370872908389096",
+  "environment": {
+    "Medium_non_elevated": "Original exact guest guards retained",
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "display_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "qpc_frequency": 10000000,
+    "host_or_human_result_inferred": false
+  },
+  "suite": "ArbitrationRemainderOnly",
+  "actual_scope": {
+    "first_subcase": {
+      "result": "PASS_SCOPED_CURRENT_CANDIDATE",
+      "basis": "D147/P61 real Ctrl g1/key4/two frozen members. D148 independent raw[-9,789,391,1089] vs magnet[0,789,400,1089] at actual cursor[1,798]/DPI144/entry15px; P66/67 two exact native calls in the same operation1 yield A[0,789,400,1089], B[400,789,700,1089]. D153 foreign claims0, D154 native2, D155 actual no preview; D163 no release-dock or added writer. P70 real RawUP, P72 accepted legacyUP, P78 real release/detach/Gone, P80 NormalUp. Ctrl wins at a real docking cursor zone; no copied standalone solver result."
+    },
+    "second_subcase": {
+      "result": "PASS_SCOPED_CURRENT_CANDIDATE",
+      "basis": "Fresh plain g2/P96 follows g1 in same PID6364. D173 same independent magnet oracle; P99 one exact continuous source call. D178 actual nonactivating dock preview rectangle[0,0,1525,1596], alpha100, exact current own-shield hit; D179 held geometry stays magnet result, not early dock. P103 real RawUP/P105 accepted legacy/P111 release/detach/Gone. P113 exactly one separately identified normal_up_dock exact native call to[0,0,1525,1596], P114 NormalUp; D185 continuous1 plus release1, native2."
+    },
+    "third_subcase": {
+      "result": "FAIL_ORIGINAL_CLEANUP_UP_OBSERVATION_NOT_CLOSED",
+      "passed": "P130 real Ctrl g3/two members; P132/133 exact ordinary group delta30,25. D203 actual real Ctrl+Alt+C key chord, not IPC/fake WM_HOTKEY, causes P136 Paused/end4/nonNormal/pending retired. P137 exact generation0 Center call7/operation5 to[1325,648,1725,948]; P138 one command. D209 command_native_calls1/command_rows1/old-generation calls after trigger0/unknown0. P141 actual own release, P143 actual detach, P144 overlay destruction/hotkey unregister/Gone before the unique cleanup UP.",
+      "failure": "D204 is the one planned test LEFTUP (send_before_QPC356128645). P146 observes RawUP flags2/QPC356136518 but it is generation0/source0 after resource retirement. P147 andP148 public status still report the earlier g2 LL callback QPC344451106/callback_count10. Thus abort_cleanup_up_receipt returns matching_abort_cleanup_UP=false; D209 throws. Raw0, async released state and SendInput return cannot be promoted to matching product g3 UP or NormalUp.",
+      "observation_limit": "Current mouse callback has no intended Paused-after-command early return before its UP diagnostic publication; subsequent real GUI DOWN P151 was observed, so this does not establish permanent hook failure. The actual missing LL delivery/callback cause is UNKNOWN. A real post-abort subsequent Move/UP was not reached; final complete third-case PASS is not awarded.",
+      "minimal_next_measurement": "Only around the existing single planned cleanup UP, reuse GuestUpHookObservation to observe one actual tagged guest-hook event, separately retain original product LL/status result. No extra UP or time-extension manufacturing. Then one ordinary fresh gesture from actual centered geometry in the same instance, exact writer/actual NormalUp/resource cleanup, plus exact native client input pairing and no late old-generation calls. Guest-chain observation must never be labelled product UP/window delivery/old-g NormalUp.",
+      "guide_boundary": "Cancellation may end explicitly without requiring all normal Raw/legacy-UP routes; it must demonstrate retired authority, no residual resource/late write and actual following usability. A different scoped oracle requires new actual evidence, not relabelling this original failure."
+    },
+    "cleanup": "Original failure catch restores original config via actual public GUI and closes only own fixtures. P180 actual product shutdown confirms own hooks/native worker/overlay/recovery/resources/capture/association stopped and no unknown issued completion; D307 original driverFAIL/product closed. Dedicated guest cleanup is distinct and not product PASS."
+  },
+  "source_review": {
+    "test_header": "src/platform/windows/product/v1_guest_arbitration_remaining_case.h",
+    "failed_predicate": "cleanup.matched && singleCenter && noLateCalls && actualGone && sourceGUIIdle && exactGeometry",
+    "production_paths": [
+      "product_app.cpp Application::command -> finish(Paused) -> independent generation0 Center",
+      "input_service.cpp mouse actual UP callback counter/publication",
+      "v1_guest_fixture.cpp abort_cleanup_up_receipt -> strict matching_abort_cleanup_up"
+    ]
+  },
+  "package": {
+    "zip_sha256": "103BDFF6D193B1C6A4C0031ACEA8CA963017FC99F6FD7D979B0657924A8975B6",
+    "manifest_sha256": "CFF5D6CD46ECA0FCC96EA86E001E77EB1AE00A587E2EF352B7D00FC291F832F5",
+    "wsb_sha256": "6436ED28DB5BD43527F1408B1F31C807C468C71F1547F81AB10F9C8946F104E6",
+    "receipt_sha256": "2A539A8C5EB0261F177FC15A970F5857C8AF3CE0F0B33075AF2370E3959CDD15"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/9b607f09d88646599ee2c57d4e41f166/cleanup-receipt.json",
+    "sha256": "A4E4B995D0E7669EA0EF87E9EFC8B29D22AFBEF410BC7BEC8E725AE22CC96EBB",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "not_awarded": [
+    "Whole ArbitrationRemainderOnly PASS",
+    "Third cleanup or recovery PASS",
+    "Missing product LL UP",
+    "Old g3 NormalUp",
+    "Whole M04-F03/version PASS",
+    "Human UAT PASS"
+  ]
+}

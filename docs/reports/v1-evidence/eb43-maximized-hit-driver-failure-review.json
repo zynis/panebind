@@ -1,0 +1,111 @@
+{
+  "schema": "panebind.v1.native-failure-review.v1",
+  "evidence_id": "EV-EB43-MAXIMIZED-HIT-DRIVER-PREINPUT-FAILURE",
+  "review_date": "2026-10-22",
+  "run_id": "eb43b45f1df5487f88d196d9b581a8d8",
+  "suite": "RestoreRemainderOnly",
+  "configuration": "Release",
+  "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+  "driver_binary_sha256": "1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A",
+  "packaging_head": "83bb8636090e01287353583e80a005d68e28363a",
+  "zip_sha256": "8880085F9DED82056531278399F7E5F82201119743653790E4ACD0068BC59360",
+  "manifest_sha256": "33A856FC92CA281994712C8397560B5B023ADF44B18F0C2AD5C224057ED9D4DE",
+  "wsb_sha256": "60F3C93D94F9BAAF0749A9E04460159E79087C0D13ECFFAF85D40A5EED096A4A",
+  "raw": {
+    "collection": "uat/v1-control/eb43b45f1df5487f88d196d9b581a8d8/collection-20261021T193302251Z-6c4fcc545bb64819873a29f72421c2e7",
+    "driver_file": "eb43b45f1df5487f88d196d9b581a8d8-release-fixture.jsonl",
+    "driver_rows": 251,
+    "driver_sha256": "3E74D87C456A493CF81AE80955488F66927A805B30A3E4A95FF83BAE13B6BCF7",
+    "product_file": "eb43b45f1df5487f88d196d9b581a8d8-product-Release/panebind.log.jsonl",
+    "product_rows": 98,
+    "product_sha256": "16A5F86838A0AAABF8F3A599CEF938C359BBC8DAC1BF54303F600899407B8D58",
+    "JSONL_all_valid": true,
+    "producer_sequences_contiguous": true,
+    "excerpt": "docs/reports/v1-evidence/eb43-maximized-hit-driver-failure-excerpt.jsonl",
+    "excerpt_sha256": "C92068D85ED1676556DD4FB5B7906D4BF92B12DD0F9D513B08C2550FF70CA35F",
+    "driver_original_sequences": [
+      1,
+      3,
+      138,
+      139,
+      140,
+      141,
+      144,
+      146,
+      147,
+      148,
+      149,
+      228,
+      229,
+      230,
+      231,
+      233,
+      235,
+      236,
+      237,
+      239,
+      246,
+      247,
+      248,
+      250,
+      251
+    ],
+    "product_original_sequences": [
+      3,
+      20,
+      56,
+      94,
+      95,
+      98
+    ],
+    "literal_lines_not_reserialized": true,
+    "excerpt_layout": "Driver literal rows followed by product literal rows; not common native ordering",
+    "raw_unchanged": true
+  },
+  "environment": {
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "fixture_pid": 6300,
+    "source_tid": 6304,
+    "product_pid": 3376,
+    "DPI": 144,
+    "screen": [
+      0,
+      0,
+      3050,
+      1668
+    ]
+  },
+  "assessment": {
+    "result": "FAIL_DRIVER_PREINPUT_COORDINATE_CANDIDATE_NOT_PRODUCT_DRAG_FAILURE",
+    "observed": [
+      "D139/140 exactownedsource197426 originalvisible[200,160,600,460],DPI144.",
+      "D146/P56 actualpublicMaximize action succeeded: visible[0,0,3050,1596],positioning[-11,-11,3061,1607],showCmd3; D147 exactforeground PASS.",
+      "D148 explicit generation0,testDOWNfalse,testUPfalse,actual released state. D228 actualreason test_cursor_outside_virtual_screen; D237/247/251 FAIL retained.",
+      "All98 product rows inspected: native_move_pending/native_move_start/gesture_start/placement count0; P94/95 Idle/nativeclaims0. Thus no actual maximized drag or nativeSnapdragout was executed.",
+      "D239 productquit/exit0,P98 hooks/resources/worker/capture/association stopped; D246 actualpoststopcustomerDOWNUP[0,0]→[1,1]. This cleanup subset does not close failed feature."
+    ],
+    "source_explanation": "Inspected exact83bb→8803 diff of test-only src/platform/windows/product/v1_guest_layout_cases.h. Pre-fix HTCAPTION scan y0=positioning.top+3, so negative candidate region can be scanned while native positioning extends outside physical virtualscreen. cursor(s) retains explicit physical-screen rejection. Raw failure does not log the exact rejected point, so no fabricated coordinate is assigned.",
+    "minimum_fix": "8803d3006352bba925afa34357a2b122233be379 clips TEST candidate search rectangle to actual virtualscreen and checks bounded screen extents; it does not weaken cursor protection or change product. Fix/next runtime result not inferred from this old failed run.",
+    "not_claimed": [
+      "No Windows/system nativeSnap root cause asserted.",
+      "No product fault, actual dragout/restore behavior, NormalUp or new featurePASS inferred from preinput failure.",
+      "NativeSPI flags/shell presence in D141 are read-only facts, not actualShellSnap behavior proof.",
+      "Oldfailure kept unchanged; future driver uses new identity/RunId, never rewrites eb43."
+    ]
+  },
+  "wrapper": {
+    "fixture_exit_code": 1,
+    "forced_test_cleanup": false,
+    "descendants_alive_at_exit": 0,
+    "feature_PASS_inferred_from_exit": false
+  },
+  "executor_cleanup": {
+    "reported_by_root": "exact own guest/task removed after collection; evidence unchanged",
+    "reexecuted_by_reviewer": false
+  },
+  "human_UAT": "NOT_RUN"
+}

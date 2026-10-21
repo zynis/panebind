@@ -1,6 +1,21 @@
 # PaneBind V1 集中交付进展
 
-## 当前实证：固定高度、L角与五个停靠目标（2026-10-22）
+## 当前接续：最大化入口、Lower 与命令仲裁（2026-10-22）
+
+**独立DEV仍37/60、对标19/40＝47.5%，模块0，整版PARTIAL，真人UAT PENDING。** 以下六批均为旧产品11ae／Release `D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574`实际证据；528a普通便携包未改绑新候选，子PASS不自动提升整项或模块。
+
+- [eb43原FAIL](v1-evidence/eb43-maximized-hit-driver-failure-review.json)：实际Maximize完成，但驱动候选命中点在DOWN前被virtualscreen保护拒绝，产品未执行拖动。8803仅修TEST物理搜索范围，不放宽保护。
+- [9197原FAIL](v1-evidence/9197-maximized-consumed-down-failure-review.json)：工具修正后D149真实DOWN、P60最大化事实及consume=true已观察，却未建shield/capture/gesture。生产exact_source无条件IsZoomed拒绝为确认缺陷；失败后的cleanup UP不是该代NormalUp。
+- [4362状态子PASS／Lower FAIL](v1-evidence/4362-state-commands-and-lower-failure-review.json)：同key真实Maximize→Restore、Minimize→ownUI last_target Restore完成；Lower nativeTRUE／完成已知但P38 bottom=false，原整批FAIL保留。D112后来Progman快照不能回填P38或证明全时段前台。
+- [761a Lower事实](v1-evidence/761a-lower-facts-review.json)：有限实际链source→当前GetShellWindow→NULL。实际WINDOWPOS insertAfter是前驱而非调用方HWND_BOTTOM伪句柄；生产raw-Z末端语义及TEST消息分类各有确定缺陷，不等于没发调用或系统原因，原FAIL不变。
+- [dff3单屏命令子PASS](v1-evidence/dff3-command-geometry-review.json)：307→300／247→240下限夹制各一次exact native、两次下限noop零native；DPI144下10DIP＝15px微移跨work边缘再返回，配置与资源实际清理完成。不授托盘、NextDisplay或M09-F03整项。
+- [9b60仲裁原FAIL](v1-evidence/9b60-arbitration-remainder-review.json)：Ctrl在dock区优先组磁吸且无preview／释放dock，以及普通磁吸与dock共存后唯一UP提交，两个子范围通过。真实Ctrl+Alt+C先退休旧代再唯一Center、零旧代迟写与release/detach/Gone已观察；唯一cleanup UP未匹配产品LL，原因UNKNOWN，后继未执行。新guest hook观察不得补成旧代NormalUp。
+
+待现场的新生产候选 `c355967a6e21e93c8f3a142dac30340aaeaa5091`修复最大化入口及Lower有限shell末端判定。root实际D/R构建及input-route／recovery／writer各3/3通过，Debug SHA-256 `1383BAE64629D16E5C9FC6FBA31C07327421C8C0967480D0D6F44A593B575166`，Release `04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C`。**此记录时新产品native NOT_RUN**；构建不等于可试用，旧11ae运行不换绑。TEST `0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074`已实际D/R构建、guest-path各1/1及包装127检查通过，Debug驱动SHA-256 `A01F2877C5DC3FBC67A1991114CE8F9B9E159788DFB0615866CEB0C59350FCDB`、Release `6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20`；共享shield受影响的Explorer flow D/R构建及offline各1/1亦通过。Lower消息分类、仲裁中止后观察及hide/show新key仍待新现场回执，未重跑Fix H。
+
+下一步只做新候选最大化、Lower受影响复验，中止后同实例fresh Move/UP与客户输入恢复，以及hide→实际status减少→show新key；已过close/new等按原身份复用。真实应用、普通完整Medium桌面、托盘、多屏／混合DPI和最终整版链分别缺证，不重开Fix H、独立900秒或无变量Full，不进入REA。各生产者保留自己的sequence／时基，不以JSONL行序声称共同原生时序；原始日志与哈希见上述小review。以下保留历史检查点，其“待跑”不覆盖本节。
+
+## 前一检查点：固定高度、L角与五个停靠目标（2026-10-22）
 
 当前**生产接线60/60，独立DEV通过37/60，对标19/40＝47.5%**；产品11ae／528a便携包字节未改，整版仍PARTIAL、真人UAT PENDING。
 

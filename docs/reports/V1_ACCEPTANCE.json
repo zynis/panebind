@@ -10,6 +10,29 @@
   "source_identity": {
     "runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "next_driver": {
+      "source_sha": "0f4b7133e203c0a40992e0e76eaaa3ae7b6b8074",
+      "candidate_product_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+      "build": "DEBUG_RELEASE_BUILD_AND_GUEST_PATH_1_OF_1_PASS_ROOT_ACTUAL",
+      "debug_sha256": "A01F2877C5DC3FBC67A1991114CE8F9B9E159788DFB0615866CEB0C59350FCDB",
+      "binary_sha256": "6D0082FC031E43E373075EE08F29E266918DF5023FEDFB9F434F4C6E5CE94F20",
+      "packaging_checks": "127_PASS_ROOT_ACTUAL",
+      "native_runtime": "NOT_RUN_AT_RECORDING",
+      "scope": "Test-only Lower message classification, arbitration abort observer/following usability and exact hide/show re-admission remainder; no prior FAIL overwritten",
+      "old_runtime_rebound": false
+    },
+    "pending_product_candidate": {
+      "source_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
+      "debug_build": "PASS_ROOT_ACTUAL",
+      "release_build": "PASS_ROOT_ACTUAL",
+      "debug_sha256": "1383BAE64629D16E5C9FC6FBA31C07327421C8C0967480D0D6F44A593B575166",
+      "release_sha256": "04CB2509430EBFBA84C696AC30918F6DB3229FE6CE99E86B1B8000300ECC8C3C",
+      "offline": "Debug/Release input-route, recovery and writer each3/3 PASS; affected Explorer flow D/R build and offline1/1 each PASS; build/offline only, no new native run",
+      "native_runtime": "NOT_RUN_AT_RECORDING",
+      "repair_scope": "Exact maximized plain consumed-DOWN admission and Lower shell-terminal semantic/source-witness repair",
+      "old_runtime_rebound": false,
+      "portable528a_unchanged": true
+    },
+    "historical_driver83_pre_runtime_checkpoint": {
       "source_sha": "83bb8636090e01287353583e80a005d68e28363a",
       "product_exe_unchanged": true,
       "debug_build": "PASS_ROOT_ACTUAL",
@@ -20,6 +43,20 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_exe_unchanged": true,
+      "release_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+      "run_ids": [
+        "761a7f76b9a445a8bd3c9454fc948891",
+        "dff3c31ce3a546cc980eeaa8f730f10b",
+        "9b607f09d88646599ee2c57d4e41f166"
+      ],
+      "native_guard_validation": "ACTUAL_LOWER_FAIL_COMMAND_GEOMETRY_SCOPED_PASS_ARBITRATION_FAIL",
+      "old_runtime_rebound": false,
+      "whole_version_PASS": false
+    },
+    "historical_driver0c_targeted_pass": {
       "source_sha": "0c244d622f84f7dc7048efb8e9989dc49a93cc8d",
       "product_exe_unchanged": true,
       "debug_sha256": "8600FCCC867CAD8C41B2D697B0926A03601EBC9A5A03D5CE5B9F89476CF538D4",
@@ -36,7 +73,7 @@
     },
     "main_function_runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
-    "pending_runtime_sha": null,
+    "pending_runtime_sha": "c355967a6e21e93c8f3a142dac30340aaeaa5091",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -55,11 +92,11 @@
         "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
         "previous_failed_run_id": "a8a7d84b6a044a04984a5ad061acc65d",
         "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。"
+        "next_action": "复用该11ae Full的已通过子范围与2432普通包实证；新c355仅按最大化/Lower影响定向复验，再补仲裁中止后可继续操作与hide/show新key。真实应用、托盘和显示条件分别推进，不将旧Full失败重绑新候选，也不无变量重跑Full/独立900。"
       },
     "implementation_inspected": "11AE_PRODUCT_DFDD_FULL_BOUNDARIES_FAIL_05F_TEST_DRIVER_0A66_REMAINING_MOVE_SCOPED_PASS",
-    "note": "产品冻结11ae/便携528a不变，当前37/60、19/40=47.5%。f426固定高度实际held消息/几何零native/真实UP结合dfdd上源、0718下源及共用L1闭合M07F02/B10；6243真实L角X夹制520且Y330继续、两次exact及正常UP/退出结合四格/L1闭合M07F04/B11。d8a3五Dock目标实际通过，单屏八方向已齐，但M08F01明文负work-origin未具备仍BLOCKED。三批不同PID/RunId不拼接时序，旧0718FAIL/8ffa应用FAIL等保留。模块/应用/完整Medium/托盘/显示/Full/真人门仍未齐，PARTIAL不REA。",
-    "pending_product_note": "仅工具83bb863新maximized/nativeSnap拖离与remainingcommands入口D/R构建及包装124PASS，现场尚NOT_RUN；产品11ae不重建或换绑。已测0c三批以实际原件记录，不继续列为待跑。a9ee/9e56mousefocus原因UNKNOWN及8ffa真无产品前置FAIL保留，继续真实剩余合同而非重跑旧专项。",
+    "note": "当前独立DEV仍37/60、19/40=47.5%，模块/整版PARTIAL。旧11ae实际新增eb43驱动pre-DOWN失败、9197真实最大化DOWN被consume后未建capture失败、4362状态命令子PASS/Lower FAIL、761a有限source→exactShell→NULL和测试消息分类失败、dff3单屏命令子PASS及9b60前两仲裁子PASS/第三UP观察FAIL。各原RunId/PID/时基保留，不拼接或改绑。c355是新生产修复候选，构建/offline已过但现场NOT_RUN；528a旧普通包仍11ae，不升级为新候选可试用。",
+    "pending_product_note": "新c355修复已确认的最大化capture入口与Lower判定，须新源码/二进制/RunId实测；0f4b仅TEST接线仍待独立构建与现场回执。复用未受影响已闭合范围，不重跑FixH/900/Full。原8ffa应用前置FAIL、a9ee/9e56鼠标focus原因UNKNOWN、普通完整Medium/真实应用/托盘/显示缺口继续分别登记。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1351,7 +1388,7 @@
       "B39",
       "B40"
     ],
-    "note": "实际37/60独立功能，19/40=47.5%。f426加既有上下源/L1闭合M07F02/B10，6243加既有四格/L1闭合M07F04/B11，原35点不重复计。d8a3实际补齐单屏8Dock目标，但明文负work-origin缺口仍阻M08F01，不改分母或模块门。83新工具待现场；整链/应用/普通完整Medium/托盘/显示/真人另判，B33-B40仍0，整版PARTIAL不REA。"
+    "note": "独立DEV仍37/60、19/40=47.5%；本轮六批结果只登记实际子PASS/FAIL，不增加分数。单屏八Dock齐但M08F01负work-origin缺口保留。最大化/Lower旧11ae失败已定位，c355新生产候选现场NOT_RUN；M04F03仲裁第三清理/后继未齐。模块、应用、普通完整Medium、托盘、显示与真人门独立未齐，B33-B40仍0，PARTIAL不REA。"
   },
   "hard_gates": [
     {
@@ -2096,11 +2133,11 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01 seq2017第二成员真实销毁→postverify身份丢失；无第三次调用，幸存成员新Move/接触/Ctrl及UP通过子项。",
+      "observed": "c01 seq2017第二成员真实销毁→postverify身份丢失；无第三次调用，幸存成员新Move/接触/Ctrl及UP通过子项。 c656原212/driverdb114的D208/214/219已实际close→同PID/TID/class新root/newkey4→5→拒旧Undo且零native，按原身份复用；不误标17f5或新11ae现场，也不强逼自然HWNDreuse。",
       "remaining_conditions": [
-        "当前候选多应用create/hide/show/HWND复用和同PID未选窗口零写入仍待完整观察。"
+        "实际hide→产品public status观察eligible减少→show获得新admission key并后继Move/UP仍NOT_RUN；LifecycleRemainderOnly只接此唯一缺口。旧key拒绝L1与自然HWNDreuse实测边界单列，不把整个模块五应用门追加本独立F02。"
       ],
-      "next_action": "在同候选运行生命周期正反及旧token/待写作废，不改历史身份。",
+      "next_action": "用已接线c11543b的hide/show-only候选取得实际status减1、新key和一次fresh MoveUP；不重跑已过c656 close/recreate/拒旧history，不以接线/构建预授PASS。",
       "partial_observation_ids": [
         "PO-C01-NATIVE-FAILURES",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -2113,6 +2150,30 @@
         "observation_ids": [
           "PO-B49-ENVIRONMENT-APPLICATIONS"
         ]
+      },
+      "historical_pre_actual_remainder_review": {
+        "dev_status": "BLOCKED",
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "observed": "c01 seq2017第二成员真实销毁→postverify身份丢失；无第三次调用，幸存成员新Move/接触/Ctrl及UP通过子项。",
+        "remaining_conditions": [
+          "当前候选多应用create/hide/show/HWND复用和同PID未选窗口零写入仍待完整观察。"
+        ],
+        "next_action": "在同候选运行生命周期正反及旧token/待写作废，不改历史身份。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        ],
+        "history_retained": true
+      },
+      "pending_runtime_scope": {
+        "driver_source_sha": "c11543be6d5651f65142b015e77d55ab695c85fc",
+        "suite": "LifecycleRemainderOnly",
+        "runtime": "NOT_RUN",
+        "actual_gestures_planned": 1,
+        "reused_scope": "c656 original212 close/newkey/history preserved"
       }
     },
     {
@@ -3346,7 +3407,9 @@
         "docs/reports/v1-evidence/4da-r12-pause-routing-native-oracle-fixture-selected.jsonl",
         "docs/reports/v1-evidence/4da-r12-readonly-raw-and-pause-native-product-selected.jsonl",
         "docs/reports/v1-evidence/0e81-r12-active-ctrl-pause-resume-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl"
+        "docs/reports/v1-evidence/0e81-r12-pause-retirement-resume-up-product-selected.jsonl",
+        "docs/reports/v1-evidence/9b60-arbitration-remainder-review.json",
+        "docs/reports/v1-evidence/9b60-arbitration-remainder-excerpt.jsonl"
       ],
       "defects": [
         "V1-D27",
@@ -3355,18 +3418,20 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "现有owned Ctrl/普通/Resize、smartDock开关及实际快捷键有子结果。 当前212/4da D213真实Ctrl+Shift native START/队列UP/END与目标正确，product增强START/placement/cancel全0；原FAIL为readonly Raw计数oracle，nextCtrl关系重选未执行。 当前0e81实际Ctrl+Shift native START/队列UP/END、source exact且0active资源/1idleRaw，随后实际分离几何重选新Ctrl group_members1、仅source一次native/旧邻窗0，通过各自scope；活动Ctrl Pause/Resume另完整满足F03，不授M04/M06整feature。",
+      "observed": "现有owned Ctrl/普通/Resize、smartDock开关及实际快捷键有子结果。 当前212/4da D213真实Ctrl+Shift native START/队列UP/END与目标正确，product增强START/placement/cancel全0；原FAIL为readonly Raw计数oracle，nextCtrl关系重选未执行。 当前0e81实际Ctrl+Shift native START/队列UP/END、source exact且0active资源/1idleRaw，随后实际分离几何重选新Ctrl group_members1、仅source一次native/旧邻窗0，通过各自scope；活动Ctrl Pause/Resume另完整满足F03，不授M04/M06整feature。 当前11ae/9b60真实补齐Ctrl在dock触发区的组磁吸、零preview/零释放dock，以及普通磁吸+dock并行候选后唯一UP离散提交。g3真实Ctrl+Alt+C使旧代Paused并退休后仅一次exact Center，零旧代迟到调用且release/detach/Gone真实完成；但唯一cleanup UP未匹配产品LL回执，后继手势未执行，整批FAIL保留。",
       "remaining_conditions": [
-        "当前候选全部优先级/Shift与设置并发组合和五应用范围未齐。"
+        "9b60 g3中止清理UP的产品LL回执未匹配，原因UNKNOWN；实际后继Move/UP与客户输入恢复尚未执行。不同观察通路不能补写旧代NormalUp。",
+        "既有Shift/设置/暂停证据与本次前两仲裁子PASS分别保留原身份；五应用属于模块/整版门，不额外阻塞本独立仲裁合同。"
       ],
-      "next_action": "0e81已实际补齐旧4da oracle对应native bypass及nextCtrl单成员关系重选；不重跑该专项。继续原功能尚缺的其他Ctrl/磁吸/停靠/快捷命令/设置变化仲裁组合，不把这两scope当完整M04或M06功能PASS。",
+      "next_action": "仅在既有单次cleanup UP旁增加测试专用独立实际guest hook观察，保留原产品LL/status结论；随后同实例一次fresh普通Move/UP、客户DOWN/UP及零旧代迟写。新RunId实证前不改9b60原FAIL，不重跑前两已齐子项或历史Full。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-BDAB-OWNED-FULL",
         "PO-B49-CORE-RECOVERY-VISUAL",
         "PO-0F6-R12-DRIVER-DYNAMIC-RUNTIME-LOAD-FAILURE-NO-PRODUCT",
         "PO-4DA-R12-PAUSED-NATIVE-PASSTHROUGH-DRIVER-RAW-ORACLE-FAILURE",
-        "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS"
+        "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+        "PO-9B60-ARBITRATION-REMAINDER"
       ],
       "latest_product_observation": {
         "source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
@@ -3378,21 +3443,40 @@
         ]
       },
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "product_process_id": 3864,
-        "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
-        "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
-        "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
-        "run_id": "0e815641b27b4df4957f09abdc74483a",
-        "configuration": "Release",
-        "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
-        "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
-        "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
-        "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
-        "scope": "Actual CtrlShift native and next Ctrl single-member reselect only",
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+        "run_id": "9b607f09d88646599ee2c57d4e41f166",
+        "evidence_id": "EV-9B60-ARBITRATION-REMAINDER",
+        "runtime_result": "FAIL_WITH_TWO_ARBITRATION_SUBPASSES_AND_ABORTED_COMMAND_SUBSET",
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_actual_remainder_review": {
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "observed": "现有owned Ctrl/普通/Resize、smartDock开关及实际快捷键有子结果。 当前212/4da D213真实Ctrl+Shift native START/队列UP/END与目标正确，product增强START/placement/cancel全0；原FAIL为readonly Raw计数oracle，nextCtrl关系重选未执行。 当前0e81实际Ctrl+Shift native START/队列UP/END、source exact且0active资源/1idleRaw，随后实际分离几何重选新Ctrl group_members1、仅source一次native/旧邻窗0，通过各自scope；活动Ctrl Pause/Resume另完整满足F03，不授M04/M06整feature。",
+        "remaining_conditions": [
+          "当前候选全部优先级/Shift与设置并发组合和五应用范围未齐。"
+        ],
+        "next_action": "0e81已实际补齐旧4da oracle对应native bypass及nextCtrl单成员关系重选；不重跑该专项。继续原功能尚缺的其他Ctrl/磁吸/停靠/快捷命令/设置变化仲裁组合，不把这两scope当完整M04或M06功能PASS。",
+        "latest_runtime_component_observation": {
+          "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+          "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+          "product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+          "product_process_id": 3864,
+          "driver_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+          "driver_implementation_source_sha": "e758223ffad19eceb6bb98fd5d24b14d060eaa7a",
+          "driver_binary_sha256": "B8C3D42593CEACA6755613B18FC37B41CCE559DEFD6D46DEB0EF71605141ECCB",
+          "run_id": "0e815641b27b4df4957f09abdc74483a",
+          "configuration": "Release",
+          "packaging_head": "3819139f8432ce798ef9614565a215de930a2608",
+          "package_zip_sha256": "384961234E6D866883D34BFA6737795E954B4C8BBE0A26580845690DAFDFE6D7",
+          "package_manifest_sha256": "BD283448D2DB3A481DF6E6F0E1B92FF47EC1D7C83CB7960E2D6420550C265AB7",
+          "observation_id": "PO-0E81-R12-ACTIVE-CTRL-PAUSE-NATIVE-RESUME-F03-CONTRACT-PASS",
+          "scope": "Actual CtrlShift native and next Ctrl single-member reselect only",
+          "not_complete_contract_PASS": true
+        }
       }
     },
     {
@@ -5974,11 +6058,12 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01实际拖离恢复原尺寸和原DOWN锚点、停靠后自由移动/重吸附成立。",
+      "observed": "c01实际拖离恢复原尺寸和原DOWN锚点、停靠后自由移动/重吸附成立。 当前11ae/eb43实际Maximize成功，但driver的物理hit候选超屏，在DOWN前拒绝；8803仅clip候选后，9197实际cursor[27,0]/真实DOWN，P58合格caption、P60 Prepared.maximized=true/routeGesture/consume=true，仍未到shield/capture/gesture_start。两次原FAIL分别保留工具前置和生产max admission边界，不拼成已完成拖离。",
       "remaining_conditions": [
-        "当前候选最大化/普通/已停靠三起点及Windows原生Snap共存未齐。"
+        "普通/已产品停靠拖离已有原身份范围；当前最大化起点在真实DOWN后capture前实际失败，root定位exact_source无条件IsZoomed拒绝；bdfb2d3源码修复/离线结果不是新现场PASS。",
+        "Windows原生Snap实际几何前置及其拖离后继链仍未完成；SPI开关或Shell存在不代替原生Snap效果。"
       ],
-      "next_action": "在guest现有系统Snap设置下实测三起点，不改宿主设置。",
+      "next_action": "以绑定新产品源码/EXE的新RunId仅复验最大化真实DOWN→restore/capture→MoveUP及后继，随后按真实前置继续nativeSnap；不复跑eb43坐标错误、不放宽宿主保护，也不将旧11ae运行改绑新EXE。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -5994,12 +6079,38 @@
         ]
       },
       "latest_runtime_component_observation": {
-        "source_sha": "afbca181ea9864eae197677b499cd29472465956",
-        "binary_sha256": "CF3967B5978FF9B50C694CF6E4162B58C89CECC7033481B8A4197C63FCEE159D",
-        "configuration": "Debug",
-        "run_id": "cac60b01c67448f0b383f188b55422b8",
-        "observation_id": "PO-CAC-R5-DEBUG-COMPONENTS-RELEASE-PREPARATION",
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "driver_source_sha": "8803d3006352bba925afa34357a2b122233be379",
+        "run_id": "9197daea5fac444ba876db8238f2fe87",
+        "runtime_result": "FAIL_ACTUAL_CONSUMED_MAXIMIZED_DOWN_BEFORE_CAPTURE",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/eb43-maximized-hit-driver-failure-review.json",
+          "docs/reports/v1-evidence/9197-maximized-consumed-down-failure-review.json"
+        ],
+        "new_product_runtime": "NOT_RUN",
         "not_complete_contract_PASS": true
+      },
+      "historical_pre_actual_remainder_review": {
+        "dev_status": "BLOCKED",
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "observed": "c01实际拖离恢复原尺寸和原DOWN锚点、停靠后自由移动/重吸附成立。",
+        "remaining_conditions": [
+          "当前候选最大化/普通/已停靠三起点及Windows原生Snap共存未齐。"
+        ],
+        "next_action": "在guest现有系统Snap设置下实测三起点，不改宿主设置。",
+        "evidence_paths": [
+          "docs/reports/v1-evidence/index.json",
+          "docs/reports/v1-evidence/c01-release-components.jsonl",
+          "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-components-and-failures-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-resource-and-recovery-product-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-debug-visual-product-selected.jsonl",
+          "docs/reports/v1-evidence/cac-r5-release-settings-foreground-failure-selected.jsonl"
+        ],
+        "history_retained": true
       }
     },
     {
@@ -6663,32 +6774,38 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/b49-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/b49-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/4362-state-commands-and-lower-failure-review.json",
+        "docs/reports/v1-evidence/761a-lower-facts-review.json",
+        "docs/reports/v1-evidence/dff3-command-geometry-review.json"
       ],
       "defects": [],
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
-        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE"
+        "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+        "PO-4362-STATE-COMMAND-SUBPASSES-LOWER-OBSERVATION-FAILURE",
+        "PO-761A-LOWER-SHELL-TERMINAL-FACTS",
+        "PO-DFF3-COMMAND-GEOMETRY"
       ],
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前212/e7现代Terminal Center/DockLeft/Undo/StretchHorizontal/Undo等真实矩形exact；owned两轮微移/调尺寸和改热键命令有实际子范围。 【历史观察保留】c01实际Center/Dock/Undo/Stretch、微移/调高及Terminal命令有子项。",
+      "observed": "当前212/e7现代Terminal Center/DockLeft/Undo/StretchHorizontal/Undo等真实矩形exact；owned两轮微移/调尺寸和改热键命令有实际子范围。 【历史观察保留】c01实际Center/Dock/Undo/Stretch、微移/调高及Terminal命令有子项。 当前11ae/4362在同key真实Maximize→Restore、Minimize→ownUI last_target Restore有状态/几何和唯一命令回执，但Lower失败，后续命令未跑。761a实际有限采样source→exact current GetShellWindow→NULL，native完成已知且返回TRUE；生产raw-Z bottom判定及TEST要求WINDOWPOS.insertAfter=HWND_BOTTOM各有确定口径缺陷，原FAIL保留。dff3另实际通过307→300/247→240下限夹制、下限两次noop零native、DPI144按10DIP=15px的MoveLeft越work边缘再MoveRight回原位及资源退出；只授这些子范围。",
       "remaining_conditions": [
-        "真实托盘菜单与热键同目标一致性仍未齐；相邻显示器选择与DIP尺寸/工作区钳制缺真实双屏。"
+        "Lower的原11ae失败须由新产品候选c355实测复验；4362后读到Progman不倒填P38结果，761a有限链也不冒充全时序或新实现PASS。",
+        "真实托盘菜单与热键同目标一致性仍未齐；相邻显示器选择、跨屏DIP尺寸/工作区钳制缺真实双屏。dff3仅同一显示器微移，不能代替跨屏门。"
       ],
-      "next_action": "保持命令实测；继续可运行Full Release单屏部分，具体菜单/双屏条件齐时补原合同，不把创建显示模型当跨屏PASS。",
+      "next_action": "使用新c355源码/EXE哈希/新RunId只复验Lower受影响语义与实际关闭清理；复用4362状态命令和dff3微移/调尺寸子PASS。托盘与NextDisplay在准确环境具备时补齐，不无变化重跑Full或将旧11ae运行换绑新EXE。",
       "latest_runtime_component_observation": {
-        "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-        "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-        "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
-        "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
-        "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
-        "configuration": "Release",
-        "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
-        "scope": "当前212/e7现代Terminal Center/DockLeft/Undo/StretchHorizontal/Undo等真实矩形exact；owned两轮微移/调尺寸和改热键命令有实际子范围。",
+        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+        "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+        "run_id": "dff3c31ce3a546cc980eeaa8f730f10b",
+        "evidence_id": "EV-DFF3-COMMAND-GEOMETRY",
+        "runtime_result": "PASS_SCOPED_ACTUAL_SINGLE_DISPLAY_COMMANDS",
+        "lower_failure_run_id": "761a7f76b9a445a8bd3c9454fc948891",
         "not_complete_contract_PASS": true
       },
       "latest_product_observation": {
@@ -6699,6 +6816,27 @@
         "observation_ids": [
           "PO-B49-CORE-RECOVERY-VISUAL"
         ]
+      },
+      "historical_pre_actual_remainder_review": {
+        "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
+        "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+        "run_id": "c01ffe67d3004961bd00765312869c8a",
+        "observed": "当前212/e7现代Terminal Center/DockLeft/Undo/StretchHorizontal/Undo等真实矩形exact；owned两轮微移/调尺寸和改热键命令有实际子范围。 【历史观察保留】c01实际Center/Dock/Undo/Stretch、微移/调高及Terminal命令有子项。",
+        "remaining_conditions": [
+          "真实托盘菜单与热键同目标一致性仍未齐；相邻显示器选择与DIP尺寸/工作区钳制缺真实双屏。"
+        ],
+        "next_action": "保持命令实测；继续可运行Full Release单屏部分，具体菜单/双屏条件齐时补原合同，不把创建显示模型当跨屏PASS。",
+        "latest_runtime_component_observation": {
+          "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+          "binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+          "driver_source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
+          "driver_binary_sha256": "C3CE25649F57E500F049B3D94A32E2623B4CAA34347A8AE8E00EB6424F1A637E",
+          "run_id": "e7e07758db0e4a3a9f3f32be28aa0a8c",
+          "configuration": "Release",
+          "observation_id": "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
+          "scope": "当前212/e7现代Terminal Center/DockLeft/Undo/StretchHorizontal/Undo等真实矩形exact；owned两轮微移/调尺寸和改热键命令有实际子范围。",
+          "not_complete_contract_PASS": true
+        }
       }
     },
     {
@@ -15628,6 +15766,96 @@
   ],
   "evidence": [
     {
+      "id": "EV-EB43-MAXIMIZED-HIT-DRIVER-PREINPUT-FAILURE",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "eb43b45f1df5487f88d196d9b581a8d8",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+      "driver_binary_sha256": "1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A",
+      "path": "docs/reports/v1-evidence/eb43-maximized-hit-driver-failure-review.json",
+      "sha256": "418EF2B343D2B7FA43F0F1EA959F9561C28065A0A9BB63E38D9696318F4B7B07",
+      "repository_excerpt_path": "docs/reports/v1-evidence/eb43-maximized-hit-driver-failure-excerpt.jsonl",
+      "repository_excerpt_sha256": "C92068D85ED1676556DD4FB5B7906D4BF92B12DD0F9D513B08C2550FF70CA35F",
+      "result": "FAIL_DRIVER_PREINPUT_COORDINATE_CANDIDATE_NOT_PRODUCT_DRAG_FAILURE",
+      "scope": "实际Maximize完成，但TEST物理候选点在DOWN前越virtualscreen被拒；product无gesture/placement，不授产品拖动失败。8803仅TEST clip，原FAIL保留。"
+    },
+    {
+      "id": "EV-9197-MAXIMIZED-CONSUMED-DOWN-ADMISSION-FAILURE",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "9197daea5fac444ba876db8238f2fe87",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "8803d3006352bba925afa34357a2b122233be379",
+      "driver_binary_sha256": "7475E8233E4DF19E97F7EF0538A82B8107C630DDDE88B8557862102F4BA3E26F",
+      "path": "docs/reports/v1-evidence/9197-maximized-consumed-down-failure-review.json",
+      "sha256": "89635831DB298B965CE7B1BBBCEEB2B2F438431F54E9DE4E47714177A876B729",
+      "repository_excerpt_path": "docs/reports/v1-evidence/9197-maximized-consumed-down-failure-excerpt.jsonl",
+      "repository_excerpt_sha256": "B147325B043DAC8822C93F3524A661326A61558A61CF460ECA9A3A2673F43A75",
+      "result": "FAIL",
+      "scope": "D149真实DOWN/P60 maximized=true且consume=true，未建shield/capture/START；exact_source的IsZoomed拒绝为确定源码缺陷。原11ae FAIL不改绑bdf/c355。"
+    },
+    {
+      "id": "EV-4362-STATE-COMMAND-SUBPASSES-LOWER-OBSERVATION-FAILURE",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "4362493f9c3844af89d5d06a17c1f9ad",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "83bb8636090e01287353583e80a005d68e28363a",
+      "driver_binary_sha256": "1DBB940FBCBC253A965A2719AF45E5B58CD4C493B192AD2A644F5F1EBBC5159A",
+      "path": "docs/reports/v1-evidence/4362-state-commands-and-lower-failure-review.json",
+      "sha256": "15B32FEBF1D94323854D579D8B033C3682115E529DE4F3BF9655D090319642BD",
+      "repository_excerpt_path": "docs/reports/v1-evidence/4362-state-commands-and-lower-failure-excerpt.jsonl",
+      "repository_excerpt_sha256": "E7FA785E6B0E346C3654A009D04843C8A69BEAACADFC72EE9B1D2EEDE4F12352",
+      "result": "BATCH_FAIL_RETAINED_WITH_ACTUAL_MAXIMIZE_RESTORE_MINIMIZE_RESTORE_SUBPASSES",
+      "scope": "真实同key Maximize/Restore、Minimize/ownUI last_target Restore子PASS；Lower nativeTRUE/completionknown但原bottomfalse，整批FAIL。后来Progman快照不倒填P38。"
+    },
+    {
+      "id": "EV-761A-LOWER-SHELL-TERMINAL-FACTS",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "761a7f76b9a445a8bd3c9454fc948891",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+      "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+      "path": "docs/reports/v1-evidence/761a-lower-facts-review.json",
+      "sha256": "DA718316198AEE1CF924BD98506F87764A84D28A96BB6FC6767B9E056D17B405",
+      "repository_excerpt_path": "docs/reports/v1-evidence/761a-lower-facts-excerpt.jsonl",
+      "repository_excerpt_sha256": "554375DA7587C295585EF65AA1714405DCFC0A6D2FD6AAF459677DC486E15F8A",
+      "result": "FAIL",
+      "scope": "有限实际source→exact current GetShellWindow→NULL；TEST把WINDOWPOS实际predecessor误当HWND_BOTTOM，生产raw-Z bottom语义亦待修。原FAIL不变，不宣称全时序或新实现PASS。"
+    },
+    {
+      "id": "EV-DFF3-COMMAND-GEOMETRY",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "dff3c31ce3a546cc980eeaa8f730f10b",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+      "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+      "path": "docs/reports/v1-evidence/dff3-command-geometry-review.json",
+      "sha256": "8FF979D5BEF14FAB2AF3B3CAA9659EAAC213E82A9FA88284B170786EBAAF0C62",
+      "repository_excerpt_path": "docs/reports/v1-evidence/dff3-command-geometry-excerpt.jsonl",
+      "repository_excerpt_sha256": "38B6B061E03FB6405CD25E50B1D80EDD332A46D90FC51E54F1528FBEEF862071",
+      "result": "PASS_SCOPED_ACTUAL_SINGLE_DISPLAY_COMMANDS",
+      "scope": "实际WidthLess307→300、HeightLess247→240各一exact native；下限两noop零native。DPI144步长15px单屏MoveLeft越work边缘后MoveRight返回及资源实际退出。非托盘/跨屏/M09F03整项PASS。"
+    },
+    {
+      "id": "EV-9B60-ARBITRATION-REMAINDER",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "run_id": "9b607f09d88646599ee2c57d4e41f166",
+      "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+      "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+      "path": "docs/reports/v1-evidence/9b60-arbitration-remainder-review.json",
+      "sha256": "773ABFACF4D09A96C5D2095EB07EE0DFDD9C3731E81656C4441F586E23713A27",
+      "repository_excerpt_path": "docs/reports/v1-evidence/9b60-arbitration-remainder-excerpt.jsonl",
+      "repository_excerpt_sha256": "787513CBA889D98D85D008FA1910B76E741509893D6B2C6AFE237D23C28EE758",
+      "result": "FAIL",
+      "scope": "g1 Ctrl真实Dock区优先组磁吸无preview/释放dock、g2普通磁吸+preview后唯一UP exact dock子PASS。g3真实CtrlAltC退休旧代再唯一Center、零迟写及release/detach/Gone；cleanup UP未匹配产品LL且后继未跑，整批FAIL。"
+    },
+    {
       "id": "EV-F426-HORIZONTAL-FIXED-HEIGHT-CONSTRAINT",
       "kind": "ACTUAL_RELEASE_NARROW_REMAINDER_LITERAL_REVIEW",
       "run_id": "f4269123b797416d95e06a06a828b4d5",
@@ -19888,6 +20116,84 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-EB43-MAXIMIZED-HIT-DRIVER-PREINPUT-FAILURE",
+      "status": "FAIL_DRIVER_PREINPUT_COORDINATE_CANDIDATE_NOT_PRODUCT_DRAG_FAILURE",
+      "run_id": "eb43b45f1df5487f88d196d9b581a8d8",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-EB43-MAXIMIZED-HIT-DRIVER-PREINPUT-FAILURE"
+      ],
+      "observed": "实际Maximize完成，但TEST物理候选点在DOWN前越virtualscreen被拒；product无gesture/placement，不授产品拖动失败。8803仅TEST clip，原FAIL保留。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-9197-MAXIMIZED-CONSUMED-DOWN-ADMISSION-FAILURE",
+      "status": "FAIL",
+      "run_id": "9197daea5fac444ba876db8238f2fe87",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-9197-MAXIMIZED-CONSUMED-DOWN-ADMISSION-FAILURE"
+      ],
+      "observed": "D149真实DOWN/P60 maximized=true且consume=true，未建shield/capture/START；exact_source的IsZoomed拒绝为确定源码缺陷。原11ae FAIL不改绑bdf/c355。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-4362-STATE-COMMAND-SUBPASSES-LOWER-OBSERVATION-FAILURE",
+      "status": "BATCH_FAIL_RETAINED_WITH_ACTUAL_MAXIMIZE_RESTORE_MINIMIZE_RESTORE_SUBPASSES",
+      "run_id": "4362493f9c3844af89d5d06a17c1f9ad",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-4362-STATE-COMMAND-SUBPASSES-LOWER-OBSERVATION-FAILURE"
+      ],
+      "observed": "真实同key Maximize/Restore、Minimize/ownUI last_target Restore子PASS；Lower nativeTRUE/completionknown但原bottomfalse，整批FAIL。后来Progman快照不倒填P38。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-761A-LOWER-SHELL-TERMINAL-FACTS",
+      "status": "FAIL",
+      "run_id": "761a7f76b9a445a8bd3c9454fc948891",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-761A-LOWER-SHELL-TERMINAL-FACTS"
+      ],
+      "observed": "有限实际source→exact current GetShellWindow→NULL；TEST把WINDOWPOS实际predecessor误当HWND_BOTTOM，生产raw-Z bottom语义亦待修。原FAIL不变，不宣称全时序或新实现PASS。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-DFF3-COMMAND-GEOMETRY",
+      "status": "PASS_SCOPED_ACTUAL_SINGLE_DISPLAY_COMMANDS",
+      "run_id": "dff3c31ce3a546cc980eeaa8f730f10b",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-DFF3-COMMAND-GEOMETRY"
+      ],
+      "observed": "实际WidthLess307→300、HeightLess247→240各一exact native；下限两noop零native。DPI144步长15px单屏MoveLeft越work边缘后MoveRight返回及资源实际退出。非托盘/跨屏/M09F03整项PASS。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-9B60-ARBITRATION-REMAINDER",
+      "status": "FAIL",
+      "run_id": "9b607f09d88646599ee2c57d4e41f166",
+      "candidate_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+      "candidate_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+      "evidence_ids": [
+        "EV-9B60-ARBITRATION-REMAINDER"
+      ],
+      "observed": "g1 Ctrl真实Dock区优先组磁吸无preview/释放dock、g2普通磁吸+preview后唯一UP exact dock子PASS。g3真实CtrlAltC退休旧代再唯一Center、零迟写及release/detach/Gone；cleanup UP未匹配产品LL且后继未跑，整批FAIL。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-F426-HORIZONTAL-FIXED-HEIGHT-CONSTRAINT",
       "status": "PASS_INDEPENDENT_M07_F02_B10_WITH_EXISTING_UPPER_LOWER_AND_L1",

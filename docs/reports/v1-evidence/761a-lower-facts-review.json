@@ -1,0 +1,230 @@
+{
+  "evidence_id": "EV-761A-LOWER-SHELL-TERMINAL-FACTS",
+  "run_id": "761a7f76b9a445a8bd3c9454fc948891",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_SOURCE_AND_NATIVE_REVIEW",
+  "source_collection": "uat/v1-control/761a7f76b9a445a8bd3c9454fc948891/collection-20261021T200615902Z-2590dda07d0f446680aeaaa76aaa6294",
+  "original_raw_preserved": true,
+  "new_execution_by_review": false,
+  "configuration": "Release",
+  "suite": "LowerFactsOnly",
+  "actual_result": "FAIL",
+  "function_PASS_inferred": false,
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+  "packaging_head": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "package_zip_sha256": "F745B667DE4E9743CA97BACF14B675212A505C2337E152C13C4FF0944FF0BF42",
+  "manifest_sha256": "38144D291402254006990C4F636D47978F226646DDB8D2D2586EBAFD183FD18A",
+  "wsb_sha256": "55A6BC5249FA48F222902FDF11F431DB84E563646D67399DDB1E9ABCD40501FD",
+  "product_PID": 6824,
+  "product_birth_filetime_decimal_string": "134370866440248822",
+  "fixture_PID": 6456,
+  "fixture_owner_TID": 3992,
+  "source_HWND": 197424,
+  "source_product_key": 4,
+  "other_owned_HWND": 131886,
+  "environment": {
+    "os_build": "26100.9711",
+    "DPI": 144,
+    "integrity": "Medium/non-elevated guest per original guards",
+    "monitors": [
+      {
+        "bounds": [
+          0,
+          0,
+          3050,
+          1668
+        ],
+        "work": [
+          0,
+          0,
+          3050,
+          1596
+        ],
+        "primary": true
+      }
+    ],
+    "qpc_frequency": 10000000,
+    "hardware_or_host_app_results_inferred": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/761a7f76b9a445a8bd3c9454fc948891/collection-20261021T200615902Z-2590dda07d0f446680aeaaa76aaa6294/761a7f76b9a445a8bd3c9454fc948891-release-fixture.jsonl",
+      "sha256": "3E62A48F7DE0BCC557B174C07453009E2278FF84B699CC1901C836819AF688CE",
+      "rows": 174,
+      "sequence_first": 1,
+      "sequence_last": 174,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/761a7f76b9a445a8bd3c9454fc948891/collection-20261021T200615902Z-2590dda07d0f446680aeaaa76aaa6294/761a7f76b9a445a8bd3c9454fc948891-product-Release/panebind.log.jsonl",
+      "sha256": "CCC1F3C4A9814308ADDDEE5FD55DEDC2E8855B1B0A5377E4A01A0DA3FC00F84D",
+      "rows": 32,
+      "sequence_first": 1,
+      "sequence_last": 32,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/761a-lower-facts-excerpt.jsonl",
+    "sha256": "554375DA7587C295585EF65AA1714405DCFC0A6D2FD6AAF459677DC486E15F8A",
+    "bytes": 17213,
+    "driver_sequences": [
+      13,
+      18,
+      19,
+      24,
+      63,
+      64,
+      70,
+      77,
+      134,
+      135,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      149,
+      150,
+      151,
+      160,
+      170,
+      174
+    ],
+    "product_sequences": [
+      22,
+      23,
+      24,
+      31,
+      32
+    ],
+    "rows": 30,
+    "policy": "Complete original lines, no JSON reserialization or 64-bit identity conversion. Line-ending normalization only. D and P remain independent producers; intentional sequence gaps."
+  },
+  "actual_facts": {
+    "before_tail": {
+      "source": "D70 source197424, PID6456/TID3992, visible/uncloaked, exact owner0, previous197008/next131704 stable within entry.",
+      "other": "D77 other131886 at index7, same PID/TID/class, visible/uncloaked; confirms a distinct same-process root below source before this Lower.",
+      "limit": "D134 captured 64 rows and stopped with next131094; reached_raw_NULL=false. This is intentionally truncated, not a complete pre-command global Z snapshot."
+    },
+    "single_native_completion": {
+      "receipt": "P22 call_id1/key4 native_attempted=true, native_completion_known=true, native_succeeded=true, raw actual_previous197008/actual_next65792; bottom_observed=false; reason lower_native_completion_requires_zorder_review.",
+      "dispatch": "P24 and D144 exactly one real Lower command/result, no additional Lower attempt. API success and completion do not imply the old semantic acceptance predicate passed.",
+      "timing_qpc": {
+        "driver_before_command": "322114424",
+        "driver_after_command_observation": "323000381"
+      },
+      "geometry": "D144 confirms source and other geometry/positioning unchanged, not an invented placement."
+    },
+    "actual_owned_messages": [
+      {
+        "driver_sequence": 140,
+        "message": "WM_WINDOWPOSCHANGING",
+        "message_number": 70,
+        "source_HWND": 197424,
+        "owner_TID": 3992,
+        "insertAfter": 197008,
+        "flags": 19,
+        "x_y_cx_cy": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "before_DefWindowProc_qpc": "322798229",
+        "after_DefWindowProc_qpc": "322798236",
+        "previous_before_after": 197008,
+        "next_before_after": 131704
+      },
+      {
+        "driver_sequence": 141,
+        "message": "WM_WINDOWPOSCHANGED",
+        "message_number": 71,
+        "source_HWND": 197424,
+        "owner_TID": 3992,
+        "insertAfter": 197008,
+        "flags": 6163,
+        "x_y_cx_cy": [
+          191,
+          180,
+          478,
+          349
+        ],
+        "before_DefWindowProc_qpc": "322805148",
+        "after_DefWindowProc_qpc": "322805167",
+        "previous_before_after": 197008,
+        "next_before_after": 65792
+      }
+    ],
+    "message_limits": "D142 source claimed2/published2, no overflow; D143 other claimed0. The passive recorder copied the original received WINDOWPOS before unchanged default handling and recorded native links afterwards. It did not alter WINDOWPOS, call an alternate placement or write evidence on the window thread. The received insertAfter197008 is an actual predecessor, not HWND_BOTTOM pseudo-handle1. These messages are NOT an interception of the caller's original SetWindowPos arguments.",
+    "post_tail": {
+      "source_entry": "D137 QPC323000391..323000533: source197424 PID6456/TID3992 stable, visible/uncloaked, owner0; previous197008/next65792 both unchanged within the entry.",
+      "shell_entry": "D138 QPC323012049..323012181: HWND65792 PID4920/TID4924 stable, actual classProgman, visible=true, cloak0, owner0, previous197424/nextNULL both stable. The same entry's actual GetShellWindow returns65792, while GetDesktopWindow returns65548.",
+      "summary": "D139 QPC323000383..323050142: exactly source -> actual Shell desktop -> NULL, complete two-row tail, per-entry identity/link reads stable, Shell handle65792 before/after. This is a finite interval observation, not an atomic global snapshot and not a retroactive claim about P22's exact instant. No hidden-window filtering is needed to explain this actual post-tail."
+    },
+    "two_independent_failures": {
+      "product": "Old observe_auxiliary compares raw GW_HWNDNEXT to NULL. Here the source is immediately before the actual terminal Shell desktop, so raw bottom=false despite no other ordinary app in its observed post-tail. The guide's Lower contract is ordinary window placement behind other apps, not authority to move the Shell desktop.",
+      "test": "D150 is the first thrown assertion: it also demanded WM_WINDOWPOS*.hwndInsertAfter==HWND_BOTTOM. D140/141 are complete real messages but contain actual predecessor197008; thus lower_CHANGING/CHANGED counters0 are a mistaken TEST classification, not missing native execution. D144 independently preserves production_semantic_contract_passed=false. The later semantic check was not reached, so do not claim it executed.",
+      "notification": "P23 says subsequent operations await native completion even though P22 already has native_completion_known=true. This is a separate deterministic notice/state mismatch, not evidence of an in-flight call."
+    },
+    "cleanup": "D145 original configuration and binary unchanged; D149 exact fixture roots closed. P32 actual shutdown confirms own hooks, overlay, native worker, recovery, input resource, capture and association stopped; issued_native_completion_unknown=false. D174 driver resultFAIL with product closed and owned windows destroyed. Guest destruction is not used as product cleanup evidence."
+  },
+  "minimal_product_change_recommendation": {
+    "scope": "Change the actual Lower postverification, not the native SetWindowPos(HWNDBOTTOM)/identity/writer authority path.",
+    "accepted_observation": "Keep literal raw-Z-bottom (nextNULL) as one case. Add only a separately named and recorded case for source -> actual current GetShellWindow() -> NULL, requiring matching source/shell back-link, native/live identity and repeated handle/link consistency across this bounded read.",
+    "preserved": "Existing actual native attempt/success/known completion, source Catalog identity/generation, unchanged geometry, non-topmost result and completion-context checks remain mandatory. Retain raw_next/raw_bottom=false as observed; a semantic application-bottom observation is a distinct field/status.",
+    "rejection": "Any extra root below source, hidden or visible, is not silently skipped by this minimal repair. A different/incomplete/unstable Shell handle, unknown identity, changed links or incomplete observation remains rejected/UNKNOWN. ClassProgman, image name or numeric HWND alone must never grant the exception.",
+    "notification": "Separate unknown native completion from a completed call whose semantic Z postcondition was rejected.",
+    "test_repair": "Window-message presence must validate actual exact HWND/owner/messages/flags and preserve received insertAfter; do not require the system-delivered field to equal the caller's pseudo-handle, and do not change raw message data.",
+    "remaining_validation": "No new product source or binary has been run here. Any repaired product requires its own source/hash identity and focused real Lower regression; existing failed run remains FAIL. Ordinary full desktop, real-application matrix, tray, multiple displays, human UAT and whole M09-F03/B24 remain separate."
+  },
+  "official_contracts": [
+    {
+      "title": "SetWindowPos",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos",
+      "scope": "Native HWND_BOTTOM operation and independent native BOOL result; no user-app-only filtering guarantee."
+    },
+    {
+      "title": "GetWindow",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindow",
+      "scope": "Raw next/previous relationship within native Z order, not a list of eligible ordinary applications."
+    },
+    {
+      "title": "GetShellWindow",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getshellwindow",
+      "scope": "Actual Shell desktop handle; NULL when no Shell. Use actual identity, not guessed class/name."
+    },
+    {
+      "title": "Window Features",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/winmsg/window-features",
+      "scope": "Z-order and window-show state are separate; WINDOWPOS messages are native received parameters, not API-call instrumentation."
+    }
+  ],
+  "prior_art_boundary": "Existing pinned AltSnap ActionLower/topmost research and provenance are reused as reference-only; no new pinned source inspection or copied/adapted GPL implementation is claimed.",
+  "cleanup_receipt": {
+    "path": "uat/v1-control/761a7f76b9a445a8bd3c9454fc948891/cleanup-receipt.json",
+    "sha256": "E92CF18AB3D1D8B468380DDC79AC8812E7125B1D1EB8B5FBF67B35ED00336232",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "not_awarded": [
+    "Current product Lower PASS",
+    "M09-F03 PASS",
+    "B24 PASS",
+    "Full/version PASS",
+    "Host trial PASS",
+    "Human UAT PASS"
+  ]
+}

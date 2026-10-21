@@ -1,0 +1,121 @@
+{
+  "evidence_id": "EV-DFF3-COMMAND-GEOMETRY",
+  "run_id": "dff3c31ce3a546cc980eeaa8f730f10b",
+  "kind": "LITERAL_JSONL_SELECTION_WITH_SCOPED_ACTUAL_REVIEW",
+  "source_collection": "uat/v1-control/dff3c31ce3a546cc980eeaa8f730f10b/collection-20261021T201251326Z-3dcfb5a6e3864cbd8afb6c0a9b938bd0",
+  "configuration": "Release",
+  "actual_result": "PASS_SCOPED_ACTUAL_SINGLE_DISPLAY_COMMANDS",
+  "new_execution_by_review": false,
+  "original_raw_preserved": true,
+  "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+  "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
+  "driver_source_sha": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "driver_binary_sha256": "0BED5449611F3FE10AB87F3CDC91F54E470F96B4B2BB8CD5545F8658682D505C",
+  "packaging_head": "46aec0d8ca86038e3ab87220869f005d637f887e",
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/dff3c31ce3a546cc980eeaa8f730f10b/collection-20261021T201251326Z-3dcfb5a6e3864cbd8afb6c0a9b938bd0/dff3c31ce3a546cc980eeaa8f730f10b-release-fixture.jsonl",
+      "sha256": "7B440D8CD4C42D87F36CB82E0B83A6ABD79EF35B7B8CE5C69F7523A37C0EF86E",
+      "rows": 152,
+      "sequence_first": 1,
+      "sequence_last": 152,
+      "sequence_contiguous": true,
+      "producer": "driver"
+    },
+    {
+      "path": "uat/v1-control/dff3c31ce3a546cc980eeaa8f730f10b/collection-20261021T201251326Z-3dcfb5a6e3864cbd8afb6c0a9b938bd0/dff3c31ce3a546cc980eeaa8f730f10b-product-Release/panebind.log.jsonl",
+      "sha256": "3683FADF8C6C445DCB71F2AB0C1D0AE833F0D72D50A8505A69BC3E11CA374BDF",
+      "rows": 60,
+      "sequence_first": 1,
+      "sequence_last": 60,
+      "sequence_contiguous": true,
+      "producer": "product"
+    }
+  ],
+  "literal_selection": {
+    "path": "docs/reports/v1-evidence/dff3-command-geometry-excerpt.jsonl",
+    "driver_sequences": [
+      13,
+      19,
+      24,
+      63,
+      64,
+      80,
+      88,
+      96,
+      104,
+      116,
+      117,
+      125,
+      126,
+      129,
+      130,
+      148,
+      152
+    ],
+    "product_sequences": [
+      25,
+      26,
+      29,
+      30,
+      33,
+      34,
+      37,
+      38,
+      43,
+      44,
+      48,
+      49,
+      60
+    ],
+    "rows": 30,
+    "policy": "Complete original rows, no JSON reserialization or 64-bit identity conversion; newline normalization only. Intentional gaps; D/P are independent producers, not a native total order.",
+    "sha256": "38B6B061E03FB6405CD25E50B1D80EDD332A46D90FC51E54F1528FBEEF862071"
+  },
+  "product_PID": 6452,
+  "product_birth_filetime_decimal_string": "134370871022694556",
+  "environment": {
+    "Medium_non_elevated": "Original exact guest guards retained",
+    "OS_build": "26100.9711",
+    "DPI": 144,
+    "display_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "qpc_frequency": 10000000,
+    "host_or_human_result_inferred": false
+  },
+  "suite": "CommandsGeometryOnly",
+  "source_HWND": 197422,
+  "source_product_key": 4,
+  "actual_scope": {
+    "size_minimum": "Actual fixture visible minimum300x240, DPI144 step10DIP=15px. Starting307x247. D80/P25 WidthLess clamps width to300, actual[200,180,500,427], one real exact native call. D88/P29 HeightLess clamps height to240, actual[200,180,500,420], one real exact native call. Identity/key4 and actual positioning preserved/verified.",
+    "noops": "D96/P33 WidthLess at minimum andD104/P37 HeightLess at minimum each produce one actual command/placement receipt, reason already_exact_no_native_call, native_callsite_claimed=false, native_attempted=false, call_id0, native_succeeded=false as literal default (not a failure of a native API), exact geometry/identity true. Public before/after status counters confirm zero new native claims, not fabricated successful calls.",
+    "work_edge": "D116/P43 actual MoveLeft changes visible[5,150,405,470] ->[-10,150,390,470] by15 physical pixels. D117 actual monitor/DPI check confirms the same single display, partly across its work-area left edge; policy is translation, not an invented work-area clamp. D125/P48 real MoveRight returns[5,150,405,470]. Each command has one real exact native placement; no late correction.",
+    "configuration_and_exit": "D126 original configuration/file and product binary unchanged, D129 exact fixtures closed; P60 real product shutdown confirms hooks/overlay/worker/recovery/resources/capture/association cleanup, no unknown issued completion. D130 scoped componentPASS, D148 suitePASS, D152 driverPASS with own windows/product closed. Not inferred from process exit0 or guest destruction alone.",
+    "not_executed": "Maximize/Minimize/Restore and Lower explicitly NOT_RUN_IN_THIS_SUITE, inherited actual state tests keep their original4362 identity. No tray menu, NextDisplay, second display, mixed DPI, physical display latency, whole M09-F03/B24/B26/version or human UAT PASS."
+  },
+  "package": {
+    "zip_sha256": "9BD4256BD22782EFB0E2599964FE6565BA2478E1919ACD66454664491A2939B5",
+    "manifest_sha256": "8A758BFA0BD45B39E517DED98ABE57AAD55C64A4D8F51B953AF133AAE8C2FDB1",
+    "wsb_sha256": "BD14726F9BB248EAE3EF9D35A07AD2B4D60C32BB1784405B11D2A716840A7735",
+    "receipt_sha256": "D150E66CA8EFFB42ECC10A2282C22F9F81707DDE58F1B0359A3D2959D05EA881"
+  },
+  "cleanup_receipt": {
+    "path": "uat/v1-control/dff3c31ce3a546cc980eeaa8f730f10b/cleanup-receipt.json",
+    "sha256": "E0617090783D0EFAF309580229CF754F82A3D8A07EE8FA62AA2F11A3DADCAAD4",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  }
+}
