@@ -250,7 +250,8 @@
       "actual_evidence_paths": [
         "docs/reports/v1-evidence/f78d-current-42ab-portable-entry-review.json"
       ],
-      "scope": "Current tested42ab driver; prior3c/5211/40a source/run identities retained. Terminal five-phase/Ctrl TEST extension is being implemented separately; no committed source/hash/runtime result is assigned to it."
+      "historical_scope": "Current tested42ab driver; prior3c/5211/40a source/run identities retained. Terminal five-phase/Ctrl TEST extension is being implemented separately; no committed source/hash/runtime result is assigned to it.",
+      "scope": "This object's unchanged42ab driver/hash/run fields bind only the actual f78d ordinary portable-entry observation, not the latest functional driver. Same frozen42ab product EXE later completed Terminal five-phase magnet/two-member Ctrl in e869/4ff6, current eight-direction Resize in dd4a/f06a and fixed-size blackbox in e38/750b. Actual separate identities/hashes/results are authoritative at source_identity.current_functional_runtime and their sealed reviews; no old EXE or driver evidence is rebound."
     },
     "observed_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -287,7 +288,8 @@
       "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "native_runtime": "ACTUAL_F78D_PORTABLE_ENTRY_SETTINGS_TWO_NORMALUP_AND_EXIT",
-      "scope": "Current42ab/d5f5/f78d ordinary entry is actually verified. 744e/af4 Terminal geometry and744e/3d tray/e538 root remain original identities. bb23 complete9file collection confirms bounded shell-ready timeout before client input/product launch; not a product failure. Future Terminal five-phase/Ctrl TEST extension is coding only without source/hash/result."
+      "historical_scope": "Current42ab/d5f5/f78d ordinary entry is actually verified. 744e/af4 Terminal geometry and744e/3d tray/e538 root remain original identities. bb23 complete9file collection confirms bounded shell-ready timeout before client input/product launch; not a product failure. Future Terminal five-phase/Ctrl TEST extension is coding only without source/hash/result.",
+      "scope": "The unchanged product/driver fields above retain the actual42ab/d5f5/f78d ordinary-entry identity. Terminal five-phase magnet/Ctrl is no longer coding-only: frozen42ab/e869/4ff6 actual diagnostic observations and e38/750b fixed-size results are separately sealed and referenced by source_identity.current_functional_runtime. Historical744e/af4/3d/e538 and bb23 ready-timeout/client-zero-input facts remain at their original identities. Tray menu, client semantics and full application/environment gates remain incomplete. Subsequent917240c TEST changes only a new Explorer read-only discriminator, not product42ab; its build does not imply native PASS."
     },
     "observed_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
@@ -538,7 +540,9 @@
     },
     "main_function_runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
-    "pending_runtime_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "historical_pending_runtime_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "pending_runtime_sha": null,
+    "pending_runtime_status": "NO_NEW_PRODUCT_RUNTIME_CURRENT42AB_FROZEN_FUNCTIONAL_RUNS_ARE_4FF6_F06A_750B",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -1083,7 +1087,9 @@
       "ordinary_host_trial_allowed": false,
       "historical_runtime_results_rebound": false,
       "whole_version_and_trial_accepted": false,
-      "next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。"
+      "historical_next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。",
+      "historical_only": true,
+      "next_action": "本对象仅封存11ae/dfdd及2432历史候选，不再表示当前产品或待构建方案，以上原SHA/hash/run不变。当前冻结产品42ab及4ff6/e869、f06a/dd4a、750b/e38实际功能结果以source_identity.current_functional_runtime和各seal为准；继续其明确未齐合同，不重放已关闭专项。917240c仅新Explorer只读TEST观察候选，构建不授现场结果。"
     },
     "latest_local_preflight": {
       "observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
@@ -5134,11 +5140,14 @@
           "Release": "ACTUAL_PASS_2_OF_2",
           "execution_reference": "root actual e869 exec35543 and e38 exec52160 completed exit0; dd4a same selected checks also executed",
           "stdout_archived_separately": false,
+          "stdout_archived": false,
+          "mutable_after_later_CTest": true,
+          "test_binary_hashes_observed_at_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
           "build_logs_are_not_ctest_stdout": true,
-          "retained_Release_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
-          "retained_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
-          "Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
-          "Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
+          "mutable_CTest_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
+          "observed_at_e38_review_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
+          "observed_at_e38_review_Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
+          "observed_at_e38_review_Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
           "reparse_symlink_case": "SKIP_win32_error1314_not_PASS",
           "product_EXE_rebuilt": false
         },
@@ -10707,11 +10716,14 @@
           "Release": "ACTUAL_PASS_2_OF_2",
           "execution_reference": "root actual e869 exec35543 and e38 exec52160 completed exit0; dd4a same selected checks also executed",
           "stdout_archived_separately": false,
+          "stdout_archived": false,
+          "mutable_after_later_CTest": true,
+          "test_binary_hashes_observed_at_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
           "build_logs_are_not_ctest_stdout": true,
-          "retained_Release_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
-          "retained_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
-          "Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
-          "Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
+          "mutable_CTest_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
+          "observed_at_e38_review_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
+          "observed_at_e38_review_Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
+          "observed_at_e38_review_Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
           "reparse_symlink_case": "SKIP_win32_error1314_not_PASS",
           "product_EXE_rebuilt": false
         },
@@ -17540,11 +17552,14 @@
         "Release": "ACTUAL_PASS_2_OF_2",
         "execution_reference": "root actual e869 exec35543 and e38 exec52160 completed exit0; dd4a same selected checks also executed",
         "stdout_archived_separately": false,
+        "stdout_archived": false,
+        "mutable_after_later_CTest": true,
+        "test_binary_hashes_observed_at_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
         "build_logs_are_not_ctest_stdout": true,
-        "retained_Release_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
-        "retained_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
-        "Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
-        "Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
+        "mutable_CTest_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
+        "observed_at_e38_review_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
+        "observed_at_e38_review_Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
+        "observed_at_e38_review_Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
         "reparse_symlink_case": "SKIP_win32_error1314_not_PASS",
         "product_EXE_rebuilt": false
       },
