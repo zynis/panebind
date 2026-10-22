@@ -3390,3 +3390,21 @@ The result remains unknown until actual command receipt; missing nonce is not
 by itself proof of a Terminal initialization or product defect. These changes
 reuse the already documented event/teardown design and do not copy upstream
 implementation code.
+
+### 2026-10-22 — Exact guest shell initialization versus client input
+
+Actual ab827 records a complete three-second nonce wait with an accepted
+context but no command receipt while the product was absent. This does not
+establish whether the Terminal shell initialized. The reviewed official
+[cmd command contract](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)
+defines `/k` execution/retention, `/d` AutoRun suppression and file redirection.
+The narrow TEST contrast uses an independently authored, Run-owned bootstrap
+to write a separate shell-ready value; it never writes the later client nonce.
+Only an actual ready observation within the existing initialization budget
+permits rechecking the unchanged input guards and attempting the original
+single keyboard command. The existing notification owner and nonce deadline
+are retained. File reservation, initialization, API insertion and client
+semantic success remain separate facts; none is pre-awarded PASS. This is
+test preparation, not a product dependency or a change to another application,
+account or security setting. The prior AltSnap/FancyZones research is reused;
+no external implementation or sample code was copied or adapted.

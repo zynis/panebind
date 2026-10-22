@@ -1699,6 +1699,9 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
         'if(file_watch->pending)file_watch.release()','completions>=4',
         'bytes==utf8(nonce)','out.completed=out.exact_nonce_observed&&context()',
         'API_success_alone_is_not_client_semantic_PASS','medium_terminal_client_wait',
+        'read(shell_ready,256)==ready_value+"\r\n"','if(exact)out.shell_ready_observed=true',
+        'out.shell_ready_phase_accepted=ready_wait_accepted&&GetTickCount64()<shell_ready_deadline_tick',
+        'if(!out.shell_ready_phase_accepted)throw','"shell_bootstrap_ready"',
         'actual_initial_budget_ms','last_wait_return','last_context_result',
         'batch_emit_tick_is_not_observation_time')){
         if(-not $Client.Contains($value)){throw ('Client path lost exact input, completion or actual nonce oracle: '+$value)}

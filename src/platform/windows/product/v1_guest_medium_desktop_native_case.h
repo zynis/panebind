@@ -178,6 +178,55 @@ MediumTerminalNativeObservation medium_terminal_native_case(
             ",\"EXE_sha256_pin\":"+quote(exe_pin)+",\"version\":\"1.25.2733.0\",\"actual_exe\":"+quote(utf8(image.wstring()))+
             ",\"prepared\":"+(prepared?"true":"false")+",\"Appx_registration_or_default_terminal_change\":false");
         if(!prepared||!absent("before_launch"))throw std::runtime_error("Terminal_asset_or_true_product_absence_unconfirmed");
+        fs::path bootstrap;
+        if(request.client_input){
+            const auto manifest=read(input/L"manifest.json",256*1024);const auto files=manifest.find("\"files\"");
+            if(files==manifest.npos)throw std::runtime_error("shell_bootstrap_manifest_identity_missing");
+            const std::string_view identity(manifest.data(),files);
+            std::array<wchar_t,128> account{};DWORD account_size=static_cast<DWORD>(account.size());
+            if(portable_field(manifest,"guest_suite")!="MediumDesktopNativeClientOnly"||
+               portable_field(identity,"run_id")!=utf8(run)||portable_field(identity,"driver_source_commit")!=PANEBIND_BUILD_SHA||
+               !GetUserNameW(account.data(),&account_size)||!equal(account.data(),L"WDAGUtilityAccount")||
+               !plain_directory(output)||!active()||!absent("before_shell_bootstrap_CREATE_NEW"))
+                throw std::runtime_error("shell_bootstrap_exact_guest_manifest_source_or_output_required");
+            bootstrap=output/(run+L"-terminal-bootstrap.cmd");const auto ready=output/(run+L"-terminal-shell-ready.txt");
+            std::error_code file_error;const bool script_exists=fs::exists(bootstrap,file_error);
+            if(file_error||script_exists)throw std::runtime_error("shell_bootstrap_existing_script_not_overwritten");
+            const bool ready_exists=fs::exists(ready,file_error);
+            if(file_error||ready_exists)throw std::runtime_error("shell_bootstrap_existing_ready_file_not_overwritten");
+            const auto create_once=[&](const fs::path& path,const std::string& content,bool placeholder){
+                if(!active())throw std::runtime_error("shell_bootstrap_Run_revoked_before_CREATE_NEW");
+                SetLastError(ERROR_SUCCESS);Handle file(CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,
+                    CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
+                const bool opened=file.value&&file.value!=INVALID_HANDLE_VALUE;const DWORD create_error=opened?0:GetLastError();
+                DWORD written{},write_error{},flush_error{},close_error{};bool wrote{},flushed{},closed{};
+                if(opened){
+                    if(!content.empty()){SetLastError(ERROR_SUCCESS);wrote=WriteFile(file.value,content.data(),static_cast<DWORD>(content.size()),&written,nullptr)!=FALSE;
+                        write_error=wrote?0:GetLastError();}
+                    SetLastError(ERROR_SUCCESS);flushed=FlushFileBuffers(file.value)!=FALSE;flush_error=flushed?0:GetLastError();
+                    const auto actual=file.value;file.value=nullptr;SetLastError(ERROR_SUCCESS);closed=CloseHandle(actual)!=FALSE;close_error=closed?0:GetLastError();
+                    if(!closed)out.client_cleanup_known=false;
+                }
+                const bool saved=opened&&(content.empty()||(wrote&&written==content.size()))&&flushed&&closed;
+                out.emit("medium_terminal_shell_bootstrap_file","\"path\":"+quote(utf8(path.wstring()))+
+                    ",\"CreateFile_CREATE_NEW_attempted\":true,\"CreateFile_return\":"+(opened?"true":"false")+
+                    ",\"create_error\":"+std::to_string(create_error)+",\"WriteFile_attempted\":"+(opened&&!content.empty()?"true":"false")+
+                    ",\"WriteFile_return\":"+(opened&&!content.empty()?(wrote?"true":"false"):"null")+
+                    ",\"write_error\":"+(opened&&!content.empty()?std::to_string(write_error):"null")+
+                    ",\"bytes_written\":"+std::to_string(written)+",\"FlushFileBuffers_return\":"+(opened?(flushed?"true":"false"):"null")+
+                    ",\"flush_error\":"+(opened?std::to_string(flush_error):"null")+",\"CloseHandle_return\":"+(opened?(closed?"true":"false"):"null")+
+                    ",\"close_error\":"+(opened?std::to_string(close_error):"null")+",\"empty_ready_reservation_only\":"+(placeholder?"true":"false")+
+                    ",\"shell_ready_observed\":false,\"customer_nonce_written\":false,\"client_input_sent\":false");
+                if(!saved||!regular(path)||fs::file_size(path)!=content.size()||read(path,1024)!=content)
+                    throw std::runtime_error("shell_bootstrap_new_file_write_or_readback_unconfirmed");
+            };
+            const auto body=medium_terminal_shell_bootstrap_text(run);create_once(bootstrap,body,false);create_once(ready,{},true);
+            out.emit("medium_terminal_shell_bootstrap_prepared","\"script\":"+quote(utf8(bootstrap.wstring()))+
+                ",\"script_sha256\":"+quote(hash(bootstrap))+",\"ready_file\":"+quote(utf8(ready.wstring()))+
+                ",\"ready_file_bytes_before_launch\":0,\"driver_source\":"+quote(PANEBIND_BUILD_SHA)+
+                ",\"actual_manifest_sha256\":"+quote(manifest_hash)+",\"manifest_read_only_use\":true,"+
+                "\"empty_placeholder_is_not_READY\":true,\"product_started\":false,\"bootstrap_writes_no_client_nonce\":true");
+        }
         const auto baseline=MediumDesktopWindows::read(created);
         if(!baseline.complete)throw std::runtime_error("new_root_baseline_enumeration_UNKNOWN");
         events.changed=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!events.changed)throw std::runtime_error("own_event_create_failed");
@@ -191,6 +240,7 @@ MediumTerminalNativeObservation medium_terminal_native_case(
         if(!active()||!absent("immediately_before_CreateProcessW"))throw std::runtime_error("context_or_product_absence_lost_before_launch");
         std::wstring command=L"\""+image.wstring()+L"\" --window new new-tab --title \"PaneBind-"+run+
             L"-Terminal\" --suppressApplicationTitle \"C:\\Windows\\System32\\cmd.exe\" /d /q /k";
+        if(request.client_input)command+=L" "+bootstrap.wstring();
         STARTUPINFOW startup{sizeof(startup)};startup.lpDesktop=const_cast<wchar_t*>(full_name.c_str());PROCESS_INFORMATION info{};
         const auto native_begin=GetTickCount64();SetLastError(ERROR_SUCCESS);out.launch_attempted=true;
         out.launched=CreateProcessW(image.c_str(),command.data(),nullptr,nullptr,FALSE,CREATE_NEW_PROCESS_GROUP,nullptr,directory.c_str(),&startup,&info)!=FALSE;
@@ -244,7 +294,7 @@ MediumTerminalNativeObservation medium_terminal_native_case(
             out.client_cleanup_known=false;
             const auto nonce_output=fs::path(L"C:\\PaneBindV1\\Output")/(run+L"-terminal-client.txt");
             const auto client=medium_terminal_client_case(run,created,window,pid,window_tid,process,birth,nonce_output,
-                active,exact_window,input_lease,caller_deadline_tick);
+                active,exact_window,input_lease,caller_deadline_tick,ready_deadline);
             out.client_completed=client.completed;out.client_input_sent=client.input_inserted;
             out.client_cleanup_known=client.cleanup_known;out.client_reason=client.reason;
             out.records.insert(out.records.end(),client.records.begin(),client.records.end());

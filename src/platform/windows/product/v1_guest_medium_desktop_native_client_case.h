@@ -7,10 +7,18 @@
 struct MediumTerminalClientObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool input_attempted{},input_inserted{},mouse_pair_inserted{},focus_observed{};
-    bool command_inserted{},enter_inserted{},exact_nonce_observed{},completed{},cleanup_known{};
+    bool command_inserted{},enter_inserted{},exact_nonce_observed{},completed{},cleanup_known{},shell_ready_observed{},shell_ready_phase_accepted{};
     std::string reason{"not_started"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
+// Both files are CREATE_NEW. The ready file initially remains empty: only
+// cmd's startup script may write the separate exact shell-ready value. This
+// script never creates or satisfies the later keyboard-produced client nonce.
+std::string medium_terminal_shell_bootstrap_text(const std::wstring& run){
+    const auto ready=utf8((fs::path(L"C:\\PaneBindV1\\Output")/(run+L"-terminal-shell-ready.txt")).wstring());
+    return "@echo off\r\nfor %%F in (\""+ready+"\") do if not \"%%~zF\"==\"0\" exit /b 19\r\n>\""+
+        ready+"\" echo PaneBind-terminal-shell-ready-"+utf8(run)+"\r\n";
+}
 struct MediumTerminalClientEvents {HANDLE changed{};DWORD pid{};};
 thread_local MediumTerminalClientEvents* medium_terminal_client_events{};
 void CALLBACK medium_terminal_client_event(HWINEVENTHOOK,DWORD,HWND window,LONG,LONG,DWORD,DWORD){
@@ -91,10 +99,13 @@ MediumTerminalClientObservation medium_terminal_client_case(
     const std::wstring& run,HDESK created,HWND source,DWORD pid,DWORD tid,
     HANDLE held_process,std::uint64_t birth,const fs::path& nonce_output,
     const std::function<bool()>& active,const std::function<bool()>& exact_window,
-    const std::shared_ptr<MediumDesktopUiInputLease>& lease,ULONGLONG deadline_tick){
+    const std::shared_ptr<MediumDesktopUiInputLease>& lease,ULONGLONG deadline_tick,ULONGLONG shell_ready_deadline_tick){
     MediumTerminalClientObservation out;const auto desktop_name=L"PaneBindV1_"+run;
     const auto expected_output=fs::path(L"C:\\PaneBindV1\\Output")/(run+L"-terminal-client.txt");
     const auto nonce=L"PaneBind-terminal-client-"+run;
+    const auto bootstrap=expected_output.parent_path()/(run+L"-terminal-bootstrap.cmd");
+    const auto shell_ready=expected_output.parent_path()/(run+L"-terminal-shell-ready.txt");
+    const auto ready_value="PaneBind-terminal-shell-ready-"+utf8(run);
     fs::path actual_nonce=nonce_output;
     MediumTerminalClientEvents events{nullptr,pid};HWINEVENTHOOK hook{};IVirtualDesktopManager* desktops{};
     MediumTerminalClientResources resources{events,hook,desktops};bool quit_seen{};DWORD session{};
@@ -148,16 +159,20 @@ MediumTerminalClientObservation medium_terminal_client_case(
         DWORD actual_pid{};const auto actual_tid=GetWindowThreadProcessId(gui.hwndFocus,&actual_pid);
         return actual_tid&&actual_pid==pid&&GetAncestor(gui.hwndFocus,GA_ROOT)==source&&GetForegroundWindow()==source;
     };
-    const auto wait_for=[&](const std::function<bool()>& predicate,DWORD cap_ms){
-        const auto began=GetTickCount64();const DWORD budget_ms=remaining(cap_ms);const auto end=began+budget_ms;
+    const auto wait_for=[&](const std::function<bool()>& predicate,DWORD cap_ms,const char* oracle="client_nonce"){
+        const auto began=GetTickCount64();const auto phase_deadline=std::string_view(oracle)=="shell_bootstrap_ready"?
+            (std::min)(shell_ready_deadline_tick,deadline_tick):deadline_tick;
+        const DWORD budget_ms=began<phase_deadline?static_cast<DWORD>((std::min<ULONGLONG>)(remaining(cap_ms),phase_deadline-began)):0;
+        const auto end=began+budget_ms;
         LARGE_INTEGER before{};const bool before_known=QueryPerformanceCounter(&before)!=FALSE;
         DWORD last_wait=WAIT_FAILED,last_error{};unsigned waits{},messages{};
         const auto finish=[&](bool accepted,const char* reason){
             LARGE_INTEGER after{};const bool after_known=QueryPerformanceCounter(&after)!=FALSE;
             out.emit("medium_terminal_client_wait","\"result\":"+std::string(accepted?"true":"false")+
-                ",\"reason\":"+quote(reason)+",\"last_context_result\":"+quote(context_reason)+
+                ",\"oracle\":"+quote(oracle)+",\"reason\":"+quote(reason)+",\"last_context_result\":"+quote(context_reason)+
                 ",\"requested_cap_ms\":"+std::to_string(cap_ms)+",\"actual_initial_budget_ms\":"+std::to_string(budget_ms)+
                 ",\"caller_deadline_tick\":"+std::to_string(deadline_tick)+",\"before_tick\":"+std::to_string(began)+
+                ",\"phase_deadline_tick\":"+std::to_string(phase_deadline)+
                 ",\"after_tick\":"+std::to_string(GetTickCount64())+
                 ",\"before_qpc\":"+(before_known?std::to_string(before.QuadPart):"null")+
                 ",\"after_qpc\":"+(after_known?std::to_string(after.QuadPart):"null")+
@@ -170,7 +185,7 @@ MediumTerminalClientObservation medium_terminal_client_case(
             if(quit_seen)return finish(false,"WM_QUIT_previously_observed");
             if(!context())return finish(false,"context_rejected");
             if(!ResetEvent(events.changed))return finish(false,"observer_event_reset_failed");
-            if(predicate())return finish(true,"actual_exact_nonce");
+            if(predicate())return finish(true,std::string_view(oracle)=="shell_bootstrap_ready"?"actual_exact_shell_ready":"actual_exact_nonce");
             const auto now=GetTickCount64();if(now>=end)return finish(false,"phase_budget_exhausted");
             const bool watch_active=resources.file_watch&&resources.file_watch->pending;
             HANDLE handles[3]{events.changed,held_process,watch_active?resources.file_watch->event:nullptr};
@@ -183,11 +198,12 @@ MediumTerminalClientObservation medium_terminal_client_case(
             if(watch_active&&waited==WAIT_OBJECT_0+2){
                 DWORD bytes{},error{};const bool completed=resources.file_watch->completed(bytes,error);
                 out.emit("medium_terminal_client_file_notification","\"GetOverlappedResult_return\":"+std::string(completed?"true":"false")+
-                    ",\"error\":"+std::to_string(error)+",\"bytes\":"+std::to_string(bytes)+
+                    ",\"oracle\":"+quote(oracle)+",\"error\":"+std::to_string(error)+",\"bytes\":"+std::to_string(bytes)+
                     ",\"native_completions\":"+std::to_string(resources.file_watch->completions)+
                     ",\"file_names_or_other_file_contents_collected\":false");
                 if(!completed)return finish(false,"directory_completion_failed");
-                if(context()&&predicate())return finish(true,"actual_exact_nonce_after_directory_event");
+                if(context()&&predicate())return finish(true,std::string_view(oracle)=="shell_bootstrap_ready"?
+                    "actual_exact_shell_ready_after_directory_event":"actual_exact_nonce_after_directory_event");
                 if(!context())return finish(false,"context_after_directory_event_rejected");
                 if(!resources.file_watch->arm())return finish(false,"directory_rearm_or_completion_limit");
             }
@@ -196,7 +212,9 @@ MediumTerminalClientObservation medium_terminal_client_case(
                     if(message.message==WM_QUIT){quit_seen=true;return finish(false,"actual_WM_QUIT");}
                     ++messages;TranslateMessage(&message);DispatchMessageW(&message);}}
             if(waited==WAIT_TIMEOUT){const bool current=context();const bool exact=current&&predicate();
-                return finish(exact,exact?"actual_exact_nonce_at_wait_timeout":current?"wait_timeout_nonce_not_observed":"context_at_wait_timeout_rejected");}
+                const bool ready=std::string_view(oracle)=="shell_bootstrap_ready";
+                return finish(exact,exact?(ready?"actual_exact_shell_ready_at_wait_timeout":"actual_exact_nonce_at_wait_timeout"):
+                    current?(ready?"wait_timeout_shell_ready_not_observed":"wait_timeout_nonce_not_observed"):"context_at_wait_timeout_rejected");}
         }
     };
     const auto send=[&](INPUT* packets,UINT count,const std::function<bool()>& target,const char* purpose,bool pairs){
@@ -237,6 +255,8 @@ MediumTerminalClientObservation medium_terminal_client_case(
             ",\"exists_before_input\":"+(existed?"true":"false")+",\"existence_query_error\":"+std::to_string(file_error.value())+
             ",\"same_exact_Run_output_path\":true,\"product_started\":false");
         if(existed||file_error)throw std::runtime_error("new_Run_nonce_output_required_existing_file_not_overwritten");
+        if(!portable_plain_file(bootstrap)||read(bootstrap,1024)!=medium_terminal_shell_bootstrap_text(run)||
+            !portable_plain_file(shell_ready))throw std::runtime_error("exact_Run_bootstrap_or_owned_ready_placeholder_unconfirmed");
 
         // Both real GUI observations coexist with foreign-thread desktop
         // UNKNOWN. Owner GTI failure is not converted into "idle/no capture".
@@ -319,6 +339,58 @@ MediumTerminalClientObservation medium_terminal_client_case(
                 ",\"read_error\":"+std::to_string(resources.file_watch->arm_error)+
                 ",\"actual_owned_local_marker_checked\":true,\"earlier_command_sent\":false");
             if(!local_watch)throw std::runtime_error("actual_local_nonce_notification_setup_failed_no_command");
+        }
+        DWORD ready_attributes{INVALID_FILE_ATTRIBUTES},ready_attribute_error{};std::uintmax_t ready_size{};
+        std::error_code ready_size_error;bool ready_read_attempted{};
+        const auto exact_shell_ready=[&]{
+            SetLastError(ERROR_SUCCESS);ready_attributes=GetFileAttributesW(shell_ready.c_str());
+            ready_attribute_error=ready_attributes==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+            if(ready_attributes==INVALID_FILE_ATTRIBUTES||(ready_attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))return false;
+            ready_size_error.clear();ready_size=fs::file_size(shell_ready,ready_size_error);
+            if(ready_size_error||ready_size!=ready_value.size()+2)return false;
+            ready_read_attempted=true;const bool exact=read(shell_ready,256)==ready_value+"\r\n";
+            if(exact)out.shell_ready_observed=true;return exact;
+        };
+        // Reuse the already armed notification owner and its actual four
+        // completion cap, without resetting counts or adding file polling.
+        // No input is sent during this initialization-only precondition.
+        const auto ready_now=GetTickCount64();const DWORD ready_budget=ready_now<shell_ready_deadline_tick?
+            static_cast<DWORD>((std::min<ULONGLONG>)(10000,shell_ready_deadline_tick-ready_now)):0;
+        const bool mapped_directory=product::guest::same_exact_directory(actual_nonce.parent_path(),shell_ready.parent_path());
+        const bool ready_already_exact=exact_shell_ready();
+        const bool ready_notification_scope=mapped_directory||ready_already_exact;
+        const bool ready_wait_attempted=ready_budget&&ready_notification_scope;
+        const bool ready_wait_accepted=ready_wait_attempted&&wait_for(exact_shell_ready,ready_budget,"shell_bootstrap_ready");
+        out.shell_ready_phase_accepted=ready_wait_accepted&&GetTickCount64()<shell_ready_deadline_tick;
+        out.emit("medium_terminal_shell_ready","\"file\":"+quote(utf8(shell_ready.wstring()))+
+            ",\"bootstrap_file\":"+quote(utf8(bootstrap.wstring()))+",\"bootstrap_sha256\":"+quote(hash(bootstrap))+
+            ",\"startup_deadline_tick\":"+std::to_string(shell_ready_deadline_tick)+",\"initial_remaining_budget_ms\":"+std::to_string(ready_budget)+
+            ",\"initial_file_read_exact\":"+(ready_already_exact?"true":"false")+
+            ",\"notification_watch_matches_ready_directory\":"+(mapped_directory?"true":"false")+
+            ",\"notification_scope_or_immediate_exact_read_available\":"+(ready_notification_scope?"true":"false")+
+            ",\"ready_wait_attempted\":"+(ready_wait_attempted?"true":"false")+
+            ",\"initialization_phase_gate_accepted\":"+(out.shell_ready_phase_accepted?"true":"false")+
+            ",\"actual_file_attributes\":"+(ready_attributes==INVALID_FILE_ATTRIBUTES?"null":std::to_string(ready_attributes))+
+            ",\"attribute_error\":"+std::to_string(ready_attribute_error)+",\"actual_size\":"+(ready_attributes==INVALID_FILE_ATTRIBUTES?"null":std::to_string(ready_size))+
+            ",\"size_query_error\":"+std::to_string(ready_size_error.value())+",\"content_read_attempted\":"+(ready_read_attempted?"true":"false")+
+            ",\"actual_exact_ready_observed\":"+(out.shell_ready_observed?"true":"false")+
+            ",\"actual_ready_value\":"+(out.shell_ready_observed?quote(ready_value):"null")+
+            ",\"actual_ready_sha256\":"+(out.shell_ready_observed?quote(hash(shell_ready)):"null")+
+            ",\"client_input_sent\":false,\"customer_nonce_satisfied\":false,\"ready_grants_no_input_or_product_authority\":true");
+        if(!ready_notification_scope)throw std::runtime_error("shell_bootstrap_ready_notification_scope_unavailable_no_client_input");
+        if(!out.shell_ready_phase_accepted)throw std::runtime_error(out.shell_ready_observed?
+            "shell_ready_observed_but_initialization_phase_not_accepted_no_client_input":
+            "shell_bootstrap_ready_not_observed_environment_precondition_no_client_input");
+        // An exact ready completion may have consumed the armed operation.
+        // Restore the SAME owner before the sole keyboard command; retain its
+        // real completion count and existing cap rather than resetting either.
+        if(!resources.file_watch->pending){
+            const bool armed=resources.file_watch->arm();
+            out.emit("medium_terminal_client_watch_after_ready","\"ReadDirectoryChangesW_return\":"+std::string(armed?"true":"false")+
+                ",\"read_error\":"+std::to_string(resources.file_watch->arm_error)+
+                ",\"actual_native_completions_retained\":"+std::to_string(resources.file_watch->completions)+
+                ",\"max_completed_notifications\":4,\"client_input_sent\":false");
+            if(!armed)throw std::runtime_error("shell_ready_observed_nonce_watch_not_armed_no_client_input");
         }
         RECT client{},source_position{};POINT point{};SetLastError(ERROR_SUCCESS);
         const bool source_position_read=GetWindowRect(source,&source_position)!=FALSE;
@@ -480,7 +552,9 @@ MediumTerminalClientObservation medium_terminal_client_case(
         ",\"directory_cancel_completion_wait\":"+(resources.watch_cancel_attempted?std::to_string(resources.watch_cancel_wait):"null")+
         ",\"directory_native_pending_unknown\":"+(resources.watch_pending_unknown?"true":"false")+
         ",\"shared_input_pair_unknown\":"+(lease&&lease->incomplete_pair.load(std::memory_order_acquire)?"true":"false")+
-        ",\"input_subcase\":\"existing_foreground_keyboard_nonce_only\",\"mouse_pair_inserted\":false,\"mouse_client_click\":\"NOT_RUN\",\"mouse_input_sent\":false"+
+        ",\"actual_shell_bootstrap_ready_observed\":"+(out.shell_ready_observed?"true":"false")+
+        ",\"shell_ready_initialization_phase_accepted\":"+(out.shell_ready_phase_accepted?"true":"false")+
+        ",\"input_subcase\":\"shell_bootstrap_then_existing_foreground_keyboard_nonce_only\",\"mouse_pair_inserted\":false,\"mouse_client_click\":\"NOT_RUN\",\"mouse_input_sent\":false"+
         ",\"product_started\":false,\"product_enhancement_result\":\"NOT_RUN\",\"normal_close_owned_by_outer_native_case\":true,"+
         "\"guest_disposal_is_not_cleanup_PASS\":true,\"human_UAT\":\"NOT_RUN\"");
     return out;
