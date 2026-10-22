@@ -1,0 +1,221 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-57F0-NATIVE-SYSTEM-SHAKE-CONTROL-NOT-OBSERVED",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "57f0fee1b47e4ae2b89368d05b2b68be",
+  "suite": "SystemShakeCoexistenceOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_NATIVE_CONTROL_EFFECT_NOT_OBSERVED_PRODUCT_NOT_RUN",
+  "whole_module_or_version_PASS": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "product_started": false,
+    "product_pid": null,
+    "driver_source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "driver_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
+    "packaging_head": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "fixture_pid": 6364,
+    "fixture_tid": 3900,
+    "fixture_birth_filetime_decimal": "134371015827665819",
+    "source_hwnd": 131478,
+    "companion_hwnds": [
+      131140,
+      131126
+    ],
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Disposable Windows Sandbox; actual WinSta0/Default input desktop, WTSActive; Windows26100.9711; one3050x1668/work[0,0,3050,1596], DPI144. Not a complete ordinary Medium Shell or multi-display environment."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/57f0fee1b47e4ae2b89368d05b2b68be/package-receipt.json",
+    "zip_sha256": "B0045268ECE5733DA69107F7F25F94599AE4855300BDB3D03E22D772F239A747",
+    "manifest_sha256": "08296660971EEC24D09AB4DF477BCFFEF4533BA87B58B75A653D0088EA0D07FA",
+    "wsb_sha256": "B2E49E155E972C2356F83B47BF6FFE00D6A76A61DC1585417B8382758D5637FB",
+    "copied_product_EXE_not_evidence_of_execution": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/57f0fee1b47e4ae2b89368d05b2b68be/collection-20261022T001321368Z-04deaa1b387346ebab8e3c0b9c2e92d3/57f0fee1b47e4ae2b89368d05b2b68be-release-fixture.jsonl",
+      "sha256": "C2817D06519A526EF1E89B08C7FEC1079B566C1F0CE11CB10683436BA74B16D0",
+      "lines": 62,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        62
+      ],
+      "case_FAIL_rows": 0,
+      "original_driver_shutdown_result": "FAIL",
+      "original_fixture_exit_code": 1,
+      "original_nonzero_exit_preserved_not_reclassified_as_product_failure": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/57f0-system-shake-native-control-excerpt.jsonl",
+    "sha256": "C0EEF520AD60E473635C9E31F5094DDC72FE9CEEEF9F3154AD28DD379951D41E",
+    "driver_source_lines": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      12,
+      13,
+      17,
+      19,
+      21,
+      22,
+      23,
+      27,
+      32,
+      33,
+      34,
+      36,
+      39,
+      42,
+      45,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62
+    ],
+    "literal_validation": "36 of36 selected lines are exact original UTF-8 source-line strings, including original64-bit integer spellings; no original row was reserialized.",
+    "redaction": "Only task-owned fixed paths/RunId/HWND and process facts selected. No user document/title/window content or raw SID was added."
+  },
+  "facts": [
+    {
+      "driver_lines": [
+        21,
+        22
+      ],
+      "fact": "Before native input, actual bounded process snapshot completed and found no panebind.exe PID; this flow recorded0 product-create requests, product pause was not used. Product-running scope rejects a current product object/PID/window. The collected copied-product directory contains only panebind.exe and portable.flag, no product JSONL."
+    },
+    {
+      "driver_lines": [
+        23
+      ],
+      "fact": "Read-only HKCU NoWindowMinimizingShortcuts policy and DisallowShaking raw preference both returned2(ERROR_FILE_NOT_FOUND), type0, bytes4, known_DWORD=false/value=null. Neither value was actually read as0 or1. Missing does not establish enabled; raw preference is not a Settings UI observation; no setting-write attempt was made. No HKLM or complete policy investigation is claimed."
+    },
+    {
+      "driver_lines": [
+        24,
+        25,
+        26,
+        27,
+        31,
+        32,
+        33,
+        34
+      ],
+      "fact": "Three exact blank original fixture roots were laid out. Source131478 had a real foreground/caption hit at[1503,670]. Exactly one TEST LEFTDOWN SendInput returned1 atQPC299047405..299097657; synthetic send success alone was not treated as delivery. Subsequent real WM_ENTERSIZEMOVE and GUI capture/move-size observations independently establish a native drag."
+    },
+    {
+      "driver_lines": [
+        35,
+        36,
+        38,
+        39,
+        41,
+        42,
+        44,
+        45,
+        47,
+        48
+      ],
+      "fact": "Five actual cursor samples used original DOWN anchor[1503,670] and total offsets[72,-72,72,-72,72], with60ms TEST pacing. Every actual GetCursorPos matched requested points. Each sample observed native START counter delta1, source capture131478 and move-size131478. These START/END counters are source-thread WM_ENTERSIZEMOVE/WM_EXITSIZEMOVE callbacks, not fabricated WinEvent notifications. First sample actual visible[1325,648,1725,948] did not yet equal cursor-intent[1397,648,1797,948]; that actual mismatch remains preserved and was not mislabeled product writer failure."
+    },
+    {
+      "driver_lines": [
+        27,
+        37,
+        40,
+        43,
+        46,
+        49,
+        54
+      ],
+      "fact": "Both exact companions131140/131126 were IsIconic=false and IsWindowVisible=true before DOWN, at every held sample, and after UP. Thus this one bounded native Shake trajectory did not establish actual Windows minimization. Its absence is UNKNOWN capability, not proof that Sandbox/Windows permanently cannot Shake or that policy explicitly disabled it."
+    },
+    {
+      "driver_lines": [
+        50,
+        51,
+        52,
+        53
+      ],
+      "fact": "One passive TEST UP observer was installed only after DOWN. The single planned final send was one serial final absolute MOVE plus one LEFTUP (2 requested/2 inserted); there was no prior standalone-UP retry. Actual observer native514 count1, injected flag1, extraInformation1346524721(0x50425631), entry302911915/CallNext return302911919, final lastQPC302911918 falls inside send interval302905665..302917078; CallNext returned0 and observer Unhook succeeded/error0. Source real WM_EXITSIZEMOVE counter delta1, capture/move-size became0 and async LEFT was released. No product Raw/legacy UP or product NormalUp is claimed; the UP-only observer did not observe the earlier DOWN."
+    },
+    {
+      "driver_lines": [
+        55,
+        56
+      ],
+      "fact": "Both companions were already non-iconic, so native_restore_attempted=false. request_return=true in these setup receipts means no restore was needed, not that ShowWindowAsync was actually called. They are TEST own-window restoration checks, not product cleanup."
+    },
+    {
+      "driver_lines": [
+        57,
+        58,
+        62
+      ],
+      "fact": "Capability BLOCKED_NOT_OBSERVED_UNKNOWN and suite BLOCKED/actual_native_control_available=false/product_result=NOT_RUN were retained. No product startup, product Shake gestures, topmost/alpha toggles, NormalUp, or native/product coexistence test followed. Final driver_shutdown FAIL and fixture exit1 correctly prevent success despite individual native-input checks passing; product_process_closed=null/product_cleanup_result=NOT_APPLICABLE_NOT_STARTED."
+    },
+    {
+      "driver_lines": [
+        59,
+        60,
+        61,
+        62
+      ],
+      "fact": "Own Raw observer RIDEV_REMOVE succeeded/error0 and actual mouse registration was absent; foreground WinEvent Unhook succeeded; reserved/flushed1/1, overflow0; all three owned windows were destroyed. These are the TEST observers/window cleanup facts, not a product cleanup pass."
+    }
+  ],
+  "launch_and_collection": {
+    "launch_path": "uat/v1-control/57f0fee1b47e4ae2b89368d05b2b68be/collection-20261022T001321368Z-04deaa1b387346ebab8e3c0b9c2e92d3/57f0fee1b47e4ae2b89368d05b2b68be-Release-launch.json",
+    "launch_sha256": "C19108C5A05AE5F67428A180CBBF23B4D82E6B94524C30B2B7D030C509051925",
+    "guest_summary_path": "uat/v1-control/57f0fee1b47e4ae2b89368d05b2b68be/collection-20261022T001321368Z-04deaa1b387346ebab8e3c0b9c2e92d3/57f0fee1b47e4ae2b89368d05b2b68be-guest-summary.json",
+    "guest_summary_sha256": "6314919A5E6EE70214E9CAD773B8C32FB04F11B443A7014D41E06AFF3799158C",
+    "actual_status": "FIXTURE_FAILED",
+    "guest_summary_status": "BLOCKED_OR_FAILED",
+    "fixture_started": true,
+    "fixture_exit_code": 1,
+    "feature_result": "NOT_EVALUATED",
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "product_cleanup_pass": false,
+    "collection_output_unchanged": true,
+    "collection_receipt": "uat/v1-control/57f0fee1b47e4ae2b89368d05b2b68be/collection-20261022T001321368Z-04deaa1b387346ebab8e3c0b9c2e92d3/collection-receipt.json"
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/57f0fee1b47e4ae2b89368d05b2b68be/cleanup-receipt.json",
+    "sha256": "B4EDD5074AF26DC6F2ABE1A84398EC42641D875FD3BDDC2D7DDDA114204DCEE7",
+    "exact_owned_guest_pid": 1404,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "note": "Independent TEST observer/source teardown was observed before destroying the own guest; no unstarted product receives cleanup PASS."
+  },
+  "acceptance_boundary": {
+    "M09_F05": "Existing product-only shake evidence remains at its original identity and scope. This run adds only an actual product-absent native-control capability blocker; no product/native coexistence PASS or product failure.",
+    "next_action": "Retain this bounded control; do not repeat unchanged input or alter host/system preferences. Native coexistence needs an isolated desktop where actual native control can first be established or a specifically justified new variable. Continue unrelated V1 work.",
+    "whole_version": "NOT_AWARDED",
+    "human_UAT": "NOT_RUN",
+    "host_trial": "NOT_AUTHORIZED_BY_THIS_RUN"
+  }
+}

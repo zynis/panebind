@@ -1,0 +1,368 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-EFED-PUBLIC-RULES-FULL-PATH-BASENAME-AND-FEATURE-MASK",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "efed7f2c1cfe4f788d8c59f74d5bc7ff",
+  "suite": "RulesPathOnly",
+  "configuration": "Release",
+  "result": "PASS_SCOPED_PUBLIC_APPLICATION_RULES_WITH_EXACT_NEW_TARGETS",
+  "whole_module_or_version_PASS": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "product_pid": 3960,
+    "product_birth_filetime_decimal": "134371017140430832",
+    "driver_source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "driver_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
+    "packaging_head": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "fixture_pid": 4064,
+    "fixture_owner_tid": 6504,
+    "fixture_birth_filetime_decimal": "134371017138429235",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Exact disposable Sandbox/WDAG Medium non-elevated, WinSta0/Default/WTSActive; one3050x1668 work[0,0,3050,1596], DPI144. Not ordinary complete Medium Shell or multi-display acceptance.",
+    "targets": [
+      {
+        "slot": "A",
+        "path": "C:\\PaneBindV1\\Input\\RuleTargets\\A\\panebind-rule-app.exe",
+        "hwnd": 197422,
+        "pid": 6112,
+        "tid": 5892,
+        "birth_filetime_decimal": "134371017153877509",
+        "initial_product_key": 5,
+        "after_path_removal_key": 6,
+        "final_key": 8
+      },
+      {
+        "slot": "B",
+        "path": "C:\\PaneBindV1\\Input\\RuleTargets\\B\\panebind-rule-app.exe",
+        "hwnd": 131882,
+        "pid": 6040,
+        "tid": 6116,
+        "birth_filetime_decimal": "134371017156024021",
+        "initial_product_key": 4,
+        "final_key": 7
+      }
+    ],
+    "same_basename": "panebind-rule-app.exe",
+    "same_class": "PaneBind.V1.RulePathTarget.efed7f2c1cfe4f788d8c59f74d5bc7ff",
+    "same_target_image_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
+    "two_readonly_copies_of_actual_driver_not_third_party_application_matrix": true,
+    "permission_proof": "Child entry requires exact Run/manifest/same parentPID+birth+ownerTID/sameSID/session/Medium/image hash/allowed A-or-B Input path before creating an empty window. Parent repeatedly verifies actual HWND/root/PID/TID/birth/class/image/Medium/session. No product eligibility override or inherited old token is used.",
+    "ordinary_host_child_guard": "Implemented/static-checked; no host runtime or host input performed here."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/efed7f2c1cfe4f788d8c59f74d5bc7ff/package-receipt.json",
+    "zip_sha256": "E8AD193433E5C06470A2601DB4F7A4D489516EEBC9A25BED40D0CAA0B2AA6E5E",
+    "manifest_sha256": "98A99A47B52A4E4EC86B4F8C7FDF25C3DC707C2CA9007F13368532331E4ACBDB",
+    "wsb_sha256": "BC7696D535E14EF9E6867A3115DE4162663FE47F001DA0F2E37169535008680F",
+    "four_exact_Release_Debug_A_B_images": "Bound to corresponding driver hash/size and readonly Input mapping, not copied into the product portable package.",
+    "raw_identity_not_rebound_to_newer_tools": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/collection-20261022T001535827Z-ca4694526e664cc3bd56297f703c128a/efed7f2c1cfe4f788d8c59f74d5bc7ff-release-fixture.jsonl",
+      "sha256": "E9D0415663267B487C89760377C595B1CC701DFE1BC653912BA912325124BD9C",
+      "lines": 352,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        352
+      ],
+      "driver_source_matches_all_rows": true
+    },
+    {
+      "path": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/collection-20261022T001535827Z-ca4694526e664cc3bd56297f703c128a/efed7f2c1cfe4f788d8c59f74d5bc7ff-product-Release/panebind.log.jsonl",
+      "sha256": "CB1EE2118F166CA4573726CA8D9508A78D11EFAB8E5978ABBB9C97E07FE8CEB4",
+      "lines": 128,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        128
+      ],
+      "single_product_pid": 3960,
+      "actual_native_placements": 6
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/efed-public-rules-path-excerpt.jsonl",
+    "sha256": "1DDB9ABA1A66A095615A271F8CE5169B7B110626034455D44B6EC47370A441CD",
+    "driver_source_lines": [
+      3,
+      4,
+      5,
+      7,
+      13,
+      17,
+      19,
+      24,
+      25,
+      26,
+      27,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      79,
+      85,
+      91,
+      109,
+      111,
+      112,
+      113,
+      117,
+      124,
+      125,
+      133,
+      139,
+      145,
+      173,
+      185,
+      208,
+      213,
+      221,
+      231,
+      254,
+      259,
+      269,
+      275,
+      281,
+      309,
+      315,
+      321,
+      324,
+      327,
+      328,
+      329,
+      330,
+      334,
+      338,
+      340,
+      347,
+      348,
+      349,
+      350,
+      351,
+      352
+    ],
+    "product_source_lines": [
+      3,
+      43,
+      45,
+      76,
+      78,
+      82,
+      84,
+      97,
+      99,
+      126,
+      127,
+      128
+    ],
+    "literal_validation": "70 of70 exact original UTF-8 lines; original64-bit integer tokens retained. Ten command-case embedded receipt/placement/status strings were additionally compared exactly with original product raw lines, not reconstructed receipts.",
+    "ordering": "Driver excerpt first, selected product lines second. This file is not a merged Raw/WinEvent/native chronological stream.",
+    "redaction": "Only task-owned fixed paths/classes/process/window facts and public product notices were selected; no user content/title/raw SID."
+  },
+  "facts": [
+    {
+      "driver_lines": [
+        62,
+        63,
+        64,
+        65,
+        66
+      ],
+      "fact": "A/B were actually created as separate live Medium child processes and one exact empty root each. They have the same basename/class/hash but different full image paths and PID/TID/birth/HWND. Class/name/hash equality is not treated as path or operation authority."
+    },
+    {
+      "driver_lines": [
+        67,
+        79,
+        85,
+        91
+      ],
+      "product_lines": [
+        29,
+        31,
+        32
+      ],
+      "fact": "Independent source geometry A visible[-31,150,411,481]/positioning[-40,150,420,490] was actually negative before a real public Center command. Current product preparation identified root197422/hit197422/PID6112/key5/HTCAPTION and positioning[-40,150,420,490]; one real native call2 exact completed visible[1304,632,1746,963]. B remained unchanged. This is only a same-monitor signed negative SOURCE/frame-bridge subset, not negative work-area origin, negative destination, mixed DPI or multi-display proof."
+    },
+    {
+      "driver_lines": [
+        109,
+        111,
+        112,
+        113,
+        117,
+        124,
+        125
+      ],
+      "fact": "With A actual foreground/last admitted target, the real production rules page had optional class filter unchecked; exact public button115 received one real mouse DOWN/UP, actual success modal text was observed/dismissed, and actual GUI Save closed. Read-back equaled baseline configuration plus only A's full image path exclusion, empty class, excluded=true, all feature bits. Automated driver confirmation is not human consent/UAT; no HWND was entered and no settings file was written directly."
+    },
+    {
+      "driver_lines": [
+        133
+      ],
+      "product_lines": [
+        43,
+        45
+      ],
+      "fact": "A's real product preparation rejected actual root197422 as application_excluded; the public Center command was rejected for expected key5. Placement count and global native-call increment were0; A and B actual visible/positioning geometries both stayed unchanged. An accidental fallback write to B cannot satisfy this test."
+    },
+    {
+      "driver_lines": [
+        139,
+        145
+      ],
+      "product_lines": [
+        50,
+        52,
+        53
+      ],
+      "fact": "While the full-path A rule remained in effect, same-basename B actual root131882/PID6040/key4 was prepared and its public MoveRight produced exactly one native call3 with expected and actual[1319,632,1761,963],15 physical pixels for10DIP at144DPI; command and placement keys match B. A visible/positioning remained unchanged. This proves the full-path rule is not process-basename-wide."
+    },
+    {
+      "driver_lines": [
+        173,
+        185
+      ],
+      "product_lines": [
+        64,
+        66,
+        67
+      ],
+      "fact": "Removing only rules through the public multiline editor/Save restored A's operation without recreating either window or restarting the product. A new actual Catalog key6 was admitted and one exact native call4 moved it15px; B stayed unchanged. Catalog key persistence was not assumed across policy invalidation."
+    },
+    {
+      "driver_lines": [
+        208,
+        213,
+        221,
+        231
+      ],
+      "product_lines": [
+        76,
+        78,
+        82,
+        84
+      ],
+      "fact": "A public GUI-edited basename exclusion panebind-rule-app.exe was applied. Both actual foreground roots A197422 and B131882 separately produced application_excluded preparation observations. Each command attempt produced no placement/global native increment and left both windows' visible/positioning unchanged. Both command_rejected receipts retain expected_key6 (last admitted A fallback); they are NOT falsely claimed as two distinct fresh command-source keys. Distinct root qualification observations plus both-window/global-zero checks establish basename scope safely."
+    },
+    {
+      "driver_lines": [
+        254,
+        259,
+        269,
+        275,
+        281
+      ],
+      "product_lines": [
+        97,
+        99,
+        103,
+        105,
+        106
+      ],
+      "fact": "A public full-path, nonexcluded rule clearing only command feature bit16 was saved/read back. Actual A root197422/PID6112/key8 was still eligible but a MoveRight produced the real Chinese notice '应用规则禁用了窗口命令。', zero placements/global native increment and no A/B geometry change. B actual key7 still executed one exact MoveLeft native call5, restoring[1304,632,1746,963], A unchanged. This is a real per-app command-feature contrast, not merely a parser/helper test or a claim that every feature bit was independently exercised."
+    },
+    {
+      "driver_lines": [
+        309,
+        315,
+        321,
+        324,
+        327,
+        328,
+        329,
+        330
+      ],
+      "product_lines": [
+        117,
+        119,
+        120
+      ],
+      "fact": "Final public rule removal restored original configuration/rules and actual A key8 completed native call6 exact[1334,632,1776,963], B unchanged. Both exact children received normal WM_CLOSE, process handles were actually signaled and exit codes0 with forced_termination=false. Parent-exit/timeout cleanup exists but was not induced or inferred from successful normal closure."
+    },
+    {
+      "driver_lines": [
+        334,
+        338,
+        340,
+        347,
+        348,
+        349,
+        350,
+        351,
+        352
+      ],
+      "product_lines": [
+        124,
+        125,
+        126,
+        128
+      ],
+      "fact": "Same product3960 remained healthy/idle with6 actual operations/native claims and no pending handoff/native/visual state. Public Quit was actually observed, exit0 and real shutdown reported own hooks/overlay/native worker/input capture/association/visual resources stopped, unknown issued completion=false. Diagnostic queue dropped0/wake_failures0. The surviving original empty fixture received an actual client DOWN/UP0,0→1,1 after product exit. Own Raw observer removal and foreground unhook succeeded; overflow0; original fixture roots destroyed. No guest destruction is used as a product cleanup substitute."
+    }
+  ],
+  "inherited_scope": [
+    {
+      "path": "docs/reports/v1-evidence/034-r12-owned-rule-target-fixture-selected.jsonl",
+      "sha256": "BDED4D2A330EB69DB91C6B53591110A3E8FF4391B1E0C4AEE4B0F1885E2B336E",
+      "original_run": "034acef4344d47f6b7cac78fc122ad41",
+      "original_product_source": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "original_product_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "original_driver_source": "4e30fcd38c00294e97fc1b238cac513deaa9815e",
+      "scope": "Original D91/103/105/109/115/119 real Add Current App with optional class checked; exact executable+target alias exclusion; D122 target remains visible/unchanged while source Stretch skips it; D148/149/152 remove rule and restore target effect without recreating windows. Preserved at original identity, not rerun/rebound.",
+      "reviewed_production_reuse": "git show212 versus current4f7 source: complete bool rules_allow(...) function and SettingsWindow::add_current_rule() bodies are byte-for-byte equal after CRLF/LF normalization. This narrow equality is not a claim that all product/input code is unchanged."
+    },
+    {
+      "path": "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
+      "sha256": "F175B6A905A40C89DE0AA35E8003BAB7C325A704B922D8574171BA0B4521ADBD",
+      "original_run": "2c8dfd707f414d5394913c5f52a8c997",
+      "original_product_source_prefix": "11ae76a",
+      "scope": "Original active Ctrl retirement→public settings→exact path/class exclusion saved atD256/257; next fresh group source-only writes, removed rule restores group. Used only at its original recorded identity; no module/apps/version upgrade."
+    }
+  ],
+  "launch_and_collection": {
+    "guest_summary_path": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/collection-20261022T001535827Z-ca4694526e664cc3bd56297f703c128a/efed7f2c1cfe4f788d8c59f74d5bc7ff-guest-summary.json",
+    "guest_summary_sha256": "7F269D641DE0EB716AD4DBA3627C50392E1ADD3D5912D88D52AE445B709A31D3",
+    "launch_path": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/collection-20261022T001535827Z-ca4694526e664cc3bd56297f703c128a/efed7f2c1cfe4f788d8c59f74d5bc7ff-Release-launch.json",
+    "launch_sha256": "83D45E2A5A9F1E3007BC7F931E3E1AD7C7C5D6B52C6F489F5D6EA216C8CF31F6",
+    "original_guest_status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "collection_receipt": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/collection-20261022T001535827Z-ca4694526e664cc3bd56297f703c128a/collection-receipt.json",
+    "collection_output_unchanged": true
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/efed7f2c1cfe4f788d8c59f74d5bc7ff/cleanup-receipt.json",
+    "sha256": "FE52DEB1F1B5DEA89A8B5064FCF74F94A5655FBA666425E36F394AA9C5DB5AE3",
+    "owned_guest_pid": 21436,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "M11_F04": "Independent DEV contract can PASS using current4f7 actual public fullpath/name/feature-mask/recovery evidence plus explicitly inherited optional-class/target and active-group rule evidence. No extra five-application module gate is imposed on this independent feature.",
+    "not_awarded": [
+      "M02 five-real-application matrix",
+      "whole M11 module",
+      "B28 whole settings capability",
+      "I07 complete config/corruption chain",
+      "whole Release integration",
+      "multi-display or mixed-DPI",
+      "human UAT"
+    ],
+    "gesture_scope": "The new rules contrast uses actual public discrete commands and real GUI input, not new Move/Resize gesture NormalUp proof. Existing rule/group/stretch observations retain their original identities.",
+    "human_UAT": "NOT_RUN",
+    "whole_version": "NOT_AWARDED"
+  }
+}

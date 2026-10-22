@@ -1,0 +1,259 @@
+{
+  "schema": "panebind.v1.independent-native-review.v1",
+  "evidence_id": "EV-8D8A-HC-UI-SUBSET-AND-SCHEME-RESTORE-MISMATCH",
+  "review_date": "2026-10-22",
+  "run_id": "8d8a505f787f41f782e1b0fb2777dbaa",
+  "suite": "HighContrastOnly",
+  "configuration": "Release",
+  "actual_result": "FAIL_ORIGINAL_SCHEME_NAME_NOT_RESTORED_WITH_SCOPED_UI_AND_FINAL_FREE_OBSERVED",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+  "product_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+  "driver_source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+  "driver_binary_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
+  "packaging_head": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+  "package_zip_sha256": "BED30348A533AFB48CD19BC698AD67E505B92FAE613224A1546EB1CE07C58C09",
+  "input_manifest_sha256": "0A9AB76E915B708FDA902C925426350A597B7DB17E6D52CDDA0058D3104A84C6",
+  "fixture_PID": 6328,
+  "fixture_birth_filetime_decimal_string": "134371014140194179",
+  "product_PID": 3976,
+  "product_birth_filetime_decimal_string": "134371014142364173",
+  "settings_HWND": 131878,
+  "settings_TID": 3960,
+  "identity_precision": "D17/D24 decimal FILETIME strings are literal, not floating-point identities. Original JSONL copied unchanged.",
+  "environment": {
+    "integrity": "Medium/non-elevated",
+    "desktop": "dedicated disposable Sandbox interactive Default; no host input or system mutation by this review",
+    "actual_DPI": 144,
+    "actual_scale_percent": 150,
+    "forced_200_percent_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN"
+  },
+  "original_files": [
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-release-fixture.jsonl",
+      "bytes": 77100,
+      "sha256": "742A856198F479B54FC0472311BF882BFAECA02D946224EC28FF4F6857426B49"
+    },
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-product-Release/panebind.log.jsonl",
+      "bytes": 27094,
+      "sha256": "99BC3FB958CF7CE13B449664A0BCDD0958AF5B2E66483C104EA42F3F3A8FE215"
+    },
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-guest-summary.json",
+      "bytes": 20857,
+      "sha256": "6947CC91ED2A62AA3777D1B6DA88EF5F2209C253E44B8D31B05E84D951A7FFFF"
+    },
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-launch.json",
+      "bytes": 9876,
+      "sha256": "13BF62B6F0A785F1077C2CEDAF7D11F0FAF89DAD36EAE73E48D95DA1278C9138"
+    },
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-0.bmp",
+      "bytes": 5119254,
+      "sha256": "616EECC0D1855D1B7546EEDD2A4040C92C06DC3DBD3A24E82CE68A0962D4FDA3"
+    },
+    {
+      "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-3.bmp",
+      "bytes": 5119254,
+      "sha256": "857DCCEC66A4FAF932D53EAA2DC8A00E99D510A2F4D26857E1F98D39344890CE"
+    },
+    {
+      "path": "uat/v1-sandbox/8d8a505f787f41f782e1b0fb2777dbaa/input/manifest.json",
+      "bytes": 19465,
+      "sha256": "0A9AB76E915B708FDA902C925426350A597B7DB17E6D52CDDA0058D3104A84C6"
+    },
+    {
+      "path": "uat/v1-sandbox/8d8a505f787f41f782e1b0fb2777dbaa/8d8a505f787f41f782e1b0fb2777dbaa.zip",
+      "bytes": 5271680,
+      "sha256": "BED30348A533AFB48CD19BC698AD67E505B92FAE613224A1546EB1CE07C58C09"
+    }
+  ],
+  "raw_audit": {
+    "driver_count": 142,
+    "product_count": 32,
+    "driver_contiguous": true,
+    "product_contiguous": true,
+    "all_lines_valid_JSON": true,
+    "driver_shutdown": "D142 actual FAIL with owned windows destroyed/product process closed",
+    "product_shutdown": "P32 actual resource/worker/visual stop facts true",
+    "driver_case_FAIL": "D118 high_contrast_original_system_state_restored",
+    "heap_corruption_status_exit_observed": false
+  },
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/8d8a-HC-UI-and-scheme-restore-excerpt.jsonl",
+    "sha256": "9746B45067CAC2F0E4DB83BBA674E49E7718D7265F1A971D698287ACE4E1FE13",
+    "literal_rows": 31,
+    "driver_sequences": [
+      13,
+      17,
+      24,
+      65,
+      66,
+      67,
+      68,
+      72,
+      75,
+      83,
+      84,
+      92,
+      93,
+      98,
+      107,
+      108,
+      109,
+      110,
+      112,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      128,
+      138,
+      142
+    ],
+    "product_sequences": [
+      3,
+      30,
+      32
+    ],
+    "not_combined_native_timeline": true
+  },
+  "observations": {
+    "original": {
+      "source": "D65",
+      "GET_return": true,
+      "flags": 126,
+      "HC_ON": false,
+      "scheme": "",
+      "palette": [
+        16777215,
+        0,
+        15790320,
+        0,
+        14811135,
+        0
+      ],
+      "pointer": 2883150105248,
+      "retained_pending": true,
+      "freed": false
+    },
+    "enable": {
+      "source": "D66..D68/D72/D75",
+      "native_SET_return": true,
+      "native_error": 0,
+      "requested_flags": 127,
+      "SET_caller_pointer": 724101491000,
+      "actual_GET_flags": 127,
+      "actual_HC_ON": true,
+      "actual_GET_scheme": "",
+      "actual_GET_pointer": 2883150105248,
+      "caller_alias": false,
+      "same_pointer_already_retained_not_retired": true,
+      "palette_changed_at_first_POST_SET_GET": false
+    },
+    "keyboard_UI_subset": {
+      "verdict": "PASS_SCOPED_ACTUAL_MODE_BIT_PUBLIC_GUI_KEYBOARD_AND_INSPECTED_CONTENT",
+      "general_page": "D83 exact keyboard-focus HWND131864, WM_QUERYUISTATE0/no hidden focus; D84 actual settings-region BMP",
+      "shortcuts_page": "D92 exact focus/caret HWND131750 with valid caret rectangle, WM_QUERYUISTATE0; D93 actual BMP",
+      "configuration": "D98 real Enter keeps logical settings equal; D107 real Esc closes without file write; D108 actual EXE unchanged",
+      "image_review": {
+        "method": "Independent assistant view_image of both retained original BMPs, not window-creation inference and not human UAT",
+        "original_driver_visual_review_NOT_RUN_preserved": true,
+        "page0": {
+          "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-0.bmp",
+          "sha256": "616EECC0D1855D1B7546EEDD2A4040C92C06DC3DBD3A24E82CE68A0962D4FDA3",
+          "width": 1185,
+          "height": 1080,
+          "observation": "Dark settings content with legible white Chinese tabs, labels, footer/buttons and checkbox. Dotted focus rectangle visible around enabled checkbox. No observed clipping of these sampled content controls. The dark native title-bar area in this first snapshot is not sufficient to award all native-caption/title readability."
+        },
+        "page3": {
+          "path": "uat/v1-control/8d8a505f787f41f782e1b0fb2777dbaa/collection-20261022T001030691Z-94c06f959967472d999888c27b60c8ad/8d8a505f787f41f782e1b0fb2777dbaa-Release-settings-page-3.bmp",
+          "sha256": "857DCCEC66A4FAF932D53EAA2DC8A00E99D510A2F4D26857E1F98D39344890CE",
+          "width": 1185,
+          "height": 1080,
+          "observation": "Yellow active caption, white native/control outlines and legible Chinese mapping help. Focused hotkey edit has cyan text selection with dark readable text. Visible main fields and buttons fit the captured region. Caret ownership is independently observed by D92; one screenshot does not measure blinking."
+        }
+      },
+      "limits": "Only public pages0/3 and sampled controls are checked; not all pages, real200%DPI, reduced-motion behavior, wholeM10-F05 or ordinary-host compatibility."
+    },
+    "restore_API": {
+      "source": "D109/D110",
+      "native_SET_attempted": true,
+      "native_SET_return": true,
+      "native_error": 0,
+      "requested_original_flags": 126,
+      "caller_pointer": 724101491000,
+      "caller_storage_still_exact": true,
+      "API_failure_proven": false
+    },
+    "restore_readback": {
+      "source": "D112/D114/D117",
+      "bounded_wait_ms": 1000,
+      "actual_GET_return": true,
+      "actual_GET_error": 0,
+      "flags_equal": true,
+      "actual_flags": 126,
+      "HC_OFF_again": true,
+      "palette_equal": true,
+      "actual_palette": [
+        16777215,
+        0,
+        15790320,
+        0,
+        14811135,
+        0
+      ],
+      "original_scheme": "",
+      "actual_scheme": "高对比黑色",
+      "scheme_equal": false,
+      "exact_original_flags_scheme_colors": false,
+      "mismatch": "The final copied scheme name differs. Empty original scheme vs nonempty later native name is the sole serialized value mismatch, not an inferred SET failure, writer failure or LocalFree failure."
+    },
+    "final_buffer_release": {
+      "source": "D115/D116/D117",
+      "distinct_retained_system_pointers": 1,
+      "pointer": 2883150105248,
+      "actual_LocalFree_attempts": 1,
+      "actual_LocalFree_return_pointer": 0,
+      "actual_error": 0,
+      "allocation_freed": true,
+      "ownership_contract_complete": true,
+      "all_distinct_buffers_freed": true,
+      "no_earlier_free_while_retained": true,
+      "borrowed_caller_pointer_freed": false,
+      "result": "PASS_SCOPED_THIS_RETAINED_BUFFER_RELEASE; does not erase old aa2e/34f1 heap exits or establish their full root cause."
+    },
+    "process_exit": {
+      "fixture_exit_code": 1,
+      "wait_result": 0,
+      "forced_test_cleanup": false,
+      "descendants_alive_at_fixture_exit": 0,
+      "launcher_product_cleanup_pass": false,
+      "interpretation": "No heap-corruption-status exit in this run. Driver reached actual shutdown with FAIL. Product's independent P32 cleanup facts are true; launcher false remains its evidence-required gate and is not turned into wholeHC PASS."
+    }
+  },
+  "diagnosis": {
+    "precise_failure": "Actual scheme-name readback did not equal the original; flags/HC-off/colors restoration and unique final free succeeded.",
+    "definite_Cpp_or_argument_error_identified": false,
+    "no_unjustified_fix": "The original snapshot copied empty text before SET; the final snapshot copied 高对比黑色. Existing comparison correctly detects this observed difference. Merely removing the scheme comparison would not prove exact restoration. No extra SET variant, registry/theming call or unbounded retry is justified by this evidence.",
+    "possible_explanation_not_proven": "Enabling with the originally empty/default scheme may lead the platform to resolve or retain a named scheme. The official member/API description does not establish that this explains this run, nor authorize relabeling the resulting mismatch as equal.",
+    "bounded_route_conclusion": "Keep whole run FAIL and retain actual HC UI/keyboard and buffer-release subcontracts separately. Exact original scheme-state restoration is not demonstrated. Do not rerun the unchanged large HC path or stack APIs; if exact environment restoration remains required, identify an official supported blank/default-scheme contract or a genuinely different supported environment before another native route.",
+    "product_conclusion": "This mismatch occurs in TEST environment restoration, not an observed production Move/Resize/GUI business failure. Product GUI behavior actually observed above remains scoped evidence."
+  },
+  "historical_links": [
+    "docs/reports/v1-evidence/34f1-ordinary-notice-and-HC-heap-exit-review.json",
+    "docs/reports/v1-evidence/aa2e-HC-noncaller-pointer-heap-exit-review.json"
+  ],
+  "clock_scope": "Driver tick values describe its own sequential API/breadcrumb endpoints. Selected JSONL rows are not a shared Raw/WinEvent native order. BMPs are actual retained screen regions; no physical display latency claim.",
+  "official_contract": {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-highcontrastw",
+    "meaning": "System allocates the GET scheme string and documents LocalFree; SET supplies all members. This alone does not prove an empty former scheme can be round-tripped after resolving a named HC scheme."
+  },
+  "acceptance_limit": "Original FAIL retained; scoped visible controls/keyboard, HC-bit transitions and native buffer release can be reused at their actual identities. WholeHC exact restoration, M10-F05, fullV1,200%DPI and humanUAT are not accepted."
+}

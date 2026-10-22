@@ -1,0 +1,305 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-EC2F-CURRENT-RELEASE-ZIP-NOARGS-PUBLIC-GUI-AND-MOVE",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "ec2f4c491dc24dc5a6012d5c1a7a3a3c",
+  "suite": "PortableEntryOnly",
+  "configuration": "Release",
+  "result": "PASS_SCOPED_CURRENT_PORTABLE_ORDINARY_ENTRY_SETTINGS_EFFECT_AND_NORMAL_EXIT",
+  "whole_module_or_version_PASS": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "driver_source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "driver_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
+    "packaging_head": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
+    "ordinary_product_pid": 6976,
+    "ordinary_product_birth_filetime_decimal": "134371018584294373",
+    "settings_hwnd": 131884,
+    "settings_tid": 6992,
+    "prior_guarded_instance_pid": 3972,
+    "prior_guarded_birth_filetime_decimal": "134371018569799340",
+    "source_hwnd": 131608,
+    "source_pid": 6296,
+    "source_tid": 6344,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Exact disposable Windows Sandbox Medium/non-elevated ordinary no-argument product EXE; one3050x1668/work3050x1596/DPI144, active WinSta0/Default. Its actual input route remains exact_guest, not complete ordinary Medium desktop/host validation.",
+    "actual_executable": "C:\\PaneBindV1\\Output\\ec2f4c491dc24dc5a6012d5c1a7a3a3c-便携 中文 空格\\PaneBindV1\\panebind.exe",
+    "arguments": "",
+    "diagnostic_enabled": false,
+    "launch_actor": "Automated guest driver CreateProcess, not a human double-click. Public no-argument product entry was actually used; driver did not replace its GUI or writer."
+  },
+  "portable_package": {
+    "package_id": "5f87dc1c56704592a164a4d8c4c3a6b4",
+    "receipt": "uat/v1-portable/5f87dc1c56704592a164a4d8c4c3a6b4/package-receipt.json",
+    "zip": "uat/v1-portable/5f87dc1c56704592a164a4d8c4c3a6b4/PaneBindV1-Release-5f87dc1c56704592a164a4d8c4c3a6b4.zip",
+    "zip_sha256": "1F12165B8B7E6F9E0BD01E06FD0506DD34A611657FA525137020C36B6A11EE2F",
+    "zip_bytes": 559715,
+    "manifest_sha256": "2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B",
+    "independently_rechecked_zip": "Actual7 ZIP payload entries, sizes and SHA256 all matched collected extracted originals. Six non-manifest entries also matched the actual package manifest,7/7 and6/6 PASS; no rebuilding/repacking or old2432 rerun.",
+    "files": [
+      {
+        "name": "LICENSE",
+        "bytes": 1099,
+        "sha256": "F024AABB093CF44DC8A93EC30E22A7A43BB208E5CEDC06448E5262CD657C899C"
+      },
+      {
+        "name": "manifest.json",
+        "bytes": 7945,
+        "sha256": "2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B"
+      },
+      {
+        "name": "panebind.exe",
+        "bytes": 1180160,
+        "sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3"
+      },
+      {
+        "name": "portable.flag",
+        "bytes": 31,
+        "sha256": "E34DC6330A1F436DCAA38AD7E33E33C6993CEB4BCB9DB3BC43AE83B1BC8D6E97"
+      },
+      {
+        "name": "中文快速入门.md",
+        "bytes": 12334,
+        "sha256": "30DA620A9CA3325C58F5FE07B4997F320826D2D64359A3F885FCBD8A232E0E6C"
+      },
+      {
+        "name": "已知问题.md",
+        "bytes": 6705,
+        "sha256": "FEE621E29E962F7226E7E3DC9173344A909C64D3C319330BC56E7A9054EBE712"
+      },
+      {
+        "name": "配置说明.md",
+        "bytes": 3063,
+        "sha256": "2791AF1C4A92139BC68492D8546C5CE90D61B54FBB776A6C44714053628275CA"
+      }
+    ],
+    "runtime_created_files": "Only after ordinary launch, the extracted portable directory created its own settings.ini and panebind.log.jsonl; these are not additional archived dependencies."
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/collection-20261022T001829181Z-cc599eadccc74ca7a2bc5d843147c7ec/ec2f4c491dc24dc5a6012d5c1a7a3a3c-release-fixture.jsonl",
+      "sha256": "922CB112B369BD2550A11BFC2A739A34A3DBAF6A35DD185633E4612F56E2EB5E",
+      "lines": 172,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        172
+      ],
+      "driver_source_matches_all_rows": true
+    },
+    {
+      "path": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/collection-20261022T001829181Z-cc599eadccc74ca7a2bc5d843147c7ec/ec2f4c491dc24dc5a6012d5c1a7a3a3c-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "sha256": "F37671E0823E18A2E918E8E24397494CCB81D42797933B11716102122EB889D0",
+      "lines": 61,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        61
+      ],
+      "single_product_pid": 6976,
+      "ordinary_no_diagnostic_run": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/ec2f-portable-noargs-entry-excerpt.jsonl",
+    "sha256": "CBFF9AD14CB75216CE6014784E3810D64D7ED5C4D412DEA2E5A40F6AF7666BC3",
+    "driver_source_lines": [
+      3,
+      4,
+      5,
+      13,
+      19,
+      63,
+      65,
+      73,
+      75,
+      76,
+      79,
+      80,
+      82,
+      84,
+      92,
+      95,
+      105,
+      107,
+      114,
+      131,
+      132,
+      136,
+      137,
+      147,
+      149,
+      156,
+      158,
+      163,
+      164,
+      165,
+      166,
+      168,
+      169,
+      170,
+      171,
+      172
+    ],
+    "product_source_lines": [
+      2,
+      3,
+      17,
+      22,
+      24,
+      27,
+      29,
+      30,
+      31,
+      32,
+      44,
+      49,
+      51,
+      54,
+      56,
+      57,
+      58,
+      59,
+      61
+    ],
+    "literal_validation": "55 of55 exact original UTF-8 source-line strings. Original64-bit integer spelling preserved; embedded NormalUp/status/legacyUP/Gone/shutdown strings independently matched actual ordinary product raw lines.",
+    "ordering": "Selected driver lines followed by selected ordinary-product lines are not a merged cross-producer native timeline.",
+    "sensitive_content": "Only task-owned paths/classes/window/process facts and public product UI notices; no user document content or raw SID."
+  },
+  "facts": [
+    {
+      "driver_lines": [
+        63,
+        65,
+        73
+      ],
+      "fact": "Bootstrap had extracted and verified the actual delivered5f87 ZIP to a fresh Chinese+space directory with exactly7 payloads and no preseeded settings/profile. The previous guarded diagnostic instance3972 exited normally first, with its own actual shutdown/input-recovery evidence. That prior process and log were not relabeled as the later ordinary product6976."
+    },
+    {
+      "driver_lines": [
+        75,
+        76,
+        79,
+        80
+      ],
+      "product_lines": [
+        2,
+        3
+      ],
+      "fact": "Actual extracted panebind.exe started with empty arguments and no --diagnostic. Before any explicit Settings command, one exact visible Chinese PaneBind settings window was observed atHWND131884/TID6992/PID6976. This is a real ordinary entry/UI observation, not --build-identity, process exit0 or a hidden-window substitute."
+    },
+    {
+      "driver_lines": [
+        82,
+        84
+      ],
+      "fact": "An actual second empty-argument launch exited0 while the held main process6976/birth and settings HWND/TID remained unchanged. Fresh public status observed one live behavior instance, healthy input and no pending native/visual work. Global hook count was not inferred from this status."
+    },
+    {
+      "driver_lines": [
+        92,
+        95,
+        105,
+        107,
+        114
+      ],
+      "product_lines": [
+        17,
+        22,
+        24,
+        27,
+        29,
+        30,
+        31,
+        32
+      ],
+      "fact": "The fresh ordinary GUI actually showed10DIP attraction and Escape closed it. Source400x360 was set to[120,80,520,440], targets remained fixed; real DOWN/native handoff and cursor delta(14,3) produced independent actual snapped visible[140,80,540,440]. One original TEST UP was actually observed through public product callback status for generation1, actual resource Raw UP flags2 and accepted legacyUP, releaseCapture/detach/Gone and NormalUp End0; capture0 and final geometry stayed exact. Detailed placement/native API receipts were intentionally not asserted in no-diagnostic mode; status showed one operation/native claim."
+    },
+    {
+      "driver_lines": [
+        131,
+        132,
+        136,
+        137,
+        147,
+        149,
+        156
+      ],
+      "product_lines": [
+        44,
+        49,
+        51,
+        54,
+        56,
+        57,
+        58,
+        59
+      ],
+      "fact": "Real public GUI editing/Tab/Save wrote only the extracted portable settings.ini: attraction0, all other parsed settings equal expected defaults except current generation, no user-profile directory created. Same ordinary process6976 and original source setup then completed generation2 from the original DOWN with actual unsnapped raw visible[134,83,534,443]. The distinct result demonstrates the actual saved setting affects behavior, not only config text. Unique original UP/status identity/real Raw and legacyUP/release/detach/Gone/NormalUp and no late geometry were independently observed; cumulative native claims2."
+    },
+    {
+      "driver_lines": [
+        158,
+        163,
+        164,
+        165
+      ],
+      "product_lines": [
+        61
+      ],
+      "fact": "The actual ordinary process6976 exited0 via public Quit, its own shutdown confirmed hooks/overlay/native worker/input capture/association/visual teardown and no unknown native completion. The original empty fixture then actually received client DOWN/UP, and delivered ZIP/EXE/manifest bytes remained unchanged with no product profile directory. Guest destruction was not the recovery mechanism."
+    },
+    {
+      "driver_lines": [
+        166,
+        168,
+        169,
+        170,
+        171,
+        172
+      ],
+      "fact": "Original driver portable_normal_entry_result contains I12=PASS and the suite/driver shutdown also PASS. That raw label is preserved literally but interpreted only as this narrow ordinary-entry/config/basic-Move/normal-exit scene, not whole guide I12/all-entry/documentation/application/DPI/Full/human acceptance. Own TEST Raw removal/foreground unhook/overflow0/fixture destruction succeeded."
+    }
+  ],
+  "collection_and_cleanup": {
+    "collection_receipt": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/collection-20261022T001829181Z-cc599eadccc74ca7a2bc5d843147c7ec/collection-receipt.json",
+    "collection_output_unchanged": true,
+    "guest_summary_path": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/collection-20261022T001829181Z-cc599eadccc74ca7a2bc5d843147c7ec/ec2f4c491dc24dc5a6012d5c1a7a3a3c-guest-summary.json",
+    "guest_summary_sha256": "A43CBD12B7758912351DC1312DFA7480ABED246CA3AD26A1BE35D75F9CAA07A8",
+    "launch_path": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/collection-20261022T001829181Z-cc599eadccc74ca7a2bc5d843147c7ec/ec2f4c491dc24dc5a6012d5c1a7a3a3c-Release-launch.json",
+    "launch_sha256": "5BD299E3477B2E380F6F72E88C04AA1918ABB76E72120CDFB71A0F2720F6F09D",
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "cleanup_receipt": "uat/v1-control/ec2f4c491dc24dc5a6012d5c1a7a3a3c/cleanup-receipt.json",
+    "cleanup_sha256": "20653727700F8950F6DF1F21F8224506A8396A1C7163BE6DFAB7314615A3F1FC",
+    "own_guest_pid": 14116,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "M12_F03_B32": "Refresh already independently passed portable-entry evidence to current product4f7/package5f87/runec2f; no duplicate feature/benchmark score is added.",
+    "ordinary_entry": "PASS_SCOPED exact current ZIP/no arguments/visible Chinese GUI/settings effect/basic Move/NormalUp/normal exit",
+    "not_awarded": [
+      "whole I12",
+      "M12 module",
+      "M12-F05 complete final-guide walkthrough",
+      "tray interaction",
+      "five real apps",
+      "complete ordinary Medium Shell desktop",
+      "multi-display/mixed-DPI",
+      "full-version operation chain",
+      "human UAT"
+    ],
+    "inherited_old_2432": "History preserved; not rerun or rebound to the new EXE/package. Current evidence uses only actualec2f product/run identity.",
+    "human_UAT": "NOT_RUN",
+    "host_trial": "No host input or host validation performed."
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "schema": "panebind.v1.independent-feature-contract-review.v1",
+  "evidence_id": "EV-M10-F04-INDEPENDENT-CONTRACT-COMPOSITE-REVIEW",
+  "review_date": "2026-10-22",
+  "feature_id": "M10-F04",
+  "benchmark_id": "B22",
+  "recommendation": "PASS_INDEPENDENT_DEV_CONTRACT_WITH_ORIGINAL_IDENTITY_INHERITANCE",
+  "canonical_status_changed_by_review": false,
+  "new_execution_by_review": false,
+  "contract": {
+    "source": "docs/PANEBIND_V1_DEVELOPMENT_GUIDE.md:389",
+    "feature": "可选拖动透明仅作用于当前有效源；结束/取消/异常恢复原实际 alpha，与永久透明/置顶功能共存",
+    "DEV": "已半透明窗开始 Move→结束、失焦、退出；恢复其原值而非固定255；不支持透明的应用显示限制",
+    "benchmark": "B22 line123 depends only on M10-F04; whole M10 module, five-application compatibility and full-version/environment gates stay separate."
+  },
+  "assessed_current_product": {
+    "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "release_binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "actual_current_run": "830a9b3c98ca4132beeb5c5077c4a2ab",
+    "actual_driver_source_sha": "5b785a1442499624c1bfe94a8e5db602b1ae1eee",
+    "actual_driver_binary_sha256": "D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84"
+  },
+  "contract_mapping": [
+    {
+      "contract": "Optional setting and current valid source only",
+      "verdict": "COVERED",
+      "evidence": "830a real public settings save enables configured alpha190; production visual_begin is called only for the accepted source identity after input authority check, not every member. Full830a product log visual mutations target key4 only while another exact owned root is present. Unsupported b6c8 key9 has zero visual writes.",
+      "source_scope": "Settings drag_transparency remains optional/defaultfalse; no change to settings schema or source-key/identity ownership gates."
+    },
+    {
+      "contract": "Already semitransparent/topmost source -> held Move -> actual NormalUp restores original, not255",
+      "verdict": "COVERED_CURRENT_NATIVE",
+      "evidence": "830a P53/D130 source173/topmosttrue becomes190; actual g1 Move P59. Subsequent same-PID g2 P88/P91 again190/exact Move; P93 matching LL_UP, P94 Raw, P96 legacy, P99/P101/P102 release/detach/Gone, P104/P105 actual173/topmosttrue restored, P106 NormalUp. D166 independent native attribute readback. No geometry placement after matched UP through product shutdown."
+    },
+    {
+      "contract": "FocusLost/cancellation restores actual alpha and permits next operation",
+      "verdict": "COVERED_CURRENT_NATIVE",
+      "evidence": "830a D137 real other-owned foreground while held; P63 FocusLost/end2; P61 actual cleanup190->173 with topmost unchanged, P69 actual resources gone. D142 single original TEST cleanupUP/P72 actual aborted LL callback is explicitly not NormalUp. Newg2 performs real native cancel/END/capture/exact placement/NormalUp on same PID and sourcekey; retiredg1 late0."
+    },
+    {
+      "contract": "Explicit cancellation supplement",
+      "verdict": "COVERED_HISTORICAL_ORIGINAL_IDENTITY",
+      "evidence": "477a original212e Release raw D2772/2781 NormalUp restores173/topmosttrue; D2789/2791 actual alpha190 Move, D2793 original geometry after Escape, D2794 restores173/topmosttrue and D2797 real abort cleanupUP. These rows are not relabeled as4f7 observations.",
+      "original_raw_path": "uat/v1-control/477a2298fbcd4452b36259b5d6b02edb/collection-20261016T231450129Z-da036a87ee524ebcac5757dba8006c52/477a2298fbcd4452b36259b5d6b02edb-release-fixture.jsonl",
+      "original_raw_sha256": "B07C5391ECCDE7003CA1CD3E3DD4DC0421D50AE8D46B28A5FC0F629D5CB0D7A9",
+      "dependency": "Supplemental: current FocusLost is the explicit DEV cancellation case; no new Escape experiment is needed for this independent feature."
+    },
+    {
+      "contract": "Normal product exit and controlled abnormal parent exit restore original alpha without guest destruction",
+      "verdict": "COVERED_HISTORICAL_ORIGINAL_IDENTITY",
+      "evidence": "bf5c D121/122 actual helper bound to parent3704 and active source173->190 with exact Move/capture, D123 real publicquit before UP, D124 nonNormal Exit8/P51 cleanup173/P55 actual shutdown, D125 helper exited/source actual173/capture0/overlaygone. D154/156/157 controlled parent6836 termination during actual active Move, D158 helper3696 exit0/source173/capture0/gone, D165 actual original cleanupUP and D171 nativeclientpair. Not a natural-crash claim.",
+      "original_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+      "original_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
+      "original_driver_source_sha": "ac4635bc83e01b451afea04f86c944874e124bf7",
+      "original_run_id": "bf5c127bde7442c0bb243e60d8618985"
+    },
+    {
+      "contract": "Coexist with permanent opacity/topmost and do not overwrite later app-owned changes",
+      "verdict": "COVERED_ORIGINAL_NATIVE_PLUS_CURRENT_BASELINE",
+      "evidence": "830a temp alpha190 restores actual173/topmosttrue without changing topmost; bf5c exits cover topmostfalse. Original212e 7060/477a public OpacityDown/Up and registeredCtrlAltT are reversible; 7060 D117 retains app alpha201 while restoring only product top; D128 retains app top while restoring alpha173; D270/336 new root is untouched. Per-property ownership core and public visual action are unchanged. This is coexistence of actual attributes/ownership, not a claim of a new wholeI06 same-candidate chain."
+    },
+    {
+      "contract": "Unsupported/unreadable transparency has visible limitation and does not invent or overwrite unknown alpha",
+      "verdict": "COVERED_HISTORICAL_BBC_NATIVE_SUBCONTRACT",
+      "evidence": "b6c8 real ULWperpixel source/GLAfalse/opaquehit and exact nativehand-off; P151 actual alpha_attributes_unknown safe decline, zero visual writes for key9; P157 exact freeMove; D322/D323 real nonactivating/HTTRANSPARENT strip with independently inspected full Chinese text; P159/P160/P162 actualLL/Raw/legacyUP, P168Gone/P171NormalUp, unknown alpha remains unreadable and unmodified. Visible text: 无法读取原透明状态，本次不应用拖动透明.",
+      "original_product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
+      "original_product_binary_sha256": "9CE1C40331EA333220A0CE345D9FC0374978D5CF136DEB4ECFDCC0575E558D66",
+      "original_driver_source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
+      "original_run_id": "b6c832c8651e4c24a729b5a868b67d40",
+      "original_whole_batch": "FAIL retained",
+      "new_product_perpixel_run": "NOT_RUN, never rebound"
+    }
+  ],
+  "inheritance_review": {
+    "compared_old_product": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
+    "compared_current_product": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "unchanged_full_file_git_blobs": [
+      {
+        "path": "src/core/v1/visual_ownership.h",
+        "both_blob": "9824607cf3dfc4e9c392c7ac39143d6649149036"
+      },
+      {
+        "path": "src/platform/windows/product/visual_recovery.cpp",
+        "both_blob": "6f4bba245945e7e4932099943c574c21c00e1720"
+      },
+      {
+        "path": "src/platform/windows/product/visual_recovery.h",
+        "both_blob": "83270d065db186f8aacd3403ff61fc099fe66ade"
+      }
+    ],
+    "exact_ordinal_equal_function_ranges": [
+      {
+        "scope": "Application::visual_restore",
+        "characters": 1904
+      },
+      {
+        "scope": "Application::retry_deferred_drag_visual",
+        "characters": 1071
+      },
+      {
+        "scope": "Application::restore_drag_visual",
+        "characters": 726
+      },
+      {
+        "scope": "Application::visual_action",
+        "characters": 3379
+      },
+      {
+        "scope": "Application::stop visual cleanup/native writer completion/helper retirement range",
+        "characters": 907
+      },
+      {
+        "scope": "WindowWriter::visual",
+        "characters": 2388
+      }
+    ],
+    "actual_changes_not_ignored": "212e->4f7 also changes input normal-UP/gates/nativeSnap/Lower plus source lifetime handling, and adds drag-alpha completion warnings/visible limitations. Therefore old complete EXE is not declared identical. Shared context changes are covered by current830a real source/NormalUp/FocusLost cleanup; visual/helper core, per-property masks and exit retirement ranges remain unchanged for original exit/coexistence inheritance.",
+    "bbc_to_current": "git diff --quiet bbc->4f7 returned0 for visual_recovery.cpp/.h, visual_ownership.h, window_writer.cpp/.h; product_app visual limit and visual_begin/restore/action paths unchanged betweenbbc and4f7. Its fresh handoff condition was only named diagnostically with original short-circuit order; callbackTEST path is separate.",
+    "not_claimed": "No old log or binary is rebound to4f7. b6c8 P81 failure remains real/operandUNKNOWN;830a pass does not prove its root cause was found or repaired."
+  },
+  "evidence_files": [
+    {
+      "path": "docs/reports/v1-evidence/830a-focus-successor-review.json",
+      "sha256": "0AC4246D3C4710040A75DEB60E16F81D3F059CBAD939AF5202BF70DB0173F9F7"
+    },
+    {
+      "path": "docs/reports/v1-evidence/830a-focus-successor-excerpt.jsonl",
+      "sha256": "3C38D455C47D93DA6E825DB0B563C1EBB6554C3E08AFA2F69AE753BFBC96D0ED"
+    },
+    {
+      "path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-review.json",
+      "sha256": "F126299BB4D81010D59A500A01BCA75BE85BC416195658E5E40318775EB6FA6A"
+    },
+    {
+      "path": "docs/reports/v1-evidence/b6c8-transparency-visible-and-successor-excerpt.jsonl",
+      "sha256": "BA92D51FF4FBA794E546CA391D571269A3D173660F7BA58434846E49281B540F"
+    },
+    {
+      "path": "docs/reports/v1-evidence/bf5c-r13-active-exit-recovery-fixture-selected.jsonl",
+      "sha256": "001EE77CAE2EBCF841682C00F0A57DBE4250484E4CBCC0D2A25E148EADDC0B04"
+    },
+    {
+      "path": "docs/reports/v1-evidence/bf5c-r13-active-exit-recovery-product-selected.jsonl",
+      "sha256": "6F8931287537CBFB26389C64376F1A8EA8CFED0FDFABBA63522F4045AEDC08E6"
+    },
+    {
+      "path": "docs/reports/v1-evidence/7060-r17-visual-ownership-and-prior-shake-fixture-selected.jsonl",
+      "sha256": "6A2E9F4AFD97F0129FBE6E834908FE47F339076CD5171A156C25B57C9B07AEC0"
+    },
+    {
+      "path": "docs/reports/v1-evidence/7060-r17-visual-native-and-prior-shake-product-selected.jsonl",
+      "sha256": "D1938FE308AB1044869D4D317F992F96EA92437106D2B71E3B0872AE4E97CEF9"
+    }
+  ],
+  "specific_remaining_same_environment_feature_behaviors": [],
+  "recommendation_limit": "The complete independent M10-F04/B22 DEV contract is supported by this explicit composite inheritance review. No new test is necessary solely to repeat unchanged subcontracts. M10 module actual visual matrix, five app compatibility, I06/full-version same-candidate chain, ordinary full desktop,200%DPI/multiscreen/mixedDPI and humanUAT remain separate unpassed gates. This review does not change canonical counts or statuses."
+}

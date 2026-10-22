@@ -1,5 +1,25 @@
 # PaneBind V1 集中交付进展
 
+## 当前接续：规则路径、拖动透明合同及当前普通包入口，43/60（2026-10-22）
+
+**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING。** 本节取代下方检查点的“下一步”，但不改写其历史身份或失败。产品仍为`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`，Release EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`，没有因工具或文档变化而重建。
+
+- [efed公开应用规则](v1-evidence/efed-public-rules-path-review.json)：实际同名、不同完整路径的两个新建子进程，通过公开GUI“添加当前应用”、完整路径排除、basename排除、每应用功能位及移除恢复；负例全局native调用为零且两个实际矩形不变，正例六次exact写入。子进程真实关闭、产品正常退出及客户输入恢复有独立回执。结合保留原身份的034可选类名和2c8活动规则证据，闭合**独立M11-F04**，不授五应用矩阵或整个设置模块。
+- [M10-F04独立合同核对](v1-evidence/m10-f04-independent-contract-review.json)：当前830a的原alpha173→拖动190→真实UP／失焦恢复173及同实例后继，结合逐函数／blob核对后保留原身份的bf5c退出／helper、7060属性所有权和b6c8 per-pixel可见限制，闭合**M10-F04／B22**。不把旧日志换绑4f7，也不宣称查明b6c8旧fresh拒绝根因。
+- [ec2f当前便携包普通入口](v1-evidence/ec2f-portable-noargs-entry-review.json)：当前5f87包真实解压到中文／空格目录，七项ZIP与六项manifest载荷哈希吻合；无参、非诊断、可见中文GUI、再次无参同实例、公开保存改变实际Move效果、真实UP和正常退出通过。原始driver的`I12=PASS`只代表这个子范围，**不是整条I12、托盘或普通完整桌面PASS**。
+- [8d8a高对比度](v1-evidence/8d8a-HC-UI-and-scheme-restore-review.json)：142D／32P完整运行。已观察高对比模式、页面0／3的实际Tab焦点／编辑选区及可读中文；一次最终LocalFree成功，不再出现本批旧式heap退出。但恢复SET成功后仅方案名由空字符串变成“高对比黑色”，原flags、HC关闭和六色均恢复；**整批FAIL保留**，不删方案名断言或叠加API冒充完全恢复，200%和完整UI仍未验。
+- [57f0原生Shake前置](v1-evidence/57f0-system-shake-native-control-review.json)：产品从未启动。真实标题栏DOWN、五次原生移动、唯一UP与END／capture释放已观察，但两个对照窗均未最小化；两个只读设置缺失只能记UNKNOWN。本次共存验证**环境BLOCKED／产品NOT_RUN**，不是产品Shake失败或永久不支持结论，不更改系统开关、不无变量重试。
+
+以上四批实际驱动为`9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b`／Release SHA-256 `48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3`；每批包、RunId、原件／摘录／清理回执见各review，所有自有guest及临时任务已清理，包和证据保留在`I:\PaneBindMVP1Runs\<RunId>`。未操作XiangFlow／CrossRec、宿主输入或系统配置。
+
+当前便携包为`5f87dc1c56704592a164a4d8c4c3a6b4`：ZIP SHA-256 `1F12165B8B7E6F9E0BD01E06FD0506DD34A611657FA525137020C36B6A11EE2F`，manifest `2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B`。确切路径与操作见[快速入门](../V1_QUICK_START.md)。可复核的普通入口子项不等于已经开放普通宿主试用。
+
+下一步只做当前输入／清理改动后的必要组合链：`CurrentCoreChainOnly`复用原两轮核心操作，跳过已通过的900秒段；`MediumDesktopEnvironmentOnly`仅在新guest以同Medium身份创建Run专属Win32 desktop并观察新Explorer／Shell／Tray，不启动产品、不切输入桌面、不发输入、不改ACL／token或控制Default Shell。工具`c24976d86a4dec30a739f66927be4334eeb0e3a7`已Debug／Release构建、guest-path各1/1和宿主保护两suite各配置Exit78，**此处记录时新两批尚未运行**。静态168检查只作工具保护支撑，不计功能进度。
+
+NF02仍按Run保留：830a的50次callback最大1755µs、p99桶2000µs未达<1ms目标；6e1f的71次最大966µs、p99桶999µs只在该范围达标。placement回读不是物理显示延迟，现日志不能定位最大callback的具体分支或根因；不能择优宣布全面通过，也不将一次1.755ms擅自等同持续S1停顿。下一必要组合链读取现有汇总，不增加性能框架或900秒专项。
+
+剩余DEV条件分别为真实五类应用初始化／客户输入／正常退出、真实托盘与完整Medium桌面、200% UI、负工作区／多屏混合DPI／真实环境切换，以及同候选整版链。真人UAT单列PENDING，不作为降低独立DEV分数或额外DEV阻断条件。旧失败原件、未修机制原因和环境限制仍保留；不进入REA、不恢复定时资源检查。
+
 ## 当前接续：真实 callback-owner 退出与公开恢复，41/60（2026-10-22）
 
 **独立DEV41/60；对标仍20/40＝50%，模块0，整版PARTIAL，真人UAT PENDING。** 本次产品`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`，Release EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`；独立驱动`5b785a1442499624c1bfe94a8e5db602b1ae1eee`／`D2D91CFE4EF8BF8676323117522537D46FA6A7DF2557D3951AABBF7EEF5C0C84`。产品Debug/Release及受影响offline各6/6通过；宿主callback命令和混合identity参数在两配置均真实Exit78，仅作保护支撑。
