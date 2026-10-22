@@ -3408,3 +3408,16 @@ semantic success remain separate facts; none is pre-awarded PASS. This is
 test preparation, not a product dependency or a change to another application,
 account or security setting. The prior AltSnap/FancyZones research is reused;
 no external implementation or sample code was copied or adapted.
+
+### 2026-10-22 — Settings high-contrast query buffer ownership
+
+Rechecked the official [HIGHCONTRASTW contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-highcontrastw):
+the system allocates the GET result's scheme buffer and the caller frees it
+with `LocalFree`. The production settings getter previously discarded this
+pointer. It now retains the same successful-GET/flag decision and frees only
+that GET's non-null returned buffer before returning. No SET, theme, registry,
+input, authority or caller-owned SET string is changed. This is an independent
+resource-ownership fix, not an explanation or closure of the historical 8d8a
+scheme-restoration failure. Existing prior-art/design research is reused; no
+external implementation or sample code was copied. Native settings execution
+and the new candidate's identity must be recorded separately from this review.

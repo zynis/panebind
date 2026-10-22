@@ -104,7 +104,10 @@ struct SettingsWindow::Impl {
     int px(int value) const {return MulDiv(value,static_cast<int>(dpi),96);}
     bool high_contrast() const {
         HIGHCONTRASTW state{sizeof(state)};
-        return SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(state),&state,0)!=FALSE && (state.dwFlags&HCF_HIGHCONTRASTON)!=0;
+        const bool queried=SystemParametersInfoW(SPI_GETHIGHCONTRAST,sizeof(state),&state,0)!=FALSE;
+        const bool enabled=queried&&(state.dwFlags&HCF_HIGHCONTRASTON)!=0;
+        if(queried&&state.lpszDefaultScheme)LocalFree(state.lpszDefaultScheme);
+        return enabled;
     }
     bool animate() const {
         BOOL enabled=FALSE;
