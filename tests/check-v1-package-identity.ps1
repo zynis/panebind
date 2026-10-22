@@ -1442,4 +1442,43 @@ Check ($fixtureSource.Contains('owned_finite_I11_chain(s,true);') -and
     $fixtureSource.Contains('CurrentCoreChainOnly_requires_Release') -and
     $fixtureSource.Contains('independent_entry_ready(s,"current_core_chain_only.after",false)') -and
     $fixtureSource.Contains('I11_900_seconds') -and $fixtureSource.Contains('whole_version_acceptance')) 'static current core chain is explicit Release two-round reuse, not an independent 900-second or whole-version PASS'
+function Assert-V1SettingsControlsRemaining([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Remote){
+    foreach($value in @('#include "platform/windows/product/v1_guest_settings_controls_remaining_case.h"',
+        's.suite!="SettingsValidationOnly"&&s.suite!="SettingsControlsRemainderOnly"',
+        'else if(value==L"SettingsControlsRemainderOnly")s.suite="SettingsControlsRemainderOnly";',
+        'phase("changed_preview_color_alpha_and_four_numeric_restart",owned_settings_preview_controls_case);',
+        'phase("changed_adjacency_controls_actual_Ctrl_membership",owned_settings_adjacency_control_case);',
+        'phase("changed_step_control_actual_public_Move_and_Resize",owned_settings_step_control_case);')){
+        if(-not $Fixture.Contains($value)){throw ('Remaining settings controls lost exact standalone admission or independent actual phases: '+$value)}
+    }
+    foreach($script in @($Prepare,$Guest,$Remote)){
+        if(-not $script.Contains("'SettingsControlsRemainderOnly'")){throw 'Remaining settings controls require exact package, guest and deployment suite admission.'}
+    }
+    foreach($value in @('s.suite!="SettingsControlsRemainderOnly"||s.left||s.control',
+        'settings_invalid_number_input(s,gui,target,std::to_wstring(value))','gui_save_enter(s,gui);',
+        'saved==wanted&&saved.generation>before.generation','cleanup(s);if(s.process)',
+        'hash(s.product)==binary&&chain_settings(s)==wanted','settings_controls_restart_and_readback(s,saved);',
+        'constexpr COLORREF fill=RGB(32,96,160);constexpr int alpha=255;',
+        'chain_preview_exact(s,set.frames[0].hwnd,half)','GetLayeredWindowAttributes(overlay,&ignored_key,&actual_alpha,&flags)',
+        'flags==LWA_ALPHA&&!GetUpdateRect(overlay,nullptr,FALSE)','GetPixel(screen,sample.x,sample.y)',
+        'released&&pixel==fill','visible(source)==raw&&GetForegroundWindow()==source',
+        'layout_up(set,g,{away});','for(const int requested:{4,0})',
+        'gap=MulDiv(2,static_cast<int>(dpi),96)+1,tolerance=MulDiv(4,static_cast<int>(dpi),96)',
+        'e::number(started,"\"group_members\":")==(group?2U:1U)',
+        'group?translated(b,24,17):b','layout_up(set,g,after);',
+        'step=MulDiv(13,static_cast<int>(dpi),96)','chain_command(set,0,L"MoveRight",moved)',
+        'chain_command(set,0,L"HeightMore",taller)','visible(set.frames[1].hwnd)==b',
+        'settings_controls_restore(s,original)','pause_routing_failed_case_input(s)')){
+        if(-not $Cases.Contains($value)){throw ('Remaining settings controls lost actual GUI, independent numeric/native/pixel oracle or cleanup: '+$value)}
+    }
+    if($Cases -match '\b(SetWindowPos|SetWindowLongPtr\w*|SetLayeredWindowAttributes|PostMessage\w*|SendMessage\w*|AnimateWindow|WriteFile)\s*\(' -or
+       $Cases.Contains('std::ofstream') -or $Cases.Contains('SPI_SET')){
+        throw 'Remaining settings controls cannot mutate the product/source/config directly or manufacture animation API evidence.'
+    }
+}
+$settingsControlsRemaining=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_settings_controls_remaining_case.h'),[Text.Encoding]::UTF8)
+Assert-V1SettingsControlsRemaining $fixtureSource $settingsControlsRemaining $lifecyclePrepare $lifecycleGuest $queueFailureRemote
+Check $true 'static remaining settings controls retain real public edits, restart, opaque screen color, Ctrl geometry and public command step'
+Reject {Assert-V1SettingsControlsRemaining $fixtureSource ($settingsControlsRemaining.Replace('released&&pixel==fill','released')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static remaining settings controls reject using native alpha without actual independent fill pixels'
+Reject {Assert-V1SettingsControlsRemaining $fixtureSource ($settingsControlsRemaining.Replace('group?translated(b,24,17):b','translated(b,24,17)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static remaining settings controls reject moving the neighbour when zero tolerance excludes it'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

@@ -105,14 +105,26 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
         constexpr ACCESS_MASK access=DESKTOP_CREATEWINDOW|DESKTOP_READOBJECTS|DESKTOP_WRITEOBJECTS|DESKTOP_ENUMERATE;
         SetLastError(ERROR_SUCCESS);created=CreateDesktopW(name.c_str(),nullptr,nullptr,0,access,nullptr);
         const DWORD create_error=created?0:GetLastError();
+        const auto created_name=created?medium_desktop_object_name(created):std::wstring{};
         out.emit("medium_desktop_create","\"desktop_name\":"+quote(utf8(name))+",\"CreateDesktop_return\":"+
             (created?"true":"false")+",\"win32_error\":"+std::to_string(create_error)+",\"requested_access\":"+std::to_string(access)+
+            ",\"actual_created_object_name\":"+quote(utf8(created_name))+
             ",\"flags\":0,\"security_attributes_NULL\":true,\"security_descriptor_inherited_unmodified\":true,\"input_desktop_switched\":false");
-        if(!created)throw std::runtime_error("CreateDesktop_failed_inherited_security_not_changed");
+        if(!created||!equal(created_name,name))throw std::runtime_error("CreateDesktop_failed_or_exact_Run_object_unverified_inherited_security_not_changed");
         const auto baseline=MediumDesktopWindows::read(created);
+        // A new desktop was actually observed returning FALSE/error0 without
+        // invoking the callback. Do not relabel that as a complete empty
+        // inventory, or reject this authorized child creation as a Shell
+        // capability failure before trying it. Fresh name/object identity is
+        // independent; no baseline window is adopted or controlled. Readiness
+        // below still requires complete fresh enumeration and exact new child.
+        const bool unknown_zero_baseline=!baseline.complete&&baseline.error==ERROR_SUCCESS&&baseline.windows.empty();
         out.emit("medium_desktop_window_baseline","\"enumeration_complete\":"+std::string(baseline.complete?"true":"false")+
-            ",\"win32_error\":"+std::to_string(baseline.error)+",\"window_count\":"+std::to_string(baseline.windows.size()));
-        if(!baseline.complete||!baseline.windows.empty())throw std::runtime_error("fresh_desktop_window_baseline_not_empty_or_unknown");
+            ",\"win32_error\":"+std::to_string(baseline.error)+",\"window_count\":"+std::to_string(baseline.windows.size())+
+            ",\"zero_callback_error0_inventory_unknown\":"+(unknown_zero_baseline?"true":"false")+
+            ",\"baseline_is_not_Shell_readiness_or_window_authority\":true");
+        if(!baseline.windows.empty()||(!baseline.complete&&!unknown_zero_baseline))
+            throw std::runtime_error("fresh_desktop_has_observed_windows_or_enumeration_error");
         SetLastError(ERROR_SUCCESS);const bool attached=SetThreadDesktop(created)!=FALSE;const DWORD attach_error=attached?0:GetLastError();
         out.emit("medium_desktop_observer_connection","\"SetThreadDesktop_return\":"+std::string(attached?"true":"false")+
             ",\"win32_error\":"+std::to_string(attach_error)+",\"actual_thread_desktop\":"+
