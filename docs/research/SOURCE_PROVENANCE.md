@@ -3363,3 +3363,30 @@ or that input was delivered. Only the actual new command nonce can prove
 that subcase. Source/client geometry, DPI, foreground, keys and lease checks
 remain; no click, activation, message injection or extra retry is introduced.
 This is an independent PaneBind TEST oracle repair; no upstream code reused.
+
+### V1 bounded tray and native-client failure discrimination — 2026-10-22
+
+Actual26fd inserted the exact UID1 right-button pair; its later observation
+found no product popup and no GUI menu owner. This does not prove the tray
+callback never arrived or a menu never briefly existed. Re-read Microsoft's
+[Shell_NotifyIconW](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw),
+[TrackPopupMenu](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-trackpopupmenu)
+and [GetMenuBarInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmenubarinfo).
+The existing ADD/version4 callback decoding and popup OBJID_CLIENT/0 query
+match those contracts; a MODIFY does not require another SETVERSION. No
+definite product or Windows root cause follows from the available facts.
+The next candidate adds GUI-owner-only, fixed-limit ingress and original
+menu API receipts without changing native call order/parameters, input,
+foreground policy or retries. An attempted call, actual return, delivered
+message and visible/selected menu remain different facts. API references have
+no pinned implementation revision; no sample/source code was reused.
+
+Actuale657 inserted the sole keyboard nonce command and Enter but did not
+observe the nonce. Buffered JSONL emit ticks are not native observation times:
+the recorded input and final unhook QPCs span about3.4seconds. The existing
+event-driven wait now records its actual budget, native return and exit branch
+once, without extending its deadline, replaying input or adding file polling.
+The result remains unknown until actual command receipt; missing nonce is not
+by itself proof of a Terminal initialization or product defect. These changes
+reuse the already documented event/teardown design and do not copy upstream
+implementation code.

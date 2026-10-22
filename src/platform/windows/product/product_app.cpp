@@ -251,6 +251,8 @@ public:
     std::map<v::Key,Visual> visual;std::uint64_t operations{},native_attempts{};bool stopping{},diagnostic{},last_apply_revoked_only{};
     std::optional<v::End> last_termination;std::string last_prepare_diagnostic;
     std::uint64_t admission_dropped_reported{},admission_wake_failures_reported{};
+    // GUI-owner-only bounded observations; no LL/resource callback IO.
+    unsigned tray_ingress_records{},tray_menu_records{};
     std::map<v::Key,Snapshot> last_exact_receipts;
     VisualRecovery recovery;std::map<v::Key,v::VisualOwnership> recovery_owned;
     // Keep the gesture's own original tuple, not the helper journal's older
@@ -271,6 +273,27 @@ public:
         :instance(h),desktop_context(std::move(context)),catalog(desktop_context),writer(catalog),
          input(desktop_context),recovery(desktop_context){}
     ~Application(){stop();}
+    void observe_tray_ingress(HWND receiver,WPARAM wp,LPARAM lp)noexcept{
+        if(tray_ingress_records>=16)return;const auto index=++tray_ingress_records;
+        try{
+            const auto tick=GetTickCount64();LARGE_INTEGER qpc{};const bool clock=QueryPerformanceCounter(&qpc)!=FALSE;
+            DWORD receiver_pid{},foreground_pid{};const DWORD receiver_tid=GetWindowThreadProcessId(receiver,&receiver_pid);
+            const HWND foreground=GetForegroundWindow();const DWORD foreground_tid=foreground?GetWindowThreadProcessId(foreground,&foreground_pid):0;
+            const UINT event=LOWORD(lp);const char* route=event==WM_CONTEXTMENU||event==WM_RBUTTONUP?"menu":
+                event==NIN_SELECT||event==WM_LBUTTONDBLCLK?"settings":"ignored_by_existing_route";
+            log.event("tray_callback_ingress","\"record_index\":"+std::to_string(index)+",\"record_limit\":16"+
+                ",\"observed_tick\":"+std::to_string(tick)+",\"observed_qpc\":"+(clock?std::to_string(qpc.QuadPart):"null")+
+                ",\"actual_receiver_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receiver))+
+                ",\"actual_receiver_PID\":"+std::to_string(receiver_pid)+",\"actual_receiver_TID\":"+std::to_string(receiver_tid)+
+                ",\"dispatch_TID\":"+std::to_string(GetCurrentThreadId())+",\"message\":"+std::to_string(tray_message)+
+                ",\"raw_WPARAM\":"+std::to_string(static_cast<std::uintptr_t>(wp))+
+                ",\"raw_LPARAM\":"+std::to_string(static_cast<std::intptr_t>(lp))+
+                ",\"event_LOWORD\":"+std::to_string(event)+",\"icon_id_HIWORD\":"+std::to_string(HIWORD(lp))+
+                ",\"existing_route\":\""+route+"\",\"foreground_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+
+                ",\"foreground_PID\":"+std::to_string(foreground_pid)+",\"foreground_TID\":"+std::to_string(foreground_tid)+
+                ",\"authenticated_Shell_sender_inferred\":false,\"route_execution_not_yet_observed\":true");
+        }catch(...){/* Optional logging must not suppress the original route. */}
+    }
     void callback_owner_stop_fact(bool exit_fact){
         const auto generation=input.guest_callback_owner_stop_generation();if(!generation)return;
         const auto dispatch=guest_callback_stop_dispatch(input.guest_callback_owner_stop_triggered(),generation,
@@ -2209,16 +2232,76 @@ void Application::export_diagnostic(){
     if(!atomic_save(name,text.str())){failure(L"诊断写入失败；未声明导出成功。");return;}
     notify(L"诊断已导出："+name.filename().wstring());
 }
-void Application::menu(){POINT pt{};GetCursorPos(&pt);HMENU popup=CreatePopupMenu();
-    AppendMenuW(popup,MF_STRING,menu_pause,settings.enabled?L"暂停增强 (&P)":L"恢复增强 (&P)");
-    AppendMenuW(popup,MF_STRING,menu_settings,L"设置 (&S)");AppendMenuW(popup,MF_STRING,menu_exclude,L"排除上一个应用");
-    HMENU commands=CreatePopupMenu();for(int a=static_cast<int>(v::Action::Minimize);a<=static_cast<int>(v::Action::Undo);++a)
-        AppendMenuW(commands,MF_STRING,600+static_cast<UINT>(a),action_label(static_cast<v::Action>(a)).c_str());
-    AppendMenuW(popup,MF_POPUP,reinterpret_cast<UINT_PTR>(commands),L"窗口操作");AppendMenuW(popup,MF_STRING,menu_help,L"帮助");
-    AppendMenuW(popup,MF_STRING,menu_diagnostic,L"导出诊断");AppendMenuW(popup,MF_SEPARATOR,0,nullptr);AppendMenuW(popup,MF_STRING,menu_exit,L"退出 (&X)");
+void Application::menu(){
+    const bool record=tray_menu_records<8;const unsigned index=record?++tray_menu_records:0;
+    POINT pt{};const BOOL cursor=GetCursorPos(&pt);const DWORD cursor_error=cursor?ERROR_SUCCESS:GetLastError();
+    HMENU popup=CreatePopupMenu();const DWORD popup_error=popup?ERROR_SUCCESS:GetLastError();
+    unsigned append_calls{},append_succeeded{},first_append_failure{};DWORD first_append_error{};
+    std::array<BOOL,64> append_returns{};
+    const auto append=[&](HMENU target,UINT flags,UINT_PTR id,const wchar_t* text){
+        const BOOL result=AppendMenuW(target,flags,id,text);const DWORD error=result?ERROR_SUCCESS:GetLastError();
+        if(record){if(append_calls<append_returns.size())append_returns[append_calls]=result;
+            ++append_calls;if(result)++append_succeeded;else if(!first_append_failure){first_append_failure=append_calls;first_append_error=error;}}
+        return result;
+    };
+    append(popup,MF_STRING,menu_pause,settings.enabled?L"暂停增强 (&P)":L"恢复增强 (&P)");
+    append(popup,MF_STRING,menu_settings,L"设置 (&S)");append(popup,MF_STRING,menu_exclude,L"排除上一个应用");
+    HMENU commands=CreatePopupMenu();const DWORD commands_error=commands?ERROR_SUCCESS:GetLastError();
+    for(int a=static_cast<int>(v::Action::Minimize);a<=static_cast<int>(v::Action::Undo);++a)
+        append(commands,MF_STRING,600+static_cast<UINT>(a),action_label(static_cast<v::Action>(a)).c_str());
+    append(popup,MF_POPUP,reinterpret_cast<UINT_PTR>(commands),L"窗口操作");append(popup,MF_STRING,menu_help,L"帮助");
+    append(popup,MF_STRING,menu_diagnostic,L"导出诊断");append(popup,MF_SEPARATOR,0,nullptr);append(popup,MF_STRING,menu_exit,L"退出 (&X)");
     // Activating our own user-requested tray menu is not source activation or
     // foreground recovery. No third-party window is activated by the product.
-    SetForegroundWindow(window);TrackPopupMenu(popup,TPM_RIGHTBUTTON,pt.x,pt.y,0,window,nullptr);PostMessageW(window,WM_NULL,0,0);DestroyMenu(popup);
+    const HWND foreground_before=record?GetForegroundWindow():nullptr;
+    const BOOL foreground_return=SetForegroundWindow(window);
+    const HWND foreground_after=record?GetForegroundWindow():nullptr;
+    if(record){try{
+        std::string raw_append="[";for(unsigned n=0;n<append_calls&&n<append_returns.size();++n){
+            if(n)raw_append+=',';raw_append+=std::to_string(append_returns[n]);}raw_append+=']';
+        log.event("tray_menu_before_track","\"record_index\":"+std::to_string(index)+",\"record_limit\":8"+
+            ",\"owner_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(window))+",\"dispatch_TID\":"+std::to_string(GetCurrentThreadId())+
+            ",\"GetCursorPos_return\":"+(cursor?"true":"false")+",\"GetCursorPos_native_BOOL\":"+std::to_string(cursor)+
+            ",\"GetCursorPos_error_on_failure\":"+(cursor?"null":std::to_string(cursor_error))+
+            ",\"original_screen_point\":["+std::to_string(pt.x)+","+std::to_string(pt.y)+"]"+
+            ",\"CreatePopupMenu_return\":"+std::to_string(reinterpret_cast<std::uintptr_t>(popup))+
+            ",\"CreatePopupMenu_error_on_failure\":"+(popup?"null":std::to_string(popup_error))+
+            ",\"CreatePopupMenu_submenu_return\":"+std::to_string(reinterpret_cast<std::uintptr_t>(commands))+
+            ",\"CreatePopupMenu_submenu_error_on_failure\":"+(commands?"null":std::to_string(commands_error))+
+            ",\"AppendMenuW_attempts\":"+std::to_string(append_calls)+",\"AppendMenuW_nonzero_returns\":"+std::to_string(append_succeeded)+
+            ",\"AppendMenuW_native_BOOLs\":"+raw_append+",\"AppendMenuW_returns_truncated\":"+(append_calls>append_returns.size()?"true":"false")+
+            ",\"first_AppendMenuW_failure_index\":"+(first_append_failure?std::to_string(first_append_failure):"null")+
+            ",\"first_AppendMenuW_error_on_failure\":"+(first_append_failure?std::to_string(first_append_error):"null")+
+            ",\"SetForegroundWindow_return\":"+(foreground_return?"true":"false")+
+            ",\"SetForegroundWindow_native_BOOL\":"+std::to_string(foreground_return)+
+            ",\"foreground_before_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground_before))+
+            ",\"foreground_after_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground_after))+
+            ",\"SetForegroundWindow_LastError_not_defined_or_used\":true"+
+            ",\"TrackPopupMenu_flags\":"+std::to_string(TPM_RIGHTBUTTON)+",\"TrackPopupMenu_reserved\":0"+
+            ",\"TrackPopupMenu_call_not_yet_executed\":true,\"next_call_is_original_TrackPopupMenu\":true");
+    }catch(...){}}
+    LARGE_INTEGER before{},after{};const bool before_clock=record&&QueryPerformanceCounter(&before)!=FALSE;
+    const BOOL tracked=TrackPopupMenu(popup,TPM_RIGHTBUTTON,pt.x,pt.y,0,window,nullptr);
+    const DWORD track_error=tracked?ERROR_SUCCESS:GetLastError();
+    const bool after_clock=record&&QueryPerformanceCounter(&after)!=FALSE;
+    const BOOL posted=PostMessageW(window,WM_NULL,0,0);const DWORD post_error=posted?ERROR_SUCCESS:GetLastError();
+    const BOOL destroyed=DestroyMenu(popup);const DWORD destroy_error=destroyed?ERROR_SUCCESS:GetLastError();
+    if(record){try{
+        log.event("tray_menu_after_track","\"record_index\":"+std::to_string(index)+",\"record_limit\":8"+
+            ",\"owner_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(window))+
+            ",\"TrackPopupMenu_attempted\":true,\"TrackPopupMenu_completed\":true,\"TrackPopupMenu_return\":"+(tracked?"true":"false")+
+            ",\"TrackPopupMenu_native_BOOL\":"+std::to_string(tracked)+
+            ",\"TrackPopupMenu_error_on_failure\":"+(tracked?"null":std::to_string(track_error))+
+            ",\"TrackPopupMenu_before_qpc\":"+(before_clock?std::to_string(before.QuadPart):"null")+
+            ",\"TrackPopupMenu_after_qpc\":"+(after_clock?std::to_string(after.QuadPart):"null")+
+            ",\"PostMessage_WM_NULL_return\":"+(posted?"true":"false")+
+            ",\"PostMessage_WM_NULL_native_BOOL\":"+std::to_string(posted)+
+            ",\"PostMessage_WM_NULL_error_on_failure\":"+(posted?"null":std::to_string(post_error))+
+            ",\"DestroyMenu_return\":"+(destroyed?"true":"false")+
+            ",\"DestroyMenu_native_BOOL\":"+std::to_string(destroyed)+
+            ",\"DestroyMenu_error_on_failure\":"+(destroyed?"null":std::to_string(destroy_error))+
+            ",\"TPM_RETURNCMD_used\":false,\"menu_selection_or_resource_cleanup_PASS_inferred\":false");
+    }catch(...){}}
 }
 void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");input.revoke();input.stop();finish(v::End::Exit);settings_ui.close();
     drain_button_admissions(true);
@@ -2352,6 +2435,7 @@ LRESULT CALLBACK main_proc(HWND w,UINT message,WPARAM wp,LPARAM lp){
             a->refresh_idle_catalog();
             return 0;}
         case tray_message:
+            a->observe_tray_ingress(w,wp,lp);
             if(LOWORD(lp)==WM_CONTEXTMENU||LOWORD(lp)==WM_RBUTTONUP)a->menu();
             else if(LOWORD(lp)==NIN_SELECT||LOWORD(lp)==WM_LBUTTONDBLCLK)a->show_settings();
             return 0;
