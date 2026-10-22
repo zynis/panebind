@@ -1190,7 +1190,7 @@ void chain_idle_facts(State& s){
     chain_preview_hidden(s,"I11_actual_idle_overlay_hidden");GUITHREADINFO info{sizeof(info)};
     s.log.check("I11_actual_owned_thread_no_capture_or_modal",GetGUIThreadInfo(s.owner,&info)&&!info.hwndCapture&&!info.hwndMoveSize);
 }
-[[maybe_unused]] void owned_finite_I11_chain(State& s){
+[[maybe_unused]] void owned_finite_I11_chain(State& s,bool core_only=false){
     namespace v=panebind::core::v1;
     if(s.configuration!="Release")throw std::runtime_error("I11_requires_actual_Release_configuration");
     const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
@@ -1203,6 +1203,17 @@ void chain_idle_facts(State& s){
         chain_i06_owned_core(s);chain_idle_facts(s);chain_check_product(s,pid,birth);
         s.log.emit("I11_actual_core_round_complete","\"round\":"+std::to_string(round)+",\"pid\":"+std::to_string(pid)+
             ",\"product_restarted\":false,\"scope\":\"owned_core_I02_I03_I04_I05_I06\",\"Explorer_and_cross_screen_verdicts_separate\":true");
+    }
+    if(core_only){
+        // A changed input/cleanup candidate needs its existing combined action
+        // chain again, not another unchanged 900-second acceptance batch.
+        // This selection cannot grant I11, real-application or whole-V1 PASS.
+        chain_gui_save(s,original);chain_idle_facts(s);chain_check_product(s,pid,birth);
+        (void)chain_resource_sample(s,pid,birth,"current_core_only_after_two_rounds_and_configuration_restore");
+        s.log.emit("current_candidate_core_chain_complete","\"rounds\":2,\"pid\":"+std::to_string(pid)+
+            ",\"product_restarted\":false,\"original_configuration_restored\":true,\"mixed_900_seconds\":\"NOT_RUN\","
+            "\"application_matrix\":\"NOT_RUN\",\"I11_or_whole_version_PASS\":false");
+        return;
     }
     const Rect work=chain_work(s.frames[0].hwnd);const LONG x=work.l+140,y=work.t+100;
     const std::array<Rect,3> layout{{{x,y,x+320,y+400},{x+320,y,x+640,y+200},{x+320,y+200,x+640,y+400}}};

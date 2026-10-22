@@ -3177,3 +3177,31 @@ and exact client, then public Pause/Resume and same-instance Move/Resize.
 This is explicit injected owner shutdown, not natural queue exhaustion,
 OS-silent hook removal, human UAT or host execution. Native results remain
 NOT_RUN until matching guest evidence is collected. No external code reused.
+
+### V1 isolated Medium desktop environment feasibility — 2026-10-22
+
+This is a single TEST environment observation inside a disposable task guest,
+not a new product input route or a relaxation of the product's Default-desktop
+eligibility. Reuse the existing AltSnap/FancyZones desktop/lifecycle research
+above; no new upstream source, issue, PR or commit inspection is claimed.
+
+Actually inspected: Microsoft Sysinternals [Desktops v2.01 documentation](https://learn.microsoft.com/en-us/sysinternals/downloads/desktops),
+published 2021-10-12. Classification: mature platform utility, documentation-only
+reference; its public page lists Windows 7–10 and Server 2008–2022, not a Windows
+11 Sandbox compatibility guarantee. No binary was downloaded or executed, no
+source was available or copied/adapted, and no redistribution/license decision
+is made. The useful documented distinction is separate Win32 desktop objects
+and separate Explorer shells, not Task View virtual desktops. Closing a desktop
+handle does not establish that its windows/processes have exited.
+
+Official API contracts read: [CreateDesktopW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createdesktopw)
+and [EnumDesktopWindows](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdesktopwindows).
+Use a fresh RunId name, flags zero, inherited security descriptor and the same
+verified Medium identity; an existing object must not be adopted. Request only
+the observation/window rights needed for this guest. A single Explorer launch
+with an explicit new desktop is not proof of a new Medium shell: actual desktop,
+HWND/PID/birth/path/SID/session/integrity and Shell/Tray must be observed. Do not
+replace/control the Default High shell, alter ACL/token/account/UAC settings,
+or infer an interactive desktop from off-screen enumeration. No product or
+synthetic input is needed for this initial feasibility observation. Failure only
+blocks this environment route; guest disposal is not product cleanup evidence.

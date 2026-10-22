@@ -140,7 +140,7 @@ function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
     if(-not $branch.Success -or -not $branch.Value.Contains('native_clients_only_flow(s);') -or
        $branch.Index+$branch.Length -gt $drive.IndexOf('launch(s,',[StringComparison]::Ordinal) -or
        $branch.Groups['native'].Value -match '\b(?:launch|fixture_rect|read_product|record)\s*\(' -or
-       -not $drive.Contains('if(s.suite!="NativeClientsOnly")cleanup(s);')){
+       -not $drive.Contains('if(s.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly")cleanup(s);')){
         throw 'Native client baseline must bypass the product launch branch, including product stop on failure.'
     }
     $flow=Get-V1FixtureFunctionText $Source 'native_clients_only_flow'
@@ -1399,4 +1399,47 @@ Check $true 'static path rules retain exact guest child images, public GUI edits
 Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('image_hash!=hash(parent_name.data())','false')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject mismatched controller and child image bytes'
 Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('visible(other.hwnd)==other_before','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject ignoring operations on the nonselected sibling'
 Reject {Assert-V1RulesPathWiring $fixtureSource ($rulesPath.Replace('e::number(placement,"\"key\":")==source_key','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static path rules reject unbound positive placement identity'
+function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[string]$Prepare,[string]$Guest,[string]$Remote){
+    foreach($value in @('#include "platform/windows/product/v1_guest_medium_desktop_environment_case.h"',
+        'else if(s.suite=="MediumDesktopEnvironmentOnly"){','medium_desktop_environment_flow(s);',
+        'else if(value==L"MediumDesktopEnvironmentOnly")s.suite="MediumDesktopEnvironmentOnly";',
+        's.suite!="SystemShakeCoexistenceOnly"&&s.suite!="MediumDesktopEnvironmentOnly"',
+        's.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly"')){
+        if(-not $Fixture.Contains($value)){throw ('Medium desktop lost standalone, no-product guarded wiring: '+$value)}
+    }
+    foreach($script in @($Prepare,$Guest,$Remote)){
+        if(-not $script.Contains("'MediumDesktopEnvironmentOnly'")){throw 'Medium desktop requires exact preparation, guest and deployment suite admission.'}
+    }
+    foreach($value in @('s.suite!="MediumDesktopEnvironmentOnly"||!desktop()',
+        '!equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())||s.process||s.product_pid',
+        'marker(fs::path(L"C:\\PaneBindV1\\Input")/L"panebind-v1-input.marker",s.run)',
+        'matching_existing_names','open_error!=ERROR_FILE_NOT_FOUND','CreateDesktopW(name.c_str(),nullptr,nullptr,0,access,nullptr)',
+        'SetThreadDesktop(created)','startup.lpDesktop=requested_desktop.data()',
+        'CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,',
+        'input_actor_same_user(child)','session&&session==own_session','equal(image,executable.wstring())',
+        'WaitForInputIdle(child,10000)','EnumDesktopWindows(target,','first.windows==second.windows',
+        'shell_before==shell_after','fresh.exact_child&&fresh.visible&&fresh.hwnd==shell_after',
+        'fresh.exact_child&&fresh.visible&&fresh.type==L"Shell_TrayWnd"',
+        'exact_shell==1&&exact_tray==1','SetThreadDesktop(original)','CloseDesktop(created)',
+        'before.same(after)&&desktop()','s.result=ready?0:78;',
+        'READY_ENUMERATED_ONLY','ordinary_full_desktop_acceptance','NOT_PROVEN','process_cleanup_PASS_inferred')){
+        if(-not $Cases.Contains($value)){throw ('Medium desktop lost actual bounded, exact process/window or cleanup boundary: '+$value)}
+    }
+    if($Cases -match '\b(SendInput|SwitchDesktop|SetProcessWindowStation|SetUserObjectSecurity|SetSecurityInfo|SetTokenInformation|CreateRestrictedToken|SetForegroundWindow|SetFocus|TerminateProcess|PostMessage\w*|SendMessage\w*|Sleep)\s*\(' -or
+       $Cases.Contains('launch(s,') -or [regex]::Matches($Cases,'WaitForInputIdle\(child,10000\)').Count -ne 1){
+        throw 'Medium desktop is one no-input environment observation, not a new input route, altered security or forced Shell takeover.'
+    }
+}
+$mediumDesktopEnvironment=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_environment_case.h'),[Text.Encoding]::UTF8)
+Assert-V1MediumDesktopEnvironment $fixtureSource $mediumDesktopEnvironment $lifecyclePrepare $lifecycleGuest $queueFailureRemote
+Check $true 'static Medium desktop keeps exact original guest guards, one inherited-security object/child and independent actual Shell/Tray observation'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('session&&session==own_session','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects adopting a process in an unverified session'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('exact_shell==1&&exact_tray==1','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects interpreting process creation as actual Shell/Tray readiness'
+foreach($script in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
+    Check ($script.Contains("'CurrentCoreChainOnly'")) 'static current core chain retains exact preparation, guest and deployment admission'
+}
+Check ($fixtureSource.Contains('owned_finite_I11_chain(s,true);') -and
+    $fixtureSource.Contains('CurrentCoreChainOnly_requires_Release') -and
+    $fixtureSource.Contains('independent_entry_ready(s,"current_core_chain_only.after",false)') -and
+    $fixtureSource.Contains('I11_900_seconds') -and $fixtureSource.Contains('whole_version_acceptance')) 'static current core chain is explicit Release two-round reuse, not an independent 900-second or whole-version PASS'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
