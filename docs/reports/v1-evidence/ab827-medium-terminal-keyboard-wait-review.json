@@ -1,0 +1,260 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-AB827-MEDIUM-TERMINAL-KEYBOARD-ACTUAL3000MS-WAIT-NONCE-BLOCKED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+  "suite": "MediumDesktopNativeClientOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_ACTUAL_FULL_WAIT_KEYBOARD_INSERTS_NO_CLIENT_NONCE",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "product_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+    "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+    "driver_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+    "packaging_head": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+    "fixture_pid": 6356,
+    "fixture_primary_tid": 2664,
+    "product_started": false,
+    "terminal_pid": 5720,
+    "terminal_tid": 5716,
+    "terminal_birth_filetime_decimal": "134371417913322769",
+    "terminal_root_hwnd": 131890,
+    "terminal_distribution_version": "1.25.2733.0",
+    "terminal_sha256": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "desktop": "WinSta0\\PaneBindV1_ab82752e040e4b1d8dd32bbe9aeb46a0",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "original_Default_Shell_birth_filetime_decimal": "134371417721532369",
+    "precision": "FILETIME birth identities extracted from original raw decimal digit strings by regex. No parsed floating-point number was used to reconstruct a64-bit identity.",
+    "product_identity_meaning": "Package payload only; this case actually reports product_started=false throughout. No product hook, tray, enhancement write, normal product UP or product cleanup ran."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/package-receipt.json",
+      "bytes": 13307,
+      "sha256": "3C1617B5DCCBC2E975C35EEDDDC9C7C20D87583FD884F2AEEDFEF8E84CFCCD06"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/ab82752e040e4b1d8dd32bbe9aeb46a0.zip",
+      "bytes": 17801953,
+      "sha256": "CB810965309698E69883F012817B3925C57BBC8BF40ED79FAA8F7C601F41A67A"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/input/manifest.json",
+      "bytes": 21783,
+      "sha256": "F3ADE3BD530E713AACA50B20E862AEE738FF1E65CBCDA7CF7F54E9473D43BBA5"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/PaneBindV1.wsb",
+      "bytes": 986,
+      "sha256": "80918B624F7021B71E174D2216F07D7DA6AFA7C69B6CBF29A5B2B59FCE732D2A"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4090880,
+      "sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/collection-20261022T112720132Z-b1b511b3245444af9a805f275bb22dce/ab82752e040e4b1d8dd32bbe9aeb46a0-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "actual_local_ZIP_manifest_WSB_hashes_match_parent_expected_and_package_receipt": true,
+    "collected_and_packaged_product_hash_matches_actual_guard_identity": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\ab82752e040e4b1d8dd32bbe9aeb46a0",
+    "old_product_or_driver_runtime_rebound": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/collection-20261022T112720132Z-b1b511b3245444af9a805f275bb22dce/ab82752e040e4b1d8dd32bbe9aeb46a0-release-fixture.jsonl",
+      "bytes": 6544616,
+      "sha256": "2F2C94928C8CCB8D780487FC02F7797490D61109B45A86D8A0D786F3A06FF701",
+      "role": "driver",
+      "rows": 232,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        232
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/collection-20261022T112720132Z-b1b511b3245444af9a805f275bb22dce/ab82752e040e4b1d8dd32bbe9aeb46a0-guest-summary.json",
+      "bytes": 22705,
+      "sha256": "EDDC2CF9763730FFD65C8CF9FE78C80AD4710B091E01D4B50FB84B3B89151631"
+    },
+    {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/collection-20261022T112720132Z-b1b511b3245444af9a805f275bb22dce/ab82752e040e4b1d8dd32bbe9aeb46a0-Release-launch.json",
+      "bytes": 9902,
+      "sha256": "802A074BDE73374A4494D42C886B57B9EB59673F2F387C496A38F737FC3ACF49"
+    },
+    {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/collection-20261022T112720132Z-b1b511b3245444af9a805f275bb22dce/collection-receipt.json",
+      "bytes": 7883,
+      "sha256": "4D7EE48CDA8ADF61BADA8CF6EF39BF84BD1886EC2D273DE2E7B6BC136CBF4189"
+    },
+    {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/cleanup-receipt.json",
+      "bytes": 9084,
+      "sha256": "3D6D3EE25F61389E1248F3570DF8500A83BD7767672A54692131CB48BD0A521A"
+    },
+    {
+      "path": "uat/v1-sandbox/ab82752e040e4b1d8dd32bbe9aeb46a0/package-receipt.json",
+      "bytes": 13307,
+      "sha256": "3C1617B5DCCBC2E975C35EEDDDC9C7C20D87583FD884F2AEEDFEF8E84CFCCD06"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-excerpt.jsonl",
+    "bytes": 18538,
+    "sha256": "2881513D0B53B56A4907F2F41DB5B9D5249A0B55B4F2DB01D903F3737364C933",
+    "literal_lines": 29,
+    "driver_sequences": [
+      3,
+      13,
+      18,
+      188,
+      189,
+      190,
+      193,
+      194,
+      195,
+      196,
+      197,
+      199,
+      201,
+      202,
+      205,
+      208,
+      209,
+      210,
+      211,
+      213,
+      216,
+      219,
+      220,
+      222,
+      225,
+      226,
+      227,
+      228,
+      232
+    ],
+    "serialization_changed": false,
+    "line_endings": "Exact UTF-8 source line contents preserved with LF. Emission order is not a shared native chronology."
+  },
+  "observations": [
+    {
+      "source": "D13/D188-D202",
+      "fact": "Exact payload744e/driver85ba are separately hash-bound. Fresh same-SID/session Medium Terminal PID5720/TID5716/root131890 was ready in1453ms, twice present in complete held-Run inventories. Actual foreign Run name/dual GUI queries/VDM S_OK-current are positive; source/client positioning, DPI and same-PID/TID existing zero-area InputSite focus are real facts. Root external hit remainedHTCAPTION2, not mouse-client permission. Product was not started."
+    },
+    {
+      "source": "D193/D199/D202/D205/D208",
+      "fact": "Exact output did not exist before input and a real overlapped directory watch was armed. Fresh keyboard guard accepted. The command actually inserted458/458 Unicode DOWN/UP packets and Enter2/2; no incomplete pair or in-flight cancellation was reported. This does not establish target delivery, shell execution or semantic success, and no mouse client input was sent."
+    },
+    {
+      "source": "D209",
+      "fact": "New actual wait trace records requested and initial budget3000ms, native local ticks42125..45125 and QPC421557870..451583926 at10MHz:3000ms tick span/3.0026056s QPC span. Last context was accepted, two native waits occurred, last return258 WAIT_TIMEOUT, dispatched_messages0, and no additional input was sent. The reason is wait_timeout_nonce_not_observed. This run did not fail immediately or at a context rejection; it timed out without the nonce."
+    },
+    {
+      "source": "D210-D211/D216",
+      "fact": "actual_exact_nonce_observed=false and normalized value/hash remain null. Original resultUNKNOWN_OR_BLOCKED/driverFAIL remains. Own client hook unhook succeeded; directory CancelIoEx and completion wait0 left no unknown native pending operation. API input success and complete bounded wait do not prove Terminal client usability or a product-caused block; product_started=false and product_enhancement_result=NOT_RUN."
+    },
+    {
+      "source": "D213/D219-D227",
+      "fact": "One normal WM_CLOSE was posted and exact bound root was actually gone. Immediate process wait258 and separately read exit_code0 are retained as non-atomic facts, not all-descendant exit. A separate retained Medium Shell child was still alive with wait258/exit259 and explicitly left to the exact guest job/disposal. Independent owner retired input and waited for in-flight completion, actually switched back toDefault with readback, restored observer and closed own handles; original Default Shell identity was unchanged. These scoped resource facts do not grant all-process cleanup PASS."
+    },
+    {
+      "source": "D228/D232 and collection/cleanup receipts",
+      "fact": "Own Raw observer registration was actually removed. Original environmentBLOCKED and driverFAIL remain; wrapper exit1/one surviving descendant/forced test cleanup are preserved. Stable seven-file output collection and later exact own guest/task cleanup did not change evidence hashes. Guest disposal is not client semantic or product cleanup evidence."
+    }
+  ],
+  "actual_result": {
+    "actual_Unicode_SendInput_return": 458,
+    "actual_Enter_SendInput_return": 2,
+    "actual_exact_nonce_observed": false,
+    "normalized_nonce_value": null,
+    "nonce_file_sha256": null,
+    "client_semantic_result": "UNKNOWN_OR_BLOCKED",
+    "cause_of_missing_nonce": "UNKNOWN",
+    "mouse_client_click": "NOT_RUN",
+    "mouse_input_sent": false,
+    "product_result": "NOT_RUN",
+    "root_normal_close": "OBSERVED_EXACT_ROOT_GONE_ONLY",
+    "process_tree_exit": "NOT_PROVEN",
+    "source_GTI_and_foreground_GTI": "ACTUAL_SUCCESS_READ_ONLY",
+    "VDM": "ACTUAL_S_OK_TRUE_READ_ONLY",
+    "System_or_Sandbox_root_cause": "NOT_PROVEN",
+    "product_interception": "NOT_OBSERVED_PRODUCT_NEVER_STARTED"
+  },
+  "time_basis": {
+    "qpc_frequency": 10000000,
+    "requested_wait_cap_ms": 3000,
+    "actual_initial_budget_ms": 3000,
+    "before_tick": 42125,
+    "after_tick": 45125,
+    "actual_tick_span_ms": 3000,
+    "before_qpc": 421557870,
+    "after_qpc": 451583926,
+    "actual_qpc_span_seconds": 3.0026056,
+    "native_waits": 2,
+    "last_wait_return": 258,
+    "last_context_result": "accepted",
+    "reason": "wait_timeout_nonce_not_observed",
+    "additional_input_sent": false,
+    "buffered_emit": "D188..222 emitted around45531..45546 after the actual operations; these are not the API entry times. Explicit local before/after tick and QPC fields prove this run's wait, not the old e657 wait-only interval.",
+    "prior_e657_scope": "Old e657 original failure and unknown nonce-only wait duration remain unchanged. This new run rules out an immediate/context-rejection explanation for ab827, not all missing-nonce causes or the exact historical e657 interval."
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false,
+    "product_cleanup_applicability": "NOT_APPLICABLE_NOT_STARTED"
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/ab82752e040e4b1d8dd32bbe9aeb46a0/cleanup-receipt.json",
+      "bytes": 9084,
+      "sha256": "3D6D3EE25F61389E1248F3570DF8500A83BD7767672A54692131CB48BD0A521A"
+    },
+    "utc": "2026-10-22T11:29:13.0253946Z",
+    "guest": 11500,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "collected_files_match_before_after_and_local_size_SHA256": true,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "human_UAT": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "product_enhancement": "NOT_RUN",
+    "Terminal_mouse_client": "NOT_RUN",
+    "Terminal_keyboard_semantics": "UNKNOWN_OR_BLOCKED",
+    "next_action": "Preserve this actual full wait/no-nonce counterexample. Only a specific new observable client/shell distinction warrants a further bounded existing test; do not blame product interception or use more identical input/timeouts as semantic proof.",
+    "history": "Old e657/55f and all prior runs keep their source, binary, package and verdict. This product744e payload was never started in ab827."
+  }
+}

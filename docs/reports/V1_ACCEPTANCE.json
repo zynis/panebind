@@ -9,7 +9,7 @@
   "human_uat": "PENDING",
   "source_identity": {
     "runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-    "current_targeted_runtime": {
+    "historical_55f_targeted_runtime": {
       "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
       "release_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
       "driver_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
@@ -22,6 +22,27 @@
       "scope": "Current55f source/EXE actual020e GUI/Escape/icon-input bounded scope and02ec samePID3948 two owned Default core rounds PASS;6d20 product-absent keyboard precondition BLOCKED. New exactRun resource initialization observed, but no newRun enhancement write/client semantic/menu/full matrix/whole PASS. Physical02ec product1215..1974/760rows only, not all-history zero-late proof; old25b/bfb identities retained.",
       "product_builds": "ACTUAL_DEBUG_RELEASE_PRODUCT_FIXTURE_AND_SIX_AFFECTED_OFFLINE_EACH6_OF6_PASS",
       "environment_only_followup_ref": "source_identity.pending_driver_candidate",
+      "whole_version_PASS": false
+    },
+    "current_targeted_runtime": {
+      "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "debug_sha256": "3569C94026B3EA8A061A4135CC01F795E36CD2851235145916C17E525639DA04",
+      "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "driver_release_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+      "run_ids": [
+        "af4fbd2270424659b75b6af8659617a4"
+      ],
+      "historical_same_product_driver85ba_run_id": "667038d9a2614c30b9a53af3185b5d61",
+      "packaged_product_not_started_run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+      "scope": "744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。",
+      "product_builds": "ACTUAL_DEBUG_RELEASE_PRODUCT_SIX_AFFECTED_OFFLINE_EACH6_OF6_PASS_FOUR_HOST_EXIT78",
+      "ordinary_portable_current_EXE_entry": "NOT_RUN",
+      "evidence_paths": [
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json"
+      ],
       "whole_version_PASS": false
     },
     "observed_driver0f_targeted_actual": {
@@ -50,20 +71,29 @@
     },
     "pending_product_candidate": {
       "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
-      "current_verified_product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+      "current_verified_product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
       "current_verified_portable_package_id": "bfb405c45e5a446ca54a74735d1122a8",
       "last_verified_portable_product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
-      "implementation_status": "IMPLEMENTED_BOUNDED_GUI_TRAY_INGRESS_AND_ORIGINAL_MENU_API_RECEIPTS_DIAGNOSTICS_ONLY",
+      "implementation_status": "IMPLEMENTED_ACTUAL_EXACT_RUN_TERMINAL_GEOMETRY_THREE_NORMALUP_SCOPES_PASS_TRAY_BLOCKED",
       "build": "ROOT_ACTUAL_DEBUG_RELEASE_PRODUCT_BUILD_PASS_SIX_AFFECTED_OFFLINE_EACH6_OF6_PASS",
       "debug_sha256": "3569C94026B3EA8A061A4135CC01F795E36CD2851235145916C17E525639DA04",
       "release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
       "host_guard": "ROOT_ACTUAL_FOUR_PRODUCT_HOST_GUARDS_EXIT78",
-      "native_runtime": "NOT_RUN",
-      "package": "NOT_GENERATED",
-      "scope": "Only bounded GUI-owner tray ingress and original menu API return receipts; mechanism and original call ordering unchanged. Actual55f Default two-core/UI evidence and25b/bfb portable remain at their original identities. New TEST actualTerminalGeometry+bounded-wait helper is being connected; no new driver SHA, package or native result yet.",
+      "native_runtime": "ACTUAL_AF4F_TERMINAL_MOVE_RESIZE_SUCCESSOR_SCOPED_PASS_TRAY_MENU_FAIL_6670_FAILURE_RETAINED",
+      "package": "ACTUAL_RUN_PACKAGES_GENERATED_NEW_CURRENT_ORDINARY_PORTABLE_ENTRY_PENDING",
+      "scope": "744e exact Run Terminal production source/handoff/writer and three NormalUp/resource closures actually observed; ordinary per-call success receipt remains unknown. Tray menu fails after real input; client nonce remains unconfirmed in separate product-absent ab827 full-wait test. Original55f Default two rounds and25b/bfb portable keep identities. New trayguard TEST change is being encoded, no future source/hash/build/result inferred.",
       "actual_build_evidence_kind": "ROOT_TOOL_RESULT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
       "whole_version_PASS": false,
-      "old_runtime_rebound": false
+      "old_runtime_rebound": false,
+      "actual_run_ids": [
+        "af4fbd2270424659b75b6af8659617a4",
+        "667038d9a2614c30b9a53af3185b5d61"
+      ],
+      "actual_evidence_paths": [
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json"
+      ]
     },
     "observed_product_4f7": {
       "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
@@ -110,29 +140,24 @@
       "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
     },
     "pending_driver_candidate": {
-      "source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-      "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+      "source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
       "product_binary_unchanged": true,
-      "status": "BUILD_PASS_TWO_ACTUAL_SCOPED_RUNS_BLOCKED_SEALED",
-      "debug_sha256": "636B5336455331A13B2F5C401FF89413250CD5ECA7645C20847F94A877986E26",
-      "release_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
+      "status": "BUILD_PASS_ACTUAL_AF4F_GEOMETRY_SCOPED_PASS_TRAY_MENU_FAILED_SEALED",
+      "debug_sha256": "1849339A8E72DEB4A5B908EF2743B1A14BB13D516B5DC5F9A16CC9FB73325E8B",
+      "release_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
       "build": "ROOT_ACTUAL_DEBUG_RELEASE_FIXTURE_BUILD_PASS",
       "offline": "ROOT_ACTUAL_GUEST_PATH_ONE_EACH_DEBUG_RELEASE_PASS",
-      "host_guard": "ROOT_ACTUAL_FOUR_FULL_ARGV_WAITED_HOST_EXIT78",
-      "runtime_validation": "ACTUAL_E657_FULL_KEYBOARD_INSERTS_NONCE_UNCONFIRMED_26FD_LATE_MENU_SNAPSHOT_BLOCKED",
-      "prepared_run_ids": {
-        "Native": "e657c8d9e9064be5bbc3efe63ddb26be",
-        "UI": "26fd481a241f4e42af07f8a9e5084a79"
-      },
-      "scope": "Test-only existing-focus keyboard qualification and actual late product-menu observations executed under frozen55f. e657 product not started;26fd ordinary GUI/Escape/right-pair observed, menu/callback root cause unknown. Both actual failed runs sealed; no client semantic/menu/whole PASS. Next TEST actualTerminalGeometry+bounded wait is not yet built or run.",
+      "static": "ROOT_ACTUAL200_PASS",
+      "host_guard": "ROOT_ACTUAL_FOUR_FULL_ARGV_HOST_EXIT78",
+      "runtime_validation": "ACTUAL_AF4F_D606_TRANSITION_DISCARD_AND_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
       "actual_run_ids": [
-        "e657c8d9e9064be5bbc3efe63ddb26be",
-        "26fd481a241f4e42af07f8a9e5084a79"
+        "af4fbd2270424659b75b6af8659617a4"
       ],
       "actual_evidence_paths": [
-        "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json",
-        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json"
-      ]
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json"
+      ],
+      "scope": "Threshold guard accepts already-real native/handoff progress by discarding only an unissued kick. This exact5211 run confirms the affected transition, without changing744e product. Existing85ba/6670 FAIL remains. Next trayguard driver is unbuilt/unidentified; no future PASS."
     },
     "observed_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -159,11 +184,11 @@
       "scope": "MediumDesktopNativeOnly actually completed on a fresh exact active Medium Run desktop independently of tray API readiness. It proves only product-absent modern Terminal root startup/responsiveness/normal close, not client input, product eligibility, all-process exit or full desktop. Formal Default product guards and remaining V1 contracts stay unchanged."
     },
     "pending_UI_native_client_followup": {
-      "implementation_status": "ACTUAL_55F_UI_PARTIAL_DEFAULT_CORE_SCOPE_PASS_3E2_FOLLOWUPS_BLOCKED_NEXT_DIAGNOSTICS_IMPLEMENTED",
-      "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-      "build": "CURRENT55F_D_R_PRODUCT_SIX_OFFLINE_EACH_PASS_3E2_DRIVER_D_R_GUESTPATH_ONE_EACH_PASS",
-      "native_runtime": "ACTUAL_E657_KEYBOARD_INSERTS_NONCE_UNCONFIRMED_26FD_REAL_UI_INPUT_LATE_MENU_NOT_CONFIRMED",
-      "scope": "e657 actually inserted458 Unicode and2 Enter packets but exact nonce semantics remain UNKNOWN;26fd actually Escape/UID1/right-pair and a late no-menu snapshot, no proof of absent callback.55f Default two owned rounds remain02ec scope only. New744e diagnostics-only product D/R built/six offline each and4host guards passed but native NOT_RUN. Next actualTerminalGeometry+bounded-wait TEST helper is being connected: no new driver SHA/package/PASS."
+      "implementation_status": "ACTUAL744E_PRODUCTION_RUN_TERMINAL_GEOMETRY_NORMALUP_SCOPED_TRAY_AND_CLIENT_NOT_CLOSED",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "build": "PRODUCT_D_R_SIX_OFFLINE_EACH_PASS_DRIVER5211_D_R_GUESTPATH_EACH_PASS_STATIC200_FOUR_HOST78",
+      "native_runtime": "ACTUAL_AF4F_TERMINAL_MOVE_RESIZE_SUCCESSOR_SCOPED_PASS_TRAY_MENU_FAIL_6670_FAILURE_RETAINED",
+      "scope": "Current744e has actual three-generation Terminal production geometry/Raw+legacy NormalUp/own-resource exits in exactMediumRun; no longer nativeNOTRUN. ab827 product absent keyboard full-wait/no-nonce and af4 tray menu failure remain distinct. Current ordinary portable entry is to be tested. Unbuilt next trayguard is not assigned a SHA or result."
     },
     "observed_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
@@ -269,17 +294,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
-      "source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-      "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-      "release_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
+      "source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "release_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
       "run_ids": [
-        "e657c8d9e9064be5bbc3efe63ddb26be",
-        "26fd481a241f4e42af07f8a9e5084a79"
+        "af4fbd2270424659b75b6af8659617a4"
       ],
-      "native_guard_validation": "ACTUAL_E657_FULL_KEYBOARD_INSERTS_NONCE_UNCONFIRMED_26FD_LATE_MENU_SNAPSHOT_BLOCKED",
+      "native_guard_validation": "ACTUAL_AF4F_D606_TRANSITION_DISCARD_AND_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
       "evidence_paths": [
-        "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json",
-        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json"
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json"
       ],
       "whole_version_PASS": false,
       "old_runtime_rebound": false
@@ -1361,8 +1384,8 @@
       },
       "ordinary_host_trial_allowed": false
     },
-    "latest_observed_runtime_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-    "latest_observed_run_id": "26fd481a241f4e42af07f8a9e5084a79",
+    "latest_observed_runtime_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "latest_observed_run_id": "af4fbd2270424659b75b6af8659617a4",
     "historical_R7_candidate": {
       "source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
       "implementation_source_sha": "b0450da7c4eae68fd0e3646b3625b475a39f6c92",
@@ -1922,7 +1945,9 @@
             "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-review.json",
             "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-excerpt.jsonl",
             "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-            "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl"
+            "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl",
+            "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+            "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
@@ -1930,7 +1955,8 @@
             "PO-76E-R16-MEDIUM-TRAY-PROBE-AND-HIGH-SHELL-BLOCKED",
             "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
             "PO-020E-MEDIUM-PRODUCT-ESCAPE-ICON-INPUT-MENU-UNCONFIRMED",
-            "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED"
+            "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
+            "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED"
           ],
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
@@ -1952,7 +1978,9 @@
         "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-review.json",
         "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-excerpt.jsonl",
         "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl"
+        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
       ],
       "defects": [
         "V1-D10"
@@ -1960,37 +1988,34 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "当前55f/3e2/26fd已核真实Esc设置销毁、UID1初ADD=false后ADD/SETVERSION=true、图标矩形及一次右键两包插入。1500ms后实际product GTI flags/menu_owner均0，FG为Shell PID3992，完整线程枚举4窗无#32768；只能证明该晚期边界未确认菜单。55f无tray ingress/menu API日志，不能据LL-UP或缺日志判零callback/未调用菜单；根因UNKNOWN。公共quit/实际exit0/资源stop与Default回切独立有scope，整托盘BLOCKED。 【先前观察保留】当前55f/020e真实Esc插入2后settingsGone、精确UID1图标矩形/光标和Shell前置下右键两包插入2；初ADD=false后真实ADD/SETVERSION=true。唯一exact菜单复合门未确认，具体子条件UNKNOWN，后继菜单/状态/TaskbarCreated未运行，仍BLOCKED；公共quit/资源stop与Default回切仅为有限事实。 【历史观察保留】当前630b/25b普通无参Medium GUI/前台已实际观察，P1 UID1 ADD=false后，P9同owner/UID1真实ADD与SETVERSION均true；不再称产品永远注册失败。首Esc SendInput0/error5未插入，托盘输入、菜单/状态/TaskbarCreated均未运行；公共--quit与产品exit0/资源停止及Default回切只有有限scope，整M01F02仍BLOCKED。 【历史观察保留】c01/e4实际NIM_ADD=false，精确UID1托盘图标不可达；没有把--settings当托盘点击。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
+      "observed": "当前744e/5211/af4：真实UID1右键后D643菜单未确认；完整P1..88录制中注册P1ADD=false/P6ADD+VERSION=true，但未见tray_callback_ingress或原menu API行。只记录制事实，不能由此推系统唯一原因或callback从未发生；LL RIGHTUP非Shell回执。公共quit/产品exit0/资源stop及Default输入返回已实际观察，不授菜单全部动作合同。 【历史观察保留】当前55f/3e2/26fd已核真实Esc设置销毁、UID1初ADD=false后ADD/SETVERSION=true、图标矩形及一次右键两包插入。1500ms后实际product GTI flags/menu_owner均0，FG为Shell PID3992，完整线程枚举4窗无#32768；只能证明该晚期边界未确认菜单。55f无tray ingress/menu API日志，不能据LL-UP或缺日志判零callback/未调用菜单；根因UNKNOWN。公共quit/实际exit0/资源stop与Default回切独立有scope，整托盘BLOCKED。 【先前观察保留】当前55f/020e真实Esc插入2后settingsGone、精确UID1图标矩形/光标和Shell前置下右键两包插入2；初ADD=false后真实ADD/SETVERSION=true。唯一exact菜单复合门未确认，具体子条件UNKNOWN，后继菜单/状态/TaskbarCreated未运行，仍BLOCKED；公共quit/资源stop与Default回切仅为有限事实。 【历史观察保留】当前630b/25b普通无参Medium GUI/前台已实际观察，P1 UID1 ADD=false后，P9同owner/UID1真实ADD与SETVERSION均true；不再称产品永远注册失败。首Esc SendInput0/error5未插入，托盘输入、菜单/状态/TaskbarCreated均未运行；公共--quit与产品exit0/资源停止及Default回切只有有限scope，整M01F02仍BLOCKED。 【历史观察保留】c01/e4实际NIM_ADD=false，精确UID1托盘图标不可达；没有把--settings当托盘点击。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
       "remaining_conditions": [
-        "26fd已补actual late GTI/FG/完整线程窗口事实，不再只依赖menu_exact复合布尔；该时点无精确菜单不证明从未打开，实际tray callback/menu API完成仍UNKNOWN。",
-        "仍缺实际菜单全部命令/状态/TaskbarCreated合同。744e仅补有界GUI-owner ingress和原menu API回执，D/R构建+6offline各通过、4宿主guard78，但native NOT_RUN；不改机制/调用顺序、不加分。"
+        "当前744e已实际运行且含有界tray ingress/menu API取证；af4原菜单FAIL保留，录制88P无相应行不证明系统根因或从未短暂打开。",
+        "实际菜单全部命令/状态/TaskbarCreated仍缺。后继trayguard TEST正在最小编码，未构建/未识别SHA/未现场，不预填PASS；不靠普通quit或Terminal几何通过替代。"
       ],
-      "next_action": "用新744e精确候选/新Run有界观察实际tray ingress、原菜单API调用与结果，区分路由/创建/完成；不加点击、不伪造callback、不抢前台。26fd原BLOCKED与旧身份保留，公共退出或注册true不替代托盘合同。",
+      "next_action": "保留当前744e及af4录制，按新增具体tray输入/命中/入站判据完成一次受影响有界对照；新driver构建/Run后再记事实，不抢前台、不补callback、不无变量复跑已过三段Terminal几何。",
       "latest_run_observation": {
-        "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-        "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-        "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-        "run_id": "26fd481a241f4e42af07f8a9e5084a79",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
-        "evidence_path": "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-        "scope": "ACTUAL_ORDINARY_MEDIUM_GUI_ESC_UID1_RIGHTPAIR_LATE_PRODUCT_GTI0_AND_NO_POPUP_MENU_NOT_CONFIRMED",
-        "result": "BLOCKED",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
         "not_complete_contract_PASS": true,
         "product_initial_NIM_ADD": false,
         "product_later_NIM_ADD": true,
         "product_later_NIM_SETVERSION": true,
         "right_pair_SendInput_return": 2,
         "menu_verified": false,
-        "late_product_GTI_flags": 0,
-        "late_menu_owner": 0,
-        "late_foreground_PID": 3992,
-        "late_thread_window_count": 4,
-        "late_exact_popup_count": 0,
-        "tray_callback_ingress": "UNKNOWN_NOT_INSTRUMENTED_IN55F",
-        "resource_Run_context_initialized": true,
-        "enhancement_native_placement": "NOT_RUN",
+        "complete_product_log_rows": 88,
+        "recorded_tray_callback_ingress_rows": 0,
+        "recorded_original_menu_API_rows": 0,
+        "tray_callback_delivery": "UNKNOWN_NOT_INFERRED_FROM_LL_OR_MISSING_ROWS",
+        "enhancement_native_geometry": "ACTUAL_THREE_GENERATIONS_SCOPED_PASS",
         "specific_menu_root_cause": "UNKNOWN",
         "new_feature_or_B_PASS": false
       },
@@ -2002,32 +2027,45 @@
         "PO-76E-R16-MEDIUM-TRAY-PROBE-AND-HIGH-SHELL-BLOCKED",
         "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
         "PO-020E-MEDIUM-PRODUCT-ESCAPE-ICON-INPUT-MENU-UNCONFIRMED",
-        "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED"
+        "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED"
       ],
       "latest_product_observation": {
-        "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-        "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-        "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-        "run_id": "26fd481a241f4e42af07f8a9e5084a79",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
-        "evidence_path": "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-        "scope": "ACTUAL_ORDINARY_MEDIUM_GUI_ESC_UID1_RIGHTPAIR_LATE_PRODUCT_GTI0_AND_NO_POPUP_MENU_NOT_CONFIRMED",
-        "result": "BLOCKED",
-        "not_complete_contract_PASS": true
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
+        "not_complete_contract_PASS": true,
+        "product_initial_NIM_ADD": false,
+        "product_later_NIM_ADD": true,
+        "product_later_NIM_SETVERSION": true,
+        "right_pair_SendInput_return": 2,
+        "menu_verified": false,
+        "complete_product_log_rows": 88,
+        "recorded_tray_callback_ingress_rows": 0,
+        "recorded_original_menu_API_rows": 0,
+        "tray_callback_delivery": "UNKNOWN_NOT_INFERRED_FROM_LL_OR_MISSING_ROWS",
+        "enhancement_native_geometry": "ACTUAL_THREE_GENERATIONS_SCOPED_PASS",
+        "specific_menu_root_cause": "UNKNOWN",
+        "new_feature_or_B_PASS": false
       },
       "latest_runtime_component_observation": {
-        "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-        "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-        "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-        "run_id": "26fd481a241f4e42af07f8a9e5084a79",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
-        "evidence_path": "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-        "scope": "ACTUAL_ORDINARY_MEDIUM_GUI_ESC_UID1_RIGHTPAIR_LATE_PRODUCT_GTI0_AND_NO_POPUP_MENU_NOT_CONFIRMED",
-        "result": "BLOCKED",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
         "not_complete_contract_PASS": true
       }
     },
@@ -3491,18 +3529,16 @@
         "next_action": "e86已关闭具体GUI匹配UP误分链，原fafa/745失败保持historical，不重开D29专项；真实重复/迟到与其它合同分别按实际证据判定。"
       },
       "latest_runtime_component_observation": {
-        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
-        "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
-        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "evidence_paths": [
-          "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-          "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json"
-        ],
-        "scope": "Current exact owned scopes and per-PID original receipts only; Full/application/display contract remains incomplete",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
         "not_complete_contract_PASS": true
       },
       "historical_failure": {
@@ -3570,7 +3606,11 @@
             "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
             "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
             "docs/reports/v1-evidence/02ec-current-core-chain-review.json",
-            "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl"
+            "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl",
+            "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+            "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
+            "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+            "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl"
           ],
           "observation_ids": [
             "PO-C01-INDEPENDENT",
@@ -3585,7 +3625,9 @@
             "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
             "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
             "PO-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
-            "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS"
+            "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS",
+            "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+            "PO-6670-MEDIUM-TERMINAL-MOVE-PASS-RESIZE-TEST-TRANSITION-FAILED"
           ],
           "assessment_ref": "parent_feature_current_contract_revalidation"
         }
@@ -3601,7 +3643,11 @@
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
         "docs/reports/v1-evidence/2c8d-active-settings-metadata.json",
         "docs/reports/v1-evidence/02ec-current-core-chain-review.json",
-        "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl"
+        "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -3614,9 +3660,9 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "CURRENT_CANDIDATE_INDEPENDENT_GESTURE_STATE_AND_MATCHED_PAIR_CONTRACT_L1_PLUS_L2",
       "status_basis": "ACTUAL_0A76_MODIFIER_FREEZE_AND_FRESH_ROUTES_WITH_EXISTING_G08_ISOLATION",
-      "observed": "当前55f/02ec同PID3948两轮Default旧route影响回归已真实通过，包含Resize/postResizeA/正常UP/后继Ctrl与关系重建；新exact-Run生产source/writer和真实应用仍未验，不能把Default通过迁移成新路线PASS。独立合同的历史原身份与43/60计分不变。 【历史观察保留】当前212/e7同PID两轮owned连续手势、正常UP、Resize后继续及无UP后新continuous已有实测；dedc四快速路径均native-only，有真实LL/queue UP但不授增强final-intent。048真实Hotkey通过，actor未知起因失焦正确撤权。D23正常UP/在途范围已测，不再写新修复未运行。 【历史观察保留】c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 同Run增强burst g3/key9：D279真实START→cancel→END→capture_ready，D280被动observer就绪，D281仅一包MOVE+唯一UP插入2，明确不从SendInput推投递。P137实际batch预检拒绝native_callsite_claimed=false/native_attempted=false/call_id0，reason=batch_preflight_capture_actual_ownership_lost_before_native_call；P138先结束SourceLost/end3/normal_up=false/pending_retired。其后P139真实Raw UP、P142实际legacy UP、P145/148释放/解除关联/撤罩、P149实际UP在GUI收到时原手势已不活动；不能改写为该代NormalUp。D282原FAIL与P137请求原矩形保留：该target是拒绝日志字段，不证明运动coalescing。D29登记UP撤权跨preflight先被分类SourceLost的具体产品反例；NULL/系统根因未证实，不合并未知前台历史失败。 【本轮限定复验】247/e86a真实UP退休→NormalUp及新代exact闭合D29已观察链；4d32 Pause/原生/Resume MoveResize/Ctrl重选限域通过。22b2 Full前两量子exact后外来前台撤权与cursor未达而FAIL，根因UNKNOWN，后续整链未跑。 【当前11ae】dfdd初始历史7代以及同PID两轮/20slot和3f8中断→恢复实际完成；17f5真实终止后拒发MOVE、247/e86匹配UP退休与后继exact保持其原身份。epoch/inputroute共用离线已覆盖代际/迟到/重复；3f8/dfdd真实旧call晚完成无新授权与后继UP组合已测，不能仍把整个G08写NOT_RUN。 【0a76当前独立合同闭合】同产品PID6404/g1在真实Ctrl起手双成员后，实际CtrlUP/ShiftDOWN且LEFT仍按下，后继两成员exact写入仍维持原冻结Ctrl组，无新START；本代真实Raw/legacy UP、NormalUp、release/detach/Gone及UP零新写入。随后旧follower作为新普通source仅一成员写入、旧source不动，新代真实UP清理；再新Ctrl+Shift实际原生passthrough，有自有source真实native START/END/WM_LBUTTONUP且零增强START/placement/resource/cancel。结合既有共用L1迟到/重复/代际隔离与当前中断恢复，独立M04-F02 PASS；没有伪造迟到native LOCATION或idle Raw归因。",
+      "observed": "当前744e/5211/af4在exact active Medium Run的同一新Terminal完成Move→Resize→后继Move三新代，各有真实DOWN/START/cancel/END、原锚点、actual几何、Raw+legacy NormalUp与release/detach/Gone及idle。只推进该平台路径scope；6670旧阈值过渡失败/held-pair未知不回写，普通per-call成功日志UNKNOWN，不由单窗三代替代原完整迟到/重复/修饰键合同。 【历史观察保留】当前55f/02ec同PID3948两轮Default旧route影响回归已真实通过，包含Resize/postResizeA/正常UP/后继Ctrl与关系重建；新exact-Run生产source/writer和真实应用仍未验，不能把Default通过迁移成新路线PASS。独立合同的历史原身份与43/60计分不变。 【历史观察保留】当前212/e7同PID两轮owned连续手势、正常UP、Resize后继续及无UP后新continuous已有实测；dedc四快速路径均native-only，有真实LL/queue UP但不授增强final-intent。048真实Hotkey通过，actor未知起因失焦正确撤权。D23正常UP/在途范围已测，不再写新修复未运行。 【历史观察保留】c01 g26五阶段几何正确，1371测试UP返回1，1372/1373实际匹配LL UP/end为空；714c另两NormalUp成功不关闭反例。；新R8189 seq243/244单次三元素burst实际UP→一次terminal exact→NormalUp通过D15定向子项，D08仍未关闭。；7cd同R serial MOVE+single UP实际LL UP/NormalUp已到，但terminal真实调用把已吸附矩形改成偏移自由矩形，760 FAIL（独立D17）；旧D08不关闭。；新R2/30bf实际A/CtrlA/B/C/Resize本代UP及几何保持通过，D17定向关闭；postResize A五阶段exact但实际LL-UP缺失，847/868 FAIL（D08），完整连续合同未过。 同Run增强burst g3/key9：D279真实START→cancel→END→capture_ready，D280被动observer就绪，D281仅一包MOVE+唯一UP插入2，明确不从SendInput推投递。P137实际batch预检拒绝native_callsite_claimed=false/native_attempted=false/call_id0，reason=batch_preflight_capture_actual_ownership_lost_before_native_call；P138先结束SourceLost/end3/normal_up=false/pending_retired。其后P139真实Raw UP、P142实际legacy UP、P145/148释放/解除关联/撤罩、P149实际UP在GUI收到时原手势已不活动；不能改写为该代NormalUp。D282原FAIL与P137请求原矩形保留：该target是拒绝日志字段，不证明运动coalescing。D29登记UP撤权跨preflight先被分类SourceLost的具体产品反例；NULL/系统根因未证实，不合并未知前台历史失败。 【本轮限定复验】247/e86a真实UP退休→NormalUp及新代exact闭合D29已观察链；4d32 Pause/原生/Resume MoveResize/Ctrl重选限域通过。22b2 Full前两量子exact后外来前台撤权与cursor未达而FAIL，根因UNKNOWN，后续整链未跑。 【当前11ae】dfdd初始历史7代以及同PID两轮/20slot和3f8中断→恢复实际完成；17f5真实终止后拒发MOVE、247/e86匹配UP退休与后继exact保持其原身份。epoch/inputroute共用离线已覆盖代际/迟到/重复；3f8/dfdd真实旧call晚完成无新授权与后继UP组合已测，不能仍把整个G08写NOT_RUN。 【0a76当前独立合同闭合】同产品PID6404/g1在真实Ctrl起手双成员后，实际CtrlUP/ShiftDOWN且LEFT仍按下，后继两成员exact写入仍维持原冻结Ctrl组，无新START；本代真实Raw/legacy UP、NormalUp、release/detach/Gone及UP零新写入。随后旧follower作为新普通source仅一成员写入、旧source不动，新代真实UP清理；再新Ctrl+Shift实际原生passthrough，有自有source真实native START/END/WM_LBUTTONUP且零增强START/placement/resource/cancel。结合既有共用L1迟到/重复/代际隔离与当前中断恢复，独立M04-F02 PASS；没有伪造迟到native LOCATION或idle Raw归因。",
       "remaining_conditions": [],
-      "next_action": "复用55f/02ec实际两轮Default影响回归及原独立合同证据，不重开已闭UP/连续性专项或重复核心两轮；接续命名Run真实source/writer/正常结束和第三方应用，必须另保原生权限及实际操作证据，不由owned Default或UI初始化推断通过。",
+      "next_action": "复用744e/af4已实测新Run三代正常结束及原身份0a76等独立合同证据，保留6670/旧未知反例；继续当前菜单、客户语义及其他应用具体缺项，不重开UP/连续性专项或把Default旧双轮换绑744e。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -3647,7 +3693,9 @@
         "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
         "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
         "PO-0A76-INFLIGHT-MODIFIER-LOCK-AND-FRESH-ROUTES",
-        "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS"
+        "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "PO-6670-MEDIUM-TERMINAL-MOVE-PASS-RESIZE-TEST-TRANSITION-FAILED"
       ],
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "historical_product_observation": {
@@ -11539,7 +11587,9 @@
         "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-review.json",
         "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-excerpt.jsonl",
         "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl"
+        "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -11549,11 +11599,11 @@
         "M01-F03",
         "M01-F04"
       ],
-      "observed": "当前55f/3e2/26fd实际Esc/UID1/右键输入，晚期product GTI0、Shell前台、完整线程清单无popup；菜单/启停命令仍未确认，callback/API根因UNKNOWN。新744e仅诊断候选未现场，不加B分。 【先前观察保留】当前55f/020e已有真实Esc关闭设置、精确UID1矩形/右键插入，菜单复合门仍未确认；不再泛写产品从未收到任何UI输入。 当前630b普通产品GUI与后续UID1 ADD/SETVERSION真实成功，首Esc插入0/error5导致菜单输入未发；不改旧2b49 probe FALSE，也不授托盘/启停入口PASS。 已有具体子项/失败见关联功能，不增加分数。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
+      "observed": "当前744e/5211/af4真实UID1右键后的菜单D643仍FAIL，完整88P仅P1/P6注册、无tray ingress/menu API记录；公共quit实际exit0/资源stop不替代托盘命令，Terminal三段scope不加B分。 【历史观察保留】当前55f/3e2/26fd实际Esc/UID1/右键输入，晚期product GTI0、Shell前台、完整线程清单无popup；菜单/启停命令仍未确认，callback/API根因UNKNOWN。新744e仅诊断候选未现场，不加B分。 【先前观察保留】当前55f/020e已有真实Esc关闭设置、精确UID1矩形/右键插入，菜单复合门仍未确认；不再泛写产品从未收到任何UI输入。 当前630b普通产品GUI与后续UID1 ADD/SETVERSION真实成功，首Esc插入0/error5导致菜单输入未发；不改旧2b49 probe FALSE，也不授托盘/启停入口PASS。 已有具体子项/失败见关联功能，不增加分数。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
       "remaining_conditions": [
-        "真实产品菜单全部命令/状态/TaskbarCreated仍未通过；实际右键插入和晚期无菜单快照不证明callback未发生，公共quit与guest销毁不替代该合同。"
+        "当前744e菜单全部操作/状态/TaskbarCreated未通过，88P缺对应行只作本录制事实；新ordinary便携入口也尚未实测，不由同EXE其它子scope补门。"
       ],
-      "next_action": "新744e诊断候选实际运行后读取有界GUI ingress及原菜单API回执；新TEST actualTerminalGeometry+boundedwait helper仍在接线，无新driverSHA/包/结果，不预填PASS。",
+      "next_action": "当前744e普通便携入口另验；以新trayguard的具体原生事实做一次受影响对照，后继未构建driver不预填身份/结果。保留旧55f/25b包与各批FAIL，不加分。",
       "partial_observation_ids": [
         "PO-269B-OWNED",
         "PO-714C-DIAGNOSTIC-PORTABLE",
@@ -11564,7 +11614,8 @@
         "PO-76E-R16-MEDIUM-TRAY-PROBE-AND-HIGH-SHELL-BLOCKED",
         "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
         "PO-020E-MEDIUM-PRODUCT-ESCAPE-ICON-INPUT-MENU-UNCONFIRMED",
-        "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED"
+        "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED"
       ]
     },
     {
@@ -12049,15 +12100,16 @@
     },
     {
       "latest_runtime_component_observation": {
-        "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-        "driver_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "driver_binary_sha256": "67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D",
-        "run_id": "02ec44de67df4ac0a538304ac7d8728b",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS",
-        "evidence_path": "docs/reports/v1-evidence/02ec-current-core-chain-review.json",
-        "scope": "TWO_OWNED_DEFAULT_ROUTE_CORE_ROUNDS_SAME_PID3948_IMPACT_REGRESSION_PASS_NOT_NEW_EXACT_RUN",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
         "not_complete_contract_PASS": true
       },
       "id": "I02",
@@ -12084,7 +12136,9 @@
         "docs/reports/v1-evidence/3f8-release-owned-components-metadata.json",
         "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
         "docs/reports/v1-evidence/02ec-current-core-chain-review.json",
-        "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl"
+        "docs/reports/v1-evidence/02ec-current-core-chain-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
       ],
       "defects": [
         "V1-D08",
@@ -12109,14 +12163,15 @@
         "PO-E7E0-R10-RELEASE-COMPONENTS-MODERN-TERMINAL-AND-STRICT-DURATION-FAILURE",
         "PO-3F8-11AE-OWNED-COMPONENTS-SCOPED",
         "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-        "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS"
+        "PO-02EC-CURRENT-55F-DEFAULT-TWO-OWNED-CORE-ROUNDS",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED"
       ],
       "candidate_identity_ref": "current_package",
-      "observed": "当前55f/02ec在同PID3948不重启的Default旧route完成两轮owned核心，包含真实Resize/postResizeA五阶段/UP/CtrlC及T/L共享约束/后继；Run_membership_evidence_used=false。新exact-Run增强、真实Explorer/跨应用完整合同仍未通过，不由02ec授整链PASS。 【历史观察保留】当前212/dedc178 owned I02/commands通过，e7同PID7156两轮chain_i02实际完成，包含Resize后A及后继Ctrl/UP；四rapid是native-only。正式Explorer资格仍拒绝，现代Terminal单窗五阶段通过不等于Explorer/混合应用I02。 【历史观察保留】bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。；R8/c17e Release samePID6408六段含实际Resize后A五阶段及149NormalUp已完成；六代真实UP后新增native0。CtrlC在鼠标DOWN前修饰键观测失败，后继未执行，不授完整I02。；34bf同PID5260两轮owned core均含真实postResizeA/CtrlC/UP，c17未发CtrlC的缺口在新范围实际推进；仍非真实Explorer/跨应用完整I02。 当前证据：owned历史七代五阶段、A/C Ctrl与真实B Resize/postResizeA回环已在11ae/dfdd实际完成；不是新建Explorer/混合应用完整I02。",
+      "observed": "当前744e/af4在exact Run真实新Terminal单窗Move→Resize→后继Move三段正常UP已实测，未替代A/B/C五阶段/Ctrl follower/Explorer或混合组完整I02。55f/02ec Default两轮保留原身份，不能换绑当前EXE。 【历史观察保留】当前55f/02ec在同PID3948不重启的Default旧route完成两轮owned核心，包含真实Resize/postResizeA五阶段/UP/CtrlC及T/L共享约束/后继；Run_membership_evidence_used=false。新exact-Run增强、真实Explorer/跨应用完整合同仍未通过，不由02ec授整链PASS。 【历史观察保留】当前212/dedc178 owned I02/commands通过，e7同PID7156两轮chain_i02实际完成，包含Resize后A及后继Ctrl/UP；四rapid是native-only。正式Explorer资格仍拒绝，现代Terminal单窗五阶段通过不等于Explorer/混合应用I02。 【历史观察保留】bdab seq30–134实际owned A/B/C→Ctrl A→B原生Resize→postResize A→Ctrl C及真UP子链通过；c01普通I11释放有反例。；新R8189快速UP点terminal与后继普通Move定向子项已验证，不拼完整链。；R8/7149仅Debug首次A五阶段及真实UP资源闭环被观察，原driver50因legacy派发时间戳0仍FAIL；Release激活计数0/0，无产品手势，其后回环未运行，不是完整I02。；R8/c17e Release samePID6408六段含实际Resize后A五阶段及149NormalUp已完成；六代真实UP后新增native0。CtrlC在鼠标DOWN前修饰键观测失败，后继未执行，不授完整I02。；34bf同PID5260两轮owned core均含真实postResizeA/CtrlC/UP，c17未发CtrlC的缺口在新范围实际推进；仍非真实Explorer/跨应用完整I02。 当前证据：owned历史七代五阶段、A/C Ctrl与真实B Resize/postResizeA回环已在11ae/dfdd实际完成；不是新建Explorer/混合应用完整I02。",
       "remaining_conditions": [
         "真实Explorer及混合应用完整合同仍受资格/原生前置阻断，owned结果不能替代。"
       ],
-      "next_action": "复用55f/02ec两轮Default影响回归，不单独重复核心或900秒；继续当前exactRun真实source/writer、普通Explorer和混合应用缺口，保留原产品/driver/包身份，不将owned Default通过换绑命名Run路线。",
+      "next_action": "不重复已过744e单Terminal三段或55f Default双轮；补当前精确Explorer/跨应用完整回环、吸附各阶段和真实Ctrl follower，按未满足前置继续，不以局部新Run闭环授整I02。",
       "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -13289,32 +13344,30 @@
       "observed": "历史11ae产品的dfdd已实际完成自建三窗核心回环、两轮及900.035872秒阶段；源关闭、grid和batch均取得实际中止/恢复子项。2432普通包入口、0a66磁吸参数和2c8活动设置/规则恢复各保留其原同EXE身份。a575同11ae/PID3852已实际补齐D09撤权后新DOWN/UP透传配对及D24无自有capture释放调用的capture-loss后同实例Move/Resize恢复，按该实测范围关闭，不再列为待核；旧异常代仍不改成NormalUp。当前25b/a014实际普通便携无参GUI、设置效果、Move/UP和正常退出，以及25b/540f同PID6396两轮核心组合链均有独立限定证据；没有重跑900秒，也不把这些子范围自动提升为A01完整合同PASS。",
       "historical_failure_summary": "R7/4e9当时grid/source-close真实UP失败、batch判定待修和I11读取工具失败保留原身份，见下方历史component及原始证据；不是当前11ae全部子项的判定。",
       "remaining_conditions": [
-        "D09/D24已由a575按实际范围关闭；当前25b最终候选的完整规定fixture组合与整版退出合同尚未整体判定，a014/540f限定子链不自动提升A01。历史失败和各自构建身份继续保留，不重开已关闭恢复专项。"
+        "历史owned Win32完整恢复证据按原身份保留；最近55f/02ec两轮Default影响回归不换绑744e，当前744e新Run Terminal三段并非A01普通Win32整类别/整版合同。",
+        "当前744e普通便携入口尚待实际运行；其余未满足整版退出/应用组合门继续按实际缺项推进，不重开已闭D09/D24。"
       ],
-      "next_action": "复用a575已关闭D09/D24、原身份dfdd/2432/0a66/2c8及当前25b/a014/540f限定证据；不重复恢复、Full或独立900秒专项。接续未阻断的真实应用原生客户前置、只读VDM/source GUI及冻结25b自身UID1观察；这些新路径未运行前保持NOT_RUN，待相关依赖齐备后再判当前候选整版链。",
+      "next_action": "复用原身份a575/55f02ec独立证据与当前744e有限运行，先实际验证当前普通便携入口及尚缺菜单/应用链；不要再把25b标当前候选或重复闭合恢复/900秒专项。",
       "latest_bounded_environment_observation": {
-        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
-        "product_release_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
-        "run_ids": ["a014494c4a034320b1b99b515eb40597", "540ff812c66f47c7b8291dc2776c2692"],
-        "result": "SCOPED_ORDINARY_PORTABLE_ENTRY_AND_TWO_OWNED_CORE_ROUNDS_ONLY",
-        "evidence_paths": ["docs/reports/v1-evidence/a014-portable-entry-guidance-review.json", "docs/reports/v1-evidence/540f-current-core-chain-review.json"],
-        "historical_recovery": {
-          "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-          "run_id": "a57559cc776f4fe98405c892a39554c0",
-          "evidence_path": "docs/reports/v1-evidence/a575-recovery-metadata.json",
-          "D09_D24": "CLOSED_IN_ACTUAL_SCOPED_RECOVERY_RANGE_NOT_REOPENED"
-        },
-        "historical_runs_rebound_to_25b": false,
+        "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+        "product_release_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+        "run_id": "02ec44de67df4ac0a538304ac7d8728b",
+        "evidence_path": "docs/reports/v1-evidence/02ec-current-core-chain-review.json",
+        "result": "ACTUAL_TWO_OWNED_DEFAULT_CORE_ROUNDS_ONLY_AT_ORIGINAL55F_IDENTITY",
+        "current_product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "current744e_owned_category_full_revalidation": "NOT_RUN_NOT_INFERRED_FROM_TERMINAL",
+        "historical_run_rebound": false,
         "complete_category_or_whole_version_PASS": false
       },
       "current_candidate_observation": {
-        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
-        "run_ids": ["dfdde5b3a08b43d9b7cbe068f4de0d22", "2432640250344564b4f2ba89287bea81", "0a66091821bf48af9075991b4f41ccf4", "2c8dfd707f414d5394913c5f52a8c997"],
-        "evidence_paths": ["docs/reports/v1-evidence/dfdd-release-full-metadata.json", "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json", "docs/reports/v1-evidence/0a66-remaining-move-metadata.json", "docs/reports/v1-evidence/2c8d-active-settings-metadata.json"],
-        "not_complete_contract_PASS": true
+        "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "product_release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "actual_744e_scope": "EXACT_RUN_TERMINAL_GEOMETRY_THREE_NORMALUP_CLOSURES_NOT_A01_CATEGORY",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "ordinary_portable_entry": "NOT_RUN_PENDING_CURRENT_PACKAGE",
+        "whole_category_PASS": false
       },
-      "candidate_identity_ref": "current_package",
+      "candidate_identity_ref": "source_identity.current_targeted_runtime",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -13350,45 +13403,40 @@
         "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
         "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
         "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json",
-        "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-excerpt.jsonl"
+        "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
       ],
       "observed": "c01实际Explorer根RID8192/elevated=true，被正式Medium/nonElev策略正确拒绝，没有向被拒目标发输入。b49新普通账号credential Medium/session1成立但WinSta0/Default DACL DENIED；7cd的QUERY-only token工具SecurityException及R2/30bf恢复后回执UNKNOWN均保留原身份，不再作为所有后继路线的现状。229e、2b49及abb1已分别在新Run桌面实测exact新建explorer.exe子进程的同SID/session、RID8192/non-elevated Progman与Shell_TrayWnd，以及真实激活和独立Default回切。它们是Shell环境根，不是已确认目录路径的普通Explorer文件窗口。2b49自有通知区探针NIM_ADD=false，产品/UI/输入未启动；abb1只验证无产品Terminal根响应与正常root关闭，均不授Explorer产品操作或完整普通桌面PASS。 0072/dcab已对精确新Terminal窗口取得双GTI成功/idle、VDM S_OK/current=true的只读正事实；它不等于普通Explorer文件窗或正式产品source资格。630b另实际启动普通无参Medium产品GUI，但首Esc未插入，未发生任何Explorer产品手势。 当前55f/6d20已有精确Terminal foreign Run桌面名/双GTI idle/单窗VDM正事实；020e已实际启用exact_Run资源上下文但无增强写入。55f/02ec只在Default旧route双轮回归通过；普通Explorer文件窗口/source资格和命名Run写入仍NOT_RUN。",
       "remaining_conditions": [
-        "新Medium Shell/Tray、Run激活/返回及精确Terminal foreign桌面名、双GTI和VDM正事实已取得；不再笼统记为缺少Medium或source只读事实。",
-        "55f接线已构建、Default双轮影响回归通过；仍缺精确新建路径/身份确认的普通Explorer文件窗口、新Run正式source资格和实际Move/Resize/Ctrl/UP。"
+        "精确Medium Run激活/返回、foreign Run名/双GTI/VDM正事实已有实际证据，744e/af4在本次新Terminal上的正式source/handoff/writer三段已运行；不再笼统记为未接线或缺Medium。",
+        "普通Explorer文件窗的新建路径/根身份和其744e生产资格、实际Move/Resize/Ctrl/UP仍未执行；Terminal/Shell身份不授Explorer文件窗口权限。"
       ],
-      "next_action": "在已激活exactRun上精确新建并确认普通Explorer文件窗路径/根身份，再检验55f生产资格及有界首Move/UP。先复用真实GTI/VDM证据，Shell/Terminal存在不授文件窗权限；不把未做的生产接线/测试问题统写外部环境阻断。",
+      "next_action": "在已验证exact active Medium Run上精确新建/核实普通Explorer文件窗路径及根身份，再验证当前744e生产资格和首Move/UP；复用实际Run/GTI/VDM采集，不放宽high/未知身份，也不把可做产品/TEST工作统一写外部阻断。",
       "latest_bounded_environment_observation": {
-        "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "product_started": false,
-        "run_id": "6d20ba4450664ccbb6fc2e28e3c86fce",
-        "driver_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "evidence_paths": [
-          "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json",
-          "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-review.json",
-          "docs/reports/v1-evidence/02ec-current-core-chain-review.json"
-        ],
+        "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "product_release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "product_started": true,
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
         "actual_same_SID_session_Medium_Run_activation": true,
         "actual_Terminal_Run_name_dual_GTI_and_VDM_positive": true,
         "ordinary_Explorer_file_window": "NOT_RUN",
-        "product_Run_context_adapter": "IMPLEMENTED_BUILD_PASS_020E_RESOURCE_INITIALIZATION_ONLY",
-        "Default_route_two_owned_rounds": "ACTUAL_02EC_SCOPE_PASS",
+        "product_Run_context_adapter": "ACTUAL_EXACT_TERMINAL_THREE_GEOMETRY_NORMALUP_SCOPES_NOT_EXPLORER",
         "product_Explorer_Move_Resize_Ctrl": "NOT_RUN",
         "ordinary_full_Medium_desktop": "NOT_PROVEN",
         "history_rebound_or_complete_category_PASS": false
       },
       "current_candidate_observation": {
-        "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-        "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
-        "evidence_path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
-        "fixture_sequence": 6283,
-        "integrity_rid": 8192,
-        "elevated": true,
-        "medium_non_elevated_eligibility": false,
-        "product_gesture_sent": false,
-        "result": "BLOCKED_TARGET_NOT_MEDIUM_NON_ELEVATED"
+        "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "product_release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "source_context_positive_reference": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "Explorer_file_window_operations": "NOT_RUN_SEPARATE_EXACT_IDENTITY_REQUIRED",
+        "Terminal_not_Explorer_authority": true,
+        "whole_category_PASS": false
       },
-      "candidate_identity_ref": "current_package",
+      "candidate_identity_ref": "source_identity.current_targeted_runtime",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
@@ -13398,7 +13446,8 @@
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES",
         "PO-0072-MEDIUM-TERMINAL-CLIENT-PREINPUT-AND-QUALIFICATION-FACTS",
         "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
-        "PO-6D20-MEDIUM-TERMINAL-KEYBOARD-FOCUS-PREINPUT-BLOCKED"
+        "PO-6D20-MEDIUM-TERMINAL-KEYBOARD-FOCUS-PREINPUT-BLOCKED",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -13658,46 +13707,48 @@
         "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json",
         "docs/reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-excerpt.jsonl",
         "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json",
-        "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-excerpt.jsonl"
+        "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-excerpt.jsonl",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-excerpt.jsonl",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl"
       ],
-      "observed": "R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。 0072/dcab在产品未启动的新active Medium Run上重新精确绑定Terminal66382/PID5536，双GTI均成功且idle、单窗VDM S_OK/current=true。真实客户中心点WindowFromPoint仍root66382、WM_NCHITTEST=2；首个光标/鼠标/键盘包全部未发送，nonce未执行。一次WM_CLOSE后root确已消失；Wait258与后来exit0保留非原子采样，所有后代退出未证。 当前55f/6d20新键盘路径已核Terminal同PID/TID焦点InputSite、实际foreign Run名/双GTI idle/VDM current；focus矩形[190,191,190,191]零面积被TEST正面积门拒绝，所有输入0、nonce未执行，不是客户语义失败或Terminal不可用证明。 最新55f/3e2/e657产品未启动：existing同PID/TID零面积键盘焦点经身份门接受，458 Unicode及2 Enter实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED；鼠标客户未运行。外层Enter完成到卸钩约3.416s包含等待/清理，不把缓冲emit同tick当立即失败或编造专用等待全时长。原driverFAIL/后代未证与有限root关闭/Default返回分列。",
+      "observed": "744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。 744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。 744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。 【历史观察保留】R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。 0072/dcab在产品未启动的新active Medium Run上重新精确绑定Terminal66382/PID5536，双GTI均成功且idle、单窗VDM S_OK/current=true。真实客户中心点WindowFromPoint仍root66382、WM_NCHITTEST=2；首个光标/鼠标/键盘包全部未发送，nonce未执行。一次WM_CLOSE后root确已消失；Wait258与后来exit0保留非原子采样，所有后代退出未证。 当前55f/6d20新键盘路径已核Terminal同PID/TID焦点InputSite、实际foreign Run名/双GTI idle/VDM current；focus矩形[190,191,190,191]零面积被TEST正面积门拒绝，所有输入0、nonce未执行，不是客户语义失败或Terminal不可用证明。 最新55f/3e2/e657产品未启动：existing同PID/TID零面积键盘焦点经身份门接受，458 Unicode及2 Enter实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED；鼠标客户未运行。外层Enter完成到卸钩约3.416s包含等待/清理，不把缓冲emit同tick当立即失败或编造专用等待全时长。原driverFAIL/后代未证与有限root关闭/Default返回分列。",
       "remaining_conditions": [
-        "e657已实际完成键盘API全量插入，不再记零输入或待封存；exact nonce/最终客户语义仍未确认，缺失原因UNKNOWN，鼠标客户未运行。",
-        "原Terminal几何子scope与正常root关闭不等于本次客户语义/全部后代退出；55f正式Terminal增强仍未运行，不借02ec Default owned回归授兼容PASS。"
+        "当前744e/af4正式Terminal Move→Resize→后继Move三代正常UP/自有资源退出已通过有限scope，不再标当前产品增强NOT_RUN；普通per-call成功API回执仍UNKNOWN，未证全吸附/保持/脱离/重吸附/XY或Ctrl。",
+        "ab827实际3000ms等待超时仍无nonce，产品未启动，客户语义UNKNOWN；鼠标客户未运行。root关闭、非原子wait258/exit0及retained Shell/forcedjob不能外推所有后代正常退出。",
+        "类别全合同/五应用完整矩阵仍缺客户与其它实际操作；当前普通便携入口及显示/完整桌面外部门另验，旧scope与完整类别状态不改判。"
       ],
-      "next_action": "新TEST actualTerminalGeometry+boundedwait helper正在最小接线，尚无新driverSHA/包/现场。后续一次真实客户nonce/最终上下文对照须保留明确wait/IO事实与原失败，不SetFocus/抢前台、不改HTCLIENT保护，再另验正式产品Terminal权限与增强。",
+      "next_action": "复用当前744e/5211/af4已过单窗三段，不无变量重跑；优先当前普通便携入口、托盘具体边界及可区分客户nonce/其它应用事实。新的trayguard TEST尚在编码，未构建身份/结果不预填；保留ab827真实超时和6670原TEST失败，禁止据此猜系统或产品拦截根因。",
       "latest_bounded_environment_observation": {
-        "packaged_product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "packaged_product_binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+        "packaged_product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "packaged_product_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
         "product_started": false,
-        "run_id": "e657c8d9e9064be5bbc3efe63ddb26be",
-        "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-        "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-        "evidence_id": "EV-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
-        "evidence_path": "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json",
-        "status": "ACTUAL_KEYBOARD458_PLUS_ENTER2_INSERTED_EXACT_NONCE_UNCONFIRMED",
+        "run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+        "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+        "driver_binary_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+        "evidence_id": "EV-AB827-MEDIUM-TERMINAL-KEYBOARD-ACTUAL3000MS-WAIT-NONCE-BLOCKED",
+        "evidence_path": "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+        "status": "ACTUAL458_PLUS2_KEYBOARD_INSERTS_FULL3000MS_WAIT_TIMEOUT_NONCE_UNKNOWN",
         "actual_exact_Medium_Run_and_new_Terminal_root": true,
         "source_GTI_idle_and_current_GTI_idle": true,
         "VDM_S_OK_and_current": true,
-        "foreign_GetThreadDesktop": "ACTUAL_HANDLE736_EXACT_RUN_NAME_KNOWN",
-        "focus_HWND": 66458,
-        "focus_same_PID_TID": true,
-        "focus_window_rect": [
-          190,
-          191,
-          190,
-          191
-        ],
         "keyboard_input_sent": true,
         "mouse_client_input_sent": false,
         "actual_Unicode_inserted": 458,
         "actual_Enter_inserted": 2,
+        "actual_wait_tick_ms": 3000,
+        "actual_wait_qpc_seconds": 3.0026056,
+        "last_context": "accepted",
+        "native_waits": 2,
+        "last_wait_return": 258,
         "nonce_semantics": "UNKNOWN_OR_BLOCKED",
         "cause": "UNKNOWN",
-        "formal_product_Run_context_source_qualification": "NOT_RUN_PRODUCT_NOT_STARTED",
         "all_Terminal_processes_exited": "NOT_PROVEN",
-        "whole_version_PASS": false,
-        "actual_bound_root_responsive_and_normally_closed": true
+        "product_interception": "NOT_OBSERVED_PRODUCT_NOT_STARTED",
+        "whole_version_PASS": false
       },
       "queued_native_preflight": {
         "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
@@ -13705,7 +13756,7 @@
         "historical_precondition_cleared": true,
         "evidence_path": "docs/reports/v1-evidence/8ffa-native-preflight-metadata.json"
       },
-      "candidate_identity_ref": "current_package",
+      "candidate_identity_ref": "source_identity.current_targeted_runtime",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS",
@@ -13721,32 +13772,39 @@
         "PO-0072-MEDIUM-TERMINAL-CLIENT-PREINPUT-AND-QUALIFICATION-FACTS",
         "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
         "PO-6D20-MEDIUM-TERMINAL-KEYBOARD-FOCUS-PREINPUT-BLOCKED",
-        "PO-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED"
+        "PO-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
+        "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "PO-AB827-MEDIUM-TERMINAL-ACTUAL-WAIT-NONCE-BLOCKED",
+        "PO-6670-MEDIUM-TERMINAL-MOVE-PASS-RESIZE-TEST-TRANSITION-FAILED"
       ],
       "latest_product_observation": {
-        "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
-        "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
-        "driver_source_sha": "660cf6ffc84761cb1d1f2cec832eb01700811caa",
-        "driver_binary_sha256": "B99E9258C614FDF4B4BCAC9D2DB767957EB83E2D2FAE6497CFC180E909E65CBE",
-        "run_id": "0224765c54b548aa8a32c6391ed14fb3",
-        "scope": "same R2 Release Medium ApplicationsOnly: Terminal category pass, Edge real caption and START now observed but first Move aborts before placement"
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
+        "configuration": "Release",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
+        "not_complete_contract_PASS": true
       },
       "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
       "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
       "environment_id": "E02",
       "run_id": "0224765c54b548aa8a32c6391ed14fb3",
       "latest_runtime_component_observation": {
-        "packaged_product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-        "packaged_product_binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-        "product_started": false,
-        "product_function_result": "NOT_RUN",
-        "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-        "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-        "run_id": "e657c8d9e9064be5bbc3efe63ddb26be",
+        "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+        "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+        "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+        "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+        "run_id": "af4fbd2270424659b75b6af8659617a4",
         "configuration": "Release",
-        "observation_id": "PO-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
-        "evidence_path": "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json",
-        "scope": "ACTUAL_KEYBOARD458_PLUS_ENTER2_INSERTED_EXACT_NONCE_UNCONFIRMED",
+        "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+        "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+        "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
         "not_complete_contract_PASS": true
       },
       "historical_complete_contract_observation": {
@@ -13756,7 +13814,7 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3",
         "observed": "同R2/022真实Terminal五阶段Move、实际UP/NormalUp保持、Resize/UP、Center/Dock/Undo/Stretch/Undo、Esc恢复及终端客户输入通过；114 exact根关闭、115本类别范围PASS。30bf同R2原通过与b49/7cd历史失败各留身份，不授其余四类/混合组。"
       },
-      "current_candidate_state": "CURRENT55F_TERMINAL_ENHANCEMENT_NOT_RUN_E657_REAL_KEYBOARD_INSERTS_NONCE_UNKNOWN_NEXT_TEST_HELPER_NOT_BUILT",
+      "current_candidate_state": "CURRENT744E_EXACT_RUN_TERMINAL_THREE_GEOMETRY_NORMALUP_SCOPES_PASS_CLIENT_NONCE_UNKNOWN_TRAY_BLOCKED_FULL_CATEGORY_NOT_PASS",
       "historical_previous_native_preflight": {
         "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -16279,6 +16337,33 @@
   },
   "current_round_observations": [
     {
+      "run_id": "af4fbd2270424659b75b6af8659617a4",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "result": "GEOMETRY_CHAIN_SCOPED_PASS_SUBSEQUENT_TRAY_MENU_FAIL",
+      "evidence_id": "EV-AF4F-MEDIUM-TERMINAL-MOVE-RESIZE-SUCCESSOR-NORMALUP-SCOPED-TRAY-MENU-FAILED",
+      "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "result": "BLOCKED_ACTUAL_FULL_WAIT_KEYBOARD_INSERTS_NO_CLIENT_NONCE",
+      "evidence_id": "EV-AB827-MEDIUM-TERMINAL-KEYBOARD-ACTUAL3000MS-WAIT-NONCE-BLOCKED",
+      "evidence_path": "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "run_id": "667038d9a2614c30b9a53af3185b5d61",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "result": "FAIL_CHAIN_DRIVER_THRESHOLD_TRANSITION_REJECTION_HELD_PAIR_UNKNOWN",
+      "evidence_id": "EV-6670-MEDIUM-PRODUCT-MOVE-NORMALUP-SCOPED-RESIZE-DRIVER-TRANSITION-BLOCKED",
+      "evidence_path": "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+      "new_feature_or_B_PASS": false
+    },
+    {
       "run_id": "e657c8d9e9064be5bbc3efe63ddb26be",
       "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
       "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
@@ -16852,6 +16937,60 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-AF4F-MEDIUM-TERMINAL-MOVE-RESIZE-SUCCESSOR-NORMALUP-SCOPED-TRAY-MENU-FAILED",
+      "run_id": "af4fbd2270424659b75b6af8659617a4",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "product_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "product_started": true,
+      "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+      "path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+      "sha256": "073074409D64AF7E5C4D85A945879919B339737170D0A5BDD1D93A65FA8AA43B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
+      "repository_excerpt_sha256": "A98370842F067C75CA441DA3C78FAD974C6B52AD318F0C24DAEB249F99D9B392",
+      "result": "GEOMETRY_CHAIN_SCOPED_PASS_SUBSEQUENT_TRAY_MENU_FAIL",
+      "scope": "744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "id": "EV-AB827-MEDIUM-TERMINAL-KEYBOARD-ACTUAL3000MS-WAIT-NONCE-BLOCKED",
+      "run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "product_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "product_started": false,
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "driver_binary_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+      "path": "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+      "sha256": "6CD2E478E305BE57611733C7742B5D356D7E68EEFE0A0F92F72202A553403F5A",
+      "repository_excerpt_path": "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-excerpt.jsonl",
+      "repository_excerpt_sha256": "2881513D0B53B56A4907F2F41DB5B9D5249A0B55B4F2DB01D903F3737364C933",
+      "result": "BLOCKED_ACTUAL_FULL_WAIT_KEYBOARD_INSERTS_NO_CLIENT_NONCE",
+      "scope": "744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "id": "EV-6670-MEDIUM-PRODUCT-MOVE-NORMALUP-SCOPED-RESIZE-DRIVER-TRANSITION-BLOCKED",
+      "run_id": "667038d9a2614c30b9a53af3185b5d61",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "product_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "product_started": true,
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "driver_binary_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+      "path": "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+      "sha256": "D0CCB5C29ED5FE0B43BE43FC67910D743E39620E896769AA11DF96433E2E3B58",
+      "repository_excerpt_path": "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl",
+      "repository_excerpt_sha256": "FDE6505EBE349A2485739D927610828CF5A91C9BB12F2CD7DD18A6B10A4B93FA",
+      "result": "FAIL_CHAIN_DRIVER_THRESHOLD_TRANSITION_REJECTION_HELD_PAIR_UNKNOWN",
+      "scope": "744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。",
+      "new_feature_or_B_PASS": false
+    },
     {
       "id": "EV-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
       "run_id": "e657c8d9e9064be5bbc3efe63ddb26be",
@@ -21549,6 +21688,63 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+      "status": "GEOMETRY_CHAIN_SCOPED_PASS_SUBSEQUENT_TRAY_MENU_FAIL",
+      "run_id": "af4fbd2270424659b75b6af8659617a4",
+      "candidate_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "candidate_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+      "evidence_ids": [
+        "EV-AF4F-MEDIUM-TERMINAL-MOVE-RESIZE-SUCCESSOR-NORMALUP-SCOPED-TRAY-MENU-FAILED"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+        "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl"
+      ],
+      "observed": "744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-AB827-MEDIUM-TERMINAL-ACTUAL-WAIT-NONCE-BLOCKED",
+      "status": "BLOCKED_ACTUAL_FULL_WAIT_KEYBOARD_INSERTS_NO_CLIENT_NONCE",
+      "run_id": "ab82752e040e4b1d8dd32bbe9aeb46a0",
+      "candidate_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "candidate_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "driver_binary_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+      "evidence_ids": [
+        "EV-AB827-MEDIUM-TERMINAL-KEYBOARD-ACTUAL3000MS-WAIT-NONCE-BLOCKED"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json",
+        "docs/reports/v1-evidence/ab827-medium-terminal-keyboard-wait-excerpt.jsonl"
+      ],
+      "observed": "744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
+    {
+      "id": "PO-6670-MEDIUM-TERMINAL-MOVE-PASS-RESIZE-TEST-TRANSITION-FAILED",
+      "status": "FAIL_CHAIN_DRIVER_THRESHOLD_TRANSITION_REJECTION_HELD_PAIR_UNKNOWN",
+      "run_id": "667038d9a2614c30b9a53af3185b5d61",
+      "candidate_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "candidate_binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+      "driver_binary_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+      "evidence_ids": [
+        "EV-6670-MEDIUM-PRODUCT-MOVE-NORMALUP-SCOPED-RESIZE-DRIVER-TRANSITION-BLOCKED"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-review.json",
+        "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl"
+      ],
+      "observed": "744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
       "status": "BLOCKED_CLIENT_NONCE_SEMANTICS_UNCONFIRMED_AFTER_ACTUAL_KEYBOARD_INSERTS",
@@ -30005,41 +30201,48 @@
       }
     },
     "latest_runtime_observation": {
-      "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
-      "binary_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
-      "product_process_id": 4484,
-      "product_birth_filetime_decimal": "134371389514688399",
-      "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-      "driver_binary_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
-      "run_id": "26fd481a241f4e42af07f8a9e5084a79",
+      "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+      "binary_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+      "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+      "driver_binary_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+      "run_id": "af4fbd2270424659b75b6af8659617a4",
       "configuration": "Release",
-      "packaging_head": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
-      "package_zip_sha256": "2420CB0EBA8018B3531D7B40E410A35322CEC1F945998D5D6258FA8966585169",
-      "package_manifest_sha256": "80523490E721DDE0342AB86DBCC21A311F54A57B0281EC1F27977B7E3B9972C2",
-      "observation_id": "PO-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-SNAPSHOT-BLOCKED",
-      "evidence_id": "EV-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-LATE-SNAPSHOT-BLOCKED",
-      "evidence_path": "docs/reports/v1-evidence/26fd-medium-product-tray-routing-review.json",
-      "scope": "ACTUAL_ORDINARY_MEDIUM_GUI_ESC_UID1_RIGHTPAIR_LATE_PRODUCT_GTI0_AND_NO_POPUP_MENU_NOT_CONFIRMED",
-      "driver_process_exit": "OBSERVED_EXIT1_ORIGINAL_FAIL",
+      "observation_id": "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
+      "evidence_path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
+      "scope": "SINGLE_EXACT_MEDIUM_RUN_TERMINAL_MOVE_RESIZE_SUCCESSOR_THREE_NORMALUP_GEOMETRY_SCOPED_PASS_TRAY_FAIL",
+      "result": "GEOMETRY_SCOPED_PASS_WHOLE_UI_BLOCKED",
+      "not_complete_contract_PASS": true,
+      "product_process_id": 5676,
+      "product_birth_filetime_decimal": "134371425735265747",
+      "packaging_head": "5211da6e11af96120368b895190b0df91a315e03",
+      "package_zip_sha256": "386E8A9C095D81405817903222961379EF9797166E2822820F55876C0E48773C",
+      "package_manifest_sha256": "ACEF18F6EC994A2B568F1603C3323A0F9EAFC914623B88E69EC6A28DCB57D6D8",
+      "evidence_id": "EV-AF4F-MEDIUM-TERMINAL-MOVE-RESIZE-SUCCESSOR-NORMALUP-SCOPED-TRAY-MENU-FAILED",
+      "driver_process_exit": "OBSERVED_EXIT1_ORIGINAL_TRAY_FAIL",
       "descendants_alive_at_fixture_exit": 1,
       "forced_test_cleanup": true,
       "actual_product_exit_code": 0,
-      "actual_product_shutdown_receipt": "P8_OWN_RESOURCES_STOPPED",
+      "actual_product_shutdown_receipt": "P88_OWN_RESOURCES_STOPPED_COMPLETION_UNKNOWN_FALSE",
       "product_cleanup_inferred_from_guest_destruction": false,
       "feature_contract_PASS": [],
       "benchmark_contract_PASS": [],
       "whole_version_PASS": false,
       "human_uat": "NOT_RUN",
       "cleanup": {
-        "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/cleanup-receipt.json",
-        "sha256": "6CD31811B5960661817EFC997B83DBB81B4881FABED27EAA90652F39F3E7781B",
-        "utc": "2026-10-22T10:36:53.8417198Z",
+        "receipt": {
+          "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/cleanup-receipt.json",
+          "bytes": 9975,
+          "sha256": "217CED0A3CE9FC6EBEB0825AD7FC37916ED2F0986BDF148AD65C5CD49CC8B9BC"
+        },
+        "utc": "2026-10-22T11:37:40.9018334Z",
         "task_removed": true,
         "dedicated_guest_exited": true,
         "evidence_unchanged": true,
         "deployment_retained": true,
+        "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
         "other_files_or_resources_changed": false,
-        "product_cleanup_inferred_from_guest_destruction": false
+        "product_cleanup_inferred_from_guest_destruction": false,
+        "distinction": "Three generation-specific NormalUp/resource exits, actual public product quit, lease quiescence and Default input return have direct receipts. Retained Shell/possible Terminal descendants and desktop-object destruction are separate UNKNOWN/not-proven scopes; subsequent own guest disposal does not manufacture their normal cleanup PASS."
       }
     },
     "historical_d7e_runtime_observation": {

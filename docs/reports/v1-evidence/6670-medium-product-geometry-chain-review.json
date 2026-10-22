@@ -1,0 +1,431 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-6670-MEDIUM-PRODUCT-MOVE-NORMALUP-SCOPED-RESIZE-DRIVER-TRANSITION-BLOCKED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "667038d9a2614c30b9a53af3185b5d61",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "FAIL_CHAIN_DRIVER_THRESHOLD_TRANSITION_REJECTION_HELD_PAIR_UNKNOWN",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "product_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+    "driver_source_sha": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+    "driver_sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A",
+    "packaging_head": "85ba39379ed9105beb6d33c6445eb5c597bd8120",
+    "fixture_pid": 6272,
+    "fixture_primary_tid": 6320,
+    "product_started": true,
+    "product_pid": 5576,
+    "product_birth_filetime_decimal": "134371415645256555",
+    "ordinary_no_argument_product": true,
+    "diagnostic_switch_used": false,
+    "actual_app_hwnd": 196710,
+    "actual_settings_hwnd": 197208,
+    "Terminal_pid": 1620,
+    "Terminal_tid": 1648,
+    "Terminal_birth_filetime_decimal": "134371415667527252",
+    "Terminal_root_hwnd": 131926,
+    "Terminal_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+    "Terminal_distribution_version": "1.25.2733.0",
+    "Terminal_sha256_pin": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_667038d9a2614c30b9a53af3185b5d61",
+    "actual_borrowed_foreign_desktop_handle": 744,
+    "foreign_thread_desktop_name_actually_known": true,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "Product and Terminal FILETIME birth identities extracted by regex from original literal decimal digits and retained as strings. No parsed floating-point birth value was used.",
+    "product_driver_separation": "Product744e Release EXE remains distinct from driver85ba and packaging85ba. This failed driver chain does not rebind the product to a later driver repair."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "C13092A7C49067E9177D7D2311F1D447CA30B5EBD025DF915F818F30FAE49664"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/667038d9a2614c30b9a53af3185b5d61.zip",
+      "bytes": 17801950,
+      "sha256": "2779A418872ADF31FD87BC472AAB374C4603BE068919BCBB4EBBC90F142244BB"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/input/manifest.json",
+      "bytes": 21773,
+      "sha256": "85D71161C3558AA791AEA3D57482545E936A8ABBD98CC38EBD657616D934082A"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "6CBA53F71C648491B4CC645BE17B9DD69346DF4E04E354971DC6119CA46C6FF6"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4090880,
+      "sha256": "B25A8A48EDCFB1A5FDD401448E5862D552C21A9B9BF988ABD127A91F4EF2DD1A"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "actual_local_ZIP_manifest_WSB_binary_hashes_match_receipts": true,
+    "host_expectation_and_deploy_inventory_sizes_and_hashes_match_actual_package": true,
+    "collected_product_hash_matches_packaged_product": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\667038d9a2614c30b9a53af3185b5d61",
+    "input_readonly_output_only_writable": true,
+    "network_clipboard_audio_video_printer_redirection_disabled": true,
+    "requested_observer_access": 33554627,
+    "requested_MAXIMUM_ALLOWED_comparison": true,
+    "effective_granted_mask": "UNKNOWN_NOT_LOGGED",
+    "token_ACL_or_account_change_inferred": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-release-fixture.jsonl",
+      "bytes": 17233452,
+      "sha256": "32833693EC391E357DDC23749F2562495F9EFD4EB0E677DD9139759956CB7D86",
+      "role": "driver",
+      "rows": 399,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        399
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "2B86BC70A60C19940E531FE9645D07CCEC2039B1BE0C4935E734AEF04D492291"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-guest-summary.json",
+      "bytes": 22665,
+      "sha256": "3F44CE3E63C311CE242E1CC506965F92542E2488665370E14946F6952E455B54"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/collection-receipt.json",
+      "bytes": 8871,
+      "sha256": "B3AABABEB65B57759C0D92C984250E2181B8083512B6B3A79CBC0D62FE78D348"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/host-expectation.json",
+      "bytes": 3245,
+      "sha256": "3807AA953E732509F9F5E07A88670A139A7E27650B4611510348C61502A1CE56"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/deploy-receipt.json",
+      "bytes": 2909,
+      "sha256": "90D1FDC7E23B6B4ABD68E26D324666582085805DF9BFCEF62AD525ABB4D4BB80"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/launch-receipt.json",
+      "bytes": 14470,
+      "sha256": "9350431E30CF2D5083ACC6FF84B92D16FF94144B2EA50965AA854FF867E0C03D"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/cleanup-receipt.json",
+      "bytes": 9973,
+      "sha256": "704A8D6CB76D26E1ABA4161EFB47EADCAFF2F2B250530A705CA9860941190325"
+    },
+    {
+      "path": "uat/v1-sandbox/667038d9a2614c30b9a53af3185b5d61/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "C13092A7C49067E9177D7D2311F1D447CA30B5EBD025DF915F818F30FAE49664"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-terminal-asset.json",
+      "bytes": 1205,
+      "sha256": "15F09348586A982F3FDC6A6D7117DCAF4CFD7E446302F5CA1039E85DF3A85B74"
+    },
+    {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/collection-20261022T111941986Z-923e1e0dd7e041d89367ed36936f5980/667038d9a2614c30b9a53af3185b5d61-product-Release/panebind.log.jsonl",
+      "bytes": 50839,
+      "sha256": "63F4231BEEF6EFB93CBA78B8C73C2956C1E0C8ACC6B6DC25A59F48A7200E6EF8",
+      "role": "product",
+      "rows": 49,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        49
+      ],
+      "all_source_sha_matches_expected_identity": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/6670-medium-product-geometry-chain-excerpt.jsonl",
+    "sha256": "FDE6505EBE349A2485739D927610828CF5A91C9BB12F2CD7DD18A6B10A4B93FA",
+    "bytes": 39572,
+    "literal_lines": 57,
+    "driver_sequences": [
+      13,
+      14,
+      19,
+      23,
+      348,
+      350,
+      352,
+      353,
+      355,
+      356,
+      357,
+      358,
+      359,
+      363,
+      364,
+      365,
+      366,
+      367,
+      368,
+      369,
+      370,
+      371,
+      375,
+      376,
+      377,
+      378,
+      379,
+      384,
+      385,
+      387,
+      388,
+      389,
+      390,
+      394,
+      395,
+      399
+    ],
+    "product_sequences": [
+      2,
+      3,
+      4,
+      10,
+      11,
+      13,
+      14,
+      15,
+      18,
+      19,
+      32,
+      33,
+      36,
+      37,
+      39,
+      40,
+      41,
+      44,
+      45,
+      47,
+      49
+    ],
+    "serialization_changed": false,
+    "line_endings": "Literal UTF-8 line contents retained with LF; driver and product portions are separate producer streams, not a combined native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13-D23/D348-D359/P2-P4",
+      "fact": "The verified744e ordinary product launched without diagnostic/test arguments as PID5576/birth134371415645256555 in the exact active Medium Run desktop. Own settings GUI was actually visible/foreground and Escape destroyed it. Product reported exact_manifest_Run plus enabled exact-guest input resources, not function PASS. The same ordinary instance stayed running while an independently pinned new Terminal PID1620/birth134371415667527252/root131926/TID1648 was created. Actual sameMedium/SID/Run membership, foreign desktop handle744/name, source GUI and VDM S_OK/currentTRUE were observed; no foreground reclaim or content-readiness claim."
+    },
+    {
+      "source": "D363-D366/P10-P19",
+      "fact": "Move generation1 used actual DOWN[1261,297] and preserved original visible anchor[264,266,1998,1193]. Product observed real START owner_sequence1, one bounded100ms cancel API attempt returnedTRUE, then real END owner_sequence2 with the same source/TID/DOWN anchor. Fresh handoff was accepted. Actual AttachThreadInput succeeded and own resource TID5636 capture was read back as overlay263210; desktop membership and source/owner/input queries remained actual successful facts. Product gesture_start had resize=false/ctrl=false/native_first_handoff=true, not an injected START/END or test placement."
+    },
+    {
+      "source": "D366-D371/P32-P33",
+      "fact": "The cursor continuation reached[1333,333]; actual visible frame became[336,302,2070,1229], exactly original+(72,36), and positioning[327,302,2079,1238]/DPI144 were observed. Ordinary mode omitted successful per-call placement logs, so native_attempt_from_per_call_receipt and production_per_call_receipt remain null/UNKNOWN. Actual status advanced operations0→1 and native_callsite_claims0→1; these are aggregates, not reconstructed individual Win32 return values."
+    },
+    {
+      "source": "D368-D370/P32-P33",
+      "fact": "Exactly one normal test UP was inserted as the second packet of a serial final-current-cursor MOVE then LEFTUP batch, SendInput2/2. The product actually observed generation1 Raw LEFTUP, accepted legacy LEFTUP, capture release, successful detach and isolation_gone. Product gesture_end was end0/normal_up=true/pending_retired=true. Source capture became0, actual geometry remained exact, and status showed idle/no pending native operation/no unknown native completion. This supports only the single new-Terminal free Move+normal-UP+own-resource-exit subrange; it is not all Move, snapping, compatibility, module or whole-version PASS."
+    },
+    {
+      "source": "D375-D377/P36-P45",
+      "fact": "The second gesture actually inserted a new right-edge DOWN[2071,770], same source_key1 but fresh generation2. Product recorded real resize START owner_sequence3, one successful bounded cancel API, real END owner_sequence4, accepted handoff, actual association/capture overlay525354 and resize=true/native_first_handoff=true gesture_start. During the driver threshold transition its second fresh send guard rejected with geometry_input_revoked_after_inflight_claim, before a threshold/continuation send was recorded for generation2. This is the identified test-driver transition race, not evidence that product Resize implementation failed. Resize target geometry, normal-UP and successor Move were not completed."
+    },
+    {
+      "source": "D377-D390/P47-P49",
+      "fact": "The test held-pair ledger remained incomplete/UNKNOWN. Geometry cleanup_known=false and test_pair_still_unknown=true were preserved. The UI correctly refused any further UI input and used only the public same-EXE --quit command; it actually returned0 and product process exited0 with app/icon gone. Product shutdown reports its own hooks/overlay/native worker/capture/association stopped, while generation2 ended non-normal(end8). Those own-resource receipts do not clear the test held pair or establish NormalUp. Lease retirement reported in_flight_completed=false; independent Default input-desktop return was not confirmed. No overall cleanup PASS may be inferred from process exit, handle close or later guest destruction."
+    },
+    {
+      "source": "D390/D394-D399 and wrapper/cleanup receipts",
+      "fact": "The observer thread could restore its own thread desktop and close handles, but that is distinct from SwitchDesktop restoring the input desktop. Activation summary remains UNKNOWN_OR_BLOCKED with actual_Default_restored=false; the combined Default-input/Shell-unchanged predicate is false, not proof that the Default Shell itself was modified. DriverFAIL and wrapper FIXTURE_FAILED remain; wrapper reports two descendants alive and forced test cleanup. Later exact own guest/task cleanup retained deployment and preserved evidence hashes, without promoting product, pair or environment cleanup to PASS."
+    }
+  ],
+  "scoped_results": {
+    "generation1_Move": {
+      "result": "SCOPED_PASS_SINGLE_EXACT_TERMINAL_FREE_MOVE_NORMAL_UP_AND_RESOURCE_EXIT",
+      "source_key": 1,
+      "generation": 1,
+      "original_cursor_anchor": [
+        1261,
+        297
+      ],
+      "original_visible": [
+        264,
+        266,
+        1998,
+        1193
+      ],
+      "final_cursor": [
+        1333,
+        333
+      ],
+      "actual_visible": [
+        336,
+        302,
+        2070,
+        1229
+      ],
+      "actual_positioning": [
+        327,
+        302,
+        2079,
+        1238
+      ],
+      "actual_delta": [
+        72,
+        36
+      ],
+      "actual_DPI": 144,
+      "actual_START": true,
+      "actual_cancel_API_return": true,
+      "actual_END": true,
+      "actual_capture_overlay": 263210,
+      "actual_Raw_LEFTUP": true,
+      "actual_legacy_LEFTUP_accepted": true,
+      "product_normal_up": true,
+      "actual_capture_release_and_detach_and_isolation_gone": true,
+      "actual_idle_status": true,
+      "ordinary_per_call_native_API_receipt": "UNKNOWN_NOT_LOGGED",
+      "aggregate_operation_delta": 1,
+      "aggregate_native_callsite_claim_delta": 1,
+      "all_Move_or_snapping_contract_pass": false
+    },
+    "generation2_Resize": {
+      "result": "NOT_COMPLETED_DRIVER_GUARD_REJECTED_DURING_THRESHOLD_HANDOFF_TRANSITION",
+      "source_key": 1,
+      "generation": 2,
+      "actual_DOWN": [
+        2071,
+        770
+      ],
+      "normalized_DOWN_region": 2,
+      "actual_START": true,
+      "actual_cancel_API_return": true,
+      "actual_END": true,
+      "actual_handoff_accepted": true,
+      "actual_capture_overlay": 525354,
+      "actual_resize_gesture_start": true,
+      "driver_rejection": "geometry_input_revoked_after_inflight_claim",
+      "geometry_target_verified": false,
+      "normal_UP_verified": false,
+      "held_test_pair": "UNKNOWN_INCOMPLETE",
+      "product_Resize_FAIL_inferred": false,
+      "product_Resize_PASS_inferred": false
+    },
+    "successor_Move": "NOT_RUN",
+    "Ctrl_Glue": "NOT_RUN",
+    "Terminal_client_semantics": "NOT_RUN",
+    "tray_Settings_Exit": "NOT_RUN_GEOMETRY_CLEANUP_BLOCKED",
+    "whole_operation_chain": "FAIL",
+    "public_quit_process_exit": "ACTUALLY_OBSERVED_EXIT0_ONLY",
+    "product_reported_own_resource_shutdown": true,
+    "test_pair_cleanup": "UNKNOWN_NOT_PASS",
+    "independent_input_Default_return": "UNCONFIRMED_NOT_PASS",
+    "all_application_process_tree_exit": "NOT_PROVEN"
+  },
+  "time_basis": {
+    "g1_DOWN_send_qpc": [
+      440638467,
+      440953879
+    ],
+    "g1_product_DOWN_hook_qpc": 440948453,
+    "g1_cancel_API_qpc": [
+      441522345,
+      441524568
+    ],
+    "g1_capture_ready_resource_observation_qpc": 441721423,
+    "g1_continuation_send_qpc": [
+      442749081,
+      442754398
+    ],
+    "g1_final_MOVE_UP_send_qpc": [
+      443377333,
+      443386030
+    ],
+    "g1_Raw_UP_resource_observation_qpc": 443403993,
+    "g1_legacy_UP_dispatch_qpc": 443429306,
+    "g1_capture_release_API_qpc": [
+      443434754,
+      443439795
+    ],
+    "g1_detach_API_qpc": [
+      443441957,
+      443444309
+    ],
+    "g1_isolation_gone_resource_observation_qpc": 443474525,
+    "g2_DOWN_send_qpc": [
+      447026089,
+      447208760
+    ],
+    "g2_product_DOWN_hook_qpc": 447201072,
+    "g2_cancel_API_qpc": [
+      447727520,
+      447731547
+    ],
+    "g2_capture_ready_resource_observation_qpc": 447893159,
+    "buffered_emit": "Many driver geometry rows emit at45437/45453 after execution. Preserve original source-local QPC, native message stamps and product receipts separately; file position/emission tick is not a shared Raw/WinEvent/physical input ordering.",
+    "dedicated_driver_guard_pre_and_post_native_snapshots": "NOT_LOGGED_IN_THIS_RUN",
+    "detailed_guard_first_failed_native_fact": "UNKNOWN_BEYOND_RECORDED_REJECTION_AND_ACTUAL_HANDOFF_PROGRESS"
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 2,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/667038d9a2614c30b9a53af3185b5d61/cleanup-receipt.json",
+      "bytes": 9973,
+      "sha256": "704A8D6CB76D26E1ABA4161EFB47EADCAFF2F2B250530A705CA9860941190325"
+    },
+    "utc": "2026-10-22T11:20:53.6541089Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "distinction": "Actual public product quit and own shutdown receipts are separate from the unconfirmed test held-pair/input-desktop cleanup. Exact guest disposal restored test containment, not a product or complete-chain cleanup PASS."
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "generation1_scoped_function_result": "PASS_ONLY_THE_OBSERVED_SINGLE_FREE_MOVE_NORMAL_UP_SUBRANGE",
+    "current_Resize_function_verdict": "NOT_COMPLETED_DRIVER_BLOCKED_NOT_PRODUCT_FAIL",
+    "continuous_Move_Resize_successor_chain": "FAIL",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "next_action": "Keep the unchanged744e product EXE. Repair the test threshold decision so already-observed real START/handoff/capture progress discards an unissued kick rather than aborting. Use a new driver source/hash and RunId for affected Resize/normal-UP/successor-chain verification; retain this original failure and do not add benchmark or whole-version PASS.",
+    "history": "Original packet counts, unknown held-pair state, failed return and cleanup verdicts remain unchanged. Earlier runs and their product/driver identities are not rewritten."
+  }
+}

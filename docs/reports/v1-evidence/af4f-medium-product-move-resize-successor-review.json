@@ -1,0 +1,866 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-AF4F-MEDIUM-TERMINAL-MOVE-RESIZE-SUCCESSOR-NORMALUP-SCOPED-TRAY-MENU-FAILED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "af4fbd2270424659b75b6af8659617a4",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "GEOMETRY_CHAIN_SCOPED_PASS_SUBSEQUENT_TRAY_MENU_FAIL",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "product_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+    "driver_source_sha": "5211da6e11af96120368b895190b0df91a315e03",
+    "driver_sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3",
+    "packaging_head": "5211da6e11af96120368b895190b0df91a315e03",
+    "fixture_pid": 3988,
+    "fixture_primary_tid": 6444,
+    "product_started": true,
+    "product_pid": 5676,
+    "product_birth_filetime_decimal": "134371425735265747",
+    "ordinary_no_argument_product": true,
+    "diagnostic_switch_used": false,
+    "actual_app_hwnd": 196716,
+    "actual_settings_hwnd": 196712,
+    "Terminal_pid": 6308,
+    "Terminal_tid": 6412,
+    "Terminal_birth_filetime_decimal": "134371425757292549",
+    "Terminal_root_hwnd": 131932,
+    "Terminal_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+    "Terminal_distribution_version": "1.25.2733.0",
+    "Terminal_sha256_pin": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "Default_Shell_birth_filetime_decimal": "134371425543484809",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_af4fbd2270424659b75b6af8659617a4",
+    "actual_borrowed_foreign_desktop_handle": 736,
+    "foreign_thread_desktop_name_actually_known": true,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "Product, Terminal and Default-Shell FILETIME birth identities extracted from original literal decimal digits by regex and retained as strings; parsed floating-point birth values were not used.",
+    "product_driver_separation": "Product744e unchanged from6670. Driver5211 and packaging5211 have independent identities. Current observations do not rebind previous85ba-driver evidence to the repaired driver."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "55ABB283234027815285CF274398CA53E5B6C47EF483EDD77D7079AE1AF20425"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/af4fbd2270424659b75b6af8659617a4.zip",
+      "bytes": 17807081,
+      "sha256": "386E8A9C095D81405817903222961379EF9797166E2822820F55876C0E48773C"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/input/manifest.json",
+      "bytes": 21773,
+      "sha256": "ACEF18F6EC994A2B568F1603C3323A0F9EAFC914623B88E69EC6A28DCB57D6D8"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "31F63769B9F138C6B756EAA69E3452CE6B3787622B696B42625F7ED7B2EE1DC4"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4097024,
+      "sha256": "F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "actual_local_ZIP_manifest_WSB_binary_hashes_match_receipts": true,
+    "host_expectation_and_deploy_inventory_sizes_and_hashes_match_actual_package": true,
+    "collected_product_hash_matches_packaged_product": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\af4fbd2270424659b75b6af8659617a4",
+    "input_readonly_output_only_writable": true,
+    "network_clipboard_audio_video_printer_redirection_disabled": true,
+    "requested_observer_access": 33554627,
+    "requested_MAXIMUM_ALLOWED_comparison": true,
+    "effective_granted_mask": "UNKNOWN_NOT_LOGGED",
+    "token_ACL_or_account_change_inferred": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-release-fixture.jsonl",
+      "bytes": 31187024,
+      "sha256": "FA6A1CC42B214F24BBBD929160404E99A150A8E0490FD4C6256EC83E06BECA79",
+      "role": "driver",
+      "rows": 659,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        659
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "0A7197200A0554D64D114157EC2E975F561CCA15BEF140F9083690B18B1C607F"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-guest-summary.json",
+      "bytes": 22665,
+      "sha256": "DB3193CC2A06957EF853E0E958D0EED0383AC842DE317B7868168D0D97A2FF0D"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/collection-receipt.json",
+      "bytes": 8873,
+      "sha256": "AE9853AEF2F5B2D2C5D1AD64E7AB1D15C291685EFCE8B8E6C9BCE4E09D7739F7"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/host-expectation.json",
+      "bytes": 3245,
+      "sha256": "6192F82C13DE7D5F87D66676075E28D010057CBC0F0E630919279281D9447892"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/deploy-receipt.json",
+      "bytes": 2909,
+      "sha256": "BE4C2D633E52F971CB0CAD1DBC50AF6FE1BD5CD38BC64707D893FA66EEBEE920"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/launch-receipt.json",
+      "bytes": 14470,
+      "sha256": "A392B0FED123567805C37840ECA6FBB549A4E5D09F6B327F314AF45F3A7E60EA"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/cleanup-receipt.json",
+      "bytes": 9975,
+      "sha256": "217CED0A3CE9FC6EBEB0825AD7FC37916ED2F0986BDF148AD65C5CD49CC8B9BC"
+    },
+    {
+      "path": "uat/v1-sandbox/af4fbd2270424659b75b6af8659617a4/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "55ABB283234027815285CF274398CA53E5B6C47EF483EDD77D7079AE1AF20425"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-terminal-asset.json",
+      "bytes": 1205,
+      "sha256": "8457B4E7BDB8136345632E7D3820F14C6A06436E046E5518B50A2EADD7E5DFE5"
+    },
+    {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/collection-20261022T113631025Z-4a1ee64079de4e739049ac84184adfba/af4fbd2270424659b75b6af8659617a4-product-Release/panebind.log.jsonl",
+      "bytes": 106410,
+      "sha256": "9572A56029A42338F0ED68E3674CE8951556AE84EE180E5F720BAABC072461AD",
+      "role": "product",
+      "rows": 88,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        88
+      ],
+      "all_source_sha_matches_expected_identity": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
+    "bytes": 76440,
+    "sha256": "A98370842F067C75CA441DA3C78FAD974C6B52AD318F0C24DAEB249F99D9B392",
+    "literal_lines": 98,
+    "driver_sequences": [
+      13,
+      14,
+      19,
+      23,
+      577,
+      578,
+      579,
+      581,
+      582,
+      584,
+      586,
+      587,
+      588,
+      589,
+      590,
+      592,
+      593,
+      594,
+      595,
+      596,
+      597,
+      599,
+      600,
+      602,
+      604,
+      605,
+      606,
+      607,
+      608,
+      609,
+      611,
+      612,
+      614,
+      616,
+      617,
+      618,
+      619,
+      620,
+      621,
+      623,
+      624,
+      625,
+      626,
+      627,
+      628,
+      629,
+      630,
+      631,
+      632,
+      633,
+      634,
+      635,
+      636,
+      637,
+      638,
+      643,
+      645,
+      646,
+      647,
+      649,
+      652,
+      653,
+      654,
+      659
+    ],
+    "product_sequences": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      10,
+      11,
+      13,
+      14,
+      15,
+      18,
+      19,
+      32,
+      33,
+      36,
+      37,
+      39,
+      40,
+      41,
+      44,
+      45,
+      48,
+      59,
+      60,
+      63,
+      64,
+      66,
+      67,
+      68,
+      71,
+      72,
+      85,
+      86,
+      88
+    ],
+    "serialization_changed": false,
+    "line_endings": "Literal UTF-8 line contents retained with LF. Driver and product portions are separate producer streams, not a combined native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13-D23/D577-D588/P1-P6",
+      "fact": "Verified744e ordinary no-argument product launched as PID5676/birth134371425735265747 in the exact active Medium Run desktop. Its settings window was actually visible/foreground and Escape destroyed it. Product reported exact_manifest_Run plus enabled exact-guest input resources, not function PASS. An independently pinned new Terminal PID6308/birth134371425757292549/root131932/TID6412 was actually sameMedium/SID/Run member. Foreign desktop handle736/name, source GUI and VDM S_OK/currentTRUE were observed; foreground was not reclaimed. Terminal preparation metadata remains historical PREPARED_NOT_LAUNCHED rather than being rewritten."
+    },
+    {
+      "source": "D592-D600/P10-P33",
+      "fact": "Generation1 preserved real DOWN[1261,297] and original visible anchor[264,266,1998,1193]. Actual START, one bounded100ms cancel returningTRUE, actual END and accepted handoff preceded successful association and own capture263214. Continued cursor[1333,333] produced exact observed visible[336,302,2070,1229], original+(72,36). One serial final-current-cursor MOVE+singleLEFTUP batch inserted2/2; actual Raw UP, accepted legacy UP, release, detach, isolation_gone and NormalUp/end0 followed. Actual source capture was0 and status was idle."
+    },
+    {
+      "source": "D604-D612/P36-P60",
+      "fact": "Generation2 used real right-edge DOWN[2071,770] with normalized region2. D606 recorded matching actual START and source's own MoveSize/capture131932: the unissued threshold kick was discarded before the first send guard, without SendInput, cursor readback, retry or authority grant. The real handoff continued through one successful bounded cancel, END, accepted fresh handoff and actual own capture525358. Continued cursor[2135,770] produced right-edge width+64 visible[336,302,2134,1229]. Actual Raw/legacy UP, release/detach/isolation_gone, NormalUp/end0 and idle status were observed. This verifies the affected driver transition path in this run;6670 remains a historical driver failure."
+    },
+    {
+      "source": "D616-D626/P63-P86",
+      "fact": "Generation3 was a genuine later gesture on the same exact Terminal, using new DOWN[1365,333] and updated original visible[336,302,2134,1229], not resetting to a fixed initial layout. Actual START/cancel/END/accepted handoff/capture787502 and continued cursor[1329,357] produced visible[300,326,2098,1253], delta(-36,+24). The third real Raw/legacy NormalUp and independent own-resource exit completed. Status operations and native_callsite_claims advanced0->1->2->3; these are aggregates, not individual native placement return receipts. Ordinary mode omitted successful per-call placement logs, so those receipts stay UNKNOWN."
+    },
+    {
+      "source": "D625-D626",
+      "fact": "The test sent one normal WM_CLOSE to the exact Terminal and observed its root gone, then reported PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY with last completed generation3, pair_known and local cleanup_known. Process wait returned258 despite the separately sampled exit_code0; samples are not atomic and this does not prove the Terminal process or all descendants had exited. No forced Terminal termination or client-content/nonce claim is inferred."
+    },
+    {
+      "source": "D627-D636/P1/P6",
+      "fact": "Actual product UID1 GetRect returnedS_OK/[2778,1596,2826,1668], cursor readback matched[2802,1632], and the real RIGHTDOWN/RIGHTUP batch inserted2/2. The existing menu wait failed. Its later one-shot snapshot showed product GUI flags0/menuowner0, Shell foreground HWND66162, complete four-window product-thread enumeration with no#32768. This is a late non-atomic snapshot, not proof a menu never transiently opened. Product log88 rows contains tray_registration only atP1(NIM_ADD=false) andP6(NIM_ADD=true/SEVERSION=true); no tray_callback_ingress or tray_menu_API row was found. This establishes absence in the current complete recording, not the system root cause or proof no physical/callback activity ever occurred. LL RIGHTUP count4 at shutdown is not a tray-message receipt."
+    },
+    {
+      "source": "D637-D649/P88",
+      "fact": "After the tray failure, the public same-EXE --quit command actually ran and returned0; the product process actually signalled exit0 and app/icon were gone. Product shutdown reported own hooks, overlay, native worker, capture, association and input resources stopped, with no unknown issued completion. Test pair was complete; independent input-lease retirement/quiescence succeeded. Actual SwitchDesktop returnedTRUE and readback wasDefault; combined original Default input/Shell identity unchanged wasTRUE. These separately observed cleanup facts do not turn the failed tray case into PASS."
+    },
+    {
+      "source": "D652-D659 and wrapper/cleanup receipts",
+      "fact": "The exact new Shell child was still alive(wait258/exit259) and deliberately left to its own guest/job; closing handles did not prove process exit or desktop-object destruction. Wrapper still reported FIXTURE_FAILED/exit1, one descendant alive and forced test cleanup. Later exact task removal and dedicated guest disposal retained deployment and preserved evidence hashes. Guest disposal contains the retained test resources; it is not product, application-tree or whole-version cleanup PASS."
+    }
+  ],
+  "scoped_results": {
+    "ordinary_GUI_visible_and_settings_Escape": "ACTUALLY_OBSERVED_THIS_EXACT_RUN_ONLY",
+    "Terminal_Move_Resize_successor_chain": "SCOPED_PASS_SINGLE_EXACT_TERMINAL_GEOMETRY_ONLY",
+    "generations": [
+      {
+        "generation": 1,
+        "phase": "Move1",
+        "result": "SCOPED_PASS_ONE_EXACT_TERMINAL_GEOMETRY_NORMAL_UP_AND_OWN_RESOURCE_EXIT",
+        "source_key": 1,
+        "original_DOWN": [
+          1261,
+          297
+        ],
+        "original_visible": [
+          264,
+          266,
+          1998,
+          1193
+        ],
+        "actual_visible": [
+          336,
+          302,
+          2070,
+          1229
+        ],
+        "actual_positioning": [
+          327,
+          302,
+          2079,
+          1238
+        ],
+        "actual_DPI": 144,
+        "actual_START": true,
+        "START_owner_sequence": 1,
+        "actual_bounded_cancel_API_attempt": true,
+        "cancel_API_return": true,
+        "cancel_timeout_ms": 100,
+        "actual_END": true,
+        "END_owner_sequence": 2,
+        "actual_handoff_accepted": true,
+        "actual_capture_overlay": 263214,
+        "actual_association_succeeded": true,
+        "original_DOWN_intent_anchor": [
+          264,
+          266,
+          1998,
+          1193
+        ],
+        "continuity_baseline": [
+          264,
+          266,
+          1998,
+          1193
+        ],
+        "actual_Raw_LEFTUP": true,
+        "actual_legacy_LEFTUP_accepted": true,
+        "normal_UP": true,
+        "pending_retired": true,
+        "source_capture_after": 0,
+        "actual_release_succeeded": true,
+        "actual_detach_succeeded": true,
+        "actual_overlay_destroyed": true,
+        "actual_hotkey_unregistered": true,
+        "actual_idle_status": true,
+        "aggregate_operation_delta": 1,
+        "aggregate_native_callsite_claim_delta": 1,
+        "ordinary_per_call_placement_API_receipt": "UNKNOWN_NOT_LOGGED",
+        "per_call_placement_success_reconstructed": false,
+        "global_zero_late_history_claimed": false,
+        "time_basis": {
+          "original_DOWN_hook_qpc": 439701391,
+          "cancel_API_qpc": [
+            440447745,
+            440453106
+          ],
+          "capture_ready_resource_observation_qpc": 440590825,
+          "driver_input_API_receipts": [
+            {
+              "driver_sequence": 592,
+              "packet_count": 1,
+              "mouse_flags": [
+                2
+              ],
+              "requested_point": [
+                1261,
+                297
+              ],
+              "inserted": 1,
+              "before_qpc": 439560875,
+              "after_qpc": 439709885,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 594,
+              "packet_count": 1,
+              "mouse_flags": [
+                49153
+              ],
+              "requested_point": [
+                1266,
+                297
+              ],
+              "inserted": 1,
+              "before_qpc": 440075383,
+              "after_qpc": 440078805,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 595,
+              "packet_count": 1,
+              "mouse_flags": [
+                49153
+              ],
+              "requested_point": [
+                1333,
+                333
+              ],
+              "inserted": 1,
+              "before_qpc": 441562538,
+              "after_qpc": 441571475,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 597,
+              "packet_count": 2,
+              "mouse_flags": [
+                49153,
+                4
+              ],
+              "requested_point": [
+                1333,
+                333
+              ],
+              "inserted": 2,
+              "before_qpc": 442119880,
+              "after_qpc": 442127496,
+              "single_UP_packet_index": 1,
+              "normal_UP_variant": "one_serial_final_actual_cursor_MOVE_then_single_UP"
+            }
+          ],
+          "Raw_UP_resource_observation_qpc": 442150490,
+          "legacy_UP_dispatch_qpc": 442171797,
+          "release_API_qpc": [
+            442174867,
+            442180621
+          ],
+          "detach_API_qpc": [
+            442183023,
+            442186821
+          ],
+          "isolation_gone_resource_observation_qpc": 442227334
+        }
+      },
+      {
+        "generation": 2,
+        "phase": "Resize",
+        "result": "SCOPED_PASS_ONE_EXACT_TERMINAL_GEOMETRY_NORMAL_UP_AND_OWN_RESOURCE_EXIT",
+        "source_key": 1,
+        "original_DOWN": [
+          2071,
+          770
+        ],
+        "original_visible": [
+          336,
+          302,
+          2070,
+          1229
+        ],
+        "actual_visible": [
+          336,
+          302,
+          2134,
+          1229
+        ],
+        "actual_positioning": [
+          327,
+          302,
+          2143,
+          1238
+        ],
+        "actual_DPI": 144,
+        "actual_START": true,
+        "START_owner_sequence": 3,
+        "actual_bounded_cancel_API_attempt": true,
+        "cancel_API_return": true,
+        "cancel_timeout_ms": 100,
+        "actual_END": true,
+        "END_owner_sequence": 4,
+        "actual_handoff_accepted": true,
+        "actual_capture_overlay": 525358,
+        "actual_association_succeeded": true,
+        "original_DOWN_intent_anchor": [
+          336,
+          302,
+          2070,
+          1229
+        ],
+        "continuity_baseline": [
+          336,
+          302,
+          2070,
+          1229
+        ],
+        "actual_Raw_LEFTUP": true,
+        "actual_legacy_LEFTUP_accepted": true,
+        "normal_UP": true,
+        "pending_retired": true,
+        "source_capture_after": 0,
+        "actual_release_succeeded": true,
+        "actual_detach_succeeded": true,
+        "actual_overlay_destroyed": true,
+        "actual_hotkey_unregistered": true,
+        "actual_idle_status": true,
+        "aggregate_operation_delta": 1,
+        "aggregate_native_callsite_claim_delta": 1,
+        "ordinary_per_call_placement_API_receipt": "UNKNOWN_NOT_LOGGED",
+        "per_call_placement_success_reconstructed": false,
+        "global_zero_late_history_claimed": false,
+        "time_basis": {
+          "original_DOWN_hook_qpc": 445950736,
+          "cancel_API_qpc": [
+            446417060,
+            446422288
+          ],
+          "capture_ready_resource_observation_qpc": 446561885,
+          "driver_input_API_receipts": [
+            {
+              "driver_sequence": 604,
+              "packet_count": 1,
+              "mouse_flags": [
+                2
+              ],
+              "requested_point": [
+                2071,
+                770
+              ],
+              "inserted": 1,
+              "before_qpc": 445722000,
+              "after_qpc": 445960488,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 607,
+              "packet_count": 1,
+              "mouse_flags": [
+                49153
+              ],
+              "requested_point": [
+                2135,
+                770
+              ],
+              "inserted": 1,
+              "before_qpc": 447513074,
+              "after_qpc": 447517514,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 609,
+              "packet_count": 2,
+              "mouse_flags": [
+                49153,
+                4
+              ],
+              "requested_point": [
+                2135,
+                770
+              ],
+              "inserted": 2,
+              "before_qpc": 448185580,
+              "after_qpc": 448193974,
+              "single_UP_packet_index": 1,
+              "normal_UP_variant": "one_serial_final_actual_cursor_MOVE_then_single_UP"
+            }
+          ],
+          "Raw_UP_resource_observation_qpc": 448223173,
+          "legacy_UP_dispatch_qpc": 448251213,
+          "release_API_qpc": [
+            448256397,
+            448261155
+          ],
+          "detach_API_qpc": [
+            448263056,
+            448265347
+          ],
+          "isolation_gone_resource_observation_qpc": 448295042
+        }
+      },
+      {
+        "generation": 3,
+        "phase": "SuccessorMove",
+        "result": "SCOPED_PASS_ONE_EXACT_TERMINAL_GEOMETRY_NORMAL_UP_AND_OWN_RESOURCE_EXIT",
+        "source_key": 1,
+        "original_DOWN": [
+          1365,
+          333
+        ],
+        "original_visible": [
+          336,
+          302,
+          2134,
+          1229
+        ],
+        "actual_visible": [
+          300,
+          326,
+          2098,
+          1253
+        ],
+        "actual_positioning": [
+          291,
+          326,
+          2107,
+          1262
+        ],
+        "actual_DPI": 144,
+        "actual_START": true,
+        "START_owner_sequence": 5,
+        "actual_bounded_cancel_API_attempt": true,
+        "cancel_API_return": true,
+        "cancel_timeout_ms": 100,
+        "actual_END": true,
+        "END_owner_sequence": 6,
+        "actual_handoff_accepted": true,
+        "actual_capture_overlay": 787502,
+        "actual_association_succeeded": true,
+        "original_DOWN_intent_anchor": [
+          336,
+          302,
+          2134,
+          1229
+        ],
+        "continuity_baseline": [
+          336,
+          302,
+          2134,
+          1229
+        ],
+        "actual_Raw_LEFTUP": true,
+        "actual_legacy_LEFTUP_accepted": true,
+        "normal_UP": true,
+        "pending_retired": true,
+        "source_capture_after": 0,
+        "actual_release_succeeded": true,
+        "actual_detach_succeeded": true,
+        "actual_overlay_destroyed": true,
+        "actual_hotkey_unregistered": true,
+        "actual_idle_status": true,
+        "aggregate_operation_delta": 1,
+        "aggregate_native_callsite_claim_delta": 1,
+        "ordinary_per_call_placement_API_receipt": "UNKNOWN_NOT_LOGGED",
+        "per_call_placement_success_reconstructed": false,
+        "global_zero_late_history_claimed": false,
+        "time_basis": {
+          "original_DOWN_hook_qpc": 451885536,
+          "cancel_API_qpc": [
+            452616507,
+            452622651
+          ],
+          "capture_ready_resource_observation_qpc": 452756898,
+          "driver_input_API_receipts": [
+            {
+              "driver_sequence": 616,
+              "packet_count": 1,
+              "mouse_flags": [
+                2
+              ],
+              "requested_point": [
+                1365,
+                333
+              ],
+              "inserted": 1,
+              "before_qpc": 451744989,
+              "after_qpc": 451891370,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 618,
+              "packet_count": 1,
+              "mouse_flags": [
+                49153
+              ],
+              "requested_point": [
+                1370,
+                333
+              ],
+              "inserted": 1,
+              "before_qpc": 452274406,
+              "after_qpc": 452279172,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 619,
+              "packet_count": 1,
+              "mouse_flags": [
+                49153
+              ],
+              "requested_point": [
+                1329,
+                357
+              ],
+              "inserted": 1,
+              "before_qpc": 453828386,
+              "after_qpc": 453832883,
+              "single_UP_packet_index": null,
+              "normal_UP_variant": null
+            },
+            {
+              "driver_sequence": 621,
+              "packet_count": 2,
+              "mouse_flags": [
+                49153,
+                4
+              ],
+              "requested_point": [
+                1329,
+                357
+              ],
+              "inserted": 2,
+              "before_qpc": 454413456,
+              "after_qpc": 454424191,
+              "single_UP_packet_index": 1,
+              "normal_UP_variant": "one_serial_final_actual_cursor_MOVE_then_single_UP"
+            }
+          ],
+          "Raw_UP_resource_observation_qpc": 454447558,
+          "legacy_UP_dispatch_qpc": 454477844,
+          "release_API_qpc": [
+            454486715,
+            454493499
+          ],
+          "detach_API_qpc": [
+            454496567,
+            454500273
+          ],
+          "isolation_gone_resource_observation_qpc": 454530821
+        }
+      }
+    ],
+    "affected_driver_threshold_transition": {
+      "source": "D606",
+      "generation": 2,
+      "stage": "before_first_guard",
+      "reason": "real_native_or_handoff_already_progressed",
+      "matching_actual_START": true,
+      "matching_actual_gesture_start": false,
+      "matching_actual_capture_ready": false,
+      "source_GUI_known": true,
+      "actual_source_capture": 131932,
+      "actual_source_MoveSize": 131932,
+      "SendInput_attempted": false,
+      "cursor_readback_required": false,
+      "input_or_write_authority_granted": false,
+      "threshold_retried": false,
+      "affected_driver_path_verified": true,
+      "historical_6670_failure_preserved": true
+    },
+    "Terminal_root_normal_close": "ACTUALLY_OBSERVED_ROOT_GONE_ONLY",
+    "Terminal_process_exit": "NOT_PROVEN_WAIT258_NONATOMIC_EXIT_CODE_SAMPLE",
+    "Terminal_client_semantics": "NOT_RUN",
+    "Ctrl_Glue": "NOT_RUN",
+    "five_applications_or_all_Magnet_contracts": "NOT_PROVEN",
+    "tray_menu_result": "FAIL_OR_BLOCKED_REAL_RIGHTUP_DID_NOT_OPEN_EXACT_PRODUCT_MENU",
+    "product_tray_registration_rows": [
+      {
+        "sequence": 1,
+        "NIM_ADD_succeeded": false,
+        "NIM_SETVERSION_attempted": false
+      },
+      {
+        "sequence": 6,
+        "NIM_ADD_succeeded": true,
+        "NIM_SETVERSION_attempted": true,
+        "NIM_SETVERSION_succeeded": true
+      }
+    ],
+    "product_tray_callback_ingress_rows_in_complete_88_row_log": 0,
+    "product_tray_menu_API_rows_in_complete_88_row_log": 0,
+    "tray_callback_delivery": "UNKNOWN_NOT_RECONSTRUCTED_FROM_LL_UP_COUNT",
+    "tray_root_cause": "UNKNOWN",
+    "tray_Settings_Exit_commands": "NOT_RUN_MENU_WAIT_BLOCKED",
+    "product_Ctrl": "NOT_RUN",
+    "public_quit_process_exit": "ACTUALLY_OBSERVED_EXIT0",
+    "product_reported_own_resource_shutdown": true,
+    "test_pair_cleanup": "KNOWN_COMPLETE_THIS_RUN",
+    "independent_input_Default_return": "ACTUALLY_SWITCHED_AND_READ_BACK_DEFAULT",
+    "Default_input_and_Shell_identity_unchanged": true,
+    "desktop_object_destroyed": "UNKNOWN",
+    "all_application_process_tree_exit": "NOT_PROVEN",
+    "whole_UI_case": "FAIL_OR_BLOCKED",
+    "whole_driver": "FAIL"
+  },
+  "time_basis": {
+    "generation_times": "Source-local hook, resource and native-call QPC values are preserved in each generation above; original WinEvent native stamps and source-local sequences remain in literal lines.",
+    "buffered_emit": "Driver geometry rows emit at48781/48796/48812 after the operations. JSONL order or shared emission tick is not physical input/Raw/WinEvent native ordering.",
+    "tray_batch_driver_ticks": [
+      45640,
+      45656
+    ],
+    "tray_failure_snapshot_ticks": [
+      47171,
+      47171
+    ],
+    "Default_return_API_ticks": [
+      47265,
+      47296
+    ],
+    "default_return_success_LastError": "Raw5 was recorded after TRUE; success LastError is not used as the cause of any failure."
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/af4fbd2270424659b75b6af8659617a4/cleanup-receipt.json",
+      "bytes": 9975,
+      "sha256": "217CED0A3CE9FC6EBEB0825AD7FC37916ED2F0986BDF148AD65C5CD49CC8B9BC"
+    },
+    "utc": "2026-10-22T11:37:40.9018334Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "distinction": "Three generation-specific NormalUp/resource exits, actual public product quit, lease quiescence and Default input return have direct receipts. Retained Shell/possible Terminal descendants and desktop-object destruction are separate UNKNOWN/not-proven scopes; subsequent own guest disposal does not manufacture their normal cleanup PASS."
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "scoped_function_result": "PASS_ONLY_SINGLE_EXACT_TERMINAL_MOVE_RESIZE_SUCCESSOR_WITH_THREE_NORMAL_UP_CLOSURES",
+    "five_application_Medium_compatibility": "NOT_COMPLETE",
+    "all_Magnet_hold_detach_reattach_XY_contracts": "NOT_PROVEN",
+    "tray_menu_and_actions": "FAIL_OR_BLOCKED",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "next_action": "Reuse unchanged744e product EXE and preserve this driver5211/Run identity. Investigate the actual tray notification boundary using the recorded UID1 registration/hit/ingress facts; do not replay unchanged passed geometry or assume a system cause. Continue only the affected authorized product/driver path with a new implementation identity/Run when modified.",
+    "history": "6670 driver-transition failure remains historical. This run supplies a fresh g2 threshold-discard and complete three-gesture result, not a rewrite of previous source, raw lines, unknown cleanup or global acceptance."
+  }
+}

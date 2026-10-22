@@ -2,18 +2,18 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-- 当前已实测产品源码：`55f769c2d7bd5448289df26cb896760b414861f3`。
-- 当前已实测Release EXE SHA-256：`2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27`。
-- 后继仅诊断候选：`744e8908d2069951fec70683b6d793a26cb7397c`／Release `C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；D／R构建、affected offline各6/6及四hostguard78通过，native NOT_RUN／无新包，不把55f运行改绑它。
-- 最近已验普通便携包（25b历史身份，**不含55f新接线**）：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`。
+- 当前已实测产品源码：`744e8908d2069951fec70683b6d793a26cb7397c`。
+- 当前已实测Release EXE SHA-256：`C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；D／R构建、affected offline各6/6及四hostguard78通过，实际Terminal三段范围见下。
+- 当前TEST driver：`5211da6e11af96120368b895190b0df91a315e03`，D／R构建、guest-path各1/1、static200及四hostguard78通过；不把55f Default双轮改绑744e。
+- 最近已验普通便携包（25b历史身份，**不含当前744e**）：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`。
 - ZIP SHA-256：`B4679D4659F6DB9EE57D5EFDE9A5DB9007C3F427D7D9BD1160E4835E78953C11`；manifest SHA-256：`6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-上述bfb仍为25b／Release34932C08…4252的历史原ZIP，a014普通无参中文GUI、二启／保存实际效果／真实UP与退出及540f双轮证据保持原身份；它不是当前55f包，不因driver／文档变化重包或改绑。55f当前实际证据见下段，尚无该新EXE的完整普通便携入口／整版验收。ZIP内说明与manifest保留封包时点，后续证据见本仓库集中报告及验收表。
+上述bfb仍为25b／Release34932C08…4252的历史原ZIP，a014普通无参中文GUI、二启／保存实际效果／真实UP与退出及540f双轮证据保持原身份；它不是当前744e包，不因driver／文档变化重包或改绑。744e普通便携入口将另验，尚不预填PASS。ZIP内说明与manifest保留封包时点，后续证据见本仓库集中报告及验收表。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-当前55f已实测：[6d20](reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json)零输入TEST前置失败与[020e](reports/v1-evidence/020e-medium-product-actual-input-menu-review.json)真实Esc／UID1右键输入保留原身份；[02ec](reports/v1-evidence/02ec-current-core-chain-review.json)同PID双轮owned核心通过，只是Default旧route影响回归，不是新命名Run增强。新3e2 driver已D/R构建／guestpath各1/1和四hostguard78；[e657](reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json)实际458个Unicode及2个Enter包完整插入但nonce语义未确认、产品未启动；[26fd](reports/v1-evidence/26fd-medium-product-tray-routing-review.json)实际Esc／UID1右键后1500ms快照product GTI0、前台Shell、完整4窗无popup，精确菜单未确认，callback／API根因UNKNOWN。两批已封存且原BLOCKED不变；真实公共quit／产品exit0／资源stop与Default返回分列，不以guest销毁补PASS。744e只补有界托盘入口及原菜单API回执，未改机制／顺序且未现场；下一actualTerminalGeometry＋boundedwait TEST helper暂无新driver SHA或包。43/60、21/40、模块0与PARTIAL不变；剩余17项并非全属外部环境，正式source／客户／菜单／应用操作与桌面／显示矩阵分开补。不开放宿主试用，真人UAT PENDING。
+当前744e实际证据：[6670](reports/v1-evidence/6670-medium-product-geometry-chain-review.json)首段精确Terminal Move／正常UP通过，第二段TEST阈值过渡失败及held-pair未知原样保留；[af4f](reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json)在exact active同SID／session／Medium Run内，普通无参产品对同一精确新Terminal完成Move→Resize→后继Move，各段实际几何与Raw／legacy NormalUp、capture release／detach／Gone成立，随后托盘仍未开菜单，不等于客户内容可用、五应用或整个功能合同通过。[ab827](reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json)产品未启动，键盘全插入后实际3000ms等待超时仍无nonce，原因UNKNOWN，不叫产品拦截。旧55f[02ec双轮](reports/v1-evidence/02ec-current-core-chain-review.json)仅保留Default影响回归原身份。744e普通便携入口尚待实际验证，43/60、21/40、模块0与PARTIAL不变；菜单／客户／应用操作和外部桌面／显示矩阵分别推进，剩余17项不全是外部阻断。不开放宿主试用，真人UAT PENDING。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 
