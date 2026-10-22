@@ -185,6 +185,94 @@ class MediumDesktopUiCase {
             GetGUIThreadInfo(app_tid_,&gui)&&gui.hwndMenuOwner==app_&&(gui.flags&GUI_INMENUMODE)&&
             GetMenuBarInfo(menu.window,OBJID_CLIENT,0,&bar)&&bar.hMenu==menu.handle;
     }
+    void menu_failure_facts(){
+        // One read-only failure snapshot. This does not retry the click, read
+        // menu labels, activate a window, or relax menu_exact's input gates.
+        const auto began=GetTickCount64();const bool app_current=app_exact(),context_current=input_context();
+        const HWND foreground=GetForegroundWindow();DWORD foreground_pid{};
+        const DWORD foreground_tid=foreground?GetWindowThreadProcessId(foreground,&foreground_pid):0;
+        GUITHREADINFO gui{sizeof(gui)};const bool gui_attempted=app_current&&app_tid_;
+        SetLastError(ERROR_SUCCESS);const bool gui_return=gui_attempted&&GetGUIThreadInfo(app_tid_,&gui)!=FALSE;
+        const DWORD gui_error=gui_attempted&&!gui_return?GetLastError():0;
+        struct Inventory {std::array<HWND,256> windows{};unsigned count{};bool overflow{};} inventory;
+        const bool held_name_matches=equal(name(desktop_),L"PaneBindV1_"+run_);
+        const bool inventory_attempted=held_name_matches;
+        SetLastError(ERROR_SUCCESS);const bool inventory_return=inventory_attempted&&EnumDesktopWindows(desktop_,[](HWND h,LPARAM value)->BOOL{
+            auto& actual=*reinterpret_cast<Inventory*>(value);
+            if(actual.count==actual.windows.size()){actual.overflow=true;return FALSE;}
+            actual.windows[actual.count++]=h;return TRUE;
+        },reinterpret_cast<LPARAM>(&inventory))!=FALSE;
+        const DWORD inventory_error=inventory_attempted&&!inventory_return?GetLastError():0;
+        const bool inventory_complete=inventory_return&&!inventory.overflow;
+        struct Windows {std::array<HWND,32> windows{};unsigned count{};bool overflow{};} windows;
+        const bool enum_attempted=app_current&&app_tid_;
+        SetLastError(ERROR_SUCCESS);const bool enumerated=enum_attempted&&EnumThreadWindows(app_tid_,[](HWND h,LPARAM value)->BOOL{
+            auto& actual=*reinterpret_cast<Windows*>(value);
+            if(actual.count==actual.windows.size()){actual.overflow=true;return FALSE;}
+            actual.windows[actual.count++]=h;return TRUE;
+        },reinterpret_cast<LPARAM>(&windows))!=FALSE;
+        const DWORD enum_error=enum_attempted&&!enumerated?GetLastError():0;
+        const auto raw_handle=[](auto h){return std::to_string(reinterpret_cast<std::uintptr_t>(h));};
+        out_.emit("medium_desktop_ui_menu_failure_context","\"before_tick\":"+std::to_string(began)+
+            ",\"actual_app_HWND\":"+raw_handle(app_)+",\"actual_product_PID\":"+std::to_string(pid_)+",\"actual_app_TID\":"+std::to_string(app_tid_)+
+            ",\"app_identity_current\":"+(app_current?"true":"false")+",\"input_context_current\":"+(context_current?"true":"false")+
+            ",\"actual_foreground_HWND\":"+raw_handle(foreground)+",\"foreground_PID\":"+std::to_string(foreground_pid)+
+            ",\"foreground_TID\":"+std::to_string(foreground_tid)+",\"foreground_is_app\":"+(foreground==app_?"true":"false")+
+            ",\"GetGUIThreadInfo_attempted\":"+(gui_attempted?"true":"false")+",\"GetGUIThreadInfo_return\":"+(gui_attempted?(gui_return?"true":"false"):"null")+
+            ",\"GetGUIThreadInfo_error\":"+(gui_attempted?std::to_string(gui_error):"null")+
+            ",\"actual_GUI_flags\":"+(gui_return?std::to_string(gui.flags):"null")+
+            ",\"actual_GUI_active\":"+(gui_return?raw_handle(gui.hwndActive):"null")+
+            ",\"actual_GUI_focus\":"+(gui_return?raw_handle(gui.hwndFocus):"null")+
+            ",\"actual_GUI_capture\":"+(gui_return?raw_handle(gui.hwndCapture):"null")+
+            ",\"actual_GUI_move_size\":"+(gui_return?raw_handle(gui.hwndMoveSize):"null")+
+            ",\"actual_GUI_menu_owner\":"+(gui_return?raw_handle(gui.hwndMenuOwner):"null")+
+            ",\"menu_owner_is_app\":"+(gui_return?(gui.hwndMenuOwner==app_?"true":"false"):"null")+
+            ",\"GUI_INMENUMODE\":"+(gui_return?((gui.flags&GUI_INMENUMODE)?"true":"false"):"null")+
+            ",\"held_Run_name_matches\":"+(held_name_matches?"true":"false")+
+            ",\"held_Run_enumeration_attempted\":"+(inventory_attempted?"true":"false")+
+            ",\"held_Run_enumeration_return\":"+(inventory_attempted?(inventory_return?"true":"false"):"null")+
+            ",\"held_Run_enumeration_error\":"+(inventory_attempted?std::to_string(inventory_error):"null")+
+            ",\"held_Run_enumeration_complete\":"+(inventory_complete?"true":"false")+
+            ",\"held_Run_enumeration_truncated\":"+(inventory.overflow?"true":"false")+
+            ",\"EnumThreadWindows_attempted\":"+(enum_attempted?"true":"false")+
+            ",\"EnumThreadWindows_return\":"+(enum_attempted?(enumerated?"true":"false"):"null")+
+            ",\"EnumThreadWindows_error\":"+(enum_attempted?std::to_string(enum_error):"null")+
+            ",\"thread_window_count_recorded\":"+std::to_string(windows.count)+",\"thread_window_capacity\":32"+
+            ",\"thread_window_enumeration_truncated\":"+(windows.overflow?"true":"false")+
+            ",\"once_after_existing_menu_wait_failed\":true,\"API_snapshot_is_not_atomic\":true,\"new_input_or_activation_sent\":false");
+        for(unsigned n=0;n<windows.count;++n){
+            const HWND candidate=windows.windows[n],root=GetAncestor(candidate,GA_ROOT);DWORD candidate_pid{};
+            const DWORD candidate_tid=GetWindowThreadProcessId(candidate,&candidate_pid);
+            const bool identity=app_current&&IsWindow(candidate)&&candidate_pid==pid_&&candidate_tid==app_tid_;
+            const bool in_run=inventory_complete&&root&&std::find(inventory.windows.begin(),inventory.windows.begin()+inventory.count,root)!=inventory.windows.begin()+inventory.count;
+            const bool scope=identity&&in_run;std::array<wchar_t,128> class_name{};
+            SetLastError(ERROR_SUCCESS);const int class_length=scope?GetClassNameW(candidate,class_name.data(),static_cast<int>(class_name.size())):0;
+            const DWORD class_error=scope&&!class_length?GetLastError():0;
+            const bool class_known=scope&&class_length>0&&class_length<static_cast<int>(class_name.size())-1;
+            const bool menu_class=class_known&&std::wstring_view(class_name.data(),static_cast<std::size_t>(class_length))==L"#32768";
+            DWORD fresh_pid{};const bool fresh_identity=scope&&process_exact()&&
+                GetWindowThreadProcessId(candidate,&fresh_pid)==app_tid_&&fresh_pid==pid_&&GetAncestor(candidate,GA_ROOT)==root;
+            MENUBARINFO bar{sizeof(bar)};const bool bar_attempted=fresh_identity&&menu_class;
+            SetLastError(ERROR_SUCCESS);const bool bar_return=bar_attempted&&GetMenuBarInfo(candidate,OBJID_CLIENT,0,&bar)!=FALSE;
+            const DWORD bar_error=bar_attempted&&!bar_return?GetLastError():0;
+            out_.emit("medium_desktop_ui_menu_failure_window","\"index\":"+std::to_string(n)+",\"HWND\":"+raw_handle(candidate)+
+                ",\"root_HWND\":"+raw_handle(root)+",\"PID\":"+std::to_string(candidate_pid)+",\"TID\":"+std::to_string(candidate_tid)+
+                ",\"exact_product_PID_TID\":"+(identity?"true":"false")+",\"held_Run_root_member\":"+(inventory_complete?(in_run?"true":"false"):"null")+
+                ",\"visible\":"+(scope?(IsWindowVisible(candidate)?"true":"false"):"null")+
+                ",\"class_query_attempted\":"+(scope?"true":"false")+",\"class_query_error\":"+(scope?std::to_string(class_error):"null")+
+                ",\"actual_class\":"+(class_known?quote(utf8(class_name.data())):"null")+",\"class_is_32768\":"+(class_known?(menu_class?"true":"false"):"null")+
+                ",\"identity_rechecked_before_menu_query\":"+(fresh_identity?"true":"false")+
+                ",\"GetMenuBarInfo_attempted\":"+(bar_attempted?"true":"false")+",\"idObject\":-4,\"idItem\":0"+
+                ",\"GetMenuBarInfo_return\":"+(bar_attempted?(bar_return?"true":"false"):"null")+
+                ",\"GetMenuBarInfo_error\":"+(bar_attempted?std::to_string(bar_error):"null")+
+                ",\"actual_hMenu\":"+(bar_return?raw_handle(bar.hMenu):"null")+
+                ",\"actual_hwndMenu\":"+(bar_return?raw_handle(bar.hwndMenu):"null")+
+                ",\"actual_menu_rect\":"+(bar_return?rect({bar.rcBar.left,bar.rcBar.top,bar.rcBar.right,bar.rcBar.bottom}):"null")+
+                ",\"menu_text_or_items_read\":false,\"foreign_or_unconfirmed_window_controlled\":false");
+        }
+        out_.emit("medium_desktop_ui_menu_failure_snapshot_end","\"after_tick\":"+std::to_string(GetTickCount64())+
+            ",\"actual_foreground_after\":"+raw_handle(GetForegroundWindow())+",\"menu_open_or_delivery_PASS_inferred\":false");
+    }
     Menu open_menu(){
         NOTIFYICONIDENTIFIER icon{sizeof(icon)};icon.hWnd=app_;icon.uID=1;RECT area{};
         const HRESULT queried=Shell_NotifyIconGetRect(&icon,&area);
@@ -211,7 +299,7 @@ class MediumDesktopUiCase {
                     const Menu candidate{h,bar.hMenu};if(state.self->menu_exact(candidate)){state.found=candidate;++state.count;}}return TRUE;
             },reinterpret_cast<LPARAM>(&state))!=FALSE;found=state.found;return enumerated&&state.count==1;
         },1500);
-        if(!opened)throw std::runtime_error("Medium_UI_real_RIGHTUP_did_not_open_exact_product_menu");
+        if(!opened){menu_failure_facts();throw std::runtime_error("Medium_UI_real_RIGHTUP_did_not_open_exact_product_menu");}
         out_.emit("medium_desktop_ui_actual_menu","\"menu_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(found.window))+
             ",\"product_PID_TID_and_current_GUI_menu_owner_confirmed\":true,\"fake_tray_callback_sent\":false");return found;
     }

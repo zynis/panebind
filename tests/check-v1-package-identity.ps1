@@ -1684,6 +1684,7 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
         'desktops->IsWindowOnCurrentVirtualDesktop(source,&current)','queried==S_OK?',
         'source_position_read','EqualRect(&actual_position,&source_position)',
         'gui.hwndFocus==focused&&actual_tid==focus_tid&&actual_pid==pid',
+        'focus_position_read;',
         'EqualRect(&actual_focus,&focus_position)',
         'identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons()',
         'send(text.data(),static_cast<UINT>(text.size()),fresh_keyboard_focus',
@@ -1707,4 +1708,5 @@ Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumAc
 Check $true 'static exact Terminal keyboard nonce uses fresh existing focus, paired input and actual nonce; root hit remains observation and mouse is not run'
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('bytes==utf8(nonce)','true'))} 'static Terminal client rejects SendInput success substituted for actual command receipt'
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons()','context()'))} 'static Terminal keyboard nonce cannot bypass fresh focus and geometry checks'
+Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('focus_position_read;','true;'))} 'static zero-area keyboard focus is not permission to ignore a failed actual rectangle query'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

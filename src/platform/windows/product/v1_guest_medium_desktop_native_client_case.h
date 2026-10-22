@@ -352,7 +352,7 @@ MediumTerminalClientObservation medium_terminal_client_case(
         const DWORD focus_position_error=focus_position_read?0:GetLastError();
         const bool focus_identity=initial_focus&&focused&&focus_tid&&focus_pid==pid&&IsWindow(focused)&&
             GetAncestor(focused,GA_ROOT)==source&&focus_class_length>0&&focus_class_length<static_cast<int>(focus_class.size())-1&&
-            focus_position_read&&focus_position.left<focus_position.right&&focus_position.top<focus_position.bottom;
+            focus_position_read;
         out.emit("medium_terminal_client_existing_keyboard_focus","\"foreground_GTI_known\":"+std::string(initial_gui_known?"true":"false")+
             ",\"foreground_GTI_error\":"+std::to_string(initial_gui_error)+",\"actual_foreground\":"+
             std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"actual_focus\":"+
@@ -364,9 +364,14 @@ MediumTerminalClientObservation medium_terminal_client_case(
             ",\"focus_GetWindowRect_return\":"+(focused?(focus_position_read?"true":"false"):"null")+
             ",\"focus_GetWindowRect_error\":"+(focused?std::to_string(focus_position_error):"null")+",\"actual_focus_rect\":"+
             (focus_position_read?rect({focus_position.left,focus_position.top,focus_position.right,focus_position.bottom}):"null")+
+            ",\"focus_rect_zero_area\":"+(focus_position_read?
+                ((focus_position.left==focus_position.right||focus_position.top==focus_position.bottom)?"true":"false"):"null")+
             ",\"exact_existing_focus_identity\":"+(focus_identity?"true":"false")+
             ",\"SetForegroundWindow_or_SetFocus_called\":false,\"mouse_client_click\":\"NOT_RUN\",\"content_ready_inferred\":false");
         if(!focus_identity||!no_buttons())throw std::runtime_error("actual_existing_exact_foreground_focus_unconfirmed_no_keyboard_input");
+        // A keyboard focus proxy may have a zero-area rectangle. Its actual
+        // HWND/PID/TID/root/class and fresh readback still must be confirmed;
+        // this is never mouse-hit or Terminal-content readiness evidence.
         const auto fresh_keyboard_focus=[&]{
             if(!context()||!no_buttons())return false;
             GUITHREADINFO gui{sizeof(gui)};bool known{};DWORD error{};

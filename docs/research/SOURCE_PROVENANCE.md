@@ -3349,3 +3349,17 @@ generation, actual END and capture remain separate mandatory gates. No target
 eligibility arises from a read-only desktop membership alone. Ordinary-host
 and historical adapters retain their Default route; the candidate needs fresh
 native verification and earns no compatibility/feature PASS from compilation.
+
+Actual6d20 retained a real zero-area keyboard-focus proxy of class
+Windows.UI.Input.InputSite.WindowClass; the positive-area TEST requirement
+prevented any input. Re-read the pinned Terminal `IslandWindow.cpp` CoreInput
+keyboard-routing explanation, Microsoft's
+[GUITHREADINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-guithreadinfo)
+and [keyboard focus model](https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input).
+The next keyboard-only check requires the same actually queried focus identity
+and unchanged actual rectangle, but not mouse-hit geometry for that proxy.
+It does not claim that zero area is mandatory, that Terminal content is ready,
+or that input was delivered. Only the actual new command nonce can prove
+that subcase. Source/client geometry, DPI, foreground, keys and lease checks
+remain; no click, activation, message injection or extra retry is introduced.
+This is an independent PaneBind TEST oracle repair; no upstream code reused.
