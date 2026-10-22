@@ -1,0 +1,230 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-020E-MEDIUM-PRODUCT-ACTUAL-ESCAPE-ICON-INPUT-MENU-UNCONFIRMED",
+  "kind": "read_only_original_raw_receipts_and_exact_driver_branch_review",
+  "review_date": "2026-10-22",
+  "run_id": "020e4f4095754963b5edcc72ac96eacb",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "BLOCKED",
+  "original_driver_result": "FAIL",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "product_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+    "driver_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "driver_sha256": "67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D",
+    "packaging_head": "a0c2b77048413d65ff26bbf45503ee2cb0f69300",
+    "product_started": true,
+    "ordinary_no_argument_GUI": true,
+    "product_pid": 6716,
+    "product_birth_filetime_decimal": "134371376741419451",
+    "actual_app_hwnd": 262206,
+    "actual_settings_hwnd": 196712,
+    "actual_settings_rect": [
+      932,
+      258,
+      2117,
+      1338
+    ],
+    "actual_foreground_is_settings": true,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_020e4f4095754963b5edcc72ac96eacb",
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "Birth134371376741419451 is extracted by regex from literal D133/D134, never from parsed JSON numeric values."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/020e4f4095754963b5edcc72ac96eacb/package-receipt.json",
+    "receipt_sha256": "B134BC010F32283A04C332B080F199A83909B048F9F2AA8B494BBFDFBC173728",
+    "zip_sha256": "797A71ED3BAE51D2D3524E215076B888E5FD61ED51609F793ED7D46B07B1B34E",
+    "manifest_sha256": "24FA8BAB7492B4FA59AF3D281292AC04811097CA71D849F8BDEDA8E96CF6C24E",
+    "wsb_sha256": "337FEB8F54B7C237957D414753DDFFE7D20D07C3890C4715095ABA4F0EB174BE",
+    "actual_local_ZIP_manifest_WSB_hashes_match_receipt": true,
+    "actual_collected_product_EXE_hash_matches_payload": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\020e4f4095754963b5edcc72ac96eacb",
+    "input_readonly_output_only_writable": true,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/collection-20261022T101548373Z-529af2e4ced64019b22ab5a3f1ac4b73/020e4f4095754963b5edcc72ac96eacb-release-fixture.jsonl",
+      "sha256": "389059861B43772C50315897357468E205EA1BE109613E1DCD4F862F14AFC5DE",
+      "bytes": 4079361,
+      "rows": 163,
+      "role": "driver",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        163
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/collection-20261022T101548373Z-529af2e4ced64019b22ab5a3f1ac4b73/020e4f4095754963b5edcc72ac96eacb-product-Release/panebind.log.jsonl",
+      "sha256": "B42CBA1E1E4B55E704006CDF25C76C71AB8FBE7BFA1E100ECD2071382AF7A2A6",
+      "bytes": 3375,
+      "rows": 8,
+      "role": "product",
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        8
+      ],
+      "all_source_sha_matches_expected_identity": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/020e-medium-product-actual-input-menu-excerpt.jsonl",
+    "sha256": "ABA8664C0E75B8FFD4D0611CE2631B8DA8B086E8A19281C1815E3C447C9F269F",
+    "bytes": 9746,
+    "literal_lines": 20,
+    "driver_sequences": [
+      13,
+      129,
+      133,
+      134,
+      135,
+      136,
+      137,
+      139,
+      140,
+      141,
+      142,
+      147,
+      151,
+      158,
+      163
+    ],
+    "product_sequences": [
+      1,
+      3,
+      4,
+      6,
+      8
+    ],
+    "serialization_changed": false,
+    "line_endings": "Original UTF-8 line contents and64-bit tokens preserved; excerpt uses LF. Driver then product portions are not a common native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13/D129/D133-D136/P3-P4",
+      "fact": "新exact Run实际激活、Shell/Tray readiness成立；同一55f普通空参数Medium产品PID6716/设置HWND196712及前台有独立观察。P3真实exact_guest resource route enabled，P4 run_id吻合且resource_context_not_window_authority=true。首Esc DOWN/UP两包实际SendInput2，随后D136真实settings HWND销毁；未注入WM_CLOSE/WM_COMMAND。只支持本次GUI与Esc子范围，不是增强Move/Resize/Ctrl或正式兼容通过。"
+    },
+    {
+      "source": "P1/P6/D137/D139-D140",
+      "fact": "初次产品UID1 NIM_ADD=false，P6同owner262206/UID1的ADD与SETVERSION实际true。GetRect S_OK、实际[2778,1596,2826,1668]；中心[2802,1632]的GetCursorPos吻合，随后RIGHTDOWN/RIGHTUP两包实际插入2。精确Shell命中/同Medium活进程、同birth/当前Run成员、fresh UID1矩形检查属于实际到达此SendInput前的同源guard，不是凭注册true推断；原raw没有单独导出该次hit HWND。"
+    },
+    {
+      "source": "D147/55f open_menu and menu_exact",
+      "fact": "原失败reason为Medium_UI_real_RIGHTUP_did_not_open_exact_product_menu；在配置1500ms的等待内未达到唯一exact产品菜单复合门。门包含产品PID/TID/#32768、foreground==app、GUI_INMENUMODE/menu owner和hMenu匹配，原件未指出哪项失败。故不能写成已证明任何菜单都未出现、系统/Sandbox根因、已确定产品缺陷或实际托盘菜单投递成功。后继菜单项/恢复增强/帮助诊断/TaskbarCreated均NOT_RUN，整体BLOCKED与driverFAIL保留。"
+    },
+    {
+      "source": "D141-D142/P8",
+      "fact": "失败后只用公共同EXE --quit，无强制终止或合成退出输入；命令wait0/exit0，原产品进程实际signalled/exit0，UID1 GetRect随后E_FAIL。P8真实自有hooks/overlay/native worker/input资源及视觉收尾true、completion unknown=false；route-used true只是该产品已初始化的exact_guest路线，未提供增强placement或活动capture/NormalUp验证。唯一button2 callback的generation_at_entry=0、matching_branch=false不补成手势UP或托盘callback。"
+    },
+    {
+      "source": "D147/D151-D163/receipts",
+      "fact": "UI对象/前台观察hook、自有Raw和外层observer实际停止；独立return owner显式请求后从精确Run SwitchDesktop(Default)返回true并读回Default/UOI_IO=true，原Default Shell身份未变。新Explorer仍alive，wrapper wait0/fixture exit1/descendants1/forced_test_cleanup=true/product_cleanup_pass=false原值不变。精确guest/任务随后已清理、证据未变；guest销毁不代替产品/应用整体cleanup PASS，桌面对象销毁仍UNKNOWN。"
+    }
+  ],
+  "source_crosscheck": {
+    "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "path": "src/platform/windows/product/v1_guest_medium_desktop_ui_case.h",
+    "inspected": "Exact55f git-show of escape_settings, open_menu target, menu_exact and close_command, not current dirty source; read-only.",
+    "preclick_shell_hit": "SOURCE_GATED_ACTUAL_SEND_REACHED_NOT_SEPARATE_PER_FIELD_RAW_HIT_RECEIPT",
+    "actual_hit_HWND": "NOT_SEPARATELY_LOGGED",
+    "menu_failure_subcondition": "UNKNOWN",
+    "configured_menu_wait_ms": 1500,
+    "measured_exact_menu_wait_ms": "NOT_SEPARATELY_RECORDED"
+  },
+  "time_basis": {
+    "activation_native_ticks": [
+      40093,
+      40140
+    ],
+    "Escape_SendInput_ticks": [
+      41109,
+      41109
+    ],
+    "cursor_SendInput_ticks": [
+      41703,
+      41703
+    ],
+    "right_pair_SendInput_ticks": [
+      41718,
+      41750
+    ],
+    "Default_return_native_ticks": [
+      43328,
+      43359
+    ],
+    "return_requested_explicitly": true,
+    "deadline_reached": false,
+    "default_30_second_or_inflight_input_stall_test": "NOT_RUN",
+    "ordering_warning": "Buffered driver emission ticks and JSONL file order do not establish common Raw/WinEvent/UI callback or physical-display order."
+  },
+  "receipts": {
+    "launch": {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/collection-20261022T101548373Z-529af2e4ced64019b22ab5a3f1ac4b73/020e4f4095754963b5edcc72ac96eacb-Release-launch.json",
+      "sha256": "D1052795CB0F6D71335E0B9460F2373FDF1A1AD7322F516DF042A8340357994A"
+    },
+    "guest_summary": {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/collection-20261022T101548373Z-529af2e4ced64019b22ab5a3f1ac4b73/020e4f4095754963b5edcc72ac96eacb-guest-summary.json",
+      "sha256": "80E9964DBE3931A2A24D54F2657D5EC10BBEDB1D09F34B4B5AB8BCE10792766E",
+      "status": "BLOCKED_OR_FAILED"
+    },
+    "collection": {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/collection-20261022T101548373Z-529af2e4ced64019b22ab5a3f1ac4b73/collection-receipt.json",
+      "sha256": "123068E405FAC01020960524A4CDA3205AC1C8292F1C8A0A249DE00AE0F015D9",
+      "output_unchanged": true,
+      "actual_before_inventory_utc": "2026-10-22T10:16:14.2982613Z",
+      "actual_after_inventory_utc": "2026-10-22T10:16:18.5359353Z",
+      "top_utc_is_not_completed_collection_time": true
+    },
+    "cleanup": {
+      "path": "uat/v1-control/020e4f4095754963b5edcc72ac96eacb/cleanup-receipt.json",
+      "sha256": "E4C49611BCBE2EC7211636E1A236D0B2AC8BC8C36AFE983E8E7399EB7171FC46",
+      "utc": "2026-10-22T10:16:53.5506718Z",
+      "owned_guest_pid": 19776,
+      "task_removed": true,
+      "dedicated_guest_exited": true,
+      "evidence_unchanged": true,
+      "deployment_retained": true,
+      "other_files_or_resources_changed": false,
+      "product_cleanup_inferred_from_guest_destruction": false
+    }
+  },
+  "wrapper": {
+    "status": "FIXTURE_FAILED",
+    "fixture_pid": 4004,
+    "wait_result": 0,
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "product_cleanup_pass": false
+  },
+  "acceptance_boundary": {
+    "actual_conclusion": "55f普通Medium GUI、真实Esc插入和settingsGone、产品UID1实际矩形/精确Shell受控命中后的右键插入均有范围内事实；唯一exact菜单复合验证未过，整体BLOCKED。公共退出/资源停止与Default回切分列，未授M01/B27或整版PASS。",
+    "ordinary_product_GUI_and_Escape": "ACTUALLY_OBSERVED_SCOPED",
+    "exact_UID1_rectangle_and_actual_cursor": "ACTUALLY_OBSERVED_SCOPED",
+    "right_pair_API_insertion": 2,
+    "actual_menu_contract": "NOT_CONFIRMED",
+    "menu_item_actions": "NOT_RUN",
+    "resource_Run_context": "ACTUAL_EXACT_RUN_INITIALIZATION_NOT_WINDOW_AUTHORITY",
+    "product_enhancement_native_placement": "NOT_RUN",
+    "normal_enhanced_UP": "NOT_RUN",
+    "real_TaskbarCreated_or_Shell_restart": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "root_cause": "UNKNOWN",
+    "specific_product_defect_from_menu_wait": "NOT_PROVEN",
+    "M01_or_B27_new_PASS": false,
+    "new_feature_or_B_PASS": false,
+    "human_UAT": "NOT_RUN",
+    "historical_packages_or_failures_rebound": false,
+    "next_action": "保留本次实际输入与原菜单门失败证据，等待后继Core/独立driver结果统一评估；具体菜单拒绝子条件未知时不补造原因或PASS，不改旧55f包/失败身份。"
+  }
+}

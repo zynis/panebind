@@ -1677,9 +1677,9 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
        -not $Native.Contains('(!request.client_input||out.client_completed)')){
         throw 'Client path requires actual responsive native root and a distinct retiring input lease.'
     }
-    foreach($value in @('!lease||!lease->valid()||lease->retired()','!active()||!exact_window()',
+    foreach($value in @('!lease||!lease->valid()||lease->retired()','if(!active||!exact_window||!active())','if(!exact_window())',
         'input_actor_same_user(held_process)','GetProcessId(held_process)!=pid','process_birth(held_process)!=birth',
-        'GetUserObjectInformationW(input,UOI_IO','!mutex&&error==ERROR_FILE_NOT_FOUND',
+        'GetUserObjectInformationW(input,UOI_IO','if(mutex||error!=ERROR_FILE_NOT_FOUND||!mutex_closed||FindWindowW',
         'GetGUIThreadInfo(requested,&gui)','GetThreadDesktop(tid)',
         'desktops->IsWindowOnCurrentVirtualDesktop(source,&current)','queried==S_OK?',
         'source_position_read','EqualRect(&actual_position,&source_position)',
@@ -1693,7 +1693,9 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
         'ReadDirectoryChangesW(directory,buffer.data()','CancelIoEx(directory,&operation)',
         'if(file_watch->pending)file_watch.release()','completions>=4',
         'bytes==utf8(nonce)','out.completed=out.exact_nonce_observed&&context()',
-        'API_success_alone_is_not_client_semantic_PASS')){
+        'API_success_alone_is_not_client_semantic_PASS','medium_terminal_client_wait',
+        'actual_initial_budget_ms','last_wait_return','last_context_result',
+        'batch_emit_tick_is_not_observation_time')){
         if(-not $Client.Contains($value)){throw ('Client path lost exact input, completion or actual nonce oracle: '+$value)}
     }
     if($Client -match '\b(SetWindowPos|SetForegroundWindow|SetFocus|ReleaseCapture|SetCapture|TerminateProcess|Sleep|SetTokenInformation|SetUserObjectSecurity)\s*\(' -or $Client.Contains('INFINITE')){
@@ -1709,4 +1711,30 @@ Check $true 'static exact Terminal keyboard nonce uses fresh existing focus, pai
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('bytes==utf8(nonce)','true'))} 'static Terminal client rejects SendInput success substituted for actual command receipt'
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons()','context()'))} 'static Terminal keyboard nonce cannot bypass fresh focus and geometry checks'
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('focus_position_read;','true;'))} 'static zero-area keyboard focus is not permission to ignore a failed actual rectangle query'
+function Assert-V1MediumProductGeometry([string]$Environment,[string]$UI,[string]$Geometry){
+    if(-not $Environment.Contains('#include "platform/windows/product/v1_guest_medium_desktop_product_geometry_case.h"') -or
+       -not $UI.Contains('const auto geometry=medium_desktop_product_geometry_case(run_,desktop_,product_,process_,pid_,birth_,')){
+        throw 'The real-app geometry case must be connected to the actual ordinary product and held Run desktop.'
+    }
+    foreach($value in @('manifest_string(manifest,"guest_suite")!="MediumDesktopUiOnly"','terminal_test_asset',
+        'process_birth(product_process_)!=product_birth_','process_birth(target_process_)!=target_birth_',
+        'input_actor_same_user(target_process_)','a.complete','b.complete','first.hwnd==second.hwnd',
+        'first.pid==second.pid','first.tid==second.tid',
+        'manager->IsWindowOnCurrentVirtualDesktop(target_,&current)','queried!=S_OK',
+        'lease_->begin()','if(!allowed())throw','(cleanup||!retired())',
+        'SendInput(count,packets.data(),sizeof(INPUT))','incomplete_pair.store(true',
+        'matching_clean_captured_up','up_qpc_','legacy_left_up','isolation_gone',
+        'ProductLogEvidence','evidence_.begin(product_pid_,product_birth_,launch_tick_,source_)',
+        'PostMessageW(target_,WM_CLOSE,0,0)','five_applications_or_whole_version_PASS')){
+        if(-not $Geometry.Contains($value)){throw ('Real-app geometry lost exact scope, actual receipt or cleanup guard: '+$value)}
+    }
+    if($Geometry -match '\b(SetWindowPos|DeferWindowPos|SetForegroundWindow|SetFocus|AttachThreadInput|SetCapture|ReleaseCapture|Sleep|TerminateProcess|SetTokenInformation|SetUserObjectSecurity)\s*\(' -or
+       $Geometry.Contains('INFINITE')){throw 'The geometry driver must not become an alternative writer, activation or permission path.'}
+}
+$mediumGeometrySource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_product_geometry_case.h'),[Text.Encoding]::UTF8)
+Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource $mediumGeometrySource
+Check $true 'static actual product/Terminal geometry case is wired without Default input or a private geometry writer'
+Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('process_birth(target_process_)!=target_birth_','false'))} 'static geometry input cannot inherit a reused target PID'
+Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('queried!=S_OK','false'))} 'static geometry input cannot treat unknown Task View membership as current'
+Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('(cleanup||!retired())','true'))} 'static normal serial UP cannot send a final MOVE after an observed terminal fact'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

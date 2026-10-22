@@ -1,0 +1,300 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-E657-MEDIUM-TERMINAL-KEYBOARD-INSERTS-NONCE-UNCONFIRMED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "e657c8d9e9064be5bbc3efe63ddb26be",
+  "suite": "MediumDesktopNativeClientOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_CLIENT_NONCE_SEMANTICS_UNCONFIRMED_AFTER_ACTUAL_KEYBOARD_INSERTS",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "product_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+    "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
+    "driver_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
+    "packaging_head": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
+    "fixture_pid": 3804,
+    "fixture_primary_tid": 3812,
+    "product_started": false,
+    "terminal_pid": 6492,
+    "terminal_tid": 6516,
+    "terminal_birth_filetime_decimal": "134371387926803215",
+    "terminal_root_hwnd": 66384,
+    "terminal_image": "C:\\PaneBindV1\\Terminal\\e657c8d9e9064be5bbc3efe63ddb26be\\Release\\terminal-1.25.2733.0\\WindowsTerminal.exe",
+    "terminal_distribution_version": "1.25.2733.0",
+    "terminal_sha256": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "desktop_borrowed_handle": 736,
+    "foreign_desktop_name_actually_known": true,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_e657c8d9e9064be5bbc3efe63ddb26be",
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "64-bit FILETIME birth identities extracted by regex from original literal decimal digits and stored as strings, never reconstructed from parsed floating-point values.",
+    "product_identity_meaning": "Verified packaged payload only. The actual native client case reports product_started=false; no product enhancement, tray or product cleanup was executed."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/package-receipt.json",
+      "bytes": 13307,
+      "sha256": "410848BED0AD7510B55F14802C9AF662BF283EF1B085798F4B75D2F2A34E2F6A"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/e657c8d9e9064be5bbc3efe63ddb26be.zip",
+      "bytes": 17721474,
+      "sha256": "AE65FCC2A9F4AA4CB7D9B29847DE8EC488C3187F6D20DEFC383EAB6D880C7532"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/input/manifest.json",
+      "bytes": 20119,
+      "sha256": "75615F70416FBFAAC1CAE5233560943801379C0499B07EAD280E24BD1E0775A4"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/PaneBindV1.wsb",
+      "bytes": 986,
+      "sha256": "BA26B727F7B1C283B5C54D97F8637BCDE1DC24BDF0FF39E4D7362185F485FD31"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/input/panebind.exe",
+      "bytes": 1196544,
+      "sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/input/panebind-v1-guest-fixture.exe",
+      "bytes": 3995648,
+      "sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/e657c8d9e9064be5bbc3efe63ddb26be-product-Release/panebind.exe",
+      "bytes": 1196544,
+      "sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27"
+    },
+    "actual_local_ZIP_manifest_WSB_binary_hashes_match_receipts": true,
+    "host_expectation_and_deploy_inventory_sizes_and_hashes_match_actual_package": true,
+    "collected_product_hash_matches_packaged_product": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\e657c8d9e9064be5bbc3efe63ddb26be",
+    "input_readonly_output_only_writable": true,
+    "network_clipboard_audio_video_printer_redirection_disabled": true,
+    "requested_observer_access": 33554627,
+    "requested_MAXIMUM_ALLOWED_comparison": true,
+    "effective_granted_mask": "UNKNOWN_NOT_LOGGED",
+    "token_ACL_or_account_change_inferred": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/e657c8d9e9064be5bbc3efe63ddb26be-release-fixture.jsonl",
+      "bytes": 6564299,
+      "sha256": "5CE52AED952B04B657F8B10EE46FAE40A95B52A0B2CA1151AD8E13749295152D",
+      "role": "driver",
+      "rows": 232,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        232
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/e657c8d9e9064be5bbc3efe63ddb26be-Release-launch.json",
+      "bytes": 9902,
+      "sha256": "B2C493C271B91DB7B70994A2EE49D330C8F6C96BA66707D16314CC10749F62CA"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/e657c8d9e9064be5bbc3efe63ddb26be-guest-summary.json",
+      "bytes": 22705,
+      "sha256": "D1C00B9FFCE626A9E28410D52AFE21847245020521640361BD1428AF4DCE834F"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/collection-receipt.json",
+      "bytes": 7883,
+      "sha256": "05B6F8BF7DEBDA6A033DEEE41CAFABB7D641A5596CD20A8BFC2CE6DEC939ADB1"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/host-expectation.json",
+      "bytes": 3255,
+      "sha256": "5DF1B34BCB3C6532E0D452F1FCF8292F9F7ABFC17E3C363CA11618D716479D32"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/deploy-receipt.json",
+      "bytes": 2909,
+      "sha256": "3F602B3483B26F4AF704A9EC46372C22D565728F73319D99EA7C69674776CC13"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/launch-receipt.json",
+      "bytes": 14452,
+      "sha256": "6D156C9E3F96CD61D64920533DB5228376013822B72DBEB50C2E9AC675CFA136"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/cleanup-receipt.json",
+      "bytes": 9079,
+      "sha256": "176C7216E0D61A9544D9DE4822C399A8BE9CF879B77AC8EDBDC0D647DA873136"
+    },
+    {
+      "path": "uat/v1-sandbox/e657c8d9e9064be5bbc3efe63ddb26be/package-receipt.json",
+      "bytes": 13307,
+      "sha256": "410848BED0AD7510B55F14802C9AF662BF283EF1B085798F4B75D2F2A34E2F6A"
+    },
+    {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/collection-20261022T103324004Z-a2d3cefc821d48f5afd15ef35c4294aa/e657c8d9e9064be5bbc3efe63ddb26be-terminal-asset.json",
+      "bytes": 1205,
+      "sha256": "63BA4E2AD6CFB05032FD37D855C5E0260EA05B73A7A454466FDF83E4185BEBEF"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/e657-medium-terminal-keyboard-nonce-excerpt.jsonl",
+    "sha256": "13233F745F4FC386918395B9C0C5B5F13C2574E77E85EE78EE6163DBE10F8766",
+    "bytes": 24290,
+    "literal_lines": 39,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      14,
+      18,
+      19,
+      21,
+      23,
+      25,
+      184,
+      185,
+      186,
+      189,
+      190,
+      191,
+      193,
+      194,
+      195,
+      196,
+      197,
+      198,
+      200,
+      201,
+      202,
+      203,
+      206,
+      209,
+      210,
+      211,
+      213,
+      216,
+      219,
+      220,
+      222,
+      226,
+      227,
+      228,
+      229,
+      232
+    ],
+    "serialization_changed": false,
+    "line_endings": "Exact UTF-8 source line contents preserved with LF. Driver and product portions are separate producer streams, not one native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13/D18-D25/D184-D191",
+      "fact": "Product55f and driver3e2 are separately hash-bound. One newly named Run desktop was created with requested195|MAXIMUM_ALLOWED; actual CreateDesktop and SetThreadDesktop succeeded without an ACL/token change. Effective granted mask remains unknown. Actual SwitchDesktop succeeded at40437..40468 with exact input name/UOI_IO and Shell/Tray readiness. Pinned Terminal started at40531..40546, exact new visible root66384/PID6492/TID6516 became ready in1453ms. Two complete held-Run inventories each36 windows contain that root; Medium8192/nonElev/sameSID/session1 and image were verified independently. Native response is not client or product PASS."
+    },
+    {
+      "source": "D195-D203",
+      "fact": "Source-TID6516 and foreground-TID0 GUI queries actually succeeded, flags0/active66384/focus66458/capture0/move_size0/menu_owner0, foreground exact Terminal. Foreign GetThreadDesktop returned736/name exact Run; VDM CoInitialize/CoCreate/query each S_OK and on-currentTRUE. Actual source/client positioning and DPI144/PMv2 roundtrip were stable. Root external WM_NCHITTEST remained2; it was not converted into HTCLIENT. Keyboard focus was Windows.UI.Input.InputSite.WindowClass with actual readable zero-area rect[190,191,190,191], accepted only as existing exact keyboard focus, not visible content or mouse-client proof."
+    },
+    {
+      "source": "D194/D200/D203-D210",
+      "fact": "The new exact nonce output did not exist, and a real directory OVERLAPPED notification watch was established. Existing focus/geometry/DPI/context/clear-buttons guards accepted. Actual SendInput inserted458 of458 Unicode DOWN/UP packets and2 of2 Enter packets, without a reported incomplete pair or in-flight cancellation. Actual nonce was not confirmed, its normalized value/hash remain null, and the original result is UNKNOWN_OR_BLOCKED. API insertion is not delivery, shell command execution, normal product UP or client semantic PASS."
+    },
+    {
+      "source": "D18/D206/D209/D229",
+      "fact": "Actual QPC frequency10000000 is recorded. Enter completed at421139231; outer foreground-observer unhook began455303159, a3.4163928s interval including nonce wait and later cleanup. This is not an immediate-failure observation and not a measurement of nonce-only wait. The tested3e2 source used an event-driven nonce wait bounded at3000ms, but this run did not record its dedicated entry/exit interval or exact early-exit reason; a full3000ms wait must not be fabricated."
+    },
+    {
+      "source": "D211/D213/D215-D222/D226-D229",
+      "fact": "Own client hook unload, actual CancelIoEx return and cancellation completion wait0 were recorded; directory_native_pending_unknown=false and local cleanup known=true. Exactly one normal WM_CLOSE was posted and the bound Terminal root was actually gone. wait258 and separately reported exit_code0 are non-atomic facts, not proof of complete descendant exit. Native handles and own Raw registration were actually removed. Input lease retired/in-flight completed before independent SwitchDesktop(Default) at45140..45171, with actual Default/UOI_IO readback and own handle close/observer restore receipts. These are separate scoped cleanup observations, not cleanup inferred from guest destruction."
+    },
+    {
+      "source": "D227/D232 and wrapper/cleanup receipts",
+      "fact": "Original environmentBLOCKED and driverFAIL remain. Product was not started. Wrapper reports one descendant alive and forced test cleanup, so all-application process-tree exit is not proven. The later exact own guest/task cleanup preserved all output hashes and retained deployment; guest disposal does not promote the client case or product cleanup to PASS."
+    }
+  ],
+  "actual_result": {
+    "actual_keyboard_Unicode_packet_count": 458,
+    "actual_keyboard_Unicode_SendInput_return": 458,
+    "actual_Enter_packet_count": 2,
+    "actual_Enter_SendInput_return": 2,
+    "actual_exact_nonce_observed": false,
+    "normalized_nonce_value": null,
+    "nonce_file_sha256": null,
+    "client_semantic_result": "UNKNOWN_OR_BLOCKED",
+    "mouse_client_click": "NOT_RUN",
+    "mouse_input_sent": false,
+    "product_result": "NOT_RUN",
+    "root_normal_close": "OBSERVED_EXACT_ROOT_GONE_ONLY",
+    "process_tree_exit": "NOT_PROVEN",
+    "source_GTI_and_foreground_GTI": "ACTUAL_SUCCESS_READ_ONLY",
+    "VDM": "ACTUAL_S_OK_TRUE_READ_ONLY",
+    "cause_of_missing_nonce": "UNKNOWN",
+    "underlying_System_or_Sandbox_root_cause": "NOT_PROVEN"
+  },
+  "time_basis": {
+    "qpc_frequency": 10000000,
+    "unicode_before_qpc": 420817515,
+    "unicode_after_qpc": 420838109,
+    "Enter_before_qpc": 421138490,
+    "Enter_after_qpc": 421139231,
+    "outer_foreground_unhook_begin_qpc": 455303159,
+    "Enter_completion_to_outer_unhook_seconds": 3.4163928,
+    "nonce_wait_only_elapsed_ms": "UNKNOWN_NOT_SEPARATELY_RECORDED",
+    "nonce_wait_bound_in_tested_driver_ms": 3000,
+    "activation_ticks": [
+      40437,
+      40468
+    ],
+    "independent_return_ticks": [
+      45140,
+      45171
+    ],
+    "return_deadline_reached": false,
+    "buffered_emit": "D184..211 mostly carry later45468/45484 emission ticks; they are not native API execution timestamps. Use explicit local QPC/before-after fields. Do not merge Raw, WinEvent, product and driver lines into an invented physical ordering."
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/e657c8d9e9064be5bbc3efe63ddb26be/cleanup-receipt.json",
+      "bytes": 9079,
+      "sha256": "176C7216E0D61A9544D9DE4822C399A8BE9CF879B77AC8EDBDC0D647DA873136"
+    },
+    "utc": "2026-10-22T10:34:34.7819024Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "human_UAT": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "product_enhancement": "NOT_RUN",
+    "Terminal_mouse_client": "NOT_RUN",
+    "Terminal_keyboard_semantics": "UNKNOWN_OR_BLOCKED",
+    "next_action": "Separate driver nonce-wait termination/IO/final-context facts only when needed for the next targeted existing client test. Preserve this actual failed semantic oracle; no blind repeated input and no product compatibility PASS.",
+    "history": "Prior records and their identities remain unchanged. This evidence does not close any whole feature, benchmark or ordinary-desktop integration gate."
+  }
+}

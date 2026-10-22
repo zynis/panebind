@@ -133,7 +133,14 @@ try {
             foreach ($row in $seed.$section) {
                 $row.dev_status='NOT_RUN'
                 if ($row.PSObject.Properties['human_status']) { $row.human_status='NOT_RUN' }
-                foreach ($case in @(Value $row 'cases')) { if ($null -ne $case) { $case.status='NOT_RUN' } }
+                # Existing cases may be shared-ID strings or explicit result
+                # objects. Only objects actually carrying status are mutated;
+                # references are not result claims and have no writable status.
+                foreach ($case in @(Value $row 'cases')) {
+                    if ($null -ne $case -and $case -isnot [string] -and $case.PSObject.Properties['status']) {
+                        $case.status='NOT_RUN'
+                    }
+                }
             }
         }
         foreach ($row in $seed.benchmarks) { $row.points_awarded=0; if (-not $row.mandatory) { $row.dev_status='DEFERRED' } }

@@ -2,17 +2,18 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-- 产品源码：`25bff898c9943ee70155ce08868a2a7fc56ab100`。
-- Release EXE SHA-256：`34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`。
-- 当前便携包：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`。
+- 当前已实测产品源码：`55f769c2d7bd5448289df26cb896760b414861f3`。
+- 当前已实测Release EXE SHA-256：`2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27`。
+- 后继仅诊断候选：`744e8908d2069951fec70683b6d793a26cb7397c`／Release `C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；D／R构建、affected offline各6/6及四hostguard78通过，native NOT_RUN／无新包，不把55f运行改绑它。
+- 最近已验普通便携包（25b历史身份，**不含55f新接线**）：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`。
 - ZIP SHA-256：`B4679D4659F6DB9EE57D5EFDE9A5DB9007C3F427D7D9BD1160E4835E78953C11`；manifest SHA-256：`6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-本包已在a014中实际完成普通无参可见中文GUI、新保存／取消说明、二启同实例、真实设置改变Move效果、真实UP与正常退出；540f另以同一产品在同PID完成两轮owned核心组合链。新候选仅修正设置页一行说明，不改变输入和writer；旧ec2f、21a及1a62保持原身份，不改绑新包。这不等于完整桌面、真实托盘、五类应用、多屏或真人手感通过。ZIP内说明与manifest保留封包时的待验状态；后续实际证据见本仓库的[集中报告](reports/V1_DELIVERY_REPORT.md)及[验收表](reports/V1_ACCEPTANCE.json)，不为文档变化重打产品或旧包。
+上述bfb仍为25b／Release34932C08…4252的历史原ZIP，a014普通无参中文GUI、二启／保存实际效果／真实UP与退出及540f双轮证据保持原身份；它不是当前55f包，不因driver／文档变化重包或改绑。55f当前实际证据见下段，尚无该新EXE的完整普通便携入口／整版验收。ZIP内说明与manifest保留封包时点，后续证据见本仓库集中报告及验收表。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-环境进展单列：229e／abb1新exact active Medium Shell／Tray、独立Default返回和现代Terminal根响应／正常根关闭保留原范围，2b49自probe NIM_ADD=false不改。后继dcab已实测：[0072](reports/v1-evidence/0072-medium-terminal-client-review.json)取得精确Terminal双GTI idle及单窗VDM S_OK/current=true，但实际root客户点HTCAPTION，在任何输入前拒绝，nonce客户语义与正式产品source权限仍未证；[630b](reports/v1-evidence/630b-medium-product-ui-review.json)实际普通无参Medium产品GUI及前台成立，首Esc SendInput0/error5无插入、托盘输入未发。产品初始ADD=false后真实重注册ADD/SETVERSION=true，不能称永久失败或菜单已可用；公共`--quit`实际exit0／自有资源停止及Default回切有有限回执，整体仍BLOCKED。9df中间接线D/R各6/6仅作未部署支撑；最终55f产品/fixture候选已纳入明确链接依赖，当前构建中，独立键盘nonce／freshRun请求范围亦未现场，没有新binary hash或PASS，不是本页已测25b EXE。原Default／宿主保护不放宽；真实UI投递、托盘、完整普通Medium桌面、应用／显示矩阵及真人UAT仍缺项，43/60、21/40、模块0与PARTIAL不变，raw5根因UNKNOWN。
+当前55f已实测：[6d20](reports/v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json)零输入TEST前置失败与[020e](reports/v1-evidence/020e-medium-product-actual-input-menu-review.json)真实Esc／UID1右键输入保留原身份；[02ec](reports/v1-evidence/02ec-current-core-chain-review.json)同PID双轮owned核心通过，只是Default旧route影响回归，不是新命名Run增强。新3e2 driver已D/R构建／guestpath各1/1和四hostguard78；[e657](reports/v1-evidence/e657-medium-terminal-keyboard-nonce-review.json)实际458个Unicode及2个Enter包完整插入但nonce语义未确认、产品未启动；[26fd](reports/v1-evidence/26fd-medium-product-tray-routing-review.json)实际Esc／UID1右键后1500ms快照product GTI0、前台Shell、完整4窗无popup，精确菜单未确认，callback／API根因UNKNOWN。两批已封存且原BLOCKED不变；真实公共quit／产品exit0／资源stop与Default返回分列，不以guest销毁补PASS。744e只补有界托盘入口及原菜单API回执，未改机制／顺序且未现场；下一actualTerminalGeometry＋boundedwait TEST helper暂无新driver SHA或包。43/60、21/40、模块0与PARTIAL不变；剩余17项并非全属外部环境，正式source／客户／菜单／应用操作与桌面／显示矩阵分开补。不开放宿主试用，真人UAT PENDING。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 

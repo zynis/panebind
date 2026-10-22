@@ -1,8 +1,23 @@
 # PaneBind V1 集中交付进展
 
-后继`55f769c2d7bd5448289df26cb896760b414861f3`已实际完成产品／fixture Debug、Release构建及受影响offline各6/6；产品D／R SHA-256分别为`94160AA1FF24676B3E37F4230611003429D0052DC4D6F84ABDBFFCBABADCD762`／`2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27`，驱动D／R为`36B64CCEE77B26F43793C37EC247A19183E651BA7AC34E3C863C4DA1A21E1F2A`／`67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D`。八次宿主误运行保护均实际等待Exit78，静态195项通过。此处取代下方“构建中／hash未知”的过程状态；55f现场仍NOT_RUN，旧25b结果及便携包不改绑，未增加功能分数。现有验收工具普通校验通过；`-SelfTest`因历史字符串case无status属性失败，未记通过，未据此阻断现场或改写验收结果。
+## 当前接续：55f双轮Default影响回归通过，命名Run客户／托盘仍未闭环（2026-10-22）
 
-## 当前接续：dcab实际source只读正事实、普通产品GUI与首输入阻断，43/60（2026-10-22）
+**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0，整版PARTIAL，真人UAT PENDING；本轮不增加分数。** 当前产品`55f769c2d7bd5448289df26cb896760b414861f3`已实际运行，不再标native NOT_RUN。产品D SHA-256 `94160AA1FF24676B3E37F4230611003429D0052DC4D6F84ABDBFFCBABADCD762`、R `2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27`；D／R构建及6项affected offline各6/6只作支撑。三批原driver55f／R `67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D`，包／manifest／原件与字面摘录均绑定各自Run，不换绑25b历史。
+
+- [6d20键盘前置](v1-evidence/6d20-medium-terminal-keyboard-precondition-review.json)：产品未启动。精确Medium Terminal根、foreign Run桌面名、双GTI idle和VDM S_OK/current=true已实测；InputSite焦点同PID／TID但矩形零面积，被TEST正面积规则在任何输入前拒绝。光标／鼠标／键盘插入均0、nonce未执行；原BLOCKED／driverFAIL不变，不当作Terminal不可用或产品缺陷。
+- [020e产品真实UI输入](v1-evidence/020e-medium-product-actual-input-menu-review.json)：163D／8P合法连续，普通无参Medium GUI、exact_Run资源route初始化及真实Esc插入2→settingsGone成立；UID1 GetRect S_OK、实际光标及精确Shell门下右键两包插入2，初ADD=false后ADD/SETVERSION=true。唯一exact菜单复合门仍未确认，具体失败子条件UNKNOWN，不能由此确定系统或产品根因。公共`--quit`实际产品exit0／资源stop、Default回切和后续guest清理分别记录，整体仍BLOCKED，不授M01／B27。
+- [02ec当前核心](v1-evidence/02ec-current-core-chain-review.json)：同PID3948、无重启完成两轮真实Resize→postResize A五阶段／UP→Ctrl C及T/L／共享约束、Dock／Stretch、透明／Shake／暂停恢复，实际正常Quit／资源停止及客户配对有证据。2198D连续无FAIL，物理product仅P1215–1974／760行，早期来自当时嵌入回执，不能声称全历史零迟写。**Run_membership_evidence_used=false，这是55f对旧Default route的影响回归PASS，不是新exact-Run增强、Explorer／五应用、900秒、整I11或整版通过。**
+
+后继工具`3e2b3e2d85138e70233d76a1ea87c7375b561dd3`已实际完成D／R fixture构建、guest-path各1/1及四次完整有效argv宿主Exit78；D SHA-256 `636B5336455331A13B2F5C401FF89413250CD5ECA7645C20847F94A877986E26`、R `FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA`。这是主执行器实际工具结果，不补造归档stdout；冻结55f产品未重建。新两批已封存，原FAIL与包／原件身份保留：
+
+- [e657真实键盘插入](v1-evidence/e657-medium-terminal-keyboard-nonce-review.json)：产品未启动；精确Medium Run／Terminal、双GTI／VDM／已有同PID／TID键盘焦点门成立，458个Unicode包及2个Enter包实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED，鼠标客户NOT_RUN。Enter完成到外围卸钩约3.416秒包含等待与清理，不据缓冲emit同tick写立即失败，也不编造专用nonce等待时长。正常root关闭／Default回切是有限scope，全部后代退出未证。
+- [26fd产品托盘晚期快照](v1-evidence/26fd-medium-product-tray-routing-review.json)：普通GUI、实际Esc设置销毁、UID1初ADD=false后ADD／SETVERSION=true、图标矩形和一次右键两包插入均已观察。1500ms后一次快照为product GTI flags／menu_owner均0、前台Shell PID3992、完整产品线程枚举4窗且无`#32768`；仅证此边界未确认菜单，不证明从未短暂打开。55f没有tray ingress／菜单API回执，LL-UP不是Shell回调证据，不能断言零callback或未调用TrackPopupMenu。公共quit实际exit0／资源stop及Default回切与后续guest／任务清理分别记录；整批BLOCKED／后代与强制TEST清理原值保留，不授M01／B27。
+
+新诊断候选`744e8908d2069951fec70683b6d793a26cb7397c`只加有界GUI-owner托盘入口及原菜单API真实回执，**不改变机制或原调用顺序**。实际D／R产品构建、受影响offline各6/6和四次产品宿主保护Exit78通过；D SHA-256 `3569C94026B3EA8A061A4135CC01F795E36CD2851235145916C17E525639DA04`、R `C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`。这些是主执行器工具结果转录，native NOT_RUN／尚无新包；55f Core不换绑744e。下一TEST helper的actualTerminalGeometry＋有界等待正在接线，暂无新driver SHA／包／PASS。验收工具另已修复SelfTest对字符串case误写status的问题，实际5项SelfTest通过且未改报告；旧136行FAIL保留为历史工具反例，不增加功能分数。
+
+最近已验证普通便携包仍为下述**25b／bfb原字节**，不是55f；没有把a014／540f或旧包入口改绑新EXE。剩余17项完整合同既含产品／driver接线和实际输入／菜单／应用操作未闭环，也含桌面／显示矩阵条件，**不全是外部环境阻断**。继续以真实source权限、客户nonce、菜单事实及第三方应用链逐项推进，不重复已过Default双轮或无变量900秒。以下dcab及更早段落均为原身份历史检查点；旧NOT_RUN／下一动作不覆盖本节。
+
+## 历史检查点：dcab source只读正事实、普通产品GUI与首输入阻断，43/60（2026-10-22）
 
 **生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING，不增加M01／B27或应用PASS。** 已验证产品仍为`25bff898c9943ee70155ce08868a2a7fc56ab100`／Release `34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`，便携包仍bfb405c45e5a446ca54a74735d1122a8原字节；a014／540f及旧批不换绑新驱动。
 

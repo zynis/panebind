@@ -109,6 +109,7 @@ struct MediumDesktopWindowFact {
 };
 #include "platform/windows/product/v1_guest_medium_desktop_native_client_case.h"
 #include "platform/windows/product/v1_guest_medium_desktop_native_case.h"
+#include "platform/windows/product/v1_guest_medium_desktop_product_geometry_case.h"
 #include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"
 struct MediumDesktopEnvironmentObservation {
     std::vector<std::pair<std::string,std::string>> records;

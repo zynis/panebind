@@ -100,24 +100,34 @@ MediumTerminalClientObservation medium_terminal_client_case(
     MediumTerminalClientResources resources{events,hook,desktops};bool quit_seen{};DWORD session{};
     const auto remaining=[&](DWORD cap){const auto now=GetTickCount64();return now<deadline_tick?
         static_cast<DWORD>((std::min<ULONGLONG>)(cap,deadline_tick-now)):0;};
+    const char* context_reason="not_observed";
     const auto context=[&]{
-        if(!remaining(1)||!lease||!lease->valid()||lease->retired()||!active||!exact_window||!active()||!exact_window()||
-           !created||!source||!pid||!tid||!held_process||!birth||GetProcessId(held_process)!=pid||
-           process_birth(held_process)!=birth||WaitForSingleObject(held_process,0)!=WAIT_TIMEOUT||
-           !medium(GetCurrentProcess())||!medium(held_process)||!input_actor_same_user(held_process)||
-           !equal(medium_desktop_object_name(created),desktop_name)||
+        const auto reject=[&](const char* why){context_reason=why;return false;};
+        if(!remaining(1))return reject("caller_deadline");
+        if(!lease||!lease->valid()||lease->retired())return reject("input_lease_unavailable_or_retired");
+        if(!active||!exact_window||!active())return reject("caller_active_Run_context");
+        if(!exact_window())return reject("caller_exact_source_identity");
+        if(!created||!source||!pid||!tid||!held_process||!birth||GetProcessId(held_process)!=pid||
+           process_birth(held_process)!=birth||WaitForSingleObject(held_process,0)!=WAIT_TIMEOUT)
+            return reject("held_source_process_identity_or_liveness");
+        if(!medium(GetCurrentProcess())||!medium(held_process)||!input_actor_same_user(held_process))
+            return reject("actual_Medium_or_same_SID");
+        if(!equal(medium_desktop_object_name(created),desktop_name)||
            !equal(medium_desktop_object_name(GetProcessWindowStation()),L"WinSta0")||
-           !equal(medium_desktop_object_name(GetThreadDesktop(GetCurrentThreadId())),desktop_name))return false;
+           !equal(medium_desktop_object_name(GetThreadDesktop(GetCurrentThreadId())),desktop_name))
+            return reject("actual_owner_or_held_Run_desktop");
         DWORD actual_pid{},actual_session{};const auto actual_tid=GetWindowThreadProcessId(source,&actual_pid);
         if(actual_pid!=pid||actual_tid!=tid||GetAncestor(source,GA_ROOT)!=source||
-           !ProcessIdToSessionId(pid,&actual_session)||actual_session!=session)return false;
-        const HDESK input=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!input)return false;
+           !ProcessIdToSessionId(pid,&actual_session)||actual_session!=session)return reject("fresh_source_HWND_PID_TID_root_or_session");
+        const HDESK input=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);if(!input)return reject("OpenInputDesktop_failed");
         BOOL receiving{};DWORD bytes{};const bool good=equal(medium_desktop_object_name(input),desktop_name)&&
             GetUserObjectInformationW(input,UOI_IO,&receiving,sizeof(receiving),&bytes)&&receiving;
-        const bool closed=CloseDesktop(input)!=FALSE;if(!good||!closed)return false;
+        const bool closed=CloseDesktop(input)!=FALSE;if(!good||!closed)return reject("actual_input_Run_or_input_handle_close");
         SetLastError(ERROR_SUCCESS);const HANDLE mutex=OpenMutexW(SYNCHRONIZE,FALSE,L"Local\\PaneBind.V1.SingleInstance");
         const DWORD error=mutex?0:GetLastError();const bool mutex_closed=!mutex||CloseHandle(mutex)!=FALSE;
-        return !mutex&&error==ERROR_FILE_NOT_FOUND&&mutex_closed&&!FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
+        if(mutex||error!=ERROR_FILE_NOT_FOUND||!mutex_closed||FindWindowW(L"PaneBind.V1.Application",L"PaneBind"))
+            return reject("actual_product_absence_not_confirmed");
+        context_reason="accepted";return true;
     };
     const auto no_buttons=[]{
         for(const int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RETURN,VK_ESCAPE})
@@ -139,31 +149,54 @@ MediumTerminalClientObservation medium_terminal_client_case(
         return actual_tid&&actual_pid==pid&&GetAncestor(gui.hwndFocus,GA_ROOT)==source&&GetForegroundWindow()==source;
     };
     const auto wait_for=[&](const std::function<bool()>& predicate,DWORD cap_ms){
-        const auto end=GetTickCount64()+remaining(cap_ms);
+        const auto began=GetTickCount64();const DWORD budget_ms=remaining(cap_ms);const auto end=began+budget_ms;
+        LARGE_INTEGER before{};const bool before_known=QueryPerformanceCounter(&before)!=FALSE;
+        DWORD last_wait=WAIT_FAILED,last_error{};unsigned waits{},messages{};
+        const auto finish=[&](bool accepted,const char* reason){
+            LARGE_INTEGER after{};const bool after_known=QueryPerformanceCounter(&after)!=FALSE;
+            out.emit("medium_terminal_client_wait","\"result\":"+std::string(accepted?"true":"false")+
+                ",\"reason\":"+quote(reason)+",\"last_context_result\":"+quote(context_reason)+
+                ",\"requested_cap_ms\":"+std::to_string(cap_ms)+",\"actual_initial_budget_ms\":"+std::to_string(budget_ms)+
+                ",\"caller_deadline_tick\":"+std::to_string(deadline_tick)+",\"before_tick\":"+std::to_string(began)+
+                ",\"after_tick\":"+std::to_string(GetTickCount64())+
+                ",\"before_qpc\":"+(before_known?std::to_string(before.QuadPart):"null")+
+                ",\"after_qpc\":"+(after_known?std::to_string(after.QuadPart):"null")+
+                ",\"native_waits\":"+std::to_string(waits)+",\"last_wait_return\":"+(waits?std::to_string(last_wait):"null")+
+                ",\"last_wait_error_on_failure\":"+(waits&&last_wait==WAIT_FAILED?std::to_string(last_error):"null")+
+                ",\"dispatched_messages\":"+std::to_string(messages)+",\"additional_input_sent\":false,\"batch_emit_tick_is_not_observation_time\":true");
+            return accepted;
+        };
         for(;;){
-            if(quit_seen||!context())return false;
-            if(!ResetEvent(events.changed))return false;
-            if(predicate())return true;
-            const auto now=GetTickCount64();if(now>=end)return false;
+            if(quit_seen)return finish(false,"WM_QUIT_previously_observed");
+            if(!context())return finish(false,"context_rejected");
+            if(!ResetEvent(events.changed))return finish(false,"observer_event_reset_failed");
+            if(predicate())return finish(true,"actual_exact_nonce");
+            const auto now=GetTickCount64();if(now>=end)return finish(false,"phase_budget_exhausted");
             const bool watch_active=resources.file_watch&&resources.file_watch->pending;
             HANDLE handles[3]{events.changed,held_process,watch_active?resources.file_watch->event:nullptr};
             const DWORD count=watch_active?3:2;
+            SetLastError(ERROR_SUCCESS);
             const auto waited=MsgWaitForMultipleObjectsEx(count,handles,static_cast<DWORD>(end-now),QS_ALLINPUT,MWMO_INPUTAVAILABLE);
-            if(waited==WAIT_FAILED||waited==WAIT_OBJECT_0+1)return false;
+            ++waits;last_wait=waited;last_error=waited==WAIT_FAILED?GetLastError():0;
+            if(waited==WAIT_FAILED)return finish(false,"native_wait_failed");
+            if(waited==WAIT_OBJECT_0+1)return finish(false,"held_source_process_signalled");
             if(watch_active&&waited==WAIT_OBJECT_0+2){
                 DWORD bytes{},error{};const bool completed=resources.file_watch->completed(bytes,error);
                 out.emit("medium_terminal_client_file_notification","\"GetOverlappedResult_return\":"+std::string(completed?"true":"false")+
                     ",\"error\":"+std::to_string(error)+",\"bytes\":"+std::to_string(bytes)+
                     ",\"native_completions\":"+std::to_string(resources.file_watch->completions)+
                     ",\"file_names_or_other_file_contents_collected\":false");
-                if(!completed)return false;
-                if(context()&&predicate())return true;
-                if(!context()||!resources.file_watch->arm())return false;
+                if(!completed)return finish(false,"directory_completion_failed");
+                if(context()&&predicate())return finish(true,"actual_exact_nonce_after_directory_event");
+                if(!context())return finish(false,"context_after_directory_event_rejected");
+                if(!resources.file_watch->arm())return finish(false,"directory_rearm_or_completion_limit");
             }
             if(waited==WAIT_OBJECT_0+count){MSG message{};unsigned budget=256;
                 while(budget--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
-                    if(message.message==WM_QUIT){quit_seen=true;return false;}TranslateMessage(&message);DispatchMessageW(&message);}}
-            if(waited==WAIT_TIMEOUT)return context()&&predicate();
+                    if(message.message==WM_QUIT){quit_seen=true;return finish(false,"actual_WM_QUIT");}
+                    ++messages;TranslateMessage(&message);DispatchMessageW(&message);}}
+            if(waited==WAIT_TIMEOUT){const bool current=context();const bool exact=current&&predicate();
+                return finish(exact,exact?"actual_exact_nonce_at_wait_timeout":current?"wait_timeout_nonce_not_observed":"context_at_wait_timeout_rejected");}
         }
     };
     const auto send=[&](INPUT* packets,UINT count,const std::function<bool()>& target,const char* purpose,bool pairs){

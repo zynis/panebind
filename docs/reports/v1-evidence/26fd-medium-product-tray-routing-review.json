@@ -1,0 +1,336 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-26FD-MEDIUM-PRODUCT-TRAY-ROUTING-LATE-SNAPSHOT-BLOCKED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "26fd481a241f4e42af07f8a9e5084a79",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_EXACT_PRODUCT_TRAY_MENU_NOT_CONFIRMED",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "product_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+    "driver_source_sha": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
+    "driver_sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA",
+    "packaging_head": "3e2b3e2d85138e70233d76a1ea87c7375b561dd3",
+    "fixture_pid": 6312,
+    "fixture_primary_tid": 6308,
+    "product_started": true,
+    "product_pid": 4484,
+    "product_birth_filetime_decimal": "134371389514688399",
+    "actual_app_hwnd": 328192,
+    "actual_settings_hwnd": 196660,
+    "actual_settings_rect": [
+      932,
+      258,
+      2117,
+      1338
+    ],
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_26fd481a241f4e42af07f8a9e5084a79",
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "64-bit FILETIME birth identities extracted by regex from original literal decimal digits and stored as strings, never reconstructed from parsed floating-point values.",
+    "product_identity_meaning": "The actual ordinary no-argument product process and own GUI were observed under this exact source/hash. Driver-only changes do not rebind or replace its 55f product identity."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "F48B9476F295BA4893F83488EB1B7A9BFE24B3F87564510DE974F9DA36D779FA"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/26fd481a241f4e42af07f8a9e5084a79.zip",
+      "bytes": 5653007,
+      "sha256": "2420CB0EBA8018B3531D7B40E410A35322CEC1F945998D5D6258FA8966585169"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/input/manifest.json",
+      "bytes": 18693,
+      "sha256": "80523490E721DDE0342AB86DBCC21A311F54A57B0281EC1F27977B7E3B9972C2"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "70C074D26BEF1286BC428A02964F7555545C1C84FB5800230BC30E564B54DC97"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/input/panebind.exe",
+      "bytes": 1196544,
+      "sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/input/panebind-v1-guest-fixture.exe",
+      "bytes": 3995648,
+      "sha256": "FFA48D74FBC74C123F89B5E6498DB855FE13844DE20AF3EFA22F823E41DC67DA"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/26fd481a241f4e42af07f8a9e5084a79-product-Release/panebind.exe",
+      "bytes": 1196544,
+      "sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27"
+    },
+    "actual_local_ZIP_manifest_WSB_binary_hashes_match_receipts": true,
+    "host_expectation_and_deploy_inventory_sizes_and_hashes_match_actual_package": true,
+    "collected_product_hash_matches_packaged_product": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\26fd481a241f4e42af07f8a9e5084a79",
+    "input_readonly_output_only_writable": true,
+    "network_clipboard_audio_video_printer_redirection_disabled": true,
+    "requested_observer_access": 33554627,
+    "requested_MAXIMUM_ALLOWED_comparison": true,
+    "effective_granted_mask": "UNKNOWN_NOT_LOGGED",
+    "token_ACL_or_account_change_inferred": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/26fd481a241f4e42af07f8a9e5084a79-release-fixture.jsonl",
+      "bytes": 4112237,
+      "sha256": "C134AFCEF9EA928225D247DC2FA2196B23DC63E94692A00BD0DE09458EAFFB7C",
+      "role": "driver",
+      "rows": 171,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        171
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/26fd481a241f4e42af07f8a9e5084a79-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "22A28E243C96D9B589FB3212BB67A012F1C0807193DEA90D44EA8F04FE0F8282"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/26fd481a241f4e42af07f8a9e5084a79-guest-summary.json",
+      "bytes": 20869,
+      "sha256": "5260E3F8B0848FB1F708DC1AC37684ED5FF61810EBCC554FA90288D070C5408D"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/collection-receipt.json",
+      "bytes": 7947,
+      "sha256": "FD522CD18E219B0E683746AB591B42233447D6CBFA10A57D664FA3A6C2D3D8BA"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/host-expectation.json",
+      "bytes": 2999,
+      "sha256": "A6AC82398F9D449E2D4FC64ED3AF770A49ED00D73309F4494F5D80E3A0239E9A"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/deploy-receipt.json",
+      "bytes": 2663,
+      "sha256": "70CDBBFF5B8869FEB7E26FE29A2852101203F54A73B7FAC5553F5884ABBFFA51"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/launch-receipt.json",
+      "bytes": 14479,
+      "sha256": "910810341FFA02CB3F768E2D4107CA5E6D498F599321BBC4E5267DC1E4D6E68F"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/cleanup-receipt.json",
+      "bytes": 9148,
+      "sha256": "6CD31811B5960661817EFC997B83DBB81B4881FABED27EAA90652F39F3E7781B"
+    },
+    {
+      "path": "uat/v1-sandbox/26fd481a241f4e42af07f8a9e5084a79/package-receipt.json",
+      "bytes": 13297,
+      "sha256": "F48B9476F295BA4893F83488EB1B7A9BFE24B3F87564510DE974F9DA36D779FA"
+    },
+    {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/collection-20261022T103543828Z-8005005d861d4439b290c923e9ea997d/26fd481a241f4e42af07f8a9e5084a79-product-Release/panebind.log.jsonl",
+      "bytes": 3375,
+      "sha256": "53657359D128006F7BCA556B9DBCE331DE99655835BA6AFDB105C9E605FD491E",
+      "role": "product",
+      "rows": 8,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        8
+      ],
+      "all_source_sha_matches_expected_identity": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/26fd-medium-product-tray-routing-excerpt.jsonl",
+    "sha256": "8BA2A46620CF2BC0B7E8448CC96D1C95362CE09FE451B3B9BA72030EFFE898D9",
+    "bytes": 23682,
+    "literal_lines": 45,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      14,
+      18,
+      19,
+      21,
+      23,
+      25,
+      131,
+      132,
+      133,
+      134,
+      135,
+      136,
+      137,
+      138,
+      139,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      155,
+      158,
+      159,
+      161,
+      165,
+      166,
+      167,
+      168,
+      171
+    ],
+    "product_sequences": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "serialization_changed": false,
+    "line_endings": "Exact UTF-8 source line contents preserved with LF. Driver and product portions are separate producer streams, not one native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13/D18-D25/D131-D136/P2-P4",
+      "fact": "Product55f/Release2D2F and driver3e2/ReleaseFFA4 are independently hash-bound. Fresh exact Run Medium desktop was activated with exact Shell/Tray readiness. Actual ordinary no-argument CreateProcessW launched product PID4484/birth134371389514688399. The exact visible foreground settings window196660 and own app328192 were observed with sameSID/session/Medium and held-Run membership. Product log reports exact_manifest_Run and resource route enabled, explicitly not function PASS."
+    },
+    {
+      "source": "D137-D142/P1/P6",
+      "fact": "Actual Escape inserted2 packets at40765 and the settings HWND was actually destroyed, not merely hidden or closed by an injected WM_COMMAND. Product registration initially NIM_ADD=false; the later actual TaskbarCreated path returnedNIM_ADD=true andNIM_SETVERSION=true. Actual own UID1 Shell_NotifyIconGetRect returnedS_OK/[2778,1596,2826,1668]. Cursor requested and readback matched[2802,1632]; one guarded RIGHTDOWN/RIGHTUP batch inserted2/2 at41453..41468. None of these API successes alone proves Shell callback delivery or a menu."
+    },
+    {
+      "source": "D143-D148",
+      "fact": "After the existing1500ms menu wait, a one-time read-only snapshot at42968 observed foreground66158/PID3992/TID6776, not app328192. Product thread5748 GetGUIThreadInfo succeeded with flags0 and active/focus/capture/move_size/menu_owner all0. Complete held-Run enumeration and complete product-thread enumeration recorded four exact product windows: app, preview, IME andMSCTFIME, all hidden; no#32768 existed in this late snapshot. GetMenuBarInfo was not attempted because none qualified as a popup. This proves only that no exact product menu was confirmed at that boundary, not that one never briefly opened."
+    },
+    {
+      "source": "P8 and complete8-line product log",
+      "fact": "Shutdown reports mouse_up_callbacks.callback_count=1/button2/generation0/consumed_before=false/matching_branch_taken=false. This is an LL-hook mouse-UP observation, NOT a tray_message ingress count or a Shell delivery receipt. This55f binary contains no tray_callback_ingress or menu API receipt instrumentation, so missing such rows means UNKNOWN, not zero callbacks or proof that TrackPopupMenu was never called."
+    },
+    {
+      "source": "D149-D150/D155/P8",
+      "fact": "The public same-EXE --quit command was actually created once, exited0, and product process signalled with exit0; previously observed app HWND was gone and UID1 GetRect then returned-2147467259. Product own shutdown reports hooks/overlay/native worker/input/capture/association and visual cleanup confirmed. This scoped failure cleanup is actual evidence separate from guest disposal, but the wrapper overall product_cleanup_pass=false and failed tray test remain unchanged."
+    },
+    {
+      "source": "D158-D168/D171 and cleanup receipts",
+      "fact": "Independent owner actually retired the input lease and observed in-flight completion, then SwitchDesktop(Default) succeeded at43046..43078 with actual input/UOI_IO readback. Helper handles closed, observer restored to Default, own Raw registration and foreground hook removed, original Default Shell identity retained. Original environmentBLOCKED/driverFAIL remain; wrapper one surviving descendant and forced test cleanup do not prove all descendants exited naturally. Exact own guest/task cleanup preserved output hashes and retained deployment."
+    }
+  ],
+  "actual_result": {
+    "ordinary_no_argument_GUI": "OBSERVED_EXACT_FOREGROUND_SETTINGS",
+    "settings_Escape": "OBSERVED_ACTUAL_WINDOW_DESTROY",
+    "product_UID1_rect": "ACTUAL_S_OK_NONEMPTY",
+    "actual_product_PID": 4484,
+    "actual_product_TID": 5748,
+    "actual_app_HWND": 328192,
+    "actual_settings_HWND": 196660,
+    "actual_UID1_rect": [
+      2778,
+      1596,
+      2826,
+      1668
+    ],
+    "actual_cursor": [
+      2802,
+      1632
+    ],
+    "actual_RIGHTDOWN_RIGHTUP_SendInput_return": 2,
+    "exact_product_menu": "NOT_CONFIRMED_AT_LATE_BOUNDARY",
+    "late_product_GTI_flags": 0,
+    "late_menu_owner": 0,
+    "late_foreground_HWND": 66158,
+    "late_foreground_PID": 3992,
+    "late_foreground_TID": 6776,
+    "late_thread_enum_complete": true,
+    "late_thread_window_count": 4,
+    "late_exact_popup_count": 0,
+    "late_GetMenuBarInfo_attempted": false,
+    "tray_message_ingress_count": "UNKNOWN_NOT_INSTRUMENTED",
+    "LL_mouse_UP_callback_count": 1,
+    "menu_ever_opened": "UNKNOWN",
+    "real_tray_Settings_and_Exit": "NOT_COMPLETED",
+    "product_Move_Resize_Ctrl": "NOT_RUN",
+    "public_quit_and_own_shutdown": "ACTUALLY_OBSERVED_SCOPED_FAILURE_CLEANUP",
+    "system_root_cause": "NOT_PROVEN"
+  },
+  "time_basis": {
+    "Escape_ticks": [
+      40765,
+      40765
+    ],
+    "tray_RIGHTDOWN_RIGHTUP_ticks": [
+      41453,
+      41468
+    ],
+    "late_menu_snapshot_tick": 42968,
+    "late_snapshot_since_RIGHTUP_API_return_ms": 1500,
+    "activation_ticks": [
+      39781,
+      39812
+    ],
+    "independent_return_ticks": [
+      43046,
+      43078
+    ],
+    "return_deadline_reached": false,
+    "buffered_emit": "D131..150 mostly emit at43281 after execution. Snapshot42968 is later than the original click, not a continuous menu trace. Product and driver sequence numbers are separate streams; no common native ordering is inferred from file concatenation."
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/26fd481a241f4e42af07f8a9e5084a79/cleanup-receipt.json",
+      "bytes": 9148,
+      "sha256": "6CD31811B5960661817EFC997B83DBB81B4881FABED27EAA90652F39F3E7781B"
+    },
+    "utc": "2026-10-22T10:36:53.8417198Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "human_UAT": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "tray_full_operation": "BLOCKED",
+    "product_enhancement": "NOT_RUN",
+    "real_tray_Settings_and_Exit": "NOT_COMPLETED",
+    "next_action": "One bounded GUI-owner tray ingress and original menu API receipt candidate, with a new product source/hash/RunId, to distinguish callback, routing, creation and TrackPopupMenu completion. No extra click, forged callback or foreground recovery.",
+    "history": "Prior records and their identities remain unchanged. This evidence does not close any whole feature, benchmark or ordinary-desktop integration gate."
+  }
+}

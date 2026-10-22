@@ -32,10 +32,23 @@ struct MediumDesktopUiRequest {fs::path product;std::string source,sha256;};
 struct MediumDesktopUiObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool launch_attempted{},product_started{},product_closed{},completed{},input_attempted{},input_sent{},cleanup_known{};
+    bool geometry_requested{},geometry_completed{},geometry_cleanup_known{true};
     std::string reason{"not_started"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
 struct MediumDesktopUiEvents {HANDLE changed{};DWORD product_pid{};};
+struct MediumDesktopProductGeometryObservation {
+    std::vector<std::pair<std::string,std::string>> records;
+    bool requested{},completed{},cleanup_known{true},input_attempted{},input_inserted{};
+    std::string reason{"not_requested_no_manifest_Terminal_asset"};
+    void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
+};
+// Defined after the native desktop facts. No Default State/input helper is
+// used; this is an optional real-app check under the actual ordinary product.
+MediumDesktopProductGeometryObservation medium_desktop_product_geometry_case(
+    const std::wstring&,HDESK,const fs::path&,HANDLE,DWORD,std::uint64_t,std::uint64_t,
+    std::string_view,std::string_view,const std::function<bool()>&,const std::function<bool()>&,
+    const std::shared_ptr<MediumDesktopUiInputLease>&,ULONGLONG);
 thread_local MediumDesktopUiEvents* medium_desktop_ui_events{};
 void CALLBACK medium_desktop_ui_event(HWINEVENTHOOK,DWORD,HWND window,LONG,LONG,DWORD,DWORD){
     const auto* owner=medium_desktop_ui_events;DWORD pid{};
@@ -47,6 +60,7 @@ class MediumDesktopUiCase {
     const std::function<bool()>& still_exact_;const std::shared_ptr<MediumDesktopUiInputLease>& lease_;
     const ULONGLONG deadline_;MediumDesktopUiObservation& out_;
     HANDLE process_{},initial_thread_{};DWORD pid_{},session_{};std::uint64_t birth_{};
+    std::uint64_t product_launch_tick_{};
     HWND app_{},shell_{};DWORD app_tid_{},shell_pid_{};std::uint64_t shell_birth_{};
     MediumDesktopUiEvents events_;HWINEVENTHOOK objects_{},foreground_{};bool com_{},quit_seen_{},quit_attempted_{};
 
@@ -408,7 +422,7 @@ public:
             foreground_=SetWinEventHook(EVENT_SYSTEM_FOREGROUND,EVENT_SYSTEM_FOREGROUND,nullptr,medium_desktop_ui_event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);
             if(!objects_||!foreground_)throw std::runtime_error("Medium_UI_bounded_native_observer_not_available");
             STARTUPINFOW startup{sizeof(startup)};std::wstring desktop=L"WinSta0\\PaneBindV1_"+run_;startup.lpDesktop=desktop.data();
-            PROCESS_INFORMATION info{};auto line=L"\""+product_.wstring()+L"\"";out_.launch_attempted=true;
+            PROCESS_INFORMATION info{};auto line=L"\""+product_.wstring()+L"\"";out_.launch_attempted=true;product_launch_tick_=GetTickCount64();
             SetLastError(ERROR_SUCCESS);const bool created=CreateProcessW(product_.c_str(),line.data(),nullptr,nullptr,FALSE,0,nullptr,parent.c_str(),&startup,&info)!=FALSE;
             const auto error=created?0:GetLastError();process_=info.hProcess;initial_thread_=info.hThread;pid_=info.dwProcessId;
             birth_=created?process_birth(process_):0;events_.product_pid=pid_;out_.product_started=created;
@@ -431,6 +445,22 @@ public:
                 ",\"actual_settings_rect\":"+rect({geometry.left,geometry.top,geometry.right,geometry.bottom})+
                 ",\"actual_foreground_is_settings\":true,\"current_held_Run_desktop_membership_confirmed\":true");
             escape_settings(first,"ordinary_noarg_settings_Escape");
+            {
+                const auto geometry=medium_desktop_product_geometry_case(run_,desktop_,product_,process_,pid_,birth_,
+                    product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,
+                    (std::min<ULONGLONG>)(deadline_,GetTickCount64()+12000));
+                out_.geometry_requested=geometry.requested;out_.geometry_completed=geometry.completed;
+                out_.geometry_cleanup_known=geometry.cleanup_known;
+                out_.input_attempted=out_.input_attempted||geometry.input_attempted;out_.input_sent=out_.input_sent||geometry.input_inserted;
+                out_.records.insert(out_.records.end(),geometry.records.begin(),geometry.records.end());
+                // A separate geometry failure does not disable a safe tray
+                // observation, but an uncertain held pair/resource cleanup
+                // forbids ANY subsequent UI MOVE/DOWN. Public --quit is a
+                // non-input failure cleanup, not a replacement for NormalUp.
+                if(!geometry.cleanup_known||!lease_||lease_->retired()||lease_->incomplete_pair.load()||
+                    (lease_->flags.load()&MediumDesktopUiInputLease::in_flight))
+                    throw std::runtime_error("Medium_UI_geometry_cleanup_unknown_no_further_UI_input");
+            }
             const auto menu=open_menu();choose(menu,501,L"设置");HWND reopened{};
             if(!wait_for([&]{reopened=settings();return reopened&&GetForegroundWindow()==reopened;},2000))
                 throw std::runtime_error("Medium_UI_real_tray_Settings_not_opened");
@@ -446,7 +476,8 @@ public:
                 ",\"actual_app_HWND_gone\":"+(!IsWindow(app_)?"true":"false")+",\"GetRect_after_Exit_hresult\":"+std::to_string(static_cast<long>(lookup))+
                 ",\"forced_termination_or_guest_disposal_used\":false");
             if(!out_.product_closed)throw std::runtime_error("Medium_UI_actual_menu_exit_or_icon_cleanup_unconfirmed");
-            out_.completed=true;out_.reason="ordinary_GUI_real_tray_Settings_and_Exit_only";
+            out_.completed=!out_.geometry_requested||(out_.geometry_completed&&out_.geometry_cleanup_known);
+            out_.reason=out_.completed?"ordinary_GUI_real_tray_Settings_and_Exit_only":"real_tray_chain_passed_separate_geometry_not_passed";
         }catch(const std::exception& error){out_.reason=error.what();failure_close();}
         catch(...){out_.reason="Medium_UI_unexpected_exception_actual_launch_flags_retained";failure_close();}
         const auto product_log=process_?read(product_.parent_path()/L"panebind.log.jsonl"):std::string{};
@@ -466,14 +497,17 @@ public:
         const bool process_handle_closed=!process_||CloseHandle(process_)!=FALSE;process_=nullptr;
         if(com_){CoUninitialize();com_=false;}
         out_.cleanup_known=objects_stopped&&foreground_stopped&&event_closed&&thread_closed&&process_handle_closed&&
-            (!out_.product_started||out_.product_closed)&&lease_&&!lease_->incomplete_pair.load()&&!(lease_->flags.load()&MediumDesktopUiInputLease::in_flight);
+            (!out_.product_started||out_.product_closed)&&out_.geometry_cleanup_known&&lease_&&!lease_->incomplete_pair.load()&&!(lease_->flags.load()&MediumDesktopUiInputLease::in_flight);
         out_.emit("medium_desktop_ui_summary","\"result\":"+quote(out_.completed&&out_.cleanup_known?"ORDINARY_GUI_TRAY_SETTINGS_EXIT_ONLY":"FAIL_OR_BLOCKED")+
             ",\"reason\":"+quote(out_.reason)+",\"product_started\":"+(out_.product_started?"true":"false")+
             ",\"product_closed\":"+(out_.product_closed?"true":"false")+",\"input_attempted\":"+(out_.input_attempted?"true":"false")+
             ",\"input_sent\":"+(out_.input_sent?"true":"false")+
             ",\"WinEvent_objects_unhook_return\":"+(objects_stopped?"true":"false")+",\"WinEvent_foreground_unhook_return\":"+(foreground_stopped?"true":"false")+
             ",\"input_pair_incomplete\":"+(lease_&&lease_->incomplete_pair.load()?"true":"false")+",\"local_cleanup_known\":"+(out_.cleanup_known?"true":"false")+
-            ",\"product_Move_Resize_Ctrl\":\"NOT_RUN\",\"resume_enhancement\":\"NOT_RUN_UI_ONLY_SUBCASE\",\"help_diagnostic_this_case\":\"NOT_RUN\","
+            ",\"real_app_geometry_requested\":"+(out_.geometry_requested?"true":"false")+
+            ",\"real_app_geometry_completed\":"+(out_.geometry_completed?"true":"false")+
+            ",\"real_app_geometry_cleanup_known\":"+(out_.geometry_cleanup_known?"true":"false")+
+            ",\"product_Ctrl\":\"NOT_RUN\",\"help_diagnostic_this_case\":\"NOT_RUN\","
             "\"TaskbarCreated_or_real_Shell_restart\":\"NOT_RUN\",\"whole_M01_B27_B28_PASS_inferred\":false,\"human_UAT\":\"NOT_RUN\"");
     }
 };
