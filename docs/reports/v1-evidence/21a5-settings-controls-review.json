@@ -1,0 +1,423 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-21A5-PUBLIC-SETTINGS-CONTROLS-RESTART-ACTUAL-EFFECTS",
+  "kind": "independent_readonly_review_of_original_guest_driver_and_product_logs",
+  "review_date": "2026-10-22",
+  "run_id": "21a560e291224e7ab605d6dc551275aa",
+  "suite": "SettingsControlsRemainderOnly",
+  "configuration": "Release",
+  "verdict": "PASS_SCOPED_FOUR_PUBLIC_SETTINGS_CONTROL_PHASES_NOT_WHOLE_M11_F01_OR_VERSION",
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_release_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "driver_source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+    "driver_release_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+    "packaging_head": "16a60b9d73444f168bbe033dd1fda08d61316a9c",
+    "zip_sha256": "6C958A398D6CBA79AA45B9E2BF5FE4BC08DF86CFD06B282A5B45825427A341F2",
+    "manifest_sha256": "7D4B1E4380315E65874283B94893B094424E8648CC3D8674E80E1898CFA33AD3",
+    "wsb_sha256": "C4C0C4E1BCC86AEFBF663B8C2D146EB4E2D421863386775E89B46DB0A33B2803",
+    "fixture_pid": 3920,
+    "fixture_root_tid": 6376,
+    "fixture_birth_filetime_decimal": "134371046850389668",
+    "product_processes": [
+      {
+        "pid": 3868,
+        "birth_filetime_decimal": "134371046852407017",
+        "scope": "Initial public GUI edits; actual normal exit before deliberate same-EXE restart."
+      },
+      {
+        "pid": 6976,
+        "birth_filetime_decimal": "134371046898767557",
+        "scope": "Restarted same product bytes; real preview, Ctrl tolerance, discrete commands and animation control checks."
+      }
+    ],
+    "collected_product_EXE_independently_hashed": true,
+    "test_source": {
+      "path": "src/platform/windows/product/v1_guest_settings_controls_remaining_case.h",
+      "source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+      "sha256": "AF8B544A1BAC53A82AFDF6657A22051F66FA13686963AC8B79E02524C0F9BE8E",
+      "working_copy_equals_source_commit": true
+    },
+    "settings_window_source": {
+      "path": "src/platform/windows/product/settings_window.cpp",
+      "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "sha256": "EE37ACEFBA13599731BCA415A8459747C1EA72EC150628832CB01AE80A8905C2",
+      "frozen_product_source_diff_verified_empty_before_separate_UI_text_work": true
+    }
+  },
+  "environment": {
+    "kind": "Windows Sandbox, exact guarded automated guest; not full ordinary Medium Shell/host acceptance",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "os_build": "26100",
+    "ubr": 9711,
+    "source_and_system_dpi": 144,
+    "monitor_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "physical_work": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "desktop": "WinSta0/Default",
+    "human_input": "NOT_RUN",
+    "synthetic_input_scope": "exact TEST-owned guest windows and exact product GUI only"
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/21a560e291224e7ab605d6dc551275aa/collection-20261022T010622040Z-39cdcddff6984a79ae8cd736f960e437/21a560e291224e7ab605d6dc551275aa-release-fixture.jsonl",
+      "sha256": "328C68856DC7538D593F8B454A09216E74D8762F0489948381AF438EC5F82D43",
+      "bytes": 528483,
+      "legal_jsonl_rows": 934,
+      "sequence_range": [
+        1,
+        934
+      ],
+      "continuous": true,
+      "FAIL_result_rows": 0
+    },
+    {
+      "producer": "product",
+      "path": "uat/v1-control/21a560e291224e7ab605d6dc551275aa/collection-20261022T010622040Z-39cdcddff6984a79ae8cd736f960e437/21a560e291224e7ab605d6dc551275aa-product-Release/panebind.log.jsonl",
+      "sha256": "7BB6B1D821D3BB62A2551B0593349A61FA68549D223D05C3340E2157C0A2967A",
+      "bytes": 400263,
+      "legal_jsonl_rows": 338,
+      "global_contiguous_sequence_claimed": false,
+      "segments": [
+        {
+          "pid": 3868,
+          "rows": 53,
+          "sequence_range": [
+            1,
+            53
+          ],
+          "continuous": true
+        },
+        {
+          "pid": 6976,
+          "rows": 285,
+          "sequence_range": [
+            1,
+            285
+          ],
+          "continuous": true
+        }
+      ],
+      "reason": "Product startup deliberately resets sequence on the actual new PID; native generations and keys are PID-local."
+    },
+    {
+      "producer": "launcher",
+      "path": "uat/v1-control/21a560e291224e7ab605d6dc551275aa/collection-20261022T010622040Z-39cdcddff6984a79ae8cd736f960e437/21a560e291224e7ab605d6dc551275aa-Release-launch.json",
+      "sha256": "7C61C6759899D3D56B859B731A2E3B0104DE91548414E51E058E6537C2DEB3DE",
+      "bytes": 9944
+    },
+    {
+      "producer": "collector",
+      "path": "uat/v1-control/21a560e291224e7ab605d6dc551275aa/collection-20261022T010622040Z-39cdcddff6984a79ae8cd736f960e437/collection-receipt.json",
+      "sha256": "2E6B7109C75E6F967EDBC03F3B978DFAF2A10ADCD96CED15535E06B2A42BCA6A",
+      "bytes": 8909,
+      "output_unchanged": true
+    },
+    {
+      "producer": "executor_cleanup",
+      "path": "uat/v1-control/21a560e291224e7ab605d6dc551275aa/cleanup-receipt.json",
+      "sha256": "BDA0FF3E5278A2204A7A0C946096ED414234D96A47378037948779BC397ECA99",
+      "facts": {
+        "task_removed": true,
+        "dedicated_guest_exited": true,
+        "evidence_unchanged": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      }
+    }
+  ],
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl",
+    "sha256": "87C193A084393A9431A8801407A3BC0D11136670CD01A5A3817668D2649BA027",
+    "bytes": 65932,
+    "rows": 109,
+    "literal_source_matches": 109,
+    "lines_not_reserialized": true,
+    "identities_not_converted_through_floating_point": true,
+    "order": "Selected driver original rows, then original product PID3868 rows, then PID6976 rows. This is not a common native timeline.",
+    "driver_original_sequences": [
+      3,
+      7,
+      12,
+      16,
+      19,
+      141,
+      149,
+      155,
+      163,
+      168,
+      170,
+      177,
+      180,
+      190,
+      194,
+      196,
+      200,
+      203,
+      217,
+      218,
+      219,
+      220,
+      221,
+      222,
+      224,
+      225,
+      226,
+      228,
+      229,
+      230,
+      231,
+      234,
+      342,
+      343,
+      344,
+      352,
+      452,
+      466,
+      468,
+      469,
+      470,
+      473,
+      474,
+      475,
+      504,
+      514,
+      516,
+      517,
+      518,
+      521,
+      522,
+      523,
+      527,
+      618,
+      619,
+      627,
+      729,
+      739,
+      742,
+      743,
+      747,
+      847,
+      848,
+      856,
+      881,
+      889,
+      900,
+      908,
+      911,
+      912,
+      920,
+      922,
+      929,
+      930,
+      931,
+      932,
+      933,
+      934
+    ],
+    "product_original_sequences_by_pid": {
+      "3868": [
+        3,
+        53
+      ],
+      "6976": [
+        3,
+        19,
+        23,
+        26,
+        27,
+        28,
+        30,
+        36,
+        38,
+        112,
+        115,
+        116,
+        119,
+        120,
+        122,
+        128,
+        130,
+        146,
+        149,
+        152,
+        154,
+        160,
+        162,
+        163,
+        226,
+        227,
+        228,
+        229,
+        285
+      ]
+    }
+  },
+  "actual_findings": {
+    "public_edits_and_restart": {
+      "result": "PASS_SCOPED",
+      "facts": "D141/149/155/163 actual public Tab/Unicode edits, D168 saves adjacency4 DIP, step13 DIP, preview_alpha255, preview_color10510368 at configuration generation4. No direct configuration write. D170/PID3868 P53 actual public quit, wait exit0 and all resource/hook/worker/visual cleanup facts; D177 independently restores real client DOWN/UP0,0→1,1. D180 verifies old PID3868/birth→new PID6976/new birth with unchanged EXE hash. D190/194/196/200 reopen the actual four Edit values; D203 Escape preserves the saved snapshot. D342/343 restore original configuration/bytes identity.",
+      "persistence_limit": "All four values were checked after this real restart. The later independent phase gates deliberately reset options; those later observations retain their own actual configurations rather than being relabeled as an uninterrupted whole-version chain."
+    },
+    "preview": {
+      "result": "PASS_SCOPED",
+      "facts": "PID6976 g1/P19 ordinary source key3. P23 call1 exact raw[-9,789,391,1089], D218 independently agrees. D219 actual preview[0,0,1525,1596], alpha255, nonactivating/hit-transparent styles, actual pointer/current capture shield328458 and foreground/source identity. D220 LWA_ALPHA2 readback is opacity, not a fill-color read. D221 DwmFlush S_OK is explicitly only this TEST caller, not an entire session/foreign product surface flush. D222 reads actual screen point[197,960] inside exact owned blank client∩preview: one read equals independent RGB(32,96,160)/COLORREF10510368, zero tolerance, alpha255 opaque, DC released. This is the pixel evidence, not the ignored layered colorkey.",
+      "finish": "P26 call2 exact[284,177,684,477]/D225; D226 leaving zone hides preview before UP. Real unique UP/NormalUp/cleanup below; D231 preview remains hidden, D234 exact fixture root closed. No normal_up_dock placement occurred.",
+      "visual_scope": "One fixed actual opaque sample and native rectangle/style/alpha/hit facts; not a screenshot review of all colors/alpha levels, physical-display latency or human smoothness."
+    },
+    "adjacency": {
+      "result": "PASS_SCOPED",
+      "facts": "D452 public adjacency4 DIP at configuration8, source DPI144. Independent constant gap4px is positive and within rounded4DIP=6px; A[200,200,600,500], B[604,200,904,500]. P112/D466 freeze Ctrl group2. P115 follower key8 call3 actual[628,217,928,517], P116 source key9 call4 actual[224,217,624,517], both native true/known/exact/identity/post-context valid; D469/470 independently agree. After actual UP, D504 saves tolerance0/config9 and resets only these test fixtures to the same declared A/B gap. P146/D514 freeze Ctrl group1; P149 call5 source[224,217,624,517] exact. D517/518 show source moved while B remains[604,200,904,500]. No key8 placement exists in g3. D618 restores original configuration.",
+      "cautions": "D516 participants=2 is layout_phase's number of independently checked expected windows, not product group membership. Product P146/D514 group_members=1 is the actual frozen operation membership."
+    },
+    "step": {
+      "result": "PASS_SCOPED",
+      "facts": "D729 public step13 DIP at configuration13; actual DPI144 gives independent MulDiv(13,144,96)=20px. D739/P226/P227 real public MoveRight, call6 exact[200,180,600,480]→[220,180,620,480]. D742/P228/P229 public HeightMore, call7 exact→[220,180,620,500]. D743 confirms both final actual rectangles and second fixture unchanged; D747 closes exact test roots, D847 restores original configuration.",
+      "native_semantics": "These are two actual generation0 command calls with completed/identity/exact=true. Their raw authority_after=false/post_context_checked=false fields are preserved; they are not pointer-continuation authority, not post-UP late calls on retired g1/g2/g3, and are not rewritten to true."
+    },
+    "animation_control": {
+      "result": "PASS_PUBLIC_CONTROL_SOURCE_AND_RUNTIME_SCOPE_ONLY",
+      "facts": "D881 actual ON Save/config16 with all other options preserved; D889 actual reopened visible settings HWND1246098 and real focus1114920, checked option/live snapshot. D900 actual OFF Save in that reopened GUI. D908 new visible settings HWND1180388/focus1377170 and unchecked saved value; D911 actual Escape preserves file bytes/all original options, same product PID/birth/hash. D912 explicitly retains native API trace and 100ms fade NOT_RUN.",
+      "source_fact": "Unchanged frozen4f7 settings_window.cpp::animate() returns draft.animations && !high_contrast() && actual system option. show() short-circuits !animate() || !AnimateWindow(...). Actual saved false plus unchanged source proves the OFF branch cannot call AnimateWindow; it is source+runtime reasoning, not an observed API trace.",
+      "not_claimed": [
+        "No direct AnimateWindow call/return trace.",
+        "No measured 100ms fade trajectory or timing threshold used as API evidence.",
+        "ON saved/reopened GUI does not force animation while actual system policy/high contrast disallows it.",
+        "No system animation setting changed."
+      ]
+    }
+  },
+  "input_and_native_audit": {
+    "total_actual_placement_rows": 7,
+    "call_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "all_native_attempted_succeeded_known_identity_exact": true,
+    "retired_generation_checks": [
+      {
+        "pid": 6976,
+        "generation": 1,
+        "placement_sequences": [
+          23,
+          26
+        ],
+        "matching_LL_UP": {
+          "P": 27,
+          "qpc": 361965744,
+          "matching_branch": true
+        },
+        "raw_UP": {
+          "P": 28,
+          "qpc": 361968096,
+          "flags": 2
+        },
+        "accepted_legacy_UP_P": 30,
+        "resource_Gone_P": 36,
+        "NormalUp_P": 38,
+        "driver_unique_UP_D": 228,
+        "last_native_before_qpc": 361707196,
+        "new_same_generation_calls_at_or_after_first_UP_observation": 0
+      },
+      {
+        "pid": 6976,
+        "generation": 2,
+        "placement_sequences": [
+          115,
+          116
+        ],
+        "matching_LL_UP": {
+          "P": 119,
+          "qpc": 429614762,
+          "matching_branch": true
+        },
+        "raw_UP": {
+          "P": 120,
+          "qpc": 429617215,
+          "flags": 2
+        },
+        "accepted_legacy_UP_P": 122,
+        "resource_Gone_P": 128,
+        "NormalUp_P": 130,
+        "driver_unique_UP_D": 473,
+        "last_native_before_qpc": 429359407,
+        "new_same_generation_calls_at_or_after_first_UP_observation": 0
+      },
+      {
+        "pid": 6976,
+        "generation": 3,
+        "placement_sequences": [
+          149
+        ],
+        "matching_LL_UP": {
+          "P": 163,
+          "qpc": 447577658,
+          "matching_branch": true,
+          "entry_authority": 0,
+          "exit_authority": 0
+        },
+        "raw_UP": {
+          "P": 152,
+          "qpc": 447577250,
+          "flags": 2
+        },
+        "accepted_legacy_UP_P": 154,
+        "resource_Gone_P": 160,
+        "NormalUp_P": 162,
+        "driver_unique_UP_D": 521,
+        "last_native_before_qpc": 447275066,
+        "new_same_generation_calls_at_or_after_first_UP_observation": 0
+      }
+    ],
+    "UP_receipt_scope": "D228/473/521 passive guest hook each observed one actual tagged UP, CallNext returned0 and actual unhook succeeded; no extra input. Matching product LL, actual Raw and accepted legacy are separate producer facts. In g3 raw observation precedes LL observation and LL is emitted P163 after P162; no common native queue ordering is inferred from JSONL lines.",
+    "resource_cleanup": "Each Gone records real own capture release to0, actual ATI detach and overlay destroyed. All gesture native calls finished before the first matching UP observation in this run; no claim that marking retired cancels a native call already issued."
+  },
+  "exit_and_collection": {
+    "product_normal_exit": "D170/PID3868 P53 and D922/PID6976 P285 public quit, actual process exit0; hooks/overlay/native worker/input resources/capture/association/visual recovery/restore all actually confirmed, no unknown native completion.",
+    "post_stop_client": "D177 first exit restores actual own client counts[0,0]→[1,1]; D929 final exit restores[1,1]→[2,2]. These actual deliveries, not SendInput return alone, demonstrate the limited post-stop client path.",
+    "fixture": "D931 actual Raw registration removal verified absent; D932 actual foreground WinEvent unhook returnedtrue; D933 reserved=flushed54, overflow0. D934 confirms original fixture windows destroyed and product_process_closedtrue.",
+    "launcher": "Actual fixture wait0/exit0, descendants_alive0, forced_test_cleanupfalse. Initializer product_cleanup_pass=false/feature_result NOT_EVALUATED remain raw; actual receipts above, not the initializer or exit code, determine measured scopes.",
+    "collection": "Collector output_unchanged true. Subsequent executor cleanup removes exact task/exits exact guest with evidence unchanged; not used as product cleanup PASS."
+  },
+  "M11_F01_next_action": {
+    "independent_feature_status_not_automatically_upgraded": true,
+    "closed_current_gaps": [
+      "Changed preview alpha/color control→real native alpha and opaque screen pixel.",
+      "Changed adjacency control→actual Ctrl membership/geometry at the same gap.",
+      "Changed numeric command step→actual public Move and Resize.",
+      "Animation ON/OFF public save/reopen/focus; OFF unchanged-source short-circuit."
+    ],
+    "retained_original_evidence": [
+      "docs/reports/v1-evidence/dd02-r11-release-entry-settings-tray-and-portable-selected.jsonl (212e original six-page representatives, Save/Cancel/restart/defaults/diagnostic).",
+      "docs/reports/v1-evidence/ca0e-settings-validation-review.json (11ae actual four invalid drafts and same-draft valid behavior).",
+      "docs/reports/v1-evidence/efed-public-rules-path-review.json (4f7 actual public rules)."
+    ],
+    "true_remaining": [
+      "Guide M11-F01 explicitly requires opening settings from the actual tray. This command-opened owned suite does not supply that entry; the usable normal Shell/tray condition remains separate.",
+      "seam_dwell_ms's real multi-display seam behavior remains NOT_RUN; a single display cannot prove that effect. This suite did not edit that control, so ordinary GUI Save/readback of it is not newly claimed.",
+      "E01/E02 100%/200% UI and E03/E04 multi-display/mixed-DPI remain distinct environment/integration gates, not retroactively added to the standalone M11-F01 wording."
+    ],
+    "not_external_blocker": "The four implemented controls are now actually verified in the current guest and must not remain a generic untested-controls/environment blocker. Native animation API trace/100ms trajectory remain NOT_RUN, not evidence of a missing external environment or a new mandatory experiment.",
+    "recommendation": "Update the existing current next_action to reuse these four scoped phases and old valid identities; retain actual tray entry and separately scoped remaining environment/module/final-package gates. Do not assign M11-F01, B28, Full or whole-version PASS solely from this run."
+  },
+  "human_UAT": "NOT_RUN",
+  "host_trial": "NOT_RUN",
+  "source_or_raw_evidence_modified": false
+}

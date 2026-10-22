@@ -12,10 +12,10 @@
     "current_targeted_runtime": {
       "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
       "release_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
-      "driver_source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
-      "driver_release_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
-      "run_ids": ["1a6256c58e6e47379889525aade641a3", "e03f5e0a1ac94487a07ada636b4adb7e"],
-      "scope": "Current Release two existing owned core rounds actually PASS on same PID3696 without restart; 2199 driver rows, retained physical product only sequences1000..1977/978rows plus earlier embedded receipts, not a complete whole-run product log or all-history zero-late claim. Environment-only e03 strict TEST baseline UNKNOWN gate rejected before Explorer/product creation, not an external capability failure. Previous9d/5b runs retain original scope/identity; no whole I-chain or score added",
+      "driver_source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+      "driver_release_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+      "run_ids": ["21a560e291224e7ab605d6dc551275aa", "906921790c774621bac2a61d97a19725"],
+      "scope": "Actual four public settings control phases scoped PASS with deliberate same-EXE restart; ENV fresh Medium Explorer created but first post-idle observation lacked exact visible Shell/Tray, product NOT_RUN. Entire ENV scope47ms/WaitForInputIdle return0 is not final readiness or proof of impossibility; buffered equal ticks are not simultaneous native facts. Originalc249 core/e03 and9d/5b evidence retain original identities; no score or whole chain added",
       "product_builds": "Debug/Release PASS; affected offline six each PASS; actual host fault-switch and mixed identity switch both Exit78 in each configuration",
       "whole_version_PASS": false
     },
@@ -31,6 +31,19 @@
       "old_runtime_rebound": false
     },
     "pending_product_candidate": {
+      "source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "debug_sha256": "B8695981F1C83C0E35259DE0F89717B36CCB42E48ED64A9C1B1520638AF31658",
+      "release_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "build": "ROOT_ACTUAL_DEBUG_RELEASE_BUILD_AND_AFFECTED_SETTINGS_VISUAL_GUEST_PATH_THREE_EACH_PASS",
+      "native_runtime": "NOT_RUN",
+      "planned_portable_package_id": "bfb405c45e5a446ca54a74735d1122a8",
+      "planned_run_ids": {"Entry": "a014494c4a034320b1b99b515eb40597", "Core": "540ff812c66f47c7b8291dc2776c2692", "ENV": "c199209c52f343e1a8c07c40a1a2dce4"},
+      "planned_runs_status": "NOT_RUN",
+      "repair_scope": "Only the settings load metadata user text; internal configuration schema/generation mechanisms and every control retained. New candidate does not inherit4f7 runs as its own execution.",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "observed_product_4f7": {
       "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
       "debug_sha256": "4BFBBFDDDFF16DA60663574E637311A16EA2B652E6B8AC60625CDB81D1A86AA2",
       "release_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
@@ -53,11 +66,23 @@
       "portable528a_unchanged": true
     },
     "pending_driver_candidate": {
+      "source_sha": "001c326c342553456a16833191c2ad56fb603267",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "status": "DEBUG_RELEASE_BUILD_AND_AFFECTED_OFFLINE_PASS_NATIVE_NOT_RUN",
+      "debug_sha256": "C09DF8BD6D4228443D338B0F475E20524461E0E7F5B4EA2B94381817DD09F660",
+      "release_sha256": "2547EC95425A14CA08D8D99A0D6B8EED6E571371DC642C592497E9B11D61457A",
+      "offline": "ROOT_ACTUAL_SETTINGS_VISUAL_GUEST_PATH_THREE_EACH_DEBUG_RELEASE_PASS",
+      "host_guard": "ROOT_ACTUAL_FOUR_WAITED_EXIT78_WITH_VALID_ARGV_PORTABLE_ENTRY_AND_ENV_EACH_DEBUG_RELEASE",
+      "static_checks": "ROOT_ACTUAL_176_PASS",
+      "scope": "Actual001c Debug/Release fixture builds, affected offline and correctly formed host guard commands passed; new portable/currentCore/ENV guest runs remain NOT_RUN. Product25b hashes unchanged; never bind4ff/4f7 old runs to these new bytes.",
+      "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
+    },
+    "observed_driver_4ff": {
       "source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
       "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
-      "status": "TEST_ONLY_DEBUG_RELEASE_BUILD_AND_GUEST_PATH_PASS_NATIVE_NOT_RUN",
+      "status": "ACTUAL_SETTINGS_FOUR_PHASES_SCOPED_PASS_ENV_FIRST_POST_IDLE_NOT_READY",
       "debug_sha256": "B1B608593D55E14B1C7F85FB47AC26069C5A42E75799201FAE9B90D5989DA9C0", "release_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
-      "scope": "4ff Settings/ENV TEST candidate actual D/R fixture+guest-path build/offline one each PASS and correct-parameter two suites each config actual waited Exit78; nativeNOT_RUN. Old324 missing quote compile FAIL retained as a TEST history, repaired in4ff; not a product build failure. Current product4f7 unchanged; do not bind c249 runs to this new tool.",
+      "scope": "4ff/4f7 actual21a four public settings phases PASS;906 fresh same-Medium Explorer created but initial47ms post-idle observation lacked exact Shell/Tray, productNOT_RUN. Old324 quote TEST compile failure and c249 runs remain original; no environmental impossibility or product cleanup PASS inferred from906 forced TEST cleanup.",
       "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
     },
     "observed_driver_c249": {
@@ -129,6 +154,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "release_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+      "run_ids": ["21a560e291224e7ab605d6dc551275aa", "906921790c774621bac2a61d97a19725"],
+      "native_guard_validation": "ACTUAL_PUBLIC_SETTINGS_FOUR_PHASES_SCOPED_PASS_ENV_INITIAL_POST_IDLE_NOT_READY_PRODUCT_NOT_RUN",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_c249": {
       "source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
       "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
       "release_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
@@ -224,7 +258,7 @@
     },
     "main_function_runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
-    "pending_runtime_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "pending_runtime_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -247,7 +281,7 @@
       },
     "implementation_inspected": "CURRENT_4F7_TARGETED_CALLBACK_FOCUS_RULES_AND_PORTABLE_SCOPES_WITH_HISTORICAL_11AE_FULL_BOUNDARIES",
     "note": "当前独立DEV43/60、21/40=52.5%，模块/整版PARTIAL。6e1f与原终止证据闭合M04F04；830a与原bf5c/b6/7060实际证据及未变生产范围复核闭合M10F04/B22；efed与原034/2c8规则闭合M11F04。各批保留原产品/driver身份，未拼新整链。8d8a HC真实UI/free/shutdown子项通过但scheme恢复不精确仍FAIL；57f原生系统Shake无效果，产品NOT_RUN。ec2f实际验证当前4f7/5f87普通包，不授wholeI12、真实应用、托盘、完整Medium桌面、多屏或真人门。",
-    "pending_product_note": "当前4f7产品字节冻结；9d实际完成HC、Shake原生前置、规则与普通包限定运行。8d8a无旧heap退出但scheme恢复未达exact；57f产品未启动；ec2f普通无参启动/设置效应/Move-UP/退出通过。c249已实际完成1a62两轮同PID核心，e03仅strict TEST空枚举UNKNOWN拒绝、未启动Explorer/产品；last_actual为c249两批，后继4ff工具仅构建/nativeNOTRUN；旧bbc/04ff失败保持原身份。",
+    "pending_product_note": "当前实际受测仍4f7：c249/1a62两轮核心及e03旧TEST门、4ff/21a四phase设置与906初始idle观察分别保持身份。新25b仅metadata文字修复，实际D/R构建及settings/visual/guest-path各3/3通过，nativeNOTRUN；后继001c驱动构建中，尚无新实际结果，不抢旧EXE现场身份。906仅47ms初始观察、idle0不是最终Shell失败。旧HC/Shake/全部历史范围保持。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -7825,7 +7859,7 @@
         "src/platform/windows/product/product_app.cpp"
       ],
       "implementation_status": "IMPLEMENTED",
-      "implementation_note": "已找到生产实际调用链；只表示接线存在，不是完整功能DEV通过。",
+      "implementation_note": "21a在4f7旧EXE上实际完成新增四phase控件及真实行为/重启；原六页Save/Cancel/映射/规则/诊断证据保留。独立F01还缺真实托盘打开；新25b仅清理内部metadata文字，已构建未现场，不能把21a改绑新EXE。",
       "dev_status": "BLOCKED",
       "human_status": "NOT_RUN",
       "cases": [
@@ -7834,7 +7868,7 @@
           "required_observation": "从托盘打开逐页修改并真实操作；每个控件必须接线，不能有摆设开关；保存/取消含义明确",
           "status": "BLOCKED",
           "evidence_paths": [
-            "docs/reports/v1-evidence/index.json",
+            "docs/reports/v1-evidence/21a5-settings-controls-review.json", "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl", "docs/reports/v1-evidence/index.json",
             "docs/reports/v1-evidence/c01-release-components.jsonl",
             "docs/reports/v1-evidence/714c-release-scoped.jsonl"
           ],
@@ -7845,12 +7879,12 @@
           "assessment_ref": "parent_feature_remaining_conditions_and_next_action"
         }
       ],
-      "source_sha": "b60e9c343c29f75007df7bf1833fd5d4ab8d3cf8",
-      "binary_sha256": "65F04D8922156C2109B1E87362B6D9B4B830193F0124037B8659550AE63096BD",
+      "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
       "environment_id": "E02",
-      "run_id": "c01ffe67d3004961bd00765312869c8a",
+      "run_id": "21a560e291224e7ab605d6dc551275aa",
       "evidence_paths": [
-        "docs/reports/v1-evidence/index.json",
+        "docs/reports/v1-evidence/21a5-settings-controls-review.json", "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl", "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/8189-fixture-selected.jsonl",
@@ -7876,11 +7910,9 @@
       "candidate_identity_ref": "current_package",
       "assessment_scope": "完整功能合同的当前工作状态；历史实测保留原产品/driver身份，非本轮重跑宣称",
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
-      "observed": "c01六页控件真实点按/保存效果；714c当前EXE设置底部诊断和保存效果实际通过。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；9e5同R/新D实际诊断parser、原2632普通入口与设置改变动作及正常UP/退出定向通过，D16已关闭。",
-      "remaining_conditions": [
-        "完整托盘打开/全部控件真实行为与不同DPI未齐，不能由截图授完整DEV。"
-      ],
-      "next_action": "保留dd02当前212实际GUI子项；只补托盘入口、未覆盖控件效果与规定DPI，不为driver/文档变更重建产品。",
+      "observed": "21a当前4f7/4ff真实preview颜色+alpha与独立像素、同gap邻接容差改变Ctrl成员、13DIP步长改变Move/Resize、动画公开ON/OFF保存/可见重开及source OFF短路四phase通过；四数值经历真实同EXE退出/重启后保持，原配置及实际UP/独立资源/客户恢复成立。不是AnimateWindow native调用轨迹或100ms淡入实测。原dd02六页/SaveCancel/默认/诊断、ca0e非法草稿和efed规则保留原身份；不再泛称所有控件未验。",
+      "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
+      "next_action": "复用21a四phase及原有效GUI证据，仅继续真实托盘入口；25b新metadata文字由普通包公开第6页做受影响核对，不重开四控件矩阵。显示/DPI属相应独立环境合同；001c后继ENV事件等待尚未运行，不预授Shell/托盘PASS。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -15884,6 +15916,26 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+        "run_id":  "21a560e291224e7ab605d6dc551275aa",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "driver_source_sha":  "4ff782b224572a596b702753782e6efe5e273ea7",
+        "result":  "PASS_SCOPED_FOUR_PUBLIC_SETTINGS_CONTROL_PHASES",
+        "evidence_id":  "EV-21A5-PUBLIC-SETTINGS-CONTROLS-RESTART-ACTUAL-EFFECTS",
+        "evidence_path":  "docs/reports/v1-evidence/21a5-settings-controls-review.json",
+        "new_feature_or_B_PASS":  false,
+        "scope":  "Actual public preview color/alpha with independent pixel, adjacency membership, command step native geometry, animation public ON/OFF source/runtime; four numerics survived same-EXE restart. Not native AnimateWindow trace, actual tray entry or whole M11F01. Original4f7 product identity retained."
+    },
+    {
+        "run_id":  "906921790c774621bac2a61d97a19725",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "driver_source_sha":  "4ff782b224572a596b702753782e6efe5e273ea7",
+        "result":  "BLOCKED_INITIAL_POST_IDLE_NOT_EXACT_VISIBLE_SHELL_OR_TRAY_PRODUCT_NOT_RUN",
+        "evidence_id":  "EV-9069-FRESH-MEDIUM-DESKTOP-INITIAL-IDLE-NOT-SHELL-READY",
+        "evidence_path":  "docs/reports/v1-evidence/9069-medium-desktop-initial-idle-review.json",
+        "new_feature_or_B_PASS":  false,
+        "scope":  "Actual new sameSID/session/Medium Explorer process on one fresh Run desktop; first post-idle observer saw no exact visible Shell/Tray. Entire scope47ms and idle return0 are not final Shell readiness/impossibility. No Switch/input/product launch; forced TEST descendant cleanup not product cleanup PASS. Event-driven follow-up NOT_RUN."
+    },
     {
         "run_id":  "1a6256c58e6e47379889525aade641a3",
         "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",

@@ -1,0 +1,219 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-9069-FRESH-MEDIUM-DESKTOP-INITIAL-IDLE-NOT-SHELL-READY",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "906921790c774621bac2a61d97a19725",
+  "suite": "MediumDesktopEnvironmentOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_FIRST_POST_IDLE_OBSERVATION_NO_EXACT_VISIBLE_SHELL_OR_TRAY",
+  "product_result": "NOT_RUN",
+  "whole_environment_impossibility_proven": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "product_started": false,
+    "driver_source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+    "driver_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+    "packaging_head": "16a60b9d73444f168bbe033dd1fda08d61316a9c",
+    "fixture_pid": 4020,
+    "fixture_tid": 3940,
+    "fixture_birth_filetime_decimal": "134371050987252702",
+    "child_pid": 6320,
+    "child_primary_tid": 6444,
+    "child_birth_filetime_decimal": "134371050988877045",
+    "child_image": "C:\\Windows\\explorer.exe",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "created_desktop": "WinSta0\\PaneBindV1_906921790c774621bac2a61d97a19725",
+    "Default_shell": {
+      "hwnd": 65798,
+      "pid": 4896,
+      "tid": 4900,
+      "birth_filetime_decimal": "134371050903961679"
+    },
+    "environment": "Dedicated disposable Sandbox build26100.9711; one3050x1668/work3050x1596/DPI144, original active WinSta0/Default. Probe thread alone connected to one task-created non-input desktop."
+  },
+  "raw_source": {
+    "path": "uat/v1-control/906921790c774621bac2a61d97a19725/collection-20261022T011220268Z-8939c9d3fae743dc8bb3ed7cba558ceb/906921790c774621bac2a61d97a19725-release-fixture.jsonl",
+    "sha256": "DA5C1B9581774CF7A5C823DA005F8A0848C02F8E72E20A4D6884622FD885C4E7",
+    "bytes": 15285,
+    "rows": 35,
+    "legal_jsonl": true,
+    "continuous_sequences": [
+      1,
+      35
+    ],
+    "driver_source_matches_all_rows": true
+  },
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/9069-medium-desktop-initial-idle-excerpt.jsonl",
+    "sha256": "4F581DCCB7AD9607E38158AA7E746B550ACBC5299C0EC061DE50BB97DE453650",
+    "driver_source_lines": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      12,
+      13,
+      15,
+      19,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35
+    ],
+    "rows": 24,
+    "literal_validation": "24 of24 complete original UTF-8 source-line strings, preserving64-bit decimal birth spelling. No JSON raw reserialization, fabricated native events or user-content extraction."
+  },
+  "actual_facts": [
+    {
+      "driver_lines": [
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "fact": "Before launching the child, EnumDesktops saw no exact Run name and OpenDesktop failed2; CreateDesktop actually succeeded with inherited security/unmodified flags and actual UOI_NAME exactly matched the Run. Initial EnumDesktopWindows returnedFALSE/error0/no callback; this stayed UNKNOWN, not empty-inventory PASS. The fresh TEST thread's actual SetThreadDesktop succeeded and its own desktop name matched; SwitchDesktop was not called."
+    },
+    {
+      "driver_lines": [
+        26,
+        27
+      ],
+      "fact": "Actual CreateProcessW succeeded for exact Windows explorer.exe PID6320/primaryTID6444/birth known, Medium8192/non-elevated/sameSID/session1. WaitForInputIdle returned0 once;10000 is only the requested maximum timeout, not an observed10-second wait and not a Shell-ready assertion."
+    },
+    {
+      "driver_lines": [
+        28
+      ],
+      "fact": "Both actual post-idle EnumDesktopWindows calls completed witherror0. GetShellWindow was0 before and after; exact visible Shell/Tray counts were0. The observed child DDEMLEvent197188, DDEMLMom197162 and IME131682 roots were invisible with zero rectangles. Their foreign-thread desktop query produced empty name and known=false, so exact_returned_child stayedfalse; no unknown or Default broker was adopted."
+    },
+    {
+      "driver_lines": [
+        28
+      ],
+      "fact": "Empty foreign thread_desktop is a query UNKNOWN, not proof that these threads actually belonged to another desktop. Current helper combines GetThreadDesktop and GetUserObjectInformation without storing their separate returns/errors, so the underlying failed observation stage cannot be recovered from this run."
+    },
+    {
+      "driver_lines": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "fact": "Probe records were buffered in memory and emitted only after joining its thread. Identical tick29984 on D22–30 therefore timestamps the later log emission, not each native API call. D21 scope tick29937 to D31 summary29984 bounds the whole probe at about47ms (coarse GetTickCount granularity), not10seconds. No per-API QPC duration is available."
+    },
+    {
+      "driver_lines": [
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "fact": "Child handle was actually unsignaled/exit259, so its process was still alive when observation ended. No WM_CLOSE/TerminateProcess was sent; closing child/desktop handles did not prove child exit or object destruction. Probe thread actually restored Default and CloseDesktop succeeded; original Default Shell HWND/PID/TID/birth/image identity remained unchanged. Own Raw observer and foreground hook stopped with actual receipts/overflow0. Driver final FAIL and suite BLOCKED remain literal; product was never started or cleaned up by this scene."
+    }
+  ],
+  "bounded_diagnosis": {
+    "confirmed_test_gap": "After one successful initial-idle return, production-independent TEST immediately takes two window snapshots and finishes. It does not perform a bounded message-pumped Shell/Tray-ready observation. Thus this run cannot distinguish a later-ready child from a permanently non-Shell startup.",
+    "not_proven": [
+      "Explorer will necessarily become a Shell later",
+      "root cause of missing Shell/Tray",
+      "cause of foreign desktop query UNKNOWN",
+      "all Medium/Sandbox desktops impossible",
+      "complete ordinary Medium Shell desktop or usable input route",
+      "Terminal/Edge/Notepad/Code failures have one shared cause"
+    ],
+    "old_failure_preserved": true
+  },
+  "next_minimal_candidate": {
+    "status": "PROPOSED_NOT_RUN_AT_REVIEW",
+    "scope": "Only the same owned fresh desktop TEST; no product, synthetic input, SwitchDesktop, Default Shell control, token/ACL or host changes.",
+    "event_driven_plan": "On the connected probe thread register bounded out-of-context CREATE/SHOW/DESTROY window observation before child creation. Callback only marks relevant child event/records bounded primitive facts. Initial, relevant-event and final-deadline attempts retain the full strict two-enumeration/identity/visible Shell+Tray gates. Pump messages with MsgWaitForMultipleObjectsEx while waiting for exact child HANDLE exit or a single10-second overall deadline; do not sleep/poll or repeat WaitForInputIdle. Unhook with actual result before restoring thread desktop; record elapsed native observation times separately from buffered emission.",
+    "unknown_query_plan": "Separately record actual GetThreadDesktop and GetUserObjectInformationW attempted/return/error facts. UNKNOWN never becomes a successful desktop authority assertion.",
+    "no_result_awarded": true
+  },
+  "official_platform_sources_checked": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-waitforinputidle",
+      "fact": "Any process thread becoming idle can satisfy the wait; subsequent calls return immediately. Initial-idle success does not guarantee a particular Shell/Tray window exists.",
+      "copied_or_adapted_code": false
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook",
+      "fact": "Out-of-context callbacks require the registering thread's message loop; event/process filters support observation without DLL injection. Events are observation, not write authority.",
+      "copied_or_adapted_code": false
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex",
+      "fact": "Allows one wait to react to a process HANDLE, queued messages and bounded timeout without periodic polling; return values must be distinguished.",
+      "copied_or_adapted_code": false
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop",
+      "fact": "Failure returns NULL and extended error is available; a missing name cannot identify which of two query operations failed.",
+      "copied_or_adapted_code": false
+    }
+  ],
+  "package": {
+    "path": "uat/v1-sandbox/906921790c774621bac2a61d97a19725/package-receipt.json",
+    "receipt_sha256": "260BDEB74C75FAB3EB2850ECF9A8E15017C1552A4152C83105A2D33D5BA99F8C",
+    "zip_sha256": "6C1921753731535A9DC88FB6FD3AB0D1A472C7E92E7DF7AA1E9701550D57B4D7",
+    "manifest_sha256": "939431C61996AA44BD8EAA91A1C86250378B2219C1E6CF2D775586E8BFE6B619",
+    "wsb_sha256": "915247B424D238D0FFB4C57D842311E25BA6C6DC72518DAE29391B3D479B9B07"
+  },
+  "collection_and_cleanup": {
+    "collection_receipt": "uat/v1-control/906921790c774621bac2a61d97a19725/collection-20261022T011220268Z-8939c9d3fae743dc8bb3ed7cba558ceb/collection-receipt.json",
+    "collection_sha256": "7D063A7EA2AA857F79A560CFB758A4FD660C77E8BE412B89FA7C3E4BBC288E44",
+    "collection_output_unchanged": true,
+    "guest_summary_path": "uat/v1-control/906921790c774621bac2a61d97a19725/collection-20261022T011220268Z-8939c9d3fae743dc8bb3ed7cba558ceb/906921790c774621bac2a61d97a19725-guest-summary.json",
+    "guest_summary_sha256": "DAF3EB25D95ED90FB978099AA1B7E5C5FDDCB9308FDE3C5C7A3F81B929F97EDE",
+    "guest_summary_status": "BLOCKED_OR_FAILED",
+    "launch_path": "uat/v1-control/906921790c774621bac2a61d97a19725/collection-20261022T011220268Z-8939c9d3fae743dc8bb3ed7cba558ceb/906921790c774621bac2a61d97a19725-Release-launch.json",
+    "launch_sha256": "F618DFA598AFD50BADF698C0423CD7043B96804CD5A441597412528D01C301C7",
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "cleanup_receipt": "uat/v1-control/906921790c774621bac2a61d97a19725/cleanup-receipt.json",
+    "cleanup_sha256": "36B3C8896BA538249FC3C72FC9CDA460387D9249F8B24614BE4B9F0BB8A7F7A3",
+    "own_guest_pid": 5500,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "ordinary_full_Medium_desktop": "NOT_PROVEN",
+    "input_desktop_switch_and_interaction": "NOT_RUN",
+    "product": "NOT_RUN",
+    "applications": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "new_feature_or_benchmark_score": false
+  }
+}

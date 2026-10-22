@@ -3,6 +3,36 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+        "id":  "EV-21A5-PUBLIC-SETTINGS-CONTROLS-RESTART-ACTUAL-EFFECTS",
+        "run_id":  "21a560e291224e7ab605d6dc551275aa",
+        "configuration":  "Release",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "product_binary_sha256":  "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+        "driver_source_sha":  "4ff782b224572a596b702753782e6efe5e273ea7",
+        "driver_binary_sha256":  "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+        "path":  "docs/reports/v1-evidence/21a5-settings-controls-review.json",
+        "sha256":  "DBA1F8D4120097B4EFFD00FBF6FD3125A9C49793F33A48761122BCA2E9838E3B",
+        "repository_excerpt_path":  "docs/reports/v1-evidence/21a5-settings-controls-excerpt.jsonl",
+        "repository_excerpt_sha256":  "87C193A084393A9431A8801407A3BC0D11136670CD01A5A3817668D2649BA027",
+        "result":  "PASS_SCOPED_FOUR_PUBLIC_SETTINGS_CONTROL_PHASES",
+        "scope":  "Actual public preview color/alpha with independent pixel, adjacency membership, command step native geometry, animation public ON/OFF source/runtime; four numerics survived same-EXE restart. Not native AnimateWindow trace, actual tray entry or whole M11F01. Original4f7 product identity retained."
+    },
+    {
+        "id":  "EV-9069-FRESH-MEDIUM-DESKTOP-INITIAL-IDLE-NOT-SHELL-READY",
+        "run_id":  "906921790c774621bac2a61d97a19725",
+        "configuration":  "Release",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "product_binary_sha256":  "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+        "driver_source_sha":  "4ff782b224572a596b702753782e6efe5e273ea7",
+        "driver_binary_sha256":  "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+        "path":  "docs/reports/v1-evidence/9069-medium-desktop-initial-idle-review.json",
+        "sha256":  "7BA6DD7BD4AF8259867A94936752AA829762EC2C932AE7A1AD7970A763593C47",
+        "repository_excerpt_path":  "docs/reports/v1-evidence/9069-medium-desktop-initial-idle-excerpt.jsonl",
+        "repository_excerpt_sha256":  "4F581DCCB7AD9607E38158AA7E746B550ACBC5299C0EC061DE50BB97DE453650",
+        "result":  "BLOCKED_INITIAL_POST_IDLE_NOT_EXACT_VISIBLE_SHELL_OR_TRAY_PRODUCT_NOT_RUN",
+        "scope":  "Actual new sameSID/session/Medium Explorer process on one fresh Run desktop; first post-idle observer saw no exact visible Shell/Tray. Entire scope47ms and idle return0 are not final Shell readiness/impossibility. No Switch/input/product launch; forced TEST descendant cleanup not product cleanup PASS. Event-driven follow-up NOT_RUN."
+    },
+    {
         "id":  "EV-1A62-CURRENT-RELEASE-MEDIUM-TWO-CORE-ROUNDS",
         "run_id":  "1a6256c58e6e47379889525aade641a3",
         "configuration":  "Release",

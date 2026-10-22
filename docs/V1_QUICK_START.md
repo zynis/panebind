@@ -2,12 +2,12 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-- 产品源码：`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`。
-- Release EXE SHA-256：`9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`。
-- 当前便携包：`uat/v1-portable/5f87dc1c56704592a164a4d8c4c3a6b4/PaneBindV1-Release-5f87dc1c56704592a164a4d8c4c3a6b4.zip`。
-- ZIP SHA-256：`1F12165B8B7E6F9E0BD01E06FD0506DD34A611657FA525137020C36B6A11EE2F`；manifest SHA-256：`2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B`。包和原始大日志不进入 Git，旧包及证据保持原身份。
+- 产品源码：`25bff898c9943ee70155ce08868a2a7fc56ab100`。
+- Release EXE SHA-256：`34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`。
+- 新候选预定便携包：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`；当前尚待封包及该EXE自己的现场复验，ZIP／manifest哈希以完成后的包回执为准，不预填。
+- 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-本包已在精确Medium Sandbox的ec2f中实际完成普通无参可见中文GUI、二启同实例、保存设置改变Move效果、真实UP和正常退出。规则路径／同名区分及拖动透明有分别的独立功能证据；这不等于完整桌面、真实托盘、五类应用、多屏或真人手感通过。历史进展和失败仅在[集中报告](reports/V1_DELIVERY_REPORT.md)及[验收表](reports/V1_ACCEPTANCE.json)维护，不在本页并列多个“当前版本”。
+新候选仅修正设置页的保存／取消说明，不改变输入和writer；构建通过不是现场通过。旧ec2f普通入口、21a设置实效及1a62核心组合链保持原产品身份，不改绑新包；新包普通无参入口和当前核心链尚待实测。这不等于完整桌面、真实托盘、五类应用、多屏或真人手感通过。历史进展和失败仅在[集中报告](reports/V1_DELIVERY_REPORT.md)及[验收表](reports/V1_ACCEPTANCE.json)维护，不在本页并列多个“当前版本”。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
