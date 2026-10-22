@@ -458,14 +458,14 @@ class MediumDesktopProductGeometryCase {
         const auto move=[&](LONG x,LONG y){return translated(*original,x,y);};
         if(five){
             if(!magnet_||region!=HTCAPTION||ctrl)throw std::runtime_error("geometry_five_phase_target_missing");
-            const LONG travel=pixels(40),entry=pixels(10),release=pixels(16),near=(std::max)(1L,entry/2),hold=(entry+release)/2;
+            const LONG travel=pixels(40),entry=pixels(10),release=pixels(16),approach_offset=(std::max)(1L,entry/2),hold=(entry+release)/2;
             if(entry<=0||hold<=entry||hold>=release||magnet_->initial.l-original->r!=travel||magnet_->initial.t-original->t!=travel)
                 throw std::runtime_error("geometry_independent_magnet_oracle_or_DPI_invalid");
             phases={{"Free",-travel,-travel,move(-travel,-travel)},
-                {"XY_Snap",travel-near,travel+near,move(travel,travel)},
+                {"XY_Snap",travel-approach_offset,travel+approach_offset,move(travel,travel)},
                 {"Hold_outside_entry_inside_release",travel-hold,travel+hold,move(travel,travel)},
                 {"Detach",-travel,-travel,move(-travel,-travel)},
-                {"Resnap",travel-near+1,travel+near,move(travel,travel)}};
+                {"Resnap",travel-approach_offset+1,travel+approach_offset,move(travel,travel)}};
         }else phases.push_back({phase,dx,dy,region==HTCAPTION?move(dx,dy):Rect{original->l,original->t,original->r+dx,original->b+dy}});
         const auto neighbour_before=magnet_?visible(magnet_->window()):std::optional<Rect>{};
         if(magnet_&&(!neighbour_before||(!ctrl&&*neighbour_before!=magnet_->initial)))
