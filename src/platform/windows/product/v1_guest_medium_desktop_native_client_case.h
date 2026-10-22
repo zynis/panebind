@@ -120,7 +120,7 @@ MediumTerminalClientObservation medium_terminal_client_case(
         return !mutex&&error==ERROR_FILE_NOT_FOUND&&mutex_closed&&!FindWindowW(L"PaneBind.V1.Application",L"PaneBind");
     };
     const auto no_buttons=[]{
-        for(const int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
+        for(const int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RETURN,VK_ESCAPE})
             if(GetAsyncKeyState(key)&0x8000)return false;return true;
     };
     const auto client_hit=[&](POINT point){
@@ -295,6 +295,14 @@ MediumTerminalClientObservation medium_terminal_client_case(
         const bool convert_attempted=client_read&&client.left<client.right&&client.top<client.bottom;SetLastError(ERROR_SUCCESS);
         const bool point_ready=convert_attempted&&ClientToScreen(source,&point)!=FALSE;
         const DWORD convert_error=point_ready?0:GetLastError();
+        const auto query_dpi_context=GetThreadDpiAwarenessContext(),source_dpi_context=GetWindowDpiAwarenessContext(source);
+        const auto source_dpi=GetDpiForWindow(source);
+        const bool query_pmv2=query_dpi_context&&AreDpiAwarenessContextsEqual(query_dpi_context,DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        POINT roundtrip=point;SetLastError(ERROR_SUCCESS);
+        const bool roundtrip_attempted=point_ready,roundtrip_return=roundtrip_attempted&&ScreenToClient(source,&roundtrip)!=FALSE;
+        const DWORD roundtrip_error=roundtrip_attempted&&!roundtrip_return?GetLastError():0;
+        const bool roundtrip_exact=roundtrip_return&&roundtrip.x==client.left+(client.right-client.left)/2&&
+            roundtrip.y==client.top+(client.bottom-client.top)/2;
         const HWND actual_hit=point_ready?WindowFromPoint(point):nullptr;DWORD hit_pid{};const auto hit_tid=GetWindowThreadProcessId(actual_hit,&hit_pid);
         DWORD_PTR hit_result{};bool nc_attempted{},nc_return{};DWORD nc_error{};
         if(point_ready&&point.x>=-32768&&point.x<=32767&&point.y>=-32768&&point.y<=32767&&client_hit(point)){
@@ -305,82 +313,101 @@ MediumTerminalClientObservation medium_terminal_client_case(
         out.emit("medium_terminal_client_hit","\"GetClientRect_return\":"+std::string(client_read?"true":"false")+
             ",\"GetClientRect_error\":"+std::to_string(client_error)+",\"client_rect\":"+
             (client_read?"["+std::to_string(client.left)+","+std::to_string(client.top)+","+std::to_string(client.right)+","+std::to_string(client.bottom)+"]":"null")+
+            ",\"source_GetWindowRect_return\":"+(source_position_read?"true":"false")+
+            ",\"source_GetWindowRect_error\":"+std::to_string(source_position_error)+",\"actual_source_positioning_rect\":"+
+            (source_position_read?rect({source_position.left,source_position.top,source_position.right,source_position.bottom}):"null")+
             ",\"ClientToScreen_attempted\":"+(convert_attempted?"true":"false")+
             ",\"ClientToScreen_return\":"+(convert_attempted?(point_ready?"true":"false"):"null")+
             ",\"ClientToScreen_error\":"+(convert_attempted?std::to_string(convert_error):"null")+
             ",\"screen_point\":"+(point_ready?"["+std::to_string(point.x)+","+std::to_string(point.y)+"]":"null")+",\"WindowFromPoint\":"+
             std::to_string(reinterpret_cast<std::uintptr_t>(actual_hit))+",\"hit_PID\":"+std::to_string(hit_pid)+",\"hit_TID\":"+std::to_string(hit_tid)+
             ",\"WM_NCHITTEST_attempted\":"+(nc_attempted?"true":"false")+",\"native_return\":"+(nc_attempted?(nc_return?"true":"false"):"null")+
-            ",\"native_result\":"+(nc_return?std::to_string(hit_result):"null")+",\"error\":"+(nc_attempted?std::to_string(nc_error):"null"));
-        if(!source_position_read||!point_ready||!nc_return||hit_result!=HTCLIENT||!client_hit(point))
-            throw std::runtime_error("actual_exact_root_client_point_or_source_geometry_unconfirmed_no_click");
-        const auto fresh_client_point=[&]{
-            RECT actual_client{},actual_position{},after_client{},after_position{};POINT actual_point{};
-            const bool rectangle=GetWindowRect(source,&actual_position)&&GetClientRect(source,&actual_client)&&
-                EqualRect(&actual_position,&source_position)&&EqualRect(&actual_client,&client);
-            if(rectangle){actual_point.x=actual_client.left+(actual_client.right-actual_client.left)/2;
-                actual_point.y=actual_client.top+(actual_client.bottom-actual_client.top)/2;}
-            const bool mapped=rectangle&&ClientToScreen(source,&actual_point)&&actual_point.x==point.x&&actual_point.y==point.y;
-            DWORD_PTR result{};bool attempted{},returned{};DWORD error{};
-            if(context()&&mapped&&client_hit(actual_point)){
-                attempted=true;SetLastError(ERROR_SUCCESS);
-                returned=SendMessageTimeoutW(source,WM_NCHITTEST,0,MAKELPARAM(static_cast<short>(point.x),static_cast<short>(point.y)),
-                    SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&result)!=FALSE;error=returned?0:GetLastError();
-            }
-            const bool stable=GetWindowRect(source,&after_position)&&GetClientRect(source,&after_client)&&
-                EqualRect(&after_position,&source_position)&&EqualRect(&after_client,&client);
-            const bool good=rectangle&&mapped&&returned&&result==HTCLIENT&&stable&&context()&&client_hit(point);
-            out.emit("medium_terminal_client_fresh_point_guard","\"source_position_initial_query_error\":"+std::to_string(source_position_error)+
-                ",\"actual_source_geometry_matches_initial\":"+(rectangle&&stable?"true":"false")+
-                ",\"actual_client_center_matches_initial\":"+(mapped?"true":"false")+
-                ",\"fresh_WM_NCHITTEST_attempted\":"+(attempted?"true":"false")+
-                ",\"fresh_native_return\":"+(attempted?(returned?"true":"false"):"null")+
-                ",\"fresh_native_result\":"+(returned?std::to_string(result):"null")+
-                ",\"fresh_error\":"+(attempted?std::to_string(error):"null")+
-                ",\"accepted_exact_HTCLIENT_point\":"+(good?"true":"false"));
+            ",\"native_result\":"+(nc_return?std::to_string(hit_result):"null")+",\"error\":"+(nc_attempted?std::to_string(nc_error):"null")+
+            ",\"query_thread_DPI_context\":"+(query_dpi_context?std::to_string(reinterpret_cast<std::intptr_t>(query_dpi_context)):"null")+
+            ",\"query_thread_PMV2\":"+(query_pmv2?"true":"false")+",\"source_window_DPI_context\":"+
+            (source_dpi_context?std::to_string(reinterpret_cast<std::intptr_t>(source_dpi_context)):"null")+
+            ",\"source_window_DPI\":"+(source_dpi?std::to_string(source_dpi):"null")+
+            ",\"ScreenToClient_attempted\":"+(roundtrip_attempted?"true":"false")+
+            ",\"ScreenToClient_return\":"+(roundtrip_attempted?(roundtrip_return?"true":"false"):"null")+
+            ",\"ScreenToClient_error\":"+(roundtrip_attempted?std::to_string(roundtrip_error):"null")+
+            ",\"actual_client_roundtrip\":"+(roundtrip_return?"["+std::to_string(roundtrip.x)+","+std::to_string(roundtrip.y)+"]":"null")+
+            ",\"client_roundtrip_exact\":"+(roundtrip_exact?"true":"false")+
+            ",\"external_root_hit_is_observation_not_keyboard_authority\":true,\"mouse_client_click\":\"NOT_RUN\",\"mouse_input_sent\":false");
+        if(!source_position_read||!point_ready||!roundtrip_exact||!query_pmv2||!source_dpi_context||!source_dpi)
+            throw std::runtime_error("actual_source_client_geometry_or_DPI_roundtrip_unconfirmed_no_keyboard_input");
+
+        // Terminal's root procedure can return HTCAPTION for its real XAML
+        // client space (upstream8795). This independent keyboard subcase does
+        // not relabel that result, simulate a mouse click, or claim that the
+        // content works. It uses only the already-existing exact foreground
+        // focus; the sole content oracle remains the actual new nonce file.
+        GUITHREADINFO initial_gui{sizeof(initial_gui)};bool initial_gui_known{};DWORD initial_gui_error{};
+        const bool initial_focus=foreground_focus(&initial_gui,&initial_gui_known,&initial_gui_error);
+        const HWND focused=initial_gui_known?initial_gui.hwndFocus:nullptr;DWORD focus_pid{};
+        const DWORD focus_tid=focused?GetWindowThreadProcessId(focused,&focus_pid):0;
+        std::array<wchar_t,256> focus_class{};RECT focus_position{};SetLastError(ERROR_SUCCESS);
+        const int focus_class_length=focused?GetClassNameW(focused,focus_class.data(),static_cast<int>(focus_class.size())):0;
+        const DWORD focus_class_error=focus_class_length?0:GetLastError();SetLastError(ERROR_SUCCESS);
+        const bool focus_position_read=focused&&GetWindowRect(focused,&focus_position)!=FALSE;
+        const DWORD focus_position_error=focus_position_read?0:GetLastError();
+        const bool focus_identity=initial_focus&&focused&&focus_tid&&focus_pid==pid&&IsWindow(focused)&&
+            GetAncestor(focused,GA_ROOT)==source&&focus_class_length>0&&focus_class_length<static_cast<int>(focus_class.size())-1&&
+            focus_position_read&&focus_position.left<focus_position.right&&focus_position.top<focus_position.bottom;
+        out.emit("medium_terminal_client_existing_keyboard_focus","\"foreground_GTI_known\":"+std::string(initial_gui_known?"true":"false")+
+            ",\"foreground_GTI_error\":"+std::to_string(initial_gui_error)+",\"actual_foreground\":"+
+            std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+",\"actual_focus\":"+
+            std::to_string(reinterpret_cast<std::uintptr_t>(focused))+",\"focus_PID\":"+std::to_string(focus_pid)+
+            ",\"focus_TID\":"+std::to_string(focus_tid)+",\"focus_class\":"+(focus_class_length?quote(utf8(focus_class.data())):"null")+
+            ",\"focus_class_query_attempted\":"+(focused?"true":"false")+
+            ",\"focus_class_error\":"+(focused?std::to_string(focus_class_error):"null")+
+            ",\"focus_GetWindowRect_attempted\":"+(focused?"true":"false")+
+            ",\"focus_GetWindowRect_return\":"+(focused?(focus_position_read?"true":"false"):"null")+
+            ",\"focus_GetWindowRect_error\":"+(focused?std::to_string(focus_position_error):"null")+",\"actual_focus_rect\":"+
+            (focus_position_read?rect({focus_position.left,focus_position.top,focus_position.right,focus_position.bottom}):"null")+
+            ",\"exact_existing_focus_identity\":"+(focus_identity?"true":"false")+
+            ",\"SetForegroundWindow_or_SetFocus_called\":false,\"mouse_client_click\":\"NOT_RUN\",\"content_ready_inferred\":false");
+        if(!focus_identity||!no_buttons())throw std::runtime_error("actual_existing_exact_foreground_focus_unconfirmed_no_keyboard_input");
+        const auto fresh_keyboard_focus=[&]{
+            if(!context()||!no_buttons())return false;
+            GUITHREADINFO gui{sizeof(gui)};bool known{};DWORD error{};
+            const bool focused_now=foreground_focus(&gui,&known,&error);
+            DWORD actual_pid{};const DWORD actual_tid=GetWindowThreadProcessId(focused,&actual_pid);
+            std::array<wchar_t,256> actual_class{};RECT actual_position{},actual_client{},actual_focus{},after_position{},after_client{},after_focus{};
+            const int count=GetClassNameW(focused,actual_class.data(),static_cast<int>(actual_class.size()));
+            const bool identity=focused_now&&known&&gui.hwndFocus==focused&&actual_tid==focus_tid&&actual_pid==pid&&
+                IsWindow(focused)&&GetAncestor(focused,GA_ROOT)==source&&count==focus_class_length&&
+                std::wstring_view(actual_class.data(),static_cast<std::size_t>(count))==
+                    std::wstring_view(focus_class.data(),static_cast<std::size_t>(focus_class_length));
+            const bool geometry=GetWindowRect(source,&actual_position)&&GetClientRect(source,&actual_client)&&GetWindowRect(focused,&actual_focus)&&
+                EqualRect(&actual_position,&source_position)&&EqualRect(&actual_client,&client)&&EqualRect(&actual_focus,&focus_position);
+            POINT mapped{client.left+(client.right-client.left)/2,client.top+(client.bottom-client.top)/2};
+            const bool screen=geometry&&ClientToScreen(source,&mapped)&&mapped.x==point.x&&mapped.y==point.y;
+            const bool mapped_back=screen&&ScreenToClient(source,&mapped)&&mapped.x==roundtrip.x&&mapped.y==roundtrip.y;
+            const bool dpi=AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),query_dpi_context)&&
+                AreDpiAwarenessContextsEqual(GetWindowDpiAwarenessContext(source),source_dpi_context)&&GetDpiForWindow(source)==source_dpi;
+            const bool stable=GetWindowRect(source,&after_position)&&GetClientRect(source,&after_client)&&GetWindowRect(focused,&after_focus)&&
+                EqualRect(&after_position,&source_position)&&EqualRect(&after_client,&client)&&EqualRect(&after_focus,&focus_position);
+            const bool good=identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons();
+            out.emit("medium_terminal_client_fresh_keyboard_guard","\"actual_existing_focus_identity_matches\":"+std::string(identity?"true":"false")+
+                ",\"actual_source_client_and_focus_rects_match\":"+(geometry&&stable?"true":"false")+
+                ",\"actual_client_screen_roundtrip_matches\":"+(mapped_back?"true":"false")+",\"actual_DPI_context_matches\":"+(dpi?"true":"false")+
+                ",\"foreground_GTI_error\":"+std::to_string(error)+",\"accepted_keyboard_target\":"+(good?"true":"false")+
+                ",\"root_WM_NCHITTEST_used_as_keyboard_authority\":false,\"mouse_client_click\":\"NOT_RUN\"");
             return good;
         };
-        const int x=GetSystemMetrics(SM_XVIRTUALSCREEN),y=GetSystemMetrics(SM_YVIRTUALSCREEN);
-        const int width=GetSystemMetrics(SM_CXVIRTUALSCREEN),height=GetSystemMetrics(SM_CYVIRTUALSCREEN);
-        if(width<2||height<2||point.x<x||point.y<y||point.x>=x+width||point.y>=y+height)throw std::runtime_error("client_point_outside_actual_virtual_screen");
-        INPUT move{};move.type=INPUT_MOUSE;move.mi.dwFlags=MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE|MOUSEEVENTF_VIRTUALDESK;
-        move.mi.dx=static_cast<LONG>(((static_cast<long long>(point.x-x)*2+1)*65536)/(static_cast<long long>(width)*2));
-        move.mi.dy=static_cast<LONG>(((static_cast<long long>(point.y-y)*2+1)*65536)/(static_cast<long long>(height)*2));
-        send(&move,1,fresh_client_point,"exact_client_cursor",false);POINT cursor{};
-        const bool cursor_exact=wait_for([&]{return GetCursorPos(&cursor)&&cursor.x==point.x&&cursor.y==point.y&&client_hit(cursor);},200);
-        if(!cursor_exact)throw std::runtime_error("actual_cursor_client_point_not_observed_no_click");
-        const HWND before_foreground=GetForegroundWindow();GUITHREADINFO before_gui{sizeof(before_gui)};
-        const bool before_gui_read=GetGUIThreadInfo(0,&before_gui)!=FALSE;
-        if(!before_gui_read||!no_buttons()||before_gui.hwndCapture||before_gui.hwndMoveSize||before_gui.hwndMenuOwner||
-           (before_gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_POPUPMENUMODE|GUI_SYSTEMMENUMODE)))
-            throw std::runtime_error("preclick_button_capture_move_or_menu_not_idle_or_UNKNOWN");
-        INPUT click[2]{};for(auto& packet:click)packet.type=INPUT_MOUSE;
-        click[0].mi.dwFlags=MOUSEEVENTF_LEFTDOWN;click[1].mi.dwFlags=MOUSEEVENTF_LEFTUP;
-        send(click,2,[&]{POINT actual{};return fresh_client_point()&&GetCursorPos(&actual)&&actual.x==point.x&&actual.y==point.y;},
-            "exact_client_LEFTDOWN_LEFTUP",true);out.mouse_pair_inserted=true;
-        out.focus_observed=wait_for([&]{return foreground_focus()&&no_buttons();},1000);GUITHREADINFO after_gui{sizeof(after_gui)};
-        bool final_gui_known{};DWORD final_gui_error{};const bool final_focus=foreground_focus(&after_gui,&final_gui_known,&final_gui_error);
-        out.emit("medium_terminal_client_focus","\"before_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(before_foreground))+
-            ",\"before_GTI_known\":"+(before_gui_read?"true":"false")+",\"before_focus\":"+
-            (before_gui_read?std::to_string(reinterpret_cast<std::uintptr_t>(before_gui.hwndFocus)):"null")+
-            ",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
-            ",\"foreground_GTI_known\":"+(final_gui_known?"true":"false")+",\"foreground_GTI_error\":"+std::to_string(final_gui_error)+
-            ",\"actual_active\":"+(final_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(after_gui.hwndActive)):"null")+
-            ",\"actual_focus\":"+(final_gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(after_gui.hwndFocus)):"null")+
-            ",\"exact_foreground_focus_observed\":"+(out.focus_observed&&final_focus?"true":"false")+
-            ",\"SetForegroundWindow_or_SetFocus_called\":false,\"API_insert_alone_is_not_click_delivery_proof\":true");
-        if(!out.focus_observed||!final_focus)throw std::runtime_error("native_click_exact_foreground_focus_not_observed_no_text");
+        out.focus_observed=fresh_keyboard_focus();
+        if(!out.focus_observed)throw std::runtime_error("existing_keyboard_focus_or_fresh_geometry_changed_no_input");
         const std::wstring command=L"if not exist \""+actual_nonce.wstring()+L"\" (echo "+nonce+L">\""+actual_nonce.wstring()+L"\")";
         if(command.size()>400)throw std::runtime_error("fixed_nonce_command_unexpected_length");
         std::vector<INPUT> text;text.reserve(command.size()*2);
         for(const wchar_t value:command){INPUT down{};down.type=INPUT_KEYBOARD;down.ki.wScan=value;down.ki.dwFlags=KEYEVENTF_UNICODE;
             text.push_back(down);down.ki.dwFlags|=KEYEVENTF_KEYUP;text.push_back(down);}
-        send(text.data(),static_cast<UINT>(text.size()),[&]{return foreground_focus()&&no_buttons();},"fixed_Run_nonce_cmd_Unicode_pairs",true);
+        send(text.data(),static_cast<UINT>(text.size()),fresh_keyboard_focus,"fixed_Run_nonce_cmd_Unicode_pairs",true);
         out.command_inserted=true;
         file_error.clear();if(fs::exists(actual_nonce,file_error)||file_error)throw std::runtime_error("nonce_file_appeared_before_Enter_no_overwrite");
         INPUT enter[2]{};for(auto& packet:enter){packet.type=INPUT_KEYBOARD;packet.ki.wVk=VK_RETURN;}
         enter[1].ki.dwFlags=KEYEVENTF_KEYUP;
-        send(enter,2,[&]{return foreground_focus()&&no_buttons();},"fixed_nonce_cmd_Enter_DOWN_UP",true);out.enter_inserted=true;
+        send(enter,2,fresh_keyboard_focus,"fixed_nonce_cmd_Enter_DOWN_UP",true);out.enter_inserted=true;
         const auto exact_nonce=[&]{
             const auto attributes=GetFileAttributesW(actual_nonce.c_str());
             if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))return false;
@@ -415,6 +442,7 @@ MediumTerminalClientObservation medium_terminal_client_case(
         ",\"directory_cancel_completion_wait\":"+(resources.watch_cancel_attempted?std::to_string(resources.watch_cancel_wait):"null")+
         ",\"directory_native_pending_unknown\":"+(resources.watch_pending_unknown?"true":"false")+
         ",\"shared_input_pair_unknown\":"+(lease&&lease->incomplete_pair.load(std::memory_order_acquire)?"true":"false")+
+        ",\"input_subcase\":\"existing_foreground_keyboard_nonce_only\",\"mouse_pair_inserted\":false,\"mouse_client_click\":\"NOT_RUN\",\"mouse_input_sent\":false"+
         ",\"product_started\":false,\"product_enhancement_result\":\"NOT_RUN\",\"normal_close_owned_by_outer_native_case\":true,"+
         "\"guest_disposal_is_not_cleanup_PASS\":true,\"human_UAT\":\"NOT_RUN\"");
     return out;

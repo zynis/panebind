@@ -3300,3 +3300,52 @@ eligible for exact own UI input; neither a failed probe nor its cleanup proves
 the product icon's outcome. Product Default-only enhancement guards remain
 unchanged until actual source GUI/virtual-desktop/context facts support a
 separate properly verified adapter. No host permission or desktop is changed.
+
+### V1 exact Medium input prerequisites — 2026-10-22 follow-up
+
+Actual0072 observed both source-owner and foreground GUI facts and a successful
+current-virtual-desktop query, but sent no input because the TEST root hit
+oracle required HTCLIENT. Re-read Terminal tag `v1.25.2733.0` (the already pinned
+MIT revision above), `NonClientIslandWindow.cpp` root hit testing and issue8795:
+an external root HTCAPTION result cannot establish that its XAML client is
+unusable. The separate next subcase verifies keyboard command semantics only
+under an already exact foreground/focus; it does not reinterpret HTCAPTION,
+claim a mouse-client click, or remove product hit/permission gates. No external
+implementation code copied or adapted.
+
+Actual630b created the frozen ordinary Medium product GUI. Its first paired
+Esc SendInput inserted zero with raw error5. This does not uniquely identify
+UIPI or a platform root cause. Re-read the official
+[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput),
+[SetThreadDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddesktop),
+[CreateDesktopW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-createdesktopw),
+[desktop access rights](https://learn.microsoft.com/en-us/windows/win32/winstation/desktop-security-and-access-rights)
+and [thread desktop connection](https://learn.microsoft.com/en-us/windows/win32/winstation/thread-connection-to-a-desktop)
+contracts. The assigned desktop handle constrains subsequent thread operations;
+ordinary new-process desktop connection attempts MAXIMUM_ALLOWED. Neither
+SendInput nor Shell_NotifyIcon documentation identifies a missing bit in195.
+One bounded TEST comparison requests the original minimum195 plus
+MAXIMUM_ALLOWED only when creating the exact fresh Run object for UI/client
+input. The existing token and inherited descriptor still decide the grant;
+its effective mask is unknown. No ACL, owner, token, account, host setting or
+other desktop is changed. No bit-by-bit retries or security bypass is planned;
+failure remains failure and cleanup is independently observed. API reference
+revision N/A; no documentation implementation/sample code reused.
+
+The next product candidate explicitly carries one immutable, exact-manifest
+Run desktop context through Catalog, InputService, native writer, the shared
+GestureInputShield and visual-recovery helper. This is not a rename of old
+owned/Explorer tokens. Reused the existing AltSnap review's bounded candidate
+enumeration and FancyZones review's reason-bearing eligibility, virtual-
+desktop uncertainty and teardown-history conclusions at their registered
+revisions above; no new upstream code reuse. Actual0072 establishes that this
+particular Medium source's owner GUI and VDM can be queried successfully.
+Two complete memberships on the held exact Run desktop plus stable HWND/PID/
+TID/birth form a distinct adapter evidence source when foreign GetThreadDesktop
+is unknown; a known contradictory source name or input-state still rejects.
+Unknown query flags remain unknown in receipts. Medium/SID/session, active
+unlocked WinSta0 owner/input UOI_IO, original VDM S_OK/TRUE, foreground, GUI,
+generation, actual END and capture remain separate mandatory gates. No target
+eligibility arises from a read-only desktop membership alone. Ordinary-host
+and historical adapters retain their Default route; the candidate needs fresh
+native verification and earns no compatibility/feature PASS from compilation.

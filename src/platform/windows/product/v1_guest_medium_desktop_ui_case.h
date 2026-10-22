@@ -2,7 +2,8 @@
 
 // TEST ONLY, included inside the guarded fixture namespace. This is one
 // ordinary-GUI/tray case on a fresh Run desktop, not product target authority
-// or an alternative input route. Existing Default guards stay untouched.
+// or product target authority. The product reports its actual context route;
+// this case does not infer enhancement success from resource initialization.
 bool input_actor_same_user(HANDLE);
 
 struct MediumDesktopUiInputLease {
@@ -292,7 +293,8 @@ public:
         const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);com_=SUCCEEDED(apartment);
         out_.emit("medium_desktop_ui_scope","\"run_id\":"+quote(utf8(run_))+",\"product_source\":"+quote(source_)+
             ",\"product_sha256\":"+quote(sha_)+",\"ordinary_no_arguments\":true,\"test_only_UI_case\":true,\"automated_guest_driver\":true,"
-            "\"product_Default_input_guards_unchanged\":true,\"product_enhancement_PASS_inferred\":false,\"CoInitializeEx_hresult\":"+std::to_string(static_cast<long>(apartment)));
+            "\"ordinary_host_Default_guards_unchanged\":true,\"candidate_Run_context_requires_actual_product_receipt\":true,"
+            "\"product_enhancement_PASS_inferred\":false,\"CoInitializeEx_hresult\":"+std::to_string(static_cast<long>(apartment)));
         try{
             const auto parent=product_.parent_path();const fs::path output=L"C:\\PaneBindV1\\Output";
             const bool path=equal(parent.wstring(),(output/(run_+L"-product-Debug")).wstring())||equal(parent.wstring(),(output/(run_+L"-product-Release")).wstring());
@@ -360,7 +362,7 @@ public:
         }catch(const std::exception& error){out_.reason=error.what();failure_close();}
         catch(...){out_.reason="Medium_UI_unexpected_exception_actual_launch_flags_retained";failure_close();}
         const auto product_log=process_?read(product_.parent_path()/L"panebind.log.jsonl"):std::string{};
-        for(const auto* wanted:{"startup","input_route","shutdown"}){
+        for(const auto* wanted:{"startup","input_route","desktop_context","shutdown"}){
             std::istringstream lines(product_log);std::string line,last;
             while(std::getline(lines,line))if(line.find("\"source_sha\":"+quote(source_))!=line.npos&&
                 line.find("\"type\":"+quote(wanted))!=line.npos&&number(line,"\"process_id\":")==pid_)last=line;
@@ -383,7 +385,7 @@ public:
             ",\"input_sent\":"+(out_.input_sent?"true":"false")+
             ",\"WinEvent_objects_unhook_return\":"+(objects_stopped?"true":"false")+",\"WinEvent_foreground_unhook_return\":"+(foreground_stopped?"true":"false")+
             ",\"input_pair_incomplete\":"+(lease_&&lease_->incomplete_pair.load()?"true":"false")+",\"local_cleanup_known\":"+(out_.cleanup_known?"true":"false")+
-            ",\"product_Move_Resize_Ctrl\":\"NOT_RUN\",\"resume_enhancement\":\"NOT_RUN_Default_guard_unchanged\",\"help_diagnostic_this_case\":\"NOT_RUN\","
+            ",\"product_Move_Resize_Ctrl\":\"NOT_RUN\",\"resume_enhancement\":\"NOT_RUN_UI_ONLY_SUBCASE\",\"help_diagnostic_this_case\":\"NOT_RUN\","
             "\"TaskbarCreated_or_real_Shell_restart\":\"NOT_RUN\",\"whole_M01_B27_B28_PASS_inferred\":false,\"human_UAT\":\"NOT_RUN\"");
     }
 };

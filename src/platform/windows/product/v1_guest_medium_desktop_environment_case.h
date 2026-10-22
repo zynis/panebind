@@ -160,14 +160,23 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
             ",\"preexisting_handle_closed\":"+(before_closed?"true":"false")+",\"baseline_is_not_atomic_CREATE_NEW\":true");
         if(!enumerated||existing.matches||before||open_error!=ERROR_FILE_NOT_FOUND||!before_closed)
             throw std::runtime_error("Run_desktop_name_preexisting_or_freshness_unknown");
-        constexpr ACCESS_MASK access=DESKTOP_CREATEWINDOW|DESKTOP_READOBJECTS|DESKTOP_WRITEOBJECTS|DESKTOP_ENUMERATE;
+        constexpr ACCESS_MASK observer_access=DESKTOP_CREATEWINDOW|DESKTOP_READOBJECTS|DESKTOP_WRITEOBJECTS|DESKTOP_ENUMERATE;
+        // One TEST comparison on this newly named object only. SetThreadDesktop
+        // uses the assigned handle's granted rights. Let the existing token and
+        // inherited descriptor decide MAXIMUM_ALLOWED for the two input cases;
+        // this does not modify either or identify the cause of prior error 5.
+        // Keep the original no-input observer's 195 mask unchanged.
+        const bool input_handle_comparison=ui_request||(native_request&&native_request->client_input);
+        const ACCESS_MASK access=observer_access|(input_handle_comparison?MAXIMUM_ALLOWED:0);
         SetLastError(ERROR_SUCCESS);created=CreateDesktopW(name.c_str(),nullptr,nullptr,0,access,nullptr);
         const DWORD create_error=created?0:GetLastError();
         const auto created_name=created?medium_desktop_object_name(created):std::wstring{};
         out.emit("medium_desktop_create","\"desktop_name\":"+quote(utf8(name))+",\"CreateDesktop_return\":"+
             (created?"true":"false")+",\"win32_error\":"+std::to_string(create_error)+",\"requested_access\":"+std::to_string(access)+
             ",\"actual_created_object_name\":"+quote(utf8(created_name))+
-            ",\"flags\":0,\"security_attributes_NULL\":true,\"security_descriptor_inherited_unmodified\":true,\"input_desktop_switched\":false");
+            ",\"requested_MAXIMUM_ALLOWED_for_exact_input_case\":"+(input_handle_comparison?"true":"false")+
+            ",\"effective_granted_mask\":null,\"grant_is_decided_by_existing_token_and_inherited_descriptor\":true,"
+            "\"flags\":0,\"security_attributes_NULL\":true,\"security_descriptor_inherited_unmodified\":true,\"input_desktop_switched\":false");
         if(!created||!equal(created_name,name))throw std::runtime_error("CreateDesktop_failed_or_exact_Run_object_unverified_inherited_security_not_changed");
         const auto baseline=MediumDesktopWindows::read(created);
         // A new desktop was actually observed returning FALSE/error0 without

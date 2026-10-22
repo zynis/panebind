@@ -2,8 +2,8 @@
 
 // TEST ONLY, inside the guarded fixture's unnamed namespace. The original
 // environment case has no product/input; the separate exact UI case is bounded
-// and never relaxes the product's Default-desktop input eligibility.
-// The caller retains its original 195-access desktop and exact child identity.
+// and never grants product target authority or changes ordinary-host guards.
+// The caller retains its exact newly-created desktop and child identity.
 struct MediumDesktopActivationInput {
     bool opened{},name_known{},io_known{},receiving{},closed{};
     DWORD open_error{},name_error{},io_error{},close_error{};std::wstring name;
@@ -242,8 +242,10 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
     SetLastError(ERROR_SUCCESS);state->original=OpenDesktopW(L"Default",0,FALSE,access);
     const DWORD original_error=state->original?0:GetLastError();
     const auto target_name=medium_desktop_activation_name(state->target),default_name=medium_desktop_activation_name(state->original);
-    out.emit("medium_desktop_activation_handles","\"requested_access\":257,\"original_created_access_unchanged\":195,"
-        "\"target_open_return\":"+std::string(state->target?"true":"false")+",\"target_error\":"+std::to_string(target_error)+
+    const ACCESS_MASK original_request=195|((ui_request||(native_request&&native_request->client_input))?MAXIMUM_ALLOWED:0);
+    out.emit("medium_desktop_activation_handles","\"requested_access\":257,\"original_created_requested_access\":"+
+        std::to_string(original_request)+",\"effective_created_granted_mask\":null,\"target_open_return\":"+
+        std::string(state->target?"true":"false")+",\"target_error\":"+std::to_string(target_error)+
         ",\"actual_target_name\":"+quote(utf8(target_name))+",\"Default_open_return\":"+(state->original?"true":"false")+
         ",\"Default_error\":"+std::to_string(original_error)+",\"actual_Default_name\":"+quote(utf8(default_name))+
         ",\"DACL_label_token_or_account_changed\":false");
@@ -292,7 +294,7 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
                 out.emit("medium_desktop_UI_independent_product_observation",
                     "\"own_notification_probe_repeated\":false,\"prior_probe_failure_preserved\":true,"
                     "\"ordinary_GUI_not_conditioned_on_probe_bool\":true,\"actual_product_UID1_rect_and_hit_still_required_for_tray_input\":true,"
-                    "\"product_enhancement_Default_guards_changed\":false");
+                    "\"ordinary_host_Default_guards_changed\":false,\"product_Run_context_from_actual_receipts_only\":true");
                 out.ui_cleanup_known=false;
                 const auto elapsed=GetTickCount64()-state->began;
                 const DWORD remaining=elapsed<state->deadline_ms?static_cast<DWORD>(state->deadline_ms-elapsed):0;

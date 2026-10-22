@@ -1429,6 +1429,9 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         '(rect_return?rect({rectangle.left,rectangle.top,rectangle.right,rectangle.bottom}):"null")',
         'actual_created_object_name','!equal(created_name,name)',
         'unknown_zero_baseline=!baseline.complete&&baseline.error==ERROR_SUCCESS&&baseline.windows.empty()',
+        'input_handle_comparison=ui_request||(native_request&&native_request->client_input)',
+        'access=observer_access|(input_handle_comparison?MAXIMUM_ALLOWED:0)',
+        'effective_granted_mask',
         '!baseline.windows.empty()||(!baseline.complete&&!unknown_zero_baseline)',
         'event_hook=SetWinEventHook(EVENT_OBJECT_CREATE,EVENT_OBJECT_SHOW,nullptr,',
         'medium_desktop_window_event,0,0,WINEVENT_OUTOFCONTEXT)',
@@ -1467,6 +1470,7 @@ Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironm
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('restore_attempted=out.event_hook_stopped','restore_attempted=true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects restoring the thread before confirmed own hook unload'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('out.rect_return=GetWindowRect(h,&out.rectangle)!=FALSE','out.rect_return=!out.desktop_name.empty()&&GetWindowRect(h,&out.rectangle)!=FALSE')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static actual window reader rejects reintroducing foreign-desktop UNKNOWN short-circuit before native geometry read'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('if(readonly_root&&fresh.hwnd==shell_after)','if(readonly_root&&!fresh.desktop_name.empty()&&fresh.hwnd==shell_after)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static actual Shell counter rejects converting UNKNOWN foreign-thread desktop query into zero readonly Shell roots'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('input_handle_comparison=ui_request||(native_request&&native_request->client_input)','input_handle_comparison=true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static input-handle comparison cannot silently broaden the original no-input desktop observation'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('readonly_root=first.complete&&second.complete&&held_desktop_exact&&in_second&&facts[n].readonly_same(fresh)','readonly_root=facts[n].readonly_same(fresh)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static readonly Shell roots still require complete membership in the same held created desktop twice'
 foreach($script in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
     Check ($script.Contains("'CurrentCoreChainOnly'")) 'static current core chain retains exact preparation, guest and deployment admission'
@@ -1679,8 +1683,11 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
         'GetGUIThreadInfo(requested,&gui)','GetThreadDesktop(tid)',
         'desktops->IsWindowOnCurrentVirtualDesktop(source,&current)','queried==S_OK?',
         'source_position_read','EqualRect(&actual_position,&source_position)',
-        'returned&&result==HTCLIENT&&stable&&context()&&client_hit(point)',
-        'fresh_client_point()&&GetCursorPos(&actual)','!lease->begin()',
+        'gui.hwndFocus==focused&&actual_tid==focus_tid&&actual_pid==pid',
+        'EqualRect(&actual_focus,&focus_position)',
+        'identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons()',
+        'send(text.data(),static_cast<UINT>(text.size()),fresh_keyboard_focus',
+        'send(enter,2,fresh_keyboard_focus','!lease->begin()',
         'SendInput(count,packets,sizeof(INPUT))','inserted%2','incomplete_pair.store(true',
         'ReadDirectoryChangesW(directory,buffer.data()','CancelIoEx(directory,&operation)',
         'if(file_watch->pending)file_watch.release()','completions>=4',
@@ -1691,10 +1698,13 @@ function Assert-V1MediumTerminalClient([string]$Fixture,[string]$Environment,[st
     if($Client -match '\b(SetWindowPos|SetForegroundWindow|SetFocus|ReleaseCapture|SetCapture|TerminateProcess|Sleep|SetTokenInformation|SetUserObjectSecurity)\s*\(' -or $Client.Contains('INFINITE')){
         throw 'Client preflight cannot force foreground/capture, change permissions or poll.'
     }
+    if($Client.Contains('MOUSEEVENTF_LEFTDOWN') -or $Client.Contains('MOUSEEVENTF_ABSOLUTE')){
+        throw 'The keyboard-only Terminal nonce subcase cannot quietly claim or insert mouse-client input.'
+    }
 }
 $mediumClientSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_native_client_case.h'),[Text.Encoding]::UTF8)
 Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource $mediumClientSource
-Check $true 'static exact Terminal client uses fresh HTCLIENT, retiring paired input and actual nonce file, with readonly GUI and VDM facts'
+Check $true 'static exact Terminal keyboard nonce uses fresh existing focus, paired input and actual nonce; root hit remains observation and mouse is not run'
 Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('bytes==utf8(nonce)','true'))} 'static Terminal client rejects SendInput success substituted for actual command receipt'
-Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('returned&&result==HTCLIENT&&stable&&context()&&client_hit(point)','returned&&stable&&context()&&client_hit(point)'))} 'static Terminal client refuses a stale or nonclient hit before the real click'
+Reject {Assert-V1MediumTerminalClient $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource ($mediumClientSource.Replace('identity&&geometry&&mapped_back&&dpi&&stable&&context()&&no_buttons()','context()'))} 'static Terminal keyboard nonce cannot bypass fresh focus and geometry checks'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

@@ -136,7 +136,7 @@ panebind_enable_warnings(panebind_windows_live_move_writer)
 add_library(panebind_windows_gesture_input_shield STATIC
     operations/gesture_input_shield.cpp)
 target_link_libraries(panebind_windows_gesture_input_shield
-    PUBLIC panebind_core PRIVATE user32 dwmapi wtsapi32)
+    PUBLIC panebind_core PRIVATE user32 dwmapi wtsapi32 advapi32)
 target_compile_definitions(panebind_windows_gesture_input_shield PRIVATE
     NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE WINVER=0x0A00 _WIN32_WINNT=0x0A00)
 panebind_enable_warnings(panebind_windows_gesture_input_shield)
