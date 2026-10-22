@@ -155,10 +155,13 @@ class MediumDesktopProductGeometryCase {
         if(!generation_)return false;std::istringstream lines(log());std::string actual;
         while(std::getline(lines,actual))if(number(actual,"\"generation\":")==generation_){
             bool ended=actual.find("\"type\":\"gesture_end\"")!=actual.npos||
-                actual.find("\"type\":\"native_move_passthrough_release\"")!=actual.npos;
+                actual.find("\"type\":\"native_move_passthrough_release\"")!=actual.npos||
+                actual.find("\"type\":\"gesture_begin_rejected\"")!=actual.npos||
+                (actual.find("\"type\":\"native_move_handoff\"")!=actual.npos&&
+                    actual.find("\"accepted\":false")!=actual.npos);
             if(actual.find("\"type\":\"gesture_input_resource\"")!=actual.npos){
                 for(const auto* fact:{"isolation_gone","capture_lost","capture_failure","context_lost","resource_failure",
-                    "deadline","legacy_left_up","capture_released","thread_detached"})
+                    "deadline","hotkey_stop","thread_association_failure","legacy_left_up","capture_released","thread_detached"})
                     ended=ended||actual.find("\"fact\":"+quote(fact))!=actual.npos;
                 ended=ended||(actual.find("\"fact\":\"raw_mouse\"")!=actual.npos&&
                     (number(actual,"\"raw_button_flags\":")&RI_MOUSE_LEFT_BUTTON_UP));

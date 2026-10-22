@@ -1722,6 +1722,7 @@ function Assert-V1MediumProductGeometry([string]$Environment,[string]$UI,[string
         'first.pid==second.pid','first.tid==second.tid',
         'manager->IsWindowOnCurrentVirtualDesktop(target_,&current)','queried!=S_OK',
         'lease_->begin()','if(!allowed())throw','(cleanup||!retired())',
+        '"hotkey_stop"','"thread_association_failure"','actual.find("\"type\":\"native_move_handoff\"")',
         'SendInput(count,packets.data(),sizeof(INPUT))','incomplete_pair.store(true',
         'matching_clean_captured_up','up_qpc_','legacy_left_up','isolation_gone',
         'ProductLogEvidence','evidence_.begin(product_pid_,product_birth_,launch_tick_,source_)',
