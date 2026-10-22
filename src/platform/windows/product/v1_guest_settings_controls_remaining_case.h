@@ -26,7 +26,7 @@ panebind::core::v1::Settings settings_controls_numbers(State& s,int adjacency,in
     s.log.check("settings_controls_four_numeric_GUI_save_exact",saved==wanted&&saved.generation>before.generation,
         "\"adjacency_DIP\":"+std::to_string(adjacency)+",\"step_DIP\":"+std::to_string(step)+
         ",\"preview_alpha\":"+std::to_string(alpha)+",\"preview_fill_COLORREF\":"+std::to_string(color)+
-        ",\"generation\":"+std::to_string(saved.generation)+",\"configuration_file_directly_written\":false);
+        ",\"generation\":"+std::to_string(saved.generation)+",\"configuration_file_directly_written\":false");
     return saved;
 }
 void settings_controls_restore(State& s,const panebind::core::v1::Settings& original){
@@ -100,14 +100,30 @@ void owned_settings_preview_controls_case(State& s){
         s.log.check("settings_controls_changed_preview_native_alpha_and_paint_ready",preview_observed,
             "\"generation\":"+std::to_string(g.generation)+",\"actual_alpha\":"+std::to_string(actual_alpha)+
             ",\"layered_flags\":"+std::to_string(flags)+",\"colorkey_not_used_as_fill_color_proof\":true");
-        const HDC screen=GetDC(nullptr);const COLORREF pixel=screen?GetPixel(screen,sample.x,sample.y):CLR_INVALID;
+        // This TEST caller's DwmFlush is not a foreign product/session flush.
+        // Actual appearance is established below by a bounded read-only wait
+        // for this fixed opaque pixel, with no further input or changed oracle.
+        const HRESULT presented=DwmFlush();
+        s.log.check("settings_controls_changed_preview_actual_DwmFlush",SUCCEEDED(presented)&&
+            set.owns(0)&&visible(source)==raw&&GetForegroundWindow()==source&&
+            chain_preview(s)==overlay&&IsWindowVisible(overlay),
+            "\"generation\":"+std::to_string(g.generation)+",\"DwmFlush_actual_HRESULT\":"+
+            std::to_string(presented)+",\"calls\":1,\"screen_pixel_not_read_on_failure\":true,"+
+            "\"does_not_flush_entire_session\":true,\"foreign_product_frame_completion_inferred\":false");
+        const HDC screen=GetDC(nullptr);COLORREF pixel=CLR_INVALID;unsigned samples{};bool pixel_observed=false;
+        try{pixel_observed=screen&&wait([&]{
+            if(!s.left||!(GetAsyncKeyState(VK_LBUTTON)&0x8000)||!set.owns(0)||visible(source)!=raw||
+               GetForegroundWindow()!=source||chain_preview(s)!=overlay||!IsWindowVisible(overlay))return false;
+            ++samples;pixel=GetPixel(screen,sample.x,sample.y);return pixel==fill;
+        },1000);}catch(...){if(screen)ReleaseDC(nullptr,screen);throw;}
         const bool released=screen&&ReleaseDC(nullptr,screen)==1;
-        s.log.check("settings_controls_changed_preview_actual_opaque_fill_pixel",released&&pixel==fill&&
+        s.log.check("settings_controls_changed_preview_actual_opaque_fill_pixel",pixel_observed&&released&&pixel==fill&&
             set.owns(0)&&visible(source)==raw&&GetForegroundWindow()==source&&chain_preview(s)==overlay&&IsWindowVisible(overlay),
             "\"generation\":"+std::to_string(g.generation)+",\"screen_sample\":["+std::to_string(sample.x)+","+std::to_string(sample.y)+
             "],\"actual_screen_COLORREF\":"+(pixel==CLR_INVALID?"null":std::to_string(pixel))+
             ",\"independent_expected_RGB_32_96_160\":"+std::to_string(fill)+",\"actual_alpha\":255,\"screen_DC_released\":"+
-            (released?"true":"false")+",\"sampling_semantics\":\"desktop_composition_at_exact_owned_blank_client_inside_opaque_preview\",\"pixels_read\":1");
+            (released?"true":"false")+",\"sampling_semantics\":\"desktop_composition_at_exact_owned_blank_client_inside_opaque_preview\","+
+            "\"fixed_pixel_read_samples\":"+std::to_string(samples)+",\"readiness_deadline_ms\":1000,\"extra_input_or_oracle_changes\":false,\"color_tolerance\":0");
         const Rect away=translated(initial,24,17);layout_phase(set,0,g,24,17,{away},"settings_controls_leave_changed_preview");
         chain_preview_hidden(s,"settings_controls_changed_preview_cancelled_without_commit");
         layout_up(set,g,{away});chain_preview_hidden(s,"settings_controls_changed_preview_hidden_after_actual_UP");
@@ -172,4 +188,59 @@ void owned_settings_step_control_case(State& s){
         s.log.emit("settings_controls_step_component","\"result\":\"PASS\",\"changed_GUI_step_changes_real_Move_and_Resize_command\":true,\"hotkey_mapping_or_full_version_PASS_inferred\":false");
     }catch(...){pause_routing_failed_case_input(s);
         try{if(!set.closed)set.close();}catch(...){}try{if(s.process&&!s.left&&!s.control)settings_controls_restore(s,original);}catch(...){}throw;}
+}
+
+panebind::core::v1::Settings settings_controls_animation_save(State& s,bool enabled){
+    settings_controls_scope(s);const auto before=chain_settings(s);auto wanted=before;wanted.animations=enabled;
+    const auto gui=gui_open(s);gui_page_select(s,gui,0);
+    chain_checkbox(s,gui,L"设置窗口打开时淡入",enabled);
+    gui_save_enter(s,gui);const auto saved=chain_settings(s);wanted.generation=saved.generation;
+    s.log.check("settings_controls_animation_actual_public_Save",saved==wanted&&saved.generation>before.generation,
+        "\"requested_animation_option\":"+std::string(enabled?"true":"false")+",\"actual_saved_generation\":"+
+        std::to_string(saved.generation)+",\"all_other_options_preserved\":true,\"animation_native_API_trace\":\"NOT_RUN\"");
+    return saved;
+}
+void owned_settings_animation_control_case(State& s){
+    settings_controls_scope(s);const auto original=chain_settings(s);
+    const auto pid=s.product_pid;const auto birth=process_birth(s.process);const auto binary=hash(s.product);
+    if(original.animations)throw std::runtime_error("settings_animation_test_requires_actual_default_OFF_before_ON_OFF_pair");
+    try{
+        const auto enabled=settings_controls_animation_save(s,true);
+        auto gui=gui_open(s);gui_page_select(s,gui,0);
+        const auto checkbox=gui_find(s,gui,L"Button",L"设置窗口打开时淡入");
+        const HWND focus=gui_focus(gui);
+        s.log.check("settings_controls_animation_ON_reopens_actual_visible_focused_GUI",
+            gui_identity(s,gui,checkbox)&&IsWindowVisible(gui.root)&&IsWindowEnabled(gui.root)&&
+            GetForegroundWindow()==gui.root&&gui_identity(s,gui,focus)&&
+            gui_read(s,gui,checkbox,BM_GETCHECK)==BST_CHECKED&&chain_settings(s)==enabled,
+            "\"settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+            ",\"actual_focus_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+
+            ",\"saved_animation_option\":true,\"fade_or_AnimateWindow_call_inferred_from_visible_GUI\":false");
+        // Save OFF in this actually reopened GUI, rather than changing a file
+        // or asserting that a checkbox readback proves an animation API call.
+        chain_checkbox(s,gui,L"设置窗口打开时淡入",false);gui_save_enter(s,gui);
+        const auto disabled=chain_settings(s);auto expected=enabled;expected.animations=false;expected.generation=disabled.generation;
+        s.log.check("settings_controls_animation_OFF_actual_same_GUI_Save",disabled==expected&&disabled.generation>enabled.generation);
+        gui=gui_open(s);gui_page_select(s,gui,0);
+        const auto off_checkbox=gui_find(s,gui,L"Button",L"设置窗口打开时淡入");const HWND off_focus=gui_focus(gui);
+        s.log.check("settings_controls_animation_OFF_reopens_actual_visible_focused_GUI",
+            gui_identity(s,gui,off_checkbox)&&IsWindowVisible(gui.root)&&IsWindowEnabled(gui.root)&&
+            GetForegroundWindow()==gui.root&&gui_identity(s,gui,off_focus)&&
+            gui_read(s,gui,off_checkbox,BM_GETCHECK)==BST_UNCHECKED&&chain_settings(s)==disabled,
+            "\"settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+            ",\"actual_focus_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(off_focus))+
+            ",\"actual_saved_animation_option\":false,\"animation_native_API_trace\":\"NOT_RUN\","+
+            "\"source_fact\":\"settings_window.cpp animate() short-circuits on draft.animations=false; show() skips AnimateWindow when !animate()\""+
+            ",\"timing_threshold_used_as_API_evidence\":false");
+        const auto bytes=read(s.product.parent_path()/L"settings.ini");gui_press(s,gui,VK_ESCAPE);
+        auto restored=original;restored.generation=disabled.generation;
+        s.log.check("settings_controls_animation_original_options_and_cancel_restored",
+            wait([&]{return !IsWindow(gui.root);})&&chain_settings(s)==restored&&
+            read(s.product.parent_path()/L"settings.ini")==bytes&&hash(s.product)==binary);
+        chain_check_product(s,pid,birth);
+        s.log.emit("settings_controls_animation_component","\"result\":\"PASS_PUBLIC_CONTROL_SOURCE_AND_RUNTIME_SCOPE\","+
+            std::string("\"actual_ON_Save_visible_reopen_then_OFF_Save_visible_reopen\":true,\"original_options_restored\":true,")+
+            "\"OFF_short_circuit_basis\":\"actual false saved value plus unchanged production source\",\"AnimateWindow_native_call_trace\":\"NOT_RUN\",\"100ms_fade_trajectory\":\"NOT_RUN\",\"system_animation_policy_changed\":false,\"whole_version_PASS\":false");
+    }catch(...){pause_routing_failed_case_input(s);
+        try{if(s.process&&!s.left&&!s.control)(void)settings_controls_animation_save(s,original.animations);}catch(...){}throw;}
 }

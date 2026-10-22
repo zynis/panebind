@@ -3411,9 +3411,10 @@ void independent_entry_flow(State& s,bool core_and_applications=false){
         phase("changed_preview_color_alpha_and_four_numeric_restart",owned_settings_preview_controls_case);
         phase("changed_adjacency_controls_actual_Ctrl_membership",owned_settings_adjacency_control_case);
         phase("changed_step_control_actual_public_Move_and_Resize",owned_settings_step_control_case);
+        phase("actual_animation_option_ON_OFF_Save_and_visible_reopen",owned_settings_animation_control_case);
         cleanup(s);
         s.log.emit("settings_controls_remainder_summary","\"suite\":\"SettingsControlsRemainderOnly\",\"result\":"+quote(s.log.failed?"FAIL":"PASS")+
-            ",\"scope\":\"public_GUI_preview_color_alpha_adjacency_and_command_step_actual_effects\",\"animation_API_execution\":\"NOT_RUN\",\"tray\":\"NOT_RUN\",\"other_DPI\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
+            ",\"scope\":\"public_GUI_preview_color_alpha_adjacency_command_step_and_animation_ON_OFF_visible_reopen\",\"animation_API_execution\":\"NOT_RUN\",\"100ms_fade_trajectory\":\"NOT_RUN\",\"tray\":\"NOT_RUN\",\"other_DPI\":\"NOT_RUN\",\"Full_suite\":\"NOT_RUN\",\"whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
         return;
     }
     if(s.suite=="RulesPathOnly"){
