@@ -10,6 +10,27 @@
   "source_identity": {
     "current_functional_runtime": {
       "kind": "CURRENT42AB_ACTUAL_FUNCTIONAL_REVIEW_KEEP_ORDINARY_PORTABLE_IDENTITY_SEPARATE",
+      "latest_Explorer_qualification_observation": {
+        "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+        "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+        "driver_release_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+        "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+        "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+        "physical_new_Cabinet_root_observed": true,
+        "root_birth_filetime_decimal": "134371542859103463",
+        "root_integrity_rid": 8192,
+        "root_TokenElevation": true,
+        "product_Medium_non_elevated_eligibility": false,
+        "unique_exact_directory_path_confirmed": false,
+        "Explorer_DOWN": 0,
+        "Explorer_placement": 0,
+        "evidence_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+        "no_new_product_EXE": true,
+        "no_feature_or_B_score_change": true,
+        "overall_process_cleanup": "UNKNOWN",
+        "guest_task_cleanup": "ACTUAL_COMPLETED_2026_10_22_14_54_06_3426970Z",
+        "next_action": "Stop unchanged launch route; requires actual non-elevated Explorer plus a reliable single exact Shell path in a disposable complete Medium desktop; tray/client/other-app/display issues remain separate."
+      },
       "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
       "ordinary_portable": {
@@ -289,7 +310,7 @@
       "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "native_runtime": "ACTUAL_F78D_PORTABLE_ENTRY_SETTINGS_TWO_NORMALUP_AND_EXIT",
       "historical_scope": "Current42ab/d5f5/f78d ordinary entry is actually verified. 744e/af4 Terminal geometry and744e/3d tray/e538 root remain original identities. bb23 complete9file collection confirms bounded shell-ready timeout before client input/product launch; not a product failure. Future Terminal five-phase/Ctrl TEST extension is coding only without source/hash/result.",
-      "scope": "The unchanged product/driver fields above retain the actual42ab/d5f5/f78d ordinary-entry identity. Terminal five-phase magnet/Ctrl is no longer coding-only: frozen42ab/e869/4ff6 actual diagnostic observations and e38/750b fixed-size results are separately sealed and referenced by source_identity.current_functional_runtime. Historical744e/af4/3d/e538 and bb23 ready-timeout/client-zero-input facts remain at their original identities. Tray menu, client semantics and full application/environment gates remain incomplete. Subsequent917240c TEST changes only a new Explorer read-only discriminator, not product42ab; its build does not imply native PASS."
+      "scope": "The unchanged product/driver fields above retain the actual42ab/d5f5/f78d ordinary-entry identity. Terminal five-phase magnet/Ctrl is no longer coding-only: frozen42ab/e869/4ff6 actual diagnostic observations and e38/750b fixed-size results are separately sealed and referenced by source_identity.current_functional_runtime. Historical744e/af4/3d/e538 and bb23 ready-timeout/client-zero-input facts remain at their original identities. Tray menu, client semantics and full application/environment gates remain incomplete. The917240c read-only discriminator actually ran as69f4: a physical new heldRun Cabinet root exists with RID8192/elevated=true, but exact Shell path/Medium-non-elevated qualification remain unconfirmed, with zero Explorer DOWN/placement. This is not new product code or Explorer functional PASS."
     },
     "observed_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
@@ -564,8 +585,8 @@
         "next_action": "本Full部署保留11ae/dfdd历史身份；当前4f7 callback/Focus/规则和5f87普通包实际范围另见current_targeted_runtime/current_package，不能改绑此Full。新CurrentCore TEST仅构建，后续按影响执行必要当前链，不重跑独立900秒或旧专项。"
       },
     "implementation_inspected": "CURRENT42AB_FROZEN_EXE_PORTABLE_AND_NATIVE_RESIZE_TERMINAL_MAGNET_CTRL_SCOPES_WITH_HISTORICAL_BOUNDARIES",
-    "note": "当前独立DEV44/60、22/40=55%、modules0/PARTIAL。M05-F04/B05依据当前42ab实际G04 D/R组合、f06a真8向/约束、750 fixed黑盒和4ff真实Terminal Resize→Move闭合。42ab/d5f5/f78普通无参包及4ff诊断观测分开，旧744e/212/25b/55f保身份。托盘菜单、Terminal客户语义、Explorer唯一文件窗、其它应用和显示硬门仍缺；不将当前子范围当普通完整Medium桌面或整版通过。",
-    "pending_product_note": "当前产品42ab EXE冻结，普通候选d5f5/f78已实际普通入口通过；工具dd4a/e869/e38分别运行f06a/4ff/750，不重建产品、不改绑旧EXE。4ff五阶段磁吸/两成员Ctrl及五NormalUp已实际通过，托盘仍FAIL_OR_BLOCKED且整体进程树cleanup UNKNOWN；bb23客户ready0B/零输入原失败保留。750已完成而非待运行。HC scheme恢复、其它应用和外部显示独立推进；整版PARTIAL/真人PENDING。",
+    "note": "当前独立DEV44/60、22/40=55%、modules0/PARTIAL。M05-F04/B05依据当前42ab实际G04 D/R组合、f06a真8向/约束、750 fixed黑盒和4ff真实Terminal Resize→Move闭合。42ab/d5f5/f78普通无参包及4ff诊断观测分开，旧744e/212/25b/55f保身份。托盘菜单、Terminal客户语义、Explorer非elevated资格/单条精确路径、其它应用和显示硬门仍缺；不将当前子范围当普通完整Medium桌面或整版通过。",
+    "pending_product_note": "当前产品42ab EXE冻结，普通候选d5f5/f78已实际普通入口通过；工具dd4a/e869/e38分别运行f06a/4ff/750，不重建产品、不改绑旧EXE。4ff五阶段磁吸/两成员Ctrl及五NormalUp已实际通过，托盘仍FAIL_OR_BLOCKED且整体进程树cleanup UNKNOWN；bb23客户ready0B/零输入原失败保留。750已完成而非待运行；917/69f4已实际只读确认新Cabinet存在但RID8192/elevated=true被拒且Shell exactpath未确认，g0/零Explorer输入，停止当前相同launch路线。HC scheme恢复、其它应用和外部显示独立推进；整版PARTIAL/真人PENDING。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1089,7 +1110,7 @@
       "whole_version_and_trial_accepted": false,
       "historical_next_action": "复用当前11ae实际结果与2432便携限定证据，继续确切未齐应用/托盘/显示和连续操作合同；RemainingMoveContractsOnly新驱动结果另按封存实际证据接续，工具回执误FAIL不登记产品缺陷。不盲重旧Full/独立900或已关闭专项。",
       "historical_only": true,
-      "next_action": "本对象仅封存11ae/dfdd及2432历史候选，不再表示当前产品或待构建方案，以上原SHA/hash/run不变。当前冻结产品42ab及4ff6/e869、f06a/dd4a、750b/e38实际功能结果以source_identity.current_functional_runtime和各seal为准；继续其明确未齐合同，不重放已关闭专项。917240c仅新Explorer只读TEST观察候选，构建不授现场结果。"
+      "next_action": "本对象仅封存11ae/dfdd及2432历史候选，不再表示当前产品或待构建方案，以上原SHA/hash/run不变。当前冻结产品42ab及4ff6/e869、f06a/dd4a、750b/e38实际功能结果以source_identity.current_functional_runtime和各seal为准；继续其明确未齐合同，不重放已关闭专项。917240c/69f4只读观察已实际运行：新Cabinet物理存在但elevated=true/精确路径未确认，零Explorer输入，不授功能PASS；需要真实non-elevated且Shell路径可确认的完整Medium隔离桌面。"
     },
     "latest_local_preflight": {
       "observation_id": "PO-R21-LOCAL-MEMORY-DRIVER-BUILD-PASS-SSH-DEPLOYMENT-BLOCKED",
@@ -2604,7 +2625,7 @@
       "remaining_conditions": [
         "五类合格Medium/non-elevated应用与独立工具窗/排除正反合同未齐。"
       ],
-      "next_action": "完整官方Notepad包已取得（主执行者确认f08资产）；先核本Run合法注册/启动入口与真实Medium新root，不再泛称缺制品。其他应用仍按实际前置失败与资格门逐项推进，不放宽权限。",
+      "next_action": "完整f08官方Notepad包已存在；复用e1fc精确ActivityId实测注册失败：Event709 manifest非package root、404内层0x80070057，外层0x80073CF9/异常包装0x80131620分列，staging真正原因UNKNOWN。原解包/绝对manifest路径已实际执行，无新变量不重复注册或启动，不称永久缺制品或只读Input根因。其它真实应用依各自已知前置/资格门继续，不放宽权限。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-ENVIRONMENT-APPLICATIONS"
@@ -2765,9 +2786,9 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01 seq580排除/取消排除与实际动作子项通过，按规则而非标题授予资格。；新R8189对应GUI/启动/五键/导入/损坏/排除组件有本代实际阶段结果，见PO-8189。；d85排除543/36fd545在规则操作前即缺合法caption候选，未发目标DOWN/未验排除效果，不把测试前置失败记产品规则失败。；5017同R2、只改测试布局后，imported-zero实际Move470/UP475、损坏默认实际Move522/UP527、排除native605–609零产品writer与解除后Move632/UP637均通过对应阶段，D20定向关闭。；9d74按原SHA继续实际import/save-failure/corrupt/exclusion及正常UP子项，见PO-9D74。",
       "remaining_conditions": [
-        "当前11ae/2c8公开设置进入先退休活动旧组、下一代排除/恢复已经实际验证；混合真实应用资格/状态变化矩阵仍未齐，独立合同不自动PASS。"
+        "11ae/2c8公开设置进入先退休活动旧组、下一代规则排除/移除恢复已经实际验证，保原身份且不重开。按guide M02-F03独立合同尚缺真实编辑器添加排除→实际零操作→移除后重新采样恢复，不把整个五应用模块矩阵塞入本功能，也不由owned规则通过自动授该子项PASS。"
       ],
-      "next_action": "不再修已解决的测试标题空间或重跑5017。复用当前2c8活动设置与规则实际排除/移除恢复，继续真实应用前置与相应资格/失效矩阵；无新条件不重复原Sandbox应用启动。",
+      "next_action": "复用2c8已过活动设置/owned规则，不重开5017或已闭规则专项；只补独立合同中真实编辑器排除→恢复的实际操作。应用初始化先按其具体失败事实解决，无新条件不重复相同Sandbox启动；五应用与生命周期完整矩阵由模块另判。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-8189-GUI-COMPONENTS-AND-DRIVER-PINS",
@@ -3214,7 +3235,7 @@
       "status_basis": "HISTORICAL_FAILURE_RETAINED_CURRENT_CONTRACT_GAPS_BLOCKED",
       "observed": "当前212/e7 grid4105实际拒绝与后继恢复、477实际START/cancel/END后fresh geometry拒绝且零新placement已观察；不将这些已测子项再写为待跑。 【历史观察保留】c01 seq1957/1958 grid实际单次API TRUE/non-exact后停止；1964原代UP缺失，后续恢复不关闭原失败。 【当前11ae】3f8及dfdd真实grid API TRUE但nonexact拒绝、实际尺寸回读/零递归、后继Move/Ctrl与实际UP已验证；旧c01缺UP原FAIL只属其原构建。当前未发现同类owned产品失败，完整真实应用约束合同仍BLOCKED。",
       "remaining_conditions": [
-        "明确min/max/grid的owned拒绝和恢复已实测；真实应用自己的尺寸约束/栅格与正常Resize→Move前置仍受本批应用条件阻断，不由fixture外推。"
+        "明确min/max/grid的owned拒绝和恢复已实测；当前42ab/4ff真实Terminal正常Resize→Move前置亦已实际通过，不再称其受阻。仍缺真实应用自身min/max/grid预先定义合法集合及产品钳制/拒绝符合该集合的完整约束合同，不由fixture或一次普通Resize外推。"
       ],
       "next_action": "复用当前11ae/dfdd与3f8的实际grid/batch及后继操作，不重跑历史owned约束批次；只补真实应用约束当前确切缺口。",
       "partial_observation_ids": [
@@ -8355,7 +8376,7 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原4f7/4ff的21a四phase控件及重启/实际行为保持原身份；当前25b/001c的a014普通无参打开后真实CtrlTab到第6页，用户保存/取消说明实际Static可见且在viewport中、无旧代际/内部版本术语，返回原页后继续设置实际Move/真UP/退出。仅一行生产metadata文字改变，机制与控件未改；不是新控件矩阵或托盘入口实证。",
       "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
-      "next_action": "a014新metadata及21a/原GUI/规则/映射证据复用，独立F01仍缺真实tray打开，显示/DPI属另项。2b49原private-probe失败保留；其未启动产品不能替代本产品UID1结果。0605/abb1已实际通过现代Terminal原生启动/响应/正常根关闭子范围，客户输入及产品功能未测。下一步本产品独立UID1普通GUI/tray子路径仍在编码、未构建/现场；真实Terminal客户nonce、sourceGUI/VDM只读前置独立推进，不预填未来构建身份或真实tray/整版PASS。",
+      "next_action": "当前42ab/f78普通无参GUI/公开设置已实测，3d与4ff本产品UID1注册/图标矩形/右键前置亦已实际运行，不能再写子路径编码中或未构建/现场；但仍未取得真实tray菜单及从托盘打开设置，故独立F01保持BLOCKED。Terminal sourceGUI/VDM相关exact-Run产品路线已有4ff真实增强，不再仅待只读前置；客户nonce/内容语义仍按bb23等自身事实保留未知。复用已有GUI/规则/映射证据，仅有新可区分依据才推进实际托盘入口，不无变量重复右键，不将显示/DPI或整个五应用模块门混入此独立项。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -13334,15 +13355,18 @@
         "docs/reports/v1-evidence/30bf-medium-desktop-probe-selected.json",
         "docs/reports/v1-evidence/9d74-medium-desktop-probe-selected.json",
         "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json",
-        "docs/reports/v1-evidence/43c-r13-standard-native-entry-selected.json"
+        "docs/reports/v1-evidence/43c-r13-standard-native-entry-selected.json",
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl"
       ],
-      "note": "已有真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。229e新Run Shell/Tray与激活/独立回切已实际完成；2b49自有private-probe ADD失败/产品未启动保留。0605/abb1新active exactMedium桌面中现代Terminal精确可见根、WM_NULL响应和一次正常WM_CLOSE/rootGone已实际观察；客户输入、产品资格及增强、完整应用链仍未证明，Wait258/后exit0不改成全进程退出。不能将其余可推进工作统一为外部阻断。旧43c/5b0身份保留，正式Default保护不变。",
+      "historical_pre_4ff_note": "已有真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。229e新Run Shell/Tray与激活/独立回切已实际完成；2b49自有private-probe ADD失败/产品未启动保留。0605/abb1新active exactMedium桌面中现代Terminal精确可见根、WM_NULL响应和一次正常WM_CLOSE/rootGone已实际观察；客户输入、产品资格及增强、完整应用链仍未证明，Wait258/后exit0不改成全进程退出。不能将其余可推进工作统一为外部阻断。旧43c/5b0身份保留，正式Default保护不变。",
+      "note": "当前单屏150%的Medium/non-elevated产品增强已有42ab/4ff精确Terminal Move→Resize→Move、五阶段磁吸与两成员Ctrl，普通GUI/设置效果另有f78；不再是只有原生根启动。客户语义、托盘菜单、其它应用和完整E02仍未通过；69f新Cabinet虽实际存在但elevated=true被拒、Shell路径未确认。200%UI、完整HC恢复及最终整链仍缺，不能统称全部问题为外部阻断。上述原生启动/关闭历史保留原身份及非原子wait边界，不外推完整进程退出。",
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。",
-        "229e/2b49新Run Medium Shell/Tray/激活/回切及0605/abb1现代Terminal启动/响应/正常根关闭已证实；client输入、sourceGUI/VDM产品资格和实际增强未证明，不能由根关闭授全部进程退出或完整应用PASS。2b49真实tray前置FAIL、产品未启动保留；旧43c1314不是新路线未运行原因。"
+        "已实测Medium/non-elevated/session1/单屏150%下的有限功能：42ab/f78普通GUI/设置效果/Move-NormalUp、4ff精确Terminal的Move→Resize→Move/五阶段磁吸/两成员Ctrl和实际资源收尾；f06a/750各自owned范围另保身份。不能再称全部sourceGUI/VDM/实际增强未验，也不授完整E02。",
+        "当前仍缺200%主要UI/完整HC恢复、五应用及适用I01–I12。229e/2b49的Medium Shell事实不等于普通文件窗；69f4确见新Cabinet双heldRun成员，但实际RID8192/elevated=true被拒且Shell单条exact path未确认；客户nonce/菜单投递也各未通过。"
       ],
-      "next_action": "复用abb1已实测的现代Terminal启动/WM_NULL响应/正常根关闭，不再写NativeOnly未构建未现场。后续真实客户nonce、sourceGUI/VDM只读观察及独立本产品UID1/普通GUI路径仍在编码，未构建/现场；只读结果不自动成为产品权限。正式Default保护不变，不重跑旧Default失败批次，不新增VM/宿主设置；200%UI、多屏混合DPI、真实应用与整版链分别保留缺项。",
+      "next_action": "复用已通过f78当前普通GUI、4ff Terminal真实增强、f06a/750各自合同，不重放已关闭专项。当前相同Explorer启动路线停止重复，缺口是实际non-elevated且路径可确认的完整Medium隔离桌面；Terminal客户语义、托盘菜单和其它应用分别按具体事实推进，不将全部问题归为显示或系统原因。200%UI、真实双屏/混合DPI、虚拟桌面/会话及最终整链仍独立，保持环境BLOCKED与宿主数据保护。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -13711,15 +13735,17 @@
         "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json",
         "docs/reports/v1-evidence/af4f-medium-product-move-resize-successor-excerpt.jsonl",
         "docs/reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-review.json",
-        "docs/reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-excerpt.jsonl"
+        "docs/reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-excerpt.jsonl",
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl"
       ],
-      "observed": "744e/3c565/e538显式单Explorer新Run对照：空新目录/排除baseline后一次/separate精确Run CreateProcess成功且launcherPID556实际Medium，但唯一exactpath根未可靠确认，targetPID0/g0、零ExplorerDOWN/continuation/placement；先前UI Esc2不能冒充Explorer输入。物理Cabinet是否出现/具体Shell选择拒绝UNKNOWN，不推Explorer不支持或根绝对不存在。公共quit exit0/自有资源与Default返回分别有scope，目标launcher/根及Shell树完整退出未证，总cleanup UNKNOWN/forcedguest不补PASS。 【历史观察保留】c01实际Explorer根RID8192/elevated=true，被正式Medium/nonElev策略正确拒绝，没有向被拒目标发输入。b49新普通账号credential Medium/session1成立但WinSta0/Default DACL DENIED；7cd的QUERY-only token工具SecurityException及R2/30bf恢复后回执UNKNOWN均保留原身份，不再作为所有后继路线的现状。229e、2b49及abb1已分别在新Run桌面实测exact新建explorer.exe子进程的同SID/session、RID8192/non-elevated Progman与Shell_TrayWnd，以及真实激活和独立Default回切。它们是Shell环境根，不是已确认目录路径的普通Explorer文件窗口。2b49自有通知区探针NIM_ADD=false，产品/UI/输入未启动；abb1只验证无产品Terminal根响应与正常root关闭，均不授Explorer产品操作或完整普通桌面PASS。 0072/dcab已对精确新Terminal窗口取得双GTI成功/idle、VDM S_OK/current=true的只读正事实；它不等于普通Explorer文件窗或正式产品source资格。630b另实际启动普通无参Medium产品GUI，但首Esc未插入，未发生任何Explorer产品手势。 当前55f/6d20已有精确Terminal foreign Run桌面名/双GTI idle/单窗VDM正事实；020e已实际启用exact_Run资源上下文但无增强写入。55f/02ec只在Default旧route双轮回归通过；普通Explorer文件窗口/source资格和命名Run写入仍NOT_RUN。",
+      "observed": "【69f4当前实际】当前42ab/b607/917/69f4一次新只读分类已实际运行：原3500ms绑定等待超时后，D204观察到新的CabinetWClass root263238/PID7028/TID1532、birth134371542859103463，两次完整heldRun枚举均成员，baseline排除/实际visible/同SID/session1/image explorer均成立。实际TokenIntegrityLevel RID8192且TokenElevation=true，两API均成功；不等于High，也不满足产品Medium/non-elevated，未篡改或放宽。D205原try_bind Shell缓存sequence58完整false/reported1/windows0，ReadInventoryItem stage4/HRESULT1 S_FALSE，单条exact目录路径未可靠确认。D203仍原3500ms超时，g0/targetPID0、零Explorer DOWN/placement；前面UI Esc只是设置退出。该物理根存在是本批新事实，不回写e538当时UNKNOWN。公共产品quit/自身资源stop与Default回切分列，未绑定根/launcher/Shell全树cleanup仍UNKNOWN；精确guest/任务于14:54:06.3426970Z清理不补产品PASS。 【下列为各原历史时点观察，不作为当前唯一环境结论】744e/3c565/e538显式单Explorer新Run对照：空新目录/排除baseline后一次/separate精确Run CreateProcess成功且launcherPID556实际Medium，但唯一exactpath根未可靠确认，targetPID0/g0、零ExplorerDOWN/continuation/placement；先前UI Esc2不能冒充Explorer输入。物理Cabinet是否出现/具体Shell选择拒绝UNKNOWN，不推Explorer不支持或根绝对不存在。公共quit exit0/自有资源与Default返回分别有scope，目标launcher/根及Shell树完整退出未证，总cleanup UNKNOWN/forcedguest不补PASS。 【历史观察保留】c01实际Explorer根RID8192/elevated=true，被正式Medium/nonElev策略正确拒绝，没有向被拒目标发输入。b49新普通账号credential Medium/session1成立但WinSta0/Default DACL DENIED；7cd的QUERY-only token工具SecurityException及R2/30bf恢复后回执UNKNOWN均保留原身份，不再作为所有后继路线的现状。229e、2b49及abb1已分别在新Run桌面实测exact新建explorer.exe子进程的同SID/session、RID8192/non-elevated Progman与Shell_TrayWnd，以及真实激活和独立Default回切。它们是Shell环境根，不是已确认目录路径的普通Explorer文件窗口。2b49自有通知区探针NIM_ADD=false，产品/UI/输入未启动；abb1只验证无产品Terminal根响应与正常root关闭，均不授Explorer产品操作或完整普通桌面PASS。 0072/dcab已对精确新Terminal窗口取得双GTI成功/idle、VDM S_OK/current=true的只读正事实；它不等于普通Explorer文件窗或正式产品source资格。630b另实际启动普通无参Medium产品GUI，但首Esc未插入，未发生任何Explorer产品手势。 当前55f/6d20已有精确Terminal foreign Run桌面名/双GTI idle/单窗VDM正事实；020e已实际启用exact_Run资源上下文但无增强写入。55f/02ec只在Default旧route双轮回归通过；普通Explorer文件窗口/source资格和命名Run写入仍NOT_RUN。",
       "remaining_conditions": [
         "e538已执行显式新目录/基线排除/一次精确Run Medium explorer /separate启动；首个唯一exactpath根未可靠确认，而不是产品Move失败。原生Cabinet是否存在及具体Shell筛选拒绝未记录，均UNKNOWN。",
         "零ExplorerDOWN/continuation/placement；须先确认精确根/路径/Medium/Run/baseline身份和可收尾对象，才能再授输入/生产权限，不从Terminal或Shell结果外推。"
       ],
-      "next_action": "下一项仅一次有区分变量的TEST前置：缓存原try_bind inventory，在原3500ms绑定失败后一次双heldRun枚举分类Cabinet与IShellWindows，核实际唯一path root为何未确认；源码接线准备中/尚未现场，不预填结果。不改启动flags/权限/输入、不多次启动、不操作未绑定窗口。e538原失败/cleanup UNKNOWN保留，不再无变量重试；产品退出与Default返回单列。",
-      "latest_bounded_environment_observation": {
+      "next_action": "停止当前相同launch路线，不盲改flags、叠加延时或放宽Medium/non-elevated/路径门。下一项必须能力是：在可丢弃完整Medium隔离桌面中提供实际TokenElevation=false的Explorer文件根，并能通过IShellWindows单条精确路径/FILE_ID/baseline/双heldRun身份确认后，再运行产品手势。当前root RID8192/elevated=true及Shell S_FALSE分别保真，不改成High或unknown。托盘投递、Terminal客户语义、其它真实应用和显示条件仍各自推进，不能把全部16项都外部化。",
+      "historical_744e_bounded_environment_observation": {
         "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
         "product_release_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
         "product_started": true,
@@ -13764,7 +13790,8 @@
         "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
         "PO-6D20-MEDIUM-TERMINAL-KEYBOARD-FOCUS-PREINPUT-BLOCKED",
         "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
-        "PO-E538-MEDIUM-EXPLORER-FIRST-EXACT-ROOT-UNCONFIRMED-ZERO-INPUT"
+        "PO-E538-MEDIUM-EXPLORER-FIRST-EXACT-ROOT-UNCONFIRMED-ZERO-INPUT",
+        "PO-69F4-EXPLORER-PHYSICAL-ROOT-ELEVATED-SHELL-PATH-UNCONFIRMED"
       ],
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
@@ -13785,6 +13812,66 @@
         "scope": "ONE_EXACT_RUN_MEDIUM_EXPLORER_SEPARATE_LAUNCH_FIRST_ROOT_UNCONFIRMED_ZERO_EXPLORER_INPUT",
         "result": "BLOCKED",
         "not_complete_contract_PASS": true
+      },
+      "current_candidate_state": "CURRENT42AB_69F4_NEW_CABINET_EXISTS_RID8192_ELEVATED_TRUE_REJECTED_SHELL_PATH_UNCONFIRMED_ZERO_EXPLORER_INPUT",
+      "latest_bounded_environment_observation": {
+        "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+        "product_release_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+        "product_started": true,
+        "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+        "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+        "driver_release_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+        "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+        "native_root": {
+          "HWND": 263238,
+          "PID": 7028,
+          "TID": 1532,
+          "birth_filetime_decimal": "134371542859103463",
+          "root_visible": true,
+          "new_non_baseline": true,
+          "two_complete_heldRun_memberships": true,
+          "same_SID": true,
+          "session": 1,
+          "image_explorer": true,
+          "TokenIntegrityLevel_RID": 8192,
+          "TokenElevation": true,
+          "both_token_queries_succeeded": true,
+          "product_Medium_non_elevated": false,
+          "exact_directory_path_confirmed": false
+        },
+        "Shell_lookup": {
+          "cache_sequence": 58,
+          "complete": false,
+          "reported_count": 1,
+          "accepted_windows": 0,
+          "ReadInventoryItem_stage": 4,
+          "HRESULT": 1,
+          "HRESULT_name": "S_FALSE"
+        },
+        "binding": {
+          "original_wait_limit_ms": 3500,
+          "unique_exact_path_root_confirmed": false,
+          "target_PID": 0,
+          "generation": 0
+        },
+        "Explorer_DOWN": 0,
+        "Explorer_placement": 0,
+        "product_Explorer_Move_Resize_Ctrl": "NOT_RUN_REJECTED_BEFORE_BINDING_AND_INPUT",
+        "ordinary_full_Medium_desktop": "NOT_PROVEN",
+        "unbound_root_process_tree_cleanup": "UNKNOWN",
+        "product_quit_and_Default_return": "ACTUALLY_OBSERVED_SEPARATE_SCOPE",
+        "guest_task_cleanup_utc": "2026-10-22T14:54:06.3426970Z",
+        "guest_disposal_is_product_cleanup_PASS": false,
+        "historical_e538_unknown_not_rewritten": true,
+        "category_PASS": false,
+        "evidence_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+        "readiness_notification_buffer": {
+          "capacity": 64,
+          "retained": 64,
+          "relevant_notifications": 94,
+          "overflow": true,
+          "complete_event_history_claimed": false
+        }
       }
     },
     {
@@ -16757,6 +16844,15 @@
   },
   "current_round_observations": [
     {
+      "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+      "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+      "evidence_id": "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY",
+      "evidence_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+      "new_feature_or_B_PASS": false
+    },
+    {
       "run_id": "f06a2d013c1829e1896a410ab2680f08",
       "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "driver_source_sha": "dd4a9fe908f11786334b25117726dd95a4ce9593",
@@ -17447,6 +17543,40 @@
     }
   ],
   "evidence": [
+    {
+      "id": "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY",
+      "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+      "driver_binary_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+      "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+      "path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+      "sha256": "16E3C01DA2A31FA8DA6ACD4E253696835A6F0FE1FA1795E7E2CCCFE1E6C0F745",
+      "repository_excerpt_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl",
+      "repository_excerpt_sha256": "9F45C444FC8CFF39B678366C3885952FE1058AF663CB63AB94EE8E813CA72AAE",
+      "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+      "scope": "当前42ab/b607/917/69f4一次新只读分类已实际运行：原3500ms绑定等待超时后，D204观察到新的CabinetWClass root263238/PID7028/TID1532、birth134371542859103463，两次完整heldRun枚举均成员，baseline排除/实际visible/同SID/session1/image explorer均成立。实际TokenIntegrityLevel RID8192且TokenElevation=true，两API均成功；不等于High，也不满足产品Medium/non-elevated，未篡改或放宽。D205原try_bind Shell缓存sequence58完整false/reported1/windows0，ReadInventoryItem stage4/HRESULT1 S_FALSE，单条exact目录路径未可靠确认。D203仍原3500ms超时，g0/targetPID0、零Explorer DOWN/placement；前面UI Esc只是设置退出。该物理根存在是本批新事实，不回写e538当时UNKNOWN。公共产品quit/自身资源stop与Default回切分列，未绑定根/launcher/Shell全树cleanup仍UNKNOWN；精确guest/任务于14:54:06.3426970Z清理不补产品PASS。",
+      "new_feature_or_B_PASS": false,
+      "ordinary_product_entry": true,
+      "Explorer_real_input_sent": false,
+      "build_validation": {
+        "test_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+        "Debug_driver_sha256": "7262DB7C726B752ACB9F7906FF9F994B1ABA9D99972D0F9EE39EB1D434A58970",
+        "Release_driver_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+        "Debug_build_and_selected_layout_guest_path": "ACTUAL_PASS_2_OF_2",
+        "Release_build_and_selected_layout_guest_path": "ACTUAL_PASS_2_OF_2",
+        "tool_stdout_reference": "root actual exec83405 completed exit0; not a newly archived original stdout",
+        "host_complete_argv_guard_Exit78_count": 2,
+        "host_guard_path": "uat/v1-host-guard/3a76aa13f2ff46d5a5c631bfc02c93ff/receipt.json",
+        "host_guard_sha256": "50796D6C87D5EB2BBC0503965EAE83B5D22165EC399FDA7C9EDC27D893359E24",
+        "product_frozen_42ab_bytes_unchanged": true
+      },
+      "observation_id": "PO-69F4-EXPLORER-PHYSICAL-ROOT-ELEVATED-SHELL-PATH-UNCONFIRMED"
+    },
     {
       "id": "EV-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET-SIZE-PRIORITY-PULLBACK-SUCCESSOR",
       "run_id": "f06a2d013c1829e1896a410ab2680f08",
@@ -22431,6 +22561,25 @@
     }
   ],
   "partial_observations": [
+    {
+      "id": "PO-69F4-EXPLORER-PHYSICAL-ROOT-ELEVATED-SHELL-PATH-UNCONFIRMED",
+      "status": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+      "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "candidate_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "candidate_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+      "driver_binary_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+      "evidence_ids": [
+        "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY"
+      ],
+      "evidence_paths": [
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+        "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl"
+      ],
+      "observed": "当前42ab/b607/917/69f4一次新只读分类已实际运行：原3500ms绑定等待超时后，D204观察到新的CabinetWClass root263238/PID7028/TID1532、birth134371542859103463，两次完整heldRun枚举均成员，baseline排除/实际visible/同SID/session1/image explorer均成立。实际TokenIntegrityLevel RID8192且TokenElevation=true，两API均成功；不等于High，也不满足产品Medium/non-elevated，未篡改或放宽。D205原try_bind Shell缓存sequence58完整false/reported1/windows0，ReadInventoryItem stage4/HRESULT1 S_FALSE，单条exact目录路径未可靠确认。D203仍原3500ms超时，g0/targetPID0、零Explorer DOWN/placement；前面UI Esc只是设置退出。该物理根存在是本批新事实，不回写e538当时UNKNOWN。公共产品quit/自身资源stop与Default回切分列，未绑定根/launcher/Shell全树cleanup仍UNKNOWN；精确guest/任务于14:54:06.3426970Z清理不补产品PASS。",
+      "not_whole_version_PASS": true,
+      "human_UAT": "NOT_RUN"
+    },
     {
       "id": "PO-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET",
       "status": "SCOPED_PASS_EIGHT_OWNED_RESIZE_DIRECTIONS_SIZE_PRIORITY_ORIGINAL_DOWN_PULLBACK_AND_SUCCESSOR",

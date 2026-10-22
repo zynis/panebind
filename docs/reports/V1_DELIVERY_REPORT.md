@@ -16,7 +16,13 @@
 
 因此独立M05-F04／B05按**G04＋当前f06a八向／约束＋当前750固定黑盒＋当前4ff真实应用Resize后Move**闭合；不是把旧5d45／fafa重绑当前产品。M05仍缺规定的Explorer／编辑器／浏览器模块链及真实显示条件；Explorer exact文件窗、其它应用、托盘、普通完整Medium桌面、200%／多屏／混合DPI、最终同候选整链和真人体验继续分别推进。无需重跑无关Full／900秒或历史FixH。
 
-下一项Explorer只做一次新TEST可区分观察：保留原try_bind inventory，在原3500ms首根绑定失败后，以双heldRun枚举分类实际Cabinet与COM候选；不改launch／权限／输入，不多次启动，尚未现场，不预填结果。此项不是将e538同条件盲重跑。
+[69f4当前Explorer资格观察](v1-evidence/69f4-explorer-unbound-qualification-review.json)已实际执行，不再是“待运行”：产品42ab／driver `917240c24c2801273eea4279534a78fcfad686a0`／包装 `b6071cefa9e39a5479458bc0bb3f0586a348d626`，原3500ms等待后，D204真实新Cabinet root263238／PID7028／TID1532／出生FILETIME原字面`134371542859103463`存在，两次完整heldRun采样均成员，baseline排除、visible、同SID／session1及explorer镜像成立。**实际TokenIL RID8192且elevated=true，两查询均成功；不是High，也不满足正式Medium／non-elevated。** D205首次Shell缓存58为complete=false／reported1／windows0，ReadInventoryItem stage4／HRESULT1（S_FALSE），仍未确认单条exact目录路径。D203原超时、g0／targetPID0、零Explorer DOWN／placement；前面的UI Esc不是Explorer操作。未绑定根与launcher／Shell树cleanup UNKNOWN，实际publicquit／Default回切和精确guest销毁分别记录；不回写e538当时“是否存在物理根UNKNOWN”。readiness缓冲94通知只保64且overflow=true，不声称完整原生事件历史；双完整窗口成员采样是独立读数。
+
+当前相同launch路线停止，不盲换flags／堆延时／重复启动／放宽资格。**下一项环境能力是可丢弃完整Medium隔离桌面：真实TokenElevation=false的Explorer文件根，并可用IShellWindows单条exact path、FILE_ID、baseline与双heldRun确认。** 这只直接阻断Explorer依赖合同；托盘菜单投递、Terminal客户语义和部分应用初始化仍有各自未解产品／驱动／环境事实，不能把全部16项都标外部阻断。五应用混合链、200%／完整HC、真实双屏同DPI／负坐标、100%／150%混合DPI及虚拟桌面／会话恢复分项保留，不由单屏owned或Shell存在代替。
+
+917 TEST Debug／Release构建和所选layout＋guest-path各2/2实际通过；D SHA-256 `7262DB7C726B752ACB9F7906FF9F994B1ABA9D99972D0F9EE39EB1D434A58970`／R `9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E`，42ab产品字节未变。两配置完整有效argv宿主guard实际各Exit78，零宿主产品普通启动／输入，回执`uat/v1-host-guard/3a76aa13f2ff46d5a5c631bfc02c93ff/receipt.json` SHA-256 `50796D6C87D5EB2BBC0503965EAE83B5D22165EC399FDA7C9EDC27D893359E24`；工具通过不等于Explorer功能通过。
+
+本接续批次仅使用 `I:\PaneBindMVP1Runs\<RunId>\` 的自有新目录：`c554e3ef7f712e3733b1c7214d6d417a`、`f06a2d013c1829e1896a410ab2680f08`、`4ff66c34658d491aab7e9c3d81459678`、`e627c2f9047d45a291634f487a7be642`、`750be16e09ed4f91824476db43792216`、`69f4d5e38e9f4cb69db49a07cb6d2b19`。其中5个实际启动的guest／专用任务均已按本Run身份清理，69f4于14:54:06.3426970Z完成；e627只在Deploy失败，未启动guest，原owner／包及全部失败证据保留。部署目录和证据不批量删除；未改CrossRec／未知用户文件／账户／token／UAC或宿主设置，未发宿主测试输入，未重启。guest清理不把各产品清理UNKNOWN升级为PASS。
 
 当前普通便携包仍为 **d5f5a2a6138049a5b4a1a76340904027**，ZIP SHA-256 `868C0E4BC8B802FB6C410534F8048F1421D8BE378D7F2D8DF87FB4788ABE99E7`／manifest `B472E906446BA6E2167D1350205B478E974C95EB7C703A88B53A3A53959AD66E`；只改TEST／文档没有重建42ab产品或改写旧包。用法见[快速入门](../V1_QUICK_START.md)，每份包／Run／哈希及原始位置见[证据索引](v1-evidence/index.json)。下列各历史检查点的数字和“当前／下一步”只属于当时身份，不覆盖本节。
 

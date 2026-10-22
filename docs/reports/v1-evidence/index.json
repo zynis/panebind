@@ -3,6 +3,40 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+      "id": "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY",
+      "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+      "driver_binary_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+      "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+      "path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+      "sha256": "16E3C01DA2A31FA8DA6ACD4E253696835A6F0FE1FA1795E7E2CCCFE1E6C0F745",
+      "repository_excerpt_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl",
+      "repository_excerpt_sha256": "9F45C444FC8CFF39B678366C3885952FE1058AF663CB63AB94EE8E813CA72AAE",
+      "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+      "scope": "当前42ab/b607/917/69f4一次新只读分类已实际运行：原3500ms绑定等待超时后，D204观察到新的CabinetWClass root263238/PID7028/TID1532、birth134371542859103463，两次完整heldRun枚举均成员，baseline排除/实际visible/同SID/session1/image explorer均成立。实际TokenIntegrityLevel RID8192且TokenElevation=true，两API均成功；不等于High，也不满足产品Medium/non-elevated，未篡改或放宽。D205原try_bind Shell缓存sequence58完整false/reported1/windows0，ReadInventoryItem stage4/HRESULT1 S_FALSE，单条exact目录路径未可靠确认。D203仍原3500ms超时，g0/targetPID0、零Explorer DOWN/placement；前面UI Esc只是设置退出。该物理根存在是本批新事实，不回写e538当时UNKNOWN。公共产品quit/自身资源stop与Default回切分列，未绑定根/launcher/Shell全树cleanup仍UNKNOWN；精确guest/任务于14:54:06.3426970Z清理不补产品PASS。",
+      "new_feature_or_B_PASS": false,
+      "ordinary_product_entry": true,
+      "Explorer_real_input_sent": false,
+      "build_validation": {
+        "test_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+        "Debug_driver_sha256": "7262DB7C726B752ACB9F7906FF9F994B1ABA9D99972D0F9EE39EB1D434A58970",
+        "Release_driver_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+        "Debug_build_and_selected_layout_guest_path": "ACTUAL_PASS_2_OF_2",
+        "Release_build_and_selected_layout_guest_path": "ACTUAL_PASS_2_OF_2",
+        "tool_stdout_reference": "root actual exec83405 completed exit0; not a newly archived original stdout",
+        "host_complete_argv_guard_Exit78_count": 2,
+        "host_guard_path": "uat/v1-host-guard/3a76aa13f2ff46d5a5c631bfc02c93ff/receipt.json",
+        "host_guard_sha256": "50796D6C87D5EB2BBC0503965EAE83B5D22165EC399FDA7C9EDC27D893359E24",
+        "product_frozen_42ab_bytes_unchanged": true
+      },
+      "observation_id": "PO-69F4-EXPLORER-PHYSICAL-ROOT-ELEVATED-SHELL-PATH-UNCONFIRMED"
+    },
+    {
       "id": "EV-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET-SIZE-PRIORITY-PULLBACK-SUCCESSOR",
       "run_id": "f06a2d013c1829e1896a410ab2680f08",
       "configuration": "Release",
@@ -1524,8 +1558,9 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
-  "next_driver_validation": "Actual42ab D/R product+fixture build/sevenoffline eachPASS/fourhost Exit78 andf78d currentd5f5 ordinary portable scopePASS. Prior744e/3c565 tray/Explorer/be7 and744e/40a bb23 startup-ready blocked observations keep original identities. New TEST Terminal five-phase/Ctrl extension is coding only, without a committed source/hash/build/runtime verdict.",
+  "next_driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+  "historical_pre_4ff_next_driver_validation": "Actual42ab D/R product+fixture build/sevenoffline eachPASS/fourhost Exit78 andf78d currentd5f5 ordinary portable scopePASS. Prior744e/3c565 tray/Explorer/be7 and744e/40a bb23 startup-ready blocked observations keep original identities. New TEST Terminal five-phase/Ctrl extension is coding only, without a committed source/hash/build/runtime verdict.",
+  "next_driver_validation": "Terminal five-phase/Ctrl is actually observed with frozen42ab/e869/4ff; ordinary portable identity remains42ab/d5f5/f78. Subsequent917 driver actually built Debug/Release, selected layout/guest-path each2/2 and two complete-argv host Exit78 guards. Its69f4 Explorer observation found a physical new Cabinet with RID8192/elevated=true and incomplete exact Shell path, with zero Explorer DOWN/placement. No new product binary, no Explorer functional PASS, no old runtime rebinding; see last_actual_tested_driver and current_functional_runtime.",
   "historical_driver_3c565_candidate": {
     "source_sha": "3c56551c508ac18575824756ec54ac9057db11a8",
     "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
@@ -1627,7 +1662,7 @@
     "whole_version_PASS": false,
     "old_runtime_rebound": false
   },
-  "last_actual_tested_driver": {
+  "historical_750b_fixed_size_driver": {
     "source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
     "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "release_sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7",
@@ -1643,8 +1678,46 @@
     "whole_version_PASS": false,
     "old_runtime_rebound": false
   },
+  "last_actual_tested_driver": {
+    "source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "release_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+    "debug_sha256": "7262DB7C726B752ACB9F7906FF9F994B1ABA9D99972D0F9EE39EB1D434A58970",
+    "run_ids": [
+      "69f4d5e38e9f4cb69db49a07cb6d2b19"
+    ],
+    "native_guard_validation": "ACTUAL_READONLY_NEW_EXPLORER_ROOT_QUALIFICATION_REJECTED_PATH_UNCONFIRMED_ZERO_EXPLORER_INPUT_D_R_SELECTED_2_OF_2_AND_TWO_HOST_FULL_ARGV_EXIT78",
+    "evidence_paths": [
+      "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json"
+    ],
+    "host_guard_receipt_path": "uat/v1-host-guard/3a76aa13f2ff46d5a5c631bfc02c93ff/receipt.json",
+    "host_guard_receipt_sha256": "50796D6C87D5EB2BBC0503965EAE83B5D22165EC399FDA7C9EDC27D893359E24",
+    "whole_version_PASS": false,
+    "old_runtime_rebound": false
+  },
   "current_functional_runtime": {
     "kind": "CURRENT42AB_ACTUAL_FUNCTIONAL_REVIEW_KEEP_ORDINARY_PORTABLE_IDENTITY_SEPARATE",
+    "latest_Explorer_qualification_observation": {
+      "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+      "driver_release_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+      "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+      "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+      "physical_new_Cabinet_root_observed": true,
+      "root_birth_filetime_decimal": "134371542859103463",
+      "root_integrity_rid": 8192,
+      "root_TokenElevation": true,
+      "product_Medium_non_elevated_eligibility": false,
+      "unique_exact_directory_path_confirmed": false,
+      "Explorer_DOWN": 0,
+      "Explorer_placement": 0,
+      "evidence_path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-review.json",
+      "no_new_product_EXE": true,
+      "no_feature_or_B_score_change": true,
+      "overall_process_cleanup": "UNKNOWN",
+      "guest_task_cleanup": "ACTUAL_COMPLETED_2026_10_22_14_54_06_3426970Z",
+      "next_action": "Stop unchanged launch route; requires actual non-elevated Explorer plus a reliable single exact Shell path in a disposable complete Medium desktop; tray/client/other-app/display issues remain separate."
+    },
     "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
     "ordinary_portable": {

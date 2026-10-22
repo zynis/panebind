@@ -1,0 +1,522 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-69F4-EXPLORER-PHYSICAL-ROOT-MEDIUM-ELEVATED-AND-SHELL-INCOMPLETE-NO-AUTHORITY",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "69f4d5e38e9f4cb69db49a07cb6d2b19",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_EXPLORER_QUALIFICATION_AND_EXACT_PATH_UNCONFIRMED",
+  "original_driver_result": "FAIL",
+  "original_geometry_result": "FAIL_OR_BLOCKED",
+  "original_guest_status": "BLOCKED_OR_FAILED",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "driver_source_sha": "917240c24c2801273eea4279534a78fcfad686a0",
+    "driver_sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E",
+    "driver_Debug_sha256": "7262DB7C726B752ACB9F7906FF9F994B1ABA9D99972D0F9EE39EB1D434A58970",
+    "packaging_head": "b6071cefa9e39a5479458bc0bb3f0586a348d626",
+    "fixture_PID": 6316,
+    "fixture_TID": 6312,
+    "fixture_birth_filetime_decimal": "134371542733763669",
+    "product_PID": 6440,
+    "product_birth_filetime_decimal": "134371542836520044",
+    "product_arguments": [],
+    "ordinary_no_argument_product": true,
+    "product_app_HWND": 196678,
+    "product_settings_HWND": 262208,
+    "Explorer_launcher_PID": 6968,
+    "Explorer_launcher_birth_filetime_decimal": "134371542858144843",
+    "unbound_Cabinet_HWND": 263238,
+    "unbound_Cabinet_PID": 7028,
+    "unbound_Cabinet_TID": 1532,
+    "unbound_Cabinet_birth_filetime_decimal": "134371542859103463",
+    "original_Default_Shell": {
+      "HWND": 65798,
+      "PID": 4944,
+      "TID": 4948,
+      "birth_filetime_decimal": "134371542645729188",
+      "original_identity_unchanged": true
+    },
+    "fixture_and_product_integrity": {
+      "integrity_rid": 8192,
+      "elevated": false,
+      "session": 1,
+      "Medium_non_elevated": true
+    },
+    "unbound_Cabinet_integrity": {
+      "integrity_rid": 8192,
+      "elevated": true,
+      "Medium_non_elevated_allowed": false,
+      "note": "RID8192是Medium；TokenElevation=true是单独真实事实，不能改写为High，也不能改为non-elevated以授予权限。"
+    },
+    "environment": {
+      "os_build": "26100",
+      "ubr": 9711,
+      "dpi": 144,
+      "monitor_bounds": [
+        0,
+        0,
+        3050,
+        1668
+      ],
+      "work_area": [
+        0,
+        0,
+        3050,
+        1596
+      ],
+      "window_station": "WinSta0",
+      "active_desktop": "PaneBindV1_69f4d5e38e9f4cb69db49a07cb6d2b19",
+      "foreign_desktop_query_known": true,
+      "foreign_desktop_conflicts": false
+    },
+    "precision": "All birth/volume/start-tick values are regex-extracted decimal strings from original literal text; no floating-point round-trip. Original JSONL integer tokens are retained verbatim."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/package-receipt.json",
+      "bytes": 13337,
+      "sha256": "508C0C0A27EF4B633F821227DD3E0028273A6770E0953252708FBFFEADF4B52B"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/69f4d5e38e9f4cb69db49a07cb6d2b19.zip",
+      "bytes": 5901540,
+      "sha256": "287F7E6E8CBF63E9192047B7D5DC432AFA53BB87D6BE82901FB71CB25F7FDC71"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/input/manifest.json",
+      "bytes": 23014,
+      "sha256": "728890279B39D23B192138B6692F8565F667CA55A114966F2C95DEB78E1F4EA4"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "3ACB3C9726E92106C2B9B0B40C638441AD6BDADBBA5D389DE37953EC60D1BB97"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/69f4d5e38e9f4cb69db49a07cb6d2b19/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4265984,
+      "sha256": "9D306D105A3A7987403DCA1CAEDF07EE6A72BE92AE8F0F3507E3EC30B6CCFC7E"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "all_nine_local_host_inventory_sizes_and_hashes_match": true,
+    "deployed_archive_and_nine_file_inventory_match_host_expectation": true,
+    "guest_wrapper_product_copy_hash_matches": true,
+    "input_readonly_output_only_writable": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\69f4d5e38e9f4cb69db49a07cb6d2b19",
+    "guest_input": "C:\\PaneBindV1\\Input",
+    "guest_output": "C:\\PaneBindV1\\Output",
+    "guest_contract": "panebind-v1-guest-contract/2",
+    "product_interface": "panebind-v1-product-guest-interface/1",
+    "medium_explorer_geometry": true,
+    "prepared_package_NOT_RUN_receipts_retained": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-release-fixture.jsonl",
+      "bytes": 7901245,
+      "sha256": "E8BA5EAD92E60019A18BF96475AA1692CE1EC71C1CBB36155022A0B18DEF95A3",
+      "role": "driver",
+      "rows": 230,
+      "jsonl_all_legal": true,
+      "sequence_continuous_1_to_230": true
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-product-Release/panebind.log.jsonl",
+      "bytes": 3669,
+      "sha256": "AC5E9438698CAECB37FDC14297FD54CC6B2199B98485AE381BAC5B5EBB04DC5D",
+      "role": "physical_product_log",
+      "rows": 9,
+      "jsonl_all_legal": true,
+      "sequence_continuous_1_to_9": true,
+      "PID": 6440
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "99CB37CE6189B5E7C8E9AE701BBF312DB288B80CD02CF20311DD3DFE7C4E29C7",
+      "role": "actual_guest_launch_and_wrapper"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-guest-summary.json",
+      "bytes": 20909,
+      "sha256": "5BED7913A7080EDBA731FC4C75FF16439DA22CD316C024FF6F21049C30736F10",
+      "role": "actual_guest_summary"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/collection-receipt.json",
+      "bytes": 7947,
+      "sha256": "0E42BEF85F39A4BAA6B6FE37EF2BD952A2B6941E670E9475098B0845AB8118CE",
+      "role": "before_after_stable_collection"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/host-expectation.json",
+      "bytes": 3000,
+      "sha256": "9742F40115F8BB248300F28EED242F74897017AFA913945BD5AF0E1718E12FC1",
+      "role": "local_pins"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/deploy-receipt.json",
+      "bytes": 2664,
+      "sha256": "6BD8FFBD17D8EC2DF56C260ECB613EDDEBC3150D2F74B5238FB3C56E60F47615",
+      "role": "remote_deployment_verification"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/launch-receipt.json",
+      "bytes": 14470,
+      "sha256": "CDA3AD7C833438A9325A4DF7B08CD0BCF11B12A4C2C1CADDBC6576DE02354ABD",
+      "role": "owned_guest_launch"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/cleanup-receipt.json",
+      "bytes": 9147,
+      "sha256": "AD952F644E2C03E3877B868DB86F6CBB35AF40109C68A14D05EF736C11D5E609",
+      "role": "exact_guest_and_task_cleanup"
+    },
+    {
+      "path": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/remote-created.json",
+      "bytes": 315,
+      "sha256": "026CEFB5A02EB60C7328E78D3D4282C13158E176B04160B64DBB682E6D1C8B4F",
+      "role": "dedicated_remote_directory"
+    }
+  ],
+  "literal_excerpt": {
+    "path": "docs/reports/v1-evidence/69f4-explorer-unbound-qualification-excerpt.jsonl",
+    "bytes": 30701,
+    "sha256": "9F45C444FC8CFF39B678366C3885952FE1058AF663CB63AB94EE8E813CA72AAE",
+    "rows": 57,
+    "format": "Literal original JSONL records, not reconstructed JSON objects",
+    "driver_source": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-release-fixture.jsonl",
+    "driver_sequences": [
+      1,
+      3,
+      4,
+      5,
+      7,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      190,
+      191,
+      193,
+      194,
+      195,
+      196,
+      197,
+      198,
+      199,
+      200,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      213,
+      214,
+      215,
+      216,
+      217,
+      218,
+      219,
+      220,
+      221,
+      223,
+      224,
+      225,
+      226,
+      227,
+      229,
+      230
+    ],
+    "driver_literal_rows": 48,
+    "product_source": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/collection-20261022T145209895Z-7fb639ed74584cf28ca16b4268105504/69f4d5e38e9f4cb69db49a07cb6d2b19-product-Release/panebind.log.jsonl",
+    "product_sequences": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "product_literal_rows": 9,
+    "omitted_records": "Full driver original remains local, including bounded diagnostic desktop/security observations and the readiness event buffer. This excerpt intentionally avoids unrelated window contents, path listings or a duplicate audit framework."
+  },
+  "observed_chain": [
+    {
+      "id": "RUN_AND_ORDINARY_GUI",
+      "evidence": [
+        "D3",
+        "D5",
+        "D13",
+        "D15",
+        "D17",
+        "D19",
+        "D190-D198",
+        "P2-P5"
+      ],
+      "finding": "精确Run真实激活并回读UOI_IO；Medium/non-elevated普通无参产品PID6440创建可见设置并取得前台，设置Esc两包实际insert2且窗口销毁被观察。此为UI子范围，不能据此授予Explorer权限或整版PASS。"
+    },
+    {
+      "id": "FRESH_DIRECTORY_AND_ONE_LAUNCH",
+      "evidence": [
+        "D201",
+        "D202"
+      ],
+      "new_empty_directory": "C:\\PaneBindV1\\Explorer\\69f4d5e38e9f4cb69db49a07cb6d2b19\\Medium-Explorer-A",
+      "native_baseline_count": 35,
+      "Shell_baseline_complete": true,
+      "Shell_baseline_count": 0,
+      "volume_serial_decimal": "6667649344474159114",
+      "file_id_128": "872a0000000001000000000000000000",
+      "launch_request_count": 1,
+      "CreateProcessW_return": true,
+      "launcher_Medium": true,
+      "finding": "一次显式lpDesktop的explorer.exe /separate /n请求成功，仅证明launcher创建；不等于新根已经绑定。"
+    },
+    {
+      "id": "BOUNDED_BIND_WAIT",
+      "evidence": [
+        "D203"
+      ],
+      "actual_elapsed_ms": 3500,
+      "cap_ms": 3500,
+      "notifications": 0,
+      "generation": 0,
+      "reason": "native_timeout_predicate_false",
+      "finding": "3500ms内未取得绑定条件；无通知不证明窗口从未创建。"
+    },
+    {
+      "id": "PHYSICAL_CABINET_EXISTS_BUT_UNQUALIFIED",
+      "evidence": [
+        "D204",
+        "D205"
+      ],
+      "first_complete": true,
+      "second_complete": true,
+      "new_Cabinet_roots_in_sample_union": 1,
+      "recorded_roots": 1,
+      "recorded_root_limit": 8,
+      "truncated": false,
+      "first_and_second_member": true,
+      "native_and_Shell_baseline_excluded": true,
+      "OpenProcess_return": true,
+      "identity_stable": true,
+      "actual_root": true,
+      "actual_visible": true,
+      "same_SID": true,
+      "session": 1,
+      "system_Explorer_image": true,
+      "actual_integrity_rid": 8192,
+      "actual_elevated": true,
+      "Medium_non_elevated_allowed": false,
+      "finding": "确实观察到一个本Run双完整held-HDESK样本内的新Cabinet根，但它不满足Medium/non-elevated资格。样本并非原子、也不证明全局只有这一根；未确认路径，不授input/cancel/write。"
+    },
+    {
+      "id": "CACHED_SHELL_INVENTORY_INCOMPLETE",
+      "evidence": [
+        "D205"
+      ],
+      "attempt_sequence": 58,
+      "cache_sequence": 58,
+      "last_call_completed": true,
+      "cached_complete": false,
+      "reported_count": 1,
+      "accepted_window_count": 0,
+      "issue_count": 1,
+      "issue": {
+        "stage": 4,
+        "stage_name": "ReadInventoryItem",
+        "HRESULT": 1,
+        "HRESULT_symbol": "S_FALSE",
+        "item_index": 0
+      },
+      "cached_exact_location_matches": 0,
+      "cached_matches_exhaustive": false,
+      "cached_candidate_HWND": 0,
+      "selection_result": "Shell_inventory_incomplete",
+      "new_COM_query_at_exit": false,
+      "finding": "退出时复用原try_bind缓存而非追加COM查询。S_FALSE不是AccessDenied；accepted windows0不是物理无根。exact FILE_ID/path仍UNKNOWN，不能由新物理根替代Shell路径/规范身份授权。"
+    },
+    {
+      "id": "NO_EXPLORER_HANDOFF_OR_GEOMETRY",
+      "evidence": [
+        "D197",
+        "D199",
+        "D207",
+        "D214",
+        "P7",
+        "P8",
+        "P9"
+      ],
+      "bound_target_PID": 0,
+      "last_completed_generation": 0,
+      "Explorer_mouse_packets_sent": 0,
+      "Explorer_native_cancel_or_writer_calls_observed": 0,
+      "product_status_operations": 0,
+      "product_status_native_callsite_claims": 0,
+      "product_mouse_callback_samples": 0,
+      "product_placement_timing_samples": 0,
+      "finding": "本Run未绑定Explorer、未进入其DOWN/START/交接/Move/Resize/后继手势。D197及UI input_sent=true只对应设置Esc键盘对；不算Explorer输入，更非真实Raw/legacy UP闭环。"
+    }
+  ],
+  "cleanup": {
+    "public_product_quit": {
+      "evidence": [
+        "D208",
+        "D209",
+        "P9"
+      ],
+      "same_EXE_public_quit_created": true,
+      "command_exit": 0,
+      "product_signalled": true,
+      "product_exit": 0,
+      "forced_product_termination": false,
+      "actual_product_closed_known": true
+    },
+    "physical_product_shutdown": {
+      "evidence": "P9",
+      "own_hooks_stopped": true,
+      "own_overlay_destroyed": true,
+      "native_worker_exited": true,
+      "issued_native_completion_unknown": false,
+      "own_input_resources_stopped": true,
+      "own_capture_released": true,
+      "own_input_association_detached": true,
+      "note": "No Explorer gesture/capture was entered. Shutdown flags establish reported idle product teardown, not an exercised Explorer cleanup path."
+    },
+    "unbound_Explorer": {
+      "evidence": [
+        "D206",
+        "D207"
+      ],
+      "cleanup_known": false,
+      "unconfirmed_created_roots_closed": false,
+      "test_directory_retained": true,
+      "observer_retire_attempted": false,
+      "observer_retire_hresult": null,
+      "all_Explorer_processes_exited_inferred": false,
+      "note": "未绑定的root未获控制权限，所以没有关闭；保留cleanup UNKNOWN，不能靠关guest升级为产品PASS。"
+    },
+    "driver_and_desktop": {
+      "evidence": [
+        "D214-D221",
+        "D223-D230"
+      ],
+      "UI_input_pair_incomplete": false,
+      "lease_retired": true,
+      "in_flight_completed": true,
+      "independent_Default_return_actual": true,
+      "one_shot_deadline_reached": false,
+      "return_owner_exited": true,
+      "local_handle_close_returns_all_true": true,
+      "readiness_UnhookWinEvent_return": true,
+      "raw_observer_removed_and_registration_absent": true,
+      "foreground_observer_unhook_return": true,
+      "original_Default_input_and_Shell_identity_unchanged": true,
+      "desktop_object_destroyed": "UNKNOWN",
+      "local_cleanup_known": false,
+      "readiness_buffer": {
+        "relevant_notifications": 94,
+        "retained": 64,
+        "capacity": 64,
+        "overflow": true,
+        "note": "This readiness buffer is incomplete; no complete native event history is claimed. Foreground observer reserved/flushed1 and overflow0 is a different buffer."
+      },
+      "retained_Shell_child": {
+        "actual_wait_result": 258,
+        "exit_code_sample": 259,
+        "actual_process_still_alive": true,
+        "WM_CLOSE_or_TerminateProcess_attempted": false
+      },
+      "note": "实际Default回切与句柄关闭是独立真实事实；总summary仍UNKNOWN_OR_BLOCKED/cleanup=false，不能用部分清理成功覆盖未绑定资源未知。"
+    },
+    "guest_wrapper": {
+      "fixture_exit_code": 1,
+      "descendants_alive_at_fixture_exit": 1,
+      "forced_test_cleanup": true,
+      "product_cleanup_pass": false,
+      "feature_result": "NOT_EVALUATED",
+      "note": "forced_test_cleanup是测试guest/job范围的清理事实，与产品public --quit成功分开，不是Explorer cleanup PASS。"
+    },
+    "host_exact_guest_and_task": {
+      "receipt": "uat/v1-control/69f4d5e38e9f4cb69db49a07cb6d2b19/cleanup-receipt.json",
+      "machine": "ZS-WORKSTATION",
+      "guest_PID": 19988,
+      "parent_PID": 9412,
+      "session": 1,
+      "actual_start_ticks_decimal": "639282774595439133",
+      "native_identity_confirmed": true,
+      "task_removed": true,
+      "dedicated_guest_exited": true,
+      "evidence_unchanged": true,
+      "output_before_after_exact_match": true,
+      "deployment_retained": true,
+      "other_files_or_resources_changed": false,
+      "product_cleanup_inferred_from_guest_destruction": false,
+      "utc": "2026-10-22T14:54:06.3426970Z"
+    },
+    "collection": {
+      "before_utc": "2026-10-22T14:52:35.7719661Z",
+      "after_utc": "2026-10-22T14:52:40.0422134Z",
+      "output_unchanged": true,
+      "local_files_match_seven_remote_output_pins": true
+    }
+  },
+  "limits_and_verdict": {
+    "root_cause": "UNKNOWN: this run establishes real qualification/path-selection blockers, not why Shell produced this token or S_FALSE.",
+    "prior_e538": "其历史证据保持原时点UNKNOWN，不将69f4的后继物理/权限观察反标为旧Run已知。",
+    "forbidden_inferences": [
+      "No High label from TokenElevation alone",
+      "No AccessDenied label from HRESULT1",
+      "No root-never-created claim",
+      "No candidate-to-authority promotion",
+      "No guest-disposal-as-product-cleanup PASS",
+      "No whole-version/application/Medium desktop acceptance from ordinary GUI/Esc"
+    ],
+    "source_semantics_review": [
+      {
+        "path": "src/platform/windows/product/v1_guest_fixture.cpp",
+        "line": 96,
+        "finding": "medium() only assigns integrity/elevated outputs after successful TokenIntegrityLevel and TokenElevation calls plus valid SID, then requires RID8192 && !TokenIsElevated; D204 values are not prefilled defaults."
+      },
+      {
+        "path": "src/platform/windows/explorer/explorer_shell_inventory.h",
+        "line": 30,
+        "finding": "ShellAutomationStage numeric4 is ReadInventoryItem."
+      }
+    ],
+    "JSONL_order_is_not_cross_producer_native_order": true,
+    "evidence_capture_scope": "exact disposable guest/Run only; two read-only desktop inventories and cached Shell data, no unknown-root input or control",
+    "further_unchanged_Explorer_retry": "STOPPED_THIS_ROUTE_EVIDENCE_SUFFICIENT",
+    "next_required_condition": "A genuinely qualified Medium/non-elevated exact new Explorer root plus complete canonical Shell location/identity observation; neither is fabricated or bypassed. Continue unrelated V1 contracts rather than unchanged launch retries.",
+    "Explorer_Move_Resize_successor": "NOT_RUN",
+    "tray_right_click_this_run": "NOT_RUN",
+    "whole_version": "NOT_PROVEN",
+    "human_UAT": "NOT_RUN",
+    "counts_or_acceptance_changed_by_this_seal": false
+  }
+}
