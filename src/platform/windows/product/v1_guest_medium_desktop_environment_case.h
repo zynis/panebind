@@ -107,11 +107,14 @@ struct MediumDesktopWindowFact {
         ",\"positioning_rect\":"+(rect_return?rect({rectangle.left,rectangle.top,rectangle.right,rectangle.bottom}):"null")+
         ",\"input_cancel_or_write_authority\":false}";}
 };
+#include "platform/windows/product/v1_guest_medium_desktop_native_case.h"
+#include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"
 struct MediumDesktopEnvironmentObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool enumerated_ready{},handle_closed{},thread_restored{},event_hook_stopped{true};
     bool activation_attempted{},activation_complete{};std::string reason{"not_started"};
     bool ui_product_started{},ui_product_closed{},ui_completed{};
+    bool native_completed{};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
 struct MediumDesktopWindowEvents {
@@ -131,7 +134,7 @@ void CALLBACK medium_desktop_window_event(HWINEVENTHOOK hook,DWORD event,HWND hw
     else context->overflow=true;
 }
 void medium_desktop_environment_probe(const std::wstring& run,const fs::path& executable,MediumDesktopEnvironmentObservation& out,
-    const MediumDesktopUiRequest* ui_request=nullptr){
+    const MediumDesktopUiRequest* ui_request=nullptr,const MediumTerminalNativeRequest* native_request=nullptr){
     // A fresh hook/window-free TEST thread connects to the new object. The
     // fixture STA and its original windows remain on Default throughout.
     const HDESK original=GetThreadDesktop(GetCurrentThreadId());HDESK created{};HANDLE child{},child_thread{};
@@ -308,7 +311,7 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
         if(out.enumerated_ready){
             const auto activation=medium_desktop_activate_and_return(created,name,[&]{
                 observe("activation_fresh_readonly_roots");return out.enumerated_ready;
-            },ui_request);
+            },ui_request,native_request);
             for(const auto& [type,fields]:activation.records)out.emit(type,fields);
             out.activation_attempted=activation.attempted;
             out.activation_complete=activation.attempted&&activation.entry_completed&&activation.entry_return&&
@@ -318,6 +321,7 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
             out.reason=activation.reason;
             out.ui_product_started=activation.ui_started;out.ui_product_closed=activation.ui_product_closed;
             out.ui_completed=activation.ui_completed;
+            out.native_completed=activation.native_completed;
         }
     }catch(const std::exception& error){out.reason=error.what();}
     if(event_hook){SetLastError(ERROR_SUCCESS);out.event_hook_stopped=UnhookWinEvent(event_hook)!=FALSE;
@@ -360,7 +364,8 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
 void medium_desktop_environment_flow(State& s){
     std::array<wchar_t,128> user{};DWORD user_size=static_cast<DWORD>(user.size());
     const bool ui_only=s.suite=="MediumDesktopUiOnly";
-    if((s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only)||!desktop()||!GetUserNameW(user.data(),&user_size)||
+    const bool native_only=s.suite=="MediumDesktopNativeOnly";
+    if((s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only&&!native_only)||!desktop()||!GetUserNameW(user.data(),&user_size)||
        !equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())||s.process||s.product_pid||
        !equal(medium_desktop_object_name(GetProcessWindowStation()),L"WinSta0")||
        !equal(s.output.wstring(),L"C:\\PaneBindV1\\Output")||!marker(s.output/L"panebind-v1-output.marker",s.run)||
@@ -374,26 +379,29 @@ void medium_desktop_environment_flow(State& s){
     const auto attributes=GetFileAttributesW(executable.c_str());
     s.log.emit("medium_desktop_environment_scope","\"run_id\":"+quote(utf8(s.run))+",\"Default_Shell_before\":"+before.json()+
         ",\"one_fresh_Run_desktop\":true,\"UI_only_requested\":"+(ui_only?"true":"false")+
+        ",\"native_application_only_requested\":"+(native_only?"true":"false")+
         ",\"product_create_requests_at_scope_start\":0,\"synthetic_input_requests_at_scope_start\":0,\"SwitchDesktop_attempted_at_scope_start\":false,\"one_own_Run_activation_after_readonly_readiness\":true,\"Default_Shell_control_attempted\":false,\"host_mutation_attempted\":false");
     if(!before.known||!length||length>=windows.size()||attributes==INVALID_FILE_ATTRIBUTES||
        (attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))){
         s.log.emit("medium_desktop_environment_summary","\"result\":\"BLOCKED\",\"reason\":\"Default_Shell_or_exact_Windows_Explorer_image_unknown\",\"product_result\":\"NOT_RUN\"");s.result=78;return;}
     MediumDesktopEnvironmentObservation observation;
     MediumDesktopUiRequest ui_request{s.product,s.product_source,hash(s.product)};
-    std::thread probe([&]{medium_desktop_environment_probe(s.run,executable,observation,ui_only?&ui_request:nullptr);});probe.join();
+    MediumTerminalNativeRequest native_request{s.configuration,hash(fs::path(L"C:\\PaneBindV1\\Input\\manifest.json"))};
+    std::thread probe([&]{medium_desktop_environment_probe(s.run,executable,observation,ui_only?&ui_request:nullptr,native_only?&native_request:nullptr);});probe.join();
     s.medium_ui_product_started=observation.ui_product_started;s.medium_ui_product_closed=observation.ui_product_closed;
     for(const auto& [type,fields]:observation.records)s.log.emit(type,fields);
     const auto after=MediumDesktopDefaultShell::read();const bool original_unchanged=before.same(after)&&desktop();
     const bool ready=observation.enumerated_ready&&observation.event_hook_stopped&&observation.thread_restored&&
         observation.activation_complete&&observation.handle_closed&&original_unchanged;
-    const bool accepted=ready&&(!ui_only||observation.ui_completed);
-    s.log.emit("medium_desktop_environment_summary","\"result\":"+quote(accepted?(ui_only?"UI_ONLY_COMPLETED_AND_RETURNED":"ACTIVATED_AND_RETURNED_ONLY"):"BLOCKED")+
+    const bool accepted=ready&&(!ui_only||observation.ui_completed)&&(!native_only||observation.native_completed);
+    s.log.emit("medium_desktop_environment_summary","\"result\":"+quote(accepted?(ui_only?"UI_ONLY_COMPLETED_AND_RETURNED":native_only?"NATIVE_APPLICATION_ONLY_COMPLETED_AND_RETURNED":"ACTIVATED_AND_RETURNED_ONLY"):"BLOCKED")+
         ",\"reason\":"+quote(observation.reason)+",\"Default_Shell_after\":"+after.json()+
         ",\"original_Default_input_and_Shell_identity_unchanged\":"+(original_unchanged?"true":"false")+
         ",\"readonly_Shell_status\":"+quote(observation.enumerated_ready?"READY_ENUMERATED_ONLY":"NOT_CONFIRMED")+
         ",\"input_desktop_activation_attempted\":"+(observation.activation_attempted?"true":"false")+
         ",\"input_desktop_activation_and_independent_return_verified\":"+(observation.activation_complete?"true":"false")+
         ",\"UI_only_requested\":"+(ui_only?"true":"false")+",\"UI_product_started\":"+(observation.ui_product_started?"true":"false")+
+        ",\"native_application_completed\":"+(observation.native_completed?"true":"false")+
         ",\"UI_completed\":"+(observation.ui_completed?"true":"false")+",\"UI_product_closed\":"+(observation.ui_product_closed?"true":"false")+
         ",\"product_enhancement_result\":\"NOT_RUN\",\"ordinary_full_desktop_acceptance\":\"NOT_PROVEN\",\"guest_disposal_is_not_product_cleanup_PASS\":true");
     s.result=accepted?0:78;

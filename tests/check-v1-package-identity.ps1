@@ -140,7 +140,7 @@ function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
     if(-not $branch.Success -or -not $branch.Value.Contains('native_clients_only_flow(s);') -or
        $branch.Index+$branch.Length -gt $drive.IndexOf('launch(s,',[StringComparison]::Ordinal) -or
        $branch.Groups['native'].Value -match '\b(?:launch|fixture_rect|read_product|record)\s*\(' -or
-       -not $drive.Contains('if(s.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly"&&s.suite!="MediumDesktopUiOnly")cleanup(s);')){
+       -not $drive.Contains('if(s.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly"&&s.suite!="MediumDesktopUiOnly"&&s.suite!="MediumDesktopNativeOnly")cleanup(s);')){
         throw 'Native client baseline must bypass the product launch branch, including product stop on failure.'
     }
     $flow=Get-V1FixtureFunctionText $Source 'native_clients_only_flow'
@@ -1410,7 +1410,7 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
     foreach($script in @($Prepare,$Guest,$Remote)){
         if(-not $script.Contains("'MediumDesktopEnvironmentOnly'")){throw 'Medium desktop requires exact preparation, guest and deployment suite admission.'}
     }
-    foreach($value in @('(s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only)||!desktop()',
+    foreach($value in @('(s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only&&!native_only)||!desktop()',
         '!equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())||s.process||s.product_pid',
         'marker(fs::path(L"C:\\PaneBindV1\\Input")/L"panebind-v1-input.marker",s.run)',
         'matching_existing_names','open_error!=ERROR_FILE_NOT_FOUND','CreateDesktopW(name.c_str(),nullptr,nullptr,0,access,nullptr)',
@@ -1542,12 +1542,12 @@ function Assert-V1MediumDesktopActivation([string]$Environment,[string]$Activati
     foreach($value in @('if(out.enumerated_ready){',
         'medium_desktop_activate_and_return(created,name,[&]{',
         'observe("activation_fresh_readonly_roots");return out.enumerated_ready;',
-        '},ui_request);',
+        '},ui_request,native_request);',
         'observation.activation_complete&&observation.handle_closed&&original_unchanged',
         'activation.cleanup_known&&', '!activation.deadline_or_completion_unknown')){
         if(-not $Environment.Contains($value)){throw 'Desktop activation must be gated by actual readonly roots and verified independent return, never product authority.'}
     }
-    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"')){
+    if(-not $Environment.Contains('#include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"')){
         throw 'Desktop activation requires actual guarded fixture wiring.'
     }
     foreach($value in @('if(!guarded||!still_exact)',
@@ -1618,4 +1618,38 @@ Check $true 'static actual named-desktop UI uses frozen ordinary product, paired
 Reject {Assert-V1MediumDesktopUI $fixtureSource ($mediumDesktopEnvironment.Replace('accepted=ready&&(!ui_only||observation.ui_completed)','accepted=ready')) $mediumActivationSource $mediumUiSource} 'static UI-only cannot convert desktop activation alone into product UI success'
 Reject {Assert-V1MediumDesktopUI $fixtureSource $mediumDesktopEnvironment ($mediumActivationSource.Replace('state->ui_input->retire_and_wait(1000)','true')) $mediumUiSource} 'static UI-only cannot return through unretired or in-flight input'
 Reject {Assert-V1MediumDesktopUI $fixtureSource $mediumDesktopEnvironment $mediumActivationSource ($mediumUiSource.Replace('flags.compare_exchange_strong(idle,in_flight','flags.exchange(in_flight'))} 'static UI-only rejects reacquiring input after independent retirement'
+function Assert-V1MediumDesktopNative([string]$Fixture,[string]$Environment,[string]$Activation,[string]$Native){
+    foreach($source in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
+        if(-not $source.Contains("'MediumDesktopNativeOnly'")){throw 'Exact native application suite requires package and runner admission.'}
+    }
+    foreach($value in @('s.suite=="MediumDesktopNativeOnly"','s.suite!="MediumDesktopNativeOnly"','medium_desktop_environment_flow(s);')){
+        if(-not $Fixture.Contains($value)){throw 'Native application run must bypass product launch and Default cleanup paths.'}
+    }
+    foreach($value in @('native_only?&native_request:nullptr','(!native_only||observation.native_completed)',
+        '#include "platform/windows/product/v1_guest_medium_desktop_native_case.h"')){
+        if(-not $Environment.Contains($value)){throw 'Native application result must be the actual bounded case, not activation alone.'}
+    }
+    foreach($value in @('out.active_verified&&out.post_activation_ready&&native_request',
+        'medium_terminal_native_case(run,created,*native_request,still_exact,state->began+state->deadline_ms)',
+        'state->deadline_ms=15000;state->outer_ms=20000','out.native_cleanup_known=false')){
+        if(-not $Activation.Contains($value)){throw 'Native application preflight requires actual activated roots and a separate bounded return.'}
+    }
+    foreach($value in @('MediumTerminalNativeResources','request.manifest_sha256','hash(input/L"Terminal-test.zip")==zip_pin',
+        'hash(image)==exe_pin','marker(directory/L"panebind-v1-test-application.marker",run)',
+        'if(!prepared||!absent("before_launch"))','input_actor_same_user(process)',
+        'std::find(first.windows.begin(),first.windows.end(),candidate)',
+        'std::find(second.windows.begin(),second.windows.end(),candidate)',
+        'CASCADIA_HOSTING_WINDOW_CLASS','begin+10000','WM_NULL,0,0,SMTO_ABORTIFHUNG|SMTO_BLOCK,100',
+        'PostMessageW(window,WM_CLOSE,0,0)','resources.finish();','normal_root_close_is_not_all_process_cleanup')){
+        if(-not $Native.Contains($value)){throw ('Native application lost exact asset, real new process/window or normal close fact: '+$value)}
+    }
+    if($Native -match '\b(SendInput|SetWindowPos|SetForegroundWindow|SetFocus|TerminateProcess|Sleep|SetUserObjectSecurity|SetTokenInformation)\s*\(' -or $Native.Contains('INFINITE')){
+        throw 'Native application precondition cannot force focus, inject input or alter security.'
+    }
+}
+$mediumNativeSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_native_case.h'),[Text.Encoding]::UTF8)
+Assert-V1MediumDesktopNative $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumNativeSource
+Check $true 'static real Terminal precondition uses exact reviewed assets, a product-absent active Medium Run and normal close'
+Reject {Assert-V1MediumDesktopNative $fixtureSource $mediumDesktopEnvironment $mediumActivationSource ($mediumNativeSource.Replace('if(!prepared||!absent("before_launch"))','if(!prepared)'))} 'static native application cannot use a paused product as product-absent control'
+Reject {Assert-V1MediumDesktopNative $fixtureSource $mediumDesktopEnvironment $mediumActivationSource ($mediumNativeSource.Replace('hash(image)==exe_pin','true'))} 'static native application cannot substitute an unverified executable'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

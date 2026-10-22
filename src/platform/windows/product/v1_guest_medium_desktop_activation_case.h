@@ -29,6 +29,7 @@ struct MediumDesktopActivationObservation {
     bool attempted{},entry_completed{},entry_return{},active_verified{},post_activation_ready{};
     bool tray_api_attempted{},tray_api_ready{},tray_probe_cleanup_known{true};
     bool ui_requested{},ui_started{},ui_completed{},ui_cleanup_known{true},ui_product_closed{};
+    bool native_completed{},native_cleanup_known{true};
     bool default_return_verified{},return_owner_exited{},opened_handles_closed{},cleanup_known{},deadline_or_completion_unknown{};
     std::string reason{"not_started"},ui_reason{"not_requested"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
@@ -209,7 +210,8 @@ void medium_desktop_active_tray_probe(MediumDesktopActivationObservation& out,
         "\"synthetic_input_sent\":false,\"product_started\":false,\"menu_interaction\":\"NOT_RUN\",\"B27_PASS_inferred\":false");
 }
 MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK created,const std::wstring& exact_run_name,
-    const std::function<bool()>& still_exact,const MediumDesktopUiRequest* ui_request=nullptr){
+    const std::function<bool()>& still_exact,const MediumDesktopUiRequest* ui_request=nullptr,
+    const MediumTerminalNativeRequest* native_request=nullptr){
     MediumDesktopActivationObservation out;const std::wstring prefix=L"PaneBindV1_";
     const auto run=exact_run_name.starts_with(prefix)?exact_run_name.substr(prefix.size()):std::wstring{};
     std::array<wchar_t,128> user{};DWORD size=static_cast<DWORD>(user.size()),session{};
@@ -229,6 +231,7 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
     out.ui_requested=ui_request!=nullptr;
     if(ui_request){state->deadline_ms=30000;state->outer_ms=35000;
         state->ui_input=std::make_shared<MediumDesktopUiInputLease>();}
+    else if(native_request){state->deadline_ms=15000;state->outer_ms=20000;}
     constexpr ACCESS_MASK access=DESKTOP_READOBJECTS|DESKTOP_SWITCHDESKTOP;
     SetLastError(ERROR_SUCCESS);state->target=OpenDesktopW(exact_run_name.c_str(),0,FALSE,access);
     const DWORD target_error=state->target?0:GetLastError();
@@ -274,7 +277,13 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
                 ",\"last_error_not_general_root_cause\":true,\"before_tick\":"+std::to_string(begin)+",\"after_tick\":"+
                 std::to_string(ended)+",\"actual_input\":"+actual.json()+",\"post_activation_exact_Shell_Tray_ready\":"+
                 (out.post_activation_ready?"true":"false")+",\"product_started\":false,\"synthetic_input_sent\":false");
-            if(out.active_verified&&out.post_activation_ready)medium_desktop_active_tray_probe(out,state,still_exact);
+            if(out.active_verified&&out.post_activation_ready&&native_request){
+                out.native_cleanup_known=false;
+                const auto native=medium_terminal_native_case(run,created,*native_request,still_exact,state->began+state->deadline_ms);
+                out.native_completed=native.completed;out.native_cleanup_known=native.hooks_stopped&&native.local_handles_closed;
+                out.ui_reason=native.reason;
+                out.records.insert(out.records.end(),native.records.begin(),native.records.end());
+            }else if(out.active_verified&&out.post_activation_ready)medium_desktop_active_tray_probe(out,state,still_exact);
             if(ui_request&&out.tray_api_ready&&out.tray_probe_cleanup_known&&!state->deadline.load()){
                 out.ui_cleanup_known=false;
                 const auto elapsed=GetTickCount64()-state->began;
@@ -319,10 +328,10 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
             ",\"UI_input_event_CloseHandle_return\":"+(ui_event_attempted?(ui_event_closed?"true":"false"):"null")+
             ",\"original_created_handle_closed_by_helper\":false");
     }
-    out.cleanup_known=out.opened_handles_closed&&out.default_return_verified&&out.return_owner_exited&&!out.deadline_or_completion_unknown&&out.tray_probe_cleanup_known&&out.ui_cleanup_known;
+    out.cleanup_known=out.opened_handles_closed&&out.default_return_verified&&out.return_owner_exited&&!out.deadline_or_completion_unknown&&out.tray_probe_cleanup_known&&out.ui_cleanup_known&&out.native_cleanup_known;
     const bool complete=out.attempted&&out.entry_completed&&out.entry_return&&out.active_verified&&out.post_activation_ready&&
         out.default_return_verified&&out.return_owner_exited&&out.cleanup_known&&!out.deadline_or_completion_unknown;
-    if(complete)out.reason=ui_request?(out.ui_completed?"actual_ordinary_UI_subchain_and_independent_Default_return_observed":out.ui_reason):
+    if(complete)out.reason=native_request?out.ui_reason:ui_request?(out.ui_completed?"actual_ordinary_UI_subchain_and_independent_Default_return_observed":out.ui_reason):
         "actual_own_desktop_activation_and_independent_Default_return_observed_only";
     else if(out.reason=="not_started")out.reason="activation_or_Default_return_unconfirmed_no_followup_environment_interaction";
     out.emit("medium_desktop_activation_summary","\"result\":"+quote(complete?"ACTIVATED_AND_RETURNED_ONLY":"UNKNOWN_OR_BLOCKED")+
@@ -336,6 +345,7 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
         ",\"UI_requested\":"+(out.ui_requested?"true":"false")+",\"UI_product_started\":"+(out.ui_started?"true":"false")+
         ",\"UI_completed\":"+(out.ui_completed?"true":"false")+",\"UI_product_closed\":"+(out.ui_product_closed?"true":"false")+
         ",\"UI_reason\":"+quote(out.ui_reason)+
+        ",\"native_application_requested\":"+(native_request?"true":"false")+",\"native_application_completed\":"+(out.native_completed?"true":"false")+
         ",\"product_enhancement_result\":\"NOT_RUN\",\"desktop_object_destroyed\":\"UNKNOWN\","
         "\"guest_disposal_is_not_product_cleanup_PASS\":true");return out;
 }

@@ -3252,3 +3252,19 @@ switch, otherwise cleanup remains unknown. The original environment deadline
 is5seconds/outer10; the explicit UI-only case is at most20seconds of work with
 30seconds before independent return/outer35. No permanent polling, account,
 token, DACL or host-desktop change. No external implementation code reused.
+
+Actual2b49: the new exact Medium desktop and independent return succeeded,
+but the own notification probe's NIM_ADD returned FALSE; raw error2147500037
+is preserved, not assigned a unique system cause. No product/UI input followed.
+Do not repeat that unchanged notification route or infer B27 from cleanup.
+The independent next environment variable is the already reviewed official
+Terminal1.25.2733.0 asset on the activated Run desktop, with the product truly
+absent. Reuse the existing Terminal provenance and native preflight history:
+pin the same ZIP/EXE, use its existing prepared guest directory, observe only
+the new exact Medium child and complete held-desktop membership, check one
+bounded WM_NULL, then request one normal WM_CLOSE and observe the bound root
+disappear. No client input, product operation, Appx registration, shell setting,
+token or permission change. A successful root close is not all-descendant exit
+or a product compatibility PASS. This is TEST-only, with a15second independent
+return/20second outer completion budget; unknowns remain unknown. No new
+external source code or upstream version is copied/adapted.
