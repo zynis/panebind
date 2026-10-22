@@ -3,6 +3,42 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+      "id": "EV-0072-MEDIUM-TERMINAL-CLIENT-HIT-REJECTED-NO-INPUT",
+      "run_id": "0072856a37034c83a17f79f7233c5590",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "product_started": false,
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+      "path": "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
+      "sha256": "DCB787C1094482718ACDB4F898B88739AA8E59FDBF1594D44BEF3E5D91EF232F",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0072-medium-terminal-client-excerpt.jsonl",
+      "repository_excerpt_sha256": "84E95EC82B6FBF87FA86B1773C1885CD7FD910B93512F67FB0A8B1C70225B5EC",
+      "result": "BLOCKED_ACTUAL_HTCAPTION_NOT_HTCLIENT_NO_INPUT",
+      "scope": "0072/dcab：产品未启动的新active Medium桌面真实Terminal新root/响应/正常root关闭及source双GTI、单窗VDM S_OK/current=true；Foreign GetThreadDesktop NULL/error5仍UNKNOWN。实际WindowFromPoint精确root，但WM_NCHITTEST=HTCAPTION2，在首个光标/鼠标/键盘输入前拒绝；nonce/客户语义/正式产品资格及几何NOT_RUN。独立Default返回及局部观察退出成立，不授应用或完整桌面PASS。",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "id": "EV-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
+      "run_id": "630b7f032579426c90c5ba1c8a8fd59d",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "product_started": true,
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+      "path": "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
+      "sha256": "79EED6075CB9D1098EE1BCFD019551DCEDDDF21C046F4216DAD8232DAEE5FC2C",
+      "repository_excerpt_path": "docs/reports/v1-evidence/630b-medium-product-ui-excerpt.jsonl",
+      "repository_excerpt_sha256": "1AE0C38CDBF8ECFFE24EB48D1ACF9F3AA2C974239CC8637618E3E2DBF6DB872F",
+      "result": "BLOCKED",
+      "scope": "630b/dcab：普通无参25b Medium产品GUI与实际前台成立。首Esc两包SendInput实际0/error5，无插入，后继托盘输入未发；原BLOCKED/driverFAIL保留。产品P1 NIM_ADD=false，P9同UID1实际ADD/SETVERSION均true，不能称永久注册失败或菜单可达。公共同EXE --quit→产品exit0/P11资源停止、独立Default返回有事实；wrapper仍exit1/desc1/forced=true，guest销毁不代替产品清理。raw5根因UNKNOWN。",
+      "new_feature_or_B_PASS": false
+    },
+    {
         "id": "EV-ABB1-EXACT-ACTIVE-MEDIUM-MODERN-TERMINAL-START-RESPONSE-NORMAL-CLOSE",
         "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
         "configuration": "Release",
@@ -307,6 +343,42 @@
     }
   ],
   "current_targeted_runtime": [
+    {
+      "id": "EV-0072-MEDIUM-TERMINAL-CLIENT-HIT-REJECTED-NO-INPUT",
+      "run_id": "0072856a37034c83a17f79f7233c5590",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "product_started": false,
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+      "path": "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
+      "sha256": "DCB787C1094482718ACDB4F898B88739AA8E59FDBF1594D44BEF3E5D91EF232F",
+      "repository_excerpt_path": "docs/reports/v1-evidence/0072-medium-terminal-client-excerpt.jsonl",
+      "repository_excerpt_sha256": "84E95EC82B6FBF87FA86B1773C1885CD7FD910B93512F67FB0A8B1C70225B5EC",
+      "result": "BLOCKED_ACTUAL_HTCAPTION_NOT_HTCLIENT_NO_INPUT",
+      "scope": "0072/dcab：产品未启动的新active Medium桌面真实Terminal新root/响应/正常root关闭及source双GTI、单窗VDM S_OK/current=true；Foreign GetThreadDesktop NULL/error5仍UNKNOWN。实际WindowFromPoint精确root，但WM_NCHITTEST=HTCAPTION2，在首个光标/鼠标/键盘输入前拒绝；nonce/客户语义/正式产品资格及几何NOT_RUN。独立Default返回及局部观察退出成立，不授应用或完整桌面PASS。",
+      "new_feature_or_B_PASS": false
+    },
+    {
+      "id": "EV-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
+      "run_id": "630b7f032579426c90c5ba1c8a8fd59d",
+      "configuration": "Release",
+      "kind": "ACTUAL_RELEASE_SCOPED_LITERAL_REVIEW",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "product_started": true,
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+      "path": "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
+      "sha256": "79EED6075CB9D1098EE1BCFD019551DCEDDDF21C046F4216DAD8232DAEE5FC2C",
+      "repository_excerpt_path": "docs/reports/v1-evidence/630b-medium-product-ui-excerpt.jsonl",
+      "repository_excerpt_sha256": "1AE0C38CDBF8ECFFE24EB48D1ACF9F3AA2C974239CC8637618E3E2DBF6DB872F",
+      "result": "BLOCKED",
+      "scope": "630b/dcab：普通无参25b Medium产品GUI与实际前台成立。首Esc两包SendInput实际0/error5，无插入，后继托盘输入未发；原BLOCKED/driverFAIL保留。产品P1 NIM_ADD=false，P9同UID1实际ADD/SETVERSION均true，不能称永久注册失败或菜单可达。公共同EXE --quit→产品exit0/P11资源停止、独立Default返回有事实；wrapper仍exit1/desc1/forced=true，guest销毁不代替产品清理。raw5根因UNKNOWN。",
+      "new_feature_or_B_PASS": false
+    },
     {
       "id": "EV-28E3-QUEUE-FAILURE-AND-PUBLIC-RECOVERY",
       "run_id": "28e3f8ddc91f4c8da1328df09a75017d",
@@ -841,18 +913,31 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
-  "next_driver_validation": "Last actual06045/BBC28e3 scopedQueue PASS; no next native run inferred. Current40/60,20/40=50% unchanged. c696/BBC af8f TESTbarrier FAIL, b6perpixel visible/NormalUp subPASS but Focus successor fresh gate FAIL, 34f ordinary notice subPASS but HC heap exit FAIL. Callback-owner stop injection and exact fresh gate/HC TEST diagnostics pending; modules/apps/ordinary fullMedium/tray/displays/Full/human not closed.",
+  "next_driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+  "next_driver_validation": "Actual dcab D/R build and guest-path1/1 each,194 static checks and four full-argv host Exit78.0072 actual Medium Terminal/sourceGTI+VDM positive but real HTCAPTION rejects before all input;630b ordinary Medium GUI/foreground observed, firstEsc insert0/error5 and no tray input. Product retryADD+SETVERSION true before normal publicQuit/exit0.43/60,21/40,module0,PARTIAL unchanged; actual client semantic/product context/tray/full matrix not passed.",
   "next_driver_binary_identity": {
-    "source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
-    "candidate_product_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
-    "build": "ACTUAL_RELEASE_DRIVER_IDENTITY_FROM_SEALED_28E3_PACKAGE",
-    "binary_sha256": "326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7",
-    "native_runtime": "ACTUAL_28E3_QUEUE_FAILURE_AND_PUBLIC_RECOVERY_SCOPED_PASS",
-    "scope": "Last actual tested TEST identity, not a claim that future callback or fresh-gate diagnostic candidates were built or run; original af8f/c696 failure preserved",
-    "old_runtime_rebound": false
+    "source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "status": "ACTUAL_0072_CLIENT_PREINPUT_BLOCKED_AND_630B_ORDINARY_GUI_FIRST_INPUT_BLOCKED",
+    "debug_sha256": "DEA74A8A0CBE211764A1898AF71118973474641AC6BF3DEB4E4A9848C478E946",
+    "release_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+    "build": "ROOT_ACTUAL_DEBUG_RELEASE_FIXTURE_BUILD_PASS",
+    "static_checks": "ROOT_ACTUAL_194_PASS",
+    "offline": "ROOT_ACTUAL_GUEST_PATH_ONE_EACH_DEBUG_RELEASE_PASS",
+    "host_guard": "ROOT_ACTUAL_FOUR_WAITED_EXIT78_WITH_VALID_FULL_ARGV_NATIVE_CLIENT_AND_UI_EACH_DEBUG_RELEASE",
+    "actual_run_ids": [
+      "0072856a37034c83a17f79f7233c5590",
+      "630b7f032579426c90c5ba1c8a8fd59d"
+    ],
+    "actual_evidence_paths": [
+      "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
+      "docs/reports/v1-evidence/630b-medium-product-ui-review.json"
+    ],
+    "product_binary_unchanged": true,
+    "scope": "0072: actual new Medium Terminal root/normal close and exact dual-GTI/current-virtual-desktop positive observations, but real root HTCAPTION rejects before all input; product not started.630b: ordinary noarg Medium product GUI/foreground observed; first Esc SendInput0/error5 inserts no packets, later tray input NOT_RUN. Product initial NIM_ADD=false then actual NIM_ADD+SETVERSION=true before public quit/exit0/resource stop and Default return. Overall BLOCKED; no client semantic/product enhancement/M01/B27/whole PASS; raw5 cause UNKNOWN.",
+    "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
   },
-  "pending_product_candidate": {
+  "historical_pending_product_bbc_candidate": {
     "source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
     "debug_build": "PASS_ROOT_ACTUAL",
     "release_build": "PASS_ROOT_ACTUAL",
@@ -864,17 +949,40 @@
     "old_runtime_rebound": false,
     "portable528a_unchanged": true
   },
+  "pending_product_candidate": {
+    "source_sha": "55f769c2d7bd5448289df26cb896760b414861f3",
+    "current_verified_product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "current_verified_portable_package_id": "bfb405c45e5a446ca54a74735d1122a8",
+    "implementation_status": "IMPLEMENTED_AWAITING_NATIVE_VALIDATION",
+    "build": "ACTUAL_DEBUG_RELEASE_PRODUCT_FIXTURE_AND_SIX_AFFECTED_OFFLINE_EACH6_OF6_PASS",
+    "debug_sha256": "94160AA1FF24676B3E37F4230611003429D0052DC4D6F84ABDBFFCBABADCD762",
+    "release_sha256": "2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27",
+    "driver_debug_sha256": "36B64CCEE77B26F43793C37EC247A19183E651BA7AC34E3C863C4DA1A21E1F2A",
+    "driver_release_sha256": "67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D",
+    "native_runtime": "NOT_RUN",
+    "scope": "Final55f candidate includes9df Run-context/source wiring, shared advapi32 linkage and TEST changes. Actual D/R builds and6/6 affected offline each, static195 and8 waited host Exit78 guards passed; no native/feature/B or whole PASS. Actual25b/dcab0072/630b identities remain unchanged.",
+    "intermediate_9df_build_support": {
+      "source_sha": "9df89e5d512db944eccd4cc479f86b856cbd69bb",
+      "debug_sha256": "BA332AAB45F3F441B1E5A69130BBA7A5B4E283D066AEB43A54B026BD19C58510",
+      "release_sha256": "6E5895987F989FAF9F90D0D9368F237CDB38EDA283F0CA147F0AC50D73D2C3F2",
+      "build": "DEBUG_RELEASE_PRODUCT_AND_SIX_AFFECTED_OFFLINE_EACH6_OF6_PASS",
+      "native_runtime": "NOT_RUN_NOT_DEPLOYED"
+    },
+    "whole_version_PASS": false,
+    "old_runtime_rebound": false
+  },
   "last_actual_tested_driver": {
-    "source_sha": "06045bfb2327a2f875ff5ed289434a87914dca44",
-    "product_source_sha": "bbc5b1e539bc62ae5a760d3c2f2d139efb4890a6",
-    "product_exe_unchanged": true,
-    "release_sha256": "326E4A0087F0F54648CF372052A97E0E1815F0A86F2DD49D6CEA1BD93356DBA7",
+    "source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "release_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
     "run_ids": [
-      "28e3f8ddc91f4c8da1328df09a75017d"
+      "0072856a37034c83a17f79f7233c5590",
+      "630b7f032579426c90c5ba1c8a8fd59d"
     ],
-    "native_guard_validation": "ACTUAL_QUEUE_FAILURE_INDEPENDENT_CLEANUP_PUBLIC_RECOVERY_AND_FOLLOWING_MOVE_RESIZE_SCOPED_PASS",
+    "native_guard_validation": "ACTUAL_0072_CLIENT_PREINPUT_BLOCKED_AND_630B_ORDINARY_GUI_FIRST_INPUT_BLOCKED",
+    "whole_version_PASS": false,
     "old_runtime_rebound": false,
-    "whole_version_PASS": false
+    "product_exe_unchanged": true
   },
   "remaining_native_contracts_prepared": {
     "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",
@@ -1075,7 +1183,7 @@
     ],
     "required_revalidation": "产品247/Release原字节继续复用：da237驱动17f5已实测两调用域终止后拒发MOVE、真实abort清理UP及同PID新Move/Resize；0db8已实测6e9普通ZIP空参数首/二启、中文GUI、设置实际Move效果、NormalUp和正常退出的限定范围。旧22b2/c899 FAIL与未知前台原因不改，不盲重同路线或独立900秒。Full/托盘/全部I12入口/真实应用/普通完整桌面/显示/真人仍未过。2c5诊断通路新产品是另一个待现场候选，不把旧247记录改绑。"
   },
-  "next_driver_candidate": {
+  "historical_driver_11ae_candidate": {
     "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "product_binary_unchanged": false,
@@ -1792,47 +1900,25 @@
     "scope": "Latest observed R8 test driver, not the untested R9 product; do not rebind0be2/3fd3 or infer R9 runtime PASS"
   },
   "latest_environment_probe_observation": {
-    "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
-    "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
-    "source_identity_scope": "PACKAGED_PRODUCT_NOT_EXECUTED",
-    "driver_source_sha": "a430607507f4980787296fa259a35ef4a97eb8f4",
-    "driver_binary_sha256": "BC611DDCBF7CB165908C182B901BE1EAEA8479497848F9FF11B87BC09E367895",
-    "probe_source_sha": "a430607507f4980787296fa259a35ef4a97eb8f4",
-    "probe_sha256": "C51A5B03D7E79FE7072A72E559C89CC17CBF4E19E392F022358B97DDD5281F7C",
-    "run_id": "43c7c45cacf1460e846d86f4a35cc4b6",
-    "configuration": "Release",
-    "packaging_head": "a430607507f4980787296fa259a35ef4a97eb8f4",
-    "package_zip_sha256": "92C9E505090A9166B9EF53849A45E4F677832B6AB86218F700D6DD6A988463F5",
-    "package_manifest_sha256": "96A4DA4DA1167026CAAFDD2BDA45F68087C32ACE61593AF911CC8794A07C8A33",
-    "wsb_sha256": "1DE73A75D153D8513EF2F93E85D66A7DC8788AAA4449017C0DE77CB96E037C84",
-    "observation_id": "PO-43C-R13-STANDARD-TOKEN-NATIVE-CHILD-ERROR1314",
-    "scope": "ACTUAL_WDAG_SAME_IMAGE_HIGH_NATIVE_IDENTITY_AND_STANDARD_MEDIUM_CREDENTIAL_TOKEN_STANDARD_CHILD_NOT_CREATED_API1314_NO_GUI_OR_INPUT",
+    "packaged_product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "packaged_product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
     "product_started": false,
-    "product_GUI_started": false,
-    "product_function_result": "NOT_RUN",
-    "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
-    "status": "UNKNOWN_STANDARD_NATIVE_CREATEPROCESSASUSER_FALSE_ERROR1314",
-    "standard_account": "CREATED_AND_EXACTLY_DELETED",
-    "standard_credential_token": "ACTUAL_MEDIUM8192_NON_ELEVATED_NON_ADMIN_SESSION1",
-    "standard_child": "NOT_CREATED",
-    "standard_child_exit": "NOT_APPLICABLE_NO_CHILD",
-    "native_entry": "UNKNOWN",
-    "GUI_or_Shell": "NOT_RUN",
-    "synthetic_input_sent": false,
-    "product_runtime_pointer_unchanged": "e12ed711f73441c3bc1cf6491771e299",
-    "evidence_id": "EV-43C-R13-STANDARD-NATIVE-ENTRY-PROPERTY-PROJECTION",
-    "cleanup": {
-      "guest_pid": 17104,
-      "task_removed": true,
-      "dedicated_guest_exited": true,
-      "evidence_unchanged": true,
-      "deployment_retained": true,
-      "product_cleanup_inferred_from_guest_destruction": false,
-      "other_files_or_resources_changed": false,
-      "utc": "2026-10-19T14:07:44.9787084Z",
-      "original_path": "uat/v1-control/43c7c45cacf1460e846d86f4a35cc4b6/cleanup-receipt.json",
-      "original_sha256": "9B3DBA464C290DC45BF8C1584878FFB8621A2C627762ADAEAE1EE38EA224B01E"
-    }
+    "run_id": "0072856a37034c83a17f79f7233c5590",
+    "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+    "evidence_id": "EV-0072-MEDIUM-TERMINAL-CLIENT-HIT-REJECTED-NO-INPUT",
+    "evidence_path": "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
+    "status": "ACTUAL_SOURCE_DUAL_GTI_AND_SINGLE_WINDOW_VDM_POSITIVE_CLIENT_PREINPUT_BLOCKED",
+    "actual_exact_Medium_Run_and_new_Terminal_root": true,
+    "source_GTI_idle_and_current_GTI_idle": true,
+    "VDM_S_OK_and_current": true,
+    "foreign_GetThreadDesktop": "UNKNOWN_NULL_ERROR5",
+    "actual_root_hit": 2,
+    "client_input_sent": false,
+    "nonce_semantics": "NOT_RUN",
+    "formal_product_Run_context_source_qualification": "NOT_RUN_PENDING_NEW_PRODUCT",
+    "subsequent_ordinary_product_UI_observation_ref": "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
+    "whole_version_PASS": false
   },
   "latest_tool_launch_observation": {
     "source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1962,57 +2048,41 @@
     }
   },
   "latest_runtime_observation": {
-    "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-    "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
-    "product_binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
-    "product_process_ids": [
-      6280,
-      4924,
-      7080,
-      6660,
-      5264,
-      1840
-    ],
-    "driver_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
-    "driver_binary_sha256": "4AECEB4D06FDFE1BB67F42B200E262CC5E9932818272E93EFCB1240E997875A7",
-    "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
+    "source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_process_id": 6784,
+    "product_birth_filetime_decimal": "134371354484558217",
+    "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "driver_binary_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+    "run_id": "630b7f032579426c90c5ba1c8a8fd59d",
     "configuration": "Release",
-    "packaging_head": "cbbea8e46f5660d2a528acf151a9e24d7bf425cc",
-    "package_zip_sha256": "ABC5F6F57D506FFD1A1F52363308DC242D8C4C3BF779AA205240B1D32073D982",
-    "package_manifest_sha256": "40CA2B98F48C889210C1C9934A7C84DB2B47456C20883A8C9B4A08177179D51B",
-    "observation_id": "PO-DFDD-11AE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-    "scope": "OWNED_CORE_CONFIGURATION_LAYOUT_RECOVERY_TWO_ROUNDS_MIXED_900_OBSERVED_FULL_APPLICATION_BOUNDARIES_FAIL",
-    "collection_path": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/collection-20261021T044553556Z-67686a75ea714e088706af35d09f72ee",
+    "packaging_head": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "package_zip_sha256": "D197E9AC81C7E3E80D8BE768F995673F78C40DB6DCDBBE03344E3896B827156B",
+    "package_manifest_sha256": "45A9AD55CBBC768BD5780EFE4C081F4CFE017CEB32D8A24C6ECEA0CA8B7E3DB0",
+    "observation_id": "PO-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
+    "evidence_id": "EV-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
+    "evidence_path": "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
+    "scope": "ACTUAL_ORDINARY_NOARG_MEDIUM_GUI_FIRST_ESCAPE_INSERT0_ERROR5_NO_TRAY_INPUT_PUBLIC_QUIT_EXIT0_DEFAULT_RETURN_OVERALL_BLOCKED",
     "driver_process_exit": "OBSERVED_WAIT0_EXIT1",
     "guest_wrapper_status": "FIXTURE_FAILED",
-    "descendants_alive_at_fixture_exit": 3,
+    "descendants_alive_at_fixture_exit": 1,
     "forced_test_cleanup": true,
     "product_cleanup_pass": false,
-    "product_cleanup_pass_basis": "Unevaluated wrapper false retained. Six exact product PIDs have separate actual own-resource shutdown receipts. Application-root normal close was not confirmed; guest destruction is not product/application cleanup PASS.",
-    "phase_results": {
-      "owned_historical_seven_generations": "PASS_SCOPED_ACTUAL_UP_AND_GEOMETRY",
-      "same_PID_two_rounds_and_mixed_900": "PASS_SCOPED_5264_ONLY",
-      "tray": "BLOCKED",
-      "applications_and_registered_roots_normal_close": "FAIL",
-      "Full_portable_tail": "NOT_RUN"
-    },
-    "foreground_observer": {
-      "reserved": 257,
-      "flushed": 256,
-      "overflow": 1,
-      "complete_history": false
-    },
-    "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
-    "evidence_path": "docs/reports/v1-evidence/dfdd-release-full-metadata.json",
+    "product_cleanup_pass_basis": "Raw wrapper false retained. D129/130 and productP11 separately prove public same-EXE quit/exit0/own resources; exact guest cleanup is not used as product cleanup evidence.",
+    "product_initial_NIM_ADD": false,
+    "product_later_NIM_ADD": true,
+    "product_later_NIM_SETVERSION": true,
+    "tray_input_sent": false,
+    "synthetic_input_inserted": false,
     "feature_contract_PASS": [],
     "benchmark_contract_PASS": [],
     "whole_version_PASS": false,
     "human_uat": "NOT_RUN",
     "cleanup": {
-      "path": "uat/v1-control/dfdde5b3a08b43d9b7cbe068f4de0d22/cleanup-receipt.json",
-      "sha256": "6673310E52F4F3975F40B1058B41F21DF55A763A80D959A0BFA4E921E54A0272",
-      "guest_pid": 2276,
-      "utc": "2026-10-21T04:46:42.3897593Z",
+      "path": "uat/v1-control/630b7f032579426c90c5ba1c8a8fd59d/cleanup-receipt.json",
+      "sha256": "4B4EAB190335D6E2041EA28D155BEB666A664E47F044464D78541B17CDA1A898",
+      "utc": "2026-10-22T09:39:01.6975890Z",
+      "owned_guest_pid": 11008,
       "task_removed": true,
       "dedicated_guest_exited": true,
       "evidence_unchanged": true,
@@ -2172,6 +2242,40 @@
     "next_action": "保留247/17f5与0db8、2c5/5810及全部历史原结论/原身份。11ae/fdf2仅cache刷新与单BR exact/Undo通过，结束为Paused且第二UP matching=false，不授完整I05；2432/528a普通ZIP首/二启、GUI/设置效果、Move-UP及退出限域通过。最新真正产品Full仍a8a7：A五阶段及三成员CtrlA通过，B g3实际FocusLost后0placement/拒发MOVE；采样rgnupdt.exe不是已证激活发起者。3927为启动工具缺陷，产品/输入未跑；后继工具对照另待封存，不盲重旧Full或900。继续未齐Full/托盘/真实应用/普通完整桌面/显示/真人合同，DEV15/B7不增。"
   },
   "records": [
+    {
+      "id": "EV-0072-MEDIUM-TERMINAL-CLIENT-HIT-REJECTED-NO-INPUT",
+      "kind": "read_only_review_and_literal_original_rows",
+      "source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "run_id": "0072856a37034c83a17f79f7233c5590",
+      "excerpt_path": "docs/reports/v1-evidence/0072-medium-terminal-client-review.json",
+      "excerpt_sha256": "DCB787C1094482718ACDB4F898B88739AA8E59FDBF1594D44BEF3E5D91EF232F",
+      "literal_excerpt_paths": [
+        "docs/reports/v1-evidence/0072-medium-terminal-client-excerpt.jsonl"
+      ],
+      "literal_excerpt_sha256": [
+        "84E95EC82B6FBF87FA86B1773C1885CD7FD910B93512F67FB0A8B1C70225B5EC"
+      ],
+      "scope": "0072/dcab：产品未启动的新active Medium桌面真实Terminal新root/响应/正常root关闭及source双GTI、单窗VDM S_OK/current=true；Foreign GetThreadDesktop NULL/error5仍UNKNOWN。实际WindowFromPoint精确root，但WM_NCHITTEST=HTCAPTION2，在首个光标/鼠标/键盘输入前拒绝；nonce/客户语义/正式产品资格及几何NOT_RUN。独立Default返回及局部观察退出成立，不授应用或完整桌面PASS。",
+      "independent_feature_contract_evaluation": "NO_NEW_FEATURE_OR_B_PASS_EXISTING43_OF60_21_OF40_MODULES0_RETAINED"
+    },
+    {
+      "id": "EV-630B-MEDIUM-PRODUCT-ORDINARY-GUI-FIRST-INPUT-BLOCKED",
+      "kind": "read_only_review_and_literal_original_rows",
+      "source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+      "run_id": "630b7f032579426c90c5ba1c8a8fd59d",
+      "excerpt_path": "docs/reports/v1-evidence/630b-medium-product-ui-review.json",
+      "excerpt_sha256": "79EED6075CB9D1098EE1BCFD019551DCEDDDF21C046F4216DAD8232DAEE5FC2C",
+      "literal_excerpt_paths": [
+        "docs/reports/v1-evidence/630b-medium-product-ui-excerpt.jsonl"
+      ],
+      "literal_excerpt_sha256": [
+        "1AE0C38CDBF8ECFFE24EB48D1ACF9F3AA2C974239CC8637618E3E2DBF6DB872F"
+      ],
+      "scope": "630b/dcab：普通无参25b Medium产品GUI与实际前台成立。首Esc两包SendInput实际0/error5，无插入，后继托盘输入未发；原BLOCKED/driverFAIL保留。产品P1 NIM_ADD=false，P9同UID1实际ADD/SETVERSION均true，不能称永久注册失败或菜单可达。公共同EXE --quit→产品exit0/P11资源停止、独立Default返回有事实；wrapper仍exit1/desc1/forced=true，guest销毁不代替产品清理。raw5根因UNKNOWN。",
+      "independent_feature_contract_evaluation": "NO_NEW_FEATURE_OR_B_PASS_EXISTING43_OF60_21_OF40_MODULES0_RETAINED"
+    },
     {
       "id": "EV-2C8D-ACTIVE-SETTINGS-GROUP-RETIREMENT",
       "kind": "native_guest_scope_metadata_and_literal_original_rows",

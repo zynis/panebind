@@ -12,7 +12,7 @@
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-环境进展单列：[229e](reports/v1-evidence/229e-medium-desktop-activation-return-review.json)已实际建立本任务新Medium Shell／Tray、切入并独立切回Default；[2b49](reports/v1-evidence/2b49-medium-tray-precondition-review.json)的private-probe NIM_ADD失败及产品／GUI／输入未启动保留，清理不当功能PASS、raw错误不作根因。后继[abb1](reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json)已在新exact active Medium桌面实际完成现代Terminal精确根启动、WM_NULL响应和一次正常WM_CLOSE／根消失；**不是客户输入、全部进程退出或产品功能通过**。真实客户nonce、sourceGUI／VDM只读观察及本产品独立UID1普通GUI／托盘路径仍在编码、未构建／现场。正式增强的Default保护不变，本包不能直接在新命名桌面上宣称可用；真实托盘、完整普通Medium桌面、应用／显示矩阵及真人UAT仍分别缺项。
+环境进展单列：229e／abb1新exact active Medium Shell／Tray、独立Default返回和现代Terminal根响应／正常根关闭保留原范围，2b49自probe NIM_ADD=false不改。后继dcab已实测：[0072](reports/v1-evidence/0072-medium-terminal-client-review.json)取得精确Terminal双GTI idle及单窗VDM S_OK/current=true，但实际root客户点HTCAPTION，在任何输入前拒绝，nonce客户语义与正式产品source权限仍未证；[630b](reports/v1-evidence/630b-medium-product-ui-review.json)实际普通无参Medium产品GUI及前台成立，首Esc SendInput0/error5无插入、托盘输入未发。产品初始ADD=false后真实重注册ADD/SETVERSION=true，不能称永久失败或菜单已可用；公共`--quit`实际exit0／自有资源停止及Default回切有有限回执，整体仍BLOCKED。9df中间接线D/R各6/6仅作未部署支撑；最终55f产品/fixture候选已纳入明确链接依赖，当前构建中，独立键盘nonce／freshRun请求范围亦未现场，没有新binary hash或PASS，不是本页已测25b EXE。原Default／宿主保护不放宽；真实UI投递、托盘、完整普通Medium桌面、应用／显示矩阵及真人UAT仍缺项，43/60、21/40、模块0与PARTIAL不变，raw5根因UNKNOWN。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 

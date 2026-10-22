@@ -1,6 +1,21 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：新Medium桌面现代Terminal启动／响应／正常根关闭已验，43/60（2026-10-22）
+后继`55f769c2d7bd5448289df26cb896760b414861f3`已实际完成产品／fixture Debug、Release构建及受影响offline各6/6；产品D／R SHA-256分别为`94160AA1FF24676B3E37F4230611003429D0052DC4D6F84ABDBFFCBABADCD762`／`2D2FE6AE51000C554D00103CE67E928BD8B6326BA1CD9E4B2C62A614C8832C27`，驱动D／R为`36B64CCEE77B26F43793C37EC247A19183E651BA7AC34E3C863C4DA1A21E1F2A`／`67CD222410CE68EF592858FB06307F45784072F0A9656F6A300A1375A1E16E7D`。八次宿主误运行保护均实际等待Exit78，静态195项通过。此处取代下方“构建中／hash未知”的过程状态；55f现场仍NOT_RUN，旧25b结果及便携包不改绑，未增加功能分数。现有验收工具普通校验通过；`-SelfTest`因历史字符串case无status属性失败，未记通过，未据此阻断现场或改写验收结果。
+
+## 当前接续：dcab实际source只读正事实、普通产品GUI与首输入阻断，43/60（2026-10-22）
+
+**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING，不增加M01／B27或应用PASS。** 已验证产品仍为`25bff898c9943ee70155ce08868a2a7fc56ab100`／Release `34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`，便携包仍bfb405c45e5a446ca54a74735d1122a8原字节；a014／540f及旧批不换绑新驱动。
+
+本次driver／包装`dcab4e56620e9a4ff9ff48830869033bfede95f0`，Debug SHA-256 `DEA74A8A0CBE211764A1898AF71118973474641AC6BF3DEB4E4A9848C478E946`、Release `43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0`。主执行器实际D／R构建及guest-path各1/1、194项静态检查、两配置NativeClient／UI完整有效argv四次宿主Exit78通过；此为实际工具结果转录，不补造原stdout或产品功能通过。
+
+- [0072原生客户前置](v1-evidence/0072-medium-terminal-client-review.json)：199D合法连续，产品未启动。新exact active同SID／session／Medium Terminal根、响应及正常根关闭成立；source与当前双GTI实际成功且idle，单窗VDM接口S_OK／current=true，foreign GetThreadDesktop仍NULL／error5／UNKNOWN。真实客户中心WindowFromPoint为精确root66382而WM_NCHITTEST=HTCAPTION2，**首个光标／鼠标／键盘包都未发，nonce客户语义NOT_RUN**，原BLOCKED／driverFAIL保留。正常root消失不等于所有后代退出，也不授正式产品source资格。
+- [630b产品独立普通GUI](v1-evidence/630b-medium-product-ui-review.json)：150D／11P合法连续，实际普通空参数Medium产品PID6784、可见设置及前台已观察；首Esc两包SendInput返回0／error5，没有包插入，后继托盘输入／菜单／帮助诊断／TaskbarCreated未运行。产品P1 UID1 NIM_ADD=false，但P9同owner／UID1实际ADD与SETVERSION均true，**不能记为永久注册失败，也不据API成功授菜单可达**。失败后公共同EXE `--quit`命令及原产品实际exit0、P11自有资源停止／无completion unknown、独立Default回切有有限真实回执；wrapper仍wait0／exit1／desc1／forced=true，原整体BLOCKED不变，raw5不解释成UIPI或系统根因。
+
+两批稳定收集后分别于09:35:53Z／09:39:01Z清理精确guest／专用任务，证据未变、无其他文件或资源改动；新Explorer仍alive的测试收尾与产品公共退出分开，guest销毁不补功能或cleanup PASS。2b49自有probe FALSE及未启动产品的旧结论原样保留。
+
+产品精确Run-context／source中间接线`9df89e5d512db944eccd4cc479f86b856cbd69bb`已实际完成D／R product构建及受影响offline各6/6；D SHA-256 `BA332AAB45F3F441B1E5A69130BBA7A5B4E283D066AEB43A54B026BD19C58510`、R `6E5895987F989FAF9F90D0D9368F237CDB38EDA283F0CA147F0AC50D73D2C3F2`。仅为未部署／native NOT_RUN中间支撑。最终后继源码已固定`55f769c2d7bd5448289df26cb896760b414861f3`，纳入明确advapi32共享链接和TEST适配／官方依据，D／R产品／fixture及6项affected offline构建中，最终binary hash未知／native NOT_RUN，不将9df中间EXE当可用包。另一次产品未启动的Terminal独立键盘nonce与自有freshRun请求句柄范围当前构建中／尚未现场，不预填其未来SHA或PASS。0072只读GTI／VDM正事实不等于已接通生产权限，630b普通GUI也不等于实际UI输入、托盘或完整Medium桌面。以下0605／EEA及更早段落是原身份历史检查点，不覆盖本节下一动作。
+
+## 历史检查点：0605新Medium桌面现代Terminal启动／响应／正常根关闭，43/60（2026-10-22）
 
 [abb1现代Terminal原生前置](v1-evidence/abb1-medium-terminal-native-start-close-review.json)：187条合法连续driver、0显式FAIL，冻结25b产品未启动；在新建exact、同SID／session／Medium且真实active的桌面，实际创建现代Terminal PID5844，精确Cascadia根HWND131874在1.859秒内成立，两次完整HDESK成员及实际矩形核验通过。单次100ms有界WM_NULL有响应；一次正常WM_CLOSE后根确已消失。即时process Wait0＝258与随后exitCode＝0保留为**非原子采样**，不写成已证明所有Terminal进程退出。独立Default回切、自有观察hook／句柄及本任务guest／任务收尾已核。结论仅START_RESPONSE_NORMAL_CLOSE_ONLY；客户输入、产品资格／Move／Resize／Ctrl、托盘及完整应用链仍NOT_RUN。资产准备receipt的application_started=false是准备时点，不覆盖D163真实CreateProcess。
 

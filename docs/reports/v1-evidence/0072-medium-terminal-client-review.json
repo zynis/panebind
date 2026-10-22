@@ -1,0 +1,250 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-0072-MEDIUM-TERMINAL-CLIENT-HIT-REJECTED-NO-INPUT",
+  "kind": "independent_read_only_original_raw_and_receipts_review",
+  "review_date": "2026-10-22",
+  "run_id": "0072856a37034c83a17f79f7233c5590",
+  "suite": "MediumDesktopNativeClientOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_ACTUAL_HTCAPTION_NOT_HTCLIENT_NO_INPUT",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_started": false,
+    "product_identity_meaning": "Packaged hash-verified payload only, not product execution or product cleanup. Session product mutex absent, complete named-process snapshots0 and current-desktop product root0 observed at the recorded boundaries.",
+    "driver_source_sha": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "driver_sha256": "43049AE32106E02FA7D4DF4097487295E097D7157FA9966696F739C2E41D10A0",
+    "packaging_head": "dcab4e56620e9a4ff9ff48830869033bfede95f0",
+    "fixture_pid": 6208,
+    "fixture_primary_tid": 4000,
+    "observer_tid": 3672,
+    "return_owner_tid": 3392,
+    "terminal_pid": 5536,
+    "terminal_tid": 5248,
+    "terminal_birth_filetime_decimal": "134371352936557196",
+    "terminal_root_hwnd": 66382,
+    "terminal_image": "C:\\PaneBindV1\\Terminal\\0072856a37034c83a17f79f7233c5590\\Release\\terminal-1.25.2733.0\\WindowsTerminal.exe",
+    "terminal_distribution_version": "1.25.2733.0",
+    "terminal_file_version": "1.25.2609.30003",
+    "terminal_sha256": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_0072856a37034c83a17f79f7233c5590",
+    "precision": "64-bit birth identities remain decimal strings here; raw excerpt retains original literal digits."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/0072856a37034c83a17f79f7233c5590/package-receipt.json",
+    "receipt_sha256": "F2B89249A5BF0AD8CA098E6411FF6F21A942CCD868661DC2D0CE9E0079501892",
+    "zip_sha256": "C5115E8525B1119AFC27C96AE31CEEB2355BD2FCC50AD82FA48AD2D14302D784",
+    "manifest_sha256": "CDC88505E228B899A33CA977DC1F8F3CF6A6CCC35395755B62224EF8814B57C9",
+    "wsb_sha256": "A7DF6E3EB06DD1AB7AAC9D8828F7B02E3FEE707540F1C02890B2644A12C49963"
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/0072856a37034c83a17f79f7233c5590/collection-20261022T093449018Z-571ef13d834a44f7865f7aac4959fe66/0072856a37034c83a17f79f7233c5590-release-fixture.jsonl",
+      "sha256": "7924C185A62361ABADFFE8EA8EAD0E2F565E7B753AD17E7A45EFFEE42D096E4B",
+      "bytes": 5009289,
+      "rows": 199,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        199
+      ],
+      "all_source_sha_matches_driver": true
+    },
+    {
+      "path": "uat/v1-control/0072856a37034c83a17f79f7233c5590/collection-20261022T093449018Z-571ef13d834a44f7865f7aac4959fe66/0072856a37034c83a17f79f7233c5590-Release-launch.json",
+      "sha256": "AE8FF8A4E8A64816091929D48ADEE799BBCEBF2C3C7BDD44DF8E85CA118CA7C2"
+    },
+    {
+      "path": "uat/v1-control/0072856a37034c83a17f79f7233c5590/collection-20261022T093449018Z-571ef13d834a44f7865f7aac4959fe66/0072856a37034c83a17f79f7233c5590-guest-summary.json",
+      "sha256": "B90DE13319C6B73C84125C4E8925B83416D1DE07142975C998C071CB6C85A65E"
+    },
+    {
+      "path": "uat/v1-control/0072856a37034c83a17f79f7233c5590/collection-20261022T093449018Z-571ef13d834a44f7865f7aac4959fe66/0072856a37034c83a17f79f7233c5590-terminal-asset.json",
+      "sha256": "E4CCD45F4463D6C18A309A6CEE1FA981CBB982F09D21FB35F26AD9BF2D06D74E",
+      "meaning": "Preparation-time PREPARED_NOT_LAUNCHED is not the later actual Terminal launch result."
+    },
+    {
+      "path": "uat/v1-control/0072856a37034c83a17f79f7233c5590/collection-20261022T093449018Z-571ef13d834a44f7865f7aac4959fe66/collection-receipt.json",
+      "sha256": "38FFFC4043012628E9F3EDDA816AF299A45A7A79705E3287D16373AD6B487A71",
+      "output_unchanged": true,
+      "actual_before_inventory_utc": "2026-10-22T09:35:14.9508226Z",
+      "actual_after_inventory_utc": "2026-10-22T09:35:19.2594961Z"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/0072-medium-terminal-client-excerpt.jsonl",
+    "sha256": "84E95EC82B6FBF87FA86B1773C1885CD7FD910B93512F67FB0A8B1C70225B5EC",
+    "bytes": 25636,
+    "literal_lines": 45,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      19,
+      21,
+      27,
+      47,
+      158,
+      159,
+      160,
+      161,
+      162,
+      165,
+      166,
+      167,
+      168,
+      169,
+      170,
+      171,
+      172,
+      173,
+      174,
+      175,
+      176,
+      177,
+      178,
+      179,
+      180,
+      181,
+      182,
+      183,
+      184,
+      185,
+      186,
+      187,
+      188,
+      189,
+      190,
+      192,
+      193,
+      194,
+      195,
+      196,
+      198,
+      199
+    ],
+    "serialization_changed": false,
+    "line_endings": "Source line contents preserved exactly; excerpt uses LF."
+  },
+  "observations": [
+    {
+      "source": "D21/D27/D47/D158-D160",
+      "fact": "One fresh exact Run Win32 desktop and new same-SID/session/Medium Explorer child6272 were prepared. Real readiness interval30500..40515 was10015ms,77 event waits/16 samples. Actual SwitchDesktop returnedTRUE at40515..40546, and actual OpenInputDesktop name/UOI_IO matched own Run with fresh exact Shell/Tray. This is not Task View, full ordinary desktop, product authority or tray interaction acceptance."
+    },
+    {
+      "source": "D161-D169",
+      "fact": "Pinned portable Terminal payload and package manifest digest matched. Product absence was observed before launch and before WM_NULL, including OpenMutexNULL/error2, complete process snapshots0 candidate names and current product root0. Actual same-token CreateProcessW returnedTRUE at40593..40625. Exact new root66382/PID5536/TID5248 was ready in1485ms, two complete owned-HDESK inventories each36 windows contain it; actual visible positioning rectangle[179,190,1931,1126], Medium8192/nonElev/sameSID/session1 and actual image held by live process handle were separately recorded. WM_NULL returnedTRUE/error0 within its100ms bound; not client input proof."
+    },
+    {
+      "source": "D171-D174",
+      "fact": "Both actual GetGUIThreadInfo(sourceTID5248) and GetGUIThreadInfo(0) returnedTRUE/error0: flags0, active66382/focus66452/capture0/move_size0/menu_owner0, foreground66382/PID5536/TID5248. Foreign GetThreadDesktop returnedNULL/error5; name query not attempted/nameUNKNOWN remains explicit. Actual CoInitializeEx STA, CoCreateInstance and IsWindowOnCurrentVirtualDesktop each HRESULT0(S_OK), current-desktop boolTRUE. This one exact-window read-only result is not a grant of product authority or proof of virtual-desktop switching."
+    },
+    {
+      "source": "D170/D175-D178",
+      "fact": "The exact new nonce file did not exist before input. Own focus observer and Output directory ReadDirectoryChangesW OVERLAPPED watch were actually established. GetClientRect succeeded with[0,0,1730,925]; ClientToScreen succeeded at actual center[1055,652]. WindowFromPoint returned exact root66382/PID5536/TID5248, but actual WM_NCHITTEST returned2(HTCAPTION), not1(HTCLIENT). The concrete pre-input gate rejected before cursor, click, Unicode or Enter insertion. No client input/nonce execution took place; do not call this a failed delivered click or a completed client test."
+    },
+    {
+      "source": "D178/D182-D183",
+      "fact": "Own client and outer native observation hooks unhooked successfully. Directory CancelIoEx returnedTRUE/error0, cancellation-completion event wait0, directory_native_pending_unknownfalse and local_observer_cleanup_knowntrue were recorded separately. No missing-UP inference is applicable because no input pair was issued; shared_input_pair_unknownfalse. Native process/thread/event handle closes returnedTRUE, native_cleanup_unknownfalse. This does not establish application process-tree exit."
+    },
+    {
+      "source": "D179-D181",
+      "fact": "Fresh product absence was checked before normal close. Exactly one WM_CLOSE PostMessage returnedTRUE/error0 and the exact bound root was actually gone. process_wait_result258 and subsequent GetExitCodeProcess0 are non-atomic observations; they do not prove a single simultaneous process state, complete tree exit, or contradict the root-destroy observation. No force terminate or client input was attempted."
+    },
+    {
+      "source": "D184-D199",
+      "fact": "Independent return owner woke on explicit request, not the30000ms deadline; actual own input lease retired with in-flight completed. Independent SwitchDesktop(Default) returnedTRUE at42140..42171 with actual Default/UOI_IO readback; owner wait0 and own helper handle closes, observer-thread restore, hook/Raw removal and original Default Shell identity65800/PID4908/TID4912/birth134371352744316120 unchanged were recorded. D194 environmentBLOCKED and D199 driverFAIL remain original; this successful independent environment cleanup does not turn the client gate rejection into PASS. Live Explorer was retained for exact job/guest cleanup, not product cleanup."
+    }
+  ],
+  "actual_client_result": {
+    "classification": "PRE_INPUT_BLOCKED_AT_ACTUAL_HTCAPTION",
+    "actual_hit": 2,
+    "required_hit": 1,
+    "source_client_rect": [
+      0,
+      0,
+      1730,
+      925
+    ],
+    "actual_screen_point": [
+      1055,
+      652
+    ],
+    "actual_WindowFromPoint": 66382,
+    "cursor_SendInput_calls": 0,
+    "mouse_SendInput_calls": 0,
+    "keyboard_SendInput_calls": 0,
+    "nonce_command": "NOT_RUN",
+    "root_normal_close": "PASS_SCOPED_EXACT_ROOT_GONE_ONLY",
+    "process_tree_exit": "NOT_PROVEN",
+    "underlying_reason_for_HTCAPTION": "UNKNOWN",
+    "sole_Windows_Sandbox_permission_or_product_root_cause": "NOT_PROVEN",
+    "source_boundary": "Exact driver routes reject before the first send for this observed result; no medium_terminal_client_input record occurs in the complete199-line raw file."
+  },
+  "time_basis": {
+    "readiness_elapsed_ms": 10015,
+    "Terminal_root_ready_elapsed_ms": 1485,
+    "native_launch_ticks": [
+      40593,
+      40625
+    ],
+    "activation_ticks": [
+      40515,
+      40546
+    ],
+    "independent_return_ticks": [
+      42140,
+      42171
+    ],
+    "return_requested_explicitly": true,
+    "return_deadline_reached": false,
+    "return_deadline_ms": 30000,
+    "native_completion_outer_budget_ms": 35000,
+    "buffered_emit": "Most environment/native/client rows are emitted after worker completion; tick42421 etc is not necessarily each API call time. Use explicitly recorded local before/after ticks and source-local fields. No merged Raw/WinEvent/native physical-display total ordering inferred."
+  },
+  "wrapper": {
+    "status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "product_cleanup_pass": false,
+    "product_function_result": "NOT_RUN",
+    "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED"
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/0072856a37034c83a17f79f7233c5590/cleanup-receipt.json",
+    "sha256": "682F8099F4581FFA4548A0C0BBBABA76027448115EF8AC4E96BF18ADB1FB06F8",
+    "utc": "2026-10-22T09:35:53.3648108Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "actual_conclusion": "新Medium桌面中真实Terminal新root、响应和正常根关闭成立；双GTI及单窗VDM查询取得有限真实事实。客户点实际HTCAPTION，输入前正确拒绝，整批BLOCKED/driverFAIL保留。",
+    "product_result": "NOT_RUN",
+    "client_input_and_nonce": "NOT_RUN_PRE_INPUT_GATE",
+    "tray_operation": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "human_UAT": "NOT_RUN",
+    "feature_or_benchmark_pass_added": false,
+    "not_awarded": [
+      "Terminal client semantic pass",
+      "product Move/Resize/Glue or compatibility",
+      "Task View/lock/other virtual desktops",
+      "whole-process or all-descendant exit",
+      "module, benchmark or whole-version PASS"
+    ],
+    "history": "Previous owned, native-only abb1 and older Default failures keep their original identities and scope; this run does not rewrite them."
+  }
+}
