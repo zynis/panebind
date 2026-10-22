@@ -256,7 +256,7 @@ struct SettingsWindow::Impl {
         SetWindowTextW(hotkey_text,lines_for(draft,"hotkey.","hotkey_count=").c_str());
         SetWindowTextW(mouse_text,lines_for(draft,"mouse.","mouse_count=").c_str());
         SetWindowTextW(rules_text,lines_for(draft,"rule.","rule_count=").c_str());
-        const auto version=L"配置版本："+std::to_wstring(draft.schema)+L"；当前代际："+std::to_wstring(draft.generation)+L"\r\n内部版本字段只读；保存后由产品统一推进配置代际。";
+        const std::wstring version=L"设置仅在“保存并关闭”成功后生效。\r\n取消或关闭设置窗口不会更改正在使用的选项。";
         SetWindowTextW(metadata,version.c_str());
     }
     std::optional<v::Settings> gather(bool report=true) {
