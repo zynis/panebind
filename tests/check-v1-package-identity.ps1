@@ -1417,7 +1417,22 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         'SetThreadDesktop(created)','startup.lpDesktop=requested_desktop.data()',
         'CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,',
         'input_actor_same_user(child)','session&&session==own_session','equal(image,executable.wstring())',
-        'WaitForInputIdle(child,10000)','EnumDesktopWindows(target,','first.windows==second.windows',
+        'WaitForInputIdle(child,idle_budget)','EnumDesktopWindows(target,','first.windows==second.windows',
+        'GetThreadDesktop(out.tid)','GetUserObjectInformationW(out.thread_desktop,UOI_NAME,',
+        'GetThreadDesktop_attempted','GetThreadDesktop_error','GetUserObjectInformation_name_error',
+        'actual_created_object_name','!equal(created_name,name)',
+        'unknown_zero_baseline=!baseline.complete&&baseline.error==ERROR_SUCCESS&&baseline.windows.empty()',
+        '!baseline.windows.empty()||(!baseline.complete&&!unknown_zero_baseline)',
+        'event_hook=SetWinEventHook(EVENT_OBJECT_CREATE,EVENT_OBJECT_SHOW,nullptr,',
+        'medium_desktop_window_event,0,0,WINEVENT_OUTOFCONTEXT)',
+        'context->facts.size()','pid!=context->child_pid',
+        'observation_deadline=observation_begin+10000','observation_deadline-before_idle',
+        'observe("initial")','observe("child_window_event")','observe("deadline_final")',
+        'MsgWaitForMultipleObjectsEx(1,&child,static_cast<DWORD>(observation_deadline-now),QS_ALLINPUT,MWMO_INPUTAVAILABLE)',
+        'event_samples<16','buffered_emit_tick_is_not_native_call_tick',
+        'out.event_hook_stopped=UnhookWinEvent(event_hook)!=FALSE','medium_desktop_window_events=nullptr',
+        'restore_attempted=out.event_hook_stopped',
+        'observation.enumerated_ready&&observation.event_hook_stopped&&observation.thread_restored',
         'shell_before==shell_after','fresh.exact_child&&fresh.visible&&fresh.hwnd==shell_after',
         'fresh.exact_child&&fresh.visible&&fresh.type==L"Shell_TrayWnd"',
         'exact_shell==1&&exact_tray==1','SetThreadDesktop(original)','CloseDesktop(created)',
@@ -1426,7 +1441,7 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         if(-not $Cases.Contains($value)){throw ('Medium desktop lost actual bounded, exact process/window or cleanup boundary: '+$value)}
     }
     if($Cases -match '\b(SendInput|SwitchDesktop|SetProcessWindowStation|SetUserObjectSecurity|SetSecurityInfo|SetTokenInformation|CreateRestrictedToken|SetForegroundWindow|SetFocus|TerminateProcess|PostMessage\w*|SendMessage\w*|Sleep)\s*\(' -or
-       $Cases.Contains('launch(s,') -or [regex]::Matches($Cases,'WaitForInputIdle\(child,10000\)').Count -ne 1){
+       $Cases.Contains('launch(s,') -or [regex]::Matches($Cases,'WaitForInputIdle\(child,idle_budget\)').Count -ne 1){
         throw 'Medium desktop is one no-input environment observation, not a new input route, altered security or forced Shell takeover.'
     }
 }
@@ -1435,6 +1450,8 @@ Assert-V1MediumDesktopEnvironment $fixtureSource $mediumDesktopEnvironment $life
 Check $true 'static Medium desktop keeps exact original guest guards, one inherited-security object/child and independent actual Shell/Tray observation'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('session&&session==own_session','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects adopting a process in an unverified session'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('exact_shell==1&&exact_tray==1','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects interpreting process creation as actual Shell/Tray readiness'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('observation_deadline=observation_begin+10000','observation_deadline=UINT64_MAX')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects unbounded event readiness observation'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('restore_attempted=out.event_hook_stopped','restore_attempted=true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects restoring the thread before confirmed own hook unload'
 foreach($script in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
     Check ($script.Contains("'CurrentCoreChainOnly'")) 'static current core chain retains exact preparation, guest and deployment admission'
 }
@@ -1481,4 +1498,28 @@ Assert-V1SettingsControlsRemaining $fixtureSource $settingsControlsRemaining $li
 Check $true 'static remaining settings controls retain real public edits, restart, opaque screen color, Ctrl geometry and public command step'
 Reject {Assert-V1SettingsControlsRemaining $fixtureSource ($settingsControlsRemaining.Replace('released&&pixel==fill','released')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static remaining settings controls reject using native alpha without actual independent fill pixels'
 Reject {Assert-V1SettingsControlsRemaining $fixtureSource ($settingsControlsRemaining.Replace('group?translated(b,24,17):b','translated(b,24,17)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static remaining settings controls reject moving the neighbour when zero tolerance excludes it'
+# Keep this PS5.1 script ASCII; production text is read as UTF-8 below.
+$settingsMetadataSave=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('6K6+572u5LuF5Zyo4oCc5L+d5a2Y5bm25YWz6Zet4oCd5oiQ5Yqf5ZCO55Sf5pWI44CC'))
+$settingsMetadataCancel=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('5Y+W5raI5oiW5YWz6Zet6K6+572u56qX5Y+j5LiN5Lya5pu05pS55q2j5Zyo5L2/55So55qE6YCJ6aG544CC'))
+$settingsMetadataGeneration=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('5b2T5YmN5Luj6ZmF'))
+$settingsMetadataInternal=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('5YaF6YOo54mI5pys5a2X5q61'))
+function Assert-V1UserSettingsMetadata([string]$Source){
+    $load=[regex]::Match($Source,'(?s)    void load\(\) \{(?<body>.*?)\r?\n    \}\r?\n    std::optional')
+    if(-not $load.Success){throw 'Settings user metadata requires the actual production load scope.'}
+    $body=$load.Groups['body'].Value
+    foreach($value in @($settingsMetadataSave,$settingsMetadataCancel,
+        'SetWindowTextW(metadata,version.c_str());')){
+        if(-not $body.Contains($value)){throw 'Settings metadata must explain actual Save and Cancel semantics in the displayed production control.'}
+    }
+    foreach($value in @('std::to_wstring(draft.schema)','std::to_wstring(draft.generation)',$settingsMetadataGeneration,$settingsMetadataInternal,'RunId','token')){
+        if($body.Contains($value)){throw 'User-facing settings metadata must not expose internal schema/generation or authorization terminology.'}
+    }
+}
+$userSettingsSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/settings_window.cpp'),[Text.Encoding]::UTF8)
+Assert-V1UserSettingsMetadata $userSettingsSource
+Check $true 'static user settings metadata explains Save/Cancel without internal generation terminology'
+$publicSettingsMetadata='const std::wstring version=L"'+$settingsMetadataSave+'\r\n'+$settingsMetadataCancel+'";'
+$oldSettingsMetadata=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('Y29uc3QgYXV0byB2ZXJzaW9uPUwi6YWN572u54mI5pys77yaIitzdGQ6OnRvX3dzdHJpbmcoZHJhZnQuc2NoZW1hKStMIu+8m+W9k+WJjeS7o+mZhe+8miIrc3RkOjp0b193c3RyaW5nKGRyYWZ0LmdlbmVyYXRpb24pK0wiXHJcbuWGhemDqOeJiOacrOWtl+auteWPquivu++8m+S/neWtmOWQjueUseS6p+WTgee7n+S4gOaOqOi/m+mFjee9ruS7o+mZheOAgiI7'))
+Reject {Assert-V1UserSettingsMetadata ($userSettingsSource.Replace($publicSettingsMetadata,$oldSettingsMetadata))} 'static settings metadata rejects the original schema/generation UI regression'
+Reject {Assert-V1UserSettingsMetadata ($userSettingsSource.Replace($settingsMetadataCancel,'Cancel'))} 'static settings metadata rejects losing the Cancel/no-runtime-change explanation'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

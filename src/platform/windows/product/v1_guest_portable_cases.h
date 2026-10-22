@@ -72,6 +72,60 @@ void portable_actual_move(State& s,bool magnetic,std::string_view stage){
         ",\"evidence_kind\":\"independent_actual_geometry_and_real_START_UP\",\"native_API_receipt_claimed\":false");
     up(s,0,g,expected,product::guest::UpEvidenceMode::StatusSnapshot);
 }
+void portable_actual_user_settings_guidance(State& s,const SettingsGui& gui){
+    // Inspect the ordinary no-argument instance's existing UI, not a new
+    // settings command or a driver-only interface. Page changes are real keys.
+    const auto original_page=gui_read(s,gui,gui.tab,TCM_GETCURSEL);
+    const auto before=read(s.product.parent_path()/L"settings.ini");
+    const bool existed=fs::exists(s.product.parent_path()/L"settings.ini");
+    const std::wstring expected=L"设置仅在“保存并关闭”成功后生效。\r\n取消或关闭设置窗口不会更改正在使用的选项。";
+    if(original_page>=6||!gui_identity(s,gui,gui.tab))
+        throw std::runtime_error("portable_user_guidance_original_settings_page_unknown");
+    gui_page_select(s,gui,5);
+    const HWND page=gui_page(s,gui);HWND guidance{};std::wstring actual;unsigned matches{};
+    for(HWND child=GetWindow(page,GW_CHILD);child;child=GetWindow(child,GW_HWNDNEXT)){
+        if(gui_class(child)!=L"Static"||!gui_identity(s,gui,child))continue;
+        const auto text=gui_text(s,gui,child);
+        if(text==expected){guidance=child;actual=text;++matches;}
+    }
+    DWORD actual_pid{};const DWORD actual_tid=GetWindowThreadProcessId(guidance,&actual_pid);
+    RECT bounds{},viewport{},root_client{};bool rectangles=guidance&&GetWindowRect(guidance,&bounds)&&
+        GetClientRect(page,&viewport)&&GetClientRect(gui.root,&root_client);
+    if(rectangles){
+        POINT page_tl{viewport.left,viewport.top},page_br{viewport.right,viewport.bottom};
+        POINT root_tl{root_client.left,root_client.top},root_br{root_client.right,root_client.bottom};
+        rectangles=ClientToScreen(page,&page_tl)&&ClientToScreen(page,&page_br)&&
+            ClientToScreen(gui.root,&root_tl)&&ClientToScreen(gui.root,&root_br);
+        viewport={page_tl.x,page_tl.y,page_br.x,page_br.y};root_client={root_tl.x,root_tl.y,root_br.x,root_br.y};
+    }
+    const auto inside=[](const RECT& child,const RECT& parent){
+        return child.left<child.right&&child.top<child.bottom&&child.left>=parent.left&&child.top>=parent.top&&
+            child.right<=parent.right&&child.bottom<=parent.bottom;
+    };
+    const bool user_terms=actual.find(L"代际")==actual.npos&&actual.find(L"内部版本")==actual.npos&&
+        actual.find(L"配置版本")==actual.npos&&actual.find(L"schema")==actual.npos&&
+        actual.find(L"generation")==actual.npos&&actual.find(L"RunId")==actual.npos&&actual.find(L"token")==actual.npos;
+    const HWND focus=gui_focus(gui);
+    s.log.check("portable_no_argument_actual_user_save_cancel_guidance_visible",matches==1&&actual==expected&&user_terms&&
+        gui_identity(s,gui,guidance)&&GetParent(guidance)==page&&actual_pid==s.product_pid&&actual_tid==gui.tid&&
+        IsWindowVisible(guidance)&&IsWindowVisible(page)&&GetForegroundWindow()==gui.root&&gui_identity(s,gui,focus)&&
+        rectangles&&inside(bounds,viewport)&&inside(bounds,root_client)&&
+        fs::exists(s.product.parent_path()/L"settings.ini")==existed&&read(s.product.parent_path()/L"settings.ini")==before,
+        "\"actual_product_PID\":"+std::to_string(actual_pid)+",\"settings_TID\":"+std::to_string(gui.tid)+
+        ",\"guidance_TID\":"+std::to_string(actual_tid)+",\"settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(gui.root))+
+        ",\"guidance_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(guidance))+
+        ",\"actual_focus_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(focus))+
+        ",\"actual_two_line_text\":"+quote(utf8(actual))+",\"actual_text_matches_exact_two_line_guidance\":"+(actual==expected?"true":"false")+
+        ",\"actual_static_bounds\":"+rect({bounds.left,bounds.top,bounds.right,bounds.bottom})+
+        ",\"actual_page_client_viewport\":"+rect({viewport.left,viewport.top,viewport.right,viewport.bottom})+
+        ",\"actual_root_client\":"+rect({root_client.left,root_client.top,root_client.right,root_client.bottom})+
+        ",\"internal_terms_absent\":"+(user_terms?"true":"false")+
+        ",\"selection_via_actual_CtrlTab\":true,\"private_set_text_or_command_used\":false,\"whole_page_visual_review_inferred\":false");
+    gui_page_select(s,gui,static_cast<unsigned>(original_page));
+    s.log.check("portable_user_guidance_returns_original_page_without_configuration_write",
+        gui_read(s,gui,gui.tab,TCM_GETCURSEL)==original_page&&gui_identity(s,gui,gui_focus(gui))&&
+        fs::exists(s.product.parent_path()/L"settings.ini")==existed&&read(s.product.parent_path()/L"settings.ini")==before);
+}
 void owned_portable_zip_entry_case(State& s){
     settings_guest_scope(s);
     if(s.configuration!="Release")throw std::runtime_error("portable_ZIP_case_is_Release_only");
@@ -184,6 +238,7 @@ void owned_portable_zip_entry_case(State& s){
             std::to_string(secondary_exit)+",\"held_main_PID\":"+std::to_string(held_pid)+",\"held_main_birth\":"+std::to_string(held_birth)+
             ",\"same_settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(ordinary_gui.root))+",\"actual_settings_TID\":"+std::to_string(settings_tid));
         settings_guest_single_instance(s,held_pid,held_birth,"portable_empty_argument_secondary_launch");
+        portable_actual_user_settings_guidance(s,ordinary_gui);
         auto gui=gui_open(s);gui_page_select(s,gui,1);
         s.log.check("portable_fresh_default_actual_GUI",gui_text(s,gui,gui_number(s,gui,L"吸引距离"))==L"10"&&
             !fs::exists(payload/L"settings.ini")&&!fs::exists(profile));gui_press(s,gui,VK_ESCAPE);
