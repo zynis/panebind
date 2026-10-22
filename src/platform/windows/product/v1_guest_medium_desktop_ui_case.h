@@ -131,7 +131,8 @@ class MediumDesktopUiCase {
         for(const int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN})
             if(GetAsyncKeyState(key)&0x8000)return false;return true;
     }
-    void send(INPUT* packets,UINT count,const std::function<bool()>& target,const char* purpose,bool pair){
+    void send(INPUT* packets,UINT count,const std::function<bool()>& target,const char* purpose,bool pair,
+        const std::function<bool()>& cleanup_target={}){
         if(!input_context()||!target()||!lease_->begin())throw std::runtime_error("Medium_UI_input_fresh_guard_or_lease_rejected");
         struct End {MediumDesktopUiInputLease& lease;~End(){lease.end();}} end{*lease_};
         if(!input_context()||!target())throw std::runtime_error("Medium_UI_input_changed_after_lease_claim");
@@ -148,7 +149,7 @@ class MediumDesktopUiCase {
         // A short insert is a TEST input failure. Release only this one known
         // pair while its in-flight lease still excludes return. Never inject
         // into Default or invent product NormalUp evidence.
-        if(pair&&inserted==1&&input_context(true)&&target()){
+        if(pair&&inserted==1&&input_context(true)&&(cleanup_target?cleanup_target():target())){
             SetLastError(ERROR_SUCCESS);const UINT released=SendInput(1,&packets[count-1],sizeof(INPUT));const auto release_error=released==1?0:GetLastError();
             if(released==1)lease_->incomplete_pair.store(false,std::memory_order_release);
             out_.emit("medium_desktop_ui_short_insert_cleanup","\"actual_own_pair_UP_attempted\":true,\"SendInput_return\":"+
@@ -173,7 +174,107 @@ class MediumDesktopUiCase {
         INPUT pair[2]{};for(auto& packet:pair)packet.type=INPUT_MOUSE;
         pair[0].mi.dwFlags=right?MOUSEEVENTF_RIGHTDOWN:MOUSEEVENTF_LEFTDOWN;
         pair[1].mi.dwFlags=right?MOUSEEVENTF_RIGHTUP:MOUSEEVENTF_LEFTUP;
-        send(pair,2,target,right?"exact_product_icon_RIGHTDOWN_RIGHTUP":"exact_product_menu_LEFTDOWN_LEFTUP",true);
+        if(!right){send(pair,2,target,"exact_product_menu_LEFTDOWN_LEFTUP",true);return;}
+        // The positioning MOVE intentionally uses the original target guard:
+        // requiring the cursor to be at the icon before that MOVE would make
+        // it impossible to reach the icon. Only this one right-button pair
+        // uses the actual-cursor/GUI checks, both before and after lease claim.
+        unsigned pair_checks{};bool guard_recorded{},cleanup_recorded{};
+        const auto actual_pair_context=[&](bool cleanup){
+            const auto began=GetTickCount64();LARGE_INTEGER before{},after{};
+            const bool before_clock=QueryPerformanceCounter(&before)!=FALSE;
+            const bool original_target=target();POINT actual{},again{};
+            SetLastError(ERROR_SUCCESS);const bool point_known=GetCursorPos(&actual)!=FALSE;
+            const DWORD point_error=point_known?0:GetLastError();
+            const HWND hit=point_known?WindowFromPoint(actual):nullptr,root=hit?GetAncestor(hit,GA_ROOT):nullptr;
+            DWORD hit_pid{},root_pid{},shell_pid{},foreground_pid{};
+            const DWORD hit_tid=hit?GetWindowThreadProcessId(hit,&hit_pid):0;
+            const DWORD root_tid=root?GetWindowThreadProcessId(root,&root_pid):0;
+            const DWORD shell_tid=shell_?GetWindowThreadProcessId(shell_,&shell_pid):0;
+            const HWND foreground=GetForegroundWindow();
+            const DWORD foreground_tid=foreground?GetWindowThreadProcessId(foreground,&foreground_pid):0;
+            std::array<wchar_t,256> hit_class{};SetLastError(ERROR_SUCCESS);
+            const int class_count=hit?GetClassNameW(hit,hit_class.data(),static_cast<int>(hit_class.size())):0;
+            const DWORD class_error=hit&&!class_count?GetLastError():0;
+            struct GuiRead {
+                DWORD requested{},error{};bool attempted{},known{};GUITHREADINFO actual{sizeof(actual)};
+                bool idle()const{return known&&!actual.hwndCapture&&!actual.hwndMoveSize&&!actual.hwndMenuOwner&&
+                    !(actual.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE));}
+                std::string json()const{return "{\"requested_TID\":"+std::to_string(requested)+
+                    ",\"query_attempted\":"+(attempted?"true":"false")+",\"query_known\":"+(known?"true":"false")+
+                    ",\"query_error\":"+(attempted?std::to_string(error):"null")+
+                    ",\"flags\":"+(known?std::to_string(actual.flags):"null")+
+                    ",\"capture\":"+(known?std::to_string(reinterpret_cast<std::uintptr_t>(actual.hwndCapture)):"null")+
+                    ",\"move_size\":"+(known?std::to_string(reinterpret_cast<std::uintptr_t>(actual.hwndMoveSize)):"null")+
+                    ",\"menu_owner\":"+(known?std::to_string(reinterpret_cast<std::uintptr_t>(actual.hwndMenuOwner)):"null")+"}";}
+            };
+            const auto read_gui=[](DWORD tid,bool attempted){GuiRead result;result.requested=tid;result.attempted=attempted;
+                if(attempted){SetLastError(ERROR_SUCCESS);result.known=GetGUIThreadInfo(tid,&result.actual)!=FALSE;
+                    result.error=result.known?0:GetLastError();}return result;};
+            const auto shell_gui=read_gui(shell_tid,shell_tid!=0),hit_gui=read_gui(hit_tid,hit_tid!=0),
+                root_gui=read_gui(root_tid,root_tid!=0),foreground_gui=read_gui(0,foreground_tid!=0);
+            const bool final_point=GetCursorPos(&again)!=FALSE;
+            const bool stable_point=point_known&&final_point&&actual.x==point.x&&actual.y==point.y&&
+                again.x==point.x&&again.y==point.y;
+            DWORD after_hit_pid{};const HWND after_hit=final_point?WindowFromPoint(again):nullptr;
+            const DWORD after_hit_tid=after_hit?GetWindowThreadProcessId(after_hit,&after_hit_pid):0;
+            const bool exact_hit=hit&&root&&hit_tid&&root_tid&&hit_pid==shell_pid_&&root_pid==shell_pid_&&
+                shell_tid&&shell_pid==shell_pid_&&GetShellWindow()==shell_&&member(root)&&
+                (type(root)==L"Shell_TrayWnd"||type(root)==L"NotifyIconOverflowWindow"||type(root)==L"TopLevelWindowForOverflowXamlIsland")&&
+                class_count>0&&class_count<static_cast<int>(hit_class.size())-1&&
+                after_hit==hit&&after_hit_tid==hit_tid&&after_hit_pid==hit_pid;
+            const bool foreground_stable=foreground&&foreground_tid&&GetForegroundWindow()==foreground;
+            // This alternate predicate is called only by send() after that
+            // actual native call inserted exactly its RIGHTDOWN packet. It
+            // does not infer ownership from callback/check counts or replay
+            // MOVE; the sole permitted cleanup is this pair's RIGHTUP.
+            bool buttons_allowed=no_buttons();SHORT actual_right{};
+            if(cleanup){buttons_allowed=true;actual_right=GetAsyncKeyState(VK_RBUTTON);
+                for(const int key:{VK_LBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RETURN,VK_ESCAPE})
+                    if(GetAsyncKeyState(key)&0x8000)buttons_allowed=false;}
+            ++pair_checks;const bool accepted=original_target&&stable_point&&exact_hit&&foreground_stable&&
+                shell_gui.idle()&&hit_gui.idle()&&root_gui.idle()&&foreground_gui.idle()&&buttons_allowed;
+            const bool after_clock=QueryPerformanceCounter(&after)!=FALSE;
+            // At most one pair record: first rejection or second fresh check;
+            // one additional cleanup record only after actual inserted==1.
+            // Buffered, not disk I/O, before its guarded native insertion.
+            bool& recorded=cleanup?cleanup_recorded:guard_recorded;
+            if(!recorded&&(cleanup||!accepted||pair_checks==2)){recorded=true;out_.emit("medium_desktop_ui_icon_click_guard",
+                "\"guard_check\":"+std::to_string(pair_checks)+",\"accepted\":"+(accepted?"true":"false")+
+                ",\"scope\":"+quote(cleanup?"actual_inserted1_own_RIGHTUP_cleanup_only":"original_RIGHTDOWN_RIGHTUP_pair")+
+                ",\"button_state_allowed\":"+(buttons_allowed?"true":"false")+
+                ",\"cleanup_actual_RBUTTON_async_return\":"+(cleanup?std::to_string(actual_right):"null")+
+                ",\"async_state_is_not_DOWN_delivery_or_ownership_proof\":true"+
+                ",\"before_tick\":"+std::to_string(began)+",\"after_tick\":"+std::to_string(GetTickCount64())+
+                ",\"before_qpc\":"+(before_clock?std::to_string(before.QuadPart):"null")+
+                ",\"after_qpc\":"+(after_clock?std::to_string(after.QuadPart):"null")+
+                ",\"requested_point\":["+std::to_string(point.x)+","+std::to_string(point.y)+"]"+
+                ",\"GetCursorPos_known\":"+(point_known?"true":"false")+",\"GetCursorPos_error\":"+std::to_string(point_error)+
+                ",\"actual_point\":"+(point_known?"["+std::to_string(actual.x)+","+std::to_string(actual.y)+"]":"null")+
+                ",\"final_GetCursorPos_known\":"+(final_point?"true":"false")+
+                ",\"final_actual_point\":"+(final_point?"["+std::to_string(again.x)+","+std::to_string(again.y)+"]":"null")+
+                ",\"actual_point_matches_and_stable\":"+(stable_point?"true":"false")+
+                ",\"actual_hit_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hit))+
+                ",\"actual_hit_PID\":"+std::to_string(hit_pid)+",\"actual_hit_TID\":"+std::to_string(hit_tid)+
+                ",\"actual_hit_root\":"+std::to_string(reinterpret_cast<std::uintptr_t>(root))+
+                ",\"actual_root_PID\":"+std::to_string(root_pid)+",\"actual_root_TID\":"+std::to_string(root_tid)+
+                ",\"hit_class_query_attempted\":"+(hit?"true":"false")+",\"hit_class_query_error\":"+(hit?std::to_string(class_error):"null")+
+                ",\"hit_class_query_count\":"+(hit?std::to_string(class_count):"null")+
+                ",\"actual_hit_class\":"+(class_count?quote(utf8(hit_class.data())):"null")+
+                ",\"Shell_identity_and_Run_hit_match\":"+(original_target&&exact_hit?"true":"false")+
+                ",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(foreground))+
+                ",\"foreground_PID\":"+std::to_string(foreground_pid)+",\"foreground_TID\":"+std::to_string(foreground_tid)+
+                ",\"foreground_stable\":"+(foreground_stable?"true":"false")+
+                ",\"Shell_GUI\":"+shell_gui.json()+",\"actual_hit_GUI\":"+hit_gui.json()+
+                ",\"actual_root_GUI\":"+root_gui.json()+",\"foreground_GUI\":"+foreground_gui.json()+
+                ",\"SendInput_not_yet_attempted\":"+(cleanup?"false":"true")+
+                ",\"own_cleanup_UP_SendInput_not_yet_attempted\":"+(cleanup?"true":"null")+
+                ",\"API_snapshot_is_not_atomic\":true,\"UID_rectangle_or_hit_is_not_icon_delivery\":true,\"guard_sent_new_input_or_activation\":false");}
+            return accepted;
+        };
+        const auto actual_pair_target=[&]{return actual_pair_context(false);};
+        const auto own_rightup_cleanup=[&]{return actual_pair_context(true);};
+        send(pair,2,actual_pair_target,"exact_product_icon_RIGHTDOWN_RIGHTUP",true,own_rightup_cleanup);
     }
     HWND settings()const{
         struct Search {const MediumDesktopUiCase* self{};HWND found{};unsigned count{};} state{this};

@@ -605,6 +605,16 @@ try {
     $manifest=Get-Content -LiteralPath (Join-Path $inputDir 'manifest.json') -Encoding UTF8 -Raw | ConvertFrom-Json
     if($manifest.guest_configurations -cne $Configurations){throw 'Configuration selection must match this immutable package manifest.'}
     if($manifest.guest_suite -cne $Suite){throw 'Suite selection must match this immutable package manifest.'}
+    if($null -ne $manifest.medium_explorer_geometry -and $manifest.medium_explorer_geometry -isnot [bool]){
+        throw 'Explorer geometry selector must be an actual manifest boolean.'
+    }
+    if($manifest.medium_explorer_geometry -and ($Suite -cne 'MediumDesktopUiOnly' -or
+       $null -ne $manifest.terminal_test_asset -or @($manifest.test_assets).Count -or
+       $null -ne $manifest.official_app_assets -or $null -ne $manifest.portable_test -or
+       $manifest.medium_environment_probe.enabled -or $manifest.medium_desktop_probe.enabled)){
+        throw 'Explorer geometry must be the one exact UI guest target, without another application asset.'
+    }
+    $summary['medium_explorer_geometry']=[bool]$manifest.medium_explorer_geometry
     if($manifest.schema -cne 'panebind-v1-sandbox/1' -or $manifest.run_id -cne $RunId -or
        $manifest.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
        $manifest.product_source_commit -cne $manifest.source_commit -or $manifest.driver_source_commit -cnotmatch '^[0-9a-f]{40}$' -or

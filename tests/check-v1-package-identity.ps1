@@ -1608,6 +1608,11 @@ function Assert-V1MediumDesktopUI([string]$Fixture,[string]$Environment,[string]
         'input_context()||!target()||!lease_->begin()',
         'SendInput(count,packets,sizeof(INPUT))','API_insert_is_not_message_delivery_proof',
         'Shell_NotifyIconGetRect(&icon,&area)','if(!nonempty)throw',
+        'cursor(point,target);','GetCursorPos(&actual)!=FALSE','after_hit==hit&&after_hit_tid==hit_tid&&after_hit_pid==hit_pid',
+        'shell_gui.idle()&&hit_gui.idle()&&root_gui.idle()&&foreground_gui.idle()&&buttons_allowed',
+        'actual_pair_context(false)','actual_pair_context(true)',
+        'if(pair&&inserted==1&&input_context(true)&&(cleanup_target?cleanup_target():target()))',
+        'send(pair,2,actual_pair_target,"exact_product_icon_RIGHTDOWN_RIGHTUP",true,own_rightup_cleanup)',
         'EqualRect(&fresh,&area)&&hit&&GetWindowThreadProcessId(hit,&hit_pid)&&hit_pid==shell_pid_&&member(root)',
         'choose(menu,501,L"','choose(exit,505,L"','out_.product_closed',
         'whole_M01_B27_B28_PASS_inferred')){
@@ -1741,4 +1746,21 @@ Check $true 'static actual product/Terminal geometry case is wired without Defau
 Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('process_birth(target_process_)!=target_birth_','false'))} 'static geometry input cannot inherit a reused target PID'
 Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('queried!=S_OK','false'))} 'static geometry input cannot treat unknown Task View membership as current'
 Reject {Assert-V1MediumProductGeometry $mediumDesktopEnvironment $mediumUiSource ($mediumGeometrySource.Replace('(cleanup||!retired())','true'))} 'static normal serial UP cannot send a final MOVE after an observed terminal fact'
+$mediumExplorerSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_explorer_target.h'),[Text.Encoding]::UTF8)
+foreach($value in @('startup.lpDesktop=desktop.data()','native_baseline_','shell_baseline_',
+    'entry->shell_entry_count!=1','shell::same_filesystem_location','shell::bind_explorer_consent_target',
+    'facts.callback_sequence==callback_at_binding_','observation_->receipt_facts()',
+    '(!launched_||handed_off_)',
+    'native_new(candidate,pid,process.value,born)','if(bind_attempted_)throw')){
+    if(-not $mediumExplorerSource.Contains($value)){throw ('Exact Explorer target lost its source/location/epoch boundary: '+$value)}
+}
+if($mediumExplorerSource -match '\b(SendInput|SetWindowPos|DeferWindowPos|SetForegroundWindow|SetFocus|AttachThreadInput|SetCapture|ReleaseCapture|Navigate|Navigate2|TerminateProcess|SetTokenInformation|SetUserObjectSecurity|Sleep)\s*\('){
+    throw 'The exact Explorer adapter may only prepare and observe its own target, not become another input/writer/navigation path.'
+}
+foreach($value in @('explorer_case_=manifest_explorer(manifest)','geometry_manifest_Explorer_and_Terminal_mutually_exclusive',
+    'hit_point(target_,region,nullptr,!explorer_case_&&region==HTCAPTION)',
+    'explorer_->take_bound_process()','!explorer_->guard()',
+    'MediumDesktopUiInputLease::in_flight)&&explorer_->refresh()')){
+    if(-not $mediumGeometrySource.Contains($value)){throw ('Common geometry chain lost the bounded Explorer adapter connection: '+$value)}
+}
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

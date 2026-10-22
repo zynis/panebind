@@ -1,8 +1,10 @@
 #pragma once
 
-// TEST ONLY: one manifest-carried, exact new Terminal under the already
+// TEST ONLY: one manifest-carried, exact new Terminal or explicitly selected
+// new Explorer file-window under the already
 // running ordinary product on this Run desktop. No Default input helper,
 // product permission override, test placement, fake START/END or client nonce.
+#include "platform/windows/product/v1_guest_medium_desktop_explorer_target.h"
 class MediumDesktopProductGeometryCase {
     const std::wstring& run_;HDESK desktop_;const fs::path& product_;
     HANDLE product_process_;DWORD product_pid_;std::uint64_t product_birth_,launch_tick_;
@@ -15,6 +17,8 @@ class MediumDesktopProductGeometryCase {
     HANDLE log_change_{INVALID_HANDLE_VALUE};bool change_closed_{true},target_closed_{true},quit_seen_{};
     DWORD target_pid_{},target_tid_{},session_{};std::uint64_t target_birth_{},generation_{},last_generation_{},source_key_{};
     HWND target_{};fs::path target_image_;product::guest::ProductLogEvidence evidence_;
+    bool explorer_case_{};std::wstring target_class_{L"CASCADIA_HOSTING_WINDOW_CLASS"};
+    std::unique_ptr<MediumExplorerGeometryTarget> explorer_;
     bool down_inserted_{},up_attempted_{},up_inserted_{};std::uint64_t down_qpc_{},up_qpc_{};
     bool native_threshold_step_{},continuation_ready_{};
     std::optional<POINT> down_anchor_;HWND down_hit_{};int down_region_{};
@@ -27,6 +31,23 @@ class MediumDesktopProductGeometryCase {
         spaces();if(at==text.size()||text[at++]!=':')return {};spaces();if(at==text.size()||text[at++]!='"')return {};
         const auto begin=at;while(at<text.size()&&text[at]!='"'){if(text[at]=='\\'||static_cast<unsigned char>(text[at])<32)return {};++at;}
         return at<text.size()?std::string(text.substr(begin,at-begin)):std::string{};
+    }
+    static bool manifest_explorer(std::string_view text){
+        constexpr std::string_view key="\"medium_explorer_geometry\"";auto at=text.find(key);
+        if(at==text.npos)return false;
+        if(text.find(key,at+key.size())!=text.npos)throw std::runtime_error("geometry_manifest_Explorer_flag_ambiguous");
+        at+=key.size();const auto spaces=[&]{while(at<text.size()&&(text[at]==' '||text[at]=='\t'||text[at]=='\r'||text[at]=='\n'))++at;};
+        spaces();if(at==text.size()||text[at++]!=':')throw std::runtime_error("geometry_manifest_Explorer_flag_not_boolean");spaces();
+        bool result{};if(text.substr(at,4)=="true"){result=true;at+=4;}
+        else if(text.substr(at,5)=="false")at+=5;else throw std::runtime_error("geometry_manifest_Explorer_flag_not_boolean");
+        spaces();if(at==text.size()||(text[at]!=','&&text[at]!='}'))throw std::runtime_error("geometry_manifest_Explorer_flag_delimiter");
+        return result;
+    }
+    const char* target_kind()const noexcept{return explorer_case_?"Explorer":"Terminal";}
+    bool refresh_target(){
+        // The Explorer COM observer is refreshed only outside SendInput's
+        // in-flight claim. The final send guard reads its bounded receipts.
+        return !explorer_||(lease_&&!(lease_->flags.load(std::memory_order_acquire)&MediumDesktopUiInputLease::in_flight)&&explorer_->refresh());
     }
 
     bool base_context()const{
@@ -46,7 +67,7 @@ class MediumDesktopProductGeometryCase {
     }
     bool admission()const{return GetTickCount64()<deadline_&&lease_&&lease_->valid()&&!lease_->retired()&&base_context();}
     bool target_exact()const{
-        if(!target_process_||!target_pid_||!target_birth_||GetProcessId(target_process_)!=target_pid_||
+        if((explorer_&&!explorer_->guard())||!target_process_||!target_pid_||!target_birth_||GetProcessId(target_process_)!=target_pid_||
            process_birth(target_process_)!=target_birth_||WaitForSingleObject(target_process_,0)!=WAIT_TIMEOUT||
            !medium(target_process_)||!input_actor_same_user(target_process_)||
            !equal(medium_desktop_image(target_process_),target_image_.wstring()))return false;
@@ -60,7 +81,7 @@ class MediumDesktopProductGeometryCase {
         // own in-flight writer may complete between these read-only samples.
         return first.known&&second.known&&first.exact_child&&second.exact_child&&!first.desktop_conflict&&!second.desktop_conflict&&
             first.hwnd==second.hwnd&&first.pid==second.pid&&first.tid==second.tid&&first.tid==target_tid_&&
-            first.type==L"CASCADIA_HOSTING_WINDOW_CLASS"&&second.type==first.type&&first.root&&second.root&&first.visible&&second.visible;
+            first.type==target_class_&&second.type==first.type&&first.root&&second.root&&first.visible&&second.visible;
     }
     const std::string& log(){
         if(!base_context())throw std::runtime_error("geometry_actual_product_or_Run_context_lost");
@@ -295,11 +316,11 @@ class MediumDesktopProductGeometryCase {
         return true;
     }
     void one_gesture(int region,LONG dx,LONG dy,const char* phase){
-        if(!admission()||!target_exact()||!status()||!no_buttons())throw std::runtime_error("geometry_fresh_idle_not_ready");
+        if(!admission()||!refresh_target()||!admission()||!target_exact()||!status()||!no_buttons())throw std::runtime_error("geometry_fresh_idle_not_ready");
         const auto original=visible(target_);RECT positioning{};const auto original_dpi=GetDpiForWindow(target_);
         const auto original_monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);
         if(!original||!GetWindowRect(target_,&positioning)||!original_dpi||!original_monitor)throw std::runtime_error("geometry_original_frame_unknown");
-        const auto hit=hit_point(target_,region,nullptr,region==HTCAPTION);if(!hit)throw std::runtime_error("geometry_actual_nonclient_target_not_found");
+        const auto hit=hit_point(target_,region,nullptr,!explorer_case_&&region==HTCAPTION);if(!hit)throw std::runtime_error("geometry_actual_nonclient_target_not_found");
         generation_=0;down_inserted_=up_attempted_=up_inserted_=false;native_threshold_step_=continuation_ready_=false;terminal_reason_.clear();
         cursor(*hit);if(!status())throw std::runtime_error("geometry_product_prepare_status_not_healthy");
         const auto before_status=last_status_;const HWND actual_hit=WindowFromPoint(*hit);DWORD actual_pid{};DWORD_PTR actual_region{};
@@ -390,7 +411,7 @@ class MediumDesktopProductGeometryCase {
                 target_closed_=false;
                 // Public ordinary close only after our known test pair is no
                 // longer held. Never terminate or retry an unverified window.
-                if((!down_inserted_||up_inserted_)&&target_exact()){
+                if((!down_inserted_||up_inserted_)&&refresh_target()&&target_exact()){
                     SetLastError(ERROR_SUCCESS);const bool sent=PostMessageW(target_,WM_CLOSE,0,0)!=FALSE;const auto error=sent?0:GetLastError();
                     target_closed_=sent&&wait_for([&]{return !IsWindow(target_);},1000,false);
                     DWORD code=STILL_ACTIVE;const bool known=target_process_&&GetExitCodeProcess(target_process_,&code);
@@ -413,25 +434,34 @@ public:
     ~MediumDesktopProductGeometryCase(){if(log_change_!=INVALID_HANDLE_VALUE)FindCloseChangeNotification(log_change_);}
     void execute(){
         const auto manifest=read(L"C:\\PaneBindV1\\Input\\manifest.json");const auto asset=manifest.find("\"terminal_test_asset\"");
-        if(asset==manifest.npos)return;auto at=manifest.find(':',asset);if(at==manifest.npos)return;
-        do{++at;}while(at<manifest.size()&&(manifest[at]==' '||manifest[at]=='\t'||manifest[at]=='\r'||manifest[at]=='\n'));
-        if(at==manifest.size()||manifest[at]!='{')return;out_.requested=true;
+        explorer_case_=manifest_explorer(manifest);
+        auto at=asset==manifest.npos?manifest.npos:manifest.find(':',asset);
+        if(at!=manifest.npos){do{++at;}while(at<manifest.size()&&(manifest[at]==' '||manifest[at]=='\t'||manifest[at]=='\r'||manifest[at]=='\n'));}
+        const bool terminal_asset=at!=manifest.npos&&at<manifest.size()&&manifest[at]=='{';
+        if(!explorer_case_&&!terminal_asset)return;out_.requested=true;
         try{
-            const auto finish=manifest.find('}',at);if(finish==manifest.npos||manifest.find("\"terminal_test_asset\"",asset+21)!=manifest.npos)
-                throw std::runtime_error("geometry_manifest_asset_ambiguous");
-            const std::string_view spec(manifest.data()+at,finish-at+1);const auto files=manifest.find("\"files\"");
+            if(explorer_case_&&terminal_asset)throw std::runtime_error("geometry_manifest_Explorer_and_Terminal_mutually_exclusive");
+            const auto files=manifest.find("\"files\"");
             if(files==manifest.npos)throw std::runtime_error("geometry_manifest_identity_missing");const std::string_view identity(manifest.data(),files);
-            const std::string run(run_.begin(),run_.end());const auto configuration=equal(product_.parent_path().filename().wstring(),run_+L"-product-Debug")?L"Debug":L"Release";
-            const auto root=fs::path(L"C:\\PaneBindV1\\Terminal")/run_/configuration/L"terminal-1.25.2733.0";target_image_=root/L"WindowsTerminal.exe";
-            constexpr const char* terminal_hash="1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1";
+            const std::string run(run_.begin(),run_.end());fs::path root;
             if(manifest_string(identity,"run_id")!=run||manifest_string(identity,"product_source_commit")!=source_||
                manifest_string(manifest,"guest_suite")!="MediumDesktopUiOnly"||
-               manifest_string(spec,"kind")!="WindowsTerminalPortable"||manifest_string(spec,"version")!="1.25.2733.0"||
-               manifest_string(spec,"relative_path")!="Terminal-test.zip"||manifest_string(spec,"exe_sha256")!=terminal_hash||
-               hash(L"C:\\PaneBindV1\\Input\\Terminal-test.zip")!="BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796"||
-               !plain_directory(root)||!marker(root/L"panebind-v1-test-application.marker",run_)||hash(target_image_)!=terminal_hash||
                hash(product_)!=product_hash_||!ProcessIdToSessionId(GetCurrentProcessId(),&session_)||!session_||!admission()||!no_buttons())
                 throw std::runtime_error("geometry_exact_manifest_asset_or_actual_Run_product_not_verified");
+            if(explorer_case_){target_class_=L"CabinetWClass";explorer_=std::make_unique<MediumExplorerGeometryTarget>(run_,desktop_,session_,out_);}
+            else{
+                const auto finish=manifest.find('}',at);if(finish==manifest.npos||manifest.find("\"terminal_test_asset\"",asset+21)!=manifest.npos)
+                    throw std::runtime_error("geometry_manifest_asset_ambiguous");
+                const std::string_view spec(manifest.data()+at,finish-at+1);
+                const auto configuration=equal(product_.parent_path().filename().wstring(),run_+L"-product-Debug")?L"Debug":L"Release";
+                root=fs::path(L"C:\\PaneBindV1\\Terminal")/run_/configuration/L"terminal-1.25.2733.0";target_image_=root/L"WindowsTerminal.exe";
+                constexpr const char* terminal_hash="1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1";
+                if(manifest_string(spec,"kind")!="WindowsTerminalPortable"||manifest_string(spec,"version")!="1.25.2733.0"||
+                   manifest_string(spec,"relative_path")!="Terminal-test.zip"||manifest_string(spec,"exe_sha256")!=terminal_hash||
+                   hash(L"C:\\PaneBindV1\\Input\\Terminal-test.zip")!="BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796"||
+                   !plain_directory(root)||!marker(root/L"panebind-v1-test-application.marker",run_)||hash(target_image_)!=terminal_hash)
+                    throw std::runtime_error("geometry_exact_manifest_Terminal_asset_not_verified");
+            }
             evidence_.begin(product_pid_,product_birth_,launch_tick_,source_);
             events_.changed=CreateEventW(nullptr,TRUE,FALSE,nullptr);if(!events_.changed)throw std::runtime_error("geometry_own_change_event_failed");
             const auto route=row(0,"input_route"),context=row(0,"desktop_context");
@@ -440,13 +470,27 @@ public:
             out_.emit("medium_product_geometry_scope","\"run_id\":"+quote(run)+",\"manifest_sha256\":"+quote(hash(L"C:\\PaneBindV1\\Input\\manifest.json"))+
                 ",\"product_PID\":"+std::to_string(product_pid_)+",\"product_birth\":"+std::to_string(product_birth_)+
                 ",\"actual_route_receipt\":"+quote(route)+",\"actual_context_receipt\":"+quote(context)+
+                ",\"target_kind\":"+quote(target_kind())+",\"medium_explorer_geometry\":"+(explorer_case_?"true":"false")+
                 ",\"product_absent_client_control_not_reused\":true,\"Terminal_content_ready_inferred\":false");
             const auto baseline=MediumDesktopWindows::read(desktop_);if(!baseline.complete)throw std::runtime_error("geometry_target_baseline_unknown");
             if(medium_terminal_native_events)throw std::runtime_error("geometry_native_observer_already_owned");
             medium_terminal_native_events=&events_;hook_=SetWinEventHook(EVENT_OBJECT_CREATE,EVENT_OBJECT_LOCATIONCHANGE,nullptr,
-                medium_terminal_native_event,0,0,WINEVENT_OUTOFCONTEXT);if(!hook_)throw std::runtime_error("geometry_native_observer_unavailable");
+                explorer_case_?medium_explorer_geometry_event:medium_terminal_native_event,0,0,WINEVENT_OUTOFCONTEXT);
+            if(!hook_)throw std::runtime_error("geometry_native_observer_unavailable");
             log_change_=FindFirstChangeNotificationW(product_.parent_path().c_str(),FALSE,FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_SIZE|FILE_NOTIFY_CHANGE_LAST_WRITE);
             if(log_change_==INVALID_HANDLE_VALUE)throw std::runtime_error("geometry_product_log_change_notification_failed");
+            if(explorer_){
+                explorer_->prepare(baseline);target_image_=explorer_->image();
+                if(!admission())throw std::runtime_error("Explorer_geometry_Run_revoked_before_launch");
+                explorer_->launch();
+                if(!wait_for([&]{
+                    if(target_)return target_exact();
+                    if(events_.overflow)throw std::runtime_error("Explorer_geometry_bounded_event_buffer_overflow");
+                    if(!explorer_->try_bind())return false;
+                    target_=explorer_->window();target_pid_=explorer_->pid();target_tid_=explorer_->tid();target_birth_=explorer_->birth();
+                    target_process_=explorer_->take_bound_process();events_.pid=target_pid_;events_.root=target_;target_closed_=false;
+                    return target_exact();},3500))throw std::runtime_error("geometry_new_exact_Run_Explorer_root_not_observed");
+            }else{
             STARTUPINFOW startup{sizeof(startup)};std::wstring desktop=L"WinSta0\\PaneBindV1_"+run_;startup.lpDesktop=desktop.data();PROCESS_INFORMATION info{};
             auto command=L"\""+target_image_.wstring()+L"\" --window new new-tab --title \"PaneBind-"+run_+
                 L"-Geometry\" --suppressApplicationTitle \"C:\\Windows\\System32\\cmd.exe\" /d /q /k";
@@ -465,10 +509,12 @@ public:
                     if(a.type==L"CASCADIA_HOSTING_WINDOW_CLASS"&&a.readonly_same(b)){found=h;++matches;}}
                 if(matches!=1)return false;target_=found;target_tid_=GetWindowThreadProcessId(target_,nullptr);events_.root=target_;return target_exact();},3500))
                 throw std::runtime_error("geometry_new_exact_Terminal_root_not_observed");
+            }
             IVirtualDesktopManager* manager{};const HRESULT made=CoCreateInstance(CLSID_VirtualDesktopManager,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&manager));
             BOOL current{};const HRESULT queried=manager?manager->IsWindowOnCurrentVirtualDesktop(target_,&current):E_UNEXPECTED;if(manager)manager->Release();
             GUITHREADINFO gui{sizeof(gui)};const bool gui_known=GetGUIThreadInfo(target_tid_,&gui)!=FALSE;
             out_.emit("medium_product_geometry_target","\"actual\":"+MediumDesktopWindowFact::read(target_,target_pid_,target_process_,target_birth_,L"PaneBindV1_"+run_).json()+
+                ",\"target_kind\":"+quote(target_kind())+
                 ",\"actual_Medium\":"+(medium(target_process_)?"true":"false")+",\"actual_same_SID\":"+(input_actor_same_user(target_process_)?"true":"false")+
                 ",\"VDM_create_hresult\":"+std::to_string(static_cast<long>(made))+",\"VDM_query_hresult\":"+std::to_string(static_cast<long>(queried))+
                 ",\"VDM_current\":"+(current?"true":"false")+",\"actual_foreground\":"+std::to_string(reinterpret_cast<std::uintptr_t>(GetForegroundWindow()))+
@@ -476,19 +522,28 @@ public:
             if(made!=S_OK||queried!=S_OK||!current||!gui_known||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||GetForegroundWindow()!=target_)
                 throw std::runtime_error("geometry_actual_VDM_foreground_or_source_GUI_not_ready");
             one_gesture(HTCAPTION,72,36,"Move1");one_gesture(HTRIGHT,64,0,"Resize");one_gesture(HTCAPTION,-36,24,"SuccessorMove");
-            out_.completed=true;out_.reason="one_new_Terminal_Move_UP_Resize_UP_successor_Move_UP_only";
+            out_.completed=true;out_.reason=explorer_case_?"one_new_Explorer_Move_UP_Resize_UP_successor_Move_UP_only":
+                "one_new_Terminal_Move_UP_Resize_UP_successor_Move_UP_only";
         }catch(const std::exception& error){out_.reason=error.what();out_.completed=false;}
         catch(...){out_.reason="geometry_unexpected_exception";out_.completed=false;out_.cleanup_known=false;}
-        cleanup_target();resources_.finish();
+        cleanup_target();
+        if(explorer_){explorer_->finish();const bool known=explorer_->cleanup_known();out_.cleanup_known=out_.cleanup_known&&known;
+            out_.emit("medium_product_Explorer_adapter_cleanup","\"observer_and_launcher_handles_cleanup_known\":"+std::string(known?"true":"false")+
+                ",\"observer_retire_attempted\":"+(explorer_->retire_attempted()?"true":"false")+
+                ",\"observer_retire_hresult\":"+(explorer_->retire_attempted()?std::to_string(static_cast<long>(explorer_->retire_hresult())):"null")+
+                ",\"unconfirmed_created_roots_closed\":false,\"test_directory_retained\":true,\"all_Explorer_processes_exited_inferred\":false");}
+        resources_.finish();
         if(log_change_!=INVALID_HANDLE_VALUE){const auto handle=log_change_;log_change_=INVALID_HANDLE_VALUE;change_closed_=FindCloseChangeNotification(handle)!=FALSE;}
         out_.cleanup_known=out_.cleanup_known&&!resources_.unknown&&change_closed_;
         out_.completed=out_.completed&&out_.cleanup_known;
-        out_.emit("medium_product_geometry_summary","\"result\":"+quote(out_.completed?"PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY":"FAIL_OR_BLOCKED")+
+        out_.emit("medium_product_geometry_summary","\"result\":"+quote(out_.completed?
+                (explorer_case_?"PASS_SINGLE_EXACT_Explorer_GEOMETRY_ONLY":"PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY"):"FAIL_OR_BLOCKED")+
             ",\"reason\":"+quote(out_.reason)+",\"product_PID\":"+std::to_string(product_pid_)+",\"target_PID\":"+std::to_string(target_pid_)+
+            ",\"target_kind\":"+quote(target_kind())+
             ",\"last_completed_generation\":"+std::to_string(last_generation_)+",\"cleanup_known\":"+(out_.cleanup_known?"true":"false")+
             ",\"test_pair_still_unknown\":"+(lease_&&lease_->incomplete_pair.load()?"true":"false")+
             ",\"own_hook_stopped\":"+(resources_.hook_ok?"true":"false")+",\"own_handles_closed\":"+
-            (resources_.process_ok&&resources_.thread_ok&&resources_.event_ok&&change_closed_?"true":"false")+
+            (resources_.process_ok&&resources_.thread_ok&&resources_.event_ok&&change_closed_&&(!explorer_||explorer_->handles_closed())?"true":"false")+
             ",\"client_nonce_or_content\":\"NOT_RUN\",\"Ctrl_Glue\":\"NOT_RUN\",\"five_applications_or_whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
     }
 };

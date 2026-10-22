@@ -10,6 +10,7 @@ param(
     [string]$PortablePackageDirectory,
     [switch]$MediumEnvironmentProbe,
     [switch]$MediumDesktopProbe,
+    [switch]$MediumExplorerGeometry,
     [switch]$MediumNativeIdentityOnly,
     [switch]$StandardGuestNativeClients,
     [switch]$StandardLogonNativeIdentity,
@@ -22,6 +23,11 @@ param(
     [switch]$FixtureBuildIdentity
 )
 $ErrorActionPreference = 'Stop'
+if($MediumExplorerGeometry -and ($Suite -cne 'MediumDesktopUiOnly' -or
+   $TerminalAssetDirectory -or $VSCodeAssetDirectory -or $OfficialAppAssetDirectory -or $PortablePackageDirectory -or
+   $MediumEnvironmentProbe -or $MediumDesktopProbe -or $MediumNativeIdentityOnly -or $StandardGuestNativeClients -or $StandardLogonNativeIdentity)){
+    throw 'Explorer geometry requires the exact UI guest suite without another application asset or probe.'
+}
 if($StandardLogonNativeIdentity){
     if($Suite -cne 'NativeClientsOnly' -or $GuestConfigurations -cne 'Release' -or
        $StandardGuestNativeClients -or $MediumNativeIdentityOnly -or $MediumEnvironmentProbe -or
@@ -467,6 +473,7 @@ $manifest = [ordered]@{
     created_utc=[DateTime]::UtcNow.ToString('o'); files=$files;
     test_assets=$testAssets;
     terminal_test_asset=$terminalAsset;
+    medium_explorer_geometry=[bool]$MediumExplorerGeometry;
     official_app_assets=$officialApps;
     medium_environment_probe=[ordered]@{enabled=[bool]$MediumEnvironmentProbe;kind='ReadOnlyStandardGuestAcl'};
     # The legacy kind is the existing controller envelope, not a GUI result.
@@ -518,6 +525,7 @@ $receipt = [ordered]@{ schema='panebind-v1-package-receipt/1'; run_id=$RunId; so
     product_interface=$packagingIdentity.interface_contract;configurations=$manifest.configurations;
     source_scope_equivalent=$true;documentation_inputs=$packagingIdentity.documentation_inputs;
     package_root=$packageRoot; remote_root=$remoteRoot; zip=$zipPath; guest_suite=$Suite;
+    medium_explorer_geometry=[bool]$MediumExplorerGeometry;
     zip_sha256=(Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash;
     manifest_sha256=(Get-FileHash -LiteralPath (Join-Path $inputDir 'manifest.json') -Algorithm SHA256).Hash;
     wsb_sha256=(Get-FileHash -LiteralPath (Join-Path $packageRoot 'PaneBindV1.wsb') -Algorithm SHA256).Hash;
