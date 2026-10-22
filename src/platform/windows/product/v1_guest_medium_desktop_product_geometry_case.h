@@ -109,28 +109,42 @@ class MediumDesktopProductGeometryCase {
     }
     bool wait_for(const std::function<bool()>& predicate,DWORD cap,bool require_active=true,HANDLE extra=nullptr){
         const auto begin=GetTickCount64(),end=require_active?(std::min<ULONGLONG>)(deadline_,begin+cap):begin+cap;
+        // Bound each operation's wakeups, not the sum of unrelated completed
+        // operations. Diagnostic logging adds real notifications across the
+        // sequence; it must not consume a later phase's fresh wait budget.
+        unsigned wait_notifications{};
+        const auto rejected=[&](const char* reason,DWORD error=0){
+            out_.emit("medium_product_geometry_wait_rejected","\"reason\":"+quote(reason)+
+                ",\"generation\":"+std::to_string(generation_)+",\"cap_ms\":"+std::to_string(cap)+
+                ",\"actual_elapsed_ms\":"+std::to_string(GetTickCount64()-begin)+
+                ",\"wait_notifications\":"+std::to_string(wait_notifications)+
+                ",\"total_notifications\":"+std::to_string(notifications_)+",\"native_error\":"+std::to_string(error));
+            return false;
+        };
         for(;;){
-            if(quit_seen_||(require_active&&!admission()))return false;
-            if(events_.changed&&!ResetEvent(events_.changed))return false;
+            if(quit_seen_||(require_active&&!admission()))return rejected("quit_or_admission_revoked");
+            if(events_.changed&&!ResetEvent(events_.changed))return rejected("ResetEvent_failed",GetLastError());
             if(predicate())return true;
-            const auto now=GetTickCount64();if(now>=end)return false;
-            if(!events_.changed)return false;
+            const auto now=GetTickCount64();if(now>=end)return rejected("bounded_deadline");
+            if(!events_.changed)return rejected("event_missing");
             HANDLE handles[5]{events_.changed,product_process_,target_process_,nullptr,nullptr};
             DWORD count=target_process_?3:2;const DWORD log_index=count;
             if(log_change_!=INVALID_HANDLE_VALUE)handles[count++]=log_change_;
             const DWORD extra_index=count;if(extra)handles[count++]=extra;
             const auto result=MsgWaitForMultipleObjectsEx(count,handles,static_cast<DWORD>(end-now),QS_ALLINPUT,MWMO_INPUTAVAILABLE);
-            if(result==WAIT_FAILED)return false;
-            if(result==WAIT_OBJECT_0+1)return false;
-            if(target_process_&&result==WAIT_OBJECT_0+2)return predicate();
-            if(extra&&result==WAIT_OBJECT_0+extra_index)return predicate();
+            if(result==WAIT_FAILED)return rejected("MsgWait_failed",GetLastError());
+            if(result==WAIT_OBJECT_0+1)return rejected("product_exited");
+            if(target_process_&&result==WAIT_OBJECT_0+2)return predicate()||rejected("target_exited_before_predicate");
+            if(extra&&result==WAIT_OBJECT_0+extra_index)return predicate()||rejected("extra_signalled_predicate_false");
             if(log_change_!=INVALID_HANDLE_VALUE&&result==WAIT_OBJECT_0+log_index){
-                if(++notifications_>64||!FindNextChangeNotification(log_change_))return false;
+                ++notifications_;
+                if(++wait_notifications>64)return rejected("per_wait_notification_limit");
+                if(!FindNextChangeNotification(log_change_))return rejected("FindNextChangeNotification_failed",GetLastError());
             }
             if(result==WAIT_OBJECT_0+count){MSG message{};unsigned messages=256;
                 while(messages--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
-                    if(message.message==WM_QUIT){quit_seen_=true;return false;}TranslateMessage(&message);DispatchMessageW(&message);}}
-            if(result==WAIT_TIMEOUT)return (!require_active||admission())&&predicate();
+                    if(message.message==WM_QUIT){quit_seen_=true;return rejected("WM_QUIT");}TranslateMessage(&message);DispatchMessageW(&message);}}
+            if(result==WAIT_TIMEOUT)return ((!require_active||admission())&&predicate())||rejected("native_timeout_predicate_false");
         }
     }
     bool status(){
@@ -376,7 +390,12 @@ class MediumDesktopProductGeometryCase {
         if(!QueryPerformanceCounter(&before))throw std::runtime_error("geometry_TEST_phase_before_clock_unknown");
         if(remaining){Handle timer(CreateWaitableTimerW(nullptr,TRUE,nullptr));if(!timer.value)throw std::runtime_error("geometry_TEST_phase_timer_create_failed");
             LARGE_INTEGER due{};due.QuadPart=-static_cast<LONGLONG>(remaining)*10000;
-            if(!SetWaitableTimer(timer.value,&due,0,nullptr,nullptr,FALSE)||!wait_for([&]{return WaitForSingleObject(timer.value,0)==WAIT_OBJECT_0;},remaining+100,true,timer.value))
+            if(!SetWaitableTimer(timer.value,&due,0,nullptr,nullptr,FALSE)){
+                const auto error=GetLastError();out_.emit("medium_product_geometry_phase_timer_failure",
+                    "\"SetWaitableTimer_attempted\":true,\"SetWaitableTimer_return\":false,\"native_error\":"+std::to_string(error));
+                throw std::runtime_error("geometry_TEST_phase_SetWaitableTimer_failed");
+            }
+            if(!wait_for([&]{return WaitForSingleObject(timer.value,0)==WAIT_OBJECT_0;},remaining+100,true,timer.value))
                 throw std::runtime_error("geometry_TEST_phase_one_shot_wait_failed");}
         if(!QueryPerformanceCounter(&after))throw std::runtime_error("geometry_TEST_phase_after_clock_unknown");
         if(retired()||!target_exact()||!capture_route()||!control_state())throw std::runtime_error("geometry_TEST_phase_retired_during_one_shot_wait");
