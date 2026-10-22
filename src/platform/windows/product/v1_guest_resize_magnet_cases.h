@@ -135,7 +135,7 @@ void resize_magnet_fixed_size_blackbox(LayoutFixtures& set,Rect source,Rect neig
 }
 void owned_fixed_size_resize_case(State& s){
     settings_guest_scope(s);const auto original=chain_settings(s);const auto pid=s.product_pid;const auto birth=process_birth(s.process);
-    if(s.suite!="FixedAndTerminalOnly"||!original.enabled||!original.rules.empty()||s.left||s.control)
+    if((s.suite!="FixedAndTerminalOnly"&&s.suite!="FixedSizeResizeOnly")||!original.enabled||!original.rules.empty()||s.left||s.control)
         throw std::runtime_error("fixed_size_Resize_exact_released_guest_with_unexcluded_fixtures_required");
     auto config=original;config.magnet_resize=true;config.magnet_move=false;config.glue=false;config.docking=false;config.preview=false;config.feedback=false;
     config.drag_transparency=false;config.shake=false;const auto applied=chain_gui_save(s,config);LayoutFixtures set{s};

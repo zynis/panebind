@@ -1034,6 +1034,32 @@ Assert-V1FixedTerminalWiring $fixtureSource $resizeMagnet $activeTerminal
 Check $true 'static fixed/terminal paths preserve real UP, ordered zero calls and UP-before-issue retirement semantics'
 Reject {Assert-V1FixedTerminalWiring $fixtureSource ($resizeMagnet.Replace('layout_up(set,g,initial);','')) $activeTerminal} 'static fixed-size path cannot omit its actual matching UP'
 Reject {Assert-V1FixedTerminalWiring $fixtureSource $resizeMagnet ($activeTerminal.Replace('*native_before<barrier','true'))} 'static active terminal path cannot accept a new native call after the actual UP barrier'
+function Assert-V1FixedSizeOnlyWiring([string]$Fixture,[string]$Resize,[string]$Prepare,[string]$Guest){
+    $start=$Fixture.IndexOf('    if(s.suite=="FixedSizeResizeOnly"){',[StringComparison]::Ordinal)
+    $end=$Fixture.IndexOf('    if(s.suite=="FixedAndTerminalOnly"){',[StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start){throw 'Fixed-size-only branch must return before the original fixed/terminal branch.'}
+    $branch=$Fixture.Substring($start,$end-$start)
+    foreach($value in @('phase("owned_fixed_size_Resize_no_write_then_Move",owned_fixed_size_resize_case);',
+        'cleanup(s);','fixed_size_resize_only_summary','return;')){
+        if(-not $branch.Contains($value)){throw ('Fixed-size-only path lost actual component or cleanup: '+$value)}
+    }
+    if([regex]::Matches($branch,'phase\(').Count -ne 1 -or
+       $branch.Contains('owned_active_terminal_burst_case') -or $branch.Contains('owned_resize_magnet_case')){
+        throw 'Fixed-size-only must not repeat the terminal burst or eight-direction component.'
+    }
+    if(-not $Fixture.Contains('else if(value==L"FixedSizeResizeOnly")s.suite="FixedSizeResizeOnly";') -or
+       [regex]::Matches($Fixture,'s\.suite!="FixedSizeResizeOnly"').Count -ne 2 -or
+       -not $Fixture.Contains('||s.suite=="FixedSizeResizeOnly"||') -or
+       -not $Resize.Contains('(s.suite!="FixedAndTerminalOnly"&&s.suite!="FixedSizeResizeOnly")||!original.enabled') -or
+       -not $Prepare.Contains("'FixedAndTerminalOnly','FixedSizeResizeOnly'") -or
+       -not $Guest.Contains("'FixedAndTerminalOnly','FixedSizeResizeOnly'")){
+        throw 'Fixed-size-only must retain exact parser, manifest/entry, reusable case and both package suite guards.'
+    }
+}
+Assert-V1FixedSizeOnlyWiring $fixtureSource $resizeMagnet $lifecyclePrepare $lifecycleGuest
+Check $true 'static fixed-size-only reuses one actual fixed Resize/UP/zero-call/following Move path without D29 or eight-direction replay'
+Reject {Assert-V1FixedSizeOnlyWiring ($fixtureSource.Replace('if(s.suite=="FixedSizeResizeOnly"){','if(s.suite=="FixedSizeResizeOnly"){phase("unexpected_terminal",owned_active_terminal_burst_case);')) $resizeMagnet $lifecyclePrepare $lifecycleGuest} 'static fixed-size-only rejects adding the closed terminal burst to its narrow branch'
+Reject {Assert-V1FixedSizeOnlyWiring $fixtureSource ($resizeMagnet.Replace('&&s.suite!="FixedSizeResizeOnly"','')) $lifecyclePrepare $lifecycleGuest} 'static fixed-size-only rejects a disconnected reusable-case guard'
 function Assert-V1StandardNativeWiring([string]$Fixture,[string]$Probe,[string]$Guest){
     if(-not $Fixture.Contains('!exact_standard_native_guest_account(username.data())') -or
        -not $Fixture.Contains('if(!found||actual_parent!=expected_pid)') -or
