@@ -1,0 +1,180 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-ABB1-EXACT-ACTIVE-MEDIUM-MODERN-TERMINAL-START-RESPONSE-NORMAL-CLOSE",
+  "kind": "read_only_original_raw_and_receipts_review",
+  "review_date": "2026-10-22",
+  "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+  "suite": "MediumDesktopNativeOnly",
+  "configuration": "Release",
+  "result": "PASS_START_RESPONSE_NORMAL_CLOSE_ONLY",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_started": false,
+    "product_identity_meaning": "Frozen verified package payload, not a running product. Candidate session mutex, candidate-basename process inventory and current-desktop product root were checked absent at each relevant stage; this does not claim to identify every arbitrarily renamed process.",
+    "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+    "driver_sha256": "745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094",
+    "packaging_head": "50d4986af41280db1fcc15f3b56f64f86a214f79",
+    "fixture_pid": 3956,
+    "fixture_primary_tid": 6412,
+    "observer_tid": 3960,
+    "return_owner_tid": 5640,
+    "desktop": "WinSta0\\PaneBindV1_abb1086442cd4bda9b0a9ef52ac6b41a",
+    "session": 1,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "terminal": {
+      "pid": 5844,
+      "birth_filetime_decimal": "134371331198589148",
+      "root_hwnd": 131874,
+      "root_tid": 6044,
+      "root_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+      "positioning_rect": [179, 190, 1931, 1126],
+      "actual_image": "C:\\PaneBindV1\\Terminal\\abb1086442cd4bda9b0a9ef52ac6b41a\\Release\\terminal-1.25.2733.0\\WindowsTerminal.exe",
+      "asset_version": "1.25.2733.0",
+      "asset_file_version_receipt": "1.25.2609.30003",
+      "exe_sha256": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+      "zip_sha256": "BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796",
+      "integrity_rid": 8192,
+      "elevated": false,
+      "same_SID": true,
+      "same_interactive_session": true,
+      "client_input_sent": false
+    },
+    "precision": "FILETIME process identities remain literal decimal strings, not floating-point reidentification."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/abb1086442cd4bda9b0a9ef52ac6b41a/package-receipt.json",
+    "receipt_sha256": "E8F045718880AF16FE639FEAAB72B80F849C1260EAA120314F96E4BFE7C9DFE6",
+    "zip_sha256": "60F394E916F70200AE690BE10D861208EFD2FB24324FEA354DBF0B06EF483572",
+    "manifest_sha256": "9224ED73F2CCACB15AE4A8E76C041B99EA10C62A8F369D740D0824DACECD9C2C",
+    "wsb_sha256": "EF4F2EC03B2CCB87CD5AB3E8D01D9539BD19D4A393077EFF556AF59D21E89371",
+    "remote_directory": "I:\\PaneBindMVP1Runs\\abb1086442cd4bda9b0a9ef52ac6b41a",
+    "input_readonly_output_only_writable": true,
+    "asset_receipt_stage_boundary": "The terminal-asset.json and guest-summary asset section record PREPARED_NOT_LAUNCHED/application_started=false at asset-preparation time. Those fields do not negate the later actual CreateProcessW inD163, exact actual rootD164-D165 or normal-closeD169. No old receipt is rewritten."
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/collection-20261022T085951014Z-0f74971858ce4b1cad16f868922294c7/abb1086442cd4bda9b0a9ef52ac6b41a-release-fixture.jsonl",
+      "sha256": "54C4634AFE4259B839B4232E105DF97AF052821CC91D08FF520AF27EE2D11EA7",
+      "bytes": 4848058,
+      "rows": 187,
+      "legal_jsonl": true,
+      "continuous_sequences": [1, 187],
+      "all_source_sha_matches_driver": true,
+      "explicit_result_FAIL_rows": 0
+    },
+    {
+      "path": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/collection-20261022T085951014Z-0f74971858ce4b1cad16f868922294c7/abb1086442cd4bda9b0a9ef52ac6b41a-Release-launch.json",
+      "sha256": "C6312C0D683D79BA8266FE8C02CA65893A0CAE5505489E7F848BBD20FAA75DDE"
+    },
+    {
+      "path": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/collection-20261022T085951014Z-0f74971858ce4b1cad16f868922294c7/abb1086442cd4bda9b0a9ef52ac6b41a-guest-summary.json",
+      "sha256": "73F87D6D30874EB41C723BE52A2296DE46ED20AF97347E67B6BF7EC8C3CD0448"
+    },
+    {
+      "path": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/collection-20261022T085951014Z-0f74971858ce4b1cad16f868922294c7/abb1086442cd4bda9b0a9ef52ac6b41a-terminal-asset.json",
+      "sha256": "5C14E0BCB635008695955A6CF1A50FB3F6F755E1450091B018EDFE84C0D35067",
+      "scope": "Preparation-stage receipt, not the actual later application launch result."
+    },
+    {
+      "path": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/collection-20261022T085951014Z-0f74971858ce4b1cad16f868922294c7/collection-receipt.json",
+      "sha256": "F51D26B1D1898538519689E43CB9920614BD9D3EF0023EA8E6CA6505DCD5A88F",
+      "output_unchanged": true,
+      "actual_before_inventory_utc": "2026-10-22T09:00:16.9453878Z",
+      "actual_after_inventory_utc": "2026-10-22T09:00:21.4500113Z",
+      "receipt_top_utc_meaning": "08:59:55.5619349Z is an earlier receipt field, not proof of completed collection."
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-excerpt.jsonl",
+    "sha256": "F473B3C83F1F05335CEB736E58CF55415DCA04CCC8D91E3D619DE3F32971A4BB",
+    "bytes": 21336,
+    "literal_lines": 36,
+    "driver_sequences": [3, 5, 13, 19, 21, 27, 47, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 180, 181, 182, 183, 184, 187],
+    "serialization_changed": false,
+    "line_endings": "Literal original line contents preserved; excerpt uses LF. Repeated large Shell inventories remain in the hash-bound local original; D165 preserves the exact complete Terminal root comparison."
+  },
+  "observations": [
+    {
+      "source": "D3/D5/D13/D19/D21/D27/D47/D155-D158",
+      "fact": "One fresh Run Win32 desktop and one exact same-token Medium Explorer PID3952/birth134371331097397712/session1 are observed. Readiness took10015ms with79 event waits/16 retained event samples. RawD155 contains two complete exact-held-desktop inventories with visible Progman66188/PID3952/TID3940/actual rect[0,0,3050,1668] and Tray66156/PID3952/TID6804/[0,1596,3050,1668]. The ordinary257-right handles leave original195 unchanged. One real SwitchDesktop returnsTRUE at40421..40453, actual input name equalsRun/UOI_IOtrue, and fresh exact Shell/Tray remains ready. Raw LastError5 is not interpreted as failure/root cause."
+    },
+    {
+      "source": "D159-D163/D166/D168/D170",
+      "fact": "The pinned modern Terminal ZIP/EXE, exact Run local paths and marker are checked; no Appx registration or default-terminal setting is changed. Before launch, immediately beforeCreateProcess, beforeWM_NULL, before normal close and after close, candidate mutex is absent(error2), process snapshot is complete with zero candidate basename processes, and current-desktop product root is0. This is the recorded product-absence scope, not an assertion about all renamed software. Actual CreateProcessW returnsTRUE/error0 at40500..40531 for exact PID5844/birth134371331198589148 and explicit WinSta0 Run desktop, using existing Medium token and no handle inheritance. The new-tab command uses the exact system cmd/d/q/k; its command-shell/client usability is not inferred."
+    },
+    {
+      "source": "D164-D165",
+      "fact": "Within1859ms measured from before launch, exact visible CASCADIA_HOSTING_WINDOW_CLASS root131874/TID6044 is live, exit code259 at that observation, with18 native event notifications and no overflow. Both native geometry reads are[179,190,1931,1126]. Root membership is true in two complete held-created-HDESK740 inventories of36 windows each, exact Run name, held PID/birth/image, Medium8192/non-elevated, same SID and session1. Foreign GetThreadDesktop remainsNULL/error5 and no fabricated thread-desktop name or product input/write authority is substituted."
+    },
+    {
+      "source": "D167",
+      "fact": "One actual bounded SendMessageTimeoutW WM_NULL to the fresh exact root returnsTRUE/error0 with100ms timeout. This is a native responsiveness observation, not customer text entry, rendered content, terminal command output or product operation proof."
+    },
+    {
+      "source": "D169-D172",
+      "fact": "Exactly one normal PostMessageW WM_CLOSE is attempted and returnsTRUE/error0; the actual bound root subsequently disappears. The immediate process WaitForSingleObject(...,0) result258 and later GetExitCodeProcess value0 are separate non-atomic observations; they are both retained, not rewritten as a signalled process-handle wait or proof that all descendants exited. No force-terminate or synthetic client input is attempted. Actual native-hook unhook and child process/thread/event CloseHandle returns areTRUE. D172 awards only PASS_START_RESPONSE_NORMAL_CLOSE_ONLY and explicitly does not claim complete process cleanup."
+    },
+    {
+      "source": "D173-D178/D180-D187",
+      "fact": "An independent return owner TID5640 wakes by explicit request, not the15s deadline, and actually switches own Run toDefault at42406..42453; BOOLTRUE and actual Default/UOI_IOtrue are observed. Owner wait0 and helper handle closes areTRUE, no deadline/completion unknown. Actual readiness unhook, observer Default restore and original195 handle close succeed; original Default Shell65792/PID4968/TID4972/birth134371331006630948 is unchanged. The new Shell child is still alive(wait258/exit259) for exact guest/job cleanup. Own Raw/foreground observation teardown and fixture shutdown are separately observed; guest disposal is not product or application-cleanup PASS."
+    }
+  ],
+  "time_basis": {
+    "readiness_begin_tick": 30406,
+    "readiness_end_tick": 40421,
+    "readiness_elapsed_ms": 10015,
+    "actual_activation_ticks": [40421, 40453],
+    "actual_Terminal_CreateProcess_ticks": [40500, 40531],
+    "Terminal_root_ready_elapsed_from_before_launch_ms": 1859,
+    "actual_Default_return_ticks": [42406, 42453],
+    "native_only_cleanup_start_deadline_ms": 15000,
+    "native_only_completion_outer_budget_ms": 20000,
+    "actual_deadline_expired": false,
+    "warning": "Observer records are buffered. Common emitted tick42734/42750 and JSONL order are not a common native Raw/WinEvent/API timestamp or physical display latency; use explicit native intervals for the stated measurements."
+  },
+  "wrapper": {
+    "status": "FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED",
+    "fixture_exit_code": 0,
+    "wait_result": 0,
+    "forced_test_cleanup": true,
+    "descendants_alive_at_fixture_exit": 1,
+    "product_cleanup_pass": false,
+    "meaning": "The scoped result comes from actual root/response/close/native cleanup records, not wrapper exit0. One descendant remains for test cleanup; no all-application-process or product cleanup PASS is inferred."
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/abb1086442cd4bda9b0a9ef52ac6b41a/cleanup-receipt.json",
+    "sha256": "C493E5C1F6CB07738103053E4A38035457B85F799063A1DCE65FEA47E452F6BF",
+    "utc": "2026-10-22T09:00:55.7629600Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "guest_disposal_is_not_product_or_application_cleanup_PASS": true
+  },
+  "acceptance_boundary": {
+    "actual_conclusion": "新建exact、真实active、同SID/session/Medium桌面上的现代Terminal本次已实际启动，精确可见根在1.859秒内成立、WM_NULL有响应、一次正常WM_CLOSE后根确已消失；独立回切和自有观察资源退出有回执。",
+    "product_started": false,
+    "synthetic_client_input": "NOT_RUN",
+    "Terminal_command_output_or_rendered_customer_content": "NOT_RUN",
+    "product_Move_Resize_Ctrl": "NOT_RUN",
+    "product_GUI_or_tray": "NOT_RUN",
+    "all_Terminal_processes_exited": "NOT_PROVEN",
+    "ordinary_full_Medium_desktop": "NOT_PROVEN",
+    "current_virtual_desktop_product_eligibility": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "not_awarded": [
+      "Terminal client text/keyboard interaction",
+      "product qualification or Move/Resize/Ctrl functionality on this desktop",
+      "tray API or menu functionality",
+      "five-application or mixed-application integration",
+      "15-second deadline behavior",
+      "module, benchmark or whole-version PASS"
+    ],
+    "history": "The old Default-desktop Terminal failures and2b49 tray-precondition failure retain their own identities and verdicts. This new environment-variable observation does not assign them a unique root cause or rerun them.",
+    "next_action": "在新Run继续产品未启动的实际Terminal客户输入与正常关闭；另做只读当前虚拟桌面/资格前置观察。不能把本次root响应外推为客户区、产品增强或普通完整桌面通过。"
+  }
+}

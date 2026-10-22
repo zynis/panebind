@@ -12,7 +12,7 @@
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-环境进展单列：[229e](reports/v1-evidence/229e-medium-desktop-activation-return-review.json)已实际建立本任务新Medium Shell／Tray、切入并独立切回Default；后继驱动EEA的[2b49](reports/v1-evidence/2b49-medium-tray-precondition-review.json)在另一个实际active同Medium桌面执行自有通知前置，NIM_ADD返回FALSE，故产品GUI／托盘子链及输入均未启动、整批BLOCKED。自有窗口／类退出和独立回切成功不等于功能通过，原始错误不作根因。现转向不依赖托盘的产品未启动现代Terminal前置；该TEST已接线、未构建／现场。正式增强的Default桌面保护不变，当前本包不能直接在新命名桌面上宣称可用；真实托盘、完整普通Medium桌面、应用与显示矩阵及真人UAT仍分别保留缺项。
+环境进展单列：[229e](reports/v1-evidence/229e-medium-desktop-activation-return-review.json)已实际建立本任务新Medium Shell／Tray、切入并独立切回Default；[2b49](reports/v1-evidence/2b49-medium-tray-precondition-review.json)的private-probe NIM_ADD失败及产品／GUI／输入未启动保留，清理不当功能PASS、raw错误不作根因。后继[abb1](reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json)已在新exact active Medium桌面实际完成现代Terminal精确根启动、WM_NULL响应和一次正常WM_CLOSE／根消失；**不是客户输入、全部进程退出或产品功能通过**。真实客户nonce、sourceGUI／VDM只读观察及本产品独立UID1普通GUI／托盘路径仍在编码、未构建／现场。正式增强的Default保护不变，本包不能直接在新命名桌面上宣称可用；真实托盘、完整普通Medium桌面、应用／显示矩阵及真人UAT仍分别缺项。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 

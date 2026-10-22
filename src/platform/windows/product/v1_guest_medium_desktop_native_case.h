@@ -9,12 +9,14 @@
 //   C:\PaneBindV1\Terminal\<run>\<configuration>\terminal-1.25.2733.0\WindowsTerminal.exe
 struct MediumTerminalNativeRequest {
     std::string configuration{"Release"},manifest_sha256;
+    bool client_input{};
 };
 struct MediumTerminalNativeObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool launch_attempted{},launched{},root_ready{},close_attempted{},root_gone{};
     bool hooks_stopped{},local_handles_closed{},product_absence_known{},completed{};
-    std::string reason{"not_started"};
+    bool client_completed{},client_input_sent{},client_cleanup_known{true};
+    std::string reason{"not_started"},client_reason{"not_requested"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
 struct MediumTerminalNativeEvents {
@@ -64,7 +66,8 @@ struct MediumTerminalNativeResources {
 
 MediumTerminalNativeObservation medium_terminal_native_case(
     const std::wstring& run,HDESK created,const MediumTerminalNativeRequest& request,
-    const std::function<bool()>& exact_medium_Shell_Tray,ULONGLONG caller_deadline_tick){
+    const std::function<bool()>& exact_medium_Shell_Tray,ULONGLONG caller_deadline_tick,
+    const std::shared_ptr<MediumDesktopUiInputLease>& input_lease={}){
     MediumTerminalNativeObservation out;
     const auto name=L"PaneBindV1_"+run,full_name=L"WinSta0\\"+name;
     const fs::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";
@@ -237,6 +240,15 @@ MediumTerminalNativeObservation medium_terminal_native_case(
         const DWORD response_error=responded?0:GetLastError();
         out.emit("medium_terminal_response","\"WM_NULL_attempted\":true,\"native_return\":"+std::string(responded?"true":"false")+
             ",\"error\":"+std::to_string(response_error)+",\"timeout_ms\":100,\"client_or_content_semantics_inferred\":false");
+        if(request.client_input&&responded&&active()&&exact_window()){
+            out.client_cleanup_known=false;
+            const auto nonce_output=fs::path(L"C:\\PaneBindV1\\Output")/(run+L"-terminal-client.txt");
+            const auto client=medium_terminal_client_case(run,created,window,pid,window_tid,process,birth,nonce_output,
+                active,exact_window,input_lease,caller_deadline_tick);
+            out.client_completed=client.completed;out.client_input_sent=client.input_inserted;
+            out.client_cleanup_known=client.cleanup_known;out.client_reason=client.reason;
+            out.records.insert(out.records.end(),client.records.begin(),client.records.end());
+        }else if(request.client_input)out.client_reason="actual_root_response_or_active_context_not_confirmed_no_client_input";
         // A failed response does not bypass normal-close identity validation.
         if(!active()||!exact_window()||!absent("before_normal_close"))throw std::runtime_error("no_fresh_close_authority");
         out.close_attempted=true;SetLastError(ERROR_SUCCESS);const bool posted=PostMessageW(window,WM_CLOSE,0,0)!=FALSE;
@@ -248,21 +260,24 @@ MediumTerminalNativeObservation medium_terminal_native_case(
             ",\"error\":"+std::to_string(post_error)+",\"actual_bound_root_gone\":"+(out.root_gone?"true":"false")+
             ",\"process_wait_result\":"+std::to_string(WaitForSingleObject(process,0))+
             ",\"process_exit_code\":"+(after_exit_known?std::to_string(after_exit):"null")+
-            ",\"all_descendants_exit_inferred\":false,\"force_terminate_attempted\":false,\"client_input_sent\":false");
+            ",\"all_descendants_exit_inferred\":false,\"force_terminate_attempted\":false,\"client_input_sent\":"+(out.client_input_sent?"true":"false"));
         out.product_absence_known=absent("after_normal_close");
-        out.completed=responded&&posted&&out.root_gone&&out.product_absence_known&&active();
-        out.reason=out.completed?"new_exact_Terminal_root_response_and_normal_close_only":
-            !responded?"actual_WM_NULL_unresponsive_normal_close_separate":"normal_close_or_final_context_unconfirmed";
+        out.completed=responded&&(!request.client_input||out.client_completed)&&posted&&out.root_gone&&out.product_absence_known&&active();
+        out.reason=out.completed?(request.client_input?"new_exact_Terminal_native_client_nonce_and_root_close_only":"new_exact_Terminal_root_response_and_normal_close_only"):
+            !responded?"actual_WM_NULL_unresponsive_normal_close_separate":
+            request.client_input&&!out.client_completed?out.client_reason:"normal_close_or_final_context_unconfirmed";
     }catch(const std::exception& error){out.reason=error.what();}
     resources.finish();
     out.hooks_stopped=resources.hook_ok;
     out.local_handles_closed=resources.process_ok&&resources.thread_ok&&resources.event_ok;
-    out.completed=out.completed&&out.hooks_stopped&&out.local_handles_closed&&!resources.unknown;
+    out.completed=out.completed&&out.hooks_stopped&&out.local_handles_closed&&!resources.unknown&&out.client_cleanup_known;
     out.emit("medium_terminal_unhook","\"attempted\":"+std::string(resources.hook_attempted?"true":"false")+
         ",\"native_return\":"+(resources.hook_attempted?(resources.hook_ok?"true":"false"):"null")+
         ",\"error\":"+(resources.hook_attempted?std::to_string(resources.hook_error):"null"));
-    out.emit("medium_terminal_summary","\"result\":"+quote(out.completed?"PASS_START_RESPONSE_NORMAL_CLOSE_ONLY":"UNKNOWN_OR_BLOCKED")+
+    out.emit("medium_terminal_summary","\"result\":"+quote(out.completed?(request.client_input?"PASS_NATIVE_CLIENT_NONCE_NORMAL_CLOSE_ONLY":"PASS_START_RESPONSE_NORMAL_CLOSE_ONLY"):"UNKNOWN_OR_BLOCKED")+
         ",\"reason\":"+quote(out.reason)+",\"own_hook_stopped\":"+(out.hooks_stopped?"true":"false")+
+        ",\"client_requested\":"+(request.client_input?"true":"false")+",\"client_completed\":"+(out.client_completed?"true":"false")+
+        ",\"client_reason\":"+quote(out.client_reason)+",\"client_cleanup_known\":"+(out.client_cleanup_known?"true":"false")+
         ",\"process_CloseHandle_attempted\":"+(resources.process_attempted?"true":"false")+
         ",\"process_handle_CloseHandle_return\":"+(resources.process_attempted?(resources.process_ok?"true":"false"):"null")+
         ",\"thread_CloseHandle_attempted\":"+(resources.thread_attempted?"true":"false")+
@@ -270,7 +285,7 @@ MediumTerminalNativeObservation medium_terminal_native_case(
         ",\"event_CloseHandle_attempted\":"+(resources.event_attempted?"true":"false")+
         ",\"event_CloseHandle_return\":"+(resources.event_attempted?(resources.event_ok?"true":"false"):"null")+
         ",\"native_cleanup_unknown\":"+(resources.unknown?"true":"false")+
-        ",\"product_started\":false,\"client_input_sent\":false,"+
+        ",\"product_started\":false,\"client_input_sent\":"+(out.client_input_sent?"true":"false")+","+
         "\"product_enhancement_result\":\"NOT_RUN\",\"normal_root_close_is_not_all_process_cleanup\":true,"+
         "\"guest_disposal_is_not_cleanup_PASS\":true,\"human_UAT\":\"NOT_RUN\"");
     return out;

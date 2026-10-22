@@ -231,7 +231,11 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
     out.ui_requested=ui_request!=nullptr;
     if(ui_request){state->deadline_ms=30000;state->outer_ms=35000;
         state->ui_input=std::make_shared<MediumDesktopUiInputLease>();}
-    else if(native_request){state->deadline_ms=15000;state->outer_ms=20000;}
+    else if(native_request){
+        state->deadline_ms=native_request->client_input?30000:15000;
+        state->outer_ms=native_request->client_input?35000:20000;
+        if(native_request->client_input)state->ui_input=std::make_shared<MediumDesktopUiInputLease>();
+    }
     constexpr ACCESS_MASK access=DESKTOP_READOBJECTS|DESKTOP_SWITCHDESKTOP;
     SetLastError(ERROR_SUCCESS);state->target=OpenDesktopW(exact_run_name.c_str(),0,FALSE,access);
     const DWORD target_error=state->target?0:GetLastError();
@@ -279,12 +283,16 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
                 (out.post_activation_ready?"true":"false")+",\"product_started\":false,\"synthetic_input_sent\":false");
             if(out.active_verified&&out.post_activation_ready&&native_request){
                 out.native_cleanup_known=false;
-                const auto native=medium_terminal_native_case(run,created,*native_request,still_exact,state->began+state->deadline_ms);
-                out.native_completed=native.completed;out.native_cleanup_known=native.hooks_stopped&&native.local_handles_closed;
+                const auto native=medium_terminal_native_case(run,created,*native_request,still_exact,state->began+state->deadline_ms,state->ui_input);
+                out.native_completed=native.completed;out.native_cleanup_known=native.hooks_stopped&&native.local_handles_closed&&native.client_cleanup_known;
                 out.ui_reason=native.reason;
                 out.records.insert(out.records.end(),native.records.begin(),native.records.end());
-            }else if(out.active_verified&&out.post_activation_ready)medium_desktop_active_tray_probe(out,state,still_exact);
-            if(ui_request&&out.tray_api_ready&&out.tray_probe_cleanup_known&&!state->deadline.load()){
+            }else if(out.active_verified&&out.post_activation_ready&&!ui_request)medium_desktop_active_tray_probe(out,state,still_exact);
+            if(ui_request&&out.active_verified&&out.post_activation_ready&&out.tray_probe_cleanup_known&&!state->deadline.load()){
+                out.emit("medium_desktop_UI_independent_product_observation",
+                    "\"own_notification_probe_repeated\":false,\"prior_probe_failure_preserved\":true,"
+                    "\"ordinary_GUI_not_conditioned_on_probe_bool\":true,\"actual_product_UID1_rect_and_hit_still_required_for_tray_input\":true,"
+                    "\"product_enhancement_Default_guards_changed\":false");
                 out.ui_cleanup_known=false;
                 const auto elapsed=GetTickCount64()-state->began;
                 const DWORD remaining=elapsed<state->deadline_ms?static_cast<DWORD>(state->deadline_ms-elapsed):0;
@@ -294,7 +302,7 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
                 out.ui_cleanup_known=ui.cleanup_known;out.ui_product_closed=ui.product_closed;
                 out.ui_reason=ui.reason;
                 out.records.insert(out.records.end(),ui.records.begin(),ui.records.end());
-            }else if(ui_request)out.ui_reason="actual_owned_tray_API_or_remaining_active_deadline_not_ready_no_UI_started";
+            }else if(ui_request)out.ui_reason="actual_active_Run_roots_cleanup_or_remaining_deadline_not_ready_no_UI_started";
         }else out.reason="actual_readiness_Default_input_or_armed_deadline_rejected";
     }catch(...){out.reason="readiness_or_actual_observation_exception";}
     // Signaled only after the real entry API returned (or was never issued).

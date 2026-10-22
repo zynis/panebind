@@ -107,6 +107,7 @@ struct MediumDesktopWindowFact {
         ",\"positioning_rect\":"+(rect_return?rect({rectangle.left,rectangle.top,rectangle.right,rectangle.bottom}):"null")+
         ",\"input_cancel_or_write_authority\":false}";}
 };
+#include "platform/windows/product/v1_guest_medium_desktop_native_client_case.h"
 #include "platform/windows/product/v1_guest_medium_desktop_native_case.h"
 #include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"
 struct MediumDesktopEnvironmentObservation {
@@ -364,7 +365,8 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
 void medium_desktop_environment_flow(State& s){
     std::array<wchar_t,128> user{};DWORD user_size=static_cast<DWORD>(user.size());
     const bool ui_only=s.suite=="MediumDesktopUiOnly";
-    const bool native_only=s.suite=="MediumDesktopNativeOnly";
+    const bool native_client_only=s.suite=="MediumDesktopNativeClientOnly";
+    const bool native_only=s.suite=="MediumDesktopNativeOnly"||native_client_only;
     if((s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only&&!native_only)||!desktop()||!GetUserNameW(user.data(),&user_size)||
        !equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())||s.process||s.product_pid||
        !equal(medium_desktop_object_name(GetProcessWindowStation()),L"WinSta0")||
@@ -386,7 +388,7 @@ void medium_desktop_environment_flow(State& s){
         s.log.emit("medium_desktop_environment_summary","\"result\":\"BLOCKED\",\"reason\":\"Default_Shell_or_exact_Windows_Explorer_image_unknown\",\"product_result\":\"NOT_RUN\"");s.result=78;return;}
     MediumDesktopEnvironmentObservation observation;
     MediumDesktopUiRequest ui_request{s.product,s.product_source,hash(s.product)};
-    MediumTerminalNativeRequest native_request{s.configuration,hash(fs::path(L"C:\\PaneBindV1\\Input\\manifest.json"))};
+    MediumTerminalNativeRequest native_request{s.configuration,hash(fs::path(L"C:\\PaneBindV1\\Input\\manifest.json")),native_client_only};
     std::thread probe([&]{medium_desktop_environment_probe(s.run,executable,observation,ui_only?&ui_request:nullptr,native_only?&native_request:nullptr);});probe.join();
     s.medium_ui_product_started=observation.ui_product_started;s.medium_ui_product_closed=observation.ui_product_closed;
     for(const auto& [type,fields]:observation.records)s.log.emit(type,fields);

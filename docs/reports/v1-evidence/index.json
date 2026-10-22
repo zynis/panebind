@@ -3,6 +3,22 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+        "id": "EV-ABB1-EXACT-ACTIVE-MEDIUM-MODERN-TERMINAL-START-RESPONSE-NORMAL-CLOSE",
+        "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+        "configuration": "Release",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+        "product_started": false,
+        "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+        "driver_binary_sha256": "745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094",
+        "path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json",
+        "sha256": "46C899BC1E74545FEFD3D3C42733832FFBFEEE019F0F753F25972A6525FD98BD",
+        "repository_excerpt_path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-excerpt.jsonl",
+        "repository_excerpt_sha256": "F473B3C83F1F05335CEB736E58CF55415DCA04CCC8D91E3D619DE3F32971A4BB",
+        "result": "PASS_START_RESPONSE_NORMAL_CLOSE_ONLY",
+        "scope": "Actual product-absent modern TerminalPID5844/root131874 ready1859ms on exact active sameSID/session Medium Run desktop, two complete heldHDESK root memberships, WM_NULL response, one normalWM_CLOSE/rootGone. Preserve non-atomic Wait258/then exit0; not all-process-exit/client input/product eligibility or full app PASS. Independent Default return/local native cleanup observed; no feature/Bscore granted."
+    },
+    {
         "id": "EV-2B49-ACTIVE-EXACT-MEDIUM-DESKTOP-OWN-TRAY-API-PRECONDITION-FAILURE",
         "run_id": "2b49d522b9284ea8ba352a3512524527",
         "configuration": "Release",

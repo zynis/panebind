@@ -67,6 +67,22 @@
       "portable528a_unchanged": true
     },
     "pending_driver_candidate": {
+      "source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "status": "ACTUAL_ABB1_ACTIVE_EXACT_MEDIUM_MODERN_TERMINAL_START_RESPONSE_NORMAL_CLOSE_ONLY",
+      "debug_sha256": "C02B664977A420FE492854C656C13E68228407A51EC1984721A9ABF66CE8ED57",
+      "release_sha256": "745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094",
+      "build": "ROOT_ACTUAL_DEBUG_RELEASE_FIXTURE_AND_GUEST_PATH_BUILD_PASS",
+      "static_checks": "ROOT_ACTUAL_190_PASS",
+      "offline": "ROOT_ACTUAL_GUEST_PATH_ONE_EACH_DEBUG_RELEASE_PASS",
+      "host_guard": "ROOT_ACTUAL_TWO_WAITED_EXIT78_WITH_VALID_FULL_NATIVE_SUITE_ARGV_DEBUG_RELEASE",
+      "actual_run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+      "actual_evidence_path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json",
+      "product_binary_unchanged": true,
+      "scope": "Actual187 legal continuousD with0FAIL: sameSID/session Medium TerminalPID5844 exact visible Cascadia root131874 in1859ms, two complete held-Run-HDESK memberships and actual geometry; one boundedWM_NULL response and one normalWM_CLOSE followed by actual rootGone. Product25b never started, no client input. Preserve immediate processWait0=258 and later exitCode0 as separate non-atomic observations, not all-process-exit proof. Own observer/handles and independent Default return confirmed; no tray, product qualification or feature/Bscore PASS.",
+      "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
+    },
+    "observed_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "status": "ACTUAL_2B49_ACTIVE_EXACT_MEDIUM_OWN_TRAY_API_PRECONDITION_BLOCKED_PRODUCT_UI_INPUT_NOT_STARTED",
@@ -83,11 +99,19 @@
       "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
     },
     "pending_native_only_followup": {
+      "implementation_status": "IMPLEMENTED_AND_ACTUALLY_TESTED_SCOPED",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+      "build": "ROOT_ACTUAL_DEBUG_RELEASE_BUILD_AND_GUEST_PATH_ONE_EACH_PASS",
+      "native_runtime": "ACTUAL_ABB1_PASS_START_RESPONSE_NORMAL_CLOSE_ONLY",
+      "scope": "MediumDesktopNativeOnly actually completed on a fresh exact active Medium Run desktop independently of tray API readiness. It proves only product-absent modern Terminal root startup/responsiveness/normal close, not client input, product eligibility, all-process exit or full desktop. Formal Default product guards and remaining V1 contracts stay unchanged."
+    },
+    "pending_UI_native_client_followup": {
       "implementation_status": "IN_PROGRESS_TEST_ONLY",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "build": "NOT_RUN",
       "native_runtime": "NOT_RUN",
-      "scope": "MediumDesktopNativeOnly TEST wiring is implemented for independent product-absent modern Terminal startup/responsiveness/normal close on one new exact active Medium Run desktop; it does not depend on tray API readiness. It is not yet built or run. No future source SHA, binary hash or runtime result is assigned before the actual committed build/run. Formal Default product guards and all remaining V1 contracts stay unchanged."
+      "scope": "Next wiring separates the frozen product's own exact UID1 ordinary GUI/tray observation from the failed private-probe precondition, and adds product-absent Terminal actual client nonce input plus source-GUI/current-virtual-desktop read-only facts. Still being implemented, not yet built or run; no future source SHA/binary hash or PASS is assigned. No formal Default authority is relaxed."
     },
     "observed_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
@@ -193,6 +217,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "release_sha256": "745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094",
+      "run_ids": ["abb1086442cd4bda9b0a9ef52ac6b41a"],
+      "native_guard_validation": "ACTUAL_ACTIVE_EXACT_MEDIUM_MODERN_TERMINAL_START_RESPONSE_NORMAL_ROOT_CLOSE_ONLY_PRODUCT_NOT_STARTED_CLIENT_INPUT_NOT_RUN",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "release_sha256": "5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E",
@@ -347,7 +380,7 @@
       },
     "implementation_inspected": "CURRENT_4F7_TARGETED_CALLBACK_FOCUS_RULES_AND_PORTABLE_SCOPES_WITH_HISTORICAL_11AE_FULL_BOUNDARIES",
     "note": "当前独立DEV43/60、21/40=52.5%，模块/整版PARTIAL。6e1f与原终止证据闭合M04F04；830a与原bf5c/b6/7060实际证据及未变生产范围复核闭合M10F04/B22；efed与原034/2c8规则闭合M11F04。各批保留原产品/driver身份，未拼新整链。8d8a HC真实UI/free/shutdown子项通过但scheme恢复不精确仍FAIL；57f原生系统Shake无效果，产品NOT_RUN。ec2f实际验证当前4f7/5f87普通包，不授wholeI12、真实应用、托盘、完整Medium桌面、多屏或真人门。",
-    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心；c199辅助查询门/未读placeholder反例保持原FAIL。1a/229e已实际确认新Medium Shell/Tray、真实Run输入桌面及独立Default回切。后继EEA/2b49真实激活的新Medium桌面中，自有NIM_ADD仍返回FALSE/raw2147500037；DeleteFALSE/GetRect-2147467259保留原值，raw错误不作根因。自窗/类、独立回切及句柄收尾不改变整批BLOCKED/driverFAIL；产品/UI/输入未启动。EEA D/R构建、guest-path各1/1、static187及两配置有效UI参数宿主Exit78已核，冻结25b二进制未变。下一步是独立于托盘前置的product-absent现代Terminal新activeMedium桌面启动/响应/正常关闭；该后继TEST尚未构建/现场，不预填未来SHA/hash。真实托盘、普通完整Medium桌面、真实应用/显示矩阵和整版门仍未过，不能把其余可开发工作统称外部阻断。旧身份和失败均保留。",
+    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心；c199原FAIL保持。1a/229e新Medium Shell/Tray、真实激活/独立回切已证；EEA/2b49真实active桌面上的private-probe NIM_ADD=false/raw2147500037仍BLOCKED，不能从raw错误推因或以清理抬PASS。后继0605/abb1独立于tray，已实际完成product-absent现代Terminal1.859秒精确根启动、WM_NULL响应及一次正常WM_CLOSE/rootGone；Wait0=258和后exit0是非原子采样，不宣全进程退出，client输入/产品功能未跑。0605 D/Rfixture+guest-path构建/各1/1、static190和两配置完整有效Native参数宿主Exit78已核，25b双配置字节未变。下一步真实Terminal客户nonce、sourceGUI/VDM只读前置及本产品独立UID1路径仍在编码，未构建/现场，不预填未来SHA/hash。真实托盘、完整普通Medium、应用/显示矩阵与整版门未过，不能把可推进工作统称外部阻断。所有旧身份/失败保留。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1857,7 +1890,7 @@
       "remaining_conditions": [
         "旧Default Medium探针/产品UID1及后继2b49实际active同Medium Shell桌面的自有图标前置均未通过；各批真实事实独立保留，原因UNKNOWN。真实产品各菜单、状态及TaskbarCreated合同仍未运行。"
       ],
-      "next_action": "保持Tray/B27 BLOCKED。2b49实际active新Medium Shell/Tray下单次自有NIM_ADD=false/raw2147500037，产品未启动；收尾成功不当功能PASS，无变化不重试该托盘路径。继续独立于托盘的MediumDesktopNativeOnly产品未启动现代Terminal前置，该TEST已接线但尚未构建/现场；真实托盘和普通完整桌面仍分别缺证，不从raw错误推根因，不改token/DACL/UAC。",
+      "next_action": "保持Tray/B27 BLOCKED及2b49原private-probe失败，不从raw错误推因。0605/abb1已实际完成不依赖tray的现代Terminal启动/响应/正常根关闭，非tray或完整应用PASS。下一步区分本产品真实UID1与private-probe：独立普通GUI/精确本产品图标子路径仍在编码，未构建/现场；不沿用失败探针充当产品UID1实测，也不放宽正式Default增强保护或记恢复增强PASS。Terminal客户输入/只读sourceGUI和VDM继续独立推进。",
       "latest_run_observation": {
         "run_id": "2b49d522b9284ea8ba352a3512524527",
         "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -7992,7 +8025,7 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原4f7/4ff的21a四phase控件及重启/实际行为保持原身份；当前25b/001c的a014普通无参打开后真实CtrlTab到第6页，用户保存/取消说明实际Static可见且在viewport中、无旧代际/内部版本术语，返回原页后继续设置实际Move/真UP/退出。仅一行生产metadata文字改变，机制与控件未改；不是新控件矩阵或托盘入口实证。",
       "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
-      "next_action": "新metadata公开普通入口已由a014受影响核对通过，复用21a与原GUI/规则/映射证据；独立F01仍缺真实tray打开，显示/DPI属另项。EEA/2b49已在实际active新Medium Shell/Tray中执行自有通知前置，NIM_ADD=false使本次产品GUI/tray链未启动，保留BLOCKED及原始错误，不以自窗销毁或独立回切计PASS。无变化不重试此tray路线；下一步独立product-absent现代Terminal前置TEST已接线、未构建/现场，其他未阻断合同继续。正式Default增强保护、真实tray/普通完整桌面与整版门不变。",
+      "next_action": "a014新metadata及21a/原GUI/规则/映射证据复用，独立F01仍缺真实tray打开，显示/DPI属另项。2b49原private-probe失败保留；其未启动产品不能替代本产品UID1结果。0605/abb1已实际通过现代Terminal原生启动/响应/正常根关闭子范围，客户输入及产品功能未测。下一步本产品独立UID1普通GUI/tray子路径仍在编码、未构建/现场；真实Terminal客户nonce、sourceGUI/VDM只读前置独立推进，不预填未来构建身份或真实tray/整版PASS。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -12856,13 +12889,13 @@
         "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json",
         "docs/reports/v1-evidence/43c-r13-standard-native-entry-selected.json"
       ],
-      "note": "已有真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。229e/1a已实际新Run Medium Shell/Tray与输入桌面激活/独立回切；2b49/EEA在相同约束的新Run真实激活后，自有NIM_ADD=false/raw2147500037，产品/UI/输入未启动。它不是Medium Shell不存在或所有剩余能力外部阻断的证明。旧43c标准child1314、5b0及其他原身份原样保留；正式Default产品增强保护不变。",
+      "note": "已有真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。229e新Run Shell/Tray与激活/独立回切已实际完成；2b49自有private-probe ADD失败/产品未启动保留。0605/abb1新active exactMedium桌面中现代Terminal精确可见根、WM_NULL响应和一次正常WM_CLOSE/rootGone已实际观察；客户输入、产品资格及增强、完整应用链仍未证明，Wait258/后exit0不改成全进程退出。不能将其余可推进工作统一为外部阻断。旧43c/5b0身份保留，正式Default保护不变。",
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
         "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。",
-        "229e及2b49新Run actual Medium Shell/Tray/激活/独立回切已证实，不再列为未知。2b49自有托盘API前置FAIL，产品/UI/输入未启动；真实应用初始化/客户输入/正常退出与正式产品适配仍需分别推进，不能把旧43c的1314当作新路线未运行原因。"
+        "229e/2b49新Run Medium Shell/Tray/激活/回切及0605/abb1现代Terminal启动/响应/正常根关闭已证实；client输入、sourceGUI/VDM产品资格和实际增强未证明，不能由根关闭授全部进程退出或完整应用PASS。2b49真实tray前置FAIL、产品未启动保留；旧43c1314不是新路线未运行原因。"
       ],
-      "next_action": "不重跑旧43c标准token1314或无变化tray请求。MediumDesktopNativeOnly已接线，待提交构建后，在新exact activeMedium桌面做不依赖tray的产品未启动现代Terminal启动/响应/正常关闭；尚无其现场结果。不放宽Default正式增强资格，不新增VM/宿主设置；200%UI、多屏混合DPI、真实应用与整版链分别保留缺项。",
+      "next_action": "复用abb1已实测的现代Terminal启动/WM_NULL响应/正常根关闭，不再写NativeOnly未构建未现场。后续真实客户nonce、sourceGUI/VDM只读观察及独立本产品UID1/普通GUI路径仍在编码，未构建/现场；只读结果不自动成为产品权限。正式Default保护不变，不重跑旧Default失败批次，不新增VM/宿主设置；200%UI、多屏混合DPI、真实应用与整版链分别保留缺项。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -12879,6 +12912,25 @@
       "actual_observed_environment_ref": "evidence_mapping.actual_observed_environment",
       "required_environment_met": "PARTIAL_150percent_NOT_200percent_OR_FULL_CHAINS",
       "ordinary_desktop_latest_probe": {
+        "status": "ACTUAL_ACTIVE_MEDIUM_TERMINAL_START_RESPONSE_NORMAL_ROOT_CLOSE_ONLY",
+        "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+        "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+        "evidence_path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json",
+        "exact_new_Medium_Shell_Tray": true,
+        "actual_Run_activation_and_independent_Default_return": true,
+        "actual_Terminal_PID": 5844,
+        "actual_Terminal_root": 131874,
+        "actual_Terminal_ready_ms": 1859,
+        "actual_WM_NULL_response": true,
+        "actual_normal_WM_CLOSE_root_gone": true,
+        "all_Terminal_processes_exited": "NOT_PROVEN_NONATOMIC_WAIT258_THEN_EXITCODE0",
+        "product_started": false,
+        "client_input": "NOT_RUN",
+        "source_GUI_and_VDM_eligibility": "NOT_RUN",
+        "full_ordinary_desktop": "NOT_PROVEN",
+        "next_UI_native_client_TEST": "IN_PROGRESS_NOT_BUILT_NOT_RUN"
+      },
+      "historical_tray_precondition_probe_2b49": {
         "status": "ACTUAL_ACTIVE_MEDIUM_DESKTOP_OWN_TRAY_PRECONDITION_BLOCKED",
         "run_id": "2b49d522b9284ea8ba352a3512524527",
         "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -13139,12 +13191,27 @@
         "PO-30BF-REAL-APPLICATIONS",
         "PO-4E9-R7-ACTOR-INFLIGHT-AND-APPLICATION-SUBSCOPES"
       ],
-      "observed": "当前11ae产品的dfdd已实际完成自建三窗核心回环、两轮及900.035872秒阶段；源关闭、grid和batch均取得实际中止/恢复子项，不再把旧缺UP作为当前总原因。2432普通包入口、0a66磁吸参数和2c8活动设置/规则恢复分别有当前同EXE证据。原grid original_UP_observed=false仍保留，异常清理不冒充NormalUp；完整fixture合同仍有D09/D24特定恢复分支及其他逐项缺口，不自动提升A01 PASS。",
+      "observed": "历史11ae产品的dfdd已实际完成自建三窗核心回环、两轮及900.035872秒阶段；源关闭、grid和batch均取得实际中止/恢复子项。2432普通包入口、0a66磁吸参数和2c8活动设置/规则恢复各保留其原同EXE身份。a575同11ae/PID3852已实际补齐D09撤权后新DOWN/UP透传配对及D24无自有capture释放调用的capture-loss后同实例Move/Resize恢复，按该实测范围关闭，不再列为待核；旧异常代仍不改成NormalUp。当前25b/a014实际普通便携无参GUI、设置效果、Move/UP和正常退出，以及25b/540f同PID6396两轮核心组合链均有独立限定证据；没有重跑900秒，也不把这些子范围自动提升为A01完整合同PASS。",
       "historical_failure_summary": "R7/4e9当时grid/source-close真实UP失败、batch判定待修和I11读取工具失败保留原身份，见下方历史component及原始证据；不是当前11ae全部子项的判定。",
       "remaining_conditions": [
-        "核对D09中止后新DOWN/UP配对、D24特定no-own capture-loss后同实例恢复的最小缺口；保持各原始UP/中止分类，不为无变化Full或900秒重跑。"
+        "D09/D24已由a575按实际范围关闭；当前25b最终候选的完整规定fixture组合与整版退出合同尚未整体判定，a014/540f限定子链不自动提升A01。历史失败和各自构建身份继续保留，不重开已关闭恢复专项。"
       ],
-      "next_action": "复用dfdd/2432/0a66/2c8有效范围，只验证尚无实际证据的精确恢复分支；真实应用、完整Medium及显示矩阵另外判定。",
+      "next_action": "复用a575已关闭D09/D24、原身份dfdd/2432/0a66/2c8及当前25b/a014/540f限定证据；不重复恢复、Full或独立900秒专项。接续未阻断的真实应用原生客户前置、只读VDM/source GUI及冻结25b自身UID1观察；这些新路径未运行前保持NOT_RUN，待相关依赖齐备后再判当前候选整版链。",
+      "latest_bounded_environment_observation": {
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_release_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+        "run_ids": ["a014494c4a034320b1b99b515eb40597", "540ff812c66f47c7b8291dc2776c2692"],
+        "result": "SCOPED_ORDINARY_PORTABLE_ENTRY_AND_TWO_OWNED_CORE_ROUNDS_ONLY",
+        "evidence_paths": ["docs/reports/v1-evidence/a014-portable-entry-guidance-review.json", "docs/reports/v1-evidence/540f-current-core-chain-review.json"],
+        "historical_recovery": {
+          "product_source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
+          "run_id": "a57559cc776f4fe98405c892a39554c0",
+          "evidence_path": "docs/reports/v1-evidence/a575-recovery-metadata.json",
+          "D09_D24": "CLOSED_IN_ACTUAL_SCOPED_RECOVERY_RANGE_NOT_REOPENED"
+        },
+        "historical_runs_rebound_to_25b": false,
+        "complete_category_or_whole_version_PASS": false
+      },
       "current_candidate_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -13186,11 +13253,26 @@
         "docs/reports/v1-evidence/7cd-medium-desktop-probe-selected.json",
         "docs/reports/v1-evidence/30bf-fixture-selected.jsonl"
       ],
-      "observed": "c01实际Explorer根RID8192/elevated=true，被正式Medium/nonElev策略正确拒绝，没有向被拒目标发输入。；b49正式资格仍拒绝target_not_medium_non_elevated；新普通账号credential Medium/session1成立但WinSta0/Default DACL DENIED，只说明该guest现有共享桌面路线受阻。；7cd新普通账号CreateProcessWithTokenW成功，但QUERY-only token工具SecurityException使child未resume，结果UNKNOWN；不是环境DENIED或产品失败。；R2/30bf新child token真实Medium/nonAdmin/session查询成立，但resume后20秒无回执/退出UNKNOWN，未运行普通Explorer；原Shell资格1366仍拒绝。",
+      "observed": "c01实际Explorer根RID8192/elevated=true，被正式Medium/nonElev策略正确拒绝，没有向被拒目标发输入。b49新普通账号credential Medium/session1成立但WinSta0/Default DACL DENIED；7cd的QUERY-only token工具SecurityException及R2/30bf恢复后回执UNKNOWN均保留原身份，不再作为所有后继路线的现状。229e、2b49及abb1已分别在新Run桌面实测exact新建explorer.exe子进程的同SID/session、RID8192/non-elevated Progman与Shell_TrayWnd，以及真实激活和独立Default回切。它们是Shell环境根，不是已确认目录路径的普通Explorer文件窗口。2b49自有通知区探针NIM_ADD=false，产品/UI/输入未启动；abb1只验证无产品Terminal根响应与正常root关闭，均不授Explorer产品操作或完整普通桌面PASS。",
       "remaining_conditions": [
-        "需要真实non-elevated普通Explorer的已授权隔离桌面；不是普通产品已支持或永久不支持。"
+        "同Medium/non-elevated新Shell及真实桌面激活已由229e/2b49/abb1观察，不再笼统列为缺少Medium Shell；仍缺精确新建、路径与身份均确认的普通Explorer文件窗口。",
+        "新Run的实际source GUI/线程桌面及VDM资格事实、产品context adapter和真实Move/Resize/Ctrl均未通过；正式Default增强保护仍生效，Shell根存在不能替代这些合同。"
       ],
-      "next_action": "复用后续43c标准child创建1314及dfdd Explorer RID8192/elevated=true的具体结果，不再追查已过时的20秒无回执路线。需要具备真实non-elevated Explorer/普通Shell的已授权隔离桌面；不改账户/token/ACL、不在宿主自动输入、不进行无依据启动重试。",
+      "next_action": "保留旧43c标准child1314和dfdd elevated Explorer拒绝；以229e/2b49/abb1实际新Medium桌面为新变量，先接续产品真正未启动的原生客户输入与只读VDM/source GUI事实。冻结25b自身UID1的独立观察正在准备，未现场不记PASS。Explorer文件窗口须另行精确创建/路径绑定/排除既有窗，产品context与权限事实齐备前不发产品几何操作；不改账户/token/ACL，不重试旧无变量路线。",
+      "latest_bounded_environment_observation": {
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_started": false,
+        "run_ids": ["229eea1807bc432f8812efb57d937ed9", "2b49d522b9284ea8ba352a3512524527", "abb1086442cd4bda9b0a9ef52ac6b41a"],
+        "evidence_paths": ["docs/reports/v1-evidence/229e-medium-desktop-activation-return-review.json", "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json", "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json"],
+        "exact_new_Shell_roots_same_SID_session_Medium_non_elevated": true,
+        "actual_activation_and_independent_Default_return": true,
+        "ordinary_Explorer_file_window": "NOT_RUN",
+        "current_virtual_desktop_and_source_GUI_product_eligibility": "NOT_RUN",
+        "product_context_adapter": "NOT_IMPLEMENTED_FOR_NEW_RUN_DESKTOP_Default_GUARDS_UNCHANGED",
+        "product_Move_Resize_Ctrl": "NOT_RUN",
+        "ordinary_full_Medium_desktop": "NOT_PROVEN",
+        "history_rebound_or_complete_category_PASS": false
+      },
       "current_candidate_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -13465,11 +13547,33 @@
         "docs/reports/v1-evidence/8ffa-native-preflight-metadata.json",
         "docs/reports/v1-evidence/8ffa-native-preflight-fixture-selected.jsonl"
       ],
-      "observed": "R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，客户输入未验证；1753 exact根关闭确认，1754类别仍FAIL。 【8ffa真无产品】同token/显式Terminal进程启动cwd的direct cmd CreateProcess成功、身份Known Medium，但exit3221225794(0xC0000142)、nonce receipt缺失；不等于启动调用失败，也未核实内部shell cwd。Terminal真实目标点HTCAPTION2，未发客户DOWN/文本；截图显示cmd启动错误3489660962(0xD0000022)，与direct cmd码不同，不定位具体API。D50精确Terminal根正常关闭已确认，但客户功能FAIL。",
+      "observed": "R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。",
       "remaining_conditions": [
-        "产品真正未启动时direct cmd自身实际初始化失败，Terminal客户点仍非HTCLIENT，未发送客户输入；正常根关闭PASS只属该子项，不授终端兼容PASS。"
+        "abb1新active Medium桌面的现代Terminal启动/精确根/响应/正常root关闭已限定通过；该环境中的真实客户输入与nonce输出尚未运行，8ffa旧Default初始化/客户失败继续保留原身份。",
+        "当前虚拟桌面/source GUI及生产context资格仍未核实，冻结25b未启动，当前产品Move/Resize/Ctrl及客户透传合同未验；正常root关闭不等于所有后代清理或终端完整兼容PASS。"
       ],
-      "next_action": "保留8ffa原生前置失败与独立关闭事实。当前证据不支持再猜启动flag、放宽命中或关闭应用sandbox；在具备正常原生应用前置的已授权普通Medium隔离桌面接续兼容矩阵。无新变量不重跑同路；不把产品暂停/hooks仍在称无产品。",
+      "next_action": "以abb1的新exact active Medium桌面为新变量，接续产品未启动的实际Terminal客户输入/nonce输出和正常关闭，并只读核实VDM/source GUI资格；相应driver子路径正在开发，现场未执行前保持NOT_RUN，不将root响应替代客户可用。冻结25b自身UID1独立观察另行推进，不把自有probe失败外推产品图标必败。保留8ffa旧Default及历史R2各自身份，不猜启动flag、不放宽命中或关闭应用sandbox，不重跑无变化旧路线。",
+      "latest_bounded_environment_observation": {
+        "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+        "suite": "MediumDesktopNativeOnly",
+        "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+        "driver_release_sha256": "745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094",
+        "packaged_product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "packaged_product_release_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+        "product_started": false,
+        "result": "PASS_START_RESPONSE_NORMAL_CLOSE_ONLY",
+        "evidence_path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json",
+        "actual_Medium_non_elevated_same_SID_session": true,
+        "actual_bound_root_responsive_and_normally_closed": true,
+        "actual_independent_Default_return_and_local_observer_cleanup": true,
+        "actual_15_second_deadline_triggered": false,
+        "all_Terminal_processes_exited": "NOT_PROVEN",
+        "client_input_and_command_output": "NOT_RUN",
+        "current_virtual_desktop_and_source_GUI_product_eligibility": "NOT_RUN",
+        "product_Move_Resize_Ctrl": "NOT_RUN",
+        "next_NativeClient_and_readonly_VDM_driver": "IN_PROGRESS_NOT_RUN",
+        "historical_failure_rebound_or_complete_category_PASS": false
+      },
       "queued_native_preflight": {
         "run_id": "8ffa75dfc70548eb8f88df1a55c6679e",
         "runtime": "ACTUAL_FAIL_PRODUCT_NEVER_STARTED",
@@ -13523,7 +13627,7 @@
         "run_id": "0224765c54b548aa8a32c6391ed14fb3",
         "observed": "同R2/022真实Terminal五阶段Move、实际UP/NormalUp保持、Resize/UP、Center/Dock/Undo/Stretch/Undo、Esc恢复及终端客户输入通过；114 exact根关闭、115本类别范围PASS。30bf同R2原通过与b49/7cd历史失败各留身份，不授其余四类/混合组。"
       },
-      "current_candidate_state": "DIRECT_CMD_EXIT_C0000142_NO_RECEIPT_TERMINAL_ACTUAL_HTCAPTION_CLIENT_FAIL_EXACT_ROOT_CLOSE_PASS",
+      "current_candidate_state": "ACTIVE_EXACT_MEDIUM_TERMINAL_ROOT_RESPONSE_NORMAL_CLOSE_ONLY_CLIENT_AND_PRODUCT_NOT_RUN",
       "historical_previous_native_preflight": {
         "packaged_product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
         "packaged_product_binary_sha256": "E2F93AEC6714551E5F49A40CE07D8CC512F847AF77067145B46A4C57DBAC69BE",
@@ -16045,6 +16149,17 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+        "run_id": "abb1086442cd4bda9b0a9ef52ac6b41a",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_started": false,
+        "driver_source_sha": "0605adef6aaac516148740bd4be89ebb9c9cfffd",
+        "result": "PASS_START_RESPONSE_NORMAL_CLOSE_ONLY",
+        "evidence_id": "EV-ABB1-EXACT-ACTIVE-MEDIUM-MODERN-TERMINAL-START-RESPONSE-NORMAL-CLOSE",
+        "evidence_path": "docs/reports/v1-evidence/abb1-medium-terminal-native-start-close-review.json",
+        "new_feature_or_B_PASS": false,
+        "scope": "187 legal continuousD,0FAIL. New exact active sameMedium Run desktop modern TerminalPID5844/root131874/TID6044/CASCADIA ready1859ms with two complete heldHDESK memberships, actual rect[179,190,1931,1126], WM_NULLtrue and one WM_CLOSE/actual rootGone. Immediate processWait258 then exitCode0 retained as non-atomic samples, not all-process cleanup. Own native observer/handles and independent Default return confirmed. Product/client input/qualification NOT_RUN; asset receipt false is only preparation-time, not contradiction ofD163 actual launch. No feature/Bscore or full-app PASS."
+    },
     {
         "run_id": "2b49d522b9284ea8ba352a3512524527",
         "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",

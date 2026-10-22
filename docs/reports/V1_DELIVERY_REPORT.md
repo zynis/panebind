@@ -1,10 +1,14 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：新Medium桌面托盘前置失败保留，转独立原生应用验证，43/60（2026-10-22）
+## 当前接续：新Medium桌面现代Terminal启动／响应／正常根关闭已验，43/60（2026-10-22）
+
+[abb1现代Terminal原生前置](v1-evidence/abb1-medium-terminal-native-start-close-review.json)：187条合法连续driver、0显式FAIL，冻结25b产品未启动；在新建exact、同SID／session／Medium且真实active的桌面，实际创建现代Terminal PID5844，精确Cascadia根HWND131874在1.859秒内成立，两次完整HDESK成员及实际矩形核验通过。单次100ms有界WM_NULL有响应；一次正常WM_CLOSE后根确已消失。即时process Wait0＝258与随后exitCode＝0保留为**非原子采样**，不写成已证明所有Terminal进程退出。独立Default回切、自有观察hook／句柄及本任务guest／任务收尾已核。结论仅START_RESPONSE_NORMAL_CLOSE_ONLY；客户输入、产品资格／Move／Resize／Ctrl、托盘及完整应用链仍NOT_RUN。资产准备receipt的application_started=false是准备时点，不覆盖D163真实CreateProcess。
+
+abb1驱动0605adef6aaac516148740bd4be89ebb9c9cfffd／包装50d4986af41280db1fcc15f3b56f64f86a214f79：实际D／R fixture及guest-path构建、offline各1/1、190项静态检查和两配置完整有效NativeSuite参数宿主Exit78均通过；Debug驱动SHA-256 C02B664977A420FE492854C656C13E68228407A51EC1984721A9ABF66CE8ED57，Release 745DEAC7A5AEEE000A15428C9E160C28FB1A9E665810CBC8F928BF923586E094，25b两配置产品字节未变。下一步真实Terminal客户nonce、sourceGUI／VDM只读前置及本产品独立UID1普通GUI／托盘子路径仍在编码，未构建／现场；不提前填未来SHA／hash或功能PASS。
 
 [2b49实际托盘前置反例](v1-evidence/2b49-medium-tray-precondition-review.json)：73条合法连续driver记录，EEA在新Run精确同SID／session／Medium Shell／Tray中真实激活输入桌面；自有图标唯一NIM_ADD返回FALSE／raw2147500037，DELETE也FALSE、GetRect HRESULT -2147467259，原值保留，不推断系统根因。自窗DestroyWindow／UnregisterClass、独立Default回切、实际owner退出及所有句柄／UI lease事件关闭已观察；它们**不改变整批BLOCKED／driver FAIL，产品、GUI／托盘链及输入均未启动**。30秒截止未实际触发，未运行在途UI输入lease场景，不以闲置lease退休或guest销毁冒充该风险通过。原失败／新包和本轮证据均保留，own guest／任务已在稳定收集后清理。
 
-本批工具eea49dc8deb24eef849727ec80977ef7510a0b3f已实际完成Debug／Release构建、guest-path各1/1、187项静态检查及两配置有效UI参数宿主Exit78；Debug驱动SHA-256 8B2457F42A62FF070AF35E0AD1F6C5A96FC7978462379A614A296A7106BA8961，Release 5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E。冻结25b产品D／R哈希未变。2b49的ZIP A560AF63E75783AE4DCD5AC347E4FEB0962615D82A891CCF3158D420536D4361／manifest 4CA28496586F2D49F52D40457D5C0CBBE60C797ECE2B25333158B864A83009E2只绑定本批，不替代下述普通便携包验收。下一项MediumDesktopNativeOnly TEST已接线、尚未构建／现场：在新exact active Medium桌面独立验证**产品未启动**的现代Terminal初始化、响应与正常关闭，不依赖托盘前置；不预写未来驱动SHA／hash或PASS。
+前一批工具eea49dc8deb24eef849727ec80977ef7510a0b3f已实际完成Debug／Release构建、guest-path各1/1、187项静态检查及两配置有效UI参数宿主Exit78；Debug驱动SHA-256 8B2457F42A62FF070AF35E0AD1F6C5A96FC7978462379A614A296A7106BA8961，Release 5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E。冻结25b产品D／R哈希未变。2b49的ZIP A560AF63E75783AE4DCD5AC347E4FEB0962615D82A891CCF3158D420536D4361／manifest 4CA28496586F2D49F52D40457D5C0CBBE60C797ECE2B25333158B864A83009E2只绑定原批，不替代下述普通便携包验收。其未启动产品／UI的失败边界保留；后继MediumDesktopNativeOnly已经在abb1实际完成上述原生子范围，不再记作未构建／未现场。
 
 **生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING。** 本节取代下方检查点的“下一步”，但不改写其历史身份或失败。当前产品`25bff898c9943ee70155ce08868a2a7fc56ab100`只修正设置页一行用户说明，移除配置版本／代际内部术语，说明保存与取消；没有改变配置机制或输入／writer。Debug／Release构建及受影响settings／visual／guest-path各3/3通过，Release SHA-256 `34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`、Debug `B8695981F1C83C0E35259DE0F89717B36CCB42E48ED64A9C1B1520638AF31658`；已实际完成下述a014普通包入口与540f当前组合链。历史4f7／Release `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`的21a／1a62等保持原身份，不改绑。
 
@@ -31,7 +35,7 @@
 - [1a62当前核心组合链](v1-evidence/1a62-current-core-chain-review.json)：同PID3696两轮真实post-Resize A五阶段→Ctrl C、联动缩放、停靠／拉伸、透明与摇动／暂停恢复完成；配置恢复、实际UP／资源退出、正常Quit和退出后客户输入有证据。2199条driver合法连续，物理product日志因有界轮转只保留P1000–1977，早期关键事实来自driver当时嵌入的原始回执，不伪造完整P1–1977或全时序零迟写证明。角双击的离散终止保持其非NormalUp语义。**未跑900秒、真实应用矩阵或整版链，不由两轮owned子范围抬整条I02–I11或模块PASS。**
 - [e03f新桌面观察前置反例](v1-evidence/e03f-fresh-desktop-baseline-rejection-review.json)：实际新Run名称核验和CreateDesktop成功；随后枚举返回false／error0／零回调，被旧TEST的“必须完整空清单”门拒绝，未到Explorer创建。此结果不能写成系统无法创建Medium Shell。原FAIL保留，后继仅允许此UNKNOWN情况下在已核新Run对象上尝试一次同Medium子进程；不授未知基线窗口权限，后验完整枚举／精确新PID、birth、路径、SID、session、Medium、Shell／Tray事实仍不可省。原Default Shell身份未变，未切输入桌面、未发输入、未改安全设置；对象是否已销毁仍UNKNOWN，关闭句柄不冒充进程或产品收尾。
 
-设置控件四phase、新候选普通入口／说明及当前owned组合链已分别完成；229e新Medium Shell／Tray、真实输入桌面激活和独立Default回切不再列为待运行。后继EEA／2b49已经实际执行自有通知前置并失败，GUI子链没有启动，不能再写成“托盘通路未构建／未现场”。停止无变化托盘重复，下一步为上述不依赖托盘的MediumDesktopNativeOnly原生应用前置，已接线而未构建／现场。正式输入、窗口目录和shield仍保留Default保护；新Win32桌面环境成功不能算增强、Task View虚拟桌面、五类应用或完整普通Medium桌面通过，也不能把仍可编码／验证的其余功能统一记作外部阻断。不重跑旧Fix H、无变量Full或独立900秒。
+设置控件四phase、新候选普通入口／说明及当前owned组合链已分别完成；229e新Medium Shell／Tray、真实输入桌面激活和独立Default回切，以及0605／abb1不依赖托盘的现代Terminal启动／响应／正常根关闭，均不再列为待运行。2b49原private-probe失败和未启动GUI子链保留，不从它外推本产品UID1必然失败；后继将区分本产品独立普通GUI／UID1、实际Terminal客户nonce与sourceGUI／VDM只读事实，目前仍在编码且未构建／现场。正式输入、窗口目录和shield仍保留Default保护；新Win32桌面环境／原生根响应不能算增强、Task View虚拟桌面、五类应用或完整普通Medium桌面通过，也不能把仍可推进工作统一记作外部阻断。不重跑旧Default失败、Fix H、无变量Full或独立900秒。
 
 NF02按Run保留：830a的50次callback最大1755µs、p99桶2000µs未达<1ms目标；6e1f的71次最大966µs、p99桶999µs只在该范围达标。当前1a62的521次callback p99桶999µs、最大1287µs；118条hook→postverify样本p95桶20000µs、最大161869µs，另38条缺hook时钟不混入。四个>100ms软件尾样本是角双击拉伸，最大项g22的实际native调用约9.5ms，不能把整个软件动作链说成原生Move卡顿或物理显示延迟。保留尾值及原失败，不择优宣布跨Run全面通过，也不擅自称持续S1；不增加性能框架或900秒专项。
 

@@ -3268,3 +3268,35 @@ token or permission change. A successful root close is not all-descendant exit
 or a product compatibility PASS. This is TEST-only, with a15second independent
 return/20second outer completion budget; unknowns remain unknown. No new
 external source code or upstream version is copied/adapted.
+
+Actualabb1 verified the exact new Medium modern Terminal root, native response
+and a single normal root close on the activated Run desktop. It did not send
+client input or start PaneBind. The two observations process-Wait=258 and a
+later GetExitCode=0 are non-atomic; do not infer all processes exited.
+
+The next TEST client case uses only this exact newly created target and the
+existing independent return/input lease. Recheck actual HTCLIENT, original
+source/client geometry, exact foreground/focus and idle capture/menu state;
+then insert paired synthetic input and verify a unique command-produced nonce
+file. No product route or eligibility is granted by those test observations.
+Read-only [IsWindowOnCurrentVirtualDesktop](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ivirtualdesktopmanager-iswindowoncurrentvirtualdesktop)
+HRESULT/BOOL and source/foreground GUI facts are separate from Win32 desktop
+membership. A failed HRESULT remains unknown, not a fabricated true result.
+
+Official [ReadDirectoryChangesW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw),
+[CancelIoEx](https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-cancelioex)
+and [GetOverlappedResult](https://learn.microsoft.com/en-us/windows/win32/api/ioapiset/nf-ioapiset-getoverlappedresult)
+were inspected for this one nonce completion: aligned retained buffer, one
+OVERLAPPED event, at most four actual notifications, no fixed file poll.
+Cancellation success does not imply completion; an unconfirmed native pending
+buffer remains alive and cleanup UNKNOWN. An unsupported mapped watch may
+choose the already-owned local Run directory before the sole input command,
+not switch the oracle after a failed command. No external code reused.
+
+The independent frozen-product UI observation does not repeat the failed own
+notification probe. Observe the actual product UID1 registration/rectangle
+and fresh exact Shell hit before any tray click. Its normal GUI is separately
+eligible for exact own UI input; neither a failed probe nor its cleanup proves
+the product icon's outcome. Product Default-only enhancement guards remain
+unchanged until actual source GUI/virtual-desktop/context facts support a
+separate properly verified adapter. No host permission or desktop is changed.
