@@ -12,7 +12,7 @@
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-环境进展单列：驱动1a／Run229e已实际建立本任务新Medium Shell／Tray、切入并独立切回Default；当时未启动产品或发送测试输入，不代表托盘操作或完整普通桌面通过。后续先核对新Run的真实托盘API，再复用本包产品核对普通GUI／托盘子路径；正式增强的Default桌面保护不变，不能直接在新命名桌面上宣称可用。详细身份与证据见[229e复核](reports/v1-evidence/229e-medium-desktop-activation-return-review.json)。
+环境进展单列：[229e](reports/v1-evidence/229e-medium-desktop-activation-return-review.json)已实际建立本任务新Medium Shell／Tray、切入并独立切回Default；后继驱动EEA的[2b49](reports/v1-evidence/2b49-medium-tray-precondition-review.json)在另一个实际active同Medium桌面执行自有通知前置，NIM_ADD返回FALSE，故产品GUI／托盘子链及输入均未启动、整批BLOCKED。自有窗口／类退出和独立回切成功不等于功能通过，原始错误不作根因。现转向不依赖托盘的产品未启动现代Terminal前置；该TEST已接线、未构建／现场。正式增强的Default桌面保护不变，当前本包不能直接在新命名桌面上宣称可用；真实托盘、完整普通Medium桌面、应用与显示矩阵及真人UAT仍分别保留缺项。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 

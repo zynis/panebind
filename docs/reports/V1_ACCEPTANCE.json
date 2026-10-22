@@ -67,6 +67,29 @@
       "portable528a_unchanged": true
     },
     "pending_driver_candidate": {
+      "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "status": "ACTUAL_2B49_ACTIVE_EXACT_MEDIUM_OWN_TRAY_API_PRECONDITION_BLOCKED_PRODUCT_UI_INPUT_NOT_STARTED",
+      "debug_sha256": "8B2457F42A62FF070AF35E0AD1F6C5A96FC7978462379A614A296A7106BA8961",
+      "release_sha256": "5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E",
+      "build": "ROOT_ACTUAL_DEBUG_RELEASE_FIXTURE_BUILD_PASS",
+      "static_checks": "ROOT_ACTUAL_187_PASS",
+      "offline": "ROOT_ACTUAL_GUEST_PATH_ONE_EACH_DEBUG_RELEASE_PASS",
+      "host_guard": "ROOT_ACTUAL_TWO_WAITED_EXIT78_WITH_VALID_UI_ARGV_DEBUG_RELEASE",
+      "actual_run_id": "2b49d522b9284ea8ba352a3512524527",
+      "actual_evidence_path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json",
+      "product_binary_unchanged": true,
+      "scope": "Actual73 legal continuousD: exact new sameSID/session Medium Shell/Tray, actual Run activation and independent Default return. Own private icon NIM_ADD returnedFALSE/raw2147500037; DELETE returnedFALSE/raw2147500037 and GetRect HRESULT-2147467259. Own window/class and handles exited, not tray functionality. Product/UI/input never started because this case's notification precondition failed; whole driverFAIL/BLOCKED retained. The idle UI lease retired and event closed, not an in-flight input or30s deadline test. No product guards changed or feature/Bscore awarded.",
+      "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
+    },
+    "pending_native_only_followup": {
+      "implementation_status": "IN_PROGRESS_TEST_ONLY",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "build": "NOT_RUN",
+      "native_runtime": "NOT_RUN",
+      "scope": "MediumDesktopNativeOnly TEST wiring is implemented for independent product-absent modern Terminal startup/responsiveness/normal close on one new exact active Medium Run desktop; it does not depend on tray API readiness. It is not yet built or run. No future source SHA, binary hash or runtime result is assigned before the actual committed build/run. Formal Default product guards and all remaining V1 contracts stay unchanged."
+    },
+    "observed_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "status": "ACTUAL_229E_EXACT_MEDIUM_SHELL_TRAY_ACTIVATED_AND_INDEPENDENTLY_RETURNED_ONLY_PRODUCT_INPUT_TRAY_NOT_RUN",
@@ -170,6 +193,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "release_sha256": "5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E",
+      "run_ids": ["2b49d522b9284ea8ba352a3512524527"],
+      "native_guard_validation": "ACTUAL_EXACT_NEW_ACTIVE_MEDIUM_DESKTOP_OWN_TRAY_ADD_FALSE_BOUNDED_RETURN_AND_LOCAL_CLEANUP_ONLY_PRODUCT_UI_INPUT_NOT_STARTED",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_1a": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "release_sha256": "8D2527C9B141B914254B195D88A3515EA2B32C592ACCD523DA3FF7E5B8469650",
@@ -315,7 +347,7 @@
       },
     "implementation_inspected": "CURRENT_4F7_TARGETED_CALLBACK_FOCUS_RULES_AND_PORTABLE_SCOPES_WITH_HISTORICAL_11AE_FULL_BOUNDARIES",
     "note": "当前独立DEV43/60、21/40=52.5%，模块/整版PARTIAL。6e1f与原终止证据闭合M04F04；830a与原bf5c/b6/7060实际证据及未变生产范围复核闭合M10F04/B22；efed与原034/2c8规则闭合M11F04。各批保留原产品/driver身份，未拼新整链。8d8a HC真实UI/free/shutdown子项通过但scheme恢复不精确仍FAIL；57f原生系统Shake无效果，产品NOT_RUN。ec2f实际验证当前4f7/5f87普通包，不授wholeI12、真实应用、托盘、完整Medium桌面、多屏或真人门。",
-    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心；c199辅助查询门/未读placeholder反例保持原FAIL。后继1a/229e已实际确认新Medium Shell/Tray实际矩形、双完整HDESK成员、自有Run一次Switch/实际输入桌面回读及独立Default回切；只ACTIVATED_AND_RETURNED_ONLY，产品/输入/tray NOT_RUN、完整桌面NOT_PROVEN。正式产品Default保护未改；下一步仅在新Run exact环境中检查真实tray API前置，再复用冻结25b的普通GUI/tray子路径，不预填未构建/未现场新驱动身份或结果。旧4f7/4ff/c249及全部历史保持身份。",
+    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心；c199辅助查询门/未读placeholder反例保持原FAIL。1a/229e已实际确认新Medium Shell/Tray、真实Run输入桌面及独立Default回切。后继EEA/2b49真实激活的新Medium桌面中，自有NIM_ADD仍返回FALSE/raw2147500037；DeleteFALSE/GetRect-2147467259保留原值，raw错误不作根因。自窗/类、独立回切及句柄收尾不改变整批BLOCKED/driverFAIL；产品/UI/输入未启动。EEA D/R构建、guest-path各1/1、static187及两配置有效UI参数宿主Exit78已核，冻结25b二进制未变。下一步是独立于托盘前置的product-absent现代Terminal新activeMedium桌面启动/响应/正常关闭；该后继TEST尚未构建/现场，不预填未来SHA/hash。真实托盘、普通完整Medium桌面、真实应用/显示矩阵和整版门仍未过，不能把其余可开发工作统称外部阻断。旧身份和失败均保留。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -1823,9 +1855,23 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "c01/e4实际NIM_ADD=false，精确UID1托盘图标不可达；没有把--settings当托盘点击。 76e Release/Medium：D47本次exact自有探针PID7116/TID6200/HWND197422、RID8192/nonElev/session1；实际Progman/Shell_TrayWnd同PID4932、RID12288/elevated/session1。探针NIM_ADD一次false、即时raw GLE5，GetRect E_FAIL/无rect，NIM_DELETE false/rawGLE5；NotifyIcon_GetLastError_extended_error_contract=false，不据5宣称已证根因。探针不激活、D48实际DestroyWindow/UnregisterClass成功；D49 Tray BLOCKED、未发菜单输入/未TaskbarCreated或Shell重启。独立产品P1 UID1 NIM_ADD=false。P18/D50实际正常退出/自有hook-overlay-writer-capture-association-visual收尾全true；D55真实客户[0,0]→[1,1]、D57 Raw移除、D58自窗/进程关闭，driver整FAIL保留；wrapperwait0/exit1/desc0/forcedfalse。只定位当前托盘前置不可用，产品/系统唯一原因UNKNOWN，不改dd02原FAIL或授托盘PASS。",
       "remaining_conditions": [
-        "当前Medium探针及产品UID1通知区注册不可用，原因UNKNOWN；真实各菜单、状态及TaskbarCreated合同仍未运行。"
+        "旧Default Medium探针/产品UID1及后继2b49实际active同Medium Shell桌面的自有图标前置均未通过；各批真实事实独立保留，原因UNKNOWN。真实产品各菜单、状态及TaskbarCreated合同仍未运行。"
       ],
-      "next_action": "保持Tray/B27 BLOCKED。复用这次明确Medium探针/High Shell事实，有限核可提供真实托盘的已授权环境；不从rawGLE5推唯一原因，不启动/替换Shell或改token/DACL/UAC；其他独立功能继续。",
+      "next_action": "保持Tray/B27 BLOCKED。2b49实际active新Medium Shell/Tray下单次自有NIM_ADD=false/raw2147500037，产品未启动；收尾成功不当功能PASS，无变化不重试该托盘路径。继续独立于托盘的MediumDesktopNativeOnly产品未启动现代Terminal前置，该TEST已接线但尚未构建/现场；真实托盘和普通完整桌面仍分别缺证，不从raw错误推根因，不改token/DACL/UAC。",
+      "latest_run_observation": {
+        "run_id": "2b49d522b9284ea8ba352a3512524527",
+        "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+        "evidence_path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json",
+        "result": "BLOCKED_OWN_TRAY_API_PRECONDITION",
+        "actual_active_exact_Medium_Shell_Tray": true,
+        "own_NIM_ADD_return": false,
+        "own_NIM_ADD_raw_last_error": 2147500037,
+        "raw_error_is_not_root_cause": true,
+        "product_started": false,
+        "synthetic_input_sent": false,
+        "actual_independent_Default_return": true,
+        "whole_tray_feature_PASS": false
+      },
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-E4-INDEPENDENT",
@@ -7946,7 +7992,7 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原4f7/4ff的21a四phase控件及重启/实际行为保持原身份；当前25b/001c的a014普通无参打开后真实CtrlTab到第6页，用户保存/取消说明实际Static可见且在viewport中、无旧代际/内部版本术语，返回原页后继续设置实际Move/真UP/退出。仅一行生产metadata文字改变，机制与控件未改；不是新控件矩阵或托盘入口实证。",
       "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
-      "next_action": "新metadata公开普通入口已由a014受影响核对通过，复用21a与原GUI/规则/映射证据；独立F01只剩真实tray打开，显示/DPI属另项。1a/229e现已实际确认新Medium Shell/Tray、切入及独立Default回切，仅环境范围；下一步先检查新Run的真实tray API前置，再以冻结25b核对普通GUI/tray子路径。正式Default增强保护不变，当前真实tray/输入/完整桌面仍未通过；不预写新测试实现的构建身份或结果。",
+      "next_action": "新metadata公开普通入口已由a014受影响核对通过，复用21a与原GUI/规则/映射证据；独立F01仍缺真实tray打开，显示/DPI属另项。EEA/2b49已在实际active新Medium Shell/Tray中执行自有通知前置，NIM_ADD=false使本次产品GUI/tray链未启动，保留BLOCKED及原始错误，不以自窗销毁或独立回切计PASS。无变化不重试此tray路线；下一步独立product-absent现代Terminal前置TEST已接线、未构建/现场，其他未阻断合同继续。正式Default增强保护、真实tray/普通完整桌面与整版门不变。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -12810,13 +12856,13 @@
         "docs/reports/v1-evidence/5b0-r11-wdag-native-baseline-selected.json",
         "docs/reports/v1-evidence/43c-r13-standard-native-entry-selected.json"
       ],
-      "note": "已有历史真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。43c同镜像WDAG High原生identity成功；标准Medium/nonAdmin凭据token取得，但标准child CreateProcessAsUserW实际false/1314未创建。不能由token或baseline输出授GUI/Shell，也不证明不支持标准账号；5b0等原身份原样保留。",
+      "note": "已有真实Medium/nonElev/session1/单屏150%观察，200%UI、五应用及完整I01–I12未齐。229e/1a已实际新Run Medium Shell/Tray与输入桌面激活/独立回切；2b49/EEA在相同约束的新Run真实激活后，自有NIM_ADD=false/raw2147500037，产品/UI/输入未启动。它不是Medium Shell不存在或所有剩余能力外部阻断的证明。旧43c标准child1314、5b0及其他原身份原样保留；正式Default产品增强保护不变。",
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
         "已有真实Medium/nonElev/session1/单屏150%观察，但200%UI、五应用及完整I01–I12未齐。",
-        "43c已取得标准账号RID8192/nonElev/nonAdmin token/session1，标准child CreateProcessAsUserW返回false/Win321314、child_created=false；具体缺哪privilege UNKNOWN，NativeClients/普通完整Medium桌面及官方应用交互仍未获得本轮证据。"
+        "229e及2b49新Run actual Medium Shell/Tray/激活/独立回切已证实，不再列为未知。2b49自有托盘API前置FAIL，产品/UI/输入未启动；真实应用初始化/客户输入/正常退出与正式产品适配仍需分别推进，不能把旧43c的1314当作新路线未运行原因。"
       ],
-      "next_action": "本次标准native创建在1314处有界停止，不无依据追加API、权限或DACL变更；普通完整Medium隔离桌面及官方应用仍是具体未获得条件，不要求新建内存不足的VM，其他可运行产品子合同继续。",
+      "next_action": "不重跑旧43c标准token1314或无变化tray请求。MediumDesktopNativeOnly已接线，待提交构建后，在新exact activeMedium桌面做不依赖tray的产品未启动现代Terminal启动/响应/正常关闭；尚无其现场结果。不放宽Default正式增强资格，不新增VM/宿主设置；200%UI、多屏混合DPI、真实应用与整版链分别保留缺项。",
       "partial_observation_ids": [
         "PO-714C-DIAGNOSTIC-PORTABLE",
         "PO-C01-INDEPENDENT",
@@ -12833,6 +12879,23 @@
       "actual_observed_environment_ref": "evidence_mapping.actual_observed_environment",
       "required_environment_met": "PARTIAL_150percent_NOT_200percent_OR_FULL_CHAINS",
       "ordinary_desktop_latest_probe": {
+        "status": "ACTUAL_ACTIVE_MEDIUM_DESKTOP_OWN_TRAY_PRECONDITION_BLOCKED",
+        "run_id": "2b49d522b9284ea8ba352a3512524527",
+        "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+        "evidence_path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json",
+        "exact_new_Medium_Shell_Tray": true,
+        "actual_Run_activation_and_independent_Default_return": true,
+        "own_NIM_ADD_return": false,
+        "raw_error": 2147500037,
+        "root_cause": "UNKNOWN",
+        "product_GUI_or_tray_chain": "NOT_RUN",
+        "synthetic_input_sent": false,
+        "full_ordinary_desktop": "NOT_PROVEN",
+        "actual_30s_deadline": "NOT_RUN",
+        "actual_in_flight_UI_lease": "NOT_RUN",
+        "next_native_only_TEST": "IMPLEMENTED_NOT_BUILT_NOT_RUN"
+      },
+      "historical_standard_guest_native_probe_43c": {
         "status": "UNKNOWN",
         "run_id": "43c7c45cacf1460e846d86f4a35cc4b6",
         "observation_id": "PO-43C-R13-STANDARD-TOKEN-NATIVE-CHILD-ERROR1314",
@@ -15982,6 +16045,17 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+        "run_id": "2b49d522b9284ea8ba352a3512524527",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_started": false,
+        "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+        "result": "BLOCKED",
+        "evidence_id": "EV-2B49-ACTIVE-EXACT-MEDIUM-DESKTOP-OWN-TRAY-API-PRECONDITION-FAILURE",
+        "evidence_path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json",
+        "new_feature_or_B_PASS": false,
+        "scope": "73 legal continuousD; exact new sameSID/session Medium Shell/Tray and actual Run activation/readback, own icon ADD FALSE/raw2147500037 and DELETE FALSE/raw2147500037/GetRect-2147467259. Probe DestroyWindow/UnregisterClass and independent Default return/exit/lease-event/handle closes are true, not tray or cleanup-from-disposal PASS. Product/UI/input never started; wholeBLOCKED/driverFAIL, root causeUNKNOWN, no actual30s deadline or in-flight UI test. Own guest/task cleaned after stable collection, originals retained."
+    },
     {
         "run_id": "229eea1807bc432f8812efb57d937ed9",
         "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",

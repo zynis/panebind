@@ -1,0 +1,173 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-2B49-ACTIVE-EXACT-MEDIUM-DESKTOP-OWN-TRAY-API-PRECONDITION-FAILURE",
+  "kind": "read_only_original_raw_and_receipts_review",
+  "review_date": "2026-10-22",
+  "run_id": "2b49d522b9284ea8ba352a3512524527",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "BLOCKED",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_started": false,
+    "product_identity_meaning": "Hash-verified frozen payload only. The own notification-area precondition failed before any product CreateProcess or UI synthetic input; the copied product EXE is not a product execution.",
+    "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+    "driver_sha256": "5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E",
+    "packaging_head": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+    "fixture_pid": 7152,
+    "fixture_primary_tid": 7156,
+    "observer_and_probe_tid": 3952,
+    "return_owner_tid": 5512,
+    "child_explorer_pid": 6404,
+    "child_explorer_primary_tid": 6400,
+    "child_explorer_birth_filetime_decimal": "134371320478338408",
+    "child_image": "C:\\Windows\\explorer.exe",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_2b49d522b9284ea8ba352a3512524527",
+    "precision": "Native FILETIME identities are retained as literal decimal strings in this review, not floating-point reidentification."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/2b49d522b9284ea8ba352a3512524527/package-receipt.json",
+    "receipt_sha256": "AB1882A7A768C2772F7C04BAF702FF473D48CE6FFE12023D95630879D7197338",
+    "zip_sha256": "A560AF63E75783AE4DCD5AC347E4FEB0962615D82A891CCF3158D420536D4361",
+    "manifest_sha256": "4CA28496586F2D49F52D40457D5C0CBBE60C797ECE2B25333158B864A83009E2",
+    "wsb_sha256": "CFA4D2F73CC29CD94B48B90EE055D09395CDB1615611E6F26B4417CDA1BE4C05",
+    "deployment_receipt": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/deploy-receipt.json",
+    "remote_directory": "I:\\PaneBindMVP1Runs\\2b49d522b9284ea8ba352a3512524527",
+    "input_readonly_output_only_writable": true,
+    "note": "The preparation receipt's deployed=false, guest_started=false and NOT_RUN fields are preparation-time fields, superseded for actual execution only by this Run's later deployment, launch and raw evidence. They are not rewritten."
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/collection-20261022T084101804Z-d1c44b86aa6640bb80dfa09eab0feab6/2b49d522b9284ea8ba352a3512524527-release-fixture.jsonl",
+      "sha256": "0FD8895CBB4C425EDA07E66021DEB8B91BE6545B8ADAA718603AB715E8B8A822",
+      "bytes": 309168,
+      "rows": 73,
+      "legal_jsonl": true,
+      "continuous_sequences": [1, 73],
+      "all_source_sha_matches_driver": true,
+      "explicit_result_FAIL_rows": [73],
+      "overall_driver_result": "FAIL"
+    },
+    {
+      "path": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/collection-20261022T084101804Z-d1c44b86aa6640bb80dfa09eab0feab6/2b49d522b9284ea8ba352a3512524527-Release-launch.json",
+      "sha256": "D7B601D759881244B6E40B04DC16F9753256FA2F26748403A911C4BF56281FEC"
+    },
+    {
+      "path": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/collection-20261022T084101804Z-d1c44b86aa6640bb80dfa09eab0feab6/2b49d522b9284ea8ba352a3512524527-guest-summary.json",
+      "sha256": "B027E8D7E68D4FED29A9D40F7809FE6F6B8D92BF616C5DFA1A34E13AD9A4F442",
+      "status": "BLOCKED_OR_FAILED"
+    },
+    {
+      "path": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/collection-20261022T084101804Z-d1c44b86aa6640bb80dfa09eab0feab6/collection-receipt.json",
+      "sha256": "0697D281866A776842A1B84FA5A1919B58B8E320C2904B62FD9A205D6477DE96",
+      "output_unchanged": true,
+      "actual_before_inventory_utc": "2026-10-22T08:41:27.7455489Z",
+      "actual_after_inventory_utc": "2026-10-22T08:41:31.7127605Z",
+      "receipt_top_utc_meaning": "08:41:05.8031190Z is an earlier receipt field, not the completed collection time."
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-excerpt.jsonl",
+    "sha256": "3EF17FF23952C4896A9EDFF1D08B28296A2FAF57D89C9431D6343BA0B68902A2",
+    "bytes": 48517,
+    "literal_lines": 29,
+    "driver_sequences": [3, 5, 13, 19, 21, 23, 25, 27, 47, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68, 69, 70, 73],
+    "serialization_changed": false,
+    "line_endings": "Literal source line contents preserved; excerpt file uses LF."
+  },
+  "observations": [
+    {
+      "source": "D3/D5/D13/D19/D21/D23-D27",
+      "fact": "The original fixture is Medium/non-elevated on Default/WinSta0, one 3050x1668 monitor with work3050x1596 and DPI144. A fresh exact Run desktop is created with access195, flags0 and inherited unmodified security; a new TEST observer thread connects. The exact new Explorer PID6404 uses the same existing Medium token, SID and session1. This is not a host change or reuse of a Default broker window."
+    },
+    {
+      "source": "D47/D51",
+      "fact": "Actual readiness interval33453..43468 is10015ms, not a claimed exact10000ms.78 event waits and16 retained child-event samples are reported. Immediately before the notification attempt, both complete enumerations use held handle744 and the exact Run name, GetShellWindow is stable66174 and the exact child is alive. Visible Progman66174/PID6404/TID6400 has actual rect[0,0,3050,1668]; visible Shell_TrayWnd131664/PID6404/TID3908 has actual rect[0,1596,3050,1668]. Both belong to both complete held-desktop enumerations. Foreign GetThreadDesktop still returnsNULL/error5; UNKNOWN thread names are retained rather than fabricated. These are read-only identity facts, not product source/window-write authority."
+    },
+    {
+      "source": "D52-D54",
+      "fact": "Normal OpenDesktop obtains Run and Default handles with access257, leaving original195 unchanged. The independent return owner is actually alive(wait258), armed, and input is actually Default/UOI_IOtrue. One actual SwitchDesktop returnsTRUE at43468..43468 and actual OpenInputDesktop then reads exact Run/UOI_IOtrue; fresh exact Shell/Tray readiness remains true. Raw last error5 afterTRUE is retained, not interpreted as failure or a root cause."
+    },
+    {
+      "source": "D55-D57",
+      "fact": "On that actually active Run desktop, the freshly created private-class probe is exact HWND131788/PID7152/TID3952/UID20546. Its one actual NIM_ADD returnsFALSE at43484..43484 and immediate raw GetLastError is2147500037. This proves only that this request did not satisfy the API precondition. It does not establish a Shell/UAC/security/Sandbox root cause. No NIM_SETVERSION or successful icon geometry is observed."
+    },
+    {
+      "source": "D56-D57",
+      "fact": "The exact probe cleanup actually attempts NIM_DELETE, which returnsFALSE with raw2147500037; subsequent GetRect HRESULT is-2147467259. DestroyWindow returnsTRUE, its exact window is gone, and UnregisterClass returnsTRUE. The local cleanup_knowntrue does not convert failed ADD/DELETE into functional success; no added icon was confirmed and stock icon destruction isfalse. The bounded product/UI chain is not started because this precondition failed. Foreground before/after is0 and input_after isnull, not a fabricated second active-input observation."
+    },
+    {
+      "source": "D58-D63",
+      "fact": "The return owner TID5512 wakes by explicit request, not a deadline. The unused UI lease is retired and reports no outstanding native input; this is idle-path evidence only, not an in-flight SendInput test. It then observes exact own Run/UOI_IOtrue and calls SwitchDesktop(Default) once at43484..43515, returningTRUE/raw5; actual readback isDefault/UOI_IOtrue. Actual owner exit wait0, target/Default/event/thread Close calls and explicit UI input-event Close all returnTRUE; no deadline or native-completion unknown is reported. The intermediate ACTIVATED_AND_RETURNED_ONLY result is not a UI/tray feature PASS."
+    },
+    {
+      "source": "D64/D66-D73",
+      "fact": "The observer's actual UnhookWinEvent returnsTRUE before SetThreadDesktop(Default), followed by a successful original195-handle Close. Original Default Shell65794/PID4908/TID4912/birth134371320389002452 is unchanged. Own Raw observer removal and foreground-hook removal are separately observed. The new Explorer is still alive(wait258/exit259), retained for exact guest/job cleanup; neither WM_CLOSE nor TerminateProcess is attempted by this observer. Desktop-object destruction remainsUNKNOWN. D68 isBLOCKED and D73 driver_shutdown isFAIL; owned_windows_destroyedtrue is not a feature or product-cleanup PASS."
+    }
+  ],
+  "time_basis": {
+    "readiness_begin_tick": 33453,
+    "readiness_end_tick": 43468,
+    "readiness_elapsed_ms": 10015,
+    "activation_native_ticks": [43468, 43468],
+    "probe_ADD_native_ticks": [43484, 43484],
+    "return_native_ticks": [43484, 43515],
+    "return_owner_explicit_request": true,
+    "return_owner_deadline_reached": false,
+    "UI_suite_cleanup_start_deadline_ms": 30000,
+    "UI_suite_native_completion_outer_budget_ms": 35000,
+    "deadline_experiment": "NOT_RUN: the explicit return occurred before30s; this is not a measured30s timeout/independent-input-stall case.",
+    "buffered_emit_tick_warning": "D23 onward are buffered by the observer. Their JSONL tick/line order is not a common native Raw/WinEvent/API or physical-display timeline; use the explicit before/after tick fields for these API intervals."
+  },
+  "wrapper": {
+    "status": "FIXTURE_FAILED",
+    "fixture_pid": 7152,
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "forced_test_cleanup": true,
+    "descendants_alive_at_fixture_exit": 1,
+    "feature_result": "NOT_EVALUATED",
+    "product_cleanup_pass": false,
+    "meaning": "One exact new Explorer descendant remains after fixture exit. Forced test cleanup or Sandbox disposal is not product functionality or product cleanup evidence."
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/2b49d522b9284ea8ba352a3512524527/cleanup-receipt.json",
+    "sha256": "E7D606627A677A5B784CB1B6D000D6EBF3F5FB44C0C72672B40F1F9AE76650A7",
+    "utc": "2026-10-22T08:42:10.7138601Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "actual_conclusion": "新建、精确Run、同SID/session/Medium桌面确已激活且精确Shell/Tray存在；但本次自有通知图标NIM_ADD实际返回FALSE，托盘前置未通过。独立回切及自有局部资源退出已观察，不抬升整体结果。",
+    "own_tray_API_precondition": "FAIL",
+    "product_GUI_or_tray_chain": "NOT_RUN",
+    "product_Move_Resize_Ctrl": "NOT_RUN",
+    "synthetic_input_sent": false,
+    "product_started": false,
+    "ordinary_full_desktop_acceptance": "NOT_PROVEN",
+    "normal_or_in_flight_UI_input_release": "NOT_RUN",
+    "real_TaskbarCreated_or_Shell_restart": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "root_cause": "UNKNOWN",
+    "no_additional_unvaried_tray_attempt_by_review": true,
+    "not_awarded": [
+      "ordinary product GUI/settings from this Run",
+      "real product tray menu or product enhancement",
+      "NormalUp or in-flight input cleanup",
+      "30-second timeout behavior",
+      "five real application classes or full Medium integration",
+      "module, benchmark or whole-version PASS"
+    ],
+    "next_action": "保留本次原失败与身份；停止无变化的托盘重复，使用新Medium桌面的已证实条件继续不依赖该托盘前置的实际应用初始化与正常退出验证。原有Default保护与历史证据不改。"
+  }
+}

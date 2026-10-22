@@ -3,6 +3,22 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+        "id": "EV-2B49-ACTIVE-EXACT-MEDIUM-DESKTOP-OWN-TRAY-API-PRECONDITION-FAILURE",
+        "run_id": "2b49d522b9284ea8ba352a3512524527",
+        "configuration": "Release",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+        "product_started": false,
+        "driver_source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
+        "driver_binary_sha256": "5AFBA55DC1E595C0E0B8B9E0A542C128381C7618D53F9E79A0BF90AD45577B8E",
+        "path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-review.json",
+        "sha256": "75A2600217C5C038A03DBD069F365055CA941764588BB4DC5A5D9AFE8BCC4884",
+        "repository_excerpt_path": "docs/reports/v1-evidence/2b49-medium-tray-precondition-excerpt.jsonl",
+        "repository_excerpt_sha256": "3EF17FF23952C4896A9EDFF1D08B28296A2FAF57D89C9431D6343BA0B68902A2",
+        "result": "BLOCKED",
+        "scope": "Actual exact active sameSID/session Medium Shell/Tray; own NIM_ADD FALSE/raw2147500037, DELETE FALSE and GetRect HRESULT-2147467259. Probe window/class cleanup and independent Default return/handles observed. Whole driverFAIL preserved; product/UI/input not started, no native30s timeout/in-flight lease test, raw error no root cause. No feature/Bscore or cleanup-from-guest-disposal PASS."
+    },
+    {
         "id": "EV-229E-EXACT-MEDIUM-DESKTOP-ACTIVATION-AND-INDEPENDENT-RETURN",
         "run_id": "229eea1807bc432f8812efb57d937ed9",
         "configuration": "Release",
