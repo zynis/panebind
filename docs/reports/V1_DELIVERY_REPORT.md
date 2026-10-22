@@ -14,9 +14,14 @@
 
 当前便携包为`5f87dc1c56704592a164a4d8c4c3a6b4`：ZIP SHA-256 `1F12165B8B7E6F9E0BD01E06FD0506DD34A611657FA525137020C36B6A11EE2F`，manifest `2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B`。确切路径与操作见[快速入门](../V1_QUICK_START.md)。可复核的普通入口子项不等于已经开放普通宿主试用。
 
-下一步只做当前输入／清理改动后的必要组合链：`CurrentCoreChainOnly`复用原两轮核心操作，跳过已通过的900秒段；`MediumDesktopEnvironmentOnly`仅在新guest以同Medium身份创建Run专属Win32 desktop并观察新Explorer／Shell／Tray，不启动产品、不切输入桌面、不发输入、不改ACL／token或控制Default Shell。工具`c24976d86a4dec30a739f66927be4334eeb0e3a7`已Debug／Release构建、guest-path各1/1和宿主保护两suite各配置Exit78，**此处记录时新两批尚未运行**。静态168检查只作工具保护支撑，不计功能进度。
+后继工具`c24976d86a4dec30a739f66927be4334eeb0e3a7`已经实际运行两批，产品4f7仍未重建：
 
-NF02仍按Run保留：830a的50次callback最大1755µs、p99桶2000µs未达<1ms目标；6e1f的71次最大966µs、p99桶999µs只在该范围达标。placement回读不是物理显示延迟，现日志不能定位最大callback的具体分支或根因；不能择优宣布全面通过，也不将一次1.755ms擅自等同持续S1停顿。下一必要组合链读取现有汇总，不增加性能框架或900秒专项。
+- [1a62当前核心组合链](v1-evidence/1a62-current-core-chain-review.json)：同PID3696两轮真实post-Resize A五阶段→Ctrl C、联动缩放、停靠／拉伸、透明与摇动／暂停恢复完成；配置恢复、实际UP／资源退出、正常Quit和退出后客户输入有证据。2199条driver合法连续，物理product日志因有界轮转只保留P1000–1977，早期关键事实来自driver当时嵌入的原始回执，不伪造完整P1–1977或全时序零迟写证明。角双击的离散终止保持其非NormalUp语义。**未跑900秒、真实应用矩阵或整版链，不由两轮owned子范围抬整条I02–I11或模块PASS。**
+- [e03f新桌面观察前置反例](v1-evidence/e03f-fresh-desktop-baseline-rejection-review.json)：实际新Run名称核验和CreateDesktop成功；随后枚举返回false／error0／零回调，被旧TEST的“必须完整空清单”门拒绝，未到Explorer创建。此结果不能写成系统无法创建Medium Shell。原FAIL保留，后继仅允许此UNKNOWN情况下在已核新Run对象上尝试一次同Medium子进程；不授未知基线窗口权限，后验完整枚举／精确新PID、birth、路径、SID、session、Medium、Shell／Tray事实仍不可省。原Default Shell身份未变，未切输入桌面、未发输入、未改安全设置；对象是否已销毁仍UNKNOWN，关闭句柄不冒充进程或产品收尾。
+
+当前继续补现有guest可执行的设置控件实效：预览color／alpha、邻接容差改变实际Ctrl组、命令步长，以及公开动画关闭设置与重开GUI的source/runtime组合。动画API直接执行／淡入轨迹未观察就保留NOT_RUN；不以配置回读或耗时猜测API已执行。新TEST准备不改产品；普通编译／驱动问题在本轮修复，新实现身份和RunId复验，旧记录不覆盖。
+
+NF02按Run保留：830a的50次callback最大1755µs、p99桶2000µs未达<1ms目标；6e1f的71次最大966µs、p99桶999µs只在该范围达标。当前1a62的521次callback p99桶999µs、最大1287µs；118条hook→postverify样本p95桶20000µs、最大161869µs，另38条缺hook时钟不混入。四个>100ms软件尾样本是角双击拉伸，最大项g22的实际native调用约9.5ms，不能把整个软件动作链说成原生Move卡顿或物理显示延迟。保留尾值及原失败，不择优宣布跨Run全面通过，也不擅自称持续S1；不增加性能框架或900秒专项。
 
 剩余DEV条件分别为真实五类应用初始化／客户输入／正常退出、真实托盘与完整Medium桌面、200% UI、负工作区／多屏混合DPI／真实环境切换，以及同候选整版链。真人UAT单列PENDING，不作为降低独立DEV分数或额外DEV阻断条件。旧失败原件、未修机制原因和环境限制仍保留；不进入REA、不恢复定时资源检查。
 

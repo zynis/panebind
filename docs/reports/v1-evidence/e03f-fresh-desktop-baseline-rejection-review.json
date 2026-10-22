@@ -1,0 +1,137 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-E03F-FRESH-DESKTOP-ENUMERATION-TEST-GATE-REJECTION",
+  "kind": "independent_read_only_original_raw_review",
+  "review_date": "2026-10-22",
+  "run_id": "e03f5e0a1ac94487a07ada636b4adb7e",
+  "suite": "MediumDesktopEnvironmentOnly",
+  "configuration": "Release",
+  "result": "FAIL_ORIGINAL_TEST_GATE_WITH_PRODUCT_AND_EXPLORER_NOT_STARTED",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "product_identity_meaning": "Referenced/hash-checked payload only. This early environment suite never requested product creation; no product PID/log or functional/cleanup PASS.",
+    "product_started": false,
+    "product_pid": null,
+    "driver_source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+    "driver_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+    "packaging_head": "9a6159c9182a7bae1c6a69e3f14ddf974d73c798",
+    "fixture_pid": 6328,
+    "fixture_tid": 6332,
+    "fixture_birth_filetime_decimal": "134371035317273190",
+    "precision": "Literal decimal FILETIME identity strings, not floating-point conversion.",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "input_desktop": "WinSta0/Default; WTSActive; no SwitchDesktop or synthetic input",
+    "environment": "Disposable Sandbox Windows26100.9711; one3050x1668/work3050x1596/DPI144. No complete ordinary Medium Shell acceptance."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/e03f5e0a1ac94487a07ada636b4adb7e/package-receipt.json",
+    "receipt_sha256": "6E18051FF7D51435D781CC80B8C85204F11C9BF6762C04AF41CE50271752A37E",
+    "zip_sha256": "43F27D2BA803BCA203C64618441632A67B998A97F7DE317FA9579EA1CBFDE422",
+    "input_manifest_sha256": "D48A92FA541F6CFCAB37A29739FAF1B12F808AC2F87D6D881F6C0F81BBF98590",
+    "wsb_sha256": "5F3EA49BDF98DC9BA915B85C39E32990A862F43D8DB91C6C5869C07BB8A21F2E"
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/e03f5e0a1ac94487a07ada636b4adb7e/collection-20261022T004648365Z-3f8610eab4644199a5eae50ba7bb83a8/e03f5e0a1ac94487a07ada636b4adb7e-release-fixture.jsonl",
+      "sha256": "0408D1B58FF325FF24648264D4EA6D23E9879417BB128B30CB426BF6E63EB259",
+      "bytes": 12187,
+      "lines": 30,
+      "valid_jsonl": true,
+      "continuous_sequence": [1, 30],
+      "all_source_sha_matches_driver": true
+    },
+    {
+      "path": "uat/v1-control/e03f5e0a1ac94487a07ada636b4adb7e/collection-20261022T004648365Z-3f8610eab4644199a5eae50ba7bb83a8/e03f5e0a1ac94487a07ada636b4adb7e-Release-launch.json",
+      "sha256": "4F33CE36F0484A35EBC96C846C16F5AE69C5E9677AB02EAC7890AF22289BF6EA"
+    },
+    {
+      "path": "uat/v1-control/e03f5e0a1ac94487a07ada636b4adb7e/collection-20261022T004648365Z-3f8610eab4644199a5eae50ba7bb83a8/e03f5e0a1ac94487a07ada636b4adb7e-guest-summary.json",
+      "sha256": "79BE9C75CA0226CA497E3EA7566A3827C0912383E77DE53760CFE4FDC137CD19"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/e03f-fresh-desktop-baseline-rejection-excerpt.jsonl",
+    "sha256": "84D6C62820048CAC9AC9A58169309F2EDCB26F538E360D03F9E3CA0BD741CCEF",
+    "literal_lines": 21,
+    "literal_exact_match_count": 21,
+    "driver_sequences": [1, 3, 4, 5, 6, 7, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    "serialized_rows_changed": false
+  },
+  "facts": [
+    {
+      "source": "D1/D3-D7/D12-D13/D17/D19-D21",
+      "finding": "Exact Run/suite/payload identity, Medium/non-elevated session1 active Default input desktop observed. Baseline clear; product_create_requests=0/synthetic_input_requests=0/noSwitch/noDefaultShellControl. Product file presence/hash is not execution."
+    },
+    {
+      "source": "D21-D22",
+      "finding": "Default Shell HWND65804/PID4928/TID4932/birth134371035231782403/image C:\\Windows\\explorer.exe recorded. EnumDesktops returned true/error0/visited1/matchingRunName0; OpenDesktop returned no existing handle/error2. Precheck explicitly is not atomic CREATE_NEW."
+    },
+    {
+      "source": "D23",
+      "finding": "CreateDesktop returned actual true for PaneBindV1_e03f5e0a1ac94487a07ada636b4adb7e, access195/flags0/null security attributes/inherited security descriptor unchanged. Input desktop was not switched."
+    },
+    {
+      "source": "D24 and c249 MediumDesktopWindows::read",
+      "finding": "EnumDesktopWindows returned FALSE/error0/window_count0, zero callbacks. The TEST helper maps native FALSE directly to incomplete. This is UNKNOWN enumeration completeness, not proof that a window exists or that the new desktop cannot host a Medium Shell."
+    },
+    {
+      "source": "c249 header ordering and D24-D26",
+      "finding": "The strict !baseline.complete || !baseline.windows.empty() gate threw fresh_desktop_window_baseline_not_empty_or_unknown before SetThreadDesktop(created), CreateProcessW Explorer or Shell/Tray checks. No medium_desktop_Explorer_create or readiness event exists in these30 rows. The early suite branch never launched PaneBind."
+    },
+    {
+      "source": "D25",
+      "finding": "Observer test thread Default restoration was observed true/error0; CloseDesktop attempted/returned true/error0. Desktop object destruction remains explicitly UNKNOWN; no process/product cleanup PASS inferred."
+    },
+    {
+      "source": "D26-D30",
+      "finding": "Original Default Shell HWND/PID/TID/birth/image unchanged. Product NOT_RUN/ordinary full desktop NOT_PROVEN/no switching or input. Own Raw registration removed/actually absent; own WinEvent unhook returned true/overflow0. Original driver shutdown FAIL, own test windows destroyed, product cleanup NOT_APPLICABLE_NOT_STARTED."
+    }
+  ],
+  "source_review": {
+    "driver_source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+    "file": "src/platform/windows/product/v1_guest_medium_desktop_environment_case.h",
+    "exact_gate": "if(!baseline.complete||!baseline.windows.empty())throw std::runtime_error(\"fresh_desktop_window_baseline_not_empty_or_unknown\");",
+    "completeness_mapping": "out.complete=EnumDesktopWindows(...)!=FALSE; out.error=out.complete?0:GetLastError(); callback bounded256 and returns TRUE until overflow.",
+    "fixture_entry": "MediumDesktopEnvironmentOnly calls medium_desktop_environment_flow before the common product-launch branch.",
+    "defect_scope": "TEST precondition interpretation; not a demonstrated PaneBind product or Windows Medium Shell capability failure."
+  },
+  "wrapper": {
+    "launch_status": "FIXTURE_FAILED",
+    "guest_summary_status": "BLOCKED_OR_FAILED",
+    "fixture_started": true,
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "forced_test_cleanup": false,
+    "descendants_alive_at_fixture_exit": 0,
+    "feature_result": "NOT_EVALUATED",
+    "product_cleanup_pass": false,
+    "product_cleanup_interpretation": "False wrapper initializer is not product cleanup FAIL; product was not started."
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/e03f5e0a1ac94487a07ada636b4adb7e/cleanup-receipt.json",
+    "sha256": "2E64F444B2079E32AE4F5E474F78A21BFEB1C089529279FB1ACEB58912918871",
+    "task_removed": true,
+    "exact_owned_guest_pid": 21412,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "time_basis": {
+    "driver_sequence": "Only this producer emitted ordering; no physical input or rendering-latency claim.",
+    "tick": "Driver GetTickCount64 milliseconds; no synthetic input was sent.",
+    "qpc": "Observer API QPC fields retain their own call endpoints, not a cross-producer native timeline."
+  },
+  "acceptance_boundary": {
+    "conclusion": "保留本批原FAIL：已实际创建专用desktop，但空枚举完整性UNKNOWN被旧TEST门拒绝，尚未创建Explorer。不能写成不能创建Medium Shell、不能创建desktop、产品功能失败或环境永久不可用。",
+    "next_action": "后继TEST可只将FALSE/error0/零回调保持UNKNOWN，先精确核对自建Run desktop UOI_NAME，再在其内一次创建同SID/session/Medium新Explorer；不把未知空清单授为baseline authority。ready仍必须后续完整fresh枚举、exact新child Shell/Tray及实际清理。后继新Run尚未执行，不覆盖本批失败。",
+    "not_awarded": ["ordinary Medium Shell readiness", "Explorer creation/shell binding", "tray availability", "input/interaction", "product launch or functionality", "product cleanup", "module or whole version", "human UAT"],
+    "human_UAT": "NOT_RUN"
+  }
+}

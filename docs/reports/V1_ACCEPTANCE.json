@@ -12,10 +12,10 @@
     "current_targeted_runtime": {
       "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
       "release_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
-      "driver_source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
-      "driver_release_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
-      "run_ids": ["8d8a505f787f41f782e1b0fb2777dbaa", "57f0fee1b47e4ae2b89368d05b2b68be", "efed7f2c1cfe4f788d8c59f74d5bc7ff", "ec2f4c491dc24dc5a6012d5c1a7a3a3c"],
-      "scope": "Actual HC UI/lease/shutdown subPASS but original scheme restoration FAIL; native system Shake control unavailable and product NOT_RUN; public application rules and ordinary current portable entry scoped PASS. Earlier4f7/5b callback/focus results retain their original driver. Full11ae remains historical, never rebound",
+      "driver_source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+      "driver_release_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+      "run_ids": ["1a6256c58e6e47379889525aade641a3", "e03f5e0a1ac94487a07ada636b4adb7e"],
+      "scope": "Current Release two existing owned core rounds actually PASS on same PID3696 without restart; 2199 driver rows, retained physical product only sequences1000..1977/978rows plus earlier embedded receipts, not a complete whole-run product log or all-history zero-late claim. Environment-only e03 strict TEST baseline UNKNOWN gate rejected before Explorer/product creation, not an external capability failure. Previous9d/5b runs retain original scope/identity; no whole I-chain or score added",
       "product_builds": "Debug/Release PASS; affected offline six each PASS; actual host fault-switch and mixed identity switch both Exit78 in each configuration",
       "whole_version_PASS": false
     },
@@ -53,14 +53,22 @@
       "portable528a_unchanged": true
     },
     "pending_driver_candidate": {
+      "source_sha": "4ff782b224572a596b702753782e6efe5e273ea7",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "status": "TEST_ONLY_DEBUG_RELEASE_BUILD_AND_GUEST_PATH_PASS_NATIVE_NOT_RUN",
+      "debug_sha256": "B1B608593D55E14B1C7F85FB47AC26069C5A42E75799201FAE9B90D5989DA9C0", "release_sha256": "F9AC7A49731B76538DFEB255DEE1A093FC225C31B39F730A7722FA30C6BDF608",
+      "scope": "4ff Settings/ENV TEST candidate actual D/R fixture+guest-path build/offline one each PASS and correct-parameter two suites each config actual waited Exit78; nativeNOT_RUN. Old324 missing quote compile FAIL retained as a TEST history, repaired in4ff; not a product build failure. Current product4f7 unchanged; do not bind c249 runs to this new tool.",
+      "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
+    },
+    "observed_driver_c249": {
       "source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
       "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
-      "status": "CURRENT_CORE_AND_ENVIRONMENT_TEST_DRIVER_BUILD_PASS_NATIVE_NOT_RUN",
+      "status": "ACTUAL_CURRENT_CORE_TWO_ROUNDS_SCOPED_PASS_ENV_TEST_BASELINE_UNKNOWN_REJECTED",
       "debug_sha256": "5B49F98A0312B5FC330ECF430E987E4F1114C75637CBADF8DDF3B76EEEA07134",
       "release_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
       "build": "ROOT_ACTUAL_DEBUG_RELEASE_FIXTURE_AND_GUEST_PATH_PASS_OFFLINE_ONE_EACH_PASS_HOST_TWO_SUITES_FOUR_WAITED_EXIT78_WITH_CORRECT_RUN_ID_PARAMETERS",
       "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver",
-      "note": "CurrentCoreChainOnly/MediumDesktopEnvironmentOnly仅构建和正确--run-id/--output/--product/--suite参数的D/R四次真实等待Exit78保护已实测。初次误用--run只证明parser拒绝，不作auth证据或产品FAIL。两新Run尚NOT_RUN，不把9d实际结果改绑后继工具。"
+      "note": "c249已实际完成1a62两轮同PID核心链，e03在空枚举UNKNOWN的strict TEST门拒绝、未启动Explorer/产品；不是新环境外部能力失败。正确参数D/R四次Exit78保护保留，初次误用--run只证明parser拒绝。后继修工具不换绑此EXE。"
     },
     "observed_driver_c696": {
       "source_sha": "c69620feb0ceaecb37f1900e69621e9fc47c815c",
@@ -121,6 +129,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+      "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "release_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+      "run_ids": ["1a6256c58e6e47379889525aade641a3", "e03f5e0a1ac94487a07ada636b4adb7e"],
+      "native_guard_validation": "ACTUAL_TWO_EXISTING_OWNED_CORE_ROUNDS_SAME_PID_SCOPED_PASS_ENV_TEST_UNKNOWN_BASELINE_REJECTED_BEFORE_EXPLORER_AND_PRODUCT",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_9d": {
       "source_sha": "9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b",
       "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
       "release_sha256": "48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3",
@@ -230,7 +247,7 @@
       },
     "implementation_inspected": "CURRENT_4F7_TARGETED_CALLBACK_FOCUS_RULES_AND_PORTABLE_SCOPES_WITH_HISTORICAL_11AE_FULL_BOUNDARIES",
     "note": "当前独立DEV43/60、21/40=52.5%，模块/整版PARTIAL。6e1f与原终止证据闭合M04F04；830a与原bf5c/b6/7060实际证据及未变生产范围复核闭合M10F04/B22；efed与原034/2c8规则闭合M11F04。各批保留原产品/driver身份，未拼新整链。8d8a HC真实UI/free/shutdown子项通过但scheme恢复不精确仍FAIL；57f原生系统Shake无效果，产品NOT_RUN。ec2f实际验证当前4f7/5f87普通包，不授wholeI12、真实应用、托盘、完整Medium桌面、多屏或真人门。",
-    "pending_product_note": "当前4f7产品字节冻结；9d实际完成HC、Shake原生前置、规则与普通包限定运行。8d8a无旧heap退出但scheme恢复未达exact；57f产品未启动；ec2f普通无参启动/设置效应/Move-UP/退出通过。新环境及CurrentCore TEST驱动c249仅实际D/R构建、offline和宿主Exit78保护通过，native NOT_RUN；last_actual仍9d四批；旧bbc/04ff失败保持原身份。",
+    "pending_product_note": "当前4f7产品字节冻结；9d实际完成HC、Shake原生前置、规则与普通包限定运行。8d8a无旧heap退出但scheme恢复未达exact；57f产品未启动；ec2f普通无参启动/设置效应/Move-UP/退出通过。c249已实际完成1a62两轮同PID核心，e03仅strict TEST空枚举UNKNOWN拒绝、未启动Explorer/产品；last_actual为c249两批，后继4ff工具仅构建/nativeNOTRUN；旧bbc/04ff失败保持原身份。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -11859,7 +11876,7 @@
       "remaining_conditions": [
         "真实Explorer及混合应用完整合同仍受资格/原生前置阻断，owned结果不能替代。"
       ],
-      "next_action": "复用dfdd owned回环，不再要求重跑同212 Full或900；推进实际应用资格与后续完整合同。",
+      "next_action": "复用当前4f7/1a62同PID两轮owned普通/磁吸/Ctrl及post-Resize回环实际证据，不再要求重放当前核心两轮；第三方应用和该整链缺口另补，不授整I02或重跑900。见1a62-current-core-chain-review。",
       "status_basis": "CURRENT_11AE_SCOPED_RUNTIME_OBSERVED_COMPLETE_CHAIN_GAPS_BLOCKED_HISTORY_RETAINED",
       "historical_pending_fix_source_sha": "408ac527a6bfda7b01a5e83249bd5ed0eca2714d",
       "latest_product_observation": {
@@ -11929,7 +11946,7 @@
       "remaining_conditions": [
         "混合应用与实际min/max完整组合仍未齐，不把owned布局子项提升完整I03。"
       ],
-      "next_action": "复用dfdd/cea当前布局证据，按具体缺失合同补验证，不重复已通过G07/8窗专项。",
+      "next_action": "复用当前4f7/1a62两轮实际共享边/角/约束和动态Ctrl source，与原布局范围；只补未齐整链/应用合同，不重复8窗/G07专项。",
       "partial_observation_ids": [
         "PO-BDAB-OWNED-FULL",
         "PO-408AC52-UP-DISPATCH",
@@ -12023,7 +12040,7 @@
       "remaining_conditions": [
         "真实跨屏、负坐标和任务栏/各屏工作区组合仍缺，不以模拟坐标补齐。"
       ],
-      "next_action": "保留当前单屏后缀与原历史失败，仅等待真实显示条件补跨屏合同，不盲重同Full/900。",
+      "next_action": "复用当前4f7/1a62两轮单屏预览/取消/真实UP停靠及原DOWN拖离恢复；真实跨屏接缝合同尚缺，不能单屏替代，不盲重Full/900。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -12096,7 +12113,7 @@
       "remaining_conditions": [
         "当前smart开关与完整入口组合尚未齐，真实应用普通输入透传仍需对应前置；旧212独立F04/F05保留原身份。"
       ],
-      "next_action": "复用当前单屏实际后缀，不再将全部当前角/热键写未跑；仅补当前候选尚缺smart开关/入口与应用合同，不能将nonstrict角收据升级NormalUp。",
+      "next_action": "复用当前4f7/1a62两轮边/Shift边/角/Shift角真实双击与热键几何动作；保留corner动作分流延迟语义，具体smart独立合同按已有证据，第三方/整链缺口另判。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -12171,7 +12188,7 @@
       "remaining_conditions": [
         "系统Shake共存与完整当前视觉/暂停/退出链合同仍未齐，不授整I06。"
       ],
-      "next_action": "复用当前视觉/资源回执，仅补真实未齐视觉状态与系统共存，不重开已闭NormalUp或在途专项。",
+      "next_action": "复用当前4f7/1a62两轮实际173→190→UP恢复及两次Shake/公开PauseResume，原身份独立视觉合同保留；系统Shake共存由57f原生前置BLOCKED单列，不重复透明专项。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-B49-CORE-RECOVERY-VISUAL",
@@ -12518,7 +12535,7 @@
       "remaining_conditions": [
         "真实应用/普通完整桌面/显示与整版硬门未齐；当前owned有限时长通过不授整I11或长期稳定性。"
       ],
-      "next_action": "复用本次Full内置时长/退出事实，不再单独900或重复两轮；按具体应用/显示合同继续。",
+      "next_action": "当前4f7/1a62已两轮同PID核心操作/正常退出/后续客户恢复；11ae/dfdd的900秒和idle保留原身份，不冒名为4f7新900。当前物理P仅1000–1977/978条与早期driver嵌入rec，不称全历完整/全历零迟写。仅补整链确切应用/显示缺口，不追加独立900。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-408AC52-UP-DISPATCH",
@@ -13466,7 +13483,7 @@
       "id": "NF02",
       "requirement": "hook回调p99目标<1ms；输入到回读p95目标<50ms，不称为物理显示延迟。",
       "dev_status": "FAIL",
-      "observed": "保留11ae同构建既有统计：0a66/2c8各17次hook到回读p95为10.5895/25.2265ms（<50ms），dfdd单次1017.4899ms对应明确自有1000ms阻塞，非正常placement尾值。当前4f7/5b两个实际producer分开：830a callback n50/max1755us/p99 bucket2000us，最近秩p99为样本最大1755us，未达<1ms；6e1f n71/max966us/p99 bucket999us，有限本批预算通过但不能覆盖830a失败。不同producer JSONL顺序不作共同原生时序，以上非物理显示延迟。",
+      "observed": "保留11ae同构建既有统计：0a66/2c8各17次hook到回读p95为10.5895/25.2265ms（<50ms），dfdd单次1017.4899ms对应明确自有1000ms阻塞，非正常placement尾值。当前4f7/5b两个实际producer分开：830a callback n50/max1755us/p99 bucket2000us，最近秩p99为样本最大1755us，未达<1ms；6e1f n71/max966us/p99 bucket999us，有限本批预算通过但不能覆盖830a失败。不同producer JSONL顺序不作共同原生时序，以上非物理显示延迟。 当前4f7/c249的1a62实际callback521样本/p99桶上界999us/max1287us；hook到后验118样本、discard38（缺时钟）、p95桶上界20000us/max161869us。四个>100ms为角双击g22/23/48/49，包含动作分流，最大样本nativeAPI部分9503.3us，不能叫连续Move/nativeAPI161ms或物理显示延迟；此本批预算不覆盖830a失败。当前仅保留物理P1000–1977/978条加早期driver嵌入receipt，不从不完整记录重算全样本分位数。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
@@ -13477,7 +13494,7 @@
       "remaining_conditions": [
         "callback p99预算未达，现有汇总不能区分调度抢占与具体分支；无已确认同步I/O或等待缺陷，不据此推测性重建产品。"
       ],
-      "next_action": "保留NF02 callback预算FAIL与各同构建producer独立范围；现无已证同步I/O/等待分支缺陷，不以少量tail推测性优化或重建产品。继续功能与当前核心链，只在出现具体分支反例时有界定位，不新建统计框架/压力/900秒批次。",
+      "next_action": "保留同构建软件指标：1a62 p99/p95桶预算本批达目标，830a callback失败不被覆盖；角双击大尾包含动作分流，不与连续Move/native API或物理显示混同。无具体等待/I/O缺陷不推测性优化或增统计框架/压力/900秒。",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
       "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -13489,7 +13506,7 @@
       "id": "NF03",
       "requirement": "I11两轮核心链与15分钟混合运行，无残留和无界资源增长。",
       "dev_status": "BLOCKED",
-      "observed": "当前11ae/dfdd在同PID5264实际完成两轮owned核心组合和20个混合slot，900.035872秒；handle/GDI/USER无严格单调增长，P4204实际正常退出及自有资源清理已留嵌入回执。旧c01抬键失败和625/34bf结果保持各自身份，不再写作当前连续阶段待跑。完整真实应用/整版无残留仍未证明，dfdd应用关闭门FAIL和wrapper强制清理不能抹去。",
+      "observed": "当前11ae/dfdd在同PID5264实际完成两轮owned核心组合和20个混合slot，900.035872秒；handle/GDI/USER无严格单调增长，P4204实际正常退出及自有资源清理已留嵌入回执。旧c01抬键失败和625/34bf结果保持各自身份，不再写作当前连续阶段待跑。完整真实应用/整版无残留仍未证明，dfdd应用关闭门FAIL和wrapper强制清理不能抹去。 当前4f7/c249的1a62再实际完成同PID3696两轮既有owned核心，无重启、正常Quit/资源及客户配对恢复；2199D连续有效，有限资源两点不证明长期无泄漏，不是新900秒或整版应用链。",
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl"
@@ -13498,7 +13515,7 @@
       "remaining_conditions": [
         "真实应用客户区前置及正常关闭尚未齐，普通完整Medium桌面与混合应用整链未满足；owned规定连续阶段已运行，不要求无变化重复900秒。"
       ],
-      "next_action": "先完成Edge/Terminal真实初始化、客户输入及正常退出等可推进项；仅在相关产品缺陷修复后按影响补整链，不复跑已通过且未变的owned连续阶段。",
+      "next_action": "复用当前4f7/1a62同PID两轮/正常退出/独立客户恢复及原11ae/dfdd时长；不以有限资源两点证明长期无泄漏，不重复owned核心/900。只继续未齐真实应用/完整环境和整版链。",
       "current_candidate_observation": {
         "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
         "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",
@@ -15867,6 +15884,26 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+        "run_id":  "1a6256c58e6e47379889525aade641a3",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "driver_source_sha":  "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+        "result":  "PASS_SCOPED_TWO_EXISTING_OWNED_CORE_ROUNDS_SAME_PRODUCT_PROCESS",
+        "evidence_id":  "EV-1A62-CURRENT-RELEASE-MEDIUM-TWO-CORE-ROUNDS",
+        "evidence_path":  "docs/reports/v1-evidence/1a62-current-core-chain-review.json",
+        "new_feature_or_B_PASS":  false,
+        "scope":  "Actual current4f7/c249 Release/Medium existing core actions twice on PID3696;2199 driver rows. Physical product retained1000..1977/978rows plus earlier embedded receipts, not complete whole-run product history/all-history zero-late proof; no whole I-chain/score."
+    },
+    {
+        "run_id":  "e03f5e0a1ac94487a07ada636b4adb7e",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "driver_source_sha":  "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+        "result":  "FAIL_ORIGINAL_TEST_BASELINE_UNKNOWN_GATE_PRODUCT_AND_EXPLORER_NOT_STARTED",
+        "evidence_id":  "EV-E03F-FRESH-DESKTOP-ENUMERATION-TEST-GATE-REJECTION",
+        "evidence_path":  "docs/reports/v1-evidence/e03f-fresh-desktop-baseline-rejection-review.json",
+        "new_feature_or_B_PASS":  false,
+        "scope":  "Fresh named desktop actual created; FALSE/error0/zero-callback EnumDesktopWindows remainedUNKNOWN and old strict TEST gate rejected before Explorer/product creation. DefaultShell unchanged, CloseDesktop returnedtrue; not an external MediumShell capability failure, product resultNOT_RUN."
+    },
     {
         "run_id":  "8d8a505f787f41f782e1b0fb2777dbaa",
         "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",

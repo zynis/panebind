@@ -3,6 +3,36 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+        "id":  "EV-1A62-CURRENT-RELEASE-MEDIUM-TWO-CORE-ROUNDS",
+        "run_id":  "1a6256c58e6e47379889525aade641a3",
+        "configuration":  "Release",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "product_binary_sha256":  "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+        "driver_source_sha":  "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+        "driver_binary_sha256":  "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+        "path":  "docs/reports/v1-evidence/1a62-current-core-chain-review.json",
+        "sha256":  "CFF545E5A81CEAF2A057C7350CCAE037D3A46BC9E5A85A0B203500CF6176DED2",
+        "repository_excerpt_path":  "docs/reports/v1-evidence/1a62-current-core-chain-excerpt.jsonl",
+        "repository_excerpt_sha256":  "AB5886F74FCC7379471B2FDF3996006C136F4B064E4AFE0333E8D8F859688F55",
+        "result":  "PASS_SCOPED_TWO_EXISTING_OWNED_CORE_ROUNDS_SAME_PRODUCT_PROCESS",
+        "scope":  "Actual current4f7/c249 Release/Medium existing core actions twice on PID3696;2199 driver rows. Physical product retained1000..1977/978rows plus earlier embedded receipts, not complete whole-run product history/all-history zero-late proof; no whole I-chain/score."
+    },
+    {
+        "id":  "EV-E03F-FRESH-DESKTOP-ENUMERATION-TEST-GATE-REJECTION",
+        "run_id":  "e03f5e0a1ac94487a07ada636b4adb7e",
+        "configuration":  "Release",
+        "product_source_sha":  "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+        "product_binary_sha256":  "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+        "driver_source_sha":  "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+        "driver_binary_sha256":  "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+        "path":  "docs/reports/v1-evidence/e03f-fresh-desktop-baseline-rejection-review.json",
+        "sha256":  "45EF18BD3FFE972EC4BA564BAF07E073A6BADC1C14F902CE90B24A5DCD65AAB6",
+        "repository_excerpt_path":  "docs/reports/v1-evidence/e03f-fresh-desktop-baseline-rejection-excerpt.jsonl",
+        "repository_excerpt_sha256":  "84D6C62820048CAC9AC9A58169309F2EDCB26F538E360D03F9E3CA0BD741CCEF",
+        "result":  "FAIL_ORIGINAL_TEST_BASELINE_UNKNOWN_GATE_PRODUCT_AND_EXPLORER_NOT_STARTED",
+        "scope":  "Fresh named desktop actual created; FALSE/error0/zero-callback EnumDesktopWindows remainedUNKNOWN and old strict TEST gate rejected before Explorer/product creation. DefaultShell unchanged, CloseDesktop returnedtrue; not an external MediumShell capability failure, product resultNOT_RUN."
+    },
+    {
         "id":  "EV-8D8A-HC-UI-SUBSET-AND-SCHEME-RESTORE-MISMATCH",
         "run_id":  "8d8a505f787f41f782e1b0fb2777dbaa",
         "configuration":  "Release",

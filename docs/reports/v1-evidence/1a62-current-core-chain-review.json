@@ -1,0 +1,617 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-1A62-CURRENT-RELEASE-MEDIUM-TWO-CORE-ROUNDS",
+  "kind": "independent_read_only_raw_review",
+  "run_id": "1a6256c58e6e47379889525aade641a3",
+  "suite": "CurrentCoreChainOnly",
+  "configuration": "Release",
+  "result": "PASS_SCOPED_TWO_EXISTING_OWNED_CORE_ROUNDS_SAME_PRODUCT_PROCESS",
+  "whole_integration_chain_or_version_PASS": false,
+  "identity": {
+    "product_source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+    "product_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
+    "driver_source_sha": "c24976d86a4dec30a739f66927be4334eeb0e3a7",
+    "driver_sha256": "2A0F95F51170DAA4D7C7330FB5CAD8FA680B3A3CBBF4D096667CC6A0A719CFB8",
+    "packaging_head": "9a6159c9182a7bae1c6a69e3f14ddf974d73c798",
+    "product_pid": 3696,
+    "product_birth_filetime_decimal": "134371032910969206",
+    "fixture_pid": 6332,
+    "fixture_tid": 6336,
+    "fixture_birth_filetime_decimal": "134371032909080588",
+    "initial_source_hwnds": [
+      131638,
+      131132,
+      131176
+    ],
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "environment": "Dedicated Windows Sandbox, active WinSta0/Default, Windows build26100.9711, one3050x1668 monitor/work3050x1596/DPI144. Exact task-owned native fixture inputs, not complete ordinary Shell desktop or third-party application validation.",
+    "actual_automated_guest_driver": true,
+    "product_restarted_between_rounds": false
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-release-fixture.jsonl",
+      "sha256": "0428F6E1F3E09739F07C4769F49ABD390115C6F5219B2D78D01A6C1486048277",
+      "bytes": 1511263,
+      "rows": 2199,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        2199
+      ],
+      "driver_source_matches_all_rows": true,
+      "FAIL_result_rows": 0
+    },
+    {
+      "path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-product-Release/panebind.log.jsonl.1",
+      "sha256": "50EFC62B795DB7B36C0EEEC486F907C2591D08DD5C2D6B8749EFA185DB737A54",
+      "bytes": 524772,
+      "rows": 502,
+      "legal_jsonl": true,
+      "continuous_original_sequences": [
+        1000,
+        1501
+      ]
+    },
+    {
+      "path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-product-Release/panebind.log.jsonl",
+      "sha256": "45536F5112A2006F94E80725B600DCCE8B320137325BF7E817C58558E350F62D",
+      "bytes": 503805,
+      "rows": 476,
+      "legal_jsonl": true,
+      "continuous_original_sequences": [
+        1502,
+        1977
+      ]
+    }
+  ],
+  "rotation_and_evidence_limit": {
+    "retained_product_original_sequences": [
+      1000,
+      1977
+    ],
+    "product_sequences_1_through_999": "Not retained as separate physical product log files after actual bounded rotation. Selected early product facts survive as original embedded JSON strings captured at runtime in the complete driver log. They are not reconstructed/re-labeled as a complete product raw stream.",
+    "embedded_receipt_comparison": "Where a referenced embedded product sequence is physically retained, the original JSON string can be compared with that exact original product row; early rotated-away sequences are supported by their actual driver-captured receipt and independent fixture geometry, not by a nonexistent final file.",
+    "rotation_limit": "Actual .1 is524772bytes: configured512KiB plus484bytes for one event. Do not claim every physical log file is strictly <=512KiB.",
+    "no_global_native_audit_claim": "Selected/retained receipts do not constitute every original native placement across P1..1977. No exhaustive global post-terminal-native-call0 claim is made from the incomplete retained product stream."
+  },
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/1a62-current-core-chain-excerpt.jsonl",
+    "sha256": "AB5886F74FCC7379471B2FDF3996006C136F4B064E4AFE0333E8D8F859688F55",
+    "rows": 92,
+    "bytes": 91734,
+    "driver_source_lines": [
+      3,
+      4,
+      5,
+      19,
+      24,
+      98,
+      205,
+      211,
+      222,
+      224,
+      226,
+      228,
+      230,
+      236,
+      249,
+      250,
+      251,
+      258,
+      259,
+      273,
+      274,
+      275,
+      291,
+      292,
+      305,
+      309,
+      360,
+      361,
+      512,
+      520,
+      529,
+      711,
+      732,
+      742,
+      934,
+      942,
+      943,
+      1017,
+      1041,
+      1050,
+      1113,
+      1120,
+      1225,
+      1231,
+      1242,
+      1244,
+      1246,
+      1248,
+      1250,
+      1256,
+      1269,
+      1270,
+      1271,
+      1278,
+      1279,
+      1295,
+      1296,
+      1297,
+      1312,
+      1313,
+      1314,
+      1326,
+      1331,
+      1382,
+      1383,
+      1534,
+      1542,
+      1551,
+      1729,
+      1750,
+      1760,
+      1952,
+      1960,
+      1961,
+      2035,
+      2059,
+      2068,
+      2131,
+      2138,
+      2174,
+      2181,
+      2182,
+      2189,
+      2194,
+      2195,
+      2199
+    ],
+    "product_current_physical_lines": [
+      222,
+      223,
+      252,
+      253,
+      475,
+      476
+    ],
+    "product_original_sequences": [
+      1723,
+      1724,
+      1753,
+      1754,
+      1976,
+      1977
+    ],
+    "literal_validation": "92 of92 original UTF-8 source-line strings, selected without reserializing raw JSON or64-bit integers. Driver lines precede current-product physical lines; this is not a merged native event timeline.",
+    "sensitive_content": "Only exact task-owned fixture identities/geometries/paths and public product UI facts. No raw SID or user document/window content."
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "generation_range": [
+        1,
+        26
+      ],
+      "completion_driver_line": 1120,
+      "product_pid": 3696,
+      "I02": {
+        "first_A_five_phases": [
+          112,
+          114,
+          116,
+          118,
+          120
+        ],
+        "Ctrl_A_members": [
+          137,
+          138,
+          139
+        ],
+        "B_five_phases": [
+          157,
+          159,
+          161,
+          163,
+          165
+        ],
+        "C_five_phases": [
+          182,
+          184,
+          186,
+          188,
+          190
+        ],
+        "actual_B_Resize": 205,
+        "B_Resize_UP": 211,
+        "post_Resize_A_five_phases": [
+          222,
+          224,
+          226,
+          228,
+          230
+        ],
+        "post_Resize_A_NormalUp": 236,
+        "Ctrl_C_members": [
+          249,
+          250,
+          251
+        ],
+        "Ctrl_C_NormalUp": 258,
+        "scope_marker": 259
+      },
+      "I03": {
+        "vertical_members": [
+          273,
+          274,
+          275
+        ],
+        "vertical_UP": 279,
+        "horizontal_members": [
+          290,
+          291,
+          292
+        ],
+        "horizontal_UP": 296,
+        "min_members": [
+          305,
+          306,
+          307
+        ],
+        "same_DOWN_pullback_members": [
+          310,
+          311,
+          312
+        ],
+        "same_DOWN_UP": 316,
+        "follow_Move": 327,
+        "form_L": 342,
+        "changed_Leader_members": [
+          360,
+          361
+        ],
+        "changed_Leader_UP": 365,
+        "local_fixture_resources_closed": 369
+      },
+      "I04_I05": {
+        "screen_edge_preview": 494,
+        "leave_cancel": 500,
+        "corner_preview": 505,
+        "unique_UP_corner_commit": 512,
+        "drag_out_restore": 520,
+        "registered_half_screen_hotkey": 529,
+        "post_dock_free_Move": 583,
+        "post_dock_resnap": 587,
+        "edge_stretch": 711,
+        "Shift_edge_stretch": 721,
+        "corner_stretch": 732,
+        "Shift_corner_stretch": 742,
+        "MoveRight": 748,
+        "mapping_change_actual_geometry": 805,
+        "non_target_unchanged": 809,
+        "local_fixture_windows_closed": 872
+      },
+      "I06": {
+        "held_actual_alpha_190": 934,
+        "transparent_Move": 936,
+        "NormalUp": 942,
+        "restored_actual_alpha_173": 943,
+        "shake_on_actual_tuple": 1017,
+        "shake_off_actual_tuple": 1041,
+        "actual_pause_restore": 1050,
+        "complete_marker": 1113
+      }
+    },
+    {
+      "round": 2,
+      "generation_range": [
+        27,
+        52
+      ],
+      "completion_driver_line": 2138,
+      "product_pid": 3696,
+      "I02": {
+        "first_A_five_phases": [
+          1132,
+          1134,
+          1136,
+          1138,
+          1140
+        ],
+        "Ctrl_A_members": [
+          1157,
+          1158,
+          1159
+        ],
+        "B_five_phases": [
+          1177,
+          1179,
+          1181,
+          1183,
+          1185
+        ],
+        "C_five_phases": [
+          1202,
+          1204,
+          1206,
+          1208,
+          1210
+        ],
+        "actual_B_Resize": 1225,
+        "B_Resize_UP": 1231,
+        "post_Resize_A_five_phases": [
+          1242,
+          1244,
+          1246,
+          1248,
+          1250
+        ],
+        "post_Resize_A_NormalUp": 1256,
+        "Ctrl_C_members": [
+          1269,
+          1270,
+          1271
+        ],
+        "Ctrl_C_NormalUp": 1278,
+        "scope_marker": 1279
+      },
+      "I03": {
+        "vertical_members": [
+          1295,
+          1296,
+          1297
+        ],
+        "vertical_UP": 1301,
+        "horizontal_members": [
+          1312,
+          1313,
+          1314
+        ],
+        "horizontal_UP": 1318,
+        "min_members": [
+          1327,
+          1328,
+          1329
+        ],
+        "same_DOWN_pullback_members": [
+          1332,
+          1333,
+          1334
+        ],
+        "same_DOWN_UP": 1338,
+        "follow_Move": 1349,
+        "form_L": 1364,
+        "changed_Leader_members": [
+          1382,
+          1383
+        ],
+        "changed_Leader_UP": 1387,
+        "local_fixture_resources_closed": 1391
+      },
+      "I04_I05": {
+        "screen_edge_preview": 1516,
+        "leave_cancel": 1522,
+        "corner_preview": 1527,
+        "unique_UP_corner_commit": 1534,
+        "drag_out_restore": 1542,
+        "registered_half_screen_hotkey": 1551,
+        "post_dock_free_Move": 1605,
+        "post_dock_resnap": 1609,
+        "edge_stretch": 1729,
+        "Shift_edge_stretch": 1739,
+        "corner_stretch": 1750,
+        "Shift_corner_stretch": 1760,
+        "mapping_change_actual_geometry": 1823,
+        "non_target_unchanged": 1827,
+        "local_fixture_windows_closed": 1890
+      },
+      "I06": {
+        "held_actual_alpha_190": 1952,
+        "transparent_Move": 1954,
+        "NormalUp": 1960,
+        "restored_actual_alpha_173": 1961,
+        "shake_on_actual_tuple": 2035,
+        "shake_off_actual_tuple": 2059,
+        "actual_pause_restore": 2068,
+        "complete_marker": 2131
+      }
+    }
+  ],
+  "key_independent_results": [
+    {
+      "scope": "Actual post-Resize A and Ctrl C in both continuous rounds",
+      "fact": "B's real native Resize ended at visible[414,80,674,288]. A then actually traversed free[114,120,374,480], XY[154,80,414,440], hold at that same exact rect without another native call, detach back to free and resnap. It was not replaced with a similar direct setup. Each subsequent Ctrl C produced actual A[176,98,436,458], B[436,98,696,306], C[436,278,696,458], actual matching UP/legacyUP/Gone/capture0; product PID/birth unchanged."
+    },
+    {
+      "scope": "I03 T/shared axes/min/pullback/L/source change",
+      "fact": "Both rounds independently read all participants after real input. Vertical sharedx560 left A[100,100,560,500], B[560,100,900,300], C[560,300,900,500]; horizontal moved sharedy330 without moving A; min capped sharedx600 and same original DOWN pullback reachedx540. Real ordinary follow-Move then formed L and changed Ctrl source; two actual L participants became[140,130,580,530] and[580,130,940,360]. Matching UP/capture0 and local window teardown were read; pure plans were not substituted for native actuals."
+    },
+    {
+      "scope": "Dock/Stretch/commands in both rounds",
+      "fact": "Each round observed preview, actual leave-to-cancel, corner preview with no premature discrete commit, then one normal_up_dock native exact[0,0,1525,798] on real UP. Drag-out restored the ordinary size from original DOWN; actual half-screen registered hotkey, post-Dock magnetic Move, real edge/Shift-edge/corner/Shift-corner double-click inputs and mapped geometry commands continued on the same product instance. Cross-screen I04 step and whole application matrix were not run."
+    },
+    {
+      "scope": "I06 alpha/topmost/Shake recovery in both rounds",
+      "fact": "TEST setup established actual original alpha173. During a genuine held Move actual alpha190/topmost was read; matching real UP led to actual173 restoration. Two genuine Shake trajectories separately changed actual tuple190/topmost on then173/non-topmost; public Pause restored actual173/non-topmost and Resume worked. Test setup is not a product operation or general third-party visual compatibility claim."
+    },
+    {
+      "scope": "Termination and no-late scope",
+      "fact": "Continuous Move/Resize scene records contain matching actual product UP, resource Raw/legacyUP, release/detach/Gone and terminal actual geometry/capture0. Subsequent normal phases use new generations. No new broad native claim audit is inferred from the rotated-away product history. Contextual corner double-click scenes preserve strict_UP_required=false and actual End4/nonNormal; they must not be rewritten as52 NormalUp gestures. Their literal corner_native_claims_at_or_after_test_UP0 fields are scoped observations, not an exhaustive global call count."
+    },
+    {
+      "scope": "Same instance and final public restoration",
+      "driver_lines": [
+        98,
+        1120,
+        2138,
+        2174,
+        2181,
+        2182,
+        2189,
+        2194,
+        2199
+      ],
+      "product_original_sequences": [
+        1977
+      ],
+      "fact": "Both core rounds used the same original PID3696 and birth without restarting. Public GUI restored the full original configuration; final idle/preview-hidden/capture0 facts preceded public Quit. The real process exited0; its actual shutdown reports own hooks/input/capture/association/overlay/writer/visual resources stopped and issued_native_completion_unknown=false. After that original fixture received real client DOWN and UP (counts0→1 each). Driver then actually removed own Raw/foreground hook and destroyed owned windows."
+    }
+  ],
+  "NF02_existing_product_timing": {
+    "source": {
+      "path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-product-Release/panebind.log.jsonl",
+      "physical_line": 475,
+      "original_product_sequence": 1976
+    },
+    "qpc_frequency": 10000000,
+    "clock_scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+    "mouse_callback": {
+      "samples": 521,
+      "discarded": 0,
+      "missing_clock": 0,
+      "reversed_clock": 0,
+      "conversion_overflow": 0,
+      "saturated": false,
+      "percentile": 99,
+      "percentile_bucket_upper_us": 999,
+      "maximum_us": 1287,
+      "excludes_downstream_CallNextHookEx": true
+    },
+    "hook_observed_to_postverify": {
+      "samples": 118,
+      "discarded": 38,
+      "missing_clock": 38,
+      "reversed_clock": 0,
+      "conversion_overflow": 0,
+      "saturated": false,
+      "percentile": 95,
+      "percentile_bucket_upper_us": 20000,
+      "maximum_us": 161869,
+      "sample_unit": "native_placement",
+      "not_physical_display_latency": true,
+      "unfinished_calls": 0
+    },
+    "histogram_scope": "Actual existing summary exports sample/discard counts, selected percentile bucket upper bound and maximum, not a full bucket-count histogram. No new histogram or percentile was synthesized from the incomplete retained receipt subset.",
+    "long_tail_observations": [
+      {
+        "original_product_sequence": 748,
+        "source": "D732.receipt (runtime-captured original product JSON; physical product row rotated away)",
+        "generation": 22,
+        "reason": "double_click_stretch",
+        "hook_qpc": 536259810,
+        "native_before_qpc": 537769062,
+        "native_after_qpc": 537864095,
+        "post_qpc": 537878492,
+        "hook_to_post_us": 161868.2,
+        "native_API_us": 9503.3
+      },
+      {
+        "original_product_sequence": 778,
+        "source": "D742.receipt (runtime-captured original product JSON; physical product row rotated away)",
+        "generation": 23,
+        "reason": "double_click_stretch",
+        "hook_qpc": 540971614,
+        "native_before_qpc": 542287115,
+        "native_after_qpc": 542376906,
+        "post_qpc": 542389821,
+        "hook_to_post_us": 141820.7,
+        "native_API_us": 8979.1
+      },
+      {
+        "original_product_sequence": 1723,
+        "source": "current product physical line222 / D1750.receipt",
+        "generation": 48,
+        "reason": "double_click_stretch",
+        "hook_qpc": 860325591,
+        "native_before_qpc": 861833524,
+        "native_after_qpc": 861919710,
+        "post_qpc": 861933667,
+        "hook_to_post_us": 160807.6,
+        "native_API_us": 8618.6
+      },
+      {
+        "original_product_sequence": 1753,
+        "source": "current product physical line252 / D1760.receipt",
+        "generation": 49,
+        "reason": "double_click_stretch",
+        "hook_qpc": 865040607,
+        "native_before_qpc": 866354614,
+        "native_after_qpc": 866452752,
+        "post_qpc": 866468145,
+        "hook_to_post_us": 142753.8,
+        "native_API_us": 9813.8
+      }
+    ],
+    "verdict": "Current same-machine software callback p99 bucket999us and hook-to-postverify p95 bucket20000us are actual observations. Maximum161869us and four localized >100ms corner double-click-stretch tails remain visible; native API portion of the max sample is9503.3us. This does not prove continuous Move has a161ms native call or persistent display stalls. Full experience/physical display latency and cross-machine performance are not awarded.",
+    "not_physical_display_latency": true,
+    "new_performance_run": false
+  },
+  "finite_resource_samples": {
+    "before": {
+      "driver_line": 98,
+      "handles": 286,
+      "GDI": 21,
+      "USER": 32,
+      "working_bytes": 27099136,
+      "private_commit_bytes": 3772416,
+      "qpc": 320974878
+    },
+    "after": {
+      "driver_line": 2181,
+      "handles": 290,
+      "GDI": 26,
+      "USER": 32,
+      "working_bytes": 38244352,
+      "private_commit_bytes": 4825088,
+      "qpc": 970319518
+    },
+    "interpretation": "Two actual samples after warmup/two core rounds; finite changes+4handles/+5GDI/+0USER. Not a monotonic/unbounded-growth proof, not idle60CPU measurement, and not a replacement for remaining I11 mixed900seconds."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/1a6256c58e6e47379889525aade641a3/package-receipt.json",
+    "zip_sha256": "40874EB9659799C92093BB5DB65361D0739D36ADF0CC03E64E8ED15DF52D5552",
+    "manifest_sha256": "20F77AD3EFDE93B97EDFC67566A8D6846190220149009EE5E0C18C900AB3DC96",
+    "wsb_sha256": "A32BD61B5AD82CD66A0EFD47B2B34B37F4AD3DBE4D0615F4650342D9389581A8"
+  },
+  "collection_and_cleanup": {
+    "collection_receipt": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/collection-receipt.json",
+    "collection_sha256": "A039BE6254AB5074D6128B9646D795046C034AE7E8C1C739453791CA5083A845",
+    "guest_summary_path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-guest-summary.json",
+    "guest_summary_sha256": "25F7DA7E07DADF4D3F38424DC5C40BB2B1AFE79DD4C3B5BE6DB05563B613F3EB",
+    "launch_path": "uat/v1-control/1a6256c58e6e47379889525aade641a3/collection-20261022T004336154Z-8faf4b8e0efd417e90c3e548d31f072c/1a6256c58e6e47379889525aade641a3-Release-launch.json",
+    "launch_sha256": "59EFBF1E183154A3DED55BFB392E97C1EE578D00465A40B35073D762AFDB49B1",
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "cleanup_receipt": "uat/v1-control/1a6256c58e6e47379889525aade641a3/cleanup-receipt.json",
+    "cleanup_sha256": "AF3FD0EFB612CC36DB0C3BE35A64366863FF2D9CE4BBC7A7BCF53C354A20E941",
+    "own_guest_pid": 8260,
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "current_core_rounds": "PASS_SCOPED actual current Release/Medium owned-native I02/I03/I04/I05/I06 core actions twice without product restart; same instance and real post-exit client recovery.",
+    "not_awarded": [
+      "whole I01..I12",
+      "whole I11",
+      "mixed900seconds rerun",
+      "idle60CPU",
+      "Explorer I02",
+      "five real applications",
+      "complete ordinary Medium Shell desktop",
+      "cross-screen/negative-work-origin/mixed-DPI",
+      "whole module or version acceptance",
+      "human UAT"
+    ],
+    "new_score_awarded": false,
+    "human_UAT": "NOT_RUN",
+    "host_input": "NOT_RUN"
+  }
+}
