@@ -194,24 +194,64 @@ class MediumDesktopProductGeometryCase {
         if(retired())return false;
         if(continuation_ready_)return capture_route();
         if(!native_threshold_step_)return false;
-        // Handoff can become ready between the first threshold decision and
-        // this final send check. Only this exact generation's actual shield
-        // may replace source-owned native capture; never accept foreign GUI.
-        if(capture_route())return true;
-        GUITHREADINFO gui{sizeof(gui)};
+        // A threshold kick is not continuation. If native MoveSize or the
+        // shield takes over during this read, discard the unissued kick and
+        // wait for the real handoff instead of sending into that transition.
+        GUITHREADINFO gui{sizeof(gui)};POINT point{};
         return GetGUIThreadInfo(target_tid_,&gui)&&(!gui.hwndCapture||gui.hwndCapture==target_)&&
-            (!gui.hwndMoveSize||gui.hwndMoveSize==target_)&&!gui.hwndMenuOwner&&
-            !(gui.flags&(GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE));
+            !gui.hwndMoveSize&&!gui.hwndMenuOwner&&
+            !(gui.flags&(GUI_INMOVESIZE|GUI_INMENUMODE|GUI_SYSTEMMENUMODE|GUI_POPUPMENUMODE))&&
+            down_anchor_&&GetCursorPos(&point)&&point.x==down_anchor_->x&&point.y==down_anchor_->y;
     }
-    void send_mouse(DWORD flags,POINT point,bool cursor,bool up=false,bool cleanup=false){
+    bool skip_unissued_threshold(const char* stage,bool guard_changed){
+        // A threshold is only a TEST kick for a still-idle native DOWN. A
+        // real START/MoveSize or an in-progress handoff makes it unnecessary.
+        // Dropping an unissued kick is NOT permission to send through unknown
+        // GUI state: the normal real START/END/capture gate must still pass.
+        if(!admission()||!target_exact()||GetForegroundWindow()!=target_||!generation_||
+            !down_inserted_||up_attempted_||retired())
+            throw std::runtime_error("geometry_native_threshold_source_or_generation_revoked");
+        const auto started=row(0,"native_move_start",generation_),ready=row(0,"gesture_start",generation_),
+            capture=row(0,"gesture_input_resource",generation_,"capture_ready");
+        GUITHREADINFO gui{sizeof(gui)};const bool gui_known=GetGUIThreadInfo(target_tid_,&gui)!=FALSE;
+        const bool own_native=gui_known&&gui.hwndMoveSize==target_&&
+            (!gui.hwndCapture||gui.hwndCapture==target_)&&!gui.hwndMenuOwner;
+        const bool matching_start=!started.empty()&&number(started,"\"source\":")==reinterpret_cast<std::uintptr_t>(target_)&&
+            number(started,"\"event_tid\":")==target_tid_&&number(started,"\"original_DOWN_qpc\":")>=down_qpc_;
+        const bool matching_ready=!ready.empty()&&number(ready,"\"key\":")==source_key_;
+        const bool matching_capture=!capture.empty()&&number(capture,"\"source\":")==reinterpret_cast<std::uintptr_t>(target_)&&
+            number(capture,"\"source_pid\":")==target_pid_&&number(capture,"\"source_tid\":")==target_tid_&&
+            number(capture,"\"resource_observed_qpc\":")>=down_qpc_;
+        const bool progressed=matching_start||matching_ready||matching_capture||own_native;
+        if(!guard_changed&&!progressed)return false;
+        out_.emit("medium_product_geometry_threshold_not_sent","\"generation\":"+std::to_string(generation_)+
+            ",\"stage\":"+quote(stage)+",\"reason\":"+quote(progressed?"real_native_or_handoff_already_progressed":"fresh_GUI_guard_changed_wait_for_actual_handoff")+
+            ",\"matching_actual_START\":"+(matching_start?"true":"false")+",\"matching_actual_gesture_start\":"+(matching_ready?"true":"false")+
+            ",\"matching_actual_capture_ready\":"+(matching_capture?"true":"false")+",\"source_GUI_known\":"+(gui_known?"true":"false")+
+            ",\"actual_source_capture\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndCapture)):"null")+
+            ",\"actual_source_MoveSize\":"+(gui_known?std::to_string(reinterpret_cast<std::uintptr_t>(gui.hwndMoveSize)):"null")+
+            ",\"SendInput_attempted\":false,\"cursor_readback_required\":false,\"input_or_write_authority_granted\":false,\"threshold_retried\":false");
+        return true;
+    }
+    bool send_mouse(DWORD flags,POINT point,bool cursor,bool up=false,bool cleanup=false){
         // The normal release contains a final MOVE. Once a real terminal
         // fact is observed it may not send that MOVE, even if capture has
         // not yet been released. Abort cleanup remains a separate single UP.
         const auto allowed=[&]{return admission()&&target_exact()&&(up?((cleanup||!retired())&&up_target(cleanup)):
             fresh_move_route(flags));};
-        if(!allowed()||!lease_->begin())throw std::runtime_error("geometry_Run_input_target_or_lease_rejected");
+        const bool threshold=native_threshold_step_&&!continuation_ready_&&!up&&flags==MOUSEEVENTF_MOVE;
+        if(threshold&&skip_unissued_threshold("before_first_guard",false))return false;
+        if(!allowed()){
+            if(threshold&&skip_unissued_threshold("first_fresh_guard_changed",true))return false;
+            throw std::runtime_error("geometry_Run_input_target_or_lease_rejected");
+        }
+        if(!lease_->begin())throw std::runtime_error("geometry_Run_input_target_or_lease_rejected");
         struct End {MediumDesktopUiInputLease& value;~End(){value.end();}} end{*lease_};
-        if(!allowed())throw std::runtime_error("geometry_input_revoked_after_inflight_claim");
+        if(threshold&&skip_unissued_threshold("after_inflight_claim",false))return false;
+        if(!allowed()){
+            if(threshold&&skip_unissued_threshold("second_fresh_guard_changed",true))return false;
+            throw std::runtime_error("geometry_input_revoked_after_inflight_claim");
+        }
         std::array<INPUT,2> packets{};UINT count=1;for(auto& packet:packets){packet.type=INPUT_MOUSE;packet.mi.dwExtraInfo=0x50425631;}
         const bool serial_up=up&&!cleanup;HWND release_hit{};
         if(serial_up){
@@ -246,11 +286,13 @@ class MediumDesktopProductGeometryCase {
             ",\"short_error\":"+std::to_string(error)+",\"before_qpc\":"+std::to_string(before.QuadPart)+",\"after_qpc\":"+(after_known?std::to_string(after.QuadPart):"null")+
             ",\"cleanup_only\":"+(cleanup?"true":"false")+",\"Default_helpers_used\":false,\"API_insert_not_product_delivery\":true");
         if(inserted!=count)throw std::runtime_error("geometry_input_short_insert_no_replay");
+        return true;
     }
-    void cursor(POINT point){
-        send_mouse(MOUSEEVENTF_MOVE,point,true);POINT actual{};
+    bool cursor(POINT point){
+        if(!send_mouse(MOUSEEVENTF_MOVE,point,true))return false;POINT actual{};
         if(!wait_for([&]{return target_exact()&&GetCursorPos(&actual)&&actual.x==point.x&&actual.y==point.y;},200))
             throw std::runtime_error("geometry_actual_cursor_not_exact");
+        return true;
     }
     void one_gesture(int region,LONG dx,LONG dy,const char* phase){
         if(!admission()||!target_exact()||!status()||!no_buttons())throw std::runtime_error("geometry_fresh_idle_not_ready");
@@ -279,13 +321,12 @@ class MediumDesktopProductGeometryCase {
             generation_=id;source_key_=number(pending,"\"source_key\":");
             out_.emit("medium_product_geometry_actual_DOWN","\"phase\":"+quote(phase)+",\"receipt\":"+quote(pending));return true;},1000))
             throw std::runtime_error("geometry_actual_native_pending_DOWN_not_observed");
-        // Exactly one real drag-threshold MOVE, retaining the original DOWN
-        // anchor. Native START/END must come from product's real WinEvents.
+        // At most one real drag-threshold MOVE, only while native entry has
+        // not progressed. A skipped/unissued kick still waits for the same
+        // real START/END/capture gate below, with the original DOWN anchor.
         const LONG threshold=GetSystemMetrics(SM_CXDRAG);
         if(threshold<0||threshold>128)throw std::runtime_error("geometry_system_drag_metric_unknown");
-        if(!capture_route()){
-            native_threshold_step_=true;cursor({anchor.x+threshold+1,anchor.y});native_threshold_step_=false;
-        }
+        native_threshold_step_=true;cursor({anchor.x+threshold+1,anchor.y});native_threshold_step_=false;
         if(!wait_for([&]{if(retired())throw std::runtime_error("geometry_terminated_before_CAPTURE_READY");
             const auto started=row(mark,"native_move_start",generation_),ended=row(mark,"native_move_end",generation_),ready=row(mark,"gesture_start",generation_);
             const auto same_source=[&](const std::string& actual){return !actual.empty()&&
