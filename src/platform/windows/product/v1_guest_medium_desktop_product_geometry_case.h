@@ -1,10 +1,12 @@
 #pragma once
 
-// TEST ONLY: one manifest-carried, exact new Terminal or explicitly selected
-// new Explorer file-window under the already
-// running ordinary product on this Run desktop. No Default input helper,
-// product permission override, test placement, fake START/END or client nonce.
+// TEST ONLY: the same frozen production EXE on an exact manifest-bound Run.
+// The Terminal functional case uses existing diagnostic observations; the
+// Explorer branch retains its ordinary entry. Only the new owned blank
+// neighbour receives TEST setup placement. No private product writer, Default
+// input helper, permission override, fake START/END or client nonce is used.
 #include "platform/windows/product/v1_guest_medium_desktop_explorer_target.h"
+#include "platform/windows/product/v1_guest_medium_desktop_magnet_target.h"
 class MediumDesktopProductGeometryCase {
     const std::wstring& run_;HDESK desktop_;const fs::path& product_;
     HANDLE product_process_;DWORD product_pid_;std::uint64_t product_birth_,launch_tick_;
@@ -19,7 +21,10 @@ class MediumDesktopProductGeometryCase {
     HWND target_{};fs::path target_image_;product::guest::ProductLogEvidence evidence_;
     bool explorer_case_{};std::wstring target_class_{L"CASCADIA_HOSTING_WINDOW_CLASS"};
     std::unique_ptr<MediumExplorerGeometryTarget> explorer_;
-    bool down_inserted_{},up_attempted_{},up_inserted_{};std::uint64_t down_qpc_{},up_qpc_{};
+    std::unique_ptr<MediumDesktopMagnetTarget> magnet_;
+    bool magnet_completed_{},ctrl_completed_{},control_inserted_{},control_release_attempted_{},control_release_observed_{true};
+    POINT last_sample_{};ULONGLONG last_sample_tick_{};UINT pacing_dpi_{};
+    bool down_inserted_{},up_attempted_{},up_inserted_{};std::uint64_t down_qpc_{},up_qpc_{},last_mouse_qpc_{};
     bool native_threshold_step_{},continuation_ready_{};
     std::optional<POINT> down_anchor_;HWND down_hit_{};int down_region_{};
     unsigned notifications_{};std::string terminal_reason_;
@@ -66,8 +71,8 @@ class MediumDesktopProductGeometryCase {
         return CloseDesktop(input)!=FALSE&&active;
     }
     bool admission()const{return GetTickCount64()<deadline_&&lease_&&lease_->valid()&&!lease_->retired()&&base_context();}
-    bool target_exact()const{
-        if((explorer_&&!explorer_->guard())||!target_process_||!target_pid_||!target_birth_||GetProcessId(target_process_)!=target_pid_||
+    bool target_exact(bool require_neighbour=true)const{
+        if((explorer_&&!explorer_->guard())||(require_neighbour&&magnet_&&!magnet_->exact())||!target_process_||!target_pid_||!target_birth_||GetProcessId(target_process_)!=target_pid_||
            process_birth(target_process_)!=target_birth_||WaitForSingleObject(target_process_,0)!=WAIT_TIMEOUT||
            !medium(target_process_)||!input_actor_same_user(target_process_)||
            !equal(medium_desktop_image(target_process_),target_image_.wstring()))return false;
@@ -258,7 +263,7 @@ class MediumDesktopProductGeometryCase {
         // The normal release contains a final MOVE. Once a real terminal
         // fact is observed it may not send that MOVE, even if capture has
         // not yet been released. Abort cleanup remains a separate single UP.
-        const auto allowed=[&]{return admission()&&target_exact()&&(up?((cleanup||!retired())&&up_target(cleanup)):
+        const auto allowed=[&]{return admission()&&target_exact()&&control_state()&&(up?((cleanup||!retired())&&up_target(cleanup)):
             fresh_move_route(flags));};
         const bool threshold=native_threshold_step_&&!continuation_ready_&&!up&&flags==MOUSEEVENTF_MOVE;
         if(threshold&&skip_unissued_threshold("before_first_guard",false))return false;
@@ -294,11 +299,12 @@ class MediumDesktopProductGeometryCase {
         if(flags&MOUSEEVENTF_LEFTDOWN)lease_->incomplete_pair.store(true,std::memory_order_release);
         if(up)up_attempted_=true;
         out_.input_attempted=true;SetLastError(ERROR_SUCCESS);const UINT inserted=SendInput(count,packets.data(),sizeof(INPUT));const auto error=inserted==count?0:GetLastError();
+        last_mouse_qpc_=static_cast<std::uint64_t>(before.QuadPart);
         const bool after_known=QueryPerformanceCounter(&after)!=FALSE;out_.input_inserted=out_.input_inserted||inserted>0;
         if(flags&MOUSEEVENTF_LEFTDOWN){down_inserted_=inserted==1;down_qpc_=static_cast<std::uint64_t>(before.QuadPart);
-            if(!down_inserted_)lease_->incomplete_pair.store(false,std::memory_order_release);}
+            if(!down_inserted_)lease_->incomplete_pair.store(control_inserted_,std::memory_order_release);}
         if(up){up_inserted_=inserted==count;up_qpc_=static_cast<std::uint64_t>(before.QuadPart);
-            if(up_inserted_)lease_->incomplete_pair.store(false,std::memory_order_release);}
+            if(up_inserted_)lease_->incomplete_pair.store(control_inserted_,std::memory_order_release);}
         out_.emit("medium_product_geometry_input","\"generation\":"+std::to_string(generation_)+",\"packet_count\":"+std::to_string(count)+
             ",\"mouse_flags\":["+std::to_string(packet.mi.dwFlags)+(serial_up?","+std::to_string(packets[1].mi.dwFlags):"")+
             "],\"single_UP_packet_index\":"+(up?std::to_string(count-1):"null")+
@@ -315,7 +321,90 @@ class MediumDesktopProductGeometryCase {
             throw std::runtime_error("geometry_actual_cursor_not_exact");
         return true;
     }
-    void one_gesture(int region,LONG dx,LONG dy,const char* phase){
+    bool control_state()const{
+        const bool left=(GetAsyncKeyState(VK_LCONTROL)&0x8000)!=0,right=(GetAsyncKeyState(VK_RCONTROL)&0x8000)!=0;
+        return control_inserted_?left&&!right:!left&&!right;
+    }
+    void control(bool down,bool cleanup=false){
+        if(down?(control_inserted_||!no_buttons()):( !control_inserted_||control_release_attempted_))
+            throw std::runtime_error("geometry_TEST_Ctrl_pair_not_owned_or_already_released");
+        const auto allowed=[&]{return (cleanup?base_context():admission())&&target_exact(!cleanup)&&GetForegroundWindow()==target_;};
+        if(!allowed()||!lease_||!lease_->valid())throw std::runtime_error("geometry_TEST_Ctrl_context_not_exact");
+        bool claimed=lease_->begin();bool retired_cleanup=false;
+        if(!claimed&&cleanup&&!down&&control_inserted_){
+            // Only this successfully inserted TEST key's one abort UP may
+            // claim an otherwise idle retired lease. New input stays retired.
+            if(!ResetEvent(lease_->input_done))throw std::runtime_error("geometry_TEST_Ctrl_cleanup_event_failed");
+            unsigned expected=MediumDesktopUiInputLease::retired_bit;
+            claimed=lease_->flags.compare_exchange_strong(expected,MediumDesktopUiInputLease::retired_bit|MediumDesktopUiInputLease::in_flight,
+                std::memory_order_acq_rel);retired_cleanup=claimed;
+        }
+        if(!claimed)throw std::runtime_error("geometry_TEST_Ctrl_lease_rejected");
+        struct End{MediumDesktopUiInputLease& value;~End(){value.end();}} end{*lease_};
+        if(!allowed()||(!down&&!control_inserted_))throw std::runtime_error("geometry_TEST_Ctrl_revoked_before_native_input");
+        INPUT packet{};packet.type=INPUT_KEYBOARD;packet.ki.wVk=VK_LCONTROL;packet.ki.dwExtraInfo=0x50425631;
+        if(!down)packet.ki.dwFlags=KEYEVENTF_KEYUP;
+        LARGE_INTEGER before{},after{};if(!QueryPerformanceCounter(&before))throw std::runtime_error("geometry_TEST_Ctrl_clock_unknown");
+        if(down)lease_->incomplete_pair.store(true,std::memory_order_release);else control_release_attempted_=true;
+        out_.input_attempted=true;SetLastError(ERROR_SUCCESS);const UINT inserted=SendInput(1,&packet,sizeof(packet));
+        const DWORD error=inserted==1?0:GetLastError();const bool clock=QueryPerformanceCounter(&after)!=FALSE;
+        out_.input_inserted=out_.input_inserted||inserted>0;
+        if(down){control_inserted_=inserted==1;if(control_inserted_)control_release_observed_=false;}
+        else if(inserted==1){control_inserted_=false;
+            control_release_observed_=wait_for([&]{return base_context()&&target_exact(!cleanup)&&GetForegroundWindow()==target_&&control_state();},200,!cleanup);}
+        const bool key_pair_unknown=control_inserted_||!control_release_observed_;
+        lease_->incomplete_pair.store(key_pair_unknown||(down_inserted_&&!up_inserted_),std::memory_order_release);
+        out_.emit("medium_product_geometry_TEST_Ctrl_input","\"DOWN\":"+std::string(down?"true":"false")+
+            ",\"SendInput_attempted\":true,\"SendInput_return\":"+std::to_string(inserted)+",\"short_error\":"+std::to_string(error)+
+            ",\"before_qpc\":"+std::to_string(before.QuadPart)+",\"after_qpc\":"+(clock?std::to_string(after.QuadPart):"null")+
+            ",\"owned_DOWN_still_held\":"+(control_inserted_?"true":"false")+",\"abort_cleanup_only\":"+(cleanup?"true":"false")+
+            ",\"Ctrl_release_state_observed\":"+(control_release_observed_?"true":"false")+
+            ",\"retired_lease_cleanup_claim\":"+(retired_cleanup?"true":"false")+",\"NormalUp_inferred\":false");
+        if(inserted!=1)throw std::runtime_error("geometry_TEST_Ctrl_short_insert_no_replay");
+        if(!down&&!control_release_observed_)throw std::runtime_error("geometry_TEST_Ctrl_release_state_unknown_no_replay");
+    }
+    void pace(POINT next){
+        const auto magnitude=[](LONG a,LONG b){const auto d=static_cast<long long>(a)-b;return static_cast<ULONGLONG>(d<0?-d:d);};
+        const auto distance=(std::max)(magnitude(next.x,last_sample_.x),magnitude(next.y,last_sample_.y));
+        const auto speed=static_cast<ULONGLONG>((static_cast<std::uint64_t>(2000)*pacing_dpi_+48)/96);
+        if(!speed||distance>2048)throw std::runtime_error("geometry_TEST_phase_speed_or_distance_invalid");
+        const auto required=(static_cast<ULONGLONG>(distance)*1000+speed-1)/speed+25;
+        const auto now=GetTickCount64();const auto elapsed=now-last_sample_tick_;
+        const DWORD remaining=elapsed<required?static_cast<DWORD>(required-elapsed):0;
+        if(remaining>1000||now+remaining>=deadline_)throw std::runtime_error("geometry_TEST_phase_pacing_deadline_insufficient");
+        const auto began=GetTickCount64();LARGE_INTEGER before{},after{};
+        if(!QueryPerformanceCounter(&before))throw std::runtime_error("geometry_TEST_phase_before_clock_unknown");
+        if(remaining){Handle timer(CreateWaitableTimerW(nullptr,TRUE,nullptr));if(!timer.value)throw std::runtime_error("geometry_TEST_phase_timer_create_failed");
+            LARGE_INTEGER due{};due.QuadPart=-static_cast<LONGLONG>(remaining)*10000;
+            if(!SetWaitableTimer(timer.value,&due,0,nullptr,nullptr,FALSE)||!wait_for([&]{return WaitForSingleObject(timer.value,0)==WAIT_OBJECT_0;},remaining+100,true,timer.value))
+                throw std::runtime_error("geometry_TEST_phase_one_shot_wait_failed");}
+        if(!QueryPerformanceCounter(&after))throw std::runtime_error("geometry_TEST_phase_after_clock_unknown");
+        if(retired()||!target_exact()||!capture_route()||!control_state())throw std::runtime_error("geometry_TEST_phase_retired_during_one_shot_wait");
+        out_.emit("medium_product_geometry_phase_pacing","\"generation\":"+std::to_string(generation_)+
+            ",\"from\":["+std::to_string(last_sample_.x)+","+std::to_string(last_sample_.y)+"],\"to\":["+std::to_string(next.x)+","+std::to_string(next.y)+
+            "],\"configured_speed_DIP_per_second\":2000,\"actual_DPI\":"+std::to_string(pacing_dpi_)+",\"speed_pixels_per_second\":"+std::to_string(speed)+
+            ",\"minimum_interval_ms\":"+std::to_string(required)+",\"one_shot_wait_requested_ms\":"+std::to_string(remaining)+
+            ",\"actual_wait_span_ms\":"+std::to_string(GetTickCount64()-began)+",\"before_qpc\":"+std::to_string(before.QuadPart)+
+            ",\"after_qpc\":"+std::to_string(after.QuadPart)+",\"polling\":false,\"product_clock_modified\":false");
+    }
+    std::string phase_placement(std::size_t mark,Rect expected,std::uint64_t key,std::uint64_t exclude=0){
+        (void)log();const auto suffix=evidence_.since(mark);if(!suffix)throw std::runtime_error("geometry_phase_log_mark_not_current_launch");
+        std::istringstream lines{std::string(*suffix)};std::string line,result;
+        while(std::getline(lines,line)){
+            const auto actual_key=number(line,"\"key\":");
+            if(line.find("\"type\":\"placement\"")==line.npos||number(line,"\"generation\":")!=generation_||
+               !actual_key||(key&&actual_key!=key)||(exclude&&actual_key==exclude)||
+               number(line,"\"hook_observed_qpc\":")<last_mouse_qpc_||
+               line.find("\"target\":"+rect(expected)+",")==line.npos||line.find("\"actual\":"+rect(expected)+",")==line.npos||
+               line.find("\"exact\":true")==line.npos||line.find("\"identity_valid\":true")==line.npos||
+               line.find("\"native_completion_known\":true")==line.npos||line.find("\"normal_up_completion\":false")==line.npos)continue;
+            const auto attempted=product::guest::up_evidence_detail::unique_value(line,"\"native_attempted\":");
+            if(!attempted||(*attempted!="true"&&*attempted!="false")||
+               (*attempted=="true"&&line.find("\"native_succeeded\":true")==line.npos))continue;
+            result=line;
+        }return result;
+    }
+    void one_gesture(int region,LONG dx,LONG dy,const char* phase,bool five=false,bool ctrl=false){
         if(!admission()||!refresh_target()||!admission()||!target_exact()||!status()||!no_buttons())throw std::runtime_error("geometry_fresh_idle_not_ready");
         const auto original=visible(target_);RECT positioning{};const auto original_dpi=GetDpiForWindow(target_);
         const auto original_monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);
@@ -331,13 +420,15 @@ class MediumDesktopProductGeometryCase {
                 SMTO_ABORTIFHUNG|SMTO_BLOCK,100,&actual_region)||static_cast<LRESULT>(actual_region)!=region||GetForegroundWindow()!=target_)
             throw std::runtime_error("geometry_fresh_actual_nonclient_hit_changed_before_DOWN");
         const auto mark=log().size();const auto anchor=*hit;down_anchor_=anchor;down_hit_=actual_hit;down_region_=region;
+        if(ctrl){control_release_attempted_=false;control(true);
+            if(!wait_for([&]{return control_state();},200))throw std::runtime_error("geometry_TEST_Ctrl_DOWN_not_observed");}
         send_mouse(MOUSEEVENTF_LEFTDOWN,anchor,false);
         if(!wait_for([&]{const auto pending=row(mark,"native_move_pending");if(pending.empty())return false;
             const auto id=number(pending,"\"generation\":");const auto expected="\"down_point\":["+std::to_string(anchor.x)+","+std::to_string(anchor.y)+"]";
             if(!id||id<=last_generation_||number(pending,"\"source\":")!=reinterpret_cast<std::uintptr_t>(target_)||
                 number(pending,"\"source_pid\":")!=target_pid_||number(pending,"\"source_tid\":")!=target_tid_||
                 !number(pending,"\"source_key\":")||number(pending,"\"down_hook_qpc\":")<down_qpc_||pending.find(expected)==pending.npos||
-                number(pending,"\"actual_DOWN_region\":")!=(region==HTCAPTION?0u:2u)||number(pending,"\"locked_modifiers\":")!=0)
+                number(pending,"\"actual_DOWN_region\":")!=(region==HTCAPTION?0u:2u)||number(pending,"\"locked_modifiers\":")!=(ctrl?2u:0u))
                 throw std::runtime_error("geometry_actual_DOWN_identity_generation_or_anchor_mismatch");
             generation_=id;source_key_=number(pending,"\"source_key\":");
             out_.emit("medium_product_geometry_actual_DOWN","\"phase\":"+quote(phase)+",\"receipt\":"+quote(pending));return true;},1000))
@@ -356,29 +447,75 @@ class MediumDesktopProductGeometryCase {
             return same_source(started)&&same_source(ended)&&number(started,"\"owner_sequence\":")&&
                 number(ended,"\"owner_sequence\":")>number(started,"\"owner_sequence\":")&&
                 number(ready,"\"key\":")==source_key_&&ready.find("\"native_first_handoff\":true")!=ready.npos&&
-                ready.find("\"ctrl\":false")!=ready.npos&&capture_route()&&
+                ready.find(ctrl?"\"ctrl\":true":"\"ctrl\":false")!=ready.npos&&
+                (!ctrl||(number(ready,"\"group_members\":")==2&&ready.find("\"original_DOWN_group_frozen\":true")!=ready.npos))&&capture_route()&&
                 ready.find(region==HTCAPTION?"\"resize\":false":"\"resize\":true")!=ready.npos;},1500))
             throw std::runtime_error("geometry_real_START_END_capture_handoff_not_observed");
         continuation_ready_=true;
-        const Rect expected=region==HTCAPTION?Rect{original->l+dx,original->t+dy,original->r+dx,original->b+dy}:
-            Rect{original->l,original->t,original->r+dx,original->b+dy};
-        const auto placement_mark=log().size();cursor({anchor.x+dx,anchor.y+dy});std::string placement;
-        if(!wait_for([&]{if(retired())throw std::runtime_error("geometry_terminated_before_target_completion");
-            placement=row(placement_mark,"placement",generation_);
-            // Ordinary no-argument product intentionally omits successful
-            // per-call diagnostics. Do not manufacture them or block the
-            // independent real geometry/termination observation for that.
-            return visible(target_)==expected&&capture_route();},1200))
-            throw std::runtime_error("geometry_actual_native_exact_target_not_observed");
-        RECT after{};const auto actual_visible=visible(target_);
-        if(!GetWindowRect(target_,&after)||!actual_visible||*actual_visible!=expected||GetDpiForWindow(target_)!=original_dpi||
-            MonitorFromWindow(target_,MONITOR_DEFAULTTONULL)!=original_monitor)throw std::runtime_error("geometry_positioning_monitor_DPI_postverify_unknown");
-        const auto per_call=product::guest::up_evidence_detail::unique_value(placement,"\"native_attempted\":");
-        out_.emit("medium_product_geometry_observed_geometry","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
-            ",\"original_visible\":"+rect(*original)+",\"actual_visible\":"+rect(*actual_visible)+
-            ",\"actual_positioning\":"+rect({after.left,after.top,after.right,after.bottom})+",\"actual_DPI\":"+std::to_string(original_dpi)+
-            ",\"native_attempt_from_per_call_receipt\":"+(per_call&&(*per_call=="true"||*per_call=="false")?std::string(*per_call):"null")+
-            ",\"production_per_call_receipt\":"+(placement.empty()?"null":quote(placement))+",\"missing_diagnostic_is_UNKNOWN\":true");
+        struct Phase {const char* name;LONG x,y;Rect expected;};
+        const auto pixels=[&](int dip){return static_cast<LONG>((static_cast<std::uint64_t>(dip)*original_dpi+48)/96);};
+        std::vector<Phase> phases;
+        const auto move=[&](LONG x,LONG y){return translated(*original,x,y);};
+        if(five){
+            if(!magnet_||region!=HTCAPTION||ctrl)throw std::runtime_error("geometry_five_phase_target_missing");
+            const LONG travel=pixels(40),entry=pixels(10),release=pixels(16),near=(std::max)(1L,entry/2),hold=(entry+release)/2;
+            if(entry<=0||hold<=entry||hold>=release||magnet_->initial.l-original->r!=travel||magnet_->initial.t-original->t!=travel)
+                throw std::runtime_error("geometry_independent_magnet_oracle_or_DPI_invalid");
+            phases={{"Free",-travel,-travel,move(-travel,-travel)},
+                {"XY_Snap",travel-near,travel+near,move(travel,travel)},
+                {"Hold_outside_entry_inside_release",travel-hold,travel+hold,move(travel,travel)},
+                {"Detach",-travel,-travel,move(-travel,-travel)},
+                {"Resnap",travel-near+1,travel+near,move(travel,travel)}};
+        }else phases.push_back({phase,dx,dy,region==HTCAPTION?move(dx,dy):Rect{original->l,original->t,original->r+dx,original->b+dy}});
+        const auto neighbour_before=magnet_?visible(magnet_->window()):std::optional<Rect>{};
+        if(magnet_&&(!neighbour_before||(!ctrl&&*neighbour_before!=magnet_->initial)))
+            throw std::runtime_error("geometry_neighbour_before_input_not_exact");
+        // The real handoff can move the cursor by the native threshold. Pace
+        // from that actual point, but never change the original DOWN anchor.
+        if(!GetCursorPos(&last_sample_))throw std::runtime_error("geometry_actual_pacing_origin_unknown");
+        last_sample_tick_=GetTickCount64();pacing_dpi_=original_dpi;
+        Rect expected{};
+        for(const auto& step:phases){
+            expected=step.expected;const POINT next{anchor.x+step.x,anchor.y+step.y};
+            if(five||ctrl)pace(next);
+            const auto placement_mark=log().size();cursor(next);last_sample_=next;last_sample_tick_=GetTickCount64();std::string placement,neighbour_receipt;
+            const auto expected_neighbour=ctrl&&neighbour_before?std::optional<Rect>{translated(*neighbour_before,step.x,step.y)}:neighbour_before;
+            if(!wait_for([&]{if(retired())throw std::runtime_error("geometry_terminated_before_target_completion");
+                placement=(five||ctrl)?phase_placement(placement_mark,expected,source_key_):row(placement_mark,"placement",generation_);
+                if(ctrl&&expected_neighbour)neighbour_receipt=phase_placement(placement_mark,*expected_neighbour,0,source_key_);
+                // Ordinary product omits successful per-call diagnostics.
+                // Real source AND neighbour geometry are the black-box oracle.
+                return (!(five||ctrl)||!placement.empty())&&(!ctrl||!neighbour_receipt.empty())&&visible(target_)==expected&&capture_route()&&(!magnet_||
+                    (magnet_->exact()&&visible(magnet_->window())==expected_neighbour));},1200))
+                throw std::runtime_error("geometry_actual_native_exact_source_or_neighbour_not_observed");
+            RECT after{},neighbour_position{};const auto actual_visible=visible(target_);
+            if(!GetWindowRect(target_,&after)||!actual_visible||*actual_visible!=expected||GetDpiForWindow(target_)!=original_dpi||
+                MonitorFromWindow(target_,MONITOR_DEFAULTTONULL)!=original_monitor||
+                (magnet_&&!GetWindowRect(magnet_->window(),&neighbour_position)))throw std::runtime_error("geometry_positioning_monitor_DPI_postverify_unknown");
+            const Rect original_positioning{positioning.left,positioning.top,positioning.right,positioning.bottom};
+            const Rect expected_positioning=region==HTCAPTION?translated(original_positioning,expected.l-original->l,expected.t-original->t):
+                Rect{positioning.left,positioning.top,positioning.right+step.x,positioning.bottom+step.y};
+            if(Rect{after.left,after.top,after.right,after.bottom}!=expected_positioning)
+                throw std::runtime_error("geometry_source_positioning_postverify_not_exact");
+            if(magnet_&&magnet_->positioning){const auto wanted=ctrl?translated(*magnet_->positioning,step.x,step.y):*magnet_->positioning;
+                if(Rect{neighbour_position.left,neighbour_position.top,neighbour_position.right,neighbour_position.bottom}!=wanted)
+                    throw std::runtime_error("geometry_neighbour_positioning_postverify_not_exact");}
+            const auto per_call=product::guest::up_evidence_detail::unique_value(placement,"\"native_attempted\":");
+            const Rect raw_intent=region==HTCAPTION?move(step.x,step.y):
+                Rect{original->l,original->t,original->r+step.x,original->b+step.y};
+            out_.emit("medium_product_geometry_observed_geometry","\"phase\":"+quote(step.name)+",\"generation\":"+std::to_string(generation_)+
+                ",\"original_visible\":"+rect(*original)+",\"raw_intent_from_original_DOWN\":"+rect(raw_intent)+
+                ",\"independent_expected_visible\":"+rect(expected)+",\"actual_visible\":"+rect(*actual_visible)+
+                ",\"actual_positioning\":"+rect({after.left,after.top,after.right,after.bottom})+",\"actual_DPI\":"+std::to_string(original_dpi)+
+                ",\"actual_neighbour_visible\":"+(magnet_?rect(*visible(magnet_->window())):"null")+
+                ",\"Ctrl_START_locked\":"+(ctrl?"true":"false")+",\"product_solver_used_for_expected\":false,\"TEST_one_MOVE_per_phase\":true"+
+                ",\"phase_consumption_from_fresh_placement_including_noop\":"+((five||ctrl)?"true":"null")+
+                ",\"diagnostic_mode_receipt_required\":"+((five||ctrl)?"true":"false")+
+                ",\"phase_SendInput_before_qpc\":"+std::to_string(last_mouse_qpc_)+
+                ",\"neighbour_production_receipt\":"+(neighbour_receipt.empty()?"null":quote(neighbour_receipt))+
+                ",\"native_attempt_from_per_call_receipt\":"+(per_call&&(*per_call=="true"||*per_call=="false")?std::string(*per_call):"null")+
+                ",\"production_per_call_receipt\":"+(placement.empty()?"null":quote(placement))+",\"missing_diagnostic_is_UNKNOWN\":true");
+        }
         const auto up_mark=log().size();send_mouse(MOUSEEVENTF_LEFTUP,{},false,true);std::string ended,legacy,gone,raw;
         if(!wait_for([&]{ended=row(up_mark,"gesture_end",generation_);legacy=row(up_mark,"gesture_input_resource",generation_,"legacy_left_up");
             gone=row(up_mark,"gesture_input_resource",generation_,"isolation_gone");raw=row(up_mark,"gesture_input_resource",generation_,"raw_mouse");
@@ -387,6 +524,7 @@ class MediumDesktopProductGeometryCase {
                 product::guest::matching_clean_captured_up(legacy,gone,expected_up)&&
                 (number(raw,"\"raw_button_flags\":")&RI_MOUSE_LEFT_BUTTON_UP)&&number(raw,"\"resource_observed_qpc\":")>=up_qpc_;
         },1200))throw std::runtime_error("geometry_actual_Raw_legacy_NormalUp_or_cleanup_not_observed");
+        if(ctrl){control(false);if(!wait_for([&]{return control_state();},200))throw std::runtime_error("geometry_TEST_Ctrl_UP_not_observed");}
         GUITHREADINFO gui{sizeof(gui)};if(!target_exact()||!GetGUIThreadInfo(target_tid_,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||
             visible(target_)!=expected||!status())throw std::runtime_error("geometry_terminal_context_or_idle_not_confirmed");
         out_.emit("medium_product_geometry_NormalUp","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
@@ -398,20 +536,65 @@ class MediumDesktopProductGeometryCase {
             ",\"aggregate_counter_is_not_per_call_API_receipt\":true");
         last_generation_=generation_;down_inserted_=false;
     }
-    static bool no_buttons(){for(int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RETURN,VK_ESCAPE})
-        if(GetAsyncKeyState(key)&0x8000)return false;return true;}
+    bool no_buttons()const{for(int key:{VK_LBUTTON,VK_RBUTTON,VK_MBUTTON,VK_XBUTTON1,VK_XBUTTON2,VK_CONTROL,VK_SHIFT,VK_MENU,VK_LWIN,VK_RWIN,VK_RETURN,VK_ESCAPE})
+        if((GetAsyncKeyState(key)&0x8000)&&!(key==VK_CONTROL&&control_inserted_&&control_state()))return false;return true;}
+    void prepare_magnet_target(){
+        if(explorer_case_||!admission()||!target_exact()||!no_buttons()||GetForegroundWindow()!=target_)
+            throw std::runtime_error("geometry_magnet_fresh_Terminal_context_required");
+        const auto original=visible(target_);const UINT dpi=GetDpiForWindow(target_);
+        const HMONITOR monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);MONITORINFO info{sizeof(info)};
+        if(!original||!dpi||dpi>384||!monitor||!GetMonitorInfoW(monitor,&info))throw std::runtime_error("geometry_magnet_actual_display_unknown");
+        const Rect work{info.rcWork.left,info.rcWork.top,info.rcWork.right,info.rcWork.bottom};
+        const auto pixels=[&](int dip){return static_cast<LONG>((static_cast<std::uint64_t>(dip)*dpi+48)/96);};
+        const LONG travel=pixels(40),padding=pixels(32);const Rect neighbour{original->r+travel,original->t+travel,
+            original->r+travel+pixels(200),original->t+travel+pixels(220)};
+        const auto fits=[&](Rect r){return r.width()>0&&r.height()>0&&r.l>=work.l+padding&&r.t>=work.t+padding&&
+            r.r<=work.r-padding&&r.b<=work.b-padding;};
+        if(!fits(*original)||!fits(translated(*original,-travel,-travel))||!fits(translated(*original,travel,travel))||
+           !fits(neighbour)||!fits(translated(neighbour,-pixels(24),pixels(24)))||
+           !fits(translated(*original,travel-pixels(24),travel+pixels(24))))
+            throw std::runtime_error("geometry_magnet_and_Ctrl_independent_layout_does_not_fit_actual_work_area");
+        const auto config_file=product_.parent_path()/L"settings.ini";SetLastError(ERROR_SUCCESS);
+        const auto attributes=GetFileAttributesW(config_file.c_str());const auto file_error=attributes==INVALID_FILE_ATTRIBUTES?GetLastError():0;
+        const bool absent=attributes==INVALID_FILE_ATTRIBUTES&&file_error==ERROR_FILE_NOT_FOUND;
+        auto configuration=v1::default_settings();std::string settings_hash;
+        if(!absent){
+            if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)))
+                throw std::runtime_error("geometry_magnet_portable_settings_identity_unknown");
+            const auto bytes=read(config_file);if(bytes.empty()||bytes.size()>65536)throw std::runtime_error("geometry_magnet_settings_size_invalid");
+            const auto parsed=v1::parse(bytes);if(!parsed.value)throw std::runtime_error("geometry_magnet_settings_invalid");
+            configuration=*parsed.value;settings_hash=hash(config_file);
+        }
+        if(!configuration.enabled||!configuration.magnet_move||!configuration.glue||!configuration.rules.empty()||
+           configuration.attraction_dip!=10||configuration.release_dip!=16||configuration.speed_dip!=2000||configuration.adjacency_dip!=2)
+            throw std::runtime_error("geometry_magnet_requires_actual_default_10_16_2000_2_settings");
+        out_.emit("medium_product_geometry_independent_magnet_oracle","\"source_visible\":"+rect(*original)+
+            ",\"work_area\":"+rect(work)+",\"actual_DPI\":"+std::to_string(dpi)+",\"attraction_DIP\":10,\"release_DIP\":16,\"adjacency_DIP\":2"+
+            ",\"attraction_pixels\":"+std::to_string(pixels(10))+",\"release_pixels\":"+std::to_string(pixels(16))+
+            ",\"travel_pixels\":"+std::to_string(travel)+",\"neighbour_visible\":"+rect(neighbour)+
+            ",\"expected_XY_snap\":"+rect(translated(*original,travel,travel))+
+            ",\"settings_basis\":"+quote(absent?"portable_settings_file_absent_actual_product_default":"actual_portable_settings_file_parsed")+
+            ",\"settings_sha256\":"+(settings_hash.empty()?"null":quote(settings_hash))+
+            ",\"product_solver_called_for_expected\":false,\"fixture_SetWindowPos_controls_only_new_blank_target\":true");
+        magnet_=std::make_unique<MediumDesktopMagnetTarget>();
+        magnet_->create(run_,desktop_,session_,target_,neighbour,dpi,monitor,work,out_);
+    }
     void cleanup_target()noexcept{
         try{
-            if(down_inserted_&&!up_attempted_){
-                if(up_target(true))send_mouse(MOUSEEVENTF_LEFTUP,{},false,true,true);
-                else out_.cleanup_known=false;
-            }
+            try{if(down_inserted_&&!up_attempted_){
+                    if(up_target(true))send_mouse(MOUSEEVENTF_LEFTUP,{},false,true,true);
+                    else out_.cleanup_known=false;
+                }}catch(...){out_.cleanup_known=false;}
             if(down_inserted_&&!up_inserted_)out_.cleanup_known=false;
+            if(control_inserted_&&!control_release_attempted_){
+                try{control(false,true);}catch(...){out_.cleanup_known=false;}
+            }
+            if(control_inserted_||!control_release_observed_)out_.cleanup_known=false;
             if(target_&&IsWindow(target_)){
                 target_closed_=false;
                 // Public ordinary close only after our known test pair is no
                 // longer held. Never terminate or retry an unverified window.
-                if((!down_inserted_||up_inserted_)&&refresh_target()&&target_exact()){
+                if((!down_inserted_||up_inserted_)&&!control_inserted_&&control_release_observed_&&refresh_target()&&target_exact(false)){
                     SetLastError(ERROR_SUCCESS);const bool sent=PostMessageW(target_,WM_CLOSE,0,0)!=FALSE;const auto error=sent?0:GetLastError();
                     target_closed_=sent&&wait_for([&]{return !IsWindow(target_);},1000,false);
                     DWORD code=STILL_ACTIVE;const bool known=target_process_&&GetExitCodeProcess(target_process_,&code);
@@ -522,11 +705,27 @@ public:
             if(made!=S_OK||queried!=S_OK||!current||!gui_known||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||GetForegroundWindow()!=target_)
                 throw std::runtime_error("geometry_actual_VDM_foreground_or_source_GUI_not_ready");
             one_gesture(HTCAPTION,72,36,"Move1");one_gesture(HTRIGHT,64,0,"Resize");one_gesture(HTCAPTION,-36,24,"SuccessorMove");
+            if(!explorer_case_){
+                prepare_magnet_target();one_gesture(HTCAPTION,0,0,"MagnetFivePhase",true);magnet_completed_=true;out_.magnet_completed=true;
+                const auto source=visible(target_),other=visible(magnet_->window());const UINT dpi=GetDpiForWindow(target_);
+                if(!source||!other||source->r!=other->l||source->t!=other->t||source->b<=other->t||!magnet_->exact())
+                    throw std::runtime_error("geometry_Ctrl_actual_adjacency_not_observed");
+                const LONG step=static_cast<LONG>((static_cast<std::uint64_t>(24)*dpi+48)/96);
+                out_.emit("medium_product_geometry_Ctrl_adjacency","\"source_actual\":"+rect(*source)+",\"neighbour_actual\":"+rect(*other)+
+                    ",\"shared_edge_exact\":true,\"test_controlled_members\":2,\"group_motion_expected_delta\":["+std::to_string(-step)+","+std::to_string(step)+"]");
+                one_gesture(HTCAPTION,-step,step,"CtrlAdjacentMove",false,true);ctrl_completed_=true;out_.ctrl_completed=true;
+            }
             out_.completed=true;out_.reason=explorer_case_?"one_new_Explorer_Move_UP_Resize_UP_successor_Move_UP_only":
-                "one_new_Terminal_Move_UP_Resize_UP_successor_Move_UP_only";
-        }catch(const std::exception& error){out_.reason=error.what();out_.completed=false;}
+                "one_new_Terminal_three_geometry_gestures_then_five_phase_magnet_and_two_member_Ctrl_Move_only";
+        }catch(const std::exception& error){out_.reason=error.what();out_.completed=false;
+            // An abort release/closing the source is not NormalUp or proof
+            // that a new Ctrl/five-phase writer's resources have retired.
+            if(magnet_&&(down_inserted_||control_inserted_||!control_release_observed_))out_.cleanup_known=false;}
         catch(...){out_.reason="geometry_unexpected_exception";out_.completed=false;out_.cleanup_known=false;}
         cleanup_target();
+        if(magnet_){const bool stopped=magnet_->finish();out_.cleanup_known=out_.cleanup_known&&stopped;
+            out_.emit("medium_product_geometry_blank_target_cleanup","\"owner_DestroyWindow_and_UnregisterClass_confirmed\":"+std::string(stopped?"true":"false")+
+                ",\"foreign_target_closed\":false,\"test_Ctrl_pair_still_held\":"+(control_inserted_?"true":"false"));}
         if(explorer_){explorer_->finish();const bool known=explorer_->cleanup_known();out_.cleanup_known=out_.cleanup_known&&known;
             out_.emit("medium_product_Explorer_adapter_cleanup","\"observer_and_launcher_handles_cleanup_known\":"+std::string(known?"true":"false")+
                 ",\"observer_retire_attempted\":"+(explorer_->retire_attempted()?"true":"false")+
@@ -544,7 +743,9 @@ public:
             ",\"test_pair_still_unknown\":"+(lease_&&lease_->incomplete_pair.load()?"true":"false")+
             ",\"own_hook_stopped\":"+(resources_.hook_ok?"true":"false")+",\"own_handles_closed\":"+
             (resources_.process_ok&&resources_.thread_ok&&resources_.event_ok&&change_closed_&&(!explorer_||explorer_->handles_closed())?"true":"false")+
-            ",\"client_nonce_or_content\":\"NOT_RUN\",\"Ctrl_Glue\":\"NOT_RUN\",\"five_applications_or_whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
+            ",\"client_nonce_or_content\":\"NOT_RUN\",\"five_phase_magnet_completed\":"+(magnet_completed_?"true":"false")+
+            ",\"Ctrl_Glue\":"+quote(ctrl_completed_?"SCOPED_TWO_MEMBER_MOVE_COMPLETED":"NOT_COMPLETED")+
+            ",\"five_applications_or_whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");
     }
 };
 

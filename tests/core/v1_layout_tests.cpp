@@ -1,4 +1,5 @@
 #include "core/v1/layout.h"
+#include "core/geometry/magnet_constraint_solver.h"
 
 #include <array>
 #include <cstdlib>
@@ -109,6 +110,22 @@ void shared_resize() {
     auto overlap=pair; overlap[1].visible={490,100,900,500};
     expect(!v::resize_group(overlap,1,right,{5,0},20).accepted,"positive-area overlapping layout rejected");
     expect(!v::resize_group(four,1,{true,false,true,false},{5,0},0).accepted,"ambiguous opposing active edges rejected");
+    namespace m=panebind::core::magnet;
+    const auto g04_source=item(1,{100,100,490,400},300);
+    const auto g04_plan=v::resize_single(g04_source,right,{104,0});
+    expect(g04_plan.accepted && actual(g04_plan,1)==Rect{100,100,594,400},"G04 production Resize plan preserves the three inactive edges");
+    const std::array g04_targets{m::MagnetTarget{panebind::core::model::WindowId{"G04-neighbor"},{600,100,1000,500},false}};
+    m::MagnetInput g04_request;
+    g04_request.initial=g04_source.visible;g04_request.raw=actual(g04_plan,1);g04_request.targets=g04_targets;
+    g04_request.interaction=m::Interaction::Resize;g04_request.edges={false,false,true,false};g04_request.latched_resize=true;
+    g04_request.options.attraction_distance=10;g04_request.options.max_targets=256;
+    // Independent 104px / 100ms sample is below the 2000px/s policy.
+    g04_request.motion=m::MotionSample{g04_source.visible,100,200,1000,2000};
+    const auto g04=m::MagnetConstraintSolver::solve(g04_request);
+    expect(g04.proposal && g04.proposal->corrected==Rect{100,100,600,400} &&
+        g04.proposal->move_delta==panebind::core::geometry::Point{} &&
+        g04.proposal->edges==m::ParticipatingEdges{false,false,true,false} &&
+        g04.proposal->selected_x && !g04.proposal->selected_y,"G04 exact594 to600 Resize magnet preserves left/top/bottom");
     auto single=item(1,{100,100,490,400},300);
     p=v::resize_single(single,right,{-290,0});
     expect(p.accepted && actual(p,1)==Rect{100,100,400,400},"G04 single active-edge min300 clamped without fixed-edge drift");

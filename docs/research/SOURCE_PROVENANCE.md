@@ -3421,3 +3421,20 @@ resource-ownership fix, not an explanation or closure of the historical 8d8a
 scheme-restoration failure. Existing prior-art/design research is reused; no
 external implementation or sample code was copied. Native settings execution
 and the new candidate's identity must be recorded separately from this review.
+
+### 2026-10-22 — Terminal magnet and Ctrl functional TEST continuation
+
+The pinned geometry/input prior-art research is reused without changing the
+product solver or authority. The existing exact-Run Terminal TEST adapter now
+prepares only its own blank neighbour and verifies independent five-stage
+magnet rectangles and a two-member Ctrl move against the same frozen product.
+The existing `--settings --diagnostic` entry supplies actual fresh placement
+receipts, including exact no-ops; this is not an ordinary empty-argument entry
+claim. Original DOWN anchors, native handoff, physical UP and resource facts
+remain mandatory. The official [SetWaitableTimer contract](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setwaitabletimer)
+was rechecked: negative due time is relative and period zero is a one-shot.
+The TEST pacing uses only finite one-shot waits with the existing message pump,
+not a product event source, performance result or periodic polling. Only an
+actually inserted, TEST-owned Ctrl pair may use the bounded abort-UP cleanup;
+a retired lease remains retired. No external implementation was copied or
+adapted, and no native functional PASS follows from this source review.

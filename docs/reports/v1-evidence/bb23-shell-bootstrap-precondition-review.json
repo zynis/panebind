@@ -1,0 +1,453 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-BB23-MEDIUM-TERMINAL-SHELL-BOOTSTRAP-READY-PRECONDITION-BLOCKED",
+  "kind": "read_only_original_literal_lines_package_identity_collection_tool_recovery_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "bb23f935e6144cb088b5b91f8d22751a",
+  "suite": "MediumDesktopNativeClientOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_SHELL_BOOTSTRAP_READY_NOT_OBSERVED_ZERO_CLIENT_INPUT",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "product_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+    "driver_source_sha": "40a5f0edcef18a8f9c49f727ca8beb824c1da571",
+    "driver_sha256": "25E7CA2496A7AC9579B4156BB273C63557A2C8ED233A7D759574C6D50C67B5CE",
+    "packaging_head": "40a5f0edcef18a8f9c49f727ca8beb824c1da571",
+    "fixture_pid": 6320,
+    "fixture_primary_tid": 6328,
+    "product_started": false,
+    "terminal_pid": 6044,
+    "terminal_tid": 5596,
+    "terminal_root_hwnd": 66396,
+    "terminal_birth_filetime_decimal": "134371460674273901",
+    "terminal_distribution_version": "1.25.2733.0",
+    "terminal_sha256": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "exact_desktop": "WinSta0\\PaneBindV1_bb23f935e6144cb088b5b91f8d22751a",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "original_Default_Shell_birth_filetime_decimal": "134371460481716600",
+    "new_Run_Shell_birth_filetime_decimal": "134371460572014476",
+    "precision": "FILETIME/process birth and host start_ticks identities below are exact original decimal strings captured by regex, not parsed floating-point identities.",
+    "product_identity_meaning": "Unmodified payload present and hash-checked only. Product was not started; no PaneBind enhancement, hook, writer, normal product UP or product cleanup ran."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/package-receipt.json",
+      "bytes": 13348,
+      "sha256": "FD516EAB27B9C62CADFF85FE5F25D1A2C14778D5D9EAF076A48E9FCFF000D2BD"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/bb23f935e6144cb088b5b91f8d22751a.zip",
+      "bytes": 17879050,
+      "sha256": "E23B48514C93A6D167116D6C5703585327EAB9226D7CABEDC3C0B7A70BEE0AC4"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/input/manifest.json",
+      "bytes": 23833,
+      "sha256": "442B876B14549923BCE434E8A869F2075B01D6662199A25F2A0211548568299A"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/PaneBindV1.wsb",
+      "bytes": 986,
+      "sha256": "B808C494BA4A4BB38E6B8725E794EC9E8AEBC2BD462B31DA4DF25DF8702E283B"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/bb23f935e6144cb088b5b91f8d22751a/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4184576,
+      "sha256": "25E7CA2496A7AC9579B4156BB273C63557A2C8ED233A7D759574C6D50C67B5CE"
+    },
+    "actual_ZIP_manifest_WSB_hashes_match_original_expectation_and_package_receipt": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\bb23f935e6144cb088b5b91f8d22751a",
+    "old_product_or_driver_runtime_rebound": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-release-fixture.jsonl",
+      "bytes": 5208894,
+      "sha256": "85D7886589B0A7CD0A87FB3768339E8A3AFFC2EA79BC7F738F65F591742BA2F3",
+      "role": "driver",
+      "rows": 202,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        202
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/collection-receipt.json",
+      "bytes": 12807,
+      "sha256": "750256E12E526A5217D125B6F2BAF027E7A3142273839737FA81616DFBEA3309"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/cleanup-receipt.json",
+      "bytes": 11744,
+      "sha256": "011F6F0C39E43DBFDE008A9F44A653E017C514B1BF70D7F9E757B098E59E8B82"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-Release-launch.json",
+      "bytes": 9902,
+      "sha256": "DE1FB5EE8E097F00B2BC5E10A42AB53D5C08C9A884D7AAC2158C0919D3FB537E"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-guest-summary.json",
+      "bytes": 22746,
+      "sha256": "B483D6E8A662F724AEDEA5183240EFC826DE754DED25857CD47D7F9B55B683D3"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-terminal-asset.json",
+      "bytes": 1205,
+      "sha256": "9C189B4EF95E4BE562A4838B25F4A0F49CCE03A2728E00495B6FECCE36EC9E33"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/host-expectation.json",
+      "bytes": 3256,
+      "sha256": "3F578AA3D4F822A0258344C2D57D0CE3FA6C25D6A2B37E2423CECE48288ADF17"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/remote-created.json",
+      "bytes": 315,
+      "sha256": "53FB3C0D1D6F2CEA4C5BF28979533E7F3BB0D8B3E656EA452E720CCE6130C18E"
+    },
+    {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/remote-failure-494afee118964168a2553ec4b6776a1d.json",
+      "bytes": 187,
+      "sha256": "51C412F842408FBB9CFBCADC8498188A751BA55949423F31C65D27A6F2AD43CA"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/bb23-shell-bootstrap-precondition-excerpt.jsonl",
+    "bytes": 28118,
+    "sha256": "F1AB4AD24FF9D6095A32CB6EA730AA9509B4FA37F25B0F66C12178B45E474833",
+    "literal_lines": 46,
+    "driver_sequences": [
+      3,
+      7,
+      13,
+      19,
+      21,
+      23,
+      25,
+      27,
+      156,
+      157,
+      158,
+      159,
+      160,
+      162,
+      163,
+      164,
+      167,
+      168,
+      169,
+      171,
+      172,
+      173,
+      174,
+      175,
+      176,
+      178,
+      179,
+      180,
+      181,
+      182,
+      183,
+      184,
+      185,
+      186,
+      187,
+      188,
+      189,
+      190,
+      191,
+      192,
+      193,
+      195,
+      196,
+      197,
+      198,
+      202
+    ],
+    "serialization_changed": false,
+    "line_endings": "Original UTF-8 source line contents preserved, separated by LF. Buffered emission order is not shared native chronology."
+  },
+  "observations": [
+    {
+      "source": "D3/D13/D19/D21/D23/D27/D156-D159/D169",
+      "fact": "Fresh exact manifest-bound Run desktop actually activated with same-SID/session Medium non-elevated Shell/Tray readiness. Terminal actual CreateProcess child PID6044/birth/root66396/TID5596 was twice a member of complete held-Run inventories, with matching image, Medium facts and foreign desktop name. Source/foreground GTI and readonly VDM S_OK/true succeeded. These read-only facts are not client or product authority."
+    },
+    {
+      "source": "D160-D164/D167",
+      "fact": "With product observed absent in the stated session-mutex/process-basename/root scope, TEST created a new exact Run bootstrap script and separate empty ready reservation. Script writes only its startup-ready value; it does not write the customer nonce. Exactly one recorded CreateProcessW attempt returned true, using explicit lpDesktop and the actual cmd.exe /d /q /k bootstrap command from D167. CreateProcess success is not proof cmd executed or a customer shell initialized."
+    },
+    {
+      "source": "D168/D171-D180",
+      "fact": "Exact Terminal root was ready in1625ms and answered one bounded WM_NULL. Real overlapped output-directory watch was armed. Shell-ready wait recorded accepted context, remaining budget8328ms, local ticks42390..50718, QPC424153144..507514486, one actual native wait returning258 WAIT_TIMEOUT, zero dispatched messages and no extra input. Ready reservation remained0B; exact ready was not observed. This is not an immediate rejection or a client-input test."
+    },
+    {
+      "source": "D180-D186",
+      "fact": "Initialization gate remained false; original client resultUNKNOWN_OR_BLOCKED and driverFAIL preserved. No client keyboard or mouse input was sent, no customer nonce was satisfied, and product_started=false. Own client observer unhook and directory CancelIoEx/completion wait0 succeeded without unknown pending native IO. Missing ready alone does not prove cmd never started, Terminal unsupported, system root cause, or PaneBind interception."
+    },
+    {
+      "source": "D183/D185-D197",
+      "fact": "One actual normal WM_CLOSE was posted; exact bound root was observed gone. Immediate process wait258 and separately read exit_code0 are retained as non-atomic facts, not all-process exit. Independent return owner retired input/quiesced, switched back toDefault with actual readback, restored own observer and closed own handles. Default Shell identity was unchanged. Separate new Run Shell was still alive wait258/exit259 and left to exact guest job/disposal. Desktop object destruction remainsUNKNOWN."
+    },
+    {
+      "source": "D198/D202 and wrapper/collection/cleanup receipts",
+      "fact": "Own Raw registration was actually removed. Wrapper fixture exit1 and one live descendant with forced_test_cleanup=true remain distinct from exact native root closure, local handle cleanup, and later host-owned guest/task cleanup. Stable collection and dedicated guest disposal do not turn the blocked client precondition into product functionality or all-process/product cleanup PASS."
+    }
+  ],
+  "bootstrap_precondition": {
+    "script": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-terminal-bootstrap.cmd",
+      "bytes": 291,
+      "sha256": "065738FA21BFBFF8002FB1602EE3D1E32F00E9CF2EEAFC3414F0AB9355054970",
+      "creates_with_CREATE_NEW": true,
+      "exact_Run_content_hash_verified": true
+    },
+    "ready": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/bb23f935e6144cb088b5b91f8d22751a-terminal-shell-ready.txt",
+      "bytes": 0,
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "empty_reservation_is_not_READY": true
+    },
+    "actual_Command_from_D167": "\"C:\\PaneBindV1\\Terminal\\bb23f935e6144cb088b5b91f8d22751a\\Release\\terminal-1.25.2733.0\\WindowsTerminal.exe\" --window new new-tab --title \"PaneBind-bb23f935e6144cb088b5b91f8d22751a-Terminal\" --suppressApplicationTitle \"C:\\Windows\\System32\\cmd.exe\" /d /q /k C:\\PaneBindV1\\Output\\bb23f935e6144cb088b5b91f8d22751a-terminal-bootstrap.cmd",
+    "actual_CreateProcessW_return": true,
+    "recorded_CreateProcessW_attempts": 1,
+    "actual_exact_ready_observed": false,
+    "initialization_phase_gate_accepted": false,
+    "client_input_sent": false,
+    "customer_nonce_satisfied": false,
+    "mouse_client_click": "NOT_RUN",
+    "cmd_process_or_command_execution": "NOT_ESTABLISHED_BY_READY_ABSENCE",
+    "cause_of_missing_ready": "UNKNOWN",
+    "product_result": "NOT_RUN"
+  },
+  "time_basis": {
+    "requested_remaining_cap_ms": 8343,
+    "actual_initial_budget_ms": 8328,
+    "before_tick": 42390,
+    "phase_deadline_tick": 50718,
+    "after_tick": 50718,
+    "actual_tick_span_ms": 8328,
+    "before_qpc_decimal": "424153144",
+    "after_qpc_decimal": "507514486",
+    "qpc_delta_decimal": "83361342",
+    "qpc_frequency": "NOT_RECORDED_BY_THIS_WAIT_RECEIPT",
+    "qpc_duration_seconds": "NOT_DERIVED_WITHOUT_THIS_RUN_FREQUENCY",
+    "native_waits": 1,
+    "last_wait_return": 258,
+    "last_context_result": "accepted",
+    "reason": "wait_timeout_shell_ready_not_observed",
+    "dispatched_messages": 0,
+    "additional_input_sent": false,
+    "buffered_emission": "D156-D192 were batch-emitted near51031..51062. Their tick fields do not replace explicit native local before/after tick/QPC times or establish cross-thread native order."
+  },
+  "actual_result": {
+    "Terminal_exact_root_ready": "OBSERVED_ONLY",
+    "Terminal_WM_NULL": "ACTUAL_RESPONSE_ONLY",
+    "Terminal_shell_bootstrap_ready": "UNKNOWN_OR_BLOCKED",
+    "Terminal_customer_input_semantics": "NOT_RUN",
+    "product_enhancement": "NOT_RUN",
+    "root_normal_close": "OBSERVED_EXACT_ROOT_GONE_ONLY",
+    "all_process_tree_exit": "NOT_PROVEN",
+    "source_GTI_and_foreground_GTI": "ACTUAL_READONLY_SUCCESS",
+    "VDM": "ACTUAL_S_OK_TRUE_READONLY",
+    "system_or_Sandbox_root_cause": "NOT_PROVEN",
+    "product_interception": "NOT_OBSERVED_PRODUCT_NOT_STARTED"
+  },
+  "collection_tool_recovery": {
+    "reason": "Original Collect rejected the two TEST-added output filenames; bounded collection-tool repair only, not a new candidate or changed functional evidence.",
+    "preserved_failure_receipt": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/remote-failure-494afee118964168a2553ec4b6776a1d.json",
+      "bytes": 187,
+      "sha256": "51C412F842408FBB9CFBCADC8498188A751BA55949423F31C65D27A6F2AD43CA"
+    },
+    "preserved_failure_receipt_actual": {
+      "stage": "Collect",
+      "run_id": "bb23f935e6144cb088b5b91f8d22751a",
+      "exit_code": 1,
+      "stdout": [],
+      "utc": "2026-10-22T12:41:40.0880025Z"
+    },
+    "failure_detail_provenance": "unknown_output_file_preserved is the parent execution report; the preserved local failure receipt records exit1 with empty stdout, not that literal stderr.",
+    "original_controller": {
+      "path": "uat/v1-control/remote-control.ps1",
+      "bytes": 38468,
+      "sha256": "F460D1204279F9997307942CDEAC3296BB9664AB2899BC86CFB0EC833422B502",
+      "retained_unmodified": true
+    },
+    "original_local_runner": {
+      "path": "uat/v1-control/run-control.ps1",
+      "bytes": 18844,
+      "sha256": "5C17C462E4024287471EF43C3B28138D2DF3402B55D9703D9C49969D9CD09219",
+      "retained_unmodified": true
+    },
+    "expectation": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/host-expectation.json",
+      "bytes": 3256,
+      "sha256": "3F578AA3D4F822A0258344C2D57D0CE3FA6C25D6A2B37E2423CECE48288ADF17"
+    },
+    "owner_record": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/remote-created.json",
+      "bytes": 315,
+      "sha256": "53FB3C0D1D6F2CEA4C5BF28979533E7F3BB0D8B3E656EA452E720CCE6130C18E"
+    },
+    "owner_created_utc": "2026-10-22T12:33:56.0299604Z",
+    "new_sidecar": {
+      "leaf": "host-control-bb23-collect-recovery.ps1",
+      "sha256": "A0229D4D9E2D93A66E302B4C7C7F99AB9978B7B8EF3A7AE3441FF047E0EFBA5A",
+      "allowed_stages": [
+        "Inventory",
+        "Cleanup"
+      ]
+    },
+    "authorization": {
+      "leaf": "host-collect-recovery-bb23-authorization.json",
+      "sha256": "3BBFD9C1A494D0B8BDBE6290880C6F8AA5DDC12414D2C58448436C37782B7263",
+      "exact_Run_controller_expectation_owner_bound": true
+    },
+    "local_recovery_runner": {
+      "leaf": "run-control-bb23-collect-recovery.ps1",
+      "sha256": "AE79F10644F604ED3F5E228A9A2225BD42C8F785F614CB1940C79A27E481699E",
+      "allowed_stages": [
+        "Collect",
+        "Cleanup"
+      ]
+    },
+    "extra_whitelist": "Only this Run's exact -terminal-bootstrap.cmd291B/hash and -terminal-shell-ready.txt empty or64B exact Run text/hash;1024B preliminary limit. All unknown output and original links/count/size/ownership guards remain.",
+    "actual_collection_receipt_provenance": {
+      "schema": "panebind-bb23-collection-tool-recovery-receipt/1",
+      "run_id": "bb23f935e6144cb088b5b91f8d22751a",
+      "sidecar_filename": "host-control-bb23-collect-recovery.ps1",
+      "sidecar_sha256": "A0229D4D9E2D93A66E302B4C7C7F99AB9978B7B8EF3A7AE3441FF047E0EFBA5A",
+      "authorization_sha256": "3BBFD9C1A494D0B8BDBE6290880C6F8AA5DDC12414D2C58448436C37782B7263",
+      "candidate_rebuilt": false,
+      "product_or_client_PASS_inferred": false
+    },
+    "candidate_rebuilt": false,
+    "product_or_client_PASS_inferred": false
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "product_cleanup_pass": false,
+    "product_cleanup_applicability": "NOT_APPLICABLE_NOT_STARTED"
+  },
+  "collection_validation": {
+    "receipt": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/collection-20261022T125920540Z-d00d10cec65845ccb3eac75699d321e2/collection-receipt.json",
+      "bytes": 12807,
+      "sha256": "750256E12E526A5217D125B6F2BAF027E7A3142273839737FA81616DFBEA3309"
+    },
+    "output_unchanged": true,
+    "actual_gui_or_function_pass_inferred": false,
+    "inventory_files": 9,
+    "all_local_files_size_and_hash_match_inventory": true,
+    "before_after_collection_and_cleanup_inventories_identical": true,
+    "files": [
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-terminal-bootstrap.cmd",
+        "bytes": 291,
+        "sha256": "065738FA21BFBFF8002FB1602EE3D1E32F00E9CF2EEAFC3414F0AB9355054970"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-terminal-asset.json",
+        "bytes": 1205,
+        "sha256": "9C189B4EF95E4BE562A4838B25F4A0F49CCE03A2728E00495B6FECCE36EC9E33"
+      },
+      {
+        "name": "panebind-v1-output.marker",
+        "bytes": 32,
+        "sha256": "516D0FE8148293DFAD2480ED509EEFE978FA055BF9D8AD22D44815F382C66758"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-terminal-shell-ready.txt",
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-Release-launch.json",
+        "bytes": 9902,
+        "sha256": "DE1FB5EE8E097F00B2BC5E10A42AB53D5C08C9A884D7AAC2158C0919D3FB537E"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-product-Release\\portable.flag",
+        "bytes": 36,
+        "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-product-Release\\panebind.exe",
+        "bytes": 1219072,
+        "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-release-fixture.jsonl",
+        "bytes": 5208894,
+        "sha256": "85D7886589B0A7CD0A87FB3768339E8A3AFFC2EA79BC7F738F65F591742BA2F3"
+      },
+      {
+        "name": "bb23f935e6144cb088b5b91f8d22751a-guest-summary.json",
+        "bytes": 22746,
+        "sha256": "B483D6E8A662F724AEDEA5183240EFC826DE754DED25857CD47D7F9B55B683D3"
+      }
+    ],
+    "stable_nine_files_are_not_nine_functional_tests": true
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/bb23f935e6144cb088b5b91f8d22751a/cleanup-receipt.json",
+      "bytes": 11744,
+      "sha256": "011F6F0C39E43DBFDE008A9F44A653E017C514B1BF70D7F9E757B098E59E8B82"
+    },
+    "utc": "2026-10-22T13:01:16.7261561Z",
+    "guest_pid": 22944,
+    "guest_native_start_ticks_decimal": "639282692438265226",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "actual_collection_tool_recovery_receipt": {
+      "schema": "panebind-bb23-collection-tool-recovery-receipt/1",
+      "run_id": "bb23f935e6144cb088b5b91f8d22751a",
+      "original_controller_sha256": "F460D1204279F9997307942CDEAC3296BB9664AB2899BC86CFB0EC833422B502",
+      "sidecar_filename": "host-control-bb23-collect-recovery.ps1",
+      "sidecar_sha256": "A0229D4D9E2D93A66E302B4C7C7F99AB9978B7B8EF3A7AE3441FF047E0EFBA5A",
+      "authorization_sha256": "3BBFD9C1A494D0B8BDBE6290880C6F8AA5DDC12414D2C58448436C37782B7263",
+      "original_owner_and_expectation_unchanged": true,
+      "candidate_rebuilt": false,
+      "product_or_client_PASS_inferred": false
+    },
+    "scope": "Exact host-owned guest/task cleanup and retained evidence only, not product cleanup or proof every Terminal descendant had exited before disposal."
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "human_UAT": "NOT_RUN",
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "product_enhancement": "NOT_RUN",
+    "Terminal_keyboard_semantics": "NOT_RUN",
+    "next_action": "Preserve the bounded exact startup-ready timeout and zero-input result. Further Terminal client execution requires a concrete new observable startup distinction; do not repeat unchanged commands/timeouts or infer product failure from this product-absent run.",
+    "history": "Prior payload744e, all earlier driver/package identities and failures retain original verdicts. Recovery changed only collection tooling, not this driver or its raw native observations."
+  }
+}

@@ -1,8 +1,10 @@
 #pragma once
 
 // TEST ONLY, included inside the guarded fixture namespace. This is one
-// ordinary-GUI/tray case on a fresh Run desktop, not product target authority
-// or product target authority. The product reports its actual context route;
+// GUI/tray case on a fresh Run desktop, not product target authority.
+// Only the manifest-selected Terminal functional case uses the existing
+// --settings --diagnostic entry for per-quantum receipts. Other cases retain
+// the ordinary empty-argument entry. The product reports its actual route;
 // this case does not infer enhancement success from resource initialization.
 bool input_actor_same_user(HANDLE);
 
@@ -33,6 +35,7 @@ struct MediumDesktopUiObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool launch_attempted{},product_started{},product_closed{},completed{},input_attempted{},input_sent{},cleanup_known{};
     bool geometry_requested{},geometry_completed{},geometry_cleanup_known{true};
+    bool geometry_magnet_completed{},geometry_ctrl_completed{};
     std::string reason{"not_started"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
@@ -40,6 +43,7 @@ struct MediumDesktopUiEvents {HANDLE changed{};DWORD product_pid{};};
 struct MediumDesktopProductGeometryObservation {
     std::vector<std::pair<std::string,std::string>> records;
     bool requested{},completed{},cleanup_known{true},input_attempted{},input_inserted{};
+    bool magnet_completed{},ctrl_completed{};
     std::string reason{"not_requested_no_manifest_Terminal_asset"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
@@ -494,8 +498,23 @@ public:
     }
     void execute(){
         const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);com_=SUCCEEDED(apartment);
+        // This selects existing diagnostic logging, never source/write
+        // authority. The geometry adapter still validates the complete asset
+        // and identity before any application input is allowed.
+        const auto manifest=read(L"C:\\PaneBindV1\\Input\\manifest.json");
+        const auto value=[&](std::string_view key)->std::string_view{
+            const auto token=quote(key);const auto at=manifest.find(token);
+            if(at==manifest.npos||manifest.find(token,at+token.size())!=manifest.npos)return {};
+            auto next=at+token.size();
+            const auto space=[&]{while(next<manifest.size()&&(manifest[next]==' '||manifest[next]=='\t'||manifest[next]=='\r'||manifest[next]=='\n'))++next;};
+            space();if(next>=manifest.size()||manifest[next++]!=':')return {};space();
+            return std::string_view(manifest).substr(next);
+        };
+        const bool terminal_diagnostic=value("guest_suite").starts_with("\"MediumDesktopUiOnly\"")&&
+            value("terminal_test_asset").starts_with("{")&&!value("medium_explorer_geometry").starts_with("true");
         out_.emit("medium_desktop_ui_scope","\"run_id\":"+quote(utf8(run_))+",\"product_source\":"+quote(source_)+
-            ",\"product_sha256\":"+quote(sha_)+",\"ordinary_no_arguments\":true,\"test_only_UI_case\":true,\"automated_guest_driver\":true,"
+            ",\"product_sha256\":"+quote(sha_)+",\"ordinary_no_arguments\":"+(terminal_diagnostic?"false":"true")+
+            ",\"Terminal_functional_diagnostic_receipts\":"+(terminal_diagnostic?"true":"false")+",\"test_only_UI_case\":true,\"automated_guest_driver\":true,"
             "\"ordinary_host_Default_guards_unchanged\":true,\"candidate_Run_context_requires_actual_product_receipt\":true,"
             "\"product_enhancement_PASS_inferred\":false,\"CoInitializeEx_hresult\":"+std::to_string(static_cast<long>(apartment)));
         try{
@@ -524,12 +543,15 @@ public:
             if(!objects_||!foreground_)throw std::runtime_error("Medium_UI_bounded_native_observer_not_available");
             STARTUPINFOW startup{sizeof(startup)};std::wstring desktop=L"WinSta0\\PaneBindV1_"+run_;startup.lpDesktop=desktop.data();
             PROCESS_INFORMATION info{};auto line=L"\""+product_.wstring()+L"\"";out_.launch_attempted=true;product_launch_tick_=GetTickCount64();
+            if(terminal_diagnostic)line+=L" --settings --diagnostic";
             SetLastError(ERROR_SUCCESS);const bool created=CreateProcessW(product_.c_str(),line.data(),nullptr,nullptr,FALSE,0,nullptr,parent.c_str(),&startup,&info)!=FALSE;
             const auto error=created?0:GetLastError();process_=info.hProcess;initial_thread_=info.hThread;pid_=info.dwProcessId;
             birth_=created?process_birth(process_):0;events_.product_pid=pid_;out_.product_started=created;
-            out_.emit("medium_desktop_ui_ordinary_launch","\"CreateProcessW_attempted\":true,\"native_return\":"+std::string(created?"true":"false")+
+            out_.emit(terminal_diagnostic?"medium_desktop_ui_settings_diagnostic_launch":"medium_desktop_ui_ordinary_launch","\"CreateProcessW_attempted\":true,\"native_return\":"+std::string(created?"true":"false")+
                 ",\"error\":"+std::to_string(error)+",\"PID\":"+std::to_string(pid_)+",\"birth\":"+std::to_string(birth_)+
-                ",\"lpDesktop\":"+quote(utf8(desktop))+",\"arguments\":[],\"product_is_not_a_diagnostic_or_driver_entry\":true");
+                ",\"lpDesktop\":"+quote(utf8(desktop))+",\"arguments\":"+(terminal_diagnostic?"[\"--settings\",\"--diagnostic\"]":"[]")+
+                ",\"product_is_not_a_diagnostic_or_driver_entry\":"+(terminal_diagnostic?"false":"true")+
+                ",\"same_frozen_product_EXE\":true,\"ordinary_entry_PASS_inferred\":false");
             if(!created||!process_exact())throw std::runtime_error("Medium_UI_ordinary_product_process_identity_failed");
             const bool gui=wait_for([&]{
                 HWND candidate=FindWindowW(L"PaneBind.V1.Application",L"PaneBind");DWORD pid{};const auto tid=GetWindowThreadProcessId(candidate,&pid);
@@ -545,12 +567,13 @@ public:
                 ",\"actual_settings_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(first))+
                 ",\"actual_settings_rect\":"+rect({geometry.left,geometry.top,geometry.right,geometry.bottom})+
                 ",\"actual_foreground_is_settings\":true,\"current_held_Run_desktop_membership_confirmed\":true");
-            escape_settings(first,"ordinary_noarg_settings_Escape");
+            escape_settings(first,terminal_diagnostic?"diagnostic_settings_Escape":"ordinary_noarg_settings_Escape");
             {
                 const auto geometry=medium_desktop_product_geometry_case(run_,desktop_,product_,process_,pid_,birth_,
                     product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,
                     (std::min<ULONGLONG>)(deadline_,GetTickCount64()+12000));
                 out_.geometry_requested=geometry.requested;out_.geometry_completed=geometry.completed;
+                out_.geometry_magnet_completed=geometry.magnet_completed;out_.geometry_ctrl_completed=geometry.ctrl_completed;
                 out_.geometry_cleanup_known=geometry.cleanup_known;
                 out_.input_attempted=out_.input_attempted||geometry.input_attempted;out_.input_sent=out_.input_sent||geometry.input_inserted;
                 out_.records.insert(out_.records.end(),geometry.records.begin(),geometry.records.end());
@@ -599,7 +622,8 @@ public:
         if(com_){CoUninitialize();com_=false;}
         out_.cleanup_known=objects_stopped&&foreground_stopped&&event_closed&&thread_closed&&process_handle_closed&&
             (!out_.product_started||out_.product_closed)&&out_.geometry_cleanup_known&&lease_&&!lease_->incomplete_pair.load()&&!(lease_->flags.load()&MediumDesktopUiInputLease::in_flight);
-        out_.emit("medium_desktop_ui_summary","\"result\":"+quote(out_.completed&&out_.cleanup_known?"ORDINARY_GUI_TRAY_SETTINGS_EXIT_ONLY":"FAIL_OR_BLOCKED")+
+        out_.emit("medium_desktop_ui_summary","\"result\":"+quote(out_.completed&&out_.cleanup_known?
+            (terminal_diagnostic?"DIAGNOSTIC_TERMINAL_FUNCTION_AND_TRAY_SCOPED":"ORDINARY_GUI_TRAY_SETTINGS_EXIT_ONLY"):"FAIL_OR_BLOCKED")+
             ",\"reason\":"+quote(out_.reason)+",\"product_started\":"+(out_.product_started?"true":"false")+
             ",\"product_closed\":"+(out_.product_closed?"true":"false")+",\"input_attempted\":"+(out_.input_attempted?"true":"false")+
             ",\"input_sent\":"+(out_.input_sent?"true":"false")+
@@ -608,7 +632,8 @@ public:
             ",\"real_app_geometry_requested\":"+(out_.geometry_requested?"true":"false")+
             ",\"real_app_geometry_completed\":"+(out_.geometry_completed?"true":"false")+
             ",\"real_app_geometry_cleanup_known\":"+(out_.geometry_cleanup_known?"true":"false")+
-            ",\"product_Ctrl\":\"NOT_RUN\",\"help_diagnostic_this_case\":\"NOT_RUN\","
+            ",\"Terminal_magnet_five_stage\":"+quote(out_.geometry_magnet_completed?"ACTUAL_SCOPED_PASS":"NOT_RUN_OR_INCOMPLETE")+
+            ",\"product_Ctrl\":"+quote(out_.geometry_ctrl_completed?"ACTUAL_SCOPED_PASS":"NOT_RUN_OR_INCOMPLETE")+",\"help_diagnostic_this_case\":\"NOT_RUN\","
             "\"TaskbarCreated_or_real_Shell_restart\":\"NOT_RUN\",\"whole_M01_B27_B28_PASS_inferred\":false,\"human_UAT\":\"NOT_RUN\"");
     }
 };

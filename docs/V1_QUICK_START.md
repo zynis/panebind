@@ -2,20 +2,20 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-- 当前已实测产品源码：`744e8908d2069951fec70683b6d793a26cb7397c`。
-- 当前已实测Release EXE SHA-256：`C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；D／R构建、affected offline各6/6及四hostguard78通过，实际Terminal三段范围见下。
-- 当前已运行TEST driver：`3c56551c508ac18575824756ec54ac9057db11a8`／Release `6CBC2BFB8103C701D70F2FCDDE11B04D46AD0826784CDE451C490EE2C17AA527`；旧5211／af4及55f Default双轮各保身份。
-- 当前已验普通便携包：`uat/v1-portable/be7a5b395e074b32ac304ffddf65a193/PaneBindV1-Release-be7a5b395e074b32ac304ffddf65a193.zip`。
-- ZIP SHA-256：`65973C869484C0ADD92C55C47D36D7F322E7763A8F5ECC371044BB70C5B9CFC1`；manifest SHA-256：`D30367B3C2F2A5B87861B11E70167DC296CE097921AE7E708FE9FF12DFCD71C5`。
+- 当前已实测产品源码：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`。
+- 当前已实测Release EXE SHA-256：`0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；D／R构建、affected offline各7/7及四hostguard78通过。
+- 当前已运行TEST driver：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release `8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44`；包装8d81702；旧744e／3c565及5211／af4、55f Default双轮各保身份。
+- 当前已验普通便携包：`uat/v1-portable/d5f5a2a6138049a5b4a1a76340904027/PaneBindV1-Release-d5f5a2a6138049a5b4a1a76340904027.zip`。
+- ZIP SHA-256：`868C0E4BC8B802FB6C410534F8048F1421D8BE378D7F2D8DF87FB4788ABE99E7`；manifest SHA-256：`B472E906446BA6E2167D1350205B478E974C95EB7C703A88B53A3A53959AD66E`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-上述be7a／744e已在[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实NormalUp和正常退出／客户输入恢复，只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧bfb／25b原ZIP及a014／540f证据不改绑。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
+上述d5f5／42ab已在[f78d](reports/v1-evidence/f78d-current-42ab-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实Raw／legacy NormalUp和正常退出／客户输入恢复，无后代或强制清理。setup PID3464与ZIP PID6864为不同原FILETIME／物理日志；只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧be7／744e／[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)、bfb／25b原ZIP各保身份。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
 
-后继`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`仅修设置页成功HC GET的系统缓冲区释放，D／R产品＋driver构建、offline各7/7通过；Release `0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`尚未生产现场／新包验证，不能用be7／744e结果代替。host只读GET／LocalFree probe不是产品GUI运行证据。
+42ab仅修设置页成功HC GET的系统缓冲区释放；当前新包设置打开／关闭和普通操作已有f78d实际结果，但完整高对比／200%矩阵未通过。host只读GET／LocalFree probe是API支撑，不替代这些独立合同。后继Terminal五阶段磁吸／Ctrl TEST尚在接线，不预填源码／构建／现场结果。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-当前744e保留[af4f](reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json)单exact Terminal三段几何／正常UP与[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)普通ZIP入口各自scope。[3d1a](reports/v1-evidence/3d1a-medium-product-tray-pair-guard-review.json)真实第二fresh tray guard通过／右键插入但仍无菜单，停止无变量重试；[e538](reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-review.json)一次Medium exactRun启动成功却未确认唯一文件窗，零Explorer输入，不能推根绝对不存在。[ab827](reports/v1-evidence/ab827-medium-terminal-keyboard-wait-review.json)产品未启动且真实3000ms等待无nonce，原因UNKNOWN；bb23待完整收集不判原因。旧55f／25b各保身份。43/60、21/40、模块0与PARTIAL不变；菜单／客户／应用及外部显示条件分别推进，不开放宿主试用，真人UAT PENDING。
+历史744e／[af4f](reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json)单exact Terminal三段几何／正常UP保原身份。[3d1a](reports/v1-evidence/3d1a-medium-product-tray-pair-guard-review.json)真实第二fresh tray guard通过／右键插入但仍无菜单，停止无变量重试；[e538](reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-review.json)一次Medium exactRun启动成功却未确认唯一文件窗，零Explorer输入，不推根绝对不存在。[bb23](reports/v1-evidence/bb23-shell-bootstrap-precondition-review.json)现已完整稳定收集：产品未启动、8328ms native timeout后ready0B，未发送客户键鼠，原因UNKNOWN；实际root关闭／Default返回不等于整个进程树退出。旧55f／25b各保身份。43/60、21/40、模块0与PARTIAL暂不变；G04独立组合断言待实测，菜单／客户／应用及外部显示分别推进，不开放宿主试用，真人UAT PENDING。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 
