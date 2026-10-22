@@ -46,6 +46,12 @@ int main() {
         }
     }
     namespace guest=panebind::platform::windows::product::guest;
+    if(!guest::capture_run_desktop_suite(R"({"guest_suite":"MediumDesktopUiOnly"})")||
+       !guest::capture_run_desktop_suite(R"({"files":[],"guest_suite":"MediumDesktopNativeClientOnly"})")||
+       guest::capture_run_desktop_suite(R"({"guest_suite":"Full"})")||
+       guest::capture_run_desktop_suite(R"({"guest_suite":"MediumDesktopUiOnly","guest_suite":"Full"})")){
+        std::cerr<<"exact Run desktop manifest suite scope failed\n";return 1;
+    }
     const guest::UpEvidenceIdentity identity{42,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",7,1000};
     const std::string status=R"({"schema":"panebind-v1/1","source_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":9,"process_id":42,"tick":900,"type":"status","gesture_active":false,"mouse_up_callbacks":{"snapshot_known":true,"callback_count":1,"last":{"hook_observed_qpc":1001,"button":1,"generation_at_entry":7,"consumed_before":true,"aborted_before":false,"matching_branch_taken":true,"push_attempted":true,"push_succeeded":true}}})";
     const auto changed=[&](std::string_view from,std::string_view to){auto row=status;const auto at=row.find(from);

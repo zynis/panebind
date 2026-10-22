@@ -562,6 +562,7 @@ inline bool guest_callback_owner_stop_matches(const GuestQueueFailurePermit& per
 // in hook callbacks. The GUI prepares identity/hit-test snapshots beforehand.
 class InputService {
 public:
+    explicit InputService(operations::InteractiveDesktopContextRef desktop_context={});
     bool start(HWND owner,bool diagnostic=false);
     void stop();
     ~InputService(){stop();}
@@ -675,6 +676,7 @@ private:
         std::atomic<bool> signaled{},notified{};
     };
     static InputService* instance_;
+    operations::InteractiveDesktopContextRef desktop_context_;
     HWND owner_{},receiver_{};
     std::atomic<DWORD> thread_id_{};
     HANDLE ready_{};

@@ -242,6 +242,7 @@ public:
     struct BoundKey {int id{};v::Hotkey binding;};
     struct LayoutRecord {Snapshot before,after;v::Rect normal;bool drag_restore{};};
     HINSTANCE instance{};HWND window{},overlay{};HANDLE mutex{};UINT taskbar_created{};
+    operations::InteractiveDesktopContextRef desktop_context;
     v::Settings settings=v::default_settings();Catalog catalog;WindowWriter writer{catalog};InputService input;Log log;
     SettingsWindow settings_ui;fs::path config_path;std::wstring problem;std::optional<Snapshot> last_target;
     std::vector<BoundKey> bound_keys;
@@ -266,7 +267,9 @@ public:
     UINT_PTR idle_notice_timer{};
     std::optional<GuestQueueFailureRequest> guest_queue_failure_pending;
     std::optional<GuestQueueFailureRequest> guest_callback_owner_stop_pending;
-    explicit Application(HINSTANCE h):instance(h){}
+    explicit Application(HINSTANCE h,operations::InteractiveDesktopContextRef context)
+        :instance(h),desktop_context(std::move(context)),catalog(desktop_context),writer(catalog),
+         input(desktop_context),recovery(desktop_context){}
     ~Application(){stop();}
     void callback_owner_stop_fact(bool exit_fact){
         const auto generation=input.guest_callback_owner_stop_generation();if(!generation)return;
@@ -1935,6 +1938,24 @@ void Application::consume(){InputEvent e;std::optional<InputEvent> latest_move;
                 ",\"capture_after_release\":"+handle(capture.release_after)+
                 ",\"release_before_qpc\":"+std::to_string(capture.release_before_qpc)+
                 ",\"release_after_qpc\":"+std::to_string(capture.release_after_qpc)+
+                ",\"desktop_verified\":"+boolean(association.desktop_verified)+
+                ",\"owner_desktop_query\":"+boolean(association.owner_desktop_query)+
+                ",\"owner_desktop_input\":"+boolean(association.owner_desktop_input)+
+                ",\"source_desktop_query\":"+boolean(association.source_desktop_query)+
+                ",\"source_desktop_input\":"+boolean(association.source_desktop_input)+
+                ",\"input_desktop_query\":"+boolean(association.input_desktop_query)+
+                ",\"input_desktop_active\":"+boolean(association.input_desktop_active)+
+                ",\"Run_membership_evidence_used\":"+boolean(association.run_desktop_membership_used)+
+                ",\"source_thread_desktop_error\":"+std::to_string(association.run_desktop.thread_desktop_error)+
+                ",\"source_desktop_name_query\":"+boolean(association.run_desktop.source_name_query)+
+                ",\"source_desktop_name_matches\":"+boolean(association.run_desktop.source_name_matches)+
+                ",\"source_desktop_name_error\":"+std::to_string(association.run_desktop.source_name_error)+
+                ",\"source_desktop_IO_error\":"+std::to_string(association.run_desktop.source_io_error)+
+                ",\"Run_enum_first_complete\":"+boolean(association.run_desktop.first_complete)+
+                ",\"Run_enum_second_complete\":"+boolean(association.run_desktop.second_complete)+
+                ",\"Run_enum_first_member\":"+boolean(association.run_desktop.first_member)+
+                ",\"Run_enum_second_member\":"+boolean(association.run_desktop.second_member)+
+                ",\"Run_source_identity_stable\":"+boolean(association.run_desktop.identity_stable)+
                 ",\"attach_attempted\":"+boolean(association.attach_attempted)+
                 ",\"attach_completed\":"+boolean(association.attach_completed)+
                 ",\"attach_succeeded\":"+boolean(association.attach_succeeded)+
@@ -2486,7 +2507,7 @@ int run(HINSTANCE instance,const wchar_t*){
         queue_failure_command=parse_guest_queue_failure("queue-failure "+utf8(argv[1])+" "+utf8(argv[2])+" "+utf8(argv[3]));
         if(!queue_failure_command||queue_failure_command->run!=scope.run_id)return 78;
     }
-    if(const auto helper=VisualRecovery::helper_entry(argv))return *helper;
+    if(const auto helper=VisualRecovery::helper_entry(argv,PANEBIND_BUILD_SHA))return *helper;
     if(std::find(argv.begin(),argv.end(),L"--build-identity")!=argv.end()){
         output("{\"product\":\"PaneBind\",\"version\":\"1.0.0-dev\",\"source_commit\":\"" PANEBIND_BUILD_SHA "\",\"subsystem\":\"windows\",\"requires_elevation\":false}\n");return 0;}
     if(argv.size()==2&&argv[0]==L"--config-check"){
@@ -2524,7 +2545,8 @@ int run(HINSTANCE instance,const wchar_t*){
     int result=1;
     try{
         INITCOMMONCONTROLSEX controls{sizeof(controls),ICC_WIN95_CLASSES};InitCommonControlsEx(&controls);
-        Application app(instance);application=&app;app.mutex=mutex;app.initialize_paths();
+        const auto route=guest::detect_resource_route(PANEBIND_BUILD_SHA);
+        Application app(instance,route.desktop_context);application=&app;app.mutex=mutex;app.initialize_paths();
         app.diagnostic=std::find(argv.begin(),argv.end(),L"--diagnostic")!=argv.end();
         WNDCLASSW wc{};wc.lpfnWndProc=main_proc;wc.hInstance=instance;wc.lpszClassName=app_class;wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);RegisterClassW(&wc);
         WNDCLASSW ow{};ow.lpfnWndProc=overlay_proc;ow.hInstance=instance;ow.lpszClassName=L"PaneBind.V1.Preview";RegisterClassW(&ow);
@@ -2540,6 +2562,9 @@ int run(HINSTANCE instance,const wchar_t*){
             ",\"capture_resource_route_enabled\":"+(app.input.capture_route_enabled()?"true":"false")+
             ",\"capture_resource_route\":\""+escaped(app.input.capture_route_mode())+"\""+
             ",\"reason\":\""+escaped(app.input.capture_route_reason())+"\",\"initialization_success_not_function_PASS\":true");
+        app.log.event("desktop_context","\"route\":\""+std::string(app.desktop_context?"exact_manifest_Run":"historical_Default")+
+            "\",\"run_id\":\""+(app.desktop_context?app.desktop_context->run():std::string{})+
+            "\",\"resource_context_not_window_authority\":true,\"native_validation\":\"NOT_RUN_AT_INITIALIZATION\"");
         if(!app.problem.empty())app.notify(app.problem);
         // An explicit ordinary launch must be discoverable even when the
         // shell cannot publish our notification icon. Background login and

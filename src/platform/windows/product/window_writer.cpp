@@ -262,6 +262,7 @@ struct WindowWriter::NativeExecutor {
         ~Work(){if(done)CloseHandle(done);}
     };
     struct State {
+        operations::InteractiveDesktopContextRef desktop_context;
         HANDLE wake{CreateEventW(nullptr,FALSE,FALSE,nullptr)},exited{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
         std::atomic<bool> stopping{};std::atomic<HWND> notify{};
         std::mutex mutex;std::shared_ptr<Work> pending;std::vector<std::shared_ptr<Work>> late;
@@ -270,6 +271,12 @@ struct WindowWriter::NativeExecutor {
     };
     std::shared_ptr<State> state{std::make_shared<State>()};std::thread thread;
     static bool first_attempt(const std::shared_ptr<State>& shared,const std::shared_ptr<Work>& work){
+        // No hook/UP lock is held across these bounded read-only queries.
+        // Identity and GUI/capture checks below remain independently required.
+        if(shared->desktop_context&&!operations::run_desktop_source_allowed(shared->desktop_context->observe(
+            work->expected.hwnd,work->expected.pid,work->expected.tid,work->expected.born))){
+            std::lock_guard lock(work->mutex);work->reason="native_worker_exact_Run_context_changed";return false;
+        }
         std::lock_guard lock(work->mutex);
         if(work->cancelled||shared->stopping){work->reason="native_worker_admission_cancelled";return false;}
         if(!work->cleanup_owned&&!allowed_by_guard(work->guard,work->reason))return false;
@@ -350,7 +357,8 @@ struct WindowWriter::NativeExecutor {
         const bool active=GetUserObjectInformationW(desktop,UOI_IO,&receiving,sizeof(receiving),&size)&&receiving;
         CloseDesktop(desktop);return active;
     }
-    NativeExecutor(){
+    explicit NativeExecutor(operations::InteractiveDesktopContextRef context){
+        state->desktop_context=std::move(context);
         if(!state->wake||!state->exited)throw std::runtime_error("native_worker_events_failed");
         state->late.reserve(8);
         thread=std::thread([shared=state]{
@@ -362,6 +370,9 @@ struct WindowWriter::NativeExecutor {
                 std::string context_reason;
                 bool context=work->operation==Operation::Visual?native_visual_identity(work->expected,&gui_mode,work->capture,
                     GeometryContextPhase::BeforeNativeCall,&context_reason):exact_context(work->expected,&gui_mode,work->capture,&context_reason);
+                if(context&&shared->desktop_context&&!shared->desktop_context->active()){
+                    context=false;context_reason="native_worker_exact_Run_not_active";
+                }
                 if(context&&work->destination&&!native_destination_unchanged(*work->destination)){
                     context=false;context_reason="destination_display_topology_changed_before_native";
                 }
@@ -469,7 +480,8 @@ struct WindowWriter::NativeExecutor {
     ~NativeExecutor(){stop();}
 };
 
-WindowWriter::WindowWriter(Catalog& catalog) : catalog_(catalog),executor_(std::make_unique<NativeExecutor>()) {}
+WindowWriter::WindowWriter(Catalog& catalog)
+    :catalog_(catalog),executor_(std::make_unique<NativeExecutor>(catalog.desktop_context())) {}
 WindowWriter::~WindowWriter()=default;
 bool WindowWriter::complete_unissued_on_stop(bool attempted,bool known)noexcept{return !attempted&&!known;}
 

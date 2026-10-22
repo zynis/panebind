@@ -1,6 +1,7 @@
 #pragma once
 
 #include "guest_path_scope.h"
+#include "platform/windows/operations/interactive_desktop_context.h"
 #include <wincrypt.h>
 #include <wtsapi32.h>
 #include <algorithm>
@@ -13,7 +14,8 @@
 namespace panebind::platform::windows::product::guest {
 // This is a narrow experimental-run guard, not product window eligibility.
 // File work occurs once on the input owner, never in a hook/resource callback.
-struct CaptureScope { bool enabled{};std::string reason{"ordinary_host_original_input_route"},run_id; };
+struct CaptureScope { bool enabled{};std::string reason{"ordinary_host_original_input_route"},run_id;
+    operations::InteractiveDesktopContextRef desktop_context; };
 // Resource availability is not window authority. Production targets still
 // require Catalog/Prepared/configuration and per-generation native checks;
 // exact automated targets retain their separate guarded-run restrictions.
@@ -30,6 +32,7 @@ inline constexpr ResourceRouteKind select_resource_route(ResourceOwnerKind owner
 struct ResourceRoute {
     ResourceRouteKind kind{ResourceRouteKind::None};
     std::string reason{"resource_owner_not_verified"},run_id;
+    operations::InteractiveDesktopContextRef desktop_context;
     [[nodiscard]] bool enabled()const noexcept{return kind!=ResourceRouteKind::None;}
 };
 inline std::string capture_read(const std::filesystem::path& path,std::size_t cap=262144){
@@ -69,7 +72,11 @@ inline std::string capture_hash(const std::filesystem::path& path){
 inline bool capture_manifest_suite(std::string_view manifest,std::string_view expected){
     return !expected.empty()&&capture_field(manifest,"guest_suite")==expected;
 }
-inline bool capture_interactive_medium(){
+inline bool capture_run_desktop_suite(std::string_view manifest){
+    return capture_manifest_suite(manifest,"MediumDesktopUiOnly")||
+        capture_manifest_suite(manifest,"MediumDesktopNativeClientOnly");
+}
+inline bool capture_interactive_medium(const operations::InteractiveDesktopContextRef& context={}){
     HANDLE token{};if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&token))return false;
     alignas(TOKEN_MANDATORY_LABEL) std::array<BYTE,512> data{};DWORD size{};TOKEN_ELEVATION elevation{};
     bool ok=GetTokenInformation(token,TokenIntegrityLevel,data.data(),static_cast<DWORD>(data.size()),&size)&&
@@ -81,6 +88,7 @@ inline bool capture_interactive_medium(){
     LPWSTR state{};DWORD bytes{};ok=WTSQuerySessionInformationW(WTS_CURRENT_SERVER_HANDLE,session,WTSConnectState,&state,&bytes)&&
         bytes>=sizeof(WTS_CONNECTSTATE_CLASS)&&*reinterpret_cast<WTS_CONNECTSTATE_CLASS*>(state)==WTSActive;
     if(state)WTSFreeMemory(state);if(!ok)return false;
+    if(context)return context->active();
     std::array<wchar_t,128> station{},desktop{},input{};DWORD needed{};
     const auto current=GetThreadDesktop(GetCurrentThreadId());const auto active=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);
     ok=active&&GetUserObjectInformationW(GetProcessWindowStation(),UOI_NAME,station.data(),sizeof(station),&needed)&&
@@ -95,8 +103,7 @@ inline CaptureScope detect_capture_scope(std::string_view source_sha){
         if(!GetUserNameW(name.data(),&n)||_wcsicmp(name.data(),L"WDAGUtilityAccount"))return out;
         out.reason="guest_scope_not_verified";
         const std::filesystem::path input=L"C:\\PaneBindV1\\Input",output=L"C:\\PaneBindV1\\Output";
-        if(!capture_plain_directory(L"C:\\PaneBindV1")||!capture_plain_directory(input)||!capture_plain_directory(output)||
-           !capture_interactive_medium())return out;
+        if(!capture_plain_directory(L"C:\\PaneBindV1")||!capture_plain_directory(input)||!capture_plain_directory(output))return out;
         auto run=capture_read(output/L"panebind-v1-output.marker",128);
         if(run.ends_with("\r\n"))run.resize(run.size()-2);else if(run.ends_with('\n'))run.pop_back();
         if(run.size()!=32||!std::all_of(run.begin(),run.end(),[](char c){return(c>='0'&&c<='9')||(c>='a'&&c<='f');}))return out;
@@ -129,7 +136,16 @@ inline CaptureScope detect_capture_scope(std::string_view source_sha){
                capture_field(spec,"zip_sha256")!=ready[3]||capture_field(spec,"manifest_sha256")!=ready[4]||capture_field(spec,"exe_sha256")!=actual||
                capture_hash(input/L"PaneBindV1-portable-test.zip")!=ready[3]||capture_hash(parent/L"manifest.json")!=ready[4])return out;
         }else if(!capture_read(parent/L"portable.flag",128).starts_with("PaneBind V1 portable test candidate"))return out;
-        out.enabled=true;out.run_id=run;out.reason="exact_Medium_disposable_guest_product_run";return out;
+        if(!capture_interactive_medium()){
+            // No name supplied by argv/environment and no fallback for a bad
+            // guest. Only these exact manifest suites create a Run desktop;
+            // all source/path/bytes/marker checks above are still mandatory.
+            if(!capture_run_desktop_suite(manifest))return out;
+            out.desktop_context=operations::InteractiveDesktopContext::open_verified_guest(run);
+            if(!out.desktop_context||!capture_interactive_medium(out.desktop_context))return out;
+        }
+        out.enabled=true;out.run_id=run;out.reason=out.desktop_context?
+            "exact_Medium_manifest_guest_Run_desktop":"exact_Medium_disposable_guest_product_run";return out;
     }catch(...){out.reason="guest_scope_query_failed";return out;}
 }
 inline ResourceRoute detect_resource_route(std::string_view source_sha){
@@ -138,15 +154,16 @@ inline ResourceRoute detect_resource_route(std::string_view source_sha){
         if(!GetUserNameW(name.data(),&size)||!name[0])return out;
         const auto owner=_wcsicmp(name.data(),L"WDAGUtilityAccount")==0?
             ResourceOwnerKind::ExactSandboxAccount:ResourceOwnerKind::OrdinaryUser;
-        const bool interactive_medium=capture_interactive_medium();
         if(owner==ResourceOwnerKind::ExactSandboxAccount){
             // Failed guest marker/path/hash verification can NEVER fall back
             // to the ordinary user's production resource route.
             const auto exact=detect_capture_scope(source_sha);
+            const bool interactive_medium=capture_interactive_medium(exact.desktop_context);
             out.kind=select_resource_route(owner,interactive_medium,exact.enabled);
             out.reason=interactive_medium?exact.reason:"guest_not_interactive_medium";
-            if(out.kind==ResourceRouteKind::ExactGuest)out.run_id=exact.run_id;
+            if(out.kind==ResourceRouteKind::ExactGuest){out.run_id=exact.run_id;out.desktop_context=exact.desktop_context;}
         }else{
+            const bool interactive_medium=capture_interactive_medium();
             out.kind=select_resource_route(owner,interactive_medium,false);
             out.reason=out.enabled()?"production_interactive_Medium_resource_route":
                 "ordinary_user_not_interactive_medium";

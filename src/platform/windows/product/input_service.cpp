@@ -9,6 +9,7 @@
 
 namespace panebind::platform::windows::product {
 InputService* InputService::instance_{};
+InputService::InputService(operations::InteractiveDesktopContextRef context):desktop_context_(std::move(context)){}
 namespace {
 constexpr UINT_PTR gesture_deadline_timer=1;
 constexpr UINT gesture_deadline_ms=30000;
@@ -228,7 +229,7 @@ void InputService::request_capture_stop(Removal reason){
 bool InputService::begin_capture(const InputEvent& event){
     if(!capture_bridge_||!shield_||!event.prepared||!capture_source_current(event.prepared->source)||
        authorized_->load()!=(event.generation|pending_capture_mask)||
-       !guest::capture_interactive_medium()||GetForegroundWindow()!=event.prepared->source.hwnd)return false;
+       !guest::capture_interactive_medium(desktop_context_)||GetForegroundWindow()!=event.prepared->source.hwnd)return false;
     if(event.kind==InputKind::NativeMovePending){
         const auto p=capture_bridge_->pair.load();
         return p&&p->native_move&&p->down.generation==event.generation&&capture_bridge_->active(p)&&
@@ -238,6 +239,7 @@ bool InputService::begin_capture(const InputEvent& event){
     auto p=std::make_shared<CaptureBridge::Pair>();p->down=event;p->down_serial=capture_bridge_->down_serial.load();
     p->deadline=event.tick+gesture_deadline_ms;
     p->request.gesture={event.generation,event.prepared->source.hwnd,event.prepared->source.pid,event.prepared->source.tid,gesture_deadline_ms};
+    p->request.gesture.process_birth=event.prepared->source.born;
     p->request.down_point=event.point;p->request.down_message_time=event.native_message_time;p->request.down_qpc=event.hook_observed_qpc;
     p->request.source_was_maximized=event.prepared->source.maximized;
     if(!consumed_capture_request_matches_down(p->request,event))return false;
@@ -448,7 +450,7 @@ bool InputService::arm_guest_input_failure(std::string_view run_id,std::uint64_t
         return reject("fixture_actual_driver_manifest_hash_mismatch");
     // Re-read actual lifetime/context after all expensive proof, before the
     // immutable permit is published. A real UP during hashing cannot arm it.
-    if(!capture_source_current(identity)||GetForegroundWindow()!=source||!guest::capture_interactive_medium()||
+    if(!capture_source_current(identity)||GetForegroundWindow()!=source||!guest::capture_interactive_medium(desktop_context_)||
        !capture_bridge_->active(pair)||pair!=capture_bridge_->pair.load()||!allowed(generation)||
        pair->up_observed||pair->aborted||context->matching_up_observed||
        !operations::gesture_shield_exact_capture(context->overlay,context->owner_tid))
@@ -758,6 +760,7 @@ LRESULT CALLBACK InputService::mouse(int code,WPARAM message,LPARAM param){
                             pair->native_move=true;pair->down=e;
                             pair->down_serial=self->capture_bridge_->down_serial.load();pair->deadline=self->deadline_;
                             pair->request.gesture={e.generation,p->source.hwnd,p->source.pid,p->source.tid,gesture_deadline_ms};
+                            pair->request.gesture.process_birth=p->source.born;
                             pair->request.gesture.external_stop={GetCurrentProcessId(),self->thread_id_.load(),910};
                             auto previous=self->capture_bridge_->pair.exchange(pair);
                             if(previous)self->capture_bridge_->retired_pair.store(std::move(previous));
@@ -959,7 +962,14 @@ void InputService::run(){
     bool event_ok=true;for(std::size_t i=0;i<ev.size();++i){const auto last=ev[i]==EVENT_SYSTEM_MOVESIZESTART?EVENT_SYSTEM_MOVESIZEEND:ev[i];
         events_[i]=SetWinEventHook(ev[i],last,nullptr,event,0,0,WINEVENT_OUTOFCONTEXT|WINEVENT_SKIPOWNPROCESS);event_ok=event_ok&&events_[i];}
     const bool stop_ok=RegisterHotKey(nullptr,910,MOD_CONTROL|MOD_SHIFT|MOD_NOREPEAT,VK_F11);
-    const auto resource_route=guest::detect_resource_route(PANEBIND_BUILD_SHA);
+    auto resource_route=guest::detect_resource_route(PANEBIND_BUILD_SHA);
+    // A Run context must be supplied by Application's same exact factory;
+    // InputService cannot independently widen an old Default-only Catalog.
+    if(resource_route.desktop_context){
+        if(!desktop_context_||resource_route.run_id!=desktop_context_->run()||!desktop_context_->active()){
+            resource_route.kind=guest::ResourceRouteKind::None;resource_route.reason="Run_context_not_shared_with_product";
+        }
+    }else if(desktop_context_){resource_route.kind=guest::ResourceRouteKind::None;resource_route.reason="Run_context_guest_proof_lost";}
     // Resource availability is not source authority. Normal product gestures
     // still require enabled, fresh Catalog/Prepared identity and per-generation
     // native/capture receipts. The exact guest contract never falls through
@@ -974,7 +984,8 @@ void InputService::run(){
         bridge->authority=authorized_;bridge->completion=completion_;bridge->available=available_;
         bridge->owner_tid=GetCurrentThreadId();bridge->hotkey_registered=true;
         operations::GestureShieldCallbacks callbacks;
-        callbacks.environment_allowed=[resource_route]{return resource_route.enabled()&&guest::capture_interactive_medium();};
+        callbacks.desktop_context=desktop_context_;
+        callbacks.environment_allowed=[resource_route,context=desktop_context_]{return resource_route.enabled()&&guest::capture_interactive_medium(context);};
         callbacks.consumed_down_authorized=[bridge](const auto& request){return bridge->authorized(request);};
         callbacks.gesture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,false);};
         callbacks.capture_authorized=[bridge](const auto& request){return bridge->native_authorized(request,true);};

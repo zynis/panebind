@@ -1,4 +1,5 @@
 #include "visual_recovery.h"
+#include "guest_capture_scope.h"
 
 #include <sddl.h>
 #include <objbase.h>
@@ -265,7 +266,7 @@ bool forget(Catalog& catalog,std::map<std::uint64_t,Record>& records,std::uint64
     const auto current=visual(fresh->hwnd);if(!current||!forget_allowed(entry->second,*current))return false;
     records.erase(entry);return true;
 }
-int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonce){
+int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonce,std::string_view source_sha){
     Watchdog watchdog;if(!watchdog.valid()||!watchdog.arm())return 78;
     const Facts own=facts(GetCurrentProcess());Handle parent(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,parent_pid));
     const Facts source=parent.value?facts(parent.value):Facts{};
@@ -278,7 +279,10 @@ int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonc
     const HRESULT apartment=CoInitializeEx(nullptr,COINIT_APARTMENTTHREADED);if(FAILED(apartment))return 78;
     struct Com {~Com(){CoUninitialize();}} com;
     if(!AreDpiAwarenessContextsEqual(GetThreadDpiAwarenessContext(),DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))return 78;
-    Catalog catalog;std::map<std::uint64_t,Record> records;CompletionBarrier barrier;Reply hello;hello.status=1;
+    // The same executable independently revalidates its exact manifest/bytes
+    // and actual desktop. The parent cannot send an arbitrary allowed name.
+    const auto route=guest::detect_resource_route(source_sha);if(!route.enabled())return 78;
+    Catalog catalog(route.desktop_context);std::map<std::uint64_t,Record> records;CompletionBarrier barrier;Reply hello;hello.status=1;
     if(transfer(pipe.value,parent.value,true,&hello,sizeof(hello),1000,true,true)!=IoResult::Complete)return 78;
     bool requested_stop=false;std::uint64_t previous_serial{};
     for(;;){Wire wire;watchdog.idle();const auto read=transfer(pipe.value,parent.value,false,&wire,sizeof(wire),INFINITE,true,true);if(!watchdog.arm())return 79;
@@ -310,8 +314,11 @@ int run_helper(DWORD parent_pid,std::uint64_t parent_born,std::wstring_view nonc
 } // namespace
 
 struct VisualRecovery::Impl {
+    operations::InteractiveDesktopContextRef desktop_context;
+    explicit Impl(operations::InteractiveDesktopContextRef context):desktop_context(std::move(context)){}
     DWORD owner{GetCurrentThreadId()},pid{};Handle pipe,process;std::uint64_t serial{},helper_born{};std::set<std::uint64_t> keys;std::string failure;
     bool start(){
+        if(desktop_context&&!desktop_context->active()){failure="recovery_exact_Run_not_active";return false;}
         if(!process.value&&!keys.empty()){failure="visual_recovery_cleanup_unconfirmed";return false;}
         if(process.value){if(WaitForSingleObject(process.value,0)==WAIT_TIMEOUT&&pipe.value)return true;
             if(!keys.empty()){failure="visual_recovery_helper_exited_with_owned_records";return false;}
@@ -331,6 +338,8 @@ struct VisualRecovery::Impl {
         if(!connected&&connection_error!=ERROR_IO_PENDING&&connection_error!=ERROR_PIPE_CONNECTED){pipe.close();failure="recovery_connect_failed";return false;}
         std::wstring command=L"\""+own.exe+L"\" --visual-recovery-helper "+std::to_wstring(GetCurrentProcessId())+L" "+std::to_wstring(own.born)+L" "+nonce;
         STARTUPINFOW startup{};startup.cb=sizeof(startup);PROCESS_INFORMATION child{};
+        std::wstring exact_desktop;
+        if(desktop_context){exact_desktop=L"WinSta0\\"+desktop_context->name();startup.lpDesktop=exact_desktop.data();}
         if(!CreateProcessW(own.exe.c_str(),command.data(),nullptr,nullptr,FALSE,CREATE_NO_WINDOW,nullptr,nullptr,&startup,&child)){
             cancel(pipe.value,connect);pipe.close();failure="recovery_helper_create_failed";return false;}
         process.value=child.hProcess;pid=child.dwProcessId;CloseHandle(child.hThread);
@@ -357,7 +366,7 @@ struct VisualRecovery::Impl {
         process.close();pid=0;helper_born=0;if(!exact)failure="recovery_helper_cleanup_unconfirmed";return exact;}
 };
 
-VisualRecovery::VisualRecovery():impl_(std::make_unique<Impl>()){}
+VisualRecovery::VisualRecovery(operations::InteractiveDesktopContextRef context):impl_(std::make_unique<Impl>(std::move(context))){}
 VisualRecovery::~VisualRecovery(){stop();}
 bool VisualRecovery::remember(const Snapshot& identity,const v::VisualOwnership& ownership){
     if(!identity.hwnd||!identity.key||identity.exe.empty()||identity.exe.size()>=1024||identity.window_class.empty()||identity.window_class.size()>=512||!v::visual_changes(ownership))return false;
@@ -407,12 +416,12 @@ bool VisualRecovery::stop(){
 }
 std::string VisualRecovery::error()const{return impl_->failure;}
 DWORD VisualRecovery::helper_pid()const{return impl_->pid;}
-std::optional<int> VisualRecovery::helper_entry(const std::vector<std::wstring>& argv){
+std::optional<int> VisualRecovery::helper_entry(const std::vector<std::wstring>& argv,std::string_view source_sha){
     if(argv.empty()||argv[0]!=L"--visual-recovery-helper")return {};
     if(argv.size()!=4||!nonce_valid(argv[3]))return 78;
     const auto pid=unsigned_number(argv[1]),birth=unsigned_number(argv[2]);
     if(!pid||!*pid||*pid>MAXDWORD||!birth||!*birth)return 78;
-    try{return run_helper(static_cast<DWORD>(*pid),*birth,argv[3]);}catch(...){return 78;}
+    try{return run_helper(static_cast<DWORD>(*pid),*birth,argv[3],source_sha);}catch(...){return 78;}
 }
 
 #ifdef PANEBIND_VISUAL_RECOVERY_MODEL_TEST

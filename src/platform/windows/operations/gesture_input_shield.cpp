@@ -45,7 +45,7 @@ bool physical_move_buttons() noexcept {
         actual_left_high, other_move_buttons_clear(), false);
 }
 
-bool interactive_default_desktop() noexcept {
+bool interactive_default_desktop(const InteractiveDesktopContextRef& context={}) noexcept {
     DWORD session{};
     if (!ProcessIdToSessionId(GetCurrentProcessId(), &session) || session == 0)
         return false;
@@ -58,7 +58,7 @@ bool interactive_default_desktop() noexcept {
         GetUserObjectInformationW(GetThreadDesktop(GetCurrentThreadId()), UOI_NAME,
             current_name, sizeof(current_name), &length) &&
         std::wstring_view(input_name) == std::wstring_view(current_name) &&
-        std::wstring_view(input_name) == L"Default";
+        (context?context->active():std::wstring_view(input_name)==L"Default");
     CloseDesktop(input);
     if (!same) return false;
     LPWSTR data{};
@@ -89,9 +89,9 @@ bool exact_source(const GestureShieldRequest& request,
 }
 
 GestureShieldNativeFailure native_plain_move_failure(
-    const GestureShieldRequest& request) noexcept {
+    const GestureShieldRequest& request,const InteractiveDesktopContextRef& context={}) noexcept {
     if (!exact_source(request)) return GestureShieldNativeFailure::SourceIdentity;
-    if (!interactive_default_desktop()) return GestureShieldNativeFailure::InputDesktop;
+    if (!interactive_default_desktop(context)) return GestureShieldNativeFailure::InputDesktop;
     if (GetForegroundWindow() != request.source)
         return GestureShieldNativeFailure::Foreground;
     if (!physical_move_buttons()) return GestureShieldNativeFailure::PhysicalButtons;
@@ -183,14 +183,31 @@ std::uint64_t native_qpc() noexcept {
 }
 
 bool same_interactive_desktop(DWORD source_thread, DWORD source_process,
-                              GestureShieldAssociationFacts& facts) noexcept {
-    if (!interactive_default_desktop()) return false;
+                              GestureShieldAssociationFacts& facts,HWND source_window,
+                              std::uint64_t source_birth,const InteractiveDesktopContextRef& context) noexcept {
+    if (!interactive_default_desktop(context)) return false;
     DWORD owner_session{}, source_session{};
     if (!ProcessIdToSessionId(GetCurrentProcessId(), &owner_session) || !owner_session ||
         !ProcessIdToSessionId(source_process, &source_session) ||
         source_session != owner_session) return false;
     facts.owner_session_id = owner_session;
     facts.source_session_id = source_session;
+    if(context){
+        if(!source_birth)return false;
+        facts.run_desktop_membership_used=true;
+        facts.run_desktop=context->observe(source_window,source_process,source_thread,source_birth);
+        const auto owner=GetThreadDesktop(GetCurrentThreadId());
+        const auto input=OpenInputDesktop(0,FALSE,DESKTOP_READOBJECTS);DWORD length{};BOOL io{};
+        facts.owner_desktop_query=owner&&GetUserObjectInformationW(owner,UOI_IO,&io,sizeof(io),&length);
+        facts.owner_desktop_input=facts.owner_desktop_query&&io;
+        io=FALSE;facts.input_desktop_query=input&&GetUserObjectInformationW(input,UOI_IO,&io,sizeof(io),&length);
+        facts.input_desktop_active=facts.input_desktop_query&&io;
+        const bool closed=input&&CloseDesktop(input);
+        facts.source_desktop_query=facts.run_desktop.source_io_query;
+        facts.source_desktop_input=facts.run_desktop.source_io_active;
+        return closed&&facts.owner_desktop_query&&facts.owner_desktop_input&&facts.input_desktop_query&&
+            facts.input_desktop_active&&run_desktop_source_allowed(facts.run_desktop);
+    }
     const HDESK owner = GetThreadDesktop(GetCurrentThreadId());
     const HDESK source = GetThreadDesktop(source_thread);
     if (!owner || !source) return false;
@@ -414,7 +431,7 @@ struct GestureInputShield::Impl {
     }
 
     [[nodiscard]] bool active_identity() noexcept {
-        return current && entry_source(*current) && interactive_default_desktop() &&
+        return current && entry_source(*current) && interactive_default_desktop(callbacks.desktop_context) &&
             GetForegroundWindow() == current->source;
     }
 
@@ -437,12 +454,12 @@ struct GestureInputShield::Impl {
 
     [[nodiscard]] GestureShieldNativeFailure entry_live_failure(
         const GestureShieldRequest& request) noexcept {
-        if (!current_consumed_down) return native_plain_move_failure(request);
+        if (!current_consumed_down) return native_plain_move_failure(request,callbacks.desktop_context);
         // A consumed DOWN never entered native Move. Require actual idle GUI
         // facts instead of manufacturing START/capture/END for the old route.
         if (!gesture_shield_consumed_down_receipt_valid(*current_consumed_down) ||
             !entry_source(request)) return GestureShieldNativeFailure::SourceIdentity;
-        if (!interactive_default_desktop()) return GestureShieldNativeFailure::InputDesktop;
+        if (!interactive_default_desktop(callbacks.desktop_context)) return GestureShieldNativeFailure::InputDesktop;
         if (GetForegroundWindow() != request.source) return GestureShieldNativeFailure::Foreground;
         if (!entry_move_buttons_allowed(request)) return GestureShieldNativeFailure::PhysicalButtons;
         const auto gui = gui_facts(request.thread_id);
@@ -1000,7 +1017,7 @@ struct GestureInputShield::Impl {
         if (capture_command_revoked(request))
             return GestureShieldCaptureFailure::Revoked;
         if (!entry_source(request)) return GestureShieldCaptureFailure::SourceIdentity;
-        if (!interactive_default_desktop()) return GestureShieldCaptureFailure::InputDesktop;
+        if (!interactive_default_desktop(callbacks.desktop_context)) return GestureShieldCaptureFailure::InputDesktop;
         if (GetForegroundWindow() != request.source)
             return GestureShieldCaptureFailure::Foreground;
         if (!entry_move_buttons_allowed(request)) return GestureShieldCaptureFailure::PhysicalButtons;
@@ -1094,7 +1111,7 @@ struct GestureInputShield::Impl {
         if (association_active || association_source_thread ||
             request.thread_id == thread_id) return GestureShieldCaptureFailure::AssociationAttach;
         association.desktop_verified = same_interactive_desktop(request.thread_id,
-            request.process_id, association);
+            request.process_id, association,request.source,request.process_birth,callbacks.desktop_context);
         if (!association.desktop_verified) return GestureShieldCaptureFailure::InputDesktop;
         association_source_thread = OpenThread(THREAD_QUERY_LIMITED_INFORMATION | SYNCHRONIZE,
             FALSE, request.thread_id);
@@ -1272,7 +1289,7 @@ struct GestureInputShield::Impl {
             if (facts.previous || !capture_acquired ||
                 facts.foreground_after != request.source || !entry_source(request)) {
                 facts.failure = GestureShieldCaptureFailure::Readback;
-            } else if (!interactive_default_desktop()) {
+            } else if (!interactive_default_desktop(callbacks.desktop_context)) {
                 facts.failure = GestureShieldCaptureFailure::InputDesktop;
             } else if (capture_command_revoked(request) || !entry_move_buttons_allowed(request)) {
                 // A native call already issued cannot be retroactively canceled.

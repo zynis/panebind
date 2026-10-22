@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include "platform/windows/operations/interactive_desktop_context.h"
 
 #include <cstdint>
 #include <functional>
@@ -28,6 +29,9 @@ struct GestureShieldRequest {
     // resource verifies the typed receipt; a conflicting registration is not
     // treated as success. Empty preserves the historical private owner.
     GestureShieldExternalStopOwner external_stop{};
+    // Required by the new exact-Run product adapter only. Zero preserves the
+    // historic request layout's behavior, not a new Run identity exemption.
+    std::uint64_t process_birth{};
 };
 
 enum class GestureShieldEntryMode { NativeMoveHandoff, ConsumedDown };
@@ -269,6 +273,9 @@ struct GestureShieldAssociationFacts {
     bool owner_desktop_input{};
     bool source_desktop_input{};
     bool input_desktop_active{};
+    // Alternative exact-Run evidence; never relabel unknown foreign UOI_IO.
+    bool run_desktop_membership_used{};
+    RunDesktopSourceFacts run_desktop{};
     bool attach_attempted{};
     bool attach_completed{};
     bool attach_succeeded{};
@@ -463,6 +470,9 @@ struct GestureShieldCallbacks {
     std::function<bool(const GestureShieldConsumedDownRequest&)> consumed_down_authorized;
     std::function<bool(const GestureShieldConsumedDownRequest&)> external_stop_owner_registered;
     std::function<bool(const GestureShieldRequest&)> native_stop_owner_registered;
+    // Trailing/default empty retains positional historical owned/Explorer
+    // callback construction and its Default-only behavior unchanged.
+    InteractiveDesktopContextRef desktop_context;
 };
 
 struct GestureShieldStopFacts {

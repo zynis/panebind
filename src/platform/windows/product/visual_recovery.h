@@ -15,7 +15,7 @@ namespace panebind::platform::windows::product {
 // This is cleanup authority only: no arbitrary command, geometry or input API.
 class VisualRecovery final {
 public:
-    VisualRecovery();
+    explicit VisualRecovery(operations::InteractiveDesktopContextRef desktop_context={});
     ~VisualRecovery();
     VisualRecovery(const VisualRecovery&) = delete;
     VisualRecovery& operator=(const VisualRecovery&) = delete;
@@ -39,7 +39,7 @@ public:
     [[nodiscard]] DWORD helper_pid() const;
     // argv excludes argv[0]/the executable, as in the production argument parser.
     // Unrelated commands return nullopt; malformed internal calls fail closed.
-    static std::optional<int> helper_entry(const std::vector<std::wstring>& argv);
+    static std::optional<int> helper_entry(const std::vector<std::wstring>& argv,std::string_view source_sha={});
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

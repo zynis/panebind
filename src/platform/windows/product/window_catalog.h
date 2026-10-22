@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/v1/settings.h"
+#include "platform/windows/operations/interactive_desktop_context.h"
 
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -105,7 +106,7 @@ enum class GeometryContextPhase { BeforeNativeCall,IssuedCompletion };
 // arbitrary application messages or waits on a foreign window procedure.
 class Catalog final {
 public:
-    Catalog();
+    explicit Catalog(operations::InteractiveDesktopContextRef desktop_context={});
     ~Catalog();
     Catalog(const Catalog&) = delete;
     Catalog& operator=(const Catalog&) = delete;
@@ -123,6 +124,8 @@ public:
     [[nodiscard]] static bool same(const Snapshot& first, const Snapshot& second);
 
 private:
+    friend class WindowWriter;
+    [[nodiscard]] operations::InteractiveDesktopContextRef desktop_context()const;
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

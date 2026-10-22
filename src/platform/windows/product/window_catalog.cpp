@@ -351,6 +351,7 @@ bool geometry_gui_context_allowed(const Snapshot& target,const GuiContext& gui,
 }
 
 struct Catalog::Impl {
+    operations::InteractiveDesktopContextRef desktop_context;
     DWORD owner{GetCurrentThreadId()}, own_pid{GetCurrentProcessId()};
     Security own_security{security(GetCurrentProcess())};
     IVirtualDesktopManager* desktops{};
@@ -378,7 +379,7 @@ struct Catalog::Impl {
             return;
         }
     }
-    Impl() {
+    explicit Impl(operations::InteractiveDesktopContextRef context):desktop_context(std::move(context)) {
         APTTYPE apartment{};
         APTTYPEQUALIFIER qualifier{};
         if (FAILED(CoGetApartmentType(&apartment, &qualifier)) ||
@@ -403,8 +404,9 @@ struct Catalog::Impl {
     }
 };
 
-Catalog::Catalog() : impl_(std::make_unique<Impl>()) {}
+Catalog::Catalog(operations::InteractiveDesktopContextRef context) : impl_(std::make_unique<Impl>(std::move(context))) {}
 Catalog::~Catalog() = default;
+operations::InteractiveDesktopContextRef Catalog::desktop_context()const{return impl_->desktop_context;}
 
 bool Catalog::same(const Snapshot& first, const Snapshot& second) {
     return first.hwnd && first.key && first.key == second.key && first.hwnd == second.hwnd &&
@@ -427,7 +429,8 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     if (!normal_integrity(impl_->own_security)) return reject("controller_not_medium_non_elevated");
     if (!pmv2_context()) return reject("physical_pixel_pmv2_context_required");
     if (!active_session(impl_->own_security.session)) return reject("interactive_session_not_active");
-    if (!active_default_desktop()) return reject("interactive_default_desktop_not_active");
+    if (impl_->desktop_context?!impl_->desktop_context->active():!active_default_desktop())
+        return reject(impl_->desktop_context?"exact_Run_desktop_not_active":"interactive_default_desktop_not_active");
     if (!impl_->hook || !impl_->desktops) return reject("lifecycle_or_virtual_desktop_service_unavailable");
     if (!window || !IsWindow(window) || GetAncestor(window, GA_ROOT) != window)
         return reject("not_live_root_window");
@@ -463,7 +466,7 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     BOOL on_current_desktop{};
     const HRESULT desktop_result=impl_->desktops->IsWindowOnCurrentVirtualDesktop(window, &on_current_desktop);
     if(desktop_result!=S_OK)return reject("virtual_desktop_query_failed:"+std::to_string(static_cast<std::uint32_t>(desktop_result)));
-    if(on_current_desktop==FALSE)return reject("not_confirmed_current_virtual_desktop");
+    if(!operations::current_virtual_desktop_allowed(desktop_result,on_current_desktop))return reject("not_confirmed_current_virtual_desktop");
 
     const Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, FALSE, result.pid));
     if (!process.get() || WaitForSingleObject(process.get(), 0) != WAIT_TIMEOUT)
@@ -476,6 +479,9 @@ std::optional<Snapshot> Catalog::get(HWND window, const core::v1::Settings& sett
     FILETIME created{}, exited{}, kernel{}, user{};
     if (!GetProcessTimes(process.get(), &created, &exited, &kernel, &user) || !(result.born = ticks(created)))
         return reject("process_birth_unavailable");
+    if(impl_->desktop_context&&!operations::run_desktop_source_allowed(
+        impl_->desktop_context->observe(window,result.pid,result.tid,result.born)))
+        return reject("exact_Run_source_membership_or_identity_unconfirmed");
     std::wstring path(32768, L'\0');
     DWORD path_length = static_cast<DWORD>(path.size());
     if (!QueryFullProcessImageNameW(process.get(), 0, path.data(), &path_length) || !path_length)
@@ -569,7 +575,7 @@ std::vector<Snapshot> Catalog::all(const core::v1::Settings& settings) {
     const auto before=bounded_z_order();
     struct Context { Catalog* catalog; const core::v1::Settings* settings; std::vector<Snapshot>* output;std::size_t roots{};bool truncated{}; };
     Context context{this, &settings, &result};
-    const bool enumerated=EnumWindows([](HWND window, LPARAM value) -> BOOL {
+    const auto enumerate=[](HWND window, LPARAM value) -> BOOL {
         auto& ctx = *reinterpret_cast<Context*>(value);
         if(++ctx.roots>1024){ctx.truncated=true;return FALSE;}
         try {
@@ -582,7 +588,9 @@ std::vector<Snapshot> Catalog::all(const core::v1::Settings& settings) {
             }
             return TRUE;
         } catch (...) { return FALSE; }
-    }, reinterpret_cast<LPARAM>(&context))!=FALSE;
+    };
+    const bool enumerated=(impl_->desktop_context?EnumDesktopWindows(impl_->desktop_context->desktop(),enumerate,
+        reinterpret_cast<LPARAM>(&context)):EnumWindows(enumerate,reinterpret_cast<LPARAM>(&context)))!=FALSE;
     // A truncated set cannot stand in for the complete group/candidate set.
     if(!enumerated||context.truncated)return {};
     const bool frames_current=std::all_of(result.begin(),result.end(),frame_still_matches);
@@ -631,6 +639,32 @@ int main(){
     namespace p=panebind::platform::windows::product;
     namespace v=panebind::core::v1;
     int checks{},failures{};auto check=[&](bool ok,const char* name){++checks;if(!ok){++failures;std::cerr<<"FAIL "<<name<<'\n';}};
+    namespace desktop=panebind::platform::windows::operations;
+    desktop::RunDesktopFacts actual_run{true,true,true,true,true,true,true,true,true,true};
+    check(desktop::run_desktop_active(actual_run),"Run context needs actual Medium unlocked station owner input and held desktop");
+    actual_run.owner_matches=false;check(!desktop::run_desktop_active(actual_run),"wrong owner Run cannot activate context");
+    actual_run.owner_matches=true;actual_run.input_matches=false;
+    check(!desktop::run_desktop_active(actual_run),"changed input desktop revokes the same context without a name fallback");
+    actual_run.input_matches=true;actual_run.owner_active=false;
+    check(!desktop::run_desktop_active(actual_run),"same owner name without actual owner UOI_IO is insufficient");
+    actual_run.owner_active=true;actual_run.session_active_unlocked=false;
+    check(!desktop::run_desktop_active(actual_run),"locked or unknown interactive session cannot use Run context");
+    desktop::RunDesktopSourceFacts member;
+    member.active=member.identity_stable=member.first_complete=member.second_complete=member.first_member=member.second_member=true;
+    member.thread_desktop_error=ERROR_ACCESS_DENIED;
+    check(desktop::run_desktop_source_allowed(member)&&!member.source_name_query&&!member.source_io_query,
+        "actual shared Catalog shield writer predicate accepts separate double membership without falsifying unknown foreign queries");
+    member.source_name_query=true;member.source_name_matches=false;
+    check(!desktop::run_desktop_source_allowed(member),"known contrary source desktop name defeats otherwise complete membership");
+    member.source_name_matches=true;member.source_io_query=true;member.source_io_active=false;
+    check(!desktop::run_desktop_source_allowed(member),"known inactive source IO defeats otherwise complete membership");
+    member.source_io_active=true;member.second_complete=false;
+    check(!desktop::run_desktop_source_allowed(member),"truncated second enumeration grants no context evidence");
+    member.second_complete=true;member.identity_stable=false;
+    check(!desktop::run_desktop_source_allowed(member),"source identity changing across enumerations cannot be admitted");
+    check(desktop::current_virtual_desktop_allowed(S_OK,TRUE)&&!desktop::current_virtual_desktop_allowed(S_OK,FALSE)&&
+        !desktop::current_virtual_desktop_allowed(E_FAIL,TRUE)&&!desktop::current_virtual_desktop_allowed(S_FALSE,TRUE),
+        "production VDM predicate still requires actual S_OK and true, not unknown success-like status");
     v::Settings settings=v::default_settings();p::Snapshot snapshot;
     snapshot.exe=L"C:\\Apps\\Editor.exe";snapshot.window_class=L"Frame/A";
     settings.rules={{"C:/Apps/EDITOR.exe","frame/A",true,0xffffffffu}};std::string why;
