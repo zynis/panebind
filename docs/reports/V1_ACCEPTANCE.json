@@ -17,6 +17,7 @@
       "run_ids": ["a014494c4a034320b1b99b515eb40597", "540ff812c66f47c7b8291dc2776c2692", "c199209c52f343e1a8c07c40a1a2dce4"],
       "scope": "Current25b ordinary portable entry/new metadata GUI and two owned core rounds on same PID6396 scoped PASS;2197D and physical P1001..1977/977rows plus earlier embedded receipts, not whole product history/all-history zero-late proof. ENVc199 actual Medium child Shell/Tray present after bounded10s observation, but supplemental GetThreadDesktop UNKNOWN makes classifier reject and short-circuits GetWindowRect; zeros are unread placeholders. Original4f7/4ff/c249 identities remain separate; no score/whole chain added",
       "product_builds": "ROOT_ACTUAL_DEBUG_RELEASE_BUILD_AND_AFFECTED_SETTINGS_VISUAL_GUEST_PATH_THREE_EACH_PASS",
+      "environment_only_followup_ref": "source_identity.pending_driver_candidate",
       "whole_version_PASS": false
     },
     "observed_driver0f_targeted_actual": {
@@ -68,14 +69,16 @@
     "pending_driver_candidate": {
       "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
-      "status": "DEBUG_RELEASE_FIXTURE_AND_GUEST_PATH_BUILD_OFFLINE_PASS_NATIVE_NOT_RUN",
+      "status": "ACTUAL_229E_EXACT_MEDIUM_SHELL_TRAY_ACTIVATED_AND_INDEPENDENTLY_RETURNED_ONLY_PRODUCT_INPUT_TRAY_NOT_RUN",
       "debug_sha256": "CFDDB71CB1C32D6C3AAB7444C18839CAFD4200AC4A32E42DABAFA807CBB867B8",
       "release_sha256": "8D2527C9B141B914254B195D88A3515EA2B32C592ACCD523DA3FF7E5B8469650",
       "static_checks": "ROOT_ACTUAL_183_PASS",
       "offline": "ROOT_ACTUAL_GUEST_PATH_ONE_EACH_DEBUG_RELEASE_PASS",
       "host_guard": "ROOT_ACTUAL_TWO_WAITED_EXIT78_WITH_VALID_ENV_ARGV_DEBUG_RELEASE",
       "planned_run_id": "229eea1807bc432f8812efb57d937ed9",
-      "scope": "Guide2.1(4)-authorized TEST repair separates actual rectangle collection from foreign thread desktop UNKNOWN; one own-desktop Switch with independent bounded Default return has no product/input/DACL/host change. Actual D/R fixture builds and host guard checks passed; 5seconds starts cleanup, not guaranteed native completion, and late/unknown completion cannot claim cleanup PASS. New execution remains NOT_RUN; product25b bytes unchanged.",
+      "actual_run_id": "229eea1807bc432f8812efb57d937ed9",
+      "actual_evidence_path": "docs/reports/v1-evidence/229e-medium-desktop-activation-return-review.json",
+      "scope": "Actual229e67continuousD: independent rectangle collection and two complete exact-held-HDESK enumerations confirm stable child Medium Shell/Tray. One native Switch to own Run returnedTRUE with actual input name/UOI_IO; independent return owner switched back to actualDefault, exited, and all opened helper handles closed. Formal Default product guards unchanged; product25b payload bytes unchanged but never started in this environment-only run. Input/tray interaction NOT_RUN; ordinary full desktop NOT_PROVEN. 5seconds starts cleanup, not guaranteed native completion; this run returned on explicit request, no deadline/unknown completion. RawLastError5 after nativeTRUE is not failure/root cause. Package/evidence and exact guest/task cleanup retained; no feature/Bscore awarded.",
       "last_actual_driver_identity_ref": "source_identity.last_runtime_tested_driver"
     },
     "observed_driver_001c": {
@@ -167,6 +170,15 @@
       "old_runtime_rebound": false
     },
     "last_runtime_tested_driver": {
+      "source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
+      "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+      "release_sha256": "8D2527C9B141B914254B195D88A3515EA2B32C592ACCD523DA3FF7E5B8469650",
+      "run_ids": ["229eea1807bc432f8812efb57d937ed9"],
+      "native_guard_validation": "ACTUAL_EXACT_NEW_MEDIUM_DESKTOP_ACTIVATION_AND_INDEPENDENT_DEFAULT_RETURN_ONLY_PRODUCT_NOT_STARTED_INPUT_AND_TRAY_NOT_RUN",
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false
+    },
+    "historical_last_runtime_tested_driver_001c": {
       "source_sha": "001c326c342553456a16833191c2ad56fb603267",
       "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
       "release_sha256": "2547EC95425A14CA08D8D99A0D6B8EED6E571371DC642C592497E9B11D61457A",
@@ -303,7 +315,7 @@
       },
     "implementation_inspected": "CURRENT_4F7_TARGETED_CALLBACK_FOCUS_RULES_AND_PORTABLE_SCOPES_WITH_HISTORICAL_11AE_FULL_BOUNDARIES",
     "note": "当前独立DEV43/60、21/40=52.5%，模块/整版PARTIAL。6e1f与原终止证据闭合M04F04；830a与原bf5c/b6/7060实际证据及未变生产范围复核闭合M10F04/B22；efed与原034/2c8规则闭合M11F04。各批保留原产品/driver身份，未拼新整链。8d8a HC真实UI/free/shutdown子项通过但scheme恢复不精确仍FAIL；57f原生系统Shake无效果，产品NOT_RUN。ec2f实际验证当前4f7/5f87普通包，不授wholeI12、真实应用、托盘、完整Medium桌面、多屏或真人门。",
-    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心，c199实际可见同Medium child Shell/Tray但补充GetThreadDesktopUNKNOWN使TEST分类拒绝并短路GetWindowRect；零为未读placeholder非native几何。旧4f7/4ff/c249及全部历史保持身份。后继readonly成员/独立Rect修复与自有desktop一次Switch/有限回切TEST尚未封定SHA/未运行，不预授环境ready或产品控制。",
+    "pending_product_note": "当前25b/001c已实际a014普通bfb包/新metadata说明和540f同PID两轮核心；c199辅助查询门/未读placeholder反例保持原FAIL。后继1a/229e已实际确认新Medium Shell/Tray实际矩形、双完整HDESK成员、自有Run一次Switch/实际输入桌面回读及独立Default回切；只ACTIVATED_AND_RETURNED_ONLY，产品/输入/tray NOT_RUN、完整桌面NOT_PROVEN。正式产品Default保护未改；下一步仅在新Run exact环境中检查真实tray API前置，再复用冻结25b的普通GUI/tray子路径，不预填未构建/未现场新驱动身份或结果。旧4f7/4ff/c249及全部历史保持身份。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -7934,7 +7946,7 @@
       "status_basis": "OBSERVED_SUBSET_WITH_EXPLICIT_REMAINING_CONTRACT_OR_ENVIRONMENT",
       "observed": "原4f7/4ff的21a四phase控件及重启/实际行为保持原身份；当前25b/001c的a014普通无参打开后真实CtrlTab到第6页，用户保存/取消说明实际Static可见且在viewport中、无旧代际/内部版本术语，返回原页后继续设置实际Move/真UP/退出。仅一行生产metadata文字改变，机制与控件未改；不是新控件矩阵或托盘入口实证。",
       "remaining_conditions": ["Guide M11F01独立DEV明确要求从真实托盘打开并操作，当前可用托盘入口尚未建立；不将不同DPI/多屏整模块门重复塞入本独立项。"],
-      "next_action": "新metadata公开普通入口已由a014受影响核对通过，复用21a与原GUI/规则/映射证据；独立F01只剩真实tray打开，显示/DPI属另项。c199已见实际Medium Shell/Tray但TEST补充查询门误拒，修正后的readonly分类与自有desktop有限Switch/回切尚NOT_RUN，不预授托盘/产品权限。",
+      "next_action": "新metadata公开普通入口已由a014受影响核对通过，复用21a与原GUI/规则/映射证据；独立F01只剩真实tray打开，显示/DPI属另项。1a/229e现已实际确认新Medium Shell/Tray、切入及独立Default回切，仅环境范围；下一步先检查新Run的真实tray API前置，再以冻结25b核对普通GUI/tray子路径。正式Default增强保护不变，当前真实tray/输入/完整桌面仍未通过；不预写新测试实现的构建身份或结果。",
       "latest_product_observation": {
         "source_sha": "4d07ef1fe3d3888ac7fbdb9b77afccd6d5a2cf62",
         "binary_sha256": "458A62CAEA26F76827BFF84AECDE4F5273EE6876809C411B525B8BF110F5F14C",
@@ -15970,6 +15982,17 @@
     "validation_evidence_path": "docs/reports/v1-evidence/2432-portable-11ae-normal-entry-metadata.json"
   },
   "current_round_observations": [
+    {
+        "run_id": "229eea1807bc432f8812efb57d937ed9",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_started": false,
+        "driver_source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
+        "result": "ACTIVATED_AND_RETURNED_ONLY",
+        "evidence_id": "EV-229E-EXACT-MEDIUM-DESKTOP-ACTIVATION-AND-INDEPENDENT-RETURN",
+        "evidence_path": "docs/reports/v1-evidence/229e-medium-desktop-activation-return-review.json",
+        "new_feature_or_B_PASS": false,
+        "scope": "67 continuousD, actual10016ms readiness interval. Exact sameSID/session Medium child Progman/Tray real rectangles in two complete held-Run-HDESK inventories; actual ownRun Switch/UOI_IO and independent owner Default return/exit/handle closes verified. No product/input/tray interaction, no formalDefault guard change, no complete desktop/TaskView/display or cleanup-from-disposal PASS. Original c199 and earlier failures retained."
+    },
     {
         "run_id":  "a014494c4a034320b1b99b515eb40597",
         "product_source_sha":  "25bff898c9943ee70155ce08868a2a7fc56ab100",

@@ -140,7 +140,7 @@ function Assert-V1NativeClientsWithoutProductWiring([string]$Source){
     if(-not $branch.Success -or -not $branch.Value.Contains('native_clients_only_flow(s);') -or
        $branch.Index+$branch.Length -gt $drive.IndexOf('launch(s,',[StringComparison]::Ordinal) -or
        $branch.Groups['native'].Value -match '\b(?:launch|fixture_rect|read_product|record)\s*\(' -or
-       -not $drive.Contains('if(s.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly")cleanup(s);')){
+       -not $drive.Contains('if(s.suite!="NativeClientsOnly"&&s.suite!="MediumDesktopEnvironmentOnly"&&s.suite!="MediumDesktopUiOnly")cleanup(s);')){
         throw 'Native client baseline must bypass the product launch branch, including product stop on failure.'
     }
     $flow=Get-V1FixtureFunctionText $Source 'native_clients_only_flow'
@@ -1410,7 +1410,7 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
     foreach($script in @($Prepare,$Guest,$Remote)){
         if(-not $script.Contains("'MediumDesktopEnvironmentOnly'")){throw 'Medium desktop requires exact preparation, guest and deployment suite admission.'}
     }
-    foreach($value in @('s.suite!="MediumDesktopEnvironmentOnly"||!desktop()',
+    foreach($value in @('(s.suite!="MediumDesktopEnvironmentOnly"&&!ui_only)||!desktop()',
         '!equal(user.data(),L"WDAGUtilityAccount")||!medium(GetCurrentProcess())||s.process||s.product_pid',
         'marker(fs::path(L"C:\\PaneBindV1\\Input")/L"panebind-v1-input.marker",s.run)',
         'matching_existing_names','open_error!=ERROR_FILE_NOT_FOUND','CreateDesktopW(name.c_str(),nullptr,nullptr,0,access,nullptr)',
@@ -1448,7 +1448,8 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         'if(readonly_root&&fresh.type==L"Shell_TrayWnd")',
         'current_session==own_session','exact_tray==1&&shell_root!=tray_root',
         'exact_shell==1&&exact_tray==1','SetThreadDesktop(original)','CloseDesktop(created)',
-        'before.same(after)&&desktop()','s.result=ready?0:78;',
+        'before.same(after)&&desktop()','s.result=accepted?0:78;',
+        'accepted=ready&&(!ui_only||observation.ui_completed)',
         'READY_ENUMERATED_ONLY','ordinary_full_desktop_acceptance','NOT_PROVEN','process_cleanup_PASS_inferred')){
         if(-not $Cases.Contains($value)){throw ('Medium desktop lost actual bounded, exact process/window or cleanup boundary: '+$value)}
     }
@@ -1541,6 +1542,7 @@ function Assert-V1MediumDesktopActivation([string]$Environment,[string]$Activati
     foreach($value in @('if(out.enumerated_ready){',
         'medium_desktop_activate_and_return(created,name,[&]{',
         'observe("activation_fresh_readonly_roots");return out.enumerated_ready;',
+        '},ui_request);',
         'observation.activation_complete&&observation.handle_closed&&original_unchanged',
         'activation.cleanup_known&&', '!activation.deadline_or_completion_unknown')){
         if(-not $Environment.Contains($value)){throw 'Desktop activation must be gated by actual readonly roots and verified independent return, never product authority.'}
@@ -1573,4 +1575,47 @@ Check $true 'static exact guest desktop activation uses independent bounded Defa
 Reject {Assert-V1MediumDesktopActivation ($mediumDesktopEnvironment.Replace('if(out.enumerated_ready){','if(true){')) $mediumActivationSource $fixtureSource} 'static desktop activation rejects starting before exact readonly Shell readiness'
 Reject {Assert-V1MediumDesktopActivation $mediumDesktopEnvironment ($mediumActivationSource.Replace('WaitForSingleObject(state->entry_done,left)','WAIT_OBJECT_0')) $fixtureSource} 'static desktop activation rejects assuming an in-flight entry completed'
 Reject {Assert-V1MediumDesktopActivation $mediumDesktopEnvironment ($mediumActivationSource.Replace('if(!before.exact(state->target_name))','if(false)')) $fixtureSource} 'static Default return rejects displacing an unknown input desktop'
+function Assert-V1MediumDesktopUI([string]$Fixture,[string]$Environment,[string]$Activation,[string]$UI){
+    foreach($source in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
+        if(-not $source.Contains("'MediumDesktopUiOnly'")){throw 'Exact UI-only suite must retain independent package and runner admission.'}
+    }
+    foreach($value in @('s.suite=="MediumDesktopUiOnly"','medium_desktop_environment_flow(s);',
+        '#include "platform/windows/product/v1_guest_medium_desktop_ui_case.h"',
+        's.suite=="MediumDesktopUiOnly"?s.medium_ui_product_closed:!s.process')){
+        if(-not $Fixture.Contains($value)){throw 'UI-only suite must use actual product start/exit observations, never null shared HANDLE as proof.'}
+    }
+    foreach($value in @('accepted=ready&&(!ui_only||observation.ui_completed)',
+        'ui_only?&ui_request:nullptr','s.medium_ui_product_started=observation.ui_product_started')){
+        if(-not $Environment.Contains($value)){throw 'UI-only success requires the real case, not activation alone.'}
+    }
+    foreach($value in @('state->ui_input->retire_and_wait(1000)','if(!quiescent){state->entry_wait_unknown.store(true);return;}',
+        'if(ui_request){state->deadline_ms=30000;state->outer_ms=35000;',
+        'ui_request&&out.tray_api_ready&&out.tray_probe_cleanup_known',
+        'out.ui_cleanup_known=false','out.ui_started=ui.product_started',
+        'out.tray_probe_cleanup_known&&out.ui_cleanup_known')){
+        if(-not $Activation.Contains($value)){throw 'UI-only input must retire and quiesce before independent return; unknown cleanup is not PASS.'}
+    }
+    foreach($value in @('flags.compare_exchange_strong(idle,in_flight','flags.fetch_or(retired_bit',
+        'WaitForSingleObject(input_done,budget_ms)','!incomplete_pair.load',
+        'GetUserObjectInformationW(input,UOI_IO','hash(product_)!=sha_',
+        'marker(output/L"panebind-v1-output.marker",run_)','process_birth(process_)!=birth_',
+        'QueryFullProcessImageNameW(process_','EnumDesktopWindows(desktop_',
+        'mutex_error!=ERROR_FILE_NOT_FOUND','startup.lpDesktop=desktop.data()',
+        'input_context()||!target()||!lease_->begin()',
+        'SendInput(count,packets,sizeof(INPUT))','API_insert_is_not_message_delivery_proof',
+        'choose(menu,501,L"','choose(exit,505,L"','out_.product_closed',
+        'whole_M01_B27_B28_PASS_inferred')){
+        if(-not $UI.Contains($value)){throw ('UI-only must retain exact guest/native evidence boundary: '+$value)}
+    }
+    if($UI.Contains('Sleep(') -or $UI.Contains('INFINITE') -or
+       $UI -match '\b(SetForegroundWindow|SetFocus|SetWindowPos|PostMessage\w*|SendMessage\w*|TerminateProcess|SetUserObjectSecurity|SetTokenInformation)\s*\('){
+        throw 'UI-only cannot force focus, inject product commands, change security or hide native failures.'
+    }
+}
+$mediumUiSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_ui_case.h'),[Text.Encoding]::UTF8)
+Assert-V1MediumDesktopUI $fixtureSource $mediumDesktopEnvironment $mediumActivationSource $mediumUiSource
+Check $true 'static actual named-desktop UI uses frozen ordinary product, paired guarded input and independent retirement before return'
+Reject {Assert-V1MediumDesktopUI $fixtureSource ($mediumDesktopEnvironment.Replace('accepted=ready&&(!ui_only||observation.ui_completed)','accepted=ready')) $mediumActivationSource $mediumUiSource} 'static UI-only cannot convert desktop activation alone into product UI success'
+Reject {Assert-V1MediumDesktopUI $fixtureSource $mediumDesktopEnvironment ($mediumActivationSource.Replace('state->ui_input->retire_and_wait(1000)','true')) $mediumUiSource} 'static UI-only cannot return through unretired or in-flight input'
+Reject {Assert-V1MediumDesktopUI $fixtureSource $mediumDesktopEnvironment $mediumActivationSource ($mediumUiSource.Replace('flags.compare_exchange_strong(idle,in_flight','flags.exchange(in_flight'))} 'static UI-only rejects reacquiring input after independent retirement'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

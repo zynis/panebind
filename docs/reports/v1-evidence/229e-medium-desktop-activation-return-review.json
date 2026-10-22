@@ -1,0 +1,193 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-229E-EXACT-MEDIUM-DESKTOP-ACTIVATION-AND-INDEPENDENT-RETURN",
+  "kind": "independent_read_only_original_raw_and_receipts_review",
+  "review_date": "2026-10-22",
+  "run_id": "229eea1807bc432f8812efb57d937ed9",
+  "suite": "MediumDesktopEnvironmentOnly",
+  "configuration": "Release",
+  "result": "ACTIVATED_AND_RETURNED_ONLY",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_started": false,
+    "product_identity_meaning": "Hash-checked package payload, not an executed product. No product PID, geometry writer, tray operation or input interaction is established by this environment-only run.",
+    "driver_source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
+    "driver_sha256": "8D2527C9B141B914254B195D88A3515EA2B32C592ACCD523DA3FF7E5B8469650",
+    "packaging_head": "31df0c46dd92572ee17b8fa71d75add36ac175bf",
+    "fixture_pid": 3868,
+    "fixture_primary_tid": 6388,
+    "observer_tid": 3376,
+    "return_owner_tid": 6016,
+    "child_pid": 3456,
+    "child_primary_tid": 3812,
+    "child_birth_filetime_decimal": "134371088019585482",
+    "child_image": "C:\\Windows\\explorer.exe",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_229eea1807bc432f8812efb57d937ed9",
+    "precision": "FILETIME identities remain literal decimal strings here; no floating-point reidentification."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/229eea1807bc432f8812efb57d937ed9/package-receipt.json",
+    "receipt_sha256": "BD001EA1EF7A72453E4D43A84EBE9DA1E207D2B8283B9F7656CB8F54C632087E",
+    "zip_sha256": "6BD4747C2841A404C176107BF58AF994DFE7D505716958533D08849E2FC73968",
+    "manifest_sha256": "178731C84065BA841A7556558A5793B9FCAA154A5DF2F0E2722F77D5DE3835F0",
+    "wsb_sha256": "E8B961B98ADAF257F9997AB81A1AE4B1BA704EC3AB339B7FAA8D02AD53948FB5"
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/229eea1807bc432f8812efb57d937ed9/collection-20261022T021421676Z-965cbc548b4249caa800ca602249c904/229eea1807bc432f8812efb57d937ed9-release-fixture.jsonl",
+      "sha256": "BD088794E14B19E0C06F706A2423A6F1DC4291089FDFC32B7663A2DDBE7431FC",
+      "bytes": 244169,
+      "rows": 67,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        67
+      ],
+      "all_source_sha_matches_driver": true,
+      "explicit_result_FAIL_rows": 0
+    },
+    {
+      "path": "uat/v1-control/229eea1807bc432f8812efb57d937ed9/collection-20261022T021421676Z-965cbc548b4249caa800ca602249c904/229eea1807bc432f8812efb57d937ed9-Release-launch.json",
+      "sha256": "D4F97F82059A333199B33C02DD83C0C31A5C38C4D521EC6FDD2821E3F94B27D3"
+    },
+    {
+      "path": "uat/v1-control/229eea1807bc432f8812efb57d937ed9/collection-20261022T021421676Z-965cbc548b4249caa800ca602249c904/229eea1807bc432f8812efb57d937ed9-guest-summary.json",
+      "sha256": "49D77AD3668AFBE4013D39DD224668A5CFD381C22E6079BC2E65A6910ECA82B2"
+    },
+    {
+      "path": "uat/v1-control/229eea1807bc432f8812efb57d937ed9/collection-20261022T021421676Z-965cbc548b4249caa800ca602249c904/collection-receipt.json",
+      "sha256": "F01541DDCF5EE3F8450D74C0577628B00B61B30123DE839345F4EE7727C1B2B0",
+      "output_unchanged": true,
+      "actual_before_inventory_utc": "2026-10-22T02:14:47.6760916Z",
+      "actual_after_inventory_utc": "2026-10-22T02:14:51.4532933Z",
+      "receipt_top_utc_meaning": "02:14:25.4799721Z is an earlier receipt field, not proof that collection had already completed."
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/229e-medium-desktop-activation-return-excerpt.jsonl",
+    "sha256": "DE69BFABAF2E72C2607E7113124F92A0990A75DFA7F8CC83FC13C8C0142F2078",
+    "bytes": 43379,
+    "literal_lines": 27,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      19,
+      21,
+      23,
+      25,
+      26,
+      27,
+      28,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      60,
+      61,
+      62,
+      63,
+      64,
+      67
+    ],
+    "serialization_changed": false,
+    "line_endings": "Literal source line contents preserved; excerpt file uses LF."
+  },
+  "observations": [
+    {
+      "source": "D21/D23/D25-D28",
+      "fact": "Only one fresh exact Run desktop was created using access195, flags0 and inherited unmodified security. A fresh TEST observer thread connected, installed an out-of-context observation hook, and created exact new Explorer PID3456 using the same existing Medium token. The one WaitForInputIdle return0 was not treated as final Shell readiness."
+    },
+    {
+      "source": "D47/D49",
+      "fact": "Actual readiness interval29890..39906 was10016ms, not a claimed exact10000ms observation.78 event waits and16 bounded child-event samples occurred. D49 independently records two complete EnumDesktopWindows calls on the same live held handle724, exact UOI_NAME before/after, stable GetShellWindow66190, child liveness/identity and one visible Progman plus one visible Shell_TrayWnd. Rectangles were actually queried separately this time."
+    },
+    {
+      "source": "D49",
+      "fact": "Progman66190/PID3456/TID3812 actual GetWindowRect before/after [0,0,3050,1668]; Shell_TrayWnd66158/PID3456/TID6660 [0,1596,3050,1668]. Both are present in both complete exact-created-desktop enumerations and stable. Supplemental foreign GetThreadDesktop returnsNULL/error5 and thread desktop names stayUNKNOWN. Those UNKNOWN facts are preserved, not replaced with fabricated names; no input/cancel/write authority is granted by this read-only classification."
+    },
+    {
+      "source": "D50-D52",
+      "fact": "Ordinary OpenDesktop obtains the named Run and original Default handles with requested access257; the original CreateDesktop access195 is unchanged. No DACL/label/token/account change. The independent return owner is armed and actually alive(wait258), and input is actually Default/UOI_IOtrue before entry. One actual SwitchDesktop(target) returnsTRUE at39906..39937; OpenInputDesktop reads exact Run name/UOI_IOtrue afterward, and fresh Shell/Tray readiness remains valid."
+    },
+    {
+      "source": "D53-D57",
+      "fact": "Return owner TID6016 wakes on the explicit request, not the deadline. It observes actual input equal to own Run, calls SwitchDesktop(Default) once at39953..39984, receivesTRUE, then independently reads Default/UOI_IOtrue. Return-owner actual exit wait0, both opened257 handles and each event/thread handle closeTRUE; cleanup_knowntrue, deadline_or_completion_unknownfalse. This is a real independent return, not an inferred cancellation of an in-flight SwitchDesktop call."
+    },
+    {
+      "source": "D52/D55",
+      "fact": "Both successful SwitchDesktop calls log raw_last_error5. The actual BOOL returns and actual input-desktop readbacks are retained. A stale/raw last error after TRUE is not converted into failure or assigned as a Windows/UAC/Sandbox root cause."
+    },
+    {
+      "source": "D58/D60-D67",
+      "fact": "Actual UnhookWinEvent returnsTRUE before observer-thread restore. The observer returns to Default and closes its original195 handle successfully. Default Shell65804/PID4916/TID4920/birth134371087935398502 is unchanged. Own Raw registration removal, foreground unhook and fixture shutdown are separately observed. The child Explorer is still alive(wait258/exit259); neither WM_CLOSE nor TerminateProcess was attempted by the observer. Handle close does not establish desktop-object destruction, which remainsUNKNOWN."
+    }
+  ],
+  "time_basis": {
+    "observer_begin_tick": 29890,
+    "observer_end_tick": 39906,
+    "observer_elapsed_ms": 10016,
+    "total_deadline_ms": 10000,
+    "activation_native_begin_tick": 39906,
+    "activation_native_end_tick": 39937,
+    "return_native_begin_tick": 39953,
+    "return_native_end_tick": 39984,
+    "return_owner_explicit_request": true,
+    "return_owner_deadline_reached": false,
+    "one_shot_cleanup_start_deadline_ms": 5000,
+    "native_completion_outer_budget_ms": 10000,
+    "buffered_emit_ticks": "D23 onward are buffered and emitted after worker completion; JSONL line order is not a merged native Raw/WinEvent timeline or physical display timing. 5000ms is cleanup-initiation bound, not proof of a forced native-call cancellation."
+  },
+  "wrapper": {
+    "status": "FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED",
+    "fixture_exit_code": 0,
+    "wait_result": 0,
+    "forced_test_cleanup": true,
+    "descendants_alive_at_fixture_exit": 1,
+    "feature_result": "NOT_EVALUATED",
+    "product_cleanup_pass": false,
+    "meaning": "One live exact test-created Explorer descendant was left for guest/job cleanup. Wrapper exit0, forced test cleanup and guest disposal do not prove product functionality or cleanup."
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/229eea1807bc432f8812efb57d937ed9/cleanup-receipt.json",
+    "sha256": "96159A7F7425283A04A9FA965FB437FE745F1A33E783179A942C626CC58E5078",
+    "utc": "2026-10-22T02:15:14.8376964Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "actual_conclusion": "本任务专用Sandbox中，一个新建、精确Run、同SID/session/Medium的Win32桌面已出现实际Shell/Tray，实际切入且由独立线程实际切回Default；原Default Shell身份保留。",
+    "product_result": "NOT_RUN",
+    "input_interaction": "NOT_RUN",
+    "tray_interaction": "NOT_RUN",
+    "ordinary_full_desktop_acceptance": "NOT_PROVEN",
+    "desktop_object_destroyed": "UNKNOWN",
+    "human_UAT": "NOT_RUN",
+    "not_awarded": [
+      "formal product support/authority on non-Default desktop",
+      "real tray menu/settings entry",
+      "five real application classes",
+      "ordinary Medium full integration",
+      "multi-monitor/mixed DPI/Task View virtual desktop",
+      "module, benchmark or whole-version PASS"
+    ],
+    "history": "c199 original failure and the earlier906/e03 test limitations retain their original identities and verdicts. This new TEST run does not rewrite them."
+  }
+}

@@ -3,6 +3,22 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+        "id": "EV-229E-EXACT-MEDIUM-DESKTOP-ACTIVATION-AND-INDEPENDENT-RETURN",
+        "run_id": "229eea1807bc432f8812efb57d937ed9",
+        "configuration": "Release",
+        "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+        "product_binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+        "product_started": false,
+        "driver_source_sha": "1a1001c87903d56fd47d4e65e7ef73889cfb7946",
+        "driver_binary_sha256": "8D2527C9B141B914254B195D88A3515EA2B32C592ACCD523DA3FF7E5B8469650",
+        "path": "docs/reports/v1-evidence/229e-medium-desktop-activation-return-review.json",
+        "sha256": "4394047FE9F899EF870547CDC35FF8C85A95987F50CD010DC2401FA487075344",
+        "repository_excerpt_path": "docs/reports/v1-evidence/229e-medium-desktop-activation-return-excerpt.jsonl",
+        "repository_excerpt_sha256": "DE69BFABAF2E72C2607E7113124F92A0990A75DFA7F8CC83FC13C8C0142F2078",
+        "result": "ACTIVATED_AND_RETURNED_ONLY",
+        "scope": "Actual new exact Run Medium Shell/Tray membership and independent native geometry, actual input Run activation/readback and independent Default return/exit/handle cleanup. Product/input/tray NOT_RUN, full ordinary desktop NOT_PROVEN; formalDefault guards unchanged and original failures retained. No feature/Bscore or product cleanup inferred."
+    },
+    {
         "id":  "EV-A014-ORDINARY-PORTABLE-USER-GUIDANCE-SETTINGS-MOVE-UP-EXIT",
         "run_id":  "a014494c4a034320b1b99b515eb40597",
         "configuration":  "Release",

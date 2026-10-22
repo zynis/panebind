@@ -3231,3 +3231,24 @@ synthetic input, focus/capture control, or host desktop switch. A timeout cannot
 cancel an already issued native API or establish cleanup success. The product's
 existing Default eligibility remains unchanged. This is TEST-only preparation
 under guide 2.1(4), not a new accepted product route. No external code reused.
+
+The actual229e run verified the two Medium roots, one real activation and an
+independent return to Default. It did not run product/input/tray interactions.
+The next distinct TEST-only UI precondition uses the existing exact private
+notification resource on that active desktop. The separate UI-only suite may
+then launch the unchanged ordinary product and interact only with its verified
+UI; the product's Default-only enhancement guard is not relaxed.
+
+Also actually read [Shell_NotifyIconW](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw),
+[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+and [GetUserObjectInformationW](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getuserobjectinformationw).
+Record each ADD/SETVERSION/GetRect/DELETE result; raw GetLastError alone is not
+the notification API's documented root cause. UI input is TEST-only paired
+insertion, not proof of delivery. Require actual receiving-input UOI_IO, the
+exact Run desktop, process/window identity and observed menu/control outcome.
+Retire its short-lived input lease before the independent desktop return;
+an already-issued insertion is not cancellable and must complete before that
+switch, otherwise cleanup remains unknown. The original environment deadline
+is5seconds/outer10; the explicit UI-only case is at most20seconds of work with
+30seconds before independent return/outer35. No permanent polling, account,
+token, DACL or host-desktop change. No external implementation code reused.
