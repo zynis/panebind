@@ -1,0 +1,201 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-C199-MEDIUM-SHELL-PRESENT-BUT-TEST-QUERY-GATE-REJECTED",
+  "kind": "independent_read_only_original_raw_and_test_source_review",
+  "review_date": "2026-10-22",
+  "run_id": "c199209c52f343e1a8c07c40a1a2dce4",
+  "suite": "MediumDesktopEnvironmentOnly",
+  "configuration": "Release",
+  "result": "ORIGINAL_BLOCKED_WITH_ACTUAL_MEDIUM_SHELL_AND_TRAY_PRESENT_NOT_PRODUCT_EXECUTION",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_started": false,
+    "product_identity_meaning": "Hash-checked payload only; no product creation/PID/log in this environment-only suite.",
+    "driver_source_sha": "001c326c342553456a16833191c2ad56fb603267",
+    "driver_sha256": "2547EC95425A14CA08D8D99A0D6B8EED6E571371DC642C592497E9B11D61457A",
+    "packaging_head": "a765d231976f0d0c0aeb1bdd7f80c1bb593d5c7f",
+    "fixture_pid": 3968,
+    "fixture_birth_filetime_decimal": "134371067134976530",
+    "observer_tid": 6148,
+    "child_pid": 3920,
+    "child_primary_tid": 6396,
+    "child_birth_filetime_decimal": "134371067136577868",
+    "child_image": "C:\\Windows\\explorer.exe",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_c199209c52f343e1a8c07c40a1a2dce4",
+    "precision": "FILETIME values retained as literal decimal strings, not floating-point identities."
+  },
+  "package": {
+    "receipt": "uat/v1-sandbox/c199209c52f343e1a8c07c40a1a2dce4/package-receipt.json",
+    "receipt_sha256": "1D1D5A6EA4BC8F06216A4E99C4928D4A56A5300F58CC5C93DC92A851F2B79C21",
+    "zip_sha256": "655B1168BD6A11A36A7DF6257F36C26C80902EA4A5933088A69B729942372BEE",
+    "manifest_sha256": "3EE6B7BC4621BD5405DA55FDBE4AB1227B64A21C1706343924BE8FA7F6374B54",
+    "wsb_sha256": "593794600D6539B7786EE3E2F426EB3315890F07AC56AADB368FF0B5BCE808AF"
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/c199209c52f343e1a8c07c40a1a2dce4/collection-20261022T013919590Z-2af3b8383b2e4247847556182b6bd085/c199209c52f343e1a8c07c40a1a2dce4-release-fixture.jsonl",
+      "sha256": "B72DB8021A40F49C6936DCED60B8C3E8F55861C89D83FF4D3C2EFBB47DF0B7E3",
+      "bytes": 73687,
+      "rows": 56,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        56
+      ],
+      "all_source_sha_matches_driver": true
+    },
+    {
+      "path": "uat/v1-control/c199209c52f343e1a8c07c40a1a2dce4/collection-20261022T013919590Z-2af3b8383b2e4247847556182b6bd085/c199209c52f343e1a8c07c40a1a2dce4-Release-launch.json",
+      "sha256": "53FD4B83CA7E00528EBCD615D6DC18C5DD21F43D28F79C092EFB27B249C915DD"
+    },
+    {
+      "path": "uat/v1-control/c199209c52f343e1a8c07c40a1a2dce4/collection-20261022T013919590Z-2af3b8383b2e4247847556182b6bd085/c199209c52f343e1a8c07c40a1a2dce4-guest-summary.json",
+      "sha256": "34F3CB2AFFCE59D22667A3F4EF4A275B377EA796027A1CE243ABC1DB32657C22"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/c199-medium-shell-present-query-gate-excerpt.jsonl",
+    "sha256": "61FE2CA04F501C59CECF5C955F949133B34971D3099FEAAEB2FB74D99BFE7D2E",
+    "bytes": 25020,
+    "literal_lines": 21,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      17,
+      21,
+      23,
+      25,
+      26,
+      27,
+      28,
+      29,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      56
+    ],
+    "serialization_changed": false
+  },
+  "observations": [
+    {
+      "source": "D21/D23/D25-D28",
+      "fact": "One fresh exact-Run HDESK was created with inherited security unchanged and UOI_NAME verified. Only the fresh TEST observer thread connected; actual event hook installed. Same-SID/session/Medium new Explorer PID3920 was created with exact live process identity. One WaitForInputIdle returned0; it did not establish final readiness. No SwitchDesktop/product/input requests."
+    },
+    {
+      "source": "D29 vs D46",
+      "fact": "Initial observation at30531ms had GetShellWindow0 and only initial child auxiliary roots. Deadline-final local observation at40500ms had GetShellWindow_before==after==66188; its complete EnumDesktopWindows(created) inventory includes visible root Progman66188/PID3920/TID6396 and visible root Shell_TrayWnd66156/PID3920/TID6732. Exact child process remained live/identity-valid. Thus Shell/Tray did appear; the original exact_visible_* counts0 are classifier results, not proof of absence."
+    },
+    {
+      "source": "D46 and actual001c MediumDesktopWindowFact::read",
+      "fact": "Both relevant windows report GetThreadDesktop_attempted=true/returnNULL/error5; UOI_NAME was not attempted, desktop_name remained empty and known/exact_returned_child stayedfalse. The source's C++ && chain checks !desktop_name.empty() before GetWindowRect; therefore GetWindowRect was not called for these windows. Logged [0,0,0,0] is default RECT storage, NOT an actual native zero rectangle. The log had no rectangle-attempt flag; this non-call conclusion is derived from the exact source and actual preceding operands."
+    },
+    {
+      "source": "D47-D49",
+      "fact": "Actual interval begin30500/end40500, elapsed10000ms and deadline_reachedtrue;80 message-wait calls,16 bounded observation samples.60 relevant event records retained/capacity64/overflowfalse; real UnhookWinEvent returnedtrue before restoring thread desktop. Not the earlier47ms single-idle-only probe."
+    },
+    {
+      "source": "D50-D56",
+      "fact": "New Explorer child still alive: wait258/exit259; no WM_CLOSE/TerminateProcess attempted, retained for exact guest job/disposal. Own hook/Raw registration removal, Default thread restore and CloseDesktop returnedtrue. Default Shell65804/PID4956/TID4960/birth134371067048079909 unchanged. Original summaryBLOCKED/driverFAIL/productNOT_RUN preserved; final guest/job descendant cleanup was forced TEST cleanup, not product cleanup."
+    }
+  ],
+  "source_review": {
+    "file": "src/platform/windows/product/v1_guest_medium_desktop_environment_case.h",
+    "source_sha": "001c326c342553456a16833191c2ad56fb603267",
+    "short_circuit": "out.known=h&&out.pid&&out.tid&&class_known&&!out.desktop_name.empty()&&GetWindowRect(h,&out.rectangle)&&IsWindow(h)&&after_pid==out.pid&&after_tid==out.tid;",
+    "dependent_gates": "exact_child requires out.known; same() requires both known. NULL foreign desktop query therefore suppresses geometry collection and prevents both readiness/snapshot comparisons even with complete named-desktop membership and actual visible child roots.",
+    "confirmed_TEST_defects": [
+      "Independent GetWindowRect collection was accidentally skipped behind an unrelated UNKNOWN desktop-name query.",
+      "Read-only existence classifier treated failure of supplemental foreign thread desktop query as absence/ineligibility despite complete enumeration of the actual owned HDESK."
+    ],
+    "not_proven": [
+      "Reason for GetThreadDesktop error5; no UAC/UIPI/ACL/Windows/Sandbox root cause is assigned.",
+      "Actual Shell/Tray screen rectangles, desktop composition/focus/input usability, NIM registration or normal interactive readiness.",
+      "Product support/authority on this non-Default desktop."
+    ]
+  },
+  "platform_sources": [
+    {
+      "title": "EnumDesktopWindows",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdesktopwindows",
+      "read_date": "2026-10-22",
+      "meaning": "Complete successful enumeration of a specific live HDESK observes its associated top-level windows. This is membership evidence, not cancellation, geometry-control or input authority."
+    },
+    {
+      "title": "GetThreadDesktop",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getthreaddesktop",
+      "read_date": "2026-10-22",
+      "meaning": "Retrieves the specified thread desktop handle; failure returnsNULL with extended error. The official contract does not turn a failed query into evidence that the window is absent."
+    },
+    {
+      "title": "GetWindowRect",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect",
+      "read_date": "2026-10-22",
+      "meaning": "A separately attempted call returns success/failure and rectangle output. Default initialized storage when the call was not executed is not geometry evidence."
+    },
+    {
+      "title": "SetThreadDesktop",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddesktop",
+      "read_date": "2026-10-22",
+      "meaning": "Assigns a desktop to the calling thread, not the input desktop. This observer connection cannot be described as SwitchDesktop or interactive testing."
+    }
+  ],
+  "minimal_next_step": {
+    "TEST_only": "Independently collect/log GetWindowRect attempted/return/error without short-circuiting on desktop-name query. Confirm read-only Shell/Tray membership through two complete enumerations of the same still-owned exact-UOI_NAME Run HDESK; exact stable child HWND/PID/TID/birth/liveness/class/root/visible and actual successful nonempty rectangles; stable GetShellWindow equal to that Progman.",
+    "UNKNOWN_policy": "Keep foreign GetThreadDesktop NULL/error5 and nameUNKNOWN explicit. If it succeeds and provides a contradictory desktop name, reject as inconsistent. Unrelated auxiliary windows with supplemental queryUNKNOWN cannot be adopted or used to deny the independent two exact-root existence fact.",
+    "authority_boundary": "Even successful observational classification grants no cancel/write/input permission and no ordinary desktop/app/tray acceptance. Existing WindowCatalog active_default_desktop and GestureInputShield interactive_default_desktop guards remain unchanged. Legal interactive input context and product-supported desktop still require separately established facts; do not remove Default guards or switch/control the existing Default Shell.",
+    "scope_limit": "No additional API family, polling or indefinite retries; the directly exposed TEST collection/classification defect can be repaired within the existing bounded observer. New implementation/run remains NOT_RUN until actually executed."
+  },
+  "time_basis": {
+    "actual_interval_ms": 10000,
+    "message_wait_calls": 80,
+    "retained_events": 60,
+    "event_overflow": false,
+    "buffered_emit_ticks": "D22 onward records are emitted after the worker returns; tick40500/40515 is not necessarily native call time. Use sample_begin/end_tick and D47 interval for the observer's actual local order. No merged Raw/WinEvent or physical-display timeline inferred."
+  },
+  "wrapper": {
+    "status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "forced_test_cleanup": true,
+    "descendants_alive_at_fixture_exit": 1,
+    "product_cleanup_pass": false,
+    "product_cleanup_meaning": "Product was never started; neither wrapperfalse nor forced guest cleanup is a product cleanup verdict."
+  },
+  "cleanup": {
+    "receipt": "uat/v1-control/c199209c52f343e1a8c07c40a1a2dce4/cleanup-receipt.json",
+    "sha256": "6AD7BC13082DC0FC20130A2B4A3702835634030238875C152993C9F64C1947EE",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "original_strict_result": "BLOCKED/FAIL retained, never rewritten as readyPASS.",
+    "actual_conclusion": "实际Medium child Shell/Tray已出现；是补充查询UNKNOWN/判定及采集短路反例，不是Shell根本不存在或Medium环境不可能的结论。",
+    "not_awarded": [
+      "read-only repaired-classifier PASS",
+      "interactive/ordinary full Medium desktop",
+      "tray operation",
+      "product execution/functionality/cleanup",
+      "module or whole version",
+      "human UAT"
+    ],
+    "human_UAT": "NOT_RUN"
+  }
+}

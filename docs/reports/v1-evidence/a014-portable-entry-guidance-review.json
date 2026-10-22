@@ -1,0 +1,613 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-A014-ORDINARY-PORTABLE-USER-GUIDANCE-SETTINGS-MOVE-UP-EXIT",
+  "kind": "independent_readonly_review_of_original_guest_driver_and_product_logs",
+  "review_date": "2026-10-22",
+  "run_id": "a014494c4a034320b1b99b515eb40597",
+  "suite": "PortableEntryOnly",
+  "configuration": "Release",
+  "verdict": "PASS_SCOPED_ORDINARY_PORTABLE_ENTRY_AND_NEW_USER_GUIDANCE_NOT_WHOLE_I12_TRAY_OR_VERSION",
+  "identity": {
+    "product_source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
+    "product_release_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+    "product_release_bytes": 1179648,
+    "collected_portable_EXE_independently_hashed": true,
+    "driver_source_sha": "001c326c342553456a16833191c2ad56fb603267",
+    "driver_release_sha256": "2547EC95425A14CA08D8D99A0D6B8EED6E571371DC642C592497E9B11D61457A",
+    "packaging_head": "a765d231976f0d0c0aeb1bdd7f80c1bb593d5c7f",
+    "portable_package_id": "bfb405c45e5a446ca54a74735d1122a8",
+    "portable_zip_sha256": "B4679D4659F6DB9EE57D5EFDE9A5DB9007C3F427D7D9BD1160E4835E78953C11",
+    "portable_manifest_sha256": "6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905",
+    "ZIP_evidence": "D63 actual hash/inventory checked against readonly Input manifest, not a new independent local rehash of the absent collected ZIP.",
+    "fixture_pid": 6216,
+    "fixture_root_tid": 6212,
+    "fixture_birth_filetime_decimal": "134371063882584974",
+    "product_processes": [
+      {
+        "pid": 6492,
+        "birth_filetime_decimal": "134371063884826518",
+        "source_index": 1,
+        "scope": "Previous guarded instance is normally stopped before ZIP launch; its 23 rows are not concatenated into the portable process sequence."
+      },
+      {
+        "pid": 6872,
+        "birth_filetime_decimal": "134371063899683257",
+        "main_tid": 5992,
+        "source_index": 2,
+        "scope": "Actual no-argument ZIP process; empty-argument second launch keeps this PID/birth/settings HWND; both ordinary Move gestures and public normal quit occur in this process."
+      }
+    ],
+    "test_source": {
+      "path": "src/platform/windows/product/v1_guest_portable_cases.h",
+      "source_sha": "001c326c342553456a16833191c2ad56fb603267",
+      "sha256": "5E9236DE64BF1EB5F7D3BF7837F6FF6DA4E1D262725367378492EED30568A2A0",
+      "working_copy_diff_from_source_verified_empty": true
+    },
+    "historical_21a5_and_earlier_product_records_rebound": false
+  },
+  "environment": {
+    "kind": "Exact guarded automated Windows Sandbox guest; ordinary Medium product process on Default desktop, not a proved full ordinary Medium Explorer Shell.",
+    "os_build": "26100",
+    "ubr": 9711,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session_id": 1,
+    "desktop": "WinSta0/Default",
+    "system_and_source_dpi": 144,
+    "monitor_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work_area": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "synthetic_display_configuration_used": false,
+    "test_targets": "Exact TEST-owned blank windows and exact product settings GUI only",
+    "human_uat": "NOT_RUN"
+  },
+  "raw_sources": [
+    {
+      "producer": "driver",
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/a014494c4a034320b1b99b515eb40597-release-fixture.jsonl",
+      "sha256": "B594B19457FD2FC77C7B585BC91E21AB6B0D7094B55A69F0AE7F46DAFF24DD5B",
+      "bytes": 127959,
+      "legal_jsonl_rows": 188,
+      "contiguous_within_this_source_and_process": true,
+      "sequence_range": [
+        1,
+        188
+      ],
+      "process_ids": [],
+      "FAIL_result_rows": 0,
+      "excerpted_sequence_numbers": [
+        3,
+        5,
+        7,
+        13,
+        15,
+        19,
+        63,
+        72,
+        73,
+        74,
+        75,
+        79,
+        80,
+        82,
+        84,
+        95,
+        96,
+        99,
+        100,
+        108,
+        111,
+        112,
+        113,
+        114,
+        116,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        125,
+        126,
+        128,
+        139,
+        144,
+        147,
+        148,
+        149,
+        152,
+        153,
+        154,
+        155,
+        156,
+        158,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        167,
+        168,
+        170,
+        174,
+        179,
+        180,
+        181,
+        184,
+        185,
+        186,
+        187,
+        188
+      ]
+    },
+    {
+      "producer": "previous_guarded_product",
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/a014494c4a034320b1b99b515eb40597-product-Release/panebind.log.jsonl",
+      "sha256": "D3DDA92D3929407C0F9CD232FF645F25C31CFD6035F77A721D5F1C2522B4FFE3",
+      "bytes": 21526,
+      "legal_jsonl_rows": 23,
+      "contiguous_within_this_source_and_process": true,
+      "sequence_range": [
+        1,
+        23
+      ],
+      "process_ids": [
+        6492
+      ],
+      "FAIL_result_rows": 0,
+      "excerpted_sequence_numbers": [
+        1,
+        3,
+        23
+      ]
+    },
+    {
+      "producer": "ordinary_no_argument_portable_product",
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/a014494c4a034320b1b99b515eb40597-便携 中文 空格/PaneBindV1/panebind.log.jsonl",
+      "sha256": "B27565B4A5AAE5EA4F9ED0CF85BD8F66961BCADBDD45182FD7CE143FE7011B60",
+      "bytes": 55974,
+      "legal_jsonl_rows": 61,
+      "contiguous_within_this_source_and_process": true,
+      "sequence_range": [
+        1,
+        61
+      ],
+      "process_ids": [
+        6872
+      ],
+      "FAIL_result_rows": 0,
+      "excerpted_sequence_numbers": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        16,
+        17,
+        22,
+        24,
+        30,
+        31,
+        32,
+        33,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        43,
+        44,
+        49,
+        51,
+        57,
+        58,
+        59,
+        61
+      ]
+    }
+  ],
+  "supplementary_sources": [
+    {
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/a014494c4a034320b1b99b515eb40597-Release-launch.json",
+      "sha256": "021B84273E5F9778CE2BEEF15699F631F427368C4C78D81DA1A0D195C7294605",
+      "bytes": 9920
+    },
+    {
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/collection-receipt.json",
+      "sha256": "8BA846B6F2C2CF9F59AB20172021531B20D37910EE0CBC7BEAD6975A6F429307",
+      "bytes": 19163
+    },
+    {
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/cleanup-receipt.json",
+      "sha256": "92EEDA717A56AF5D8760575BBA076E36DA11BF5D67FCA5E39F8C327516FF4CE1",
+      "bytes": 19308
+    },
+    {
+      "path": "uat/v1-control/a014494c4a034320b1b99b515eb40597/collection-20261022T013359815Z-b75e73e6a9c44f468df79de6a35f0351/a014494c4a034320b1b99b515eb40597-便携 中文 空格/PaneBindV1/manifest.json",
+      "sha256": "6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905",
+      "bytes": 7022
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/a014-portable-entry-guidance-excerpt.jsonl",
+    "sha256": "B2E21DF1AD9A8632B8E8CDB182EB3283D161EEF338BB3A3CE483EBF10A31144B",
+    "bytes": 55710,
+    "lines": 99,
+    "literal_original_matches": 99,
+    "literal_copy_not_reserialized": true,
+    "decimal_64_bit_identity_strings_in_original_lines_preserved": true,
+    "ordering": "Source blocks: driver, previous guarded product, ordinary ZIP product. Not a reconstructed global native event timeline.",
+    "sensitive_data": "Only necessary task-owned guest paths/identifiers; no SID, user window title/content, credential or host user profile path."
+  },
+  "findings": [
+    {
+      "id": "ordinary_ZIP_launch_and_secondary_instance",
+      "status": "AUTOMATED_TESTED_PASS_SCOPED",
+      "driver_sequences": [
+        63,
+        73,
+        74,
+        75,
+        79,
+        80,
+        82,
+        84
+      ],
+      "facts": [
+        "Actual delivered ZIP seven-file inventory and product bytes are checked with no settings.ini preseed.",
+        "Prior guarded PID6492 exits normally before starting the extracted portable EXE with empty arguments and diagnostic=false.",
+        "PID6872/birth134371063899683257 has exactly one visible Chinese settings window HWND131914/TID5992; first opening sends no --settings command.",
+        "Actual second empty-argument process exits zero while the held original process handle, PID/birth and settings HWND/TID remain identical.",
+        "Fresh public status P6 reports hook owner running, idle gesture/native/visual state, zero operations. This is not a claim of counting all global hooks."
+      ]
+    },
+    {
+      "id": "new_user_save_cancel_guidance",
+      "status": "AUTOMATED_TESTED_PASS_SCOPED",
+      "driver_sequences": [
+        95,
+        96,
+        99,
+        100
+      ],
+      "exact_runtime_wstring": "设置仅在“保存并关闭”成功后生效。\r\n取消或关闭设置窗口不会更改正在使用的选项。",
+      "actual_log_text": "设置仅在“保存并关闭”成功后生效。  取消或关闭设置窗口不会更改正在使用的选项。",
+      "actual_product_pid": 6872,
+      "actual_product_tid": 5992,
+      "settings_hwnd": 131914,
+      "static_hwnd": 131740,
+      "actual_focus_hwnd": 131708,
+      "static_screen_bounds": [
+        977,
+        855,
+        2046,
+        945
+      ],
+      "page_client_screen_viewport": [
+        959,
+        351,
+        2064,
+        1185
+      ],
+      "root_client_screen_bounds": [
+        943,
+        303,
+        2106,
+        1327
+      ],
+      "facts": [
+        "Real Ctrl+Tab selects diagnostic page index5, not a private message or replacement text.",
+        "Exactly one direct child Static has the expected complete runtime wstring, same product PID/TID, actual visible root/page/control and exact GUI focus/foreground.",
+        "Static rectangle is nonempty and wholly contained in actual page viewport and settings client rectangle.",
+        "Internal terms 代际/内部版本/配置版本/schema/generation/RunId/token are absent.",
+        "Real Ctrl+Tab returns to original index0; settings.ini existence and bytes are unchanged throughout this read-only check."
+      ],
+      "evidence_limits": [
+        "Logger quote sanitizes CR/LF to spaces. The runtime exact-two-line flag follows equality of the original wstring, not a claim that JSON spaces encode line breaks.",
+        "No screenshot or glyph raster inspection was produced in this run; window/text/visibility/bounds evidence is not a whole-page visual review.",
+        "This closes the actual new wording path only, not every M11-F01 control, tray opening or all-DPI UI contract."
+      ]
+    },
+    {
+      "id": "same_instance_default_10_DIP_Move",
+      "status": "AUTOMATED_TESTED_PASS_SCOPED",
+      "generation": 1,
+      "driver_sequences": [
+        108,
+        111,
+        112,
+        113,
+        114,
+        116,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        125,
+        126,
+        128,
+        130
+      ],
+      "product_sequences": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        16,
+        17,
+        22,
+        24,
+        30,
+        31,
+        32
+      ],
+      "baseline": [
+        [
+          120,
+          80,
+          520,
+          440
+        ],
+        [
+          540,
+          80,
+          800,
+          260
+        ],
+        [
+          540,
+          260,
+          800,
+          440
+        ]
+      ],
+      "original_down_point": [
+        298,
+        102
+      ],
+      "native_threshold_cursor": [
+        303,
+        102
+      ],
+      "continuation_cursor": [
+        312,
+        105
+      ],
+      "independent_free_rect": [
+        134,
+        83,
+        534,
+        443
+      ],
+      "expected_and_actual_snapped_rect": [
+        140,
+        80,
+        540,
+        440
+      ],
+      "source_dpi": 144,
+      "facts": [
+        "Actual GUI default attraction is 10 DIP and no portable settings/profile file exists before the first Move.",
+        "Source actual nonclient hit is HTCAPTION=2; original DOWN and actual START/END retain source262744, fixture PID6216/TID6212, fresh generation1.",
+        "P11 is one bounded actual cancel with API success; P12 independently records actual END, P13 accepted handoff preserves the original anchor, P16 actual own capture readiness precedes P17 gesture start.",
+        "D123 independently observes the snapped rectangle, while both exact other TEST windows remain at baseline. It does not claim a detailed native placement API receipt in ordinary nondiagnostic mode."
+      ],
+      "up": {
+        "single_test_UP_driver_sequence": 126,
+        "send_before_qpc": 330247931,
+        "guest_passive_UP_sequence": 128,
+        "guest_actual_UP_callbacks": 1,
+        "guest_tag": 1346524721,
+        "guest_CallNext_returned": true,
+        "guest_CallNext_result": 0,
+        "guest_unhooked": true,
+        "actual_product_LL_snapshot_sequence": 32,
+        "matching_hook_qpc": 330257554,
+        "product_Raw_sequence": 22,
+        "Raw_observed_qpc": 330271337,
+        "Raw_button_flags": 2,
+        "product_legacy_sequence": 24,
+        "legacy_dispatch_qpc": 330279178,
+        "actual_legacy_up_accepted": true,
+        "product_Gone_sequence": 30,
+        "Gone_observed_qpc": 330306466,
+        "product_NormalUp_sequence": 31,
+        "pending_retired": true,
+        "cleanup": "Own capture released to NULL, actual association detach succeeded, overlay destroyed and hotkey unregistered. D130 observes expected geometry after UP and idle public status with operations/native_callsite_claims=1."
+      }
+    },
+    {
+      "id": "same_instance_saved_zero_attraction_Move",
+      "status": "AUTOMATED_TESTED_PASS_SCOPED",
+      "generation": 2,
+      "driver_sequences": [
+        139,
+        144,
+        147,
+        148,
+        149,
+        152,
+        153,
+        154,
+        155,
+        156,
+        158,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        167,
+        168,
+        170,
+        172
+      ],
+      "product_sequences": [
+        33,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        43,
+        44,
+        49,
+        51,
+        57,
+        58,
+        59
+      ],
+      "baseline": [
+        [
+          120,
+          80,
+          520,
+          440
+        ],
+        [
+          540,
+          80,
+          800,
+          260
+        ],
+        [
+          540,
+          260,
+          800,
+          440
+        ]
+      ],
+      "expected_and_actual_free_rect": [
+        134,
+        83,
+        534,
+        443
+      ],
+      "facts": [
+        "An actual hit-confirmed click focuses the attraction Edit, actual Ctrl+A/Unicode keys enter 0, real Tab reaches Save, actual Enter on focused IDOK saves and closes.",
+        "Parsed portable settings equal defaults except the new generation and attraction_dip=0; no user product profile is created.",
+        "Fresh generation2 uses the same original DOWN anchor and single native threshold Move, bounded cancel, real END and actual capture route.",
+        "Identical continuation displacement now gives the independent free rectangle instead of the prior snap; both exact other TEST windows remain unchanged.",
+        "D165 actual geometry, not configuration bytes alone, proves the setting's behavioral effect."
+      ],
+      "up": {
+        "single_test_UP_driver_sequence": 168,
+        "send_before_qpc": 343335646,
+        "guest_passive_UP_sequence": 170,
+        "guest_actual_UP_callbacks": 1,
+        "guest_tag": 1346524721,
+        "guest_CallNext_returned": true,
+        "guest_CallNext_result": 0,
+        "guest_unhooked": true,
+        "actual_product_LL_snapshot_sequence": 59,
+        "matching_hook_qpc": 343345366,
+        "product_Raw_sequence": 49,
+        "Raw_observed_qpc": 343362862,
+        "Raw_button_flags": 2,
+        "product_legacy_sequence": 51,
+        "legacy_dispatch_qpc": 343368830,
+        "actual_legacy_up_accepted": true,
+        "product_Gone_sequence": 57,
+        "Gone_observed_qpc": 343392586,
+        "product_NormalUp_sequence": 58,
+        "pending_retired": true,
+        "cleanup": "Actual own capture release to NULL, association detach and overlay/hotkey exit succeed; D172 actual rectangle remains exact after UP and public status is idle with operations/native_callsite_claims=2."
+      }
+    },
+    {
+      "id": "normal_quit_postexit_client_pair_and_fixture_cleanup",
+      "status": "AUTOMATED_TESTED_PASS_SCOPED",
+      "driver_sequences": [
+        65,
+        72,
+        73,
+        174,
+        179,
+        180,
+        181,
+        185,
+        186,
+        187,
+        188
+      ],
+      "portable_product_shutdown_sequence": 61,
+      "facts": [
+        "Previous guarded process and final portable PID6872 both receive an actual completed public quit command, exit is observed with code0, not forced termination.",
+        "Portable P61 reports stopped hooks/input resources/native worker, no unknown native completion, restored visual state, own capture released and association detached.",
+        "D179 after actual portable process exit sends one actual DOWN/UP to an exact owned client; independent client counts [1,1]→[2,2], actual hit/foreground exact. Earlier D72 supplies [0,0]→[1,1] after the prior guarded process exit.",
+        "No display of a test-owned window is needed to manufacture cleanup visibility.",
+        "D181 rehashes retained delivered EXE/manifest/ZIP and verifies absent user product profile.",
+        "D185 removes and independently verifies absence of the TEST Raw registration; D186 actual foreground hook unhook succeeds; D187 reserved/flushed9 with zero overflow; D188 records own windows destroyed/product closed."
+      ]
+    }
+  ],
+  "timing_and_scope_limits": {
+    "product_logs_are_two_independent_PID_sequence_streams": true,
+    "merged_product_sequence_contiguous_claimed": false,
+    "JSONL_line_order_is_not_common_Raw_LL_WinEvent_native_order": true,
+    "ordinary_process_diagnostic_enabled": false,
+    "detailed_per_placement_native_attempt_result_log": "NOT_EMITTED_IN_THIS_ORDINARY_MODE",
+    "post_UP_fact": "Bounded actual geometry unchanged, matching real UP/NormalUp/resource exit and idle public statuses. Do not claim a detailed per-call timing trace or cancellation of an already-issued Win32 call.",
+    "I12_label": "D182 raw I12=PASS is retained as driver label. This review grants only the enumerated ordinary-entry/settings/basic-operations/normal-exit sub-scope; not a whole final integration chain.",
+    "tray": "Both P1 tray registrations record NIM_ADD_succeeded=false. No reachable tray icon/menu or tray-opened settings PASS.",
+    "user_human_UAT": "NOT_RUN",
+    "full_ordinary_Medium_Shell": "NOT_PROVEN",
+    "five_real_applications": "NOT_TESTED_HERE",
+    "multi_monitor_and_mixed_DPI": "NOT_TESTED_HERE",
+    "historical_evidence": "Earlier product4f7/21a5 and other runs retain their original source/hash identities. No rebind to product25b."
+  },
+  "collection_and_host_cleanup": {
+    "wrapper_wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "wrapper_product_cleanup_pass_false": "Raw unevaluated initializer retained; actual product shutdown, post-exit client delivery and resource receipts determine the scoped cleanup verdict.",
+    "collection_output_unchanged": true,
+    "collection_top_level_utc": "2026-10-22T01:34:09.0943879Z",
+    "before_inventory_utc": "2026-10-22T01:34:25.8064375Z",
+    "after_inventory_utc": "2026-10-22T01:34:35.0557149Z",
+    "cleanup_utc": "2026-10-22T01:34:45.1164607Z",
+    "after_inventory_precedes_host_cleanup": true,
+    "timestamp_interpretation": "Top-level collection UTC predates its two inventories and is not treated as end-of-collection; actual stable after-inventory at 01:34:35 precedes own cleanup at 01:34:45.",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "guest_destruction_is_product_cleanup_PASS": false
+  },
+  "remaining_contracts": [
+    "Actual tray entry/menu and complete ordinary Medium Shell environment remain separate unmet work.",
+    "Remaining M11 controls/whole-module DEV, multi-display seam and relevant 100/200% UI gates are not awarded by this single-screen ordinary-entry run.",
+    "Whole current-candidate continuous integration chain, real-app compatibility and human UAT require their own actual evidence."
+  ],
+  "review_actions": {
+    "source_modified": false,
+    "canonical_modified": false,
+    "remote_operations": false,
+    "new_tests_run_by_reviewer": false
+  }
+}

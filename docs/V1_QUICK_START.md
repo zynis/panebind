@@ -4,10 +4,11 @@
 
 - 产品源码：`25bff898c9943ee70155ce08868a2a7fc56ab100`。
 - Release EXE SHA-256：`34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`。
-- 新候选预定便携包：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`；当前尚待封包及该EXE自己的现场复验，ZIP／manifest哈希以完成后的包回执为准，不预填。
+- 当前便携包：`uat/v1-portable/bfb405c45e5a446ca54a74735d1122a8/PaneBindV1-Release-bfb405c45e5a446ca54a74735d1122a8.zip`。
+- ZIP SHA-256：`B4679D4659F6DB9EE57D5EFDE9A5DB9007C3F427D7D9BD1160E4835E78953C11`；manifest SHA-256：`6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
-新候选仅修正设置页的保存／取消说明，不改变输入和writer；构建通过不是现场通过。旧ec2f普通入口、21a设置实效及1a62核心组合链保持原产品身份，不改绑新包；新包普通无参入口和当前核心链尚待实测。这不等于完整桌面、真实托盘、五类应用、多屏或真人手感通过。历史进展和失败仅在[集中报告](reports/V1_DELIVERY_REPORT.md)及[验收表](reports/V1_ACCEPTANCE.json)维护，不在本页并列多个“当前版本”。
+本包已在a014中实际完成普通无参可见中文GUI、新保存／取消说明、二启同实例、真实设置改变Move效果、真实UP与正常退出；540f另以同一产品在同PID完成两轮owned核心组合链。新候选仅修正设置页一行说明，不改变输入和writer；旧ec2f、21a及1a62保持原身份，不改绑新包。这不等于完整桌面、真实托盘、五类应用、多屏或真人手感通过。ZIP内说明与manifest保留封包时的待验状态；后续实际证据见本仓库的[集中报告](reports/V1_DELIVERY_REPORT.md)及[验收表](reports/V1_ACCEPTANCE.json)，不为文档变化重打产品或旧包。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 

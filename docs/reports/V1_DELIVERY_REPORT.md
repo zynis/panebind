@@ -2,7 +2,11 @@
 
 ## 当前接续：设置控件实效、公开说明修复及有限桌面观察，43/60（2026-10-22）
 
-**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING。** 本节取代下方检查点的“下一步”，但不改写其历史身份或失败。下列既有实测产品为`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`，Release EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`。后继`25bff898c9943ee70155ce08868a2a7fc56ab100`只修正设置页一行用户说明，移除配置版本／代际内部术语，说明保存与取消；没有改变配置机制或输入／writer。新产品Debug／Release构建及受影响settings／visual／guest-path各3/3通过，Release SHA-256 `34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`、Debug `B8695981F1C83C0E35259DE0F89717B36CCB42E48ED64A9C1B1520638AF31658`；现场尚待本候选自己的记录，不将旧EXE结果改绑。
+**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0；整版PARTIAL，真人UAT PENDING。** 本节取代下方检查点的“下一步”，但不改写其历史身份或失败。当前产品`25bff898c9943ee70155ce08868a2a7fc56ab100`只修正设置页一行用户说明，移除配置版本／代际内部术语，说明保存与取消；没有改变配置机制或输入／writer。Debug／Release构建及受影响settings／visual／guest-path各3/3通过，Release SHA-256 `34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252`、Debug `B8695981F1C83C0E35259DE0F89717B36CCB42E48ED64A9C1B1520638AF31658`；已实际完成下述a014普通包入口与540f当前组合链。历史4f7／Release `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`的21a／1a62等保持原身份，不改绑。
+
+- [a014普通便携入口与说明](v1-evidence/a014-portable-entry-guidance-review.json)：188条driver无FAIL；新包无参、非诊断实例的中文GUI中，实际Ctrl+Tab到第6页，精确同PID／TID Static显示新保存／取消说明、矩形在视口内、前台／焦点成立，返回原页且配置未写。真实二启同实例，默认10DIP吸附与保存0后的自由Move有独立实际几何／真实UP／NormalUp／Gone，正常Quit及客户输入配对恢复通过。普通模式不编造逐placement API／迟写时钟回执，文本读回不当整页像素或真人证明；不授真实托盘或整I12。
+- [540f当前核心组合链](v1-evidence/540f-current-core-chain-review.json)：2197条driver连续无FAIL，同PID6396两轮B Resize→A自由／XY吸附／保持／拉开／重吸附→Ctrl C、共享边／T／L约束、停靠／拉伸、透明／Shake／PauseResume，恢复配置、正常UP／独立资源、Quit及客户配对通过。物理product仅P1001–1977／977条，早期仅driver当时嵌入的回执，不捏造全历native或零迟写。当前软件summary为callback522样本p99桶999µs／max934µs；hook→post118样本／discard38／p95桶20ms／max173950µs，最大项是g48角双击分流，其中native约13.0ms，不称物理显示或连续Move173ms，830a旧预算失败保留。没有重跑900秒、真实应用或整版Full。
+- [c199 Medium Shell已出现／辅助查询门失败](v1-evidence/c199-medium-shell-present-query-gate-review.json)：真实10秒、80次事件等待、60个通知且无缓冲溢出；已完整枚举本次Medium子进程的可见Progman及Shell_TrayWnd。GetThreadDesktop返回NULL／error5使旧TEST known短路，GetWindowRect根本未调用；全零RECT是默认占位，不是原生几何或Shell不可能证据。原BLOCKED保留；实际卸钩、恢复Default线程、关闭句柄和原Shell身份不变已核，产品／输入／切桌面均未运行，wrapper强制清理精确TEST子进程不计产品cleanup PASS。后继仅修只读成员／真实矩形取证，并作一次自建桌面激活及独立有界回切，不更改正式Default权限或安全设置；未执行前不预填结果。
 
 - [21a5设置控件实效](v1-evidence/21a5-settings-controls-review.json)：原4f7／4ff在934条driver记录中完成四个phase：四数值真实保存与重启回读、alpha255及独立RGB屏幕点、相同非零间距下容差4→0改变实际Ctrl成员2→1、13DIP命令实际Move／Resize，以及动画ON／OFF的真实公开保存和可见重开GUI。两个product PID各自53／285条，不合并冒充一条连续stream；实际正常UP／资源退出、Quit与客户配对已核。动画仅source＋runtime范围，未声称直接API追踪或100ms视觉轨迹。M11-F01仍缺真实托盘入口；不再笼统写全部控件／DPI未验，DPI按对应显示合同另判。
 - [9069首次idle观察](v1-evidence/9069-medium-desktop-initial-idle-review.json)：已真实创建同SID／session、Medium8192／non-elevated的精确Explorer子进程，首次idle返回0；立即双枚举只有隐藏DDE／IME，Shell／Tray为0。整个scope约47ms，内存记录集中emit的同tick不等于API同刻，更不是10秒等待。原BLOCKED保留，产品及输入未运行；句柄关闭／Default线程恢复和原Shell身份未变不等同产品cleanup PASS。后继工具只补总10秒内的WinEvent／消息等待观察，不轮询、不切桌面、不操作原Shell；新结果未运行前保持未知。
@@ -15,14 +19,14 @@
 
 其中efed／ec2f／8d8a／57f0四批实际驱动为`9d6b8359fabbcbffcea78aed8b6c9aa02bcc5c7b`／Release SHA-256 `48C016EC17F58FF1130606F9858C1CD80FF57EB29A907DDDB7C45614A7A6DAE3`；每批包、RunId、原件／摘录／清理回执见各review，所有自有guest及临时任务已清理，包和证据保留在`I:\PaneBindMVP1Runs\<RunId>`。未操作XiangFlow／CrossRec、宿主输入或系统配置。
 
-上一个已实测便携包为`5f87dc1c56704592a164a4d8c4c3a6b4`：ZIP SHA-256 `1F12165B8B7E6F9E0BD01E06FD0506DD34A611657FA525137020C36B6A11EE2F`，manifest `2B7B9C521606895B033EA9F6E0ADBDF9CE5E599AAA8E9A7FD60B70FAF2D79F6B`。新25b候选预定包`bfb405c45e5a446ca54a74735d1122a8`，普通入口／新说明及当前核心链尚待其独立实测；不因工具变化重建产品。确切路径与操作见[快速入门](../V1_QUICK_START.md)，不开放普通宿主试用。
+当前已实测便携包为`bfb405c45e5a446ca54a74735d1122a8`：ZIP SHA-256 `B4679D4659F6DB9EE57D5EFDE9A5DB9007C3F427D7D9BD1160E4835E78953C11`，manifest `6B284E2524319F553B72B24EC3A406ECB5025EB8438598780F3F040F61F8A905`，包装a765、产品25b、自动驱动001c。旧5f87及原记录保留，不为工具／文档变化重建产品或重打旧包。确切路径与操作见[快速入门](../V1_QUICK_START.md)，不开放普通宿主试用。
 
 后继工具`c24976d86a4dec30a739f66927be4334eeb0e3a7`已经实际运行两批，产品4f7仍未重建：
 
 - [1a62当前核心组合链](v1-evidence/1a62-current-core-chain-review.json)：同PID3696两轮真实post-Resize A五阶段→Ctrl C、联动缩放、停靠／拉伸、透明与摇动／暂停恢复完成；配置恢复、实际UP／资源退出、正常Quit和退出后客户输入有证据。2199条driver合法连续，物理product日志因有界轮转只保留P1000–1977，早期关键事实来自driver当时嵌入的原始回执，不伪造完整P1–1977或全时序零迟写证明。角双击的离散终止保持其非NormalUp语义。**未跑900秒、真实应用矩阵或整版链，不由两轮owned子范围抬整条I02–I11或模块PASS。**
 - [e03f新桌面观察前置反例](v1-evidence/e03f-fresh-desktop-baseline-rejection-review.json)：实际新Run名称核验和CreateDesktop成功；随后枚举返回false／error0／零回调，被旧TEST的“必须完整空清单”门拒绝，未到Explorer创建。此结果不能写成系统无法创建Medium Shell。原FAIL保留，后继仅允许此UNKNOWN情况下在已核新Run对象上尝试一次同Medium子进程；不授未知基线窗口权限，后验完整枚举／精确新PID、birth、路径、SID、session、Medium、Shell／Tray事实仍不可省。原Default Shell身份未变，未切输入桌面、未发输入、未改安全设置；对象是否已销毁仍UNKNOWN，关闭句柄不冒充进程或产品收尾。
 
-设置控件上述四phase已由21a5实测，不再列为待运行。当前只执行新文案候选的普通无参入口／说明及受影响当前组合链，和修正首次idle观察工具后的有限环境检查；不重跑旧Fix H、无变量Full或独立900秒。新工具001c326接现有普通便携入口核验真实第6页Static文字／可见矩形／焦点与未写配置，再继续原保存取消与Move／退出；不把读回文字当全页像素或真人UAT。
+设置控件四phase、新候选普通入口／说明及当前owned组合链已分别完成，不再列为待运行。当前只继续修正实际取证短路后的Medium环境准备：两个确切root的双完整HDESK成员／实际几何核验，再一次Run专属桌面激活／真实输入桌面回读／独立有界Default回切；这些仅为环境准备，不授产品资格、托盘或真实应用PASS，不放宽原正式Default门，不重跑旧Fix H、无变量Full或独立900秒。
 
 NF02按Run保留：830a的50次callback最大1755µs、p99桶2000µs未达<1ms目标；6e1f的71次最大966µs、p99桶999µs只在该范围达标。当前1a62的521次callback p99桶999µs、最大1287µs；118条hook→postverify样本p95桶20000µs、最大161869µs，另38条缺hook时钟不混入。四个>100ms软件尾样本是角双击拉伸，最大项g22的实际native调用约9.5ms，不能把整个软件动作链说成原生Move卡顿或物理显示延迟。保留尾值及原失败，不择优宣布跨Run全面通过，也不擅自称持续S1；不增加性能框架或900秒专项。
 
