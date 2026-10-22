@@ -1,0 +1,1155 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET-SIZE-PRIORITY-PULLBACK-SUCCESSOR",
+  "kind": "read_only_current_binary_literal_driver_and_physical_product_log_review",
+  "review_date": "2026-10-22",
+  "run_id": "f06a2d013c1829e1896a410ab2680f08",
+  "suite": "ResizeMagnetOnly",
+  "configuration": "Release",
+  "result": "SCOPED_PASS_EIGHT_OWNED_RESIZE_DIRECTIONS_SIZE_PRIORITY_ORIGINAL_DOWN_PULLBACK_AND_SUCCESSOR",
+  "original_driver_result": "PASS",
+  "new_execution_by_review": false,
+  "feature_or_whole_version_PASS_added": false,
+  "identity": {
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "driver_source_sha": "dd4a9fe908f11786334b25117726dd95a4ce9593",
+    "driver_sha256": "DED32C4B852BF63C5F2EE48571141EC15CFCC3A5DA6772C94B982022A86CE8BA",
+    "packaging_head": "dd4a9fe908f11786334b25117726dd95a4ce9593",
+    "product_PID": 3924,
+    "product_birth_filetime_decimal": "134371511384644466",
+    "fixture_PID": 4056,
+    "fixture_primary_UI_TID": 4048,
+    "driver_TID": 6432,
+    "fixture_birth_filetime_decimal": "134371511382551959",
+    "actual_source_HWND": 197408,
+    "source_owner_PID": 4056,
+    "source_owner_TID": 4048,
+    "source_frame": "actual test-owned ordinary Win32 frame, not a third-party application",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "product_capture_route": "exact_guest",
+    "entry_scope": "Existing guarded diagnostic ResizeMagnetOnly product path, not independent no-argument GUI acceptance.",
+    "precision": "64-bit FILETIME/process-birth and host start_ticks identities are exact raw decimal strings extracted by regex. Original lines are never reserialized through floating-point JSON numbers."
+  },
+  "environment": {
+    "os_build": "26100",
+    "UBR": 9711,
+    "system_DPI": 144,
+    "source_DPI": 144,
+    "keyboard_layout": "00000409",
+    "monitor_bounds": [
+      0,
+      0,
+      3050,
+      1668
+    ],
+    "work_area": [
+      0,
+      0,
+      3050,
+      1596
+    ],
+    "monitor_count": 1,
+    "synthetic_display_configuration_used": false,
+    "scope": "Disposable Sandbox, same-session non-elevated Medium product and owned fixtures. Not the complete ordinary Medium desktop/real-application/display matrix."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/package-receipt.json",
+      "bytes": 13335,
+      "sha256": "B64D72FECA1C5B1D1780F80157B81A7C7EC7F3EF9F1BC9E303236DFA6B27BA2C"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/f06a2d013c1829e1896a410ab2680f08.zip",
+      "bytes": 5859926,
+      "sha256": "B9E2C8C666A1E34D9991EA5FC16246618ED672A2B21D4BAEFD6C6D16D97F5441"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/input/manifest.json",
+      "bytes": 20353,
+      "sha256": "CD86AC923C4EE0678A7216CCC9C2DC6A0F9D91B296E02C87BD5053C827BB8ACA"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/PaneBindV1.wsb",
+      "bytes": 973,
+      "sha256": "51BCC2BB58C939C302372DA23A474D0A1C6FA54481D42DAECF9D0364BF1EAD5B"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/f06a2d013c1829e1896a410ab2680f08/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4237824,
+      "sha256": "DED32C4B852BF63C5F2EE48571141EC15CFCC3A5DA6772C94B982022A86CE8BA"
+    },
+    "actual_package_hashes_match_receipt_and_original_host_expectation": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\f06a2d013c1829e1896a410ab2680f08",
+    "old_EXE_or_run_evidence_rebound": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/f06a2d013c1829e1896a410ab2680f08-release-fixture.jsonl",
+      "bytes": 237411,
+      "sha256": "F9A78BB05AF6EE0A68A15B37891322C896F9C9F7B49712309F1F698C8423B167",
+      "role": "driver",
+      "legal_jsonl": true,
+      "rows": 431,
+      "continuous_sequences": [
+        1,
+        431
+      ],
+      "all_source_sha_match": true
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/f06a2d013c1829e1896a410ab2680f08-product-Release/panebind.log.jsonl.1",
+      "bytes": 525944,
+      "sha256": "10587BA7D57C2B82AE8DCE82AA84BA1E1682A835AA491F9BCBD8C6CD3502B142",
+      "role": "product_previous",
+      "rows": 384,
+      "physical_sequences": [
+        1,
+        384
+      ],
+      "product_PID": 3924,
+      "all_source_sha_and_PID_match": true
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/f06a2d013c1829e1896a410ab2680f08-product-Release/panebind.log.jsonl",
+      "bytes": 9807,
+      "sha256": "9ECE7C8A41DFF0419F28EBD251C84A2C33BF44A305479F8AF97154CE74B6DA68",
+      "role": "product_current",
+      "rows": 9,
+      "physical_sequences": [
+        385,
+        393
+      ],
+      "product_PID": 3924,
+      "all_source_sha_and_PID_match": true
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/collection-receipt.json",
+      "bytes": 9901,
+      "sha256": "72BAD5FB8E4EAAFB199CF2DABB4E854392D82458AE94D82E8C078F3F7DCBEAD5"
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/cleanup-receipt.json",
+      "bytes": 10906,
+      "sha256": "041F68CD46523DDEBF46EB0C1CC9D4342E0AEC7E21C5154BEF7632C2CA226432"
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/f06a2d013c1829e1896a410ab2680f08-Release-launch.json",
+      "bytes": 9918,
+      "sha256": "15DAA819413F7946F74477AF9F06CC4DCD288AE6D9C30348AFB669CC7793DB14"
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/collection-20261022T140133169Z-50e8275e3cbe44608424edbc932ce2d0/f06a2d013c1829e1896a410ab2680f08-guest-summary.json",
+      "bytes": 20857,
+      "sha256": "73E5BAC6C443F0891AAD71BA5A56E7F0A19CD73C43D2B8940CC23AFD4C30730D"
+    },
+    {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/host-expectation.json",
+      "bytes": 2997,
+      "sha256": "12AD4AFD9BDD80D1FC8089AF0EDE57FFD6BF12349E51D56181FAD8254E9008AE"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/f06a-current-resize-magnet-excerpt.jsonl",
+    "bytes": 85948,
+    "sha256": "37E53F79A188F64E7E9996DA9E6AFF1E35CE92BFDCC52CFE0CA0B90F0AE3BB18",
+    "literal_lines": 84,
+    "driver_rows": 64,
+    "product_previous_rows": 20,
+    "driver_sequences": [
+      3,
+      7,
+      13,
+      15,
+      17,
+      19,
+      24,
+      25,
+      27,
+      35,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      134,
+      142,
+      144,
+      154,
+      162,
+      164,
+      174,
+      182,
+      184,
+      194,
+      202,
+      204,
+      216,
+      225,
+      227,
+      239,
+      248,
+      250,
+      262,
+      271,
+      273,
+      285,
+      294,
+      296,
+      299,
+      300,
+      301,
+      302,
+      306,
+      308,
+      315,
+      322,
+      324,
+      327,
+      333,
+      336,
+      337,
+      338,
+      340,
+      404,
+      408,
+      409,
+      413,
+      419,
+      426,
+      427,
+      428,
+      431
+    ],
+    "product_previous_physical_line_and_sequence": [
+      65,
+      67,
+      73,
+      75,
+      106,
+      139,
+      170,
+      202,
+      234,
+      266,
+      299,
+      323,
+      325,
+      331,
+      333,
+      352,
+      353,
+      355,
+      361,
+      363
+    ],
+    "serialization_changed": false,
+    "order": "Driver selections first, then physical panebind.log.jsonl.1 selections. Same-number D/P lines are different producers; excerpt ordering is not shared native chronology."
+  },
+  "observations": [
+    {
+      "source": "D13/D17/D24/D27/D123-D128 and physical product logs",
+      "fact": "Payload42ab and driverdd4a are separately source/binary/package bound. ProductPID3924 and test-owned sourcePID4056 have actual registered birth identities. Layout fixtures belong to the existing UI STA4048, with driver6432 and actual144DPI visible/positioning frame baselines. Product selected the exact_guest capture resource route; this is not a whole ordinary-desktop or real-app qualification."
+    },
+    {
+      "source": "D134-D296; physical P58-P299",
+      "fact": "Eight distinct plain Resize generations used real HTLEFT10, HTRIGHT11, HTTOP12, HTBOTTOM15, HTTOPLEFT13, HTTOPRIGHT14, HTBOTTOMLEFT16 and HTBOTTOMRIGHT17. Each raw active-edge intent is56px toward a real candidate60px away, leaving4px inside the actual15px attraction field at144DPI. Independent expected active edges move60px; all nonparticipating visible and positioning edges remain fixed. Every actual visible/positioning rect matches the independent expected rect, with one actual successful exact native source call per quantum."
+    },
+    {
+      "source": "Per-direction actual_source_and_candidate_frame/layout_actual_member and resize_magnet_single_writer_fixed_edges_and_targets",
+      "fact": "All candidate visible rectangles were independently compared before/after; all remained equal. The existing per-quantum check independently verifies their positioning against native baselines. Nested placement lines were byte-equal to their physical P rows. Complete physical logs contain eleven placements, all sourcekey4; no candidate placement is present in this run."
+    },
+    {
+      "source": "D299-D327 / P315-P333",
+      "fact": "Actual declared source max visible width450 conflicts with neighbour edge at876, which would require width456. The70px original-DOWN intent was written as legal width450 at[420,220,870,520], not invalid width456/470. Same generation's30px total intent then became width430 at[420,220,850,520], showing use of the original400px DOWN anchor rather than the clamped450px geometry. Two requested quanta produced exactly two actual native calls; the internal rejected solver proposal itself is not directly observed."
+    },
+    {
+      "source": "D333-D342 / P347-P363",
+      "fact": "After generation9 actual normal UP, generation10 was a fresh ordinary Move, not Resize/Ctrl. Its actual source[445,235,875,535] is the previous430x300 source translated[25,15]; real neighbour[876,260,1096,480] remained unchanged, and P352 is a successful exact source placement. This demonstrates a successor gesture in the same product instance, not a stability batch."
+    },
+    {
+      "source": "Ten per-generation physical Raw/legacy/isolation_gone/gesture_end rows, plus D144-D340",
+      "fact": "Every tested generation has one matched actual Raw LEFTUP, accepted legacy LEFTUP and NormalUp end0/pending_retired, with capture release, successful detach, overlay destruction and hotkey unregister. Test UP QPC precedes actual Raw/legacy observations. Passive test callback evidence is supporting evidence only, not substituted for product delivery. All eleven actual native calls completed before the matching Raw UP in this run; no unexecuted global zero-late guarantee is claimed."
+    },
+    {
+      "source": "D404/D408/D413/D419/D426-D431 / P389-P393 / cleanup receipt",
+      "fact": "Original configuration was restored, exact layout roots closed, and real product status was idle with no pending or unknown native operation. Public quit exited0 and actual shutdown reports own hooks/overlay/worker/input/capture/association cleanup. A subsequent own-client DOWN/UP was actually delivered before disposal. Wrapper exit0/no descendants/no forced cleanup and later exact host guest/task cleanup are separate supporting facts, not substitutes for these observations."
+    }
+  ],
+  "directions": [
+    {
+      "generation": 1,
+      "HT_region": 10,
+      "direction": "Left",
+      "driver_START": 134,
+      "driver_quantum": 142,
+      "physical_product_START": 58,
+      "physical_product_placement": 61,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        364,
+        220,
+        820,
+        520
+      ],
+      "independent_expected": [
+        360,
+        220,
+        820,
+        520
+      ],
+      "actual_visible": [
+        360,
+        220,
+        820,
+        520
+      ],
+      "actual_positioning": [
+        351,
+        220,
+        829,
+        529
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "after_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 2,
+      "HT_region": 11,
+      "direction": "Right",
+      "driver_START": 154,
+      "driver_quantum": 162,
+      "physical_product_START": 90,
+      "physical_product_placement": 93,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        420,
+        220,
+        876,
+        520
+      ],
+      "independent_expected": [
+        420,
+        220,
+        880,
+        520
+      ],
+      "actual_visible": [
+        420,
+        220,
+        880,
+        520
+      ],
+      "actual_positioning": [
+        411,
+        220,
+        889,
+        529
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "after_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 3,
+      "HT_region": 12,
+      "direction": "Top",
+      "driver_START": 174,
+      "driver_quantum": 182,
+      "physical_product_START": 123,
+      "physical_product_placement": 125,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        420,
+        164,
+        820,
+        520
+      ],
+      "independent_expected": [
+        420,
+        160,
+        820,
+        520
+      ],
+      "actual_visible": [
+        420,
+        160,
+        820,
+        520
+      ],
+      "actual_positioning": [
+        411,
+        160,
+        829,
+        529
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "after_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 4,
+      "HT_region": 15,
+      "direction": "Bottom",
+      "driver_START": 194,
+      "driver_quantum": 202,
+      "physical_product_START": 154,
+      "physical_product_placement": 156,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        420,
+        220,
+        820,
+        576
+      ],
+      "independent_expected": [
+        420,
+        220,
+        820,
+        580
+      ],
+      "actual_visible": [
+        420,
+        220,
+        820,
+        580
+      ],
+      "actual_positioning": [
+        411,
+        220,
+        829,
+        589
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "after_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 5,
+      "HT_region": 13,
+      "direction": "TopLeft",
+      "driver_START": 216,
+      "driver_quantum": 225,
+      "physical_product_START": 186,
+      "physical_product_placement": 188,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        364,
+        164,
+        820,
+        520
+      ],
+      "independent_expected": [
+        360,
+        160,
+        820,
+        520
+      ],
+      "actual_visible": [
+        360,
+        160,
+        820,
+        520
+      ],
+      "actual_positioning": [
+        351,
+        160,
+        829,
+        529
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "after_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "unchanged": true
+        },
+        {
+          "member": 2,
+          "baseline_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "after_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 6,
+      "HT_region": 14,
+      "direction": "TopRight",
+      "driver_START": 239,
+      "driver_quantum": 248,
+      "physical_product_START": 217,
+      "physical_product_placement": 220,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        420,
+        164,
+        876,
+        520
+      ],
+      "independent_expected": [
+        420,
+        160,
+        880,
+        520
+      ],
+      "actual_visible": [
+        420,
+        160,
+        880,
+        520
+      ],
+      "actual_positioning": [
+        411,
+        160,
+        889,
+        529
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "after_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "unchanged": true
+        },
+        {
+          "member": 2,
+          "baseline_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "after_visible": [
+            460,
+            40,
+            780,
+            160
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 7,
+      "HT_region": 16,
+      "direction": "BottomLeft",
+      "driver_START": 262,
+      "driver_quantum": 271,
+      "physical_product_START": 250,
+      "physical_product_placement": 252,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        364,
+        220,
+        820,
+        576
+      ],
+      "independent_expected": [
+        360,
+        220,
+        820,
+        580
+      ],
+      "actual_visible": [
+        360,
+        220,
+        820,
+        580
+      ],
+      "actual_positioning": [
+        351,
+        220,
+        829,
+        589
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "after_visible": [
+            140,
+            260,
+            360,
+            480
+          ],
+          "unchanged": true
+        },
+        {
+          "member": 2,
+          "baseline_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "after_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    },
+    {
+      "generation": 8,
+      "HT_region": 17,
+      "direction": "BottomRight",
+      "driver_START": 285,
+      "driver_quantum": 294,
+      "physical_product_START": 282,
+      "physical_product_placement": 285,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "raw_intent": [
+        420,
+        220,
+        876,
+        576
+      ],
+      "independent_expected": [
+        420,
+        220,
+        880,
+        580
+      ],
+      "actual_visible": [
+        420,
+        220,
+        880,
+        580
+      ],
+      "actual_positioning": [
+        411,
+        220,
+        889,
+        589
+      ],
+      "all_nonparticipating_visible_and_positioning_edges_fixed": true,
+      "candidates": [
+        {
+          "member": 1,
+          "baseline_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "after_visible": [
+            880,
+            260,
+            1100,
+            480
+          ],
+          "unchanged": true
+        },
+        {
+          "member": 2,
+          "baseline_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "after_visible": [
+            460,
+            580,
+            780,
+            700
+          ],
+          "unchanged": true
+        }
+      ],
+      "candidate_native_positioning_unchanged_check": true,
+      "native_exact_call_and_post_context": true,
+      "nested_receipt_equals_physical_row": true
+    }
+  ],
+  "size_priority_and_pullback": {
+    "generation": 9,
+    "original_visible": [
+      420,
+      220,
+      820,
+      520
+    ],
+    "original_width": 400,
+    "declared_max_width": 450,
+    "candidate_visible": [
+      876,
+      260,
+      1096,
+      480
+    ],
+    "invalid_candidate_width": 456,
+    "first_original_DOWN_delta": [
+      70,
+      0
+    ],
+    "first_legal_visible": [
+      420,
+      220,
+      870,
+      520
+    ],
+    "first_actual_width": 450,
+    "first_physical_placement": 317,
+    "second_original_DOWN_delta": [
+      30,
+      0
+    ],
+    "second_actual_visible": [
+      420,
+      220,
+      850,
+      520
+    ],
+    "second_actual_width": 430,
+    "second_physical_placement": 320,
+    "actual_native_calls": 2,
+    "internal_solver_rejection_directly_observed": false,
+    "after_NormalUp_successor_generation": 10,
+    "successor_delta": [
+      25,
+      15
+    ],
+    "successor_actual_visible": [
+      445,
+      235,
+      875,
+      535
+    ]
+  },
+  "normal_UP_by_generation": [
+    {
+      "generation": 1,
+      "test_single_UP_QPC": 330875309,
+      "physical_Raw_UP": 65,
+      "physical_legacy_UP": 67,
+      "physical_isolation_gone": 73,
+      "physical_NormalUp_end": 75,
+      "actual_Raw_UP_QPC": 330885398,
+      "actual_legacy_UP_QPC": 330898525,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 2,
+      "test_single_UP_QPC": 337841863,
+      "physical_Raw_UP": 96,
+      "physical_legacy_UP": 98,
+      "physical_isolation_gone": 104,
+      "physical_NormalUp_end": 106,
+      "actual_Raw_UP_QPC": 337848763,
+      "actual_legacy_UP_QPC": 337861427,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 3,
+      "test_single_UP_QPC": 344817599,
+      "physical_Raw_UP": 129,
+      "physical_legacy_UP": 131,
+      "physical_isolation_gone": 137,
+      "physical_NormalUp_end": 139,
+      "actual_Raw_UP_QPC": 344826881,
+      "actual_legacy_UP_QPC": 344841038,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 4,
+      "test_single_UP_QPC": 353623132,
+      "physical_Raw_UP": 160,
+      "physical_legacy_UP": 162,
+      "physical_isolation_gone": 168,
+      "physical_NormalUp_end": 170,
+      "actual_Raw_UP_QPC": 353630407,
+      "actual_legacy_UP_QPC": 353643477,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 5,
+      "test_single_UP_QPC": 360846762,
+      "physical_Raw_UP": 192,
+      "physical_legacy_UP": 194,
+      "physical_isolation_gone": 200,
+      "physical_NormalUp_end": 202,
+      "actual_Raw_UP_QPC": 360853881,
+      "actual_legacy_UP_QPC": 360867805,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 6,
+      "test_single_UP_QPC": 368098947,
+      "physical_Raw_UP": 224,
+      "physical_legacy_UP": 226,
+      "physical_isolation_gone": 232,
+      "physical_NormalUp_end": 234,
+      "actual_Raw_UP_QPC": 368106414,
+      "actual_legacy_UP_QPC": 368121820,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 7,
+      "test_single_UP_QPC": 375051688,
+      "physical_Raw_UP": 256,
+      "physical_legacy_UP": 258,
+      "physical_isolation_gone": 264,
+      "physical_NormalUp_end": 266,
+      "actual_Raw_UP_QPC": 375060003,
+      "actual_legacy_UP_QPC": 375072728,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 8,
+      "test_single_UP_QPC": 382997830,
+      "physical_Raw_UP": 289,
+      "physical_legacy_UP": 291,
+      "physical_isolation_gone": 297,
+      "physical_NormalUp_end": 299,
+      "actual_Raw_UP_QPC": 383006887,
+      "actual_legacy_UP_QPC": 383021084,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 9,
+      "test_single_UP_QPC": 392755623,
+      "physical_Raw_UP": 323,
+      "physical_legacy_UP": 325,
+      "physical_isolation_gone": 331,
+      "physical_NormalUp_end": 333,
+      "actual_Raw_UP_QPC": 392760234,
+      "actual_legacy_UP_QPC": 392775493,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    },
+    {
+      "generation": 10,
+      "test_single_UP_QPC": 400371464,
+      "physical_Raw_UP": 353,
+      "physical_legacy_UP": 355,
+      "physical_isolation_gone": 361,
+      "physical_NormalUp_end": 363,
+      "actual_Raw_UP_QPC": 400376109,
+      "actual_legacy_UP_QPC": 400393958,
+      "single_test_UP_and_one_passive_callback": true,
+      "matching_actual_Raw_legacy_NormalUp": true,
+      "capture_release_detach_destroy": true
+    }
+  ],
+  "native_calls": {
+    "count": 11,
+    "all_keys": [
+      4
+    ],
+    "all_attempted_succeeded_completed_identity_and_geometry_exact": true,
+    "all_native_calls_completed_before_matching_actual_Raw_UP": true,
+    "same_instance_evidence_only_not_global_guarantee": true,
+    "physical_placement_sequences": [
+      61,
+      93,
+      125,
+      156,
+      188,
+      220,
+      252,
+      285,
+      317,
+      320,
+      352
+    ]
+  },
+  "time_basis": {
+    "same_product_physical_log_sequence": [
+      1,
+      393
+    ],
+    "QPC_used_for": "Only same-host real call/Raw/legacy/test-insertion comparisons; no inferred physical display latency.",
+    "driver_tick_and_JSONL_order_not_cross_producer_native_order": true,
+    "no_new_latency_or_stability_score": true
+  },
+  "wrapper": {
+    "status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+    "fixture_status": "FIXTURE_EXITED_ZERO_EVIDENCE_REQUIRED",
+    "wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "wrapper_product_cleanup_pass_field": false,
+    "meaning": "Wrapper product_cleanup_pass remains false by its no-self-award design. Scoped product cleanup above is evaluated from real P393 shutdown, actual process exit and delivered own-client input, not from wrapper zero exit."
+  },
+  "collection_validation": {
+    "inventory_files": 9,
+    "actual_local_sizes_and_hashes_match_all_inventory": true,
+    "collection_before_after_unchanged": true,
+    "cleanup_before_after_unchanged": true,
+    "collection_matches_cleanup": true,
+    "files": [
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-release-fixture.jsonl",
+        "size": 237411,
+        "sha256": "F9A78BB05AF6EE0A68A15B37891322C896F9C9F7B49712309F1F698C8423B167"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-guest-summary.json",
+        "size": 20857,
+        "sha256": "73E5BAC6C443F0891AAD71BA5A56E7F0A19CD73C43D2B8940CC23AFD4C30730D"
+      },
+      {
+        "name": "panebind-v1-output.marker",
+        "size": 32,
+        "sha256": "8B42F800C3EEB13BB7C2E4D6DBA2222852E243F62ACE5412CD762351B473A195"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-Release-launch.json",
+        "size": 9918,
+        "sha256": "15DAA819413F7946F74477AF9F06CC4DCD288AE6D9C30348AFB669CC7793DB14"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-product-Release\\settings.ini",
+        "size": 1216,
+        "sha256": "31D814EAB58F81513CCE8F0B553BE724F17ACBABA10AE6EEDFB6A900A50C24DB"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-product-Release\\panebind.log.jsonl",
+        "size": 9807,
+        "sha256": "9ECE7C8A41DFF0419F28EBD251C84A2C33BF44A305479F8AF97154CE74B6DA68"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-product-Release\\panebind.exe",
+        "size": 1219072,
+        "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-product-Release\\portable.flag",
+        "size": 36,
+        "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29"
+      },
+      {
+        "name": "f06a2d013c1829e1896a410ab2680f08-product-Release\\panebind.log.jsonl.1",
+        "size": 525944,
+        "sha256": "10587BA7D57C2B82AE8DCE82AA84BA1E1682A835AA491F9BCBD8C6CD3502B142"
+      }
+    ]
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/f06a2d013c1829e1896a410ab2680f08/cleanup-receipt.json",
+      "bytes": 10906,
+      "sha256": "041F68CD46523DDEBF46EB0C1CC9D4342E0AEC7E21C5154BEF7632C2CA226432"
+    },
+    "utc": "2026-10-22T14:02:48.7079226Z",
+    "owned_guest_PID": 7204,
+    "guest_native_start_ticks_decimal": "639282743257110861",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false
+  },
+  "acceptance_boundary": {
+    "scoped_owned_Resize_component": "PASS",
+    "fixed_size_fixture": "NOT_RUN",
+    "real_application_matrix": "NOT_RUN",
+    "complete_M05_F04": "NOT_AWARDED",
+    "benchmark_or_module_or_whole_version_PASS_added": false,
+    "ordinary_noargument_product_entry": "NOT_TESTED_BY_THIS_SUITE",
+    "ordinary_full_Medium_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "history": "Old5d/fafa fixed-size and all earlier failures retain their original binary/source identities. This new42ab run does not relabel them as current fixed-size evidence.",
+    "next_action": "Reuse the existing guarded fixed-size black-box helper only if fresh fixed-size coverage is still required, then combine with other mandatory contracts. Do not rerun unrelated D29/Full or infer the five-application/display matrix from these owned frames."
+  }
+}

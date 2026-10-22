@@ -1,6 +1,27 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：42ab／d5f5普通便携入口实测通过；托盘、客户与Explorer缺项仍保留（2026-10-22）
+## 当前接续：42ab独立Resize磁吸合同闭合；Terminal五阶段及两成员Ctrl实测（2026-10-22）
+
+**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。** 本次只关闭完整独立功能 **M05-F04／B05**，不把单Terminal、原生fixture或构建结果提升为M05模块、五应用、完整E02或整版通过。
+
+现在已有的实际能力是：在已授权Sandbox中，冻结产品 `42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release SHA-256 `0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737` 的当前d5f5便携包普通无参GUI、二启同实例、设置保存改变实际Move和正常退出仍由[f78d](v1-evidence/f78d-current-42ab-portable-entry-review.json)支撑；同一未改EXE另在4ff以 `--settings --diagnostic` 取得实际量子回执，完成精确新Terminal的Move→Resize→后继Move、五阶段磁吸和实际邻接两成员Ctrl。**这还不是可交付的完整三种真实应用／Explorer三窗候选，不开放普通宿主试用。**
+
+- [f06a当前八方向](v1-evidence/f06a-current-resize-magnet-review.json)：42ab／driver `dd4a9fe908f11786334b25117726dd95a4ce9593`，8个不同活动边／角真实Resize，raw±56吸至±60，非活动边及目标不动、visible／positioning独立exact；每quantum一次真实native。max450先于候选456、原DOWN拉回430及后继Move均实际通过；10代真实Raw／legacy NormalUp、release／detach／Gone和产品自身退出／客户配对有证据。不是8区映射或旧212结果换绑。
+- [750b当前固定尺寸](v1-evidence/750b-current-fixed-size-resize-review.json)：42ab／driver `e38e14078cc690c747c6fe4be13ea1da3fed03e7`／R `36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7`，实际thickframe min=max visible400×300／native418×309；g1真实START、唯一Resize输入后几何不变、真实NormalUp，operations／nativeclaims均0→0且placement0；g2实际Move(+25,+15)及NormalUp通过。**零调用黑盒不证明solver消费MOVE**。252D合法连续，稳定收集后14:19:23.7676637Z精确guest／任务清理；原e627部署失败保留。
+- **G04组合断言实际通过**：`tests/core/v1_layout_tests.cpp::shared_resize` 直接连接生产 `resize_single→MagnetInput／solver`，固定输入original[100,100,490,400]、raw.right594→600、min.width300及其余三边不漂移。dd4a／e869／e38中所选 `v1-layout|v1-guest-path` 在Debug／Release各2/2实际通过；e38执行器exec52160最终exit0。命令为 `ctest --test-dir out/v1-driver-stretch-ready-8384677 -C <Debug|Release> --output-on-failure -R '^(v1-guest-path|v1-layout)$'`。这是执行器实际结果转录，**未另归档原stdout，不把driver-build.txt冒充ctest输出**；当前LastTest只保留Release，symlink权限1314子项SKIP不当PASS。当前两配置构建及四次完整argv宿主Exit78另有3fb01704回执，产品两配置字节未变。
+- [4ff6真实Terminal功能](v1-evidence/4ff6-terminal-magnet-ctrl-review.json)：42ab／driver `e869dfc0f2d5acea006b6084e18f0ce818c31ee2`／R `B67635361ABF9D0398CEAFB1282C354489A4822F9F852FB98302A592E4042F7B`，同实例前三代Move／Resize／Move后，g4实际Free→XY吸附→Hold真实noop→Detach→Resnap，g5在实际邻接下Terminal＋owned blank两成员Ctrl均exact；不是只发5点，Hold有本代新消费回执且无重复native。5代实际Raw／legacy NormalUp及capture释放／detach／Gone均成立。此为诊断观测入口，不覆盖f78普通无参包身份。
+- [c554原失败](v1-evidence/c554-terminal-magnet-wait-failure-review.json)：前三代和g4前四阶段已实际通过，但Resnap发送前TEST wait失败，后续Ctrl未运行；清理UP与FocusLost/end2不冒NormalUp。旧日志未录false分支，**不能反标已证明耗尽第65次通知**。后继仅将64通知门按每次有界operation计算、保留总deadline并补失败原因，4ff实际完成相应流程；原失败、包和未知前台发起者不回写。
+- **托盘／客户与NF02仍未通过**：4ff D1116托盘菜单失败，完整193P中没有tray ingress／menu API行；仅说明本次记录未见，不推唯一系统根因。Terminal客户nonce／内容语义仍缺，不以几何替代。P192同producer callback39样本p99桶500µs／max447µs；native hook→postverify9样本p95桶99999µs／max79352µs，当前小样本未达50ms目标，非物理显示延迟，不择优抹除旧FAIL。
+- **清理分别判定**：4ff实际public `--quit`／product exit0及自身hooks／writer／capture／association停止、Default回切成立；Terminal rootGone但process wait258、Shell后代仍活，wrapper descendants1／forced=true，整体进程树cleanup UNKNOWN，不以guest销毁补PASS。f06a／750的自有产品／fixture清理另有本批实际证据；旧e627只是在Deploy因exact Suite白名单拒绝，guest未启动。ignored编排器只补一种Suite值（当前SHA `9D9FEF17DCC90993D6B9EB1AB966C986A48FE72974F35190FCDC3B22401A98C6`），新750独立Run成功，不覆盖e627包／owner／失败回执。
+
+因此独立M05-F04／B05按**G04＋当前f06a八向／约束＋当前750固定黑盒＋当前4ff真实应用Resize后Move**闭合；不是把旧5d45／fafa重绑当前产品。M05仍缺规定的Explorer／编辑器／浏览器模块链及真实显示条件；Explorer exact文件窗、其它应用、托盘、普通完整Medium桌面、200%／多屏／混合DPI、最终同候选整链和真人体验继续分别推进。无需重跑无关Full／900秒或历史FixH。
+
+下一项Explorer只做一次新TEST可区分观察：保留原try_bind inventory，在原3500ms首根绑定失败后，以双heldRun枚举分类实际Cabinet与COM候选；不改launch／权限／输入，不多次启动，尚未现场，不预填结果。此项不是将e538同条件盲重跑。
+
+当前普通便携包仍为 **d5f5a2a6138049a5b4a1a76340904027**，ZIP SHA-256 `868C0E4BC8B802FB6C410534F8048F1421D8BE378D7F2D8DF87FB4788ABE99E7`／manifest `B472E906446BA6E2167D1350205B478E974C95EB7C703A88B53A3A53959AD66E`；只改TEST／文档没有重建42ab产品或改写旧包。用法见[快速入门](../V1_QUICK_START.md)，每份包／Run／哈希及原始位置见[证据索引](v1-evidence/index.json)。下列各历史检查点的数字和“当前／下一步”只属于当时身份，不覆盖本节。
+
+
+## 历史42ab初始普通便携入口检查点（2026-10-22）
 
 **生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0，整版PARTIAL，真人UAT PENDING；本次不预先增加分数。** 当前已实测普通便携候选为d5f5／产品`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`，R SHA-256 `0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；f78d实际driver同42ab／R `8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44`，包装8d81702。744e／be7／e4b9、5211／af4 Terminal三段、55f Default双轮与25b／bfb旧包各保身份，不迁移证据。
 

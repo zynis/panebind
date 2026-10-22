@@ -741,6 +741,8 @@ public:
             // that a new Ctrl/five-phase writer's resources have retired.
             if(magnet_&&(down_inserted_||control_inserted_||!control_release_observed_))out_.cleanup_known=false;}
         catch(...){out_.reason="geometry_unexpected_exception";out_.completed=false;out_.cleanup_known=false;}
+        if(explorer_&&!out_.completed)explorer_->record_unbound_discovery(out_.reason,
+            lease_&&!(lease_->flags.load(std::memory_order_acquire)&MediumDesktopUiInputLease::in_flight));
         cleanup_target();
         if(magnet_){const bool stopped=magnet_->finish();out_.cleanup_known=out_.cleanup_known&&stopped;
             out_.emit("medium_product_geometry_blank_target_cleanup","\"owner_DestroyWindow_and_UnregisterClass_confirmed\":"+std::string(stopped?"true":"false")+

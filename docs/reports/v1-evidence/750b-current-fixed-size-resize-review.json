@@ -1,0 +1,594 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-750B-CURRENT42AB-FIXED-SIZE-RESIZE-REAL-NORMALUP-ZERO-CALLS-THEN-MOVE",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "750be16e09ed4f91824476db43792216",
+  "suite": "FixedSizeResizeOnly",
+  "configuration": "Release",
+  "result": "PASS_SCOPED_CURRENT42AB_FIXED_SIZE_BLACKBOX_RESIZE_AND_FOLLOWING_MOVE",
+  "original_driver_result": "PASS",
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+    "driver_sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7",
+    "packaging_head": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+    "fixture_PID": 1408,
+    "fixture_TID": 3644,
+    "fixture_birth_filetime_decimal": "134371522102678519",
+    "product_PID": 6340,
+    "product_birth_filetime_decimal": "134371522104849044",
+    "product_arguments": [
+      "--diagnostic"
+    ],
+    "ordinary_no_argument_product": false,
+    "source_HWND": 197424,
+    "source_PID": 1408,
+    "source_TID": 3644,
+    "source_key": 5,
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "window_station": "WinSta0",
+    "desktop": "Default",
+    "capture_resource_route": "exact_guest",
+    "source_alias_is_test_owned_not_real_application": true,
+    "precision": "Fixture/product birth identities are regex-extracted decimal strings from original literal JSONL, never floating-point reconstructions. Exact original lines retain their original integer tokens."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/package-receipt.json",
+      "bytes": 13338,
+      "sha256": "C594A38750E56C10B2140041E686CFA6DFF92222E9A0AE309948E02BDFD1E0CE"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/750be16e09ed4f91824476db43792216.zip",
+      "bytes": 5863514,
+      "sha256": "07944F04991520315BD8304234783ADF5BCC54C911D1960B254FC8D9DB6B8406"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/input/manifest.json",
+      "bytes": 20832,
+      "sha256": "40DB72C6DC1F2D10CF145517E8AD1885A2460D41028624B9064499FDE8C619F2"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "96E2BD0AEBD806151EDBF0EC8988E18FAF5CF038CC09E21F4A99A3761C1B4571"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/750be16e09ed4f91824476db43792216/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4243456,
+      "sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "all_nine_host_inventory_sizes_and_hashes_match_local_package": true,
+    "deployed_archive_and_nine_file_inventory_match_host_expectation": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\750be16e09ed4f91824476db43792216",
+    "input_readonly_output_only_writable": true,
+    "prepared_package_NOT_RUN_receipts_retained": true,
+    "controller": {
+      "path": "uat/v1-control/remote-control.ps1",
+      "bytes": 38490,
+      "sha256": "9D9FEF17DCC90993D6B9EB1AB966C986A48FE72974F35190FCDC3B22401A98C6",
+      "host_expectation_pinned": true,
+      "minimum_fix": "Only the exact Suite allowlist was extended with FixedSizeResizeOnly; source/owner/manifest checks were not bypassed. A new Run750 was prepared rather than altering or reusing e627 ownership or expectations."
+    }
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-release-fixture.jsonl",
+      "bytes": 140726,
+      "sha256": "0F17C48AEA28432F38F3E9D4C4C1A2BC835CFBF24F95F3EB1035736069354BB7",
+      "role": "driver",
+      "rows": 252,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        252
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-product-Release/panebind.log.jsonl",
+      "bytes": 190347,
+      "sha256": "FD5F22CD1E8180E137F43E3D681596F2FC63B9ED8030133E2EB60F088349DD5E",
+      "role": "product",
+      "rows": 136,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        136
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-guest-summary.json",
+      "bytes": 20869,
+      "sha256": "55B1DACBC6A0E0FD43F216D43AC987CB73D082520D22E5858D8A49193FB2F272"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/750be16e09ed4f91824476db43792216-Release-launch.json",
+      "bytes": 9924,
+      "sha256": "2D1736168E0F55F876DF8BD15E006012C3D9130BB18697943AB70EB20414DB62"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/collection-20261022T141826288Z-ec0477c53d2b4602aa8fe31b5e2063d9/collection-receipt.json",
+      "bytes": 8909,
+      "sha256": "B275113EEA262D1FD6F6F3826A619CDF97C246A204F26E032B5318EA66C7F90B"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/host-expectation.json",
+      "bytes": 3000,
+      "sha256": "66F8AFB1672365147DDA0D233B18B6C144AD35C0B9B2FEA19A9F20FB5C02349A"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/deploy-receipt.json",
+      "bytes": 2664,
+      "sha256": "ECFB6A33A4DF9006A8F137A781230564D9EC8B4402CAB81411C00738BB5A7949"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/launch-receipt.json",
+      "bytes": 14470,
+      "sha256": "CEDFF9886EA40ED9037FA7249B07044C9B7A918472EE7CD7863F0025588106E9"
+    },
+    {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/cleanup-receipt.json",
+      "bytes": 10011,
+      "sha256": "3F71BFF568F5010BD447D516AC7260EAC09BF524BB918AF6C53142FDD3F664BB"
+    },
+    {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/remote-failure-90134b0a76174c17857db56f026e95c0.json",
+      "bytes": 186,
+      "sha256": "98847A8ACB72777A147055A76A4A04D59EA4E79CB77700BB8AAFB79E256F2D1D"
+    },
+    {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/remote-created.json",
+      "bytes": 315,
+      "sha256": "C846B06F6935A5408243DD2ECEB36BE1011DB766526823758C4772CFEAF0876B"
+    },
+    {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/host-expectation.json",
+      "bytes": 3000,
+      "sha256": "2C2B2D5126097C3C9CB1A58B7D46430EA27E01CC5108AB318FFC4B0F0F919151"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/750b-current-fixed-size-resize-excerpt.jsonl",
+    "bytes": 45788,
+    "sha256": "F62C9BAE82AAAF7B1995FF2E04371AACD0C2260696B5F83B2FDCA0328A0D1F58",
+    "literal_lines": 70,
+    "driver_sequences": [
+      3,
+      5,
+      13,
+      14,
+      17,
+      19,
+      24,
+      31,
+      122,
+      124,
+      125,
+      126,
+      127,
+      128,
+      130,
+      136,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      146,
+      147,
+      153,
+      154,
+      156,
+      159,
+      161,
+      162,
+      163,
+      224,
+      225,
+      229,
+      230,
+      238,
+      240,
+      247,
+      248,
+      249,
+      250,
+      252
+    ],
+    "product_sequences": [
+      3,
+      4,
+      47,
+      49,
+      52,
+      53,
+      54,
+      59,
+      63,
+      65,
+      71,
+      73,
+      76,
+      78,
+      81,
+      83,
+      84,
+      90,
+      95,
+      97,
+      99,
+      105,
+      107,
+      132,
+      135,
+      136
+    ],
+    "serialization_changed": false,
+    "line_endings": "Exact original UTF-8 line contents retained with LF. Separate driver and product streams are not a reconstructed total native event order."
+  },
+  "observations": [
+    {
+      "source": "D3/D5/D13-D31/P3-P4",
+      "fact": "This exact Release run uses frozen product42ab and separately built drivere38, with actual Medium/non-elevated fixture session1, WinSta0/Default and DPI144. The actual product PID6340/birth134371522104849044 is the diagnostic product entry used by the existing fixture, not an ordinary-empty-argument portable entry. Product GUI/input-resource initialization is not treated as functional PASS."
+    },
+    {
+      "source": "D122/D124-D128",
+      "fact": "The existing owned_fixed_size_resize_case was reused, not copied. Real source/neighbor windows were created and measured, source visible[420,220,820,520] with positioning[411,220,829,529]. Actual WS_THICKFRAME and WM_GETMINMAXINFO query returned native min=max[418,309], matching declared visible min=max400x300 after independently observed18x9 nonclient insets. Configuration was set via existing actual public GUI; no original product or system settings were changed outside the test-owned portable configuration."
+    },
+    {
+      "source": "D130/D136-D147/P47-P76",
+      "fact": "Generation1 is a true bottom-right native Resize start: actual hit17, original DOWN[809,518], real START, isolation/cancel/native END/handoff and own capture observed. The one test cursor moved to[839,543] (+30,+25) while source visible/positioning and neighbor remained unchanged. Real Raw UP flag2, accepted legacy UP, own capture release, association detach, overlay destruction and NormalUp/end0 completed. Before/after idle status both reported operations0/native_callsite_claims0, and the actual corresponding product interval contains0 placement records. This is scoped black-box fixed-size behavior; zero native calls do not establish internal solver motion consumption."
+    },
+    {
+      "source": "D153-D163/P78-P107",
+      "fact": "Generation2 is a genuine later caption Move on the same source HWND197424/PID1408/TID3644/key5, with new original DOWN[430,229]. Independent actual visible[445,235,845,535] and positioning[436,235,854,544] equal original+(25,15), preserving400x300. P95 is a real issued native call1/success/exact/post-context-valid receipt, before this generation's actual UP. The neighbor stayed unchanged. Its own Raw/legacy NormalUp, capture release, detach and overlay destruction were observed separately."
+    },
+    {
+      "source": "D224-D252/P132-P136",
+      "fact": "Original configuration was restored through the existing GUI, exact extra test roots were actually closed, and the independent phase summary completed. Public normal Quit/process exit0 and P136 own-hook/overlay/worker/capture/association/input/visual resource shutdown were recorded with issued_native_completion_unknown=false. The surviving original owned client received one actual DOWN/UP0,0→1,1 after product exit. Driver Raw registration removal and foreground unhook succeeded. Wrapper exit0/0descendants/no forced cleanup support but do not substitute for these functional and cleanup facts."
+    }
+  ],
+  "actual_result": {
+    "actual_fixed_constraints": {
+      "visible_min_max": [
+        400,
+        300,
+        400,
+        300
+      ],
+      "native_min": [
+        418,
+        309
+      ],
+      "native_max": [
+        418,
+        309
+      ],
+      "WM_GETMINMAXINFO_returned": true,
+      "WS_THICKFRAME_observed": true,
+      "original_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "original_positioning": [
+        411,
+        220,
+        829,
+        529
+      ]
+    },
+    "fixed_Resize": {
+      "generation": 1,
+      "actual_START": true,
+      "actual_native_END": true,
+      "actual_source_HWND": 197424,
+      "actual_source_PID": 1408,
+      "actual_source_TID": 3644,
+      "source_key": 5,
+      "actual_DOWN": [
+        809,
+        518
+      ],
+      "product_DOWN_hook_qpc": 328447463,
+      "actual_product_Raw_LEFTUP": true,
+      "actual_product_Raw_UP_qpc": 329812912,
+      "actual_legacy_UP_accepted": true,
+      "actual_legacy_UP_dispatch_qpc": 329826293,
+      "single_test_UP_send_before_qpc": 329805580,
+      "normal_end_code": 0,
+      "normal_up": true,
+      "pending_retired": true,
+      "own_capture_release": true,
+      "actual_capture_after_release": 0,
+      "own_thread_association_detached": true,
+      "own_overlay_destroyed": true,
+      "own_hotkey_unregistered": true,
+      "release_API_qpc": [
+        329827910,
+        329830492
+      ],
+      "detach_API_qpc": [
+        329832514,
+        329834498
+      ],
+      "isolation_gone_qpc": 329858598,
+      "Raw_and_legacy_UP_are_after_own_send_before_qpc": true,
+      "native_hit": 17,
+      "normalized_DOWN_region": 8,
+      "requested_cursor_delta": [
+        30,
+        25
+      ],
+      "requested_and_actual_cursor": [
+        839,
+        543
+      ],
+      "actual_visible": [
+        420,
+        220,
+        820,
+        520
+      ],
+      "actual_positioning": [
+        411,
+        220,
+        829,
+        529
+      ],
+      "new_placement_records": 0,
+      "before_status": {
+        "operations": 0,
+        "native_callsite_claims": 0
+      },
+      "after_status": {
+        "operations": 0,
+        "native_callsite_claims": 0
+      },
+      "solver_motion_consumption_observed": false,
+      "zero_native_calls_are_not_solver_consumption_proof": true
+    },
+    "following_Move": {
+      "generation": 2,
+      "actual_START": true,
+      "actual_native_END": true,
+      "actual_source_HWND": 197424,
+      "actual_source_PID": 1408,
+      "actual_source_TID": 3644,
+      "source_key": 5,
+      "actual_DOWN": [
+        430,
+        229
+      ],
+      "product_DOWN_hook_qpc": 335637704,
+      "actual_product_Raw_LEFTUP": true,
+      "actual_product_Raw_UP_qpc": 338521741,
+      "actual_legacy_UP_accepted": true,
+      "actual_legacy_UP_dispatch_qpc": 338537429,
+      "single_test_UP_send_before_qpc": 338514732,
+      "normal_end_code": 0,
+      "normal_up": true,
+      "pending_retired": true,
+      "own_capture_release": true,
+      "actual_capture_after_release": 0,
+      "own_thread_association_detached": true,
+      "own_overlay_destroyed": true,
+      "own_hotkey_unregistered": true,
+      "release_API_qpc": [
+        338538170,
+        338539248
+      ],
+      "detach_API_qpc": [
+        338539302,
+        338541303
+      ],
+      "isolation_gone_qpc": 338571823,
+      "Raw_and_legacy_UP_are_after_own_send_before_qpc": true,
+      "actual_total_delta": [
+        25,
+        15
+      ],
+      "actual_visible": [
+        445,
+        235,
+        845,
+        535
+      ],
+      "actual_positioning": [
+        436,
+        235,
+        854,
+        544
+      ],
+      "fixed_size_preserved": true,
+      "neighbor_visible_and_positioning_unchanged": true,
+      "placement": {
+        "product_sequence": 95,
+        "key": 5,
+        "native_attempted": true,
+        "native_succeeded": true,
+        "completion_known": true,
+        "identity_valid": true,
+        "exact": true,
+        "native_before_qpc": 338210621,
+        "native_after_qpc": 338214936,
+        "post_context_valid": true,
+        "before_matching_UP": true
+      }
+    },
+    "original_configuration_restored": true,
+    "exact_extra_test_roots_closed": true,
+    "normal_Quit_exit0": true,
+    "post_stop_client_DOWN_UP_delivered": true,
+    "post_stop_client_counts_before": [
+      0,
+      0
+    ],
+    "post_stop_client_counts_after": [
+      1,
+      1
+    ],
+    "driver_summary": "PASS_SCOPED_FIXED_SIZE_RESIZE_ONLY",
+    "prior_terminal_D29_burst_repeated": false,
+    "prior_eight_directions_repeated": false,
+    "full_suite": "NOT_RUN",
+    "real_application": "NOT_RUN_THIS_SUITE",
+    "human_UAT": "NOT_RUN"
+  },
+  "previous_deployment_failure": {
+    "run_id": "e627c2f9047d45a291634f487a7be642",
+    "preserved_failure": {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/remote-failure-90134b0a76174c17857db56f026e95c0.json",
+      "bytes": 186,
+      "sha256": "98847A8ACB72777A147055A76A4A04D59EA4E79CB77700BB8AAFB79E256F2D1D"
+    },
+    "preserved_host_expectation": {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/host-expectation.json",
+      "bytes": 3000,
+      "sha256": "2C2B2D5126097C3C9CB1A58B7D46430EA27E01CC5108AB318FFC4B0F0F919151"
+    },
+    "preserved_owner": {
+      "path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/remote-created.json",
+      "bytes": 315,
+      "sha256": "C846B06F6935A5408243DD2ECEB36BE1011DB766526823758C4772CFEAF0876B"
+    },
+    "original_failure_json": {
+      "stage": "Deploy",
+      "exit_code": 1,
+      "stdout": [],
+      "utc": "2026-10-22T14:13:50.3583110Z",
+      "stderr_text_persisted": false
+    },
+    "executor_observation_not_a_new_raw_file": {
+      "source": "Parent execution report of tools.exec_command chunk14877e, exit1",
+      "actual_stderr": "sandbox_suite_selection_not_exact",
+      "actual_location": "I:\\PaneBindMVP1Runs\\e627c2f9047d45a291634f487a7be642\\host-control.ps1:350",
+      "followup_tool_error": "remote_command_failed:1",
+      "scope": "The exact error text was observed by the executor, not contained in the preserved failure JSON; no replacement historical stderr file was fabricated."
+    },
+    "launch_receipt_exists": false,
+    "parent_reported_Launch_not_called": true,
+    "guest_or_input_for_this_failed_deploy_not_claimed_as_executed": true,
+    "global_host_never_had_other_guest_or_input_not_proven": true,
+    "not_reused_or_overwritten_for_current_Run": true,
+    "controller_change_is_not_product_function_PASS": true
+  },
+  "time_basis": {
+    "clock": "Same guest QPC software samples; driver buffering and JSONL order do not establish Raw/WinEvent/API total native ordering.",
+    "qpc_frequency": 10000000,
+    "actual_product_timing_summary": {
+      "schema": "panebind-v1/1",
+      "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "sequence": 135,
+      "process_id": 6340,
+      "tick": 35796,
+      "type": "timing_summary",
+      "qpc_frequency": 10000000,
+      "clock_scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+      "mouse_callback": {
+        "samples": 56,
+        "discarded": 0,
+        "missing_clock": 0,
+        "reversed_clock": 0,
+        "conversion_overflow": 0,
+        "saturated": false,
+        "percentile": 99,
+        "percentile_bucket_upper_us": 999,
+        "maximum_us": 766,
+        "excludes_downstream_CallNextHookEx": true
+      },
+      "hook_observed_to_postverify": {
+        "samples": 1,
+        "discarded": 0,
+        "missing_clock": 0,
+        "reversed_clock": 0,
+        "conversion_overflow": 0,
+        "saturated": false,
+        "percentile": 95,
+        "percentile_bucket_upper_us": 10000,
+        "maximum_us": 5545,
+        "sample_unit": "native_placement",
+        "not_physical_display_latency": true,
+        "unfinished_calls": 0
+      }
+    },
+    "scope": "One actual following-Move placement only; fixed-size zero calls are not a latency measurement and this small sample does not award NF02."
+  },
+  "wrapper": {
+    "fixture_pid": 1408,
+    "fixture_tid": 3644,
+    "actual_process_session": 1,
+    "wait_result": 0,
+    "fixture_exit_code": 0,
+    "descendants_alive_at_fixture_exit": 0,
+    "forced_test_cleanup": false,
+    "product_cleanup_pass": false,
+    "original_status": "AUTOMATED_FIXTURES_EXITED_REVIEW_EVIDENCE",
+    "feature_result": "NOT_EVALUATED",
+    "wrapper_product_cleanup_pass_is_unevaluated": true,
+    "raw_boolean_retained": true,
+    "independent_product_cleanup_basis": "Actual P136/D240 own-resource shutdown and D247 post-stop client delivery, not wrapper's unevaluated product_cleanup_pass=false or guest disposal."
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/750be16e09ed4f91824476db43792216/cleanup-receipt.json",
+      "bytes": 10011,
+      "sha256": "3F71BFF568F5010BD447D516AC7260EAC09BF524BB918AF6C53142FDD3F664BB"
+    },
+    "utc": "2026-10-22T14:19:23.7676637Z",
+    "machine": "ZS-WORKSTATION",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "guest_PID": 3720,
+    "guest_parent_PID": 14896,
+    "guest_session_id": 1,
+    "guest_native_start_ticks_decimal": "639282753976610000",
+    "native_identity_confirmed": true,
+    "host_changes_beyond_exact_own_task_and_guest": false,
+    "guest_disposal_is_not_product_cleanup_PASS": true
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "current_fixed_size_scope": "PASS_SCOPED_CURRENT42AB_REAL_FIXED_SIZE_RESIZE_NORMALUP_ZERO_CALLS_THEN_NEW_MOVE",
+    "M05_F04_and_B05": "NOT_SELF_AWARDED_BY_THIS_SCOPED_SEAL",
+    "internal_solver_consumption": "NOT_OBSERVED",
+    "original_D29_and_eight_direction_evidence": "RETAINED_NOT_REPLAYED_OR_REBOUND",
+    "full_suite": "NOT_RUN",
+    "real_application_qualification": "NOT_RUN_THIS_SUITE",
+    "ordinary_complete_Medium_desktop": "NOT_PROVEN",
+    "multi_display_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "next_action": "Combine this narrowly scoped fresh fixed-size evidence with separately validated G04/f06 eight-direction and real-application observations only through the existing acceptance review. Do not replay D29/Full, claim solver consumption from zero calls or upgrade unrelated gates."
+  }
+}

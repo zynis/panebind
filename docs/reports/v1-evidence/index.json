@@ -3,6 +3,146 @@
   "record_date": "2026-10-22",
   "latest_contract_evidence": [
     {
+      "id": "EV-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET-SIZE-PRIORITY-PULLBACK-SUCCESSOR",
+      "run_id": "f06a2d013c1829e1896a410ab2680f08",
+      "configuration": "Release",
+      "kind": "read_only_current_binary_literal_driver_and_physical_product_log_review",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "dd4a9fe908f11786334b25117726dd95a4ce9593",
+      "driver_binary_sha256": "DED32C4B852BF63C5F2EE48571141EC15CFCC3A5DA6772C94B982022A86CE8BA",
+      "path": "docs/reports/v1-evidence/f06a-current-resize-magnet-review.json",
+      "sha256": "6840D4D1B1816827D81DAF1C1048192767B015768F6D5805C66FEB334115CC2B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/f06a-current-resize-magnet-excerpt.jsonl",
+      "repository_excerpt_sha256": "37E53F79A188F64E7E9996DA9E6AFF1E35CE92BFDCC52CFE0CA0B90F0AE3BB18",
+      "result": "SCOPED_PASS_EIGHT_OWNED_RESIZE_DIRECTIONS_SIZE_PRIORITY_ORIGINAL_DOWN_PULLBACK_AND_SUCCESSOR",
+      "scope": "当前42ab f06a，8个不同active edge/corner真实Resize，固定三边/旁窗不动，raw±56→snap±60、每quantum一次native exact；max450先于候选456、原DOWN拉回430、10代真实NormalUp与后继Move。只8向/尺寸约束子scope，无fixed/真实app或模块自授。",
+      "new_feature_or_B_PASS": false,
+      "acceptance_assessment_ref": "M05-F04.current_candidate_review",
+      "observation_id": "PO-F06A-CURRENT42AB-EIGHT-RESIZE-MAGNET"
+    },
+    {
+      "id": "EV-750B-CURRENT42AB-FIXED-SIZE-RESIZE-REAL-NORMALUP-ZERO-CALLS-THEN-MOVE",
+      "run_id": "750be16e09ed4f91824476db43792216",
+      "configuration": "Release",
+      "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+      "driver_binary_sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7",
+      "path": "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json",
+      "sha256": "1E26C551A8CB04313F46081C520880F45B7E67F26C792E6F214B3E886D528039",
+      "repository_excerpt_path": "docs/reports/v1-evidence/750b-current-fixed-size-resize-excerpt.jsonl",
+      "repository_excerpt_sha256": "F62C9BAE82AAAF7B1995FF2E04371AACD0C2260696B5F83B2FDCA0328A0D1F58",
+      "result": "PASS_SCOPED_CURRENT42AB_FIXED_SIZE_BLACKBOX_RESIZE_AND_FOLLOWING_MOVE",
+      "scope": "当前42ab/e38独立FixedSizeResizeOnly；真实thickframe min=max visible400×300/native418×309，g1实际START/唯一30,25输入/真实NormalUp，rect不变、operations/nativeclaims0→0/placement0；g2实际Move25,15+NormalUp。黑盒不证明solver消费；精确产品资源/客户投递与own guest清理独立。",
+      "new_feature_or_B_PASS": false,
+      "acceptance_assessment_ref": "M05-F04.current_candidate_review",
+      "observation_id": "PO-750B-CURRENT42AB-FIXED-SIZE-RESIZE"
+    },
+    {
+      "id": "EV-4FF6-TERMINAL-MAGNET-CTRL",
+      "run_id": "4ff66c34658d491aab7e9c3d81459678",
+      "configuration": "Release",
+      "kind": "literal_runtime_excerpt_and_scoped_review",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "e869dfc0f2d5acea006b6084e18f0ce818c31ee2",
+      "driver_binary_sha256": "B67635361ABF9D0398CEAFB1282C354489A4822F9F852FB98302A592E4042F7B",
+      "path": "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-review.json",
+      "sha256": "1A5E5FF7ABCBD882CCC90B8687D6844794F50908A49845AB99C797F63276613B",
+      "repository_excerpt_path": "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-excerpt.jsonl",
+      "repository_excerpt_sha256": "37019D872460F503CE81F8EA68EE1920C3364E6DE79F6FE251CE77FCE41221E1",
+      "result": "GEOMETRY_AND_TWO_MEMBER_CTRL_SCOPED_PASS_WITH_TRAY_FAILURE_AND_PROCESS_TREE_CLEANUP_UNKNOWN",
+      "scope": "当前42ab/e869，--settings --diagnostic同EXE exact Medium Run Terminal真实Move/Resize/后继Move、Free→XY吸附→Hold实际noop→Detach→Resnap、邻接Terminal+owned blank两成员Ctrl exact；5代Raw/legacy NormalUp/release/detach/Gone。托盘仍失败，客户语义未验；publicquit exit0/Default返回与Terminal根消失独立，Shell后代仍活/wrapperforcedtrue，整体树cleanup UNKNOWN。NF02保P192小样本p95桶99999us/max79352us未达50ms，非物理延迟。",
+      "new_feature_or_B_PASS": false,
+      "acceptance_assessment_ref": "M05-F04.current_candidate_review",
+      "observation_id": "PO-4FF6-CURRENT42AB-TERMINAL-MAGNET-CTRL"
+    },
+    {
+      "id": "EV-C554-MEDIUM-TERMINAL-MAGNET-FOUR-PHASES-TEST-WAIT-FAILURE",
+      "run_id": "c554e3ef7f712e3733b1c7214d6d417a",
+      "configuration": "Release",
+      "kind": "READ_ONLY_ACTUAL_RUN_REVIEW_AND_LITERAL_ROWS",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "product_started": true,
+      "driver_source_sha": "dd4a9fe908f11786334b25117726dd95a4ce9593",
+      "driver_binary_sha256": "DED32C4B852BF63C5F2EE48571141EC15CFCC3A5DA6772C94B982022A86CE8BA",
+      "path": "docs/reports/v1-evidence/c554-terminal-magnet-wait-failure-review.json",
+      "sha256": "3F866B781E35B9AA4BF4E165C48EAC22725CB95CCF1A8C52BEEEAB72D14817F5",
+      "repository_excerpt_path": "docs/reports/v1-evidence/c554-terminal-magnet-wait-failure-excerpt.jsonl",
+      "repository_excerpt_sha256": "0CCD70D66DD1197AB3DD7DC54A6C36D4A36F6228AF4BB8461722962E91028C03",
+      "result": "FAIL_PRESERVED_THREE_GEOMETRY_GESTURES_AND_FOUR_MAGNET_PHASES_SCOPED_OBSERVED",
+      "scope": "原42ab/dd4a失败保留：前三代Move/Resize/Move真实NormalUp；g4 Free/XYsnap/Hold实际noop/Detach exact，但Resnap发送前TEST有界pace wait失败，Ctrl未运行。清理UP实际发1包并有Raw/legacy，但终止FocusLost/end2非NormalUp；前台发起者UNKNOWN。原未记具体wait分支，不能反标已证第65次通知；4ff后继driver修正按operation计64与总deadline并补原因后完成对应功能，不覆盖原失败。",
+      "new_feature_or_B_PASS": false,
+      "acceptance_assessment_ref": "M05-F04.current_candidate_review",
+      "observation_id": "PO-C554-TERMINAL-MAGNET-FOUR-PHASE-TEST-WAIT-FAILURE"
+    },
+    {
+      "id": "EV-E38-G04-EXACT-COMPOSITION-ACTUAL-DEBUG-RELEASE-TOOLS",
+      "kind": "EXECUTOR_ACTUAL_RESULT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT_NOT_NATIVE_RUN",
+      "test_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "path": "tests/core/v1_layout_tests.cpp",
+      "result": "ACTUAL_DEBUG_RELEASE_SELECTED_LAYOUT_GUESTPATH_EACH_2_OF_2_PASS",
+      "scope": {
+        "kind": "EXECUTOR_ACTUAL_RESULTS_TRANSCRIPTION_NOT_NEW_NATIVE_RUN",
+        "test_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+        "production_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+        "source_file": "tests/core/v1_layout_tests.cpp",
+        "case": "shared_resize_G04",
+        "checks": "original[100,100,490,400] active right raw594→snap600, fixed three edges; min.width300 raw.right200→right400; production resize_single→MagnetInput/solver with independent low-speed input",
+        "commands": [
+          "cmake --build out/v1-driver-stretch-ready-8384677 --config Debug --target panebind-v1-guest-fixture panebind-v1-guest-path-tests panebind-v1-layout-tests --parallel 2",
+          "ctest --test-dir out/v1-driver-stretch-ready-8384677 -C Debug --output-on-failure -R '^(v1-guest-path|v1-layout)$'",
+          "cmake --build out/v1-driver-stretch-ready-8384677 --config Release --target panebind-v1-guest-fixture panebind-v1-guest-path-tests panebind-v1-layout-tests --parallel 2",
+          "ctest --test-dir out/v1-driver-stretch-ready-8384677 -C Release --output-on-failure -R '^(v1-guest-path|v1-layout)$'"
+        ],
+        "Debug": "ACTUAL_PASS_2_OF_2",
+        "Release": "ACTUAL_PASS_2_OF_2",
+        "execution_reference": "root actual e869 exec35543 and e38 exec52160 completed exit0; dd4a same selected checks also executed",
+        "stdout_archived_separately": false,
+        "build_logs_are_not_ctest_stdout": true,
+        "retained_Release_LastTest_path": "out/v1-driver-stretch-ready-8384677/Testing/Temporary/LastTest.log",
+        "retained_Release_LastTest_sha256": "92CE621581FEDF08C8C9F3102B3514AFCCF42363B50EE6DF7A4221B329364588",
+        "Debug_layout_binary_sha256": "716B0850A59E6C5B79EA458E59BCDCF708121DD888765C4ED9D7900824DE7AD0",
+        "Release_layout_binary_sha256": "A2F68437C35D515EF355FEC84E1076FB7DBF854A140E6DFBCF39CA4B85D30D3D",
+        "reparse_symlink_case": "SKIP_win32_error1314_not_PASS",
+        "product_EXE_rebuilt": false
+      },
+      "feature_PASS_awarded_by_tool": false
+    },
+    {
+      "id": "EV-E627-FIXED-SIZE-DEPLOY-OLD-CONTROLLER-SUITE-WHITELIST-REJECTION",
+      "kind": "EXECUTOR_DEPLOYMENT_TOOL_FAILURE_TRANSCRIPTION_NOT_PRODUCT_EXECUTION",
+      "run_id": "e627c2f9047d45a291634f487a7be642",
+      "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+      "driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+      "original_path": "uat/v1-control/e627c2f9047d45a291634f487a7be642/remote-failure-90134b0a76174c17857db56f026e95c0.json",
+      "original_sha256": "98847A8ACB72777A147055A76A4A04D59EA4E79CB77700BB8AAFB79E256F2D1D",
+      "original_receipt": {
+        "stage": "Deploy",
+        "exit_code": 1,
+        "stdout": [],
+        "utc": "2026-10-22T14:13:50.3583110Z"
+      },
+      "executor_observed_failure": "旧remote controller Suite白名单缺少exact FixedSizeResizeOnly，部署阶段拒绝；原包/owner保留，不创建guest，不是产品运行失败。",
+      "restoration": "只在ignored本任务编排器补exact Suite一种值，使用新750 Run实际成功，不覆盖e627失败与原包。",
+      "current_controller_path": "uat/v1-control/remote-control.ps1",
+      "current_controller_sha256": "9D9FEF17DCC90993D6B9EB1AB966C986A48FE72974F35190FCDC3B22401A98C6",
+      "replacement_run_id": "750be16e09ed4f91824476db43792216",
+      "guest_started": false,
+      "product_started": false,
+      "product_runtime_result": "NOT_RUN",
+      "new_feature_or_B_PASS": false
+    },
+    {
       "id": "EV-F78D-CURRENT42AB-TRUE-PORTABLE-ZIP-NOARGS-GUI-SETTINGS-EFFECT-TWO-OWNED-MOVE-NORMALUP-AND-QUIT",
       "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
       "configuration": "Release",
@@ -1381,7 +1521,7 @@
     "literal_summaries_sha256": "4102ED349372381F4823668656618701210F918FD7589DB778CA3FF6D98937EC",
     "verdict": "NF02 callback budget FAIL; comparable placement p95 below50ms; fault-injected stall separated; not physical display latency"
   },
-  "next_driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+  "next_driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
   "next_driver_validation": "Actual42ab D/R product+fixture build/sevenoffline eachPASS/fourhost Exit78 andf78d currentd5f5 ordinary portable scopePASS. Prior744e/3c565 tray/Explorer/be7 and744e/40a bb23 startup-ready blocked observations keep original identities. New TEST Terminal five-phase/Ctrl extension is coding only, without a committed source/hash/build/runtime verdict.",
   "historical_driver_3c565_candidate": {
     "source_sha": "3c56551c508ac18575824756ec54ac9057db11a8",
@@ -1470,7 +1610,7 @@
       "no_input": true
     }
   },
-  "last_actual_tested_driver": {
+  "historical_f78d_portable_entry_driver": {
     "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
     "release_sha256": "8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44",
@@ -1483,6 +1623,59 @@
     ],
     "whole_version_PASS": false,
     "old_runtime_rebound": false
+  },
+  "last_actual_tested_driver": {
+    "source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "release_sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7",
+    "run_ids": [
+      "750be16e09ed4f91824476db43792216"
+    ],
+    "native_guard_validation": "ACTUAL_FIXED_SIZE_RESIZE_ONLY_NORMALUP_ZERO_CALLS_SUCCESSOR_PLUS_DEBUG_RELEASE_2_OF_2_AND_FOUR_COMPLETE_ARGV_EXIT78",
+    "evidence_paths": [
+      "docs/reports/v1-evidence/750b-current-fixed-size-resize-review.json"
+    ],
+    "host_guard_receipt_path": "uat/v1-host-guard/3fb01704a02d4d01a156ee68ba42263d/receipt.json",
+    "host_guard_receipt_sha256": "9592B58890B8D9DD8FBDCF923E7CCDB2926A315FA6EAFD7A40A5C46E4F09242C",
+    "whole_version_PASS": false,
+    "old_runtime_rebound": false
+  },
+  "current_functional_runtime": {
+    "kind": "CURRENT42AB_ACTUAL_FUNCTIONAL_REVIEW_KEEP_ORDINARY_PORTABLE_IDENTITY_SEPARATE",
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "ordinary_portable": {
+      "package_id": "d5f5a2a6138049a5b4a1a76340904027",
+      "run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
+      "driver_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "result": "UNCHANGED_CURRENT_ZIP_NOARGS_ENTRY_SCOPED_PASS"
+    },
+    "functional_run_ids": [
+      "f06a2d013c1829e1896a410ab2680f08",
+      "750be16e09ed4f91824476db43792216",
+      "4ff66c34658d491aab7e9c3d81459678"
+    ],
+    "current_fixed_driver_source_sha": "e38e14078cc690c747c6fe4be13ea1da3fed03e7",
+    "current_fixed_driver_release_sha256": "36C5756566048DDDE0CA12356A2B2B768CB36B6228EEE99D2912D76D70C220F7",
+    "Terminal_five_phase_driver_source_sha": "e869dfc0f2d5acea006b6084e18f0ce818c31ee2",
+    "Terminal_five_phase_driver_release_sha256": "B67635361ABF9D0398CEAFB1282C354489A4822F9F852FB98302A592E4042F7B",
+    "feature_DEV_closed": [
+      "M05-F04"
+    ],
+    "benchmark_closed": [
+      "B05"
+    ],
+    "functions_DEV_PASS": 44,
+    "benchmark_PASS": 22,
+    "benchmark_percent": 55,
+    "module_PASS": 0,
+    "whole_version": "PARTIAL",
+    "ordinary_complete_Medium": "NOT_PROVEN",
+    "five_real_applications": "NOT_PASS",
+    "tray": "FAIL_OR_BLOCKED",
+    "physical_displays": "BLOCKED",
+    "human_UAT": "PENDING",
+    "no_old_EXE_runtime_rebinding": true
   },
   "remaining_native_contracts_prepared": {
     "id": "EV-A9EE-REMAINING-NATIVE-CONTRACTS-PREPARED",

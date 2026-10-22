@@ -1,0 +1,1032 @@
+{
+  "schema": "panebind-v1-runtime-evidence-review/1",
+  "evidence_id": "EV-4FF6-TERMINAL-MAGNET-CTRL",
+  "kind": "literal_runtime_excerpt_and_scoped_review",
+  "review_date": "2026-10-22",
+  "run_id": "4ff66c34658d491aab7e9c3d81459678",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "GEOMETRY_AND_TWO_MEMBER_CTRL_SCOPED_PASS_WITH_TRAY_FAILURE_AND_PROCESS_TREE_CLEANUP_UNKNOWN",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "driver_source_sha": "e869dfc0f2d5acea006b6084e18f0ce818c31ee2",
+    "driver_sha256": "B67635361ABF9D0398CEAFB1282C354489A4822F9F852FB98302A592E4042F7B",
+    "packaging_head": "e869dfc0f2d5acea006b6084e18f0ce818c31ee2",
+    "fixture_PID": 4016,
+    "fixture_TID": 3996,
+    "fixture_birth_filetime_decimal": "134371514796458275",
+    "product_PID": 3604,
+    "product_birth_filetime_decimal": "134371514899138154",
+    "product_app_HWND": 196662,
+    "product_settings_HWND": 196710,
+    "product_arguments": [
+      "--settings",
+      "--diagnostic"
+    ],
+    "ordinary_no_argument_product": false,
+    "diagnostic_receipts_requested": true,
+    "ordinary_entry_PASS_inferred": false,
+    "Terminal_PID": 5956,
+    "Terminal_TID": 5268,
+    "Terminal_birth_filetime_decimal": "134371514921274590",
+    "Terminal_root_HWND": 131928,
+    "Terminal_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+    "Terminal_distribution_version": "1.25.2733.0",
+    "Terminal_sha256_pin": "1CBE52914F7437A4F064327383F1B4C45FE2EB8E92D4F8DAE0AD7EFCB13A20A1",
+    "blank_target_PID": 4016,
+    "blank_target_TID": 3924,
+    "blank_target_birth_filetime_decimal": "134371514796458275",
+    "blank_target_HWND": 918572,
+    "Default_Shell_PID": 4932,
+    "Default_Shell_TID": 4936,
+    "Default_Shell_HWND": 65790,
+    "Default_Shell_birth_filetime_decimal": "134371514706232710",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "same_SID": true,
+    "session": 1,
+    "desktop": "WinSta0\\PaneBindV1_4ff66c34658d491aab7e9c3d81459678",
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "All process birth and guest native start identities are regex-extracted original decimal strings. Parsed floating-point FILETIME values are never used as identity strings; original JSONL rows are copied literally."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/package-receipt.json",
+      "bytes": 13338,
+      "sha256": "E003BB8FD42430EC013F2D5AD38668A98C78460BAEBC415901805858C1D3D524"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/4ff66c34658d491aab7e9c3d81459678.zip",
+      "bytes": 17931884,
+      "sha256": "B49C3BCC7C30FF8F44F2D1231333FD85098ABDAB10765E84C1F2E246B5D6129F"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/input/manifest.json",
+      "bytes": 21772,
+      "sha256": "81315850F53AF02AE8C6E534591FE05B85FF968B837555685F3B74A66BBE764D"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "595DB91C982545998B5760AF2F4BB9D2E8AADBB6F6C9513102E982C5E2504CD3"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4241920,
+      "sha256": "B67635361ABF9D0398CEAFB1282C354489A4822F9F852FB98302A592E4042F7B"
+    },
+    "host_expectation": {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/host-expectation.json",
+      "bytes": 3246,
+      "sha256": "BCCB8D91F59984F7A96397CF1399A4FBF32B6E07153FFBEB706CCF4C88274C8D"
+    },
+    "actual_host_expectation_ten_file_sizes_and_hashes_match": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\4ff66c34658d491aab7e9c3d81459678",
+    "input_readonly_output_only_writable": true,
+    "old_product_and_driver_runtime_not_rebound": true,
+    "preparation_NOT_RUN_metadata_unchanged": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/4ff66c34658d491aab7e9c3d81459678-release-fixture.jsonl",
+      "bytes": 58837019,
+      "sha256": "980749D0668F2E67DA604C422E7550C75CD3410F9A121DB38A62AB022A6DDDA2",
+      "role": "driver",
+      "rows": 1134,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        1134
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/4ff66c34658d491aab7e9c3d81459678-product-Release/panebind.log.jsonl",
+      "bytes": 238292,
+      "sha256": "7282B6BC0398D23AFDDB4CD6D95FC4E0DD9C6586A2DC9F0F0DB9F1DDC07F7A73",
+      "role": "product",
+      "rows": 193,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        193
+      ],
+      "process_id": 3604,
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/4ff66c34658d491aab7e9c3d81459678-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "8C832F2E42BAAF58B32CD413A9944B79CC927ECB0D1413A7A032D20E653FF19A"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/4ff66c34658d491aab7e9c3d81459678-guest-summary.json",
+      "bytes": 22706,
+      "sha256": "D9F1C1DD6D3AF461D820AE4AE6A67EDFDF3512BBFA39DE4B4C244F3AEEB89EDF"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/4ff66c34658d491aab7e9c3d81459678-terminal-asset.json",
+      "bytes": 1205,
+      "sha256": "BB9EA96BF30E37E7CC731EF88FB94E87E3D455B00A51F1AEEFA22E85BB4397A7"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/collection-receipt.json",
+      "bytes": 8873,
+      "sha256": "43D8854A28D296750929150DF22E956D3171DF5B7CD8A6697B9B6A4D9660F4F5"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/host-expectation.json",
+      "bytes": 3246,
+      "sha256": "BCCB8D91F59984F7A96397CF1399A4FBF32B6E07153FFBEB706CCF4C88274C8D"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/deploy-receipt.json",
+      "bytes": 2910,
+      "sha256": "E05474E5FCE078B3F422CA5BB9ABBFC2321BAFE7C927972C9F2883C3B98211D2"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/launch-receipt.json",
+      "bytes": 14470,
+      "sha256": "D48EC2619BD20ADFF8E0723C373BFE07D34233A61A430C3AD2E19711E3C33FEF"
+    },
+    {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/cleanup-receipt.json",
+      "bytes": 9977,
+      "sha256": "789B1600EC63AB25045A3677638EEB46C9758F3EABB736197684078DAF8F56F5"
+    },
+    {
+      "path": "uat/v1-sandbox/4ff66c34658d491aab7e9c3d81459678/package-receipt.json",
+      "bytes": 13338,
+      "sha256": "E003BB8FD42430EC013F2D5AD38668A98C78460BAEBC415901805858C1D3D524"
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-excerpt.jsonl",
+    "bytes": 102146,
+    "sha256": "37019D872460F503CE81F8EA68EE1920C3364E6DE79F6FE251CE77FCE41221E1",
+    "rows": 87,
+    "driver_sequences": [
+      17,
+      21,
+      1008,
+      1009,
+      1011,
+      1014,
+      1015,
+      1020,
+      1023,
+      1026,
+      1032,
+      1033,
+      1035,
+      1038,
+      1044,
+      1047,
+      1050,
+      1052,
+      1054,
+      1059,
+      1063,
+      1066,
+      1069,
+      1072,
+      1075,
+      1076,
+      1078,
+      1080,
+      1084,
+      1086,
+      1090,
+      1092,
+      1094,
+      1096,
+      1097,
+      1098,
+      1099,
+      1102,
+      1103,
+      1104,
+      1110,
+      1111,
+      1116,
+      1120,
+      1122,
+      1125,
+      1127,
+      1131,
+      1134
+    ],
+    "product_sequences": [
+      1,
+      7,
+      12,
+      15,
+      17,
+      18,
+      19,
+      22,
+      24,
+      26,
+      41,
+      60,
+      76,
+      95,
+      110,
+      128,
+      131,
+      133,
+      134,
+      135,
+      148,
+      152,
+      155,
+      157,
+      158,
+      159,
+      162,
+      164,
+      167,
+      168,
+      173,
+      175,
+      178,
+      180,
+      181,
+      183,
+      192,
+      193
+    ],
+    "encoding": "UTF-8 without BOM; LF; each line unchanged from the corresponding original producer",
+    "literal_original_lines": true,
+    "producer_sections": "Selected driver rows followed by selected product rows; section ordering is not a cross-producer native chronology."
+  },
+  "observations": [
+    {
+      "id": "4FF6-ENTRY",
+      "driver_sequences": [
+        1008,
+        1009,
+        1011,
+        1014,
+        1015
+      ],
+      "status": "OBSERVED",
+      "summary": "Same frozen Medium product started with --settings --diagnostic in the exact Run desktop. Actual settings foreground and real Escape were observed; this run is not the no-argument portable entry."
+    },
+    {
+      "id": "4FF6-MOVE-RESIZE-SUCCESSOR",
+      "driver_sequences": [
+        1023,
+        1026,
+        1032,
+        1033,
+        1035,
+        1038,
+        1047,
+        1050
+      ],
+      "product_sequences": [
+        26,
+        41,
+        60,
+        76,
+        95,
+        110
+      ],
+      "status": "SCOPED_PASS",
+      "summary": "One exact real Terminal: Move(+72,+36), real right-edge Resize(+64,0), then successor Move(-36,+24), each with exact geometry and actual NormalUp/resources. The right Resize was native-start followed by product handoff, not untouched native-only Resize."
+    },
+    {
+      "id": "4FF6-MAGNET-FIVE-PHASE",
+      "driver_sequences": [
+        1052,
+        1054,
+        1059,
+        1063,
+        1066,
+        1069,
+        1072,
+        1075,
+        1078
+      ],
+      "product_sequences": [
+        128,
+        131,
+        133,
+        134,
+        135,
+        148
+      ],
+      "status": "SCOPED_PASS",
+      "summary": "Independent actual 144-DPI oracle; original DOWN stays [300,326,2098,1253]. A new fixture-owned blank target [2158,386,2458,716] is not another real application. Free, XY snap, hold outside entry/inside release, detach, resnap all consume the corresponding fresh operation; hold is exact without native call.",
+      "actual_phases": [
+        {
+          "driver_sequence": 1063,
+          "phase": "Free",
+          "raw_from_original_DOWN": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "independent_expected": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "actual": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "neighbour_actual": [
+            2158,
+            386,
+            2458,
+            716
+          ],
+          "product_solver_used_for_expected": false,
+          "product_sequence": 128,
+          "native_attempted": true,
+          "call_id": 4,
+          "reason": "exact_native_completion"
+        },
+        {
+          "driver_sequence": 1066,
+          "phase": "XY_Snap",
+          "raw_from_original_DOWN": [
+            353,
+            393,
+            2151,
+            1320
+          ],
+          "independent_expected": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "actual": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "neighbour_actual": [
+            2158,
+            386,
+            2458,
+            716
+          ],
+          "product_solver_used_for_expected": false,
+          "product_sequence": 131,
+          "native_attempted": true,
+          "call_id": 5,
+          "reason": "exact_native_completion"
+        },
+        {
+          "driver_sequence": 1069,
+          "phase": "Hold_outside_entry_inside_release",
+          "raw_from_original_DOWN": [
+            341,
+            405,
+            2139,
+            1332
+          ],
+          "independent_expected": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "actual": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "neighbour_actual": [
+            2158,
+            386,
+            2458,
+            716
+          ],
+          "product_solver_used_for_expected": false,
+          "product_sequence": 133,
+          "native_attempted": false,
+          "call_id": 0,
+          "reason": "already_exact_no_native_call"
+        },
+        {
+          "driver_sequence": 1072,
+          "phase": "Detach",
+          "raw_from_original_DOWN": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "independent_expected": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "actual": [
+            240,
+            266,
+            2038,
+            1193
+          ],
+          "neighbour_actual": [
+            2158,
+            386,
+            2458,
+            716
+          ],
+          "product_solver_used_for_expected": false,
+          "product_sequence": 134,
+          "native_attempted": true,
+          "call_id": 6,
+          "reason": "exact_native_completion"
+        },
+        {
+          "driver_sequence": 1075,
+          "phase": "Resnap",
+          "raw_from_original_DOWN": [
+            354,
+            393,
+            2152,
+            1320
+          ],
+          "independent_expected": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "actual": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "neighbour_actual": [
+            2158,
+            386,
+            2458,
+            716
+          ],
+          "product_solver_used_for_expected": false,
+          "product_sequence": 135,
+          "native_attempted": true,
+          "call_id": 7,
+          "reason": "exact_native_completion"
+        }
+      ]
+    },
+    {
+      "id": "4FF6-CTRL-TWO-MEMBER",
+      "driver_sequences": [
+        1080,
+        1084,
+        1086,
+        1090,
+        1092,
+        1094,
+        1098
+      ],
+      "product_sequences": [
+        152,
+        155,
+        157,
+        158,
+        159,
+        162,
+        164,
+        167,
+        168,
+        183
+      ],
+      "status": "SCOPED_PASS",
+      "summary": "Real Ctrl DOWN is locked at START (locked_modifiers=2), then same operation9 performs actual exact calls8/key1 and9/key2. Terminal source and owned blank follower each move(-36,+36). This is two-member Ctrl Move, not three real applications or all Glue/Resize functionality.",
+      "source_before": [
+        360,
+        386,
+        2158,
+        1313
+      ],
+      "source_after": [
+        324,
+        422,
+        2122,
+        1349
+      ],
+      "follower_before": [
+        2158,
+        386,
+        2458,
+        716
+      ],
+      "follower_after": [
+        2122,
+        422,
+        2422,
+        752
+      ],
+      "native_call_ids": [
+        8,
+        9
+      ],
+      "distinct_keys": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "4FF6-FIVE-NORMAL-UP-LIFECYCLES",
+      "status": "SCOPED_PASS",
+      "summary": "Five generations have their own actual Raw UP, accepted legacy LEFTUP, successful self-capture release and detach, removal_reason0/Gone/destroy/unregister, and gesture_end0 NormalUp. UP facts are not synthesized from insertion or key state.",
+      "generations": [
+        {
+          "generation": 1,
+          "phase": "Move1",
+          "driver_NormalUp_sequence": 1026,
+          "actual_visible": [
+            336,
+            302,
+            2070,
+            1229
+          ],
+          "actual_source_capture_after": 0,
+          "single_UP_send_before_qpc": 444210583,
+          "Raw_UP": {
+            "product_sequence": 31,
+            "resource_qpc": 444230410,
+            "raw_button_flags": 2,
+            "source": 131928
+          },
+          "legacy_UP": {
+            "product_sequence": 33,
+            "actual_legacy_up_accepted": true,
+            "dispatch_qpc": 444258189
+          },
+          "actual_Gone": {
+            "product_sequence": 39,
+            "overlay": 263212,
+            "resource_qpc": 444309901,
+            "removal_reason": 0,
+            "capture_release_attempted": true,
+            "capture_release_completed": true,
+            "capture_release_succeeded": true,
+            "capture_release_API_qpc": [
+              444263401,
+              444269187
+            ],
+            "capture_after_release": 0,
+            "detach_attempted": true,
+            "detach_completed": true,
+            "detach_succeeded": true,
+            "detach_API_qpc": [
+              444272277,
+              444275459
+            ],
+            "overlay_destroyed": true,
+            "hotkey_unregistered": true
+          },
+          "actual_gesture_end": {
+            "product_sequence": 41,
+            "end": 0,
+            "normal_up": true,
+            "pending_retired": true
+          }
+        },
+        {
+          "generation": 2,
+          "phase": "Resize",
+          "driver_NormalUp_sequence": 1038,
+          "actual_visible": [
+            336,
+            302,
+            2134,
+            1229
+          ],
+          "actual_source_capture_after": 0,
+          "single_UP_send_before_qpc": 450767515,
+          "Raw_UP": {
+            "product_sequence": 66,
+            "resource_qpc": 450795046,
+            "raw_button_flags": 2,
+            "source": 131928
+          },
+          "legacy_UP": {
+            "product_sequence": 68,
+            "actual_legacy_up_accepted": true,
+            "dispatch_qpc": 450815473
+          },
+          "actual_Gone": {
+            "product_sequence": 74,
+            "overlay": 525356,
+            "resource_qpc": 450864339,
+            "removal_reason": 0,
+            "capture_release_attempted": true,
+            "capture_release_completed": true,
+            "capture_release_succeeded": true,
+            "capture_release_API_qpc": [
+              450822333,
+              450829379
+            ],
+            "capture_after_release": 0,
+            "detach_attempted": true,
+            "detach_completed": true,
+            "detach_succeeded": true,
+            "detach_API_qpc": [
+              450831606,
+              450834419
+            ],
+            "overlay_destroyed": true,
+            "hotkey_unregistered": true
+          },
+          "actual_gesture_end": {
+            "product_sequence": 76,
+            "end": 0,
+            "normal_up": true,
+            "pending_retired": true
+          }
+        },
+        {
+          "generation": 3,
+          "phase": "SuccessorMove",
+          "driver_NormalUp_sequence": 1050,
+          "actual_visible": [
+            300,
+            326,
+            2098,
+            1253
+          ],
+          "actual_source_capture_after": 0,
+          "single_UP_send_before_qpc": 457235103,
+          "Raw_UP": {
+            "product_sequence": 100,
+            "resource_qpc": 457254759,
+            "raw_button_flags": 2,
+            "source": 131928
+          },
+          "legacy_UP": {
+            "product_sequence": 102,
+            "actual_legacy_up_accepted": true,
+            "dispatch_qpc": 457281311
+          },
+          "actual_Gone": {
+            "product_sequence": 108,
+            "overlay": 787500,
+            "resource_qpc": 457345092,
+            "removal_reason": 0,
+            "capture_release_attempted": true,
+            "capture_release_completed": true,
+            "capture_release_succeeded": true,
+            "capture_release_API_qpc": [
+              457289693,
+              457296349
+            ],
+            "capture_after_release": 0,
+            "detach_attempted": true,
+            "detach_completed": true,
+            "detach_succeeded": true,
+            "detach_API_qpc": [
+              457299680,
+              457302823
+            ],
+            "overlay_destroyed": true,
+            "hotkey_unregistered": true
+          },
+          "actual_gesture_end": {
+            "product_sequence": 110,
+            "end": 0,
+            "normal_up": true,
+            "pending_retired": true
+          }
+        },
+        {
+          "generation": 4,
+          "phase": "MagnetFivePhase",
+          "driver_NormalUp_sequence": 1078,
+          "actual_visible": [
+            360,
+            386,
+            2158,
+            1313
+          ],
+          "actual_source_capture_after": 0,
+          "single_UP_send_before_qpc": 469065517,
+          "Raw_UP": {
+            "product_sequence": 138,
+            "resource_qpc": 469095364,
+            "raw_button_flags": 2,
+            "source": 131928
+          },
+          "legacy_UP": {
+            "product_sequence": 140,
+            "actual_legacy_up_accepted": true,
+            "dispatch_qpc": 469120235
+          },
+          "actual_Gone": {
+            "product_sequence": 146,
+            "overlay": 590888,
+            "resource_qpc": 469184819,
+            "removal_reason": 0,
+            "capture_release_attempted": true,
+            "capture_release_completed": true,
+            "capture_release_succeeded": true,
+            "capture_release_API_qpc": [
+              469126393,
+              469134769
+            ],
+            "capture_after_release": 0,
+            "detach_attempted": true,
+            "detach_completed": true,
+            "detach_succeeded": true,
+            "detach_API_qpc": [
+              469137707,
+              469142073
+            ],
+            "overlay_destroyed": true,
+            "hotkey_unregistered": true
+          },
+          "actual_gesture_end": {
+            "product_sequence": 148,
+            "end": 0,
+            "normal_up": true,
+            "pending_retired": true
+          }
+        },
+        {
+          "generation": 5,
+          "phase": "CtrlAdjacentMove",
+          "driver_NormalUp_sequence": 1094,
+          "actual_visible": [
+            324,
+            422,
+            2122,
+            1349
+          ],
+          "actual_source_capture_after": 0,
+          "single_UP_send_before_qpc": 477175370,
+          "Raw_UP": {
+            "product_sequence": 173,
+            "resource_qpc": 477206800,
+            "raw_button_flags": 2,
+            "source": 131928
+          },
+          "legacy_UP": {
+            "product_sequence": 175,
+            "actual_legacy_up_accepted": true,
+            "dispatch_qpc": 477227536
+          },
+          "actual_Gone": {
+            "product_sequence": 181,
+            "overlay": 853032,
+            "resource_qpc": 477280570,
+            "removal_reason": 0,
+            "capture_release_attempted": true,
+            "capture_release_completed": true,
+            "capture_release_succeeded": true,
+            "capture_release_API_qpc": [
+              477234115,
+              477240223
+            ],
+            "capture_after_release": 0,
+            "detach_attempted": true,
+            "detach_completed": true,
+            "detach_succeeded": true,
+            "detach_API_qpc": [
+              477244245,
+              477247799
+            ],
+            "overlay_destroyed": true,
+            "hotkey_unregistered": true
+          },
+          "actual_gesture_end": {
+            "product_sequence": 183,
+            "end": 0,
+            "normal_up": true,
+            "pending_retired": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "4FF6-TRAY",
+      "driver_sequences": [
+        1099,
+        1102,
+        1103,
+        1104,
+        1110,
+        1111,
+        1116
+      ],
+      "product_sequences": [
+        1,
+        7
+      ],
+      "status": "FAIL_OR_BLOCKED",
+      "summary": "UID1 rectangle and the recorded second fresh Shell/cursor/hit/GUI guard accepted; right pair inserted2. The product thread has flags0/menuowner0 and exact menu was not observed. Full193 product rows contain initial ADDfalse then actual retry ADDtrue+SETVERSIONtrue, but no tray ingress/menu-API record. Neither delivery to the icon nor OS/callback cause is proved; no further no-variable retry is implied."
+    },
+    {
+      "id": "4FF6-POST-GEOMETRY-FOREGROUND",
+      "driver_sequences": [
+        1131
+      ],
+      "status": "OBSERVED_CAUSE_UNKNOWN",
+      "summary": "After the geometry subchain, a buffered foreground observer records ConsoleWindowClass/rgnupdt.exe. Callback identity is stable but not a registered test task; the record does not prove who launched or activated it. Do not attribute completed gesture cleanup or tray failure to this observation.",
+      "HWND": 262248,
+      "PID": 7092,
+      "TID": 6884,
+      "process_birth_filetime_decimal": "134371515007519517",
+      "native_event_time_u32": 51656,
+      "callback_qpc": [
+        517080098,
+        517081649
+      ],
+      "registered_task_PID_birth_match": false,
+      "activation_initiator_proven": false
+    },
+    {
+      "id": "4FF6-SOFTWARE-TIMING",
+      "product_sequences": [
+        192
+      ],
+      "status": "SMALL_SCOPE_MEASUREMENT",
+      "summary": "Software QPC observations only; no physical-display claim. Include the full small-sample result, not a selected best case. Nine native placements do not meet a <50ms p95 result here.",
+      "mouse_callback": {
+        "samples": 39,
+        "percentile": 99,
+        "bucket_upper_us": 500,
+        "maximum_us": 447,
+        "excludes_downstream_CallNextHookEx": true
+      },
+      "hook_observed_to_postverify": {
+        "samples": 9,
+        "percentile": 95,
+        "bucket_upper_us": 99999,
+        "maximum_us": 79352,
+        "not_physical_display_latency": true,
+        "unfinished_calls": 0
+      }
+    },
+    {
+      "id": "4FF6-C554-COMPARISON",
+      "status": "LATER_CHANGED_DRIVER_SCOPE_PASS_NOT_OLD_ROOT_CAUSE",
+      "summary": "Old c554 remains FAIL under driverdd4a; its failing wait branch/counter was not recorded. This later per-operation TEST wait implementation under drivere869 passed the five-phase subchain. It does not prove the old cumulative64 hypothesis as a measured cause, nor repair a product defect by assertion."
+    }
+  ],
+  "scoped_results": {
+    "real_Terminal_Move_Resize_successor": "PASS",
+    "five_phase_Free_XY_Hold_Detach_Resnap": "PASS",
+    "two_member_Ctrl_Move": "PASS",
+    "five_generations_NormalUp_and_resources": "PASS",
+    "tray_menu": "FAIL_OR_BLOCKED",
+    "Terminal_client_content_or_nonce": "NOT_RUN",
+    "ordinary_no_argument_entry": "NOT_RUN_THIS_RUN",
+    "three_real_applications": "NOT_PROVEN",
+    "whole_version": "NOT_PASS",
+    "human_UAT": "NOT_RUN"
+  },
+  "time_basis": {
+    "clock": "Same guest QPC software samples only. Buffered JSONL tick/order is not Raw/WinEvent/message/API total order.",
+    "QPC_frequency": 10000000,
+    "all_five_Raw_and_accepted_legacy_UP_are_after_their_own_send_before_qpc": true,
+    "unknown_foreground_activation_cause_not_inferred": true
+  },
+  "wrapper": {
+    "original_status": "FIXTURE_FAILED",
+    "wait_result": 0,
+    "fixture_exit_code": 1,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "product_cleanup_pass": false,
+    "original_fields_not_rewritten": true
+  },
+  "collection_validation": {
+    "receipt": {
+      "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/collection-20261022T140609347Z-2bfa3f7d5b7c4e18b437bc677f8a7c40/collection-receipt.json",
+      "bytes": 8873,
+      "sha256": "43D8854A28D296750929150DF22E956D3171DF5B7CD8A6697B9B6A4D9660F4F5"
+    },
+    "output_unchanged": true,
+    "original_driver_rows": 1134,
+    "original_product_rows": 193,
+    "original_sequence_continuity_and_source_identity_verified": true,
+    "ten_host_pins_match": true,
+    "eight_collected_output_size_hashes_match": true,
+    "collection_before_after_identical": true,
+    "cleanup_before_after_identical": true,
+    "all_excerpt_rows_copied_literally": true
+  },
+  "cleanup": {
+    "product_public_quit": {
+      "driver_sequences": [
+        1110,
+        1111
+      ],
+      "command_created": true,
+      "command_wait_result": 0,
+      "command_exit_code": 0,
+      "actual_product_signalled": true,
+      "actual_product_exit_code": 0,
+      "forced_product_termination": false
+    },
+    "product_shutdown": {
+      "product_sequence": 193,
+      "own_hooks_stopped": true,
+      "own_overlay_destroyed": true,
+      "native_worker_exited": true,
+      "issued_native_completion_unknown": false,
+      "visual_recovery_stopped": true,
+      "visual_restore_confirmed": true,
+      "guest_capture_route_used": true,
+      "capture_resource_route_used": true,
+      "capture_resource_route": "exact_guest",
+      "own_input_resources_stopped": true,
+      "own_capture_released": true,
+      "own_input_association_detached": true
+    },
+    "Terminal_close": {
+      "driver_sequence": 1096,
+      "one_WM_CLOSE_PostMessage_return": true,
+      "exact_root_gone": true,
+      "process_wait": 258,
+      "exit_code": 259,
+      "all_descendants_exit": "NOT_CONFIRMED"
+    },
+    "blank_target": {
+      "driver_sequence": 1097,
+      "owner_DestroyWindow_and_UnregisterClass_confirmed": true
+    },
+    "Default_return": {
+      "driver_sequences": [
+        1120,
+        1122,
+        1127
+      ],
+      "SwitchDesktop_native_return": true,
+      "actual_readback": "Default",
+      "handles_closed": true,
+      "original_Default_input_and_Shell_identity_unchanged": true,
+      "desktop_object_destroyed": "UNKNOWN"
+    },
+    "own_new_Shell_process": {
+      "driver_sequence": 1125,
+      "actual_wait_result": 258,
+      "exit_code": 259,
+      "still_alive": true,
+      "left_for_exact_guest_job_or_disposal": true,
+      "all_process_cleanup_PASS": false
+    },
+    "host_exact_cleanup": {
+      "receipt": {
+        "path": "uat/v1-control/4ff66c34658d491aab7e9c3d81459678/cleanup-receipt.json",
+        "bytes": 9977,
+        "sha256": "789B1600EC63AB25045A3677638EEB46C9758F3EABB736197684078DAF8F56F5"
+      },
+      "utc": "2026-10-22T14:07:37.4117363Z",
+      "guest_PID": 11316,
+      "guest_parent_PID": 3224,
+      "guest_session_id": 1,
+      "guest_native_start_ticks_decimal": "639282746663324802",
+      "native_identity_confirmed": true,
+      "task_removed": true,
+      "dedicated_guest_exited": true,
+      "evidence_unchanged": true,
+      "deployment_retained": true,
+      "other_files_or_resources_changed": false,
+      "product_cleanup_inferred_from_guest_destruction": false
+    },
+    "overall_process_tree_cleanup": "UNKNOWN_NOT_PASS"
+  },
+  "acceptance_boundary": {
+    "new_feature_or_benchmark_PASS": false,
+    "new_module_or_whole_version_PASS": false,
+    "human_UAT": "NOT_RUN",
+    "ordinary_product_entry": "NOT_RUN_THIS_RUN",
+    "five_applications": "NOT_PROVEN",
+    "client_semantics": "NOT_RUN",
+    "whole_tray_contract": "NOT_COMPLETE",
+    "cap64_root_cause": "NOT_PROVEN",
+    "history": "Preserve c554 old wait failure and raw identity; do not reinterpret this subchain as the entire suite PASS or rebind any prior run.",
+    "next_action": "Use these actual Terminal geometry/magnet/two-member Ctrl facts in their precise current contract scopes. Retain the failed tray contract and client/application/environment gaps; do not repeat tray input without a new evidenced variable or infer a system cause."
+  }
+}

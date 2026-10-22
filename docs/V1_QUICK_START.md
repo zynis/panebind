@@ -4,18 +4,18 @@
 
 - 当前已实测产品源码：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`。
 - 当前已实测Release EXE SHA-256：`0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；D／R构建、affected offline各7/7及四hostguard78通过。
-- 当前已运行TEST driver：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release `8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44`；包装8d81702；旧744e／3c565及5211／af4、55f Default双轮各保身份。
+- 本便携入口f78d对应TEST driver：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release `8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44`；包装8d81702。后继功能TEST各自保留驱动身份，统一见集中报告，不替换本产品EXE。
 - 当前已验普通便携包：`uat/v1-portable/d5f5a2a6138049a5b4a1a76340904027/PaneBindV1-Release-d5f5a2a6138049a5b4a1a76340904027.zip`。
 - ZIP SHA-256：`868C0E4BC8B802FB6C410534F8048F1421D8BE378D7F2D8DF87FB4788ABE99E7`；manifest SHA-256：`B472E906446BA6E2167D1350205B478E974C95EB7C703A88B53A3A53959AD66E`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
 上述d5f5／42ab已在[f78d](reports/v1-evidence/f78d-current-42ab-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实Raw／legacy NormalUp和正常退出／客户输入恢复，无后代或强制清理。setup PID3464与ZIP PID6864为不同原FILETIME／物理日志；只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧be7／744e／[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)、bfb／25b原ZIP各保身份。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
 
-42ab仅修设置页成功HC GET的系统缓冲区释放；当前新包设置打开／关闭和普通操作已有f78d实际结果，但完整高对比／200%矩阵未通过。host只读GET／LocalFree probe是API支撑，不替代这些独立合同。后继Terminal五阶段磁吸／Ctrl TEST尚在接线，不预填源码／构建／现场结果。
+本候选的普通设置打开／关闭、公开保存改变实际Move及正常退出已有f78d结果；完整高对比／200%矩阵、托盘、五应用及整版门槛未通过。后继功能验证继续复用同一42ab EXE，实际范围与限制见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
-历史744e／[af4f](reports/v1-evidence/af4f-medium-product-move-resize-successor-review.json)单exact Terminal三段几何／正常UP保原身份。[3d1a](reports/v1-evidence/3d1a-medium-product-tray-pair-guard-review.json)真实第二fresh tray guard通过／右键插入但仍无菜单，停止无变量重试；[e538](reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-review.json)一次Medium exactRun启动成功却未确认唯一文件窗，零Explorer输入，不推根绝对不存在。[bb23](reports/v1-evidence/bb23-shell-bootstrap-precondition-review.json)现已完整稳定收集：产品未启动、8328ms native timeout后ready0B，未发送客户键鼠，原因UNKNOWN；实际root关闭／Default返回不等于整个进程树退出。旧55f／25b各保身份。43/60、21/40、模块0与PARTIAL暂不变；G04独立组合断言待实测，菜单／客户／应用及外部显示分别推进，不开放宿主试用，真人UAT PENDING。
+构建历史、阶段分数、失败原件、当前功能结果和下一动作统一维护在[集中报告](reports/V1_DELIVERY_REPORT.md)、[验收表](reports/V1_ACCEPTANCE.json)及[证据索引](reports/v1-evidence/index.json)，不在快速入门重复多个“当前版本”。自动DEV不等于真人UAT或普通宿主试用许可。
 
 当前包仍仅供已授权隔离环境中的独立复核；不由局部guest结果授权普通宿主试用。
 
