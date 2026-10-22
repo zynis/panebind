@@ -179,11 +179,13 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
     SetLastError(ERROR_SUCCESS);out.thread_restored=SetThreadDesktop(original)!=FALSE;
     const DWORD restore_error=out.thread_restored?0:GetLastError();
     out.thread_restored=out.thread_restored&&equal(medium_desktop_object_name(GetThreadDesktop(GetCurrentThreadId())),L"Default");
+    const bool close_attempted=created!=nullptr;
     SetLastError(ERROR_SUCCESS);out.handle_closed=!created||CloseDesktop(created)!=FALSE;
     const DWORD close_error=out.handle_closed?0:GetLastError();
     out.emit("medium_desktop_handle_cleanup","\"observer_thread_Default_restored\":"+std::string(out.thread_restored?"true":"false")+
-        ",\"SetThreadDesktop_restore_error\":"+std::to_string(restore_error)+",\"CloseDesktop_handle_return\":"+(out.handle_closed?"true":"false")+
-        ",\"CloseDesktop_error\":"+std::to_string(close_error)+",\"desktop_object_destroyed\":\"UNKNOWN\",\"process_cleanup_PASS_inferred\":false");
+        ",\"SetThreadDesktop_restore_error\":"+std::to_string(restore_error)+",\"CloseDesktop_attempted\":"+(close_attempted?"true":"false")+
+        ",\"CloseDesktop_handle_return\":"+(close_attempted?(out.handle_closed?"true":"false"):"null")+
+        ",\"CloseDesktop_error\":"+(close_attempted?std::to_string(close_error):"null")+",\"desktop_object_destroyed\":\"UNKNOWN\",\"process_cleanup_PASS_inferred\":false");
 }
 void medium_desktop_environment_flow(State& s){
     std::array<wchar_t,128> user{};DWORD user_size=static_cast<DWORD>(user.size());
@@ -200,7 +202,7 @@ void medium_desktop_environment_flow(State& s){
     const fs::path executable=fs::path(windows.data())/L"explorer.exe";
     const auto attributes=GetFileAttributesW(executable.c_str());
     s.log.emit("medium_desktop_environment_scope","\"run_id\":"+quote(utf8(s.run))+",\"Default_Shell_before\":"+before.json()+
-        ",\"one_fresh_Run_desktop\":true,\"product_create_requests\":0,\"synthetic_input_requests\":0,\"SwitchDesktop_attempted\":false,\"host_or_Default_Shell_mutation\":false");
+        ",\"one_fresh_Run_desktop\":true,\"product_create_requests\":0,\"synthetic_input_requests\":0,\"SwitchDesktop_attempted\":false,\"Default_Shell_control_attempted\":false,\"host_mutation_attempted\":false");
     if(!before.known||!length||length>=windows.size()||attributes==INVALID_FILE_ATTRIBUTES||
        (attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))){
         s.log.emit("medium_desktop_environment_summary","\"result\":\"BLOCKED\",\"reason\":\"Default_Shell_or_exact_Windows_Explorer_image_unknown\",\"product_result\":\"NOT_RUN\"");s.result=78;return;}
@@ -211,7 +213,7 @@ void medium_desktop_environment_flow(State& s){
     const bool ready=observation.enumerated_ready&&observation.thread_restored&&observation.handle_closed&&original_unchanged;
     s.log.emit("medium_desktop_environment_summary","\"result\":"+quote(ready?"READY_ENUMERATED_ONLY":"BLOCKED")+
         ",\"reason\":"+quote(observation.reason)+",\"Default_Shell_after\":"+after.json()+
-        ",\"original_Default_input_and_Shell_unchanged\":"+(original_unchanged?"true":"false")+
+        ",\"original_Default_input_and_Shell_identity_unchanged\":"+(original_unchanged?"true":"false")+
         ",\"product_result\":\"NOT_RUN\",\"input_desktop_switch_and_interaction\":\"NOT_RUN\",\"ordinary_full_desktop_acceptance\":\"NOT_PROVEN\",\"guest_disposal_is_not_product_cleanup_PASS\":true");
     s.result=ready?0:78;
 }
