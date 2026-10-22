@@ -1,7 +1,8 @@
 #pragma once
 
 // TEST ONLY. One fresh desktop and one same-token Explorer observation.
-// No product, synthetic input, input-desktop switch, token or ACL changes.
+// No product, synthetic input, token or ACL changes. After exact read-only
+// readiness, one own desktop activation must independently return to Default.
 bool input_actor_same_user(HANDLE);
 
 std::wstring medium_desktop_object_name(HANDLE object){
@@ -47,7 +48,8 @@ struct MediumDesktopWindows {
 };
 struct MediumDesktopWindowFact {
     HWND hwnd{};DWORD pid{},tid{};std::wstring type,desktop_name;RECT rectangle{};
-    bool known{},root{},visible{},exact_child{};
+    bool known{},root{},visible{},exact_child{},desktop_conflict{};
+    bool rect_attempted{},rect_return{};DWORD rect_error{};
     HDESK thread_desktop{};bool thread_query_attempted{},name_query_attempted{},name_query_return{};
     DWORD thread_query_error{},name_query_error{};
     static MediumDesktopWindowFact read(HWND h,DWORD child,HANDLE process,std::uint64_t birth,const std::wstring& desktop_name){
@@ -61,17 +63,28 @@ struct MediumDesktopWindowFact {
                 name.data(),static_cast<DWORD>(sizeof(name)),&size)!=FALSE;
             out.name_query_error=out.name_query_return?0:GetLastError();
             if(out.name_query_return)out.desktop_name=name.data();}
+        out.desktop_conflict=out.name_query_return&&!out.desktop_name.empty()&&!equal(out.desktop_name,desktop_name);
+        // Read geometry independently: a foreign GetThreadDesktop UNKNOWN
+        // must not short-circuit this native call or manufacture a zero rect.
+        out.rect_attempted=h!=nullptr;
+        if(out.rect_attempted){SetLastError(ERROR_SUCCESS);out.rect_return=GetWindowRect(h,&out.rectangle)!=FALSE;
+            out.rect_error=out.rect_return?0:GetLastError();}
         out.root=GetAncestor(h,GA_ROOT)==h;out.visible=IsWindowVisible(h)!=FALSE;
         DWORD after_pid{};const auto after_tid=GetWindowThreadProcessId(h,&after_pid);
-        out.known=h&&out.pid&&out.tid&&class_known&&!out.desktop_name.empty()&&GetWindowRect(h,&out.rectangle)&&
+        out.known=h&&out.pid&&out.tid&&class_known&&out.rect_return&&
             IsWindow(h)&&after_pid==out.pid&&after_tid==out.tid;
         out.exact_child=out.known&&out.root&&out.pid==child&&process&&GetProcessId(process)==child&&birth&&
-            process_birth(process)==birth&&WaitForSingleObject(process,0)==WAIT_TIMEOUT&&equal(out.desktop_name,desktop_name);
+            process_birth(process)==birth&&WaitForSingleObject(process,0)==WAIT_TIMEOUT&&!out.desktop_conflict;
         return out;
     }
-    bool same(const MediumDesktopWindowFact& other)const{
-        return known&&other.known&&hwnd==other.hwnd&&pid==other.pid&&tid==other.tid&&type==other.type&&
-            desktop_name==other.desktop_name&&root==other.root&&visible==other.visible&&exact_child==other.exact_child&&
+    bool readonly_same(const MediumDesktopWindowFact& other)const{
+        // Only for two observed roots' existence on the held, explicitly
+        // enumerated desktop. UNKNOWN foreign desktop queries are not write,
+        // cancellation or input authority. A known contrary name rejects.
+        return known&&other.known&&exact_child&&other.exact_child&&!desktop_conflict&&!other.desktop_conflict&&
+            hwnd==other.hwnd&&pid==other.pid&&tid==other.tid&&type==other.type&&
+            root&&other.root&&visible&&other.visible&&
+            rectangle.left<rectangle.right&&rectangle.top<rectangle.bottom&&
             EqualRect(&rectangle,&other.rectangle);
     }
     std::string json()const{return "{\"HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(hwnd))+
@@ -83,14 +96,20 @@ struct MediumDesktopWindowFact {
         ",\"GetUserObjectInformation_name_attempted\":"+(name_query_attempted?"true":"false")+
         ",\"GetUserObjectInformation_name_return\":"+(name_query_attempted?(name_query_return?"true":"false"):"null")+
         ",\"GetUserObjectInformation_name_error\":"+(name_query_attempted?std::to_string(name_query_error):"null")+
+        ",\"foreign_thread_desktop_identity_known\":"+(!desktop_name.empty()?"true":"false")+
+        ",\"foreign_thread_desktop_name_conflicts_with_Run\":"+(desktop_conflict?"true":"false")+
+        ",\"GetWindowRect_attempted\":"+(rect_attempted?"true":"false")+
+        ",\"GetWindowRect_return\":"+(rect_attempted?(rect_return?"true":"false"):"null")+
+        ",\"GetWindowRect_error\":"+(rect_attempted?std::to_string(rect_error):"null")+
         ",\"root\":"+(root?"true":"false")+",\"visible\":"+(visible?"true":"false")+
-        ",\"exact_returned_child\":"+(exact_child?"true":"false")+",\"positioning_rect\":["+
-        std::to_string(rectangle.left)+","+std::to_string(rectangle.top)+","+std::to_string(rectangle.right)+","+
-        std::to_string(rectangle.bottom)+"]}";}
+        ",\"exact_returned_child_process_only\":"+(exact_child?"true":"false")+
+        ",\"positioning_rect\":"+(rect_return?rect({rectangle.left,rectangle.top,rectangle.right,rectangle.bottom}):"null")+
+        ",\"input_cancel_or_write_authority\":false}";}
 };
 struct MediumDesktopEnvironmentObservation {
     std::vector<std::pair<std::string,std::string>> records;
-    bool enumerated_ready{},handle_closed{},thread_restored{},event_hook_stopped{true};std::string reason{"not_started"};
+    bool enumerated_ready{},handle_closed{},thread_restored{},event_hook_stopped{true};
+    bool activation_attempted{},activation_complete{};std::string reason{"not_started"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
 struct MediumDesktopWindowEvents {
@@ -211,26 +230,41 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
         unsigned event_samples{},wait_calls{};std::uint64_t sampled_events{};bool child_exited{},quit{};
         const auto observe=[&](const char* stage){
             const auto sample_begin=GetTickCount64();const HWND shell_before=GetShellWindow();
+            const auto enumerated_desktop_before=medium_desktop_object_name(created);
             const auto first=MediumDesktopWindows::read(created);
             std::vector<MediumDesktopWindowFact> facts;facts.reserve(first.windows.size());
             for(const HWND h:first.windows)facts.push_back(MediumDesktopWindowFact::read(h,info.dwProcessId,child,birth,name));
             const auto second=MediumDesktopWindows::read(created);const HWND shell_after=GetShellWindow();
-            bool stable=first.complete&&second.complete&&first.windows==second.windows&&shell_before&&shell_before==shell_after;
-            unsigned exact_shell{},exact_tray{};std::string rows="[";
+            const auto enumerated_desktop_after=medium_desktop_object_name(created);
+            const bool held_desktop_exact=created&&equal(enumerated_desktop_before,name)&&equal(enumerated_desktop_after,name);
+            const bool same_inventory=first.complete&&second.complete&&first.windows==second.windows;
+            bool stable=first.complete&&second.complete&&held_desktop_exact&&shell_before&&shell_before==shell_after;
+            unsigned exact_shell{},exact_tray{};HWND shell_root{},tray_root{};std::string rows="[";
             for(std::size_t n=0;n<facts.size();++n){const auto fresh=MediumDesktopWindowFact::read(facts[n].hwnd,info.dwProcessId,child,birth,name);
-                stable=facts[n].same(fresh)&&stable;if(n)rows+=',';rows+=fresh.json();
-                if(fresh.exact_child&&fresh.visible&&fresh.hwnd==shell_after)++exact_shell;
-                if(fresh.exact_child&&fresh.visible&&fresh.type==L"Shell_TrayWnd")++exact_tray;}
+                const bool in_second=std::find(second.windows.begin(),second.windows.end(),facts[n].hwnd)!=second.windows.end();
+                const bool readonly_root=first.complete&&second.complete&&held_desktop_exact&&in_second&&facts[n].readonly_same(fresh);
+                if(n)rows+=',';rows+="{\"before\":"+facts[n].json()+",\"after\":"+fresh.json()+
+                    ",\"present_in_both_complete_created_desktop_enumerations\":"+
+                    (first.complete&&second.complete&&in_second?"true":"false")+
+                    ",\"exact_readonly_root\":"+(readonly_root?"true":"false")+"}";
+                if(readonly_root&&fresh.hwnd==shell_after){++exact_shell;shell_root=fresh.hwnd;}
+                if(readonly_root&&fresh.type==L"Shell_TrayWnd"){++exact_tray;tray_root=fresh.hwnd;}}
             rows+=']';
+            DWORD current_session{};
             const bool identity_still=WaitForSingleObject(child,0)==WAIT_TIMEOUT&&process_birth(child)==birth&&
-                medium(child)&&input_actor_same_user(child)&&equal(medium_desktop_image(child),executable.wstring());
-            out.enumerated_ready=stable&&identity_still&&exact_shell==1&&exact_tray==1;
+                medium(child)&&input_actor_same_user(child)&&equal(medium_desktop_image(child),executable.wstring())&&
+                GetProcessId(child)==info.dwProcessId&&ProcessIdToSessionId(info.dwProcessId,&current_session)&&current_session==own_session;
+            out.enumerated_ready=stable&&identity_still&&exact_shell==1&&exact_tray==1&&shell_root!=tray_root;
             out.emit("medium_desktop_actual_window_observation","\"stage\":"+quote(stage)+
                 ",\"sample_begin_tick\":"+std::to_string(sample_begin)+",\"sample_end_tick\":"+std::to_string(GetTickCount64())+
                 ",\"child_event_samples\":"+std::to_string(event_samples)+",\"relevant_notifications\":"+std::to_string(events.relevant)+
                 ",\"first_enumeration_complete\":"+std::string(first.complete?"true":"false")+
                 ",\"first_error\":"+std::to_string(first.error)+",\"second_enumeration_complete\":"+(second.complete?"true":"false")+
-                ",\"second_error\":"+std::to_string(second.error)+",\"same_local_snapshots\":"+(stable?"true":"false")+
+                ",\"second_error\":"+std::to_string(second.error)+",\"same_window_inventory\":"+(same_inventory?"true":"false")+
+                ",\"same_held_created_desktop_handle\":"+std::to_string(reinterpret_cast<std::uintptr_t>(created))+
+                ",\"enumerated_desktop_name_before\":"+quote(utf8(enumerated_desktop_before))+
+                ",\"enumerated_desktop_name_after\":"+quote(utf8(enumerated_desktop_after))+
+                ",\"held_desktop_identity_exact\":"+(held_desktop_exact?"true":"false")+
                 ",\"GetShellWindow_before\":"+std::to_string(reinterpret_cast<std::uintptr_t>(shell_before))+
                 ",\"GetShellWindow_after\":"+std::to_string(reinterpret_cast<std::uintptr_t>(shell_after))+
                 ",\"exact_live_child_identity_still_valid\":"+(identity_still?"true":"false")+
@@ -268,6 +302,18 @@ void medium_desktop_environment_probe(const std::wstring& run,const fs::path& ex
         out.reason=out.enumerated_ready?"exact_Medium_child_Shell_and_Tray_enumerated_only":
             child_exited?"exact_Medium_child_exited_before_Shell_readiness":
             quit?"readiness_observer_received_WM_QUIT":"deadline_no_exact_visible_child_Shell_and_Tray";
+        if(out.enumerated_ready){
+            const auto activation=medium_desktop_activate_and_return(created,name,[&]{
+                observe("activation_fresh_readonly_roots");return out.enumerated_ready;
+            });
+            for(const auto& [type,fields]:activation.records)out.emit(type,fields);
+            out.activation_attempted=activation.attempted;
+            out.activation_complete=activation.attempted&&activation.entry_completed&&activation.entry_return&&
+                activation.active_verified&&activation.post_activation_ready&&activation.default_return_verified&&
+                activation.return_owner_exited&&activation.opened_handles_closed&&activation.cleanup_known&&
+                !activation.deadline_or_completion_unknown;
+            out.reason=activation.reason;
+        }
     }catch(const std::exception& error){out.reason=error.what();}
     if(event_hook){SetLastError(ERROR_SUCCESS);out.event_hook_stopped=UnhookWinEvent(event_hook)!=FALSE;
         const DWORD error=out.event_hook_stopped?0:GetLastError();
@@ -321,7 +367,7 @@ void medium_desktop_environment_flow(State& s){
     const fs::path executable=fs::path(windows.data())/L"explorer.exe";
     const auto attributes=GetFileAttributesW(executable.c_str());
     s.log.emit("medium_desktop_environment_scope","\"run_id\":"+quote(utf8(s.run))+",\"Default_Shell_before\":"+before.json()+
-        ",\"one_fresh_Run_desktop\":true,\"product_create_requests\":0,\"synthetic_input_requests\":0,\"SwitchDesktop_attempted\":false,\"Default_Shell_control_attempted\":false,\"host_mutation_attempted\":false");
+        ",\"one_fresh_Run_desktop\":true,\"product_create_requests\":0,\"synthetic_input_requests\":0,\"SwitchDesktop_attempted_at_scope_start\":false,\"one_own_Run_activation_after_readonly_readiness\":true,\"Default_Shell_control_attempted\":false,\"host_mutation_attempted\":false");
     if(!before.known||!length||length>=windows.size()||attributes==INVALID_FILE_ATTRIBUTES||
        (attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT))){
         s.log.emit("medium_desktop_environment_summary","\"result\":\"BLOCKED\",\"reason\":\"Default_Shell_or_exact_Windows_Explorer_image_unknown\",\"product_result\":\"NOT_RUN\"");s.result=78;return;}
@@ -329,10 +375,14 @@ void medium_desktop_environment_flow(State& s){
     std::thread probe([&]{medium_desktop_environment_probe(s.run,executable,observation);});probe.join();
     for(const auto& [type,fields]:observation.records)s.log.emit(type,fields);
     const auto after=MediumDesktopDefaultShell::read();const bool original_unchanged=before.same(after)&&desktop();
-    const bool ready=observation.enumerated_ready&&observation.event_hook_stopped&&observation.thread_restored&&observation.handle_closed&&original_unchanged;
-    s.log.emit("medium_desktop_environment_summary","\"result\":"+quote(ready?"READY_ENUMERATED_ONLY":"BLOCKED")+
+    const bool ready=observation.enumerated_ready&&observation.event_hook_stopped&&observation.thread_restored&&
+        observation.activation_complete&&observation.handle_closed&&original_unchanged;
+    s.log.emit("medium_desktop_environment_summary","\"result\":"+quote(ready?"ACTIVATED_AND_RETURNED_ONLY":"BLOCKED")+
         ",\"reason\":"+quote(observation.reason)+",\"Default_Shell_after\":"+after.json()+
         ",\"original_Default_input_and_Shell_identity_unchanged\":"+(original_unchanged?"true":"false")+
-        ",\"product_result\":\"NOT_RUN\",\"input_desktop_switch_and_interaction\":\"NOT_RUN\",\"ordinary_full_desktop_acceptance\":\"NOT_PROVEN\",\"guest_disposal_is_not_product_cleanup_PASS\":true");
+        ",\"readonly_Shell_status\":"+quote(observation.enumerated_ready?"READY_ENUMERATED_ONLY":"NOT_CONFIRMED")+
+        ",\"input_desktop_activation_attempted\":"+(observation.activation_attempted?"true":"false")+
+        ",\"input_desktop_activation_and_independent_return_verified\":"+(observation.activation_complete?"true":"false")+
+        ",\"product_result\":\"NOT_RUN\",\"input_interaction\":\"NOT_RUN\",\"ordinary_full_desktop_acceptance\":\"NOT_PROVEN\",\"guest_disposal_is_not_product_cleanup_PASS\":true");
     s.result=ready?0:78;
 }

@@ -3340,6 +3340,7 @@ void independent_entry_ready(State& s,std::string_view stage,bool restore_defaul
 #include "platform/windows/product/v1_guest_queue_failure_case.h"
 #include "platform/windows/product/v1_guest_callback_owner_stop_case.h"
 #include "platform/windows/product/v1_guest_system_shake_case.h"
+#include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"
 #include "platform/windows/product/v1_guest_medium_desktop_environment_case.h"
 #include "platform/windows/product/v1_guest_command_remaining_case.h"
 #include "platform/windows/product/v1_guest_arbitration_remaining_case.h"

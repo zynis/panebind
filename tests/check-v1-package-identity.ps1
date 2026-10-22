@@ -1420,6 +1420,13 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         'WaitForInputIdle(child,idle_budget)','EnumDesktopWindows(target,','first.windows==second.windows',
         'GetThreadDesktop(out.tid)','GetUserObjectInformationW(out.thread_desktop,UOI_NAME,',
         'GetThreadDesktop_attempted','GetThreadDesktop_error','GetUserObjectInformation_name_error',
+        'out.rect_return=GetWindowRect(h,&out.rectangle)!=FALSE',
+        'GetWindowRect_attempted','GetWindowRect_return','GetWindowRect_error',
+        'out.known=h&&out.pid&&out.tid&&class_known&&out.rect_return&&',
+        'out.desktop_conflict=out.name_query_return&&!out.desktop_name.empty()&&!equal(out.desktop_name,desktop_name)',
+        'WaitForSingleObject(process,0)==WAIT_TIMEOUT&&!out.desktop_conflict',
+        'rectangle.left<rectangle.right&&rectangle.top<rectangle.bottom',
+        '(rect_return?rect({rectangle.left,rectangle.top,rectangle.right,rectangle.bottom}):"null")',
         'actual_created_object_name','!equal(created_name,name)',
         'unknown_zero_baseline=!baseline.complete&&baseline.error==ERROR_SUCCESS&&baseline.windows.empty()',
         '!baseline.windows.empty()||(!baseline.complete&&!unknown_zero_baseline)',
@@ -1433,8 +1440,13 @@ function Assert-V1MediumDesktopEnvironment([string]$Fixture,[string]$Cases,[stri
         'out.event_hook_stopped=UnhookWinEvent(event_hook)!=FALSE','medium_desktop_window_events=nullptr',
         'restore_attempted=out.event_hook_stopped',
         'observation.enumerated_ready&&observation.event_hook_stopped&&observation.thread_restored',
-        'shell_before==shell_after','fresh.exact_child&&fresh.visible&&fresh.hwnd==shell_after',
-        'fresh.exact_child&&fresh.visible&&fresh.type==L"Shell_TrayWnd"',
+        'held_desktop_exact=created&&equal(enumerated_desktop_before,name)&&equal(enumerated_desktop_after,name)',
+        'bool stable=first.complete&&second.complete&&held_desktop_exact&&shell_before&&shell_before==shell_after',
+        'const bool in_second=std::find(second.windows.begin(),second.windows.end(),facts[n].hwnd)!=second.windows.end()',
+        'readonly_root=first.complete&&second.complete&&held_desktop_exact&&in_second&&facts[n].readonly_same(fresh)',
+        'if(readonly_root&&fresh.hwnd==shell_after)',
+        'if(readonly_root&&fresh.type==L"Shell_TrayWnd")',
+        'current_session==own_session','exact_tray==1&&shell_root!=tray_root',
         'exact_shell==1&&exact_tray==1','SetThreadDesktop(original)','CloseDesktop(created)',
         'before.same(after)&&desktop()','s.result=ready?0:78;',
         'READY_ENUMERATED_ONLY','ordinary_full_desktop_acceptance','NOT_PROVEN','process_cleanup_PASS_inferred')){
@@ -1452,6 +1464,9 @@ Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironm
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('exact_shell==1&&exact_tray==1','true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects interpreting process creation as actual Shell/Tray readiness'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('observation_deadline=observation_begin+10000','observation_deadline=UINT64_MAX')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects unbounded event readiness observation'
 Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('restore_attempted=out.event_hook_stopped','restore_attempted=true')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static Medium desktop rejects restoring the thread before confirmed own hook unload'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('out.rect_return=GetWindowRect(h,&out.rectangle)!=FALSE','out.rect_return=!out.desktop_name.empty()&&GetWindowRect(h,&out.rectangle)!=FALSE')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static actual window reader rejects reintroducing foreign-desktop UNKNOWN short-circuit before native geometry read'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('if(readonly_root&&fresh.hwnd==shell_after)','if(readonly_root&&!fresh.desktop_name.empty()&&fresh.hwnd==shell_after)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static actual Shell counter rejects converting UNKNOWN foreign-thread desktop query into zero readonly Shell roots'
+Reject {Assert-V1MediumDesktopEnvironment $fixtureSource ($mediumDesktopEnvironment.Replace('readonly_root=first.complete&&second.complete&&held_desktop_exact&&in_second&&facts[n].readonly_same(fresh)','readonly_root=facts[n].readonly_same(fresh)')) $lifecyclePrepare $lifecycleGuest $queueFailureRemote} 'static readonly Shell roots still require complete membership in the same held created desktop twice'
 foreach($script in @($lifecyclePrepare,$lifecycleGuest,$queueFailureRemote)){
     Check ($script.Contains("'CurrentCoreChainOnly'")) 'static current core chain retains exact preparation, guest and deployment admission'
 }
@@ -1522,4 +1537,40 @@ $publicSettingsMetadata='const std::wstring version=L"'+$settingsMetadataSave+'\
 $oldSettingsMetadata=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('Y29uc3QgYXV0byB2ZXJzaW9uPUwi6YWN572u54mI5pys77yaIitzdGQ6OnRvX3dzdHJpbmcoZHJhZnQuc2NoZW1hKStMIu+8m+W9k+WJjeS7o+mZhe+8miIrc3RkOjp0b193c3RyaW5nKGRyYWZ0LmdlbmVyYXRpb24pK0wiXHJcbuWGhemDqOeJiOacrOWtl+auteWPquivu++8m+S/neWtmOWQjueUseS6p+WTgee7n+S4gOaOqOi/m+mFjee9ruS7o+mZheOAgiI7'))
 Reject {Assert-V1UserSettingsMetadata ($userSettingsSource.Replace($publicSettingsMetadata,$oldSettingsMetadata))} 'static settings metadata rejects the original schema/generation UI regression'
 Reject {Assert-V1UserSettingsMetadata ($userSettingsSource.Replace($settingsMetadataCancel,'Cancel'))} 'static settings metadata rejects losing the Cancel/no-runtime-change explanation'
+function Assert-V1MediumDesktopActivation([string]$Environment,[string]$Activation,[string]$Fixture){
+    foreach($value in @('if(out.enumerated_ready){',
+        'medium_desktop_activate_and_return(created,name,[&]{',
+        'observe("activation_fresh_readonly_roots");return out.enumerated_ready;',
+        'observation.activation_complete&&observation.handle_closed&&original_unchanged',
+        'activation.cleanup_known&&', '!activation.deadline_or_completion_unknown')){
+        if(-not $Environment.Contains($value)){throw 'Desktop activation must be gated by actual readonly roots and verified independent return, never product authority.'}
+    }
+    if(-not $Fixture.Contains('#include "platform/windows/product/v1_guest_medium_desktop_activation_case.h"')){
+        throw 'Desktop activation requires actual guarded fixture wiring.'
+    }
+    foreach($value in @('if(!guarded||!still_exact)',
+        'DESKTOP_READOBJECTS|DESKTOP_SWITCHDESKTOP','OpenDesktopW(exact_run_name.c_str(),0,FALSE,access)',
+        'OpenDesktopW(L"Default",0,FALSE,access)', 'original_input.exact(L"Default")',
+        'state->entry_gate.compare_exchange_strong(pending,1)',
+        'state->entry_gate.compare_exchange_strong(pending,2)',
+        'owner_before_entry==WAIT_TIMEOUT&&!state->entry_wait_unknown.load()',
+        'ready&&independent_owner_live&&input_before.exact(L"Default")',
+        'WaitForSingleObject(state->return_request,budget)', 'WaitForSingleObject(state->entry_done,left)',
+        'medium_desktop_activation_return_once(state,state->owner_records,"independent_return_owner")',
+        'if(!before.exact(state->target_name))', 'state->return_attempt.compare_exchange_strong(unused,1)',
+        'actual.exact(exact_run_name)', 'out.return_owner_exited=exited==WAIT_OBJECT_0',
+        'if(out.return_owner_exited)out.records.insert', 'out.cleanup_known=out.opened_handles_closed&&out.default_return_verified&&out.return_owner_exited&&!out.deadline_or_completion_unknown')){
+        if(-not $Activation.Contains($value)){throw 'Desktop activation lost exact legal handles, actual API facts, bounded independent return or lifetime gates.'}
+    }
+    if([regex]::Matches($Activation,'\bSwitchDesktop\(').Count -ne 2 -or $Activation.Contains('INFINITE') -or
+       $Activation -match '\b(SendInput|Sleep|SetForegroundWindow|SetFocus|SetProcessWindowStation|SetUserObjectSecurity|SetSecurityInfo|SetTokenInformation|CreateRestrictedToken|TerminateProcess)\s*\('){
+        throw 'Desktop activation is only one own entry and one atomically claimed Default return, without input, polling or security changes.'
+    }
+}
+$mediumActivationSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_activation_case.h'),[Text.Encoding]::UTF8)
+Assert-V1MediumDesktopActivation $mediumDesktopEnvironment $mediumActivationSource $fixtureSource
+Check $true 'static exact guest desktop activation uses independent bounded Default return, not product or input authority'
+Reject {Assert-V1MediumDesktopActivation ($mediumDesktopEnvironment.Replace('if(out.enumerated_ready){','if(true){')) $mediumActivationSource $fixtureSource} 'static desktop activation rejects starting before exact readonly Shell readiness'
+Reject {Assert-V1MediumDesktopActivation $mediumDesktopEnvironment ($mediumActivationSource.Replace('WaitForSingleObject(state->entry_done,left)','WAIT_OBJECT_0')) $fixtureSource} 'static desktop activation rejects assuming an in-flight entry completed'
+Reject {Assert-V1MediumDesktopActivation $mediumDesktopEnvironment ($mediumActivationSource.Replace('if(!before.exact(state->target_name))','if(false)')) $fixtureSource} 'static Default return rejects displacing an unknown input desktop'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

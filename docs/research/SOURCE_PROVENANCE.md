@@ -3205,3 +3205,29 @@ replace/control the Default High shell, alter ACL/token/account/UAC settings,
 or infer an interactive desktop from off-screen enumeration. No product or
 synthetic input is needed for this initial feasibility observation. Failure only
 blocks this environment route; guest disposal is not product cleanup evidence.
+
+The actual c199 guest observation subsequently enumerated a visible Progman
+and Shell_TrayWnd belonging to the exact new Medium child. Its auxiliary
+GetThreadDesktop query failed with error 5; the old TEST's short-circuit then
+skipped GetWindowRect. The default zero RECT is not a native geometry result.
+The TEST correction separates actual rectangle calls, complete enumeration
+membership on the still-verified created handle, and unknown thread-name
+queries. A contradictory successfully read name must still reject. Read-only
+Shell existence never grants product input or writing authority.
+
+Also read the official [WaitForInputIdle](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-waitforinputidle),
+[SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook),
+[MsgWaitForMultipleObjectsEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex),
+[SwitchDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-switchdesktop),
+[OpenInputDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-openinputdesktop),
+and [desktop access rights](https://learn.microsoft.com/en-us/windows/win32/winstation/desktop-security-and-access-rights).
+First idle is not complete multithreaded Shell readiness. Use notifications and
+one total deadline, not repeated idle calls or timer polling. The next isolated
+environment variable is one activation of the new Run-owned desktop and an
+independent bounded return to the original Default desktop in that same guest.
+It requires normally granted READOBJECTS/SWITCHDESKTOP handles, exact names and
+actual input-desktop/IO readback; no ACL/token/account changes, product start,
+synthetic input, focus/capture control, or host desktop switch. A timeout cannot
+cancel an already issued native API or establish cleanup success. The product's
+existing Default eligibility remains unchanged. This is TEST-only preparation
+under guide 2.1(4), not a new accepted product route. No external code reused.
