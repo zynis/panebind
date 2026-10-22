@@ -1,14 +1,20 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：744e命名Run真实Terminal三段几何／正常UP闭环，托盘与客户语义仍未通过（2026-10-22）
+## 当前接续：744e／be7普通便携入口实测通过；托盘仍失败、Explorer首根未确认（2026-10-22）
 
-**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0，整版PARTIAL，真人UAT PENDING；本轮不增加分数。** 当前实际产品为`744e8908d2069951fec70683b6d793a26cb7397c`，D SHA-256 `3569C94026B3EA8A061A4135CC01F795E36CD2851235145916C17E525639DA04`、R `C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；D／R构建、6项affected offline各6/6及四hostguard78是支撑，不替代现场结果。当前TEST driver `5211da6e11af96120368b895190b0df91a315e03`实际D／R构建、guest-path各1/1、static200及四hostguard78通过，D `1849339A8E72DEB4A5B908EF2743B1A14BB13D516B5DC5F9A16CC9FB73325E8B`／R `F5312C29933E48BE3CFB6FB852C0ED56E4D26BB0DF3A5748993DFC12937810A3`；工具结果按主执行器转录，不补造stdout。
+**生产接线60/60，独立DEV43/60，对标21/40＝52.5%，模块0，整版PARTIAL，真人UAT PENDING；本轮不增加分数。** 当前已实测普通便携候选为be7a／产品`744e8908d2069951fec70683b6d793a26cb7397c`，R SHA-256 `C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E`；本次三个Run实际driver／包装均为`3c56551c508ac18575824756ec54ac9057db11a8`／R `6CBC2BFB8103C701D70F2FCDDE11B04D46AD0826784CDE451C490EE2C17AA527`。原5211／af4 Terminal三段、40a构建、55f Default双轮与25b／bfb旧包各保身份，不迁移证据。
+
+- [3d1a纯托盘guard对照](v1-evidence/3d1a-medium-product-tray-pair-guard-review.json)：D141第二fresh guard实际accepted，光标两读、TrayNotifyWnd／Shell PID／Run根、四组GTI known idle成立；右键2/2实际插入，LL RIGHTUP在P8观察到，但菜单仍未开。完整8P只有P1 ADD=false、P6 ADD／VERSION=true，未录tray ingress／menu API；仅排本轮前置guard拒绝，不证明图标实际收到或系统根因。停止无变量托盘重试。
+- [e538 Explorer首根](v1-evidence/e538-medium-Explorer-first-root-unconfirmed-review.json)：新目录与baseline排除后，一次精确Run的`/separate /n`启动成功、launcher实际Medium，但唯一exact-path根未可靠确认；targetPID0／g0、零Explorer DOWN／continuation／placement。早先Esc2仅为关闭设置；原生Cabinet是否出现及具体Shell选择拒绝UNKNOWN。公共产品quit／资源stop与Default回切真实，但潜在未绑定目标、launcher及Shell后代退出未证，原BLOCKED／cleanup UNKNOWN不改。
+- [e4b9真实普通ZIP](v1-evidence/e4b9-current-744e-portable-entry-review.json)：be7a／744e原ZIP在中文／空格路径实际解压，七载荷哈希核验；普通无参中文GUI、二启同实例、Save／Cancel真实说明和公开保存把10DIP吸附改为0后Move实际不同，两代均Raw／legacy NormalUp及release／detach／Gone。普通quit实际exit0、客户配对恢复和载荷字节保留，driver退出0／无后代／无强制清理。初始setup PID6252与ZIP PID6812分物理日志，D182本地I12 PASS只指入口子范围，不授整I12、托盘、五应用或Full。
+
+新生产候选`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`只补设置页成功`SPI_GETHIGHCONTRAST`返回的非空系统缓冲区唯一`LocalFree`，保持GET／flags逻辑，无SET／主题／registry修改；不是旧8d8a scheme恢复根因。实际D／R product＋driver构建及7项offline各7/7通过，D产品 `3F314AB4C982093CDB31D3002AABFFA611CB3726D9C643A2A934E8AE9804E69A`／R `0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`。host只读GET-only probe实际成功／HC_OFF／非空指针／LocalFree成功且无SET，仅为API支撑；**42ab生产设置／新包现场NOT_RUN，be7仍是744e原字节。** bb23新客户试验尚待完整收集，不在此判原因。
 
 - [6670实际首段Move](v1-evidence/6670-medium-product-geometry-chain-review.json)：普通无参744e在exact active同SID／session／Medium Run内，对精确新Terminal真实DOWN→START→cancel→END→capture后完成自由Move、真实Raw／legacy UP、正常release／detach／Gone。第二段Resize已真实START／交接，但TEST阈值过渡拒绝而未完成，held pair未知、独立Default回切未证；原FAIL／清理边界不改，不写成产品Resize失败。
 - [ab827实际等待](v1-evidence/ab827-medium-terminal-keyboard-wait-review.json)：产品未启动；458个Unicode包及2个Enter包完整插入后，实际3000ms tick／3.0026056s QPC等待、last context accepted、两次native wait／最后WAIT_TIMEOUT258，nonce仍未生成。不是立即拒绝或产品拦截；root关闭、live child／job强制收尾及独立Default返回分开记，不能授全process cleanup。
 - [af4f连续三段](v1-evidence/af4f-medium-product-move-resize-successor-review.json)：同一744e普通实例和exact新Terminal，真实Move→Resize→后继Move三段各有实际几何及Raw／legacy NormalUp、capture release／detach／Gone，D626仅判该子链通过。随后UID1右键仍未开精确菜单（D643）；完整产品P1–88中初ADD=false后ADD／SETVERSION=true，未观察tray ingress／原menu API回执。不能由此宣称系统根因、全部客户操作、五应用或整M01通过。
 
-下一步验证当前744e的新普通便携入口（尚未通过），再以已有可区分事实推进托盘、客户nonce与其他应用；保留显示／完整桌面外部缺项。真实三段不会替代吸附全合同、Ctrl组、Explorer／五应用、完整操作链或真人UAT，也不把55f Default双轮／bfb25b旧包换绑744e。
+下一步按42ab新身份验证受影响设置打开／关闭与普通入口；保留当前744e／be7已过scope，不无意义重包重验旧EXE。托盘、客户nonce、Explorer首根和其他应用只按新的可区分事实推进，显示／完整桌面缺项另列。真实三段及便携子链不替代全磁吸、Ctrl组、五应用、完整I12或真人UAT。
 
 ### 历史55f检查点：Default双轮及最初命名Run UI事实
 
@@ -25,7 +31,7 @@
 
 当时后继744e只加有界GUI-owner托盘入口及原菜单API真实回执，不改变机制或调用顺序；其编译时点native NOT_RUN已由本节上方6670／af4f实际事实接续，旧55f Core仍不换绑。actualTerminalGeometry／阈值过渡／有界等待工具已在上述新Run分别运行，不再笼统记未接线。验收工具SelfTest字符串case修复实际5项通过且未改报告；旧136行FAIL保留为历史工具反例，不增加功能分数。
 
-最近已验证普通便携包仍为下述**25b／bfb原字节**，不是744e；没有把a014／540f或55f双轮入口改绑新EXE。剩余17项完整合同既含实际菜单／客户／应用操作缺项，也含桌面／显示矩阵条件，**不全是外部环境阻断**。以下旧检查点的NOT_RUN／下一动作仅为历史时点，不覆盖本节最新实际结果。
+当前已验包已接续为**744e／be7a5b395e074b32ac304ffddf65a193**：ZIP `65973C869484C0ADD92C55C47D36D7F322E7763A8F5ECC371044BB70C5B9CFC1`／manifest `D30367B3C2F2A5B87861B11E70167DC296CE097921AE7E708FE9FF12DFCD71C5`。旧25b／bfb、a014／540f及55f双轮保持原身份。剩余17项完整合同含菜单／客户／应用和桌面／显示条件，**不全是外部环境阻断**；以下旧检查点的“当前／下一步”只描述其历史时点。
 
 ## 历史检查点：dcab source只读正事实、普通产品GUI与首输入阻断，43/60（2026-10-22）
 

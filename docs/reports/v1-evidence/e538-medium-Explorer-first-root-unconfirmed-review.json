@@ -1,0 +1,363 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-E538-MEDIUM-EXPLORER-SINGLE-EXACT-RUN-LAUNCH-FIRST-ROOT-UNCONFIRMED",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "review_date": "2026-10-22",
+  "run_id": "e53826d2ed2440b0a27e9a0a4a50d91c",
+  "suite": "MediumDesktopUiOnly",
+  "configuration": "Release",
+  "result": "BLOCKED_FIRST_EXPLORER_ROOT_NOT_RELIABLY_CONFIRMED_NO_GEOMETRY_INPUT",
+  "original_driver_result": "FAIL",
+  "original_failure_preserved": true,
+  "new_execution_by_review": false,
+  "identity": {
+    "product_source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",
+    "product_sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E",
+    "driver_source_sha": "3c56551c508ac18575824756ec54ac9057db11a8",
+    "driver_sha256": "6CBC2BFB8103C701D70F2FCDDE11B04D46AD0826784CDE451C490EE2C17AA527",
+    "packaging_head": "3c56551c508ac18575824756ec54ac9057db11a8",
+    "fixture_pid": 6304,
+    "fixture_primary_tid": 6308,
+    "product_started": true,
+    "product_pid": 5740,
+    "product_birth_filetime_decimal": "134371448951525373",
+    "actual_app_hwnd": 196674,
+    "actual_settings_hwnd": 196702,
+    "ordinary_no_argument_product": true,
+    "diagnostic_switch_used": false,
+    "desktop": "WinSta0\\PaneBindV1_e53826d2ed2440b0a27e9a0a4a50d91c",
+    "actual_launcher_PID": 556,
+    "launcher_birth_filetime_decimal": "134371448973217877",
+    "launcher_actual_Medium": true,
+    "target_PID": 0,
+    "target_HWND": "UNKNOWN_NOT_BOUND",
+    "target_birth": "UNKNOWN_NOT_BOUND",
+    "Default_Shell_after_birth_filetime_decimal": "134371448761806394",
+    "integrity_rid": 8192,
+    "elevated": false,
+    "session": 1,
+    "token_method": "restricted_lua_medium",
+    "actual_TokenIsRestricted": false,
+    "precision": "All process FILETIME births and the64-bit volume serial were extracted by regex from original decimal digit strings. They remain strings; no PowerShell5/JavaScript parsed floating-point value was used to reconstruct an identity.",
+    "product_driver_separation": "Product744e Release payload remains frozen and hash-identical to af4f. Driver3c565 and this package/Run have separate identities; Terminal af4f results are not rebound to Explorer or this driver."
+  },
+  "package": {
+    "receipt": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/package-receipt.json",
+      "bytes": 13337,
+      "sha256": "0D2110D5B72EF296A31508F5AF5CFE97B37F6D266EF72ACC8CFABF6CA1B02103"
+    },
+    "archive": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/e53826d2ed2440b0a27e9a0a4a50d91c.zip",
+      "bytes": 5787095,
+      "sha256": "42491BF8344F2E0C6EFF6844272FF12319FC6A50110033774C3BAC10A7F5FBBD"
+    },
+    "manifest": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/input/manifest.json",
+      "bytes": 22127,
+      "sha256": "D9BEE731634CFEBF534E6E259E4F179AB85DFCD0D2715F6D50A5693CAFD1E56A"
+    },
+    "wsb": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/PaneBindV1.wsb",
+      "bytes": 976,
+      "sha256": "37226A66EA1929635005CE6B7B4D52B95780E9EBC261C2457566DA3624D41B58"
+    },
+    "product_binary": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/input/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "driver_binary": {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/input/panebind-v1-guest-fixture.exe",
+      "bytes": 4157440,
+      "sha256": "6CBC2BFB8103C701D70F2FCDDE11B04D46AD0826784CDE451C490EE2C17AA527"
+    },
+    "collected_product_binary": {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/e53826d2ed2440b0a27e9a0a4a50d91c-product-Release/panebind.exe",
+      "bytes": 1219072,
+      "sha256": "C0701B5431F1D92FBE5C7A13352ABB149C13E595128E8513D24FCE7408BC094E"
+    },
+    "actual_local_ZIP_manifest_WSB_binary_hashes_match_receipts": true,
+    "host_expectation_and_deploy_inventory_sizes_and_hashes_match_actual_package": true,
+    "explicit_medium_explorer_geometry_true_manifest_verified": true,
+    "guest_suite": "MediumDesktopUiOnly",
+    "Terminal_asset": "NULL_NO_MIXED_TARGET",
+    "collected_product_hash_matches_packaged_product": true,
+    "remote_directory": "I:\\PaneBindMVP1Runs\\e53826d2ed2440b0a27e9a0a4a50d91c",
+    "input_readonly_output_only_writable": true,
+    "network_clipboard_audio_video_printer_redirection_disabled": true,
+    "requested_observer_access": 33554627,
+    "requested_MAXIMUM_ALLOWED_comparison": true,
+    "effective_granted_mask": "UNKNOWN_NOT_LOGGED",
+    "token_ACL_or_account_change_inferred": false,
+    "preparation_NOT_RUN_fields_not_rewritten": true
+  },
+  "raw_sources": [
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/e53826d2ed2440b0a27e9a0a4a50d91c-release-fixture.jsonl",
+      "bytes": 8247620,
+      "sha256": "5E44B5ADDCB2CEA4219290839B680A364434328151653B9CF34F83128BF4C38B",
+      "role": "driver",
+      "rows": 233,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        233
+      ],
+      "all_source_sha_matches_expected_identity": true
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/e53826d2ed2440b0a27e9a0a4a50d91c-Release-launch.json",
+      "bytes": 9882,
+      "sha256": "62834A1E12F897BCFCD82F335F92312C747C8C9FEE9795F902763362959F4803"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/e53826d2ed2440b0a27e9a0a4a50d91c-guest-summary.json",
+      "bytes": 20909,
+      "sha256": "91FD9ECAD78A1C9A0901E2056D39D130A878F51CAE80B1CFDD7F65162BDF781C"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/collection-receipt.json",
+      "bytes": 7947,
+      "sha256": "D57F23A1FAF2552588AFD1FAB7765B08DAC5818B19D7EF92D1D8D978A38969FE"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/host-expectation.json",
+      "bytes": 3000,
+      "sha256": "66DD46DC28C9A0D07056A79C17C935AAE1181D92EE23C02B39C30508F5E29BA3"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/deploy-receipt.json",
+      "bytes": 2664,
+      "sha256": "9AA81409C1970781C6F882B4119613A74A4E5934CAD099FA880381AE584AF4A5"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/launch-receipt.json",
+      "bytes": 14479,
+      "sha256": "73A5C00CFFDE6535BE2E048F1A938EB14377344624314EDB71FFB4669EB1A7F3"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/cleanup-receipt.json",
+      "bytes": 9148,
+      "sha256": "B8140B0508405744CD5284381E6F6A557E9C2AD7A30D6E3D0A1FA5C3670BEDC6"
+    },
+    {
+      "path": "uat/v1-sandbox/e53826d2ed2440b0a27e9a0a4a50d91c/package-receipt.json",
+      "bytes": 13337,
+      "sha256": "0D2110D5B72EF296A31508F5AF5CFE97B37F6D266EF72ACC8CFABF6CA1B02103"
+    },
+    {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/collection-20261022T121557392Z-30db38fc77fc401c84ef96e574222df9/e53826d2ed2440b0a27e9a0a4a50d91c-product-Release/panebind.log.jsonl",
+      "bytes": 3669,
+      "sha256": "7345811810AF386E9B2D5211D721C14A6695FFBAC435DE98514652F609B01CD3",
+      "role": "product",
+      "rows": 9,
+      "legal_jsonl": true,
+      "continuous_sequences": [
+        1,
+        9
+      ],
+      "all_source_sha_matches_expected_identity": true
+    }
+  ],
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/e538-medium-Explorer-first-root-unconfirmed-excerpt.jsonl",
+    "bytes": 19899,
+    "sha256": "EC049AF237D4ABA04845D860FCA09A9B1332EB4B5F12B20BECE0F85706D1670A",
+    "literal_lines": 38,
+    "driver_sequences": [
+      3,
+      13,
+      14,
+      19,
+      23,
+      195,
+      197,
+      198,
+      199,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210,
+      211,
+      212,
+      217,
+      219,
+      220,
+      221,
+      223,
+      226,
+      227,
+      228,
+      233
+    ],
+    "product_sequences": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9
+    ],
+    "serialization_changed": false,
+    "line_endings": "Literal UTF-8 line contents retained with LF. Driver and product portions are separate producer streams, not a combined native timeline."
+  },
+  "observations": [
+    {
+      "source": "D13-D23/D197-D206/P1-P7",
+      "fact": "Verified744e ordinary no-argument product launched in the actual active exact Medium Run as PID5740/birth134371448951525373. Its own settings GUI was visible/foreground and real Escape inserted2/2 then destroyed settings. Actual product route is exact_manifest_Run with the exact-guest input resource enabled, but this is initialization, not source permission or feature PASS. Public status was idle with eligible_windows0, operations0 and native_callsite_claims0."
+    },
+    {
+      "source": "D207",
+      "fact": "The TEST adapter actually prepared a fresh empty guest-local Run leaf, a retained ownership marker and a filesystem identity. Native baseline count was35; the complete IShellWindows baseline had0 entries. The volume serial is preserved as decimal string6667649344474159114 and file_id_128 is872a0000000001000000000000000000. These real pre-launch facts do not prove post-launch Explorer root identity, eligibility, input or writer authority."
+    },
+    {
+      "source": "D208",
+      "fact": "Exactly one CreateProcessW request returnedTRUE/error0 for the system explorer.exe with /separate /n and this exact new directory. lpDesktop explicitly named WinSta0\\\\PaneBindV1_e53826d2ed2440b0a27e9a0a4a50d91c. Launcher PID556/birth134371448973217877 was actually Medium. Process launch is not a bound file-window, the launcher PID is not assumed to own a root, and no baseline window was navigated, repositioned or closed."
+    },
+    {
+      "source": "D209-D210/full233-row driver recording",
+      "fact": "No medium_product_Explorer_candidate or successful Shell binding row occurred. The geometry case ended geometry_new_exact_Run_Explorer_root_not_observed with target_PID0/last_completed_generation0/cleanup_known=false. This proves that no reliable unique exact-path source was confirmed within this run's observation, not that no physical Explorer root ever existed or that Explorer cannot run in this environment. Post-launch native Cabinet inventory and the specific Shell-selection rejection were not recorded in this batch and remain UNKNOWN. No Explorer DOWN, cursor continuation, native handoff, capture or product geometry operation was exercised."
+    },
+    {
+      "source": "D203/D217/P7/P9",
+      "fact": "UI input_attempted=true/input_sent=true refer to the earlier real settings Escape only. Complete driver recording contains that one UI input batch and no medium_product_geometry_input. The product's complete9-row recording has no native_move_pending/gesture_start/placement row and its mouse_UP callback count remained0. The UI correctly blocked all subsequent cursor/menu input because geometry cleanup was UNKNOWN, rather than treating a failed target discovery as completed functional testing."
+    },
+    {
+      "source": "D211-D212/P9",
+      "fact": "The non-input public same-EXE --quit command actually ran, returned0 and the product process signalled exit0; app/icon were gone. Its shutdown receipt reports own hooks, overlay, native worker, capture, association and input resources stopped with no unknown issued completion. This is real product-process/own-resource cleanup, not proof that a possible unbound Explorer root, launcher, Shell child or complete application tree exited."
+    },
+    {
+      "source": "D219-D228",
+      "fact": "The independent owner retired the input lease and observed in_flight_completed=true, then actually called SwitchDesktop(TRUE) and read backDefault. The observer thread separately restored its own thread desktop and closed handles. Original Default input/Shell identity comparison wasTRUE and Default_Shell_after was known. However activation/UI/environment aggregate cleanup stayedUNKNOWN_OR_BLOCKED/BLOCKED because the unbound launched target was not safely accounted for. Preserve those aggregate verdicts while distinguishing the positive actual Default return; raw LastError5 after TRUE is not a failure cause."
+    },
+    {
+      "source": "D226/D233 and wrapper/cleanup receipts",
+      "fact": "A separately retained exact Medium Shell child was still alive(wait258/exit259) and explicitly left to the exact guest/job; launcher and any unbound file-window process completion were not observed. Wrapper reported FIXTURE_FAILED/exit1, one surviving descendant and forced test cleanup. Later exact task removal/dedicated guest disposal preserved all collected hashes and retained deployment. Disposing the guest contains the unconfirmed resources, but is not normal Explorer root cleanup, product functional PASS or full-version cleanup PASS."
+    }
+  ],
+  "actual_result": {
+    "ordinary_product_visible_settings_and_Escape": "ACTUALLY_OBSERVED_THIS_RUN_ONLY",
+    "exact_Explorer_setup": {
+      "new_empty_directory": "C:\\PaneBindV1\\Explorer\\e53826d2ed2440b0a27e9a0a4a50d91c\\Medium-Explorer-A",
+      "marker_sha256": "83496FFCBC1355EF5681BAE84F620ECDF2B06B20DC21C8E6009F40BA1A91DE5E",
+      "native_baseline_count": 35,
+      "Shell_baseline_complete": true,
+      "Shell_baseline_count": 0,
+      "volume_serial_decimal": "6667649344474159114",
+      "file_id_128": "872a0000000001000000000000000000",
+      "source_permission_inferred": false
+    },
+    "exact_Explorer_launch": {
+      "CreateProcess_attempted": true,
+      "native_return": true,
+      "win32_error": 0,
+      "actual_launcher_PID": 556,
+      "actual_launcher_birth_decimal": "134371448973217877",
+      "actual_launcher_Medium": true,
+      "lpDesktop": "WinSta0\\PaneBindV1_e53826d2ed2440b0a27e9a0a4a50d91c",
+      "command": "\"C:\\Windows\\explorer.exe\" /separate /n,\"C:\\PaneBindV1\\Explorer\\e53826d2ed2440b0a27e9a0a4a50d91c\\Medium-Explorer-A\"",
+      "request_count": 1,
+      "baseline_window_controlled": false,
+      "actual_launcher_exit": "UNKNOWN_NOT_LOGGED"
+    },
+    "target_discovery": "NO_RELIABLE_UNIQUE_EXACT_PATH_ROOT_CONFIRMED",
+    "Explorer_candidate_rows_in_complete_recording": 0,
+    "Explorer_target_PID": 0,
+    "last_completed_generation": 0,
+    "post_launch_native_Cabinet_root_presence": "UNKNOWN_NOT_RECORDED_IN_THIS_BATCH",
+    "specific_Shell_path_selection_rejection": "UNKNOWN",
+    "Explorer_Physical_root_absence": "NOT_PROVEN",
+    "Explorer_support_or_system_root_cause": "NOT_PROVEN",
+    "Explorer_DOWN_sent": false,
+    "Explorer_cursor_continuation_sent": false,
+    "Explorer_product_gesture_or_writer_started": false,
+    "Explorer_Move_UP_Resize_UP_successor": "NOT_RUN_NO_SAFE_TARGET",
+    "only_synthetic_input_this_run": {
+      "source": "D203",
+      "purpose": "ordinary_noarg_settings_Escape",
+      "packets": 2,
+      "inserted": 2,
+      "actual_settings_destroyed": true
+    },
+    "subsequent_UI_or_tray_input": "NOT_RUN_BLOCKED_GEOMETRY_CLEANUP_UNKNOWN",
+    "product_public_quit": "ACTUALLY_OBSERVED_COMMAND_EXIT0_AND_PRODUCT_EXIT0",
+    "product_reported_own_resource_shutdown": true,
+    "own_driver_hook_and_handles_shutdown_reported": true,
+    "unresolved_Explorer_root_cleanup": "UNKNOWN_NOT_PASS",
+    "test_input_pair_incomplete": false,
+    "input_lease_retired_and_quiescent": true,
+    "Default_input_return": "ACTUAL_SWITCH_TRUE_AND_READBACK_DEFAULT",
+    "original_Default_input_and_Shell_identity_unchanged": true,
+    "aggregate_activation_cleanup": "UNKNOWN_OR_BLOCKED_ORIGINAL_VERDICT_PRESERVED",
+    "retained_Medium_Shell_process": "ACTUALLY_ALIVE_LEFT_TO_EXACT_GUEST_JOB",
+    "all_process_tree_exit": "NOT_PROVEN",
+    "desktop_object_destroyed": "UNKNOWN",
+    "driver_result": "FAIL",
+    "product_function_result": "NOT_RUN_FOR_EXPLORER",
+    "human_UAT": "NOT_RUN"
+  },
+  "time_basis": {
+    "Explorer_CreateProcess_driver_ticks": [
+      42562,
+      42562
+    ],
+    "settings_Escape_input_driver_ticks": [
+      41328,
+      41328
+    ],
+    "Default_return_API_driver_ticks": [
+      46156,
+      46203
+    ],
+    "discovery_wait_duration": "NOT_SEPARATELY_LOGGED_NO_DURATION_RECONSTRUCTED_FROM_EMISSION_TICKS",
+    "buffered_emit": "D201..217 emit around46578/46593 after their native operations. JSONL position/emission tick is not a physical input/Raw/WinEvent ordering or native API entry timestamp.",
+    "default_return_success_LastError": "Raw5 was recorded after TRUE; its value is not treated as a documented failure cause."
+  },
+  "wrapper": {
+    "status": "BLOCKED_OR_FAILED",
+    "fixture_status": "FIXTURE_FAILED",
+    "fixture_exit_code": 1,
+    "wait_result": 0,
+    "descendants_alive_at_fixture_exit": 1,
+    "forced_test_cleanup": true,
+    "overall_product_cleanup_pass": false
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "uat/v1-control/e53826d2ed2440b0a27e9a0a4a50d91c/cleanup-receipt.json",
+      "bytes": 9148,
+      "sha256": "B8140B0508405744CD5284381E6F6A557E9C2AD7A30D6E3D0A1FA5C3670BEDC6"
+    },
+    "utc": "2026-10-22T12:17:01.7454623Z",
+    "task_removed": true,
+    "dedicated_guest_exited": true,
+    "evidence_unchanged": true,
+    "deployment_retained": true,
+    "collected_files_match_cleanup_before_and_after_size_and_SHA256": true,
+    "other_files_or_resources_changed": false,
+    "product_cleanup_inferred_from_guest_destruction": false,
+    "distinction": "Actual ordinary product quit and independent Default input return are separately confirmed. Observer/launcher query-handle closure does not prove process/root exit. The unconfirmed file-window and retained Shell remain separate cleanup scopes; later exact guest disposal cannot promote them to normal cleanup PASS."
+  },
+  "acceptance_boundary": {
+    "feature_or_benchmark_pass_added": false,
+    "module_or_whole_version_pass_added": false,
+    "A02": "BLOCKED_FIRST_UNIQUE_NEW_FILE_WINDOW_NOT_CONFIRMED",
+    "product_Move_Resize_Ctrl_for_Explorer": "NOT_RUN",
+    "tray_menu_and_actions": "NOT_RUN_THIS_CASE_NO_CLICK_SENT",
+    "Terminal_af4f_scoped_pass_rebound": false,
+    "ordinary_full_desktop": "NOT_PROVEN",
+    "multimonitor_and_mixed_DPI": "NOT_RUN",
+    "human_UAT": "NOT_RUN",
+    "next_action": "Preserve this single explicit exactRun /separate request and failed source-discovery/unknown-cleanup evidence. Before any further input, only a concrete post-launch Cabinet/IShellWindows selection distinction can explain the unresolved source; do not blindly change flags/retry, infer physical absence or relax path/Medium/Run/baseline gates. No diagnostics from a later implementation/run may be backfilled into this batch.",
+    "history": "Original failure and all product744e/driver3c565/package/Run identities remain. Earlier af4f Terminal scoped successes and prior Explorer failures keep their own source and evidence boundaries."
+  }
+}
