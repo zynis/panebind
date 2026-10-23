@@ -258,7 +258,7 @@ struct WindowWriter::NativeExecutor {
         bool alpha_change{},top_change{};std::optional<v::VisualOwnership> cleanup_owned;VisualNativeFacts visual_native;
         HANDLE done{CreateEventW(nullptr,TRUE,FALSE,nullptr)};
         std::mutex mutex;bool cancelled{},attempted{},succeeded{},known{},timed_out{};
-        DWORD error{};std::uint64_t before{},after{};std::string reason;
+        DWORD error{};UINT position_flags{};std::uint64_t before{},after{},preflight_started{};std::string reason;
         ~Work(){if(done)CloseHandle(done);}
     };
     struct State {
@@ -280,6 +280,8 @@ struct WindowWriter::NativeExecutor {
         std::lock_guard lock(work->mutex);
         if(work->cancelled||shared->stopping){work->reason="native_worker_admission_cancelled";return false;}
         if(!work->cleanup_owned&&!allowed_by_guard(work->guard,work->reason))return false;
+        if(work->operation==Operation::Placement)
+            work->position_flags=WindowWriter::placement_flags(work->expected,work->native);
         work->before=now();if(!work->before){work->reason="native_attempt_clock_unavailable";return false;}
         work->attempted=true;return true;
     }
@@ -397,7 +399,7 @@ struct WindowWriter::NativeExecutor {
                         const BOOL success=work->operation==Operation::Lower?
                             SetWindowPos(work->expected.hwnd,HWND_BOTTOM,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE):
                             SetWindowPos(work->expected.hwnd,nullptr,static_cast<int>(r.left()),static_cast<int>(r.top()),
-                                static_cast<int>(r.width()),static_cast<int>(r.height()),SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOOWNERZORDER);
+                                static_cast<int>(r.width()),static_cast<int>(r.height()),work->position_flags);
                         const DWORD error=success?ERROR_SUCCESS:GetLastError();const auto completed=now();
                         std::lock_guard lock(work->mutex);work->succeeded=success!=FALSE;work->error=error;work->after=completed;
                         if(work->operation==Operation::Lower){work->visual_native.zorder_succeeded=success!=FALSE;work->visual_native.zorder_error=error;}
@@ -414,12 +416,13 @@ struct WindowWriter::NativeExecutor {
             SetEvent(shared->exited);
         });
     }
-    std::shared_ptr<Work> execute(const Snapshot& expected,const Rect& native,const Rect& requested,Guard guard,
+    std::shared_ptr<Work> execute(const Snapshot& expected,const Rect& native,const Rect& requested,Guard guard,std::uint64_t preflight_started,
         Operation operation=Operation::Placement,const v::VisualState& before={},const v::VisualState& target={},
         bool alpha=false,bool top=false,std::optional<v::VisualOwnership> cleanup_owned=std::nullopt,BeforeIssue before_issue={},GestureCaptureLease capture={},
         std::optional<DestinationDisplay> destination={}){
         auto work=std::make_shared<Work>();if(!work->done)return {};
         work->expected=expected;work->native=native;work->requested=requested;work->guard=std::move(guard);work->reason.reserve(128);
+        work->preflight_started=preflight_started;
         work->capture=std::move(capture);
         work->destination=std::move(destination);
         work->operation=operation;work->visual_before=before;work->visual_target=target;
@@ -529,15 +532,18 @@ std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const 
         Receipt r;r.before=job->expected;r.requested=job->requested;r.destination=job->destination;
         {std::lock_guard lock(job->mutex);r.call_id=job->id;r.native_attempted=job->attempted;r.native_succeeded=job->succeeded;
             r.completion_known=job->known;r.before_qpc=job->before;r.after_qpc=job->after;r.error=job->error;
+            r.preflight_started_qpc=job->preflight_started;r.native_position_flags=job->position_flags;
             r.operation=job->operation;r.visual_before=job->visual_before;r.visual_target=job->visual_target;
             r.alpha_change=job->alpha_change;r.top_change=job->top_change;r.visual_native=job->visual_native;r.reason=job->reason;}
         if(r.operation!=Operation::Placement){observe_auxiliary(r,settings,job->capture);result.push_back(std::move(r));continue;}
-        r.after=catalog_.get(r.before.hwnd,settings);r.post_observed_qpc=now();
-        r.identity_valid=r.after&&Catalog::same(r.before,*r.after);
-        r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
-        r.accepted=r.completion_known&&r.native_attempted&&r.native_succeeded&&r.geometry_exact;
-        r.reason="delayed_native_completion_observed_no_authority_restored";
-        if(!observe_placement_completion(r,catalog_,job->capture)){r.accepted=false;r.reason=r.post_context_reason;}
+        r.after=catalog_.get(r.before.hwnd,settings);
+        observe_post_context(r,[&]{
+            r.identity_valid=r.after&&Catalog::same(r.before,*r.after);
+            r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
+            r.accepted=r.completion_known&&r.native_attempted&&r.native_succeeded&&r.geometry_exact;
+            r.reason="delayed_native_completion_observed_no_authority_restored";
+            if(!observe_placement_completion(r,catalog_,job->capture)){r.accepted=false;r.reason=r.post_context_reason;}
+        },now);
         result.push_back(std::move(r));
     }return result;
 }
@@ -563,6 +569,11 @@ WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
     result.accepted = true;
     result.reason = result.noop ? "already_exact_no_native_call" : "prepared";
     return result;
+}
+
+UINT WindowWriter::placement_flags(const Snapshot& fresh,const Rect& positioning)noexcept{
+    const UINT base=SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOOWNERZORDER;
+    return base|(positioning.size()==fresh.positioning.size()?SWP_NOSIZE:0U);
 }
 
 WindowWriter::DestinationPreparation WindowWriter::prepare_destination(const Snapshot& before,const Rect& native,
@@ -622,47 +633,49 @@ WindowWriter::VisualPreparation WindowWriter::prepare_visual(const v::VisualStat
 }
 
 void WindowWriter::observe_auxiliary(Receipt& result,const v::Settings& settings,const GestureCaptureLease& capture){
-    std::string capture_reason;result.after=catalog_.get(result.before.hwnd,settings,&capture_reason,true,false);result.post_observed_qpc=now();
-    result.identity_valid=result.after&&Catalog::same(result.before,*result.after);
-    if(result.identity_valid)result.visual_after=read_visual(result.before.hwnd);
-    result.geometry_exact=result.identity_valid&&result.after->visible==result.before.visible&&result.after->positioning==result.before.positioning;
-    if(result.identity_valid){
-        if(result.operation==Operation::Lower){
-            // Exactly two finite observations, never a traversal/retry/poll.
-            // Equality is a bounded stability check, not an atomic Z snapshot.
-            result.z_lower_begin_qpc=now();
-            result.z_lower_samples[0]=observe_lower_z_order(result.before);
-            result.z_lower_samples[1]=observe_lower_z_order(result.before);
-            result.z_lower_end_qpc=now();
-            const auto& actual=result.z_lower_samples[1];
-            result.z_previous=actual.previous;result.z_next=actual.next;
-            result.z_bottom_observed=actual.known&&!actual.next;
-            result.z_lower_kind=lower_z_order_completion(result.before,result.z_lower_samples[0],actual);
-            result.z_lower_observed=result.z_lower_kind!=LowerZOrderKind::Unconfirmed;
-        }else{
-            result.z_previous=GetWindow(result.before.hwnd,GW_HWNDPREV);result.z_next=GetWindow(result.before.hwnd,GW_HWNDNEXT);
-            result.z_bottom_observed=result.z_next==nullptr;
+    std::string capture_reason;result.after=catalog_.get(result.before.hwnd,settings,&capture_reason,true,false);
+    observe_post_context(result,[&]{
+        result.identity_valid=result.after&&Catalog::same(result.before,*result.after);
+        if(result.identity_valid)result.visual_after=read_visual(result.before.hwnd);
+        result.geometry_exact=result.identity_valid&&result.after->visible==result.before.visible&&result.after->positioning==result.before.positioning;
+        if(result.identity_valid){
+            if(result.operation==Operation::Lower){
+                // Exactly two finite observations, never a traversal/retry/poll.
+                // Equality is a bounded stability check, not an atomic Z snapshot.
+                result.z_lower_begin_qpc=now();
+                result.z_lower_samples[0]=observe_lower_z_order(result.before);
+                result.z_lower_samples[1]=observe_lower_z_order(result.before);
+                result.z_lower_end_qpc=now();
+                const auto& actual=result.z_lower_samples[1];
+                result.z_previous=actual.previous;result.z_next=actual.next;
+                result.z_bottom_observed=actual.known&&!actual.next;
+                result.z_lower_kind=lower_z_order_completion(result.before,result.z_lower_samples[0],actual);
+                result.z_lower_observed=result.z_lower_kind!=LowerZOrderKind::Unconfirmed;
+            }else{
+                result.z_previous=GetWindow(result.before.hwnd,GW_HWNDPREV);result.z_next=GetWindow(result.before.hwnd,GW_HWNDNEXT);
+                result.z_bottom_observed=result.z_next==nullptr;
+            }
         }
-    }
-    result.visual_exact=result.visual_after&&same_changed_visual(*result.visual_after,result.visual_target,result.alpha_change,result.top_change);
-    const bool context=observe_capture_completion(result,capture);
-    if(!result.identity_valid){result.reason="visual_postverify_"+capture_reason;return;}
-    if(!result.visual_after){result.reason="visual_postverify_attributes_unavailable";return;}
-    if(!result.geometry_exact){result.reason="visual_native_changed_or_unattributed_geometry";return;}
-    if(!context){result.reason=result.post_context_reason;return;}
-    if(result.operation==Operation::Lower){
-        result.accepted=result.native_attempted&&result.native_succeeded&&!result.visual_after->topmost&&result.z_lower_observed;
-        result.reason=!result.accepted?"lower_native_completion_requires_zorder_review":
-            result.z_lower_kind==LowerZOrderKind::ShellDesktopTail?"lower_native_shell_desktop_tail_observed":"lower_native_bottom_observed";return;
-    }
-    if(!result.native_attempted&&result.reason!="visual_already_exact_worker_no_native_call"&&result.reason!="visual_already_exact_no_native_call")return;
-    result.accepted=result.visual_exact&&(!result.native_attempted||result.native_succeeded)&&result.after_qpc!=0;
-    result.reason=result.accepted?"exact_visual_completion":!result.native_succeeded?"native_visual_sequence_failed":"native_visual_not_exact";
+        result.visual_exact=result.visual_after&&same_changed_visual(*result.visual_after,result.visual_target,result.alpha_change,result.top_change);
+        const bool context=observe_capture_completion(result,capture);
+        if(!result.identity_valid){result.reason="visual_postverify_"+capture_reason;return;}
+        if(!result.visual_after){result.reason="visual_postverify_attributes_unavailable";return;}
+        if(!result.geometry_exact){result.reason="visual_native_changed_or_unattributed_geometry";return;}
+        if(!context){result.reason=result.post_context_reason;return;}
+        if(result.operation==Operation::Lower){
+            result.accepted=result.native_attempted&&result.native_succeeded&&!result.visual_after->topmost&&result.z_lower_observed;
+            result.reason=!result.accepted?"lower_native_completion_requires_zorder_review":
+                result.z_lower_kind==LowerZOrderKind::ShellDesktopTail?"lower_native_shell_desktop_tail_observed":"lower_native_bottom_observed";return;
+        }
+        if(!result.native_attempted&&result.reason!="visual_already_exact_worker_no_native_call"&&result.reason!="visual_already_exact_no_native_call")return;
+        result.accepted=result.visual_exact&&(!result.native_attempted||result.native_succeeded)&&result.after_qpc!=0;
+        result.reason=result.accepted?"exact_visual_completion":!result.native_succeeded?"native_visual_sequence_failed":"native_visual_not_exact";
+    },now);
 }
 
 WindowWriter::Receipt WindowWriter::visual(const Snapshot& expected,const v::VisualState& before,const v::VisualState& target,
     bool alpha,bool top,const v::Settings& settings,Guard guard,std::optional<v::VisualOwnership> cleanup,BeforeIssue before_issue,GestureCaptureLease capture){
-    Receipt result;result.before=expected;result.requested=expected.visible;result.operation=Operation::Visual;
+    Receipt result;result.preflight_started_qpc=now();result.before=expected;result.requested=expected.visible;result.operation=Operation::Visual;
     result.visual_before=before;result.visual_target=target;result.alpha_change=alpha;result.top_change=top;
     if(!cleanup&&!settings.enabled){result.reason="visual_product_disabled";return result;}
     std::string why;const auto fresh=catalog_.get(expected.hwnd,settings,&why,cleanup.has_value(),false);
@@ -672,25 +685,25 @@ WindowWriter::Receipt WindowWriter::visual(const Snapshot& expected,const v::Vis
     if(!actual){result.reason="visual_preflight_attributes_unavailable";return result;}
     // A known no-call rejection can still settle the helper's prepared tuple.
     // This is a preflight observation, never an invented native completion.
-    result.visual_after=actual;result.post_observed_qpc=now();
+    result.visual_after=actual;result.geometry_observed_qpc=now();
     const auto prepared=prepare_visual(before,*actual,target,alpha,top,cleanup);
     if(!prepared.accepted){result.reason=prepared.reason;return result;}
     if(!cleanup&&!allowed_by_guard(guard,result.reason))return result;
-    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),Operation::Visual,before,target,alpha,top,std::move(cleanup),std::move(before_issue),std::move(capture));
+    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),result.preflight_started_qpc,Operation::Visual,before,target,alpha,top,std::move(cleanup),std::move(before_issue),std::move(capture));
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
-    result.visual_after.reset();result.post_observed_qpc=0;
+    result.visual_after.reset();result.geometry_observed_qpc=result.post_observed_qpc=0;
     {std::lock_guard lock(work->mutex);result.call_id=work->id;result.native_attempted=work->attempted;result.native_succeeded=work->succeeded;
         result.completion_known=work->known;result.error=work->error;result.before_qpc=work->before;result.after_qpc=work->after;result.reason=work->reason;result.visual_native=work->visual_native;}
     if(result.completion_known)observe_auxiliary(result,settings,work->capture);return result;
 }
 
 WindowWriter::Receipt WindowWriter::lower(const Snapshot& expected,const v::Settings& settings,Guard guard){
-    Receipt result;result.before=expected;result.requested=expected.visible;result.operation=Operation::Lower;
+    Receipt result;result.preflight_started_qpc=now();result.before=expected;result.requested=expected.visible;result.operation=Operation::Lower;
     if(!settings.enabled){result.reason="lower_product_disabled";return result;}
     std::string why;const auto fresh=catalog_.get(expected.hwnd,settings,&why,false,false);
     if(!fresh||!consistent(expected,*fresh,why)){result.reason="lower_preflight_"+why;return result;}
     result.before=*fresh;if(!allowed_by_guard(guard,result.reason))return result;
-    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),Operation::Lower);
+    const auto work=executor_->execute(*fresh,fresh->positioning,fresh->visible,std::move(guard),result.preflight_started_qpc,Operation::Lower);
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
     {std::lock_guard lock(work->mutex);result.call_id=work->id;result.native_attempted=work->attempted;result.native_succeeded=work->succeeded;
         result.completion_known=work->known;result.error=work->error;result.before_qpc=work->before;result.after_qpc=work->after;result.reason=work->reason;result.visual_native=work->visual_native;}
@@ -718,7 +731,8 @@ bool WindowWriter::preserves_terminal_receipt(const Receipt& receipt,std::uint64
 WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expected,
     const Rect& desired,const core::v1::Settings& settings,Guard guard,GestureCaptureLease capture,
     const std::optional<DestinationDisplay>* frozen){
-    Receipt result = rejected(expected, desired, "not_attempted");
+    const auto preflight_started=now();
+    Receipt result = rejected(expected, desired, "not_attempted");result.preflight_started_qpc=preflight_started;
     if (!native_rect(desired)) {
         result.reason = "invalid_or_out_of_native_range_target";
         return result;
@@ -762,23 +776,27 @@ WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expec
         result.destination=destination.proof;
     }
     if (!allowed_by_guard(guard, result.reason)) return result;
-    const auto work=executor_->execute(*before,native,desired,std::move(guard),Operation::Placement,{},{},false,false,std::nullopt,{},std::move(capture),result.destination);
+    const auto work=executor_->execute(*before,native,desired,std::move(guard),result.preflight_started_qpc,Operation::Placement,{},{},false,false,std::nullopt,{},std::move(capture),result.destination);
     if(!work){result.reason="native_worker_busy_or_stopped_no_new_call";return result;}
     {
         std::lock_guard lock(work->mutex);
         result.call_id=work->id;result.native_attempted=work->attempted;result.native_succeeded=work->succeeded;
         result.completion_known=work->known;result.error=work->error;result.before_qpc=work->before;result.after_qpc=work->after;
+        result.native_position_flags=work->position_flags;
         if(!work->known||!work->attempted){result.reason=work->reason;return result;}
     }
 
     // This is observation of an issued call, not a new permission request.
     // In particular, do not call guard again: a matching normal UP must not
     // turn an otherwise exact completion into a false authority failure.
-    result.after = catalog_.get(before->hwnd, settings, &capture_reason);result.post_observed_qpc=now();
-    result.identity_valid = result.after && Catalog::same(*before, *result.after);
-    result.geometry_exact = result.identity_valid && result.after->visible == desired &&
-        result.after->positioning == native;
-    const bool context=observe_placement_completion(result,catalog_,work->capture);
+    result.after = catalog_.get(before->hwnd, settings, &capture_reason);
+    bool context{};
+    observe_post_context(result,[&]{
+        result.identity_valid = result.after && Catalog::same(*before, *result.after);
+        result.geometry_exact = result.identity_valid && result.after->visible == desired &&
+            result.after->positioning == native;
+        context=observe_placement_completion(result,catalog_,work->capture);
+    },now);
     if (!result.native_succeeded) result.reason = "native_placement_failed";
     else if (!result.after) result.reason = "postverify_" + capture_reason;
     else if (!result.identity_valid) result.reason = "identity_changed_after_native_attempt";

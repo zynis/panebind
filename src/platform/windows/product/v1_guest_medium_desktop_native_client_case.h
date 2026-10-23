@@ -11,6 +11,7 @@ struct MediumTerminalClientObservation {
     std::string reason{"not_started"};
     void emit(std::string type,std::string fields){records.emplace_back(std::move(type),std::move(fields));}
 };
+#include "platform/windows/product/v1_guest_medium_desktop_terminal_failure_observation.h"
 // Both files are CREATE_NEW. The ready file initially remains empty: only
 // cmd's startup script may write the separate exact shell-ready value. This
 // script never creates or satisfies the later keyboard-produced client nonce.
@@ -96,7 +97,7 @@ struct MediumTerminalClientResources {
 };
 
 MediumTerminalClientObservation medium_terminal_client_case(
-    const std::wstring& run,HDESK created,HWND source,DWORD pid,DWORD tid,
+    const std::wstring& run,const std::string& configuration,HDESK created,HWND source,DWORD pid,DWORD tid,
     HANDLE held_process,std::uint64_t birth,const fs::path& nonce_output,
     const std::function<bool()>& active,const std::function<bool()>& exact_window,
     const std::shared_ptr<MediumDesktopUiInputLease>& lease,ULONGLONG deadline_tick,ULONGLONG shell_ready_deadline_tick){
@@ -377,6 +378,12 @@ MediumTerminalClientObservation medium_terminal_client_case(
             ",\"actual_ready_value\":"+(out.shell_ready_observed?quote(ready_value):"null")+
             ",\"actual_ready_sha256\":"+(out.shell_ready_observed?quote(hash(shell_ready)):"null")+
             ",\"client_input_sent\":false,\"customer_nonce_satisfied\":false,\"ready_grants_no_input_or_product_authority\":true");
+        if(!out.shell_ready_phase_accepted){
+            const auto observe_context=[&]{return !quit_seen&&lease&&lease->flags.load(std::memory_order_acquire)==0&&
+                !lease->incomplete_pair.load(std::memory_order_acquire)&&context()&&no_buttons()&&foreground_focus();};
+            if(!medium_terminal_observe_ready_failure(out,run,configuration,created,source,pid,tid,held_process,birth,
+                observe_context,deadline_tick))resources.unknown=true;
+        }
         if(!ready_notification_scope)throw std::runtime_error("shell_bootstrap_ready_notification_scope_unavailable_no_client_input");
         if(!out.shell_ready_phase_accepted)throw std::runtime_error(out.shell_ready_observed?
             "shell_ready_observed_but_initialization_phase_not_accepted_no_client_input":

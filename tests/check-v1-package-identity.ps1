@@ -1792,4 +1792,42 @@ foreach($value in @('explorer_case_=manifest_explorer(manifest)','geometry_manif
     'MediumDesktopUiInputLease::in_flight)&&explorer_->refresh()')){
     if(-not $mediumGeometrySource.Contains($value)){throw ('Common geometry chain lost the bounded Explorer adapter connection: '+$value)}
 }
+function Assert-V1TraySemanticPoint([string]$UI,[string]$Semantic){
+    foreach($value in @('point=medium_tray_semantic_point(area,shell_pid_',
+        'input_context()&&target()&&no_buttons();','click(true,point,target);')){
+        if(-not $UI.Contains($value)){throw 'Tray click must use the semantic point and preserve the original fresh guards.'}
+    }
+    foreach($value in @('put_ConnectionTimeout(150)','put_TransactionTimeout(150)','put_AutoSetFocus(FALSE)',
+        'ElementFromPoint(center','static_cast<DWORD>(pid)==shell_pid','own_name&&',
+        'control==UIA_ButtonControlTypeId','PtInRect(&icon,point)&&PtInRect(&actual,point)&&active()',
+        'element.value->GetClickablePoint(&point,&got)','GetForegroundWindow()==foreground',
+        'if(!exact)throw','nonmatching_name_redacted')){
+        if(-not $Semantic.Contains($value)){throw 'Semantic tray observation must bind the exact Shell button, point and bounded context.'}
+    }
+    if($Semantic -match '(?:->|\b)(?:Invoke|ShowContextMenu|SetFocus|SetForegroundWindow|PostMessage\w*|SendMessage\w*|SendInput|FindAll|FindFirst|GetParentElement)\s*\(' -or
+        $Semantic.Contains('INFINITE') -or $Semantic.Contains('Sleep(')){
+        throw 'Semantic point observation must remain read-only with no tree or action fallback.'
+    }
+}
+$semanticTray=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_tray_semantic_point.h'),[Text.Encoding]::UTF8)
+Assert-V1TraySemanticPoint $mediumUiSource $semanticTray
+Check $true 'static tray contrast requires the actual named Shell button and its physical clickable point without UIA actions'
+Reject {Assert-V1TraySemanticPoint $mediumUiSource ($semanticTray.Replace('own_name&&','true&&'))} 'static tray contrast rejects replacing the exact icon name with permission'
+Reject {Assert-V1TraySemanticPoint $mediumUiSource ($semanticTray.Replace('PtInRect(&icon,point)&&PtInRect(&actual,point)&&active()','true'))} 'static tray contrast rejects a point outside the original icon or retired context'
+foreach($value in @('medium_observe_held_process_exit(process,pid,birth,caller_deadline_tick,quit_seen',
+    'if(!out.budget_ms||quit_seen)','WaitForSingleObject(process,0)',
+    'while(batch--&&!quit_seen&&GetTickCount64()<end&&out.dispatched_messages<1024&&',
+    'out.completed=!quit_seen&&responded','all_descendants_exit_inferred')){
+    Check ($mediumNativeSource.Contains($value)) ('static bounded process close preserves the actual deadline and signal boundary: '+$value)
+}
+Check ($mediumGeometrySource.Contains('out_.cleanup_known=out_.cleanup_known&&!quit_seen_&&target_closed_')) 'static close observation QUIT blocks further product UI input through cleanup status'
+$readyFailureSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_terminal_failure_observation.h'),[Text.Encoding]::UTF8)
+foreach($value in @('first.complete&&second.complete','one.readonly_same(two)&&current()&&GetForegroundWindow()==source',
+    'entries.size()>=4096','tree.nodes.size()>=32','queries>=64','CREATE_NEW',
+    'foreground_or_rect_changed_after_BitBlt_pixels_not_saved','empty_does_not_prove_cmd_never_started')){
+    Check ($readyFailureSource.Contains($value)) ('static single ready-failure observation retains its exact scope: '+$value)
+}
+Check ($mediumClientSource.Contains('if(!out.shell_ready_phase_accepted){') -and
+    $mediumClientSource.Contains('medium_terminal_observe_ready_failure(out,run,configuration,created,source,pid,tid,held_process,birth,')) 'static actual client ready failure is wired to its one read-only observation before the preserved rejection'
+if($readyFailureSource -match '\b(SendInput|SetForegroundWindow|SetFocus|PrintWindow|SetWindowPos|TerminateProcess|Sleep|SetTokenInformation|SetUserObjectSecurity)\s*\('){throw 'Read-only ready-failure evidence cannot become input, control or a different authority route.'}
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

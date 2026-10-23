@@ -1,0 +1,74 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "kind": "existing_raw_QPC_and_actual_source_review_not_new_native_execution",
+  "review_date": "2026-10-23",
+  "run_id": "4ff66c34658d491aab7e9c3d81459678",
+  "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+  "product_binary_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+  "driver_source_sha": "e869dfc0f2d5acea006b6084e18f0ce818c31ee2",
+  "raw_evidence_review": "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-review.json",
+  "literal_excerpt": "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-excerpt.jsonl",
+  "literal_excerpt_sha256": "37019D872460F503CE81F8EA68EE1920C3364E6DE79F6FE251CE77FCE41221E1",
+  "QPC_frequency": 10000000,
+  "same_input": {
+    "process_id": 3604,
+    "generation": 5,
+    "operation": 9,
+    "hook_observed_qpc": 475790787,
+    "serial_members": [
+      {
+        "product_sequence": 167,
+        "key": 1,
+        "call_id": 8,
+        "native_before_qpc": 476090235,
+        "native_after_qpc": 476102605,
+        "old_post_observed_qpc": 476118770,
+        "hook_to_native_before_ms": 29.9448,
+        "native_interval_ms": 1.2370,
+        "native_after_to_old_geometry_observation_ms": 1.6165,
+        "hook_to_old_geometry_observation_ms": 32.7983
+      },
+      {
+        "product_sequence": 168,
+        "key": 2,
+        "call_id": 9,
+        "native_before_qpc": 476223341,
+        "native_after_qpc": 476458646,
+        "old_post_observed_qpc": 476584298,
+        "hook_to_native_before_ms": 43.2554,
+        "native_interval_ms": 23.5305,
+        "native_after_to_old_geometry_observation_ms": 12.5652,
+        "hook_to_old_geometry_observation_ms": 79.3511
+      }
+    ],
+    "P167_old_geometry_to_P168_native_before_ms": 10.4571,
+    "P167_old_geometry_to_P168_old_geometry_ms": 46.5528
+  },
+  "source_findings": [
+    {
+      "path": "src/platform/windows/product/window_writer.cpp",
+      "at_product_source": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "finding": "batch executes member placements serially. P168's hook-relative pre-call interval already includes P167's execution; it is not 43.2554ms spent solely checking member2. The10.4571ms gap also includes the earlier member's remaining context/log work and later member preflight/worker admission; the old log cannot partition those APIs."
+    },
+    {
+      "path": "src/platform/windows/product/window_writer.cpp",
+      "at_product_source": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "finding": "place and delayed-completion paths assign post_observed_qpc immediately after Catalog::get and before observe_placement_completion. That observer performs actual identity/GUI/capture/display checks. Thus the old NF02 endpoint undercounts complete post-context, and12.5652ms is not a measured total postverification duration."
+    },
+    {
+      "path": "src/platform/windows/product/window_writer.cpp",
+      "at_product_source": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "finding": "Even a fresh-verified size-preserving Placement passes cx/cy without SWP_NOSIZE. Retaining size explicitly removes this unnecessary size request. The old logs do not prove how much it contributed to23.5305ms or that it is the sole latency cause."
+    }
+  ],
+  "limits": [
+    "No new native trial or performance PASS is granted by this review.",
+    "The current small sample9-native p95 bucket99999us/max79352us remains a failure against the50ms target.",
+    "Scheduling, Catalog limit-query/COM/security costs and native target handling cannot be separately attributed from the old clocks.",
+    "Fresh identity, permission, capture and revocation checks are not removed as a shortcut.",
+    "Any successor product has a new source/hash. Its complete-context endpoint is reported separately; old results are not rebound or directly called equivalent.",
+    "Software QPC observations are not physical display latency or a cross-machine time line."
+  ],
+  "NF02_status": "FAIL_RETAINED_PENDING_NEW_CANDIDATE_NATIVE_REVALIDATION",
+  "human_UAT": "NOT_RUN"
+}

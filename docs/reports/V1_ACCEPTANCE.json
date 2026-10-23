@@ -11639,8 +11639,8 @@
       "dev_status": "PASS",
       "human_status": "NOT_RUN",
       "points_awarded": 2.5,
-      "source_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
-      "binary_sha256": "34932C08C12B956D53E8158FC2554288C70CEAF62311B60A80295386A9544252",
+      "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
+      "binary_sha256": "9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3",
       "environment_id": "E02",
       "run_id": "830a9b3c98ca4132beeb5c5077c4a2ab",
       "evidence_paths": [
@@ -11650,12 +11650,12 @@
         "docs/reports/v1-evidence/c01-release-components.jsonl",
         "docs/reports/v1-evidence/e7e0-r10-release-two-rounds-strict-duration-and-modern-terminal-selected.jsonl"
       ],
-      "note": "仅依赖M10F04独立合同；当前830a与原身份保留/未变视觉范围的补充证据闭合，不附加模块或五应用门。",
+      "note": "仅依赖M10F04独立合同；source_sha/binary_sha256/run_id明确绑定830a实际4f7运行，原日志、launch、manifest与EXE哈希一致。后继候选的未变范围继承按关联M10-F04合同复核另判，不把830a运行改绑25b或42ab，不附加模块或五应用门。",
       "candidate_identity_ref": "current_package",
       "feature_ids": [
         "M10-F04"
       ],
-      "observed": "可选拖动透明仅改当前有效源；当前正常/FocusLost恢复173及后继UP，原退出/helper、永久透明/置顶共存和未知alpha限制可见证据齐全。旧b6整批FAIL及原因UNKNOWN保留，非当前根因修复声明。",
+      "observed": "830a实际产品4f7/EXE9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3：可选拖动透明仅改当前有效源，正常/FocusLost恢复173及后继UP有本批真实证据；原退出/helper、永久透明/置顶共存和未知alpha限制保留各自原身份并按未变生产范围复核。后继25b/42ab继承判断不是830a对后继EXE的新运行。旧b6整批FAIL及原因UNKNOWN保留，非根因修复声明。",
       "remaining_conditions": [],
       "next_action": "B22独立计分；继续其他未通过对标及完整版本门，不把本项PASS等价模块/全环境验收。",
       "partial_observation_ids": [
@@ -11951,7 +11951,9 @@
         "docs/reports/v1-evidence/714c-release-scoped.jsonl",
         "docs/reports/v1-evidence/9d74-fixture-selected.jsonl",
         "docs/reports/v1-evidence/0a8f-fixture-selected.jsonl",
-        "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl"
+        "docs/reports/v1-evidence/f9-mapping-fixture-selected.jsonl",
+        "docs/reports/v1-evidence/ca0e-settings-validation-review.json",
+        "docs/reports/v1-evidence/efed-public-rules-path-review.json"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -11962,13 +11964,11 @@
         "M11-F04",
         "M11-F05"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。；M11-F05已按9d74真实写失败保护/恢复及同R2 schema负例完整独立PASS；本对标仍须其他关联功能。；M11-F03已按f9真实冲突保护/新映射执行/此页默认/公开动作帮助完整独立通过，其他关联设置合同仍缺。",
+      "observed": "M11-F02已按ca0e非法参数拒绝/同草稿合法保存及真实后继动作独立PASS，M11-F04已按efed公开路径/名称/功能规则及原身份类名/活动组撤权证据独立PASS；不再将两项列为当前未过依赖。M11-F03映射与M11-F05配置持久化各保已有独立PASS及原运行身份。本B项仍缺M11-F01规定的真实托盘打开逐页修改和实际操作，普通无参GUI或公开--settings不替代该入口；保持BLOCKED/0。",
       "remaining_conditions": [
-        "M11-F01: 完整功能合同尚未通过，见功能行具体条件",
-        "M11-F02: 完整功能合同尚未通过，见功能行具体条件",
-        "M11-F04: 完整功能合同尚未通过，见功能行具体条件"
+        "M11-F01: 尚未取得真实托盘打开设置并逐页修改/真实操作；见功能行实际菜单失败与具体剩余条件。M11-F02/F03/F04/F05已有独立PASS，不重复列为未过依赖。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "只推进仍缺的M11-F01真实托盘入口，并在同候选实际窗口链取得证据后重判B28；不重跑已闭参数/规则/映射/持久化专项，不将模块五应用或显示门重复塞入本B项，不新增PASS。",
       "partial_observation_ids": [
         "PO-269B-GUI",
         "PO-C01-INDEPENDENT",
@@ -12044,7 +12044,8 @@
       "evidence_paths": [
         "docs/reports/v1-evidence/index.json",
         "docs/reports/v1-evidence/c01-release-components.jsonl",
-        "docs/reports/v1-evidence/714c-release-scoped.jsonl"
+        "docs/reports/v1-evidence/714c-release-scoped.jsonl",
+        "docs/reports/v1-evidence/ca0e-settings-validation-review.json"
       ],
       "note": "当前Release真实窗口证据与无阻断缺陷才可计PASS。",
       "candidate_identity_ref": "current_package",
@@ -12052,12 +12053,11 @@
         "M10-F01",
         "M11-F02"
       ],
-      "observed": "已有具体子项/失败见关联功能，不增加分数。",
+      "observed": "M11-F02参数/视觉选项验证已按ca0e及原身份补充证据独立PASS，不再列为当前未过依赖。M10-F01预览与actual、穿透/取消/退出及真实100/150/200%/跨屏定位完整合同仍缺，现有单屏子项不能补齐；B30保持BLOCKED/0。",
       "remaining_conditions": [
-        "M10-F01: 完整功能合同尚未通过，见功能行具体条件",
-        "M11-F02: 完整功能合同尚未通过，见功能行具体条件"
+        "M10-F01: 实际preview/actual、穿透及取消/退出与真实100/150/200%/跨屏定位完整合同尚未通过；M11-F02已独立PASS，具体尚缺条件见M10-F01。"
       ],
-      "next_action": "完成关联功能完整DEV合同，并在当前同候选Release真实窗口链取得证据后重新判定。",
+      "next_action": "仅补M10-F01尚缺的真实显示/预览合同并按同候选窗口证据重判B30；复用已过M11-F02，不重跑参数验证或以构建/模拟坐标提升本项。",
       "partial_observation_ids": [
         "PO-C01-INDEPENDENT",
         "PO-714C-DIAGNOSTIC-PORTABLE"
@@ -14126,9 +14126,9 @@
       ],
       "observed": "【当前42ab/4ff实际补齐】同exact Medium Run/同产品实例真实Move→Resize→后继Move后，再Free→XY吸附→Hold真实noop→Detach→Resnap、实际邻接Terminal+owned blank两成员Ctrl均exact；五代均实际Raw/legacy NormalUp与release/detach/Gone。入口是现有同EXE --settings --diagnostic，普通无参入口另f78保留。D1098仅该几何/两成员Ctrl子scope PASS；D1116托盘仍失败。实际publicquit exit0、产品自身资源stop及独立Default回切成立，Terminal rootGone但进程wait258/Shellalive/wrapperdesc1+forcedtrue，不能全进程树cleanup PASS。客户nonce/内容语义、五应用混合组、全Terminal类别仍未通过。 744e载荷未启动，driver40a/bb23新exact Medium Terminal真实root/响应成立；bootstrap启动API返回true但不证明cmd已执行，actual8328ms/一次native WAIT_TIMEOUT258、context accepted，ready预留仍0B，未发送客户键鼠/未启动产品。正常rootGone与非原子processwait258/exit0、Shellchild存活/forcedjob分列；完整9file稳定收集已恢复且原owner不变，不再待collection，不推系统或产品根因。 【原应用几何/客户观察保持原身份】744e/5211/af4f：同一普通无参Medium产品在exact active Run对精确新Terminal真实Move→Resize→后继Move三代，各有几何、Raw/legacy NormalUp、capture release/detach/Gone及idle；D606在真实START后丢弃尚未发出的阈值kick，D626只通过该几何子链。普通成功per-call placement回执UNKNOWN，不授全磁吸、Ctrl、客户内容或五应用。随后真实UID1右键菜单D643 FAIL；P1..88完整只见注册P1false/P6ADD+VERSIONtrue、零tray ingress/menu API记录行，非根因证明。公共quit/资源stop/Default返回真实成立，但Terminal退出及Shell后代全退出未证，wrapper强制TEST清理原值保留。 744e/85ba/ab827：产品从未启动；458 Unicode与2 Enter包完整插入后实际等待tick3000ms/QPC3.0026056s、最后context accepted、2次native wait/WAIT_TIMEOUT258/no追加输入，nonce仍未生成。不是即刻拒绝或产品拦截。正常rootGone与非原子processWait258/exit0、liveShellchild/forcedjob分列，Default返回/自有观察清理是有限scope，不授全进程清理或客户语义PASS。 744e/85ba/6670：首个精确Terminal自由Move/真实Raw+legacy NormalUp及自有capture释放、detach/Gone通过有限scope。第二代Resize真实START/交接已发生，但TEST阈值过渡门拒绝，未完成目标/正常UP/后继Move，held-pair及独立Default输入回切未证。原driverFAIL/强制测试收尾保持，不当产品Resize FAIL，也不由后续新driver通过改写。 【历史观察保留】R7/4e9现代Terminal五阶段Move/真实UP、Resize/UP、Center/Dock/Undo/Stretch/Esc子项通过；1743客户点实际HTCAPTION2而非HTCLIENT，input_not_yet_sent，1753 exact根关闭确认，1754类别仍FAIL。旧8ffa在产品真正未启动的Default对照中direct cmd CreateProcess成功但exit0xC0000142、nonce缺失；Terminal客户点HTCAPTION2，未发客户输入，截图cmd错误0xD0000022与direct cmd码分列，根正常关闭子项保留。新abb1/0605在新exact active同SID/session/Medium桌面中、冻结25b产品未启动：实际新Terminal PID5844/birth134371331198589148，1.859秒内取得双完整HDESK成员的可见CASCADIA根131874/TID6044及实际矩形；一次WM_NULL有响应、一次正常WM_CLOSE后实际根消失，自有观察资源退出和独立Default回切已核。Foreign GetThreadDesktop仍NULL/error5，未伪造桌面或产品权限；客户输入、cmd内容及产品Move/Resize/Ctrl未运行，不把root关闭外推为所有Terminal后代退出或完整兼容PASS。 0072/dcab在产品未启动的新active Medium Run上重新精确绑定Terminal66382/PID5536，双GTI均成功且idle、单窗VDM S_OK/current=true。真实客户中心点WindowFromPoint仍root66382、WM_NCHITTEST=2；首个光标/鼠标/键盘包全部未发送，nonce未执行。一次WM_CLOSE后root确已消失；Wait258与后来exit0保留非原子采样，所有后代退出未证。 当前55f/6d20新键盘路径已核Terminal同PID/TID焦点InputSite、实际foreign Run名/双GTI idle/VDM current；focus矩形[190,191,190,191]零面积被TEST正面积门拒绝，所有输入0、nonce未执行，不是客户语义失败或Terminal不可用证明。 最新55f/3e2/e657产品未启动：existing同PID/TID零面积键盘焦点经身份门接受，458 Unicode及2 Enter实际完整插入，但exact nonce未见，客户语义UNKNOWN_OR_BLOCKED；鼠标客户未运行。外层Enter完成到卸钩约3.416s包含等待/清理，不把缓冲emit同tick当立即失败或编造专用等待全时长。原driverFAIL/后代未证与有限root关闭/Default返回分列。",
       "remaining_conditions": [
-        "当前744e/af4正式Terminal Move→Resize→后继Move三代正常UP/自有资源退出已通过有限scope，不再标当前产品增强NOT_RUN；普通per-call成功API回执仍UNKNOWN，未证全吸附/保持/脱离/重吸附/XY或Ctrl。",
+        "当前42ab/e869/4ff已实际完成Terminal Move→Resize→后继Move、Free/XY吸附/Hold实际noop/Detach/Resnap与实际邻接两成员Ctrl；各实际native或noop回执及五代Raw/legacy NormalUp/release/detach/Gone可复核。旧744e/af4普通per-call回执UNKNOWN及其未验磁吸/Ctrl只属原历史身份，不再作为当前缺项。",
         "ab827实际3000ms等待超时仍无nonce，产品未启动，客户语义UNKNOWN；鼠标客户未运行。root关闭、非原子wait258/exit0及retained Shell/forcedjob不能外推所有后代正常退出。",
-        "类别全合同/五应用完整矩阵仍缺客户与其它实际操作；当前普通便携入口及显示/完整桌面外部门另验，旧scope与完整类别状态不改判。"
+        "类别全合同/五应用完整矩阵仍缺客户nonce/内容语义及其它规定实际操作、整体应用进程树清理；f78当前普通便携入口仅其scope已通过，显示/完整桌面门另判，A06保持FAIL而非由几何子项升级。"
       ],
       "next_action": "当前42ab五阶段磁吸、两成员Ctrl、实际Resize→后继Move及五代NormalUp已由4ff补齐，复用不无变化重跑。bb23客户ready/nonce UNKNOWN与3d/4ff托盘未开分别保持；仅有新依据才继续相应客户启动/菜单投递变量；其它真实应用与混合组独立推进，不将本单Terminal子scope升A06完整PASS。",
       "latest_bounded_environment_observation": {
@@ -14185,7 +14185,8 @@
         "PO-AF4F-MEDIUM-TERMINAL-THREE-GEOMETRY-NORMALUP-SCOPES-TRAY-FAILED",
         "PO-AB827-MEDIUM-TERMINAL-ACTUAL-WAIT-NONCE-BLOCKED",
         "PO-6670-MEDIUM-TERMINAL-MOVE-PASS-RESIZE-TEST-TRANSITION-FAILED",
-        "PO-BB23-MEDIUM-TERMINAL-SHELL-READY-TIMEOUT-ZERO-INPUT"
+        "PO-BB23-MEDIUM-TERMINAL-SHELL-READY-TIMEOUT-ZERO-INPUT",
+        "PO-4FF6-CURRENT42AB-TERMINAL-MAGNET-CTRL"
       ],
       "historical_744e_latest_product_observation": {
         "source_sha": "744e8908d2069951fec70683b6d793a26cb7397c",

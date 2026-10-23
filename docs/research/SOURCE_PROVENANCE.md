@@ -3438,3 +3438,42 @@ not a product event source, performance result or periodic polling. Only an
 actually inserted, TEST-owned Ctrl pair may use the bounded abort-UP cleanup;
 a retired lease remains retired. No external implementation was copied or
 adapted, and no native functional PASS follows from this source review.
+
+### 2026-10-23 — Exact tray semantic point and complete writer timing
+
+The existing pinned AltSnap/FancyZones lifecycle, worker and bounded native
+operation research is reused, including the recorded issue/history lessons;
+no upstream implementation was copied or adapted. An attempted fresh fetch
+of the pinned PowerToys `src/runner/tray_icon.cpp` through the browser returned
+a cache miss, so it is not claimed as newly inspected source.
+
+The official [UI Automation GetClickablePoint contract](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement-getclickablepoint)
+was actually read: it returns a physical screen point and documents its use
+with a real right-button pair. This TEST contrast observes only the element
+at the existing exact product UID1 rectangle, requiring the expected Shell
+PID, exact PaneBind tooltip name, Button type, visible/enabled facts and a
+point inside both independently obtained rectangles. Unknown or contradictory
+facts stop before input, with no ancestor/tree fallback. The official
+[connection timeout](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomation2-put_connectiontimeout),
+[transaction timeout](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomation2-put_transactiontimeout)
+and [AutoSetFocus](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomation2-put_autosetfocus)
+contracts were checked for bounded observation without implicit focus. No
+UIA action is invoked. In particular, the separately reviewed
+[ShowContextMenu contract](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nf-uiautomationclient-iuiautomationelement3-showcontextmenu)
+permits a parent-menu fallback and is deliberately not used. This is not a
+claim that a tray icon, callback or menu has passed in a guest.
+
+The official [SetWindowPos contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowpos)
+defines `SWP_NOSIZE` as retaining size and ignoring `cx/cy`. Only an already
+fresh-verified same-size placement may use that flag; Resize and all native
+identity, capture, revocation and exact postverification checks remain. This
+removes an unnecessary size request but does not establish its contribution
+to the historical 4ff latency. The official
+[QPC guidance](https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps)
+supports interval comparison on the same system/VM, not cross-machine clocks
+or physical display latency. P167/P168 are serial member completions from one
+input: P168's pre-call elapsed time includes the first member. The historical
+geometry observation timestamp predates the following context checks; the
+new receipt separates geometry observation from complete post-context timing.
+Old logs retain their old timing semantics and candidate identity. Actual
+builds, native results and any NF02 verdict are recorded independently.

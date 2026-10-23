@@ -58,7 +58,8 @@ public:
         std::optional<Snapshot> after;
         core::v1::Rect requested;
         std::uint64_t before_qpc{}, after_qpc{};
-        std::uint64_t call_id{},post_observed_qpc{};
+        std::uint64_t call_id{},preflight_started_qpc{},geometry_observed_qpc{},post_observed_qpc{};
+        UINT native_position_flags{};
         std::string reason;
         Operation operation{Operation::Placement};
         core::v1::VisualState visual_before,visual_target;
@@ -74,6 +75,18 @@ public:
         VisualNativeFacts visual_native;
         std::optional<DestinationDisplay> destination;
     };
+
+    // Used by actual immediate, delayed and auxiliary post-observation paths.
+    // The first clock retains the old geometry-capture boundary; only a fully
+    // returned context observer publishes the NF02 completion clock. Neither
+    // timing fact grants admission or turns a rejected completion into success.
+    template<class Observer>
+    static void observe_post_context(Receipt& receipt,Observer&& observer,std::uint64_t (*clock)()) {
+        receipt.geometry_observed_qpc=clock?clock():0;
+        receipt.post_observed_qpc=0;
+        observer();
+        receipt.post_observed_qpc=clock?clock():0;
+    }
 
     // Called at the last pre-native boundary, after all potentially blocking
     // capture/COM work. The runtime owns its generation/retirement claim; this
@@ -93,6 +106,11 @@ public:
     // No window query, COM, input resource or native placement occurs here.
     [[nodiscard]] static Preparation prepare(const Snapshot& expected,
         const Snapshot& actual, const core::v1::Rect& desired);
+    // Pure flag selection used at the actual Placement callsite. The worker
+    // still independently checks fresh identity/frame/capture and retirement.
+    // Equal native dimensions retain size; genuine Resize stays unchanged.
+    [[nodiscard]] static UINT placement_flags(const Snapshot& fresh,
+        const core::v1::Rect& positioning)noexcept;
     struct DestinationPreparation {bool accepted{};std::optional<DestinationDisplay> proof;std::string reason;};
     // Exact predicates also used by the native adapter. No window operation or
     // monitor query occurs here. Same-display calls need no probe/proof.

@@ -673,7 +673,7 @@
         "path":  "docs/reports/v1-evidence/m10-f04-independent-contract-review.json",
         "sha256":  "74741DEC3C06459D2A6777895FB84C01A45EDC760FB0B45205623640F3DEE8D1",
         "result":  "PASS_INDEPENDENT_M10_F04_AND_B22",
-        "scope":  "Current830a normal/FocusLost restoration173 and same-instance successor; originalbf5c exit/helper,7060/477a permanent visual coexistence,b6c8 unknown-alpha visible restriction retained at their original identities; actual visual production scope unchanged. Oldb6 batchFAIL/causeUNKNOWN retained; no module/full or new per-pixel run."
+        "scope":  "Actual830a product4f7/EXE9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3 normal/FocusLost restoration173 and same-instance successor; B22 runtime fields bind this original source/binary/RunId. Originalbf5c exit/helper,7060/477a permanent visual coexistence,b6c8 unknown-alpha restriction retain their own identities. Later-candidate unchanged-scope inheritance is a separate assessment, not a rebind of830a to25b/42ab or a new runtime. Oldb6 batchFAIL/causeUNKNOWN retained; no module/full or new per-pixel run."
     },
     {
       "id": "EV-6E1F-EXPLICIT-CALLBACK-OWNER-EXIT-AND-RECOVERY",

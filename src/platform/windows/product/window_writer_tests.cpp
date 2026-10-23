@@ -9,6 +9,9 @@ namespace p = panebind::platform::windows::product;
 using panebind::core::v1::Rect;
 
 namespace {
+std::uint64_t observation_tick{};
+std::uint64_t observation_clock() { return observation_tick; }
+
 p::Snapshot fixture() {
     p::Snapshot value;
     // Opaque identities only: this test never queries or operates these values.
@@ -36,6 +39,50 @@ int main() {
         if (!condition) { ++failures; std::cerr << "FAIL: " << name << '\n'; }
     };
     const auto initial = fixture();
+    constexpr UINT base_flags=SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOOWNERZORDER;
+    const Rect translated_native{172,130,688,538};
+    check(p::WindowWriter::placement_flags(initial,translated_native)==(base_flags|SWP_NOSIZE),
+        "fresh native-size-preserving placement retains size instead of requesting it again");
+    check(p::WindowWriter::placement_flags(initial,{172,130,689,538})==base_flags&&
+          p::WindowWriter::placement_flags(initial,{172,130,688,539})==base_flags,
+        "a real width or height change keeps the existing synchronous resize flags");
+    auto different_frame=initial;different_frame.positioning={92,100,609,508};
+    check(p::WindowWriter::placement_flags(different_frame,translated_native)==base_flags,
+        "NOSIZE compares actual positioning dimensions, not equal visible sizes");
+    p::WindowWriter::Receipt observation;
+    observation.preflight_started_qpc=50;observation.post_observed_qpc=75;
+    observation_tick=100;
+    p::WindowWriter::observe_post_context(observation,[&]{
+        check(observation.geometry_observed_qpc==100&&observation.post_observed_qpc==0,
+            "geometry capture is not published as full post-context completion");
+        observation.post_context_checked=true;observation.post_context_valid=false;
+        observation_tick=200;
+    },observation_clock);
+    check(observation.post_observed_qpc==200&&observation.preflight_started_qpc==50&&
+          !observation.accepted&&!observation.post_context_valid,
+        "complete observation clock follows the actual context check without granting success");
+    observation_tick=300;
+    try{p::WindowWriter::observe_post_context(observation,[]{throw 1;},observation_clock);}
+    catch(int){}
+    check(observation.geometry_observed_qpc==300&&observation.post_observed_qpc==0,
+        "an interrupted post-context check cannot retain an older complete timestamp");
+    p::WindowWriter::Receipt delayed;delayed.native_attempted=true;delayed.completion_known=true;
+    observation_tick=400;
+    p::WindowWriter::observe_post_context(delayed,[&]{
+        delayed.identity_valid=delayed.geometry_exact=true;
+        delayed.post_context_checked=delayed.post_context_valid=true;observation_tick=500;
+    },observation_clock);
+    check(delayed.geometry_observed_qpc==400&&delayed.post_observed_qpc==500,
+        "delayed issued completion uses the same geometry then full-context clock order");
+    p::WindowWriter::Receipt auxiliary;auxiliary.operation=p::WindowWriter::Operation::Lower;
+    observation_tick=600;
+    p::WindowWriter::observe_post_context(auxiliary,[&]{observation_tick=700;return;},observation_clock);
+    check(auxiliary.geometry_observed_qpc==600&&auxiliary.post_observed_qpc==700&&!auxiliary.accepted,
+        "an auxiliary rejection returning from its observer still records the completed check");
+    observation_tick=800;
+    p::WindowWriter::observe_post_context(auxiliary,[&]{observation_tick=0;},observation_clock);
+    check(auxiliary.geometry_observed_qpc==800&&auxiliary.post_observed_qpc==0,
+        "a missing completion clock remains unknown rather than borrowing the geometry clock");
     check(p::WindowWriter::complete_unissued_on_stop(false,false),"stop completes and signals only never-issued pending admission");
     check(!p::WindowWriter::complete_unissued_on_stop(true,false),"stop cannot signal or claim completion of an issued unknown native call");
     check(!p::WindowWriter::complete_unissued_on_stop(false,true)&&!p::WindowWriter::complete_unissued_on_stop(true,true),

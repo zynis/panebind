@@ -616,15 +616,20 @@ class MediumDesktopProductGeometryCase {
                 if((!down_inserted_||up_inserted_)&&!control_inserted_&&control_release_observed_&&refresh_target()&&target_exact(false)){
                     SetLastError(ERROR_SUCCESS);const bool sent=PostMessageW(target_,WM_CLOSE,0,0)!=FALSE;const auto error=sent?0:GetLastError();
                     target_closed_=sent&&wait_for([&]{return !IsWindow(target_);},1000,false);
+                    const auto process_exit=medium_observe_held_process_exit(target_process_,target_pid_,target_birth_,deadline_,quit_seen_,sent?1000:0);
+                    const auto process_exit_json=process_exit.json();
+                    out_.emit("medium_product_geometry_target_process_exit",process_exit_json.substr(1,process_exit_json.size()-2));
                     DWORD code=STILL_ACTIVE;const bool known=target_process_&&GetExitCodeProcess(target_process_,&code);
                     out_.emit("medium_product_geometry_target_close","\"one_WM_CLOSE_attempted\":true,\"PostMessage_return\":"+std::string(sent?"true":"false")+
                         ",\"error\":"+std::to_string(error)+",\"exact_root_gone\":"+(target_closed_?"true":"false")+
                         ",\"process_wait\":"+std::to_string(WaitForSingleObject(target_process_,0))+",\"exit_code\":"+(known?std::to_string(code):"null")+
+                        ",\"bounded_exact_process_signalled\":"+(process_exit.signalled?"true":"false")+
+                        ",\"bounded_exact_process_normal_exit\":"+(process_exit.signalled&&process_exit.exit_known?(process_exit.exit_code==0?"true":"false"):"null")+
                         ",\"samples_not_atomic_or_all_descendant_exit\":true,\"forced_termination\":false");
                 }
             }
         }catch(...){out_.cleanup_known=false;}
-        out_.cleanup_known=out_.cleanup_known&&target_closed_&&(!lease_||!lease_->incomplete_pair.load());
+        out_.cleanup_known=out_.cleanup_known&&!quit_seen_&&target_closed_&&(!lease_||!lease_->incomplete_pair.load());
     }
 public:
     MediumDesktopProductGeometryCase(const std::wstring& run,HDESK desktop,const fs::path& product,HANDLE process,DWORD pid,

@@ -386,6 +386,9 @@ public:
                 ",\"application_grid_known\":"+(receipt.before.application_grid_known?"true":"false")+
                 ",\"reason\":\""+escaped(receipt.reason)+"\",\"native_before_qpc\":"+std::to_string(receipt.before_qpc)+
                 ",\"native_after_qpc\":"+std::to_string(receipt.after_qpc)+",\"authority_after\":"+(generation&&input.allowed(generation)?"true":"false")+
+                ",\"native_position_flags\":"+(receipt.operation==WindowWriter::Operation::Placement&&receipt.native_attempted&&receipt.completion_known?std::to_string(receipt.native_position_flags):"null")+
+                ",\"preflight_started_qpc\":"+std::to_string(receipt.preflight_started_qpc)+
+                ",\"geometry_observed_qpc\":"+std::to_string(receipt.geometry_observed_qpc)+
                 ",\"post_observed_qpc\":"+std::to_string(receipt.post_observed_qpc)+
                 ",\"post_context_checked\":"+(receipt.post_context_checked?"true":"false")+
                 ",\"post_context_valid\":"+(receipt.post_context_valid?"true":"false")+
@@ -1025,6 +1028,9 @@ public:
             ",\"target\":"+rectangle(r.requested)+",\"delayed_actual\":"+(r.after?rectangle(r.after->visible):"null")+
             ",\"identity_valid\":"+(r.identity_valid?"true":"false")+",\"geometry_exact_at_delayed_observation\":"+(r.geometry_exact?"true":"false")+
             ",\"native_before_qpc\":"+std::to_string(r.before_qpc)+",\"native_after_qpc\":"+std::to_string(r.after_qpc)+
+            ",\"native_position_flags\":"+(r.operation==WindowWriter::Operation::Placement&&r.native_attempted&&r.completion_known?std::to_string(r.native_position_flags):"null")+
+            ",\"preflight_started_qpc\":"+std::to_string(r.preflight_started_qpc)+
+            ",\"geometry_observed_qpc\":"+std::to_string(r.geometry_observed_qpc)+
             ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+
             ",\"explicit_destination_display_bound\":"+(r.destination?"true":"false")+
             ",\"destination_monitor\":"+std::to_string(r.destination?reinterpret_cast<std::uintptr_t>(r.destination->target.monitor):0)+
@@ -2318,7 +2324,7 @@ void Application::stop(){if(stopping)return;stopping=true;hide_preview("stop");i
         ",\"clock_scope\":\"same_machine_QPC_software_observation_cross_thread_one_tick_quantization\""+
         ",\"mouse_callback\":{"+timing_fields(input.callback_timing(),99)+",\"excludes_downstream_CallNextHookEx\":true}"+
         ",\"hook_observed_to_postverify\":{"+timing_fields(input_post_timing.snapshot(),95)+
-        ",\"sample_unit\":\"native_placement\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
+        ",\"sample_unit\":\"native_placement\",\"endpoint\":\"geometry_and_post_context_complete\",\"not_physical_display_latency\":true,\"unfinished_calls\":"+std::to_string(delayed_input_qpc.size())+"}");
     for(auto& [key,record]:visual){(void)key;visual_restore(record);}visual.clear();
     const bool native_writer_exited=writer.stop();
     const bool issued_completion_unknown=writer.has_unconfirmed_native_call();

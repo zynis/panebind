@@ -16,6 +16,7 @@
 #include <wtsapi32.h>
 #include <wincrypt.h>
 #include <objbase.h>
+#include <UIAutomation.h>
 #include <tlhelp32.h>
 #include "platform/windows/product/window_catalog.h"
 #include "platform/windows/product/guest_path_scope.h"

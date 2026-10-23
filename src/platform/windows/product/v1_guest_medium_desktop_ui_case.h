@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/windows/product/v1_guest_tray_semantic_point.h"
+
 // TEST ONLY, included inside the guarded fixture namespace. This is one
 // GUI/tray case on a fresh Run desktop, not product target authority.
 // Only the manifest-selected Terminal functional case uses the existing
@@ -400,7 +402,8 @@ class MediumDesktopUiCase {
             std::to_string(reinterpret_cast<std::uintptr_t>(app_))+",\"UID\":1,\"GetRect_hresult\":"+
             std::to_string(static_cast<long>(queried))+",\"actual_rect\":"+(nonempty?rect({area.left,area.top,area.right,area.bottom}):"null"));
         if(!nonempty)throw std::runtime_error("Medium_UI_exact_product_UID1_icon_not_reachable");
-        const POINT point{area.left+(area.right-area.left)/2,area.top+(area.bottom-area.top)/2};
+        const POINT original_point{area.left+(area.right-area.left)/2,area.top+(area.bottom-area.top)/2};
+        POINT point=original_point;
         const auto target=[&]{
             RECT fresh{};DWORD hit_pid{};const HWND hit=WindowFromPoint(point),root=GetAncestor(hit,GA_ROOT);
             Handle shell_process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,shell_pid_));
@@ -410,6 +413,12 @@ class MediumDesktopUiCase {
                 EqualRect(&fresh,&area)&&hit&&GetWindowThreadProcessId(hit,&hit_pid)&&hit_pid==shell_pid_&&member(root)&&
                 (type(root)==L"Shell_TrayWnd"||type(root)==L"NotifyIconOverflowWindow"||type(root)==L"TopLevelWindowForOverflowXamlIsland");
         };
+        // The old rectangle-center pair delivered no product callback. This
+        // contrast first requires the actual Shell UIA leaf to identify our
+        // button and provide its physical clickable point. A parent/container
+        // or unknown label stops the case before any new click.
+        point=medium_tray_semantic_point(area,shell_pid_,[&]{return input_context()&&target()&&no_buttons();},
+            [this](std::string type,std::string fields){out_.emit(std::move(type),std::move(fields));});
         click(true,point,target);Menu found;
         const bool opened=wait_for([&]{
             struct Search {const MediumDesktopUiCase* self{};Menu found;unsigned count{};} state{this};

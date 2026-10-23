@@ -22,6 +22,78 @@ struct MediumTerminalNativeObservation {
 struct MediumTerminalNativeEvents {
     HANDLE changed{};DWORD pid{};HWND root{};unsigned notifications{};bool overflow{};
 };
+// TEST-only post-close observation of the already held exact process. Window
+// destruction, process signalling and descendant shutdown are separate facts.
+// Pump this STA while waiting; never extend the caller's existing deadline.
+struct MediumHeldProcessExitObservation {
+    bool identity_confirmed{},wait_attempted{},signalled{},exit_known{},before_qpc_known{},after_qpc_known{};
+    DWORD budget_ms{},last_wait{WAIT_FAILED},wait_error{},exit_code{STILL_ACTIVE},exit_error{};
+    unsigned native_waits{},dispatched_messages{};ULONGLONG before_tick{},after_tick{},caller_deadline{};
+    LARGE_INTEGER before_qpc{},after_qpc{};const char* reason{"held_process_identity_unconfirmed"};
+    const char* wait_api{"not_called"};
+    std::string json()const{
+        return "{\"held_PID_birth_confirmed\":"+std::string(identity_confirmed?"true":"false")+
+            ",\"native_wait_API\":"+quote(wait_api)+",\"native_wait_attempted\":"+(wait_attempted?"true":"false")+
+            ",\"actual_initial_budget_ms\":"+std::to_string(budget_ms)+",\"caller_deadline_tick\":"+std::to_string(caller_deadline)+
+            ",\"before_tick\":"+std::to_string(before_tick)+",\"after_tick\":"+std::to_string(after_tick)+
+            ",\"before_qpc\":"+(before_qpc_known?std::to_string(before_qpc.QuadPart):"null")+
+            ",\"after_qpc\":"+(after_qpc_known?std::to_string(after_qpc.QuadPart):"null")+
+            ",\"native_waits\":"+std::to_string(native_waits)+",\"last_native_wait_result\":"+(wait_attempted?std::to_string(last_wait):"null")+
+            ",\"native_wait_error\":"+(wait_attempted&&last_wait==WAIT_FAILED?std::to_string(wait_error):"null")+
+            ",\"dispatched_messages\":"+std::to_string(dispatched_messages)+",\"actual_process_signalled\":"+(signalled?"true":"false")+
+            ",\"GetExitCodeProcess_attempted\":"+(identity_confirmed?"true":"false")+
+            ",\"GetExitCodeProcess_return\":"+(identity_confirmed?(exit_known?"true":"false"):"null")+
+            ",\"GetExitCodeProcess_error\":"+(identity_confirmed&&!exit_known?std::to_string(exit_error):"null")+
+            ",\"actual_exit_code\":"+(exit_known?std::to_string(exit_code):"null")+
+            ",\"exact_process_normal_exit\":"+(signalled&&exit_known?(exit_code==0?"true":"false"):"null")+
+            ",\"reason\":"+quote(reason)+",\"all_descendants_exit_inferred\":false,\"additional_input_sent\":false}";
+    }
+};
+MediumHeldProcessExitObservation medium_observe_held_process_exit(
+    HANDLE process,DWORD pid,std::uint64_t birth,ULONGLONG caller_deadline,bool& quit_seen,DWORD cap_ms=1000){
+    MediumHeldProcessExitObservation out;out.before_tick=GetTickCount64();out.caller_deadline=caller_deadline;
+    out.before_qpc_known=QueryPerformanceCounter(&out.before_qpc)!=FALSE;
+    out.identity_confirmed=process&&pid&&birth&&GetProcessId(process)==pid&&process_birth(process)==birth;
+    if(out.identity_confirmed){
+        const auto now=GetTickCount64();out.budget_ms=now<caller_deadline?
+            static_cast<DWORD>((std::min<ULONGLONG>)(cap_ms,caller_deadline-now)):0;
+        const auto end=now+out.budget_ms;
+        if(!out.budget_ms||quit_seen){
+            // An expired budget or an already observed QUIT must not dispatch
+            // more GUI work. This is one nonblocking HANDLE observation only.
+            out.wait_api="WaitForSingleObject";out.wait_attempted=true;SetLastError(ERROR_SUCCESS);
+            out.last_wait=WaitForSingleObject(process,0);++out.native_waits;
+            out.wait_error=out.last_wait==WAIT_FAILED?GetLastError():0;
+            out.signalled=out.last_wait==WAIT_OBJECT_0;
+            out.reason=quit_seen?"WM_QUIT_previously_observed_nonblocking_only":
+                out.signalled?"zero_budget_exact_process_already_signalled":"zero_budget_process_signal_not_observed";
+        }else for(;;){
+            if(quit_seen||GetTickCount64()>=end){out.reason=quit_seen?"WM_QUIT_observed":"bounded_process_signal_not_observed";break;}
+            const auto tick=GetTickCount64();const DWORD remaining=tick<end?static_cast<DWORD>(end-tick):0;
+            SetLastError(ERROR_SUCCESS);out.wait_attempted=true;out.wait_api="MsgWaitForMultipleObjectsEx";
+            out.last_wait=MsgWaitForMultipleObjectsEx(1,&process,remaining,QS_ALLINPUT,MWMO_INPUTAVAILABLE);
+            ++out.native_waits;out.wait_error=out.last_wait==WAIT_FAILED?GetLastError():0;
+            if(out.last_wait==WAIT_OBJECT_0){out.signalled=true;out.reason="actual_exact_process_handle_signalled";break;}
+            if(out.last_wait==WAIT_FAILED){out.reason="native_wait_failed";break;}
+            if(out.last_wait==WAIT_TIMEOUT){out.reason="bounded_process_signal_not_observed";break;}
+            if(out.last_wait!=WAIT_OBJECT_0+1){out.reason="unexpected_native_wait_result";break;}
+            MSG message{};unsigned batch=256;
+            while(batch--&&!quit_seen&&GetTickCount64()<end&&out.dispatched_messages<1024&&
+                PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
+                if(message.message==WM_QUIT){quit_seen=true;out.reason="WM_QUIT_observed";break;}
+                if(quit_seen||GetTickCount64()>=end){out.reason="message_not_dispatched_after_wait_deadline";break;}
+                ++out.dispatched_messages;TranslateMessage(&message);DispatchMessageW(&message);
+            }
+            if(quit_seen)break;
+            if(out.dispatched_messages>=1024){out.reason="bounded_message_budget_exhausted";break;}
+            if(out.native_waits>=64){out.reason="bounded_message_wake_budget_exhausted";break;}
+            if(GetTickCount64()>=end){out.reason="bounded_process_signal_not_observed_after_messages";break;}
+        }
+        SetLastError(ERROR_SUCCESS);out.exit_known=GetExitCodeProcess(process,&out.exit_code)!=FALSE;
+        out.exit_error=out.exit_known?0:GetLastError();
+    }
+    out.after_tick=GetTickCount64();out.after_qpc_known=QueryPerformanceCounter(&out.after_qpc)!=FALSE;return out;
+}
 thread_local MediumTerminalNativeEvents* medium_terminal_native_events{};
 void CALLBACK medium_terminal_native_event(HWINEVENTHOOK,DWORD,HWND window,LONG object,LONG child,DWORD,DWORD){
     auto* state=medium_terminal_native_events;if(!state||!window||object!=OBJID_WINDOW||child)return;
@@ -293,7 +365,7 @@ MediumTerminalNativeObservation medium_terminal_native_case(
         if(request.client_input&&responded&&active()&&exact_window()){
             out.client_cleanup_known=false;
             const auto nonce_output=fs::path(L"C:\\PaneBindV1\\Output")/(run+L"-terminal-client.txt");
-            const auto client=medium_terminal_client_case(run,created,window,pid,window_tid,process,birth,nonce_output,
+            const auto client=medium_terminal_client_case(run,request.configuration,created,window,pid,window_tid,process,birth,nonce_output,
                 active,exact_window,input_lease,caller_deadline_tick,ready_deadline);
             out.client_completed=client.completed;out.client_input_sent=client.input_inserted;
             out.client_cleanup_known=client.cleanup_known;out.client_reason=client.reason;
@@ -305,16 +377,21 @@ MediumTerminalNativeObservation medium_terminal_native_case(
         const DWORD post_error=posted?0:GetLastError();
         if(posted)out.root_gone=wait_for([&]{if(!IsWindow(window))return true;DWORD actual{};
             const auto tid=GetWindowThreadProcessId(window,&actual);return actual!=pid||tid!=window_tid;},(std::min)(GetTickCount64()+3000,caller_deadline_tick));
+        const auto process_exit=medium_observe_held_process_exit(process,pid,birth,caller_deadline_tick,quit_seen,posted?1000:0);
+        const auto process_exit_json=process_exit.json();
+        out.emit("medium_terminal_process_exit_observation",process_exit_json.substr(1,process_exit_json.size()-2));
         DWORD after_exit{};const bool after_exit_known=GetExitCodeProcess(process,&after_exit)!=FALSE;
         out.emit("medium_terminal_normal_close","\"WM_CLOSE_attempts\":1,\"PostMessage_return\":"+std::string(posted?"true":"false")+
             ",\"error\":"+std::to_string(post_error)+",\"actual_bound_root_gone\":"+(out.root_gone?"true":"false")+
             ",\"process_wait_result\":"+std::to_string(WaitForSingleObject(process,0))+
             ",\"process_exit_code\":"+(after_exit_known?std::to_string(after_exit):"null")+
+            ",\"bounded_exact_process_signalled\":"+(process_exit.signalled?"true":"false")+
+            ",\"bounded_exact_process_normal_exit\":"+(process_exit.signalled&&process_exit.exit_known?(process_exit.exit_code==0?"true":"false"):"null")+
             ",\"all_descendants_exit_inferred\":false,\"force_terminate_attempted\":false,\"client_input_sent\":"+(out.client_input_sent?"true":"false"));
         out.product_absence_known=absent("after_normal_close");
-        out.completed=responded&&(!request.client_input||out.client_completed)&&posted&&out.root_gone&&out.product_absence_known&&active();
+        out.completed=!quit_seen&&responded&&(!request.client_input||out.client_completed)&&posted&&out.root_gone&&out.product_absence_known&&active();
         out.reason=out.completed?(request.client_input?"new_exact_Terminal_native_client_nonce_and_root_close_only":"new_exact_Terminal_root_response_and_normal_close_only"):
-            !responded?"actual_WM_NULL_unresponsive_normal_close_separate":
+            quit_seen?"WM_QUIT_observed_normal_flow_not_completed":!responded?"actual_WM_NULL_unresponsive_normal_close_separate":
             request.client_input&&!out.client_completed?out.client_reason:"normal_close_or_final_context_unconfirmed";
     }catch(const std::exception& error){out.reason=error.what();}
     resources.finish();

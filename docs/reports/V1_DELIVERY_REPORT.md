@@ -4,6 +4,8 @@
 
 **生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。** 本次只关闭完整独立功能 **M05-F04／B05**，不把单Terminal、原生fixture或构建结果提升为M05模块、五应用、完整E02或整版通过。
 
+2026-10-23仅修正验收映射，不重跑功能或增加PASS：**B22的830a运行身份**为源码`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`／EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`，原日志、launch、manifest及本地制品实核一致；后继25b／42ab的范围继承与这次实际运行分开，不再把830a改绑后继EXE。**B28**当前仅受M11-F01真实托盘打开设置合同阻断，M11-F02／F04已有独立PASS；**B30**仍缺M10-F01真实预览／显示合同，不再将已过M11-F02列为缺项。**A06**当前42ab／4ff的五阶段磁吸、两成员Ctrl及五代NormalUp已验，旧744e／af4的未验范围保作历史；客户语义、完整类别及应用树清理仍未通过。
+
 现在已有的实际能力是：在已授权Sandbox中，冻结产品 `42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release SHA-256 `0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737` 的当前d5f5便携包普通无参GUI、二启同实例、设置保存改变实际Move和正常退出仍由[f78d](v1-evidence/f78d-current-42ab-portable-entry-review.json)支撑；同一未改EXE另在4ff以 `--settings --diagnostic` 取得实际量子回执，完成精确新Terminal的Move→Resize→后继Move、五阶段磁吸和实际邻接两成员Ctrl。**这还不是可交付的完整三种真实应用／Explorer三窗候选，不开放普通宿主试用。**
 
 - [f06a当前八方向](v1-evidence/f06a-current-resize-magnet-review.json)：42ab／driver `dd4a9fe908f11786334b25117726dd95a4ce9593`，8个不同活动边／角真实Resize，raw±56吸至±60，非活动边及目标不动、visible／positioning独立exact；每quantum一次真实native。max450先于候选456、原DOWN拉回430及后继Move均实际通过；10代真实Raw／legacy NormalUp、release／detach／Gone和产品自身退出／客户配对有证据。不是8区映射或旧212结果换绑。
