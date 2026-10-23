@@ -154,7 +154,7 @@
       "whole_version_PASS": false,
       "old_runtime_rebound": false
     },
-    "pending_product_candidate": {
+    "observed_product_42ab_build_and_portable": {
       "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "current_verified_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "current_verified_portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
@@ -193,6 +193,30 @@
         "no_GUI": true,
         "no_input": true
       }
+    },
+    "pending_product_candidate": {
+      "source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "current_verified_product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+      "current_verified_portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
+      "implementation_status": "IMPLEMENTED_PENDING_GUEST_FUNCTION_REVALIDATION",
+      "build": "DEBUG_RELEASE_BUILD_PASS_EACH8_OF8_OFFLINE_PASS",
+      "debug_sha256": "A8E31896B883CBE2230ABBE77AFFBEE6635EDA1F098FCBB42E2A97DBA10AC3C7",
+      "release_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+      "driver_debug_sha256": "0D055418E70E9F37A08607DBE556A23F3B01F073BB5ECC53103B15FF4A314552",
+      "driver_release_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+      "native_runtime": "NOT_RUN_EXISTING_OTHER_PROJECT_SANDBOX_LAUNCH_REFUSED",
+      "package": "THREE_GUEST_PACKAGES_DEPLOYED_NO_NEW_PORTABLE_ACCEPTANCE",
+      "actual_build_evidence_path": "docs/reports/v1-evidence/2787-candidate-build-deploy-review.json",
+      "actual_build_evidence_kind": "ARCHIVED_ORIGINAL_CTEST_OUTPUT_AND_BUILD_RECEIPT",
+      "host_guard_actual_exit78_count": 4,
+      "deployed_run_ids": [
+        "983b3919d53245c989aae9c7b99820fc",
+        "4511b860f6d84f188716267ea56eff08",
+        "72bd6d351c7f4b8fa61b7af12cf643ae"
+      ],
+      "whole_version_PASS": false,
+      "old_runtime_rebound": false,
+      "next_action": "待用户通知现有其它项目Sandbox可用后，依次执行已部署983 UI语义点对照、4511客户前置、72bd Terminal/NF02复验；不关闭/抢占现有guest、不启动第二实例或可用性轮询。42ab/d5f5既有实测不迁移2787，NF02旧FAIL保留。"
     },
     "observed_product_4f7": {
       "source_sha": "4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c",
@@ -258,7 +282,7 @@
       ],
       "scope": "Actual tested driver3c565; preserve prior5211/af4 and40a build evidence at their own identities. New42ab product/driver build is support only and has no transferred runtime verdict. No new feature/whole PASS."
     },
-    "pending_driver_candidate": {
+    "observed_f78d_driver_candidate": {
       "source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
       "status": "ACTUAL_F78D_PORTABLE_SCOPED_PASS_NOT_WHOLE_FUNCTIONS",
@@ -273,6 +297,22 @@
       ],
       "historical_scope": "Current tested42ab driver; prior3c/5211/40a source/run identities retained. Terminal five-phase/Ctrl TEST extension is being implemented separately; no committed source/hash/runtime result is assigned to it.",
       "scope": "This object's unchanged42ab driver/hash/run fields bind only the actual f78d ordinary portable-entry observation, not the latest functional driver. Same frozen42ab product EXE later completed Terminal five-phase magnet/two-member Ctrl in e869/4ff6, current eight-direction Resize in dd4a/f06a and fixed-size blackbox in e38/750b. Actual separate identities/hashes/results are authoritative at source_identity.current_functional_runtime and their sealed reviews; no old EXE or driver evidence is rebound."
+    },
+    "pending_driver_candidate": {
+      "source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "status": "DEBUG_RELEASE_BUILD_PASS_GUEST_NOT_RUN",
+      "debug_sha256": "0D055418E70E9F37A08607DBE556A23F3B01F073BB5ECC53103B15FF4A314552",
+      "release_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+      "runtime_validation": "NOT_RUN_EXISTING_OTHER_PROJECT_SANDBOX_LAUNCH_REFUSED",
+      "actual_run_ids": [],
+      "deployed_run_ids": [
+        "983b3919d53245c989aae9c7b99820fc",
+        "4511b860f6d84f188716267ea56eff08",
+        "72bd6d351c7f4b8fa61b7af12cf643ae"
+      ],
+      "build_evidence_path": "docs/reports/v1-evidence/2787-candidate-build-deploy-review.json",
+      "scope": "222静态检查及四次完整argv宿主Exit78仅工具/保护支撑；部署不是功能运行，未授托盘/客户/NF02或功能PASS。"
     },
     "observed_driver_eea": {
       "source_sha": "eea49dc8deb24eef849727ec80977ef7510a0b3f",
@@ -562,8 +602,8 @@
     "main_function_runtime_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
     "main_function_run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
     "historical_pending_runtime_sha": "25bff898c9943ee70155ce08868a2a7fc56ab100",
-    "pending_runtime_sha": null,
-    "pending_runtime_status": "NO_NEW_PRODUCT_RUNTIME_CURRENT42AB_FROZEN_FUNCTIONAL_RUNS_ARE_4FF6_F06A_750B",
+    "pending_runtime_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+    "pending_runtime_status": "BUILD_AND_OFFLINE_PASS_THREE_DEPLOYED_GUEST_NOT_RUN_EXISTING_OTHER_PROJECT_SANDBOX",
     "final_sha": null,
       "full_release_deployment": {
         "run_id": "dfdde5b3a08b43d9b7cbe068f4de0d22",
@@ -584,9 +624,9 @@
         "evidence_id": "EV-DFDD-RELEASE-FULL-OWNED-AND-APPLICATION-BOUNDARIES",
         "next_action": "本Full部署保留11ae/dfdd历史身份；当前4f7 callback/Focus/规则和5f87普通包实际范围另见current_targeted_runtime/current_package，不能改绑此Full。新CurrentCore TEST仅构建，后续按影响执行必要当前链，不重跑独立900秒或旧专项。"
       },
-    "implementation_inspected": "CURRENT42AB_FROZEN_EXE_PORTABLE_AND_NATIVE_RESIZE_TERMINAL_MAGNET_CTRL_SCOPES_WITH_HISTORICAL_BOUNDARIES",
+    "implementation_inspected": "CURRENT2787_BUILD_OFFLINE_TESTED_NATIVE_NOT_RUN_VERIFIED42AB_RUNTIME_RETAINED",
     "note": "当前独立DEV44/60、22/40=55%、modules0/PARTIAL。M05-F04/B05依据当前42ab实际G04 D/R组合、f06a真8向/约束、750 fixed黑盒和4ff真实Terminal Resize→Move闭合。42ab/d5f5/f78普通无参包及4ff诊断观测分开，旧744e/212/25b/55f保身份。托盘菜单、Terminal客户语义、Explorer非elevated资格/单条精确路径、其它应用和显示硬门仍缺；不将当前子范围当普通完整Medium桌面或整版通过。",
-    "pending_product_note": "当前产品42ab EXE冻结，普通候选d5f5/f78已实际普通入口通过；工具dd4a/e869/e38分别运行f06a/4ff/750，不重建产品、不改绑旧EXE。4ff五阶段磁吸/两成员Ctrl及五NormalUp已实际通过，托盘仍FAIL_OR_BLOCKED且整体进程树cleanup UNKNOWN；bb23客户ready0B/零输入原失败保留。750已完成而非待运行；917/69f4已实际只读确认新Cabinet存在但RID8192/elevated=true被拒且Shell exactpath未确认，g0/零Explorer输入，停止当前相同launch路线。HC scheme恢复、其它应用和外部显示独立推进；整版PARTIAL/真人PENDING。",
+    "pending_product_note": "新2787产品/TEST已实际D/R构建且各8/8 offline、四完整argv宿主Exit78、222静态检查通过；983/4511/72bd精确部署完成但均无本轮guest输入。983启动因已有其它项目Sandbox被拒，未关闭/抢占或启动第二实例/可用性轮询，等待用户通知。已验证产品仍42ab/d5f5/f78；44/60、22/40及4ff/f06/750原身份保留，不授2787功能/NF02 PASS。",
     "observed_driver_63": {
       "source_sha": "63a2df70f5877f4d9372fc5b8b0d8b0a872e9b64",
       "product_source_sha": "212e1979f9bf711569d63f0e371c6e7ff8375f2c",
@@ -14336,13 +14376,15 @@
         "docs/reports/v1-evidence/11ae-existing-timing-review.json",
         "docs/reports/v1-evidence/11ae-existing-timing-summary.jsonl",
         "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-review.json",
-        "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-excerpt.jsonl"
+        "docs/reports/v1-evidence/4ff6-terminal-magnet-ctrl-excerpt.jsonl",
+        "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json"
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
         "callback p99预算未达，现有汇总不能区分调度抢占与具体分支；无已确认同步I/O或等待缺陷，不据此推测性重建产品。"
       ],
-      "next_action": "保留4ff当前小样本9native的79.352ms尾及p95桶99999us目标未满足、旧830a callback FAIL，各identity不合并择优。已有时基只说明hook→后验非物理显示；仅有具体等待/I/O反例才有界定位，不新增统计框架、压力矩阵或900秒。",
+      "next_action": "保留4ff串行9native的79.352ms尾/p95桶99999us及旧830a callback FAIL。已只读拆分P167/P168：旧post_observed_qpc早于完整上下文后验，旧size-preserving调用未用SWP_NOSIZE，不能据此量化唯一根因。2787已实际D/R各8/8、四hostguard78并部署72bd Terminal/NF02包；待用户通知现有其它项目Sandbox可用后执行新候选真实同场景，不关闭/抢占、不重复无变量托盘尝试。新native/NF02仍NOT_RUN，不与旧不完整计时终点直接混算。",
+      "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
       "binary_sha256": "D389B6F73982136B03E95B370A9D57C93D131C13186279560124E894C9FE3574",

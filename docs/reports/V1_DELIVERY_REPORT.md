@@ -1,8 +1,16 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：42ab独立Resize磁吸合同闭合；Terminal五阶段及两成员Ctrl实测（2026-10-22）
+## 当前接续：2787候选构建／部署完成，guest尚未运行（2026-10-23）
 
-**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。** 本次只关闭完整独立功能 **M05-F04／B05**，不把单Terminal、原生fixture或构建结果提升为M05模块、五应用、完整E02或整版通过。
+新产品与TEST源码 `2787f93cbf44339206cafc9e4d7f78d5cacae866` 已实际D/R构建，各8/8 offline通过：Debug proc2.07／wall2.12s，Release proc0.89／wall1.55s，原生CTest归档和二进制身份见[候选构建部署回执](v1-evidence/2787-candidate-build-deploy-review.json)。新Release产品SHA-256 `811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92`，TEST `A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81`；四次完整argv宿主误运行保护实际Exit78，零宿主普通产品启动／输入。222静态检查为执行器结果转录，非guest功能验证。
+
+`983b3919d53245c989aae9c7b99820fc`（UiOnly无asset）、`4511b860f6d84f188716267ea56eff08`（NativeClientOnly）及`72bd6d351c7f4b8fa61b7af12cf643ae`（UiOnly＋Terminal／NF02）均已按各ZIP／manifest／WSB及binary pins部署到各自I盘Run目录。983实际启动被`existing_sandbox_not_touched_launch_refused`保护拒绝；此原因来自主执行器实际工具观察，本地失败回执仅含Launch exit1／stdout空，不补造日志。现有其它项目Sandbox未被关闭、抢占或启动第二实例，未进行可用性轮询；等待用户通知可用后接续已部署包。**三包guest功能均NOT_RUN，部署不是功能PASS。**
+
+[NF02串行时序复核](v1-evidence/NF02-4ff-serial-timing-review.json)区分4ff的P167／168两member串行成本：旧`post_observed_qpc`早于完整身份／GUI／capture／display后验，旧保持尺寸调用未用`SWP_NOSIZE`；不能因此推定唯一尾延迟根因。旧9次p95桶99999µs／max79352µs和NF02 FAIL保留，2787新时钟终点与性能仍待真实运行，不混算旧样本或称物理显示延迟。
+
+### 当前保留的42ab实测范围（不迁移到2787）
+
+**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。** 42ab阶段关闭完整独立功能 **M05-F04／B05**，本2787阶段未新增PASS；不把单Terminal、原生fixture或构建结果提升为M05模块、五应用、完整E02或整版通过。
 
 2026-10-23仅修正验收映射，不重跑功能或增加PASS：**B22的830a运行身份**为源码`4f7b2dc810f032a0937a4fe5ed82513f9b5f5f7c`／EXE SHA-256 `9790B38A949665E4235E26D4F75FD55FF46D282B7116F97679A43580BA14E6A3`，原日志、launch、manifest及本地制品实核一致；后继25b／42ab的范围继承与这次实际运行分开，不再把830a改绑后继EXE。**B28**当前仅受M11-F01真实托盘打开设置合同阻断，M11-F02／F04已有独立PASS；**B30**仍缺M10-F01真实预览／显示合同，不再将已过M11-F02列为缺项。**A06**当前42ab／4ff的五阶段磁吸、两成员Ctrl及五代NormalUp已验，旧744e／af4的未验范围保作历史；客户语义、完整类别及应用树清理仍未通过。
 

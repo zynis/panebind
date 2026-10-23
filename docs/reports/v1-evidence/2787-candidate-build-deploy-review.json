@@ -1,0 +1,188 @@
+{
+  "schema": "panebind-v1-targeted-evidence-review/1",
+  "record_date": "2026-10-23",
+  "scope": "CANDIDATE_BUILD_HOST_GUARD_AND_DEPLOYMENT_ONLY_NO_GUEST_FUNCTION_RUN",
+  "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+  "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+  "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+  "build_directory": "out/v1-nf02-tray-2787f93",
+  "build_receipt": {
+    "path": "uat/v1-control/build-2787f93-f2dd43f252f5460cb9b6096932a760fa/receipt.json",
+    "bytes": 3362,
+    "sha256": "6412E97689576A086BD29177AFBABACC139174C58D47A56A15158F2A00303A13"
+  },
+  "build_evidence_kind": "ARCHIVED_ORIGINAL_CTEST_OUTPUT_AND_BUILD_RECEIPT",
+  "configurations": [
+    {
+      "configuration": "Debug",
+      "product_binary_sha256": "A8E31896B883CBE2230ABBE77AFFBEE6635EDA1F098FCBB42E2A97DBA10AC3C7",
+      "driver_binary_sha256": "0D055418E70E9F37A08607DBE556A23F3B01F073BB5ECC53103B15FF4A314552",
+      "offline_tests_passed": 8,
+      "offline_tests_failed": 0,
+      "offline_process_seconds": 2.07,
+      "offline_wall_seconds": 2.12,
+      "ctest_path": "uat/v1-control/build-2787f93-f2dd43f252f5460cb9b6096932a760fa/Debug-offline-ctest.txt",
+      "ctest_sha256": "37612A68278D5EACF1186B2966E69500507F0B1284086C18B01D9812A70BC4D3"
+    },
+    {
+      "configuration": "Release",
+      "product_binary_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+      "driver_binary_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+      "offline_tests_passed": 8,
+      "offline_tests_failed": 0,
+      "offline_process_seconds": 0.89,
+      "offline_wall_seconds": 1.55,
+      "ctest_path": "uat/v1-control/build-2787f93-f2dd43f252f5460cb9b6096932a760fa/Release-offline-ctest.txt",
+      "ctest_sha256": "56C6E102A671C110F19349EF7DA746BEF72E53E7852E3DA52C3059E321183EC3"
+    }
+  ],
+  "host_guard": {
+    "receipt_path": "uat/v1-host-guard/3c3771a4b5cf482ba830d9e04a9a86cc/receipt.json",
+    "receipt_sha256": "626BCDFCB2CB6255041D0823A27E621F874F6A7F8AD2CAF520EAAB042D02EBCD",
+    "actual_full_argv_exit78_count": 4,
+    "configurations": [
+      "Debug",
+      "Release"
+    ],
+    "suites": [
+      "MediumDesktopUiOnly",
+      "MediumDesktopNativeClientOnly"
+    ],
+    "ordinary_product_launches": 0,
+    "synthetic_input_by_admitted_route": 0
+  },
+  "static_test_support": {
+    "checks_passed": 222,
+    "evidence_kind": "MAIN_EXECUTOR_TOOL_RESULT_TRANSCRIPTION_NOT_ARCHIVED_STDOUT",
+    "scope": "Corrected oracle-name mismatch did not change product source-guard eligibility; not guest runtime or feature acceptance."
+  },
+  "packages": [
+    {
+      "run_id": "983b3919d53245c989aae9c7b99820fc",
+      "suite": "MediumDesktopUiOnly",
+      "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "package_receipt": {
+        "path": "uat/v1-sandbox/983b3919d53245c989aae9c7b99820fc/package-receipt.json",
+        "bytes": 13338,
+        "sha256": "A45BC1F9F6D13E4123AB95B9E99F89D1A1C5920A82BECB1C5C5E2CE82446F4E4"
+      },
+      "deploy_receipt": {
+        "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/deploy-receipt.json",
+        "bytes": 2664,
+        "sha256": "470890BF6B31AF29BFA97453C51EE0F6FE7D65E1D97A95DE57203C1BCE694FF9"
+      },
+      "zip_sha256": "BB785F928D4279F74FE23211D23540FEE4DA44E74D8D42EF0C32D1245B0700BA",
+      "manifest_sha256": "1892FE9D6B52827C2E8599869B7AAD348BECA58246EA653A68B48A2858E78E83",
+      "wsb_sha256": "C2EF8BB4D87880B0E02B9A2F066D4B17843958217A63D8D9FD5CC543A4E6D173",
+      "remote_directory": "I:\\PaneBindMVP1Runs\\983b3919d53245c989aae9c7b99820fc",
+      "deploy_inventory_file_count": 9,
+      "deployed_receipt_observed": true,
+      "guest_started": false,
+      "feature_result": "NOT_RUN"
+    },
+    {
+      "run_id": "4511b860f6d84f188716267ea56eff08",
+      "suite": "MediumDesktopNativeClientOnly",
+      "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "package_receipt": {
+        "path": "uat/v1-sandbox/4511b860f6d84f188716267ea56eff08/package-receipt.json",
+        "bytes": 13348,
+        "sha256": "271C0A8E6272B73779070EEEBDBFCDBD87D7873FC3CC46DA2852D14C594D1300"
+      },
+      "deploy_receipt": {
+        "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/deploy-receipt.json",
+        "bytes": 2910,
+        "sha256": "09FE2679E368264C638E9C5750B6EE0DB61DF50A42619498CC2C91CAA5BF6E36"
+      },
+      "zip_sha256": "717FEF5E40D26DD0327D101DD582BA7388728405B41043EE1A1B00531FEDEF56",
+      "manifest_sha256": "FA11A769792BAFF3A8AEA8F19B9EF6A424B7AA0B7C05F794EC62D325739CAF07",
+      "wsb_sha256": "13ECD8C74B42A41823FD29D147C58FD9BDCD1533C440FE4BCB67E9931B1514F6",
+      "remote_directory": "I:\\PaneBindMVP1Runs\\4511b860f6d84f188716267ea56eff08",
+      "deploy_inventory_file_count": 10,
+      "deployed_receipt_observed": true,
+      "guest_started": false,
+      "feature_result": "NOT_RUN"
+    },
+    {
+      "run_id": "72bd6d351c7f4b8fa61b7af12cf643ae",
+      "suite": "MediumDesktopUiOnly",
+      "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+      "package_receipt": {
+        "path": "uat/v1-sandbox/72bd6d351c7f4b8fa61b7af12cf643ae/package-receipt.json",
+        "bytes": 13338,
+        "sha256": "4810605B58146D2B3535AA130483A905BF65D53B6A14C3E922C4FC4FD108243B"
+      },
+      "deploy_receipt": {
+        "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/deploy-receipt.json",
+        "bytes": 2910,
+        "sha256": "C154668151367FD24B66478F4784B4A7F4B9763F969CDC159C091AC43CCA7155"
+      },
+      "zip_sha256": "C8DD854051A757051E27F788BED214498A006D5C37C365B42D675A58CA5608E7",
+      "manifest_sha256": "F0B00A49B6D77F505C005AC1250AE40D7B4C1C4E74C1003C0AC6AE34324BDABB",
+      "wsb_sha256": "8AD616919A1AC2B47A1654ADE6AC9E28EB85DBF85F673A54AB14C6C64764F970",
+      "remote_directory": "I:\\PaneBindMVP1Runs\\72bd6d351c7f4b8fa61b7af12cf643ae",
+      "deploy_inventory_file_count": 10,
+      "deployed_receipt_observed": true,
+      "guest_started": false,
+      "feature_result": "NOT_RUN"
+    }
+  ],
+  "launch_attempt": {
+    "run_id": "983b3919d53245c989aae9c7b99820fc",
+    "failure_receipt": {
+      "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/remote-failure-9d4c2a1802ce4079bf2b58fb88a31840.json",
+      "bytes": 186,
+      "sha256": "AC5693C8FF042ED74485575A9FB6804E83F3143986A4134E9F0AAB3FCE8E9C3E"
+    },
+    "actual_receipt_stage": "Launch",
+    "actual_receipt_exit_code": 1,
+    "actual_receipt_stdout": [],
+    "refusal_reason": "existing_sandbox_not_touched_launch_refused",
+    "refusal_reason_evidence_kind": "MAIN_EXECUTOR_ACTUAL_TOOL_OBSERVATION_TRANSCRIPTION_NOT_PRESENT_IN_EMPTY_STDOUT_FAILURE_RECEIPT",
+    "foreign_occupancy_observation": {
+      "sandbox_pid": 25264,
+      "parent_pid": 4324,
+      "server_pid": 14928,
+      "scope": "Single read-only main-executor inventory identified an already-running other-project Sandbox. Its path and unrelated files are not collected here."
+    },
+    "foreign_sandbox_closed_or_claimed": false,
+    "second_instance_started": false,
+    "host_test_input_sent": false,
+    "availability_polling": false,
+    "next_action": "Await user notification of Sandbox availability; then run the already-deployed exact package. Do not stop or take over the existing other-project guest."
+  },
+  "nf02_prior_review": {
+    "path": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
+    "bytes": 4074,
+    "sha256": "651776FE70C616750B5CA0EA5E897C20D2DD3D1A845F643A111EA029FB8FB158",
+    "status": "FAIL_RETAINED_PENDING_NEW_CANDIDATE_NATIVE_REVALIDATION",
+    "scope": "Old42ab/e869 P167/P168 placements are serial. Old post_observed_qpc precedes the complete identity/context postverify; size-preserving calls lacked SWP_NOSIZE. These are source/timing observations, not a proven sole cause or a successful new latency measurement."
+  },
+  "current_verified_runtime": {
+    "product_source_sha": "42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97",
+    "product_release_sha256": "0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737",
+    "portable_package_id": "d5f5a2a6138049a5b4a1a76340904027",
+    "portable_run_id": "f78dc3fdd39241e2aa212d1aeb9cc112",
+    "old_runtime_rebound": false
+  },
+  "verdict": {
+    "candidate_build": "PASS",
+    "offline": "PASS_EACH8_OF8",
+    "host_guard": "PASS_FOUR_ACTUAL_EXIT78",
+    "deployment": "THREE_EXACT_RUN_DIRECTORIES_DEPLOYED",
+    "guest_function": "NOT_RUN",
+    "NF02": "FAIL_RETAINED",
+    "new_feature_or_B_PASS": false,
+    "independent_feature_count": 44,
+    "benchmark_count": 22,
+    "module_count": 0,
+    "whole_version": "PARTIAL",
+    "human_uat": "PENDING"
+  }
+}

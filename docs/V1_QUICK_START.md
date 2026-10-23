@@ -2,6 +2,8 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
+开发候选`2787f93cbf44339206cafc9e4d7f78d5cacae866`已完成D/R构建、各8/8离线验证及三个guest包部署，但本轮guest尚未运行：983启动因已有其它项目Sandbox被保护拒绝，等待用户通知可用，不抢占或另开实例。**以下已验便携入口仍为42ab／d5f5／f78；不把旧运行改绑2787，不提供2787普通宿主试用或新功能PASS。**
+
 - 当前已实测产品源码：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`。
 - 当前已实测Release EXE SHA-256：`0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；D／R构建、affected offline各7/7及四hostguard78通过。
 - 本便携入口f78d对应TEST driver：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`／Release `8E008994A83399EC66707F6AA5CE8274EC85349F1990E7771F6E6ED7568ECB44`；包装8d81702。后继功能TEST各自保留驱动身份，统一见集中报告，不替换本产品EXE。
@@ -11,7 +13,7 @@
 
 上述d5f5／42ab已在[f78d](reports/v1-evidence/f78d-current-42ab-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实Raw／legacy NormalUp和正常退出／客户输入恢复，无后代或强制清理。setup PID3464与ZIP PID6864为不同原FILETIME／物理日志；只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧be7／744e／[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)、bfb／25b原ZIP各保身份。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
 
-本候选的普通设置打开／关闭、公开保存改变实际Move及正常退出已有f78d结果；完整高对比／200%矩阵、托盘、五应用及整版门槛未通过。后继功能验证继续复用同一42ab EXE，实际范围与限制见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
+上述42ab的普通设置打开／关闭、公开保存改变实际Move及正常退出已有f78d结果；完整高对比／200%矩阵、托盘、五应用及整版门槛未通过。2787已修改产品writer，相关复验使用新EXE；上述42ab实测保留原身份，不改绑2787。实际范围与限制见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 
