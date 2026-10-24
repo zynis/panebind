@@ -393,6 +393,8 @@ public:
                 ",\"post_context_checked\":"+(receipt.post_context_checked?"true":"false")+
                 ",\"post_context_valid\":"+(receipt.post_context_valid?"true":"false")+
                 ",\"post_context_reason\":\""+escaped(receipt.post_context_reason)+"\""+
+                ",\"post_track_limits_query_requested\":"+(receipt.post_track_limits_query_requested?(*receipt.post_track_limits_query_requested?"true":"false"):"null")+
+                ",\"post_track_limits_carried_from_preflight\":"+(receipt.post_track_limits_carried_from_preflight?"true":"false")+
                 ",\"explicit_destination_display_bound\":"+(receipt.destination?"true":"false")+
                 ",\"destination_monitor\":"+std::to_string(receipt.destination?reinterpret_cast<std::uintptr_t>(receipt.destination->target.monitor):0)+
                 ",\"destination_window_dpi\":"+std::to_string(receipt.destination?receipt.destination->window_dpi:0)+
@@ -1032,6 +1034,8 @@ public:
             ",\"preflight_started_qpc\":"+std::to_string(r.preflight_started_qpc)+
             ",\"geometry_observed_qpc\":"+std::to_string(r.geometry_observed_qpc)+
             ",\"post_observed_qpc\":"+std::to_string(r.post_observed_qpc)+
+            ",\"post_track_limits_query_requested\":"+(r.post_track_limits_query_requested?(*r.post_track_limits_query_requested?"true":"false"):"null")+
+            ",\"post_track_limits_carried_from_preflight\":"+(r.post_track_limits_carried_from_preflight?"true":"false")+
             ",\"explicit_destination_display_bound\":"+(r.destination?"true":"false")+
             ",\"destination_monitor\":"+std::to_string(r.destination?reinterpret_cast<std::uintptr_t>(r.destination->target.monitor):0)+
             ",\"destination_window_dpi\":"+std::to_string(r.destination?r.destination->window_dpi:0)+

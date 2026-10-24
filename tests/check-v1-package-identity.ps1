@@ -1861,4 +1861,22 @@ $withoutFirstPeekQuit=[regex]::Replace($mediumGeometrySource,
     '(PM_NOREMOVE\)\)break;\s*)if\(message\.message==WM_QUIT\)\{quit_seen_=true;return rejected\("WM_QUIT"\);\}', '$1')
 if($withoutFirstPeekQuit -ceq $mediumGeometrySource){throw 'The first-Peek QUIT mutation did not reach the actual wait implementation.'}
 Reject {Assert-V1FairPumpQuit $withoutFirstPeekQuit} 'static fair wait rejects losing an observed QUIT at the final predicate boundary'
+function Assert-V1PlacementPostLimitPolicy([string]$Writer){
+    foreach($value in @('r.post_track_limits_query_requested=placement_post_needs_track_limits(r,job->native);',
+        'r.after=catalog_.get(r.before.hwnd,settings,nullptr,false,*r.post_track_limits_query_requested);',
+        'retain_placement_preflight_limits(r);',
+        'result.post_track_limits_query_requested=placement_post_needs_track_limits(result,native);',
+        'result.after = catalog_.get(before->hwnd, settings, &capture_reason,false,*result.post_track_limits_query_requested);',
+        'retain_placement_preflight_limits(result);',
+        'const auto before = catalog_.get(expected.hwnd, settings, &capture_reason);',
+        'const auto current = catalog_.get(expected.hwnd, settings, &reason);',
+        'r.after->declared_track_limits_observed=false;', 'r.after->application_grid_known=false;')){
+        if(-not $Writer.Contains($value)){throw 'Actual immediate/delayed post limits policy must retain fresh pre-call checks and distinguish carried facts.'}
+    }
+}
+$placementWriterSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/window_writer.cpp'),[Text.Encoding]::UTF8)
+Assert-V1PlacementPostLimitPolicy $placementWriterSource
+Check $true 'static actual immediate and delayed captures use the tested post-limit policy without removing fresh admissions'
+Reject {Assert-V1PlacementPostLimitPolicy ($placementWriterSource.Replace('retain_placement_preflight_limits(result);',''))} 'static post-limit bypass cannot silently replace real preflight bounds with default limits'
+Reject {Assert-V1PlacementPostLimitPolicy ($placementWriterSource.Replace('catalog_.get(expected.hwnd, settings, &capture_reason);','catalog_.get(expected.hwnd, settings, &capture_reason,false,false);'))} 'static post-limit exception cannot disable the next actual fresh placement admission'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

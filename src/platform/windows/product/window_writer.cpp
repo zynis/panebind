@@ -536,7 +536,9 @@ std::vector<WindowWriter::Receipt> WindowWriter::take_delayed_completions(const 
             r.operation=job->operation;r.visual_before=job->visual_before;r.visual_target=job->visual_target;
             r.alpha_change=job->alpha_change;r.top_change=job->top_change;r.visual_native=job->visual_native;r.reason=job->reason;}
         if(r.operation!=Operation::Placement){observe_auxiliary(r,settings,job->capture);result.push_back(std::move(r));continue;}
-        r.after=catalog_.get(r.before.hwnd,settings);
+        r.post_track_limits_query_requested=placement_post_needs_track_limits(r,job->native);
+        r.after=catalog_.get(r.before.hwnd,settings,nullptr,false,*r.post_track_limits_query_requested);
+        retain_placement_preflight_limits(r);
         observe_post_context(r,[&]{
             r.identity_valid=r.after&&Catalog::same(r.before,*r.after);
             r.geometry_exact=r.identity_valid&&r.after->visible==r.requested&&r.after->positioning==job->native;
@@ -569,6 +571,23 @@ WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
     result.accepted = true;
     result.reason = result.noop ? "already_exact_no_native_call" : "prepared";
     return result;
+}
+
+bool WindowWriter::placement_post_needs_track_limits(const Receipt& r,const Rect& native)noexcept{
+    return !(r.operation==Operation::Placement&&r.native_attempted&&r.completion_known&&r.native_succeeded&&
+        r.requested.size()==r.before.visible.size()&&native.size()==r.before.positioning.size());
+}
+
+void WindowWriter::retain_placement_preflight_limits(Receipt& r){
+    if(!r.post_track_limits_query_requested||*r.post_track_limits_query_requested||!r.after||
+        !Catalog::same(r.before,*r.after))return;
+    // These are the limits actually observed before THIS call, not fresh
+    // post-call limits. All fresh placement admissions still query the app;
+    // carrying them does not select a new intent or grant write authority.
+    r.after->limits=r.before.limits;
+    r.after->declared_track_limits_observed=false;
+    r.after->application_grid_known=false;
+    r.post_track_limits_carried_from_preflight=true;
 }
 
 UINT WindowWriter::placement_flags(const Snapshot& fresh,const Rect& positioning)noexcept{
@@ -789,7 +808,9 @@ WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expec
     // This is observation of an issued call, not a new permission request.
     // In particular, do not call guard again: a matching normal UP must not
     // turn an otherwise exact completion into a false authority failure.
-    result.after = catalog_.get(before->hwnd, settings, &capture_reason);
+    result.post_track_limits_query_requested=placement_post_needs_track_limits(result,native);
+    result.after = catalog_.get(before->hwnd, settings, &capture_reason,false,*result.post_track_limits_query_requested);
+    retain_placement_preflight_limits(result);
     bool context{};
     observe_post_context(result,[&]{
         result.identity_valid = result.after && Catalog::same(*before, *result.after);

@@ -49,6 +49,47 @@ int main() {
     auto different_frame=initial;different_frame.positioning={92,100,609,508};
     check(p::WindowWriter::placement_flags(different_frame,translated_native)==base_flags,
         "NOSIZE compares actual positioning dimensions, not equal visible sizes");
+    p::WindowWriter::Receipt pure_move;
+    pure_move.before=initial;pure_move.before.limits={300,200,800,700,25,10};
+    pure_move.before.declared_track_limits_observed=true;pure_move.before.application_grid_known=true;
+    pure_move.requested={180,130,680,530};
+    pure_move.native_attempted=pure_move.native_succeeded=pure_move.completion_known=true;
+    pure_move.after=initial;pure_move.after->visible=pure_move.requested;
+    pure_move.after->positioning=translated_native;
+    pure_move.post_track_limits_query_requested=p::WindowWriter::placement_post_needs_track_limits(pure_move,translated_native);
+    check(!*pure_move.post_track_limits_query_requested,
+        "issued successful equal-visible-and-native-size Move needs no second synchronous track query");
+    p::WindowWriter::retain_placement_preflight_limits(pure_move);
+    const auto& carried=pure_move.after->limits;
+    check(pure_move.post_track_limits_carried_from_preflight&&carried.min_width==300&&carried.min_height==200&&
+          carried.max_width==800&&carried.max_height==700&&carried.grid_width==25&&carried.grid_height==10&&
+          !pure_move.after->declared_track_limits_observed&&!pure_move.after->application_grid_known&&
+          pure_move.before.declared_track_limits_observed&&pure_move.before.application_grid_known&&
+          !pure_move.accepted&&!pure_move.post_context_valid,
+        "same-identity post capture retains real preflight bounds without claiming fresh limits/grid or authority");
+    auto next_fresh=*pure_move.after;next_fresh.declared_track_limits_observed=true;
+    next_fresh.limits.min_width=600;
+    const auto next=p::WindowWriter::prepare(*pure_move.after,next_fresh,{190,140,690,540});
+    check(!next.accepted&&next.reason=="target_violates_size_constraints",
+        "next actual preflight can reject changed app limits despite carried prior bounds");
+    auto must_query=pure_move;must_query.requested={180,130,681,530};
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,{172,130,689,538}),
+        "real Resize keeps the complete post-call application limit query");
+    must_query=pure_move;must_query.before.positioning=different_frame.positioning;
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),
+        "changed nonclient/native dimensions do not use the pure-Move exception");
+    must_query=pure_move;must_query.native_attempted=false;
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"unissued admission is not an issued Move");
+    must_query=pure_move;must_query.completion_known=false;
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"unknown in-flight completion cannot skip limit observation");
+    must_query=pure_move;must_query.native_succeeded=false;
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"failed native call retains full post observation");
+    must_query=pure_move;must_query.operation=p::WindowWriter::Operation::Visual;
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"visual operations are not pure Move completions");
+    must_query=pure_move;++must_query.after->born;must_query.post_track_limits_carried_from_preflight=false;
+    must_query.after->limits={};p::WindowWriter::retain_placement_preflight_limits(must_query);
+    check(!must_query.post_track_limits_carried_from_preflight&&must_query.after->limits.min_width==64,
+        "a changed identity never inherits another window's preflight bounds");
     p::WindowWriter::Receipt observation;
     observation.preflight_started_qpc=50;observation.post_observed_qpc=75;
     observation_tick=100;

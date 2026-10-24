@@ -53,6 +53,11 @@ public:
         // while normal-UP capture cleanup is not yet confirmed.
         bool post_context_checked{},post_context_valid{};
         std::string post_context_reason;
+        // Request policy is not evidence that the message was delivered. A
+        // successful size-preserving issued Move can retain its real pre-call
+        // bounds without synchronously querying them again after the call.
+        std::optional<bool> post_track_limits_query_requested;
+        bool post_track_limits_carried_from_preflight{};
         DWORD error{};
         Snapshot before;
         std::optional<Snapshot> after;
@@ -111,6 +116,9 @@ public:
     // Equal native dimensions retain size; genuine Resize stays unchanged.
     [[nodiscard]] static UINT placement_flags(const Snapshot& fresh,
         const core::v1::Rect& positioning)noexcept;
+    [[nodiscard]] static bool placement_post_needs_track_limits(const Receipt&,
+        const core::v1::Rect& native)noexcept;
+    static void retain_placement_preflight_limits(Receipt&);
     struct DestinationPreparation {bool accepted{};std::optional<DestinationDisplay> proof;std::string reason;};
     // Exact predicates also used by the native adapter. No window operation or
     // monitor query occurs here. Same-display calls need no probe/proof.

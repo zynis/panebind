@@ -3520,3 +3520,25 @@ wakes, retaining phase deadlines, QUIT, admission and input-lease checks. This
 is not polling, a product authority change, or proof that the TEST coupling
 alone caused the measured latency. A new driver keeps the unchanged product
 EXE; native timing and affected geometry are revalidated under separate IDs.
+
+The same exact Terminal tag's
+[IslandWindow.cpp](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/src/cascadia/WindowsTerminal/IslandWindow.cpp)
+was inspected for the independent real-application size-constraint check:
+`WM_GETMINMAXINFO` supplies minimum track sizes when its callback is available;
+character-grid correction is separately handled by `WM_SIZING`. The official
+[WM_GETMINMAXINFO contract](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-getminmaxinfo)
+and [Terminal grid setting](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/interaction#snap-window-resizing-to-character-grid)
+were checked. A window's existence, upstream default or successful API delivery
+does not prove this Run's custom grid, initialized client or declared bounds.
+The TEST must observe the actual bounds before choosing its independent legal
+set; unknown facts stay unknown. No upstream code is copied or adapted.
+
+The actual 72bd and c14 full-post-context NF02 tails remain failures. Inspection
+found that even a successfully issued size-preserving Move made another
+synchronous track-limit query during post-observation. The narrow product
+change skips only that post-call query: identity, geometry and context are still
+freshly captured; the actual pre-call bounds are explicitly carried, not called
+fresh post-call limits. All new placement admissions still query the application,
+and actual Resize, failed/unknown completion and other operations retain the
+old query. This does not establish which API caused the old timing tail or award
+a performance PASS; the changed candidate needs separate affected runtime data.
