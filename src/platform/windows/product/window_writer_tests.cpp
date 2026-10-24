@@ -86,6 +86,9 @@ int main() {
     check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"failed native call retains full post observation");
     must_query=pure_move;must_query.operation=p::WindowWriter::Operation::Visual;
     check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),"visual operations are not pure Move completions");
+    must_query=pure_move;must_query.destination=p::WindowWriter::DestinationDisplay{};
+    check(p::WindowWriter::placement_post_needs_track_limits(must_query,translated_native),
+        "explicit cross-display/DPI transition keeps fresh post-call track limits");
     must_query=pure_move;++must_query.after->born;must_query.post_track_limits_carried_from_preflight=false;
     must_query.after->limits={};p::WindowWriter::retain_placement_preflight_limits(must_query);
     check(!must_query.post_track_limits_carried_from_preflight&&must_query.after->limits.min_width==64,

@@ -574,7 +574,7 @@ WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
 }
 
 bool WindowWriter::placement_post_needs_track_limits(const Receipt& r,const Rect& native)noexcept{
-    return !(r.operation==Operation::Placement&&r.native_attempted&&r.completion_known&&r.native_succeeded&&
+    return !(r.operation==Operation::Placement&&!r.destination&&r.native_attempted&&r.completion_known&&r.native_succeeded&&
         r.requested.size()==r.before.visible.size()&&native.size()==r.before.positioning.size());
 }
 
