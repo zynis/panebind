@@ -6,7 +6,10 @@
 
 - **a723 Release**：完整12代、11NormalUp＋1abort、15exact；正向／拒绝恢复／min／C MATCH及实际资源退出限定几何PASS。P431完整端点max45492µs／p95桶49999µs、callback70／max422µs／p99桶500µs仅本Run预算通过，不关闭完整NF02、不改写ca56／0c50或旧callback失败，不归因唯一系统原因。
 - **f7d6 Debug**：12代11NormalUp＋1abort、15exact及P433产品资源退出true，正常子范围max43975µs；但16秒末D2362 status未完成／health null，D2365仍last11／cleanup UNKNOWN，保留未终验FAIL，不写产品unhealthy或完整通过。
-- **217a普通49b3包**：D188实际空argv可见GUI／同实例二启／Save影响Move／两NormalUp／正常退出scopePASS。后继只驱动修复仍NOT_RUN：仅Terminal链UI上限25秒／geometry20秒，并在父级真实30秒期限前留3秒；普通UI20／独立回切30与外层35不变，不重建产品。
+- **6e3 Debug补验**：产品c452字节不变、driver `011ed1c458612491d878db7a2db70f72824fff03`（D/R各2offline及四host78通过），真实12代／11NormalUp＋g7 abort／15native exact及完整postcontext；C MATCH、min、后继Move和D2386几何scope PASS、cleanup true，D2395 real_app_geometry_completed=true。P431 max45181µs／p95桶49999、callback70／max575µs／p99桶999仅本scope预算通过，P432产品自身资源退出；整Run仍因tray providerPID0／noClick为FAIL，不授Full或完整NF02。
+- **217a普通49b3包**：D188实际空argv可见GUI／同实例二启／Save影响Move／两NormalUp／正常退出scopePASS。包内产品／driver仍原c452，不改绑后继011驱动。
+
+6e3实际预算为parent40609→70609、UI40625→65625、geometry42203→62203；末尾state、正常目标关闭及Default回切在parent期限内，关闭该有限预算工具问题的受影响范围，不删除c1a5／f7d6原失败。原件`uat/v1-control/6e3269161d484dc993985d9091aefbf3/collection-20261024T141020767Z-197ca5efc4484d4598066fa94bdaee25`，本任务guest／任务于14:12:13.2752659Z精确清理；销毁guest不代替产品cleanup。011 Debug驱动SHA-256 `3634CD95470E76DF5FE3DC261976D26ED7970A71C6767EAF03C9E9CC683B7013`。
 
 产品、三Run driver及包装均`c452bfdb750fed6714e7bdf6a4505ea4051cde21`；产品D `76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D`／R `10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。D/R各8/8 offline、四完整argv宿主78：`uat/v1-control/build-sizing-c452bfd-12eb0cebd4684d66a703247aff33e6f3/receipt.json` SHA-256 `470D5F5F3B06F030743C878EA06292F5FF2538530E603993DF2D7A2B8160EB5C`；guard `uat/v1-host-guard/1d40b9bd98324c348b216fd5ce0c087d/receipt.json` SHA-256 `28E63973E086C5BD3B4A67E2C5EFC643FAF641435DE1464F2ACC27905D9A3FC3`。
 

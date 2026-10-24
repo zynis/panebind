@@ -240,16 +240,20 @@
       "driver_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
       "driver_release_sha256": "BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14",
       "run_ids": ["f7d67ca83a1b4532a82fae74d7d12494", "a723ce9a988e455a9af5d22b2684ae20", "217affbb6e744c3abbfff22e3e4c7a09"],
-      "latest_geometry_run_id": "a723ce9a988e455a9af5d22b2684ae20",
-      "latest_product_runtime_run_id": "217affbb6e744c3abbfff22e3e4c7a09",
+      "latest_geometry_run_id": "6e3269161d484dc993985d9091aefbf3",
+      "latest_product_runtime_run_id": "6e3269161d484dc993985d9091aefbf3",
       "portable_package_id": "49b36fc6fd0845da8714559a6de47132",
-      "status": "ACTUAL_RELEASE_GEOMETRY_PORTABLE_SCOPES_PASS_NF02_THIS_RUN_UNDER_BUDGET_DEBUG_FINAL_STATUS_UNKNOWN",
+      "status": "ACTUAL_DEBUG_RELEASE_GEOMETRY_AND_PORTABLE_SCOPES_PASS_NF02_SCOPED_BUDGET_TRAY_BLOCKED",
+      "current_followup_driver_source_sha": "011ed1c458612491d878db7a2db70f72824fff03",
+      "current_followup_driver_debug_sha256": "3634CD95470E76DF5FE3DC261976D26ED7970A71C6767EAF03C9E9CC683B7013",
+      "current_followup_run_id": "6e3269161d484dc993985d9091aefbf3",
+      "current_followup_scope": "同c452产品，6e3 Debug完整12代11NormalUp+g7abort/15exact/fullpostcontext/C MATCH/min/后继Move，D2386 geometry scopePASS和cleanup true、D2395 real_app_geometry_completed=true；P431 max45181us/p95桶49999、callback70/max575us/p99桶999仅本scope达预算，P432资源退出。末state/正常目标关闭/Default回切在parent40609→70609内，UI40625→65625、geometry42203→62203；有限预算工具问题按此范围复验关闭。整Run tray providerPID0/noClick仍FAIL，原3Run driver不改绑。",
       "scope": "c452/a723 Release完整12代11NormalUp+1abort/15exact、cleanup known；P431 fullmax45492us/p95桶49999、callback70/max422us/p99桶500仅本Run预算通过，不关闭NF02。f7d6 Debug同12代/15exact和P433资源退出true，max43975us，但16秒末status health null/last11/cleanup UNKNOWN，保留未终验FAIL。217a原49b3包空argvGUI/Save-Move/两NormalUp/正常退出scopePASS。322a/旧NF与HC失败保原身份。",
       "evidence_paths": ["docs/reports/v1-evidence/20261024-targeted-guest-review.json", "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"],
       "raw_runs_root": "uat/v1-control/<run_id>/collection-*",
       "whole_version_PASS": false,
       "no_old_EXE_runtime_rebinding": true,
-      "pending_driver_only_followup": "NOT_RUN: 仅Terminal链UI上限25秒/geometry20秒，父级真实30秒期限前留3秒；普通UI20/回切30/外35不变。新Debug补验待填，不重建c452产品。"
+      "pending_driver_only_followup": "COMPLETED_SCOPED_6E3: 仅TEST有限预算修复已真实终验，普通UI20/parent30/outer35不变；旧c1a5/f7d6 timeout FAIL保留。产品c452与49b3包字节/原driver身份不变。"
     },
     "historical_9ec7_targeted_runtime": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -510,7 +514,7 @@
       "actual_build_evidence_sha256": "470D5F5F3B06F030743C878EA06292F5FF2538530E603993DF2D7A2B8160EB5C",
       "runtime_ref": "source_identity.current_targeted_runtime",
       "whole_version_PASS": false,
-      "next_action": "c452 Release限定链与普通包已实测；NF02仅本Run达预算、不关闭完整门。f7d6末status/cleanup未终验保FAIL；仅驱动有限预算修复的Debug补验NOT_RUN，不重建产品或改绑旧运行。"
+      "next_action": "c452 Release/a723与Debug6e3限定链、普通217a均实测；有限预算工具问题按6e3范围闭合，旧超时保FAIL。NF02仅各Run达预算、完整应用/链门仍开放；复用既有结果，不重建产品或改绑49b3包driver。"
     },
     "historical_9ec7_candidate_checkpoint": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -1163,7 +1167,7 @@
       },
     "implementation_inspected": "9EC7_REAL_LIVE_RESIZE_CALLBACK_D_R_SCOPED_RUNTIME_AND_ORDINARY_PACKAGE_TESTED",
     "note": "独立DEV44/60、22/40=55%、modules0/PARTIAL保持原合同/身份。当前ccde/2579在bea0实际普通无参包入口/两Move真实UP/正常退出限定通过；42ab/d5f5/f78及4ff诊断证据保历史不改绑。f46九代几何/UP与WM_SIZING R/C差异、108 HC真实状态/恢复FAIL分开，均不授完整Medium桌面/五应用/托盘/HC/整版。",
-    "pending_product_note": "当前c452/49b3限定实测见current_targeted_runtime；a723真实正向/拒绝/恢复/min/C MATCH、普通217a已验；NF02只本Run达预算，旧ca56/0c50等失败不改。Debug末status/cleanup UNKNOWN保FAIL，仅TEST预算修复待实测；应用/托盘/HC/显示缺项分别保留。",
+    "pending_product_note": "当前c452/49b3及独立011驱动Debug6e3限定实测见current_targeted_runtime；a723/6e3几何与真实收尾、普通217a已验，预算工具修复按6e3范围关闭，不改包内driver。旧ca56/0c50性能与c1a5/f7d6超时各保原FAIL；完整NF02、应用/托盘/HC/显示缺项分别保留。",
 
     "successor_live_Resize_candidate": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -15185,10 +15189,10 @@
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "c452/a723完整P431 max45492us/p95桶49999、callback70/max422us/p99桶500仅本Run达预算；f7d6未终验FAIL不冒完整通过。ca56/0c50 max53212us及旧callback/端点FAIL各保原身份，完整应用/整链NF02仍未齐，不推唯一系统原因。",
+        "c452/a723完整P431 max45492us/p95桶49999、callback70/max422us/p99桶500仅本Run达预算；f7d6未终验FAIL不冒完整通过。ca56 max54012us、0c50 max53212us及旧callback/端点FAIL各保原身份，完整应用/整链NF02仍未齐，不推唯一系统原因。",
         "QPC软件端点非物理显示；不追加无变量压力/计数矩阵，后继生产新候选按影响另记。"
       ],
-      "next_action": "复用c452/a723本Run预算与限定功能事实，不抹旧失败或关闭完整NF02；Debug末status/cleanup UNKNOWN仅用有界TEST预算补件复验，不改产品、重开Full/900或增加无关样本。应用/完整链和真人门分别保留。",
+      "next_action": "复用c452/a723和6e3各自有限性能/几何证据，不抹旧失败或关闭完整NF02。Debug预算补验已真实完成，仅工具受影响范围关闭；不重开Full/900或增加无关样本，应用/完整链和真人门分别保留。",
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",

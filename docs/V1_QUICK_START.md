@@ -4,11 +4,12 @@
 
 最新已实测普通便携入口为`c452bfdb750fed6714e7bdf6a4505ea4051cde21`／49b3包：217a实际验证空参数Medium/non-elevated可见GUI、二启同实例、保存影响Move、两代真实Raw／legacy NormalUp及正常退出。Release a723完整12代（11次NormalUp、一次安全拒绝后的abort清理）、15次exact native及资源收尾通过限定几何范围。
 
-本候选另跳过Ctrl Resize不使用的磁吸候选／显示测量；成员、权限、writer及共享边反馈不变。D/R构建及受影响offline各8/8通过；a723完整端点max45492µs／p95桶49999µs、callback max422µs／p99桶500µs仅本Run达到预算，**不关闭完整NF02**或抹去旧失败。Debug f7d6虽完成12代／15exact，16秒末status未完成、cleanup UNKNOWN，保留未终验FAIL，不写产品unhealthy。后继仅驱动有限预算修复待实测，不重建产品。108高对比scheme恢复FAIL、托盘、客户内容及完整应用／显示合同分别保留；**不开放宿主试用，不授整版PASS。**
+本候选另跳过Ctrl Resize不使用的磁吸候选／显示测量；成员、权限、writer及共享边反馈不变。D/R构建及受影响offline各8/8通过；a723 Release与后继6e3 Debug均完成12代／15exact／真实UP及几何子链收尾，软件端点分别max45492µs／45181µs，仅各自scope达到预算，**不关闭完整NF02**。6e3使用011ed1c驱动修复有限预算，末尾state及正常目标关闭／Default回切均在原parent30秒期限内；旧c1a5／f7d6超时FAIL保留，产品未重建。整Run仍因托盘providerPID0／未click为FAIL；108高对比scheme恢复FAIL、客户内容及完整应用／显示合同分别保留，**不开放宿主试用，不授整版PASS。**
 
-- 当前已实测产品／本批TEST源码：`c452bfdb750fed6714e7bdf6a4505ea4051cde21`。
+- 当前产品／已验便携包内TEST源码：`c452bfdb750fed6714e7bdf6a4505ea4051cde21`。
 - 当前已实测Release EXE SHA-256：`10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。
 - 本批Release TEST driver SHA-256：`BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14`；后继TEST预算变化不换绑产品／旧运行证据。
+- 独立Debug补验驱动：`011ed1c458612491d878db7a2db70f72824fff03`／SHA-256 `3634CD95470E76DF5FE3DC261976D26ED7970A71C6767EAF03C9E9CC683B7013`，只绑定6e3，不改49b3原包driver身份。
 - 当前已验普通便携包：`uat/v1-portable/49b36fc6fd0845da8714559a6de47132/PaneBindV1-Release-49b36fc6fd0845da8714559a6de47132.zip`。
 - ZIP SHA-256：`410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94`；manifest SHA-256：`8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
