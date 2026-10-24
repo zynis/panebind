@@ -94,10 +94,10 @@ int main() {
     failed=sizing;failed.returned_native.bottom=failed.returned_native.top-1;
     check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
         "reversed raw callback RECT is rejected before Rect construction can normalize it");
-    const p::WindowWriter::ResizeRequest left{{true,false,false,false},false};
+    const p::WindowWriter::ResizeRequest left_resize_request{{true,false,false,false},false};
     failed=sizing;failed.edge=WMSZ_LEFT;failed.requested_native={91,100,608,508};
     failed.returned_native={std::numeric_limits<LONG>::min(),100,608,508};
-    check(!p::WindowWriter::prepare_resize_query(initial,initial,{99,100,600,500},left,failed).accepted,
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,{99,100,600,500},left_resize_request,failed).accepted,
         "active-edge callback span wider than native INT_MAX is rejected without narrowing");
     failed=sizing;failed.returned_native.bottom=120;
     check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
