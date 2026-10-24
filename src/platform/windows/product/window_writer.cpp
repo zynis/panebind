@@ -573,6 +573,62 @@ WindowWriter::Preparation WindowWriter::prepare(const Snapshot& expected,
     return result;
 }
 
+UINT WindowWriter::resize_message_edge(v::Edges e)noexcept{
+    if((e.left&&e.right)||(e.top&&e.bottom)||!(e.left||e.top||e.right||e.bottom))return 0;
+    if(e.top)return e.left?WMSZ_TOPLEFT:e.right?WMSZ_TOPRIGHT:WMSZ_TOP;
+    if(e.bottom)return e.left?WMSZ_BOTTOMLEFT:e.right?WMSZ_BOTTOMRIGHT:WMSZ_BOTTOM;
+    return e.left?WMSZ_LEFT:WMSZ_RIGHT;
+}
+
+bool WindowWriter::resize_request_scope_allowed(const ResizeRequest& request,std::size_t placement_count)noexcept{
+    return resize_message_edge(request.edges)&&placement_count&&placement_count<=256&&
+        (request.coupled||placement_count==1);
+}
+
+WindowWriter::ResizePreparation WindowWriter::prepare_resize_query(const Snapshot& expected,
+    const Snapshot& actual,const Rect& requested,const ResizeRequest& request,const ResizeQueryFacts& facts){
+    ResizePreparation result;
+    const auto prepared=prepare(expected,actual,requested);
+    if(!prepared.accepted||!prepared.positioning){result.reason=prepared.reason;return result;}
+    const auto edge=resize_message_edge(request.edges);
+    if(!edge||facts.edge!=edge){result.reason="resize_query_invalid_active_edges";return result;}
+    if(!facts.attempted||!facts.api_return){result.reason="resize_query_failed_or_timeout";return result;}
+    const auto& r=facts.requested_native;const auto& c=facts.returned_native;
+    const auto& native=*prepared.positioning;
+    if(r.left!=native.left()||r.top!=native.top()||r.right!=native.right()||r.bottom!=native.bottom()){
+        result.reason="resize_query_requested_frame_mismatch";return result;
+    }
+    const bool changed=c.left!=r.left||c.top!=r.top||c.right!=r.right||c.bottom!=r.bottom;
+    if(facts.message_result!=TRUE){
+        // A delivered, unhandled and unchanged proposal keeps the old bounds
+        // policy. A changed/ambiguous answer never silently supplies a grid.
+        if(facts.message_result||changed){result.reason="resize_query_unhandled_changed_or_unknown_result";return result;}
+        result.accepted=true;result.visible=requested;result.reason="resize_query_unhandled_unchanged";return result;
+    }
+    if(c.left>=c.right||c.top>=c.bottom){result.reason="resize_query_invalid_raw_rectangle";return result;}
+    if((!request.edges.left&&c.left!=r.left)||(!request.edges.top&&c.top!=r.top)||
+       (!request.edges.right&&c.right!=r.right)||(!request.edges.bottom&&c.bottom!=r.bottom)){
+        result.reason="resize_query_changed_inactive_edge";return result;
+    }
+    if(request.coupled&&changed){result.reason="resize_query_would_change_coupled_plan";return result;}
+    // Invert the SAME checked per-edge frame bridge, not total frame size or
+    // inferred font/grid increments. Raw ordering was checked above.
+    const auto visible=operations::prepare_visible_rect_adjustment(actual.visible,actual.positioning,
+        operations::RawRectEdges{c.left,c.top,c.right,c.bottom});
+    if(visible.status!=operations::RectAdjustmentStatus::Succeeded||!visible.positioning){
+        result.reason="resize_query_visible_bridge_invalid";return result;
+    }
+    const auto final=prepare(expected,actual,*visible.positioning);
+    if(!final.accepted||!final.positioning){result.reason="resize_query_"+final.reason;return result;}
+    if(final.positioning->left()!=c.left||final.positioning->top()!=c.top||
+       final.positioning->right()!=c.right||final.positioning->bottom()!=c.bottom){
+        result.reason="resize_query_frame_roundtrip_mismatch";return result;
+    }
+    result.accepted=true;result.adjusted=changed;result.visible=*visible.positioning;
+    result.reason=changed?"resize_query_app_adjusted_this_proposal":"resize_query_handled_unchanged";
+    return result;
+}
+
 bool WindowWriter::placement_post_needs_track_limits(const Receipt& r,const Rect& native)noexcept{
     return !(r.operation==Operation::Placement&&!r.destination&&r.native_attempted&&r.completion_known&&r.native_succeeded&&
         r.requested.size()==r.before.visible.size()&&native.size()==r.before.positioning.size());
@@ -742,7 +798,8 @@ bool WindowWriter::preserves_terminal_receipt(const Receipt& receipt,std::uint64
         receipt.post_context_reason=="post_native_capture_cleanup_not_yet_confirmed";
     if(!receipt.completion_known)return false;
     if(receipt.reason=="operation_revoked_before_native_attempt")return true;
-    const std::string_view context_reason=receipt.reason=="batch_preflight_capture_matching_UP_retired_before_native_call"?
+    const std::string_view context_reason=(receipt.reason=="batch_preflight_capture_matching_UP_retired_before_native_call"||
+        receipt.reason=="resize_query_capture_matching_UP_retired_before_native_call")?
         capture_matching_up_retired_reason:std::string_view(receipt.reason);
     return gesture_gui_disposition(false,context_reason,generation,capture,generation_allowed)==GestureGuiDisposition::MatchingUpRetired;
 }
@@ -830,7 +887,8 @@ WindowWriter::Receipt WindowWriter::place_with_destination(const Snapshot& expec
 
 std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot> identities,
     std::span<const core::v1::Placement> placements,
-    const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture) {
+    const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture,
+    std::optional<ResizeRequest> resize) {
     std::vector<Receipt> result;
     // Bound the product batch, independently of the untrusted native desktop.
     if (identities.empty() || identities.size() > 256 || placements.empty() ||
@@ -840,6 +898,8 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
     }
     std::unordered_set<core::v1::Key> members, targets;
     std::vector<std::optional<DestinationDisplay>> destinations(placements.size());
+    std::vector<Snapshot> preflight;
+    if(resize)preflight.reserve(identities.size());
     std::unordered_set<HWND> windows;
     for (const auto& expected : identities) {
         if (!expected.key || !expected.hwnd || !members.insert(expected.key).second ||
@@ -853,6 +913,9 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
             result.push_back(rejected({}, placement.visible, "duplicate_or_out_of_scope_batch_target"));
             return result;
         }
+    }
+    if(resize&&!resize_request_scope_allowed(*resize,placements.size())){
+        result.push_back(rejected(identities.front(),placements.front().visible,"invalid_live_resize_request"));return result;
     }
     // Complete ALL source/participant preflights before the first native call.
     // Fresh geometry cannot silently become a new baseline for a frozen plan.
@@ -881,13 +944,112 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
                 destinations[static_cast<std::size_t>(placement-placements.begin())]=destination.proof;
             }
         }
+        if(resize)preflight.push_back(*current);
     }
+    std::vector<v::Placement> adjusted;
+    std::vector<std::optional<ResizeQueryFacts>> queries;
+    if(resize){
+        adjusted.assign(placements.begin(),placements.end());queries.resize(placements.size());
+        const auto resize_guard=[&](std::string& reason){
+            if(allowed_by_guard(guard,reason))return true;
+            if(reason=="operation_revoked_before_native_attempt")reason=capture&&capture->generation&&
+                capture->matching_up_observed.load(std::memory_order_acquire)?
+                "resize_query_capture_matching_UP_retired_before_native_call":"resize_query_operation_revoked_before_native_attempt";
+            return false;
+        };
+        const auto reject_resize=[&](std::size_t failed,const std::string& reason,const Snapshot* observer=nullptr){
+            // Prior callback attempts remain visible when a later member
+            // rejects. No one of these receipts claims a placement attempt.
+            result.clear();
+            for(std::size_t index=0;index<placements.size();++index)if(queries[index]||(!observer&&index==failed)){
+                const auto identity=std::find_if(identities.begin(),identities.end(),[&](const auto& item){return item.key==placements[index].id;});
+                auto receipt=rejected(*identity,adjusted[index].visible,reason);
+                receipt.resize_query=queries[index];receipt.resize_original_requested=placements[index].visible;
+                result.push_back(std::move(receipt));
+            }
+            if(observer)result.push_back(rejected(*observer,observer->visible,reason));
+        };
+        for(std::size_t index=0;index<placements.size();++index){
+            const auto& placement=placements[index];
+            const auto current=std::find_if(preflight.begin(),preflight.end(),[&](const auto& item){return item.key==placement.id;});
+            if(placement.visible.size()==current->visible.size())continue;
+            // Coupled members can have the opposite edge from the leader.
+            // Describe only this member's actual proposed changed edges.
+            ResizeRequest member=*resize;
+            if(member.coupled)member.edges={placement.visible.left()!=current->visible.left(),
+                placement.visible.top()!=current->visible.top(),placement.visible.right()!=current->visible.right(),
+                placement.visible.bottom()!=current->visible.bottom()};
+            const auto edge=resize_message_edge(member.edges);
+            if(!edge){reject_resize(index,"resize_query_ambiguous_member_edges");return result;}
+            std::string reason;
+            const auto before=catalog_.get(current->hwnd,settings,&reason);
+            if(!before||!consistent(*current,*before,reason)){
+                reject_resize(index,"batch_preflight_"+reason);return result;
+            }
+            if(capture&&!geometry_gui_context_allowed(*before,observe_gui_context(*before),capture,
+                GeometryContextPhase::BeforeNativeCall,&reason)){
+                reject_resize(index,"batch_preflight_"+reason);return result;
+            }
+            const auto prepared=prepare(*current,*before,placement.visible);
+            if(!prepared.accepted||!prepared.positioning){reject_resize(index,"batch_preflight_"+prepared.reason);return result;}
+            if(!resize_guard(reason)){reject_resize(index,reason);return result;}
+            const auto& r=*prepared.positioning;
+            ResizeQueryFacts facts;facts.edge=edge;
+            facts.requested_native={static_cast<LONG>(r.left()),static_cast<LONG>(r.top()),static_cast<LONG>(r.right()),static_cast<LONG>(r.bottom())};
+            facts.returned_native=facts.requested_native;
+            // GUI adapter only, after all-member preflight and BEFORE any
+            // placement. No input/resource/work mutex is held across a foreign
+            // callback. The independent input owner can revoke on real UP.
+            facts.before_qpc=now();SetLastError(ERROR_SUCCESS);facts.attempted=true;
+            facts.api_return=SendMessageTimeoutW(before->hwnd,WM_SIZING,edge,reinterpret_cast<LPARAM>(&facts.returned_native),
+                SMTO_ABORTIFHUNG|SMTO_BLOCK|SMTO_ERRORONEXIT,30,&facts.message_result);
+            facts.error=GetLastError();facts.after_qpc=now();queries[index]=facts;
+            const auto decision=prepare_resize_query(*current,*before,placement.visible,member,facts);
+            if(!decision.accepted||!decision.visible){reject_resize(index,decision.reason);return result;}
+            adjusted[index].visible=*decision.visible;
+            // A callback return is not write authority. Use the existing
+            // exact normal-UP withdrawal reason; do not mask an API/context
+            // failure above merely because UP also arrived during the call.
+            if(!resize_guard(reason)){reject_resize(index,reason);return result;}
+        }
+        // Callbacks are application-affecting, not read-only snapshots. Recheck
+        // ALL members after ALL callbacks against the frozen pre-call frames,
+        // including participants with no placement. Never accept a new baseline.
+        for(const auto& expected:identities){
+            std::string reason;
+            const auto found=std::find_if(adjusted.begin(),adjusted.end(),[&](const auto& item){return item.id==expected.key;});
+            const auto index=found==adjusted.end()?std::size_t{0}:static_cast<std::size_t>(found-adjusted.begin());
+            const auto reject_context=[&](const std::string& failure){reject_resize(index,failure,found==adjusted.end()?&expected:nullptr);};
+            const auto current=catalog_.get(expected.hwnd,settings,&reason);
+            if(!current||!consistent(expected,*current,reason)){
+                reject_context("batch_preflight_"+reason);return result;
+            }
+            if(!resize_guard(reason)){reject_context(reason);return result;}
+            if(capture&&!geometry_gui_context_allowed(*current,observe_gui_context(*current),capture,
+                GeometryContextPhase::BeforeNativeCall,&reason)){
+                reject_context("batch_preflight_"+reason);return result;
+            }
+            if(found!=adjusted.end()){
+                const auto prepared=prepare(expected,*current,found->visible);
+                if(!prepared.accepted||!prepared.positioning){reject_resize(index,"batch_preflight_"+prepared.reason);return result;}
+                destinations[index].reset();
+                if(!prepared.noop){
+                    const auto destination=observe_destination(catalog_,*current,*prepared.positioning);
+                    if(!destination.accepted){reject_resize(index,"batch_preflight_"+destination.reason);return result;}
+                    destinations[index]=destination.proof;
+                }
+            }
+        }
+        for(auto& query:queries)if(query)query->context_revalidated=true;
+    }
+    const auto final_placements=resize?std::span<const v::Placement>{adjusted}:placements;
     result.reserve(placements.size());
-    for (const auto& placement : placements) {
+    for (const auto& placement : final_placements) {
         const auto expected = std::find_if(identities.begin(), identities.end(),
             [&](const auto& member) { return member.key == placement.id; });
-        const auto index=static_cast<std::size_t>(&placement-placements.data());
+        const auto index=static_cast<std::size_t>(&placement-final_placements.data());
         result.push_back(place_with_destination(*expected,placement.visible,settings,guard,capture,&destinations[index]));
+        if(resize){result.back().resize_query=queries[index];result.back().resize_original_requested=placements[index].visible;}
         if (!result.back().accepted) break;
     }
     return result;

@@ -1921,4 +1921,47 @@ Check $true 'static one-point app proposal feeds the actual guarded Resize with 
 Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('eligible=api!=FALSE&&message_result==TRUE&&context&&shape&&bounds;','eligible=true;'))} 'static sizing proposal cannot invent eligibility from delivery alone'
 Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('if(!eligible)return {};',''))} 'static UNKNOWN proposal cannot proceed to real synthetic input'
 Reject {Assert-V1SingleSizingProposal ($mediumGeometrySource.Replace('one_gesture(HTBOTTOM,0,1,"SingleSizingProposalResize",false,false,false,&*proposal);',''))} 'static proposal cannot substitute a message result for an actual guarded Resize'
+function Assert-V1LiveResizeCallback([string]$Writer,[string]$Application,[string]$Geometry){
+    if($Application.Contains('return rectangle({r.left,r.top,r.right,r.bottom});') -or
+       $Geometry.Contains('return rect({r.left,r.top,r.right,r.bottom});')){
+        throw 'Rejected malformed raw callback RECTs must not be normalized by the domain Rect logger.'
+    }
+    foreach($value in @('resize&&!resize_request_scope_allowed(*resize,placements.size())',
+        'if(placement.visible.size()==current->visible.size())continue;',
+        'facts.api_return=SendMessageTimeoutW(before->hwnd,WM_SIZING,edge,',
+        'prepare_resize_query(*current,*before,placement.visible,member,facts)',
+        'if(request.coupled&&changed)',
+        'if(!resize_guard(reason)){reject_resize(index,reason);return result;}',
+        'if(!current||!consistent(expected,*current,reason))',
+        'for(auto& query:queries)if(query)query->context_revalidated=true;',
+        'const auto final_placements=resize?std::span<const v::Placement>{adjusted}:placements;',
+        'place_with_destination(*expected,placement.visible,settings,guard,capture,&destinations[index])')){
+        if(-not $Writer.Contains($value)){throw ('Live resize lost its actual callback/whole-batch/UP boundary: '+$value)}
+    }
+    $callback=$Writer.IndexOf('facts.api_return=SendMessageTimeoutW(before->hwnd,WM_SIZING,edge,',[StringComparison]::Ordinal)
+    $post=$Writer.IndexOf('for(auto& query:queries)if(query)query->context_revalidated=true;',[StringComparison]::Ordinal)
+    $placement=$Writer.IndexOf('const auto final_placements=resize?',[StringComparison]::Ordinal)
+    if($callback -lt 0 -or $post -le $callback -or $placement -le $post){throw 'All callbacks and revalidation must precede the existing single writer.'}
+    foreach($value in @('std::optional<WindowWriter::ResizeRequest> resize=std::nullopt',
+        'capture,resize);','const auto resize_request=is_resize(state.edges)?',
+        'WindowWriter::ResizeRequest{state.edges,state.ctrl||plan.placements.size()>1}',
+        'e.hook_observed_qpc,resize_request)',
+        'state.x.reset();adopted_x.reset();','state.y.reset();adopted_y.reset();',
+        'log.event("application_resize_proposal"')){
+        if(-not $Application.Contains($value)){throw ('Actual product dispatcher is not wired to the guarded resize callback: '+$value)}
+    }
+    foreach($value in @('std::string application_right_placement(',
+        'placement=application_right_placement(placement_mark,step.expected,*original,positioning,*observed,application_callback);',
+        'snapshot.find(placement,snapshot.find(line)+line.size())',
+        'actual_application_callback_not_product_solver')){
+        if(-not $Geometry.Contains($value)){throw 'Affected real RightResize must pair actual callback and exact independent geometry, not wait for the superseded raw R.'}
+    }
+}
+$liveResizeApplication=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/product_app.cpp'),[Text.Encoding]::UTF8)
+Assert-V1LiveResizeCallback $placementWriterSource $liveResizeApplication $mediumGeometrySource
+Check $true 'static live Resize alone reaches the application callback and fresh whole-batch gates before the existing writer'
+Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(request.coupled&&changed)','if(false)')) $liveResizeApplication $mediumGeometrySource} 'static coupled callback cannot independently correct members and break their shared layout'
+Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(!resize_guard(reason)){reject_resize(index,reason);return result;}','')) $liveResizeApplication $mediumGeometrySource} 'static callback return cannot bypass UP revocation before placement'
+Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication.Replace('const auto resize_request=is_resize(state.edges)?','const auto resize_request=true?')) $mediumGeometrySource} 'static Move and discrete operations cannot silently acquire a resize callback'
+Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication+' return rectangle({r.left,r.top,r.right,r.bottom});') $mediumGeometrySource} 'static malformed raw callback evidence cannot silently normalize reversed native edges'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

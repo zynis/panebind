@@ -345,7 +345,8 @@ public:
     }
     std::vector<v::Item> items(const std::vector<Snapshot>& list)const{std::vector<v::Item> result;
         for(const auto& s:list)result.push_back({s.key,s.visible,s.limits});return result;}
-    bool apply(const v::Plan& plan,std::vector<Snapshot> identities,std::uint64_t generation=0,bool completion=false,std::uint64_t observed_qpc=0){
+    bool apply(const v::Plan& plan,std::vector<Snapshot> identities,std::uint64_t generation=0,bool completion=false,std::uint64_t observed_qpc=0,
+               std::optional<WindowWriter::ResizeRequest> resize=std::nullopt){
         last_exact_receipts.clear();
         last_apply_revoked_only=false;
         if(!plan.accepted)return false;if(plan.placements.empty())return true;
@@ -362,10 +363,33 @@ public:
         const auto capture=completed_normal_up?GestureCaptureLease{}:input.capture_context(generation);
         const auto receipts=writer.batch(identities,plan.placements,settings,
             input.operation_guard(generation,completed_normal_up,authority_source),
-            capture);
+            capture,resize);
         bool ok=receipts.size()==plan.placements.size();
         bool only_terminal_withdrawal=!receipts.empty();
         for(const auto& receipt:receipts){
+            if(receipt.resize_query&&(diagnostic||!receipt.accepted)){
+                const auto& q=*receipt.resize_query;
+                const auto native_rect=[](const RECT& r){return "["+std::to_string(r.left)+","+std::to_string(r.top)+","+
+                    std::to_string(r.right)+","+std::to_string(r.bottom)+"]";};
+                log.event("application_resize_proposal","\"generation\":"+std::to_string(generation)+
+                    ",\"operation\":"+std::to_string(operations)+",\"key\":"+std::to_string(receipt.before.key)+
+                    ",\"source_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(receipt.before.hwnd))+
+                    ",\"source_PID\":"+std::to_string(receipt.before.pid)+",\"source_TID\":"+std::to_string(receipt.before.tid)+
+                    ",\"edge\":"+std::to_string(q.edge)+",\"callback_attempted\":"+(q.attempted?"true":"false")+
+                    ",\"API_return\":"+(q.attempted?std::to_string(q.api_return):"null")+
+                    ",\"API_last_error\":"+(q.attempted?std::to_string(q.error):"null")+
+                    ",\"last_error_is_failure_diagnostic_only\":true,\"message_LRESULT\":"+
+                        (q.attempted&&q.api_return?std::to_string(q.message_result):"null")+
+                    ",\"R_native\":"+(q.attempted?native_rect(q.requested_native):"null")+
+                    ",\"C_native\":"+(q.attempted&&q.api_return?native_rect(q.returned_native):"null")+
+                    ",\"R_visible\":"+(receipt.resize_original_requested?rectangle(*receipt.resize_original_requested):"null")+
+                    ",\"candidate_visible\":"+rectangle(receipt.requested)+
+                    ",\"before_qpc\":"+std::to_string(q.before_qpc)+",\"after_qpc\":"+std::to_string(q.after_qpc)+
+                    ",\"context_revalidated\":"+(q.context_revalidated?"true":"false")+
+                    ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
+                    ",\"batch_result_reason\":\""+escaped(receipt.reason)+"\",\"callback_is_placement_attempt\":false"+
+                    ",\"global_application_grid_known\":false");
+            }
             only_terminal_withdrawal=only_terminal_withdrawal&&WindowWriter::preserves_terminal_receipt(
                 receipt,generation,capture,input.allowed(generation));
             if(receipt.native_attempted)++native_attempts;
@@ -1823,10 +1847,29 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     // One terminal quantum chooses docking OR its absolute move/resize plan;
     // never issue a free placement followed by a corrected dock placement.
     if(normal_up_completion&&dock_shown)return;
-    if(!apply(plan,state.members,e.generation,normal_up_completion,e.hook_observed_qpc)){
+    // Only a live Resize asks the application about this quantum's native
+    // sizing proposal. Move, UP docking and discrete commands retain their
+    // old paths; the original DOWN/intent anchor is never rebased to its reply.
+    const auto resize_request=is_resize(state.edges)?
+        std::optional<WindowWriter::ResizeRequest>{WindowWriter::ResizeRequest{state.edges,state.ctrl||plan.placements.size()>1}}:std::nullopt;
+    if(!apply(plan,state.members,e.generation,normal_up_completion,e.hook_observed_qpc,resize_request)){
         // Only the matching actual UP event may finish NormalUp. A concurrent
         // hook-side revocation is not itself evidence of which terminator won.
         if(!last_apply_revoked_only){state.dock_action.reset();state.dock_rect.reset();finish(v::End::SourceLost);}return;}
+    if(resize_request){
+        const auto actual=last_exact_receipts.find(source.key);
+        if(actual!=last_exact_receipts.end()&&actual->second.visible!=src->visible){
+            const auto& accepted=actual->second.visible;
+            // Application-owned constraints outrank a solver selection. Do not
+            // retain a magnet latch or draw a claimed edge after C changed R.
+            if(accepted.left()!=src->visible.left()||accepted.right()!=src->visible.right()){
+                state.x.reset();adopted_x.reset();
+            }
+            if(accepted.top()!=src->visible.top()||accepted.bottom()!=src->visible.bottom()){
+                state.y.reset();adopted_y.reset();
+            }
+        }
+    }
     state.exact_motion=ExactMotionPoint{e.generation,e.point};
     if((config.feedback||!state.drag_visual_limit.empty())&&!dock_shown){
         std::vector<Snapshot> actual;

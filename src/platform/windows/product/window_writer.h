@@ -18,6 +18,20 @@ inline constexpr UINT native_completion_message=WM_APP+46;
 class WindowWriter final {
 public:
     enum class Operation { Placement,Visual,Lower };
+    // Explicitly supplied only by the live Resize dispatcher. A callback is
+    // one application proposal, never a global grid or a new permission token.
+    struct ResizeRequest {core::v1::Edges edges;bool coupled{};};
+    struct ResizeQueryFacts {
+        bool attempted{},context_revalidated{};
+        UINT edge{};LRESULT api_return{};DWORD error{};DWORD_PTR message_result{};
+        RECT requested_native{},returned_native{};
+        std::uint64_t before_qpc{},after_qpc{};
+    };
+    struct ResizePreparation {
+        bool accepted{},adjusted{};
+        std::optional<core::v1::Rect> visible;
+        std::string reason;
+    };
     struct VisualNativeFacts {
         bool style_attempted{},alpha_attempted{},alpha_succeeded{},zorder_attempted{},zorder_succeeded{};
         LONG_PTR style_previous{};
@@ -79,6 +93,10 @@ public:
         std::uint64_t z_lower_begin_qpc{},z_lower_end_qpc{};
         VisualNativeFacts visual_native;
         std::optional<DestinationDisplay> destination;
+        // These API facts are separate from SetWindowPos/native_attempted.
+        // requested is the final target; this retains the pre-callback R.
+        std::optional<ResizeQueryFacts> resize_query;
+        std::optional<core::v1::Rect> resize_original_requested;
     };
 
     // Used by actual immediate, delayed and auxiliary post-observation paths.
@@ -111,6 +129,12 @@ public:
     // No window query, COM, input resource or native placement occurs here.
     [[nodiscard]] static Preparation prepare(const Snapshot& expected,
         const Snapshot& actual, const core::v1::Rect& desired);
+    [[nodiscard]] static UINT resize_message_edge(core::v1::Edges)noexcept;
+    [[nodiscard]] static bool resize_request_scope_allowed(const ResizeRequest&,std::size_t placement_count)noexcept;
+    // Actual batch policy uses this exact pure decision after the real API.
+    // Raw RECT ordering is checked before constructing a normalizing Rect.
+    [[nodiscard]] static ResizePreparation prepare_resize_query(const Snapshot& expected,
+        const Snapshot& actual,const core::v1::Rect& requested,const ResizeRequest&,const ResizeQueryFacts&);
     // Pure flag selection used at the actual Placement callsite. The worker
     // still independently checks fresh identity/frame/capture and retirement.
     // Equal native dimensions retain size; genuine Resize stays unchanged.
@@ -174,7 +198,8 @@ public:
     // the first rejection/failure, and do not issue the remaining placements.
     [[nodiscard]] std::vector<Receipt> batch(std::span<const Snapshot> identities,
         std::span<const core::v1::Placement> placements,
-        const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture={});
+        const core::v1::Settings& settings, Guard guard,GestureCaptureLease capture={},
+        std::optional<ResizeRequest> resize=std::nullopt);
 
 private:
     [[nodiscard]] Receipt place_with_destination(const Snapshot&,const core::v1::Rect&,

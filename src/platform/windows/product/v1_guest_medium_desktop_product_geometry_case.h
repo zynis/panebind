@@ -453,6 +453,43 @@ class MediumDesktopProductGeometryCase {
             result=line;
         }return result;
     }
+    std::string application_right_placement(std::size_t mark,Rect raw,Rect original,const RECT& positioning,
+        Rect actual,std::string& callback){
+        // Only the ordinary Terminal right-edge case adopts a returned
+        // application proposal. The raw R remains independent of the solver.
+        if(actual.width()<=0||actual.height()<=0||actual.l!=original.l||actual.t!=original.t||actual.b!=original.b)return {};
+        const auto r=static_cast<std::int64_t>(positioning.right)+raw.r-original.r;
+        const auto c=static_cast<std::int64_t>(positioning.right)+actual.r-original.r;
+        if(r<std::numeric_limits<LONG>::min()||r>std::numeric_limits<LONG>::max()||
+            c<std::numeric_limits<LONG>::min()||c>std::numeric_limits<LONG>::max())return {};
+        const Rect r_native{positioning.left,positioning.top,static_cast<LONG>(r),positioning.bottom};
+        const Rect c_native{positioning.left,positioning.top,static_cast<LONG>(c),positioning.bottom};
+        RECT observed_native{};if(!GetWindowRect(target_,&observed_native)||
+            Rect{observed_native.left,observed_native.top,observed_native.right,observed_native.bottom}!=c_native)return {};
+        (void)log();const auto suffix=evidence_.since(mark);if(!suffix)throw std::runtime_error("geometry_resize_callback_log_mark_unknown");
+        const std::string snapshot{*suffix};std::istringstream rows{snapshot};std::string line;
+        while(std::getline(rows,line)){
+            using product::guest::up_evidence_detail::unique_value;
+            const auto hook=number(line,"\"hook_observed_qpc\":"),before=number(line,"\"before_qpc\":"),after=number(line,"\"after_qpc\":");
+            const auto operation=number(line,"\"operation\":");const auto api=unique_value(line,"\"API_return\":");
+            LONGLONG api_result{};char tail{};std::istringstream api_text{api?std::string(*api):std::string{}};
+            if(!(api_text>>api_result)||!api_result||(api_text>>tail)||
+                line.find("\"type\":\"application_resize_proposal\"")==line.npos||number(line,"\"generation\":")!=generation_||
+                number(line,"\"key\":")!=source_key_||!operation||number(line,"\"source_HWND\":")!=reinterpret_cast<std::uintptr_t>(target_)||
+                number(line,"\"source_PID\":")!=target_pid_||number(line,"\"source_TID\":")!=target_tid_||number(line,"\"edge\":")!=WMSZ_RIGHT||
+                !hook||hook<last_mouse_qpc_||before<hook||after<before||
+                unique_value(line,"\"callback_attempted\":")!="true"||unique_value(line,"\"context_revalidated\":")!="true"||
+                unique_value(line,"\"callback_is_placement_attempt\":")!="false"||unique_value(line,"\"global_application_grid_known\":")!="false"||
+                line.find("\"R_visible\":"+rect(raw)+",")==line.npos||line.find("\"R_native\":"+rect(r_native)+",")==line.npos||
+                line.find("\"candidate_visible\":"+rect(actual)+",")==line.npos||line.find("\"C_native\":"+rect(c_native)+",")==line.npos)continue;
+            const auto result=unique_value(line,"\"message_LRESULT\":");
+            if(result!="1"&&!(result=="0"&&actual==raw&&c_native==r_native))continue;
+            const auto placement=phase_placement(mark,actual,source_key_);
+            if(placement.empty()||number(placement,"\"operation\":")!=operation||number(placement,"\"hook_observed_qpc\":")!=hook||
+                snapshot.find(placement,snapshot.find(line)+line.size())==snapshot.npos)continue;
+            callback=line;return placement;
+        }return {};
+    }
     Rect terminal_minimum_resize(Rect original,const RECT& positioning,UINT dpi,LONG& dy){
         if(explorer_case_||magnet_||!admission()||!target_exact()||!no_buttons()||GetForegroundWindow()!=target_)
             throw std::runtime_error("geometry_Terminal_minimum_fresh_idle_context_required");
@@ -561,7 +598,8 @@ class MediumDesktopProductGeometryCase {
                 !api?"SMTO_failed_or_timeout_UNKNOWN":message_result!=TRUE?"message_not_processed_TRUE_UNKNOWN":
                 !context?"actual_geometry_or_context_changed_UNKNOWN":!shape?"unchanged_or_non_bottom_proposal_UNKNOWN":"proposal_bounds_UNKNOWN";
         }catch(const std::exception& failure){reason=failure.what();}
-        const auto native_rect=[](const RECT& r){return rect({r.left,r.top,r.right,r.bottom});};
+        const auto native_rect=[](const RECT& r){return "["+std::to_string(r.left)+","+std::to_string(r.top)+","+
+            std::to_string(r.right)+","+std::to_string(r.bottom)+"]";};
         out_.emit("medium_product_geometry_Terminal_WM_SIZING_proposal","\"result\":"+quote(eligible?"DISCRIMINATING_PROPOSAL":"UNKNOWN")+
             ",\"reason\":"+quote(reason)+",\"target_PID\":"+std::to_string(target_pid_)+",\"target_TID\":"+std::to_string(target_tid_)+
             ",\"caller_TID\":"+std::to_string(GetCurrentThreadId())+",\"target_HWND\":"+std::to_string(reinterpret_cast<std::uintptr_t>(target_))+
@@ -607,6 +645,7 @@ class MediumDesktopProductGeometryCase {
         const auto original=visible(target_);RECT positioning{};const auto original_dpi=GetDpiForWindow(target_);
         const auto original_monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);
         if(!original||!GetWindowRect(target_,&positioning)||!original_dpi||!original_monitor)throw std::runtime_error("geometry_original_frame_unknown");
+        const bool application_right=!explorer_case_&&region==HTRIGHT&&!five&&!ctrl&&!minimum&&!sizing;
         if(sizing&&(region!=HTBOTTOM||dx||dy!=1||five||ctrl||minimum||explorer_case_||magnet_||*original!=sizing->original||
             original_dpi!=sizing->dpi||original_monitor!=sizing->monitor||positioning.left!=sizing->positioning.left||
             positioning.top!=sizing->positioning.top||positioning.right!=sizing->positioning.right||positioning.bottom!=sizing->positioning.bottom))
@@ -682,7 +721,7 @@ class MediumDesktopProductGeometryCase {
         // from that actual point, but never change the original DOWN anchor.
         if(!GetCursorPos(&last_sample_))throw std::runtime_error("geometry_actual_pacing_origin_unknown");
         last_sample_tick_=GetTickCount64();pacing_dpi_=original_dpi;
-        Rect expected{};bool minimum_declined{};std::string minimum_decline_receipt;std::size_t minimum_placement_mark{};std::uint64_t minimum_input_qpc{};
+        Rect expected{};bool minimum_declined{};std::string minimum_decline_receipt,application_callback;std::size_t minimum_placement_mark{};std::uint64_t minimum_input_qpc{};
         for(const auto& step:phases){
             expected=step.expected;const POINT next{anchor.x+step.x,anchor.y+step.y};
             if(five||ctrl)pace(next);
@@ -708,11 +747,15 @@ class MediumDesktopProductGeometryCase {
                     placement=phase_placement(placement_mark,*observed,source_key_);
                     if(placement.empty())return false;
                     expected=*observed;
+                }else if(application_right){
+                    const auto observed=visible(target_);if(!observed)return false;
+                    placement=application_right_placement(placement_mark,step.expected,*original,positioning,*observed,application_callback);
+                    if(placement.empty())return false;expected=*observed;
                 }else placement=(five||ctrl||minimum)?phase_placement(placement_mark,expected,source_key_):row(placement_mark,"placement",generation_);
                 if(ctrl&&expected_neighbour)neighbour_receipt=phase_placement(placement_mark,*expected_neighbour,0,source_key_);
                 // Ordinary product omits successful per-call diagnostics.
                 // Real source AND neighbour geometry are the black-box oracle.
-                return (!(five||ctrl||minimum||sizing)||!placement.empty())&&(!ctrl||!neighbour_receipt.empty())&&visible(target_)==expected&&capture_route()&&(!magnet_||
+                return (!(five||ctrl||minimum||sizing||application_right)||!placement.empty())&&(!ctrl||!neighbour_receipt.empty())&&visible(target_)==expected&&capture_route()&&(!magnet_||
                     (magnet_->exact()&&visible(magnet_->window())==expected_neighbour));},1200))
                 throw std::runtime_error("geometry_actual_native_exact_source_or_neighbour_not_observed");
             RECT after{},neighbour_position{};const auto actual_visible=visible(target_);
@@ -732,12 +775,14 @@ class MediumDesktopProductGeometryCase {
                 Rect{original->l,original->t,original->r+step.x,original->b+step.y};
             out_.emit("medium_product_geometry_observed_geometry","\"phase\":"+quote(step.name)+",\"generation\":"+std::to_string(generation_)+
                 ",\"original_visible\":"+rect(*original)+",\"raw_intent_from_original_DOWN\":"+rect(raw_intent)+
-                ",\"independent_expected_visible\":"+rect(sizing?sizing->corrected:expected)+",\"actual_visible\":"+rect(*actual_visible)+
+                ",\"independent_expected_visible\":"+rect(sizing?sizing->corrected:application_right?step.expected:expected)+",\"actual_visible\":"+rect(*actual_visible)+
+                ",\"expected_kind\":"+quote(application_right?"actual_application_callback_not_product_solver":"independent_TEST_geometry")+
+                ",\"actual_application_callback\":"+(application_callback.empty()?"null":quote(application_callback))+
                 ",\"actual_positioning\":"+rect({after.left,after.top,after.right,after.bottom})+",\"actual_DPI\":"+std::to_string(original_dpi)+
                 ",\"actual_neighbour_visible\":"+(magnet_?rect(*visible(magnet_->window())):"null")+
                 ",\"Ctrl_START_locked\":"+(ctrl?"true":"false")+",\"product_solver_used_for_expected\":false,\"TEST_one_MOVE_per_phase\":true"+
-                ",\"phase_consumption_from_fresh_placement_including_noop\":"+(minimum_declined?"false":(five||ctrl||minimum||sizing)?"true":"null")+
-                ",\"diagnostic_mode_receipt_required\":"+((five||ctrl||minimum||sizing)?"true":"false")+
+                ",\"phase_consumption_from_fresh_placement_including_noop\":"+(minimum_declined?"false":(five||ctrl||minimum||sizing||application_right)?"true":"null")+
+                ",\"diagnostic_mode_receipt_required\":"+((five||ctrl||minimum||sizing||application_right)?"true":"false")+
                 ",\"single_WM_SIZING_preference_not_checked_until_real_UP\":"+(sizing?"true":"false")+
                 ",\"minimum_constraint_declined_before_native\":"+(minimum_declined?"true":"false")+
                 ",\"constraint_decline_receipt\":"+(minimum_decline_receipt.empty()?"null":quote(minimum_decline_receipt))+
@@ -800,6 +845,11 @@ class MediumDesktopProductGeometryCase {
                 ",\"actual_current_generation_placement_native_claims\":"+std::to_string(calls)+
                 ",\"recursive_placement_observed\":false,\"application_grid_known\":false,\"whole_M03_F03_PASS\":false");
         }
+        if(application_right)out_.emit("medium_product_geometry_actual_application_resize_after_NormalUp","\"generation\":"+std::to_string(generation_)+
+            ",\"independent_R_visible\":"+rect({original->l,original->t,original->r+dx,original->b+dy})+",\"actual_C_visible\":"+rect(expected)+
+            ",\"application_changed_R\":"+(expected!=Rect{original->l,original->t,original->r+dx,original->b+dy}?"true":"false")+
+            ",\"expected_kind\":\"actual_application_callback_not_product_solver\",\"actual_callback_receipt\":"+quote(application_callback)+
+            ",\"actual_Raw_legacy_NormalUp_and_release_detach_gone\":true,\"global_application_grid_known\":false");
         if(sizing){
             const bool comparable=expected==sizing->requested||expected==sizing->corrected;
             sizing_comparison_completed_=true;

@@ -3582,3 +3582,31 @@ valid bottom-edge C can justify one real enhanced Resize comparison. Its real
 release and cleanup must complete before interpreting R versus C; a mismatch
 alone is not a proven invalid programmatic size. Unhandled or unchanged
 proposals remain UNKNOWN. The product EXE is unchanged by this TEST path.
+
+The subsequent actual f46 Run (`ccde014` product, `24a25ab` TEST) supplied a
+discriminating result: the exact Terminal returned C with bottom 592 for R
+bottom 593 without moving its actual window; the real enhanced Resize used R.
+Both real release/cleanup and its successor Move completed. This is evidence
+of one unhonored drag-sizing preference, not proof of all legal sizes or a
+general Windows failure. It justifies the narrow live-Resize adapter below.
+
+The already inspected AltSnap/FancyZones source and provenance pins above
+remain the architectural references. AltSnap's mature GPL reference-only
+[PR 723](https://github.com/RamonUnch/AltSnap/pull/723) was reread, including
+the initial marshalling/API concerns, subsequent review and merged history.
+Its discussion supports testing a bounded application proposal before a resize;
+it is not code-reuse authorization. The raw pinned AltSnap/PowerToys file
+requests in this round returned cache misses, so this is not a new claim of
+line-by-line source inspection. The earlier local source reviews are reused;
+no GPL or MIT upstream implementation is copied, translated or adapted.
+
+PaneBind's original design explicitly marks only the live Resize path. It
+retains R/C/API results, uses the existing checked frame bridge, accepts a
+valid single-window C and rejects a changed coupled plan before placement.
+The callback runs outside input/resource/native-work locks; all frozen members
+and native admission are checked again. A matching UP retires admission rather
+than restoring it, and exact actual completion is still distinct from a query.
+Move, discrete docking/history and non-resize commands do not acquire this
+callback. This is a per-proposal constraint, not an inferred persistent grid.
+Tests exercise the same production predicate and actual dispatcher wiring;
+new source/binary identities and affected runtime verification remain required.

@@ -39,6 +39,95 @@ int main() {
         if (!condition) { ++failures; std::cerr << "FAIL: " << name << '\n'; }
     };
     const auto initial = fixture();
+    const p::WindowWriter::ResizeRequest bottom{{false,false,false,true},false};
+    check(p::WindowWriter::resize_message_edge(bottom.edges)==WMSZ_BOTTOM&&
+          p::WindowWriter::resize_message_edge({true,true,false,false})==WMSZ_TOPLEFT&&
+          !p::WindowWriter::resize_message_edge({true,false,true,false})&&
+          !p::WindowWriter::resize_message_edge({}),
+        "live Resize edge mapping distinguishes native WMSZ values and rejects ambiguous/no edge");
+    check(p::WindowWriter::resize_request_scope_allowed(bottom,1)&&
+          !p::WindowWriter::resize_request_scope_allowed(bottom,2)&&
+          !p::WindowWriter::resize_request_scope_allowed(bottom,0),
+        "single Resize scope counts actual placements, not additional frozen observer identities");
+    auto coupled_scope=bottom;coupled_scope.coupled=true;
+    check(p::WindowWriter::resize_request_scope_allowed(coupled_scope,1)&&
+          p::WindowWriter::resize_request_scope_allowed(coupled_scope,2),
+        "explicit coupled policy remains coupled even when its plan currently has one placement");
+    const Rect sizing_requested{100,100,600,501};
+    p::WindowWriter::ResizeQueryFacts sizing;
+    sizing.attempted=true;sizing.edge=WMSZ_BOTTOM;sizing.api_return=1;sizing.message_result=TRUE;
+    sizing.requested_native={92,100,608,509};sizing.returned_native={92,100,608,508};
+    auto sizing_result=p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,sizing);
+    check(sizing_result.accepted&&sizing_result.adjusted&&sizing_result.visible==initial.visible&&
+          p::WindowWriter::prepare(initial,initial,*sizing_result.visible).noop,
+        "actual callback policy accepts one-point C at the current geometry as a real no-placement noop");
+    auto sizing_forward=sizing;sizing_forward.returned_native.bottom=510;
+    sizing_result=p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,sizing_forward);
+    check(sizing_result.accepted&&sizing_result.visible==Rect{100,100,600,502}&&
+          p::WindowWriter::prepare(initial,initial,*sizing_result.visible).positioning==Rect{92,100,608,510}&&
+          !initial.application_grid_known,
+        "single Resize C uses the actual asymmetric frame bridge without inferring a global grid");
+    auto coupled=bottom;coupled.coupled=true;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,coupled,sizing).accepted,
+        "coupled plan rejects a changed C before any member placement rather than breaking its shared line");
+    auto unchanged=sizing;unchanged.returned_native=unchanged.requested_native;
+    sizing_result=p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,coupled,unchanged);
+    check(sizing_result.accepted&&!sizing_result.adjusted&&sizing_result.visible==sizing_requested,
+        "handled exact coupled proposal preserves the original common plan");
+    auto unhandled=unchanged;unhandled.message_result=0;
+    sizing_result=p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,unhandled);
+    check(sizing_result.accepted&&!sizing_result.adjusted&&sizing_result.visible==sizing_requested&&
+          sizing_result.reason=="resize_query_unhandled_unchanged",
+        "only delivered unhandled unchanged R retains the original declared-bounds policy");
+    unhandled.returned_native.bottom=508;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,unhandled).accepted,
+        "an unhandled yet changed RECT is ambiguous and supplies no placement permission");
+    auto failed=sizing;failed.api_return=0;failed.message_result=TRUE;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "timeout/API failure cannot borrow a TRUE callback-result output as successful delivery");
+    failed=sizing;failed.attempted=false;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "eligibility or a prepared RECT is not evidence that WM_SIZING ran");
+    failed=sizing;failed.returned_native.left=93;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "application correction may not move an inactive Resize edge");
+    failed=sizing;failed.returned_native.bottom=failed.returned_native.top-1;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "reversed raw callback RECT is rejected before Rect construction can normalize it");
+    const p::WindowWriter::ResizeRequest left{{true,false,false,false},false};
+    failed=sizing;failed.edge=WMSZ_LEFT;failed.requested_native={91,100,608,508};
+    failed.returned_native={std::numeric_limits<LONG>::min(),100,608,508};
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,{99,100,600,500},left,failed).accepted,
+        "active-edge callback span wider than native INT_MAX is rejected without narrowing");
+    failed=sizing;failed.returned_native.bottom=120;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "callback C is not permission to violate real declared min/max bounds");
+    failed=sizing;failed.requested_native.right=609;
+    check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,bottom,failed).accepted,
+        "callback facts must belong to the exact requested native frame");
+    auto changed_sizing_identity=initial;++changed_sizing_identity.born;
+    check(!p::WindowWriter::prepare_resize_query(initial,changed_sizing_identity,sizing_requested,bottom,sizing).accepted,
+        "a valid-looking C cannot bypass the actual frozen identity decision");
+    auto changed_sizing_frame=initial;changed_sizing_frame.visible={101,100,601,500};
+    check(!p::WindowWriter::prepare_resize_query(initial,changed_sizing_frame,sizing_requested,bottom,sizing).accepted,
+        "fresh geometry differing from the frozen baseline remains a real rejection");
+    auto sizing_capture=std::make_shared<p::GestureCaptureContext>();sizing_capture->generation=9;sizing_capture->source=initial;
+    p::WindowWriter::Receipt sizing_retired;sizing_retired.resize_query=sizing;
+    sizing_retired.reason="resize_query_capture_matching_UP_retired_before_native_call";
+    check(!p::WindowWriter::preserves_terminal_receipt(sizing_retired,9,sizing_capture,false),
+        "callback withdrawal without an actual matching-UP observation is not normal terminal preservation");
+    sizing_capture->matching_up_observed=true;
+    check(p::WindowWriter::preserves_terminal_receipt(sizing_retired,9,sizing_capture,false)&&
+          !p::WindowWriter::preserves_terminal_receipt(sizing_retired,10,sizing_capture,false)&&
+          !p::WindowWriter::preserves_terminal_receipt(sizing_retired,9,sizing_capture,true)&&
+          !sizing_retired.native_attempted&&!sizing_retired.accepted,
+        "matching actual UP preserves unissued callback facts only for its retired generation without write success");
+    for(const auto failure:{"resize_query_failed_or_timeout","resize_query_operation_revoked_before_native_attempt",
+                           "batch_preflight_window_identity_or_generation_changed","batch_preflight_geometry_context_changed"}){
+        sizing_retired.reason=failure;
+        check(!p::WindowWriter::preserves_terminal_receipt(sizing_retired,9,sizing_capture,false),
+            "UP cannot hide callback timeout, other revocation or real identity/context failure");
+    }
     constexpr UINT base_flags=SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOOWNERZORDER;
     const Rect translated_native{172,130,688,538};
     check(p::WindowWriter::placement_flags(initial,translated_native)==(base_flags|SWP_NOSIZE),
