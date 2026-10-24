@@ -296,10 +296,17 @@ MediumDesktopActivationObservation medium_desktop_activate_and_return(HDESK crea
                     "\"ordinary_GUI_not_conditioned_on_probe_bool\":true,\"actual_product_UID1_rect_and_hit_still_required_for_tray_input\":true,"
                     "\"ordinary_host_Default_guards_changed\":false,\"product_Run_context_from_actual_receipts_only\":true");
                 out.ui_cleanup_known=false;
-                const auto elapsed=GetTickCount64()-state->began;
-                const DWORD remaining=elapsed<state->deadline_ms?static_cast<DWORD>(state->deadline_ms-elapsed):0;
+                const ULONGLONG parent_deadline=state->deadline_ms<=std::numeric_limits<ULONGLONG>::max()-state->began?
+                    state->began+state->deadline_ms:0;
+                const auto ui_admission_tick=GetTickCount64();
+                const DWORD remaining=ui_admission_tick<parent_deadline?
+                    static_cast<DWORD>((std::min<ULONGLONG>)(parent_deadline-ui_admission_tick,std::numeric_limits<DWORD>::max())):0;
+                out.emit("medium_desktop_UI_parent_budget","\"independent_begin_tick\":"+std::to_string(state->began)+
+                    ",\"independent_return_deadline_tick\":"+std::to_string(parent_deadline)+
+                    ",\"UI_admission_tick\":"+std::to_string(ui_admission_tick)+",\"remaining_parent_ms\":"+std::to_string(remaining)+
+                    ",\"independent_deadline_ms\":"+std::to_string(state->deadline_ms)+",\"independent_outer_ms\":"+std::to_string(state->outer_ms));
                 const auto ui=medium_desktop_ui_case(run,created,ui_request->product,ui_request->source,
-                    ui_request->sha256,std::min<DWORD>(20000,remaining),still_exact,state->ui_input);
+                    ui_request->sha256,remaining,parent_deadline,still_exact,state->ui_input);
                 out.ui_started=ui.product_started;out.ui_completed=ui.completed;
                 out.ui_cleanup_known=ui.cleanup_known;out.ui_product_closed=ui.product_closed;
                 out.ui_reason=ui.reason;

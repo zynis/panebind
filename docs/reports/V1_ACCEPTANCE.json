@@ -234,22 +234,22 @@
       "no_old_EXE_runtime_rebinding": true
     },
     "current_targeted_runtime": {
-      "source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-      "debug_sha256": "9554D52B2FBD68CE7469C5278F1652D1BA129A75A0569DC720DF2E4587353251",
-      "release_sha256": "832C5FEF54CBF57CE9B6CF8AE90BCEBFD8C114F04AB98348F0F356332FD3B42B",
-      "driver_source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-      "driver_release_sha256": "85056BC42E25DFC9911520F1126439B7978E150DCCD6DE4370BC4422C47F29AA",
-      "run_ids": ["c1a5a8ea46184b9cb0460c9246b0199c", "0c50a41ba2704be982427eb291564cbf", "2387d961dbe14437ba8cf7ecb0bf1619", "e172c54a57704c8792186b726a889ec3"],
-      "latest_geometry_run_id": "0c50a41ba2704be982427eb291564cbf",
-      "latest_product_runtime_run_id": "e172c54a57704c8792186b726a889ec3",
-      "portable_package_id": "e2bf855a4d09407384d4315bb01e1388",
-      "status": "ACTUAL_RELEASE_GEOMETRY_AND_PORTABLE_SCOPES_PASS_NF02_FAIL_DEBUG_SUCCESSOR_UNKNOWN",
-      "scope": "c1a5 Debug九代有限观察，12秒TEST子预算后status未完成UNKNOWN，不推产品unhealthy；0c50 Release12代11NormalUp+1abort、15exact，两成员callback正向与拒绝恢复已完成，NFmax53212us/p95桶99999仍FAIL；2387单屏preview=实际Maximize/真实UP/清理scopePASS；e172原e2bf ZIP空argvGUI/Save影响Move/两NormalUp/正常退出scopePASS。",
+      "source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "debug_sha256": "76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D",
+      "release_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+      "driver_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "driver_release_sha256": "BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14",
+      "run_ids": ["f7d67ca83a1b4532a82fae74d7d12494", "a723ce9a988e455a9af5d22b2684ae20", "217affbb6e744c3abbfff22e3e4c7a09"],
+      "latest_geometry_run_id": "a723ce9a988e455a9af5d22b2684ae20",
+      "latest_product_runtime_run_id": "217affbb6e744c3abbfff22e3e4c7a09",
+      "portable_package_id": "49b36fc6fd0845da8714559a6de47132",
+      "status": "ACTUAL_RELEASE_GEOMETRY_PORTABLE_SCOPES_PASS_NF02_THIS_RUN_UNDER_BUDGET_DEBUG_FINAL_STATUS_UNKNOWN",
+      "scope": "c452/a723 Release完整12代11NormalUp+1abort/15exact、cleanup known；P431 fullmax45492us/p95桶49999、callback70/max422us/p99桶500仅本Run预算通过，不关闭NF02。f7d6 Debug同12代/15exact和P433资源退出true，max43975us，但16秒末status health null/last11/cleanup UNKNOWN，保留未终验FAIL。217a原49b3包空argvGUI/Save-Move/两NormalUp/正常退出scopePASS。322a/旧NF与HC失败保原身份。",
       "evidence_paths": ["docs/reports/v1-evidence/20261024-targeted-guest-review.json", "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl"],
       "raw_runs_root": "uat/v1-control/<run_id>/collection-*",
       "whole_version_PASS": false,
       "no_old_EXE_runtime_rebinding": true,
-      "pending_driver_only_followup": "NOT_RUN: 几何TEST子预算12秒改16秒，UI20秒预留2秒及独立30秒回切不变；新Debug事实待填，产品仍322a。"
+      "pending_driver_only_followup": "NOT_RUN: 仅Terminal链UI上限25秒/geometry20秒，父级真实30秒期限前留3秒；普通UI20/回切30/外35不变。新Debug补验待填，不重建c452产品。"
     },
     "historical_9ec7_targeted_runtime": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -502,15 +502,15 @@
       }
     },
     "pending_product_candidate": {
-      "source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-      "current_verified_product_source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-      "current_verified_portable_package_id": "e2bf855a4d09407384d4315bb01e1388",
+      "source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "current_verified_product_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+      "current_verified_portable_package_id": "49b36fc6fd0845da8714559a6de47132",
       "build": "ACTUAL_D_R_SELECTED8_OF8_EACH_PASS_FOUR_HOST_GUARDS_EXIT78",
-      "actual_build_evidence_path": "uat/v1-control/build-sizing-322a9bb-567f6dd7bf814450a07a9988b1286f0f/receipt.json",
-      "actual_build_evidence_sha256": "D70F462CC0DEA84D115B889B65A374088E91959A2ED47FF22BAE802480C2A0F8",
+      "actual_build_evidence_path": "uat/v1-control/build-sizing-c452bfd-12eb0cebd4684d66a703247aff33e6f3/receipt.json",
+      "actual_build_evidence_sha256": "470D5F5F3B06F030743C878EA06292F5FF2538530E603993DF2D7A2B8160EB5C",
       "runtime_ref": "source_identity.current_targeted_runtime",
       "whole_version_PASS": false,
-      "next_action": "当前322a限定功能已实际运行，NF02仍FAIL且成本定位不足。只驱动预算调整的新Debug补验NOT_RUN；后继产品改动及其实际结果另绑定，不预填或改绑旧运行。"
+      "next_action": "c452 Release限定链与普通包已实测；NF02仅本Run达预算、不关闭完整门。f7d6末status/cleanup未终验保FAIL；仅驱动有限预算修复的Debug补验NOT_RUN，不重建产品或改绑旧运行。"
     },
     "historical_9ec7_candidate_checkpoint": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -1163,7 +1163,7 @@
       },
     "implementation_inspected": "9EC7_REAL_LIVE_RESIZE_CALLBACK_D_R_SCOPED_RUNTIME_AND_ORDINARY_PACKAGE_TESTED",
     "note": "独立DEV44/60、22/40=55%、modules0/PARTIAL保持原合同/身份。当前ccde/2579在bea0实际普通无参包入口/两Move真实UP/正常退出限定通过；42ab/d5f5/f78及4ff诊断证据保历史不改绑。f46九代几何/UP与WM_SIZING R/C差异、108 HC真实状态/恢复FAIL分开，均不授完整Medium桌面/五应用/托盘/HC/整版。",
-    "pending_product_note": "当前322a/e2bf限定实测见current_targeted_runtime；正向两成员接受已由ca56与0c50接续，NF02 max53212us仍FAIL、开放工程项。后继仅驱动预算补验尚未运行，不预填新候选结果；其余应用/托盘/HC/显示按各具体缺项。",
+    "pending_product_note": "当前c452/49b3限定实测见current_targeted_runtime；a723真实正向/拒绝/恢复/min/C MATCH、普通217a已验；NF02只本Run达预算，旧ca56/0c50等失败不改。Debug末status/cleanup UNKNOWN保FAIL，仅TEST预算修复待实测；应用/托盘/HC/显示缺项分别保留。",
 
     "successor_live_Resize_candidate": {
       "source_sha": "9ec7e63e08c5137a5954bf6809d8c461ac902796",
@@ -15185,10 +15185,10 @@
       ],
       "candidate_identity_ref": "current_package",
       "remaining_conditions": [
-        "322a/0c50完整端点max53212us/p95桶99999仍FAIL，性能成本尚未充分定位；c1a5正常子范围max41765us不覆盖未完成链。保留ca56及旧尾延迟/端点，不择优关闭NF02、不称唯一环境阻断。",
+        "c452/a723完整P431 max45492us/p95桶49999、callback70/max422us/p99桶500仅本Run达预算；f7d6未终验FAIL不冒完整通过。ca56/0c50 max53212us及旧callback/端点FAIL各保原身份，完整应用/整链NF02仍未齐，不推唯一系统原因。",
         "QPC软件端点非物理显示；不追加无变量压力/计数矩阵，后继生产新候选按影响另记。"
       ],
-      "next_action": "322a功能与完整端点已实际复验，NF02仍开放、成本定位不足；不归为唯一外部原因或盲减fresh检查。后继候选按实际修改影响记录新事实，不换绑旧EXE；仅驱动预算Debug补验待运行，不追加Full/900或择优性能样本。",
+      "next_action": "复用c452/a723本Run预算与限定功能事实，不抹旧失败或关闭完整NF02；Debug末status/cleanup UNKNOWN仅用有界TEST预算补件复验，不改产品、重开Full/900或增加无关样本。应用/完整链和真人门分别保留。",
       "current_serial_timing_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
       "current_contract_review": "docs/reports/v1-evidence/830a-focus-successor-review.json",
       "source_sha": "11ae76a3976ffba62facc127fcb411ebabfeaf86",
@@ -17624,20 +17624,20 @@
     "evidence_sha256": "0E8CDA4A8D9341A1D7C30F9A837C7FCCE43BD95F780680CE285ABA76CDD64A76"
   },
   "current_package": {
-    "run_id": "e172c54a57704c8792186b726a889ec3",
-    "source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-    "release_binary_sha256": "832C5FEF54CBF57CE9B6CF8AE90BCEBFD8C114F04AB98348F0F356332FD3B42B",
-    "driver_source_sha": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-    "release_fixture_sha256": "85056BC42E25DFC9911520F1126439B7978E150DCCD6DE4370BC4422C47F29AA",
-    "packaging_head": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-    "portable_package_id": "e2bf855a4d09407384d4315bb01e1388",
-    "zip_sha256": "699A62089989592DFD76FE5151364237D5A86F439872FEAD86622809C7EC27BC",
-    "manifest_sha256": "9FD01AF003A2C45E4BC7BC7641D359CE0D403145208AB3C3F61BE6D3CCFC1F0F",
-    "status": "ACTUAL322A_E2BF_ORDINARY_ENTRY_SCOPEPASS_NOT_WHOLE_I12",
+    "run_id": "217affbb6e744c3abbfff22e3e4c7a09",
+    "source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "release_binary_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+    "driver_source_sha": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "release_fixture_sha256": "BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14",
+    "packaging_head": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "portable_package_id": "49b36fc6fd0845da8714559a6de47132",
+    "zip_sha256": "410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94",
+    "manifest_sha256": "8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4",
+    "status": "ACTUALC452_49B3_ORDINARY_ENTRY_SCOPEPASS_NOT_WHOLE_I12",
     "evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
     "human_uat": "NOT_RUN",
     "previous_scoped_portable_identity_ref": "historical_9ec7_1ccec_package",
-    "note": "e172原e2bf ZIP空参/可见Medium GUI/同实例二启/保存影响Move/两真实Raw和legacy NormalUp/正常退出scopePASS；不授托盘/整I12/宿主试用。"
+    "note": "217a原49b3 ZIP空参/可见Medium GUI/同实例二启/保存影响Move/两真实Raw和legacy NormalUp/正常退出scopePASS；不授托盘/整I12/宿主试用。历史322a/e2bf/e172与更早包各保原身份。"
   },
   "historical_9ec7_1ccec_package": {
     "run_id": "1ccec6201c4342be8c1c2e8682424497",
@@ -17767,17 +17767,17 @@
     "note": "ccde原2579 ZIP在bea0/24a真实中文空格目录七文件核验、空argv可见中文GUI、空参二启同实例、Save/Cancel说明及真实GUI保存吸引距离10DIP→0后Move几何不同；ZIP PID5808两代实际Raw/legacy NormalUp/release/detach/Gone及正常quit/资源退出/客户投递恢复，wrapper exit0/desc0/无强制。setup PID3460与ZIP5808两物理日志/FILETIME分开；D182原I12 PASS仅普通便携入口scope，非整I12/托盘/五应用/真人UAT。包内旧NOT_RUN元数据不回写，42ab/d5/f78保历史。"
   },
   "portable_candidate": {
-    "package_id": "e2bf855a4d09407384d4315bb01e1388",
-    "source_commit": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-    "packaging_head": "322a9bbd30ef64c783e6c44db2d571ec1231d272",
-    "receipt_path": "uat/v1-portable/e2bf855a4d09407384d4315bb01e1388/package-receipt.json",
-    "manifest_path": "uat/v1-portable/e2bf855a4d09407384d4315bb01e1388/PaneBindV1/manifest.json",
-    "zip_sha256": "699A62089989592DFD76FE5151364237D5A86F439872FEAD86622809C7EC27BC",
-    "manifest_sha256": "9FD01AF003A2C45E4BC7BC7641D359CE0D403145208AB3C3F61BE6D3CCFC1F0F",
-    "binary_sha256": "832C5FEF54CBF57CE9B6CF8AE90BCEBFD8C114F04AB98348F0F356332FD3B42B",
-    "status": "ACTUAL322A_E2BF_ORDINARY_ENTRY_SCOPEPASS_NOT_WHOLE_I12",
-    "actual_ordinary_no_argument_entry": "PASS_SCOPED_E172_NOT_WHOLE_I12",
-    "validation_run_id": "e172c54a57704c8792186b726a889ec3",
+    "package_id": "49b36fc6fd0845da8714559a6de47132",
+    "source_commit": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "packaging_head": "c452bfdb750fed6714e7bdf6a4505ea4051cde21",
+    "receipt_path": "uat/v1-portable/49b36fc6fd0845da8714559a6de47132/package-receipt.json",
+    "manifest_path": "uat/v1-portable/49b36fc6fd0845da8714559a6de47132/PaneBindV1/manifest.json",
+    "zip_sha256": "410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94",
+    "manifest_sha256": "8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4",
+    "binary_sha256": "10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560",
+    "status": "ACTUALC452_49B3_ORDINARY_ENTRY_SCOPEPASS_NOT_WHOLE_I12",
+    "actual_ordinary_no_argument_entry": "PASS_SCOPED_217A_NOT_WHOLE_I12",
+    "validation_run_id": "217affbb6e744c3abbfff22e3e4c7a09",
     "validation_evidence_path": "docs/reports/v1-evidence/20261024-targeted-guest-review.json",
     "human_uat": "NOT_RUN"
   },

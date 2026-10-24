@@ -2,20 +2,20 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-最新已实测普通便携入口为`322a9bbd30ef64c783e6c44db2d571ec1231d272`／e2bf包：e172实际验证空参数Medium/non-elevated可见GUI、二启同实例、保存影响Move、两代真实Raw／legacy NormalUp及正常退出。Release0c50完成12代（11次NormalUp、一次安全拒绝后的abort清理）、15次exact native及后继恢复；正向两成员应用callback接受已由ca56历史证据与0c50新证据接续，不再记NOT_RUN。2387实际验证单屏顶部预览与松键后最大化实际几何一致、真实UP和资源退出。
+最新已实测普通便携入口为`c452bfdb750fed6714e7bdf6a4505ea4051cde21`／49b3包：217a实际验证空参数Medium/non-elevated可见GUI、二启同实例、保存影响Move、两代真实Raw／legacy NormalUp及正常退出。Release a723完整12代（11次NormalUp、一次安全拒绝后的abort清理）、15次exact native及资源收尾通过限定几何范围。
 
-本候选只省去live Resize回调前的重复track查询；完整新鲜身份、几何、约束和撤权检查仍保留。D/R构建及受影响offline各8/8通过，**NF02仍FAIL**：0c50完整端点max53212µs／p95桶99999µs，不能因功能闭环称性能达标。Debug c1a5原12秒TEST子预算导致后继status未完成，结果UNKNOWN而非产品unhealthy；仅驱动预算补验待运行，产品不因此重建。108高对比scheme恢复FAIL、托盘、真实客户内容及完整应用／显示合同分别保留；**不开放宿主试用，不授整版PASS。**
+本候选另跳过Ctrl Resize不使用的磁吸候选／显示测量；成员、权限、writer及共享边反馈不变。D/R构建及受影响offline各8/8通过；a723完整端点max45492µs／p95桶49999µs、callback max422µs／p99桶500µs仅本Run达到预算，**不关闭完整NF02**或抹去旧失败。Debug f7d6虽完成12代／15exact，16秒末status未完成、cleanup UNKNOWN，保留未终验FAIL，不写产品unhealthy。后继仅驱动有限预算修复待实测，不重建产品。108高对比scheme恢复FAIL、托盘、客户内容及完整应用／显示合同分别保留；**不开放宿主试用，不授整版PASS。**
 
-- 当前已实测产品／本批TEST源码：`322a9bbd30ef64c783e6c44db2d571ec1231d272`。
-- 当前已实测Release EXE SHA-256：`832C5FEF54CBF57CE9B6CF8AE90BCEBFD8C114F04AB98348F0F356332FD3B42B`。
-- 本批Release TEST driver SHA-256：`85056BC42E25DFC9911520F1126439B7978E150DCCD6DE4370BC4422C47F29AA`；后继仅TEST预算变化不换绑产品／旧运行证据。
-- 当前已验普通便携包：`uat/v1-portable/e2bf855a4d09407384d4315bb01e1388/PaneBindV1-Release-e2bf855a4d09407384d4315bb01e1388.zip`。
-- ZIP SHA-256：`699A62089989592DFD76FE5151364237D5A86F439872FEAD86622809C7EC27BC`；manifest SHA-256：`9FD01AF003A2C45E4BC7BC7641D359CE0D403145208AB3C3F61BE6D3CCFC1F0F`。
+- 当前已实测产品／本批TEST源码：`c452bfdb750fed6714e7bdf6a4505ea4051cde21`。
+- 当前已实测Release EXE SHA-256：`10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。
+- 本批Release TEST driver SHA-256：`BAE815489A5F3440903DCDBA9F647BDD8ADB152202395BB9E4CAF555F6677A14`；后继TEST预算变化不换绑产品／旧运行证据。
+- 当前已验普通便携包：`uat/v1-portable/49b36fc6fd0845da8714559a6de47132/PaneBindV1-Release-49b36fc6fd0845da8714559a6de47132.zip`。
+- ZIP SHA-256：`410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94`；manifest SHA-256：`8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4`。
 - 包和原始大日志不进入 Git，旧包及证据保持原身份。
 
 历史d5f5／42ab已在[f78d](reports/v1-evidence/f78d-current-42ab-portable-entry-review.json)实际验证中文空格目录无参GUI、二启同实例、保存改变Move实际几何、两次真实Raw／legacy NormalUp和正常退出／客户输入恢复，无后代或强制清理。setup PID3464与ZIP PID6864为不同原FILETIME／物理日志；只是普通便携入口scope，不是整I12／托盘／五应用或宿主试用。旧be7／744e／[e4b9](reports/v1-evidence/e4b9-current-744e-portable-entry-review.json)、bfb／25b原ZIP各保身份。包内说明／manifest的NOT_RUN保留封包时点，后续结果由仓库报告记录，不改原包。
 
-9ec7／8d048／1ccec、ccde／2579／bea0及42ab／d5f5／f78各保原包和运行身份，不改绑当前EXE。实际范围与剩余条件统一见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
+322a／e2bf／e172、9ec7／8d048／1ccec、ccde／2579／bea0及42ab／d5f5／f78各保原包和运行身份，不改绑当前EXE。实际范围与剩余条件统一见[集中报告当前段](reports/V1_DELIVERY_REPORT.md)。
 
 自动测试 driver 与产品身份分别记录；只改驱动或文档不替换本产品 EXE，也不把旧包结果改绑新构建。当前结果和剩余条件以验收表为准，不在本页并列多个“当前版本”。
 

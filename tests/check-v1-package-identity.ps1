@@ -2016,19 +2016,36 @@ Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('const bool 
 Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('*frame==coupled->after&&native==coupled->after_native','true'))} 'static coupled TEST target cannot silently accept arbitrary source changes'
 Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('if(const auto accepted_seed=terminal_sizing_proposal(true))','if(false)')) $coupledBlankSource} 'static positive shared Resize cannot silently lose its independent actual proposal'
 Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('coupled_->before!=before||coupled_->before_native!=before_native','false'))} 'static next shared generation cannot silently rebase its locked exact neighbour'
-function Assert-V1GeometrySubBudget([string]$UI,[string]$Geometry){
+function Assert-V1GeometrySubBudget([string]$UI,[string]$Geometry,[string]$Activation){
     $UI=$UI.Replace("`r`n","`n")
     $call='product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,'+"`n"+'                    geometry_deadline);'
     foreach($value in @(
-        'deadline_(GetTickCount64()+(std::min<DWORD>)(budget,20000))',
-        'constexpr ULONGLONG geometry_cap_ms=16000,geometry_reserve_ms=2000;',
+        'value("terminal_test_asset").starts_with("{")&&!value("medium_explorer_geometry").starts_with("true")',
+        'const DWORD ui_cap_ms=terminal_diagnostic?25000:20000;',
+        'deadline_=bounded_UI_deadline(began_,budget_,parent_deadline_,ui_cap_ms);',
+        'if(!slice||parent<=return_reserve_ms||began>std::numeric_limits<ULONGLONG>::max()-slice)return 0;',
+        'const auto end=(std::min<ULONGLONG>)(began+slice,parent-return_reserve_ms);',
+        'return end>began?end:0;',
+        'MediumDesktopUiCase test(run,desktop,product,source,sha256,budget_ms,parent_deadline,still_exact,lease,out)',
+        'const ULONGLONG geometry_cap_ms=terminal_diagnostic?20000:16000;',
+        'constexpr ULONGLONG geometry_reserve_ms=2000;',
         'const auto ui_remaining=geometry_begin<deadline_?deadline_-geometry_begin:0;',
         'const auto geometry_budget=ui_remaining>geometry_reserve_ms?',
         '(std::min<ULONGLONG>)(geometry_cap_ms,ui_remaining-geometry_reserve_ms):0;',
         'const auto geometry_deadline=geometry_begin+geometry_budget;',
+        'if(terminal_diagnostic&&geometry_budget!=geometry_cap_ms)',
+        'Medium_UI_Terminal_chain_full_subbudget_unavailable_before_start',
         'if(!geometry_budget)throw std::runtime_error("Medium_UI_geometry_subbudget_exhausted_before_start");',
         $call)){
         if(-not $UI.Contains($value)){throw ('Actual geometry call must reserve bounded UI time without extending the outer deadline: '+$value)}
+    }
+    foreach($value in @(
+        'if(ui_request){state->deadline_ms=30000;state->outer_ms=35000;',
+        'const ULONGLONG parent_deadline=state->deadline_ms<=std::numeric_limits<ULONGLONG>::max()-state->began?',
+        'state->began+state->deadline_ms:0;',
+        'const DWORD remaining=ui_admission_tick<parent_deadline?',
+        'ui_request->sha256,remaining,parent_deadline,still_exact,state->ui_input);')){
+        if(-not $Activation.Contains($value)){throw ('UI needs the actual parent absolute deadline, not a new relative return period: '+$value)}
     }
     foreach($value in @(
         'const bool observed=created&&exited&&code_read&&code==0&&wait_for(',
@@ -2041,10 +2058,12 @@ function Assert-V1GeometrySubBudget([string]$UI,[string]$Geometry){
         if(-not $Geometry.Contains($value)){throw ('Actual status must separate observed unhealthy state from timeout and unobserved completion: '+$value)}
     }
 }
-Assert-V1GeometrySubBudget $mediumUiSource $mediumGeometrySource
+Assert-V1GeometrySubBudget $mediumUiSource $mediumGeometrySource $mediumActivationSource
 Check $true 'static geometry uses a finite reserved subbudget and reports actual health separately from timeout/UNKNOWN'
-Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('geometry_cap_ms,ui_remaining-geometry_reserve_ms','geometry_cap_ms,ui_remaining')) $mediumGeometrySource} 'static geometry cannot consume the reserved UI cleanup time'
-Reject {Assert-V1GeometrySubBudget $mediumUiSource ($mediumGeometrySource.Replace('(observed?(healthy?"true":"false"):"null")','(observed?(healthy?"true":"false"):"false")'))} 'static unobserved command completion cannot be reported as actual unhealthy'
+Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('geometry_cap_ms,ui_remaining-geometry_reserve_ms','geometry_cap_ms,ui_remaining')) $mediumGeometrySource $mediumActivationSource} 'static geometry cannot consume the reserved UI cleanup time'
+Reject {Assert-V1GeometrySubBudget $mediumUiSource ($mediumGeometrySource.Replace('(observed?(healthy?"true":"false"):"null")','(observed?(healthy?"true":"false"):"false")')) $mediumActivationSource} 'static unobserved command completion cannot be reported as actual unhealthy'
+Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('began+slice,parent-return_reserve_ms','began+slice,parent')) $mediumGeometrySource $mediumActivationSource} 'static UI cannot spend the independent return reserve or restart its parent clock'
+Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('if(terminal_diagnostic&&geometry_budget!=geometry_cap_ms)','if(false)')) $mediumGeometrySource $mediumActivationSource} 'static twelve-generation Terminal chain cannot silently use an insufficient truncated slice'
 function Assert-V1CtrlResizeUnusedPreparation([string]$Application){
     $begin=$Application.IndexOf('void Application::motion(')
     $end=$Application.IndexOf('void Application::finish(',$begin)

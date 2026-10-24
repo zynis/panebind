@@ -64,12 +64,20 @@ void CALLBACK medium_desktop_ui_event(HWINEVENTHOOK,DWORD,HWND window,LONG,LONG,
 class MediumDesktopUiCase {
     const std::wstring& run_;const HDESK desktop_;const fs::path& product_;const std::string source_,sha_;
     const std::function<bool()>& still_exact_;const std::shared_ptr<MediumDesktopUiInputLease>& lease_;
-    const ULONGLONG deadline_;MediumDesktopUiObservation& out_;
+    const DWORD budget_;const ULONGLONG began_,parent_deadline_;
+    ULONGLONG deadline_{};MediumDesktopUiObservation& out_;
     HANDLE process_{},initial_thread_{};DWORD pid_{},session_{};std::uint64_t birth_{};
     std::uint64_t product_launch_tick_{};
     HWND app_{},shell_{};DWORD app_tid_{},shell_pid_{};std::uint64_t shell_birth_{};
     MediumDesktopUiEvents events_;HWINEVENTHOOK objects_{},foreground_{};bool com_{},quit_seen_{},quit_attempted_{};
 
+    static ULONGLONG bounded_UI_deadline(ULONGLONG began,DWORD budget,ULONGLONG parent,DWORD cap){
+        constexpr ULONGLONG return_reserve_ms=3000;
+        const auto slice=(std::min<DWORD>)(budget,cap);
+        if(!slice||parent<=return_reserve_ms||began>std::numeric_limits<ULONGLONG>::max()-slice)return 0;
+        const auto end=(std::min<ULONGLONG>)(began+slice,parent-return_reserve_ms);
+        return end>began?end:0;
+    }
     std::wstring name(HANDLE object)const{
         std::array<wchar_t,128> text{};DWORD size{};
         return object&&GetUserObjectInformationW(object,UOI_NAME,text.data(),sizeof(text),&size)?std::wstring(text.data()):std::wstring{};
@@ -492,9 +500,10 @@ class MediumDesktopUiCase {
     }
 public:
     MediumDesktopUiCase(const std::wstring& run,HDESK desktop,const fs::path& product,std::string_view source,std::string_view sha,
-        DWORD budget,const std::function<bool()>& still_exact,const std::shared_ptr<MediumDesktopUiInputLease>& lease,MediumDesktopUiObservation& out)
+        DWORD budget,ULONGLONG parent_deadline,const std::function<bool()>& still_exact,
+        const std::shared_ptr<MediumDesktopUiInputLease>& lease,MediumDesktopUiObservation& out)
         :run_(run),desktop_(desktop),product_(product),source_(source),sha_(sha),still_exact_(still_exact),lease_(lease),
-         deadline_(GetTickCount64()+(std::min<DWORD>)(budget,20000)),out_(out){}
+         budget_(budget),began_(GetTickCount64()),parent_deadline_(parent_deadline),out_(out){}
     ~MediumDesktopUiCase(){
         // Preserve the already-published launch flags even if a reporting
         // allocation throws. This is local handle cleanup, never evidence
@@ -521,12 +530,19 @@ public:
         };
         const bool terminal_diagnostic=value("guest_suite").starts_with("\"MediumDesktopUiOnly\"")&&
             value("terminal_test_asset").starts_with("{")&&!value("medium_explorer_geometry").starts_with("true");
+        const DWORD ui_cap_ms=terminal_diagnostic?25000:20000;
+        deadline_=bounded_UI_deadline(began_,budget_,parent_deadline_,ui_cap_ms);
+        out_.emit("medium_desktop_ui_absolute_budget","\"UI_begin_tick\":"+std::to_string(began_)+
+            ",\"UI_cap_ms\":"+std::to_string(ui_cap_ms)+",\"parent_return_deadline_tick\":"+std::to_string(parent_deadline_)+
+            ",\"return_reserve_ms\":3000,\"UI_deadline_tick\":"+std::to_string(deadline_)+
+            ",\"Terminal_twelve_generation_chain\":"+(terminal_diagnostic?"true":"false")+",\"independent_return_deadline_extended\":false");
         out_.emit("medium_desktop_ui_scope","\"run_id\":"+quote(utf8(run_))+",\"product_source\":"+quote(source_)+
             ",\"product_sha256\":"+quote(sha_)+",\"ordinary_no_arguments\":"+(terminal_diagnostic?"false":"true")+
             ",\"Terminal_functional_diagnostic_receipts\":"+(terminal_diagnostic?"true":"false")+",\"test_only_UI_case\":true,\"automated_guest_driver\":true,"
             "\"ordinary_host_Default_guards_unchanged\":true,\"candidate_Run_context_requires_actual_product_receipt\":true,"
             "\"product_enhancement_PASS_inferred\":false,\"CoInitializeEx_hresult\":"+std::to_string(static_cast<long>(apartment)));
         try{
+            if(!deadline_||GetTickCount64()>=deadline_)throw std::runtime_error("Medium_UI_parent_or_UI_budget_unavailable_before_launch");
             const auto parent=product_.parent_path();const fs::path output=L"C:\\PaneBindV1\\Output";
             const bool path=equal(parent.wstring(),(output/(run_+L"-product-Debug")).wstring())||equal(parent.wstring(),(output/(run_+L"-product-Release")).wstring());
             std::array<wchar_t,128> user{};DWORD length=static_cast<DWORD>(user.size());
@@ -578,10 +594,11 @@ public:
                 ",\"actual_foreground_is_settings\":true,\"current_held_Run_desktop_membership_confirmed\":true");
             escape_settings(first,terminal_diagnostic?"diagnostic_settings_Escape":"ordinary_noarg_settings_Escape");
             {
-                // A geometry chain has its own finite budget inside the
-                // unchanged UI deadline. Leave time for close/tray handling;
-                // neither this allowance nor a failed status extends the Run.
-                constexpr ULONGLONG geometry_cap_ms=16000,geometry_reserve_ms=2000;
+                // Only the existing twelve-generation Terminal diagnostic
+                // chain gets the larger finite slice. The parent absolute
+                // return and the remaining UI cleanup time are never extended.
+                const ULONGLONG geometry_cap_ms=terminal_diagnostic?20000:16000;
+                constexpr ULONGLONG geometry_reserve_ms=2000;
                 const auto geometry_begin=GetTickCount64();
                 const auto ui_remaining=geometry_begin<deadline_?deadline_-geometry_begin:0;
                 const auto geometry_budget=ui_remaining>geometry_reserve_ms?
@@ -591,6 +608,8 @@ public:
                     ",\"UI_deadline_tick\":"+std::to_string(deadline_)+",\"geometry_cap_ms\":"+std::to_string(geometry_cap_ms)+
                     ",\"reserved_UI_ms\":"+std::to_string(geometry_reserve_ms)+",\"actual_geometry_budget_ms\":"+std::to_string(geometry_budget)+
                     ",\"geometry_deadline_tick\":"+std::to_string(geometry_deadline)+",\"outer_deadline_extended\":false");
+                if(terminal_diagnostic&&geometry_budget!=geometry_cap_ms)
+                    throw std::runtime_error("Medium_UI_Terminal_chain_full_subbudget_unavailable_before_start");
                 if(!geometry_budget)throw std::runtime_error("Medium_UI_geometry_subbudget_exhausted_before_start");
                 const auto geometry=medium_desktop_product_geometry_case(run_,desktop_,product_,process_,pid_,birth_,
                     product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,
@@ -661,10 +680,10 @@ public:
     }
 };
 MediumDesktopUiObservation medium_desktop_ui_case(const std::wstring& run,HDESK desktop,const fs::path& product,
-    std::string_view source,std::string_view sha256,DWORD budget_ms,const std::function<bool()>& still_exact,
+    std::string_view source,std::string_view sha256,DWORD budget_ms,ULONGLONG parent_deadline,const std::function<bool()>& still_exact,
     const std::shared_ptr<MediumDesktopUiInputLease>& lease){
     MediumDesktopUiObservation out;
-    try{MediumDesktopUiCase test(run,desktop,product,source,sha256,budget_ms,still_exact,lease,out);test.execute();}
+    try{MediumDesktopUiCase test(run,desktop,product,source,sha256,budget_ms,parent_deadline,still_exact,lease,out);test.execute();}
     catch(...){out.completed=false;out.cleanup_known=false;out.reason="UI_reporting_or_unexpected_exception_launch_flags_preserved";}
     return out;
 }

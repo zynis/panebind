@@ -1,6 +1,18 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：322a几何链、单屏预览与普通便携已实测，NF02仍FAIL（2026-10-24）
+## 当前接续：c452 Release几何与普通便携实测，NF02仅本Run达预算（2026-10-24）
+
+**当前c452／49b3已在授权guest操作；生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版PARTIAL，真人UAT PENDING，不进入REA。** 本次仅跳过Ctrl Resize实际不使用的磁吸候选刷新和monitor测量；成员／fresh权限／writer／共享边反馈未改。
+
+- **a723 Release**：完整12代、11NormalUp＋1abort、15exact；正向／拒绝恢复／min／C MATCH及实际资源退出限定几何PASS。P431完整端点max45492µs／p95桶49999µs、callback70／max422µs／p99桶500µs仅本Run预算通过，不关闭完整NF02、不改写ca56／0c50或旧callback失败，不归因唯一系统原因。
+- **f7d6 Debug**：12代11NormalUp＋1abort、15exact及P433产品资源退出true，正常子范围max43975µs；但16秒末D2362 status未完成／health null，D2365仍last11／cleanup UNKNOWN，保留未终验FAIL，不写产品unhealthy或完整通过。
+- **217a普通49b3包**：D188实际空argv可见GUI／同实例二启／Save影响Move／两NormalUp／正常退出scopePASS。后继只驱动修复仍NOT_RUN：仅Terminal链UI上限25秒／geometry20秒，并在父级真实30秒期限前留3秒；普通UI20／独立回切30与外层35不变，不重建产品。
+
+产品、三Run driver及包装均`c452bfdb750fed6714e7bdf6a4505ea4051cde21`；产品D `76354B8DBAB23395A9D5FA2B7990CE42C798A7AF7C5BF38764F0BE7D7D737C4D`／R `10A7F7BE96B98FA0B64381AF2CF709EE714C45E8B6FB407090E925D4A9154560`。D/R各8/8 offline、四完整argv宿主78：`uat/v1-control/build-sizing-c452bfd-12eb0cebd4684d66a703247aff33e6f3/receipt.json` SHA-256 `470D5F5F3B06F030743C878EA06292F5FF2538530E603993DF2D7A2B8160EB5C`；guard `uat/v1-host-guard/1d40b9bd98324c348b216fd5ce0c087d/receipt.json` SHA-256 `28E63973E086C5BD3B4A67E2C5EFC643FAF641435DE1464F2ACC27905D9A3FC3`。
+
+当前包`uat/v1-portable/49b36fc6fd0845da8714559a6de47132/PaneBindV1-Release-49b36fc6fd0845da8714559a6de47132.zip` SHA-256 `410D5AF9C70042A21BA639B8B396A1B5151F35802466E8EA0A43276A0D06AD94`／manifest `8D11632A795502509B4E3F295152B4526984912F73905BA0EEE584158F9ECDA4`，验证Run `217affbb6e744c3abbfff22e3e4c7a09`。原322a／e2bf及更早包保身份；托盘、客户、应用、HC和显示／完整链缺项各保边界，NF02完整门仍未闭合，不能称全部剩余为外部阻断。
+
+## 历史：322a几何链、单屏预览与普通便携已实测，NF02仍FAIL（2026-10-24）
 
 **当前322a产品／e2bf便携已在授权guest实际操作；生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版PARTIAL，真人UAT PENDING，不进入REA。** 本次只移除live Resize应用回调前的重复track查询，使用本批已观察limits做proposal-local检查并标非fresh；回调后、每次placement前、Resize后验完整查询及身份／撤权／capture守卫不变，不推性能已修复。
 
