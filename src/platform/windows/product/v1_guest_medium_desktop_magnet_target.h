@@ -153,13 +153,16 @@ public:
         return state_&&state_->facts_ready.load(std::memory_order_acquire)&&state_->setup_known&&
             GetCurrentThreadId()==state_->parent&&exact_state(*state_,parent_desktop_,coupled_?&*coupled_:nullptr);
     }
-    bool begin_shared_right_resize(Rect before,Rect before_native){
-        // Parent TEST-only scope: this single +1 shared edge has two declared
-        // states, not arbitrary accepted geometry or a new product baseline.
-        if(coupled_||!exact()||visible(window())!=std::optional<Rect>{before}||before.l==std::numeric_limits<LONG>::max()||
-            before_native.l==std::numeric_limits<LONG>::max())return false;
+    bool begin_shared_right_resize(Rect before,Rect before_native,LONG delta){
+        // Parent TEST-only scope: this one declared shared edge has two states,
+        // not arbitrary accepted geometry or a new product baseline.
+        // Rearming only follows a locked singleton, never an unresolved pair.
+        if((coupled_&&(coupled_->before!=coupled_->after||coupled_->before_native!=coupled_->after_native))||
+            !exact()||visible(window())!=std::optional<Rect>{before}||delta<=0||
+            static_cast<std::int64_t>(before.l)+delta>=before.r||static_cast<std::int64_t>(before_native.l)+delta>=before_native.r)return false;
         RECT actual{};if(!GetWindowRect(window(),&actual)||Rect{actual.left,actual.top,actual.right,actual.bottom}!=before_native)return false;
-        const Rect after{before.l+1,before.t,before.r,before.b},native{before_native.l+1,before_native.t,before_native.r,before_native.b};
+        if(coupled_&&(coupled_->before!=before||coupled_->before_native!=before_native))return false;
+        const Rect after{before.l+delta,before.t,before.r,before.b},native{before_native.l+delta,before_native.t,before_native.r,before_native.b};
         if(after.width()<=0||native.width()<=0||after.l<work.l||after.t<work.t||after.r>work.r||after.b>work.b)return false;
         coupled_=CoupledGeometry{before,after,before_native,native};return exact();
     }

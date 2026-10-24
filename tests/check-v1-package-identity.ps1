@@ -1889,7 +1889,8 @@ Assert-V1GeometryBottomRegion $mediumGeometrySource
 Check $true 'static actual minimum-resize DOWN branch checks the observed bottom region4'
 Reject {Assert-V1GeometryBottomRegion ($mediumGeometrySource.Replace('case HTBOTTOM:expected_region=4;break;','case HTBOTTOM:expected_region=2;break;'))} 'static minimum test rejects its old deterministic right-versus-bottom mismatch'
 function Assert-V1SingleSizingProposal([string]$Geometry){
-    $begin=$Geometry.IndexOf('std::optional<TerminalSizingProposal> terminal_sizing_proposal()', [StringComparison]::Ordinal)
+    $begin=$Geometry.IndexOf('std::optional<TerminalSizingProposal> terminal_sizing_proposal(bool shared_right=false)', [StringComparison]::Ordinal)
+    if($begin -lt 0){throw 'The one-point proposal must be in the actual geometry adapter.'}
     $end=$Geometry.IndexOf('// Read current-launch diagnostics', $begin, [StringComparison]::Ordinal)
     if($begin -lt 0 -or $end -le $begin){throw 'The one-point proposal must be in the actual geometry adapter.'}
     $probe=$Geometry.Substring($begin,$end-$begin)
@@ -1899,7 +1900,7 @@ function Assert-V1SingleSizingProposal([string]$Geometry){
     }
     foreach($value in @('matching_clean_captured_up(', 'target_tid_!=GetCurrentThreadId()',
         'lease_->flags.load(std::memory_order_acquire)==0', 'GetForegroundWindow()==target_',
-        'SendMessageTimeoutW(target_,WM_SIZING,WMSZ_BOTTOM',
+        'SendMessageTimeoutW(target_,WM_SIZING,shared_right?WMSZ_RIGHT:WMSZ_BOTTOM',
         'SMTO_ABORTIFHUNG|SMTO_BLOCK|SMTO_ERRORONEXIT,30,&message_result)',
         'eligible=api!=FALSE&&message_result==TRUE&&context&&shape&&bounds;',
         'if(!eligible)return {};')){
@@ -1966,6 +1967,11 @@ Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplicati
 Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication+' return rectangle({r.left,r.top,r.right,r.bottom});') $mediumGeometrySource} 'static malformed raw callback evidence cannot silently normalize reversed native edges'
 function Assert-V1CoupledCallbackTest([string]$Geometry,[string]$Blank){
     foreach($value in @('one_gesture(HTRIGHT,1,0,"CtrlSharedEdgeResizeCallback",false,true,false,nullptr,true);',
+        'if(const auto accepted_seed=terminal_sizing_proposal(true))',
+        'accepted_seed->corrected.r)-accepted_seed->original.r',
+        'one_gesture(HTRIGHT,delta,0,"CtrlSharedEdgeResizePositiveSeed",false,true,false,nullptr,true,&*accepted_seed);',
+        'geometry_coupled_independent_seed_stale_before_new_DOWN',
+        'shared_seed&&!coupled_declined)coupled_positive_completed_=true;',
         'magnet_.reset();minimum_chain_active_=true;',
         'one_gesture(HTCAPTION,24,18,"AfterCtrlSharedResizeCallbackMove");',
         'shared_right_callback(placement_mark,*original,',
@@ -1979,6 +1985,8 @@ function Assert-V1CoupledCallbackTest([string]$Geometry,[string]$Blank){
     }
     foreach($value in @('*frame==coupled->before&&native==coupled->before_native',
         '*frame==coupled->after&&native==coupled->after_native',
+        'coupled_->before!=coupled_->after||coupled_->before_native!=coupled_->after_native',
+        'coupled_->before!=before||coupled_->before_native!=before_native',
         'coupled_=CoupledGeometry{wanted,wanted,native,native};')){
         if(-not $Blank.Contains($value)){throw 'The exact TEST neighbour may not accept an arbitrary new geometry baseline.'}
     }
@@ -1988,4 +1996,6 @@ Assert-V1CoupledCallbackTest $mediumGeometrySource $coupledBlankSource
 Check $true 'static actual Ctrl shared-edge callback test separates two exact placements from zero-native rejection and abort UP'
 Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('const bool constraint_declined=minimum_declined||coupled_declined;','const bool constraint_declined=minimum_declined;')) $coupledBlankSource} 'static coupled rejection cannot borrow the NormalUp branch'
 Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('*frame==coupled->after&&native==coupled->after_native','true'))} 'static coupled TEST target cannot silently accept arbitrary source changes'
+Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('if(const auto accepted_seed=terminal_sizing_proposal(true))','if(false)')) $coupledBlankSource} 'static positive shared Resize cannot silently lose its independent actual proposal'
+Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('coupled_->before!=before||coupled_->before_native!=before_native','false'))} 'static next shared generation cannot silently rebase its locked exact neighbour'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
