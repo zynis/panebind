@@ -1,6 +1,21 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：新产品Resize修复与普通便携入口已实测，组接受分支接续（2026-10-24）
+## 当前接续：322a几何链、单屏预览与普通便携已实测，NF02仍FAIL（2026-10-24）
+
+**当前322a产品／e2bf便携已在授权guest实际操作；生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版PARTIAL，真人UAT PENDING，不进入REA。** 本次只移除live Resize应用回调前的重复track查询，使用本批已观察limits做proposal-local检查并标非fresh；回调后、每次placement前、Resize后验完整查询及身份／撤权／capture守卫不变，不推性能已修复。
+
+- **c1a5 Debug**：九代有限结果及正向共享Resize已观察；原12秒TEST子预算到期后，后继status未完成／UNKNOWN，不等于产品unhealthy。正常子范围max41765µs不覆盖未完成链。后继仅驱动子预算调整／Debug补验仍NOT_RUN，产品仍冻结322a。
+- **0c50 Release**：12代、11次实际NormalUp及一次明确拒绝后的abort清理，15次已发native均exact；两成员callback C==R正向、C!=R零native拒绝／恢复及既有几何子链已实际完成，不再列正向接受NOT_RUN。**完整软件端点max53212µs／p95桶99999µs仍FAIL**；第二成员累计包含前一成员耗时，不能仅归因native、系统或callback，也不混算旧端点。
+- **2387 NativeTopDropOnly**：实际单屏preview＝独立工作区，UP前不提前最大化，唯一真实UP后actual Maximize与preview一致，正常资源退出。d8a3／3c21本来就有各自旧身份的相同语义证据，本次只是322a限定复验；不授跨屏／全部M10-F01或B30。
+- **e172普通入口**：e2bf原ZIP中文空格目录、空argv可见Medium/non-elevated GUI、二启同实例、公开Save改变Move、两代真实Raw／legacy NormalUp及正常退出限定PASS，不替代真实托盘或整I12。包内封包时NOT_RUN不回写。
+
+产品／本批driver／打包源码均`322a9bbd30ef64c783e6c44db2d571ec1231d272`；产品Debug SHA-256 `9554D52B2FBD68CE7469C5278F1652D1BA129A75A0569DC720DF2E4587353251`、Release `832C5FEF54CBF57CE9B6CF8AE90BCEBFD8C114F04AB98348F0F356332FD3B42B`。D/R各8/8 offline及四次完整argv宿主Exit78有归档：构建回执`uat/v1-control/build-sizing-322a9bb-567f6dd7bf814450a07a9988b1286f0f/receipt.json` SHA-256 `D70F462CC0DEA84D115B889B65A374088E91959A2ED47FF22BAE802480C2A0F8`；宿主guard `uat/v1-host-guard/04f6d70bf4f548a5af03d879e27579b7/receipt.json` SHA-256 `9972C65569D6A6BA6F120C714E160F0F68F2E8CDE10FEF728B1364F1766392AC`。构建／guard不计guest功能PASS。
+
+当前便携包`uat/v1-portable/e2bf855a4d09407384d4315bb01e1388/PaneBindV1-Release-e2bf855a4d09407384d4315bb01e1388.zip` SHA-256 `699A62089989592DFD76FE5151364237D5A86F439872FEAD86622809C7EC27BC`，manifest `9FD01AF003A2C45E4BC7BC7641D359CE0D403145208AB3C3F61BE6D3CCFC1F0F`。四Run原件在`uat/v1-control/<RunId>/collection-*`，各cleanup回执确认仅本任务guest／启动任务收尾、证据不变；不据guest销毁补产品清理PASS。历史9ec7／8d048、ccde／2579、42ab及失败均保持原身份。
+
+剩余项分判：NF02仍未解决；真实tray UIA providerPID0／未click，Terminal在产品缺席时cmd启动错误／客户未就绪，Explorer资格／精确路径、Notepad注册、Code与Edge初始化各有不同前置失败或UNKNOWN；不是全部已证明外部原因。108 exact高对比scheme恢复仍FAIL，100/200%／多屏／混合DPI／真实会话与完整Medium桌面能力另列。只继续有新依据且能运行的合同，不重开旧Full／900或无变量路线。
+
+## 历史：9ec7产品Resize修复与普通便携入口实测（2026-10-24）
 
 **当前产品9ec7／普通便携8d048实际可在已授权guest操作设置及Move。生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版仍PARTIAL，真人UAT PENDING。** Debug86a九代完整NormalUp及12个exact native；Release1f4十代NormalUp、共享边冲突一代零native拒绝／abort清理，随后同实例恢复，13个已发native均exact且完整postcontext成立。两配置均实际采用应用C，原f46具体偏好差异已由新EXE复验关闭其受影响子范围；原失败保留，不授完整M03-F03或应用矩阵。
 
