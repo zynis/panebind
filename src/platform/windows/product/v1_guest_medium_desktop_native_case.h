@@ -94,6 +94,7 @@ MediumHeldProcessExitObservation medium_observe_held_process_exit(
     }
     out.after_tick=GetTickCount64();out.after_qpc_known=QueryPerformanceCounter(&out.after_qpc)!=FALSE;return out;
 }
+#include "platform/windows/product/v1_guest_medium_desktop_direct_cmd_probe.h"
 thread_local MediumTerminalNativeEvents* medium_terminal_native_events{};
 void CALLBACK medium_terminal_native_event(HWINEVENTHOOK,DWORD,HWND window,LONG object,LONG child,DWORD,DWORD){
     auto* state=medium_terminal_native_events;if(!state||!window||object!=OBJID_WINDOW||child)return;
@@ -298,6 +299,12 @@ MediumTerminalNativeObservation medium_terminal_native_case(
                 ",\"ready_file_bytes_before_launch\":0,\"driver_source\":"+quote(PANEBIND_BUILD_SHA)+
                 ",\"actual_manifest_sha256\":"+quote(manifest_hash)+",\"manifest_read_only_use\":true,"+
                 "\"empty_placeholder_is_not_READY\":true,\"product_started\":false,\"bootstrap_writes_no_client_nonce\":true");
+            const bool earlier_client_cleanup_known=out.client_cleanup_known;out.client_cleanup_known=false;
+            const auto direct=medium_direct_cmd_probe(run,output,directory,full_name,request.manifest_sha256,
+                caller_deadline_tick,active,absent,quit_seen);
+            for(const auto& record:direct.records)out.emit(record.first,record.second);
+            out.client_cleanup_known=earlier_client_cleanup_known&&direct.cleanup_known;
+            if(!direct.may_continue)throw std::runtime_error("direct_cmd_probe_cleanup_context_or_budget_unconfirmed_no_Terminal_launch");
         }
         const auto baseline=MediumDesktopWindows::read(created);
         if(!baseline.complete)throw std::runtime_error("new_root_baseline_enumeration_UNKNOWN");

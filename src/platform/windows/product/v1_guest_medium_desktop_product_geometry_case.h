@@ -27,7 +27,7 @@ class MediumDesktopProductGeometryCase {
     bool down_inserted_{},up_attempted_{},up_inserted_{};std::uint64_t down_qpc_{},up_qpc_{},last_mouse_qpc_{};
     bool native_threshold_step_{},continuation_ready_{};
     std::optional<POINT> down_anchor_;HWND down_hit_{};int down_region_{};
-    unsigned notifications_{};std::string terminal_reason_;
+    unsigned notifications_{};bool fair_wait_pump_used_{};std::string terminal_reason_;
     std::string last_status_;
     static std::string manifest_string(std::string_view text,std::string_view field){
         const std::string key="\""+std::string(field)+"\"";auto at=text.find(key);
@@ -121,8 +121,34 @@ class MediumDesktopProductGeometryCase {
                 ",\"total_notifications\":"+std::to_string(notifications_)+",\"native_error\":"+std::to_string(error));
             return false;
         };
+        const auto pump=[&]{
+            fair_wait_pump_used_=true;
+            // This same STA owns the blank neighbour. Service its incoming
+            // sent messages even when log/event handles win the native wait;
+            // never let the expensive evidence predicate starve that target.
+            // No wait, input or callback logging is added here. Retain the
+            // existing bounded final predicate after the phase wait expires.
+            unsigned messages=256;
+            while(messages--&&GetTickCount64()<end){
+                if(quit_seen_||(require_active&&!admission()))return rejected("pump_quit_or_admission_revoked");
+                MSG message{};
+                // Peek dispatches incoming nonqueued messages too. Do not
+                // remove a queued message if those calls consumed the budget.
+                if(!PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE))break;
+                if(message.message==WM_QUIT){quit_seen_=true;return rejected("WM_QUIT");}
+                if(GetTickCount64()>=end)break;
+                if(quit_seen_||(require_active&&!admission()))return rejected("pump_context_changed_after_sent_messages");
+                if(!PeekMessageW(&message,nullptr,0,0,PM_REMOVE))continue;
+                if(message.message==WM_QUIT){quit_seen_=true;return rejected("WM_QUIT");}
+                if(GetTickCount64()>=end)return rejected("pump_phase_deadline_before_dispatch");
+                if(quit_seen_||(require_active&&!admission()))return rejected("pump_admission_revoked_before_dispatch");
+                TranslateMessage(&message);DispatchMessageW(&message);
+            }
+            if(quit_seen_||(require_active&&!admission()))return rejected("pump_final_quit_or_admission_revoked");
+            return true;
+        };
         for(;;){
-            if(quit_seen_||(require_active&&!admission()))return rejected("quit_or_admission_revoked");
+            if(!pump())return false;
             if(events_.changed&&!ResetEvent(events_.changed))return rejected("ResetEvent_failed",GetLastError());
             if(predicate())return true;
             const auto now=GetTickCount64();if(now>=end)return rejected("bounded_deadline");
@@ -133,6 +159,9 @@ class MediumDesktopProductGeometryCase {
             const DWORD extra_index=count;if(extra)handles[count++]=extra;
             const auto result=MsgWaitForMultipleObjectsEx(count,handles,static_cast<DWORD>(end-now),QS_ALLINPUT,MWMO_INPUTAVAILABLE);
             if(result==WAIT_FAILED)return rejected("MsgWait_failed",GetLastError());
+            // Includes QS wakes as well as log/observer/timer/process wakes.
+            // The next predicate always follows the same bounded STA service.
+            if(!pump())return false;
             if(result==WAIT_OBJECT_0+1)return rejected("product_exited");
             if(target_process_&&result==WAIT_OBJECT_0+2)return predicate()||rejected("target_exited_before_predicate");
             if(extra&&result==WAIT_OBJECT_0+extra_index)return predicate()||rejected("extra_signalled_predicate_false");
@@ -141,9 +170,6 @@ class MediumDesktopProductGeometryCase {
                 if(++wait_notifications>64)return rejected("per_wait_notification_limit");
                 if(!FindNextChangeNotification(log_change_))return rejected("FindNextChangeNotification_failed",GetLastError());
             }
-            if(result==WAIT_OBJECT_0+count){MSG message{};unsigned messages=256;
-                while(messages--&&PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){
-                    if(message.message==WM_QUIT){quit_seen_=true;return rejected("WM_QUIT");}TranslateMessage(&message);DispatchMessageW(&message);}}
             if(result==WAIT_TIMEOUT)return ((!require_active||admission())&&predicate())||rejected("native_timeout_predicate_false");
         }
     }
@@ -765,6 +791,7 @@ public:
                 (explorer_case_?"PASS_SINGLE_EXACT_Explorer_GEOMETRY_ONLY":"PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY"):"FAIL_OR_BLOCKED")+
             ",\"reason\":"+quote(out_.reason)+",\"product_PID\":"+std::to_string(product_pid_)+",\"target_PID\":"+std::to_string(target_pid_)+
             ",\"target_kind\":"+quote(target_kind())+
+            ",\"bounded_STA_pre_predicate_and_post_wake_pump_used\":"+(fair_wait_pump_used_?"true":"false")+
             ",\"last_completed_generation\":"+std::to_string(last_generation_)+",\"cleanup_known\":"+(out_.cleanup_known?"true":"false")+
             ",\"test_pair_still_unknown\":"+(lease_&&lease_->incomplete_pair.load()?"true":"false")+
             ",\"own_hook_stopped\":"+(resources_.hook_ok?"true":"false")+",\"own_handles_closed\":"+

@@ -1830,4 +1830,35 @@ foreach($value in @('first.complete&&second.complete','one.readonly_same(two)&&c
 Check ($mediumClientSource.Contains('if(!out.shell_ready_phase_accepted){') -and
     $mediumClientSource.Contains('medium_terminal_observe_ready_failure(out,run,configuration,created,source,pid,tid,held_process,birth,')) 'static actual client ready failure is wired to its one read-only observation before the preserved rejection'
 if($readyFailureSource -match '\b(SendInput|SetForegroundWindow|SetFocus|PrintWindow|SetWindowPos|TerminateProcess|Sleep|SetTokenInformation|SetUserObjectSecurity)\s*\('){throw 'Read-only ready-failure evidence cannot become input, control or a different authority route.'}
+function Assert-V1DirectCmdContrast([string]$Native,[string]$Probe){
+    if(-not $Native.Contains('const bool earlier_client_cleanup_known=out.client_cleanup_known;out.client_cleanup_known=false;') -or
+       -not $Native.Contains('out.client_cleanup_known=earlier_client_cleanup_known&&direct.cleanup_known;') -or
+       -not $Native.Contains('if(!direct.may_continue)throw')){throw 'Direct command observation must not lose an unknown child cleanup or authorize Terminal input.'}
+    foreach($value in @('run+L"-direct-cmd-bootstrap.cmd"','run+L"-direct-cmd-probe.txt"',
+        'portable_field(manifest,"guest_suite")!="MediumDesktopNativeClientOnly"','CREATE_NEW',
+        'FALSE,CREATE_NO_WINDOW,nullptr,','owned.process,pid,birth,caller_deadline,quit_seen,1500',
+        '(!out.created||exit_observation.signalled)','Terminal_ShellReady_satisfied','client_nonce_satisfied')){
+        if(-not $Probe.Contains($value)){throw 'Direct command contrast lost its separate output, fixed scope or bounded exit observation.'}
+    }
+    if($Probe -match '\b(SendInput|SetForegroundWindow|SetFocus|AttachThreadInput|SetTokenInformation|CreateProcessAsUser\w*|TerminateProcess|Sleep)\s*\(' -or
+       $Probe.Contains('INFINITE')){throw 'The finite no-console contrast must not become an input, alternative token or forced-cleanup route.'}
+}
+$directCmdProbe=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_direct_cmd_probe.h'),[Text.Encoding]::UTF8)
+Assert-V1DirectCmdContrast $mediumNativeSource $directCmdProbe
+Check $true 'static direct cmd contrast is a separately guarded finite child, not Terminal ready or client authority'
+Reject {Assert-V1DirectCmdContrast $mediumNativeSource ($directCmdProbe.Replace('run+L"-direct-cmd-probe.txt"','run+L"-terminal-shell-ready.txt"'))} 'static direct cmd contrast cannot write the Terminal ready oracle'
+Reject {Assert-V1DirectCmdContrast ($mediumNativeSource.Replace('if(!direct.may_continue)throw','if(false)throw')) $directCmdProbe} 'static direct cmd cleanup UNKNOWN cannot continue the existing Terminal case'
+function Assert-V1FairPumpQuit([string]$Geometry){
+    $peek=$Geometry.IndexOf('if(!PeekMessageW(&message,nullptr,0,0,PM_NOREMOVE))break;',[StringComparison]::Ordinal)
+    if($peek -lt 0){throw 'Fair wait must observe queued QUIT before its final phase predicate.'}
+    $quit=$Geometry.IndexOf('if(message.message==WM_QUIT){quit_seen_=true;return rejected("WM_QUIT");}',$peek,[StringComparison]::Ordinal)
+    $deadline=$Geometry.IndexOf('if(GetTickCount64()>=end)break;',$peek,[StringComparison]::Ordinal)
+    if($quit -lt $peek -or $deadline -lt $peek -or $quit -gt $deadline){throw 'Already observed QUIT cannot be skipped by the phase deadline.'}
+}
+Assert-V1FairPumpQuit $mediumGeometrySource
+Check $true 'static actual fair wait records an observed QUIT before testing its phase deadline'
+$withoutFirstPeekQuit=[regex]::Replace($mediumGeometrySource,
+    '(PM_NOREMOVE\)\)break;\s*)if\(message\.message==WM_QUIT\)\{quit_seen_=true;return rejected\("WM_QUIT"\);\}', '$1')
+if($withoutFirstPeekQuit -ceq $mediumGeometrySource){throw 'The first-Peek QUIT mutation did not reach the actual wait implementation.'}
+Reject {Assert-V1FairPumpQuit $withoutFirstPeekQuit} 'static fair wait rejects losing an observed QUIT at the final predicate boundary'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

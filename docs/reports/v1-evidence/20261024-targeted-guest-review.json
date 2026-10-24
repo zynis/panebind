@@ -1,0 +1,2068 @@
+{
+  "schema": "panebind-v1-scoped-evidence/1",
+  "evidence_id": "EV-20261024-TARGETED-GUEST-REVIEW",
+  "kind": "read_only_original_literal_lines_package_identity_and_cleanup_review",
+  "current_source_interpretation_correction": {
+    "prior_sealed_review": "docs/reports/v1-evidence/NF02-4ff-serial-timing-review.json",
+    "prior_sealed_review_sha256": "651776FE70C616750B5CA0EA5E897C20D2DD3D1A845F643A111EA029FB8FB158",
+    "correction": "The old phrase including context/log work is not evidence that placement-log I/O caused the inter-member interval. Product apply emits placement receipts only after the complete native batch returns, so those placement log writes do not occur between the two serial member calls. Context/preflight and serial work remain timed facts; no sole scheduling, I/O or Win32 cause is established.",
+    "historical_numbers_and_FAIL_preserved": true,
+    "old_seal_or_raw_modified_by_this_review": false,
+    "new_performance_PASS_inferred": false
+  },
+  "review_date": "2026-10-24",
+  "scope": "Concentrated actual review of the three original exact guest runs; subsequent separately identified runs may append here without rebinding earlier evidence. This is not a new task list or acceptance framework.",
+  "new_execution_by_review": false,
+  "last_reviewed_run_id": "72bd6d351c7f4b8fa61b7af12cf643ae",
+  "excerpt": {
+    "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
+    "bytes": 109941,
+    "lines": 108,
+    "sha256": "5EDF355C649233C9BBCFF4950AE0A077533BEDA5722024E3936BED5CF2C3ECB3",
+    "format": "Original UTF-8 JSONL lines without parsing/re-serializing the literals; LF terminators in this derived file. Segment offsets below distinguish runs and producers.",
+    "large_integer_policy": "Birth FILETIME and start_ticks in review identities are decimal strings extracted from original literals by regex. JSONL numeric bytes remain unchanged; do not round-trip them through floating-point JSON numbers.",
+    "order_is_not_shared_native_time": true
+  },
+  "runs": [
+    {
+      "run_id": "983b3919d53245c989aae9c7b99820fc",
+      "review_state": "SEALED_ACTUAL_STABLE_COLLECTION",
+      "configuration": "Release",
+      "suite": "MediumDesktopUiOnly",
+      "collection_directory": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48",
+      "result": "BLOCKED_EXACT_UIA_PRODUCT_BUTTON_NOT_CONFIRMED_NO_TRAY_CLICK",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "product_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+        "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+        "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "fixture_pid": 3716,
+        "fixture_tid": 4012,
+        "fixture_birth_filetime_decimal": "134373050828777186",
+        "product_pid": 6192,
+        "product_birth_filetime_decimal": "134373050931228909",
+        "app_hwnd": 131682,
+        "settings_hwnd": 328264,
+        "ordinary_no_argument_product": true,
+        "diagnostic_switch_used": false,
+        "integrity_rid": 8192,
+        "elevated": false,
+        "admin_sid_enabled": false,
+        "actual_TokenIsRestricted": false,
+        "token_method": "restricted_lua_medium",
+        "session": 1,
+        "same_SID_confirmed": true,
+        "Run_desktop_membership_confirmed": true,
+        "original_Default_Shell": {
+          "hwnd": 65804,
+          "pid": 4884,
+          "tid": 4888,
+          "birth_filetime_decimal": "134373050744307370",
+          "identity_unchanged_after_return": true
+        }
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48/983b3919d53245c989aae9c7b99820fc-release-fixture.jsonl",
+          "bytes": 3863053,
+          "sha256": "9902C117F3E24617989410BDCD9F9970D68CB4E7A104B5143454668E82561DC7",
+          "json_lines": 156,
+          "first_sequence": 1,
+          "last_sequence": 156,
+          "legal_JSON": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        },
+        {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48/983b3919d53245c989aae9c7b99820fc-product-Release/panebind.log.jsonl",
+          "bytes": 3237,
+          "sha256": "4752CD80457D9FDAB63305F2F14B55A357E31860288C970C775185FE0B1B2A3A",
+          "json_lines": 8,
+          "first_sequence": 1,
+          "last_sequence": 8,
+          "legal_JSON": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "package_receipt": {
+          "path": "uat/v1-sandbox/983b3919d53245c989aae9c7b99820fc/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "A45BC1F9F6D13E4123AB95B9E99F89D1A1C5920A82BECB1C5C5E2CE82446F4E4"
+        },
+        "source_commit": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "product_source_commit": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_source_commit": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "zip_sha256": "BB785F928D4279F74FE23211D23540FEE4DA44E74D8D42EF0C32D1245B0700BA",
+        "manifest_sha256": "1892FE9D6B52827C2E8599869B7AAD348BECA58246EA653A68B48A2858E78E83",
+        "wsb_sha256": "C2EF8BB4D87880B0E02B9A2F066D4B17843958217A63D8D9FD5CC543A4E6D173",
+        "actual_local_ZIP_manifest_WSB_product_and_driver_hashes_match": true,
+        "collected_product_EXE_hash_matches": true,
+        "package_time_NOT_RUN_fields_not_rewritten": true
+      },
+      "observations": {
+        "ordinary_GUI": {
+          "driver_sequences": [
+            128,
+            129
+          ],
+          "CreateProcessW_succeeded": true,
+          "actual_settings_foreground": true,
+          "scope": "Actual ordinary entry in the exact guest, not a whole M01/I01/I12 or host usability PASS."
+        },
+        "settings_Escape": {
+          "driver_sequences": [
+            130,
+            131
+          ],
+          "only_recorded_UI_input_purpose": "ordinary_noarg_settings_Escape",
+          "packets": 2,
+          "SendInput_return": 2,
+          "actual_settings_destroy_observed": true,
+          "WM_CLOSE_or_WM_COMMAND_injected": false
+        },
+        "tray_semantic_observation": {
+          "driver_sequences": [
+            132,
+            133,
+            140
+          ],
+          "UID": 1,
+          "GetRect_hresult": 0,
+          "UID_rect": [
+            2778,
+            1596,
+            2826,
+            1668
+          ],
+          "UIA_read_only": true,
+          "ElementFromPoint_hresult": 0,
+          "GetProcessId_hresult": 0,
+          "actual_provider_PID": 0,
+          "remaining_semantic_properties_queried": false,
+          "remaining_hresult_initial_value": -2147483638,
+          "remaining_name_type_bounds_offscreen_enabled_clickable_point": null,
+          "semantic_guard_accepted": false,
+          "tray_mouse_click_sent": false,
+          "tray_menu_observed": false,
+          "scope": "Element/query success and UID1 rectangle are not delivery or exact product-button identity. Unknown later UIA properties remain unqueried/null, not observed API failures. No tree/parent fallback, Invoke, ShowContextMenu or SetFocus used. Cause beyond this providerPID0 result is UNKNOWN."
+        },
+        "actual_product_registration": {
+          "product_sequences": [
+            1,
+            6
+          ],
+          "initial_NIM_ADD": false,
+          "later_NIM_ADD": true,
+          "later_NIM_SETVERSION_attempted": true,
+          "later_NIM_SETVERSION": true,
+          "complete_product_log_tray_ingress_or_menu_API_rows": 0,
+          "scope": "Do not label NIM_ADD permanently failed or successful registration as icon reachability/menu delivery."
+        },
+        "public_quit_and_product_resources": {
+          "driver_sequences": [
+            134,
+            135,
+            140
+          ],
+          "product_shutdown_sequence": 8,
+          "public_same_EXE_quit_create": true,
+          "public_quit_command_wait_result": 0,
+          "public_quit_command_exit_code": 0,
+          "product_process_signalled": true,
+          "product_exit_code": 0,
+          "product_local_cleanup_known": true,
+          "own_hooks_stopped": true,
+          "own_overlay_destroyed": true,
+          "native_worker_exited": true,
+          "issued_native_completion_unknown": false,
+          "visual_recovery_stopped": true,
+          "visual_restore_confirmed": true,
+          "own_input_resources_stopped": true,
+          "own_capture_released": true,
+          "own_input_association_detached": true,
+          "scope": "Actual product-local shutdown proof, not proof of the Shell process tree or desktop object destruction."
+        },
+        "Default_return": {
+          "driver_sequences": [
+            143,
+            144,
+            145,
+            146,
+            150,
+            151
+          ],
+          "input_retired_and_in_flight_completed": true,
+          "actual_SwitchDesktop_return": true,
+          "actual_Default_readback": true,
+          "independent_return_owner_exited": true,
+          "opened_handles_closed": true,
+          "Default_input_and_Shell_identity_unchanged": true,
+          "raw_last_error_not_root_cause": true
+        },
+        "retained_Shell_and_wrapper": {
+          "driver_sequences": [
+            149,
+            150,
+            151,
+            156
+          ],
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "Shell_child_still_alive": true,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_process_tree_cleanup": "UNKNOWN",
+          "wrapper_wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "raw_product_cleanup_pass": false,
+          "scope": "Keep original wrapper field false; use the independently observed product shutdown facts above only for that bounded scope. Guest/job cleanup does not upgrade the retained tree to product cleanup PASS."
+        },
+        "enhancement_and_NF02": {
+          "product_timing_sequence": 7,
+          "mouse_callback_samples": 0,
+          "native_placement_samples": 0,
+          "real_application_geometry_requested": false,
+          "real_application_geometry_completed": false,
+          "Move_Resize_Ctrl": "NOT_RUN",
+          "NF02": "NOT_RUN_NO_NATIVE_PLACEMENT_SAMPLES",
+          "whole_M01_B27_B28_or_feature_PASS_inferred": false,
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48/collection-receipt.json",
+          "bytes": 7947,
+          "sha256": "4D52A7317341F727E73C13BFF7D3EFD36F9E7C093FEFFC216DB7A09489F16DAC"
+        },
+        "collect_before_after_output_unchanged": true,
+        "artifacts": [
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-release-fixture.jsonl",
+            "bytes": 3863053,
+            "sha256": "9902C117F3E24617989410BDCD9F9970D68CB4E7A104B5143454668E82561DC7",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-Release-launch.json",
+            "bytes": 9882,
+            "sha256": "E4B806FD1AC877E3863E86E3742E82DB7CB09D9643CE3CE127ADF368A5F0282F",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "3DA82DC866993CC3B382DCFA5ABFACFCFB7E2326EE03E3AFC664FD58AB83420C",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-guest-summary.json",
+            "bytes": 20910,
+            "sha256": "920817953EE776AC14D249762AEE07800ED976DBCD2F83B3882646E4FBE7957E",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-product-Release\\panebind.exe",
+            "bytes": 1220608,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-product-Release\\panebind.log.jsonl",
+            "bytes": 3237,
+            "sha256": "4752CD80457D9FDAB63305F2F14B55A357E31860288C970C775185FE0B1B2A3A",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "983b3919d53245c989aae9c7b99820fc-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "all_seven_sizes_and_hashes_match": true,
+        "host_expectation": {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/host-expectation.json",
+          "bytes": 3000,
+          "sha256": "55552AC927DDA0987CB03D4BA304DD26AD2B97104761963F3F1193BF9CA5EE46"
+        },
+        "deploy_receipt": {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/deploy-receipt.json",
+          "bytes": 2664,
+          "sha256": "470890BF6B31AF29BFA97453C51EE0F6FE7D65E1D97A95DE57203C1BCE694FF9"
+        },
+        "launch_receipt": {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/launch-receipt.json",
+          "bytes": 14479,
+          "sha256": "2F3E5866BA71ECC1CCE1F0F782813E31DE03A20B6937A5A07E5741EAD1EE9709"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/cleanup-receipt.json",
+          "bytes": 9148,
+          "sha256": "175A2E4F2224F05426000C6B317D1A7501F2EB7B0859E4EECB0CF8707A9BFE52"
+        },
+        "utc": "2026-10-24T08:46:07.9725409Z",
+        "owned_guest_pid": 13624,
+        "owned_guest_parent_pid": 36160,
+        "owned_guest_session": 1,
+        "owned_guest_start_ticks_decimal": "639284282645128543",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 1,
+          "excerpt_line_end": 20,
+          "raw_log": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48/983b3919d53245c989aae9c7b99820fc-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            140,
+            143,
+            144,
+            145,
+            146,
+            149,
+            150,
+            151,
+            156
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "C78B935D8CE71836096F72251E24EBAEA4352D631C413538A4F708342156AE39",
+            "4D2FD850D76641941661F847DCB4B05BD1D46FEDA3439BEDF614691B5490FC74",
+            "69296A67527AF44DA8D0B7E266BF0BD8BF0211DD6C518D5883C8F3AAA60AFAE2",
+            "881100FAA9B564005D2DE8E3B50CF40B1C8467A0E50FBF83195877EC7F517792",
+            "BB486B5E23A844BA1641DC4C1D0B1DF4C417820A435F0D530BA082D46B79FCE2",
+            "73A01194AE37C61FFEC1932CDB01BC26E0DB4037D04BA45BCE913C0055AEE1D0",
+            "A3AF308787966376C37F10840C5E79A098FE51943281CCE31C2882252C974D5A",
+            "A01B7BF182EB456E71AA0E261A4404F88E7B46C36819A8AAD6D01D2671D327A7",
+            "168D223AB537DCECB3F1EDBA11956E7E0252610E304F579E480536D2826AFC65",
+            "115D23316B05F611504F43081DA27EC8635B4C374A3BC8C025153D0165C78571",
+            "5F1EAEBE77F5662FFC1B5E6D27179D6B41264F4301AF16AD778ADE7C69E1FBD7",
+            "2CF1D35BE8B8887E3DD3ECEA618A95793F05A2DE49F4E5601102386E6323AFAF",
+            "045578B53A3905F9A680DCE9D7A97F11FCDBAFA7E4D2E9B0FDB213894BC94454",
+            "80D3D6CC37BCA991369D2E72B4037CD8E0FC6226580A87B633B878FB3B708E40",
+            "94691E0F1F377DB156335FD00AF0CCC56F07ABFD4C09108BF6E8911B09E4DC2F",
+            "56D59C8B24AE933439FBD2A4B79BC48826929F247B883DC3A189422438D1A461",
+            "6BA70B07934C567262809EACAAA1B01EBF35EBB4748871A194415B7C886672FF",
+            "032A14C2B1C68240261E9F215911BE2A7D89147CBBDF57C18EF8785553200BEC",
+            "96AF731FC749902D77C2022065C3FC16DB569DDCAC66FD9550D3D3418A5D2BDA",
+            "91AE545D9536C15B7072935A4117E05A5493E5CFEB6C031859580EA86E7621AE"
+          ]
+        },
+        {
+          "producer": "product",
+          "excerpt_line_start": 21,
+          "excerpt_line_end": 28,
+          "raw_log": "uat/v1-control/983b3919d53245c989aae9c7b99820fc/collection-20261024T084503091Z-1e2783881fca4cef8ce9619aa6f88a48/983b3919d53245c989aae9c7b99820fc-product-Release/panebind.log.jsonl",
+          "original_sequences": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "838B84DA138BB5D015525A773DD75A26FAB161BFAEE4BD487C71DCB67B77CD87",
+            "8A57AB2827B760D163AC8A7C433F1C56433830BA432CD246B1FFB9E570AA3184",
+            "13D959A649E306C9D12D9DDE3F8F3C630F6B44E398D0166704589DB7F6C6880D",
+            "D5084BF41D821C4BB0C79AF33D7EADFE628F8E7A79E8ED8B9D42E1AA3F6D6F2C",
+            "C2C90B65686F25E80445524B229511447067F82029D2F77C08C185D9A320BCBE",
+            "9CEAC1428905ED41357BBF686866A6E132ADA0A94313B14E1D92018897A4434A",
+            "F200980C3F73E0E26D82D5B99C53CC3E95321BD6FEC3F437738B11FA4AF1153E",
+            "6C93AE2573E3CD50E5921FCCF23913FA9D0254F737B534147AA12C999C6D017F"
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": "4511b860f6d84f188716267ea56eff08",
+      "review_state": "SEALED_ACTUAL_STABLE_COLLECTION_AFTER_EXACT_COLLECTOR_SIDECAR_RECOVERY",
+      "configuration": "Release",
+      "suite": "MediumDesktopNativeClientOnly",
+      "collection_directory": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-20261024T085919306Z-a6d411bbd4154d02bbc795f3525e3c1b",
+      "result": "UNKNOWN_OR_BLOCKED_SHELL_BOOTSTRAP_READY_NOT_OBSERVED_NO_CLIENT_INPUT",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "candidate_product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "candidate_product_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+        "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+        "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "fixture_pid": 6472,
+        "fixture_tid": 6320,
+        "fixture_birth_filetime_decimal": "134373052041223635",
+        "product_started": false,
+        "Terminal_pid": 5948,
+        "Terminal_tid": 6716,
+        "Terminal_root_hwnd": 66428,
+        "Terminal_birth_filetime_decimal": "134373052146791130",
+        "Terminal_image_version": "1.25.2733.0",
+        "Terminal_integrity_rid": 8192,
+        "Terminal_elevated": false,
+        "same_SID_and_session1": true,
+        "exact_created_desktop_confirmed_twice": true,
+        "Default_Shell_hwnd": 65802,
+        "Default_Shell_pid": 4888,
+        "Default_Shell_tid": 4892,
+        "Default_Shell_birth_filetime_decimal": "134373051953201203",
+        "precision": "All birth/start_ticks decimal strings are regex-extracted literal values, not JSON floating-point round trips."
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-20261024T085919306Z-a6d411bbd4154d02bbc795f3525e3c1b/4511b860f6d84f188716267ea56eff08-release-fixture.jsonl",
+          "bytes": 24601807,
+          "sha256": "6B777DC88169559AE3EB92603761EE305AD3CC6D35EAB67B0087B8F93A9717DD",
+          "lines": 567,
+          "first": 1,
+          "last": 567,
+          "continuous": true,
+          "source_all": true,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/4511b860f6d84f188716267ea56eff08/package-receipt.json",
+          "bytes": 13348,
+          "sha256": "271C0A8E6272B73779070EEEBDBFCDBD87D7873FC3CC46DA2852D14C594D1300"
+        },
+        "zip_sha256": "717FEF5E40D26DD0327D101DD582BA7388728405B41043EE1A1B00531FEDEF56",
+        "manifest_sha256": "FA11A769792BAFF3A8AEA8F19B9EF6A424B7AA0B7C05F794EC62D325739CAF07",
+        "wsb_sha256": "13ECD8C74B42A41823FD29D147C58FD9BDCD1533C440FE4BCB67E9931B1514F6",
+        "actual_local_ZIP_manifest_WSB_hashes_match": true,
+        "collected_candidate_EXE_matches": true,
+        "product_log_present": false,
+        "product_not_started_from_actual_driver_receipts": true,
+        "no_product_runtime_inferred_from_candidate_file_presence": true
+      },
+      "collection_recovery": {
+        "original_failure_receipt": {
+          "name": "remote-failure-790a14a9cf9044da9bf3aece3da42521.json",
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/remote-failure-790a14a9cf9044da9bf3aece3da42521.json",
+          "bytes": 187,
+          "sha256": "04382773AF958AF6EBA925AD213AB56CED1835797ECB12507DCBA686F3B1E614"
+        },
+        "original_failure_stage": "Collect",
+        "original_failure_exit_code": 1,
+        "original_failure_stdout": [],
+        "original_failure_cause": "The exact generated Terminal bootstrap/ready output files were absent from the original collector whitelist.",
+        "cause_evidence_kind": "MAIN_EXECUTOR_OBSERVATION_AND_RECORDED_EXACT_RECOVERY_SCOPE_NOT_A_FIELD_IN_EMPTY_STDOUT",
+        "prepared": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-recovery-prepared.json",
+          "bytes": 3665,
+          "sha256": "454F6DDC3F12DDFDE0B17D1934D6CA72F72639F92898D5E42DA9634A435E1C97"
+        },
+        "authorization": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/host-collect-recovery-4511-authorization.json",
+          "bytes": 967,
+          "sha256": "8E2986B69BC680FB0E0796346222DFE75060398A43AE2AF1F8E87E589B0380A7"
+        },
+        "sidecar": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/host-control-4511-collect-recovery.ps1",
+          "bytes": 43118,
+          "sha256": "502E32A9FA8BFAB981E48C2034B426D9B85F6E430085DF2DB00FBBBB0938C431"
+        },
+        "local_runner": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/run-control-4511-collect-recovery.ps1",
+          "bytes": 21294,
+          "sha256": "08596B7C37606342251F56BEAAF536A34513AAD68D343BB6AE851FFDACAD7C8F"
+        },
+        "original_controller": {
+          "path": "uat/v1-control/controller-history/remote-control-9D9FEF17DCC90993D6B9EB1AB966C986A48FE72974F35190FCDC3B22401A98C6.ps1",
+          "sha256": "9D9FEF17DCC90993D6B9EB1AB966C986A48FE72974F35190FCDC3B22401A98C6",
+          "bytes": 38490,
+          "original_path_at_preparation": "uat/v1-control/remote-control.ps1",
+          "binding_time": "Original4511 recovery preparation before actual2026-10-24 Collect/Cleanup; preparation receipt pins9D bytes but does not record a distinct preparation UTC. Do not substitute its older owner-created UTC or a later file mtime.",
+          "snapshot_created_after_4511_collect_and_cleanup": true,
+          "snapshot_hash_independently_reverified": true,
+          "future_template_path": "uat/v1-control/remote-control.ps1",
+          "future_template_sha256": "A4CDC0BDA87E663D80AEF6B6738212B8763A992798332244FE79108345F942AA",
+          "future_template_scope": "Later tooling adds bounded exact NativeClientOnly output collection for future runs. It is not the4511 original controller, a4511 candidate rebuild/relaunch or evidence that a future run executed. The original4511 remote host-control, expectation and owner were not modified."
+        },
+        "original_controller_matches_prepared": true,
+        "original_local_runner_sha256": "5C17C462E4024287471EF43C3B28138D2DF3402B55D9703D9C49969D9CD09219",
+        "original_local_runner_unchanged": true,
+        "original_expectation": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/host-expectation.json",
+          "bytes": 3256,
+          "sha256": "D5547B48D2CE2A70061A5C79296C94293B448D33753114BC2B4DE6CF5F539F4C"
+        },
+        "original_expectation_unchanged": true,
+        "original_owner": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/remote-created.json",
+          "bytes": 315,
+          "sha256": "C098984039EC4E12643FFDC9F6F4B5D9C71AAF35FE09D3D4E8CE45DC77A4150B"
+        },
+        "original_owner_unchanged": true,
+        "sidecar_authorization_runner_hashes_match_prepared": true,
+        "allowed_extra_names": [
+          "4511b860f6d84f188716267ea56eff08-terminal-bootstrap.cmd",
+          "4511b860f6d84f188716267ea56eff08-terminal-shell-ready.txt",
+          "4511b860f6d84f188716267ea56eff08-terminal-client.txt"
+        ],
+        "candidate_rebuilt": false,
+        "relaunch_to_recover_collection": false,
+        "product_or_client_PASS_inferred": false,
+        "scope": "Exact-Run collection-tool sidecar only; original template/runner, expectation, owner and failed receipt retain original hashes. Original controller and local runner hashes were independently re-read; no remote action by this review."
+      },
+      "observations": {
+        "native_root": {
+          "driver_sequences": [
+            525,
+            526,
+            527
+          ],
+          "CreateProcessW_succeeded": true,
+          "root_observed": true,
+          "visible": true,
+          "two_complete_held_Run_inventory_memberships": true,
+          "actual_Medium_non_elevated": true,
+          "scope": "Native root availability/identity only, not working shell, client content or product enhancement."
+        },
+        "shell_ready": {
+          "driver_sequences": [
+            530,
+            537,
+            538
+          ],
+          "ready_file_bytes": 0,
+          "exact_ready_observed": false,
+          "initialization_phase_gate_accepted": false,
+          "before_tick": 42500,
+          "after_tick": 51000,
+          "requested_cap_ms": 8484,
+          "actual_initial_budget_ms": 8468,
+          "native_waits": 1,
+          "last_wait_return": 258,
+          "last_context_result": "accepted",
+          "no_mouse_or_keyboard_client_input": true,
+          "customer_nonce_satisfied": false,
+          "product_started": false,
+          "scope": "A real bounded shell-ready wait timed out; batched emission tick52765 is not the time of the underlying observation. Do not infer that cmd never started."
+        },
+        "ready_failure_observation": {
+          "driver_sequences": [
+            539,
+            540,
+            541,
+            542
+          ],
+          "held_tree_nodes_including_root": 1,
+          "observed_descendants": [],
+          "snapshot_not_atomic": true,
+          "empty_snapshot_does_not_prove_cmd_never_started": true,
+          "additional_launch_or_input": false,
+          "pixel_capture": {
+            "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-20261024T085919306Z-a6d411bbd4154d02bbc795f3525e3c1b/4511b860f6d84f188716267ea56eff08-Release-terminal-client-rejection.bmp",
+            "bytes": 6429726,
+            "sha256": "5BC3C2204815163B085DEB3B00F76041B9BA9AFA9588823798EF949F6FCE841B",
+            "capture_success": true,
+            "actual_screen_region_only": true,
+            "occlusion_absence_not_inferred": true,
+            "raw_visual_review_field": "NOT_RUN",
+            "subsequent_visual_review": "MAIN_EXECUTOR_AND_THIS_READONLY_REVIEW_VIEWED_ORIGINAL_BMP",
+            "observed_error_decimal": 3489660962,
+            "observed_error_hex": "0xd0000022",
+            "observed_text_scope": "Terminal visibly reports this error while launching C:\\Windows\\System32\\cmd.exe /d /q /k the exact-Run bootstrap.cmd.",
+            "specific_failing_native_API_and_root_cause": "UNKNOWN"
+          },
+          "observation_before_tick": 51000,
+          "observation_deadline_tick": 51500,
+          "observation_after_tick": 51765,
+          "whole_observation_finished_within_500ms": false,
+          "local_GDI_snapshot_handle_cleanup_known": true,
+          "scope": "Keep the actual deadline/after values; no claim that screen capture plus cleanup completed within500ms or that this error identifies a sole security/platform cause."
+        },
+        "normal_Terminal_close": {
+          "driver_sequences": [
+            545,
+            546,
+            549
+          ],
+          "WM_CLOSE_attempts": 1,
+          "PostMessage_return": true,
+          "bound_root_gone": true,
+          "held_exact_process_signalled": true,
+          "held_exact_process_exit_code": 0,
+          "normal_exact_process_exit": true,
+          "force_terminate_attempted": false,
+          "all_descendants_exit_inferred": false,
+          "local_observers_and_handles_cleanup_known": true,
+          "scope": "Exact held process normal exit and actual root disappearance are independent facts; neither proves every descendant or the Shell tree exited."
+        },
+        "Default_return_and_remaining_tree": {
+          "driver_sequences": [
+            553,
+            555,
+            558,
+            560
+          ],
+          "actual_Default_readback": true,
+          "independent_return_owner_exited": true,
+          "opened_handles_closed": true,
+          "Default_input_and_Shell_identity_unchanged": true,
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "Shell_child_still_alive": true,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_process_tree_cleanup": "UNKNOWN"
+        },
+        "wrapper": {
+          "wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "raw_product_cleanup_pass": false,
+          "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+          "scope": "Original wrapper failure/forced child cleanup preserved; no product was launched, so this is not a new product cleanup failure or client PASS."
+        },
+        "product_and_client": {
+          "driver_sequences": [
+            543,
+            549,
+            567
+          ],
+          "product_started": false,
+          "client_input_sent": false,
+          "customer_nonce": "NOT_RUN_PRECONDITION_NOT_MET",
+          "enhancement": "NOT_RUN",
+          "NF02": "NOT_RUN_NO_PRODUCT_PLACEMENT",
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-20261024T085919306Z-a6d411bbd4154d02bbc795f3525e3c1b/collection-receipt.json",
+          "bytes": 13807,
+          "sha256": "F6F6216F9CF9B4A9183CF3705F29ED193809F79A83715C67F62314E0F2C16563"
+        },
+        "collect_before_after_output_unchanged": true,
+        "artifact_count_including_output_marker": 10,
+        "artifact_count_excluding_output_marker": 9,
+        "artifacts": [
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "A7CA78FEBAE400583D6B5E127924B7FC39FF848F314356E18CC133526B289262",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-Release-terminal-client-rejection.bmp",
+            "bytes": 6429726,
+            "sha256": "5BC3C2204815163B085DEB3B00F76041B9BA9AFA9588823798EF949F6FCE841B",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-terminal-bootstrap.cmd",
+            "bytes": 291,
+            "sha256": "7FBF4018FA3D62A76C98B876BF5F23FAC213DE3D9EB58C15AE2708F06069F39A",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "7B88F4278E76ADD0CBD2DFE86039592AD38BE66F35C4FB850A2DB4747FCFCFAD",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-terminal-shell-ready.txt",
+            "bytes": 0,
+            "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-product-Release\\panebind.exe",
+            "bytes": 1220608,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-guest-summary.json",
+            "bytes": 22746,
+            "sha256": "AFDBBDA81B29CC2A0DB2A4458022514CDDB7DCFF3620EEED3A22AEE286CCC897",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-Release-launch.json",
+            "bytes": 9902,
+            "sha256": "600C1EBA9B53B91A690F8CAA2A8C3049A9BF535BA0F3F7D93169134CA025E7A6",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "4511b860f6d84f188716267ea56eff08-release-fixture.jsonl",
+            "bytes": 24601807,
+            "sha256": "6B777DC88169559AE3EB92603761EE305AD3CC6D35EAB67B0087B8F93A9717DD",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "all_sizes_and_hashes_match": true,
+        "deploy_receipt": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/deploy-receipt.json",
+          "bytes": 2910,
+          "sha256": "09FE2679E368264C638E9C5750B6EE0DB61DF50A42619498CC2C91CAA5BF6E36"
+        },
+        "launch_receipt": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/launch-receipt.json",
+          "bytes": 14470,
+          "sha256": "E5A6F922FB1A83BE0B39AEBBF9346BAA94959F62C185F9A32821AC190B7EA5C4"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/4511b860f6d84f188716267ea56eff08/cleanup-receipt.json",
+          "bytes": 12648,
+          "sha256": "BE30528CE0F8608D9626F4F2FF521DD7CAB7D73672FB767D2001CCAEADEFB0FA"
+        },
+        "utc": "2026-10-24T09:00:46.0434980Z",
+        "owned_guest_pid": 20340,
+        "owned_guest_parent_pid": 9992,
+        "owned_guest_session": 1,
+        "owned_guest_start_ticks_decimal": "639284283908716522",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 29,
+          "excerpt_line_end": 53,
+          "raw_log": "uat/v1-control/4511b860f6d84f188716267ea56eff08/collection-20261024T085919306Z-a6d411bbd4154d02bbc795f3525e3c1b/4511b860f6d84f188716267ea56eff08-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            517,
+            520,
+            522,
+            525,
+            526,
+            527,
+            530,
+            537,
+            538,
+            539,
+            540,
+            541,
+            542,
+            543,
+            545,
+            546,
+            549,
+            553,
+            555,
+            558,
+            560,
+            567
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "D52998163EBA69E4079E2F6B510DA549C3DBD79FEFA5E02522F39372A5C9E2C4",
+            "C3EDD304F3B731B9B724A73794C738D42E2F608B26FDEA1931A3AD5CF6BF4A55",
+            "F9E2A1CF3B026730295B8CA6F83838346D28E34D796D738455F0637A2311130C",
+            "69F3A73132332CF8A0FE59AF574E1629CD156882AB72A941F156D79954C8D4B5",
+            "413A16B6BF98CD713A2DD2E9EF0B05A863DE0A37136B85D04110D44F60279997",
+            "93469AF82B0C6524864F8464C815D97320953725EF35F3DD455362F707EBBFF1",
+            "BCF0F9D1B9F5B29EFA4ED1C9E4746D777CFE98E74CE299296D5FC362B2FB2E0E",
+            "F988FF275523E0B7022288B2929DEA2DED390F9345C284391CCFE2089C697963",
+            "218FB412263660E51701BE7F24C1F470C38DBD37F40D947DC50BE6DCEECE790E",
+            "BE5C7B7207EE67546C9D0A69A917F785E41FFCBC2B71F5C3B14673CD1C7ECFD6",
+            "51A58EA7AAE4F73CC7E98A3C99972CAEF6049FBD7DB63F3872016D04F605FB50",
+            "503D9C975AA5B2E7BA9DDEA92BF2E6DC992D24BD1C68039C5D890FCF4D09487F",
+            "C4013ED4DB477BC7C805CD524043CF82765D2575A689D37D503E28268D6C8276",
+            "3DB4E214647BC9915DFA5E6DAC1FE859F2C1485A56C258A70827892A21CA8C3C",
+            "0B787EA6860364882E916FA7122281DD890555A29B6CCB75790BB657C7BDF929",
+            "7E07A20AF859EEBC32D24A917495A3347BF62221E68E7BB8AB218BDA3F81DD01",
+            "84DF78B80C98CDAF4554341436C7835102E4C38C56E1F0E1499326857F3F59DB",
+            "92E2BBBAC360C7268F1F60729EE5056916371524FF1DD4E397D67A4C592333D0",
+            "1F79C8CF7C156DEFC4BD36DA0D01567F112BF9084BCB07335E5713A3553ED73D",
+            "8E555ABC21133BA6921A8F8AE59089014397AA9850FCE88CF41AB39BC53F6BCF",
+            "7362C7627AA0D10D3B211F3663AE8AFC89744AED8EBEC6524B942B0C01CB253F",
+            "349C957BB4F493531256DBF0C9CA663BB2D1EFFD112C052D66E09E5549B67AE6",
+            "17467218A96A82B2AD2ECD68D14A0A9C870841F64AE7557BE948B206125B59F6",
+            "F2F410FB72CE13D756A08201851849E49BABAF73E6D9AE7D0F3CFAE82DD3A5FC",
+            "FB9BAF973A95BDC0B5BD10CC048D447C88CDAED20BF5EC39B7262ED45634CDF1"
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": "72bd6d351c7f4b8fa61b7af12cf643ae",
+      "review_state": "SEALED_ACTUAL_STABLE_COLLECTION",
+      "configuration": "Release",
+      "suite": "MediumDesktopUiOnly",
+      "collection_directory": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b",
+      "result": "SCOPED_TERMINAL_GEOMETRY_PASS_WITH_TRAY_BLOCKED_AND_NF02_FAIL",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "product_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+        "driver_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_sha256": "A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81",
+        "packaging_head": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "fixture_pid": 6328,
+        "fixture_tid": 6332,
+        "fixture_birth_filetime_decimal": "134373060788646269",
+        "product_pid": 3392,
+        "product_birth_filetime_decimal": "134373060891632018",
+        "actual_product_arguments": [
+          "--settings",
+          "--diagnostic"
+        ],
+        "ordinary_no_argument_entry": false,
+        "ordinary_entry_PASS_inferred": false,
+        "Terminal_pid": 616,
+        "Terminal_tid": 1288,
+        "Terminal_root_hwnd": 131922,
+        "Terminal_birth_filetime_decimal": "134373060913338548",
+        "Terminal_image_version": "1.25.2733.0",
+        "Terminal_integrity_rid": 8192,
+        "Terminal_elevated": false,
+        "same_SID_and_session1": true,
+        "exact_held_Run_desktop_member": true,
+        "actual_DPI": 144,
+        "blank_target_hwnd": 918566,
+        "blank_target_pid": 6328,
+        "blank_target_tid": 6316,
+        "blank_target_birth_filetime_decimal": "134373060788646269",
+        "Default_Shell_hwnd": 65786,
+        "Default_Shell_pid": 4912,
+        "Default_Shell_tid": 4916,
+        "Default_Shell_birth_filetime_decimal": "134373060696288454",
+        "old42ab_or_ordinary_portable_result_rebound": false
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b/72bd6d351c7f4b8fa61b7af12cf643ae-release-fixture.jsonl",
+          "bytes": 59695883,
+          "sha256": "AF4DB9FF6EA3686F1FB6F34CAB2151520BCF571181E82CDA5A5818AE06D03ED7",
+          "lines": 1137,
+          "first": 1,
+          "last": 1137,
+          "continuous": true,
+          "source_all": true,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        },
+        {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b/72bd6d351c7f4b8fa61b7af12cf643ae-product-Release/panebind.log.jsonl",
+          "bytes": 232344,
+          "sha256": "F6771C3227A3F798B78B38A8135825D9A8C74D501359A899EED099E34276C0C0",
+          "lines": 188,
+          "first": 1,
+          "last": 188,
+          "continuous": true,
+          "source_all": true,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/72bd6d351c7f4b8fa61b7af12cf643ae/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "4810605B58146D2B3535AA130483A905BF65D53B6A14C3E922C4FC4FD108243B"
+        },
+        "zip_sha256": "C8DD854051A757051E27F788BED214498A006D5C37C365B42D675A58CA5608E7",
+        "manifest_sha256": "F0B00A49B6D77F505C005AC1250AE40D7B4C1C4E74C1003C0AC6AE34324BDABB",
+        "wsb_sha256": "8AD616919A1AC2B47A1654ADE6AC9E28EB85DBF85F673A54AB14C6C64764F970",
+        "actual_local_ZIP_manifest_WSB_hashes_match": true,
+        "collected_product_EXE_hash_matches": true,
+        "package_time_NOT_RUN_metadata_not_rewritten": true
+      },
+      "observations": {
+        "product_geometry_scope": {
+          "driver_scope_sequence": 1026,
+          "summary_sequence": 1112,
+          "actual_summary": "PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY",
+          "same_product_PID_all_five_generations": 3392,
+          "target_kind": "One exact newly created Windows Terminal plus one owned blank",
+          "source_geometry_independent_expected_not_product_solver": true,
+          "three_initial_stages": "Move1 -> right Resize -> SuccessorMove",
+          "right_Resize_preserved_left_top_bottom": true,
+          "magnet_phases": [
+            "Free",
+            "XY_Snap",
+            "Hold_outside_entry_inside_release",
+            "Detach",
+            "Resnap"
+          ],
+          "phase_results": [
+            {
+              "sequence": 1036,
+              "phase": "Move1",
+              "generation": 1,
+              "raw": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "diagnostic_required": false,
+              "fresh_consumed": null,
+              "native_attempted": null,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1048,
+              "phase": "Resize",
+              "generation": 2,
+              "raw": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "diagnostic_required": false,
+              "fresh_consumed": null,
+              "native_attempted": null,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1060,
+              "phase": "SuccessorMove",
+              "generation": 3,
+              "raw": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "expected": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "actual": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "diagnostic_required": false,
+              "fresh_consumed": null,
+              "native_attempted": null,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1076,
+              "phase": "Free",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": true,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1079,
+              "phase": "XY_Snap",
+              "generation": 4,
+              "raw": [
+                353,
+                393,
+                2151,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": true,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1082,
+              "phase": "Hold_outside_entry_inside_release",
+              "generation": 4,
+              "raw": [
+                341,
+                405,
+                2139,
+                1332
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": false,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1085,
+              "phase": "Detach",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": true,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1088,
+              "phase": "Resnap",
+              "generation": 4,
+              "raw": [
+                354,
+                393,
+                2152,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": true,
+              "independent_actual_matches": true
+            },
+            {
+              "sequence": 1103,
+              "phase": "CtrlAdjacentMove",
+              "generation": 5,
+              "raw": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "expected": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "actual": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "neighbour": [
+                2122,
+                422,
+                2422,
+                752
+              ],
+              "Ctrl": true,
+              "diagnostic_required": true,
+              "fresh_consumed": true,
+              "native_attempted": true,
+              "independent_actual_matches": true
+            }
+          ],
+          "Ctrl_adjacency_sequence": 1093,
+          "Ctrl_actual_geometry_sequence": 1103,
+          "Ctrl_START_locked": true,
+          "actual_two_member_common_delta": [
+            -36,
+            36
+          ],
+          "both_member_native_receipts_same_operation": 9,
+          "Ctrl_members": [
+            {
+              "key": 1,
+              "product_sequence": 167,
+              "call_id": 8
+            },
+            {
+              "key": 2,
+              "product_sequence": 168,
+              "call_id": 9
+            }
+          ],
+          "five_actual_NormalUp_proofs": [
+            {
+              "driver_sequence": 1039,
+              "phase": "Move1",
+              "generation": 1,
+              "source_capture": 0,
+              "UP_send_before_qpc": 448552113,
+              "end_sequence": 42,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "raw_sequence": 32,
+              "raw_qpc": 448583098,
+              "raw_flags": 2,
+              "raw_same_generation": true,
+              "legacy_sequence": 34,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 448601565,
+              "legacy_same_generation": true,
+              "gone_sequence": 40,
+              "gone_same_generation": true,
+              "release_attempted": true,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1051,
+              "phase": "Resize",
+              "generation": 2,
+              "source_capture": 0,
+              "UP_send_before_qpc": 454817950,
+              "end_sequence": 76,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "raw_sequence": 66,
+              "raw_qpc": 454853118,
+              "raw_flags": 2,
+              "raw_same_generation": true,
+              "legacy_sequence": 68,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 454875169,
+              "legacy_same_generation": true,
+              "gone_sequence": 74,
+              "gone_same_generation": true,
+              "release_attempted": true,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1063,
+              "phase": "SuccessorMove",
+              "generation": 3,
+              "source_capture": 0,
+              "UP_send_before_qpc": 461174287,
+              "end_sequence": 110,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "raw_sequence": 100,
+              "raw_qpc": 461205994,
+              "raw_flags": 2,
+              "raw_same_generation": true,
+              "legacy_sequence": 102,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 461233127,
+              "legacy_same_generation": true,
+              "gone_sequence": 108,
+              "gone_same_generation": true,
+              "release_attempted": true,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1091,
+              "phase": "MagnetFivePhase",
+              "generation": 4,
+              "source_capture": 0,
+              "UP_send_before_qpc": 472585164,
+              "end_sequence": 148,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "raw_sequence": 138,
+              "raw_qpc": 472605751,
+              "raw_flags": 2,
+              "raw_same_generation": true,
+              "legacy_sequence": 140,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 472634574,
+              "legacy_same_generation": true,
+              "gone_sequence": 146,
+              "gone_same_generation": true,
+              "release_attempted": true,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1107,
+              "phase": "CtrlAdjacentMove",
+              "generation": 5,
+              "source_capture": 0,
+              "UP_send_before_qpc": 480869829,
+              "end_sequence": 183,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "raw_sequence": 173,
+              "raw_qpc": 480887769,
+              "raw_flags": 2,
+              "raw_same_generation": true,
+              "legacy_sequence": 175,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 480924446,
+              "legacy_same_generation": true,
+              "gone_sequence": 181,
+              "gone_same_generation": true,
+              "release_attempted": true,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            }
+          ],
+          "scoped_geometry_PASS": true,
+          "scope": "One same-PID diagnostic product path through three initial gestures, five-phase magnet and two-member Ctrl. This is neither three real application types, customer-content validation, whole I02/I11, ordinary no-argument portable entry nor a new feature/benchmark PASS. JSONL arrival order is not common Raw/WinEvent native order."
+        },
+        "native_writer": {
+          "placement_receipts_including_noop": 10,
+          "actual_native_attempts": 9,
+          "all_nine_native_succeeded_exact_identity_and_post_context_valid": true,
+          "Move_native_flags": 533,
+          "Resize_native_flags": 532,
+          "source_size_preserving_native_calls_use_NOSIZE": true,
+          "Resize_native_call_does_not_use_NOSIZE": true,
+          "Hold": {
+            "product_sequence": 133,
+            "generation": 4,
+            "operation": 6,
+            "reason": "already_exact_no_native_call",
+            "actual_matches_latched_target": true,
+            "fresh_consumption_observed": true,
+            "native_attempted": false,
+            "native_position_flags": null,
+            "post_context_checked": false,
+            "scope": "A real current-generation no-op receipt, not a tenth native call or a successful fresh native post-context check."
+          }
+        },
+        "NF02": {
+          "product_summary_sequence": 187,
+          "qpc_frequency": 10000000,
+          "clock_scope": "same_machine_QPC_software_observation_not_physical_display",
+          "mouse_callback": {
+            "samples": 33,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 660,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 9,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 99999,
+            "maximum_us": 82011,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "current_summary_callback_target_met": true,
+          "current_summary_native_p95_target_met": false,
+          "result": "FAIL_CURRENT_NATIVE_P95_BUCKET99999US_MAX82011US",
+          "timing_field_order": [
+            "H=hook_observed_qpc",
+            "S=preflight_started_qpc",
+            "B=native_before_qpc",
+            "A=native_after_qpc",
+            "G=geometry_observed_qpc",
+            "P=post_observed_qpc_after_complete_post_context"
+          ],
+          "timing_ms_order": [
+            "H_to_S",
+            "S_to_B",
+            "B_to_A",
+            "A_to_G",
+            "G_to_P",
+            "H_to_P"
+          ],
+          "native_rows": [
+            {
+              "sequence": 27,
+              "generation": 1,
+              "operation": 1,
+              "key": 1,
+              "call_id": 1,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 447944508,
+              "S": 448043000,
+              "B": 448076917,
+              "A": 448092620,
+              "G": 448120324,
+              "P": 448120588,
+              "timing_ms": [
+                9.8492,
+                3.3917,
+                1.5703,
+                2.7704,
+                0.0264,
+                17.608
+              ]
+            },
+            {
+              "sequence": 61,
+              "generation": 2,
+              "operation": 2,
+              "key": 1,
+              "call_id": 2,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 532,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 454187230,
+              "S": 454271801,
+              "B": 454312616,
+              "A": 454333503,
+              "G": 454425664,
+              "P": 454428745,
+              "timing_ms": [
+                8.4571,
+                4.0815,
+                2.0887,
+                9.2161,
+                0.3081,
+                24.1515
+              ]
+            },
+            {
+              "sequence": 95,
+              "generation": 3,
+              "operation": 3,
+              "key": 1,
+              "call_id": 3,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 460637848,
+              "S": 460736290,
+              "B": 460768498,
+              "A": 460775787,
+              "G": 460797995,
+              "P": 460798128,
+              "timing_ms": [
+                9.8442,
+                3.2208,
+                0.7289,
+                2.2208,
+                0.0133,
+                16.028
+              ]
+            },
+            {
+              "sequence": 128,
+              "generation": 4,
+              "operation": 4,
+              "key": 1,
+              "call_id": 4,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 467773967,
+              "S": 467926235,
+              "B": 467949375,
+              "A": 467960409,
+              "G": 467990194,
+              "P": 467990346,
+              "timing_ms": [
+                15.2268,
+                2.314,
+                1.1034,
+                2.9785,
+                0.0152,
+                21.6379
+              ]
+            },
+            {
+              "sequence": 131,
+              "generation": 4,
+              "operation": 5,
+              "key": 1,
+              "call_id": 5,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 468872209,
+              "S": 469035069,
+              "B": 469061817,
+              "A": 469073706,
+              "G": 469119489,
+              "P": 469119627,
+              "timing_ms": [
+                16.286,
+                2.6748,
+                1.1889,
+                4.5783,
+                0.0138,
+                24.7418
+              ]
+            },
+            {
+              "sequence": 134,
+              "generation": 4,
+              "operation": 7,
+              "key": 1,
+              "call_id": 6,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 470787639,
+              "S": 470916143,
+              "B": 470937695,
+              "A": 470946176,
+              "G": 470996770,
+              "P": 470996956,
+              "timing_ms": [
+                12.8504,
+                2.1552,
+                0.8481,
+                5.0594,
+                0.0186,
+                20.9317
+              ]
+            },
+            {
+              "sequence": 135,
+              "generation": 4,
+              "operation": 8,
+              "key": 1,
+              "call_id": 7,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 471863243,
+              "S": 471999611,
+              "B": 472030135,
+              "A": 472037520,
+              "G": 472057810,
+              "P": 472057955,
+              "timing_ms": [
+                13.6368,
+                3.0524,
+                0.7385,
+                2.029,
+                0.0145,
+                19.4712
+              ]
+            },
+            {
+              "sequence": 167,
+              "generation": 5,
+              "operation": 9,
+              "key": 1,
+              "call_id": 8,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 479492472,
+              "S": 479742413,
+              "B": 479812805,
+              "A": 479835861,
+              "G": 479854302,
+              "P": 479854490,
+              "timing_ms": [
+                24.9941,
+                7.0392,
+                2.3056,
+                1.8441,
+                0.0188,
+                36.2018
+              ]
+            },
+            {
+              "sequence": 168,
+              "generation": 5,
+              "operation": 9,
+              "key": 2,
+              "call_id": 9,
+              "native_attempted": true,
+              "native_succeeded": true,
+              "exact": true,
+              "identity_valid": true,
+              "flags": 533,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 479492472,
+              "S": 479854522,
+              "B": 479958175,
+              "A": 480186639,
+              "G": 480312200,
+              "P": 480312574,
+              "timing_ms": [
+                36.205,
+                10.3653,
+                22.8464,
+                12.5561,
+                0.0374,
+                82.0102
+              ]
+            }
+          ],
+          "Ctrl_member2_preflight_starts_after_member1_postverify_ticks": 32,
+          "serial_interpretation": "P167/key1 and P168/key2 share one hook H and execute serially. The second member H->S36.2050ms includes prior work; it is not all its own preflight. Its S->B10.3653ms + API22.8464ms + A->G12.5561ms + G->P0.0374ms contribute to H->P82.0102ms, reported ceil82011us. Do not assign exclusive scheduler/Win32/root-cause ownership to these software intervals.",
+          "comparison_boundary": "2787's complete geometry-and-post-context endpoint differs from42ab/4ff's old endpoint. Both original measurements remain recorded; this is not a controlled proof of improvement/regression, a sole latency cause, physical-display latency or a passing overall NF02."
+        },
+        "Terminal_and_blank_cleanup": {
+          "driver_sequences": [
+            1109,
+            1110,
+            1111,
+            1112
+          ],
+          "one_WM_CLOSE_attempted": true,
+          "PostMessage_return": true,
+          "exact_Terminal_root_gone": true,
+          "held_exact_Terminal_process_signalled": true,
+          "held_exact_Terminal_process_exit_code": 0,
+          "forced_Terminal_termination": false,
+          "blank_target_destroyed": true,
+          "own_geometry_hooks_and_handles_stopped": true,
+          "all_descendants_exit_inferred": false
+        },
+        "tray": {
+          "driver_sequence": 1114,
+          "ElementFromPoint_hresult": 0,
+          "GetProcessId_hresult": 0,
+          "actual_provider_PID": 0,
+          "remaining_semantic_properties_unqueried": true,
+          "semantic_guard_accepted": false,
+          "tray_click_sent": false,
+          "tray_menu_observed": false,
+          "cause_beyond_provider_identity_observation": "UNKNOWN",
+          "scope": "Geometry scoped PASS does not conceal this UI failure; do not retry the unchanged semantic guard or equate UID rectangle/provider query success with click delivery."
+        },
+        "public_quit_and_product_resources": {
+          "driver_sequences": [
+            1115,
+            1116,
+            1121
+          ],
+          "public_same_EXE_quit_command_exit_code": 0,
+          "product_process_signalled": true,
+          "product_exit_code": 0,
+          "product_shutdown_sequence": 188,
+          "actual_own_hooks_stopped": true,
+          "actual_own_overlay_destroyed": true,
+          "actual_native_worker_exited": true,
+          "issued_native_completion_unknown": false,
+          "actual_visual_recovery_and_restore_confirmed": true,
+          "actual_input_resources_stopped": true,
+          "actual_capture_released": true,
+          "actual_input_association_detached": true
+        },
+        "Default_and_process_tree": {
+          "driver_sequences": [
+            1125,
+            1127,
+            1130,
+            1132
+          ],
+          "actual_Default_return_and_readback": true,
+          "return_owner_and_opened_handles_closed": true,
+          "Default_input_and_Shell_identity_unchanged": true,
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "Shell_child_still_alive": true,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_process_tree_cleanup": "UNKNOWN",
+          "raw_environment_product_enhancement_result": "NOT_RUN",
+          "scope": "Keep raw environment summary string as emitted; independently observed D1112 plus exact placements establish only the bounded geometry scope. The raw generic environment field does not rewrite those observations or grant full desktop acceptance."
+        },
+        "wrapper": {
+          "wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "raw_product_cleanup_pass": false,
+          "scope": "Preserve wrapper FAIL/forced retained Shell cleanup. Independently observed product shutdown and exact Terminal process exit are narrower real facts, not a whole-tree PASS."
+        },
+        "unexecuted": {
+          "customer_nonce_or_terminal_content": "NOT_RUN",
+          "Explorer": "NOT_RUN",
+          "five_application_matrix": "NOT_RUN",
+          "TaskbarCreated_or_Shell_restart": "NOT_RUN",
+          "whole_M01_B27_B28_I12": "NOT_PASSED",
+          "human_UAT": "NOT_RUN"
+        }
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b/collection-receipt.json",
+          "bytes": 8873,
+          "sha256": "DF58E2EFBE866D348B995D533D6A2B42FB216F0B7037076C8BB60DAECEB886B7"
+        },
+        "collect_before_after_output_unchanged": true,
+        "artifact_count_including_output_marker": 8,
+        "artifacts": [
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-Release-launch.json",
+            "bytes": 9882,
+            "sha256": "FB9266BFE11DB6700CF18106DA13F856DF48513173F38533D027C61BC17B6313",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-release-fixture.jsonl",
+            "bytes": 59695883,
+            "sha256": "AF4DB9FF6EA3686F1FB6F34CAB2151520BCF571181E82CDA5A5818AE06D03ED7",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "52E5F711A0C03385751E0275EBFD2840F2F8AF6993F0F704DB1DA3691F3C71BC",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "B910686FE6A3BDEF9CA9D9811750D4361B908811E422B083628A8B2CEEBA2002",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-product-Release\\panebind.log.jsonl",
+            "bytes": 232344,
+            "sha256": "F6771C3227A3F798B78B38A8135825D9A8C74D501359A899EED099E34276C0C0",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-product-Release\\panebind.exe",
+            "bytes": 1220608,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-guest-summary.json",
+            "bytes": 22706,
+            "sha256": "16F547A062F4D6D782D45F0C2BC779EBD0CBF117B5EB4BAFC8314F0589F53177",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "72bd6d351c7f4b8fa61b7af12cf643ae-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "all_sizes_and_hashes_match": true,
+        "host_expectation": {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/host-expectation.json",
+          "bytes": 3246,
+          "sha256": "45512C2EC8D6D08A1B111CD75043922679EDA54C1D98D8ACF61EE465984E239B"
+        },
+        "deploy_receipt": {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/deploy-receipt.json",
+          "bytes": 2910,
+          "sha256": "C154668151367FD24B66478F4784B4A7F4B9763F969CDC159C091AC43CCA7155"
+        },
+        "launch_receipt": {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/launch-receipt.json",
+          "bytes": 14470,
+          "sha256": "D8E26ECF32A50DBBD967194091D3B14FEFCE3FAFE17EFE4116B938B93EAADF8C"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/cleanup-receipt.json",
+          "bytes": 9975,
+          "sha256": "851C9B0A3177C5722AF1CD46E42CB97167C418F4A58CBA314BDAB07EEB206DA7"
+        },
+        "utc": "2026-10-24T09:03:38.5360058Z",
+        "owned_guest_pid": 9440,
+        "owned_guest_parent_pid": 33816,
+        "owned_guest_session": 1,
+        "owned_guest_start_ticks_decimal": "639284292648753558",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 54,
+          "excerpt_line_end": 90,
+          "raw_log": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b/72bd6d351c7f4b8fa61b7af12cf643ae-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            1021,
+            1027,
+            1028,
+            1036,
+            1039,
+            1048,
+            1051,
+            1060,
+            1063,
+            1065,
+            1067,
+            1076,
+            1079,
+            1082,
+            1085,
+            1088,
+            1091,
+            1093,
+            1099,
+            1103,
+            1107,
+            1109,
+            1110,
+            1111,
+            1112,
+            1114,
+            1115,
+            1116,
+            1121,
+            1125,
+            1127,
+            1130,
+            1132,
+            1137
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "B13EBCF9BB420C0BDDCFAC8F356D3746582614BB6262E3E5A606BBF853335659",
+            "55C0E17F211D13668268135D91E5ACFDF66535A39F9D144E5C2729AABD8E0B01",
+            "C977FC828218AA75E273FA636C05B110ED2026D789FBC6F9CD754B5627357D5B",
+            "D839ACAD2C870CED12EEF04E1517C47DBF7857F6C2790533D42D796DFF286DF5",
+            "D7DEB0743548D7044E192D73F7489804F0956D931609FCD9D5DF1CA10C6A43C9",
+            "FEED459D5B9AEDC654A6F5765F58D9A671ECE4EA2609B54D3C7F305A10F17C51",
+            "35538905C40FE435885D168D83B6BBA78088406238FD4765FD56D16566E745E6",
+            "B38B4B34D66E4375E52777965F9D267AFA2FD3B6DC2D9658FAE2282B8493215D",
+            "150CC3F7E9B7A2301B103B6ADC6794FC8AE57A2B9A8001051D67617A11559D48",
+            "2C831F56783A89D5439B1C63CCDDB415D6AD5BF58B1FE4536947805F09A40D61",
+            "F3FC2BCCB36E2012ED623A8324059B58E32D02AC24463F8D14AB55C1D41223C7",
+            "50D6953EF9B966534CEE78BE9EBB24AFCB273B9E8C54762F59A4A80379A06250",
+            "80D9752769AC4C56A68E89BA0F5A3219732325A8D5638BAA174726BCFC6C24E6",
+            "05F7260921ADE543DF2B12E47FB0E9631597109E99C388945944AC5D7B6A1282",
+            "853E2035E99029B180EB69C7F43EE917CA73465AFF0710A93DCA2591F9103241",
+            "5D3E7A1B78547E72092D8BC884A24747B591D38EFCF396414EA3EBA0C381860C",
+            "F428318154D0683A6227FA42D50589775B82B870E9806D14339CAE75A2601B9F",
+            "16A25B041E1D05E7B917FAEF8126673DAF4AC0CC39A4BCC5A392B356D33FAC8F",
+            "9DC0873ABB90A073A7322CB1F8AA9805F7ACA81365E36647E733131FA2E27F73",
+            "A5C16CBC9DBAD6C88046AF205CC7E749B171266C6CE4EF06CE58CF4BC3D60A14",
+            "C5E18A9D723203238EB840B3A485BFD4A49F8362F09248E235E2F8EE88E6C389",
+            "1A580DC42FCDFF86EE9754E13EC6E1BEA489AF8D0CBD322605B4C2B612812E19",
+            "3CF2D7F60F8D41396C7383EA19C4CD9619B27EA9BEBB3A009D05686DCD8E5AFB",
+            "B4E582183480CFE9C23E074120094EC52687A645C4E6475F48C50E9B129E566A",
+            "378BF166B8807E7E59638C7C83D2AD6A6BFF6AAB0D56B8572C8F30571142A387",
+            "D4FC1F79734F68272F19C391DA59D3AFF069B87921A1C4B36BFE66EDC5523CC9",
+            "B7028461D0529FD75B1CF1976BFA3E6AC0EDA4A287605815BCB7F52124845801",
+            "FF49D226C7776D56AF0209E2C9D8371AD03469011ADD5F270051AD3600CE20C5",
+            "40F4D07A2CA9EBCB518B68068D981CC6AFF622FA758DC3B5B0E3FE3E81531B84",
+            "E7E07AD0906C1CFAB9226B73D299C1EBCD79A9EBDE126712CC0840C8968965A2",
+            "0330F71BCF7EB878545B95F2D2A4F1F18D2473C788013B10FFCD9BDB5072C28C",
+            "7E10E7B5D9644AB5971488323DCBAC2B11C0999A5E431A4A5A88B05AFFD6710C",
+            "8509F2935FEA4895A54137C04162116F6BEA23788B690D866BF2EA8B865D3DF8",
+            "BB254B536F7133FD3F81218DEA762F35616BD0F4DD86BE014338EA5F37362FB1",
+            "E26F3418649FCB2D372353AF437CE4FABB5A22DFABA72522BE021D7F08C4B5A1",
+            "A3E252CC225D4229C191F50126597D3027D036DEE0541BE472DC7EE63C140870",
+            "516EA8A27E5439AFD5ED6C126E758396CE88579124C6764BDEC5111B9E42EE52"
+          ]
+        },
+        {
+          "producer": "product",
+          "excerpt_line_start": 91,
+          "excerpt_line_end": 108,
+          "raw_log": "uat/v1-control/72bd6d351c7f4b8fa61b7af12cf643ae/collection-20261024T090158123Z-7acf1dbb4d5243ee8a5328e7196d242b/72bd6d351c7f4b8fa61b7af12cf643ae-product-Release/panebind.log.jsonl",
+          "original_sequences": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            27,
+            61,
+            95,
+            128,
+            131,
+            133,
+            134,
+            135,
+            167,
+            168,
+            187,
+            188
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "5EDE7F4BAABE02F13C5F16FA8D45BE0A104CCDD1C73642ADD185C3F37246573F",
+            "975A181A320C9F205DA015413A9A223548167F1506CF3E6D9D98FDFE31440833",
+            "A32DD8A544419998DBC2B03087CCF555833C3B3DD15864847AA7F3344268CB44",
+            "A736BCFD8FF62742B57C513A6DA4ADC95E863C0C2DCDA54342FD34EDA2AF950E",
+            "CB1EFE3B3159A2DB397C23F44891B748FE415458BE60099D6730AAADA4E77019",
+            "8C67D99E86250A1D03977F9469B11145E6563828648489B896524510AF3E542F",
+            "D3D055510E6F2390407E9C119B84839ADD3A730F004622B2D3734DE5E2C3424A",
+            "40519CAEBD65831EE8F1820B9E1DBBF299CD2BF4E72B7C872E88603F931D4EF5",
+            "77EA8D402593BE46B0A7D395E9019C9BFE3C3514E01BD99D71A65D80709BEB0F",
+            "D6AC0B234AD151BEBA80167D721269C1B619596A3039B388A4BC00B1C8F4D6E4",
+            "6E330DB3C5280825512B3F421B4B8AF03C5BE6A35208DC4014786594E92A0BB1",
+            "CAC2C222A38EF1E6A1D9EAE99020AC54FA6FDA05B7A935C96467813AB6094922",
+            "D3CF7D88BE7AF61066C3045ED616852368ABB0C80E9D5329D5A624883D924324",
+            "B84D66A64B04341901DEBCC444D07DE3B480AA931A4849123A80C941F3756003",
+            "D4EA918D1CCEEFBD975F81556DF398605F03A255B32030F4DF13F41D8F9FF832",
+            "6DE6BFB81A7640B9F32A7DADA8C5B4CC5AA6AA75DEDFFDEEF2118A22594BAC51",
+            "12AEFB0118DF011D519B0D5170554C67AC3E173654B0D633A3234F10F94D881C",
+            "A9A9F53A7C19E61E4BDF21656AA514622916632E27D56088124E52BFC4CE8C49"
+          ]
+        }
+      ]
+    }
+  ],
+  "acceptance_boundary": {
+    "new_feature_or_B_PASS": false,
+    "whole_version_PASS": false,
+    "canonical_documents_changed_by_this_review": false,
+    "old_20261023_launch_refusal_retained_as_history": true,
+    "current_983_result_does_not_rewrite_old_launch_receipt": true,
+    "historical_42ab_runtime_or_portable_not_rebound": true,
+    "NF02_prior_FAIL_not_closed": true,
+    "human_UAT": "PENDING"
+  }
+}

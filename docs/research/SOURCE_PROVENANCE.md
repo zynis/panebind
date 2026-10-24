@@ -3477,3 +3477,46 @@ geometry observation timestamp predates the following context checks; the
 new receipt separates geometry observation from complete post-context timing.
 Old logs retain their old timing semantics and candidate identity. Actual
 builds, native results and any NF02 verdict are recorded independently.
+
+### 2026-10-24 — Terminal startup error and one direct-cmd TEST contrast
+
+The reviewed Windows Terminal asset remains version `1.25.2733.0`, source
+`dc8ae365847d41f62d1ebca93815bb00959bc12f`, MIT, a mature application.
+The exact-tag [ConptyConnection.cpp](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/src/cascadia/TerminalConnection/ConptyConnection.cpp)
+and [winconpty.cpp](https://raw.githubusercontent.com/microsoft/terminal/v1.25.2733.0/src/winconpty/winconpty.cpp)
+were actually read. The connection Start path creates the pseudoconsole before
+launching its attached client; one surrounding catch formats failures from
+multiple stages using the requested command line. NT-status conversion can
+occur before the client CreateProcess. Consequently, the actual 4511 screenshot
+showing `0xd0000022` does not identify which API or object was denied. The
+historical [upstream issue 6862](https://github.com/microsoft/terminal/issues/6862)
+was inspected as error-interpretation history, not as proof of this environment's
+cause. No upstream source, sample, translation or adapted implementation enters
+PaneBind; no new code attribution is required by this reference-only review.
+
+The official [HRESULT_FROM_NT](https://learn.microsoft.com/en-us/windows/win32/api/winerror/nf-winerror-hresult_from_nt)
+and [NTSTATUS values](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/596a1078-e883-4972-9bbc-49e60bebca55)
+contracts confirm the access-denied status mapping, not the denied resource.
+The official [CreateProcessW](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)
+and [creation flags](https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags)
+contracts were checked for an independent, finite `cmd /c` execution with the
+caller's actual primary token and `CREATE_NO_WINDOW`, without inheriting a
+console or handles. The exact-Run TEST contrast uses separate owned output;
+it neither satisfies Terminal's shell-ready/client nonce nor changes its
+original launch command. `/c` versus Terminal's `/k`, and absence of ConPTY,
+are explicit limits: even successful direct execution cannot prove the
+Terminal initialization root cause, product input transparency or app PASS.
+This is not a new product input mechanism, security-setting change or host test.
+
+The existing AltSnap/FancyZones event-owner and message-loop research is reused
+for the TEST-only 72bd scheduling defect. Its fixture STA owns the blank
+neighbour while repeatedly reading the product log; servicing messages only
+when the message-queue branch wins a wait can delay synchronous native work
+addressed to that neighbour. The official
+[PeekMessageW contract](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-peekmessagew)
+was read: it dispatches incoming nonqueued sent messages. The existing finite
+wait now services bounded STA messages before the evidence predicate and after
+wakes, retaining phase deadlines, QUIT, admission and input-lease checks. This
+is not polling, a product authority change, or proof that the TEST coupling
+alone caused the measured latency. A new driver keeps the unchanged product
+EXE; native timing and affected geometry are revalidated under separate IDs.
