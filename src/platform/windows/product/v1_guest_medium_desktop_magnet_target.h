@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mutex>
-
 // TEST ONLY: the exact Run blank neighbour has an independent UI owner.
 // That owner performs no evidence-file I/O, input driving or product writing.
 class MediumDesktopMagnetTarget {
