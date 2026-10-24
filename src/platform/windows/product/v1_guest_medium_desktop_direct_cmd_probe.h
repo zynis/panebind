@@ -88,7 +88,7 @@ MediumDirectCmdProbeObservation medium_direct_cmd_probe(
         create_error=out.created?0:GetLastError();const auto after=GetTickCount64();
         if(out.created){owned.process=info.hProcess;owned.thread=info.hThread;pid=info.dwProcessId;tid=info.dwThreadId;birth=process_birth(owned.process);}
         post_launch_context=!quit_seen&&active()&&product_absent("immediately_after_direct_cmd_CreateProcessW");
-        out.emit("medium_direct_cmd_probe_launch","\"CreateProcessW_attempted\":true,\"native_return\":"+(out.created?"true":"false")+
+        out.emit("medium_direct_cmd_probe_launch",std::string("\"CreateProcessW_attempted\":true,\"native_return\":")+(out.created?"true":"false")+
             ",\"error\":"+std::to_string(create_error)+",\"lpApplicationName\":"+quote(utf8(cmd.wstring()))+",\"command\":"+quote(utf8(command))+
             ",\"cmd_sha256\":"+quote(cmd_hash)+",\"script_sha256\":"+quote(script_hash)+",\"lpDesktop\":"+quote(utf8(full_desktop))+
             ",\"working_directory\":"+quote(utf8(working_directory.wstring()))+",\"creation_flags\":"+std::to_string(CREATE_NO_WINDOW)+
