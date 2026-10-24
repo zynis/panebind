@@ -1961,6 +1961,24 @@ function Assert-V1LiveResizeCallback([string]$Writer,[string]$Application,[strin
 $liveResizeApplication=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/product_app.cpp'),[Text.Encoding]::UTF8)
 Assert-V1LiveResizeCallback $placementWriterSource $liveResizeApplication $mediumGeometrySource
 Check $true 'static live Resize alone reaches the application callback and fresh whole-batch gates before the existing writer'
+function Assert-V1ProposalLocalBounds([string]$Writer,[string]$Application){
+    foreach($value in @('const auto fresh=catalog_.get(current->hwnd,settings,&reason,false,false);',
+        'if(fresh)before=prepare_resize_preprobe(*current,*fresh,reason);',
+        'proposal.declared_track_limits_observed=false;',
+        'proposal.application_grid_known=false;',
+        'if(!batch_preflight.declared_track_limits_observed)',
+        'facts.preprobe_limits_from_batch_preflight=true;',
+        'const auto current=catalog_.get(expected.hwnd,settings,&reason);',
+        'for(auto& query:queries)if(query)query->context_revalidated=true;')){
+        if(-not $Writer.Contains($value)){throw ('Proposal-local bounds lost its actual non-authority boundary: '+$value)}
+    }
+    if(-not $Application.Contains('q.preprobe_limits_from_batch_preflight?"true":"false"')){throw 'Actual proposal metadata must be observable, not fresh placement authority.'}
+}
+Assert-V1ProposalLocalBounds $placementWriterSource $liveResizeApplication
+Check $true 'static proposal-only bounds reuse retains fresh full post-callback placement checks and explicit non-fresh metadata'
+Reject {Assert-V1ProposalLocalBounds ($placementWriterSource.Replace('proposal.declared_track_limits_observed=false;','proposal.declared_track_limits_observed=true;')) $liveResizeApplication} 'static carried proposal bounds cannot be relabeled freshly observed'
+Reject {Assert-V1ProposalLocalBounds ($placementWriterSource.Replace('if(fresh)before=prepare_resize_preprobe(*current,*fresh,reason);','before=fresh;')) $liveResizeApplication} 'static no-track seeds cannot replace the actual batch proposal predicate'
+Reject {Assert-V1ProposalLocalBounds $placementWriterSource ($liveResizeApplication.Replace('q.preprobe_limits_from_batch_preflight?"true":"false"','false'))} 'static production evidence must distinguish carried proposal metadata'
 Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(request.coupled&&changed)','if(false)')) $liveResizeApplication $mediumGeometrySource} 'static coupled callback cannot independently correct members and break their shared layout'
 Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(!resize_guard(reason)){reject_resize(index,reason);return result;}','')) $liveResizeApplication $mediumGeometrySource} 'static callback return cannot bypass UP revocation before placement'
 Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication.Replace('const auto resize_request=is_resize(state.edges)?','const auto resize_request=true?')) $mediumGeometrySource} 'static Move and discrete operations cannot silently acquire a resize callback'

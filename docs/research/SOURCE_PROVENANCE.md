@@ -3610,3 +3610,28 @@ Move, discrete docking/history and non-resize commands do not acquire this
 callback. This is a per-proposal constraint, not an inferred persistent grid.
 Tests exercise the same production predicate and actual dispatcher wiring;
 new source/binary identities and affected runtime verification remain required.
+
+The later actual `ca56` Release run (`9ec7e63` product / `945062a` TEST)
+accepted a real two-member C=R proposal and rejected a subsequent changed
+coupled proposal, but its complete hook-to-second-member-postverify maximum
+was 54.012 ms. Both callback durations were below 0.4 ms; neither callback
+time nor native-call time alone explains that cumulative endpoint. This FAIL
+is preserved and is not attributed solely to Windows scheduling.
+
+For one bounded reduction, the same pinned AltSnap/FancyZones prior-art and
+history reviews above are reused; no new source or licensing claim is made.
+The official WM_GETMINMAXINFO, WM_SIZING and SendMessageTimeoutW pages linked
+above were actually reread on 2026-10-24. They distinguish application-provided
+track bounds, a mutable drag proposal, delivery success and message result;
+they do not make an earlier response fresh authority for a later placement.
+PaneBind removes only the duplicate track-limit query immediately before the
+sizing proposal. It still freshly captures identity, security, frame, DPI,
+monitor, work area and state, and compares them with this batch's first actual
+full preflight. Only that batch's observed bounds are carried into the proposal,
+explicitly marked non-fresh and not a known application grid. All-member
+post-callback, immediate per-placement and actual Resize post-verification
+retain full track-limit queries, UP revocation and context checks. The shared
+production predicate is tested for stale identity/frame/context and tightened
+post-callback bounds. There is no cache, additional input mechanism or removed
+placement authority check. Runtime benefit remains unproven until a separately
+identified affected run; no external code was copied or adapted.

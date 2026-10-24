@@ -23,6 +23,7 @@ public:
     struct ResizeRequest {core::v1::Edges edges;bool coupled{};};
     struct ResizeQueryFacts {
         bool attempted{},context_revalidated{};
+        bool preprobe_limits_from_batch_preflight{};
         UINT edge{};LRESULT api_return{};DWORD error{};DWORD_PTR message_result{};
         RECT requested_native{},returned_native{};
         std::uint64_t before_qpc{},after_qpc{};
@@ -131,6 +132,11 @@ public:
         const Snapshot& actual, const core::v1::Rect& desired);
     [[nodiscard]] static UINT resize_message_edge(core::v1::Edges)noexcept;
     [[nodiscard]] static bool resize_request_scope_allowed(const ResizeRequest&,std::size_t placement_count)noexcept;
+    // Proposal-local only: retain THIS batch's observed bounds after matching
+    // a complete fresh no-track snapshot. Neither bounds freshness nor write
+    // authority is carried; post-callback and final admissions still query.
+    [[nodiscard]] static std::optional<Snapshot> prepare_resize_preprobe(const Snapshot& batch_preflight,
+        const Snapshot& fresh_without_track,std::string& reason);
     // Actual batch policy uses this exact pure decision after the real API.
     // Raw RECT ordering is checked before constructing a normalizing Rect.
     [[nodiscard]] static ResizePreparation prepare_resize_query(const Snapshot& expected,

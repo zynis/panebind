@@ -585,6 +585,28 @@ bool WindowWriter::resize_request_scope_allowed(const ResizeRequest& request,std
         (request.coupled||placement_count==1);
 }
 
+std::optional<Snapshot> WindowWriter::prepare_resize_preprobe(const Snapshot& batch_preflight,
+    const Snapshot& fresh_without_track,std::string& reason){
+    if(!consistent(batch_preflight,fresh_without_track,reason))return {};
+    if(!batch_preflight.can_resize){reason="window_does_not_support_resize";return {};}
+    const auto& limits=batch_preflight.limits;
+    if(!batch_preflight.declared_track_limits_observed){reason="resize_preprobe_batch_limits_unobserved";return {};}
+    if(limits.min_width<=0||limits.min_height<=0||limits.max_width<limits.min_width||
+       limits.max_height<limits.min_height||limits.grid_width<=0||limits.grid_height<=0){
+        reason="resize_preprobe_batch_limits_invalid";return {};
+    }
+    // The fresh capture still determines the actual identity/frame/context.
+    // Its no-track system seed is NOT an application response. Carry only the
+    // first all-member preflight's real limits into this one proposal; the
+    // full post-callback and per-placement captures independently query again.
+    auto proposal=fresh_without_track;
+    proposal.limits=limits;
+    proposal.declared_track_limits_observed=false;
+    proposal.application_grid_known=false;
+    reason="resize_preprobe_limits_from_batch_preflight";
+    return proposal;
+}
+
 WindowWriter::ResizePreparation WindowWriter::prepare_resize_query(const Snapshot& expected,
     const Snapshot& actual,const Rect& requested,const ResizeRequest& request,const ResizeQueryFacts& facts){
     ResizePreparation result;
@@ -982,8 +1004,10 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
             const auto edge=resize_message_edge(member.edges);
             if(!edge){reject_resize(index,"resize_query_ambiguous_member_edges");return result;}
             std::string reason;
-            const auto before=catalog_.get(current->hwnd,settings,&reason);
-            if(!before||!consistent(*current,*before,reason)){
+            const auto fresh=catalog_.get(current->hwnd,settings,&reason,false,false);
+            std::optional<Snapshot> before;
+            if(fresh)before=prepare_resize_preprobe(*current,*fresh,reason);
+            if(!before){
                 reject_resize(index,"batch_preflight_"+reason);return result;
             }
             if(capture&&!geometry_gui_context_allowed(*before,observe_gui_context(*before),capture,
@@ -994,7 +1018,7 @@ std::vector<WindowWriter::Receipt> WindowWriter::batch(std::span<const Snapshot>
             if(!prepared.accepted||!prepared.positioning){reject_resize(index,"batch_preflight_"+prepared.reason);return result;}
             if(!resize_guard(reason)){reject_resize(index,reason);return result;}
             const auto& r=*prepared.positioning;
-            ResizeQueryFacts facts;facts.edge=edge;
+            ResizeQueryFacts facts;facts.edge=edge;facts.preprobe_limits_from_batch_preflight=true;
             facts.requested_native={static_cast<LONG>(r.left()),static_cast<LONG>(r.top()),static_cast<LONG>(r.right()),static_cast<LONG>(r.bottom())};
             facts.returned_native=facts.requested_native;
             // GUI adapter only, after all-member preflight and BEFORE any

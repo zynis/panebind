@@ -386,6 +386,7 @@ public:
                     ",\"candidate_visible\":"+rectangle(receipt.requested)+
                     ",\"before_qpc\":"+std::to_string(q.before_qpc)+",\"after_qpc\":"+std::to_string(q.after_qpc)+
                     ",\"context_revalidated\":"+(q.context_revalidated?"true":"false")+
+                    ",\"preprobe_limits_from_batch_preflight\":"+(q.preprobe_limits_from_batch_preflight?"true":"false")+
                     ",\"hook_observed_qpc\":"+std::to_string(observed_qpc)+
                     ",\"batch_result_reason\":\""+escaped(receipt.reason)+"\",\"callback_is_placement_attempt\":false"+
                     ",\"global_application_grid_known\":false");

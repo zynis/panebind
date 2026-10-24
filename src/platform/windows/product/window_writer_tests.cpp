@@ -54,6 +54,59 @@ int main() {
           p::WindowWriter::resize_request_scope_allowed(coupled_scope,2),
         "explicit coupled policy remains coupled even when its plan currently has one placement");
     const Rect sizing_requested{100,100,600,501};
+    auto batch_preflight=initial;
+    batch_preflight.limits={300,200,800,700,25,10};
+    batch_preflight.declared_track_limits_observed=true;
+    batch_preflight.application_grid_known=true;
+    auto no_track=initial;no_track.limits={1,1,2000,2000,1,1};
+    std::string preprobe_reason;
+    const auto preprobe=p::WindowWriter::prepare_resize_preprobe(batch_preflight,no_track,preprobe_reason);
+    check(preprobe&&preprobe->limits.min_width==300&&preprobe->limits.min_height==200&&
+          preprobe->limits.max_width==800&&preprobe->limits.max_height==700&&
+          preprobe->limits.grid_width==25&&preprobe->limits.grid_height==10&&
+          preprobe->visible==no_track.visible&&preprobe->positioning==no_track.positioning&&
+          !preprobe->declared_track_limits_observed&&!preprobe->application_grid_known&&
+          batch_preflight.declared_track_limits_observed&&batch_preflight.application_grid_known&&
+          no_track.limits.min_width==1&&preprobe_reason=="resize_preprobe_limits_from_batch_preflight",
+        "actual preprobe carries this batch's bounds, not the no-track system seed or fresh/grid authority");
+    auto missing_bounds=batch_preflight;missing_bounds.declared_track_limits_observed=false;
+    check(!p::WindowWriter::prepare_resize_preprobe(missing_bounds,no_track,preprobe_reason)&&
+          preprobe_reason=="resize_preprobe_batch_limits_unobserved",
+        "unobserved batch bounds cannot become application proposal constraints");
+    auto invalid_bounds=batch_preflight;invalid_bounds.limits.max_width=299;
+    check(!p::WindowWriter::prepare_resize_preprobe(invalid_bounds,no_track,preprobe_reason)&&
+          preprobe_reason=="resize_preprobe_batch_limits_invalid",
+        "malformed batch bounds are rejected even when their observation flag is set");
+    auto changed_probe=no_track;++changed_probe.born;
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason)&&
+          preprobe_reason=="window_identity_or_generation_changed",
+        "preprobe rejects a real identity change instead of carrying bounds across identities");
+    changed_probe=no_track;changed_probe.visible={101,100,601,500};
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason)&&
+          preprobe_reason=="unattributed_geometry_change",
+        "preprobe rejects external visible translation before the callback");
+    changed_probe=no_track;changed_probe.positioning={91,100,608,508};
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects changed native-frame geometry");
+    changed_probe=no_track;changed_probe.dpi=144;
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason)&&
+          preprobe_reason=="geometry_context_changed",
+        "preprobe does not carry old bounds through a fresh DPI change");
+    changed_probe=no_track;changed_probe.monitor=reinterpret_cast<HMONITOR>(std::uintptr_t{0x9876});
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects a changed monitor");
+    changed_probe=no_track;changed_probe.work={0,0,1800,1000};
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects a changed work area");
+    changed_probe=no_track;changed_probe.can_resize=false;
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects changed resize qualification");
+    changed_probe=no_track;changed_probe.maximized=true;
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects changed maximized state");
+    changed_probe=no_track;changed_probe.minimized=true;
+    check(!p::WindowWriter::prepare_resize_preprobe(batch_preflight,changed_probe,preprobe_reason),
+        "preprobe rejects changed minimized state");
     p::WindowWriter::ResizeQueryFacts sizing;
     sizing.attempted=true;sizing.edge=WMSZ_BOTTOM;sizing.api_return=1;sizing.message_result=TRUE;
     sizing.requested_native={92,100,608,509};sizing.returned_native={92,100,608,508};
@@ -71,6 +124,18 @@ int main() {
     check(!p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,coupled,sizing).accepted,
         "coupled plan rejects a changed C before any member placement rather than breaking its shared line");
     auto unchanged=sizing;unchanged.returned_native=unchanged.requested_native;
+    if(preprobe){
+        const Rect proposal_requested{100,100,600,510};
+        auto proposal_facts=unchanged;
+        proposal_facts.requested_native.bottom=proposal_facts.returned_native.bottom=518;
+        const auto proposal=p::WindowWriter::prepare_resize_query(batch_preflight,*preprobe,
+            proposal_requested,bottom,proposal_facts);
+        auto post_callback=batch_preflight;post_callback.limits.min_width=501;
+        const auto fresh_final=p::WindowWriter::prepare(batch_preflight,post_callback,
+            proposal.visible.value_or(proposal_requested));
+        check(proposal.accepted&&!fresh_final.accepted&&fresh_final.reason=="target_violates_size_constraints",
+            "actual post-callback prepare rejects tightened fresh bounds after accepted proposal-local carry");
+    }else check(false,"preprobe fixture is required for the actual post-callback tightening decision");
     sizing_result=p::WindowWriter::prepare_resize_query(initial,initial,sizing_requested,coupled,unchanged);
     check(sizing_result.accepted&&!sizing_result.adjusted&&sizing_result.visible==sizing_requested,
         "handled exact coupled proposal preserves the original common plan");
