@@ -1784,7 +1784,10 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     if(gui_context!=GestureGuiDisposition::Allowed){
         if(gui_context==GestureGuiDisposition::Rejected)finish(v::End::FocusLost);return;
     }
-    refresh_targets();
+    // Ctrl 在 START 已锁定；这些 targets 仅供磁吸，不是 writer 参与者。
+    // Ctrl Resize 不使用磁吸或停靠，仍保留 source/member 的真实权限检查。
+    const bool ctrl_resize=state.ctrl&&is_resize(state.edges);
+    if(!ctrl_resize)refresh_targets();
     if(motion_point_already_exact(e,normal_up_completion,state.exact_motion)){
         // A duplicate physical cursor is not a new motion quantum. Re-solving
         // with an equal millisecond sample can discard a retained snap; even a
@@ -1817,8 +1820,9 @@ void Application::motion(const InputEvent& e,bool normal_up_completion){
     auto src=std::find_if(plan.placements.begin(),plan.placements.end(),[&](const auto& p){return p.id==source.key;});if(src==plan.placements.end())return;
     const auto raw=state.ctrl&&!is_resize(state.edges)?core::movement::translate_rect(state.scope_original,{delta.x,delta.y}):src->visible;
     std::vector<m::MagnetTarget> targets;
-    for(const auto& s:state.targets)targets.push_back({core::model::WindowId(std::to_string(s.key)),s.visible,false});
-    const auto monitor=MonitorFromPoint(e.point,MONITOR_DEFAULTTONEAREST);const auto displays=catalog.displays();
+    if(!ctrl_resize)for(const auto& s:state.targets)targets.push_back({core::model::WindowId(std::to_string(s.key)),s.visible,false});
+    const HMONITOR monitor=ctrl_resize?nullptr:MonitorFromPoint(e.point,MONITOR_DEFAULTTONEAREST);
+    const auto displays=ctrl_resize?std::vector<Display>{}:catalog.displays();
     const auto display=std::find_if(displays.begin(),displays.end(),[&](const auto& d){return d.monitor==monitor;});
     if(display!=displays.end()&&targets.size()<256)targets.push_back({core::model::WindowId("work"),display->work,true});
     m::MagnetInput request;request.initial=state.scope_original;request.raw=raw;request.targets=targets;

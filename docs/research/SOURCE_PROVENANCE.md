@@ -3635,3 +3635,19 @@ production predicate is tested for stale identity/frame/context and tightened
 post-callback bounds. There is no cache, additional input mechanism or removed
 placement authority check. Runtime benefit remains unproven until a separately
 identified affected run; no external code was copied or adapted.
+
+The subsequent `322a9bb` / `0c50` Release run completed the affected functional
+chain but still measured a complete 53.212 ms endpoint. Its earlier 54.012 ms
+failure is not removed or treated as proof of an improvement. A further local
+data-flow review found that Ctrl Resize still refreshed non-participant magnet
+candidates and constructed per-monitor DPI measurement windows. That route's
+solver explicitly does not use magnet candidates; docking returns before
+reading displays, and its actual shared-edge feedback uses the writer members.
+The narrow dispatcher change omits only those unused observations for Ctrl
+Resize. Ordinary Move, Ctrl Move and ordinary Resize keep their observations;
+source, participant, GUI-context, original-anchor and writer admission checks
+remain unchanged. This reuses the existing event/monitor prior-art review and
+native APIs rather than introducing a new mechanism or external code. Static
+mutation checks cover the actual dispatcher, followed by a separately identified
+affected build/run. The existing clocks do not establish how much time those
+unused calls consumed; no latency PASS or unique system cause is inferred.

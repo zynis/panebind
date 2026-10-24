@@ -2045,4 +2045,35 @@ Assert-V1GeometrySubBudget $mediumUiSource $mediumGeometrySource
 Check $true 'static geometry uses a finite reserved subbudget and reports actual health separately from timeout/UNKNOWN'
 Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('geometry_cap_ms,ui_remaining-geometry_reserve_ms','geometry_cap_ms,ui_remaining')) $mediumGeometrySource} 'static geometry cannot consume the reserved UI cleanup time'
 Reject {Assert-V1GeometrySubBudget $mediumUiSource ($mediumGeometrySource.Replace('(observed?(healthy?"true":"false"):"null")','(observed?(healthy?"true":"false"):"false")'))} 'static unobserved command completion cannot be reported as actual unhealthy'
+function Assert-V1CtrlResizeUnusedPreparation([string]$Application){
+    $begin=$Application.IndexOf('void Application::motion(')
+    $end=$Application.IndexOf('void Application::finish(',$begin)
+    if($begin -lt 0 -or $end -le $begin){throw 'The actual production motion dispatcher was not found.'}
+    $motion=$Application.Substring($begin,$end-$begin)
+    foreach($value in @(
+        'const bool ctrl_resize=state.ctrl&&is_resize(state.edges);',
+        'if(!ctrl_resize)refresh_targets();',
+        'if(!ctrl_resize)for(const auto& s:state.targets)targets.push_back(',
+        'const HMONITOR monitor=ctrl_resize?nullptr:MonitorFromPoint(e.point,MONITOR_DEFAULTTONEAREST);',
+        'const auto displays=ctrl_resize?std::vector<Display>{}:catalog.displays();',
+        'const auto fresh=catalog.get(source.hwnd,settings);',
+        'if(!fresh||!Catalog::same(source,*fresh)||GetForegroundWindow()!=source.hwnd)',
+        'const auto gui_context=gesture_gui_context(source,e.generation);',
+        'e.point.x)-state.down.point.x',
+        'const auto expected=state.expected.find(member.key);',
+        'if(magnet_on&&!(state.ctrl&&is_resize(state.edges)))',
+        'if(!apply(plan,state.members,e.generation,normal_up_completion,e.hook_observed_qpc,resize_request))',
+        'if(state.ctrl&&is_resize(state.edges))shared_edges=shared_feedback_edges(')){
+        if(-not $motion.Contains($value)){throw ('Only unused Ctrl Resize magnet observations may be skipped; real source/member/writer gates remain: '+$value)}
+    }
+    foreach($value in @('writer.batch(identities,plan.placements,settings,',
+        'input.operation_guard(generation,completed_normal_up,authority_source)')){
+        if(-not $Application.Contains($value)){throw 'Ctrl Resize must retain the actual guarded production writer.'}
+    }
+}
+Assert-V1CtrlResizeUnusedPreparation $liveResizeApplication
+Check $true 'static Ctrl Resize alone omits unused magnet observations while retaining actual source/member/writer and shared feedback paths'
+Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('const bool ctrl_resize=state.ctrl&&is_resize(state.edges);','const bool ctrl_resize=state.ctrl;'))} 'static Ctrl Move cannot lose its magnet observations'
+Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('if(!ctrl_resize)refresh_targets();','refresh_targets();'))} 'static actual Ctrl Resize must gate the unused candidate refresh'
+Reject {Assert-V1CtrlResizeUnusedPreparation ($liveResizeApplication.Replace('const auto displays=ctrl_resize?std::vector<Display>{}:catalog.displays();','const auto displays=catalog.displays();'))} 'static Ctrl Resize cannot recreate unused monitor measurement windows'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
