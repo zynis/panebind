@@ -1912,7 +1912,7 @@ function Assert-V1SingleSizingProposal([string]$Geometry){
         'geometry_single_sizing_proposal_stale_before_real_DOWN')){
         if(-not $Geometry.Contains($value)){throw 'The proposal must feed the guarded real gesture, not an idealized helper.'}
     }
-    $up=$Geometry.IndexOf('if(!minimum_declined)out_.emit("medium_product_geometry_NormalUp"', [StringComparison]::Ordinal)
+    $up=$Geometry.IndexOf('if(!constraint_declined)out_.emit("medium_product_geometry_NormalUp"', [StringComparison]::Ordinal)
     $comparison=$Geometry.IndexOf('out_.emit("medium_product_geometry_Terminal_WM_SIZING_comparison"', [StringComparison]::Ordinal)
     if($up -lt 0 -or $comparison -le $up){throw 'Interpret the preference only after the actual NormalUp and cleanup checks.'}
 }
@@ -1964,4 +1964,28 @@ Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(request.
 Reject {Assert-V1LiveResizeCallback ($placementWriterSource.Replace('if(!resize_guard(reason)){reject_resize(index,reason);return result;}','')) $liveResizeApplication $mediumGeometrySource} 'static callback return cannot bypass UP revocation before placement'
 Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication.Replace('const auto resize_request=is_resize(state.edges)?','const auto resize_request=true?')) $mediumGeometrySource} 'static Move and discrete operations cannot silently acquire a resize callback'
 Reject {Assert-V1LiveResizeCallback $placementWriterSource ($liveResizeApplication+' return rectangle({r.left,r.top,r.right,r.bottom});') $mediumGeometrySource} 'static malformed raw callback evidence cannot silently normalize reversed native edges'
+function Assert-V1CoupledCallbackTest([string]$Geometry,[string]$Blank){
+    foreach($value in @('one_gesture(HTRIGHT,1,0,"CtrlSharedEdgeResizeCallback",false,true,false,nullptr,true);',
+        'magnet_.reset();minimum_chain_active_=true;',
+        'one_gesture(HTCAPTION,24,18,"AfterCtrlSharedResizeCallbackMove");',
+        'shared_right_callback(placement_mark,*original,',
+        'geometry_coupled_rejection_resources_not_retired_before_TEST_abort_UP',
+        'matching_abort_cleanup_up(last_status_,ended,gone,identity,released)',
+        'const bool constraint_declined=minimum_declined||coupled_declined;',
+        'if(!constraint_declined)out_.emit("medium_product_geometry_NormalUp"',
+        'const unsigned wanted=coupled_declined?0u:2u;',
+        'magnet_->finish_shared_right_resize(!coupled_declined)')){
+        if(-not $Geometry.Contains($value)){throw ('Actual coupled test lost its narrow route or outcome: '+$value)}
+    }
+    foreach($value in @('*frame==coupled->before&&native==coupled->before_native',
+        '*frame==coupled->after&&native==coupled->after_native',
+        'coupled_=CoupledGeometry{wanted,wanted,native,native};')){
+        if(-not $Blank.Contains($value)){throw 'The exact TEST neighbour may not accept an arbitrary new geometry baseline.'}
+    }
+}
+$coupledBlankSource=[IO.File]::ReadAllText((Join-Path $repository 'src/platform/windows/product/v1_guest_medium_desktop_magnet_target.h'),[Text.Encoding]::UTF8)
+Assert-V1CoupledCallbackTest $mediumGeometrySource $coupledBlankSource
+Check $true 'static actual Ctrl shared-edge callback test separates two exact placements from zero-native rejection and abort UP'
+Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('const bool constraint_declined=minimum_declined||coupled_declined;','const bool constraint_declined=minimum_declined;')) $coupledBlankSource} 'static coupled rejection cannot borrow the NormalUp branch'
+Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('*frame==coupled->after&&native==coupled->after_native','true'))} 'static coupled TEST target cannot silently accept arbitrary source changes'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')

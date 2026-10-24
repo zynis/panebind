@@ -26,6 +26,7 @@ class MediumDesktopProductGeometryCase {
     POINT minimum_native_{},maximum_native_{};UINT minimum_dpi_{};
     struct TerminalSizingProposal {Rect original,requested,corrected;RECT positioning;UINT dpi;HMONITOR monitor;};
     bool sizing_probe_attempted_{},sizing_comparison_completed_{},sizing_successor_completed_{};
+    bool coupled_callback_completed_{},coupled_callback_declined_{},coupled_callback_successor_completed_{};
     std::optional<bool> sizing_preference_matched_;
     POINT last_sample_{};ULONGLONG last_sample_tick_{};UINT pacing_dpi_{};
     bool down_inserted_{},up_attempted_{},up_inserted_{};std::uint64_t down_qpc_{},up_qpc_{},last_mouse_qpc_{};
@@ -490,6 +491,112 @@ class MediumDesktopProductGeometryCase {
             callback=line;return placement;
         }return {};
     }
+    struct CoupledCallbackFacts {
+        bool rejected{};std::uint64_t operation{};
+        std::string source_query,neighbour_query,source_placement,neighbour_placement;
+    };
+    std::optional<CoupledCallbackFacts> shared_right_callback(std::size_t mark,Rect source_before,Rect source_native,
+        Rect neighbour_before,Rect neighbour_native){
+        if(!magnet_||!target_exact())return {};
+        const HWND neighbour=magnet_->window();DWORD neighbour_pid{};const DWORD neighbour_tid=GetWindowThreadProcessId(neighbour,&neighbour_pid);
+        if(!neighbour_tid||neighbour_pid!=GetCurrentProcessId())return {};
+        const Rect source_r{source_before.l,source_before.t,source_before.r+1,source_before.b};
+        const Rect source_r_native{source_native.l,source_native.t,source_native.r+1,source_native.b};
+        const Rect neighbour_r{neighbour_before.l+1,neighbour_before.t,neighbour_before.r,neighbour_before.b};
+        const Rect neighbour_r_native{neighbour_native.l+1,neighbour_native.t,neighbour_native.r,neighbour_native.b};
+        (void)log();const auto suffix=evidence_.since(mark);if(!suffix)throw std::runtime_error("geometry_coupled_callback_log_mark_unknown");
+        const std::string snapshot{*suffix};std::istringstream rows{snapshot};std::vector<std::string> queries;std::string line;
+        using product::guest::up_evidence_detail::unique_value;
+        const auto native_field=[](const std::string& row){
+            constexpr std::string_view field="\"C_native\":";
+            const auto at=row.find(field);if(at==row.npos||row.find(field,at+field.size())!=row.npos)return std::optional<Rect>{};
+            const auto end=row.find(']',at+field.size());if(end==row.npos)return std::optional<Rect>{};
+            std::istringstream values{row.substr(at+field.size(),end-at-field.size()+1)};
+            std::int64_t l{},t{},r{},b{};char a{},c{},d{},e{},f{};
+            if(!(values>>a>>l>>c>>t>>d>>r>>e>>b>>f)||a!='['||c!=','||d!=','||e!=','||f!=']'||
+                l<std::numeric_limits<LONG>::min()||l>std::numeric_limits<LONG>::max()||t<std::numeric_limits<LONG>::min()||t>std::numeric_limits<LONG>::max()||
+                r<std::numeric_limits<LONG>::min()||r>std::numeric_limits<LONG>::max()||b<std::numeric_limits<LONG>::min()||b>std::numeric_limits<LONG>::max()||l>=r||t>=b)
+                return std::optional<Rect>{};
+            return std::optional<Rect>{{static_cast<LONG>(l),static_cast<LONG>(t),static_cast<LONG>(r),static_cast<LONG>(b)}};
+        };
+        while(std::getline(rows,line))if(line.find("\"type\":\"application_resize_proposal\"")!=line.npos&&
+            number(line,"\"generation\":")==generation_&&number(line,"\"hook_observed_qpc\":")>=last_mouse_qpc_)queries.push_back(line);
+        for(const auto& query:queries){
+            const auto operation=number(query,"\"operation\":"),key=number(query,"\"key\":"),hook=number(query,"\"hook_observed_qpc\":");
+            const auto hwnd=number(query,"\"source_HWND\":");const bool source=hwnd==reinterpret_cast<std::uintptr_t>(target_);
+            if((!source&&hwnd!=reinterpret_cast<std::uintptr_t>(neighbour))||!operation||!key||(source&&key!=source_key_)||(!source&&key==source_key_))continue;
+            const Rect wanted=source?source_r:neighbour_r,wanted_native=source?source_r_native:neighbour_r_native;
+            const auto returned=native_field(query);const auto api=unique_value(query,"\"API_return\":");
+            LONGLONG api_result{};char tail{};std::istringstream api_text{api?std::string(*api):std::string{}};
+            const auto before=number(query,"\"before_qpc\":"),after=number(query,"\"after_qpc\":");
+            if(!(api_text>>api_result)||!api_result||(api_text>>tail)||!returned||!hook||before<hook||after<before||
+                number(query,"\"source_PID\":")!=(source?target_pid_:neighbour_pid)||number(query,"\"source_TID\":")!=(source?target_tid_:neighbour_tid)||
+                number(query,"\"edge\":")!=(source?WMSZ_RIGHT:WMSZ_LEFT)||unique_value(query,"\"callback_attempted\":")!="true"||
+                unique_value(query,"\"callback_is_placement_attempt\":")!="false"||unique_value(query,"\"global_application_grid_known\":")!="false"||
+                query.find("\"R_visible\":"+rect(wanted)+",")==query.npos||query.find("\"R_native\":"+rect(wanted_native)+",")==query.npos||
+                returned->t!=wanted_native.t||returned->b!=wanted_native.b||
+                (source?returned->l!=wanted_native.l:returned->r!=wanted_native.r))continue;
+            const auto message=unique_value(query,"\"message_LRESULT\":");
+            if(message!="1"&&!(message=="0"&&*returned==wanted_native))continue;
+            const bool changed=*returned!=wanted_native;
+            if(changed&&message=="1"&&product::guest::up_evidence_detail::quoted(query,"\"batch_result_reason\":","resize_query_would_change_coupled_plan")){
+                CoupledCallbackFacts facts;facts.rejected=true;facts.operation=operation;
+                (source?facts.source_query:facts.neighbour_query)=query;
+                std::uint64_t neighbour_key=source?0:key;
+                for(const auto& observed:queries)if(number(observed,"\"operation\":")==operation&&number(observed,"\"hook_observed_qpc\":")==hook&&
+                    number(observed,"\"source_HWND\":")==reinterpret_cast<std::uintptr_t>(neighbour)&&
+                    number(observed,"\"source_PID\":")==neighbour_pid&&number(observed,"\"source_TID\":")==neighbour_tid){
+                    const auto value=number(observed,"\"key\":");
+                    if(!value||value==source_key_||(neighbour_key&&neighbour_key!=value))return {};
+                    neighbour_key=value;facts.neighbour_query=observed;
+                }
+                // The early rejection may precede all-member revalidation;
+                // do not manufacture context_revalidated or NormalUp.
+                std::istringstream placements{snapshot};std::string placement;unsigned receipts{};
+                while(std::getline(placements,placement))if(placement.find("\"type\":\"placement\"")!=placement.npos&&
+                    number(placement,"\"generation\":")==generation_&&number(placement,"\"operation\":")==operation){
+                    if(number(placement,"\"hook_observed_qpc\":")!=hook||unique_value(placement,"\"native_callsite_claimed\":")!="false"||
+                        unique_value(placement,"\"native_attempted\":")!="false"||unique_value(placement,"\"native_completion_known\":")!="true"||
+                        !product::guest::up_evidence_detail::quoted(placement,"\"reason\":","resize_query_would_change_coupled_plan"))return {};
+                    const auto member=number(placement,"\"key\":");
+                    if(member==source_key_)facts.source_placement=placement;
+                    else if(neighbour_key&&member==neighbour_key)facts.neighbour_placement=placement;
+                    else return {};
+                    ++receipts;
+                }
+                if(!receipts||receipts>2||visible(target_)!=std::optional<Rect>{source_before}||
+                    visible(neighbour)!=std::optional<Rect>{neighbour_before})return {};
+                return facts;
+            }
+            if(changed||unique_value(query,"\"context_revalidated\":")!="true"||
+                query.find("\"candidate_visible\":"+rect(wanted)+",")==query.npos)continue;
+            for(const auto& other:queries)if(number(other,"\"operation\":")==operation&&number(other,"\"hook_observed_qpc\":")==hook&&
+                number(other,"\"source_HWND\":")==(source?reinterpret_cast<std::uintptr_t>(neighbour):reinterpret_cast<std::uintptr_t>(target_))){
+                // Reuse this same exact predicate for the other member by
+                // selecting its already validated query on the outer pass.
+                const auto other_key=number(other,"\"key\":");if(!other_key||other_key==key)continue;
+                const auto other_wanted=source?neighbour_r:source_r,other_native=source?neighbour_r_native:source_r_native;
+                const auto other_api=unique_value(other,"\"API_return\":");LONGLONG other_api_result{};
+                std::istringstream other_api_text{other_api?std::string(*other_api):std::string{}};
+                if(!(other_api_text>>other_api_result)||!other_api_result||(other_api_text>>tail)||
+                    number(other,"\"source_PID\":")!=(source?neighbour_pid:target_pid_)||number(other,"\"source_TID\":")!=(source?neighbour_tid:target_tid_)||
+                    (!source&&other_key!=source_key_)||number(other,"\"edge\":")!=(source?WMSZ_LEFT:WMSZ_RIGHT)||
+                    number(other,"\"before_qpc\":")<hook||number(other,"\"after_qpc\":")<number(other,"\"before_qpc\":")||
+                    unique_value(other,"\"callback_attempted\":")!="true"||unique_value(other,"\"context_revalidated\":")!="true"||
+                    unique_value(other,"\"callback_is_placement_attempt\":")!="false"||unique_value(other,"\"global_application_grid_known\":")!="false"||
+                    (unique_value(other,"\"message_LRESULT\":")!="1"&&unique_value(other,"\"message_LRESULT\":")!="0")||
+                    other.find("\"R_visible\":"+rect(other_wanted)+",")==other.npos||other.find("\"candidate_visible\":"+rect(other_wanted)+",")==other.npos||
+                    other.find("\"R_native\":"+rect(other_native)+",")==other.npos||other.find("\"C_native\":"+rect(other_native)+",")==other.npos)continue;
+                const auto a=phase_placement(mark,wanted,key),b=phase_placement(mark,other_wanted,other_key);
+                if(a.empty()||b.empty()||number(a,"\"operation\":")!=operation||number(b,"\"operation\":")!=operation||
+                    number(a,"\"hook_observed_qpc\":")!=hook||number(b,"\"hook_observed_qpc\":")!=hook||
+                    snapshot.find(a,snapshot.find(query)+query.size())==snapshot.npos||snapshot.find(b,snapshot.find(other)+other.size())==snapshot.npos)continue;
+                CoupledCallbackFacts facts;facts.operation=operation;
+                facts.source_query=source?query:other;facts.neighbour_query=source?other:query;
+                facts.source_placement=source?a:b;facts.neighbour_placement=source?b:a;return facts;
+            }
+        }return {};
+    }
     Rect terminal_minimum_resize(Rect original,const RECT& positioning,UINT dpi,LONG& dy){
         if(explorer_case_||magnet_||!admission()||!target_exact()||!no_buttons()||GetForegroundWindow()!=target_)
             throw std::runtime_error("geometry_Terminal_minimum_fresh_idle_context_required");
@@ -637,7 +744,7 @@ class MediumDesktopProductGeometryCase {
         }return rejected;
     }
     void one_gesture(int region,LONG dx,LONG dy,const char* phase,bool five=false,bool ctrl=false,bool minimum=false,
-        const TerminalSizingProposal* sizing=nullptr){
+        const TerminalSizingProposal* sizing=nullptr,bool coupled=false){
         unsigned expected_region{};
         switch(region){case HTCAPTION:expected_region=0;break;case HTRIGHT:expected_region=2;break;
             case HTBOTTOM:expected_region=4;break;default:throw std::runtime_error("geometry_unsupported_test_nonclient_region");}
@@ -645,6 +752,21 @@ class MediumDesktopProductGeometryCase {
         const auto original=visible(target_);RECT positioning{};const auto original_dpi=GetDpiForWindow(target_);
         const auto original_monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);
         if(!original||!GetWindowRect(target_,&positioning)||!original_dpi||!original_monitor)throw std::runtime_error("geometry_original_frame_unknown");
+        std::optional<Rect> coupled_neighbour_before,coupled_neighbour_native;RECT neighbour_initial_native{};
+        if(coupled){
+            if(explorer_case_||!magnet_||!ctrl||region!=HTRIGHT||dx!=1||dy||five||minimum||sizing||
+                original->r==std::numeric_limits<LONG>::max()||positioning.right==std::numeric_limits<LONG>::max())
+                throw std::runtime_error("geometry_coupled_callback_scope_must_be_exact_right_plus_one");
+            coupled_neighbour_before=visible(magnet_->window());MONITORINFO display{sizeof(display)};
+            if(!coupled_neighbour_before||original->r!=coupled_neighbour_before->l||original->t!=coupled_neighbour_before->t||
+                !GetWindowRect(magnet_->window(),&neighbour_initial_native)||!GetMonitorInfoW(original_monitor,&display)||
+                original->r+1>display.rcWork.right||coupled_neighbour_before->width()<=1||
+                GetDpiForWindow(magnet_->window())!=original_dpi||MonitorFromWindow(magnet_->window(),MONITOR_DEFAULTTONULL)!=original_monitor)
+                throw std::runtime_error("geometry_coupled_actual_shared_edge_or_display_unknown");
+            coupled_neighbour_native=Rect{neighbour_initial_native.left,neighbour_initial_native.top,neighbour_initial_native.right,neighbour_initial_native.bottom};
+            if(!magnet_->begin_shared_right_resize(*coupled_neighbour_before,*coupled_neighbour_native))
+                throw std::runtime_error("geometry_coupled_blank_declared_two_states_not_armed");
+        }else if(ctrl&&region!=HTCAPTION)throw std::runtime_error("geometry_test_Ctrl_Resize_requires_explicit_coupled_scope");
         const bool application_right=!explorer_case_&&region==HTRIGHT&&!five&&!ctrl&&!minimum&&!sizing;
         if(sizing&&(region!=HTBOTTOM||dx||dy!=1||five||ctrl||minimum||explorer_case_||magnet_||*original!=sizing->original||
             original_dpi!=sizing->dpi||original_monitor!=sizing->monitor||positioning.left!=sizing->positioning.left||
@@ -655,7 +777,12 @@ class MediumDesktopProductGeometryCase {
             if(region!=HTBOTTOM||five||ctrl||dx)throw std::runtime_error("geometry_minimum_case_must_be_single_Terminal_bottom_edge");
             minimum_expected=terminal_minimum_resize(*original,positioning,original_dpi,dy);
         }
-        const auto hit=hit_point(target_,region,nullptr,!explorer_case_&&region==HTCAPTION);if(!hit)throw std::runtime_error("geometry_actual_nonclient_target_not_found");
+        const auto hit=coupled?std::optional<POINT>{{positioning.right-2,positioning.top+(positioning.bottom-positioning.top)/2}}:
+            hit_point(target_,region,nullptr,!explorer_case_&&region==HTCAPTION);
+        if(!hit)throw std::runtime_error("geometry_actual_nonclient_target_not_found");
+        if(coupled&&(GetAncestor(WindowFromPoint(*hit),GA_ROOT)!=target_||
+            GetAncestor(WindowFromPoint({hit->x+1,hit->y}),GA_ROOT)!=target_))
+            throw std::runtime_error("geometry_coupled_abort_UP_destination_not_exact_source_before_DOWN");
         generation_=0;down_inserted_=up_attempted_=up_inserted_=false;native_threshold_step_=continuation_ready_=false;terminal_reason_.clear();
         cursor(*hit);if(!status())throw std::runtime_error("geometry_product_prepare_status_not_healthy");
         const auto before_status=last_status_;const HWND actual_hit=WindowFromPoint(*hit);DWORD actual_pid{};DWORD_PTR actual_region{};
@@ -721,15 +848,30 @@ class MediumDesktopProductGeometryCase {
         // from that actual point, but never change the original DOWN anchor.
         if(!GetCursorPos(&last_sample_))throw std::runtime_error("geometry_actual_pacing_origin_unknown");
         last_sample_tick_=GetTickCount64();pacing_dpi_=original_dpi;
-        Rect expected{};bool minimum_declined{};std::string minimum_decline_receipt,application_callback;std::size_t minimum_placement_mark{};std::uint64_t minimum_input_qpc{};
+        Rect expected{};bool minimum_declined{},coupled_declined{};std::optional<CoupledCallbackFacts> coupled_facts;
+        std::string minimum_decline_receipt,application_callback;std::size_t minimum_placement_mark{},coupled_placement_mark{};std::uint64_t minimum_input_qpc{};
         for(const auto& step:phases){
             expected=step.expected;const POINT next{anchor.x+step.x,anchor.y+step.y};
             if(five||ctrl)pace(next);
-            const auto placement_mark=log().size();if(minimum)minimum_placement_mark=placement_mark;
+            const auto placement_mark=log().size();if(minimum)minimum_placement_mark=placement_mark;if(coupled)coupled_placement_mark=placement_mark;
             cursor(next);last_sample_=next;last_sample_tick_=GetTickCount64();std::string placement,neighbour_receipt;
             if(minimum)minimum_input_qpc=last_mouse_qpc_;
-            const auto expected_neighbour=ctrl&&neighbour_before?std::optional<Rect>{translated(*neighbour_before,step.x,step.y)}:neighbour_before;
+            auto expected_neighbour=ctrl&&neighbour_before?std::optional<Rect>{coupled?
+                Rect{neighbour_before->l+1,neighbour_before->t,neighbour_before->r,neighbour_before->b}:translated(*neighbour_before,step.x,step.y)}:neighbour_before;
             if(!wait_for([&]{
+                if(coupled){
+                    coupled_facts=shared_right_callback(placement_mark,*original,
+                        {positioning.left,positioning.top,positioning.right,positioning.bottom},*coupled_neighbour_before,*coupled_neighbour_native);
+                    if(coupled_facts){
+                        placement=coupled_facts->source_placement;neighbour_receipt=coupled_facts->neighbour_placement;
+                        if(coupled_facts->rejected){
+                            coupled_declined=true;expected=*original;expected_neighbour=neighbour_before;return true;
+                        }
+                        return visible(target_)==expected&&visible(magnet_->window())==expected_neighbour&&capture_route()&&target_exact();
+                    }
+                    if(retired())throw std::runtime_error("geometry_coupled_terminated_without_exact_callback_outcome");
+                    return false;
+                }
                 if(minimum){
                     minimum_decline_receipt=minimum_rejection(placement_mark,minimum_input_qpc);
                     if(!minimum_decline_receipt.empty()&&visible(target_)==original&&target_exact()){
@@ -767,7 +909,9 @@ class MediumDesktopProductGeometryCase {
                 Rect{positioning.left,positioning.top,positioning.right+expected.r-original->r,positioning.bottom+expected.b-original->b};
             if(Rect{after.left,after.top,after.right,after.bottom}!=expected_positioning)
                 throw std::runtime_error("geometry_source_positioning_postverify_not_exact");
-            if(magnet_&&magnet_->positioning){const auto wanted=ctrl?translated(*magnet_->positioning,step.x,step.y):*magnet_->positioning;
+            if(magnet_&&magnet_->positioning){const auto wanted=coupled?
+                (coupled_declined?*coupled_neighbour_native:Rect{coupled_neighbour_native->l+1,coupled_neighbour_native->t,coupled_neighbour_native->r,coupled_neighbour_native->b}):
+                ctrl?translated(*magnet_->positioning,step.x,step.y):*magnet_->positioning;
                 if(Rect{neighbour_position.left,neighbour_position.top,neighbour_position.right,neighbour_position.bottom}!=wanted)
                     throw std::runtime_error("geometry_neighbour_positioning_postverify_not_exact");}
             const auto per_call=product::guest::up_evidence_detail::unique_value(placement,"\"native_attempted\":");
@@ -775,32 +919,37 @@ class MediumDesktopProductGeometryCase {
                 Rect{original->l,original->t,original->r+step.x,original->b+step.y};
             out_.emit("medium_product_geometry_observed_geometry","\"phase\":"+quote(step.name)+",\"generation\":"+std::to_string(generation_)+
                 ",\"original_visible\":"+rect(*original)+",\"raw_intent_from_original_DOWN\":"+rect(raw_intent)+
-                ",\"independent_expected_visible\":"+rect(sizing?sizing->corrected:application_right?step.expected:expected)+",\"actual_visible\":"+rect(*actual_visible)+
-                ",\"expected_kind\":"+quote(application_right?"actual_application_callback_not_product_solver":"independent_TEST_geometry")+
+                ",\"independent_expected_visible\":"+rect(sizing?sizing->corrected:(application_right||coupled)?step.expected:expected)+",\"actual_visible\":"+rect(*actual_visible)+
+                ",\"expected_kind\":"+quote(application_right?"actual_application_callback_not_product_solver":coupled?"independent_shared_edge_plan_or_unchanged_rejection":"independent_TEST_geometry")+
                 ",\"actual_application_callback\":"+(application_callback.empty()?"null":quote(application_callback))+
                 ",\"actual_positioning\":"+rect({after.left,after.top,after.right,after.bottom})+",\"actual_DPI\":"+std::to_string(original_dpi)+
                 ",\"actual_neighbour_visible\":"+(magnet_?rect(*visible(magnet_->window())):"null")+
                 ",\"Ctrl_START_locked\":"+(ctrl?"true":"false")+",\"product_solver_used_for_expected\":false,\"TEST_one_MOVE_per_phase\":true"+
-                ",\"phase_consumption_from_fresh_placement_including_noop\":"+(minimum_declined?"false":(five||ctrl||minimum||sizing||application_right)?"true":"null")+
+                ",\"phase_consumption_from_fresh_placement_including_noop\":"+((minimum_declined||coupled_declined)?"false":(five||ctrl||minimum||sizing||application_right)?"true":"null")+
                 ",\"diagnostic_mode_receipt_required\":"+((five||ctrl||minimum||sizing||application_right)?"true":"false")+
                 ",\"single_WM_SIZING_preference_not_checked_until_real_UP\":"+(sizing?"true":"false")+
                 ",\"minimum_constraint_declined_before_native\":"+(minimum_declined?"true":"false")+
+                ",\"scopeCoupledCallback\":"+(coupled?"true":"false")+",\"coupled_application_proposal_declined_before_native\":"+(coupled_declined?"true":"false")+
                 ",\"constraint_decline_receipt\":"+(minimum_decline_receipt.empty()?"null":quote(minimum_decline_receipt))+
                 ",\"phase_SendInput_before_qpc\":"+std::to_string(last_mouse_qpc_)+
                 ",\"neighbour_production_receipt\":"+(neighbour_receipt.empty()?"null":quote(neighbour_receipt))+
                 ",\"native_attempt_from_per_call_receipt\":"+(per_call&&(*per_call=="true"||*per_call=="false")?std::string(*per_call):"null")+
                 ",\"production_per_call_receipt\":"+(placement.empty()?"null":quote(placement))+",\"missing_diagnostic_is_UNKNOWN\":true");
         }
-        const auto up_mark=log().size();send_mouse(MOUSEEVENTF_LEFTUP,{},false,true,minimum_declined);std::string ended,legacy,gone,raw;bool post_release_status_observed{};
-        if(minimum_declined){
+        if(coupled_declined&&!wait_for([&]{
+            return !row(mark,"gesture_end",generation_).empty()&&!row(mark,"gesture_input_resource",generation_,"isolation_gone").empty();
+        },1200))throw std::runtime_error("geometry_coupled_rejection_resources_not_retired_before_TEST_abort_UP");
+        const bool constraint_declined=minimum_declined||coupled_declined;
+        const auto up_mark=log().size();send_mouse(MOUSEEVENTF_LEFTUP,{},false,true,constraint_declined);std::string ended,legacy,gone,raw;bool post_release_status_observed{};
+        if(constraint_declined){
             std::string released;
             if(!wait_for([&]{ended=row(mark,"gesture_end",generation_);gone=row(mark,"gesture_input_resource",generation_,"isolation_gone");
                 released=row(mark,"gesture_input_resource",generation_,"capture_released");
                 return !ended.empty()&&!gone.empty();},1200)||!status())
-                throw std::runtime_error("geometry_minimum_rejection_retirement_or_idle_unknown");
+                throw std::runtime_error("geometry_constraint_rejection_retirement_or_idle_unknown");
             const product::guest::UpEvidenceIdentity identity{product_pid_,source_,generation_,up_qpc_};
             if(!product::guest::matching_abort_cleanup_up(last_status_,ended,gone,identity,released)||visible(target_)!=original)
-                throw std::runtime_error("geometry_minimum_rejection_actual_abort_UP_or_unchanged_geometry_unknown");
+                throw std::runtime_error("geometry_constraint_rejection_actual_abort_UP_or_unchanged_geometry_unknown");
             post_release_status_observed=true;
             out_.emit("medium_product_geometry_constraint_abort_UP","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
                 ",\"single_cleanup_UP_send_before_qpc\":"+std::to_string(up_qpc_)+",\"actual_same_generation_LL_UP_and_abort_cleanup\":true"+
@@ -816,13 +965,39 @@ class MediumDesktopProductGeometryCase {
         if(ctrl){control(false);if(!wait_for([&]{return control_state();},200))throw std::runtime_error("geometry_TEST_Ctrl_UP_not_observed");}
         GUITHREADINFO gui{sizeof(gui)};if(!target_exact()||!GetGUIThreadInfo(target_tid_,&gui)||gui.hwndCapture||gui.hwndMoveSize||gui.hwndMenuOwner||
             visible(target_)!=expected||(!post_release_status_observed&&!status()))throw std::runtime_error("geometry_terminal_context_or_idle_not_confirmed");
-        if(!minimum_declined)out_.emit("medium_product_geometry_NormalUp","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
+        if(!constraint_declined)out_.emit("medium_product_geometry_NormalUp","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
             ",\"single_UP_send_before_qpc\":"+std::to_string(up_qpc_)+",\"actual_visible\":"+rect(expected)+
             ",\"actual_source_capture\":0,\"end_receipt\":"+quote(ended)+",\"Raw_receipt\":"+quote(raw)+
             ",\"legacy_receipt\":"+quote(legacy)+",\"resources_receipt\":"+quote(gone)+",\"global_zero_late_history_claimed\":false");
         out_.emit("medium_product_geometry_status_delta","\"phase\":"+quote(phase)+",\"generation\":"+std::to_string(generation_)+
             ",\"before_actual_status\":"+quote(before_status)+",\"after_actual_status\":"+quote(last_status_)+
             ",\"aggregate_counter_is_not_per_call_API_receipt\":true");
+        if(coupled){
+            const auto before=product::guest::up_evidence_detail::number(before_status,"\"native_callsite_claims\":");
+            const auto after=product::guest::up_evidence_detail::number(last_status_,"\"native_callsite_claims\":");
+            const auto suffix=evidence_.since(coupled_placement_mark);unsigned claims{};bool unknown{};std::string receipt;
+            if(!coupled_facts||!suffix)throw std::runtime_error("geometry_coupled_final_callback_or_audit_unknown");
+            std::istringstream rows{std::string(*suffix)};
+            while(std::getline(rows,receipt))if(receipt.find("\"type\":\"placement\"")!=receipt.npos&&number(receipt,"\"generation\":")==generation_){
+                const auto claim=product::guest::up_evidence_detail::unique_value(receipt,"\"native_callsite_claimed\":");
+                const auto attempted=product::guest::up_evidence_detail::unique_value(receipt,"\"native_attempted\":");
+                if(claim=="true"){++claims;if(attempted!="true"||receipt.find("\"native_completion_known\":true")==receipt.npos)unknown=true;}
+                else if(claim!="false"||attempted!="false")unknown=true;
+            }
+            const unsigned wanted=coupled_declined?0u:2u;
+            if(!before||!after||*after<*before||*after-*before!=wanted||claims!=wanted||unknown||
+                !magnet_->finish_shared_right_resize(!coupled_declined))throw std::runtime_error("geometry_coupled_actual_calls_or_final_member_geometry_unknown");
+            coupled_callback_completed_=true;coupled_callback_declined_=coupled_declined;
+            out_.emit("medium_product_geometry_Ctrl_shared_callback_result","\"scopeCoupledCallback\":true,\"generation\":"+std::to_string(generation_)+
+                ",\"operation\":"+std::to_string(coupled_facts->operation)+",\"delta_pixels\":[1,0],\"outcome\":"+
+                quote(coupled_declined?"APPLICATION_CHANGED_COUPLED_PLAN_REJECTED_ZERO_NATIVE_THEN_ACTUAL_TEST_ABORT_UP":"BOTH_APPLICATION_PROPOSALS_UNCHANGED_TWO_EXACT_PLACEMENTS_THEN_NORMAL_UP")+
+                ",\"source_query\":"+(coupled_facts->source_query.empty()?"null":quote(coupled_facts->source_query))+
+                ",\"neighbour_query\":"+(coupled_facts->neighbour_query.empty()?"null":quote(coupled_facts->neighbour_query))+
+                ",\"source_placement\":"+(coupled_facts->source_placement.empty()?"null":quote(coupled_facts->source_placement))+
+                ",\"neighbour_placement\":"+(coupled_facts->neighbour_placement.empty()?"null":quote(coupled_facts->neighbour_placement))+
+                ",\"native_callsite_claims_delta\":"+std::to_string(wanted)+",\"actual_Ctrl_UP_observed\":"+(control_release_observed_?"true":"false")+
+                ",\"NormalUp_claimed\":"+(coupled_declined?"false":"true")+",\"group_feature_or_whole_version_PASS\":false");
+        }
         if(minimum){
             const auto before_claims=product::guest::up_evidence_detail::number(before_status,"\"native_callsite_claims\":");
             const auto after_claims=product::guest::up_evidence_detail::number(last_status_,"\"native_callsite_claims\":");
@@ -1046,11 +1221,13 @@ public:
                 out_.emit("medium_product_geometry_Ctrl_adjacency","\"source_actual\":"+rect(*source)+",\"neighbour_actual\":"+rect(*other)+
                     ",\"shared_edge_exact\":true,\"test_controlled_members\":2,\"group_motion_expected_delta\":["+std::to_string(-step)+","+std::to_string(step)+"]");
                 one_gesture(HTCAPTION,-step,step,"CtrlAdjacentMove",false,true);ctrl_completed_=true;out_.ctrl_completed=true;
+                one_gesture(HTRIGHT,1,0,"CtrlSharedEdgeResizeCallback",false,true,false,nullptr,true);
                 const bool blank_closed=magnet_->finish();out_.cleanup_known=out_.cleanup_known&&blank_closed;
                 out_.emit("medium_product_geometry_blank_target_cleanup","\"phase\":\"before_real_Terminal_minimum_case\",\"owner_DestroyWindow_and_UnregisterClass_confirmed\":"+
                     std::string(blank_closed?"true":"false")+",\"foreign_target_closed\":false");
                 if(!blank_closed)throw std::runtime_error("geometry_blank_target_cleanup_before_minimum_UNKNOWN");
                 magnet_.reset();minimum_chain_active_=true;
+                one_gesture(HTCAPTION,24,18,"AfterCtrlSharedResizeCallbackMove");coupled_callback_successor_completed_=true;
                 one_gesture(HTBOTTOM,0,0,"DeclaredMinimumResize",false,false,true);
                 one_gesture(HTCAPTION,24,18,"AfterMinimumMove");minimum_completed_=true;minimum_chain_active_=false;
                 if(const auto proposal=terminal_sizing_proposal()){
@@ -1096,6 +1273,9 @@ public:
             ",\"single_Terminal_WM_SIZING_real_comparison_completed\":"+(sizing_comparison_completed_?"true":"false")+
             ",\"single_Terminal_WM_SIZING_successor_Move_completed\":"+(sizing_successor_completed_?"true":"false")+
             ",\"single_Terminal_WM_SIZING_preference_matched\":"+(sizing_preference_matched_?(*sizing_preference_matched_?"true":"false"):"null")+
+            ",\"scopeCoupledCallback_completed\":"+(coupled_callback_completed_?"true":"false")+
+            ",\"scopeCoupledCallback_safely_declined\":"+(coupled_callback_completed_?(coupled_callback_declined_?"true":"false"):"null")+
+            ",\"scopeCoupledCallback_successor_Move_completed\":"+(coupled_callback_successor_completed_?"true":"false")+
             ",\"application_grid_known\":false"+
             ",\"Ctrl_Glue\":"+quote(ctrl_completed_?"SCOPED_TWO_MEMBER_MOVE_COMPLETED":"NOT_COMPLETED")+
             ",\"five_applications_or_whole_version_PASS\":false,\"human_UAT\":\"NOT_RUN\"");

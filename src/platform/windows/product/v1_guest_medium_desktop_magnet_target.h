@@ -26,6 +26,8 @@ class MediumDesktopMagnetTarget {
         ~State(){close_handles();}
     };
     std::shared_ptr<State> state_;std::thread thread_;HDESK parent_desktop_{};
+    struct CoupledGeometry {Rect before,after,before_native,after_native;};
+    std::optional<CoupledGeometry> coupled_;
     MediumDesktopProductGeometryObservation* output_{};bool thread_started_{},finish_attempted_{},finish_known_{};
     static constexpr ACCESS_MASK desktop_access=DESKTOP_READOBJECTS|DESKTOP_CREATEWINDOW|
         DESKTOP_CREATEMENU|DESKTOP_WRITEOBJECTS|DESKTOP_ENUMERATE;
@@ -39,7 +41,7 @@ class MediumDesktopMagnetTarget {
         // token, activate on show, log, or consume/replay TEST input here.
         return DefWindowProcW(h,m,w,l);
     }
-    static bool exact_state(const State& s,HDESK held){
+    static bool exact_state(const State& s,HDESK held,const CoupledGeometry* coupled=nullptr){
         const HWND h=s.hwnd.load(std::memory_order_acquire);
         if(!h||!s.owner||s.stopping.load(std::memory_order_acquire)||GetCurrentProcessId()!=s.pid||
             process_birth(GetCurrentProcess())!=s.birth||!medium(GetCurrentProcess())||!input_actor_same_user(GetCurrentProcess())||
@@ -55,7 +57,12 @@ class MediumDesktopMagnetTarget {
         if(!a.complete||!b.complete||std::find(a.windows.begin(),a.windows.end(),h)==a.windows.end()||
             std::find(b.windows.begin(),b.windows.end(),h)==b.windows.end())return false;
         DWORD cloak{};RECT p{};const auto frame=visible(h);MONITORINFO monitor{sizeof(monitor)};
-        return GetWindowRect(h,&p)&&frame&&frame->width()==s.initial.width()&&frame->height()==s.initial.height()&&
+        if(!GetWindowRect(h,&p)||!frame)return false;
+        const Rect native{p.left,p.top,p.right,p.bottom};
+        const bool geometry=coupled?((*frame==coupled->before&&native==coupled->before_native)||
+            (*frame==coupled->after&&native==coupled->after_native)):
+            frame->width()==s.initial.width()&&frame->height()==s.initial.height();
+        return geometry&&
             DwmGetWindowAttribute(h,DWMWA_CLOAKED,&cloak,sizeof(cloak))==S_OK&&!cloak&&
             GetMonitorInfoW(s.monitor,&monitor)&&Rect{monitor.rcWork.left,monitor.rcWork.top,monitor.rcWork.right,monitor.rcWork.bottom}==s.work;
     }
@@ -144,7 +151,26 @@ public:
     HWND window()const noexcept{return state_?state_->hwnd.load(std::memory_order_acquire):nullptr;}
     bool exact()const{
         return state_&&state_->facts_ready.load(std::memory_order_acquire)&&state_->setup_known&&
-            GetCurrentThreadId()==state_->parent&&exact_state(*state_,parent_desktop_);
+            GetCurrentThreadId()==state_->parent&&exact_state(*state_,parent_desktop_,coupled_?&*coupled_:nullptr);
+    }
+    bool begin_shared_right_resize(Rect before,Rect before_native){
+        // Parent TEST-only scope: this single +1 shared edge has two declared
+        // states, not arbitrary accepted geometry or a new product baseline.
+        if(coupled_||!exact()||visible(window())!=std::optional<Rect>{before}||before.l==std::numeric_limits<LONG>::max()||
+            before_native.l==std::numeric_limits<LONG>::max())return false;
+        RECT actual{};if(!GetWindowRect(window(),&actual)||Rect{actual.left,actual.top,actual.right,actual.bottom}!=before_native)return false;
+        const Rect after{before.l+1,before.t,before.r,before.b},native{before_native.l+1,before_native.t,before_native.r,before_native.b};
+        if(after.width()<=0||native.width()<=0||after.l<work.l||after.t<work.t||after.r>work.r||after.b>work.b)return false;
+        coupled_=CoupledGeometry{before,after,before_native,native};return exact();
+    }
+    bool finish_shared_right_resize(bool accepted){
+        if(!coupled_||!exact())return false;
+        const auto wanted=accepted?coupled_->after:coupled_->before;
+        const auto native=accepted?coupled_->after_native:coupled_->before_native;
+        RECT actual{};if(visible(window())!=std::optional<Rect>{wanted}||!GetWindowRect(window(),&actual)||
+            Rect{actual.left,actual.top,actual.right,actual.bottom}!=native)return false;
+        // Lock the measured outcome to the already declared singleton.
+        coupled_=CoupledGeometry{wanted,wanted,native,native};return exact();
     }
     void create(const std::wstring& run,HDESK desktop,DWORD session,HWND source,Rect desired,UINT dpi,HMONITOR monitor,
         Rect actual_work,MediumDesktopProductGeometryObservation& out){
