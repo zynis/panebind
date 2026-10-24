@@ -1,6 +1,17 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：应用尺寸提案修复候选已构建，接续现场验证（2026-10-24）
+## 当前接续：新产品Resize修复与普通便携入口已实测，组接受分支接续（2026-10-24）
+
+**当前产品9ec7／普通便携8d048实际可在已授权guest操作设置及Move。生产60/60、独立DEV44/60、对标22/40＝55%、模块0／整链0，整版仍PARTIAL，真人UAT PENDING。** Debug86a九代完整NormalUp及12个exact native；Release1f4十代NormalUp、共享边冲突一代零native拒绝／abort清理，随后同实例恢复，13个已发native均exact且完整postcontext成立。两配置均实际采用应用C，原f46具体偏好差异已由新EXE复验关闭其受影响子范围；原失败保留，不授完整M03-F03或应用矩阵。
+
+- **86a Debug**：g2独立raw visible right2134，经实际callback C2138后exact；g6实际min143／一次native；g8 TEST单点R bottom584→C583，产品实际C583 exact noop／没有额外native，再真实UP及g9后继Move。实际窗口与权限未伪造。
+- **1f4 Release**：+1共享边请求source native right2136→应用C2135，完整批次在首次placement前明确拒绝；邻窗callback未运行，context_revalidated=false保原事实。真实end／释放／detach／Gone后一次TEST abort-UP、CtrlUP及g7恢复，非NormalUp、非组功能PASS。g8 min143、g10单点C MATCH和g11后继完成；正向两成员C==R／两exact仍待单列验证。
+- **1ccec普通包**：原8d048 ZIP在中文空格目录七载荷核对，空参数production_gui／Medium/non-elevated、二启同实例、真实GUI保存使Move不同、两个实际Raw／legacy NormalUp、公开正常退出／自身资源退出／客户恢复均通过限定入口scope。setup PID3472与ZIP PID5976两日志／FILETIME分别保留。wrapper描述中GUI=false／NOT_RUN是封装占位，不反标真实窗口结果；包内封包时NOT_RUN不回写。
+- **性能与限制**：86a新完整native端点p95桶49999µs／max29766µs；1f4桶49999µs／max37162µs，callback分别max398／663µs，仅各自有限样本，旧FAIL仍留，不授完整NF02。1f4整Run仍因真实托盘providerPID0／无click为FAIL；Shell树UNKNOWN与产品自身正常退出分判。高对比108 exact scheme恢复FAIL、真实客户应用和显示／完整Medium前置仍分别未通过。
+
+三Run均稳定收集后精确清理本任务guest／启动任务，输出与部署保留；未触碰宿主输入、CrossRec、用户文件或系统设置。新普通包`uat/v1-portable/8d048cf3a28c4b899489be89d29a0f39/PaneBindV1-Release-8d048cf3a28c4b899489be89d29a0f39.zip` SHA-256 `E1ECA469B9974B27D1F98E446EB2097CA1C85585E9DDD65D93EFBCC5BBA4A959`／manifest `672DB4EFE11B7445E538FE034FE4A58B80D88F9064E7EF15B71A05DD54A0B795`，只供既有隔离范围独立复核，不是宿主试用或公开release。所有具体原件、65+78+35条新字面摘录与64位身份均接入同一[集中review](v1-evidence/20261024-targeted-guest-review.json)。
+
+## 历史：9ec7构建和现场前检查点（由上文实际结果接续）
 
 **生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0、整链0；整版PARTIAL，真人UAT PENDING。** 当前新源码`9ec7e63e08c5137a5954bf6809d8c461ac902796`仅live Resize查询应用尺寸提案；单窗合法C可采用，耦合布局若被单独修正则首次placement前拒绝。仍须完整新鲜权限、原始DOWN锚点、Raw UP撤权和单一writer；Move／离散命令未启用该回调。7b3首构建的测试局部重名错误保留，9ec7仅修正命名。新D/R及受影响offline各8/8通过，四完整argv宿主保护实际78；新产品现场NOT_RUN。
 
