@@ -1,6 +1,24 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：2787候选构建／部署完成，guest尚未运行（2026-10-23）
+## 当前接续：2787五批实际定向结果，ccde014已构建待现场，普通便携仍绑定42ab（2026-10-24）
+
+**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。本轮不增加分数。** 最新定向产品为冻结`2787f93cbf44339206cafc9e4d7f78d5cacae866`／Release EXE `811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92`；三个原始Run的driver亦为2787／R `A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81`。**已验普通便携包仍为42ab／d5f5／f78，不改绑2787；本批不授新普通ZIP、宿主试用、完整Medium或整版PASS。**
+
+用户通知Sandbox可用后，983／4511／72bd及后继ffb TEST的c80／c14均已串行真实执行、稳定收集及精确guest／任务清理，不再是NOT_RUN或等待其它项目释放。原始哈希、187条字面摘录和64位身份见[集中review](v1-evidence/20261024-targeted-guest-review.json)／[摘录](v1-evidence/20261024-targeted-guest-review.jsonl)：
+
+- **983**：普通无参Medium GUI真实前台，唯一Esc配对insert2且设置确实销毁。UIA ElementFromPoint／PID查询HRESULT0，但providerPID0，后续语义字段未查，守卫拒绝，**没有托盘click**。初NIM_ADD=false、随后ADD／SETVERSION=true，不写永久注册失败，也不等于图标消息送达。
+- **4511**：真实精确Medium Terminal根成立；ready仍0B、实际有界等待超时。原BMP已查看，显示cmd启动错误`3489660962 (0xd0000022)`，具体失败API／原因UNKNOWN；客户零输入，产品未启动。一次正常WM_CLOSE后rootGone与held进程signalled／exit0独立成立，不推全部后代退出。原Collect因本Run bootstrap／ready白名单缺项而拒绝的失败保留；仅sidecar恢复采集，原9D模板快照、expectation和owner不改，不当功能修复。
+- **72bd几何限定PASS**：同一产品PID3392及精确新Terminal完成Move→右Resize→后继Move，再实际Free→XY吸附→Hold→Detach→Resnap与邻接两成员Ctrl；五代都有本代Raw／legacy UP、NormalUp、release／detach／Gone。9个native均exact／identity／完整post-context通过，Move flags533／Resize532；Hold是新消费真实noop、flags=null，不冒第10次native。实际入口`--settings --diagnostic`，仅Terminal＋owned blank，客户内容NOT_RUN，不是三真实应用、普通ZIP或完整I02／I11。
+- **NF02仍FAIL**：P187 callback33样本p99桶999µs／max660µs仅本scope预算通过；新完整geometry＋post-context端点native9样本p95桶99999µs／max82011µs仍未达50ms。P167／168同H串行，member2的H→S36.2050ms含前member，再加10.3653＋22.8464＋12.5561＋0.0374ms合82.0102ms。旧4ff端点较早，不直接混算改善／退化；placement日志在整批返回后才写，不支持把成员间耗时归因该日志I/O。原数值与FAIL保留，非物理显示延迟。
+- **清理分层**：983／72bd公开同EXE quit、product signalled exit0及自身hooks／worker／capture／association／visual收尾有据；4511／72bd heldTerminal正常0与rootGone另判，Default回切及本地句柄清理真实成立。Shell后代仍活、wrapper descendants1／forced=true，整体树／desktop对象UNKNOWN；不以guest销毁抹掉原overall FAIL。72bd托盘仍providerPID0无click，客户nonce／内容仍未过。
+
+- **c80客户前置FAIL**：ffb TEST真实CreateProcess成功，cmd实际Medium8192／non-elevated／同SID与session成立，但child实际桌面仍UNKNOWN；held进程signalled却exit`0xC0000142`、独立输出0B，不能称无窗口cmd可运行。Terminal ready0、BMP仍显示`0xd0000022`，客户零输入且产品未启动。精确Terminal held正常exit0／rootGone与Shell树UNKNOWN独立判定；旧8ffa已有同类退出，不称首次系统根因，不再无变化重试或增加API／调整token。
+- **c14几何限定PASS、NF02仍FAIL**：同冻结2787产品／ffb TEST，产品PID5320完成Move→右Resize→后继Move、Free→XY吸附→Hold真实noop→Detach→Resnap及实际两成员Ctrl，五代均有Raw／legacy NormalUp和release／detach／Gone。9次native exact／identity／完整post-context通过；Hold P132不冒第10次调用。P186 callback33／p99桶999µs／max851µs仅本scope通过；native9／p95桶99999µs／max50498µs仍未达50ms，不能四舍五入PASS或宣唯一原因。托盘仍providerPID0，守卫拒绝且无click；客户内容NOT_RUN，整体FAIL保留。
+- **c14采集与清理**：原64MiB文件保护拒绝80962092B fixture、恢复v1误用本地launch文件名的两次失败均保留。immutable v2只放行精确Run fixture至128MiB，其它文件64MiB／count128／总256MiB及归属门保留；8artifact前后哈希稳定，原A4 controller、owner、expectation、launch未改，不当功能修复。Terminal held进程正常0、根关闭及产品公开quit／自身资源退出有据；Default回切和本地句柄退出另判，Shell后代仍活／wrapper descendants1／forced=true，整体树UNKNOWN，guest销毁不补PASS。
+
+ffb TEST的D/R构建、guest-path各1/1及四完整argv宿主Exit78已实际通过，c80／c14运行保原2787产品和各自ffb身份。原c15及96cb编译失败、日志均保留。4e88 Debug8项确实通过，Release最终也有8项回执，但主执行器在其结束前提交ccde并改变两source文件，因此4e88整批不作冻结候选、不部署，不推产品机制FAIL。最新候选`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`已从冻结source干净D/R构建、所选8项offline各8/8，四完整argv宿主保护实际Exit78（零宿主GUI／输入）。原生CTest及build receipt位于`uat/v1-control/build-ccde014-c20738458c25454f8ff872e310ccdeb1/receipt.json`，SHA-256 `27A22C773A64689B73374D90C2E5676DF8FBF804E72EF358E4FCDD57A788DC3E`；D产品`E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A`／R产品`D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3`，driver及原CTest哈希见集中review。same-size Move后验省去额外track查询严格限`!r.destination`，明确携带preflight真实limits而非fresh；precall权限／limits、Resize及跨display／DPI转移保持完整后验查询。**guest NOT_RUN，尚无新普通便携结果**；预留Run `13a2871f78024e8984c1c21f9e3b22ba`仅待封包／定向几何、真实Terminal min／后继Move／UP和NF验证，不拿构建代功能，不把2787五Run或42ab／d5f5换绑，不扩Full／900矩阵。44／22不增。
+
+## 历史：2787构建／部署检查点（2026-10-23，后续实际结果见上）
 
 新产品与TEST源码 `2787f93cbf44339206cafc9e4d7f78d5cacae866` 已实际D/R构建，各8/8 offline通过：Debug proc2.07／wall2.12s，Release proc0.89／wall1.55s，原生CTest归档和二进制身份见[候选构建部署回执](v1-evidence/2787-candidate-build-deploy-review.json)。新Release产品SHA-256 `811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92`，TEST `A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81`；四次完整argv宿主误运行保护实际Exit78，零宿主普通产品启动／输入。222静态检查为执行器结果转录，非guest功能验证。
 
@@ -8,7 +26,7 @@
 
 [NF02串行时序复核](v1-evidence/NF02-4ff-serial-timing-review.json)区分4ff的P167／168两member串行成本：旧`post_observed_qpc`早于完整身份／GUI／capture／display后验，旧保持尺寸调用未用`SWP_NOSIZE`；不能因此推定唯一尾延迟根因。旧9次p95桶99999µs／max79352µs和NF02 FAIL保留，2787新时钟终点与性能仍待真实运行，不混算旧样本或称物理显示延迟。
 
-### 当前保留的42ab实测范围（不迁移到2787）
+### 42ab独立合同与普通便携实测依据（不迁移到2787）
 
 **生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。** 42ab阶段关闭完整独立功能 **M05-F04／B05**，本2787阶段未新增PASS；不把单Terminal、原生fixture或构建结果提升为M05模块、五应用、完整E02或整版通过。
 

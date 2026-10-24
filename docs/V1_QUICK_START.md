@@ -2,7 +2,7 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-开发候选`2787f93cbf44339206cafc9e4d7f78d5cacae866`已完成D/R构建、各8/8离线验证及三个guest包部署，但本轮guest尚未运行：983启动因已有其它项目Sandbox被保护拒绝，等待用户通知可用，不抢占或另开实例。**以下已验便携入口仍为42ab／d5f5／f78；不把旧运行改绑2787，不提供2787普通宿主试用或新功能PASS。**
+后继隔离定向构建`2787f93cbf44339206cafc9e4d7f78d5cacae866`已有五批实际结果：983 GUI／Esc有据但托盘UIA providerPID0拒绝、无click；4511及ffb／c80客户前置仍失败，c80 cmd实际创建但exit0xC0000142／0B、child桌面UNKNOWN，Terminal仍ready0／0xd0000022，产品未启动。72bd及ffb／c14真实Move／Resize／后继Move／五阶段磁吸／两成员Ctrl和五代NormalUp限定通过；c14完整后验native9／p95桶99999µs／max50498µs仍FAIL，不能四舍五入通过。Shell树清理仍UNKNOWN。**以下已验普通便携入口仍为42ab／d5f5／f78；不把旧ZIP改绑2787，不由定向结果开放宿主试用、完整Medium或整版PASS。** 新生产／TEST候选`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`已通过干净D/R构建与所选8项offline各8/8，四完整argv宿主保护Exit78；guest NOT_RUN，尚非新普通便携包。前96cb编译失败及4e88冻结source不完整的中间构建保留，不部署后者；原2787和ffb实际运行身份不换绑；范围见[集中review](reports/v1-evidence/20261024-targeted-guest-review.json)。
 
 - 当前已实测产品源码：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`。
 - 当前已实测Release EXE SHA-256：`0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；D／R构建、affected offline各7/7及四hostguard78通过。

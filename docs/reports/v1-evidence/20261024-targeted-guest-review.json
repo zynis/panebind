@@ -13,12 +13,12 @@
   "review_date": "2026-10-24",
   "scope": "Concentrated actual review of the three original exact guest runs; subsequent separately identified runs may append here without rebinding earlier evidence. This is not a new task list or acceptance framework.",
   "new_execution_by_review": false,
-  "last_reviewed_run_id": "72bd6d351c7f4b8fa61b7af12cf643ae",
+  "last_reviewed_run_id": "c14aee7446704531bb7e871b6ae77684",
   "excerpt": {
     "path": "docs/reports/v1-evidence/20261024-targeted-guest-review.jsonl",
-    "bytes": 109941,
-    "lines": 108,
-    "sha256": "5EDF355C649233C9BBCFF4950AE0A077533BEDA5722024E3936BED5CF2C3ECB3",
+    "bytes": 210105,
+    "lines": 187,
+    "sha256": "281A817864CFB91EA0159770631AC6A4AED1D1EF09B1E18497D722B50AFCB618",
     "format": "Original UTF-8 JSONL lines without parsing/re-serializing the literals; LF terminators in this derived file. Segment offsets below distinguish runs and producers.",
     "large_integer_policy": "Birth FILETIME and start_ticks in review identities are decimal strings extracted from original literals by regex. JSONL numeric bytes remain unchanged; do not round-trip them through floating-point JSON numbers.",
     "order_is_not_shared_native_time": true
@@ -2053,8 +2053,1807 @@
           ]
         }
       ]
+    },
+    {
+      "run_id": "c80b54d9fa864b12bfc197c6b80df8da",
+      "review_state": "SEALED_ACTUAL_STABLE_COLLECTION",
+      "configuration": "Release",
+      "suite": "MediumDesktopNativeClientOnly",
+      "collection_directory": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f",
+      "result": "DIRECT_CMD_CREATED_BUT_EXIT_C0000142_EMPTY_OUTPUT_TERMINAL_READY_BLOCKED",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "candidate_product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "candidate_product_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+        "product_started": false,
+        "driver_source_sha": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "driver_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
+        "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "fixture_pid": 6272,
+        "fixture_birth_filetime_decimal": "134373076822545708",
+        "cmd_pid": 5688,
+        "cmd_tid": 5676,
+        "cmd_birth_filetime_decimal": "134373076928223030",
+        "Terminal_pid": 5956,
+        "Terminal_tid": 5992,
+        "Terminal_root_hwnd": 66438,
+        "Terminal_birth_filetime_decimal": "134373076928495093",
+        "Default_Shell_hwnd": 65800,
+        "Default_Shell_pid": 4920,
+        "Default_Shell_tid": 4924,
+        "Default_Shell_birth_filetime_decimal": "134373076729817534",
+        "cmd_actual_Medium_nonElevated_same_SID_session1": true,
+        "cmd_actual_child_desktop": null,
+        "cmd_actual_child_Run_desktop_name_matches": null,
+        "requested_lpDesktop_not_relabelled_actual": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-release-fixture.jsonl",
+          "bytes": 24584561,
+          "sha256": "05CDC25B789260C58DCE181058DE9137DDED92883F58987CE9F50AD732767FD3",
+          "json_lines": 576,
+          "first_sequence": 1,
+          "last_sequence": 576,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/c80b54d9fa864b12bfc197c6b80df8da/package-receipt.json",
+          "bytes": 13348,
+          "sha256": "6418D5F45E0113991C23110FB6A2A68A44DA587F1145D75C3B5F96787EE14F3E"
+        },
+        "ZIP_sha256": "7B5F817FFDBCA9AD1D225CF4E36A8248D43F924E65F861E99D83420D91233FA1",
+        "actual_ZIP_sha256": "7B5F817FFDBCA9AD1D225CF4E36A8248D43F924E65F861E99D83420D91233FA1",
+        "manifest_sha256": "975FBEF84DCEA0295851DC829BDB6CAF6557DEA800541A71F6BF4730D7A2E668",
+        "actual_manifest_sha256": "975FBEF84DCEA0295851DC829BDB6CAF6557DEA800541A71F6BF4730D7A2E668",
+        "WSB_sha256": "05C30BD50407A31D145C42F0E91E3339123BAF769400458A625FABCB3B150BF3",
+        "actual_WSB_sha256": "05C30BD50407A31D145C42F0E91E3339123BAF769400458A625FABCB3B150BF3",
+        "candidate_product_file_present_not_runtime": true,
+        "product_log_present": false
+      },
+      "observations": {
+        "direct_cmd": {
+          "driver_sequences": [
+            528,
+            529,
+            530,
+            531,
+            532
+          ],
+          "CreateProcessW_attempted": true,
+          "CreateProcessW_succeeded": true,
+          "cmd_sha256": "15CD209C995B7D3009C91CA40892D5B8F1FB162F3E5F10716642EA278E8E0D7B",
+          "finite_slash_c": true,
+          "CREATE_NO_WINDOW_flag": 134217728,
+          "alternate_token_API_used": false,
+          "PSEUDOCONSOLE_attribute_used": false,
+          "token_queries_known": true,
+          "actual_integrity_RID": 8192,
+          "actual_elevated": false,
+          "same_SID": true,
+          "same_session1": true,
+          "actual_child_GetThreadDesktop_return": false,
+          "actual_child_desktop": null,
+          "actual_child_Run_desktop_match": null,
+          "held_exact_process_signalled": true,
+          "actual_exit_code_decimal": 3221225794,
+          "actual_exit_code_hex": "0xC0000142",
+          "actual_exact_probe_output": false,
+          "probe_file_bytes": 0,
+          "client_input_sent": false,
+          "handles_closed": true,
+          "scope": "CreateProcess success and a signalled handle do not mean cmd initialized or ran its script. Actual child desktop stays UNKNOWN. This nonzero initialization-class result is also present historically in8ffa, not a first-time system root cause or proof that no-window cmd is usable."
+        },
+        "Terminal": {
+          "driver_sequences": [
+            535,
+            537,
+            547,
+            548,
+            550,
+            551,
+            552,
+            553,
+            555,
+            556,
+            559
+          ],
+          "exact_new_Medium_root_confirmed": true,
+          "ready_file_bytes": 0,
+          "actual_exact_ready_observed": false,
+          "initialization_phase_gate_accepted": false,
+          "last_wait_return": 258,
+          "last_context_result": "accepted",
+          "actual_wait_before_tick": 43156,
+          "actual_wait_after_tick": 51734,
+          "client_mouse_or_keyboard_input_sent": false,
+          "product_started": false,
+          "original_BMP": {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-Release-terminal-client-rejection.bmp",
+            "bytes": 6429726,
+            "sha256": "3434369D72A4056A3797CE59AA895DB7BA238D1E7A409EA0CA2AE7F83A6E8271",
+            "raw_visual_review_field": "NOT_RUN",
+            "subsequent_review": "MAIN_EXECUTOR_AND_THIS_READONLY_REVIEW_VIEWED_ORIGINAL_BMP",
+            "actual_visible_error_decimal": 3489660962,
+            "actual_visible_error_hex": "0xd0000022",
+            "specific_failing_native_API_and_cause": "UNKNOWN"
+          },
+          "held_tree_snapshot_not_atomic": true,
+          "empty_tree_snapshot_not_cmd_never_started": true,
+          "observation_after_tick": 52437,
+          "observation_deadline_tick": 52234,
+          "whole_image_observation_within_500ms": false,
+          "one_WM_CLOSE_attempted": true,
+          "actual_root_gone": true,
+          "held_Terminal_process_signalled": true,
+          "held_Terminal_exit_code": 0,
+          "forced_Terminal_termination": false,
+          "all_descendant_exit_inferred": false,
+          "scope": "Client precondition remains unsatisfied; separate normal held-Terminal exit/root disappearance from cmd nonzero exit and all-tree cleanup."
+        },
+        "Default_and_retained_tree": {
+          "driver_sequences": [
+            563,
+            565,
+            568,
+            570,
+            576
+          ],
+          "actual_Default_return_and_readback": true,
+          "Default_input_and_Shell_identity_unchanged": true,
+          "local_handles_and_observers_closed": true,
+          "Shell_child_still_alive": true,
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_tree_cleanup": "UNKNOWN"
+        },
+        "wrapper": {
+          "wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "product_cleanup_result": "NOT_APPLICABLE_NOT_STARTED",
+          "raw_product_cleanup_pass": false
+        },
+        "next_action": "Stop unchanged direct-cmd/Terminal-ready retry on this route; do not add APIs, tokens, delays or infer product/client PASS. Retain the actual same-class historical8ffa failure and proceed with unrelated authorized work."
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/collection-receipt.json",
+          "bytes": 12603,
+          "sha256": "EA928E6CC46D69365BA2A9F1E3013EC2565CA0B6914DDB9673D9B1348279328A"
+        },
+        "output_unchanged": true,
+        "artifact_count_including_output_marker": 12,
+        "artifacts": [
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "80D4C337527B2F4672E791E6F1891B5AAAF7798142FC7B4445E450551EE41AA0",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-terminal-asset.json",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-Release-terminal-client-rejection.bmp",
+            "bytes": 6429726,
+            "sha256": "3434369D72A4056A3797CE59AA895DB7BA238D1E7A409EA0CA2AE7F83A6E8271",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-Release-terminal-client-rejection.bmp",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-Release-launch.json",
+            "bytes": 9902,
+            "sha256": "43C48C699A03A8A8A7AE50C699517403CB8E648802D43EB0D648A8CDBD9A7379",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-Release-launch.json",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "63679C54F1E27A1E959FAA7D81596CA69A454DB7F404EA730DC0D7BBA15E7676",
+            "relative_path": "panebind-v1-output.marker",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-terminal-shell-ready.txt",
+            "bytes": 0,
+            "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-terminal-shell-ready.txt",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-terminal-bootstrap.cmd",
+            "bytes": 291,
+            "sha256": "F7F050171AB04A010FD11D910141C822558D99D7331ED897D5D35582AA53FBA0",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-terminal-bootstrap.cmd",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-direct-cmd-bootstrap.cmd",
+            "bytes": 318,
+            "sha256": "5620376C02FCD63D7E5B7E2AF52C10E4A591CEE0A016E6D8D27630A237DADB8C",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-direct-cmd-bootstrap.cmd",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-product-Release/portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-product-Release\\portable.flag",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-product-Release/panebind.exe",
+            "bytes": 1220608,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-product-Release\\panebind.exe",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-release-fixture.jsonl",
+            "bytes": 24584561,
+            "sha256": "05CDC25B789260C58DCE181058DE9137DDED92883F58987CE9F50AD732767FD3",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-release-fixture.jsonl",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-guest-summary.json",
+            "bytes": 22746,
+            "sha256": "1AD900CC99BF871818A036017F0AD44A40C90CC2C31372435BBDA203DAA49450",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-guest-summary.json",
+            "size_matches": true,
+            "hash_matches": true
+          },
+          {
+            "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-direct-cmd-probe.txt",
+            "bytes": 0,
+            "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+            "relative_path": "c80b54d9fa864b12bfc197c6b80df8da-direct-cmd-probe.txt",
+            "size_matches": true,
+            "hash_matches": true
+          }
+        ],
+        "all_sizes_and_hashes_match": true,
+        "host_expectation": {
+          "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/host-expectation.json",
+          "bytes": 3256,
+          "sha256": "F00100C7C021A4F090DDA27E3E1CA14009E9C0DA5E8A464ECB690D671C42A467"
+        },
+        "controller_at_this_run_sha256": "A4CDC0BDA87E663D80AEF6B6738212B8763A992798332244FE79108345F942AA",
+        "controller_record_is_a_historical_Run_pin_not_current_mutable_template_path": true,
+        "launch_receipt": {
+          "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/launch-receipt.json",
+          "bytes": 14479,
+          "sha256": "0DE122909882808497BF7DD815DBB65DE513E9B2D265F8B9456B448D085BAB05"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/cleanup-receipt.json",
+          "bytes": 13324,
+          "sha256": "DD2B5B3F4887A53ACC5F13DE2F1E13ACEFFE57754E4C28CA409D09318D8FEFBD"
+        },
+        "utc": "2026-10-24T09:30:19.2321074Z",
+        "owned_guest_pid": 31320,
+        "owned_guest_start_ticks_decimal": "639284308679392683",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "guest_destroy_is_not_product_cleanup_PASS": true
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 109,
+          "excerpt_line_end": 132,
+          "raw_log": "uat/v1-control/c80b54d9fa864b12bfc197c6b80df8da/collection-20261024T092837522Z-628f4cfad3274a91bf6fa9b24a36d39f/c80b54d9fa864b12bfc197c6b80df8da-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            528,
+            529,
+            530,
+            531,
+            532,
+            535,
+            537,
+            547,
+            548,
+            550,
+            551,
+            552,
+            553,
+            555,
+            556,
+            559,
+            563,
+            565,
+            568,
+            570,
+            576
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "CF2D299023B4C2CFBACB1958E5AEED1F635CF3D82721497F516FFFBD3F6E1F4C",
+            "0783C5E7EE276CB726C2E9A9CC13F80B9F2E104EFF99930F6B62ED6632CC9FC5",
+            "EAD9BF4ACBE4C1CF63476C7B3A225E9A68F75442617F0775ECACB70A16254AF6",
+            "C4F0C924235AC87DF79B75DC4A8AB8EA85EE8396DC6E19BFC6B79B6437C3815F",
+            "AB66647C4EEBF74A743522F051CAF1D4FB0EACF91E65F49103D10D95604984F3",
+            "D71B2F135F064FD877D0315B4F5705C67BCDEE07DF59A96F5E28017A602857DF",
+            "F9D0B4C5AB0AB252DDFE7A3C199D4269F2D1996EF4B28D5022B5F976065F8141",
+            "E5847346F1EB71B06440DBD191B7D8F6492D4DE5C06DCB48A2A01FE5CDEB53F1",
+            "835B251D4194FCF98A4B2A135DF26D0CC419834AC7A8E5BD54A7D6F857602CF7",
+            "4D99EF788B33FD271F43A4B21487A6ACDA128C85FB2BB3DA0BC445EC196446A6",
+            "BF54A1164FB1602275ECFE274186171DD5FA041CAA38D1527D9241212E78523C",
+            "5D96921ECF1440DC6D38AF3C0C10007239CA993193562351FE969EA6F6B64BC5",
+            "BB03EF2AC0530D7413A400960010BC6318E15F8073243324458D26C561D46F74",
+            "5E8EDE1BB5FAA496B928CCA10BEC79C5181C0F639ABE63899E3E3E6533035403",
+            "CC5B61049856A7B916B291BA6CBCDA028C3A1F695D016BAE53E7303901F85BC8",
+            "D47C90FD9216B5D825BC81E80E06E6835A9EDE770341C46119C9CB62137B6402",
+            "A8159A08BD35D582043765C88620E27FDC1EB6716FE862CC3D1AB512D708FEA8",
+            "112583323D3A6B03923C1928F7C33F137EADC160F4E61F673A110343D3162388",
+            "C944F9C323F39822F087D37AF0E016039D6DA6365E3B7EC4431DC488F72B3183",
+            "07576F728B8654DF8213E5C0AF957596FB481376B5EB45ECE0FCBCAB8E263A24",
+            "8A34E51B515FF85400B46F813359146C67C6C6F9AF3CC89A2345B11417C57466",
+            "F2B1AEDEDF21A5F543BC32D669B202868B9CADFE5776C2BF00D5D51FB49221EE",
+            "54401A904590495DE8EF878296174237AB15F1EB0D24AF0C9B94B0A7CD1D9484",
+            "5ACE64D0E725FD39093F681EF86B3EF4A6D820BD9E476477CD37222F695D09A1"
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": "c14aee7446704531bb7e871b6ae77684",
+      "review_state": "SEALED_ACTUAL_SCOPED_RESULTS_ORIGINAL_OVERALL_FAILURE_PRESERVED",
+      "configuration": "Release",
+      "suite": "MediumDesktopUiOnly",
+      "collection_directory": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4",
+      "result": "GEOMETRY_SCOPED_PASS_TRAY_BLOCKED_NF02_FAIL_FULL_TREE_UNKNOWN",
+      "original_driver_result": "FAIL",
+      "original_failure_preserved": true,
+      "identity": {
+        "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "product_sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+        "driver_source_sha": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "driver_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5",
+        "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "product_PID": 5320,
+        "product_birth_filetime_decimal": "134373078838473591",
+        "product_birth_identity_source": "actual CreateProcess receipt D1366; D1367 GUI metadata emitted a different rounded decimal, not used as identity",
+        "product_GUI_birth_original_decimal": "134373078838473591",
+        "actual_product_arguments": [
+          "--settings",
+          "--diagnostic"
+        ],
+        "ordinary_entry_PASS_inferred": false,
+        "fixture_PID": 6396,
+        "fixture_birth_filetime_decimal": "134373078735598455",
+        "Terminal_PID": 3848,
+        "Terminal_TID": 6292,
+        "Terminal_root_HWND": 131932,
+        "Terminal_birth_filetime_decimal": "134373078860087049",
+        "blank_target_HWND": 918576,
+        "blank_target_PID": 6396,
+        "blank_target_TID": 3904,
+        "blank_target_birth_filetime_decimal": "134373078735598455",
+        "Default_Shell_HWND": 65786,
+        "Default_Shell_PID": 4916,
+        "Default_Shell_TID": 4920,
+        "Default_Shell_birth_filetime_decimal": "134373078644729931",
+        "actual_Medium_nonElevated_same_SID_session1": true
+      },
+      "raw_logs": [
+        {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4/c14aee7446704531bb7e871b6ae77684-release-fixture.jsonl",
+          "bytes": 80962092,
+          "sha256": "D3BA6FCE2361CE0D07E6947369A8CC89C81606AFDAF13593E3D2BE93B08AA616",
+          "lines": 1484,
+          "first": 1,
+          "last": 1484,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        },
+        {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4/c14aee7446704531bb7e871b6ae77684-product-Release/panebind.log.jsonl",
+          "bytes": 230614,
+          "sha256": "E70ABCF2C49C0BBEE081D9F2EA4C3AD0A870F9141986B7D986D487386055C3F9",
+          "lines": 187,
+          "first": 1,
+          "last": 187,
+          "json_legal": true,
+          "sequence_continuous": true,
+          "every_source_sha_matches": true
+        }
+      ],
+      "package": {
+        "receipt": {
+          "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "BDA09E397BF91086177F38C4884D045A977EBCFCF53463727ACC2C232E7AC948"
+        },
+        "zip_sha256": "9E3EC71613F91C6753688D4BC7EC60FC298399B893BA03461852CCE61F507C71",
+        "manifest_sha256": "A79527F487ABE55866A4B361205C375EB4ED666E424D6FDC8779060C30D36172",
+        "wsb_sha256": "0E66A82989CE0C0F99F91D3A1379D3EB2D88F72D8AD89CFA107E6707CC7C673A",
+        "actual_local_ZIP_manifest_WSB_hashes_match": true,
+        "collected_product_EXE_hash_matches": true,
+        "host_package_inventory": [
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/manifest.json",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "A79527F487ABE55866A4B361205C375EB4ED666E424D6FDC8779060C30D36172"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/panebind-v1-guest-fixture.exe",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/panebind-v1-input.marker",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "2A2E7F19BA7309954D3A4F7328FAD44527E68E02675F0E8D097F1FCC004B4A26"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/panebind.exe",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/Terminal-test.zip",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "BF3EF2012F6C44D8340A4C58125ACC9498D19B580F9890DC043CDF831852E796"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/v1-sandbox-guest.ps1",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "F3A339C35E55F32B3C130228232ECC2DA0F2EC0FEF363AB52081D9B6E3DA64D3"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/Debug/panebind-v1-guest-fixture.exe",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "DECF4A26FAAE2F53FCBD54AAF917EB7EC885B7015D2411874600189EBFD7DD57"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/input/Debug/panebind.exe",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "A8E31896B883CBE2230ABBE77AFFBEE6635EDA1F098FCBB42E2A97DBA10AC3C7"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/output/panebind-v1-output.marker",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "2A2E7F19BA7309954D3A4F7328FAD44527E68E02675F0E8D097F1FCC004B4A26"
+          },
+          {
+            "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/PaneBindV1.wsb",
+            "size_match": true,
+            "hash_match": true,
+            "sha256": "0E66A82989CE0C0F99F91D3A1379D3EB2D88F72D8AD89CFA107E6707CC7C673A"
+          }
+        ],
+        "package_time_NOT_RUN_metadata_not_rewritten": true
+      },
+      "observations": {
+        "product_geometry_scope": {
+          "summary_sequence": 1457,
+          "actual_summary": "PASS_SINGLE_EXACT_Terminal_GEOMETRY_ONLY",
+          "same_product_PID_all_five_generations": 5320,
+          "target_kind": "One exact new Windows Terminal plus one owned blank",
+          "entry_arguments": [
+            "--settings",
+            "--diagnostic"
+          ],
+          "phase_results": [
+            {
+              "sequence": 1381,
+              "phase": "Move1",
+              "generation": 1,
+              "raw": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2070,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1393,
+              "phase": "Resize",
+              "generation": 2,
+              "raw": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "expected": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "actual": [
+                336,
+                302,
+                2134,
+                1229
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1405,
+              "phase": "SuccessorMove",
+              "generation": 3,
+              "raw": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "expected": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "actual": [
+                300,
+                326,
+                2098,
+                1253
+              ],
+              "neighbour": null,
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": null,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1421,
+              "phase": "Free",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1424,
+              "phase": "XY_Snap",
+              "generation": 4,
+              "raw": [
+                353,
+                393,
+                2151,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1427,
+              "phase": "Hold_outside_entry_inside_release",
+              "generation": 4,
+              "raw": [
+                341,
+                405,
+                2139,
+                1332
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": false
+            },
+            {
+              "sequence": 1430,
+              "phase": "Detach",
+              "generation": 4,
+              "raw": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "expected": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "actual": [
+                240,
+                266,
+                2038,
+                1193
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1433,
+              "phase": "Resnap",
+              "generation": 4,
+              "raw": [
+                354,
+                393,
+                2152,
+                1320
+              ],
+              "expected": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "actual": [
+                360,
+                386,
+                2158,
+                1313
+              ],
+              "neighbour": [
+                2158,
+                386,
+                2458,
+                716
+              ],
+              "Ctrl": false,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            },
+            {
+              "sequence": 1448,
+              "phase": "CtrlAdjacentMove",
+              "generation": 5,
+              "raw": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "expected": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "actual": [
+                324,
+                422,
+                2122,
+                1349
+              ],
+              "neighbour": [
+                2122,
+                422,
+                2422,
+                752
+              ],
+              "Ctrl": true,
+              "independent_actual_matches": true,
+              "fresh_consumption": true,
+              "native_attempted": true
+            }
+          ],
+          "five_actual_NormalUp_proofs": [
+            {
+              "driver_sequence": 1384,
+              "phase": "Move1",
+              "generation": 1,
+              "UP_send_before_qpc": 445505405,
+              "raw_sequence": 31,
+              "raw_qpc": 445547428,
+              "raw_flags": 2,
+              "legacy_sequence": 33,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 445572951,
+              "end_sequence": 41,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "gone_sequence": 39,
+              "source_capture": 0,
+              "source": 131932,
+              "source_PID": 3848,
+              "source_TID": 6292,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1396,
+              "phase": "Resize",
+              "generation": 2,
+              "UP_send_before_qpc": 451737256,
+              "raw_sequence": 65,
+              "raw_qpc": 451766193,
+              "raw_flags": 2,
+              "legacy_sequence": 67,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 451785716,
+              "end_sequence": 75,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "gone_sequence": 73,
+              "source_capture": 0,
+              "source": 131932,
+              "source_PID": 3848,
+              "source_TID": 6292,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1408,
+              "phase": "SuccessorMove",
+              "generation": 3,
+              "UP_send_before_qpc": 458227939,
+              "raw_sequence": 99,
+              "raw_qpc": 458257591,
+              "raw_flags": 2,
+              "legacy_sequence": 101,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 458279299,
+              "end_sequence": 109,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "gone_sequence": 107,
+              "source_capture": 0,
+              "source": 131932,
+              "source_PID": 3848,
+              "source_TID": 6292,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1436,
+              "phase": "MagnetFivePhase",
+              "generation": 4,
+              "UP_send_before_qpc": 469428980,
+              "raw_sequence": 137,
+              "raw_qpc": 469462249,
+              "raw_flags": 2,
+              "legacy_sequence": 139,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 469485574,
+              "end_sequence": 147,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "gone_sequence": 145,
+              "source_capture": 0,
+              "source": 131932,
+              "source_PID": 3848,
+              "source_TID": 6292,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            },
+            {
+              "driver_sequence": 1452,
+              "phase": "CtrlAdjacentMove",
+              "generation": 5,
+              "UP_send_before_qpc": 477680242,
+              "raw_sequence": 172,
+              "raw_qpc": 477719536,
+              "raw_flags": 2,
+              "legacy_sequence": 174,
+              "legacy_accepted": true,
+              "legacy_dispatch_qpc": 477744307,
+              "end_sequence": 182,
+              "end": 0,
+              "normal_up": true,
+              "pending_retired": true,
+              "gone_sequence": 180,
+              "source_capture": 0,
+              "source": 131932,
+              "source_PID": 3848,
+              "source_TID": 6292,
+              "release_succeeded": true,
+              "capture_after_release": 0,
+              "attach_succeeded": true,
+              "detach_succeeded": true,
+              "removal_reason": 0,
+              "overlay_destroyed": true,
+              "hotkey_unregistered": true
+            }
+          ],
+          "Ctrl_START_locked": true,
+          "Ctrl_two_member_common_delta": [
+            -36,
+            36
+          ],
+          "Ctrl_same_operation": 9,
+          "Ctrl_actual_members": [
+            {
+              "sequence": 166,
+              "generation": 5,
+              "operation": 9,
+              "key": 1,
+              "call_id": 8,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 476618049,
+              "S": 476740602,
+              "B": 476781422,
+              "A": 476793700,
+              "G": 476812749,
+              "P": 476812866,
+              "timing_ms": [
+                12.2553,
+                4.082,
+                1.2278,
+                1.9049,
+                0.0117,
+                19.4817
+              ]
+            },
+            {
+              "sequence": 167,
+              "generation": 5,
+              "operation": 9,
+              "key": 2,
+              "call_id": 9,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 476618049,
+              "S": 476813092,
+              "B": 476942926,
+              "A": 477082443,
+              "G": 477122837,
+              "P": 477123029,
+              "timing_ms": [
+                19.5043,
+                12.9834,
+                13.9517,
+                4.0394,
+                0.0192,
+                50.498
+              ]
+            }
+          ],
+          "scoped_geometry_PASS": true,
+          "scope": "Diagnostic exact-Run geometry only; not client content, three real applications, ordinary portable entry, whole feature, benchmark, I02/I11 or human UAT."
+        },
+        "native_writer": {
+          "placement_receipts_including_noop": 10,
+          "actual_native_attempts": 9,
+          "all_nine_native_exact_identity_postcontext": true,
+          "Move_flags": 533,
+          "Resize_flags": 532,
+          "Hold": {
+            "product_sequence": 132,
+            "generation": 4,
+            "operation": 6,
+            "reason": "already_exact_no_native_call",
+            "native_attempted": false,
+            "flags": null,
+            "post_context_checked": false,
+            "not_an_extra_native_attempt": true
+          }
+        },
+        "NF02": {
+          "product_summary_sequence": 186,
+          "qpc_frequency": 10000000,
+          "clock_scope": "same_machine_QPC_software_observation_cross_thread_one_tick_quantization",
+          "mouse_callback": {
+            "samples": 33,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 99,
+            "percentile_bucket_upper_us": 999,
+            "maximum_us": 851,
+            "excludes_downstream_CallNextHookEx": true
+          },
+          "hook_observed_to_postverify": {
+            "samples": 9,
+            "discarded": 0,
+            "missing_clock": 0,
+            "reversed_clock": 0,
+            "conversion_overflow": 0,
+            "saturated": false,
+            "percentile": 95,
+            "percentile_bucket_upper_us": 99999,
+            "maximum_us": 50498,
+            "sample_unit": "native_placement",
+            "endpoint": "geometry_and_post_context_complete",
+            "not_physical_display_latency": true,
+            "unfinished_calls": 0
+          },
+          "native_rows": [
+            {
+              "sequence": 26,
+              "generation": 1,
+              "operation": 1,
+              "key": 1,
+              "call_id": 1,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 444912045,
+              "S": 445033971,
+              "B": 445086184,
+              "A": 445099432,
+              "G": 445123691,
+              "P": 445123853,
+              "timing_ms": [
+                12.1926,
+                5.2213,
+                1.3248,
+                2.4259,
+                0.0162,
+                21.1808
+              ]
+            },
+            {
+              "sequence": 60,
+              "generation": 2,
+              "operation": 2,
+              "key": 1,
+              "call_id": 2,
+              "flags": 532,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 451039757,
+              "S": 451125279,
+              "B": 451163083,
+              "A": 451198565,
+              "G": 451255988,
+              "P": 451260516,
+              "timing_ms": [
+                8.5522,
+                3.7804,
+                3.5482,
+                5.7423,
+                0.4528,
+                22.0759
+              ]
+            },
+            {
+              "sequence": 94,
+              "generation": 3,
+              "operation": 3,
+              "key": 1,
+              "call_id": 3,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 457595883,
+              "S": 457703049,
+              "B": 457735817,
+              "A": 457753849,
+              "G": 457775958,
+              "P": 457776087,
+              "timing_ms": [
+                10.7166,
+                3.2768,
+                1.8032,
+                2.2109,
+                0.0129,
+                18.0204
+              ]
+            },
+            {
+              "sequence": 128,
+              "generation": 4,
+              "operation": 4,
+              "key": 1,
+              "call_id": 4,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 464641013,
+              "S": 464781441,
+              "B": 464821356,
+              "A": 464840170,
+              "G": 464863176,
+              "P": 464863314,
+              "timing_ms": [
+                14.0428,
+                3.9915,
+                1.8814,
+                2.3006,
+                0.0138,
+                22.2301
+              ]
+            },
+            {
+              "sequence": 131,
+              "generation": 4,
+              "operation": 5,
+              "key": 1,
+              "call_id": 5,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 465779635,
+              "S": 465909095,
+              "B": 465948673,
+              "A": 465969261,
+              "G": 465990266,
+              "P": 465990406,
+              "timing_ms": [
+                12.946,
+                3.9578,
+                2.0588,
+                2.1005,
+                0.014,
+                21.0771
+              ]
+            },
+            {
+              "sequence": 133,
+              "generation": 4,
+              "operation": 7,
+              "key": 1,
+              "call_id": 6,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 467672189,
+              "S": 467812307,
+              "B": 467879170,
+              "A": 467896011,
+              "G": 467934402,
+              "P": 467934574,
+              "timing_ms": [
+                14.0118,
+                6.6863,
+                1.6841,
+                3.8391,
+                0.0172,
+                26.2385
+              ]
+            },
+            {
+              "sequence": 134,
+              "generation": 4,
+              "operation": 8,
+              "key": 1,
+              "call_id": 7,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 468723618,
+              "S": 468859546,
+              "B": 468900209,
+              "A": 468916870,
+              "G": 468941746,
+              "P": 468941885,
+              "timing_ms": [
+                13.5928,
+                4.0663,
+                1.6661,
+                2.4876,
+                0.0139,
+                21.8267
+              ]
+            },
+            {
+              "sequence": 166,
+              "generation": 5,
+              "operation": 9,
+              "key": 1,
+              "call_id": 8,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 476618049,
+              "S": 476740602,
+              "B": 476781422,
+              "A": 476793700,
+              "G": 476812749,
+              "P": 476812866,
+              "timing_ms": [
+                12.2553,
+                4.082,
+                1.2278,
+                1.9049,
+                0.0117,
+                19.4817
+              ]
+            },
+            {
+              "sequence": 167,
+              "generation": 5,
+              "operation": 9,
+              "key": 2,
+              "call_id": 9,
+              "flags": 533,
+              "exact": true,
+              "identity_valid": true,
+              "post_context_checked": true,
+              "post_context_valid": true,
+              "H": 476618049,
+              "S": 476813092,
+              "B": 476942926,
+              "A": 477082443,
+              "G": 477122837,
+              "P": 477123029,
+              "timing_ms": [
+                19.5043,
+                12.9834,
+                13.9517,
+                4.0394,
+                0.0192,
+                50.498
+              ]
+            }
+          ],
+          "current_summary_callback_target_met": true,
+          "current_summary_native_p95_target_met": false,
+          "result": "FAIL_NATIVE_P95_BUCKET99999US_MAX50498US",
+          "scope": "Actual complete geometry-and-post-context endpoint, nine native samples, no rounding down to50ms. 72bd remains its original82011us failure. Fair-pump TEST contrast is not a sole-cause proof, physical-display timing or whole NF02 PASS.",
+          "serial_member2_preflight_starts_after_member1_post_ticks": 226,
+          "placement_log_work_attribution": "apply logs only after complete batch returns; no member-to-member placement-log I/O attribution."
+        },
+        "Terminal_and_blank_cleanup": {
+          "driver_sequences": [
+            1454,
+            1455,
+            1456,
+            1457
+          ],
+          "held_exact_Terminal_process_signalled": true,
+          "held_exact_Terminal_process_exit_code": 0,
+          "exact_Terminal_root_gone": true,
+          "one_WM_CLOSE_attempted": true,
+          "forced_termination": false,
+          "blank_target_destroyed": true,
+          "all_descendants_exit_inferred": false
+        },
+        "tray": {
+          "driver_sequence": 1459,
+          "ElementFromPoint_hresult": 0,
+          "actual_provider_PID": 0,
+          "semantic_guard_accepted": false,
+          "tray_click_sent": false,
+          "tray_menu_observed": false,
+          "cause_beyond_observation": "UNKNOWN"
+        },
+        "public_quit_and_product_resources": {
+          "driver_sequences": [
+            1460,
+            1461
+          ],
+          "public_same_EXE_quit_command_exit_code": 0,
+          "product_process_signalled": true,
+          "product_exit_code": 0,
+          "product_shutdown_sequence": 187,
+          "actual_own_hooks_stopped": true,
+          "actual_own_overlay_destroyed": true,
+          "actual_native_worker_exited": true,
+          "issued_native_completion_unknown": false,
+          "actual_visual_recovery_and_restore_confirmed": true,
+          "actual_input_resources_stopped": true,
+          "actual_capture_released": true,
+          "actual_input_association_detached": true
+        },
+        "Default_and_process_tree": {
+          "driver_sequences": [
+            1470,
+            1472,
+            1475,
+            1476,
+            1477
+          ],
+          "actual_Default_return_and_readback": true,
+          "return_owner_and_opened_handles_closed": true,
+          "Default_input_and_Shell_identity_unchanged": true,
+          "Shell_child_wait_result": 258,
+          "Shell_child_exit_code": 259,
+          "Shell_child_still_alive": true,
+          "desktop_object_destroyed": "UNKNOWN",
+          "whole_process_tree_cleanup": "UNKNOWN",
+          "raw_environment_product_enhancement_result": "NOT_RUN"
+        },
+        "wrapper": {
+          "wait_result": 0,
+          "fixture_exit_code": 1,
+          "descendants_alive_at_fixture_exit": 1,
+          "forced_test_cleanup": true,
+          "raw_product_cleanup_pass": false,
+          "scope": "Raw overall FAIL preserved; actual own-product and held Terminal process cleanup narrower than retained Shell tree."
+        },
+        "unexecuted": {
+          "customer_nonce_or_Terminal_content": "NOT_RUN",
+          "Explorer": "NOT_RUN",
+          "five_application_matrix": "NOT_RUN",
+          "ordinary_portable2787": "NOT_RUN",
+          "TaskbarCreated_or_Shell_restart": "NOT_RUN",
+          "human_UAT": "NOT_RUN"
+        },
+        "collection_tool_recovery": {
+          "original_failures": [
+            {
+              "receipt": {
+                "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/remote-failure-8fd306aa26ee4d558334fa92468314bb.json",
+                "bytes": 187,
+                "sha256": "4A8328AD347354750FDF7318523C998897F10A60775C897037A3E6B11F57066F"
+              },
+              "stage": "Collect",
+              "exit_code": 1,
+              "utc": "2026-10-24T09:33:10.4377323Z"
+            },
+            {
+              "receipt": {
+                "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/remote-failure-b6b9c10c987b48ed827c9578fc2b1d5d.json",
+                "bytes": 952,
+                "sha256": "62B92608C480D3F6C3266956B9C6559C5B0D755530B9736103C310656FC2787E"
+              },
+              "stage": "Collect",
+              "exit_code": 1,
+              "utc": "2026-10-24T09:42:04.5525276Z"
+            }
+          ],
+          "first_failure_reason": "Original64MiB per-file guard rejected actual80962092B fixture; raw failure receipt itself gives exit1/empty stdout, attribution from main executor and fixed-Run preparation.",
+          "v1_failure_reason": "Main executor identified v1 used local launch-receipt.json as remote name; actual remote host-launch-receipt.json. Raw v1 failure receipt does not itself state this cause.",
+          "v2_fixed_Run_scope": {
+            "schema": "panebind-c14a-collection-revision/1",
+            "run_id": "c14aee7446704531bb7e871b6ae77684",
+            "expectation_sha256": "7CF73B612A7DD02F4953D6E2E4B60F5622D54577CDBD8B8CCF48D87510247BC5",
+            "owner_created_utc": "2026-10-24T09:26:42.6008456Z",
+            "original_controller_sha256": "A4CDC0BDA87E663D80AEF6B6738212B8763A992798332244FE79108345F942AA",
+            "original_launch_receipt_sha256": "8B867ED75063DB6EDEF3E495F21F50596C841334DFB6C786182682DF2A025F8A",
+            "sidecar_filename": "host-control-c14a-collect-recovery-v2.ps1",
+            "sidecar_sha256": "7093F765BDC24A829320F6C3BCA5C3940DE937A62602D8A931BE6C22D54554BF",
+            "allowed_stages": [
+              "Inventory",
+              "Cleanup"
+            ],
+            "large_output_filename": "c14aee7446704531bb7e871b6ae77684-release-fixture.jsonl",
+            "observed_large_output_bytes": 80962092,
+            "large_output_max_bytes": 134217728,
+            "other_output_max_bytes": 67108864,
+            "max_file_count": 128,
+            "max_total_bytes": 268435456,
+            "revision_scope": "Only the exact current Run Release fixture JSONL may exceed the original 64MiB up to 128MiB. Keep all other inventory, owner, candidate, launch, cleanup and stable collection guards; no rebuild, new input, relaunch or functional PASS."
+          },
+          "actual_sidecar": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/host-control-c14a-collect-recovery-v2.ps1",
+            "bytes": 42863,
+            "sha256": "7093F765BDC24A829320F6C3BCA5C3940DE937A62602D8A931BE6C22D54554BF"
+          },
+          "actual_authorization": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/host-collect-recovery-c14a-authorization-v2.json",
+            "bytes": 1186,
+            "sha256": "02163D0B5DF47F378C08878201982D3D5C9D86A7A8570180D251DA0D9DE66E21"
+          },
+          "original_prepared_v1": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-recovery-prepared.json",
+            "bytes": 3781,
+            "sha256": "57764F601C7F7108C4572468D65A85AC47A118D011182181F4FFDF1715D5C184"
+          },
+          "original_owner_expectation_launch_hashes_unchanged_verified": true,
+          "original_owner": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/remote-created.json",
+            "bytes": 315,
+            "sha256": "E6C0516D4F7CD996B379DB513ED837C01F9306CCA9216677DC7CEDD6358B2B86"
+          },
+          "original_expectation": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/host-expectation.json",
+            "bytes": 3246,
+            "sha256": "7CF73B612A7DD02F4953D6E2E4B60F5622D54577CDBD8B8CCF48D87510247BC5"
+          },
+          "original_launch": {
+            "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/launch-receipt.json",
+            "bytes": 14479,
+            "sha256": "8B867ED75063DB6EDEF3E495F21F50596C841334DFB6C786182682DF2A025F8A"
+          },
+          "original_controller_sha256": "A4CDC0BDA87E663D80AEF6B6738212B8763A992798332244FE79108345F942AA",
+          "candidate_rebuilt": false,
+          "new_input_or_relaunch": false,
+          "tool_recovery_is_not_functional_PASS": true
+        }
+      },
+      "artifact_verification": {
+        "collection_receipt": {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4/collection-receipt.json",
+          "bytes": 12915,
+          "sha256": "41D0C1C5B458C2CF6655323B30A8ACE0AD1A6A918B93F83B066BBE28828271A8"
+        },
+        "collect_before_after_output_unchanged": true,
+        "artifact_count_including_output_marker": 8,
+        "artifacts": [
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-Release-launch.json",
+            "bytes": 9882,
+            "sha256": "A8897869C46D9D6980149498F66F247122C1D69AE6A501C9FFD7BE73EB3F524C",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-release-fixture.jsonl",
+            "bytes": 80962092,
+            "sha256": "D3BA6FCE2361CE0D07E6947369A8CC89C81606AFDAF13593E3D2BE93B08AA616",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "panebind-v1-output.marker",
+            "bytes": 32,
+            "sha256": "2A2E7F19BA7309954D3A4F7328FAD44527E68E02675F0E8D097F1FCC004B4A26",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-terminal-asset.json",
+            "bytes": 1205,
+            "sha256": "8FDE8B036B7BFA196C0B9FBF557000CD8257F921C4E5D1BB0BA7C6069262E529",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-product-Release\\panebind.log.jsonl",
+            "bytes": 230614,
+            "sha256": "E70ABCF2C49C0BBEE081D9F2EA4C3AD0A870F9141986B7D986D487386055C3F9",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-product-Release\\panebind.exe",
+            "bytes": 1220608,
+            "sha256": "811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-guest-summary.json",
+            "bytes": 22706,
+            "sha256": "BA11AEB780E5F5B231F9A0FCB192626885F013CC0FF1165DB3D6D620428CAFE9",
+            "size_match": true,
+            "hash_match": true
+          },
+          {
+            "relative_path": "c14aee7446704531bb7e871b6ae77684-product-Release\\portable.flag",
+            "bytes": 36,
+            "sha256": "ABCC1AC8040C60862A3C839CA234DB20429E22F1298E408A9EA1947EE0A10E29",
+            "size_match": true,
+            "hash_match": true
+          }
+        ],
+        "all_sizes_and_hashes_match": true,
+        "host_expectation": {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/host-expectation.json",
+          "bytes": 3246,
+          "sha256": "7CF73B612A7DD02F4953D6E2E4B60F5622D54577CDBD8B8CCF48D87510247BC5"
+        },
+        "deploy_receipt": {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/deploy-receipt.json",
+          "bytes": 2910,
+          "sha256": "8A506C8E704A82F20191DB107C36495AED7C472BB00FFA59EE57C4E027B80290"
+        },
+        "launch_receipt": {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/launch-receipt.json",
+          "bytes": 14479,
+          "sha256": "8B867ED75063DB6EDEF3E495F21F50596C841334DFB6C786182682DF2A025F8A"
+        }
+      },
+      "host_cleanup": {
+        "receipt": {
+          "path": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/cleanup-receipt.json",
+          "bytes": 11383,
+          "sha256": "31A4F8EE23FA381750C1D405518DB34376165CA7DD9BD785D4DB03E3E2D8D09D"
+        },
+        "utc": "2026-10-24T09:48:19.6628559Z",
+        "owned_guest_pid": 16196,
+        "owned_guest_session": 1,
+        "owned_guest_start_ticks_decimal": "639284310600911603",
+        "dedicated_guest_exited": true,
+        "task_removed": true,
+        "evidence_unchanged": true,
+        "deployment_retained": true,
+        "other_files_or_resources_changed": false,
+        "product_cleanup_inferred_from_guest_destruction": false
+      },
+      "excerpt_segments": [
+        {
+          "producer": "driver",
+          "excerpt_line_start": 133,
+          "excerpt_line_end": 169,
+          "raw_log": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4/c14aee7446704531bb7e871b6ae77684-release-fixture.jsonl",
+          "original_sequences": [
+            3,
+            13,
+            17,
+            1366,
+            1373,
+            1381,
+            1384,
+            1393,
+            1396,
+            1405,
+            1408,
+            1410,
+            1412,
+            1421,
+            1424,
+            1427,
+            1430,
+            1433,
+            1436,
+            1438,
+            1442,
+            1448,
+            1452,
+            1454,
+            1455,
+            1456,
+            1457,
+            1459,
+            1460,
+            1461,
+            1466,
+            1470,
+            1472,
+            1475,
+            1476,
+            1477,
+            1484
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "EBBDE0D0410BB22479EB835C9F68150C23E3004415E15156AFB0FEF927853CD5",
+            "AF31D40EBA1FB882FC13EA8F634DE78E1579BDDDBE1CA08A997DD9F5A1FE1E38",
+            "40FF4A13294AA8333EA7FED6DE7A9F86AB94ADF4EEE7300F190D0922494616B1",
+            "D4E30A091B8F60DE1D6EBC7663BD78D017B7A55E9472C04BBECDFD0381E05AE8",
+            "AD8FD9EB31313999103E2E6C68E045DDE42C65656DF5D3253142B7FA3E3C11C5",
+            "3CDCD3EE2CBB3E25FD6394312CBF95F2AF53CC04443BD20372C9974F4AFED1CE",
+            "8D38D6781C16323D22794288E3E46087CF0A807A2D4F9EA9DC089506BBEF6CF0",
+            "ADFE7006596AEAB4967D217D258C1BE7A95B1466893011AA4309A6F3EF97EFA4",
+            "5835818BDABBD97ABB8E2E914C66299FDDC8FB5EB3DFB1B7867980344546C080",
+            "2B4CDAC46DB2F61B2E04B7FB2BB70956F9E9D86927989D5EDB44F1AC8F3CFBFC",
+            "6FF3DADC5C891A885A001CAA125979DB20BEF917B5B7AE8E99CF252F97FE4ED1",
+            "012CC19CF157A175289C91B836A78A277A67A76857DEEE82CC96D43C3E86AF10",
+            "0DEEA8D5C1E5C65AE1DCCE2F8CCC6214B699B850DE1BBBCC35918EE7A14FB003",
+            "AF9C316AE696CD4843803D580599C4F8693D023789389039E375627A4E6D5D30",
+            "5E10023AAAF5599D3F0E698802F7F427C2F35D5FCF1CC8D21CAC6F717C5817A0",
+            "52B58E60A3D4C3CFAC33132AEBA9AA8B1760C0E871F4DAE5C9FA1861ED1E22A1",
+            "6DE1D895F46823F36A1C38E0BD07B36EAF3D6D6E5F19A1663754EBB9E5DF9565",
+            "CBD946D0131F5D5E66E3C23F4470E79F420993389CB62747238D5656F48C2598",
+            "984E718DDFF24DC33650AE9D5E2E896A9B2CB8635E4934DEF680E12F8C08079D",
+            "78BA4DA74878E031D6F83C246E128A0725A2D0C7A290B8D5519BF8D1ED8B04FD",
+            "963958D715B71B344148D2D6ACC0F41D3C21BE685C960F2DE232F44296E8206A",
+            "CA82A2F9A085CE1424CBF233F0B406040D8BD70CD0E4B3836C3FB43FDE1F66D4",
+            "A161C7B7A9747FC208AB32B6DBEB1507FE5236624C39A6B13EC1E84F84D3EF82",
+            "19D74A636547AE3EA7DCAF1682A30DBE4FC6675FA20417A02DB173729F731C90",
+            "AE81C8C40DBF6797F2D60DC112E0416A83AB173B1D91EB24CA722C04AFE64971",
+            "4A59346A5EEAA3AD83D46751E2FE6FAC43F0C8C6CF22589A6F238184D3E0E427",
+            "0AA2A1A8E8015BAF3F29585319090CC82F5982D1DA147E77391EC9551D1A9F68",
+            "1CA3D842429AD0EE88EDCE0BE6030C645A3C4B465C719CBA26160E3F5310E4BC",
+            "675E41D74BB96CC1AAAB15BB9310149FC0C447F81D1C7711FE50BEC8778B647F",
+            "B86287B85335BD13ADD67FD7569493C1571434455753C7BAF244F3BDDB45F47F",
+            "F10D727CB209505C1CD321F4D007FD3F79D861DBA5080992CE568A92DA57A748",
+            "CCC8B19F71FE1B8814CFCDC5CC369D8DFA864D375FBF7514CF9B39E562534DD5",
+            "522100BC5C58529079060F50FF1CA4E8D6E6AFBA8A0465A2102262C2C728FC28",
+            "3E64CBAEE32EB1DD9E47C46ADD8C00268D1D066B0A93EEF4DC46724B6656865D",
+            "B993300229865889A659D61D99C1329774E2B5C6AE44F20096FB6C274B939830",
+            "ACC95A82015ECB533BA3433CE5F94E1322FCF11B7B926D84E50995FE7D866BA2",
+            "DAD7BC6C4FAE83140D4C71223D1DDDD611A4A0DD62F73B991657B0FD8B07F474"
+          ]
+        },
+        {
+          "producer": "product",
+          "excerpt_line_start": 170,
+          "excerpt_line_end": 187,
+          "raw_log": "uat/v1-control/c14aee7446704531bb7e871b6ae77684/collection-20261024T094645346Z-f52f1fee7fa741a99b0558e9031c64f4/c14aee7446704531bb7e871b6ae77684-product-Release/panebind.log.jsonl",
+          "original_sequences": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            7,
+            26,
+            60,
+            94,
+            128,
+            131,
+            132,
+            133,
+            134,
+            166,
+            167,
+            186,
+            187
+          ],
+          "raw_line_sha256_utf8_no_eol": [
+            "428C1A6D9ACDA68094F8D4172B0BC3ED05DF13D4BE33CCA113084578E08549F5",
+            "BD2F7601A3FA15226128976CE051F6BE1D7771656FBAB09923875C246FC51BD0",
+            "BEB4C006B13F262D199142355E5CC62449776DA58A7BDED09A799832251F3F1F",
+            "7F5032A81DBBCF1164002C2EEEA51378757C284735F3D58BE3F4F03067824A21",
+            "6C912905B65A3426457C4D4E4570002FD20401A81E552EEDFEDAB391F332476C",
+            "9FEDDA5F843D0801620CF3B767FC3F0C3C73E3630BE2D2D50B2518F195887414",
+            "5DCEEA695D9661DCD84D452401E210CCE1D0298A8389680F4281232C2D7147F8",
+            "447BE5105F4A74B307AAB79AB2BF1ACD40FC88202156F27C26A9F7B56EC4273A",
+            "1FBEB12C1D3AEE1124A3F33308BD4B35C27D28B6258045886C9BCC5F83B54B21",
+            "1ECFFBE38627507FCC91C5CABAAC5EA3936C6EA23DBACCC5C732ED82393186E2",
+            "C2F4BAB6511733CD4346516331E9B2CE4435F67A30E47FD10DF52D1D98B34EBF",
+            "206752A8239E7F679A991718F507F09340EC455661BA9156E9BEC8751909035C",
+            "EDE70E9C339542DB6AF3FA2A4E50F1B01C7E6F34C26A73626F12B2F000D94CF4",
+            "D33E31F2024A8633060E936F7225DEFB87B42BA93BFE625E1598DEBE7A7DC4ED",
+            "38F45AB5DAC814F3C564A35DD5DDFE572FFDEF8A00777EF83C325A007A2E1410",
+            "B741AC88E91DF3A69575042435A0E3BA2E35AF430CB6CD5634FD110348B8885E",
+            "E9B270B25B0B1F75F9D683F82B901114F82DA643E454E21FEDAE3260E658D492",
+            "17437F9866CBC8F3FA6122839B937A4089B35DC6F3F327005274ED07DD362AD9"
+          ]
+        }
+      ]
     }
   ],
+  "tooling_followup": {
+    "driver_source_sha": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+    "frozen_product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+    "product_rebuilt": false,
+    "build_receipt": {
+      "path": "uat/v1-control/driver-direct-cmd-ffbaf84-8510c886fc6c44c8a3e3ea2f7bfa2e9b/receipt.json",
+      "bytes": 2290,
+      "sha256": "E23FBFBC2B3073A4C5897E24D06D2E7A96821A554D4675BBCB480ED9DB7CAC87"
+    },
+    "actual_Debug_and_Release_driver_build_PASS": true,
+    "actual_guest_path_each1_of1_PASS": true,
+    "archived_ctest": [
+      {
+        "configuration": "Debug",
+        "path": "uat/v1-control/driver-direct-cmd-ffbaf84-8510c886fc6c44c8a3e3ea2f7bfa2e9b/Debug-guest-path-ctest.txt",
+        "sha256": "2C27AF62E0EF9A1AC74014CB0BFC2F80E77FCA0A13B9FA04A4673D17593F4641",
+        "driver_sha256": "DECF4A26FAAE2F53FCBD54AAF917EB7EC885B7015D2411874600189EBFD7DD57"
+      },
+      {
+        "configuration": "Release",
+        "path": "uat/v1-control/driver-direct-cmd-ffbaf84-8510c886fc6c44c8a3e3ea2f7bfa2e9b/Release-guest-path-ctest.txt",
+        "sha256": "E667D26752724C404520A80D39851A59A9B6A209F7C84A8F60F27EB4B8FC10A1",
+        "driver_sha256": "2E5F0E01163C49FA01E3444E3801DF8870BC6B2FBBEBCCBA2D96B10300A2AEB5"
+      }
+    ],
+    "host_guard": {
+      "receipt": {
+        "path": "uat/v1-host-guard/ee8e7cfb90b24bf684e8c8a372e4abc2/receipt.json",
+        "bytes": 15206,
+        "sha256": "7F9902F977E71272CFE2DD3FD9DD4826EF1B1FB5FEA28D83289B9FC6DC308D78"
+      },
+      "actual_full_argv_exit78_count": 4,
+      "no_guest_feature_PASS_inferred": true
+    },
+    "packaged_runs": [
+      {
+        "run_id": "c80b54d9fa864b12bfc197c6b80df8da",
+        "receipt": {
+          "path": "uat/v1-sandbox/c80b54d9fa864b12bfc197c6b80df8da/package-receipt.json",
+          "bytes": 13348,
+          "sha256": "6418D5F45E0113991C23110FB6A2A68A44DA587F1145D75C3B5F96787EE14F3E"
+        },
+        "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_source_sha": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "ZIP_sha256": "7B5F817FFDBCA9AD1D225CF4E36A8248D43F924E65F861E99D83420D91233FA1",
+        "manifest_sha256": "975FBEF84DCEA0295851DC829BDB6CAF6557DEA800541A71F6BF4730D7A2E668",
+        "WSB_sha256": "05C30BD50407A31D145C42F0E91E3339123BAF769400458A625FABCB3B150BF3",
+        "package_metadata_not_rewritten_to_runtime": true
+      },
+      {
+        "run_id": "c14aee7446704531bb7e871b6ae77684",
+        "receipt": {
+          "path": "uat/v1-sandbox/c14aee7446704531bb7e871b6ae77684/package-receipt.json",
+          "bytes": 13338,
+          "sha256": "BDA09E397BF91086177F38C4884D045A977EBCFCF53463727ACC2C232E7AC948"
+        },
+        "product_source_sha": "2787f93cbf44339206cafc9e4d7f78d5cacae866",
+        "driver_source_sha": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "packaging_head": "ffbaf84994a238f7d3f1666adbff91010b5fde1e",
+        "ZIP_sha256": "9E3EC71613F91C6753688D4BC7EC60FC298399B893BA03461852CCE61F507C71",
+        "manifest_sha256": "A79527F487ABE55866A4B361205C375EB4ED666E424D6FDC8779060C30D36172",
+        "WSB_sha256": "0E66A82989CE0C0F99F91D3A1379D3EB2D88F72D8AD89CFA107E6707CC7C673A",
+        "package_metadata_not_rewritten_to_runtime": true
+      }
+    ],
+    "controller_sha256_at_c80_Run": "A4CDC0BDA87E663D80AEF6B6738212B8763A992798332244FE79108345F942AA",
+    "provenance": "TEST-only directcmd/fair-pump follows sourceffb with frozen product2787 and existing guest contract. Source identity/build/host guard evidence is not runtime permission or a client/product PASS; current mutable controller is not used as historical hash authority.",
+    "c15_failed_build_history": "Main executor reported initial Debug C2110/C2660 in out/v1-driver-direct-cmd-c15bb42; original build logs retained. Independent std::string correction inffb built D/R and unit-tested. No candidate guest ran the failed build.",
+    "c14_review_state": "SEALED_ACTUAL_GEOMETRY_SCOPED_PASS_TRAY_BLOCKED_NF02_MAX50498US_FAIL_TWO_COLLECTION_FAILURES_PRESERVED",
+    "intermediate_4e88_build_qualification": {
+      "source_sha": "4e880a26c7fa60b124730c4e7de6db593cf9f34e",
+      "Debug_build_and_selected8_offline_actual_PASS": true,
+      "Release_build_and_selected8_offline_receipt_exists": true,
+      "receipt_path": "uat/v1-control/build-4e880a2-3dbb001e74a9496ea19f32029f385a53/receipt.json",
+      "receipt_sha256": "B46D599CA626AFA66E3EF388E909680ED5BADD65F5EF05553C67C5D1ABCD5894",
+      "receipt_generation_utc": "2026-10-24T10:03:35.8247876Z",
+      "qualification": "NOT_A_FROZEN_DELIVERY_CANDIDATE_DO_NOT_DEPLOY",
+      "reason": "Main executor confirmed ccde014 was committed and two source files changed before the4e88 Release build finished. The actual Debug8 PASS and later Release8 receipt/logs remain, but the combined build is not sealed as one clean frozen-source candidate; possible mixed-source identity is not asserted resolved by the receipt source field.",
+      "original_logs_and_artifacts_retained": true,
+      "product_mechanism_failure_inferred": false,
+      "guest_runtime": "NOT_RUN"
+    },
+    "successor_candidate_pending": {
+      "source_sha": "ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3",
+      "build_directory": "out/v1-nf02-tray-ccde014",
+      "build_status": "DEBUG_RELEASE_BUILD_PASS_SELECTED8_OF8_OFFLINE_EACH",
+      "native_runtime": "NOT_RUN",
+      "scope": "Same-size Move post-track-query omission is additionally limited to !r.destination. Explicit destination/cross-display or DPI-transfer cases retain the complete post-limit query; one negative production-path test added. Fresh clean D/R rebuild includes end-of-build HEAD/source-clean verification. No2787 guest result or42ab ordinary portable result is rebound to this candidate.",
+      "binary_hashes": {
+        "Debug_product": "E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A",
+        "Release_product": "D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3",
+        "Debug_driver": "76EAB29C329466892E6D198908F84758463BA7253A0D1B76F61DF66CB59B5A32",
+        "Release_driver": "9D2D1E72852A09365BF415C6CB1A5FB80AB5565011061AE566DC208771DB843D"
+      },
+      "actual_build_receipt": {
+        "path": "uat/v1-control/build-ccde014-c20738458c25454f8ff872e310ccdeb1/receipt.json",
+        "bytes": 3362,
+        "sha256": "27A22C773A64689B73374D90C2E5676DF8FBF804E72EF358E4FCDD57A788DC3E",
+        "Debug_original_ctest_sha256": "88BB9BBC4C9DD3366385A8C8A4FDBB9E3645545B7EF0FDADA94F4D84994ADA2C",
+        "Release_original_ctest_sha256": "B4C885351B4953798E5DBBBFC575EB04A7307E0DFA60F17FB7A378D1E309FBEA"
+      },
+      "actual_host_guard": {
+        "path": "uat/v1-host-guard/76a563c84ead42d6940463fc4b3b8dae/receipt.json",
+        "bytes": 15159,
+        "sha256": "95514B6C75B2C653496E9E5B810ABA3781B981CB783240016391732E27CC5C7B",
+        "full_argv_exit78_count": 4,
+        "guest_feature_PASS_inferred": false
+      },
+      "guest_or_feature_PASS_inferred": false
+    }
+  },
   "acceptance_boundary": {
     "new_feature_or_B_PASS": false,
     "whole_version_PASS": false,
