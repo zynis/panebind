@@ -3542,3 +3542,15 @@ fresh post-call limits. All new placement admissions still query the application
 and actual Resize, failed/unknown completion and other operations retain the
 old query. This does not establish which API caused the old timing tail or award
 a performance PASS; the changed candidate needs separate affected runtime data.
+
+The later 13a same-candidate run still failed NF02. Its second Ctrl member is
+the TEST blank owned by the evidence driver's STA, not an independent app event
+loop; a pre/post predicate pump does not service that target during a synchronous
+evidence predicate. The next TEST contrast isolates that target's ordinary UI
+loop from the driver while retaining exact Run membership and identity. The
+official [SetThreadDesktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setthreaddesktop)
+and [MsgWaitForMultipleObjectsEx](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-msgwaitformultipleobjectsex)
+contracts were read for desktop assignment before GUI creation and an event-driven
+owner loop with its own stop event. No product input, writer, permission or
+candidate binary is changed by this TEST isolation. It does not presuppose a
+timing PASS, remove the old failure or substitute owned results for real apps.

@@ -1,10 +1,10 @@
 # PaneBind V1 集中交付进展
 
-## 当前接续：2787五批实际定向结果，ccde014已构建待现场，普通便携仍绑定42ab（2026-10-24）
+## 当前接续：ccde／13a真实子范围与TEST失败，普通便携仍绑定42ab（2026-10-24）
 
-**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。本轮不增加分数。** 最新定向产品为冻结`2787f93cbf44339206cafc9e4d7f78d5cacae866`／Release EXE `811A980FD5A0E00F9EDEC4EF3FFAF88C42C453FA7EF28EC33E4738988890BC92`；三个原始Run的driver亦为2787／R `A0CF3E526CFEC5311B060EE17A1A6E5F6648D975CD08C7356D0337C4DDF6AB81`。**已验普通便携包仍为42ab／d5f5／f78，不改绑2787；本批不授新普通ZIP、宿主试用、完整Medium或整版PASS。**
+**生产接线60/60，独立DEV44/60，对标22/40＝55%，模块0；整版PARTIAL，真人UAT PENDING。本轮不增加分数。** 最新实际定向产品／TEST均为冻结`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`，13a Release产品`D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3`／driver`9D2D1E72852A09365BF415C6CB1A5FB80AB5565011061AE566DC208771DB843D`，包装881a15c。原2787三批及ffb／2787的c80／c14各保原身份，不把旧结果换绑ccde。**已验普通便携入口仍是42ab／d5f5／f78；新ccde普通2579包仅已生成、普通GUI NOT_RUN，不授宿主试用、完整Medium或整版PASS。**
 
-用户通知Sandbox可用后，983／4511／72bd及后继ffb TEST的c80／c14均已串行真实执行、稳定收集及精确guest／任务清理，不再是NOT_RUN或等待其它项目释放。原始哈希、187条字面摘录和64位身份见[集中review](v1-evidence/20261024-targeted-guest-review.json)／[摘录](v1-evidence/20261024-targeted-guest-review.jsonl)：
+本轮六个guest Run均已实际执行、稳定收集及精确guest／任务清理。原始哈希、250条字面摘录和64位身份见[集中review](v1-evidence/20261024-targeted-guest-review.json)／[摘录](v1-evidence/20261024-targeted-guest-review.jsonl)；以下2787五Run原结论保持原身份，后接ccde／13a：
 
 - **983**：普通无参Medium GUI真实前台，唯一Esc配对insert2且设置确实销毁。UIA ElementFromPoint／PID查询HRESULT0，但providerPID0，后续语义字段未查，守卫拒绝，**没有托盘click**。初NIM_ADD=false、随后ADD／SETVERSION=true，不写永久注册失败，也不等于图标消息送达。
 - **4511**：真实精确Medium Terminal根成立；ready仍0B、实际有界等待超时。原BMP已查看，显示cmd启动错误`3489660962 (0xd0000022)`，具体失败API／原因UNKNOWN；客户零输入，产品未启动。一次正常WM_CLOSE后rootGone与held进程signalled／exit0独立成立，不推全部后代退出。原Collect因本Run bootstrap／ready白名单缺项而拒绝的失败保留；仅sidecar恢复采集，原9D模板快照、expectation和owner不改，不当功能修复。
@@ -16,7 +16,10 @@
 - **c14几何限定PASS、NF02仍FAIL**：同冻结2787产品／ffb TEST，产品PID5320完成Move→右Resize→后继Move、Free→XY吸附→Hold真实noop→Detach→Resnap及实际两成员Ctrl，五代均有Raw／legacy NormalUp和release／detach／Gone。9次native exact／identity／完整post-context通过；Hold P132不冒第10次调用。P186 callback33／p99桶999µs／max851µs仅本scope通过；native9／p95桶99999µs／max50498µs仍未达50ms，不能四舍五入PASS或宣唯一原因。托盘仍providerPID0，守卫拒绝且无click；客户内容NOT_RUN，整体FAIL保留。
 - **c14采集与清理**：原64MiB文件保护拒绝80962092B fixture、恢复v1误用本地launch文件名的两次失败均保留。immutable v2只放行精确Run fixture至128MiB，其它文件64MiB／count128／总256MiB及归属门保留；8artifact前后哈希稳定，原A4 controller、owner、expectation、launch未改，不当功能修复。Terminal held进程正常0、根关闭及产品公开quit／自身资源退出有据；Default回切和本地句柄退出另判，Shell后代仍活／wrapper descendants1／forced=true，整体树UNKNOWN，guest销毁不补PASS。
 
-ffb TEST的D/R构建、guest-path各1/1及四完整argv宿主Exit78已实际通过，c80／c14运行保原2787产品和各自ffb身份。原c15及96cb编译失败、日志均保留。4e88 Debug8项确实通过，Release最终也有8项回执，但主执行器在其结束前提交ccde并改变两source文件，因此4e88整批不作冻结候选、不部署，不推产品机制FAIL。最新候选`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`已从冻结source干净D/R构建、所选8项offline各8/8，四完整argv宿主保护实际Exit78（零宿主GUI／输入）。原生CTest及build receipt位于`uat/v1-control/build-ccde014-c20738458c25454f8ff872e310ccdeb1/receipt.json`，SHA-256 `27A22C773A64689B73374D90C2E5676DF8FBF804E72EF358E4FCDD57A788DC3E`；D产品`E5A4ADC36BA40FB2197429BA1378A26EE4B6C20F8FB7D684278C7B8B713C7F7A`／R产品`D40C9D3E33D8E57927E95E1AAF36CF1813670C3D1D6C3B2332962DD5BA75D8B3`，driver及原CTest哈希见集中review。same-size Move后验省去额外track查询严格限`!r.destination`，明确携带preflight真实limits而非fresh；precall权限／limits、Resize及跨display／DPI转移保持完整后验查询。**guest NOT_RUN，尚无新普通便携结果**；预留Run `13a2871f78024e8984c1c21f9e3b22ba`仅待封包／定向几何、真实Terminal min／后继Move／UP和NF验证，不拿构建代功能，不把2787五Run或42ab／d5f5换绑，不扩Full／900矩阵。44／22不增。
+- **13a新ccde前五代限定PASS**：同产品PID6132／精确Terminal完成Move→右Resize→后继Move，再Free→XY吸附→Hold真实noop→Detach→Resnap及实际两成员Ctrl，五代Raw／legacy NormalUp、release／detach／Gone有据，9native均exact／identity／完整postcontext。Move真实记录carried preflight limits、非fresh查询；Resize P60仍实际post-query。P203 callback35／p99桶999µs／max885µs仅本scope通过；native9／p95桶99999µs／max51639µs仍FAIL，不能择优或称物理显示延迟／唯一根因。
+- **13a第六代为TEST断言错误，最小约束仍未完成**：D1529实际有界WM_GETMINMAXINFO返回native min714×152、frame差18／9→独立visible min696×143，customheight／oracleknown成立；真实bottom Resize为region4。g6已有原生START→cancel→真实END→ATI／captureReady→gesture_start，但旧TEST把任意Resize硬编码right2，D1533误拒；无g6 placement／实际UP、无min clamp／后继Move结果，不冒产品拒绝或约束PASS。实际D1533／1540 test_pair_unknown／cleanup=false，D1546 Default回切未确认；P204产品自身hooks／worker／shield资源停止、publicquit exit0不补测试配对、Default或全树PASS。wrapper wait0／exit1／descendants2／forced=true原值保留，10:17:55.3541365Z精确guest／任务清理且证据未变另判。
+
+ccde干净D/R构建及所选8offline各8/8、四宿主完整argv Exit78回执仍见`uat/v1-control/build-ccde014-c20738458c25454f8ff872e310ccdeb1/receipt.json`。原c15／96cb编译失败以及4e88因结束前source改变而非冻结候选、不部署的中间产物保留；不是产品机制FAIL。下一步只使用冻结ccde EXE配新TEST-only bottom expected4及blank独立own UI线程驱动，定向完成实际Terminal min／后继Move和NF；同STA与一次native15.613ms只是实测耦合事实，不预判原因或改善。后继driver尚待新身份／构建／Run，不重建ccde产品、不扩大Full／900。新普通便携2579的ZIP `2664A6444ADB7FCE40AC7FC68B02D0493A751E7DC9DA03793E8986538188F272`／manifest `4E1208A3966FD375AA761D280F77D0F2E398DDEF7383D0EE9A1629BBA8D2C9C4`已校验七载荷及依赖，但普通运行NOT_RUN，不替代42ab已验入口。
 
 ## 历史：2787构建／部署检查点（2026-10-23，后续实际结果见上）
 

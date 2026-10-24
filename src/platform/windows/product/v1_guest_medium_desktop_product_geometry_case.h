@@ -522,6 +522,9 @@ class MediumDesktopProductGeometryCase {
         }return rejected;
     }
     void one_gesture(int region,LONG dx,LONG dy,const char* phase,bool five=false,bool ctrl=false,bool minimum=false){
+        unsigned expected_region{};
+        switch(region){case HTCAPTION:expected_region=0;break;case HTRIGHT:expected_region=2;break;
+            case HTBOTTOM:expected_region=4;break;default:throw std::runtime_error("geometry_unsupported_test_nonclient_region");}
         if(!admission()||!refresh_target()||!admission()||!target_exact()||!status()||!no_buttons())throw std::runtime_error("geometry_fresh_idle_not_ready");
         const auto original=visible(target_);RECT positioning{};const auto original_dpi=GetDpiForWindow(target_);
         const auto original_monitor=MonitorFromWindow(target_,MONITOR_DEFAULTTONULL);
@@ -550,7 +553,7 @@ class MediumDesktopProductGeometryCase {
             if(!id||id<=last_generation_||number(pending,"\"source\":")!=reinterpret_cast<std::uintptr_t>(target_)||
                 number(pending,"\"source_pid\":")!=target_pid_||number(pending,"\"source_tid\":")!=target_tid_||
                 !number(pending,"\"source_key\":")||number(pending,"\"down_hook_qpc\":")<down_qpc_||pending.find(expected)==pending.npos||
-                number(pending,"\"actual_DOWN_region\":")!=(region==HTCAPTION?0u:2u)||number(pending,"\"locked_modifiers\":")!=(ctrl?2u:0u))
+                number(pending,"\"actual_DOWN_region\":")!=expected_region||number(pending,"\"locked_modifiers\":")!=(ctrl?2u:0u))
                 throw std::runtime_error("geometry_actual_DOWN_identity_generation_or_anchor_mismatch");
             generation_=id;source_key_=number(pending,"\"source_key\":");
             out_.emit("medium_product_geometry_actual_DOWN","\"phase\":"+quote(phase)+",\"receipt\":"+quote(pending));return true;},1000))

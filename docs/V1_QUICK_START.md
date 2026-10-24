@@ -2,7 +2,7 @@
 
 当前候选仅供已授权隔离环境复核，尚未达到普通宿主试用或整版验收门槛；真人 UAT 为 PENDING。本文下方是普通产品入口的操作说明，不要求自动驱动。历史构建、失败和阶段进展统一见[集中报告](reports/V1_DELIVERY_REPORT.md)与[验收表](reports/V1_ACCEPTANCE.json)。
 
-后继隔离定向构建`2787f93cbf44339206cafc9e4d7f78d5cacae866`已有五批实际结果：983 GUI／Esc有据但托盘UIA providerPID0拒绝、无click；4511及ffb／c80客户前置仍失败，c80 cmd实际创建但exit0xC0000142／0B、child桌面UNKNOWN，Terminal仍ready0／0xd0000022，产品未启动。72bd及ffb／c14真实Move／Resize／后继Move／五阶段磁吸／两成员Ctrl和五代NormalUp限定通过；c14完整后验native9／p95桶99999µs／max50498µs仍FAIL，不能四舍五入通过。Shell树清理仍UNKNOWN。**以下已验普通便携入口仍为42ab／d5f5／f78；不把旧ZIP改绑2787，不由定向结果开放宿主试用、完整Medium或整版PASS。** 新生产／TEST候选`ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`已通过干净D/R构建与所选8项offline各8/8，四完整argv宿主保护Exit78；guest NOT_RUN，尚非新普通便携包。前96cb编译失败及4e88冻结source不完整的中间构建保留，不部署后者；原2787和ffb实际运行身份不换绑；范围见[集中review](reports/v1-evidence/20261024-targeted-guest-review.json)。
+最新隔离定向产品／TEST `ccde014d0f3ca2ef8900f331c3794bddcdbf3ad3`已在13a实测：前五代Move／右Resize／后继Move／五阶段磁吸／两成员Ctrl和真实NormalUp限定通过，native9完整端点p95桶99999µs／max51639µs仍FAIL。第六代真实bottom region4被TEST的right2断言误拒；实际已到captureReady／gesture_start，但没有min clamp／后继Move／UP结果，测试配对和Default回切未确认，产品自身资源停止不补全链清理。旧2787五Run原身份不变。**以下已验普通便携入口仍为42ab／d5f5／f78；新ccde普通2579包仅已生成、普通GUI NOT_RUN，不把旧ZIP改绑、不开放宿主试用或整版PASS。** 后继只改TEST做定向修正，未有新driver身份／现场结果，不预填改善；范围见[集中review](reports/v1-evidence/20261024-targeted-guest-review.json)。
 
 - 当前已实测产品源码：`42ab2cea202e2ebd8c2c6e5bd7b646c3e5540f97`。
 - 当前已实测Release EXE SHA-256：`0148EC8512CD88CF12239CE3FD588CBF2BB04111E5A25765CCFBA769474ED737`；D／R构建、affected offline各7/7及四hostguard78通过。

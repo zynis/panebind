@@ -1879,4 +1879,13 @@ Assert-V1PlacementPostLimitPolicy $placementWriterSource
 Check $true 'static actual immediate and delayed captures use the tested post-limit policy without removing fresh admissions'
 Reject {Assert-V1PlacementPostLimitPolicy ($placementWriterSource.Replace('retain_placement_preflight_limits(result);',''))} 'static post-limit bypass cannot silently replace real preflight bounds with default limits'
 Reject {Assert-V1PlacementPostLimitPolicy ($placementWriterSource.Replace('catalog_.get(expected.hwnd, settings, &capture_reason);','catalog_.get(expected.hwnd, settings, &capture_reason,false,false);'))} 'static post-limit exception cannot disable the next actual fresh placement admission'
+function Assert-V1GeometryBottomRegion([string]$Geometry){
+    if(-not $Geometry.Contains('case HTBOTTOM:expected_region=4;break;') -or
+       -not $Geometry.Contains('number(pending,"\"actual_DOWN_region\":")!=expected_region')){
+        throw 'The real bottom-edge test DOWN must match domain region4, not the old right-edge region2.'
+    }
+}
+Assert-V1GeometryBottomRegion $mediumGeometrySource
+Check $true 'static actual minimum-resize DOWN branch checks the observed bottom region4'
+Reject {Assert-V1GeometryBottomRegion ($mediumGeometrySource.Replace('case HTBOTTOM:expected_region=4;break;','case HTBOTTOM:expected_region=2;break;'))} 'static minimum test rejects its old deterministic right-versus-bottom mismatch'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
