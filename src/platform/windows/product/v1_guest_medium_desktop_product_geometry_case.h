@@ -501,7 +501,10 @@ class MediumDesktopProductGeometryCase {
         const auto delta=min_height-1-original.height();
         if(delta<std::numeric_limits<LONG>::min()||delta>std::numeric_limits<LONG>::max())
             throw std::runtime_error("geometry_Terminal_below_minimum_input_delta_out_of_range");
-        dy=static_cast<LONG>(delta);return {original.l,original.t,original.r,original.t+min_height};
+        const auto bottom=static_cast<std::int64_t>(original.t)+min_height;
+        if(bottom<std::numeric_limits<LONG>::min()||bottom>std::numeric_limits<LONG>::max())
+            throw std::runtime_error("geometry_Terminal_minimum_expected_bottom_out_of_range");
+        dy=static_cast<LONG>(delta);return {original.l,original.t,original.r,static_cast<LONG>(bottom)};
     }
     // Read current-launch diagnostics, not a private writer or a substitute
     // for the exact geometry and matching real release checks below.
