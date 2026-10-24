@@ -34,7 +34,7 @@ class MediumDesktopProductGeometryCase {
     bool native_threshold_step_{},continuation_ready_{};
     std::optional<POINT> down_anchor_;HWND down_hit_{};int down_region_{};
     unsigned notifications_{};bool fair_wait_pump_used_{};std::string terminal_reason_;
-    std::string last_status_;
+    std::string last_status_,last_status_failure_;
     static std::string manifest_string(std::string_view text,std::string_view field){
         const std::string key="\""+std::string(field)+"\"";auto at=text.find(key);
         if(at==text.npos||text.find(key,at+key.size())!=text.npos)return {};
@@ -185,20 +185,39 @@ class MediumDesktopProductGeometryCase {
         auto command=L"\""+product_.wstring()+L"\" --status";const bool attempted=admission();SetLastError(ERROR_SUCCESS);
         const bool created=attempted&&CreateProcessW(product_.c_str(),command.data(),nullptr,nullptr,FALSE,0,nullptr,
             product_.parent_path().c_str(),&startup,&info)!=FALSE;const DWORD error=created?0:GetLastError();
-        Handle process(info.hProcess),thread(info.hThread);DWORD code=STILL_ACTIVE;bool exited{};
+        Handle process(info.hProcess),thread(info.hThread);DWORD code=STILL_ACTIVE;bool exited{},code_read{};
         if(created)exited=wait_for([&]{return WaitForSingleObject(process.value,0)==WAIT_OBJECT_0;},1000,true,process.value);
-        if(exited)GetExitCodeProcess(process.value,&code);
-        std::string actual;const bool observed=created&&exited&&code==0&&wait_for([&]{actual=row(mark,"status");return !actual.empty();},500);
+        if(exited)code_read=GetExitCodeProcess(process.value,&code)!=FALSE;
+        std::string actual;const bool observed=created&&exited&&code_read&&code==0&&wait_for([&]{actual=row(mark,"status");return !actual.empty();},500);
         last_status_=actual;
-        out_.emit("medium_product_geometry_status","\"CreateProcess_attempted\":"+std::string(attempted?"true":"false")+
-            ",\"command_created\":"+(created?"true":"false")+
-            ",\"create_error\":"+(attempted?std::to_string(error):"null")+",\"command_exited\":"+(exited?"true":"false")+
-            ",\"exit_code\":"+(exited?std::to_string(code):"null")+",\"actual_receipt\":"+(actual.empty()?"null":quote(actual)));
         const product::guest::UpEvidenceIdentity identity{product_pid_,source_,generation_,up_qpc_};
-        return observed&&actual.find("\"enabled\":true")!=actual.npos&&actual.find("\"hook_owner_running\":true")!=actual.npos&&
+        const bool healthy=observed&&actual.find("\"enabled\":true")!=actual.npos&&actual.find("\"hook_owner_running\":true")!=actual.npos&&
             actual.find("\"gesture_active\":false")!=actual.npos&&actual.find("\"native_move_handoff_pending\":false")!=actual.npos&&
             actual.find("\"native_operation_pending\":false")!=actual.npos&&actual.find("\"native_completion_unknown\":false")!=actual.npos&&
             (!generation_||product::guest::matching_idle_status(actual,identity));
+        const auto now=GetTickCount64();const bool deadline_expired=now>=deadline_;
+        last_status_failure_.clear();
+        if(observed&&!healthy)last_status_failure_="status_actual_health_or_idle_rejected";
+        else if(!healthy){
+            if(deadline_expired)last_status_failure_="status_subdeadline_expired";
+            else if(quit_seen_)last_status_failure_="status_WM_QUIT_observed";
+            else if(!attempted)last_status_failure_="status_admission_rejected_UNKNOWN";
+            else if(!created)last_status_failure_="status_command_create_failed";
+            else if(!exited)last_status_failure_="status_command_completion_UNKNOWN";
+            else if(!code_read)last_status_failure_="status_command_exit_code_UNKNOWN";
+            else if(code!=0)last_status_failure_="status_command_exit_nonzero";
+            else last_status_failure_="status_receipt_not_observed_UNKNOWN";
+        }
+        out_.emit("medium_product_geometry_status","\"CreateProcess_attempted\":"+std::string(attempted?"true":"false")+
+            ",\"command_created\":"+(created?"true":"false")+
+            ",\"create_error\":"+(attempted?std::to_string(error):"null")+",\"command_exited\":"+(exited?"true":"false")+
+            ",\"exit_code_read\":"+(code_read?"true":"false")+",\"exit_code\":"+(code_read?std::to_string(code):"null")+
+            ",\"actual_receipt\":"+(actual.empty()?"null":quote(actual))+
+            ",\"actual_healthy_idle\":"+(observed?(healthy?"true":"false"):"null")+
+            ",\"observation_tick\":"+std::to_string(now)+",\"subdeadline_tick\":"+std::to_string(deadline_)+
+            ",\"subdeadline_expired\":"+(deadline_expired?"true":"false")+",\"WM_QUIT_observed\":"+(quit_seen_?"true":"false")+
+            ",\"outcome\":"+quote(healthy?"status_healthy_idle":last_status_failure_));
+        return healthy;
     }
     bool capture_route(HWND* observed_overlay=nullptr) {
         const auto actual=row(0,"gesture_input_resource",generation_,"capture_ready");
@@ -836,7 +855,7 @@ class MediumDesktopProductGeometryCase {
                 throw std::runtime_error("geometry_coupled_abort_UP_destination_not_exact_owned_before_DOWN");
         }
         generation_=0;down_inserted_=up_attempted_=up_inserted_=false;native_threshold_step_=continuation_ready_=false;terminal_reason_.clear();
-        cursor(*hit);if(!status())throw std::runtime_error("geometry_product_prepare_status_not_healthy");
+        cursor(*hit);if(!status())throw std::runtime_error("geometry_product_prepare_"+last_status_failure_);
         const auto before_status=last_status_;const HWND actual_hit=WindowFromPoint(*hit);DWORD actual_pid{};DWORD_PTR actual_region{};
         if(hit->x<std::numeric_limits<short>::min()||hit->x>std::numeric_limits<short>::max()||
             hit->y<std::numeric_limits<short>::min()||hit->y>std::numeric_limits<short>::max()||

@@ -578,9 +578,23 @@ public:
                 ",\"actual_foreground_is_settings\":true,\"current_held_Run_desktop_membership_confirmed\":true");
             escape_settings(first,terminal_diagnostic?"diagnostic_settings_Escape":"ordinary_noarg_settings_Escape");
             {
+                // A geometry chain has its own finite budget inside the
+                // unchanged UI deadline. Leave time for close/tray handling;
+                // neither this allowance nor a failed status extends the Run.
+                constexpr ULONGLONG geometry_cap_ms=16000,geometry_reserve_ms=2000;
+                const auto geometry_begin=GetTickCount64();
+                const auto ui_remaining=geometry_begin<deadline_?deadline_-geometry_begin:0;
+                const auto geometry_budget=ui_remaining>geometry_reserve_ms?
+                    (std::min<ULONGLONG>)(geometry_cap_ms,ui_remaining-geometry_reserve_ms):0;
+                const auto geometry_deadline=geometry_begin+geometry_budget;
+                out_.emit("medium_desktop_ui_geometry_budget","\"begin_tick\":"+std::to_string(geometry_begin)+
+                    ",\"UI_deadline_tick\":"+std::to_string(deadline_)+",\"geometry_cap_ms\":"+std::to_string(geometry_cap_ms)+
+                    ",\"reserved_UI_ms\":"+std::to_string(geometry_reserve_ms)+",\"actual_geometry_budget_ms\":"+std::to_string(geometry_budget)+
+                    ",\"geometry_deadline_tick\":"+std::to_string(geometry_deadline)+",\"outer_deadline_extended\":false");
+                if(!geometry_budget)throw std::runtime_error("Medium_UI_geometry_subbudget_exhausted_before_start");
                 const auto geometry=medium_desktop_product_geometry_case(run_,desktop_,product_,process_,pid_,birth_,
                     product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,
-                    (std::min<ULONGLONG>)(deadline_,GetTickCount64()+12000));
+                    geometry_deadline);
                 out_.geometry_requested=geometry.requested;out_.geometry_completed=geometry.completed;
                 out_.geometry_magnet_completed=geometry.magnet_completed;out_.geometry_ctrl_completed=geometry.ctrl_completed;
                 out_.geometry_cleanup_known=geometry.cleanup_known;

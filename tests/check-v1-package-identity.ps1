@@ -2016,4 +2016,33 @@ Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('const bool 
 Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('*frame==coupled->after&&native==coupled->after_native','true'))} 'static coupled TEST target cannot silently accept arbitrary source changes'
 Reject {Assert-V1CoupledCallbackTest ($mediumGeometrySource.Replace('if(const auto accepted_seed=terminal_sizing_proposal(true))','if(false)')) $coupledBlankSource} 'static positive shared Resize cannot silently lose its independent actual proposal'
 Reject {Assert-V1CoupledCallbackTest $mediumGeometrySource ($coupledBlankSource.Replace('coupled_->before!=before||coupled_->before_native!=before_native','false'))} 'static next shared generation cannot silently rebase its locked exact neighbour'
+function Assert-V1GeometrySubBudget([string]$UI,[string]$Geometry){
+    $UI=$UI.Replace("`r`n","`n")
+    $call='product_launch_tick_,source_,sha_,still_exact_,[this]{return app_exact();},lease_,'+"`n"+'                    geometry_deadline);'
+    foreach($value in @(
+        'deadline_(GetTickCount64()+(std::min<DWORD>)(budget,20000))',
+        'constexpr ULONGLONG geometry_cap_ms=16000,geometry_reserve_ms=2000;',
+        'const auto ui_remaining=geometry_begin<deadline_?deadline_-geometry_begin:0;',
+        'const auto geometry_budget=ui_remaining>geometry_reserve_ms?',
+        '(std::min<ULONGLONG>)(geometry_cap_ms,ui_remaining-geometry_reserve_ms):0;',
+        'const auto geometry_deadline=geometry_begin+geometry_budget;',
+        'if(!geometry_budget)throw std::runtime_error("Medium_UI_geometry_subbudget_exhausted_before_start");',
+        $call)){
+        if(-not $UI.Contains($value)){throw ('Actual geometry call must reserve bounded UI time without extending the outer deadline: '+$value)}
+    }
+    foreach($value in @(
+        'const bool observed=created&&exited&&code_read&&code==0&&wait_for(',
+        'if(observed&&!healthy)last_status_failure_="status_actual_health_or_idle_rejected";',
+        'if(deadline_expired)last_status_failure_="status_subdeadline_expired";',
+        'else if(!exited)last_status_failure_="status_command_completion_UNKNOWN";',
+        'else last_status_failure_="status_receipt_not_observed_UNKNOWN";',
+        '",\"actual_healthy_idle\":"+(observed?(healthy?"true":"false"):"null")',
+        'cursor(*hit);if(!status())throw std::runtime_error("geometry_product_prepare_"+last_status_failure_);')){
+        if(-not $Geometry.Contains($value)){throw ('Actual status must separate observed unhealthy state from timeout and unobserved completion: '+$value)}
+    }
+}
+Assert-V1GeometrySubBudget $mediumUiSource $mediumGeometrySource
+Check $true 'static geometry uses a finite reserved subbudget and reports actual health separately from timeout/UNKNOWN'
+Reject {Assert-V1GeometrySubBudget ($mediumUiSource.Replace('geometry_cap_ms,ui_remaining-geometry_reserve_ms','geometry_cap_ms,ui_remaining')) $mediumGeometrySource} 'static geometry cannot consume the reserved UI cleanup time'
+Reject {Assert-V1GeometrySubBudget $mediumUiSource ($mediumGeometrySource.Replace('(observed?(healthy?"true":"false"):"null")','(observed?(healthy?"true":"false"):"false")'))} 'static unobserved command completion cannot be reported as actual unhealthy'
 Write-Output ('V1 packaging identity: '+$checks+' checks passed; no package, product UI or synthetic input was run.')
